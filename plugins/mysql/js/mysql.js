@@ -1116,7 +1116,7 @@ function setLocalImport(db_name){
     var layerIndex = layer.open({
         type: 1,
         title: "从文件导入数据",
-        area: ['700px', '580px'],
+        area: ['850px', '580px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
@@ -1162,7 +1162,7 @@ function setBackup(db_name){
     var layerIndex = layer.open({
         type: 1,
         title: "数据库备份详情",
-        area: ['700px', '580px'],
+        area: ['850px', '580px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
