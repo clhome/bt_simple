@@ -1079,6 +1079,9 @@ function setLocalImport(db_name){
             var rdata = $.parseJSON(data.data);
 
             var file_list = rdata.data.list;
+            file_list.sort(function(a, b) {
+                return (a.time < b.time) ? 1 : -1;
+            });
             var upload_dir = rdata.data.upload_dir;
 
             var tbody = '';
@@ -1205,6 +1208,9 @@ function setBackup(db_name){
 function setBackupReq(db_name, obj){
      myPost('get_db_backup_list', {name:db_name}, function(data){
         var rdata = $.parseJSON(data.data);
+        rdata.data.sort(function(a, b) {
+            return (a.time < b.time) ? 1 : -1;
+        });
         var tbody = '';
         for (var i = 0; i < rdata.data.length; i++) {
             tbody += '<tr>\
