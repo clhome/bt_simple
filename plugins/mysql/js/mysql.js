@@ -1116,7 +1116,7 @@ function setLocalImport(db_name){
     var layerIndex = layer.open({
         type: 1,
         title: "从文件导入数据",
-        area: ['700px', '380px'],
+        area: ['700px', '580px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
@@ -1125,7 +1125,7 @@ function setLocalImport(db_name){
                     </div >\
                     <div class="divtable">\
                     <input type="hidden" name="upload_dir" value=""> \
-                    <div id="database_fix"  style="height:150px;overflow:auto;border:#ddd 1px solid">\
+                    <div id="database_fix"  style="height:330px;overflow:auto;border:#ddd 1px solid">\
                     <table class="table table-hover "style="border:none">\
                         <thead>\
                             <tr>\
@@ -1162,7 +1162,7 @@ function setBackup(db_name){
     var layerIndex = layer.open({
         type: 1,
         title: "数据库备份详情",
-        area: ['700px', '280px'],
+        area: ['700px', '580px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
@@ -1171,7 +1171,7 @@ function setBackup(db_name){
                         <button id="btn_local_import" class="btn btn-success btn-sm" type="button">外部导入</button>\
                     </div >\
                     <div class="divtable">\
-                    <div  id="database_fix"  style="height:150px;overflow:auto;border:#ddd 1px solid">\
+                    <div  id="database_fix"  style="height:450px;overflow:auto;border:#ddd 1px solid">\
                     <table id="database_table" class="table table-hover "style="border:none">\
                         <thead>\
                             <tr>\
