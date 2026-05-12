@@ -62,7 +62,11 @@ bash deploy.sh rollback_bt
 #### 一键卸载
 如果您不再需要面板，可以执行以下命令进行清理（保留网站数据）：
 ```bash
+# 方式 1：通过部署脚本卸载
 bash deploy.sh uninstall
+
+# 方式 2：通过系统命令卸载
+mw uninstall
 ```
 
 ### 3. 命令行工具

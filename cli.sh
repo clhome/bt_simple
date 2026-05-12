@@ -123,4 +123,18 @@ case "$1" in
 		# mw_stop 
 		mw_start_bgtask
 		;;
+	'uninstall')
+		echo -e "\033[31m！！！ 警告 ！！！\033[0m"
+		echo -e "该操作将彻底卸载 bt_simple 面板。"
+		read -p "确定要继续吗? [yes/no]: " response
+		if [ "$response" == "yes" ]; then
+			mw_stop
+			rm -f /usr/bin/mw
+			rm -f /etc/init.d/mw
+			rm -rf $DIR
+			echo "卸载完成。"
+		else
+			echo "已取消。"
+		fi
+		;;
 esac
