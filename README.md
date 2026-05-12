@@ -48,7 +48,7 @@ curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/he
 如果您需要强制开启中国区加速模式，请使用以下命令：
 
 ```bash
-curl --insecure -fsSL https://ghproxy.net/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash -s -- -cn
+curl --insecure -fsSL https://gh-proxy.org/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash -s -- -cn
 ```
 
 ### 2. 备份与回滚

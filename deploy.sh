@@ -48,7 +48,7 @@ get_github_url() {
     local original_url=$1
     if check_china; then
         if [[ $original_url == *"github.com"* ]]; then
-            echo "https://ghproxy.net/$original_url"
+            echo "https://gh-proxy.org/$original_url"
             return
         fi
     fi
@@ -58,7 +58,7 @@ get_github_url() {
 setup_china_git_config() {
     if check_china; then
         log_info "配置 Git 全局代理加速 (GitHub -> ghproxy)..."
-        git config --global url."https://ghproxy.net/https://github.com/".insteadOf "https://github.com/"
+        git config --global url."https://gh-proxy.org/https://github.com/".insteadOf "https://github.com/"
         git config --global http.version HTTP/1.1
     fi
 }
@@ -344,7 +344,7 @@ fresh_install() {
     if [ ! -d /root/.acme.sh ]; then
         log_info "安装 acme.sh ..."
         if check_china; then
-            curl https://ghproxy.net/https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh | sh -s -- --install-online -m my@example.com 2>/dev/null
+            curl https://gh-proxy.org/https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh | sh -s -- --install-online -m my@example.com 2>/dev/null
         else
             curl -fsSL https://get.acme.sh | bash 2>/dev/null
         fi

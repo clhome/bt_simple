@@ -343,7 +343,7 @@ mw_common_proxy(){
         PROXY_URL["gh_llkk_cc"]="https://gh.llkk.cc/https://"
         PROXY_URL["gh_felicity_ac_cn"]="https://gh.felicity.ac.cn/https://"
         PROXY_URL["ghfast_top"]="https://ghfast.top/"
-        PROXY_URL["ghproxy_net"]="https://ghproxy.net/"
+        PROXY_URL["ghproxy_net"]="https://gh-proxy.org/"
         PROXY_URL["gh_927223_xyz"]="https://gh.927223.xyz/https://"
         PROXY_URL["gh_proxy_net"]="https://gh-proxy.net/"
         

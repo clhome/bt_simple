@@ -191,7 +191,7 @@ def getGithubProxy():
     如果在中国境内，返回 GitHub 代理前缀
     """
     if isChina():
-        return "https://ghproxy.net/"
+        return "https://gh-proxy.org/"
     return ""
 
 
