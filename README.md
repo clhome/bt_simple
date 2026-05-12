@@ -40,9 +40,30 @@
 curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
 ```
 
-### 2. 迁移说明
-- **从 mdserver-web 迁移**：脚本将自动备份并替换核心代码，数据无缝保留。
-- **从宝塔面板迁移**：脚本将停止宝塔服务并保留其数据，您可以根据需要逐步将站点迁移至 BtSimple。
+### 2. 备份与回滚
+安全性是 BtSimple 的核心。在执行重大更新或迁移前，建议您手动备份关键数据。
+
+#### 手动备份 (建议)
+```bash
+# 备份面板数据库与配置文件
+tar -czf /www/backup/bt_simple_data_$(date +%Y%m%d).tar.gz /www/server/mdserver-web/data
+```
+
+#### 一键回滚 (通过部署脚本)
+如果您在迁移后遇到兼容性问题，可以使用部署脚本快速回滚到原有的面板状态：
+```bash
+# 回滚到迁移前的 mdserver-web 状态
+bash deploy.sh rollback_mw
+
+# 回滚到迁移前的宝塔面板状态
+bash deploy.sh rollback_bt
+```
+
+#### 一键卸载
+如果您不再需要面板，可以执行以下命令进行清理（保留网站数据）：
+```bash
+bash deploy.sh uninstall
+```
 
 ### 3. 命令行工具
 面板内置了强大的 `mw` 命令行工具，方便在 SSH 环境下快速运维：

@@ -233,6 +233,51 @@ start_panel() {
 }
 
 # =====================================================================
+# 卸载功能
+# =====================================================================
+uninstall_panel() {
+    echo -e "${RED}${BOLD}！！！ 警告 ！！！${PLAIN}"
+    echo -e "${YELLOW}该操作将执行以下动作:${PLAIN}"
+    echo "  1. 停止所有面板相关服务 (Gunicorn, panel_task)"
+    echo "  2. 删除面板程序目录: ${PANEL_DIR}"
+    echo "  3. 删除系统命令链接: /usr/bin/mw"
+    echo "  4. 清理系统服务启动项"
+    echo ""
+    echo -e "${RED}注意: /www/wwwroot 下的网站文件和数据库数据将被保留。${PLAIN}"
+    echo ""
+
+    if ! confirm "您确定要彻底卸载 bt_simple 面板吗?"; then
+        log_info "用户取消卸载"
+        return
+    fi
+
+    log_info "正在卸载 bt_simple..."
+    
+    # 1. 停止服务
+    stop_panel
+    
+    # 2. 删除系统服务脚本
+    if [ -f /etc/init.d/mw ]; then
+        /etc/init.d/mw stop >/dev/null 2>&1
+        rm -f /etc/init.d/mw
+    fi
+    if [ -f /etc/rc.d/init.d/mw ]; then
+        rm -f /etc/rc.d/init.d/mw
+    fi
+
+    # 3. 删除命令链接
+    rm -f /usr/bin/mw
+
+    # 4. 删除程序目录
+    if [ -d "${PANEL_DIR}" ]; then
+        rm -rf "${PANEL_DIR}"
+    fi
+
+    log_info "bt_simple 卸载完成。"
+    echo -e "提示: 已部署的网站环境（Nginx/MySQL/PHP）及数据仍在 /www 目录下，如需清理请手动处理。"
+}
+
+# =====================================================================
 # 代码下载
 # =====================================================================
 download_code() {
@@ -589,6 +634,10 @@ main() {
             ;;
         rollback_bt)
             rollback_bt_panel
+            exit 0
+            ;;
+        uninstall)
+            uninstall_panel
             exit 0
             ;;
     esac
