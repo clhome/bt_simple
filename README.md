@@ -36,10 +36,19 @@
 ### 1. 一键安装 / 迁移
 
 我们提供了一个智能部署脚本，可以自动检测您的环境。无论是全新安装，还是从现有面板迁移，均可一键完成。
-下载并运行部署脚本：
 
 ```bash
 curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
+```
+
+#### 🇨🇳 中国境内服务器加速
+
+针对中国境内服务器访问 GitHub 不稳定的问题，部署脚本内置了**自动加速功能**。它会自动检测服务器位置，并切换至国内镜像源（如 ghproxy 和清华 Pip 源）以确保安装成功。
+
+如果您需要强制开启中国区加速模式，请使用以下命令：
+
+```bash
+curl --insecure -fsSL https://ghproxy.net/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash -s -- -cn
 ```
 
 ### 2. 备份与回滚

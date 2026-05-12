@@ -177,6 +177,23 @@ def getDate():
     import time
     return time.strftime('%Y-%m-%d %X', time.localtime())
 
+def isChina():
+    """
+    判断服务器是否在中国境内
+    """
+    is_china_file = getPanelDataDir() + '/is_china.pl'
+    if os.path.exists(is_china_file):
+        return readFile(is_china_file).strip() == 'True'
+    return False
+
+def getGithubProxy():
+    """
+    如果在中国境内，返回 GitHub 代理前缀
+    """
+    if isChina():
+        return "https://ghproxy.net/"
+    return ""
+
 
 def getDateFromNow(tf_format="%Y-%m-%d %H:%M:%S", time_zone="Asia/Shanghai"):
     # 取格式时间

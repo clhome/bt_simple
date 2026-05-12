@@ -39,7 +39,7 @@ def versionDiff(now, new):
 def getServerInfo():
     import urllib.request
     import ssl
-    upAddr = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+    upAddr = mw.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
     try:
         context = ssl._create_unverified_context()
         req = urllib.request.urlopen(upAddr, context=context, timeout=3)
@@ -91,7 +91,7 @@ def updateServer(stype, version=''):
             if not os.path.exists(toPath):
                 mw.execShell('mkdir -p ' + toPath)
 
-            newUrl = "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
+            newUrl = mw.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
 
             dist_mw = toPath + '/mw.zip'
             if not os.path.exists(dist_mw):

@@ -23,8 +23,39 @@ TIMESTAMP=$(date +%Y%m%d%H%M%S)
 LOG_FILE=/var/log/bt_simple_deploy.log
 
 # fork 仓库地址（⚠️ 请根据实际修改为你的 Gitea/GitHub 仓库地址）
-GIT_REPO="${BT_SIMPLE_REPO:-https://github.com/clhome/bt_simple.git}"
+GIT_REPO_BASE="https://github.com/clhome/bt_simple.git"
+GIT_REPO="${BT_SIMPLE_REPO:-$GIT_REPO_BASE}"
 GIT_BRANCH="${BT_SIMPLE_BRANCH:-master}"
+FORCE_CN=false
+
+# ---------- 中国区加速 ----------
+check_china() {
+    if [ "$FORCE_CN" = "true" ]; then
+        return 0
+    fi
+    # 简单的延迟检测或 IP 检测
+    local status=$(curl -s -m 2 http://www.baidu.com > /dev/null && echo "ok" || echo "fail")
+    if [ "$status" = "ok" ]; then
+        # 进一步确认
+        local cn=$(curl -s -m 2 https://ipapi.co/country/ 2>/dev/null)
+        if [ "$cn" = "CN" ]; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+get_github_url() {
+    local original_url=$1
+    if check_china; then
+        # 如果是 github 地址，尝试使用镜像
+        if [[ $original_url == *"github.com"* ]]; then
+            echo "https://ghproxy.net/$original_url"
+            return
+        fi
+    fi
+    echo "$original_url"
+}
 
 # ---------- 工具函数 ----------
 log_info()  { echo -e "${GREEN}[INFO]${PLAIN} $1" | tee -a $LOG_FILE; }
@@ -284,8 +315,10 @@ download_code() {
     log_info "下载 bt_simple 代码..."
     rm -rf /tmp/bt_simple_deploy
 
+    local download_url=$(get_github_url ${GIT_REPO})
     if command -v git >/dev/null 2>&1; then
-        git clone --depth 1 -b ${GIT_BRANCH} ${GIT_REPO} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
+        log_info "正在从 ${download_url} 拉取代码..."
+        git clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
     else
         log_error "git 未安装，请先安装 git"
         exit 1
@@ -349,11 +382,16 @@ fresh_install() {
     # 安装 acme.sh
     if [ ! -d /root/.acme.sh ]; then
         log_info "安装 acme.sh ..."
-        curl -fsSL https://get.acme.sh | bash 2>/dev/null
+        if check_china; then
+            curl https://ghproxy.net/https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh | sh -s -- --install-online -m my@example.com 2>/dev/null
+        else
+            curl -fsSL https://get.acme.sh | bash 2>/dev/null
+        fi
     fi
 
     # 安装系统依赖
     log_info "安装系统依赖（可能需要几分钟）..."
+    setup_china_git_config
     cd ${PANEL_DIR} && bash scripts/install/${OSNAME}.sh 2>&1 | tee -a $LOG_FILE
 
     # 启动服务
@@ -427,8 +465,12 @@ migrate_from_mw() {
     fi
 
     # 启动
+    setup_china_git_config
     start_panel
     sleep 2
+    if check_china; then
+        echo "True" > ${PANEL_DIR}/data/is_china.pl
+    fi
     disable_upstream_update
 
     # 验证
@@ -555,6 +597,16 @@ migrate_from_bt() {
 }
 
 # =====================================================================
+# 中国区 Git 加速配置
+# =====================================================================
+setup_china_git_config() {
+    if check_china; then
+        log_info "配置 Git 全局代理加速 (GitHub -> ghproxy)..."
+        git config --global url."https://ghproxy.net/https://github.com/".insteadOf "https://github.com/"
+    fi
+}
+
+# =====================================================================
 # 禁用上游自动更新
 # =====================================================================
 disable_upstream_update() {
@@ -639,6 +691,10 @@ main() {
         uninstall)
             uninstall_panel
             exit 0
+            ;;
+        -cn)
+            FORCE_CN=true
+            shift
             ;;
     esac
 

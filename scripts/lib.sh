@@ -59,9 +59,14 @@ echo "system:${OSNAME}:${VERSION_ID}"
 
 HTTP_PREFIX="https://"
 LOCAL_ADDR=common
-cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
-if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
+cn=$(curl -fsSL -m 5 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
+if [ ! -z "$cn" ]; then
     LOCAL_ADDR=cn
+elif [ -f ${rootPath}/data/is_china.pl ]; then
+    is_cn=$(cat ${rootPath}/data/is_china.pl)
+    if [ "$is_cn" == "True" ]; then
+        LOCAL_ADDR=cn
+    fi
 fi
 
 PIPSRC="https://pypi.python.org/simple"
