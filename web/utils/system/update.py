@@ -24,17 +24,19 @@ def versionDiff(now, new):
         new 有新版本
         none 没有新版本
     '''
-    new_list = new.split('.')
-    if len(new_list) > 3:
-        return 'test'
+    try:
+        new = str(new)
+        now = str(now)
+        new_list = new.split('.')
+        if len(new_list) > 3:
+            return 'test'
 
-    now_list = now.split('.')
-    ret = 'none'
-    from distutils.version import LooseVersion
-    if LooseVersion(new) > LooseVersion(now):
-        return 'new'
-    else:
-        return 'none'
+        from distutils.version import LooseVersion
+        if LooseVersion(new) > LooseVersion(now):
+            return 'new'
+    except:
+        pass
+    return 'none'
 
 def getServerInfo():
     import urllib.request
@@ -106,6 +108,10 @@ def updateServer(stype, version=''):
 
             mw.execShell('rm -rf ' + toPath + '/bt_simple-' + version)
             mw.execShell('rm -rf ' + toPath + '/mw.zip')
+            
+            # 自动写入版本号到 .version 文件
+            version_path = mw.getServerDir() + '/mdserver-web/.version'
+            mw.writeFile(version_path, version)
 
             update_env = '''
 #!/bin/bash

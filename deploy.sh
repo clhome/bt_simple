@@ -245,7 +245,7 @@ rollback_bt_panel() {
 stop_panel() {
     # 停止 mdserver-web
     if [ -f /usr/bin/mw ]; then
-        mw stop 2>/dev/null
+        mw 2 2>/dev/null
     fi
     if [ -f /etc/init.d/mw ]; then
         /etc/init.d/mw stop 2>/dev/null
@@ -261,7 +261,7 @@ stop_panel() {
 
 start_panel() {
     if [ -f /usr/bin/mw ]; then
-        mw start
+        mw 3
     elif [ -f /etc/init.d/mw ]; then
         /etc/init.d/mw start
     elif [ -f ${PANEL_DIR}/cli.sh ]; then
@@ -380,8 +380,23 @@ fresh_install() {
     # 开放面板端口
     open_panel_port
 
+    # 生成 12 位随机密码并设置
+    local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
+    if [ -f /usr/bin/mw ]; then
+        mw 11 $rand_pass > /dev/null
+        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+    fi
+
+    # 自动获取并设置版本号
+    log_info "获取最新版本号..."
+    local latest_ver=$(curl -s "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -n "$latest_ver" ]; then
+        echo "$latest_ver" > ${PANEL_DIR}/.version
+        log_info "当前安装版本: ${latest_ver}"
+    fi
+
     disable_upstream_update
-    show_panel_info
+    show_panel_info "$rand_pass"
     log_info "===== 全新安装完成 ====="
 }
 
@@ -393,7 +408,7 @@ migrate_from_mw() {
 
     echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
     echo -e "当前面板信息:"
-    mw default 2>/dev/null
+    mw 10 2>/dev/null
     echo ""
 
     echo -e "${RED}注意事项:${PLAIN}"
@@ -595,12 +610,21 @@ open_panel_port() {
 # 显示面板信息
 # =====================================================================
 show_panel_info() {
+    local force_pass="$1"
     echo ""
     echo -e "=================================================================="
     echo -e "${GREEN}${BOLD}bt_simple 面板安装/迁移完成!${PLAIN}"
     echo -e "=================================================================="
+    
     if [ -f /usr/bin/mw ]; then
-        mw default 2>/dev/null
+        # 获取默认信息
+        local info=$(mw 10 2>/dev/null)
+        if [ -n "$force_pass" ]; then
+            # 如果传入了强制显示的密码，则替换掉 mask 后的密码输出
+            echo "$info" | sed "s/\*-password.*/|-password: $force_pass/"
+        else
+            echo "$info"
+        fi
     elif [ -f ${PANEL_DIR}/data/port.pl ]; then
         local port=$(cat ${PANEL_DIR}/data/port.pl 2>/dev/null)
         echo -e "面板端口: ${port:-7200}"
