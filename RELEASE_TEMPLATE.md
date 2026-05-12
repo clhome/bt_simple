@@ -35,3 +35,5 @@ curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/he
 ++利用Github action 进行自动发布
 
 ++增加卸载功能
+
+++中国加速包
