@@ -59,6 +59,7 @@ setup_china_git_config() {
     if check_china; then
         log_info "配置 Git 全局代理加速 (GitHub -> ghproxy)..."
         git config --global url."https://ghproxy.net/https://github.com/".insteadOf "https://github.com/"
+        git config --global http.version HTTP/1.1
     fi
 }
 
@@ -278,7 +279,7 @@ download_code() {
     local download_url=$(get_github_url ${GIT_REPO})
     if command -v git >/dev/null 2>&1; then
         log_info "正在从 ${download_url} 拉取代码..."
-        git clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
+        git -c http.version=HTTP/1.1 clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
     else
         log_error "git 未安装，请先安装 git"
         exit 1
