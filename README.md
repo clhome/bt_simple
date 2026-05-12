@@ -5,6 +5,10 @@
   <p align="center">强烈推荐系统:debian</p>
 </p>
 
+### 源自
+
+项目源自https://github.com/midoks/mdserver-web，希望在安全性和性能上进行提升
+
 ### 简介
 
 简单的Linux面板,感谢BT.CN写出如此好的web管理软件。我一看到，就知道这是我一直想要的页面化管理方式。
@@ -30,11 +34,11 @@
 ### 使用方法
 
 ```shell
-# 全新安装 / 自动检测迁移
-curl --insecure -fsSL <你的仓库>/deploy.sh | bash
+# 全新安装 / 自动检测迁移（适配mdserver/宝塔面板）
+curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
 
 # 指定仓库地址
-BT_SIMPLE_REPO="https://your-gitea.com/user/bt_simple.git" bash deploy.sh
+BT_SIMPLE_REPO="https://github.com/clhome/bt_simple.git" bash deploy.sh
 
 # 回滚
 bash deploy.sh rollback_mw   # 回滚到 mdserver-web

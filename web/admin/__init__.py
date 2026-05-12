@@ -65,14 +65,27 @@ app.jinja_env.trim_blocks = True
 # app.wsgi_app = WhiteNoise(app.wsgi_app, root="../web/static/", prefix="static/", max_age=604800)
 
 # session配置
-# app.secret_key = uuid.UUID(int=uuid.getnode()).hex[-12:]
-app.config['SECRET_KEY'] = uuid.UUID(int=uuid.getnode()).hex[-12:]
+secret_file = mw.getPanelDataDir() + '/secret_key.pl'
+if os.path.exists(secret_file):
+    app.config['SECRET_KEY'] = mw.readFile(secret_file).strip()
+else:
+    import os as native_os
+    key = native_os.urandom(24).hex()
+    mw.writeFile(secret_file, key)
+    os.chmod(secret_file, 0o600)  # 仅 root 可读
+    app.config['SECRET_KEY'] = key
 
 # app.config['sessions'] = dict()
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'MW_:'
 app.config['SESSION_COOKIE_NAME'] = "MW_VER_1"
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
+if panel_ssl_data['open']:
+    app.config['SESSION_COOKIE_SECURE'] = True
+
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=31)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
 
@@ -130,6 +143,19 @@ def requestCheck():
         if basic_user != basic_auth['basic_user'] or basic_pwd != basic_auth['basic_pwd']:
             return sendAuthenticated()
 
+    # CSRF 防护：POST 请求校验 Referer
+    if request.method == 'POST':
+        # API 调用走 Header 认证，跳过
+        if request.headers.get('App-Id', ''):
+            pass
+        else:
+            referer = request.headers.get('Referer', '')
+            origin = request.headers.get('Origin', '')
+            host = request.host
+            if referer and host not in referer:
+                if origin and host not in origin:
+                    return Response('Forbidden', status=403)
+
     # domain_check = mw.checkDomainPanel()
     # if domain_check:
     #     return domain_check
@@ -138,9 +164,13 @@ def requestCheck():
 
 @app.after_request
 def requestAfter(response):
-    response.headers['soft'] = config.APP_NAME
-    response.headers['mw-version'] = config.APP_VERSION
+    # response.headers['soft'] = config.APP_NAME
+    # response.headers['mw-version'] = config.APP_VERSION
     response.headers['X-Response-Time'] = round(time.time() - request.start_time, 4) 
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
 
 
@@ -172,7 +202,7 @@ def inject_global_variables():
 #                     ping_interval=25, ping_timeout=120)
 socketio = SocketIO(logger=False,
     engineio_logger=False,
-    cors_allowed_origins="*",
+    cors_allowed_origins=[],  # 不允许跨域，仅同源可连接
     async_mode='threading')
 socketio.init_app(app)
 

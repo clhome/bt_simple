@@ -257,7 +257,7 @@ def mwcli(mw_input=0):
         if os.path.exists(php_conf):
             cont = mw.readFile(php_conf)
             cont = re.sub("\"52\",", "", cont)
-            cont = re.sub("\"5.2.17\",", cont)
+            cont = re.sub("\"5.2.17\",", "", cont)
             mw.writeFile(php_conf, cont)
             mw.echoInfo("执行PHP52隐藏成功!")
     elif mw_input == 200:
@@ -328,7 +328,7 @@ def set_panel_pwd(password, ncli=False):
         mw.echoInfo("username: " + info['name'])
         mw.echoInfo("password: " + password)
     else:
-        print(username)
+        print(info['name'])
 
 
 def show_panel_pwd():

@@ -19,6 +19,7 @@ from admin import session
 from admin.common import isLogined
 
 import thisdb
+import hmac
 
 def panel_login_required(func):
 
@@ -30,10 +31,11 @@ def panel_login_required(func):
         if app_id != '' and app_secret != '':
             panel_api = thisdb.getOptionByJson('panel_api', default={"open":True})
             if panel_api['open']:
-                return_code = 404
                 info = thisdb.getAppByAppId(app_id)
-                if app_secret != info['app_secret']:
-                    return Response(status=int(return_code))
+                if info is None:
+                    return Response(status=404)
+                if not hmac.compare_digest(app_secret, info['app_secret']):
+                    return Response(status=403)
                 return func(*args, **kwargs)
 
         if not isLogined():

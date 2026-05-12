@@ -23,7 +23,7 @@ TIMESTAMP=$(date +%Y%m%d%H%M%S)
 LOG_FILE=/var/log/bt_simple_deploy.log
 
 # fork 仓库地址（⚠️ 请根据实际修改为你的 Gitea/GitHub 仓库地址）
-GIT_REPO="${BT_SIMPLE_REPO:-https://github.com/youruser/bt_simple.git}"
+GIT_REPO="${BT_SIMPLE_REPO:-https://github.com/clhome/bt_simple.git}"
 GIT_BRANCH="${BT_SIMPLE_BRANCH:-master}"
 
 # ---------- 工具函数 ----------

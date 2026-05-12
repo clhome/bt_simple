@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------------
 # MW-Linux面板
 # ---------------------------------------------------------------------------------
-# copyright (c) 2018-∞(https://github.com/midoks/mdserver-web) All rights reserved.
+# copyright (c) 2018-∞(https://github.com/clhome/bt_simple) All rights reserved.
 # ---------------------------------------------------------------------------------
 # Author: midoks <midoks@163.com>
 # ---------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ def versionDiff(now, new):
 def getServerInfo():
     import urllib.request
     import ssl
-    upAddr = 'https://api.github.com/repos/midoks/mdserver-web/releases/latest'
+    upAddr = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
     try:
         context = ssl._create_unverified_context()
         req = urllib.request.urlopen(upAddr, context=context, timeout=3)
@@ -91,20 +91,20 @@ def updateServer(stype, version=''):
             if not os.path.exists(toPath):
                 mw.execShell('mkdir -p ' + toPath)
 
-            newUrl = "https://github.com/midoks/mdserver-web/archive/refs/tags/" + version + ".zip"
+            newUrl = "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
 
             dist_mw = toPath + '/mw.zip'
             if not os.path.exists(dist_mw):
                 mw.execShell('wget --no-check-certificate -O ' + dist_mw + ' ' + newUrl)
 
-            dist_to = toPath + "/mdserver-web-" + version
+            dist_to = toPath + "/bt_simple-" + version
             if not os.path.exists(dist_to):
                 os.system('unzip -o ' + toPath + '/mw.zip' + ' -d ' + toPath)
 
-            cmd_cp = 'cp -rf ' + toPath + '/mdserver-web-' + version + '/* ' + mw.getServerDir() + '/mdserver-web'
+            cmd_cp = 'cp -rf ' + toPath + '/bt_simple-' + version + '/* ' + mw.getServerDir() + '/mdserver-web'
             mw.execShell(cmd_cp)
 
-            mw.execShell('rm -rf ' + toPath + '/mdserver-web-' + version)
+            mw.execShell('rm -rf ' + toPath + '/bt_simple-' + version)
             mw.execShell('rm -rf ' + toPath + '/mw.zip')
 
             update_env = '''

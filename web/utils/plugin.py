@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------------
 # MW-Linux面板
 # ---------------------------------------------------------------------------------
-# copyright (c) 2018-∞(https://github.com/midoks/mdserver-web) All rights reserved.
+# copyright (c) 2018-∞(https://github.com/clhome/bt_simple) All rights reserved.
 # ---------------------------------------------------------------------------------
 # Author: midoks <midoks@163.com>
 # ---------------------------------------------------------------------------------
@@ -770,7 +770,7 @@ class plugin(object):
             if not 'author' in data:
                 data['author'] = '未知'
             if not 'home' in data:
-                data['home'] = 'https://github.com/midoks/mdserver-web'
+                data['home'] = 'https://github.com/clhome/bt_simple'
             plugin_path = mw.getPluginDir() + data['name'] + '/info.json'
             data['old_version'] = '0'
             data['tmp_path'] = tmp_path

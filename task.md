@@ -1,21 +1,33 @@
-# 项目任务清单 (Task List)
+# BtSimple 项目优化整改任务书
 
-## 项目描述
-对 `bt_simple` 面板 MySQL 插件的备份列表进行优化，使其按备份时间降序排列。
+## 项目整体描述
+BtSimple 是一个基于 mdserver-web fork 的服务器管理面板，旨在提供简洁、高效、安全的服务器管理体验。本项目目前处于安全加固和可靠性提升阶段，需要根据《优化整改.md》进行系统性的整改。
 
-## 开发规范
-- 简洁至上，使用 KISS 原则。
-- 统一使用中文回复。
-- 保持编程风格统一。
+## 开发规范描述
+1. **简洁至上**：遵循 KISS 原则，代码逻辑清晰，易于维护。
+2. **安全优先**：处理 Web 请求时必须考虑 CSRF、XSS、Session 安全等因素。
+3. **兼容性**：在不改变现有功能的前提下进行加固，确保插件和数据完全兼容。
+4. **日志记录**：关键业务逻辑增加必要的错误日志记录。
+5. **标注完成**：每完成一项整改，需在《优化整改.md》中对应的条目后标注“（已修复）”。
 
-## 任务列表
-- [x] 优化 `setLocalImport` 中的文件列表排序 <!-- id: 0 -->
-- [x] 优化 `setBackupReq` 中的备份列表排序 <!-- id: 1 -->
-- [x] 将备份列表框向下扩展，适配调大的弹窗尺寸 <!-- id: 2 -->
-- [x] 调大主管理窗口宽度，防止长名称显示错位 <!-- id: 3 -->
+## Task List
 
-## 部署脚本 (deploy.sh)
-- [x] 创建一键部署脚本 `deploy.sh`，支持三种场景 <!-- id: 4 -->
-  - [x] 场景一：从 mdserver-web 迁移到 bt_simple（含备份/回滚/手动确认） <!-- id: 4.1 -->
-  - [x] 场景二：从宝塔面板迁移到 bt_simple（含备份/回滚/手动确认） <!-- id: 4.2 -->
-  - [x] 场景三：全新安装 bt_simple <!-- id: 4.3 -->
+- [x] S-01 Flask SECRET_KEY 加固 (web/admin/__init__.py)
+- [x] S-02 Cookie 安全标记 (web/admin/__init__.py)
+- [x] S-03 CSRF 防护 (web/admin/__init__.py)
+- [x] S-04 安全响应头 (web/admin/__init__.py)
+- [x] S-07 登录锁定改为 IP 封禁 (web/admin/dashboard/login.py)
+- [x] R-01 递归重试改循环 (panel_task.py)
+- [x] S-05 WebSocket CORS 配置 (web/admin/__init__.py)
+- [x] S-08 API 认证加固 (web/admin/user_login_check.py)
+- [x] S-09 文件上传安全处理 (web/admin/files/files.py)
+- [x] R-03 会话过期逻辑优化 (web/admin/common.py)
+- [x] R-04 panel_tools.py 运行时 Bug 修复
+- [x] R-05 文件管理逻辑修复 (web/utils/file.py)
+- [x] S-06 密码迁移至 bcrypt (web/admin/dashboard/login.py, web/thisdb/user.py)
+- [x] S-10 Shell 命令转义加固 (web/core/mw.py)
+- [x] S-11 移除敏感响应头 (web/admin/__init__.py)
+- [x] R-06 TLS 版本限制 (web/setting.py)
+- [x] P-01 高频文件轮询频率降低 (panel_task.py)
+- [x] P-02 os.system 替换为原生 Python 操作 (web/utils/file.py)
+- [x] P-04 数据库连接池配置优化 (web/config.py)

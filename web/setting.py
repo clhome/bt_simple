@@ -69,8 +69,8 @@ if panel_ssl_data['open']:
         if os.path.exists(panel_cert) and os.path.exists(panel_private):
             certfile = panel_cert
             keyfile  = panel_private
-            ciphers = 'TLSv1 TLSv1.1 TLSv1.2 TLSv1.3'
-            ssl_version = 2
+            ciphers = 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384'
+            ssl_version = 5 # TLSv1.2
             http2 = True
 
 if workers > 2:

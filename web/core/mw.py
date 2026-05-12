@@ -148,6 +148,9 @@ def getPanelPort():
         return 7200
     return int(port)
 
+def shlex_quote(arg):
+    return shlex.quote(arg)
+
 def getRandomString(length):
     # 取随机字符串
     rnd_str = ''
@@ -450,14 +453,20 @@ def hasPwd(password):
     '''
     加密密码字符
     '''
-    # python3 -c "import crypt"
-    # python3 -c 'import crypt; print(crypt.crypt(""))'
-    # import crypt
-    # return crypt.crypt(password, password)
     import bcrypt
     salt = bcrypt.gensalt()
     hpw = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hpw.decode('utf-8')
+
+def checkPwd(password, hashed):
+    '''
+    验证密码
+    '''
+    import bcrypt
+    try:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except:
+        return False
 
     
 def getFileMd5(filename):

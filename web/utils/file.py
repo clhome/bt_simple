@@ -206,8 +206,18 @@ def setBatchData(path, stype, access, user, data):
                 filename = path + '/' + key
                 if not checkDir(filename):
                     return mw.returnData(False, 'FILE_DANGER')
-                os.system('chmod -R ' + access + " '" + filename + "'")
-                os.system('chown -R ' + user + ':' + user + " '" + filename + "'")
+                
+                # 使用原生 Python 操作替换 os.system
+                mode = int(access, 8)
+                for root, dirs, files in os.walk(filename):
+                    for d in dirs:
+                        os.chmod(os.path.join(root, d), mode)
+                        shutil.chown(os.path.join(root, d), user, user)
+                    for f in files:
+                        os.chmod(os.path.join(root, f), mode)
+                        shutil.chown(os.path.join(root, f), user, user)
+                os.chmod(filename, mode)
+                shutil.chown(filename, user, user)
             except:
                 continue
         mw.writeLog('文件管理', '批量设置权限成功!')
@@ -423,7 +433,7 @@ def createFile(file_path):
         if not os.path.exists(_path):
             os.makedirs(_path)
         open(file_path, 'w+').close()
-        setFileAccept(file)
+        setFileAccept(file_path)
         msg = mw.getInfo('创建文件[{1}]成功!', (file_path,))
         mw.writeLog('文件管理', msg)
         return mw.returnData(True, '文件创建成功!')
@@ -598,7 +608,7 @@ def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '',limit = 30
 
 def getAllDirList(path, page=1, size=10, order = '', search=None):
     if page < 1:
-        page == 1
+        page = 1
 
     data = {}
     dirnames = []
@@ -635,7 +645,7 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
 
 def getDirList(path, page=1, size=10, order = '', search=None):
     if page < 1:
-        page == 1
+        page = 1
 
     data = {}
     dirnames = []
@@ -742,8 +752,18 @@ def setFileAccess(filename,user,access):
         if not os.path.exists(filename):
             return mw.returnData(False, '指定文件不存在!')
 
-        os.system('chmod ' + sall + ' ' + access + " '" + filename + "'")
-        os.system('chown ' + sall + ' ' + user + ':' + user + " '" + filename + "'")
+        # 使用原生 Python 操作替换 os.system
+        mode = int(access, 8)
+        for root, dirs, files in os.walk(filename):
+            for d in dirs:
+                os.chmod(os.path.join(root, d), mode)
+                shutil.chown(os.path.join(root, d), user, user)
+            for f in files:
+                os.chmod(os.path.join(root, f), mode)
+                shutil.chown(os.path.join(root, f), user, user)
+        os.chmod(filename, mode)
+        shutil.chown(filename, user, user)
+
         msg = mw.getInfo('设置[{1}]权限为[{2}]所有者为[{3}]', (filename, access, user,))
         mw.writeLog('文件管理', msg)
         return mw.returnData(True, '设置成功!')

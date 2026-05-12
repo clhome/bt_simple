@@ -126,56 +126,53 @@ def siteEdateCheck():
 
 # 任务队列
 def startPanelTask():
-    try:
-        while True:
+    while True:
+        try:
             runPanelTask()
             time.sleep(5)
-    except Exception as e:
-        print('startPanelTask:',mw.getTracebackInfo())
-        time.sleep(30)
-        startPanelTask()
+        except Exception as e:
+            print('startPanelTask:', mw.getTracebackInfo())
+            time.sleep(30)
 
 def systemTask():
     # 系统监控任务
     from  utils.system import monitor
-    try:
-        while True:
+    while True:
+        try:
             monitor_status = thisdb.getOption('monitor_status',type='monitor',default='open')
             if monitor_status == 'open':
                 monitor.instance().run()
             time.sleep(5)
-    except Exception as ex:
-        print('systemTask:',mw.getTracebackInfo())
-        time.sleep(30)
-        systemTask()
+        except Exception as ex:
+            print('systemTask:',mw.getTracebackInfo())
+            time.sleep(30)
 
 
 def panelPluginStatusCheck():
     # 系统监控任务
     from  utils.plugin import plugin
-    try:
-        while True:
+    while True:
+        try:
             # start_t = time.time()
             plugin.instance().autoCachePluginStatus()
             # end_t = time.time()
             time.sleep(60)
-    except Exception as ex:
-        print('panelPluginStatusCheck:',mw.getTracebackInfo())
-        time.sleep(120)
-        panelPluginStatusCheck()
+        except Exception as ex:
+            print('panelPluginStatusCheck:',mw.getTracebackInfo())
+            time.sleep(120)
 
 # -------------------------------------- PHP监控 start --------------------------------------------- #
 # 502错误检查线程
 def check502Task():
-    try:
-        check_file = mw.getPanelDir() + '/data/502Task.pl'
-        while True:
+    check_file = mw.getPanelDir() + '/data/502Task.pl'
+    while True:
+        try:
             if os.path.exists(check_file):
                 check502()
             time.sleep(10)
-    except:
-        time.sleep(30)
-        check502Task()
+        except Exception as e:
+            print('check502Task:', mw.getTracebackInfo())
+            time.sleep(30)
 
 
 def check502():
@@ -275,8 +272,8 @@ def checkPHPVersion(version):
 # --------------------------------------OpenResty Auto Restart Start --------------------------------------------- #
 # 解决acme.sh续签后,未起效。
 def openrestyAutoRestart():
-    try:
-        while True:
+    while True:
+        try:
             # 检查是否安装
             odir = mw.getServerDir() + '/openresty'
             if not os.path.exists(odir):
@@ -284,9 +281,9 @@ def openrestyAutoRestart():
                 continue
             mw.opWeb('reload')
             time.sleep(86400)
-    except Exception as e:
-        mw.writeLog('OpenResty检测', '自动修复异常:'+str(e))
-        time.sleep(86400)
+        except Exception as e:
+            mw.writeLog('OpenResty检测', '自动修复异常:'+str(e))
+            time.sleep(86400)
 
 # --------------------------------------OpenResty Auto Restart End   --------------------------------------------- #
 
@@ -299,7 +296,7 @@ def openrestyRestartAtOnce():
         if os.path.exists(restart_nginx_tip):
             os.remove(restart_nginx_tip)
             mw.opWeb('reload')
-        time.sleep(1)
+        time.sleep(3)
 # -----------------------------------   OpenResty Restart At Once End   ------------------------------------------ #
 
 
@@ -311,7 +308,7 @@ def restartPanelService():
             print("restart panel")
             os.remove(restart_tip)
             mw.panelCmd('restart_panel')
-        time.sleep(1)
+        time.sleep(3)
 # --------------------------------------Panel Restart End   --------------------------------------------- #
 
 

@@ -173,12 +173,19 @@ def do_login():
     if admin_close == 'yes':
         return mw.returnData(False, '面板已经关闭!')
 
+    client_ip = mw.getClientIp()
+    ban_key = 'ban_' + client_ip
+    if cache.get(ban_key):
+        return mw.returnData(False, '该IP已被临时封禁，请1小时后重试!')
+
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
     code = request.form.get('code', '').strip()
 
     login_cache_count = 5
-    login_cache_limit = cache.get('login_cache_limit')
+    client_ip = mw.getClientIp()
+    login_limit_key = 'login_limit_' + client_ip
+    login_cache_limit = cache.get(login_limit_key)
 
     if 'code' in session:
         if session['code'] != mw.md5(code):
@@ -188,53 +195,41 @@ def do_login():
                 login_cache_limit = int(login_cache_limit) + 1
 
             if login_cache_limit >= login_cache_count:
-                thisdb.setOption('admin_close', 'yes')
-                return mw.returnData(False, '面板已经关闭!')
+                cache.set(ban_key, True, timeout=3600)  # 封禁1小时
+                return mw.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
 
-            cache.set('login_cache_limit', login_cache_limit, timeout=10000)
-            login_cache_limit = cache.get('login_cache_limit')
+            cache.set(login_limit_key, login_cache_limit, timeout=10000)
             login_err_msg = mw.getInfo("验证码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit)))
             mw.writeLog('用户登录', login_err_msg)
             return mw.returnData(False, login_err_msg)
 
     info = thisdb.getUserByName(username)
-    password = mw.md5(password)
+    is_correct = False
+    if info:
+        password_md5 = mw.md5(password)
+        if info['password'] == password_md5:
+            is_correct = True
+            # 平滑迁移到 bcrypt
+            thisdb.setUserPwdByName(username, password)
+        elif mw.checkPwd(password, info['password']):
+            is_correct = True
 
-    if info is None:
-        msg = mw.getInfo("<a style='color: red'>密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", (username, '******', request.remote_addr))
+    if not is_correct:
+        msg = mw.getInfo("<a style='color: red'>用户名或密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", (username, '******', request.remote_addr))
         if login_cache_limit == None:
             login_cache_limit = 1
         else:
             login_cache_limit = int(login_cache_limit) + 1
 
         if login_cache_limit >= login_cache_count:
-            thisdb.setOption('admin_close', 'yes')
-            return mw.returnData(False, '面板已经关闭!')
+            cache.set(ban_key, True, timeout=3600)  # 封禁1小时
+            return mw.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
 
-        cache.set('login_cache_limit', login_cache_limit, timeout=10000)
-        login_cache_limit = cache.get('login_cache_limit')
+        cache.set(login_limit_key, login_cache_limit, timeout=10000)
         mw.writeLog('用户登录', msg)
         return mw.returnData(-1, mw.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit))))
 
-    # print(info)
-    if info['name'] != username or info['password'] != password:
-        msg = mw.getInfo("<a style='color: red'>密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", (username, '******', request.remote_addr))
-
-        if login_cache_limit == None:
-            login_cache_limit = 1
-        else:
-            login_cache_limit = int(login_cache_limit) + 1
-
-        if login_cache_limit >= login_cache_count:
-            thisdb.setOption('admin_close', 'yes')
-            return mw.returnData(False, '面板已经关闭!')
-
-        cache.set('login_cache_limit', login_cache_limit, timeout=10000)
-        login_cache_limit = cache.get('login_cache_limit')
-        mw.writeLog('用户登录', msg)
-        return mw.returnData(-1, mw.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit))))
-
-    cache.delete('login_cache_limit')
+    cache.delete(login_limit_key)
     # 二步验证密钥
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
     if two_step_verification['open']:

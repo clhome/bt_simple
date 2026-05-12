@@ -201,7 +201,12 @@ def upload_file():
     if not os.path.exists(path):
         os.makedirs(path)
     f = request.files['zunfile']
-    filename = os.path.join(path, f.filename)
+    raw_name = f.filename
+    # 仅清理路径分隔符和危险字符，保留原名以支持中文
+    safe_name = raw_name.replace('..', '').replace('/', '').replace('\\', '')
+    if safe_name == '':
+        safe_name = secure_filename(raw_name) or 'upload_file'
+    filename = os.path.join(path, safe_name)
 
     s_path = path
     if os.path.exists(filename):
