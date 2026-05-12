@@ -1,0 +1,25 @@
+name: 自动发布 Release
+
+on:
+  push:
+    tags:
+      - "v*" # 当推送以 v 开头的标签时触发，例如 v1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          # 自动根据 commit 记录生成发布说明，并附加模板内容
+          generate_release_notes: true
+          # 使用根目录下的模板文件
+          body_path: RELEASE_TEMPLATE.md
+          # 设置发布名称
+          name: Release ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
