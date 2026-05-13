@@ -7,34 +7,15 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
 fi
-
-
-# https://dev.mysql.com/downloads/mysql/
-# https://downloads.mysql.com/archives/community/
-
-# SHOW VARIABLES LIKE 'default_authentication_plugin';
-# SELECT user, host, plugin FROM mysql.user;
-# default_authentication_plugin=caching_sha2_password
-
-# /www/server/mysql-community/bin/mysqld --basedir=/www/server/mysql-community --datadir=/www/server/mysql-community/data --initialize-insecure --explicit_defaults_for_timestamp
-
-# source bin/activate
-# cd /www/server/mdserver-web/plugins/mysql-community && bash install.sh install 5.7
-# cd /www/server/mdserver-web/plugins/mysql-community && bash install.sh install 9.3
-# cd /www/server/mdserver-web/plugins/mysql-community && bash install.sh uninstall 9.0
-# cd /www/server/mdserver-web && python3 plugins/mysql-community/index.py start 8.0
-# cd /www/server/mdserver-web && python3 plugins/mysql-community/index.py fix_db_access
-# cd /www/server/mdserver-web && python3 plugins/mysql/index.py do_full_sync  {"db":"xxx","sign":"","begin":1}
 
 action=$1
 type=$2
 
 if id mysql &> /dev/null ;then 
     echo "mysql UID is `id -u mysql`"
-    echo "mysql Shell is `grep "^mysql:" /etc/passwd |cut -d':' -f7 `"
 else
     groupadd mysql
 	useradd -g mysql -s /usr/sbin/nologin mysql
@@ -69,41 +50,33 @@ fi
 
 VERSION_ID=`cat /etc/*-release | grep 'VERSION_ID' | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 
-# 针对ubuntu24进行优化
+# 针对 Ubuntu 24.04 和 Debian 13 的兼容性优化
 if [[ "$OSNAME" == "ubuntu" ]] && [[ "$VERSION_ID" =~ "24" ]]; then
 	cur_dir=`pwd`
 	cd /usr/lib/x86_64-linux-gnu
-	if [ ! -f libaio.so.1 ];then
-		ln -s libaio.so.1t64.0.2 libaio.so.1
-	fi
-
-	if [ ! -f libncurses.so.6 ];then
-		ln -s libncursesw.so.6.4 libncurses.so.6
-	fi
+	[ ! -f libaio.so.1 ] && [ -f libaio.so.1t64.0.2 ] && ln -s libaio.so.1t64.0.2 libaio.so.1
+	[ ! -f libncurses.so.6 ] && [ -f libncursesw.so.6.4 ] && ln -s libncursesw.so.6.4 libncurses.so.6
 	cd $cur_dir
 fi
 
 if [[ "$OSNAME" == "debian" ]] && [[ "$VERSION_ID" =~ "13" ]]; then
 	cur_dir=`pwd`
 	cd /usr/lib/x86_64-linux-gnu
-	if [ ! -f libaio.so.1 ];then
-		ln -s libaio.so.1t64.0.2 libaio.so.1
-	fi
+	[ ! -f libaio.so.1 ] && [ -f libaio.so.1t64.0.2 ] && ln -s libaio.so.1t64.0.2 libaio.so.1
 	cd $cur_dir
 fi
 
-if [ "${2}" == "" ];then
-	echo '缺少安装脚本...'
-	exit 0
+if [ "${type}" == "" ];then
+	echo '缺少安装版本参数...'
+	exit 1
 fi 
 
-if [ ! -d $curPath/versions/$2 ];then
-	echo '缺少安装脚本2...'
-	exit 0
+if [ ! -d $curPath/versions/$type ];then
+	echo "未找到版本 $type 的安装脚本..."
+	exit 1
 fi
 
 if [ "${action}" == "uninstall" ];then
-	
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql-community/index.py stop ${type}
 	cd ${rootPath} && python3 ${rootPath}/plugins/mysql-community/index.py initd_uninstall ${type}
 	cd $curPath
@@ -117,15 +90,15 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
-
-sh -x $curPath/versions/$2/install_generic.sh $1
+# 执行具体版本的安装脚本
+/bin/bash $curPath/versions/$type/install_generic.sh $action
 
 if [ "${action}" == "install" ];then
-	#初始化
-
-	if [ "$?" != "0" ];then
-		exit $?
+	if [ "$?" == "0" ];then
+		cd ${rootPath} && python3 ${rootPath}/plugins/mysql-community/index.py start ${type}
+		cd ${rootPath} && python3 ${rootPath}/plugins/mysql-community/index.py initd_install ${type}
+	else
+		echo "MySQL $type 安装失败！"
+		exit 1
 	fi
-	cd ${rootPath} && python3 ${rootPath}/plugins/mysql-community/index.py start ${type}
-	cd ${rootPath} && python3 ${rootPath}/plugins/mysql-community/index.py initd_install ${type}
 fi

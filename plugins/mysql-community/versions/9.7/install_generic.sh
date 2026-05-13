@@ -21,7 +21,8 @@ fi
 myDir=${serverPath}/source/mysql-community
 
 OS_ARCH=`arch`
-MYSQL_VER=8.4.9
+MYSQL_VER=9.7.0
+# 根据官方命名规则确定后缀
 SUFFIX_NAME=${MYSQL_VER}-linux-glibc2.28-${OS_ARCH}
 
 COMMUNITY_INSTALL()
@@ -30,12 +31,13 @@ COMMUNITY_INSTALL()
     mkdir -p $serverPath/mysql-community
 
     # Linux - Generic
-    URL="https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-${SUFFIX_NAME}.tar.xz"
+    URL="https://cdn.mysql.com/Downloads/MySQL-9.7/mysql-${SUFFIX_NAME}.tar.xz"
     mw_download ${myDir}/mysql-${SUFFIX_NAME}.tar.xz ${URL}
 
     if [ -f ${myDir}/mysql-${SUFFIX_NAME}.tar.xz ];then
         cd ${myDir} && tar -Jxf ${myDir}/mysql-${SUFFIX_NAME}.tar.xz
         cp -rf ${myDir}/mysql-${SUFFIX_NAME}/* $serverPath/mysql-community
+        # 清理
         rm -rf $myDir/mysql-${SUFFIX_NAME}
     else
         return 1
@@ -53,10 +55,10 @@ Install_mysql()
 	COMMUNITY_INSTALL
 	if [ "$?" == "0" ];then
 		mkdir -p $serverPath/mysql-community
-		echo '8.4' > $serverPath/mysql-community/version.pl
+		echo '9.7' > $serverPath/mysql-community/version.pl
 		echo '安装完成'
 	else
-		echo '8.4' > $serverPath/mysql-community/version.pl
+		echo '9.7' > $serverPath/mysql-community/version.pl
 		echo "暂时不支持该系统或下载失败"
         exit 1
 	fi
