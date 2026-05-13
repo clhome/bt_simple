@@ -709,18 +709,18 @@ mw_default(){
         v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
         local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
         
-        address="内网 MW-PANEL-URL: ${scheme}://$local_ip:$port$admin_path"
+        address="内网 bt_simple_URL: ${scheme}://$local_ip:$port$admin_path"
         if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
-            address="${address}\n外网 MW-PANEL-URL: ${scheme}://$v4:$port$admin_path"
+            address="${address}\n外网 bt_simple_URL: ${scheme}://$v4:$port$admin_path"
         fi
     else
-        address="MW-PANEL-URL: ${scheme}://$address:$port$admin_path"
+        address="bt_simple_URL: ${scheme}://$address:$port$admin_path"
     fi
 
     # bind domain check
     panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
     if [ "$panel_bind_domain" != "" ];then
-        address="MW-PANEL-URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
+        address="bt_simple_URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
     fi
 
     show_panel_ip="$port|"

@@ -291,4 +291,4 @@ echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 } 1> >(tee $LOG_FILE) 2>&1
 
 echo -e "\nInstall completed. If error occurs, please contact us with the log file mw-install.log ."
-echo "安装完毕，如果出现错误，请带上同目录下的安装日志 mw-install.log 联系我们反馈."
+echo "安装完毕，如果出现错误，请带上同目录下的安装日志 mw-install.log 联系我们反馈：admin@yftec.top."

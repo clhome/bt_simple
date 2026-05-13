@@ -200,15 +200,15 @@ if [ -f /bin/cp ];then
         CP_CMD=/bin/cp
 fi
 
-echo "update mdserver-web code start"
+echo "update bt_simple code start"
 
-curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/midoks/mdserver-web/archive/refs/heads/master.tar.gz
+curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz
 cd /tmp && tar -zxvf /tmp/master.tar.gz
-$CP_CMD -rf /tmp/mdserver-web-master/* /www/server/mdserver-web
+$CP_CMD -rf /tmp/bt_simple-master/* /www/server/mdserver-web
 rm -rf /tmp/master.tar.gz
-rm -rf /tmp/mdserver-web-master
+rm -rf /tmp/bt_simple-master
 
-echo "update mdserver-web code end"
+echo "update bt_simple code end"
 
 
 #pip uninstall public

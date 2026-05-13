@@ -25,8 +25,8 @@ if [ -f /www/server/mdserver-web/tools.py ];then
 	exit 0
 fi
 
-echo -e "您正在安装的是\033[31mmdserver-web测试版\033[0m，非开发测试用途请使用正式版 install.sh ！" 
-echo -e "You are installing\033[31m mdserver-web dev version\033[0m, normally use install.sh for production.\n" 
+echo -e "您正在安装的是\033[31mbt_simple测试版\033[0m，非开发测试用途请使用正式版 install.sh ！" 
+echo -e "You are installing\033[31m bt_simple dev version\033[0m, normally use install.sh for production.\n" 
 sleep 1
 
 LOG_FILE=/var/log/mw-install.log
@@ -82,7 +82,7 @@ function ChooseProxyURL(){
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
-    echo -e '|     欢迎使用 Linux 一键安装mdserver-web面板源码   |'
+    echo -e '|     欢迎使用 Linux 一键安装bt_simple面板源码   |'
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
@@ -300,4 +300,4 @@ echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 } 1> >(tee $LOG_FILE) 2>&1
 
 echo -e "\nInstall completed. If error occurs, please contact us with the log file mw-install.log ."
-echo "安装完毕，如果出现错误，请带上同目录下的安装日志 mw-install.log 联系我们反馈."
+echo "安装完毕，如果出现错误，请带上同目录下的安装日志 mw-install.log 联系我们反馈：admin@yftec.top."

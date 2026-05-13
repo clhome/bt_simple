@@ -586,11 +586,15 @@ function updateVersion(version) {
         if (rdata.status) {
             $("#btversion").html(version);
             $("#toUpdate").html('');
+            layer.msg('升级成功，正在刷新页面...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+            setTimeout(function() {
+                window.location.href = window.location.pathname + '?t=' + new Date().getTime();
+            }, 2000);
         }
     },'json').error(function() {
         layer.msg('更新失败,请重试!', { icon: 2 });
         setTimeout(function() {
-            window.location.reload();
+            window.location.href = window.location.pathname + '?t=' + new Date().getTime();
         }, 3000);
     });
 }
@@ -631,7 +635,9 @@ function reBoot() {
                     $.post('/system/restart','',function (rdata) {
                         layer.close(loadT);
                         layer.msg(rdata.msg);
-                        setTimeout(function () { window.location.reload(); }, 3000);
+                        setTimeout(function () { 
+                            window.location.href = window.location.pathname + '?t=' + new Date().getTime(); 
+                        }, 3000);
                     },'json');
                 });
                 break;
