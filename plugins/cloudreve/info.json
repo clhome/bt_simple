@@ -4,7 +4,7 @@
 	"name": "cloudreve",
 	"title": "cloudreve",
 	"shell": "install.sh",
-	"versions":["3.8.3"],
+	"versions":["3.8.3", "4.15.0"],
 	"tip": "soft",
 	"checks": "server/cloudreve",
 	"path": "server/cloudreve",
@@ -15,3 +15,4 @@
 	"type": 0,
 	"pid": "5"
 }
+

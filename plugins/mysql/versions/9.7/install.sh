@@ -3,14 +3,19 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-#https://dev.mysql.com/downloads/mysql/5.7.html
-#https://dev.mysql.com/downloads/file/?id=489855
+# https://dev.mysql.com/downloads/mysql/
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
+
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
+
 sysName=`uname`
+
 
 mysqlDir=${serverPath}/source/mysql
 
@@ -54,36 +59,15 @@ fi
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 
 
-VERSION=8.0.46
+VERSION=9.7.0
+# https://dev.mysql.com/get/Downloads/MySQL-9.7/mysql-boost-${VERSION}.tar.gz
 Install_mysql()
 {
 	mkdir -p ${mysqlDir}
 	echo '正在安装脚本文件...'
 
-	# ----- cpu start ------
-	if [ -z "${cpuCore}" ]; then
-    	cpuCore="1"
-	fi
 
-	if [ -f /proc/cpuinfo ];then
-		cpuCore=`cat /proc/cpuinfo | grep "processor" | wc -l`
-	fi
-
-	MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
-	if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
-	    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
-	        cpuCore="${MEM_INFO}"
-	    fi
-	else
-	    cpuCore="1"
-	fi
-
-	if [ "$cpuCore" -gt "2" ];then
-		cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-	else
-		cpuCore="1"
-	fi
-	# ----- cpu end ------
+	cpuCore=$(get_cpu_cores)
 
 	cd ${rootPath}/plugins/mysql/lib && /bin/bash rpcgen.sh
 
@@ -96,22 +80,8 @@ Install_mysql()
 		INSTALL_CMD=cmake3
 	fi
 
-	if [ ! -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 ${URL}
-	fi
-
-	#检测文件是否损坏
-	md5_mysql_ok=e0cb61cbf6e1144c452368c4535ae931
-	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
-		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
-			echo "mysql8.0 file  check ok"
-		else
-			# 重新下载
-			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-boost-${VERSION}.tar.gz
-		fi
-	fi
+	URL="https://dev.mysql.com/get/Downloads/MySQL-9.7/mysql-boost-${VERSION}.tar.gz"
+	mw_download ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ${URL}
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
 		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz
@@ -141,7 +111,7 @@ Install_mysql()
 		echo $WHERE_DIR_GPP
 	fi
 
-	if [ "$OSNAME" == "ubuntu" ] && [ "$VERSION_ID" == "18.04" ];then
+	if [ "$OSNAME" == "ubuntu" ];then
 		apt install -y libudev-dev
 		apt install -y libtirpc-dev
 		apt install -y libssl-dev
@@ -160,6 +130,10 @@ Install_mysql()
 		apt install -y gcc-11 g++-11
 		WHERE_DIR_GCC=/usr/bin/gcc-11
 		WHERE_DIR_GPP=/usr/bin/g++-11
+		
+
+		OPTIONS="${OPTIONS} -DFORCE_INSOURCE_BUILD=1"
+		OPTIONS="${OPTIONS} -D_FORTIFY_SOURCE=2"
 	fi
 
 
@@ -199,7 +173,7 @@ Install_mysql()
 
 		if [ -d $serverPath/mysql ];then
 			rm -rf ${mysqlDir}/mysql-${VERSION}
-			echo '8.0' > $serverPath/mysql/version.pl
+			echo '9.7' > $serverPath/mysql/version.pl
 			echo "${VERSION}安装完成"
 		else
 			# rm -rf ${mysqlDir}/mysql-${VERSION}

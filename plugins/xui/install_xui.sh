@@ -43,7 +43,7 @@ fi
 echo "架构: ${arch}"
 
 if [ $(getconf WORD_BIT) != '32' ] && [ $(getconf LONG_BIT) != '64' ]; then
-    echo "本软件不支持 32 位系统(x86)，请使用 64 位系统(x86_64)，如果检测有误，请联系作者"
+    echo "本软件不支持 32 位系统(x86)，请使用 64 位系统(x86_64)，如果检测有误，请联系作者！"
     exit -1
 fi
 
@@ -88,15 +88,15 @@ config_after_install() {
         local portTemp=$(echo $RANDOM)
         /usr/local/x-ui/x-ui setting -username ${usernameTemp} -password ${passwordTemp}
         /usr/local/x-ui/x-ui setting -port ${portTemp}
-        echo -e "检测到您属于全新安装,出于安全考虑已自动为您生成随机用户与端口:"
+        echo -e "检测到您属于全新安装，出于安全考虑已自动为您生成随机用户与端口:"
         echo -e "###############################################"
-        echo -e "${green}面板登录用户名:${usernameTemp}${plain}"
+        echo -e "${green}面板登录用户：${usernameTemp}${plain}"
         echo -e "${green}面板登录用户密码:${passwordTemp}${plain}"
         echo -e "${red}面板登录端口:${portTemp}${plain}"
         echo -e "###############################################"
-        echo -e "${red}如您遗忘了面板登录相关信息,可在安装完成后输入x-ui,输入选项7查看面板登录信息${plain}"
+        echo -e "${red}如您遗忘了面板登录相关信息，可在安装完成后输入x-ui,输入选项7查看面板登录信息${plain}"
     else
-        echo -e "${red}当前属于版本升级,保留之前设置项,登录方式保持不变,可输入x-ui后键入数字7查看面板登录信息${plain}"
+        echo -e "${red}当前属于版本升级,保留之前设置，登录方式保持不变,可输入x-ui后键入数字 7 查看面板登录信息${plain}"
     fi
 }
 
@@ -111,7 +111,11 @@ install_x-ui() {
             exit 1
         fi
         echo -e "检测到 x-ui 最新版本：${last_version}，开始安装"
-        wget -N --no-check-certificate -O /usr/local/x-ui-linux-${arch}.tar.gz https://github.com/FranzKafkaYu/x-ui/releases/download/${last_version}/x-ui-linux-${arch}.tar.gz
+        if [ "$LOCAL_ADDR" == "cn" ];then
+            wget -N --no-check-certificate -O /usr/local/x-ui-linux-${arch}.tar.gz https://ghp.ci/https://github.com/FranzKafkaYu/x-ui/releases/download/${last_version}/x-ui-linux-${arch}.tar.gz
+        else
+            wget -N --no-check-certificate -O /usr/local/x-ui-linux-${arch}.tar.gz https://github.com/FranzKafkaYu/x-ui/releases/download/${last_version}/x-ui-linux-${arch}.tar.gz
+        fi
         if [[ $? -ne 0 ]]; then
             echo -e "${red}下载 x-ui 失败，请确保你的服务器能够下载 Github 的文件${plain}"
             exit 1
@@ -140,7 +144,7 @@ install_x-ui() {
     chmod +x /usr/local/x-ui/x-ui.sh
     chmod +x /usr/bin/x-ui
     config_after_install
-    #echo -e "如果是全新安装，默认网页端口为 ${green}54321${plain}，用户名和密码默认都是 ${green}admin${plain}"
+    #echo -e "如果是全新安装，默认网页端口为 ${green}54321${plain}，用户名和密码默认都为 ${green}admin${plain}"
     #echo -e "请自行确保此端口没有被其他程序占用，${yellow}并且确保 54321 端口已放行${plain}"
     #    echo -e "若想将 54321 修改为其它端口，输入 x-ui 命令进行修改，同样也要确保你修改的端口也是放行的"
     #echo -e ""

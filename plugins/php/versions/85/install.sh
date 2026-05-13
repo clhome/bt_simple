@@ -9,9 +9,9 @@ serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source
 sysName=`uname`
 
-version=8.5.5
+version=8.5.6
 PHP_VER=85
-md5_file_ok=95bec382f4bd00570a8ef52a58ec04d8d9b9a90494781f1c106d1b274a3902f2
+md5_file_ok=b3c961e69b2b512e0e0a5c488cf46a1e3c830e017290d2204c3cc03576b5c3e7
 Install_php()
 {
 #------------------------ install start ------------------------------------#
@@ -51,14 +51,14 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 		# wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://downloads.php.net/~edorian/php-${version}.tar.xz
 	fi
 
-	#检测文件是否损坏.
-	# if [ -f $sourcePath/php/php-${version}.tar.xz ];then
-	# 	md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
-	# 	if [ "${md5_file}" != "${md5_file_ok}" ]; then
-	# 		echo "PHP${version} 下载文件不完整,重新安装"
-	# 		rm -rf $sourcePath/php/php-${version}.tar.xz
-	# 	fi
-	# fi
+	#检测文件是否损坏
+	if [ -f $sourcePath/php/php-${version}.tar.xz ];then
+		md5_file=`sha256sum $sourcePath/php/php-${version}.tar.xz  | awk '{print $1}'`
+		if [ "${md5_file}" != "${md5_file_ok}" ]; then
+			echo "PHP${version} 下载文件不完整 重新安装"
+			rm -rf $sourcePath/php/php-${version}.tar.xz
+		fi
+	fi
 	
 	cd $sourcePath/php && tar -Jxf $sourcePath/php/php-${version}.tar.xz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}

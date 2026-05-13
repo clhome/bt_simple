@@ -57,17 +57,86 @@ fi
 echo "system:${OSNAME}:${VERSION_ID}"
 
 
-HTTP_PREFIX="https://"
-LOCAL_ADDR=common
-cn=$(curl -fsSL -m 5 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
-if [ ! -z "$cn" ]; then
-    LOCAL_ADDR=cn
-elif [ -f ${rootPath}/data/is_china.pl ]; then
-    is_cn=$(cat ${rootPath}/data/is_china.pl)
-    if [ "$is_cn" == "True" ]; then
-        LOCAL_ADDR=cn
+# --- Common Helpers Start ---
+
+function get_local_addr() {
+    if [ ! -z "$LOCAL_ADDR" ]; then
+        echo $LOCAL_ADDR
+        return
     fi
-fi
+    local cn=$(curl -fsSL -m 5 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
+    if [ ! -z "$cn" ]; then
+        echo "cn"
+    elif [ -f ${rootPath}/data/is_china.pl ]; then
+        local is_cn=$(cat ${rootPath}/data/is_china.pl)
+        if [ "$is_cn" == "True" ]; then
+            echo "cn"
+        else
+            echo "common"
+        fi
+    else
+        echo "common"
+    fi
+}
+
+function get_cpu_cores() {
+    local cores="1"
+    if [ -f /proc/cpuinfo ]; then
+        cores=$(cat /proc/cpuinfo | grep "processor" | wc -l)
+    fi
+
+    if [ -x "$(command -v free)" ]; then
+        local mem=$(free -m | grep Mem | awk '{printf("%.f",($2)/1024)}')
+        if [ "$cores" -gt "$mem" ] && [ "$mem" -gt 0 ]; then
+            cores=$mem
+        fi
+    fi
+
+    if [ "$cores" -gt "2" ]; then
+        cores=$(echo "$cores" | awk '{printf("%.f",($1)*0.8)}')
+    else
+        cores="1"
+    fi
+    echo $cores
+}
+
+# Usage: mw_download <file_path> <url> [timeout]
+function mw_download() {
+    local file=$1
+    local url=$2
+    local timeout=${3:-30}
+    local addr=$(get_local_addr)
+
+    if [ -f $file ]; then
+        return 0
+    fi
+
+    if [ "$addr" == "cn" ]; then
+        # GitHub Mirror
+        if [[ $url == https://github.com* ]]; then
+            local proxy_url="https://ghp.ci/$url"
+            echo "Downloading from mirror: $proxy_url"
+            wget --no-check-certificate -O $file --tries=3 --timeout=$timeout $proxy_url
+        fi
+        # OpenResty Mirror
+        if [[ $url == https://openresty.org/download/* ]]; then
+            local filename=$(basename $url)
+            local proxy_url="https://mirrors.ustc.edu.cn/openresty/download/$filename"
+            echo "Downloading from mirror: $proxy_url"
+            wget --no-check-certificate -O $file --tries=3 --timeout=$timeout $proxy_url
+        fi
+    fi
+
+    if [ ! -f $file ]; then
+        echo "Downloading from original: $url"
+        wget --no-check-certificate -O $file --tries=3 --timeout=$timeout $url
+    fi
+}
+
+# --- Common Helpers End ---
+
+HTTP_PREFIX="https://"
+LOCAL_ADDR=$(get_local_addr)
 
 PIPSRC="https://pypi.python.org/simple"
 if [ "$LOCAL_ADDR" != "common" ];then
@@ -77,7 +146,7 @@ fi
 echo "local:${LOCAL_ADDR}"
 echo "pypi source:$PIPSRC"
 
-#面板需要的库
+# 面板需要的库
 if [ ! -f /usr/local/bin/pip3 ] && [ ! -f /usr/bin/pip3 ];then
     python3 -m pip install --upgrade pip setuptools wheel -i $PIPSRC
 

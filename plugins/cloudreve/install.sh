@@ -7,6 +7,10 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
+
 # cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/cloudreve && bash install.sh install 3.8.3
 # cd /www/server/mdserver-web/plugins/cloudreve && bash install.sh install 3.8.3
 
@@ -39,9 +43,7 @@ Install_App()
 	FILE_TGZ=cloudreve_${VERSION}_${ALIST_NAME}_${ALIST_ARCH_NAME}.tar.gz
 	CLOUDREVE_DIR=$serverPath/source/cloudreve
 
-	if [ ! -f $CLOUDREVE_DIR/${FILE_TGZ} ];then
-		wget -O $CLOUDREVE_DIR/${FILE_TGZ} https://github.com/cloudreve/Cloudreve/releases/download/${VERSION}/${FILE_TGZ}
-	fi
+	mw_download $CLOUDREVE_DIR/${FILE_TGZ} https://github.com/cloudreve/Cloudreve/releases/download/${VERSION}/${FILE_TGZ}
 	
 	mkdir -p $serverPath/cloudreve
 
