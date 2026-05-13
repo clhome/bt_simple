@@ -1,9 +1,93 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<style>
+    .drop-overlay {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(45, 140, 240, 0.1);
+        border: 3px dashed #2d8cf0;
+        z-index: 99;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        border-radius: 4px;
+        margin: 15px;
+    }
+    .drop-overlay.active {
+        display: flex;
+    }
+    .drop-content {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+    .drop-icon {
+        font-size: 60px;
+        color: #2d8cf0;
+        margin-bottom: 15px;
+    }
+    .drop-text {
+        font-size: 18px;
+        color: #333;
+        font-weight: bold;
+    }
+    .confirmUpload .upload-target {
+        padding: 10px;
+        background: #f8f8f8;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+    }
+    .confirmUpload .up_box {
+        height: 280px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        margin: 0 10px;
+        padding: 5px;
+        list-style: none;
+    }
+    .confirmUpload .up_box li {
+        padding: 5px;
+        border-bottom: 1px solid #f9f9f9;
+        display: flex;
+        justify-content: space-between;
+    }
+    .confirmUpload .up_box li .filename {
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .confirmUpload .up_box li .filesize {
+        color: #999;
+        font-size: 12px;
+    }
+    .confirmUpload .upload-footer {
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .confirmUpload .total-info {
+        font-weight: bold;
+        color: #666;
+    }
+</style>
 <div class="main-content">
     <div class="container-fluid" style="padding-bottom:50px">
-        <div class="file-box bgw mtb15" style="position:relative; padding-top:110px">
+        <div class="file-box bgw mtb15" id="file-drop-zone" style="position:relative; padding-top:110px">
+            <div id="dropOverlay" class="drop-overlay">
+                <div class="drop-content">
+                    <div class="drop-icon glyphicon glyphicon-cloud-upload"></div>
+                    <div class="drop-text">松开鼠标以上传文件或文件夹</div>
+                </div>
+            </div>
             <div id="tipTools" class="plr15">
                 <div class="ptb15">
                     <div class="clearfix">
@@ -79,6 +163,7 @@ setTimeout(function() {
 var xPath = getCookie('open_dir_path');
 setTimeout(function() {
     getFiles((xPath != undefined ? xPath : '/www/wwwroot'));
+    initDragDrop();
 }, 800);
 
 pathPlaceBtn((xPath != undefined ? xPath : '/www/wwwroot'));

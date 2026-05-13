@@ -1904,3 +1904,229 @@ $("#PathPlaceBtn").on("click", function(e){
 $("#DirPathPlace").on("click", function(e){
     e.stopPropagation();
 });
+
+/**
+ * 初始化拖拽上传
+ */
+function initDragDrop() {
+    var dropOverlay = document.getElementById('dropOverlay');
+    var dragTimer;
+
+    window.addEventListener('dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(dropOverlay).addClass('active');
+    }, false);
+
+    window.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(dropOverlay).addClass('active');
+    }, false);
+
+    window.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dragTimer = window.setTimeout(function() {
+            $(dropOverlay).removeClass('active');
+        }, 100);
+    }, false);
+
+    window.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(dropOverlay).removeClass('active');
+        if (dragTimer) window.clearTimeout(dragTimer);
+
+        var items = e.dataTransfer.items;
+        if (items) {
+            handleDroppedItems(items);
+        }
+    }, false);
+}
+
+/**
+ * 处理拖拽落下的项
+ */
+function handleDroppedItems(items) {
+    var filesToUpload = [];
+    var loadingIndex = layer.msg('正在解析文件结构...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+
+    var promises = [];
+    for (var i = 0; i < items.length; i++) {
+        var entry = items[i].webkitGetAsEntry();
+        if (entry) {
+            promises.push(traverseFileTree(entry, filesToUpload));
+        }
+    }
+
+    Promise.all(promises).then(function() {
+        layer.close(loadingIndex);
+        if (filesToUpload.length > 0) {
+            showConfirmUpload(filesToUpload);
+        } else {
+            layer.msg('未发现可上传的文件', { icon: 5 });
+        }
+    });
+}
+
+/**
+ * 递归遍历目录树
+ */
+function traverseFileTree(item, filesToUpload, path) {
+    path = path || "";
+    return new Promise(function(resolve) {
+        if (item.isFile) {
+            item.file(function(file) {
+                file.fullPath = path + file.name;
+                filesToUpload.push(file);
+                resolve();
+            });
+        } else if (item.isDirectory) {
+            var dirReader = item.createReader();
+            var readEntries = function() {
+                dirReader.readEntries(function(entries) {
+                    if (entries.length > 0) {
+                        var subPromises = [];
+                        for (var i = 0; i < entries.length; i++) {
+                            subPromises.push(traverseFileTree(entries[i], filesToUpload, path + item.name + "/"));
+                        }
+                        Promise.all(subPromises).then(readEntries);
+                    } else {
+                        resolve();
+                    }
+                });
+            };
+            readEntries();
+        } else {
+            resolve();
+        }
+    });
+}
+
+/**
+ * 显示上传确认对话框
+ */
+function showConfirmUpload(files) {
+    var path = $("#DirPathPlace input").val();
+    if (path.substring(path.length - 1) != '/') path += '/';
+    
+    var fileListHtml = '';
+    var totalSize = 0;
+    var maxDisplay = 100;
+    
+    for (var i = 0; i < files.length; i++) {
+        totalSize += files[i].size;
+        if (i < maxDisplay) {
+            var fileName = files[i].fullPath;
+            fileListHtml += '<li><span class="filename">' + fileName + '</span><span class="filesize">' + toSize(files[i].size) + '</span></li>';
+        }
+    }
+    
+    if (files.length > maxDisplay) {
+        fileListHtml += '<li><em style="color: #999;">... 还有 ' + (files.length - maxDisplay) + ' 个文件</em></li>';
+    }
+
+    layer.open({
+        type: 1,
+        closeBtn: 1,
+        title: '确认上传 (' + files.length + ' 个项目)',
+        area: ['600px', '450px'],
+        shadeClose: false,
+        content: '<div class="fileUploadDiv confirmUpload">\
+                <div class="upload-target">上传到目录: <code>' + path + '</code></div>\
+                <ul id="confirm_up_box" class="up_box">' + fileListHtml + '</ul>\
+                <div class="upload-footer">\
+                    <span class="total-info">总大小: ' + toSize(totalSize) + '</span>\
+                    <button type="button" id="confirmUpBtn" class="btn btn-success btn-sm">开始上传</button>\
+                    <button type="button" class="btn btn-default btn-sm" onClick="layer.closeAll()">取消</button>\
+                </div>\
+            </div>'
+    });
+
+    $('#confirmUpBtn').click(function() {
+        executeUpload(files, path);
+    });
+}
+
+/**
+ * 实现带目录结构的上传逻辑
+ */
+function executeUpload(files, basePath) {
+    layer.closeAll();
+    layer.open({
+        type: 1,
+        closeBtn: 0,
+        title: '正在上传...',
+        area: ['500px', '350px'],
+        shadeClose: false,
+        content: '<div class="fileUploadDiv">\
+                <div id="totalProgress"></div>\
+                <ul id="up_box"></ul>\
+                <div style="text-align:center; margin-top:10px;"><button class="btn btn-default btn-sm" id="stopUp" style="display:none">停止</button></div>\
+            </div>'
+    });
+
+    var up_box = document.getElementById("up_box");
+    var totalProgress = document.getElementById("totalProgress");
+    var ajax = new MyAjax();
+    var isStop = false;
+
+    $('#stopUp').show().click(function() {
+        isStop = true;
+        ajax.stop = true;
+        layer.msg('已停止上传');
+        setTimeout(function() { layer.closeAll(); getFiles(getCookie("open_dir_path")); }, 1000);
+    });
+
+    function uploadNext(index) {
+        if (isStop) return;
+        if (index >= files.length) {
+            layer.msg('全部上传完成', { icon: 1 });
+            setTimeout(function() { layer.closeAll(); getFiles(getCookie("open_dir_path")); }, 1000);
+            return;
+        }
+
+        var file = files[index];
+        var parts = file.fullPath.split('/');
+        parts.pop();
+        var subDir = parts.join('/');
+        var targetPath = basePath + (subDir ? subDir + "/" : "");
+
+        var li = document.createElement("li");
+        li.innerHTML = "<span class='filename'>" + file.fullPath + "</span><span class='filesize'>" + toSize(file.size) + "</span><em>等待上传...</em>";
+        up_box.appendChild(li);
+        up_box.scrollTop = up_box.scrollHeight;
+
+        var em = li.getElementsByTagName("em")[0];
+        var formData = new FormData();
+        formData.append("zunfile", file);
+
+        var url = "/files/upload_file?path=" + encodeURIComponent(targetPath);
+        totalProgress.innerHTML = "<p>上传进度: " + (index + 1) + "/" + files.length + "</p><progress value='" + (index + 1) + "' max='" + files.length + "'></progress>";
+
+        ajax.carry({
+            url: url,
+            data: formData,
+            type: "POST",
+            async: true,
+            progress: function(e) {
+                var progress = Math.floor(e.loaded / e.total * 100) + "%";
+                em.innerHTML = "上传中: " + progress;
+                em.style.color = "#005100";
+            },
+            success: function(res) {
+                em.innerHTML = "已成功";
+                em.style.color = "#005100";
+                uploadNext(index + 1);
+            },
+            error: function(err) {
+                em.innerHTML = "上传失败";
+                em.style.color = "red";
+                uploadNext(index + 1);
+            }
+        });
+    }
+
+    uploadNext(0);
+}
