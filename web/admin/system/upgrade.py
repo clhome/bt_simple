@@ -25,7 +25,8 @@ from .system import blueprint
 def update_server():
     panel_type = request.args.get('type', 'check')
     version = request.args.get('version', '')
-    return sys.updateServer(panel_type, version)
+    step = request.args.get('step', 'all')
+    return sys.updateServer(panel_type, version, step=step)
 
 
 

@@ -534,18 +534,13 @@ function checkUpdate() {
 
 function updateMsg(){
     $.get('/system/update_server?type=info',function(rdata){
-
         if (rdata.data == 'download'){
             updateStatus();return;
         }
-
         var v = rdata.data.version;
-        var v_info = '';
-        if (v.split('.').length>3){
-            v_info = "<span class='label label-warning'>测试版本</span>";
-        } else {
-            v_info = "<span class='label label-success arrowed'>正式版本</span>";
-        }
+        var v_info = (v.split('.').length > 3) ? 
+            "<span class='label label-warning'>测试版本</span>" : 
+            "<span class='label label-success arrowed'>正式版本</span>";
 
         var htmlContent = '';
         try {
@@ -553,51 +548,88 @@ function updateMsg(){
         } catch(e) {
             htmlContent = rdata.data.content.replace(/\n/g, '<br/>');
         }
-
-        layer.open({
-            type:1,
-            title:v_info + '<span class="badge badge-inverse">升级到['+rdata.data.version+']</span>',
-            area: '600px', 
-            shadeClose:false,
-            closeBtn:2,
-            content:'<div class="setchmod bt-form pd20 pb70">'
-                    +'<div class="markdown-body" style="padding: 0 0 10px; line-height: 24px; max-height: 400px; overflow-y: auto;">'+htmlContent+'</div>'
-                    +'<div class="bt-form-submit-btn">'
-                    +'<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">取消</button>'
-                    +'<button type="button" class="btn btn-success btn-sm btn-title" onclick="updateVersion(\''+rdata.data.version+'\')" >立即更新</button>'
-                    +'</div>'
-                    +'</div>'
-        });
+        showUpdateUI(v, v_info + '<span class="badge badge-inverse">版本更新 ['+v+']</span>', htmlContent);
     },'json');
 }
 
-
-//开始升级
-function updateVersion(version) {
-    var loadT = layer.msg('正在升级面板..', { icon: 16, time: 0, shade: [0.3, '#000'] });
-    $.get('/system/update_server?type=update&version='+version, function(rdata) {
-
-        layer.closeAll();
-        if (rdata.status === false) {
-            layer.msg(rdata.msg, { icon: 5, time: 5000 });
-            return;
-        }
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
-        if (rdata.status) {
-            $("#btversion").html(version);
-            $("#toUpdate").html('');
-            layer.msg('升级成功，正在刷新页面...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-            setTimeout(function() {
-                window.location.href = window.location.pathname + '?t=' + new Date().getTime();
-            }, 2000);
-        }
-    },'json').error(function() {
-        layer.msg('更新失败,请重试!', { icon: 2 });
-        setTimeout(function() {
-            window.location.href = window.location.pathname + '?t=' + new Date().getTime();
-        }, 3000);
+function showUpdateUI(version, title, content) {
+    layer.open({
+        type: 1,
+        title: title,
+        area: '600px',
+        shadeClose: false,
+        closeBtn: 2,
+        content: '<div class="setchmod bt-form pd20 pb70">'
+                + (content ? '<div class="markdown-body" style="padding: 0 0 10px; line-height: 24px; max-height: 200px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid #eee;">' + content + '</div>' : '')
+                + '<div class="update-progress-group" style="padding: 10px 0;">'
+                + '    <div style="margin-bottom: 15px;">'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">1. 下载并解压更新包</span><span id="download-percent" class="f12 c6">0%</span></div>'
+                + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
+                + '    </div>'
+                + '    <div style="margin-bottom: 15px;">'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">2. 备份系统核心文件</span><span id="backup-percent" class="f12 c6">0%</span></div>'
+                + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="backup-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
+                + '    </div>'
+                + '    <div style="margin-bottom: 15px;">'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">3. 安装更新并重启服务</span><span id="install-percent" class="f12 c6">0%</span></div>'
+                + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="install-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
+                + '    </div>'
+                + '</div>'
+                + '<div class="bt-form-submit-btn">'
+                + '<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">取消</button>'
+                + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" onclick="executeSteps(\''+version+'\')" >开始执行</button>'
+                + '<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >强制刷新</button>'
+                + '</div>'
+                + '</div>'
     });
 }
+
+function executeSteps(version) {
+    $("#start-update-btn").attr("disabled", true).addClass("disabled").text("正在处理...");
+    $(".layui-layer-close").hide(); // 过程中禁止手动关闭
+    
+    updateStep('download', version, '#download-bar', '#download-percent', function() {
+        updateStep('backup', version, '#backup-bar', '#backup-percent', function() {
+            updateStep('install', version, '#install-bar', '#install-percent', function() {
+                $("#start-update-btn").hide();
+                $("#hard-refresh-btn").show().removeClass("btn-default").addClass("btn-success");
+                $(".layui-layer-close").show();
+                layer.msg("操作成功完成！请点击强制刷新。", {icon: 1, time: 5000});
+            });
+        });
+    });
+}
+
+function updateStep(step, version, barId, textId, callback) {
+    $(textId).text("处理中...");
+    $(barId).css("width", "40%");
+    
+    $.get('/system/update_server?type=update&version=' + version + '&step=' + step, function(rdata) {
+        if (rdata.status) {
+            $(barId).css("width", "100%");
+            $(textId).text("已完成");
+            if (callback) callback();
+        } else {
+            $(textId).text("失败").css("color", "red");
+            $(barId).css("background-color", "red");
+            layer.msg(rdata.msg, {icon: 2});
+            $("#start-update-btn").attr("disabled", false).removeClass("disabled").text("重试");
+            $(".layui-layer-close").show();
+        }
+    }, 'json').error(function() {
+        if (step == 'install') {
+            $(barId).css("width", "100%");
+            $(textId).text("已完成");
+            if (callback) callback();
+        } else {
+            $(textId).text("连接失败").css("color", "red");
+            layer.msg("与服务器连接断开，请检查网络。", {icon: 2});
+            $(".layui-layer-close").show();
+        }
+    });
+}
+
+
 
 function pluginIndexService(pname,pfunc, callback){
     $.post('/plugins/run', {name:'openresty', func:pfunc}, function(data) {
@@ -646,7 +678,7 @@ function reBoot() {
             case 'repair':
                 layer.confirm('确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。', { title: '修复服务器', closeBtn: 1, icon: 3 }, function () {
                     var version = $("#version").text();
-                    updateVersion(version);
+                    showUpdateUI(version, '<span class="badge badge-inverse">系统修复 ['+version+']</span>', '正在准备修复系统核心文件...');
                 });
                 break;
             case 'server':
