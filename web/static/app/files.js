@@ -687,6 +687,7 @@ function getFiles(Path) {
             getFiles(p);
         });
         pathPlaceBtn(rdata.path);
+        if(typeof(renderFileTabs) == "function") renderFileTabs();
     },'json');
     // setTimeout(function(){getCookie('open_dir_path');},200);
 }
@@ -2129,4 +2130,104 @@ function executeUpload(files, basePath) {
     }
 
     uploadNext(0);
+}
+
+/**
+ * 初始化标签页功能
+ */
+function initFileTabs() {
+    var tabs = loadFileTabs();
+    if (tabs.length === 0) {
+        // 初始标签页
+        tabs.push({ name: 'wwwroot', path: '/www/wwwroot' });
+        saveFileTabs(tabs);
+    }
+    renderFileTabs();
+}
+
+/**
+ * 从 localStorage 加载标签页
+ */
+function loadFileTabs() {
+    var tabsJson = localStorage.getItem('bt_file_tabs');
+    if (tabsJson) {
+        try {
+            return JSON.parse(tabsJson);
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
+/**
+ * 保存标签页到 localStorage
+ */
+function saveFileTabs(tabs) {
+    localStorage.setItem('bt_file_tabs', JSON.stringify(tabs));
+}
+
+/**
+ * 渲染标签页
+ */
+function renderFileTabs() {
+    var tabs = loadFileTabs();
+    var currentPath = getCookie('open_dir_path');
+    var html = '';
+    
+    for (var i = 0; i < tabs.length; i++) {
+        var isActive = (tabs[i].path === currentPath) ? 'active' : '';
+        html += '<div class="file-tab ' + isActive + '" data-index="' + i + '" onclick="switchFileTab(' + i + ')">\
+                    <span class="tab-icon glyphicon glyphicon-folder-open"></span>\
+                    <span class="tab-name" title="' + tabs[i].path + '">' + tabs[i].name + '</span>\
+                    <span class="close-tab glyphicon glyphicon-remove" onclick="removeFileTab(event, ' + i + ')"></span>\
+                </div>';
+    }
+    
+    html += '<button class="add-tab-btn" onclick="addNewFileTab()" title="将当前目录添加为新标签">+</button>';
+    
+    $('#file-tabs').html(html);
+}
+
+/**
+ * 切换标签页
+ */
+function switchFileTab(index) {
+    var tabs = loadFileTabs();
+    if (tabs[index]) {
+        getFiles(tabs[index].path);
+    }
+}
+
+/**
+ * 添加当前目录为新标签页
+ */
+function addNewFileTab() {
+    var currentPath = getCookie('open_dir_path');
+    if (!currentPath) return;
+    
+    var tabs = loadFileTabs();
+    // 检查是否已存在
+    for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].path === currentPath) {
+            layer.msg('该目录已在标签页中');
+            return;
+        }
+    }
+    
+    var name = currentPath.split('/').pop() || '根目录';
+    tabs.push({ name: name, path: currentPath });
+    saveFileTabs(tabs);
+    renderFileTabs();
+}
+
+/**
+ * 删除标签页
+ */
+function removeFileTab(event, index) {
+    event.stopPropagation(); // 阻止触发切换事件
+    var tabs = loadFileTabs();
+    tabs.splice(index, 1);
+    saveFileTabs(tabs);
+    renderFileTabs();
 }
