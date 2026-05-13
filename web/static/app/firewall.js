@@ -400,6 +400,9 @@ function showAccept(page) {
 			var port_display = data.data[i].port;
 			if (currentType == 'port'){
 				port_display = (data.data[i].port.indexOf('.') == -1?'放行端口'+':['+data.data[i].port+']':'屏蔽IP'+':['+data.data[i].port+']');
+			} else {
+				var type_text = data.data[i].type == 'address_allow' ? '<span style="color:#20a53a;">放行IP</span>' : '<span style="color:red;">禁止IP</span>';
+				port_display = type_text + ':[' + data.data[i].port + ']';
 			}
 
 			body += "<tr>\
@@ -561,4 +564,20 @@ function setFirewallStatus(id, port, protocol, status){
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		showAccept(1);
 	},'json');
+}
+
+function syncServer() {
+    var loadT = layer.msg('正在同步服务器防火墙规则, 请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+    $.post('/firewall/sync_server', '', function(rdata) {
+        layer.close(loadT);
+        if (rdata.status) {
+            layer.msg(rdata.msg, {icon: 1});
+            showAccept(1);
+        } else {
+            layer.msg(rdata.msg, {icon: 2});
+        }
+    }, 'json').error(function() {
+        layer.close(loadT);
+        layer.msg('同步请求失败，请检查网络连接或服务器状态。', {icon: 2});
+    });
 }

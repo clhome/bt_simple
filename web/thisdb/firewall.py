@@ -32,8 +32,11 @@ def getFirewallList(page=1, size=10, search_port='', search_ps='', stype='port')
     params = []
 
     if stype:
-        where += "type = ?"
-        params.append(stype)
+        if stype == 'ip':
+            where += "type IN ('address_allow', 'address_deny')"
+        else:
+            where += "type = ?"
+            params.append(stype)
     
     if search_port:
         if where: where += " AND "

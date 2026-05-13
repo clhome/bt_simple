@@ -154,11 +154,16 @@
               padding: 0;
             "
           >
-            <div class="tab-nav-view">
-              <span class="active" onclick="switchTab('port', this)"
-                >端口防火墙</span
-              >
-              <span onclick="switchTab('ip', this)">IP防火墙</span>
+            <div class="tab-nav-view" style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="tab-nav-inner">
+                <span class="active" onclick="switchTab('port', this)">端口防火墙</span>
+                <span onclick="switchTab('ip', this)">IP防火墙</span>
+              </div>
+              <div class="tab-sync-btn" style="padding-right: 15px;">
+                <button class="btn btn-default btn-xs" onclick="syncServer()" title="从服务器同步防火墙规则">
+                  <span class="glyphicon glyphicon-refresh" style="margin-right:3px;"></span>服务器同步
+                </button>
+              </div>
             </div>
           </div>
 
@@ -260,8 +265,8 @@
                   class="bt-input-text c5 mr5"
                   style="width: 80px"
                 >
-                  <option value="address_allow">放行</option>
                   <option value="address_deny">禁止</option>
+                  <option value="address_allow">放行</option>
                 </select>
                 <input
                   type="text"
@@ -321,13 +326,13 @@
               >
                 <thead>
                   <tr>
-                    <th width="40">ID</th>
-                    <th id="th_protocol" width="60">协议</th>
-                    <th id="th_port" width="180">端口/IP</th>
-                    <th width="80">状态</th>
+                    <th width="50">ID</th>
+                    <th id="th_protocol" width="80">协议</th>
+                    <th id="th_port" width="200">端口/IP</th>
+                    <th width="100">状态</th>
                     <th>备注</th>
-                    <th width="150">时间</th>
-                    <th width="50" class="text-right">操作</th>
+                    <th width="180">时间</th>
+                    <th width="80" class="text-right">操作</th>
                   </tr>
                 </thead>
                 <tbody id="firewall_body"></tbody>

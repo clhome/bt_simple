@@ -118,6 +118,96 @@ class Firewall(object):
             if thisdb.getFirewallCountByPort(add_info['port']) == 0:
                 thisdb.addFirewall(add_info['port'], ps='自动识别',protocol=add_info['protocol'])
 
+    def syncServer(self):
+        if self.__isFirewalld:
+            self.syncFirewalld()
+        elif self.__isUfw:
+            self.syncUfw()
+        elif self.__isIptables:
+            self.syncIptables()
+        return mw.returnData(True, '同步完成!')
+
+    def syncFirewalld(self):
+        # 同步端口
+        t = mw.execShell("firewall-cmd --permanent --list-ports")
+        if t[0].strip() != '':
+            ports = t[0].strip().split(' ')
+            for pinfo in ports:
+                if '/' not in pinfo: continue
+                port, protocol = pinfo.split('/')
+                port = port.replace('-', ':')
+                if thisdb.getFirewallCountByPort(port, stype='port') == 0:
+                    thisdb.addFirewall(port, ps='服务器同步', protocol=protocol, stype='port')
+        
+        # 同步放行IP (trusted zone)
+        t = mw.execShell("firewall-cmd --permanent --zone=trusted --list-sources")
+        if t[0].strip() != '':
+            ips = t[0].strip().split(' ')
+            for ip in ips:
+                if ip and thisdb.getFirewallCountByPort(ip, stype='address_allow') == 0:
+                    thisdb.addFirewall(ip, ps='服务器同步', protocol='tcp/udp', stype='address_allow')
+
+        # 同步拒绝IP (drop zone)
+        t = mw.execShell("firewall-cmd --permanent --zone=drop --list-sources")
+        if t[0].strip() != '':
+            ips = t[0].strip().split(' ')
+            for ip in ips:
+                if ip and thisdb.getFirewallCountByPort(ip, stype='address_deny') == 0:
+                    thisdb.addFirewall(ip, ps='服务器同步', protocol='tcp/udp', stype='address_deny')
+
+    def syncUfw(self):
+        t = mw.execShell("ufw status numbered")
+        lines = t[0].split('\n')
+        for line in lines:
+            # [ 1] 80/tcp                     ALLOW IN    Anywhere
+            # [ 2] 1.2.3.4                    ALLOW IN    Anywhere
+            if 'ALLOW IN' in line:
+                parts = [p for p in line.split(' ') if p]
+                if len(parts) < 4: continue
+                rule = parts[2]
+                if '/' in rule: # Port
+                    port, protocol = rule.split('/')
+                    if thisdb.getFirewallCountByPort(port, stype='port') == 0:
+                        thisdb.addFirewall(port, ps='服务器同步', protocol=protocol, stype='port')
+                else: # IP
+                    if thisdb.getFirewallCountByPort(rule, stype='address_allow') == 0:
+                        thisdb.addFirewall(rule, ps='服务器同步', protocol='tcp/udp', stype='address_allow')
+            elif 'DENY IN' in line:
+                parts = [p for p in line.split(' ') if p]
+                if len(parts) < 4: continue
+                rule = parts[2]
+                if thisdb.getFirewallCountByPort(rule, stype='address_deny') == 0:
+                    thisdb.addFirewall(rule, ps='服务器同步', protocol='tcp/udp', stype='address_deny')
+
+    def syncIptables(self):
+        # 简单解析 iptables-save 输出
+        t = mw.execShell("iptables-save")
+        lines = t[0].split('\n')
+        for line in lines:
+            if '-A INPUT' in line:
+                # -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+                # -A INPUT -s 1.2.3.4/32 -j ACCEPT
+                if '--dport' in line:
+                    m = re.search(r'--dport (\d+(:\d+)?)', line)
+                    p = re.search(r'-p (\w+)', line)
+                    if m:
+                        port = m.group(1)
+                        protocol = p.group(1) if p else 'tcp'
+                        if thisdb.getFirewallCountByPort(port, stype='port') == 0:
+                            thisdb.addFirewall(port, ps='服务器同步', protocol=protocol, stype='port')
+                elif '-s ' in line and '-j ACCEPT' in line:
+                    m = re.search(r'-s (\d+\.\d+\.\d+\.\d+(/\d+)?)', line)
+                    if m:
+                        ip = m.group(1)
+                        if thisdb.getFirewallCountByPort(ip, stype='address_allow') == 0:
+                            thisdb.addFirewall(ip, ps='服务器同步', protocol='tcp/udp', stype='address_allow')
+                elif '-s ' in line and '-j DROP' in line:
+                    m = re.search(r'-s (\d+\.\d+\.\d+\.\d+(/\d+)?)', line)
+                    if m:
+                        ip = m.group(1)
+                        if thisdb.getFirewallCountByPort(ip, stype='address_deny') == 0:
+                            thisdb.addFirewall(ip, ps='服务器同步', protocol='tcp/udp', stype='address_deny')
+
     def getList(self, page=1, size=10, search_port='', search_ps='', stype='port'):
         info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps, stype=stype)
 
@@ -415,19 +505,24 @@ class Firewall(object):
         elif port.find('-') > 0:
             pass
         else:
-            if(int(port) == int(panel_port)):
+            if(port.isdigit() and int(port) == int(panel_port)):
                 return mw.returnData(False, '失败，不能删除当前面板端口!')
+
+        info = mw.M('firewall').where("id=?", (firewall_id,)).field('type').find()
+        stype = 'port'
+        if info: stype = info['type']
+
         try:
-            self.delAcceptPortCmd(port, protocol)
+            self.delAcceptPortCmd(port, protocol, stype=stype)
             mw.M('firewall').where("id=?", (firewall_id,)).delete()
             return mw.returnData(True, '删除成功!')
         except Exception as e:
             return mw.returnData(False, '删除失败!:' + str(e))
 
     def delAcceptPortCmd(self, port,
-        protocol ='tcp'
+        protocol ='tcp', stype='port'
     ):
-        self.delAcceptPortCmdInSystem(port, protocol)
+        self.delAcceptPortCmdInSystem(port, protocol, stype=stype)
         mw.M('firewall').where("port=?", (port,)).delete()
         msg = mw.getInfo('删除防火墙放行端口[{1}][{2}]成功!', (port, protocol,))
         mw.writeLog("防火墙管理", msg)
@@ -577,11 +672,15 @@ class Firewall(object):
         if not self.getFwStatus():
             return mw.returnData(False, '防火墙启动时,才能操作!')
 
+        info = mw.M('firewall').where("id=?", (id,)).field('type').find()
+        stype = 'port'
+        if info: stype = info['type']
+
         if status == '1':
-            self.addAcceptPortCmd(port, protocol)
+            self.addAcceptPortCmd(port, protocol, stype=stype)
             msg = '启用成功'
         else:
-            self.delAcceptPortCmdInSystem(port, protocol)
+            self.delAcceptPortCmdInSystem(port, protocol, stype=stype)
             msg = '禁用成功'
 
         mw.M('firewall').where("id=?", (id,)).setField('status', status)

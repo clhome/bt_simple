@@ -142,3 +142,8 @@ def set_firewall_status():
 
 
 
+# 同步服务器规则
+@blueprint.route('/sync_server', endpoint='sync_server', methods=['POST'])
+@panel_login_required
+def sync_server():
+    return MwFirewall.instance().syncServer()
