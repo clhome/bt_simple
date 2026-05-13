@@ -417,7 +417,7 @@ migrate_from_mw() {
     echo "  3. 如迁移失败可一键回滚到原版"
     echo ""
 
-    if ! confirm "是否确认从 mdserver-web 迁移到 bt_simple?"; then
+    if ! confirm "是否确认【升级】或者从 mdserver-web 迁移到 bt_simple?"; then
         log_info "用户取消迁移"
         return
     fi
@@ -687,7 +687,7 @@ main() {
     elif $HAS_MW; then
         echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
         echo ""
-        echo "  1) 从 mdserver-web 迁移到 bt_simple"
+        echo "  1) 确认【升级】或者从 mdserver-web 迁移到 bt_simple"
         echo "  2) 取消"
         echo ""
         read -p "请选择 [1-2]: " choice < /dev/tty

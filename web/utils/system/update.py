@@ -25,8 +25,8 @@ def versionDiff(now, new):
         none 没有新版本
     '''
     try:
-        new = str(new)
-        now = str(now)
+        new = str(new).lstrip('v')
+        now = str(now).lstrip('v')
         new_list = new.split('.')
         if len(new_list) > 3:
             return 'test'
@@ -41,16 +41,26 @@ def versionDiff(now, new):
 def getServerInfo():
     import urllib.request
     import ssl
-    upAddr = mw.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+    # GitHub API 优先使用直连，若失败再尝试代理或直接报错
+    # 增加超时时间到 10s，避免网络波动导致失败
+    upAddr = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
     try:
         context = ssl._create_unverified_context()
-        req = urllib.request.urlopen(upAddr, context=context, timeout=3)
+        req = urllib.request.urlopen(upAddr, context=context, timeout=10)
         result = req.read().decode('utf-8')
         version = json.loads(result)
         return version
     except Exception as e:
-        print(str(e))
-        return None
+        # 如果直连失败，尝试使用代理
+        try:
+            upAddr = mw.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+            req = urllib.request.urlopen(upAddr, context=context, timeout=10)
+            result = req.read().decode('utf-8')
+            version = json.loads(result)
+            return version
+        except:
+            print(str(e))
+            return None
     return None
 
 def updateServer(stype, version=''):
@@ -65,7 +75,8 @@ def updateServer(stype, version=''):
             return mw.returnData(False, '服务器数据或网络有问题!')
 
         version_now = config.APP_VERSION
-        new_ver = version_new_info['name']
+        # 使用 tag_name 替代 name，确保版本号和 tag 一致
+        new_ver = version_new_info['tag_name']
         if stype == 'check':
             diff = versionDiff(version_now, new_ver)
             if diff == 'new':
