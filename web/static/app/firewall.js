@@ -364,18 +364,10 @@ function showAccept(page,search) {
 		layer.close(loadT);
 		var body = '';
 		for (var i = 0; i < data.data.length; i++) {
-			var status = '';
-			switch(data.data[i].status){
-				case 0:
-					status = '未使用';
-					break;
-				case 1:
-					status = '外网不通';
-					break;
-				default:
-					status = '正常';
-					break;
-			}
+			var status = "<div class='ssh-item' style='margin-left:0'>\
+					<input class='btswitch btswitch-ios' id='firewall_switch_"+data.data[i].id+"' type='checkbox' "+(data.data[i].status==1?'checked':'')+">\
+					<label class='btswitch-btn' for='firewall_switch_"+data.data[i].id+"' onclick=\"setFirewallStatus(" + data.data[i].id + ",'" + data.data[i].port + "','"+data.data[i].protocol+"',"+(data.data[i].status==1?0:1)+")\"></label>\
+				</div>";
 			body += "<tr>\
 				<td><em class='dlt-num'>" + data.data[i].id + "</em></td>\
 				<td>" + data.data[i].protocol + "</td>\
@@ -452,4 +444,13 @@ function delAcceptPort(id, port,protocol) {
 			showAccept(1);
 		},'json');
 	});
+}
+
+function setFirewallStatus(id, port, protocol, status){
+	var loadT = layer.msg('正在处理,请稍候...',{icon:16,time:0,shade: [0.3, '#000']})
+	$.post('/firewall/set_firewall_status','id='+id+"&port="+port+"&protocol="+protocol+"&status="+status,function(rdata){
+		layer.close(loadT);
+		layer.msg(rdata.msg,{icon:rdata.status?1:2});
+		showAccept(1);
+	},'json');
 }

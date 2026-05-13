@@ -408,6 +408,16 @@ class Firewall(object):
     def delAcceptPortCmd(self, port,
         protocol ='tcp'
     ):
+        self.delAcceptPortCmdInSystem(port, protocol)
+        mw.M('firewall').where("port=?", (port,)).delete()
+        msg = mw.getInfo('删除防火墙放行端口[{1}][{2}]成功!', (port, protocol,))
+        mw.writeLog("防火墙管理", msg)
+        self.reload()
+        return True
+
+    def delAcceptPortCmdInSystem(self, port,
+        protocol ='tcp'
+    ):
         if self.__isUfw:
             if protocol == 'tcp':
                 mw.execShell('ufw delete allow ' + port + '/tcp')
@@ -443,11 +453,6 @@ class Firewall(object):
                     'iptables -D INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT')
         else:
             pass
-
-        mw.M('firewall').where("port=?", (port,)).delete()
-        msg = mw.getInfo('删除防火墙放行端口[{1}][{2}]成功!', (port, protocol,))
-        mw.writeLog("防火墙管理", msg)
-        self.reload()
         return True
 
     def setSshRootStatus(self, status):
@@ -532,6 +537,21 @@ class Firewall(object):
         mw.writeFile(file, content)
         mw.execShell("systemctl restart sshd")
         mw.writeLog("SSH管理", msg)
+        return mw.returnData(True, msg)
+
+    def setStatus(self, id, port, protocol, status):
+        if not self.getFwStatus():
+            return mw.returnData(False, '防火墙启动时,才能操作!')
+
+        if status == '1':
+            self.addAcceptPortCmd(port, protocol)
+            msg = '启用成功'
+        else:
+            self.delAcceptPortCmdInSystem(port, protocol)
+            msg = '禁用成功'
+
+        mw.M('firewall').where("id=?", (id,)).setField('status', status)
+        self.reload()
         return mw.returnData(True, msg)
 
 

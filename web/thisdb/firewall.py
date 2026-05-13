@@ -10,7 +10,12 @@
 
 import core.mw as mw
 
-__FIELD = 'id,port,protocol,ps,add_time,update_time'
+try:
+    mw.M('firewall').execute('ALTER TABLE firewall ADD COLUMN status INTEGER DEFAULT 1', ())
+except:
+    pass
+
+__FIELD = 'id,port,protocol,status,ps,add_time,update_time'
 
 def getFirewallList(page=1,size=10):
     start = (int(page) - 1) * (int(size))
@@ -35,6 +40,7 @@ def addFirewall(port, protocol='tcp',ps='备注') -> bool:
     insert_data = {
         'port':port,
         'protocol':protocol,
+        'status':1,
         'ps':ps,
         'add_time':now_time,
         'update_time':now_time,

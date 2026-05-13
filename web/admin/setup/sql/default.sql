@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS `firewall` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `port` TEXT,
   `protocol` TEXT DEFAULT 'tcp',
+  `status` INTEGER DEFAULT '1',
   `ps` TEXT,
   `add_time` TEXT,
   `update_time` TEXT

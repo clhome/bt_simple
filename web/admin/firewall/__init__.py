@@ -118,6 +118,16 @@ def set_ssh_pubkey_status():
     return MwFirewall.instance().setSshPubkeyStatus(status)
 
 
+@blueprint.route('/set_firewall_status', endpoint='set_firewall_status', methods=['POST'])
+@panel_login_required
+def set_firewall_status():
+    fid = request.form.get('id', '')
+    port = request.form.get('port', '')
+    protocol = request.form.get('protocol', '')
+    status = request.form.get('status', '1')
+    return MwFirewall.instance().setStatus(fid, port, protocol, status)
+
+
 
 
 
