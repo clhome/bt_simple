@@ -37,3 +37,5 @@ curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/he
 ++增加卸载功能
 
 ++中国加速包
+
+++根据release自动更新版本号

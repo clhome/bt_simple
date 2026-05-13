@@ -342,7 +342,7 @@ def show_panel_pwd():
     if mw.md5(pwd) == info['password']:
         mw.echoInfo('password: ' + pwd)
         return
-    print("*-password has been changed!")
+    print("*密码已经加密存储，如需重置密码，请使用 mw 11命令")
 
 def show_panel_adminpath():
     admin_path = thisdb.getOption('admin_path')
@@ -375,12 +375,20 @@ def set_panel_username(username=None):
 
 def getServerIp():
     version = sys.argv[2]
-    # ip = mw.execShell(
-    #     "curl --insecure -{} -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text".format(version))
     ip = mw.execShell(
         "curl --insecure -{} -sS --connect-timeout 5 -m 60 https://ip.cachecha.com/?format=text".format(version))
-    # print(ip[0])
-    return ip[0]
+    return ip[0].strip()
+
+def getLocalIp():
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except:
+        return '127.0.0.1'
 
 
 def getPanelSslType():
@@ -414,6 +422,8 @@ def main():
         show_panel_adminpath()
     elif method == 'getServerIp':
         print(getServerIp())
+    elif method == 'getLocalIp':
+        print(getLocalIp())
     elif method == 'panel_ssl_type':
         print(getPanelSslType())
     elif method == 'panel_bind_domain':

@@ -707,30 +707,11 @@ mw_default(){
     admin_path=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py admin_path)
     if [ "$address" == "" ];then
         v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
-        v6=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 6)
-
-        if [ "$v4" != "" ] && [ "$v6" != "" ]; then
-
-            if [ ! -f ${PANEL_DIR}/data/ipv6.pl ];then
-                echo 'True' > ${PANEL_DIR}/data/ipv6.pl
-                mw_stop
-                mw_start
-            fi
-
-            address="MW-PANEL-URL-IPV4: ${scheme}://$v4:$port$admin_path \nMW-PANEL-URL-IPV6: ${scheme}://[$v6]:$port$admin_path"
-        elif [ "$v4" != "" ]; then
-            address="MW-PANEL-URL: ${scheme}://$v4:$port$admin_path"
-        elif [ "$v6" != "" ]; then
-
-            if [ ! -f ${PANEL_DIR}/data/ipv6.pl ];then
-                #  Need to restart ipv6 to take effect
-                echo 'True' > ${PANEL_DIR}/data/ipv6.pl
-                mw_stop
-                mw_start
-            fi
-            address="MW-PANEL-URL: ${scheme}://[$v6]:$port$admin_path"
-        else
-            address="MW-PANEL-URL: ${scheme}://you-network-ip:$port$admin_path"
+        local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
+        
+        address="内网 MW-PANEL-URL: ${scheme}://$local_ip:$port$admin_path"
+        if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
+            address="${address}\n外网 MW-PANEL-URL: ${scheme}://$v4:$port$admin_path"
         fi
     else
         address="MW-PANEL-URL: ${scheme}://$address:$port$admin_path"
