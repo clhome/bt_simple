@@ -110,47 +110,66 @@ def updateServer(stype, version=''):
             if not os.path.exists(dist_mw):
                 mw.execShell('wget --no-check-certificate -O ' + dist_mw + ' ' + newUrl)
 
-            dist_to = toPath + "/bt_simple-" + version
-            if not os.path.exists(dist_to):
-                os.system('unzip -o ' + toPath + '/mw.zip' + ' -d ' + toPath)
+            # 兼容带 v 和不带 v 的版本号目录名
+            v_version = version if version.startswith('v') else 'v' + version
+            no_v_version = version[1:] if version.startswith('v') else version
+            
+            os.system('unzip -o ' + toPath + '/mw.zip' + ' -d ' + toPath)
+            
+            src_path = ""
+            if os.path.exists(toPath + '/bt_simple-' + v_version):
+                src_path = toPath + '/bt_simple-' + v_version
+            elif os.path.exists(toPath + '/bt_simple-' + no_v_version):
+                src_path = toPath + '/bt_simple-' + no_v_version
+            
+            if src_path == "":
+                # 尝试查找解压出的任何目录
+                import glob
+                dirs = glob.glob(toPath + '/bt_simple-*')
+                if dirs:
+                    src_path = dirs[0]
+                else:
+                    return mw.returnData(False, '更新源码包解压失败或目录结构不符!')
 
-            cmd_cp = 'cp -rf ' + toPath + '/bt_simple-' + version + '/* ' + mw.getServerDir() + '/mdserver-web'
-            mw.execShell(cmd_cp)
-
-            mw.execShell('rm -rf ' + toPath + '/bt_simple-' + version)
+            panel_dir = mw.getPanelDir()
+            # 执行代码覆盖
+            mw.execShell('cp -rf ' + src_path + '/* ' + panel_dir)
+            
+            # 清理临时文件
+            mw.execShell('rm -rf ' + src_path)
             mw.execShell('rm -rf ' + toPath + '/mw.zip')
             
             # 自动写入版本号到 .version 文件
-            version_path = mw.getServerDir() + '/mdserver-web/.version'
+            version_path = panel_dir + '/.version'
             mw.writeFile(version_path, version)
 
-            update_env = '''
+            update_env = f'''
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 
-P_VER=`python3 -V | awk '{print $2}'`
+P_VER=`python3 -V | awk '{{print $2}}'`
 
-if [ ! -f /www/server/mdserver-web/bin/activate ];then
-cd /www/server/mdserver-web && python3 -m venv .
-cd /www/server/mdserver-web && source /www/server/mdserver-web/bin/activate
+if [ ! -f {panel_dir}/bin/activate ];then
+    cd {panel_dir} && python3 -m venv .
+    cd {panel_dir} && source bin/activate
 else
-cd /www/server/mdserver-web && source /www/server/mdserver-web/bin/activate
+    cd {panel_dir} && source bin/activate
 fi
 
-cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\"country\": \"CN\"")
+cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\\"country\\": \\"CN\\"")
 PIPSRC="https://pypi.python.org/simple"
 if [ ! -z "$cn" ];then
-PIPSRC="https://pypi.tuna.tsinghua.edu.cn/simple"
+    PIPSRC="https://pypi.tuna.tsinghua.edu.cn/simple"
 fi
 
-cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/requirements.txt -i $PIPSRC
+cd {panel_dir} && pip3 install -r requirements.txt -i $PIPSRC
 
-P_VER_D=`echo "$P_VER"|awk -F '.' '{print $1}'`
-P_VER_M=`echo "$P_VER"|awk -F '.' '{print $2}'`
-NEW_P_VER=${P_VER_D}.${P_VER_M}
+P_VER_D=`echo "$P_VER"|awk -F '.' '{{print $1}}'`
+P_VER_M=`echo "$P_VER"|awk -F '.' '{{print $2}}'`
+NEW_P_VER=${{P_VER_D}}.${{P_VER_M}}
 
-if [ -f /www/server/mdserver-web/version/r${NEW_P_VER}.txt ];then
-cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/version/r${NEW_P_VER}.txt -i $PIPSRC
+if [ -f {panel_dir}/version/r${{NEW_P_VER}}.txt ];then
+    cd {panel_dir} && pip3 install -r version/r${{NEW_P_VER}}.txt -i $PIPSRC
 fi
 '''
             os.system(update_env)

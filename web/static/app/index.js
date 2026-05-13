@@ -617,12 +617,14 @@ function reBoot() {
     layer.open({
         type: 1,
         title: '重启服务器或者面板',
-        area: '330px',
+        area: '500px',
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="rebt-con">\
                 <div class="rebt-li"><a data-id="server" href="javascript:;">重启服务器</a></div>\
                 <div class="rebt-li"><a data-id="panel" href="javascript:;">重启面板</a></div>\
+                <div class="rebt-li"><a data-id="repair" href="javascript:;">修复服务器</a></div>\
+                <div style="color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;">注意：修复服务器会覆盖安装bt_simple面板</div>\
             </div>'
     });
 
@@ -639,6 +641,12 @@ function reBoot() {
                             window.location.href = window.location.pathname + '?t=' + new Date().getTime(); 
                         }, 3000);
                     },'json');
+                });
+                break;
+            case 'repair':
+                layer.confirm('确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。', { title: '修复服务器', closeBtn: 1, icon: 3 }, function () {
+                    var version = $("#version").text();
+                    updateVersion(version);
                 });
                 break;
             case 'server':

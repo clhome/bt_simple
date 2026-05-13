@@ -2833,7 +2833,7 @@ function aboutPanel() {
             type: 1,
             title: false,
             closeBtn: 1,
-            area: ['800px', '700px'],
+            area: ['800px', '800px'],
             shadeClose: true,
             content: '<div class=\"about-container\">' +
                         '<div class=\"about-header\">' +
@@ -2843,7 +2843,7 @@ function aboutPanel() {
                         '</div>' +
                         '<div class=\"about-content markdown-body\">' + htmlContent + '</div>' +
                         '<div class=\"about-footer\">' +
-                            '<p>&copy; 2026 御风科技 (YFTEC) 版权所有 | 基于 mdserver-web 二次开发</p>' +
+                            '<p>&copy; 2026 御风科技 (YFTEC) 版权所有 | admin@yftec.top</p>' +
                         '</div>' +
                      '</div>',
             success: function(layero, index) {
