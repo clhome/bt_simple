@@ -22,6 +22,29 @@
   .firewall-port-box {
     margin-bottom: 5px;
   }
+  .tab-nav-view {
+    border-bottom: 1px solid #edf1f2;
+    background-color: #fafafa;
+  }
+  .tab-nav-view span {
+    cursor: pointer;
+    padding: 12px 25px;
+    display: inline-block;
+    font-size: 14px;
+    color: #666;
+    border-right: 1px solid #edf1f2;
+    transition: all 0.2s;
+  }
+  .tab-nav-view span.active {
+    background-color: #fff;
+    color: #20a53a;
+    border-bottom: 2px solid #20a53a;
+    font-weight: bold;
+    margin-bottom: -1px;
+  }
+  .tab-nav-view span:hover {
+    background-color: #f6f6f6;
+  }
 </style>
 <div class="main-content">
   <div class="container-fluid" style="padding-bottom: 50px">
@@ -122,107 +145,69 @@
     <div class="white-black-ip bgw mtb15">
       <div class="black-ip">
         <div class="def-log">
-          <div class="title c6 plr15">
-            <h3 class="f16">防火墙</h3>
+          <div class="title c6 plr15" style="border-bottom: 1px solid #edf1f2; margin-bottom: 0px; padding: 0;">
+            <div class="tab-nav-view">
+              <span class="active" onclick="switchTab('port', this)">端口防火墙</span>
+              <span onclick="switchTab('ip', this)">IP防火墙</span>
+            </div>
           </div>
 
           <div class="divtable pd15">
-            <div class="firewall-port-box">
-              <span class="mr5" style="color: #ff0000; font-weight: bold"
-                >新增规则：</span
-              >
-              <select
-                id="firewalldType"
-                class="bt-input-text c5 mr5"
-                name="type"
-                style="width: 80px"
-              >
-                <option value="port">放行端口</option>
-                <option value="address">屏蔽</option>
-              </select>
+            <!-- 端口防火墙区域 -->
+            <div id="port_firewall_view">
+              <div class="firewall-port-box">
+                <span class="mr5" style="color: #ff0000; font-weight: bold">新增规则：</span>
+                <select id="firewalldType" class="bt-input-text c5 mr5" name="type" style="width: 80px">
+                  <option value="port">放行端口</option>
+                  <option value="address">屏蔽</option>
+                </select>
 
-              <div id="port_input_group" style="display: inline-block">
-                <input
-                  type="text"
-                  class="bt-input-text mr5"
-                  style="width: 80px"
-                  id="AcceptPortStart"
-                  placeholder="开始端口"
-                />
-                <span class="mr5">-</span>
-                <input
-                  type="text"
-                  class="bt-input-text mr5"
-                  style="width: 80px"
-                  id="AcceptPortEnd"
-                  placeholder="结束端口"
-                />
-              </div>
-              <input
-                type="text"
-                class="bt-input-text mr5"
-                style="width: 200px; display: none"
-                id="AcceptAddress"
-                placeholder="欲屏蔽的IP地址"
-              />
+                <div id="port_input_group" style="display: inline-block">
+                  <input type="text" class="bt-input-text mr5" style="width: 80px" id="AcceptPortStart" placeholder="开始端口" />
+                  <span class="mr5">-</span>
+                  <input type="text" class="bt-input-text mr5" style="width: 80px" id="AcceptPortEnd" placeholder="结束端口" />
+                </div>
+                <input type="text" class="bt-input-text mr5" style="width: 200px; display: none" id="AcceptAddress" placeholder="欲屏蔽的IP地址" />
 
-              <input
-                type="text"
-                class="bt-input-text mr5"
-                id="Ps"
-                placeholder="备注/说明"
-              />
-              <select
-                class="bt-input-text c5 mr5"
-                name="protocol"
-                style="width: 80px"
-              >
-                <option value="tcp">tcp</option>
-                <option value="udp">udp</option>
-                <option value="tcp/udp">tcp/udp</option>
-              </select>
-              <button
-                id="toAccept"
-                onclick="addAcceptPort()"
-                class="btn btn-default btn-sm va0"
-                type="button"
-              >
-                放行
-              </button>
-              <span id="f-ps" class="c9" style="margin-left: 10px"
-                >说明: 仅输入开始端口即可放行单个端口</span
-              >
+                <input type="text" class="bt-input-text mr5" id="Ps" placeholder="备注/说明" />
+                <select class="bt-input-text c5 mr5" name="protocol" style="width: 80px">
+                  <option value="tcp">tcp</option>
+                  <option value="udp">udp</option>
+                  <option value="tcp/udp">tcp/udp</option>
+                </select>
+                <button id="toAccept" onclick="addAcceptPort()" class="btn btn-default btn-sm va0" type="button">提交</button>
+                <span id="f-ps" class="c9" style="margin-left: 10px">说明: 仅输入开始端口即可放行单个端口</span>
 
-              <div class="pull-right">
-                <input
-                  type="text"
-                  class="bt-input-text mr5"
-                  style="width: 100px"
-                  id="SearchPort"
-                  placeholder="端口搜索"
-                />
-                <input
-                  type="text"
-                  class="bt-input-text mr5"
-                  style="width: 100px"
-                  id="SearchPs"
-                  placeholder="备注搜索"
-                />
-                <button class="btn btn-default btn-sm" onclick="showAccept(1)">
-                  搜索
-                </button>
+                <div class="pull-right">
+                  <input type="text" class="bt-input-text mr5" style="width: 100px" id="SearchPort" placeholder="端口搜索" />
+                  <input type="text" class="bt-input-text mr5" style="width: 100px" id="SearchPs" placeholder="备注搜索" />
+                  <button class="btn btn-default btn-sm" onclick="showAccept(1)">搜索</button>
+                </div>
               </div>
             </div>
+
+            <!-- IP防火墙区域 -->
+            <div id="ip_firewall_view" style="display: none">
+              <div class="firewall-port-box">
+                <span class="mr5" style="color: #ff0000; font-weight: bold">新增IP规则：</span>
+                <select id="ipFirewallAction" class="bt-input-text c5 mr5" style="width: 80px">
+                  <option value="address_allow">放行</option>
+                  <option value="address_deny">禁止</option>
+                </select>
+                <input type="text" class="bt-input-text mr5" style="width: 200px" id="IpAddress" placeholder="IP地址/IP段" />
+                <input type="text" class="bt-input-text mr5" id="IpPs" placeholder="备注/说明" />
+                <button onclick="addIpFirewall()" class="btn btn-default btn-sm va0" type="button">提交</button>
+                <span class="c9" style="margin-left: 10px; color: #ff0000 !important;">注意: IP防火墙优先级最高，请谨慎操作！</span>
+              </div>
+            </div>
+
             <div class="tablescroll" style="border-top-width: 0px">
-              <table
-                class="table table-hover"
-                style="min-width: 640px; border: 0 none"
-              >
+              <table class="table table-hover" style="min-width: 640px; border: 0 none">
                 <thead>
                   <tr>
                     <th width="40">ID</th>
-                    <th width="60">协议</th>
-                    <th width="180">端口</th>
+                    <th id="th_protocol" width="60">协议</th>
+                    <th id="th_port" width="180">端口/IP</th>
                     <th width="80">状态</th>
                     <th>备注</th>
                     <th width="150">时间</th>
@@ -232,11 +217,7 @@
                 <tbody id="firewall_body"></tbody>
               </table>
             </div>
-            <div
-              id="firewall_page"
-              class="dataTables_paginate paging_bootstrap page firewall_body"
-              style="margin-bottom: 0px"
-            ></div>
+            <div id="firewall_page" class="dataTables_paginate paging_bootstrap page firewall_body" style="margin-bottom: 0px"></div>
           </div>
         </div>
       </div>

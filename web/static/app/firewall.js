@@ -6,6 +6,26 @@ setTimeout(function(){
 	showAccept(1);
 },1000);
 
+var currentType = 'port';
+function switchTab(type, obj) {
+    currentType = type;
+    $(".tab-nav-view span").removeClass("active");
+    $(obj).addClass("active");
+    
+    if (type == 'port') {
+        $("#port_firewall_view").show();
+        $("#ip_firewall_view").hide();
+        $("#th_protocol").show();
+        $("#th_port").text("端口/IP");
+    } else {
+        $("#port_firewall_view").hide();
+        $("#ip_firewall_view").show();
+        $("#th_protocol").hide();
+        $("#th_port").text("IP地址/段");
+    }
+    showAccept(1);
+}
+
 	
 $(function(){
 	// start 
@@ -364,9 +384,10 @@ function setSshPubkeyStatus(){
 function showAccept(page) {
 	var search_port = $("#SearchPort").val();
 	var search_ps = $("#SearchPs").val();
+	var stype = currentType == 'port' ? 'port' : ''; // stype will be set by the active selection if not 'port'
 
 	var loadT = layer.load();
-	$.post('/firewall/get_list','limit=10&p=' + page+"&search_port="+search_port+"&search_ps="+search_ps, function(data) {
+	$.post('/firewall/get_list','limit=10&p=' + page+"&search_port="+search_port+"&search_ps="+search_ps+"&stype="+currentType, function(data) {
 		layer.close(loadT);
 		var body = '';
 		for (var i = 0; i < data.data.length; i++) {
@@ -374,10 +395,17 @@ function showAccept(page) {
 					<input class='btswitch btswitch-ios' id='firewall_switch_"+data.data[i].id+"' type='checkbox' "+(data.data[i].status==1?'checked':'')+">\
 					<label class='btswitch-btn' for='firewall_switch_"+data.data[i].id+"' onclick=\"setFirewallStatus(" + data.data[i].id + ",'" + data.data[i].port + "','"+data.data[i].protocol+"',"+(data.data[i].status==1?0:1)+")\"></label>\
 				</div>";
+			
+			var protocol_td = currentType == 'port' ? "<td>" + data.data[i].protocol + "</td>" : "";
+			var port_display = data.data[i].port;
+			if (currentType == 'port'){
+				port_display = (data.data[i].port.indexOf('.') == -1?'放行端口'+':['+data.data[i].port+']':'屏蔽IP'+':['+data.data[i].port+']');
+			}
+
 			body += "<tr>\
 				<td><em class='dlt-num'>" + data.data[i].id + "</em></td>\
-				<td>" + data.data[i].protocol + "</td>\
-				<td>" + (data.data[i].port.indexOf('.') == -1?'放行端口'+':['+data.data[i].port+']':'屏蔽IP'+':['+data.data[i].port+']') + "</td>\
+				" + protocol_td + "\
+				<td>" + port_display + "</td>\
 				<td>" + status + "</td>\
 				<td>" + data.data[i].ps + "</td>\
 				<td>" + data.data[i].add_time + "</td>\
@@ -386,7 +414,8 @@ function showAccept(page) {
 		}
 
 		if (data.data.length == 0){
-			body = '<tr><td colspan="7" style="text-align: center;">当前没有数据</td></tr>';
+			var colspan = currentType == 'port' ? 7 : 6;
+			body = '<tr><td colspan="'+colspan+'" style="text-align: center;">当前没有数据</td></tr>';
 		}
 
 		$("#firewall_body").html(body);
@@ -455,16 +484,75 @@ function addAcceptPort(){
 	},'json');
 }
 
+function addIpFirewall() {
+    var stype = $("#ipFirewallAction").val();
+    var ip = $("#IpAddress").val();
+    var ps = $("#IpPs").val();
+
+    if (ip == "") {
+        layer.msg("请输入IP地址", {icon: 2});
+        return;
+    }
+
+    if (ps == "") {
+        layer.msg("请输入备注", {icon: 2});
+        return;
+    }
+
+    var doAdd = function() {
+        var loadT = layer.msg('正在添加,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']})
+        $.post('/firewall/add_accept_port', 'port=' + ip + "&ps=" + ps + '&type=' + stype + '&protocol=tcp/udp', function(rdata) {
+            layer.close(loadT);
+            if (rdata.status) {
+                layer.msg(rdata.msg, {icon: 1});
+                showAccept(1);
+                $("#IpAddress").val('');
+                $("#IpPs").val('');
+            } else {
+                layer.msg(rdata.msg, {icon: 2});
+            }
+        }, 'json');
+    }
+
+    if (stype == 'address_allow') {
+        layer.confirm('<span style="color:red;font-weight:bold;">警告：放行该IP将允许其访问服务器所有端口，存在安全风险！</span><br>仅建议用于临时测试，用完请及时关闭。确定继续吗？', {
+            title: '高风险操作提示',
+            icon: 0,
+            btn: ['确定', '取消']
+        }, function() {
+            doAdd();
+        });
+    } else {
+        $.post('/firewall/get_client_ip', '', function(rdata) {
+            var clientIp = rdata.ip;
+            if (ip == clientIp) {
+                layer.msg('当前客户端IP为：' + clientIp + '<br><span style="color:red;">禁止将其设为黑名单，否则您将无法访问面板！</span>', {icon: 2, time: 5000});
+            } else {
+                layer.confirm('确定要将IP [' + ip + '] 加入黑名单吗？该IP将无法访问本服务器任何端口。', {
+                    title: '黑名单确认',
+                    icon: 0
+                }, function() {
+                    doAdd();
+                });
+            }
+        });
+    }
+}
+
 //删除放行
 function delAcceptPort(id, port,protocol) {
 	var action = "del_drop_address";
-	if(port.indexOf('.') == -1){
+	if (currentType == 'port'){
+		if(port.indexOf('.') == -1){
+			action = "del_accept_port";
+		}
+	} else {
 		action = "del_accept_port";
 	}
 	
 	layer.confirm(lan.get('confirm_del',[port]), {title: '删除防火墙规则',closeBtn:2}, function(index) {
 		var loadT = layer.msg('正在删除,请稍候...',{icon:16,time:0,shade: [0.3, '#000']})
-		$.post("/firewall/"+action, "id=" + id + "&port=" + port+'&protocol='+protocol, function(ret) {
+		$.post("/firewall/"+action, "id=" + id + "&port=" + port+'&protocol='+protocol+'&stype='+currentType, function(ret) {
 			layer.close(loadT);
 			layer.msg(ret.msg,{icon:ret.status?1:2})
 			showAccept(1);
@@ -474,7 +562,7 @@ function delAcceptPort(id, port,protocol) {
 
 function setFirewallStatus(id, port, protocol, status){
 	var loadT = layer.msg('正在处理,请稍候...',{icon:16,time:0,shade: [0.3, '#000']})
-	$.post('/firewall/set_firewall_status','id='+id+"&port="+port+"&protocol="+protocol+"&status="+status,function(rdata){
+	$.post('/firewall/set_firewall_status','id='+id+"&port="+port+"&protocol="+protocol+"&status="+status+"&stype="+currentType,function(rdata){
 		layer.close(loadT);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		showAccept(1);

@@ -118,8 +118,8 @@ class Firewall(object):
             if thisdb.getFirewallCountByPort(add_info['port']) == 0:
                 thisdb.addFirewall(add_info['port'], ps='自动识别',protocol=add_info['protocol'])
 
-    def getList(self, page=1, size=10, search_port='', search_ps=''):
-        info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps)
+    def getList(self, page=1, size=10, search_port='', search_ps='', stype='port'):
+        info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps, stype=stype)
 
         rdata = {}
         rdata['data'] = info['list']
@@ -308,40 +308,55 @@ class Firewall(object):
                 pass
         return mw.returnData(True, '设置成功!')
 
-    def addAcceptPortCmd(self, port, protocol ='tcp'):
+    def addAcceptPortCmd(self, port, protocol ='tcp', stype='port'):
         if self.__isUfw:
-            if protocol == 'tcp':
-                mw.execShell('ufw allow ' + port + '/tcp')
-            if protocol == 'udp':
-                mw.execShell('ufw allow ' + port + '/udp')
-            if protocol == 'tcp/udp':
-                mw.execShell('ufw allow ' + port + '/tcp')
-                mw.execShell('ufw allow ' + port + '/udp')
+            if stype == 'port':
+                if protocol == 'tcp':
+                    mw.execShell('ufw allow ' + port + '/tcp')
+                if protocol == 'udp':
+                    mw.execShell('ufw allow ' + port + '/udp')
+                if protocol == 'tcp/udp':
+                    mw.execShell('ufw allow ' + port + '/tcp')
+                    mw.execShell('ufw allow ' + port + '/udp')
+            elif stype == 'address_allow':
+                mw.execShell('ufw insert 1 allow from ' + port)
+            elif stype == 'address_deny':
+                mw.execShell('ufw insert 1 deny from ' + port)
         elif self.__isFirewalld:
-            port = port.replace(':', '-')
-            if protocol == 'tcp':
-                cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/tcp'
-                mw.execShell(cmd)
-            if protocol == 'udp':
-                cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/udp'
-                mw.execShell(cmd)
-            if protocol == 'tcp/udp':
-                cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/tcp'
-                mw.execShell(cmd)
-                cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/udp'
-                mw.execShell(cmd)
+            if stype == 'port':
+                port = port.replace(':', '-')
+                if protocol == 'tcp':
+                    cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/tcp'
+                    mw.execShell(cmd)
+                if protocol == 'udp':
+                    cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/udp'
+                    mw.execShell(cmd)
+                if protocol == 'tcp/udp':
+                    cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/tcp'
+                    mw.execShell(cmd)
+                    cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/udp'
+                    mw.execShell(cmd)
+            elif stype == 'address_allow':
+                mw.execShell('firewall-cmd --permanent --zone=trusted --add-source=' + port)
+            elif stype == 'address_deny':
+                mw.execShell('firewall-cmd --permanent --zone=drop --add-source=' + port)
         elif self.__isIptables:
-            if protocol == 'tcp':
-                cmd = 'iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT'
-                mw.execShell(cmd)
-            if protocol == 'udp':
-                cmd = 'iptables -I INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT'
-                mw.execShell(cmd)
-            if protocol == 'tcp/udp':
-                cmd = 'iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT'
-                mw.execShell(cmd)
-                cmd = 'iptables -I INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT'
-                mw.execShell(cmd)
+            if stype == 'port':
+                if protocol == 'tcp':
+                    cmd = 'iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT'
+                    mw.execShell(cmd)
+                if protocol == 'udp':
+                    cmd = 'iptables -I INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT'
+                    mw.execShell(cmd)
+                if protocol == 'tcp/udp':
+                    cmd = 'iptables -I INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT'
+                    mw.execShell(cmd)
+                    cmd = 'iptables -I INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT'
+                    mw.execShell(cmd)
+            elif stype == 'address_allow':
+                mw.execShell('iptables -I INPUT -s ' + port + ' -j ACCEPT')
+            elif stype == 'address_deny':
+                mw.execShell('iptables -I INPUT -s ' + port + ' -j DROP')
         else:
             pass
         return True
@@ -354,18 +369,22 @@ class Firewall(object):
             self.setFw(0)
             return mw.returnData(False, '防火墙启动时,才能添加规则!')
 
-        rep = r"^\d{1,5}(:\d{1,5})?$"
-        if not re.search(rep, port):
-            return mw.returnData(False, '端口范围不正确!')
+        if stype == 'port':
+            rep = r"^\d{1,5}(:\d{1,5})?$"
+            if not re.search(rep, port):
+                return mw.returnData(False, '端口范围不正确!')
+        else:
+            if port.strip() == "":
+                return mw.returnData(False, 'IP地址不正确!')
 
-        if thisdb.getFirewallCountByPort(port) > 0:
-            return mw.returnData(False, '您要放行的端口已存在，无需重复放行!')
+        if thisdb.getFirewallCountByPort(port, stype=stype) > 0:
+            return mw.returnData(False, '您要添加的规则已存在，无需重复添加!')
 
-        thisdb.addFirewall(port, ps=ps,protocol=protocol)
-        self.addAcceptPortCmd(port, protocol=protocol)
+        thisdb.addFirewall(port, ps=ps, protocol=protocol, stype=stype)
+        self.addAcceptPortCmd(port, protocol=protocol, stype=stype)
         self.reload()
         
-        msg = mw.getInfo('放行端口[{1}][{2}]成功', (port, protocol,))
+        msg = mw.getInfo('添加防火墙规则[{1}][{2}]成功', (port, stype,))
         mw.writeLog("防火墙管理", msg)
         return mw.returnData(True, msg)
 
@@ -416,41 +435,56 @@ class Firewall(object):
         return True
 
     def delAcceptPortCmdInSystem(self, port,
-        protocol ='tcp'
+        protocol ='tcp', stype='port'
     ):
         if self.__isUfw:
-            if protocol == 'tcp':
-                mw.execShell('ufw delete allow ' + port + '/tcp')
-            if protocol == 'udp':
-                mw.execShell('ufw delete allow ' + port + '/udp')
-            if protocol == 'tcp/udp':
-                mw.execShell('ufw delete allow ' + port + '/tcp')
-                mw.execShell('ufw delete allow ' + port + '/udp')
+            if stype == 'port':
+                if protocol == 'tcp':
+                    mw.execShell('ufw delete allow ' + port + '/tcp')
+                if protocol == 'udp':
+                    mw.execShell('ufw delete allow ' + port + '/udp')
+                if protocol == 'tcp/udp':
+                    mw.execShell('ufw delete allow ' + port + '/tcp')
+                    mw.execShell('ufw delete allow ' + port + '/udp')
+            elif stype == 'address_allow':
+                mw.execShell('ufw delete allow from ' + port)
+            elif stype == 'address_deny':
+                mw.execShell('ufw delete deny from ' + port)
         elif self.__isFirewalld:
-            port = port.replace(':', '-')
-            if protocol == 'tcp':
-                mw.execShell(
-                    'firewall-cmd --permanent --zone=public --remove-port=' + port + '/tcp')
-            if protocol == 'udp':
-                mw.execShell(
-                    'firewall-cmd --permanent --zone=public --remove-port=' + port + '/udp')
-            if protocol == 'tcp/udp':
-                mw.execShell(
-                    'firewall-cmd --permanent --zone=public --remove-port=' + port + '/tcp')
-                mw.execShell(
-                    'firewall-cmd --permanent --zone=public --remove-port=' + port + '/udp')
+            if stype == 'port':
+                port = port.replace(':', '-')
+                if protocol == 'tcp':
+                    mw.execShell(
+                        'firewall-cmd --permanent --zone=public --remove-port=' + port + '/tcp')
+                if protocol == 'udp':
+                    mw.execShell(
+                        'firewall-cmd --permanent --zone=public --remove-port=' + port + '/udp')
+                if protocol == 'tcp/udp':
+                    mw.execShell(
+                        'firewall-cmd --permanent --zone=public --remove-port=' + port + '/tcp')
+                    mw.execShell(
+                        'firewall-cmd --permanent --zone=public --remove-port=' + port + '/udp')
+            elif stype == 'address_allow':
+                mw.execShell('firewall-cmd --permanent --zone=trusted --remove-source=' + port)
+            elif stype == 'address_deny':
+                mw.execShell('firewall-cmd --permanent --zone=drop --remove-source=' + port)
         elif self.__isIptables:
-            if protocol == 'tcp':
-                mw.execShell(
-                    'iptables -D INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT')
-            if protocol == 'udp':
-                mw.execShell(
-                    'iptables -D INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT')
-            if protocol == 'tcp/udp':
-                mw.execShell(
-                    'iptables -D INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT')
-                mw.execShell(
-                    'iptables -D INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT')
+            if stype == 'port':
+                if protocol == 'tcp':
+                    mw.execShell(
+                        'iptables -D INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT')
+                if protocol == 'udp':
+                    mw.execShell(
+                        'iptables -D INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT')
+                if protocol == 'tcp/udp':
+                    mw.execShell(
+                        'iptables -D INPUT -p tcp -m state --state NEW -m tcp --dport ' + port + ' -j ACCEPT')
+                    mw.execShell(
+                        'iptables -D INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT')
+            elif stype == 'address_allow':
+                mw.execShell('iptables -D INPUT -s ' + port + ' -j ACCEPT')
+            elif stype == 'address_deny':
+                mw.execShell('iptables -D INPUT -s ' + port + ' -j DROP')
         else:
             pass
         return True

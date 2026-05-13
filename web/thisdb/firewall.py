@@ -15,9 +15,14 @@ try:
 except:
     pass
 
-__FIELD = 'id,port,protocol,status,ps,add_time,update_time'
+try:
+    mw.M('firewall').execute('ALTER TABLE firewall ADD COLUMN type TEXT DEFAULT "port"', ())
+except:
+    pass
 
-def getFirewallList(page=1, size=10, search_port='', search_ps=''):
+__FIELD = 'id,port,protocol,status,type,ps,add_time,update_time'
+
+def getFirewallList(page=1, size=10, search_port='', search_ps='', stype='port'):
     start = (int(page) - 1) * (int(size))
     limit = str(start) + ',' + str(size)
 
@@ -25,8 +30,13 @@ def getFirewallList(page=1, size=10, search_port='', search_ps=''):
     
     where = ""
     params = []
+
+    if stype:
+        where += "type = ?"
+        params.append(stype)
     
     if search_port:
+        if where: where += " AND "
         if search_port.isdigit():
             search_port_int = int(search_port)
             # 精确匹配端口，或者匹配包含该端口的范围
@@ -59,18 +69,20 @@ def getFirewallList(page=1, size=10, search_port='', search_ps=''):
     data['list'] = firewall_list
     return data
 
-def addFirewall(port, protocol='tcp',ps='备注') -> bool:
+def addFirewall(port, protocol='tcp', ps='备注', stype='port') -> bool:
     '''
     设置配置的值
     :port -> str 端口 (必填)
     :protocol -> str 协议 (可选|tcp,udp,tcp/udp)
     :ps -> str 备注 (可选)
+    :stype -> str 类型 (可选|port,address_allow,address_deny)
     '''
     now_time = mw.formatDate()
     insert_data = {
         'port':port,
         'protocol':protocol,
         'status':1,
+        'type':stype,
         'ps':ps,
         'add_time':now_time,
         'update_time':now_time,
@@ -79,7 +91,7 @@ def addFirewall(port, protocol='tcp',ps='备注') -> bool:
     return True
 
 
-def getFirewallCountByPort(port):
-    return mw.M('firewall').where('port=?',(port,)).count()
+def getFirewallCountByPort(port, stype='port'):
+    return mw.M('firewall').where('port=? AND type=?',(port, stype)).count()
 
 
