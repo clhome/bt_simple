@@ -165,6 +165,19 @@ def set_control():
         return data
 
     return mw.returnData(False, "异常!")
+    
+# 获取版本发布说明
+@blueprint.route('/get_release_info', endpoint='get_release_info', methods=['GET'])
+@panel_login_required
+def get_release_info():
+    release_file = os.path.join(mw.getPanelDir(), 'RELEASE_TEMPLATE.md')
+    if not os.path.exists(release_file):
+        release_file = os.path.join(mw.getPanelDir(), 'README.md')
+    
+    if os.path.exists(release_file):
+        content = mw.readFile(release_file)
+        return mw.returnData(True, 'ok', content)
+    return mw.returnData(False, '未找到发行说明')
 
 
 

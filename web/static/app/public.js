@@ -2812,3 +2812,46 @@ $(function() {
 $(window).resize(function() {
 	autoHeight();
 });
+function aboutPanel() {
+    var loadT = layer.msg('正在获取说明...', { icon: 16, time: 0, shade: 0.3 });
+    $.get('/system/get_release_info', function(rdata) {
+        layer.close(loadT);
+        if (!rdata.status) {
+            layer.msg(rdata.msg, { icon: 2 });
+            return;
+        }
+        
+        var content = rdata.data;
+        var htmlContent = '';
+        try {
+            htmlContent = marked.parse(content);
+        } catch (e) {
+            htmlContent = '<pre>' + content + '</pre>';
+        }
+        
+        layer.open({
+            type: 1,
+            title: false,
+            closeBtn: 1,
+            area: ['800px', '700px'],
+            shadeClose: true,
+            content: '<div class=\"about-container\">' +
+                        '<div class=\"about-header\">' +
+                            '<img src=\"/static/img/logo.png\" style=\"width: 80px; margin-bottom: 10px;\">' +
+                            '<h2>BtSimple Linux Panel</h2>' +
+                            '<p>御风科技出品</p>' +
+                        '</div>' +
+                        '<div class=\"about-content markdown-body\">' + htmlContent + '</div>' +
+                        '<div class=\"about-footer\">' +
+                            '<p>&copy; 2026 御风科技 (YFTEC) 版权所有 | 基于 mdserver-web 二次开发</p>' +
+                        '</div>' +
+                     '</div>',
+            success: function(layero, index) {
+                $(layero).find('.layui-layer-setwin .layui-layer-close').css({
+                    'top': '20px',
+                    'right': '20px'
+                });
+            }
+        });
+    }, 'json');
+}
