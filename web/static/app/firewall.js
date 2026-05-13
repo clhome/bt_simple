@@ -382,8 +382,15 @@ function setSshPubkeyStatus(){
  * @param {Int} page  分页号
  */
 function showAccept(page) {
-	var search_port = $("#SearchPort").val();
-	var search_ps = $("#SearchPs").val();
+	var search_port = "";
+	var search_ps = "";
+	if (currentType == 'port') {
+		search_port = $("#SearchPort").val();
+		search_ps = $("#SearchPs").val();
+	} else {
+		search_port = $("#SearchIp").val();
+		search_ps = $("#SearchIpPs").val();
+	}
 	var stype = currentType == 'port' ? 'port' : ''; // stype will be set by the active selection if not 'port'
 
 	var loadT = layer.load();
