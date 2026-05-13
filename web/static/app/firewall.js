@@ -31,20 +31,24 @@ function closeLogs(){
 
 $("#firewalldType").change(function(){
 	var type = $(this).val();
-	var w = '120px';
-	var p = '端口';
 	var t = '放行';
-	var m = '说明: 支持放行端口范围，如: 3000:3500';
+	var m = '说明: 仅输入开始端口即可放行单个端口';
 	if(type == 'address'){
-		w = '150px';
-		p = '欲屏蔽的IP地址';
 		t = '屏蔽';
 		m = '说明: 支持屏蔽IP段，如: 192.168.0.0/24';
+		$("#port_input_group").hide();
+		$("#AcceptAddress").show();
+	} else {
+		$("#port_input_group").show();
+		$("#AcceptAddress").hide();
 	}
-	$("#AcceptPort").css("width",w);
-	$("#AcceptPort").attr('placeholder',p);
 	$("#toAccept").html(t);
 	$("#f-ps").html(m);
+});
+
+// 自动同步结束端口
+$("#AcceptPortStart").on('keyup change', function(){
+	$("#AcceptPortEnd").val($(this).val());
 });
 
 
@@ -391,21 +395,42 @@ function showAccept(page,search) {
 //添加放行
 function addAcceptPort(){
 	var type = $("#firewalldType").val();
-	var port = $("#AcceptPort").val();
 	var ps = $("#Ps").val();
 	var protocol = $('select[name="protocol"]').val();
 	var action = "add_drop_address";
+	var port = "";
+
 	if(type == 'port'){
-		ports = port.split(':');
-		for(var i=0;i<ports.length;i++){
-			if(isNaN(ports[i]) || ports[i] < 1 || ports[i] > 65535 ){
-				layer.msg('端口范围不合法!',{icon:5});
-				return;
-			}
+		var startPort = $("#AcceptPortStart").val();
+		var endPort = $("#AcceptPortEnd").val();
+
+		if(isNaN(startPort) || startPort < 1 || startPort > 65535 ){
+			layer.msg('开始端口范围不合法!',{icon:5});
+			return;
+		}
+		if(isNaN(endPort) || endPort < 1 || endPort > 65535 ){
+			layer.msg('结束端口范围不合法!',{icon:5});
+			return;
+		}
+
+		if (parseInt(endPort) < parseInt(startPort)){
+			layer.msg('结束端口不能小于开始端口!',{icon:5});
+			return;
+		}
+
+		if (startPort == endPort){
+			port = startPort;
+		} else {
+			port = startPort + ":" + endPort;
 		}
 		action = "add_accept_port";
+	} else {
+		port = $("#AcceptAddress").val();
+		if (port == ""){
+			layer.msg('IP地址不能为空!',{icon:5});
+			return;
+		}
 	}
-	
 	
 	if(ps.length < 1){
 		layer.msg('备注/说明 不能为空!',{icon:2});
@@ -418,14 +443,13 @@ function addAcceptPort(){
 		if(rdata.status == true || rdata.status == 'true'){
 			layer.msg(rdata.msg,{icon:1});
 			showAccept(1);
-			$("#AcceptPort").val('');
+			$("#AcceptPortStart").val('');
+			$("#AcceptPortEnd").val('');
+			$("#AcceptAddress").val('');
 			$("#Ps").val('');
 		}else{
 			layer.msg(rdata.msg,{icon:2});
 		}
-		
-		$("#AcceptPort").attr('value','');
-		$("#Ps").attr('value','');
 	},'json');
 }
 

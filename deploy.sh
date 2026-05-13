@@ -611,9 +611,13 @@ open_panel_port() {
 # =====================================================================
 show_panel_info() {
     local force_pass="$1"
+    local version=""
+    if [ -f ${PANEL_DIR}/.version ]; then
+        version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
+    fi
     echo ""
     echo -e "=================================================================="
-    echo -e "${GREEN}${BOLD}bt_simple 面板安装/迁移完成!${PLAIN}"
+    echo -e "${GREEN}${BOLD}${version}bt_simple 面板安装/迁移完成!${PLAIN}"
     echo -e "=================================================================="
     
     if [ -f /usr/bin/mw ]; then

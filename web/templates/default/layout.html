@@ -129,7 +129,7 @@
 
         {% block content %}{% endblock %}
         <div class="footer bgw">
-          bt_simple &copy;2024-∞ Linux面板 (<a
+          bt_simple &copy;2026Linux面板 (<a
             class="btlink"
             target="_blank"
             href="//github.com/clhome/bt_simple"
@@ -142,22 +142,29 @@
             href="//github.com/clhome/bt_simple/wiki"
             >WIKI</a
           ><span style="margin-left: 5px">/</span>
-          <a class="btlink panel_ad_list_mode" style="margin-left: 5px">AD</a>
-          <span style="margin-left: 5px">/</span>
+
           <a
             class="btlink"
             target="_blank"
-            href="https://bbs.midoks.icu"
+            href="https://www.yftec.top"
             style="margin-left: 5px"
-            >交流论坛</a
+            >御风科技</a
           >
           <span style="margin-left: 5px">/</span>
           <a
             class="btlink"
             target="_blank"
-            href="https://t.me/mdserver_web"
+            href="https://ip.yftec.top"
             style="margin-left: 5px"
-            >TG吹水群</a
+            >IP隐私安全检测</a
+          >
+          <span style="margin-left: 5px">/</span>
+          <a
+            class="btlink"
+            target="_blank"
+            href="https://tools.yftec.top"
+            style="margin-left: 5px"
+            >御风工具箱</a
           >
         </div>
       </div>
@@ -173,33 +180,6 @@
         return null;
       };
     })(jQuery);
-
-    function showAd() {
-      layer.open({
-        type: 1,
-        title: "【AD】求恰饭",
-        closeBtn: 1,
-        area: "300px;",
-        shade: 0.8,
-        id: "panel_ad_list_mode",
-        btnAlign: "c",
-        moveType: 1,
-        content:
-          '<div style="padding: 10px; line-height: 22px; font-weight: 300;">\
-                <table class="table table-hover">\
-                    <thead><tr><td style="text-align: center;">商家</td><td style="text-align: center;">优惠码</td><tr></thead>\
-                    <tbody>\
-                        <tr><td><a target="_blank" href="https://digitalvirt.com/aff.php?aff=154"><img src="https://digitalvirt.com/templates/BlueWhite/img/logo-dark.svg"/></a></td><td>mdserver-web</td></tr>\
-                    </tbody>\
-                </table>\
-        </div>',
-        success: function (layero) {},
-      });
-    }
-
-    $(".panel_ad_list_mode").click(function () {
-      showAd();
-    });
 
     var thisPath = window.location.pathname.trim() + window.location.search;
     if (thisPath.indexOf("?") > -1) {

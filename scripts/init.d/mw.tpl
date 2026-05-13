@@ -724,8 +724,12 @@ mw_default(){
     fi
 
     show_panel_ip="$port|"
+    version=""
+    if [ -f ${PANEL_DIR}/.version ]; then
+        version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
+    fi
     echo -e "=================================================================="
-    echo -e "\033[32mMW-PANEL DEFAULT INFO!\033[0m"
+    echo -e "\033[32m${version}bt_simple 面板信息\033[0m"
     echo -e "=================================================================="
     echo -e "$address"
     echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username`
