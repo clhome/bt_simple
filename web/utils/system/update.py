@@ -90,7 +90,7 @@ def updateServer(stype, version=''):
             diff = versionDiff(version_now, new_ver)
             data = {}
             data['version'] = new_ver
-            data['content'] = version_new_info['body'].replace("\n", "<br/>")
+            data['content'] = version_new_info['body']
             return mw.returnData(True, '更新信息!', data)
 
         if stype == 'update':

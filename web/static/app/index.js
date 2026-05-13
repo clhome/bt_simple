@@ -547,14 +547,21 @@ function updateMsg(){
             v_info = "<span class='label label-success arrowed'>正式版本</span>";
         }
 
+        var htmlContent = '';
+        try {
+            htmlContent = marked.parse(rdata.data.content);
+        } catch(e) {
+            htmlContent = rdata.data.content.replace(/\n/g, '<br/>');
+        }
+
         layer.open({
             type:1,
             title:v_info + '<span class="badge badge-inverse">升级到['+rdata.data.version+']</span>',
-            area: '400px', 
+            area: '600px', 
             shadeClose:false,
             closeBtn:2,
             content:'<div class="setchmod bt-form pd20 pb70">'
-                    +'<p style="padding: 0 0 10px;line-height: 24px;">'+rdata.data.content+'</p>'
+                    +'<div class="markdown-body" style="padding: 0 0 10px; line-height: 24px; max-height: 400px; overflow-y: auto;">'+htmlContent+'</div>'
                     +'<div class="bt-form-submit-btn">'
                     +'<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">取消</button>'
                     +'<button type="button" class="btn btn-success btn-sm btn-title" onclick="updateVersion(\''+rdata.data.version+'\')" >立即更新</button>'
