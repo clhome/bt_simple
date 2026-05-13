@@ -563,7 +563,7 @@ function showUpdateUI(version, title, content) {
                 + (content ? '<div class="markdown-body" style="padding: 0 0 10px; line-height: 24px; max-height: 200px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid #eee;">' + content + '</div>' : '')
                 + '<div class="update-progress-group" style="padding: 10px 0;">'
                 + '    <div style="margin-bottom: 15px;">'
-                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">1. 下载并解压更新包</span><span id="download-percent" class="f12 c6">0%</span></div>'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">1. 下载并解压更新包（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span><span id="download-percent" class="f12 c6">0%</span></div>'
                 + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
                 + '    </div>'
                 + '    <div style="margin-bottom: 15px;">'
@@ -648,8 +648,8 @@ function pluginIndexService(pname,pfunc, callback){
 function reBoot() {
     layer.open({
         type: 1,
-        title: '重启服务器或者面板',
-        area: '500px',
+        title: '重启/修复 服务器',
+        area: ['350px', '250px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="rebt-con">\

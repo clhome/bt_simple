@@ -2833,7 +2833,7 @@ function aboutPanel() {
             type: 1,
             title: false,
             closeBtn: 1,
-            area: ['800px', '800px'],
+            area: ['850px', '750px'],
             shadeClose: true,
             content: '<div class=\"about-container\">' +
                         '<div class=\"about-header\">' +

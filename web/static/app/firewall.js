@@ -53,15 +53,8 @@ $("#firewalldType").change(function(){
 	var type = $(this).val();
 	var t = '放行';
 	var m = '说明: 仅输入开始端口即可放行单个端口';
-	if(type == 'address'){
-		t = '屏蔽';
-		m = '说明: 支持屏蔽IP段，如: 192.168.0.0/24';
-		$("#port_input_group").hide();
-		$("#AcceptAddress").show();
-	} else {
-		$("#port_input_group").show();
-		$("#AcceptAddress").hide();
-	}
+	$("#port_input_group").show();
+	$("#AcceptAddress").hide();
 	$("#toAccept").html(t);
 	$("#f-ps").html(m);
 });
@@ -462,12 +455,6 @@ function addAcceptPort(){
 			port = startPort + ":" + endPort;
 		}
 		action = "add_accept_port";
-	} else {
-		port = $("#AcceptAddress").val();
-		if (port == ""){
-			layer.msg('IP地址不能为空!',{icon:5});
-			return;
-		}
 	}
 	
 	if(ps.length < 1){
