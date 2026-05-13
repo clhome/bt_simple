@@ -7,11 +7,13 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
+
 SYSOS=`uname`
 VERSION=$2
 APP_NAME=system_safe
-
-# cd /www/server/mdserver-web && python3 plugins/system_safe/system_safe.py stop 1.0
 
 Install_App()
 {
@@ -20,14 +22,13 @@ Install_App()
 	echo "$VERSION" > $serverPath/system_safe/version.pl
 	echo 'install complete'
 
-	#初始化 
+	# 初始化
 	cd ${serverPath}/mdserver-web && python3 plugins/system_safe/system_safe.py start $VERSION
 	cd ${serverPath}/mdserver-web && python3 plugins/system_safe/system_safe.py initd_install $VERSION
 }
 
 Uninstall_App()
 {
-	
 	if [ -f /usr/lib/systemd/system/${APP_NAME}.service ] || [ -f /lib/systemd/system/${APP_NAME}.service ] ;then
 		systemctl stop ${APP_NAME}
 		systemctl disable ${APP_NAME}

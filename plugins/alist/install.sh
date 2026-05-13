@@ -7,10 +7,11 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/alist && bash install.sh install 3.37.4
-# cd /www/server/mdserver-web/plugins/alist && bash install.sh install 3.45.0
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
 
-VERSION=$2
+VERSION=3.60.0
 
 sysArch=`arch`
 sysName=`uname`
@@ -37,12 +38,10 @@ Install_App()
 	mkdir -p $serverPath/source/alist
 
 	FILE_TGZ=alist-${ALIST_NAME}-${ALIST_ARCH_NAME}.tar.gz
-
 	ALIST_DIR=$serverPath/source/alist
 
-	if [ ! -f $ALIST_DIR/${FILE_TGZ} ];then
-		wget --no-check-certificate -O $ALIST_DIR/${FILE_TGZ} https://github.com/alist-org/alist/releases/download/v${VERSION}/${FILE_TGZ}
-	fi
+	URL="https://github.com/alist-org/alist/releases/download/v${VERSION}/${FILE_TGZ}"
+	mw_download $ALIST_DIR/${FILE_TGZ} ${URL}
 	
 	mkdir -p $serverPath/alist
 
@@ -53,7 +52,6 @@ Install_App()
 	cd ${rootPath} && python3 ${rootPath}/plugins/alist/index.py initd_install
 
 	cd $serverPath/alist && ./alist admin set admin
-	# cd /www/server/alist && ./alist admin set admin
 
 	echo '安装完成'
 }
@@ -64,13 +62,6 @@ Uninstall_App()
 		systemctl stop alist
 		systemctl disable alist
 		rm -rf /usr/lib/systemd/system/alist.service
-		systemctl daemon-reload
-	fi
-
-	if [ -f /lib/systemd/system/alist.service ];then
-		systemctl stop alist
-		systemctl disable alist
-		rm -rf /lib/systemd/system/alist.service
 		systemctl daemon-reload
 	fi
 

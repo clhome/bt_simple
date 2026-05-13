@@ -9,25 +9,10 @@ serverPath=$(dirname "$rootPath")
 
 VERSION=$2
 
-# curl  https://get.acme.sh | sh
-# acme.sh --uninstall
-
-
-# source /Users/xxx/.zshrc
-
-# https://github.com/acmesh-official/acme.sh/wiki/dnsapi
-# https://docs.dnspod.com/api-legacy/domains.html#get-the-domain-list
-
-# cd /www/server/mdserver-web && python3 plugins/acme_pandominassl_apply/index.py run_hook
-# cd /www/server/mdserver-web && python3 plugins/acme_pandominassl_apply/index.py run_sync_cf_data
-# cd /www/server/mdserver-web && python3 plugins/acme_pandominassl_apply/index.py run_sync_dnspod_data
-
-
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
 fi
 
-# pip install cloudflare
 Install_App()
 {
 	echo '正在安装脚本文件...'

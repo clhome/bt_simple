@@ -1,5 +1,4 @@
 #!/bin/bash
-
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
@@ -8,8 +7,9 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-
-# cd /www/server/mdserver-web && source bin/activate && python3 plugins/migration_api/index.py bg_process
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
 
 VERSION=1.0
 

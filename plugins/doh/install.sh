@@ -7,70 +7,48 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
 fi
 
-
-# cd /www/server/mdserver-web/plugins/doh && bash install.sh install 0.9.15
-
-# /www/server/doh/doh-proxy --config /www/server/doh/config.toml
-# /www/server/doh/doh-proxy --config /www/server/doh/config.toml --check
-
-
-# /www/server/doh/doh-proxy -u 127.0.0.1:53 -l 127.0.0.1:3000
-
-# 详细状态信息
-# sudo systemctl status doh -l
-# 查看完整日志
-# sudo journalctl -u doh -n 100
-# 实时日志跟踪
-# sudo journalctl -u doh -f
-
-
+VERSION=0.9.15
 URL_DOWNLOAD=https://github.com/DNSCrypt/doh-server/releases/download
 
-
-bash ${rootPath}/scripts/getos.sh
-OSNAME=`cat ${rootPath}/data/osname.pl`
-OSNAME_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+sysName=`uname`
+sysArch=`arch`
 
 Install_App()
 {
-
 	mkdir -p $serverPath/source/doh
-
 	echo '正在安装脚本文件...'
-	version=$1
 
-	if [ "macos" == "$OSNAME" ];then
-		echo "not support!"
-		exit
+	if [ "$sysName" == "Darwin" ];then
+		echo "macOS not support doh-proxy binary"
+		exit 1
+	fi
+
+	if [ "$sysArch" == "aarch64" ] || [ "$sysArch" == "arm64" ];then
+		file=doh-proxy_${VERSION}_linux-aarch64
 	else
-		file=doh-proxy_${version}_linux-x86_64
+		file=doh-proxy_${VERSION}_linux-x86_64
 	fi
 
-	# https://github.com/DNSCrypt/doh-server/releases/download/0.9.15/doh-proxy_0.9.15_linux-aarch64.tar.bz2
 	file_xz="${file}.tar.bz2"
-	echo "wget -O $serverPath/source/doh/$file_xz ${URL_DOWNLOAD}/${version}/${file_xz}"
-	if [ ! -f $serverPath/source/doh/$file_xz ];then
-		wget  --no-check-certificate -O $serverPath/source/doh/$file_xz ${URL_DOWNLOAD}/${version}/${file_xz}
-	fi
+	URL="${URL_DOWNLOAD}/${VERSION}/${file_xz}"
+	
+	mw_download $serverPath/source/doh/$file_xz $URL
 
 	if [ -f $serverPath/source/doh/$file_xz ];then
 		cd $serverPath/source/doh && tar -xjf $file_xz
 	fi
 		
-
-	echo "mv $serverPath/source/doh/doh-proxy $serverPath/doh"
 	if [ -f $serverPath/source/doh/doh-proxy ];then
+		mkdir -p $serverPath/doh
 		mv $serverPath/source/doh/doh-proxy $serverPath/doh
 	fi
 
-
 	if [ -d $serverPath/doh ];then
-		echo $version > $serverPath/doh/version.pl
-
+		echo $VERSION > $serverPath/doh/version.pl
 		cd ${rootPath} && python3 plugins/doh/index.py start
 		cd ${rootPath} && python3 plugins/doh/index.py initd_install
 	fi
@@ -80,7 +58,6 @@ Install_App()
 
 Uninstall_App()
 {
-
 	if [ -f /usr/lib/systemd/system/doh.service ];then
 		systemctl stop doh
 		systemctl disable doh
@@ -94,9 +71,8 @@ Uninstall_App()
 
 
 action=$1
-version=$2
 if [ "${1}" == 'install' ];then
-	Install_App $version
+	Install_App
 else
-	Uninstall_App $version
+	Uninstall_App
 fi

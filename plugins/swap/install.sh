@@ -6,11 +6,13 @@ curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
+
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
+
 SYSOS=`uname`
-
 VERSION=$2
-
-# cd /www/server/mdserver-web/plugins/swap && /bin/bash install.sh install 1.1
 
 Install_swap()
 {
@@ -24,12 +26,15 @@ Install_swap()
 	echo "${VERSION}" > $serverPath/swap/version.pl
 
 	if [ "$sysName" == "Darwin" ];then
-		pass
+		echo "macOS not support swap"
 	else
-		dd if=/dev/zero of=$serverPath/swap/swapfile bs=1M count=1024
-		chmod 600 $serverPath/swap/swapfile
-		mkswap $serverPath/swap/swapfile
-		swapon $serverPath/swap/swapfile
+		# 检查是否已有 swapfile
+		if [ ! -f $serverPath/swap/swapfile ];then
+			dd if=/dev/zero of=$serverPath/swap/swapfile bs=1M count=1024
+			chmod 600 $serverPath/swap/swapfile
+			mkswap $serverPath/swap/swapfile
+			swapon $serverPath/swap/swapfile
+		fi
 	fi 
 
 	echo '安装完成'
@@ -40,8 +45,9 @@ Install_swap()
 
 Uninstall_swap()
 {
-	swapoff $serverPath/swap/swapfile
-
+	if [ -f $serverPath/swap/swapfile ];then
+		swapoff $serverPath/swap/swapfile
+	fi
 
 	if [ -f /usr/lib/systemd/system/swap.service ] || [ -f /lib/systemd/system/swap.service ];then
 		systemctl stop swap

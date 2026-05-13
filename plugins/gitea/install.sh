@@ -7,37 +7,28 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
 fi
 
-
+VERSION=1.26.1
 URL_DOWNLOAD=https://dl.gitea.com
 
-
-bash ${rootPath}/scripts/getos.sh
-OSNAME=`cat ${rootPath}/data/osname.pl`
-OSNAME_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
-
-
-getBit(){
-	echo `getconf  LONG_BIT`
-}
+sysName=`uname`
+sysArch=`arch`
 
 Install_Rsync(){
-	if [ "$OSNAME" == "debian" ] || [ "$OSNAME" == "ubuntu" ];then
-		apt install -y rsync
-	elif [[ "$OSNAME" == "arch" ]]; then
-		echo y | pacman -Sy rsync
-	elif [[ "$OSNAME" == "macos" ]]; then
-		# brew install rsync
-		# brew install lsyncd
-		echo "ok"
-	else
-		yum install -y rsync
+	# 检查 rsync
+	if ! command -v rsync &> /dev/null; then
+		if which apt &> /dev/null; then
+			apt install -y rsync
+		elif which yum &> /dev/null; then
+			yum install -y rsync
+		elif which pacman &> /dev/null; then
+			pacman -Sy --noconfirm rsync
+		fi
 	fi
 }
-
 
 Install_App()
 {
@@ -45,15 +36,12 @@ Install_App()
 
 	mkdir -p $serverPath/source/gitea
 
-	if id www &> /dev/null ;then 
-	    echo "www uid is `id -u www`"
-	    echo "www shell is `grep "^www:" /etc/passwd |cut -d':' -f7 `"
-	else
+	if ! id www &> /dev/null; then
 	    groupadd www
 		useradd -g www www
 	fi
 
-	if [ "macos" != "$OSNAME" ];then
+	if [ "$sysName" != "Darwin" ];then
 		if [ ! -d /home/www ];then
 			mkdir -p /home/www
 			chown -R www:www /home/www
@@ -61,36 +49,34 @@ Install_App()
 	fi
 
 	echo '正在安装脚本文件...'
-	version=$1
 	
-
-	git config --global push.default simple
-
-	if [ "macos" == "$OSNAME" ];then
-		file=gitea-${version}-darwin-10.12-amd64
+	if [ "$sysName" == "Darwin" ];then
+		file=gitea-${VERSION}-darwin-10.12-amd64
 	else
-		file=gitea-${version}-linux-amd64
+		if [ "$sysArch" == "aarch64" ] || [ "$sysArch" == "arm64" ];then
+			file=gitea-${VERSION}-linux-arm64
+		else
+			file=gitea-${VERSION}-linux-amd64
+		fi
 	fi
 
 	file_xz="${file}.xz"
-	echo "wget -O $serverPath/source/gitea/$file_xz ${URL_DOWNLOAD}/gitea/${version}/${file_xz}"
-	if [ ! -f $serverPath/source/gitea/$file_xz ];then
-		wget  --no-check-certificate -O $serverPath/source/gitea/$file_xz ${URL_DOWNLOAD}/gitea/${version}/${file_xz}
-	fi
+	URL="${URL_DOWNLOAD}/gitea/${VERSION}/${file_xz}"
+	
+	# Gitea 官方下载点在国内可能较慢，mw_download 会处理 GitHub 但这里是 dl.gitea.com
+	# 我们可以尝试使用 ghp.ci 代理如果需要，但 gitea.com 主要是二进制
+	mw_download $serverPath/source/gitea/$file_xz $URL
 
 	cd $serverPath/source/gitea && xz -k -d $file_xz
 	if [ -f $file ];then
 		mkdir -p $serverPath/gitea
 		mv $serverPath/source/gitea/$file $serverPath/gitea/gitea
 		chmod +x $serverPath/gitea/gitea
-
 		chown -R www:www $serverPath/gitea
 	fi
 
-
 	if [ -d $serverPath/gitea ];then
-		echo $version > $serverPath/gitea/version.pl
-
+		echo $VERSION > $serverPath/gitea/version.pl
 		cd ${rootPath} && python3 plugins/gitea/index.py start
 		cd ${rootPath} && python3 plugins/gitea/index.py initd_install
 	fi
@@ -100,7 +86,6 @@ Install_App()
 
 Uninstall_App()
 {
-
 	if [ -f /usr/lib/systemd/system/gitea.service ];then
 		systemctl stop gitea
 		systemctl disable gitea
@@ -116,11 +101,9 @@ Uninstall_App()
 	echo 'uninstall success'
 }
 
-
 action=$1
-version=$2
 if [ "${1}" == 'install' ];then
-	Install_App $version
+	Install_App
 else
-	Uninstall_App $version
+	Uninstall_App
 fi

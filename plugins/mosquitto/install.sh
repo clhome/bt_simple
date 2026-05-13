@@ -7,13 +7,15 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
+
 sysName=`uname`
 echo "use system: ${sysName}"
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/mosquitto && bash install.sh install 2.0.18
-# cd /www/mdserver-web/plugins/mosquitto && bash install.sh install 2.0.18
-
-VERSION=$2
+VERSION=2.1.2
+mosquittoDir=${serverPath}/source/mosquitto
 
 Install_App()
 {
@@ -26,14 +28,13 @@ Install_App()
 	fi
 
 	echo '正在安装脚本文件...'
-	mkdir -p $serverPath/source
+	mkdir -p ${mosquittoDir}
 
-	if [ ! -f $serverPath/source/mosquitto-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O $serverPath/source/mosquitto-${VERSION}.tar.gz https://mosquitto.org/files/source/mosquitto-${VERSION}.tar.gz
-	fi
+	URL="https://mosquitto.org/files/source/mosquitto-${VERSION}.tar.gz"
+	mw_download ${mosquittoDir}/mosquitto-${VERSION}.tar.gz ${URL}
 	
-	if [ ! -d mosquitto-${VERSION} ];then
-		cd $serverPath/source && tar -zxvf mosquitto-${VERSION}.tar.gz
+	if [ ! -d ${mosquittoDir}/mosquitto-${VERSION} ];then
+		cd ${mosquittoDir} && tar -zxvf mosquitto-${VERSION}.tar.gz
 	fi
 
 
@@ -41,20 +42,17 @@ Install_App()
 	# check cmake version
 	CMAKE_VERSION=`cmake -version | grep version | awk '{print $3}' | awk -F '.' '{print $1}'`
 	if [ "$CMAKE_VERSION" -eq "2" ];then
-		mkdir -p /var/log/mariadb
-		touch /var/log/mariadb/mariadb.log
 		INSTALL_CMD=cmake3
 	fi
 
 	mkdir -p $serverPath/mosquitto
 	if  [ ! -d $serverPath/mosquitto/bin ];then
-		cd mosquitto-${VERSION} && ${INSTALL_CMD} CMakeLists.txt -DCMAKE_INSTALL_PREFIX=$serverPath/mosquitto && make install
+		cd ${mosquittoDir}/mosquitto-${VERSION} && ${INSTALL_CMD} . -DCMAKE_INSTALL_PREFIX=$serverPath/mosquitto && make -j$(get_cpu_cores) && make install
 	fi
 	
 	if [ -d $serverPath/mosquitto ];then
 		echo "${VERSION}" > $serverPath/mosquitto/version.pl
 		echo '安装mosquitto完成'
-
 
 		cd ${rootPath} && python3 ${rootPath}/plugins/mosquitto/index.py start
 		cd ${rootPath} && python3 ${rootPath}/plugins/mosquitto/index.py initd_install

@@ -7,37 +7,12 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-# cd /www/server/mdserver-web/plugins/phpmyadmin && bash install.sh install 4.4.15
-# cd /www/server/mdserver-web && python3 plugins/phpmyadmin/index.py start
-
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
-fi
-
-if [ "$sys_os" == "Darwin" ];then
-	BAK='_bak'
-else
-	BAK=''
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
 fi
 
 sysName=`uname`
 echo "use system: ${sysName}"
-
-if [ "${sysName}" == "Darwin" ]; then
-	OSNAME='macos'
-elif grep -Eqi "CentOS" /etc/issue || grep -Eq "CentOS" /etc/*-release; then
-	OSNAME='centos'
-elif grep -Eqi "Fedora" /etc/issue || grep -Eq "Fedora" /etc/*-release; then
-	OSNAME='fedora'
-elif grep -Eqi "Debian" /etc/issue || grep -Eq "Debian" /etc/*-release; then
-	OSNAME='debian'
-elif grep -Eqi "Ubuntu" /etc/issue || grep -Eq "Ubuntu" /etc/*-release; then
-	OSNAME='ubuntu'
-elif grep -Eqi "Raspbian" /etc/issue || grep -Eq "Raspbian" /etc/*-release; then
-	OSNAME='raspbian'
-else
-	OSNAME='unknow'
-fi
 
 Install_phpmyadmin()
 {
@@ -47,16 +22,12 @@ Install_phpmyadmin()
 
 	mkdir -p ${serverPath}/source/phpmyadmin
 	
-	VER=$1
-	
+	VER=5.2.3
 	FDIR=phpMyAdmin-${VER}-all-languages
 	FILE=phpMyAdmin-${VER}-all-languages.tar.gz
-	DOWNLOAD=https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE
+	URL="https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE"
 	
-
-	if [ ! -f $serverPath/source/phpmyadmin/$FILE ];then
-		wget --no-check-certificate -O $serverPath/source/phpmyadmin/$FILE $DOWNLOAD
-	fi
+	mw_download $serverPath/source/phpmyadmin/$FILE $URL
 
 	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
 		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE
@@ -67,7 +38,7 @@ Install_phpmyadmin()
 	cd $serverPath/phpmyadmin/ && mv $FDIR phpmyadmin
 	rm -rf $serverPath/source/phpmyadmin/$FDIR
 
-	echo "${1}" > ${serverPath}/phpmyadmin/version.pl
+	echo "${VER}" > ${serverPath}/phpmyadmin/version.pl
 	cd ${rootPath} && python3 ${rootPath}/plugins/phpmyadmin/index.py start
 	
 	echo '安装完成'
@@ -83,7 +54,7 @@ Uninstall_phpmyadmin()
 
 action=$1
 if [ "${1}" == 'install' ];then
-	Install_phpmyadmin $2
+	Install_phpmyadmin
 else
-	Uninstall_phpmyadmin $2
+	Uninstall_phpmyadmin
 fi
