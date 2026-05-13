@@ -118,8 +118,8 @@ class Firewall(object):
             if thisdb.getFirewallCountByPort(add_info['port']) == 0:
                 thisdb.addFirewall(add_info['port'], ps='自动识别',protocol=add_info['protocol'])
 
-    def getList(self, page=1,size=10):
-        info = thisdb.getFirewallList(page=page, size=size)
+    def getList(self, page=1, size=10, search_port='', search_ps=''):
+        info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps)
 
         rdata = {}
         rdata['data'] = info['list']

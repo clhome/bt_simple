@@ -361,10 +361,12 @@ function setSshPubkeyStatus(){
  * 取回数据
  * @param {Int} page  分页号
  */
-function showAccept(page,search) {
-	search = search == undefined ? '':search;
+function showAccept(page) {
+	var search_port = $("#SearchPort").val();
+	var search_ps = $("#SearchPs").val();
+
 	var loadT = layer.load();
-	$.post('/firewall/get_list','limit=10&p=' + page+"&search="+search, function(data) {
+	$.post('/firewall/get_list','limit=10&p=' + page+"&search_port="+search_port+"&search_ps="+search_ps, function(data) {
 		layer.close(loadT);
 		var body = '';
 		for (var i = 0; i < data.data.length; i++) {
@@ -384,7 +386,7 @@ function showAccept(page,search) {
 		}
 
 		if (data.data.length == 0){
-			body = '<tr><td colspan="5" style="text-align: center;">当前没有数据</td></tr>';
+			body = '<tr><td colspan="7" style="text-align: center;">当前没有数据</td></tr>';
 		}
 
 		$("#firewall_body").html(body);

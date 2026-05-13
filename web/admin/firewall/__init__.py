@@ -33,7 +33,9 @@ def index():
 def get_list():
     p = request.form.get('p', '1').strip()
     limit = request.form.get('limit', '10').strip()
-    return MwFirewall.instance().getList(p,limit)
+    search_port = request.form.get('search_port', '').strip()
+    search_ps = request.form.get('search_ps', '').strip()
+    return MwFirewall.instance().getList(p, limit, search_port, search_ps)
 
 # 获取站点日志目录
 @blueprint.route('/get_www_path', endpoint='get_www_path', methods=['POST'])

@@ -17,12 +17,42 @@ except:
 
 __FIELD = 'id,port,protocol,status,ps,add_time,update_time'
 
-def getFirewallList(page=1,size=10):
+def getFirewallList(page=1, size=10, search_port='', search_ps=''):
     start = (int(page) - 1) * (int(size))
-    limit = str(start) + ',' +str(size)
+    limit = str(start) + ',' + str(size)
 
-    firewall_list = mw.M('firewall').field(__FIELD).limit(limit).order('id desc').select()
-    count = mw.M('firewall').count()
+    m = mw.M('firewall').field(__FIELD)
+    
+    where = ""
+    params = []
+    
+    if search_port:
+        if search_port.isdigit():
+            search_port_int = int(search_port)
+            # 精确匹配端口，或者匹配包含该端口的范围
+            # 范围存储格式为 start:end
+            where += "(port = ? OR (port LIKE '%:%' AND CAST(SUBSTR(port, 1, INSTR(port, ':') - 1) AS INTEGER) <= ? AND CAST(SUBSTR(port, INSTR(port, ':') + 1) AS INTEGER) >= ?))"
+            params.extend([search_port, search_port_int, search_port_int])
+        else:
+            # IP 或者非纯数字搜索
+            where += "port LIKE ?"
+            params.append('%' + search_port + '%')
+            
+    if search_ps:
+        if where: where += " AND "
+        where += "ps LIKE ?"
+        params.append('%' + search_ps + '%')
+
+    if where:
+        m = m.where(where, tuple(params))
+
+    firewall_list = m.limit(limit).order('id desc').select()
+    
+    # 再次使用带条件的对象获取总数
+    count_obj = mw.M('firewall')
+    if where:
+        count_obj = count_obj.where(where, tuple(params))
+    count = count_obj.count()
 
     data = {}
     data['count'] = count
