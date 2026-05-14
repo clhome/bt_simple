@@ -2026,7 +2026,7 @@ function showConfirmUpload() {
             fileListHtml += '<li>\
                 <span class="filename" title="' + fileName + '">' + fileName + '</span>\
                 <span class="filesize">' + toSize(files[i].size) + '</span>\
-                <a class="del_up_file" href="javascript:;" onclick="removeFileFromUpload(' + i + ')">删除</a>\
+                <a class="del_up_file" href="javascript:;" onclick="removeFileFromUpload(' + i + ')">移除</a>\
             </li>';
         }
     }
@@ -2049,6 +2049,10 @@ function showConfirmUpload() {
         area: '600px',
         shadeClose: false,
         content: '<div class="fileUploadDiv confirmUpload">\
+                <style>\
+                    .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }\
+                    .confirmUpload .up_box li:hover { background-color: #e6f7ff !important; cursor: pointer; }\
+                </style>\
                 <div class="upload-target">上传到目录: <code>' + path + '</code></div>\
                 <ul id="confirm_up_box" class="up_box">' + fileListHtml + '</ul>\
                 <div class="upload-footer">\
@@ -2057,8 +2061,8 @@ function showConfirmUpload() {
                         <button type="button" class="btn btn-default btn-xs ml10" onclick="showAddMoreMenu(this)" style="color:#20a53a;border-color:#20a53a;padding: 2px 8px;">添加项目 <span class="caret"></span></button>\
                     </div>\
                     <div class="footer-right">\
-                        <button type="button" id="confirmUpBtn" class="btn btn-success btn-sm">开始上传</button>\
                         <button type="button" class="btn btn-default btn-sm" onClick="pendingUploadFiles=[];layer.closeAll()">取消</button>\
+                        <button type="button" id="confirmUpBtn" class="btn btn-success btn-sm ml10">开始上传</button>\
                     </div>\
                 </div>\
             </div>'

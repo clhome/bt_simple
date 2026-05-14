@@ -53,11 +53,18 @@
         list-style: none;
     }
     .confirmUpload .up_box li {
-        padding: 5px;
-        border-bottom: 1px solid #f9f9f9;
+        padding: 8px 10px;
+        border-bottom: 1px solid #eee;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.1s;
     }
+    .confirmUpload .up_box li:hover {
+        background-color: #e6f7ff !important;
+    }
+
+
     .confirmUpload .up_box li .filename {
         max-width: 80%;
         overflow: hidden;
