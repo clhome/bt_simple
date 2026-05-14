@@ -49,8 +49,12 @@ UNINSTALL_MySQL()
             echo -e "------------"
             echo "取消卸载MySQL"
         else
-            cd /www/server/mdserver-web/plugins/mysql && sh install.sh uninstall 8.0
-            echo "卸载MySQL成功!"
+            MYSQL_VER="8.0"
+            if [ -f /www/server/mysql/version.pl ];then
+                MYSQL_VER=$(cat /www/server/mysql/version.pl)
+            fi
+            cd /www/server/mdserver-web/plugins/mysql && sh install.sh uninstall ${MYSQL_VER}
+            echo "卸载MySQL ${MYSQL_VER} 成功!"
         fi
     fi
 }
@@ -84,12 +88,12 @@ UNINSTALL_PHP()
             echo -e "------------"
             echo "取消卸载PHP"
         else
-            PHP_VER_LIST=(53 54 55 56 70 71 72 73 74 80 81 82)
-            for PHP_VER in ${PHP_VER_LIST[@]}; do
+            PHP_VER_LIST=$(ls /www/server/php)
+            for PHP_VER in ${PHP_VER_LIST}; do
                 if [ -d /www/server/php/${PHP_VER} ];then
                     cd /www/server/mdserver-web/plugins/php && bash install.sh uninstall ${PHP_VER}
+                    echo "卸载PHP ${PHP_VER} 成功!"
                 fi
-                echo "卸载PHP${PHP_VER}成功!"
             done
         fi
     fi
@@ -123,8 +127,12 @@ UNINSTALL_REDIS()
             echo -e "------------"
             echo "取消卸载Redis"
         else
-            cd /www/server/mdserver-web/plugins/redis && bash install.sh uninstall 7.0.4
-            echo "卸载Redis成功"
+            REDIS_VER="7.0.4"
+            if [ -f /www/server/redis/version.pl ];then
+                REDIS_VER=$(cat /www/server/redis/version.pl)
+            fi
+            cd /www/server/mdserver-web/plugins/redis && bash install.sh uninstall ${REDIS_VER}
+            echo "卸载Redis ${REDIS_VER} 成功"
         fi
     fi
 }

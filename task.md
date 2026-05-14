@@ -26,3 +26,6 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
 - [x] 修复 `bs uninstall` 卸载失败的问题 @done(2026-05-14 17:48)
     - [x] 在 `scripts/init.d/mw.tpl` 中增加 `uninstall` 处理逻辑 @done(2026-05-14 17:45)
     - [x] 优化 `panel_tools.py` 对未知命令的处理逻辑 @done(2026-05-14 17:47)
+- [x] 优化 `scripts/uninstall.sh` 脚本 @done(2026-05-14 17:53)
+    - [x] 动态检测已安装的 PHP 版本并卸载 @done(2026-05-14 17:52)
+    - [x] 优化其他组件（MySQL/Redis等）的检测与卸载逻辑 @done(2026-05-14 17:53)
