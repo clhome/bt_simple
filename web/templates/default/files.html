@@ -68,8 +68,18 @@
         color: #999;
         font-size: 12px;
     }
+    .confirmUpload .up_box li .del_up_file {
+        color: #ff4d4f;
+        cursor: pointer;
+        font-size: 12px;
+        margin-left: 10px;
+    }
+    .confirmUpload .up_box li .del_up_file:hover {
+        color: #f5222d;
+        text-decoration: underline;
+    }
     .confirmUpload .upload-footer {
-        padding: 15px;
+        padding: 12px 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -89,6 +99,12 @@
         font-weight: bold;
         color: #666;
     }
+    .confirmUpload .footer-left, .confirmUpload .footer-right {
+        display: flex;
+        align-items: center;
+    }
+    .ml10 { margin-left: 10px; }
+    .ml5 { margin-left: 5px; }
     .fileUploadDiv {
         overflow: hidden;
     }
@@ -291,6 +307,9 @@
     <li onclick="javascript:batch(5);"><a style="cursor: pointer;">压缩</a></li>
     <li onclick="javascript:batch(4);"><a style="cursor: pointer;">删除</a></li>
 </ul>
+
+<input type="file" id="manual_upload_files" multiple style="display:none">
+<input type="file" id="manual_upload_dir" webkitdirectory style="display:none">
 
 <script src="/static/app/files.js?v={{config.version}}"></script>
 <script src="/static/js/jquery-ui.min.js?v={{config.version}}"></script>

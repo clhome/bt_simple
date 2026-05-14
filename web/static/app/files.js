@@ -1910,6 +1910,8 @@ $("#DirPathPlace").on("click", function(e){
 /**
  * 初始化拖拽上传
  */
+var pendingUploadFiles = [];
+
 function initDragDrop() {
     var dropOverlay = document.getElementById('dropOverlay');
     var dragTimer;
@@ -1945,6 +1947,28 @@ function initDragDrop() {
             handleDroppedItems(items);
         }
     }, false);
+
+    $('#manual_upload_files').change(function(e) {
+        handleManualSelect(e.target.files);
+        $(this).val('');
+    });
+    $('#manual_upload_dir').change(function(e) {
+        handleManualSelect(e.target.files);
+        $(this).val('');
+    });
+}
+
+function handleManualSelect(files) {
+    var filesToUpload = [];
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        file.fullPath = file.webkitRelativePath || file.name;
+        filesToUpload.push(file);
+    }
+    if (filesToUpload.length > 0) {
+        pendingUploadFiles = pendingUploadFiles.concat(filesToUpload);
+        showConfirmUpload();
+    }
 }
 
 /**
@@ -1965,8 +1989,9 @@ function handleDroppedItems(items) {
     Promise.all(promises).then(function() {
         layer.close(loadingIndex);
         if (filesToUpload.length > 0) {
-            showConfirmUpload(filesToUpload);
-        } else {
+            pendingUploadFiles = pendingUploadFiles.concat(filesToUpload);
+            showConfirmUpload();
+        } else if (pendingUploadFiles.length === 0) {
             layer.msg('未发现可上传的文件', { icon: 5 });
         }
     });
@@ -2009,27 +2034,33 @@ function traverseFileTree(item, filesToUpload, path) {
 /**
  * 显示上传确认对话框
  */
-function showConfirmUpload(files) {
+function showConfirmUpload() {
+    var files = pendingUploadFiles;
     var path = $("#DirPathPlace input").val();
     if (path.substring(path.length - 1) != '/') path += '/';
     
     var fileListHtml = '';
     var totalSize = 0;
-    var maxDisplay = 100;
+    var maxDisplay = 200;
     
     for (var i = 0; i < files.length; i++) {
         totalSize += files[i].size;
         if (i < maxDisplay) {
             var fileName = files[i].fullPath;
-            fileListHtml += '<li><span class="filename">' + fileName + '</span><span class="filesize">' + toSize(files[i].size) + '</span></li>';
+            fileListHtml += '<li>\
+                <span class="filename" title="' + fileName + '">' + fileName + '</span>\
+                <span class="filesize">' + toSize(files[i].size) + '</span>\
+                <a class="del_up_file" href="javascript:;" onclick="removeFileFromUpload(' + i + ')">删除</a>\
+            </li>';
         }
     }
     
     if (files.length > maxDisplay) {
-        fileListHtml += '<li><em style="color: #999;">... 还有 ' + (files.length - maxDisplay) + ' 个文件</em></li>';
+        fileListHtml += '<li><em style="color: #999;">... 还有 ' + (files.length - maxDisplay) + ' 个项目</em></li>';
     }
 
-    layer.open({
+    layer.close(window.confirmLayerIndex);
+    window.confirmLayerIndex = layer.open({
         type: 1,
         closeBtn: 1,
         title: '确认上传 (' + files.length + ' 个项目)',
@@ -2039,16 +2070,66 @@ function showConfirmUpload(files) {
                 <div class="upload-target">上传到目录: <code>' + path + '</code></div>\
                 <ul id="confirm_up_box" class="up_box">' + fileListHtml + '</ul>\
                 <div class="upload-footer">\
-                    <span class="total-info">总大小: ' + toSize(totalSize) + '</span>\
-                    <button type="button" id="confirmUpBtn" class="btn btn-success btn-sm">开始上传</button>\
-                    <button type="button" class="btn btn-default btn-sm" onClick="layer.closeAll()">取消</button>\
+                    <div class="footer-left">\
+                        <span class="total-info">总大小: ' + toSize(totalSize) + '</span>\
+                        <button type="button" class="btn btn-default btn-xs ml10" onclick="showAddMoreMenu(this)" style="color:#20a53a;border-color:#20a53a;padding: 2px 8px;">添加项目 <span class="caret"></span></button>\
+                    </div>\
+                    <div class="footer-right">\
+                        <button type="button" id="confirmUpBtn" class="btn btn-success btn-sm">开始上传</button>\
+                        <button type="button" class="btn btn-default btn-sm" onClick="pendingUploadFiles=[];layer.closeAll()">取消</button>\
+                    </div>\
                 </div>\
             </div>'
     });
 
     $('#confirmUpBtn').click(function() {
-        executeUpload(files, path);
+        var filesToUpload = [...pendingUploadFiles];
+        pendingUploadFiles = [];
+        executeUpload(filesToUpload, path);
     });
+}
+
+/**
+ * 显示添加更多文件的菜单
+ */
+function showAddMoreMenu(obj) {
+    var tips = layer.tips('<div class="add-more-menu">\
+        <a href="javascript:;" onclick="$(\'#manual_upload_files\').click(); layer.closeAll(\'tips\')">添加文件</a>\
+        <a href="javascript:;" onclick="$(\'#manual_upload_dir\').click(); layer.closeAll(\'tips\')">添加文件夹</a>\
+    </div>', obj, {
+        tips: [1, '#fff'],
+        time: 0,
+        shade: 0.1,
+        shadeClose: true,
+        success: function(layero, index) {
+            $(layero).find('.add-more-menu a').css({
+                'display': 'block',
+                'padding': '8px 15px',
+                'color': '#333',
+                'text-decoration': 'none',
+                'border-bottom': '1px solid #f0f0f0',
+                'transition': 'all 0.2s'
+            }).hover(function() {
+                $(this).css('background-color', '#f5f5f5');
+            }, function() {
+                $(this).css('background-color', '#fff');
+            });
+            $(layero).find('.add-more-menu a:last-child').css('border-bottom', 'none');
+        }
+    });
+}
+
+/**
+ * 从待上传列表中移除文件
+ */
+function removeFileFromUpload(index) {
+    pendingUploadFiles.splice(index, 1);
+    if (pendingUploadFiles.length === 0) {
+        layer.close(window.confirmLayerIndex);
+        layer.msg('已取消所有上传项目');
+    } else {
+        showConfirmUpload();
+    }
 }
 
 /**
