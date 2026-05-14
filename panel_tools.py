@@ -108,9 +108,22 @@ def mwcli(mw_input=0):
         100, 101, 
         200, 201, 202
     ]
+    if mw_input == "uninstall":
+        uninstall_script = panel_dir + "/scripts/uninstall.sh"
+        if os.path.exists(uninstall_script):
+            os.system("bash " + uninstall_script)
+        else:
+            os.system(INIT_CMD + " uninstall")
+        return
+
     if not mw_input in nums:
-        print(raw_tip)
-        print("已取消!")
+        if mw_input == 0:
+            print(raw_tip)
+            print("已取消!")
+        else:
+            print(raw_tip)
+            print("未知命令: " + str(mw_input))
+            os.system(INIT_CMD + " list")
         exit()
 
     if mw_input == 1:

@@ -784,6 +784,13 @@ case "$1" in
     'clean_lib') mw_clean_lib;;
     'list') mw_list;;
     'default') mw_default;;
+    'uninstall')
+        if [ -f ${PANEL_DIR}/scripts/uninstall.sh ];then
+            bash ${PANEL_DIR}/scripts/uninstall.sh
+        else
+            echo "uninstall script not found!"
+        fi
+        ;;
     *)
         cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py cli $1
         ;;
