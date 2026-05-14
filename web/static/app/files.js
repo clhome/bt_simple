@@ -1,9 +1,9 @@
 //判断磁盘数量超出宽度
 function isDiskWidth(){
-    var comlist_width = $("#comlist").width();
-    var body_width = $(".file-box").width();
-    $("#comlist").css({"width":(body_width-520)+"px","height":"34px","overflow":"auto"});
+    // $("#comlist").css({"width":(body_width-520)+"px","height":"34px","overflow":"auto"});
+    $("#comlist").css({"max-width":"500px","height":"34px","overflow":"auto","display":"inline-block"});
 }
+
 
 //打开回收站
 function recycleBin(type){
@@ -936,7 +936,7 @@ function getDisk() {
     $.get('/system/disk_info', function(rdata) {
         var rdata = rdata.data;
         for (var i = 0; i < rdata.length; i++) {
-            LBody += "<span onclick=\"getFiles('" + rdata[i].path + "')\">\
+            LBody += "<span onclick=\"getFiles('" + rdata[i].path + "')\" style=\"cursor:pointer;margin-right:10px;\">\
                 <span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path=='/'?lan.files.path_root:rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
         }
         var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="回收站" style="position: absolute; border-color: #ccc; right: 77px;">\
