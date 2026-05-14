@@ -85,6 +85,58 @@ function AutoSizeStr(){
 	echo -e " ❖   ${1}${FIX_SPACE}${2})"
 }
 
+function AutoChooseProxyURL(){
+	echo -e "-----------------------------------------------------"
+	echo -e "正在为您自动挑选最快的 GitHub 代理节点..."
+	echo -e "-----------------------------------------------------"
+	
+	local TEST_URL="https://raw.githubusercontent.com/clhome/bt_simple/master/README.md"
+	local BEST_TIME=999
+	local BEST_PREFIX="https://"
+	local BEST_NAME="Direct"
+
+	# 预设稳定测试列表
+	declare -A TEST_LIST
+	TEST_LIST["gh-proxy.org"]="https://gh-proxy.org/"
+	TEST_LIST["ghfast.top"]="https://ghfast.top/"
+	TEST_LIST["ghp.ci"]="https://ghp.ci/https://"
+	TEST_LIST["github.do"]="https://github.do/"
+	TEST_LIST["gh-proxy.net"]="https://gh-proxy.net/"
+
+	for name in "${!TEST_LIST[@]}"; do
+		local prefix=${TEST_LIST[$name]}
+		local full_url="${prefix}${TEST_URL}"
+		
+		# 使用 curl 测试连接速度，超时 3 秒
+		local time_taken=$(curl -s -m 3 -o /dev/null -w "%{time_total}" "$full_url")
+		local exit_code=$?
+
+		if [ $exit_code -eq 0 ] && [ "$(echo "$time_taken > 0" | bc -l 2>/dev/null)" -eq 1 ]; then
+			echo -e " ❖ 节点 [${name}]: ${time_taken}s"
+			# 比较耗时
+			if [ "$(echo "$time_taken < $BEST_TIME" | bc -l 2>/dev/null)" -eq 1 ]; then
+				BEST_TIME=$time_taken
+				BEST_PREFIX=$prefix
+				BEST_NAME=$name
+			fi
+		else
+			echo -e " ❖ 节点 [${name}]: \033[31m连接失败\033[0m"
+		fi
+	done
+
+	if [ "$BEST_NAME" != "Direct" ]; then
+		HTTP_PREFIX=$BEST_PREFIX
+		echo -e "-----------------------------------------------------"
+		echo -e "已自动为您选择最快节点: \033[32m$BEST_NAME\033[0m (耗时: ${BEST_TIME}s)"
+		echo -e "-----------------------------------------------------"
+	else
+		echo -e "-----------------------------------------------------"
+		echo -e "\033[31m未发现快速代理节点，将尝试直连或使用默认值。\033[0m"
+		HTTP_PREFIX="https://"
+		echo -e "-----------------------------------------------------"
+	fi
+}
+
 function ChooseProxyURL(){
 	clear
     echo -e '+---------------------------------------------------+'
@@ -115,15 +167,13 @@ function ChooseProxyURL(){
     echo -e "        系统时间  ${BLUE}$(date "+%Y-%m-%d %H:%M:%S")${PLAIN}"
     echo -e ''
     echo -e '#####################################################'
-    CHOICE_A=$(echo -e "\n${BOLD}└─ 请选择并输入你想使用的代理地址 [ 1-${SOURCE_LIST_LEN} ]：${PLAIN}")
+    CHOICE_A=$(echo -e "\n${BOLD}└─ 请输入你想使用的代理地址 (直接回车将自动测速选择) [ 1-${SOURCE_LIST_LEN} ]：${PLAIN}")
 
     read -p "${CHOICE_A}" INPUT
     # echo $INPUT
     if [ "$INPUT" == "" ];then
-        INPUT=1
-        TMP_INPUT=`expr $INPUT - 1`
-        INPUT_KEY=${SOURCE_LIST_KEY[$TMP_INPUT]}
-        echo -e "\n默认选择[${BLUE}${INPUT_KEY}${PLAIN}]安装！"
+        AutoChooseProxyURL
+        return
     fi
 
     if [ "$INPUT" -lt "0" ];then
@@ -151,13 +201,16 @@ function ChooseProxyURL(){
 if [ "$LOCAL_ADDR" != "common" ];then
 	ChooseProxyURL
 
-	if [ "$HTTP_PREFIX" != "https://" ];then
+	if [ "$HTTP_PREFIX" != "https://" ] && [ "$HTTP_PREFIX" != "" ];then
 		DOMAIN=`echo $HTTP_PREFIX | sed 's|https://||g'`
 		DOMAIN=`echo $DOMAIN | sed 's|/||g'`
-		ping -c 3 $DOMAIN > /dev/null 2>&1
-		if [ "$?" != "0" ];then
-			echo "无效代理地址:${DOMAIN}"
-			exit
+		# 自动选择逻辑已经包含了测速，如果是手动选择则保持原有的 ping 检查
+		if [ "$INPUT" != "" ]; then
+			ping -c 3 $DOMAIN > /dev/null 2>&1
+			if [ "$?" != "0" ];then
+				echo "无效代理地址:${DOMAIN}"
+				exit
+			fi
 		fi
 	fi
 fi
