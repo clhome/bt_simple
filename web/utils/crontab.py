@@ -155,25 +155,17 @@ class crontab(object):
 
     def add(self, data):
         if len(data['name']) < 1:
-            # 任务名称不能为空
             return -1
 
         is_check_pass, msg = self.cronCheck(data)
         if not is_check_pass:
             return mw.returnData(is_check_pass, msg)
 
-        cmd, title = self.getCrondCycle(data)
-        cron_path = mw.getServerDir() + '/cron'
-        cron_shell = self.getShell(data)
+        # 1. 预先生成随机标识
+        cron_name = mw.md5(mw.md5(str(time.time()) + '_mw'))
+        data['echo'] = cron_name
 
-        cmd += ' ' + cron_path + '/' + cron_shell + ' >> ' + cron_path + '/' + cron_shell + '.log 2>&1'
-
-        if not mw.isAppleSystem():
-            sh_data = self.writeShell(cmd)
-            if not sh_data['status']:
-                return sh_data
-            self.crondReload()
-
+        # 2. 构造数据库记录并插入以获取 tid
         add_dbdata = {}
         add_dbdata['name'] = data['name']
         add_dbdata['type'] = data['type']
@@ -181,7 +173,7 @@ class crontab(object):
         add_dbdata['where_hour'] = data['hour']
         add_dbdata['where_minute'] = data['minute']
         add_dbdata['stype'] = data['stype']
-        add_dbdata['echo'] = cron_shell
+        add_dbdata['echo'] = cron_name
 
         add_dbdata['sname'] = mw.getDefault(data, 'sname', '')
         add_dbdata['backup_to'] = mw.getDefault(data, 'backup_to', '')
@@ -191,8 +183,16 @@ class crontab(object):
         add_dbdata['attr'] = mw.getDefault(data, 'attr', '')
         add_dbdata['day_type'] = mw.getDefault(data, 'day_type', '0')
 
-        tid = thisdb.addCrontab(add_dbdata)
-        return tid
+        try:
+            tid = thisdb.addCrontab(add_dbdata)
+            
+            # 3. 如果插入成功，通过 syncToCrond 完成脚本生成和系统同步
+            if tid > 0:
+                if not mw.isAppleSystem():
+                    self.syncToCrond(tid)
+            return tid
+        except Exception as e:
+            return mw.returnData(False, '数据库写入失败: ' + str(e))
 
     def delete(self, tid):
         data = thisdb.getCrond(tid)
@@ -501,13 +501,23 @@ fi''' % (mw.getPanelDir(),)
 
                 workday_check = '''
 # 日期类型判定
-RESPONSE=$(curl -s --location --request GET "http://timor.tech/api/holiday/info/$(date +%%F)")
-DAY_TYPE=$(echo $RESPONSE | grep -o '"type":[0-3]' | head -n1 | cut -d: -f2)
-if %s; then
+RESPONSE=$(curl -s --connect-timeout 5 -m 10 --location --request GET "https://timor.tech/api/holiday/info/$(date +%%F)" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+if [ -z "$RESPONSE" ]; then
     echo "----------------------------------------------------------------------------"
-    echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 跳过执行：今日非%s"
+    echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 警告：日期接口调用失败，跳过日期限制检查！"
     echo "----------------------------------------------------------------------------"
-    exit 0
+else
+    DAY_TYPE=$(echo $RESPONSE | grep -o '"type":[0-3]' | head -n1 | cut -d: -f2)
+    if [ -z "$DAY_TYPE" ]; then
+        echo "----------------------------------------------------------------------------"
+        echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 警告：日期接口数据解析失败，跳过日期限制检查！"
+        echo "----------------------------------------------------------------------------"
+    elif %s; then
+        echo "----------------------------------------------------------------------------"
+        echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 跳过执行：今日非%s"
+        echo "----------------------------------------------------------------------------"
+        exit 0
+    fi
 fi
 ''' % (check_logic, check_desc)
                 head = head + workday_check
@@ -562,7 +572,7 @@ echo "--------------------------------------------------------------------------
 web_dir=%s
 cron_id=%s
 /usr/bin/python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');import core.mw as mw,thisdb;thisdb.setCrontabData($cron_id,{'last_run_time':mw.formatDate()})"
-''' % (mw.getPanelDir() + '/web', param['id'])
+''' % (mw.getPanelDir() + '/web', param.get('id', '0'))
         cron_path = mw.getServerDir() + '/cron'
         if not os.path.exists(cron_path):
             mw.execShell('mkdir -p ' + cron_path)

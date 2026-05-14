@@ -136,9 +136,14 @@ def add():
     if info is not None:
         return mw.returnData(False, '任务名称重复')
 
-    cron_id = MwCrontab.instance().add(request_data)
-    if cron_id > 0:
-        return mw.returnData(True, '添加成功')
-    return mw.returnData(False, '添加失败')
+    try:
+        data = MwCrontab.instance().add(request_data)
+        if isinstance(data, dict):
+            return data
+        if data > 0:
+            return mw.returnData(True, '添加成功')
+        return mw.returnData(False, '添加失败')
+    except Exception as e:
+        return mw.returnData(False, '添加异常: ' + str(e))
 
 

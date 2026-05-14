@@ -2051,7 +2051,7 @@ function showConfirmUpload() {
         content: '<div class="fileUploadDiv confirmUpload">\
                 <style>\
                     .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }\
-                    .confirmUpload .up_box li:hover { background-color: #e6f7ff !important; cursor: pointer; }\
+                    .confirmUpload .up_box li:hover { background-color: #C6F5C9 !important; cursor: pointer; }\
                 </style>\
                 <div class="upload-target">上传到目录: <code>' + path + '</code></div>\
                 <ul id="confirm_up_box" class="up_box">' + fileListHtml + '</ul>\
