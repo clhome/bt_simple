@@ -2855,3 +2855,9 @@ function aboutPanel() {
         });
     }, 'json');
 }
+
+function toggleMenuMini() {
+    var body = document.body;
+    var isMini = body.classList.toggle('sidebar-mini');
+    localStorage.setItem('menuMini', isMini);
+}

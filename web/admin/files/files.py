@@ -200,6 +200,7 @@ def upload_file():
     path = request.args.get('path', '')
     if not os.path.exists(path):
         os.makedirs(path)
+        file.setMode(path)
     f = request.files['zunfile']
     raw_name = f.filename
     # 仅清理路径分隔符和危险字符，保留原名以支持中文

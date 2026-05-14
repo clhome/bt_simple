@@ -31,7 +31,7 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
     if not os.path.exists(path):
         os.makedirs(path, 493)
         if not dir_mode != '' or not file_mode != '':
-            mw.setMode(path)
+            setMode(path)
 
     save_path = os.path.join(path, name + '.' + str(int(size)) + '.upload.tmp')
     d_size = 0
