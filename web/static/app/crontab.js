@@ -115,6 +115,7 @@ function getCronData(page){
 					<td>"+rdata.data[i].cycle+"</td>\
 					<td>"+cron_save +"</td>\
 					<td>"+cron_backupto+"</td>\
+					<td>"+(rdata.data[i].is_workday == 1 ? '是' : '')+"</td>\
 					<td>"+rdata.data[i].last_run_time+"</td>\
 					<td>\
 						<a href=\"javascript:startTask("+rdata.data[i].id+");\" class='btlink'>执行</a> | \
@@ -300,6 +301,9 @@ function planAdd(){
 		var backupTo = $(".planBackupTo").find("b").attr("val");
 		$("#backup_to").val(backupTo);
 	}
+
+    var is_workday = $("#is_workday").prop('checked') ? 1 : 0;
+    $("#cronConfig input[name='is_workday']").val(is_workday);
 
 	if (cron_type=='site' || cron_type=='path'){
 		var attr = $("#exclude_dir textarea[name='exclude_dir']").val();
@@ -679,6 +683,7 @@ function editTaskInfo(id){
 				save: rdata.save,
 				url_address: rdata.url_address,
 				attr:rdata.attr,
+                is_workday: rdata.is_workday,
 			},
 			sTypeArray:[['toShell','Shell脚本'],['site','备份网站'],['database','备份数据库'],['logs','日志切割'],['path','备份目录'],['rememory','释放内存'],['toUrl','访问URL']],
 			cycleArray:[['day','每天'],['day-n','N天'],['hour','每小时'],['hour-n','N小时'],['minute-n','N分钟'],['week','每星期'],['month','每月']],
@@ -789,6 +794,12 @@ function editTaskInfo(id){
 							<div class="plan_hms pull-left mr20 bt-input-text minute_input"><span><input type="number" name="minute" class="minute_create" value="'+ (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute)+'" maxlength="2" max="59" min="0"></span> <span class="name">分</span> </div>\
 						</div>\
 					</div>\
+                    <div class="clearfix plan ptb10">\
+                        <span class="typename c4 pull-left f14 text-right mr20">工作日</span>\
+                        <div class="pull-left" style="line-height:34px">\
+                            <input type="checkbox" name="is_workday" class="workday_create" ' + (obj.from.is_workday == 1 ? 'checked' : '') + ' style="width:18px;height:18px;vertical-align:middle;margin-top:-2px"> <label style="font-weight:normal;cursor:pointer"> 仅在工作日执行</label>\
+                        </div>\
+                    </div>\
 					<div class="clearfix plan ptb10 site_list" style="display:none">\
 						<span class="typename controls c4 pull-left f14 text-right mr20">'+ sTypeName  +'</span>\
 						<div style="line-height:34px"><div class="dropdown pull-left mr20 sName_btn" style="display:'+ (obj.from.sType != "path"?'block;':'none') +'">\
@@ -892,6 +903,10 @@ function editTaskInfo(id){
 					$('.url_create').blur(function () {
 						obj.from.url_address = $(this).val();
 					});
+
+                    $('.workday_create').change(function() {
+                        obj.from.is_workday = $(this).prop('checked') ? 1 : 0;
+                    });
 		
 					$('[aria-labelledby="cycle"] a').unbind().click(function () {
 						$('.cycle_btn').find('b').attr('val',$(this).attr('value')).html($(this).html());
@@ -1166,7 +1181,8 @@ function exportTasks() {
                 sname: item.sname,
                 sbody: item.sbody,
                 url_address: item.url_address,
-                attr: item.attr
+                attr: item.attr,
+                is_workday: item.is_workday
             };
             exportData.push(task);
         }

@@ -56,6 +56,7 @@ class crontab(object):
         dbdata['sbody'] = mw.getDefault(data, 'sbody', '')
         dbdata['url_address'] = mw.getDefault(data, 'url_address', '')
         dbdata['attr'] = mw.getDefault(data, 'attr', '')
+        dbdata['is_workday'] = mw.getDefault(data, 'is_workday', '0')
 
         if not self.removeForCrond(info['echo']):
             return mw.returnData(False, '无法写入文件，是否开启了系统加固功能!')
@@ -184,6 +185,7 @@ class crontab(object):
         add_dbdata['sbody'] = mw.getDefault(data, 'sbody', '')
         add_dbdata['url_address'] = mw.getDefault(data, 'url_address', '')
         add_dbdata['attr'] = mw.getDefault(data, 'attr', '')
+        add_dbdata['is_workday'] = mw.getDefault(data, 'is_workday', '0')
 
         tid = thisdb.addCrontab(add_dbdata)
         return tid
@@ -461,6 +463,20 @@ if [ -f $MW_PATH ];then
 fi''' % (mw.getPanelDir(),)
 
             head = head + start_head + source_bin_activate + "\n"
+
+            if 'is_workday' in param and (str(param['is_workday']) == '1'):
+                workday_check = '''
+# 检查是否为工作日
+RESPONSE=$(curl -s --location --request GET "http://timor.tech/api/holiday/info/$(date +%F)")
+CODE=$(echo $RESPONSE | grep -o '"code":[0-9]*' | cut -d: -f2)
+if [ "$CODE" != "0" ]; then
+    echo "----------------------------------------------------------------------------"
+    echo "★[$(date +"%Y-%m-%d %H:%M:%S")] 跳过执行：今日非工作日"
+    echo "----------------------------------------------------------------------------"
+    exit 0
+fi
+'''
+                head = head + workday_check
             log = '.log'
 
             #所有
