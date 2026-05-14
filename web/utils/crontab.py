@@ -133,7 +133,7 @@ class crontab(object):
         data = thisdb.getCrond(cron_id)
         log_file = mw.getServerDir() + '/cron/' + data['echo'] + '.log'
         if not os.path.exists(log_file):
-            return mw.returnData(False, '当前日志为空!')
+            return mw.returnData(True, '')
         content = mw.getLastLine(log_file, 500)
         return mw.returnData(True, content)
 

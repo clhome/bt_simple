@@ -10,7 +10,9 @@ function getLogs(id){
 	var tips = layer.msg('正在获取,请稍候...',{icon:16,time:0,shade: [0.3, '#000']});
 	var req_log_args = 'id='+id;
 	function requestLogs(layerIndex){
-    	
+    	var is_refresh = $("#log_refresh_switch").prop('checked');
+    	if (reqCount > 0 && !is_refresh) return;
+
 		$.post('/crontab/logs', req_log_args, function(rdata){
 
 			if (reqCount == 0){
@@ -31,7 +33,7 @@ function getLogs(id){
 			$("#crontab_log").html(rdata.msg);
 			//滚动到最低
 			var ob = document.getElementById('crontab_log');
-            ob.scrollTop = ob.scrollHeight; 
+            if (ob) ob.scrollTop = ob.scrollHeight; 
 			reqCount++;
 		},'json');
 
@@ -41,32 +43,41 @@ function getLogs(id){
 	layer.open({
 		type:1,
 		title:"任务执行日志",
-		area: ['60%','500px'], 
+		area: ['60%','660px'], 
 		shadeClose:false,
-		btn:["清空","关闭"],
+		btn:["清空日志", "关闭"],
 		closeBtn:1,
 		end: function(){
         	if (reqTimer){
         		clearInterval(reqTimer);
         	}
         },
-		content:'<div class="setchmod bt-form" style="padding:5px;">'
-			+'<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 395px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>'
-			// +'<div class="bt-form-submit-btn" style="margin-top: 0px;">'
-			// +'<button type="button" class="btn btn-success btn-sm" onclick="closeLogs('+id+')">清空</button>'
-			// +'<button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">关闭</button>'
-		    // +'</div>'
+		content:'<div class="setchmod bt-form" style="padding:15px;">'
+			+'<div style="margin-bottom: 10px; height: 30px;">'
+			+'<div class="pull-left" style="line-height: 30px;">'
+			+'<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;">'
+			+'<input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-top: -2px; margin-right: 5px;">5秒定时刷新'
+			+'</label>'
+			+'<button class="btn btn-default btn-sm" onclick="startTask('+id+', true)">执行任务</button>'
+			+'</div>'
+			+'</div>'
+			+'<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>'
 		+'</div>',
-		success:function(index,layer_index){
-	    	requestLogs(layer_index);
+		success:function(layero, index){
+	    	requestLogs(index);
 	    	reqTimer = setInterval(function(){
-	    		requestLogs(layer_index);
-	    	},3000);
+	    		requestLogs(index);
+	    	},5000);
+
+	    	var btnRow = layero.find('.layui-layer-btn');
+	    	btnRow.find('.layui-layer-btn0').css({'float':'left','margin-left':'15px','background-color':'#5cb85c','border-color':'#4cae4c','color':'#fff'});
         },
 
-		yes:function(index){
-			clearInterval(reqTimer);
-			closeLogs(id);
+		yes:function(index, layero){
+			closeLogs(id, true);
+			return false;
+		},
+		btn2:function(index, layero){
 			layer.close(index);
 		},
 	});
@@ -159,21 +170,39 @@ function setTaskStatus(id,status){
 }
 
 //执行任务脚本
-function startTask(id){
+function startTask(id, is_log_open){
 	var loadT = layer.msg('正在处理,请稍候...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data='id='+id;
 	$.post('/crontab/start_task',data,function(rdata){
-		showMsg(rdata.msg, function(){
-		},{icon:rdata.status?1:2,time:2000});
+		layer.close(loadT);
+		if (rdata.status){
+			if (!is_log_open) {
+				getLogs(id);
+			} else {
+				$.post('/crontab/logs', 'id='+id, function(rdata){
+					if(!rdata.status) return;
+					$("#crontab_log").html(rdata.msg);
+					var ob = document.getElementById('crontab_log');
+		            if (ob) ob.scrollTop = ob.scrollHeight; 
+				},'json');
+			}
+		} else {
+			showMsg(rdata.msg, function(){
+			},{icon:rdata.status?1:2,time:2000});
+		}
 	},'json');
 }
 
 
 //清空日志
-function closeLogs(id){
+function closeLogs(id, is_refresh){
 	var loadT = layer.msg('正在处理,请稍候...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data='id='+id;
 	$.post('/crontab/del_logs',data,function(rdata){
+		layer.close(loadT);
+		if (rdata.status && is_refresh){
+			$("#crontab_log").html('暂无数据!');
+		}
 		showMsg(rdata.msg, function(){
 			// layer.closeAll();
 		},{icon:rdata.status?1:2,time:2000});
