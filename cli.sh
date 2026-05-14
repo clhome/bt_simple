@@ -20,7 +20,7 @@ mw_start_task()
 {
     isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" == '' ];then
-        echo -e "starting mw-tasks... \c"
+        echo -e "starting bs-tasks... \c"
         cd $DIR && python3 panel_task.py >> ${DIR}/logs/panel_task.log 2>&1 &
         sleep 0.3
         isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
@@ -29,12 +29,12 @@ mw_start_task()
             echo '------------------------------------------------------'
             tail -n 20 $DIR/logs/panel_task.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: mw-tasks service startup failed.\033[0m"
+            echo -e "\033[31mError: bs-tasks service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo "starting mw-tasks... mw-tasks (pid $(echo $isStart)) already running"
+        echo "starting bs-tasks... bs-tasks (pid $(echo $isStart)) already running"
     fi
 }
 
@@ -130,7 +130,9 @@ case "$1" in
 		if [ "$response" == "yes" ]; then
 			mw_stop
 			rm -f /usr/bin/mw
+			rm -f /usr/bin/bs
 			rm -f /etc/init.d/mw
+			rm -f /etc/init.d/bs
 			rm -rf $DIR
 			echo "卸载完成。"
 		else

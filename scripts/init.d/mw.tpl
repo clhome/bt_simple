@@ -8,8 +8,8 @@
 # Required-Stop:     $all
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts mw
-# Description:       starts the mw
+# Short-Description: starts bs
+# Description:       starts the bs
 ### END INIT INFO
 
 RED='\033[31m'
@@ -44,7 +44,7 @@ mw_start_panel()
 {
     isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
     if [ "$isStart" == '' ];then
-        echo -e "starting mw-panel... \c"
+        echo -e "starting bs-panel... \c"
         cd ${PANEL_DIR}/web &&  gunicorn -c setting.py app:app
         port=$(cat ${PANEL_DIR}/data/port.pl)
         isStart=""
@@ -68,12 +68,12 @@ mw_start_panel()
             echo '------------------------------------------------------'
             tail -n 20 ${PANEL_DIR}/logs/panel_error.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: mw-panel service startup failed.\033[0m"
+            echo -e "\033[31mError: bs-panel service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo "starting mw-panel... mw(pid $(echo $isStart)) already running"
+        echo "starting bs-panel... bs(pid $(echo $isStart)) already running"
     fi
 }
 
@@ -82,7 +82,7 @@ mw_start_task()
 {
     isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" == '' ];then
-        echo -e "starting mw-tasks... \c"
+        echo -e "starting bs-tasks... \c"
         cd ${PANEL_DIR} && python3 panel_task.py >> ${PANEL_DIR}/logs/panel_task.log 2>&1 &
         sleep 0.3
         isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
@@ -91,12 +91,12 @@ mw_start_task()
             echo '------------------------------------------------------'
             tail -n 20 ${PANEL_DIR}/logs/panel_task.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: mw-tasks service startup failed.\033[0m"
+            echo -e "\033[31mError: bs-tasks service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo "starting mw-tasks... mw-tasks (pid $(echo $isStart)) already running"
+        echo "starting bs-tasks... bs-tasks (pid $(echo $isStart)) already running"
     fi
 }
 
@@ -114,7 +114,7 @@ mw_stop_task()
         return 0
     fi
 
-    echo -e "stopping mw-tasks... \c";
+    echo -e "stopping bs-tasks... \c";
     panel_task=$(ps aux | grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     panel_task=($panel_task)
     for p in ${panel_task[@]}
@@ -133,7 +133,7 @@ mw_stop_task()
 
 mw_stop_panel()
 {
-    echo -e "stopping mw-panel... \c";
+    echo -e "stopping bs-panel... \c";
     pidfile=${PANEL_DIR}/logs/panel.pid
     if [ -f $pidfile ];then
         pid=`cat $pidfile`
@@ -167,16 +167,16 @@ mw_status()
 {
     isStart=$(ps aux|grep 'gunicorn -c setting.py app:app'|grep -v grep|awk '{print $2}')
     if [ "$isStart" != '' ];then
-        echo -e "\033[32mmw (pid $(echo $isStart)) already running\033[0m"
+        echo -e "\033[32mbs (pid $(echo $isStart)) already running\033[0m"
     else
-        echo -e "\033[31mmw not running\033[0m"
+        echo -e "\033[31mbs not running\033[0m"
     fi
     
     isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" != '' ];then
-        echo -e "\033[32mmw-task (pid $isStart) already running\033[0m"
+        echo -e "\033[32mbs-task (pid $isStart) already running\033[0m"
     else
-        echo -e "\033[31mmw-task not running\033[0m"
+        echo -e "\033[31mbs-task not running\033[0m"
     fi
 }
 
@@ -186,7 +186,7 @@ mw_reload()
 	isStart=$(ps aux|grep 'gunicorn -c setting.py app:app'|grep -v grep|awk '{print $2}')
     
     if [ "$isStart" != '' ];then
-    	echo -e "reload mw... \c";
+    	echo -e "reload bs... \c";
 	    arr=`ps aux|grep 'gunicorn -c setting.py app:app'|grep -v grep|awk '{print $2}'`
 		for p in ${arr[@]}
         do
@@ -199,12 +199,12 @@ mw_reload()
             echo '------------------------------------------------------'
             tail -n 20 $mw_path/logs/error.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: mw service startup failed.\033[0m"
+            echo -e "\033[31mError: bs service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo -e "\033[31mmw not running\033[0m"
+        echo -e "\033[31mbs not running\033[0m"
         mw_start
     fi
 }
@@ -675,17 +675,17 @@ mw_clean_lib(){
 }
 
 mw_list(){
-    echo -e "mw default      - 显示面板默认信息"
-    echo -e "mw db           - 连接MySQL"
-    echo -e "mw pgdb         - 连接PostgreSQL"
-    echo -e "mw mongdb       - 连接MongoDB"
-    echo -e "mw redis        - 连接Redis"
-    echo -e "mw valkey       - 连接WalKey"
-    echo -e "mw install      - 执行安装脚本"
-    echo -e "mw update       - 更新到正式环境最新代码"
-    echo -e "mw update_dev   - 更新到测试环境最新代码"
-    echo -e "mw debug        - 调式开发面板"
-    echo -e "mw list         - 显示命令列表"
+    echo -e "bs default      - 显示面板默认信息"
+    echo -e "bs db           - 连接MySQL"
+    echo -e "bs pgdb         - 连接PostgreSQL"
+    echo -e "bs mongdb       - 连接MongoDB"
+    echo -e "bs redis        - 连接Redis"
+    echo -e "bs valkey       - 连接WalKey"
+    echo -e "bs install      - 执行安装脚本"
+    echo -e "bs update       - 更新到正式环境最新代码"
+    echo -e "bs update_dev   - 更新到测试环境最新代码"
+    echo -e "bs debug        - 调式开发面板"
+    echo -e "bs list         - 显示命令列表"
 }
 
 mw_default(){
@@ -709,18 +709,18 @@ mw_default(){
         v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
         local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
         
-        address="内网 bt_simple_URL: ${scheme}://$local_ip:$port$admin_path"
+        address="内网 bs_simple_URL: ${scheme}://$local_ip:$port$admin_path"
         if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
-            address="${address}\n外网 bt_simple_URL: ${scheme}://$v4:$port$admin_path"
+            address="${address}\n外网 bs_simple_URL: ${scheme}://$v4:$port$admin_path"
         fi
     else
-        address="bt_simple_URL: ${scheme}://$address:$port$admin_path"
+        address="bs_simple_URL: ${scheme}://$address:$port$admin_path"
     fi
 
     # bind domain check
     panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
     if [ "$panel_bind_domain" != "" ];then
-        address="bt_simple_URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
+        address="bs_simple_URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
     fi
 
     show_panel_ip="$port|"
@@ -737,7 +737,7 @@ mw_default(){
     echo -e "\033[33mWarning:\033[0m"
     echo -e "\033[33mIf you cannot access the panel. \033[0m"
     echo -e "\033[33mrelease the following port (${show_panel_ip}80|443|22) in the security group.\033[0m"
-    echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 mw 11 进行密码重置。\033[0m"
+    echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 bs 11 进行密码重置。\033[0m"
     echo -e "=================================================================="
 }
 

@@ -240,9 +240,19 @@ if [ -f /usr/bin/mw ];then
 	rm -rf /usr/bin/mw
 fi
 
+if [ -f /usr/bin/bs ];then
+	rm -rf /usr/bin/bs
+fi
+
 if [ ! -e /usr/bin/mw ]; then
 	if [ ! -f /usr/bin/mw ];then
 		ln -s /etc/rc.d/init.d/mw /usr/bin/mw
+	fi
+fi
+
+if [ ! -e /usr/bin/bs ]; then
+	if [ ! -f /usr/bin/bs ];then
+		ln -s /etc/rc.d/init.d/mw /usr/bin/bs
 	fi
 fi
 

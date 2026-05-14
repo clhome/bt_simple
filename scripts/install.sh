@@ -284,6 +284,12 @@ if [ ! -e /usr/bin/mw ]; then
 	fi
 fi
 
+if [ ! -e /usr/bin/bs ]; then
+	if [ -f /etc/rc.d/init.d/mw ];then
+		ln -s /etc/rc.d/init.d/mw /usr/bin/bs
+	fi
+fi
+
 endTime=`date +%s`
 ((outTime=(${endTime}-${startTime})/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"

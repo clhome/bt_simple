@@ -209,7 +209,7 @@ $('#login-button').click(function(){
 		layer.close(loadT);
 		if(!rdata.status || rdata.status < 0){
 			if(username == 'admin' && rdata.msg.indexOf('用户名') != -1){
-				rdata.msg += ', <br>获取默认用户和密码命令： mw default';
+				rdata.msg += ', <br>获取默认用户和密码命令： bs default';
 			}
 			$("#error").html(rdata.msg);
 			$("input[name='password']").val('');

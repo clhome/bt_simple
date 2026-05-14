@@ -233,8 +233,9 @@ rollback_bt_panel() {
         /etc/init.d/bt start
     fi
 
-    # 移除 mw 命令链接
+    # 移除 mw/bs 命令链接
     rm -f /usr/bin/mw 2>/dev/null
+    rm -f /usr/bin/bs 2>/dev/null
 
     log_info "宝塔面板回滚完成!"
 }
@@ -372,9 +373,12 @@ fresh_install() {
         bash /etc/rc.d/init.d/mw start
     fi
 
-    # 创建 mw 命令
+    # 创建 mw/bs 命令
     if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/mw ]; then
         ln -sf /etc/rc.d/init.d/mw /usr/bin/mw
+    fi
+    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/mw ]; then
+        ln -sf /etc/rc.d/init.d/mw /usr/bin/bs
     fi
 
     # 开放面板端口
@@ -384,6 +388,9 @@ fresh_install() {
     local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
     if [ -f /usr/bin/mw ]; then
         mw 11 $rand_pass > /dev/null
+        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+    elif [ -f /usr/bin/bs ]; then
+        bs 11 $rand_pass > /dev/null
         echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
     fi
 
@@ -556,6 +563,9 @@ migrate_from_bt() {
     if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/mw ]; then
         ln -sf /etc/rc.d/init.d/mw /usr/bin/mw
     fi
+    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/mw ]; then
+        ln -sf /etc/rc.d/init.d/mw /usr/bin/bs
+    fi
 
     disable_upstream_update
     show_panel_info
@@ -620,9 +630,15 @@ show_panel_info() {
     echo -e "${GREEN}${BOLD}${version}bt_simple 面板安装/迁移完成!${PLAIN}"
     echo -e "=================================================================="
     
-    if [ -f /usr/bin/mw ]; then
+    if [ -f /usr/bin/mw ] || [ -f /usr/bin/bs ]; then
         # 获取默认信息
-        local info=$(mw 10 2>/dev/null)
+        local info=""
+        if [ -f /usr/bin/bs ]; then
+            info=$(bs 10 2>/dev/null)
+        else
+            info=$(mw 10 2>/dev/null)
+        fi
+
         if [ -n "$force_pass" ]; then
             # 如果传入了强制显示的密码，则替换掉 mask 后的密码输出
             echo "$info" | sed "s/\*-password.*/|-password: $force_pass/"

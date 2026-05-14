@@ -93,16 +93,16 @@ bash deploy.sh rollback_bt
 bash deploy.sh uninstall
 
 # 方式 2：通过系统命令卸载
-mw uninstall
+bs uninstall
 ```
 
 ### 3. 命令行工具
 
-面板内置了强大的 `mw` 命令行工具，方便在 SSH 环境下快速运维：
+面板内置了强大的 `bs` (兼容 `mw`) 命令行工具，方便在 SSH 环境下快速运维：
 
-- `mw default`：查看面板默认登录信息。
-- `mw stop/start/restart`：面板服务控制。
-- `mw update`：检查并升级面板版本。
+- `bs default`：查看面板默认登录信息。
+- `bs stop/start/restart`：面板服务控制。
+- `bs update`：检查并升级面板版本。
 
 ---
 

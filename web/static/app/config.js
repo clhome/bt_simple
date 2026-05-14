@@ -1318,7 +1318,7 @@ function setBasicAuthTip(callback){
 			<li>开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码</li>\
 			<li>开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码</li>\
 			<li>请牢记BasicAuth密码，一但忘记将无法访问面板</li>\
-			<li>如忘记密码，可在SSH通过mw命令来关闭BasicAuth验证</li>\
+			<li>如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证</li>\
 		</ul>\
 		<div class="mt10 plr15 agreement-box" id="checkBasicAuth">\
 			<input class="bt-input-text mr5" name="agreement" type="checkbox" value="false" id="agreement_more">\
@@ -1368,7 +1368,7 @@ function setBasicAuth(){
 				<li style="color: red;">注意：请不要在这里使用您的常用密码，这可能导致密码泄漏！</li>\
 				<li>开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码</li>\
 				<li>开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码</li>\
-				<li>请牢记BasicAuth密码，一但忘记将无法访问面板</li><li>如忘记密码，可在SSH通过mw命令来关闭BasicAuth验证</li>\
+				<li>请牢记BasicAuth密码，一但忘记将无法访问面板</li><li>如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证</li>\
 			</ul>\
 		</div>',
 				success:function(){

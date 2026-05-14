@@ -41,6 +41,14 @@ def init_cmd():
             mw.execShell('chmod +x ' + initd_bin)
         # 加入自启动
         mw.execShell('which chkconfig && chkconfig --add mw')
+        
+        # 确保 /usr/bin/mw 和 /usr/bin/bs 存在
+        if not os.path.exists('/usr/bin/mw'):
+            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/mw')
+        if not os.path.exists('/usr/bin/bs'):
+            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/bs')
+        if not os.path.exists('/etc/rc.d/init.d/bs'):
+            mw.execShell('ln -sf ' + initd_bin + ' /etc/rc.d/init.d/bs')
 
 
     if os.path.exists('/etc/init.d'):
@@ -50,6 +58,14 @@ def init_cmd():
             mw.execShell('chmod +x ' + initd_bin)
         # 加入自启动
         mw.execShell('which update-rc.d && update-rc.d -f mw defaults')
+
+        # 确保 /usr/bin/mw 和 /usr/bin/bs 存在
+        if not os.path.exists('/usr/bin/mw'):
+            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/mw')
+        if not os.path.exists('/usr/bin/bs'):
+            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/bs')
+        if not os.path.exists('/etc/init.d/bs'):
+            mw.execShell('ln -sf ' + initd_bin + ' /etc/init.d/bs')
 
     # sys_name = mw.getOsName()
     # if sys_name == 'opensuse':
