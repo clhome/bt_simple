@@ -38,8 +38,7 @@ UNINSTALL_CHECK()
 
 UNINSTALL_MySQL()
 {
-    MYSQLD_CHECK=$(ps -ef |grep mysqld | grep -v grep | grep /www/server/mysql)
-    if [ "$MYSQLD_CHECK" != "" ];then
+    if [ -d /www/server/mysql ];then
         echo -e "----------------------------------------------------"
         echo -e "检查已有MySQL环境，卸载可能影响现有站点及数据"
         echo -e "----------------------------------------------------"
@@ -91,8 +90,9 @@ UNINSTALL_PHP()
             PHP_VER_LIST=$(ls /www/server/php)
             for PHP_VER in ${PHP_VER_LIST}; do
                 if [ -d /www/server/php/${PHP_VER} ];then
+                    echo "正在卸载 PHP ${PHP_VER} ..."
                     cd /www/server/mdserver-web/plugins/php && bash install.sh uninstall ${PHP_VER}
-                    echo "卸载PHP ${PHP_VER} 成功!"
+                    echo "卸载 PHP ${PHP_VER} 成功!"
                 fi
             done
         fi
