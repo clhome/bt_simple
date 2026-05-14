@@ -561,8 +561,8 @@ fi
 
             shell += '''
 echo "----------------------------------------------------------------------------"
-endDate=`date +"%Y-%m-%d %H:%M:%S"`
-END_MW_SHELL_TIME=`date +"%s"`
+endDate=`date +"%%Y-%%m-%%d %%H:%%M:%%S"`
+END_MW_SHELL_TIME=`date +"%%s"`
 ((SHELL_COS_TIME=($END_MW_SHELL_TIME-$START_MW_SHELL_TIME)))
 MW_ToSeconds $SHELL_COS_TIME
 echo "★[$endDate] Successful | Script Run [$SCRIPT_RUN_TIME] "
