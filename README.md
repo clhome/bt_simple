@@ -158,4 +158,8 @@ BtSimple 欢迎开发者参与贡献。代码结构清晰，易于上手。
 
 **BtSimple** 致力于成为 Linux 面板界的一股清流，感谢所有贡献者和用户！
 
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=clhome/bt_simple&type=date&legend=top-left)](https://www.star-history.com/#clhome/bt_simple&type=date&legend=top-left)
+
 [GitHub 仓库](https://github.com/clhome/bt_simple) | [WIKI 文档](https://github.com/clhome/bt_simple/wiki)
