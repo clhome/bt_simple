@@ -3929,7 +3929,7 @@ html .menu .menu_exit:hover {
     height: 110px;
     border-bottom: #ccc 1px solid;
     position: absolute;
-    top: 0;
+    top: 42px;
     left: 0;
     z-index: 999;
 }
