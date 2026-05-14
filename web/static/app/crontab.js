@@ -115,7 +115,7 @@ function getCronData(page){
 					<td>"+rdata.data[i].cycle+"</td>\
 					<td>"+cron_save +"</td>\
 					<td>"+cron_backupto+"</td>\
-					<td>"+rdata.data[i].add_time+"</td>\
+					<td>"+rdata.data[i].last_run_time+"</td>\
 					<td>\
 						<a href=\"javascript:startTask("+rdata.data[i].id+");\" class='btlink'>执行</a> | \
 						<a href=\"javascript:editTaskInfo('"+rdata.data[i].id+"');\" class='btlink'>编辑</a> | \
@@ -1110,4 +1110,134 @@ function fileupload(){
 		$("#viewfile").val($("#sFile").val());
 	});
 	$("#sFile").click();
+}
+
+// 显示添加计划任务模态框
+function showAddTask() {
+    var index = layer.open({
+        type: 1,
+        title: '添加计划任务',
+        area: ['900px', '600px'],
+        skin: 'layer-create-content',
+        shadeClose: false,
+        closeBtn: 1,
+        content: $('#add_task_form_box'),
+        btn: ['提交', '取消'],
+        success: function(layero, index) {
+            $('#add_task_form_box').show();
+            // 重置一下状态
+            toShell(); 
+            initDropdownMenu();
+        },
+        yes: function(index, layero) {
+            planAdd();
+        },
+        cancel: function() {
+            $('#add_task_form_box').hide().appendTo('body');
+        },
+        end: function() {
+             $('#add_task_form_box').hide().appendTo('body');
+        }
+    });
+}
+
+// 导出计划任务
+function exportTasks() {
+    var load = layer.msg('正在准备导出数据...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.post("/crontab/list?p=1&limit=1000", '', function(rdata) {
+        layer.close(load);
+        if (!rdata.data || rdata.data.length == 0) {
+            layer.msg('没有可导出的任务', { icon: 2 });
+            return;
+        }
+        
+        var exportData = [];
+        for (var i = 0; i < rdata.data.length; i++) {
+            var item = rdata.data[i];
+            var task = {
+                name: item.name,
+                type: item.type_raw,
+                where1: item.where1,
+                hour: item.where_hour,
+                minute: item.where_minute,
+                save: item.save,
+                backup_to: item.backup_to,
+                stype: item.stype,
+                sname: item.sname,
+                sbody: item.sbody,
+                url_address: item.url_address,
+                attr: item.attr
+            };
+            exportData.push(task);
+        }
+        
+        var blob = new Blob([JSON.stringify(exportData, null, 4)], {type: "application/json"});
+        var url = window.URL.createObjectURL(blob);
+        var downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href",     url);
+        downloadAnchorNode.setAttribute("download", "crontab_export_" + new Date().getTime() + ".json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        window.URL.revokeObjectURL(url);
+        layer.msg('导出成功', {icon: 1});
+    }, 'json');
+}
+
+// 触发导入文件选择
+function importTasks() {
+    $('#import_file').click();
+}
+
+// 处理导入文件
+function processImport(obj) {
+    var file = obj.files[0];
+    if (!file) return;
+    
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var contents = e.target.result;
+        try {
+            var tasks = JSON.parse(contents);
+            if (!Array.isArray(tasks)) {
+                layer.msg('无效的任务列表格式', { icon: 2 });
+                return;
+            }
+            
+            layer.confirm('确定要导入 ' + tasks.length + ' 个计划任务吗？', { icon: 3, title: '提示' }, function(index) {
+                layer.close(index);
+                importTaskSequential(tasks, 0);
+            });
+        } catch (err) {
+            layer.msg('解析 JSON 失败: ' + err, { icon: 2 });
+        }
+        obj.value = ''; // 重置文件输入
+    };
+    reader.readAsText(file);
+}
+
+// 顺序导入任务以避免并发冲突
+function importTaskSequential(tasks, index) {
+    if (index >= tasks.length) {
+        layer.msg('导入完成', { icon: 1 });
+        getCronData(1);
+        return;
+    }
+    
+    var task = tasks[index];
+    var load = layer.msg('正在导入(' + (index + 1) + '/' + tasks.length + '): ' + task.name, { icon: 16, time: 0, shade: [0.3, '#000'] });
+    
+    // 如果没有 type_raw，尝试使用 type
+    if (!task.type && task.type_raw) task.type = task.type_raw;
+
+    $.post('/crontab/add', task, function(rdata) {
+        layer.close(load);
+        if (!rdata.status) {
+            console.log('导入失败: ' + task.name + ' - ' + rdata.msg);
+        }
+        importTaskSequential(tasks, index + 1);
+    }, 'json').error(function(){
+        layer.close(load);
+        importTaskSequential(tasks, index + 1);
+    });
 }

@@ -222,6 +222,7 @@ class crontab(object):
         rdata = []
         for i in range(len(data)):
             t = data[i]
+            t['type_raw'] = t['type']
             if t['type'] == "day":
                 t['type'] = '每天'
                 t['cycle'] = mw.getInfo('每天, {1}点{2}分 执行', (str(t['where_hour']), str(t['where_minute'])))
@@ -245,6 +246,14 @@ class crontab(object):
             elif t['type'] == "month":
                 t['type'] = '每月'
                 t['cycle'] = mw.getInfo('每月, {1}日 {2}点{3}分执行', (str(t['where1']), str(t['where_hour']), str(t['where_minute'])))
+            
+            # 获取上次执行时间（通过日志文件修改时间）
+            log_file = mw.getServerDir() + '/cron/' + t['echo'] + '.log'
+            if os.path.exists(log_file):
+                t['last_run_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(log_file)))
+            else:
+                t['last_run_time'] = '从未执行'
+
             rdata.append(t)
         return rdata
 
