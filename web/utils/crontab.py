@@ -56,7 +56,7 @@ class crontab(object):
         dbdata['sbody'] = mw.getDefault(data, 'sbody', '')
         dbdata['url_address'] = mw.getDefault(data, 'url_address', '')
         dbdata['attr'] = mw.getDefault(data, 'attr', '')
-        dbdata['is_workday'] = mw.getDefault(data, 'is_workday', '0')
+        dbdata['day_type'] = mw.getDefault(data, 'day_type', '0')
 
         if not self.removeForCrond(info['echo']):
             return mw.returnData(False, '无法写入文件，是否开启了系统加固功能!')
@@ -185,7 +185,7 @@ class crontab(object):
         add_dbdata['sbody'] = mw.getDefault(data, 'sbody', '')
         add_dbdata['url_address'] = mw.getDefault(data, 'url_address', '')
         add_dbdata['attr'] = mw.getDefault(data, 'attr', '')
-        add_dbdata['is_workday'] = mw.getDefault(data, 'is_workday', '0')
+        add_dbdata['day_type'] = mw.getDefault(data, 'day_type', '0')
 
         tid = thisdb.addCrontab(add_dbdata)
         return tid
@@ -255,6 +255,15 @@ class crontab(object):
                 t['last_run_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(log_file)))
             else:
                 t['last_run_time'] = '从未执行'
+
+            # 获取特定日期类型限制
+            day_type_map = {
+                '0': '无',
+                '1': '股票开盘日',
+                '2': '工作日',
+                '3': '节假日'
+            }
+            t['day_type_h'] = day_type_map.get(str(t.get('day_type', '0')), '无')
 
             rdata.append(t)
         return rdata
@@ -464,18 +473,33 @@ fi''' % (mw.getPanelDir(),)
 
             head = head + start_head + source_bin_activate + "\n"
 
-            if 'is_workday' in param and (str(param['is_workday']) == '1'):
+            if 'day_type' in param and (str(param['day_type']) != '0'):
+                day_type = str(param['day_type'])
+                check_logic = ""
+                # 1: 股票开盘日 (type == 0)
+                if day_type == "1":
+                    check_logic = '[ "$DAY_TYPE" != "0" ]'
+                    check_desc = "股票开盘日"
+                # 2: 工作日 (type == 0 或 3)
+                elif day_type == "2":
+                    check_logic = '[ "$DAY_TYPE" != "0" ] && [ "$DAY_TYPE" != "3" ]'
+                    check_desc = "工作日"
+                # 3: 节假日 (type == 1 或 2)
+                elif day_type == "3":
+                    check_logic = '[ "$DAY_TYPE" != "1" ] && [ "$DAY_TYPE" != "2" ]'
+                    check_desc = "节假日"
+
                 workday_check = '''
-# 检查是否为工作日
-RESPONSE=$(curl -s --location --request GET "http://timor.tech/api/holiday/info/$(date +%F)")
-CODE=$(echo $RESPONSE | grep -o '"code":[0-9]*' | cut -d: -f2)
-if [ "$CODE" != "0" ]; then
+# 日期类型判定
+RESPONSE=$(curl -s --location --request GET "http://timor.tech/api/holiday/info/$(date +%%F)")
+DAY_TYPE=$(echo $RESPONSE | grep -o '"type":[0-3]' | head -n1 | cut -d: -f2)
+if %s; then
     echo "----------------------------------------------------------------------------"
-    echo "★[$(date +"%Y-%m-%d %H:%M:%S")] 跳过执行：今日非工作日"
+    echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 跳过执行：今日非%s"
     echo "----------------------------------------------------------------------------"
     exit 0
 fi
-'''
+''' % (check_logic, check_desc)
                 head = head + workday_check
             log = '.log'
 

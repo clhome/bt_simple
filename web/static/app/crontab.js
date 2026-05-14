@@ -115,7 +115,7 @@ function getCronData(page){
 					<td>"+rdata.data[i].cycle+"</td>\
 					<td>"+cron_save +"</td>\
 					<td>"+cron_backupto+"</td>\
-					<td>"+(rdata.data[i].is_workday == 1 ? '是' : '')+"</td>\
+					<td>"+(rdata.data[i].day_type_h == '无' ? '' : rdata.data[i].day_type_h)+"</td>\
 					<td>"+rdata.data[i].last_run_time+"</td>\
 					<td>\
 						<a href=\"javascript:startTask("+rdata.data[i].id+");\" class='btlink'>执行</a> | \
@@ -302,8 +302,8 @@ function planAdd(){
 		$("#backup_to").val(backupTo);
 	}
 
-    var is_workday = $("#is_workday").prop('checked') ? 1 : 0;
-    $("#cronConfig input[name='is_workday']").val(is_workday);
+    var day_type = $("input[name='day_type_radio']:checked").val();
+    $("#cronConfig input[name='day_type']").val(day_type);
 
 	if (cron_type=='site' || cron_type=='path'){
 		var attr = $("#exclude_dir textarea[name='exclude_dir']").val();
@@ -683,7 +683,7 @@ function editTaskInfo(id){
 				save: rdata.save,
 				url_address: rdata.url_address,
 				attr:rdata.attr,
-                is_workday: rdata.is_workday,
+                day_type: rdata.day_type,
 			},
 			sTypeArray:[['toShell','Shell脚本'],['site','备份网站'],['database','备份数据库'],['logs','日志切割'],['path','备份目录'],['rememory','释放内存'],['toUrl','访问URL']],
 			cycleArray:[['day','每天'],['day-n','N天'],['hour','每小时'],['hour-n','N小时'],['minute-n','N分钟'],['week','每星期'],['month','每月']],
@@ -795,9 +795,12 @@ function editTaskInfo(id){
 						</div>\
 					</div>\
                     <div class="clearfix plan ptb10">\
-                        <span class="typename c4 pull-left f14 text-right mr20">工作日</span>\
+                        <span class="typename c4 pull-left f14 text-right mr20">日期限制</span>\
                         <div class="pull-left" style="line-height:34px">\
-                            <input type="checkbox" name="is_workday" class="workday_create" ' + (obj.from.is_workday == 1 ? 'checked' : '') + ' style="width:18px;height:18px;vertical-align:middle;margin-top:-2px"> <label style="font-weight:normal;cursor:pointer"> 仅在工作日执行</label>\
+                            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="0" ' + (obj.from.day_type == 0 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 无</label>\
+                            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="1" ' + (obj.from.day_type == 1 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 股票开盘日</label>\
+                            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="2" ' + (obj.from.day_type == 2 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 工作日</label>\
+                            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="3" ' + (obj.from.day_type == 3 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 节假日</label>\
                         </div>\
                     </div>\
 					<div class="clearfix plan ptb10 site_list" style="display:none">\
@@ -904,8 +907,8 @@ function editTaskInfo(id){
 						obj.from.url_address = $(this).val();
 					});
 
-                    $('.workday_create').change(function() {
-                        obj.from.is_workday = $(this).prop('checked') ? 1 : 0;
+                    $("input[name='day_type_radio_edit']").change(function() {
+                        obj.from.day_type = $(this).val();
                     });
 		
 					$('[aria-labelledby="cycle"] a').unbind().click(function () {
@@ -1182,7 +1185,7 @@ function exportTasks() {
                 sbody: item.sbody,
                 url_address: item.url_address,
                 attr: item.attr,
-                is_workday: item.is_workday
+                day_type: item.day_type
             };
             exportData.push(task);
         }

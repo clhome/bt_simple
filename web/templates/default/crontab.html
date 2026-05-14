@@ -146,7 +146,7 @@ static/upload
 							<th>执行时机</th>
 							<th>保存数量</th>
 							<th>备份到</th>
-							<th>工作日</th>
+							<th>日期限制</th>
 							<th>上次执行时间</th>
 							<th width="190">操作</th>
 						</tr>
@@ -168,18 +168,21 @@ toMinute();
 toShell();
 getCronData(1);
 
-// 在添加任务表单中动态插入工作日选项
+// 动态插入日期类型单选组
 (function() {
     var workdayHtml = '<div class="clearfix plan">\
-        <span class="typename c4 pull-left f14 text-right mr20">工作日</span>\
+        <span class="typename c4 pull-left f14 text-right mr20">日期限制</span>\
         <div class="pull-left" style="line-height:34px">\
-            <input type="checkbox" name="is_workday" id="is_workday" style="width:18px;height:18px;vertical-align:middle;margin-top:-2px"> <label for="is_workday" style="font-weight:normal;cursor:pointer"> 仅在工作日执行 (基于 timor.tech API)</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="0" checked style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 无</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="1" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 股票开盘日</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="2" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 工作日</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="3" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 节假日</label>\
         </div>\
     </div>';
     $('.plancycle').parent().after(workdayHtml);
     
     // 更新隐藏表单
-    $('#cronConfig').append('<input type="hidden" name="is_workday" value="0">');
+    $('#cronConfig').append('<input type="hidden" name="day_type" value="0">');
 })();
 </script>
 {% endblock %}
