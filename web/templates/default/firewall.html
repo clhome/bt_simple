@@ -154,14 +154,27 @@
               padding: 0;
             "
           >
-            <div class="tab-nav-view" style="display: flex; justify-content: space-between; align-items: center;">
+            <div
+              class="tab-nav-view"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
               <div class="tab-nav-inner">
-                <span class="active" onclick="switchTab('port', this)">端口防火墙</span>
+                <span class="active" onclick="switchTab('port', this)"
+                  >端口防火墙</span
+                >
                 <span onclick="switchTab('ip', this)">IP防火墙</span>
               </div>
-              <div class="tab-sync-btn" style="padding-right: 15px;">
-                <button class="btn btn-default btn-xs" onclick="syncServer()" title="从服务器同步防火墙规则">
-                  <span class="glyphicon glyphicon-refresh" style="margin-right:3px;"></span>服务器同步
+              <div class="tab-sync-btn" style="padding-right: 15px">
+                <button
+                  class="btn btn-default btn-xs"
+                  onclick="syncServer()"
+                  title="从服务器同步防火墙规则"
+                >
+                  从服务器同步
                 </button>
               </div>
             </div>
