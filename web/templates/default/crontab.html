@@ -1,5 +1,14 @@
 {% extends "layout.html" %}
 
+{% block head %}
+<style>
+	.cursor { cursor: pointer; user-select: none; }
+	.sort-icons { display: inline-flex; flex-direction: column; vertical-align: middle; margin-left: 4px; }
+	.sort-icons i { font-size: 10px; color: #ccc; line-height: 7px; height: 7px; }
+	.sort-icons i.active { color: #20a53a; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <div class="main-content">
@@ -130,24 +139,50 @@ static/upload
 				</span>
 			</div>
 			<div class="setting-con divtable pd15">
-				<div class="bt-button-group mb15">
-					<button class="btn btn-success btn-sm" onclick="showAddTask();">添加任务</button>
-					<button class="btn btn-default btn-sm" onclick="importTasks();">导入</button>
-					<button class="btn btn-default btn-sm" onclick="exportTasks();">导出</button>
+				<div class="bt-button-group mb15" style="display: flex; justify-content: space-between; align-items: center;">
+					<div>
+						<button class="btn btn-success btn-sm" onclick="showAddTask();">添加任务</button>
+						<button class="btn btn-default btn-sm" onclick="importTasks();">导入</button>
+						<button class="btn btn-default btn-sm" onclick="exportTasks();">导出</button>
+					</div>
+					<div class="search-box">
+						<input type="text" id="search_task" class="bt-input-text mr5" placeholder="搜索任务名称..." style="width: 200px;">
+						<button class="btn btn-default btn-sm" onclick="getCronData(1);">搜索</button>
+					</div>
 					<input type="file" id="import_file" style="display:none" onchange="processImport(this)" accept=".json">
 				</div>
 				<table class="table table-hover">
 					<thead>
 						<tr>
 							<th width='30px'><input onclick="checkSelect();" type="checkbox" id="setBox"></th>
-							<th>任务名称</th>
-							<th>状态</th>
-							<th>周期</th>
+							<th class="cursor" onclick="getCronSort('name')">任务名称 
+								<span class="sort-icons">
+									<i class="glyphicon glyphicon-triangle-top"></i>
+									<i class="glyphicon glyphicon-triangle-bottom"></i>
+								</span>
+							</th>
+							<th class="cursor" onclick="getCronSort('status')">状态 
+								<span class="sort-icons">
+									<i class="glyphicon glyphicon-triangle-top"></i>
+									<i class="glyphicon glyphicon-triangle-bottom"></i>
+								</span>
+							</th>
+							<th class="cursor" onclick="getCronSort('type')">周期 
+								<span class="sort-icons">
+									<i class="glyphicon glyphicon-triangle-top"></i>
+									<i class="glyphicon glyphicon-triangle-bottom"></i>
+								</span>
+							</th>
 							<th>执行时机</th>
 							<th>保存数量</th>
 							<th>备份到</th>
 							<th>日期限制</th>
-							<th>上次执行时间</th>
+							<th class="cursor" onclick="getCronSort('last_run_time')">上次执行时间 
+								<span class="sort-icons">
+									<i class="glyphicon glyphicon-triangle-top"></i>
+									<i class="glyphicon glyphicon-triangle-bottom"></i>
+								</span>
+							</th>
 							<th width="190">操作</th>
 						</tr>
 					</thead>
@@ -167,6 +202,24 @@ toHour();
 toMinute();
 toShell();
 getCronData(1);
+
+// 设置排序UI
+function setSortUI() {
+	$('.sort-icons i').removeClass('active');
+	var activeTh = $('.cursor[onclick*="\'' + g_orderby + '\'"]');
+	if (g_order == 'asc') {
+		activeTh.find('.glyphicon-triangle-top').addClass('active');
+	} else {
+		activeTh.find('.glyphicon-triangle-bottom').addClass('active');
+	}
+}
+
+// 搜索框回车事件
+$('#search_task').on('keydown', function(e) {
+	if (e.keyCode == 13) {
+		getCronData(1);
+	}
+});
 
 // 动态插入日期类型单选组
 (function() {

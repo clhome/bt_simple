@@ -12,7 +12,13 @@ import os
 
 import core.mw as mw
 
-__field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,add_time,update_time'
+__field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,last_run_time,add_time,update_time'
+
+# 尝试增加 last_run_time 字段 (迁移逻辑)
+try:
+    mw.M('crontab').execute("ALTER TABLE crontab ADD COLUMN last_run_time TEXT")
+except:
+    pass
 
 # 尝试增加 day_type 字段 (迁移逻辑)
 try:
@@ -49,12 +55,30 @@ def deleteCronById(cron_id):
 def getCrontabList(
     page = 1,
     size = 10,
+    search = '',
+    orderby = 'last_run_time',
+    order = 'desc'
 ):
     start = (int(page) - 1) * size
     limit = str(start) + ',' + str(size)
 
-    cron_list = mw.M('crontab').field(__field).limit(limit).order('id desc').select()
-    count = mw.M('crontab').count()
+    if orderby == '':
+        orderby = 'last_run_time'
+    if order == '':
+        order = 'desc'
+
+    order_str = orderby + ' ' + order
+
+    m = mw.M('crontab')
+    if search != '':
+        m = m.where("name LIKE ?", ('%' + search + '%',))
+    
+    cron_list = m.field(__field).limit(limit).order(order_str).select()
+
+    m_count = mw.M('crontab')
+    if search != '':
+        m_count = m_count.where("name LIKE ?", ('%' + search + '%',))
+    count = m_count.count()
 
     data = {}
     data['count'] = count

@@ -140,8 +140,12 @@ class crontab(object):
     def startTask(self, cron_id):
         data = thisdb.getCrond(cron_id)
         cmd_file = mw.getServerDir() + '/cron/' + data['echo']
+        if not os.path.exists(cmd_file):
+             self.syncToCrond(cron_id)
+             
         os.system('chmod +x ' + cmd_file)
         os.system('nohup ' + cmd_file + ' >> ' + cmd_file + '.log 2>&1 &')
+        thisdb.setCrontabData(cron_id, {'last_run_time': mw.formatDate()})
         return mw.returnData(True, '计划任务【%s】已执行!' % data['name'])
 
 
@@ -249,12 +253,15 @@ class crontab(object):
                 t['type'] = '每月'
                 t['cycle'] = mw.getInfo('每月, {1}日 {2}点{3}分执行', (str(t['where1']), str(t['where_hour']), str(t['where_minute'])))
             
-            # 获取上次执行时间（通过日志文件修改时间）
-            log_file = mw.getServerDir() + '/cron/' + t['echo'] + '.log'
-            if os.path.exists(log_file):
-                t['last_run_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(log_file)))
+            # 获取上次执行时间
+            if 'last_run_time' in t and t['last_run_time'] and t['last_run_time'] != 'None':
+                t['last_run_time'] = t['last_run_time']
             else:
-                t['last_run_time'] = '从未执行'
+                log_file = mw.getServerDir() + '/cron/' + t['echo'] + '.log'
+                if os.path.exists(log_file):
+                    t['last_run_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(log_file)))
+                else:
+                    t['last_run_time'] = '从未执行'
 
             # 获取特定日期类型限制
             day_type_map = {
@@ -297,9 +304,12 @@ class crontab(object):
 
     def getCrontabList(self,
         page = 1,
-        size = 10
+        size = 10,
+        search = '',
+        orderby = 'last_run_time',
+        order = 'desc'
     ):
-        info = thisdb.getCrontabList(page=int(page),size=int(size))
+        info = thisdb.getCrontabList(page=int(page),size=int(size), search=search, orderby=orderby, order=order)
 
         rdata = {}
         rdata['data'] = self.getCrontabHuman(info['list'])
@@ -547,7 +557,12 @@ END_MW_SHELL_TIME=`date +"%s"`
 MW_ToSeconds $SHELL_COS_TIME
 echo "★[$endDate] Successful | Script Run [$SCRIPT_RUN_TIME] "
 echo "----------------------------------------------------------------------------"
-'''
+
+# 更新最后执行时间到数据库
+web_dir=%s
+cron_id=%s
+/usr/bin/python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');import core.mw as mw,thisdb;thisdb.setCrontabData($cron_id,{'last_run_time':mw.formatDate()})"
+''' % (mw.getPanelDir() + '/web', param['id'])
         cron_path = mw.getServerDir() + '/cron'
         if not os.path.exists(cron_path):
             mw.execShell('mkdir -p ' + cron_path)

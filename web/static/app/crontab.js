@@ -1,4 +1,6 @@
 var num = 0;
+var g_orderby = 'last_run_time';
+var g_order = 'desc';
 //查看任务日志
 function getLogs(id){
 
@@ -81,9 +83,11 @@ function getBackupName(hook_data, name){
 }
 
 function getCronData(page){
+	var search = $('#search_task').val() || '';
 	var load = layer.msg(lan.public.the,{icon:16,time:0,shade: [0.3, '#000']});
-	$.post("/crontab/list?p="+page,'', function(rdata){
+	$.post("/crontab/list?p="+page+'&search='+search+'&orderby='+g_orderby+'&order='+g_order,'', function(rdata){
 		layer.close(load);
+		setSortUI();
 		var cbody = "";
 		if(rdata.data.length == 0){
 			cbody="<tr><td colspan='9' style='text-align: center;'>当前没有计划任务</td></tr>";
@@ -1157,6 +1161,17 @@ function showAddTask() {
              $('#add_task_form_box').hide().appendTo('body');
         }
     });
+}
+
+// 切换排序
+function getCronSort(name) {
+    if (g_orderby == name) {
+        g_order = (g_order == 'asc' ? 'desc' : 'asc');
+    } else {
+        g_orderby = name;
+        g_order = 'desc';
+    }
+    getCronData(1);
 }
 
 // 导出计划任务

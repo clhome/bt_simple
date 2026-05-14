@@ -31,7 +31,10 @@ def index():
 def list():
     page = request.args.get('p', '1').strip()
     limit = request.args.get('limit', '10').strip()
-    return MwCrontab.instance().getCrontabList(page=int(page),size=int(limit))
+    search = request.args.get('search', '').strip()
+    orderby = request.args.get('orderby', 'last_run_time').strip()
+    order = request.args.get('order', 'desc').strip()
+    return MwCrontab.instance().getCrontabList(page=int(page),size=int(limit), search=search, orderby=orderby, order=order)
 
 # 计划任务日志
 @blueprint.route('/logs', endpoint='logs', methods=['POST'])
