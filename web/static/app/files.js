@@ -687,6 +687,7 @@ function getFiles(Path) {
             getFiles(p);
         });
         pathPlaceBtn(rdata.path);
+        if(typeof(updateActiveTabPath) == "function") updateActiveTabPath(rdata.path);
         if(typeof(renderFileTabs) == "function") renderFileTabs();
     },'json');
     // setTimeout(function(){getCookie('open_dir_path');},200);
@@ -759,7 +760,7 @@ $(window).scroll(function () {
     if($(window).scrollTop() > 16){
         $("#tipTools").css({"position":"fixed","top":"0","left":"195px","box-shadow":"0 1px 10px 3px #ccc"});
     }else{
-        $("#tipTools").css({"position":"absolute","top":"0","left":"0","box-shadow":"none"});
+        $("#tipTools").css({"position":"absolute","top":"42px","left":"0","box-shadow":"none"});
     }
 });
 $("#tipTools").width($(".file-box").width());
@@ -2138,8 +2139,9 @@ function executeUpload(files, basePath) {
 function initFileTabs() {
     var tabs = loadFileTabs();
     if (tabs.length === 0) {
-        // 初始标签页
-        tabs.push({ name: 'wwwroot', path: '/www/wwwroot' });
+        var currentPath = getCookie('open_dir_path') || '/www/wwwroot';
+        var name = currentPath.replace(/\/$/, '').split('/').pop() || '根目录';
+        tabs.push({ name: name, path: currentPath, active: true });
         saveFileTabs(tabs);
     }
     renderFileTabs();
@@ -2172,11 +2174,10 @@ function saveFileTabs(tabs) {
  */
 function renderFileTabs() {
     var tabs = loadFileTabs();
-    var currentPath = getCookie('open_dir_path');
     var html = '';
     
     for (var i = 0; i < tabs.length; i++) {
-        var isActive = (tabs[i].path === currentPath) ? 'active' : '';
+        var isActive = tabs[i].active ? 'active' : '';
         html += '<div class="file-tab ' + isActive + '" data-index="' + i + '" onclick="switchFileTab(' + i + ')">\
                     <span class="tab-icon glyphicon glyphicon-folder-open"></span>\
                     <span class="tab-name" title="' + tabs[i].path + '">' + tabs[i].name + '</span>\
@@ -2184,9 +2185,30 @@ function renderFileTabs() {
                 </div>';
     }
     
-    html += '<button class="add-tab-btn" onclick="addNewFileTab()" title="将当前目录添加为新标签">+</button>';
+    html += '<button class="add-tab-btn" onclick="addNewFileTab()" title="新建标签页">+</button>';
     
     $('#file-tabs').html(html);
+}
+
+/**
+ * 更新当前激活标签的路径
+ */
+function updateActiveTabPath(path) {
+    var tabs = loadFileTabs();
+    var changed = false;
+    for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].active) {
+            if (tabs[i].path !== path) {
+                tabs[i].path = path;
+                tabs[i].name = path.replace(/\/$/, '').split('/').pop() || '根目录';
+                changed = true;
+            }
+            break;
+        }
+    }
+    if (changed) {
+        saveFileTabs(tabs);
+    }
 }
 
 /**
@@ -2194,40 +2216,52 @@ function renderFileTabs() {
  */
 function switchFileTab(index) {
     var tabs = loadFileTabs();
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].active = (i === index);
+    }
+    saveFileTabs(tabs);
     if (tabs[index]) {
         getFiles(tabs[index].path);
     }
 }
 
 /**
- * 添加当前目录为新标签页
+ * 新建标签页
  */
 function addNewFileTab() {
-    var currentPath = getCookie('open_dir_path');
-    if (!currentPath) return;
-    
     var tabs = loadFileTabs();
-    // 检查是否已存在
     for (var i = 0; i < tabs.length; i++) {
-        if (tabs[i].path === currentPath) {
-            layer.msg('该目录已在标签页中');
-            return;
-        }
+        tabs[i].active = false;
     }
     
-    var name = currentPath.split('/').pop() || '根目录';
-    tabs.push({ name: name, path: currentPath });
+    var path = getCookie('open_dir_path') || '/www/wwwroot';
+    var name = path.replace(/\/$/, '').split('/').pop() || '根目录';
+    tabs.push({ name: name, path: path, active: true });
     saveFileTabs(tabs);
-    renderFileTabs();
+    getFiles(path);
 }
 
 /**
  * 删除标签页
  */
 function removeFileTab(event, index) {
-    event.stopPropagation(); // 阻止触发切换事件
+    event.stopPropagation();
     var tabs = loadFileTabs();
+    if (tabs.length <= 0) return;
+    
+    var wasActive = tabs[index].active;
     tabs.splice(index, 1);
+    
+    if (tabs.length === 0) {
+        var path = '/www/wwwroot';
+        tabs.push({ name: 'wwwroot', path: path, active: true });
+        getFiles(path);
+    } else if (wasActive) {
+        var newActiveIndex = Math.min(index, tabs.length - 1);
+        tabs[newActiveIndex].active = true;
+        getFiles(tabs[newActiveIndex].path);
+    }
+    
     saveFileTabs(tabs);
     renderFileTabs();
 }
