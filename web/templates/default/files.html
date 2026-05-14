@@ -270,16 +270,15 @@
                     <button class="btn btn-default btn-sm pull-left" onclick="uploadFiles()">上传</button>
                     <button class="btn btn-default btn-sm pull-left" onclick="downloadFile()" title="远程下载" style="margin:0 5px">远程下载</button>
                     <span id='BarTools' class="pull-left"></span>
-                    <span id='comlist' class="comlist pull-left ml15" style="line-height:28px;"></span>
                     <div class="quick-paths pull-left ml15" style="line-height:28px;">
                         <span class="c9" style="margin-right:8px;">快捷路径:</span>
-                        <div class="btn-group btn-group-sm" style="display:inline-block;vertical-align:top;">
-                            <button class="btn btn-default" onclick="getFiles('/www/wwwroot')">网站总目录</button>
-                            <button class="btn btn-default" onclick="getFiles('/etc')">etc</button>
-                            <button class="btn btn-default" onclick="getFiles('/www/backup')">备份</button>
-                            <button class="btn btn-default" onclick="getFiles('/www/wwwlogs')">日志</button>
-                        </div>
+                        <button class="btn btn-default btn-sm" style="margin-right:5px;vertical-align:top;" onclick="getFiles('/www/wwwroot')">网站总目录</button>
+                        <button class="btn btn-default btn-sm" style="margin-right:5px;vertical-align:top;" onclick="getFiles('/etc')">etc</button>
+                        <button class="btn btn-default btn-sm" style="margin-right:5px;vertical-align:top;" onclick="getFiles('/www/backup')">备份</button>
+                        <button class="btn btn-default btn-sm" style="margin-right:5px;vertical-align:top;" onclick="getFiles('/www/wwwlogs')">日志</button>
                     </div>
+                    <span id='comlist' class="comlist pull-left ml15" style="line-height:28px;"></span>
+
 
                     <span id='Batch' style="background-color:#fff;position:absolute;right:190px;z-index:10"></span>
 
