@@ -157,6 +157,8 @@ function getSList(isdisplay) {
                 '<td><span ' + titleClick + '>'+
                 '<img data-src="'+icon_link+'" src="/static/img/loading.gif">' + plugin_title + '</span></td>' +
                 '<td>' + plugin.ps + '</td>' +
+                '<td>' + (plugin.home ? '<a class="btlink" href="' + plugin.home + '" target="_blank">官网</a>' : '-') + '</td>' +
+                '<td>' + (plugin.date ? plugin.date : '-') + '</td>' +
                 '<td>' + softPath + '</td>' +
                 '<td>' + state + '</td>' +
                 '<td>' + indexshow + '</td>' +

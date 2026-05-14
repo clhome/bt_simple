@@ -480,6 +480,8 @@ class plugin(object):
             "status": False,
             "install_pre_inspection": False,
             "uninstall_pre_inspection": False,
+            "home": info.get('home', ''),
+            "date": info.get('date', ''),
         }
 
         if 'icon' in info:
