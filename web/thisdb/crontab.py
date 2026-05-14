@@ -12,12 +12,20 @@ import os
 
 import core.mw as mw
 
-__field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,add_time,update_time'
+__field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,is_workday,add_time,update_time'
+
+# 尝试增加 is_workday 字段 (迁移逻辑)
+try:
+    mw.M('crontab').execute("ALTER TABLE crontab ADD COLUMN is_workday INTEGER DEFAULT 0")
+except:
+    pass
 
 def addCrontab(data):
     now_time = mw.formatDate()
     data['add_time'] = now_time
     data['update_time'] = now_time
+    if 'is_workday' not in data:
+        data['is_workday'] = 0
     return mw.M('crontab').insert(data)
 
 def getCronByName(name):
