@@ -2033,7 +2033,7 @@ function showConfirmUpload(files) {
         type: 1,
         closeBtn: 1,
         title: '确认上传 (' + files.length + ' 个项目)',
-        area: ['600px', '450px'],
+        area: '600px',
         shadeClose: false,
         content: '<div class="fileUploadDiv confirmUpload">\
                 <div class="upload-target">上传到目录: <code>' + path + '</code></div>\
@@ -2060,7 +2060,7 @@ function executeUpload(files, basePath) {
         type: 1,
         closeBtn: 0,
         title: '正在上传...',
-        area: ['500px', '350px'],
+        area: '500px',
         shadeClose: false,
         content: '<div class="fileUploadDiv">\
                 <div id="totalProgress"></div>\
