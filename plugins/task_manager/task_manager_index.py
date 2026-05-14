@@ -8,6 +8,7 @@ import re
 import threading
 import psutil
 import json
+import shlex
 
 from typing import List, Dict
 
@@ -654,7 +655,7 @@ class mainClass(object):
             ppid = p.ppid()
             name = p.name()
             p.kill()
-            mw.execShell('pkill -9 ' + name)
+            mw.execShell('pkill -9 ' + shlex.quote(name))
             if name.find('php-') != -1:
                 mw.execShell("rm -f /tmp/php-cgi-*.sock")
             elif name.find('mysql') != -1:
@@ -1300,19 +1301,19 @@ class mainClass(object):
         if os.path.exists(systemctl_user_path + serviceName + '.service'):  
             return mw.returnData(False,'Systemctl托管的服务不能通过面板删除');
 
-        mw.execShell('service ' + serviceName + ' stop')
+        mw.execShell('service ' + shlex.quote(serviceName) + ' stop')
         if os.path.exists('/usr/sbin/update-rc.d'):
             mw.execShell('update-rc.d ' + serviceName + ' remove')
         elif os.path.exists('/usr/sbin/chkconfig'):
-            mw.execShell('chkconfig --del ' + serviceName)
+            mw.execShell('chkconfig --del ' + shlex.quote(serviceName))
         else:
-            mw.execShell("rm -f /etc/rc0.d/*" + serviceName)
-            mw.execShell("rm -f /etc/rc1.d/*" + serviceName)
-            mw.execShell("rm -f /etc/rc2.d/*" + serviceName)
-            mw.execShell("rm -f /etc/rc3.d/*" + serviceName)
-            mw.execShell("rm -f /etc/rc4.d/*" + serviceName)
-            mw.execShell("rm -f /etc/rc5.d/*" + serviceName)
-            mw.execShell("rm -f /etc/rc6.d/*" + serviceName)
+            mw.execShell("rm -f /etc/rc0.d/*" + shlex.quote(serviceName))
+            mw.execShell("rm -f /etc/rc1.d/*" + shlex.quote(serviceName))
+            mw.execShell("rm -f /etc/rc2.d/*" + shlex.quote(serviceName))
+            mw.execShell("rm -f /etc/rc3.d/*" + shlex.quote(serviceName))
+            mw.execShell("rm -f /etc/rc4.d/*" + shlex.quote(serviceName))
+            mw.execShell("rm -f /etc/rc5.d/*" + shlex.quote(serviceName))
+            mw.execShell("rm -f /etc/rc6.d/*" + shlex.quote(serviceName))
         filename = '/etc/init.d/' + serviceName
         if os.path.exists(filename): os.remove(filename)
         return mw.returnData(True, '删除成功!')
@@ -1339,7 +1340,7 @@ class mainClass(object):
             action = 'enable'
             if os.path.exists(systemctl_run_path + serviceName + '.service'): 
                 action = 'disable'
-            mw.execShell('systemctl ' + action + ' ' + serviceName + '.service')
+            mw.execShell('systemctl ' + action + ' ' + shlex.quote(serviceName) + '.service')
             return mw.returnData(True, '设置成功!')
 
         rc_d = '/etc/rc' + runlevel + '.d/'
@@ -1535,7 +1536,7 @@ class mainClass(object):
     def pkill_session(self, get= {}):
         if not 'pts' in get:
             return mw.returnData(False, '缺少参数!')
-        mw.execShell("pkill -kill -t " + get['pts'])
+        mw.execShell("pkill -kill -t " + shlex.quote(get['pts']))
         return mw.returnData(True, '已强行结束会话[' + get['pts'] + ']')
 
     # 获取当前会话

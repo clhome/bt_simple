@@ -33,7 +33,11 @@ except ImportError:
     elif os.path.exists('/usr/bin/yum'):
         os.system("yum install libpcap-devel -y")
         
-    os.system("pip install pypcap")
+    # 尝试使用镜像源安装
+    pip_cmd = "pip3 install pypcap"
+    if os.path.exists('data/is_china.pl'):
+        pip_cmd = "pip3 install pypcap -i https://pypi.tuna.tsinghua.edu.cn/simple"
+    os.system(pip_cmd)
     try:
         import pcap
     except ImportError:
