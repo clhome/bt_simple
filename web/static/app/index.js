@@ -602,9 +602,44 @@ function executeSteps(version) {
 
 function updateStep(step, version, barId, textId, callback) {
     $(textId).text("处理中...");
-    $(barId).css("width", "40%");
+    var intervalId = null;
+
+    if (step == 'download') {
+        $(barId).css("width", "0%");
+        var startTime = new Date().getTime();
+        var tenMinutes = 10 * 60 * 1000;
+        var twentyMinutes = 20 * 60 * 1000;
+        
+        intervalId = setInterval(function() {
+            var now = new Date().getTime();
+            var elapsed = now - startTime;
+            
+            if (elapsed >= twentyMinutes) {
+                clearInterval(intervalId);
+                $(textId).text("超时").css("color", "red");
+                $(barId).css("background-color", "red");
+                layer.alert("您当前的网络状态欠佳，请稍后再试", {icon: 2, title: '下载超时'}, function(index){
+                    layer.close(index);
+                    location.reload();
+                });
+                return;
+            }
+            
+            var progress = 0;
+            if (elapsed < tenMinutes) {
+                progress = (elapsed / tenMinutes) * 95;
+            } else {
+                progress = 95;
+            }
+            $(barId).css("width", progress.toFixed(2) + "%");
+            $(textId).text(Math.floor(progress) + "%");
+        }, 1000);
+    } else {
+        $(barId).css("width", "40%");
+    }
     
     $.get('/system/update_server?type=update&version=' + version + '&step=' + step, function(rdata) {
+        if (intervalId) clearInterval(intervalId);
         if (rdata.status) {
             $(barId).css("width", "100%");
             $(textId).text("已完成");
@@ -617,6 +652,7 @@ function updateStep(step, version, barId, textId, callback) {
             $(".layui-layer-close").show();
         }
     }, 'json').error(function() {
+        if (intervalId) clearInterval(intervalId);
         if (step == 'install') {
             $(barId).css("width", "100%");
             $(textId).text("已完成");
