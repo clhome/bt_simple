@@ -13,6 +13,8 @@ import core.mw as mw
 __field = 'id,name,password,login_ip,login_time,phone,email,add_time,update_time'
 
 # 尝试增加缺失的字段 (向后兼容迁移逻辑)
+mw.M('users').execute("ALTER TABLE users ADD COLUMN login_ip TEXT")
+mw.M('users').execute("ALTER TABLE users ADD COLUMN login_time TEXT")
 mw.M('users').execute("ALTER TABLE users ADD COLUMN phone TEXT")
 mw.M('users').execute("ALTER TABLE users ADD COLUMN email TEXT")
 mw.M('users').execute("ALTER TABLE users ADD COLUMN add_time TEXT")
@@ -48,36 +50,47 @@ def getUserByName(name) -> None:
     '''
     data =  mw.M('users').field(__field).where('name=?', (name,)).find()
     if data is None:
+        # 如果全字段失败，尝试最小字段
+        minimal_field = 'id,name,password'
+        data = mw.M('users').field(minimal_field).where('name=?', (name,)).find()
+
+    if data is None:
         return None
+
     row = {}
-    row['id'] = data['id']
-    row['name'] = data['name']
-    row['password'] = data['password']
-    row['login_ip'] = data['login_ip']
-    row['login_time'] = data['login_time']
-    row['phone'] = data['phone']
-    row['email'] = data['email']
-    row['add_time'] = data['add_time']
-    row['update_time'] = data['update_time']
+    fields = __field.split(',')
+    for f in fields:
+        if f in data:
+            row[f] = data[f]
+        else:
+            row[f] = ''
     return row
 
 def getUserById(id) -> None:
     '''
-    获取用户信息通过用户名
+    获取用户信息
     '''
-    data =  mw.M('users').field(__field).where('id=?', (1,)).find()
+    data =  mw.M('users').field(__field).where('id=?', (id,)).find()
+    if data is None:
+        data = mw.M('users').field(__field).find() # 尝试获取第一个用户
+    
+    if data is None:
+        # 如果全字段失败，尝试最小字段
+        minimal_field = 'id,name,password'
+        data = mw.M('users').field(minimal_field).where('id=?', (id,)).find()
+        if data is None:
+            data = mw.M('users').field(minimal_field).find()
+
     if data is None:
         return None
+
     row = {}
-    row['id'] = data['id']
-    row['name'] = data['name']
-    row['password'] = data['password']
-    row['login_ip'] = data['login_ip']
-    row['login_time'] = data['login_time']
-    row['phone'] = data['phone']
-    row['email'] = data['email']
-    row['add_time'] = data['add_time']
-    row['update_time'] = data['update_time']
+    fields = __field.split(',')
+    for f in fields:
+        if f in data:
+            row[f] = data[f]
+        else:
+            row[f] = ''
     return row
 
 
