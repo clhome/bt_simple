@@ -39,7 +39,7 @@ def panel_login_required(func):
                 return func(*args, **kwargs)
 
         if not isLogined():
-            unauthorized_status = thisdb.getOption('unauthorized_status')
+            unauthorized_status = thisdb.getOption('unauthorized_status', default='0')
             if unauthorized_status == '0':
                 return render_template('default/path.html')
             return Response(status=int(unauthorized_status))

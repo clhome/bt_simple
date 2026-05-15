@@ -386,11 +386,8 @@ fresh_install() {
 
     # 生成 12 位随机密码并设置
     local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
-    if [ -f /usr/bin/mw ]; then
-        mw 11 $rand_pass > /dev/null
-        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
-    elif [ -f /usr/bin/bs ]; then
-        bs 11 $rand_pass > /dev/null
+    if [ -f ${PANEL_DIR}/panel_tools.py ]; then
+        cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
         echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
     fi
 
@@ -466,7 +463,18 @@ migrate_from_mw() {
         fi
     fi
 
-    show_panel_info
+    # 如果缺少 default.pl（例如之前升级失败丢失），则重新生成密码
+    local rand_pass=""
+    if [ ! -f ${PANEL_DIR}/data/default.pl ]; then
+        rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
+        if [ -f ${PANEL_DIR}/panel_tools.py ]; then
+            cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
+            echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+        fi
+        log_info "检测到缺少默认密码文件，已重新生成面板密码"
+    fi
+
+    show_panel_info "$rand_pass"
     echo ""
     log_info "===== mdserver-web 迁移完成 ====="
     echo -e "${YELLOW}提示: 如需回滚请执行: bash $0 rollback_mw${PLAIN}"
@@ -572,11 +580,8 @@ migrate_from_bt() {
 
     # 生成 12 位随机密码并设置
     local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
-    if [ -f /usr/bin/mw ]; then
-        mw 11 $rand_pass > /dev/null
-        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
-    elif [ -f /usr/bin/bs ]; then
-        bs 11 $rand_pass > /dev/null
+    if [ -f ${PANEL_DIR}/panel_tools.py ]; then
+        cd ${PANEL_DIR} && python3 panel_tools.py panel "$rand_pass" > /dev/null 2>&1
         echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
     fi
 

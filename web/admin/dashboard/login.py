@@ -102,11 +102,11 @@ def login():
         session['login'] = False
         session['overdue'] = 0
 
-    admin_path = thisdb.getOption('admin_path')
+    admin_path = thisdb.getOption('admin_path', default='')
     if admin_path == '':
         return render_template('%s/login.html' % name)
     else:
-        unauthorized_status = thisdb.getOption('unauthorized_status')
+        unauthorized_status = thisdb.getOption('unauthorized_status', default='0')
         if unauthorized_status == '0':
             return render_template('%s/path.html' % name)
         return Response(status=int(unauthorized_status))
