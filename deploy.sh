@@ -567,8 +567,29 @@ migrate_from_bt() {
         ln -sf /etc/rc.d/init.d/mw /usr/bin/bs
     fi
 
+    # 开放面板端口
+    open_panel_port
+
+    # 生成 12 位随机密码并设置
+    local rand_pass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)
+    if [ -f /usr/bin/mw ]; then
+        mw 11 $rand_pass > /dev/null
+        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+    elif [ -f /usr/bin/bs ]; then
+        bs 11 $rand_pass > /dev/null
+        echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
+    fi
+
+    # 自动获取并设置版本号
+    log_info "获取最新版本号..."
+    local latest_ver=$(curl -s "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -n "$latest_ver" ]; then
+        echo "$latest_ver" > ${PANEL_DIR}/.version
+        log_info "当前安装版本: ${latest_ver}"
+    fi
+
     disable_upstream_update
-    show_panel_info
+    show_panel_info "$rand_pass"
 
     echo ""
     log_info "===== 宝塔面板迁移完成 ====="
