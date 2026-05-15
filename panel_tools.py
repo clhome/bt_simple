@@ -348,6 +348,7 @@ def show_panel_pwd():
     # 面板密码展示
     info = thisdb.getUserByRoot()
     if not info:
+        mw.echoInfo("Error: Admin user not found in database.")
         return
 
     defailt_pwd_file = mw.getPanelDir()+'/data/default.pl'
@@ -384,6 +385,7 @@ def set_panel_username(username=None):
 
     info = thisdb.getUserByRoot()
     if not info:
+        mw.echoInfo("Error: Admin user not found in database.")
         return
     if info['name'] == 'admin':
         username = mw.getRandomString(8).lower()

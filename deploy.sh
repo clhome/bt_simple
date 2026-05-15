@@ -650,13 +650,12 @@ show_panel_info() {
     local version=""
     if [ -f ${PANEL_DIR}/.version ]; then
         version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
+    else
+        version="【latest】"
     fi
     echo ""
     echo -e "=================================================================="
-    echo -e "${GREEN}${BOLD}${version}bt_simple 面板安装/迁移完成!${PLAIN}"
-    echo -e "=================================================================="
-    echo -e "=================================================================="
-    echo -e "bt_simple 面板信息  【${version}】"
+    echo -e "${GREEN}${BOLD}${version} bt_simple 面板安装/迁移完成!${PLAIN}"
     echo -e "=================================================================="
     
     if [ -f /usr/bin/mw ] || [ -f /usr/bin/bs ]; then

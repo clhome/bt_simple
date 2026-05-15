@@ -48,11 +48,10 @@ def getUserByName(name) -> None:
     '''
     获取用户信息通过用户名
     '''
-    data =  mw.M('users').field(__field).where('name=?', (name,)).find()
+    # 优先尝试 name 字段，兼容性处理
+    data = mw.M('users').where('name=?', (name,)).find()
     if data is None:
-        # 如果全字段失败，尝试最小字段
-        minimal_field = 'id,name,password'
-        data = mw.M('users').field(minimal_field).where('name=?', (name,)).find()
+        data = mw.M('users').where('username=?', (name,)).find()
 
     if data is None:
         return None
@@ -64,23 +63,18 @@ def getUserByName(name) -> None:
             row[f] = data[f]
         else:
             row[f] = ''
+    if 'name' not in row and 'username' in data: row['name'] = data['username']
     return row
 
 def getUserById(id) -> None:
     '''
     获取用户信息
     '''
-    data =  mw.M('users').field(__field).where('id=?', (id,)).find()
+    # 采用最原始的 SELECT * 方式，完全避开字段名不匹配的问题
+    data = mw.M('users').where('id=?', (id,)).find()
     if data is None:
-        data = mw.M('users').field(__field).find() # 尝试获取第一个用户
+        data = mw.M('users').find() # 尝试获取第一个用户
     
-    if data is None:
-        # 如果全字段失败，尝试最小字段
-        minimal_field = 'id,name,password'
-        data = mw.M('users').field(minimal_field).where('id=?', (id,)).find()
-        if data is None:
-            data = mw.M('users').field(minimal_field).find()
-
     if data is None:
         return None
 
@@ -91,6 +85,8 @@ def getUserById(id) -> None:
             row[f] = data[f]
         else:
             row[f] = ''
+    # 确保基础字段存在
+    if 'name' not in row and 'username' in data: row['name'] = data['username']
     return row
 
 
