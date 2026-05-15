@@ -12,6 +12,12 @@ import core.mw as mw
 
 __field = 'id,name,password,login_ip,login_time,phone,email,add_time,update_time'
 
+# 尝试增加缺失的字段 (向后兼容迁移逻辑)
+mw.M('users').execute("ALTER TABLE users ADD COLUMN phone TEXT")
+mw.M('users').execute("ALTER TABLE users ADD COLUMN email TEXT")
+mw.M('users').execute("ALTER TABLE users ADD COLUMN add_time TEXT")
+mw.M('users').execute("ALTER TABLE users ADD COLUMN update_time TEXT")
+
 # 初始化用户信息
 def initAdminUser():
     data = mw.M('users').field(__field).where('id=?', (1,)).find()

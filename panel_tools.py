@@ -358,11 +358,11 @@ def show_panel_pwd():
     print("*密码已经加密存储，如需重置密码，请使用 bs 11命令")
 
 def show_panel_adminpath():
-    admin_path = thisdb.getOption('admin_path')
+    admin_path = thisdb.getOption('admin_path', default='')
     if admin_path == '':
-        print('/login')
-    else:
-        print('/'+admin_path)
+        admin_path = mw.getRandomString(8).lower()
+        thisdb.setOption('admin_path', admin_path)
+    print('/'+admin_path)
 
 
 def set_panel_username(username=None):
