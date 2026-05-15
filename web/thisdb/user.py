@@ -22,10 +22,11 @@ mw.M('users').execute("ALTER TABLE users ADD COLUMN update_time TEXT")
 
 # 初始化用户信息
 def initAdminUser():
-    data = mw.M('users').field(__field).where('id=?', (1,)).find()
+    # 检查是否真的一个用户都没有
+    data = mw.M('users').find()
     if data is None:
         name = mw.getRandomString(8).lower()
-        password = mw.getRandomString(8).lower()
+        password = mw.getRandomString(12).lower()
         now_time = mw.formatDate()
         login_ip = '127.0.0.1'
         add_user = {
@@ -41,7 +42,8 @@ def initAdminUser():
         file_pass_pl = mw.getPanelDataDir() + '/default.pl'
         mw.writeFile(file_pass_pl, password)
         mw.M('users').insert(add_user)
-    return True
+        return True
+    return False
 
 
 def getUserByName(name) -> None:
@@ -76,7 +78,10 @@ def getUserById(id) -> None:
         data = mw.M('users').find() # 尝试获取第一个用户
     
     if data is None:
-        return None
+        # 如果依然没有用户，说明表是空的，立即初始化一个
+        initAdminUser()
+        data = mw.M('users').find()
+        if data is None: return None
 
     row = {}
     fields = __field.split(',')

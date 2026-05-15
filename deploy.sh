@@ -474,6 +474,14 @@ migrate_from_mw() {
         log_info "检测到缺少默认密码文件，已重新生成面板密码"
     fi
 
+    # 自动获取并设置版本号
+    log_info "获取最新版本号..."
+    local latest_ver=$(curl -s "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [ -n "$latest_ver" ]; then
+        echo "$latest_ver" > ${PANEL_DIR}/.version
+        log_info "当前安装版本: ${latest_ver}"
+    fi
+
     show_panel_info "$rand_pass"
     echo ""
     log_info "===== mdserver-web 迁移完成 ====="
@@ -650,12 +658,10 @@ show_panel_info() {
     local version=""
     if [ -f ${PANEL_DIR}/.version ]; then
         version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
-    else
-        version="【latest】"
     fi
     echo ""
     echo -e "=================================================================="
-    echo -e "${GREEN}${BOLD}${version} bt_simple 面板安装/迁移完成!${PLAIN}"
+    echo -e "${GREEN}${BOLD}${version}bt_simple 面板安装/迁移完成!${PLAIN}"
     echo -e "=================================================================="
     
     if [ -f /usr/bin/mw ] || [ -f /usr/bin/bs ]; then
