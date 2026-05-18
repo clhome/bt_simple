@@ -675,17 +675,18 @@ mw_clean_lib(){
 }
 
 mw_list(){
-    echo -e "bs default      - 显示面板默认信息"
-    echo -e "bs db           - 连接MySQL"
-    echo -e "bs pgdb         - 连接PostgreSQL"
-    echo -e "bs mongdb       - 连接MongoDB"
-    echo -e "bs redis        - 连接Redis"
-    echo -e "bs valkey       - 连接WalKey"
-    echo -e "bs install      - 执行安装脚本"
-    echo -e "bs update       - 更新到正式环境最新代码"
-    echo -e "bs update_dev   - 更新到测试环境最新代码"
-    echo -e "bs debug        - 调式开发面板"
-    echo -e "bs list         - 显示命令列表"
+    echo -e "bs default         - 显示面板默认信息"
+    echo -e "bs db              - 连接MySQL"
+    echo -e "bs pgdb            - 连接PostgreSQL"
+    echo -e "bs mongdb          - 连接MongoDB"
+    echo -e "bs redis           - 连接Redis"
+    echo -e "bs valkey          - 连接WalKey"
+    echo -e "bs install         - 执行安装脚本"
+    echo -e "bs update          - 更新到正式环境最新代码"
+    echo -e "bs update_dev      - 更新到测试环境最新代码"
+    echo -e "bs migrate_restore - 一键恢复宝塔面板软件数据"
+    echo -e "bs debug           - 调式开发面板"
+    echo -e "bs list            - 显示命令列表"
 }
 
 mw_default(){
@@ -784,6 +785,9 @@ case "$1" in
     'clean_lib') mw_clean_lib;;
     'list') mw_list;;
     'default') mw_default;;
+    'migrate_restore')
+        cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py cli migrate_restore
+        ;;
     'uninstall')
         if [ -f ${PANEL_DIR}/scripts/uninstall.sh ];then
             bash ${PANEL_DIR}/scripts/uninstall.sh

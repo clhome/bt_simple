@@ -44,3 +44,12 @@ def init():
         MwFirewall.instance().aIF()
         thisdb.setOption('setpu_auto_identify_firewall_port', 'yes')
 
+    # 宝塔面板迁移后的软件环境自动重建
+    try:
+        from .bt_migration import check_and_migrate_bt_software
+        check_and_migrate_bt_software()
+    except Exception as e:
+        import core.mw as mw
+        mw.writeLog("面板迁移", "宝塔迁移自动安装调用异常: " + str(e))
+
+

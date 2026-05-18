@@ -489,6 +489,89 @@ migrate_from_mw() {
 }
 
 # =====================================================================
+# 场景3辅助: 扫描宝塔安装的软件及版本
+# =====================================================================
+scan_bt_installed_software() {
+    log_info "正在分析原宝塔面板已安装软件..."
+    
+    local mysql_ver=""
+    local redis_ver=""
+    local postgres_ver=""
+    local nginx_ver=""
+    local php_vers=""
+
+    # 1. 检测 MySQL
+    if [ -d "/www/server/mysql" ]; then
+        if [ -f "/www/server/mysql/version.pl" ]; then
+            mysql_ver=$(cat /www/server/mysql/version.pl | tr -d '\r\n ')
+        else
+            mysql_ver="5.7"
+        fi
+        log_info "检测到宝塔 MySQL 版本: ${mysql_ver}"
+    fi
+
+    # 2. 检测 Redis
+    if [ -d "/www/server/redis" ]; then
+        if [ -f "/www/server/redis/version.pl" ]; then
+            redis_ver=$(cat /www/server/redis/version.pl | tr -d '\r\n ')
+        else
+            redis_ver="7.2.2"
+        fi
+        log_info "检测到宝塔 Redis 版本: ${redis_ver}"
+    fi
+
+    # 3. 检测 PostgreSQL
+    if [ -d "/www/server/postgresql" ]; then
+        if [ -f "/www/server/postgresql/version.pl" ]; then
+            postgres_ver=$(cat /www/server/postgresql/version.pl | tr -d '\r\n ')
+        else
+            postgres_ver="16"
+        fi
+        log_info "检测到宝塔 PostgreSQL 版本: ${postgres_ver}"
+    fi
+
+    # 4. 检测 Nginx / OpenResty
+    if [ -d "/www/server/nginx" ]; then
+        if [ -f "/www/server/nginx/version.pl" ]; then
+            nginx_ver=$(cat /www/server/nginx/version.pl | tr -d '\r\n ')
+        else
+            nginx_ver="1.22.1"
+        fi
+        log_info "检测到宝塔 Nginx/OpenResty 版本: ${nginx_ver}"
+    fi
+
+    # 5. 检测 PHP
+    if [ -d "/www/server/php" ]; then
+        for php_dir in /www/server/php/*; do
+            if [ -d "$php_dir" ]; then
+                local php_v=$(basename "$php_dir")
+                if [[ "$php_v" =~ ^[0-9]+$ ]]; then
+                    if [ -z "$php_vers" ]; then
+                        php_vers="\"${php_v}\""
+                    else
+                        php_vers="${php_vers}, \"${php_v}\""
+                    fi
+                fi
+            fi
+        done
+        log_info "检测到宝塔 PHP 版本: ${php_vers}"
+    fi
+
+    # 拼装为 JSON 文件
+    mkdir -p /tmp
+    cat > /tmp/bt_migrated_software.json <<EOF
+{
+  "mysql": "${mysql_ver}",
+  "redis": "${redis_ver}",
+  "postgresql": "${postgres_ver}",
+  "openresty": "${nginx_ver}",
+  "php": [${php_vers}]
+}
+EOF
+    log_info "已保存宝塔软件分析结果到 /tmp/bt_migrated_software.json"
+}
+
+# =====================================================================
 # 场景3: 从宝塔面板迁移
 # =====================================================================
 migrate_from_bt() {
@@ -498,18 +581,16 @@ migrate_from_bt() {
     echo -e "${RED}重要提醒:${PLAIN}"
     echo "  1. 宝塔面板与 bt_simple 是不同架构，数据库/配置不通用"
     echo "  2. 迁移后原宝塔面板将被停止（不删除），bt_simple 全新安装"
-    echo "  3. 已通过宝塔安装的 OpenResty/Nginx/MySQL/PHP 等软件不受影响"
-    echo "  4. 但宝塔面板中配置的站点需要在 bt_simple 中重新添加"
-    echo "  5. /www/wwwroot 下的网站文件和数据库数据完整保留"
+    echo "  3. 已通过宝塔安装的软件将被隔离备份，并在迁移后自动重新安装相同版本"
+    echo "  4. 迁移完成后您可以通过 'bs migrate_restore' 恢复原有的数据库数据"
+    echo "  5. /www/wwwroot 下的网站文件完整保留"
     echo ""
     echo -e "${YELLOW}迁移后将保留的内容:${PLAIN}"
     echo "  ✅ /www/wwwroot/     - 网站文件"
-    echo "  ✅ /www/server/mysql/ - MySQL 数据"
-    echo "  ✅ /www/server/php/   - PHP 环境"
     echo "  ✅ /www/backup/       - 备份文件"
     echo ""
-    echo -e "${YELLOW}需要重新配置的内容:${PLAIN}"
-    echo "  ⚠️  站点列表（需在新面板中重新添加域名）"
+    echo -e "${YELLOW}重构与恢复的内容:${PLAIN}"
+    echo "  ⚠️  面板软件环境（会后台自动拉起重新安装，并在完成后通过指令还原数据）"
     echo "  ⚠️  计划任务"
     echo "  ⚠️  面板账号密码（新面板会生成新的）"
     echo ""
@@ -521,6 +602,9 @@ migrate_from_bt() {
 
     # 备份宝塔面板
     backup_bt_panel
+
+    # 分析宝塔已安装软件
+    scan_bt_installed_software
 
     # 停止宝塔
     log_info "停止宝塔面板服务..."
@@ -536,6 +620,33 @@ migrate_from_bt() {
     if [ -d ${BT_DIR} ]; then
         mv ${BT_DIR} ${BT_DIR}.bak.${TIMESTAMP}
         log_info "宝塔面板已移至: ${BT_DIR}.bak.${TIMESTAMP}"
+    fi
+
+    # 备份隔离原本宝塔软件安装目录，避免判定冲突
+    log_info "正在隔离备份原本的宝塔软件目录以避免环境冲突..."
+    if [ -d "/www/server/mysql" ]; then
+        mv /www/server/mysql /www/server/mysql_bt_bak
+        log_info "已备份 MySQL 目录: /www/server/mysql -> /www/server/mysql_bt_bak"
+    fi
+    if [ -d "/www/server/data" ]; then
+        mv /www/server/data /www/server/data_bt_bak
+        log_info "已备份 MySQL 数据目录: /www/server/data -> /www/server/data_bt_bak"
+    fi
+    if [ -d "/www/server/redis" ]; then
+        mv /www/server/redis /www/server/redis_bt_bak
+        log_info "已备份 Redis 目录: /www/server/redis -> /www/server/redis_bt_bak"
+    fi
+    if [ -d "/www/server/postgresql" ]; then
+        mv /www/server/postgresql /www/server/postgresql_bt_bak
+        log_info "已备份 PostgreSQL 目录: /www/server/postgresql -> /www/server/postgresql_bt_bak"
+    fi
+    if [ -d "/www/server/php" ]; then
+        mv /www/server/php /www/server/php_bt_bak
+        log_info "已备份 PHP 目录: /www/server/php -> /www/server/php_bt_bak"
+    fi
+    if [ -d "/www/server/nginx" ]; then
+        mv /www/server/nginx /www/server/nginx_bt_bak
+        log_info "已备份 Nginx/OpenResty 目录: /www/server/nginx -> /www/server/nginx_bt_bak"
     fi
 
     # 保留 /www 基础目录结构（宝塔已创建）
@@ -557,8 +668,16 @@ migrate_from_bt() {
     mkdir -p ${PANEL_DIR}/logs
     mkdir -p ${PANEL_DIR}/data
 
+    # 写入迁移软件标记文件
+    if [ -f "/tmp/bt_migrated_software.json" ]; then
+        cp /tmp/bt_migrated_software.json ${PANEL_DIR}/data/bt_migrated_software.json
+        rm -f /tmp/bt_migrated_software.json
+        log_info "已保存软件迁移数据至 ${PANEL_DIR}/data/bt_migrated_software.json"
+    fi
+
     # 安装依赖
     log_info "安装系统依赖..."
+
     cd ${PANEL_DIR} && bash scripts/install/${OSNAME}.sh 2>&1 | tee -a $LOG_FILE
 
     # 启动
