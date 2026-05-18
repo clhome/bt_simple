@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/clhome/bt_simple/master/web/static/img/logo.png" width="120" />
+  <img src="https://raw.githubusercontent.com/clhome/bt_simple/master/web/static/img/logo.png" width="360" />
   <h3 align="center">BtSimple (bt_simple)</h3>
   <p align="center">一款基于 Python 的轻量级、安全增强型 Linux 服务器管理面板</p>
   <p align="center">
@@ -8,6 +8,7 @@
     <img src="https://img.shields.io/badge/OS-Linux-orange.svg" />
   </p>
 </p>
+
 
 ---
 
