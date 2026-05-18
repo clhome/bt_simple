@@ -61,6 +61,20 @@ curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/he
 curl --insecure -fsSL https://gh-proxy.org/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash -s -- -cn
 ```
 
+#### 宝塔面板 (BT.CN) 平滑迁移与数据无缝接管 🚀
+
+我们对宝塔面板的迁移逻辑进行了深度重构，确保迁移过程不仅安全、纯净，而且能够瞬间无缝拉起原宝塔环境中的所有核心数据库和应用数据：
+
+1. **环境智能分析**：在停止宝塔服务前，部署脚本会自动扫描并记录您已安装的 `MySQL`, `Redis`, `OpenResty`, `PHP`, `PostgreSQL` 的具体版本信息。
+2. **冲突路径安全隔离**：为了防止新面板自检误判定软件为“已安装”状态，迁移时会对旧宝塔冲突的物理目录（如 `/www/server/mysql` 等）进行安全的重命名备份隔离（如更名为 `mysql_bt_bak`），腾出干净物理路径以便纯净重新安装。
+3. **后台全自动重建**：面板首次拉起时，会自动识别并智能适配版本差异（如将原宝塔中较老的小版本自动升级匹配至新面板支持的插件版本），并将重装任务推入后台 `mw-task` 队列中静默编译安装。
+4. **一键数据接管与恢复**：
+   在后台对应软件（如 MySQL、Redis 等）安装任务完成后，您只需在终端运行以下指令，即可一键将旧宝塔中所有的 MySQL 数据库文件（支持大版本平滑升级）和 Redis 缓存快照与配置密码无损融合恢复，核心业务完美接管：
+   ```bash
+   bs migrate_restore
+   # 或者运行 bs 进入图形化命令行工具，选择 (30) 恢复宝塔软件数据(迁移接管)
+   ```
+
 ### 2. 备份与回滚
 
 安全性是 BtSimple 的核心。在执行重大更新或迁移前，建议您手动备份关键数据。
