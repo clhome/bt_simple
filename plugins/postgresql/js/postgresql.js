@@ -562,37 +562,81 @@ function importBackup(file,name){
     });
 }
 
+function uploadDbFiles(upload_dir, callback){
+    var up_db = layer.open({
+        type:1,
+        closeBtn: 1,
+        title:"上传导入文件["+upload_dir+']',
+        area: ['500px','300px'],
+        shadeClose:false,
+        content:'<div class="fileUploadDiv">\
+                <input type="hidden" id="input-val" value="'+upload_dir+'" />\
+                <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
+                <button type="button"  id="opt" autocomplete="off">添加文件</button>\
+                <button type="button" id="up" autocomplete="off" >开始上传</button>\
+                <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
+                <span style="float:right;margin-top: 9px;">\
+                <font>文件编码:</font>\
+                <select id="fileCodeing" >\
+                    <option value="byte">二进制</option>\
+                    <option value="utf-8">UTF-8</option>\
+                    <option value="gb18030">GB2312</option>\
+                </select>\
+                </span>\
+                <button type="button" id="filesClose" autocomplete="off">关闭</button>\
+                <ul id="up_box"></ul>\
+            </div>',
+        success:function(){
+            $('#filesClose').click(function(){
+                layer.close(up_db);
+            });
+        }
+    });
+    uploadStart(function(){
+        if(typeof(callback) == 'function') callback();
+        layer.close(up_db);
+    });
+}
+
 function setBackup(db_name,obj){
      myPost('pg_back_list', {name:db_name}, function(data){
 
         var rdata = $.parseJSON(data.data);
         console.log(rdata);
-        var tbody = '';
-        for (var i = 0; i < rdata.data.length; i++) {
-            tbody += '<tr>\
-                    <td><span> ' + rdata.data[i]['name'] + '</span></td>\
-                    <td><span> ' + rdata.data[i]['size'] + '</span></td>\
-                    <td><span> ' + rdata.data[i]['time'] + '</span></td>\
-                    <td style="text-align: right;">\
-                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">导入</a> | \
-                        <a class="btlink" onclick="downloadBackup(\'' + rdata.data[i]['file'] + '\')">下载</a> | \
-                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">删除</a>\
-                    </td>\
-                </tr> ';
+        var list = rdata.list || rdata;
+        var upload_dir = rdata.upload_dir || '';
+
+        function getTbodyHtml(listData) {
+            var tbody = '';
+            for (var i = 0; i < listData.length; i++) {
+                tbody += '<tr>\
+                        <td><span> ' + listData[i]['name'] + '</span></td>\
+                        <td><span> ' + listData[i]['size'] + '</span></td>\
+                        <td><span> ' + listData[i]['time'] + '</span></td>\
+                        <td style="text-align: right;">\
+                            <a class="btlink" onclick="importBackup(\'' + listData[i]['name'] + '\',\'' +db_name+ '\')">导入</a> | \
+                            <a class="btlink" onclick="downloadBackup(\'' + listData[i]['file'] + '\')">下载</a> | \
+                            <a class="btlink" onclick="delBackup(\'' + listData[i]['name'] + '\',\'' +db_name+ '\')">删除</a>\
+                        </td>\
+                    </tr> ';
+            }
+            return tbody;
         }
 
         var s = layer.open({
             type: 1,
             title: "数据库备份详情",
-            area: ['600px', '280px'],
+            area: ['650px', '380px'],
             closeBtn: 2,
             shadeClose: false,
             content: '<div class="pd15">\
-                        <div class="db_list">\
+                        <div class="db_list" style="margin-bottom:10px">\
                             <button id="btn_backup" class="btn btn-success btn-sm" type="button">备份</button>\
+                            <button id="btn_sync_backup" class="btn btn-default btn-sm" type="button" style="margin-left: 5px;">同步</button>\
+                            <button id="btn_upload_backup" class="btn btn-default btn-sm" type="button" style="margin-left: 5px;">本地上传</button>\
                         </div >\
                         <div class="divtable">\
-                        <div  id="database_fix"  style="height:150px;overflow:auto;border:#ddd 1px solid">\
+                        <div  id="database_fix"  style="height:220px;overflow:auto;border:#ddd 1px solid">\
                         <table class="table table-hover "style="border:none">\
                             <thead>\
                                 <tr>\
@@ -602,7 +646,7 @@ function setBackup(db_name,obj){
                                     <th style="text-align: right;">操作</th>\
                                 </tr>\
                             </thead>\
-                            <tbody class="gztr">' + tbody + '</tbody>\
+                            <tbody class="gztr">' + getTbodyHtml(list) + '</tbody>\
                         </table>\
                         </div>\
                     </div>\
@@ -617,6 +661,25 @@ function setBackup(db_name,obj){
                     layer.close(s);
                     setBackup(db_name,obj);
                 },2000);
+            });
+        });
+
+        $('#btn_sync_backup').click(function(){
+            myPost('pg_back_list', {name:db_name, sync: 1}, function(syncData){
+                var syncRdata = $.parseJSON(syncData.data);
+                var syncList = syncRdata.list || [];
+                $('.gztr').html(getTbodyHtml(syncList));
+                layer.msg('同步成功!');
+            });
+        });
+
+        $('#btn_upload_backup').click(function(){
+            uploadDbFiles(upload_dir, function(){
+                myPost('pg_back_list', {name:db_name}, function(refreshData){
+                    var refreshRdata = $.parseJSON(refreshData.data);
+                    var refreshList = refreshRdata.list || [];
+                    $('.gztr').html(getTbodyHtml(refreshList));
+                });
             });
         });
     });
@@ -652,7 +715,7 @@ function dbList(page, search){
             list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?'备份':'未备份') +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?'备份':'备份/导入') +'</a> | ';
 
             var rw = '';
             var rw_change = 'all';

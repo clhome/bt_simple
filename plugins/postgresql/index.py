@@ -675,17 +675,23 @@ def setUserPwd(version=''):
         return mw.returnJson(False, mw.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
 
 
-def getDbBackupListFunc(dbname=''):
+def getDbBackupListFunc(dbname='', is_sync=False):
     bkDir = getBackupDir()
+    if not os.path.exists(bkDir):
+        return []
     blist = os.listdir(bkDir)
     r = []
 
     bname = 'db_' + dbname
     blen = len(bname)
     for x in blist:
-        fbstr = x[0:blen]
-        if fbstr == bname:
-            r.append(x)
+        if is_sync:
+            if x.endswith('.gz'):
+                r.append(x)
+        else:
+            fbstr = x[0:blen]
+            if fbstr == bname and x.endswith('.gz'):
+                r.append(x)
     return r
 
 
@@ -695,10 +701,27 @@ def setDbBackup():
     if not data[0]:
         return data[1]
 
-    scDir = getPluginDir() + '/scripts/backup.py'
-    cmd = 'python3 ' + scDir + ' database ' + args['name'] + ' 3'
-    os.system(cmd)
-    return mw.returnJson(True, 'ok')
+    dbname = args['name']
+    cur_time = time.strftime('%Y%m%d_%H%M%S')
+    filename = "db_" + dbname + "_" + cur_time + ".gz"
+    backup_dir = getBackupDir()
+    file_path = backup_dir + '/' + filename
+
+    # 确保 postgres 用户拥有对备份目录的写权限
+    mw.execShell("chown -R postgres:postgres " + backup_dir)
+
+    port = getDbPort()
+
+    # 使用 pgCmd 通过 postgres 用户调用 pg_dump 备份并 gzip
+    cmd = getServerDir() + '/bin/pg_dump -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
+    execShellPg(cmd)
+
+    # 还原 file_path 的所有权为 root:root 以保持安全性与普通权限
+    if os.path.exists(file_path):
+        mw.execShell("chown root:root " + file_path)
+        return mw.returnJson(True, '备份成功!')
+    else:
+        return mw.returnJson(False, '备份失败!')
 
 def rootPwd():
     return pSqliteDb('config').where('id=?', (1,)).getField('pg_root')
@@ -713,19 +736,18 @@ def importDbBackup():
     name = args['name']
 
     file_path = getBackupDir() + '/' + file
-    file_path_sql = getBackupDir() + '/' + file.replace('.gz', '')
+    if not os.path.exists(file_path):
+        return mw.returnJson(False, '备份文件不存在!')
 
-    if not os.path.exists(file_path_sql):
-        cmd = 'cd ' + getBackupDir() + ' && gzip -d ' + file
-        mw.execShell(cmd)
+    # 让 postgres 有权限读取备份文件
+    mw.execShell("chown postgres:postgres " + file_path)
 
-    pwd = pSqliteDb('config').where('id=?', (1,)).getField('pg_root')
+    port = getDbPort()
+    # 组合还原命令并由 postgres 用户身份执行
+    cmd = 'gunzip -c ' + file_path + ' | ' + getServerDir() + '/bin/psql -p ' + port + ' -d ' + name
+    execShellPg(cmd)
 
-    mysql_cmd = mw.getFatherDir() + '/server/mysql/bin/mysql -uroot -p' + pwd + ' ' + name + ' < ' + file_path_sql
-
-    # print(mysql_cmd)
-    os.system(mysql_cmd)
-    return mw.returnJson(True, 'ok')
+    return mw.returnJson(True, '导入成功!')
 
 
 def deleteDbBackup():
@@ -745,26 +767,35 @@ def getDbBackupList():
     if not data[0]:
         return data[1]
 
-    r = getDbBackupListFunc(args['name'])
+    is_sync = False
+    if 'sync' in args and args['sync'] == '1':
+        is_sync = True
+
+    r = getDbBackupListFunc(args['name'], is_sync)
     bkDir = getBackupDir()
     rr = []
     for x in range(0, len(r)):
         p = bkDir + '/' + r[x]
-        data = {}
-        data['name'] = r[x]
+        if not os.path.exists(p):
+            continue
+        data_item = {}
+        data_item['name'] = r[x]
 
         rsize = os.path.getsize(p)
-        data['size'] = mw.toSize(rsize)
+        data_item['size'] = mw.toSize(rsize)
 
         t = os.path.getctime(p)
         t = time.localtime(t)
 
-        data['time'] = time.strftime('%Y-%m-%d %H:%M:%S', t)
-        rr.append(data)
+        data_item['time'] = time.strftime('%Y-%m-%d %H:%M:%S', t)
+        data_item['file'] = p
+        rr.append(data_item)
 
-        data['file'] = p
-
-    return mw.returnJson(True, 'ok', rr)
+    res_data = {
+        'list': rr,
+        'upload_dir': bkDir
+    }
+    return mw.returnJson(True, 'ok', res_data)
 
 
 def getDbList():
