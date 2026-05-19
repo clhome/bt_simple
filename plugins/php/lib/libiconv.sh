@@ -23,17 +23,16 @@ if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
     HTTP_PREFIX="https://mirror.ghproxy.com/"
 fi
 
+GH_PREFIX="https://github.com"
+if [ "$LOCAL_ADDR" == "cn" ]; then
+    GH_PREFIX="https://mirror.ghproxy.com/https://github.com"
+fi
+
 if [ ! -d ${SERVER_ROOT}/libiconv ];then
     cd $SOURCE_ROOT
 
-    if [ "$LOCAL_ADDR" == 'cn' ];then
-        if [ ! -f ${SOURCE_ROOT}/libiconv-1.15.tar.gz  ];then
-            wget --no-check-certificate -O ${SOURCE_ROOT}/libiconv-1.15.tar.gz  https://dl.midoks.icu/lib/libiconv-1.15.tar.gz -T 20
-        fi 
-    fi
-
     if [ ! -f ${SOURCE_ROOT}/libiconv-1.15.tar.gz ];then
-	   wget --no-check-certificate -O ${SOURCE_ROOT}/libiconv-1.15.tar.gz https://github.com/midoks/mdserver-web/releases/download/init/libiconv-1.15.tar.gz  -T 5
+        wget --no-check-certificate -O ${SOURCE_ROOT}/libiconv-1.15.tar.gz ${GH_PREFIX}/clhome/bt_simple/releases/download/init/libiconv-1.15.tar.gz -T 20
     fi
 
     if [ ! -d ${SOURCE_ROOT}/libiconv-1.15 ];then

@@ -32,6 +32,11 @@ fi
 
 
 Install_App(){
+	cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
+	GH_PREFIX="https://github.com"
+	if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
+	    GH_PREFIX="https://mirror.ghproxy.com/https://github.com"
+	fi
 	
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/source/op_waf
@@ -60,7 +65,7 @@ Install_App(){
 	# fi
 
 	if [ ! -f $serverPath/source/op_waf/lsqlite3_v096.zip ];then
-		wget --no-check-certificate -O $serverPath/source/op_waf/lsqlite3_v096.zip https://github.com/midoks/mdserver-web/releases/download/0.18.4/lsqlite3_v096.zip
+		wget --no-check-certificate -O $serverPath/source/op_waf/lsqlite3_v096.zip ${GH_PREFIX}/clhome/bt_simple/releases/download/init/lsqlite3_v096.zip
 	fi
 
 	if [ ! -d $serverPath/source/op_waf/lsqlite3_v096 ];then

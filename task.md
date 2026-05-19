@@ -234,5 +234,35 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
     - [x] 在 `plugins/postgresql/index.html` 中新增调用 `resetPluginWinHeight(650)` 以拉大高度 @done(2026-05-19 10:20)
     - [x] 将 `.soft-man-con` 容器高度增大为 `570px`，实现完美填充且无外层滚动条 @done(2026-05-19 10:20)
 
+# Task: 替换老旧外部构建依赖为自主仓库依赖并提供中国大陆加速
 
+## 项目描述
+在插件安装过程中，部分脚本（如 webstats, op_waf 以及 php 的 openssl, libzip, libiconv 等依赖组件）强依赖原作者 `midoks` 个人 GitHub 仓库的 Release 附件。为了消除该强依赖关系，保障项目长久的独立生命力，需将这 5 处下载链接统一替换为用户自己仓库的新 Release 链接。此外，在进行链接替换时，还需确保在中国大陆地区可以使用 `mirror.ghproxy.com` 中转节点进行智能加速下载。
 
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循 Shell 编程规范，做好环境判断的健壮性。
+- 代码修改需最小化，不破坏原有各组件的核心安装逻辑。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:12)
+- [x] 修改 `plugins/webstats/install.sh` 脚本中的老链接，并支持中转加速 @done(2026-05-19 11:12)
+- [x] 修改 `plugins/op_waf/install.sh` 脚本中的老链接，并支持中转加速 @done(2026-05-19 11:12)
+- [x] 修改 `plugins/php/lib/openssl_10.sh` 脚本中的老链接，并支持中转加速 @done(2026-05-19 11:12)
+- [x] 修改 `plugins/php/lib/libzip.sh` 脚本中的老链接，并支持中转加速 @done(2026-05-19 11:12)
+- [x] 修改 `plugins/php/lib/libiconv.sh` 脚本中的老链接，并支持中转加速 @done(2026-05-19 11:12)
+
+# Task: 彻底消除 dl.midoks.icu 个人域名依赖并精简编译脚本
+
+## 项目描述
+在 PHP 依赖库编译脚本中（libiconv.sh, openssl_10.sh, libzip.sh），原作者在 `cn` 条件下优先请求其私人的云存储域名 `dl.midoks.icu`。为达到完全脱离原作者服务独立运行的目标，且防止该域名停用时产生 20 秒的连接挂起等待，需将这些脚本中的冗余判断直接剔除，统一精简为拉取用户自己的 GitHub Release 链接，并通过智能中转镜像提供最佳加速体验。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 保证 Shell 脚本中逻辑的极简化和高度健壮。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:15)
+- [x] 彻底清理并精简 `plugins/php/lib/libiconv.sh` 中的冗余判断，直接使用用户 init 地址 @done(2026-05-19 11:15)
+- [x] 彻底清理并精简 `plugins/php/lib/openssl_10.sh` 中的冗余判断，直接使用用户 init 地址 @done(2026-05-19 11:15)
+- [x] 彻底清理并精简 `plugins/php/lib/libzip.sh` 中的冗余判断，直接使用用户 init 地址 @done(2026-05-19 11:15)

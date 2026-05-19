@@ -22,21 +22,16 @@ if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
     HTTP_PREFIX="https://mirror.ghproxy.com/"
 fi
 
+GH_PREFIX="https://github.com"
+if [ "$LOCAL_ADDR" == "cn" ]; then
+    GH_PREFIX="https://mirror.ghproxy.com/https://github.com"
+fi
+
 if [ ! -d ${SERVER_ROOT}/openssl10 ];then
     cd ${SOURCE_ROOT}
 
-    if [ "$LOCAL_ADDR" == 'cn' ];then
-        if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
-            wget --no-check-certificate -O openssl-${opensslVersion}.tar.gz https://dl.midoks.icu/lib/openssl-${opensslVersion}.tar.gz -T 20
-        fi 
-    fi
-
-    # if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
-    #     wget --no-check-certificate ${HTTP_PREFIX}/midoks/mdserver-web/releases/download/init/openssl-${opensslVersion}.tar.gz -T 20
-    # fi
-
     if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
-        wget --no-check-certificate -O openssl-${opensslVersion}.tar.gz https://github.com/midoks/mdserver-web/releases/download/init/openssl-${opensslVersion}.tar.gz -T 20
+        wget --no-check-certificate -O openssl-${opensslVersion}.tar.gz ${GH_PREFIX}/clhome/bt_simple/releases/download/init/openssl-${opensslVersion}.tar.gz -T 20
     fi
 
     tar -zxf openssl-${opensslVersion}.tar.gz

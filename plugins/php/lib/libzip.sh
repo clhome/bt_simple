@@ -22,24 +22,19 @@ if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
     LOCAL_ADDR=cn
     HTTP_PREFIX="https://mirror.ghproxy.com/"
 fi
+
+GH_PREFIX="https://github.com"
+if [ "$LOCAL_ADDR" == "cn" ]; then
+    GH_PREFIX="https://mirror.ghproxy.com/https://github.com"
+fi
 # HTTP_PREFIX="https://"
 
 if [ ! -d ${SERVER_ROOT}/libzip ];then
 
     cd $SOURCE_ROOT
 
-    if [ "$LOCAL_ADDR" == 'cn' ];then
-        if [ ! -f ${SOURCE_ROOT}/libzip-1.3.2.tar.gz ];then
-            wget --no-check-certificate -O libzip-1.3.2.tar.gz https://dl.midoks.icu/lib/libzip-1.3.2.tar.gz -T 20
-        fi 
-    fi
-
-    # if [ ! -f ${SOURCE_ROOT}/libzip-1.3.2.tar.gz ];then
-    #     wget --no-check-certificate -O libzip-1.3.2.tar.gz ${HTTP_PREFIX}github.com/midoks/mdserver-web/releases/download/init/libzip-1.3.2.tar.gz -T 20
-    # fi
-
     if [ ! -f ${SOURCE_ROOT}/libzip-1.3.2.tar.gz ];then
-        wget --no-check-certificate -O libzip-1.3.2.tar.gz https://github.com/midoks/mdserver-web/releases/download/init/libzip-1.3.2.tar.gz -T 20
+        wget --no-check-certificate -O libzip-1.3.2.tar.gz ${GH_PREFIX}/clhome/bt_simple/releases/download/init/libzip-1.3.2.tar.gz -T 20
     fi
 
     if [ ! -d ${SOURCE_ROOT}/libzip-1.3.2 ];then

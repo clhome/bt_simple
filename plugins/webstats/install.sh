@@ -23,6 +23,11 @@ if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
     HTTP_PREFIX="https://"
 fi
 
+GH_PREFIX="https://github.com"
+if [ "$LOCAL_ADDR" == "cn" ];then
+    GH_PREFIX="https://mirror.ghproxy.com/https://github.com"
+fi
+
 PIPSRC="https://pypi.python.org/simple"
 if [ "$LOCAL_ADDR" != "common" ];then
     PIPSRC="https://pypi.tuna.tsinghua.edu.cn/simple"
@@ -72,7 +77,7 @@ Install_App()
 	make install
 
 	if [ ! -f $serverPath/source/webstats/lsqlite3_v096.zip ];then
-		wget --no-check-certificate -O $serverPath/source/webstats/lsqlite3_v096.zip https://github.com/midoks/mdserver-web/releases/download/0.18.4/lsqlite3_v096.zip
+		wget --no-check-certificate -O $serverPath/source/webstats/lsqlite3_v096.zip ${GH_PREFIX}/clhome/bt_simple/releases/download/init/lsqlite3_v096.zip
 	fi
 
 	if [ ! -d $serverPath/source/webstats/lsqlite3_v096 ];then

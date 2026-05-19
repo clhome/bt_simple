@@ -25,7 +25,7 @@ RUN apt update -y && \
 	mkdir -p /www/wwwlogs && \
 	mkdir -p /www/backup/database && \
 	mkdir -p /www/backup/site && \
-	wget -O /tmp/dev.zip https://github.com/midoks/mdserver-web/archive/refs/heads/dev.zip && \
+	wget -O /tmp/dev.zip https://github.com/clhome/bt_simple/archive/refs/heads/dev.zip && \
 	cd /tmp && unzip /tmp/dev.zip && \
 	mv -f /tmp/mdserver-web-dev /www/server/mdserver-web && \
 	rm -rf /tmp/dev.zip && \
