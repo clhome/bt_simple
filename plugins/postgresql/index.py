@@ -1174,7 +1174,12 @@ def pgBackList():
         rr.append(data_item)
 
     rr.sort(key=lambda x: x['time'], reverse=True)
-    return mw.returnJson(True, 'ok', rr)
+    res_data = {
+        'list': rr,
+        'upload_dir': bk_path_upload
+    }
+    return mw.getJson(res_data)
+
 
 
 def importDbBackup():

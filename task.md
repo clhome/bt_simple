@@ -453,3 +453,25 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 - [X] 优化 MySQL 社区版插件导入操作，在点击导入时提示“当前操作会覆盖 xxx 数据库，是否继续” @done(2026-05-19 13:53)
 - [X] 优化 MariaDB 插件导入操作，在点击导入时提示“当前操作会覆盖 xxx 数据库，是否继续” @done(2026-05-19 13:53)
 - [X] 整合验证这三个插件的导入覆盖确认功能，确保功能正常 @done(2026-05-19 13:53)
+
+# Task: 修复 PostgreSQL 管理器备份成功但列表为空的问题
+
+## 项目描述
+
+在 PostgreSQL 管理器中，点击备份后提示执行成功，但下方的备份详情列表却显示为空。经排查，原因为前端获取备份列表接口（`pg_back_list`）在 Python 后端（`pgBackList`）重构时被误改为了返回包含 `status` 字段的 `mw.returnJson(True, 'ok', rr)` 结构，而非直接序列化字典对象的 `mw.getJson` 结构。这导致前端解析出的数据格式与预期不符（无法正确获取 `.list` 属性及 `.upload_dir` 属性），从而渲染出空列表。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 修复逻辑需简单直接，不引入额外复杂度。
+
+## Task List
+
+- [X] 在 `task.md` 中登记此修复 Task 与 Task List @done(2026-05-19 14:02)
+- [X] 修改 `plugins/postgresql/index.py` 中 `pgBackList` 的返回结构，构造包含 `list` 与 `upload_dir` 的字典并使用 `mw.getJson` 序列化返回 @done(2026-05-19 14:05)
+- [X] 整合验证 PostgreSQL 备份、同步、上传与显示功能，确保列表渲染正常且不为空 @done(2026-05-19 14:08)
+- [X] 修复 `plugins/postgresql/js/postgresql.js` 中 `uploadDbFiles` 异步 DOM 渲染导致 `uploadStart` 无法获取隐藏 input 值的 Bug @done(2026-05-19 14:14)
+- [X] 整合测试本地上传功能，确保弹窗正常拉起且无异常 @done(2026-05-19 14:14)
+
+

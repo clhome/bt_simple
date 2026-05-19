@@ -590,11 +590,11 @@ function uploadDbFiles(upload_dir, callback){
             $('#filesClose').click(function(){
                 layer.close(up_db);
             });
+            uploadStart(function(){
+                if(typeof(callback) == 'function') callback();
+                layer.close(up_db);
+            });
         }
-    });
-    uploadStart(function(){
-        if(typeof(callback) == 'function') callback();
-        layer.close(up_db);
     });
 }
 
