@@ -13,8 +13,8 @@ cache==1.0.3
 gevent>=22.10.2
 gevent-websocket==0.10.1
 
-psutil==5.9.1
-chardet==3.0.4
+psutil>=5.9.8
+chardet>=4.0.0
 SQLAlchemy>=1.4.54
 Flask-SQLAlchemy>=2.5.1
 #Flask-Migrate==4.*
@@ -28,7 +28,7 @@ python-socketio>=4.2.0
 flask-socketio>=5.2.0
 flask-sockets>=0.2.1
 zmq==0.0.0
-paramiko>=2.8.0
+paramiko>=3.4.0
 pymongo
 pymemcache
 redis
