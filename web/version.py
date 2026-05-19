@@ -13,7 +13,7 @@
 # 应用程序版本号组件
 APP_RELEASE = 1
 APP_REVISION = 0
-APP_SMALL_VERSION = 6
+APP_SMALL_VERSION = 0
 
 # 应用程序版本后缀，例如"beta1"、"dev"。通常为空字符串GA发布
 APP_SUFFIX = ''

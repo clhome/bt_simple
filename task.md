@@ -55,3 +55,29 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
     - [x] 能够一键恢复 MySQL 的数据库文件，修改权限并安全接管 @done(2026-05-18 13:50)
     - [x] 能够一键恢复 Redis 等缓存的配置与快照数据 @done(2026-05-18 13:50)
 - [x] 验证整体迁移方案并提供详尽的操作说明 @done(2026-05-18 13:58)
+
+# Task: 解决从 mdserver-web 迁移/升级时说明文档无法覆盖的问题
+
+## 项目描述
+在执行从 mdserver-web 迁移升级至 bt_simple 时，部署脚本通过 `deploy_code` 重构和部署代码，但其 `CODE_ITEMS` 白名单中缺少了 `README.md` 与 `RELEASE_TEMPLATE.md`，导致迁移后原本遗留在目录下的旧说明文档无法得到覆盖更新。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+
+## Task List
+- [x] 在 `deploy.sh` 脚本的 `deploy_code()` 部署白名单中加入 `README.md` 和 `RELEASE_TEMPLATE.md` @done(2026-05-19 08:55)
+
+# Task: 解决迁移后版本号始终显示为 1.0.6 且需二次在 Web 端升级的问题
+
+## 项目描述
+在任何迁移或部署场景下，版本号容易因为网络（GitHub API 被强墙、无外网等）获取失败导致 `.version` 文件为空或未生成。一旦没有 `.version` 文件，系统会强行兜底显示为硬编码版本 `1.0.6`，使得用户不得不再次在前端手动点击一次升级。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+
+## Task List
+- [x] 在 `deploy.sh` 中增加 `set_panel_version` 统一版本自解析函数，支持无网/弱网下优先解析本地 `web/version.py` 版本写入 `.version` 机制 @done(2026-05-19 08:56)
+- [x] 替换三处重复且易受网络波动影响的 `curl` 版本写入代码为 `set_panel_version` @done(2026-05-19 08:56)
+- [x] 将 `web/version.py` 硬编码的兜底默认版本由 `1.0.6` 升级为 `1.0.7` 以对齐最新特性 @done(2026-05-19 08:57)
+
+

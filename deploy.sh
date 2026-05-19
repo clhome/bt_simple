@@ -115,6 +115,45 @@ install_basic_deps() {
     fi
 }
 
+set_panel_version() {
+    log_info "设置面板版本号..."
+    local final_ver=""
+    
+    # 1. 优先尝试从本地已下载覆盖的 web/version.py 中解析硬编码版本（最稳健的离线方案）
+    if [ -f ${PANEL_DIR}/web/version.py ]; then
+        local app_rel=$(grep -E '^[[:space:]]*APP_RELEASE[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
+        local app_rev=$(grep -E '^[[:space:]]*APP_REVISION[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
+        local app_smv=$(grep -E '^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
+        local app_suf=$(grep -E '^[[:space:]]*APP_SUFFIX[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d "[:space:]'\"")
+        
+        if [ -n "$app_rel" ] && [ -n "$app_rev" ] && [ -n "$app_smv" ]; then
+            if [ -n "$app_suf" ]; then
+                final_ver="${app_rel}.${app_rev}.${app_smv}-${app_suf}"
+            else
+                final_ver="${app_rel}.${app_rev}.${app_smv}"
+            fi
+        fi
+    fi
+    
+    # 2. 如果本地解析失败，且网络畅通，则尝试从 GitHub 接口获取 latest release 作为兜底
+    if [ -z "$final_ver" ]; then
+        local latest_ver=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        if [ -n "$latest_ver" ]; then
+            final_ver="$latest_ver"
+        fi
+    fi
+    
+    # 3. 最终写入 .version 文件
+    if [ -n "$final_ver" ]; then
+        # 确保去掉可能包含的 v 前缀
+        final_ver=$(echo "$final_ver" | sed 's/^v//')
+        echo "$final_ver" > ${PANEL_DIR}/.version
+        log_info "当前已写入 .version 版本号: ${final_ver}"
+    else
+        log_warn "未能成功获取到版本号，使用默认硬编码显示"
+    fi
+}
+
 # ---------- 环境检测 ----------
 detect_environment() {
     HAS_MW=false
@@ -298,8 +337,8 @@ deploy_code() {
     local src="/tmp/bt_simple_deploy"
     log_info "部署代码到 ${PANEL_DIR} ..."
 
-    # 核心代码目录
-    local CODE_ITEMS="web panel_task.py panel_tools.py cli.sh scripts route version.py branding.py requirements.txt"
+    # 核心代码目录及文档
+    local CODE_ITEMS="web panel_task.py panel_tools.py cli.sh scripts route version.py branding.py requirements.txt README.md RELEASE_TEMPLATE.md"
     for item in $CODE_ITEMS; do
         if [ -e ${src}/${item} ]; then
             rm -rf ${PANEL_DIR}/${item}
@@ -391,13 +430,8 @@ fresh_install() {
         echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
     fi
 
-    # 自动获取并设置版本号
-    log_info "获取最新版本号..."
-    local latest_ver=$(curl -s "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    if [ -n "$latest_ver" ]; then
-        echo "$latest_ver" > ${PANEL_DIR}/.version
-        log_info "当前安装版本: ${latest_ver}"
-    fi
+    # 设置面板版本号
+    set_panel_version
 
     disable_upstream_update
     show_panel_info "$rand_pass"
@@ -474,13 +508,8 @@ migrate_from_mw() {
         log_info "检测到缺少默认密码文件，已重新生成面板密码"
     fi
 
-    # 自动获取并设置版本号
-    log_info "获取最新版本号..."
-    local latest_ver=$(curl -s "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    if [ -n "$latest_ver" ]; then
-        echo "$latest_ver" > ${PANEL_DIR}/.version
-        log_info "当前安装版本: ${latest_ver}"
-    fi
+    # 设置面板版本号
+    set_panel_version
 
     show_panel_info "$rand_pass"
     echo ""
@@ -712,13 +741,8 @@ migrate_from_bt() {
         echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
     fi
 
-    # 自动获取并设置版本号
-    log_info "获取最新版本号..."
-    local latest_ver=$(curl -s "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    if [ -n "$latest_ver" ]; then
-        echo "$latest_ver" > ${PANEL_DIR}/.version
-        log_info "当前安装版本: ${latest_ver}"
-    fi
+    # 设置面板版本号
+    set_panel_version
 
     disable_upstream_update
     show_panel_info "$rand_pass"
