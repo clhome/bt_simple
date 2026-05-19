@@ -2837,7 +2837,7 @@ function aboutPanel() {
             shadeClose: true,
             content: '<div class=\"about-container\">' +
                         '<div class=\"about-header\">' +
-                            '<img src=\"/static/img/logo.png\" style=\"width: 80px; margin-bottom: 1px;\">' +
+                            '<img src=\"/static/img/logo.png\" style=\"width: 160px; margin-bottom: 1px;\">' +
                             '<h2>御风面板（BtSimple）</h2>' +
                             '<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">御风科技</a> 出品</p>' +
                         '</div>' +
