@@ -266,3 +266,57 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
 - [x] 彻底清理并精简 `plugins/php/lib/libiconv.sh` 中的冗余判断，直接使用用户 init 地址 @done(2026-05-19 11:15)
 - [x] 彻底清理并精简 `plugins/php/lib/openssl_10.sh` 中的冗余判断，直接使用用户 init 地址 @done(2026-05-19 11:15)
 - [x] 彻底清理并精简 `plugins/php/lib/libzip.sh` 中的冗余判断，直接使用用户 init 地址 @done(2026-05-19 11:15)
+
+# Task: 彻底删除 Telegram 机器人插件中的广告推送组件
+
+## 项目描述
+Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者大群 ID 及代实名、备案域名、18+ 采集等第三方推广广告。当用户启动 tgbot 时，该脚本会强制利用用户的 Bot Token 向原作者公开大群推送擦边推广内容，严重危害用户的机器人账号安全。由于该插件采用动态目录扫描加载机制，需彻底删除 `push_ad.py` 源码及对应静态广告图 `ad.png`，以彻底断绝此广告后门。
+
+## 开发规范
+- 代码与资源清理要彻底，不遗留无用静态资产。
+- 保证动态加载机制平稳过渡，不引起报错。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:20)
+- [x] 物理删除 `plugins/tgbot/startup/extend/push_ad.py` 脚本文件 @done(2026-05-19 11:20)
+- [x] 物理删除 `plugins/tgbot/static/image/ad.png` 广告静态图资源 @done(2026-05-19 11:20)
+
+# Task: 物理清理并剔除 `push_notice_msg.py` 垃圾广告通知脚本
+
+## 项目描述
+在 Telegram 机器人插件的扩展模块中，存在另一个名为 `push_notice_msg.py` 的轮播消息脚本。该文件不仅硬编码了原作者的公开推广大群，还包含相同的引流广告键盘，以及每 90 秒高频推送并撤回一次原作者的技术提问吐槽信息。为了保障用户机器人账号的最高安全，防止被官方拉黑，且消除多余的后台网络消耗，需物理删除该脚本。
+
+## 开发规范
+- 彻底清理源码，平稳消除其在插件系统中的动态扫描加载项。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:25)
+- [x] 物理删除 `plugins/tgbot/startup/extend/push_notice_msg.py` 脚本文件 @done(2026-05-19 11:25)
+
+# Task: 物理清除 Telegram 客户端插件中的全部高危营销流氓后门
+
+## 项目描述
+在 Telegram 客户端托管插件（tgclient）的扩展目录下（tgclient/startup/extend/），包含了 4 个极其危险、无底线的流氓营销及垃圾后门脚本。若用户登录托管其个人 Telegram 账号，这些脚本会直接通过其账号自动执行跨群强发广告、暴力搜刮其他群的成员强行拉人进入作者群、擅自越权管理别人群以及陷入暴力遍历嗅探死循环。这不仅严重消耗服务器网络性能，更会在几秒内导致用户的个人 Telegram 账号被官方直接永久注销封禁。因此，必须将这 4 个高危流氓脚本全部物理清除。
+
+## 开发规范
+- 对垃圾后门组件清理要彻底，不遗留任何隐藏高危脚本。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:27)
+- [x] 物理删除 `plugins/tgclient/startup/extend/client_ad.py` 垃圾广告脚本 @done(2026-05-19 11:27)
+- [x] 物理删除 `plugins/tgclient/startup/extend/client_holding.py` 强行拉人流氓后门 @done(2026-05-19 11:27)
+- [x] 物理删除 `plugins/tgclient/startup/extend/client_check_member.py` 越权管理他人群脚本 @done(2026-05-19 11:27)
+- [x] 物理删除 `plugins/tgclient/startup/extend/client_temp.py` 暴力死循环嗅探脚本 @done(2026-05-19 11:27)
+
+# Task: 替换更新脚本 `update.sh` 中的老旧 GitHub 链接与解压目录映射
+
+## 项目描述
+在系统老旧的更新脚本 `scripts/old/update.sh` 中，依旧硬编码指向了原作者 `midoks` 个人 GitHub 仓库的 Release 更新压缩包下载路径。为了让整个更新逻辑平滑转移至用户自主掌控的 `clhome/bt_simple` 仓库，需将此处的下载链接予以替换，并引入已有的 `HTTP_PREFIX` 以支持国内中转加速。此外，需将解压后的首级目录从 `mdserver-web-${VERSION}` 同步映射替换为 `bt_simple-${VERSION}`，以保证升级拷贝能正确运行。
+
+## 开发规范
+- 对 Shell 脚本的字符串匹配和文件路径变动要极其敏感，必须确保拷贝和删除目录一致。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:28)
+- [x] 替换 `scripts/old/update.sh` 脚本中的老 GitHub 链接，并支持中转加速 @done(2026-05-19 11:28)
+- [x] 同步修改 `scripts/old/update.sh` 中解压首级文件夹名称从 `mdserver-web` 变更为 `bt_simple` @done(2026-05-19 11:28)

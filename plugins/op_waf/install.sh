@@ -60,7 +60,7 @@ Install_App(){
 	fi
 
 
-	# if [ ! -f $serverPath/source/op_waf/lsqlite3_v096.zip ];then
+	# if [ ! -f $serverPath/source/op_waf/lsqlite3_v096.zip ];thenhttps://github.com/clhome/bt_simple
 	# 	wget --no-check-certificate -O $serverPath/source/op_waf/lsqlite3_v096.zip http://lua.sqlite.org/home/zip/lsqlite3_v096.zip?uuid=v0.9.6
 	# fi
 

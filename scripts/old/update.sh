@@ -77,22 +77,22 @@ fi
 
 if [ "$LOCAL_ADDR" != "common" ];then
 	# curl --insecure -sSLo /tmp/master.zip https://code.midoks.icu/midoks/mdserver-web/archive/master.zip
-	wget --no-check-certificate -O /tmp/master.zip https://github.com/midoks/mdserver-web/archive/refs/tags/${VERSION}.zip
+	wget --no-check-certificate -O /tmp/master.zip ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/tags/${VERSION}.zip
 	cd /tmp && unzip /tmp/master.zip
 
-	$CP_CMD -rf /tmp/mdserver-web-${VERSION}/* /www/server/mdserver-web
+	$CP_CMD -rf /tmp/bt_simple-${VERSION}/* /www/server/mdserver-web
 	rm -rf /tmp/master.zip
-	rm -rf /tmp/mdserver-web-${VERSION}
+	rm -rf /tmp/bt_simple-${VERSION}
 
 	pip install -r /www/server/mdserver-web/requirements.txt
 else
-	# curl --insecure -sSLo /tmp/master.zip https://github.com/midoks/mdserver-web/archive/refs/tags/0.17.3.zip
-	curl --insecure -sSLo /tmp/master.zip https://github.com/midoks/mdserver-web/archive/refs/tags/${VERSION}.zip
+	# curl --insecure -sSLo /tmp/master.zip https://github.com/clhome/bt_simple/archive/refs/tags/0.17.3.zip
+	curl --insecure -sSLo /tmp/master.zip https://github.com/clhome/bt_simple/archive/refs/tags/${VERSION}.zip
 
 	cd /tmp && unzip /tmp/master.zip
-	$CP_CMD -rf /tmp/mdserver-web-${VERSION}/* /www/server/mdserver-web
+	$CP_CMD -rf /tmp/bt_simple-${VERSION}/* /www/server/mdserver-web
 	rm -rf /tmp/master.zip
-	rm -rf /tmp/mdserver-web-${VERSION}
+	rm -rf /tmp/bt_simple-${VERSION}
 
 	pip install -r /www/server/mdserver-web/requirements.txt
 fi
