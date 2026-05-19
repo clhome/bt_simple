@@ -971,9 +971,11 @@ function downloadBackup(file){
 }
 
 function importBackup(file,name){
-    myPost('import_db_backup',{file:file,name:name}, function(data){
-        // console.log(data);
-        layer.msg('执行成功!');
+    safeMessage('导入数据库','当前操作会覆盖['+name+']数据库，是否继续？',function(){
+        myPost('import_db_backup',{file:file,name:name}, function(data){
+            // console.log(data);
+            layer.msg('执行成功!');
+        });
     });
 }
 
@@ -1004,8 +1006,10 @@ function importBackupProgress(file,name){
 
 
 function importDbExternal(file,name){
-    myPost('import_db_external',{file:file,name:name}, function(data){
-        layer.msg('执行成功!');
+    safeMessage('导入数据库','当前操作会覆盖['+name+']数据库，是否继续？',function(){
+        myPost('import_db_external',{file:file,name:name}, function(data){
+            layer.msg('执行成功!');
+        });
     });
 }
 
