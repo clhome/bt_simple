@@ -25,14 +25,8 @@ if [ ! -d ${SERVER_ROOT}/icu ];then
 	
 	cd ${SOURCE_ROOT}
 
-	if [ "$LOCAL_ADDR" == 'cn' ];then
-        if [ ! -f ${SOURCE_ROOT}/icu4c-52_2-src.tgz  ];then
-            wget --no-check-certificate -O ${SOURCE_ROOT}/icu4c-52_2-src.tgz https://dl.midoks.icu/lib/icu4c-52_2-src.tgz -T 20
-        fi 
-    fi
-
 	if [ ! -f ${SOURCE_ROOT}/icu4c-52_2-src.tgz ];then
-		wget --no-check-certificate -O ${SOURCE_ROOT}/icu4c-52_2-src.tgz https://github.com/unicode-org/icu/releases/download/release-52-2/icu4c-52_2-src.tgz
+		wget --no-check-certificate -O ${SOURCE_ROOT}/icu4c-52_2-src.tgz ${HTTP_PREFIX}github.com/unicode-org/icu/releases/download/release-52-2/icu4c-52_2-src.tgz -T 20
 	fi
 
 	if [ ! -d ${SERVER_ROOT}/lib/icu/lib ];then

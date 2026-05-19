@@ -28,18 +28,8 @@ if [ ! -d ${SERVER_ROOT}/zlib ];then
 
     cd $SOURCE_ROOT
 
-    if [ "$LOCAL_ADDR" == 'cn' ];then
-        if [ ! -f ${SOURCE_ROOT}/${SOURCE_ROOT}/zlib-1.2.11.tar.gz ];then
-            wget --no-check-certificate -O ${SOURCE_ROOT}/zlib-1.2.11.tar.gz https://dl.midoks.icu/lib/zlib-1.2.11.tar.gz -T 20
-        fi 
-    fi
-
-    # if [ ! -f ${SOURCE_ROOT}/zlib-1.2.11.tar.gz ];then
-    #     wget --no-check-certificate -O ${SOURCE_ROOT}/zlib-1.2.11.tar.gz ${HTTP_PREFIX}github.com/madler/zlib/archive/v1.2.11.tar.gz -T 20
-    # fi
-
     if [ ! -f ${SOURCE_ROOT}/zlib-1.2.11.tar.gz ];then
-        wget --no-check-certificate -O ${SOURCE_ROOT}/zlib-1.2.11.tar.gz https://github.com/madler/zlib/archive/v1.2.11.tar.gz -T 20
+        wget --no-check-certificate -O ${SOURCE_ROOT}/zlib-1.2.11.tar.gz ${HTTP_PREFIX}github.com/madler/zlib/archive/v1.2.11.tar.gz -T 20
     fi
 
     if [ ! -d ${SOURCE_ROOT}/zlib-1.2.11 ];then

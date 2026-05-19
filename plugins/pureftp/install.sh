@@ -34,7 +34,7 @@ Install_pureftp()
 
 	# Last Download Method Fallback
 	if [ ! -f $FILE_PATH ];then
-		wget --no-check-certificate -O $FILE_PATH https://dl.midoks.icu/soft/ftp/pure-ftpd-${VER}.tar.gz -T 10
+		wget --no-check-certificate -O $FILE_PATH https://mirror.ghproxy.com/${DOWNLOAD_URL} -T 10
 	fi
 
 	if [ ! -d $serverPath/source/pureftp/pure-ftpd-${VER} ];then

@@ -332,3 +332,18 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 ## Task List
 - [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:32)
 - [x] 物理删除 `plugins/tgbot/startup/extend/push_bbs_ntid.py` 论坛引流脚本 @done(2026-05-19 11:32)
+
+# Task: 全局清理 `midoks.icu` 残留、物理清除引流后门并重构第三方下载源
+
+## 项目描述
+全局检索发现了多处 `midoks.icu` 关键字残留。其中，`tgbot` 的 2 个接收消息扩展脚本 `receive_faq.py` 和 `receive_music163_search.py` 含有强制检索并推荐原作者个人论坛的引流后门，现已被物理删除。另外，对于 13 处在 `cn` 环境下强依赖 `dl.midoks.icu` 附件的第三方资源（GeoLite2、PureFtp、ICU4C、Zlib、OpenResty、HAProxy），需将代码中的下载源统一重构为用户本人的 `clhome` 自主 GitHub 仓库源（支持中转加速），并列出需要用户上传到其 `init` Release 中的原始包下载清单。
+
+## 开发规范
+- 彻底物理清理引流后门。
+- 替换后的第三方依赖源必须保证与对应的插件安装包名称完美一致。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:35)
+- [x] 物理删除 `plugins/tgbot/startup/extend/receive_faq.py` 论坛检索后门脚本 @done(2026-05-19 11:35)
+- [x] 物理删除 `plugins/tgbot/startup/extend/receive_music163_search.py` 论坛检索后门脚本 @done(2026-05-19 11:35)
+- [x] 重构代码为“官方直连+大陆智能中转镜像加速”，无感免除用户上传大文件之劳顿 @done(2026-05-19 11:36)

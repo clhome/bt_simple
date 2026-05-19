@@ -66,7 +66,7 @@ Install_openresty()
 
 	# Last Download Method
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz http://dl.midoks.icu/soft/openresty/openresty-${VERSION}.tar.gz -T 3
+		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirror.ghproxy.com/https://openresty.org/download/openresty-${VERSION}.tar.gz -T 3
 	fi
 
 	cd ${openrestyDir} && tar -zxvf openresty-${VERSION}.tar.gz
