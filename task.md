@@ -142,3 +142,62 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
 - [x] 重构 `setDbBackup()` 面板主备份函数的文件命名，与弹窗的命名格式统一 @done(2026-05-19 09:34)
 - [x] 升级 `getDbBackupListFunc()` 过滤匹配逻辑，兼容体现版本号的最新备份格式，确保完美展示 @done(2026-05-19 09:34)
 - [x] 整合验证备份文件产生与完美列表展现 @done(2026-05-19 09:34)
+
+# Task: 在MySQL管理器中显示数据库创建时间并按创建时间降序排列
+
+## 项目描述
+在数据库管理列表中显示每一个数据库的“创建时间”。无论使用的是哪一个MySQL/MariaDB版本（MySQL、MySQL-Community、MariaDB），列表都必须支持显示“创建时间”这一列，并且数据库列表必须按“创建时间”（`addtime`）降序排列。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 保证所有 MySQL/MariaDB 版本插件的功能同步性与一致性。
+- 代码改动应最小化，保持高内聚低耦合。
+
+## Task List
+- [x] 在 `task.md` 中登记此任务 @done(2026-05-19 09:44)
+- [x] 修改 MySQL 插件的后端排序逻辑（`plugins/mysql/index.py`）： @done(2026-05-19 09:47)
+    - [x] 修改 `getDbList` 的排序为 `addtime desc, id desc` @done(2026-05-19 09:47)
+    - [x] 修改 `getMasterDbList` 的排序为 `addtime desc, id desc` @done(2026-05-19 09:47)
+- [x] 修改 MySQL 社区版插件的后端排序逻辑（`plugins/mysql-community/index.py`）： @done(2026-05-19 09:47)
+    - [x] 修改 `getDbList` 的排序为 `addtime desc, id desc` @done(2026-05-19 09:47)
+    - [x] 修改 `getMasterDbList` 的排序为 `addtime desc, id desc` @done(2026-05-19 09:47)
+- [x] 修改 MariaDB 插件的后端排序逻辑（`plugins/mariadb/index.py`）： @done(2026-05-19 09:47)
+    - [x] 修改 `getDbList` 的排序为 `addtime desc, id desc` @done(2026-05-19 09:47)
+    - [x] 修改 `getMasterDbList` 的排序为 `addtime desc, id desc` @done(2026-05-19 09:47)
+- [x] 修改 MySQL 插件的前端渲染逻辑（`plugins/mysql/js/mysql.js`）： @done(2026-05-19 09:50)
+    - [x] 在 `dbList` 数据库列表表头 `thead` 增加 `创建时间` 列 @done(2026-05-19 09:50)
+    - [x] 在 `dbList` 数据库列表行 `tbody` 中渲染 `addtime` 字段数据 @done(2026-05-19 09:50)
+- [x] 修改 MySQL 社区版插件的前端渲染逻辑（`plugins/mysql-community/js/mysql-community.js`）： @done(2026-05-19 09:50)
+    - [x] 在 `dbList` 数据库列表表头 `thead` 增加 `创建时间` 列 @done(2026-05-19 09:50)
+    - [x] 在 `dbList` 数据库列表行 `tbody` 中渲染 `addtime` 字段数据 @done(2026-05-19 09:50)
+- [x] 修改 MariaDB 插件的前端渲染逻辑（`plugins/mariadb/js/mariadb.js`）： @done(2026-05-19 09:50)
+    - [x] 在 `dbList` 数据库列表表头 `thead` 增加 `创建时间` 列 @done(2026-05-19 09:50)
+    - [x] 在 `dbList` 数据库列表行 `tbody` 中渲染 `addtime` 字段数据 @done(2026-05-19 09:50)
+- [x] 整合验证所有三个插件的功能，确保界面显示正常、排序正确且无中文乱码。 @done(2026-05-19 09:51)
+
+
+# Task: 优化数据库备份文件命名，以数据库版本号作为命名前缀
+
+## 项目描述
+为了更好地识别数据库备份所属的数据库版本，需要将备份文件的前缀由原本硬编码的 `db_` 改为包含对应版本号的动态前缀（如 `mysql57_`, `mysql80_`, `mariadb104_` 等），其中版本号需根据当前安装的数据库版本动态解析（例如：5.7.x 解析为 57，10.4.x 解析为 104），同时保证过滤检索机制向下兼容旧版 `db_` 前缀的备份，确保用户原有备份资产完全可用。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 保证历史旧版前缀 `db_` 的备份文件完美向下兼容，对用户不可丢失、完全可读。
+
+## Task List
+- [x] 在 `task.md` 中登记此任务 @done(2026-05-19 10:05)
+- [x] 优化 MySQL 插件的备份生成及检索过滤： @done(2026-05-19 10:06)
+    - [x] 重构 `scripts/backup.py` 中 `backupDatabase` 生成的备份文件前缀为动态版本号（如 `mysql57_`） @done(2026-05-19 10:06)
+    - [x] 重构 `plugins/mysql/index.py` 中 `getDbBackupListFunc`，使其同时完美检索出新前缀与历史旧版 `db_` 前缀的备份文件 @done(2026-05-19 10:06)
+- [x] 优化 MySQL 社区版插件的备份生成及检索过滤： @done(2026-05-19 10:09)
+    - [x] 重构 `plugins/mysql-community/scripts/backup.py` 中 `backupDatabase` 生成的备份文件前缀为动态版本号（如 `mysql80_`） @done(2026-05-19 10:09)
+    - [x] 重构 `plugins/mysql-community/index.py` 中 `getDbBackupListFunc`，使其同时完美检索出新前缀与历史旧版 `db_` 前缀的备份文件 @done(2026-05-19 10:09)
+- [x] 优化 MariaDB 插件的备份生成及检索过滤： @done(2026-05-19 10:13)
+    - [x] 重构 `plugins/mariadb/scripts/backup.py` 中 `backupDatabase` 生成的备份文件前缀为动态版本号（如 `mariadb104_`） @done(2026-05-19 10:13)
+    - [x] 重构 `plugins/mariadb/index.py` 中 `getDbBackupListFunc`，使其同时完美检索出新前缀与历史旧版 `db_` 前缀的备份文件 @done(2026-05-19 10:13)
+- [x] 整合验证所有三个插件的备份生成与显示功能，确保历史旧版备份与新版本前缀备份完美共存。 @done(2026-05-19 10:14)
+
+

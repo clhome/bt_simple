@@ -831,7 +831,6 @@ def __createUser(dbname, username, password, address):
 
 
 def getDbBackupListFunc(dbname=''):
-
     bkDir = getBackupDir()
     if not os.path.exists(bkDir):
         os.mkdir(bkDir)
@@ -839,11 +838,36 @@ def getDbBackupListFunc(dbname=''):
     blist = os.listdir(bkDir)
     r = []
 
-    bname = 'db_' + dbname
-    blen = len(bname)
+    db_path = getServerDir()
+    version_prefix = 'mysql80'
+    version_file = db_path + '/version.pl'
+    if os.path.exists(version_file):
+        ver = mw.readFile(version_file).strip()
+        parts = ver.split('.')
+        if len(parts) >= 2:
+            version_prefix = parts[0] + parts[1]
+        elif len(parts) == 1:
+            version_prefix = parts[0]
+        
+        if 'mariadb' in db_path:
+            version_prefix = 'mariadb' + version_prefix
+        else:
+            version_prefix = 'mysql' + version_prefix
+    else:
+        if 'mariadb' in db_path:
+            version_prefix = 'mariadb104'
+        else:
+            version_prefix = 'mysql80'
+
+    new_prefix = version_prefix + '_' + dbname + '_'
+    old_prefix = 'db_' + dbname + '_'
     for x in blist:
-        fbstr = x[0:blen]
-        if fbstr == bname:
+        is_match = False
+        if x.startswith(new_prefix) or x.startswith(old_prefix):
+            is_match = True
+        elif x == version_prefix + '_' + dbname + '.gz' or x == 'db_' + dbname + '.gz':
+            is_match = True
+        if is_match:
             r.append(x)
     return r
 
@@ -1140,7 +1164,7 @@ def getDbList():
         condition = "name like '%" + search + "%'"
     field = 'id,pid,name,username,password,accept,rw,ps,addtime'
     clist = conn.where(condition, ()).field(
-        field).limit(limit).order('id desc').select()
+        field).limit(limit).order('addtime desc, id desc').select()
 
     for x in range(0, len(clist)):
         dbname = clist[x]['name']
@@ -1938,7 +1962,7 @@ def getMasterDbList(version=''):
             condition = "name like '%" + search + "%'"
         field = 'id,pid,name,username,password,accept,ps,addtime'
         clist = conn.where(condition, ()).field(
-            field).limit(limit).order('id desc').select()
+            field).limit(limit).order('addtime desc, id desc').select()
         count = conn.where(condition, ()).count()
 
         for x in range(0, len(clist)):

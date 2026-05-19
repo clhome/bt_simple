@@ -1175,6 +1175,7 @@ function dbList(page, search){
                         '<span class="ico-copy cursor btcopy" style="margin-left:10px" title="复制密码" onclick="copyPass(\''+rdata.data[i]['password']+'\')"></span>'+
                     '</td>';
         
+            list += '<td>' + rdata.data[i]['addtime'] +'</td>';
 
             list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
             list += '<td style="text-align:right">';
@@ -1226,6 +1227,7 @@ function dbList(page, search){
                     <th>数据库名</th>\
                     <th>用户名</th>\
                     <th>密码</th>\
+                    <th>创建时间</th>\
                     '+
                     // '<th>备份</th>'+
                     '<th>备注</th>\

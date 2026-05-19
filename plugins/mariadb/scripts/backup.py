@@ -48,7 +48,27 @@ class backupTools:
         if not os.path.exists(backup_path):
             mw.execShell("mkdir -p " + backup_path)
 
-        filename = backup_path + "/db_" + name + "_" + \
+        version_prefix = 'mariadb104'
+        version_file = db_path + '/version.pl'
+        if os.path.exists(version_file):
+            ver = mw.readFile(version_file).strip()
+            parts = ver.split('.')
+            if len(parts) >= 2:
+                version_prefix = parts[0] + parts[1]
+            elif len(parts) == 1:
+                version_prefix = parts[0]
+            
+            if 'mariadb' in db_path:
+                version_prefix = 'mariadb' + version_prefix
+            else:
+                version_prefix = 'mysql' + version_prefix
+        else:
+            if 'mariadb' in db_path:
+                version_prefix = 'mariadb104'
+            else:
+                version_prefix = 'mysql57'
+
+        filename = backup_path + "/" + version_prefix + "_" + name + "_" + \
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + ".sql.gz"
 
         mysql_root = mw.M('config').dbPos(db_path, db_name).where(
