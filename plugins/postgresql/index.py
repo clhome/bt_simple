@@ -718,6 +718,16 @@ def getDbBackupListFunc(dbname='', is_sync=False):
     blist = os.listdir(bkDir)
     r = []
 
+    version = getPgVersion()
+    parts = version.split('.')
+    if len(parts) >= 2:
+        ver_str = parts[0] + parts[1]
+    elif len(parts) == 1:
+        ver_str = parts[0]
+    else:
+        ver_str = '183'
+    postgre_prefix = 'postgre' + ver_str + '_' + dbname + '_'
+
     for x in blist:
         if not x.endswith('.gz'):
             continue
@@ -725,11 +735,16 @@ def getDbBackupListFunc(dbname='', is_sync=False):
             r.append(x)
         else:
             is_match = False
-            # 1. 兼容最新体现版本号的命名格式: pg_backup_v{version}_{dbname}_{cur_time}.gz
-            if x.startswith('pg_backup_v') and ('_' + dbname + '_') in x:
+            # 1. 动态前缀格式: postgre{ver_str}_{dbname}_{cur_time}.gz
+            if x.startswith(postgre_prefix):
                 is_match = True
             
-            # 2. 兼容 db_dbname_ 和 dbname_ 的历史格式
+            # 2. 兼容最新体现版本号的命名格式: pg_backup_v{version}_{dbname}_{cur_time}.gz
+            if not is_match:
+                if x.startswith('pg_backup_v') and ('_' + dbname + '_') in x:
+                    is_match = True
+            
+            # 3. 兼容 db_dbname_ 和 dbname_ 的历史格式
             if not is_match:
                 match_prefixes = ['db_' + dbname + '_', dbname + '_']
                 for prefix in match_prefixes:
@@ -737,8 +752,12 @@ def getDbBackupListFunc(dbname='', is_sync=False):
                         is_match = True
                         break
             
-            # 3. 兼容直接等于 db_dbname.gz 或 dbname.gz
+            # 4. 兼容直接等于 db_dbname.gz 或 dbname.gz
             if not is_match and (x == 'db_' + dbname + '.gz' or x == dbname + '.gz'):
+                is_match = True
+
+            # 5. 兼容直接等于 postgre{ver_str}_{dbname}.gz
+            if not is_match and x == 'postgre' + ver_str + '_' + dbname + '.gz':
                 is_match = True
 
             if is_match:
@@ -755,7 +774,14 @@ def setDbBackup():
     dbname = args['name']
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
-    filename = "pg_backup_v" + version + "_" + dbname + "_" + cur_time + ".gz"
+    parts = version.split('.')
+    if len(parts) >= 2:
+        ver_str = parts[0] + parts[1]
+    elif len(parts) == 1:
+        ver_str = parts[0]
+    else:
+        ver_str = '183'
+    filename = "postgre" + ver_str + "_" + dbname + "_" + cur_time + ".gz"
     backup_dir = getBackupDir()
     file_path = backup_dir + '/' + filename
 
@@ -1081,7 +1107,14 @@ def pgBack():
     dbname = args['name']
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
-    filename = "pg_backup_v" + version + "_" + dbname + "_" + cur_time + ".gz"
+    parts = version.split('.')
+    if len(parts) >= 2:
+        ver_str = parts[0] + parts[1]
+    elif len(parts) == 1:
+        ver_str = parts[0]
+    else:
+        ver_str = '183'
+    filename = "postgre" + ver_str + "_" + dbname + "_" + cur_time + ".gz"
     backup_dir = getBackupDir()
     file_path = backup_dir + '/' + filename
 

@@ -201,3 +201,22 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
 - [x] 整合验证所有三个插件的备份生成与显示功能，确保历史旧版备份与新版本前缀备份完美共存。 @done(2026-05-19 10:14)
 
 
+# Task: 优化 PostgreSQL 插件备份文件命名，以数据库版本号作为命名前缀
+
+## 项目描述
+为了与 MySQL/MariaDB 保持统一，需要将 PostgreSQL 备份文件的前缀由原本的 `pg_backup_v{version}_` 改为包含对应版本号的动态前缀（如 `postgre183_`，其中 183 代表 PostgreSQL 版本 18.3），版本号需要根据当前安装的版本动态解析。同时，检索机制必须向下兼容旧版 `pg_backup_v{version}_` 以及历史更早的 `db_` 前缀备份。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 保证所有历史格式备份文件完美向下兼容，不可丢失。
+
+## Task List
+- [x] 在 `task.md` 中登记此任务 @done(2026-05-19 10:15)
+- [x] 优化 PostgreSQL 插件的备份生成及检索过滤： @done(2026-05-19 10:17)
+    - [x] 重构 `plugins/postgresql/index.py` 中 `setDbBackup` 与 `pgBack` 生成的备份文件前缀为动态版本号（如 `postgre183_`） @done(2026-05-19 10:17)
+    - [x] 重构 `plugins/postgresql/index.py` 中 `getDbBackupListFunc`，使其同时完美检索出新前缀、历史 `pg_backup_v{version}_` 前缀以及更早的旧前缀备份文件 @done(2026-05-19 10:17)
+- [x] 整合验证 PostgreSQL 插件的备份生成与显示功能，确保新旧备份完美共存。 @done(2026-05-19 10:17)
+
+
+
