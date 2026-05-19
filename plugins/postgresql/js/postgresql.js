@@ -607,6 +607,11 @@ function setBackup(db_name,obj){
         var upload_dir = rdata.upload_dir || '';
 
         function getTbodyHtml(listData) {
+            if (listData && listData.sort) {
+                listData.sort(function(a, b) {
+                    return (a.time < b.time) ? 1 : -1;
+                });
+            }
             var tbody = '';
             for (var i = 0; i < listData.length; i++) {
                 tbody += '<tr>\

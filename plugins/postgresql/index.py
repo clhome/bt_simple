@@ -791,6 +791,8 @@ def getDbBackupList():
         data_item['file'] = p
         rr.append(data_item)
 
+    rr.sort(key=lambda x: x['time'], reverse=True)
+
     res_data = {
         'list': rr,
         'upload_dir': bkDir
