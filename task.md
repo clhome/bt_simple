@@ -497,6 +497,8 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 - [X] 仔细修改版本 17 的安装脚本 `versions/17/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
 - [X] 仔细修改版本 18 的安装脚本 `versions/18/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
 - [X] 验证及测试 Python 控制脚本在 Windows 开发与本地模拟环境下的基础输出 @done(2026-05-19 17:35)
+- [X] 修复面板 checks 检测路径，将 `info.json` 里的 `"checks"` 与 `"path"` 修正为 `"server/pgsql"`，使面板能完美识别新路径的安装状态 @done(2026-05-19 17:51)
+- [X] 解决管理页面各选项卡“文件不存在”的硬编码隐患，在 `contentReplace()` 中将 `{$APP_PATH}` 的硬编码路径彻底修正为动态的 `getServerDir()` 并在 `initDreplace()` 中加入了强制刷新与自愈生成机制 @done(2026-05-19 17:53)
 
 
 

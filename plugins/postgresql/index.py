@@ -177,7 +177,7 @@ def contentReplace(content):
     service_path = mw.getServerDir()
     content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
-    content = content.replace('{$APP_PATH}', service_path + '/postgresql')
+    content = content.replace('{$APP_PATH}', getServerDir())
     return content
 
 
@@ -252,7 +252,7 @@ def initDreplace(version=''):
     # systemd
     system_dir = mw.systemdCfgDir()
     service = system_dir + '/postgresql.service'
-    if os.path.exists(system_dir) and not os.path.exists(service):
+    if os.path.exists(system_dir):
         tpl = getPluginDir() + '/init.d/postgresql.service.tpl'
         service_path = mw.getServerDir()
         content = mw.readFile(tpl)
@@ -268,7 +268,7 @@ def initDreplace(version=''):
         os.mkdir(initd_path)
 
     file_bin = initd_path + '/' + getPluginName()
-    if not os.path.exists(file_bin):
+    if True:
         tpl = getInitdTpl(version)
         content = mw.readFile(tpl)
         content = contentReplace(content)
