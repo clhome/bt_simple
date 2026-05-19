@@ -46,7 +46,7 @@ def getPluginDir():
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return mw.getServerDir() + '/pgsql'
 
 
 def getInitDFile():
@@ -1179,6 +1179,56 @@ def pgBackList():
         'upload_dir': bk_path_upload
     }
     return mw.getJson(res_data)
+def getDbAccess():
+    args = getArgs()
+    data = checkArgs(args, ['name'])
+    if not data[0]:
+        return data[1]
+
+    dbname = args['name']
+    psdb = pSqliteDb('databases')
+    accept = psdb.where('name=?', (dbname,)).getField('accept')
+    if not accept:
+        accept = '127.0.0.1/32'
+    return mw.returnJson(True, 'ok', accept)
+
+
+def setDbAccess():
+    args = getArgs()
+    data = checkArgs(args, ['name', 'access'])
+    if not data[0]:
+        return data[1]
+
+    dbname = args['name']
+    access = args['access']
+
+    psdb = pSqliteDb('databases')
+    db_info = psdb.where('name=?', (dbname,)).field('id,username,accept').find()
+    if not db_info:
+        return mw.returnJson(False, '数据库不存在!')
+
+    dbuser = db_info['username']
+
+    # 1. 更新 accept
+    psdb.where('name=?', (dbname,)).update({'accept': access})
+
+    # 2. 更新 pg_hba.conf
+    pg_hba = pgHbaConf()
+    content = mw.readFile(pg_hba)
+    new_line = "host    {}  {}    {}    md5".format(dbname, dbuser, access)
+    
+    # 查找并替换
+    pattern = r'host\s+{}\s+{}\s+\S+\s+md5'.format(re.escape(dbname), re.escape(dbuser))
+    if re.search(pattern, content):
+        content = re.sub(pattern, new_line, content)
+    else:
+        content += "\n" + new_line
+        
+    mw.writeFile(pg_hba, content)
+
+    # 3. 重启生效
+    restart()
+    return mw.returnJson(True, '设置成功!')
 
 
 
@@ -1608,7 +1658,7 @@ def doFullSync(version=''):
     t = ssh.get_transport()
     sftp = paramiko.SFTPClient.from_transport(t)
     copy_status = sftp.get(
-        "/www/server/postgresql/pgsql.db", getServerDir() + "/pgsql.db")
+        "/www/server/pgsql/pgsql.db", getServerDir() + "/pgsql.db")
     print("同步信息:", copy_status)
     print("同步文件", "end")
     if copy_status == None:

@@ -13,7 +13,7 @@ sysName=`uname`
 postgreDir=${serverPath}/source/postgresql
 VERSION=15.13
 
-# su - postgres -c "/www/server/postgresql/bin/pg_ctl start -D /www/server/postgresql/data"
+# su - postgres -c "/www/server/pgsql/bin/pg_ctl start -D /www/server/pgsql/data"
 
 Install_App()
 {
@@ -70,21 +70,21 @@ Install_App()
 	fi
 	
 
-	if [ ! -d $serverPath/postgresql ];then
+	if [ ! -d $serverPath/pgsql ];then
 		cd ${postgreDir}/postgresql-${VERSION} && ./configure \
-		--prefix=$serverPath/postgresql \
+		--prefix=$serverPath/pgsql \
 		--with-openssl
 		# --with-pgport=33206
 
 		echo "cd ${postgreDir}/postgresql-${VERSION} && ./configure \
-		--prefix=$serverPath/postgresql \
+		--prefix=$serverPath/pgsql \
 		--with-openssl"
 		# --with-pgport=33206
 		make -j${cpuCore} && make install && make clean
 	fi
 
-	if [ -d $serverPath/postgresql ];then
-		echo "${VERSION}" > $serverPath/postgresql/version.pl
+	if [ -d $serverPath/pgsql ];then
+		echo "${VERSION}" > $serverPath/pgsql/version.pl
 		echo '安装postgresql成功'
 	else
 		echo '安装postgresql失败'
@@ -108,12 +108,12 @@ Uninstall_App()
 		systemctl daemon-reload
 	fi
 
-	if [ -f $serverPath/postgresql/initd/postgresql ];then
-		$serverPath/postgresql/initd/postgresql stop
+	if [ -f $serverPath/pgsql/initd/postgresql ];then
+		$serverPath/pgsql/initd/postgresql stop
 	fi
 
-	if [ -d $serverPath/postgresql ];then
-		rm -rf $serverPath/postgresql
+	if [ -d $serverPath/pgsql ];then
+		rm -rf $serverPath/pgsql
 	fi
 
 	echo '卸载[postgresql]完成'

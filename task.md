@@ -473,5 +473,31 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 - [X] 整合验证 PostgreSQL 备份、同步、上传与显示功能，确保列表渲染正常且不为空 @done(2026-05-19 14:08)
 - [X] 修复 `plugins/postgresql/js/postgresql.js` 中 `uploadDbFiles` 异步 DOM 渲染导致 `uploadStart` 无法获取隐藏 input 值的 Bug @done(2026-05-19 14:14)
 - [X] 整合测试本地上传功能，确保弹窗正常拉起且无异常 @done(2026-05-19 14:14)
+- [X] 修复 PostgreSQL 管理列表中权限按钮报错，在 `index.py` 中实现 `getDbAccess` 与 `setDbAccess` 函数 @done(2026-05-19 16:21)
+- [X] 整合测试权限设置功能，确保弹窗和修改生效且无报错 @done(2026-05-19 16:21)
+
+## Task: PostgreSQL 物理路径重构至 /www/server/pgsql (一劳永逸对齐宝塔规范)
+
+### 任务描述
+在无历史存量包袱的阶段，全面将 PostgreSQL 的物理安装、运行以及数据存储路径从 `/www/server/postgresql` 更改为 `/www/server/pgsql`，保证在从宝塔迁移到本面板时 100% 路径兼容，免去目录名称不一致带来的任何潜在调用风险与软链接配置。
+
+### 开发规范
+- 统一修改 `plugins/postgresql/index.py` 里的 `getServerDir()` 返回映射，指向 `/www/server/pgsql`。
+- 全量修改各版本（14, 15, 16, 17, 18）的 `install.sh` 中的安装前缀及配置目录。
+- 逐个校验 Python 控制逻辑中是否还有残留硬编码路径并进行修正。
+- 遵循原有代码风格，确保修改极度精确。
+
+### Task List
+- [X] 登记 PostgreSQL 物理路径对齐 Task List @done(2026-05-19 17:35)
+- [X] 修改 `plugins/postgresql/index.py` 中的 `getServerDir()`，映射至 `/www/server/pgsql` @done(2026-05-19 17:35)
+- [X] 仔细审查并清理 `index.py` 中所有的物理路径硬编码 "/www/server/postgresql" @done(2026-05-19 17:35)
+- [X] 仔细修改版本 14 的安装脚本 `versions/14/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
+- [X] 仔细修改版本 15 的安装脚本 `versions/15/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
+- [X] 仔细修改版本 16 的安装脚本 `versions/16/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
+- [X] 仔细修改版本 17 的安装脚本 `versions/17/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
+- [X] 仔细修改版本 18 的安装脚本 `versions/18/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
+- [X] 验证及测试 Python 控制脚本在 Windows 开发与本地模拟环境下的基础输出 @done(2026-05-19 17:35)
+
+
 
 
