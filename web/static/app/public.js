@@ -2838,7 +2838,7 @@ function aboutPanel() {
             content: '<div class=\"about-container\">' +
                         '<div class=\"about-header\">' +
                             '<img src=\"/static/img/logo.png\" style=\"width: 80px; margin-bottom: 10px;\">' +
-                            '<h2>BtSimple Linux Panel</h2>' +
+                            '<h2>御风面板（BtSimple）</h2>' +
                             '<p>御风科技出品</p>' +
                         '</div>' +
                         '<div class=\"about-content markdown-body\">' + htmlContent + '</div>' +

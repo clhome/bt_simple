@@ -43,7 +43,7 @@ def getGlobalVar():
     获取全局变量
     '''
     data = {}
-    data['title'] = thisdb.getOption('title', default='BtSimple')
+    data['title'] = thisdb.getOption('title', default='御风面板（BtSimple）')
     data['ip'] = thisdb.getOption('server_ip', default='127.0.0.1')
 
     data['site_path'] = thisdb.getOption('site_path', default=mw.getFatherDir()+'/wwwroot')

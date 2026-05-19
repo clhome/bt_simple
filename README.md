@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/clhome/bt_simple/master/web/static/img/logo.png" width="360" />
-  <h3 align="center">BtSimple (bt_simple)</h3>
+  <h3 align="center">御风面板（BtSimple）</h3>
   <p align="center">一款基于 Python 的轻量级、安全增强型 Linux 服务器管理面板</p>
   <p align="center">
     <img src="https://img.shields.io/badge/License-MIT-green.svg" />
@@ -14,7 +14,7 @@
 
 ## 🚀 软件介绍
 
-**BtSimple** 是一款完全开源的轻量级 Linux 面板，源自 [mdserver-web](https://github.com/midoks/mdserver-web) 项目。它秉持 **KISS (Keep It Simple, Stupid)** 原则，去除了冗余功能，专注于核心的网站管理、数据库运维和系统安全加固。
+**御风面板（BtSimple）** 是一款完全开源的轻量级 Linux 面板，源自 [mdserver-web](https://github.com/midoks/mdserver-web) 项目。它秉持 **KISS (Keep It Simple, Stupid)** 原则，去除了冗余功能，专注于核心的网站管理、数据库运维和系统安全加固。
 
 本项目在原版基础上进行了深度的安全性审计与性能优化，旨在为用户提供一个既强大又透明的服务器管理工具。
 
