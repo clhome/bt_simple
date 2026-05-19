@@ -320,3 +320,15 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 - [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:28)
 - [x] 替换 `scripts/old/update.sh` 脚本中的老 GitHub 链接，并支持中转加速 @done(2026-05-19 11:28)
 - [x] 同步修改 `scripts/old/update.sh` 中解压首级文件夹名称从 `mdserver-web` 变更为 `bt_simple` @done(2026-05-19 11:28)
+
+# Task: 物理删除 Telegram 机器人插件中的论坛引流后门脚本 `push_bbs_ntid.py`
+
+## 项目描述
+在 Telegram 机器人插件的扩展目录中，`push_bbs_ntid.py` 脚本每 5 分钟从原作者个人 Discuz! 论坛（bbs.midoks.icu）抓取最新发帖信息，并强行通过用户的机器人 Token 向原作者的公开技术大群推送发帖通知。这完全是原作者私人的引流推客，对面板用户不仅毫无用处，更白白消耗后台资源并有极高概率触发 Telegram 官方风控导致机器人账号封禁。需彻底物理删除该流氓后门脚本。
+
+## 开发规范
+- 彻底清理源码，消除后台隐形网络请求和动态加载项。
+
+## Task List
+- [x] 登记 `task.md` 任务清单 @done(2026-05-19 11:32)
+- [x] 物理删除 `plugins/tgbot/startup/extend/push_bbs_ntid.py` 论坛引流脚本 @done(2026-05-19 11:32)
