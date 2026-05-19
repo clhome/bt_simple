@@ -219,4 +219,20 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
 - [x] 整合验证 PostgreSQL 插件的备份生成与显示功能，确保新旧备份完美共存。 @done(2026-05-19 10:17)
 
 
+# Task: 优化 PostgreSQL 插件界面、排序与模态框尺寸
+
+## 项目描述
+为了给用户更好的视觉和交互体验，在 PostgreSQL 插件管理器中增加“创建时间”字段展示，并使数据库列表按照创建时间降序排列。同时拉大模态框的长度和宽度，调整内容展示高度，避免默认弹出框产生多余的滚动条。
+
+## Task List
+- [x] 在 `task.md` 中登记此任务 @done(2026-05-19 10:20)
+- [x] 优化 PostgreSQL 数据库列表排序及字段展示：
+    - [x] 修改 `plugins/postgresql/index.py` 中 `getDbList` 查询排序，使其按 `addtime desc, id desc` 降序排列 @done(2026-05-19 10:20)
+    - [x] 修改 `plugins/postgresql/js/postgresql.js` 中的 `dbList` 渲染逻辑，在表格中增加“创建时间”这一列并正确展示 `addtime` 字段 @done(2026-05-19 10:20)
+- [x] 优化模态框尺寸与布局以避免滚动条：
+    - [x] 修改 `plugins/postgresql/index.html` 中的 `resetPluginWinWidth` 宽度至 `950px` @done(2026-05-19 10:20)
+    - [x] 在 `plugins/postgresql/index.html` 中新增调用 `resetPluginWinHeight(650)` 以拉大高度 @done(2026-05-19 10:20)
+    - [x] 将 `.soft-man-con` 容器高度增大为 `570px`，实现完美填充且无外层滚动条 @done(2026-05-19 10:20)
+
+
 

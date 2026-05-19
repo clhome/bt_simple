@@ -907,7 +907,7 @@ def getDbList():
         condition = "name like '%" + search + "%'"
     field = 'id,pid,name,username,password,accept,rw,ps,addtime'
     clist = conn.where(condition, ()).field(
-        field).limit(limit).order('id desc').select()
+        field).limit(limit).order('addtime desc, id desc').select()
 
     for x in range(0, len(clist)):
         dbname = clist[x]['name']

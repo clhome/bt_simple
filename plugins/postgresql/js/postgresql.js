@@ -718,6 +718,7 @@ function dbList(page, search){
         
 
             list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
+            list += '<td>' + rdata.data[i]['addtime'] +'</td>';
             list += '<td style="text-align:right">';
 
             list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?'备份':'备份/导入') +'</a> | ';
@@ -763,6 +764,7 @@ function dbList(page, search){
                     <th>用户名</th>\
                     <th>密码</th>\
                     <th>备注</th>\
+                    <th>创建时间</th>\
                     <th style="text-align:right;">操作</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
