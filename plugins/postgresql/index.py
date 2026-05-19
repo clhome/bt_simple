@@ -57,18 +57,46 @@ def getInitDFile():
 
 def getArgs():
     args = sys.argv[2:]
-
     tmp = {}
-    args_len = len(args)
+    if not args:
+        return tmp
 
-    if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':')
-        tmp[t[0]] = t[1]
-    elif args_len > 1:
-        for i in range(len(args)):
-            t = args[i].split(':')
-            tmp[t[0]] = t[1]
+    # 尝试把所有参数拼接起来，看看是不是一个合法的 JSON 字符串
+    full_args_str = " ".join(args).strip()
+    try:
+        return json.loads(full_args_str)
+    except:
+        pass
+
+    try:
+        clean_str = full_args_str
+        if (clean_str.startswith("'") and clean_str.endswith("'")) or (clean_str.startswith('"') and clean_str.endswith('"')):
+            clean_str = clean_str[1:-1]
+        return json.loads(clean_str)
+    except:
+        pass
+
+    import re
+    # 匹配 "key":"value" 或 'key':'value' 或 key:value
+    pattern = r'["\']?([^"\'\s,{}]+)["\']?\s*:\s*["\']?([^"\'\s,{}]+)["\']?'
+    matches = re.findall(pattern, full_args_str)
+    if matches:
+        for k, v in matches:
+            tmp[k.strip('"').strip("'")] = v.strip('"').strip("'")
+        return tmp
+
+    try:
+        args_len = len(args)
+        if args_len == 1:
+            t = args[0].strip('{').strip('}')
+            t = t.split(':')
+            tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
+        elif args_len > 1:
+            for i in range(len(args)):
+                t = args[i].split(':')
+                tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
+    except:
+        pass
 
     return tmp
 
@@ -675,6 +703,14 @@ def setUserPwd(version=''):
         return mw.returnJson(False, mw.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
 
 
+def getPgVersion():
+    version = "14.4"
+    version_pl = getServerDir() + "/version.pl"
+    if os.path.exists(version_pl):
+        version = mw.readFile(version_pl).strip()
+    return version
+
+
 def getDbBackupListFunc(dbname='', is_sync=False):
     bkDir = getBackupDir()
     if not os.path.exists(bkDir):
@@ -682,15 +718,30 @@ def getDbBackupListFunc(dbname='', is_sync=False):
     blist = os.listdir(bkDir)
     r = []
 
-    bname = 'db_' + dbname
-    blen = len(bname)
     for x in blist:
+        if not x.endswith('.gz'):
+            continue
         if is_sync:
-            if x.endswith('.gz'):
-                r.append(x)
+            r.append(x)
         else:
-            fbstr = x[0:blen]
-            if fbstr == bname and x.endswith('.gz'):
+            is_match = False
+            # 1. 兼容最新体现版本号的命名格式: pg_backup_v{version}_{dbname}_{cur_time}.gz
+            if x.startswith('pg_backup_v') and ('_' + dbname + '_') in x:
+                is_match = True
+            
+            # 2. 兼容 db_dbname_ 和 dbname_ 的历史格式
+            if not is_match:
+                match_prefixes = ['db_' + dbname + '_', dbname + '_']
+                for prefix in match_prefixes:
+                    if x.startswith(prefix):
+                        is_match = True
+                        break
+            
+            # 3. 兼容直接等于 db_dbname.gz 或 dbname.gz
+            if not is_match and (x == 'db_' + dbname + '.gz' or x == dbname + '.gz'):
+                is_match = True
+
+            if is_match:
                 r.append(x)
     return r
 
@@ -703,22 +754,30 @@ def setDbBackup():
 
     dbname = args['name']
     cur_time = time.strftime('%Y%m%d_%H%M%S')
-    filename = "db_" + dbname + "_" + cur_time + ".gz"
+    version = getPgVersion()
+    filename = "pg_backup_v" + version + "_" + dbname + "_" + cur_time + ".gz"
     backup_dir = getBackupDir()
     file_path = backup_dir + '/' + filename
 
     # 确保 postgres 用户拥有对备份目录的写权限
-    mw.execShell("chown -R postgres:postgres " + backup_dir)
+    if not mw.isAppleSystem() and os.name != 'nt':
+        mw.execShell("chown -R postgres:postgres " + backup_dir)
 
     port = getDbPort()
 
-    # 使用 pgCmd 通过 postgres 用户调用 pg_dump 备份并 gzip
-    cmd = getServerDir() + '/bin/pg_dump -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
-    execShellPg(cmd)
+    if os.name == 'nt':
+        cmd = '"' + getServerDir() + '/bin/pg_dump" -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
+        mw.execShell(cmd)
+    else:
+        # 使用 pgCmd 通过 postgres 用户调用 pg_dump 备份并 gzip
+        cmd = getServerDir() + '/bin/pg_dump -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
+        execShellPg(cmd)
 
-    # 还原 file_path 的所有权为 root:root 以保持安全性与普通权限
+        # 还原 file_path 的所有权为 root:root 以保持安全性与普通权限
+        if os.path.exists(file_path):
+            mw.execShell("chown root:root " + file_path)
+
     if os.path.exists(file_path):
-        mw.execShell("chown root:root " + file_path)
         return mw.returnJson(True, '备份成功!')
     else:
         return mw.returnJson(False, '备份失败!')
@@ -1012,88 +1071,77 @@ def setDbRw(version=''):
     return mw.returnJson(True, '切换成功!')
 
 
-def getDbAccess():
-    args = getArgs()
-    data = checkArgs(args, ['name'])
-    if not data[0]:
-        return data[1]
-    name = args['name']
-    psdb = pSqliteDb('databases')
-    accept = psdb.where("name=?", (name,)).getField('accept')
-    return mw.returnJson(True, accept)
-
-
-def setDbAccess():
-    args = getArgs()
-    data = checkArgs(args, ['name'])
-    if not data[0]:
-        return data[1]
-
-    name = args['name']
-    access = args['access']
-
-    psdb = pSqliteDb('databases')
-
-    conf = pgHbaConf()
-    data = mw.readFile(conf)
-    new_data = re.sub(r'host\s*{}.*'.format(name), '', data).strip()
-
-    new_data += "\nhost    {}  {}    {}    md5".format(
-        name, name, access)
-    mw.writeFile(conf, new_data)
-
-    psdb.where("name=?", (name,)).setField('accept', access)
-    return mw.returnJson(True, "设置成功")
-
-
 def pgBack():
     # 备份数据库
-
     args = getArgs()
     data = checkArgs(args, ['name'])
     if not data[0]:
         return data[1]
 
-    bk_path_upload = getBackupDir()
-    database = args['name']
+    dbname = args['name']
+    cur_time = time.strftime('%Y%m%d_%H%M%S')
+    version = getPgVersion()
+    filename = "pg_backup_v" + version + "_" + dbname + "_" + cur_time + ".gz"
+    backup_dir = getBackupDir()
+    file_path = backup_dir + '/' + filename
+
+    # 确保 postgres 用户拥有对备份目录的写权限
+    if not mw.isAppleSystem() and os.name != 'nt':
+        mw.execShell("chown -R postgres:postgres " + backup_dir)
+
     port = getPgPort()
 
-    cmd = '''su - postgres -c "/www/server/pgsql/bin/pg_dump -c {} -p {} "| gzip > {}/{}_{}.gz '''.format(
-        database, port, bk_path_upload, database, time.strftime("%Y%m%d_%H%M%S"))
+    if os.name == 'nt':
+        cmd = '"' + getServerDir() + '/bin/pg_dump" -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
+        mw.execShell(cmd)
+    else:
+        # 使用更正确的绝对路径获取二进制程序
+        pg_dump_bin = getServerDir() + '/bin/pg_dump'
+        cmd = pg_dump_bin + ' -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
+        execShellPg(cmd)
 
-    if mw.isAppleSystem():
-        cmd = '''{}/bin/pg_dump -c {} -p {} | gzip > {}/{}_{}.gz '''.format(
-            getServerDir(), database, port, bk_path_upload, database, time.strftime("%Y%m%d_%H%M%S"))
-    mw.execShell(cmd)
+        # 还原 file_path 的所有权以保持安全性与普通权限
+        if os.path.exists(file_path):
+            mw.execShell("chown root:root " + file_path)
 
-    return mw.returnJson(True, '备份成功!')
+    if os.path.exists(file_path):
+        return mw.returnJson(True, '备份成功!')
+    else:
+        return mw.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
 
 
 def pgBackList():
-
     args = getArgs()
     data = checkArgs(args, ['name'])
     if not data[0]:
         return data[1]
 
-    database = args['name']
+    is_sync = False
+    if 'sync' in args and args['sync'] == '1':
+        is_sync = True
 
+    r = getDbBackupListFunc(args['name'], is_sync)
     bk_path_upload = getBackupDir()
-    file_list = os.listdir(bk_path_upload)
-    data = []
-    for i in file_list:
-        if i.split("_")[0].startswith(database):
-            file_path = os.path.join(bk_path_upload, i)
-            file_info = os.stat(file_path)
-            create_time = file_info.st_ctime
-            time_local = time.localtime(int(create_time))
-            create_time = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
-            file_size = file_info.st_size
-            file_size = mw.toSize(file_size)
-            data.append({"name": i, "time": create_time,
-                         "size": file_size, "file": file_path})
+    rr = []
+    for x in range(0, len(r)):
+        p = bk_path_upload + '/' + r[x]
+        if not os.path.exists(p):
+            continue
+        data_item = {}
+        data_item['name'] = r[x]
 
-    return mw.returnJson(True, 'ok', data)
+        rsize = os.path.getsize(p)
+        data_item['size'] = mw.toSize(rsize)
+
+        t = os.path.getctime(p)
+        t = time.localtime(t)
+
+        data_item['time'] = time.strftime('%Y-%m-%d %H:%M:%S', t)
+        data_item['file'] = p
+        rr.append(data_item)
+
+    rr.sort(key=lambda x: x['time'], reverse=True)
+    return mw.returnJson(True, 'ok', rr)
 
 
 def importDbBackup():
@@ -1106,23 +1154,25 @@ def importDbBackup():
     name = args['name']
 
     bk_path_upload = getBackupDir()
-
-    file_path = os.path.join(bk_path_upload, name)
+    file_path = os.path.join(bk_path_upload, file)
     if not os.path.exists(file_path):
-        return mw.returnJson(False, '备份文件不存在')
+        return mw.returnJson(False, '备份文件不存在!')
+
+    # 让 postgres 有权限读取备份文件
+    if not mw.isAppleSystem() and os.name != 'nt':
+        mw.execShell("chown postgres:postgres " + file_path)
 
     port = getPgPort()
-    cmd = '''gunzip -c {}|su - postgres -c " /www/server/pgsql/bin/psql  -d {}  -p {} " '''.format(
-        file, name, port)
+    
+    if os.name == 'nt':
+        cmd = 'gunzip -c ' + file_path + ' | "' + getServerDir() + '/bin/psql" -p ' + port + ' -d ' + name
+        mw.execShell(cmd)
+    else:
+        psql_bin = getServerDir() + '/bin/psql'
+        cmd = 'gunzip -c ' + file_path + ' | ' + psql_bin + ' -p ' + port + ' -d ' + name
+        execShellPg(cmd)
 
-    if mw.isAppleSystem():
-        cmd = '''gunzip -c {} | {}/bin/psql  -d {}  -p {}'''.format(
-            name, getServerDir(), port)
-
-    # print(cmd)
-
-    mw.execShell(cmd)
-    return mw.returnJson(True, '恢复数据库成功')
+    return mw.returnJson(True, '导入成功!')
 
 
 def deleteDbBackup():

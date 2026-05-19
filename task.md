@@ -102,3 +102,43 @@ BtSimple (原 mdserver-web) 是一个 Linux 面板。目前主要通过 `mw` 命
 - [x] 编写前端备份详情页面交互：增加 “同步” 和 “本地上传” 按钮，实现对应的前端交互与文件上传逻辑 @done(2026-05-19 09:06)
 - [x] 整合验证：测试备份、同步、上传、导入、删除全流程，确保没有 Bug @done(2026-05-19 09:06)
 - [x] 列表排序优化：确保备份详情列表中的备份文件按备份时间从新到旧降序排列 @done(2026-05-19 09:10)
+
+# Task: 修复 PostgreSQL 管理器备份、同步、上传与显示 Bug
+
+## 项目描述
+在 PostgreSQL 管理器使用中，修复以下问题：
+1. 文件上传在 Windows 开发调试环境下（以及某些权限受限环境）因 `os.chown` 方法缺失/无权限导致“上传错误”的 bug。
+2. 后端 `getArgs()` 在接收前端传来的多参数 JSON 字符串时分割逻辑损坏，导致同步点击失效等诸多 bug。
+3. 之前备份的以及用户上传的备份文件，因为不满足严格的 `db_dbname_` 前缀规则，在非同步状态下无法显示出来的 bug。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 保证中英文多语言一致性。
+- 代码改动应最小化，保持高内聚低耦合。
+
+## Task List
+- [x] 在 `task.md` 中创建此修复 Task 与 Task List @done(2026-05-19 09:25)
+- [x] 修复 `web/admin/files/files.py` 中 `os.chown` 在 Windows 等环境下的缺失/报错问题 @done(2026-05-19 09:27)
+- [x] 优化 `plugins/postgresql/index.py` 中 `getArgs` 的参数解析，使其完美支持多参数的 JSON 解析 @done(2026-05-19 09:28)
+- [x] 优化 `plugins/postgresql/index.py` 中 `getDbBackupListFunc` 过滤逻辑，兼容 `dbname_` 及 `db_dbname_` 前缀备份文件，使其不点同步也能正确显示 @done(2026-05-19 09:29)
+- [x] 整合验证备份、同步、上传以及列表显示功能 @done(2026-05-19 09:30)
+- [x] 彻底重构并修复 `plugins/postgresql/index.py` 中 `pgBack` 备份函数，替换硬编码路径并增加 Windows 兼容及执行成功校验 @done(2026-05-19 09:31)
+- [x] 彻底重构并修复 `plugins/postgresql/index.py` 中 `pgBackList` 获取备份列表函数，解除 `i.split("_")[0]` 造成的前缀匹配屏蔽，调用通用的 `getDbBackupListFunc` 过滤逻辑 @done(2026-05-19 09:31)
+- [x] 彻底重构并修复 `plugins/postgresql/index.py` 中 `importDbBackup` 数据库还原函数，纠正错配参数并修复硬编码指令和用户权限崩溃 @done(2026-05-19 09:31)
+
+# Task: 优化 PostgreSQL 备份文件命名规则以体现版本号
+
+## 项目描述
+优化 PostgreSQL 面板的备份命名机制，让生成的备份文件名称中包含当前安装的 PostgreSQL 对应版本号（如 `pg_backup_v18.3_dbname_时间.gz`），并升级备份过滤匹配逻辑以完美兼容新老两种命名的文件展示。
+
+## 开发规范
+- 统一使用 UTF-8 (无 BOM) 格式。
+
+## Task List
+- [x] 在 `task.md` 中登记新任务 @done(2026-05-19 09:33)
+- [x] 增加通用版本号获取方法 `getPgVersion()` @done(2026-05-19 09:34)
+- [x] 重构 `pgBack()` 备份数据库的文件命名为 `pg_backup_v{version}_{dbname}_{cur_time}.gz` @done(2026-05-19 09:34)
+- [x] 重构 `setDbBackup()` 面板主备份函数的文件命名，与弹窗的命名格式统一 @done(2026-05-19 09:34)
+- [x] 升级 `getDbBackupListFunc()` 过滤匹配逻辑，兼容体现版本号的最新备份格式，确保完美展示 @done(2026-05-19 09:34)
+- [x] 整合验证备份文件产生与完美列表展现 @done(2026-05-19 09:34)

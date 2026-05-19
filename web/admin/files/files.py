@@ -216,8 +216,14 @@ def upload_file():
 
     # print(filename)
     f.save(filename)
-    os.chown(filename, p_stat.st_uid, p_stat.st_gid)
-    os.chmod(filename, p_stat.st_mode)
+    try:
+        os.chown(filename, p_stat.st_uid, p_stat.st_gid)
+    except:
+        pass
+    try:
+        os.chmod(filename, p_stat.st_mode)
+    except:
+        pass
 
     msg = mw.getInfo('上传文件[{1}] 到 [{2}]成功!', (filename, path))
     mw.writeLog('文件管理', msg)
