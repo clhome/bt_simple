@@ -99,8 +99,13 @@ def initDreplace():
     systemService = systemDir + '/swap.service'
     systemServiceTpl = getPluginDir() + '/init.d/swap.service.tpl'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        swapon_bin = mw.execShell('which swapon')[0].strip()
-        swapoff_bin = mw.execShell('which swapoff')[0].strip()
+        import shutil
+        swapon_bin = shutil.which('swapon')
+        if not swapon_bin:
+            swapon_bin = '/sbin/swapon'
+        swapoff_bin = shutil.which('swapoff')
+        if not swapoff_bin:
+            swapoff_bin = '/sbin/swapoff'
         content = mw.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
         content = content.replace('{$SWAPON_BIN}', swapon_bin)
@@ -116,7 +121,24 @@ def swapOp(method):
 
     if not mw.isAppleSystem():
         data = mw.execShell('systemctl ' + method + ' swap')
+        
+        # 针对 start/stop/restart 方法，直接通过 status() 的真实结果进行判定，而非完全依赖 stderr 为空
+        if method == 'start':
+            if status() == 'start':
+                return 'ok'
+        elif method == 'stop':
+            if status() == 'stop':
+                return 'ok'
+        elif method == 'restart':
+            if status() == 'start':
+                return 'ok'
+
         if data[1] == '':
+            return 'ok'
+
+        # 兼容处理 systemd 输出的非错误级别提示 (如 Warning 警告, symlink 创建等)
+        err_msg = data[1].lower()
+        if 'warning' in err_msg or 'created symlink' in err_msg or 'removed' in err_msg:
             return 'ok'
         return 'fail'
 

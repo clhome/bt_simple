@@ -642,4 +642,21 @@ python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-communi
 - [X] 修改 10 个版本的安装子脚本 `install_generic.sh`（5.7, 8.0, 8.2, 8.3, 8.4, 9.0, 9.1, 9.2, 9.3, 9.7），改为基于 `${BASH_SOURCE[0]}` 计算相对于主插件目录的 `curPath`
 - [X] 验证修复逻辑并全部打勾
 
+# Task: 解决 Swap 插件在 Debian 13 环境下无法安装的问题
 
+## 项目描述
+
+在 Debian 13 环境下，由于系统默认没有安装 `which` 命令且 `systemctl` 存在状态警告，导致 Swap 插件的安装及检测流程崩溃，无法启用 Swap。我们需要使用更具鲁棒性的 Python `shutil.which` 方法替代 `which` 工具，同时重构 `systemctl` 操作的状态判定与 Warning 过滤。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 保证无损向后兼容。
+
+## Task List
+
+- [X] 优化 `web/core/mw.py` 中的 `checkBinExist`，优先使用 `shutil.which` @done(2026-05-21 03:00)
+- [X] 优化 `plugins/swap/index.py` 中的 `initDreplace`，使用 `shutil.which` 来查找 `swapon` 与 `swapoff` 并附加安全绝对路径兜底 @done(2026-05-21 03:01)
+- [X] 优化 `plugins/swap/index.py` 中的 `swapOp`，重构 systemctl 的启动与停止成功状态判断逻辑，基于 status() 验证并对警告信息做容错 @done(2026-05-21 03:02)
+- [X] 整合并验证修改是否全部生效 @done(2026-05-21 03:03)

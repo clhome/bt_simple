@@ -70,6 +70,9 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
     return (success, error)
 
 def checkBinExist(name):
+    import shutil
+    if shutil.which(name):
+        return True
     d = execShell('which ' + name)
     if d[0] != '':
         return True
