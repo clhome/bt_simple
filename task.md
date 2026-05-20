@@ -595,7 +595,7 @@ nginx: [emerg] unknown directive "brotli" in /www/server/openresty/nginx/conf/ng
 
 
 
-- [ ] mysql tar 安装完成报错：
+- [X] mysql tar 安装完成报错： @done(2026-05-20 19:30)
 
 ```
 python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-community/index.py': [Errno 2] No such file or directory
@@ -660,3 +660,23 @@ python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-communi
 - [X] 优化 `plugins/swap/index.py` 中的 `initDreplace`，使用 `shutil.which` 来查找 `swapon` 与 `swapoff` 并附加安全绝对路径兜底 @done(2026-05-21 03:01)
 - [X] 优化 `plugins/swap/index.py` 中的 `swapOp`，重构 systemctl 的启动与停止成功状态判断逻辑，基于 status() 验证并对警告信息做容错 @done(2026-05-21 03:02)
 - [X] 整合并验证修改是否全部生效 @done(2026-05-21 03:03)
+
+# Task: 修复 MySQL Tar 安装完成后运行报错（读取配置项 TypeError）
+
+## 项目描述
+
+在极速安装 MySQL Tar（`mysql-community` 插件）后，打开插件管理页面时，因 my.cnf 配置文件尚未完全初始化、文件不存在或读取失败，`mw.readFile(file)` 会返回布尔值 `False`。而 `plugins/mysql-community/index.py` 中如 `getPidFile()` 等多个配置读取函数缺乏防错判定，直接调用 `re.search` 会触发 `TypeError: expected string or bytes-like object, got 'bool'` 异常，导致插件界面崩溃。同时若正则匹配失败返回 `None` 也会触发 `AttributeError` 崩溃。我们需要重构这些函数，使其具备默认值兜底，并在配置项读取失败时自动降级自愈。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格，使用最简洁有效的实现方式。
+- 高鲁棒性：引入 `getConfValue(rep, default)` 通用提取函数，确保当文件不存在、读取失败或配置不存在时，能够返回安全的默认值，防止任何形式的 Crash。
+
+## Task List
+
+- [X] 在 `task.md` 中登记此修复 Task 与 Task List @done(2026-05-21 03:06)
+- [X] 在 `plugins/mysql-community/index.py` 中引入 `getConfValue(rep, default)` 函数 @done(2026-05-21 03:07)
+- [X] 重构 `getDbPort`、`getDbServerId`、`getSocketFile`、`getErrorLogsFile` captains 等，采用高健壮性兜底提取 @done(2026-05-21 03:07)
+- [X] 修正 `getAuthPolicy` 中存在的正则表达式匹配拼写错误，并做健壮性处理 @done(2026-05-21 03:08)
+- [X] 验证打开 MySQL Tar 面板是否不再报错，并完成任务打勾 @done(2026-05-21 03:08)

@@ -93,47 +93,45 @@ def getConf():
     return path
 
 
-def getDbPort():
+def getConfValue(rep, default=''):
     file = getConf()
     content = mw.readFile(file)
-    rep = r'port\s*=\s*(.*)'
+    if not content:
+        return default
     tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if tmp:
+        return tmp.groups()[0].strip()
+    return default
+
+
+def getDbPort():
+    return getConfValue(r'port\s*=\s*(.*)', '3306')
+
 
 def getDbServerId():
-    file = getConf()
-    content = mw.readFile(file)
-    rep = r'server-id\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return getConfValue(r'server-id\s*=\s*(.*)', '1')
+
 
 def getSocketFile():
-    file = getConf()
-    content = mw.readFile(file)
-    rep = r'socket\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-
-    socket = tmp.groups()[0].strip()
-    return socket
+    return getConfValue(r'socket\s*=\s*(.*)', getServerDir() + '/mysql.sock')
 
 
 def getErrorLogsFile():
-    file = getConf()
-    content = mw.readFile(file)
-    rep = r'log-error\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return getConfValue(r'log-error\s*=\s*(.*)', getServerDir() + '/data/error.log')
+
 
 def getAuthPolicy():
     file = getConf()
     content = mw.readFile(file)
+    if not content:
+        return 'mysql_native_password'
     rep = r'authentication_policy\s*=\s*(.*)'
     tmp = re.search(rep, content)
     if tmp:
         return tmp.groups()[0].strip()
 
     rep2 = r'default-authentication-plugin\s*=\s*(.*)'
-    tmp2 = re.search(rep, content)
+    tmp2 = re.search(rep2, content)
     if tmp2:
         return tmp2.groups()[0].strip()
     # caching_sha2_password
@@ -264,25 +262,15 @@ def status(version=''):
 
 
 def getDataDir():
-    file = getConf()
-    content = mw.readFile(file)
-    rep = r'datadir\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return getConfValue(r'datadir\s*=\s*(.*)', getServerDir() + '/data')
+
 
 def getLogBinName():
-    file = getConf()
-    content = mw.readFile(file)
-    rep = r'log-bin\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return getConfValue(r'log-bin\s*=\s*(.*)', 'mysql-bin')
+
 
 def getPidFile():
-    file = getConf()
-    content = mw.readFile(file)
-    rep = r'pid-file\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return getConfValue(r'pid-file\s*=\s*(.*)', getServerDir() + '/data/mysql.pid')
 
 
 def binLog(version=''):
@@ -408,11 +396,7 @@ def getErrorLog():
 
 
 def getShowLogFile():
-    file = getConf()
-    content = mw.readFile(file)
-    rep = r'slow-query-log-file\s*=\s*(.*)'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    return getConfValue(r'slow-query-log-file\s*=\s*(.*)', getServerDir() + '/data/slow.log')
 
 def getMdb8Ver():
     return ['8.0','8.1','8.2','8.3','8.4','9.0','9.1', '9.2', '9.3', '9.4']
