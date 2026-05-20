@@ -481,6 +481,33 @@ migrate_from_mw() {
     log_info "停止面板服务..."
     stop_panel
 
+    # PostgreSQL 路径兼容: md面板使用 postgresql，bt_simple 期望 pgsql
+    if [ -d "/www/server/postgresql" ] && [ ! -d "/www/server/pgsql" ]; then
+        log_info "检测到 /www/server/postgresql 目录，需重命名为 pgsql 以兼容新面板..."
+        # 先停止 PostgreSQL 进程，否则重命名会失败
+        if systemctl is-active postgresql >/dev/null 2>&1; then
+            log_info "正在停止 PostgreSQL 服务..."
+            systemctl stop postgresql
+            sleep 2
+        fi
+        # 兜底: 确保所有 postgres 进程已终止
+        if pgrep -x postgres >/dev/null 2>&1; then
+            log_warn "仍有残留 postgres 进程，强制终止..."
+            pkill -9 postgres 2>/dev/null
+            sleep 1
+        fi
+        # 重命名目录
+        mv /www/server/postgresql /www/server/pgsql
+        if [ -d "/www/server/pgsql" ]; then
+            log_info "目录重命名成功: postgresql -> pgsql"
+            # 创建软链接兜底，防止其他配置或脚本硬编码了旧路径
+            ln -sf /www/server/pgsql /www/server/postgresql
+            log_info "已创建兼容软链接: postgresql -> pgsql"
+        else
+            log_error "目录重命名失败，请手动处理: mv /www/server/postgresql /www/server/pgsql"
+        fi
+    fi
+
     # 下载并部署
     download_code
     deploy_code
