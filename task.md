@@ -532,6 +532,26 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 532:   - [X] 增加“一键赋权”按钮，点击后发送请求调用 `set_db_privileges` 接口，一键赋权并提示成功后刷新权限展示 @done(2026-05-20 09:25)
 533: - [X] 整合并调试测试，确保特权成功查询并能执行一键赋权，且原来的访问权限（pg_hba.conf修改）功能也完全正常 @done(2026-05-20 09:28)
 
+# Task: 修复 PostgreSQL 一键赋权按钮点击无效、未实现赋权的问题
+
+## 项目描述
+
+用户在 PostgreSQL 管理器的“权限设置”弹窗中，点击“一键赋权给创建用户”按钮没有发生任何反应，也没有真正实现赋权。
+经排查，原因是后端 `plugins/postgresql/index.py` 中虽有 `setDbPrivileges()` 方法，但在脚本的 `__main__` 路由分发逻辑中，遗漏了对 `set_db_privileges` 请求的映射分发，导致前端请求直接返回 `'error'`，进而导致赋权操作失败。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 修复逻辑需要简单直接，不引入额外复杂度。
+
+## Task List
+
+- [X] 在 `task.md` 中登记此修复 Task 与 Task List @done(2026-05-20 11:45)
+- [X] 修改 `plugins/postgresql/index.py` 的路由映射，在 `__main__` 入口中加入对 `set_db_privileges` 的分发调用 @done(2026-05-20 11:45)
+- [X] 整合验证一键赋权功能，确保按钮点击后调用成功，前端刷新后能够完美渲染展示出 DEFAULT PRIVILEGES 信息 @done(2026-05-20 11:45)
+
+
 
 
 

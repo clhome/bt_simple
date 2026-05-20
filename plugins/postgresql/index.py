@@ -1856,6 +1856,8 @@ if __name__ == "__main__":
         print(getDbAccess())
     elif func == 'set_db_access':
         print(setDbAccess())
+    elif func == 'set_db_privileges':
+        print(setDbPrivileges())
     elif func == 'pg_back':
         print(pgBack())
     elif func == 'pg_back_list':
