@@ -7,7 +7,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # https://downloads.mysql.com/archives/community/
 
-curPath=`pwd`
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.."; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")

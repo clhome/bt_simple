@@ -620,3 +620,26 @@ python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-communi
 - [X] 修改 `web/static/app/site.js` 中的 `setSSL` 方法，增加 `cutTabView` 的点击事件绑定，点击后触发 `ACME` 标签的点击
 - [X] 验证点击无反应的问题是否得到解决
 
+
+# Task: 修复 MySQL Tar 安装完成报错（双重 plugins 路径错误）
+
+## 项目描述
+
+在极速安装 MySQL Tar（`mysql-community` 插件）时，由于脚本 `install.sh` 及其版本下的安装子脚本 `install_generic.sh` 通过 `pwd` 获取当前工作目录，当执行或调用环境的工作目录与脚本实际所在目录不符时，两次 `dirname` 运算会导致计算出的根路径 `rootPath` 多出 `/plugins`，进而拼接出 `/www/server/mdserver-web/plugins/plugins/mysql-community/index.py` 的不存在路径报错。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循 Shell 编写规范，使用极其稳定、不受当前工作目录影响的 `BASH_SOURCE` 计算方案：
+  - 主脚本中使用 `curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)`。
+  - 子脚本中由于位于 `versions/版本号` 目录下，使用 `curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.."; pwd)`。
+- 修复逻辑需要简单直接，不引入额外复杂度。
+
+## Task List
+
+- [X] 在 `task.md` 中登记此修复 Task 与 Task List
+- [X] 修改 `plugins/mysql-community/install.sh` 主脚本，改为基于 `${BASH_SOURCE[0]}` 计算 `curPath`
+- [X] 修改 10 个版本的安装子脚本 `install_generic.sh`（5.7, 8.0, 8.2, 8.3, 8.4, 9.0, 9.1, 9.2, 9.3, 9.7），改为基于 `${BASH_SOURCE[0]}` 计算相对于主插件目录的 `curPath`
+- [X] 验证修复逻辑并全部打勾
+
+
