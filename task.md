@@ -585,3 +585,20 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 - [X] 修改 `deploy.sh` 中的 `deploy_code` 函数，加入对 `plugins` 下已有插件的安全覆盖同步逻辑 @done(2026-05-20 17:28)
 - [X] 验证 Shell 脚本改动的语法与逻辑正确性 @done(2026-05-20 17:28)
 
+## Task List
+
+- [ ] 在 openResty 1.29.2 安装报错，目前只能临时注释掉brotli才能启动
+
+```
+nginx: [emerg] unknown directive "brotli" in /www/server/openresty/nginx/conf/nginx.conf:63 nginx: configuration file /www/server/openresty/nginx/conf/nginx.conf test failed
+```
+
+
+
+- [ ] mysql tar 安装完成报错：
+
+```
+python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-community/index.py': [Errno 2] No such file or directory
+python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-community/index.py': [Errno 2] No such file or directory
+```
+
