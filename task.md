@@ -602,3 +602,21 @@ python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-communi
 python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-community/index.py': [Errno 2] No such file or directory
 ```
 
+# Task: 修复站点配置中 SSL 申请证书按钮无反应的问题
+
+## 项目描述
+
+在站点配置的 SSL 页面中，“申请证书”按钮点击后没有任何反应，经排查是因为缺少对应的 click 事件监听器，导致无法自动跳转至 ACME 申请标签页。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 修复逻辑需要简单直接，不引入额外复杂度。
+
+## Task List
+
+- [X] 在 `task.md` 中登记此修复 Task 与 Task List
+- [X] 修改 `web/static/app/site.js` 中的 `setSSL` 方法，增加 `cutTabView` 的点击事件绑定，点击后触发 `ACME` 标签的点击
+- [X] 验证点击无反应的问题是否得到解决
+

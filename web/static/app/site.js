@@ -2077,6 +2077,9 @@ function setSSL(id,siteName){
 	$(".tab-nav span").click(function(){
 		$(this).addClass("on").siblings().removeClass("on");
 	});
+	$('.cutTabView').click(function(){
+		$('.tab-nav span').eq(1).click();
+	});
 	opSSL('now',id,siteName);
 }
 
