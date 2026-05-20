@@ -680,3 +680,43 @@ python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-communi
 - [X] 重构 `getDbPort`、`getDbServerId`、`getSocketFile`、`getErrorLogsFile` captains 等，采用高健壮性兜底提取 @done(2026-05-21 03:07)
 - [X] 修正 `getAuthPolicy` 中存在的正则表达式匹配拼写错误，并做健壮性处理 @done(2026-05-21 03:08)
 - [X] 验证打开 MySQL Tar 面板是否不再报错，并完成任务打勾 @done(2026-05-21 03:08)
+
+# Task: 修复 MySQL [Tar] 及常规 MySQL 插件新建数据库密码报错及修复失败的 Bug
+
+## 项目描述
+
+当用户在首次安装完 MySQL 或常规操作中因密码未完成完全同步而导致新建数据库报密码错误时，面板提供了“修复”功能来重置 root 密码。但对于 MySQL 8.0+ 版本，在开启免密模式（skip-grant-tables）重置密码时，由于后台强行使用了含有错误密码的 `-proot` 连接参数，导致密码重置 SQL 实际无法在 MySQL 中成功执行，而 SQLite 中的密码又已被改写，最终导致密码不一致，新建数据库不断报“数据库密码错误，在管理列表点击修复”的 Bug。我们将重构免密重置命令行参数，剔除错误的 `-proot` 密码参数，确保密码自愈逻辑 100% 成功执行。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格，使用最简洁有效的实现方式。
+- 高鲁棒性：剔除开启 `skip-grant-tables` 模式下 `mysql` 命令行客户端导入语句中硬编码的 `-proot` 选项，恢复标准的免密管道登录方式。
+
+## Task List
+
+- [X] 在 `task.md` 中登记此修复 Task 与 Task List @done(2026-05-21 03:25)
+- [X] 修改 MySQL 社区版插件（mysql-community）的密码自愈功能：在 `plugins/mysql-community/index.py` 中重构 `resetDbRootPwd`，剔除免密连接下的 `-proot` 参数 @done(2026-05-21 03:26)
+- [X] 修改 MySQL 常规版插件（mysql）的密码自愈功能：在 `plugins/mysql/index.py` 中重构 `resetDbRootPwd`，同样剔除 `-proot` 参数 @done(2026-05-21 03:26)
+- [X] 验证修改逻辑是否正常 @done(2026-05-21 03:26)
+
+# Task: 解决 MySQL 5.7 版本（Tar 社区版及常规版）密码自愈及初始安装密码配置失效问题
+
+## 项目描述
+
+在 MySQL 5.7 版本中，`mysql.user` 表废弃并删除了 `password` 字段，改为 `authentication_string` 字段。而面板此前的 5.7 修复自愈与初始安装密码设置依然强行对 `password` 字段进行更新，导致自愈及设置报错失效。此外，免密登录与初始密码修改均缺乏对 Socket 绝对路径的显式引用，导致如果 socket 路径变更时重置失败。我们需要针对 5.7 进行专属字段判定，并注入 socket 路径及优化命令行参数。
+
+## 开发规范
+
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
+- 保证完美无损的向下兼容。
+
+## Task List
+
+- [x] 登记 MySQL 5.7 密码加固任务到 task.md @done(2026-05-21 03:31)
+- [x] 优化并加固 MySQL 社区版（mysql-community）插件 `my8cmd` 中5.7版本密码初始化逻辑：新增 `initMysql57Pwd()` 专用函数（使用 `authentication_string` 字段），并在 `my8cmd` 中根据版本选择正确的密码初始化函数 @done(2026-05-21 03:31)
+- [x] 优化并加固 MySQL 常规版（mysql）插件 `my8cmd` 中5.7版本密码初始化逻辑：5.7 版本改为调用 `initMysqlPwd(version)` 而非 `initMysql8Pwd()` @done(2026-05-21 03:31)
+- [x] 验证整体密码修改、初始密码修改和修复功能的拼接命令与健壮性 @done(2026-05-21 03:31)
+
+

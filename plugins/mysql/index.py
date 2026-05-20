@@ -510,29 +510,31 @@ def initMysql8Data():
     return True
 
 
-def initMysqlPwd():
+def initMysqlPwd(version='5.7'):
     time.sleep(5)
 
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
     pwd = mw.getRandomString(16)
 
-    cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -e'
-    cmd_pass = cmd_pass + \
-        '"UPDATE mysql.user SET password=PASSWORD(\'' + \
-        pwd + "') WHERE user='root';"
-    cmd_pass = cmd_pass + 'flush privileges;"'
+    db_option = " -S " + getSocketFile()
+    if version.startswith('5.7'):
+        sql_cmd = "UPDATE mysql.user SET authentication_string=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
+    else:
+        sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
+
+    cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
     data = mw.execShell(cmd_pass)
     # print(cmd_pass)
     # print(data)
 
     # 删除空账户
-    drop_empty_user = serverdir + '/bin/mysql -uroot -p' + \
+    drop_empty_user = serverdir + '/bin/mysql' + db_option + ' -uroot -p' + \
         pwd + ' -e "use mysql;delete from user where USER=\'\'"'
     mw.execShell(drop_empty_user)
 
     # 删除测试数据库
-    drop_test_db = serverdir + '/bin/mysql -uroot -p' + \
+    drop_test_db = serverdir + '/bin/mysql' + db_option + ' -uroot -p' + \
         pwd + ' -e "drop database test";'
     mw.execShell(drop_test_db)
 
@@ -540,11 +542,11 @@ def initMysqlPwd():
     hostname = mw.execShell('hostname')[0].strip()
     if hostname != 'localhost':
         drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
+            myconf + db_option + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
         mw.execShell(drop_hostname)
 
         drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
+            myconf + db_option + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
         mw.execShell(drop_root_hostname)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
@@ -620,7 +622,7 @@ def myOp(version, method):
             else:
                 mw.execShell('systemctl start mysql')
 
-            initMysqlPwd()
+            initMysqlPwd(version)
 
             if not mw.isSupportSystemctl():
                 mw.execShell('service ' + getPluginName() + ' stop')
@@ -662,7 +664,10 @@ def my8cmd(version, method):
             for x in range(10):
                 mydb_status = process_status()
                 if mydb_status == 'start':
-                    initMysql8Pwd()
+                    if mw.inArray(mdb8, version):
+                        initMysql8Pwd()
+                    else:
+                        initMysqlPwd(version)
                     break
                 time.sleep(1)
 
@@ -1841,9 +1846,12 @@ def resetDbRootPwd(version):
 
     mdb8 = getMdb8Ver()
     if not mw.inArray(mdb8, version):
-        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -e'
-        cmd_pass = cmd_pass + '"UPDATE mysql.user SET password=PASSWORD(\'' + pwd + "') WHERE user='root';"
-        cmd_pass = cmd_pass + 'flush privileges;"'
+        db_option = " -S " + getSocketFile()
+        if version.startswith('5.7'):
+            sql_cmd = "UPDATE mysql.user SET authentication_string=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
+        else:
+            sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
+        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
         data = mw.execShell(cmd_pass)
         # print(data)
     else:
@@ -1861,7 +1869,7 @@ def resetDbRootPwd(version):
 
         tmp_file = "/tmp/mysql_init_tmp.log"
         mw.writeFile(tmp_file, reset_pwd)
-        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -proot < ' + tmp_file
+        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot < ' + tmp_file
 
         data = mw.execShell(cmd_pass)
         # print(data)
