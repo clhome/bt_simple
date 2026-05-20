@@ -587,7 +587,7 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 
 ## Task List
 
-- [ ] 在 openResty 1.29.2 安装报错，目前只能临时注释掉brotli才能启动
+- [X] 在 openResty 1.29.2 安装报错，目前只能临时注释掉brotli才能启动 @done(2026-05-21 03:00)
 
 ```
 nginx: [emerg] unknown directive "brotli" in /www/server/openresty/nginx/conf/nginx.conf:63 nginx: configuration file /www/server/openresty/nginx/conf/nginx.conf test failed
