@@ -346,6 +346,20 @@ deploy_code() {
         fi
     done
 
+    # 安全地同步更新插件管理器
+    if [ -d "${src}/plugins" ]; then
+        log_info "安全地更新插件管理器..."
+        # 逐个循环仓库中的插件，仅覆盖同步存在的插件，防止删掉用户自定义的其他插件
+        for plugin_path in ${src}/plugins/*; do
+            if [ -d "$plugin_path" ]; then
+                local plugin_name=$(basename "$plugin_path")
+                mkdir -p ${PANEL_DIR}/plugins/${plugin_name}
+                cp -rf ${plugin_path}/* ${PANEL_DIR}/plugins/${plugin_name}/
+            fi
+        done
+        log_info "插件管理器更新完成"
+    fi
+
     # 确保目录权限
     chmod 755 ${PANEL_DIR}/data 2>/dev/null
     chmod 755 ${PANEL_DIR}/cli.sh 2>/dev/null
