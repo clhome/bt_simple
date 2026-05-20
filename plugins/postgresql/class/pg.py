@@ -26,6 +26,7 @@ class ORM:
     __DB_CNF = '/etc/postgresql.cnf'
     __DB_SOCKET = '/tmp/.s.PGSQL.5432'
     __DB_CHARSET = "utf8"
+    __DB_NAME = "postgres"
 
     __DB_TABLE = ""             # 被操作的表名称
     __OPT_WHERE = ""            # where条件
@@ -41,28 +42,28 @@ class ORM:
 
             if os.path.exists(self.__DB_SOCKET):
                 try:
-                    self.__DB_CONN = psycopg2.connect(database='postgres',
+                    self.__DB_CONN = psycopg2.connect(database=self.__DB_NAME,
                                                       user=self.__DB_USER,
                                                       password=self.__DB_PASS,
                                                       host=self.__DB_SOCKET,
                                                       port=int(self.__DB_PORT))
                 except Exception as e:
                     self.__DB_HOST = '127.0.0.1'
-                    self.__DB_CONN = psycopg2.connect(database='postgres',
+                    self.__DB_CONN = psycopg2.connect(database=self.__DB_NAME,
                                                       user=self.__DB_USER,
                                                       password=self.__DB_PASS,
                                                       host=self.__DB_SOCKET,
                                                       port=int(self.__DB_PORT))
             else:
                 try:
-                    self.__DB_CONN = psycopg2.connect(database='postgres',
+                    self.__DB_CONN = psycopg2.connect(database=self.__DB_NAME,
                                                       user=self.__DB_USER,
                                                       password=self.__DB_PASS,
                                                       host=self.__DB_HOST,
                                                       port=int(self.__DB_PORT))
                 except Exception as e:
                     self.__DB_HOST = '127.0.0.1'
-                    self.__DB_CONN = psycopg2.connect(database='postgres',
+                    self.__DB_CONN = psycopg2.connect(database=self.__DB_NAME,
                                                       user=self.__DB_USER,
                                                       password=self.__DB_PASS,
                                                       host=self.__DB_HOST,
@@ -93,6 +94,9 @@ class ORM:
 
     def setPwd(self, pwd):
         self.__DB_PASS = pwd
+
+    def setDbName(self, dbname):
+        self.__DB_NAME = dbname
 
     def getPwd(self):
         return self.__DB_PASS

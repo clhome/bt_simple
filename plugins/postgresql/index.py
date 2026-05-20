@@ -200,7 +200,7 @@ def pSqliteDb(dbname='databases', name='pgsql'):
     return conn
 
 
-def pgDb():
+def pgDb(dbname='postgres'):
 
     sys.path.append(getPluginDir() + "/class")
     import pg
@@ -210,6 +210,7 @@ def pgDb():
     db.setPort(getDbPort())
     db.setPwd(pSqliteDb('config').where('id=?', (1,)).getField('pg_root'))
     db.setSocket(getSocketFile())
+    db.setDbName(dbname)
     return db
 
 
@@ -1187,10 +1188,86 @@ def getDbAccess():
 
     dbname = args['name']
     psdb = pSqliteDb('databases')
-    accept = psdb.where('name=?', (dbname,)).getField('accept')
-    if not accept:
-        accept = '127.0.0.1/32'
-    return mw.returnJson(True, 'ok', accept)
+    db_info = psdb.where('name=?', (dbname,)).field('username,accept').find()
+    
+    accept = '127.0.0.1/32'
+    dbuser = dbname
+    if db_info:
+        if 'accept' in db_info and db_info['accept']:
+            accept = db_info['accept']
+        if 'username' in db_info and db_info['username']:
+            dbuser = db_info['username']
+
+    privileges_list = []
+    try:
+        pdb = pgDb(dbname)
+        sql = """SELECT 
+            pg_get_userbyid(d.defaclrole) AS grantor,
+            COALESCE(n.nspname, 'ALL_SCHEMAS') AS schema,
+            CASE d.defaclobjtype
+                WHEN 'r' THEN 'TABLES'
+                WHEN 'S' THEN 'SEQUENCES'
+                WHEN 'f' THEN 'FUNCTIONS'
+                WHEN 'T' THEN 'TYPES'
+                WHEN 'n' THEN 'SCHEMAS'
+            END AS object_type,
+            d.defaclacl::text AS privileges
+        FROM pg_default_acl d
+        LEFT JOIN pg_namespace n 
+               ON d.defaclnamespace = n.oid;"""
+        res = pdb.query(sql)
+        if isinstance(res, list):
+            for row in res:
+                privileges_list.append({
+                    'grantor': str(row[0]),
+                    'schema': str(row[1]),
+                    'object_type': str(row[2]),
+                    'privileges': str(row[3])
+                })
+    except Exception as e:
+        pass
+
+    res_data = {
+        'accept': accept,
+        'username': dbuser,
+        'privileges': privileges_list
+    }
+    return mw.returnJson(True, accept, res_data)
+
+
+def setDbPrivileges():
+    args = getArgs()
+    data = checkArgs(args, ['name'])
+    if not data[0]:
+        return data[1]
+
+    dbname = args['name']
+    psdb = pSqliteDb('databases')
+    db_info = psdb.where('name=?', (dbname,)).field('username').find()
+    if not db_info:
+        return mw.returnJson(False, '数据库不存在!')
+
+    dbuser = db_info['username']
+
+    sqls = [
+        "GRANT USAGE ON SCHEMA public TO {}".format(dbuser),
+        "GRANT CREATE ON SCHEMA public TO {}".format(dbuser),
+        "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO {}".format(dbuser),
+        "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO {}".format(dbuser),
+        "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO {}".format(dbuser),
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO {}".format(dbuser),
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO {}".format(dbuser),
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON FUNCTIONS TO {}".format(dbuser)
+    ]
+
+    try:
+        pdb = pgDb(dbname)
+        for sql in sqls:
+            pdb.execute(sql)
+    except Exception as e:
+        return mw.returnJson(False, '一键赋权失败: ' + str(e))
+
+    return mw.returnJson(True, '一键赋权成功!')
 
 
 def setDbAccess():

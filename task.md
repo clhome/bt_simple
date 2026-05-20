@@ -498,7 +498,40 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 - [X] 仔细修改版本 18 的安装脚本 `versions/18/install.sh` 物理路径为 `pgsql` @done(2026-05-19 17:35)
 - [X] 验证及测试 Python 控制脚本在 Windows 开发与本地模拟环境下的基础输出 @done(2026-05-19 17:35)
 - [X] 修复面板 checks 检测路径，将 `info.json` 里的 `"checks"` 与 `"path"` 修正为 `"server/pgsql"`，使面板能完美识别新路径的安装状态 @done(2026-05-19 17:51)
-- [X] 解决管理页面各选项卡“文件不存在”的硬编码隐患，在 `contentReplace()` 中将 `{$APP_PATH}` 的硬编码路径彻底修正为动态的 `getServerDir()` 并在 `initDreplace()` 中加入了强制刷新与自愈生成机制 @done(2026-05-19 17:53)
+501: - [X] 解决管理页面各选项卡“文件不存在”的硬编码隐患，在 `contentReplace()` 中将 `{$APP_PATH}` 的硬编码路径彻底修正为动态的 `getServerDir()` 并在 `initDreplace()` 中加入了强制刷新与自愈生成机制 @done(2026-05-19 17:53)
+502: 
+503: # Task: 在 PostgreSQL 数据库权限管理中增加特权显示与一键赋权功能
+504: 
+505: ## 项目描述
+506: 
+507: 在 PostgreSQL 管理列表的“权限”设置弹窗中：
+508: 1. 增加当前数据库特权（`DEFAULT PRIVILEGES`）的显示。
+509: 2. 增加一键赋权功能，可以将对应数据库下的权限（Schema、已有的表/序列/函数、未来新建的表/序列/函数特权）一键赋权给该数据库的创建用户（即所有者）。
+510: 
+511: ## 开发规范
+512: 
+513: - 统一使用 UTF-8 (无 BOM) 格式。
+514: - 保证历史前端接口的向后兼容，不破坏原本的网段权限设置。
+515: - 代码变动最小化，保持极高的健壮性和优美的界面展示。
+516: 
+517: ## Task List
+518: 
+519: - [X] 在 `task.md` 中登记新任务 @done(2026-05-20 09:00)
+520: 520: - [X] 升级 `plugins/postgresql/class/pg.py`，支持动态切换连接数据库 @done(2026-05-20 09:10)
+521: - [X] 重构 `plugins/postgresql/index.py` 中的 `pgDb` 方法以接收 `dbname` 参数并动态设置 @done(2026-05-20 09:12)
+522: - [X] 升级 `plugins/postgresql/index.py` 中的 `getDbAccess`： @done(2026-05-20 09:15)
+523:   - [X] 在 Sqlite 中获取该数据库的创建用户名 `dbuser` @done(2026-05-20 09:15)
+524:   - [X] 连接至对应数据库 `dbname` 执行验证 SQL 获取其 `DEFAULT PRIVILEGES` @done(2026-05-20 09:15)
+525:   - [X] 将当前 accept 状态、创建用户名、以及权限数据作为 `res_data` 返回给前端 @done(2026-05-20 09:15)
+526: - [X] 在 `plugins/postgresql/index.py` 中新增 `setDbPrivileges` 一键赋权接口： @done(2026-05-20 09:18)
+527:   - [X] 在 Sqlite 中获取该数据库的创建用户名 `dbuser` @done(2026-05-20 09:18)
+528:   - [X] 连接至对应数据库 `dbname` 依次执行 GRANT 及 ALTER DEFAULT PRIVILEGES 的 8 条赋权 SQL 语句 @done(2026-05-20 09:18)
+529: - [X] 修改 `plugins/postgresql/js/postgresql.js` 中 `setDbAccess` 方法： @done(2026-05-20 09:25)
+530:   - [X] 优化模态框布局，在“访问权限”行下方增加“特权明细”展示区域 @done(2026-05-20 09:25)
+531:   - [X] 在模态框成功弹出后，如果接口返回了 `privileges`，在表格/列表中渲染展示出来（包括 grantor, schema, object_type, privileges） @done(2026-05-20 09:25)
+532:   - [X] 增加“一键赋权”按钮，点击后发送请求调用 `set_db_privileges` 接口，一键赋权并提示成功后刷新权限展示 @done(2026-05-20 09:25)
+533: - [X] 整合并调试测试，确保特权成功查询并能执行一键赋权，且原来的访问权限（pg_hba.conf修改）功能也完全正常 @done(2026-05-20 09:28)
+
 
 
 

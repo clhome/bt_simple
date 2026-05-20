@@ -295,7 +295,7 @@ function setDbAccess(name){
         
         layer.open({
             type: 1,
-            area: '500px',
+            area: ['680px', '450px'],
             title: '设置数据库权限',
             closeBtn: 1,
             shift: 5,
@@ -310,6 +310,18 @@ function setDbAccess(name){
                                 <option value='0.0.0.0/0'>所有人</option>\
                                 <option value='ip'>指定网段</option>\
                                 </select>\
+                            </div>\
+                        </div>\
+                        <div class='line' style='margin-top: 15px;'>\
+                            <span class='tname'>特权明细</span>\
+                            <div class='info-r'>\
+                                <div id='db_privileges_box' style='border: 1px solid #ddd; height: 180px; overflow-y: auto; padding: 10px; background: #fafafa; border-radius: 4px; font-size: 12px;'>\
+                                    正在获取权限信息...\
+                                </div>\
+                                <div style='margin-top: 8px;'>\
+                                    <button type='button' id='btn_onekey_grant' class='btn btn-success btn-xs'>一键赋权给创建用户</button>\
+                                    <span class='c9' style='margin-left: 10px;' id='priv_owner_desc'></span>\
+                                </div>\
                             </div>\
                         </div>\
                       </form>",
@@ -331,6 +343,64 @@ function setDbAccess(name){
                         $('input[name="address"]').remove()
                     }
                 });
+
+                function renderPrivileges(pdata_root) {
+                    var pdata = pdata_root.data;
+                    if (!pdata || !pdata.privileges) {
+                        $('#db_privileges_box').html('<span style="color: #999;">暂无特权数据</span>');
+                        return;
+                    }
+                    
+                    if (pdata.username) {
+                        $('#priv_owner_desc').html('将把数据库特权赋予创建用户：<strong style="color: #5cb85c;">' + pdata.username + '</strong>');
+                    }
+                    
+                    var privs = pdata.privileges;
+                    if (privs.length === 0) {
+                        $('#db_privileges_box').html('<span style="color: #999;">暂无特权数据（未进行默认特权赋权）</span>');
+                        return;
+                    }
+                    
+                    var table = '<table class="table table-hover table-bordered" style="margin-bottom:0; background:#fff; font-size: 11px;">\
+                                    <thead>\
+                                        <tr>\
+                                            <th>授权者</th>\
+                                            <th>Schema</th>\
+                                            <th>类型</th>\
+                                            <th>特权内容</th>\
+                                        </tr>\
+                                    </thead>\
+                                    <tbody>';
+                    for (var i = 0; i < privs.length; i++) {
+                        table += '<tr>\
+                                    <td>' + privs[i].grantor + '</td>\
+                                    <td>' + privs[i].schema + '</td>\
+                                    <td>' + privs[i].object_type + '</td>\
+                                    <td style="word-break: break-all;">' + privs[i].privileges + '</td>\
+                                 </tr>';
+                    }
+                    table += '</tbody></table>';
+                    $('#db_privileges_box').html(table);
+                }
+
+                renderPrivileges(rdata);
+
+                $('#btn_onekey_grant').click(function(){
+                    var loadT = layer.msg('正在一键赋权...', { icon: 16, time: 0, shade: 0.3 });
+                    myPost('set_db_privileges', {name: name}, function(grantData){
+                        layer.close(loadT);
+                        var grantRdata = $.parseJSON(grantData.data);
+                        if (grantRdata.status) {
+                            layer.msg('一键赋权成功！', {icon: 1, time: 2000});
+                            myPost('get_db_access', 'name='+name, function(refreshData){
+                                var refreshRdata = $.parseJSON(refreshData.data);
+                                renderPrivileges(refreshRdata);
+                            });
+                        } else {
+                            layer.msg(grantRdata.msg, {icon: 2, time: 3000});
+                        }
+                    });
+                });
             },
             yes:function(index){
                 var data = $("#set_db_access").serialize();
@@ -347,7 +417,6 @@ function setDbAccess(name){
                     }
                 }
                 dataObj['name'] = name;
-                // console.log(dataObj);
                 myPost('set_db_access', dataObj, function(data){
                     var rdata = $.parseJSON(data.data);
                     showMsg(rdata.msg,function(){
