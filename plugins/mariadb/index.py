@@ -420,7 +420,7 @@ def initMariaDbPwd():
     myconf = serverdir + "/etc/my.cnf"
     pwd = mw.getRandomString(16)
 
-    db_option = "-S " + serverdir + "/mysql.sock"
+    db_option = "-S " + getSocketFile()
     cmd_pass = serverdir + '/bin/mysql ' + db_option + ' -uroot -e'
     cmd_pass = cmd_pass + \
         "\"flush privileges;use mysql;grant all privileges on *.* to 'root'@'localhost' identified by '" + pwd + "';"
@@ -434,7 +434,7 @@ def initMariaDbPwd():
         exit(1)
 
     # 删除空账户
-    drop_empty_user = serverdir + '/bin/mysql ' + db_option + '-uroot -p' + \
+    drop_empty_user = serverdir + '/bin/mysql ' + db_option + ' -uroot -p' + \
         pwd + ' -e "use mysql;delete from user where USER=\'\'"'
     mw.execShell(drop_empty_user)
 
@@ -1459,7 +1459,7 @@ def resetDbRootPwd(version):
     pwd = mw.getRandomString(16)
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
 
-    db_option = "-S " + serverdir + "/mysql.sock"
+    db_option = "-S " + getSocketFile()
     cmd_pass = serverdir + '/bin/mariadb ' + db_option + ' -uroot -e'
     cmd_pass = cmd_pass + \
         "\"flush privileges;use mysql;grant all privileges on *.* to 'root'@'localhost' identified by '" + pwd + "';"

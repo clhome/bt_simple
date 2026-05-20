@@ -1339,7 +1339,7 @@ def setRootPwd(version=''):
                 return mw.returnJson(True, '【强制修改】数据库root密码修改成功(不意为成功连接数据)!')
             return isError
 
-        if version.find('5.7') > -1 or version.find('8.0') > -1:
+        if not (version.startswith('5.5') or version.startswith('5.6')):
             pdb.execute(
                 "UPDATE mysql.user SET authentication_string='' WHERE user='root'")
             pdb.execute(
@@ -1373,7 +1373,7 @@ def setUserPwd(version=''):
         psdb = pSqliteDb('databases')
         name = psdb.where('id=?', (uid,)).getField('name')
 
-        if version.find('5.7') > -1 or version.find('8.0') > -1:
+        if not (version.startswith('5.5') or version.startswith('5.6')):
             accept = pdb.query(
                 "select Host from mysql.user where User='" + name + "' AND Host!='localhost'")
             t1 = pdb.execute(

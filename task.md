@@ -719,4 +719,21 @@ python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-communi
 - [x] 优化并加固 MySQL 常规版（mysql）插件 `my8cmd` 中5.7版本密码初始化逻辑：5.7 版本改为调用 `initMysqlPwd(version)` 而非 `initMysql8Pwd()` @done(2026-05-21 03:31)
 - [x] 验证整体密码修改、初始密码修改和修复功能的拼接命令与健壮性 @done(2026-05-21 03:31)
 
+# Task: 全面检查所有 MySQL/MariaDB 插件密码兼容性问题
 
+## 项目描述
+
+对 mysql、mysql-community、mariadb 三个插件进行全面审计，发现并修复以下问题：
+1. `setRootPwd` / `setUserPwd` 版本判断范围过窄（只判断5.7和8.0），对8.1+版本漏判，导致错误使用旧 `password` 字段
+2. `mariadb/initMariaDbPwd` 中 socket 路径硬编码为 `serverdir/mysql.sock`，不随 my.cnf 中的配置动态读取
+3. `mariadb/initMariaDbPwd` 删除空账户命令中 `-S` 和 `-uroot` 之间缺少空格
+4. `mariadb/resetDbRootPwd` 中 socket 路径同样硬编码
+
+## Task List
+
+- [x] 全面审计三个插件的密码相关函数 @done(2026-05-21 03:35)
+- [x] 修复 `mysql/index.py` 中 `setRootPwd` 和 `setUserPwd` 版本判断逻辑：改为 `not (5.5 or 5.6)` 形式，覆盖8.1+所有版本 @done(2026-05-21 03:35)
+- [x] 修复 `mysql-community/index.py` 中 `setRootPwd` 和 `setUserPwd` 版本判断逻辑：同上 @done(2026-05-21 03:35)
+- [x] 修复 `mariadb/index.py` 中 `initMariaDbPwd` socket 路径硬编码：改为 `getSocketFile()` 动态读取 @done(2026-05-21 03:35)
+- [x] 修复 `mariadb/index.py` 中 `initMariaDbPwd` 删空账户命令 `-S` 后缺空格的拼接 Bug @done(2026-05-21 03:35)
+- [x] 修复 `mariadb/index.py` 中 `resetDbRootPwd` socket 路径硬编码：改为 `getSocketFile()` 动态读取 @done(2026-05-21 03:35)
