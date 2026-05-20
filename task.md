@@ -550,9 +550,19 @@ Telegram 机器人插件中的 `push_ad.py` 文件包含了硬编码的原作者
 - [X] 在 `task.md` 中登记此修复 Task 与 Task List @done(2026-05-20 11:45)
 - [X] 修改 `plugins/postgresql/index.py` 的路由映射，在 `__main__` 入口中加入对 `set_db_privileges` 的分发调用 @done(2026-05-20 11:45)
 - [X] 整合验证一键赋权功能，确保按钮点击后调用成功，前端刷新后能够完美渲染展示出 DEFAULT PRIVILEGES 信息 @done(2026-05-20 11:45)
+# Task: 修复面板安装/迁移完成时默认信息获取中 scheme 因未匹配而报错的问题
 
+## 项目描述
 
+在全新安装或迁移完成打印默认信息时，Shell 脚本中通过 `python3 panel_tools.py panel_ssl_type` 来获取面板 SSL 的 scheme (http/https)。但由于 `panel_tools.py` 的 `main()` 分发逻辑中漏掉了对 `panel_ssl_type` 的映射，导致其输出 `ERROR: Parameter error`，最终在最终输出中被拼成了 `ERROR: Parameter error://ip:port/path` 的奇怪格式。
 
+## 开发规范
 
+- 统一使用 UTF-8 (无 BOM) 格式。
+- 遵循原有代码风格。
 
+## Task List
+
+- [X] 在 `panel_tools.py` 中增加对 `panel_ssl_type` 方法的映射分发支持 @done(2026-05-20 17:05)
+- [X] 验证获取面板默认信息的 URL 拼接与输出正常 @done(2026-05-20 17:05)
 

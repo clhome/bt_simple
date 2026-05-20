@@ -453,6 +453,8 @@ def main():
         print(getLocalIp())
     elif method == 'panel_bind_domain':
         print(getPanelBindDomain())
+    elif method == 'panel_ssl_type':
+        print(getPanelSslType())
     elif method == 'migrate_restore':
         restore_bt_data()
     elif method == "cli":
