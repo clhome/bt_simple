@@ -737,3 +737,24 @@ python3: can't open file '/www/server/mdserver-web/plugins/plugins/mysql-communi
 - [x] 修复 `mariadb/index.py` 中 `initMariaDbPwd` socket 路径硬编码：改为 `getSocketFile()` 动态读取 @done(2026-05-21 03:35)
 - [x] 修复 `mariadb/index.py` 中 `initMariaDbPwd` 删空账户命令 `-S` 后缺空格的拼接 Bug @done(2026-05-21 03:35)
 - [x] 修复 `mariadb/index.py` 中 `resetDbRootPwd` socket 路径硬编码：改为 `getSocketFile()` 动态读取 @done(2026-05-21 03:35)
+
+# Task: 修复弹窗进程面板显示在底部且被遮挡的问题
+
+## 问题描述
+
+在软件管理等多个页面，layer.js 创建的弹窗（如服务重启/重载配置弹窗）出现在页面底部并被遮挡，刷新后立即恢复正常。
+
+## 根本原因
+
+`web/static/app/public.js` 中 `scrollHandle()` 函数（用于固定表格头部）对 `thead` 元素施加了 `transform: translateY(scrollTop)`。
+
+**CSS `transform` 属性会创建新的层叠上下文（stacking context）**，这是浏览器的规范行为：凡是祖先元素有 `transform`，其后代的 `position: fixed` 定位基准会从视口变为该祖先，导致 layer 弹窗脱离视口定位，跑到页面底部或被其他元素遮挡。刷新后 layer.css 重置了弹窗的 `position: fixed`，但滚动一下又会再次触发，所以"一刷新就恢复"。
+
+## 修复方案
+
+将 `scrollHandle` 中的 `transform: translateY()` 方案替换为 CSS `position: sticky` 实现表头吸顶，`sticky` 定位不创建新的层叠上下文，不会影响 `fixed` 弹窗的定位基准。
+
+## Task List
+
+- [x] 修复 `web/static/app/public.js` 中 `tableFixed()` 函数，改用 `position: sticky` 替代 `transform: translateY()` 实现表头固定 @done(2026-05-21 08:32)
+- [x] 将 `scrollHandle()` 置空并注释说明原因，防止外部调用时再次引入 `transform` @done(2026-05-21 08:32)

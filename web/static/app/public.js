@@ -63,23 +63,31 @@ function inArray(f, arr){
 }
 
 //表格头固定
+// 修复：原来使用 transform: translateY() 实现表头固定，
+// 但 CSS transform 会创建新的层叠上下文，导致 layer 弹窗的
+// position:fixed 定位基准变为该元素而非视口，弹窗跑到页面底部。
+// 改用 position: sticky 实现，不影响 fixed 定位。
 function tableFixed(name) {
     var tableName = document.querySelector('#' + name);
-    tableName.addEventListener('scroll', scrollHandle);
+    $(tableName).find('thead tr th').css({
+        'position': 'sticky',
+        'top': '0',
+        'z-index': '1'
+    });
 }
 
 function escapeHTML(a){
     a = "" + a;
     return a.replace(/&/g, "&amp;").replace(/</g, "&lt;").
     replace(/>/g, "&gt;").replace(/"/g, '&quot;').
-    replace(/'/g,"‘").replace(/\(/g,"&#40;").replace(/\&#60;/g,"&lt;").
-    replace(/\&#62;/g,"&gt;").replace(/`/g,"&#96;").replace(/=/g,"＝");
+    replace(/'/g,"&#x27;").replace(/\(/g,"&#40;").replace(/\&&#60;/g,"&lt;").
+    replace(/\&&#62;/g,"&gt;").replace(/`/g,"&#96;").replace(/=/g,"＝");
 }
 
+// scrollHandle 已废弃，保留空函数以防外部调用（不再对 thead 施加 transform）
 function scrollHandle(e) {
-    var scrollTop = this.scrollTop;
-    //this.querySelector('thead').style.transform = 'translateY(' + scrollTop + 'px)';
-    $(this).find("thead").css({ "transform": "translateY(" + scrollTop + "px)", "position": "relative", "z-index": "1" });
+    // 原来: $(this).find("thead").css({ "transform": "translateY(" + scrollTop + "px)", ... });
+    // transform 会破坏 position:fixed 弹窗定位，已改用 sticky 方案
 }
 
 
