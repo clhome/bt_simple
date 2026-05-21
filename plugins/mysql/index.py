@@ -1845,16 +1845,17 @@ def resetDbRootPwd(version):
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
 
     mdb8 = getMdb8Ver()
-    if not mw.inArray(mdb8, version):
+    # MySQL 5.7+ 和 8.x/9.x 都使用 flush privileges + ALTER USER 方式重置密码
+    # 5.5/5.6 使用旧的 PASSWORD() 函数方式
+    if not mw.inArray(mdb8, version) and not version.startswith('5.7'):
+        # MySQL 5.5 / 5.6 旧方式
         db_option = " -S " + getSocketFile()
-        if version.startswith('5.7'):
-            sql_cmd = "UPDATE mysql.user SET authentication_string=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
-        else:
-            sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
+        sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
         cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
         data = mw.execShell(cmd_pass)
         # print(data)
     else:
+        # MySQL 5.7+ / 8.x / 9.x 使用 flush privileges + ALTER USER
         auth_policy = getAuthPolicy()
 
         reset_pwd = 'flush privileges;'
@@ -1887,22 +1888,26 @@ def fixDbAccess(version):
         data = pdb.query('show databases')
         isError = isSqlError(data)
         if isError != None:
-       
-            # 重置密码
+
+            # 重置密码：停服 → 开跳过授权 → 启动 → 等待就绪 → 重置密码 → 停服 → 关跳过授权 → 启动
             appCMD(version, 'stop')
+            time.sleep(2)
             openSkipGrantTables()
             appCMD(version, 'start')
-            time.sleep(3)
+            # 等待 MySQL 在 skip-grant-tables 模式下完全启动
+            time.sleep(5)
             resetDbRootPwd(version)
 
             appCMD(version, 'stop')
+            time.sleep(2)
             closeSkipGrantTables()
             appCMD(version, 'start')
+            time.sleep(3)
 
             return mw.returnJson(True, '修复成功!')
         return mw.returnJson(True, '正常无需修复!')
     except Exception as e:
-        return mw.returnJson(False, '修复失败请重试!')
+        return mw.returnJson(False, '修复失败,错误: ' + str(e))
 
 
 def setDbRw(version=''):
