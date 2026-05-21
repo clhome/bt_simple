@@ -511,42 +511,59 @@ def initMysql8Data():
 
 
 def initMysqlPwd(version='5.7'):
-    time.sleep(5)
+    # MySQL 5.7 使用 --initialize-insecure 初始化，首次启动后 root 无密码
+    # 5.7 中 PASSWORD() 函数已废弃，需使用与 8.x 相同的方式设置密码
 
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
     pwd = mw.getRandomString(16)
 
-    db_option = " -S " + getSocketFile()
     if version.startswith('5.7'):
-        sql_cmd = "UPDATE mysql.user SET authentication_string=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
-    else:
-        sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
+        # MySQL 5.7: flush privileges + ALTER USER (与 8.x 一致)
+        time.sleep(5)
+        auth_policy = getAuthPolicy()
 
-    cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
-    data = mw.execShell(cmd_pass)
-    # print(cmd_pass)
-    # print(data)
+        alter_root_pwd = 'flush privileges;'
+        alter_root_pwd += "UPDATE mysql.user SET authentication_string='' WHERE user='root';"
+        alter_root_pwd += "flush privileges;"
+        alter_root_pwd += "alter user 'root'@'localhost' IDENTIFIED by '" + pwd + "';"
+        alter_root_pwd += "alter user 'root'@'localhost' IDENTIFIED WITH " + auth_policy + " by '" + pwd + "';"
+        alter_root_pwd += "flush privileges;"
+
+        tmp_file = "/tmp/mysql_init_tmp.log"
+        mw.writeFile(tmp_file, alter_root_pwd)
+        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot < ' + tmp_file
+        data = mw.execShell(cmd_pass)
+        # print(data)
+        os.remove(tmp_file)
+    else:
+        # MySQL 5.5 / 5.6: 使用旧的 PASSWORD() 函数方式
+        time.sleep(5)
+        db_option = " -S " + getSocketFile()
+        sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
+        cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
+        data = mw.execShell(cmd_pass)
+        # print(data)
 
     # 删除空账户
-    drop_empty_user = serverdir + '/bin/mysql' + db_option + ' -uroot -p' + \
-        pwd + ' -e "use mysql;delete from user where USER=\'\'"'
+    drop_empty_user = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -p"' + \
+        pwd + '" -e "use mysql;delete from user where USER=\'\'"'
     mw.execShell(drop_empty_user)
 
     # 删除测试数据库
-    drop_test_db = serverdir + '/bin/mysql' + db_option + ' -uroot -p' + \
-        pwd + ' -e "drop database test";'
+    drop_test_db = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -p"' + \
+        pwd + '" -e "drop database test";'
     mw.execShell(drop_test_db)
 
     # 删除冗余账户
     hostname = mw.execShell('hostname')[0].strip()
     if hostname != 'localhost':
-        drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + db_option + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
+        drop_hostname = serverdir + '/bin/mysql  --defaults-file=' + \
+            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
         mw.execShell(drop_hostname)
 
-        drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
-            myconf + db_option + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
+        drop_root_hostname = serverdir + '/bin/mysql  --defaults-file=' + \
+            myconf + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
         mw.execShell(drop_root_hostname)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
