@@ -151,6 +151,11 @@ function swapStatus() {
         spCon += '  </div>';
         spCon += '</div>';
 
+        // 外部右下角公司提示，带有前往官网链接与悬停动效
+        spCon += '<div style="text-align: right; margin-top: 15px; font-size: 12px; padding-right: 5px;">';
+        spCon += '  <a href="https://www.yftec.top" target="_blank" style="color: #1e7e34; text-decoration: none; font-weight: 500; cursor: pointer;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">衢州御风科技有限公司出品</a>';
+        spCon += '</div>';
+
         $(".soft-man-con").html(spCon);
     });
 }

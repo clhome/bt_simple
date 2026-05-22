@@ -1,6 +1,6 @@
 {
 	"sort": 6,
-	"ps": "Linux虚拟内存",
+	"ps": "御风Linux虚拟内存配置",
 	"name": "swap",
 	"title": "swap",
 	"shell": "install.sh",
@@ -9,7 +9,7 @@
 	"checks": "server/swap",
 	"path": "server/swap",
 	"display": 1,
-	"author": "swap",
+	"author": "御风科技",
 	"date": "2026-05-22",
 	"home": "http://www.yftec.top",
 	"type": 0,
