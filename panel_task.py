@@ -35,8 +35,50 @@ if not os.path.exists(g_log_file):
     os.system("touch " + g_log_file)
 
 def execShell(cmdstring, cwd=None, timeout=None, shell=True):
-    cmd = cmdstring + ' > ' + g_log_file + ' 2>&1'
-    return mw.execShell(cmd)
+    import subprocess
+    import time
+    
+    # 启动进程，捕获 stdout 并将 stderr 重定向到 stdout
+    sub = subprocess.Popen(cmdstring, cwd=cwd, stdin=subprocess.PIPE,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           shell=shell, bufsize=0)
+
+    try:
+        log_file_handle = open(g_log_file, 'w', encoding='utf-8')
+    except:
+        log_file_handle = None
+
+    # 实时读取
+    while True:
+        line_bytes = sub.stdout.readline()
+        if not line_bytes and sub.poll() is not None:
+            break
+        if line_bytes:
+            try:
+                line = line_bytes.decode('utf-8', 'ignore')
+            except Exception as e:
+                line = str(line_bytes)
+            
+            # 时间样式 [yymmdd HH:MM]，例如 [260522 14:22]
+            time_str = time.strftime('[%y%m%d %H:%M] ')
+            if log_file_handle:
+                try:
+                    if line.strip():
+                        log_file_handle.write(time_str + line)
+                    else:
+                        log_file_handle.write(line)
+                    log_file_handle.flush()
+                except:
+                    pass
+
+    if log_file_handle:
+        try:
+            log_file_handle.close()
+        except:
+            pass
+
+    return (str(sub.returncode), '')
+
 
 def writeLogs(data):
     # 写输出日志
