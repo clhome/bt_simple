@@ -10,7 +10,7 @@ P_VER=`python3 -V | awk '{print $2}'`
 echo "python:$P_VER"
 sleep 1
 
-curPath=`pwd`
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 serverPath=$(dirname "$rootPath")
 sourcePath=$serverPath/source/lib

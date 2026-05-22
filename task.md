@@ -27,5 +27,6 @@
 
 ### Task List
 
-- [x] 修改 `plugins/swap/install.sh`：将 `curPath=\`pwd\`` 改为动态根据 `BASH_SOURCE[0]` 获取的绝对路径方式 @done(2026-05-22 17:28)
-- [x] 验证路径解析正确性 @done(2026-05-22 17:28)
+- [x] 修改 `plugins/swap/install.sh`：将 `curPath=\`pwd\`` 改为动态根据 `BASH_SOURCE[0]` 获取绝对路径方式 @done(2026-05-22 17:28)
+- [x] 修改 `scripts/lib.sh`：将 `curPath=\`pwd\`` 改为动态根据 `BASH_SOURCE[0]` 获取绝对路径，解决被 source 时覆写全局 rootPath 变量导致 getos.sh 报错的严重缺陷 @done(2026-05-22 17:35)
+- [x] 验证路径解析及公共库引入正确性 @done(2026-05-22 17:35)
