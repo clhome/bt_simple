@@ -32,24 +32,57 @@ function swapPost(method, version, args,callback){
 function swapStatus() {
     swapPost('swap_status', '', {}, function(data){
         var rdata = $.parseJSON(data.data);
-        var size = rdata.data['size'];           // 插件专属 Swap (MB)
-        var system_total = rdata.data['system_total']; // 系统实际总 Swap (MB)
-        var mem_total = rdata.data['mem_total'];       // 物理内存总量 (MB)
+        var size = parseInt(rdata.data['size']) || 0;           // 插件专属 Swap (MB)
+        var system_total = parseInt(rdata.data['system_total']) || 0; // 系统实际总 Swap (MB)
+        var mem_total = parseInt(rdata.data['mem_total']) || 0;       // 物理内存总量 (MB)
 
         // 1. 计算物理内存的 GB 数，保留一位小数
         var mem_gb = (mem_total / 1024).toFixed(1);
         
-        // 2. 动态计算最佳推荐配置 Swap 值
-        var recommend_size = 2048; // 默认推荐 2GB
+        // 2. 依据官方建议表格计算目标总 Swap (MB)
+        var target_total = 4096; // 默认推荐 4GB
         if (mem_total < 2048) {
-            recommend_size = mem_total * 2;
-        } else if (mem_total >= 2048 && mem_total <= 8192) {
-            recommend_size = mem_total;
+            // 小于 2GB：物理内存的 2倍，范围 1024 - 2048 MB
+            target_total = Math.min(Math.max(mem_total * 2, 1024), 2048);
+        } else if (mem_total >= 2048 && mem_total < 8192) {
+            // 2GB - 8GB：与物理内存等大，范围 2048 - 4096 MB
+            target_total = Math.min(Math.max(mem_total, 2048), 4096);
+        } else if (mem_total >= 8192 && mem_total <= 16384) {
+            // 8GB - 16GB：配置约 4GB 即可
+            target_total = 4096;
         } else {
-            recommend_size = 4096;
+            // 大于 16GB：配置 4GB - 8GB，推荐 8192 MB
+            target_total = 8192;
         }
 
-        // 3. 构建排版精美的 HTML 页面
+        // 3. 计算系统自身原本已挂载的第三方 Swap 分区大小（系统自带 = 系统当前实际总 Swap - 本插件专属的 Swap）
+        var system_own = Math.max(0, system_total - size);
+
+        // 4. 插件最佳推荐配置 = 目标总量 - 系统自带 Swap（若结果小于 0，则推荐值归 0）
+        var recommend_size = Math.max(0, target_total - system_own);
+
+        // 5. 预设档位（含展示名和 MB 对应关系值）
+        var presets = [
+            { name: "218MB", value: 218 },
+            { name: "512MB", value: 512 },
+            { name: "1GB", value: 1024 },
+            { name: "2GB", value: 2048 },
+            { name: "4GB", value: 4096 },
+            { name: "8GB", value: 8192 }
+        ];
+
+        // 6. 从预设档位中，选择差值绝对值最小（最接近）的推荐档位
+        var closest_preset = presets[0];
+        var min_diff = Math.abs(recommend_size - closest_preset.value);
+        for (var i = 1; i < presets.length; i++) {
+            var diff = Math.abs(recommend_size - presets[i].value);
+            if (diff < min_diff) {
+                min_diff = diff;
+                closest_preset = presets[i];
+            }
+        }
+
+        // 7. 构建排版精美的 HTML 页面
         var spCon = '<div class="conf_p" style="padding: 15px; background-color: #fafbfc; border-radius: 6px; border: 1px solid #e1e4e8; margin-top: 15px;">';
         
         // --- 模块一：当前状态模块 ---
@@ -71,73 +104,68 @@ function swapStatus() {
         
         spCon += '    </div>';
         spCon += '  </div>';
-
+        
         // --- 模块二：调整配置模块 ---
         spCon += '  <div style="border-top: 1px solid #e9ebec; padding-top: 15px; margin-bottom: 10px;">';
         spCon += '    <h4 style="margin: 0 0 15px 0; font-size: 14px; font-weight: bold; color: #333; border-left: 3px solid #007bff; padding-left: 8px;">⚙️ 调整插件虚拟内存配置</h4>';
         
-        // 快捷预设与自定义大小表单
-        spCon += '    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 12px;">';
+        // 预设选择与提交修改横向两端对齐排版
+        spCon += '    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">';
         
-        spCon += '      <div>';
-        spCon += '        <span style="font-size: 13px; color: #555;">快捷预设容量:</span>';
-        spCon += '        <select class="bt-input-text" name="swap_set" style="margin-left: 5px; width: 100px; height: 30px; padding: 0 5px; border-radius: 4px;">';
-        spCon += '            <option value="">请选择...</option>';
-        spCon += '            <option value="218MB">218MB</option>';
-        spCon += '            <option value="512MB">512MB</option>';
-        spCon += '            <option value="1GB">1GB</option>';
-        spCon += '            <option value="2GB">2GB</option>';
-        spCon += '            <option value="4GB">4GB</option>';
-        spCon += '        </select>';
+        spCon += '      <div style="display: flex; align-items: center;">';
+        spCon += '        <span style="font-size: 13px; color: #555; font-weight: 500;">配置容量选择:</span>';
+        
+        // 动态生成下拉列表，完美匹配当前插件 Swap 容量大小并高亮选中
+        var has_exact_preset = false;
+        var selectHtml = '<select class="bt-input-text" name="swap_set" style="margin-left: 10px; width: 180px; height: 32px; padding: 0 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px;">';
+        selectHtml += '  <option value="">请选择...</option>';
+        for (var i = 0; i < presets.length; i++) {
+            var is_selected = (presets[i].value === size) ? 'selected' : '';
+            if (presets[i].value === size) {
+                has_exact_preset = true;
+            }
+            selectHtml += '  <option value="' + presets[i].value + '" ' + is_selected + '>' + presets[i].name + '</option>';
+        }
+        if (!has_exact_preset && size > 0) {
+            selectHtml += '  <option value="' + size + '" selected>当前大小 (' + size + 'MB)</option>';
+        }
+        selectHtml += '</select>';
+        
+        spCon += selectHtml;
         spCon += '      </div>';
 
-        spCon += '      <div style="display: flex; align-items: center;">';
-        spCon += '        <span style="font-size: 13px; color: #555;">自定义修改为:</span>';
-        spCon += '        <input style="width: 80px; height: 30px; margin-left: 5px; text-align: center; border-radius: 4px; border: 1px solid #ccc;" class="bt-input-text mr5" name="size" value="' + size + '" type="number" >';
-        spCon += '        <span style="font-size: 13px; color: #555; margin-left: 2px;">MB</span>';
+        // 提交修改按钮
+        spCon += '      <div>';
+        spCon += '        <button class="btn btn-success btn-sm" style="padding: 6px 20px; font-size: 13px; font-weight: bold; border-radius: 4px;" onclick="submitSwap()">提交修改</button>';
         spCon += '      </div>';
         
         spCon += '    </div>';
 
         // --- 模块三：智能配置推荐 ---
-        spCon += '    <div style="background-color: #eef9f0; border-radius: 4px; padding: 10px; border-left: 4px solid #28a745; margin-bottom: 15px; display: flex; align-items: center;">';
+        spCon += '    <div style="background-color: #eef9f0; border-radius: 4px; padding: 10px; border-left: 4px solid #28a745; margin-bottom: 5px; display: flex; align-items: center;">';
         spCon += '      <div style="font-size: 13px; color: #1e7e34; width:100%;">';
-        spCon += '        💡 <b>智能配置推荐</b>：基于您当前的物理内存 <b>' + mem_gb + ' GB</b>，最佳推荐配置的 Swap 大小为 <b style="font-size:14px; text-decoration: underline; cursor: pointer; color: #155724;" onclick="applyRecommendSize(' + recommend_size + ')">' + recommend_size + ' MB</b> <span style="font-size: 11px; font-weight: normal; color: #555;">(点击可快速填入)</span>';
+        spCon += '        💡 <b>智能配置推荐</b>：基于您当前的物理内存 <b>' + mem_gb + ' GB</b>，官方推荐总虚拟内存为 <b>' + target_total + ' MB</b>（已扣除系统自带 ' + system_own + ' MB）。因此本插件最接近的最佳推荐档位为 <b style="font-size:14px; text-decoration: underline; cursor: pointer; color: #155724;" onclick="applyRecommendPreset(' + closest_preset.value + ')">' + closest_preset.name + '</b> <span style="font-size: 11px; font-weight: normal; color: #555;">(点击可快速选择)</span>';
         spCon += '      </div>';
-        spCon += '    </div>';
-
-        // 提交按钮
-        spCon += '    <div class="text-right" style="padding-right: 5px;">';
-        spCon += '      <button class="btn btn-success btn-sm" style="padding: 6px 16px; font-size: 13px; font-weight: bold; border-radius: 4px;" onclick="submitSwap()">提交修改</button>';
         spCon += '    </div>';
         
         spCon += '  </div>';
         spCon += '</div>';
 
         $(".soft-man-con").html(spCon);
-
-        // 绑定下拉框 change 联动
-        $(".conf_p select[name='swap_set']").change(function() {
-            var swap_size = $(this).val();
-            if (!swap_size) return;
-            if (swap_size.indexOf('GB') > -1) {
-                swap_size = parseInt(swap_size) * 1024;
-            } else {
-                swap_size = parseInt(swap_size);
-            }
-            $("input[name='size']").val(swap_size);
-        });
     });
 }
 
-function applyRecommendSize(size) {
-    $("input[name='size']").val(size);
-    $(".conf_p select[name='swap_set']").val("");
+function applyRecommendPreset(value) {
+    $(".conf_p select[name='swap_set']").val(value);
 }
 
 function submitSwap(){
-    var size = $("input[name='size']").val();
-    swapPost('change_swap', '',{"size":size}, function(data){
+    var size = $(".conf_p select[name='swap_set']").val();
+    if (!size) {
+        layer.msg("请先选择您想要配置的 Swap 容量！", { icon: 0 });
+        return;
+    }
+    swapPost('change_swap', '', {"size": size}, function(data){
         var rdata = $.parseJSON(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
         swapStatus();
