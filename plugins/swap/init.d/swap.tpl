@@ -18,8 +18,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 app_file={$SERVER_PATH}
 
 app_start(){
-	isStart=`free -m|grep Swap|awk '{print $2}'`
-	if [ "$isStart" == '0' ];then
+	if ! grep -q "$app_file" /proc/swaps; then
         echo -e "Starting swap... \c"
         swapon $app_file
         echo -e "\033[32mdone\033[0m"
@@ -30,15 +29,18 @@ app_start(){
 
 app_stop()
 {
-    echo -e "Stopping swap... \c";
-    swapoff $app_file
-    echo -e "\033[32mdone\033[0m"
+    if grep -q "$app_file" /proc/swaps; then
+        echo -e "Stopping swap... \c"
+        swapoff $app_file
+        echo -e "\033[32mdone\033[0m"
+    else
+        echo "Stopping swap already stopped"
+    fi
 }
 
 app_status()
 {
-    isStart=`free -m|grep Swap|awk '{print $2}'`
-    if [ "$isStart" == '0' ];then
+    if grep -q "$app_file" /proc/swaps; then
         echo -e "\033[32mswap already running\033[0m"
     else
         echo -e "\033[31mswap not running\033[0m"

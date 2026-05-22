@@ -696,7 +696,7 @@ html {
 }
 
 .cmdlist li .cmd {
-    height: 200px;
+    height: 400px;
     background-color: #424251;
     overflow: auto;
     line-height: 22px;
@@ -2670,7 +2670,7 @@ html .menu .menu_exit:hover {
     border-radius: 0;
     display: block;
     width: 570px;
-    height: 200px;
+    height: 400px;
     line-height: 22px;
     padding: 0 10px;
     background-color: #333;

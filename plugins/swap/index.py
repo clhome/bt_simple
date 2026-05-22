@@ -65,10 +65,19 @@ def checkArgs(data, ck=[]):
 
 
 def status():
-    data = mw.execShell("free -m|grep Swap|awk '{print $2}'")
-    if data[0].strip() == '0':
+    # 检测本插件的 swapfile 是否挂载在系统上
+    sfile = getServerDir() + '/swapfile'
+    if not os.path.exists(sfile):
         return 'stop'
-    return 'start'
+    try:
+        with open('/proc/swaps', 'r') as f:
+            if sfile in f.read():
+                return 'start'
+    except Exception as e:
+        data = mw.execShell("cat /proc/swaps")
+        if sfile in data[0]:
+            return 'start'
+    return 'stop'
 
 
 def getInitDTpl():
@@ -87,12 +96,12 @@ def initDreplace():
     file_bin = initD_path + '/' + getPluginName()
 
     # initd replace
-    if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
-        content = content.replace(
-            '{$SERVER_PATH}', getServerDir() + '/swapfile')
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+    # 每次强制使用最新的模板更新，确保老用户的脚本也能一并修复
+    content = mw.readFile(file_tpl)
+    content = content.replace(
+        '{$SERVER_PATH}', getServerDir() + '/swapfile')
+    mw.writeFile(file_bin, content)
+    mw.execShell('chmod +x ' + file_bin)
 
     # systemd
     systemDir = mw.systemdCfgDir()
@@ -195,10 +204,36 @@ def swapStatus():
     sfile = getServerDir() + '/swapfile'
 
     if os.path.exists(sfile):
-        size = os.path.getsize(sfile) / 1024 / 1024
+        size = int(os.path.getsize(sfile) / 1024 / 1024)
     else:
-        size = '218'
-    data = {'size': size}
+        size = 0
+    
+    # 获取系统当前的实际 Swap 总容量 (MB)
+    system_total = 0
+    try:
+        with open('/proc/meminfo', 'r') as f:
+            for line in f:
+                if line.startswith('SwapTotal:'):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        system_total = int(parts[1]) // 1024
+                        break
+    except Exception as e:
+        # 备用方案：读取 free -m，兼容不同 Locale 的 "Swap" 与 "交换"
+        data = mw.execShell("free -m")
+        for line in data[0].split('\n'):
+            if 'Swap:' in line or '交换:' in line:
+                parts = line.split()
+                if len(parts) >= 2:
+                    try:
+                        system_total = int(parts[1])
+                    except:
+                        pass
+
+    data = {
+        'size': size,
+        'system_total': system_total
+    }
     return mw.returnJson(True, "ok", data)
 
 
