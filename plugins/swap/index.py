@@ -230,9 +230,32 @@ def swapStatus():
                     except:
                         pass
 
+    # 获取物理内存总量 (MB)
+    mem_total = 0
+    try:
+        with open('/proc/meminfo', 'r') as f:
+            for line in f:
+                if line.startswith('MemTotal:'):
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        mem_total = int(parts[1]) // 1024
+                        break
+    except Exception as e:
+        # 备用方案：从 free -m 获取，兼容不同 Locale
+        data = mw.execShell("free -m")
+        for line in data[0].split('\n'):
+            if 'Mem:' in line or '内存:' in line:
+                parts = line.split()
+                if len(parts) >= 2:
+                    try:
+                        mem_total = int(parts[1])
+                    except:
+                        pass
+
     data = {
         'size': size,
-        'system_total': system_total
+        'system_total': system_total,
+        'mem_total': mem_total
     }
     return mw.returnJson(True, "ok", data)
 
