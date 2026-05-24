@@ -158,6 +158,20 @@
 - [x] 在 `plugins/swap/js/swap.js` 的 `swapStatus()` 底部（`.conf_p` 卡片外层），追加版权提示 HTML，文字设为深红色，指向 `https://www.yftec.top` @done(2026-05-22 18:39)
 - [x] 验证链接与悬停动效是否正常 @done(2026-05-22 18:40)
 
+## 需求：升级 jQuery 版本至 1.12.4
 
+**问题描述：**
+将整个 web 前端的 jQuery 版本从 1.10.2 升级到 1.12.4。
 
+**修复文件：**
+- `web/static/js/jquery-1.12.4.min.js` (新增)
+- `web/static/js/jquery-1.10.2.min.js` (删除)
+- `web/templates/default/login.html`
+- `web/templates/default/layout.html`
 
+### Task List
+
+- [x] 下载并添加 `jquery-1.12.4.min.js` 到 `web/static/js/` 目录 @done(2026-05-24 16:25)
+- [x] 删除旧版本 `jquery-1.10.2.min.js` @done(2026-05-24 16:25)
+- [x] 更新 `web/templates/default/login.html` 中的脚本引用 @done(2026-05-24 16:25)
+- [x] 更新 `web/templates/default/layout.html` 中的脚本引用 @done(2026-05-24 16:25)
