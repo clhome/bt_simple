@@ -562,9 +562,9 @@ class sites(object):
             if mw.isSupportHttp3(version):
                 http_ssl = "\n\tlisten 443 ssl;"
                 http_ssl = http_ssl + "\n\tlisten [::]:443 ssl;"
-                http_ssl = http_ssl + "\n\tlisten 443 "+quic_conf+";"
-                http_ssl = http_ssl + "\n\tlisten [::]:443 "+quic_conf+";"
-                http_ssl = http_ssl + "\n\thttp3 on;"
+                http_ssl = http_ssl + "\n\t#listen 443 "+quic_conf+";"
+                http_ssl = http_ssl + "\n\t#listen [::]:443 "+quic_conf+";"
+                http_ssl = http_ssl + "\n\t#http3 on;"
                 http_ssl = http_ssl + "\n\thttp2 on;"
             else:
                 http_ssl = "\n\tlisten 443 ssl http2;"

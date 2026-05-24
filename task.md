@@ -175,3 +175,15 @@
 - [x] 删除旧版本 `jquery-1.10.2.min.js` @done(2026-05-24 16:25)
 - [x] 更新 `web/templates/default/login.html` 中的脚本引用 @done(2026-05-24 16:25)
 - [x] 更新 `web/templates/default/layout.html` 中的脚本引用 @done(2026-05-24 16:25)
+
+## 需求：创建新网站时默认注释关闭 HTTP3
+
+**问题描述：**
+创建网站并开启SSL时，默认会配置 http3 相关内容，由于 http3 非常不稳定，创建网站时必须对其进行注释。
+
+**修复文件：**
+- `web/utils/site.py`
+
+### Task List
+
+- [x] 修改 `web/utils/site.py`：在 `setSslConf` 函数中将生成的 nginx 配置里与 http3/quic 相关的 `listen 443 quic`, `listen [::]:443 quic` 和 `http3 on` 注释掉。 @done(2026-05-24 16:38)
