@@ -347,3 +347,16 @@
 - [x] 后端：修改 `web/admin/site/site.py`，在 `/site/list` 中为每个站点补充 `php_version`, `ssl_days`, `daily_traffic`。
 - [x] 前端：修改 `web/templates/default/site.html`，在 `thead` 增加对应表头。
 - [x] 前端：修改 `web/static/app/site.js`，在渲染逻辑中拼接新的列，进行格式化和颜色控制。
+
+## 需求：修复面板重启时 gunicorn 报 ssl_version 弃用警告
+
+**问题描述：**
+重启面板时，控制台会出现警告：`Warning: option 'ssl_version' is deprecated and it is ignored. Use ssl_context instead.`
+这是因为新版本的 gunicorn 已经废弃了 `ssl_version` 参数。
+
+**涉及文件：**
+- `web/setting.py`
+
+### Task List
+
+- [x] 修改 `web/setting.py`：注释掉 `ssl_version = 5 # TLSv1.2` 这一行配置，消除弃用警告。 @done(2026-05-24 15:26)
