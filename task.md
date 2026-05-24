@@ -187,3 +187,15 @@
 ### Task List
 
 - [x] 修改 `web/utils/site.py`：在 `setSslConf` 函数中将生成的 nginx 配置里与 http3/quic 相关的 `listen 443 quic`, `listen [::]:443 quic` 和 `http3 on` 注释掉。 @done(2026-05-24 16:38)
+
+## 需求：重启面板时添加10秒的动画等待
+
+**问题描述：**
+当前点击“重启面板”后，页面过快刷新，导致由于web服务还没完全启动完成而出现空白页，从而使用户产生误解。需要加长等待时间至10秒，并展示倒计时动画。
+
+**修复文件：**
+- `web/static/app/index.js`
+
+### Task List
+
+- [x] 修改 `web/static/app/index.js`，将原本的 `setTimeout` 重载延迟改为 10 秒倒计时展示的提示框。

@@ -704,10 +704,18 @@ function reBoot() {
                     var loadT = layer.load();
                     $.post('/system/restart','',function (rdata) {
                         layer.close(loadT);
-                        layer.msg(rdata.msg);
-                        setTimeout(function () { 
-                            window.location.href = window.location.pathname + '?t=' + new Date().getTime(); 
-                        }, 3000);
+                        var count = 10;
+                        var msgBox = layer.msg('面板正在重启中，请等待... <span id="restart-countdown">' + count + '</span> 秒', { icon: 16, time: 0, shade: [0.3, '#000'] });
+                        var timer = setInterval(function() {
+                            count--;
+                            if (count <= 0) {
+                                clearInterval(timer);
+                                layer.close(msgBox);
+                                window.location.href = window.location.pathname + '?t=' + new Date().getTime();
+                            } else {
+                                $('#restart-countdown').text(count);
+                            }
+                        }, 1000);
                     },'json');
                 });
                 break;
