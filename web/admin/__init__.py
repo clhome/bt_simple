@@ -117,9 +117,19 @@ def sendAuthenticated():
         session.clear()
     return result
 
+@app.route('/.well-known/acme-challenge/<path:filename>')
+def acme_challenge_file(filename):
+    from flask import send_from_directory
+    path = os.path.join(mw.getRunDir(), 'tmp', '.well-known', 'acme-challenge')
+    return send_from_directory(path, filename)
+
 @app.before_request
 def requestCheck():
     request.start_time = time.time()
+
+    # 豁免 acme 挑战路由
+    if request.path.startswith('/.well-known/acme-challenge/'):
+        return
 
     admin_close = thisdb.getOption('admin_close')
     if admin_close == 'yes':

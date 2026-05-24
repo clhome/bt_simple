@@ -50,6 +50,19 @@ def del_panel_ssl():
     choose = request.form.get('choose', '').strip()
     return MwSetting.instance().delPanelSsl(choose)
 
+# 申请面板ACME证书
+@blueprint.route('/apply_panel_acme_ssl', endpoint='apply_panel_acme_ssl', methods=['POST'])
+@panel_login_required
+def apply_panel_acme_ssl():
+    domains = request.form.get('domains', '')
+    force = request.form.get('force', '')
+    renew = request.form.get('renew', '')
+    email = request.form.get('email', '')
+    apply_type = request.form.get('apply_type', 'file')
+    dnspai = request.form.get('dnspai','')
+    dns_alias = request.form.get('dns_alias','')
+    return MwSetting.instance().createPanelAcme(domains, force, renew, apply_type, dnspai, email, dns_alias)
+
 # 开启面板证书
 @blueprint.route('/set_panel_local_ssl', endpoint='set_panel_local_ssl', methods=['POST'])
 @panel_login_required

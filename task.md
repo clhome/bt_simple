@@ -307,3 +307,27 @@
 - [x] 在 `web/static/app/index.js` 的 jQuery 初始化区，为 `#index_overview` 绑定事件委托，在点击 `.sys-li-box` 时自动触发其内侧 `.btlink` 链接的点击动作或直接跳转，支持静态及动态追加的插件方框，且安全防止重复触发。 @done(2026-05-24 21:23)
 - [x] 验证整体功能：浏览器进行强刷测试，检查鼠标悬停在概览方框的物理凸起和压实交互，点击方框边缘能顺利发生跳转，且不产生重复代码。 @done(2026-05-24 21:25)
 
+## 需求：面板设置 SSL 增加 90 天免费证书选项
+
+**问题描述：**
+在“面板设置 =》面板SSL”里，当检测到绑定域名后，提供一键申请与管理 90 天免费证书（ACME / Let's Encrypt）的选项，其申请交互与网站配置 SSL 类似。
+
+**涉及文件：**
+- `web/admin/__init__.py`
+- `web/utils/setting.py`
+- `web/admin/setting/panel_ssl.py`
+- `web/static/app/config.js`
+
+### Task List
+
+- [ ] 修改 `web/admin/__init__.py`：在 Flask 路由中增加对 `/.well-known/acme-challenge/<path:filename>` 验证路径的捕获与响应，免去 Nginx 挑战文件的路径配置难题。
+- [ ] 修改 `web/utils/setting.py`：
+  - 在 `getPanelSsl` 结果中增加返回 `panel_domain` and `ssl_email`。
+  - 修复并重构 `delPanelSsl` 中对于 `choose == 'nginx'` 的 bug，彻底清理证书并安全返回 HTTP 状态。
+  - 新增 `createPanelAcme` 方法，接收参数调用 `acme.sh` 申请 90 天证书，自动放置到面板 `ssl/nginx` 并配置和重启面板。
+- [ ] 修改 `web/admin/setting/panel_ssl.py`：增加新路由端点 `/apply_panel_acme_ssl`。
+- [ ] 修改 `web/static/app/config.js`：
+  - 重构 `getPanelSSL` 函数，如果绑定了域名，在选择证书类型下拉菜单里增加 `90天证书` (`nginx`) 的选项。
+  - 新增 `renderPanelSSLApply` 函数，用于渲染 90 天证书的申请表单页面（包括邮箱验证、单选类型、加载 DNS API 等）。
+  - 绑定 90 天证书的申请按钮、续期、删除等 Ajax 事件，完美复用日志展示和手动 TXT 解析等原有样式和逻辑。
+- [ ] 验证整体功能：测试在有绑定域名下“90天证书”选项的显示、通过 HTTP 模式的文件验证申请 SSL、以及证书的正常删除及面板重启后平稳降级回普通 HTTP 模式。

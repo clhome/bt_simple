@@ -812,74 +812,151 @@ function getEmailCfg(){
 	},'json');
 }
 
+function renderPanelSSLApply(panel_domain, ssl_email) {
+	var lets =  '<div class="apply_ssl" style="padding: 10px 0;">\
+		<div class="label-input-group">\
+			<div class="line mtb10">\
+				<span class="tname text-center" style="width:100px;">验证方式</span>\
+				<div style="margin-top:7px;display:inline-block">\
+					<input type="radio" name="panel_apply_type" value="file" id="panel_check_file" checked="checked"/>\
+  					<label class="mr20" for="panel_check_file" style="font-weight:normal;cursor:pointer;">文件验证</label>\
+  					<input type="radio" name="panel_apply_type" value="dns" id="panel_check_dns"/>\
+  					<label class="mr20" for="panel_check_dns" style="font-weight:normal;cursor:pointer;">DNS验证</label>\
+  				</div>\
+	  		</div>\
+	  		<div class="line mtb10" id="panel_dnsapi_option" style="display:none;">\
+				<span class="tname text-center" style="line-height: 42px;width:100px;">选择DNS接口</span>\
+				<div style="margin-top:7px;display:inline-block">\
+					<select name="panel_dnspai" class="bt-input-text mr20" style="width:120px;">\
+						<option value="none">手动解析</option>\
+					</select>\
+  				</div>\
+	  		</div>\
+  			<div class="check_message line">\
+  				<div style="margin-left:100px">\
+  					<input type="checkbox" name="panel_checkDomain" id="panel_checkDomain" checked="">\
+  					<label class="mr20" for="panel_checkDomain" style="font-weight:normal;cursor:pointer;">提前校验域名(提前发现问题,减少失败率)</label>\
+  				</div>\
+  			</div>\
+  		</div>\
+  		<div class="line mtb10">\
+  			<span class="tname text-center" style="width:100px;">邮箱</span>\
+  			<input class="bt-input-text" style="width:240px;" type="text" name="panel_admin_email" value="'+ssl_email+'" />\
+  		</div>\
+  		<div class="line mtb10">\
+  			<span class="tname text-center" style="width:100px;">域名</span>\
+  			<ul id="panel_ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;">\
+				<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="'+panel_domain+'" checked="checked" disabled="disabled">'+panel_domain+'</li>\
+			</ul>\
+  		</div>\
+  		<div class="line mtb10" style="margin-left:100px">\
+  			<button class="btn btn-success btn-sm panel_letsApply">申请</button>\
+  		</div>\
+	  	<ul class="help-info-text c7" id="panel_lets_help" style="margin-top:10px;">\
+	  		<li>由 Let\'s Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。</li>\
+	  		<li>申请之前，请确保面板域名已正确解析到本服务器IP。</li>\
+	  		<li>如果使用文件验证方式，请确保能够通过公网访问到面板服务。</li>\
+	  	</ul>\
+  	</div>';
+	return lets;
+}
+
+function newAcmeHandApplyNoticeForPanel(panel_domain, data) {
+	layer.open({
+		type: 1,
+		area: '700px',
+		title: '手动解析TXT记录',
+		closeBtn: 1,
+		shift: 5,
+		shadeClose: true,
+		btn:["验证", "取消"],
+		content:'<div class="bt-form" style="padding: 10px 20px;">\
+			<div class="line"><span>请按以下列表做TXT解析: </span></div>\
+			<div id="acme_hand_ssl_notice" class="divtable mtb10">\
+				<div class="tablescroll">\
+					<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
+					<thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>\
+					<tbody></tbody>\
+					</table>\
+				</div>\
+			</div>\
+			<ul id="acme_hand_ssl_notice_help" class="help-info-text c6">\
+				<li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\
+				<li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\
+			</ul>\
+		</div>',
+		success:function(){
+			var list = '';
+			for (var i = 0; i < data.length; i++) {
+				list += '<tr>';
+				list += '<td>'+data[i]['domain']+'</td>';
+				list += '<td>'+data[i]['val']+'</td>';
+				list += '<td>'+data[i]['type']+'</td>';
+				list += '<td>'+(data[i]['must'] ? '必需' : '可选')+'</td>';
+				list += '</tr>';
+			}
+			$('#acme_hand_ssl_notice tbody').html(list);
+			if (data.length > 0){
+				var help_txt = "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt "+data[0]['domain'];
+				$('#acme_hand_ssl_notice_help li:eq(1)').text(help_txt);
+			}
+		},
+		yes:function(layero,index){
+			layer.close(layero);
+			showSpeedWindow('正在由ACME申请手动SSL...', 'site.get_acme_logs', function(layers,index){
+				var pdata = {};
+				pdata['domains'] = JSON.stringify([panel_domain]);
+				pdata['email'] = $("input[name='panel_admin_email']").val();
+				if($("#panel_checkDomain").prop("checked")){
+					pdata['force'] = 'true';
+				}
+				var apply_type = $('input[name="panel_apply_type"]:checked').val();
+				pdata['apply_type'] = apply_type;
+				if (apply_type == 'dns'){
+					pdata['dnspai'] = $('select[name="panel_dnspai"] option:selected').val();
+				}
+				pdata['renew'] = 'true';
+				$.post('/setting/apply_panel_acme_ssl', pdata, function(rdata){
+					showMsg(rdata.msg, function(){
+						if (rdata.status){
+							layer.close(index);
+							setTimeout(function(){
+								location.reload();
+							}, 2000);
+						}
+					},{icon:rdata.status?1:2}, 3000);
+				},'json');
+			});
+		}
+	});
+}
+
 function getPanelSSL(){
 	var loadT = layer.msg('正在获取证书信息...',{icon:16,time:0,shade: [0.3, '#000']});
-	$.post('/setting/get_panel_ssl',{},function(cert){
+	$.post('/setting/get_panel_ssl',{},function(cert_all){
 		layer.close(loadT);
 
-		// console.log(cert);
-		var choose = cert['choose'];
-		var choose_local = '';
-		var choose_nginx = '';
+		var choose = cert_all['choose'];
+		var choose_local = choose == 'local' ? 'selected="selected"' : '';
+		var choose_nginx = choose == 'nginx' ? 'selected="selected"' : '';
 
-		if (choose == 'local'){
-			cert = cert['local'];
-			choose_local = 'selected="selected"';
-		} else if (choose == 'nginx') {
-			cert = cert['nginx'];
-			choose_nginx = 'selected="selected"';
-		} else {
-			cert = cert['local'];
+		var select_options = '<option value="local" '+choose_local+'>本地</option>';
+		if (cert_all['panel_domain']){
+			select_options += '<option value="nginx" '+choose_nginx+'>90天证书</option>';
 		}
 
-		var cert_data = '';
-
-		// <div class='state_item'>\
-		// 	<span>强制HTTPS：</span>\
-		// 	<span class='switch'>\
-		// 		<input class='btswitch btswitch-ios' id='toHttps' type='checkbox' "+cert['is_https']+">\
-		// 		<label class='btswitch-btn set_panel_http_to_https' for='toHttps'></label>\
-		// 	</span>\
-		// </div>\
-		if (cert['info']){
-			cert_data = "<div class='ssl_state_info'><div class='state_info_flex'>\
-				<div class='state_item'><span>证书品牌：</span>\
-				<span class='ellipsis_text ssl_issue'>"+cert['info']['issuer']+"</span></div>\
-				<div class='state_item'><span>到期时间：</span>\
-				<span class='btlink ssl_endtime'>剩余"+cert['info']['endtime']+"天到期</span></div>\
+		var certBody = '<div class="tab-con" style="padding: 0 15px;">\
+			<div id="panel_ssl_content"></div>\
+			<div class="ssl-btn pull-left mtb15" style="width:100%">\
+				<div id="panel_ssl_buttons" style="display:inline-block;"></div>\
+				<select class="bt-input-text" name="choose" style="width:100px;vertical-align:middle;margin-left:10px;height:30px;line-height:30px;padding:2px 5px;">\
+					'+select_options+'\
+				</select>\
 			</div>\
-			<div class='state_info_flex'>\
-				<div class='state_item'><span>认证域名：</span>\
-				<span class='ellipsis_text ssl_subject'>"+cert['info']['subject']+"</span></div>\
-			</div></div>";
-		}
+			<div style="clear:both"></div>\
+			<ul class="help-info-text c7 pull-left" id="panel_ssl_help" style="width:100%;margin-top:10px;padding-left:15px;"></ul>\
+		</div>';
 
-		// <button class="btn btn-success btn-sm apply-lets-ssl">申请ACME证书</button>\
-		// <option value="nginx" '+choose_nginx+'>OpenResty</option>\
-		var certBody = '<div class="tab-con">\
-			<div class="myKeyCon ptb15">\
-				'+cert_data+'\
-				<div class="custom_certificate_info">\
-					<div class="ssl-con-key pull-left mr20">密钥(KEY)<br>\
-						<textarea id="key" class="bt-input-text">'+cert.privateKey+'</textarea>\
-					</div>\
-					<div class="ssl-con-key pull-left">证书(PEM格式)<br>\
-						<textarea id="csr" class="bt-input-text">'+cert.certPem+'</textarea>\
-					</div>\
-				</div>\
-				<div class="ssl-btn pull-left mtb15" style="width:100%">\
-					<button class="btn btn-success btn-sm save-panel-ssl">保存</button>\
-					<button class="btn btn-success btn-sm del-panel-ssl">删除</button>\
-					<select class="bt-input-text" name="choose" style="width:100px;">\
-						<option value="local" '+choose_local+'>本地</option>\
-					</select>\
-				</div>\
-			</div>\
-			<ul class="help-info-text c7 pull-left">\
-				<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\
-				<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>\
-			</ul>\
-		</div>'
 		layer.open({
 			type: 1,
 			area: "600px",
@@ -889,121 +966,202 @@ function getPanelSSL(){
 			shadeClose: false,
 			content:certBody,
 			success:function(layero, layer_id){
+				
+				function switchPanelSSLView(selected_choose) {
+					if (selected_choose == 'local') {
+						var cert = cert_all['local'];
+						var cert_data = '';
+						if (cert['info'] && cert['info']['issuer']){
+							cert_data = "<div class='ssl_state_info'><div class='state_info_flex'>\
+								<div class='state_item'><span>证书品牌：</span>\
+								<span class='ellipsis_text ssl_issue'>"+cert['info']['issuer']+"</span></div>\
+								<div class='state_item'><span>到期时间：</span>\
+								<span class='btlink ssl_endtime'>剩余"+cert['info']['endtime']+"天到期</span></div>\
+							</div>\
+							<div class='state_info_flex'>\
+								<div class='state_item'><span>认证域名：</span>\
+								<span class='ellipsis_text ssl_subject'>"+cert['info']['subject']+"</span></div>\
+							</div></div>";
+						}
 
+						var html = cert_data + '<div class="custom_certificate_info" style="margin-top:10px;">\
+							<div class="ssl-con-key pull-left mr20">密钥(KEY)<br>\
+								<textarea id="key" class="bt-input-text">'+(cert.privateKey || '')+'</textarea>\
+							</div>\
+							<div class="ssl-con-key pull-left">证书(PEM格式)<br>\
+								<textarea id="csr" class="bt-input-text">'+(cert.certPem || '')+'</textarea>\
+							</div>\
+						</div>';
+						$('#panel_ssl_content').html(html);
 
-				//保存SSL
-				$('.save-panel-ssl').click(function(){
-					var data = {
-						privateKey:$("#key").val(),
-						certPem:$("#csr").val()
-					}
+						var buttons = '<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">保存</button>\
+									   <button class="btn btn-success btn-sm del-panel-ssl">删除</button>';
+						$('#panel_ssl_buttons').html(buttons);
 
-					layer.confirm('选择保存面板SSL方式?', 
-					{
-						title:'提示', 
-						shade:0.001,
-						btn: ['本地SSL', '取消'],//'OpenResty'
-						btn3:function(){
-							data['choose'] = 'nginx';
-							var loadT = layer.msg('正在安装并设置SSL组件,这需要几分钟时间...',{icon:16,time:0,shade: [0.3, '#000']});
-							$.post('/setting/save_panel_ssl',data,function(rdata){
-								layer.close(loadT);
-								if(rdata.status){
-									layer.closeAll();
-								}
-								layer.msg(rdata.msg,{icon:rdata.status?1:2});
-							},'json');
-						},
-					},
-					function(index) {
-						data['choose'] = 'local';
-				    	var loadT = layer.msg('正在安装并设置SSL组件,这需要几分钟时间...',{icon:16,time:0,shade: [0.3, '#000']});
-						$.post('/setting/save_panel_ssl',data,function(rdata){
-							layer.close(loadT);
-							if(rdata.status){
-								layer.closeAll();
+						var help = '<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\
+									<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>';
+						$('#panel_ssl_help').html(help);
+
+					} else if (selected_choose == 'nginx') {
+						if (cert_all['nginx'] && cert_all['nginx']['certPem']) {
+							var cert = cert_all['nginx'];
+							var cert_data = '';
+							if (cert['info'] && cert['info']['issuer']){
+								cert_data = "<div class='ssl_state_info'><div class='state_info_flex'>\
+									<div class='state_item'><span>证书品牌：</span>\
+									<span class='ellipsis_text ssl_issue'>"+cert['info']['issuer']+"</span></div>\
+									<div class='state_item'><span>到期时间：</span>\
+									<span class='btlink ssl_endtime'>剩余"+cert['info']['endtime']+"天到期</span></div>\
+								</div>\
+								<div class='state_info_flex'>\
+									<div class='state_item'><span>认证域名：</span>\
+									<span class='ellipsis_text ssl_subject'>"+cert['info']['subject']+"</span></div>\
+								</div></div>";
 							}
-							layer.msg(rdata.msg,{icon:rdata.status?1:2});
-						},'json');
-				    },
-				    function(index) {
-				        layer.close(index);
-				    });
+
+							var html = cert_data + '<div class="custom_certificate_info" style="margin-top:10px;">\
+								<div class="ssl-con-key pull-left mr20">密钥(KEY)<br>\
+									<textarea id="key" class="bt-input-text">'+(cert.privateKey || '')+'</textarea>\
+								</div>\
+								<div class="ssl-con-key pull-left">证书(PEM格式)<br>\
+									<textarea id="csr" class="bt-input-text">'+(cert.certPem || '')+'</textarea>\
+								</div>\
+							</div>';
+							$('#panel_ssl_content').html(html);
+
+							var buttons = '<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">部署</button>\
+										   <button class="btn btn-success btn-sm panel-renew-ssl" style="margin-right:5px;">续期</button>\
+										   <button class="btn btn-success btn-sm del-panel-ssl">删除</button>';
+							$('#panel_ssl_buttons').html(buttons);
+
+							var help = '<li>90天免费证书已部署成功并开启面板SSL。</li>\
+										<li>由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。</li>\
+										<li>如需重新申请或更换，点击“续期”即可。</li>';
+							$('#panel_ssl_help').html(help);
+
+						} else {
+							// 渲染申请界面
+							$('#panel_ssl_content').html(renderPanelSSLApply(cert_all['panel_domain'], cert_all['ssl_email']));
+							$('#panel_ssl_buttons').html('');
+							$('#panel_ssl_help').html('');
+
+							// 获取 DNS API
+							$.post('/site/get_dnsapi',{},function(rdata){
+								var opt = '<option value="none">手动解析</option>';
+								for (var i = 0; i < rdata.length; i++) {
+									opt += '<option value="'+rdata[i]['name']+'">'+rdata[i]['title']+'</option>';
+								}
+								$('select[name="panel_dnspai"]').html(opt);
+							},'json');
+						}
+					}
+				}
+
+				// 首次切换到数据库对应的值
+				switchPanelSSLView(choose);
+
+				// 监听下拉切换
+				$('select[name="choose"]').change(function(){
+					switchPanelSSLView($(this).val());
 				});
 
-				//删除SSL
-				$('.del-panel-ssl').click(function(){
+				// 监听验证类型单选框
+				$(layero).on('change', 'input[name="panel_apply_type"]', function(){
+					var val = $(this).val();
+					if (val == 'file'){
+						$('#panel_dnsapi_option').css('display','none');
+					} else {
+						$('#panel_dnsapi_option').css('display','block');
+					}
+				});
 
-					layer.confirm('选择删除面板SSL方式?', 
-					{
-						title:'提示', 
-						shade:0.001,
-						btn: ['本地SSL', '取消'],//, 'OpenResty'
-						btn3:function(){
-							var data = {};
-							data['choose'] = 'nginx';
-							var loadT = layer.msg('正在删除面板SSL【nginx】...',{icon:16,time:0,shade: [0.3, '#000']});
-							$.post('/setting/del_panel_ssl',data,function(rdata){
-								layer.close(loadT);
-								if(rdata.status){
-									layer.closeAll();
+				// 监听一键申请
+				$(layero).on('click', '.panel_letsApply', function(){
+					var pdata = {};
+					pdata['domains'] = JSON.stringify([cert_all['panel_domain']]);
+					pdata['email'] = $("input[name='panel_admin_email']").val();
+					if($("#panel_checkDomain").prop("checked")){
+						pdata['force'] = 'true';
+					}
+					var apply_type = $('input[name="panel_apply_type"]:checked').val();
+					pdata['apply_type'] = apply_type;
+					if (apply_type == 'dns'){
+						pdata['dnspai'] = $('select[name="panel_dnspai"] option:selected').val();
+					}
+
+					showSpeedWindow('正在由ACME申请...', 'site.get_acme_logs', function(layers,index){
+						$.post('/setting/apply_panel_acme_ssl', pdata, function(rdata){
+							showMsg(rdata.msg, function(){
+								if (rdata.status){
+									layer.close(index);
+									if (rdata.msg == '手动解析'){
+										newAcmeHandApplyNoticeForPanel(cert_all['panel_domain'], rdata.data);
+									} else{
+										setTimeout(function(){
+											location.reload();
+										}, 2000);
+									}
 								}
-								layer.msg(rdata.msg,{icon:rdata.status?1:2});
-							},'json');
-						},
-					},
-					function(index) {
-						var data = {};
-						data['choose'] = 'local';
-						var loadT = layer.msg('正在删除面板SSL【本地】...',{icon:16,time:0,shade: [0.3, '#000']});
-						$.post('/setting/del_panel_ssl',data,function(rdata){
-							console.log(rdata);
+							},{icon:rdata.status?1:2}, 3000);
+						},'json');
+					});
+				});
+
+				// 续期/重新申请
+				$(layero).on('click', '.panel-renew-ssl', function(){
+					// 强制渲染申请表单
+					$('#panel_ssl_content').html(renderPanelSSLApply(cert_all['panel_domain'], cert_all['ssl_email']));
+					$('#panel_ssl_buttons').html('');
+					$('#panel_ssl_help').html('');
+
+					$.post('/site/get_dnsapi',{},function(rdata){
+						var opt = '<option value="none">手动解析</option>';
+						for (var i = 0; i < rdata.length; i++) {
+							opt += '<option value="'+rdata[i]['name']+'">'+rdata[i]['title']+'</option>';
+						}
+						$('select[name="panel_dnspai"]').html(opt);
+					},'json');
+				});
+
+				// 保存/部署
+				$(layero).on('click', '.save-panel-ssl', function(){
+					var data = {
+						privateKey:$("#key").val(),
+						certPem:$("#csr").val(),
+						choose: $('select[name="choose"]').val()
+					}
+					var loadT = layer.msg('正在保存证书...', {icon:16,time:0,shade: [0.3, '#000']});
+					$.post('/setting/save_panel_ssl', data, function(rdata){
+						layer.close(loadT);
+						if(rdata.status){
+							layer.closeAll();
+							setTimeout(function(){
+								location.reload();
+							}, 1500);
+						}
+						layer.msg(rdata.msg,{icon:rdata.status?1:2});
+					},'json');
+				});
+
+				// 删除证书
+				$(layero).on('click', '.del-panel-ssl', function(){
+					var current_choose = $('select[name="choose"]').val();
+					var confirm_msg = current_choose == 'local' ? '确定要删除本地自签SSL吗？' : '危险：删除90天免费证书后将关闭面板SSL并自动重启面板，您需要回退到HTTP协议访问！确定吗？';
+					
+					layer.confirm(confirm_msg, {title:'提示', shade:0.001, btn: ['确定', '取消']}, function(index) {
+						layer.close(index);
+						var data = { choose: current_choose };
+						var loadT = layer.msg('正在删除证书并重启面板...',{icon:16,time:0,shade: [0.3, '#000']});
+						$.post('/setting/del_panel_ssl', data, function(rdata){
 							layer.close(loadT);
 							showMsg(rdata.msg, function(){
 								if(rdata.status){
 									location.href = rdata.data;
 								}
-							},{icon:rdata.status?1:2},3000);
+							},{icon:rdata.status?1:2}, 3000);
 						},'json');
-				    },
-				    function(index) {
-				        layer.close(index);
-				    });
-
-					
+					});
 				});
-
-				// // 设置面板SSL的Http
-				// $('.set_panel_http_to_https').click(function(){
-				// 	var https = $('#toHttps').prop('checked');
-				// 	$.post('/config/set_panel_http_to_https',{'https':https},function(rdata){
-				// 		layer.close(loadT);
-				// 		if(rdata.status){
-				// 			layer.closeAll();
-				// 		}
-				// 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
-				// 	},'json');
-				// });
-
-				// //申请Lets证书
-				// $('.apply-lets-ssl').click(function(){
-				// 	showSpeedWindow('正在申请...', 'site.get_let_logs', function(layers,index){
-				// 		$.post('/config/apply_panel_acme_ssl',{},function(rdata){
-				// 			layer.close(loadT);
-				// 			if(rdata.status){
-				// 				layer.close(index);
-				// 				var tdata = rdata['data'];
-				// 				$('.ssl_issue').text(tdata['info']['issuer']);
-				// 				$('.ssl_endtime').text("剩余"+tdata['info']['endtime']+"天到期");
-				// 				$('.ssl_subject').text(tdata['info']['subject']);
-
-				// 				$('textarea[name="key"]').val(tdata['info']['privateKey']);
-				// 				$('textarea[name="csr"]').val(tdata['info']['certPem']);
-				// 			}
-				// 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
-				// 		},'json');
-				// 	});
-				// });
 			}
 		});
 	},'json');
