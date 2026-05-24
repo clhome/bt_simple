@@ -38,6 +38,28 @@ def list():
 
     info = thisdb.getSitesList(page=int(p),size=int(limit),type_id=int(type_id), search=search,order=order)
 
+    for site in info['list']:
+        site_name = site['name']
+        
+        # 获取 PHP 版本
+        php_info = MwSites.instance().getSitePhpVersion(site_name)
+        site['php_version'] = php_info.get('phpversion', '00')
+        
+        # 获取 SSL 信息
+        ssl_info = MwSites.instance().getSsl(site_name, '')
+        ssl_data = ssl_info.get('data', {}) if isinstance(ssl_info, dict) else {}
+        if ssl_data.get('status') and ssl_data.get('cert_data'):
+            site['ssl_days'] = ssl_data['cert_data'].get('endtime', -1)
+        else:
+            site['ssl_days'] = -1
+            
+        # 获取日流量 (用当日日志文件大小估算)
+        log_path = mw.getLogsDir() + '/' + site_name + '.log'
+        if os.path.exists(log_path):
+            site['daily_traffic'] = os.path.getsize(log_path)
+        else:
+            site['daily_traffic'] = 0
+
     data = {}
     data['data'] = info['list']
     data['page'] = mw.getPage({'count':info['count'],'tojs':'getWeb','p':p, 'row':limit})

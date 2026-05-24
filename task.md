@@ -331,3 +331,19 @@
   - 新增 `renderPanelSSLApply` 函数，用于渲染 90 天证书的申请表单页面（包括邮箱验证、单选类型、加载 DNS API 等）。
   - 绑定 90 天证书的申请按钮、续期、删除等 Ajax 事件，完美复用日志展示和手动 TXT 解析等原有样式和逻辑。 @done(2026-05-24 21:55)
 - [x] 验证整体功能：已修复变量未定义问题，现在点击申请将自动创建一个网站并在该网站下挂载并申请证书，彻底解决了文件验证无实体站点导致的失败问题。 @done(2026-05-24 22:31)
+
+## 需求：网站列表增加信息显示（日流量、PHP、SSL证书）
+
+**问题描述：**
+需要在网站列表的表格中，添加“日流量”（读取当日日志大小估算）、“PHP”版本、“SSL证书”有效期的显示列，以对标其他面板的概览能力。
+
+**涉及文件：**
+- `web/admin/site/site.py`
+- `web/templates/default/site.html`
+- `web/static/app/site.js`
+
+### Task List
+
+- [x] 后端：修改 `web/admin/site/site.py`，在 `/site/list` 中为每个站点补充 `php_version`, `ssl_days`, `daily_traffic`。
+- [x] 前端：修改 `web/templates/default/site.html`，在 `thead` 增加对应表头。
+- [x] 前端：修改 `web/static/app/site.js`，在渲染逻辑中拼接新的列，进行格式化和颜色控制。
