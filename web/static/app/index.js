@@ -689,9 +689,9 @@ function reBoot() {
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="rebt-con">\
-                <div class="rebt-li"><a data-id="server" href="javascript:;">重启服务器</a></div>\
-                <div class="rebt-li"><a data-id="panel" href="javascript:;">重启面板</a></div>\
-                <div class="rebt-li"><a data-id="repair" href="javascript:;">修复服务器</a></div>\
+                <div class="rebt-li"><a data-id="server" class="btn-reboot-server" href="javascript:;"><span class="glyphicon glyphicon-off" style="margin-right: 5px;"></span>重启服务器</a></div>\
+                <div class="rebt-li"><a data-id="panel" class="btn-reboot-panel" href="javascript:;"><span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>重启面板</a></div>\
+                <div class="rebt-li"><a data-id="repair" class="btn-reboot-repair" href="javascript:;"><span class="glyphicon glyphicon-wrench" style="margin-right: 5px;"></span>修复服务器</a></div>\
                 <div style="color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;">注意：修复服务器会覆盖安装bt_simple面板</div>\
             </div>'
     });

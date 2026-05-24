@@ -199,3 +199,36 @@
 ### Task List
 
 - [x] 修改 `web/static/app/index.js`，将原本的 `setTimeout` 重载延迟改为 10 秒倒计时展示的提示框。
+
+## 记录：项目图标调用规范
+
+**问题描述：**
+为了避免后续开发中出现按钮无图标或图标风格不统一的问题，统一记录当前项目的图标使用方案。
+
+**当前图标方案规范：**
+1. **通用按钮（推荐）**：使用 Bootstrap 3 自带的 `Glyphicons` 字体图标。
+   - 规范：直接在按钮内部嵌套 `<span class="glyphicon glyphicon-*"></span>`。
+   - 示例：`<button class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> 添加</button>`。
+2. **侧边栏导航菜单**：使用 Base64 格式的 CSS 背景图片。
+   - 规范：在 `site.css` / `ensite.css` 中为特定类（如 `.menu_home`）定义 `background-image`，并为 `:hover` 或 `.current` 状态配置高亮 Base64 图片。
+   - 注意：此方案仅适用于固定核心菜单，不建议用于通用按钮。
+
+### Task List
+
+- [x] 总结并记录项目当前的图标调用规范 @done(2026-05-24 16:58)
+
+## 需求：为重启/修复服务器弹窗按钮添加颜色区分和图标
+
+**问题描述：**
+“重启服务器”、“重启面板”、“修复服务器”三个按钮目前为纯灰色样式且没有图标，容易导致用户误点。需要为它们增加鲜明的颜色区分并配置对应的图标。
+
+**修复文件：**
+- `web/static/app/index.js`
+- `web/static/css/site.css`
+
+### Task List
+
+- [x] 在 `web/static/app/index.js` 中，为三个按钮的 `<a>` 标签加上特有的 CSS 类（如 `btn-reboot-server`, `btn-reboot-panel`, `btn-reboot-repair`），并在文字前插入对应的 Bootstrap 3 Glyphicons 图标。 @done(2026-05-24 16:59)
+- [x] 在 `web/static/css/site.css` 中，为这三个特殊的类添加对应的背景颜色、边框颜色、悬停效果及圆角过渡动画，确保其拥有极佳的视觉表现力。 @done(2026-05-24 16:59)
+- [x] 验证重启弹窗的视觉效果以及按钮交互的正确性。 @done(2026-05-24 16:59)
+

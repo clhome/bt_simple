@@ -4459,10 +4459,39 @@ html .menu .menu_exit:hover {
     display: block;
     background: #eee;
     border: #ddd 1px solid;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
 }
-.rebt-li a:hover{
-    background-color:#20a53a;
-    color:#fff;
+.rebt-li a.btn-reboot-server {
+    background-color: #d9534f;
+    border-color: #d43f3a;
+    color: #fff;
+}
+.rebt-li a.btn-reboot-server:hover {
+    background-color: #c9302c;
+    border-color: #ac2925;
+    color: #fff;
+}
+.rebt-li a.btn-reboot-panel {
+    background-color: #f0ad4e;
+    border-color: #eea236;
+    color: #fff;
+}
+.rebt-li a.btn-reboot-panel:hover {
+    background-color: #ec971f;
+    border-color: #d58512;
+    color: #fff;
+}
+.rebt-li a.btn-reboot-repair {
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    color: #fff;
+}
+.rebt-li a.btn-reboot-repair:hover {
+    background-color: #286090;
+    border-color: #204d74;
+    color: #fff;
 }
 /*绑定宝塔微信*/
 .bind-weixin{
