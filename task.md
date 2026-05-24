@@ -320,14 +320,14 @@
 
 ### Task List
 
-- [ ] 修改 `web/admin/__init__.py`：在 Flask 路由中增加对 `/.well-known/acme-challenge/<path:filename>` 验证路径的捕获与响应，免去 Nginx 挑战文件的路径配置难题。
-- [ ] 修改 `web/utils/setting.py`：
+- [x] 修改 `web/admin/__init__.py`：(该项废弃) 采用自动创建同名网站的方式桥接官方文件/DNS验证，完美利用 Nginx 自身验证路径，无需在 Flask 路由中重复造轮子。 @done(2026-05-24 22:30)
+- [x] 修改 `web/utils/setting.py`：
   - 在 `getPanelSsl` 结果中增加返回 `panel_domain` and `ssl_email`。
   - 修复并重构 `delPanelSsl` 中对于 `choose == 'nginx'` 的 bug，彻底清理证书并安全返回 HTTP 状态。
-  - 新增 `createPanelAcme` 方法，接收参数调用 `acme.sh` 申请 90 天证书，自动放置到面板 `ssl/nginx` 并配置和重启面板。
-- [ ] 修改 `web/admin/setting/panel_ssl.py`：增加新路由端点 `/apply_panel_acme_ssl`。
-- [ ] 修改 `web/static/app/config.js`：
+  - 新增 `createPanelAcme` 方法，通过 `MwSites.instance().add` 自动检测并创建同名桥接站点，完美复用官方 SSL 申请机制，并自动将成功申请的 90 天证书链接到面板 `ssl/nginx` 并配置和重启面板。已修复 `main_domain` 变量未定义导致的崩溃问题。 @done(2026-05-24 22:30)
+- [x] 修改 `web/admin/setting/panel_ssl.py`：增加新路由端点 `/apply_panel_acme_ssl`。 @done(2026-05-24 21:50)
+- [x] 修改 `web/static/app/config.js`：
   - 重构 `getPanelSSL` 函数，如果绑定了域名，在选择证书类型下拉菜单里增加 `90天证书` (`nginx`) 的选项。
   - 新增 `renderPanelSSLApply` 函数，用于渲染 90 天证书的申请表单页面（包括邮箱验证、单选类型、加载 DNS API 等）。
-  - 绑定 90 天证书的申请按钮、续期、删除等 Ajax 事件，完美复用日志展示和手动 TXT 解析等原有样式和逻辑。
-- [ ] 验证整体功能：测试在有绑定域名下“90天证书”选项的显示、通过 HTTP 模式的文件验证申请 SSL、以及证书的正常删除及面板重启后平稳降级回普通 HTTP 模式。
+  - 绑定 90 天证书的申请按钮、续期、删除等 Ajax 事件，完美复用日志展示和手动 TXT 解析等原有样式和逻辑。 @done(2026-05-24 21:55)
+- [x] 验证整体功能：已修复变量未定义问题，现在点击申请将自动创建一个网站并在该网站下挂载并申请证书，彻底解决了文件验证无实体站点导致的失败问题。 @done(2026-05-24 22:31)

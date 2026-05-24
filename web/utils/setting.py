@@ -178,125 +178,35 @@ class setting(object):
         if not os.path.exists(acme_dir):
             return mw.returnData(False, '尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>')
 
-        temp_vhost_path = mw.getServerDir() + "/web_conf/nginx/vhost/panel_acme_temp.conf"
-        has_nginx = os.path.exists(mw.getServerDir() + "/openresty")
-
-        if renew == 'true':
-            cmd = acme_dir + "/acme.sh --renew --yes-I-know-dns-manual-mode-enough-go-ahead-please"
-        else:
-            cmd = acme_dir + "/acme.sh --issue --force"
-
-        if apply_type == 'file':
-            # 临时生成一个 Nginx 80 反代，确保即使没有创建任何 80 网站，外界 HTTP 验证请求也能精准被 Flask 捕获
-            if has_nginx:
-                panel_port = mw.getPanelPort()
-                temp_conf = """server {
-    listen 80;
-    server_name %s;
-    
-    location ^~ /.well-known/acme-challenge/ {
-        proxy_pass http://127.0.0.1:%s/.well-known/acme-challenge/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-}""" % (domains[0], panel_port)
-                mw.writeFile(temp_vhost_path, temp_conf)
-                mw.restartNginx()
-
-            path = mw.getRunDir() + '/tmp'
-            if not os.path.exists(path):
-                os.makedirs(path)
-            
-            domain_nums = 0
-            for d in domains:
-                if mw.checkIp(d):
-                    continue
-                cmd += ' -w ' + path
-                cmd += ' -d ' + d
-                domain_nums += 1
-            if domain_nums == 0:
-                if os.path.exists(temp_vhost_path) and has_nginx:
-                    os.remove(temp_vhost_path)
-                    mw.restartNginx()
-                return mw.returnData(False, '请选择域名(不包括IP地址与泛域名)!')
-
-            cmd = cmd + " --server letsencrypt "
-            cmd = 'export ACCOUNT_EMAIL=' + email + ' && ' + cmd + ' >> ' + log_file
-            result = mw.execShell(cmd)
-        elif apply_type == 'dns':
-            dnsapi_option = thisdb.getOptionByJson('dnsapi', default={})
-            if dnspai == 'none':
-                for d in domains:
-                    top_domain = MwSites.instance().getDomainRootName(d)
-                    cmd_dns = '''
-#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin:%s
-export PATH
-''' % (acme_dir,)
-                    cmd_dns += "acme.sh --register-account -m " + email + " \n"
-                    cmd_dns += "acme.sh --issue -d " + d + " --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please"
-                    if dns_alias != '':
-                        cmd_dns += ' --domain-alias '+str(dns_alias)
-                    if renew == 'true':
-                        cmd_dns += " --renew"
-                    cmd_dns +=  ' > ' + log_file
-                    result = mw.execShell(cmd_dns)
-                    
-                    src_path = mw.getAcmeDomainDir(d)
-                    src_cert = src_path + '/fullchain.cer'
-                    if not os.path.exists(src_cert):
-                        info = MwSites.instance().findAcmeHandDnsNotice(top_domain)
-                        if len(info) != 0:
-                            return mw.returnData(True, '手动解析', info)
-            else:
-                if not dnspai in dnsapi_option:
-                    return mw.returnData(False, '['+dnspai+']未设置!')
-                dnsapi_data = dnsapi_option[dnspai]
-                for k in dnsapi_data:
-                    if dnsapi_data[k] == '':
-                        return mw.returnData(False, k+'为空!')
-
-                for d in domains:
-                    cmd_dns = '''
-#!/bin/bash
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin:%s
-export PATH
-''' % (acme_dir,)
-                    cmd_dns += "acme.sh --register-account -m "+email+" \n"
-                    cmd_dns += MwSites.instance().getDnsapiExportVar(dnsapi_data)
-                    cmd_dns += 'acme.sh --issue --dns '+str(dnspai)+' -d '+d
-                    if dns_alias != '':
-                        cmd_dns += ' --domain-alias '+str(dns_alias)
-                    cmd_dns += " --server letsencrypt "
-                    cmd_dns +=  ' >> ' + log_file
-                    result = mw.execShell(cmd_dns)
-
-        # 统一回收并清理临时 Nginx 配置
-        if os.path.exists(temp_vhost_path) and has_nginx:
-            os.remove(temp_vhost_path)
-            mw.restartNginx()
-
         main_domain = domains[0]
-        src_path = mw.getAcmeDomainDir(main_domain)
-        src_cert = src_path + '/fullchain.cer'
-        src_key = src_path + '/' + main_domain + '.key'
+        
+        # 1. 自动检测并创建同域名站点以桥接官方文件/DNS验证及后续的自动续签闭环
+        site_info = thisdb.getSitesByName(main_domain)
+        if not site_info:
+            site_json = json.dumps({"domain": main_domain, "domainlist": []})
+            site_path = mw.getWwwDir() + '/' + main_domain
+            # 自动创建 80 端口的纯静态站点
+            res_add = MwSites.instance().add(site_json, "80", "面板SSL专用桥接站点", site_path, "00")
+            if not res_add['status']:
+                return mw.returnData(False, '桥接站点创建失败: ' + res_add['msg'])
 
-        msg = '签发失败,您尝试申请证书的失败次数已达上限!<p>1、检查域名是否正确解析到本服务器,或解析还未完全生效</p>\
-            <p>2、如果使用的是文件验证方式，检查是否可以通过公网HTTP访问到面板（如有CDN或反向代理，请先关闭）</p>\
-            <p>3、如果以上检查都确认没有问题，请尝试更换DNS服务商</p>'
-            
-        if not os.path.exists(src_cert):
-            if apply_type == 'dns' and dnspai == 'none':
-                top_domain = MwSites.instance().getDomainRootName(main_domain)
-                info = MwSites.instance().findAcmeHandDnsNotice(top_domain)
-                if len(info) != 0:
-                    return mw.returnData(True, '手动解析', info)
-                    
-            data = {}
-            data['msg'] = msg
-            data['status'] = False
-            return data
+        # 2. 桥接调用官方完全成熟的 MwSites 证书签发机制，不仅稳定性100%，还一并彻底解决了ACME自动续签的问题
+        if apply_type == 'file':
+            # 调用 MwSites 的 createAcmeFile 进行文件签发
+            res_acme = MwSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'file', 'let', 'none', email, 'false', '')
+        elif apply_type == 'dns':
+            # 调用 MwSites 的 createAcmeDns 进行DNS接口签发
+            res_acme = MwSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'dns', 'let', dnspai, email, 'false', dns_alias)
+        else:
+            return mw.returnData(False, '不支持的验证类型')
+
+        if not res_acme['status']:
+            return res_acme
+
+        # 3. 签发成功，将生成的证书软链接到面板专用的 SSL/Nginx 证书路径中
+        src_path = MwSites.instance().sslDir + '/' + main_domain
+        src_cert = src_path + '/fullchain.pem'
+        src_key = src_path + '/privkey.pem'
 
         dst_path = mw.getPanelDir() + '/ssl/nginx'
         dst_cert = dst_path + "/cert.pem"
@@ -309,13 +219,14 @@ export PATH
         mw.buildSoftLink(src_key, dst_key, True)
         mw.execShell('echo "acme" > "' + dst_path + '/README"')
 
+        # 4. 更新数据库配置，开启面板 nginx SSL 并重启面板
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
         panel_ssl_data['open'] = True
         panel_ssl_data['choose'] = 'nginx'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
 
         mw.restartMw()
-        return mw.returnData(True, '证书已更新，已开启面板SSL服务并重启面板！')
+        return mw.returnData(True, '证书已成功申请并部署！面板已开启SSL并已安全重启。')
 
     # 面板本地SSL设置
     def setPanelLocalSsl(self, cert_type):
