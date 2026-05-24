@@ -5387,7 +5387,7 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     line-height: 28px !important;
 }
 
-/* 5. 软件格子微缩与覆盖重载 */
+/* 5. 软件格子微缩与覆盖重构 */
 .soft-man [class*="col-"] {
     height: 102px !important;
     border-bottom: 1px solid #ececfb !important;
@@ -5396,18 +5396,29 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     margin-right: -1px !important;
     margin-bottom: -1px !important;
     padding: 0 !important;
+}
+
+/* 提取并合并软件格子和概览卡片的物理悬浮/陷落微交互特效，不重复特效代码 */
+.soft-man [class*="col-"],
+.system-info .sys-li-box {
     cursor: pointer !important;
     background-color: #fff !important; /* 确保悬浮时底色不透明 */
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; /* 顺滑物理微动 */
 }
 
-/* 每一个小软件方框悬浮起来的效果 */
-.soft-man [class*="col-"]:hover {
+/* 每一个小方框悬浮起来的效果 */
+.soft-man [class*="col-"]:hover,
+.system-info .sys-li-box:hover {
     transform: translateY(-4px) !important; /* 物理悬浮 4px */
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08) !important; /* 弥散光影 */
-    border-radius: 6px !important; /* 悬起变圆角 */
+    border-radius: 6px !important; /* 悬起变圆 */
     z-index: 5 !important; /* 突围网格压盖 */
-    border-color: transparent !important; /* 解脱灰色网格线 */
+    border-color: transparent !important; /* 解脱灰色网格 */
+}
+
+/* 悬浮在概览卡片上时，移除链接下划线，避免干扰 */
+.system-info .sys-li-box a:hover {
+    text-decoration: none !important;
 }
 
 /* 拖拽手柄显示适配 */
@@ -5416,7 +5427,8 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 }
 
 /* 按下后陷下去 */
-.soft-man [class*="col-"]:active {
+.soft-man [class*="col-"]:active,
+.system-info .sys-li-box:active {
     transform: translateY(1px) scale(0.96) !important; /* 物理压下陷落 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important; /* 投影贴合 */
     border-radius: 4px !important;

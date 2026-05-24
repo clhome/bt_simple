@@ -1045,7 +1045,23 @@ $(function() {
           index.iostat.table.resize();
           break;
         }
-    })
+    });
+
+    // 首页概览卡片支持整块点击跳转事件委托
+    $('#index_overview').on('click', '.sys-li-box', function(e) {
+        if ($(e.target).is('a') || $(e.target).parents('a').length > 0) {
+            return;
+        }
+        var $a = $(this).find('a.btlink');
+        if ($a.length) {
+            var href = $a.attr('href');
+            if (href) {
+                window.location.href = href;
+                return;
+            }
+            $a.trigger('click');
+        }
+    });
 });
 
 var index = {
