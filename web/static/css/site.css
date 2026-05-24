@@ -5299,3 +5299,122 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .sidebar-scroll, .main-content, .sidebar-collapse, .menu li a, .mypcip {
     transition: all 0.3s;
 }
+
+/* ==========================================================================
+   首页高度压缩与紧凑布局微调 (专属覆盖)
+   ========================================================================== */
+
+/* 1. 顶栏压缩 */
+.index-pos-box {
+    height: 40px !important;
+}
+.index-pos-box .position {
+    line-height: 40px !important;
+}
+.index-pos-box .pull-right {
+    line-height: 40px !important;
+}
+
+/* 2. 全局间距压缩 */
+.main-content .mtb15 {
+    margin: 8px 0 !important;
+}
+.server-circle .circle-box {
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+}
+.system-info-con {
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+/* 3. 状态模块标题与圆圈压缩 */
+.server .title, 
+.system-info .title {
+    height: 40px !important;
+    line-height: 40px !important;
+}
+.server .title h3, 
+.system-info .title {
+    line-height: 40px !important;
+}
+.circle-box h3,
+.circle-box h4 {
+    line-height: 24px !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+}
+.server-circle .circle {
+    width: 80px !important;
+    height: 80px !important;
+}
+.server-circle .pie_left,
+.server-circle .pie_right,
+.server-circle .left,
+.server-circle .right {
+    width: 80px !important;
+    height: 80px !important;
+}
+.server-circle .pie_right,
+.server-circle .right {
+    clip: rect(0, auto, auto, 40px) !important;
+}
+.server-circle .pie_left,
+.server-circle .left {
+    clip: rect(0, 40px, auto, 0) !important;
+}
+.server-circle .mask {
+    width: 68px !important;
+    height: 68px !important;
+    left: 6px !important;
+    top: 6px !important;
+    line-height: 68px !important;
+    font-size: 16px !important;
+}
+
+/* 4. 概览模块精简 */
+.system-info .sys-li-box {
+    height: 64px !important;
+    margin-left: 15px !important;
+}
+.system-info .sys-li-box .name {
+    line-height: 22px !important;
+    margin-top: 4px !important;
+    margin-bottom: 2px !important;
+}
+.system-info .sys-li-box .val a {
+    font-size: 20px !important;
+    line-height: 28px !important;
+}
+
+/* 5. 软件格子压缩 */
+.soft-man .col-lg-3 {
+    height: 102px !important;
+}
+.soft-man .image {
+    height: 32px !important;
+    margin: 15px 0 8px !important;
+}
+.soft-man .image img {
+    height: 32px !important;
+    width: auto !important;
+}
+.soft-man .sname {
+    line-height: 20px !important;
+    font-size: 12px !important;
+}
+.soft-man .text a {
+    margin: 36px auto !important;
+}
+
+/* 6. 流量/磁盘 IO 压缩 */
+.bw-info {
+    height: 60px !important;
+}
+.bw-info > div {
+    padding-top: 10px !important;
+}
+.bw-info > div p {
+    margin-bottom: 4px !important;
+}
+
