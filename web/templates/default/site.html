@@ -42,7 +42,9 @@
 									<th width="26%">网站目录</th>
 									<th width="80">日流量</th>
 									<th width="50">PHP</th>
-									<th width="100">SSL证书</th>
+									<th onclick="listOrder('ssl_days','site',this)" style="cursor: pointer;" width="100">
+										SSL证书<span class="glyphicon glyphicon-stop" style="margin-left:5px;color:#bbb"></span>
+									</th>
 									<th onclick="listOrder('edate','site',this)" style="cursor: pointer;" width="86">
 										到期日期<span class="glyphicon glyphicon-stop" style="margin-left:5px;color:#bbb"></span>
 									</th>
@@ -92,11 +94,19 @@ function initPage(){
 			}
 		}
 
-		if (sort[0] == 'edate'){
+		if (sort[0] == 'ssl_days'){
 			if (sort[1] == 'desc'){
 				$($('#webBodyHeader .glyphicon-stop')[1]).removeClass('glyphicon-stop').addClass('glyphicon-triangle-top');
 			} else if (sort[1] == 'asc'){
 				$($('#webBodyHeader .glyphicon-stop')[1]).removeClass('glyphicon-stop').addClass('glyphicon-triangle-bottom');
+			}
+		}
+
+		if (sort[0] == 'edate'){
+			if (sort[1] == 'desc'){
+				$($('#webBodyHeader .glyphicon-stop')[2]).removeClass('glyphicon-stop').addClass('glyphicon-triangle-top');
+			} else if (sort[1] == 'asc'){
+				$($('#webBodyHeader .glyphicon-stop')[2]).removeClass('glyphicon-stop').addClass('glyphicon-triangle-bottom');
 			}
 		}
 	}

@@ -82,7 +82,7 @@ function getDate(a) {
 			var idname = list[i].name.replace(/\./g,'_');
 			
 			var php_text = list[i].php_version == '00' ? "<span style='color:#20a53a'>静态</span>" : "<span style='color:#20a53a'>" + (list[i].php_version.length == 2 ? list[i].php_version.substring(0,1) + '.' + list[i].php_version.substring(1) : list[i].php_version) + "</span>";
-			var ssl_text = list[i].ssl_days == -1 ? "<span style='color:#bbb'>未部署</span>" : "<span style='color:#20a53a'>剩余" + list[i].ssl_days + "天</span>";
+			var ssl_text = list[i].ssl_days == -1 ? "<span style='color:#bbb'>未部署</span>" : (list[i].ssl_days < 10 ? "<span style='color:red'>剩余" + list[i].ssl_days + "天</span>" : "<span style='color:#20a53a'>剩余" + list[i].ssl_days + "天</span>");
 			var daily_traffic = toSize(list[i].daily_traffic);
 			
 			body = "<tr><td><input type='checkbox' name='id' title='"+list[i].name+"' onclick='checkSelect();' value='" + list[i].id + "'></td>\

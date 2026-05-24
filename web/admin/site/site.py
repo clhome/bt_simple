@@ -36,7 +36,20 @@ def list():
     search = request.form.get('search', '').strip()
     order = request.form.get('order', '').strip()
 
-    info = thisdb.getSitesList(page=int(p),size=int(limit),type_id=int(type_id), search=search,order=order)
+    is_ssl_sort = False
+    ssl_sort_desc = False
+    if order == 'ssl_days asc':
+        is_ssl_sort = True
+        order = ''
+    elif order == 'ssl_days desc':
+        is_ssl_sort = True
+        ssl_sort_desc = True
+        order = ''
+
+    if is_ssl_sort:
+        info = thisdb.getSitesList(page=1,size=100000,type_id=int(type_id), search=search,order=order)
+    else:
+        info = thisdb.getSitesList(page=int(p),size=int(limit),type_id=int(type_id), search=search,order=order)
 
     for site in info['list']:
         site_name = site['name']
@@ -59,6 +72,12 @@ def list():
             site['daily_traffic'] = os.path.getsize(log_path)
         else:
             site['daily_traffic'] = 0
+
+    if is_ssl_sort:
+        info['list'].sort(key=lambda x: x['ssl_days'], reverse=ssl_sort_desc)
+        start = (int(p) - 1) * int(limit)
+        end = start + int(limit)
+        info['list'] = info['list'][start:end]
 
     data = {}
     data['data'] = info['list']
