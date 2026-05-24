@@ -410,6 +410,21 @@ function getFiles(Path) {
     $.post('/files/get_dir', post, function(rdata) {
         layer.close(loadT);
         
+        window.currentFiles = [];
+        if (rdata.dir) {
+            for (var i = 0; i < rdata.dir.length; i++) {
+                var fmp = rdata.dir[i].split(";");
+                window.currentFiles.push(fmp[0]);
+            }
+        }
+        if (rdata.files) {
+            for (var i = 0; i < rdata.files.length; i++) {
+                if (rdata.files[i] == null) continue;
+                var fmp = rdata.files[i].split(";");
+                window.currentFiles.push(fmp[0]);
+            }
+        }
+
         //构建分页
         makeFilePage(file_row,rdata.page);
 
@@ -2019,13 +2034,40 @@ function showConfirmUpload() {
     var totalSize = 0;
     var maxDisplay = 200;
     
+    // 双通道提取当前目录下已有的全部文件名列表，实现多重保险检测
+    var existFiles = [];
+    if (window.currentFiles && Array.isArray(window.currentFiles)) {
+        existFiles = [...window.currentFiles];
+    }
+    // 防御性策略：从当前文件列表 DOM 复选框的 value 中提取文件名
+    $("input[name='id']").each(function() {
+        var val = $(this).val();
+        if (val && existFiles.indexOf(val) < 0) {
+            existFiles.push(val);
+        }
+    });
+
+    console.log("【Antigravity 调试】全局已有文件缓存:", window.currentFiles);
+    console.log("【Antigravity 调试】合并DOM提取后的已有文件列表:", existFiles);
+    
     for (var i = 0; i < files.length; i++) {
         totalSize += files[i].size;
         if (i < maxDisplay) {
             var fileName = files[i].fullPath;
+            // 清洗掉路径前缀，以支持可能有相对路径前缀的匹配
+            var cleanName = fileName;
+            if (fileName.indexOf('/') >= 0) {
+                cleanName = fileName.split('/').pop();
+            }
+            
+            var isOverwrite = existFiles.indexOf(fileName) >= 0 || existFiles.indexOf(cleanName) >= 0;
+            console.log("【Antigravity 调试】待上传文件名:", fileName, "清洗后的名字:", cleanName, "是否会覆盖:", isOverwrite);
+            
+            var overwriteHtml = isOverwrite ? '<span class="overwrite-warn" style="color:#5cb85c;margin-left:10px;">(会覆盖)</span>' : '';
             fileListHtml += '<li>\
                 <span class="filename" title="' + fileName + '">' + fileName + '</span>\
                 <span class="filesize">' + toSize(files[i].size) + '</span>\
+                ' + overwriteHtml + '\
                 <a class="del_up_file" href="javascript:;" onclick="removeFileFromUpload(' + i + ')">移除</a>\
             </li>';
         }
