@@ -332,8 +332,8 @@ function indexListHtml(callback){
     // init
     $("#indexsoft").html('');
     var index_soft = '';
-    for (var i = 0; i < 12; i++) {
-        index_soft += '<div class="col-sm-3 col-md-3 col-lg-3 no-bg"></div>';
+    for (var i = 0; i < 18; i++) {
+        index_soft += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2 no-bg"></div>';
     }
     $("#indexsoft").html(index_soft);
 
@@ -372,7 +372,7 @@ function indexListHtml(callback){
                 data_id = plugin.name + '-' + plugin.versions;
             }
 
-            con += '<div class="col-sm-3 col-md-3 col-lg-3" data-id="' + data_id + '">\
+            con += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2" data-id="' + data_id + '">\
                 <span class="spanmove"></span>\
                 <div onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">\
                 <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:48px;"></div>\
@@ -386,12 +386,12 @@ function indexListHtml(callback){
         $("#indexsoft").html(con);
         //软件位置移动
         var softboxlen = $("#indexsoft > div").length;
-        var softboxsum = 12;
+        var softboxsum = 18;
         var softboxcon = '';
         var softboxn = softboxlen;
         if (softboxlen <= softboxsum) {
             for (var i = 0; i < softboxsum - softboxlen; i++) {
-                softboxcon += '<div class="col-sm-3 col-md-3 col-lg-3 no-bg" data-id=""></div>';
+                softboxcon += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2 no-bg" data-id=""></div>';
             }
             $("#indexsoft").append(softboxcon);
         }
@@ -410,7 +410,7 @@ function indexSoft() {
             dragSelector: ".spanmove", 
             dragBetween: true, 
             dragEnd: saveOrder, 
-            placeHolderTemplate: "<div class='col-sm-3 col-md-3 col-lg-3 dashed-border'></div>"
+            placeHolderTemplate: "<div class='col-xs-4 col-sm-3 col-md-2 col-lg-2 dashed-border'></div>"
         });
     });
     

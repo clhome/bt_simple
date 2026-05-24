@@ -5387,10 +5387,41 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     line-height: 28px !important;
 }
 
-/* 5. 软件格子压缩 */
-.soft-man .col-lg-3 {
+/* 5. 软件格子微缩与覆盖重载 */
+.soft-man [class*="col-"] {
     height: 102px !important;
+    border-bottom: 1px solid #ececfb !important;
+    border-left: 1px solid #ececfb !important;
+    border-right: 1px solid #ececfb !important;
+    margin-right: -1px !important;
+    margin-bottom: -1px !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    background-color: #fff !important; /* 确保悬浮时底色不透明 */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; /* 顺滑物理微动 */
 }
+
+/* 每一个小软件方框悬浮起来的效果 */
+.soft-man [class*="col-"]:hover {
+    transform: translateY(-4px) !important; /* 物理悬浮 4px */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08) !important; /* 弥散光影 */
+    border-radius: 6px !important; /* 悬起变圆角 */
+    z-index: 5 !important; /* 突围网格压盖 */
+    border-color: transparent !important; /* 解脱灰色网格线 */
+}
+
+/* 拖拽手柄显示适配 */
+.soft-man [class*="col-"]:hover .spanmove {
+    display: block !important;
+}
+
+/* 按下后陷下去 */
+.soft-man [class*="col-"]:active {
+    transform: translateY(1px) scale(0.96) !important; /* 物理压下陷落 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important; /* 投影贴合 */
+    border-radius: 4px !important;
+}
+
 .soft-man .image {
     height: 32px !important;
     margin: 15px 0 8px !important;
