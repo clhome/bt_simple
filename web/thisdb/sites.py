@@ -46,13 +46,15 @@ def getSitesDomainById(site_id):
     data['email'] = getOption('ssl_email', default='')
     return data
 
-def addSites(name, path):
+def addSites(name, path, ps=None):
     now_time = mw.getDateFromNow()
+    if ps is None:
+        ps = name
     insert_data = {
         'name': name,
         'path': path,
         'status': 1,
-        'ps':name,
+        'ps': ps,
         'type_id':0,
         'edate':'0000-00-00',
         'add_time': now_time,

@@ -186,7 +186,7 @@ class setting(object):
             site_json = json.dumps({"domain": main_domain, "domainlist": []})
             site_path = mw.getWwwDir() + '/' + main_domain
             # 自动创建 80 端口的纯静态站点
-            res_add = MwSites.instance().add(site_json, "80", "面板SSL专用桥接站点", site_path, "00")
+            res_add = MwSites.instance().add(site_json, "80", "<span style='color:red'>（面板SSL专用配置站点，勿删）</span>", site_path, "00")
             if not res_add['status']:
                 return mw.returnData(False, '桥接站点创建失败: ' + res_add['msg'])
 

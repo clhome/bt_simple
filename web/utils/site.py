@@ -195,7 +195,7 @@ class sites(object):
         if thisdb.isSitesExist(self.siteName):
             return mw.returnData(False, '您添加的站点[%s]已存在!' % self.siteName)
 
-        site_id = thisdb.addSites(self.siteName, self.sitePath)
+        site_id = thisdb.addSites(self.siteName, self.sitePath, ps)
         if site_id < 1:
             return mw.returnData(False, '添加失败!') 
 
