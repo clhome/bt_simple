@@ -436,3 +436,42 @@
 - [x] 在 `web/static/css/site.css` 尾部，为首页的“四大核心卡片容器”定制高阶玻璃拟态（Glassmorphism）与弥散微凸投影样式，并追加丝滑的 `:hover` 浮现微动效。 @done(2026-05-25 11:29)
 - [x] 验证整体排版视觉、响应式表现与既有功能的完美一致性，确保没有任何 regression bug。 @done(2026-05-25 11:29)
 
+## 需求：面板静态资源加载极致加速与 CDN-Fallback 本地双回退重构
+
+**问题描述：**
+部署在服务器上且网络环境不好时，面板页面加载缓慢。瓶颈在于请求过多（141 个）导致的连接排队并发阻塞，以及重型库（ECharts 336KB、CodeMirror 100KB+、XTerm 100KB+）无差别全局加载、出站带宽瓶颈等。
+
+**优化方案：**
+1. 移除 ECharts 全局加载，仅在首页 (`index.html`) 和监控页 (`monitor.html`) 按需单独渲染引入。
+2. 将三方核心样式与脚本（jQuery、Bootstrap、Layer、Marked、ClipboardJS、Socket.io、CodeMirror、XTerm）托管至 Staticfile 公共 CDN 加速，并在完全无网/CDN 抽风的场景下，基于 CSS `onerror` 和 JS 全局变量校验注入 inline 自动加载本地资源的 Fallback 双重保障回退。
+
+**涉及文件：**
+- `web/templates/default/layout.html`
+- `web/templates/default/index.html`
+- `web/templates/default/monitor.html`
+
+### Task List
+
+- [x] 移除 ECharts 全局加载并实现按需加载 @done(2026-05-25 14:43)
+  - [x] 从 `layout.html` 移除 `echarts.min.js` @done(2026-05-25 14:43)
+  - [x] 在 `index.html` 尾部引入 ECharts 的 CDN 与 Fallback 本地回退 @done(2026-05-25 14:43)
+  - [x] 在 `monitor.html` 尾部引入 ECharts 的 CDN 与 Fallback 本地回退 @done(2026-05-25 14:43)
+- [x] 三方公共样式文件（CSS）的 CDN 托管与 Fallback @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `bootstrap.css` 为 CDN 并挂载 `onerror` 本地回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `layer.css` 为 CDN 并挂载 `onerror` 本地回退 @done(2026-05-25 14:43)
+- [x] 三方公共脚本文件（JS）的 CDN 托管与 Fallback @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `jquery.js` 为 CDN 并实现 `window.jQuery` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `jquery.cookie.js` 为 CDN 并实现 `$.cookie` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `bootstrap.js` 为 CDN 并实现 `$.fn.modal` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `layer.js` 为 CDN 并实现 `window.layer` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `marked.js` 为 CDN 并实现 `window.marked` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `clipboard.js` 为 CDN 并实现 `window.ClipboardJS` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `socket.io.js` 为 CDN 并实现 `window.io` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `codemirror.js` 为 CDN 并实现 `window.CodeMirror` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `xterm.js` 系列为 CDN 托管并实现回退 @done(2026-05-25 14:43)
+- [/] 性能验证与 Fallback 鲁棒性测试
+  - [ ] 验证 CDN 正常加载下的页面功能（图表、软件格子、文件、终端）
+  - [ ] 模拟 CDN 挂掉，验证自动回退至本地加载无感知
+
+
+

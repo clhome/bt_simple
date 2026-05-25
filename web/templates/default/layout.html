@@ -7,17 +7,23 @@
     <title>{{data['title']}}</title>
     <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
     <link
-      href="/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}"
+      href="https://cdn.staticfile.net/twitter-bootstrap/3.3.5/css/bootstrap.min.css"
       rel="stylesheet"
+      onerror="this.onerror=null;this.href='/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}'"
     />
-    <link href="/static/layer/skin/default/layer.css?v={{config.version}}" rel="stylesheet" />
+    <link
+      href="https://cdn.staticfile.net/layer/3.5.1/skin/default/layer.css"
+      rel="stylesheet"
+      onerror="this.onerror=null;this.href='/static/layer/skin/default/layer.css?v={{config.version}}'"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="/static/css/site.css?v={{config.version}}" rel="stylesheet" />
     <link
-      href="/static/codemirror/lib/codemirror.css?v={{config.version}}"
+      href="https://cdn.staticfile.net/codemirror/5.65.15/codemirror.min.css"
       rel="stylesheet"
+      onerror="this.onerror=null;this.href='/static/codemirror/lib/codemirror.css?v={{config.version}}'"
     />
     <script src="/static/language/Simplified_Chinese/lan.js?v={{config.version}}"></script>
     <!--[if lte IE 9]>
@@ -114,35 +120,69 @@
         ></button>
         <link
           rel="stylesheet"
-          href="/static/build/xterm.css?v={{config.version}}"
+          href="https://cdn.staticfile.net/xterm/3.14.5/xterm.min.css"
+          onerror="this.onerror=null;this.href='/static/build/xterm.css?v={{config.version}}'"
         />
         <link
           rel="stylesheet"
-          href="/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}"
+          href="https://cdn.staticfile.net/xterm/3.14.5/addons/fullscreen/fullscreen.min.css"
+          onerror="this.onerror=null;this.href='/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}'"
         />
-        <script src="/static/js/jquery-1.12.4.min.js"></script>
-        <script src="/static/js/jquery.cookie-1.4.1.min.js"></script>
-        <script src="/static/js/bootstrap.min.js"></script>
-        <script src="/static/layer/layer.js"></script>
-        <script src="/static/js/marked.min.js"></script>
-        <script src="/static/js/jquery.fly.min.js"></script>
-        <script src="/static/js/clipboard.min.js"></script>
-        <script src="/static/build/xterm.js"></script>
-        <script src="/static/build/addons/attach/attach.js"></script>
-        <script src="/static/build/addons/fit/fit.js"></script>
-        <script src="/static/build/addons/fullscreen/fullscreen.js"></script>
-        <script src="/static/js/socket.io.min.js"></script>
+        <!-- jQuery -->
+        <script src="https://cdn.staticfile.net/jquery/1.12.4/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/static/js/jquery-1.12.4.min.js"><\/script>')</script>
+
+        <!-- jQuery Cookie -->
+        <script src="https://cdn.staticfile.net/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+        <script>$.cookie || document.write('<script src="/static/js/jquery.cookie-1.4.1.min.js"><\/script>')</script>
+
+        <!-- Bootstrap -->
+        <script src="https://cdn.staticfile.net/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script>$.fn.modal || document.write('<script src="/static/js/bootstrap.min.js"><\/script>')</script>
+
+        <!-- Layer -->
+        <script src="https://cdn.staticfile.net/layer/3.5.1/layer.js"></script>
+        <script>window.layer || document.write('<script src="/static/layer/layer.js"><\/script>')</script>
+
+        <!-- Marked -->
+        <script src="https://cdn.staticfile.net/marked/4.3.0/marked.min.js"></script>
+        <script>window.marked || document.write('<script src="/static/js/marked.min.js"><\/script>')</script>
+
+        <!-- jQuery Fly -->
+        <script src="https://cdn.staticfile.net/jquery.fly/1.0.0/jquery.fly.min.js"></script>
+        <script>$.fly || document.write('<script src="/static/js/jquery.fly.min.js"><\/script>')</script>
+
+        <!-- Clipboard -->
+        <script src="https://cdn.staticfile.net/clipboard.js/2.0.11/clipboard.min.js"></script>
+        <script>window.ClipboardJS || document.write('<script src="/static/js/clipboard.min.js"><\/script>')</script>
+
+        <!-- XTerm & Addons -->
+        <script src="https://cdn.staticfile.net/xterm/3.14.5/xterm.min.js"></script>
+        <script>window.Terminal || document.write('<script src="/static/build/xterm.js"><\/script>')</script>
+        <script src="https://cdn.staticfile.net/xterm/3.14.5/addons/attach/attach.min.js" onerror="this.onerror=null;this.src='/static/build/addons/attach/attach.js'"></script>
+        <script src="https://cdn.staticfile.net/xterm/3.14.5/addons/fit/fit.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fit/fit.js'"></script>
+        <script src="https://cdn.staticfile.net/xterm/3.14.5/addons/fullscreen/fullscreen.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fullscreen/fullscreen.js'"></script>
+
+        <!-- Socket.io -->
+        <script src="https://cdn.staticfile.net/socket.io/4.7.5/socket.io.min.js"></script>
+        <script>window.io || document.write('<script src="/static/js/socket.io.min.js"><\/script>')</script>
+
+        <!-- Local custom configurations and utilities -->
         <script src="/static/build/addons/winptyCompat/winptyCompat.js"></script>
         <script src="/static/js/term-websocketio.js"></script>
         <script src="/static/app/upload.js?v={{config.version}}"></script>
         <script src="/static/app/public.js?v={{config.version}}"></script>
-        <script src="/static/js/echarts.min.js"></script>
-        <!-- <script src="//cdn.jsdelivr.net/gh/midoks/mdserver-web@latest/route/static/js/echarts.min.js"></script> -->
-        <!-- <script src="//unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script> -->
 
+        <!-- jQuery dragsort (本地，较小且定制多) -->
         <script src="/static/js/jquery.dragsort-0.5.2.min.js"></script>
-        <script src="/static/js/jquery-qrcode-0.18.0.min.js?v={{config.version}}"></script>
-        <script src="/static/js/xm-select.js"></script>
+
+        <!-- jQuery QRCode -->
+        <script src="https://cdn.staticfile.net/jquery-qrcode/0.18.0/jquery-qrcode.min.js"></script>
+        <script>$.fn.qrcode || document.write('<script src="/static/js/jquery-qrcode-0.18.0.min.js?v={{config.version}}"><\/script>')</script>
+
+        <!-- XM-Select -->
+        <script src="https://cdn.staticfile.net/xm-select/1.2.4/xm-select.min.js"></script>
+        <script>window.xmSelect || document.write('<script src="/static/js/xm-select.js"><\/script>')</script>
 
         {% block content %}{% endblock %}
         <div class="footer bgw">
@@ -229,13 +269,18 @@
       }
     }
   </script>
-  <script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"></script>
+  <!-- CodeMirror CDN & Fallback -->
+  <script src="https://cdn.staticfile.net/codemirror/5.65.15/codemirror.min.js"></script>
+  <script>window.CodeMirror || document.write('<script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"><\/script>')</script>
   <script src="/static/codemirror/addon/edit/editAll.js?v={{config.version}}"></script>
   <script src="/static/codemirror/mode/modeAll.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/dialog/dialog.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/search/search.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/scroll/annotatescrollbar.js?v={{config.version}}"></script>
-  <script src="/static/laydate/laydate.js?v={{config.version}}"></script>
+  
+  <!-- LayDate CDN & Fallback -->
+  <script src="https://cdn.staticfile.net/laydate/5.3.1/laydate.js"></script>
+  <script>window.laydate || document.write('<script src="/static/laydate/laydate.js?v={{config.version}}"><\/script>')</script>
 
   {% for menu in data['hook_menu'] %} {% if menu['js_path'] and data['hook_tag']
   == menu['name'] %}
