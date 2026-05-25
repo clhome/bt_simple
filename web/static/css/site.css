@@ -5495,8 +5495,16 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     border: 1px solid var(--glass-border) !important;
     box-shadow: var(--card-shadow) !important;
     border-radius: 8px !important;
-    padding: 12px 15px !important;
+    /* 保留并回归系统自带的高效内边距比例，彻底消除头部标题行突兀变大的问题 */
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important; /* 丝滑缓动 */
+}
+
+/* 强制对齐左边“软件”卡片和右边“流量/磁盘IO”卡片的高度，使其像素级绝对一致，告别错落感 */
+.main-content .pr8 > .bgw,
+.main-content .pl7 > .bgw {
+    height: 350px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
 }
 
 /* 悬浮时的大卡片升起微动效 */
@@ -5506,19 +5514,6 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .main-content .pl7 > .bgw:hover {
     box-shadow: var(--card-shadow-hover) !important;
     border-color: rgba(32, 165, 58, 0.15) !important; /* 悬浮时散发微弱的宝塔标志绿光芒 */
-}
-
-/* 首页卡片内标题排版微调，使其更显精致 */
-.main-content .server .title,
-.main-content .system-info .title,
-.main-content .pr8 > .bgw .title,
-.main-content .pl7 > .bgw .title-nav,
-.main-content .tabs-nav {
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5) !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.02em !important;
-    padding-bottom: 8px !important;
-    margin-bottom: 12px !important;
 }
 
 /* 输入框与控件磨砂过渡 */
