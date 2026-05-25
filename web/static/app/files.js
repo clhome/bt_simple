@@ -411,10 +411,15 @@ function getFiles(Path) {
         layer.close(loadT);
         
         window.currentFiles = [];
+        window.currentFilesMap = {};
         if (rdata.dir) {
             for (var i = 0; i < rdata.dir.length; i++) {
                 var fmp = rdata.dir[i].split(";");
                 window.currentFiles.push(fmp[0]);
+                window.currentFilesMap[fmp[0]] = {
+                    size: parseInt(fmp[1]),
+                    isDir: true
+                };
             }
         }
         if (rdata.files) {
@@ -422,6 +427,10 @@ function getFiles(Path) {
                 if (rdata.files[i] == null) continue;
                 var fmp = rdata.files[i].split(";");
                 window.currentFiles.push(fmp[0]);
+                window.currentFilesMap[fmp[0]] = {
+                    size: parseInt(fmp[1]),
+                    isDir: false
+                };
             }
         }
 
@@ -2063,10 +2072,19 @@ function showConfirmUpload() {
             var isOverwrite = existFiles.indexOf(fileName) >= 0 || existFiles.indexOf(cleanName) >= 0;
             console.log("【Antigravity 调试】待上传文件名:", fileName, "清洗后的名字:", cleanName, "是否会覆盖:", isOverwrite);
             
+            // 获取原文件大小并展示对比
+            var sizeHtml = toSize(files[i].size);
+            if (isOverwrite && window.currentFilesMap) {
+                var origFileInfo = window.currentFilesMap[fileName] || window.currentFilesMap[cleanName];
+                if (origFileInfo && typeof origFileInfo.size === 'number') {
+                    sizeHtml = toSize(origFileInfo.size) + ' <= ' + toSize(files[i].size);
+                }
+            }
+            
             var overwriteHtml = isOverwrite ? '<span class="overwrite-warn" style="color:#5cb85c;margin-left:10px;">(会覆盖)</span>' : '';
             fileListHtml += '<li>\
                 <span class="filename" title="' + fileName + '">' + fileName + '</span>\
-                <span class="filesize">' + toSize(files[i].size) + '</span>\
+                <span class="filesize">' + sizeHtml + '</span>\
                 ' + overwriteHtml + '\
                 <a class="del_up_file" href="javascript:;" onclick="removeFileFromUpload(' + i + ')">移除</a>\
             </li>';
