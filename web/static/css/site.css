@@ -1,8 +1,27 @@
+:root {
+    --primary: #20a53a;
+    --primary-hover: #1b8c31;
+    --primary-light: rgba(32, 165, 58, 0.08);
+    --bg-main: #f4f6f8; /* 现代化冷调浅灰蓝底色，替代原有纯灰 #f2f2f2 */
+    --text-main: #1f2937; /* 现代炭黑，替代 #333 */
+    --text-muted: #6b7280; /* 现代烟灰，替代 #999 */
+    --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    
+    /* 高阶弥散阴影 */
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
+    --card-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.02), 0 20px 30px rgba(0, 0, 0, 0.04);
+    
+    /* 玻璃拟态材质 */
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(226, 232, 240, 0.8);
+}
+
 body {
     line-height: 1.4;
-    color: #333;
-    font-family: "微软雅黑", Arial, Helvetica, sans-serif;
-    font-size: 12px
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    background-color: var(--bg-main) !important;
 }
 
 input,
@@ -151,7 +170,7 @@ html {
     float:right;
 }
 .bge6 {
-    background-color: #f2f2f2;
+    background-color: var(--bg-main);
 }
 /* .bge6 {
     background-color: #e6e9ee
@@ -5459,5 +5478,57 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 }
 .bw-info > div p {
     margin-bottom: 4px !important;
+}
+
+/* ==========================================================================
+   首页四大核心卡片：高阶玻璃拟态 (Glassmorphism) 与弥散光影微动效
+   ========================================================================== */
+
+/* 精确选中首页的四个主要大卡片：状态、概览、软件、流量/IO */
+.main-content .server.bgw,
+.main-content .system-info.bgw,
+.main-content .pr8 > .bgw,
+.main-content .pl7 > .bgw {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: var(--card-shadow) !important;
+    border-radius: 8px !important;
+    padding: 12px 15px !important;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important; /* 丝滑缓动 */
+}
+
+/* 悬浮时的大卡片升起微动效 */
+.main-content .server.bgw:hover,
+.main-content .system-info.bgw:hover,
+.main-content .pr8 > .bgw:hover,
+.main-content .pl7 > .bgw:hover {
+    box-shadow: var(--card-shadow-hover) !important;
+    border-color: rgba(32, 165, 58, 0.15) !important; /* 悬浮时散发微弱的宝塔标志绿光芒 */
+}
+
+/* 首页卡片内标题排版微调，使其更显精致 */
+.main-content .server .title,
+.main-content .system-info .title,
+.main-content .pr8 > .bgw .title,
+.main-content .pl7 > .bgw .title-nav,
+.main-content .tabs-nav {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+}
+
+/* 输入框与控件磨砂过渡 */
+.bt-input-text {
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    border-radius: 6px !important;
+    transition: all 0.3s !important;
+}
+.bt-input-text:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px var(--primary-light) !important;
 }
 
