@@ -570,9 +570,8 @@ function showUpdateUI(version, title, content, speedName) {
         content: '<div class="setchmod bt-form pd20 pb70">'
                 + (content ? '<div class="markdown-body" style="padding: 0 0 10px; line-height: 24px; max-height: 200px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid #eee;">' + content + '</div>' : '')
                 + '<div class="update-progress-group" style="padding: 10px 0;">'
-                + '    <div id="speed-tip-wrapper" style="text-align: center; display: none; margin-bottom: 15px;"><span class="f12" style="color: #20a53a; font-weight: bold;">已使用 <span id="speed-tip-name"></span> 网站加速更新</span></div>'
                 + '    <div style="margin-bottom: 15px;">'
-                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">1. 下载并解压更新包（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span><span id="download-percent" class="f12 c6">0%</span></div>'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">1. 下载并解压更新包<span id="download-tip-bracket" style="color: #20a53a; font-weight: bold;">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id="download-percent" class="f12 c6">0%</span></div>'
                 + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
                 + '    </div>'
                 + '    <div style="margin-bottom: 15px;">'
@@ -591,15 +590,26 @@ function showUpdateUI(version, title, content, speedName) {
                 + '</div>'
                 + '</div>',
         success: function() {
+            var bracket = $("#download-tip-bracket");
             if (speedName && speedName !== 'Direct') {
-                $("#speed-tip-name").text(speedName);
-                $("#speed-tip-wrapper").show();
+                // 有最优加速节点：先呈现寻找状态（仪式感），0.8秒后淡入切换为真实加速节点提示
+                bracket.text("（检测到国内节点，开始寻找最优加速节点）");
+                setTimeout(function() {
+                    bracket.hide().text("（使用 " + speedName + " 加速节点进行下载）").fadeIn(300);
+                }, 800);
             } else if (!speedName) {
-                // 如果没有传入，异步请求获取一下
+                // 修复服务器（冷启动）场景下，先变更为寻找状态，异步探测完成后替换
+                bracket.text("（检测到国内节点，开始寻找最优加速节点）");
                 $.get('/system/update_server?type=info', function(rdata) {
                     if (rdata && rdata.data && rdata.data.speed_name && rdata.data.speed_name !== 'Direct') {
-                        $("#speed-tip-name").text(rdata.data.speed_name);
-                        $("#speed-tip-wrapper").show();
+                        setTimeout(function() {
+                            bracket.hide().text("（使用 " + rdata.data.speed_name + " 加速节点进行下载）").fadeIn(300);
+                        }, 800);
+                    } else {
+                        // 海外直连或者失败，还原默认提示
+                        setTimeout(function() {
+                            bracket.hide().text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）").fadeIn(300);
+                        }, 500);
                     }
                 }, 'json');
             }
