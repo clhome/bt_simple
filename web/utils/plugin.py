@@ -104,7 +104,7 @@ class plugin(object):
         self.__plugin_dir = mw.getPluginDir()
 
 
-    def getIndexList(self):
+    def getIndexList(self, simple=False):
         indexList = thisdb.getOptionByJson('display_index')
         plist = []
         for i in indexList:
@@ -137,6 +137,21 @@ class plugin(object):
                     print('getIndexList:', mw.getTracebackInfo())
 
         plist = self.checkStatusMThreadsByCache(plist)
+
+        if simple:
+            simple_list = []
+            for item in plist:
+                simple_item = {
+                    'name': item.get('name', ''),
+                    'title': item.get('title', ''),
+                    'setup_version': item.get('setup_version', ''),
+                    'status': item.get('status', False),
+                    'coexist': item.get('coexist', False),
+                    'versions': item.get('versions', '')
+                }
+                simple_list.append(simple_item)
+            plist = simple_list
+
         return mw.returnData(True, 'ok', plist)
 
     def init(self):

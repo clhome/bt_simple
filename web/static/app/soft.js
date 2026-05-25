@@ -327,21 +327,29 @@ function toIndexDisplay(name, version, coexist) {
 }
 
 function indexListHtml(callback){
+    var cacheHtml = localStorage.getItem('index_soft_cache_html');
+    var hasCache = false;
     
-
-    // init
-    $("#indexsoft").html('');
-    var index_soft = '';
-    for (var i = 0; i < 18; i++) {
-        index_soft += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2 no-bg"></div>';
+    if (cacheHtml) {
+        $("#indexsoft").html(cacheHtml);
+        hasCache = true;
+        if (typeof callback == 'function'){
+            callback();
+        }
+    } else {
+        // init
+        $("#indexsoft").html('');
+        var index_soft = '';
+        for (var i = 0; i < 18; i++) {
+            index_soft += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2 no-bg"></div>';
+        }
+        $("#indexsoft").html(index_soft);
     }
-    $("#indexsoft").html(index_soft);
 
     // var loadT = layer.msg('正在获取列表...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-    $.get('/plugins/index_list', function(rdata) {
+    $.get('/plugins/index_list?simple=1', function(rdata) {
         var rdata = rdata.data;
         // layer.close(loadT);
-        $("#indexsoft").html('');
         var con = '';
         for (var i = 0; i < rdata.length; i++) {
             var plugin = rdata[i];
@@ -359,10 +367,11 @@ function indexListHtml(callback){
                 version_info = version_info.substring(0, version_info.length - 1);
             }
 
+            var state = '';
             if (plugin.status == true) {
-                    state = '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>'
-                } else {
-                    state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>'
+                state = '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>';
+            } else {
+                state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>';
             }
 
             var name = plugin.title + ' ' + plugin.setup_version + '  ';
@@ -383,20 +392,27 @@ function indexListHtml(callback){
             // loadImage();
         }
 
-        $("#indexsoft").html(con);
-        //软件位置移动
-        var softboxlen = $("#indexsoft > div").length;
+        // 软件位置移动与补充18个卡片槽位
+        var softboxlen = rdata.length;
         var softboxsum = 18;
         var softboxcon = '';
-        var softboxn = softboxlen;
         if (softboxlen <= softboxsum) {
             for (var i = 0; i < softboxsum - softboxlen; i++) {
                 softboxcon += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2 no-bg" data-id=""></div>';
             }
-            $("#indexsoft").append(softboxcon);
+        }
+        
+        var newFullHtml = con + softboxcon;
+        
+        // Anti-Flicker 防抖防闪烁比对
+        if (hasCache && cacheHtml === newFullHtml) {
+            return;
         }
 
-        if (typeof callback=='function'){
+        $("#indexsoft").html(newFullHtml);
+        localStorage.setItem('index_soft_cache_html', newFullHtml);
+
+        if (typeof callback == 'function'){
             callback();
         }
     },'json');
@@ -404,7 +420,7 @@ function indexListHtml(callback){
 
 
 //首页软件列表
-function indexSoft() {
+function indexSoft(onFirstRender) {
     indexListHtml(function(){
         $("#indexsoft").dragsort({ 
             dragSelector: ".spanmove", 
@@ -412,6 +428,12 @@ function indexSoft() {
             dragEnd: saveOrder, 
             placeHolderTemplate: "<div class='col-xs-4 col-sm-3 col-md-2 col-lg-2 dashed-border'></div>"
         });
+
+        // 软件卡片第一次被绘制（无论是缓存秒开，还是首发远端）
+        if (typeof onFirstRender == 'function' && !window.isStatusLoaded) {
+            window.isStatusLoaded = true;
+            onFirstRender();
+        }
     });
     
     function saveOrder() {

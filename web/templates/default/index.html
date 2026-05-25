@@ -35,7 +35,7 @@
                             <div class="pie_right">
                                 <div class="right"></div>
                             </div>
-                            <div class="mask"><span id="Load">0</span>%</div>
+                            <div class="mask"><span id="Load">...</span>%</div>
                         </div>
                         <h4 id="LoadState" class="c5 f15">获取中...</h4>
                     </li>
@@ -48,7 +48,7 @@
                             <div class="pie_right">
                                 <div class="right"></div>
                             </div>
-                            <div class="mask"><span id="state">0</span>%</div>
+                            <div class="mask"><span id="state">...</span>%</div>
                         </div>
                         <h4 id="core" class="c5 f15">获取中...</h4>
                     </li>
@@ -61,7 +61,7 @@
                             <div class="pie_right">
                                 <div class="right"></div>
                             </div>
-                            <div class="mask"><span id="left">0</span>%</div>
+                            <div class="mask"><span id="left">...</span>%</div>
                             <div class="mem-re-min" style="display: none;"></div>
                             <div class="mem-re-con" title=""></div>
                         </div>
@@ -152,23 +152,28 @@
 <script type="text/javascript" src="/static/app/index.js?v={{config.version}}"></script>
 <script type="text/javascript">
 
-index.init();
+// 1. 首页软件展示以最高优先级立即执行（支持 0ms 瞬间秒开）
+indexSoft(startLoadStatus);
 
-pluginInit();
-//加载关键数据总数
-loadKeyDataCount();
+// 2. 等到首页软件区 DOM 第一次绘制完成后，引入错峰分批流水线（Pipelined Loading）加载其他动态状态
+function startLoadStatus() {
+    // A. 基础核心实时状态（网速图表、task 轮询、负载、内存、CPU），错峰延迟 150ms 启动
+    setTimeout(function() {
+        index.init();
+        getInfo();
+    }, 150);
 
-setTimeout(function() {
-    getDiskInfo();
-}, 500)
+    // B. 重型并发概览统计数据及一键推荐，错峰延迟 600ms 启动，彻底防并发阻塞
+    setTimeout(function() {
+        pluginInit();
+        loadKeyDataCount();
+    }, 600);
 
-setTimeout(function() {
-    indexSoft();
-}, 1000);
-
-setTimeout(function() {
-    getInfo();
-}, 200);
+    // C. 磁盘高 I/O 挂载分区信息，错峰延迟 800ms 启动
+    setTimeout(function() {
+        getDiskInfo();
+    }, 800);
+}
 
 </script>
 {% endblock %}

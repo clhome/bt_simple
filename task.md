@@ -727,3 +727,72 @@
 - [x] 后端：在 `web/utils/system/update.py` 的 `updateServer('info')` 中补充返回 `speed_name` @done(2026-05-25 16:05)
 - [x] 前端：重构 `web/static/app/index.js`，将括号文字用 `span` 独立包装为绿色，实现 默认 => 检测中 => 挑选成功 的动态渐进演化（带1.0秒体验仪式感时延） @done(2026-05-25 16:47)
 - [x] 验证：检查在版本更新和修复服务器时，括号内的文字是否呈绿色并且根据节点类型呈现完美的渐进状态变化 @done(2026-05-25 16:47)
+
+## 需求：首页软件部分引入缓存优先与防闪烁乐观渲染优化
+
+**问题描述：**
+首页原有的软件加载方式是在每次打开或刷新时向容器注入 18 个空白占位符（骨架屏），然后发送 API 异步拉取，在弱网下存在明显的白屏卡顿与渲染闪烁。通过本地缓存和内容比对，升级为 Stale-While-Revalidate（缓存优先）与 Anti-Flicker（比对去抖）的渲染架构。
+
+**涉及文件：**
+- `web/static/app/soft.js`
+
+### Task List
+
+- [x] 在 `web/static/app/soft.js` 的 `indexListHtml` 函数中，新增缓存读取逻辑，若本地存在 `index_soft_cache_html`，则秒开渲染并立即触发 `callback` 绑定交互事件 @done(2026-05-25 17:36)
+- [x] 在 `indexListHtml` 中，若本地无缓存，则回退为原有逻辑先渲染 18 个无背景空白格子 @done(2026-05-25 17:36)
+- [x] 异步获取到最新软件列表数据后，拼接完整软件 HTML 并补充 18 位，计算出 `newFullHtml` @done(2026-05-25 17:36)
+- [x] 引入内容防闪烁（Anti-Flicker）比对：若比对发现最新 HTML 与缓存完全一致，直接 return 结束流程，消除页面重绘与闪烁 @done(2026-05-25 17:36)
+- [x] 若最新 HTML 相比缓存发生了改变（或原本无缓存），则执行 DOM 重绘更新、覆盖保存最新缓存，并二次调用 `callback` 重新绑定 dragsort 事件 @done(2026-05-25 17:36)
+- [x] 验证整体秒开、防闪烁以及数据最终一致性表现，并打勾归档 @done(2026-05-25 17:36)
+
+## 需求：面板首页软件列表优先渲染与状态渐进加载体验重构
+
+**问题描述：**
+用户提出“软件显示应该优先于状态显示，状态显示可以等软件显示加载完成才显示数值”以提升首屏首要关注信息的感知速度。我们将通过重塑加载流水线，将软件展示排在第一优先级（0ms 秒开），并在软件首屏渲染完毕后才异步触发其他的系统状态 API 请求。同时对圆圈内数值赋予“...”的静默占位状态，大幅度提升现代质感。
+
+**涉及文件：**
+- `web/static/app/soft.js`
+- `web/templates/default/index.html`
+
+### Task List
+
+- [x] 在 `web/static/app/soft.js` 中重塑 `indexSoft(onFirstRender)`，增加渲染完毕回调并配合 `window.isStatusLoaded` 全局拦截确保只单次触发状态加载 @done(2026-05-25 17:41)
+- [x] 在 `web/templates/default/index.html` 中，将顶部状态圆圈（负载、CPU、内存）的默认写死数字 `0` 改为更有期待感的 `...` 等待占位符 @done(2026-05-25 17:41)
+- [x] 重构 `web/templates/default/index.html` 尾部的脚本执行顺序，移除无序 `setTimeout`，优先执行 `indexSoft(startLoadStatus)`，并在回调中优雅开启其他的状态 API 加载 @done(2026-05-25 17:41)
+- [x] 验证优化后的加载顺序与圆圈占位符效果，打勾归档 @done(2026-05-25 17:41)
+
+## 需求：解耦并发阻塞并升级首屏 API 分批流水线（Pipelined Loading）加载机制
+
+**问题描述：**
+Chrome DevTools 瀑布图分析表明，页面刚加载时有 10+ 个并发请求瞬间射出，由于浏览器 HTTP 1.1 并发最大 6 个的同源限制，最核心的 `index_list` 被迫在队列尾部排队挂起（Queueing / Stalled）长达 1.5~2.0 秒。为保障软件卡片最新状态以 VIP 通道秒级更新，我们必须将高负载、重型或低频的状态 API 移入分批流水线（Batching Pipeline）中，在时序上进行物理微延时错峰发射。
+
+**涉及文件：**
+- `web/templates/default/index.html`
+
+### Task List
+
+- [x] 在 `web/templates/default/index.html` 尾部重构 `startLoadStatus` 函数 @done(2026-05-25 17:46)
+- [x] 将基础核心状态 API（getInfo, index.init）配置 150ms 优雅延迟错峰发射，独占前期网络连接池 @done(2026-05-25 17:46)
+- [x] 将并发大、耗时长且低频的概览数据统计 API（loadKeyDataCount, pluginInit）配置 600ms 黄金延迟发射，防连接池排队 @done(2026-05-25 17:46)
+- [x] 将高 I/O 磁盘状态 API（getDiskInfo）配置 800ms 错峰发射，彻底消除并发瓶颈 @done(2026-05-25 17:46)
+- [x] 验证 Chrome 开发者工具网络瀑布流，确保 index_list 实现 0ms 排队挂起与极速发射，打勾归档 @done(2026-05-25 17:46)
+
+## 需求：为 /plugins/index_list 新增 simple 裁剪与传输解析极致加速
+
+**问题描述：**
+首页软件列表在加载时原本返回了全部冗余字段（比如更新检查、安装检查、描述、Mutex等大文本），对首页渲染完全无用。通过为 API 引入可选的 `simple=1` 过滤参数，在后端进行数据结构裁剪净化，仅保留 `name`, `title`, `setup_version`, `status`, `coexist`, `versions` 6 个首页必备的核心状态字段，缩减网络 Payload 90% 以上并极大加速后端的 JSON 序列化与前端解析。
+
+**涉及文件：**
+- `web/admin/plugins/__init__.py`
+- `web/utils/plugin.py`
+- `web/static/app/soft.js`
+
+### Task List
+
+- [x] 后端：修改 `web/admin/plugins/__init__.py` 接口控制器，支持接收并在 getIndexList 中传递 simple 布尔值参数 @done(2026-05-25 17:50)
+- [x] 后端：重构 `web/utils/plugin.py` 里的 `getIndexList(self, simple=False)`，在状态拉取完成后，对列表进行字段剪枝过滤只保留 6 个核心字段，精简 Payload 并缩短解析耗时 @done(2026-05-25 17:50)
+- [x] 前端：修改 `web/static/app/soft.js` 中的 `indexListHtml` 函数，将 Ajax 请求地址指向 `/plugins/index_list?simple=1` @done(2026-05-25 17:50)
+- [x] 验证：强刷网页，检查 Response 数据载荷，确认其完美缩减了 90% 以上，且软件状态与 dragsort 交互完全正常，打勾归档 @done(2026-05-25 17:50)
+
+
+

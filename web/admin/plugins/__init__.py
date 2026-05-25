@@ -47,8 +47,9 @@ def init_install():
 @blueprint.route('/index_list', endpoint='index_list', methods=['GET','POST'])
 @panel_login_required
 def index_list():
+    simple = request.args.get('simple', '0') == '1'
     pg = MwPlugin.instance()
-    return pg.getIndexList()
+    return pg.getIndexList(simple=simple)
 
 # 插件列表
 @blueprint.route('/list', endpoint='list', methods=['GET'])
