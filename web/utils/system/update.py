@@ -114,6 +114,7 @@ def updateServer(stype, version='', step='all'):
             data = {}
             data['version'] = new_ver
             data['content'] = version_new_info['body']
+            data['speed_name'] = mw.getGithubProxyName()
             return mw.returnData(True, '更新信息!', data)
 
         if stype == 'update':

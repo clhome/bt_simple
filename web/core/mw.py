@@ -189,13 +189,86 @@ def isChina():
         return readFile(is_china_file).strip() == 'True'
     return False
 
+def getGithubProxyInfo():
+    """
+    获取最快的 GitHub 代理站信息，如果在中国境内，则进行测速并缓存10分钟
+    返回格式：{"name": "gh-proxy.org", "url": "https://gh-proxy.org/"}
+    """
+    if not isChina():
+        return {"name": "Direct", "url": ""}
+
+    cache_file = getPanelTmp() + '/fastest_github_proxy.json'
+    import time
+    
+    # 尝试命中缓存
+    if os.path.exists(cache_file):
+        try:
+            mtime = os.path.getmtime(cache_file)
+            if time.time() - mtime < 600: # 10分钟缓存
+                data = getObjectByJson(readFile(cache_file))
+                if data and 'name' in data and 'url' in data:
+                    return data
+        except Exception:
+            pass
+
+    # 缓存失效或不存在，进行自动测速
+    test_list = {
+        "gh-proxy.org": "https://gh-proxy.org/",
+        "ghfast.top": "https://ghfast.top/",
+        "ghp.ci": "https://ghp.ci/https://",
+        "github.do": "https://github.do/",
+        "gh-proxy.net": "https://gh-proxy.net/"
+    }
+    
+    test_url = "https://raw.githubusercontent.com/clhome/bt_simple/master/README.md"
+    best_time = 999.0
+    best_name = "gh-proxy.org" # 备退默认值
+    best_url = "https://gh-proxy.org/"
+
+    # 使用 curl + execShell 进行测速，彻底免去 Python SSL 及 DNS 挂起风险
+    for name, prefix in test_list.items():
+        try:
+            full_url = prefix + test_url
+            cmd = f'curl -s -m 2 -o /dev/null -w "%{{time_total}}" "{full_url}"'
+            out, err = execShell(cmd)
+            elapsed = float(out.strip())
+            if elapsed <= 0:
+                elapsed = 999.0
+            
+            if elapsed < best_time:
+                best_time = elapsed
+                best_name = name
+                best_url = prefix
+        except Exception:
+            continue
+
+    result = {"name": best_name, "url": best_url}
+    
+    # 写入缓存
+    try:
+        cache_dir = os.path.dirname(cache_file)
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+        writeFile(cache_file, getJson(result))
+    except Exception:
+        pass
+
+    return result
+
+
 def getGithubProxy():
     """
-    如果在中国境内，返回 GitHub 代理前缀
+    如果在中国境内，返回最快的 GitHub 代理前缀
     """
-    if isChina():
-        return "https://gh-proxy.org/"
-    return ""
+    return getGithubProxyInfo()['url']
+
+
+def getGithubProxyName():
+    """
+    获取当前优选的 GitHub 镜像站名称
+    """
+    return getGithubProxyInfo()['name']
+
 
 
 def getDateFromNow(tf_format="%Y-%m-%d %H:%M:%S", time_zone="Asia/Shanghai"):

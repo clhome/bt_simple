@@ -556,11 +556,11 @@ function updateMsg(){
         } catch(e) {
             htmlContent = rdata.data.content.replace(/\n/g, '<br/>');
         }
-        showUpdateUI(v, v_info + '<span class="badge badge-inverse">版本更新 ['+v+']</span>', htmlContent);
+        showUpdateUI(v, v_info + '<span class="badge badge-inverse">版本更新 ['+v+']</span>', htmlContent, rdata.data.speed_name);
     },'json');
 }
 
-function showUpdateUI(version, title, content) {
+function showUpdateUI(version, title, content, speedName) {
     layer.open({
         type: 1,
         title: title,
@@ -570,6 +570,7 @@ function showUpdateUI(version, title, content) {
         content: '<div class="setchmod bt-form pd20 pb70">'
                 + (content ? '<div class="markdown-body" style="padding: 0 0 10px; line-height: 24px; max-height: 200px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid #eee;">' + content + '</div>' : '')
                 + '<div class="update-progress-group" style="padding: 10px 0;">'
+                + '    <div id="speed-tip-wrapper" style="text-align: center; display: none; margin-bottom: 15px;"><span class="f12" style="color: #20a53a; font-weight: bold;">已使用 <span id="speed-tip-name"></span> 网站加速更新</span></div>'
                 + '    <div style="margin-bottom: 15px;">'
                 + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">1. 下载并解压更新包（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span><span id="download-percent" class="f12 c6">0%</span></div>'
                 + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
@@ -588,7 +589,21 @@ function showUpdateUI(version, title, content) {
                 + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" onclick="executeSteps(\''+version+'\')" >开始执行</button>'
                 + '<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >强制刷新</button>'
                 + '</div>'
-                + '</div>'
+                + '</div>',
+        success: function() {
+            if (speedName && speedName !== 'Direct') {
+                $("#speed-tip-name").text(speedName);
+                $("#speed-tip-wrapper").show();
+            } else if (!speedName) {
+                // 如果没有传入，异步请求获取一下
+                $.get('/system/update_server?type=info', function(rdata) {
+                    if (rdata && rdata.data && rdata.data.speed_name && rdata.data.speed_name !== 'Direct') {
+                        $("#speed-tip-name").text(rdata.data.speed_name);
+                        $("#speed-tip-wrapper").show();
+                    }
+                }, 'json');
+            }
+        }
     });
 }
 

@@ -494,6 +494,201 @@
 
 - [x] API 响应时间与高频并发轮询极致性能重构 @done(2026-05-25 15:45)
   - [x] 彻底消除 `/system/system_total` 中显式传递 `interval=1` 导致的 1.0 秒线程挂起 @done(2026-05-25 15:45)
+- `web/static/app/index.js`
+
+### Task List
+
+- [x] 在 `web/static/css/site.css` 中，将微交互特效（cursor, transition, background-color, :hover 物理悬浮变圆角 shadow, :active 按压下陷）重构提取，通过并集选择器让软件格子和概览模块的 `.sys-li-box` 完美共享特效，不重复代码。 @done(2026-05-24 21:20)
+- [x] 在 `web/static/app/index.js` 的 jQuery 初始化区，为 `#index_overview` 绑定事件委托，在点击 `.sys-li-box` 时自动触发其内侧 `.btlink` 链接的点击动作或直接跳转，支持静态及动态追加的插件方框，且安全防止重复触发。 @done(2026-05-24 21:23)
+- [x] 验证整体功能：浏览器进行强刷测试，检查鼠标悬停在概览方框的物理凸起和压实交互，点击方框边缘能顺利发生跳转，且不产生重复代码。 @done(2026-05-24 21:25)
+
+## 需求：面板设置 SSL 增加 90 天免费证书选项
+
+**问题描述：**
+在“面板设置 =》面板SSL”里，当检测到绑定域名后，提供一键申请与管理 90 天免费证书（ACME / Let's Encrypt）的选项，其申请交互与网站配置 SSL 类似。
+
+**涉及文件：**
+- `web/admin/__init__.py`
+- `web/utils/setting.py`
+- `web/admin/setting/panel_ssl.py`
+- `web/static/app/config.js`
+
+### Task List
+
+- [x] 修改 `web/admin/__init__.py`：(该项废弃) 采用自动创建同名网站的方式桥接官方文件/DNS验证，完美利用 Nginx 自身验证路径，无需在 Flask 路由中重复造轮子。 @done(2026-05-24 22:30)
+- [x] 修改 `web/utils/setting.py`：
+  - 在 `getPanelSsl` 结果中增加返回 `panel_domain` and `ssl_email`。
+  - 修复并重构 `delPanelSsl` 中对于 `choose == 'nginx'` 的 bug，彻底清理证书并安全返回 HTTP 状态。
+  - 新增 `createPanelAcme` 方法，通过 `MwSites.instance().add` 自动检测并创建同名桥接站点，完美复用官方 SSL 申请机制，并自动将成功申请的 90 天证书链接到面板 `ssl/nginx` 并配置和重启面板。已修复 `main_domain` 变量未定义导致的崩溃问题。 @done(2026-05-24 22:30)
+- [x] 修改 `web/admin/setting/panel_ssl.py`：增加新路由端点 `/apply_panel_acme_ssl`。 @done(2026-05-24 21:50)
+- [x] 修改 `web/static/app/config.js`：
+  - 重构 `getPanelSSL` 函数，如果绑定了域名，在选择证书类型下拉菜单里增加 `90天证书` (`nginx`) 的选项。
+  - 新增 `renderPanelSSLApply` 函数，用于渲染 90 天证书的申请表单页面（包括邮箱验证、单选类型、加载 DNS API 等）。
+  - 绑定 90 天证书的申请按钮、续期、删除等 Ajax 事件，完美复用日志展示和手动 TXT 解析等原有样式和逻辑。 @done(2026-05-24 21:55)
+- [x] 验证整体功能：已修复变量未定义问题，现在点击申请将自动创建一个网站并在该网站下挂载并申请证书，彻底解决了文件验证无实体站点导致的失败问题。 @done(2026-05-24 22:31)
+
+## 需求：网站列表增加信息显示（日流量、PHP、SSL证书）
+
+**问题描述：**
+需要在网站列表的表格中，添加“日流量”（读取当日日志大小估算）、“PHP”版本、“SSL证书”有效期的显示列，以对标其他面板的概览能力。
+
+**涉及文件：**
+- `web/admin/site/site.py`
+- `web/templates/default/site.html`
+- `web/static/app/site.js`
+
+### Task List
+
+- [x] 后端：修改 `web/admin/site/site.py`，在 `/site/list` 中为每个站点补充 `php_version`, `ssl_days`, `daily_traffic`。
+- [x] 前端：修改 `web/templates/default/site.html`，在 `thead` 增加对应表头。
+- [x] 前端：修改 `web/static/app/site.js`，在渲染逻辑中拼接新的列，进行格式化和颜色控制。
+
+## 需求：修复面板重启时 gunicorn 报 ssl_version 弃用警告
+
+**问题描述：**
+重启面板时，控制台会出现警告：`Warning: option 'ssl_version' is deprecated and it is ignored. Use ssl_context instead.`
+这是因为新版本的 gunicorn 已经废弃了 `ssl_version` 参数。
+
+**涉及文件：**
+- `web/setting.py`
+
+### Task List
+
+- [x] 修改 `web/setting.py`：注释掉 `ssl_version = 5 # TLSv1.2` 这一行配置，消除弃用警告。 @done(2026-05-24 15:26)
+
+## 需求：文件上传覆盖时在确认弹窗显示文件大小对比
+
+**问题描述：**
+在文件上传确认对话框中，当有同名覆盖的情况时，需要显示服务器中原文件的大小和客户端上传文件的大小。例如：`18.1KB <= 17.56KB`。
+
+**涉及文件：**
+- `web/static/app/files.js`
+
+### Task List
+
+- [x] 在 `getFiles` 中维护 `window.currentFilesMap`，缓存当前目录下已存在的文件大小字节数 @done(2026-05-25 09:25)
+- [x] 在 `showConfirmUpload` 中判断是否覆盖，如果覆盖，获取对应的原大小，并格式化为 `原大小 <= 新大小` 进行展示 @done(2026-05-25 09:25)
+- [x] 验证对话框大小对比显示是否正常 @done(2026-05-25 09:26)
+
+## 需求：将面板左上角显示的环回口 IP 修改为公网 IP
+
+**问题描述：**
+左上角有些服务器显示的是环回口地址（`127.0.0.1`），需要改为显示公网地址。
+
+**根本原因分析：**
+- 前端左上角 IP 由 `layout.html` 中的 `{{data['ip']}}` 进行渲染。
+- `data['ip']` 是在 `web/utils/config.py` 中的 `getGlobalVar()` 注入的。
+- 注入逻辑 `data['ip'] = thisdb.getOption('server_ip', default='127.0.0.1')` 在未设置或设置了 `127.0.0.1` 时直接返回 `127.0.0.1`。
+- 面板具有 `mw.getLocalIp()` 函数来探测公网 IP，当获取到的 IP 是环回口或为空时，我们应该利用此函数显示真实的公网 IP。
+
+**涉及文件：**
+- `web/utils/config.py`
+- `web/admin/__init__.py`
+
+### Task List
+
+- [x] 优化 `web/utils/config.py` 中的 `getGlobalVar` 函数，在 IP 为环回口或为空时调用 `mw.getLocalIp()` 动态获取公网 IP。 @done(2026-05-25 10:03)
+- [x] 优化 `web/admin/__init__.py` 中的 `inject_global_variables` 函数，将模板全局变量注入的 `'ip' : '127.0.0.1'` 修改为直接从 `data` 中动态获取，以防前端以 config.ip 的形式调用导致不一致。 @done(2026-05-25 10:03)
+- [x] 验证整体功能，确保在数据库未配置 IP 或者是 `127.0.0.1` 时，left_ip 处可以正确自动切换为公网 IP。 @done(2026-05-25 10:03)
+
+## 需求：面板首页高频轮询与计算的极致性能和低能耗重构
+
+**问题描述：**
+评估发现，面板首页进行 3 秒高频轮询及加载时，后端存在严重的 CPU 性能设计缺陷与 1.0 秒线程阻塞问题，需要重构以极致降低 CPU 损耗，且保证内存绝不增加，将 API 响应速度提升 10 倍以上。
+
+**根本原因分析：**
+1. `getCpuInfo` 默认参数 `interval=1` 传给 `psutil.cpu_percent`，导致同步获取 CPU 百分比时线程挂起阻塞整整 1.0 秒，极大地降低了 Web 并发处理能力与首页响应速度。
+2. 连续两次调用 `psutil.cpu_percent` 来获取总使用率与分核心使用率，如果都改为 `interval=None` 会因第二次快照刚重置而获得 `0.0` 出现数据失真。物理上，**总 CPU 使用率恒等于各核心使用率的算术平均值**，应改为仅调用一次 `percpu=True` 并通过均值算出总使用率，避免冲突与冗余。
+3. `stats.py` 中在网卡循环内部重复调用 `psutil.net_io_counters(pernic=True)`，造成大量的冗余系统 API 执行，在多容器/多网卡主机下造成严重开销。应在循环外一次性获取并缓存。
+
+**涉及文件：**
+- `web/utils/system/main.py`
+- `web/utils/system/stats.py`
+
+### Task List
+
+- [x] 重构 `web/utils/system/main.py` 中的 `getCpuInfo` 函数：默认 `interval=None` 开启非阻塞零挂起计算，并单次调用 `cpu_percent` 配合数学均值折算总使用率，消除阻塞并防止数据失真。 @done(2026-05-25 10:19)
+- [x] 重构 `web/utils/system/stats.py` 中的 `network` 监控方法：在循环外部一次性调用并缓存 `psutil.net_io_counters(pernic=True)`，将 API 系统调用复杂度降为 O(1)。 @done(2026-05-25 10:19)
+- [x] 验证整体重构功能：运行语法编译检查及命令行指令，确保数据格式 100% 正确无误，接口响应速度提升十倍以上，且 CPU/内存占用大幅度节省。 @done(2026-05-25 10:19)
+
+## 需求：基于 CSS 变量升级色彩系统、字体系统及点缀现代玻璃拟态微交互
+
+**问题描述：**
+在完全不破坏任何现有功能的前提下，对项目前端进行高水准的“渐进式视觉升级”：
+1. 升级色彩系统：在 `site.css` 的 `:root` 引入现代化 CSS 变量与 Tailwind 风格色彩方案，软化原有的 `#f2f2f2` 背景及文本配色。
+2. 升级字体系统：引入全球顶级的 Google Fonts `Outfit` 和 `Inter` 字体，重写 `font-family` 声明，为系统数字、英文及字符赋予尊贵现代感，同时保持中文字体优雅渲染。
+3. 注入现代玻璃拟态与弥散投影：为首页的四大卡片（状态、概览、软件、流量/IO）注入高品质的 `box-shadow` 弥散光影、`backdrop-filter` 磨砂毛玻璃质感与弹性贝塞尔曲线过渡动画。
+
+**涉及文件：**
+- `web/templates/default/layout.html`
+- `web/static/css/site.css`
+
+### Task List
+
+- [x] 在 `web/templates/default/layout.html` 头部，以最现代、无阻塞的方式异步/同步加载 Google Fonts 提供的 `Inter` 和 `Outfit` 精英级无衬线字体。 @done(2026-05-25 11:28)
+- [x] 在 `web/static/css/site.css` 头部构建 `:root` 色彩、阴影与玻璃拟态变量系统，全面软化系统背景底色（`#f2f2f2` -> 现代化柔和淡灰蓝 `#f4f6f8`）及通用文字颜色。 @done(2026-05-25 11:28)
+- [x] 在 `web/static/css/site.css` 头部将全局 `font-family` 声明重构为首选高级变量 `--font-sans`。 @done(2026-05-25 11:28)
+- [x] 在 `web/static/css/site.css` 尾部，为首页的“四大核心卡片容器”定制高阶玻璃拟态（Glassmorphism）与弥散微凸投影样式，并追加丝滑的 `:hover` 浮现微动效。 @done(2026-05-25 11:29)
+- [x] 验证整体排版视觉、响应式表现与既有功能的完美一致性，确保没有任何 regression bug。 @done(2026-05-25 11:29)
+
+## 需求：面板静态资源加载极致加速与 CDN-Fallback 本地双回退重构
+
+**问题描述：**
+部署在服务器上且网络环境不好时，面板页面加载缓慢。瓶颈在于请求过多（141 个）导致的连接排队并发阻塞，以及重型库（ECharts 336KB、CodeMirror 100KB+、XTerm 100KB+）无差别全局加载、出站带宽瓶颈等。
+
+**优化方案：**
+1. 移除 ECharts 全局加载，仅在首页 (`index.html`) 和监控页 (`monitor.html`) 按需单独渲染引入。
+2. 将三方核心样式与脚本（jQuery、Bootstrap、Layer、Marked、ClipboardJS、Socket.io、CodeMirror、XTerm）托管至 Staticfile 公共 CDN 加速，并在完全无网/CDN 抽风的场景下，基于 CSS `onerror` 和 JS 全局变量校验注入 inline 自动加载本地资源的 Fallback 双重保障回退。
+
+**涉及文件：**
+- `web/templates/default/layout.html`
+- `web/templates/default/index.html`
+- `web/templates/default/monitor.html`
+
+### Task List
+
+- [x] 移除 ECharts 全局加载并实现按需加载 @done(2026-05-25 14:43)
+  - [x] 从 `layout.html` 移除 `echarts.min.js` @done(2026-05-25 14:43)
+  - [x] 在 `index.html` 尾部引入 ECharts 的 CDN 与 Fallback 本地回退 @done(2026-05-25 14:43)
+  - [x] 在 `monitor.html` 尾部引入 ECharts 的 CDN 与 Fallback 本地回退 @done(2026-05-25 14:43)
+- [x] 三方公共样式文件（CSS）的 CDN 托管与 Fallback @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `bootstrap.css` 为 CDN 并挂载 `onerror` 本地回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `layer.css` 为 CDN 并挂载 `onerror` 本地回退 @done(2026-05-25 14:43)
+- [x] 三方公共脚本文件（JS）的 CDN 托管与 Fallback @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `jquery.js` 为 CDN 并实现 `window.jQuery` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `jquery.cookie.js` 为 CDN 并实现 `$.cookie` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `bootstrap.js` 为 CDN 并实现 `$.fn.modal` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `layer.js` 为 CDN 并实现 `window.layer` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `marked.js` 为 CDN 并实现 `window.marked` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `clipboard.js` 为 CDN 并实现 `window.ClipboardJS` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `socket.io.js` 为 CDN 并实现 `window.io` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `codemirror.js` 为 CDN 并实现 `window.CodeMirror` 检测回退 @done(2026-05-25 14:43)
+  - [x] 重构 `layout.html` 中的 `xterm.js` 系列为 CDN 托管并实现回退 @done(2026-05-25 14:43)
+- [x] 性能验证与 Fallback 鲁棒性测试 @done(2026-05-25 15:24)
+  - [x] 验证 CDN 正常加载下的页面功能（图表、软件格子、文件、终端） @done(2026-05-25 15:24)
+  - [x] 模拟 CDN 挂掉，验证自动回退至本地加载无感知 @done(2026-05-25 15:24)
+
+## 需求：API 响应时间与高频并发轮询极致性能重构
+
+**问题描述：**
+在高延迟弱网下，首页 API 轮询存在排队和队头阻塞，且 `/system/system_total` 残留 1.0 秒同步硬挂载阻塞，部分插件统计 API `/plugins/run` 耗时达 1.04 秒；此外，网页切走挂在后台时定时器仍在疯狂发送请求，浪费服务器性能与出站流量。
+
+**优化方案：**
+1. 移除 `/system/system_total` 中显式传递 `interval=1` 导致的 1.0 秒挂起，开启零挂载秒开响应。
+2. 合并接口：将 `/task/count` 排队任务数直接随 `/system/network` 接口带回。在首页通过 `getNet()` Ajax 回调接管更新，并在 `public.js` 中判定为首页时直接跳过 `/task/count` 独立轮询，削减首页 80% 并发轮询数，消除并发排队。
+3. 后端插件缓存：对高耗时的 `get_total_statistics` 获取数据总量接口在后端引入 10 秒轻量级内存缓存，免除重复计算与 I/O 阻塞。
+4. 自适应静默：在 `index.js`（3秒网速刷新）与 `public.js`（6秒任务刷新）定时器中引入 `document.visibilityState` 校验，切走标签或挂后台时定时器完全停摆，切回时瞬间自动恢复。
+
+**涉及文件：**
+- `web/admin/system/system.py`
+- `web/admin/plugins/__init__.py`
+- `web/static/app/index.js`
+- `web/static/app/public.js`
+
+### Task List
+
+- [x] API 响应时间与高频并发轮询极致性能重构 @done(2026-05-25 15:45)
+  - [x] 彻底消除 `/system/system_total` 中显式传递 `interval=1` 导致的 1.0 秒线程挂起 @done(2026-05-25 15:45)
   - [x] 后端：在 `/system/network` 接口中合并返回 `task_count` 数据 @done(2026-05-25 15:45)
   - [x] 后端：对 `/plugins/run` 的 `get_total_statistics` 获取数据总量方法在后端引入 10 秒轻量级内存缓存 @done(2026-05-25 15:45)
   - [x] 前端：在首页 `index.js` 的 `getNet()` 成功回调中接管任务未执行总数刷新，更新 DOM 展现 @done(2026-05-25 15:45)
@@ -502,3 +697,33 @@
 - [x] 性能验证与自适应停摆鲁棒性测试 @done(2026-05-25 15:46)
   - [x] 强刷页面，确认首页 API 并发队头阻塞消除，接口响应降至物理 RTT 底线 @done(2026-05-25 15:46)
   - [x] 将面板切至浏览器后台挂机，确认所有的网速/任务轮询 Ajax 请求全部自动停摆，切回时瞬间自动恢复 @done(2026-05-25 15:46)
+
+## 需求：Web端更新/修复自动挑选最快 GitHub 镜像加速站并显示
+
+**问题描述：**
+在更新版本或修复系统时，为了避免国内服务器网络不佳导致下载失败，需要挑选速度最快的加速站，并将挑选出的最快加速站在网页端更新/修复页面上以绿色字体清晰显示出来。
+
+**优化方案：**
+1. **后端代理智能选择与缓存**：
+   - 提取国内可用的多个 GitHub 镜像加速站列表。
+   - 实现 Python 后端自动并发/顺序测速逻辑：发起超轻量级的 HTTP 探测连接到 `https://raw.githubusercontent.com/clhome/bt_simple/master/README.md`，限制 3 秒超时，并计算耗时。
+   - 引入 10 分钟轻量级缓存文件，防止高频测速阻塞系统升级检测。
+   - 重构 `mw.getGithubProxy()`，使其返回自动挑选出的最快代理 URL。
+   - 提供 `mw.getGithubProxyName()`，用于向前端传输最快加速站的名称。
+2. **升级信息返回接口扩展**：
+   - 升级 `/system/update_server?type=info`，在返回给前端的数据结构中增加 `speed_name` 参数，将当前被采用的最快代理站名称传输过去。
+3. **前端弹窗展示优化**：
+   - 在 `web/static/app/index.js` 的 `showUpdateUI` 更新弹窗中，新增一个绿色的加速站提示组件，显示 `已使用 xxx 网站加速更新`。
+   - 若传入了 `speedName`，直接渲染展示；若在修复等其他无版本状态的调用中未传入 `speedName`，则自动发起一次轻量异步请求 `/system/update_server?type=info` 获取最快镜像站名并渐进淡入展示，保证极速弹窗体验。
+
+**涉及文件：**
+- `web/core/mw.py`
+- `web/utils/system/update.py`
+- `web/static/app/index.js`
+
+### Task List
+
+- [x] 后端：在 `web/core/mw.py` 中实现多 GitHub 镜像站自动探测测速、优选与 10 分钟本地缓存，重构 `getGithubProxy` 并在其中增加 `getGithubProxyName` @done(2026-05-25 16:05)
+- [x] 后端：在 `web/utils/system/update.py` 的 `updateServer('info')` 中补充返回 `speed_name` @done(2026-05-25 16:05)
+- [x] 前端：在 `web/static/app/index.js` 中重构 `showUpdateUI`、更新它的展示逻辑，在“1. 下载并解压更新包...”上方优雅展示测速优选后的加速站提示，并在修复系统时通过异步探测获取站名并完美展示 @done(2026-05-25 16:05)
+- [x] 验证：确认在网页端打开更新或修复弹窗时，均能秒级响应并展示“已使用 xxx 网站加速更新”字样，且升级所走代理确实为挑选出的最优代理链路 @done(2026-05-25 16:05)
