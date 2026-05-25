@@ -1014,9 +1014,15 @@ function getTaskCount() {
 	},'json');
 }
 getTaskCount();
-setInterval(function(){
-	getTaskCount();
-},6000);
+// 仅在非首页时，启动每 6 秒的任务数轮询（首页已由 getNet 高频接口大合并接管，彻底消除了首页并发 API 队头阻塞）
+if (!(window.location.pathname === '/' || window.location.pathname === '/index' || window.location.pathname === '')) {
+	setInterval(function(){
+		if (document.visibilityState !== 'visible') {
+			return; // 页面挂在后台，自动暂停高频轮询
+		}
+		getTaskCount();
+	},6000);
+}
 
 function setSelectChecked(c, d) {
 	var a = document.getElementById(c);

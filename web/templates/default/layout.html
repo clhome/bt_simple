@@ -11,11 +11,7 @@
       rel="stylesheet"
       onerror="this.onerror=null;this.href='/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}'"
     />
-    <link
-      href="https://cdn.staticfile.org/layer/3.5.1/skin/default/layer.css"
-      rel="stylesheet"
-      onerror="this.onerror=null;this.href='/static/layer/skin/default/layer.css?v={{config.version}}'"
-    />
+    <link href="/static/layer/skin/default/layer.css?v={{config.version}}" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
@@ -148,9 +144,8 @@
         <script src="https://cdn.staticfile.org/marked/4.3.0/marked.min.js"></script>
         <script>window.marked || document.write('<script src="/static/js/marked.min.js"><\/script>')</script>
 
-        <!-- jQuery Fly -->
-        <script src="https://cdn.staticfile.org/jquery.fly/1.0.0/jquery.fly.min.js"></script>
-        <script>$.fly || document.write('<script src="/static/js/jquery.fly.min.js"><\/script>')</script>
+        <!-- jQuery Fly (本地加载，体积小) -->
+        <script src="/static/js/jquery.fly.min.js"></script>
 
         <!-- Clipboard -->
         <script src="https://cdn.staticfile.org/clipboard.js/2.0.11/clipboard.min.js"></script>
@@ -176,13 +171,11 @@
         <!-- jQuery dragsort (本地，较小且定制多) -->
         <script src="/static/js/jquery.dragsort-0.5.2.min.js"></script>
 
-        <!-- jQuery QRCode -->
-        <script src="https://cdn.staticfile.org/jquery-qrcode/0.18.0/jquery-qrcode.min.js"></script>
-        <script>$.fn.qrcode || document.write('<script src="/static/js/jquery-qrcode-0.18.0.min.js?v={{config.version}}"><\/script>')</script>
+        <!-- jQuery QRCode (本地加载) -->
+        <script src="/static/js/jquery-qrcode-0.18.0.min.js?v={{config.version}}"></script>
 
-        <!-- XM-Select -->
-        <script src="https://cdn.staticfile.org/xm-select/1.2.4/xm-select.min.js"></script>
-        <script>window.xmSelect || document.write('<script src="/static/js/xm-select.js"><\/script>')</script>
+        <!-- XM-Select (本地加载) -->
+        <script src="/static/js/xm-select.js"></script>
 
         {% block content %}{% endblock %}
         <div class="footer bgw">
@@ -278,9 +271,8 @@
   <script src="/static/codemirror/addon/search/search.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/scroll/annotatescrollbar.js?v={{config.version}}"></script>
   
-  <!-- LayDate CDN & Fallback -->
-  <script src="https://cdn.staticfile.org/laydate/5.3.1/laydate.js"></script>
-  <script>window.laydate || document.write('<script src="/static/laydate/laydate.js?v={{config.version}}"><\/script>')</script>
+  <!-- LayDate (本地加载，防止皮肤文件丢失) -->
+  <script src="/static/laydate/laydate.js?v={{config.version}}"></script>
 
   {% for menu in data['hook_menu'] %} {% if menu['js_path'] and data['hook_tag']
   == menu['name'] %}

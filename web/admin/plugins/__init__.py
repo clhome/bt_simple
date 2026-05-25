@@ -174,6 +174,9 @@ def setting():
     return mw.readFile(html)
 
 
+# 插件缓存，过期时间为 10 秒
+RUN_CACHE = {}
+
 # 插件统一回调入口API
 @blueprint.route('/run', endpoint='run', methods=['GET','POST'])
 @panel_login_required
@@ -184,12 +187,25 @@ def run():
     args = request.form.get('args', '')
     script = request.form.get('script', 'index')
 
+    # 针对获取插件统计信息 get_total_statistics 引入 10 秒轻量级缓存
+    cache_key = (name, func, version, args, script)
+    import time
+    now = time.time()
+    if func == 'get_total_statistics' and cache_key in RUN_CACHE:
+        cache_data, cache_time = RUN_CACHE[cache_key]
+        if now - cache_time < 10:
+            return cache_data
+
     pg = MwPlugin.instance()
     data = pg.run(name, func, version, args, script)
     if data[1] == '':
         r = mw.returnData(True, "OK", data[0].strip())
     else:
         r = mw.returnData(False, data[1].strip())
+
+    if func == 'get_total_statistics':
+        RUN_CACHE[cache_key] = (r, now)
+
     return r
 
 

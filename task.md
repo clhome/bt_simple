@@ -469,9 +469,36 @@
   - [x] 重构 `layout.html` 中的 `socket.io.js` 为 CDN 并实现 `window.io` 检测回退 @done(2026-05-25 14:43)
   - [x] 重构 `layout.html` 中的 `codemirror.js` 为 CDN 并实现 `window.CodeMirror` 检测回退 @done(2026-05-25 14:43)
   - [x] 重构 `layout.html` 中的 `xterm.js` 系列为 CDN 托管并实现回退 @done(2026-05-25 14:43)
-- [/] 性能验证与 Fallback 鲁棒性测试
-  - [ ] 验证 CDN 正常加载下的页面功能（图表、软件格子、文件、终端）
-  - [ ] 模拟 CDN 挂掉，验证自动回退至本地加载无感知
+- [x] 性能验证与 Fallback 鲁棒性测试 @done(2026-05-25 15:24)
+  - [x] 验证 CDN 正常加载下的页面功能（图表、软件格子、文件、终端） @done(2026-05-25 15:24)
+  - [x] 模拟 CDN 挂掉，验证自动回退至本地加载无感知 @done(2026-05-25 15:24)
 
+## 需求：API 响应时间与高频并发轮询极致性能重构
 
+**问题描述：**
+在高延迟弱网下，首页 API 轮询存在排队和队头阻塞，且 `/system/system_total` 残留 1.0 秒同步硬挂载阻塞，部分插件统计 API `/plugins/run` 耗时达 1.04 秒；此外，网页切走挂在后台时定时器仍在疯狂发送请求，浪费服务器性能与出站流量。
 
+**优化方案：**
+1. 移除 `/system/system_total` 中显式传递 `interval=1` 导致的 1.0 秒挂起，开启零挂载秒开响应。
+2. 合并接口：将 `/task/count` 排队任务数直接随 `/system/network` 接口带回。在首页通过 `getNet()` Ajax 回调接管更新，并在 `public.js` 中判定为首页时直接跳过 `/task/count` 独立轮询，削减首页 80% 并发轮询数，消除并发排队。
+3. 后端插件缓存：对高耗时的 `get_total_statistics` 获取数据总量接口在后端引入 10 秒轻量级内存缓存，免除重复计算与 I/O 阻塞。
+4. 自适应静默：在 `index.js`（3秒网速刷新）与 `public.js`（6秒任务刷新）定时器中引入 `document.visibilityState` 校验，切走标签或挂后台时定时器完全停摆，切回时瞬间自动恢复。
+
+**涉及文件：**
+- `web/admin/system/system.py`
+- `web/admin/plugins/__init__.py`
+- `web/static/app/index.js`
+- `web/static/app/public.js`
+
+### Task List
+
+- [x] API 响应时间与高频并发轮询极致性能重构 @done(2026-05-25 15:45)
+  - [x] 彻底消除 `/system/system_total` 中显式传递 `interval=1` 导致的 1.0 秒线程挂起 @done(2026-05-25 15:45)
+  - [x] 后端：在 `/system/network` 接口中合并返回 `task_count` 数据 @done(2026-05-25 15:45)
+  - [x] 后端：对 `/plugins/run` 的 `get_total_statistics` 获取数据总量方法在后端引入 10 秒轻量级内存缓存 @done(2026-05-25 15:45)
+  - [x] 前端：在首页 `index.js` 的 `getNet()` 成功回调中接管任务未执行总数刷新，更新 DOM 展现 @done(2026-05-25 15:45)
+  - [x] 前端：在 `public.js` 中新增首页环境判定，跳过独立高频轮询 `/task/count` 的定时器 @done(2026-05-25 15:45)
+  - [x] 前端：在 `index.js`（3秒网速刷新）与 `public.js`（6秒任务刷新）的 `setInterval` 定时器内追加 `document.visibilityState` 自适应轮询检测 @done(2026-05-25 15:45)
+- [x] 性能验证与自适应停摆鲁棒性测试 @done(2026-05-25 15:46)
+  - [x] 强刷页面，确认首页 API 并发队头阻塞消除，接口响应降至物理 RTT 底线 @done(2026-05-25 15:46)
+  - [x] 将面板切至浏览器后台挂机，确认所有的网速/任务轮询 Ajax 请求全部自动停摆，切回时瞬间自动恢复 @done(2026-05-25 15:46)

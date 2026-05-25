@@ -27,7 +27,7 @@ blueprint = Blueprint('system', __name__, url_prefix='/system', template_folder=
 @panel_login_required
 def system_total():
     data = sys.getMemInfo()
-    cpu = sys.getCpuInfo(interval=1)
+    cpu = sys.getCpuInfo(interval=None)
     data['cpuNum'] = cpu[1]
     data['cpuRealUsed'] = cpu[0]
     data['time'] = sys.getBootTime()
@@ -51,6 +51,8 @@ def network():
     stat['mem'] = sys.getMemInfo()
     stat['iostat'] = sys.stats().disk()
     stat['network'] = sys.stats().network()
+    # 注入任务排队数量，实现高频接口合并
+    stat['task_count'] = thisdb.getTaskUnexecutedCount()
     return stat
 
 # 获取系统的磁盘信息

@@ -267,6 +267,11 @@ function getNet() {
         setCookie("upNet", net.up);
         setCookie("downNet", net.down);
 
+        // 自动更新左侧与顶部的排队任务总数，完成首页接口合并
+        if (typeof(net.task_count) !== 'undefined') {
+            $(".task").text(net.task_count);
+        }
+
         //负载
         getLoad(net.load);
 
@@ -447,6 +452,9 @@ function netImg() {
 
     var echartsNetImg = echarts.init(document.getElementById('netImg'));
     setInterval(function() {
+        if (document.visibilityState !== 'visible') {
+            return; // 网页切入后台，自动暂停高频轮询以节省能耗与带宽
+        }
         getNet();
         addData(true);
         echartsNetImg.setOption({
