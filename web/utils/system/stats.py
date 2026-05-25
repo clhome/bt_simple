@@ -119,7 +119,8 @@ class stats:
         if not stime: stime = 1
 
         # print("new:",stime)
-        netio_group = psutil.net_io_counters(pernic=True).keys()
+        netio_group_data = psutil.net_io_counters(pernic=True)
+        netio_group = netio_group_data.keys()
 
         netio_cache = netio['info']
         allio_cache = netio['all_io']
@@ -130,7 +131,7 @@ class stats:
         for name in netio_group:
             netInfo[name] = {}
 
-            io_data = psutil.net_io_counters(pernic=True).get(name)
+            io_data = netio_group_data.get(name)
             if not name in netio_cache:
                 netio_cache[name] = io_data
 

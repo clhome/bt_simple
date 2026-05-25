@@ -170,18 +170,26 @@ def getBootTime():
     min = math.floor(min - (days * 60 * 24) - (hours * 60))
     return mw.getInfo('已不间断运行: {1}天{2}小时{3}分钟', (str(int(days)), str(int(hours)), str(int(min))))
 
-def getCpuInfo(interval=1):
+def getCpuInfo(interval=None):
     # 取CPU信息
     cpuCount = psutil.cpu_count()
     cpuLogicalNum = psutil.cpu_count(logical=False)
-    used = psutil.cpu_percent(interval=interval)
+    
+    # 极简与高性能重构：一次性非阻塞获取所有核心的使用率百分比
+    used_all = psutil.cpu_percent(interval=interval, percpu=True)
+    
+    # 物理折算：总使用率恒等于各核心使用率的算术平均值。避免了二次调用 psutil.cpu_percent 导致的快照被消耗失真问题
+    if used_all:
+        used = round(sum(used_all) / len(used_all), 2)
+    else:
+        used = 0.0
+        
     cpuLogicalNum = 0
     if os.path.exists('/proc/cpuinfo'):
         c_tmp = mw.readFile('/proc/cpuinfo')
         d_tmp = re.findall("physical id.+", c_tmp)
         cpuLogicalNum = len(set(d_tmp))
 
-    used_all = psutil.cpu_percent(percpu=True)
     cpu_name = mw.getCpuType() + " * {}".format(cpuLogicalNum)
     return used, cpuCount, used_all, cpu_name, cpuCount, cpuLogicalNum
 

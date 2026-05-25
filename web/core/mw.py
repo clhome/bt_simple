@@ -768,6 +768,8 @@ def getCpuType():
         return cpuinfo[0].strip()
 
     # 取CPU类型
+    if not os.path.exists('/proc/cpuinfo'):
+        return 'Intel/AMD CPU'
     cpuinfo = open('/proc/cpuinfo', 'r').read()
     rep = "model\\s+name\\s+:\\s+(.+)"
     tmp = re.search(rep, cpuinfo, re.I)
