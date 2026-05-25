@@ -845,7 +845,7 @@ show_panel_info() {
     fi
     echo ""
     echo -e "=================================================================="
-    echo -e "${GREEN}${BOLD}${version}bt_simple 面板安装/迁移完成!${PLAIN}"
+    echo -e "${GREEN}${BOLD}${version} 御风面板安装/迁移完成!${PLAIN}"
     echo -e "=================================================================="
     
     if [ -f /usr/bin/mw ] || [ -f /usr/bin/bs ]; then

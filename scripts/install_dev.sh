@@ -134,7 +134,7 @@ function ChooseProxyURL(){
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
-    echo -e '|     欢迎使用 Linux 一键安装bt_simple面板源码   |'
+    echo -e '|     欢迎使用 Linux 一键安装御风面板源码   |'
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'

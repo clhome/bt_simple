@@ -270,7 +270,7 @@ function ChooseProxyURL(){
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
-    echo -e '|     欢迎使用 Linux 一键安装mdserver-web面板源码   |'
+    echo -e '|     欢迎使用 Linux 一键安装御风面板源码   |'
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
@@ -710,18 +710,18 @@ mw_default(){
         v4=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getServerIp 4)
         local_ip=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py getLocalIp)
         
-        address="内网 bs_simple_URL: ${scheme}://$local_ip:$port$admin_path"
+        address="内网 御风面板URL: ${scheme}://$local_ip:$port$admin_path"
         if [ "$v4" != "" ] && [ "$v4" != "$local_ip" ]; then
-            address="${address}\n外网 bs_simple_URL: ${scheme}://$v4:$port$admin_path"
+            address="${address}\n外网 御风面板URL: ${scheme}://$v4:$port$admin_path"
         fi
     else
-        address="bs_simple_URL: ${scheme}://$address:$port$admin_path"
+        address="御风面板URL: ${scheme}://$address:$port$admin_path"
     fi
 
     # bind domain check
     panel_bind_domain=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_bind_domain)
     if [ "$panel_bind_domain" != "" ];then
-        address="bs_simple_URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
+        address="御风面板URL: ${scheme}://$panel_bind_domain:$port$admin_path\n${address}"
     fi
 
     show_panel_ip="$port|"
@@ -730,14 +730,13 @@ mw_default(){
         version="【$(cat ${PANEL_DIR}/.version | sed 's/^v//')】"
     fi
     echo -e "=================================================================="
-    echo -e "\033[32m${version}bt_simple 面板信息\033[0m"
+    echo -e "\033[32m${version}御风面板信息\033[0m"
     echo -e "=================================================================="
     echo -e "$address"
     echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py username`
     echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password`
-    echo -e "\033[33mWarning:\033[0m"
-    echo -e "\033[33mIf you cannot access the panel. \033[0m"
-    echo -e "\033[33mrelease the following port (${show_panel_ip}80|443|22) in the security group.\033[0m"
+    echo -e "\033[33m提示:\033[0m"
+    echo -e "\033[33m如果无法访问面板，请在安全组开放端口 (${show_panel_ip}80|443|22)。\033[0m"
     echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 bs 11 进行密码重置。\033[0m"
     echo -e "=================================================================="
 }
