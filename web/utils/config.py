@@ -44,7 +44,11 @@ def getGlobalVar():
     '''
     data = {}
     data['title'] = thisdb.getOption('title', default='御风面板（BtSimple）')
-    data['ip'] = thisdb.getOption('server_ip', default='127.0.0.1')
+    
+    ip = thisdb.getOption('server_ip', default='127.0.0.1')
+    if ip in ['127.0.0.1', 'localhost', '::1', '']:
+        ip = mw.getLocalIp()
+    data['ip'] = ip
 
     data['site_path'] = thisdb.getOption('site_path', default=mw.getFatherDir()+'/wwwroot')
     data['backup_path'] = thisdb.getOption('backup_path', default=mw.getFatherDir()+'/backup')

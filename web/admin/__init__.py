@@ -202,7 +202,7 @@ def inject_global_variables():
     g_config = {
         'version': app_ver,
         'title' : 'MW面板',
-        'ip' : '127.0.0.1'
+        'ip' : data.get('ip', '127.0.0.1')
     }
     return dict(config=g_config, data=data)
 

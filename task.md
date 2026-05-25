@@ -375,3 +375,24 @@
 - [x] 在 `showConfirmUpload` 中判断是否覆盖，如果覆盖，获取对应的原大小，并格式化为 `原大小 <= 新大小` 进行展示 @done(2026-05-25 09:25)
 - [x] 验证对话框大小对比显示是否正常 @done(2026-05-25 09:26)
 
+## 需求：将面板左上角显示的环回口 IP 修改为公网 IP
+
+**问题描述：**
+左上角有些服务器显示的是环回口地址（`127.0.0.1`），需要改为显示公网地址。
+
+**根本原因分析：**
+- 前端左上角 IP 由 `layout.html` 中的 `{{data['ip']}}` 进行渲染。
+- `data['ip']` 是在 `web/utils/config.py` 中的 `getGlobalVar()` 注入的。
+- 注入逻辑 `data['ip'] = thisdb.getOption('server_ip', default='127.0.0.1')` 在未设置或设置了 `127.0.0.1` 时直接返回 `127.0.0.1`。
+- 面板具有 `mw.getLocalIp()` 函数来探测公网 IP，当获取到的 IP 是环回口或为空时，我们应该利用此函数显示真实的公网 IP。
+
+**涉及文件：**
+- `web/utils/config.py`
+- `web/admin/__init__.py`
+
+### Task List
+
+- [x] 优化 `web/utils/config.py` 中的 `getGlobalVar` 函数，在 IP 为环回口或为空时调用 `mw.getLocalIp()` 动态获取公网 IP。 @done(2026-05-25 10:03)
+- [x] 优化 `web/admin/__init__.py` 中的 `inject_global_variables` 函数，将模板全局变量注入的 `'ip' : '127.0.0.1'` 修改为直接从 `data` 中动态获取，以防前端以 config.ip 的形式调用导致不一致。 @done(2026-05-25 10:03)
+- [x] 验证整体功能，确保在数据库未配置 IP 或者是 `127.0.0.1` 时，左上角可以正确自动切换为公网 IP。 @done(2026-05-25 10:03)
+
