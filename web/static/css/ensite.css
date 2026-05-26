@@ -3716,4 +3716,52 @@ html .menu .menu_exit:hover {
 .layui-layer-btn {
     border-bottom-left-radius: 10px !important;
     border-bottom-right-radius: 10px !important;
-}
+}
+
+/* 修复 CodeMirror 搜索框不可见问题并将其移至底部防遮挡 */
+.CodeMirror-dialog {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: #fff !important; /* 赋予白底色避免被继承为透明 */
+    z-index: 100 !important;
+    padding: 6px 12px !important; /* 减小内边距降低高度 */
+    overflow: hidden;
+    color: #333 !important;
+    border-top: 1px solid #eee !important;
+    border-bottom: none !important;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15) !important; /* 向上弥散阴影 */
+    font-size: 13px;
+    display: flex !important; /* 开启 Flex 布局强制在一行 */
+    align-items: center;
+    line-height: 1 !important;
+}
+.CodeMirror-dialog-top, .CodeMirror-dialog-bottom {
+    top: auto !important;
+    bottom: 0 !important; /* 强制定位到底部 */
+}
+.CodeMirror-dialog input {
+    border: 1px solid #ccc !important;
+    padding: 4px 6px !important;
+    border-radius: 3px;
+    outline: none;
+    background: #fff !important;
+    color: #333 !important;
+    width: 350px !important; /* 拉长搜索框 */
+    margin: 0 8px !important;
+}
+.CodeMirror-dialog button {
+    border: 1px solid #ccc;
+    background: #fbfbfb;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+.CodeMirror-dialog button:hover {
+    background: #eee;
+}
+/* 去掉无意义的关闭 X */
+.Dialog-close, .CodeMirror-dialog-close {
+    display: none !important;
+}

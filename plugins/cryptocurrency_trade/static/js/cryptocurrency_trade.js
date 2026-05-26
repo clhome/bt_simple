@@ -472,7 +472,7 @@ function onlineEditStrategyFile(k, f, tag) {
             success:function(){
                 $("#textBody").text(s.data.data);
                 var q = $(window).height() * 0.9;
-                $("#textBody").height(q - 220);
+                $("#textBody").height(q - 190);
                 code_mirror = CodeMirror.fromTextArea(document.getElementById("textBody"), {
                     extraKeys: {
                         "Ctrl-F": "findPersistent",
@@ -493,10 +493,10 @@ function onlineEditStrategyFile(k, f, tag) {
                     autoMatchParens: true
                 });
                 code_mirror.focus();
-                code_mirror.setSize("auto", q - 210);
+                code_mirror.setSize("auto", q - 180);
                 $(window).resize(function(){
                     var q = $(window).height() * 0.9;
-                    code_mirror.setSize("auto", q - 210);
+                    code_mirror.setSize("auto", q - 180);
                 });   
             },
             yes:function(){
