@@ -5,7 +5,7 @@
     --bg-main: #f4f6f8; /* 现代化冷调浅灰蓝底色，替代原有纯灰 #f2f2f2 */
     --text-main: #1f2937; /* 现代炭黑，替代 #333 */
     --text-muted: #6b7280; /* 现代烟灰，替代 #999 */
-    --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     
     /* 高阶弥散阴影 */
     --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);

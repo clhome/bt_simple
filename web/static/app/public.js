@@ -2846,10 +2846,11 @@ function aboutPanel() {
         layer.open({
             type: 1,
             title: false,
-            closeBtn: 1,
+            closeBtn: 0,
             area: ['850px', '785px'],
             shadeClose: true,
-            content: '<div class=\"about-container\">' +
+            content: '<div class=\"about-container\" style=\"position: relative;\">' +
+                        '<div class=\"about-close\" style=\"position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;\" onmouseover=\"this.style.color=\'#333\'\" onmouseout=\"this.style.color=\'#999\'\" onclick=\"layer.closeAll(\'page\')\">×</div>' +
                         '<div class=\"about-header\">' +
                             '<img src=\"/static/img/logo.png\" style=\"width: 160px; margin-bottom: 1px;\">' +
                             '<h2>御风面板（BtSimple）</h2>' +
@@ -2859,13 +2860,7 @@ function aboutPanel() {
                         '<div class=\"about-footer\">' +
                             '<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>' +
                         '</div>' +
-                     '</div>',
-            success: function(layero, index) {
-                $(layero).find('.layui-layer-setwin .layui-layer-close').css({
-                    'top': '20px',
-                    'right': '20px'
-                });
-            }
+                     '</div>'
         });
     }, 'json');
 }
