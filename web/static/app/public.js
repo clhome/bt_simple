@@ -769,7 +769,7 @@ function onlineEditFile(k, f, callback) {
 
 				$("#textBody").text(rdata.data.data);
 				var q = $(window).height() * 0.9;
-				$("#textBody").height(q - 160);
+				$("#textBody").height(q - 220);
 
 				code_mirror = CodeMirror.fromTextArea(document.getElementById("textBody"), {
 					extraKeys: {
@@ -791,11 +791,11 @@ function onlineEditFile(k, f, callback) {
 					autoMatchParens: true
 				});
 				code_mirror.focus();
-				code_mirror.setSize("auto", q - 150);
+				code_mirror.setSize("auto", q - 210);
 
 				$(window).resize(function(){
 	                var q = $(window).height() * 0.9;
-	                code_mirror.setSize("auto", q - 150);
+	                code_mirror.setSize("auto", q - 210);
 	            });
 			});
 		},
