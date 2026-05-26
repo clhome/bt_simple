@@ -1919,26 +1919,30 @@ function initDragDrop() {
     window.addEventListener('dragenter', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         $(dropOverlay).addClass('active');
-    }, false);
+    }, true);
 
     window.addEventListener('dragover', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         $(dropOverlay).addClass('active');
-    }, false);
+    }, true);
 
     window.addEventListener('dragleave', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         dragTimer = window.setTimeout(function() {
             $(dropOverlay).removeClass('active');
         }, 100);
-    }, false);
+    }, true);
 
     window.addEventListener('drop', function(e) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         $(dropOverlay).removeClass('active');
         if (dragTimer) window.clearTimeout(dragTimer);
 
@@ -1946,7 +1950,7 @@ function initDragDrop() {
         if (items) {
             handleDroppedItems(items);
         }
-    }, false);
+    }, true);
 
     $('#manual_upload_files').change(function(e) {
         handleManualSelect(e.target.files);
@@ -1966,8 +1970,25 @@ function handleManualSelect(files) {
         filesToUpload.push(file);
     }
     if (filesToUpload.length > 0) {
-        pendingUploadFiles = pendingUploadFiles.concat(filesToUpload);
+        addFilesToPending(filesToUpload);
         showConfirmUpload();
+    }
+}
+
+/**
+ * 将新文件添加到待上传列表，并根据 fullPath 去重
+ */
+function addFilesToPending(newFiles) {
+    var existingPaths = pendingUploadFiles.map(function(f) { return f.fullPath; });
+    for (var i = 0; i < newFiles.length; i++) {
+        var idx = existingPaths.indexOf(newFiles[i].fullPath);
+        if (idx >= 0) {
+            // 如果已存在同名文件，覆盖它
+            pendingUploadFiles[idx] = newFiles[i];
+        } else {
+            pendingUploadFiles.push(newFiles[i]);
+            existingPaths.push(newFiles[i].fullPath);
+        }
     }
 }
 
@@ -1989,7 +2010,7 @@ function handleDroppedItems(items) {
     Promise.all(promises).then(function() {
         layer.close(loadingIndex);
         if (filesToUpload.length > 0) {
-            pendingUploadFiles = pendingUploadFiles.concat(filesToUpload);
+            addFilesToPending(filesToUpload);
             showConfirmUpload();
         } else if (pendingUploadFiles.length === 0) {
             layer.msg('未发现可上传的文件', { icon: 5 });
@@ -2056,8 +2077,8 @@ function showConfirmUpload() {
         }
     });
 
-    console.log("【Antigravity 调试】全局已有文件缓存:", window.currentFiles);
-    console.log("【Antigravity 调试】合并DOM提取后的已有文件列表:", existFiles);
+    // console.log("【御风面板】全局已有文件缓存:", window.currentFiles);
+    // console.log("【御风面板】合并DOM提取后的已有文件列表:", existFiles);
     
     for (var i = 0; i < files.length; i++) {
         totalSize += files[i].size;
@@ -2070,7 +2091,7 @@ function showConfirmUpload() {
             }
             
             var isOverwrite = existFiles.indexOf(fileName) >= 0 || existFiles.indexOf(cleanName) >= 0;
-            console.log("【Antigravity 调试】待上传文件名:", fileName, "清洗后的名字:", cleanName, "是否会覆盖:", isOverwrite);
+            // console.log("【御风面板】待上传文件名:", fileName, "清洗后的名字:", cleanName, "是否会覆盖:", isOverwrite);
             
             // 获取原文件大小并展示对比
             var sizeHtml = toSize(files[i].size);
@@ -2108,6 +2129,9 @@ function showConfirmUpload() {
         title: '确认上传 (' + files.length + ' 个项目)',
         area: '600px',
         shadeClose: false,
+        cancel: function(){
+            pendingUploadFiles = [];
+        },
         content: '<div class="fileUploadDiv confirmUpload">\
                 <style>\
                     .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }\
@@ -2125,17 +2149,18 @@ function showConfirmUpload() {
                         <button type="button" id="confirmUpBtn" class="btn btn-success btn-sm ml10">开始上传</button>\
                     </div>\
                 </div>\
-            </div>'
-    });
-
-    $('#confirmUpBtn').click(function() {
-        if (pendingUploadFiles.length === 0) {
-            layer.msg('请先添加要上传的项目', { icon: 0 });
-            return;
+            </div>',
+        success: function(layero, index) {
+            layero.find('#confirmUpBtn').click(function() {
+                if (pendingUploadFiles.length === 0) {
+                    layer.msg('请先添加要上传的项目', { icon: 0 });
+                    return;
+                }
+                var filesToUpload = [...pendingUploadFiles];
+                pendingUploadFiles = [];
+                executeUpload(filesToUpload, path);
+            });
         }
-        var filesToUpload = [...pendingUploadFiles];
-        pendingUploadFiles = [];
-        executeUpload(filesToUpload, path);
     });
 }
 
