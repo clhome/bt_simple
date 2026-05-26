@@ -1036,7 +1036,7 @@ function webEdit(id,website,endTime,addtime){
 	// <p onclick='dirBinding("+id+")'>子目录绑定</p>\
 	layer.open({
 		type: 1,
-		area: ['700px','603px'],
+		area: ['850px','710px'],
 		title: '站点修改['+website+']  --  添加时间['+addtime+']',
 		closeBtn: 1,
 		shift: 0,
@@ -1057,7 +1057,7 @@ function webEdit(id,website,endTime,addtime){
 				<p id='site_"+id+"' onclick=\"getSiteLogs('"+website+"')\">响应日志</p>\
 				<p id='site_"+id+"' onclick=\"getSiteErrorLogs('"+website+"')\">错误日志</p>\
 			</div>\
-			<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: scroll;'></div>\
+			<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\
 		</div>",
 		success:function(){
 			//域名输入提示
@@ -1098,7 +1098,7 @@ function getSiteLogs(siteName){
 		}
 		if (logs.msg == '') logs.msg = '当前没有日志.';
 		var h =  parseInt($('.bt-w-menu').css('height')) - 35;
-		var con = '<textarea wrap="off" style="white-space:pre;margin: 0px;width: 560px;height: '+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="site_log">'+logs.msg+'</textarea>';
+		var con = '<textarea wrap="off" style="white-space:pre;margin: 0px;width: 710px;height: '+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="site_log">'+logs.msg+'</textarea>';
 		$("#webedit-con").html(con);
 		var ob = document.getElementById('site_log');
 		ob.scrollTop = ob.scrollHeight;		
@@ -1115,7 +1115,7 @@ function getSiteErrorLogs(siteName){
 		}
 		if (logs.msg == '') logs.msg = '当前没有日志.';
 		var h =  parseInt($('.bt-w-menu').css('height')) - 35;
-		var con = '<textarea wrap="off" style="white-space:pre;margin:0px;width:560px;height:'+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="error_log">'+logs.msg+'</textarea>';
+		var con = '<textarea wrap="off" style="white-space:pre;margin:0px;width:710px;height:'+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="error_log">'+logs.msg+'</textarea>';
 		$("#webedit-con").html(con);
 		var ob = document.getElementById('error_log');
 		ob.scrollTop = ob.scrollHeight;		
@@ -2914,7 +2914,7 @@ function configFile(webSite){
 	var info = syncPost('/site/get_host_conf', {siteName:webSite});
 	$.post('/files/get_body','path='+info['host'],function(rdata){
 		var mBody = "<div class='webEdit-box padding-10'>\
-		<textarea style='height: 320px; width: 445px; margin-left: 20px;line-height:18px' id='configBody'>"+rdata.data.data+"</textarea>\
+		<textarea style='height: 320px; width: 640px; margin-left: 20px;line-height:18px' id='configBody'>"+rdata.data.data+"</textarea>\
 			<div class='info-r'>\
 				<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\
 				<ul class='help-info-text c7 ptb10'>\
@@ -2928,7 +2928,7 @@ function configFile(webSite){
 			lineNumbers: true,
 			matchBrackets:true,
 		});
-		$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
+		$(".CodeMirror-scroll").css({"height":"400px","margin":0,"padding":0});
 		$("#SaveConfigFileBtn").click(function(){
 			$("#configBody").empty();
 			$("#configBody").text(editor.getValue());
@@ -2969,7 +2969,7 @@ function rewrite(siteName){
 			var webBakHtml = "<div class='bt-form'>\
 						<div class='line'>\
 						<select id='myRewrite' class='bt-input-text mr20' name='rewrite' style='width:30%;'>"+rList+"</select>\
-						<textarea class='bt-input-text' style='height: 260px; width: 480px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>"+centent+"</textarea></div>\
+						<textarea class='bt-input-text' style='height: 260px; width: 640px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>"+centent+"</textarea></div>\
 						<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\
 						<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\
 						<ul class='help-info-text c7 ptb15'>\
@@ -2999,7 +2999,7 @@ function rewrite(siteName){
 				matchBrackets:true,
 			});
 			
-			$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
+			$(".CodeMirror-scroll").css({"height":"400px","margin":0,"padding":0});
 			$("#SetRewriteBtn").click(function(){
 				$("#rewriteBody").empty();
 				$("#rewriteBody").text(editor.getValue());
