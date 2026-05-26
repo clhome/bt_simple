@@ -5624,10 +5624,16 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 }
 
 /* 当搜索中选中了某个词，这个词所在的行号加一个红色的背景 */
-.CodeMirror-search-match-line .CodeMirror-linenumber {
+.CodeMirror-search-match-line .CodeMirror-linenumber,
+.CodeMirror-activeline .CodeMirror-linenumber {
     background-color: #ff4d4f !important; /* 醒目的红色背景 */
     color: #fff !important; /* 纯白文字 */
     border-radius: 10px !important; /* 圆润的椭圆形状 */
     padding: 0 4px !important; /* 左右边距撑开 */
 }
 
+/* 在线编辑代码字体设置 */
+.CodeMirror {
+    font-family: Consolas, "Courier New", monospace !important;
+    font-size: 14px !important;
+}
