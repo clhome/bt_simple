@@ -591,27 +591,30 @@ function showUpdateUI(version, title, content, speedName) {
                 + '</div>',
         success: function() {
             var bracket = $("#download-tip-bracket");
+            bracket.text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）");
+            
             if (speedName && speedName !== 'Direct') {
-                // 有最优加速节点：先呈现寻找状态（仪式感），0.8秒后淡入切换为真实加速节点提示
-                bracket.text("（检测到国内节点，开始寻找最优加速节点）");
                 setTimeout(function() {
-                    bracket.hide().text("（使用 " + speedName + " 加速节点进行下载）").fadeIn(300);
+                    bracket.hide().text("（查找最近加速节点）").fadeIn(300);
+                    setTimeout(function() {
+                        bracket.hide().text("（正在使用 " + speedName + " 节点进行加速下载）").fadeIn(300);
+                    }, 800);
                 }, 800);
             } else if (!speedName) {
-                // 修复服务器（冷启动）场景下，先变更为寻找状态，异步探测完成后替换
-                bracket.text("（检测到国内节点，开始寻找最优加速节点）");
-                $.get('/system/update_server?type=info', function(rdata) {
-                    if (rdata && rdata.data && rdata.data.speed_name && rdata.data.speed_name !== 'Direct') {
-                        setTimeout(function() {
-                            bracket.hide().text("（使用 " + rdata.data.speed_name + " 加速节点进行下载）").fadeIn(300);
-                        }, 800);
-                    } else {
-                        // 海外直连或者失败，还原默认提示
-                        setTimeout(function() {
-                            bracket.hide().text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）").fadeIn(300);
-                        }, 500);
-                    }
-                }, 'json');
+                setTimeout(function() {
+                    bracket.hide().text("（查找最近加速节点）").fadeIn(300);
+                    $.get('/system/update_server?type=info', function(rdata) {
+                        if (rdata && rdata.data && rdata.data.speed_name && rdata.data.speed_name !== 'Direct') {
+                            setTimeout(function() {
+                                bracket.hide().text("（正在使用 " + rdata.data.speed_name + " 节点进行加速下载）").fadeIn(300);
+                            }, 500);
+                        } else {
+                            setTimeout(function() {
+                                bracket.hide().text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）").fadeIn(300);
+                            }, 500);
+                        }
+                    }, 'json');
+                }, 800);
             }
         }
     });
@@ -642,13 +645,6 @@ function updateStep(step, version, barId, textId, callback) {
         var startTime = new Date().getTime();
         var tenMinutes = 10 * 60 * 1000;
         var twentyMinutes = 20 * 60 * 1000;
-        var fiveMinutes = 5 * 60 * 1000;
-        
-        var originalText = $("#download-tip-bracket").text();
-        var prefix = "";
-        if (originalText.indexOf("加速节点") !== -1) {
-            prefix = originalText.replace("）", "，").replace("（", "");
-        }
         
         intervalId = setInterval(function() {
             var now = new Date().getTime();
@@ -658,7 +654,6 @@ function updateStep(step, version, barId, textId, callback) {
                 clearInterval(intervalId);
                 $(textId).text("超时").css("color", "#ff4d4f");
                 $(barId).css("background", "#ff4d4f");
-                $("#download-tip-bracket").text("（下载超时，请检查网络）").css("color", "#ff4d4f");
                 layer.alert("您当前的网络状态欠佳，请稍后再试", {icon: 2, title: '下载超时'}, function(index){
                     layer.close(index);
                     location.reload();
@@ -674,16 +669,6 @@ function updateStep(step, version, barId, textId, callback) {
             }
             $(barId).css("width", progress.toFixed(2) + "%");
             $(textId).text(Math.floor(progress) + "%");
-            
-            var remaining = Math.max(0, Math.floor((fiveMinutes - elapsed) / 1000));
-            if (remaining === 0) {
-                 $("#download-tip-bracket").text("（" + prefix + "正在解压，请耐心等待...）");
-            } else {
-                 var m = Math.floor(remaining / 60);
-                 var s = remaining % 60;
-                 var sStr = s < 10 ? '0' + s : s;
-                 $("#download-tip-bracket").text("（" + prefix + "正在下载，预计剩余时间 " + m + ":" + sStr + "）");
-            }
         }, 1000);
     } else {
         $(barId).css("width", "40%");
