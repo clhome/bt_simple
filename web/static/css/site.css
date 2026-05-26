@@ -5562,7 +5562,7 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     font-size: 13px;
     display: flex !important;
     flex-wrap: wrap !important; /* 允许换行，按两行显示 */
-    justify-content: flex-end; /* 内容靠右对齐 */
+    justify-content: flex-start; /* 整体左对齐，使得第一行左靠齐 */
     align-items: center;
     line-height: 1.5 !important;
 }
@@ -5582,6 +5582,8 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 }
 .CodeMirror-search-hint {
     margin-top: 6px !important; /* 两行之间留白 */
+    margin-left: 42px !important; /* 让括号文字对齐到上方输入框的左边缘 */
+    margin-right: auto !important; /* 占满中间的剩余空间，把数字挤到最右边 */
 }
 .CodeMirror-dialog button {
     border: 1px solid #ccc;
