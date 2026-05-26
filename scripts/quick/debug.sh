@@ -8,7 +8,7 @@ fi
 
 {
 
-echo "welcome to mdserver-web panel"
+echo "welcome to YF panel"
 
 startTime=`date +%s`
 

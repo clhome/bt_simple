@@ -28,8 +28,8 @@ import utils.system as system
 import thisdb
 
 cpu_info = system.getCpuInfo()
-workers = cpu_info[1]
-# workers = 1
+# Flask-SocketIO 要求 worker 数量必须为 1，多 worker 会导致 SocketIO 握手 400 错误
+workers = 1
 
 panel_dir = mw.getPanelDir()
 log_dir = mw.getMWLogs()
@@ -73,10 +73,8 @@ if panel_ssl_data['open']:
             # ssl_version = 5 # TLSv1.2
             http2 = True
 
-if workers > 2:
-    workers = 2
 
-threads = workers * 2
+threads = 4
 backlog = 512
 reload = False
 daemon = True

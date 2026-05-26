@@ -11,7 +11,7 @@ LOG_FILE=/var/log/mw-install.log
 {
 
 if [ -f /etc/motd ];then
-    echo "welcome to mdserver-web panel" > /etc/motd
+    echo "welcome to YF panel" > /etc/motd
 fi
 
 startTime=`date +%s`

@@ -4,41 +4,58 @@
 }
 
 .tab-nav {
-  border-bottom: #cacad9 1px solid;
+  border-bottom: 1px solid #eaeaea;
+  display: flex;
+  margin-bottom: 10px;
 }
 
 .tab-nav span {
-  background-color: #f0f0f1;
-  height: 32px;
-  line-height: 32px;
-  padding: 0 15px;
-  border: #cacad9 1px solid;
-  color: #444;
-  display: inline-block;
-  margin: 0 -1px -1px 0;
+  height: 36px;
+  line-height: 36px;
+  padding: 0 16px;
+  color: #555;
   cursor: pointer;
   position: relative;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-weight: 500;
 }
 
 .tab-nav .on {
-  background: #fff;
-  border-bottom: #fff 1px solid;
-  color: #444
+  color: #20a53a;
+  border-bottom: 2px solid #20a53a;
+}
+.tab-nav span:hover:not(.on) {
+  color: #333;
+}
+
+.term-app-container {
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 80px);
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
 .tab-con {
   padding: 10px;
   position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .tab-con .tab-block {
   display: none;
   height: 100%;
   width: 100%;
+  flex-direction: column;
 }
 
 .tab-con .tab-block.on {
-  display: inline-block;
+  display: flex;
 }
 
 .tab-con ul.cmdlist {
@@ -154,8 +171,10 @@ ul.cmdlist {
 }
 
 .term_item_tab {
-  background: #f1f1f1;
+  background: #fafafa;
   font-size: 0;
+  border-bottom: 1px solid #eaeaea;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
 .term_item_tab .list>span i {
@@ -351,23 +370,44 @@ color: #bbb;
 }
 
 .term_box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  border-radius: 3px;
-  margin-right: 300px;
+  border-radius: 4px;
+  margin-right: 0;
   position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border: 1px solid #e2e2e2;
+  transition: all 0.3s ease;
 }
 
 .term_tootls {
   width: 290px;
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  /* border: 1px solid #ececec; */
+  position: relative;
+  right: auto;
+  top: auto;
+  margin-left: 15px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, margin 0.3s ease, opacity 0.3s ease;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #e2e2e2;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.sidebar-collapsed .term_tootls {
+  width: 0;
+  margin-left: 0;
+  opacity: 0;
+  border: none;
 }
 
 .term_tootls .tootls_tab {
   display: inline-block;
-  /* border: 1px solid #20a53a; */
   width: 100%;
   position: relative;
 }
@@ -457,21 +497,23 @@ color: #bbb;
 
 .tootls_host_list,
 .tootls_commonly_list {
-  list-style: none;
-  border-top: none;
-  border: 1px solid #ececec;
-  overflow-y: auto;
-}
-
-.tootls_host_list,
-.tootls_commonly_list {
+  flex: 1;
   overflow: auto;
   overflow-x: hidden;
   font-size: 12px;
-  bottom: 0;
-  right: 0;
-  left: 0;
   margin-top: 10px;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+  height: auto !important; /* Override inline styles from old JS */
+}
+
+/* Ensure xterm expands to the parent's full height */
+.term_item > .terminal {
+  flex: 1;
+  height: 100%;
+}
+.term_item > .terminal .xterm-viewport {
+  height: 100% !important;
 }
 
 .tootls_commonly_list li,

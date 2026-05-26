@@ -81,32 +81,35 @@ function webShell_Resize(){
     if (cur_ssh.length > 0){
         var data = $(cur_ssh).data();
         var item = host_ssh_list[data.id];
-        item.term.fit();
-        item.resize({ cols: item.term.cols, rows: item.term.rows});
-        item.term.focus();
+        if (item && item.term) {
+            if (typeof item.term.fit === 'function') {
+                item.term.fit();
+            }
+            item.resize({ cols: item.term.cols, rows: item.term.rows});
+            item.term.focus();
+        }
     }
 }
 
 function webShell_Load(){
-    changeDivH();
     $(window).resize(function(){
-        changeDivH();
         webShell_Resize();
     });
 
     $('.term_content_tab .term-tool-button').click(function(){
+        var container = $('.term-app-container');
         if ($(this).hasClass('tool-show')){
-            $('#term_box_view').css('margin-right',300);
-            $('.term_tootls').css('display',"block");
+            container.removeClass('sidebar-collapsed');
             $(this).removeClass('tool-show').addClass('tool-hide');
             $(this).find('span').removeClass('glyphicon-menu-left').addClass('glyphicon-menu-right');
         } else {
-            $('#term_box_view').css('margin-right',0);
-            $('.term_tootls').css('display',"none");
+            container.addClass('sidebar-collapsed');
             $(this).removeClass('tool-hide').addClass('tool-show');
             $(this).find('span').removeClass('glyphicon-menu-right').addClass('glyphicon-menu-left');
         }
-        webShell_Resize();
+        setTimeout(function() {
+            webShell_Resize();
+        }, 350); // wait for transition
     });
 
 
@@ -180,12 +183,7 @@ function webShell_Load(){
 
 
 function changeDivH(){
-    var l = $(window).height();
-    $('#term_box_view').parent().css('height',l-80);
-    $('#xterm-viewport').css('height',l-80);
-
-    $('.tootls_host_list').css('display','block').css('height',l-192);
-    $('.tootls_commonly_list').css('display','block').css('height',l-192);    
+    // 移除高度硬算，改由 CSS Flexbox 和 height:100% 自适应接管
 }
 
 

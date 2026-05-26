@@ -5,7 +5,7 @@ export LANG=en_US.UTF-8
 
 
 if [ -f /etc/motd ];then
-    echo "welcome to mdserver-web panel" > /etc/motd
+    echo "welcome to YF panel" > /etc/motd
 fi
 
 sed -i 's#SELINUX=enforcing#SELINUX=disabled#g' /etc/selinux/config

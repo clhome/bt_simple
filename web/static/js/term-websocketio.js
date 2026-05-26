@@ -106,8 +106,8 @@ Terms_WebSocketIO.prototype = {
         this.term.open($('#'+this.id)[0]);
         this.term.setOption('cursorBlink', true);
         this.ws.on('server_response', function (ev) { that.on_message(ev)});
-        this.ws.on('connect', function (ev) { that.on_connect(ev)});
-        this.ws.on('reconnect', function (ev) { that.on_reconnect(ev)});
+        this.ws.on('server_connect', function (ev) { that.on_connect(ev)});
+        this.ws.on('server_reconnect', function (ev) { that.on_reconnect(ev)});
         this.ws.on('exit', function (ev) { that.on_exit(ev)});
 
         if (this.ws) {

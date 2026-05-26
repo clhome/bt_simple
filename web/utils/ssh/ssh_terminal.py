@@ -179,167 +179,175 @@ class ssh_terminal(object):
 
     def connectLocalSsh(self, sid):
         if self.__lock :
-            return False
+            return self.returnMsg(False, '连接正在进行中，请稍后...')
         self.__lock = True
 
-        mw.createSshInfo()
-        self.__ps = paramiko.SSHClient()
-        self.__ps.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        self.__port = mw.getSSHPort()
         try:
-            self.__ps.connect(self.__host, self.__port, timeout=60)
-        except Exception as e:
-            self.__ps.connect('127.0.0.1', self.__port)
-        except Exception as e:
-            self.__ps.connect('localhost', self.__port)
-        except Exception as e:
-            self.setSshdConfig(True)
-            self.__ps.close()
-            e = str(e)
-            if e.find('websocket error!') != -1:
-                return self.returnMsg(True, '连接成功')
-            if e.find('Authentication timeout') != -1:
-                self.debug("认证超时{}".format(e))
-                return self.returnMsg(False, '认证超时,请按回车重试!{}'.format(e))
-            if e.find('Connection reset by peer') != -1:
-                self.debug('目标服务器主动拒绝连接')
-                return self.returnMsg(False, '目标服务器主动拒绝连接')
-            if e.find('Error reading SSH protocol banner') != -1:
-                self.debug('协议头响应超时')
-                return self.returnMsg(False, '协议头响应超时，与目标服务器之间的网络质量太糟糕：' + e)
-            if not e:
-                self.debug('SSH协议握手超时')
-                return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
-            err = mw.getTracebackInfo()
-            self.debug(err)
-            return self.returnMsg(False, "未知错误: {}".format(err))
+            mw.createSshInfo()
+            self.__ps = paramiko.SSHClient()
+            self.__ps.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        self.debug('local-ssh:认证成功，正在构建会话通道')
-        ssh = self.__ps.invoke_shell(
-            term='xterm', width=83, height=21)
-        ssh.setblocking(0)
-        self.__ssh_list[sid] = ssh
-        mw.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
-            self.__host, self.__port))
-        self.debug('local-ssh:通道已构建')
+            self.__port = mw.getSSHPort()
+            
+            connected = False
+            last_err = None
+            for try_host in [self.__host, '127.0.0.1', 'localhost']:
+                try:
+                    self.__ps.connect(try_host, self.__port, timeout=60)
+                    connected = True
+                    break
+                except Exception as e:
+                    last_err = e
+            
+            if not connected:
+                self.setSshdConfig(True)
+                self.__ps.close()
+                e = str(last_err)
+                if e.find('websocket error!') != -1:
+                    return self.returnMsg(True, '连接成功')
+                if e.find('Authentication timeout') != -1:
+                    self.debug("认证超时{}".format(e))
+                    return self.returnMsg(False, '认证超时,请按回车重试!{}'.format(e))
+                if e.find('Connection reset by peer') != -1:
+                    self.debug('目标服务器主动拒绝连接')
+                    return self.returnMsg(False, '目标服务器主动拒绝连接')
+                if e.find('Error reading SSH protocol banner') != -1:
+                    self.debug('协议头响应超时')
+                    return self.returnMsg(False, '协议头响应超时，与目标服务器之间的网络质量太糟糕：' + e)
+                if not e:
+                    self.debug('SSH协议握手超时')
+                    return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
+                err = mw.getTracebackInfo()
+                self.debug(err)
+                return self.returnMsg(False, "未知错误: {}".format(err))
 
-        self.__lock = False
-        return self.returnMsg(True, '连接成功!')
+            self.debug('local-ssh:认证成功，正在构建会话通道')
+            ssh = self.__ps.invoke_shell(
+                term='xterm', width=83, height=21, environment={'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'})
+            ssh.setblocking(0)
+            self.__ssh_list[sid] = ssh
+            mw.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
+                self.__host, self.__port))
+            self.debug('local-ssh:通道已构建')
+
+            return self.returnMsg(True, '连接成功!')
+        finally:
+            self.__lock = False
 
     def connectBySocket(self, sid):
         if self.__lock :
-            return False
+            return self.returnMsg(False, '连接正在进行中，请稍后...')
         self.__lock = True
-        if not self.__host:
-            return self.returnMsg(False, '错误的连接地址')
-        if not self.__user:
-            self.__user = 'root'
-        if not self.__port:
-            self.__port = 22
-
-        self.setSshdConfig(True)
-        num = 0
-        while num < 5:
-            num += 1
-            try:
-                self.debug('正在尝试第{}次连接'.format(num))
-                if self.__rep_ssh_config:
-                    time.sleep(0.1)
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(2 + num)
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 8192)
-                sock.connect((self.__host, self.__port))
-                break
-            except Exception as e:
-                if num == 5:
-                    self.setSshdConfig(True)
-                    self.debug('重试连接失败,{}'.format(e))
-                    return self.returnMsg(False, '连接目标服务器失败, {}:{}'.format(self.__host, self.__port))
-                else:
-                    time.sleep(0.2)
-
-        # print(self.__host, sock)
-        self.__tp = paramiko.Transport(sock)
         try:
-            self.__tp.start_client()
-            self.__tp.banner_timeout = 60
-            if not self.__pass and not self.__pkey:
-                return self.returnMsg(False, '密码或私钥不能都为空: {}:{}'.format(self.__host, self.__port))
+            if not self.__host:
+                return self.returnMsg(False, '错误的连接地址')
+            if not self.__user:
+                self.__user = 'root'
+            if not self.__port:
+                self.__port = 22
 
-            if self.__pkey != '' and self.__type != '0':
-                self.debug('正在认证私钥')
-                p_file = StringIO(str(self.__pkey.replace('\\n', '\n')))
-                # p_file = "/tmp/t_ssh_pkey.txt"
-                # mw.writeFile(p_file, self.__pkey.replace('\\n', '\n'))
-                # mw.execShell('chmod 600 ' + p_file)
+            self.setSshdConfig(True)
+            num = 0
+            while num < 5:
+                num += 1
                 try:
-                    p_file.seek(0)
-                    pkey = paramiko.RSAKey.from_private_key(p_file)
-                except:
+                    self.debug('正在尝试第{}次连接'.format(num))
+                    if self.__rep_ssh_config:
+                        time.sleep(0.1)
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(2 + num)
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 8192)
+                    sock.connect((self.__host, self.__port))
+                    break
+                except Exception as e:
+                    if num == 5:
+                        self.setSshdConfig(True)
+                        self.debug('重试连接失败,{}'.format(e))
+                        return self.returnMsg(False, '连接目标服务器失败, {}:{}'.format(self.__host, self.__port))
+                    else:
+                        time.sleep(0.2)
+
+            self.__tp = paramiko.Transport(sock)
+            try:
+                self.__tp.start_client()
+                self.__tp.banner_timeout = 60
+                if not self.__pass and not self.__pkey:
+                    return self.returnMsg(False, '密码或私钥不能都为空: {}:{}'.format(self.__host, self.__port))
+
+                if self.__pkey != '' and self.__type != '0':
+                    self.debug('正在认证私钥')
+                    p_file = StringIO(str(self.__pkey.replace('\\n', '\n')))
                     try:
-                        p_file.seek(0)  # 重置游标
-                        pkey = paramiko.Ed25519Key.from_private_key(
-                            p_file)
+                        p_file.seek(0)
+                        pkey = paramiko.RSAKey.from_private_key(p_file)
                     except:
                         try:
-                            p_file.seek(0)
-                            pkey = paramiko.ECDSAKey.from_private_key(p_file)
+                            p_file.seek(0)  # 重置游标
+                            pkey = paramiko.Ed25519Key.from_private_key(
+                                p_file)
                         except:
-                            p_file.seek(0)
-                            pkey = paramiko.DSSKey.from_private_key(p_file)
+                            try:
+                                p_file.seek(0)
+                                pkey = paramiko.ECDSAKey.from_private_key(p_file)
+                            except:
+                                p_file.seek(0)
+                                pkey = paramiko.DSSKey.from_private_key(p_file)
 
-                self.__tp.auth_publickey(username=self.__user, key=pkey)
-            else:
-                try:
-                    self.__tp.auth_none(self.__user)
-                except Exception as e:
-                    e = str(e)
-                    if e.find('keyboard-interactive') >= 0:
-                        self._auth_interactive()
-                    else:
-                        self.debug('正在认证密码')
-                        self.__tp.auth_password(
-                            username=self.__user, password=self.__pass)
+                    self.__tp.auth_publickey(username=self.__user, key=pkey)
+                else:
+                    try:
+                        self.__tp.auth_none(self.__user)
+                    except Exception as e:
+                        e = str(e)
+                        if e.find('keyboard-interactive') >= 0:
+                            self._auth_interactive()
+                        else:
+                            self.debug('正在认证密码')
+                            self.__tp.auth_password(
+                                username=self.__user, password=self.__pass)
+            except Exception as e:
+                self.setSshdConfig(True)
+                self.__tp.close()
+                e = str(e)
+                if e.find('Authentication timeout') != -1:
+                    self.debug("认证超时{}".format(e))
+                    return self.returnMsg(False, '认证超时,请按回车重试!{}'.format(e))
+                if e.find('Authentication failed') != -1:
+                    self.debug('认证失败{}'.format(e))
+                    return self.returnMsg(False, '帐号或密码错误: {}'.format(e + "," + self.__user + "@" + self.__host + ":" + str(self.__port)))
+                if e.find('Bad authentication type; allowed types') != -1:
+                    self.debug('认证失败{}'.format(e))
+                    if self.__host in ['127.0.0.1', 'localhost'] and self.__pass == 'none':
+                        return self.returnMsg(False, '帐号或密码错误: {}'.format("Authentication failed ," + self.__user + "@" + self.__host + ":" + str(self.__port)))
+                    return self.returnMsg(False, '不支持的身份验证类型: {}'.format(e))
+                if e.find('Connection reset by peer') != -1:
+                    self.debug('目标服务器主动拒绝连接')
+                    return self.returnMsg(False, '目标服务器主动拒绝连接')
+                if e.find('Error reading SSH protocol banner') != -1:
+                    self.debug('协议头响应超时')
+                    return self.returnMsg(False, '协议头响应超时，与目标服务器之间的网络质量太糟糕：' + e)
+                if not e:
+                    self.debug('SSH协议握手超时')
+                    return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
+                err = mw.getTracebackInfo()
+                self.debug(err)
+                return self.returnMsg(False, "未知错误: {}".format(err))
+
+            self.debug('认证成功，正在构建会话通道')
+
+            ssh = self.__tp.open_session()
+            ssh.update_environment({'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'})
+            ssh.get_pty(term='xterm', width=100, height=34)
+            ssh.invoke_shell()
+            self.__ssh_list[sid] = ssh
+            mw.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
+                self.__host, self.__port))
+            self.debug('通道已构建')
         except Exception as e:
-            self.setSshdConfig(True)
-            self.__tp.close()
-            e = str(e)
-            # print(e)
-            if e.find('Authentication timeout') != -1:
-                self.debug("认证超时{}".format(e))
-                return self.returnMsg(False, '认证超时,请按回车重试!{}'.format(e))
-            if e.find('Authentication failed') != -1:
-                self.debug('认证失败{}'.format(e))
-                return self.returnMsg(False, '帐号或密码错误: {}'.format(e + "," + self.__user + "@" + self.__host + ":" + str(self.__port)))
-            if e.find('Bad authentication type; allowed types') != -1:
-                self.debug('认证失败{}'.format(e))
-                if self.__host in ['127.0.0.1', 'localhost'] and self.__pass == 'none':
-                    return self.returnMsg(False, '帐号或密码错误: {}'.format("Authentication failed ," + self.__user + "@" + self.__host + ":" + str(self.__port)))
-                return self.returnMsg(False, '不支持的身份验证类型: {}'.format(e))
-            if e.find('Connection reset by peer') != -1:
-                self.debug('目标服务器主动拒绝连接')
-                return self.returnMsg(False, '目标服务器主动拒绝连接')
-            if e.find('Error reading SSH protocol banner') != -1:
-                self.debug('协议头响应超时')
-                return self.returnMsg(False, '协议头响应超时，与目标服务器之间的网络质量太糟糕：' + e)
-            if not e:
-                self.debug('SSH协议握手超时')
-                return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
-            err = mw.getTracebackInfo()
-            self.debug(err)
-            return self.returnMsg(False, "未知错误: {}".format(err))
+            return self.returnMsg(False, str(e))
+        finally:
+            self.__lock = False
 
-        self.debug('认证成功，正在构建会话通道')
-
-        ssh = self.__tp.open_session()
-        ssh.get_pty(term='xterm', width=100, height=34)
-        ssh.invoke_shell()
-        self.__ssh_list[sid] = ssh
-        mw.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
-            self.__host, self.__port))
-        self.debug('通道已构建')
-        self.__lock = False
         return self.returnMsg(True, '连接成功.')
 
     def getSshInfo(self, file):
@@ -375,8 +383,9 @@ class ssh_terminal(object):
             result = self.connect(sid)
             # print(result)
         except Exception as ex:
-            if str(ex).find("NoneType") == -1:
-                raise ex
+            import traceback
+            err_msg = traceback.format_exc()
+            return self.returnMsg(False, "内部错误: " + str(ex) + "\n" + err_msg)
         return result
 
     def send(self):
@@ -404,15 +413,25 @@ class ssh_terminal(object):
     def wsSend(self, recv):
         try:
             t = recv.decode("utf-8")
+            import re
+            def decode_bash_escape(m):
+                try:
+                    return bytes(int(x, 8) for x in m.group(1).split('\\')[1:]).decode('utf-8', 'ignore')
+                except:
+                    return m.group(0)
+            
+            # Decode ls octal escapes like ''$'\344\270\213' to UTF-8 characters
+            t = re.sub(r"(?:''|')?\$'((?:\\[0-7]{1,3})+)'", decode_bash_escape, t)
+            
             return emit('server_response', {'data': t})
         except Exception as e:
             return emit('server_response', {'data': recv})
 
     def wsSendConnect(self):
-        return emit('connect', {'data': 'ok'})
+        return emit('server_connect', {'data': 'ok'})
 
     def wsSendReConnect(self):
-        return emit('reconnect', {'data': 'ok'})
+        return emit('server_reconnect', {'data': 'ok'})
 
     def heartbeat(self):
         # limit_cos = 10

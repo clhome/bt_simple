@@ -146,6 +146,12 @@ def file():
         from flask import make_response
         v = Response(content, headers={'Content-Type': 'text/css; charset="utf-8"'})
         return make_response(v)
+    elif suffix == '.js':
+        content = mw.readFile(file)
+        from flask import Response
+        from flask import make_response
+        v = Response(content, headers={'Content-Type': 'application/javascript; charset="utf-8"'})
+        return make_response(v)
     content = open(file, 'rb').read()
     return content
 
