@@ -564,29 +564,29 @@ function showUpdateUI(version, title, content, speedName) {
     layer.open({
         type: 1,
         title: title,
-        area: '600px',
+        area: '650px',
         shadeClose: false,
         closeBtn: 2,
-        content: '<div class="setchmod bt-form pd20 pb70">'
-                + (content ? '<div class="markdown-body" style="padding: 0 0 10px; line-height: 24px; max-height: 200px; overflow-y: auto; margin-bottom: 20px; border-bottom: 1px solid #eee;">' + content + '</div>' : '')
-                + '<div class="update-progress-group" style="padding: 10px 0;">'
-                + '    <div style="margin-bottom: 15px;">'
-                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">1. 下载并解压更新包<span id="download-tip-bracket" style="color: #20a53a; font-weight: bold;">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id="download-percent" class="f12 c6">0%</span></div>'
-                + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
+        content: '<div class="setchmod bt-form pd20 pb70" style="background: #fcfcfc;">'
+                + (content ? '<div class="markdown-body" style="padding: 15px 20px; line-height: 1.6; max-height: 400px; overflow-y: auto; margin-bottom: 20px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0,0,0,0.03);">' + content + '</div>' : '')
+                + '<div class="update-progress-group" style="padding: 15px 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);">'
+                + '    <div style="margin-bottom: 12px;">'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">1. 下载并解压更新包<span id="download-tip-bracket" style="color: #20a53a; font-size: 11px; margin-left: 5px;">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id="download-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>'
+                + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>'
                 + '    </div>'
-                + '    <div style="margin-bottom: 15px;">'
-                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">2. 备份系统核心文件</span><span id="backup-percent" class="f12 c6">0%</span></div>'
-                + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="backup-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
+                + '    <div style="margin-bottom: 12px;">'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">2. 备份系统核心文件</span><span id="backup-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>'
+                + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="backup-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>'
                 + '    </div>'
-                + '    <div style="margin-bottom: 15px;">'
-                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 5px;"><span class="f12 c6">3. 安装更新并重启服务</span><span id="install-percent" class="f12 c6">0%</span></div>'
-                + '        <div style="height: 12px; background: #eee; border-radius: 6px; overflow: hidden;"><div id="install-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative;"></div></div>'
+                + '    <div style="margin-bottom: 4px;">'
+                + '        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">3. 安装更新并重启服务</span><span id="install-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>'
+                + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="install-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>'
                 + '    </div>'
                 + '</div>'
-                + '<div class="bt-form-submit-btn">'
-                + '<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">取消</button>'
-                + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" onclick="executeSteps(\''+version+'\')" >开始执行</button>'
-                + '<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >强制刷新</button>'
+                + '<div class="bt-form-submit-btn" style="margin-top: 20px;">'
+                + '<button type="button" class="btn btn-danger btn-sm btn-title" style="border-radius:4px; padding: 5px 15px;" onclick="layer.closeAll()">取消</button>'
+                + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" style="border-radius:4px; padding: 5px 15px; margin-left: 10px;" onclick="executeSteps(\''+version+'\')" >开始执行</button>'
+                + '<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none; border-radius:4px; padding: 5px 15px; margin-left: 10px;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >强制刷新</button>'
                 + '</div>'
                 + '</div>',
         success: function() {
@@ -649,8 +649,8 @@ function updateStep(step, version, barId, textId, callback) {
             
             if (elapsed >= twentyMinutes) {
                 clearInterval(intervalId);
-                $(textId).text("超时").css("color", "red");
-                $(barId).css("background-color", "red");
+                $(textId).text("超时").css("color", "#ff4d4f");
+                $(barId).css("background", "#ff4d4f");
                 layer.alert("您当前的网络状态欠佳，请稍后再试", {icon: 2, title: '下载超时'}, function(index){
                     layer.close(index);
                     location.reload();
@@ -675,11 +675,11 @@ function updateStep(step, version, barId, textId, callback) {
         if (intervalId) clearInterval(intervalId);
         if (rdata.status) {
             $(barId).css("width", "100%");
-            $(textId).text("已完成");
+            $(textId).text("已完成").css("color", "#20a53a");
             if (callback) callback();
         } else {
-            $(textId).text("失败").css("color", "red");
-            $(barId).css("background-color", "red");
+            $(textId).text("失败").css("color", "#ff4d4f");
+            $(barId).css("background", "#ff4d4f");
             layer.msg(rdata.msg, {icon: 2});
             $("#start-update-btn").attr("disabled", false).removeClass("disabled").text("重试");
             $(".layui-layer-close").show();
@@ -688,10 +688,11 @@ function updateStep(step, version, barId, textId, callback) {
         if (intervalId) clearInterval(intervalId);
         if (step == 'install') {
             $(barId).css("width", "100%");
-            $(textId).text("已完成");
+            $(textId).text("已完成").css("color", "#20a53a");
             if (callback) callback();
         } else {
-            $(textId).text("连接失败").css("color", "red");
+            $(textId).text("连接失败").css("color", "#ff4d4f");
+            $(barId).css("background", "#ff4d4f");
             layer.msg("与服务器连接断开，请检查网络。", {icon: 2});
             $(".layui-layer-close").show();
         }
