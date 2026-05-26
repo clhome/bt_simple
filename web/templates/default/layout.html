@@ -62,25 +62,14 @@
             <div id="task" class="task cw" onclick="messageBox()"></div>
             <h3 class="mypcip"><span class="f14 cw">{{data['ip']}}</span></h3>
             <ul class="menu">
-              <li id="memuA"><a class="menu_home" href="/">首页</a></li>
-              <li id="memuAsite">
-                <a class="menu_web" href="/site/index">网站</a>
-              </li>
-              <li id="memuAmonitor">
-                <a class="menu_control" href="/monitor/index">监控</a>
-              </li>
-              <li id="memuAfirewall">
-                <a class="menu_firewall" href="/firewall/index">安全</a>
-              </li>
-              <li id="memuAfiles">
-                <a class="menu_folder" href="/files/index">文件</a>
-              </li>
-              <li id="memuAlogs">
-                <a class="menu_logs" href="/logs/index">日志</a>
-              </li>
-              <li id="memuAcrontab">
-                <a class="menu_day" href="/crontab/index">计划任务</a>
-              </li>
+              {% for item in data['menu_list'] %}
+                {% if item.show %}
+                <li id="{{ item.id }}">
+                  <a class="{{ item.class }}" href="{{ item.url }}">{{ item.name }}</a>
+                  {% if item.id == 'memuAsoft' %}<span class="softnum">1</span>{% endif %}
+                </li>
+                {% endif %}
+              {% endfor %}
               <!-- 插件设置的菜单 -->
               {% for menu in data['hook_menu'] %}
               <li id="memuAplugins_{{menu['name']}}">
@@ -91,13 +80,6 @@
                 >
               </li>
               {% endfor %}
-              <li id="memuAsoft">
-                <a class="menu_soft" href="/soft/index">软件管理</a
-                ><span class="softnum">1</span>
-              </li>
-              <li id="memuAsetting">
-                <a class="menu_set" href="/setting/index">面板设置</a>
-              </li>
               <li>
                 <a class="menu_exit" href="javascript:;" id="signout">退出</a>
               </li>

@@ -247,4 +247,26 @@ def set_port():
         mw.restartMw()
 
     return mw.returnData(True, '端口保存成功!')
- 
+
+# 保存菜单配置
+@blueprint.route('/save_menu_config', endpoint='save_menu_config', methods=['POST'])
+@panel_login_required
+def save_menu_config():
+    try:
+        menu_data = request.form.get('menu_data', '')
+        if not menu_data:
+            return mw.returnData(False, '菜单数据不能为空!')
+        
+        menus = json.loads(menu_data)
+        if not isinstance(menus, list):
+            return mw.returnData(False, '菜单数据格式错误!')
+            
+        menu_file = mw.getRunDir() + '/data/menu.json'
+        mw.writeFile(menu_file, json.dumps(menus))
+        
+        # 更新内存缓存
+        utils_config._menu_cache = menus
+        
+        return mw.returnData(True, '菜单配置保存成功!')
+    except Exception as e:
+        return mw.returnData(False, '保存失败: ' + str(e))

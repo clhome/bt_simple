@@ -98,6 +98,11 @@
 						<button type="button" class="btn btn-success btn-sm ml5" onclick="setPassword()">设置</button>
 						<span class="set-info c7">设置面板密码</span>
 					</p>
+					<p class="mtb15">
+						<span class="set-tit text-right" title="菜单控制">菜单控制</span>
+						<button type="button" class="btn btn-success btn-sm ml5" onclick="setMenuConfig()">设置</button>
+						<span class="set-info c7">拖拽排序或隐藏主界面的左侧菜单</span>
+					</p>
 				</form>
 			</div>
 
@@ -193,5 +198,85 @@
 		</div>
 	</div>
 </div>
+
+<div id="menu_config_layer" style="display:none; padding: 15px;">
+	<p style="color:#666; margin-bottom: 15px;">您可以拖拽调整主菜单的顺序，或使用开关控制菜单的显示/隐藏状态。</p>
+	<ul id="menu_config_list" style="padding: 0;">
+		{% for item in data['menu_list'] %}
+		<li data-id="{{ item.id }}" data-name="{{ item.name }}" data-class="{{ item.class }}" data-url="{{ item.url }}" style="padding: 10px; border: 1px solid #ddd; margin-bottom: 5px; background: #fff; cursor: move; list-style: none; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; width: 100%; box-sizing: border-box;">
+			<div>
+				<span class="glyphicon glyphicon-menu-hamburger" style="color: #999; margin-right: 10px;"></span>
+				<strong>{{ item.name }}</strong>
+			</div>
+			<div class="ssh-item" style="margin: 0; padding: 0; height: 22px;">
+				<input class="btswitch btswitch-ios menu-show-switch" id="show_{{ item.id }}" type="checkbox" {% if item.show %}checked{% endif %}>
+				<label class="btswitch-btn" for="show_{{ item.id }}"></label>
+			</div>
+		</li>
+		{% endfor %}
+	</ul>
+	<div style="text-align: center; margin-top: 15px;">
+		<button type="button" class="btn btn-success btn-sm" onclick="saveMenuConfig()">保存菜单配置</button>
+	</div>
+</div>
+
+<script type="text/javascript">
+function setMenuConfig() {
+	layer.open({
+		type: 1,
+		title: '左侧菜单管理',
+		area: ['450px', '650px'],
+		content: $('#menu_config_layer'),
+		success: function() {
+			if ($.fn.dragsort) {
+				try { $("#menu_config_list").dragsort("destroy"); } catch(e){}
+				$("#menu_config_list").dragsort({ 
+					dragSelector: "li", 
+					dragBetween: false, 
+					placeHolderTemplate: "<li style='border:1px dashed #ccc; background:#f9f9f9; list-style:none; height:44px; margin-bottom:5px; border-radius:4px;'></li>",
+					dragEnd: function() {
+						$(this).css('background-color', '#fff');
+					}
+				});
+				
+				// 拖动时变成绿色，松开恢复
+				$("#menu_config_list").off('mousedown', 'li').on('mousedown', 'li', function() {
+					$(this).css('background-color', '#dff0d8'); // 浅绿色
+				}).off('mouseup', 'li').on('mouseup', 'li', function() {
+					$(this).css('background-color', '#fff');
+				});
+				$(document).off('mouseup.menu_drag').on('mouseup.menu_drag', function() {
+					$("#menu_config_list li").css('background-color', '#fff');
+				});
+			}
+		}
+	});
+}
+
+function saveMenuConfig() {
+	var menus = [];
+	$("#menu_config_list li").each(function() {
+		var $li = $(this);
+		menus.push({
+			id: $li.data('id'),
+			name: $li.data('name'),
+			class: $li.data('class'),
+			url: $li.data('url'),
+			show: $li.find('.menu-show-switch').prop('checked')
+		});
+	});
+	
+	var loadT = layer.msg('正在保存配置...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+	$.post('/setting/save_menu_config', { menu_data: JSON.stringify(menus) }, function(rdata) {
+		layer.close(loadT);
+		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+		if (rdata.status) {
+			setTimeout(function(){
+				window.location.reload();
+			}, 1000);
+		}
+	}, 'json');
+}
+</script>
 <script src="/static/app/config.js?v={{config.version}}"></script>
 {% endblock %}
