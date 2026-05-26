@@ -3737,7 +3737,7 @@ html .menu .menu_exit:hover {
     font-size: 13px;
     display: flex !important;
     flex-wrap: wrap !important; /* 允许换行，按两行显示 */
-    justify-content: flex-end; /* 内容靠右对齐 */
+    justify-content: flex-start; /* 整体左对齐，使得第一行左靠齐 */
     align-items: center;
     line-height: 1.5 !important;
 }
@@ -3757,6 +3757,8 @@ html .menu .menu_exit:hover {
 }
 .CodeMirror-search-hint {
     margin-top: 6px !important; /* 两行之间留白 */
+    margin-left: 42px !important; /* 让括号文字对齐到上方输入框的左边缘 */
+    margin-right: auto !important; /* 占满中间的剩余空间，把数字挤到最右边 */
 }
 .CodeMirror-dialog button {
     border: 1px solid #ccc;
@@ -3772,4 +3774,26 @@ html .menu .menu_exit:hover {
 /* 去掉无意义的关闭 X */
 .Dialog-close, .CodeMirror-dialog-close {
     display: none !important;
+}
+
+/* 优化搜索选中时的背景色为粉红色，使其盖过默认的高亮黄色 */
+.CodeMirror-selected {
+    background-color: #ffb6c1 !important;
+}
+.CodeMirror-focused .CodeMirror-selected {
+    background-color: #ffb6c1 !important;
+}
+.CodeMirror-line::selection, .CodeMirror-line>span::selection, .CodeMirror-line>span>span::selection {
+    background-color: #ffb6c1 !important;
+}
+.CodeMirror-line::-moz-selection, .CodeMirror-line>span::-moz-selection, .CodeMirror-line>span>span::-moz-selection {
+    background-color: #ffb6c1 !important;
+}
+.cm-searching::selection {
+    background-color: #ffb6c1 !important;
+    color: #000 !important;
+}
+.cm-searching::-moz-selection {
+    background-color: #ffb6c1 !important;
+    color: #000 !important;
 }
