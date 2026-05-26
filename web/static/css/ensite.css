@@ -3797,3 +3797,11 @@ html .menu .menu_exit:hover {
     background-color: #ffb6c1 !important;
     color: #000 !important;
 }
+
+/* 当搜索中选中了某个词，这个词所在的行号加一个红色的背景 */
+.CodeMirror-search-match-line .CodeMirror-linenumber {
+    background-color: #ff4d4f !important; /* 醒目的红色背景 */
+    color: #fff !important; /* 纯白文字 */
+    border-radius: 10px !important; /* 圆润的椭圆形状 */
+    padding: 0 4px !important; /* 左右边距撑开 */
+}

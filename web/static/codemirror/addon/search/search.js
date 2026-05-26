@@ -13,6 +13,14 @@
     }function p(v,y,w,z,x){if(v.openDialog){v.openDialog(y,x,{value:z,selectValueOnOpen:true})}else{x(prompt(w,z))}}function l(w,y,x,v){if(w.openConfirm){w.openConfirm(y,v)}else{if(confirm(x)){v[0]()}}}function i(v){return v.replace(/\\(.)/g,function(w,x){if(x=="n"){return"\n"}if(x=="r"){return"\r"}return x})}function h(w){var v=w.match(/^\/(.*)\/([a-z]*)$/);if(v){try{w=new RegExp(v[1],v[2].indexOf("i")==-1?"":"i")}catch(x){}}else{w=i(w)}if(typeof w=="string"?w=="":w.test("")){w=/x^/}return w}var u='搜索: <input type="text" style="width: 10em" class="CodeMirror-search-field"/> <span style="color: #888" class="CodeMirror-search-hint">(回车继续检索下一个)</span><span class="CodeMirror-search-count" style="margin-left: 10px; color: #007bff; font-weight: bold;"></span><div class="Dialog-close">X</div>';
 
 function updateMatchCount(v, w, pos) {
+    if (v.state.searchMatchLine !== undefined) {
+        v.removeLineClass(v.state.searchMatchLine, "gutter", "CodeMirror-search-match-line");
+        delete v.state.searchMatchLine;
+    }
+    if (w && pos) {
+        v.addLineClass(pos.line, "gutter", "CodeMirror-search-match-line");
+        v.state.searchMatchLine = pos.line;
+    }
     var span = v.display.wrapper.querySelector(".CodeMirror-search-count");
     if (!span) return;
     if (!w) { span.innerText = ""; return; }
