@@ -276,8 +276,30 @@ function webShell_getCmdList(){
         });
 
         $('.data-cmd-list .span_title').click(function(e){
-            copyText($(this).parent().attr('data-clipboard-text'));
             e.preventDefault();
+            var cmd = $(this).parent().attr('data-clipboard-text');
+            var cur_ssh = $('.term_item_tab .list .active');
+            if (cur_ssh.length > 0){
+                var data = $(cur_ssh).data();
+                var item = host_ssh_list[data.id];
+                if (item && item.is_connected) {
+                    if (!cmd) {
+                        layer.msg('命令内容为空，请检查是否填写了"命令内容"！',{icon:0,time:2000});
+                        return;
+                    }
+                    // 因为后端保存机制的问题，多行文本中的回车可能变成了字面量 '\n'
+                    // 将其替换为终端可识别的真实回车符 '\r'
+                    var finalCmd = cmd.replace(/\\n/g, '\r');
+                    
+                    // 直接插入命令到终端
+                    item.send(finalCmd);
+                    item.term.focus();
+                } else {
+                    layer.msg('终端未连接',{icon:2,time:2000});
+                }
+            } else {
+                layer.msg('请先打开一个终端',{icon:2,time:2000});
+            }
         });
     });
 }
@@ -585,7 +607,16 @@ function webShell_cmd(title='', cmd=''){
             var title = $('input[name="title"]').val();
             var cmd = $('textarea[name="cmd"]').val();
 
-            appPost('add_cmd', {title:title,cmd:cmd}, function(rdata){
+            if (!title || title.trim() === '') {
+                layer.msg('请输入命令名称！', {icon: 2, time: 2000});
+                return false;
+            }
+            if (!cmd || cmd.trim() === '') {
+                layer.msg('请输入命令内容！', {icon: 2, time: 2000});
+                return false;
+            }
+
+            appPost('add_cmd', {title:title.trim(),cmd:cmd}, function(rdata){
                 layer.close(l);
                 var rdata = $.parseJSON(rdata.data);
                 showMsg(rdata.msg, function(){

@@ -851,16 +851,33 @@ function divcenter() {
 }
 
 function copyText(value) {
-	var clipboard = new ClipboardJS('#mw_copys');
-    clipboard.on('success', function (e) {
-        layer.msg('复制成功',{icon:1,time:2000});
-    });
-
-    clipboard.on('error', function (e) {
-        layer.msg('复制失败，浏览器不兼容!',{icon:2,time:2000});
-    });
-    $("#mw_copys").attr('data-clipboard-text',value);
-    $("#mw_copys").click();
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(value).then(function() {
+            layer.msg('复制成功',{icon:1,time:2000});
+        }).catch(function() {
+            layer.msg('复制失败，浏览器不兼容!',{icon:2,time:2000});
+        });
+    } else {
+        var textArea = document.createElement("textarea");
+        textArea.value = value;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            var successful = document.execCommand('copy');
+            if (successful) {
+                layer.msg('复制成功',{icon:1,time:2000});
+            } else {
+                layer.msg('复制失败，浏览器不兼容!',{icon:2,time:2000});
+            }
+        } catch (err) {
+            layer.msg('复制失败，浏览器不兼容!',{icon:2,time:2000});
+        }
+        document.body.removeChild(textArea);
+    }
 }
 
 function copyPass(value){
