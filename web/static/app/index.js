@@ -592,30 +592,6 @@ function showUpdateUI(version, title, content, speedName) {
         success: function() {
             var bracket = $("#download-tip-bracket");
             bracket.text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）");
-            
-            if (speedName && speedName !== 'Direct') {
-                setTimeout(function() {
-                    bracket.hide().text("（查找最近加速节点）").fadeIn(300);
-                    setTimeout(function() {
-                        bracket.hide().text("（正在使用 " + speedName + " 节点进行加速下载）").fadeIn(300);
-                    }, 800);
-                }, 800);
-            } else if (!speedName) {
-                setTimeout(function() {
-                    bracket.hide().text("（查找最近加速节点）").fadeIn(300);
-                    $.get('/system/update_server?type=info', function(rdata) {
-                        if (rdata && rdata.data && rdata.data.speed_name && rdata.data.speed_name !== 'Direct') {
-                            setTimeout(function() {
-                                bracket.hide().text("（正在使用 " + rdata.data.speed_name + " 节点进行加速下载）").fadeIn(300);
-                            }, 500);
-                        } else {
-                            setTimeout(function() {
-                                bracket.hide().text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）").fadeIn(300);
-                            }, 500);
-                        }
-                    }, 'json');
-                }, 800);
-            }
         }
     });
 }
@@ -645,6 +621,23 @@ function updateStep(step, version, barId, textId, callback) {
         var startTime = new Date().getTime();
         var tenMinutes = 10 * 60 * 1000;
         var twentyMinutes = 20 * 60 * 1000;
+        
+        var bracket = $("#download-tip-bracket");
+        bracket.text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）");
+        setTimeout(function() {
+            bracket.text("（查找最近加速节点）");
+            $.get('/system/update_server?type=info', function(rdata) {
+                if (rdata && rdata.data && rdata.data.speed_name && rdata.data.speed_name !== 'Direct') {
+                    setTimeout(function() {
+                        bracket.text("（正在使用 " + rdata.data.speed_name + " 节点进行加速下载）");
+                    }, 800);
+                } else {
+                    setTimeout(function() {
+                        bracket.text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）");
+                    }, 800);
+                }
+            }, 'json');
+        }, 1000);
         
         intervalId = setInterval(function() {
             var now = new Date().getTime();
