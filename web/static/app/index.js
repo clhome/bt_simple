@@ -642,6 +642,13 @@ function updateStep(step, version, barId, textId, callback) {
         var startTime = new Date().getTime();
         var tenMinutes = 10 * 60 * 1000;
         var twentyMinutes = 20 * 60 * 1000;
+        var fiveMinutes = 5 * 60 * 1000;
+        
+        var originalText = $("#download-tip-bracket").text();
+        var prefix = "";
+        if (originalText.indexOf("加速节点") !== -1) {
+            prefix = originalText.replace("）", "，").replace("（", "");
+        }
         
         intervalId = setInterval(function() {
             var now = new Date().getTime();
@@ -651,6 +658,7 @@ function updateStep(step, version, barId, textId, callback) {
                 clearInterval(intervalId);
                 $(textId).text("超时").css("color", "#ff4d4f");
                 $(barId).css("background", "#ff4d4f");
+                $("#download-tip-bracket").text("（下载超时，请检查网络）").css("color", "#ff4d4f");
                 layer.alert("您当前的网络状态欠佳，请稍后再试", {icon: 2, title: '下载超时'}, function(index){
                     layer.close(index);
                     location.reload();
@@ -666,6 +674,16 @@ function updateStep(step, version, barId, textId, callback) {
             }
             $(barId).css("width", progress.toFixed(2) + "%");
             $(textId).text(Math.floor(progress) + "%");
+            
+            var remaining = Math.max(0, Math.floor((fiveMinutes - elapsed) / 1000));
+            if (remaining === 0) {
+                 $("#download-tip-bracket").text("（" + prefix + "正在解压，请耐心等待...）");
+            } else {
+                 var m = Math.floor(remaining / 60);
+                 var s = remaining % 60;
+                 var sStr = s < 10 ? '0' + s : s;
+                 $("#download-tip-bracket").text("（" + prefix + "正在下载，预计剩余时间 " + m + ":" + sStr + "）");
+            }
         }, 1000);
     } else {
         $(barId).css("width", "40%");
