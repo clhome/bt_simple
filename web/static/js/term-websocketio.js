@@ -101,10 +101,36 @@ Terms_WebSocketIO.prototype = {
         var that = this;    
         var termCols = 83;
         var termRows = 21;
+        Terminal.applyAddon(fit);
         this.term = new Terminal({fontSize: this.fontSize,screenKeys: true, useStyle: true});
 
         this.term.open($('#'+this.id)[0]);
         this.term.setOption('cursorBlink', true);
+
+        // Robustly fit terminal to container
+        var fitAttempts = 0;
+        var tryFit = function() {
+            fitAttempts++;
+            if (!that.term._core || !that.term._core._renderCoordinator) {
+                if (fitAttempts < 20) setTimeout(tryFit, 100);
+                return;
+            }
+            var cellH = that.term._core._renderCoordinator.dimensions.actualCellHeight;
+            var parent = $('#'+that.id)[0];
+            if (cellH > 0 && parent && parent.clientHeight > 0) {
+                if (typeof that.term.fit === 'function') {
+                    that.term.fit();
+                    setTimeout(function(){
+                        that.resize({ cols: that.term.cols, rows: that.term.rows });
+                    }, 50);
+                }
+            } else if (fitAttempts < 50) {
+                // Keep polling up to 5 seconds
+                setTimeout(tryFit, 100);
+            }
+        };
+        tryFit();
+
         this.ws.on('server_response', function (ev) { that.on_message(ev)});
         this.ws.on('server_connect', function (ev) { that.on_connect(ev)});
         this.ws.on('server_reconnect', function (ev) { that.on_reconnect(ev)});

@@ -84,9 +84,16 @@ function webShell_Resize(){
         if (item && item.term) {
             if (typeof item.term.fit === 'function') {
                 item.term.fit();
+                // Local fit.js uses internal setTimeout(fn, 0), so we need to
+                // wait for it to finish before reading the updated cols/rows
+                setTimeout(function(){
+                    item.resize({ cols: item.term.cols, rows: item.term.rows});
+                    item.term.focus();
+                }, 50);
+            } else {
+                item.resize({ cols: item.term.cols, rows: item.term.rows});
+                item.term.focus();
             }
-            item.resize({ cols: item.term.cols, rows: item.term.rows});
-            item.term.focus();
         }
     }
 }
@@ -261,7 +268,7 @@ function webShell_getCmdList(){
         $('.data-cmd-list .glyphicon-edit').click(function(){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
-            webShell_cmd(t['title'],t['cmd']);
+            webShell_cmd(t['title'], t['cmd'], t['title']);
         });
 
         $('.data-cmd-list .glyphicon-trash').click(function(){
@@ -320,7 +327,9 @@ function Terms_WebSocketIO_Create(ip, random){
                 $(this).find('.icon').removeClass('icon-warning').addClass('icon-sucess');
             }
         });
-        webShell_Resize();
+        setTimeout(function(){
+            webShell_Resize();
+        }, 150);
     });
 
     n.registerExitCallBack(function(){
@@ -581,7 +590,8 @@ function webShell_addServer(info=[]){
     });
 }
 
-function webShell_cmd(title='', cmd=''){
+function webShell_cmd(title='', cmd='', old_title=''){
+    var displayCmd = cmd ? cmd.replace(/\\n/g, '\n') : '';
     layer.open({
         type: 1,
         title: '添加常用命令信息',
@@ -597,32 +607,63 @@ function webShell_cmd(title='', cmd=''){
                     <div class="line">\
                         <span class="tname">命令内容</span>\
                         <div class="info-r">\
-                            <textarea rows="4" name="cmd" class="bt-input-text mr5" placeholder="请输入常用命令信息，必填项" style="width:305px;height: 150px;line-height: 18px;padding-top:10px;">'+cmd+'</textarea>\
+                            <textarea rows="4" name="cmd" class="bt-input-text mr5" placeholder="请输入常用命令信息，必填项" style="width:305px;height: 150px;line-height: 18px;padding-top:10px;">'+displayCmd+'</textarea>\
                         </div>\
                     </div>\
                 </div>',
         success:function(){
         },
         yes:function(l,layer_id){
-            var title = $('input[name="title"]').val();
-            var cmd = $('textarea[name="cmd"]').val();
+            var new_title = $('input[name="title"]').val();
+            var new_cmd = $('textarea[name="cmd"]').val();
 
-            if (!title || title.trim() === '') {
+            if (!new_title || new_title.trim() === '') {
                 layer.msg('请输入命令名称！', {icon: 2, time: 2000});
                 return false;
             }
-            if (!cmd || cmd.trim() === '') {
+            if (!new_cmd || new_cmd.trim() === '') {
                 layer.msg('请输入命令内容！', {icon: 2, time: 2000});
                 return false;
             }
 
-            appPost('add_cmd', {title:title.trim(),cmd:cmd}, function(rdata){
-                layer.close(l);
-                var rdata = $.parseJSON(rdata.data);
-                showMsg(rdata.msg, function(){
-                    webShell_getCmdList();
-                },{ icon: rdata.status ? 1 : 2 });
+            var clean_title = new_title.trim();
+
+            appPost('get_cmd_list', {}, function(rdata){
+                var list = $.parseJSON(rdata.data).data;
+                var exists = false;
+                if(list) {
+                    for(var i=0; i<list.length; i++) {
+                        if(list[i].title === clean_title) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                }
+
+                if(exists && old_title !== clean_title) {
+                    layer.msg('该命令已存在！', {icon: 2, time: 2000});
+                    return;
+                }
+
+                var doSave = function() {
+                    appPost('add_cmd', {title: clean_title, cmd: new_cmd}, function(rdata2){
+                        layer.close(l);
+                        var rdata2 = $.parseJSON(rdata2.data);
+                        showMsg(rdata2.msg, function(){
+                            webShell_getCmdList();
+                        },{ icon: rdata2.status ? 1 : 2 });
+                    });
+                };
+
+                if (old_title && old_title !== clean_title) {
+                    appPost('del_cmd', {title: old_title}, function() {
+                        doSave();
+                    });
+                } else {
+                    doSave();
+                }
             });
+
             return false;
         }
     });   

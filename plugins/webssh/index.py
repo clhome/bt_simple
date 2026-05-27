@@ -71,7 +71,7 @@ class App():
     def saveCmd(self, t):
         data_tmp = json.loads(mw.readFile(self.__cmd_path))
         is_has = False
-        for x in range(0, len(data_tmp) - 1):
+        for x in range(len(data_tmp)):
             if data_tmp[x]['title'] == t['title']:
                 is_has = True
                 data_tmp[x]['cmd'] = t['cmd']

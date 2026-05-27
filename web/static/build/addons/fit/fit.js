@@ -1,81 +1,51 @@
-/**
- * Copyright (c) 2014 The xterm.js authors. All rights reserved.
- * @license MIT
- *
- * Fit terminal columns and rows to the dimensions of its DOM element.
- *
- * ## Approach
- *
- *    Rows: Truncate the division of the terminal parent element height by the
- *          terminal row height.
- * Columns: Truncate the division of the terminal parent element width by the
- *          terminal character width (apply display: inline at the terminal
- *          row and truncate its width with the current number of columns).
- */
-
-(function (fit) {
-  if (typeof exports === 'object' && typeof module === 'object') {
-    /*
-     * CommonJS environment
-     */
-    module.exports = fit(require('../../Terminal').Terminal);
-  } else if (typeof define == 'function') {
-    /*
-     * Require.js is available
-     */
-    define(['../../xterm'], fit);
-  } else {
-    /*
-     * Plain browser environment
-     */
-    fit(window.Terminal);
-  }
-})(function (Terminal) {
-  var exports = {};
-
-  exports.proposeGeometry = function (term) {
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.fit = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function proposeGeometry(term) {
     if (!term.element.parentElement) {
-      return null;
+        return null;
     }
     var parentElementStyle = window.getComputedStyle(term.element.parentElement);
     var parentElementHeight = parseInt(parentElementStyle.getPropertyValue('height'));
-    var parentElementWidth = Math.max(0, parseInt(parentElementStyle.getPropertyValue('width')) - 17);
+    var parentElementWidth = Math.max(0, parseInt(parentElementStyle.getPropertyValue('width')));
     var elementStyle = window.getComputedStyle(term.element);
-    var elementPaddingVer = parseInt(elementStyle.getPropertyValue('padding-top')) + parseInt(elementStyle.getPropertyValue('padding-bottom'));
-    var elementPaddingHor = parseInt(elementStyle.getPropertyValue('padding-right')) + parseInt(elementStyle.getPropertyValue('padding-left'));
-    var availableHeight = parentElementHeight - elementPaddingVer;
-    var availableWidth = parentElementWidth - elementPaddingHor;
-    var geometry = {
-      cols: Math.floor(availableWidth / term.charMeasure.width),
-      rows: Math.floor(availableHeight / Math.floor(term.charMeasure.height * term.getOption('lineHeight')))
+    var elementPadding = {
+        top: parseInt(elementStyle.getPropertyValue('padding-top')),
+        bottom: parseInt(elementStyle.getPropertyValue('padding-bottom')),
+        right: parseInt(elementStyle.getPropertyValue('padding-right')),
+        left: parseInt(elementStyle.getPropertyValue('padding-left'))
     };
-
+    var elementPaddingVer = elementPadding.top + elementPadding.bottom;
+    var elementPaddingHor = elementPadding.right + elementPadding.left;
+    var availableHeight = parentElementHeight - elementPaddingVer;
+    var availableWidth = parentElementWidth - elementPaddingHor - term._core.viewport.scrollBarWidth;
+    var geometry = {
+        cols: Math.floor(availableWidth / term._core._renderCoordinator.dimensions.actualCellWidth),
+        rows: Math.floor(availableHeight / term._core._renderCoordinator.dimensions.actualCellHeight)
+    };
     return geometry;
-  };
-
-  exports.fit = function (term) {
-    // Wrap fit in a setTimeout as charMeasure needs time to get initialized
-    // after calling Terminal.open
-    setTimeout(function () {
-      var geometry = exports.proposeGeometry(term);
-
-      if (geometry) {
-        // Force a full render
+}
+exports.proposeGeometry = proposeGeometry;
+function fit(term) {
+    var geometry = proposeGeometry(term);
+    if (geometry) {
         if (term.rows !== geometry.rows || term.cols !== geometry.cols) {
-          term.renderer.clear();
-          term.resize(geometry.cols, geometry.rows);
+            term._core._renderCoordinator.clear();
+            term.resize(geometry.cols, geometry.rows);
         }
-      }
-    }, 0);
-  };
+    }
+}
+exports.fit = fit;
+function apply(terminalConstructor) {
+    terminalConstructor.prototype.proposeGeometry = function () {
+        return proposeGeometry(this);
+    };
+    terminalConstructor.prototype.fit = function () {
+        fit(this);
+    };
+}
+exports.apply = apply;
 
-  Terminal.prototype.proposeGeometry = function () {
-    return exports.proposeGeometry(this);
-  };
-
-  Terminal.prototype.fit = function () {
-    return exports.fit(this);
-  };
-
-  return exports;
+},{}]},{},[1])(1)
 });
+//# sourceMappingURL=fit.js.map

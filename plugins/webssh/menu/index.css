@@ -1,6 +1,7 @@
 
 .xterm{
-  position: inherit;
+  position: relative;
+  height: 100%;
 }
 
 .tab-nav {
@@ -332,13 +333,16 @@ color: #bbb;
 }
 
 .term_content_tab .term_item {
-  height: 100%;
-  width: 100%;
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
   display: none;
 }
 
 .term_content_tab .term_item.active {
-  display: inline-block;
+  display: block;
 }
 
 .term-tool-button {
@@ -507,13 +511,9 @@ color: #bbb;
   height: auto !important; /* Override inline styles from old JS */
 }
 
-/* Ensure xterm expands to the parent's full height */
 .term_item > .terminal {
-  flex: 1;
-  height: 100%;
-}
-.term_item > .terminal .xterm-viewport {
   height: 100% !important;
+  width: 100% !important;
 }
 
 .tootls_commonly_list li,
