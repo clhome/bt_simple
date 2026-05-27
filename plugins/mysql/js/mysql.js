@@ -1170,9 +1170,12 @@ function setBackup(db_name){
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
-                    <div class="db_list">\
-                        <button id="btn_backup" class="btn btn-success btn-sm" type="button">备份</button>\
-                        <button id="btn_local_import" class="btn btn-success btn-sm" type="button">外部导入</button>\
+                    <div class="db_list" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">\
+                        <div>\
+                            <button id="btn_backup" class="btn btn-success btn-sm" type="button">备份</button>\
+                            <button id="btn_local_import" class="btn btn-success btn-sm" type="button">外部导入</button>\
+                        </div>\
+                        <div id="backup_dir_path" style="color: #666; font-size: 13px;"></div>\
                     </div >\
                     <div class="divtable">\
                     <div  id="database_fix"  style="height:450px;overflow:auto;border:#ddd 1px solid">\
@@ -1230,6 +1233,19 @@ function setBackupReq(db_name, obj){
                 </tr> ';
         }
         $('#database_table tbody').html(tbody);
+
+        var backupDir = rdata.msg;
+        if (backupDir) {
+            var html = '<div style="display: flex; align-items: center; justify-content: flex-end; direction: ltr !important;">\
+                            <span style="color: #666; margin-right: 5px;">数据库备份目录：</span>\
+                            <span class="backup-path-span" style="color: #20a53a; font-weight: 500; cursor: pointer; border-bottom: 1px dashed #20a53a; padding-bottom: 1px;" title="点击复制">' + backupDir + '</span>\
+                        </div>';
+            $('#backup_dir_path').html(html);
+            $('#backup_dir_path .backup-path-span').off('click').on('click', function(){
+                copyText(backupDir);
+                layer.msg('目录路径已复制', {icon: 1, time: 2000});
+            });
+        }
     });
 }
 

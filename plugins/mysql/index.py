@@ -1346,7 +1346,7 @@ def getDbBackupList():
 
         data['file'] = p
 
-    return mw.returnJson(True, 'ok', rr)
+    return mw.returnJson(True, bkDir, rr)
 
 
 def getDbBackupImportList():
