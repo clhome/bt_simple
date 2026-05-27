@@ -12,7 +12,7 @@
       onerror="this.onerror=null;this.href='/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}'"
     />
     <link href="/static/layer/skin/default/layer.css?v={{config.version}}" rel="stylesheet" />
-    <link href="/static/css/site.css?v={{config.version}}" rel="stylesheet" />
+    <link href="/static/css/site.css?v={{config.version}}&t=20260527" rel="stylesheet" />
     <link
       href="https://cdn.staticfile.org/codemirror/5.65.15/codemirror.min.css"
       rel="stylesheet"
@@ -235,14 +235,14 @@
     if (thisPath.indexOf("?") > -1) {
       var tag = $.getUrlParam("tag");
       if (tag != undefined) {
-        $("#memuAplugins_" + tag).css("background-color", "#2c3138");
+        $("#memuAplugins_" + tag).addClass("active");
       }
     } else {
       if (thisPath != "/") {
         var pathArr = thisPath.substring(1).split("/");
-        $("#memuA" + pathArr[0]).css("background-color", "#2c3138");
+        $("#memuA" + pathArr[0]).addClass("active");
       } else {
-        $("#memuA").css("background-color", "#2c3138");
+        $("#memuA").addClass("active");
       }
     }
   </script>

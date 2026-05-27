@@ -831,8 +831,9 @@ html {
 }
 
 .menu li {
-    margin-bottom: 1px;
-    position: relative
+    margin: 4px 12px;
+    position: relative;
+    border-radius: 10px;
 }
 
 .menu li a {
@@ -840,18 +841,41 @@ html {
     color: #d6d7d9;
     display: block;
     line-height: 44px;
-    padding-left: 52px;
+    padding-left: 42px;
     background-repeat: no-repeat;
     background-size: 16px auto;
-    background-position: 25px 14px;
-    border-left: #404040 2px solid
+    background-position: 15px 14px;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
 }
 
+.menu li.active a,
 .menu li.current a,
 .menu li a:hover {
-    background-color: #2c3138;
     color: #fff;
-    border-left: #20a53a 2px solid;
+    background-color: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transform: translateZ(0);
+}
+
+.menu li.active a::before,
+.menu li.current a::before,
+.menu li a:hover::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 3px;
+    background-color: #20a53a;
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 8px rgba(32, 165, 58, 0.6);
 }
 
 .menu .menu_home {
