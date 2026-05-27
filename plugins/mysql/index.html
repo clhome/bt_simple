@@ -66,6 +66,13 @@ resetPluginWinWidth(1050);
 // var loading = layer.msg("资源加载中...", { icon: 16, time: 0, shade: 0.3 });
 $.getScript( "/plugins/file?name=mysql&f=js/mysql.js", function(){
 	// layer.close(loading);
-	pluginService('mysql',$('.plugin_version').attr('version'));
+	if (typeof window.DEFAULT_ACTIVE_TAB !== 'undefined' && window.DEFAULT_ACTIVE_TAB === 'dbList') {
+		window.DEFAULT_ACTIVE_TAB = undefined;
+		$(".bt-w-menu p").removeClass("bgw");
+		$(".bt-w-menu p[onclick^='dbList']").addClass("bgw");
+		dbList();
+	} else {
+		pluginService('mysql',$('.plugin_version').attr('version'));
+	}
 });
 </script>
