@@ -517,6 +517,8 @@ migrate_from_mw() {
     if [ -f ${PANEL_DIR}/bin/activate ]; then
         cd ${PANEL_DIR} && source bin/activate
         pip3 install -r requirements.txt 2>&1 | grep -v 'already satisfied' | tee -a $LOG_FILE
+        # 强制升级 requests 库以消除可能的 RequestsDependencyWarning 版本冲突警告
+        pip3 install --upgrade requests 2>&1 | tee -a $LOG_FILE
     fi
 
     # 启动

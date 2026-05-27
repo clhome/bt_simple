@@ -178,6 +178,9 @@ if [ "$LOCAL_ADDR" != "common" ];then
 fi
 cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/requirements.txt -i $PIPSRC
 
+# 强制升级 requests 库以自动修复可能由 urllib3/charset-normalizer 升级引起的版本冲突警告
+pip3 install --upgrade requests -i $PIPSRC
+
 
 # Different versions use different python lib
 P_VER_D=`echo "$P_VER"|awk -F '.' '{print $1}'`
