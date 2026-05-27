@@ -640,7 +640,7 @@ function domainEdit(id, name, msg, status) {
 		var bodyHtml = "<textarea id='newdomain' class='bt-input-text' style='height: 100px; width: 340px;padding:5px 10px;line-height:20px'></textarea>\
 								<input type='hidden' id='newport' value='80' />\
 								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + "',1)\">添加</button>\
-							<div class='divtable mtb15' style='height:350px;overflow:auto'>\
+							<div class='divtable mtb15' style='height:420px;overflow:auto'>\
 								<table class='table table-hover' width='100%'>\
 								<thead><tr><th>"+lan.site.domain+"</th><th width='70px'>端口</th><th width='50px' class='text-center'>操作</th></tr></thead>\
 								<tbody id='checkDomain'>" + echoHtml + "</tbody>\
@@ -1036,7 +1036,7 @@ function webEdit(id,website,endTime,addtime){
 	// <p onclick='dirBinding("+id+")'>子目录绑定</p>\
 	layer.open({
 		type: 1,
-		area: ['850px','710px'],
+		area: ['950px','780px'],
 		title: '站点修改['+website+']  --  添加时间['+addtime+']',
 		closeBtn: 1,
 		shift: 0,
@@ -1098,7 +1098,7 @@ function getSiteLogs(siteName){
 		}
 		if (logs.msg == '') logs.msg = '当前没有日志.';
 		var h =  parseInt($('.bt-w-menu').css('height')) - 35;
-		var con = '<textarea wrap="off" style="white-space:pre;margin: 0px;width: 710px;height: '+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="site_log">'+logs.msg+'</textarea>';
+		var con = '<textarea wrap="off" style="white-space:pre;margin: 0px;width: 800px;height: '+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="site_log">'+logs.msg+'</textarea>';
 		$("#webedit-con").html(con);
 		var ob = document.getElementById('site_log');
 		ob.scrollTop = ob.scrollHeight;		
@@ -1115,7 +1115,7 @@ function getSiteErrorLogs(siteName){
 		}
 		if (logs.msg == '') logs.msg = '当前没有日志.';
 		var h =  parseInt($('.bt-w-menu').css('height')) - 35;
-		var con = '<textarea wrap="off" style="white-space:pre;margin:0px;width:710px;height:'+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="error_log">'+logs.msg+'</textarea>';
+		var con = '<textarea wrap="off" style="white-space:pre;margin:0px;width:800px;height:'+h+'px;background-color: #333;color:#fff; padding:0 5px;" id="error_log">'+logs.msg+'</textarea>';
 		$("#webedit-con").html(con);
 		var ob = document.getElementById('error_log');
 		ob.scrollTop = ob.scrollHeight;		
@@ -1283,7 +1283,7 @@ function dirBinding(id){
 			   + "子目录：<select class='bt-input-text mr20' name='dirName'>"+dirList+"</select>"
 			   + "<button class='btn btn-success btn-sm' onclick='addDirBinding("+id+")'>添加</button>"
 			   + "</div>"
-			   + "<div class='divtable mtb15' style='height:470px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>"
+			   + "<div class='divtable mtb15' style='height:540px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>"
 			   + "<thead><tr><th>域名</th><th width='70'>端口</th><th width='100'>子目录</th><th width='100' class='text-right'>操作</th></tr></thead>"
 			   + "<tbody id='checkDomain'>" + echoHtml + "</tbody>"
 			   + "</table></div>";
@@ -1534,7 +1534,7 @@ function to301(siteName, type, obj){
 			<span>添加重定向</span>\
 		</button>\
 		</div>\
-		<div class="divtable" style="max-height:200px;">\
+		<div class="divtable" style="max-height:500px;">\
 			<table class="table table-hover" >\
 				<thead style="position: relative;z-index: 1;">\
 					<tr>\
@@ -1934,7 +1934,7 @@ function toProxy(siteName, type, obj) {
 				<span>添加反向代理</span>\
 			</button>\
 		</div>\
-		<div class="divtable" style="max-height:200px;">\
+		<div class="divtable" style="max-height:500px;">\
 			<table class="table table-hover" >\
 				<thead style="position: relative;z-index: 1;">\
 					<tr>\
@@ -2914,7 +2914,7 @@ function configFile(webSite){
 	var info = syncPost('/site/get_host_conf', {siteName:webSite});
 	$.post('/files/get_body','path='+info['host'],function(rdata){
 		var mBody = "<div class='webEdit-box padding-10'>\
-		<textarea style='height: 320px; width: 640px; margin-left: 20px;line-height:18px' id='configBody'>"+rdata.data.data+"</textarea>\
+		<textarea style='height: 320px; width: 740px; margin-left: 20px;line-height:18px' id='configBody'>"+rdata.data.data+"</textarea>\
 			<div class='info-r'>\
 				<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\
 				<ul class='help-info-text c7 ptb10'>\
@@ -2928,7 +2928,9 @@ function configFile(webSite){
 			lineNumbers: true,
 			matchBrackets:true,
 		});
-		$(".CodeMirror-scroll").css({"height":"400px","margin":0,"padding":0});
+		editor.setSize("740px", "580px");
+		$(".CodeMirror").css({"margin-left":"20px"});
+		$(".CodeMirror-scroll").css({"height":"580px","margin":0,"padding":0});
 		$("#SaveConfigFileBtn").click(function(){
 			$("#configBody").empty();
 			$("#configBody").text(editor.getValue());
@@ -2969,7 +2971,7 @@ function rewrite(siteName){
 			var webBakHtml = "<div class='bt-form'>\
 						<div class='line'>\
 						<select id='myRewrite' class='bt-input-text mr20' name='rewrite' style='width:30%;'>"+rList+"</select>\
-						<textarea class='bt-input-text' style='height: 260px; width: 640px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>"+centent+"</textarea></div>\
+						<textarea class='bt-input-text' style='height: 260px; width: 740px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>"+centent+"</textarea></div>\
 						<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\
 						<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\
 						<ul class='help-info-text c7 ptb15'>\
@@ -2998,8 +3000,8 @@ function rewrite(siteName){
 				lineNumbers: true,
 				matchBrackets:true,
 			});
-			
-			$(".CodeMirror-scroll").css({"height":"400px","margin":0,"padding":0});
+			editor.setSize("740px", "560px");
+			$(".CodeMirror-scroll").css({"height":"560px","margin":0,"padding":0});
 			$("#SetRewriteBtn").click(function(){
 				$("#rewriteBody").empty();
 				$("#rewriteBody").text(editor.getValue());
