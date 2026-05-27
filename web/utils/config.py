@@ -21,7 +21,8 @@ def get_menu_config():
     if _menu_cache is not None:
         return _menu_cache
         
-    menu_file = mw.getRunDir() + '/data/menu.json'
+    panel_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    menu_file = panel_dir + '/data/menu.json'
     if not os.path.exists(menu_file):
         default_menu = [
             {"id": "memuA", "name": "首页", "class": "menu_home", "url": "/", "show": True},

@@ -2055,11 +2055,40 @@ function traverseFileTree(item, filesToUpload, path) {
 /**
  * 显示上传确认对话框
  */
-function showConfirmUpload() {
+function showConfirmUpload(existMap) {
     var files = pendingUploadFiles;
     var path = $("#DirPathPlace input").val();
     if (path.substring(path.length - 1) != '/') path += '/';
     
+    // 若没有传入检测缓存且存在待上传文件，先发起异步批量覆盖检测
+    if (!existMap && files.length > 0) {
+        var relativePaths = [];
+        for (var i = 0; i < files.length; i++) {
+            relativePaths.push(files[i].fullPath);
+        }
+        
+        var loadingIndex = layer.msg('正在检测文件覆盖状态...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        $.post('/files/check_exists_files', {
+            dfile: path,
+            filename: JSON.stringify(relativePaths)
+        }, function(rdata) {
+            layer.close(loadingIndex);
+            var map = {};
+            if (rdata && rdata.status && Array.isArray(rdata.data)) {
+                for (var j = 0; j < rdata.data.length; j++) {
+                    var item = rdata.data[j];
+                    map[item.filename] = item;
+                }
+            }
+            showConfirmUpload(map);
+        }, 'json').fail(function() {
+            layer.close(loadingIndex);
+            showConfirmUpload({});
+        });
+        return;
+    }
+    
+    existMap = existMap || {};
     var fileListHtml = '';
     var totalSize = 0;
     var maxDisplay = 200;
@@ -2077,28 +2106,42 @@ function showConfirmUpload() {
         }
     });
 
-    // console.log("【御风面板】全局已有文件缓存:", window.currentFiles);
-    // console.log("【御风面板】合并DOM提取后的已有文件列表:", existFiles);
-    
     for (var i = 0; i < files.length; i++) {
         totalSize += files[i].size;
         if (i < maxDisplay) {
             var fileName = files[i].fullPath;
-            // 清洗掉路径前缀，以支持可能有相对路径前缀的匹配
+            // 清洗掉相对路径前缀
             var cleanName = fileName;
             if (fileName.indexOf('/') >= 0) {
                 cleanName = fileName.split('/').pop();
             }
             
-            var isOverwrite = existFiles.indexOf(fileName) >= 0 || existFiles.indexOf(cleanName) >= 0;
-            // console.log("【御风面板】待上传文件名:", fileName, "清洗后的名字:", cleanName, "是否会覆盖:", isOverwrite);
+            // 是否覆盖的判断：高精度路径匹配优先，同级匹配为兜底
+            var isOverwrite = false;
+            var origFileInfo = null;
+            if (existMap.hasOwnProperty(fileName)) {
+                isOverwrite = true;
+                origFileInfo = existMap[fileName];
+            } else if (fileName.indexOf('/') < 0 && (existFiles.indexOf(fileName) >= 0 || existMap.hasOwnProperty(cleanName))) {
+                isOverwrite = true;
+                origFileInfo = existMap[cleanName];
+            }
             
             // 获取原文件大小并展示对比
             var sizeHtml = toSize(files[i].size);
-            if (isOverwrite && window.currentFilesMap) {
-                var origFileInfo = window.currentFilesMap[fileName] || window.currentFilesMap[cleanName];
+            if (isOverwrite) {
+                var sizeBytes = null;
                 if (origFileInfo && typeof origFileInfo.size === 'number') {
-                    sizeHtml = toSize(origFileInfo.size) + ' <= ' + toSize(files[i].size);
+                    sizeBytes = origFileInfo.size;
+                } else if (window.currentFilesMap) {
+                    var mapFile = window.currentFilesMap[fileName] || window.currentFilesMap[cleanName];
+                    if (mapFile && typeof mapFile.size === 'number') {
+                        sizeBytes = mapFile.size;
+                    }
+                }
+                
+                if (sizeBytes !== null) {
+                    sizeHtml = toSize(sizeBytes) + ' <= ' + toSize(files[i].size);
                 }
             }
             

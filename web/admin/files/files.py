@@ -43,21 +43,32 @@ def check_exists_files():
     data = []
     filesx = []
     if filename == '':
-        filesx = json.loads(session['selected']['data'])
+        try:
+            filesx = json.loads(session['selected']['data'])
+        except Exception:
+            pass
+    elif filename.startswith('['):
+        try:
+            filesx = json.loads(filename)
+        except Exception:
+            filesx.append(filename)
     else:
         filesx.append(filename)
 
     for fn in filesx:
         if fn == '.':
             continue
-        filename = dfile + '/' + fn
-        if os.path.exists(filename):
+        filepath = os.path.join(dfile, fn)
+        if os.path.exists(filepath):
             tmp = {}
-            stat = os.stat(filename)
-            tmp['filename'] = fn
-            tmp['size'] = os.path.getsize(filename)
-            tmp['mtime'] = str(int(stat.st_mtime))
-            data.append(tmp)
+            try:
+                stat = os.stat(filepath)
+                tmp['filename'] = fn
+                tmp['size'] = os.path.getsize(filepath)
+                tmp['mtime'] = str(int(stat.st_mtime))
+                data.append(tmp)
+            except Exception:
+                pass
     return mw.returnData(True, 'ok', data)
 
 

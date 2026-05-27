@@ -261,7 +261,8 @@ def save_menu_config():
         if not isinstance(menus, list):
             return mw.returnData(False, '菜单数据格式错误!')
             
-        menu_file = mw.getRunDir() + '/data/menu.json'
+        panel_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        menu_file = panel_dir + '/data/menu.json'
         mw.writeFile(menu_file, json.dumps(menus))
         
         # 更新内存缓存
