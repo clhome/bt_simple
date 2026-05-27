@@ -162,7 +162,7 @@ function webShell_Load(){
     })
 
     //服务器列表和常用命令
-    webShell_getHostList();
+    webShell_getCmdList();
 
     //服务器列表和命令切换
     $('.term_tootls .tab-nav span').click(function(){
