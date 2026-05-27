@@ -191,6 +191,72 @@ function fallbackCopyText(text) {
 	document.body.removeChild(textArea);
 }
 
+// SSL 申请/配置成功后的弹窗，支持点击一键复制，点击确定重启面板后进行 10 秒倒计时跳转 https 地址
+function showSSLSuccessWindow(new_url, title) {
+	title = title || 'SSL 证书部署成功';
+	// 自动修复 127.0.0.1 和 0.0.0.0 为当前主机的实际域名/IP，以确保在任何环境下均可平顺访问
+	if (new_url.indexOf('127.0.0.1') != -1 || new_url.indexOf('0.0.0.0') != -1) {
+		new_url = new_url.replace(/127\.0\.0\.1|0\.0\.0\.0/, window.location.hostname);
+	}
+	
+	layer.open({
+		type: 1,
+		title: title,
+		area: ['520px', '280px'],
+		closeBtn: 1,
+		shadeClose: false,
+		content: '<div class="bt-form pd20" style="text-align: center;">\
+			<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;">\
+				<span class="glyphicon glyphicon-ok-sign" style="margin-right: 8px;"></span>面板 SSL 证书已准备就绪！\
+			</div>\
+			<p style="color: #666; margin-bottom: 12px; font-size: 13px;">后续您将使用如下安全加密协议访问（点击地址即可复制）：</p>\
+			<div id="ssl-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">\
+				' + new_url + '\
+			</div>\
+			<p style="color: #f39c12; font-size: 12px; margin-bottom: 20px;">提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。</p>\
+			<div style="text-align: center;">\
+				<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">\
+					<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>确定并重启面板\
+				</button>\
+			</div>\
+		</div>',
+		success: function(layero, index) {
+			// 鼠标悬停变色效果
+			$('#ssl-domain-box').hover(function() {
+				$(this).css('background', '#eef9ef');
+			}, function() {
+				$(this).css('background', '#f8f9fa');
+			});
+			
+			// 点击复制事件
+			$('#ssl-domain-box').click(function() {
+				copyTextToClipboard(new_url);
+			});
+			
+			// 确认并重启
+			$('#btn-ssl-reboot-confirm').click(function() {
+				layer.close(index);
+				var loadT = layer.load(2);
+				$.post('/system/restart', '', function() {
+					layer.close(loadT);
+					var count = 10;
+					var msgBox = layer.msg('面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址... <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">' + count + '</span> 秒', { icon: 16, time: 0, shade: [0.3, '#000'] });
+					var timer = setInterval(function() {
+						count--;
+						if (count <= 0) {
+							clearInterval(timer);
+							layer.close(msgBox);
+							window.location.href = new_url;
+						} else {
+							$('#restart-countdown').text(count);
+						}
+					}, 1000);
+				});
+			});
+		}
+	});
+}
+
 $('input[name="bind_ssl"]').click(function(){
 	var panel_ssl = $(this).prop("checked");
 	$(this).prop("checked",!panel_ssl);
@@ -236,13 +302,11 @@ $('input[name="bind_ssl"]').click(function(){
 
 				var cert_type = $('select[name=cert_type]').val();
 				$.post('/setting/set_panel_local_ssl',{'cert_type':cert_type}, function(rdata){
-					// console.log(rdata);
-					var to_https = window.location.href.replace('http','https');
-					showMsg(rdata.msg,function(){
-						if (rdata.status){
-							window.location.href = to_https;
-						}
-					},{icon:rdata.status?1:2},5000);
+					if (rdata.status){
+						showSSLSuccessWindow(rdata.data, '本地自签SSL已启用');
+					} else {
+						layer.msg(rdata.msg, {icon: 2});
+					}
 				},'json');
 	
 			}
@@ -1200,18 +1264,17 @@ function getPanelSSL(){
 
 					showSpeedWindow('正在由ACME申请...', 'site.get_acme_logs', function(layers,index){
 						$.post('/setting/apply_panel_acme_ssl', pdata, function(rdata){
-							showMsg(rdata.msg, function(){
-								if (rdata.status){
-									layer.close(index);
-									if (rdata.msg == '手动解析'){
-										newAcmeHandApplyNoticeForPanel(cert_all['panel_domain'], rdata.data);
-									} else{
-										setTimeout(function(){
-											location.reload();
-										}, 2000);
-									}
+							if (rdata.status){
+								layer.close(index);
+								if (rdata.msg == '手动解析'){
+									newAcmeHandApplyNoticeForPanel(cert_all['panel_domain'], rdata.data);
+								} else{
+									showSSLSuccessWindow(rdata.data, '90天免费证书申请成功');
 								}
-							},{icon:rdata.status?1:2}, 3000);
+							} else {
+								layer.close(index);
+								layer.msg(rdata.msg, {icon: 2});
+							}
 						},'json');
 					});
 				});
@@ -1244,11 +1307,10 @@ function getPanelSSL(){
 						layer.close(loadT);
 						if(rdata.status){
 							layer.closeAll();
-							setTimeout(function(){
-								location.reload();
-							}, 1500);
+							showSSLSuccessWindow(rdata.data, '自定义证书部署成功');
+						} else {
+							layer.msg(rdata.msg, {icon: 2});
 						}
-						layer.msg(rdata.msg,{icon:rdata.status?1:2});
 					},'json');
 				});
 

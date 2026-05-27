@@ -62,7 +62,24 @@ class setting(object):
             os.remove(check_cert_pl)
             return mw.returnData(False, '证书错误,请检查!')
         os.remove(check_cert_pl)
-        return mw.returnData(True, '证书已保存!')
+        
+        # 自定义贴证书部署成功后，更新数据库中 panel_ssl 状态并组装 https 地址返回前端
+        panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
+        panel_ssl_data['open'] = True
+        panel_ssl_data['choose'] = choose
+        thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
+        
+        port = mw.getPanelPort()
+        admin_path = thisdb.getOption('admin_path', default='')
+        if admin_path and not admin_path.startswith('/'):
+            admin_path = '/' + admin_path
+            
+        domain = thisdb.getOption('panel_domain', default='')
+        if domain == '':
+            domain = mw.getLocalIp()
+            
+        to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
+        return mw.returnData(True, '证书已保存!', to_panel_url)
 
     def getPanelSsl(self):
         rdata = {}
@@ -225,8 +242,13 @@ class setting(object):
         panel_ssl_data['choose'] = 'nginx'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
 
-        mw.restartMw()
-        return mw.returnData(True, '证书已成功申请并部署！面板已开启SSL并已安全重启。')
+        port = mw.getPanelPort()
+        admin_path = thisdb.getOption('admin_path', default='')
+        if admin_path and not admin_path.startswith('/'):
+            admin_path = '/' + admin_path
+        
+        to_panel_url = 'https://' + main_domain + ":" + str(port) + admin_path
+        return mw.returnData(True, '证书已成功申请并部署！', to_panel_url)
 
     # 面板本地SSL设置
     def setPanelLocalSsl(self, cert_type):
@@ -244,8 +266,18 @@ class setting(object):
 
         panel_ssl_data['choose'] = 'local'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
-        mw.restartMw()
-        return mw.returnData(True, '设置成功')
+        
+        port = mw.getPanelPort()
+        admin_path = thisdb.getOption('admin_path', default='')
+        if admin_path and not admin_path.startswith('/'):
+            admin_path = '/' + admin_path
+            
+        domain = thisdb.getOption('panel_domain', default='')
+        if domain == '':
+            domain = mw.getLocalIp()
+            
+        to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
+        return mw.returnData(True, '设置成功', to_panel_url)
 
     def closePanelSsl(self):
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
