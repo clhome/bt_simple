@@ -587,9 +587,9 @@ textarea:active,
 }
 
 .main .login .yzm {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .main .login .yzm .inputtxt {
