@@ -75,12 +75,121 @@ $('input[name="bind_domain"]').change(function(){
 	$('.btn_bind_domain').removeAttr('disabled');
 	$('.btn_bind_domain').unbind().click(function(){
 		$.post('/setting/set_panel_domain','domain='+domain, function(rdata){
-			showMsg(rdata.msg,function(){
-				window.location.href = rdata.data;
-			},{icon:rdata.status?1:2},5000);
+			if (domain == '') {
+				// 清空域名直接重启跳转
+				showMsg(rdata.msg, function(){
+					window.location.href = rdata.data;
+				},{icon:rdata.status?1:2}, 5000);
+				return;
+			}
+			
+			if (rdata.status) {
+				var new_url = rdata.data;
+				// 弹出一个精美弹窗，提示用户保存域名并确认重启
+				layer.open({
+					type: 1,
+					title: '域名绑定成功',
+					area: ['520px', '280px'],
+					closeBtn: 1,
+					shadeClose: false,
+					content: '<div class="bt-form pd20" style="text-align: center;">\
+						<div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;">\
+							<span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>请务必妥善记录后续面板的访问地址！\
+						</div>\
+						<p style="color: #666; margin-bottom: 12px; font-size: 13px;">后续您将使用如下域名访问（点击地址即可一键复制）：</p>\
+						<div id="new-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">\
+							' + new_url + '\
+						</div>\
+						<p style="color: #999; font-size: 12px; margin-bottom: 20px;">注意：重启面板后，必须使用该新地址才能登录！</p>\
+						<div style="text-align: center;">\
+							<button type="button" class="btn btn-success" id="btn-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">\
+								<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>确认并重启面板\
+							</button>\
+						</div>\
+					</div>',
+					success: function(layero, index) {
+						// 鼠标悬停变色效果
+						$('#new-domain-box').hover(function() {
+							$(this).css('background', '#eef9ef');
+						}, function() {
+							$(this).css('background', '#f8f9fa');
+						});
+						
+						// 点击复制事件
+						$('#new-domain-box').click(function() {
+							copyTextToClipboard(new_url);
+						});
+						
+						// 确认并重启
+						$('#btn-reboot-confirm').click(function() {
+							layer.close(index);
+							var loadT = layer.load(2);
+							$.post('/system/restart', '', function() {
+								layer.close(loadT);
+								var count = 10;
+								var msgBox = layer.msg('面板正在安全重启，倒计时完成后将自动跳转新地址... <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">' + count + '</span> 秒', { icon: 16, time: 0, shade: [0.3, '#000'] });
+								var timer = setInterval(function() {
+									count--;
+									if (count <= 0) {
+										clearInterval(timer);
+										layer.close(msgBox);
+										window.location.href = new_url;
+									} else {
+										$('#restart-countdown').text(count);
+									}
+								}, 1000);
+							});
+						});
+					}
+				});
+			} else {
+				layer.msg(rdata.msg, {icon: 2});
+			}
 		},'json');
 	});
 });
+
+// 兼容性良好的一键复制函数
+function copyTextToClipboard(text) {
+	if (navigator.clipboard && navigator.clipboard.writeText) {
+		navigator.clipboard.writeText(text).then(function() {
+			layer.msg('复制成功!', {icon: 1, time: 1000});
+		}).catch(function() {
+			fallbackCopyText(text);
+		});
+	} else {
+		fallbackCopyText(text);
+	}
+}
+
+function fallbackCopyText(text) {
+	var textArea = document.createElement("textarea");
+	textArea.value = text;
+	textArea.style.position = "fixed";
+	textArea.style.top = "0";
+	textArea.style.left = "0";
+	textArea.style.width = "2em";
+	textArea.style.height = "2em";
+	textArea.style.padding = "0";
+	textArea.style.border = "none";
+	textArea.style.outline = "none";
+	textArea.style.boxShadow = "none";
+	textArea.style.background = "transparent";
+	document.body.appendChild(textArea);
+	textArea.focus();
+	textArea.select();
+	try {
+		var successful = document.execCommand('copy');
+		if (successful) {
+			layer.msg('复制成功!', {icon: 1, time: 1000});
+		} else {
+			layer.msg('复制失败，请手动选择复制', {icon: 2});
+		}
+	} catch (err) {
+		layer.msg('复制失败，请手动选择复制', {icon: 2});
+	}
+	document.body.removeChild(textArea);
+}
 
 $('input[name="bind_ssl"]').click(function(){
 	var panel_ssl = $(this).prop("checked");

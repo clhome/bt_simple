@@ -352,8 +352,20 @@ class setting(object):
             return mw.returnData(True, '清空域名成功!', to_panel_url)
 
         thisdb.setOption('panel_domain', domain)
-        to_panel_url = 'http://'+domain+":"+str(port)+'/setting/index'
-        mw.restartMw()
-        return mw.returnData(True, '设置域名成功!',to_panel_url)
+        
+        # 组装完整的访问 URL，包含协议、域名、端口和安全入口
+        admin_path = thisdb.getOption('admin_path', default='')
+        if admin_path and not admin_path.startswith('/'):
+            admin_path = '/' + admin_path
+            
+        scheme = 'http'
+        panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
+        if panel_ssl_data['open']:
+            scheme = 'https'
+            
+        to_panel_url = scheme + '://' + domain + ":" + str(port) + admin_path
+        
+        # 绑定域名成功，保存但不在此重启，由前端弹出提示并触发确认重启
+        return mw.returnData(True, '设置域名成功!', to_panel_url)
 
 
