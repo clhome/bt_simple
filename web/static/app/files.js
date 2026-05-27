@@ -465,7 +465,7 @@ function getFiles(Path) {
                     <td><input type='checkbox' name='id' value='"+fmp[0]+"'></td>\
                     <td class='column-name'><span class='cursor' onclick=\"getFiles('" + rdata.path + "/" + fmp[0] + "')\">\
                     <span class='ico ico-folder'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></span></td>\
-                    <td>"+toSize(fmp[1])+"</td>\
+                    <td><a class='btlink calculate-size-btn' onclick=\"calculateDirSize(event, this, '" + rdata.path + "/" + fmp[0] + "')\">计算</a></td>\
                     <td>"+getLocalTime(fmp[2])+"</td>\
                     <td>"+fmp[3]+"</td>\
                     <td>"+fmp[4]+"</td>\
@@ -2459,3 +2459,44 @@ function removeFileTab(event, index) {
     saveFileTabs(tabs);
     renderFileTabs();
 }
+
+/**
+ * 动态计算目录大小并更新前端显示
+ */
+function calculateDirSize(event, obj, path) {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    // 显示优雅的 loading 动效
+    $(obj).html("<img src='/static/img/loading.gif' style='width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;' />计算中...");
+    // 移除点击事件，防止重复点击
+    $(obj).attr("onclick", "");
+    
+    $.post('/files/get_dir_size', { path: path }, function(rdata) {
+        if (rdata.status) {
+            var sizeStr = rdata.msg;
+            if (sizeStr) {
+                sizeStr = sizeStr.toUpperCase();
+                // 格式化单位：如果以 K/M/G/T 结尾，自动加 B；如果是字节数字，也可以合理转换
+                if (sizeStr.endsWith('K') || sizeStr.endsWith('M') || sizeStr.endsWith('G') || sizeStr.endsWith('T')) {
+                    sizeStr += 'B';
+                }
+            } else {
+                sizeStr = '0B';
+            }
+            // 完美替换原来的“计算”二字，直接显示具体的容量
+            $(obj).parent().html(sizeStr);
+        } else {
+            // 失败时还原
+            $(obj).html("计算");
+            $(obj).attr("onclick", "calculateDirSize(event, this, '" + path.replace(/'/g, "\\'") + "')");
+            layer.msg(rdata.msg, { icon: 5 });
+        }
+    }, 'json').fail(function() {
+        $(obj).html("计算");
+        $(obj).attr("onclick", "calculateDirSize(event, this, '" + path.replace(/'/g, "\\'") + "')");
+        layer.msg("获取目录大小失败", { icon: 5 });
+    });
+}
+
