@@ -88,6 +88,20 @@ def getConfTpl():
     return path
 
 
+def checkModuleSupport(module_name):
+    ng_exe = getServerDir() + "/nginx/sbin/nginx"
+    if not os.path.exists(ng_exe):
+        return False
+    try:
+        import subprocess
+        p = subprocess.Popen([ng_exe, "-V"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        conf_str = (out.decode('utf-8', errors='ignore') + err.decode('utf-8', errors='ignore')).lower()
+        return module_name.lower() in conf_str
+    except Exception as e:
+        return False
+
+
 def getOs():
     data = {}
     data['os'] = mw.getOs()
@@ -469,20 +483,24 @@ def getCfg():
     cfg = getConf()
     content = mw.readFile(cfg)
 
+    # 检测模块支持情况
+    has_zstd = checkModuleSupport('zstd')
+    has_brotli = checkModuleSupport('brotli')
+
     unitrep = "[kmgKMG]"
     cfg_args = [
-        {"name": "worker_processes", "ps": "处理进程,auto表示自动,数字表示进程数", 'type': 2},
-        {"name": "worker_connections", "ps": "最大并发链接数", 'type': 2},
-        {"name": "keepalive_timeout", "ps": "连接超时时间", 'type': 2},
-        {"name": "zstd", "ps": "是否开启zstd压缩传输", 'type': 1},
-        {"name": "brotli", "ps": "是否开启brotli压缩传输", 'type': 1},
-        {"name": "gzip", "ps": "是否开启gzip压缩传输", 'type': 1},
-        {"name": "gzip_min_length", "ps": "最小压缩文件", 'type': 2},
-        {"name": "gzip_comp_level", "ps": "压缩率", 'type': 2},
-        {"name": "client_max_body_size", "ps": "最大上传文件", 'type': 2},
+        {"name": "worker_processes", "ps": "处理进程,auto表示自动,数字表示进程数", 'type': 2, 'default': 'auto'},
+        {"name": "worker_connections", "ps": "最大并发链接数", 'type': 2, 'default': '51200'},
+        {"name": "keepalive_timeout", "ps": "连接超时时间", 'type': 2, 'default': '60'},
+        {"name": "zstd", "ps": "是否开启zstd压缩传输" + ("" if has_zstd else "(当前OpenResty未编译此模块，不支持)"), 'type': 1, 'default': 'off'},
+        {"name": "brotli", "ps": "是否开启brotli压缩传输" + ("" if has_brotli else "(当前OpenResty未编译此模块，不支持)"), 'type': 1, 'default': 'off'},
+        {"name": "gzip", "ps": "是否开启gzip压缩传输", 'type': 1, 'default': 'on'},
+        {"name": "gzip_min_length", "ps": "最小压缩文件", 'type': 2, 'default': '1k'},
+        {"name": "gzip_comp_level", "ps": "压缩率", 'type': 2, 'default': '6'},
+        {"name": "client_max_body_size", "ps": "最大上传文件", 'type': 2, 'default': '20m'},
         {"name": "server_names_hash_bucket_size",
-            "ps": "服务器名字的hash表大小", 'type': 2},
-        {"name": "client_header_buffer_size", "ps": "客户端请求头buffer大小", 'type': 2},
+            "ps": "服务器名字的hash表大小", 'type': 2, 'default': '32'},
+        {"name": "client_header_buffer_size", "ps": "客户端请求头buffer大小", 'type': 2, 'default': '32k'},
     ]
 
     # {"name": "client_body_buffer_size", "ps": "请求主体缓冲区"}
@@ -491,24 +509,24 @@ def getCfg():
         rep = r"(%s)\s+(\w+)" % i["name"]
         k = re.search(rep, content)
         if not k:
-            return mw.returnJson(False, "获取 key {} 失败".format(k))
-        k = k.group(1)
-        v = re.search(rep, content)
-        if not v:
-            return mw.returnJson(False, "获取 value {} 失败".format(v))
-        v = v.group(2)
+            k_val = i["name"]
+            v_val = i.get('default', '')
+        else:
+            k_val = k.group(1)
+            v_val = k.group(2)
 
-        if re.search(unitrep, v):
-            u = str.upper(v[-1])
-            v = v[:-1]
+        if re.search(unitrep, v_val):
+            u = str.upper(v_val[-1])
+            v_show = v_val[:-1]
             if len(u) == 1:
                 psstr = u + "B，" + i["ps"]
             else:
                 psstr = u + "，" + i["ps"]
         else:
             u = ""
+            v_show = v_val
 
-        kv = {"name": k, "value": v, "unit": u,
+        kv = {"name": k_val, "value": v_show, "unit": u,
               "ps": i["ps"], "type": i["type"]}
         rdata.append(kv)
 
@@ -567,10 +585,16 @@ def setCfg():
     for k, v in args.items():
         # print(k, v)
         rep = r"%s\s+[^kKmMgG\;\n]+" % k
-        if k == "worker_processes" or k == "gzip":
-            if not re.search(r"auto|on|off|\d+", v):
-                return mw.returnJson(False, '参数值错误')
-        elif k == "zstd" or k == "brotli":
+
+        # 如果是 zstd 或 brotli，且当前 OpenResty 没有编译对应的模块，且原配置文件里没有这一项，直接忽略不处理，杜绝 Nginx 无法启动报错
+        if k == "zstd" and not checkModuleSupport('zstd'):
+            if not re.search(rep, content):
+                continue
+        if k == "brotli" and not checkModuleSupport('brotli'):
+            if not re.search(rep, content):
+                continue
+
+        if k == "worker_processes" or k == "gzip" or k == "zstd" or k == "brotli":
             if not re.search(r"auto|on|off|\d+", v):
                 return mw.returnJson(False, '参数值错误')
         else:
@@ -581,16 +605,25 @@ def setCfg():
             k_wca = "worker_cpu_affinity"
             rep_wca = r"%s\s+[^\;\n]+" % k_wca
             v_wca = makeWorkerCpuAffinity(v)
-            newconf = "%s %s" % (k_wca, v_wca)
-            content = re.sub(rep_wca, newconf, content)
-
+            if re.search(rep_wca, content):
+                newconf = "%s %s" % (k_wca, v_wca)
+                content = re.sub(rep_wca, newconf, content)
+            else:
+                content = "worker_cpu_affinity %s;\n" % v_wca + content
 
         if re.search(rep, content):
             newconf = "%s %s" % (k, v)
             content = re.sub(rep, newconf, content)
-        elif re.search(rep, content):
-            newconf = "%s %s" % (k, v)
-            content = re.sub(rep, newconf, content)
+        else:
+            # 原配置文件不存在此项，自动按区域优雅补齐
+            if k == "worker_processes":
+                content = "worker_processes %s;\n" % v + content
+            elif k == "worker_connections":
+                # 写入 events 块中
+                content = re.sub(r'(events\s*\{)', r'\1\n    worker_connections %s;' % v, content, 1)
+            else:
+                # 其他参数（如 zstd, brotli, gzip等）写入 http 块中
+                content = re.sub(r'(http\s*\{)', r'\1\n    %s %s;' % (k, v), content, 1)
 
     mw.writeFile(cfg, content)
     isError = mw.checkWebConfig()
