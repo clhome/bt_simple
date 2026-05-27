@@ -141,7 +141,7 @@
 			<div class="line"><input class="inputtxt" name="password" value="" datatype="*" nullmsg="请填写密码" errormsg="请填写密码" placeholder="密码" type="password">
 				<div class="Validform_checktip"></div>
 			</div>
-			<div style="color: red;position: relative;top: -14px;" id="error"></div>
+			<div id="error"></div>
 			<div class="line yzm" style="top: -5px;{% if not session['code'] %}display:none;{% endif %}">
 				<input type="text" class="inputtxt" name="code" nullmsg="请填写4位验证码" errormsg="验证码" datatype="*" placeholder="验证码">
 				<div class="Validform_checktip"></div>
@@ -149,7 +149,6 @@
 			</div>
 			<div class="login_btn"><input id="login-button" value="登录" type="submit"></div>
 			<p class="pwinfo" style="display:none"></p>
-			<a class="resetpw" href="//github.com/clhome/bt_simple/wiki/%E5%AF%86%E7%A0%81%E4%BF%AE%E6%94%B9" target="_blank">忘记密码</a>
 			</form>
 		</div>
 

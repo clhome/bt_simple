@@ -1,6 +1,10 @@
 body {
-    background-color: #444;
-    font-family: 华文黑体, "Microsoft YaHei", 微软雅黑, STHei, "Helvetica Neue", Helvetica, Arial, sans-serif
+    background: radial-gradient(circle at 50% 50%, #f8fafc 0%, #f1f5f9 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", 微软雅黑, sans-serif;
+    color: #334155;
+    min-height: 100vh;
+    margin: 0;
+    overflow: hidden;
 }
 
 input {
@@ -8,8 +12,8 @@ input {
 }
 
 .main .login {
-    background-color: #fff;
-    border-radius: 4px;
+    background-color: #ffffff;
+    border-radius: 16px;
     height: 290px;
     left: 50%;
     margin-left: -220px;
@@ -17,17 +21,32 @@ input {
     padding: 35px 40px 50px;
     position: absolute;
     top: 50%;
-    width: 360px
+    width: 360px;
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 1px 10px rgba(15, 23, 42, 0.02);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+}
+
+.main .login:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.12), 0 3px 20px rgba(15, 23, 42, 0.03);
 }
 
 .main .login .rlogo {
     text-align: center;
     font-size: 26px;
-    color: #444;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #1e293b;
     cursor: pointer;
     height: 40px;
-    margin-bottom: 40px;
-    overflow: hidden
+    margin-bottom: 35px;
+    overflow: hidden;
+    transition: color 0.3s ease;
+}
+
+.main .login .rlogo:hover {
+    color: #20a53a;
 }
 
 .main .login .title {
@@ -52,17 +71,21 @@ input {
 }
 
 .main .login .line .inputtxt {
-    background: transparent;
+    box-sizing: border-box;
+    background: #f8fafc;
     float: left;
-    width: 338px;
-    height: 30px;
+    width: 100% !important;
+    height: 42px;
     line-height: 30px;
-    border: #d1d1d1 1px solid;
-    padding: 5px 10px;
+    border: 1px solid #e2e8f0;
+    padding: 6px 14px;
     position: relative;
     z-index: 1;
-    box-shadow: 0 3px 5px -4px rgba(0, 0, 0, 0.4) inset, -1px 0 3px -2px rgba(0, 0, 0, 0.1) inset;
-    border-radius: 3px
+    border-radius: 8px;
+    font-size: 14px;
+    color: #334155;
+    box-shadow: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .main .login .line .code {
@@ -116,8 +139,10 @@ input {
 }
 
 .main .login .line .inputtxt:focus {
-    border: #70c3ec 1px solid;
-    box-shadow: 0 0 5px #eee
+    border-color: #20a53a !important;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(32, 165, 58, 0.15) !important;
+    outline: none;
 }
 
 .main .login .yzm .inputtxt {
@@ -128,22 +153,27 @@ input {
     width: 100%;
     height: 44px;
     background: #20a53a;
-    background: linear-gradient(#20a53a, #189d32);
-    box-shadow: inset 0 1px 2px #30ad42;
-    color: #fff;
-    text-shadow: #00851a 0 -1px 0;
-    border: 1px solid #20a53a;
+    border: none;
     text-align: center;
     font-size: 16px;
-    color: #fff;
-    border-radius: 3px;
-    cursor: pointer
+    font-weight: 500;
+    color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(32, 165, 58, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .login_btn input:hover {
-    background: #10952a;
-    background: linear-gradient(#10952a, #088d22);
-    border: 1px solid #10952a
+    background: #189d32;
+    box-shadow: 0 6px 18px rgba(24, 157, 50, 0.35);
+    transform: translateY(-1px);
+}
+
+.login_btn input:active {
+    background: #108d26;
+    transform: translateY(1px) scale(0.985);
+    box-shadow: 0 2px 6px rgba(16, 141, 38, 0.2);
 }
 
 .login-link {
@@ -181,31 +211,30 @@ input {
 }
 
 .resetpw {
-    bottom: 20px;
-    color: #20a53a;
-    position: absolute;
-    right: 40px
+    display: none !important;
 }
 
 .Validform_checktip {
-    color: #999;
+    color: #64748b;
     font-size: 12px;
     height: 24px;
     line-height: 24px;
     overflow: hidden;
-    padding: 0 6px;
+    padding: 0 8px;
     position: absolute;
-    right: 10px;
+    right: 12px;
     text-align: right;
-    top: 14px;
-    z-index: 1
+    top: 9px;
+    z-index: 5;
+    pointer-events: none;
 }
 
 .Validform_wrong {
-    background: #e53451;
-    border-radius: 3px;
-    color: #fff;
-    float: right
+    background: #ef4444;
+    border-radius: 6px;
+    color: #ffffff;
+    float: right;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15);
 }
 
 .Validform_right {
@@ -215,8 +244,9 @@ input {
 }
 
 .main .login .line .Validform_error {
-    border: #e53451 1px solid;
-    box-shadow: 0 0 2px #ea5d74
+    border: #ef4444 1px solid !important;
+    background-color: #fef2f2 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
 }
 
 .main .login .yzm .Validform_wrong {
@@ -500,40 +530,58 @@ textarea:active,
 
 @media screen and (max-width:640px) {
     body {
-        background-color: #eee
+        background-color: #f1f5f9;
     }
 
     .main .login .rlogo {
-        background-color: rgba(0, 0, 0, 0.8);
-        color: #fff;
-        font-size: 20px;
-        height: 2.8em;
-        line-height: 2.8em;
-        margin: 0 -3.3% 25px -3.3%
+        background-color: transparent;
+        color: #1e293b;
+        font-size: 24px;
+        height: auto;
+        line-height: 1.5;
+        margin: 20px 0;
+        font-weight: 600;
     }
 
     .main .login {
-        background-color: #eee;
+        background-color: #ffffff;
         border-radius: 0;
-        height: 330px;
+        box-shadow: none;
+        border: none;
+        height: 100vh !important;
         left: 0;
         margin-left: 0;
         margin-top: 0;
-        padding: 0 3%;
+        padding: 40px 24px;
         position: absolute;
         top: 0;
-        width: 94%
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .main .login .line .inputtxt {
-        background-color: #fff;
-        border: 1px solid #d1d1d1;
-        width: 93.6%;
-        padding: 5px 3%;
-        font-size: 1.2em
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        width: 100% !important;
+        padding: 6px 14px;
+        font-size: 14px;
+        box-sizing: border-box !important;
     }
 
     .main .login .yzm .inputtxt {
-        width: 57%
+        width: 55% !important;
     }
+}
+
+#error {
+    clear: both !important;
+    display: block !important;
+    width: 100% !important;
+    color: #ef4444 !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    margin: -10px 0 12px 0 !important;
+    text-align: left !important;
+    box-sizing: border-box !important;
+    word-break: break-all !important;
 }
