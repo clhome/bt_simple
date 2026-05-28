@@ -11,7 +11,7 @@
 	"checks": "server/varnish",
 	"path": "server/varnish",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2022-06-11",
 	"home": "https://varnish-cache.org",
 	"type": 0,

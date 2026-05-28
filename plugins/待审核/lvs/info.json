@@ -11,7 +11,7 @@
 	"checks": "server/lvs",
 	"path": "server/lvs",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2023-11-17",
 	"home": "http://www.linuxvirtualserver.org/",
 	"type": 0,

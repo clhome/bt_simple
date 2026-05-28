@@ -11,7 +11,7 @@
 	"checks": "server/zabbix",
 	"path": "server/zabbix",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2022-07-14",
 	"home": "https://www.zabbix.com/",
 	"type": 0,

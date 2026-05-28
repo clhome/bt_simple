@@ -9,7 +9,7 @@
   "versions": "1.0",
   "shell": "install.sh",
   "checks": "server/msonedrive",
-  "author": "midoks",
+  "author": "midoks & yufeng tec",
   "date": "2023-8-18",
   "pid": "5"
 }

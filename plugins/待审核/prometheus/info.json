@@ -9,7 +9,7 @@
 	"checks": "server/prometheus",
 	"path": "server/prometheus",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2025-08-02",
 	"home": "https://prometheus.io/download/",
 	"type": 0,

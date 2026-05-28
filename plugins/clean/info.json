@@ -10,7 +10,7 @@
 	"checks": "server/clean",
 	"path": "server/clean",
 	"author": "clean",
-	"home": "https://github.com/midoks",
+	"home": "",
 	"date": "2021-11-23",
 	"pid": "5"
 }

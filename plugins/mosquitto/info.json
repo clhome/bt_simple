@@ -12,7 +12,7 @@
 	"checks": "server/mosquitto",
 	"path": "server/mosquitto",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2023-09-28",
 	"home": "https://mosquitto.org",
 	"type": "soft",

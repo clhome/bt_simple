@@ -57,24 +57,14 @@ def getArgs():
     tmp = {}
     args_len = len(args)
 
-    if args_len == 0:
-        return tmp
-
     if args_len == 1:
-        val = args[0].strip()
-        if val.startswith('{') and val.endswith('}'):
-            try:
-                import json
-                return json.loads(val)
-            except Exception as e:
-                pass
-
-    for i in range(len(args)):
-        t = args[i].split(':', 1)
-        if len(t) == 2:
+        t = args[0].strip('{').strip('}')
+        t = t.split(':')
+        tmp[t[0]] = t[1]
+    elif args_len > 1:
+        for i in range(len(args)):
+            t = args[i].split(':')
             tmp[t[0]] = t[1]
-        elif len(t) == 1:
-            tmp[t[0]] = ''
     return tmp
 
 
@@ -409,13 +399,8 @@ def updateAll():
         return '无更新'
     index = data['index']
 
-    pattern = re.compile(r'^[a-zA-Z0-9_-]+$')
     for x in range(len(index)):
-        idx_name = index[x]['index']
-        if not pattern.match(idx_name):
-            print("安全拦截: 非法的索引名称 ->", idx_name)
-            continue
-        cmd_index = cmd + ' ' + idx_name + ' --rotate'
+        cmd_index = cmd + ' ' + index[x]['index'] + ' --rotate'
         print(cmd_index)
         os.system(cmd_index)
     return ''
@@ -428,33 +413,21 @@ def updateDelta():
         return '无更新'
     index = data['index']
 
-    pattern = re.compile(r'^[a-zA-Z0-9_-]+$')
     for x in range(len(index)):
-        idx_name = index[x]['index']
-        if not pattern.match(idx_name):
-            print("安全拦截: 非法的索引名称 ->", idx_name)
-            continue
-
         if 'delta' in index[x]:
-            delta_name = index[x]['delta']
-            if not pattern.match(delta_name):
-                print("安全拦截: 非法的增量索引名称 ->", delta_name)
-                continue
-            cmd_index = cmd + ' ' + delta_name + ' --rotate'
+            cmd_index = cmd + ' ' + index[x]['delta'] + ' --rotate'
             print(cmd_index)
             os.system(cmd_index)
 
-            cmd_index_merge = cmd + ' --merge ' + idx_name + ' ' + delta_name + ' --rotate'
+            cmd_index_merge = cmd + ' --merge ' + index[x]['index'] + ' ' + index[x]['delta'] + ' --rotate'
             print(cmd_index_merge)
             os.system(cmd_index_merge)
         else:
-            print(idx_name,'no delta')
+            print(index[x]['index'],'no delta')
 
     return ''
 
 def installPreInspection(version):
-    if mw.isAppleSystem():
-        return 'ok'
     data = mw.execShell('arch')
     if data[0].strip().startswith('aarch'):
         return '不支持aarch架构'

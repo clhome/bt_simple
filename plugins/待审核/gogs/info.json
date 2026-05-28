@@ -6,7 +6,7 @@
 	"tip": "soft",
 	"checks": "server/gogs",
 	"path":"server/gogs",
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2018-04-01",
 	"home": "https://gogs.io",
 	"type": "Git服务器",

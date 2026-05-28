@@ -11,7 +11,7 @@
 	"checks": "server/migration_api",
 	"path": "server/migration_api",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2022-01-17",
 	"home": "https://github.com/clhome/bt_simple",
 	"type": 0,

@@ -10,7 +10,7 @@
 	"checks": "server/gorse",
 	"path": "server/gorse",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2024-06-12",
 	"home": "https://gorse.io/zh/docs/master/deploy/binary.html",
 	"type": 0,

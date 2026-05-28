@@ -23,7 +23,7 @@
 	"checks": "server/webstats/version.pl",
 	"path": "server/webstats",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2022-07-18",
 	"home": "https://github.com/clhome/bt_simple",
 	"type": 0,

@@ -29,7 +29,7 @@
 	"checks": "server/dynamic-tracking",
 	"path": "server/dynamic-tracking",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2023-08-17",
 	"type": 0,
 	"pid": "4"

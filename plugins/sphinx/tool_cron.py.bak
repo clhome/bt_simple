@@ -80,10 +80,6 @@ def createBgTaskByName(name):
     _name = "[勿删]Sphinx全量更新[" + name + "]"
     res = mw.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
-        if args.get("task_id", -1) != res["id"]:
-            args["task_id"] = res["id"]
-            args["name"] = name
-            mw.writeFile(getTaskConf(), json.dumps(args))
         return True
 
     if "task_id" in args and args["task_id"] > 0:
@@ -133,10 +129,6 @@ def createBgTaskDeltaByName(name):
     _name = "[勿删]Sphinx增量更新[" + name + "]"
     res = mw.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
-        if args.get("task_id", -1) != res["id"]:
-            args["task_id"] = res["id"]
-            args["name"] = name
-            mw.writeFile(getTaskDeltaConf(), json.dumps(args))
         return True
 
     if "task_id" in args and args["task_id"] > 0:
@@ -179,7 +171,7 @@ logs_file=$plugin_path/${rname}.log
     if task_id > 0:
         args["task_id"] = task_id
         args["name"] = name
-        mw.writeFile(getTaskDeltaConf(), json.dumps(args))
+        mw.writeFile(getTaskConf(), json.dumps(args))
 
 
 def removeBgTask():

@@ -14,7 +14,7 @@
 	"checks": "server/haproxy",
 	"path": "server/haproxy",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2022-08-26",
 	"home": "https://www.haproxy.org/",
 	"doc1": "https://www.haproxy.org/",

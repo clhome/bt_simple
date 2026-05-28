@@ -11,7 +11,7 @@
 	"install_pre_inspection":true,
 	"uninstall_pre_inspection":true,
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2023-03-06",
 	"home": "https://my.telegram.org/apps",
 	"depend_doc1":"https://docs.telethon.dev/en/stable/basic/installation.html",

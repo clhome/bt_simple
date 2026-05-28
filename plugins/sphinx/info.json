@@ -1,5 +1,5 @@
 {
-	"sort": 7,
+	"sort": 100,
 	"ps": "简单高效的全文搜索引擎",
 	"name": "sphinx",
 	"title": "sphinx",
@@ -10,8 +10,8 @@
 	"checks": "server/sphinx",
 	"path": "server/sphinx",
 	"display": 1,
-	"author": "midoks",
-	"date": "2017-04-01",
+	"author": "midoks & yufeng tec",
+	"date": "2026-05-28",
 	"home": "http://sphinxsearch.com/",
 	"doc1": "http://sphinxsearch.com/docs/sphinx3.html",
 	"doc2": "http://sphinxsearch.com/docs/manual-2.3.2.html",

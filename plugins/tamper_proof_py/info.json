@@ -8,7 +8,7 @@
   "shell": "install.sh",
   "checks": "server/tamper_proof_py",
   "path": "server/tamper_proof_py",
-  "author": "midoks",
+  "author": "midoks & yufeng tec",
   "home": "",
   "date":"2022-01-18",
   "pid":"4",

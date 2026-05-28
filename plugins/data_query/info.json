@@ -29,7 +29,7 @@
 	"checks": "server/data_query",
 	"path": "server/data_query",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2024-01-22",
 	"type": 0,
 	"pid": "2"

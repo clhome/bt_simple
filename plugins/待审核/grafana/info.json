@@ -9,7 +9,7 @@
 	"checks": "server/grafana",
 	"path": "server/grafana",
 	"display": 1,
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2025-08-01",
 	"home": "https://grafana.com/grafana/download",
 	"type": 0,

@@ -26,7 +26,7 @@
 	"tip": "soft",
 	"checks": "server/cryptocurrency_trade",
 	"path":"server/cryptocurrency_trade",
-	"author": "midoks",
+	"author": "midoks & yufeng tec",
 	"date": "2022-02-25",
 	"home": "https://github.com/ccxt/ccxt",
 	"type": "量化交易",
