@@ -444,7 +444,7 @@ class mainClass(object):
             return 0.00
 
         percent = round(100.00 * (process_cpu_time - self.old_info[pid]['cpu_time']) / (cpu_time - self.old_info['cpu_time']), 2)
-        self.old_info[pid]['cpu_time'] = process_cpu_time
+        # self.old_info[pid]['cpu_time'] = process_cpu_time
 
         if percent > 0: return percent
         return 0.00
@@ -795,8 +795,6 @@ class mainClass(object):
         data['meter_head']['io_write_bytes'] = False
         data['meter_head']['down'] = False
         data['meter_head']['up'] = False
-        self.old_info['cpu_time'] = self.new_info['cpu_time']
-        self.old_info['time'] = self.new_info['time']
         return data
 
      # 获取进程信息
@@ -844,19 +842,13 @@ class mainClass(object):
                 except Exception as e:
                     continue
                 with p.oneshot():
+
                     try:
                         p_mem = p.memory_full_info()
-                        uss_mem = p_mem.uss
-                        rss_mem = p_mem.rss
-                    except Exception:
-                        try:
-                            p_mem_basic = p.memory_info()
-                            uss_mem = p_mem_basic.rss
-                            rss_mem = p_mem_basic.rss
-                        except Exception:
-                            continue
+                    except Exception as e:
+                        continue
 
-                    if rss_mem == 0: continue
+                    if p_mem.rss == 0: continue
                     pio = p.io_counters()
                     p_cpus = p.cpu_times()
                     p_state = p.status()
@@ -873,7 +865,7 @@ class mainClass(object):
                     tmp['create_time'] = int(p.create_time())
                     tmp['status'] = p_state
                     tmp['user'] = p.username()
-                    tmp['memory_used'] = uss_mem
+                    tmp['memory_used'] = p_mem.uss
                     tmp['cpu_percent'] = self.get_cpu_percent(str(pid), p_cpus, self.new_info['cpu_time'])
                     if tmp['name'] == 'BT-Panel' and tmp['cpu_percent'] > 1:
                         tmp['cpu_percent'] = round(tmp['cpu_percent'] % 1, 2)
@@ -915,8 +907,6 @@ class mainClass(object):
                 data['process_list'] = self.search_pro(data['process_list'], get['search'])
         self.get_meter_head()
         data['meter_head'] = self.meter_head
-        self.old_info['cpu_time'] = self.new_info['cpu_time']
-        self.old_info['time'] = self.new_info['time']
         return data
 
     def object_to_dict(self, obj):
@@ -942,23 +932,10 @@ class mainClass(object):
             if self.is_mac:
                 p_mem = self.object_to_dict(p.memory_info())
             else:
-                try:
-                    p_mem = self.object_to_dict(p.memory_full_info())
-                except Exception:
-                    try:
-                        p_mem = self.object_to_dict(p.memory_info())
-                        if 'rss' in p_mem:
-                            p_mem['uss'] = p_mem['rss']
-                    except Exception:
-                        p_mem = {}
-
-                try:
-                    pio = p.io_counters()
-                    processInfo['io_write_bytes'] = pio.write_bytes
-                    processInfo['io_read_bytes'] = pio.read_bytes
-                except Exception:
-                    processInfo['io_write_bytes'] = 0
-                    processInfo['io_read_bytes'] = 0
+                p_mem = self.object_to_dict(p.memory_full_info())
+                pio = p.io_counters()
+                processInfo['io_write_bytes'] = pio.write_bytes;
+                processInfo['io_read_bytes'] = pio.read_bytes;
             # p_cpus= p.cpu_times()
             processInfo['exe'] = p.exe()
             processInfo['name'] = p.name();
@@ -1028,15 +1005,15 @@ class mainClass(object):
 
         user = get['user']
 
-        r = mw.execShell("userdel " + shlex.quote(user))
+        r = mw.execShell("userdel " + user)
         if r[1].find('process') != -1:
             try:
                 pid = r[1].split()[-1]
                 p = psutil.Process(int(pid))
                 pname = p.name()
                 p.kill()
-                mw.execShell("pkill -9 " + shlex.quote(pname))
-                r = mw.execShell("userdel " + shlex.quote(user))
+                mw.execShell("pkill -9 " + pname)
+                r = mw.execShell("userdel " + user)
             except:
                 pass
         if r[1].find('userdel:') != -1: return mw.returnData(False, r[1]);
@@ -1326,7 +1303,7 @@ class mainClass(object):
 
         mw.execShell('service ' + shlex.quote(serviceName) + ' stop')
         if os.path.exists('/usr/sbin/update-rc.d'):
-            mw.execShell('update-rc.d ' + shlex.quote(serviceName) + ' remove')
+            mw.execShell('update-rc.d ' + serviceName + ' remove')
         elif os.path.exists('/usr/sbin/chkconfig'):
             mw.execShell('chkconfig --del ' + shlex.quote(serviceName))
         else:

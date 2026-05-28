@@ -72,30 +72,21 @@ class process_network_total:
             self.rm_pid_file()
         
     def handle_packet(self, pcap_data):
-        if len(pcap_data) < 34: return
-        eth_type = struct.unpack('!H', pcap_data[12:14])[0]
-        if eth_type == 0x0800: # IPv4
-            ip_header = pcap_data[14:34]
-            src_ip = ip_header[12:16]
-            dst_ip = ip_header[16:20]
-            src_port = pcap_data[34:36]
-            dst_port = pcap_data[36:38]
-            
-            src = src_ip + b':' + src_port
-            dst = dst_ip + b':' + dst_port
-            pack_size = len(pcap_data)
-            self.total_net_process(dst, src, pack_size)
-        elif eth_type == 0x86dd: # IPv6
-            if len(pcap_data) < 62: return
-            src_ip = pcap_data[22:38]
-            dst_ip = pcap_data[38:54]
-            src_port = pcap_data[54:56]
-            dst_port = pcap_data[56:58]
-            
-            src = src_ip + b':' + src_port
-            dst = dst_ip + b':' + dst_port
-            pack_size = len(pcap_data)
-            self.total_net_process(dst, src, pack_size)
+        # 获取IP协议头
+        ip_header = pcap_data[14:34]
+        # 解析src/dst地址
+        src_ip = ip_header[12:16]
+        dst_ip = ip_header[16:20]
+        # 解析sport/dport端口
+        src_port = pcap_data[34:36]
+        dst_port = pcap_data[36:38]
+        
+        src = src_ip + b':' + src_port
+        dst = dst_ip + b':' + dst_port
+        # 计算数据包长度
+        pack_size = len(pcap_data)
+        # 统计进程流量
+        self.total_net_process(dst,src,pack_size)
 
     def total_net_process(self,dst,src,pack_size):
         self.get_tcp_stat()
@@ -152,62 +143,31 @@ class process_network_total:
         port = int(hex_port, 16)
         return ip,port
 
-    def hex_to_ip6_bin(self, hex_ip):
-        ip_bin = b''
-        for i in range(0, 32, 8):
-            part = hex_ip[i:i+8]
-            val = int(part, 16)
-            ip_bin += struct.pack('<I', val)
-        return ip_bin
-
     def get_tcp_stat(self,force = False):
         if not force and self.__net_process_list: return self.__net_process_list
         self.__net_process_list = {}
-        
-        tcp_stat_files = [('/proc/net/tcp', False), ('/proc/net/tcp6', True)]
+        tcp_stat_file = '/proc/net/tcp'
+        tcp_stat = open(tcp_stat_file, 'rb')
+        tcp_stat_list = tcp_stat.read().decode('utf-8').split('\n')
+        tcp_stat.close()
+        tcp_stat_list = tcp_stat_list[1:]
         if force: self.get_process_inodes(force)
-        
-        for tcp_stat_file, is_ipv6 in tcp_stat_files:
-            if not os.path.exists(tcp_stat_file): continue
-            try:
-                tcp_stat = open(tcp_stat_file, 'rb')
-                tcp_stat_list = tcp_stat.read().decode('utf-8').split('\n')
-                tcp_stat.close()
-                tcp_stat_list = tcp_stat_list[1:]
-                for i in tcp_stat_list:
-                    tcp_tmp = i.split()
-                    if len(tcp_tmp) < 10: continue
-                    inode = tcp_tmp[9]
-                    if inode == '0': continue
-                    
-                    if is_ipv6:
-                        local_ip_bin = self.hex_to_ip6_bin(tcp_tmp[1].split(':')[0])
-                        if local_ip_bin == b'\x00'*15 + b'\x01': continue
-                        
-                        remote_ip_bin = self.hex_to_ip6_bin(tcp_tmp[2].split(':')[0])
-                        if local_ip_bin == remote_ip_bin: continue
-                        if remote_ip_bin == b'\x00'*16: continue
-                        
-                        pid = self.inode_to_pid(inode, force)
-                        if not pid: continue
-                        
-                        local_port = int(tcp_tmp[1].split(':')[1], 16)
-                        key = local_ip_bin + b':' + struct.pack('!H', local_port)
-                        self.__net_process_list[key] = pid
-                    else:
-                        local_ip,local_port = self.hex_to_ip(tcp_tmp[1])
-                        if local_ip == '127.0.0.1': continue
-                        remote_ip,remote_port = self.hex_to_ip(tcp_tmp[2])
-                        if local_ip == remote_ip: continue
-                        if remote_ip == '0.0.0.0': continue
-                        
-                        pid = self.inode_to_pid(inode,force)
-                        if not pid: continue 
-                        
-                        key = self.get_ip_pack(local_ip) + b':' + self.get_port_pack(local_port)
-                        self.__net_process_list[key] = pid
-            except:
-                pass
+        for i in tcp_stat_list:
+            tcp_tmp = i.split()
+            if len(tcp_tmp) < 10: continue
+            inode = tcp_tmp[9]
+            if inode == '0': continue
+            local_ip,local_port = self.hex_to_ip(tcp_tmp[1])
+            if local_ip == '127.0.0.1': continue
+            remote_ip,remote_port = self.hex_to_ip(tcp_tmp[2])
+            if local_ip == remote_ip: continue
+            if remote_ip == '0.0.0.0': continue
+            
+            pid = self.inode_to_pid(inode,force)
+            if not pid: continue 
+            
+            key = self.get_ip_pack(local_ip) + b':' + self.get_port_pack(local_port)
+            self.__net_process_list[key] = pid
         return self.__net_process_list
             
     

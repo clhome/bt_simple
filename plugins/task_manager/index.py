@@ -12,6 +12,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.mw as mw
+import json
 
 app_debug = False
 if mw.isAppleSystem():
@@ -37,15 +38,19 @@ def getArgs():
     if args_len == 1:
         t = args[0].strip('{').strip('}')
         if t.strip() == '':
-            tmp = []
+            tmp = {}
         else:
-            t = t.split(':')
-            tmp[t[0]] = t[1]
-        tmp[t[0]] = t[1]
+            try:
+                tmp = json.loads(args[0])
+            except:
+                t_arr = t.split(':', 1)
+                if len(t_arr) == 2:
+                    tmp[t_arr[0]] = t_arr[1]
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            t_arr = args[i].split(':', 1)
+            if len(t_arr) == 2:
+                tmp[t_arr[0]] = t_arr[1]
     return tmp
 
 def checkArgs(data, ck=[]):
