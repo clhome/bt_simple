@@ -4,8 +4,10 @@
 	"name": "mosquitto",
 	"title": "mosquitto",
 	"shell": "install.sh",
-	"versions":["2.0.18", "2.1.2"],
-	"updates":["2.0.18", "2.1.2"],
+	"versions": [
+		"2.0.18",
+		"2.1.2"
+	],
 	"tip": "soft",
 	"checks": "server/mosquitto",
 	"path": "server/mosquitto",

@@ -120,7 +120,12 @@ function getSList(isdisplay) {
                     }
                 }
                 if (plugin.setup_version && latest_version && plugin.setup_version != latest_version) {
-                    mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + '\')">更新</a> | ';
+                    // 主版本一致性安全校验，防止跨分支/大版本强制升级导致依赖的服务及数据崩溃
+                    var current_major = plugin.setup_version.toString().split('.')[0];
+                    var latest_major = latest_version.toString().split('.')[0];
+                    if (current_major === latest_major) {
+                        mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + '\')">更新</a> | ';
+                    }
                 }
                 handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">设置</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">卸载</a>';
                 titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';

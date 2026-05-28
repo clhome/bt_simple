@@ -4,10 +4,11 @@
 	"name": "system_safe",
 	"title": "系统加固",
 	"shell": "install.sh",
-	"versions":["1.0"],
-	"updates":["1.0"],
+	"versions": [
+		"1.0"
+	],
 	"tip": "soft",
-	"icon":"ico.png",
+	"icon": "ico.png",
 	"checks": "server/system_safe",
 	"path": "server/system_safe",
 	"display": 1,
@@ -16,5 +17,4 @@
 	"home": "",
 	"type": 0,
 	"pid": "4"
-	
 }

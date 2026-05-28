@@ -16,10 +16,6 @@ VERSION=$2
 
 Install_swap()
 {
-	if [ -d $serverPath/swap ];then
-		exit 0
-	fi
-
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/source
 	mkdir -p $serverPath/swap

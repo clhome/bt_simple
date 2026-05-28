@@ -5,7 +5,6 @@
 	"name": "php-guard",
 	"title": "PHP守护",
 	"versions": "1.0",
-	"updates": "1.0",
 	"tip": "soft",
 	"checks": "server/php-guard",
 	"path": "server/php-guard",

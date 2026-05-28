@@ -4,8 +4,9 @@
 	"name": "lvs",
 	"title": "LVS",
 	"shell": "install.sh",
-	"versions":["1.0"],
-	"updates":["1.0"],
+	"versions": [
+		"1.0"
+	],
 	"tip": "soft",
 	"checks": "server/lvs",
 	"path": "server/lvs",

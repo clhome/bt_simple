@@ -4,8 +4,9 @@
 	"name": "fail2ban",
 	"title": "fail2ban",
 	"shell": "install.sh",
-	"versions":["1.2.0"],
-	"updates":["1.2.0"],
+	"versions": [
+		"1.2.0"
+	],
 	"tip": "soft",
 	"checks": "server/fail2ban",
 	"path": "server/fail2ban",

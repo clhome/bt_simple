@@ -4,11 +4,12 @@
 	"name": "memcached",
 	"title": "Memcached",
 	"shell": "install.sh",
-	"versions":["1.6"],
-	"updates":["1.6.38"],
+	"versions": [
+		"1.6"
+	],
 	"tip": "soft",
 	"checks": "server/memcached",
-	"path":"server/memcached",
+	"path": "server/memcached",
 	"display": 1,
 	"author": "memcached",
 	"date": "2017-04-01",

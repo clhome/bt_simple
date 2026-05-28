@@ -4,8 +4,12 @@
 	"name": "haproxy",
 	"title": "haproxy",
 	"shell": "install.sh",
-	"versions":["2.6","2.8","3.0","3.2"],
-	"updates":["2.6", "2.8", "3.0", "3.2"],
+	"versions": [
+		"2.6",
+		"2.8",
+		"3.0",
+		"3.2"
+	],
 	"tip": "soft",
 	"checks": "server/haproxy",
 	"path": "server/haproxy",
