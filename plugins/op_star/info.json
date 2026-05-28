@@ -1,0 +1,29 @@
+{
+	"hook":[
+		{
+			"tag":"site_cb",
+			"site_cb": {
+				"title":"网站统计",
+				"name":"op_waf",
+				"add":{"func":"reload_hook"},
+				"update":{"func":"reload_hook"},
+				"delete":{"func":"reload_hook"}
+			}
+		}
+	],
+	"sort":2,
+	"title":"OP防火墙",
+	"tip":"soft",
+	"name":"openstar",
+	"type":"其他插件",
+	"ps":"Openstar是下一代基于OpenResty的高性能Web应用防火墙",
+	"install_pre_inspection":true,
+	"shell":"install.sh",
+	"checks":"server/openstar",
+	"path":"server/openstar",
+	"author":"starjun",
+	"home":"https://github.com/starjun/openstar",
+	"date":"2026-05-28",
+	"pid": "1",
+	"versions": ["1.0"]
+}

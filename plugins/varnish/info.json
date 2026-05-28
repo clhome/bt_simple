@@ -1,6 +1,6 @@
 {
 	"sort": 7,
-	"ps": "一款高性能的开源HTTP加速器",
+	"ps": "一款高性能的开源HTTP加速器，小内存服务器慎用",
 	"name": "varnish",
 	"title": "varnish",
 	"shell": "install.sh",

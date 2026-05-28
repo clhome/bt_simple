@@ -1,6 +1,6 @@
 {
 	"sort": 8,
-	"ps": "一个高性能键值数据存储系统",
+	"ps": "一个高性能键值数据存储系统，redis开源继任者",
 	"name": "valkey",
 	"title": "valkey",
 	"shell": "install.sh",
