@@ -744,19 +744,36 @@ function getRsaPublic(){
     gogsPost('get_rsa_public', {}, function(data){
         var rdata = $.parseJSON(data.data);
         var con = '<div class="tab-con">\
-            <div class="myKeyCon ptb15">\
-                <textarea style="margin:0px;width:580px;height:110px;outline:none;" spellcheck="false">'+rdata.mw+'</textarea>\
+            <div class="myKeyCon ptb15" style="padding: 10px 15px;">\
+                <textarea id="pubKeyText" readonly="readonly" style="margin:0px;width:570px;height:110px;outline:none;border-radius:4px;border:1px solid #ccc;padding:10px;resize:none;" spellcheck="false">'+rdata.mw+'</textarea>\
             </div>\
-            <ul class="help-info-text c7 pull-left"></ul>\
+            <ul class="help-info-text c7 pull-left" style="padding: 0 15px 10px;">\
+                <li>💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。</li>\
+            </ul>\
         </div>'
         layer.open({
             type: 1,
             area: "600px",
             title: '本机公钥',
-            closeBtn: 2,
+            closeBtn: 1,
             shift: 5,
-            shadeClose: false,
-            content:con
+            shadeClose: true,
+            btn: ['复制公钥', '关闭'],
+            content: con,
+            yes: function(index, layero) {
+                var textarea = layero.find('#pubKeyText')[0];
+                textarea.select();
+                try {
+                    var successful = document.execCommand('copy');
+                    var msg = successful ? '公钥已成功复制到剪贴板！' : '复制失败，请手动选择复制。';
+                    layer.msg(msg, { icon: 1, time: 2000 });
+                } catch (err) {
+                    layer.msg('复制失败，请手动选择复制。', { icon: 2, time: 2000 });
+                }
+            },
+            btn2: function(index) {
+                layer.close(index);
+            }
         });   
     });
 }

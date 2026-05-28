@@ -122,7 +122,7 @@ def getHomeDir():
             "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return '/Users/' + user
     else:
-        return 'www'
+        return '/home/www'
 
 
 def getRunUser():
@@ -1090,10 +1090,27 @@ def projectScriptSelf_Status():
 
 
 def getRsaPublic():
-    path = getHomeDir()
-    path += '/.ssh/id_rsa.pub'
+    ssh_dir = getHomeDir() + '/.ssh'
+    path = ssh_dir + '/id_rsa.pub'
+
+    if not os.path.exists(path):
+        if not os.path.exists(ssh_dir):
+            try:
+                os.makedirs(ssh_dir)
+                mw.execShell("chmod 700 " + ssh_dir)
+            except:
+                pass
+        # 静默在后台自动一键生成免密密钥对
+        cmd = 'ssh-keygen -t rsa -N "" -f ' + ssh_dir + '/id_rsa'
+        mw.execShell(cmd)
+        if not mw.isAppleSystem():
+            mw.execShell("chown -R www:www " + ssh_dir)
 
     content = mw.readFile(path)
+    if not content:
+        content = "读取本机公钥失败，请检查家目录权限，或手动在命令行中运行 ssh-keygen。"
+    else:
+        content = content.strip()
 
     data = {}
     data['mw'] = content
