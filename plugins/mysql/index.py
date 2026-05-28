@@ -62,18 +62,42 @@ def getArgs():
     tmp = {}
     args_len = len(args)
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
+        val = args[0].strip()
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                return json.loads(val)
+            except Exception as e:
+                pass
+        t = val.strip('{').strip('}')
         if t.strip() == '':
-            tmp = []
+            tmp = {}
         else:
             t = t.split(':',1)
-            tmp[t[0]] = t[1]
-        tmp[t[0]] = t[1]
+            if len(t) == 2:
+                k = t[0].strip().strip('"').strip("'")
+                v = t[1].strip().strip('"').strip("'")
+                tmp[k] = v
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':',1)
-            tmp[t[0]] = t[1]
+            if len(t) == 2:
+                k = t[0].strip().strip('"').strip("'")
+                v = t[1].strip().strip('"').strip("'")
+                tmp[k] = v
     return tmp
+
+
+def safe_check_args(db_name=None, sign_val=None, username=None):
+    if db_name is not None:
+        if not re.match(r"^[a-zA-Z0-9_-]+$", db_name):
+            return False
+    if sign_val is not None:
+        if not re.match(r"^[a-zA-Z0-9_\-\.:]+$", sign_val):
+            return False
+    if username is not None:
+        if not re.match(r"^[a-zA-Z0-9_-]+$", username):
+            return False
+    return True
 
 
 def checkArgs(data, ck=[]):
@@ -446,7 +470,24 @@ def getShowLogFile():
 
 
 def getMdb8Ver():
-    return ['8.0','8.1','8.2','8.3','8.4','9.0','9.1', '9.2', '9.3', '9.4']
+    try:
+        info_file = getPluginDir() + '/info.json'
+        if os.path.exists(info_file):
+            info = json.loads(mw.readFile(info_file))
+            versions = info.get('versions', [])
+            mdb8_versions = []
+            for v in versions:
+                try:
+                    if pk_version.parse(v) >= pk_version.parse('8.0'):
+                        mdb8_versions.append(v)
+                except Exception:
+                    if v.split('.')[0].isdigit() and int(v.split('.')[0]) >= 8:
+                        mdb8_versions.append(v)
+            if mdb8_versions:
+                return mdb8_versions
+    except Exception:
+        pass
+    return ['8.0','8.1','8.2','8.3','8.4','9.0','9.1', '9.2', '9.3', '9.4', '9.7', '9.8', '9.9', '10.0']
 
 
 def getSlaveName():
@@ -598,7 +639,9 @@ def initMysql8Pwd():
     # print(data)
 
     tmp_file = "/tmp/mysql_init_tmp.log"
-    mw.writeFile(tmp_file, alter_root_pwd)
+    fd = os.open(tmp_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, 'w') as fh:
+        fh.write(alter_root_pwd)
     cmd_pass = serverdir + '/bin/mysql --defaults-file=' + \
         myconf + ' -uroot -proot < ' + tmp_file
 
@@ -1886,7 +1929,9 @@ def resetDbRootPwd(version):
         reset_pwd = reset_pwd + "flush privileges;"
 
         tmp_file = "/tmp/mysql_init_tmp.log"
-        mw.writeFile(tmp_file, reset_pwd)
+        fd = os.open(tmp_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, 'w') as fh:
+            fh.write(reset_pwd)
         cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot < ' + tmp_file
 
         data = mw.execShell(cmd_pass)
@@ -3234,6 +3279,8 @@ def syncDatabaseRepairLog(version=''):
 
     sync_args_db = args['db']
     sync_args_sign = args['sign']
+    if not safe_check_args(db_name=sync_args_db, sign_val=sync_args_sign):
+        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     op = args['op']
     tmp_log = syncDatabaseRepairTempFile()
     cmd = 'cd '+mw.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py sync_database_repair  {"db":"'+sync_args_db+'","sign":"'+sync_args_sign+'"}'
@@ -3266,6 +3313,8 @@ def syncDatabaseRepair(version=''):
 
     sync_args_db = args['db']
     sync_args_sign = args['sign']
+    if not safe_check_args(db_name=sync_args_db, sign_val=sync_args_sign):
+        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     
     # 本地数据
     local_db = pMysqlDb()
@@ -3508,11 +3557,18 @@ def fullSyncCmd():
 
     db = args['db']
     sign = args['sign']
+    if not safe_check_args(db_name=db, sign_val=sign):
+        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     cmd = 'cd '+mw.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py do_full_sync  {"db":"'+db+'","sign":"'+sign+'"}'
     return mw.returnJson(True,'ok',cmd)
 
 def doFullSync(version=''):
+    args = getArgs()
+    db = args.get('db')
+    sign = args.get('sign')
+    if not safe_check_args(db_name=db, sign_val=sign):
+        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
         return mw.returnJson(False, '需要先设置同步配置')
@@ -3579,6 +3635,8 @@ def doFullSyncUser(version=''):
     data = checkArgs(args, ['db', 'sign'])
     if not data[0]:
         return data[1]
+    if not safe_check_args(db_name=args['db'], sign_val=args['sign']):
+        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     sync_db = args['db']
     sync_db_import = args['db']
@@ -3747,6 +3805,8 @@ def doFullSyncSSH(version=''):
     data = checkArgs(args, ['db', 'sign'])
     if not data[0]:
         return data[1]
+    if not safe_check_args(db_name=args['db'], sign_val=args['sign']):
+        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     sync_db = args['db']
     sync_sign = args['sign']
@@ -3887,6 +3947,8 @@ def fullSync(version=''):
     data = checkArgs(args, ['db', 'begin'])
     if not data[0]:
         return data[1]
+    if not safe_check_args(db_name=args['db'], sign_val=args.get('sign')):
+        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     sign = ''
     if 'sign' in args:
