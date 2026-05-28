@@ -22,6 +22,13 @@ if mw.isAppleSystem():
     app_debug = True
 
 
+def checkNameSafe(name):
+    import re
+    if not re.match(r'^[a-zA-Z0-9_\-]+$', name):
+        return False
+    return True
+
+
 def getPluginName():
     return 'rsyncd'
 
@@ -62,6 +69,9 @@ def createBgTask(data):
 
 
 def createBgTaskByName(name, args):
+    if not checkNameSafe(name):
+        print("错误：名称只能包含字母、数字、下划线和中划线！")
+        return False
     cfg = getConfigTpl()
     _name = "[勿删]同步插件定时任务[" + name + "]"
     res = mw.M("crontab").field("id, name").where("name=?", (_name,)).find()

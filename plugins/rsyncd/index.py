@@ -67,6 +67,12 @@ def checkArgs(data, ck=[]):
     return (True, mw.returnJson(True, 'ok'))
 
 
+def checkNameSafe(name):
+    if not re.match(r'^[a-zA-Z0-9_\-]+$', name):
+        return False
+    return True
+
+
 def contentReplace(content):
     service_path = mw.getServerDir()
     content = content.replace('{$SERVER_PATH}', service_path)
@@ -340,8 +346,8 @@ def initdUinstall():
         if mw.isAppleSystem():
             return "Apple Computer does not support"
 
-    mw.execShell('systemctl diable lsyncd')
-    mw.execShell('systemctl diable rsyncd')
+    mw.execShell('systemctl disable lsyncd')
+    mw.execShell('systemctl disable rsyncd')
     return 'ok'
 
 
@@ -394,6 +400,9 @@ def addRec():
         return data[1]
 
     args_name = args['name']
+    if not checkNameSafe(args_name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+
     args_pwd = args['pwd']
     args_path = args['path']
     args_ps = args['ps']
@@ -428,6 +437,12 @@ def addRec():
     con += 'secrets file = ' + auth_path + "\n"
     con += 'read only = false'
 
+    hosts_allow = args.get('hosts_allow', '').strip()
+    if hosts_allow:
+        if not re.match(r'^[0-9a-zA-Z\.\,\/\s\*]+$', hosts_allow):
+            return mw.returnJson(False, 'IP白名单格式错误！')
+        con += "\n" + 'hosts allow = ' + hosts_allow
+
     content = content.strip() + "\n" + con
     mw.writeFile(path, content)
     return mw.returnJson(True, '添加成功')
@@ -440,6 +455,8 @@ def getRec():
         return data[1]
 
     name = args['name']
+    if name != "" and not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
 
     if name == "":
         tmp = {}
@@ -458,6 +475,8 @@ def getRec():
 
 
 def delRecBy(name):
+    if not checkNameSafe(name):
+        return False
     try:
         path = appConf()
         content = mw.readFile(path)
@@ -499,6 +518,8 @@ def delRec():
     if not data[0]:
         return data[1]
     name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
     ok = delRecBy(name)
     if ok:
         return mw.returnJson(True, '删除成功!')
@@ -514,6 +535,8 @@ def cmdRecSecretKey():
         return data[1]
 
     name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
     info = getRecListDataBy(name)
 
     secrets_file = info['secrets file']
@@ -535,6 +558,8 @@ def cmdRecCmd():
         return data[1]
 
     name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
     info = getRecListDataBy(name)
     ip = mw.getLocalIp()
 
@@ -609,7 +634,7 @@ def makeLsyncdConf(data):
             cmd = rsync_bin + " -avzP " + "--port=" + str(t['rsync']['port']) + " --bwlimit=" + t['rsync'][
                 'bwlimit'] + delete_ok + "  --exclude-from=" + cmd_exclude + " --password-file=" + cmd_pass + " " + t["path"] + " " + remote_addr
             mw.writeFile(name_dir + "/cmd", cmd)
-            mw.execShell("cmod +x " + name_dir + "/cmd")
+            mw.execShell("chmod +x " + name_dir + "/cmd")
 
             if t['realtime'] == "false":
                 continue
@@ -680,6 +705,9 @@ def lsyncdGet():
         return data[1]
 
     name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+
     data = getDefaultConf()
 
     slist = data['send']["list"]
@@ -718,6 +746,9 @@ def lsyncdDelete():
         return data[1]
 
     name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+
     data = getDefaultConf()
     slist = data['send']["list"]
     res = lsyncdListFindName(slist, name)
@@ -749,7 +780,7 @@ def lsyncdAdd():
             info = utils_file.getAccess(path)
             file_chown = info['chown']
             if file_chown != 'www':
-                return mw.returnJson(False, '建议手动执行命令: chown -R www:www '+ args_path)
+                return mw.returnJson(False, '建议手动执行命令: chown -R www:www '+ path)
         else:
             os.system("mkdir -p " + path + " &")
             os.system("chown -R  www:www " + path + " &")
@@ -805,6 +836,17 @@ def lsyncdAdd():
         info['password'] = args['password']
         info['port'] = args['port']
 
+    if not checkNameSafe(info['name']):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+
+    try:
+        port_num = int(info['port'])
+        if not (1 <= port_num <= 65535):
+            raise ValueError
+        info['port'] = port_num
+    except Exception:
+        return mw.returnJson(False, "端口格式不合法！")
+
     rsync = {
         'bwlimit': bwlimit,
         "port": info['port'],
@@ -848,8 +890,11 @@ def lsyncdRun():
     if not data[0]:
         return data[1]
 
-    send_dir = getServerDir() + "/send"
     name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+
+    send_dir = getServerDir() + "/send"
     app_dir = send_dir + "/" + name
 
     cmd = "bash " + app_dir + "/cmd >> " + app_dir + "/run.log" + " 2>&1 &"
@@ -868,8 +913,11 @@ def lsyncdLog():
     if not data[0]:
         return data[1]
 
-    send_dir = getServerDir() + "/send"
     name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+
+    send_dir = getServerDir() + "/send"
     app_dir = send_dir + "/" + name
     return app_dir + "/run.log"
 
@@ -880,9 +928,13 @@ def lsyncdGetExclude():
     if not data[0]:
         return data[1]
 
+    name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+
     data = getDefaultConf()
     slist = data['send']["list"]
-    res = lsyncdListFindName(slist, args['name'])
+    res = lsyncdListFindName(slist, name)
     i = res[1]
     info = slist[i]
     return mw.returnJson(True, "OK!", info['exclude'])
@@ -894,11 +946,15 @@ def lsyncdRemoveExclude():
     if not data[0]:
         return data[1]
 
+    name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+
     exclude = args['exclude']
 
     data = getDefaultConf()
     slist = data['send']["list"]
-    res = lsyncdListFindName(slist, args['name'])
+    res = lsyncdListFindName(slist, name)
     i = res[1]
     info = slist[i]
 
@@ -923,11 +979,15 @@ def lsyncdAddExclude():
     if not data[0]:
         return data[1]
 
+    name = args['name']
+    if not checkNameSafe(name):
+        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+
     exclude = args['exclude']
 
     data = getDefaultConf()
     slist = data['send']["list"]
-    res = lsyncdListFindName(slist, args['name'])
+    res = lsyncdListFindName(slist, name)
     i = res[1]
     info = slist[i]
 
