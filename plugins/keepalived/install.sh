@@ -25,6 +25,14 @@ Install_App()
 	echo '正在安装keepalived脚本文件...'
 	mkdir -p $serverPath/source/keepalived
 
+	# 自动安装编译依赖
+	if [ -f /usr/bin/yum ];then
+		yum install -y gcc make openssl-devel libnl3-devel popt-devel
+	elif [ -f /usr/bin/apt-get ];then
+		apt-get update
+		apt-get install -y gcc make libssl-dev libnl-3-dev libnl-genl-3-dev libpopt-dev
+	fi
+
 	if [ ! -f $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz ];then
 		wget -O $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz https://keepalived.org/software/keepalived-${VERSION}.tar.gz
 	fi
@@ -34,25 +42,29 @@ Install_App()
 	if [ -f $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz ];then
 		md5_file=`md5sum $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz  | awk '{print $1}'`
 		if [ "${md5_file}" != "${md5_file_ok}" ]; then
-			echo "keepalived-${version} 下载文件不完整,重新安装"
+			echo "keepalived-${VERSION} 下载文件不完整, md5校验失败，安装已强行终止！"
 			rm -rf $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz
+			exit 1
 		fi
+	else
+		echo "keepalived-${VERSION}.tar.gz 文件不存在，下载失败，安装已强行终止！"
+		exit 1
 	fi
 	
-	echo $serverPath/keepalived/keepalived-${VERSION}
-	if [ -d $serverPath/keepalived/keepalived-${VERSION} ];then
-		cd  $serverPath/keepalived/keepalived-${VERSION}
+	if [ -d $serverPath/source/keepalived/keepalived-${VERSION} ];then
+		cd $serverPath/source/keepalived/keepalived-${VERSION}
 	else 
 		cd $serverPath/source/keepalived && tar -zxvf keepalived-${VERSION}.tar.gz
-		cd  $serverPath/keepalived/keepalived-${VERSION}
+		cd $serverPath/source/keepalived/keepalived-${VERSION}
 	fi
-
-	cd $serverPath/source/keepalived/keepalived-${VERSION}
 
 	./configure --prefix=$serverPath/keepalived && make && make install
 
-	# for test
-	# mkdir -p $serverPath/keepalived
+	if [ ! -f $serverPath/keepalived/sbin/keepalived ];then
+		echo "Keepalived 编译或安装失败，未找到目标二进制文件，安装已强行终止！"
+		exit 1
+	fi
+
 	if [ -d $serverPath/keepalived ];then
 		echo "${VERSION}" > $serverPath/keepalived/version.pl
 		echo 'keepalived安装完成'

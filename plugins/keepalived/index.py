@@ -64,15 +64,16 @@ def getArgs():
     if args_len == 1:
         t = args[0].strip('{').strip('}')
         if t.strip() == '':
-            tmp = []
+            tmp = {}
         else:
             t = t.split(':')
-            tmp[t[0]] = t[1]
-        tmp[t[0]] = t[1]
+            if len(t) >= 2:
+                tmp[t[0]] = t[1]
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            if len(t) >= 2:
+                tmp[t[0]] = t[1]
     return tmp
 
 def checkArgs(data, ck=[]):
@@ -97,7 +98,18 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    # 防御任意路径穿越读取漏洞，强制只能读取 tpl 目录下的模板
+    filename = os.path.basename(args['file'])
+    tpl_dir = getPluginDir() + '/tpl'
+    target_path = os.path.abspath(tpl_dir + '/' + filename)
+
+    if not target_path.startswith(os.path.abspath(tpl_dir)):
+        return mw.returnJson(False, '非法的文件读取路径！')
+
+    if not os.path.exists(target_path):
+        return mw.returnJson(False, '模板文件不存在！')
+
+    content = mw.readFile(target_path)
     content = contentReplace(content)
     return mw.returnJson(True, 'ok', content)
 
@@ -125,20 +137,54 @@ def status():
     return 'start'
 
 
+def getDefaultInterface():
+    # 优先使用 ip route show
+    res = mw.execShell("ip route show | grep default | awk '{print $5}'")
+    if res[0].strip():
+        return res[0].strip()
+
+    # 备选：ip route get 8.8.8.8
+    res = mw.execShell("ip route get 8.8.8.8 2>/dev/null | grep -oE 'dev [a-zA-Z0-9_.-]+' | awk '{print $2}'")
+    if res[0].strip():
+        return res[0].strip()
+
+    # 备选：route -n
+    res = mw.execShell("route -n 2>/dev/null | grep ^0.0.0.0 | awk '{print $8}'")
+    if res[0].strip():
+        return res[0].strip()
+
+    # 最后兜底降级：寻找首个非环回物理网卡
+    res = mw.execShell("ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo' | grep -v 'docker' | head -n 1")
+    if res[0].strip():
+        return res[0].strip()
+
+    return 'eth0'
+
+def getKeepalivedPass():
+    pass_file = getServerDir() + '/init.pl'
+    if not os.path.exists(getServerDir()):
+        os.makedirs(getServerDir())
+    if os.path.exists(pass_file):
+        password = mw.readFile(pass_file).strip()
+        if password and password != 'ok':
+            return password
+    
+    password = mw.getRandomString(8)
+    mw.writeFile(pass_file, password)
+    return password
+
 def contentReplace(content):
     service_path = mw.getServerDir()
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$PLUGIN_PATH}', getPluginDir())
 
-    # 网络接口
-    ethx = mw.execShell("route -n | grep ^0.0.0.0 | awk '{print $8}'")
-    if ethx[1]!='':
-        # 未找到
-        content = content.replace('{$ETH_XX}', 'eth1')
-    else:
-        # 已找到
-        content = content.replace('{$ETH_XX}', ethx[0])
+    # 强随机密码替换
+    password = getKeepalivedPass()
+    content = content.replace('{$KP_PASS}', password)
 
+    # 健壮的物理网卡名称提取
+    ethx = getDefaultInterface()
+    content = content.replace('{$ETH_XX}', ethx)
 
     return content
 
@@ -252,16 +298,38 @@ def reload():
     return kpOp('reload')
 
 
-def getPort():
-    conf = getServerDir() + '/keepalived.conf'
-    content = mw.readFile(conf)
+def runInfo():
+    import json
+    is_running = status() == 'start'
+    
+    vips = []
+    conf_path = getConf()
+    if os.path.exists(conf_path):
+        conf_content = mw.readFile(conf_path)
+        vip_match = re.search(r'virtual_ipaddress\s*\{(.*?)\}', conf_content, re.S)
+        if vip_match:
+            lines = vip_match.group(1).split('\n')
+            for line in lines:
+                line = line.strip()
+                if line and not line.startswith('#') and not line.startswith('!'):
+                    parts = line.split()
+                    if parts:
+                        vips.append(parts[0])
 
-    rep = r"^(" + 'port' + r')\s*([.0-9A-Za-z_& ~]+)'
-    tmp = re.search(rep, content, re.M)
-    if tmp:
-        return tmp.groups()[1]
+    active_vips = []
+    ip_addr_out = mw.execShell("ip addr show")
+    if ip_addr_out[0]:
+        for vip in vips:
+            if vip in ip_addr_out[0]:
+                active_vips.append(vip)
 
-    return '6379'
+    res = {
+        "status": "running" if is_running else "stopped",
+        "configured_vips": vips,
+        "active_vips": active_vips,
+        "is_master": len(active_vips) > 0,
+    }
+    return json.dumps(res)
 
 
 def initdStatus():
