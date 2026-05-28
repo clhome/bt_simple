@@ -109,31 +109,24 @@ def migrateSiteHotLogs(site_name, query_date):
         todayUt = int(time.mktime(time.strptime(
             todayTime, "%Y-%m-%d %H:%M:%S")))
 
-        logs_sql = "select {} from web_logs where time<{}".format(_columns, todayUt)
+        logs_sql = "select {} from web_logs where time<{}".format(
+            _columns, todayUt)
         selector = logs_conn.originExecute(logs_sql)
-
-        # 显式开启大事务，提升迁移速率 100x+，杜绝因高频 IOPS 造成的锁表与延迟
-        history_logs_conn.execute("BEGIN TRANSACTION", ())
-
-        # 动态构建占位符，例如 (?, ?, ?, ...)
-        columns_list = [c.strip() for c in _columns.split(",")]
-        placeholders = ",".join(["?" for _ in columns_list])
-        insert_sql = "insert into web_logs({}) values({})".format(_columns, placeholders)
-
         log = selector.fetchone()
         while log:
-            params_val = []
+            params = ""
             for field in log:
+                if params:
+                    params += ","
                 if field is None:
-                    params_val.append("")
-                else:
-                    params_val.append(field)
-
-            # 使用参数化绑定执行，彻底消除引号转义产生的 SQL 崩溃或报错
-            history_logs_conn.execute(insert_sql, tuple(params_val))
+                    field = "\'\'"
+                elif type(field) == str:
+                    field = "\'" + field.replace("\'", "\"") + "\'"
+                params += str(field)
+            insert_sql = "insert into web_logs(" + \
+                _columns + ") values(" + params + ")"
+            history_logs_conn.execute(insert_sql)
             log = selector.fetchone()
-
-        history_logs_conn.execute("COMMIT", ())
 
         print("sorting historical data, this action takes a long time...")
         history_logs_conn.execute("VACUUM;")
@@ -194,6 +187,7 @@ def migrateSiteHotLogs(site_name, query_date):
     if not mw.isAppleSystem():
         mw.execShell("chown -R www:www " + getServerDir())
 
+    mw.opWeb('restart')
     return mw.returnMsg(True, "{} logs migrate ok".format(site_name))
 
 

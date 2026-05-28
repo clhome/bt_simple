@@ -16,7 +16,7 @@
 	"name": "webstats",
 	"title": "网站统计",
 	"shell": "install.sh",
-	"versions":"1.0.0",
+	"versions":"0.2.5",
 	"tip": "soft",
 	"install_pre_inspection":true,
 	"uninstall_pre_inspection":true,
@@ -24,7 +24,7 @@
 	"path": "server/webstats",
 	"display": 1,
 	"author": "midoks & yufeng tec",
-	"date": "2026-05-29",
+	"date": "2022-07-18",
 	"home": "https://github.com/clhome/bt_simple",
 	"type": 0,
 	"pid": "1"

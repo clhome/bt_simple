@@ -788,7 +788,7 @@ def getLogsList():
         conn = conn.andWhere("time>=? and time<=?", (exlist[0], exlist[1]))
 
     if search_uri != "":
-        conn = conn.andWhere("uri like ?", ('%' + search_uri + '%',))
+        conn = conn.andWhere("uri like '%" + search_uri + "%'", ())
 
     if status_code != "all":
         conn = conn.andWhere("status_code=?", (status_code,))

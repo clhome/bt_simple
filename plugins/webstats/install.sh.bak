@@ -122,9 +122,6 @@ Install_App()
 
 	# 缓存数据
 	GEO_VERSION=$(get_latest_release "P3TERX/GeoLite.mmdb")
-	if [ -z "$GEO_VERSION" ]; then
-		GEO_VERSION="2024.04.16"
-	fi
 	if [ ! -s $serverPath/source/webstats/GeoLite2-City.mmdb ];then
 		wget --no-check-certificate -O $serverPath/source/webstats/GeoLite2-City.mmdb ${GH_PREFIX}/P3TERX/GeoLite.mmdb/releases/download/${GEO_VERSION}/GeoLite2-City.mmdb
 	fi
