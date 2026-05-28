@@ -75,14 +75,12 @@ def getFpmFile(version):
     return getServerDir() + '/' + version + '/fpm/php-fpm.conf'
 
 def status(version):
-    if mw.isAppleSystem():
-        return 'stop'
-    # 使用 systemctl is-active 精准判定服务状态，防止 grep 模糊匹配造成的误判
-    cmd = "systemctl is-active php" + version + "-fpm"
+    # ps -ef|grep 'php/81' |grep -v grep | grep -v python | awk '{print $2}
+    cmd = "ps -ef|grep 'php/" + version + "' |grep -v grep | grep -v python | awk '{print $2}'"
     data = mw.execShell(cmd)
-    if data[0].strip() == 'active':
-        return 'start'
-    return 'stop'
+    if data[0] == '':
+        return 'stop'
+    return 'start'
 
 
 def contentReplace(content, version):
@@ -204,14 +202,10 @@ def initReplace(version):
         phpini = getConf(version)
         ssl_crt = mw.getSslCrt()
 
-        if os.path.exists(phpini):
-            content = mw.readFile(phpini)
-            if content:
-                # 替换 ;openssl.cafile= 为 openssl.cafile=ssl_crt，支持可选空格
-                content = re.sub(r';\s*openssl\.cafile\s*=\s*', 'openssl.cafile=' + ssl_crt, content)
-                # 替换 ;curl.cainfo = 为 curl.cainfo=ssl_crt，支持可选空格
-                content = re.sub(r';\s*curl\.cainfo\s*=\s*', 'curl.cainfo=' + ssl_crt, content)
-                mw.writeFile(phpini, content)
+        cmd_openssl = "sed -i \"s#;openssl.cafile=#openssl.cafile=" + ssl_crt + "#\" " + phpini
+        mw.execShell(cmd_openssl)
+        cmd_curl = "sed -i \"s#;curl.cainfo =#curl.cainfo=" + ssl_crt + "#\" " + phpini
+        mw.execShell(cmd_curl)
 
         mw.writeFile(install_ok, 'ok')
 
@@ -800,11 +794,6 @@ def installLib(version):
         return data[1]
 
     name = args['name']
-    
-    # 严格校验扩展名称，防范命令注入漏洞
-    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
-        return mw.returnJson(False, '扩展名称包含非法字符！')
-
     cmd = "cd " + getPluginDir() + "/versions && /bin/bash  common.sh " + version + ' install ' + name
     install_name = '安装PHPAPT[' + name + '-' + version + ']'
     import thisdb
@@ -821,11 +810,6 @@ def uninstallLib(version):
         return data[1]
 
     name = args['name']
-
-    # 严格校验扩展名称，防范命令注入漏洞
-    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
-        return mw.returnJson(False, '扩展名称包含非法字符！')
-
     execstr = "cd " + getPluginDir() + "/versions && /bin/bash common.sh " + version + ' uninstall ' + name
 
     data = mw.execShell(execstr)
