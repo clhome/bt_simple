@@ -56,6 +56,4 @@ elif [[ "$version" == '8.3' ]]; then
 	echo '20230831'
 elif [[ "$version" == '8.4' ]]; then
 	echo '20240924'
-elif [[ "$version" == '8.5' ]]; then
-	echo '20250925'
 fi

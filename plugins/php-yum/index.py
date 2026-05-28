@@ -42,14 +42,23 @@ def getArgs():
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':')
-        tmp[t[0]] = t[1]
+        try:
+            tmp = json.loads(args[0])
+        except Exception:
+            t = args[0].strip('{').strip('}')
+            t = t.split(':')
+            if len(t) >= 2:
+                tmp[t[0]] = t[1]
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            if len(t) >= 2:
+                tmp[t[0]] = t[1]
 
+    # 清洗键值对中残留的单双引号
+    for k in list(tmp.keys()):
+        if isinstance(tmp[k], str):
+            tmp[k] = tmp[k].strip("'").strip('"')
     return tmp
 
 
@@ -66,13 +75,27 @@ def getConf(version):
 
 
 def status(version):
-    # ps -ef|grep 'php/81' |grep -v grep | grep -v python | awk '{print $2}
-    cmd = "ps -ef|grep 'remi/php" + version + \
-        "' |grep -v grep | grep -v python | awk '{print $2}'"
-    data = mw.execShell(cmd)
-    if data[0] == '':
+    if mw.isAppleSystem():
         return 'stop'
-    return 'start'
+    
+    # 优先采用 systemctl 检测服务是否激活运行
+    cmd_active = "systemctl is-active php" + version + "-php-fpm"
+    res = mw.execShell(cmd_active)
+    if res[0].strip() == 'active':
+        return 'start'
+        
+    # 降级通过 pid 文件精准校验
+    pid_file = "/var/opt/remi/php" + version + "/run/php-fpm/php-fpm.pid"
+    if os.path.exists(pid_file):
+        try:
+            pid = int(mw.readFile(pid_file).strip())
+            # 发送信号0校验进程是否存在
+            os.kill(pid, 0)
+            return 'start'
+        except Exception:
+            pass
+            
+    return 'stop'
 
 
 def contentReplace(content, version):
@@ -205,10 +228,13 @@ def initReplace(version):
         phpini = getConf(version)
         ssl_crt = mw.getSslCrt()
 
-        cmd_openssl = "sed -i \"s#;openssl.cafile=#openssl.cafile=" + ssl_crt + "#\" " + phpini
-        mw.execShell(cmd_openssl)
-        cmd_curl = "sed -i \"s#;curl.cainfo =#curl.cainfo=" + ssl_crt + "#\" " + phpini
-        mw.execShell(cmd_curl)
+        if os.path.exists(phpini):
+            content = mw.readFile(phpini)
+            # 原生 Python 正则匹配安全替换
+            content = re.sub(r';?\s*openssl\.cafile\s*=\s*.*', 'openssl.cafile=' + ssl_crt, content)
+            content = re.sub(r';?\s*curl\.cainfo\s*=\s*.*', 'curl.cainfo=' + ssl_crt, content)
+            mw.writeFile(phpini, content)
+
         mw.writeFile(install_ok, 'ok')
 
     phpPrependFile(version)
@@ -798,6 +824,11 @@ def installLib(version):
         return data[1]
 
     name = args['name']
+    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
+        return mw.returnJson(False, '非法的扩展名称！')
+    if not re.match(r'^\d+$', version):
+        return mw.returnJson(False, '非法的版本号！')
+
     cmd = "cd " + getPluginDir() + "/versions && /bin/bash  common.sh " + version + ' install ' + name
     install_name = '安装PHPYUM[' + name + '-' + version + ']'
     import thisdb
@@ -814,6 +845,11 @@ def uninstallLib(version):
         return data[1]
 
     name = args['name']
+    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
+        return mw.returnJson(False, '非法的扩展名称！')
+    if not re.match(r'^\d+$', version):
+        return mw.returnJson(False, '非法的版本号！')
+
     execstr = "cd " + getPluginDir() + '/versions/' + " && /bin/bash common.sh " + version + ' uninstall ' + name
 
     data = mw.execShell(execstr)

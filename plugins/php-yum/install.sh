@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-curPath=`pwd`
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
@@ -63,10 +63,6 @@ if [ "${action}" == "uninstall" ] && [ -d ${serverPath}/php-yum/${type} ];then
 	cd ${rootPath} && python3 ${rootPath}/plugins/php-yum/index.py initd_uninstall ${type}
 
 	if [ -f /lib/systemd/system/php${type}-php-fpm.service ];then
-		rm -rf /lib/systemd/system/php${type}-fpm.service
-	fi
-
-	if [ -f /lib/systemd/system/system/php${type}-php-fpm.service ];then
 		rm -rf /lib/systemd/system/php${type}-php-fpm.service
 	fi
 

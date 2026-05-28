@@ -26,33 +26,7 @@ function phpPost(method, version, args,callback){
     },'json'); 
 }
 
-function phpPostCallback(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
 
-    var req_data = {};
-    req_data['name'] = 'php-yum';
-    req_data['func'] = method;
-    req_data['script']='index_php_yum';
-    args['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/callback', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 
 //配置修改
@@ -624,12 +598,7 @@ function getPHPInfo_old(version) {
 }
 
 function getPHPInfo(version) {
-    phpPostCallback('get_php_info', version, {}, function(data){
-        if (!data.status){
-            layer.msg(rdata.msg, { icon: 2 });
-            return;
-        }
-
+    phpPost('get_php_info', version, {}, function(data){
         layer.open({
             type: 1,
             title: "PHP-" + version + "-PHPINFO",
@@ -638,7 +607,7 @@ function getPHPInfo(version) {
             shadeClose: true,
             content: data.data.replace('a:link {color: #009; text-decoration: none; background-color: #fff;}', '').replace('a:link {color: #000099; text-decoration: none; background-color: #ffffff;}', '')
         });
-    })
+    });
 }
 
 
