@@ -5,7 +5,7 @@
 #              for high availability environments.
 # processname: haproxy
 # config: /etc/haproxy/haproxy.cfg
-# pidfile: /var/run/haproxy.pid
+# pidfile: {$SERVER_PATH}/haproxy/haproxy.pid
 # Script Author: Simon Matter <simon.matter@invoca.ch>
 # Version: 2004060600
 # Source function library.
@@ -37,12 +37,12 @@ BASENAME=haproxy
 #  BASENAME=`basename $BASENAME`
 #fi
  
-[ -f $HAPROXYDIR/etc/$BASENAME.conf ] || exit 1
+[ -f $HAPROXYDIR/$BASENAME.conf ] || exit 1
  
 RETVAL=0
  
 start() {
-    $HAPROXYDIR/sbin/$BASENAME -c -q -f $HAPROXYDIR/etc/$BASENAME.conf
+    $HAPROXYDIR/sbin/$BASENAME -c -q -f $HAPROXYDIR/$BASENAME.conf
 
 
     if [ $? -ne 0 ]; then
@@ -51,7 +51,7 @@ start() {
     fi
 
     echo -n "Starting $BASENAME: "
-    daemon $HAPROXYDIR/sbin/$BASENAME -D -f $HAPROXYDIR/etc/$BASENAME.conf
+    daemon $HAPROXYDIR/sbin/$BASENAME -D -f $HAPROXYDIR/$BASENAME.conf -p $HAPROXYDIR/$BASENAME.pid
     RETVAL=$?
     # echo
     # [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$BASENAME
@@ -67,12 +67,12 @@ stop() {
   RETVAL=$?
   echo
   [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$BASENAME
-  [ $RETVAL -eq 0 ] && rm -f /var/run/$BASENAME.pid
+  [ $RETVAL -eq 0 ] && rm -f $HAPROXYDIR/$BASENAME.pid
   return $RETVAL
 }
  
 restart() {
-  $HAPROXYDIR/sbin/$BASENAME -c -q -f $HAPROXYDIR/etc/$BASENAME.conf
+  $HAPROXYDIR/sbin/$BASENAME -c -q -f $HAPROXYDIR/$BASENAME.conf
   if [ $? -ne 0 ]; then
     echo "Errors found in configuration file, check it with '$BASENAME check'."
     return 1
@@ -82,16 +82,16 @@ restart() {
 }
  
 reload() {
-  $HAPROXYDIR/sbin/$BASENAME -c -q -f $HAPROXYDIR/etc/$BASENAME.conf
+  $HAPROXYDIR/sbin/$BASENAME -c -q -f $HAPROXYDIR/$BASENAME.conf
   if [ $? -ne 0 ]; then
     echo "Errors found in configuration file, check it with '$BASENAME check'."
     return 1
   fi
-  $HAPROXYDIR/sbin/$BASENAME -D -f $HAPROXYDIR/$BASENAME.conf -p /var/run/$BASENAME.pid -sf $(cat /var/run/$BASENAME.pid)
+  $HAPROXYDIR/sbin/$BASENAME -D -f $HAPROXYDIR/$BASENAME.conf -p $HAPROXYDIR/$BASENAME.pid -sf $(cat $HAPROXYDIR/$BASENAME.pid)
 }
  
 check() {
-  $HAPROXYDIR/sbin/$BASENAME -c -q -V -f $HAPROXYDIR/etc/$BASENAME.conf
+  $HAPROXYDIR/sbin/$BASENAME -c -q -V -f $HAPROXYDIR/$BASENAME.conf
 }
  
 rhstatus() {

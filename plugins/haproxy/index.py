@@ -92,7 +92,16 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    filename = os.path.basename(args['file'])
+    if not filename.endswith('.tpl'):
+        return mw.returnJson(False, '仅支持读取.tpl模板文件！')
+
+    tpl_dir = getPluginDir() + '/tpl'
+    file_path = tpl_dir + '/' + filename
+    if not os.path.exists(file_path):
+        return mw.returnJson(False, '模板文件不存在！')
+
+    content = mw.readFile(file_path)
     content = contentReplace(content)
     return mw.returnJson(True, 'ok', content)
 

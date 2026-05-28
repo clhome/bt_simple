@@ -18,6 +18,15 @@ MIN_VERSION=3.2
 Install_App()
 {
 	echo '正在安装Haproxy软件...'
+	
+	# 安装编译依赖
+	if [ -f /usr/bin/yum ]; then
+		yum install -y gcc make openssl-devel pcre2-devel
+	elif [ -f /usr/bin/apt-get ]; then
+		apt-get update -y
+		apt-get install -y gcc make libssl-dev libpcre2-dev
+	fi
+
 	mkdir -p $serverPath/haproxy
 
 	APP_DIR=${serverPath}/source/haproxy
@@ -34,9 +43,9 @@ Install_App()
 	CPU_CORES=$(get_cpu_cores)
 
 	if [ "$sysName" == "Darwin" ];then
-		cd ${APP_DIR}/haproxy-${VERSION} && make -j${CPU_CORES} TARGET=osx && make install PREFIX=$serverPath/haproxy
+		cd ${APP_DIR}/haproxy-${VERSION} && (make -j${CPU_CORES} TARGET=osx USE_OPENSSL=1 USE_PCRE2=1 || make -j${CPU_CORES} TARGET=osx) && make install PREFIX=$serverPath/haproxy
 	else
-		cd ${APP_DIR}/haproxy-${VERSION} && make -j${CPU_CORES} TARGET=linux-glibc && make install PREFIX=$serverPath/haproxy
+		cd ${APP_DIR}/haproxy-${VERSION} && (make -j${CPU_CORES} TARGET=linux-glibc USE_OPENSSL=1 USE_PCRE2=1 || make -j${CPU_CORES} TARGET=linux-glibc) && make install PREFIX=$serverPath/haproxy
 	fi
 
 	echo '安装Haproxy成功'

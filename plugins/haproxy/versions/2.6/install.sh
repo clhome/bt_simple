@@ -18,6 +18,15 @@ MIN_VERSION=2.6
 Install_App()
 {
 	echo '正在安装Haproxy软件...'
+	
+	# 安装编译依赖
+	if [ -f /usr/bin/yum ]; then
+		yum install -y gcc make openssl-devel pcre2-devel
+	elif [ -f /usr/bin/apt-get ]; then
+		apt-get update -y
+		apt-get install -y gcc make libssl-dev libpcre2-dev
+	fi
+
 	mkdir -p $serverPath/haproxy
 
 	APP_DIR=${serverPath}/source/haproxy
@@ -32,6 +41,9 @@ Install_App()
 
 
     if [ "${LOCAL_ADDR}" == "cn" ];then
+    	if [ ! -f ${APP_DIR}/haproxy-${VERSION}.tar.gz ];then
+			wget -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://ghp.ci/https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
+		fi
     	if [ ! -f ${APP_DIR}/haproxy-${VERSION}.tar.gz ];then
 			wget -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://mirror.ghproxy.com/https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
 		fi
@@ -54,9 +66,9 @@ Install_App()
 	cd ${APP_DIR} && tar -zxvf haproxy-${VERSION}.tar.gz
 
 	if [ "$OSNAME" == "macos" ];then
-		cd ${APP_DIR}/haproxy-${VERSION} && make TARGET=osx && make install PREFIX=$serverPath/haproxy
+		cd ${APP_DIR}/haproxy-${VERSION} && (make TARGET=osx USE_OPENSSL=1 USE_PCRE2=1 || make TARGET=osx) && make install PREFIX=$serverPath/haproxy
 	else
-		cd ${APP_DIR}/haproxy-${VERSION} && make TARGET=linux-glibc && make install PREFIX=$serverPath/haproxy
+		cd ${APP_DIR}/haproxy-${VERSION} && (make TARGET=linux-glibc USE_OPENSSL=1 USE_PCRE2=1 || make TARGET=linux-glibc) && make install PREFIX=$serverPath/haproxy
 	fi
 
 	echo '安装Haproxy成功'
