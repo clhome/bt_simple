@@ -189,24 +189,11 @@ class ssh_terminal(object):
 
             self.__port = mw.getSSHPort()
             
-            # 主动读取本地生成的私钥作为保底认证凭据
-            local_key = None
-            try:
-                ssh_dir = mw.getSshDir()
-                key_path = os.path.join(ssh_dir, 'id_rsa')
-                if os.path.exists(key_path):
-                    local_key = paramiko.RSAKey.from_private_key_file(key_path)
-            except Exception as ke:
-                self.debug("加载本地私钥失败: " + str(ke))
-            
             connected = False
             last_err = None
             for try_host in [self.__host, '127.0.0.1', 'localhost']:
                 try:
-                    if local_key:
-                        self.__ps.connect(try_host, self.__port, pkey=local_key, timeout=60)
-                    else:
-                        self.__ps.connect(try_host, self.__port, timeout=60)
+                    self.__ps.connect(try_host, self.__port, timeout=60)
                     connected = True
                     break
                 except Exception as e:
@@ -456,7 +443,7 @@ class ssh_terminal(object):
                 sid_off_cos = cur_time - ssh_last_time
 
                 # print("heartbeat off cos :", x, sid_off_cos)
-                if sid_off_cos > 180:
+                if sid_off_cos > 3:
                     cur_ssh = self.__ssh_list[x]
                     if not cur_ssh:
                         del(self.__ssh_list[x])

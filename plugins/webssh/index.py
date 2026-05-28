@@ -43,20 +43,22 @@ class App():
     def getArgs(self):
         args = sys.argv[2:]
         tmp = {}
-        args_len = len(args)
+        if not args:
+            return tmp
 
-        if args_len == 1:
-            t = args[0].strip('{').strip('}')
-            if t.strip() == '':
-                tmp = []
-            else:
-                t = t.split(':')
-                tmp[t[0]] = t[1]
-            tmp[t[0]] = t[1]
-        elif args_len > 1:
-            for i in range(len(args)):
-                t = args[i].split(':')
-                tmp[t[0]] = t[1]
+        # 优先尝试 JSON 解析
+        try:
+            return json.loads(args[0])
+        except Exception:
+            pass
+
+        for arg in args:
+            try:
+                t = arg.split(':', 1)
+                if len(t) == 2:
+                    tmp[t[0]] = t[1]
+            except Exception:
+                pass
         return tmp
 
     def checkArgs(self, data, ck=[]):
@@ -69,7 +71,10 @@ class App():
         return 'start'
 
     def saveCmd(self, t):
-        data_tmp = json.loads(mw.readFile(self.__cmd_path))
+        rdata = mw.readFile(self.__cmd_path)
+        if not rdata:
+            rdata = '[]'
+        data_tmp = json.loads(rdata)
         is_has = False
         for x in range(len(data_tmp)):
             if data_tmp[x]['title'] == t['title']:
@@ -103,7 +108,10 @@ class App():
             return check[1]
 
         title = args['title'].strip()
-        data_tmp = json.loads(mw.readFile(self.__cmd_path))
+        rdata = mw.readFile(self.__cmd_path)
+        if not rdata:
+            rdata = '[]'
+        data_tmp = json.loads(rdata)
         for x in range(0, len(data_tmp)):
             if data_tmp[x]['title'] == title:
                 del(data_tmp[x])
@@ -112,7 +120,10 @@ class App():
         return mw.returnJson(False, '删除无效')
 
     def get_cmd_list(self):
-        alist = json.loads(mw.readFile(self.__cmd_path))
+        rdata = mw.readFile(self.__cmd_path)
+        if not rdata:
+            rdata = '[]'
+        alist = json.loads(rdata)
         return mw.returnJson(True, 'ok', alist)
 
     def getSshInfo(self, file):
