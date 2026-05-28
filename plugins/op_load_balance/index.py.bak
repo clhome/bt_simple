@@ -21,14 +21,6 @@ if mw.isAppleSystem():
     app_debug = True
 
 
-def is_valid_domain(domain):
-    return bool(re.match(r'^[a-zA-Z0-9_*.-]+$', domain)) and not '..' in domain
-
-
-def is_valid_upstream(name):
-    return bool(re.match(r'^[a-zA-Z0-9_]+$', name))
-
-
 def getPluginName():
     return 'op_load_balance'
 
@@ -176,9 +168,8 @@ def deleteLoadBalanceAllCfg():
         path = vhost_dir + '/' + conf['domain'] + '.conf'
 
         content = mw.readFile(path)
-        if isinstance(content, str):
-            content = re.sub('include ' + upstream_file + ';' + "\n", '', content)
-            mw.writeFile(path, content)
+        content = re.sub('include ' + upstream_file + ';' + "\n", '', content)
+        mw.writeFile(path, content)
 
     mw.opLuaInitWorkerFile()
 
@@ -221,8 +212,6 @@ def makeLoadBalanceAllCfg(row):
     # replace vhost start
     vhost_file = vhost_dir + '/' + conf['domain'] + '.conf'
     vcontent = mw.readFile(vhost_file)
-    if not isinstance(vcontent, str):
-        vcontent = ''
 
     vhost_find_str = 'upstream/' + conf['upstream_name'] + '.conf'
     vhead = 'include ' + mw.getServerDir() + '/web_conf/nginx/' + \
@@ -287,24 +276,6 @@ def add_load_balance(args):
 
     tmp = json.loads(domain_json)
     domain = tmp['domain']
-
-    if not is_valid_domain(domain):
-        return mw.returnJson(False, '域名格式不合法')
-
-    if not is_valid_upstream(args['upstream_name']):
-        return mw.returnJson(False, '负载名称格式不合法')
-
-    try:
-        nodes = args['node_list']
-        if isinstance(nodes, str):
-            nodes = json.loads(nodes)
-        for x in nodes:
-            if not is_valid_domain(x['ip']):
-                return mw.returnJson(False, '节点IP/主机名不合法')
-            if not re.match(r'^[0-9]+$', str(x['port'])):
-                return mw.returnJson(False, '节点端口不合法')
-    except Exception as e:
-        pass
 
     cfg = getConf()
     cfg_len = len(cfg)
@@ -399,18 +370,34 @@ def loadBalanceDelete():
 
 
 def http_get(url):
-    import urllib.request
-    import ssl
-    try:
-        context = ssl._create_unverified_context()
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=5, context=context) as response:
+    ret = re.search(r'https://', url)
+    if ret:
+        try:
+            from gevent import monkey
+            monkey.patch_ssl()
+            import requests
+            ret = requests.get(url=str(url), verify=False, timeout=10)
             status = [200, 301, 302, 404, 403]
-            if response.getcode() in status:
+            if ret.status_code in status:
+                return True
+            else:
+                return False
+        except:
+            return False
+    else:
+        try:
+            if sys.version_info[0] == 2:
+                import urllib2
+                rec = urllib2.urlopen(url, timeout=3)
+            else:
+                import urllib.request
+                rec = urllib.request.urlopen(url, timeout=3)
+            status = [200, 301, 302, 404, 403]
+            if rec.getcode() in status:
                 return True
             return False
-    except Exception as e:
-        return False
+        except:
+            return False
 
 
 def checkUrl():
@@ -476,11 +463,7 @@ if __name__ == "__main__":
     elif func == 'install_pre_inspection':
         print(installPreInspection())
     elif func == 'add_load_balance':
-        args = getArgs()
-        print(add_load_balance(args))
-    elif func == 'edit_load_balance':
-        args = getArgs()
-        print(edit_load_balance(args))
+        print(addLoadBalance())
     elif func == 'load_balance_list':
         print(loadBalanceList())
     elif func == 'load_balance_delete':

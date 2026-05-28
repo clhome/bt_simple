@@ -10,8 +10,8 @@
 	"checks":"server/op_load_balance",
 	"path":"server/op_load_balance",
 	"author":"midoks",
-	"home":"https://github.com/midoks",
-	"date":"2023-02-02",
+	"home":"",
+	"date":"2026-05-28",
 	"pid": "1",
-	"versions": ["1.0"]
+	"versions": ["1.1"]
 }
