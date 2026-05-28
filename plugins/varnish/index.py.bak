@@ -134,15 +134,7 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    # 安全检查：限制读取的文件必须是 tpl 目录下的模板
-    target_file = os.path.abspath(args['file'])
-    tpl_dir = os.path.abspath(getPluginDir() + '/tpl')
-    
-    # 确保文件处于 tpl_dir 内部并且以 .vcl 结尾
-    if not target_file.startswith(tpl_dir + os.sep) or not target_file.endswith('.vcl'):
-        return mw.returnJson(False, '越权访问拦截：仅允许读取模板目录下的VCL配置文件！')
-
-    content = mw.readFile(target_file)
+    content = mw.readFile(args['file'])
     content = contentReplace(content)
     return mw.returnJson(True, 'ok', content)
 

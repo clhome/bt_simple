@@ -1,18 +1,18 @@
 {
-	"sort": 100,
+	"sort": 7,
 	"ps": "一款高性能的开源HTTP加速器，小内存服务器慎用",
 	"name": "varnish",
 	"title": "varnish",
 	"shell": "install.sh",
 	"versions": [
-		"1.1"
+		"1.0"
 	],
 	"tip": "soft",
 	"checks": "server/varnish",
 	"path": "server/varnish",
 	"display": 1,
 	"author": "midoks & yufeng tec",
-	"date": "2026-05-29",
+	"date": "2022-06-11",
 	"home": "https://varnish-cache.org",
 	"type": 0,
 	"pid": "4"
