@@ -111,8 +111,16 @@ function getSList(isdisplay) {
             if (plugin.setup == true) {
 
                 var mupdate = '';
-                if (plugin.setup_version && plugin.versions && plugin.setup_version != plugin.versions) {
-                    mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions + '\',\'' + plugin.setup_version + '\')">更新</a> | ';
+                var latest_version = '';
+                if (plugin.versions) {
+                    if (typeof(plugin.versions) == 'string') {
+                        latest_version = plugin.versions;
+                    } else if (Array.isArray(plugin.versions) && plugin.versions.length > 0) {
+                        latest_version = plugin.versions[plugin.versions.length - 1];
+                    }
+                }
+                if (plugin.setup_version && latest_version && plugin.setup_version != latest_version) {
+                    mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + '\')">更新</a> | ';
                 }
                 handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">设置</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">卸载</a>';
                 titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
@@ -542,6 +550,15 @@ function softUpdate(name, ver, current_ver) {
         var request_args = "name=" + name + "&version=" + ver + "&type=0&upgrade=1";
         runInstall(request_args);
     });
+}
+
+function refreshPluginList() {
+    var loading = layer.msg('正在清理缓存并刷新列表...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.post('/plugins/clear_cache', {}, function(rdata) {
+        layer.close(loading);
+        getSList(true);
+        layer.msg('刷新成功', { icon: 1, time: 1000 });
+    }, 'json');
 }
 
 $(function() {

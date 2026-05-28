@@ -606,6 +606,10 @@ class plugin(object):
         self.__plugin_list_static_cache = static_list
         return self.__plugin_list_static_cache
 
+    def clearCache(self):
+        self.__plugin_list_static_cache = None
+        return True
+
     def refreshDynamicStatus(self, plist):
         self.__tasks = thisdb.getTaskRunAll()
         indexList = thisdb.getOptionByJson('display_index', default=[])

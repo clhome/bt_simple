@@ -172,6 +172,14 @@ def input_zip():
     return MwPlugin.instance().inputZipApi(plugin_name,tmp_path)
 
 
+# 清除插件缓存
+@blueprint.route('/clear_cache', endpoint='clear_cache', methods=['POST', 'GET'])
+@panel_login_required
+def clear_cache():
+    MwPlugin.instance().clearCache()
+    return mw.returnData(True, '缓存已清除')
+
+
 # 插件设置页
 @blueprint.route('/setting', endpoint='setting', methods=['GET'])
 @panel_login_required
