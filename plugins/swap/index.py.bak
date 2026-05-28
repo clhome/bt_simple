@@ -45,21 +45,14 @@ def getArgs():
     tmp = {}
     args_len = len(args)
 
-    if args_len > 0:
-        # 优先尝试使用 JSON 载入，以防参数格式特殊
-        import json
-        try:
-            val = args[0].strip()
-            if val.startswith('{') and val.endswith('}'):
-                return json.loads(val)
-        except Exception:
-            pass
-
-        # 降级采用单次冒号切分，防范参数值包含冒号时被意外截断
-        for i in range(args_len):
-            t = args[i].split(':', 1)
-            if len(t) == 2:
-                tmp[t[0]] = t[1]
+    if args_len == 1:
+        t = args[0].strip('{').strip('}')
+        t = t.split(':')
+        tmp[t[0]] = t[1]
+    elif args_len > 1:
+        for i in range(len(args)):
+            t = args[i].split(':')
+            tmp[t[0]] = t[1]
 
     return tmp
 
@@ -274,16 +267,6 @@ def changeSwap():
         return data[1]
 
     size = args['size']
-    
-    # 安全强固：参数类型与范围强制限制，彻底消除任意 Shell 命令注入 (RCE) 的高危漏洞
-    try:
-        size_int = int(size)
-        if size_int < 100 or size_int > 32768: # 限制虚拟内存范围为 100MB 至 32GB
-            return mw.returnJson(False, '容量大小不合法！范围应在 100MB - 32768MB 之间。')
-        size = str(size_int)
-    except ValueError:
-        return mw.returnJson(False, '容量大小必须为纯正整数！')
-
     swapOp('stop')
 
     gsdir = getServerDir()
@@ -293,8 +276,7 @@ def changeSwap():
     msg = mw.execShell(cmd)
     swapOp('start')
 
-    # 可用性提升：不再将 dd 底层的多行英文状态日志原样输出，而是净化为优雅、亲切的中文成功提示
-    return mw.returnJson(True, "修改成功：已成功挂载 " + size + " MB 专属虚拟内存文件！")
+    return mw.returnJson(True, "修改成功:\n" + msg[0])
 
 if __name__ == "__main__":
     func = sys.argv[1]
