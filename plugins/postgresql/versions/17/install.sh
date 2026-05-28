@@ -12,7 +12,7 @@ sysName=`uname`
 
 postgreDir=${serverPath}/source/postgresql
 
-VERSION=17.9
+VERSION=17.10
 
 # su - postgres -c "/www/server/pgsql/bin/pg_ctl start -D /www/server/pgsql/data"
 

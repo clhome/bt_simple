@@ -178,24 +178,24 @@ class ORM:
         except Exception as ex:
             return "error: " + str(ex)
 
-    def execute(self, sql, param=()):
+    def execute(self, sql):
         # 执行SQL语句返回受影响行
         if not self.__Conn():
             return self.__DB_ERR
         try:
-            result = self.__DB_CUR.execute(sql, param)
+            result = self.__DB_CUR.execute(sql)
             self.__DB_CONN.commit()
             self.__Close()
             return result
         except Exception as ex:
             return ex
 
-    def query(self, sql, param=()):
+    def query(self, sql):
         # 执行SQL语句返回数据集
         if not self.__Conn():
             return self.__DB_ERR
         try:
-            self.__DB_CUR.execute(sql, param)
+            self.__DB_CUR.execute(sql)
             result = self.__DB_CUR.fetchall()
             # print(result)
             # 将元组转换成列表

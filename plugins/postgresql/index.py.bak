@@ -101,30 +101,6 @@ def getArgs():
     return tmp
 
 
-def checkSafeName(name):
-    if not name:
-        return False
-    return bool(re.match(r"^[\w\.-]+$", str(name)))
-
-
-def checkSafePassword(password):
-    if not password:
-        return False
-    return bool(re.match(r"^[\w\.\-@#\$%\^&\*\+=!\?]+$", str(password)))
-
-
-def checkSafeFilename(filename):
-    if not filename:
-        return False
-    return bool(re.match(r"^[\w\.-]+\.gz$", str(filename)))
-
-
-def checkSafeAccess(access):
-    if not access:
-        return False
-    return bool(re.match(r"^[\w\.\-/:]+$", str(access)))
-
-
 def getBackupDir():
     bk_path = mw.getBackupDir() + "/database/postgresql"
     if not os.path.isdir(bk_path):
@@ -303,32 +279,11 @@ def initDreplace(version=''):
 
 
 def status(version=''):
-    if not mw.isAppleSystem():
-        # 1. 优先使用 systemctl 精准探测
-        state_data = mw.execShell("systemctl is-active postgresql")
-        if state_data[0].strip() == "active":
-            return 'start'
-
-        # 2. 备用检测：解析 postmaster.pid 文件获取真实 PID 并验证 /proc 状态
-        pid_file = getServerDir() + "/data/postmaster.pid"
-        if os.path.exists(pid_file):
-            try:
-                content = mw.readFile(pid_file)
-                if content:
-                    lines = content.strip().split('\n')
-                    if len(lines) > 0:
-                        pid = lines[0].strip()
-                        if pid.isdigit() and os.path.isdir("/proc/" + pid):
-                            return 'start'
-            except:
-                pass
+    data = mw.execShell(
+        "ps -ef|grep postgres |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
+    if data[0] == '':
         return 'stop'
-    else:
-        data = mw.execShell(
-            "ps -ef|grep postgres |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
-        if data[0] == '':
-            return 'stop'
-        return 'start'
+    return 'start'
 
 
 def pgCmd(cmd):
@@ -452,11 +407,11 @@ def initdStatus():
     if mw.isAppleSystem():
         return "Apple Computer does not support"
 
-    shell_cmd = 'systemctl is-enabled postgresql'
+    shell_cmd = 'systemctl status postgresql | grep loaded | grep "enabled;"'
     data = mw.execShell(shell_cmd)
-    if data[0].strip() == 'enabled':
-        return 'ok'
-    return 'fail'
+    if data[0] == '':
+        return 'fail'
+    return 'ok'
 
 
 def initdInstall():
@@ -735,12 +690,6 @@ def setUserPwd(version=''):
     newpwd = args['password']
     username = args['name']
     uid = args['id']
-
-    if not checkSafeName(username):
-        return mw.returnJson(False, '用户名不合法，不能包含特殊字符！')
-    if not checkSafePassword(newpwd):
-        return mw.returnJson(False, '密码格式不合法！')
-
     try:
         pdb = pgDb()
         psdb = pSqliteDb('databases')
@@ -824,9 +773,6 @@ def setDbBackup():
         return data[1]
 
     dbname = args['name']
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
-
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
     parts = version.split('.')
@@ -858,18 +804,47 @@ def setDbBackup():
         if os.path.exists(file_path):
             mw.execShell("chown root:root " + file_path)
 
-    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+    if os.path.exists(file_path):
         return mw.returnJson(True, '备份成功!')
     else:
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except:
-                pass
-        return mw.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
+        return mw.returnJson(False, '备份失败!')
 
 def rootPwd():
     return pSqliteDb('config').where('id=?', (1,)).getField('pg_root')
+
+def importDbBackup():
+    args = getArgs()
+    data = checkArgs(args, ['file', 'name'])
+    if not data[0]:
+        return data[1]
+
+    file = args['file']
+    name = args['name']
+
+    file_path = getBackupDir() + '/' + file
+    if not os.path.exists(file_path):
+        return mw.returnJson(False, '备份文件不存在!')
+
+    # 让 postgres 有权限读取备份文件
+    mw.execShell("chown postgres:postgres " + file_path)
+
+    port = getDbPort()
+    # 组合还原命令并由 postgres 用户身份执行
+    cmd = 'gunzip -c ' + file_path + ' | ' + getServerDir() + '/bin/psql -p ' + port + ' -d ' + name
+    execShellPg(cmd)
+
+    return mw.returnJson(True, '导入成功!')
+
+
+def deleteDbBackup():
+    args = getArgs()
+    data = checkArgs(args, ['filename'])
+    if not data[0]:
+        return data[1]
+
+    bkDir = getBackupDir()
+    os.remove(bkDir + '/' + args['filename'])
+    return mw.returnJson(True, 'ok')
 
 
 def getDbBackupList():
@@ -878,15 +853,11 @@ def getDbBackupList():
     if not data[0]:
         return data[1]
 
-    dbname = args['name']
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
-
     is_sync = False
     if 'sync' in args and args['sync'] == '1':
         is_sync = True
 
-    r = getDbBackupListFunc(dbname, is_sync)
+    r = getDbBackupListFunc(args['name'], is_sync)
     bkDir = getBackupDir()
     rr = []
     for x in range(0, len(r)):
@@ -933,12 +904,10 @@ def getDbList():
     conn = pSqliteDb('databases')
     limit = str((page - 1) * page_size) + ',' + str(page_size)
     condition = ''
-    params = ()
     if not search == '':
-        condition = "name like ?"
-        params = ('%' + search + '%',)
+        condition = "name like '%" + search + "%'"
     field = 'id,pid,name,username,password,accept,rw,ps,addtime'
-    clist = conn.where(condition, params).field(
+    clist = conn.where(condition, ()).field(
         field).limit(limit).order('addtime desc, id desc').select()
 
     for x in range(0, len(clist)):
@@ -949,7 +918,7 @@ def getDbList():
         if len(blist) > 0:
             clist[x]['is_backup'] = True
 
-    count = conn.where(condition, params).count()
+    count = conn.where(condition, ()).count()
     _page = {}
     _page['count'] = count
     _page['p'] = page
@@ -1014,24 +983,16 @@ def addDb():
     if 'listen_ip' in args:
         listen_ip = args['listen_ip'].strip()
 
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不能带有特殊符号!')
-
-    if not checkSafeName(dbuser):
-        return mw.returnJson(False, '数据库用户名称不能带有特殊符号!')
-
-    if password and not checkSafePassword(password):
-        return mw.returnJson(False, '密码格式不合法！')
-
-    if listen_ip and not checkSafeAccess(listen_ip):
-        return mw.returnJson(False, '监听权限段不合法！')
-
     if not re.match(r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}/\d+", listen_ip):
         return mw.returnJson(False, "你输入的权限不合法，添加失败！")
 
     # 修改监听所有地址
     if listen_ip not in ["127.0.0.1/32", "localhost", "127.0.0.1"]:
         sedConf("listen_addresses", "'*'")
+
+    reg = r"^[\w\.-]+$"
+    if not re.match(reg, dbname):
+        return mw.returnJson(False, '数据库名称不能带有特殊符号!')
 
     checks = ['root', 'mysql', 'test', 'sys', 'postgres', 'postgresql']
     if dbuser in checks or len(dbuser) < 1:
@@ -1082,17 +1043,12 @@ def delDb():
     did = args['id']
     name = args['name']
 
-    if not checkSafeName(name):
-        return mw.returnJson(False, '数据库名称不合法！')
-
     pdb = pgDb()
     psdb = pSqliteDb('databases')
 
     username = psdb.where('id=?', (did,)).getField('username')
     # print(username, len(username))
     if len(username) > 0:
-        if not checkSafeName(username):
-            return mw.returnJson(False, '用户名不合法！')
         r = pdb.execute("drop user " + str(username))
         # print(r)
 
@@ -1123,15 +1079,9 @@ def setDbRw(version=''):
     uid = args['id']
     rw = args['rw']
 
-    if not checkSafeName(username):
-        return mw.returnJson(False, '用户名不合法！')
-
     pdb = pgDb()
     psdb = pSqliteDb('databases')
     dbname = psdb.where("id=?", (uid,)).getField('name')
-
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
 
     sql = "REVOKE ALL ON database " + dbname + " FROM " + username
     pdb.query(sql)
@@ -1156,9 +1106,6 @@ def pgBack():
         return data[1]
 
     dbname = args['name']
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
-
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
     parts = version.split('.')
@@ -1191,14 +1138,9 @@ def pgBack():
         if os.path.exists(file_path):
             mw.execShell("chown root:root " + file_path)
 
-    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+    if os.path.exists(file_path):
         return mw.returnJson(True, '备份成功!')
     else:
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except:
-                pass
         return mw.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
 
 
@@ -1208,15 +1150,11 @@ def pgBackList():
     if not data[0]:
         return data[1]
 
-    dbname = args['name']
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
-
     is_sync = False
     if 'sync' in args and args['sync'] == '1':
         is_sync = True
 
-    r = getDbBackupListFunc(dbname, is_sync)
+    r = getDbBackupListFunc(args['name'], is_sync)
     bk_path_upload = getBackupDir()
     rr = []
     for x in range(0, len(r)):
@@ -1249,9 +1187,6 @@ def getDbAccess():
         return data[1]
 
     dbname = args['name']
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
-
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('username,accept').find()
     
@@ -1307,9 +1242,6 @@ def setDbPrivileges():
         return data[1]
 
     dbname = args['name']
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
-
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('username').find()
     if not db_info:
@@ -1346,11 +1278,6 @@ def setDbAccess():
 
     dbname = args['name']
     access = args['access']
-
-    if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
-    if not checkSafeAccess(access):
-        return mw.returnJson(False, '访问IP/网络格式不合法！')
 
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('id,username,accept').find()
@@ -1391,11 +1318,6 @@ def importDbBackup():
     file = args['file']
     name = args['name']
 
-    if not checkSafeName(name):
-        return mw.returnJson(False, '数据库名称不合法！')
-    if not checkSafeFilename(file):
-        return mw.returnJson(False, '备份文件名不合法！')
-
     bk_path_upload = getBackupDir()
     file_path = os.path.join(bk_path_upload, file)
     if not os.path.exists(file_path):
@@ -1424,12 +1346,8 @@ def deleteDbBackup():
     if not data[0]:
         return data[1]
 
-    filename = args['filename']
-    if not checkSafeFilename(filename):
-        return mw.returnJson(False, '备份文件名不合法！')
-
     bk_path_upload = getBackupDir()
-    os.remove(bk_path_upload + '/' + filename)
+    os.remove(bk_path_upload + '/' + args['filename'])
     return mw.returnJson(True, 'ok')
 
 
@@ -1538,8 +1456,6 @@ def getSlaveSSHByIp(version=''):
         return data[1]
 
     ip = args['ip']
-    if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
 
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     data = conn.field('ip,port,db_user,id_rsa').where("ip=?", (ip,)).select()
@@ -1586,19 +1502,12 @@ def addSlaveSSH(version=''):
     if ip == "":
         return mw.returnJson(True, 'ok')
 
-    if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
-
     data = checkArgs(args, ['port', 'id_rsa'])
     if not data[0]:
         return data[1]
 
     id_rsa = args['id_rsa']
     port = args['port']
-    
-    if not str(port).isdigit():
-        return mw.returnJson(False, '端口必须是数字！')
-
     user = 'root'
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
 
@@ -1621,8 +1530,6 @@ def delSlaveSSH(version=''):
         return data[1]
 
     ip = args['ip']
-    if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
 
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     conn.where("ip=?", (ip,)).delete()
@@ -1636,9 +1543,6 @@ def updateSlaveSSH(version=''):
         return data[1]
 
     ip = args['ip']
-    if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
-
     id_rsa = args['id_rsa']
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     conn.where("ip=?", (ip,)).save('id_rsa', (id_rsa,))
@@ -1683,13 +1587,6 @@ def addMasterRepSlaveUser(version=''):
     username = args['username'].strip()
     password = args['password'].strip()
 
-    if not checkSafeName(username):
-        return mw.returnJson(False, '用户名不能带有特殊符号!')
-    if not checkSafePassword(password):
-        return mw.returnJson(False, '密码格式不合法!')
-    if not checkSafeAccess(address):
-        return mw.returnJson(False, '地址/IP段格式不合法!')
-
     if len(password) < 1:
         password = mw.md5(time.time())[0:8]
 
@@ -1707,7 +1604,7 @@ def addMasterRepSlaveUser(version=''):
     if psdb.where("username=?", (username)).count() > 0:
         return mw.returnJson(False, '用户已存在!')
 
-    sql = "CREATE ROLE " + username + " login replication password '" + password.replace("'", "''") + "'"
+    sql = "CREATE ROLE " + username + " login replication password '" + password + "'"
     pdb.execute(sql)
 
     pg_conf = pgHbaConf()
@@ -1731,8 +1628,6 @@ def delMasterRepSlaveUser(version=''):
         return data[1]
 
     name = args['username']
-    if not checkSafeName(name):
-        return mw.returnJson(False, '用户名不合法!')
 
     pdb = pgDb()
     psdb = pSqliteDb('master_replication_user')
@@ -1755,19 +1650,12 @@ def getMasterRepSlaveUserCmd(version=''):
     if not data[0]:
         return data[1]
 
-    username = args['username']
-    db = args['db']
-    
-    if username != '' and not checkSafeName(username):
-        return mw.returnJson(False, '用户名不合法!')
-    if db != '' and not checkSafeName(db):
-        return mw.returnJson(False, '数据库名不合法!')
-
     psdb = pSqliteDb('master_replication_user')
     mdir = getServerDir()
     port = getPgPort()
     localIp = mw.getLocalIp()
     f = 'username,password'
+    username = args['username']
     if username == '':
         clist = psdb.field(f).limit('1').order('id desc').select()
     else:
@@ -1777,7 +1665,7 @@ def getMasterRepSlaveUserCmd(version=''):
     if len(clist) == 0:
         return mw.returnJson(False, '请添加同步账户!')
 
-    cmd = 'echo "' + clist[0]['password'].replace('"', '\\"') + '" | ' + mdir + '/bin/pg_basebackup -Fp --progress -D ' + mdir + \
+    cmd = 'echo "' + clist[0]['password'] + '" | ' + mdir + '/bin/pg_basebackup -Fp --progress -D ' + mdir + \
         '/postgresql/data -h ' + localIp + ' -p ' + port + \
         ' -U ' + clist[0]['username'] + ' --password'
 
@@ -1805,14 +1693,9 @@ def doFullSync(version=''):
     id_rsa_conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     data = id_rsa_conn.field('ip,port,db_user,id_rsa').find()
 
-    SSH_PRIVATE_KEY = getPluginDir() + "/pg_sync_id_rsa.txt"
+    SSH_PRIVATE_KEY = "/tmp/pg_sync_id_rsa.txt"
     id_rsa = data['id_rsa'].replace('\\n', '\n')
     mw.writeFile(SSH_PRIVATE_KEY, id_rsa)
-    if os.path.exists(SSH_PRIVATE_KEY):
-        try:
-            os.chmod(SSH_PRIVATE_KEY, 0o600)
-        except:
-            pass
 
     ip = data["ip"]
     master_port = data['port']
@@ -1831,6 +1714,7 @@ def doFullSync(version=''):
 
     try:
         # ssh.load_system_host_keys()
+        mw.execShell("chmod 600 " + SSH_PRIVATE_KEY)
         key = paramiko.RSAKey.from_private_key_file(SSH_PRIVATE_KEY)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         print(ip, master_port)
@@ -1877,7 +1761,7 @@ def doFullSync(version=''):
         ' -U ' + username + ' --password'
     print(cmd)
 
-    cmd_tmp = getPluginDir() + "/cmd_run.sh"
+    cmd_tmp = "/tmp/cmd_run.sh"
 
     cmd_tmp_data = """#!/bin/expect
 spawn %s
@@ -1889,26 +1773,13 @@ interact
 """ % (cmd, password)
 
     mw.writeFile(cmd_tmp, cmd_tmp_data)
-    if os.path.exists(cmd_tmp):
-        try:
-            os.chmod(cmd_tmp, 0o600)
-        except:
-            pass
 
     os.system("expect " + cmd_tmp)
 
     writeDbSyncStatus({'code': 6, 'msg': '从库重启完成...', 'progress': 100})
 
-    if os.path.exists(SSH_PRIVATE_KEY):
-        try:
-            os.remove(SSH_PRIVATE_KEY)
-        except:
-            pass
-    if os.path.exists(cmd_tmp):
-        try:
-            os.remove(cmd_tmp)
-        except:
-            pass
+    os.system("rm -rf " + SSH_PRIVATE_KEY)
+    os.system("rm -rf " + cmd_tmp)
     return True
 
 

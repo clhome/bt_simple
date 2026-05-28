@@ -1,6 +1,6 @@
 {
 	"hook":["database"],
-	"sort": 100,
+	"sort": 6,
 	"title":"PostgreSQL",
 	"tip":"soft",
 	"name":"postgresql",
@@ -13,8 +13,8 @@
 	"shell":"install.sh",
 	"checks":"server/pgsql",
 	"path":"server/pgsql",
-	"author":"postgresql & yufeng tec",
+	"author":"postgresql",
 	"home":"https://www.postgresql.org/",
-	"date":"2026-05-28",
+	"date":"2022-08-07",
 	"pid": "2"
 }

@@ -12,7 +12,7 @@ sysName=`uname`
 
 postgreDir=${serverPath}/source/postgresql
 
-VERSION=16.14
+VERSION=14.18
 
 # su - postgres -c "/www/server/pgsql/bin/pg_ctl start -D /www/server/pgsql/data"
 
@@ -116,7 +116,7 @@ Uninstall_App()
 	if [ -d $serverPath/pgsql ];then
 		rm -rf $serverPath/pgsql
 	fi
-
+	
 	echo '卸载[postgresql]完成'
 }
 
