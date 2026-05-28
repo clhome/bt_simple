@@ -35,48 +35,66 @@ load_vars() {
 	OS=$(uname | tr '[:upper:]' '[:lower:]')
 	TARGET_DIR="$serverPath/nezha/dashboard"
 
-
-	    ## China_IP
-    if [[ -z "${CN}" ]]; then
-        if [[ $(curl -m 10 -s https://ipapi.co/json | grep 'China') != "" ]]; then
-            CN=true
-        fi
-    fi
-    
-    if [[ -z "${CN}" ]]; then
-        GITHUB_RAW_URL="raw.githubusercontent.com/midoks/nezha/main"
-        GITHUB_URL="github.com"
-    else
-        GITHUB_RAW_URL="cdn.jsdelivr.net/gh/midoks/nezha@main"
-        GITHUB_URL="dn-dao-github-mirror.daocloud.io"
-    fi
-
-    echo $GITHUB_RAW_URL
-    echo $GITHUB_URL
+	# 检测是否为中国大陆网络环境（通过快速测试 github.com 连接度判定）
+	if [[ -z "${CN}" ]]; then
+		if ! curl -I -s --connect-timeout 3 https://github.com > /dev/null; then
+			CN=true
+		fi
+	fi
 }
 
-# download file
-download_file() {
-    url="${1}"
-    destination="${2}"
+# 高可用下载与多镜像源自动 fallback 重试引擎
+download_file_with_fallback() {
+	local raw_url="${1}"
+	local destination="${2}"
 
-    printf "Fetching ${url} \n\n"
+	# 提取 github.com 之后的相对路径
+	local github_path=$(echo "${raw_url}" | sed 's|https://github.com/||')
 
-    if test -x "$(command -v curl)"; then
-        code=$(curl --connect-timeout 15 -w '%{http_code}' -L "${url}" -o "${destination}")
-    elif test -x "$(command -v wget)"; then
-        code=$(wget -t2 -T15 -O "${destination}" --server-response "${url}" 2>&1 | awk '/^  HTTP/{print $2}' | tail -1)
-    else
-        printf "\e[1;31mNeither curl nor wget was available to perform http requests.\e[0m\n"
-        exit 1
-    fi
+	# 定义高可用镜像列表
+	local proxies=(
+		"https://ghproxy.net/https://github.com/"
+		"https://mirror.ghproxy.com/https://github.com/"
+		"https://gh-proxy.com/https://github.com/"
+		"https://github.com/"
+	)
 
-    if [ "${code}" != 200 ]; then
-        printf "\e[1;31mRequest failed with code %s\e[0m\n" $code
-        exit 1
-    else 
-	    printf "\n\e[1;33mDownload succeeded\e[0m\n"
-    fi
+	if [[ "${CN}" != "true" ]]; then
+		# 海外直接拉取，如果超时则回退到代理镜像
+		proxies=(
+			"https://github.com/"
+			"https://gh-proxy.com/https://github.com/"
+		)
+	fi
+
+	local success=false
+	for proxy in "${proxies[@]}"; do
+		local download_url="${proxy}${github_path}"
+		printf "Fetching %s\n" "${download_url}"
+
+		if test -x "$(command -v curl)"; then
+			code=$(curl --connect-timeout 10 -sL -w '%{http_code}' "${download_url}" -o "${destination}")
+		elif test -x "$(command -v wget)"; then
+			code=$(wget -q -t2 -T10 -O "${destination}" --server-response "${download_url}" 2>&1 | awk '/^  HTTP/{print $2}' | tail -1)
+		else
+			printf "\e[1;31mNeither curl nor wget was available to perform requests.\e[0m\n"
+			exit 1
+		fi
+
+		if [ "${code}" == "200" ]; then
+			printf "\n\e[1;32mDownload succeeded via %s\e[0m\n" "${proxy}"
+			success=true
+			break
+		else
+			printf "\e[1;31mDownload failed with code %s via %s, trying next source...\e[0m\n" "${code}" "${proxy}"
+			rm -f "${destination}"
+		fi
+	done
+
+	if [ "${success}" != "true" ]; then
+		printf "\e[1;31mAll download mirror sources failed!\e[0m\n"
+		exit 1
+	fi
 }
 
 
@@ -85,20 +103,31 @@ Install_dashborad(){
 	mkdir -p $serverPath/source
 
 	if [ ! -f $TARGET_DIR/nezha ];then
-
-		DOWNLOAD_URL="https://${GITHUB_URL}/midoks/nezha/releases/download/v${VERSION}/nezha-${OS}-${ARCH}.zip"
-
+		DOWNLOAD_URL="https://github.com/midoks/nezha/releases/download/v${VERSION}/nezha-${OS}-${ARCH}.zip"
 		DOWNLOAD_FILE="$(mktemp).zip"
-		download_file $DOWNLOAD_URL $DOWNLOAD_FILE
+		
+		download_file_with_fallback "${DOWNLOAD_URL}" "${DOWNLOAD_FILE}"
+
+		if [ ! -f "${DOWNLOAD_FILE}" ]; then
+			echo "下载失败，压缩包文件不存在！"
+			exit 1
+		fi
+
+		# 验证压缩包有效性，防止空文件残留破坏后续安装
+		unzip -t "${DOWNLOAD_FILE}" &>/dev/null
+		if [ "$?" != "0" ]; then
+			echo "下载的压缩包已损坏，自动清理残留..."
+			rm -f "${DOWNLOAD_FILE}"
+			exit 1
+		fi
 
 		if [ ! -d $TARGET_DIR ]; then
 			mkdir -p $TARGET_DIR
 		fi
 
-		unzip $DOWNLOAD_FILE -d $TARGET_DIR
-		rm -rf $DOWNLOAD_FILE
+		unzip "${DOWNLOAD_FILE}" -d $TARGET_DIR
+		rm -rf "${DOWNLOAD_FILE}"
 	fi
-
 }
 
 Install_agent(){
@@ -106,21 +135,33 @@ Install_agent(){
 	mkdir -p $serverPath/source
 
 	version=v0.15.1
-
 	AGENT_TARGET_DIR="$serverPath/nezha/agent"
 
-	DOWNLOAD_URL="https://${GITHUB_URL}/nezhahq/agent/releases/download/${version}/nezha-agent_${OS}_${ARCH}.zip"
-	DOWNLOAD_FILE="$(mktemp).zip"
-
 	if [ ! -f $AGENT_TARGET_DIR/nezha-agent ];then
-		download_file $DOWNLOAD_URL $DOWNLOAD_FILE
+		DOWNLOAD_URL="https://github.com/nezhahq/agent/releases/download/${version}/nezha-agent_${OS}_${ARCH}.zip"
+		DOWNLOAD_FILE="$(mktemp).zip"
+
+		download_file_with_fallback "${DOWNLOAD_URL}" "${DOWNLOAD_FILE}"
+
+		if [ ! -f "${DOWNLOAD_FILE}" ]; then
+			echo "Agent下载失败，文件不存在！"
+			exit 1
+		fi
+
+		# 验证压缩包有效性
+		unzip -t "${DOWNLOAD_FILE}" &>/dev/null
+		if [ "$?" != "0" ]; then
+			echo "Agent压缩包已损坏，自动清理..."
+			rm -f "${DOWNLOAD_FILE}"
+			exit 1
+		fi
 
 		if [ ! -d $AGENT_TARGET_DIR ]; then
 			mkdir -p $AGENT_TARGET_DIR
 		fi
 	
-		unzip $DOWNLOAD_FILE -d $AGENT_TARGET_DIR
-		rm -rf $DOWNLOAD_FILE
+		unzip "${DOWNLOAD_FILE}" -d $AGENT_TARGET_DIR
+		rm -rf "${DOWNLOAD_FILE}"
 	fi
 }
 

@@ -35,45 +35,17 @@ class App:
     def getArgs(self):
         args = sys.argv[3:]
         tmp = {}
-        if not args:
-            return tmp
-
-        # 尝试阶段1：直接将所有的 argv 合并作为一个完整的 JSON 解析
-        try:
-            full_str = " ".join(args)
-            full_str = full_str.strip().strip("'").strip('"')
-            parsed = json.loads(full_str)
-            if isinstance(parsed, dict):
-                return parsed
-        except Exception:
-            pass
-
-        # 尝试阶段2：尝试把单个 sys.argv[3] 作为 JSON 解析
-        try:
-            arg_str = args[0].strip().strip("'").strip('"')
-            parsed = json.loads(arg_str)
-            if isinstance(parsed, dict):
-                return parsed
-        except Exception:
-            pass
-
-        # 尝试阶段3：兼容原有的基于冒号切割方式
         args_len = len(args)
+
         if args_len == 1:
-            t = args[0].strip('{').strip('}').strip().strip("'").strip('"')
-            parts = t.split(':', 1)
-            if len(parts) > 1:
-                key = parts[0].strip().strip("'").strip('"')
-                val = parts[1].strip().strip("'").strip('"')
-                tmp[key] = val
+            t = args[0].strip('{').strip('}')
+            t = t.split(':', 1)
+            tmp[t[0]] = t[1]
         elif args_len > 1:
-            for i in range(args_len):
-                t = args[i].strip('{').strip('}').strip().strip("'").strip('"')
-                parts = t.split(':', 1)
-                if len(parts) > 1:
-                    key = parts[0].strip().strip("'").strip('"')
-                    val = parts[1].strip().strip("'").strip('"')
-                    tmp[key] = val
+            for i in range(len(args)):
+                t = args[i].split(':', 1)
+                tmp[t[0]] = t[1]
+
         return tmp
 
     def checkArgs(self, data, ck=[]):
@@ -130,14 +102,6 @@ class App:
             return 'root'
 
     def status(self):
-        if not mw.isAppleSystem():
-            # 使用 systemctl is-active 更加标准、轻量和精准
-            cmd = "systemctl is-active nezha"
-            data = mw.execShell(cmd)
-            if data[0].strip() == "active":
-                return "start"
-            return "stop"
-
         cmd = "ps -ef|grep " + self.getPluginName() + \
             " |grep -v grep | grep -v nezha-agent | grep -v python | awk '{print $2}'"
         data = mw.execShell(cmd)
@@ -146,14 +110,6 @@ class App:
         return 'start'
 
     def status_agent(self):
-        if not mw.isAppleSystem():
-            # 使用 systemctl is-active 更加精准
-            cmd = "systemctl is-active nezha-agent"
-            data = mw.execShell(cmd)
-            if data[0].strip() == "active":
-                return "start"
-            return "stop"
-
         cmd = "ps -ef | grep nezha-agent | grep -v grep | grep -v python | awk '{print $2}'"
         data = mw.execShell(cmd)
         if data[0] == '':
@@ -405,22 +361,8 @@ class App:
 if __name__ == "__main__":
     func = sys.argv[1]
     classApp = App()
-
-    # 限制只能调用以字母开头的合法 Python 方法名，杜绝利用双下划线绕过
-    if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', func):
-        print('error: invalid function name')
-        sys.exit(1)
-
     try:
-        # 使用 getattr 安全反射调用，彻底消灭 eval 漏洞
-        if hasattr(classApp, func):
-            method = getattr(classApp, func)
-            if callable(method):
-                data = method()
-                print(data)
-            else:
-                print('error: method not callable')
-        else:
-            print('error: method not found')
+        data = eval("classApp." + func + "()")
+        print(data)
     except Exception as e:
         print('error:' + str(e))
