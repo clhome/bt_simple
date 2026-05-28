@@ -423,7 +423,8 @@ def initMariaDbPwd():
     db_option = "-S " + getSocketFile()
     cmd_pass = serverdir + '/bin/mysql ' + db_option + ' -uroot -e'
     cmd_pass = cmd_pass + \
-        "\"flush privileges;use mysql;grant all privileges on *.* to 'root'@'localhost' identified by '" + pwd + "';"
+        "\"flush privileges;use mysql;ALTER USER 'root'@'localhost' IDENTIFIED BY '" + pwd + "';"
+    cmd_pass = cmd_pass + "grant all privileges on *.* to 'root'@'localhost' with grant option;"
     cmd_pass = cmd_pass + "flush privileges;\""
 
     # print(cmd_pass)
@@ -789,9 +790,15 @@ def setDbBackup():
     if not data[0]:
         return data[1]
 
+    name = args['name']
+    if not re.match(r"^[\w\.-]+$", name):
+        return mw.returnJson(False, '数据库名称不合法!')
+
     scDir = getPluginDir() + '/scripts/backup.py'
-    cmd = 'python3 ' + scDir + ' database ' + args['name'] + ' 3'
-    os.system(cmd)
+    import subprocess
+    cmd = ['python3', scDir, 'database', name, '3']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p.communicate()
     return mw.returnJson(True, 'ok')
 
 
@@ -804,20 +811,36 @@ def importDbBackup():
     file = args['file']
     name = args['name']
 
+    if not re.match(r"^[\w\.-]+$", name):
+        return mw.returnJson(False, '数据库名称不合法!')
+    if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz)?$", file):
+        return mw.returnJson(False, '文件名不合法!')
+
     file_path = getBackupDir() + '/' + file
     file_path_sql = getBackupDir() + '/' + file.replace('.gz', '')
 
+    import subprocess
     if not os.path.exists(file_path_sql):
-        cmd = 'cd ' + mw.getBackupDir() + '/database/mariadb && gzip -d ' + file
-        mw.execShell(cmd)
+        p = subprocess.Popen(['gzip', '-d', file_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p.communicate()
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
-    mysql_cmd = getServerDir() + '/bin/mariadb -S ' + sock + ' -uroot -p' + pwd + \
-        ' ' + name + ' < ' + file_path_sql
 
-    # print(mysql_cmd)
-    os.system(mysql_cmd)
+    mysql_bin = getServerDir() + '/bin/mariadb'
+    if not os.path.exists(mysql_bin):
+        mysql_bin = getServerDir() + '/bin/mysql'
+
+    cmd = [mysql_bin, '-S', sock, '-uroot', '-p' + pwd, name]
+    try:
+        with open(file_path_sql, 'r', encoding='utf-8', errors='ignore') as f:
+            p = subprocess.Popen(cmd, stdin=f, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+            if p.returncode != 0:
+                return mw.returnJson(False, '导入失败: ' + stderr.decode('utf-8', errors='ignore'))
+    except Exception as e:
+        return mw.returnJson(False, '导入过程发生异常: ' + str(e))
+
     return mw.returnJson(True, 'ok')
 
 
@@ -837,6 +860,11 @@ def importDbExternal():
     file = args['file']
     name = args['name']
 
+    if not re.match(r"^[\w\.-]+$", name):
+        return mw.returnJson(False, '数据库名称不合法!')
+    if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz|zip)?$", file):
+        return mw.returnJson(False, '文件名不合法!')
+
     import_dir = mw.getBackupDir() + '/import/'
 
     file_path = import_dir + file
@@ -849,49 +877,67 @@ def importDbExternal():
     if ext not in exts:
         return mw.returnJson(False, '导入数据库格式不对!')
 
-    tmp = file.split('/')
-    tmpFile = tmp[len(tmp) - 1]
+    tmpFile = file.split('/')[-1]
     tmpFile = tmpFile.replace('.sql.' + ext, '.sql')
     tmpFile = tmpFile.replace('.' + ext, '.sql')
     tmpFile = tmpFile.replace('tar.', '')
 
-    # print(tmpFile)
     import_sql = ""
+    import subprocess
+
     if file.find("sql.gz") > -1:
-        cmd = 'cd ' + import_dir + ' && gzip -dc ' + \
-            file + " > " + import_dir + tmpFile
-        info = mw.execShell(cmd)
-        if info[1] == "":
+        try:
+            with open(import_dir + tmpFile, 'wb') as out_f:
+                p = subprocess.Popen(['gzip', '-dc', file_path], stdout=out_f, stderr=subprocess.PIPE)
+                p.communicate()
             import_sql = import_dir + tmpFile
+        except Exception as e:
+            return mw.returnJson(False, '解压 gzip 发生异常: ' + str(e))
 
-    if file.find(".zip") > -1:
-        cmd = 'cd ' + import_dir + ' && unzip -o ' + file
-        mw.execShell(cmd)
-        import_sql = import_dir + tmpFile
+    elif file.find(".zip") > -1:
+        try:
+            p = subprocess.Popen(['unzip', '-o', file_path, '-d', import_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
+            import_sql = import_dir + tmpFile
+        except Exception as e:
+            return mw.returnJson(False, '解压 zip 发生异常: ' + str(e))
 
-    if file.find("tar.gz") > -1:
-        cmd = 'cd ' + import_dir + ' && tar -zxvf ' + file
-        mw.execShell(cmd)
-        import_sql = import_dir + tmpFile
+    elif file.find("tar.gz") > -1:
+        try:
+            p = subprocess.Popen(['tar', '-zxvf', file_path, '-C', import_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
+            import_sql = import_dir + tmpFile
+        except Exception as e:
+            return mw.returnJson(False, '解压 tar.gz 发生异常: ' + str(e))
 
-    if file.find(".sql") > -1 and file.find(".sql.gz") == -1:
+    elif file.find(".sql") > -1 and file.find(".sql.gz") == -1:
         import_sql = import_dir + file
 
-    if import_sql == "":
-        return mw.returnJson(False, '未找SQL文件')
+    if import_sql == "" or not os.path.exists(import_sql):
+        return mw.returnJson(False, '未找到SQL文件')
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
 
-    os.environ["MYSQL_PWD"] = pwd
-    mysql_cmd = getServerDir() + '/bin/mariadb -S ' + sock + ' -uroot -p"' + \
-        pwd + '" ' + name + ' < "' + import_sql+'"'
+    mysql_bin = getServerDir() + '/bin/mariadb'
+    if not os.path.exists(mysql_bin):
+        mysql_bin = getServerDir() + '/bin/mysql'
 
-    # print(mysql_cmd)
-    os.system(mysql_cmd)
+    cmd = [mysql_bin, '-S', sock, '-uroot', '-p' + pwd, name]
+    try:
+        with open(import_sql, 'r', encoding='utf-8', errors='ignore') as f:
+            p = subprocess.Popen(cmd, stdin=f, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+            if p.returncode != 0:
+                return mw.returnJson(False, '导入失败: ' + stderr.decode('utf-8', errors='ignore'))
+    except Exception as e:
+        return mw.returnJson(False, '导入过程发生异常: ' + str(e))
 
     if ext != 'sql':
-        os.remove(import_sql)
+        try:
+            os.remove(import_sql)
+        except:
+            pass
 
     return mw.returnJson(True, 'ok')
 
@@ -917,6 +963,11 @@ def importDbExternalProgressBar():
     file = args['file']
     name = args['name']
 
+    if not re.match(r"^[\w\.-]+$", name):
+        return mw.returnJson(False, '数据库名称不合法!')
+    if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz|zip)?$", file):
+        return mw.returnJson(False, '文件名不合法!')
+
     import_dir = mw.getFatherDir() + '/backup/import/'
 
     file_path = import_dir + file
@@ -928,46 +979,65 @@ def importDbExternalProgressBar():
     if ext not in exts:
         return mw.returnJson(False, '导入数据库格式不对!')
 
-    tmp = file.split('/')
-    tmpFile = tmp[len(tmp) - 1]
+    tmpFile = file.split('/')[-1]
     tmpFile = tmpFile.replace('.sql.' + ext, '.sql')
     tmpFile = tmpFile.replace('.' + ext, '.sql')
     tmpFile = tmpFile.replace('tar.', '')
 
-    # print(tmpFile)
     import_sql = ""
+    import subprocess
+
     if file.find("sql.gz") > -1:
-        cmd = 'cd ' + import_dir + ' && gzip -dc ' + \
-            file + " > " + import_dir + tmpFile
-        info = mw.execShell(cmd)
-        if info[1] == "":
+        try:
+            with open(import_dir + tmpFile, 'wb') as out_f:
+                p = subprocess.Popen(['gzip', '-dc', file_path], stdout=out_f, stderr=subprocess.PIPE)
+                p.communicate()
             import_sql = import_dir + tmpFile
+        except Exception as e:
+            return mw.returnJson(False, '解压 gzip 发生异常: ' + str(e))
 
-    if file.find(".zip") > -1:
-        cmd = 'cd ' + import_dir + ' && unzip -o ' + file
-        mw.execShell(cmd)
-        import_sql = import_dir + tmpFile
+    elif file.find(".zip") > -1:
+        try:
+            p = subprocess.Popen(['unzip', '-o', file_path, '-d', import_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
+            import_sql = import_dir + tmpFile
+        except Exception as e:
+            return mw.returnJson(False, '解压 zip 发生异常: ' + str(e))
 
-    if file.find("tar.gz") > -1:
-        cmd = 'cd ' + import_dir + ' && tar -zxvf ' + file
-        mw.execShell(cmd)
-        import_sql = import_dir + tmpFile
+    elif file.find("tar.gz") > -1:
+        try:
+            p = subprocess.Popen(['tar', '-zxvf', file_path, '-C', import_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
+            import_sql = import_dir + tmpFile
+        except Exception as e:
+            return mw.returnJson(False, '解压 tar.gz 发生异常: ' + str(e))
 
-    if file.find(".sql") > -1 and file.find(".sql.gz") == -1:
+    elif file.find(".sql") > -1 and file.find(".sql.gz") == -1:
         import_sql = import_dir + file
 
-    if import_sql == "":
-        return mw.returnJson(False, '未找SQL文件')
+    if import_sql == "" or not os.path.exists(import_sql):
+        return mw.returnJson(False, '未找到SQL文件')
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
 
     my_cnf = getConf()
-    mysql_cmd = getServerDir() + '/bin/mariadb --defaults-file=' + my_cnf + \
-        ' -uroot -p"' + pwd + '" -f ' + name
-    mysql_cmd_progress_bar = "pv -t -p " + import_sql + '|'+ mysql_cmd
-    print(mysql_cmd_progress_bar)
-    rdata = os.system(mysql_cmd_progress_bar)
+    mysql_bin = getServerDir() + '/bin/mariadb'
+    if not os.path.exists(mysql_bin):
+        mysql_bin = getServerDir() + '/bin/mysql'
+
+    pv_cmd = ['pv', '-t', '-p', import_sql]
+    mysql_cmd = [mysql_bin, '--defaults-file=' + my_cnf, '-uroot', '-p' + pwd, '-f', name]
+
+    try:
+        p_pv = subprocess.Popen(pv_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p_mysql = subprocess.Popen(mysql_cmd, stdin=p_pv.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p_pv.stdout.close()
+        stdout, stderr = p_mysql.communicate()
+        p_pv.communicate()
+    except Exception as e:
+        pass
+
     return ""
 
 
@@ -1251,15 +1321,17 @@ def setUserPwd(version=''):
         data = psdb.field('id,name,accept').where('id=?', (uid,)).find()
 
         cmd = "SET PASSWORD FOR '" + username + \
-            "'@'localhost' = PASSWORD('" + newpassword + "')"
+            "'@'localhost' = '" + newpassword + "'"
         r = pdb.execute(cmd)
         # print(cmd, r)
 
         accept = data['accept']
         alist = accept.split(',')
         for x in alist:
+            if x.strip() == '':
+                continue
             cmd = "SET PASSWORD FOR '" + username + \
-                "'@'" + x + "' = PASSWORD('" + newpassword + "')"
+                "'@'" + x + "' = '" + newpassword + "'"
             r = pdb.execute(cmd)
             # print(cmd, r)
 
@@ -1462,7 +1534,8 @@ def resetDbRootPwd(version):
     db_option = "-S " + getSocketFile()
     cmd_pass = serverdir + '/bin/mariadb ' + db_option + ' -uroot -e'
     cmd_pass = cmd_pass + \
-        "\"flush privileges;use mysql;grant all privileges on *.* to 'root'@'localhost' identified by '" + pwd + "';"
+        "\"flush privileges;use mysql;ALTER USER 'root'@'localhost' IDENTIFIED BY '" + pwd + "';"
+    cmd_pass = cmd_pass + "grant all privileges on *.* to 'root'@'localhost' with grant option;"
     cmd_pass = cmd_pass + "flush privileges;\""
 
     data = mw.execShell(cmd_pass)
@@ -2038,18 +2111,22 @@ def addMasterRepSlaveUser(version=''):
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
 
-    if psdb.where("username=?", (username)).count() > 0:
+    if psdb.where("username=?", (username,)).count() > 0:
         return mw.returnJson(False, '用户已存在!')
 
-    sql = "GRANT REPLICATION SLAVE ON *.* TO  '" + username + \
-        "'@'%' identified by '" + password + "';"
+    sql_create = "CREATE USER IF NOT EXISTS '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    pdb.execute(sql_create)
+    sql_alter = "ALTER USER '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    pdb.execute(sql_alter)
+
+    sql = "GRANT REPLICATION SLAVE ON *.* TO '" + username + "'@'%';"
     result = pdb.execute(sql)
 
     isError = isSqlError(result)
     if isError != None:
         return isError
 
-    sql_select = "grant select,reload,REPLICATION CLIENT,PROCESS on *.* to " + username + "@'%';"
+    sql_select = "grant select,reload,REPLICATION CLIENT,PROCESS on *.* to '" + username + "'@'%';"
     pdb.execute(sql_select)
     pdb.execute('FLUSH PRIVILEGES;')
 
@@ -2210,15 +2287,24 @@ def updateMasterRepSlaveUser(version=''):
     if not data[0]:
         return data[1]
 
+    username = args['username']
+    password = args['password']
+    if not re.match(r"^[\w\.-]+$", username):
+        return mw.returnJson(False, '用户名不合法!')
+
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
-    pdb.execute("drop user '" + args['username'] + "'@'%'")
+    pdb.execute("drop user '" + username + "'@'%'")
 
-    pdb.execute("GRANT REPLICATION SLAVE ON *.* TO  '" +
-                args['username'] + "'@'%' identified by '" + args['password'] + "'")
+    sql_create = "CREATE USER IF NOT EXISTS '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    pdb.execute(sql_create)
+    sql_alter = "ALTER USER '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
+    pdb.execute(sql_alter)
 
-    psdb.where("username=?", (args['username'],)).save(
-        'password', args['password'])
+    pdb.execute("GRANT REPLICATION SLAVE ON *.* TO '" + username + "'@'%';")
+
+    psdb.where("username=?", (username,)).save(
+        'password', password)
 
     return mw.returnJson(True, '更新成功!')
 
@@ -2770,6 +2856,8 @@ def syncDatabaseRepairTempFile():
 
 def syncDatabaseRepairLog(version=''):
     import subprocess
+    import sys
+    import json
     args = getArgs()
     data = checkArgs(args, ['db','sign','op'])
     if not data[0]:
@@ -2778,9 +2866,18 @@ def syncDatabaseRepairLog(version=''):
     sync_args_db = args['db']
     sync_args_sign = args['sign']
     op = args['op']
+
+    if not re.match(r"^[\w\.-]+$", sync_args_db):
+        return mw.returnJson(False, '数据库名称不合法!')
+    if not re.match(r"^[\w\.-]+$", sync_args_sign):
+        return mw.returnJson(False, '签名不合法!')
+
     tmp_log = syncDatabaseRepairTempFile()
-    cmd = 'cd '+mw.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mariadb/index.py sync_database_repair  {"db":"'+sync_args_db+'","sign":"'+sync_args_sign+'"}'
-    # print(cmd)
+    json_args = json.dumps({"db": sync_args_db, "sign": sync_args_sign})
+    script_path = mw.getPluginDir() + '/mariadb/index.py'
+    cmd_list = [sys.executable, script_path, 'sync_database_repair', json_args]
+
+    cmd = 'python3 ' + script_path + ' sync_database_repair ' + json_args
 
     if op == 'get':
         log = mw.getLastLine(tmp_log, 15)
@@ -2790,11 +2887,14 @@ def syncDatabaseRepairLog(version=''):
         return mw.returnJson(True, 'ok', cmd)
 
     if op == 'do':
-        os.system(' echo "开始执行" > '+ tmp_log)
-        os.system(cmd +' >> '+ tmp_log +' &')
-        # time.sleep(10)
-        # mw.execShell('rm -rf '+tmp_log)
-        return mw.returnJson(True, 'ok')
+        try:
+            with open(tmp_log, 'w', encoding='utf-8') as f:
+                f.write("开始执行\n")
+            log_file = open(tmp_log, 'a', encoding='utf-8')
+            subprocess.Popen(cmd_list, stdout=log_file, stderr=log_file)
+            return mw.returnJson(True, 'ok')
+        except Exception as e:
+            return mw.returnJson(False, '启动修复失败: ' + str(e))
 
     return mw.returnJson(False, '无效请求!')
 
