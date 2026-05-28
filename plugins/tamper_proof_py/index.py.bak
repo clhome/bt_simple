@@ -338,7 +338,7 @@ class App:
     def getNumLines(self, path, num, p=1):
         pyVersion = sys.version_info[0]
         try:
-            import html
+            import cgi
             if not os.path.exists(path):
                 return ""
             start_line = (p - 1) * num
@@ -359,7 +359,7 @@ class App:
                         if n >= start_line:
                             line = buf[newline_pos + 1:]
                             try:
-                                data.append(json.loads(html.escape(line, quote=False)))
+                                data.append(json.loads(cgi.escape(line)))
                             except:
                                 pass
                         buf = buf[:newline_pos]
@@ -623,10 +623,7 @@ if __name__ == "__main__":
     func = sys.argv[1]
     classApp = App()
     try:
-        if hasattr(classApp, func):
-            data = getattr(classApp, func)()
-            print(data)
-        else:
-            print(mw.returnJson(False, '方法不存在!'))
+        data = eval("classApp." + func + "()")
+        print(data)
     except Exception as e:
         print(mw.getTracebackInfo())
