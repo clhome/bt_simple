@@ -10,6 +10,34 @@ import json
 
 import core.mw as mw
 
+def safe_sql_identifier(val):
+    """
+    严格校验SQL标识符（数据库名、表名、字段名），防止任何SQL注入字符传入。
+    仅允许字母、数字、下划线、减号和点号。
+    """
+    if not val or not isinstance(val, str):
+        return False
+    if re.match(r'^[a-zA-Z0-9_\-\.]+$', val):
+        return True
+    return False
+
+def escape_string(val):
+    """
+    安全地对参数值进行MySQL转义，防单双引号逃逸和反斜杠注入。
+    """
+    if val is None:
+        return ""
+    if not isinstance(val, str):
+        val = str(val)
+    val = val.replace('\\', '\\\\')
+    val = val.replace("'", "\\'")
+    val = val.replace('"', '\\"')
+    val = val.replace('\x00', '\\x00')
+    val = val.replace('\n', '\\n')
+    val = val.replace('\r', '\\r')
+    val = val.replace('\x1a', '\\x1a')
+    return val
+
 def singleton(cls):
     _instance = {}
 
@@ -169,100 +197,126 @@ class nosqlMySQLCtr():
         return mw.returnData(True,'ok', result)
 
     def getTableList(self, args):
-        sid = args['sid']
-        db = args['db']
+        try:
+            sid = args['sid']
+            db = args['db']
 
-        my_instance = self.getInstanceBySid(sid).conn()
-        if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            if not safe_sql_identifier(db):
+                return mw.returnData(False, '非法数据库名参数！')
 
-        sql = "select * from information_schema.tables where table_schema = '"+db+"'"
-        table_list = my_instance.query(sql)
-        # print(table_list)
+            my_instance = self.getInstanceBySid(sid).conn()
+            if my_instance is False:
+                return mw.returnData(False, '无法连接数据库')
 
-        rlist = []
-        for x in table_list:
-            # print(x['TABLE_NAME'])
-            rlist.append(x['TABLE_NAME'])
-        result = {}
-        result['list'] = rlist
-        return mw.returnData(True,'ok', result)
+            sql = "select * from information_schema.tables where table_schema = '" + escape_string(db) + "'"
+            table_list = my_instance.query(sql)
+            if table_list is None:
+                return mw.returnData(False, '获取表列表失败')
+
+            rlist = []
+            for x in table_list:
+                rlist.append(x['TABLE_NAME'])
+            result = {}
+            result['list'] = rlist
+            return mw.returnData(True, 'ok', result)
+        except Exception as e:
+            return mw.returnData(False, '获取表列表发生异常: ' + str(e))
+
 
     def getDataList(self, args):
-        sid = args['sid']
-        db = args['db']
-        table = args['table']
-        if table == '':
+        try:
+            sid = args['sid']
+            db = args['db']
+            table = args['table']
+            if table == '':
+                page_args = {}
+                page_args['count'] = 0
+                page_args['tojs'] = 'mysqlGetDataList'
+                page_args['p'] = 1
+                page_args['row'] = 10
+
+                rdata = {}
+                rdata['page'] = mw.getPage(page_args)
+                rdata['list'] = []
+                rdata['count'] = 0
+                return mw.returnData(True,'ok', rdata)
+
+            if not safe_sql_identifier(db) or not safe_sql_identifier(table):
+                return mw.returnData(False, '非法库名或表名参数！')
+
+            p = 1
+            size = 10
+            if 'p' in args:
+                try:
+                    p = int(args['p'])
+                except:
+                    p = 1
+
+            if 'size' in args:
+                try:
+                    size = int(args['size'])
+                except:
+                    size = 10
+
+            start_index = (p - 1) * size
+            if start_index < 0:
+                start_index = 0
+
+            args_where = {}
+            where_sql = ''
+            if 'where' in args:
+                args_where = args['where']
+                if 'field' in args_where and args_where['field'] != '':
+                    s_field = args_where['field']
+                    s_value = args_where['value']
+                    if not safe_sql_identifier(s_field):
+                        return mw.returnData(False, '非法字段名参数！')
+                    
+                    escaped_val = escape_string(s_value)
+                    if s_field == 'id' or s_field.find('id') > -1:
+                        where_sql = " where `" + s_field + "` = '" + escaped_val + "' "
+                    else:
+                        where_sql = " where `" + s_field + "` like '%" + escaped_val + "%' "
+
+            my_instance = self.getInstanceBySid(sid).conn()
+            if my_instance is False:
+                return mw.returnData(False,'无法链接')
+
+            my_instance.setDbName(db)
+            sql = 'select count(*) as num from `' + table + '`' + where_sql
+            count_result = my_instance.query(sql)
+            if count_result is None or len(count_result) == 0:
+                return mw.returnData(False, '查询数据量失败')
+            count = count_result[0]['num']
+
+            sql = 'select * from `' + table + '`' + where_sql + ' limit ' + str(int(start_index)) + ',' + str(int(size))
+            result = my_instance.query(sql)
+            if result is None:
+                result = []
+
+            for i in range(len(result)):
+                for f in result[i]:
+                    result[i][f] = str(result[i][f])
+
             page_args = {}
-            page_args['count'] = 0
+            page_args['count'] = count
             page_args['tojs'] = 'mysqlGetDataList'
-            page_args['p'] = 1
-            page_args['row'] = 10
+            page_args['p'] = p
+            page_args['row'] = size
 
             rdata = {}
             rdata['page'] = mw.getPage(page_args)
-            rdata['list'] = []
-            rdata['count'] = 0
-            return mw.returnData(True,'ok', rdata)
+            rdata['list'] = result
+            rdata['count'] = count
 
-        p = 1
-        size = 10
-        if 'p' in args:
-            p = args['p']
-
-        if 'size' in args:
-            size = args['size']
-
-        start_index = (p - 1) * size
-
-
-        args_where = {}
-        where_sql = ''
-        if 'where' in args:
-            args_where = args['where']
+            rdata['soso_field'] = ''
             if 'field' in args_where:
-                if args_where['field'] == 'id' or args_where['field'].find('id')>-1:
-                    where_sql = ' where '+args_where['field'] + " = '"+args_where['value']+"' "
-                else:
-                    where_sql = ' where '+args_where['field'] + " like '%"+args_where['value']+"%' "
+                rdata['soso_field'] = args_where['field']
 
-        my_instance = self.getInstanceBySid(sid).conn()
-        if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return mw.returnData(True,'ok', rdata)
+        except Exception as e:
+            return mw.returnData(False, '获取数据列表发生异常: ' + str(e))
 
-        my_instance.setDbName(db)
-        sql = 'select count(*) as num from ' + table + where_sql
-        # print(sql)
-        count_result = my_instance.query(sql)
-        count = count_result[0]['num']
-
-
-        sql = 'select * from ' + table + where_sql + ' limit '+str(start_index)+',10';
-        # print(sql)
-        result = my_instance.query(sql)
-
-        for i in range(len(result)):
-            for f in result[i]:
-                result[i][f] = str(result[i][f])
-
-        # print(result)
-
-        page_args = {}
-        page_args['count'] = count
-        page_args['tojs'] = 'mysqlGetDataList'
-        page_args['p'] = p
-        page_args['row'] = size
-
-        rdata = {}
-        rdata['page'] = mw.getPage(page_args)
-        rdata['list'] = result
-        rdata['count'] = count
-
-        rdata['soso_field'] = ''
-        if 'field' in args_where:
-            rdata['soso_field'] = args_where['field']
-
-        return mw.returnData(True,'ok', rdata)
 
     def showProcessList(self,args):
         sql = 'show processlist';
@@ -591,29 +645,44 @@ class nosqlMySQLCtr():
         return mw.returnData(True, 'ok', data)
 
     def killLockPid(self, args):
-        sid = args['sid']
-        my_instance = self.getInstanceBySid(sid).conn()
-        if my_instance is False:
-            return mw.returnData(False,'无法链接')
+        try:
+            sid = args['sid']
+            my_instance = self.getInstanceBySid(sid).conn()
+            if my_instance is False:
+                return mw.returnData(False, '无法连接数据库')
 
-        pid = args['pid']
-        my_instance.execute('kill %s' % pid)
-        return mw.returnData(True, '执行成功!')
+            pid = args['pid']
+            try:
+                safe_pid = int(pid)
+            except ValueError:
+                return mw.returnData(False, '非法的会话ID！')
+
+            my_instance.execute('kill %d' % safe_pid)
+            return mw.returnData(True, '执行成功!')
+        except Exception as e:
+            return mw.returnData(False, '杀死会话失败: ' + str(e))
 
     def killAllLock(self, args):
-        sid = args['sid']
-        my_instance = self.getInstanceBySid(sid).conn()
-        if my_instance is False:
-            return mw.returnData(False,'无法链接')
+        try:
+            sid = args['sid']
+            my_instance = self.getInstanceBySid(sid).conn()
+            if my_instance is False:
+                return mw.returnData(False, '无法连接数据库')
 
-        data = self.getLockSql(args)
-        if data['status']:
-            pid_data = data['data']
-            for x in pid_data:
-                cmd = 'kill %s' % x['processlist_id']
-                # print(cmd)
-                my_instance.execute(cmd)
-        return mw.returnData(True, '执行成功!')
+            data = self.getLockSql(args)
+            if data['status']:
+                pid_data = data['data']
+                for x in pid_data:
+                    try:
+                        safe_pid = int(x['processlist_id'])
+                        cmd = 'kill %d' % safe_pid
+                        my_instance.execute(cmd)
+                    except:
+                        pass
+            return mw.returnData(True, '执行成功!')
+        except Exception as e:
+            return mw.returnData(False, '杀死全部阻塞会话失败: ' + str(e))
+
 
     
 
