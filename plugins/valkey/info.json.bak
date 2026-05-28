@@ -10,8 +10,7 @@
 	"path": "server/valkey",
 	"display": 1,
 	"author": "valkey",
-	"ver": "1.1",
-	"date": "2026-05-29",
+	"date": "2024-12-08",
 	"home": "https://valkey.io/download/",
 	"type": 0,
 	"pid": "2"

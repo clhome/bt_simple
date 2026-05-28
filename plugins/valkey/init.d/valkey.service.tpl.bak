@@ -1,5 +1,5 @@
 [Unit]
-Description=Valkey In-Memory Data Store
+Description=Redis In-Memory Data Store
 After=network.target
 
 [Service]

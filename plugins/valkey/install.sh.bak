@@ -56,8 +56,8 @@ Install_App()
 		echo '安装失败!'
 	fi
 
-	if [ -d ${VALKEY_DIR}/valkey-${VERSION} ];then
-		rm -rf ${VALKEY_DIR}/valkey-${VERSION}
+	if [ -d ${REDIS_DIR}/valkey-${VERSION} ];then
+		rm -rf ${REDIS_DIR}/valkey-${VERSION}
 	fi
 }
 

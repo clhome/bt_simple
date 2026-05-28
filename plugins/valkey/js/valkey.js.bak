@@ -72,9 +72,9 @@ function redisStatus(version) {
                             <tr><th>uptime_in_days</th><td>' + rdata.uptime_in_days + '</td><td>已运行天数</td></tr>\
                             <tr><th>tcp_port</th><td>' + rdata.tcp_port + '</td><td>当前监听端口</td></tr>\
                             <tr><th>connected_clients</th><td>' + rdata.connected_clients + '</td><td>连接的客户端数量</td></tr>\
-                            <tr><th>used_memory_rss</th><td>' + toSize(rdata.used_memory_rss) + '</td><td>Valkey当前占用的系统内存总量</td></tr>\
-                            <tr><th>used_memory</th><td>' + toSize(rdata.used_memory) + '</td><td>Valkey当前已分配的内存总量</td></tr>\
-                            <tr><th>used_memory_peak</th><td>' + toSize(rdata.used_memory_peak) + '</td><td>Valkey历史分配内存的峰值</td></tr>\
+                            <tr><th>used_memory_rss</th><td>' + toSize(rdata.used_memory_rss) + '</td><td>Redis当前占用的系统内存总量</td></tr>\
+                            <tr><th>used_memory</th><td>' + toSize(rdata.used_memory) + '</td><td>Redis当前已分配的内存总量</td></tr>\
+                            <tr><th>used_memory_peak</th><td>' + toSize(rdata.used_memory_peak) + '</td><td>Redis历史分配内存的峰值</td></tr>\
                             <tr><th>mem_fragmentation_ratio</th><td>' + rdata.mem_fragmentation_ratio + '%</td><td>内存碎片比率</td></tr>\
                             <tr><th>total_connections_received</th><td>' + rdata.total_connections_received + '</td><td>运行以来连接过的客户端的总数量</td></tr>\
                             <tr><th>total_commands_processed</th><td>' + rdata.total_commands_processed + '</td><td>运行以来执行过的命令的总数量</td></tr>\
@@ -284,47 +284,14 @@ function valkeyReadme(){
     var cmd_01 = '/www/server/valkey/bin/valkey-cli --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 --cluster-replicas 0';
     var cmd_02 = '/www/server/valkey/bin/valkey-cli --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 --cluster-replicas 1';
 
-    var readme = '<style>\
-        .valkey-readme-card { background: var(--card-bg, #ffffff); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); padding: 24px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.03); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }\
-        .valkey-readme-card:hover { transform: translateY(-4px); }\
-        .valkey-readme-h { font-size: 16px; font-weight: 700; color: #1e293b; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }\
-        .valkey-readme-p { color: #64748b; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }\
-        .valkey-code-box { background: #0f172a; color: #38bdf8; padding: 16px 40px 16px 16px; border-radius: 8px; font-family: "Outfit", "Inter", monospace; font-size: 12px; position: relative; margin: 12px 0; overflow-x: auto; white-space: nowrap; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06); border: 1px solid rgba(255,255,255,0.05); }\
-        .valkey-copy-btn { position: absolute; right: 12px; top: 12px; background: rgba(255,255,255,0.1); border: none; color: #f8fafc; padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }\
-        .valkey-copy-btn:hover { background: #38bdf8; color: #0f172a; }\
-        .valkey-badge { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; }\
-    </style>\
-    <div class="pd15">\
-        <div class="valkey-readme-card">\
-            <h4 class="valkey-readme-h"><span class="glyphicon glyphicon-th-large"></span> 方案一：创建无副本单机多实例集群 <span class="valkey-badge">3 节点</span></h4>\
-            <p class="valkey-readme-p">此方案适用于本地开发测试环境，在单台物理机上部署 3 个 Valkey 节点（例如 6379, 6380, 6381 端口），直接横向构建无主从副本的切片集群：</p>\
-            <div class="valkey-code-box" id="valkey_cmd_1">' + cmd_01 + '\
-                <button class="valkey-copy-btn" onclick="copyValkeyText(\'' + cmd_01.replace(/'/g, "\\'") + '\')"><span class="glyphicon glyphicon-copy"></span> 复制</button>\
-            </div>\
-        </div>\
-        <div class="valkey-readme-card">\
-            <h4 class="valkey-readme-h"><span class="glyphicon glyphicon-transfer"></span> 方案二：创建高可用主从副本集群 <span class="valkey-badge">6 节点 (3主3从)</span></h4>\
-            <p class="valkey-readme-p">生产环境的标准集群架构，使用 6 个实例组建集群，并配置每个主节点携带 1 个从节点副本（`--cluster-replicas 1`），以实现自动故障转移和数据高可用防护：</p>\
-            <div class="valkey-code-box" id="valkey_cmd_2">' + cmd_02 + '\
-                <button class="valkey-copy-btn" onclick="copyValkeyText(\'' + cmd_02.replace(/'/g, "\\'") + '\')"><span class="glyphicon glyphicon-copy"></span> 复制</button>\
-            </div>\
-        </div>\
-    </div>';
+
+    var readme = '<ul class="help-info-text c7">';
+    readme += '<li>集群创建1</li>';
+    readme += '<li>'+cmd_01+'</li>';
+    readme += '<li>集群创建2</li>';
+    readme += '<li>'+cmd_02+'</li>';
+    readme += '</ul>';
 
     $('.soft-man-con').html(readme);   
 }
-
-window.copyValkeyText = function(text) {
-    var textarea = document.createElement("textarea");
-    textarea.value = text;
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-        document.execCommand("copy");
-        layer.msg("复制成功", { icon: 1, time: 1000 });
-    } catch (err) {
-        layer.msg("复制失败，请手动选定复制", { icon: 2 });
-    }
-    document.body.removeChild(textarea);
-};
 

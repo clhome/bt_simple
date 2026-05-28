@@ -1,46 +1,43 @@
 #!/bin/sh
 # chkconfig: 2345 55 25
-# description: Valkey Service
+# description: Redis Service
 
 ### BEGIN INIT INFO
-# Provides:          Valkey
+# Provides:          Redis
 # Required-Start:    $all
 # Required-Stop:     $all
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts Valkey
+# Short-Description: starts Redis
 # Description:       starts the MDW-Web
 ### END INIT INFO
 
-# Simple Valkey init.d script conceived to work on Linux systems
+# Simple Redis init.d script conceived to work on Linux systems
 # as it does use of the /proc filesystem.
 
 CONF="{$SERVER_PATH}/valkey/valkey.conf"
-VALKEYPORT=$(cat $CONF |grep port|grep -v '#'|awk '{print $2}')
-VALKEYPASS=$(cat $CONF |grep requirepass|grep -v '#'|awk '{print $2}')
-if [ "$VALKEYPASS" != "" ];then
-	VALKEYPASS=" -a $VALKEYPASS"
+REDISPORT=$(cat $CONF |grep port|grep -v '#'|awk '{print $2}')
+REDISPASS=$(cat $CONF |grep requirepass|grep -v '#'|awk '{print $2}')
+if [ "$REDISPASS" != "" ];then
+	REDISPASS=" -a $REDISPASS"
 fi
 EXEC={$SERVER_PATH}/valkey/bin/valkey-server
-CLIEXEC="{$SERVER_PATH}/valkey/bin/valkey-cli -p $VALKEYPORT$VALKEYPASS"
+CLIEXEC="{$SERVER_PATH}/valkey/bin/valkey-cli -p $REDISPORT$REDISPASS"
 PIDFILE={$SERVER_PATH}/valkey/valkey.pid
 
-echo $VALKEYPASS
-echo $VALKEYPORT
+echo $REDISPASS
+echo $REDISPORT
 echo $CLIEXEC
 
 mkdir -p {$SERVER_PATH}/valkey/data
 
 valkey_start(){
 	if [ -f $PIDFILE ];then
-		PID=$(cat $PIDFILE)
-		if [ -d /proc/${PID} ];then
-			kill -9 ${PID}
-		fi
+		kill -9 `cat $PIDFILE`
 	fi
 	
 	echo "Starting valkey server..."
-	$EXEC $CONF
+	nohup $EXEC $CONF >> {$SERVER_PATH}/valkey/logs.pl 2>&1 &
 }
 
 valkey_stop(){
