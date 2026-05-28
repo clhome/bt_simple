@@ -1,5 +1,5 @@
 {
-	"sort": 4,
+	"sort": 100,
 	"ps": "Mosquitto是一个开源的MQTT消息代理软件。",
 	"name": "mosquitto",
 	"title": "mosquitto",
@@ -16,5 +16,6 @@
 	"date": "2023-09-28",
 	"home": "https://mosquitto.org",
 	"type": "soft",
-	"pid": "4"
+	"pid": "4",
+	"coexist": false
 }

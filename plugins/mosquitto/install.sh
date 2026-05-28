@@ -14,11 +14,30 @@ fi
 sysName=`uname`
 echo "use system: ${sysName}"
 
-VERSION=2.1.2
+VERSION=$2
+if [ "$VERSION" == "" ];then
+	VERSION=2.1.2
+fi
 mosquittoDir=${serverPath}/source/mosquitto
+
+Install_Dependencies()
+{
+	if [ -f /usr/bin/apt-get ]; then
+		echo "检测到 APT 包管理器，正在静默安装编译依赖..."
+		apt-get update -y
+		apt-get install -y build-essential cmake libssl-dev gcc g++ make
+	elif [ -f /usr/bin/yum ]; then
+		echo "检测到 YUM 包管理器，正在静默安装编译依赖..."
+		yum install -y epel-release
+		yum groupinstall -y "Development Tools"
+		yum install -y cmake openssl-devel gcc gcc-c++ make
+	fi
+}
 
 Install_App()
 {
+	Install_Dependencies
+
 	if id mosquitto &> /dev/null ;then 
 	    echo "mosquitto UID is `id -u mosquitto`"
 	    echo "mosquitto Shell is `grep "^mosquitto:" /etc/passwd |cut -d':' -f7 `"
@@ -52,6 +71,7 @@ Install_App()
 	
 	if [ -d $serverPath/mosquitto ];then
 		echo "${VERSION}" > $serverPath/mosquitto/version.pl
+		chown -R mosquitto:mosquitto $serverPath/mosquitto
 		echo '安装mosquitto完成'
 
 		cd ${rootPath} && python3 ${rootPath}/plugins/mosquitto/index.py start

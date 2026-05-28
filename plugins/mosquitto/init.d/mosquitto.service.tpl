@@ -4,6 +4,8 @@ After=network.target
 
 [Service]
 Type=forking
+User=mosquitto
+Group=mosquitto
 ExecStart={$SERVER_PATH}/mosquitto/sbin/mosquitto -c {$SERVER_PATH}/mosquitto/etc/mosquitto/mosquitto.conf
 ExecReload=/bin/kill -USR2 $MAINPID
 Restart=on-failure

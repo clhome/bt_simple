@@ -31,7 +31,7 @@ app_start(){
     if [ "$isStart" == '' ];then
         echo -e "starting mosquitto... \c"
         cd $mw_path
-        ${APP_PATH}/mosquitto/sbin/mosquitto -c ${APP_PATH}/mosquitto/etc/mosquitto/mosquitto.conf >> {$APP_PATH}/mosquitto.log &
+        su -s /bin/sh -c "$mw_path/mosquitto/sbin/mosquitto -c $mw_path/mosquitto/etc/mosquitto/mosquitto.conf >> $mw_path/mosquitto/data/mosquitto.log 2>&1" mosquitto &
         isStart=""
         while [[ "$isStart" == "" ]];
         do

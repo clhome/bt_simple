@@ -46,6 +46,11 @@ def getConf():
     return path
 
 
+def runLog():
+    path = getServerDir() + "/data/mosquitto.log"
+    return path
+
+
 def getConfTpl():
     path = getPluginDir() + "/config/mosquitto.conf"
     return path
@@ -64,15 +69,15 @@ def getArgs():
     if args_len == 1:
         t = args[0].strip('{').strip('}')
         if t.strip() == '':
-            tmp = []
-        else:
-            t = t.split(':')
-            tmp[t[0]] = t[1]
-        tmp[t[0]] = t[1]
+            return tmp
+        parts = t.split(':')
+        if len(parts) >= 2:
+            tmp[parts[0]] = parts[1]
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            parts = args[i].split(':')
+            if len(parts) >= 2:
+                tmp[parts[0]] = parts[1]
     return tmp
 
 
@@ -105,7 +110,10 @@ def initDreplace():
     # log
     dataLog = getServerDir() + '/data'
     if not os.path.exists(dataLog):
-        mw.execShell('chmod +x ' + file_bin)
+        os.makedirs(dataLog)
+    
+    # 强制安全权限归属校验，保证低权限降权运行时具有写日志和读配置的权限
+    mw.execShell('chown -R mosquitto:mosquitto ' + getServerDir())
 
     # config replace
     dst_conf = getServerDir() + '/etc/mosquitto/' + getPluginName() + '.conf'
@@ -245,5 +253,7 @@ if __name__ == "__main__":
         print(initdUinstall())
     elif func == 'conf':
         print(getConf())
+    elif func == 'run_log':
+        print(runLog())
     else:
         print('error')
