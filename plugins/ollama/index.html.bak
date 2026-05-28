@@ -4,10 +4,7 @@
 		<div class="bt-w-menu">
 			<p class="bgw" onclick="pluginService('ollama',$('.plugin_version').attr('version'));">服务</p>
 			<p onclick="pluginInitD('ollama',$('.plugin_version').attr('version'));">自启动</p>
-			<p onclick="ollama.models();">大模型管理</p>
-			<p onclick="ollama.config();">服务配置</p>
-			<p onclick="ollama.logs();">服务日志</p>
-			<p onclick="ollama.readme();">使用说明</p>
+			<p onclick="ollama.readme();">说明</p>
 		</div>
 		<div class="bt-w-con pd15">
 			<div class="soft-man-con"></div>
@@ -16,11 +13,9 @@
 </div>
 
 <script type="text/javascript">
-// 适当拓宽和增高窗口，给模型列表和日志展现留出充裕优雅的空间
-resetPluginWinHeight(620);
-$.getScript("/plugins/file?name=ollama&f=js/ollama.js", function(){
+resetPluginWinHeight(530);
+$.getScript( "/plugins/file?name=ollama&f=js/ollama.js", function(){
 	ollama.init();
-	// 默认切入官方服务管理
 	pluginService('ollama');
 });
 </script>
