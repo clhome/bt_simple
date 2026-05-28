@@ -45,13 +45,37 @@ def getArgs():
     if args_len == 1:
         t = args[0].strip('{').strip('}')
         t = t.split(':', 1)
-        tmp[t[0]] = t[1]
+        if len(t) > 1:
+            tmp[t[0]] = t[1]
+        else:
+            tmp[t[0]] = ''
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':', 1)
-            tmp[t[0]] = t[1]
+            if len(t) > 1:
+                tmp[t[0]] = t[1]
+            else:
+                tmp[t[0]] = ''
 
     return tmp
+
+
+def safe_search_value(value):
+    if not value:
+        return ""
+    # 仅保留汉字、英文字母、数字、下划线和中划线，彻底阻断任何 SQL 注入
+    return re.sub(r"[^a-zA-Z0-9_\-\u4e00-\u9fa5]", "", str(value))
+
+
+def safe_file_name(filename):
+    if not filename:
+        return None
+    # 强制提取文件名，剥离所有目录前缀，彻底阻断目录穿越
+    filename = os.path.basename(filename)
+    # 强校验文件名是否仅包含安全字符，且不能是空或仅有点
+    if not re.match(r"^[a-zA-Z0-9_\-\.]+$", filename) or filename in [".", ".."]:
+        return None
+    return filename
 
 
 def checkArgs(data, ck=[]):
@@ -407,9 +431,9 @@ def getGogsConf():
 
         {'name': 'FORCE_PRIVATE', 'type': 2, 'ps': '强制要求所有新建的仓库都是私有'},
 
-        {'name': 'SHOW_FOOTER_BRANDING', 'type': 2, 'ps': 'Gogs推广信息'},
-        {'name': 'SHOW_FOOTER_VERSION', 'type': 2, 'ps': 'Gogs版本信息'},
-        {'name': 'SHOW_FOOTER_TEMPLATE_LOAD_TIME', 'type': 2, 'ps': 'Gogs模板加载时间'},
+        {'name': 'SHOW_FOOTER_BRANDING', 'type': 2, 'ps': 'Gitea推广信息'},
+        {'name': 'SHOW_FOOTER_VERSION', 'type': 2, 'ps': 'Gitea版本信息'},
+        {'name': 'SHOW_FOOTER_TEMPLATE_LOAD_TIME', 'type': 2, 'ps': 'Gitea模板加载时间'},
     ]
     conf = mw.readFile(conf)
     result = []
@@ -481,7 +505,7 @@ def userList():
     page_size = int(args['page_size'])
     search = ''
     if 'search' in args:
-        search = args['search']
+        search = safe_search_value(args['search'])
 
     user_where1 = ''
     user_where2 = ''
@@ -541,7 +565,7 @@ def repoList():
     page_size = int(args['page_size'])
     search = ''
     if 'search' in args:
-        search = args['search']
+        search = safe_search_value(args['search'])
 
     data = {}
 
@@ -829,17 +853,22 @@ def projectScriptSelf_Create():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
-    file = args['file']
+    user = safe_search_value(args['user'])
+    name = safe_search_value(args['name']) + '.git'
+    file = safe_file_name(args['file'])
+    if not file:
+        return mw.returnJson(False, '非法的文件名!')
 
-    self_path = path = getRootPath() + '/' + user + '/' + \
+    if not file.endswith('.sh'):
+        file = file + '.sh'
+
+    self_path = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks/self'
 
     if not os.path.exists(self_path):
-        os.mkdir(self_path)
+        os.makedirs(self_path)
 
-    abs_file = self_path + '/' + file + '.sh'
+    abs_file = self_path + '/' + file
     if os.path.exists(abs_file):
         return mw.returnJson(False, '脚本已经存在!')
 
@@ -856,19 +885,17 @@ def projectScriptSelf_Del():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
-    file = args['file']
+    user = safe_search_value(args['user'])
+    name = safe_search_value(args['name']) + '.git'
+    file = safe_file_name(args['file'])
+    if not file:
+        return mw.returnJson(False, '非法的文件名!')
 
     custom_hooks = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks'
     self_path = custom_hooks + '/self'
 
-    if not os.path.exists(self_path):
-        os.mkdir(self_path)
-
     abs_file = self_path + '/' + file
-    # print(abs_file)
     if not os.path.exists(abs_file):
         return mw.returnJson(False, '脚本已经删除!')
 
@@ -888,15 +915,17 @@ def projectScriptSelf_Logs():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
-    file = args['file']
+    user = safe_search_value(args['user'])
+    name = safe_search_value(args['name']) + '.git'
+    file = safe_file_name(args['file'])
+    if not file:
+        return mw.returnJson(False, '非法的文件名!')
 
-    self_path = path = getRootPath() + '/' + user + '/' + \
+    self_path = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks/self_logs'
 
     if not os.path.exists(self_path):
-        os.mkdir(self_path)
+        os.makedirs(self_path)
 
     logs_file = self_path + '/' + file + '.log'
     if os.path.exists(logs_file):
@@ -913,14 +942,20 @@ def projectScriptSelf_Run():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
-    file = args['file']
+    user = safe_search_value(args['user'])
+    name = safe_search_value(args['name']) + '.git'
+    file = safe_file_name(args['file'])
+    if not file:
+        return mw.returnJson(False, '非法的文件名!')
 
     custom_hooks = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks'
     self_path = custom_hooks + '/self/' + file
     self_logs_path = custom_hooks + '/self_logs/' + file + '.log'
+
+    # 二重防御：物理上检查脚本是否存在，阻断恶意命令注入
+    if not os.path.exists(self_path):
+        return mw.returnJson(False, '脚本文件不存在!')
 
     shell = "sh -x " + self_path + " 2>" + self_logs_path + ' &'
     mw.execShell(shell)
@@ -934,28 +969,34 @@ def projectScriptSelf_Rename():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
-    o_file = args['o_file']
-    n_file = args['n_file']
+    user = safe_search_value(args['user'])
+    name = safe_search_value(args['name']) + '.git'
+    o_file = safe_file_name(args['o_file'])
+    n_file = safe_file_name(args['n_file'])
+    if not o_file or not n_file:
+        return mw.returnJson(False, '非法的文件名!')
+
+    if not o_file.endswith('.sh'):
+        o_file = o_file + '.sh'
+    if not n_file.endswith('.sh'):
+        n_file = n_file + '.sh'
 
     custom_hooks = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks'
     self_path = custom_hooks + '/self'
 
     if not os.path.exists(self_path):
-        os.mkdir(self_path)
+        os.makedirs(self_path)
 
-    o_file_abs = self_path + '/' + o_file + '.sh'
+    o_file_abs = self_path + '/' + o_file
     if not os.path.exists(o_file_abs):
         return mw.returnJson(False, '原文件已经不存在了!')
 
-    n_file_abs = self_path + '/' + n_file + '.sh'
-
+    n_file_abs = self_path + '/' + n_file
     os.rename(o_file_abs, n_file_abs)
 
     # 日志也删除
-    log_file = custom_hooks + '/self_logs/' + o_file + '.sh.log'
+    log_file = custom_hooks + '/self_logs/' + o_file + '.log'
     if os.path.exists(log_file):
         os.remove(log_file)
 
@@ -968,8 +1009,8 @@ def projectScriptSelf_Enable():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
+    user = safe_search_value(args['user'])
+    name = safe_search_value(args['name']) + '.git'
     enable = args['enable']
 
     custom_path = getRootPath() + '/' + user + '/' + \
@@ -977,7 +1018,7 @@ def projectScriptSelf_Enable():
 
     # 替换commit配置
     commit_path = custom_path + '/commit'
-    note = '#Gogs Script Don`t Remove and Change'
+    note = '#Gitea Script Don\'t Remove and Change'
 
     self_file = custom_path + '/self_hook.sh'
     self_hook_tpl = getPluginDir() + '/hook/self_hook.tpl'
@@ -1013,17 +1054,19 @@ def projectScriptSelf_Status():
     if not data[0]:
         return data[1]
 
-    user = args['user']
-    name = args['name'] + '.git'
-    file = args['file']
+    user = safe_search_value(args['user'])
+    name = safe_search_value(args['name']) + '.git'
+    file = safe_file_name(args['file'])
     status = args['status']
+    if not file:
+        return mw.returnJson(False, '非法的文件名!')
 
     custom_hooks = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks'
     self_path = custom_hooks + '/self'
 
     if not os.path.exists(self_path):
-        os.mkdir(self_path)
+        os.makedirs(self_path)
 
     # 日志也删除
     log_file = custom_hooks + '/self_logs/' + file + '.log'
@@ -1033,15 +1076,17 @@ def projectScriptSelf_Status():
     if status == '1':
         file_abs = self_path + '/' + file
         file_text_abs = self_path + '/' + file + '.txt'
-        os.rename(file_abs, file_text_abs)
-        return mw.returnJson(True, '开始禁用成功!')
+        if os.path.exists(file_abs):
+            os.rename(file_abs, file_text_abs)
+            return mw.returnJson(True, '开始禁用成功!')
     else:
-        file_abs = self_path + '/' + file.strip('.txt')
+        file_abs = self_path + '/' + file.replace('.txt', '')
         file_text_abs = self_path + '/' + file
-        os.rename(file_text_abs, file_abs)
-        return mw.returnJson(True, '开始使用成功!')
+        if os.path.exists(file_text_abs):
+            os.rename(file_text_abs, file_abs)
+            return mw.returnJson(True, '开始使用成功!')
 
-    return mw.returnJson(True, '禁用成功!')
+    return mw.returnJson(False, '禁用失败!')
 
 
 def getRsaPublic():
