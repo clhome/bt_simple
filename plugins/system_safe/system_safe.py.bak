@@ -64,22 +64,17 @@ class App:
     def getArgs(self):
         args = sys.argv[2:]
         tmp = {}
-        if not args:
-            return tmp
+        args_len = len(args)
 
-        # 优先尝试 JSON 解析
-        try:
-            return json.loads(args[0])
-        except:
-            pass
+        if args_len == 1:
+            t = args[0].strip('{').strip('}')
+            t = t.split(':')
+            tmp[t[0]] = t[1]
+        elif args_len > 1:
+            for i in range(len(args)):
+                t = args[i].split(':')
+                tmp[t[0]] = t[1]
 
-        for arg in args:
-            try:
-                t = arg.split(':', 1)
-                if len(t) == 2:
-                    tmp[t[0]] = t[1]
-            except Exception:
-                pass
         return tmp
 
     def checkArgs(self, data, ck=[]):
@@ -164,15 +159,6 @@ class App:
     #     return 'start'
 
     def status(self):
-        pid_file = self.getServerDir() + '/system_safe.pid'
-        if os.path.exists(pid_file):
-            try:
-                pid = int(mw.readFile(pid_file).strip())
-                if psutil.pid_exists(pid):
-                    return 'start'
-            except:
-                pass
-
         data = mw.execShell(
             'ps -ef|grep "system_safe/system_safe.py bg_start" | grep -v grep | awk \'{print $2}\'')
         if data[0] == '':
@@ -241,9 +227,6 @@ class App:
         if ip == None:
             ip = self.ip
 
-        if not ip or not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-            return mw.returnJson(False, '非法的IP地址格式！')
-
         if ip in self.getSshLimit():
             return mw.returnJson(True, '指定IP黑名单已存在!')
         denyConf = mw.readFile(self.__deny).strip()
@@ -274,9 +257,6 @@ class App:
         if ip == None:
             ip = self.ip
 
-        if not ip or not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-            return mw.returnJson(False, '非法的IP地址格式！')
-
         if not self.__deny_list:
             self.getDenyList()
         if ip in self.__deny_list:
@@ -288,7 +268,7 @@ class App:
         denyConf = mw.readFile(self.__deny).strip()
         while denyConf[-1:] == "\n" or denyConf[-1:] == " ":
             denyConf = denyConf[:-1]
-        denyConf = re.sub(r"\n?sshd:" + re.escape(ip) + r":deny\n?", "\n", denyConf)
+        denyConf = re.sub("\n?sshd:" + ip + ":deny\n?", "\n", denyConf)
         mw.writeFile(self.__deny, denyConf + "\n")
 
         msg = '从SSH-IP黑名单中解封[%s]' % ip
@@ -494,8 +474,7 @@ class App:
         if not self.__config:
             return
 
-        is_open_val = 1 if self.__config.get('open', False) else 0
-        self.setOpen(is_open_val)
+        self.setOpen(1)
         is_open = 0
         while True:
             if self.__config['ssh']['open']:
@@ -511,8 +490,6 @@ class App:
             time.sleep(1)
 
     def bg_start(self):
-        pid_file = self.getServerDir() + '/system_safe.pid'
-        mw.writeFile(pid_file, str(os.getpid()))
         try:
             self.processTask()
         except Exception as e:
@@ -522,12 +499,6 @@ class App:
         return 'ok'
 
     def bg_stop(self):
-        pid_file = self.getServerDir() + '/system_safe.pid'
-        if os.path.exists(pid_file):
-            try:
-                os.remove(pid_file)
-            except:
-                pass
         try:
             self.setOpen(0)
         except Exception as e:
@@ -572,15 +543,10 @@ class App:
         try:
             if not os.path.exists(info['path']):
                 return False
-            if not re.match(r'^[a-zA-Z0-9_\-\./\s]+$', info['path']) or '..' in info['path']:
-                return False
-            if info['chattr'] not in ['i', 'a']:
-                return False
-
             if info['d_mode']:
                 os.chmod(info['path'], info['d_mode'])
             if info['chattr']:
-                cmd = 'chattr -R +%s "%s"' % (info['chattr'], info['path'])
+                cmd = "chattr -R +%s %s" % (info['chattr'], info['path'])
                 mw.execShell(cmd)
             return True
         except Exception as e:
@@ -591,13 +557,8 @@ class App:
         try:
             if not os.path.exists(info['path']):
                 return False
-            if not re.match(r'^[a-zA-Z0-9_\-\./\s]+$', info['path']) or '..' in info['path']:
-                return False
-            if info['chattr'] not in ['i', 'a']:
-                return False
-
             if info['chattr']:
-                cmd = 'chattr -R -%s "%s"' % (info['chattr'], info['path'])
+                cmd = "chattr -R -%s %s" % (info['chattr'], info['path'])
                 mw.execShell(cmd)
 
             if info['s_mode']:
@@ -678,16 +639,13 @@ class App:
 
     # 取文件或目录锁定状态
     def __get_path_state(self, path):
-        if not path or not re.match(r'^[a-zA-Z0-9_\-\./\s]+$', path) or '..' in path:
-            return False
-
         if not os.path.exists(path):
             return 'i'
         if os.path.isfile(path):
-            shell_cmd = 'lsattr "%s"|awk \'{print $1}\'' % path
+            shell_cmd = "lsattr %s|awk '{print $1}'" % path
         else:
-            shell_cmd = 'lsattr "%s/" |grep "%s$"|awk \'{{print $1}}\'' % (
-                os.path.dirname(path), os.path.basename(path))
+            shell_cmd = "lsattr {}/ |grep '{}$'|awk '{{print $1}}'".format(
+                os.path.dirname(path), path)
         result = mw.execShell(shell_cmd)[0]
         if result.find('-i-') != -1:
             return 'i'
@@ -750,12 +708,6 @@ class App:
         d_mode = args['d_mode']
         if path[-1] == '/':
             path = path[:-1]
-
-        if not path or not re.match(r'^[a-zA-Z0-9_\-\./\s]+$', path) or '..' in path:
-            return mw.returnJson(False, '非法的防护路径格式，添加失败！')
-        if chattr not in ['i', 'a']:
-            return mw.returnJson(False, '非法的属性设置！')
-
         if not os.path.exists(path):
             return mw.returnJson(False, '指定文件或目录不存在!')
         data = self.getConf()
@@ -775,7 +727,7 @@ class App:
 
         data[tag]['paths'].insert(0, path_info)
         if 'paths' in data[tag]:
-            mw.execShell('chattr -R -%s "%s"' %
+            mw.execShell('chattr -R -%s %s' %
                          (path_info['chattr'], path_info['path']))
             if data['open']:
                 self.__set_safe_state([path_info], data[tag]['open'])
@@ -1032,14 +984,6 @@ class App:
         return mw.returnJson(True, 'ok!', lastlog_list)
 
     def get_sys_log_with_name(self, log_name):
-        if not log_name or not re.match(r'^[a-zA-Z0-9_\-\./]+$', log_name):
-            return mw.returnJson(False, '非法的日志文件名，拒绝访问！')
-
-        log_dir = '/var/log'
-        log_file = os.path.abspath(log_dir + '/' + log_name)
-        if not log_file.startswith(log_dir):
-            return mw.returnJson(False, '越界访问，拒绝读取！')
-
         if log_name in ['wtmp', 'btmp', 'utmp'] or log_name.find('wtmp') == 0 or log_name.find('btmp') == 0 or log_name.find('utmp') == 0:
             return self.get_last(log_name)
 
@@ -1048,8 +992,9 @@ class App:
 
         if log_name.find('sa/sa') == 0:
             if log_name.find('sa/sar') == -1:
-                return mw.execShell('sar -f "/var/log/%s"' % log_name)[0]
-
+                return mw.execShell("sar -f /var/log/{}".format(log_name))[0]
+        log_dir = '/var/log'
+        log_file = log_dir + '/' + log_name
         if not os.path.exists(log_file):
             return mw.returnJson(False, '日志文件不存在!')
         result = mw.getLastLine(log_file, 100)
