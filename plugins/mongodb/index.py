@@ -138,14 +138,22 @@ def getArgs():
 
     if args_len == 1:
         t = args[0].strip('{').strip('}')
-        t = t.split(':', 1)
-        tmp[t[0]] = t[1]
+        if ':' in t:
+            t = t.split(':', 1)
+            tmp[t[0]] = t[1]
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':', 1)
-            tmp[t[0]] = t[1]
+            if ':' in args[i]:
+                t = args[i].split(':', 1)
+                tmp[t[0]] = t[1]
 
     return tmp
+
+def check_safe_name(val):
+    if not val:
+        return False
+    import re
+    return bool(re.match(r'^[a-zA-Z0-9_\-]+$', val))
 
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
@@ -154,11 +162,25 @@ def checkArgs(data, ck=[]):
     return (True, mw.returnJson(True, 'ok'))
 
 def status():
-    data = mw.execShell(
-        "ps -ef|grep mongod |grep -v mongosh|grep -v grep | grep -v /Applications | grep -v python | grep -v mdserver-web | awk '{print $2}'")
-    if data[0] == '':
-        return 'stop'
-    return 'start'
+    if not mw.isAppleSystem():
+        status_cmd = 'systemctl is-active mongodb'
+        res = mw.execShell(status_cmd)
+        if res[0].strip() == 'active':
+            return 'start'
+    
+    pid_file = getServerDir() + "/mongodb/log/mongodb.pid"
+    if os.path.exists(pid_file):
+        try:
+            pid = int(mw.readFile(pid_file).strip())
+            if os.path.exists("/proc/" + str(pid)):
+                return 'start'
+        except:
+            pass
+
+    data = mw.execShell("pgrep -x mongod")
+    if data[0].strip() != '':
+        return 'start'
+    return 'stop'
 
 def pSqliteDb(dbname='users'):
     file = getServerDir() + '/mongodb.db'
@@ -582,7 +604,7 @@ def getDbList():
     data['data'] = clist
 
     info = {}
-    info['root_pwd'] = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
+    info['root_pwd'] = '******'
     data['info'] = info
     return mw.getJson(data)
     # return mw.returnJson(True,'ok',data)
@@ -603,6 +625,10 @@ def addDb():
     data_name = args['name'].strip()
     if not data_name:
         return mw.returnJson(False, "数据库名不能为空！")
+
+    username = args['db_user'].strip()
+    if not check_safe_name(data_name) or not check_safe_name(username):
+        return mw.returnJson(False, "安全拦截：数据库名与用户名仅允许英文字母、数字和下划线与中划线！")
 
     nameArr = ['admin', 'config', 'local']
     if data_name in nameArr:
@@ -646,6 +672,11 @@ def delDb():
     data = checkArgs(args, ['id', 'name'])
     if not data[0]:
         return data[1]
+    
+    name = args['name'].strip()
+    if not check_safe_name(name):
+        return mw.returnJson(False, "安全拦截：非法数据库名！")
+
     try:
         sid = args['id']
         name = args['name']
@@ -699,6 +730,8 @@ def setRootPwd(version=''):
         force = 1
 
     password = args['password']
+    if password == '******':
+        return mw.returnJson(True, '数据库root密码未发生变更')
     try:
         msg = ''
         if force == 1:
@@ -1172,14 +1205,13 @@ def replInit():
     try:
         client.admin.command('replSetInitiate',config)
     except Exception as e:
-        info = str(e).split(',')
-        # print(info)
-        if info[0] == 'already initialized':
+        err_msg = str(e)
+        if getattr(e, 'code', None) == 23 or 'already initialized' in err_msg:
             config['version'] = int(now_time_t)
             try:
                 client.admin.command('replSetReconfig',config,force=True,maxTimeMS=10)
-            except Exception as e:
-                return mw.returnJson(False, str(e))
+            except Exception as re_err:
+                return mw.returnJson(False, str(re_err))
             
             return mw.returnJson(True, '重置副本同步成功!')
         return mw.returnJson(False, str(e))
@@ -1296,9 +1328,16 @@ def setDbBackup():
     if not data[0]:
         return data[1]
 
+    name = args['name'].strip()
+    if not check_safe_name(name):
+        return mw.returnJson(False, "安全拦截：非法数据库名！")
+
     scDir = getPluginDir() + '/scripts/backup.py'
-    cmd = 'python3 ' + scDir + ' database ' + args['name'] + ' 3'
-    os.system(cmd)
+    import subprocess
+    try:
+        subprocess.Popen(['python3', scDir, 'database', name, '3'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        return mw.returnJson(False, '启动备份任务失败: ' + str(e))
     return mw.returnJson(True, 'ok')
 
 
@@ -1325,7 +1364,11 @@ def importDbExternal():
         return data[1]
 
     file = args['file']
-    name = args['name']
+    name = args['name'].strip()
+
+    # 安全检查：禁止数据库名带特殊字符，限制文件名只能在安全前缀下且没有穿越符
+    if not check_safe_name(name) or '..' in file or '/' in file or '\\' in file:
+        return mw.returnJson(False, '安全拦截：非法数据库名或导入文件名！')
 
     import_dir = mw.getBackupDir() + '/mongodb_import/'
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
@@ -1335,43 +1378,52 @@ def importDbExternal():
     if not os.path.exists(file_path):
         return mw.returnJson(False, '文件突然消失?')
 
-    exts = ['gz', 'zip']
+    exts = ['gz', 'tgz', 'zip']
     ext = mw.getFileSuffix(file)
     if ext not in exts:
         return mw.returnJson(False, '导入数据库格式不对!')
 
-    # print(file,name)
-    # print(import_dir,name)
     auth = getConfAuth()
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
-    uoption = ''
-    if auth != 'disabled':
-        uoption =' --authenticationDatabase admin -u root -p '+mg_root
 
-    file_dir = import_dir+name
+    file_dir = import_dir + name
     if not os.path.exists(file_dir):
-        mw.execShell("mkdir -p "+file_dir)
+        os.makedirs(file_dir)
 
-    file_tgz = import_dir+file
+    file_tgz = import_dir + file
     if os.path.exists(file_tgz):
-        cmd = 'cd ' + file_dir + ' && tar -xzvf ' + file_tgz + " -C "+file_dir
-        # print(cmd)
-        r = mw.execShell(cmd)
-        # print(r)
-        bson_list = getListBson(name)
-        # print(bson_list)
-        for x in bson_list:
-            cmd = getServerDir() + "/bin/mongorestore "+uoption+" --port "+str(port)+" --dir "+file_dir+'/'+x
-            # print(cmd)
-            rdata = mw.execShell(cmd)
-            # print(data)
-            if rdata[1].lower().find('error') > -1:
-                return mw.returnJson(False, rdata[1])
+        # 安全地用 Python 内部 tarfile/zipfile 模块解压缩，消灭 shell 命令拼接！
+        try:
+            import tarfile
+            with tarfile.open(file_tgz, 'r:gz') as tar_ref:
+                tar_ref.extractall(path=file_dir)
+        except Exception as e:
+            return mw.returnJson(False, '解压备份文件失败: ' + str(e))
 
-    # 删除文件
+        bson_list = getListBson(name)
+        restore_bin = getServerDir() + "/bin/mongorestore"
+        import subprocess
+
+        for x in bson_list:
+            cmd = [restore_bin]
+            if auth != 'disabled':
+                cmd.extend(['--authenticationDatabase', 'admin', '-u', 'root', '-p', mg_root])
+            cmd.extend(['--port', str(port), '--dir', os.path.join(file_dir, x)])
+
+            try:
+                # 安全使用 Popen 传入列表执行命令
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = p.communicate()
+                err_out = stderr.decode('utf-8', errors='ignore')
+                if p.returncode != 0 or 'error' in err_out.lower():
+                    return mw.returnJson(False, '导入失败: ' + err_out)
+            except Exception as e:
+                return mw.returnJson(False, '执行导入命令时发生异常: ' + str(e))
+
+    # 删除临时文件
     if os.path.exists(file_dir):
-        del_cmd = "rm -rf "+file_dir
-        mw.execShell(del_cmd)
+        import shutil
+        shutil.rmtree(file_dir)
 
     return mw.returnJson(True, 'ok')
 
@@ -1383,37 +1435,54 @@ def importDbBackup():
         return data[1]
 
     file = args['file']
-    name = args['name']
+    name = args['name'].strip()
+
+    # 安全检查
+    if not check_safe_name(name) or '..' in file or '/' in file or '\\' in file:
+        return mw.returnJson(False, '安全拦截：非法数据库名或备份文件名！')
 
     port = getConfPort()
 
-    file_tgz = mw.getBackupDir() + '/database/' + file
-    file_dir = mw.getBackupDir() + '/database/' + file.replace('.tar.gz','')
+    backup_dir = mw.getBackupDir() + '/database/'
+    file_tgz = backup_dir + file
+    file_dir = backup_dir + file.replace('.tar.gz', '')
 
     if not os.path.exists(file_dir):
-        mw.execShell("mkdir -p "+file_dir)
+        os.makedirs(file_dir)
 
-    # print(os.path.exists(file_tgz))
     if os.path.exists(file_tgz):
-        cmd = 'cd ' + mw.getBackupDir() + '/database && tar -xzvf ' + file + " -C "+file_dir
-        # print(cmd)
-        mw.execShell(cmd)
+        # 安全用 Python tarfile 库解压
+        try:
+            import tarfile
+            with tarfile.open(file_tgz, 'r:gz') as tar_ref:
+                tar_ref.extractall(path=file_dir)
+        except Exception as e:
+            return mw.returnJson(False, '解压备份文件失败: ' + str(e))
 
     auth = getConfAuth()
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
-    uoption = ''
+
+    restore_bin = getServerDir() + "/bin/mongorestore"
+    import subprocess
+
+    cmd = [restore_bin]
     if auth != 'disabled':
-        uoption =' -u root -p '+mg_root
+        cmd.extend(['-u', 'root', '-p', mg_root])
+    cmd.extend(['--port', str(port), '--dir', file_dir])
 
-    cmd = getServerDir() + "/bin/mongorestore "+uoption+" --port "+str(port)+" --dir "+file_dir
-    # print(cmd)
-    mw.execShell(cmd)
+    try:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        err_out = stderr.decode('utf-8', errors='ignore')
+        if p.returncode != 0:
+            return mw.returnJson(False, '导入备份失败: ' + err_out)
+    except Exception as e:
+        return mw.returnJson(False, '执行导入备份发生异常: ' + str(e))
 
-
-    # 删除文件
+    # 删除解压的临时目录
     if os.path.exists(file_dir):
-        del_cmd = "rm -rf "+file_dir
-        mw.execShell(del_cmd)
+        import shutil
+        shutil.rmtree(file_dir)
 
     return mw.returnJson(True, 'ok')
 
@@ -1550,6 +1619,16 @@ def installPreInspectionDebainCheck(sysId,version):
 def installPreInspection(version):
     if mw.isAppleSystem():
         return 'ok'
+
+    # 安全预检 CPU 的 AVX 指令集，避免 5.0+ 部署在无 AVX 系统上崩溃
+    if version in ['5.0', '6.0', '7.0', '8.0', '8.2']:
+        has_avx = False
+        if os.path.exists('/proc/cpuinfo'):
+            cpuinfo = mw.readFile('/proc/cpuinfo')
+            if 'avx' in cpuinfo.lower():
+                has_avx = True
+        if not has_avx:
+            return '预检失败：MongoDB ' + version + ' 强依赖 CPU 的 AVX 指令集，当前服务器 CPU 未检测到 AVX 标志，运行将导致 Illegal instruction 核心崩溃。建议安装 4.4 版本或升级服务器 CPU 环境。'
 
     cmd = "cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'"
     sys = mw.execShell(cmd)

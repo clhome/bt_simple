@@ -145,6 +145,16 @@ class backupTools:
         return r
 
     def backupDatabase(self, name, count):
+        import re
+        import subprocess
+        import tarfile
+        import shutil
+
+        # 安全过滤
+        if not re.match(r'^[a-zA-Z0-9_\-]+$', name) or not re.match(r'^\d+$', str(count)):
+            print("★安全拦截：非法数据库名或备份份数！")
+            return
+
         db_path = mw.getServerDir() + '/mongodb'
         db_name = 'mongodb'
         name = mw.M('databases').dbPos(db_path, db_name).where('name=?', (name,)).getField('name')
@@ -152,34 +162,50 @@ class backupTools:
         startTime = time.time()
         if not name:
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
-            log = "数据库[" + name + "]不存在!"
+            log = "数据库[" + str(name) + "]不存在!"
             print("★[" + endDate + "] " + log)
-            print(
-                "----------------------------------------------------------------------------")
+            print("----------------------------------------------------------------------------")
             return
 
         backup_path = mw.getBackupDir() + '/database'
         if not os.path.exists(backup_path):
-            mw.execShell("mkdir -p " + backup_path)
+            os.makedirs(backup_path)
 
         time_now = time.strftime('%Y%m%d_%H%M%S', time.localtime())
         backup_name = "mongodb_" + name + "_" + time_now + ".tar.gz"
-        filename = backup_path + "/"+backup_name
+        filename = backup_path + "/" + backup_name
 
         port = getConfPort()
         auth = getConfAuth()
         mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
-        uoption = ''
+
+        dump_bin = db_path + "/bin/mongodump"
+        cmd = [dump_bin]
         if auth != 'disabled':
-            uoption =' --authenticationDatabase admin -u root -p '+mg_root
-    
-        cmd = db_path + "/bin/mongodump "+uoption+" --port "+str(port)+" -d "+name+" -o "+backup_path 
-        # print(cmd)
-        mw.execShell(cmd)
-        cmd_gz = "cd "+backup_path+"/"+name+" && tar -zcvf "+filename + " ./"
-        mw.execShell(cmd_gz)
-        mw.execShell("rm -rf "+ backup_path+"/"+name)
-        
+            cmd.extend(['--authenticationDatabase', 'admin', '-u', 'root', '-p', mg_root])
+        cmd.extend(['--port', str(port), '-d', name, '-o', backup_path])
+
+        try:
+            # 安全参数列表调用
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.communicate()
+        except Exception as e:
+            print("★导出备份数据发生异常: " + str(e))
+            return
+
+        target_dir = os.path.join(backup_path, name)
+        if os.path.exists(target_dir):
+            try:
+                # 安全地使用 Python 原生 tarfile 进行打包，完全绕开 shell 拼接！
+                with tarfile.open(filename, "w:gz") as tar:
+                    tar.add(target_dir, arcname=".")
+                shutil.rmtree(target_dir)
+            except Exception as e:
+                print("★压缩打包失败: " + str(e))
+                if os.path.exists(target_dir):
+                    shutil.rmtree(target_dir)
+                return
+
         if not os.path.exists(filename):
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
             log = "数据库[" + name + "]备份失败!"
@@ -187,11 +213,9 @@ class backupTools:
             print("----------------------------------------------------------------------------")
             return
 
-
         endDate = time.strftime('%Y/%m/%d %X', time.localtime())
         outTime = time.time() - startTime
 
-        # print(outTime)
         log = "数据库MongoDB[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
         mw.writeLog('计划任务', log)
         print("★[" + endDate + "] " + log)
@@ -204,9 +228,12 @@ class backupTools:
         num = len(backups) - int(count)
         if num > 0:
             for backup in backups:
-                mw.execShell("rm -f " + backup_path + "/"+backup)
-                num -= 1
-                print("|---已清理过期备份文件：" + backup)
+                try:
+                    os.remove(backup_path + "/" + backup)
+                    num -= 1
+                    print("|---已清理过期备份文件：" + backup)
+                except Exception as ex:
+                    print("|---清理过期文件失败: " + str(ex))
                 if num < 1:
                     break
 

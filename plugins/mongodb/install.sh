@@ -58,7 +58,16 @@ Install_app()
 	# 	OSNAME=rhel
 	# fi
 
-	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
+	if [ -f ${rootPath}/plugins/php/lib/openssl_11.sh ];then
+		cd ${rootPath}/plugins/php/lib && /bin/bash openssl_11.sh
+	else
+		echo '检测到跨插件依赖 openssl_11.sh 不存在，降级使用系统包管理器安全补充环境...'
+		if [ "$OSNAME" == "ubuntu" ] || [ "$OSNAME" == "debian" ];then
+			apt-get install -y openssl libssl-dev
+		elif [ "$OSNAME" == "centos" ] || [ "$OSNAME" == "rhel" ] || [ "$OSNAME" == "euler" ];then
+			yum install -y openssl openssl-devel
+		fi
+	fi
 
 	shell_file=${curPath}/versions/${VERSION}/${OSNAME}.sh
 
