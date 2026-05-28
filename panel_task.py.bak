@@ -219,17 +219,14 @@ def check502Task():
 
 def check502():
     try:
-        server_dir = mw.getServerDir()
-        php_dir = server_dir + '/php'
-        verlist = []
-        if os.path.exists(php_dir):
-            for name in os.listdir(php_dir):
-                if name.isdigit() and os.path.isdir(php_dir + '/' + name):
-                    verlist.append(name)
-        verlist.sort()
-        
+        verlist = [
+            '52', '53', '54', '55', '56', '70',
+            '71', '72', '73', '74', '80', '81', 
+            '82', '83', '84'
+        ]
         for ver in verlist:
-            php_path = php_dir + '/' + ver + '/sbin/php-fpm'
+            server_dir = mw.getServerDir()
+            php_path = server_dir + '/php/' + ver + '/sbin/php-fpm'
             if not os.path.exists(php_path):
                 continue
             if checkPHPVersion(ver):
