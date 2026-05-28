@@ -14,5 +14,5 @@
 	"type": "doh",
 	"shell": "install.sh",
 	"pid": "4",
-	"sort": 7
+	"sort": 100
 }

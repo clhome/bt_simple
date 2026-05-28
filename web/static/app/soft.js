@@ -110,8 +110,10 @@ function getSList(isdisplay) {
             
             if (plugin.setup == true) {
 
-                var mupdate = '';//(plugin.versions[n] == plugin.updates[n]) '' : '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions[n].version + '\',\'' + plugin.updates[n] + '\')">更新</a> | ';
-                // if (plugin.versions[n] == '') mupdate = '';
+                var mupdate = '';
+                if (plugin.setup_version && plugin.versions && plugin.setup_version != plugin.versions) {
+                    mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + plugin.versions + '\',\'' + plugin.setup_version + '\')">更新</a> | ';
+                }
                 handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">设置</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">卸载</a>';
                 titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
              
@@ -533,6 +535,13 @@ function importPluginInstall(plugin_name, tmp_path) {
         }
         setTimeout(function () { layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 }) }, 1000);
     },'json');
+}
+
+function softUpdate(name, ver, current_ver) {
+    layer.confirm('您确定要将【' + name + '】从 ' + current_ver + ' 升级到 ' + ver + ' 吗？', { icon: 3, closeBtn: 1 }, function() {
+        var request_args = "name=" + name + "&version=" + ver + "&type=0&upgrade=1";
+        runInstall(request_args);
+    });
 }
 
 $(function() {

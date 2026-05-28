@@ -89,7 +89,7 @@ def install():
     version = request.form.get('version', '')
 
     upgrade = None
-    if hasattr(request.form, 'upgrade'):
+    if 'upgrade' in request.form:
         upgrade = True
 
     pg = MwPlugin.instance()

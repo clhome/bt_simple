@@ -66,19 +66,38 @@ def getArgs():
     args = sys.argv[3:]
     tmp = {}
     args_len = len(args)
+    if args_len == 0:
+        return tmp
 
+    # 优先尝试将 args[0] 当作完整的 JSON 来解析
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        if t.strip() == '':
-            tmp = []
-        else:
-            t = t.split(':')
-            tmp[t[0]] = t[1]
-        tmp[t[0]] = t[1]
-    elif args_len > 1:
-        for i in range(len(args)):
-            t = args[i].split(':')
-            tmp[t[0]] = t[1]
+        try:
+            val = args[0].strip()
+            if val.startswith('{') and val.endswith('}'):
+                try:
+                    tmp = json.loads(val)
+                    if isinstance(tmp, dict):
+                        return tmp
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    # 传统的 key:value 参数提取
+    for arg in args:
+        try:
+            if not arg:
+                continue
+            t = arg.strip().strip('{').strip('}')
+            if not t:
+                continue
+            t_list = t.split(':')
+            if len(t_list) >= 2:
+                k = t_list[0].strip().strip('"').strip("'")
+                v = ':'.join(t_list[1:]).strip().strip('"').strip("'")
+                tmp[k] = v
+        except (IndexError, TypeError, AttributeError):
+            pass
     return tmp
 
 def checkArgs(data, ck=[]):
@@ -104,7 +123,25 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    # 统一路径分隔符，彻底打通 Windows 的反斜杠穿越隐患
+    raw_file = args['file'].replace('\\', '/')
+    # 强制只获取纯文件名，完全阻断越权目录穿越及非法路径读取
+    filename = os.path.basename(raw_file)
+    if not filename.endswith('.conf'):
+        return mw.returnJson(False, '只允许读取.conf配置文件')
+
+    # 路径合法性沙箱校验，强行限制只能读取 /etc/fail2ban 目录下的配置文件
+    target_dir = os.path.abspath(f2bEtcDir())
+    path = os.path.abspath(os.path.join(target_dir, filename))
+    
+    # 双重安全防护线：绝对路径必须在目标目录内，且不能越权向上穿越
+    if not path.startswith(target_dir + os.sep) and not path.startswith(target_dir + '/'):
+        return mw.returnJson(False, '越权路径读取被拒绝')
+
+    if not os.path.exists(path):
+        return mw.returnJson(False, '配置文件不存在')
+
+    content = mw.readFile(path)
     content = contentReplace(content)
     return mw.returnJson(True, 'ok', content)
 
@@ -314,28 +351,44 @@ def setBlackIp():
     if not data[0]:
         return data[1]
 
-    new_ip_list = args['black_ip']
-    add_ip_list = [new_ip for new_ip in new_ip_list if new_ip not in ip_list]
-    del_ip_list = [del_ip for del_ip in ip_list if del_ip not in new_ip_list]
-    rep_ip = "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}($|[\\/\\d]+$)"
-    rep_ipv6 = "^\\s*((([0-9A-Fa-f]{1,4}:){7}(([0-9A-Fa-f]{1,4})|:))|(([0-9A-Fa-f]{1,4}:){6}(:|((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})|(:[0-9A-Fa-f]{1,4})))|(([0-9A-Fa-f]{1,4}:){5}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){4}(:[0-9A-Fa-f]{1,4}){0,1}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){3}(:[0-9A-Fa-f]{1,4}){0,2}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){2}(:[0-9A-Fa-f]{1,4}){0,3}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:)(:[0-9A-Fa-f]{1,4}){0,4}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(:(:[0-9A-Fa-f]{1,4}){0,5}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})))(%.+)?\\s*$"
-    
+    # 智能解析 black_ip 参数：支持 JSON 格式数组、逗号分隔字符串或单一 IP 字符串
+    new_ip_list_raw = args.get('black_ip', '')
+    new_ip_list = []
+    if isinstance(new_ip_list_raw, str):
+        new_ip_list_raw = new_ip_list_raw.strip()
+        if new_ip_list_raw.startswith('[') and new_ip_list_raw.endswith(']'):
+            try:
+                new_ip_list = json.loads(new_ip_list_raw)
+            except Exception:
+                new_ip_list = [x.strip() for x in new_ip_list_raw[1:-1].split(',') if x.strip()]
+        else:
+            if new_ip_list_raw:
+                new_ip_list = [x.strip() for x in new_ip_list_raw.split(',') if x.strip()]
+    elif isinstance(new_ip_list_raw, list):
+        new_ip_list = [str(x).strip() for x in new_ip_list_raw]
+
+    # 将 new_ip_list 为空字符串的情形处理迁移为列表为空
     data = _read_conf(getConfigFile())
 
-    if new_ip_list == '':
+    if len(new_ip_list) == 0:
         for d in data:
             for ip in ip_list:
                 mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
 
         mw.writeFile(getBlackFile(), json.dumps([]))
-        return nw.returnJson(True, "禁止IP成功")
+        return mw.returnJson(True, "禁止IP成功")
+
+    add_ip_list = [new_ip for new_ip in new_ip_list if new_ip not in ip_list]
+    del_ip_list = [del_ip for del_ip in ip_list if del_ip not in new_ip_list]
+    rep_ip = "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}($|[\\/\\d]+$)"
+    rep_ipv6 = "^\\s*((([0-9A-Fa-f]{1,4}:){7}(([0-9A-Fa-f]{1,4})|:))|(([0-9A-Fa-f]{1,4}:){6}(:|((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})|(:[0-9A-Fa-f]{1,4})))|(([0-9A-Fa-f]{1,4}:){5}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){4}(:[0-9A-Fa-f]{1,4}){0,1}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){3}(:[0-9A-Fa-f]{1,4}){0,2}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:){2}(:[0-9A-Fa-f]{1,4}){0,3}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(([0-9A-Fa-f]{1,4}:)(:[0-9A-Fa-f]{1,4}){0,4}((:((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})?)|((:[0-9A-Fa-f]{1,4}){1,2})))|(((25[0-5]|2[0-4]\\d|[01]?\\d{1,2})(\\.(25[0-5]|2[0-4]\\d|[01]?\\d{1,2})){3})))(%.+)?\\s*$"
 
     # 检查IP格式
     for ip in add_ip_list:
         if not re.search(rep_ip, ip) and not re.search(rep_ipv6, ip):
             return mw.returnJson(False, "IP格式错误 {}".format(ip))
 
-    # 添加新域名到黑名单
+    # 添加新IP到黑名单
     for d in data:
         for ip in add_ip_list:
             mw.execShell('fail2ban-client -vvv set {jail} banip {ip}'.format(jail=d, ip=ip))
@@ -345,11 +398,60 @@ def setBlackIp():
         for ip in del_ip_list:
             mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
 
-    for ip in add_ip_list:
-        ip_list.append(ip)
+    # 更新本地缓存，保留 new_ip_list 里的合法 IP 覆盖 ip_list
+    ip_list = [ip for ip in new_ip_list if re.search(rep_ip, ip) or re.search(rep_ipv6, ip)]
 
     mw.writeFile(getBlackFile(), json.dumps(ip_list))
     return mw.returnJson(True, "添加黑名单成功")
+
+def runInfo():
+    # 获取 Jail 状态与封禁详情
+    jails = []
+    banned_count = 0
+    banned_ips = {}
+    
+    if status() == 'start':
+        ret = mw.execShell('fail2ban-client status')
+        if ret[0] != '':
+            match = re.search(r'Jail list:\s+(.*)', ret[0])
+            if match:
+                jails = [j.strip() for j in match.group(1).split(',') if j.strip()]
+                
+        # 遍历各个 Jail 获取具体被封禁的 IP 和统计数量
+        for jail in jails:
+            jail_status = mw.execShell('fail2ban-client status {}'.format(jail))
+            if jail_status[0] != '':
+                # 解析当前封禁数量 (Currently banned)
+                count_match = re.search(r'Currently banned:\s+(\d+)', jail_status[0])
+                if count_match:
+                    banned_count += int(count_match.group(1))
+                
+                # 解析封禁 IP 列表 (Banned IP list)
+                ip_match = re.search(r'Banned IP list:\s+(.*)', jail_status[0])
+                if ip_match:
+                    ips = [ip.strip() for ip in ip_match.group(1).split() if ip.strip()]
+                    if ips:
+                        banned_ips[jail] = ips
+
+    # 读取日志的最后20行
+    log_file = runLog()
+    log_lines = []
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                lines = f.readlines()
+                log_lines = lines[-20:]
+        except Exception:
+            pass
+
+    res = {
+        'status': status(),
+        'jails': jails,
+        'banned_count': banned_count,
+        'banned_ips': banned_ips,
+        'log': ''.join(log_lines)
+    }
+    return mw.returnJson(True, 'ok', res)
 
 if __name__ == "__main__":
     func = sys.argv[1]

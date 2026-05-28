@@ -89,14 +89,27 @@ def configTpl():
 
 
 def readConfigTpl():
-    args = getArgs()
-    data = checkArgs(args, ['file'])
-    if not data[0]:
-        return data[1]
+    try:
+        args = getArgs()
+        data = checkArgs(args, ['file'])
+        if not data[0]:
+            return data[1]
 
-    content = mw.readFile(args['file'])
-    content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+        # 1. 强制使用 os.path.basename 阻断任意目录穿越符号 (如 ../)
+        safe_file_name = os.path.basename(args['file'])
+        
+        # 2. 强行锁定只允许读取插件自身的 config/ 配置模板目录，防止越权读取敏感文件
+        safe_file_path = getPluginDir() + '/config/' + safe_file_name
+
+        if not os.path.exists(safe_file_path):
+            return mw.returnJson(False, '模板配置文件不存在！')
+
+        content = mw.readFile(safe_file_path)
+        content = contentReplace(content)
+        return mw.returnJson(True, 'ok', content)
+    except Exception as e:
+        return mw.returnJson(False, '读取模板配置文件发生异常: ' + str(e))
+
 
 def getPidFile():
     file = getConf()

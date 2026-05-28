@@ -182,19 +182,38 @@ def dtFileList():
 
 
 def dtSimpleTrace():
-    if mw.isAppleSystem():
-        return mw.returnJson(False, 'macosx只能手动执行!')
+    try:
+        if mw.isAppleSystem():
+            return mw.returnJson(False, 'macosx只能手动执行!')
 
-    args = getArgs()
-    data = checkArgs(args, ['pid'])
-    if not data[0]:
-        return data[1]
+        args = getArgs()
+        data = checkArgs(args, ['pid'])
+        if not data[0]:
+            return data[1]
 
-    plugins_shell = getPluginDir() + '/shell/simple_trace.sh'
-    cmd = plugins_shell + ' "' + args['pid'] + '"'
+        # 1. 强制整型强制转换，杜绝任何 shell 命令注入
+        try:
+            safe_pid = int(args['pid'])
+        except (ValueError, TypeError):
+            return mw.returnJson(False, '非法的进程PID，仅支持纯数字进程号！')
 
-    data = mw.execShell("bash " + cmd + " &")
-    return mw.returnJson(True, '执行成功!')
+        if safe_pid <= 0:
+            return mw.returnJson(False, 'PID进程号必须为正整数！')
+
+        # 2. 并发防死锁：检查后台是否已有正在运行的追踪采样任务
+        check_running = mw.execShell("ps -ef | grep 'simple_trace.sh' | grep -v 'grep'")[0].strip()
+        if check_running != "":
+            return mw.returnJson(False, '后台已有调试采样任务正在执行，请等待其完成后再开启新任务！')
+
+        plugins_shell = getPluginDir() + '/shell/simple_trace.sh'
+        
+        # 3. 安全拼接纯整型参数，100% 免疫注入
+        cmd = f"{plugins_shell} {safe_pid}"
+        mw.execShell("bash " + cmd + " &")
+        return mw.returnJson(True, '任务添加成功！正在后台进行 30 秒无侵入 CPU 采样，完成后将自动绘制火焰图！')
+    except Exception as e:
+        return mw.returnJson(False, '启动追踪任务失败: ' + str(e))
+
 
 
 if __name__ == "__main__":
