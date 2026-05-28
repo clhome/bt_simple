@@ -277,6 +277,23 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
     });
 }
 
+// 强制删除插件
+function forceUninstallPlugin(name, version) {
+    layer.confirm('<span style="color: red;">是否强制删除该插件？（强制删除将直接删除插件目录及相关配置，且无法恢复）</span>', {
+        title: '强制删除确认',
+        icon: 2,
+        closeBtn: 1,
+        btn: ['强制删除', '取消']
+    }, function() {
+        var forceLoad = layer.msg('正在强制删除,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        $.post('/plugins/uninstall', { name: name, version: version, force: 1 }, function(forceRdata) {
+            layer.close(forceLoad);
+            getSList();
+            layer.msg(forceRdata.msg, { icon: forceRdata.status ? 1 : 2 });
+        }, 'json');
+    });
+}
+
 //卸载软件
 function uninstallPreInspection(name, title, ver, callback){
     var loading = layer.msg('正在检查卸载环境...', { icon: 16, time: 0, shade: [0.3, '#000'] });
@@ -288,10 +305,24 @@ function uninstallPreInspection(name, title, ver, callback){
                     callback();
                 }
             } else {
-                layer.msg(rdata.data, { icon: 2 , time: 6666});
+                layer.confirm(rdata.data + '<br><span style="color: red;">卸载环境检查失败，是否要强制删除该插件？</span>', {
+                    title: '卸载失败提示',
+                    icon: 2,
+                    closeBtn: 1,
+                    btn: ['强制删除', '取消']
+                }, function() {
+                    forceUninstallPlugin(name, ver);
+                });
             }
         } else {
-            layer.msg(rdata.data, { icon: rdata.status ? 1 : 2, time: 6666 });
+            layer.confirm(rdata.data + '<br><span style="color: red;">卸载环境检查失败，是否要强制删除该插件？</span>', {
+                title: '卸载失败提示',
+                icon: 2,
+                closeBtn: 1,
+                btn: ['强制删除', '取消']
+            }, function() {
+                forceUninstallPlugin(name, ver);
+            });
         }
     },'json');
 }
@@ -304,8 +335,19 @@ function runUninstallVersion(name, title, version){
         var loadT = layer.msg('正在处理,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.post('/plugins/uninstall', data, function(rdata) {
             layer.close(loadT)
-            getSList();
-            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            if (rdata.status) {
+                getSList();
+                layer.msg(rdata.msg, { icon: 1 });
+            } else {
+                layer.confirm(rdata.msg + '<br><span style="color: red;">插件卸载失败，是否要强制删除该插件？</span>', {
+                    title: '卸载失败提示',
+                    icon: 2,
+                    closeBtn: 1,
+                    btn: ['强制删除', '取消']
+                }, function() {
+                    forceUninstallPlugin(name, version);
+                });
+            }
         },'json');
     });
 }

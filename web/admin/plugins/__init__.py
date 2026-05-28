@@ -101,8 +101,9 @@ def install():
 def uninstall():
     name = request.form.get('name', '')
     version = request.form.get('version', '')
+    force = request.form.get('force', '0') == '1'
     pg = MwPlugin.instance()
-    return pg.uninstall(name, version)
+    return pg.uninstall(name, version, force=force)
 
 # 文件读取
 @blueprint.route('/menu', endpoint='menu', methods=['GET'])

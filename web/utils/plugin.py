@@ -335,9 +335,40 @@ class plugin(object):
         return mw.returnData(True, '已将安装任务添加到队列!')
 
     # 卸载插件
-    def uninstall(self, name, version):
+    def uninstall(self, name, version, force=False):
         if name.strip() == '':
             return mw.returnData(False, "缺少插件名称!", ())
+
+        # 强制卸载（直接物理删除并清理首页图标配置）
+        if force:
+            plugin_path = self.__plugin_dir + '/' + name
+            # 物理删除目录
+            if os.path.exists(plugin_path):
+                import shutil
+                try:
+                    shutil.rmtree(plugin_path)
+                except Exception as e:
+                    # 备用系统命令执行
+                    mw.execShell("rm -rf " + plugin_path)
+
+            # 从首页展示配置中移除
+            try:
+                indexList = thisdb.getOptionByJson('display_index', default=[])
+                newIndexList = []
+                for i in indexList:
+                    t = i.split('-')
+                    plugin_name = t[0]
+                    if len(t) > 2:
+                        tArr = t[0:len(t) - 1]
+                        plugin_name = '-'.join(tArr)
+                    if plugin_name != name:
+                        newIndexList.append(i)
+                thisdb.setOption('display_index', json.dumps(newIndexList))
+            except Exception as e:
+                pass
+
+            self.__plugin_list_static_cache = None
+            return mw.returnData(True, '强制删除成功!')
 
         if version.strip() == '':
             return mw.returnData(False, "缺少版本信息!", ())
