@@ -262,57 +262,15 @@ function getRedisConfig(version) {
 
 //提交配置
 function submitConf(version) {
-    var bind = $("input[name='bind']").val();
-    var port = $("input[name='port']").val();
-    var timeout = $("input[name='timeout']").val();
-    var maxclients = $("input[name='maxclients']").val();
-    var databases = $("input[name='databases']").val();
-    var requirepass = $("input[name='requirepass']").val();
-    var maxmemory = $("input[name='maxmemory']").val();
-
-    // 前置正则校验，保障提交数据的合规与安全
-    var num_reg = /^\d+$/;
-    var ip_reg = /^[0-9a-zA-Z_.:\s,-]+$/;
-    var pass_reg = /^[a-zA-Z0-9_.~!@#$%^&*()_+=-]*$/;
-
-    if (!num_reg.test(port)) {
-        layer.msg('端口必须为纯数字！', {icon: 2});
-        return;
-    }
-    if (!num_reg.test(timeout)) {
-        layer.msg('超时时间必须为纯数字！', {icon: 2});
-        return;
-    }
-    if (!num_reg.test(maxclients)) {
-        layer.msg('最大连接数必须为纯数字！', {icon: 2});
-        return;
-    }
-    if (!num_reg.test(databases)) {
-        layer.msg('数据库数量必须为纯数字！', {icon: 2});
-        return;
-    }
-    if (!num_reg.test(maxmemory)) {
-        layer.msg('最大内存量必须为纯数字！', {icon: 2});
-        return;
-    }
-    if (bind && !ip_reg.test(bind)) {
-        layer.msg('绑定IP地址格式不合法！', {icon: 2});
-        return;
-    }
-    if (requirepass && !pass_reg.test(requirepass)) {
-        layer.msg('Redis密码包含非法字符！建议仅包含字母、数字与常用安全符号', {icon: 2});
-        return;
-    }
-
     var data = {
         version: version,
-        bind: bind,
-        'port': port,
-        'timeout': timeout,
-        maxclients: maxclients,
-        databases: databases,
-        requirepass: requirepass,
-        maxmemory: maxmemory,
+        bind: $("input[name='bind']").val(),
+        'port': $("input[name='port']").val(),
+        'timeout': $("input[name='timeout']").val(),
+        maxclients: $("input[name='maxclients']").val(),
+        databases: $("input[name='databases']").val(),
+        requirepass: $("input[name='requirepass']").val(),
+        maxmemory: $("input[name='maxmemory']").val(),
     };
 
     redisPost('submit_redis_conf', version, data, function(ret_data){
@@ -323,22 +281,17 @@ function submitConf(version) {
 
 
 function redisReadme(){
-    // 动态获取 Redis 路径，彻底消除硬编码，提升极佳的自适应交互体验
-    redisPost('conf', '', {}, function(data){
-        var conf_path = data.data;
-        var redis_bin_dir = conf_path.substring(0, conf_path.lastIndexOf('/')) + '/bin';
-        
-        var cmd_01 = redis_bin_dir + '/redis-cli --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 --cluster-replicas 0';
-        var cmd_02 = redis_bin_dir + '/redis-cli --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 --cluster-replicas 1';
+    var cmd_01 = '/www/server/redis/bin/redis-cli --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 --cluster-replicas 0';
+    var cmd_02 = '/www/server/redis/bin/redis-cli --cluster create 127.0.0.1:6379 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 --cluster-replicas 1';
 
-        var readme = '<ul class="help-info-text c7">';
-        readme += '<li style="margin-top: 10px;"><strong>💡 动态集群创建示例 1 (不带副本)：</strong></li>';
-        readme += '<li style="background-color: #f7f9fa; padding: 12px; border-radius: 6px; font-family: monospace; word-break: break-all; margin: 8px 0 16px 0; border: 1px solid #e1e4e6; color: #2c3e50; font-size: 13px; line-height: 1.5;">' + cmd_01 + '</li>';
-        readme += '<li><strong>💡 动态集群创建示例 2 (带 1 个副本)：</strong></li>';
-        readme += '<li style="background-color: #f7f9fa; padding: 12px; border-radius: 6px; font-family: monospace; word-break: break-all; margin: 8px 0 8px 0; border: 1px solid #e1e4e6; color: #2c3e50; font-size: 13px; line-height: 1.5;">' + cmd_02 + '</li>';
-        readme += '</ul>';
 
-        $('.soft-man-con').html(readme);   
-    });
+    var readme = '<ul class="help-info-text c7">';
+    readme += '<li>集群创建1</li>';
+    readme += '<li>'+cmd_01+'</li>';
+    readme += '<li>集群创建2</li>';
+    readme += '<li>'+cmd_02+'</li>';
+    readme += '</ul>';
+
+    $('.soft-man-con').html(readme);   
 }
 

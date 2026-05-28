@@ -64,23 +64,15 @@ def getArgs():
     if args_len == 1:
         t = args[0].strip('{').strip('}')
         if t.strip() == '':
-            return tmp
-        try:
-            import json
-            parsed = json.loads(args[0])
-            if isinstance(parsed, dict):
-                return parsed
-        except:
-            pass
-        
-        parts = t.split(':', 1)
-        if len(parts) == 2:
-            tmp[parts[0].strip().strip('"').strip("'")] = parts[1].strip().strip('"').strip("'")
+            tmp = []
+        else:
+            t = t.split(':')
+            tmp[t[0]] = t[1]
+        tmp[t[0]] = t[1]
     elif args_len > 1:
         for i in range(len(args)):
-            parts = args[i].split(':', 1)
-            if len(parts) == 2:
-                tmp[parts[0].strip().strip('"').strip("'")] = parts[1].strip().strip('"').strip("'")
+            t = args[i].split(':')
+            tmp[t[0]] = t[1]
     return tmp
 
 def checkArgs(data, ck=[]):
@@ -105,52 +97,28 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    # 安全增强：强路径前缀校验，杜绝任意文件读取与目录穿越
-    target_file = os.path.abspath(args['file'])
-    allowed_dir = os.path.abspath(getPluginDir() + '/tpl')
-    if not target_file.startswith(allowed_dir + os.sep) and not target_file.startswith(allowed_dir + '/'):
-        if target_file != allowed_dir:
-            return mw.returnJson(False, '越界访问被拒绝！')
-
-    if not os.path.exists(target_file):
-        return mw.returnJson(False, '模板文件不存在')
-
-    content = mw.readFile(target_file)
+    content = mw.readFile(args['file'])
     content = contentReplace(content)
     return mw.returnJson(True, 'ok', content)
 
 def getPidFile():
     file = getConf()
-    if not os.path.exists(file):
-        return ''
     content = mw.readFile(file)
     rep = r'pidfile\s*(.*)'
     tmp = re.search(rep, content)
-    if tmp:
-        return tmp.groups()[0].strip()
-    return ''
+    return tmp.groups()[0].strip()
 
 def status():
     pid_file = getPidFile()
-    if not pid_file or not os.path.exists(pid_file):
+    if not os.path.exists(pid_file):
         return 'stop'
 
-    try:
-        pid = mw.readFile(pid_file).strip()
-        if pid and mw.checkPid(int(pid)):
-            return 'start'
-    except:
-        pass
+    # data = mw.execShell(
+    #     "ps aux|grep redis |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
 
-    # 双重保险：在 Systemd Linux 上结合 systemctl is-active 精准监控
-    current_os = mw.getOs()
-    if current_os != 'darwin' and not current_os.startswith('freebsd'):
-        cmd = 'systemctl is-active ' + getPluginName()
-        data = mw.execShell(cmd)
-        if data[0].strip() == 'active':
-            return 'start'
-
-    return 'stop'
+    # if data[0] == '':
+    #     return 'stop'
+    return 'start'
 
 def contentReplace(content):
     service_path = mw.getServerDir()
@@ -452,11 +420,12 @@ def initdStatus():
         if os.path.exists(initd_bin):
             return 'ok'
 
-    shell_cmd = 'systemctl is-enabled ' + getPluginName()
+    shell_cmd = 'systemctl status ' + \
+        getPluginName() + ' | grep loaded | grep "enabled;"'
     data = mw.execShell(shell_cmd)
-    if data[0].strip() == 'enabled':
-        return 'ok'
-    return 'fail'
+    if data[0] == '':
+        return 'fail'
+    return 'ok'
 
 
 def initdInstall():
@@ -543,54 +512,22 @@ def submitRedisConf():
     args = getArgs()
     conf = getConf()
     content = mw.readFile(conf)
-
-    # 强正则安全白名单校验体系，彻底杜绝任意指令与换行符注入（RCE）
     for g in gets:
         if g in args:
-            val_str = str(args[g]).strip()
-            
-            # 1. 纯数字项过滤
-            if g in ['port', 'timeout', 'maxclients', 'databases', 'maxmemory']:
-                if not re.match(r'^\d+$', val_str):
-                    return mw.returnJson(False, '参数 [' + g + '] 必须为纯数字！')
-            
-            # 2. 绑定 IP 与主从同步过滤
-            elif g in ['bind', 'slaveof']:
-                if val_str != '' and not re.match(r'^[0-9a-zA-Z_.:\s,-]+$', val_str):
-                    return mw.returnJson(False, '参数 [' + g + '] 格式不合法！')
-            
-            # 3. 密码及凭据强抗注入过滤
-            elif g in ['requirepass', 'masterauth']:
-                # 必须杜绝一切换行符及特殊转义，仅限安全字符
-                if val_str != '' and not re.match(r'^[a-zA-Z0-9_.~!@#$%^&*()_+=-]+$', val_str):
-                    return mw.returnJson(False, '密码参数 [' + g + '] 含有非法字符！')
-
-    for g in gets:
-        if g in args:
-            val_str = str(args[g]).strip()
             rep = g + r'\s*([.0-9A-Za-z_& ~]+)'
-            val = g + ' ' + val_str
+            val = g + ' ' + args[g]
 
             if g == 'maxmemory':
-                val = g + ' ' + val_str + "mb"
+                val = g + ' ' + args[g] + "mb"
 
-            if g == 'requirepass' and val_str == '':
-                content = re.sub(r'^(#)?requirepass\s*([.0-9A-Za-z_& ~]*)', '#requirepass ""', content, flags=re.M)
-            elif g == 'requirepass' and val_str != '':
-                content = re.sub(r'^#requirepass\s*([.0-9A-Za-z_& ~]*)', 'requirepass ' + val_str, content, flags=re.M)
-                rep_r = r'^(requirepass)\s*([.0-9A-Za-z_& ~]*)'
-                content = re.sub(rep_r, 'requirepass ' + val_str, content, flags=re.M)
-
-            elif g == 'masterauth' and val_str == '':
-                content = re.sub(r'^(#)?masterauth\s*([.0-9A-Za-z_& ~]*)', '#masterauth ""', content, flags=re.M)
-            elif g == 'masterauth' and val_str != '':
-                content = re.sub(r'^#masterauth\s*([.0-9A-Za-z_& ~]*)', 'masterauth ' + val_str, content, flags=re.M)
-                rep_m = r'^(masterauth)\s*([.0-9A-Za-z_& ~]*)'
-                content = re.sub(rep_m, 'masterauth ' + val_str, content, flags=re.M)
-
-            else:
+            if g == 'requirepass' and args[g] == '':
+                content = re.sub('requirepass', '#requirepass', content)
+            if g == 'requirepass' and args[g] != '':
+                content = re.sub('#requirepass', 'requirepass', content)
                 content = re.sub(rep, val, content)
 
+            if g != 'requirepass':
+                content = re.sub(rep, val, content)
     mw.writeFile(conf, content)
     reload()
     return mw.returnJson(True, '设置成功')
