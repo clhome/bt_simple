@@ -88,6 +88,8 @@ class plugin(object):
     __plugin_status_cachekey = 'plugin_list_status'
     __plugin_status_data = None
 
+    __plugin_list_static_cache = None
+
     # lock
     _instance_lock = threading.Lock()
 
@@ -355,6 +357,7 @@ class plugin(object):
         data = mw.execShell(exec_bash)
         self.removeIndex(name, version)
         mw.debugLog(exec_bash, data)
+        self.__plugin_list_static_cache = None
         return mw.returnData(True, '卸载执行成功!')
 
     # 插件搜索匹配
@@ -584,6 +587,98 @@ class plugin(object):
         except Exception as e:
             return info
 
+    def getStaticPluginList(self):
+        if self.__plugin_list_static_cache is not None:
+            return self.__plugin_list_static_cache
+        
+        static_list = []
+        for name in os.listdir(self.__plugin_dir):
+            if name.startswith('.') or name == '待审核':
+                continue
+            data = self.getPluginInfo(name)
+            if not data or 'versions' not in data:
+                continue
+            
+            plugin_t = self.makeCoexistList(data, plugin_type='0')
+            for index in range(len(plugin_t)):
+                static_list.append(plugin_t[index])
+        
+        self.__plugin_list_static_cache = static_list
+        return self.__plugin_list_static_cache
+
+    def refreshDynamicStatus(self, plist):
+        self.__tasks = thisdb.getTaskRunAll()
+        indexList = thisdb.getOptionByJson('display_index', default=[])
+        
+        for pInfo in plist:
+            name = pInfo['name']
+            version = pInfo['versions']
+            coexist = pInfo['coexist']
+            install_checks = pInfo['install_checks']
+            
+            pInfo['setup'] = os.path.exists(install_checks)
+            
+            if coexist and pInfo['setup']:
+                pInfo['setup_version'] = version
+            elif pInfo['setup']:
+                if os.path.isdir(install_checks):
+                    pInfo['setup_version'] = self.getVersion(install_checks)
+                else:
+                    pInfo['setup_version'] = mw.readFile(install_checks).strip()
+            else:
+                pInfo['setup_version'] = ""
+                
+            display = False
+            if coexist:
+                if type(version) == list:
+                    for idx in range(len(version)):
+                        vname = name + '-' + version[idx]
+                        if vname in indexList:
+                            display = True
+                            break
+                else:
+                    vname = name + '-' + version
+                    if vname in indexList:
+                        display = True
+            else:
+                for i in indexList:
+                    t = i.split('-')
+                    tlen = len(t)
+                    plugin_name = t[0]
+                    if tlen > 2:
+                        tArr = t[0:tlen - 1]
+                        plugin_name = '-'.join(tArr)
+                    if plugin_name == name:
+                        display = True
+                        break
+            pInfo['display'] = display
+            
+            isTask = '1'
+            for task in self.__tasks:
+                tmpt = mw.getStrBetween('[', ']', task['name'])
+                if not tmpt:
+                    continue
+                task_sign = tmpt.split('-')
+                task_len = len(task_sign)
+                if task_len < 2:
+                    continue
+                task_name = task_sign[0].lower()
+                task_ver = task_sign[1]
+                if task_len > 2:
+                    nameArr = task_sign[0:task_len - 1]
+                    task_name = '-'.join(nameArr).lower()
+                    task_ver = task_sign[task_len - 1]
+                if coexist:
+                    if task_name == name and task_ver == version:
+                        isTask = task['status']
+                else:
+                    if task_name == name:
+                        isTask = task['status']
+            pInfo['task'] = isTask
+            
+        return plist
+
+
     def getPluginList(self, name,
         keyword = None,
         type = None,
@@ -640,6 +735,8 @@ class plugin(object):
     def checkStatusMThreadsByCache(self, info):
         try:
             self.__plugin_status_data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default=None)
+            if self.__plugin_status_data is None or type(self.__plugin_status_data) != dict:
+                self.__plugin_status_data = {}
             threads = []
             ntmp_list = range(len(info))
             for i in ntmp_list:
@@ -716,22 +813,37 @@ class plugin(object):
         page = 1, 
         size = 10, 
     ):
-        info = []
-        for name in os.listdir(self.__plugin_dir):
-            if name.startswith('.'):
-                continue
-            t = self.getPluginList(name, keyword, type=type)
-            for index in range(len(t)):
-                info.append(t[index])
-
-        info = sorted(info, key=lambda f: int(f['sort']), reverse=False)
+        static_list = self.getStaticPluginList()
+        
+        import copy
+        plist = copy.deepcopy(static_list)
+        
+        plist = self.refreshDynamicStatus(plist)
+        
+        filtered_list = []
+        for p in plist:
+            if str(type) == '-1':
+                if p['setup']:
+                    filtered_list.append(p)
+            elif type == None or type == '0' or str(p['pid']) == str(type):
+                filtered_list.append(p)
+                
+        if keyword:
+            searched_list = []
+            for p in filtered_list:
+                if self.searchKey(p, keyword):
+                    searched_list.append(p)
+            filtered_list = searched_list
+            
+        filtered_list = sorted(filtered_list, key=lambda f: int(f['sort']), reverse=False)
         
         start = (page - 1) * size
         end = start + size
-        x = info[start:end]
+        page_items = filtered_list[start:end]
+        
+        page_items = self.checkStatusMThreadsByCache(page_items)
+        return (page_items, len(filtered_list))
 
-        x = self.checkStatusMThreadsByCache(x)
-        return (x, len(info))
 
     def getList(
         self,
@@ -816,6 +928,7 @@ class plugin(object):
         mw.execShell('chmod -R 755 ' + plugin_path)
         p_info = mw.readFile(plugin_path + '/info.json')
         if p_info:
+            self.__plugin_list_static_cache = None
             mw.writeLog('软件管理', '安装第三方插件[%s]' %json.loads(p_info)['title'])
             return mw.returnData(True, '安装成功!')
         mw.execShell("rm -rf " + plugin_path)
