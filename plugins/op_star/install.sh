@@ -45,9 +45,22 @@ Install_App(){
 	if [ ! -d $serverPath/openstar/.git ]; then
 		echo "正在克隆 OpenStar 核心代码库..."
 		rm -rf $serverPath/openstar
-		git clone ${HTTP_PREFIX}github.com/starjun/openstar.git $serverPath/openstar
-		if [ "$?" != "0" ]; then
-			echo "克隆 OpenStar 失败！请检查您的网络连接。"
+		
+		# 强力多镜像加速源容灾拉取，防止单一代理失效时阻碍安装
+		clone_success=0
+		for prefix in "https://ghfast.top/" "https://mirror.ghproxy.com/" "https://ghproxy.com/" "https://"; do
+			echo "正在尝试从源拉取: ${prefix}github.com/starjun/openstar.git"
+			git clone ${prefix}github.com/starjun/openstar.git $serverPath/openstar
+			if [ "$?" == "0" ] && [ -f $serverPath/openstar/luaself/init.lua ]; then
+				echo "从源 ${prefix} 成功克隆 WAF 核心内核！"
+				clone_success=1
+				break
+			fi
+			rm -rf $serverPath/openstar
+		done
+		
+		if [ "$clone_success" != "1" ]; then
+			echo "克隆 OpenStar 失败！尝试了所有的加速镜像及官方源均无法连通，请检查您的网络连接。"
 			exit 1
 		fi
 	fi

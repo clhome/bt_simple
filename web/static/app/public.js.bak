@@ -1708,12 +1708,11 @@ function webShell() {
     var termRows = 21;
     var sendTotal = 0;
     if(!socket)socket = io.connect();
-    var term = new Terminal({
-        cols: termCols,
-        rows: termRows,
-        screenKeys: true,
-        useStyle: true
-    });
+    var term = new Terminal({ cols: termCols, rows: termRows, screenKeys: true, useStyle: true});
+
+    term.open();
+    term.setOption('cursorBlink', true);
+    term.setOption('fontSize', 14);
     gterm = term;
 
     socket.on('server_response', function (data) {
@@ -1747,79 +1746,26 @@ function webShell() {
     });
 
 
-    var tryFit = function() {
-        try {
-            if (typeof fit !== 'undefined') {
-                Terminal.applyAddon(fit);
-            }
-            if (term && typeof term.fit === 'function') {
-                term.fit();
-                if (socket) {
-                    socket.emit('webssh', {resize: 1, cols: term.cols, rows: term.rows});
-                }
-            }
-        } catch(e) {
-            console.log(e);
-        }
-    };
-
-    function resizeTerm(layero) {
-        try {
-            var content = layero.find('.layui-layer-content');
-            var termBox = layero.find('.term-box');
-            var termEl = layero.find('#term');
-            var h = content.height();
-            var w = content.width();
-            termBox.css({
-                width: w + 'px',
-                height: h + 'px',
-                padding: '5px 10px 10px',
-                'box-sizing': 'border-box'
-            });
-            termEl.css({
-                width: (w - 20) + 'px',
-                height: (h - 15) + 'px'
-            });
-        } catch(e) {
-            console.log(e);
-        }
-    }
-
     var term_box = layer.open({
         type: 1,
         title: "本地终端",
-        area: ['900px', '550px'],
+        area: ['685px','463px'],
         closeBtn: 1,
         shadeClose: false,
-        maxmin: true,
-        content: '<div class="term-box" style="overflow:hidden; box-sizing:border-box;"><div id="term" style="overflow:hidden;"></div></div>',
-        success: function(layero, index){
-            layero.find('.layui-layer-content').css('overflow', 'hidden');
-            resizeTerm(layero);
-            setTimeout(function() {
-                tryFit();
-            }, 100);
-            setTimeout(function() {
-                tryFit();
-            }, 300);
-        },
-        full: function(layero){
-            resizeTerm(layero);
-            setTimeout(function() {
-                tryFit();
-            }, 100);
-            setTimeout(function() {
-                tryFit();
-            }, 300);
-        },
-        restore: function(layero){
-            resizeTerm(layero);
-            setTimeout(function() {
-                tryFit();
-            }, 100);
-            setTimeout(function() {
-                tryFit();
-            }, 300);
+        content: '<div class="term-box"><div id="term"></div></div>\
+					<div class="shell-text-input">\
+                    <textarea type="text" class="bt-input-text-shell" placeholder="请将命令粘贴到此处.." value="" name="ssh_copy" />\
+					<div class="shell-btn-group">\
+                    <button class="shellbutton btn btn-success btn-sm pull-right shell_btn_1">发送(Ctrl+Enter)</button>\
+					<button class="shellbutton btn btn-default btn-sm pull-right shell_btn_close">关闭</button>\
+					</div>\
+                </div>',
+        success:function(){
+        	$(".shell_btn_close").click(function(){
+				layer.close(term_box);
+				term.destroy();
+		        clearInterval(interval);
+			});
         },
         cancel: function () {
             term.destroy();
@@ -1830,22 +1776,10 @@ function webShell() {
 	
     setTimeout(function () {
 
-        term.open(document.getElementById('term'));
+        $('.terminal').detach().appendTo('#term');
         $("#term").show();
-        term.setOption('cursorBlink', true);
-        term.setOption('fontSize', 14);
-        term.setOption('fontFamily', 'Consolas, "Courier New", Courier, monospace');
-        $('#term').css('font-family', 'Consolas, "Courier New", Courier, monospace');
-        
-        tryFit();
         socket.emit('webssh', "\n");
         term.focus();
-        setTimeout(function() {
-            tryFit();
-        }, 150);
-        setTimeout(function() {
-            tryFit();
-        }, 300);
 
         // 鼠标右键事件
         var can = $("#term");
@@ -1917,6 +1851,24 @@ function webShell() {
             setCookie('shell_copy_body', e.text)
             remove_ssh_menu();
             term.focus();
+        });
+
+        $(".shellbutton").click(function () {
+            var tobj = $("textarea[name='ssh_copy']");
+            var ptext = tobj.val();
+            tobj.val('');
+            if ($(this).text().indexOf('Alt') != -1) {
+                ptext +="\n";
+            }
+            socket.emit('webssh', ptext);
+            term.focus();
+        });
+        $("textarea[name='ssh_copy']").keydown(function (e) {
+            if (e.ctrlKey && e.keyCode == 13) {
+                $(".shell_btn_1").click();
+            } else if (e.altKey && e.keyCode == 13) {
+                $(".shell_btn_1").click();
+            }
         });
     }, 100);
 }

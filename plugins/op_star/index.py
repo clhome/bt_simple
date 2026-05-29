@@ -60,54 +60,52 @@ def fixOpenstarLuaPaths():
     """
     path = getServerDir()
     
-    # 递归修正 luaself 下的所有 lua 文件和 conf_json 下的所有 json 配置文件中的硬编码路径
-    targets = [
-        path + '/luaself',
-        path + '/conf_json'
-    ]
-    for target_dir in targets:
-        if os.path.exists(target_dir):
-            for root, dirs, files in os.walk(target_dir):
-                for file in files:
-                    if file.endswith('.lua') or file.endswith('.json'):
-                        fpath = os.path.join(root, file)
-                        try:
-                            content = mw.readFile(fpath)
-                            has_changed = False
-                            
-                            if '/opt/openresty/openstar' in content:
-                                content = content.replace('/opt/openresty/openstar', path)
+    # 递归修正根目录下（排除 .git 缓存）的所有 lua 和 json 配置文件中的硬编码路径
+    if os.path.exists(path):
+        for root, dirs, files in os.walk(path):
+            # 优雅地排除 .git 目录的深度递归，加速执行并防范干扰
+            if '.git' in dirs:
+                dirs.remove('.git')
+            for file in files:
+                if file.endswith('.lua') or file.endswith('.json'):
+                    fpath = os.path.join(root, file)
+                    try:
+                        content = mw.readFile(fpath)
+                        has_changed = False
+                        
+                        if '/opt/openresty/openstar' in content:
+                            content = content.replace('/opt/openresty/openstar', path)
+                            has_changed = True
+                        if '/GSuWaf' in content:
+                            content = content.replace('/GSuWaf', path)
+                            has_changed = True
+                        
+                        # 针对 init.lua 进行特定的正则匹配替换修正
+                        if file == 'init.lua':
+                            # 兼容匹配 local conf_json = "..." 或 conf_json = "..."
+                            pattern = r'(conf_json\s*=\s*)"[^"]+"'
+                            target_path = path + '/conf_json/'
+                            if re.search(pattern, content):
+                                content = re.sub(pattern, r'\1"' + target_path + '"', content)
                                 has_changed = True
-                            if '/GSuWaf' in content:
-                                content = content.replace('/GSuWaf', path)
+                                
+                            # 兼容匹配 local base_json = "..." 或 base_json = "..."
+                            pattern_base = r'(base_json\s*=\s*)"[^"]+"'
+                            target_base_path = path + '/conf_json/base.json'
+                            if re.search(pattern_base, content):
+                                content = re.sub(pattern_base, r'\1"' + target_base_path + '"', content)
                                 has_changed = True
-                            
-                            # 针对 init.lua 进行特定的正则匹配替换修正
-                            if file == 'init.lua':
-                                # 兼容匹配 local conf_json = "..." 或 conf_json = "..."
-                                pattern = r'(conf_json\s*=\s*)"[^"]+"'
-                                target_path = path + '/conf_json/'
-                                if re.search(pattern, content):
-                                    content = re.sub(pattern, r'\1"' + target_path + '"', content)
-                                    has_changed = True
-                                    
-                                # 兼容匹配 local base_json = "..." 或 base_json = "..."
-                                pattern_base = r'(base_json\s*=\s*)"[^"]+"'
-                                target_base_path = path + '/conf_json/base.json'
-                                if re.search(pattern_base, content):
-                                    content = re.sub(pattern_base, r'\1"' + target_base_path + '"', content)
-                                    has_changed = True
 
-                                # 兼容有些老版本使用的是 _dir 或者是 base_dir 等
-                                pattern_dir = r'(our_dir\s*=\s*)"[^"]+"'
-                                if re.search(pattern_dir, content):
-                                    content = re.sub(pattern_dir, r'\1"' + path + '/"', content)
-                                    has_changed = True
-                                    
-                            if has_changed:
-                                mw.writeFile(fpath, content)
-                        except Exception as e:
-                            pass
+                            # 兼容有些老版本使用的是 _dir 或者是 base_dir 等
+                            pattern_dir = r'(our_dir\s*=\s*)"[^"]+"'
+                            if re.search(pattern_dir, content):
+                                content = re.sub(pattern_dir, r'\1"' + path + '/"', content)
+                                has_changed = True
+                                
+                        if has_changed:
+                            mw.writeFile(fpath, content)
+                    except Exception as e:
+                        pass
 
 def makeOpDstRunLua(conf_reload=False):
     root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
@@ -124,27 +122,39 @@ def makeOpDstRunLua(conf_reload=False):
             mw.writeFile(waf_conf, content)
 
     # 动态构造 package.path 和 package.cpath 注入的 Lua 语句
-    # 避免在 nginx 配置文件中使用容易引起冲突的全局 lua_package_path 指令
     srv_dir = getServerDir()
-    path_inject = 'package.path = "' + srv_dir + '/lib/?.lua;' + srv_dir + '/luaself/?.lua;" .. package.path\n'
+    path_inject = 'package.path = "' + srv_dir + '/?.lua;' + srv_dir + '/lib/?.lua;' + srv_dir + '/luaself/?.lua;" .. package.path\n'
     path_inject += 'package.cpath = "' + srv_dir + '/lib/?.so;" .. package.cpath\n'
 
-    # 1. 注入 init_preload 挂载 (全局注入寻址路径，由 Master 进程的虚拟机环境直接保存)
+    # 1. 注入 init_preload 挂载 (兼容新老版本 init.lua 的位置)
     waf_init_dst = root_init_dir + "/openstar_init_preload.lua"
     if not os.path.exists(waf_init_dst) or conf_reload:
-        content = path_inject + 'dofile("' + srv_dir + '/luaself/init.lua")\n'
+        init_file = srv_dir + '/luaself/init.lua'
+        if not os.path.exists(init_file):
+            init_file = srv_dir + '/init.lua'
+        content = path_inject + 'dofile("' + init_file + '")\n'
         mw.writeFile(waf_init_dst, content)
 
-    # 2. 注入 init_worker 挂载 (Worker 阶段继承了 Master 的 package.path，不需要高频重复拼接)
+    # 2. 注入 init_worker 挂载 (兼容新版 i_worker.lua 或老版 init_worker.lua)
     init_worker_dst = root_worker_dir + '/openstar_init_worker.lua'
     if not os.path.exists(init_worker_dst) or conf_reload:
-        content = 'dofile("' + srv_dir + '/luaself/init_worker.lua")\n'
+        init_worker_file = srv_dir + '/luaself/init_worker.lua'
+        if not os.path.exists(init_worker_file):
+            init_worker_file = srv_dir + '/i_worker.lua'
+            if not os.path.exists(init_worker_file):
+                init_worker_file = srv_dir + '/init_worker.lua'
+        content = 'dofile("' + init_worker_file + '")\n'
         mw.writeFile(init_worker_dst, content)
 
-    # 3. 注入 access_by_lua 挂载 (处理请求阶段严禁重复拼接以保护运行时性能与并发安全性)
+    # 3. 注入 access_by_lua 挂载 (兼容新版 access_all.lua 或老版 main.lua)
     access_file_dst = root_access_dir + '/openstar_access.lua'
     if not os.path.exists(access_file_dst) or conf_reload:
-        content = 'dofile("' + srv_dir + '/luaself/main.lua")\n'
+        access_file = srv_dir + '/luaself/main.lua'
+        if not os.path.exists(access_file):
+            access_file = srv_dir + '/access_all.lua'
+            if not os.path.exists(access_file):
+                access_file = srv_dir + '/main.lua'
+        content = 'dofile("' + access_file + '")\n'
         mw.writeFile(access_file_dst, content)
 
     # 调用面板内置 Lua 重新合并编译方法
