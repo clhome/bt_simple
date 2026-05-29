@@ -3,8 +3,8 @@
 		{
 			"tag":"site_cb",
 			"site_cb": {
-				"title":"网站统计",
-				"name":"op_waf",
+				"title":"OP防火墙",
+				"name":"openstar",
 				"add":{"func":"reload_hook"},
 				"update":{"func":"reload_hook"},
 				"delete":{"func":"reload_hook"}
