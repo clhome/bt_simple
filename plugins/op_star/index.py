@@ -56,36 +56,58 @@ def contentReplace(content):
 
 def fixOpenstarLuaPaths():
     """
-    自适应修正 OpenStar 核心代码中的默认绝对路径
+    自适应修正 OpenStar 核心代码与所有 JSON 配置中的硬编码绝对路径
     """
     path = getServerDir()
-    init_lua_path = path + '/luaself/init.lua'
-    if os.path.exists(init_lua_path):
-        content = mw.readFile(init_lua_path)
-        
-        # 智能全量替换官方默认硬编码路径为本服务器的实际绝对路径
-        content = content.replace('/opt/openresty/openstar', path)
-        content = content.replace('/GSuWaf', path)
+    
+    # 递归修正 luaself 下的所有 lua 文件和 conf_json 下的所有 json 配置文件中的硬编码路径
+    targets = [
+        path + '/luaself',
+        path + '/conf_json'
+    ]
+    for target_dir in targets:
+        if os.path.exists(target_dir):
+            for root, dirs, files in os.walk(target_dir):
+                for file in files:
+                    if file.endswith('.lua') or file.endswith('.json'):
+                        fpath = os.path.join(root, file)
+                        try:
+                            content = mw.readFile(fpath)
+                            has_changed = False
+                            
+                            if '/opt/openresty/openstar' in content:
+                                content = content.replace('/opt/openresty/openstar', path)
+                                has_changed = True
+                            if '/GSuWaf' in content:
+                                content = content.replace('/GSuWaf', path)
+                                has_changed = True
+                            
+                            # 针对 init.lua 进行特定的正则匹配替换修正
+                            if file == 'init.lua':
+                                # 兼容匹配 local conf_json = "..." 或 conf_json = "..."
+                                pattern = r'(conf_json\s*=\s*)"[^"]+"'
+                                target_path = path + '/conf_json/'
+                                if re.search(pattern, content):
+                                    content = re.sub(pattern, r'\1"' + target_path + '"', content)
+                                    has_changed = True
+                                    
+                                # 兼容匹配 local base_json = "..." 或 base_json = "..."
+                                pattern_base = r'(base_json\s*=\s*)"[^"]+"'
+                                target_base_path = path + '/conf_json/base.json'
+                                if re.search(pattern_base, content):
+                                    content = re.sub(pattern_base, r'\1"' + target_base_path + '"', content)
+                                    has_changed = True
 
-        # 将默认的 config 路径或 conf_json 路径替换为我们实际的目录
-        # 兼容匹配 local conf_json = "..." 或 conf_json = "..."
-        pattern = r'(conf_json\s*=\s*)"[^"]+"'
-        target_path = getServerDir() + '/conf_json/'
-        if re.search(pattern, content):
-            content = re.sub(pattern, r'\1"' + target_path + '"', content)
-            
-        # 兼容匹配 local base_json = "..." 或 base_json = "..."
-        pattern_base = r'(base_json\s*=\s*)"[^"]+"'
-        target_base_path = getServerDir() + '/conf_json/base.json'
-        if re.search(pattern_base, content):
-            content = re.sub(pattern_base, r'\1"' + target_base_path + '"', content)
-
-        # 兼容有些老版本使用的是 _dir 或者是 base_dir 等
-        pattern_dir = r'(our_dir\s*=\s*)"[^"]+"'
-        if re.search(pattern_dir, content):
-            content = re.sub(pattern_dir, r'\1"' + path + '/"', content)
-            
-        mw.writeFile(init_lua_path, content)
+                                # 兼容有些老版本使用的是 _dir 或者是 base_dir 等
+                                pattern_dir = r'(our_dir\s*=\s*)"[^"]+"'
+                                if re.search(pattern_dir, content):
+                                    content = re.sub(pattern_dir, r'\1"' + path + '/"', content)
+                                    has_changed = True
+                                    
+                            if has_changed:
+                                mw.writeFile(fpath, content)
+                        except Exception as e:
+                            pass
 
 def makeOpDstRunLua(conf_reload=False):
     root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
