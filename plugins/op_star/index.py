@@ -62,19 +62,30 @@ def fixOpenstarLuaPaths():
     init_lua_path = path + '/luaself/init.lua'
     if os.path.exists(init_lua_path):
         content = mw.readFile(init_lua_path)
+        
+        # 智能全量替换官方默认硬编码路径为本服务器的实际绝对路径
+        content = content.replace('/opt/openresty/openstar', path)
+        content = content.replace('/GSuWaf', path)
+
         # 将默认的 config 路径或 conf_json 路径替换为我们实际的目录
         # 兼容匹配 local conf_json = "..." 或 conf_json = "..."
         pattern = r'(conf_json\s*=\s*)"[^"]+"'
         target_path = getServerDir() + '/conf_json/'
         if re.search(pattern, content):
             content = re.sub(pattern, r'\1"' + target_path + '"', content)
-            mw.writeFile(init_lua_path, content)
             
+        # 兼容匹配 local base_json = "..." 或 base_json = "..."
+        pattern_base = r'(base_json\s*=\s*)"[^"]+"'
+        target_base_path = getServerDir() + '/conf_json/base.json'
+        if re.search(pattern_base, content):
+            content = re.sub(pattern_base, r'\1"' + target_base_path + '"', content)
+
         # 兼容有些老版本使用的是 _dir 或者是 base_dir 等
         pattern_dir = r'(our_dir\s*=\s*)"[^"]+"'
         if re.search(pattern_dir, content):
             content = re.sub(pattern_dir, r'\1"' + path + '/"', content)
-            mw.writeFile(init_lua_path, content)
+            
+        mw.writeFile(init_lua_path, content)
 
 def makeOpDstRunLua(conf_reload=False):
     root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'

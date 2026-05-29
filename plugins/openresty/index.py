@@ -197,6 +197,20 @@ def confReplace():
     if not os.path.exists(empty_lua):
         mw.writeFile(empty_lua, '')
 
+    # 物理清除废弃防火墙 op_waf 残留挂载文件及配置，防止未物理清理彻底时失效的 require 模块阻碍正常启动
+    opwaf_removes = [
+        os.path.join(lua_conf_dir, 'access_by_lua_file', 'opwaf_init.lua'),
+        os.path.join(lua_conf_dir, 'init_worker_by_lua_file', 'opwaf_init_worker.lua'),
+        os.path.join(lua_conf_dir, 'init_by_lua_file', 'waf_init_preload.lua'),
+        mw.getServerDir() + '/web_conf/nginx/vhost/opwaf.conf'
+    ]
+    for r_path in opwaf_removes:
+        if os.path.exists(r_path):
+            try:
+                os.remove(r_path)
+            except Exception as e:
+                pass
+
     mw.opLuaMakeAll()
 
     # 静态配置
