@@ -90,22 +90,28 @@ def makeOpDstRunLua(conf_reload=False):
             content = contentReplace(content)
             mw.writeFile(waf_conf, content)
 
-    # 1. 注入 init_preload 挂载
+    # 动态构造 package.path 和 package.cpath 注入的 Lua 语句
+    # 避免在 nginx 配置文件中使用容易引起冲突的全局 lua_package_path 指令
+    srv_dir = getServerDir()
+    path_inject = 'package.path = "' + srv_dir + '/lib/?.lua;' + srv_dir + '/luaself/?.lua;" .. package.path\n'
+    path_inject += 'package.cpath = "' + srv_dir + '/lib/?.so;" .. package.cpath\n'
+
+    # 1. 注入 init_preload 挂载 (全局注入寻址路径，由 Master 进程的虚拟机环境直接保存)
     waf_init_dst = root_init_dir + "/openstar_init_preload.lua"
     if not os.path.exists(waf_init_dst) or conf_reload:
-        content = 'dofile("' + getServerDir() + '/luaself/init.lua")\n'
+        content = path_inject + 'dofile("' + srv_dir + '/luaself/init.lua")\n'
         mw.writeFile(waf_init_dst, content)
 
-    # 2. 注入 init_worker 挂载
+    # 2. 注入 init_worker 挂载 (Worker 阶段继承了 Master 的 package.path，不需要高频重复拼接)
     init_worker_dst = root_worker_dir + '/openstar_init_worker.lua'
     if not os.path.exists(init_worker_dst) or conf_reload:
-        content = 'dofile("' + getServerDir() + '/luaself/init_worker.lua")\n'
+        content = 'dofile("' + srv_dir + '/luaself/init_worker.lua")\n'
         mw.writeFile(init_worker_dst, content)
 
-    # 3. 注入 access_by_lua 挂载
+    # 3. 注入 access_by_lua 挂载 (处理请求阶段严禁重复拼接以保护运行时性能与并发安全性)
     access_file_dst = root_access_dir + '/openstar_access.lua'
     if not os.path.exists(access_file_dst) or conf_reload:
-        content = 'dofile("' + getServerDir() + '/luaself/main.lua")\n'
+        content = 'dofile("' + srv_dir + '/luaself/main.lua")\n'
         mw.writeFile(access_file_dst, content)
 
     # 调用面板内置 Lua 重新合并编译方法
@@ -270,6 +276,18 @@ def get_logs():
         
     return mw.returnJson(True, 'ok', json.dumps(logs))
 
+def install_pre_inspection():
+    """
+    安装前置环境检查
+    """
+    return 'ok'
+
+def uninstall_pre_inspection():
+    """
+    卸载前置环境检查
+    """
+    return 'ok'
+
 if __name__ == "__main__":
     func = sys.argv[1]
     if func == 'status':
@@ -290,5 +308,9 @@ if __name__ == "__main__":
         print(save_rule())
     elif func == 'get_logs':
         print(get_logs())
+    elif func == 'install_pre_inspection':
+        print(install_pre_inspection())
+    elif func == 'uninstall_pre_inspection':
+        print(uninstall_pre_inspection())
     else:
         print('error')

@@ -109,14 +109,15 @@ function wafDashboard(){
     
     $(".soft-man-con").html(con);
     
-    // 渲染随机或分析出来的高颜值统计，给用户带去视觉享受
-    var ccRand = Math.floor(Math.random() * 150) + 12;
-    var todayRand = Math.floor(Math.random() * 800) + 105;
-    var totalRand = Math.floor(Math.random() * 200000) + 85300;
-    
     // 从日志API中加载真实的拦截数据
     osPostN('get_logs', {}, function(data){
-        var logs = $.parseJSON(data.data);
+        var logs = [];
+        try {
+            logs = $.parseJSON(data.data);
+        } catch(e) {
+            logs = [];
+        }
+        
         if(logs && logs.length > 0){
             var ccCnt = 0;
             for(var i=0; i<logs.length; i++){
@@ -124,11 +125,12 @@ function wafDashboard(){
             }
             $("#cc_blocked_cnt").text(ccCnt);
             $("#today_blocked_cnt").text(logs.length);
-            $("#total_protect_cnt").text(logs.length * 150 + totalRand);
+            $("#total_protect_cnt").text(logs.length);
         } else {
-            $("#cc_blocked_cnt").text(ccRand);
-            $("#today_blocked_cnt").text(todayRand);
-            $("#total_protect_cnt").text(totalRand);
+            // 新安装或无阻断日志时，恪守事实优先原则，展现真实的 0 次拦截
+            $("#cc_blocked_cnt").text(0);
+            $("#today_blocked_cnt").text(0);
+            $("#total_protect_cnt").text(0);
         }
     });
 }
@@ -506,25 +508,8 @@ function wafBlockedHistory(){
                 </tr>';
             }
         } else {
-            // 即使无日志，也展示一些极具画面美感和真实的演示审计日志，给用户顶级的视觉震撼与信任感
-            var demoLogs = [
-                { time: Math.floor(time() - 3600), ip: '203.0.113.8', host: 'example.com', uri: '/admin/login.php?id=1%20or%201=1', rule: 'args_Mod' },
-                { time: Math.floor(time() - 7200), ip: '198.51.100.42', host: 'example.com', uri: '/wp-includes/js/jquery/', rule: 'uri_Mod' },
-                { time: Math.floor(time() - 15800), ip: '222.186.21.94', host: 'example.com', uri: '/', rule: 'network_Mod' }
-            ];
-            
-            for(var i=0; i<demoLogs.length; i++){
-                var d = demoLogs[i];
-                var date_str = new Date(d.time * 1000).toLocaleString();
-                table_body += '<tr>\
-                    <td>' + date_str + '</td>\
-                    <td><code>' + d.ip + '</code></td>\
-                    <td>' + d.host + '</td>\
-                    <td><span class="overflow_hide" style="max-width:180px;">' + d.uri + '</span></td>\
-                    <td><span class="label label-danger">' + d.rule + '</span></td>\
-                    <td><span style="color:#fc6d26;font-weight:bold;">BLOCKED</span></td>\
-                </tr>';
-            }
+            // 恪守事实优先，无真实攻击日志时，直接展示暂无数据提示
+            table_body = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无 WAF 拦截封锁历史记录</td></tr>';
         }
         
         var con = '<div class="card-box">\
