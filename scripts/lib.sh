@@ -59,6 +59,12 @@ echo "system:${OSNAME}:${VERSION_ID}"
 
 # --- Common Helpers Start ---
 
+# 引入统一的 GitHub 下载函数库
+_gh_download_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)/github_download.sh"
+if [ -f "$_gh_download_lib" ]; then
+    source "$_gh_download_lib"
+fi
+
 function get_local_addr() {
     if [ ! -z "$LOCAL_ADDR" ]; then
         echo $LOCAL_ADDR
@@ -105,19 +111,31 @@ function mw_download() {
     local file=$1
     local url=$2
     local timeout=${3:-30}
-    local addr=$(get_local_addr)
 
     if [ -f $file ]; then
-        return 0
+        local existing_size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
+        if [ "$existing_size" -gt 0 ] 2>/dev/null; then
+            return 0
+        fi
     fi
 
-    if [ "$addr" == "cn" ]; then
-        # GitHub Mirror
-        if [[ $url == https://github.com* ]]; then
-            local proxy_url="https://ghp.ci/$url"
-            echo "Downloading from mirror: $proxy_url"
-            wget --no-check-certificate -O $file --tries=3 --timeout=$timeout $proxy_url
+    # GitHub URL 委托给统一函数处理
+    if [[ $url == https://github.com* ]] || [[ $url == https://api.github.com* ]] || [[ $url == https://raw.githubusercontent.com* ]]; then
+        if ! type github_download >/dev/null 2>&1; then
+            local _gh_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)/github_download.sh"
+            if [ -f "$_gh_lib" ]; then
+                source "$_gh_lib"
+            fi
         fi
+        if type github_download >/dev/null 2>&1; then
+            github_download "$file" "$url" "$timeout"
+            return $?
+        fi
+    fi
+
+    # 非 GitHub URL（如 OpenResty 官方镜像等）
+    local addr=$(get_local_addr)
+    if [ "$addr" == "cn" ]; then
         # OpenResty Mirror
         if [[ $url == https://openresty.org/download/* ]]; then
             local filename=$(basename $url)
@@ -134,6 +152,7 @@ function mw_download() {
 }
 
 # --- Common Helpers End ---
+
 
 HTTP_PREFIX="https://"
 LOCAL_ADDR=$(get_local_addr)

@@ -2,6 +2,13 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入统一的 GitHub 下载函数库
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
+_gh_lib=$(cd "$curPath" && cd ../../../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
 # cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/openresty && bash install.sh install 1.27.1.1
 # cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.27.1.1
 
@@ -63,9 +70,9 @@ Install_openresty()
 		rm -rf ${openrestyDir}/openresty-${VERSION}.tar.gz
 	fi
 
-	# Last Download Method
+	# Last Download Method (USTC Mirror)
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirror.ghproxy.com/https://openresty.org/download/openresty-${VERSION}.tar.gz -T 3
+		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirrors.ustc.edu.cn/openresty/download/openresty-${VERSION}.tar.gz -T 10
 	fi
 
 	cd ${openrestyDir} && tar -zxvf openresty-${VERSION}.tar.gz
@@ -132,7 +139,7 @@ Install_openresty()
 	# rtmp推流功能
 	nginx_rtmp_ver=1.2.2
 	if [ ! -f ${openrestyDir}/nginx-rtmp-module.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/nginx-rtmp-module.tar.gz https://github.com/arut/nginx-rtmp-module/archive/refs/tags/v${nginx_rtmp_ver}.tar.gz
+		github_download ${openrestyDir}/nginx-rtmp-module.tar.gz https://github.com/arut/nginx-rtmp-module/archive/refs/tags/v${nginx_rtmp_ver}.tar.gz
 	fi
 
 	if [ ! -d ${openrestyDir}/nginx-rtmp-module.tar.gz ];then
@@ -142,7 +149,7 @@ Install_openresty()
 
 	# br
 	if [ ! -d ${openrestyDir}/openresty-${VERSION}/ngx_brotli ];then
-		cd ${openrestyDir}/openresty-${VERSION} && git clone https://github.com/wxx9248/ngx_brotli.git
+		github_clone ${openrestyDir}/openresty-${VERSION}/ngx_brotli https://github.com/wxx9248/ngx_brotli.git
 		cd ${openrestyDir}/openresty-${VERSION}/ngx_brotli && git submodule update --init
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/openresty-${VERSION}/ngx_brotli"

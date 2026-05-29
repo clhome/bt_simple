@@ -6,6 +6,12 @@ export PATH
 # cd /www/server/mdserver-web && python3 plugins/op_star/index.py start
 # cd /www/server/mdserver-web && python3 plugins/op_star/index.py stop
 
+# 引入统一的 GitHub 下载函数库
+_gh_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -24,13 +30,6 @@ Install_App(){
 	mkdir -p $serverPath/source/op_star
 	mkdir -p $serverPath/openstar
 
-	# 检测大陆网络加速
-	cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\"country\": \"CN\"")
-	HTTP_PREFIX="https://"
-	if [ ! -z "$cn" ];then
-	    HTTP_PREFIX="https://gh-proxy.com/"
-	fi
-
 	# 检查是否已安装 git，未安装则进行安装
 	if ! command -v git &> /dev/null; then
 		echo "正在安装 git 客户端以获取防火墙内核..."
@@ -46,21 +45,9 @@ Install_App(){
 		echo "正在克隆 OpenStar 核心代码库..."
 		rm -rf $serverPath/openstar
 		
-		# 强力多镜像加速源容灾拉取，防止单一代理失效时阻碍安装
-		clone_success=0
-		for prefix in "https://ghfast.top/" "https://mirror.ghproxy.com/" "https://ghproxy.com/" "https://"; do
-			echo "正在尝试从源拉取: ${prefix}github.com/starjun/openstar.git"
-			git clone ${prefix}github.com/starjun/openstar.git $serverPath/openstar
-			if [ "$?" == "0" ] && [ -f $serverPath/openstar/luaself/init.lua ]; then
-				echo "从源 ${prefix} 成功克隆 WAF 核心内核！"
-				clone_success=1
-				break
-			fi
-			rm -rf $serverPath/openstar
-		done
-		
-		if [ "$clone_success" != "1" ]; then
-			echo "克隆 OpenStar 失败！尝试了所有的加速镜像及官方源均无法连通，请检查您的网络连接。"
+		github_clone "$serverPath/openstar" "https://github.com/starjun/openstar.git"
+		if [ "$?" != "0" ]; then
+			echo "克隆 OpenStar 失败！"
 			exit 1
 		fi
 	fi

@@ -32,11 +32,6 @@ Install_pureftp()
 
 	mw_download $FILE_PATH $DOWNLOAD_URL
 
-	# Last Download Method Fallback
-	if [ ! -f $FILE_PATH ];then
-		wget --no-check-certificate -O $FILE_PATH https://mirror.ghproxy.com/${DOWNLOAD_URL} -T 10
-	fi
-
 	if [ ! -d $serverPath/source/pureftp/pure-ftpd-${VER} ];then
 		cd $serverPath/source/pureftp  && tar zxvf pure-ftpd-${VER}.tar.gz
 	fi

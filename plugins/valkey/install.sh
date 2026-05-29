@@ -2,6 +2,12 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入统一的 GitHub 下载函数库
+_gh_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -30,7 +36,7 @@ Install_App()
 	VALKEY_DIR=$serverPath/source/valkey
 
 	if [ ! -f $VALKEY_DIR/${FILE_TGZ} ];then
-		wget --no-check-certificate -O $VALKEY_DIR/${FILE_TGZ} https://github.com/valkey-io/valkey/archive/refs/tags/${FILE_TGZ}
+		github_download $VALKEY_DIR/${FILE_TGZ} https://github.com/valkey-io/valkey/archive/refs/tags/${FILE_TGZ}
 	fi
 	
 	cd $VALKEY_DIR && tar -zxvf ${FILE_TGZ}

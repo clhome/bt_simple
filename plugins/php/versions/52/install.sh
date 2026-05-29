@@ -5,7 +5,14 @@ export PATH=$PATH:/opt/homebrew/bin
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
+rootPath=$(dirname "$rootPath")
+rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
+
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
+
 sourcePath=${serverPath}/source
 sysName=`uname`
 SYS_ARCH=`arch`
@@ -48,7 +55,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 
 
 	if [ ! -f $sourcePath/php/php-5.2.17-max-input-vars.patch ]; then
-		wget --no-check-certificate -O $sourcePath/php/php-5.2.17-max-input-vars.patch https://raw.github.com/laruence/laruence.github.com/master/php-5.2-max-input-vars/php-5.2.17-max-input-vars.patch
+		mw_download $sourcePath/php/php-5.2.17-max-input-vars.patch https://raw.githubusercontent.com/laruence/laruence.github.com/master/php-5.2-max-input-vars/php-5.2.17-max-input-vars.patch
 	fi
 
 	if [ ! -f $sourcePath/php/php-5.x.x.patch ]; then

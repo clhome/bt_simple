@@ -1,11 +1,17 @@
 #!/bin/bash
 # =========================================================================
-# bt_simple 一键部署脚本
+# ==御风面板== 一键部署脚本
 # 支持: 全新安装 / 从 mdserver-web 迁移 / 从宝塔面板迁移
 # =========================================================================
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 export LANG=en_US.UTF-8
+
+# 引入统一的 GitHub 下载函数库
+_gh_deploy_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)/scripts/github_download.sh"
+if [ -f "$_gh_deploy_lib" ]; then
+    source "$_gh_deploy_lib"
+fi
 
 # ---------- 颜色定义 ----------
 RED='\033[31m'
@@ -46,6 +52,7 @@ check_china() {
 
 get_github_url() {
     local original_url=$1
+    # 保留兼容性，但实际下载已由 github_download/github_clone 统一处理代理
     if check_china; then
         if [[ $original_url == *"github.com"* ]]; then
             echo "https://gh-proxy.org/$original_url"
@@ -137,7 +144,12 @@ set_panel_version() {
     
     # 2. 如果本地解析失败，且网络畅通，则尝试从 GitHub 接口获取 latest release 作为兜底
     if [ -z "$final_ver" ]; then
-        local latest_ver=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        local latest_ver
+        if type github_api_get >/dev/null 2>&1; then
+            latest_ver=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        else
+            latest_ver=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        fi
         if [ -n "$latest_ver" ]; then
             final_ver="$latest_ver"
         fi
@@ -317,12 +329,17 @@ download_code() {
     rm -rf /tmp/bt_simple_deploy
 
     local download_url=$(get_github_url ${GIT_REPO})
-    if command -v git >/dev/null 2>&1; then
-        log_info "正在从 ${download_url} 拉取代码..."
-        git -c http.version=HTTP/1.1 clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
+    if type github_clone >/dev/null 2>&1; then
+        log_info "正在使用统一克隆库从 ${GIT_REPO} 拉取代码..."
+        github_clone "/tmp/bt_simple_deploy" "${GIT_REPO}" "${GIT_BRANCH}"
     else
-        log_error "git 未安装，请先安装 git"
-        exit 1
+        if command -v git >/dev/null 2>&1; then
+            log_info "正在从 ${download_url} 拉取代码..."
+            git -c http.version=HTTP/1.1 clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
+        else
+            log_error "git 未安装，请先安装 git"
+            exit 1
+        fi
     fi
 
     if [ ! -d /tmp/bt_simple_deploy/web ]; then

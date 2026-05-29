@@ -2,6 +2,13 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入统一的 GitHub 下载函数库
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
+_gh_lib=$(cd "$curPath" && cd ../../../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
 # cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/openresty && bash install.sh install 1.21.4.2
 # cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.27.1
 
@@ -65,9 +72,9 @@ Install_openresty()
 		rm -rf ${openrestyDir}/openresty-${VERSION}.tar.gz
 	fi
 
-	# Last Download Method
+	# Last Download Method (USTC Mirror)
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirror.ghproxy.com/https://openresty.org/download/openresty-${VERSION}.tar.gz -T 3
+		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirrors.ustc.edu.cn/openresty/download/openresty-${VERSION}.tar.gz -T 10
 	fi
 
 	cd ${openrestyDir} && tar -zxvf openresty-${VERSION}.tar.gz
@@ -133,7 +140,7 @@ Install_openresty()
 
 	# br
 	if [ ! -d ${openrestyDir}/openresty-${VERSION}/ngx_brotli ];then
-		cd ${openrestyDir}/openresty-${VERSION} && git clone https://github.com/wxx9248/ngx_brotli.git
+		github_clone ${openrestyDir}/openresty-${VERSION}/ngx_brotli https://github.com/wxx9248/ngx_brotli.git
 		cd ${openrestyDir}/openresty-${VERSION}/ngx_brotli && git submodule update --init
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/openresty-${VERSION}/ngx_brotli"
@@ -144,7 +151,7 @@ Install_openresty()
 	OPTIONS="${OPTIONS} --with-http_gzip_static_module"
 
 	if [ ! -d ${openrestyDir}/zstd-nginx-module-master ];then
-		cd ${openrestyDir} && wget -O $openrestyDir/zstd-nginx-module.tar.gz https://github.com/tokers/zstd-nginx-module/archive/refs/heads/master.tar.gz
+		github_download $openrestyDir/zstd-nginx-module.tar.gz https://github.com/tokers/zstd-nginx-module/archive/refs/heads/master.tar.gz
 		cd ${openrestyDir} && tar -zxvf zstd-nginx-module.tar.gz
 	fi
 

@@ -2,6 +2,12 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH=$PATH:/opt/homebrew/bin
 
+# 引入统一的 GitHub 下载函数库
+_gh_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
 
 ## https://www.yangshuaibin.com/detail/392251
 # cd /www/server/mdserver-web/plugins/webstats && bash install.sh install 0.2.5
@@ -15,18 +21,7 @@ serverPath=$(dirname "$rootPath")
 VERSION=$2
 sys_os=`uname`
 
-HTTP_PREFIX="https://"
-LOCAL_ADDR=common
-cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
-if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
-    LOCAL_ADDR=cn
-    HTTP_PREFIX="https://"
-fi
 
-GH_PREFIX="https://github.com"
-if [ "$LOCAL_ADDR" == "cn" ];then
-    GH_PREFIX="https://mirror.ghproxy.com/https://github.com"
-fi
 
 PIPSRC="https://pypi.python.org/simple"
 if [ "$LOCAL_ADDR" != "common" ];then
@@ -45,7 +40,13 @@ if [ -f ${rootPath}/bin/activate ];then
 fi
 
 get_latest_release() {
-    curl -sL "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | cut -d'"' -f4
+    local result
+    if type github_api_get >/dev/null 2>&1; then
+        result=$(github_api_get "https://api.github.com/repos/$1/releases/latest" 2>/dev/null)
+    else
+        result=$(curl -sL "https://api.github.com/repos/$1/releases/latest" 2>/dev/null)
+    fi
+    echo "$result" | grep '"tag_name":' | cut -d'"' -f4
 }
 
 Install_App()
@@ -77,7 +78,7 @@ Install_App()
 	make install
 
 	if [ ! -f $serverPath/source/webstats/lsqlite3_v096.zip ];then
-		wget --no-check-certificate -O $serverPath/source/webstats/lsqlite3_v096.zip ${GH_PREFIX}/clhome/bt_simple/releases/download/init/lsqlite3_v096.zip
+		github_download $serverPath/source/webstats/lsqlite3_v096.zip https://github.com/clhome/bt_simple/releases/download/init/lsqlite3_v096.zip
 	fi
 
 	if [ ! -d $serverPath/source/webstats/lsqlite3_v096 ];then
@@ -126,7 +127,7 @@ Install_App()
 		GEO_VERSION="2024.04.16"
 	fi
 	if [ ! -s $serverPath/source/webstats/GeoLite2-City.mmdb ];then
-		wget --no-check-certificate -O $serverPath/source/webstats/GeoLite2-City.mmdb ${GH_PREFIX}/P3TERX/GeoLite.mmdb/releases/download/${GEO_VERSION}/GeoLite2-City.mmdb
+		github_download $serverPath/source/webstats/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/${GEO_VERSION}/GeoLite2-City.mmdb
 	fi
 
 	if [ -s $serverPath/source/webstats/GeoLite2-City.mmdb ];then

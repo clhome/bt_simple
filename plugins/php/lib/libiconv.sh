@@ -2,6 +2,12 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入统一的 GitHub 下载函数库
+_gh_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -15,24 +21,11 @@ rootPath=$(dirname "$rootPath")
 SERVER_ROOT=$rootPath/lib
 SOURCE_ROOT=$rootPath/source/lib
 
-HTTP_PREFIX="https://"
-LOCAL_ADDR=common
-cn=$(curl -fsSL -m 10 http://ipinfo.io/json | grep "\"country\": \"CN\"")
-if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
-    LOCAL_ADDR=cn
-    HTTP_PREFIX="https://mirror.ghproxy.com/"
-fi
-
-GH_PREFIX="https://github.com"
-if [ "$LOCAL_ADDR" == "cn" ]; then
-    GH_PREFIX="https://mirror.ghproxy.com/https://github.com"
-fi
-
 if [ ! -d ${SERVER_ROOT}/libiconv ];then
     cd $SOURCE_ROOT
 
     if [ ! -f ${SOURCE_ROOT}/libiconv-1.15.tar.gz ];then
-        wget --no-check-certificate -O ${SOURCE_ROOT}/libiconv-1.15.tar.gz ${GH_PREFIX}/clhome/bt_simple/releases/download/init/libiconv-1.15.tar.gz -T 20
+        github_download ${SOURCE_ROOT}/libiconv-1.15.tar.gz https://github.com/clhome/bt_simple/releases/download/init/libiconv-1.15.tar.gz
     fi
 
     if [ ! -d ${SOURCE_ROOT}/libiconv-1.15 ];then

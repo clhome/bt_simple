@@ -2,6 +2,13 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入统一的 GitHub 下载函数库
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
+_gh_lib=$(cd "$curPath" && cd ../../../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
 # cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/caddy && bash install.sh install 2.11
 # cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/caddy && bash install.sh upgrade 2.11
 # cd /www/server/mdserver-web/plugins/caddy && bash install.sh install 2.11
@@ -51,7 +58,7 @@ Install_App()
 	FILE_NAME="caddy_${VERSION}_${OSNAME}_${ARCH_NAME}.tar.gz"
 
 	if [ ! -f ${caddyDir}/${FILE_NAME} ];then
-		wget --no-check-certificate -O ${caddyDir}/${FILE_NAME} "https://github.com/caddyserver/caddy/releases/download/v${VERSION}/${FILE_NAME}"
+		github_download ${caddyDir}/${FILE_NAME} "https://github.com/caddyserver/caddy/releases/download/v${VERSION}/${FILE_NAME}"
 	fi
 
 

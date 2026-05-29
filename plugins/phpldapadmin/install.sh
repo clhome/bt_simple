@@ -20,6 +20,10 @@ else
 	BAK=''
 fi
 
+if [ -f ${rootPath}/scripts/lib.sh ];then
+	source ${rootPath}/scripts/lib.sh
+fi
+
 sysName=`uname`
 echo "use system: ${sysName}"
 
@@ -57,8 +61,8 @@ Install_App()
 	DOWNLOAD=https://github.com/leenooks/phpLDAPadmin/archive/refs/tags/${FILE}
 	
 
-	if [ ! -f $serverPath/source/phpmyadmin/$FILE ];then
-		wget --no-check-certificate -O $serverPath/source/phpldapadmin/$FILE $DOWNLOAD
+	if [ ! -f $serverPath/source/phpldapadmin/$FILE ];then
+		mw_download $serverPath/source/phpldapadmin/$FILE $DOWNLOAD
 	fi
 
 	if [ ! -d $serverPath/source/phpldapadmin/$FDIR ];then

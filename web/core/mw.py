@@ -270,6 +270,77 @@ def getGithubProxyName():
     return getGithubProxyInfo()['name']
 
 
+# ---------- GitHub 代理站列表（与 scripts/github_download.sh 保持一致） ----------
+_GITHUB_PROXY_LIST = [
+    "https://gh-proxy.org/",
+    "https://ghfast.top/",
+    "https://ghp.ci/https://",
+    "https://github.do/",
+    "https://gh-proxy.net/",
+]
+
+def _makeGithubProxyUrl(proxy_prefix, original_url):
+    """
+    将原始 GitHub URL 加上代理前缀
+    部分代理前缀自带 "https://"（如 ghp.ci），需要去重
+    """
+    if proxy_prefix.endswith("https://"):
+        return proxy_prefix + original_url.replace("https://", "", 1)
+    return proxy_prefix + original_url
+
+
+def githubDownload(url, save_path, timeout=10):
+    """
+    统一的 GitHub 下载函数（Python 端）
+    流程与 Shell 端 github_download 完全一致：
+      1. 直连 GitHub（等待 timeout 秒）
+      2. 失败则轮询代理站列表（每个 timeout 秒）
+      3. 全部失败则等待 10 秒后再次完整代理轮询（最多 2 次）
+      4. 仍失败则返回 False
+
+    @param url: GitHub 原始 URL
+    @param save_path: 保存文件路径
+    @param timeout: 单次超时秒数
+    @return: True=成功 False=全部失败
+    """
+    # 如果文件已存在且大小 > 0，则跳过
+    if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+        return True
+
+    def _try_download(download_url):
+        """尝试使用 wget 下载，成功返回 True"""
+        # 先清除可能的空文件
+        if os.path.exists(save_path):
+            os.remove(save_path)
+        cmd = 'wget --no-check-certificate -O "{}" --timeout={} --tries=1 -q "{}" 2>/dev/null'.format(
+            save_path, timeout, download_url
+        )
+        execShell(cmd)
+        if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+            return True
+        # 清理空文件
+        if os.path.exists(save_path):
+            os.remove(save_path)
+        return False
+
+    # 步骤1: 直连 GitHub
+    if _try_download(url):
+        return True
+
+    # 步骤2+3: 代理轮询，最多 2 轮
+    for round_num in range(1, 3):
+        if round_num > 1:
+            import time as _time
+            _time.sleep(10)
+
+        for proxy in _GITHUB_PROXY_LIST:
+            proxy_url = _makeGithubProxyUrl(proxy, url)
+            if _try_download(proxy_url):
+                return True
+
+    return False
+
+
 
 def getDateFromNow(tf_format="%Y-%m-%d %H:%M:%S", time_zone="Asia/Shanghai"):
     # 取格式时间
