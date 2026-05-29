@@ -64,6 +64,18 @@ Install_openresty()
 	fi
 	# ----- cpu end ------
 
+	# 强力停止并清退所有旧的 nginx/openresty 进程，杜绝 80 端口占用或 Text file busy 故障
+	if [ -f /usr/lib/systemd/system/openresty.service ] || [ -f /lib/systemd/system/openresty.service ];then
+		systemctl stop openresty
+	fi
+	if [ -f $serverPath/openresty/init.d/openresty ];then
+		$serverPath/openresty/init.d/openresty stop
+	fi
+	killall -9 nginx 2>/dev/null
+	killall -9 openresty 2>/dev/null
+	pkill -9 nginx 2>/dev/null
+	pkill -9 openresty 2>/dev/null
+
 	mkdir -p ${openrestyDir}
 	echo '正在安装脚本文件...'
 

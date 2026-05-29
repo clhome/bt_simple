@@ -83,25 +83,6 @@ def getConf():
     return path
 
 
-def confSelfHeal():
-    try:
-        conf_file = getConf()
-        if os.path.exists(conf_file):
-            content = mw.readFile(conf_file)
-            need_write = False
-            
-            # 智能修复常见的 error_log ... cri; 或 error_log ... cri (包括后面没有分号的换行)
-            pattern = r'(error_log\s+[^;;\n\r]+?)\bcri\b\s*;?'
-            if re.search(pattern, content):
-                content = re.sub(pattern, r'\1crit;', content)
-                need_write = True
-                
-            if need_write:
-                mw.writeFile(conf_file, content)
-    except Exception as e:
-        pass
-
-
 def getConfTpl():
     path = getPluginDir() + '/conf/nginx.conf'
     return path
@@ -329,8 +310,6 @@ def status():
 
 
 def restyOp(method):
-    # 执行配置语法自愈，杜绝常见语法损坏阻碍启动
-    confSelfHeal()
     file = initDreplace()
 
     # 启动时,先检查一下配置文件
@@ -373,8 +352,6 @@ def op_submit_init_restart(file):
 
 
 def restyOp_restart():
-    # 执行配置语法自愈，杜绝常见语法损坏阻碍启动
-    confSelfHeal()
     file = initDreplace()
 
     # 启动时,先检查一下配置文件

@@ -10,7 +10,7 @@ if [ -f "$_gh_lib" ]; then
 fi
 
 # cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/openresty && bash install.sh install 1.21.4.2
-# cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.21.4.2
+# cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.27.1
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")
@@ -21,7 +21,7 @@ sysName=`uname`
 action=$1
 type=$2
 
-VERSION=1.25.3.2
+VERSION=1.27.1.2
 
 openrestyDir=${serverPath}/source/openresty
 
@@ -57,18 +57,6 @@ Install_openresty()
 		cpuCore="1"
 	fi
 	# ----- cpu end ------
-
-	# 强力停止并清退所有旧的 nginx/openresty 进程，杜绝 80 端口占用或 Text file busy 故障
-	if [ -f /usr/lib/systemd/system/openresty.service ] || [ -f /lib/systemd/system/openresty.service ];then
-		systemctl stop openresty
-	fi
-	if [ -f $serverPath/openresty/init.d/openresty ];then
-		$serverPath/openresty/init.d/openresty stop
-	fi
-	killall -9 nginx 2>/dev/null
-	killall -9 openresty 2>/dev/null
-	pkill -9 nginx 2>/dev/null
-	pkill -9 openresty 2>/dev/null
 
 	mkdir -p ${openrestyDir}
 	echo '正在安装脚本文件...'
@@ -124,15 +112,6 @@ Install_openresty()
 		# OPENSSL_LIB_DEPEND_DIR=`brew info openssl@1.1 | grep ${BREW_DIR}/Cellar/openssl@1.1 | cut -d \  -f 1 | awk 'END {print}'`
 		# OPTIONS="${OPTIONS} --with-openssl=${OPENSSL_LIB_DEPEND_DIR}"
 	else
-		if [ ! -f ${openrestyDir}/pcre-${pcreVersion}.tar.gz ];then
-			wget --no-check-certificate -O ${openrestyDir}/pcre-${pcreVersion}.tar.gz https://netix.dl.sourceforge.net/project/pcre/pcre/${pcreVersion}/pcre-${pcreVersion}.tar.gz
-		fi
-
-		if [ ! -d ${openrestyDir}/pcre-${pcreVersion} ];then
-			cd ${openrestyDir} &&  tar -zxvf pcre-${pcreVersion}.tar.gz
-		fi
-		OPTIONS="${OPTIONS} --with-pcre=${openrestyDir}/pcre-${pcreVersion}"
-		
 		if [ ! -f ${openrestyDir}/openssl-${opensslVersion}.tar.gz ];then
 	        wget --no-check-certificate -O ${openrestyDir}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/openssl-${opensslVersion}.tar.gz
 	    fi
@@ -144,7 +123,7 @@ Install_openresty()
 
 	fi
 
-	if [[ "$VERSION" =~ "1.25.3" ]]; then
+	if [[ "$VERSION" =~ "1.27.1" ]];then
 		OPTIONS="${OPTIONS} --with-http_v3_module"
 
 		# if [ ! -f ${openrestyDir}/libressl-${libresslVersion}.tar.gz ];then
@@ -181,6 +160,7 @@ Install_openresty()
 		OPTIONS="${OPTIONS} --add-module=${openrestyDir}/zstd-nginx-module-master"
 	fi
 
+
 	cd ${openrestyDir}/openresty-${VERSION} && ./configure \
 	--prefix=$serverPath/openresty \
 	$OPTIONS \
@@ -194,14 +174,6 @@ Install_openresty()
 	# --without-luajit-gc64
 	# --with-debug
 	# 用于调式
-
-	# 避免正在运行的二进制导致 Text file busy 无法覆盖
-	if [ -f $serverPath/openresty/nginx/sbin/nginx ];then
-		mv -f $serverPath/openresty/nginx/sbin/nginx $serverPath/openresty/nginx/sbin/nginx.bak
-	fi
-	if [ -f $serverPath/openresty/bin/openresty ];then
-		mv -f $serverPath/openresty/bin/openresty $serverPath/openresty/bin/openresty.bak
-	fi
 
 	CMD_MAKE=`which gmake`
 	if [ "$?" == "0" ];then
@@ -226,12 +198,12 @@ Install_openresty()
     if [ -d $openrestyDir/openresty-${VERSION} ];then
 		rm -rf $openrestyDir/openresty-${VERSION}
 	fi
-	echo '安装完成'
+	echo 'Installation of Openresty completed'
 }
 
 Uninstall_openresty()
 {
-	echo '卸载完成'
+	echo 'Uninstalling Openresty completed'
 }
 
 action=$1
