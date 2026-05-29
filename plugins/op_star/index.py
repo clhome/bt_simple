@@ -298,8 +298,9 @@ def get_rule():
     path = getServerDir() + "/conf_json/" + rule_name + ".json"
     
     if not os.path.exists(path):
-        # 尝试使用 openstar 自带的作为兜底模板
-        return mw.returnJson(False, '配置 [' + rule_name + '] 不存在')
+        # 如果配置不存在，优雅降级：总控开关使用对象格式，其它使用数组格式
+        default_data = '{}' if rule_name == 'base' else '[]'
+        return mw.returnJson(True, 'ok', default_data)
         
     content = mw.readFile(path)
     return mw.returnJson(True, 'ok', content)
@@ -322,8 +323,37 @@ def save_rule():
     except Exception as e:
         return mw.returnJson(False, '非法的 JSON 格式数据: ' + str(e))
         
-    path = getServerDir() + "/conf_json/" + rule_name + ".json"
+    # 自动创建配置目录
+    conf_dir = getServerDir() + "/conf_json"
+    if not os.path.exists(conf_dir):
+        os.makedirs(conf_dir)
+        
+    path = conf_dir + "/" + rule_name + ".json"
     mw.writeFile(path, rule_data)
+    
+    # 针对 ip_Mod 特殊处理：同步写入 openstar 引擎真正需要的 ip/allow.ip 和 ip/deny.ip
+    if rule_name == 'ip_Mod':
+        try:
+            ip_dir = conf_dir + "/ip"
+            if not os.path.exists(ip_dir):
+                os.makedirs(ip_dir)
+            
+            rules = json.loads(rule_data)
+            allow_ips = []
+            deny_ips = []
+            for r in rules:
+                if len(r) >= 2:
+                    ip = r[0]
+                    action = r[1]
+                    if action == 'allow':
+                        allow_ips.append(ip)
+                    elif action == 'deny':
+                        deny_ips.append(ip)
+            
+            mw.writeFile(ip_dir + "/allow.ip", "\n".join(allow_ips) + "\n")
+            mw.writeFile(ip_dir + "/deny.ip", "\n".join(deny_ips) + "\n")
+        except Exception as e:
+            pass
     
     # 自动重载配置，无需重启
     reload_hook()

@@ -7,6 +7,18 @@ function osPost(method, args, callback){
             layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
         }
+        
+        try {
+            var inner = $.parseJSON(data.data);
+            if(inner && typeof inner.status !== 'undefined') {
+                if(inner.status === false) {
+                    layer.msg(inner.msg, {icon:0, time:2000, shade: [0.3, '#000']});
+                    return;
+                }
+                data.data = typeof inner.data === 'string' ? inner.data : JSON.stringify(inner.data);
+            }
+        } catch(e) {}
+        
         if(typeof(callback) == 'function'){
             callback(data);
         }
@@ -19,6 +31,18 @@ function osPostN(method, args, callback){
             layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
         }
+        
+        try {
+            var inner = $.parseJSON(data.data);
+            if(inner && typeof inner.status !== 'undefined') {
+                if(inner.status === false) {
+                    layer.msg(inner.msg, {icon:0, time:2000, shade: [0.3, '#000']});
+                    return;
+                }
+                data.data = typeof inner.data === 'string' ? inner.data : JSON.stringify(inner.data);
+            }
+        } catch(e) {}
+        
         if(typeof(callback) == 'function'){
             callback(data);
         }
@@ -317,9 +341,9 @@ function addWafRuleDialog(){
 }
 
 function saveWafRule(){
-    var regex = $("input[name='rule_regex']").val().strip();
+    var regex = $("input[name='rule_regex']").val().trim();
     var action = $("select[name='rule_action']").val();
-    var desc = $("input[name='rule_desc']").val().strip();
+    var desc = $("input[name='rule_desc']").val().trim();
     
     if(!regex){
         layer.msg('请输入正则表达式！');
@@ -439,9 +463,9 @@ function wafIpList(){
 }
 
 function addIpRule(){
-    var ip = $("#add_ip_address").val().strip();
+    var ip = $("#add_ip_address").val().trim();
     var action = $("#add_ip_action").val();
-    var desc = $("#add_ip_desc").val().strip();
+    var desc = $("#add_ip_desc").val().trim();
     
     if(!ip){
         layer.msg('请输入受控 IP 地址或 CIDR 网段！');
