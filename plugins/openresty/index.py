@@ -90,16 +90,142 @@ def confSelfHeal():
             content = mw.readFile(conf_file)
             need_write = False
             
-            # 智能修复常见的 error_log ... cri; 或 error_log ... cri (包括后面没有分号的换行)
-            pattern = r'(error_log\s+[^;;\n\r]+?)\bcri\b\s*;?'
+            # 智能将 error_log 级别从 cri/crit 修正并升级为通用且利于诊断 of error;，杜绝崩溃日志被高过滤遮蔽
+            pattern = r'(error_log\s+[^;;\n\r]+?)\b(cri|crit)\b\s*;?'
             if re.search(pattern, content):
-                content = re.sub(pattern, r'\1crit;', content)
+                content = re.sub(pattern, r'\1error;', content)
                 need_write = True
                 
             if need_write:
                 mw.writeFile(conf_file, content)
+        
+        # 执行目录权限与属主自愈，防止降权到 www 后 worker 进程写入 logs/temp 失败崩溃
+        directoryPermissionSelfHeal()
+
+        # 深度解耦自愈：若 OP 高性能防火墙 (OpenStar) 未安装或已被物理删除，则在此自动清理残留挂载，以杜绝 dofile init.lua 失败导致 OpenResty 启动崩溃
+        openstar_dir = mw.getServerDir() + '/openstar'
+        lua_conf_dir = mw.getServerDir() + '/web_conf/nginx/lua'
+        if not os.path.exists(openstar_dir):
+            openstar_removes = [
+                os.path.join(lua_conf_dir, 'init_by_lua_file', 'openstar_init_preload.lua'),
+                os.path.join(lua_conf_dir, 'init_worker_by_lua_file', 'openstar_init_worker.lua'),
+                os.path.join(lua_conf_dir, 'access_by_lua_file', 'openstar_access.lua'),
+                mw.getServerDir() + '/web_conf/nginx/vhost/openstar.conf'
+            ]
+            need_remake = False
+            for r_path in openstar_removes:
+                if os.path.exists(r_path):
+                    try:
+                        os.remove(r_path)
+                        need_remake = True
+                    except Exception as e:
+                        pass
+            if need_remake:
+                mw.opLuaMakeAll()
     except Exception as e:
         pass
+
+
+def directoryPermissionSelfHeal():
+    try:
+        user = 'www'
+        user_group = 'www'
+        
+        # 兼容 macOS/FreeBSD 等非 Linux 系统
+        current_os = mw.getOs()
+        if current_os == 'darwin':
+            user = 'root'
+            user_group = 'staff'
+            
+        nginx_dir = getServerDir() + "/nginx"
+        if os.path.exists(nginx_dir):
+            # 定义所有降权后必须可写的 temp 与 log 目录
+            target_dirs = [
+                nginx_dir + "/logs",
+                nginx_dir + "/client_body_temp",
+                nginx_dir + "/fastcgi_temp",
+                nginx_dir + "/proxy_temp",
+                nginx_dir + "/scgi_temp",
+                nginx_dir + "/uwsgi_temp",
+                nginx_dir + "/proxy_cache_temp",
+                nginx_dir + "/fastcgi_cache_temp"
+            ]
+            for d in target_dirs:
+                if not os.path.exists(d):
+                    os.makedirs(d, exist_ok=True)
+                
+                # 递归地将属主赋予 www:www，并赋予 755 读写执行权限
+                mw.execShell(f"chown -R {user}:{user_group} {d}")
+                mw.execShell(f"chmod -R 755 {d}")
+
+            # 自动计算并加固全局站点日志目录 wwwlogs，防止虚拟主机因无写权限闪退且无 error.log 记录
+            try:
+                wwwlogs_dir = os.path.abspath(mw.getServerDir() + "/../wwwlogs")
+                if not os.path.exists(wwwlogs_dir):
+                    os.makedirs(wwwlogs_dir, exist_ok=True)
+                mw.execShell(f"chown -R {user}:{user_group} {wwwlogs_dir}")
+                mw.execShell(f"chmod -R 755 {wwwlogs_dir}")
+            except:
+                pass
+    except Exception as e:
+        pass
+
+
+def getPortPid(port=80):
+    try:
+        # 优先使用 ss
+        res = mw.execShell("ss -tpln")
+        if res[0] == '' or res[1] != '':
+            res = mw.execShell("netstat -tpln")
+        
+        # 匹配监听指定端口的行，例如 :80 
+        lines = res[0].split('\n')
+        for line in lines:
+            if (':%s ' % port) in line or (':%s\t' % port) in line or ('.:%s ' % port) in line:
+                # ss 匹配 pid
+                pid_match = re.search(r'pid=(\d+)', line)
+                if pid_match:
+                    return int(pid_match.group(1))
+                # netstat 匹配 pid
+                pid_match_ns = re.search(r'(\d+)/[\w.-]+', line)
+                if pid_match_ns:
+                    return int(pid_match_ns.group(1))
+    except Exception as e:
+        pass
+    return None
+
+
+def getProcessName(pid):
+    try:
+        comm_file = f"/proc/{pid}/comm"
+        if os.path.exists(comm_file):
+            return mw.readFile(comm_file).strip()
+    except:
+        pass
+    return "unknown"
+
+
+def getSystemdErrorDetail():
+    detail = ""
+    try:
+        res = mw.execShell("journalctl -n 20 -u openresty --no-pager")
+        if res[0] != '':
+            detail += "\n[系统服务日志明细]:\n" + res[0]
+    except:
+        pass
+
+    try:
+        err_log_file = getServerDir() + '/nginx/logs/error.log'
+        if os.path.exists(err_log_file):
+            log_content = mw.readFile(err_log_file)
+            if log_content:
+                lines = log_content.strip().split('\n')
+                last_lines = lines[-20:]
+                detail += "\n[OpenResty 错误日志明细 (error.log)]:\n" + "\n".join(last_lines)
+    except:
+        pass
+
+    return detail
 
 
 def getConfTpl():
@@ -230,6 +356,22 @@ def confReplace():
             except Exception as e:
                 pass
 
+    # 深度解耦自愈：若 OP 高性能防火墙 (OpenStar) 未安装或已被物理删除，则在此自动清理残留挂载，以杜绝 dofile init.lua 失败导致 OpenResty 启动崩溃
+    openstar_dir = mw.getServerDir() + '/openstar'
+    if not os.path.exists(openstar_dir):
+        openstar_removes = [
+            os.path.join(lua_conf_dir, 'init_by_lua_file', 'openstar_init_preload.lua'),
+            os.path.join(lua_conf_dir, 'init_worker_by_lua_file', 'openstar_init_worker.lua'),
+            os.path.join(lua_conf_dir, 'access_by_lua_file', 'openstar_access.lua'),
+            mw.getServerDir() + '/web_conf/nginx/vhost/openstar.conf'
+        ]
+        for r_path in openstar_removes:
+            if os.path.exists(r_path):
+                try:
+                    os.remove(r_path)
+                except Exception as e:
+                    pass
+
     mw.opLuaMakeAll()
 
     # 静态配置
@@ -331,6 +473,21 @@ def status():
 def restyOp(method):
     # 执行配置语法自愈，杜绝常见语法损坏阻碍启动
     confSelfHeal()
+
+    # 在启动、重启或重载时，智能检查端口冲突并自愈
+    if method in ['start', 'restart', 'reload']:
+        port = 80
+        pid = getPortPid(port)
+        if pid:
+            pname = getProcessName(pid)
+            if pname in ['nginx', 'openresty']:
+                # 发现脱管残留的孤儿 nginx/openresty，强退释放端口
+                mw.execShell(f"kill -9 {pid}")
+                time.sleep(0.5)
+            else:
+                # 被其他服务占用，返回友好而清晰的错误
+                return f"ERROR: 端口 {port} 已被服务 [{pname}] (PID: {pid}) 占用。请先停用该服务后再启动 OpenResty！"
+
     file = initDreplace()
 
     # 启动时,先检查一下配置文件
@@ -355,7 +512,10 @@ def restyOp(method):
     data = mw.execShell('systemctl ' + method + ' openresty')
     if data[1] == '':
         return 'ok'
-    return data[1]
+    
+    # 启动失败时追加最详尽的日志细节，让用户秒懂错误原因
+    err_detail = getSystemdErrorDetail()
+    return data[1] + "\n" + err_detail
 
 
 def op_submit_systemctl_restart():
