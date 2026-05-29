@@ -1712,7 +1712,11 @@ function webShell() {
         cols: termCols,
         rows: termRows,
         screenKeys: true,
-        useStyle: true
+        useStyle: true,
+        fontFamily: 'Consolas, "Courier New", Courier, monospace',
+        fontSize: 14,
+        lineHeight: 1.25,
+        letterSpacing: 1
     });
     gterm = term;
 
@@ -1752,7 +1756,7 @@ function webShell() {
             if (typeof fit !== 'undefined') {
                 Terminal.applyAddon(fit);
             }
-            if (term && typeof term.fit === 'function') {
+            if (term && term.element && typeof term.fit === 'function') {
                 term.fit();
                 if (socket) {
                     socket.emit('webssh', {resize: 1, cols: term.cols, rows: term.rows});
@@ -1795,6 +1799,137 @@ function webShell() {
         content: '<div class="term-box" style="overflow:hidden; box-sizing:border-box;"><div id="term" style="overflow:hidden;"></div></div>',
         success: function(layero, index){
             layero.find('.layui-layer-content').css('overflow', 'hidden');
+            
+            // 动态向页面头部注入极致防跳与防滚动样式
+            if ($("#webshell-prevent-jump-style").length === 0) {
+                $("<style id='webshell-prevent-jump-style'>")
+                    .prop("type", "text/css")
+                    .html("\
+                        .xterm-helper-textarea {\
+                            position: fixed !important;\
+                            top: 0px !important;\
+                            left: 0px !important;\
+                            width: 0px !important;\
+                            height: 0px !important;\
+                            opacity: 0 !important;\
+                            pointer-events: none !important;\
+                        }\
+                        .term-box, #term {\
+                            overflow: hidden !important;\
+                        }\
+                    ")
+                    .appendTo("head");
+            }
+
+            var canEl = document.getElementById('term');
+            var termBox = layero.find('.term-box')[0];
+
+            // 锁定滚动容器：捕获任何滚动行为并强行重置为 0，双重保险
+            if (canEl) {
+                canEl.addEventListener('scroll', function() {
+                    canEl.scrollTop = 0;
+                    canEl.scrollLeft = 0;
+                }, true);
+            }
+            if (termBox) {
+                termBox.addEventListener('scroll', function() {
+                    termBox.scrollTop = 0;
+                    termBox.scrollLeft = 0;
+                }, true);
+            }
+
+            // 3. 智能右击“有选中即复制，无选中弹出浮动粘贴气泡”高品质交互
+            if (canEl) {
+                canEl.addEventListener('contextmenu', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    var mouseX = e.pageX;
+                    var mouseY = e.pageY;
+                    
+                    // 清除残留气泡
+                    $("#term-paste-bubble").remove();
+
+                    // 判定是否有选中内容
+                    var selectText = term.getSelection();
+                    if (selectText) {
+                        // A 通道：智能自动复制
+                        var tempTextarea = $("<textarea>")
+                            .val(selectText)
+                            .css({ position: "fixed", top: "0", left: "0", opacity: "0" })
+                            .appendTo("body");
+                        tempTextarea.select();
+                        try {
+                            document.execCommand("copy");
+                            layer.msg('已自动复制选中内容！', {icon: 1, time: 1000});
+                        } catch(err) {
+                            layer.msg('自动复制失败，浏览器不兼容', {icon: 2});
+                        }
+                        tempTextarea.remove();
+                        term.focus();
+                        return false;
+                    }
+
+                    // B 通道：磨砂悬浮粘贴气泡（KISS 原则，100% 规避 HTTP 剪贴板安全屏蔽）
+                    var menudiv = '\
+                        <div id="term-paste-bubble" style="position: absolute; z-index: 29891015; padding: 6px 10px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);">\
+                            <input type="text" id="term-paste-input" placeholder="快捷粘贴：请在此处 Ctrl+V 并回车发送" style="width: 250px; background: transparent; border: none; outline: none; color: #fff; font-size: 13px; font-family: Consolas, monospace;" autocomplete="off" />\
+                        </div>';
+                    $("body").append(menudiv);
+                    
+                    // 气泡溢出边界保护
+                    var bubbleW = 280;
+                    var bubbleH = 40;
+                    var winW = $(window).width();
+                    var winH = $(window).height();
+                    var leftPos = mouseX - 20;
+                    var topPos = mouseY - 20;
+                    if (leftPos + bubbleW > winW) leftPos = winW - bubbleW - 10;
+                    if (topPos + bubbleH > winH) topPos = winH - bubbleH - 10;
+                    
+                    $("#term-paste-bubble").css({
+                        "left": leftPos + "px",
+                        "top": topPos + "px"
+                    });
+
+                    var pInput = $("#term-paste-input");
+                    pInput.focus();
+
+                    // 监听粘贴（paste）和回车/Esc事件
+                    pInput.on('paste', function(pe) {
+                        setTimeout(function() {
+                            var text = pInput.val();
+                            if (text && socket) {
+                                socket.emit('webssh', text);
+                            }
+                            $("#term-paste-bubble").remove();
+                            term.focus();
+                        }, 50);
+                    });
+
+                    pInput.on('keydown', function(ke) {
+                        if (ke.keyCode === 13) { // Enter 发送
+                            var text = pInput.val();
+                            if (text && socket) {
+                                socket.emit('webssh', text);
+                            }
+                            $("#term-paste-bubble").remove();
+                            term.focus();
+                        } else if (ke.keyCode === 27) { // Esc 退出
+                            $("#term-paste-bubble").remove();
+                            term.focus();
+                        }
+                    });
+                }, true);
+            }
+
+            // 点击外部或气泡外，自动关闭粘贴框并聚焦终端
+            $(document).off('click.ssh_menu').on('click.ssh_menu', function (e) {
+                if ($(e.target).closest("#term-paste-bubble").length === 0) {
+                    $("#term-paste-bubble").remove();
+                }
+            });
+
             resizeTerm(layero);
             setTimeout(function() {
                 tryFit();
@@ -1827,14 +1962,14 @@ function webShell() {
         }
     });
 	
-	
     setTimeout(function () {
-
         term.open(document.getElementById('term'));
         $("#term").show();
         term.setOption('cursorBlink', true);
         term.setOption('fontSize', 14);
         term.setOption('fontFamily', 'Consolas, "Courier New", Courier, monospace');
+        term.setOption('lineHeight', 1.25);
+        term.setOption('letterSpacing', 1);
         $('#term').css('font-family', 'Consolas, "Courier New", Courier, monospace');
         
         tryFit();
@@ -1846,78 +1981,6 @@ function webShell() {
         setTimeout(function() {
             tryFit();
         }, 300);
-
-        // 鼠标右键事件
-        var can = $("#term");
-        can.contextmenu(function (e) {
-            var winWidth = can.width();
-            var winHeight = can.height();
-            var mouseX = e.pageX;
-            var mouseY = e.pageY;
-            var menuWidth = $(".contextmenu").width();
-            var menuHeight = $(".contextmenu").height();
-            var minEdgeMargin = 10;
-            if (mouseX + menuWidth + minEdgeMargin >= winWidth &&
-                mouseY + menuHeight + minEdgeMargin >= winHeight) {
-                menuLeft = mouseX - menuWidth - minEdgeMargin + "px";
-                menuTop = mouseY - menuHeight - minEdgeMargin + "px";
-            }
-            else if (mouseX + menuWidth + minEdgeMargin >= winWidth) {
-                menuLeft = mouseX - menuWidth - minEdgeMargin + "px";
-                menuTop = mouseY + minEdgeMargin + "px";
-            }
-            else if (mouseY + menuHeight + minEdgeMargin >= winHeight) {
-                menuLeft = mouseX + minEdgeMargin + "px";
-                menuTop = mouseY - menuHeight - minEdgeMargin + "px";
-            }
-            else {
-                menuLeft = mouseX + minEdgeMargin + "px";
-                menuTop = mouseY + minEdgeMargin + "px";
-            };
-
-            var selectText = term.getSelection()
-            var style_str = '';
-            var paste_str = '';
-            if (!selectText) {
-                if (!getCookie('shell_copy_body')) {
-                    paste_str = 'style="color: #bbb;" disable';
-                }
-                style_str = 'style="color: #bbb;" disable';
-            } else {
-                setCookie('ssh_selection', selectText);
-            }
-
-
-            var menudiv = '<ul class="contextmenu">\
-                        <li><a class="shell_copy_btn menu_ssh" data-clipboard-text="'+ selectText + '" ' + style_str + '>复制到剪切板</a></li>\
-                        <li><a  onclick="shell_paste_text()" '+ paste_str+'>粘贴选中项</a></li>\
-                        <li><a onclick="shell_to_baidu()" ' + style_str + '>百度搜索</a></li>\
-                    </ul>';
-            $("body").append(menudiv);
-            $(".contextmenu").css({
-                "left": menuLeft,
-                "top": menuTop
-            });
-            return false;
-        });
-        can.click(function () {
-            remove_ssh_menu();
-        });
-
-        clipboard = new ClipboardJS('.shell_copy_btn');
-        clipboard.on('success', function (e) {
-            layer.msg('复制成功!');
-            setCookie('shell_copy_body', e.text)
-            remove_ssh_menu();
-            term.focus();
-        });
-
-        clipboard.on('error', function (e) {
-            layer.msg('复制失败，浏览器不兼容!');
-            setCookie('shell_copy_body', e.text)
-            remove_ssh_menu();
-            term.focus();
-        });
     }, 100);
 }
 
@@ -1932,6 +1995,30 @@ function shell_paste_text(){
     socket.emit('webssh', getCookie('ssh_selection'));
     remove_ssh_menu();
     gterm.focus();
+}
+
+function shell_paste_clipboard() {
+    remove_ssh_menu();
+    if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(function(text) {
+            if (socket) {
+                socket.emit('webssh', text);
+            }
+            if (gterm) {
+                gterm.focus();
+            }
+        }).catch(function(err) {
+            layer.msg('粘贴失败，请在浏览器地址栏左侧允许该网页的“剪贴板”权限，或直接使用 Ctrl+V 粘贴！', {icon: 2});
+            if (gterm) {
+                gterm.focus();
+            }
+        });
+    } else {
+        layer.msg('您的浏览器安全设置不支持脚本读取剪贴板，请直接使用 Ctrl+V 粘贴！', {icon: 2});
+        if (gterm) {
+            gterm.focus();
+        }
+    }
 }
 
 function remove_ssh_menu() {
