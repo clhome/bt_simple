@@ -14,7 +14,7 @@ sysName=`uname`
 action=$1
 type=$2
 
-VERSION=1.29.2.3
+VERSION=1.29.2.5
 
 openrestyDir=${serverPath}/source/openresty
 
@@ -22,7 +22,13 @@ Install_openresty()
 {
 	if [ "${action}" == "install" ];then
 		if [ -d $serverPath/openresty ];then
-			exit 0
+			if [ -f $serverPath/openresty/version.pl ];then
+				CURRENT_VERSION=$(cat $serverPath/openresty/version.pl)
+				if [ "${CURRENT_VERSION}" == "${VERSION}" ];then
+					echo "OpenResty ${VERSION} is already installed."
+					exit 0
+				fi
+			fi
 		fi
 	fi
 	
@@ -169,6 +175,14 @@ Install_openresty()
 	# --without-luajit-gc64
 	# --with-debug
 	# 用于调式
+
+	# 避免正在运行的二进制导致 Text file busy 无法覆盖
+	if [ -f $serverPath/openresty/nginx/sbin/nginx ];then
+		mv -f $serverPath/openresty/nginx/sbin/nginx $serverPath/openresty/nginx/sbin/nginx.bak
+	fi
+	if [ -f $serverPath/openresty/bin/openresty ];then
+		mv -f $serverPath/openresty/bin/openresty $serverPath/openresty/bin/openresty.bak
+	fi
 
 	CMD_MAKE=`which gmake`
 	if [ "$?" == "0" ];then
