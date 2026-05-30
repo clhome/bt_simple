@@ -59,18 +59,19 @@ var yufeng_systemd = {
         var is_edit = service_name ? true : false;
         var title = is_edit ? '修改服务 [' + service_name + ']' : '添加专属守护服务';
         
-        var form_html = '<div class="pd15" id="yf_form">' +
-            '<div class="bt-form">' +
+        var form_html = '<div class="bt-form pd20 pb70" style="position: relative;">' +
+            '<button class="btn btn-success btn-sm" style="position: absolute; top: 20px; right: 20px;" onclick="yufeng_systemd.save_service()">提交保存</button>' +
+            '<div class="form-horizontal">' +
                 '<div class="line">' +
                     '<span class="tname">服务名称</span>' +
                     '<div class="info-r">' +
-                        '<input name="service_name" class="bt-input-text" type="text" value="' + (service_name||'') + '" ' + (is_edit?'readonly style="background:#eee;"':'') + ' placeholder="仅限英文字母、数字、下划线、中划线">' +
+                        '<input name="service_name" class="bt-input-text mr5" type="text" style="width:150px; ' + (is_edit ? 'background-color: #f5f5f5;' : '') + '" value="' + (service_name||'') + '" ' + (is_edit?'readonly':'') + ' placeholder="如: my_node_app">' +
                     '</div>' +
                 '</div>' +
                 '<div class="line">' +
                     '<span class="tname">配置模式</span>' +
                     '<div class="info-r">' +
-                        '<select class="bt-input-text" name="mode" onchange="yufeng_systemd.toggle_mode(this.value)">' +
+                        '<select class="bt-input-text mr5" name="mode" onchange="yufeng_systemd.toggle_mode(this.value)">' +
                             '<option value="simple">极简向导模式 (推荐)</option>' +
                             '<option value="advanced">高级代码模式</option>' +
                         '</select>' +
@@ -109,15 +110,9 @@ var yufeng_systemd = {
                     '<div class="line">' +
                         '<span class="tname">服务配置</span>' +
                         '<div class="info-r">' +
-                            '<textarea name="service_content" class="bt-input-text" style="width: 400px; height: 200px; background:#222; color:#0f0; padding:10px; font-family: Consolas, monospace;"></textarea>' +
+                            '<textarea name="service_content" class="bt-input-text" style="width: 440px; height: 290px; background:#222; color:#0f0; padding:10px; font-family: Consolas, monospace; line-height: 1.3;"></textarea>' +
                             '<p class="c9 mt10">请务必保留 [Unit] 和 [Service] 节点。Documentation 标签系统将在后台强制覆盖。</p>' +
                         '</div>' +
-                    '</div>' +
-                '</div>' +
-                
-                '<div class="line">' +
-                    '<div class="info-r" style="margin-top: 20px;">' +
-                        '<button class="btn btn-success btn-sm" onclick="yufeng_systemd.save_service()">提交保存</button>' +
                     '</div>' +
                 '</div>' +
             '</div>' +
