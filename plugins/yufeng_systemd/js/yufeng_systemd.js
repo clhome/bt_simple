@@ -27,16 +27,16 @@ var yufeng_systemd = {
                 var item = data[i];
                 var status_html = '';
                 if (item.status === 'active') {
-                    status_html = '<span class="status-active">运行中</span> <a class="btlink" onclick="yufeng_systemd.control(\''+item.name+'\', \'stop\')">[停止]</a>';
+                    status_html = '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'stop\')" title="点击停止服务" style="width:80px;">运行中 ⏹</a>';
                 } else if (item.status === 'failed') {
-                    status_html = '<span class="status-failed">异常崩溃(Failed)</span> <a class="btlink" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')">[修复启动]</a>';
+                    status_html = '<a class="btn btn-warning btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击尝试修复并启动" style="width:80px;">崩溃报错 ⟳</a>';
                 } else {
-                    status_html = '<span class="status-inactive">已停止</span> <a class="btlink" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')">[启动]</a>';
+                    status_html = '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击启动服务" style="width:80px;">已停止 ▶</a>';
                 }
                 
                 var enabled_html = item.enabled ? 
-                    '<span style="color:#20a53a">已开启</span> <a class="btlink" onclick="yufeng_systemd.control(\''+item.name+'\', \'disable\')">[关闭]</a>' : 
-                    '<span style="color:#888">已关闭</span> <a class="btlink" onclick="yufeng_systemd.control(\''+item.name+'\', \'enable\')">[开启]</a>';
+                    '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'disable\')" title="点击取消开机自启" style="width:80px;">已开启 ⏹</a>' : 
+                    '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'enable\')" title="点击允许开机自启" style="width:80px;">已关闭 ▶</a>';
                     
                 html += '<tr>' +
                         '<td>' + item.name + '</td>' +
