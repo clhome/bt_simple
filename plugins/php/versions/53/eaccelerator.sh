@@ -7,7 +7,7 @@ export PATH
 # php 5.4.14 + eaccelerator 1.0 dev
 
 
-curPath=`pwd`
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")

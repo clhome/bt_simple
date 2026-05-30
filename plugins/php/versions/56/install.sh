@@ -4,7 +4,7 @@ export PATH=$PATH:/opt/homebrew/bin
 
 # cd /www/server/mdserver-web/plugins/php && /bin/bash install.sh install 56
 
-curPath=`pwd`
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")

@@ -8,7 +8,7 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
-curPath=`pwd`
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")

@@ -4,7 +4,7 @@ export PATH=$PATH:/opt/homebrew/bin
 
 # cd /www/server/mdserver-web/plugins/php/versions/common && bash readline.sh install 81
 
-curPath=`pwd`
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
 appPath=$(dirname "$curPath")
 
