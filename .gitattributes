@@ -1,0 +1,15 @@
+# 强制所有文本文件使用 LF 换行符，因为本项目主要在 Linux 服务器上运行
+* text=auto eol=lf
+
+# 针对核心脚本明确声明
+*.sh text eol=lf
+*.py text eol=lf
+*.tpl text eol=lf
+
+# 前端与配置文件
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.conf text eol=lf
+*.md text eol=lf
