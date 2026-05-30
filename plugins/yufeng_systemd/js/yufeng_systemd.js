@@ -154,7 +154,7 @@ var yufeng_systemd = {
                         }
                     });
                 } else {
-                    var default_tpl = "[Unit]\nDescription=Managed by BT yufeng_systemd Plugin\nAfter=network-online.target\n\n[Service]\nType=simple\nUser=www\nWorkingDirectory=/www/wwwroot/\nExecStart=\nRestart=always\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n";
+                    var default_tpl = "[Unit]\nDescription=Managed by yufeng_systemd Plugin\nAfter=network-online.target\n\n[Service]\nType=simple\nUser=www\nWorkingDirectory=/www/wwwroot/\nExecStart=\nRestart=always\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n";
                     $('textarea[name="service_content"]').val(default_tpl);
                 }
             }

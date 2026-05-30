@@ -125,7 +125,7 @@ def create_or_modify_service():
             return mw.returnJson(False, "启动命令不能为空")
             
         service_content = f"""[Unit]
-Description=Managed by BT yufeng_systemd Plugin
+Description=Managed by yufeng_systemd Plugin
 Documentation=tag:{__target_tag}
 After=network-online.target
 
