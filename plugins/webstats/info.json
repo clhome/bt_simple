@@ -1,16 +1,4 @@
 {
-	"hook":[
-		{
-			"tag":"site_cb",
-			"site_cb": {
-				"title":"网站统计",
-				"name":"webstats",
-				"add":{"func":"reload"},
-				"update":{"func":"reload"},
-				"delete":{"func":"reload"}
-			}
-		}
-	],
 	"sort": "100",
 	"ps": "网站统计报表",
 	"name": "webstats",
