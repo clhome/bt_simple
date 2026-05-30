@@ -5,8 +5,7 @@ export PATH=$PATH:/opt/homebrew/bin
 # cd /www/server/mdserver-web/plugins/php && /bin/bash install.sh install 56
 
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
+rootPath=$(cd "$curPath/../../../.."; pwd)
 serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source
 sysName=`uname`
@@ -29,7 +28,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 
 	# ----------------------------------------------------------------------- #
 	# 中国优化安装
-	cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
+	cn=$(curl -fsSL -m 10 -s https://ipinfo.io/json | grep "\"country\": \"CN\"")
 	LOCAL_ADDR=common
 	if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
 		LOCAL_ADDR=cn

@@ -4,10 +4,7 @@ export PATH=$PATH:/opt/homebrew/bin
 
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-rootPath=$(dirname "$rootPath")
-rootPath=$(dirname "$rootPath")
+rootPath=$(cd "$curPath/../../../.."; pwd)
 serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 

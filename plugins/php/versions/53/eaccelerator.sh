@@ -8,10 +8,7 @@ export PATH
 
 
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-rootPath=$(dirname "$rootPath")
-rootPath=$(dirname "$rootPath")
+rootPath=$(cd "$curPath/../../../.."; pwd)
 serverPath=$(dirname "$rootPath")
 
 if [ -f ${rootPath}/scripts/lib.sh ];then

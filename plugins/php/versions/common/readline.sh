@@ -8,10 +8,7 @@ curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
 appPath=$(dirname "$curPath")
 
-rootPath=$(dirname "$curPath")
-rootPath=$(dirname "$rootPath")
-rootPath=$(dirname "$rootPath")
-rootPath=$(dirname "$rootPath")
+rootPath=$(cd "$curPath/../../../.."; pwd)
 serverPath=$(dirname "$rootPath")
 sourcePath=${serverPath}/source/php
 SYS_ARCH=`arch`
