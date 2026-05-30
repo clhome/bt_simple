@@ -44,7 +44,16 @@ Install_App()
 
 	if [ -d $serverPath/redis ];then
 		mkdir -p $serverPath/redis/data
-		sed '/^ *#/d' redis.conf > $serverPath/redis/redis.conf
+		if [ ! -f $serverPath/redis/redis.conf ];then
+			sed '/^ *#/d' redis.conf > $serverPath/redis/redis.conf
+		else
+			sed -i 's/slave-serve-stale-data/replica-serve-stale-data/g' $serverPath/redis/redis.conf
+			sed -i 's/slave-read-only/replica-read-only/g' $serverPath/redis/redis.conf
+			sed -i 's/slave-priority/replica-priority/g' $serverPath/redis/redis.conf
+			sed -i 's/client-output-buffer-limit slave/client-output-buffer-limit replica/g' $serverPath/redis/redis.conf
+			sed -i '/ziplist/d' $serverPath/redis/redis.conf
+			sed -i '/intset/d' $serverPath/redis/redis.conf
+		fi
 
 		echo "${VERSION}" > $serverPath/redis/version.pl
 		echo '安装完成'
