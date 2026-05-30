@@ -1,0 +1,11 @@
+{
+  "title": "御风进程守护",
+  "name": "yufeng_systemd",
+  "type": "辅助工具",
+  "versions": "3.0",
+  "ps": "专为特定业务场景设计的轻量级进程守护插件，底层强制绑定 YuFeng 标签隔离，支持智能双模配置，安全可靠的进程守护管理器。",
+  "author": "御风",
+  "display": 1,
+  "date": "2026-05-30",
+  "home": "https://github.com/yufeng520/bt_simple"  
+}
