@@ -1,0 +1,165 @@
+{
+    "name": "基础安全加固",
+    "desc": "覆盖 SQL注入/XSS/目录遍历/恶意爬虫/Cookie注入/POST攻击等常见攻击面，适合所有站点一键开启基础防护。",
+    "rules": {
+        "base": {
+            "allow": "on",
+            "ipMod": "on",
+            "host_methodMod": "off",
+            "uriMod": "on",
+            "useragentMod": "on",
+            "cookieMod": "on",
+            "argsMod": "on",
+            "postMod": "on",
+            "networkMod": "off"
+        },
+        "args_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bselect\\b.*\\bfrom\\b", "ji"],
+                "name": "SQL注入 - SELECT查询探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bunion\\b.*\\bselect\\b", "ji"],
+                "name": "SQL注入 - UNION联合注入"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\b(and|or)\\b\\s+\\d+\\s*=\\s*\\d+", "ji"],
+                "name": "SQL注入 - 布尔盲注"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\b(insert|update|delete|drop|truncate|alter|create)\\b", "ji"],
+                "name": "SQL注入 - 写操作关键字"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["<script[^>]*>", "ji"],
+                "name": "XSS攻击 - script标签注入"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bon\\w+\\s*=", "ji"],
+                "name": "XSS攻击 - 事件处理器注入"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["javascript\\s*:", "ji"],
+                "name": "XSS攻击 - javascript伪协议"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bexec\\b.*\\bmaster\\b|\\bresponse\\.write\\b", "ji"],
+                "name": "通用攻击 - 远程命令执行探测"
+            }
+        ],
+        "uri_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\.\\./", "j"],
+                "name": "目录遍历攻击 - 路径穿越"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\.(bak|swp|old|sql|log|conf|ini|env|git|svn|DS_Store)$", "ji"],
+                "name": "敏感文件探测 - 备份/配置文件"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/wp-admin/|/wp-login\\.php|/xmlrpc\\.php", "ji"],
+                "name": "WordPress 攻击探测 (非WP站点适用)"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/phpmyadmin|/pma|/myadmin|/mysql", "ji"],
+                "name": "数据库管理工具探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/\\.well-known/|/\\.env|/\\.git/", "ji"],
+                "name": "隐藏文件/目录探测"
+            }
+        ],
+        "useragent_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["sqlmap|nmap|nikto|dirbuster|w3af|acunetix|nessus|appscan", "ji"],
+                "name": "恶意扫描器 - 安全工具特征"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["masscan|zgrab|nuclei|gobuster|ffuf|wfuzz|hydra", "ji"],
+                "name": "恶意扫描器 - 暴力探测工具"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["scrapy|mechanize|python-requests/|go-http-client|java/", "ji"],
+                "name": "自动化爬虫 - 编程语言默认UA"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["^$", "j"],
+                "name": "空User-Agent拦截"
+            }
+        ],
+        "cookie_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b", "ji"],
+                "name": "Cookie SQL注入攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["<script|javascript\\s*:|\\bon\\w+\\s*=", "ji"],
+                "name": "Cookie XSS注入攻击"
+            }
+        ],
+        "post_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b", "ji"],
+                "name": "POST SQL注入攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["<script[^>]*>|\\bon\\w+\\s*=|javascript\\s*:", "ji"],
+                "name": "POST XSS注入攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bexec\\s*\\(|\\beval\\s*\\(|\\bsystem\\s*\\(|\\bpassthru\\s*\\(", "ji"],
+                "name": "POST 远程代码执行"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\.\\.[\\/\\\\]", "ji"],
+                "name": "POST 路径穿越攻击"
+            }
+        ]
+    }
+}

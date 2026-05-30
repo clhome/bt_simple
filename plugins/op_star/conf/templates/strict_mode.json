@@ -1,0 +1,237 @@
+{
+    "name": "严格安全模式",
+    "desc": "所有防护模块全部开启 + 加强版 CC 防护 + HTTP 请求方法限制，适合对安全要求极高的生产环境和金融/政务类站点。",
+    "rules": {
+        "base": {
+            "allow": "on",
+            "ipMod": "on",
+            "host_methodMod": "on",
+            "uriMod": "on",
+            "useragentMod": "on",
+            "cookieMod": "on",
+            "argsMod": "on",
+            "postMod": "on",
+            "networkMod": "on"
+        },
+        "args_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bselect\\b.*\\bfrom\\b", "ji"],
+                "name": "SQL注入 - SELECT查询探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bunion\\b.*\\bselect\\b", "ji"],
+                "name": "SQL注入 - UNION联合注入"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\b(and|or)\\b\\s+\\d+\\s*=\\s*\\d+", "ji"],
+                "name": "SQL注入 - 布尔盲注"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\b(insert|update|delete|drop|truncate|alter|create)\\b", "ji"],
+                "name": "SQL注入 - 写操作关键字"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bconcat\\b|\\bchar\\b\\s*\\(|\\bsubstring\\b|\\bbenchmark\\b|\\bsleep\\b\\s*\\(", "ji"],
+                "name": "SQL注入 - 高级函数探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["<script[^>]*>", "ji"],
+                "name": "XSS攻击 - script标签注入"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bon\\w+\\s*=", "ji"],
+                "name": "XSS攻击 - 事件处理器注入"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["javascript\\s*:|vbscript\\s*:|data\\s*:", "ji"],
+                "name": "XSS攻击 - 协议注入（含vbscript/data）"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bexec\\b.*\\bmaster\\b|\\bresponse\\.write\\b|\\beval\\s*\\(", "ji"],
+                "name": "远程命令/代码执行探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bwaitfor\\b.*\\bdelay\\b|\\border\\s+by\\s+\\d+", "ji"],
+                "name": "SQL注入 - 时间盲注/排序探测"
+            }
+        ],
+        "uri_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\.\\./", "j"],
+                "name": "目录遍历攻击 - 路径穿越"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\.(bak|swp|old|sql|log|conf|ini|env|git|svn|DS_Store|tar\\.gz|zip|rar)$", "ji"],
+                "name": "敏感文件探测 - 备份/压缩/配置"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/wp-admin/|/wp-login\\.php|/xmlrpc\\.php|/wp-cron\\.php", "ji"],
+                "name": "WordPress 攻击探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/phpmyadmin|/pma|/myadmin|/mysql|/adminer", "ji"],
+                "name": "数据库管理工具探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/\\.well-known/|/\\.env|/\\.git/|/\\.svn/|/\\.htaccess|/\\.htpasswd", "ji"],
+                "name": "隐藏文件/版本控制目录探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/shell\\.php|/cmd\\.php|/hack\\.php|/c99\\.php|/r57\\.php", "ji"],
+                "name": "WebShell 木马路径探测"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["/cgi-bin/|/manager/html|/solr/|/actuator|/druid", "ji"],
+                "name": "中间件管理后台探测"
+            }
+        ],
+        "useragent_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["sqlmap|nmap|nikto|dirbuster|w3af|acunetix|nessus|appscan", "ji"],
+                "name": "恶意扫描器 - 安全工具特征"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["masscan|zgrab|nuclei|gobuster|ffuf|wfuzz|hydra|burp|zap", "ji"],
+                "name": "恶意扫描器 - 暴力/渗透工具"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["scrapy|mechanize|python-requests/|go-http-client|java/|perl|wget|curl/", "ji"],
+                "name": "自动化爬虫 - 编程语言/工具默认UA"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["^$", "j"],
+                "name": "空User-Agent拦截"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["bot|spider|crawl|slurp", "ji"],
+                "name": "通用爬虫拦截 (可能误杀搜索引擎爬虫)"
+            }
+        ],
+        "cookie_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b", "ji"],
+                "name": "Cookie SQL注入攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["<script|javascript\\s*:|\\bon\\w+\\s*=", "ji"],
+                "name": "Cookie XSS注入攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\.\\.[\\/\\\\]", "ji"],
+                "name": "Cookie 路径穿越攻击"
+            }
+        ],
+        "post_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b", "ji"],
+                "name": "POST SQL注入攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["<script[^>]*>|\\bon\\w+\\s*=|javascript\\s*:", "ji"],
+                "name": "POST XSS注入攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bexec\\s*\\(|\\beval\\s*\\(|\\bsystem\\s*\\(|\\bpassthru\\s*\\(|\\bpopen\\s*\\(", "ji"],
+                "name": "POST 远程代码执行"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\.\\.[\\/\\\\]", "ji"],
+                "name": "POST 路径穿越攻击"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["\\bcmd\\b|\\bpowershell\\b|/bin/bash|/bin/sh", "ji"],
+                "name": "POST 命令注入攻击"
+            }
+        ],
+        "host_method_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "rule": ["PUT|DELETE|PATCH|OPTIONS|TRACE|CONNECT"],
+                "name": "限制非标准HTTP方法 (仅允许GET/POST/HEAD)"
+            }
+        ],
+        "network_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "network": {
+                    "maxReqs": 60,
+                    "pTime": 60,
+                    "blackTime": 1800
+                },
+                "name": "严格CC防护 - 60秒60次封禁30分钟"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "network": {
+                    "maxReqs": 15,
+                    "pTime": 5,
+                    "blackTime": 600
+                },
+                "name": "突发洪水防护 - 5秒15次封禁10分钟"
+            }
+        ]
+    }
+}

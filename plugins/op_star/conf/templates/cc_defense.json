@@ -1,0 +1,39 @@
+{
+    "name": "CC流量防护",
+    "desc": "基于访问频率和连接数的智能 CC 防护，单 IP 60秒内超过 120 次请求自动封禁 600 秒，适合受 CC 攻击困扰的站点。",
+    "rules": {
+        "base": {
+            "allow": "on",
+            "ipMod": "on",
+            "host_methodMod": "off",
+            "uriMod": "off",
+            "useragentMod": "off",
+            "cookieMod": "off",
+            "argsMod": "off",
+            "postMod": "off",
+            "networkMod": "on"
+        },
+        "network_Mod": [
+            {
+                "state": "on",
+                "action": "deny",
+                "network": {
+                    "maxReqs": 120,
+                    "pTime": 60,
+                    "blackTime": 600
+                },
+                "name": "标准CC防护 - 60秒120次封禁10分钟"
+            },
+            {
+                "state": "on",
+                "action": "deny",
+                "network": {
+                    "maxReqs": 30,
+                    "pTime": 10,
+                    "blackTime": 300
+                },
+                "name": "高频突发防护 - 10秒30次封禁5分钟"
+            }
+        ]
+    }
+}

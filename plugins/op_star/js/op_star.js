@@ -566,3 +566,73 @@ function wafBlockedHistory(){
 function time() {
     return Math.floor(new Date().getTime() / 1000);
 }
+
+// ---------------- 安全模板管理 ----------------
+function wafTemplates(){
+    osPost('get_templates', {}, function(data){
+        var templates = [];
+        try {
+            templates = $.parseJSON(data.data);
+        } catch(e) {
+            templates = [];
+        }
+        
+        var tpl_html = '';
+        if(templates && templates.length > 0){
+            for(var i=0; i<templates.length; i++){
+                var tpl = templates[i];
+                var modules_str = '';
+                if(tpl.modules && tpl.modules.length > 0){
+                    for(var j=0; j<tpl.modules.length; j++){
+                        modules_str += '<span class="label label-info" style="margin-right:5px;margin-bottom:3px;display:inline-block;">' + tpl.modules[j] + '</span>';
+                    }
+                }
+                
+                var icon_class = 'glyphicon-shield';
+                var card_border = '#20a53a';
+                if(tpl.id == 'cc_defense'){
+                    icon_class = 'glyphicon-flash';
+                    card_border = '#f0ad4e';
+                } else if(tpl.id == 'strict_mode'){
+                    icon_class = 'glyphicon-lock';
+                    card_border = '#fc6d26';
+                }
+                
+                tpl_html += '<div class="card-box" style="border-left:4px solid ' + card_border + ';">\
+                    <div style="margin-bottom:10px;">\
+                        <span class="glyphicon ' + icon_class + '" style="color:' + card_border + ';font-size:18px;margin-right:8px;"></span>\
+                        <strong style="font-size:15px;color:#333;">' + tpl.name + '</strong>\
+                    </div>\
+                    <p style="color:#666;font-size:13px;margin-bottom:10px;">' + tpl.desc + '</p>\
+                    <div style="margin-bottom:12px;">' + modules_str + '</div>\
+                    <button class="btn btn-success btn-sm" onclick="applyTemplate(\'' + tpl.id + '\', \'' + tpl.name + '\')">一键应用此模板</button>\
+                </div>';
+            }
+        } else {
+            tpl_html = '<div class="card-box" style="text-align:center;color:#999;">暂无可用的安全防护模板</div>';
+        }
+        
+        var con = '<div class="card-box" style="background:#f8f9fa;border:none;">\
+            <p style="font-size:16px;font-weight:bold;margin-bottom:8px;color:#333;">安全防护模板中心</p>\
+            <p style="color:#666;font-size:13px;margin-bottom:0;">选择一个适合您站点的安全防护模板，一键应用即可获得完整的基础防护能力。</p>\
+        </div>' + tpl_html + '\
+        <div class="help-info-text">\
+            <li>应用模板会<b>覆盖</b>对应模块的现有规则配置，请在应用前确认。</li>\
+            <li>模板中未涉及的模块（如 IP 黑白名单）不受影响，您的手动配置会保留。</li>\
+            <li>应用后可在"防护开关"和"拦截规则"标签页中查看和微调具体规则。</li>\
+        </div>';
+        
+        $(".soft-man-con").html(con);
+    });
+}
+
+function applyTemplate(tpl_id, tpl_name){
+    safeMessage('应用安全模板', '确认要应用安全模板【' + tpl_name + '】吗？<br><br><span style="color:#fc6d26;">注意：应用模板将覆盖对应模块的现有规则配置！</span>', function(){
+        osPost('apply_template', {tpl_id: tpl_id}, function(data){
+            layer.msg('模板应用成功！', {icon: 1, time: 2000});
+            setTimeout(function(){
+                wafTemplates();
+            }, 1000);
+        });
+    });
+}

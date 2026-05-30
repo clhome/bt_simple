@@ -101,6 +101,20 @@ def fixOpenstarLuaPaths():
                             if re.search(pattern_dir, content):
                                 content = re.sub(pattern_dir, r'\1"' + path + '/"', content)
                                 has_changed = True
+
+                            # 增强：兼容 base_dir、_base_dir、config_dir 等更多变量名
+                            for var_name in ['base_dir', '_base_dir', 'config_dir', '_conf_dir', 'work_dir']:
+                                pattern_extra = r'(' + var_name + r'\s*=\s*)"[^"]+"'
+                                if re.search(pattern_extra, content):
+                                    content = re.sub(pattern_extra, r'\1"' + path + '/"', content)
+                                    has_changed = True
+
+                            # 增强：兼容 ip_file_path / ip_dir 等 IP 文件路径相关变量
+                            for var_name in ['ip_file_path', 'ip_dir', '_ip_dir']:
+                                pattern_ip = r'(' + var_name + r'\s*=\s*)"[^"]+"'
+                                if re.search(pattern_ip, content):
+                                    content = re.sub(pattern_ip, r'\1"' + path + '/conf_json/ip/"', content)
+                                    has_changed = True
                                 
                         if has_changed:
                             mw.writeFile(fpath, content)
@@ -220,11 +234,48 @@ def makeOpDstStopLua():
     mw.opLuaMakeAll()
     return True
 
+def initDefaultConfig():
+    """
+    首次启动时自动初始化 base.json 默认开关及 IP 文件目录，
+    确保 OpenStar 引擎的所有模块处于可工作状态。
+    """
+    conf_dir = getServerDir() + '/conf_json'
+    if not os.path.exists(conf_dir):
+        os.makedirs(conf_dir)
+
+    # 初始化 base.json —— 所有核心防御模块默认开启
+    base_path = conf_dir + '/base.json'
+    if not os.path.exists(base_path):
+        default_base = {
+            "allow": "on",
+            "ipMod": "on",
+            "host_methodMod": "off",
+            "uriMod": "on",
+            "useragentMod": "on",
+            "cookieMod": "on",
+            "argsMod": "on",
+            "postMod": "on",
+            "networkMod": "off"
+        }
+        mw.writeFile(base_path, json.dumps(default_base, indent=2))
+
+    # 确保 IP 规则目录及文件存在，引擎加载时不会因文件缺失而跳过
+    ip_dir = conf_dir + '/ip'
+    if not os.path.exists(ip_dir):
+        os.makedirs(ip_dir)
+    for ip_file in ['allow.ip', 'deny.ip', 'log.ip']:
+        ip_file_path = ip_dir + '/' + ip_file
+        if not os.path.exists(ip_file_path):
+            mw.writeFile(ip_file_path, '')
+
 def initDreplace():
     path = getServerDir()
     logs_path = path + '/logs'
     if not os.path.exists(logs_path):
         mw.execShell('mkdir -p ' + logs_path)
+
+    # 首次启动自动初始化默认配置（base.json 开关、IP 文件目录）
+    initDefaultConfig()
 
     # 动态修复 OpenStar Lua 全局配置文件路径
     fixOpenstarLuaPaths()
@@ -343,15 +394,25 @@ def save_rule():
             deny_ips = []
             for r in rules:
                 if len(r) >= 2:
-                    ip = r[0]
-                    action = r[1]
+                    ip = r[0].strip()
+                    action = r[1].strip()
+                    # 过滤空行和无效 IP，避免引擎解析异常
+                    if not ip:
+                        continue
                     if action == 'allow':
                         allow_ips.append(ip)
                     elif action == 'deny':
                         deny_ips.append(ip)
             
-            mw.writeFile(ip_dir + "/allow.ip", "\n".join(allow_ips) + "\n")
-            mw.writeFile(ip_dir + "/deny.ip", "\n".join(deny_ips) + "\n")
+            # 写入时确保末尾换行且无空行
+            allow_content = "\n".join(allow_ips)
+            deny_content = "\n".join(deny_ips)
+            if allow_content:
+                allow_content += "\n"
+            if deny_content:
+                deny_content += "\n"
+            mw.writeFile(ip_dir + "/allow.ip", allow_content)
+            mw.writeFile(ip_dir + "/deny.ip", deny_content)
         except Exception as e:
             pass
     
@@ -383,6 +444,90 @@ def get_logs():
         pass
         
     return mw.returnJson(True, 'ok', json.dumps(logs))
+
+def get_templates():
+    """
+    获取所有可用的安全防护模板列表
+    """
+    tpl_dir = getPluginDir() + '/conf/templates'
+    if not os.path.exists(tpl_dir):
+        return mw.returnJson(True, 'ok', json.dumps([]))
+    
+    templates = []
+    for f in sorted(os.listdir(tpl_dir)):
+        if f.endswith('.json'):
+            fpath = os.path.join(tpl_dir, f)
+            try:
+                tpl_data = json.loads(mw.readFile(fpath))
+                templates.append({
+                    'id': f.replace('.json', ''),
+                    'name': tpl_data.get('name', f),
+                    'desc': tpl_data.get('desc', ''),
+                    'modules': list(tpl_data.get('rules', {}).keys())
+                })
+            except:
+                pass
+    
+    return mw.returnJson(True, 'ok', json.dumps(templates))
+
+def apply_template():
+    """
+    一键应用指定安全防护模板
+    将模板中的规则批量写入 conf_json 并 reload
+    """
+    args = getArgs()
+    if 'tpl_id' not in args:
+        return mw.returnJson(False, '缺少 tpl_id 参数')
+    
+    tpl_id = args['tpl_id'].strip()
+    tpl_file = getPluginDir() + '/conf/templates/' + tpl_id + '.json'
+    if not os.path.exists(tpl_file):
+        return mw.returnJson(False, '模板不存在: ' + tpl_id)
+    
+    try:
+        tpl_data = json.loads(mw.readFile(tpl_file))
+    except Exception as e:
+        return mw.returnJson(False, '模板文件解析失败: ' + str(e))
+    
+    rules = tpl_data.get('rules', {})
+    conf_dir = getServerDir() + '/conf_json'
+    if not os.path.exists(conf_dir):
+        os.makedirs(conf_dir)
+    
+    # 批量写入各模块规则
+    for rule_name, rule_data in rules.items():
+        rule_path = conf_dir + '/' + rule_name + '.json'
+        mw.writeFile(rule_path, json.dumps(rule_data, ensure_ascii=False, indent=2))
+        
+        # IP 模块特殊处理：同步写入 allow.ip / deny.ip
+        if rule_name == 'ip_Mod':
+            ip_dir = conf_dir + '/ip'
+            if not os.path.exists(ip_dir):
+                os.makedirs(ip_dir)
+            allow_ips = []
+            deny_ips = []
+            for r in rule_data:
+                if len(r) >= 2:
+                    ip = r[0].strip()
+                    if not ip:
+                        continue
+                    if r[1] == 'allow':
+                        allow_ips.append(ip)
+                    elif r[1] == 'deny':
+                        deny_ips.append(ip)
+            allow_content = "\n".join(allow_ips) + "\n" if allow_ips else ""
+            deny_content = "\n".join(deny_ips) + "\n" if deny_ips else ""
+            mw.writeFile(ip_dir + '/allow.ip', allow_content)
+            mw.writeFile(ip_dir + '/deny.ip', deny_content)
+    
+    # 应用模板中的 base.json 开关配置
+    if 'base' in rules:
+        base_path = conf_dir + '/base.json'
+        mw.writeFile(base_path, json.dumps(rules['base'], ensure_ascii=False, indent=2))
+    
+    # 重载使模板生效
+    reload_hook()
+    return mw.returnJson(True, '安全模板 [' + tpl_data.get('name', tpl_id) + '] 已成功应用并生效！')
 
 def install_pre_inspection():
     """
@@ -416,6 +561,10 @@ if __name__ == "__main__":
         print(save_rule())
     elif func == 'get_logs':
         print(get_logs())
+    elif func == 'get_templates':
+        print(get_templates())
+    elif func == 'apply_template':
+        print(apply_template())
     elif func == 'install_pre_inspection':
         print(install_pre_inspection())
     elif func == 'uninstall_pre_inspection':
