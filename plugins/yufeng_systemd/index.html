@@ -6,34 +6,40 @@
 .btn-yufeng { margin-right: 5px; }
 .yufeng-notice { padding: 10px; background-color: #fcf8e3; border: 1px solid #faebcc; color: #8a6d3b; margin-bottom: 15px; border-radius: 4px; }
 </style>
-<div class="bt-w-main">
-    <div class="bt-w-con pd15">
-        <div class="yufeng-notice">
-            <strong>【御风进程守护】提示：</strong> 这里的服务与系统原生服务完全隔离，底层强制绑定 <code>YuFeng</code> 标签。删除或修改此处配置不会影响系统正常运行，请放心使用。
-        </div>
-        <div class="bt-box">
-            <div class="bt-form">
-                <button class="btn btn-success btn-sm" onclick="yufeng_systemd.open_edit('')"><span class="glyphicon glyphicon-plus"></span> 添加守护服务</button>
+<div class="bt-form">
+    <div class="bt-w-main">
+        <div class="bt-w-con pd15">
+            <div class="yufeng-notice">
+                <strong>【御风进程守护】提示：</strong> 这里的服务与系统原生服务完全隔离，底层强制绑定 <code>YuFeng</code> 标签。删除或修改此处配置不会影响系统正常运行，请放心使用。
             </div>
-            <div class="divtable mt10">
-                <table class="table table-hover yf-systemd-table">
-                    <thead>
-                        <tr>
-                            <th>服务名称</th>
-                            <th>运行状态</th>
-                            <th>自启状态</th>
-                            <th style="text-align: right;">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="yufeng_service_list">
-                        <!-- js render -->
-                    </tbody>
-                </table>
+            <div class="bt-box">
+                <div class="bt-form">
+                    <button class="btn btn-success btn-sm" onclick="yufeng_systemd.open_edit('')"><span class="glyphicon glyphicon-plus"></span> 添加守护服务</button>
+                </div>
+                <div class="divtable mt10">
+                    <table class="table table-hover yf-systemd-table">
+                        <thead>
+                            <tr>
+                                <th>服务名称</th>
+                                <th>运行状态</th>
+                                <th>自启状态</th>
+                                <th style="text-align: right;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yufeng_service_list">
+                            <!-- js render -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
-<script src="/static/plugin/yufeng_systemd/js/yufeng_systemd.js"></script>
-<script>
-    yufeng_systemd.init();
+
+<script type="text/javascript">
+    resetPluginWinWidth(800);
+    resetPluginWinHeight(550);
+    $.getScript("/plugins/file?name=yufeng_systemd&f=js/yufeng_systemd.js", function(){
+        yufeng_systemd.init();
+    });
 </script>

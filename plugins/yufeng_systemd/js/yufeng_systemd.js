@@ -92,8 +92,8 @@ var yufeng_systemd = {
                     '<div class="line">' +
                         '<span class="tname">项目路径</span>' +
                         '<div class="info-r">' +
-                            '<input name="work_dir" class="bt-input-text mr5" type="text" style="width:300px;" value="" placeholder="必须为绝对路径，如 /www/wwwroot/my_site">' +
-                            '<span class="glyphicon glyphicon-folder-open cursor" onclick="bt.select_path(\'work_dir\')"></span>' +
+                            '<input id="work_dir" name="work_dir" class="bt-input-text mr5" type="text" style="width:300px;" value="" placeholder="必须为绝对路径，如 /www/wwwroot/my_site">' +
+                            '<span class="glyphicon glyphicon-folder-open cursor" onclick="changePath(\'work_dir\')"></span>' +
                         '</div>' +
                     '</div>' +
                     '<div class="line">' +
@@ -127,6 +127,7 @@ var yufeng_systemd = {
             type: 1,
             title: title,
             area: ['600px', '500px'],
+            offset: 'auto',
             closeBtn: 1,
             shadeClose: false,
             content: form_html,
@@ -261,14 +262,30 @@ var yufeng_systemd = {
     
     // 基础请求封装
     request: function(method, args, callback) {
-        var url = '/plugin?action=a&name=' + this.plugin_name + '&s=' + method;
+        var req_data = {
+            name: this.plugin_name,
+            func: method,
+            args: btoa(encodeURIComponent(JSON.stringify(args))),
+            version: ''
+        };
         $.ajax({
-            url: url,
+            url: '/plugins/run',
             type: 'POST',
-            data: args,
-            success: function(res) {
+            data: req_data,
+            dataType: 'json',
+            success: function(data) {
+                if (!data.status) {
+                    layer.msg(data.msg, {icon: 2});
+                    return;
+                }
+                var rdata;
+                try {
+                    rdata = $.parseJSON(data.data);
+                } catch (e) {
+                    rdata = data.data;
+                }
                 if (typeof callback === 'function') {
-                    callback(res);
+                    callback(rdata);
                 }
             },
             error: function() {
@@ -277,3 +294,5 @@ var yufeng_systemd = {
         });
     }
 };
+
+window.yufeng_systemd = yufeng_systemd;
