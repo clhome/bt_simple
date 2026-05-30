@@ -124,7 +124,26 @@ function getSList(isdisplay) {
                     var current_major = plugin.setup_version.toString().split('.')[0];
                     var latest_major = latest_version.toString().split('.')[0];
                     if (current_major === latest_major) {
-                        mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + '\')">更新</a> | ';
+                        // 语义化版本对比：如果当前安装版本(current_ver)低于官方最新版本(latest_ver)，才提示更新
+                        var needUpdate = false;
+                        var c_parts = plugin.setup_version.toString().split('.');
+                        var l_parts = latest_version.toString().split('.');
+                        var maxLen = Math.max(c_parts.length, l_parts.length);
+                        for (var vi = 0; vi < maxLen; vi++) {
+                            var cp = parseInt(c_parts[vi]) || 0;
+                            var lp = parseInt(l_parts[vi]) || 0;
+                            if (cp < lp) {
+                                needUpdate = true;
+                                break;
+                            } else if (cp > lp) {
+                                needUpdate = false;
+                                break;
+                            }
+                        }
+
+                        if (needUpdate) {
+                            mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + '\')">更新</a> | ';
+                        }
                     }
                 }
                 handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">设置</a> | <a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title +'\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection +')">卸载</a>';
