@@ -22,14 +22,14 @@ else
 fi
 
 action=$1
-type=$2
+type=${2//./}
 
-if [ "${2}" == "" ];then
+if [ "${type}" == "" ];then
 	echo '缺少安装脚本...'
 	exit 0
 fi 
 
-if [ ! -d $curPath/versions/$2 ];then
+if [ ! -d $curPath/versions/$type ];then
 	echo '缺少安装脚本2...'
 	exit 0
 fi
@@ -50,7 +50,7 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
-cd ${curPath} && sh -x $curPath/versions/$2/install.sh $1
+cd ${curPath} && sh -x $curPath/versions/$type/install.sh $1
 
 
 if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
