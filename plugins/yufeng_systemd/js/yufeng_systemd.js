@@ -138,9 +138,24 @@ var yufeng_systemd = {
                     yufeng_systemd.request('get_service_detail', {service_name: service_name}, function(res) {
                         layer.close(loadT);
                         if(res.status) {
-                            $('textarea[name="service_content"]').val(res.data);
-                            // 由于解析简单内容较为复杂，编辑模式下默认推荐使用高级模式回显
-                            $('select[name="mode"]').val('advanced').trigger('change');
+                            var content = res.data;
+                            $('textarea[name="service_content"]').val(content);
+                            
+                            // 尝试回显极简模式的数据
+                            var userMatch = content.match(/^User=(.*)$/m);
+                            var workDirMatch = content.match(/^WorkingDirectory=(.*)$/m);
+                            var execStartMatch = content.match(/^ExecStart=(.*)$/m);
+                            
+                            if (userMatch && workDirMatch && execStartMatch) {
+                                $('select[name="run_user"]').val($.trim(userMatch[1]));
+                                $('input[name="work_dir"]').val($.trim(workDirMatch[1]));
+                                $('input[name="exec_start"]').val($.trim(execStartMatch[1]));
+                                // 如果能成功解析关键字段，则默认停留在极简模式
+                                $('select[name="mode"]').val('simple').trigger('change');
+                            } else {
+                                // 结构复杂，退化到高级模式
+                                $('select[name="mode"]').val('advanced').trigger('change');
+                            }
                         }
                     });
                 } else {
