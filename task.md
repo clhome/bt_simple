@@ -2846,3 +2846,25 @@ PHP 插件安装时，报错 `/www/server/mdserver-web/plugins/php/plugins/php/l
 
 - [x] 重构所有 PHP 安装和扩展脚本（约 60 多个 `.sh` 文件），将 `rootPath` 从多次嵌套的 `dirname` 改为基于相对路径深度的绝对路径拼接 `cd "$curPath/..."`，确保跨层级目录执行时路径计算统一绝对正确 @done
 - [x] 将所有脚本中的 `http://ipinfo.io/json` 统一修改为 `https://ipinfo.io/json`，以强制 TLS 加密绕过局域网透明 HTTP 劫持，确保中国大陆加速节点能够被正常分配 @done
+
+
+## 需求：修复由于 Captive Portal（强制主页认证）导致的 PHP 与依赖下载失败
+
+**问题描述：**
+PHP 安装过程中，出现 `zlib.sh: line 35: cd: /www/server/source/lib/zlib-1.2.11: No such file or directory` 以及 `curl: (60) SSL certificate problem`，最终导致 `tar` 报错。
+
+**根本原因分析：**
+1. 用户的服务器网络处于某种强制 Web 认证（Captive Portal）或深信服/网康等上网行为管理的透明代理下。
+2. 所有的 HTTP/HTTPS 下载流量，都被劫持并 302 重定向到了 `http://172.17.1.121/1.htm` 这个页面。
+3. `curl` 因为证书不信任拦截了请求导致无法正确测速，而 `wget` 带有 `--no-check-certificate` 参数，成功将这个 3.2KB 的拦截 HTML 页面当成源码压缩包（如 `.tar.xz` 或 `.tar.gz`）下载了下来。
+4. 解压脚本在对这个假冒的 HTML 页面进行 `tar` 解压时必然失败，导致后续的 `cd` 和 `make` 找不到源码目录而全面崩溃。
+5. 原版 PHP `install.sh` 缺乏错误阻断，在下载文件被判定损坏时会删除文件但接着继续强行 `tar`，导致满屏报错。
+
+**涉及文件：**
+- `plugins/php/versions/**/*.sh`
+
+### Task List
+
+- [x] 重写并修正所有 PHP `install.sh` 脚本中的异常处理逻辑：当检测到 MD5 校验失败，或者压缩包文件不存在时，立刻通过 `exit 1` 阻断执行流程，防止出现满屏找不到路径的干扰报错，精准暴露下载错误。 @done
+- [x] 为 `curl https://ipinfo.io/json` 测速增加 `-k` 参数，忽略局域网代理颁发的伪造证书，增强弱网劫持环境下的生存力。 @done
+- [x] 排查明确最终根本阻断原因是 `172.17.1.121` 透明认证系统劫持了流量，需交由用户在宿主机完成网络放行。 @done

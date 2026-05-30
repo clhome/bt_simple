@@ -29,7 +29,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	
 	# ----------------------------------------------------------------------- #
 	# 中国优化安装
-	cn=$(curl -fsSL -m 10 -s https://ipinfo.io/json | grep "\"country\": \"CN\"")
+	cn=$(curl -fsSL -k -m 10 -s https://ipinfo.io/json | grep "\"country\": \"CN\"")
 	LOCAL_ADDR=common
 	if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
 		LOCAL_ADDR=cn
@@ -60,6 +60,10 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	fi
 
 
+	if [ ! -f $sourcePath/php/php-${version}.tar.xz ]; then
+		echo "PHP source file missing!"
+		exit 1
+	fi
 	cd $sourcePath/php && tar -zxvf $sourcePath/php/php-${version}.tar.gz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 
