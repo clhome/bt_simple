@@ -2256,8 +2256,8 @@ function wsTableLogRequest(page){
     }
 
     $('#logs_search').attr('req','start');
-    // wsPost('get_logs_list', '' ,args, function(rdata){
-    wsPostCallbak('get_logs_list', '' ,args, function(rdata){
+    wsPost('get_logs_list', '' ,args, function(rdata){
+    // wsPostCallbak('get_logs_list', '' ,args, function(rdata){
         $('#logs_search').attr('req','end');
         var rdata = $.parseJSON(rdata.data);
         var list = '';
