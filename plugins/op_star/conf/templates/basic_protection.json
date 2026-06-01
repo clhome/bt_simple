@@ -4,14 +4,14 @@
     "rules": {
         "base": {
             "allow": "on",
-            "ipMod": "on",
-            "host_methodMod": "off",
-            "uriMod": "on",
-            "useragentMod": "on",
-            "cookieMod": "on",
-            "argsMod": "on",
-            "postMod": "on",
-            "networkMod": "off"
+            "ip_Mod": "on",
+            "host_method_Mod": "off",
+            "uri_Mod": "on",
+            "useragent_Mod": "on",
+            "cookie_Mod": "on",
+            "args_Mod": { "state": "on", "HPP_state": "on" },
+            "post_Mod": { "state": "on", "HPP_state": "on" },
+            "network_Mod": "off"
         },
         "args_Mod": [
             {

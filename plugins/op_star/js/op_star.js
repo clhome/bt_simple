@@ -183,18 +183,24 @@ function wafGlobalConfig(){
         var tbody = '';
         var modules = {
             "allow": ["全局白名单", "开启或关闭全局安全白名单过滤"],
-            "ipMod": ["IP 黑白名单过滤", "基于客户端 IP / IP 网段的主动阻断或放行过滤"],
-            "host_methodMod": ["域名及方法过滤", "限制未授权域名及非标准 HTTP 请求方法"],
-            "uriMod": ["URI 资源防护", "拦截匹配特定恶意正则规则的请求 URI 路径"],
-            "useragentMod": ["User-Agent 过滤", "阻断恶意爬虫、扫描器以及不合法浏览器的访问"],
-            "cookieMod": ["恶意 Cookie 拦截", "检测并拦截通过 Cookie 进行的渗透或越权攻击行为"],
-            "argsMod": ["URL 参数过滤 (GET)", "对 GET 请求传入的参数值进行敏感 SQL注入 与 XSS 检测"],
-            "postMod": ["POST 报文过滤", "对表单或 JSON 提交的 POST 请求内容进行深层匹配与防御"],
-            "networkMod": ["CC 流量与频次防护", "根据访问频率和频次阀值拦截暴力刷新与恶意攻击源IP"]
+            "ip_Mod": ["IP 黑白名单过滤", "基于客户端 IP / IP 网段的主动阻断或放行过滤"],
+            "host_method_Mod": ["域名及方法过滤", "限制未授权域名及非标准 HTTP 请求方法"],
+            "uri_Mod": ["URI 资源防护", "拦截匹配特定恶意正则规则的请求 URI 路径"],
+            "useragent_Mod": ["User-Agent 过滤", "阻断恶意爬虫、扫描器以及不合法浏览器的访问"],
+            "cookie_Mod": ["恶意 Cookie 拦截", "检测并拦截通过 Cookie 进行的渗透或越权攻击行为"],
+            "args_Mod": ["URL 参数过滤 (GET)", "对 GET 请求传入的参数值进行敏感 SQL注入 与 XSS 检测"],
+            "post_Mod": ["POST 报文过滤", "对表单或 JSON 提交的 POST 请求内容进行深层匹配与防御"],
+            "network_Mod": ["CC 流量与频次防护", "根据访问频率和频次阀值拦截暴力刷新与恶意攻击源IP"]
         };
         
         $.each(modules, function(key, val){
-            var state = config[key] == 'on' ? 'checked' : '';
+            var isOn = false;
+            if (key === 'args_Mod' || key === 'post_Mod') {
+                isOn = (config[key] && config[key].state === 'on');
+            } else {
+                isOn = (config[key] === 'on');
+            }
+            var state = isOn ? 'checked' : '';
             tbody += '<tr>\
                 <td><strong>' + val[0] + ' (' + key + ')</strong></td>\
                 <td style="color:#666;">' + val[1] + '</td>\
@@ -212,7 +218,15 @@ function wafGlobalConfig(){
 function toggleGlobalModule(key){
     osPostN('get_rule', {rule_name: 'base'}, function(data){
         var config = $.parseJSON(data.data);
-        config[key] = config[key] == 'on' ? 'off' : 'on';
+        
+        if (key === 'args_Mod' || key === 'post_Mod') {
+            if (typeof config[key] !== 'object') {
+                config[key] = {state: 'off', HPP_state: 'on'};
+            }
+            config[key].state = config[key].state === 'on' ? 'off' : 'on';
+        } else {
+            config[key] = config[key] === 'on' ? 'off' : 'on';
+        }
         
         osPost('save_rule', {rule_name: 'base', rule_data: JSON.stringify(config)}, function(res){
             layer.msg('配置成功且已热加载重载！',{icon:1,time:1000});

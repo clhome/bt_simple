@@ -2958,3 +2958,19 @@ PHP 安装过程中，出现 `zlib.sh: line 35: cd: /www/server/source/lib/zlib-
 ### Task List
 
 - [x] 在 `cli.sh` 和 `test/mw` 的 `restart`、`restart_panel` 操作 `stop` 与 `start` 之间加入 `sleep 2`，让操作系统彻底回收旧进程资源 @done
+
+## 需求：修复OP防火墙黑名单封锁失效问题
+**问题描述**：
+在“黑白名单”中将测试主机 172.17.60.218 加入黑名单后，依然可以访问服务器。
+
+**根本原因分析**：
+- 面板在 Windows 平台保存 `.ip` 配置文件时（调用 `mw.writeFile`，即文本写模式），默认会将 `\n` 转换成 Windows 风格的换行符 `\r\n`。
+- OpenStar (基于 OpenResty) IP 黑白名单模块逐行加载 `deny.ip` 时，未能正确清洗结尾的 `\r`，导致字典中实际存储的是 `172.17.60.218\r`。
+- 访客请求时，`ngx.var.remote_addr`（不带 `\r`）无法匹配命中，导致封锁策略完全失效。
+
+**修复文件**：
+- `plugins/op_star/index.py`
+
+### Task List
+
+- [x] 在 `index.py` 中的 `save_rule` 及 `apply_template` 拦截 `ip_Mod` 的写文件逻辑，弃用全局 `mw.writeFile`，改为独立 `open(..., newline='\n')` 以强制指定写入 LF (Unix 换行风格) 避免引擎加载异常。 @done

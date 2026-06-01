@@ -248,14 +248,16 @@ def initDefaultConfig():
     if not os.path.exists(base_path):
         default_base = {
             "allow": "on",
-            "ipMod": "on",
-            "host_methodMod": "off",
-            "uriMod": "on",
-            "useragentMod": "on",
-            "cookieMod": "on",
-            "argsMod": "on",
-            "postMod": "on",
-            "networkMod": "off"
+            "ip_Mod": "on",
+            "host_method_Mod": "off",
+            "uri_Mod": "on",
+            "useragent_Mod": "on",
+            "cookie_Mod": "on",
+            "args_Mod": { "state": "on", "HPP_state": "on" },
+            "post_Mod": { "state": "on", "HPP_state": "on" },
+            "network_Mod": "off",
+            "Mod_state": "on",
+            "denyMsg": {"state": "on", "msg": "openstar deny", "http_code": 403}
         }
         mw.writeFile(base_path, json.dumps(default_base, indent=2))
 
@@ -321,9 +323,51 @@ def restart():
     restartWeb()
     return 'ok'
 
+def repair_base_json():
+    try:
+        base_file = getServerDir() + '/conf_json/base.json'
+        if not os.path.exists(base_file):
+            return
+        content = mw.readFile(base_file)
+        data = json.loads(content)
+        changed = False
+        
+        key_map = {
+            'ipMod': 'ip_Mod',
+            'uriMod': 'uri_Mod',
+            'useragentMod': 'useragent_Mod',
+            'cookieMod': 'cookie_Mod',
+            'argsMod': 'args_Mod',
+            'postMod': 'post_Mod',
+            'networkMod': 'network_Mod'
+        }
+        
+        for old_k, new_k in key_map.items():
+            if old_k in data:
+                val = data.pop(old_k)
+                if (new_k == 'args_Mod' or new_k == 'post_Mod') and not isinstance(val, dict):
+                    data[new_k] = {"state": val, "HPP_state": "on"}
+                else:
+                    data[new_k] = val
+                changed = True
+                
+        if 'denyMsg' not in data:
+            data['denyMsg'] = {"state": "on", "msg": "openstar deny", "http_code": 403}
+            changed = True
+            
+        if 'Mod_state' not in data:
+            data['Mod_state'] = 'on'
+            changed = True
+                
+        if changed:
+            mw.writeFile(base_file, json.dumps(data))
+    except Exception as e:
+        pass
+
 def reload():
     mw.opWeb('stop')
     fixOpenstarLuaPaths()
+    repair_base_json()
     makeOpDstRunLua(True)
     mw.opWeb('start')
     return 'ok'
@@ -411,8 +455,10 @@ def save_rule():
                 allow_content += "\n"
             if deny_content:
                 deny_content += "\n"
-            mw.writeFile(ip_dir + "/allow.ip", allow_content)
-            mw.writeFile(ip_dir + "/deny.ip", deny_content)
+            with open(ip_dir + "/allow.ip", 'w', newline='\n', encoding='utf-8') as f:
+                f.write(allow_content)
+            with open(ip_dir + "/deny.ip", 'w', newline='\n', encoding='utf-8') as f:
+                f.write(deny_content)
         except Exception as e:
             pass
     
@@ -517,8 +563,10 @@ def apply_template():
                         deny_ips.append(ip)
             allow_content = "\n".join(allow_ips) + "\n" if allow_ips else ""
             deny_content = "\n".join(deny_ips) + "\n" if deny_ips else ""
-            mw.writeFile(ip_dir + '/allow.ip', allow_content)
-            mw.writeFile(ip_dir + '/deny.ip', deny_content)
+            with open(ip_dir + '/allow.ip', 'w', newline='\n', encoding='utf-8') as f:
+                f.write(allow_content)
+            with open(ip_dir + '/deny.ip', 'w', newline='\n', encoding='utf-8') as f:
+                f.write(deny_content)
     
     # 应用模板中的 base.json 开关配置
     if 'base' in rules:
