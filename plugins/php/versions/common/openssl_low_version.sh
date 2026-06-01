@@ -75,7 +75,7 @@ Install_lib()
 		# openssl_version=`pkg-config openssl --modversion`
 		# export PKG_CONFIG_PATH=$serverPath/lib/openssl10/lib/pkgconfig
 		if [ "$version" -lt "81" ] && [ "$sysName" != "Darwin" ];then
-			export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
+			export PKG_CONFIG_PATH=$serverPath/lib/openssl10/lib/pkgconfig:$PKG_CONFIG_PATH
 		fi
 
 		# Darwin

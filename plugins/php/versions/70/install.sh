@@ -118,8 +118,13 @@ if [ "$sysName" == "Darwin" ];then
 	export OPENSSL_LIBS="-L/${LIB_DEPEND_DIR}/lib -lssl -lcrypto -lz"
 else
 	cd ${rootPath}/plugins/php/lib && /bin/bash openssl_10.sh
-	export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$serverPath/lib/openssl10/lib/pkgconfig
-	OPTIONS="$OPTIONS --with-openssl"
+	export PKG_CONFIG_PATH=$serverPath/lib/openssl10/lib/pkgconfig:$PKG_CONFIG_PATH
+	export OPENSSL_CFLAGS="-I$serverPath/lib/openssl10/include"
+	export OPENSSL_LIBS="-L$serverPath/lib/openssl10/lib -lssl -lcrypto"
+	export CFLAGS="-I$serverPath/lib/openssl10/include $CFLAGS"
+	export CXXFLAGS="-I$serverPath/lib/openssl10/include $CXXFLAGS"
+	export LDFLAGS="-L$serverPath/lib/openssl10/lib $LDFLAGS"
+	OPTIONS="$OPTIONS --with-openssl=$serverPath/lib/openssl10"
 fi
 
 if [ ! -d $serverPath/php/${PHP_VER} ];then

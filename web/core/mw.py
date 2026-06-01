@@ -494,7 +494,7 @@ def returnJson(status, msg, data=None):
 def readFile(filename):
     # 读文件内容
     try:
-        fp = open(filename, 'r')
+        fp = open(filename, 'r', encoding='utf-8')
         fBody = fp.read()
         fp.close()
         return fBody
@@ -505,7 +505,7 @@ def readFile(filename):
 def writeFile(filename, content, mode='w+'):
     # 写文件内容
     try:
-        fp = open(filename, mode)
+        fp = open(filename, mode, encoding='utf-8')
         fp.write(content)
         fp.close()
         return True

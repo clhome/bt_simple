@@ -98,9 +98,15 @@ def status_progress(version):
 
 def getPhpSocket(version):
     path = getFpmConfFile(version)
+    if not os.path.exists(path):
+        return ""
     content = mw.readFile(path)
+    if not content:
+        return ""
     rep = r'listen\s*=\s*(.*)'
     tmp = re.search(rep, content)
+    if not tmp:
+        return ""
     return tmp.groups()[0].strip()
 
 
@@ -109,7 +115,10 @@ def status(version):
     sock文件判断是否启动
     '''
     sock = getPhpSocket(version)
-    if sock.find(':'):
+    if not sock:
+        return 'stop'
+
+    if sock.find(':') != -1:
         return status_progress(version)
 
     if not os.path.exists(sock):

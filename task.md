@@ -2844,7 +2844,8 @@ PHP 插件安装时，报错 `/www/server/mdserver-web/plugins/php/plugins/php/l
 
 ### Task List
 
-- [x] 重构所有 PHP 安装和扩展脚本（约 60 多个 `.sh` 文件），将 `rootPath` 从多次嵌套的 `dirname` 改为基于相对路径深度的绝对路径拼接 `cd "$curPath/..."`，确保跨层级目录执行时路径计算统一绝对正确 @done
+- [x] 修复 `plugins/php` 安装失败后无法在列表中显示的 Bug：由于 `plugins/php/info.json` 中加入了 UTF-8 编码的中文提示，导致在 Windows 平台下默认使用 GBK 编码读取时抛出 `UnicodeDecodeError`（`web/core/mw.py` 的 `readFile` 函数）。这导致插件完全不被解析而在列表中消失。已全局为 `mw.py` 中的 `readFile` 与 `writeFile` 显式指定 `encoding='utf-8'` 解决此问题。
+- [x] 修复 `plugins/php/index.py` Bug：修正 `getPhpSocket` 中 `www.conf` 文件不存在（比如刚安装失败或被删除）导致引发的 `TypeError` 崩溃。修正了 `status` 状态检查函数内因对 `sock.find(':')` 使用不当导致永远误判调用进程状态逻辑检查的错误。
 - [x] 将所有脚本中的 `http://ipinfo.io/json` 统一修改为 `https://ipinfo.io/json`，以强制 TLS 加密绕过局域网透明 HTTP 劫持，确保中国大陆加速节点能够被正常分配 @done
 
 
@@ -2930,3 +2931,10 @@ PHP 安装过程中，出现 `zlib.sh: line 35: cd: /www/server/source/lib/zlib-
 ### Task List
 
 - [x] 在 `files.html` 的重置按钮 `style` 中补齐 `margin-top: 10px;`，完美匹配输入框和搜索按钮的外边距模型，实现像素级居中对齐 @done(2026-06-01 09:20)
+
+## PHP 7.x OpenSSL 编译修复
+
+### Task List
+- [x] 为 PHP 7.1~7.4 升级 OpenSSL 至 1.1，并注入 CFLAGS 头文件优先级 @done
+- [x] 为 PHP 7.0 注入 OpenSSL 1.0 的 CFLAGS 头文件优先级 @done
+- [x] 修复 `plugins/php/versions/7*/install.sh` 脚本在 Windows 环境下编辑时意外引入的 CRLF (`\r\n`) 换行符导致在 Linux 执行时报 `$'\r': command not found` 的问题。已通过二进制重新写入的方式将所有涉及的 7.x 安装脚本转换为标准的 LF (`\n`)。 @done
