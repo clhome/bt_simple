@@ -1609,14 +1609,14 @@ def restartMw():
     return True
 
 def panelCmd(method):
-    cmd = '/etc/init.d/mw'
-    if os.path.exists(cmd):
-        execShell(cmd + ' ' + method)
-        return
-
     cmd = getPanelDir() + '/scripts/init.d/mw'
     if os.path.exists(cmd):
-        data = execShell(cmd + ' ' + method)
+        os.system('nohup ' + cmd + ' ' + method + ' >> /tmp/panelCmd.log 2>&1 &')
+        return
+
+    cmd = '/etc/init.d/mw'
+    if os.path.exists(cmd):
+        os.system('nohup ' + cmd + ' ' + method + ' >> /tmp/panelCmd.log 2>&1 &')
         return
 
 # ------------------------------    panel end    -----------------------------

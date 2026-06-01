@@ -2938,3 +2938,23 @@ PHP 安装过程中，出现 `zlib.sh: line 35: cd: /www/server/source/lib/zlib-
 - [x] 为 PHP 7.1~7.4 升级 OpenSSL 至 1.1，并注入 CFLAGS 头文件优先级 @done
 - [x] 为 PHP 7.0 注入 OpenSSL 1.0 的 CFLAGS 头文件优先级 @done
 - [x] 修复 `plugins/php/versions/7*/install.sh` 脚本在 Windows 环境下编辑时意外引入的 CRLF (`\r\n`) 换行符导致在 Linux 执行时报 `$'\r': command not found` 的问题。已通过二进制重新写入的方式将所有涉及的 7.x 安装脚本转换为标准的 LF (`\n`)。 @done
+
+## 需求：修复面板重启导致崩溃的问题
+
+**问题描述：**
+在面板点击重启后，面板崩溃起不来，需要去SSH执行 `bs 1` 才能启动。
+
+**根本原因分析：**
+- 在 `mw_stop_panel` 结束时（`kill -9` 发出后），操作系统释放端口和清理进程信息需要极短暂的延迟。
+- 若紧接着无缝执行 `mw_start_panel`，`ps -ef` 往往会误扫到处于终止中（D/Z状态）的旧 gunicorn 进程，从而判断面板已运行，直接跳过启动逻辑。
+- 旧进程随后彻底死亡，导致面板实际处于停机状态。
+- `bs 1` (即 `mw restart`) 因为中途夹杂了 `mw_stop_task` 的较长耗时，给了 gunicorn 充分死亡的窗口，因此不会触发此问题。
+
+**修复文件：**
+- `cli.sh`
+- `scripts/init.d/mw.tpl` (已确认最新版本已有 sleep 2)
+- `文档/test/mw`
+
+### Task List
+
+- [x] 在 `cli.sh` 和 `test/mw` 的 `restart`、`restart_panel` 操作 `stop` 与 `start` 之间加入 `sleep 2`，让操作系统彻底回收旧进程资源 @done

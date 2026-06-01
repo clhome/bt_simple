@@ -71,7 +71,7 @@ class plugin(object):
             "ps":""
         },
         {
-            "title":"辅助插件",
+            "title":"PHP",
             "type":6,
             "ps":""
         },

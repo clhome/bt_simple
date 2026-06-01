@@ -36,36 +36,32 @@ def init_cmd():
     # initd
     if os.path.exists('/etc/rc.d/init.d'):
         initd_bin = '/etc/rc.d/init.d/mw'
-        if not os.path.exists(initd_bin):
+        if True:
+            mw.execShell('rm -f ' + initd_bin)
             mw.writeFile(initd_bin, cmd_content)
             mw.execShell('chmod +x ' + initd_bin)
         # 加入自启动
         mw.execShell('which chkconfig && chkconfig --add mw')
         
         # 确保 /usr/bin/mw 和 /usr/bin/bs 存在
-        if not os.path.exists('/usr/bin/mw'):
-            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/mw')
-        if not os.path.exists('/usr/bin/bs'):
-            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/bs')
-        if not os.path.exists('/etc/rc.d/init.d/bs'):
-            mw.execShell('ln -sf ' + initd_bin + ' /etc/rc.d/init.d/bs')
+        mw.execShell('rm -f /usr/bin/mw && ln -sf ' + initd_bin + ' /usr/bin/mw')
+        mw.execShell('rm -f /usr/bin/bs && ln -sf ' + initd_bin + ' /usr/bin/bs')
+        mw.execShell('rm -f /etc/rc.d/init.d/bs && ln -sf ' + initd_bin + ' /etc/rc.d/init.d/bs')
 
 
     if os.path.exists('/etc/init.d'):
         initd_bin = '/etc/init.d/mw'
-        if not os.path.exists(initd_bin):
+        if True:
+            mw.execShell('rm -f ' + initd_bin)
             mw.writeFile(initd_bin, cmd_content)
             mw.execShell('chmod +x ' + initd_bin)
         # 加入自启动
         mw.execShell('which update-rc.d && update-rc.d -f mw defaults')
 
         # 确保 /usr/bin/mw 和 /usr/bin/bs 存在
-        if not os.path.exists('/usr/bin/mw'):
-            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/mw')
-        if not os.path.exists('/usr/bin/bs'):
-            mw.execShell('ln -sf ' + initd_bin + ' /usr/bin/bs')
-        if not os.path.exists('/etc/init.d/bs'):
-            mw.execShell('ln -sf ' + initd_bin + ' /etc/init.d/bs')
+        mw.execShell('rm -f /usr/bin/mw && ln -sf ' + initd_bin + ' /usr/bin/mw')
+        mw.execShell('rm -f /usr/bin/bs && ln -sf ' + initd_bin + ' /usr/bin/bs')
+        mw.execShell('rm -f /etc/init.d/bs && ln -sf ' + initd_bin + ' /etc/init.d/bs')
 
     # sys_name = mw.getOsName()
     # if sys_name == 'opensuse':
