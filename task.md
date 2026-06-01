@@ -2893,3 +2893,40 @@ PHP 安装过程中，出现 `zlib.sh: line 35: cd: /www/server/source/lib/zlib-
 ### Task List
 
 - [x] 修改 web/templates/default/soft.html，为重置按钮设置初始隐藏样式，并监听搜索框的 input 事件，根据内容动态显示/隐藏重置按钮 @done
+
+## 需求：文件菜单搜索栏增加重置功能按钮
+
+**问题描述：**
+在文件菜单下的搜索栏，需要增加和软件管理菜单下搜索栏一样的重置功能按钮，只有在input框中有文字才显示重置按钮。
+
+**涉及文件：**
+- `web/templates/default/files.html`
+
+### Task List
+
+- [x] 在 `web/templates/default/files.html` 中，为搜索框前增加重置按钮，并通过 `oninput` 事件控制按钮显示与隐藏 @done(2026-06-01 08:54)
+
+## 需求：文件搜索模块调整为 Flex 布局解决换行问题
+
+**问题描述：**
+增加重置按钮后，整个搜索模块的宽度变大，超出了原本 `float: left` (`pull-left`) 机制下的排版空间限制，导致右侧的搜索按钮掉到了下一行。需要将整个搜索模块向左扩展，并保证所有控件处于同一行。
+
+**涉及文件：**
+- `web/templates/default/files.html`
+
+### Task List
+
+- [x] 在 `files.html` 的搜索表单上应用 `display: flex; align-items: center;` 并移除子元素的 `pull-left` 类，使其能够根据内容自动向左扩展而不换行 @done(2026-06-01 09:02)
+
+## 需求：文件搜索重置按钮微调垂直居中对齐
+
+**问题描述：**
+重置按钮和后方的搜索输入框在垂直方向上存在落差（没有完全对齐）。
+经排查发现，原有搜索框 (`.ser-text`) 及搜索按钮 (`.ser-sub`) 在全局 CSS 中强制携带了 `margin-top: 10px;`，而重置按钮缺少该属性导致在 Flex 交叉轴对齐时出现了视觉高度落差。
+
+**涉及文件：**
+- `web/templates/default/files.html`
+
+### Task List
+
+- [x] 在 `files.html` 的重置按钮 `style` 中补齐 `margin-top: 10px;`，完美匹配输入框和搜索按钮的外边距模型，实现像素级居中对齐 @done(2026-06-01 09:20)

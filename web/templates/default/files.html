@@ -261,9 +261,10 @@
                         </div>
                         <div class="pull-left mlr15" style="line-height:26px"><span id='dir_info'></span></div>
                         <div class="search pull-right" style="position: absolute; top: 6px; right: 5px;">
-                            <form target="hid">
-                                <input type="text" id="search_file" class="ser-text pull-left" placeholder="搜索文件/目录" autocomplete="false" />
-                                <button type="button" class="ser-sub pull-left" onclick='searchFile(1)'></button>
+                            <form target="hid" style="display: flex; align-items: center;">
+                                <button id="resetSearchFileBtn" type="button" class="btn btn-default btn-sm" style="display: none; margin-top: 10px; margin-right: 5px; height: 30px; line-height: 20px; padding: 4px 10px;" onclick="$('#search_file').val(''); $('#resetSearchFileBtn').hide(); searchFile(1);" title="清除搜索并刷新列表">x</button>
+                                <input type="text" id="search_file" class="ser-text" placeholder="搜索文件/目录" autocomplete="false" oninput="if(this.value){$('#resetSearchFileBtn').show()}else{$('#resetSearchFileBtn').hide()}" />
+                                <button type="button" class="ser-sub" onclick='searchFile(1)'></button>
                                 <div class="file_search" draggable="false">
                                     <label for="search_file">包含子目录</label>
                                     <div id="search_all" class="file_search_checked"></div>
