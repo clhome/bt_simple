@@ -10,6 +10,10 @@ if [ -f ${rootPath}/scripts/lib.sh ];then
 	source ${rootPath}/scripts/lib.sh
 fi
 
+if [ -f ${rootPath}/scripts/github_download.sh ];then
+	source ${rootPath}/scripts/github_download.sh
+fi
+
 sourcePath=${serverPath}/source
 sysName=`uname`
 SYS_ARCH=`arch`
@@ -52,7 +56,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 
 
 	if [ ! -f $sourcePath/php/php-5.2.17-max-input-vars.patch ]; then
-		mw_download $sourcePath/php/php-5.2.17-max-input-vars.patch https://raw.githubusercontent.com/laruence/laruence.github.com/master/php-5.2-max-input-vars/php-5.2.17-max-input-vars.patch
+		github_download $sourcePath/php/php-5.2.17-max-input-vars.patch https://raw.githubusercontent.com/laruence/laruence.github.com/master/php-5.2-max-input-vars/php-5.2.17-max-input-vars.patch
 	fi
 
 	if [ ! -f $sourcePath/php/php-5.x.x.patch ]; then

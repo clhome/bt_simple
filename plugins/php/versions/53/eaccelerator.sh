@@ -15,6 +15,10 @@ if [ -f ${rootPath}/scripts/lib.sh ];then
 	source ${rootPath}/scripts/lib.sh
 fi
 
+if [ -f ${rootPath}/scripts/github_download.sh ];then
+	source ${rootPath}/scripts/github_download.sh
+fi
+
 sourcePath=${serverPath}/source/php
 SYS_ARCH=`arch`
 LIBNAME=eaccelerator
@@ -47,7 +51,7 @@ Install_lib()
 		mkdir -p $php_lib
 
 		if [ ! -d $php_lib/${LIBNAME}-${LIBV} ];then
-			mw_download $php_lib/${LIBNAME}-${LIBV}.tar.gz https://github.com/eaccelerator/eaccelerator/archive/${LIBV}.tar.gz
+			github_download $php_lib/${LIBNAME}-${LIBV}.tar.gz https://github.com/eaccelerator/eaccelerator/archive/${LIBV}.tar.gz
 			# wget -O $php_lib/${LIBNAME}-${LIBV}.tar.bz2 http://dl.wdlinux.cn:5180/soft/eaccelerator-0.9.6.1.tar.bz2
 			cd $php_lib && tar -zxvf ${LIBNAME}-${LIBV}.tar.gz
 		fi
