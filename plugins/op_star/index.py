@@ -257,7 +257,27 @@ def initDefaultConfig():
             "post_Mod": { "state": "on", "HPP_state": "on" },
             "network_Mod": "off",
             "Mod_state": "on",
-            "denyMsg": {"state": "on", "msg": "openstar deny", "http_code": 403}
+            "denyMsg": {"state": "on", "msg": "openstar deny", "http_code": 403},
+            "realIpFrom_Mod": "on",
+            "rewrite_Mod": "on",
+            "app_Mod": "on",
+            "referer_Mod": "on",
+            "header_Mod": "on",
+            "post_form": 10240,
+            "replace_Mod": "off",
+            "debug_Mod": False,
+            "baseDir": "/www/server/openstar/",
+            "logPath": "/www/server/openstar/logs/",
+            "jsonPath": "/www/server/openstar/conf_json/",
+            "htmlPath": "/www/server/openstar/index/",
+            "log_conf": {
+                "state": "on",
+                "filename": "waf.log",
+                "tb_formart": [
+                    "$time", "$remoteIp", "$host", "$ip", "$method", "$server_protocol", "$status", "$request_uri", "$useragent", "$referer", "waf_log:", "$waf_log", "\n"
+                ],
+                "tb_concat": " "
+            }
         }
         mw.writeFile(base_path, json.dumps(default_base, indent=2))
 
@@ -357,6 +377,24 @@ def repair_base_json():
             
         if 'Mod_state' not in data:
             data['Mod_state'] = 'on'
+            changed = True
+            
+        if 'log_conf' not in data:
+            data['log_conf'] = {
+                "state": "on",
+                "filename": "waf.log",
+                "tb_formart": [
+                    "$time", "$remoteIp", "$host", "$ip", "$method", "$server_protocol", "$status", "$request_uri", "$useragent", "$referer", "waf_log:", "$waf_log", "\n"
+                ],
+                "tb_concat": " "
+            }
+            changed = True
+            
+        if 'baseDir' not in data:
+            data['baseDir'] = '/www/server/openstar/'
+            data['logPath'] = '/www/server/openstar/logs/'
+            data['jsonPath'] = '/www/server/openstar/conf_json/'
+            data['htmlPath'] = '/www/server/openstar/index/'
             changed = True
                 
         if changed:
