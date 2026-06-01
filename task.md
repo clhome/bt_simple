@@ -2881,3 +2881,15 @@ PHP 安装过程中，出现 `zlib.sh: line 35: cd: /www/server/source/lib/zlib-
 
 - [x] 在 web/templates/default/soft.html 搜索框前添加重置按钮（x），并绑定清除搜索和刷新列表的 JS 逻辑 @done
 - [x] 修复搜索模块因外层容器固定宽度限制导致新增重置按钮后，搜索按钮被挤出换行的问题（拉宽外层容器至 350px 并补充了按钮间距） @done
+
+## 需求：在软件管理中，如果input框内没有内容，则隐藏重置按钮
+
+**问题描述：**
+在软件管理页面的搜索框，如果没有输入任何内容，重置按钮显示在那里显得多余且不美观。需要实现在输入框没有内容时自动隐藏重置按钮的功能。
+
+**涉及文件：**
+- web/templates/default/soft.html
+
+### Task List
+
+- [x] 修改 web/templates/default/soft.html，为重置按钮设置初始隐藏样式，并监听搜索框的 input 事件，根据内容动态显示/隐藏重置按钮 @done
