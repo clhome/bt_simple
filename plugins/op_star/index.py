@@ -262,7 +262,8 @@ def initDefaultConfig():
                     "$time", "$remoteIp", "$host", "$ip", "$method", "$server_protocol", "$status", "$request_uri", "$useragent", "$referer", "waf_log:", "$waf_log", "\n"
                 ],
                 "tb_concat": " "
-            }
+            },
+            "autoSync": {"state": "off", "timeAt": 5}
         }
         mw.writeFile(base_path, json.dumps(default_base, indent=2))
 
@@ -305,6 +306,11 @@ def status():
     return 'start'
 
 def start():
+    # 检查核心文件是否存在，防止生成损坏配置导致Nginx崩溃
+    init_file = mw.getServerDir() + '/openstar/init.lua'
+    if not os.path.exists(init_file):
+        return mw.returnJson(False, 'OpenStar核心文件丢失！通常是因为插件安装或更新时网络连接GitHub失败导致。请在面板重新安装此插件。')
+        
     initDreplace()
     
     # 启动心跳及日志分析归档任务
@@ -381,6 +387,10 @@ def repair_base_json():
             data['jsonPath'] = '/www/server/openstar/conf_json/'
             data['htmlPath'] = '/www/server/openstar/index/'
             changed = True
+            
+        if 'autoSync' not in data:
+            data['autoSync'] = {"state": "off", "timeAt": 5}
+            changed = True
                 
         if changed:
             mw.writeFile(base_file, json.dumps(data))
@@ -388,6 +398,11 @@ def repair_base_json():
         pass
 
 def reload():
+    # 检查核心文件是否存在，防止生成损坏配置导致Nginx崩溃
+    init_file = mw.getServerDir() + '/openstar/init.lua'
+    if not os.path.exists(init_file):
+        return mw.returnJson(False, 'OpenStar核心文件丢失！通常是因为插件安装或更新时网络连接GitHub失败导致。请在面板重新安装此插件。')
+        
     mw.opWeb('stop')
     fixOpenstarLuaPaths()
     repair_base_json()

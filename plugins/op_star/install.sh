@@ -45,7 +45,7 @@ Install_App(){
 		echo "正在克隆 OpenStar 核心代码库..."
 		rm -rf $serverPath/openstar
 		
-		github_clone "$serverPath/openstar" "https://github.com/starjun/openstar.git"
+		github_clone "$serverPath/openstar" "https://github.com/clhome/openstar.git"
 		if [ "$?" != "0" ]; then
 			echo "克隆 OpenStar 失败！"
 			exit 1

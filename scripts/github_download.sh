@@ -78,6 +78,9 @@ _gh_try_clone() {
 
     rm -rf "$target_dir" 2>/dev/null
 
+    # 捕获用户中断信号，确保中断时删除下载了一半的目录
+    trap 'rm -rf "$target_dir" 2>/dev/null; exit 1' INT TERM HUP
+
     # 使用 timeout 命令包裹 git clone
     if command -v timeout >/dev/null 2>&1; then
         timeout "$timeout" git clone --depth 1 ${branch:+-b "$branch"} "$repo_url" "$target_dir" >/dev/null 2>&1
@@ -85,6 +88,9 @@ _gh_try_clone() {
         # 没有 timeout 命令时，使用 git 自带的 http.lowSpeedLimit 机制
         git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$timeout" clone --depth 1 ${branch:+-b "$branch"} "$repo_url" "$target_dir" >/dev/null 2>&1
     fi
+
+    # 恢复信号捕获
+    trap - INT TERM HUP
 
     if [ -d "$target_dir" ] && [ -d "$target_dir/.git" ]; then
         return 0
@@ -110,7 +116,7 @@ _gh_try_clone() {
 github_download() {
     local file=$1
     local url=$2
-    local timeout=${3:-10}
+    local timeout=${3:-60}
 
     if [ -z "$file" ] || [ -z "$url" ]; then
         echo "[github_download] 错误: 缺少参数。用法: github_download <保存路径> <URL> [超时秒数]"
@@ -178,7 +184,7 @@ github_clone() {
     local target_dir=$1
     local repo_url=$2
     local branch=${3:-""}
-    local timeout=10
+    local timeout=30
 
     if [ -z "$target_dir" ] || [ -z "$repo_url" ]; then
         echo "[github_clone] 错误: 缺少参数。用法: github_clone <目标目录> <仓库URL> [分支]"

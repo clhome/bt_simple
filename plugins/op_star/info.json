@@ -22,7 +22,7 @@
 	"checks":"server/openstar",
 	"path":"server/openstar",
 	"author":"starjun",
-	"home":"https://github.com/starjun/openstar",
+	"home":"https://github.com/clhome/openstar",
 	"date":"2026-05-28",
 	"pid": "1",
 	"versions": ["1.0"]
