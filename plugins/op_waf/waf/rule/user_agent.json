@@ -1,8 +1,80 @@
 [
-	[1,"(HTTrack|Apache-HttpClient|harvest|audit|dirbuster|pangolin|nmap|sqln|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|zmeu|BabyKrokodil|netsparker|httperf| SF/)","关键词过滤1",0],
-	[1,"(ApacheBench)","AB测试",0],
-	[1,"(Amazonbot)","Amazon爬虫",0],
-	[1,"(SemrushBot)","Semrush爬虫",0],
-	[1,"(^$|Apache-HttpClient|colly|curl|okhttp|Go-http-client|python-requests|Python-urllib|python-httpx|Scrapy|aiohttp|Nmap Scripting Engine|Java|fasthttp|Wget)","非法脚本",0],
-	[1,"(CensysInspect|intelx\\.io_bot|InternetMeasurement|ips-agent|MJ12Bot|NetcraftSurveyAgent|SemrushBot|l9scan|SEOlyt|kirkland-signature|ZoominfoBot|Expanse|CheckMarkNetwork|dotbot|Pandalytics|Screaming Frog SEO Spider|W3C_CSS_Validator_JFouffa)","非法扫描器",0]
+    [
+        1,
+        "(HTTrack|Apache-HttpClient|harvest|audit|dirbuster|pangolin|nmap|sqln|hydra|Parser|libwww|BBBike|sqlmap|w3af|owasp|Nikto|fimap|havij|zmeu|BabyKrokodil|netsparker|httperf| SF/)",
+        "关键词过滤1",
+        0
+    ],
+    [
+        1,
+        "(ApacheBench)",
+        "AB测试",
+        0
+    ],
+    [
+        1,
+        "(Amazonbot)",
+        "Amazon爬虫",
+        0
+    ],
+    [
+        1,
+        "(SemrushBot)",
+        "Semrush爬虫",
+        0
+    ],
+    [
+        1,
+        "(^$|Apache-HttpClient|colly|curl|okhttp|Go-http-client|python-requests|Python-urllib|python-httpx|Scrapy|aiohttp|Nmap Scripting Engine|Java|fasthttp|Wget)",
+        "非法脚本",
+        0
+    ],
+    [
+        1,
+        "(CensysInspect|intelx\\.io_bot|InternetMeasurement|ips-agent|MJ12Bot|NetcraftSurveyAgent|SemrushBot|l9scan|SEOlyt|kirkland-signature|ZoominfoBot|Expanse|CheckMarkNetwork|dotbot|Pandalytics|Screaming Frog SEO Spider|W3C_CSS_Validator_JFouffa)",
+        "非法扫描器",
+        0
+    ],
+    [
+        1,
+        "\\$\\{jndi:(ldap|rmi|dns|iiop|http|https)://.*?\\}",
+        "Log4j JNDI Injection",
+        0
+    ],
+    [
+        1,
+        "(\\{\\\"@type\\\"\\s*:\\s*\\\".*?\\\"|autoTypeSupport)",
+        "Fastjson RCE",
+        0
+    ],
+    [
+        1,
+        "(class\\.module\\.classLoader|%24%7B.*?%7D|spring\\.cloud\\.function\\.routing-expression)",
+        "Spring Core/Cloud RCE",
+        0
+    ],
+    [
+        1,
+        "(s=/?think/|think\\\\\\\\app|think\\\\\\\\config|invokeFunction)",
+        "ThinkPHP RCE",
+        0
+    ],
+    [
+        1,
+        "(?i)(file|gopher|dict|ftp|http|https)://(127\\.0\\.0\\.1|localhost|10\\.|172\\.(1[6-9]|2[0-9]|3[0-1])\\.|192\\.168\\.|::1)",
+        "SSRF Local IP Targeting",
+        0
+    ],
+    [
+        1,
+        "(?i)(flushall|config\\s+set\\s+dir|config\\s+set\\s+dbfilename|slaveof|bgsave)",
+        "Redis Unauthorized Access/RCE",
+        0
+    ],
+    [
+        1,
+        "(?i)(bash\\s+-i|nc\\s+-e\\s+/bin/|sh\\s+-i|perl\\s+-MIO|python\\s+-c\\s+['\\\"]import\\s+pty)",
+        "Reverse Shell/Command Injection",
+        0
+    ]
 ]

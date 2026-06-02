@@ -1,1 +1,86 @@
-[[1, "\\.(htaccess|mysql_history|bash_history|DS_Store|idea|user\\.ini)", "\u6587\u4ef6\u76ee\u5f55\u8fc7\u6ee41", 0], [1, "\\.(bak|inc|old|mdb|sql|php~|swp|java|class)$", "\u6587\u4ef6\u76ee\u5f55\u8fc7\u6ee42", 0], [1, "^/(vhost|bbs|host|wwwroot|www|site|root|backup|data|ftp|db|admin|website|web).*\\.(rar|sql|zip|tar\\.gz|tar)$", "\u6587\u4ef6\u76ee\u5f55\u8fc7\u6ee43", 0], [1, "/(hack|shell|spy|phpspy)\\.php$", "PHP\u811a\u672c\u6267\u884c\u8fc7\u6ee41", 0], [1, "^/(attachments|css|uploadfiles|static|forumdata|cache|avatar)/(\\w+).(php|jsp)$", "PHP\u811a\u672c\u6267\u884c\u8fc7\u6ee42", 0], [1, "(?:(union(.*?)select))", "SQL\u6ce8\u5165\u8fc7\u6ee41", 0], [1, "(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(", "\u4e00\u53e5\u8bdd\u6728\u9a6c\u8fc7\u6ee41", 1]]
+[
+    [
+        1,
+        "\\.(htaccess|mysql_history|bash_history|DS_Store|idea|user\\.ini)",
+        "文件目录过滤1",
+        0
+    ],
+    [
+        1,
+        "\\.(bak|inc|old|mdb|sql|php~|swp|java|class)$",
+        "文件目录过滤2",
+        0
+    ],
+    [
+        1,
+        "^/(vhost|bbs|host|wwwroot|www|site|root|backup|data|ftp|db|admin|website|web).*\\.(rar|sql|zip|tar\\.gz|tar)$",
+        "文件目录过滤3",
+        0
+    ],
+    [
+        1,
+        "/(hack|shell|spy|phpspy)\\.php$",
+        "PHP脚本执行过滤1",
+        0
+    ],
+    [
+        1,
+        "^/(attachments|css|uploadfiles|static|forumdata|cache|avatar)/(\\w+).(php|jsp)$",
+        "PHP脚本执行过滤2",
+        0
+    ],
+    [
+        1,
+        "(?:(union(.*?)select))",
+        "SQL注入过滤1",
+        0
+    ],
+    [
+        1,
+        "(?:define|eval|file_get_contents|include|require|require_once|shell_exec|phpinfo|system|passthru|preg_\\w+|execute|echo|print|print_r|var_dump|(fp)open|alert|showmodaldialog)\\(",
+        "一句话木马过滤1",
+        1
+    ],
+    [
+        1,
+        "\\$\\{jndi:(ldap|rmi|dns|iiop|http|https)://.*?\\}",
+        "Log4j JNDI Injection",
+        0
+    ],
+    [
+        1,
+        "(\\{\\\"@type\\\"\\s*:\\s*\\\".*?\\\"|autoTypeSupport)",
+        "Fastjson RCE",
+        0
+    ],
+    [
+        1,
+        "(class\\.module\\.classLoader|%24%7B.*?%7D|spring\\.cloud\\.function\\.routing-expression)",
+        "Spring Core/Cloud RCE",
+        0
+    ],
+    [
+        1,
+        "(s=/?think/|think\\\\\\\\app|think\\\\\\\\config|invokeFunction)",
+        "ThinkPHP RCE",
+        0
+    ],
+    [
+        1,
+        "(?i)(file|gopher|dict|ftp|http|https)://(127\\.0\\.0\\.1|localhost|10\\.|172\\.(1[6-9]|2[0-9]|3[0-1])\\.|192\\.168\\.|::1)",
+        "SSRF Local IP Targeting",
+        0
+    ],
+    [
+        1,
+        "(?i)(flushall|config\\s+set\\s+dir|config\\s+set\\s+dbfilename|slaveof|bgsave)",
+        "Redis Unauthorized Access/RCE",
+        0
+    ],
+    [
+        1,
+        "(?i)(bash\\s+-i|nc\\s+-e\\s+/bin/|sh\\s+-i|perl\\s+-MIO|python\\s+-c\\s+['\\\"]import\\s+pty)",
+        "Reverse Shell/Command Injection",
+        0
+    ]
+]

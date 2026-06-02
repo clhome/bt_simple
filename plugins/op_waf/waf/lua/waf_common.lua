@@ -24,7 +24,6 @@ local debug_mode = false
 
 local cpath = waf_root.."/waf/"
 local log_dir = waf_root.."/logs/"
-local uuid = require 'resty.jit-uuid'
 local resty_sha256 = require "resty.sha256"
 local str = require "resty.string"
 local bit = require "bit"
