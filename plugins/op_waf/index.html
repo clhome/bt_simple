@@ -241,7 +241,7 @@
 <div class="bt-form">
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('op_waf');">服务</p>
+			<p class="bgw" onclick="renderWafService();">服务</p>
 			<p onclick="wafScreen();">首页</p>
 			<p onclick="wafGloabl();">全局配置</p>
 			<p onclick="wafSite();">站点配置</p>
@@ -262,7 +262,59 @@ resetPluginWinWidth(1050);
 
 $.getScript( "/plugins/file?name=op_waf&f=js/op_waf.js", function(data, textStatus, jqxhr){
     // console.log(data, textStatus, jqxhr);
-	pluginService('op_waf');
+	renderWafService();
 });
 
+function renderWafService() {
+    pluginService('op_waf');
+    setTimeout(function() {
+        if ($('.waf-rules-dashboard').length > 0) return;
+        
+        var html = `
+            <div class="waf-rules-dashboard" style="margin-top: 20px; border: 1px solid #ddd; border-radius: 6px; padding: 20px; background-color: #fafafa;">
+                <h4 style="margin-top: 0; margin-bottom: 20px; color: #333; font-size: 16px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 10px;">🛡️ 核心过滤规则统计</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                    <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
+                        <div style="color: #666; font-size: 13px; margin-bottom: 5px;">GET 参数过滤规则</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-args">33</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
+                        <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">args.json</div>
+                    </div>
+                    <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
+                        <div style="color: #666; font-size: 13px; margin-bottom: 5px;">POST 参数过滤规则</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-post">29</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
+                        <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">post.json</div>
+                    </div>
+                    <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
+                        <div style="color: #666; font-size: 13px; margin-bottom: 5px;">Cookie 过滤规则</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-cookie">26</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
+                        <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">cookie.json</div>
+                    </div>
+                    <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
+                        <div style="color: #666; font-size: 13px; margin-bottom: 5px;">URL 过滤规则</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-url">14</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
+                        <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">url.json</div>
+                    </div>
+                    <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
+                        <div style="color: #666; font-size: 13px; margin-bottom: 5px;">User-Agent 过滤规则</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-user_agent">13</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
+                        <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">user_agent.json</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        $('.soft-man-con').append(html);
+
+        var rules = ['args', 'post', 'cookie', 'url', 'user_agent'];
+        rules.forEach(function(r) {
+            $.post('/plugin?action=a&name=op_waf&s=getRule', {rule_name: r}, function(res) {
+                if(res.status) {
+                    try {
+                        var count = JSON.parse(res.msg).length;
+                        $('#waf-rule-count-' + r).text(count);
+                    } catch(e) {}
+                }
+            });
+        });
+    }, 500);
+}
 </script>

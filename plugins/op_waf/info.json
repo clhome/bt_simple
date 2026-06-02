@@ -21,7 +21,7 @@
 	"shell":"install.sh",
 	"checks":"server/op_waf",
 	"path":"server/op_waf",
-	"author":"loveshell",
+	"author":"loveshell&yufeng tec",
 	"home":"https://github.com/loveshell/ngx_lua_waf",
 	"date":"2026-06-02",
 	"pid": "1",

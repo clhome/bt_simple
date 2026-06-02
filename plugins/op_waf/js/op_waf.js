@@ -990,29 +990,73 @@ function wafScreen(){
         var cos_time = (end_time/1000) - parseInt(rdata['start_time']);
         var cos_day = parseInt(parseInt(cos_time)/86400);
 
-        var con = '<div class="wavbox alert alert-success" style="margin-right:16px">总拦截<span>'+rdata.total+'</span>次</div>';
-        con += '<div class="wavbox alert alert-info" style="margin-right:16px">安全防护<span>'+cos_day+'</span>天</div>';
+        var css = `<style>
+            .waf-dashboard { padding: 0 15px 5px 5px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; animation: wafFadeIn 0.4s ease; }
+            @keyframes wafFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+            
+            .waf-top-cards { display: flex; gap: 15px; margin-bottom: 15px; }
+            .waf-card-primary, .waf-card-info {
+                flex: 1; border-radius: 10px; padding: 15px 20px; color: #fff; text-align: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden;
+                transition: transform 0.2s ease;
+            }
+            .waf-card-primary:hover, .waf-card-info:hover { transform: translateY(-2px); }
+            .waf-card-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+            .waf-card-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+            .waf-card-title { font-size: 14px; opacity: 0.9; margin-bottom: 5px; font-weight: 500; letter-spacing: 1px; }
+            .waf-card-val { font-size: 32px; font-weight: 700; line-height: 1.1; font-family: Arial, sans-serif; }
+            
+            .waf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 15px; }
+            .waf-stat-box { 
+                background: #fff; border: 1px solid #edf2f9; border-radius: 8px; padding: 12px 10px;
+                text-align: center; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(227,233,243,0.4);
+                position: relative; overflow: hidden;
+            }
+            .waf-stat-box::after { content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 3px; background: #3b82f6; transform: scaleX(0); transition: transform 0.3s ease; transform-origin: left; }
+            .waf-stat-box:hover::after { transform: scaleX(1); }
+            .waf-stat-box:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(200,210,230,0.6); border-color: transparent; }
+            .waf-stat-name { font-size: 13px; color: #6b7280; margin-bottom: 5px; font-weight: 600; }
+            .waf-stat-val { font-size: 22px; color: #111827; font-weight: 700; font-family: Arial, sans-serif; }
+            
+            .waf-help-list { background: #f0fdf4; border-left: 4px solid #10b981; padding: 12px 20px; border-radius: 6px; color: #374151; list-style-type: none; margin:0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+            .waf-help-list li { margin-bottom: 5px; font-size: 13px; position: relative; padding-left: 18px; line-height: 1.5; }
+            .waf-help-list li:before { content: '\\2713'; position: absolute; left: 0; color: #10b981; font-weight: bold; font-size: 14px; }
+            .waf-help-list li:last-child { margin-bottom: 0; }
+        </style>`;
 
-        con += '<div class="screen">\
-            <div class="line"><span class="name">POST渗透</span><span class="val">'+rdata.rules.post+'</span></div>\
-            <div class="line"><span class="name">GET渗透</span><span class="val">'+rdata.rules.args+'</span></div>\
-            <div class="line"><span class="name">CC攻击</span><span class="val">'+rdata.rules.cc+'</span></div>\
-            <div class="line"><span class="name">恶意User-Agent</span><span class="val">'+rdata.rules.user_agent+'</span></div>\
-            <div class="line"><span class="name">Cookie渗透</span><span class="val">'+rdata.rules.cookie+'</span></div>\
-            <div class="line"><span class="name">恶意扫描</span><span class="val">'+rdata.rules.scan+'</span></div>\
-            <div class="line"><span class="name">恶意HEAD请求</span><span class="val">0</span></div>\
-            <div class="line"><span class="name">URI自定义拦截</span><span class="val">'+rdata.rules.url+'</span></div>\
-            <div class="line"><span class="name">URI保护</span><span class="val">'+rdata.rules.args+'</span></div>\
-            <div class="line"><span class="name">恶意文件上传</span><span class="val">'+rdata.rules.upload_ext+'</span></div>\
-            <div class="line"><span class="name">禁止的扩展名</span><span class="val">'+rdata.rules.path+'</span></div>\
-            <div class="line"><span class="name">禁止PHP脚本</span><span class="val">'+rdata.rules.php_path+'</span></div>\
-            </div>';
+        var con = css + '<div class="waf-dashboard">';
+        
+        con += '<div class="waf-top-cards">\
+            <div class="waf-card-primary">\
+                <div class="waf-card-title">总拦截 (次)</div>\
+                <div class="waf-card-val">' + rdata.total + '</div>\
+            </div>\
+            <div class="waf-card-info">\
+                <div class="waf-card-title">安全防护 (天)</div>\
+                <div class="waf-card-val">' + cos_day + '</div>\
+            </div>\
+        </div>';
 
-        con += '<div style="width:660px;"><ul class="help-info-text c7">\
-            <li>在此处关闭防火墙后,所有站点将失去保护</li>\
-            <li>网站防火墙会使nginx有一定的性能损失(&lt;5% 10C静态并发测试结果)</li>\
-            <li>网站防火墙仅主要针对网站渗透攻击,暂时不具备系统加固功能</li>\
-            </ul></div>';
+        con += '<div class="waf-grid">\
+            <div class="waf-stat-box"><div class="waf-stat-name">POST渗透</div><div class="waf-stat-val">' + rdata.rules.post + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">GET渗透</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">CC攻击</div><div class="waf-stat-val">' + rdata.rules.cc + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">恶意User-Agent</div><div class="waf-stat-val">' + rdata.rules.user_agent + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">Cookie渗透</div><div class="waf-stat-val">' + rdata.rules.cookie + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">恶意扫描</div><div class="waf-stat-val">' + rdata.rules.scan + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">恶意HEAD请求</div><div class="waf-stat-val">0</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">URI自定义拦截</div><div class="waf-stat-val">' + rdata.rules.url + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">URI保护</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">恶意文件上传</div><div class="waf-stat-val">' + rdata.rules.upload_ext + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">禁止的扩展名</div><div class="waf-stat-val">' + rdata.rules.path + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">禁止PHP脚本</div><div class="waf-stat-val">' + rdata.rules.php_path + '</div></div>\
+        </div>';
+
+        con += '<ul class="waf-help-list">\
+            <li>在此处关闭防火墙后，所有站点将失去保护</li>\
+            <li>网站防火墙会使nginx有一定的性能损失（&lt;5% 10C静态并发测试结果）</li>\
+            <li>网站防火墙主要针对网站渗透攻击，暂时不具备系统加固功能</li>\
+        </ul></div>';
 
         $(".soft-man-con").html(con);
     });
@@ -1913,12 +1957,12 @@ function wafLogRequest(page){
         if (data.length > 0){
             for(i in data){
                 list += '<tr>';
-                list += '<td><span class="overflow_hide" title="' + getLocalTime(data[i]['time']) + '" style="width:130px;">' + getLocalTime(data[i]['time'])+'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['domain'] || '') + '" style="width:70px;">' + data[i]['domain'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['ip'] || '') + '" style="width:100px;">' + data[i]['ip'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['uri'] || '') + '" style="width:90px;">' + data[i]['uri'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['rule_name'] || '') + '" style="width:60px;">' + data[i]['rule_name'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['reason'] || '') + '" style="width:220px;">' + entitiesEncode(data[i]['reason']) +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + getLocalTime(data[i]['time']) + '" style="width:125px;">' + getLocalTime(data[i]['time'])+'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['domain'] || '') + '" style="width:150px;">' + data[i]['domain'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['ip'] || '') + '" style="width:100px;">' + data[i]['ip'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['uri'] || '') + '" style="width:90px;">' + data[i]['uri'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['rule_name'] || '') + '" style="width:60px;">' + data[i]['rule_name'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['reason'] || '') + '" style="width:220px;">' + entitiesEncode(data[i]['reason']) +'</span></td>';
                 list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">详情</a></td>';
                 list += '</tr>';
             }
@@ -2000,6 +2044,7 @@ function wafLogs(){
                     <div>\
                         <button id="UncoverAll" class="btn btn-success btn-sm" style="padding-left: 5px;padding-right: 5px;">解封所有</button>\
                         <button id="testRun" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px;">测试</button>\
+                        <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">刷新</button>\
                     </div>\
                 </div>\
                 <div class="divtable mtb10" id="ws_table"></div>\
@@ -2007,7 +2052,7 @@ function wafLogs(){
     $(".soft-man-con").html(html);
     // wafLogRequest(1);
     
-    $("#exportExcel").click(function(){
+    $(".soft-man-con").off("click", "#exportExcel").on("click", "#exportExcel", function(){
         var args = {};
         args['page'] = 1;
         args['page_size'] = 100000;
@@ -2033,7 +2078,7 @@ function wafLogs(){
             var csv = "\uFEFF时间,域名,IP,URI,规则名,原因\n";
             for(var i=0; i<data.length; i++) {
                 var d = data[i];
-                csv += getLocalTime(d.time) + "," + d.domain + "," + d.ip + "," + '"' + escapeHTML(d.uri||'').replace(/"/g, '""') + '",' + d.rule_name + "," + '"' + escapeHTML(d.reason||'').replace(/"/g, '""') + '"\n';
+                csv += getLocalTime(d.time) + "," + d.domain + "," + d.ip + "," + '"' + entitiesEncode(d.uri||'').replace(/"/g, '""') + '",' + d.rule_name + "," + '"' + entitiesEncode(d.reason||'').replace(/"/g, '""') + '"\n';
             }
             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             var url = URL.createObjectURL(blob);
@@ -2044,6 +2089,10 @@ function wafLogs(){
             a.click();
             document.body.removeChild(a);
         });
+    });
+
+    $("#refreshLogs").click(function(){
+        wafLogRequest(1);
     });
 
     $("#UncoverAll").click(function(){
