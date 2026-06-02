@@ -231,10 +231,32 @@ local function waf_user_agent()
 end
 
 
+local function get_subnet(ip)
+    if string.find(ip, ':') then
+        local parts = C:split(ip, ':')
+        if #parts >= 4 then
+            return parts[1] .. ':' .. parts[2] .. ':' .. parts[3] .. ':' .. parts[4] .. '::/64'
+        else
+            return ip
+        end
+    else
+        local parts = C:split(ip, '.')
+        if #parts == 4 then
+            return parts[1] .. '.' .. parts[2] .. '.' .. parts[3] .. '.0/24'
+        else
+            return ip
+        end
+    end
+end
+
 local function waf_drop_ip()
     local ip = params['ip']
     local count = ngx.shared.waf_drop_ip:get(ip)
-    if not count then return false end
+    if not count then 
+        local subnet = get_subnet(ip)
+        count = ngx.shared.waf_drop_ip:get(subnet)
+        if not count then return false end
+    end
 
     local retry = config['retry']['retry']
     -- C:D("waf_drop;count:"..tostring(count)..",retry:"..tostring(retry))
@@ -253,50 +275,55 @@ local function waf_cc()
     if not C:is_site_config('cc') then return false end
 
     local ip = params['ip']
-
-    -- 多次cc，才封禁。
-    -- local ip_lock = ngx.shared.waf_drop_ip:get(ip)
-    -- if ip_lock then
-    --     if ip_lock > 0 then
-    --         ngx.exit(config['cc']['status'])
-    --         return true
-    --     end
-    -- end
-
     local request_uri = params['request_uri']
+    local subnet = get_subnet(ip)
 
     local token = ngx.md5(ip .. '_' .. request_uri)
+    local subnet_token = ngx.md5(subnet .. '_' .. request_uri)
+
     local count = ngx.shared.waf_limit:get(token)
+    local subnet_count = ngx.shared.waf_limit:get(subnet_token)
 
     local endtime = config['cc']['endtime']
     local waf_limit = config['cc']['limit']
     local cycle = config['cc']['cycle']
+    local subnet_limit = waf_limit * 10 -- Allow proxy pool up to 10x single IP limit
 
-    if count then
-        if count > waf_limit then 
-
-            local safe_count, _ = ngx.shared.waf_drop_sum:get(ip)
-            if not safe_count then
-                ngx.shared.waf_drop_sum:set(ip, 1, 86400)
-                safe_count = 1
-            else
-                ngx.shared.waf_drop_sum:incr(ip, 1)
-            end
-            local lock_time = (endtime * safe_count)
-            if lock_time > 86400 then lock_time = 86400 end
-
-            ngx.shared.waf_drop_ip:set(ip, 1, lock_time)
-            local reason = cycle..'秒内累计超过'..waf_limit..'次请求,封锁' .. lock_time .. '秒'
-            C:write_log('cc', reason)
-            C:log(params, 'cc',reason)
-            ngx.exit(config['cc']['status'])
-            return true
-        else
-            ngx.shared.waf_limit:incr(token, 1)
+    if (count and count > waf_limit) or (subnet_count and subnet_count > subnet_limit) then 
+        local block_target = ip
+        if subnet_count and subnet_count > subnet_limit then
+            block_target = subnet
         end
+
+        local safe_count, _ = ngx.shared.waf_drop_sum:get(block_target)
+        if not safe_count then
+            ngx.shared.waf_drop_sum:set(block_target, 1, 86400)
+            safe_count = 1
+        else
+            ngx.shared.waf_drop_sum:incr(block_target, 1)
+        end
+        local lock_time = (endtime * safe_count)
+        if lock_time > 86400 then lock_time = 86400 end
+
+        ngx.shared.waf_drop_ip:set(block_target, 1, lock_time)
+        local reason = cycle..'秒内累计超过请求限制,封锁' .. lock_time .. '秒'
+        C:write_log('cc', reason)
+        C:log(params, 'cc',reason)
+        ngx.exit(config['cc']['status'])
+        return true
     else
-        ngx.shared.waf_drop_sum:set(ip, 1, 86400)
-        ngx.shared.waf_limit:set(token, 1, cycle)
+        if count then
+            ngx.shared.waf_limit:incr(token, 1)
+        else
+            ngx.shared.waf_drop_sum:set(ip, 1, 86400)
+            ngx.shared.waf_limit:set(token, 1, cycle)
+        end
+        
+        if subnet_count then
+            ngx.shared.waf_limit:incr(subnet_token, 1)
+        else
+            ngx.shared.waf_limit:set(subnet_token, 1, cycle)
+        end
     end
     return false
 end
@@ -347,15 +374,27 @@ local function waf_cc_increase()
     local make_uri_str = "?token="..make_token
     local make_uri = "/"..make_uri_str
 
-    -- C:D("token:"..tostring(params['uri_request_args']['token']))
     if params['uri_request_args']['token'] then
         ngx.header.content_type = "application/json"
         local args_token = params['uri_request_args']['token']
         if args_token == make_token then
-            ngx.shared.waf_limit:set(cache_token, 1, tonumber(config['safe_verify']['time']))
-            local data = get_return_state(0, "ok")
-            ngx.say(json.encode(data))
-            ngx.exit(200)
+            local is_valid_fp = true
+            if params['method'] == "POST" then
+                ngx.req.read_body()
+                local post_args = ngx.req.get_post_args()
+                if not post_args or not post_args['fp'] or string.len(post_args['fp']) < 4 then
+                    is_valid_fp = false
+                end
+            else
+                is_valid_fp = false
+            end
+
+            if is_valid_fp then
+                ngx.shared.waf_limit:set(cache_token, 1, tonumber(config['safe_verify']['time']))
+                local data = get_return_state(0, "ok")
+                ngx.say(json.encode(data))
+                ngx.exit(200)
+            end
         end
         local data = get_return_state(0, "unset")
         ngx.say(json.encode(data))

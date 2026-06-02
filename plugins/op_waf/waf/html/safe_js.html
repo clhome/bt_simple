@@ -26,7 +26,6 @@
 </body>
 
 <script type="text/javascript">
-
 function getQueryString(name) {
     let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
     let r = window.location.search.substr(1).match(reg);
@@ -34,7 +33,31 @@ function getQueryString(name) {
         return decodeURIComponent(r[2]);
     };
     return null;
- }
+}
+
+function getCanvasFingerprint() {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var txt = 'Browser Fingerprint for OP WAF';
+    ctx.textBaseline = "top";
+    ctx.font = "14px 'Arial'";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "#f60";
+    ctx.fillRect(125,1,62,20);
+    ctx.fillStyle = "#069";
+    ctx.fillText(txt, 2, 15);
+    ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+    ctx.fillText(txt, 4, 17);
+    
+    var b64 = canvas.toDataURL().replace("data:image/png;base64,","");
+    var bin = atob(b64);
+    var crc = 0;
+    for (var i = 0; i < bin.length; i++) {
+        crc = (crc << 5) - crc + bin.charCodeAt(i);
+        crc = crc & crc;
+    }
+    return crc.toString(16);
+}
 
 function ajax(type,bool){
 	var xhr = {};
@@ -66,9 +89,7 @@ function ajax(type,bool){
 				try{
 					request = new ActiveXObject(v[i]); 
 					if(request){return request;}
-				}catch(e){continue;
-				
-				}
+				}catch(e){continue;}
 			}
 		}
 		return request;
@@ -89,26 +110,6 @@ function ajax(type,bool){
 				return xhr.XHR.responseXML;
 			}
 		}	
-	};
-
-	xhr.get = function(url,result){
-		//添加回调函数
-		var name ='PHPjs';
-		var r = name + '_' + Math.random().toString().substr(2);//随机
-
-		xhr.url = url+'&'+name+'='+r;
-		
-		if(result!=null){
-			xhr.XHR.onreadystatechange = xhr.processHandle;
-			xhr.result = result;
-		}
-		if(window.XMLHttpRequest){
-			xhr.XHR.open('GET',xhr.url,xhr.async);
-			xhr.XHR.send(null);
-		}else{
-			xhr.XHR.open('GET',xhr.url,xhr.async);
-			xhr.XHR.send();
-		}
 	};
 
 	xhr.post = function(url,send,result){
@@ -134,24 +135,22 @@ function ajax(type,bool){
 	return xhr;
 }
 
-
 var ok = setInterval(function(){
 	var id = document.getElementById('change').innerHTML;
 	id = id - 1;
 	if (id == 0){
 		clearInterval(ok);
-		ajax('JSON',true).post('{uri}',{'pass':"ok"}, function(data){
+        var fp = getCanvasFingerprint();
+		ajax('JSON',true).post('{uri}',{'pass':"ok", 'fp': fp}, function(data){
 			if (data['status'] == 0 && data['msg'] == 'ok'){
 				document.getElementById('status').innerHTML = 'ok';
 				setTimeout(function(){
 					var f = getQueryString('f');
-					// console.log(f,typeof(f));
 					if (f && f!=''){
 						location.href = f;
 					} else {
 						location.reload();
 					}
-					
 				},500);
 			} else{
 				document.getElementById('change').innerHTML = '?';
@@ -161,7 +160,6 @@ var ok = setInterval(function(){
 		document.getElementById('change').innerHTML = id;
 	}
 },1000);
-
 </script>
 </html>
 
