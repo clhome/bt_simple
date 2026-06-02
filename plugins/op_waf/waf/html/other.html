@@ -1,38 +1,193 @@
 <!doctype html>
-<html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<title>OP网站防火墙</title>
-<style>
-*{margin:0;padding:0;color:#444}
-body{font-size:14px;font-family:"宋体"}
-.main{width:600px;margin:10% auto;}
-.title{background: #20a53a;color: #fff;font-size: 16px;height: 40px;line-height: 40px;text-align: center;}
-.content{background-color:#f3f7f9; height:280px;border:1px dashed #c6d9b6;padding:20px}
-.t1{border-bottom: 1px dashed #c6d9b6;color: #ff4000;font-weight: bold; margin: 0 0 20px; padding-bottom: 18px;}
-.t2{margin-bottom:8px; font-weight:bold}
-ol{margin:0 0 20px 22px;padding:0;}
-ol li{line-height:30px}
-</style>
-</head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>御风面板安全拦截提示</title>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --danger-border: #fca5a5;
+            --border-radius: 12px;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            max-width: 500px;
+            width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            animation: slideUp 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background-color: var(--danger);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon {
+            width: 56px;
+            height: 56px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        .icon svg {
+            width: 32px;
+            height: 32px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .content {
+            padding: 32px 24px;
+        }
+
+        .alert-box {
+            background-color: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+            text-align: center;
+        }
+
+        .alert-box::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--danger);
+            border-radius: 8px 0 0 8px;
+        }
+
+        .alert-text {
+            color: #991b1b;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .details {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .details p {
+            margin-bottom: 8px;
+        }
+
+        .details p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .details strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .footer {
+            border-top: 1px solid #e5e7eb;
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
 <body>
-	<div class="main">
-		<div class="title">OP网站防火墙</div>
-		<div class="content">
-			<p class="t1">您的请求带有不合法参数，已被网站管理员设置拦截！</p>
-			<p class="t2">可能原因：</p>
-			<ol>
-				<li>您提交的内容包含危险的攻击请求</li>
-			</ol>
-			<p class="t2">如何解决：</p>
-			<ol>
-				<li>检查提交内容；</li>
-				<li>如网站托管，请联系空间提供商；</li>
-				<li>普通网站访客，请联系网站管理员；</li>
-			</ol>
-		</div>
-	</div>
+    <div class="container">
+        <div class="header">
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <h1>网站防火墙拦截提示</h1>
+        </div>
+        <div class="content">
+            <div class="alert-box">
+                <p class="alert-text">您的IP已经被后台记录在案，<br>请立即停止攻击行为！</p>
+            </div>
+            <div class="details">
+                <p><strong>拦截原因：</strong>系统检测到您的请求带有不合法的参数或恶意特征，可能存在安全风险。</p>
+                <p><strong>如何解决：</strong></p>
+                <ul style="padding-left: 20px; margin-top: 4px;">
+                    <li>请检查您提交的请求内容是否包含敏感字符</li>
+                    <li>停止使用自动化扫描工具或非法脚本</li>
+                    <li><strong>如有误报请联系网站服务商</strong></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer">
+            Protected by 衢州御风科技有限公司
+        </div>
+    </div>
 </body>
 </html>
 

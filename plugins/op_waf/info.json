@@ -3,7 +3,7 @@
 		{
 			"tag":"site_cb",
 			"site_cb": {
-				"title":"网站统计",
+				"title":"OP防火墙",
 				"name":"op_waf",
 				"add":{"func":"reload_hook"},
 				"update":{"func":"reload_hook"},
@@ -11,7 +11,7 @@
 			}
 		}
 	],
-	"sort":2,
+	"sort":51,
 	"title":"OP防火墙",
 	"tip":"soft",
 	"name":"op_waf",
@@ -23,7 +23,7 @@
 	"path":"server/op_waf",
 	"author":"loveshell",
 	"home":"https://github.com/loveshell/ngx_lua_waf",
-	"date":"2019-04-21",
+	"date":"2026-06-02",
 	"pid": "1",
-	"versions": ["0.4.1"]
+	"versions": ["1.0"]
 }
