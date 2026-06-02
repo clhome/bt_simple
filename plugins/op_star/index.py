@@ -176,10 +176,8 @@ def makeOpDstRunLua(conf_reload=False):
             f'local f = io.open(init_worker_file, "r")\n'
             f'if f then\n'
             f'    f:close()\n'
-            f'    local status, err = pcall(dofile, init_worker_file)\n'
-            f'    if not status then\n'
-            f'        ngx.log(ngx.ERR, "Failed to load openstar init_worker: ", err)\n'
-            f'    end\n'
+            f'{path_inject}'
+            f'    dofile(init_worker_file)\n'
             f'end\n'
         )
         mw.writeFile(init_worker_dst, content)
@@ -198,10 +196,8 @@ def makeOpDstRunLua(conf_reload=False):
             f'local f = io.open(access_file, "r")\n'
             f'if f then\n'
             f'    f:close()\n'
-            f'    local status, err = pcall(dofile, access_file)\n'
-            f'    if not status then\n'
-            f'        ngx.log(ngx.ERR, "Failed to load openstar access: ", err)\n'
-            f'    end\n'
+            f'{path_inject}'
+            f'    dofile(access_file)\n'
             f'end\n'
         )
         mw.writeFile(access_file_dst, content)
