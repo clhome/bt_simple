@@ -269,19 +269,57 @@ function wafRulesConfig(ruleName){
             for(var i=0; i<rules.length; i++){
                 var rule = rules[i];
                 var regex = '';
-                if(typeof(rule.rule) == 'object'){
-                    regex = rule.rule.join(' | ');
-                } else {
-                    regex = rule.rule;
+                var state_val = 'off';
+                var action_val = 'deny';
+                var name_val = '默认内置防御规则';
+                
+                if (Array.isArray(rule)) {
+                    regex = rule[0] || '';
+                    if(rule[1] && typeof rule[1] === 'string') regex += ' | ' + rule[1];
+                    action_val = rule[2] || 'deny';
+                    state_val = rule[3] || 'on';
+                    name_val = rule[4] || '';
+                } else if (typeof(rule) === 'object' && rule !== null) {
+                    if(rule.rule && typeof(rule.rule) === 'object' && Array.isArray(rule.rule)){
+                        regex = rule.rule.join(' | ');
+                    } else if (rule.rule) {
+                        regex = rule.rule;
+                    } else if (rule.regex) {
+                        regex = rule.regex;
+                    } else if (rule[0]) {
+                        regex = rule[0];
+                    }
+                    
+                    state_val = rule.state || 'on';
+                    action_val = rule.action || 'deny';
+                    name_val = rule.name || rule.desc || rule.des || '';
+                }
+
+                // 防御性处理：如果上述解析都未能提取出 regex，强制转换为 JSON 字符串展示，避免空白
+                if (!regex || regex === '') {
+                    regex = typeof rule === 'object' ? JSON.stringify(rule) : String(rule);
+                }
+
+                // 智能补全默认内置规则描述
+                if (!name_val || name_val === '默认内置防御规则') {
+                    var rstr = typeof regex === 'string' ? regex.toLowerCase() : '';
+                    if (rstr.indexOf('bak|inc|old') !== -1) name_val = '敏感文件后缀拦截 (bak/sql/zip等)';
+                    else if (rstr.indexOf('eval|file_get') !== -1 || rstr.indexOf('system|passthru') !== -1) name_val = '危险函数执行拦截 (eval/system等)';
+                    else if (rstr.indexOf('$_(get|post') !== -1 || rstr.indexOf('$_') !== -1) name_val = 'PHP超全局变量注入拦截';
+                    else if (rstr.indexOf('select|update') !== -1 || rstr.indexOf('insert|') !== -1) name_val = 'SQL 注入基础防御 (关键字拦截)';
+                    else if (rstr.indexOf('<\\s*script') !== -1 || rstr.indexOf('<script') !== -1) name_val = 'XSS 跨站脚本攻击防御';
+                    else if (rstr.indexOf('\\/\\*') !== -1) name_val = 'SQL 注入注释符防御';
+                    else if (rstr.indexOf('etc\\\\/\\\\w*passwd') !== -1) name_val = '系统任意文件读取防御';
+                    else name_val = '默认内置防御规则';
                 }
                 
-                var state_icon = rule.state == 'on' ? '<span style="color:#20a53a;font-weight:bold;">已启用</span>' : '<span style="color:#999;">已禁用</span>';
-                var action_color = rule.action == 'deny' ? 'color:#fc6d26;font-weight:bold;' : 'color:#f0ad4e;font-weight:bold;';
+                var state_icon = state_val == 'on' ? '<span style="color:#20a53a;font-weight:bold;">已启用</span>' : '<span style="color:#999;">已禁用</span>';
+                var action_color = action_val == 'deny' ? 'color:#fc6d26;font-weight:bold;' : 'color:#f0ad4e;font-weight:bold;';
                 
                 table_body += '<tr>\
                     <td><code>' + regex + '</code></td>\
-                    <td>' + (rule.name || '默认内置防御规则') + '</td>\
-                    <td><span style="' + action_color + '">' + rule.action.toUpperCase() + '</span></td>\
+                    <td>' + name_val + '</td>\
+                    <td><span style="' + action_color + '">' + action_val.toUpperCase() + '</span></td>\
                     <td>' + state_icon + '</td>\
                     <td class="text-right">\
                         <a class="btlink" onclick="toggleRuleState(' + i + ')">切换状态</a> | \
@@ -392,7 +430,12 @@ function saveWafRule(){
 function toggleRuleState(index){
     osPostN('get_rule', {rule_name: currentRuleName}, function(data){
         var rules = $.parseJSON(data.data);
-        rules[index].state = rules[index].state == 'on' ? 'off' : 'on';
+        var rule = rules[index];
+        if (Array.isArray(rule)) {
+            rule[3] = rule[3] == 'on' ? 'off' : 'on';
+        } else if (typeof(rule) === 'object' && rule !== null) {
+            rule.state = rule.state == 'on' ? 'off' : 'on';
+        }
         
         osPost('save_rule', {rule_name: currentRuleName, rule_data: JSON.stringify(rules)}, function(res){
             layer.msg('规则状态已更新且重载！',{icon:1,time:1000});
