@@ -437,26 +437,54 @@ local function waf_post()
     if params['method'] ~= "POST" then return false end
     local content_length = tonumber(params["request_header"]['content-length'])
     local max_len = 640 * 1020000
-    if content_length > max_len then return false end
+    if content_length and content_length > max_len then return false end
     if C:get_boundary() then return false end
     ngx.req.read_body()
 
-    local request_args = params['uri_request_args']
-    if not request_args then return false end
-
-    for key, val in pairs(request_args) do
-        if type(val) == "table" then
-            if type(val[1]) == "boolean" then
-                return false
+    local data_str = ""
+    local content_type = params["request_header"]["content-type"]
+    if type(content_type) == "table" then content_type = content_type[1] end
+    
+    if content_type and string.find(string.lower(content_type), "application/json", 1, true) then
+        local body_data = ngx.req.get_body_data()
+        if body_data then
+            local ok, json_data = pcall(json.decode, body_data)
+            if ok and type(json_data) == "table" then
+                local values = {}
+                local function extract_values(t)
+                    for k, v in pairs(t) do
+                        if type(v) == "table" then
+                            extract_values(v)
+                        elseif type(v) == "string" or type(v) == "number" then
+                            table.insert(values, tostring(v))
+                        end
+                    end
+                end
+                extract_values(json_data)
+                data_str = table.concat(values, ", ")
+            else
+                data_str = body_data
             end
-            data = table.concat(val, ", ")
-        else
-            data = val
+        end
+    else
+        local post_args, err = ngx.req.get_post_args()
+        if post_args then
+            local values = {}
+            for key, val in pairs(post_args) do
+                if type(val) == "table" then
+                    table.insert(values, table.concat(val, ", "))
+                else
+                    table.insert(values, tostring(val))
+                end
+            end
+            data_str = table.concat(values, ", ")
         end
     end
 
-    -- C:D("post:"..json.encode(data))
-    if C:ngx_match_list(post_rules, data) then
+    if data_str == "" then return false end
+
+    -- C:D("post:"..json.encode(data_str))
+    if C:ngx_match_list(post_rules, data_str) then
         C:write_log('post','regular')
         C:return_html(config['post']['status'], post_html)
         return true

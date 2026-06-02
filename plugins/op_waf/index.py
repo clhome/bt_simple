@@ -425,6 +425,7 @@ def makeOpDstRunLua(conf_reload=False):
     root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
     root_worker_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
     root_access_dir = mw.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
+    root_log_dir = mw.getServerDir() + '/web_conf/nginx/lua/log_by_lua_file'
     path = getServerDir()
     path_tpl = getPluginDir()
 
@@ -458,6 +459,16 @@ def makeOpDstRunLua(conf_reload=False):
         mw.writeFile(access_file_dst, content)
         mw.writeFile(access_file_dst_s, content)
 
+    log_file_dst = root_log_dir + '/opwaf_log.lua'
+    if not os.path.exists(log_file_dst) or conf_reload:
+        log_file_tpl = path_tpl + "/waf/lua/log.lua"
+        log_file_dst_s = path + "/waf/lua/log.lua"
+        if os.path.exists(log_file_tpl):
+            content = mw.readFile(log_file_tpl)
+            content = contentReplace(content)
+            mw.writeFile(log_file_dst, content)
+            mw.writeFile(log_file_dst_s, content)
+
     waf_mmdb_dst = path + "/waf/lua/waf_maxminddb.lua"
     if not os.path.exists(waf_mmdb_dst) or conf_reload:
         waf_mmdb_tpl = path_tpl + "/waf/lua/waf_maxminddb.lua"
@@ -485,6 +496,11 @@ def makeOpDstStopLua():
     access_file_dst = root_access_dir + '/opwaf_init.lua'
     if os.path.exists(access_file_dst):
         os.remove(access_file_dst)
+
+    root_log_dir = mw.getServerDir() + '/web_conf/nginx/lua/log_by_lua_file'
+    log_file_dst = root_log_dir + '/opwaf_log.lua'
+    if os.path.exists(log_file_dst):
+        os.remove(log_file_dst)
 
     wafconf = dstWafConfPath()
     if os.path.exists(wafconf):

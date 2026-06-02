@@ -154,6 +154,12 @@ function _M.log(self, args, rule_name, reason)
 
     local push_data = json.encode(args)
 
+    local llen, err = ngx.shared.waf_limit:llen("waf_limit_logs")
+    if llen and llen >= 50000 then
+        -- Drop log if queue is too large
+        return true
+    end
+
     ngx.shared.waf_limit:rpush("waf_limit_logs", push_data)
     -- self:D("push_data:"..push_data)
 
@@ -706,11 +712,39 @@ function _M.write_log(self, name, rule)
 end
 
 
+function _M.is_trusted_proxy(self, ip, trusted_proxies)
+    if not trusted_proxies then return false end
+    for _, proxy in ipairs(trusted_proxies) do
+        if proxy == ip then return true end
+        -- Basic /8 subnet matching for example (e.g. 10.0.0.0/8)
+        if string.find(proxy, "/", 1, true) then
+            local p_parts = self:split(proxy, '/')
+            local p_ip = p_parts[1]
+            local p_mask = tonumber(p_parts[2])
+            if p_mask == 8 then
+                local pipn = self:split(p_ip, '.')
+                local cipn = self:split(ip, '.')
+                if pipn[1] == cipn[1] then return true end
+            end
+            -- Additional subnet logic could be added here
+        end
+    end
+    return false
+end
+
 function _M.get_real_ip(self, server_name)
-    local client_ip = "unknown"
+    local client_ip = ngx.var.remote_addr
     local site_config = self.site_config
+    local is_trusted = false
+    
+    if self.config and self.config['trusted_proxy'] then
+        if self:is_trusted_proxy(client_ip, self.config['trusted_proxy']) then
+            is_trusted = true
+        end
+    end
+
     if site_config[server_name] then
-        if site_config[server_name]['cdn'] then
+        if site_config[server_name]['cdn'] or is_trusted then
             local request_header = ngx.req.get_headers()
             for _,v in ipairs(site_config[server_name]['cdn_header'])
             do
