@@ -213,17 +213,16 @@ def getGithubProxyInfo():
 
     # 缓存失效或不存在，进行自动测速
     test_list = {
-        "gh-proxy.org": "https://gh-proxy.org/",
-        "ghfast.top": "https://ghfast.top/",
-        "ghp.ci": "https://ghp.ci/https://",
-        "github.do": "https://github.do/",
-        "gh-proxy.net": "https://gh-proxy.net/"
+        "ghproxy.net": "https://ghproxy.net/",
+        "gh.con.sh": "https://gh.con.sh/",
+        "gh-proxy.com": "https://gh-proxy.com/",
+        "cors.zme.ink": "https://cors.zme.ink/"
     }
     
     test_url = "https://raw.githubusercontent.com/clhome/bt_simple/master/README.md"
     best_time = 999.0
-    best_name = "gh-proxy.org" # 备退默认值
-    best_url = "https://gh-proxy.org/"
+    best_name = "ghproxy.net" # 备退默认值
+    best_url = "https://ghproxy.net/"
 
     # 使用 curl + execShell 进行测速，彻底免去 Python SSL 及 DNS 挂起风险
     for name, prefix in test_list.items():
@@ -272,11 +271,10 @@ def getGithubProxyName():
 
 # ---------- GitHub 代理站列表（与 scripts/github_download.sh 保持一致） ----------
 _GITHUB_PROXY_LIST = [
-    "https://gh-proxy.org/",
-    "https://ghfast.top/",
-    "https://ghp.ci/https://",
-    "https://github.do/",
-    "https://gh-proxy.net/",
+    "https://ghproxy.net/",
+    "https://gh.con.sh/",
+    "https://gh-proxy.com/",
+    "https://cors.zme.ink/",
 ]
 
 def _makeGithubProxyUrl(proxy_prefix, original_url):

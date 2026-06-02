@@ -17,11 +17,10 @@
 # ---------- 代理站列表 ----------
 # 与 scripts/install.sh 和 web/core/mw.py 保持一致
 _GH_PROXY_LIST=(
-    "https://gh-proxy.org/"
-    "https://ghfast.top/"
-    "https://ghp.ci/https://"
-    "https://github.do/"
-    "https://gh-proxy.net/"
+    "https://ghproxy.net/"
+    "https://gh.con.sh/"
+    "https://gh-proxy.com/"
+    "https://cors.zme.ink/"
 )
 
 # ---------- 内部辅助函数 ----------
