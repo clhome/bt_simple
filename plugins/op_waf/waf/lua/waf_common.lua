@@ -24,6 +24,36 @@ local debug_mode = false
 
 local cpath = waf_root.."/waf/"
 local log_dir = waf_root.."/logs/"
+local uuid = require 'resty.jit-uuid'
+local resty_sha256 = require "resty.sha256"
+local str = require "resty.string"
+local bit = require "bit"
+
+function _M.hmac_sha256(self, key, text)
+    local block_size = 64
+    if #key > block_size then
+        local s = resty_sha256:new()
+        s:update(key)
+        key = s:final()
+    end
+    key = key .. string.rep(string.char(0), block_size - #key)
+    local o_key_pad = ""
+    local i_key_pad = ""
+    for i=1, block_size do
+        o_key_pad = o_key_pad .. string.char(bit.bxor(string.byte(key, i), 0x5c))
+        i_key_pad = i_key_pad .. string.char(bit.bxor(string.byte(key, i), 0x36))
+    end
+    local s1 = resty_sha256:new()
+    s1:update(i_key_pad)
+    s1:update(text)
+    local inner_hash = s1:final()
+    
+    local s2 = resty_sha256:new()
+    s2:update(o_key_pad)
+    s2:update(inner_hash)
+    return str.to_hex(s2:final())
+end
+
 local rpath = cpath.."/rule/"
 
 function _M.new(self)

@@ -149,7 +149,7 @@ local function clean_waf_drop_ip()
 end
 
 local function min_route()
-    if ngx.var.remote_addr ~= '127.0.0.1' then return false end
+    if params['ip'] ~= '127.0.0.1' then return false end
     local uri = params['uri']
     if uri == '/get_waf_drop_ip' then
         ngx.header.content_type = "application/json"
@@ -277,9 +277,10 @@ local function waf_cc()
     local ip = params['ip']
     local request_uri = params['request_uri']
     local subnet = get_subnet(ip)
+    local secret = config['secret'] or "opwaf_default_secret"
 
-    local token = ngx.md5(ip .. '_' .. request_uri)
-    local subnet_token = ngx.md5(subnet .. '_' .. request_uri)
+    local token = C:hmac_sha256(secret, ip .. '_' .. request_uri)
+    local subnet_token = C:hmac_sha256(secret, subnet .. '_' .. request_uri)
 
     local count = ngx.shared.waf_limit:get(token)
     local subnet_count = ngx.shared.waf_limit:get(subnet_token)
@@ -358,7 +359,8 @@ local function waf_cc_increase()
 
     local ip = params['ip']
     local uri = params['uri']
-    local cache_token = ngx.md5(ip .. '_' .. server_name)
+    local secret = config['secret'] or "opwaf_default_secret"
+    local cache_token = C:hmac_sha256(secret, ip .. '_' .. server_name)
 
     --判断是否已经通过验证
     if ngx.shared.waf_limit:get(cache_token) then return false end
@@ -588,21 +590,39 @@ end
 
 local function post_data()
     if params["method"] ~= "POST" then return false end
-    -- C:D("content-length:"..params["request_header"]['content-length'])
     local content_length = tonumber(params["request_header"]['content-length'])
     if not content_length then return false end
     local max_len = 2560 * 1024000
     if content_length > max_len then return false end
     local boundary = C:get_boundary()
-    -- C:D("boundary:".. tostring( boundary) )
     if boundary then
         ngx.req.read_body()
         local data = ngx.req.get_body_data()
         if not data then return false end
         local tmp = ngx.re.match(data,[[filename=\"(.+)\.(.*)\"]])
-        if not tmp or not tmp[2] then return false end
-        -- C:D("upload_ext:".. tostring(tmp[2]) )
-        disable_upload_ext(tmp[2])
+        if tmp and tmp[2] then
+            if disable_upload_ext(tmp[2]) then return true end
+        end
+
+        local tmp_mime = ngx.re.match(data, [[Content-Type:\s*([^\r\n]+)]])
+        if tmp_mime and tmp_mime[1] then
+            local mime = string.lower(tmp_mime[1])
+            if string.find(mime, "php") or string.find(mime, "jsp") or string.find(mime, "x-httpd") then
+                C:write_log('upload_mime', '上传MIME黑名单拦截')
+                C:return_html(config['other']['status'], other_html)
+                return true
+            end
+        end
+
+        local start_idx = string.find(data, "\r\n\r\n", string.find(data, "filename=") or 1)
+        if start_idx then
+            local header_data = string.sub(data, start_idx + 4, start_idx + 24)
+            if string.find(header_data, "<%?php") or string.find(header_data, "<%%") or string.sub(header_data, 1, 2) == "MZ" or string.sub(header_data, 1, 4) == "\x7fELF" then
+                C:write_log('upload_header', '上传恶意的可执行文件头拦截')
+                C:return_html(config['other']['status'], other_html)
+                return true
+            end
+        end
     end
     return false
 end
