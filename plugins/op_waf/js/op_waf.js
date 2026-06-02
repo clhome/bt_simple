@@ -1772,14 +1772,14 @@ function wafAreaLimit(){
         layer.open({
             type: 1,
             title: '添加地区限制',
-            area: ['450px','280px'],
+            area: ['600px','450px'],
             closeBtn: 1,
             btn: ['添加', '取消'],
             content: '<div class="waf-form pd20">\
                 <div class="line">\
                     <span class="tname">类型</span>\
                     <div class="info-r c4">\
-                        <select name="type" class="bt-input-text" style="width:230px">\
+                        <select name="type" class="bt-input-text" style="width:400px">\
                             <option value="refuse" selected="">拦截</option>\
                             <option value="accept">只放行</option>\
                         </select>\
@@ -1788,12 +1788,12 @@ function wafAreaLimit(){
                 <div class="line">\
                     <span class="tname">站点</span>\
                     <div class="info-r">\
-                        <div id="site_list"></div>\
+                        <div id="site_list" style="width:400px"></div>\
                     </div>\
                 </div>\
                 <div class="line">\
                     <span class="tname">地区</span>\
-                    <div class="info-r" id="area_list"></div>\
+                    <div class="info-r" id="area_list" style="width:400px"></div>\
                 </div>\
             </div>',
             success: function (layers, index) {
@@ -1913,12 +1913,12 @@ function wafLogRequest(page){
         if (data.length > 0){
             for(i in data){
                 list += '<tr>';
-                list += '<td><span class="overflow_hide" style="width:112px;">' + getLocalTime(data[i]['time'])+'</span></td>';
-                list += '<td><span class="overflow_hide" style="width:50px;">' + data[i]['domain'] +'</span></td>';
-                list += '<td><span class="overflow_hide" style="width:60px;">' + data[i]['ip'] +'</span></td>';
-                list += '<td><span class="overflow_hide" style="width:50px;">' + data[i]['uri'] +'</span></td>';// data[i]['uri']
-                list += '<td><span class="overflow_hide" style="width:50px;">' + data[i]['rule_name'] +'</span></td>';
-                list += '<td><span class="overflow_hide" style="width:200px;">' + entitiesEncode(data[i]['reason']) +'</span></td>';//data[i]['reason']
+                list += '<td><span class="overflow_hide" title="' + getLocalTime(data[i]['time']) + '" style="width:130px;">' + getLocalTime(data[i]['time'])+'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['domain'] || '') + '" style="width:70px;">' + data[i]['domain'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['ip'] || '') + '" style="width:100px;">' + data[i]['ip'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['uri'] || '') + '" style="width:90px;">' + data[i]['uri'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['rule_name'] || '') + '" style="width:60px;">' + data[i]['rule_name'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + escapeHTML(data[i]['reason'] || '') + '" style="width:220px;">' + entitiesEncode(data[i]['reason']) +'</span></td>';
                 list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">详情</a></td>';
                 list += '</tr>';
             }
@@ -1940,7 +1940,10 @@ function wafLogRequest(page){
                             '+ list +'\
                             </tbody></table>\
                         </div>\
-                        <div id="wsPage" class="dataTables_paginate paging_bootstrap page"></div>';
+                        <div style="display:flex; justify-content:space-between; align-items:center;">\
+                            <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">导出excel</button></div>\
+                            <div id="wsPage" class="dataTables_paginate paging_bootstrap page" style="margin:0;"></div>\
+                        </div>';
         $('#ws_table').html(table);
         $('#wsPage').html(rdata.data.page);
 
@@ -1977,22 +1980,24 @@ function wafLogs(){
 
 
     var html = '<div>\
-                <div style="padding-bottom:10px;">\
-                    <span>网站: </span>\
-                    <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
-                    </select>\
-                    <span style="margin-left:10px">时间: </span>\
-                    <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
-                        <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom:10px;">\
+                    <div style="display: flex; align-items: center;">\
+                        <span>网站: </span>\
+                        <select class="bt-input-text" name="site" style="margin-left:4px;width:160px;">\
+                            <option value="unset">未设置</option>\
+                        </select>\
+                        <span style="margin-left:10px">时间: </span>\
+                        <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
+                            <div id="search_time" class="input-group-btn btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default">今日</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            </div>\
+                            <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                     </div>\
-                    <div style="float:right;">\
+                    <div>\
                         <button id="UncoverAll" class="btn btn-success btn-sm" style="padding-left: 5px;padding-right: 5px;">解封所有</button>\
                         <button id="testRun" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px;">测试</button>\
                     </div>\
@@ -2001,6 +2006,45 @@ function wafLogs(){
             </div>';
     $(".soft-man-con").html(html);
     // wafLogRequest(1);
+    
+    $("#exportExcel").click(function(){
+        var args = {};
+        args['page'] = 1;
+        args['page_size'] = 100000;
+        args['site'] = $('select[name="site"]').val();
+        var query_date = 'today';
+        if ($('#time_choose').attr("data-name") != ''){
+            query_date = $('#time_choose').attr("data-name");
+        } else {
+            query_date = $('#search_time button.cur').attr("data-name");
+        }
+        args['query_date'] = query_date;
+        args['tojs'] = 'wafLogRequest';
+
+        var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        owPost('get_logs_list', args, function(rdata){
+            layer.close(loadT);
+            var rdata = $.parseJSON(rdata.data);
+            var data = rdata.data.data;
+            if(!data || data.length == 0) {
+                layer.msg("没有数据可导出", {icon: 2});
+                return;
+            }
+            var csv = "\uFEFF时间,域名,IP,URI,规则名,原因\n";
+            for(var i=0; i<data.length; i++) {
+                var d = data[i];
+                csv += getLocalTime(d.time) + "," + d.domain + "," + d.ip + "," + '"' + escapeHTML(d.uri||'').replace(/"/g, '""') + '",' + d.rule_name + "," + '"' + escapeHTML(d.reason||'').replace(/"/g, '""') + '"\n';
+            }
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = "封锁历史_" + args['site'] + ".csv";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    });
 
     $("#UncoverAll").click(function(){
         owPost('clean_drop_ip',{},function(data){
