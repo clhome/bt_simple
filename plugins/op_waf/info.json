@@ -22,7 +22,7 @@
 	"checks":"server/op_waf",
 	"path":"server/op_waf",
 	"author":"loveshell&yufeng tec",
-	"home":"https://github.com/loveshell/ngx_lua_waf",
+	"home":"https://www.yftec.top",
 	"date":"2026-06-02",
 	"pid": "1",
 	"size": ["950", "650"],
