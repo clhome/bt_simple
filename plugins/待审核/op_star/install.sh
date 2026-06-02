@@ -30,24 +30,35 @@ Install_App(){
 	mkdir -p $serverPath/source/op_star
 	mkdir -p $serverPath/openstar
 
-	# 检查是否已安装 git，未安装则进行安装
-	if ! command -v git &> /dev/null; then
-		echo "正在安装 git 客户端以获取防火墙内核..."
+	# 检查是否已安装 unzip，未安装则进行安装
+	if ! command -v unzip &> /dev/null; then
+		echo "正在安装 unzip 客户端以解压防火墙内容..."
 		if [ -f /usr/bin/yum ]; then
-			yum install -y git
+			yum install -y unzip
 		elif [ -f /usr/bin/apt-get ]; then
-			apt-get update && apt-get install -y git
+			apt-get update && apt-get install -y unzip
 		fi
 	fi
 
-	# 克隆 starjun/openstar 仓库
-	if [ ! -d $serverPath/openstar/.git ]; then
-		echo "正在克隆 OpenStar 核心代码库..."
+	# 下载并解压 openstar 源码 (使用ZIP代替git clone提高速度和稳定性)
+	if [ ! -f $serverPath/openstar/init.lua ]; then
+		echo "正在下载 OpenStar 核心代码..."
 		rm -rf $serverPath/openstar
 		
-		github_clone "$serverPath/openstar" "https://github.com/clhome/openstar.git"
+		zip_file="$serverPath/source/op_star/openstar_master.zip"
+		github_download "$zip_file" "https://github.com/clhome/openstar/archive/refs/heads/master.zip" 60
 		if [ "$?" != "0" ]; then
-			echo "克隆 OpenStar 失败！"
+			echo "下载 OpenStar 核心包失败！"
+			exit 1
+		fi
+		
+		echo "正在解压 OpenStar..."
+		unzip -q -o "$zip_file" -d "$serverPath/source/op_star/"
+		if [ "$?" == "0" ]; then
+			mv $serverPath/source/op_star/openstar-master $serverPath/openstar
+			rm -f "$zip_file"
+		else
+			echo "解压 OpenStar 失败！请检查 unzip 是否正常。"
 			exit 1
 		fi
 	fi
