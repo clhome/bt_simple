@@ -313,16 +313,18 @@ function wafRulesConfig(ruleName){
                     else name_val = '默认内置防御规则';
                 }
                 
-                var state_icon = state_val == 'on' ? '<span style="color:#20a53a;font-weight:bold;">已启用</span>' : '<span style="color:#999;">已禁用</span>';
                 var action_color = action_val == 'deny' ? 'color:#fc6d26;font-weight:bold;' : 'color:#f0ad4e;font-weight:bold;';
+                var checked_attr = state_val == 'on' ? 'checked' : '';
+                var state_switch = '<input class="btswitch btswitch-ios" id="rule_state_' + i + '" type="checkbox" ' + checked_attr + '>\
+                    <label class="btswitch-btn" for="rule_state_' + i + '" onclick="toggleRuleState(' + i + ')"></label>';
+                var tr_style = state_val == 'on' ? '' : ' style="background-color:#f5f5f5;color:#999;"';
                 
-                table_body += '<tr>\
-                    <td><code>' + regex + '</code></td>\
+                table_body += '<tr' + tr_style + '>\
+                    <td><code style="' + (state_val == 'on' ? '' : 'color:#999;background-color:#eee;border-color:#ddd;') + '">' + regex + '</code></td>\
                     <td>' + name_val + '</td>\
                     <td><span style="' + action_color + '">' + action_val.toUpperCase() + '</span></td>\
-                    <td>' + state_icon + '</td>\
+                    <td>' + state_switch + '</td>\
                     <td class="text-right">\
-                        <a class="btlink" onclick="toggleRuleState(' + i + ')">切换状态</a> | \
                         <a class="btlink" onclick="deleteRule(' + i + ')">删除</a>\
                     </td>\
                 </tr>';
