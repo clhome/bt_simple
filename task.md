@@ -2968,9 +2968,53 @@ PHP 安装过程中，出现 `zlib.sh: line 35: cd: /www/server/source/lib/zlib-
 - OpenStar (基于 OpenResty) IP 黑白名单模块逐行加载 `deny.ip` 时，未能正确清洗结尾的 `\r`，导致字典中实际存储的是 `172.17.60.218\r`。
 - 访客请求时，`ngx.var.remote_addr`（不带 `\r`）无法匹配命中，导致封锁策略完全失效。
 
+
+## 需求：修复OP防火墙黑名单封锁失效问题
+**问题描述**：
+在“黑白名单”中将测试主机 172.17.60.218 加入黑名单后，依然可以访问服务器。
+
+**根本原因分析**：
+- 面板在 Windows 平台保存 `.ip` 配置文件时（调用 `mw.writeFile`，即文本写模式），默认会将 `\n` 转换成 Windows 风格的换行符 `\r\n`。
+- OpenStar (基于 OpenResty) IP 黑白名单模块逐行加载 `deny.ip` 时，未能正确清洗结尾的 `\r`，导致字典中实际存储的是 `172.17.60.218\r`。
+- 访客请求时，`ngx.var.remote_addr`（不带 `\r`）无法匹配命中，导致封锁策略完全失效。
+
 **修复文件**：
 - `plugins/op_star/index.py`
 
 ### Task List
 
 - [x] 在 `index.py` 中的 `save_rule` 及 `apply_template` 拦截 `ip_Mod` 的写文件逻辑，弃用全局 `mw.writeFile`，改为独立 `open(..., newline='\n')` 以强制指定写入 LF (Unix 换行风格) 避免引擎加载异常。 @done
+
+## 需求：修复 OP 防火墙 OpenStar C-call boundary 协程挂起错误
+**问题描述**：
+OpenStar 日志中提示 `attempt to yield across C-call boundary` 错误，导致虽然配置黑名单生效并匹配成功，却无法正常返回 403 拦截，实际封锁失效。
+
+**根本原因分析**：
+- OpenStar 的 `access_all.lua` 中包含 `ngx.exit()` 或类似会触发 Nginx Lua 协程切换（yield）的代码。
+- 当前插件生成的 `openstar_access.lua` 入口文件中，使用了 `pcall(dofile, access_file)` 包装执行。
+- `pcall` 以及其内部的 `dofile`（由于使用 C 函数）创建了 C-call boundary，阻止了内层代码安全让出协程，导致 OpenResty 抛出异常并中断拦截响应。
+
+**修复文件**：
+- `plugins/op_star/index.py`
+
+### Task List
+
+- [x] 修改 `plugins/op_star/index.py` 中的 `makeOpDstRunLua` 方法，移除生成 Lua 挂载文件（`openstar_access.lua` 与 `openstar_init_worker.lua`）时的 `pcall` 包装机制，直接使用 `dofile(file)`。 @done
+- [x] 注入 `package.path` 和 `package.cpath`，以彻底消除 C-call 边界约束，保证 `ngx.exit(403)` 等协程中断操作顺利执行。 @done
+
+## 需求：修复 OP 防火墙规则列表 Regex 列显示 `undefined` 问题
+**问题描述**：
+在 OP 防火墙面板的“拦截规则”页面（如 GET 参数过滤、Cookie过滤 等），表格中的正则表达式列全部显示为 `undefined`，而“规则描述”、“执行动作”等状态显示异常或被 fallback 显示。
+
+**根本原因分析**：
+- OpenStar 引擎底层的原生 JSON 规则配置（如 `args_Mod.json`）格式是一个嵌套数组 `[ ["regex", "j", "deny", "on", "desc"], ... ]`。
+- 而宝塔插件 `op_star` 前端代码（`op_star.js`）只处理了将规则解析为 Object（`{ "state": "on", "action": "deny", "rule": ["regex", "j"], "name": "desc" }`）的逻辑。
+- 当加载底层原生未被模板覆盖的数组格式规则时，`rule.rule`，`rule.state` 等属性均为 `undefined`，导致页面无法正常读取并渲染真正的正则表达式。
+
+**修复文件**：
+- `plugins/op_star/js/op_star.js`
+
+### Task List
+
+- [x] 修改 `op_star.js` 中渲染表格的核心逻辑，增加对 `Array` 格式规则的解析兼容，使其能正确读取索引 `0`（正则）、`2`（动作）、`3`（状态）、`4`（描述）。 @done
+- [x] 修改 `toggleRuleState` 函数的逻辑，使其在更新状态时能够正确修改数组格式下的索引 `3` 或者 Object 格式下的 `.state` 属性，保证状态切换正常生效。 @done

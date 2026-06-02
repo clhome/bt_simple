@@ -147,40 +147,32 @@ def makeOpDstRunLua(conf_reload=False):
         if not os.path.exists(init_file):
             init_file = srv_dir + '/init.lua'
         
-        # 增加防御性校验：先检查文件是否存在，再使用 pcall 拦截异常，杜绝 WAF 异常牵连 Nginx 无法启动
-        content = (
-            f'local init_file = "{init_file}"\n'
-            f'local f = io.open(init_file, "r")\n'
-            f'if f then\n'
-            f'    f:close()\n'
-            f'{path_inject}'
-            f'    local status, err = pcall(dofile, init_file)\n'
-            f'    if not status then\n'
-            f'        ngx.log(ngx.ERR, "Failed to load openstar init: ", err)\n'
-            f'    end\n'
-            f'end\n'
-        )
-        mw.writeFile(waf_init_dst, content)
+        try:
+            with open(init_file, 'r', encoding='utf-8') as f:
+                code = f.read()
+            content = f"{path_inject}\n{code}"
+            mw.writeFile(waf_init_dst, content)
+        except Exception as e:
+            mw.writeFile(waf_init_dst, f'ngx.log(ngx.ERR, "Failed to load openstar init: {e}")\n')
 
     # 2. 注入 init_worker 挂载 (兼容新版 i_worker.lua 或老版 init_worker.lua)
     init_worker_dst = root_worker_dir + '/openstar_init_worker.lua'
     if not os.path.exists(init_worker_dst) or conf_reload:
-        init_worker_file = srv_dir + '/luaself/init_worker.lua'
+        init_worker_file = srv_dir + '/luaself/i_worker.lua'
         if not os.path.exists(init_worker_file):
-            init_worker_file = srv_dir + '/i_worker.lua'
+            init_worker_file = srv_dir + '/luaself/init_worker.lua'
             if not os.path.exists(init_worker_file):
-                init_worker_file = srv_dir + '/init_worker.lua'
+                init_worker_file = srv_dir + '/i_worker.lua'
+                if not os.path.exists(init_worker_file):
+                    init_worker_file = srv_dir + '/init_worker.lua'
         
-        content = (
-            f'local init_worker_file = "{init_worker_file}"\n'
-            f'local f = io.open(init_worker_file, "r")\n'
-            f'if f then\n'
-            f'    f:close()\n'
-            f'{path_inject}'
-            f'    dofile(init_worker_file)\n'
-            f'end\n'
-        )
-        mw.writeFile(init_worker_dst, content)
+        try:
+            with open(init_worker_file, 'r', encoding='utf-8') as f:
+                code = f.read()
+            content = f"{path_inject}\n{code}"
+            mw.writeFile(init_worker_dst, content)
+        except Exception as e:
+            mw.writeFile(init_worker_dst, f'ngx.log(ngx.ERR, "Failed to load openstar init_worker: {e}")\n')
 
     # 3. 注入 access_by_lua 挂载 (兼容新版 access_all.lua 或老版 main.lua)
     access_file_dst = root_access_dir + '/openstar_access.lua'
@@ -191,16 +183,13 @@ def makeOpDstRunLua(conf_reload=False):
             if not os.path.exists(access_file):
                 access_file = srv_dir + '/main.lua'
         
-        content = (
-            f'local access_file = "{access_file}"\n'
-            f'local f = io.open(access_file, "r")\n'
-            f'if f then\n'
-            f'    f:close()\n'
-            f'{path_inject}'
-            f'    dofile(access_file)\n'
-            f'end\n'
-        )
-        mw.writeFile(access_file_dst, content)
+        try:
+            with open(access_file, 'r', encoding='utf-8') as f:
+                code = f.read()
+            content = f"{path_inject}\n{code}"
+            mw.writeFile(access_file_dst, content)
+        except Exception as e:
+            mw.writeFile(access_file_dst, f'ngx.log(ngx.ERR, "Failed to load openstar access: {e}")\n')
 
     # 调用面板内置 Lua 重新合并编译方法
     mw.opLuaMakeAll()

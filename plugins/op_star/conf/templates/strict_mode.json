@@ -17,198 +17,290 @@
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bselect\\b.*\\bfrom\\b", "ji"],
-                "name": "SQL注入 - SELECT查询探测"
+                "name": "SQL注入 - SELECT查询探测",
+                "args_data": [
+                    "\\bselect\\b.*\\bfrom\\b",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bunion\\b.*\\bselect\\b", "ji"],
-                "name": "SQL注入 - UNION联合注入"
+                "name": "SQL注入 - UNION联合注入",
+                "args_data": [
+                    "\\bunion\\b.*\\bselect\\b",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\b(and|or)\\b\\s+\\d+\\s*=\\s*\\d+", "ji"],
-                "name": "SQL注入 - 布尔盲注"
+                "name": "SQL注入 - 布尔盲注",
+                "args_data": [
+                    "\\b(and|or)\\b\\s+\\d+\\s*=\\s*\\d+",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\b(insert|update|delete|drop|truncate|alter|create)\\b", "ji"],
-                "name": "SQL注入 - 写操作关键字"
+                "name": "SQL注入 - 写操作关键字",
+                "args_data": [
+                    "\\b(insert|update|delete|drop|truncate|alter|create)\\b",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bconcat\\b|\\bchar\\b\\s*\\(|\\bsubstring\\b|\\bbenchmark\\b|\\bsleep\\b\\s*\\(", "ji"],
-                "name": "SQL注入 - 高级函数探测"
+                "name": "SQL注入 - 高级函数探测",
+                "args_data": [
+                    "\\bconcat\\b|\\bchar\\b\\s*\\(|\\bsubstring\\b|\\bbenchmark\\b|\\bsleep\\b\\s*\\(",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["<script[^>]*>", "ji"],
-                "name": "XSS攻击 - script标签注入"
+                "name": "XSS攻击 - script标签注入",
+                "args_data": [
+                    "<script[^>]*>",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bon\\w+\\s*=", "ji"],
-                "name": "XSS攻击 - 事件处理器注入"
+                "name": "XSS攻击 - 事件处理器注入",
+                "args_data": [
+                    "\\bon\\w+\\s*=",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["javascript\\s*:|vbscript\\s*:|data\\s*:", "ji"],
-                "name": "XSS攻击 - 协议注入（含vbscript/data）"
+                "name": "XSS攻击 - 协议注入（含vbscript/data）",
+                "args_data": [
+                    "javascript\\s*:|vbscript\\s*:|data\\s*:",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bexec\\b.*\\bmaster\\b|\\bresponse\\.write\\b|\\beval\\s*\\(", "ji"],
-                "name": "远程命令/代码执行探测"
+                "name": "远程命令/代码执行探测",
+                "args_data": [
+                    "\\bexec\\b.*\\bmaster\\b|\\bresponse\\.write\\b|\\beval\\s*\\(",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bwaitfor\\b.*\\bdelay\\b|\\border\\s+by\\s+\\d+", "ji"],
-                "name": "SQL注入 - 时间盲注/排序探测"
+                "name": "SQL注入 - 时间盲注/排序探测",
+                "args_data": [
+                    "\\bwaitfor\\b.*\\bdelay\\b|\\border\\s+by\\s+\\d+",
+                    "ji"
+                ]
             }
         ],
         "uri_Mod": [
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\.\\./", "j"],
-                "name": "目录遍历攻击 - 路径穿越"
+                "name": "目录遍历攻击 - 路径穿越",
+                "uri": [
+                    "\\.\\./",
+                    "j"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\.(bak|swp|old|sql|log|conf|ini|env|git|svn|DS_Store|tar\\.gz|zip|rar)$", "ji"],
-                "name": "敏感文件探测 - 备份/压缩/配置"
+                "name": "敏感文件探测 - 备份/压缩/配置",
+                "uri": [
+                    "\\.(bak|swp|old|sql|log|conf|ini|env|git|svn|DS_Store|tar\\.gz|zip|rar)$",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["/wp-admin/|/wp-login\\.php|/xmlrpc\\.php|/wp-cron\\.php", "ji"],
-                "name": "WordPress 攻击探测"
+                "name": "WordPress 攻击探测",
+                "uri": [
+                    "/wp-admin/|/wp-login\\.php|/xmlrpc\\.php|/wp-cron\\.php",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["/phpmyadmin|/pma|/myadmin|/mysql|/adminer", "ji"],
-                "name": "数据库管理工具探测"
+                "name": "数据库管理工具探测",
+                "uri": [
+                    "/phpmyadmin|/pma|/myadmin|/mysql|/adminer",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["/\\.well-known/|/\\.env|/\\.git/|/\\.svn/|/\\.htaccess|/\\.htpasswd", "ji"],
-                "name": "隐藏文件/版本控制目录探测"
+                "name": "隐藏文件/版本控制目录探测",
+                "uri": [
+                    "/\\.well-known/|/\\.env|/\\.git/|/\\.svn/|/\\.htaccess|/\\.htpasswd",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["/shell\\.php|/cmd\\.php|/hack\\.php|/c99\\.php|/r57\\.php", "ji"],
-                "name": "WebShell 木马路径探测"
+                "name": "WebShell 木马路径探测",
+                "uri": [
+                    "/shell\\.php|/cmd\\.php|/hack\\.php|/c99\\.php|/r57\\.php",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["/cgi-bin/|/manager/html|/solr/|/actuator|/druid", "ji"],
-                "name": "中间件管理后台探测"
+                "name": "中间件管理后台探测",
+                "uri": [
+                    "/cgi-bin/|/manager/html|/solr/|/actuator|/druid",
+                    "ji"
+                ]
             }
         ],
         "useragent_Mod": [
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["sqlmap|nmap|nikto|dirbuster|w3af|acunetix|nessus|appscan", "ji"],
-                "name": "恶意扫描器 - 安全工具特征"
+                "name": "恶意扫描器 - 安全工具特征",
+                "useragent": [
+                    "sqlmap|nmap|nikto|dirbuster|w3af|acunetix|nessus|appscan",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["masscan|zgrab|nuclei|gobuster|ffuf|wfuzz|hydra|burp|zap", "ji"],
-                "name": "恶意扫描器 - 暴力/渗透工具"
+                "name": "恶意扫描器 - 暴力/渗透工具",
+                "useragent": [
+                    "masscan|zgrab|nuclei|gobuster|ffuf|wfuzz|hydra|burp|zap",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["scrapy|mechanize|python-requests/|go-http-client|java/|perl|wget|curl/", "ji"],
-                "name": "自动化爬虫 - 编程语言/工具默认UA"
+                "name": "自动化爬虫 - 编程语言/工具默认UA",
+                "useragent": [
+                    "scrapy|mechanize|python-requests/|go-http-client|java/|perl|wget|curl/",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["^$", "j"],
-                "name": "空User-Agent拦截"
+                "name": "空User-Agent拦截",
+                "useragent": [
+                    "^$",
+                    "j"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["bot|spider|crawl|slurp", "ji"],
-                "name": "通用爬虫拦截 (可能误杀搜索引擎爬虫)"
+                "name": "通用爬虫拦截 (可能误杀搜索引擎爬虫)",
+                "useragent": [
+                    "bot|spider|crawl|slurp",
+                    "ji"
+                ]
             }
         ],
         "cookie_Mod": [
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b", "ji"],
-                "name": "Cookie SQL注入攻击"
+                "name": "Cookie SQL注入攻击",
+                "cookie": [
+                    "\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["<script|javascript\\s*:|\\bon\\w+\\s*=", "ji"],
-                "name": "Cookie XSS注入攻击"
+                "name": "Cookie XSS注入攻击",
+                "cookie": [
+                    "<script|javascript\\s*:|\\bon\\w+\\s*=",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\.\\.[\\/\\\\]", "ji"],
-                "name": "Cookie 路径穿越攻击"
+                "name": "Cookie 路径穿越攻击",
+                "cookie": [
+                    "\\.\\.[\\/\\\\]",
+                    "ji"
+                ]
             }
         ],
         "post_Mod": [
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b", "ji"],
-                "name": "POST SQL注入攻击"
+                "name": "POST SQL注入攻击",
+                "posts_data": [
+                    "\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["<script[^>]*>|\\bon\\w+\\s*=|javascript\\s*:", "ji"],
-                "name": "POST XSS注入攻击"
+                "name": "POST XSS注入攻击",
+                "posts_data": [
+                    "<script[^>]*>|\\bon\\w+\\s*=|javascript\\s*:",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bexec\\s*\\(|\\beval\\s*\\(|\\bsystem\\s*\\(|\\bpassthru\\s*\\(|\\bpopen\\s*\\(", "ji"],
-                "name": "POST 远程代码执行"
+                "name": "POST 远程代码执行",
+                "posts_data": [
+                    "\\bexec\\s*\\(|\\beval\\s*\\(|\\bsystem\\s*\\(|\\bpassthru\\s*\\(|\\bpopen\\s*\\(",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\.\\.[\\/\\\\]", "ji"],
-                "name": "POST 路径穿越攻击"
+                "name": "POST 路径穿越攻击",
+                "posts_data": [
+                    "\\.\\.[\\/\\\\]",
+                    "ji"
+                ]
             },
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["\\bcmd\\b|\\bpowershell\\b|/bin/bash|/bin/sh", "ji"],
-                "name": "POST 命令注入攻击"
+                "name": "POST 命令注入攻击",
+                "posts_data": [
+                    "\\bcmd\\b|\\bpowershell\\b|/bin/bash|/bin/sh",
+                    "ji"
+                ]
             }
         ],
         "host_method_Mod": [
             {
                 "state": "on",
                 "action": "deny",
-                "rule": ["PUT|DELETE|PATCH|OPTIONS|TRACE|CONNECT"],
-                "name": "限制非标准HTTP方法 (仅允许GET/POST/HEAD)"
+                "name": "限制非标准HTTP方法 (仅允许GET/POST/HEAD)",
+                "host_method": [
+                    "PUT|DELETE|PATCH|OPTIONS|TRACE|CONNECT"
+                ]
             }
         ],
         "network_Mod": [

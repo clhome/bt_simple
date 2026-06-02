@@ -280,14 +280,11 @@ function wafRulesConfig(ruleName){
                     state_val = rule[3] || 'on';
                     name_val = rule[4] || '';
                 } else if (typeof(rule) === 'object' && rule !== null) {
-                    if(rule.rule && typeof(rule.rule) === 'object' && Array.isArray(rule.rule)){
-                        regex = rule.rule.join(' | ');
-                    } else if (rule.rule) {
-                        regex = rule.rule;
-                    } else if (rule.regex) {
-                        regex = rule.regex;
-                    } else if (rule[0]) {
-                        regex = rule[0];
+                    var ruleObj = rule.rule || rule.args_data || rule.cookie || rule.uri || rule.useragent || rule.posts_data || rule.regex || rule[0];
+                    if(ruleObj && typeof(ruleObj) === 'object' && Array.isArray(ruleObj)){
+                        regex = ruleObj[0];
+                    } else if (ruleObj) {
+                        regex = ruleObj;
                     }
                     
                     state_val = rule.state || 'on';
@@ -412,12 +409,21 @@ function saveWafRule(){
             rules = [];
         }
         
+        var key_map = {
+            'args_Mod': 'args_data',
+            'cookie_Mod': 'cookie',
+            'useragent_Mod': 'useragent',
+            'uri_Mod': 'uri',
+            'post_Mod': 'posts_data'
+        };
+        var rule_key = key_map[currentRuleName] || 'rule';
+        
         var new_rule = {
             "state": "on",
             "action": action,
-            "rule": [regex, "j"],
             "name": desc || "用户自定义防护规则"
         };
+        new_rule[rule_key] = [regex, "j"];
         
         rules.push(new_rule);
         

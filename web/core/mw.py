@@ -1770,9 +1770,12 @@ def opLuaMake(cmd_name):
             os.remove(dst_path)
 
     conf = readFile(path)
-    conf = re.sub(cmd_name + ' (.*);',
-                  cmd_name + " " + def_path + ";", conf)
-    writeFile(path, conf)
+    if not isinstance(conf, str):
+        conf = ''
+    if conf:
+        conf = re.sub(cmd_name + ' (.*);',
+                      lambda m: cmd_name + " " + def_path.replace('\\', '/') + ";", conf)
+        writeFile(path, conf)
 
 
 def opLuaInitFile():
