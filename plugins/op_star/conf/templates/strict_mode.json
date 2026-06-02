@@ -21,6 +21,10 @@
                 "args_data": [
                     "\\bselect\\b.*\\bfrom\\b",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -30,6 +34,10 @@
                 "args_data": [
                     "\\bunion\\b.*\\bselect\\b",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -39,6 +47,10 @@
                 "args_data": [
                     "\\b(and|or)\\b\\s+\\d+\\s*=\\s*\\d+",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -48,6 +60,10 @@
                 "args_data": [
                     "\\b(insert|update|delete|drop|truncate|alter|create)\\b",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -57,6 +73,10 @@
                 "args_data": [
                     "\\bconcat\\b|\\bchar\\b\\s*\\(|\\bsubstring\\b|\\bbenchmark\\b|\\bsleep\\b\\s*\\(",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -66,6 +86,10 @@
                 "args_data": [
                     "<script[^>]*>",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -75,6 +99,10 @@
                 "args_data": [
                     "\\bon\\w+\\s*=",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -84,6 +112,10 @@
                 "args_data": [
                     "javascript\\s*:|vbscript\\s*:|data\\s*:",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -93,6 +125,10 @@
                 "args_data": [
                     "\\bexec\\b.*\\bmaster\\b|\\bresponse\\.write\\b|\\beval\\s*\\(",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -102,6 +138,10 @@
                 "args_data": [
                     "\\bwaitfor\\b.*\\bdelay\\b|\\border\\s+by\\s+\\d+",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             }
         ],
@@ -113,6 +153,10 @@
                 "uri": [
                     "\\.\\./",
                     "j"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -122,6 +166,10 @@
                 "uri": [
                     "\\.(bak|swp|old|sql|log|conf|ini|env|git|svn|DS_Store|tar\\.gz|zip|rar)$",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -131,6 +179,10 @@
                 "uri": [
                     "/wp-admin/|/wp-login\\.php|/xmlrpc\\.php|/wp-cron\\.php",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -140,6 +192,10 @@
                 "uri": [
                     "/phpmyadmin|/pma|/myadmin|/mysql|/adminer",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -149,6 +205,10 @@
                 "uri": [
                     "/\\.well-known/|/\\.env|/\\.git/|/\\.svn/|/\\.htaccess|/\\.htpasswd",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -158,6 +218,10 @@
                 "uri": [
                     "/shell\\.php|/cmd\\.php|/hack\\.php|/c99\\.php|/r57\\.php",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -167,6 +231,10 @@
                 "uri": [
                     "/cgi-bin/|/manager/html|/solr/|/actuator|/druid",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             }
         ],
@@ -178,6 +246,10 @@
                 "useragent": [
                     "sqlmap|nmap|nikto|dirbuster|w3af|acunetix|nessus|appscan",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -187,6 +259,10 @@
                 "useragent": [
                     "masscan|zgrab|nuclei|gobuster|ffuf|wfuzz|hydra|burp|zap",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -196,6 +272,10 @@
                 "useragent": [
                     "scrapy|mechanize|python-requests/|go-http-client|java/|perl|wget|curl/",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -205,6 +285,10 @@
                 "useragent": [
                     "^$",
                     "j"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -214,6 +298,10 @@
                 "useragent": [
                     "bot|spider|crawl|slurp",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             }
         ],
@@ -225,6 +313,10 @@
                 "cookie": [
                     "\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -234,6 +326,10 @@
                 "cookie": [
                     "<script|javascript\\s*:|\\bon\\w+\\s*=",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -243,6 +339,10 @@
                 "cookie": [
                     "\\.\\.[\\/\\\\]",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             }
         ],
@@ -254,6 +354,10 @@
                 "posts_data": [
                     "\\bselect\\b.*\\bfrom\\b|\\bunion\\b.*\\bselect\\b",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -263,6 +367,10 @@
                 "posts_data": [
                     "<script[^>]*>|\\bon\\w+\\s*=|javascript\\s*:",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -272,6 +380,10 @@
                 "posts_data": [
                     "\\bexec\\s*\\(|\\beval\\s*\\(|\\bsystem\\s*\\(|\\bpassthru\\s*\\(|\\bpopen\\s*\\(",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -281,6 +393,10 @@
                 "posts_data": [
                     "\\.\\.[\\/\\\\]",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             },
             {
@@ -290,6 +406,10 @@
                 "posts_data": [
                     "\\bcmd\\b|\\bpowershell\\b|/bin/bash|/bin/sh",
                     "ji"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             }
         ],
@@ -300,6 +420,10 @@
                 "name": "限制非标准HTTP方法 (仅允许GET/POST/HEAD)",
                 "host_method": [
                     "PUT|DELETE|PATCH|OPTIONS|TRACE|CONNECT"
+                ],
+                "hostname": [
+                    "*",
+                    ""
                 ]
             }
         ],
@@ -312,7 +436,11 @@
                     "pTime": 60,
                     "blackTime": 1800
                 },
-                "name": "严格CC防护 - 60秒60次封禁30分钟"
+                "name": "严格CC防护 - 60秒60次封禁30分钟",
+                "hostname": [
+                    "*",
+                    ""
+                ]
             },
             {
                 "state": "on",
@@ -322,7 +450,11 @@
                     "pTime": 5,
                     "blackTime": 600
                 },
-                "name": "突发洪水防护 - 5秒15次封禁10分钟"
+                "name": "突发洪水防护 - 5秒15次封禁10分钟",
+                "hostname": [
+                    "*",
+                    ""
+                ]
             }
         ]
     }
