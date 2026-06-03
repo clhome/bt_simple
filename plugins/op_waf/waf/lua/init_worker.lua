@@ -23,28 +23,37 @@ WAF_C:setDebug(false)
 -- C:D("init worker"..tostring(ngx.worker.id()))
 
 local function waf_timer_stats_total_log(premature)
-    WAF_C:timer_stats_total()
+    local ok, err = pcall(function()
+        WAF_C:timer_stats_total()
+    end)
+    if not ok then ngx.log(ngx.ERR, "waf_timer_stats_total_log err: ", err) end
 end
 
 local function waf_clean_expire_data(premature)
-    WAF_C:clean_log()
+    local ok, err = pcall(function()
+        WAF_C:clean_log()
+    end)
+    if not ok then ngx.log(ngx.ERR, "waf_clean_expire_data err: ", err) end
 end
 
 WAF_C:dict_set("waf_limit", "cpu_usage", 0, 10)
 function waf_timer_every_get_cpu(premature)
-    if WAF_C:file_exists('/proc/stat') then
-        local lua_cpu_percent = WAF_C:get_cpu_percent()
-        -- WAF_C:D("lua_cpu_percent:"..tostring(lua_cpu_percent))
-        WAF_C:dict_set("waf_limit", "cpu_usage", math.floor(lua_cpu_percent), 10)
-    else
-        local cpu_percent = WAF_C:read_file_body(waf_root.."/cpu.info")
-        -- WAF_C:D("cpu_usage:"..tostring(cpu_percent ))
-        if cpu_percent then
-            WAF_C:dict_set("waf_limit", "cpu_usage", tonumber(cpu_percent), 10)
+    local ok, err = pcall(function()
+        if WAF_C:file_exists('/proc/stat') then
+            local lua_cpu_percent = WAF_C:get_cpu_percent()
+            -- WAF_C:D("lua_cpu_percent:"..tostring(lua_cpu_percent))
+            WAF_C:dict_set("waf_limit", "cpu_usage", math.floor(lua_cpu_percent), 10)
         else
-            WAF_C:dict_set("waf_limit", "cpu_usage", 0, 10)
+            local cpu_percent = WAF_C:read_file_body(waf_root.."/cpu.info")
+            -- WAF_C:D("cpu_usage:"..tostring(cpu_percent ))
+            if cpu_percent then
+                WAF_C:dict_set("waf_limit", "cpu_usage", tonumber(cpu_percent), 10)
+            else
+                WAF_C:dict_set("waf_limit", "cpu_usage", 0, 10)
+            end
         end
-    end
+    end)
+    if not ok then ngx.log(ngx.ERR, "waf_timer_every_get_cpu err: ", err) end
 end
 
 if ngx.worker.id() == 0 then

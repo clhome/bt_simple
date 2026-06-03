@@ -85,7 +85,7 @@ local function return_json(status,msg)
     result = {}
     result['status'] = status
     result['msg'] = msg
-    ngx.say(json.encode(data))
+    ngx.say(json.encode(result))
     ngx.exit(200)
 end
 

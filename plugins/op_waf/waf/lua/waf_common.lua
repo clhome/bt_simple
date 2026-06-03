@@ -36,12 +36,14 @@ function _M.hmac_sha256(self, key, text)
         key = s:final()
     end
     key = key .. string.rep(string.char(0), block_size - #key)
-    local o_key_pad = ""
-    local i_key_pad = ""
+    local o_key_pad_tb = {}
+    local i_key_pad_tb = {}
     for i=1, block_size do
-        o_key_pad = o_key_pad .. string.char(bit.bxor(string.byte(key, i), 0x5c))
-        i_key_pad = i_key_pad .. string.char(bit.bxor(string.byte(key, i), 0x36))
+        table.insert(o_key_pad_tb, string.char(bit.bxor(string.byte(key, i), 0x5c)))
+        table.insert(i_key_pad_tb, string.char(bit.bxor(string.byte(key, i), 0x36)))
     end
+    local o_key_pad = table.concat(o_key_pad_tb)
+    local i_key_pad = table.concat(i_key_pad_tb)
     local s1 = resty_sha256:new()
     s1:update(i_key_pad)
     s1:update(text)
@@ -92,59 +94,63 @@ end
 function _M.cron(self)
     
     local timer_every_import_data = function(premature)
-
-        local llen, _ = ngx.shared.waf_limit:llen('waf_limit_logs')
-        if llen == 0 then
-            return true
-        end
-
-        local db = self:initDB()
-
-        db:exec([[BEGIN TRANSACTION]])
-
-        local stmt2 = db:prepare[[INSERT INTO logs(time, ip, domain, server_name, method, status_code, uri, user_agent, rule_name, reason) 
-            VALUES(:time, :ip, :domain, :server_name, :method, :status_code, :uri, :user_agent, :rule_name, :reason)]]
-
-        if not stmt2 then
-            self:D("waf timer db:prepare fail!:"..tostring(stmt2))
-            return false
-        end
-
-        for i=1,llen do
-            local data, _ = ngx.shared.waf_limit:lpop('waf_limit_logs')
-            -- self:D("waf_limit_logs:"..data)
-            if not data then
-                break
+        local ok, err = pcall(function()
+            local llen, _ = ngx.shared.waf_limit:llen('waf_limit_logs')
+            if llen == 0 then
+                return true
             end
 
-            local info = json.decode(data)
-    
-            stmt2:bind_names{
-                time=info["time"],
-                ip=info["ip"],
-                domain=info["server_name"],
-                server_name=info["server_name"],
-                method=info["method"],
-                status_code=info["status_code"],
-                user_agent=info["user_agent"],
-                uri=info["request_uri"],
-                rule_name=info['rule_name'],
-                reason=info['reason']
-            }
+            local db = self:initDB()
 
-            local res, err = stmt2:step()
-            if tostring(res) == "5" then
-                self:D("waf the step database connection is busy, so it will be stored later.")
+            db:exec([[BEGIN TRANSACTION]])
+
+            local stmt2 = db:prepare[[INSERT INTO logs(time, ip, domain, server_name, method, status_code, uri, user_agent, rule_name, reason) 
+                VALUES(:time, :ip, :domain, :server_name, :method, :status_code, :uri, :user_agent, :rule_name, :reason)]]
+
+            if not stmt2 then
+                self:D("waf timer db:prepare fail!:"..tostring(stmt2))
                 return false
             end
-            stmt2:reset() 
-        end
 
-        local res, err = db:execute([[COMMIT]])
-        if db and db:isopen() then
-            db:close()
-        end
+            for i=1,llen do
+                local data, _ = ngx.shared.waf_limit:lpop('waf_limit_logs')
+                -- self:D("waf_limit_logs:"..data)
+                if not data then
+                    break
+                end
 
+                local info = json.decode(data)
+        
+                stmt2:bind_names{
+                    time=info["time"],
+                    ip=info["ip"],
+                    domain=info["server_name"],
+                    server_name=info["server_name"],
+                    method=info["method"],
+                    status_code=info["status_code"],
+                    user_agent=info["user_agent"],
+                    uri=info["request_uri"],
+                    rule_name=info['rule_name'],
+                    reason=info['reason']
+                }
+
+                local res, err = stmt2:step()
+                if tostring(res) == "5" then
+                    self:D("waf the step database connection is busy, so it will be stored later.")
+                    return false
+                end
+                stmt2:reset() 
+            end
+
+            local res, err = db:execute([[COMMIT]])
+            if db and db:isopen() then
+                db:close()
+            end
+        end)
+
+        if not ok then
+            ngx.log(ngx.ERR, "timer_every_import_data pcall fail: ", tostring(err))
+        end
     end
     ngx.timer.every(0.5, timer_every_import_data)
 end
@@ -186,6 +192,7 @@ function _M.log(self, args, rule_name, reason)
     local llen, err = ngx.shared.waf_limit:llen("waf_limit_logs")
     if llen and llen >= 50000 then
         -- Drop log if queue is too large
+        self:dict_incr("waf_limit", "logs_drop_count", 1, 0)
         return true
     end
 

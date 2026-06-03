@@ -16,10 +16,10 @@ if status == 404 then
     local count, err = ngx.shared.waf_limit:get(count_key)
     
     if count then
-        if count >= 10 then
+        if count >= 30 then
             -- 封禁IP 30分钟 (1800s)
             C:dict_set("waf_drop_ip", ip, 1, 1800)
-            local reason = '1分钟内产生超过10次404错误,封锁1800秒'
+            local reason = '1分钟内产生超过30次404错误,封锁1800秒'
             
             -- Write log only once when threshold is hit
             if count == 10 then
