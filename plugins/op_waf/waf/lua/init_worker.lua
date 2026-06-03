@@ -18,7 +18,7 @@ local WAF_C = __WAF_C:getInstance()
 local waf_config = require "waf_config"
 local waf_site_config = require "waf_site"
 WAF_C:setConfData(waf_config, waf_site_config)
-WAF_C:setDebug(true)
+WAF_C:setDebug(false)
 
 -- C:D("init worker"..tostring(ngx.worker.id()))
 

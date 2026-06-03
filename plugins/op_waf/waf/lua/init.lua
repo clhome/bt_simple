@@ -13,7 +13,7 @@ local config_domains = require "waf_domains"
 
 
 C:setConfData(config, site_config)
-C:setDebug(true)
+C:setDebug(false)
 
 -- C:D("config:"..C:to_json(config))
 
@@ -178,7 +178,9 @@ end
 local function waf_ip_white()
     for _,rule in ipairs(ip_white_rules)
     do
-        if C:compare_ip(rule) then 
+        if type(rule) == "string" then
+            if rule == params['ip'] then return true end
+        elseif type(rule) == "table" and C:compare_ip(rule) then 
             return true 
         end
     end
@@ -193,16 +195,21 @@ local function waf_url_white()
 end
 
 local function waf_ip_black()
-    -- ipv4 ip black
+    -- ipv4 and ipv6 mixed ip black
     for _,rule in ipairs(ip_black_rules)
     do
-        if C:compare_ip(rule) then 
+        if type(rule) == "string" then
+            if rule == params['ip'] then 
+                ngx.exit(config['cc']['status'])
+                return true 
+            end
+        elseif type(rule) == "table" and C:compare_ip(rule) then 
             ngx.exit(config['cc']['status'])
             return true 
         end
     end
 
-    -- ipv6 ip black
+    -- legacy ipv6 ip black
     for _,rule in ipairs(ipv6_black_rules)
     do
         if rule == params['ip'] then 
@@ -488,20 +495,31 @@ local function waf_post()
     
     if content_type and string.find(string.lower(content_type), "application/json", 1, true) then
         local body_data = ngx.req.get_body_data()
+        if not body_data then
+            local file_name = ngx.req.get_body_file()
+            if file_name then
+                local f = io.open(file_name, "r")
+                if f then
+                    body_data = f:read(65536)
+                    f:close()
+                end
+            end
+        end
         if body_data then
             local ok, json_data = pcall(json.decode, body_data)
             if ok and type(json_data) == "table" then
                 local values = {}
-                local function extract_values(t)
+                local function extract_values(t, depth)
+                    if depth > 10 then return end
                     for k, v in pairs(t) do
                         if type(v) == "table" then
-                            extract_values(v)
+                            extract_values(v, depth + 1)
                         elseif type(v) == "string" or type(v) == "number" then
                             table.insert(values, tostring(v))
                         end
                     end
                 end
-                extract_values(json_data)
+                extract_values(json_data, 1)
                 data_str = table.concat(values, ", ")
             else
                 data_str = body_data
@@ -598,13 +616,23 @@ local function post_data()
     if boundary then
         ngx.req.read_body()
         local data = ngx.req.get_body_data()
+        if not data then
+            local file_name = ngx.req.get_body_file()
+            if file_name then
+                local f = io.open(file_name, "r")
+                if f then
+                    data = f:read(65536)
+                    f:close()
+                end
+            end
+        end
         if not data then return false end
-        local tmp = ngx.re.match(data,[[filename=\"(.+)\.(.*)\"]])
+        local tmp = ngx.re.match(data,[[filename=\"(.+)\.(.*)\"]], "jo")
         if tmp and tmp[2] then
             if disable_upload_ext(tmp[2]) then return true end
         end
 
-        local tmp_mime = ngx.re.match(data, [[Content-Type:\s*([^\r\n]+)]])
+        local tmp_mime = ngx.re.match(data, [[Content-Type:\s*([^\r\n]+)]], "jo")
         if tmp_mime and tmp_mime[1] then
             local mime = string.lower(tmp_mime[1])
             if string.find(mime, "php") or string.find(mime, "jsp") or string.find(mime, "x-httpd") then
@@ -688,7 +716,7 @@ local function get_country()
     if ip_postion["country"]==nil then return false end 
     if ip_postion["country"]["names"]==nil then return false end 
     if ip_postion["country"]["names"]["zh-CN"]==nil then return false end 
-    ngx.shared.waf_limit:set("get_country"..ip,ip_postion["country"]["names"]["zh-CN"],3600)
+    ngx.shared.waf_limit:set("get_country"..ip,ip_postion["country"]["names"]["zh-CN"],600)
     return ip_postion["country"]["names"]["zh-CN"]
 end 
 

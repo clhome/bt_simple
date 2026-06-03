@@ -231,7 +231,7 @@ end
 
 
 function _M.setDebug(self, mode)
-    debug_mode = mode
+    debug_mode = false
 end
 
 
@@ -765,15 +765,17 @@ function _M.get_real_ip(self, server_name)
     local client_ip = ngx.var.remote_addr
     local site_config = self.site_config
     local is_trusted = false
+    local has_trusted_proxy_config = false
     
-    if self.config and self.config['trusted_proxy'] then
+    if self.config and self.config['trusted_proxy'] and #self.config['trusted_proxy'] > 0 then
+        has_trusted_proxy_config = true
         if self:is_trusted_proxy(client_ip, self.config['trusted_proxy']) then
             is_trusted = true
         end
     end
 
     if site_config[server_name] then
-        if site_config[server_name]['cdn'] or is_trusted then
+        if is_trusted or (site_config[server_name]['cdn'] and not has_trusted_proxy_config) then
             local request_header = ngx.req.get_headers()
             for _,v in ipairs(site_config[server_name]['cdn_header'])
             do
@@ -791,12 +793,12 @@ function _M.get_real_ip(self, server_name)
 
     -- ipv6
     if type(client_ip) == 'table' then client_ip = "" end
-    if client_ip ~= "unknown" and ngx.re.match(client_ip,"^([a-fA-F0-9]*):") then
+    if client_ip ~= "unknown" and ngx.re.match(client_ip,"^([a-fA-F0-9]*):", "jo") then
         return client_ip
     end
 
     -- ipv4
-    if  not ngx.re.match(client_ip,"\\d+\\.\\d+\\.\\d+\\.\\d+") == nil or not self:is_ipaddr(client_ip) then
+    if not ngx.re.match(client_ip,"\\d+\\.\\d+\\.\\d+\\.\\d+", "jo") or not self:is_ipaddr(client_ip) then
         client_ip = ngx.var.remote_addr
         if client_ip == nil then
             client_ip = "unknown"
@@ -882,7 +884,7 @@ function _M.return_post_data(self)
         ngx.req.read_body()
         local data = ngx.req.get_body_data()
         if not data then return false end
-        local tmp = ngx.re.match(data,[[filename=\"(.+)\.(.*)\"]])
+        local tmp = ngx.re.match(data,[[filename=\"(.+)\.(.*)\"]], "jo")
         if not tmp then return false end
         if not tmp[2] then return false end
         return tmp[2]
