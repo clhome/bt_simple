@@ -254,7 +254,7 @@
 		<div class="bt-w-con pd15">
 			<div class="soft-man-con"></div>
 		</div>
-        <div style="position: absolute; bottom: 15px; right: 20px; font-size: 12px; color: #b0b0b0; letter-spacing: 1px; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; display: flex; align-items: center; z-index: 10;">
+        <div id="yufeng-footer" style="position: absolute; bottom: 15px; right: 20px; font-size: 12px; color: #b0b0b0; letter-spacing: 1px; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; display: flex; align-items: center; z-index: 10;">
             <span style="opacity: 0.8;">衢州御风科技有限公司 出品</span>
         </div>
 	</div>
@@ -262,6 +262,15 @@
 </div>
 <script src="/plugins/file?name=op_waf&f=js/op_waf.js"></script>
 <script type="text/javascript">
+$(document).ready(function() {
+    $('.bt-w-menu p').click(function(){
+        if($(this).text() !== '功能介绍') {
+            $('#yufeng-footer').show();
+        } else {
+            $('#yufeng-footer').hide();
+        }
+    });
+});
 resetPluginWinWidth(1050);
 
 $.getScript( "/plugins/file?name=op_waf&f=js/op_waf.js", function(data, textStatus, jqxhr){
@@ -323,9 +332,12 @@ function renderWafService() {
 }
 
 function wafIntro() {
+    $('#yufeng-footer').hide(); // Hide footer
     var introHtml = `
     <style>
-        .intro-container { padding: 20px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; animation: fadeIn 0.4s ease; color: #333; }
+        .intro-container { padding: 20px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; animation: fadeIn 0.4s ease; color: #333; height: 490px; overflow-y: auto; box-sizing: border-box; }
+        .intro-container::-webkit-scrollbar { width: 6px; }
+        .intro-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .intro-header { border-bottom: 2px solid #20a53a; padding-bottom: 10px; margin-bottom: 20px; }
         .intro-header h2 { margin: 0; font-size: 22px; color: #20a53a; font-weight: bold; }
@@ -339,6 +351,7 @@ function wafIntro() {
         .highlight { color: #20a53a; font-weight: 600; }
         .tag-safe { background: #e6f4ea; color: #137333; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; font-weight: normal; }
         .tag-perf { background: #e8f0fe; color: #1967d2; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; font-weight: normal; }
+        .intro-footer { text-align: center; font-size: 13px; color: #94a3b8; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #e2e8f0; }
     </style>
     <div class="intro-container">
         <div class="intro-header">
@@ -347,11 +360,22 @@ function wafIntro() {
         </div>
         
         <div class="intro-section">
-            <div class="intro-title"><span class="icon">🔒</span> 核心安全特性</div>
+            <div class="intro-title"><span class="icon">🔍</span> 基础防御体系</div>
+            <p style="font-size: 14px; color: #4b5563; margin-bottom: 10px;">作为一款轻量级却功能强大的 WAF，已全面具备以下传统防护能力：</p>
             <ul class="intro-list">
-                <li><span class="highlight">真实 IP 穿透识别：</span>严格校验 X-Forwarded-For 与可信代理列表，防止攻击者通过伪造 Header 绕过黑名单。<span class="tag-safe">安全增强</span></li>
-                <li><span class="highlight">全面支持 IPv6：</span>原生兼容并精准匹配 IPv6 地址请求，补齐安全短板，封堵纯 IPv6 攻击者绕过漏洞。</li>
-                <li><span class="highlight">深度嵌套 JSON 防御：</span>对 POST 请求的 JSON 数据进行最高 10 层深度的递归特征解析，严防恶意代码通过深层嵌套绕过检测。<span class="tag-safe">高级防御</span></li>
+                <li><span class="highlight">常见渗透防护：</span>有效拦截常见的 SQL 注入、XSS 跨站脚本攻击、一句话木马上传等。</li>
+                <li><span class="highlight">恶意扫描器拦截：</span>自动识别并阻断各类常见扫描器（如 sqlmap, awvs 等）的恶意探测。</li>
+                <li><span class="highlight">多维度特征过滤：</span>支持从 URL、GET/POST 参数、Cookie、User-Agent 等多个 HTTP 维度进行精准特征匹配。</li>
+            </ul>
+        </div>
+
+        <div class="intro-section">
+            <div class="intro-title"><span class="icon">🛡️</span> 攻克传统 WAF 痛点 (核心进化)</div>
+            <p style="font-size: 14px; color: #4b5563; margin-bottom: 10px;">针对现代互联网复杂多变的攻击手法，我们进行了深度的针对性底层优化：</p>
+            <ul class="intro-list">
+                <li><span class="highlight">真实客户端追踪 (防 XFF 伪造)：</span>传统 WAF 部署在 CDN 之后易将所有用户识别为单一 IP 或被恶意伪造 <code>X-Forwarded-For</code> 欺骗。我们引入了 <span class="highlight">trusted_proxy</span> 机制，严密校验可信代理池，精准锁定攻击者真实来源。<span class="tag-safe">防御升级</span></li>
+                <li><span class="highlight">JSON 深度解析拦截：</span>现代 API 接口交互频繁，攻击者易通过编码（如 %75%6e...）、深层嵌套或 GraphQL 等方式绕过传统正则。新版引擎现支持最高 10 层深度的 JSON Body 提取与严格审查，让隐蔽攻击无处遁形。<span class="tag-safe">高级防御</span></li>
+                <li><span class="highlight">全面拥抱 IPv6：</span>随着 IPv6 普及，黑产常利用海量 IPv6 代理池（如 /64 代理段）发起无限轮换攻击，以此绕过老旧的 IPv4 防线。新版原生完美兼容 IPv6，彻底封堵该类旁路绕过漏洞。</li>
             </ul>
         </div>
 
@@ -359,17 +383,21 @@ function wafIntro() {
             <div class="intro-title"><span class="icon">⚡</span> 极致性能优化</div>
             <ul class="intro-list">
                 <li><span class="highlight">PCRE JIT 引擎加速：</span>全局正则表达式启用了 JIT (即时编译) 和编译缓存 (jo修饰符)，在百万级高并发 QPS 下极大降低 CPU 开销。<span class="tag-perf">性能突破</span></li>
-                <li><span class="highlight">大文件流式检测机制：</span>智能拦截文件上传中的恶意特征。遇大文件时仅读取前 64KB 进行特征比对，不占用过多 Nginx Worker 内存，从根源杜绝 OOM。</li>
-                <li><span class="highlight">内存防暴涨管理：</span>缩短了 GeoIP 分析过程的共享缓存周期，有效防止因遭遇大规模恶意 IP 扫描时导致的 <code>waf_limit</code> 共享内存溢出崩溃。</li>
-                <li><span class="highlight">无感静默运行：</span>拒绝生成无效日志拉高磁盘 I/O，专注防御。</li>
+                <li><span class="highlight">大文件流式检测防 OOM：</span>智能拦截文件上传特征。遇大文件时仅提取前 64KB 进行特征比对，从根源杜绝读取超大文件导致 Nginx Worker 内存暴涨崩溃。</li>
+                <li><span class="highlight">防共享内存雪崩：</span>缩短了 GeoIP 分析过程的缓存周期。在遭遇每秒数万次的代理池 CC 或恶意扫描时，有效防止了 <code>waf_limit</code> 共享内存爆满导致的正常规则失效。</li>
+                <li><span class="highlight">无感静默运行：</span>拒绝生成大量无效调试日志拖垮服务器磁盘 I/O，将算力纯粹专注于安全拦截。</li>
             </ul>
         </div>
 
         <div class="intro-section" style="background-color: #f8fafc; border-color: #e2e8f0;">
             <div class="intro-title"><span class="icon">💡</span> 衢州御风科技给您的安心承诺</div>
             <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0;">
-                本次御风OP防火墙基于实战攻防经验进行了多维度底层优化，不放过任何一个可乘之机。所有规则对您站点的常规业务 <span class="highlight">零侵入</span>。您可以放心开启各项防御功能，享受丝滑且坚固的防线！
+                本次御风OP防火墙基于大量实战攻防经验，进行了多维度底层安全与性能优化。我们充分考虑了各种可能拖垮服务或被绕过的边缘场景。所有规则对您站点的常规业务 <span class="highlight">零侵入</span>，保证低延迟与高可用。您可以放心开启各项防御功能，享受丝滑且坚固的安全防线！
             </p>
+        </div>
+        
+        <div class="intro-footer">
+            衢州御风科技有限公司 出品
         </div>
     </div>
     `;
