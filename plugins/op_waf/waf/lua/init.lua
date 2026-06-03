@@ -34,6 +34,8 @@ local post_rules = require "rule_post"
 local cookie_rules = require "rule_cookie"
 local url_rules = require "rule_url"
 local url_white_rules = require "rule_url_white"
+local ssrf_rules = require "rule_ssrf"
+local vuln_rules = require "rule_vuln"
 
 local waf_area_limit = require "waf_area_limit"
 
@@ -45,10 +47,10 @@ local function initParams()
     data['ip'] = C:get_real_ip(server_name)
     data['ipn'] = C:arrip(data['ip'])
     data['request_header'] = ngx.req.get_headers()
-    data['uri'] = tostring(ngx.unescape_uri(ngx.var.uri))
+    data['uri'] = tostring(ngx.unescape_uri(ngx.unescape_uri(ngx.var.uri)))
     data['uri_request_args'] = ngx.req.get_uri_args()
     data['method'] = ngx.req.get_method()
-    data['request_uri'] = tostring(ngx.var.request_uri)
+    data['request_uri'] = tostring(ngx.unescape_uri(ngx.unescape_uri(ngx.var.request_uri)))
     data['status_code'] = ngx.status
     data['user_agent'] = data['request_header']['user-agent']
     data['cookie'] = ngx.var.http_cookie
@@ -163,11 +165,41 @@ local function min_route()
     end
 end
 
+local function waf_method()
+    local allowed_methods = {
+        GET=true, POST=true, PUT=true, DELETE=true, OPTIONS=true, HEAD=true
+    }
+    if not allowed_methods[params['method']] then
+        ngx.exit(444)
+        return true
+    end
+    return false
+end
+
+local function waf_smuggling()
+    local headers = params["request_header"]
+    if headers["transfer-encoding"] and headers["content-length"] then
+        ngx.exit(400)
+        return true
+    end
+    return false
+end
+
 local function waf_get_args()
     if not config['get']['open'] or not C:is_site_config('get') then return false end
     -- C:D("waf_get_args:"..C:to_json(args_rules)..":"..json.encode(params['uri_request_args']))
     if C:ngx_match_list(args_rules, params['uri_request_args']) then
         C:write_log('args','regular')
+        C:return_html(config['get']['status'], get_html)
+        return true
+    end
+    if C:ngx_match_list(ssrf_rules, params['uri_request_args']) then
+        C:write_log('ssrf','ssrf_args')
+        C:return_html(config['get']['status'], get_html)
+        return true
+    end
+    if C:ngx_match_list(vuln_rules, params['uri_request_args']) then
+        C:write_log('scan','vuln_args')
         C:return_html(config['get']['status'], get_html)
         return true
     end
@@ -285,16 +317,28 @@ local function waf_cc()
     local request_uri = params['request_uri']
     local subnet = get_subnet(ip)
     local secret = config['secret'] or "opwaf_default_secret"
+    
+    local ua = tostring(params['user_agent'] or '')
+    local cookie = tostring(params['cookie'] or '')
 
-    local token = C:hmac_sha256(secret, ip .. '_' .. request_uri)
-    local subnet_token = C:hmac_sha256(secret, subnet .. '_' .. request_uri)
+    local token = C:hmac_sha256(secret, ip .. '_' .. request_uri .. '_' .. ua .. '_' .. cookie)
+    local subnet_token = C:hmac_sha256(secret, subnet .. '_' .. request_uri .. '_' .. ua .. '_' .. cookie)
 
     local count = ngx.shared.waf_limit:get(token)
     local subnet_count = ngx.shared.waf_limit:get(subnet_token)
 
     local endtime = config['cc']['endtime']
-    local waf_limit = config['cc']['limit']
+    local base_limit = config['cc']['limit']
     local cycle = config['cc']['cycle']
+    
+    local waf_limit = base_limit
+    local lower_uri = string.lower(request_uri)
+    if string.find(lower_uri, "login") or string.find(lower_uri, "admin") then
+        waf_limit = 20
+    elseif string.find(lower_uri, "api") then
+        waf_limit = 60
+    end
+    
     local subnet_limit = waf_limit * 10 -- Allow proxy pool up to 10x single IP limit
 
     if (count and count > waf_limit) or (subnet_count and subnet_count > subnet_limit) then 
@@ -448,6 +492,16 @@ local function waf_url()
         C:return_html(config['get']['status'], get_html)
         return true
     end
+    if C:ngx_match_list(ssrf_rules, params["uri"]) then
+        C:write_log('ssrf','ssrf_url')
+        C:return_html(config['get']['status'], get_html)
+        return true
+    end
+    if C:ngx_match_list(vuln_rules, params["uri"]) then
+        C:write_log('scan','vuln_url')
+        C:return_html(config['get']['status'], get_html)
+        return true
+    end
     return false
 end
 
@@ -492,6 +546,17 @@ local function waf_post()
     local data_str = ""
     local content_type = params["request_header"]["content-type"]
     if type(content_type) == "table" then content_type = content_type[1] end
+    
+    if content_type and (string.find(string.lower(content_type), "xml", 1, true)) then
+        local body_data = ngx.req.get_body_data()
+        if body_data then
+            if ngx.re.find(body_data, "(<!DOCTYPE|<!ENTITY|SYSTEM|PUBLIC)", "ijo") then
+                C:write_log('xxe','xxe_match')
+                C:return_html(config['post']['status'], post_html)
+                return true
+            end
+        end
+    end
     
     if content_type and string.find(string.lower(content_type), "application/json", 1, true) then
         local body_data = ngx.req.get_body_data()
@@ -545,6 +610,16 @@ local function waf_post()
     -- C:D("post:"..json.encode(data_str))
     if C:ngx_match_list(post_rules, data_str) then
         C:write_log('post','regular')
+        C:return_html(config['post']['status'], post_html)
+        return true
+    end
+    if C:ngx_match_list(ssrf_rules, data_str) then
+        C:write_log('ssrf','ssrf_post')
+        C:return_html(config['post']['status'], post_html)
+        return true
+    end
+    if C:ngx_match_list(vuln_rules, data_str) then
+        C:write_log('scan','vuln_post')
         C:return_html(config['post']['status'], post_html)
         return true
     end
@@ -630,6 +705,12 @@ local function post_data()
         local tmp = ngx.re.match(data,[[filename=\"(.+)\.(.*)\"]], "jo")
         if tmp and tmp[2] then
             if disable_upload_ext(tmp[2]) then return true end
+            local ext_full = string.lower(tmp[1] .. "." .. tmp[2])
+            if ngx.re.find(ext_full, "\\.(php|jsp|asp|aspx|sh|exe|dll)\\.", "ijo") then
+                C:write_log('upload_ext', '上传双扩展名黑名单')
+                C:return_html(config['other']['status'],other_html)
+                return true
+            end
         end
 
         local tmp_mime = ngx.re.match(data, [[Content-Type:\s*([^\r\n]+)]], "jo")
@@ -772,6 +853,9 @@ local function area_limit(overall_country, server_name, status)
 end
 
 function run_app_waf()
+    if waf_method() then return true end
+    if waf_smuggling() then return true end
+    
     min_route()
     -- C:D("min_route")
 

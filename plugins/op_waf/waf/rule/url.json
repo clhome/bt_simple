@@ -82,5 +82,11 @@
         "(?i)(bash\\s+-i|nc\\s+-e\\s+/bin/|sh\\s+-i|perl\\s+-MIO|python\\s+-c\\s+['\\\"]import\\s+pty)",
         "Reverse Shell/Command Injection",
         0
+    ],
+    [
+        1,
+        "^/(phpmyadmin|\\.env|vendor/phpunit|admin\\.php|\\.git|config\\.php\\.bak)",
+        "蜜罐目录探测",
+        0
     ]
 ]
