@@ -23,6 +23,7 @@ local other_html = require "html_other"
 local user_agent_html = require "html_user_agent"
 local cc_safe_js_html = require "html_safe_js"
 local cookie_html = require "html_cookie"
+local warning_404_html = require "html_404_warning"
 
 local args_rules = require "rule_args"
 local ip_white_rules = require "rule_ip_white"
@@ -869,6 +870,16 @@ local function area_limit(overall_country, server_name, status)
     return false
 end
 
+local function waf_404_warning()
+    local warn_key = "404_warning:" .. params['ip']
+    local is_warn = ngx.shared.waf_limit:get(warn_key)
+    if is_warn then
+        C:return_html(403, warning_404_html)
+        return true
+    end
+    return false
+end
+
 function run_app_waf()
     if waf_method() then return true end
     if waf_smuggling() then return true end
@@ -895,6 +906,9 @@ function run_app_waf()
         -- 封禁ip返回
         if waf_drop_ip() then return true end
         -- C:D("waf_drop_ip")
+
+        -- 404 警告拦截
+        if waf_404_warning() then return true end
 
         -- country limit
         if config['area_limit'] then
