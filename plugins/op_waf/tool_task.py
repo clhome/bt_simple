@@ -58,7 +58,7 @@ def createBgTask():
 def createBgTaskByName(name):
     cfg = getConfigData()
 
-    _name = "[勿删]OP防火墙后台任务"
+    _name = "[勿删]御风OP防火墙后台任务"
     res = mw.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
         return True

@@ -116,7 +116,7 @@ Install_App(){
 	fi
 
 	echo "${version}" > $serverPath/op_waf/version.pl
-	echo '安装OP防火墙成功!'
+	echo '安装御风OP防火墙成功!'
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/op_waf/index.py start
 	echo "cd ${rootPath} && python3 ${rootPath}/plugins/op_waf/index.py start"

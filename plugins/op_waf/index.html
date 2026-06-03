@@ -247,6 +247,7 @@
 			<p onclick="wafSite();">站点配置</p>
             <p onclick="wafAreaLimit();">地区限制</p>
             <p onclick="wafLogs();">封锁历史</p>
+            <p onclick="wafIntro();">功能介绍</p>
             <!-- <p onclick="wafOpLogs();">操作日志</p> -->
 		</div>
 		<!-- lib-con  -->
@@ -319,5 +320,59 @@ function renderWafService() {
             });
         });
     }, 500);
+}
+
+function wafIntro() {
+    var introHtml = `
+    <style>
+        .intro-container { padding: 20px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; animation: fadeIn 0.4s ease; color: #333; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .intro-header { border-bottom: 2px solid #20a53a; padding-bottom: 10px; margin-bottom: 20px; }
+        .intro-header h2 { margin: 0; font-size: 22px; color: #20a53a; font-weight: bold; }
+        .intro-section { margin-bottom: 25px; background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #eee; transition: all 0.3s; }
+        .intro-section:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #d1d5db; }
+        .intro-title { font-size: 16px; font-weight: 600; color: #111827; margin-bottom: 12px; display: flex; align-items: center; }
+        .intro-title .icon { margin-right: 8px; font-size: 18px; }
+        .intro-list { list-style: none; padding: 0; margin: 0; }
+        .intro-list li { position: relative; padding-left: 20px; margin-bottom: 10px; font-size: 14px; line-height: 1.6; color: #4b5563; }
+        .intro-list li::before { content: '✓'; position: absolute; left: 0; top: 0; color: #20a53a; font-weight: bold; }
+        .highlight { color: #20a53a; font-weight: 600; }
+        .tag-safe { background: #e6f4ea; color: #137333; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; font-weight: normal; }
+        .tag-perf { background: #e8f0fe; color: #1967d2; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; font-weight: normal; }
+    </style>
+    <div class="intro-container">
+        <div class="intro-header">
+            <h2>🛡️ 御风 OP 安全防护引擎 V1.0</h2>
+            <p style="margin-top: 10px; font-size: 14px; color: #666;">深度优化的高性能 Web 应用防火墙，为您提供企业级安全防护，拦截各类复杂渗透攻击，全方位守护站点安全。</p>
+        </div>
+        
+        <div class="intro-section">
+            <div class="intro-title"><span class="icon">🔒</span> 核心安全特性</div>
+            <ul class="intro-list">
+                <li><span class="highlight">真实 IP 穿透识别：</span>严格校验 X-Forwarded-For 与可信代理列表，防止攻击者通过伪造 Header 绕过黑名单。<span class="tag-safe">安全增强</span></li>
+                <li><span class="highlight">全面支持 IPv6：</span>原生兼容并精准匹配 IPv6 地址请求，补齐安全短板，封堵纯 IPv6 攻击者绕过漏洞。</li>
+                <li><span class="highlight">深度嵌套 JSON 防御：</span>对 POST 请求的 JSON 数据进行最高 10 层深度的递归特征解析，严防恶意代码通过深层嵌套绕过检测。<span class="tag-safe">高级防御</span></li>
+            </ul>
+        </div>
+
+        <div class="intro-section">
+            <div class="intro-title"><span class="icon">⚡</span> 极致性能优化</div>
+            <ul class="intro-list">
+                <li><span class="highlight">PCRE JIT 引擎加速：</span>全局正则表达式启用了 JIT (即时编译) 和编译缓存 (jo修饰符)，在百万级高并发 QPS 下极大降低 CPU 开销。<span class="tag-perf">性能突破</span></li>
+                <li><span class="highlight">大文件流式检测机制：</span>智能拦截文件上传中的恶意特征。遇大文件时仅读取前 64KB 进行特征比对，不占用过多 Nginx Worker 内存，从根源杜绝 OOM。</li>
+                <li><span class="highlight">内存防暴涨管理：</span>缩短了 GeoIP 分析过程的共享缓存周期，有效防止因遭遇大规模恶意 IP 扫描时导致的 <code>waf_limit</code> 共享内存溢出崩溃。</li>
+                <li><span class="highlight">无感静默运行：</span>拒绝生成无效日志拉高磁盘 I/O，专注防御。</li>
+            </ul>
+        </div>
+
+        <div class="intro-section" style="background-color: #f8fafc; border-color: #e2e8f0;">
+            <div class="intro-title"><span class="icon">💡</span> 衢州御风科技给您的安心承诺</div>
+            <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0;">
+                本次御风OP防火墙基于实战攻防经验进行了多维度底层优化，不放过任何一个可乘之机。所有规则对您站点的常规业务 <span class="highlight">零侵入</span>。您可以放心开启各项防御功能，享受丝滑且坚固的防线！
+            </p>
+        </div>
+    </div>
+    `;
+    $(".soft-man-con").html(introHtml);
 }
 </script>
