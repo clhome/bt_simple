@@ -407,6 +407,31 @@ function _M.unlock_working(self, sign)
     self:dict_set("waf_limit", working_key, false)
 end
 
+function _M.add_reputation_penalty(self, ip, points, reason)
+    if not ip or ip == "unknown" then return end
+    
+    local key = "reputation_score:" .. ip
+    local current_score = ngx.shared.waf_limit:get(key)
+    
+    if not current_score then
+        self:dict_set("waf_limit", key, points, 86400)
+        current_score = points
+    else
+        ngx.shared.waf_limit:incr(key, points)
+        current_score = current_score + points
+    end
+    
+    if current_score >= 100 then
+        local drop_key = ip
+        self:dict_set("waf_drop_ip", drop_key, 1, 86400)
+        local params = self.params or {ip = ip}
+        self:log(params, 'scan', "信誉归零，触发自动拉黑 24 小时 (" .. reason .. ")")
+        
+        -- Reset the score to avoid redundant logging
+        self:dict_set("waf_limit", key, 0, 86400)
+    end
+end
+
 
 local function write_file_clear(filename, body)
     fp = io.open(filename,'w')
@@ -814,6 +839,13 @@ function _M.write_log(self, name, rule)
 
     local ip = params['ip']
     local ngx_time = ngx.time()
+    
+    local penalty_points = 50
+    if name == 'cc' then penalty_points = 10
+    elseif name == 'user_agent' then penalty_points = 20
+    elseif name == 'scan' then penalty_points = 30
+    end
+    self:add_reputation_penalty(ip, penalty_points, "触发防线: " .. name)
     
     local retry = config['retry']['retry']
     local retry_time = config['retry']['retry_time']
