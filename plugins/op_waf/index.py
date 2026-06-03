@@ -1484,6 +1484,48 @@ def cleanDropIp():
     return mw.returnJson(True, 'ok!', data)
 
 
+def addTrustedProxy():
+    args = getArgs()
+    data = checkArgs(args, ['ip'])
+    if not data[0]:
+        return data[1]
+    
+    conf = getJsonPath('config')
+    content = mw.readFile(conf)
+    cobj = json.loads(content)
+    
+    if "trusted_proxy" not in cobj:
+        cobj["trusted_proxy"] = []
+    
+    if args['ip'] not in cobj["trusted_proxy"]:
+        cobj["trusted_proxy"].append(args['ip'])
+        
+    cjson = mw.getJson(cobj)
+    mw.writeFile(conf, cjson)
+    setConfRestartWeb()
+    return mw.returnJson(True, '添加成功!')
+
+
+def removeTrustedProxy():
+    args = getArgs()
+    data = checkArgs(args, ['index'])
+    if not data[0]:
+        return data[1]
+    
+    index = int(args['index'])
+    conf = getJsonPath('config')
+    content = mw.readFile(conf)
+    cobj = json.loads(content)
+    
+    if "trusted_proxy" in cobj and index < len(cobj["trusted_proxy"]):
+        cobj["trusted_proxy"].pop(index)
+        cjson = mw.getJson(cobj)
+        mw.writeFile(conf, cjson)
+        setConfRestartWeb()
+        return mw.returnJson(True, '删除成功!')
+    return mw.returnJson(False, '删除失败!')
+
+
 def testRun():
     # args = getArgs()
     # data = checkArgs(args, ['siteName'])
@@ -1603,6 +1645,10 @@ if __name__ == "__main__":
         print(delAreaLimit())
     elif func == 'clean_drop_ip':
         print(cleanDropIp())
+    elif func == 'add_trusted_proxy':
+        print(addTrustedProxy())
+    elif func == 'remove_trusted_proxy':
+        print(removeTrustedProxy())
     elif func == 'test_run':
         print(testRun())
     else:

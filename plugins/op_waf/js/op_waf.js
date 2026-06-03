@@ -477,6 +477,69 @@ function setObjConf(ruleName, type) {
 }
 
 
+// CDN增强检测
+function cdnEnhancedRule() {
+    owPost('waf_conf', {}, function(data){
+        var tmp = $.parseJSON(data.data);
+        var trusted_proxies = tmp.trusted_proxy || [];
+        var tbody = '';
+        for (var i = 0; i < trusted_proxies.length; i++) {
+            tbody += '<tr>\
+                    <td>'+ trusted_proxies[i] + '</td>\
+                    <td class="text-right"><a class="btlink" onclick="removeTrustedProxy('+ i + ')">删除</a></td>\
+                </tr>'
+        }
+        create_l = layer.open({
+            type: 1,
+            title: "CDN增强检测 - 可信代理设置",
+            area: ['500px', '500px'],
+            closeBtn: 1,
+            shadeClose: false,
+            content: '<div class="pd15">\
+                <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
+                    <input class="bt-input-text" name="trusted_proxy_ip" type="text" value="" style="width:380px;margin-right:15px;margin-left:5px" placeholder="CDN节点IP或CIDR，如 10.0.0.0/8">\
+                    <button class="btn btn-success btn-sm va0 pull-right" onclick="addTrustedProxy();">添加</button>\</div>\
+                <div class="divtable">\
+                <div id="trustedProxyAdmin" style="max-height:273px;overflow:auto;border:#ddd 1px solid">\
+                <table class="table table-hover" style="border:none">\
+                    <thead>\
+                        <tr>\
+                            <th>可信IP/CIDR</th>\
+                            <th style="text-align: right;">操作</th>\
+                        </tr>\
+                    </thead>\
+                    <tbody id="trusted_proxy_con" class="gztr">'+tbody+'</tbody>\
+                </table>\
+                </div>\
+            </div>\
+            <ul class="help-info-text c7 ptb10">\
+                <li>请输入CDN服务商提供的节点IP白名单。支持单个IP或CIDR格式。</li>\
+                <li style="color:red">注意: 开启CDN增强检测后，必须在此添加正确的IP段，否则所有经过CDN的访客都将丢失真实IP。</li>\
+            </ul></div>'
+        });
+        tableFixed("trustedProxyAdmin");
+    });
+}
+
+function addTrustedProxy() {
+    var pdata = { ip: $("input[name='trusted_proxy_ip']").val() };
+    if (!pdata.ip) { layer.msg("IP不能为空"); return; }
+    owPost('add_trusted_proxy', pdata, function(data){
+        var rdata = $.parseJSON(data.data);
+        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
+    });
+}
+
+function removeTrustedProxy(index) {
+    owPost('remove_trusted_proxy', { index: index }, function(data){
+        var rdata = $.parseJSON(data.data);
+        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
+    });
+}
+
+
 //常用扫描器
 function scanRule() {
 
@@ -1146,6 +1209,12 @@ function wafGloabl(){
                             <input class="btswitch btswitch-ios" id="closescan" type="checkbox" '+ (rdata.scan.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closescan" onclick="setObjOpen(\'scan\')"></label>\
                         </div></td><td class="text-right"><a class="btlink" onclick="scanRule()">设置</a></td>\
+                    </tr>\
+                    <tr>\
+                        <td style="color:#fc6d26;font-weight:bold;">CDN增强检测</td><td>未开启时，站点开启CDN将会放行部分包含X-Forwarded-For的IP</td><td style="text-align: center;">--</td><td><div class="ssh-item">\
+                            <input class="btswitch btswitch-ios" id="closecdn_enhanced" type="checkbox" '+ (rdata.cdn_enhanced && rdata.cdn_enhanced.open ? 'checked' : '') + '>\
+                            <label class="btswitch-btn" for="closecdn_enhanced" onclick="setObjOpen(\'cdn_enhanced\')"></label>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="cdnEnhancedRule()">设置</a></td>\
                     </tr>\
                     <tr>\
                         <td>URL白名单</td><td>所有规则对URL白名单无效</td><td style="text-align: center;">--</td>\

@@ -149,8 +149,9 @@ def pSqliteDb(dbname='logs'):
 
 def run():
     now_t = int(time.time())
+    expire_time = now_t - 86400 * 30
     logs_conn = pSqliteDb('logs')
-    del_hot_log = "delete from logs where time<{}".format(now_t)
+    del_hot_log = "delete from logs where time<{}".format(expire_time)
     print(del_hot_log)
     r = logs_conn.execute(del_hot_log)
     return 'ok'

@@ -349,15 +349,15 @@ local function waf_cc()
 
         local safe_count, _ = ngx.shared.waf_drop_sum:get(block_target)
         if not safe_count then
-            ngx.shared.waf_drop_sum:set(block_target, 1, 86400)
+            C:dict_set("waf_drop_sum", block_target, 1, 86400)
             safe_count = 1
         else
-            ngx.shared.waf_drop_sum:incr(block_target, 1)
+            C:dict_incr("waf_drop_sum", block_target, 1)
         end
         local lock_time = (endtime * safe_count)
         if lock_time > 86400 then lock_time = 86400 end
 
-        ngx.shared.waf_drop_ip:set(block_target, 1, lock_time)
+        C:dict_set("waf_drop_ip", block_target, 1, lock_time)
         local reason = cycle..'秒内累计超过请求限制,封锁' .. lock_time .. '秒'
         C:write_log('cc', reason)
         C:log(params, 'cc',reason)
@@ -365,16 +365,16 @@ local function waf_cc()
         return true
     else
         if count then
-            ngx.shared.waf_limit:incr(token, 1)
+            C:dict_incr("waf_limit", token, 1)
         else
-            ngx.shared.waf_drop_sum:set(ip, 1, 86400)
-            ngx.shared.waf_limit:set(token, 1, cycle)
+            C:dict_set("waf_drop_sum", ip, 1, 86400)
+            C:dict_set("waf_limit", token, 1, cycle)
         end
         
         if subnet_count then
-            ngx.shared.waf_limit:incr(subnet_token, 1)
+            C:dict_incr("waf_limit", subnet_token, 1)
         else
-            ngx.shared.waf_limit:set(subnet_token, 1, cycle)
+            C:dict_set("waf_limit", subnet_token, 1, cycle)
         end
     end
     return false
@@ -420,7 +420,7 @@ local function waf_cc_increase()
     local cache_rand = ngx.shared.waf_limit:get(cache_rand_key)
     if not cache_rand then 
         cache_rand = C:get_random(8)
-        ngx.shared.waf_limit:set(cache_rand_key,cache_rand,30)
+        C:dict_set("waf_limit", cache_rand_key,cache_rand,30)
     end
 
     local make_token = "waf_unbind_"..cache_rand.."_"..cache_token
@@ -443,7 +443,7 @@ local function waf_cc_increase()
             end
 
             if is_valid_fp then
-                ngx.shared.waf_limit:set(cache_token, 1, tonumber(config['safe_verify']['time']))
+                C:dict_set("waf_limit", cache_token, 1, tonumber(config['safe_verify']['time']))
                 local data = get_return_state(0, "ok")
                 ngx.say(json.encode(data))
                 ngx.exit(200)
@@ -471,7 +471,7 @@ local function waf_cc_increase()
         end
 
         if not cache_url_val then
-            ngx.shared.waf_limit:set(cache_url_key, request_uri,30)
+            C:dict_set("waf_limit", cache_url_key, request_uri,30)
             return ngx.redirect(to_url)
         end
     end
@@ -777,8 +777,8 @@ local function  get_ip_country(ip)
     if type(geo)=='number' then return "2" end
     if geo==nil then return "2" end 
     if geo.lookup==nil then return "2" end 
-    local res,err=geo.lookup(ip or ngx.var.remote_addr)
-    if not res then
+    local ok, res, err = pcall(geo.lookup, ip or ngx.var.remote_addr)
+    if not ok or not res then
         return "2"
     else
         -- C:D("res:"..tostring(res))
@@ -797,7 +797,7 @@ local function get_country()
     if ip_postion["country"]==nil then return false end 
     if ip_postion["country"]["names"]==nil then return false end 
     if ip_postion["country"]["names"]["zh-CN"]==nil then return false end 
-    ngx.shared.waf_limit:set("get_country"..ip,ip_postion["country"]["names"]["zh-CN"],600)
+    C:dict_set("waf_limit", "get_country"..ip,ip_postion["country"]["names"]["zh-CN"],600)
     return ip_postion["country"]["names"]["zh-CN"]
 end 
 

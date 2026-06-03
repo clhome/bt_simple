@@ -234,6 +234,31 @@ function _M.setDebug(self, mode)
     debug_mode = false
 end
 
+function _M.dict_set(self, dict_name, key, value, exptime)
+    local dict = ngx.shared[dict_name]
+    if dict then
+        exptime = exptime or 0
+        local ok, err = dict:set(key, value, exptime)
+        if not ok then
+            ngx.log(ngx.ERR, "shared dict ["..tostring(dict_name).."] set error: ", tostring(err))
+        end
+        return ok
+    end
+    return false
+end
+
+function _M.dict_incr(self, dict_name, key, value, init, init_ttl)
+    local dict = ngx.shared[dict_name]
+    if dict then
+        local ok, err = dict:incr(key, value, init, init_ttl)
+        if not ok then
+            ngx.log(ngx.ERR, "shared dict ["..tostring(dict_name).."] incr error: ", tostring(err))
+        end
+        return ok
+    end
+    return false
+end
+
 
 -- 调试方式
 function _M.D(self, msg)
@@ -281,12 +306,12 @@ end
 
 function _M.lock_working(self, sign)
     local working_key = sign.."_working"
-    ngx.shared.waf_limit:set(working_key, true, 60)
+    self:dict_set("waf_limit", working_key, true, 60)
 end
 
 function _M.unlock_working(self, sign)
     local working_key = sign.."_working"
-    ngx.shared.waf_limit:set(working_key, false)
+    self:dict_set("waf_limit", working_key, false)
 end
 
 
@@ -567,7 +592,7 @@ function _M.stats_total(self, name, rule)
     total['sites'][server_name][name] = total['sites'][server_name][name] + 1
     total['rules'][name] = total['rules'][name] + 1
 
-    ngx.shared.waf_limit:set(total_path,json.encode(total))
+    self:dict_set("waf_limit", total_path,json.encode(total))
 
     -- 异步执行
     -- 现在改再init_workder.lua 定时执行
@@ -586,7 +611,7 @@ function _M.get_sn(self, config_domains)
         for _,cd_name in ipairs(v['domains'])
         do
             if request_name == cd_name then
-                ngx.shared.waf_limit:set(request_name,v['name'],86400)
+                self:dict_set("waf_limit", request_name,v['name'],86400)
                 return v['name']
             end
         end
@@ -703,9 +728,9 @@ function _M.write_log(self, name, rule)
     
     local count = ngx.shared.waf_drop_ip:get(ip)
     if count then
-        ngx.shared.waf_drop_ip:incr(ip, 1)
+        self:dict_incr("waf_drop_ip", ip, 1)
     else
-        ngx.shared.waf_drop_ip:set(ip, 1, retry_cycle)
+        self:dict_set("waf_drop_ip", ip, 1, retry_cycle)
     end
 
     if config['log'] ~= true or self:is_site_config('log') ~= true then return false end
@@ -720,16 +745,16 @@ function _M.write_log(self, name, rule)
     if (count > retry and name ~= 'cc') then
         local safe_count,_ = ngx.shared.waf_drop_sum:get(ip)
         if not safe_count then
-            ngx.shared.waf_drop_sum:set(ip, 1, 86400)
+            self:dict_set("waf_drop_sum", ip, 1, 86400)
             safe_count = 1
         else
-            ngx.shared.waf_drop_sum:incr(ip, 1)
+            self:dict_incr("waf_drop_sum", ip, 1)
         end
         local lock_time = retry_time * safe_count
         if lock_time > 86400 then lock_time = 86400 end
 
         retry_times = retry + 1
-        ngx.shared.waf_drop_ip:set(ip, retry_times, lock_time)
+        self:dict_set("waf_drop_ip", ip, retry_times, lock_time)
 
         local reason = retry_cycle .. '秒以内累计超过'..retry..'次以上非法请求,封锁'.. lock_time ..'秒'
         self:log(params, name, reason)
@@ -775,7 +800,8 @@ function _M.get_real_ip(self, server_name)
     end
 
     if site_config[server_name] then
-        if is_trusted or (site_config[server_name]['cdn'] and not has_trusted_proxy_config) then
+        local cdn_enhanced_open = self.config['cdn_enhanced'] and self.config['cdn_enhanced']['open']
+        if is_trusted or (not cdn_enhanced_open and site_config[server_name]['cdn']) then
             local request_header = ngx.req.get_headers()
             for _,v in ipairs(site_config[server_name]['cdn_header'])
             do
