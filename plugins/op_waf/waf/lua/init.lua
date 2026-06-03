@@ -208,6 +208,10 @@ end
 
 
 local function waf_ip_white()
+    local matcher = C:get_ipmatcher(ip_white_rules, "white_rules")
+    if matcher then
+        return matcher:match(params['ip'])
+    end
     for _,rule in ipairs(ip_white_rules)
     do
         if type(rule) == "string" then
@@ -227,18 +231,31 @@ local function waf_url_white()
 end
 
 local function waf_ip_black()
-    -- ipv4 and ipv6 mixed ip black
-    for _,rule in ipairs(ip_black_rules)
-    do
-        if type(rule) == "string" then
-            if rule == params['ip'] then 
-                ngx.exit(config['cc']['status'])
-                return true 
-            end
-        elseif type(rule) == "table" and C:compare_ip(rule) then 
-            ngx.exit(config['cc']['status'])
-            return true 
+    local matched = false
+    local matcher = C:get_ipmatcher(ip_black_rules, "black_rules")
+    if matcher then
+        if matcher:match(params['ip']) then
+            matched = true
         end
+    else
+        -- ipv4 and ipv6 mixed ip black fallback
+        for _,rule in ipairs(ip_black_rules)
+        do
+            if type(rule) == "string" then
+                if rule == params['ip'] then 
+                    matched = true
+                    break
+                end
+            elseif type(rule) == "table" and C:compare_ip(rule) then 
+                matched = true
+                break
+            end
+        end
+    end
+
+    if matched then
+        ngx.exit(config['cc']['status'])
+        return true
     end
 
     -- legacy ipv6 ip black

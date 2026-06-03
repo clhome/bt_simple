@@ -57,6 +57,92 @@ end
 
 local rpath = cpath.."/rule/"
 
+local ipmatcher
+pcall(function()
+    ipmatcher = require("resty.ipmatcher")
+end)
+
+function _M.ip2num(self, ip_arr)
+    return ip_arr[1] * 16777216 + ip_arr[2] * 65536 + ip_arr[3] * 256 + ip_arr[4]
+end
+
+function _M.num2ip(self, n)
+    local d = n % 256
+    n = math.floor(n / 256)
+    local c = n % 256
+    n = math.floor(n / 256)
+    local b = n % 256
+    n = math.floor(n / 256)
+    local a = n % 256
+    return a .. "." .. b .. "." .. c .. "." .. d
+end
+
+function _M.range2cidrs(self, start_num, end_num)
+    local cidrs = {}
+    while start_num <= end_num do
+        local max_size = 32
+        while max_size > 0 do
+            local bits = 32 - (max_size - 1)
+            local mask = math.pow(2, bits)
+            local rem = start_num % mask
+            if rem ~= 0 then
+                break
+            end
+            if start_num + mask - 1 > end_num then
+                break
+            end
+            max_size = max_size - 1
+        end
+        local size = math.pow(2, 32 - max_size)
+        table.insert(cidrs, self:num2ip(start_num) .. "/" .. max_size)
+        start_num = start_num + size
+    end
+    return cidrs
+end
+
+local cached_matchers = {}
+
+function _M.get_ipmatcher(self, rules, cache_key)
+    if not ipmatcher then
+        return nil
+    end
+    
+    local version_key = cache_key .. "_version"
+    local current_version = ngx.shared.waf_limit and ngx.shared.waf_limit:get(version_key) or 0
+    
+    if cached_matchers[cache_key] and cached_matchers[cache_key].version == current_version then
+        return cached_matchers[cache_key].matcher
+    end
+    
+    local ips = {}
+    for _, rule in ipairs(rules) do
+        if type(rule) == "string" then
+            table.insert(ips, rule)
+        elseif type(rule) == "table" then
+            if type(rule[1]) == "number" and type(rule[2]) == "string" then
+                if rule[1] == 1 then
+                    table.insert(ips, rule[2])
+                end
+            elseif type(rule[1]) == "table" and type(rule[2]) == "table" then
+                local start_num = self:ip2num(rule[1])
+                local end_num = self:ip2num(rule[2])
+                local cidrs = self:range2cidrs(start_num, end_num)
+                for _, cidr in ipairs(cidrs) do
+                    table.insert(ips, cidr)
+                end
+            end
+        end
+    end
+    
+    local matcher, err = ipmatcher.new(ips)
+    if matcher then
+        cached_matchers[cache_key] = { matcher = matcher, version = current_version }
+    else
+        self:D("ipmatcher create error: " .. tostring(err))
+    end
+    return matcher
+end
+
 function _M.new(self)
 
     local self = {
