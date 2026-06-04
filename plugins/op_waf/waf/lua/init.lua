@@ -527,6 +527,35 @@ local function waf_url()
 end
 
 
+local function waf_honeypot()
+    if not config['honeypot'] or not config['honeypot']['open'] then return false end
+    local paths = config['honeypot']['paths']
+    if not paths then return false end
+
+    for _, path in ipairs(paths) do
+        local is_match = false
+        if string.sub(path, -1) == '/' then
+            -- 目录前缀匹配 (例如 '/.git/' 会匹配 '/.git/config')
+            if string.sub(params['uri'], 1, string.len(path)) == path then
+                is_match = true
+            end
+        else
+            -- 精确完整匹配 (例如 '/.env')
+            if params['uri'] == path then
+                is_match = true
+            end
+        end
+        
+        if is_match then
+            C:add_reputation_penalty(params['ip'], 100, "触碰蜜罐路径: " .. path)
+            C:write_log('honeypot', '触发自动蜜罐，立刻封禁')
+            ngx.exit(config['honeypot']['status'])
+            return true
+        end
+    end
+    return false
+end
+
 local function waf_scan_black()
     -- 扫描软件禁止
     if not config['scan']['open'] or not C:is_site_config('scan') then return false end
@@ -940,6 +969,9 @@ function run_app_waf()
         -- args参数拦截
         if waf_get_args() then return true end
         -- C:D("waf_get_args")
+
+        -- 蜜罐路径拦截
+        if waf_honeypot() then return true end
 
         -- 扫描软件禁止
         if waf_scan_black() then return true end

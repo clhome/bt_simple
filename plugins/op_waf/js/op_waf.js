@@ -1211,6 +1211,12 @@ function wafGloabl(){
                         </div></td><td class="text-right"><a class="btlink" onclick="scanRule()">设置</a></td>\
                     </tr>\
                     <tr>\
+                        <td><span style="color:#ff5722; font-weight:bold;">蜜罐</span><br><span style="font-size:10px;color:#999;">强检测</span></td><td>'+ (rdata.honeypot ? rdata.honeypot.ps : '自动蜜罐防护，拦截自动扫描器和嗅探脚本') + '</td><td><a class="btlink" onclick="setRequestCode(\'honeypot\',' + (rdata.honeypot ? rdata.honeypot.status : 444) + ')">' + (rdata.honeypot ? rdata.honeypot.status : 444) + '</a></td><td><div class="ssh-item">\
+                            <input class="btswitch btswitch-ios" id="closehoneypot" type="checkbox" '+ ((rdata.honeypot && rdata.honeypot.open) ? 'checked' : '') + '>\
+                            <label class="btswitch-btn" for="closehoneypot" onclick="setObjOpen(\'honeypot\')"></label>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="setHoneypotDialog()">设置</a></td>\
+                    </tr>\
+                    <tr>\
                         <td style="color:#fc6d26;font-weight:bold;">CDN增强检测</td><td>未开启时，站点开启CDN将会放行部分包含X-Forwarded-For的IP</td><td style="text-align: center;">--</td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closecdn_enhanced" type="checkbox" '+ (rdata.cdn_enhanced && rdata.cdn_enhanced.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closecdn_enhanced" onclick="setObjOpen(\'cdn_enhanced\')"></label>\
@@ -2382,4 +2388,68 @@ function showDropIpLogs(ip) {
             content: tableHtml
         });
     });
+}
+
+function setHoneypotDialog() {
+    owPost('waf_conf', {}, function(data){
+        var rdata = $.parseJSON(data.data);
+        var paths = [];
+        if (rdata.honeypot && rdata.honeypot.paths && rdata.honeypot.paths.length > 0) {
+            paths = rdata.honeypot.paths;
+        } else {
+            paths = ['/.env', '/admin_test.php', '/backup.zip', '/config.php.bak', '/.git/'];
+        }
+
+        var html = '<div style="padding: 20px;">\
+            <div style="margin-bottom: 15px; color:#666;">\
+                请配置高危蜜罐路径（每行一个）。当访客尝试请求以下任意路径时，防火墙会立刻将其信誉积分扣满（默认 100 分）并触发封禁。推荐填入不存在的敏感路径。\
+            </div>\
+            <textarea id="honeypot_paths_input" style="width: 100%; height: 230px; line-height: 22px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; white-space: pre; font-family: Consolas, monospace;">' + paths.join('\n') + '</textarea>\
+            <div style="margin-top: 15px; display: flex; justify-content: space-between;">\
+                <button class="btn btn-default btn-sm" style="color: #d9534f; border-color: #d9534f;" onclick="restoreHoneypotDefault()">还原默认配置</button>\
+                <button class="btn btn-success btn-sm" onclick="saveHoneypotPaths()">保存配置</button>\
+            </div>\
+        </div>';
+
+        layer.open({
+            type: 1,
+            title: '蜜罐高危路径配置',
+            area: ['500px', '450px'],
+            closeBtn: 1,
+            shadeClose: false,
+            content: html
+        });
+    });
+}
+
+function saveHoneypotPaths() {
+    var rawText = $('#honeypot_paths_input').val();
+    var lines = rawText.split('\n');
+    var paths = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = $.trim(lines[i]);
+        if (line !== '') {
+            if (line.charAt(0) !== '/') {
+                line = '/' + line;
+            }
+            paths.push(line);
+        }
+    }
+    
+    var loadT = layer.msg('正在保存配置...', {icon: 16, time: 0, shade: 0.3});
+    owPost('setHoneypotPaths', {paths: JSON.stringify(paths)}, function(res_raw) {
+        layer.close(loadT);
+        var res = $.parseJSON(res_raw.data);
+        layer.msg(res.msg, {icon: res.status ? 1 : 2});
+        if (res.status) {
+            setTimeout(function(){
+                layer.closeAll();
+                wafGloabl();
+            }, 1000);
+        }
+    });
+}
+function restoreHoneypotDefault() {
+    var defaultPaths = ['/.env', '/admin_test.php', '/backup.zip', '/config.php.bak', '/.git/'];
+    $('#honeypot_paths_input').val(defaultPaths.join('\n'));
 }

@@ -1582,6 +1582,33 @@ def removeTrustedProxy():
     return mw.returnJson(False, '删除失败!')
 
 
+def setHoneypotPaths():
+    args = getArgs()
+    data = checkArgs(args, ['paths'])
+    if not data[0]:
+        return data[1]
+
+    conf = getJsonPath('config')
+    content = mw.readFile(conf)
+    cobj = json.loads(content)
+
+    paths = args['paths']
+    if type(paths) == str:
+        paths = json.loads(paths)
+
+    if 'honeypot' not in cobj:
+        cobj['honeypot'] = {
+            "status": 444,
+            "ps": "自动蜜罐防护，拦截自动扫描器和嗅探脚本",
+            "open": True,
+            "paths": []
+        }
+
+    cobj['honeypot']['paths'] = paths
+    mw.writeFile(conf, json.dumps(cobj))
+    setConfRestartWeb()
+    return mw.returnJson(True, '设置成功!')
+
 def testRun():
     # args = getArgs()
     # data = checkArgs(args, ['siteName'])
@@ -1713,5 +1740,7 @@ if __name__ == "__main__":
         print(removeDropIp())
     elif func == 'getDropIpLogs':
         print(getDropIpLogs())
+    elif func == 'setHoneypotPaths':
+        print(setHoneypotPaths())
     else:
         print('error')
