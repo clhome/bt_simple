@@ -320,13 +320,15 @@ function renderWafService() {
 
         var rules = ['args', 'post', 'cookie', 'url', 'user_agent'];
         rules.forEach(function(r) {
-            $.post('/plugin?action=a&name=op_waf&s=getRule', {rule_name: r}, function(res) {
-                if(res.status) {
-                    try {
-                        var count = JSON.parse(res.msg).length;
+            owPost('get_rule', {rule_name: r}, function(res_raw) {
+                try {
+                    var tmp = $.parseJSON(res_raw.data);
+                    if(tmp.status) {
+                        var rdata = $.parseJSON(tmp.data);
+                        var count = rdata.length;
                         $('#waf-rule-count-' + r).text(count);
-                    } catch(e) {}
-                }
+                    }
+                } catch(e) {}
             });
         });
     }, 500);
