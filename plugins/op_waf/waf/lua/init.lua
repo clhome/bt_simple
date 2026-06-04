@@ -953,6 +953,9 @@ function run_app_waf()
         -- ua check
         if waf_user_agent() then return true end
         -- C:D("waf_user_agent")
+        -- 蜜罐路径强拦截 (必须在常规URL检测之前)
+        if waf_honeypot() then return true end
+
         if waf_url() then return true end
         -- C:D("waf_url")
 
@@ -969,9 +972,6 @@ function run_app_waf()
         -- args参数拦截
         if waf_get_args() then return true end
         -- C:D("waf_get_args")
-
-        -- 蜜罐路径拦截
-        if waf_honeypot() then return true end
 
         -- 扫描软件禁止
         if waf_scan_black() then return true end

@@ -423,7 +423,7 @@ function _M.add_reputation_penalty(self, ip, points, reason)
     
     if current_score >= 100 then
         local drop_key = ip
-        self:dict_set("waf_drop_ip", drop_key, 1, 86400)
+        self:dict_set("waf_drop_ip", drop_key, 999, 86400)
         local params = self.params or {ip = ip}
         self:log(params, 'scan', "信誉归零，触发自动拉黑 24 小时 (" .. reason .. ")")
         
