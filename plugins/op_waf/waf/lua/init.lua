@@ -77,8 +77,16 @@ local function get_return_state(rstate,rmsg)
 end
 
 local function get_waf_drop_ip()
-    local data =  ngx.shared.waf_drop_ip:get_keys(0)
-    return data
+    local keys = ngx.shared.waf_drop_ip:get_keys(0)
+    local retry = config['retry']['retry']
+    local banned_ips = {}
+    for _, ip in ipairs(keys) do
+        local count = ngx.shared.waf_drop_ip:get(ip)
+        if count and count > retry then
+            table.insert(banned_ips, ip)
+        end
+    end
+    return banned_ips
 end
 
 local function return_json(status,msg)
@@ -548,7 +556,6 @@ local function waf_honeypot()
         
         if is_match then
             C:add_reputation_penalty(params['ip'], 100, "触碰蜜罐路径: " .. path)
-            C:write_log('honeypot', '触发自动蜜罐，立刻封禁')
             ngx.exit(config['honeypot']['status'])
             return true
         end

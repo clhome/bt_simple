@@ -354,6 +354,10 @@ function wafIntro() {
         .highlight { color: #20a53a; font-weight: 600; }
         .tag-safe { background: #e6f4ea; color: #137333; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; font-weight: normal; }
         .tag-perf { background: #e8f0fe; color: #1967d2; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px; font-weight: normal; }
+        .intro-table { width: 100%; border-collapse: collapse; margin-top: 12px; margin-bottom: 5px; font-size: 13px; text-align: left; }
+        .intro-table th { background-color: #f1f5f9; padding: 8px 12px; border: 1px solid #e2e8f0; color: #334155; font-weight: 600; }
+        .intro-table td { padding: 8px 12px; border: 1px solid #e2e8f0; color: #4b5563; }
+        .intro-table tr:hover { background-color: #f8fafc; }
         .intro-footer { text-align: center; font-size: 13px; color: #94a3b8; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #e2e8f0; }
     </style>
     <div class="intro-container">
@@ -376,19 +380,59 @@ function wafIntro() {
             <div class="intro-title"><span class="icon">🛡️</span> 攻克传统 WAF 痛点 (核心进化)</div>
             <p style="font-size: 14px; color: #4b5563; margin-bottom: 10px;">针对现代互联网复杂多变的攻击手法，我们进行了深度的针对性底层优化：</p>
             <ul class="intro-list">
-                <li><span class="highlight">真实客户端追踪 (防 XFF 伪造)：</span>传统 WAF 部署在 CDN 之后易将所有用户识别为单一 IP 或被恶意伪造 <code>X-Forwarded-For</code> 欺骗。我们引入了 <span class="highlight">trusted_proxy</span> 机制，严密校验可信代理池，精准锁定攻击者真实来源。<span class="tag-safe">防御升级</span></li>
-                <li><span class="highlight">JSON 深度解析拦截：</span>现代 API 接口交互频繁，攻击者易通过编码（如 %75%6e...）、深层嵌套或 GraphQL 等方式绕过传统正则。新版引擎现支持最高 10 层深度的 JSON Body 提取与严格审查，让隐蔽攻击无处遁形。<span class="tag-safe">高级防御</span></li>
-                <li><span class="highlight">全面拥抱 IPv6：</span>随着 IPv6 普及，黑产常利用海量 IPv6 代理池（如 /64 代理段）发起无限轮换攻击，以此绕过老旧的 IPv4 防线。新版原生完美兼容 IPv6，彻底封堵该类旁路绕过漏洞。</li>
+                <li>
+                    <span class="highlight">智能动态信誉系统：</span>首创阶梯式信誉扣分机制（满分100分，<b>所有违规扣分在 24 小时内累计计算</b>）。短期频控（例如违规6次封禁3分钟）与长效信誉系统（分数扣满直接拉黑24小时）完美联动。这种组合防御既提供了极高的容错率防误伤，又对持续跨周期渗透的黑产实现致命“连坐”封锁。<span class="tag-safe">高级防御</span>
+                    <table class="intro-table">
+                        <thead>
+                            <tr>
+                                <th>拦截类型</th>
+                                <th>单次违规扣分</th>
+                                <th>24小时内累计触发 封杀条件</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CC 攻击频控拦截</td>
+                                <td style="color:#f59e0b; font-weight:bold;">- 5 分</td>
+                                <td>累计违规 20 次</td>
+                            </tr>
+                            <tr>
+                                <td>User-Agent (伪造浏览器/爬虫)</td>
+                                <td style="color:#f97316; font-weight:bold;">- 10 分</td>
+                                <td>累计违规 10 次</td>
+                            </tr>
+                            <tr>
+                                <td>恶意扫描器拦截 (Scan)</td>
+                                <td style="color:#ef4444; font-weight:bold;">- 15 分</td>
+                                <td>累计违规 7 次</td>
+                            </tr>
+                            <tr>
+                                <td>核心攻击检测 (SQL注入/XSS等)</td>
+                                <td style="color:#ef4444; font-weight:bold;">- 15 分</td>
+                                <td>累计违规 7 次</td>
+                            </tr>
+                            <tr>
+                                <td>高危蜜罐探测 (Honeypot)</td>
+                                <td style="color:#b91c1c; font-weight:bold;">- 100 分</td>
+                                <td>1 次 (零容忍秒封)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </li>
+                <li><span class="highlight">自动化高危蜜罐探测：</span>防御不再是被动挨打！内置并支持自定义诱导性敏感路径（如 <code>/.env</code>、<code>/.git/</code>）。一旦扫描器或黑客尝试触碰这些虚假目标，信誉分瞬间归零，零容忍立刻封禁24小时，将攻击扼杀于摇篮之中。<span class="tag-safe">主动防御</span></li>
+                <li><span class="highlight">真实客户端追踪：</span>引入 <code>trusted_proxy</code> 机制严密校验可信代理池，防范 CDN 场景下的 <code>X-Forwarded-For</code> 伪造欺骗，精准锁定攻击者真实物理源。</li>
+                <li><span class="highlight">JSON 深度解析拦截：</span>突破传统正则在复杂 API 接口下的盲区，支持最高 10 层深度的 JSON Body 提取与审查，让深层嵌套攻击无处遁形。</li>
+                <li><span class="highlight">精准封禁与极速解封：</span>重构底层拦截字典逻辑，彻底剥离“观察期IP”与“真实封杀IP”。面板实时展示真实确凿的拦截名单，并提供即时的一键释放清零功能，状态同步瞬间直达底层引擎。</li>
             </ul>
         </div>
 
         <div class="intro-section">
             <div class="intro-title"><span class="icon">⚡</span> 极致性能优化</div>
             <ul class="intro-list">
-                <li><span class="highlight">PCRE JIT 引擎加速：</span>全局正则表达式启用了 JIT (即时编译) 和编译缓存 (jo修饰符)，在百万级高并发 QPS 下极大降低 CPU 开销。<span class="tag-perf">性能突破</span></li>
-                <li><span class="highlight">大文件流式检测防 OOM：</span>智能拦截文件上传特征。遇大文件时仅提取前 64KB 进行特征比对，从根源杜绝读取超大文件导致 Nginx Worker 内存暴涨崩溃。</li>
-                <li><span class="highlight">防共享内存雪崩：</span>缩短了 GeoIP 分析过程的缓存周期。在遭遇每秒数万次的代理池 CC 或恶意扫描时，有效防止了 <code>waf_limit</code> 共享内存爆满导致的正常规则失效。</li>
-                <li><span class="highlight">无感静默运行：</span>拒绝生成大量无效调试日志拖垮服务器磁盘 I/O，将算力纯粹专注于安全拦截。</li>
+                <li><span class="highlight">IP 匹配引擎革命：</span>彻底废弃低效的线性循环遍历，全量引入基于 Radix Tree 的 <code>lua-resty-ipmatcher</code> 算法引擎。即使面对十万乃至百万级海量黑IP库，也能在极微秒（µs）级别完成高速匹配，完全消除庞大规则库带来的性能损耗。<span class="tag-perf">算力飞跃</span></li>
+                <li><span class="highlight">PCRE JIT 正则加速：</span>全局正则表达式启用了 JIT (即时编译) 和编译缓存，在百万级并发 QPS 场景下极大降低 CPU 计算开销。</li>
+                <li><span class="highlight">大文件流式截断防 OOM：</span>智能识别大文件上传特征，仅提取关键前 64KB 进行恶意样本比对，从物理根源上彻底杜绝读取超大文件导致 Nginx 内存暴涨崩溃的隐患。</li>
+                <li><span class="highlight">防共享内存雪崩：</span>优化大流量下的并发写入与读取逻辑，在遭遇每秒数万次海量 CC 或恶意扫描时，有效防止共享字典（Dict）爆满导致的规则失效瘫痪。</li>
             </ul>
         </div>
 

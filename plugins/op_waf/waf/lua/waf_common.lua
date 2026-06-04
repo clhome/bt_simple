@@ -840,10 +840,11 @@ function _M.write_log(self, name, rule)
     local ip = params['ip']
     local ngx_time = ngx.time()
     
-    local penalty_points = 50
-    if name == 'cc' then penalty_points = 10
-    elseif name == 'user_agent' then penalty_points = 20
-    elseif name == 'scan' then penalty_points = 30
+    local penalty_points = 10
+    if name == 'cc' then penalty_points = 5
+    elseif name == 'user_agent' then penalty_points = 10
+    elseif name == 'scan' then penalty_points = 15
+    elseif name == 'args' or name == 'url' or name == 'post' or name == 'cookie' then penalty_points = 15
     end
     self:add_reputation_penalty(ip, penalty_points, "触发防线: " .. name)
     
@@ -867,7 +868,9 @@ function _M.write_log(self, name, rule)
 
     local count = ngx.shared.waf_drop_ip:get(ip)
     -- self:D("write_log; count:" ..tostring(count).. ",retry:" .. tostring(retry) )
-    if (count > retry and name ~= 'cc') then
+    if count and count >= 900 then
+        self:log(params, name, rule)
+    elseif (count > retry and name ~= 'cc') then
         local safe_count,_ = ngx.shared.waf_drop_sum:get(ip)
         if not safe_count then
             self:dict_set("waf_drop_sum", ip, 1, 86400)
