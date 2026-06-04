@@ -365,6 +365,42 @@ function makeFilePage(showRow, page = ''){
     $("#filePage .Pcount").css("left","16px"); 
 }
 
+//获取符合当前时间的高亮时间字符串
+function getMatchTime(a) {
+    var fileTimeStr = getLocalTime(a);
+    var currentTimeStr = new Date().format("yyyy/MM/dd hh:mm:ss");
+    
+    var fileParts = fileTimeStr.split(/([\/\s:])/);
+    var currParts = currentTimeStr.split(/([\/\s:])/);
+    
+    var matchStr = "";
+    var restStr = "";
+    var matched = true;
+    
+    for (var i = 0; i < fileParts.length; i++) {
+        if (matched && fileParts[i] === currParts[i]) {
+            if (i % 2 !== 0) {
+                if (i + 1 < fileParts.length && fileParts[i+1] === currParts[i+1]) {
+                    matchStr += fileParts[i];
+                } else {
+                    matched = false;
+                    restStr += fileParts[i];
+                }
+            } else {
+                matchStr += fileParts[i];
+            }
+        } else {
+            matched = false;
+            restStr += fileParts[i];
+        }
+    }
+    
+    if (matchStr !== "") {
+        return "<span style='color:red;'>" + matchStr + "</span>" + restStr;
+    }
+    return restStr;
+}
+
 //取数据
 function getFiles(Path) {
     if(isNaN(Path)){
@@ -403,6 +439,8 @@ function getFiles(Path) {
     var file_order = $.cookie('file_order');
     if (file_order){
         post['order'] = file_order.replace('|',' ');
+    } else {
+        post['order'] = 'fname asc';
     }
 
 
@@ -466,7 +504,7 @@ function getFiles(Path) {
                     <td class='column-name'><span class='cursor' onclick=\"getFiles('" + rdata.path + "/" + fmp[0] + "')\">\
                     <span class='ico ico-folder'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></span></td>\
                     <td><a class='btlink calculate-size-btn' onclick=\"calculateDirSize(event, this, '" + rdata.path + "/" + fmp[0] + "')\">计算</a></td>\
-                    <td>"+getLocalTime(fmp[2])+"</td>\
+                    <td>"+getMatchTime(fmp[2])+"</td>\
                     <td>"+fmp[3]+"</td>\
                     <td>"+fmp[4]+"</td>\
                     <td class='editmenu'><span>\
@@ -534,7 +572,7 @@ function getFiles(Path) {
                     <td><input type='checkbox' name='id' value='"+fmp[0]+"'></td>\
                     <td class='column-name'><span class='ico ico-"+(getExtName(fmp[0]))+"'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></td>\
                     <td>" + (toSize(fmp[1])) + "</td>\
-                    <td>" + ((fmp[2].length > 11)?fmp[2]:getLocalTime(fmp[2])) + "</td>\
+                    <td>" + ((fmp[2].length > 11)?fmp[2]:getMatchTime(fmp[2])) + "</td>\
                     <td>"+fmp[3]+"</td>\
                     <td>"+fmp[4]+"</td>\
                     <td class='editmenu'>\
@@ -1270,7 +1308,7 @@ function pasteFile(fileName) {
         if(result.length > 0){
             var tbody = '';
             for(var i=0;i<result.length;i++){
-                tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getLocalTime(result[i].mtime)+'</td></tr>';
+                tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getMatchTime(result[i].mtime)+'</td></tr>';
             }
             var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>文件名</th><th>大小</th><th>最后修改时间</th></thead>\
                         <tbody>'+tbody+'</tbody>\

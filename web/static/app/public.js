@@ -240,6 +240,42 @@ function getLocalTime(a) {
 	return new Date(parseInt(a) * 1000).format("yyyy/MM/dd hh:mm:ss")
 }
 
+//获取符合当前时间的高亮时间字符串
+function getMatchTime(a) {
+    var fileTimeStr = getLocalTime(a);
+    var currentTimeStr = new Date().format("yyyy/MM/dd hh:mm:ss");
+    
+    var fileParts = fileTimeStr.split(/([\/\s:])/);
+    var currParts = currentTimeStr.split(/([\/\s:])/);
+    
+    var matchStr = "";
+    var restStr = "";
+    var matched = true;
+    
+    for (var i = 0; i < fileParts.length; i++) {
+        if (matched && fileParts[i] === currParts[i]) {
+            if (i % 2 !== 0) {
+                if (i + 1 < fileParts.length && fileParts[i+1] === currParts[i+1]) {
+                    matchStr += fileParts[i];
+                } else {
+                    matched = false;
+                    restStr += fileParts[i];
+                }
+            } else {
+                matchStr += fileParts[i];
+            }
+        } else {
+            matched = false;
+            restStr += fileParts[i];
+        }
+    }
+    
+    if (matchStr !== "") {
+        return "<span style='color:red;'>" + matchStr + "</span>" + restStr;
+    }
+    return restStr;
+}
+
 function getFormatTime(tm, format) {
 	if (format == undefined) format = "yyyy/MM/dd hh:mm:ss";
 	tm = tm.toString();
@@ -416,7 +452,7 @@ function getDiskList(b) {
 
 			d += "<tr>\
 				<td onclick=\"getDiskList('" + h.path + "/" + g[0] + "')\" title='" + g[0] + "'>\
-					<span class='glyphicon glyphicon-folder-open'></span>" + e + "</td><td>" + getLocalTime(g[2]) + "</td>\
+					<span class='glyphicon glyphicon-folder-open'></span>" + e + "</td><td>" + getMatchTime(g[2]) + "</td>\
 				<td>" + g[3] + "</td>\
 				<td>" + g[4] + "</td>\
 				<td><span class='delfile-btn' onclick=\"newDelFile('" + h.path + "/" + g[0] + "')\">X</span></td>\
@@ -438,7 +474,7 @@ function getDiskList(b) {
 
 				d += "<tr>\
 					<td title='" + g[0] + "'><span class='glyphicon glyphicon-file'></span>" + e + "</td>\
-					<td>" + getLocalTime(g[2]) + "</td>\
+					<td>" + getMatchTime(g[2]) + "</td>\
 					<td>" + g[3] + "</td>\
 					<td>" + g[4] + "</td>\
 					<td></td>\
