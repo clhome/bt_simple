@@ -2265,3 +2265,121 @@ function wafOpLogs(){
         </div>';    
     $(".soft-man-con").html(con);
 }
+
+
+
+function wafDropIpList() {
+    var html = '<div class="waf-drop-ip-con">\
+        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">\
+            <h4 style="margin:0; font-weight:bold;">当前封禁 IP 列表</h4>\
+            <button class="btn btn-default btn-sm" onclick="wafDropIpList();"><i class="glyphicon glyphicon-refresh"></i> 刷新</button>\
+        </div>\
+        <div class="divtable">\
+            <table class="table table-hover">\
+                <thead>\
+                    <tr>\
+                        <th width="50%">IP 地址</th>\
+                        <th width="50%" style="text-align: right;">操作</th>\
+                    </tr>\
+                </thead>\
+                <tbody id="drop_ip_list_body">\
+                    <tr><td colspan="2" style="text-align:center;">正在加载数据...</td></tr>\
+                </tbody>\
+            </table>\
+        </div>\
+    </div>';
+
+    $('.soft-man-con').html(html);
+
+    owPost('getDropIpList', {}, function(res_raw) {
+        var res = $.parseJSON(res_raw.data);
+        if (!res.status) {
+            $('#drop_ip_list_body').html('<tr><td colspan="2" style="text-align:center; color:red;">获取失败: ' + res.msg + '</td></tr>');
+            return;
+        }
+
+        var ipList = res.data;
+        if (!ipList || ipList.length === 0) {
+            $('#drop_ip_list_body').html('<tr><td colspan="2" style="text-align:center;">暂无被封禁的 IP。</td></tr>');
+            return;
+        }
+
+        var tbodyHtml = '';
+        for (var i = 0; i < ipList.length; i++) {
+            var ip = ipList[i];
+            tbodyHtml += '<tr>\
+                <td><span style="color:#d9534f; font-family: Consolas, monospace; font-weight:bold;">' + ip + '</span></td>\
+                <td style="text-align: right;">\
+                    <a href="javascript:;" class="btlink" onclick="showDropIpLogs(\'' + ip + '\')">详情</a> | \
+                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="releaseDropIp(\'' + ip + '\')">释放并清零</a>\
+                </td>\
+            </tr>';
+        }
+        $('#drop_ip_list_body').html(tbodyHtml);
+    });
+}
+
+function releaseDropIp(ip) {
+    layer.confirm('确定要释放并清空该 IP (' + ip + ') 的所有惩罚记录吗？', {title: '释放 IP', icon: 3}, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在释放...', {icon: 16, time: 0, shade: 0.3});
+        owPost('removeDropIp', {ip: ip}, function(res_raw) {
+            layer.close(loadT);
+            var res = $.parseJSON(res_raw.data);
+            layer.msg(res.msg, {icon: res.status ? 1 : 2});
+            if (res.status) {
+                wafDropIpList();
+            }
+        });
+    });
+}
+
+function showDropIpLogs(ip) {
+    var loadT = layer.msg('正在获取日志...', {icon: 16, time: 0, shade: 0.3});
+    owPost('getDropIpLogs', {ip: ip}, function(res_raw) {
+        layer.close(loadT);
+        var res = $.parseJSON(res_raw.data);
+        if (!res.status) {
+            layer.msg('获取日志失败: ' + res.msg, {icon: 2});
+            return;
+        }
+
+        var logs = res.data;
+        var tableHtml = '<div style="padding: 15px;"><div class="divtable"><table class="table table-hover">\
+            <thead>\
+                <tr>\
+                    <th>时间</th>\
+                    <th>域名</th>\
+                    <th>URL / 规则</th>\
+                    <th>拦截原因</th>\
+                </tr>\
+            </thead>\
+            <tbody>';
+            
+        if (logs.length === 0) {
+            tableHtml += '<tr><td colspan="4" style="text-align:center;">本地 SQLite 库中无该 IP 的最近日志（可能完全通过内存封禁）</td></tr>';
+        } else {
+            for (var i = 0; i < logs.length; i++) {
+                var log = logs[i];
+                var ruleOrUri = log.uri || '-';
+                if (log.rule_name) ruleOrUri = '[' + log.rule_name + '] ' + ruleOrUri;
+                
+                tableHtml += '<tr>\
+                    <td>' + log.time + '</td>\
+                    <td>' + (log.server_name || log.domain) + '</td>\
+                    <td style="word-break: break-all; max-width: 200px;">' + ruleOrUri + '</td>\
+                    <td><span style="color:#d9534f">' + (log.reason || '-') + '</span></td>\
+                </tr>';
+            }
+        }
+        
+        tableHtml += '</tbody></table></div></div>';
+
+        layer.open({
+            type: 1,
+            title: 'IP [' + ip + '] 最近 50 条拦截行为',
+            area: ['800px', '500px'],
+            content: tableHtml
+        });
+    });
+}

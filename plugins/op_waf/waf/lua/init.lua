@@ -124,6 +124,9 @@ local function remove_waf_drop_ip()
 
     C:lock_working(sign)
     ngx.shared.waf_drop_ip:delete(ip)
+    ngx.shared.waf_drop_sum:delete(ip)
+    ngx.shared.waf_limit:delete("reputation_score:" .. ip)
+    ngx.shared.waf_limit:delete("404_warning:" .. ip)
     C:unlock_working(sign)
 
     local data = get_return_state(0, "ok")

@@ -1484,6 +1484,62 @@ def cleanDropIp():
     return mw.returnJson(True, 'ok!', data)
 
 
+def getDropIpList():
+    url = "http://127.0.0.1/get_waf_drop_ip"
+    try:
+        data = mw.httpGet(url)
+        res = json.loads(data)
+        if res['status'] == 0:
+            return mw.returnJson(True, 'ok!', res['msg'])
+        return mw.returnJson(False, 'Failed to fetch', [])
+    except Exception as e:
+        return mw.returnJson(False, str(e), [])
+
+
+def removeDropIp():
+    args = getArgs()
+    data = checkArgs(args, ['ip'])
+    if not data[0]:
+        return data[1]
+    ip = args['ip']
+    url = "http://127.0.0.1/remove_waf_drop_ip?ip=" + ip
+    try:
+        res_data = mw.httpGet(url)
+        res = json.loads(res_data)
+        if res['status'] == 0:
+            return mw.returnJson(True, '释放成功!')
+        return mw.returnJson(False, res.get('msg', '释放失败'))
+    except Exception as e:
+        return mw.returnJson(False, str(e))
+
+
+def getDropIpLogs():
+    args = getArgs()
+    data = checkArgs(args, ['ip'])
+    if not data[0]:
+        return data[1]
+    ip = args['ip']
+    
+    conn = pSqliteDb('logs')
+    field = 'time,ip,domain,server_name,method,uri,user_agent,rule_name,reason'
+    limit = '50'
+    
+    conn = conn.field(field)
+    conn = conn.where("ip=?", (ip,))
+    conn = conn.order('time desc')
+    
+    logs = conn.limit(limit).select()
+    
+    # Format to JS readable time
+    for log in logs:
+        try:
+            log['time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(log['time']))
+        except Exception:
+            pass
+            
+    return mw.returnJson(True, 'ok!', logs)
+
+
 def addTrustedProxy():
     args = getArgs()
     data = checkArgs(args, ['ip'])
@@ -1651,5 +1707,11 @@ if __name__ == "__main__":
         print(removeTrustedProxy())
     elif func == 'test_run':
         print(testRun())
+    elif func == 'getDropIpList':
+        print(getDropIpList())
+    elif func == 'removeDropIp':
+        print(removeDropIp())
+    elif func == 'getDropIpLogs':
+        print(getDropIpLogs())
     else:
         print('error')
