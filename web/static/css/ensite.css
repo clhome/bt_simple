@@ -1583,7 +1583,7 @@ html .menu .menu_exit:hover {
     position: absolute;
     right: -1px;
     top: 27px;
-    width: 217px;
+    width: 350px;
     z-index: 99
 }
 
@@ -1596,7 +1596,8 @@ html .menu .menu_exit:hover {
     border: 1px solid #ddd;
     height: 22px;
     padding: 0 5px;
-    width: 132px
+    margin-left: 5px;
+    width: 270px
 }
 
 .searcTime .ss .time input:focus {

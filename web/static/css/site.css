@@ -1941,7 +1941,7 @@ html .menu .menu_exit:hover {
     position: absolute;
     right: -1px;
     top: 27px;
-    width: 306px;
+    width: 350px;
     z-index: 99;
 }
 
@@ -1955,7 +1955,7 @@ html .menu .menu_exit:hover {
     height: 22px;
     padding: 0 5px;
     margin-left:5px;
-    width: 227px;
+    width: 270px;
 }
 
 .searcTime .ss .time input:focus {

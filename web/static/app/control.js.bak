@@ -252,9 +252,6 @@ function cpu(b,e){
 			//zData.push(rdata[i].mem);
 		}
 		option = {
-			grid: {
-				bottom: 85
-			},
 			tooltip: {
 				trigger: 'axis',
 				axisPointer: { type: 'cross' },
@@ -283,7 +280,6 @@ function cpu(b,e){
 			}, {
 				start: 0,
 				end: 100,
-				bottom: 25,
 				handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
 				handleSize: '80%',
 				handleStyle: {
@@ -328,9 +324,6 @@ function mem(b,e){
 			zData.push(rdata[i].mem);
 		}
 		option = {
-			grid: {
-				bottom: 70
-			},
 			tooltip: {
 				trigger: 'axis',
 				axisPointer: { type: 'cross' },
@@ -359,7 +352,6 @@ function mem(b,e){
 			}, {
 				start: 0,
 				end: 100,
-				bottom: 10,
 				handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
 				handleSize: '80%',
 				handleStyle: {
@@ -408,9 +400,6 @@ function disk(b,e){
 			//zData.push(rdata[i].write_count);
 		}
 		option = {
-			grid: {
-				bottom: 70
-			},
 			tooltip: {
 				trigger: 'axis',
 				axisPointer: {
@@ -442,7 +431,6 @@ function disk(b,e){
 			}, {
 				start: 0,
 				end: 100,
-				bottom: 10,
 				handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
 				handleSize: '80%',
 				handleStyle: {
@@ -504,9 +492,6 @@ function network(b,e){
 			zData.push(rdata[i].down);
 		}
 		option = {
-			grid: {
-				bottom: 70
-			},
 			tooltip: {
 				trigger: 'axis',
 				axisPointer: { type: 'cross' },
@@ -536,7 +521,6 @@ function network(b,e){
 			}, {
 				start: 0,
 				end: 100,
-				bottom: 10,
 				handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
 				handleSize: '80%',
 				handleStyle: {
@@ -593,9 +577,6 @@ function getload_old(b,e){
 			bData.push(rdata[i].fifteen);
 		}
 		option = {
-			grid: {
-				bottom: 70
-			},
 			tooltip: {
 				trigger: 'axis'
 			},
@@ -637,7 +618,6 @@ function getload_old(b,e){
 			}, {
 				start: 0,
 				end: 100,
-				bottom: 10,
 				handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
 				handleSize: '80%',
 				handleStyle: {
@@ -752,15 +732,13 @@ function getload(b,e){
 					left: '5%',
 					right: '55%',
 					width: '40%',
-					height: 'auto',
-					bottom: 85
+					height: 'auto'
 				},
 				{
 					top: '60px',
 					left: '55%',
 					width: '40%',
-					height: 'auto',
-					bottom: 85
+					height: 'auto'
 				}
 			],
 			xAxis: [
@@ -838,7 +816,6 @@ function getload(b,e){
 	            type: 'slider',
 				start: 0,
 				end: 100,
-				bottom: 10,
 				handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
 				handleSize: '80%',
 				handleStyle: {
