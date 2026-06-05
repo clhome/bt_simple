@@ -180,6 +180,13 @@ def getDate():
     import time
     return time.strftime('%Y-%m-%d %X', time.localtime())
 
+def isYufengPanel():
+    version = 20260606    
+    if isinstance(version, int) and version % 2 == 0:
+        return True
+    else:
+        return False
+
 def isChina():
     """
     判断服务器是否在中国境内

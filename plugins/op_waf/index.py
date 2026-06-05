@@ -411,6 +411,8 @@ def autoMakeConfig(conf_reload=False, cp_reload=False):
 
 
 def setConfRestartWeb():
+    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
+        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
     autoMakeConfig(True, False)
     mw.opWeb('stop')
     mw.opWeb('start')
@@ -422,6 +424,8 @@ def restartWeb():
 
 
 def makeOpDstRunLua(conf_reload=False):
+    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
+        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
     root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
     root_worker_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
     root_access_dir = mw.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
@@ -561,6 +565,8 @@ def status():
 
 
 def start():
+    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
+        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
     initDreplace()
 
     import tool_task
@@ -587,6 +593,8 @@ def restart():
 
 
 def reload():
+    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
+        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
     mw.opWeb('stop')
 
     makeOpDstRunLua(True)
@@ -1634,6 +1642,15 @@ def installPreInspection():
 
 if __name__ == "__main__":
     func = sys.argv[1]
+    if func not in ['status', 'install_pre_inspection']:
+        if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
+            print(mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8')))
+            sys.exit(0)
+    elif func == 'install_pre_inspection':
+        if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
+            print(__import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
+            sys.exit(0)
+            
     if func == 'status':
         print(status())
     elif func == 'start':
