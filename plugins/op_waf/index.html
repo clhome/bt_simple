@@ -284,7 +284,15 @@ function renderWafService() {
     setTimeout(function() {
         if ($('.waf-rules-dashboard').length > 0) return;
         
-        var html = `
+        var explanatoryText = `
+            <div style="margin-top: 15px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #20a53a; border-radius: 6px; font-size: 13px; color: #4b5563; line-height: 1.6; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;">
+                <div style="font-weight: 600; margin-bottom: 8px; color: #111827; font-size: 14px;">💡 服务操作说明</div>
+                <div style="margin-bottom: 4px;"><b style="color:#111827;">重启</b>：仅重新启动底层的 Nginx 进程。适合服务假死时的快速恢复，或者测试您手动修改的底层 Lua 脚本。</div>
+                <div><b style="color:#111827;">重载配置</b>：重新将面板的所有 JSON 规则编译为 Lua 脚本并重启 Nginx。若您通过 SSH 手动修改了配置，请务必点击此按钮以完整生效。（注：日常在面板中修改规则会自动重载，无需手动点击）</div>
+            </div>
+        `;
+
+        var html = explanatoryText + `
             <div class="waf-rules-dashboard" style="margin-top: 20px; border: 1px solid #ddd; border-radius: 6px; padding: 20px; background-color: #fafafa;">
                 <h4 style="margin-top: 0; margin-bottom: 20px; color: #333; font-size: 16px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 10px;">🛡️ 核心过滤规则统计</h4>
                 <div style="display: flex; flex-wrap: wrap; gap: 15px;">
