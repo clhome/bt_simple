@@ -4,8 +4,9 @@
 # MW-Linux面板
 # ---------------------------------------------------------------------------------
 # copyright (c) 2018-∞(https://github.com/midoks/mdserver-web) All rights reserved.
+# copyright (c)2026-∞(https://github.com/clhome/bt_simple) All rights reserved.
 # ---------------------------------------------------------------------------------
-# Author: midoks <midoks@163.com>
+# Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
 import re
@@ -270,4 +271,4 @@ def save_menu_config():
         
         return mw.returnData(True, '菜单配置保存成功!')
     except Exception as e:
-        return mw.returnData(False, '保存失败: ' + str(e))
+        return mw.returnData(False, '保存失败: ' + str(e))
