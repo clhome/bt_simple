@@ -729,6 +729,23 @@ function onlineEditFile(k, f, callback) {
 		case "conf":
 			d = "text/x-nginx-conf";
 			break;
+		case "py":
+			d = "text/x-python";
+			break;
+		case "sh":
+		case "bash":
+			d = "text/x-sh";
+			break;
+		case "md":
+			d = "text/x-markdown";
+			break;
+		case "yaml":
+		case "yml":
+			d = "text/x-yaml";
+			break;
+		case "ini":
+			d = "text/x-ini";
+			break;
 		default:
 			var j = {
 				name: "htmlmixed",
@@ -811,6 +828,7 @@ function onlineEditFile(k, f, callback) {
 					extraKeys: {
 						"Ctrl-F": "findPersistent",
 						"Ctrl-H": "replaceAll",
+						"Ctrl-/": "toggleComment",
 						"Ctrl-S": function() {
 							$("#textBody").text(code_mirror.getValue());
 							onlineEditFile(2, f, callback);

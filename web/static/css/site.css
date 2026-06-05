@@ -24,6 +24,12 @@ body {
     background-color: var(--bg-main) !important;
 }
 
+/* 编辑器注释展示成不同颜色标识 */
+.cm-comment {
+    color: var(--primary) !important;
+    font-style: italic;
+}
+
 input,
 textarea,
 select {
