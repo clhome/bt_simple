@@ -1,21 +1,21 @@
 {
-	"sort": 100,
-	"ps": "Mosquitto是一个开源的MQTT消息代理软件。",
-	"name": "mosquitto",
-	"title": "mosquitto",
-	"shell": "install.sh",
-	"versions": [
-		"2.0.18",
-		"2.1.2"
-	],
-	"tip": "soft",
-	"checks": "server/mosquitto",
-	"path": "server/mosquitto",
-	"display": 1,
-	"author": "midoks & yufeng tec",
-	"date": "2023-09-28",
-	"home": "https://mosquitto.org",
-	"type": "soft",
-	"pid": "4",
-	"coexist": false
+    "sort": 100,
+    "ps": "Mosquitto是一个开源的MQTT消息代理软件。",
+    "name": "mosquitto",
+    "title": "mosquitto",
+    "shell": "install.sh",
+    "versions": [
+        "2.0.18",
+        "2.1.2"
+    ],
+    "tip": "soft",
+    "checks": "server/mosquitto",
+    "path": "server/mosquitto",
+    "display": 2,
+    "author": "midoks & yufeng tec",
+    "date": "2023-09-28",
+    "home": "https://mosquitto.org",
+    "type": "soft",
+    "pid": "4",
+    "coexist": false
 }

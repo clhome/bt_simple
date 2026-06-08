@@ -1,20 +1,20 @@
 {
-	"sort": 100,
-	"ps": "Docker是一个开源的应用容器引擎",
-	"name": "docker",
-	"title": "Docker",
-	"shell": "install.sh",
-	"versions": [
-		"1.0"
-	],
-	"tip": "soft",
-	"checks": "server/docker",
-	"path": "server/docker",
-	"display": 1,
-	"author": "Zend",
-	"date": "2026-05-28",
-	"home": "https://docker.io",
-	"doc1": "https://docker-py.readthedocs.io/",
-	"type": 0,
-	"pid": "4"
+    "sort": 100,
+    "ps": "Docker是一个开源的应用容器引擎",
+    "name": "docker",
+    "title": "Docker",
+    "shell": "install.sh",
+    "versions": [
+        "1.0"
+    ],
+    "tip": "soft",
+    "checks": "server/docker",
+    "path": "server/docker",
+    "display": 2,
+    "author": "Zend",
+    "date": "2026-05-28",
+    "home": "https://docker.io",
+    "doc1": "https://docker-py.readthedocs.io/",
+    "type": 0,
+    "pid": "4"
 }

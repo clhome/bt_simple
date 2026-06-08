@@ -1,23 +1,23 @@
 {
-	"sort": 100,
-	"ps": "可靠、高性能的TCP/HTTP负载均衡器。",
-	"name": "haproxy",
-	"title": "haproxy",
-	"shell": "install.sh",
-	"versions": [
-		"2.6",
-		"2.8",
-		"3.0",
-		"3.2"
-	],
-	"tip": "soft",
-	"checks": "server/haproxy",
-	"path": "server/haproxy",
-	"display": 1,
-	"author": "midoks & yufeng tec",
-	"date": "2022-08-26",
-	"home": "https://www.haproxy.org/",
-	"doc1": "https://www.haproxy.org/",
-	"type": 0,
-	"pid": "4"
+    "sort": 100,
+    "ps": "可靠、高性能的TCP/HTTP负载均衡器。",
+    "name": "haproxy",
+    "title": "haproxy",
+    "shell": "install.sh",
+    "versions": [
+        "2.6",
+        "2.8",
+        "3.0",
+        "3.2"
+    ],
+    "tip": "soft",
+    "checks": "server/haproxy",
+    "path": "server/haproxy",
+    "display": 2,
+    "author": "midoks & yufeng tec",
+    "date": "2022-08-26",
+    "home": "https://www.haproxy.org/",
+    "doc1": "https://www.haproxy.org/",
+    "type": 0,
+    "pid": "4"
 }

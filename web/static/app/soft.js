@@ -36,6 +36,11 @@ function softMain(name, title, version) {
     });
 }
 
+function toggleThirdParty(isChecked) {
+    localStorage.setItem('show_third_party', isChecked ? 'true' : 'false');
+    getSList(1);
+}
+
 //取软件列表
 function getSList(isdisplay) {
     if (isdisplay !== true) {
@@ -62,7 +67,19 @@ function getSList(isdisplay) {
         setCookie('p' + getCookie('soft_type'), isdisplay);
     }
 
-    var condition = (search + type + page).slice(1);
+    var show_third_party = '';
+    var isShowThirdParty = localStorage.getItem('show_third_party') === 'true';
+    if (isShowThirdParty) {
+        show_third_party = '&show_third_party=1';
+    }
+
+    // 更新checkbox状态
+    setTimeout(function(){
+        var chk = document.getElementById('show_third_party_chk');
+        if(chk) chk.checked = isShowThirdParty;
+    }, 100);
+
+    var condition = (search + type + page + show_third_party).slice(1);
     $.get('/plugins/list?' + condition, '', function(rdata) {
         layer.close(loadT);
         var tBody = '';
@@ -180,6 +197,9 @@ function getSList(isdisplay) {
             var plugin_title = plugin.title;
             if (plugin.setup && !plugin.coexist){
                 plugin_title = plugin.title + ' ' + plugin.setup_version;
+            }
+            if (plugin.display_level == 1) {
+                plugin_title += ' <span style="color: #f39c12; font-size: 12px;">(第三方)</span>';
             }
 
             icon_link = "/plugins/file?name="+plugin.name+"&f=ico.png";

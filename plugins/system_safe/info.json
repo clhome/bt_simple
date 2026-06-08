@@ -1,20 +1,20 @@
 {
-	"sort": 100,
-	"ps": "提供灵活的系统加固功能，防止系统被植入木马，支持服务器日志审计功能",
-	"name": "system_safe",
-	"title": "系统加固",
-	"shell": "install.sh",
-	"versions": [
-		"1.1"
-	],
-	"tip": "soft",
-	"icon": "ico.png",
-	"checks": "server/system_safe",
-	"path": "server/system_safe",
-	"display": 1,
-	"author": "midoks & yufeng tec",
-	"date": "2026-05-28",
-	"home": "",
-	"type": 0,
-	"pid": "4"
+    "sort": 100,
+    "ps": "提供灵活的系统加固功能，防止系统被植入木马，支持服务器日志审计功能",
+    "name": "system_safe",
+    "title": "系统加固",
+    "shell": "install.sh",
+    "versions": [
+        "1.1"
+    ],
+    "tip": "soft",
+    "icon": "ico.png",
+    "checks": "server/system_safe",
+    "path": "server/system_safe",
+    "display": 2,
+    "author": "midoks & yufeng tec",
+    "date": "2026-05-28",
+    "home": "",
+    "type": 0,
+    "pid": "4"
 }

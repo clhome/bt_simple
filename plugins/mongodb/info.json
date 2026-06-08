@@ -1,20 +1,26 @@
 {
-	"sort":100,
-	"hook":["database"],
-	"ps": "高性能的 NoSQL 数据库（社区版），推荐安装活跃受支持的 7.0/8.0 稳定版",
-	"name": "mongodb",
-	"title": "MongoDB",
-	"shell": "install.sh",
-	"install_pre_inspection":true,
-	"uninstall_pre_inspection":true,
-	"versions":["7.0","8.0","8.2"],
-	"tip": "soft",
-	"checks": "server/mongodb",
-	"path": "server/mongodb",
-	"display": 1,
-	"author": "mongodb",
-	"date": "2021-11-23",
-	"home": "https://www.mongodb.com/docs/v4.4/installation/",
-	"type": 0,
-	"pid": "2"
+    "sort": 100,
+    "hook": [
+        "database"
+    ],
+    "ps": "高性能的 NoSQL 数据库（社区版），推荐安装活跃受支持的 7.0/8.0 稳定版",
+    "name": "mongodb",
+    "title": "MongoDB",
+    "shell": "install.sh",
+    "install_pre_inspection": true,
+    "uninstall_pre_inspection": true,
+    "versions": [
+        "7.0",
+        "8.0",
+        "8.2"
+    ],
+    "tip": "soft",
+    "checks": "server/mongodb",
+    "path": "server/mongodb",
+    "display": 2,
+    "author": "mongodb",
+    "date": "2021-11-23",
+    "home": "https://www.mongodb.com/docs/v4.4/installation/",
+    "type": 0,
+    "pid": "2"
 }

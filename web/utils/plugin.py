@@ -563,6 +563,8 @@ class plugin(object):
         if 'uninstall_pre_inspection' in info:
             pInfo['uninstall_pre_inspection'] = info['uninstall_pre_inspection']
 
+        pInfo['display_level'] = info.get('display', 1)
+
         return pInfo
 
     def makeCoexistData(self, data):
@@ -847,6 +849,7 @@ class plugin(object):
         keyword = None,
         page = 1, 
         size = 10, 
+        show_third_party = 0,
     ):
         static_list = self.getStaticPluginList()
         
@@ -857,6 +860,12 @@ class plugin(object):
         
         filtered_list = []
         for p in plist:
+            disp = p.get('display_level', 1)
+            if disp == 0:
+                continue
+            if disp == 1 and str(show_third_party) != '1':
+                continue
+
             if str(type) == '-1':
                 if p['setup']:
                     filtered_list.append(p)
@@ -886,6 +895,7 @@ class plugin(object):
         keyword = None,
         page = 1, 
         size  = 10, 
+        show_third_party = 0,
     ) -> object:
         '''
         # print(type,keyword,page,size)
@@ -893,7 +903,7 @@ class plugin(object):
         rdata = {}
         rdata['type'] = self.def_plugin_type
     
-        data = self.getAllPluginList(type, keyword, page, size)
+        data = self.getAllPluginList(type, keyword, page, size, show_third_party)
         rdata['data'] = data[0]
         rdata['list'] = mw.getPage({'count':data[1],'p':page,'tojs':'getSList','row':size})
         return rdata

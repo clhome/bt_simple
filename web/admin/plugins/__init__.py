@@ -59,6 +59,7 @@ def list():
     plugins_type = request.args.get('type', '0')
     page = request.args.get('p', '1')
     search = request.args.get('search', '').lower()
+    show_third_party = request.args.get('show_third_party', '0')
 
     if not mw.isNumber(plugins_type):
         plugins_type = 1
@@ -67,7 +68,7 @@ def list():
         page = 0
 
     pg = MwPlugin.instance()
-    return pg.getList(plugins_type, search, int(page))
+    return pg.getList(plugins_type, search, int(page), 10, show_third_party)
 
 # 插件设置是否在首页展示
 @blueprint.route('/set_index', endpoint='set_index', methods=['POST'])
