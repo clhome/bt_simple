@@ -276,7 +276,14 @@ resetPluginWinWidth(1050);
 
 $.getScript( "/plugins/file?name=op_waf&f=js/op_waf.js", function(data, textStatus, jqxhr){
     // console.log(data, textStatus, jqxhr);
-	renderWafService();
+	if (typeof window.DEFAULT_ACTIVE_TAB !== 'undefined' && window.DEFAULT_ACTIVE_TAB === 'wafIndex') {
+		window.DEFAULT_ACTIVE_TAB = undefined;
+		$(".bt-w-menu p").removeClass("bgw");
+		$(".bt-w-menu p[onclick^='wafScreen']").addClass("bgw");
+		wafScreen();
+	} else {
+		renderWafService();
+	}
 });
 
 function renderWafService() {

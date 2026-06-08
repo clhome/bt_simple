@@ -1009,6 +1009,9 @@ function loadKeyDataCount(){
                 if (pname == 'mysql') {
                     onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'dbList\'; ' + onclick_str;
                 }
+                if (pname == 'op_waf') {
+                    onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'wafIndex\'; ' + onclick_str;
+                }
                 var show_name = pname;
                 if (pname == 'op_waf') {
                     show_name = '御风OP防火墙';
