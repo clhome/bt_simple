@@ -334,15 +334,12 @@ def initDefaultInfo(conf_reload=False):
 
     ddata = {}
     dlist = []
+    dlist.append('ALL')
     for i in content:
         dlist.append(i["name"])
 
-    dlist.append('unset')
     ddata["list"] = dlist
-    if len(ddata["list"]) < 1:
-        default_site = "unset"
-    else:
-        default_site = dlist[0]
+    default_site = "ALL"
 
     mw.writeFile(dst_path, default_site)
 
@@ -355,11 +352,13 @@ def getSiteListData():
     content = mw.readFile(source_path)
     content = json.loads(content)
     dlist = []
+    dlist.append('ALL')
     for i in content:
         dlist.append(i["name"])
-    dlist.append('unset')
 
     default_site = mw.readFile(dst_path)
+    if not default_site or default_site == 'unset':
+        default_site = 'ALL'
 
     data = {}
     data['list'] = dlist
@@ -1244,7 +1243,9 @@ def getLogsList():
 
     condition = ''
     conn = conn.field(field)
-    conn = conn.where("1=1", ()).where("domain=?", (domain,))
+    conn = conn.where("1=1", ())
+    if domain != 'ALL':
+        conn = conn.where("domain=?", (domain,))
 
     clist = conn.limit(limit).order('time desc').inquiry()
     count_key = "count(*) as num"

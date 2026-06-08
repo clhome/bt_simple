@@ -1935,7 +1935,7 @@ function wafAreaLimit(){
                     var pdata = [];
                     for (var i = 0; i < rlist.length; i++) {
                         var tval = rlist[i];
-                        if (tval != 'unset'){
+                        if (tval != 'unset' && tval != 'ALL'){
                             var t = {name:rlist[i],value:rlist[i]};
                             pdata.push(t);
                         }
@@ -1958,7 +1958,7 @@ function wafAreaLimit(){
                     var pdata = [];
                     for (var i = 0; i < rlist.length; i++) {
                         var tval = rlist[i];
-                        if (tval != 'unset'){
+                        if (tval != 'unset' && tval != 'ALL'){
                             var t = {name:tval,value:tval};
                             pdata.push(t);
                         }
@@ -2103,7 +2103,7 @@ function wafLogs(){
                     <div style="display: flex; align-items: center;">\
                         <span>网站: </span>\
                         <select class="bt-input-text" name="site" style="margin-left:4px;width:160px;">\
-                            <option value="unset">未设置</option>\
+                            <option value="ALL">ALL</option>\
                         </select>\
                         <span style="margin-left:10px">时间: </span>\
                         <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
