@@ -270,6 +270,15 @@ end
 
 function _M.log(self, args, rule_name, reason)
 
+    -- Ensure lazy-loaded fields required by the database are materialized
+    local _ = args.time
+    local _ = args.ip
+    local _ = args.server_name
+    local _ = args.method
+    local _ = args.status_code
+    local _ = args.user_agent
+    local _ = args.request_uri
+
     args["rule_name"] = rule_name
     args["reason"] = reason
 

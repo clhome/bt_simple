@@ -43,20 +43,56 @@ local waf_area_limit = require "waf_area_limit"
 -- local server_name = string.gsub(C:get_sn(config_domains),'_','.')
 local server_name = C:get_sn(config_domains)
 local function initParams()
-    local data = {}
-    data['server_name'] = server_name
-    data['ip'] = C:get_real_ip(server_name)
-    data['ipn'] = C:arrip(data['ip'])
-    data['request_header'] = ngx.req.get_headers()
-    data['uri'] = tostring(ngx.unescape_uri(ngx.unescape_uri(ngx.var.uri)))
-    data['uri_request_args'] = ngx.req.get_uri_args()
-    data['method'] = ngx.req.get_method()
-    data['request_uri'] = tostring(ngx.unescape_uri(ngx.unescape_uri(ngx.var.request_uri)))
-    data['status_code'] = ngx.status
-    data['user_agent'] = data['request_header']['user-agent']
-    data['cookie'] = ngx.var.http_cookie
-    data['time'] = ngx.time()
+    local data = {
+        server_name = server_name,
+        method = ngx.req.get_method(),
+        status_code = ngx.status,
+        cookie = ngx.var.http_cookie,
+        time = ngx.time()
+    }
 
+    local mt = {
+        __index = function(t, key)
+            if key == 'ip' then
+                t[key] = C:get_real_ip(server_name)
+                return t[key]
+            elseif key == 'ipn' then
+                t[key] = C:arrip(t['ip'])
+                return t[key]
+            elseif key == 'request_header' then
+                t[key] = ngx.req.get_headers()
+                return t[key]
+            elseif key == 'uri' then
+                local raw_uri = ngx.var.uri
+                local decoded = ngx.unescape_uri(raw_uri)
+                if string.find(decoded, "%%") then
+                    t[key] = tostring(ngx.unescape_uri(decoded))
+                else
+                    t[key] = tostring(decoded)
+                end
+                return t[key]
+            elseif key == 'uri_request_args' then
+                t[key] = ngx.req.get_uri_args()
+                return t[key]
+            elseif key == 'request_uri' then
+                local raw_uri = ngx.var.request_uri
+                local decoded = ngx.unescape_uri(raw_uri)
+                if string.find(decoded, "%%") then
+                    t[key] = tostring(ngx.unescape_uri(decoded))
+                else
+                    t[key] = tostring(decoded)
+                end
+                return t[key]
+            elseif key == 'user_agent' then
+                local headers = t['request_header']
+                t[key] = headers['user-agent']
+                return t[key]
+            end
+            return nil
+        end
+    }
+    
+    setmetatable(data, mt)
     return data
 end
 
