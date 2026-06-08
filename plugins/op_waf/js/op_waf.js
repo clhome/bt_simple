@@ -1053,19 +1053,30 @@ function wafScreen(){
         var cos_time = (end_time/1000) - parseInt(rdata['start_time']);
         var cos_day = parseInt(parseInt(cos_time)/86400);
 
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = ('0' + (d.getMonth() + 1)).slice(-2);
+        var day = ('0' + d.getDate()).slice(-2);
+        var today_str = year + '-' + month + '-' + day;
+        var today_total = 0;
+        if (rdata.today_date === today_str) {
+            today_total = rdata.today_total || 0;
+        }
+
         var css = `<style>
             .waf-dashboard { padding: 0 15px 5px 5px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; animation: wafFadeIn 0.4s ease; }
             @keyframes wafFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
             
             .waf-top-cards { display: flex; gap: 15px; margin-bottom: 15px; }
-            .waf-card-primary, .waf-card-info {
+            .waf-card-primary, .waf-card-info, .waf-card-warning {
                 flex: 1; border-radius: 10px; padding: 15px 20px; color: #fff; text-align: center;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; overflow: hidden;
                 transition: transform 0.2s ease;
             }
-            .waf-card-primary:hover, .waf-card-info:hover { transform: translateY(-2px); }
+            .waf-card-primary:hover, .waf-card-info:hover, .waf-card-warning:hover { transform: translateY(-2px); }
             .waf-card-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
             .waf-card-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+            .waf-card-warning { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
             .waf-card-title { font-size: 14px; opacity: 0.9; margin-bottom: 5px; font-weight: 500; letter-spacing: 1px; }
             .waf-card-val { font-size: 32px; font-weight: 700; line-height: 1.1; font-family: Arial, sans-serif; }
             
@@ -1090,6 +1101,10 @@ function wafScreen(){
         var con = css + '<div class="waf-dashboard">';
         
         con += '<div class="waf-top-cards">\
+            <div class="waf-card-warning">\
+                <div class="waf-card-title">今日拦截 (次)</div>\
+                <div class="waf-card-val">' + today_total + '</div>\
+            </div>\
             <div class="waf-card-primary">\
                 <div class="waf-card-title">总拦截 (次)</div>\
                 <div class="waf-card-val">' + rdata.total + '</div>\

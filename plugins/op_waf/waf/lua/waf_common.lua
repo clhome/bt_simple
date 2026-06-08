@@ -710,6 +710,15 @@ function _M.stats_total(self, name, rule)
     total['sites'][server_name][name] = total['sites'][server_name][name] + 1
     total['rules'][name] = total['rules'][name] + 1
 
+    -- 今日拦截数方案二实现 (内存/静态缓存)
+    local today = ngx.today() -- 格式 YYYY-MM-DD
+    if not total['today_date'] or total['today_date'] ~= today then
+        total['today_date'] = today
+        total['today_total'] = 1
+    else
+        total['today_total'] = (total['today_total'] or 0) + 1
+    end
+
     self:dict_set("waf_limit", total_path,json.encode(total))
 
     -- 异步执行
