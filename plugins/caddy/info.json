@@ -13,6 +13,7 @@
 	"home": "https://caddyserver.com/",
 	"date": "2026-04-11",
 	"pid": "1",
+	"display": 2,
 	"versions": [
 		"2.11"
 	]

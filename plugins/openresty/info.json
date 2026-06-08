@@ -13,6 +13,7 @@
 	"home": "http://openresty.org",
 	"date": "2026-05-28",
 	"pid": "1",
+	"display": 2,
 	"versions": [
 		"1.17.8",
 		"1.19.3",

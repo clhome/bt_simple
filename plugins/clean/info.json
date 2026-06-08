@@ -11,6 +11,7 @@
 	"path": "server/clean",
 	"author": "clean",
 	"home": "",
+	"display": 2,
 	"date": "2021-11-23",
 	"pid": "5"
 }

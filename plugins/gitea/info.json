@@ -14,5 +14,6 @@
 	"type": "Git服务器",
 	"shell": "install.sh",
 	"pid": "3",
+	"display": 2,
 	"sort": 100
 }

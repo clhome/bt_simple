@@ -19,5 +19,6 @@
 	"author": "phpMyAdmin",
 	"home": "https://www.phpmyadmin.net/",
 	"date": "2017-11-24",
+	"display": 2,
 	"pid": "2"
 }

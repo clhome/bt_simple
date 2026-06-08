@@ -18,5 +18,6 @@
 	"author": "midoks & yufeng tec",
 	"home": "http://pecl.php.net/package/xhprof",
 	"date": "2020-07-12",
+	"display": 2,
 	"pid": "1"
 }

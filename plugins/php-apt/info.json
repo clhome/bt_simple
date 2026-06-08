@@ -1,6 +1,6 @@
 {
     "sort": 200,
-    "ps": "PHP是世界上最好的编程语言(极速安装)",
+    "ps": "PHP是世界上最好的编程语言(Debian/Ubuntu极速安装)",
     "shell": "install.sh",
     "name": "php-apt",
     "title": "PHP[APT]",
