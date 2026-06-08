@@ -668,4 +668,11 @@ $(function() {
     if (window.document.location.pathname == '/soft/') {
         setInterval(function() { getSList(); }, 8000);
     }
+
+    // 点击外部隐藏设置下拉框
+    $(document).click(function(e) {
+        if (!$(e.target).closest('.plugin-settings-dropdown').length) {
+            $('#third_party_setting_box').hide();
+        }
+    });
 });

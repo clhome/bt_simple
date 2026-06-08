@@ -23,11 +23,15 @@
 						<div class="menu-sub softtype"></div>
 
 						<input type="file" style="display:none;" accept=".zip,.tar.gz" id="update_zip" multiple="multiple">
-						<label style="position:absolute;top:18px;right:95px; cursor:pointer; font-weight: normal; color: #666;" title="显示第三方插件">
-							<i class="glyphicon glyphicon-cog" style="color: #888;"></i> 
-							<input type="checkbox" id="show_third_party_chk" style="vertical-align: top; margin-left:2px;" onclick="toggleThirdParty(this.checked)"> 显示第三方插件
-						</label>
-						<button class="btn btn-default btn-sm" onclick="refreshPluginList()" title="刷新列表" style="position:absolute;top:12px;right:15px">刷新列表</button>
+						<button class="btn btn-default btn-sm" onclick="refreshPluginList()" title="刷新列表" style="position:absolute;top:12px;right:45px">刷新列表</button>
+						<div class="plugin-settings-dropdown" style="position:absolute;top:17px;right:15px; z-index: 100;">
+							<i class="glyphicon glyphicon-cog" style="color: #666; font-size: 16px; cursor: pointer;" title="设置" onclick="$('#third_party_setting_box').toggle(200); event.stopPropagation();"></i>
+							<div id="third_party_setting_box" style="display: none; position: absolute; right: 0; top: 25px; background: #fff; border: 1px solid #ddd; padding: 10px 15px; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); white-space: nowrap;">
+								<label style="cursor:pointer; font-weight: normal; color: #444; margin: 0; display: flex; align-items: center; gap: 5px;">
+									<input type="checkbox" id="show_third_party_chk" style="margin: 0;" onclick="toggleThirdParty(this.checked)"> 显示第三方插件
+								</label>
+							</div>
+						</div>
 						<div id="updata_pro_info"></div>
 						<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">
 							<thead>
