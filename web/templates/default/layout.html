@@ -11,15 +11,15 @@
       rel="stylesheet"
       onerror="this.onerror=null;this.href='/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}'"
     />
-    <link href="/static/layer/skin/default/layer.css?v={{config.version}}" rel="stylesheet" />
+    <link href="https://cdn.staticfile.org/layer/3.0.1/skin/default/layer.css" rel="stylesheet" onerror="this.onerror=null;this.href='/static/layer/skin/default/layer.css?v={{config.version}}'" />
     <link href="/static/css/site.css?v={{config.version}}&t=20260527" rel="stylesheet" />
     <link
-      href="https://cdn.staticfile.org/codemirror/5.65.15/codemirror.min.css"
+      href="https://cdn.staticfile.org/codemirror/5.21.0/codemirror.min.css"
       rel="stylesheet"
       onerror="this.onerror=null;this.href='/static/codemirror/lib/codemirror.css?v={{config.version}}'"
     />
     <link
-      href="https://cdn.staticfile.org/codemirror/5.65.15/addon/dialog/dialog.min.css"
+      href="https://cdn.staticfile.org/codemirror/5.21.0/addon/dialog/dialog.min.css"
       rel="stylesheet"
       onerror="this.onerror=null;this.href='/static/codemirror/addon/dialog/dialog.css?v={{config.version}}'"
     />
@@ -121,18 +121,18 @@
         <script>$.fn.modal || document.write('<script src="/static/js/bootstrap.min.js"><\/script>')</script>
 
         <!-- Layer -->
-        <script src="https://cdn.staticfile.org/layer/3.5.1/layer.js"></script>
+        <script src="https://cdn.staticfile.org/layer/3.0.1/layer.min.js"></script>
         <script>window.layer || document.write('<script src="/static/layer/layer.js"><\/script>')</script>
 
         <!-- Marked -->
-        <script src="https://cdn.staticfile.org/marked/4.3.0/marked.min.js"></script>
+        <script src="https://cdn.staticfile.org/marked/15.0.12/marked.min.js"></script>
         <script>window.marked || document.write('<script src="/static/js/marked.min.js"><\/script>')</script>
 
         <!-- jQuery Fly (本地加载，体积小) -->
         <script src="/static/js/jquery.fly.min.js"></script>
 
         <!-- Clipboard -->
-        <script src="https://cdn.staticfile.org/clipboard.js/2.0.11/clipboard.min.js"></script>
+        <script src="https://cdn.staticfile.org/clipboard.js/2.0.1/clipboard.min.js"></script>
         <script>window.ClipboardJS || document.write('<script src="/static/js/clipboard.min.js"><\/script>')</script>
 
         <!-- XTerm & Addons -->
@@ -143,7 +143,7 @@
         <script src="https://cdn.staticfile.org/xterm/3.14.5/addons/fullscreen/fullscreen.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fullscreen/fullscreen.js'"></script>
 
         <!-- Socket.io -->
-        <script src="https://cdn.staticfile.org/socket.io/4.7.5/socket.io.min.js"></script>
+        <script src="https://cdn.staticfile.org/socket.io/4.5.0/socket.io.min.js"></script>
         <script>window.io || document.write('<script src="/static/js/socket.io.min.js"><\/script>')</script>
 
         <!-- Local custom configurations and utilities -->
@@ -256,7 +256,7 @@
     }
   </script>
   <!-- CodeMirror CDN & Fallback -->
-  <script src="https://cdn.staticfile.org/codemirror/5.65.15/codemirror.min.js"></script>
+  <script src="https://cdn.staticfile.org/codemirror/5.21.0/codemirror.min.js"></script>
   <script>window.CodeMirror || document.write('<script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"><\/script>')</script>
   <script src="/static/codemirror/addon/edit/editAll.js?v={{config.version}}"></script>
   <script src="/static/codemirror/mode/modeAll.js?v={{config.version}}"></script>
@@ -266,10 +266,10 @@
   <script src="/static/codemirror/mode/markdown/markdown.js?v={{config.version}}"></script>
   <script src="/static/codemirror/mode/properties/properties.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/dialog/dialog.js?v={{config.version}}"></script>
-  <script src="https://cdn.staticfile.org/codemirror/5.65.15/addon/search/searchcursor.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/search/searchcursor.js?v={{config.version}}'"></script>
+  <script src="https://cdn.staticfile.org/codemirror/5.21.0/addon/search/searchcursor.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/search/searchcursor.js?v={{config.version}}'"></script>
   <script src="/static/codemirror/addon/search/search.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/scroll/annotatescrollbar.js?v={{config.version}}"></script>
-  <script src="https://cdn.staticfile.org/codemirror/5.65.15/addon/selection/active-line.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/selection/active-line.js?v={{config.version}}'"></script>
+  <script src="https://cdn.staticfile.org/codemirror/5.21.0/addon/selection/active-line.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/selection/active-line.js?v={{config.version}}'"></script>
   <script src="/static/codemirror/addon/comment/comment.js?v={{config.version}}"></script>
   <script>CodeMirror.defaults.styleActiveLine = true;</script>
   
