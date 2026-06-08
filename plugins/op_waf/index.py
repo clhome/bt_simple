@@ -1346,6 +1346,35 @@ def getWafSrceen():
     return mw.readFile(conf)
 
 
+def getTotalStatistics():
+    data = {}
+    isInstall = os.path.exists(getServerDir() + '/waf/total.json')
+    if isInstall:
+        try:
+            content = mw.readFile(getServerDir() + '/waf/total.json')
+            total_data = json.loads(content)
+            total = total_data.get('total', 0)
+            today_total = 0
+            
+            today_str = time.strftime('%Y-%m-%d', time.localtime())
+            if total_data.get('today_date') == today_str:
+                today_total = total_data.get('today_total', 0)
+                
+            data['status'] = True
+            data['count'] = f"{today_total}/{total}"
+            
+            info_path = getPluginDir() + '/info.json'
+            info_data = json.loads(mw.readFile(info_path))
+            data['ver'] = info_data['versions'][0]
+            return mw.returnJson(True, 'ok', data)
+        except Exception as e:
+            pass
+            
+    data['status'] = False
+    data['count'] = '0/0'
+    return mw.returnJson(False, 'fail', data)
+
+
 def getWafConf():
     conf = getJsonPath('config')
     return mw.readFile(conf)
@@ -1734,6 +1763,8 @@ if __name__ == "__main__":
         print(importData())
     elif func == 'waf_srceen':
         print(getWafSrceen())
+    elif func == 'get_total_statistics':
+        print(getTotalStatistics())
     elif func == 'waf_conf':
         print(getWafConf())
     elif func == 'area_limit_switch':

@@ -992,7 +992,7 @@ function pluginInit(){
 }
 
 function loadKeyDataCount(){
-    var plist = ['mysql', 'gogs', 'gitea'];
+    var plist = ['mysql', 'gogs', 'gitea', 'op_waf'];
     for (var i = 0; i < plist.length; i++) {
         pname = plist[i];
         function call(pname){
@@ -1009,8 +1009,12 @@ function loadKeyDataCount(){
                 if (pname == 'mysql') {
                     onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'dbList\'; ' + onclick_str;
                 }
+                var show_name = pname;
+                if (pname == 'op_waf') {
+                    show_name = '御风OP防火墙';
+                }
                 var html = '<li class="sys-li-box col-xs-3 col-sm-3 col-md-3 col-lg-3">\
-                        <p class="name f15 c9">'+pname+'</p>\
+                        <p class="name f15 c9">'+show_name+'</p>\
                         <div class="val"><a class="btlink" onclick="' + onclick_str + '">'+rdata['data']['count']+'</a></div>\
                     </li>';
                 $('#index_overview').append(html);
