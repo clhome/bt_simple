@@ -13,7 +13,7 @@
 	"home": "https://dl.gitea.io/",
 	"type": "Git服务器",
 	"shell": "install.sh",
-	"pid": "3",
+	"pid": "5",
 	"display": 2,
 	"sort": 100
 }

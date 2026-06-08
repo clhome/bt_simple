@@ -51,15 +51,15 @@ class plugin(object):
             "ps":""
         },
         {
-            "title":"数据软件",
+            "title":"数据库",
             "type":2,
             "ps":""
         },
-        {
-            "title":"代码管理",
-            "type":3,
-            "ps":""
-        },
+        # {
+        #     "title":"代码管理",
+        #     "type":3,
+        #     "ps":""
+        # },
         {
             "title":"系统工具",
             "type":4,
@@ -74,12 +74,8 @@ class plugin(object):
             "title":"PHP",
             "type":6,
             "ps":""
-        },
-        {
-            "title":"AI插件",
-            "type":7,
-            "ps":""
         }
+
     ]
 
     __plugin_dir = 'plugins'

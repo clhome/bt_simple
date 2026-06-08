@@ -1,5 +1,5 @@
 {
-    "sort": 100,
+    "sort": 120,
     "ps": "可靠、高性能的TCP/HTTP负载均衡器。",
     "name": "haproxy",
     "title": "haproxy",

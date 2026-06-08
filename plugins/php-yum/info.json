@@ -1,6 +1,6 @@
 {
     "sort": 202,
-    "ps": "PHP编程语言(CentOS极速安装)。注意：PHP 7.4 属于已停止支持(EOL)的版本，可能存在安全风险，建议生产环境使用 PHP 8.0+ 稳定版！",
+    "ps": "PHP极速安装【适配CentOS等系统】。    注意：PHP 7.x 属于已停止支持(EOL)的版本，强烈建议生产环境中部署 PHP 8.x 稳定版！",
     "shell": "install.sh",
     "name": "php-yum",
     "title": "PHP[YUM]",
