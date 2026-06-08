@@ -827,7 +827,7 @@ function onlineEditFile(k, f, callback) {
 				code_mirror = CodeMirror.fromTextArea(document.getElementById("textBody"), {
 					extraKeys: {
 						"Ctrl-F": "findPersistent",
-						"Ctrl-H": "replaceAll",
+						"Ctrl-H": "replace",
 						"Ctrl-/": "toggleComment",
 						"Ctrl-S": function() {
 							$("#textBody").text(code_mirror.getValue());

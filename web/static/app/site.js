@@ -1492,9 +1492,15 @@ function to301(siteName, type, obj){
 					content: mBody,
 					success: function () {
 						editor = CodeMirror.fromTextArea(document.getElementById("configRedirectBody"), {
-							extraKeys: {"Ctrl-Space": "autocomplete"},
+							extraKeys: {
+								"Ctrl-Space": "autocomplete",
+								"Ctrl-/": function(cm){ cm.toggleComment({lineComment:"#"}); },
+								"Ctrl-F": "findPersistent",
+								"Ctrl-H": "replace"
+							},
 							lineNumbers: true,
 							matchBrackets:true,
+							mode: "text/x-nginx-conf",
 						});
 						editor.focus();
 						$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
@@ -1864,10 +1870,12 @@ function toProxy(siteName, type, obj) {
 					editor = CodeMirror.fromTextArea(document.getElementById("configProxyBody"), {
 						lineNumbers: true,
 						matchBrackets:true,
+						mode: "text/x-nginx-conf",
 						extraKeys: {
 							"Ctrl-Space": "autocomplete",
 		                    "Ctrl-F": "findPersistent",
-		                    "Ctrl-H": "replaceAll",
+		                    "Ctrl-H": "replace",
+		                    "Ctrl-/": function(cm){ cm.toggleComment({lineComment:"#"}); },
 		                    "Ctrl-S": function() {
 		                    	saveDataFunc();
 		                    },
@@ -2924,9 +2932,25 @@ function configFile(webSite){
 		</div>";
 		$("#webedit-con").html(mBody);
 		var editor = CodeMirror.fromTextArea(document.getElementById("configBody"), {
-			extraKeys: {"Ctrl-Space": "autocomplete"},
+			extraKeys: {
+				"Ctrl-Space": "autocomplete",
+				"Ctrl-F": "findPersistent",
+				"Ctrl-H": "replace",
+				"Ctrl-/": function(cm){ cm.toggleComment({lineComment:"#"}); },
+				"Ctrl-S": function() {
+					$("#configBody").empty();
+					$("#configBody").text(editor.getValue());
+					saveConfigFile(webSite,rdata.data.encoding, info['host']);
+				},
+				"Cmd-S":function() {
+					$("#configBody").empty();
+					$("#configBody").text(editor.getValue());
+					saveConfigFile(webSite,rdata.data.encoding, info['host']);
+				}
+			},
 			lineNumbers: true,
 			matchBrackets:true,
+			mode: "text/x-nginx-conf",
 		});
 		editor.setSize("740px", "580px");
 		$(".CodeMirror").css({"margin-left":"20px"});
@@ -2985,7 +3009,8 @@ function rewrite(siteName){
 	            extraKeys: {
 	            	"Ctrl-Space": "autocomplete",
 	            	"Ctrl-F": "findPersistent",
-					"Ctrl-H": "replaceAll",
+					"Ctrl-H": "replace",
+					"Ctrl-/": function(cm){ cm.toggleComment({lineComment:"#"}); },
 					"Ctrl-S": function() {
 						$("#rewriteBody").empty();
 						$("#rewriteBody").text(editor.getValue());
@@ -2999,6 +3024,7 @@ function rewrite(siteName){
 	            },
 				lineNumbers: true,
 				matchBrackets:true,
+				mode: "text/x-nginx-conf",
 			});
 			editor.setSize("740px", "560px");
 			$(".CodeMirror-scroll").css({"height":"560px","margin":0,"padding":0});
