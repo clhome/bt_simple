@@ -74,6 +74,7 @@ if status == 404 then
                         time = ngx.time()
                     }
                     C:log(params, 'scan', reason)
+                    C:stats_total('scan', reason)
                 end
             elseif count_1m >= 30 then
                 local warn_key = "404_warning:" .. ip
@@ -92,6 +93,7 @@ if status == 404 then
                         time = ngx.time()
                     }
                     C:log(params, 'scan', reason)
+                    C:stats_total('scan', reason)
                 end
             end
         end

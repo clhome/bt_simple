@@ -686,7 +686,7 @@ function _M.timer_stats_total(self)
 end
 
 function _M.stats_total(self, name, rule)
-    local server_name = self.params['server_name']
+    local server_name = (self.params and self.params['server_name']) or ngx.var.server_name or 'unknown'
     local total_path = cpath .. 'total.json'
     local total = ngx.shared.waf_limit:get(total_path)
 
@@ -868,6 +868,9 @@ function _M.write_log(self, name, rule)
         self:dict_set("waf_drop_ip", ip, 1, retry_cycle)
     end
 
+    -- 统计必须在日志开关检查之前执行，确保拦截计数不受日志配置影响
+    self:stats_total(name, rule)
+
     if config['log'] ~= true or self:is_site_config('log') ~= true then return false end
     local method = params['method']
     if error_rule then 
@@ -898,8 +901,6 @@ function _M.write_log(self, name, rule)
     elseif name ~= 'cc' then
         self:log(params, name, rule)
     end
-    
-    self:stats_total(name, rule)
 end
 
 

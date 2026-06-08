@@ -227,6 +227,8 @@ def initTotalInfo(conf_reload=False):
         if 'sites' in total_contents and name in total_contents['sites']:
             pass
         else:
+            if 'sites' not in total_contents:
+                total_contents['sites'] = {}
             tmp = {}
             tmp['cdn'] = 0
             tmp['log'] = 0
@@ -236,9 +238,7 @@ def initTotalInfo(conf_reload=False):
             tmp['path'] = 0
             tmp['php_path'] = 0
             tmp['upload_ext'] = 0
-            _name = {}
-            _name[name] = tmp
-            total_contents['sites'] = _name
+            total_contents['sites'][name] = tmp
 
     total_contents['start_time'] = str(time.time())
     cjson = mw.getJson(total_contents)
