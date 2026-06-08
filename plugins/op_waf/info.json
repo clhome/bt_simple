@@ -12,7 +12,7 @@
 		}
 	],
 	"sort":51,
-	"title":"御风OP防火墙",
+	"title": "御风OP防火墙",
 	"tip":"soft",
 	"name":"op_waf",
 	"type":"其他插件",
@@ -26,5 +26,6 @@
 	"date":"2026-06-02",
 	"pid": "1",
 	"size": ["950", "650"],
+	"display": 2,
 	"versions": ["1.1"]
 }

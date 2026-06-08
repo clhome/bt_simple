@@ -12,5 +12,6 @@
 	"author":"samba & yufeng tec",
 	"home":"https://rsync.samba.org/",
 	"date":"2026-05-28",
+	"display": 2,
 	"pid":"4"
 }

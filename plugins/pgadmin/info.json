@@ -11,5 +11,6 @@
 	"author":"pgadmin",
 	"home":"https://www.pgadmin.org/download/pgadmin-4-python/",
 	"date":"2024-10-1",
+	"display": 2,
 	"pid": "2"
 }

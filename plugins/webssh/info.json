@@ -10,7 +10,7 @@
 		}
 	],
 	"sort":100,
-	"title":"SSH终端",
+	"title": "SSH终端",
 	"tip":"lib",
 	"name":"webssh",
 	"type":"扩展",
@@ -22,5 +22,6 @@
 	"author":"ssh",
 	"home":"",
 	"date":"2026-05-29",
+	"display": 2,
 	"pid":"4"
 }

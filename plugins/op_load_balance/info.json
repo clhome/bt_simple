@@ -1,6 +1,6 @@
 {
 	"sort":100,
-	"title":"OP负载均衡",
+	"title": "OP负载均衡",
 	"tip":"soft",
 	"name":"op_load_balance",
 	"type":"其他插件",
@@ -13,5 +13,6 @@
 	"home":"",
 	"date":"2026-05-28",
 	"pid": "1",
+	"display": 2,
 	"versions": ["1.1"]
 }
