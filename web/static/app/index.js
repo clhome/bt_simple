@@ -1005,16 +1005,22 @@ function loadKeyDataCount(){
                 if (!rdata['status']){
                     return;
                 }
-                var onclick_str = 'softMain(\''+pname+'\',\''+pname+'\',\''+rdata['data']['ver']+'\')';
+                var show_name = pname;
+                if (pname == 'op_waf') {
+                    show_name = '御风OP防火墙';
+                } else if (pname == 'mysql') {
+                    show_name = 'MySQL';
+                } else if (pname == 'gogs') {
+                    show_name = 'Gogs';
+                } else if (pname == 'gitea') {
+                    show_name = 'Gitea';
+                }
+                var onclick_str = 'softMain(\''+pname+'\',\''+show_name+'\',\''+rdata['data']['ver']+'\')';
                 if (pname == 'mysql') {
                     onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'dbList\'; ' + onclick_str;
                 }
                 if (pname == 'op_waf') {
                     onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'wafIndex\'; ' + onclick_str;
-                }
-                var show_name = pname;
-                if (pname == 'op_waf') {
-                    show_name = '御风OP防火墙';
                 }
                 var html = '<li class="sys-li-box col-xs-3 col-sm-3 col-md-3 col-lg-3">\
                         <p class="name f15 c9">'+show_name+'</p>\
