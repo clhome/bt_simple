@@ -362,9 +362,9 @@ def docker_pull_with_mirror():
     execstr = "cd " + mw.getPluginDir() + "/docker && python pull_task.py " + shlex.quote(original_images) + " " + shlex.quote(mirrors_str)
 
     # 将拉取任务加入系统的后台任务队列（消息盒子）
-    mw.M('tasks').add('name,type,status,addtime,start,end,execstr',
+    mw.M('tasks').add('name,type,status,add_time,start,end,cmd',
                       ('拉取 Docker 镜像: ' + original_images, 'execshell', '0',
-                       _time.strftime('%Y-%m-%d %H:%M:%S'), '', '', execstr))
+                       _time.strftime('%Y-%m-%d %H:%M:%S'), '0', '0', execstr))
 
     # 唤醒后台队列
     mw.triggerTask()
