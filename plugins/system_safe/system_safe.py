@@ -25,23 +25,16 @@ if mw.isAppleSystem():
 
 class App:
 
-    __deny = '/etc/hosts.deny'
-    __allow = '/etc/hosts.allow'
     __state = {True: '开启', False: '关闭'}
     __months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
                 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Sept': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
     __name = '系统加固'
-    __deny_list = None
 
     __config = None
     __log_file = None
-    __last_ssh_time = 0
-    __last_ssh_size = 0
 
     def __init__(self):
-        if mw.isAppleSystem():
-            self.__deny = self.getServerDir() + '/hosts.deny'
-            self.__allow = self.getServerDir() + '/hosts.allow'
+        pass
 
     def getPluginName(self):
         return 'system_safe'
@@ -185,196 +178,6 @@ class App:
     def writeLog(self, msg):
         mw.writeDbLog(self.__name, msg)
 
-    def getDenyList(self):
-        deny_file = self.getServerDir() + '/deny.json'
-        if not os.path.exists(deny_file):
-            mw.writeFile(deny_file, '{}')
-        self.__deny_list = json.loads(mw.readFile(deny_file))
-
-    # 存deny_list
-    def saveDeayList(self):
-        deny_file = self.getServerDir() + '/deny.json'
-        mw.writeFile(deny_file, json.dumps(self.__deny_list))
-
-    def get_ssh_limit(self):
-        data = self.getSshLimit()
-        return mw.returnJson(True, 'ok!', data)
-
-    # 获取当前SSH禁止IP
-    def getSshLimit(self):
-        denyConf = mw.readFile(self.__deny)
-        if not denyConf:
-            mw.writeFile(self.__deny, '')
-            return []
-        data = re.findall(
-            r"sshd:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):deny", denyConf)
-        return data
-
-    def get_ssh_limit_info(self):
-        data = self.getSshLimitInfo()
-        return mw.returnJson(True, 'ok!', data)
-
-    # 获取deny信息
-    def getSshLimitInfo(self):
-        self.getDenyList()
-        conf_list = self.getSshLimit()
-        data = []
-        for c_ip in conf_list:
-            tmp = {}
-            tmp['address'] = c_ip
-            tmp['end'] = 0
-            if c_ip in self.__deny_list:
-                tmp['end'] = mw.getDataFromInt(self.__deny_list[c_ip])
-            data.append(tmp)
-        return data
-
-    def add_ssh_limit(self):
-        args = self.getArgs()
-        check = self.checkArgs(args, ['ip'])
-        if not check[0]:
-            return check[1]
-        ip = args['ip']
-        return self.addSshLimit(ip)
-
-    # 添加SSH目标IP
-    def addSshLimit(self, ip=None):
-        if ip == None:
-            ip = self.ip
-
-        if not ip or not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-            return mw.returnJson(False, '非法的IP地址格式！')
-
-        if ip in self.getSshLimit():
-            return mw.returnJson(True, '指定IP黑名单已存在!')
-        denyConf = mw.readFile(self.__deny).strip()
-        while denyConf[-1:] == "\n" or denyConf[-1:] == " ":
-            denyConf = denyConf[:-1]
-        denyConf += "\nsshd:" + ip + ":deny\n"
-        mw.writeFile(self.__deny, denyConf)
-        if ip in self.getSshLimit():
-            msg = u'添加IP[%s]到SSH-IP黑名单' % ip
-            self.writeLog(msg)
-            self.getDenyList()
-            if not ip in self.__deny_list:
-                self.__deny_list[ip] = 0
-            self.saveDeayList()
-            return mw.returnJson(True, '添加成功!')
-        return mw.returnJson(False, '添加失败!')
-
-    def remove_ssh_limit(self):
-        args = self.getArgs()
-        check = self.checkArgs(args, ['ip'])
-        if not check[0]:
-            return check[1]
-        ip = args['ip']
-        return self.removeSshLimit(ip)
-
-    # 删除IP黑名单
-    def removeSshLimit(self, ip=None):
-        if ip == None:
-            ip = self.ip
-
-        if not ip or not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', ip):
-            return mw.returnJson(False, '非法的IP地址格式！')
-
-        if not self.__deny_list:
-            self.getDenyList()
-        if ip in self.__deny_list:
-            del(self.__deny_list[ip])
-        self.saveDeayList()
-        if not ip in self.getSshLimit():
-            return mw.returnJson(True, '指定IP黑名单不存在!')
-
-        denyConf = mw.readFile(self.__deny).strip()
-        while denyConf[-1:] == "\n" or denyConf[-1:] == " ":
-            denyConf = denyConf[:-1]
-        denyConf = re.sub(r"\n?sshd:" + re.escape(ip) + r":deny\n?", "\n", denyConf)
-        mw.writeFile(self.__deny, denyConf + "\n")
-
-        msg = '从SSH-IP黑名单中解封[%s]' % ip
-        self.writeLog(msg)
-        return mw.returnJson(True, '解封成功!')
-
-    def sshLoginTask(self):
-        if not self.__log_file:
-            log_file = '/var/log/secure'
-            if not os.path.exists(log_file):
-                log_file = '/var/log/auth.log'
-            if not os.path.exists(log_file):
-                return
-            self.__log_file = log_file
-
-        if not self.__log_file:
-            return
-
-        log_size = os.path.getsize(self.__log_file)
-        if self.__last_ssh_size == log_size:
-            return
-        self.__last_ssh_size = log_size
-        try:
-            config = self.__config
-            ssh_config = self.__config['ssh']
-            line_num = ssh_config['limit_count'] * 20
-            secure_logs = mw.getLastLine(
-                self.__log_file, line_num).split('\n')
-
-            total_time = '/dev/shm/ssh_total_time.pl'
-            if not os.path.exists(total_time):
-                mw.writeFile(total_time, str(int(time.time())))
-
-            last_total_time = int(mw.readFile(total_time))
-            now_total_time = int(time.time())
-
-            # print("last_total_time:", last_total_time)
-            # print("now_total_time:", now_total_time)
-
-            self.getDenyList()
-            deny_list = list(self.__deny_list.keys())
-            for i in range(len(deny_list)):
-                c_ip = deny_list[i]
-                if self.__deny_list[c_ip] > now_total_time or self.__deny_list[c_ip] == 0:
-                    continue
-                self.ip = c_ip
-                self.removeSshLimit(None)
-            ip_total = {}
-            for log in secure_logs:
-                if log.find('Failed password for') != -1:
-                    login_time = self.__to_date(
-                        re.search(r'^\w+\s+\d+\s+\d+:\d+:\d+', log).group())
-                    if now_total_time - login_time >= ssh_config['cycle']:
-                        continue
-
-                    client_ip = re.search(r'(\d+\.)+\d+', log).group()
-                    if client_ip in self.__deny_list:
-                        continue
-                    if not client_ip in ip_total:
-                        ip_total[client_ip] = 0
-                    ip_total[client_ip] += 1
-                    if ip_total[client_ip] <= ssh_config['limit_count']:
-                        continue
-                    self.__deny_list[
-                        client_ip] = now_total_time + ssh_config['limit']
-
-                    self.saveDeayList()
-                    self.ip = client_ip
-
-                    self.addSshLimit(None)
-                    self.writeLog("[%s]在[%s]秒内连续[%s]次登录SSH失败,封锁[%s]秒" % (
-                        client_ip, ssh_config['cycle'], ssh_config['limit_count'], ssh_config['limit']))
-                elif log.find('Accepted p') != -1:
-                    login_time = self.__to_date(
-                        re.search(r'^\w+\s+\d+\s+\d+:\d+:\d+', log).group())
-                    if login_time < last_total_time:
-                        continue
-                    client_ip = re.search(r'(\d+\.)+\d+', log).group()
-                    login_user = re.findall(r"(\w+)\s+from", log)[0]
-                    self.writeLog("用户[%s]成功登录服务器,用户IP:[%s],登录时间:[%s]" % (
-                        login_user, client_ip, time.strftime('%Y-%m-%d %X', time.localtime(login_time))))
-            mw.writeFile(total_time, str(int(time.time())))
-        except Exception as e:
-            print(mw.getTracebackInfo())
-        return 'success'
-
     __limit = 30
     __vmsize = 1048576 * 100
     __wlist = None
@@ -498,9 +301,6 @@ class App:
         self.setOpen(is_open_val)
         is_open = 0
         while True:
-            if self.__config['ssh']['open']:
-                is_open += 1
-                self.sshLoginTask()
             if self.__config['process']['open']:
                 is_open += 1
                 self.checkMain()
@@ -668,7 +468,7 @@ class App:
         if status == 'true':
             status = True
 
-        if not tag in ['bin', 'service', 'home', 'user', 'bin', 'cron', 'ssh', 'process']:
+        if not tag in ['bin', 'service', 'home', 'user', 'bin', 'cron', 'process']:
             return mw.returnJson(False, '不存在此配置[{}]!'.format(tag))
 
         data = self.getConf()
@@ -727,11 +527,6 @@ class App:
         tmp['paths'] = self.__list_safe_state(tmp['paths'])
         return mw.returnJson(True, {'open': data['open']}, tmp)
 
-    def get_ssh_data(self):
-        data = self.getConf()
-        tmp = data['ssh']
-        return mw.returnJson(True, {'open': data['open']}, tmp)
-
     def get_process_data(self):
         data = self.getConf()
         tmp = data['process']
@@ -783,36 +578,6 @@ class App:
         self.writeLog(msg)
         self.writeConf(data)
         return mw.returnJson(True, msg)
-
-    def save_safe_ssh(self):
-
-        args = self.getArgs()
-        check = self.checkArgs(args, ['cycle', 'limit', 'limit_count'])
-        if not check[0]:
-            return check[1]
-
-        cycle = int(args['cycle'])
-        limit = int(args['limit'])
-        limit_count = int(args['limit_count'])
-
-        if cycle > limit:
-            return mw.returnJson(False, '封锁时间不能小于检测周期!')
-        if cycle < 30 or cycle > 1800:
-            return mw.returnJson(False, '检测周期的值必需在30 - 1800秒之间!')
-        if limit < 60:
-            return mw.returnJson(False, '封锁时间不能小于60秒')
-        if limit_count < 3 or limit_count > 100:
-            return mw.returnJson(False, '检测阈值必需在3 - 100秒之间!')
-        data = self.getConf()
-        data['ssh']['cycle'] = cycle
-        data['ssh']['limit'] = limit
-        data['ssh']['limit_count'] = limit_count
-        self.writeConf(data)
-        msg = '修改SSH策略: 在[%s]秒内,登录错误[%s]次,封锁[%s]秒' % (
-            data['ssh']['cycle'], data['ssh']['limit_count'], data['ssh']['limit'])
-        self.writeLog(msg)
-        self.restart()
-        return mw.returnJson(True, '配置已保存!')
 
     # 添加进程白名单
     def add_process_white(self):

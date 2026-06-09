@@ -353,14 +353,6 @@
             }
         ]
     },
-    "ssh": {
-        "open": true,
-        "name": "SSH服务加固",
-        "ps": "保护SSH不被暴力破解,记录用户登录日志",
-        "cycle": 120,
-        "limit": 3600,
-        "limit_count": 3
-    },
     "process": {
         "open": true,
         "name": "异常进程监控",
