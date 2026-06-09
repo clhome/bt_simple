@@ -138,9 +138,19 @@ def file():
     if f.strip() == '':
         return ''
 
-    file = mw.getPluginDir() + '/' + name + '/' + f
-    if not os.path.exists(file):
-        return ''
+    if f in ('ico.png', 'ico.svg'):
+        svg_file = mw.getPluginDir() + '/' + name + '/ico.svg'
+        png_file = mw.getPluginDir() + '/' + name + '/ico.png'
+        if os.path.exists(svg_file):
+            file = svg_file
+        elif os.path.exists(png_file):
+            file = png_file
+        else:
+            return ''
+    else:
+        file = mw.getPluginDir() + '/' + name + '/' + f
+        if not os.path.exists(file):
+            return ''
 
     suffix = mw.getPathSuffix(file)
     if suffix == '.css':
@@ -155,6 +165,13 @@ def file():
         from flask import make_response
         v = Response(content, headers={'Content-Type': 'application/javascript; charset="utf-8"'})
         return make_response(v)
+    elif suffix == '.svg':
+        content = open(file, 'rb').read()
+        from flask import Response
+        from flask import make_response
+        v = Response(content, headers={'Content-Type': 'image/svg+xml; charset="utf-8"'})
+        return make_response(v)
+    
     content = open(file, 'rb').read()
     return content
 
