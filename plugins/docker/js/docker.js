@@ -1213,14 +1213,16 @@ function dockerAccelerator() {
         var mirrors_str = mirrors.join('\n');
         window.default_docker_mirrors_str = default_mirrors.join('\n');
 
-        var con = '<div class="pd15">' +
-            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 180px; line-height: 22px; padding: 10px; margin-bottom:10px;" placeholder="每行输入一个加速器 URL，例如：\nhttps://docker.1ms.run">' + mirrors_str + '</textarea>' +
-            '<div style="text-align:right; margin-bottom:10px;">' +
+        var con = '<div style="padding: 10px 15px;">' +
+            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:5px;" placeholder="每行输入一个加速器 URL，例如：\nhttps://docker.1ms.run">' + mirrors_str + '</textarea>' +
+            '<div style="text-align:right; margin-bottom:5px;">' +
             '<button class="btn btn-default btn-sm" onclick="document.getElementById(\'accel_urls\').value = window.default_docker_mirrors_str;">还原默认</button>' +
             '</div>' +
             '<div class="help-info-text c7" style="margin-bottom:10px;">注：保存后将写入 /etc/docker/daemon.json 并重启 Docker 守护进程。</div>' +
-            '<div style="margin-bottom:15px;"><label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)"> 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)</label></div>' +
+            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:5px;">' +
+            '<label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)"> 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)</label>' +
             '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">保存并重启 Docker</button>' +
+            '</div>' +
             '</div>';
             
         $(".soft-man-con").html(con);
