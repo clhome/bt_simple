@@ -213,7 +213,7 @@ function createConTemplate() {
             type: 1,
             title: "创建容器",
             area: '556',
-            closeBtn: 2,
+            closeBtn: 1,
             shadeClose: false,
             btn: ['确定', '取消'],
             content: '<div class="bt-form pd20 pb70 ceart-docker new_tname">\
@@ -267,14 +267,23 @@ function createConTemplate() {
                         </div>\
                         <div class="line">\
                             <span class="tname">内存配额</span>\
-                            <div class="info-r c4"><input class="bt-input-text mr5 docker-mem" type="number" style="width:100px" value="' + parseInt(rdata.memSize / 2) + '">\
-                            <span class="dc-un">MB</span><i class="help">不超过， ' + rdata.memSize + 'MB</i></div>\
+                            <div class="info-r c4" style="display: flex; align-items: center; height: 30px;">\
+                                <input class="docker-mem-range" type="range" min="0" max="100" value="50" style="width:150px; margin-right: 15px; cursor: pointer;" oninput="$(this).siblings(\'.docker-mem\').val(parseInt(this.value * ' + rdata.memSize + ' / 100)); $(this).siblings(\'.docker-mem-percent\').text(this.value + \'%\');">\
+                                <input class="bt-input-text mr5 docker-mem" type="number" style="width:80px" value="' + parseInt(rdata.memSize / 2) + '" oninput="var p=parseInt(this.value / ' + rdata.memSize + ' * 100); $(this).siblings(\'.docker-mem-range\').val(p); $(this).siblings(\'.docker-mem-percent\').text(p + \'%\');">\
+                                <span class="dc-un">MB</span>\
+                                <span class="docker-mem-percent" style="margin-left: 10px; width: 40px; color: #666; font-weight: bold;">50%</span>\
+                                <i class="help" style="margin-left: 10px;">不超过总内存: ' + rdata.memSize + 'MB</i>\
+                            </div>\
                         </div>\
                         <div class="line">\
                             <span class="tname">CPU配额</span>\
-                            <div class="info-r c4">\
-                            <input class="bt-input-text mr5 docker-cpu" type="number" max="100" min="1" style="width:100px" value="100">\
-                            <span class="dc-un"></span><i class="help">越大，占用的CPU越多</i></div>\
+                            <div class="info-r c4" style="display: flex; align-items: center; height: 30px;">\
+                                <input class="docker-cpu-range" type="range" min="1" max="100" value="100" style="width:150px; margin-right: 15px; cursor: pointer;" oninput="$(this).siblings(\'.docker-cpu\').val(this.value); $(this).siblings(\'.docker-cpu-percent\').text(this.value + \'%\');">\
+                                <input class="bt-input-text mr5 docker-cpu" type="number" max="100" min="1" style="width:80px" value="100" oninput="var p=this.value; $(this).siblings(\'.docker-cpu-range\').val(p); $(this).siblings(\'.docker-cpu-percent\').text(p + \'%\');">\
+                                <span class="dc-un"></span>\
+                                <span class="docker-cpu-percent" style="margin-left: 15px; width: 40px; color: #666; font-weight: bold;">100%</span>\
+                                <i class="help" style="margin-left: 10px;">docker占用cpu资源上限</i>\
+                            </div>\
                         </div>\
                         <div class="line">\
                             <span class="tname">执行命令</span>\
@@ -450,6 +459,7 @@ function dockerConList() {
 
     var con = '<div class="safe bgw">\
             <button onclick="createConTemplate();" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">创建容器</button>\
+            <button onclick="dockerConListRender();" class="btn btn-default btn-sm pull-right" type="button" style="float: right;">刷新</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
@@ -509,8 +519,8 @@ function dockerImageListRender() {
             }
 
             var op = '';
-            op += '<a href="javascript:;" onclick="pullImages(\'' + rlist[i]['RepoTags'] + '\',\'' + rlist[i]['Id'] + '\')" class="btlink">拉取</a> | ';
             op += '<a href="javascript:;" onclick="deleteImages(\'' + rlist[i]['RepoTags'] + '\',\'' + rlist[i]['Id'] + '\')" class="btlink">删除</a>';
+
 
             list += '<tr>';
             list += '<td>' + rlist[i]['RepoTags'] + '</td>';
@@ -532,7 +542,7 @@ function dockerPullImagesFileTemplate() {
         type: 1,
         title: "获取镜像",
         area: '500px',
-        closeBtn: 2,
+        closeBtn: 1,
         shadeClose: false,
         content: '<div class="bt-docker pd20">' +
             '<div class="docker-sub">' +
@@ -689,6 +699,7 @@ function dockerImageList() {
 
     var con = '<div class="safe bgw">\
             <button onclick="dockerPullImagesFileTemplate()" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">获取镜像</button>\
+            <button onclick="dockerImageListRender();" class="btn btn-default btn-sm pull-right" type="button" style="float: right;">刷新</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
@@ -832,7 +843,7 @@ function dockerImagePick() {
             type: 1,
             title: "选择镜像",
             area: '500px',
-            closeBtn: 2,
+            closeBtn: 1,
             btn: ['打包', '取消'],
             shadeClose: false,
             content: '<div class="divtable images_pull" style="padding:10px;">\
