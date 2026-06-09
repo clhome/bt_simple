@@ -1,8 +1,8 @@
 {
     "sort": 100,
-    "ps": "Docker是一个开源的应用容器引擎",
+    "ps": "采用多个加速点轮询高速下载镜像，让Docker下载和拉取镜像如飞",
     "name": "docker",
-    "title": "Docker",
+    "title": "御风Docker管理器",
     "shell": "install.sh",
     "versions": [
         "1.0"
@@ -11,7 +11,7 @@
     "checks": "server/docker",
     "path": "server/docker",
     "display": 2,
-    "author": "Zend",
+    "author": "Zend&yufeng tec",
     "date": "2026-05-28",
     "home": "https://docker.io",
     "doc1": "https://docker-py.readthedocs.io/",

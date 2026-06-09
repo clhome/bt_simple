@@ -704,10 +704,12 @@ def __check_dst_port(ip, port, timeout=3):
 
 def dockerCreateCon():
     args = getArgs()
-    data = checkArgs(args, ['environments', 'command',
+    data = checkArgs(args, ['name', 'environments', 'command',
                             'entrypoint', 'image', 'mem_limit', 'ports', 'volumes'])
     if not data[0]:
         return data[1]
+
+    name = args['name'].strip()
 
     environments = args['environments']
     environments = environments.strip().split()
@@ -726,6 +728,7 @@ def dockerCreateCon():
 
         c = getDClient()
         conObject = c.containers.run(
+            name=name,
             image=image,
             mem_limit=mem_limit + 'M',
             ports=eval(ports),

@@ -36,7 +36,7 @@
 	<div class='plugin_version'></div>
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('docker');">服务</p>
+			<p class="bgw" onclick="dockerService();">服务</p>
 			<p onclick="pluginInitD('docker');">自启动</p>
 			<p onclick="dockerConList();">容器列表</p>
 			<p onclick="dockerImageList();">镜像列表</p>
@@ -49,12 +49,13 @@
 			<div class="soft-man-con"></div>
 		</div>
 	</div>
+	<div style="position: absolute; bottom: 15px; right: 20px; font-size: 12px; color: #ccc; pointer-events: none;">衢州御风科技有限公司 出品</div>
 </div>
 <script type="text/javascript">
 resetPluginWinWidth(800);
-resetPluginWinHeight(400);
+resetPluginWinHeight(480);
 var v = new Date().getTime();
 $.getScript( "/plugins/file?name=docker&f=js/docker.js&v=" + v, function(){
-	pluginService('docker', $('.plugin_version').attr('version'));
+	dockerService($('.plugin_version').attr('version'));
 });
 </script>
