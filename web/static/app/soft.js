@@ -265,7 +265,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
     if (ver.indexOf('|') >= 0){
         var veropt = ver.split("|");
         var selectVersion = '';
-        for (var i = 0; i < veropt.length; i++) {
+        for (var i = veropt.length - 1; i >= 0; i--) {
             selectVersion += '<option>' + name + ' ' + veropt[i] + '</option>';
         }
         option = "<select id='selectVersion' class='bt-input-text' style='margin-left:30px'>" + selectVersion + "</select>";
