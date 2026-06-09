@@ -6,6 +6,7 @@ import os
 import time
 import re
 import json
+import shlex
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -31,7 +32,7 @@ def getDClient():
         client = docker.from_env()
     except Exception as e:
         client = docker.DockerClient(
-            base_url='unix:///Users/midoks/.docker/run/docker.sock')
+            base_url='unix:///var/run/docker.sock')
     return client
 
 
@@ -91,12 +92,13 @@ def checkArgs(self, data, ck=[]):
 
 
 def status():
-    data = mw.execShell(
-        "ps -ef|grep docker |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
-
-    if data[0] == '':
-        return 'stop'
-    return 'start'
+    try:
+        c = getDClient()
+        if c.ping():
+            return 'start'
+    except Exception as e:
+        pass
+    return 'stop'
 
 
 def initDreplace():
@@ -124,9 +126,6 @@ def stop():
 
 def restart():
     status = dockerOp('restart')
-
-    log_file = runLog()
-    mw.execShell("echo '' > " + log_file)
     return status
 
 
@@ -165,15 +164,17 @@ def initdUinstall():
 
 
 def utc_to_local(utc_time_str, utc_format='%Y-%m-%dT%H:%M:%S'):
-    import pytz
     import datetime
     import time
-    local_tz = pytz.timezone('Asia/Chongqing')
-    local_format = "%Y-%m-%d %H:%M"
-    utc_dt = datetime.datetime.strptime(utc_time_str, utc_format)
-    local_dt = utc_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
-    time_str = local_dt.strftime(local_format)
-    return int(time.mktime(time.strptime(time_str, local_format)))
+    try:
+        utc_dt = datetime.datetime.strptime(utc_time_str, utc_format)
+        utc_dt = utc_dt.replace(tzinfo=datetime.timezone.utc)
+        local_dt = utc_dt.astimezone()
+        local_format = "%Y-%m-%d %H:%M"
+        time_str = local_dt.strftime(local_format)
+        return int(time.mktime(time.strptime(time_str, local_format)))
+    except:
+        return 0
 
 
 def conList():
@@ -352,10 +353,12 @@ def dockerPull():
             return mw.returnJson(True, '拉取成功！')
         else:
             return mw.returnJson(False, '拉取失败，请检查镜像名称或是否需要登录docker进行下载')
-    except:
-        ret = mw.execShell('docker image pull %s' % images)
-        if 'invalid' in ret[-1]:
-            return mw.returnJson(False, '拉取失败，请检查镜像名称或是否需要登录docker进行下载')
+    except Exception as e:
+        ret = mw.execShell('docker image pull %s' % shlex.quote(images))
+        stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
+        if 'Error' in stderr_out or 'error' in stderr_out or 'invalid' in stderr_out or 'not found' in stderr_out or 'denied' in stderr_out:
+            err_msg = stderr_out if stderr_out else str(e)
+            return mw.returnJson(False, '拉取失败: ' + err_msg)
         else:
             return mw.returnJson(True, '拉取成功！')
 
@@ -364,9 +367,10 @@ def dockerPlulPath(path):
     if not path and path == '':
         return mw.returnJson(False, 'Invalid address')
 
-    ret = mw.execShell('docker image pull %s' % path)
-    if 'invalid' in ret[-1]:
-        return mw.returnJson(False, '拉取失败，请检查镜像名称或是否需要登录docker进行下载')
+    ret = mw.execShell('docker image pull %s' % shlex.quote(path))
+    stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
+    if 'Error' in stderr_out or 'error' in stderr_out or 'invalid' in stderr_out or 'not found' in stderr_out or 'denied' in stderr_out:
+        return mw.returnJson(False, '拉取失败: ' + stderr_out)
     else:
         return mw.returnJson(True, '拉取成功！')
 
@@ -496,7 +500,7 @@ def dockerImagePickSave():
         file_name = bkDir + \
             str(time.strftime('%Y%m%d_%H%M%S', time.localtime())) + '.tar.gz'
         mw.execShell('docker image save %s | gzip > %s' %
-                     (images, file_name))
+                     (shlex.quote(images), shlex.quote(file_name)))
         return mw.returnJson(True, '导出镜像 {} 成功!'.format(file_name))
     except docker.errors.APIError as ex:
         return mw.returnJson(False, '操作失败: ' + str(ex))
@@ -513,9 +517,9 @@ def dockerImagePickLoad():
         if not os.path.exists(file_path):
             return mw.returnJson(False, '文件不存在')
         if file_path.endswith('.tar'):
-            mw.execShell('docker image load < %s' % file_path)
+            mw.execShell('docker image load < %s' % shlex.quote(file_path))
         elif file_path.endswith('.tar.gz'):
-            mw.execShell('gunzip -c %s | docker image load' % file_path)
+            mw.execShell('gunzip -c %s | docker image load' % shlex.quote(file_path))
         else:
             return mw.returnJson(False, '不支持改文件类型!')
         return mw.returnJson(True, '导入镜像文件成功!')
@@ -525,7 +529,7 @@ def dockerImagePickLoad():
 
 def dockerLoginCheck(user_name, user_pass, registry):
     # 登陆验证
-    cmd = 'docker login -u=%s -p %s %s' % (user_name, user_pass, registry)
+    cmd = 'docker login -u=%s -p %s %s' % (shlex.quote(user_name), shlex.quote(user_pass), shlex.quote(registry))
     # print(cmd)
     login_test = mw.execShell(cmd)
     # print(login_test)
@@ -767,7 +771,7 @@ def dockerLogout():
     registry = args['registry']
     if registry == "docker.io":
         registry = ""
-        login_test = mw.execShell('docker logout %s' % registry)
+        login_test = mw.execShell('docker logout %s' % shlex.quote(registry))
         if registry == "":
             registry = "docker.io"
         ret = 'required$|Error'

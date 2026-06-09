@@ -1082,3 +1082,83 @@ function repoList() {
 
     repoListRender();
 }
+
+function dockerAccelerator() {
+    var loadT = layer.msg('正在获取加速器配置...', { icon: 16, time: 0, shade: 0.3 });
+    dPost('get_accelerator', '', {}, function(rdata) {
+        layer.close(loadT);
+        var mirrors = rdata.data ? rdata.data : [];
+        var mirrors_str = mirrors.join('\n');
+        
+        var preset_html = `
+            <div style="margin-bottom:10px;">
+                <select id="accel_preset" class="bt-input-text" style="width:200px; margin-right:10px;">
+                    <option value="">-- 选择预置的可用加速器 --</option>
+                    <option value="https://docker.m.daocloud.io">DaoCloud 加速器 (推荐)</option>
+                    <option value="https://dockerproxy.com">DockerProxy</option>
+                    <option value="https://registry.docker-cn.com">Docker 中国官方镜像</option>
+                    <option value="https://hub-mirror.c.163.com">网易云加速器</option>
+                    <option value="https://mirror.baidubce.com">百度云加速器</option>
+                    <option value="https://hub.uuuadc.top">UUUADC 镜像源</option>
+                    <option value="https://docker.jianmuhub.com">建木 Hub 镜像源</option>
+                </select>
+                <button class="btn btn-success btn-sm" onclick="applyAccelPreset()">追加到列表</button>
+            </div>
+        `;
+
+        var con = '<div class="pd15">' + preset_html +
+            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:15px;" placeholder="每行输入一个加速器 URL，例如：\nhttps://docker.m.daocloud.io">' + mirrors_str + '</textarea>' +
+            '<div class="help-info-text c7" style="margin-bottom:15px;">注：保存后将自动写入 /etc/docker/daemon.json 并重启 Docker 守护进程，部分容器可能会重新启动，请确保不在业务高峰期操作。配置生效需耗时约 5 秒。</div>' +
+            '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">保存并重启 Docker</button>' +
+            '</div>';
+            
+        $(".soft-man-con").html(con);
+    });
+}
+
+function applyAccelPreset() {
+    var val = $('#accel_preset').val();
+    if (!val) {
+        layer.msg('请先选择一个预置加速器', {icon: 2});
+        return;
+    }
+    var current = $('#accel_urls').val().trim();
+    if (current.indexOf(val) !== -1) {
+        layer.msg('该加速器已在列表中', {icon: 0});
+        return;
+    }
+    if (current) {
+        $('#accel_urls').val(current + '\n' + val);
+    } else {
+        $('#accel_urls').val(val);
+    }
+    layer.msg('已追加，请点击下方保存使之生效', {icon: 1});
+}
+
+function saveDockerAccelerator() {
+    var text = $('#accel_urls').val().trim();
+    var mirrors = [];
+    if (text) {
+        var lines = text.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (line) {
+                if (!line.startsWith('http')) {
+                    layer.msg('无效的 URL: ' + line, {icon: 2});
+                    return;
+                }
+                mirrors.push(line);
+            }
+        }
+    }
+    
+    var loadT = layer.msg('正在写入配置并重启 Docker 服务，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+    dPost('set_accelerator', '', { mirrors: JSON.stringify(mirrors) }, function(rdata) {
+        layer.close(loadT);
+        if (rdata.status) {
+            layer.msg(rdata.msg, { icon: 1 });
+        } else {
+            layer.msg(rdata.msg, { icon: 2 });
+        }
+    });
+}
