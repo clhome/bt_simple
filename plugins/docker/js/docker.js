@@ -576,31 +576,30 @@ function dockerPullImagesFileTemplate() {
                         $('.official_pull_btn').click(function() {
                 var name = $('[name="official_pull_name"]').val();
                 if (name == '') {
-                    layer.msg('不能为空!');
+                    layer.msg('镜像名不能为空!');
                     return;
                 }
 
                 var use_fallback = localStorage.getItem('docker_auto_fallback_pull') !== 'false';
-                var progressLog = $('#pull_progress_log');
-                progressLog.html('');
 
                 if (!use_fallback) {
-                    var loadT = layer.msg('正在拉取...', { icon: 16, time: 0, shade: 0.3 });
-                    dPost('docker_pull', '', { images: name }, function(rdata) {
+                    var loadT = layer.msg('正在将拉取任务加入消息盒子...', { icon: 16, time: 0, shade: 0.3 });
+                    dPost('docker_pull_with_mirror', '', { images: name, mirrors: JSON.stringify([""]) }, function(rdata) {
                         layer.close(loadT);
                         var res = {status: false, msg: 'Unknown'};
                         try { res = $.parseJSON(rdata.data); } catch(e) {}
-                        showMsg(res.msg, function() {
-                            if (res.status) {
-                                layer.close(layer_index);
-                                dockerImageListRender();
-                            }
-                        }, { icon: res.status ? 1 : 2 });
+                        if (res.status) {
+                            layer.close(layer_index);
+                            layer.msg('已加入后台任务列表！', {icon: 1, time: 2000});
+                            if(typeof messageBox === 'function') setTimeout(messageBox, 500);
+                        } else {
+                            layer.msg(res.msg, {icon: 2, time: 3000});
+                        }
                     });
                     return;
                 }
 
-                var loadT = layer.msg('正在准备容灾拉取...', { icon: 16, time: 0, shade: 0.3 });
+                var loadT = layer.msg('正在准备拉取...', { icon: 16, time: 0, shade: 0.3 });
                 dPost('get_accelerator', '', {}, function(rdata) {
                     var res = {data: []};
                     try { res = $.parseJSON(rdata.data); } catch(e) {}
@@ -630,62 +629,20 @@ function dockerPullImagesFileTemplate() {
                         allMirrors.push(''); 
                     }
 
-                    var currentIndex = 0;
-
-                    function tryNextMirror() {
-                        if (currentIndex >= allMirrors.length) {
-                            layer.close(loadT);
-                            progressLog.append('<div style="color:red; margin-top:5px;"><b>所有节点均尝试失败！请检查镜像名称或网络。</b></div>');
-                            progressLog.scrollTop(progressLog[0].scrollHeight);
-                            return;
-                        }
+                    layer.msg('正在将拉取任务加入消息盒子...', { icon: 16, time: 0, shade: 0.3 });
+                    dPost('docker_pull_with_mirror', '', { images: name, mirrors: JSON.stringify(allMirrors) }, function(rdata) {
+                        layer.closeAll('dialog');
+                        var pullRes = {status: false, msg: 'Unknown'};
+                        try { pullRes = $.parseJSON(rdata.data); } catch(e) {}
                         
-                        var mirror = allMirrors[currentIndex];
-                        currentIndex++;
-
-                        if (!mirror) {
-                            progressLog.append('<div>目前直接从源站拉取...</div>');
-                            dPost('docker_pull', '', { images: name }, function(rdata) {
-                                var pullRes = {status: false, msg: 'Unknown'};
-                                try { pullRes = $.parseJSON(rdata.data); } catch(e) {}
-                                if (pullRes.status) {
-                                    layer.close(loadT);
-                                    progressLog.append('<div style="color:green">==> 源站拉取成功！</div>');
-                                    progressLog.scrollTop(progressLog[0].scrollHeight);
-                                    setTimeout(function(){ layer.close(layer_index); layer.msg('获取成功', {icon:1}); dockerImageListRender(); }, 1500);
-                                } else {
-                                    progressLog.append('<div style="color:red">==> 访问失败: ' + pullRes.msg + '</div>');
-                                    progressLog.scrollTop(progressLog[0].scrollHeight);
-                                    tryNextMirror();
-                                }
-                            });
-                            return;
+                        if (pullRes.status) {
+                            layer.close(layer_index);
+                            layer.msg('已加入后台任务列表！', {icon: 1, time: 2000});
+                            if(typeof messageBox === 'function') setTimeout(messageBox, 500);
+                        } else {
+                            layer.msg(pullRes.msg, {icon: 2, time: 3000});
                         }
-
-                        progressLog.append('<div style="margin-top:5px;">目前从 <b>' + mirror + '</b> 加速点访问镜像...</div>');
-                        progressLog.scrollTop(progressLog[0].scrollHeight);
-                        
-                        dPost('docker_pull_with_mirror', '', { images: name, mirror: mirror }, function(rdata) {
-                            var pullRes = {status: false, msg: 'Unknown'};
-                            try { pullRes = $.parseJSON(rdata.data); } catch(e) {}
-                            
-                            if (pullRes.status) {
-                                layer.close(loadT);
-                                progressLog.append('<div style="color:green">==> 访问成功！下载完成。</div>');
-                                progressLog.scrollTop(progressLog[0].scrollHeight);
-                                setTimeout(function(){ layer.close(layer_index); layer.msg('获取成功', {icon:1}); dockerImageListRender(); }, 1500);
-                            } else {
-                                progressLog.append('<div style="color:red">==> 访问失败: ' + pullRes.msg + '</div>');
-                                progressLog.scrollTop(progressLog[0].scrollHeight);
-                                tryNextMirror();
-                            }
-                        });
-                    }
-
-                    progressLog.html('<div style="margin-bottom:5px;"><b>准备拉取:</b> ' + name + ' (共 ' + allMirrors.length + ' 个节点)</div>');
-                    $('.layui-layer-content').css('height', 'auto');
-                    
-                    tryNextMirror();
+                    });
                 });
             });
 

@@ -192,7 +192,10 @@ def conListData():
     try:
         clist = conList()
     except Exception as e:
-        return mw.returnJson(False, '未开启Docker')
+        err_msg = str(e)
+        if 'Connection' in err_msg or 'connect' in err_msg.lower() or 'refused' in err_msg.lower():
+            return mw.returnJson(False, '未开启Docker')
+        return mw.returnJson(False, '获取容器列表失败: ' + err_msg)
     return mw.returnJson(True, 'ok', clist)
 
 
@@ -308,24 +311,28 @@ def imageList():
     ilist = c.images.list()
     for image in ilist:
         tmp_attrs = image.attrs
-        if len(tmp_attrs['RepoTags']) == 1:
+        repo_tags = tmp_attrs.get('RepoTags', None)
+        # 跳过悬空镜像（RepoTags 为 None 或空列表）
+        if not repo_tags:
+            continue
+        if len(repo_tags) == 1:
             tmp_image = {}
             tmp_image['Id'] = tmp_attrs['Id'].split(':')[1][:12]
-            tmp_image['RepoTags'] = tmp_attrs['RepoTags'][0]
+            tmp_image['RepoTags'] = repo_tags[0]
             tmp_image['Size'] = tmp_attrs['Size']
-            tmp_image['Labels'] = tmp_attrs['Config']['Labels']
-            tmp_image['Comment'] = tmp_attrs['Comment']
+            tmp_image['Labels'] = tmp_attrs.get('Config', {}).get('Labels', None)
+            tmp_image['Comment'] = tmp_attrs.get('Comment', '')
             tmp_image['Created'] = utc_to_local(
                 tmp_attrs['Created'].split('.')[0])
             imageList.append(tmp_image)
         else:
-            for i in range(len(tmp_attrs['RepoTags'])):
+            for i in range(len(repo_tags)):
                 tmp_image = {}
                 tmp_image['Id'] = tmp_attrs['Id'].split(':')[1][:12]
-                tmp_image['RepoTags'] = tmp_attrs['RepoTags'][i]
+                tmp_image['RepoTags'] = repo_tags[i]
                 tmp_image['Size'] = tmp_attrs['Size']
-                tmp_image['Labels'] = tmp_attrs['Config']['Labels']
-                tmp_image['Comment'] = tmp_attrs['Comment']
+                tmp_image['Labels'] = tmp_attrs.get('Config', {}).get('Labels', None)
+                tmp_image['Comment'] = tmp_attrs.get('Comment', '')
                 tmp_image['Created'] = utc_to_local(
                     tmp_attrs['Created'].split('.')[0])
                 imageList.append(tmp_image)
@@ -336,58 +343,34 @@ def imageList():
 
 def docker_pull_with_mirror():
     args = getArgs()
-    data = checkArgs(args, ['images', 'mirror'])
+    data = checkArgs(args, ['images', 'mirrors'])
     if not data[0]:
         return data[1]
 
     original_images = args['images'].strip()
-    mirror = args['mirror'].strip()
-    
-    if mirror.startswith('http://'):
-        mirror = mirror[7:]
-    elif mirror.startswith('https://'):
-        mirror = mirror[8:]
-    mirror = mirror.rstrip('/')
+    mirrors_str = args['mirrors'].strip()
 
-    images = original_images
-    if ':' not in images:
-        images = images + ':latest'
-        original_images = images
-
-    parts = images.split('/')
-    if len(parts) == 1:
-        pull_image = f"{mirror}/library/{images}"
-    elif len(parts) == 2:
-        if parts[0] == 'docker.io':
-            pull_image = f"{mirror}/library/{parts[1]}"
-        else:
-            pull_image = f"{mirror}/{images}"
-    else:
-        if parts[0] == 'docker.io':
-            pull_image = f"{mirror}/{'/'.join(parts[1:])}"
-        else:
-            pull_image = f"{mirror}/{'/'.join(parts[1:])}"
+    if ':' not in original_images:
+        original_images = original_images + ':latest'
 
     import shlex
-    try:
-        c = getDClient()
-        ret = c.images.pull(pull_image)
-        if ret:
-            mw.execShell(f"docker tag {shlex.quote(pull_image)} {shlex.quote(original_images)}")
-            mw.execShell(f"docker rmi {shlex.quote(pull_image)}")
-            return mw.returnJson(True, '获取成功')
-        else:
-            return mw.returnJson(False, '拉取失败')
-    except Exception as e:
-        ret = mw.execShell('docker image pull %s' % shlex.quote(pull_image))
-        stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
-        if 'Error' in stderr_out or 'error' in stderr_out or 'invalid' in stderr_out or 'not found' in stderr_out or 'denied' in stderr_out:
-            err_msg = stderr_out if stderr_out else str(e)
-            return mw.returnJson(False, err_msg)
-        else:
-            mw.execShell(f"docker tag {shlex.quote(pull_image)} {shlex.quote(original_images)}")
-            mw.execShell(f"docker rmi {shlex.quote(pull_image)}")
-            return mw.returnJson(True, '获取成功')
+    import time as _time
+
+    script_path = mw.getPluginDir() + '/docker/pull_task.py'
+
+    # 构造执行字符串
+    execstr = "cd " + mw.getPluginDir() + "/docker && python pull_task.py " + shlex.quote(original_images) + " " + shlex.quote(mirrors_str)
+
+    # 将拉取任务加入系统的后台任务队列（消息盒子）
+    mw.M('tasks').add('name,type,status,addtime,start,end,execstr',
+                      ('拉取 Docker 镜像: ' + original_images, 'execshell', '0',
+                       _time.strftime('%Y-%m-%d %H:%M:%S'), '', '', execstr))
+
+    # 唤醒后台队列
+    mw.triggerTask()
+
+    return mw.returnJson(True, '已将拉取任务加入消息盒子队列，请在任务列表中查看实时进度！')
+
 
 def dockerPull():
     # pull Dockr 官方镜像
@@ -472,7 +455,10 @@ def imageListData():
     try:
         ilist = imageList()
     except Exception as e:
-        return mw.returnJson(False, '未开启Docker')
+        err_msg = str(e)
+        if 'Connection' in err_msg or 'connect' in err_msg.lower() or 'refused' in err_msg.lower():
+            return mw.returnJson(False, '未开启Docker')
+        return mw.returnJson(False, '获取镜像列表失败: ' + err_msg)
     return mw.returnJson(True, 'ok', ilist)
 
 
