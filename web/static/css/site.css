@@ -2298,7 +2298,8 @@ html .menu .menu_exit:hover {
 .softlist td img {
     width: 24px;
     height: 20px;
-    margin-right: 5px
+    margin-right: 5px;
+    object-fit: contain;
 }
 
 .softlist .glyphicon-folder-open {
