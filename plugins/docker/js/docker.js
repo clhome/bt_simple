@@ -541,13 +541,13 @@ function dockerPullImagesFileTemplate() {
             '<span>私有库</span>' +
             '</div>' +
             '<div class="bt-form bt-docker-con">' +
-            '<div class="conter official_pull pd15"><div class="line">' +
-            '<span class="tname">镜像名:</span>\
+                        '<div class="conter official_pull pd15"><div class="line">' +
+            '<span class="tname">镜像名称:</span>\
                             <div class="info-r c4">\
-                                <input class="bt-input-text mr5" type="text" name="official_pull_name" style="width:218px" value="" placeholder="memcached:latest">\
+                                <input class="bt-input-text mr5" type="text" name="official_pull_name" style="width:218px" value="" placeholder="例如: cloudreve:latest">\
                                 <button type="button" class="btn btn-sm btn-success official_pull_btn">获取</button>\
                             </div>' +
-            '</div></div>' +
+            '</div><div id="pull_progress_log" style="margin-top:10px; font-size:12px; color:#666; max-height:150px; overflow-y:auto; line-height: 1.6;"></div></div>' +
             '<div class="conter public_pull pd15" style="display: none;"><div class="line">' +
             '<span class="tname">镜像名:</span>\
                             <div class="info-r c4">\
@@ -573,21 +573,118 @@ function dockerPullImagesFileTemplate() {
                 $(this).parent().next().find('.conter').eq(index).show().siblings().hide();
             });
 
-            $('.official_pull_btn').click(function() {
+                        $('.official_pull_btn').click(function() {
                 var name = $('[name="official_pull_name"]').val();
                 if (name == '') {
-                    layer.msg('镜像名不能为空!');
+                    layer.msg('不能为空!');
                     return;
                 }
-                dPost('docker_pull', '', { images: name }, function(rdata) {
-                    var rdata = $.parseJSON(rdata.data);
-                    showMsg(rdata.msg, function() {
-                        if (rdata.status) {
-                            layer.close(layer_index);
-                            dockerImageListRender();
 
+                var use_fallback = localStorage.getItem('docker_auto_fallback_pull') !== 'false';
+                var progressLog = $('#pull_progress_log');
+                progressLog.html('');
+
+                if (!use_fallback) {
+                    var loadT = layer.msg('正在拉取...', { icon: 16, time: 0, shade: 0.3 });
+                    dPost('docker_pull', '', { images: name }, function(rdata) {
+                        layer.close(loadT);
+                        var res = {status: false, msg: 'Unknown'};
+                        try { res = $.parseJSON(rdata.data); } catch(e) {}
+                        showMsg(res.msg, function() {
+                            if (res.status) {
+                                layer.close(layer_index);
+                                dockerImageListRender();
+                            }
+                        }, { icon: res.status ? 1 : 2 });
+                    });
+                    return;
+                }
+
+                var loadT = layer.msg('正在准备容灾拉取...', { icon: 16, time: 0, shade: 0.3 });
+                dPost('get_accelerator', '', {}, function(rdata) {
+                    var res = {data: []};
+                    try { res = $.parseJSON(rdata.data); } catch(e) {}
+                    var rawData = res.data ? res.data : [];
+                    var customMirrors = Array.isArray(rawData) ? rawData : (typeof rawData === 'string' ? [rawData] : []);
+                    
+                    var presetMirrors = [
+                        'https://docker.1ms.run',
+                        'https://docker.xuanyuan.me',
+                        'https://dockerproxy.net',
+                        'https://docker.m.daocloud.io',
+                        'https://registry.docker-cn.com',
+                        'https://mirror.baidubce.com',
+                        'https://hub.uuuadc.top'
+                    ];
+                    
+                    var allMirrors = [];
+                    customMirrors.forEach(function(m) {
+                        if (m && allMirrors.indexOf(m) === -1) allMirrors.push(m);
+                    });
+                    presetMirrors.forEach(function(m) {
+                        if (m && allMirrors.indexOf(m) === -1) allMirrors.push(m);
+                    });
+
+                    if (allMirrors.length === 0) {
+                        allMirrors.push(''); 
+                    }
+
+                    var currentIndex = 0;
+
+                    function tryNextMirror() {
+                        if (currentIndex >= allMirrors.length) {
+                            layer.close(loadT);
+                            progressLog.append('<div style="color:red; margin-top:5px;"><b>所有节点均尝试失败！请检查镜像名称或网络。</b></div>');
+                            progressLog.scrollTop(progressLog[0].scrollHeight);
+                            return;
                         }
-                    }, { icon: rdata.status ? 1 : 2 });
+                        
+                        var mirror = allMirrors[currentIndex];
+                        currentIndex++;
+
+                        if (!mirror) {
+                            progressLog.append('<div>目前直接从源站拉取...</div>');
+                            dPost('docker_pull', '', { images: name }, function(rdata) {
+                                var pullRes = {status: false, msg: 'Unknown'};
+                                try { pullRes = $.parseJSON(rdata.data); } catch(e) {}
+                                if (pullRes.status) {
+                                    layer.close(loadT);
+                                    progressLog.append('<div style="color:green">==> 源站拉取成功！</div>');
+                                    progressLog.scrollTop(progressLog[0].scrollHeight);
+                                    setTimeout(function(){ layer.close(layer_index); layer.msg('获取成功', {icon:1}); dockerImageListRender(); }, 1500);
+                                } else {
+                                    progressLog.append('<div style="color:red">==> 访问失败: ' + pullRes.msg + '</div>');
+                                    progressLog.scrollTop(progressLog[0].scrollHeight);
+                                    tryNextMirror();
+                                }
+                            });
+                            return;
+                        }
+
+                        progressLog.append('<div style="margin-top:5px;">目前从 <b>' + mirror + '</b> 加速点访问镜像...</div>');
+                        progressLog.scrollTop(progressLog[0].scrollHeight);
+                        
+                        dPost('docker_pull_with_mirror', '', { images: name, mirror: mirror }, function(rdata) {
+                            var pullRes = {status: false, msg: 'Unknown'};
+                            try { pullRes = $.parseJSON(rdata.data); } catch(e) {}
+                            
+                            if (pullRes.status) {
+                                layer.close(loadT);
+                                progressLog.append('<div style="color:green">==> 访问成功！下载完成。</div>');
+                                progressLog.scrollTop(progressLog[0].scrollHeight);
+                                setTimeout(function(){ layer.close(layer_index); layer.msg('获取成功', {icon:1}); dockerImageListRender(); }, 1500);
+                            } else {
+                                progressLog.append('<div style="color:red">==> 访问失败: ' + pullRes.msg + '</div>');
+                                progressLog.scrollTop(progressLog[0].scrollHeight);
+                                tryNextMirror();
+                            }
+                        });
+                    }
+
+                    progressLog.html('<div style="margin-bottom:5px;"><b>准备拉取:</b> ' + name + ' (共 ' + allMirrors.length + ' 个节点)</div>');
+                    $('.layui-layer-content').css('height', 'auto');
+                    
+                    tryNextMirror();
                 });
             });
 
@@ -1089,29 +1186,38 @@ function dockerAccelerator() {
     var loadT = layer.msg('正在获取加速器配置...', { icon: 16, time: 0, shade: 0.3 });
     dPost('get_accelerator', '', {}, function(rdata) {
         layer.close(loadT);
-        var rawData = rdata.data ? rdata.data : [];
+        var res = {data: []};
+        try {
+            res = $.parseJSON(rdata.data);
+        } catch(e) {}
+        var rawData = res.data ? res.data : [];
         var mirrors = Array.isArray(rawData) ? rawData : (typeof rawData === 'string' ? [rawData] : []);
-        var mirrors_str = mirrors.join('\n');
         
-        var preset_html = `
-            <div style="margin-bottom:10px;">
-                <select id="accel_preset" class="bt-input-text" style="width:200px; margin-right:10px;">
-                    <option value="">-- 选择预置的可用加速器 --</option>
-                    <option value="https://docker.m.daocloud.io">DaoCloud 加速器 (推荐)</option>
-                    <option value="https://dockerproxy.com">DockerProxy</option>
-                    <option value="https://registry.docker-cn.com">Docker 中国官方镜像</option>
-                    <option value="https://hub-mirror.c.163.com">网易云加速器</option>
-                    <option value="https://mirror.baidubce.com">百度云加速器</option>
-                    <option value="https://hub.uuuadc.top">UUUADC 镜像源</option>
-                    <option value="https://docker.jianmuhub.com">建木 Hub 镜像源</option>
-                </select>
-                <button class="btn btn-success btn-sm" onclick="applyAccelPreset()">追加到列表</button>
-            </div>
-        `;
+        var default_mirrors = [
+            'https://docker.1ms.run',
+            'https://docker.xuanyuan.me',
+            'https://dockerproxy.net',
+            'https://docker.m.daocloud.io',
+            'https://registry.docker-cn.com',
+            'https://mirror.baidubce.com',
+            'https://hub.uuuadc.top'
+        ];
+        
+        // 默认加载所有加速点（如果当前没有配置任何加速器）
+        if (mirrors.length === 0) {
+            mirrors = default_mirrors;
+        }
+        
+        var mirrors_str = mirrors.join('\n');
+        window.default_docker_mirrors_str = default_mirrors.join('\n');
 
-        var con = '<div class="pd15">' + preset_html +
-            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:15px;" placeholder="每行输入一个加速器 URL，例如：\nhttps://docker.m.daocloud.io">' + mirrors_str + '</textarea>' +
-            '<div class="help-info-text c7" style="margin-bottom:15px;">注：保存后将自动写入 /etc/docker/daemon.json 并重启 Docker 守护进程，部分容器可能会重新启动，请确保不在业务高峰期操作。配置生效需耗时约 5 秒。</div>' +
+        var con = '<div class="pd15">' +
+            '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 180px; line-height: 22px; padding: 10px; margin-bottom:10px;" placeholder="每行输入一个加速器 URL，例如：\nhttps://docker.1ms.run">' + mirrors_str + '</textarea>' +
+            '<div style="text-align:right; margin-bottom:10px;">' +
+            '<button class="btn btn-default btn-sm" onclick="document.getElementById(\'accel_urls\').value = window.default_docker_mirrors_str;">还原默认</button>' +
+            '</div>' +
+            '<div class="help-info-text c7" style="margin-bottom:10px;">注：保存后将写入 /etc/docker/daemon.json 并重启 Docker 守护进程。</div>' +
+            '<div style="margin-bottom:15px;"><label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)"> 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)</label></div>' +
             '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">保存并重启 Docker</button>' +
             '</div>';
             
@@ -1158,10 +1264,14 @@ function saveDockerAccelerator() {
     var loadT = layer.msg('正在写入配置并重启 Docker 服务，请稍候...', { icon: 16, time: 0, shade: 0.3 });
     dPost('set_accelerator', '', { mirrors: JSON.stringify(mirrors) }, function(rdata) {
         layer.close(loadT);
-        if (rdata.status) {
-            layer.msg(rdata.msg, { icon: 1 });
+        var res = {status: false, msg: '配置保存失败'};
+        try {
+            res = $.parseJSON(rdata.data);
+        } catch(e) {}
+        if (res.status) {
+            layer.msg(res.msg, { icon: 1 });
         } else {
-            layer.msg(rdata.msg, { icon: 2 });
+            layer.msg(res.msg, { icon: 2 });
         }
     });
 }

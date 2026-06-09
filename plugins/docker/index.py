@@ -333,6 +333,62 @@ def imageList():
     return imageList
 
 
+
+def docker_pull_with_mirror():
+    args = getArgs()
+    data = checkArgs(args, ['images', 'mirror'])
+    if not data[0]:
+        return data[1]
+
+    original_images = args['images'].strip()
+    mirror = args['mirror'].strip()
+    
+    if mirror.startswith('http://'):
+        mirror = mirror[7:]
+    elif mirror.startswith('https://'):
+        mirror = mirror[8:]
+    mirror = mirror.rstrip('/')
+
+    images = original_images
+    if ':' not in images:
+        images = images + ':latest'
+        original_images = images
+
+    parts = images.split('/')
+    if len(parts) == 1:
+        pull_image = f"{mirror}/library/{images}"
+    elif len(parts) == 2:
+        if parts[0] == 'docker.io':
+            pull_image = f"{mirror}/library/{parts[1]}"
+        else:
+            pull_image = f"{mirror}/{images}"
+    else:
+        if parts[0] == 'docker.io':
+            pull_image = f"{mirror}/{'/'.join(parts[1:])}"
+        else:
+            pull_image = f"{mirror}/{'/'.join(parts[1:])}"
+
+    import shlex
+    try:
+        c = getDClient()
+        ret = c.images.pull(pull_image)
+        if ret:
+            mw.execShell(f"docker tag {shlex.quote(pull_image)} {shlex.quote(original_images)}")
+            mw.execShell(f"docker rmi {shlex.quote(pull_image)}")
+            return mw.returnJson(True, '获取成功')
+        else:
+            return mw.returnJson(False, '拉取失败')
+    except Exception as e:
+        ret = mw.execShell('docker image pull %s' % shlex.quote(pull_image))
+        stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
+        if 'Error' in stderr_out or 'error' in stderr_out or 'invalid' in stderr_out or 'not found' in stderr_out or 'denied' in stderr_out:
+            err_msg = stderr_out if stderr_out else str(e)
+            return mw.returnJson(False, err_msg)
+        else:
+            mw.execShell(f"docker tag {shlex.quote(pull_image)} {shlex.quote(original_images)}")
+            mw.execShell(f"docker rmi {shlex.quote(pull_image)}")
+            return mw.returnJson(True, '获取成功')
+
 def dockerPull():
     # pull Dockr 官方镜像
     args = getArgs()
@@ -908,6 +964,8 @@ if __name__ == "__main__":
         print(dockerStopCon())
     elif func == 'docker_exec':
         print(dockerExec())
+    elif func == 'docker_pull_with_mirror':
+        print(docker_pull_with_mirror())
     elif func == 'docker_pull':
         print(dockerPull())
     elif func == 'docker_pull_reg':
