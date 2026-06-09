@@ -304,10 +304,10 @@ function createConTemplate() {
                         return;
                     }
 
-                    var portval = $('#portabletr')[0].childNodes;
+                    var portval = $('#portabletr').children();
                     for (var i = 0; i < portval.length; i++) {
-                        if (portval[i].childNodes[0].innerText == '当前未添加端口映射') continue;
-                        var sport = portval[i].childNodes[2].innerText;
+                        if (portval[i].children[0].innerText == '当前未添加端口映射') continue;
+                        var sport = portval[i].children[2].innerText;
                         if (name2 == sport) {
                             layer.msg('端口 [' + name2 + '] 已在映射列表中!', { icon: 2 });
                             return;
@@ -354,10 +354,10 @@ function createConTemplate() {
                         layer.msg('Cannot map' + path2, { icon: 2 });
                         return;
                     }
-                    var portval = $('#portabletr2')[0].childNodes;
+                    var portval = $('#portabletr2').children();
                     for (var i = 0; i < portval.length; i++) {
-                        if (portval[i].childNodes[0].innerText == '当前未添加端口映射') continue;
-                        var sport = portval[i].childNodes[2].innerText;
+                        if (portval[i].children[0].innerText == '当前未添加目录映射') continue;
+                        var sport = portval[i].children[2].innerText;
                         if (path2 == sport) {
                             layer.msg('目录 [' + path2 + '] 已在映射列表中!', { icon: 2 });
                             return;
@@ -382,9 +382,9 @@ function createConTemplate() {
             yes: function(layero, layer_id) {
                 var ports = {};
                 var volumes = {};
-                var portval = $('#portabletr')[0].childNodes;
+                var portval = $('#portabletr').children();
                 var address = $('.docker-address').val();
-                var portval2 = $('#portabletr2')[0].childNodes;
+                var portval2 = $('#portabletr2').children();
                 var command = $('.docker-command').val()
                 var entrypoint = $('.docker-entrypoint').val()
                 var accept = [];
@@ -392,7 +392,7 @@ function createConTemplate() {
                 //遍历端口映射
                 for (var i = 0; i < portval.length; i++) {
 
-                    if (portval[i].childNodes[0].innerText == '当前未添加端口映射') {
+                    if (portval[i].children[0].innerText == '当前未添加端口映射') {
                         continue;
                     }
 
@@ -412,13 +412,13 @@ function createConTemplate() {
                     'mode': 'rw'
                 };
                 for (var i = 0; i < portval2.length; i++) {
-                    if (portval2[i].childNodes[0].innerText.replace(/\s/g, ' ') == '当前未添加目录映射') {
+                    if (portval2[i].children[0].innerText.replace(/\s/g, ' ') == '当前未添加目录映射') {
                         continue;
                     }
-                    var dpath = portval2[i].childNodes[2].innerText.replace(/\s/g, '');
+                    var dpath = portval2[i].children[2].innerText.replace(/\s/g, '');
                     var spath = {
-                        'bind': portval2[i].childNodes[0].innerText.replace(/\s/g, ''),
-                        'mode': portval2[i].childNodes[1].innerText.toLowerCase().replace(/\s/g, '')
+                        'bind': portval2[i].children[0].innerText.replace(/\s/g, ''),
+                        'mode': portval2[i].children[1].innerText.toLowerCase().replace(/\s/g, '')
                     };
                     volumes[dpath] = spath;
                 }
