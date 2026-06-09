@@ -610,10 +610,11 @@ function dockerPullImagesFileTemplate() {
                     var presetMirrors = [
                         'https://docker.1ms.run',
                         'https://docker.xuanyuan.me',
-                        'https://dockerproxy.net',
                         'https://docker.m.daocloud.io',
-                        'https://registry.docker-cn.com',
-                        'https://mirror.baidubce.com',
+                        'https://dockerproxy.com',
+                        'https://dockerproxy.net',
+                        'https://docker.aityp.com',
+                        'https://hub.rat.dev',
                         'https://hub.uuuadc.top'
                     ];
                     
@@ -1196,10 +1197,11 @@ function dockerAccelerator() {
         var default_mirrors = [
             'https://docker.1ms.run',
             'https://docker.xuanyuan.me',
-            'https://dockerproxy.net',
             'https://docker.m.daocloud.io',
-            'https://registry.docker-cn.com',
-            'https://mirror.baidubce.com',
+            'https://dockerproxy.com',
+            'https://dockerproxy.net',
+            'https://docker.aityp.com',
+            'https://hub.rat.dev',
             'https://hub.uuuadc.top'
         ];
         
