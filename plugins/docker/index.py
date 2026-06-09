@@ -783,6 +783,80 @@ def dockerLogout():
             return mw.returnJson(True, '退出失败')
 
 
+
+def get_daemon_json_path():
+    import os
+    if mw.isAppleSystem():
+        return os.path.expanduser('~/.docker/daemon.json')
+    elif os.name == 'nt':
+        return os.path.expanduser('~/.docker/daemon.json')
+    return '/etc/docker/daemon.json'
+
+def get_accelerator():
+    daemon_file = get_daemon_json_path()
+    if not os.path.exists(daemon_file):
+        return mw.returnJson(True, 'ok', [])
+    try:
+        content = mw.readFile(daemon_file)
+        if not content:
+            return mw.returnJson(True, 'ok', [])
+        data = json.loads(content)
+        mirrors = data.get('registry-mirrors', [])
+        if isinstance(mirrors, str):
+            mirrors = [mirrors]
+        return mw.returnJson(True, 'ok', mirrors)
+    except Exception as e:
+        return mw.returnJson(False, '解析 daemon.json 失败: ' + str(e))
+
+def set_accelerator():
+    args = getArgs()
+    data = checkArgs(args, ['mirrors'])
+    if not data[0]:
+        return data[1]
+
+    mirrors_str = args['mirrors']
+    try:
+        if mirrors_str.strip() == '':
+            mirrors = []
+        else:
+            mirrors = json.loads(mirrors_str)
+            if not isinstance(mirrors, list):
+                return mw.returnJson(False, '参数格式错误，期望 JSON 数组')
+    except:
+        return mw.returnJson(False, '参数解析失败，非有效的 JSON 数组')
+
+    daemon_file = get_daemon_json_path()
+    daemon_dir = os.path.dirname(daemon_file)
+    if not os.path.exists(daemon_dir):
+        try:
+            os.makedirs(daemon_dir)
+        except:
+            pass
+
+    data = {}
+    if os.path.exists(daemon_file):
+        try:
+            content = mw.readFile(daemon_file)
+            if content:
+                data = json.loads(content)
+        except:
+            pass
+
+    if mirrors:
+        data['registry-mirrors'] = mirrors
+    else:
+        if 'registry-mirrors' in data:
+            del data['registry-mirrors']
+
+    try:
+        mw.writeFile(daemon_file, json.dumps(data, indent=4))
+        if not mw.isAppleSystem() and os.name != 'nt':
+            mw.execShell('systemctl daemon-reload')
+            mw.execShell('systemctl restart docker')
+        return mw.returnJson(True, '加速器配置已保存并重启 Docker 服务使之生效！')
+    except Exception as e:
+        return mw.returnJson(False, '配置保存失败: ' + str(e))
+
 def repoList():
     path = getServerDir()
     repostory_info = []
@@ -866,6 +940,10 @@ if __name__ == "__main__":
         print(dockerLogin())
     elif func == 'docker_logout':
         print(dockerLogout())
+    elif func == 'get_accelerator':
+        print(get_accelerator())
+    elif func == 'set_accelerator':
+        print(set_accelerator())
     elif func == 'repo_list':
         print(repoList())
     else:

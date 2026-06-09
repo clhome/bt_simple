@@ -1084,10 +1084,13 @@ function repoList() {
 }
 
 function dockerAccelerator() {
+    $('.bt-w-menu p').removeClass('bgw');
+    $('.bt-w-menu p:eq(5)').addClass('bgw');
     var loadT = layer.msg('正在获取加速器配置...', { icon: 16, time: 0, shade: 0.3 });
     dPost('get_accelerator', '', {}, function(rdata) {
         layer.close(loadT);
-        var mirrors = rdata.data ? rdata.data : [];
+        var rawData = rdata.data ? rdata.data : [];
+        var mirrors = Array.isArray(rawData) ? rawData : (typeof rawData === 'string' ? [rawData] : []);
         var mirrors_str = mirrors.join('\n');
         
         var preset_html = `
