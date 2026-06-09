@@ -712,8 +712,8 @@ def dockerCreateCon():
     environments = args['environments']
     environments = environments.strip().split()
 
-    command = args['command']
-    entrypoint = args['entrypoint']
+    command = args['command'] if args['command'] != '' else None
+    entrypoint = args['entrypoint'] if args['entrypoint'] != '' else None
     image = args['image']
     mem_limit = args['mem_limit']
     ports = args['ports']
@@ -737,7 +737,7 @@ def dockerCreateCon():
             entrypoint=entrypoint,
             privileged=True,
             volumes=json.loads(volumes),
-            cpu_shares=10,
+            cpu_shares=int(args.get('cpu_shares', 100)),
             environment=environments
         )
         if conObject:

@@ -71,7 +71,7 @@ function logsCon(id) {
             type: 1,
             title: 'Docker日志',
             area: '600px',
-            closeBtn: 2,
+            closeBtn: 1,
             content: '<div class="bt-form">' +
                 '<pre class="crontab-log" style="overflow: auto; \
                     border: 0px none; line-height:23px;padding: 15px; \
@@ -236,7 +236,7 @@ function createConTemplate() {
                                 </div>\
                                 <div class="divtable" style="max-height:100px;overflow:auto; margin-top:15px;width:330px;padding-left: 0px;">\
                                     <table class="table table-hover">\
-                                        <tbody id="portabletr"><tr class="more1"><td>当前未添加端口映射</td></tr></tbody>\
+                                        <tbody id="portabletr"><tr class="more1"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加端口映射</td></tr></tbody>\
                                     </table>\
                                 </div>\
                             </div>\
@@ -252,7 +252,7 @@ function createConTemplate() {
                                 </div>\
                                 <div class="divtable" style="max-height:100px;overflow:auto; margin-top:15px;width:330px;padding-left: 0px;">\
                                     <table class="table table-hover">\
-                                        <tbody id="portabletr2"><tr class="more2"><td>当前未添加目录映射</td></tr></tbody>\
+                                        <tbody id="portabletr2"><tr class="more2"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加目录映射</td></tr></tbody>\
                                     </table>\
                                 </div>\
                             </div>\
@@ -338,6 +338,9 @@ function createConTemplate() {
                         $(".more1").remove();
                         $(".minus").click(function() {
                             $(this).parents("tr").remove();
+                            if ($("#portabletr").children().length == 0) {
+                                $("#portabletr").html('<tr class="more1"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加端口映射</td></tr>');
+                            }
                         });
                     });
                 });
@@ -370,6 +373,9 @@ function createConTemplate() {
                     $(".more2").remove();
                     $(".minus2").click(function() {
                         $(this).parents("tr").remove();
+                        if ($("#portabletr2").children().length == 0) {
+                            $("#portabletr2").html('<tr class="more2"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加目录映射</td></tr>');
+                        }
                     });
                 });
             },
