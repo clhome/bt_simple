@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
@@ -22,12 +22,12 @@ fi
 FILE_NAME_TGZ=${FILE_NAME}.tgz
 
 if [ ! -f $MG_DIR/${FILE_NAME_TGZ} ]; then
-	wget --no-check-certificate -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/osx/${FILE_NAME_TGZ}
-	echo "wget --no-check-certificate -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/osx/${FILE_NAME_TGZ}"
+	wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/osx/${FILE_NAME_TGZ} || exit 1
+	echo "wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/osx/${FILE_NAME_TGZ}" || exit 1
 fi
 
 if [ ! -d $MG_DIR/${FILE_NAME} ];then 
-	cd $MG_DIR && tar -zxvf ${FILE_NAME_TGZ}
+	cd $MG_DIR && tar -zxvf ${FILE_NAME_TGZ} || exit 1
 fi
 
 if [ ! -d $serverPath/mongodb/bin ];then
@@ -49,11 +49,11 @@ if [ "arm64" == ${SYS_ARCH} ];then
 fi
 TOOL_FILE_NAME_TGZ=${TOOL_FILE_NAME}.zip
 if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
-	wget --no-check-certificate -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ}
-	echo "wget --no-check-certificate -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ}"
+	wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ} || exit 1
+	echo "wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ}" || exit 1
 fi
 
-if [ ! -d $MG_DIR/${TOOL_FILE_NAME_TGZ} ];then 
+if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
 	cd $MG_DIR && unzip ${TOOL_FILE_NAME_TGZ}
 fi
 
@@ -75,11 +75,11 @@ fi
 
 TOOL_FILE_NAME_TGZ=${TOOL_FILE_NAME}.zip
 if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
-	wget --no-check-certificate -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ}
-	echo "wget --no-check-certificate -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ}"
+	wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ} || exit 1
+	echo "wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ}" || exit 1
 fi
 
-if [ ! -d $MG_DIR/${TOOL_FILE_NAME_TGZ} ];then 
+if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
 	cd $MG_DIR && unzip ${TOOL_FILE_NAME_TGZ}
 fi
 

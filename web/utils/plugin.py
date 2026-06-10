@@ -331,24 +331,67 @@ class plugin(object):
         return mw.returnData(True, '已将安装任务添加到队列!')
 
     # 卸载插件
-    def uninstall(self, name, version, force=False):
+    def uninstall(self, name, version, force=False, backup=False):
         if name.strip() == '':
             return mw.returnData(False, "缺少插件名称!", ())
 
         # 强制卸载（直接物理删除并清理首页图标配置）
         if force:
             plugin_path = self.__plugin_dir + '/' + name
-            # 物理删除目录
-            if os.path.exists(plugin_path):
-                import shutil
+            
+            # 先读取插件的绝对物理安装目录以进行清理
+            info_file = plugin_path + '/info.json'
+            if os.path.exists(info_file):
                 try:
-                    shutil.rmtree(plugin_path)
-                except Exception as e:
-                    # 备用系统命令执行
-                    mw.execShell("rm -rf " + plugin_path)
+                    info_data = json.loads(mw.readFile(info_file))
+                    install_path = info_data.get('path', '')
+                    if install_path:
+                        # 兼容带有 VERSION 的路径占位符
+                        if install_path.find('VERSION') > -1:
+                            target_ver = version.strip()
+                            if not target_ver and 'versions' in info_data:
+                                if isinstance(info_data['versions'], list) and len(info_data['versions']) > 0:
+                                    target_ver = info_data['versions'][0]
+                                elif isinstance(info_data['versions'], str):
+                                    target_ver = info_data['versions']
+                            if target_ver:
+                                install_path = install_path.replace('VERSION', target_ver)
+                        
+                        if not install_path.startswith('/'):
+                            install_path = mw.getFatherDir() + '/' + install_path
+                        
+                        real_install_path = os.path.abspath(install_path)
+                        server_base_dir = os.path.abspath(mw.getServerDir()) # 即 /www/server
+                        
+                        # 安全屏障：必须是 /www/server 内部的子级目录，且不能等于 /www/server 自身或根级敏感父节点
+                        if real_install_path.startswith(server_base_dir) and real_install_path != server_base_dir:
+                            if os.path.exists(real_install_path):
+                                # 强制删除前进行打包备份到 /www/backup
+                                if backup:
+                                    try:
+                                        import time
+                                        backup_dir = mw.getBackupDir()
+                                        if not os.path.exists(backup_dir):
+                                            os.makedirs(backup_dir)
+                                        timestamp = time.strftime('%Y%m%d_%H%M%S')
+                                        backup_file = "{0}/plugin_backup_{1}_{2}.tar.gz".format(backup_dir, name, timestamp)
+                                        parent_dir = os.path.dirname(real_install_path)
+                                        base_name = os.path.basename(real_install_path)
+                                        tar_cmd = "tar -czf {0} -C {1} {2}".format(backup_file, parent_dir, base_name)
+                                        mw.execShell(tar_cmd)
+                                    except Exception as bex:
+                                        print("强制卸载打包备份失败:", mw.getTracebackInfo())
 
-            # 强制删除后，从 GitHub 恢复面板对应的插件目录，以防无法再次安装
-            self.downloadPluginFromGithub(name)
+                                import shutil
+                                try:
+                                    if os.path.isdir(real_install_path):
+                                        shutil.rmtree(real_install_path)
+                                    else:
+                                        os.remove(real_install_path)
+                                except Exception as e:
+                                    mw.execShell("rm -rf " + real_install_path)
+                except Exception as ex:
+                    print("强制卸载数据目录清理出错:", mw.getTracebackInfo())
 
             # 从首页展示配置中移除
             try:
@@ -389,78 +432,6 @@ class plugin(object):
         mw.debugLog(exec_bash, data)
         self.__plugin_list_static_cache = None
         return mw.returnData(True, '卸载执行成功!')
-
-    def downloadPluginFromGithub(self, name):
-        """
-        从 GitHub 重新拉取最新的插件控制目录（优先最新 Release，Fallback 到 master 分支）
-        """
-        import shutil
-        import glob
-        import urllib.request
-        import ssl
-
-        to_path = mw.getPanelDir() + '/temp'
-        if not os.path.exists(to_path):
-            os.makedirs(to_path)
-
-        # 1. 尝试获取最新 Release Tag
-        version = None
-        try:
-            upAddr = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
-            context = ssl._create_unverified_context()
-            try:
-                req = urllib.request.urlopen(upAddr, context=context, timeout=5)
-                result = req.read().decode('utf-8')
-                version = json.loads(result)['tag_name']
-            except:
-                # 尝试代理获取
-                upAddr = mw.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
-                req = urllib.request.urlopen(upAddr, context=context, timeout=5)
-                result = req.read().decode('utf-8')
-                version = json.loads(result)['tag_name']
-        except:
-            pass
-
-        # 2. 构造下载 URL
-        if version:
-            zip_url = mw.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
-        else:
-            zip_url = mw.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/heads/master.zip"
-
-        dist_zip = to_path + '/plugin_source.zip'
-
-        if os.path.exists(dist_zip):
-            try:
-                os.remove(dist_zip)
-            except:
-                pass
-
-        # 3. 下载并解压
-        if mw.githubDownload(zip_url, dist_zip):
-            # 解压
-            mw.execShell('unzip -o ' + dist_zip + ' -d ' + to_path)
-            
-            # 使用 glob 动态匹配解压出的 bt_simple 文件夹目录，兼容 master 或 release tag 命名的目录
-            dirs = glob.glob(to_path + '/bt_simple-*')
-            if dirs:
-                src_plugin_path = dirs[0] + '/plugins/' + name
-                dst_plugin_path = self.__plugin_dir + '/' + name
-                if os.path.exists(src_plugin_path):
-                    if os.path.exists(dst_plugin_path):
-                        shutil.rmtree(dst_plugin_path)
-                    shutil.copytree(src_plugin_path, dst_plugin_path)
-                    mw.execShell('chmod -R 755 ' + dst_plugin_path)
-                
-                # 清理临时解压文件夹
-                mw.execShell('rm -rf ' + dirs[0])
-
-            if os.path.exists(dist_zip):
-                try:
-                    os.remove(dist_zip)
-                except:
-                    pass
-            return True
-        return False
 
     # 插件搜索匹配
     def searchKey(self, info,

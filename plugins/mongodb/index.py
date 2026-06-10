@@ -1658,7 +1658,7 @@ def uninstallPreInspection(version):
     from utils.plugin import plugin as MwPlugin
     MwPlugin.instance().removeIndex(getPluginName(), version)
 
-    return "请手动删除MongoDB[{}]<br/> rm -rf {}".format(version, getServerDir())
+    return "强制删除会删除MongoDB[{}]数据目录<br/>  {}".format(version, getServerDir())
 
 if __name__ == "__main__":
     func = sys.argv[1]

@@ -335,18 +335,45 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 
 // 强制删除插件
 function forceUninstallPlugin(name, version) {
-    layer.confirm('<span style="color: red;">是否强制删除该插件？（强制删除将直接删除插件目录及相关配置，且无法恢复）</span>', {
-        title: '强制删除确认',
-        icon: 2,
+    var contentHtml = "<div class='bt-form pd20 c6'>\
+        <div style='color: red; font-weight: bold; margin-bottom: 15px; line-height: 20px;'>\
+            ⚠️ 警告：此操作将物理清除该插件的代码、相关配置以及位于 /www/server/" + name + " 的所有运行文件与数据库数据（请务必提前做好备份，一经删除绝不可恢复）！\
+        </div>\
+        <div class='line' style='margin-bottom: 15px;'>\
+            <span>请输入插件名 <b>" + name + "</b> 以确认：</span>\
+            <input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 100%; margin-top: 10px;' placeholder='请输入插件名' />\
+        </div>\
+        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>\
+            <label style='font-weight: normal; cursor: pointer; color: #d9534f; display: flex; align-items: center; margin-bottom: 0;'>\
+                <input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />\
+                删除前打包备份到 /www/backup\
+            </label>\
+        </div>\
+    </div>";
+
+    layer.open({
+        type: 1,
+        title: "强制删除确认 (高危操作)",
+        area: '420px',
         closeBtn: 1,
-        btn: ['强制删除', '取消']
-    }, function() {
-        var forceLoad = layer.msg('正在强制删除,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-        $.post('/plugins/uninstall', { name: name, version: version, force: 1 }, function(forceRdata) {
-            layer.close(forceLoad);
-            getSList();
-            layer.msg(forceRdata.msg, { icon: forceRdata.status ? 1 : 2 });
-        }, 'json');
+        shadeClose: false,
+        btn: ['强制删除', '取消'],
+        content: contentHtml,
+        yes: function(index, layero) {
+            var confirmName = $.trim($("#force_uninstall_confirm_name").val());
+            if (confirmName !== name) {
+                layer.msg('输入的插件名称不匹配，操作已取消！', { icon: 2 });
+                return false;
+            }
+            var isBackup = $("#force_uninstall_backup_chk").prop("checked") ? 1 : 0;
+            layer.close(index);
+            var forceLoad = layer.msg('正在强制删除,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+            $.post('/plugins/uninstall', { name: name, version: version, force: 1, backup: isBackup }, function(forceRdata) {
+                layer.close(forceLoad);
+                getSList();
+                layer.msg(forceRdata.msg, { icon: forceRdata.status ? 1 : 2 });
+            }, 'json');
+        }
     });
 }
 
