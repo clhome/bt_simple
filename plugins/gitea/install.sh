@@ -12,7 +12,7 @@ if [ -f ${rootPath}/scripts/lib.sh ];then
 fi
 
 VERSION=1.26.1
-URL_DOWNLOAD=https://dl.gitea.com
+URL_DOWNLOAD=https://github.com/go-gitea/gitea/releases/download
 
 sysName=`uname`
 sysArch=`arch`
@@ -61,10 +61,9 @@ Install_App()
 	fi
 
 	file_xz="${file}.xz"
-	URL="${URL_DOWNLOAD}/gitea/${VERSION}/${file_xz}"
+	URL="${URL_DOWNLOAD}/v${VERSION}/${file_xz}"
 	
-	# Gitea 官方下载点在国内可能较慢，mw_download 会处理 GitHub 但这里是 dl.gitea.com
-	# 我们可以尝试使用 ghp.ci 代理如果需要，但 gitea.com 主要是二进制
+	# 改用 GitHub Releases 下载，以便 mw_download 能够自动启用国内的 Github 代理加速
 	mw_download $serverPath/source/gitea/$file_xz $URL
 
 	cd $serverPath/source/gitea && xz -k -d $file_xz

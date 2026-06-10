@@ -112,10 +112,25 @@ function mw_download() {
     local url=$2
     local timeout=${3:-30}
 
-    if [ -f $file ]; then
-        local existing_size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
-        if [ "$existing_size" -gt 0 ] 2>/dev/null; then
-            return 0
+    if [ -f "$file" ]; then
+        # 验证文件有效性（判断是否被劫持为 HTML 或 0 字节，若是则删除重下）
+        if type _gh_verify_file >/dev/null 2>&1; then
+            if _gh_verify_file "$file"; then
+                return 0
+            else
+                echo "检测到无效的缓存文件（如网络劫持的 HTML 页面或损坏文件），准备清理并重新下载: $file"
+                rm -f "$file" 2>/dev/null
+            fi
+        else
+            local existing_size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
+            if [ "$existing_size" -gt 0 ] 2>/dev/null; then
+                if head -c 100 "$file" 2>/dev/null | grep -qiE '^\s*(<html|<!DOCTYPE html)'; then
+                    echo "检测到缓存文件为 HTML 报错/认证页面，准备清理并重新下载: $file"
+                    rm -f "$file" 2>/dev/null
+                else
+                    return 0
+                fi
+            fi
         fi
     fi
 
