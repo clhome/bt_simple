@@ -2,7 +2,7 @@
 	<div class="bt-w-main">
 		<div class='plugin_version'></div>
 		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('ollama',$('.plugin_version').attr('version'));">服务</p>
+			<p class="bgw" onclick="ollama.service();">服务</p>
 			<p onclick="pluginInitD('ollama',$('.plugin_version').attr('version'));">自启动</p>
 			<p onclick="ollama.models();">大模型管理</p>
 			<p onclick="ollama.config();">服务配置</p>
@@ -20,7 +20,7 @@
 resetPluginWinHeight(620);
 $.getScript("/plugins/file?name=ollama&f=js/ollama.js", function(){
 	ollama.init();
-	// 默认切入官方服务管理
-	pluginService('ollama');
+	// 默认切入服务管理
+	ollama.service();
 });
 </script>

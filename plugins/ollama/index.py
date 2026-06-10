@@ -386,6 +386,29 @@ class App:
         res = mw.execShell('journalctl -u ollama --no-pager -n 100')
         return mw.returnJson(True, 'ok', res[0])
 
+    def get_ollama_access_info(self):
+        try:
+            import socket
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(('8.8.8.8', 80))
+                internal_ip = s.getsockname()[0]
+                s.close()
+            except:
+                internal_ip = '127.0.0.1'
+                
+            try:
+                external_ip = mw.getHostAddr()
+            except:
+                external_ip = internal_ip
+
+            return mw.returnJson(True, 'ok', {
+                'internal_url': 'http://' + internal_ip + ':11434/api/tags',
+                'external_url': 'http://' + external_ip + ':11434/api/tags'
+            })
+        except Exception as e:
+            return mw.returnJson(False, str(e))
+
 
 if __name__ == "__main__":
     func = sys.argv[1]

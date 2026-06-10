@@ -185,6 +185,112 @@ var ollama = {
         });
     },
 
+    // --- 服务管理模块 ---
+    service: function () {
+        pluginService('ollama', $('.plugin_version').attr('version'));
+        setTimeout(function() {
+            ollama.send({
+                tips: '正在获取访问信息...',
+                method: 'get_ollama_access_info',
+                success: function (res) {
+                    if (!res.status) {
+                        return;
+                    }
+                    var info = res.data;
+                    var html = `
+                    <div class="ollama-access-info">
+                        <div class="ollama-info-header"><span class="glyphicon glyphicon-link"></span> 远程访问与接口测试指南</div>
+                        <div class="ollama-info-body">
+                            <div class="ollama-info-desc">
+                                如需让局域网内其他主机或公网访问本机的 Ollama API 服务，请进入 <b>“服务配置”</b> 菜单，将绑定 Host 修改为 <code style="color:#d9534f;background:#f9f2f4;padding:2px 4px;border-radius:3px;">0.0.0.0:11434</code>，并勾选允许放行防火墙选项。配置生效后，您可通过以下地址进行 API 连通性测试：
+                            </div>
+                            <div class="ollama-info-item">
+                                <span class="ollama-info-label">内网地址：</span>
+                                <a href="` + info.internal_url + `" target="_blank" class="ollama-info-value ollama-link">` + info.internal_url + `</a>
+                            </div>
+                            <div class="ollama-info-item">
+                                <span class="ollama-info-label">外网地址：</span>
+                                <a href="` + info.external_url + `" target="_blank" class="ollama-info-value ollama-link">` + info.external_url + `</a>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                    var style = `
+                    <style>
+                    .ollama-access-info {
+                        margin-top: 20px;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                        background-color: #ffffff;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+                        overflow: hidden;
+                        font-size: 13px;
+                        color: #374151;
+                        transition: all 0.3s ease;
+                    }
+                    .ollama-access-info:hover {
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+                    }
+                    .ollama-info-header {
+                        padding: 12px 16px;
+                        background: linear-gradient(to right, #f8fafc, #f1f5f9);
+                        border-bottom: 1px solid #e5e7eb;
+                        font-weight: 600;
+                        color: #1e293b;
+                        font-size: 14px;
+                    }
+                    .ollama-info-body {
+                        padding: 16px;
+                    }
+                    .ollama-info-desc {
+                        margin-bottom: 15px;
+                        line-height: 1.6;
+                        color: #475569;
+                    }
+                    .ollama-info-item {
+                        display: flex;
+                        margin-bottom: 12px;
+                        align-items: center;
+                    }
+                    .ollama-info-item:last-child {
+                        margin-bottom: 0;
+                    }
+                    .ollama-info-label {
+                        width: 80px;
+                        color: #64748b;
+                        font-weight: 500;
+                    }
+                    .ollama-info-value {
+                        flex: 1;
+                        color: #0f172a;
+                        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+                        background: #f8fafc;
+                        padding: 4px 10px;
+                        border-radius: 6px;
+                        border: 1px solid #e2e8f0;
+                        word-break: break-all;
+                    }
+                    .ollama-link {
+                        color: #4f46e5;
+                        text-decoration: none;
+                        transition: all 0.2s;
+                    }
+                    .ollama-link:hover {
+                        color: #4338ca;
+                        text-decoration: underline;
+                        background: #e0e7ff;
+                        border-color: #c7d2fe;
+                    }
+                    </style>
+                    `;
+                    if ($(".ollama-access-info").length == 0) {
+                        $(".soft-man-con").append(style + html);
+                    }
+                }
+            });
+        }, 500);
+    },
+
     // --- 大模型管理模块 ---
     models: function () {
         var _this = this;
