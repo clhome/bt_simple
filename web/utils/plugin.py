@@ -347,6 +347,9 @@ class plugin(object):
                     # 备用系统命令执行
                     mw.execShell("rm -rf " + plugin_path)
 
+            # 强制删除后，从 GitHub 恢复面板对应的插件目录，以防无法再次安装
+            self.downloadPluginFromGithub(name)
+
             # 从首页展示配置中移除
             try:
                 indexList = thisdb.getOptionByJson('display_index', default=[])
@@ -386,6 +389,78 @@ class plugin(object):
         mw.debugLog(exec_bash, data)
         self.__plugin_list_static_cache = None
         return mw.returnData(True, '卸载执行成功!')
+
+    def downloadPluginFromGithub(self, name):
+        """
+        从 GitHub 重新拉取最新的插件控制目录（优先最新 Release，Fallback 到 master 分支）
+        """
+        import shutil
+        import glob
+        import urllib.request
+        import ssl
+
+        to_path = mw.getPanelDir() + '/temp'
+        if not os.path.exists(to_path):
+            os.makedirs(to_path)
+
+        # 1. 尝试获取最新 Release Tag
+        version = None
+        try:
+            upAddr = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+            context = ssl._create_unverified_context()
+            try:
+                req = urllib.request.urlopen(upAddr, context=context, timeout=5)
+                result = req.read().decode('utf-8')
+                version = json.loads(result)['tag_name']
+            except:
+                # 尝试代理获取
+                upAddr = mw.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+                req = urllib.request.urlopen(upAddr, context=context, timeout=5)
+                result = req.read().decode('utf-8')
+                version = json.loads(result)['tag_name']
+        except:
+            pass
+
+        # 2. 构造下载 URL
+        if version:
+            zip_url = mw.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
+        else:
+            zip_url = mw.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/heads/master.zip"
+
+        dist_zip = to_path + '/plugin_source.zip'
+
+        if os.path.exists(dist_zip):
+            try:
+                os.remove(dist_zip)
+            except:
+                pass
+
+        # 3. 下载并解压
+        if mw.githubDownload(zip_url, dist_zip):
+            # 解压
+            mw.execShell('unzip -o ' + dist_zip + ' -d ' + to_path)
+            
+            # 使用 glob 动态匹配解压出的 bt_simple 文件夹目录，兼容 master 或 release tag 命名的目录
+            dirs = glob.glob(to_path + '/bt_simple-*')
+            if dirs:
+                src_plugin_path = dirs[0] + '/plugins/' + name
+                dst_plugin_path = self.__plugin_dir + '/' + name
+                if os.path.exists(src_plugin_path):
+                    if os.path.exists(dst_plugin_path):
+                        shutil.rmtree(dst_plugin_path)
+                    shutil.copytree(src_plugin_path, dst_plugin_path)
+                    mw.execShell('chmod -R 755 ' + dst_plugin_path)
+                
+                # 清理临时解压文件夹
+                mw.execShell('rm -rf ' + dirs[0])
+
+            if os.path.exists(dist_zip):
+                try:
+                    os.remove(dist_zip)
+                except:
+                    pass
+            return True
+        return False
 
     # 插件搜索匹配
     def searchKey(self, info,
