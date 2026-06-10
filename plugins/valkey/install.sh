@@ -35,11 +35,23 @@ Install_App()
 	FILE_TGZ=${VERSION}.tar.gz
 	VALKEY_DIR=$serverPath/source/valkey
 
+	if [ -f $VALKEY_DIR/${FILE_TGZ} ]; then
+		if ! gzip -t $VALKEY_DIR/${FILE_TGZ} 2>/dev/null; then
+			echo "检测到 ${FILE_TGZ} 文件已损坏，正在删除以准备重新下载..."
+			rm -f $VALKEY_DIR/${FILE_TGZ}
+		fi
+	fi
+
 	if [ ! -f $VALKEY_DIR/${FILE_TGZ} ];then
 		github_download $VALKEY_DIR/${FILE_TGZ} https://github.com/valkey-io/valkey/archive/refs/tags/${FILE_TGZ}
 	fi
 	
 	cd $VALKEY_DIR && tar -zxvf ${FILE_TGZ}
+	if [ "$?" != "0" ];then
+		echo "解压 ${FILE_TGZ} 失败，文件可能已损坏。已清理损坏文件，请重试安装。"
+		rm -f ${FILE_TGZ}
+		exit 1
+	fi
 
 	CMD_MAKE=`which gmake`
 	if [ "$?" == "0" ];then

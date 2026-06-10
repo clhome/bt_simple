@@ -42,6 +42,33 @@ _gh_proxy_url() {
     fi
 }
 
+# 验证下载的文件是否有效（防代理返回HTML错误页）
+# 用法: _gh_verify_file <文件路径>
+# 返回: 0=有效 1=无效
+_gh_verify_file() {
+    local file=$1
+    if [ ! -f "$file" ]; then return 1; fi
+    local size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
+    if [ "$size" -eq 0 ] 2>/dev/null; then return 1; fi
+
+    # 如果是 gzip 压缩包
+    if [[ "$file" == *.tar.gz ]] || [[ "$file" == *.tgz ]] || [[ "$file" == *.gz ]]; then
+        if gzip -t "$file" 2>/dev/null; then return 0; else return 1; fi
+    fi
+    # 如果是 zip 压缩包
+    if [[ "$file" == *.zip ]]; then
+        if unzip -t "$file" >/dev/null 2>&1; then return 0; else return 1; fi
+    fi
+    
+    # 针对普通文件（如 .sh 或二进制），检测是否被代理篡改为 HTML 错误页
+    # 简单检查文件头部是否为明显的 HTML 标签
+    if head -c 100 "$file" 2>/dev/null | grep -qiE '^\s*(<html|<!DOCTYPE html)'; then
+        return 1
+    fi
+
+    return 0
+}
+
 # 尝试使用 wget 下载文件
 # 用法: _gh_try_download <保存路径> <完整URL> <超时秒数>
 # 返回: 0=成功 1=失败
@@ -55,12 +82,9 @@ _gh_try_download() {
 
     wget --no-check-certificate -O "$file" --timeout="$timeout" --tries=1 -q "$url" 2>/dev/null
 
-    # 校验: 文件必须存在且大小 > 0
-    if [ -f "$file" ]; then
-        local size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
-        if [ "$size" -gt 0 ] 2>/dev/null; then
-            return 0
-        fi
+    # 校验: 文件必须有效
+    if _gh_verify_file "$file"; then
+        return 0
     fi
 
     rm -f "$file" 2>/dev/null
@@ -123,12 +147,14 @@ github_download() {
         return 1
     fi
 
-    # 如果文件已存在且大小 > 0，则跳过下载
+    # 如果文件已存在，校验其有效性；若无效则删除
     if [ -f "$file" ]; then
-        local existing_size=$(wc -c < "$file" 2>/dev/null | tr -d ' ')
-        if [ "$existing_size" -gt 0 ] 2>/dev/null; then
-            echo "[github_download] 文件已存在，跳过: $file"
+        if _gh_verify_file "$file"; then
+            echo "[github_download] 文件已存在且完整，跳过: $file"
             return 0
+        else
+            echo "[github_download] 文件已存在但可能已损坏，正在清理以重新下载: $file"
+            rm -f "$file" 2>/dev/null
         fi
     fi
 
