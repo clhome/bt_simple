@@ -13,6 +13,8 @@
 
 ## 🚀 软件介绍
 
+> 💡 **新手必看**：如果您是初次接触 Linux 服务器与面板运维，强烈建议您先阅读我们的 [📖 御风面板零基础图文使用与运维说明书](文档/御风面板说明书/说明书.md)。
+
 **御风面板（BtSimple）** 是一款完全开源的轻量级 Linux 面板，源自 [mdserver-web](https://github.com/midoks/mdserver-web) 项目。它秉持 **KISS (Keep It Simple, Stupid)** 原则，去除了冗余功能，专注于核心的网站管理、数据库运维和系统安全加固。
 
 本项目在原版基础上进行了深度的安全性审计与性能优化，旨在为用户提供一个既强大又透明的服务器管理工具。
@@ -198,4 +200,4 @@ bs uninstall
 
 [![Star History Chart](https://api.star-history.com/svg?repos=clhome/bt_simple&type=date&legend=top-left)](https://www.star-history.com/#clhome/bt_simple&type=date&legend=top-left)
 
-[GitHub 仓库](https://github.com/clhome/bt_simple) | [WIKI 文档](https://github.com/clhome/bt_simple/wiki)
+[GitHub 仓库](https://github.com/clhome/bt_simple) | [📖 零基础图文说明书](文档/御风面板说明书/说明书.md) | [WIKI 文档](https://github.com/clhome/bt_simple/wiki)
