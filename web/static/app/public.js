@@ -1436,8 +1436,7 @@ function getSpeed(sele){
 }
 
 function tasklist(){
-	var con='<ul class="cmdlist"></ul>\
-		<span style="position:  fixed;bottom: 13px;">若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列</span>';
+	var con='<ul class="cmdlist"></ul><div style="margin-top: 10px; text-align: center; color: #999;">若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列</div>';
 	$("#msg_box .taskcon").html(con);
 	$.post("/task/list", "tojs=getTaskList&table=tasks&limit=10&p=1", function(g) {
 		$('#msg_box .msg_count').html(g.count);
@@ -1467,12 +1466,45 @@ function messageBox() {
 					<div class="taskcon"></div>\
 				</div>\
 			</div>\
+			<div id="msg_box_sys_info" style="margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;">\
+				<span>CPU: <span id="msg_box_cpu" style="color:#20a53a">0%</span></span>\
+				<span>内存: <span id="msg_box_mem" style="color:#20a53a">0%</span></span>\
+				<span>上行: <span id="msg_box_up" style="color:#f7b851">0 B/s</span></span>\
+				<span>下行: <span id="msg_box_down" style="color:#52a9ff">0 B/s</span></span>\
+			</div>\
 		</div>',
 		success:function(){
 			$(".bt-w-menu p").click(function(){
 				$(this).addClass("bgw").siblings().removeClass("bgw");
 			});
 			tasklist();
+			
+			function updateSysInfo() {
+				if ($("#msg_box_sys_info").length === 0) return;
+				$.get("/system/network", function(net) {
+					if ($("#msg_box_sys_info").length === 0) return;
+					if (net.cpu) {
+						$("#msg_box_cpu").text(net.cpu[0] + "%");
+					}
+					if (net.mem) {
+						var memUsed = net.mem.memRealUsed;
+						var memTotal = net.mem.memTotal;
+						var memPercent = memTotal > 0 ? ((memUsed / memTotal) * 100).toFixed(1) : 0;
+						$("#msg_box_mem").text(memPercent + "% (" + toSize(memUsed) + "/" + toSize(memTotal) + ")");
+					}
+					if (net.network && net.network.ALL) {
+						$("#msg_box_up").text(toSize(net.network.ALL.up) + "/s");
+						$("#msg_box_down").text(toSize(net.network.ALL.down) + "/s");
+					}
+				}, 'json');
+			}
+			updateSysInfo();
+			window.msgBoxSysInfoInterval = setInterval(updateSysInfo, 3000);
+		},
+		end: function() {
+			if (window.msgBoxSysInfoInterval) {
+				clearInterval(window.msgBoxSysInfoInterval);
+			}
 		}
 	});
 }

@@ -37,8 +37,37 @@ get_arch() {
 
 Install_App()
 {
-	echo "正在下载并安装 Ollama (使用 ghproxy 镜像加速下载)..."
-	curl -fsSL https://ollama.com/install.sh | sed 's#https://ollama.com/download#https://ghproxy.net/https://github.com/ollama/ollama/releases/latest/download#g' | sh
+	echo "正在下载并安装 Ollama (使用镜像加速下载)..."
+	
+	# 统一调用系统自带的 GitHub 下载辅助库，获取 _GH_PROXY_LIST 代理列表
+	source ${rootPath}/scripts/github_download.sh
+
+	OLLAMA_INSTALL_SCRIPT=$(mktemp)
+	curl -fsSL https://ollama.com/install.sh -o $OLLAMA_INSTALL_SCRIPT
+	
+	if [ ! -f "$OLLAMA_INSTALL_SCRIPT" ] || [ ! -s "$OLLAMA_INSTALL_SCRIPT" ]; then
+		echo "下载 Ollama 安装脚本失败!"
+		exit 1
+	fi
+
+	local success=false
+	for proxy in "${_GH_PROXY_LIST[@]}"; do
+		echo "尝试使用加速节点: $proxy"
+		cat $OLLAMA_INSTALL_SCRIPT | sed "s#https://ollama.com/download#${proxy}https://github.com/ollama/ollama/releases/latest/download#g" | sh
+		if [ $? -eq 0 ] && [ -f /usr/local/bin/ollama ]; then
+			success=true
+			break
+		else
+			echo "加速节点 $proxy 安装失败，尝试下一个..."
+		fi
+	done
+
+	rm -f $OLLAMA_INSTALL_SCRIPT
+
+	if [ "$success" != "true" ]; then
+		echo "所有节点均失败，安装失败!"
+		exit 1
+	fi
 
 	mkdir -p $serverPath/ollama
 	echo "$VERSION" > $serverPath/ollama/version.pl
