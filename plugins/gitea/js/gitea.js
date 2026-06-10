@@ -27,6 +27,29 @@ function gogsPost(method,args,callback, title){
     },'json'); 
 }
 
+function giteaService(){
+    pluginService('gitea');
+    
+    var retryCount = 0;
+    var timer = setInterval(function(){
+        if ($(".soft-man-con .sfm-opt").length > 0) {
+            clearInterval(timer);
+            gogsPost('get_access_url', {}, function(data){
+                var rdata = $.parseJSON(data.data);
+                if(rdata.status){
+                    var html = '<div style="margin-top:20px; padding:15px; border:1px solid #ddd; border-radius:4px; width:450px;">\
+                        <p style="margin-bottom:10px;">内网访问地址：<a href="'+rdata.data.lan+'" target="_blank" class="btlink">'+rdata.data.lan+'</a></p>\
+                        <p style="margin-bottom:0px;">外网访问地址：<a href="'+rdata.data.wan+'" target="_blank" class="btlink">'+rdata.data.wan+'</a></p>\
+                    </div>';
+                    $(".soft-man-con").append(html);
+                }
+            }, "正在获取访问地址...");
+        }
+        retryCount++;
+        if(retryCount > 50) clearInterval(timer);
+    }, 100);
+}
+
 function gogsSetConfig(){
     gogsPost('get_gogs_conf', '', function(data){
         var rrdata = $.parseJSON(data.data);

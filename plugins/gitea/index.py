@@ -192,7 +192,11 @@ def initDreplace():
 
 
 def getRootUrl():
-    content = mw.readFile(getConf())
+    conf_path = getServerDir() + "/custom/conf/app.ini"
+    if not os.path.exists(conf_path):
+        return ''
+    content = mw.readFile(conf_path)
+    if not content: return ''
     rep = r'ROOT_URL\s*=\s*(.*)'
     tmp = re.search(rep, content)
     if tmp:
@@ -206,7 +210,11 @@ def getRootUrl():
 
 
 def getSshPort():
-    content = mw.readFile(getConf())
+    conf_path = getServerDir() + "/custom/conf/app.ini"
+    if not os.path.exists(conf_path):
+        return ''
+    content = mw.readFile(conf_path)
+    if not content: return ''
     rep = r'SSH_PORT\s*=\s*(.*)'
     tmp = re.search(rep, content)
     if not tmp:
@@ -215,7 +223,11 @@ def getSshPort():
 
 
 def getHttpPort():
-    content = mw.readFile(getConf())
+    conf_path = getServerDir() + "/custom/conf/app.ini"
+    if not os.path.exists(conf_path):
+        return ''
+    content = mw.readFile(conf_path)
+    if not content: return ''
     rep = r'HTTP_PORT\s*=\s*(.*)'
     tmp = re.search(rep, content)
     if not tmp:
@@ -224,12 +236,39 @@ def getHttpPort():
 
 
 def getRootPath():
-    content = mw.readFile(getConf())
+    conf_path = getServerDir() + "/custom/conf/app.ini"
+    if not os.path.exists(conf_path):
+        return ''
+    content = mw.readFile(conf_path)
+    if not content: return ''
     rep = r'ROOT\s*=\s*(.*)'
     tmp = re.search(rep, content)
     if not tmp:
         return ''
     return tmp.groups()[0]
+
+
+def getAccessUrl():
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        lan_ip = s.getsockname()[0]
+        s.close()
+    except:
+        lan_ip = '127.0.0.1'
+
+    wan_ip = mw.getHostAddr()
+    port = getHttpPort()
+    
+    if not port:
+        port = '3000'
+
+    data = {
+        'lan': 'http://' + lan_ip + ':' + port,
+        'wan': 'http://' + wan_ip + ':' + port
+    }
+    return mw.returnJson(True, 'OK', data)
 
 
 def getDbConfValue():
@@ -1212,5 +1251,7 @@ if __name__ == "__main__":
         print(getRsaPublic())
     elif func == 'get_total_statistics':
         print(getTotalStatistics())
+    elif func == 'get_access_url':
+        print(getAccessUrl())
     else:
         print('fail')
