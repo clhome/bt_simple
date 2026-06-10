@@ -182,3 +182,112 @@ function setPamPort() {
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
+
+function pmaService() {
+    pluginService('phpmyadmin');
+    setTimeout(function() {
+        pmaPost('get_pma_access_info', '', function(rdata) {
+            var data = $.parseJSON(rdata.data);
+            if (!data.status) {
+                return;
+            }
+            var info = data.data;
+            var html = `
+            <div class="pma-access-info">
+                <div class="pma-info-header">访问与认证信息</div>
+                <div class="pma-info-body">
+                    <div class="pma-info-item">
+                        <span class="pma-info-label">内网地址：</span>
+                        <a href="` + info.internal_url + `" target="_blank" class="pma-info-value pma-link">` + info.internal_url + `</a>
+                    </div>
+                    <div class="pma-info-item">
+                        <span class="pma-info-label">外网地址：</span>
+                        <a href="` + info.external_url + `" target="_blank" class="pma-info-value pma-link">` + info.external_url + `</a>
+                    </div>
+                    <div class="pma-info-item">
+                        <span class="pma-info-label">用户名：</span>
+                        <span class="pma-info-value">` + info.username + `</span>
+                    </div>
+                    <div class="pma-info-item">
+                        <span class="pma-info-label">密码：</span>
+                        <span class="pma-info-value">` + info.password + `</span>
+                    </div>
+                </div>
+                <div class="pma-info-footer">
+                    <span class="glyphicon glyphicon-info-sign"></span> 
+                    注意：打开网页后输入用户名为 <strong>root</strong>，密码请前往 <strong>MySQL => 管理列表 => root密码</strong> 查看
+                </div>
+            </div>
+            `;
+            var style = `
+            <style>
+            .pma-access-info {
+                margin-top: 20px;
+                border: 1px solid #e2e2e2;
+                border-radius: 6px;
+                background-color: #fcfcfc;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+                overflow: hidden;
+                font-size: 13px;
+                color: #555;
+            }
+            .pma-info-header {
+                padding: 10px 15px;
+                background-color: #f5f6fa;
+                border-bottom: 1px solid #e2e2e2;
+                font-weight: 600;
+                color: #333;
+                font-size: 14px;
+            }
+            .pma-info-body {
+                padding: 15px;
+            }
+            .pma-info-item {
+                display: flex;
+                margin-bottom: 10px;
+                align-items: center;
+            }
+            .pma-info-item:last-child {
+                margin-bottom: 0;
+            }
+            .pma-info-label {
+                width: 100px;
+                color: #666;
+                font-weight: 500;
+            }
+            .pma-info-value {
+                flex: 1;
+                color: #333;
+                font-family: Consolas, monospace;
+                background: #f0f0f0;
+                padding: 2px 8px;
+                border-radius: 4px;
+            }
+            .pma-link {
+                color: #20a53a;
+                text-decoration: none;
+                transition: color 0.3s;
+            }
+            .pma-link:hover {
+                color: #167a2a;
+                text-decoration: underline;
+            }
+            .pma-info-footer {
+                padding: 10px 15px;
+                background-color: #fff8e1;
+                border-top: 1px solid #ffecb3;
+                color: #8a6d3b;
+                font-size: 12px;
+                line-height: 1.5;
+            }
+            .pma-info-footer strong {
+                color: #d9534f;
+            }
+            </style>
+            `;
+            if ($(".pma-access-info").length == 0) {
+                $(".soft-man-con").append(style + html);
+            }
+        });
+    }, 500);
+}

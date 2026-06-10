@@ -502,6 +502,36 @@ def installPreInspection():
         return "必须先安装一个php版本!"
     return 'ok'
 
+def getPmaAccessInfo():
+    try:
+        data = {}
+        cfg = getCfg()
+        port = getPort()
+        
+        import socket
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            internal_ip = s.getsockname()[0]
+            s.close()
+        except:
+            internal_ip = '127.0.0.1'
+            
+        try:
+            external_ip = mw.getHostAddr()
+        except:
+            external_ip = internal_ip
+        
+        rand_path = cfg['path']
+        
+        data['internal_url'] = 'http://' + internal_ip + ':' + port + '/' + rand_path + '/index.php'
+        data['external_url'] = 'http://' + external_ip + ':' + port + '/' + rand_path + '/index.php'
+        data['username'] = cfg['username']
+        data['password'] = cfg['password']
+        return mw.returnJson(True, 'ok', data)
+    except Exception as e:
+        return mw.returnJson(False, '插件未启动!')
+
 if __name__ == "__main__":
     func = sys.argv[1]
     if func == 'status':
@@ -550,5 +580,7 @@ if __name__ == "__main__":
         print(errorLog())
     elif func == 'plugins_db_support':
         print(pluginsDbSupport())
+    elif func == 'get_pma_access_info':
+        print(getPmaAccessInfo())
     else:
         print('error')

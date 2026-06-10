@@ -1,7 +1,7 @@
 <div class="bt-form">
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('phpmyadmin');">服务</p>
+			<p class="bgw" onclick="pmaService();">服务</p>
 			<p onclick="pluginConfig('phpmyadmin');">重写模版</p>
 			<p onclick="homePage()">主页</p>
 			<p onclick="phpVer(56)">PHP版本</p>
@@ -19,6 +19,6 @@
 <script type="text/javascript">
 resetPluginWinHeight(500);
 $.getScript( "/plugins/file?name=phpmyadmin&f=js/phpmyadmin.js", function(){
-	pluginService('phpmyadmin');
+	pmaService();
 });
 </script>
