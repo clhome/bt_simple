@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
@@ -37,7 +37,7 @@ if [ ! -f $MG_DIR/${FILE_NAME_TGZ} ]; then
 fi
 
 if [ ! -d $MG_DIR/${FILE_NAME} ];then 
-	cd $MG_DIR && tar -zxvf ${FILE_NAME_TGZ} || exit 1
+	cd $MG_DIR && tar -zxvf ${FILE_NAME_TGZ} || { rm -f ${FILE_NAME_TGZ}; exit 1; }
 fi
 
 if [ ! -d  $serverPath/mongodb/bin ];then
@@ -60,7 +60,7 @@ if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
 fi
 
 if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
-	cd $MG_DIR && tar -zxvf ${TOOL_FILE_NAME_TGZ} || exit 1
+	cd $MG_DIR && tar -zxvf ${TOOL_FILE_NAME_TGZ} || { rm -f ${TOOL_FILE_NAME_TGZ}; exit 1; }
 fi
 
 cd ${MG_DIR}/${TOOL_FILE_NAME} && cp -rf ./bin $serverPath/mongodb
@@ -85,7 +85,7 @@ if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
 fi
 
 if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
-	cd $MG_DIR && tar -zxvf ${TOOL_FILE_NAME_TGZ} || exit 1
+	cd $MG_DIR && tar -zxvf ${TOOL_FILE_NAME_TGZ} || { rm -f ${TOOL_FILE_NAME_TGZ}; exit 1; }
 fi
 
 cd ${MG_DIR}/${TOOL_FILE_NAME} && cp -rf ./bin $serverPath/mongodb

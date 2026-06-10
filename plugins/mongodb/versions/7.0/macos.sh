@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
@@ -20,7 +20,7 @@ if [ ! -f $MG_DIR/mongodb-macos-x86_64-${VERSION}.tgz ]; then
 fi
 
 if [ ! -d $MG_DIR/mongodb-macos-x86_64-${VERSION} ];then 
-	cd $MG_DIR && tar -zxvf mongodb-macos-x86_64-${VERSION}.tgz || exit 1
+	cd $MG_DIR && tar -zxvf mongodb-macos-x86_64-${VERSION}.tgz || { rm -f mongodb-macos-x86_64-${VERSION}.tgz; exit 1; }
 fi
 
 if [ ! -d $serverPath/mongodb/bin ];then
