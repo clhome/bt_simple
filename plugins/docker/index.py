@@ -309,6 +309,17 @@ def imageList():
     imageList = []
     c = getDClient()
     ilist = c.images.list()
+
+    disk_usage_map = {}
+    try:
+        out, err = mw.execShell("docker image ls --format '{{.Repository}}:{{.Tag}}|{{.Size}}'")
+        if out:
+            for line in out.strip().split('\n'):
+                parts = line.split('|')
+                if len(parts) >= 2:
+                    disk_usage_map[parts[0]] = parts[1]
+    except:
+        pass
     for image in ilist:
         tmp_attrs = image.attrs
         repo_tags = tmp_attrs.get('RepoTags', None)
@@ -320,6 +331,9 @@ def imageList():
             tmp_image['Id'] = tmp_attrs['Id'].split(':')[1][:12]
             tmp_image['RepoTags'] = repo_tags[0]
             tmp_image['Size'] = tmp_attrs['Size']
+            tmp_image['VirtualSize'] = tmp_attrs.get('VirtualSize', tmp_attrs['Size'])
+            tmp_image['SharedSize'] = tmp_attrs.get('SharedSize', 0)
+            tmp_image['DiskUsage'] = disk_usage_map.get(repo_tags[0], '')
             tmp_image['Labels'] = tmp_attrs.get('Config', {}).get('Labels', None)
             tmp_image['Comment'] = tmp_attrs.get('Comment', '')
             tmp_image['Created'] = utc_to_local(
@@ -331,6 +345,9 @@ def imageList():
                 tmp_image['Id'] = tmp_attrs['Id'].split(':')[1][:12]
                 tmp_image['RepoTags'] = repo_tags[i]
                 tmp_image['Size'] = tmp_attrs['Size']
+                tmp_image['VirtualSize'] = tmp_attrs.get('VirtualSize', tmp_attrs['Size'])
+                tmp_image['SharedSize'] = tmp_attrs.get('SharedSize', 0)
+                tmp_image['DiskUsage'] = disk_usage_map.get(repo_tags[i], '')
                 tmp_image['Labels'] = tmp_attrs.get('Config', {}).get('Labels', None)
                 tmp_image['Comment'] = tmp_attrs.get('Comment', '')
                 tmp_image['Created'] = utc_to_local(

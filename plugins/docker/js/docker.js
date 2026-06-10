@@ -531,22 +531,15 @@ function dockerImageListRender() {
 
             var tag = rlist[i]['RepoTags'].split(":")[1];
 
-            var license = 'null';
-            var desc = 'null';
-            if (rlist[i]['Labels'] == null) {
-                license = 'free';
-            }
-
             var op = '';
             op += '<a href="javascript:;" onclick="deleteImages(\'' + rlist[i]['RepoTags'] + '\',\'' + rlist[i]['Id'] + '\')" class="btlink">删除</a>';
-
 
             list += '<tr>';
             list += '<td>' + rlist[i]['RepoTags'] + '</td>';
             list += '<td>' + tag + '</td>';
             list += '<td>' + toSize(rlist[i]['Size']) + '</td>';
-            list += '<td>' + license + '</td>';
-            list += '<td>' + desc + '</td>';
+            list += '<td>' + (rlist[i]['DiskUsage'] ? rlist[i]['DiskUsage'] : (rlist[i]['VirtualSize'] ? toSize(rlist[i]['VirtualSize']) : toSize(rlist[i]['Size']))) + '</td>';
+            list += '<td>' + getFormatTime(rlist[i]['Created']) + '</td>';
             list += '<td class="text-right">' + op + '</td>';
             list += '</tr>';
         }
@@ -725,9 +718,9 @@ function dockerImageList() {
                     <thead><tr>\
                     <th>名称</th>\
                     <th>版本</th>\
-                    <th>大小</th>\
-                    <th>证书</th>\
-                    <th>描述</th>\
+                    <th>镜像大小</th>\
+                    <th>磁盘占用</th>\
+                    <th>创建时间</th>\
                     <th style="text-align:right;">操作</th></tr></thead>\
                     <tbody></tbody></table>\
                 </div>\
