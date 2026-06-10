@@ -41,6 +41,17 @@ function toggleThirdParty(isChecked) {
     getSList(1);
 }
 
+function clearPluginCache() {
+    layer.confirm('此操作将清空 /www/server/source/ 下所有的下载包缓存文件。<br>清理后再次安装软件将重新从网络下载安装包，确认清理吗？', { title: '清理安装缓存', icon: 3 }, function(index) {
+        var loadT = layer.msg('正在清理，请稍后...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        $.post('/plugins/clear_cache', {}, function(rdata) {
+            layer.close(loadT);
+            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            $('#third_party_setting_box').hide();
+        }, 'json');
+    });
+}
+
 //取软件列表
 function getSList(isdisplay) {
     if (isdisplay !== true) {

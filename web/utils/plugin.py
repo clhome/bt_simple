@@ -683,6 +683,12 @@ class plugin(object):
 
     def clearCache(self):
         self.__plugin_list_static_cache = None
+        
+        # 清除下载的安装包缓存
+        source_dir = mw.getServerDir() + '/source'
+        if os.path.exists(source_dir):
+            mw.execShell('rm -rf ' + source_dir + '/*')
+            
         return True
 
     def refreshDynamicStatus(self, plist):
