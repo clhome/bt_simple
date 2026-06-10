@@ -1370,14 +1370,14 @@ function conDetails(id) {
     var html = '<div class="pd20" style="font-size:13px; line-height:24px;">' +
         '<style>.con-detail-table { width: 100%; border-collapse: collapse; margin-bottom: 15px;} .con-detail-table th { width: 90px; text-align: right; padding: 8px 15px 8px 0; color: #666; font-weight: normal; vertical-align: top;} .con-detail-table td { padding: 8px 0; color: #333; word-break: break-all;} .con-ul { list-style: none; padding: 0; margin: 0; } .con-ul li { margin-bottom: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #eee;}</style>' +
         '<table class="con-detail-table">' +
-        '<tr><th>容器 ID</th><td>' + con.Id.substring(0, 12) + ' <span style="color:#999;font-size:12px;">(' + con.Id + ')</span></td></tr>' +
+        '<tr><th>容器 ID</th><td>' + con.Id.substring(0, 12) + '<br><span style="color:#999;font-size:12px;">(' + con.Id + ')</span></td></tr>' +
         '<tr><th>容器名称</th><td>' + con.Name.substring(1) + '</td></tr>' +
         '<tr><th>所属镜像</th><td>' + con.Config.Image + '</td></tr>' +
         '<tr><th>IP 地址</th><td>' + ipStr + '</td></tr>' +
         '<tr><th>入口命令</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + (entryStr !== '无' ? entryStr + ' ' : '') + cmdStr + '</div></td></tr>' +
         '<tr><th>资源限制</th><td><span class="label label-success" style="margin-right:10px;">内存: ' + memStr + '</span> <span class="label label-info">CPU配额: ' + cpuStr + '</span></td></tr>' +
         '<tr><th>端口映射</th><td><ul class="con-ul">' + portsHtml + '</ul></td></tr>' +
-        '<tr><th>目录挂载</th><td><ul class="con-ul">' + mountsHtml + '</ul></td></tr>' +
+        '<tr><th>目录挂载</th><td><ul class="con-ul">' + mountsHtml + '</ul><div style="margin-top:8px;font-size:12px;color:#999;line-height:1.5;">* 提示：此处展示了 Docker 底层全部真实挂载。出现的 <code>/var/lib/docker/volumes/...</code> (匿名卷) 或 <code>/sys/...</code> 是由于镜像原生要求或容器特权自动生成的挂载，并非错误。</div></td></tr>' +
         '</table>' +
     '</div>';
 
