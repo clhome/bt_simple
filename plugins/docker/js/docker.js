@@ -1364,8 +1364,10 @@ function conDetails(id) {
     var cpuStr = (con.HostConfig.CpuShares > 0) ? con.HostConfig.CpuShares : '默认';
     
     // Command / Entrypoint
-    var cmdStr = (con.Config.Cmd) ? con.Config.Cmd.join(' ') : '无';
-    var entryStr = (con.Config.Entrypoint) ? con.Config.Entrypoint.join(' ') : '无';
+    var cmdStr = (con.Config.Cmd && con.Config.Cmd.length > 0) ? con.Config.Cmd.join(' ') : '';
+    var entryStr = (con.Config.Entrypoint && con.Config.Entrypoint.length > 0) ? con.Config.Entrypoint.join(' ') : '';
+    var fullCmd = (entryStr + ' ' + cmdStr).trim();
+    if (!fullCmd) fullCmd = '无';
     
     var html = '<div class="pd20" style="font-size:13px; line-height:24px;">' +
         '<style>.con-detail-table { width: 100%; border-collapse: collapse; margin-bottom: 15px;} .con-detail-table th { width: 90px; text-align: right; padding: 8px 15px 8px 0; color: #666; font-weight: normal; vertical-align: top;} .con-detail-table td { padding: 8px 0; color: #333; word-break: break-all;} .con-ul { list-style: none; padding: 0; margin: 0; } .con-ul li { margin-bottom: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #eee;}</style>' +
@@ -1374,8 +1376,11 @@ function conDetails(id) {
         '<tr><th>容器名称</th><td>' + con.Name.substring(1) + '</td></tr>' +
         '<tr><th>所属镜像</th><td>' + con.Config.Image + '</td></tr>' +
         '<tr><th>IP 地址</th><td>' + ipStr + '</td></tr>' +
-        '<tr><th>入口命令</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + (entryStr !== '无' ? entryStr + ' ' : '') + cmdStr + '</div></td></tr>' +
-        '<tr><th>资源限制</th><td><span class="label label-success" style="margin-right:10px;">内存: ' + memStr + '</span> <span class="label label-info">CPU配额: ' + cpuStr + '</span></td></tr>' +
+        '<tr><th>入口命令</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + fullCmd + '</div></td></tr>' +
+        '<tr><th>资源限制</th><td>' +
+            '<span class="label label-success" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px; margin-right:15px;"><i class="glyphicon glyphicon-tasks" style="margin-right:5px;"></i>内存限制: ' + memStr + '</span>' +
+            '<span class="label label-info" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px;"><i class="glyphicon glyphicon-dashboard" style="margin-right:5px;"></i>CPU配额: ' + cpuStr + '</span>' +
+        '</td></tr>' +
         '<tr><th>端口映射</th><td><ul class="con-ul">' + portsHtml + '</ul></td></tr>' +
         '<tr><th>目录挂载</th><td><ul class="con-ul">' + mountsHtml + '</ul><div style="margin-top:8px;font-size:12px;color:#999;line-height:1.5;">* 提示：此处展示了 Docker 底层全部真实挂载。出现的 <code>/var/lib/docker/volumes/...</code> (匿名卷) 或 <code>/sys/...</code> 是由于镜像原生要求或容器特权自动生成的挂载，并非错误。</div></td></tr>' +
         '</table>' +
@@ -1384,7 +1389,7 @@ function conDetails(id) {
     layer.open({
         type: 1,
         title: '容器详情 [' + con.Name.substring(1) + ']',
-        area: ['600px', '500px'],
+        area: ['600px', '850px'],
         closeBtn: 1,
         shadeClose: false,
         content: html,
