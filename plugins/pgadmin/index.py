@@ -107,7 +107,7 @@ def initCfg():
         data['username'] = 'admin'
         data['password'] = 'admin'
 
-        data['web_pg_username'] = 'mdserver-web@gmail.com'
+        data['web_pg_username'] = 'yftec@gmail.com'
         data['web_pg_password'] = 'admin'
         mw.writeFile(cfg, json.dumps(data))
 
@@ -218,7 +218,7 @@ def initReplace():
     if not os.path.exists(judge_file):
         pg_init_bash = getPluginDir()+'/pg_init.sh'
         pg_rand = mw.getRandomString(8)
-        pg_username = "mw."+pg_rand+"@gmail.com"
+        pg_username = "yftec_"+pg_rand+"@gmail.com"
         setCfg('web_pg_username', pg_username)
         pg_password = mw.getRandomString(10)
         setCfg('web_pg_password', pg_password)
@@ -384,6 +384,36 @@ def errorLog():
 def installVersion():
     return mw.readFile(getServerDir() + '/version.pl')
 
+def getPgAccessInfo():
+    try:
+        data = {}
+        cfg = getCfg()
+        port = getPort()
+        
+        import socket
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('8.8.8.8', 80))
+            internal_ip = s.getsockname()[0]
+            s.close()
+        except:
+            internal_ip = '127.0.0.1'
+            
+        try:
+            external_ip = mw.getHostAddr()
+        except:
+            external_ip = internal_ip
+        
+        data['internal_url'] = 'http://' + internal_ip + ':' + port + '/'
+        data['external_url'] = 'http://' + external_ip + ':' + port + '/'
+        data['username'] = cfg['username']
+        data['password'] = cfg['password']
+        data['web_pg_username'] = cfg.get('web_pg_username', '')
+        data['web_pg_password'] = cfg.get('web_pg_password', '')
+        return mw.returnJson(True, 'ok', data)
+    except Exception as e:
+        return mw.returnJson(False, '插件未启动!')
+
 if __name__ == "__main__":
     func = sys.argv[1]
     if func == 'status':
@@ -418,5 +448,7 @@ if __name__ == "__main__":
         print(accessLog())
     elif func == 'error_log':
         print(errorLog())
+    elif func == 'get_pg_access_info':
+        print(getPgAccessInfo())
     else:
         print('error')
