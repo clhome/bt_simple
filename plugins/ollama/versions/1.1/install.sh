@@ -37,8 +37,8 @@ get_arch() {
 
 Install_App()
 {
-	echo "正在下载并安装 Ollama (https://ollama.com)..."
-	curl -fsSL https://ollama.com/install.sh | sh
+	echo "正在下载并安装 Ollama (使用 ghproxy 镜像加速下载)..."
+	curl -fsSL https://ollama.com/install.sh | sed 's#https://ollama.com/download#https://ghproxy.net/https://github.com/ollama/ollama/releases/latest/download#g' | sh
 
 	mkdir -p $serverPath/ollama
 	echo "$VERSION" > $serverPath/ollama/version.pl
