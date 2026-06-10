@@ -321,7 +321,23 @@ def getFtpList():
     data['page'] = mw.getPage(_page)
 
     info = {}
-    info['ip'] = mw.getLocalIp()
+    
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        internal_ip = s.getsockname()[0]
+        s.close()
+    except:
+        internal_ip = '127.0.0.1'
+        
+    try:
+        external_ip = mw.getHostAddr()
+    except:
+        external_ip = internal_ip
+
+    info['ip'] = internal_ip
+    info['external_ip'] = external_ip
     info['port'] = getFtpPort()
     data['info'] = info
     data['data'] = clist

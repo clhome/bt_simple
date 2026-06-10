@@ -1,7 +1,7 @@
 <div class="bt-form">
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('pureftp');">服务</p>
+			<p class="bgw" onclick="pureftpService();">服务</p>
 			<p onclick="pluginInitD('pureftp');">自启动</p>
 			<p onclick="pluginConfig('pureftp');">配置修改</p>
 			<p onclick="ftpList();">管理列表</p>
@@ -16,6 +16,6 @@
 <script type="text/javascript">
 resetPluginWinWidth(800);
 $.getScript( "/plugins/file?name=pureftp&f=js/ftp.js", function(){
-	pluginService('pureftp');
+	pureftpService();
 });
 </script>

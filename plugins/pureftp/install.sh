@@ -28,7 +28,7 @@ Install_pureftp()
 
 	VER=$1
 	FILE_PATH=$serverPath/source/pureftp/pure-ftpd-${VER}.tar.gz
-	DOWNLOAD_URL=https://github.com/jedisct1/pure-ftpd/releases/download/${VER}/pure-ftpd-${VER}.tar.gz
+	DOWNLOAD_URL=https://download.pureftpd.org/pub/pure-ftpd/releases/pure-ftpd-${VER}.tar.gz
 
 	mw_download $FILE_PATH $DOWNLOAD_URL
 

@@ -52,9 +52,11 @@ function ftpList(page, search){
 
         var rdata = $.parseJSON(data.data);
         // console.log(rdata);
-        content = '<div class="info-title-tips"><p><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>当前FTP地址为：ftp://'+rdata['info']['ip']+':'+rdata['info']['port']+'</p></div>';
-        content += '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="查找用户名" id="ftp_find_user" style="height: 28px; border-radius: 3px;width: 605px;">';
-        content += '<button class="btn btn-success btn-sm" onclick="ftpListFind();">查找</button></div>';
+        content = '<div class="info-title-tips" style="display: flex; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>当前FTP地址为：ftp://'+rdata['info']['ip']+':'+rdata['info']['port']+'</p>';
+        content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">修改端口</button></div>';
+        content += '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="查找用户名" id="ftp_find_user" style="height: 28px; border-radius: 3px;width: 150px;">';
+        content += '<button class="btn btn-success btn-sm" onclick="ftpListFind();">查找</button>';
+        content += '<button class="btn btn-success btn-sm" style="margin-left: 10px;" onclick="addFtp();"><span class="glyphicon glyphicon-plus" style="margin-right: 5px;"></span>新增用户</button></div>';
 
         content += '<div class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
         content += '<thead><tr>';
@@ -63,7 +65,7 @@ function ftpList(page, search){
         content += '<th style="width:10%;">状态</th>';
         content += '<th>根目录</th>';
         content += '<th>备注</th>';
-        content += '<th>操作(<a class="btlink" onclick="addFtp();">添加</a>|<a class="btlink" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">端口</a>)</th>';
+        content += '<th>操作</th>';
         content += '</tr></thead>';
 
         content += '<tbody>';
@@ -306,3 +308,164 @@ function ftpStart(id, username) {
 	});
 }
 
+
+function pureftpService() {
+    var _name = "pureftp";
+    var loadT = layer.msg("正在获取...", { icon: 16, time: 0, shade: 0.3 });
+    $.post("/plugins/run", {name: "pureftp", func: "get_ftp_list", args: JSON.stringify({page:1, page_size:1000})}, function(rdata) {
+        $.post("/plugins/run", {name: _name, func: "status"}, function(data) {
+            layer.close(loadT);
+            var _status = data.data;
+            var m_status = "当前状态：<span>开启</span><span style=\"color:#20a53a; margin-left:3px;\" class=\"glyphicon glyphicon glyphicon-play\"></span>";
+            if (_status != "start"){
+                 m_status = "当前状态：<span>停止</span><span style=\"color:red; margin-left:3px;\" class=\"glyphicon glyphicon-pause\"></span>";
+            }
+            var m_btn = "<button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'stop', '')\">停止</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'restart', '')\">重启</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'reload', '')\">重载配置</button>";
+            if (_status != "start"){
+                m_btn = "<button class=\"btn btn-success btn-sm\" onclick=\"pluginOpService('"+_name+"', 'start', '')\">启动</button>";
+            }
+            
+            var con = "<p class=\"status\">"+m_status+"</p><div class=\"sfm-opt\">"+m_btn+"</div>";
+
+            var ftpData = {info: {ip: "127.0.0.1", port: "21"}, data: []};
+            try {
+                ftpData = $.parseJSON(rdata.data);
+            } catch(e) {}
+            
+            var innerIp = ftpData.info.ip;
+            var outerIp = ftpData.info.external_ip || window.location.hostname;
+            var port = ftpData.info.port;
+            
+            var style = `
+            <style>
+            .ftp-access-info {
+                margin-top: 20px;
+                border: 1px solid #d2d6de;
+                border-radius: 6px;
+                background-color: #fff;
+                box-shadow: 0 2px 10px rgba(0, 123, 255, 0.08);
+                overflow: hidden;
+                font-size: 13px;
+                color: #444;
+            }
+            .ftp-info-header {
+                padding: 12px 15px;
+                background: linear-gradient(135deg, #f5f7fa 0%, #eef2f5 100%);
+                border-bottom: 1px solid #d2d6de;
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+            }
+            .ftp-info-header .glyphicon {
+                color: #007bff;
+                margin-right: 8px;
+                font-size: 16px;
+            }
+            .ftp-info-body {
+                padding: 15px;
+            }
+            .ftp-info-item {
+                display: flex;
+                margin-bottom: 12px;
+                align-items: center;
+            }
+            .ftp-info-item:last-child {
+                margin-bottom: 0;
+            }
+            .ftp-info-label {
+                width: 80px;
+                color: #666;
+                font-weight: 500;
+            }
+            .ftp-info-value {
+                flex: 1;
+                color: #007bff;
+                font-family: Consolas, "Courier New", monospace;
+                background: #f4f8ff;
+                padding: 4px 10px;
+                border-radius: 4px;
+                border: 1px solid #d6e4f5;
+                font-weight: 600;
+            }
+            .ftp-user-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+            .ftp-user-table th, .ftp-user-table td {
+                padding: 8px 12px;
+                border: 1px solid #eef2f5;
+                text-align: left;
+            }
+            .ftp-user-table th {
+                background-color: #f8f9fa;
+                color: #555;
+                font-weight: 600;
+            }
+            .ftp-user-table tr:hover td {
+                background-color: #fdfdfe;
+            }
+            .ftp-user-table .user-badge {
+                display: inline-block;
+                background-color: #e3f2fd;
+                color: #1976d2;
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 12px;
+            }
+            .ftp-user-table .path-badge {
+                font-family: Consolas, monospace;
+                color: #4caf50;
+            }
+            </style>
+            `;
+
+            con += style;
+            con += '<div class="ftp-access-info">';
+            con += '<div class="ftp-info-header"><span class="glyphicon glyphicon-hdd"></span>FTP 连接与账号管理</div>';
+            con += '<div class="ftp-info-body">';
+            
+            con += '<div class="ftp-info-item"><span class="ftp-info-label">内网地址</span><span class="ftp-info-value">ftp://' + innerIp + ':' + port + '</span></div>';
+            if (innerIp !== outerIp) {
+                con += '<div class="ftp-info-item"><span class="ftp-info-label">外网地址</span><span class="ftp-info-value">ftp://' + outerIp + ':' + port + '</span></div>';
+            } else {
+                con += '<div class="ftp-info-item"><span class="ftp-info-label">外网地址</span><span class="ftp-info-value" style="color:#888;border-color:#eee;background:#fafafa;">ftp://' + outerIp + ':' + port + ' (同内网)</span></div>';
+            }
+            
+            if (ftpData.data && ftpData.data.length > 0) {
+                con += '<table class="ftp-user-table">';
+                con += '<thead><tr><th width="30%">FTP 用户名</th><th>绑定根目录</th></tr></thead><tbody>';
+                for (var i = 0; i < ftpData.data.length; i++) {
+                    con += '<tr>';
+                    con += '<td><span class="user-badge">' + ftpData.data[i].name + '</span></td>';
+                    con += '<td><span class="path-badge">' + ftpData.data[i].path + '</span></td>';
+                    con += '</tr>';
+                }
+                con += '</tbody></table>';
+            } else {
+                con += '<div style="margin-top:15px; padding: 15px; background: #fdfdfe; border: 1px dashed #ccc; border-radius: 4px; text-align: center; color: #999;">暂无用户，请在“管理列表”中添加</div>';
+            }
+            
+            con += '</div></div>';
+
+            var fwTip = `
+            <div class="ftp-firewall-tips" style="margin-top: 15px; padding: 15px; background-color: #fffaf0; border: 1px solid #ffeeba; border-left: 4px solid #f39c12; border-radius: 6px; font-size: 13px; color: #555;">
+                <div style="font-weight: 600; color: #d35400; margin-bottom: 8px; font-size: 14px;">
+                    <span class="glyphicon glyphicon-warning-sign" style="margin-right: 6px;"></span>云服务器与防火墙端口放行提示
+                </div>
+                <div style="line-height: 1.6;">若您使用的是云服务器（如阿里云、腾讯云等），除了面板自身的防火墙外，请<strong>务必前往云服务商的安全组控制台</strong>放行以下 TCP 端口：</div>
+                <ul style="margin-top: 8px; margin-bottom: 0; padding-left: 20px; line-height: 1.6;">
+                    <li><strong>控制端口：</strong> <span style="color:#c0392b;font-family:Consolas,monospace;background:#fdebd0;padding:2px 6px;border-radius:3px;">21</span> <span style="color:#888;">（用于 FTP 账号登录与主动模式）</span></li>
+                    <li><strong>被动数据端口范围：</strong> <span style="color:#c0392b;font-family:Consolas,monospace;background:#fdebd0;padding:2px 6px;border-radius:3px;">39000-40000</span> <span style="color:#888;">（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）</span></li>
+                </ul>
+            </div>
+            `;
+            con += fwTip;
+
+            $(".soft-man-con").html(con);
+        }, "json");
+    }, "json");
+}
