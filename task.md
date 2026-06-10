@@ -3387,4 +3387,4 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 修改 `web/utils/plugin.py` 的 `makePluginInfo`，从 `info.json` 解析并注入 `display_status`。 @done(2026-06-10 17:34)
 - [x] 修改 `web/static/app/soft.js`，在列表页和首页根据 `display_status` 控制状态图标的渲染。 @done(2026-06-10 17:34)
 - [x] 修改 `swap` 插件的 `info.json`，增加 `"display_status": false`。 @done(2026-06-10 17:35)
-- [x] 修改 `yufeng_systemd` 插件的 `info.json`，增加 `"display_status": false`。 @done(2026-06-10 17:35)
+- [x] 修复 `web/utils/plugin.py` 的 `getIndexList` 方法中 `simple=True` 时未透传 `display_status` 的问题。 @done(2026-06-10 17:38)

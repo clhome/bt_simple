@@ -144,6 +144,7 @@ class plugin(object):
                     'title': item.get('title', ''),
                     'setup_version': item.get('setup_version', ''),
                     'status': item.get('status', False),
+                    'display_status': item.get('display_status', True),
                     'coexist': item.get('coexist', False),
                     'versions': item.get('versions', '')
                 }
