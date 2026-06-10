@@ -160,6 +160,7 @@ function dockerConListRender() {
 
         var list = '';
         var rlist = rdata.data;
+        window.docker_con_data = rlist;
 
         for (var i = 0; i < rlist.length; i++) {
             var docker_status = 'stop';
@@ -170,6 +171,7 @@ function dockerConListRender() {
             }
 
             var op = '';
+            op += '<a href="javascript:;" onclick="conDetails(\'' + rlist[i]['Id'] + '\')" class="btlink">详情</a> | ';
             op += '<a href="javascript:;" onclick="execCon(\'' + rlist[i]['Config']['Hostname'] + '\')" class="btlink">终端</a> | ';
             op += '<a href="javascript:;" onclick="logsCon(\'' + rlist[i]['Id'] + '\')" class="btlink">日志</a> | ';
             op += '<a href="javascript:;" onclick="deleteCon(\'' + rlist[i]['Config']['Hostname'] + '\')" class="btlink">删除</a>';
@@ -523,6 +525,7 @@ function dockerImageListRender() {
 
         var list = '';
         var rlist = rdata.data;
+        window.docker_con_data = rlist;
 
         for (var i = 0; i < rlist.length; i++) {
 
@@ -773,6 +776,7 @@ function dockerImageOutputRender() {
 
         var list = '';
         var rlist = rdata.data;
+        window.docker_con_data = rlist;
 
         for (var i = 0; i < rlist.length; i++) {
 
@@ -962,6 +966,7 @@ function dockerIpListRender() {
 
         var list = '';
         var rlist = rdata.data;
+        window.docker_con_data = rlist;
 
         for (var i = 0; i < rlist.length; i++) {
 
@@ -1119,6 +1124,7 @@ function repoListRender() {
 
         var list = '';
         var rlist = rdata.data;
+        window.docker_con_data = rlist;
 
         for (var i = 0; i < rlist.length; i++) {
 
@@ -1298,4 +1304,90 @@ function dockerService(version) {
             }
         }
     }, 100);
+}
+
+
+function conDetails(id) {
+    var con = null;
+    if (window.docker_con_data) {
+        for (var i = 0; i < window.docker_con_data.length; i++) {
+            if (window.docker_con_data[i]['Id'] === id) {
+                con = window.docker_con_data[i];
+                break;
+            }
+        }
+    }
+    
+    if (!con) {
+        layer.msg('无法获取容器详细信息', {icon: 2});
+        return;
+    }
+
+    // Parse Ports
+    var portsHtml = '';
+    if (con.NetworkSettings && con.NetworkSettings.Ports) {
+        var ports = con.NetworkSettings.Ports;
+        for (var cPort in ports) {
+            if (ports[cPort]) {
+                for (var j = 0; j < ports[cPort].length; j++) {
+                    var hostIp = ports[cPort][j].HostIp || '0.0.0.0';
+                    var hostPort = ports[cPort][j].HostPort;
+                    portsHtml += '<li><span class="glyphicon glyphicon-transfer" style="color:#20a53a; margin-right:5px;"></span>' + hostIp + ':' + hostPort + ' ➔ ' + cPort + '</li>';
+                }
+            }
+        }
+    }
+    if (!portsHtml) portsHtml = '<li style="color:#999;">无端口映射</li>';
+
+    // Parse Mounts
+    var mountsHtml = '';
+    if (con.Mounts && con.Mounts.length > 0) {
+        for (var k = 0; k < con.Mounts.length; k++) {
+            var m = con.Mounts[k];
+            mountsHtml += '<li><span class="glyphicon glyphicon-folder-open" style="color:#e6a23c; margin-right:5px;"></span>' + m.Source + ' <br><span style="padding-left:19px;color:#999;">➔ ' + m.Destination + '</span></li>';
+        }
+    }
+    if (!mountsHtml) mountsHtml = '<li style="color:#999;">无目录挂载</li>';
+
+    // Parse Network IP
+    var ipStr = '';
+    if (con.NetworkSettings && con.NetworkSettings.Networks) {
+        for (var netName in con.NetworkSettings.Networks) {
+            var ip = con.NetworkSettings.Networks[netName].IPAddress;
+            if (ip) ipStr += ip + ' (' + netName + ') ';
+        }
+    }
+    if (!ipStr) ipStr = '无分配IP';
+
+    // Resources
+    var memStr = (con.HostConfig.Memory > 0) ? (con.HostConfig.Memory / 1024 / 1024).toFixed(0) + ' MB' : '不限制';
+    var cpuStr = (con.HostConfig.CpuShares > 0) ? con.HostConfig.CpuShares : '默认';
+    
+    // Command / Entrypoint
+    var cmdStr = (con.Config.Cmd) ? con.Config.Cmd.join(' ') : '无';
+    var entryStr = (con.Config.Entrypoint) ? con.Config.Entrypoint.join(' ') : '无';
+    
+    var html = '<div class="pd20" style="font-size:13px; line-height:24px;">' +
+        '<style>.con-detail-table { width: 100%; border-collapse: collapse; margin-bottom: 15px;} .con-detail-table th { width: 90px; text-align: right; padding: 8px 15px 8px 0; color: #666; font-weight: normal; vertical-align: top;} .con-detail-table td { padding: 8px 0; color: #333; word-break: break-all;} .con-ul { list-style: none; padding: 0; margin: 0; } .con-ul li { margin-bottom: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #eee;}</style>' +
+        '<table class="con-detail-table">' +
+        '<tr><th>容器 ID</th><td>' + con.Id.substring(0, 12) + ' <span style="color:#999;font-size:12px;">(' + con.Id + ')</span></td></tr>' +
+        '<tr><th>容器名称</th><td>' + con.Name.substring(1) + '</td></tr>' +
+        '<tr><th>所属镜像</th><td>' + con.Config.Image + '</td></tr>' +
+        '<tr><th>IP 地址</th><td>' + ipStr + '</td></tr>' +
+        '<tr><th>入口命令</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + (entryStr !== '无' ? entryStr + ' ' : '') + cmdStr + '</div></td></tr>' +
+        '<tr><th>资源限制</th><td><span class="label label-success" style="margin-right:10px;">内存: ' + memStr + '</span> <span class="label label-info">CPU配额: ' + cpuStr + '</span></td></tr>' +
+        '<tr><th>端口映射</th><td><ul class="con-ul">' + portsHtml + '</ul></td></tr>' +
+        '<tr><th>目录挂载</th><td><ul class="con-ul">' + mountsHtml + '</ul></td></tr>' +
+        '</table>' +
+    '</div>';
+
+    layer.open({
+        type: 1,
+        title: '容器详情 [' + con.Name.substring(1) + ']',
+        area: ['600px', '500px'],
+        closeBtn: 1,
+        shadeClose: false,
+        content: html,
+        btn: ['关闭']
+    });
 }
