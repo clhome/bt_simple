@@ -3092,11 +3092,11 @@ function aboutPanel() {
                         '<div class=\"about-header\">' +
                             '<img src=\"/static/img/logo.png\" style=\"width: 160px; margin-bottom: 1px;\">' +
                             '<h2>御风面板（BtSimple）</h2>' +
-                            '<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">御风科技</a> 出品</p>' +
+                            '<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>' +
                         '</div>' +
                         '<div class=\"about-content markdown-body\">' + htmlContent + '</div>' +
                         '<div class=\"about-footer\">' +
-                            '<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>' +
+                            '<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>' +
                         '</div>' +
                      '</div>'
         });
