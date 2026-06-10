@@ -182,6 +182,30 @@ def get_release_info():
         return mw.returnData(True, 'ok', content)
     return mw.returnData(False, '未找到发行说明')
 
-
-
-
+# 获取面板自身占用的系统资源
+@blueprint.route('/get_panel_resources', endpoint='get_panel_resources', methods=['GET'])
+@panel_login_required
+def get_panel_resources():
+    import psutil
+    import os
+    try:
+        process = psutil.Process(os.getpid())
+        mem_info = process.memory_info()
+        cpu_percent = process.cpu_percent(interval=0.1)
+        mem_mb = mem_info.rss / 1024 / 1024
+        
+        children = process.children(recursive=True)
+        for child in children:
+            try:
+                cpu_percent += child.cpu_percent(interval=0)
+                mem_mb += child.memory_info().rss / 1024 / 1024
+            except:
+                pass
+                
+        data = {
+            'cpu': round(cpu_percent, 2),
+            'mem': round(mem_mb, 2)
+        }
+        return mw.returnData(True, 'ok', data)
+    except Exception as e:
+        return mw.returnData(False, str(e))

@@ -3085,20 +3085,39 @@ function aboutPanel() {
             type: 1,
             title: false,
             closeBtn: 0,
-            area: ['850px', '785px'],
+            area: ['850px', '812px'],
             shadeClose: true,
-            content: '<div class=\"about-container\" style=\"position: relative;\">' +
+            content: '<div class=\"about-container\" style=\"position: relative; padding-top: 5px;\">' +
                         '<div class=\"about-close\" style=\"position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;\" onmouseover=\"this.style.color=\'#333\'\" onmouseout=\"this.style.color=\'#999\'\" onclick=\"layer.closeAll(\'page\')\">×</div>' +
-                        '<div class=\"about-header\">' +
-                            '<img src=\"/static/img/logo.png\" style=\"width: 160px; margin-bottom: 1px;\">' +
-                            '<h2>御风面板（BtSimple）</h2>' +
+                        '<div class=\"about-header\" style=\"padding-top: 10px;\">' +
+                            '<img src=\"/static/img/logo.png\" style=\"width: 160px; margin-bottom: 5px;\">' +
+                            '<h2 style=\"margin-top: 5px;\">御风面板（BtSimple）</h2>' +
                             '<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>' +
+                            '<div id=\"panel_resource_info\" style=\"margin-top: 15px; height: 30px; line-height: 30px; margin-bottom: 10px;\"></div>' +
                         '</div>' +
-                        '<div class=\"about-content markdown-body\">' + htmlContent + '</div>' +
+                        '<div class=\"about-content markdown-body\" style=\"padding-top: 0;\">' + htmlContent + '</div>' +
                         '<div class=\"about-footer\">' +
                             '<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>' +
                         '</div>' +
-                     '</div>'
+                     '</div>',
+            success: function() {
+                setTimeout(function() {
+                    $('#panel_resource_info').html('<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display=\'none\'\">正在获取面板占用资源...</span>');
+                    $.get('/system/get_panel_resources', function(res) {
+                        if (res.status) {
+                            var resHtml = '<div style=\"display:inline-block; border-top: 1px solid #eaeaea; border-bottom: 1px solid #eaeaea; padding: 0 15px; font-size: 13px; background-color: #fcfcfc; border-radius: 2px;\">' +
+                                          '<span style=\"color:#666; margin-right: 15px;\">御风面板当前占用服务器资源：</span>' +
+                                          '<span><i class=\"glyphicon glyphicon-tasks\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>CPU <b style=\"color:#20a53a; font-family: \'Inter\', sans-serif;\">' + res.data.cpu + '%</b></span>' +
+                                          '<span style=\"color:#ddd; margin: 0 15px;\">|</span>' + 
+                                          '<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>内存 <b style=\"color:#20a53a; font-family: \'Inter\', sans-serif;\">' + res.data.mem + ' MB</b></span>' +
+                                          '</div>';
+                            $('#panel_resource_info').html(resHtml);
+                        } else {
+                            $('#panel_resource_info').html('<span style=\"color: red;\">获取资源失败</span>');
+                        }
+                    }, 'json');
+                }, 1000);
+            }
         });
     }, 'json');
 }

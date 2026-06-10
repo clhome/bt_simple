@@ -3388,3 +3388,20 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 修改 `web/static/app/soft.js`，在列表页和首页根据 `display_status` 控制状态图标的渲染。 @done(2026-06-10 17:34)
 - [x] 修改 `swap` 插件的 `info.json`，增加 `"display_status": false`。 @done(2026-06-10 17:35)
 - [x] 修复 `web/utils/plugin.py` 的 `getIndexList` 方法中 `simple=True` 时未透传 `display_status` 的问题。 @done(2026-06-10 17:38)
+## 需求：关于面板动态显示面板资源占用
+
+**问题描述：**
+需要在“关于”面板弹窗里优雅地显示当前面板进程（含子进程）占用的 CPU 和 内存资源，每次打开弹窗时延迟1秒显示，避免频繁刷新造成页面卡顿，并为用户提供面板能耗的直观参考。
+
+**涉及文件：**
+- web/admin/system/system.py
+- web/static/app/public.js
+
+### Task List
+
+- [x] 后端 web/admin/system/system.py 新增 /get_panel_resources 接口，使用 psutil 精确读取当前主进程及所有子进程的内存与CPU占比并汇总。
+- [x] 前端 web/static/app/public.js 更新 boutPanel() 函数，增加 panel_resource_info 占位容器。
+- [x] 在 layer.open 的 success 回调中，使用 setTimeout 延迟 1000 毫秒执行 AJAX 请求，优雅展现正在计算提示，成功后渲染出带有图标和颜色的格式化系统资源数据。
+- [x] 根据用户反馈进行“关于”弹窗视觉重构：将弹窗高度从 785px 缩减为 680px 以消除可能出现的视口滚动条，同时缩减了 Logo 及顶部多余的留白区域。 @done
+- [x] 将 CPU 图标从不精准的 dashboard 更换为更为直观和标准的 glyphicon-tasks。 @done
+- [x] 增加了「御风面板当前占用服务器资源：」前缀提示，并使用了专业的上下浅色极细边框（order-top/order-bottom）、浅灰背景和竖线分隔符来对模块进行精细包装，使其具备强烈的专业软件高级质感。 @done
