@@ -573,6 +573,7 @@ class plugin(object):
             "uninstall_pre_inspection": False,
             "home": info.get('home', ''),
             "date": info.get('date', ''),
+            "display_status": info.get('display_status', True),
         }
 
         if 'icon' in info:

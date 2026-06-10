@@ -13,5 +13,6 @@
     "date": "2026-05-30",
     "home": "https://github.com/yufeng520/bt_simple",
     "type": 0,
-    "pid": "4"
+    "pid": "4",
+    "display_status": false
 }

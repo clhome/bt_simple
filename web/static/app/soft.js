@@ -190,7 +190,9 @@ function getSList(isdisplay) {
                     </div>';
                 }
                 
-                if (plugin.status == true) {
+                if (plugin.display_status === false) {
+                    state = '<span style="color:#999">-</span>';
+                } else if (plugin.status == true) {
                     state = '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>'
                 } else {
                     state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>'
@@ -519,7 +521,9 @@ function indexListHtml(callback){
             }
 
             var state = '';
-            if (plugin.status == true) {
+            if (plugin.display_status === false) {
+                state = '';
+            } else if (plugin.status == true) {
                 state = '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>';
             } else {
                 state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>';

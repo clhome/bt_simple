@@ -13,5 +13,6 @@
     "date": "2026-05-28",
     "home": "http://www.yftec.top",
     "type": 0,
-    "pid": "4"
+    "pid": "4",
+    "display_status": false
 }

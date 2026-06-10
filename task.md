@@ -1,4 +1,4 @@
-﻿## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
+## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
 
 **问题描述：** MySQL 5.7 插件安装后，MySQL 服务正常运行，但点击「添加数据库」时弹出"数据库密码错误,在管理列表-点击【修复】！"错误。
 
@@ -3365,3 +3365,26 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [ ] 在 plugins/phpmyadmin/index.py 中增加 get_pma_access_info 接口，返回内网地址、外网地址、用户名和密码
 - [ ] 在 plugins/phpmyadmin/index.html 中调用自定义服务渲染函数
 - [ ] 在 plugins/phpmyadmin/js/phpmyadmin.js 中编写 pmaService() 函数，在渲染原始服务信息后，追加访问信息的现代化卡片面板
+
+## 需求：隐藏部分仅执行一次的插件的状态信息
+
+**问题描述：**
+有些插件（如 swap、御风进程守护）不是一直作为常驻进程运行的，只是在安装或配置时执行一次。因此在插件列表页和首页显示它们的“运行状态”（播放/暂停图标）是不合适的，容易引起用户误解。
+
+**修复方案：**
+- 在插件的 `info.json` 中引入 `display_status` 属性（布尔值）。
+- 在后端的 `plugin.py` 中解析该属性，如果为 `false`，则透传给前端。
+- 在前端的 `soft.js` 中，对于 `display_status === false` 的插件，在列表页显示为 `-`，在首页隐去状态图标。
+
+**修复文件：**
+- `web/utils/plugin.py`
+- `web/static/app/soft.js`
+- `plugins/swap/info.json`
+- `plugins/yufeng_systemd/info.json`
+
+### Task List
+
+- [x] 修改 `web/utils/plugin.py` 的 `makePluginInfo`，从 `info.json` 解析并注入 `display_status`。 @done(2026-06-10 17:34)
+- [x] 修改 `web/static/app/soft.js`，在列表页和首页根据 `display_status` 控制状态图标的渲染。 @done(2026-06-10 17:34)
+- [x] 修改 `swap` 插件的 `info.json`，增加 `"display_status": false`。 @done(2026-06-10 17:35)
+- [x] 修改 `yufeng_systemd` 插件的 `info.json`，增加 `"display_status": false`。 @done(2026-06-10 17:35)
