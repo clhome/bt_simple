@@ -130,8 +130,30 @@
 </head>
 <body>
 <div class="main">
-	<div class="login">
-		<div class="account">
+	<div class="login-wrapper">
+		<div class="login-intro">
+			<div class="intro-title">探索无界，管理随心<br>为你打造的高效服务器面板</div>
+			<ul class="intro-features">
+				<li>
+					<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+					永久免费
+				</li>
+				<li>
+					<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+					永久开源
+				</li>
+				<li>
+					<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+					安全可靠
+				</li>
+				<li>
+					<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+					羽量级无负担
+				</li>
+			</ul>
+		</div>
+		<div class="login">
+			<div class="account">
 			<form class="loginform" method="post" action="/login" onsubmit="return false;">
 			<div class="rlogo">{{data['title']}}</div>
 			<div class="line">
@@ -152,6 +174,7 @@
 			</form>
 		</div>
 
+		</div>
 	</div>
 </div>
 <script type="text/javascript" src="/static/js/jquery-1.12.4.min.js?v={{config.version}}"></script>
@@ -172,7 +195,7 @@ function wreset(){
 	var w = $(window).width();
 	var yzmw = $(".login .line").width() - 140;
 	if($(".yzm").is(":visible") && w > 640){
-		$(".login").css({"height":"365px","margin-top":"-230px"});
+		// Let flexbox handle height and centering
 	} else {
 		$(".login").removeAttr("style")
 	}
