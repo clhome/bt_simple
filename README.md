@@ -3,7 +3,7 @@
   <h3 align="center">御风面板（BtSimple）</h3>
   <p align="center">一款基于 Python 的轻量级、安全增强型 Linux 服务器管理面板</p>
   <p align="center">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg" />
+    <img src="https://img.shields.io/badge/License-Apache--2.0-green.svg" />
     <img src="https://img.shields.io/badge/Python-3.7+-blue.svg" />
     <img src="https://img.shields.io/badge/OS-Linux-orange.svg" />
   </p>
