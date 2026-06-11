@@ -958,6 +958,13 @@ end
 function run_app_waf()
     if waf_method() then return true end
     if waf_smuggling() then return true end
+
+    -- 自动放行 ACME SSL 证书验证请求 (Let's Encrypt / ZeroSSL 等)
+    -- HTTP-01 验证需要访问 /.well-known/acme-challenge/ 路径
+    local raw_uri = ngx.var.uri
+    if raw_uri and string.sub(raw_uri, 1, 28) == "/.well-known/acme-challenge/" then
+        return false
+    end
     
     min_route()
     -- C:D("min_route")
