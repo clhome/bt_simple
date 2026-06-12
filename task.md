@@ -3704,3 +3704,4 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 修改 `plugins/php/install.sh`，在安装 Composer 之后添加利用 `curl` 测试多源延迟，自动选择最快源进行配置。 @done
 - [x] 修改 `plugins/php-yum/index.py` 的 `phpFpmWwwReplace` 和 `initReplace`，实现 FPM 自适应与 php.ini 调优。 @done
 - [x] 修改 `plugins/php-yum/install.sh`，添加基于测速的 Composer 智能国内/海外源选择。 @done
+- [x] 修改 `plugins/php-apt/install.sh`，将原本强制“焊死”的阿里云镜像替换为带智能测速的动态多源切换。 @done
