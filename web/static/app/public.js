@@ -3090,7 +3090,7 @@ function aboutPanel() {
             content: '<div class=\"about-container\" style=\"position: relative; padding-top: 5px;\">' +
                         '<div class=\"about-close\" style=\"position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;\" onmouseover=\"this.style.color=\'#333\'\" onmouseout=\"this.style.color=\'#999\'\" onclick=\"layer.closeAll(\'page\')\">×</div>' +
                         '<div class=\"about-header\" style=\"padding-top: 10px;\">' +
-                            '<img src=\"/static/img/logo.png\" style=\"width: 160px; margin-bottom: 5px;\">' +
+                            '<img src=\"/static/img/logo.webp\" style=\"width: 160px; margin-bottom: 5px;\">' +
                             '<h2 style=\"margin-top: 5px;\">御风面板（BtSimple）</h2>' +
                             '<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>' +
                             '<div id=\"panel_resource_info\" style=\"margin-top: 15px; height: 30px; line-height: 30px; margin-bottom: 10px;\"></div>' +
