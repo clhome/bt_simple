@@ -1,20 +1,23 @@
 #!/bin/bash
-PATH=/www/server/panel/pyenv/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-pluginPath=/www/server/panel/plugin/jdk
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
+rootPath=$(dirname "$curPath")
+rootPath=$(dirname "$rootPath")
+serverPath=$(dirname "$rootPath")
 
 Install_jdk()
 {
-	mkdir -p $pluginPath
-	mkdir -p /www/server/jdk
+	mkdir -p $curPath
+	mkdir -p $serverPath/jdk
 	echo '安装完成' > $install_tmp
 	echo Successify
 }
 
 Uninstall_jdk()
 {
-	rm -rf $pluginPath
+	rm -rf $curPath
 	echo '卸载完成' > $install_tmp
 }
 
