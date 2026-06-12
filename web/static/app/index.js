@@ -215,7 +215,7 @@ function getInfo() {
             $(".ico-system").addClass("ico-linux");
         }
         $("#core").html(info.cpuNum + ' 核心');
-        $("#state").html(info.cpuRealUsed);
+        $("#state").html(parseFloat(info.cpuRealUsed).toFixed(1));
         setcolor(info.cpuRealUsed, "#state", 30, 70, 90);
        
 
@@ -262,7 +262,7 @@ function getNet() {
         $("#upAll").html(toSize(net.upTotal));
         $("#upAll").attr('title', lan.index.package + ':' + net.upPackets)
         $("#core").html(net.cpu[1] + " " + lan.index.cpu_core);
-        $("#state").html(net.cpu[0]);
+        $("#state").html(parseFloat(net.cpu[0]).toFixed(1));
         setcolor(net.cpu[0], "#state", 30, 70, 90);
         setCookie("upNet", net.up);
         setCookie("downNet", net.down);

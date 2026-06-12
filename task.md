@@ -3405,3 +3405,15 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 根据用户反馈进行“关于”弹窗视觉重构：将弹窗高度从 785px 缩减为 680px 以消除可能出现的视口滚动条，同时缩减了 Logo 及顶部多余的留白区域。 @done
 - [x] 将 CPU 图标从不精准的 dashboard 更换为更为直观和标准的 glyphicon-tasks。 @done
 - [x] 增加了「御风面板当前占用服务器资源：」前缀提示，并使用了专业的上下浅色极细边框（order-top/order-bottom）、浅灰背景和竖线分隔符来对模块进行精细包装，使其具备强烈的专业软件高级质感。 @done
+
+## 需求：首页cpu显示1位小数
+
+**问题描述：**
+首页展示的CPU使用率保留了较多小数位，需要统一修改为显示1位小数。
+
+**涉及文件：**
+- web/static/app/index.js
+
+### Task List
+- [ ] 修改 web/static/app/index.js，将 $("#state").html(info.cpuRealUsed) 格式化为 parseFloat(info.cpuRealUsed).toFixed(1)
+- [ ] 修改 web/static/app/index.js 中 getNet 函数的 $("#state").html(net.cpu[0])，同样格式化为1位小数
