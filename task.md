@@ -3686,3 +3686,19 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 3. **国内加速 Composer 配置** (`plugins/php-apt/install.sh`): 在原有 `curl` 下载完毕 composer 后，紧跟了一条全局修改命令，将其默认镜像源永久变更为阿里云国内镜像源（`mirrors.aliyun.com`）。此后在面板内或命令行执行 composer 操作时都会极速响应。
 
 你可以尝试去前端界面中重装一个 PHP 版本，或者点击“重启”，体验这些新配置在后台被无缝注入的全过程。如果有其他需要进一步优化的插件，随时可以告诉我！
+
+## 需求：优化 plugins/php 安装脚本及配置（FPM自适应、PHP.ini调优、Composer加速）
+
+**问题描述：**
+参考宝塔 php 安装脚本，将实用的性能及安全优化应用到源码编译版的 `plugins/php` 中，特别是 FPM 根据内存动态分配进程、php.ini 安全调优以及海外与国内兼容的 Composer 测速选择。
+
+**涉及文件：**
+
+- `plugins/php/index.py`
+- `plugins/php/install.sh`
+
+### Task List
+
+- [x] 修改 `plugins/php/index.py` 的 `phpFpmPoolReplace`，在生成 FPM www.conf 时读取系统物理内存动态配置 `max_children`, `start_servers`, `pm` 等参数。 @done
+- [x] 修改 `plugins/php/index.py` 的 `makePhpIni`，在生成 php.ini 时强制设定上传限制、时区、短标签、`expose_php` 并禁用高危函数。 @done
+- [x] 修改 `plugins/php/install.sh`，在安装 Composer 之后添加利用 `curl` 测试多源延迟，自动选择最快源进行配置。 @done
