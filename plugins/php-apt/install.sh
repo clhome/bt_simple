@@ -119,6 +119,7 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
 		cd /tmp
 		curl -sS https://getcomposer.org/installer | /usr/bin/php${apt_ver}
 		mv composer.phar /usr/local/bin/composer
+		/usr/local/bin/composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
 	fi
 
 	systemctl restart php${apt_ver}-fpm
