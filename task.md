@@ -3705,3 +3705,19 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 修改 `plugins/php-yum/index.py` 的 `phpFpmWwwReplace` 和 `initReplace`，实现 FPM 自适应与 php.ini 调优。 @done
 - [x] 修改 `plugins/php-yum/install.sh`，添加基于测速的 Composer 智能国内/海外源选择。 @done
 - [x] 修改 `plugins/php-apt/install.sh`，将原本强制“焊死”的阿里云镜像替换为带智能测速的动态多源切换。 @done
+
+## 需求：优化 OpenResty 安装脚本（引入 Jemalloc 与实用第三方模块）
+
+**问题描述：**
+参考宝塔 Nginx/OpenResty 安装脚本，为 `plugins/openresty/versions/1.27.1/install.sh` 引入 Jemalloc 内存分配器优化，并增加 `ngx_cache_purge`、`nginx-http-concat` 和 `ngx_http_substitutions_filter_module` 三个常用且强大的第三方模块。
+
+**涉及文件：**
+
+- `plugins/openresty/versions/1.27.1/install.sh`
+
+### Task List
+
+- [x] 增加架构检测，针对非 ARM 架构下载并编译 Jemalloc 5.3.0。
+- [x] 下载 `ngx_cache_purge`、`nginx-http-concat` 和 `ngx_http_substitutions_filter_module` 模块源码。
+- [x] 修改 `configure` 参数，附加 Jemalloc 链接选项和第三方模块的 `--add-module` 参数。
+- [x] 在脚本结束阶段增加清理这些新增源码目录的逻辑。
