@@ -3690,7 +3690,7 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 ## 需求：优化 plugins/php 安装脚本及配置（FPM自适应、PHP.ini调优、Composer加速）
 
 **问题描述：**
-参考宝塔 php 安装脚本，将实用的性能及安全优化应用到源码编译版的 `plugins/php` 中，特别是 FPM 根据内存动态分配进程、php.ini 安全调优以及海外与国内兼容的 Composer 测速选择。
+参考优秀 php 安装脚本，将实用的性能及安全优化应用到源码编译版的 `plugins/php` 中，特别是 FPM 根据内存动态分配进程、php.ini 安全调优以及海外与国内兼容的 Composer 测速选择。
 
 **涉及文件：**
 
@@ -3709,7 +3709,7 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 ## 需求：优化 OpenResty 安装脚本（引入 Jemalloc 与实用第三方模块）
 
 **问题描述：**
-参考宝塔 Nginx/OpenResty 安装脚本，为 `plugins/openresty/versions/1.27.1/install.sh` 引入 Jemalloc 内存分配器优化，并增加 `ngx_cache_purge`、`nginx-http-concat` 和 `ngx_http_substitutions_filter_module` 三个常用且强大的第三方模块。
+参考优秀 Nginx/OpenResty 安装脚本，为 `plugins/openresty/versions/1.27.1/install.sh` 引入 Jemalloc 内存分配器优化，并增加 `ngx_cache_purge`、`nginx-http-concat` 和 `ngx_http_substitutions_filter_module` 三个常用且强大的第三方模块。
 
 **涉及文件：**
 
