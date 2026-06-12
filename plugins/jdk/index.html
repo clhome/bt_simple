@@ -1,0 +1,235 @@
+<style>
+    .mr16 { margin-right: 16px; }
+    .jdk-default-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        background-color: #5cb85c;
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-left: 8px;
+    }
+    .jdk-type {
+        color: #888;
+        font-size: 12px;
+    }
+</style>
+<div class="bt-w-main">
+    <div class="bt-w-menu">
+        <p class="bgw">JDK管理</p>
+    </div>
+    <div id="webEdit-con" class="bt-w-con pd15">
+    </div>
+</div>
+<script type="text/javascript">
+    var jdk_manager = {
+        plugin_name: 'jdk',
+        init: function () {
+            var _that = this;
+            $(".bt-w-menu p").click(function () {
+                var i = $(this).index();
+                $(this).addClass("bgw").siblings().removeClass("bgw");
+                if(i === 0) {
+                    _that.render_table();
+                }
+            });
+            $(".bt-w-menu p").eq(0).click()
+        },
+        render_table: function () {
+            $('#webEdit-con').empty();
+            var table = bt_tools.table({
+                el: '#webEdit-con',
+                url: '/plugin?action=a&name=jdk&s=get_jdk_list',
+                default: '暂无可使用的JDK版本',
+                height: 460,
+                dataFilter: function (data) {
+                    if(!data.status && data.msg) {
+                        layer.msg(data.msg, {icon: 2});
+                        return { data: [] };
+                    }
+                    return { data: data.msg || [] };
+                },
+                column: [
+                    {
+                        fid: 'name',
+                        title: 'JDK版本',
+                        template: function(row) {
+                            var html = '<span>' + row.name + '</span>';
+                            html += '<span class="jdk-type"> (' + row.type + ')</span>';
+                            if (row.is_default) {
+                                html += '<span class="jdk-default-badge">系统默认</span>';
+                            }
+                            return html;
+                        }
+                    },
+                    {
+                        fid: 'path',
+                        title: 'JDK路径',
+                        template: function (row) {
+                            if(row.path) {
+                                return '<a class="bt_success" style="cursor: pointer;" title="点击打开目录">' + row.path + '</a>';
+                            }
+                            return '-';
+                        },
+                        event: function (row) {
+                            if(row.path) {
+                                openPath(row.path.substring(0, row.path.lastIndexOf('/')));
+                            }
+                        }
+                    },
+                    {
+                        title: '操作',
+                        type: 'group',
+                        width: 200,
+                        align: 'right',
+                        group: [
+                            {
+                                title: '设为默认',
+                                template: function (row) {
+                                    if (row.operation == 1 || row.operation == 2) {
+                                        if (row.is_default) {
+                                            return '<span style="color:#999">已是默认</span>';
+                                        }
+                                        return '<a class="bt_success" style="cursor: pointer;">设为默认</a>';
+                                    }
+                                    return '';
+                                },
+                                event: function (row) {
+                                    if(row.is_default) return;
+                                    layer.confirm('确认将【' + row.name + '】设为全局系统默认 JDK 吗？<br>这会修改 /etc/profile.d/java.sh 环境变量配置。', { icon: 3, title: '警告' }, function (index) {
+                                        layer.close(index);
+                                        var loadT = layer.msg('正在配置...', { icon: 16, time: 0, shade: 0.3 });
+                                        bt_tools.send({
+                                            url: '/plugin?action=a&name=jdk&s=set_default_jdk',
+                                            data: { path: row.path }
+                                        }, function (res) {
+                                            layer.close(loadT);
+                                            bt.msg(res);
+                                            if(res.status) table.$refresh_table_list(true);
+                                        })
+                                    })
+                                }
+                            },
+                            {
+                                title: '安装/卸载',
+                                template: function (row) {
+                                    if (row.operation == 1) {
+                                        return '<a class="bt_danger" style="cursor: pointer;">卸载</a>';
+                                    } else if (row.operation == 0) {
+                                        return '<a class="bt_success" style="cursor: pointer;">安装</a>';
+                                    } else if (row.operation == 3) {
+                                        return '<span style="color:#e6a23c">正在安装...</span>';
+                                    } else if (row.operation == 2) {
+                                        if(row.type === '系统预装') return '<span style="color:#999">系统自带</span>';
+                                        return '<a class="bt_danger" style="cursor: pointer;">移除记录</a>';
+                                    }
+                                    return '<span>不可操作</span>';
+                                },
+                                event: function (row, index, ev, key, that) {
+                                    if (row.operation == 1 || row.operation == 2) {
+                                        var msg = row.operation == 1 ? '卸载' : '移除';
+                                        var warning = row.operation == 1 ? '此操作将会删除该 JDK 目录下的所有文件，请确保该 JDK 未被业务占用！' : '仅移除面板记录，不删除文件。';
+                                        layer.confirm('是否' + msg + '【' + row.name + '】？<br><span style="color: red">' + warning + '</span>', { icon: 3, title: '警告' }, function (index) {
+                                            layer.close(index);
+                                            var loadT = layer.msg('正在处理...', { icon: 16, time: 0, shade: 0.3 });
+                                            bt_tools.send({
+                                                url: '/plugin?action=a&name=jdk&s=uninstall_jdk',
+                                                data: { path: row.path, type: row.type }
+                                            }, function (res) {
+                                                layer.close(loadT);
+                                                bt.msg(res);
+                                                table.$refresh_table_list(true);
+                                            })
+                                        })
+                                    } else if (row.operation == 0) {
+                                        layer.confirm('确认安装【' + row.name + '】？<br>将从国内镜像源后台下载并解压。', { icon: 3, title: '提示' }, function (index) {
+                                            layer.close(index);
+                                            var loadT = layer.msg('正在提交安装任务...', { icon: 16, time: 0, shade: 0.3 });
+                                            bt_tools.send({
+                                                url: '/plugin?action=a&name=jdk&s=install_jdk',
+                                                data: { version: row.name, url: row.download_url }
+                                            }, function (rdata) {
+                                                layer.close(loadT);
+                                                bt.msg(rdata);
+                                                if (rdata.status) {
+                                                    table.$refresh_table_list(true);
+                                                    messagebox(); // 弹出面板的消息盒子看进度
+                                                }
+                                            })
+                                        });
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                tootls: [
+                    {
+                        type: 'group',
+                        positon: ['left', 'top'],
+                        list: [
+                            {
+                                title: '添加自定义JDK',
+                                active: true,
+                                event: function () {
+                                    layer.open({
+                                        type: 1,
+                                        btn: ['确认', '取消'],
+                                        title: '添加自定义JDK',
+                                        closeBtn: 2,
+                                        area: '450px',
+                                        content: '<div style="padding:20px;display: flex;align-items: center;">\
+                                                    <span style="width: 80px;" >JDK路径：</span>\
+                                                    <input class="bt-input-text mr10 file-path" style="width:300px" placeholder="/usr/local/java/jdk1.8.0/bin/java"/>\
+                                                    <span class="glyphicon glyphicon-folder-open cursor" style="color: black;" onclick="bt.select_path(\'file-path\', \'file\')"></span>\
+                                                  </div>\
+                                                  <div style="padding:0 20px 20px 20px; color:#999; font-size:12px;">提示: 请选择到 java 可执行文件级别。</div>',
+                                        success: function (layero) {
+                                            $(layero).find('.glyphicon-folder-open').click(function () {
+                                                bt.select_path('file-path', 'file', function (val) {
+                                                    $(layero).find('.file-path').val(val);
+                                                })
+                                            })
+                                        },
+                                        yes: function (index, layero) {
+                                            var path = $(layero).find('.file-path').val();
+                                            if (path) {
+                                                var loadT = layer.msg('正在验证...', { icon: 16, time: 0, shade: 0.3 });
+                                                bt_tools.send({
+                                                    url: '/plugin?action=a&name=jdk&s=add_custom_jdk',
+                                                    data: { path: path }
+                                                }, function (res) {
+                                                    layer.close(loadT);
+                                                    bt.msg(res);
+                                                    if (res.status) {
+                                                        layer.close(index);
+                                                        table.$refresh_table_list(true);
+                                                    }
+                                                })
+                                            } else {
+                                                bt.msg({ status: false, msg: '请选择JDK路径' })
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                        ],
+                    },
+                    {
+                        type: 'group',
+                        positon: ['right', 'top'],
+                        list: [
+                            {
+                                title: '刷新列表',
+                                event: function () {
+                                    table.$refresh_table_list(true);
+                                }
+                            }
+                        ]
+                    }
+                ]
+            })
+        }
+    }
+    jdk_manager.init();
+</script>

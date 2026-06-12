@@ -3417,3 +3417,23 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 ### Task List
 - [ ] 修改 web/static/app/index.js，将 $("#state").html(info.cpuRealUsed) 格式化为 parseFloat(info.cpuRealUsed).toFixed(1)
 - [ ] 修改 web/static/app/index.js 中 getNet 函数的 $("#state").html(net.cpu[0])，同样格式化为1位小数
+
+
+## 重构 JDK 管理器
+
+**需求**
+重构宝塔 JDK 管理器，规避法律风险并提升易用性，包括增加一键设置全局环境变量，独立于宝塔的下载源。
+
+**涉及文件**
+- plugins/jdk/index.html
+- plugins/jdk/index.py
+- plugins/jdk/info.json
+- plugins/jdk/install.sh
+
+### Task List
+
+- [x] 创建基础插件目录及元数据 plugins/jdk/info.json 和 plugins/jdk/install.sh。
+- [ ] 编写前端 plugins/jdk/index.html，实现 JDK 列表和操作按钮（安装、设为默认、卸载）。
+- [x] 编写后端 plugins/jdk/index.py，实现 get_jdk_list 及自定义 JDK 添加逻辑。
+- [x] 实现后端 install_jdk 接口，对接开源镜像源并通过面板 panel_task.py 后台队列下载及解压。
+- [x] 实现后端 set_default_jdk 接口，自动配置 /etc/profile.d/java.sh 全局环境变量。
