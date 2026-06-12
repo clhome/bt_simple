@@ -3702,3 +3702,5 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 修改 `plugins/php/index.py` 的 `phpFpmPoolReplace`，在生成 FPM www.conf 时读取系统物理内存动态配置 `max_children`, `start_servers`, `pm` 等参数。 @done
 - [x] 修改 `plugins/php/index.py` 的 `makePhpIni`，在生成 php.ini 时强制设定上传限制、时区、短标签、`expose_php` 并禁用高危函数。 @done
 - [x] 修改 `plugins/php/install.sh`，在安装 Composer 之后添加利用 `curl` 测试多源延迟，自动选择最快源进行配置。 @done
+- [x] 修改 `plugins/php-yum/index.py` 的 `phpFpmWwwReplace` 和 `initReplace`，实现 FPM 自适应与 php.ini 调优。 @done
+- [x] 修改 `plugins/php-yum/install.sh`，添加基于测速的 Composer 智能国内/海外源选择。 @done

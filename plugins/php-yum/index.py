@@ -179,6 +179,31 @@ def phpFpmWwwReplace(version):
         tpl_php_fpmwww = getPluginDir() + '/conf/www.conf'
         content = mw.readFile(tpl_php_fpmwww)
         content = contentReplace(content, version)
+        
+        # 动态根据内存计算 FPM 进程数
+        try:
+            mem_total_str = mw.execShell("free -m | grep Mem | awk '{print $2}'")[0].strip()
+            if mem_total_str:
+                mem_total = int(mem_total_str)
+                if mem_total <= 1024:
+                    max_children = 30; start_servers = 5; min_spare_servers = 5; max_spare_servers = 10; pm = 'ondemand'
+                elif mem_total <= 2048:
+                    max_children = 50; start_servers = 5; min_spare_servers = 5; max_spare_servers = 20; pm = 'dynamic'
+                elif mem_total <= 4096:
+                    max_children = 100; start_servers = 10; min_spare_servers = 10; max_spare_servers = 30; pm = 'dynamic'
+                elif mem_total <= 8192:
+                    max_children = 150; start_servers = 15; min_spare_servers = 15; max_spare_servers = 30; pm = 'dynamic'
+                else:
+                    max_children = 300; start_servers = 20; min_spare_servers = 20; max_spare_servers = 50; pm = 'dynamic'
+                    
+                content = re.sub(r'(?m)^pm\.max_children\s*=\s*\d+', f'pm.max_children = {max_children}', content)
+                content = re.sub(r'(?m)^pm\.start_servers\s*=\s*\d+', f'pm.start_servers = {start_servers}', content)
+                content = re.sub(r'(?m)^pm\.min_spare_servers\s*=\s*\d+', f'pm.min_spare_servers = {min_spare_servers}', content)
+                content = re.sub(r'(?m)^pm\.max_spare_servers\s*=\s*\d+', f'pm.max_spare_servers = {max_spare_servers}', content)
+                content = re.sub(r'(?m)^pm\s*=\s*dynamic', f'pm = {pm}', content)
+        except Exception as e:
+            mw.writeLog('php', '动态配置 FPM 进程数失败: ' + str(e))
+
         mw.writeFile(service_php_fpm_mw, content)
 
 def phpPrependFile(version):
@@ -233,6 +258,28 @@ def initReplace(version):
             # 原生 Python 正则匹配安全替换
             content = re.sub(r';?\s*openssl\.cafile\s*=\s*.*', 'openssl.cafile=' + ssl_crt, content)
             content = re.sub(r';?\s*curl\.cainfo\s*=\s*.*', 'curl.cainfo=' + ssl_crt, content)
+            
+            # 优化 php.ini 默认值
+            configs_to_set = {
+                'post_max_size': '50M',
+                'upload_max_filesize': '50M',
+                'date.timezone': 'PRC',
+                'short_open_tag': 'On',
+                'cgi.fix_pathinfo': '1',
+                'max_execution_time': '300',
+                'display_errors': 'On',
+                'error_reporting': 'E_ALL & ~E_NOTICE',
+                'disable_functions': 'passthru,exec,system,putenv,chroot,chgrp,chown,shell_exec,popen,proc_open,pcntl_exec,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,imap_open,apache_setenv',
+                'expose_php': 'Off'
+            }
+            
+            for k, v in configs_to_set.items():
+                pattern = r'(?m)^;?\s*' + re.escape(k) + r'\s*=.*'
+                if re.search(pattern, content):
+                    content = re.sub(pattern, f'{k} = {v}', content)
+                else:
+                    content += f'\n{k} = {v}\n'
+
             mw.writeFile(phpini, content)
 
         mw.writeFile(install_ok, 'ok')
