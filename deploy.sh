@@ -65,7 +65,42 @@ get_github_url() {
 setup_china_git_config() {
     if check_china; then
         log_info "配置 Git 全局代理加速 (GitHub -> ghproxy)..."
-        git config --global url."https://gh-proxy.org/https://github.com/".insteadOf "https://github.com/"
+        
+        # 定义备用代理列表 (与 github_download.sh 保持一致)
+        local proxies=(
+            "https://ghproxy.net/"
+            "https://gh.con.sh/"
+            "https://gh-proxy.com/"
+            "https://cors.zme.ink/"
+            "https://gh-proxy.org/"
+        )
+        
+        local best_proxy=""
+        log_info "正在为您寻找存活的 GitHub 加速节点..."
+        for proxy in "${proxies[@]}"; do
+            # 测试代理可用性，超时 3 秒 (使用 info/refs 模拟 git clone 的前期请求)
+            local test_url="${proxy}https://github.com/clhome/bt_simple.git/info/refs?service=git-upload-pack"
+            local status=$(curl -s -o /dev/null -w "%{http_code}" -m 3 "$test_url" 2>/dev/null || echo "000")
+            
+            if [[ "$status" == "200" || "$status" == "401" || "$status" == "301" || "$status" == "302" ]]; then
+                best_proxy="$proxy"
+                break
+            fi
+        done
+        
+        # 先清理以前可能设置过的所有代理规则，防止堆积
+        for proxy in "${proxies[@]}"; do
+            git config --global --remove-section url."${proxy}https://github.com/" 2>/dev/null || true
+        done
+        git config --global --remove-section url."https://gh-proxy.org/https://github.com/" 2>/dev/null || true
+        
+        if [ -n "$best_proxy" ]; then
+            log_info "选用存活的 GitHub 代理: $best_proxy"
+            git config --global url."${best_proxy}https://github.com/".insteadOf "https://github.com/"
+        else
+            log_warn "所有 GitHub 代理节点均探测失败，本次将使用 GitHub 官方直连"
+        fi
+        
         git config --global http.version HTTP/1.1
     fi
 }
@@ -492,21 +527,27 @@ download_code() {
     rm -rf /tmp/bt_simple_deploy
 
     local download_url=$(get_github_url ${GIT_REPO})
+    local clone_ret=0
+
     if type github_clone >/dev/null 2>&1; then
         log_info "正在使用统一克隆库从 ${GIT_REPO} 拉取代码..."
         github_clone "/tmp/bt_simple_deploy" "${GIT_REPO}" "${GIT_BRANCH}"
+        clone_ret=$?
     else
         if command -v git >/dev/null 2>&1; then
             log_info "正在从 ${download_url} 拉取代码..."
             git -c http.version=HTTP/1.1 clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
+            clone_ret=$?
         else
             log_error "git 未安装，请先安装 git"
             exit 1
         fi
     fi
 
-    if [ ! -d /tmp/bt_simple_deploy/web ]; then
-        log_error "代码下载失败，请检查仓库地址: ${GIT_REPO}"
+    # 双重安全锁：校验退出码，以及核心业务文件夹 'web' 是否被 Git 成功签出
+    if [ $clone_ret -ne 0 ] || [ ! -d /tmp/bt_simple_deploy/web ]; then
+        log_error "代码下载失败或中途断流，请检查网络或仓库地址: ${GIT_REPO}"
+        rm -rf /tmp/bt_simple_deploy 2>/dev/null
         exit 1
     fi
     log_info "代码下载完成"

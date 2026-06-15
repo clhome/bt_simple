@@ -25,6 +25,35 @@ _GH_PROXY_LIST=(
 
 # ---------- 内部辅助函数 ----------
 
+# 探针单例全局缓存 (供所有子脚本共享加速)
+if [ -z "$_GH_BEST_PROXY" ]; then
+    export _GH_BEST_PROXY=""
+fi
+
+# 获取最佳代理节点 (探测一次后缓存)
+_gh_get_best_proxy() {
+    if [ -n "$_GH_BEST_PROXY" ]; then
+        echo "$_GH_BEST_PROXY"
+        return 0
+    fi
+    
+    # 极速测速并获取存活节点
+    local proxy
+    for proxy in "${_GH_PROXY_LIST[@]}"; do
+        # 使用轻量级 refs 请求测试可用性，最大超时设为 3 秒
+        local test_url="${proxy}https://github.com/clhome/bt_simple.git/info/refs?service=git-upload-pack"
+        local status=$(curl -s -o /dev/null -w "%{http_code}" -m 3 "$test_url" 2>/dev/null || echo "000")
+        
+        if [[ "$status" == "200" || "$status" == "401" || "$status" == "301" || "$status" == "302" ]]; then
+            export _GH_BEST_PROXY="$proxy"
+            echo "$_GH_BEST_PROXY"
+            return 0
+        fi
+    done
+    
+    return 1
+}
+
 # 将原始 GitHub URL 加上代理前缀
 # 用法: _gh_proxy_url <proxy_prefix> <original_url>
 # 例如: _gh_proxy_url "https://ghfast.top/" "https://github.com/foo/bar.tar.gz"
@@ -105,21 +134,26 @@ _gh_try_clone() {
     # 捕获用户中断信号，确保中断时删除下载了一半的目录
     trap 'rm -rf "$target_dir" 2>/dev/null; exit 1' INT TERM HUP
 
+    local ret=0
     # 使用 timeout 命令包裹 git clone
     if command -v timeout >/dev/null 2>&1; then
         timeout "$timeout" git clone --depth 1 ${branch:+-b "$branch"} "$repo_url" "$target_dir" >/dev/null 2>&1
+        ret=$?
     else
         # 没有 timeout 命令时，使用 git 自带的 http.lowSpeedLimit 机制
         git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime="$timeout" clone --depth 1 ${branch:+-b "$branch"} "$repo_url" "$target_dir" >/dev/null 2>&1
+        ret=$?
     fi
 
     # 恢复信号捕获
     trap - INT TERM HUP
 
-    if [ -d "$target_dir" ] && [ -d "$target_dir/.git" ]; then
+    # 严密验证：退出码必须是 0 并且目录完整
+    if [ $ret -eq 0 ] && [ -d "$target_dir" ] && [ -d "$target_dir/.git" ]; then
         return 0
     fi
 
+    # 强制清理被强杀或断流遗留的“半成品脏目录”
     rm -rf "$target_dir" 2>/dev/null
     return 1
 }
@@ -167,29 +201,34 @@ github_download() {
         echo "[github_download] ✓ 直连成功"
         return 0
     fi
-    echo "[github_download] ✗ 直连失败，开始代理轮询..."
+    echo "[github_download] ✗ 直连失败，准备使用代理加速节点..."
 
-    # 步骤2+3: 代理轮询，最多 2 轮
-    local round
-    for round in 1 2; do
-        if [ "$round" -gt 1 ]; then
-            echo "[github_download] 等待 10 秒后进行第 ${round} 轮代理轮询..."
-            sleep 10
+    # 步骤2: 极速探测获取缓存节点，避免盲目轮询
+    local best_proxy=$(_gh_get_best_proxy)
+    if [ -n "$best_proxy" ]; then
+        local proxy_url=$(_gh_proxy_url "$best_proxy" "$url")
+        echo "[github_download] 命中最佳加速代理: ${best_proxy}"
+        echo "[github_download] 正在尝试通过代理下载 (${timeout}s)..."
+        if _gh_try_download "$file" "$proxy_url" "$timeout"; then
+            echo "[github_download] ✓ 代理下载成功: $best_proxy"
+            return 0
+        else
+            echo "[github_download] ✗ 代理连接成功但下载失败，可能是资源不存在或网络抖动"
         fi
+    else
+        echo "[github_download] ✗ 代理探针测速失败，所有备选代理均无快速响应！"
+    fi
 
-        echo "[github_download] === 第 ${round} 轮代理轮询 ==="
-
-        local proxy
-        for proxy in "${_GH_PROXY_LIST[@]}"; do
-            local proxy_url=$(_gh_proxy_url "$proxy" "$url")
-            echo "[github_download] 尝试代理: ${proxy} (${timeout}s)..."
-
-            if _gh_try_download "$file" "$proxy_url" "$timeout"; then
-                echo "[github_download] ✓ 代理下载成功: $proxy"
-                return 0
-            fi
-            echo "[github_download] ✗ 代理失败: $proxy"
-        done
+    # 步骤3: 如果极速代理方案也失败了，走最终的备选降级轮询机制
+    echo "[github_download] === 进入最终降级轮询机制 ==="
+    for proxy in "${_GH_PROXY_LIST[@]}"; do
+        if [ "$proxy" == "$best_proxy" ]; then continue; fi
+        local proxy_url=$(_gh_proxy_url "$proxy" "$url")
+        echo "[github_download] 尝试备选代理: ${proxy} (${timeout}s)..."
+        if _gh_try_download "$file" "$proxy_url" "$timeout"; then
+            echo "[github_download] ✓ 降级轮询代理下载成功: $proxy"
+            return 0
+        fi
     done
 
     # 步骤4: 全部失败
@@ -232,29 +271,30 @@ github_clone() {
         echo "[github_clone] ✓ 直连克隆成功"
         return 0
     fi
-    echo "[github_clone] ✗ 直连失败，开始代理轮询..."
+    echo "[github_clone] ✗ 直连失败，准备使用代理加速节点..."
 
-    # 步骤2+3: 代理轮询，最多 2 轮
-    local round
-    for round in 1 2; do
-        if [ "$round" -gt 1 ]; then
-            echo "[github_clone] 等待 10 秒后进行第 ${round} 轮代理轮询..."
-            sleep 10
+    # 步骤2: 极速获取缓存最佳代理
+    local best_proxy=$(_gh_get_best_proxy)
+    if [ -n "$best_proxy" ]; then
+        local proxy_repo_url=$(_gh_proxy_url "$best_proxy" "$repo_url")
+        echo "[github_clone] 命中最佳加速代理: ${best_proxy}"
+        echo "[github_clone] 正在尝试通过代理克隆 (${timeout}s)..."
+        if _gh_try_clone "$target_dir" "$proxy_repo_url" "$branch" "$timeout"; then
+            echo "[github_clone] ✓ 代理克隆成功: $best_proxy"
+            return 0
         fi
+    fi
 
-        echo "[github_clone] === 第 ${round} 轮代理轮询 ==="
-
-        local proxy
-        for proxy in "${_GH_PROXY_LIST[@]}"; do
-            local proxy_repo_url=$(_gh_proxy_url "$proxy" "$repo_url")
-            echo "[github_clone] 尝试代理: ${proxy} (${timeout}s)..."
-
-            if _gh_try_clone "$target_dir" "$proxy_repo_url" "$branch" "$timeout"; then
-                echo "[github_clone] ✓ 代理克隆成功: $proxy"
-                return 0
-            fi
-            echo "[github_clone] ✗ 代理失败: $proxy"
-        done
+    # 步骤3: 如果最佳节点下载失败，再走最终轮询降级
+    echo "[github_clone] === 进入最终降级轮询机制 ==="
+    for proxy in "${_GH_PROXY_LIST[@]}"; do
+        if [ "$proxy" == "$best_proxy" ]; then continue; fi
+        local proxy_repo_url=$(_gh_proxy_url "$proxy" "$repo_url")
+        echo "[github_clone] 尝试备选代理: ${proxy} (${timeout}s)..."
+        if _gh_try_clone "$target_dir" "$proxy_repo_url" "$branch" "$timeout"; then
+            echo "[github_clone] ✓ 降级轮询克隆成功: $proxy"
+            return 0
+        fi
     done
 
     # 全部失败
@@ -289,22 +329,26 @@ github_api_get() {
         return 0
     fi
 
-    # 步骤2+3: 代理轮询（API 请求也可以通过代理）
-    local round
-    for round in 1 2; do
-        if [ "$round" -gt 1 ]; then
-            sleep 10
+    # 步骤2: 读取最佳缓存节点
+    local best_proxy=$(_gh_get_best_proxy)
+    if [ -n "$best_proxy" ]; then
+        local proxy_url=$(_gh_proxy_url "$best_proxy" "$url")
+        result=$(curl -s -m "$timeout" "$proxy_url" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result" ]; then
+            echo "$result"
+            return 0
         fi
+    fi
 
-        local proxy
-        for proxy in "${_GH_PROXY_LIST[@]}"; do
-            local proxy_url=$(_gh_proxy_url "$proxy" "$url")
-            result=$(curl -s -m "$timeout" "$proxy_url" 2>/dev/null)
-            if [ $? -eq 0 ] && [ -n "$result" ]; then
-                echo "$result"
-                return 0
-            fi
-        done
+    # 步骤3: 降级轮询
+    for proxy in "${_GH_PROXY_LIST[@]}"; do
+        if [ "$proxy" == "$best_proxy" ]; then continue; fi
+        local proxy_url=$(_gh_proxy_url "$proxy" "$url")
+        result=$(curl -s -m "$timeout" "$proxy_url" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result" ]; then
+            echo "$result"
+            return 0
+        fi
     done
 
     echo "[github_api_get] ✗ 所有 API 请求方式均失败: $url" >&2
