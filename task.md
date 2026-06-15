@@ -3948,3 +3948,14 @@ ginx-http-concat 和
 gx_http_substitutions_filter_module 模块源码。
 - [ ] 在上述文件修改 configure 参数，附加 Jemalloc 链接选项和第三方模块的 --add-module 参数。
 - [x] 在上述文件脚本末尾阶段增加清理这些新增源码目录的逻辑。
+
+## 需求：修复 OpenResty 安装由于 ngx_brotli 子模块拉取卡住问题
+
+**问题描述：** OpenResty 安装在克隆 `ngx_brotli` 的子模块 `deps/brotli` 时，因为原生的 `git submodule update --init` 直接拉取 GitHub 官方仓库且不支持重试，导致国内服务器经常卡死。
+
+**修复文件：**
+- `plugins/openresty/versions/*/install.sh`
+
+### Task List
+
+- [x] 批量重构所有版本的 OpenResty `install.sh` 脚本，将原生的 `git submodule update --init` 替换为利用面板提供的带有加速镜像和超时重试机制的 `github_clone deps/brotli https://github.com/google/brotli.git`
