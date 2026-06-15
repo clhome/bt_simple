@@ -21,6 +21,19 @@ Install_App()
 	mkdir -p ${postgreDir}
 	echo '正在安装脚本文件...'
 
+	echo '安装基础依赖...'
+	if [ -f /usr/bin/apt-get ];then
+		apt-get install -y zlib1g-dev libreadline-dev > /dev/null 2>&1
+	elif [ -f /usr/bin/yum ];then
+		yum install -y zlib-devel readline-devel > /dev/null 2>&1
+	fi
+
+	loongarch64Check=
+	if [ "" ];then
+		loongarch64_dis="--disable-spinlocks"
+		loongarch64_build="--build=arm-linux"
+	fi
+
 	if id postgres &> /dev/null ;then 
 	    echo "postgres uid is `id -u postgres`"
 	    echo "postgres shell is `grep "^postgres:" /etc/passwd |cut -d':' -f7 `"
@@ -74,18 +87,38 @@ Install_App()
 	if [ ! -d $serverPath/pgsql ];then
 		cd ${postgreDir}/postgresql-${VERSION} && ./configure \
 		--prefix=$serverPath/pgsql \
-		--with-openssl
+		--with-openssl ${loongarch64_dis} ${loongarch64_build}
 		# --with-pgport=33206
 
 		echo "cd ${postgreDir}/postgresql-${VERSION} && ./configure \
 		--prefix=$serverPath/pgsql \
-		--with-openssl"
+		--with-openssl ${loongarch64_dis} ${loongarch64_build}"
 		# --with-pgport=33206
-		make -j${cpuCore} && make install && make clean
+		make -j${cpuCore} && make install
+		make -C contrib && make -C contrib install
+		make clean
 	fi
 
 	if [ -d $serverPath/pgsql ];then
 		echo "${VERSION}" > $serverPath/pgsql/version.pl
+		echo '配置环境变量...'
+		cd /home/postgres
+		if [ -f /home/postgres/.bash_profile ] ;then
+			/bin/cp /home/postgres/.bash_profile /home/postgres/.bash_profile.bak
+			echo "export PGHOME=$serverPath/pgsql" >> /home/postgres/.bash_profile
+			echo "export PGDATA=$serverPath/pgsql/data" >> /home/postgres/.bash_profile
+			echo "export PATH=$serverPath/pgsql/bin:\$PATH " >> /home/postgres/.bash_profile
+			echo "export MANPATH=\$PGHOME/share/man:\$MANPATH" >> /home/postgres/.bash_profile
+			echo "export LD_LIBRARY_PATH=\$PGHOME/lib:\$LD_LIBRARY_PATH" >> /home/postgres/.bash_profile
+		fi
+		if [ -f /home/postgres/.profile ] ;then
+			/bin/cp /home/postgres/.profile /home/postgres/.profile.bak
+			echo "export PGHOME=$serverPath/pgsql" >> /home/postgres/.profile
+			echo "export PGDATA=$serverPath/pgsql/data" >> /home/postgres/.profile
+			echo "export PATH=$serverPath/pgsql/bin:\$PATH " >> /home/postgres/.profile
+			echo "export MANPATH=\$PGHOME/share/man:\$MANPATH" >> /home/postgres/.profile
+			echo "export LD_LIBRARY_PATH=\$PGHOME/lib:\$LD_LIBRARY_PATH" >> /home/postgres/.profile
+		fi
 		echo '安装postgresql成功'
 	else
 		echo '安装postgresql失败'

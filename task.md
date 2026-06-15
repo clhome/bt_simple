@@ -3736,3 +3736,25 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 修改 `plugins/redis/install.sh`：引入 `make -j $(nproc)` 进行多核并行编译加速，并启用 `BUILD_TLS=yes` 支持 TLS。
 - [x] 修改 `plugins/redis/install.sh`：在安装完成后，检测并配置 `/etc/sysctl.conf` 中的 `vm.overcommit_memory = 1` 和 `net.core.somaxconn = 1024`，并应用，解决后端保存和高并发连接警告。
 - [x] 修改 `plugins/redis/install.sh`：检测如果是 ARM 架构，在 `redis.conf` 追加 `ignore-warnings ARM64-COW-BUG` 消除特定的写时复制警告。
+## 需求：优化 PostgreSQL 14-18 版本安装脚本
+
+**问题描述：**
+参考优秀 PostgreSQL 安装脚本，将实用的系统依赖前置安装、扩展包（contrib）编译、国内龙芯架构兼容（loongarch64）以及用户环境变量（PGHOME、PGDATA）的配置应用到 plugins/postgresql/versions/14-18/install.sh 中。
+
+**涉及文件：**
+
+- plugins/postgresql/versions/14/install.sh
+- plugins/postgresql/versions/15/install.sh
+- plugins/postgresql/versions/16/install.sh
+- plugins/postgresql/versions/17/install.sh
+- plugins/postgresql/versions/18/install.sh
+
+### Task List
+
+- [x] 优化 14/install.sh：添加 zlib-devel / 
+eadline-devel 前置安装，loongarch64 检测支持，make -C contrib 编译，及 postgres 环境变量追加配置。
+- [x] 优化 15/install.sh：添加相同依赖前置、龙芯兼容、扩展编译与环境变量支持。
+- [x] 优化 16/install.sh：添加相同依赖前置、龙芯兼容、扩展编译与环境变量支持。
+- [x] 优化 17/install.sh：添加相同依赖前置、龙芯兼容、扩展编译与环境变量支持。
+- [x] 优化 18/install.sh：添加相同依赖前置、龙芯兼容、扩展编译与环境变量支持。
+
