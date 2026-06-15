@@ -111,7 +111,111 @@ detect_os() {
     log_info "检测到操作系统: ${OSNAME}"
 }
 
+check_architecture() {
+    log_info "检测系统架构..."
+    local is64bit=$(getconf LONG_BIT)
+    if [ "${is64bit}" != '64' ]; then
+        log_error "抱歉，当前面板不支持32位系统，请使用64位系统！"
+        exit 1
+    fi
+}
+
+check_system_resources() {
+    log_info "检测系统资源..."
+    local mem_total=$(free -m | grep Mem | awk '{print $2}')
+    if [ "${mem_total}" -lt "450" ]; then
+        log_error "当前服务器内存为: ${mem_total}MB"
+        log_error "检测到当前服务器内存小于450MB，无法继续安装面板！"
+        log_error "建议更换内存大于等于512MB的服务器。"
+        exit 1
+    fi
+
+    local root_disk_space=$(df -m | grep '/$' | awk '{print $4}')
+    if [ -n "${root_disk_space}" ] && [ "${root_disk_space}" -le 400 ]; then
+        log_error "系统盘(/)剩余空间不足400M，无法继续安装！"
+        exit 1
+    fi
+
+    local www_disk_space=$(df -m | grep '/www$' | awk '{print $4}')
+    if [ -n "${www_disk_space}" ] && [ "${www_disk_space}" -le 400 ]; then
+        log_error "/www盘剩余空间不足400M，无法继续安装！"
+        exit 1
+    fi
+}
+
+check_os_version() {
+    log_info "检查系统版本支持情况..."
+    if [ -f /etc/redhat-release ]; then
+        if grep -qE ' 6\.' /etc/redhat-release; then
+            log_error "CentOS 6 官方已停止支持，不支持安装面板，请更换 CentOS 7/8/9 或其它系统。"
+            exit 1
+        fi
+    fi
+
+    if grep -qi "Ubuntu" /etc/issue 2>/dev/null; then
+        local ubuntu_ver=$(cat /etc/issue | grep -i Ubuntu | awk '{print $2}' | cut -f 1 -d '.')
+        if [ -n "${ubuntu_ver}" ] && [ "${ubuntu_ver}" -lt "16" ]; then
+            log_error "Ubuntu ${ubuntu_ver} 官方已停止支持，不支持安装面板，建议更换 Ubuntu 20/22/24。"
+            exit 1
+        fi
+    fi
+    
+    if grep -qi "Debian" /etc/issue 2>/dev/null; then
+        local debian_ver=$(cat /etc/issue | grep -i Debian | awk '{print $3}')
+        if [ -n "${debian_ver}" ] && [ "${debian_ver}" -lt "10" ]; then
+            log_error "Debian ${debian_ver} 官方已停止支持，不支持安装面板，建议更换 Debian 11/12。"
+            exit 1
+        fi
+    fi
+}
+
+fix_apt_lock() {
+    if ! command -v apt-get >/dev/null 2>&1; then
+        return 0
+    fi
+    
+    log_info "检查 apt/dpkg 锁状态..."
+    local wait=0
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+        
+        if [ ${wait} -eq 0 ]; then
+            log_warn "检测到 apt/dpkg 正在使用中，等待完成..."
+        fi
+        
+        [ ${wait} -ge 60 ] && break
+        sleep 3
+        wait=$((wait + 3))
+    done
+    
+    if fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+       fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+       fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
+       fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
+        
+        log_warn "强制清理 apt/dpkg 锁..."
+        pkill -9 unattended-upgr 2>/dev/null
+        pkill -9 apt-get 2>/dev/null
+        pkill -9 apt 2>/dev/null
+        pkill -9 dpkg 2>/dev/null
+        sleep 1
+        
+        rm -f /var/lib/dpkg/lock-frontend
+        rm -f /var/lib/dpkg/lock
+        rm -f /var/lib/apt/lists/lock
+        rm -f /var/cache/apt/archives/lock
+        
+        log_info "修复 dpkg 状态..."
+        dpkg --configure -a 2>/dev/null || true
+        apt-get install -f -y 2>/dev/null || true
+    fi
+    return 0
+}
+
 install_basic_deps() {
+    fix_apt_lock
     log_info "安装基础依赖..."
     if command -v apt >/dev/null 2>&1; then
         apt install -y wget curl zip unzip tar git cron >/dev/null 2>&1
@@ -119,6 +223,19 @@ install_basic_deps() {
         yum install -y wget curl zip unzip tar git crontabs >/dev/null 2>&1
     elif command -v apk >/dev/null 2>&1; then
         apk add wget curl zip unzip tar git >/dev/null 2>&1
+    fi
+    
+    # 二次验证依赖是否安装成功
+    local missing_tools=""
+    for tool in wget curl zip unzip tar git; do
+        if ! command -v $tool >/dev/null 2>&1; then
+            missing_tools="$missing_tools $tool"
+        fi
+    done
+    if [ -n "$missing_tools" ]; then
+        log_error "基础依赖安装失败，缺少工具:$missing_tools"
+        log_error "这通常是因为系统源不可用或网络问题。请尝试手动修复系统源后重试。"
+        exit 1
     fi
 }
 
@@ -909,6 +1026,9 @@ show_panel_info() {
 # =====================================================================
 main() {
     check_root
+    check_architecture
+    check_system_resources
+    check_os_version
     detect_os
     install_basic_deps
     detect_environment
