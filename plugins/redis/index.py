@@ -199,13 +199,21 @@ def initDreplace():
     # systemd
     systemDir = mw.systemdCfgDir()
     systemService = systemDir + '/' + getPluginName() + '.service'
-    if os.path.exists(systemDir) and not os.path.exists(systemService):
+    if os.path.exists(systemDir):
         systemServiceTpl = getPluginDir() + '/init.d/' + getPluginName() + '.service.tpl'
         service_path = mw.getServerDir()
         content = mw.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        
+        if not os.path.exists(systemService) or mw.readFile(systemService) != content:
+            # 清理可能与 Debian/Ubuntu 系统 apt 源冲突的自带 redis-server 服务
+            mw.execShell('rm -f /lib/systemd/system/redis-server.service')
+            mw.execShell('rm -f /usr/lib/systemd/system/redis-server.service')
+            mw.execShell('rm -f /etc/systemd/system/redis-server.service')
+            mw.execShell('rm -f /etc/systemd/system/redis.service')
+            
+            mw.writeFile(systemService, content)
+            mw.execShell('systemctl daemon-reload')
 
     return file_bin
 
