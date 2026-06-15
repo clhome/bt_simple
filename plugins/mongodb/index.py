@@ -263,6 +263,17 @@ def initDreplace():
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
 
+    # 兼容从宝塔迁移过来的配置文件
+    dst_conf = getServerDir() + '/mongodb.conf'
+    bt_conf = getServerDir() + '/config.conf'
+    if not os.path.exists(dst_conf):
+        if os.path.exists(bt_conf):
+            mw.execShell(f"cp -f {bt_conf} {dst_conf}")
+        else:
+            conf_content = mw.readFile(getConfTpl())
+            conf_content = conf_content.replace('{$SERVER_PATH}', service_path)
+            mw.writeFile(dst_conf, conf_content)
+
     install_ok = getServerDir() + "/install.lock"
     if os.path.exists(install_ok):
         return file_bin
@@ -273,11 +284,6 @@ def initDreplace():
     content = content.replace('{$SERVER_PATH}', service_path)
     mw.writeFile(file_bin, content)
     mw.execShell('chmod +x ' + file_bin)
-
-    # config replace
-    conf_content = mw.readFile(getConfTpl())
-    conf_content = conf_content.replace('{$SERVER_PATH}', service_path)
-    mw.writeFile(getServerDir() + '/mongodb.conf', conf_content)
 
     # systemd
     systemDir = mw.systemdCfgDir()
