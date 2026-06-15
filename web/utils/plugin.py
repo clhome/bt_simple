@@ -103,7 +103,7 @@ class plugin(object):
 
 
     def getIndexList(self, simple=False):
-        indexList = thisdb.getOptionByJson('display_index')
+        indexList = thisdb.getOptionByJson('display_index', default=[])
         plist = []
         for i in indexList:
             tmp = i.split('-')
@@ -232,7 +232,7 @@ class plugin(object):
 
     def removeIndex(self, name, version):
         vname = name + '-' + version
-        indexList = thisdb.getOptionByJson('display_index')
+        indexList = thisdb.getOptionByJson('display_index', default=[])
         if not vname in indexList:
             return mw.returnData(True, '删除成功!!')
         indexList.remove(vname)
