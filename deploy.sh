@@ -214,7 +214,53 @@ fix_apt_lock() {
     return 0
 }
 
+setup_domestic_mirrors() {
+    if ! check_china; then
+        return 0
+    fi
+
+    log_info "检测到中国大陆网络，配置全局加速镜像源..."
+
+    # 配置 pip 国内镜像 (全局加速后续的 Python 依赖安装)
+    mkdir -p ~/.pip
+    if [ ! -f ~/.pip/pip.conf ] || ! grep -q "aliyun" ~/.pip/pip.conf 2>/dev/null; then
+        cat > ~/.pip/pip.conf <<EOF
+[global]
+index-url = https://mirrors.aliyun.com/pypi/simple/
+[install]
+trusted-host = mirrors.aliyun.com
+EOF
+        log_info "已配置 pip 阿里云加速源"
+    fi
+
+    # 配置系统 APT 源加速 (Ubuntu/Debian)
+    if command -v apt-get >/dev/null 2>&1 && [ -f "/etc/apt/sources.list" ]; then
+        local current_source=$(grep ^deb /etc/apt/sources.list | head -n 1 | sed -E 's|^[^ ]+ https?://([^/]+).*|\1|')
+        
+        # 如果当前源属于慢速官方源，尝试替换为阿里云源
+        if [[ "$current_source" == *"archive.ubuntu.com"* || "$current_source" == *"security.ubuntu.com"* || "$current_source" == *"deb.debian.org"* || "$current_source" == *"security.debian.org"* ]]; then
+            log_info "当前 APT 源 ($current_source) 在国内较慢，正在切换至阿里云镜像..."
+            \cp -rpa /etc/apt/sources.list /etc/apt/sources.list.btbackup
+            sed -i "s/$current_source/mirrors.aliyun.com/g" /etc/apt/sources.list
+            sed -i "s/archive.ubuntu.com/mirrors.aliyun.com/g" /etc/apt/sources.list
+            sed -i "s/security.ubuntu.com/mirrors.aliyun.com/g" /etc/apt/sources.list
+            sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list
+            sed -i "s/security.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list
+            
+            apt-get update -y >/dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                log_info "APT 加速源配置完成"
+            else
+                log_warn "APT 源更新遇到问题，已回滚源配置..."
+                \cp -rpa /etc/apt/sources.list.btbackup /etc/apt/sources.list
+                apt-get update -y >/dev/null 2>&1
+            fi
+        fi
+    fi
+}
+
 install_basic_deps() {
+    setup_domestic_mirrors
     fix_apt_lock
     log_info "安装基础依赖..."
     if command -v apt >/dev/null 2>&1; then
