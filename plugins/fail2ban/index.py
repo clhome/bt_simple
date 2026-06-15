@@ -1,3 +1,4 @@
+import ipaddress
 # coding:utf-8
 
 import sys
@@ -453,9 +454,59 @@ def runInfo():
     }
     return mw.returnJson(True, 'ok', res)
 
+
+
+class fail2ban_main:
+    _set_up_path = "/www/server/panel/plugin/fail2ban"
+    _config = _set_up_path + "/config.json"
+    _status = _set_up_path + "/status.json"
+    _black_list = _set_up_path + "/black_list.json"
+    _jail_local_file = "/etc/fail2ban/jail.local"
+    _tmp_log_file = _set_up_path + "/tmp_log.json"
+
+
+fail2ban_inst = None
+def get_fail2ban_inst():
+    global fail2ban_inst
+    if fail2ban_inst is None:
+        fail2ban_inst = fail2ban_main()
+    return fail2ban_inst
+
 if __name__ == "__main__":
     func = sys.argv[1]
-    if func == 'status':
+    
+    # Class methods wrapper
+    if func == 'set_anti':
+        args = getArgs()
+        print(get_fail2ban_inst().set_anti(mw.dict_obj(args)))
+    elif func == 'del_anti':
+        args = getArgs()
+        print(get_fail2ban_inst().del_anti(mw.dict_obj(args)))
+    elif func == 'get_anti_info':
+        args = getArgs()
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_anti_info(mw.dict_obj(args))))
+    elif func == 'get_status':
+        args = getArgs()
+        print(get_fail2ban_inst().get_status(mw.dict_obj(args)))
+    elif func == 'ban_ip_release':
+        args = getArgs()
+        print(get_fail2ban_inst().ban_ip_release(mw.dict_obj(args)))
+    elif func == 'get_mode_list':
+        args = getArgs()
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_mode_list(mw.dict_obj(args))))
+    elif func == 'get_all_sitename':
+        args = getArgs()
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_all_sitename(mw.dict_obj(args))))
+    elif func == 'ban_ip':
+        args = getArgs()
+        print(get_fail2ban_inst().ban_ip(mw.dict_obj(args)))
+    elif func == 'unban_ip':
+        args = getArgs()
+        print(get_fail2ban_inst().unban_ip(mw.dict_obj(args)))
+    elif func == 'get_last_log':
+        args = getArgs()
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_last_log(mw.dict_obj(args))))
+    elif func == 'status':
         print(status())
     elif func == 'start':
         print(start())
