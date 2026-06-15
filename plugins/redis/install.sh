@@ -35,11 +35,17 @@ Install_App()
 	
 	cd $REDIS_DIR && tar -zxvf ${FILE_TGZ}
 
+	# 获取CPU核心数用于多核并行编译加速
+	cpuCore=$(nproc 2>/dev/null)
+	if [ -z "$cpuCore" ]; then
+		cpuCore="1"
+	fi
+
 	CMD_MAKE=`which gmake`
 	if [ "$?" == "0" ];then
-		cd redis-${VERSION} && gmake PREFIX=$serverPath/redis install
+		cd redis-${VERSION} && gmake BUILD_TLS=yes -j ${cpuCore} PREFIX=$serverPath/redis install
 	else
-		cd redis-${VERSION} && make PREFIX=$serverPath/redis install
+		cd redis-${VERSION} && make BUILD_TLS=yes -j ${cpuCore} PREFIX=$serverPath/redis install
 	fi
 
 	if [ -d $serverPath/redis ];then
@@ -53,6 +59,21 @@ Install_App()
 			sed -i 's/client-output-buffer-limit slave/client-output-buffer-limit replica/g' $serverPath/redis/redis.conf
 			sed -i '/ziplist/d' $serverPath/redis/redis.conf
 			sed -i '/intset/d' $serverPath/redis/redis.conf
+		fi
+
+		# 系统内核参数自动优化 (消除 Redis 经典警告)
+		VM_OVERCOMMIT_MEMORY=$(cat /etc/sysctl.conf | grep vm.overcommit_memory)
+		NET_CORE_SOMAXCONN=$(cat /etc/sysctl.conf | grep net.core.somaxconn)
+		if [ -z "${VM_OVERCOMMIT_MEMORY}" ] && [ -z "${NET_CORE_SOMAXCONN}" ];then
+			echo "vm.overcommit_memory = 1" >> /etc/sysctl.conf
+			echo "net.core.somaxconn = 1024" >> /etc/sysctl.conf
+			sysctl -p
+		fi
+
+		# ARM架构兼容优化
+		ARM_CHECK=$(uname -a | grep aarch64)
+		if [ "${ARM_CHECK}" ];then
+			echo "ignore-warnings ARM64-COW-BUG" >> $serverPath/redis/redis.conf
 		fi
 
 		echo "${VERSION}" > $serverPath/redis/version.pl

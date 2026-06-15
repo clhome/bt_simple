@@ -3721,3 +3721,18 @@ pgadmin 插件在启动时报 503 错误，原因是 `pg_init.sh` 中使用 `exp
 - [x] 下载 `ngx_cache_purge`、`nginx-http-concat` 和 `ngx_http_substitutions_filter_module` 模块源码。
 - [x] 修改 `configure` 参数，附加 Jemalloc 链接选项和第三方模块的 `--add-module` 参数。
 - [x] 在脚本结束阶段增加清理这些新增源码目录的逻辑。
+
+## 需求：优化 plugins/redis 安装脚本（多核编译、内核参数调优、TLS及ARM支持等）
+
+**问题描述：**
+参考优秀 redis 安装脚本，将实用的性能及安全优化应用到 `plugins/redis/install.sh` 中。包括多核并发编译提升安装速度、配置系统内核参数解决 Redis 经典警告（如 `overcommit_memory` 和 `somaxconn`）、启用 TLS 支持以及 ARM 架构下特有的警告屏蔽。
+
+**涉及文件：**
+
+- `plugins/redis/install.sh`
+
+### Task List
+
+- [x] 修改 `plugins/redis/install.sh`：引入 `make -j $(nproc)` 进行多核并行编译加速，并启用 `BUILD_TLS=yes` 支持 TLS。
+- [x] 修改 `plugins/redis/install.sh`：在安装完成后，检测并配置 `/etc/sysctl.conf` 中的 `vm.overcommit_memory = 1` 和 `net.core.somaxconn = 1024`，并应用，解决后端保存和高并发连接警告。
+- [x] 修改 `plugins/redis/install.sh`：检测如果是 ARM 架构，在 `redis.conf` 追加 `ignore-warnings ARM64-COW-BUG` 消除特定的写时复制警告。
