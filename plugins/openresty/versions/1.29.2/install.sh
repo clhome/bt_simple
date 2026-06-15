@@ -156,6 +156,48 @@ Install_openresty()
 	    # OPTIONS="${OPTIONS} --with-cc-opt=-I${openrestyDir}/libressl-${libresslVersion}/libressl/build/lib"
 	fi
 
+	# jemalloc
+	jemallocVersion="5.3.0"
+	ARM_CHECK=$(uname -a | grep -E 'aarch64|arm|ARM')
+	if [ -z "${ARM_CHECK}" ] && [ "$sysName" != "Darwin" ];then
+		if [ ! -f '/usr/local/lib/libjemalloc.so' ] && [ ! -f '/usr/lib/libjemalloc.so' ] && [ ! -f '/usr/lib64/libjemalloc.so' ]; then
+			if [ ! -f ${openrestyDir}/jemalloc-${jemallocVersion}.tar.bz2 ];then
+				github_download ${openrestyDir}/jemalloc-${jemallocVersion}.tar.bz2 https://github.com/jemalloc/jemalloc/releases/download/${jemallocVersion}/jemalloc-${jemallocVersion}.tar.bz2
+			fi
+			if [ ! -d ${openrestyDir}/jemalloc-${jemallocVersion} ];then
+				cd ${openrestyDir} && tar -xvf jemalloc-${jemallocVersion}.tar.bz2
+				cd jemalloc-${jemallocVersion}
+				./configure
+				make && make install
+				ldconfig
+			fi
+		fi
+		if [ -f '/usr/local/lib/libjemalloc.so' ] || [ -f '/usr/lib/libjemalloc.so' ] || [ -f '/usr/lib64/libjemalloc.so' ]; then
+			OPTIONS="${OPTIONS} --with-ld-opt=\"-ljemalloc\""
+		fi
+	fi
+
+	# ngx_cache_purge
+	if [ ! -d ${openrestyDir}/ngx_cache_purge-master ];then
+		github_download ${openrestyDir}/ngx_cache_purge.tar.gz https://github.com/nginx-modules/ngx_cache_purge/archive/refs/heads/master.tar.gz
+		cd ${openrestyDir} && tar -zxvf ngx_cache_purge.tar.gz
+	fi
+	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_cache_purge-master"
+
+	# nginx-http-concat
+	if [ ! -d ${openrestyDir}/nginx-http-concat-master ];then
+		github_download ${openrestyDir}/nginx-http-concat.tar.gz https://github.com/alibaba/nginx-http-concat/archive/refs/heads/master.tar.gz
+		cd ${openrestyDir} && tar -zxvf nginx-http-concat.tar.gz
+	fi
+	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/nginx-http-concat-master"
+
+	# ngx_http_substitutions_filter_module
+	if [ ! -d ${openrestyDir}/ngx_http_substitutions_filter_module-master ];then
+		github_download ${openrestyDir}/ngx_http_substitutions_filter_module.tar.gz https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/refs/heads/master.tar.gz
+		cd ${openrestyDir} && tar -zxvf ngx_http_substitutions_filter_module.tar.gz
+	fi
+	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_http_substitutions_filter_module-master"
+
 	# br
 	if [ ! -d ${openrestyDir}/ngx_brotli ];then
 		github_clone ${openrestyDir}/ngx_brotli https://github.com/wxx9248/ngx_brotli.git
@@ -221,6 +263,22 @@ Install_openresty()
 
     if [ -d ${openrestyDir}/libressl-${libresslVersion} ];then
     	rm -rf ${openrestyDir}/libressl-${libresslVersion}
+    fi
+
+    if [ -d ${openrestyDir}/jemalloc-${jemallocVersion} ];then
+    	rm -rf ${openrestyDir}/jemalloc-${jemallocVersion}
+    fi
+
+    if [ -d ${openrestyDir}/ngx_cache_purge-master ];then
+    	rm -rf ${openrestyDir}/ngx_cache_purge-master
+    fi
+
+    if [ -d ${openrestyDir}/nginx-http-concat-master ];then
+    	rm -rf ${openrestyDir}/nginx-http-concat-master
+    fi
+
+    if [ -d ${openrestyDir}/ngx_http_substitutions_filter_module-master ];then
+    	rm -rf ${openrestyDir}/ngx_http_substitutions_filter_module-master
     fi
 
     if [ -d $openrestyDir/openresty-${VERSION} ];then
