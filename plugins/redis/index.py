@@ -205,13 +205,15 @@ def initDreplace():
         content = mw.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
         
-        if not os.path.exists(systemService) or mw.readFile(systemService) != content:
-            # 清理可能与 Debian/Ubuntu 系统 apt 源冲突的自带 redis-server 服务
+        # 始终清理可能与 Debian/Ubuntu 系统 apt 源冲突的自带 redis-server 服务
+        if os.path.exists('/lib/systemd/system/redis-server.service'):
+            mw.execShell('systemctl disable redis-server')
             mw.execShell('rm -f /lib/systemd/system/redis-server.service')
-            mw.execShell('rm -f /usr/lib/systemd/system/redis-server.service')
             mw.execShell('rm -f /etc/systemd/system/redis-server.service')
             mw.execShell('rm -f /etc/systemd/system/redis.service')
+            mw.execShell('systemctl daemon-reload')
             
+        if not os.path.exists(systemService) or mw.readFile(systemService) != content:
             mw.writeFile(systemService, content)
             mw.execShell('systemctl daemon-reload')
 
