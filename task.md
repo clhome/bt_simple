@@ -3959,3 +3959,16 @@ gx_http_substitutions_filter_module 模块源码。
 ### Task List
 
 - [x] 批量重构所有版本的 OpenResty `install.sh` 脚本，将原生的 `git submodule update --init` 替换为利用面板提供的带有加速镜像和超时重试机制的 `github_clone deps/brotli https://github.com/google/brotli.git`
+
+## 需求：修复由于从宝塔迁移导致面板插件页面500错误的问题
+
+**问题描述：**
+用户通过迁移脚本从宝塔环境迁移面板后，打开软件管理（插件列表）出现 500 Internal Server Error 错误，且错误日志提示 IndexError: list index out of range。由于 display_index 缓存了宝塔格式的只包含插件名而无版本号（例如没有 - 分隔符）的字符串，当后端代码执行 split('-') 并强制访问索引 1 提取版本时触发异常，导致整个软件列表 API 挂掉。
+
+**修复文件：**
+- web/utils/plugin.py
+
+### Task List
+
+- [x] 在 web/utils/plugin.py 的 getIndexList 遍历 display_index 解析处，增加 	mp_len < 2 的容错 continue 过滤逻辑。 @done
+- [x] 在 web/utils/plugin.py 的 checkIndexList 中同样增加 	len < 2 的跳过逻辑，确保不会因提取版本号抛出异常。 @done

@@ -108,6 +108,8 @@ class plugin(object):
         for i in indexList:
             tmp = i.split('-')
             tmp_len = len(tmp)
+            if tmp_len < 2:
+                continue
             plugin_name = tmp[0]
             plugin_ver = tmp[1]
             if tmp_len > 2:
@@ -461,6 +463,8 @@ class plugin(object):
         for i in indexList:
             t = i.split('-')
             tlen = len(t)
+            if tlen < 2:
+                continue
             plugin_name = t[0]
             plugin_ver = t[1]
             if tlen > 2:
@@ -551,11 +555,11 @@ class plugin(object):
         pInfo = {
             "id": 10000,
             "sort": 10000,
-            "pid": info['pid'],
+            "pid": info.get('pid', '0'),
             "type": 1000,
-            "name": info['name'],
-            "title": info['title'],
-            "ps": info['ps'],
+            "name": info.get('name', ''),
+            "title": info.get('title', ''),
+            "ps": info.get('ps', ''),
             "dependnet": "",
             "mutex": "",
             "icon": "",
@@ -641,7 +645,7 @@ class plugin(object):
     ):
         plugins_t = []
         # 返回指定类型
-        if plugin_type != None and data['pid'] == plugin_type:
+        if plugin_type != None and data.get('pid') == plugin_type:
             return self.makeCoexistData(data)
 
         # 全部
@@ -919,7 +923,7 @@ class plugin(object):
             if str(type) == '-1':
                 if p['setup']:
                     filtered_list.append(p)
-            elif type == None or type == '0' or str(p['pid']) == str(type):
+            elif type == None or type == '0' or str(p.get('pid')) == str(type):
                 filtered_list.append(p)
                 
         if keyword:
