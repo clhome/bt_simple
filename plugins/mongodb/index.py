@@ -1594,10 +1594,23 @@ def initdUinstall():
 
 
 def runLog():
-    f = getServerDir() + '/logs/mongodb.log'
+    try:
+        d = getConfigData()
+        f = d.get('systemLog', {}).get('path', '')
+        if not f:
+            f = getServerDir() + '/log/mongodb.log'
+    except Exception:
+        f = getServerDir() + '/log/mongodb.log'
+        
     if os.path.exists(f):
         return f
-    return getServerDir() + '/logs.pl'
+        
+    # 回退检查两个常见的默认路径
+    fallback_1 = getServerDir() + '/logs/mongodb.log'
+    if os.path.exists(fallback_1):
+        return fallback_1
+        
+    return f
 
 def cronAddCheck():
     try:
