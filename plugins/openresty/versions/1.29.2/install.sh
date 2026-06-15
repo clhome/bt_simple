@@ -115,7 +115,7 @@ Install_openresty()
 
 
 		if [ ! -f ${openrestyDir}/openssl-${opensslVersion}.tar.gz ];then
-	        wget --no-check-certificate -O ${openrestyDir}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/openssl-${opensslVersion}.tar.gz
+	        github_download ${openrestyDir}/openssl-${opensslVersion}.tar.gz https://github.com/openssl/openssl/releases/download/openssl-${opensslVersion}/openssl-${opensslVersion}.tar.gz
 	    fi
 
 	    if [ ! -d ${openrestyDir}/openssl-${opensslVersion} ];then
@@ -131,7 +131,7 @@ Install_openresty()
 		# OPTIONS="${OPTIONS} --with-openssl=${OPENSSL_LIB_DEPEND_DIR}"
 	else
 		if [ ! -f ${openrestyDir}/openssl-${opensslVersion}.tar.gz ];then
-	        wget --no-check-certificate -O ${openrestyDir}/openssl-${opensslVersion}.tar.gz https://www.openssl.org/source/openssl-${opensslVersion}.tar.gz
+	        github_download ${openrestyDir}/openssl-${opensslVersion}.tar.gz https://github.com/openssl/openssl/releases/download/openssl-${opensslVersion}/openssl-${opensslVersion}.tar.gz
 	    fi
 
 	    if [ ! -d ${openrestyDir}/openssl-${opensslVersion} ];then
