@@ -56,14 +56,32 @@ Install_pureftp()
 		--with-ftpwho \
 		--with-tls && make && make install && make clean
 	
-	if [ -d ${serverPath}/pureftp ];then 
-		echo "${1}" > ${serverPath}/pureftp/version.pl
-		echo '安装完成'
+	if [ ! -f "${serverPath}/pureftp/bin/pure-pw" ];then
+		echo "ERROR: pure-ftpd installation failed."
+		rm -rf ${serverPath}/pureftp
+		exit 1
+	fi
 
-		cd ${rootPath} && python3 ${rootPath}/plugins/pureftp/index.py start
-		cd ${rootPath} && python3 ${rootPath}/plugins/pureftp/index.py initd_install
-	else
-		echo '安装失败'
+	echo "${1}" > ${serverPath}/pureftp/version.pl
+	echo '安装完成'
+
+	cd ${rootPath} && python3 ${rootPath}/plugins/pureftp/index.py start
+	cd ${rootPath} && python3 ${rootPath}/plugins/pureftp/index.py initd_install
+
+	echo "Configuring TLS for pure-ftpd..."
+	mkdir -p /etc/ssl/private
+	if [ ! -f '/etc/ssl/private/pure-ftpd-dhparams.pem' ]; then
+		openssl dhparam -out /etc/ssl/private/pure-ftpd-dhparams.pem 512
+	fi
+	
+	if [ ! -f '/etc/ssl/private/pure-ftpd.pem' ]; then
+		openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -sha256 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem -subj "/CN=pureftpd/O=pureftpd/C=CN"
+	fi
+	
+	if [ -f '/etc/ssl/private/pure-ftpd.pem' ];then
+		chmod 600 /etc/ssl/private/*.pem
+		sed -i "s/# TLS/TLS/g" ${serverPath}/pureftp/etc/pure-ftpd.conf
+		cd ${rootPath} && python3 ${rootPath}/plugins/pureftp/index.py restart
 	fi
 }
 
