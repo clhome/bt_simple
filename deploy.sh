@@ -892,6 +892,16 @@ show_panel_info() {
     echo -e "=================================================================="
     echo -e "日志文件: ${LOG_FILE}"
     echo -e "=================================================================="
+
+    
+    local report_res=$(curl -s -m 10 --location --request GET 'https://www.yftec.top/index.php/api/deploy/report' 2>/dev/null)
+    if [ -n "$report_res" ]; then
+        local user_number=$(echo "$report_res" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('data', {}).get('user_number', ''))" 2>/dev/null)
+        if [ -n "$user_number" ]; then
+            echo -e "${GREEN}您是御风面板第${user_number}位用户，衢州御风科技与您智领未来，共筑匠心${PLAIN}"
+            echo -e "=================================================================="
+        fi
+    fi
 }
 
 # =====================================================================
