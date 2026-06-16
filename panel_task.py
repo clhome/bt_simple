@@ -52,6 +52,12 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
     task_log_handle = None
     if task_id:
         task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+        task_log_dir = os.path.dirname(task_log_file)
+        if not os.path.exists(task_log_dir):
+            try:
+                os.makedirs(task_log_dir, exist_ok=True)
+            except:
+                pass
         try:
             task_log_handle = open(task_log_file, 'w', encoding='utf-8')
         except:
@@ -113,6 +119,12 @@ def writeLogs(data, task_id=None):
         pass
     if task_id:
         task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+        task_log_dir = os.path.dirname(task_log_file)
+        if not os.path.exists(task_log_dir):
+            try:
+                os.makedirs(task_log_dir, exist_ok=True)
+            except:
+                pass
         try:
             with open(task_log_file, 'a+', encoding='utf-8') as f:
                 f.write(data + "\n")

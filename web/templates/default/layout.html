@@ -6,23 +6,39 @@
     <meta name="renderer" content="webkit" />
     <title>{{data['title']}}</title>
     <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
-    <link
+    {% if data['use_cdn'] == 'yes' %}
+<link
       href="https://cdn.staticfile.org/twitter-bootstrap/3.3.5/css/bootstrap.min.css"
       rel="stylesheet"
       onerror="this.onerror=null;this.href='/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}'"
     />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/layer/3.5.1/theme/default/layer.css" rel="stylesheet" onerror="this.onerror=null;this.href='/static/layer/skin/default/layer.css?v={{config.version}}'" />
+{% else %}
+<link href="/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}" rel="stylesheet" />
+{% endif %}
+    {% if data['use_cdn'] == 'yes' %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/layer/3.5.1/theme/default/layer.css" rel="stylesheet" onerror="this.onerror=null;this.href='/static/layer/skin/default/layer.css?v={{config.version}}'" />
+{% else %}
+<link href="/static/layer/skin/default/layer.css?v={{config.version}}" rel="stylesheet" />
+{% endif %}
     <link href="/static/css/site.css?v={{config.version}}&t=20260527" rel="stylesheet" />
-    <link
+    {% if data['use_cdn'] == 'yes' %}
+<link
       href="https://cdn.staticfile.org/codemirror/5.21.0/codemirror.min.css"
       rel="stylesheet"
       onerror="this.onerror=null;this.href='/static/codemirror/lib/codemirror.css?v={{config.version}}'"
     />
-    <link
+{% else %}
+<link href="/static/codemirror/lib/codemirror.css?v={{config.version}}" rel="stylesheet" />
+{% endif %}
+    {% if data['use_cdn'] == 'yes' %}
+<link
       href="https://cdn.staticfile.org/codemirror/5.21.0/addon/dialog/dialog.min.css"
       rel="stylesheet"
       onerror="this.onerror=null;this.href='/static/codemirror/addon/dialog/dialog.css?v={{config.version}}'"
     />
+{% else %}
+<link href="/static/codemirror/addon/dialog/dialog.css?v={{config.version}}" rel="stylesheet" />
+{% endif %}
     <script src="/static/language/Simplified_Chinese/lan.js?v={{config.version}}"></script>
     <!--[if lte IE 9]>
       <script src="/static/js/requestAnimationFrame.js"></script>
@@ -98,16 +114,24 @@
           class="mw_copy"
           data-clipboard-text=""
         ></button>
-        <link
+        {% if data['use_cdn'] == 'yes' %}
+<link
           rel="stylesheet"
           href="https://cdn.staticfile.org/xterm/3.14.5/xterm.min.css"
           onerror="this.onerror=null;this.href='/static/build/xterm.css?v={{config.version}}'"
         />
-        <link
+{% else %}
+<link href="/static/build/xterm.css?v={{config.version}}" rel="stylesheet" />
+{% endif %}
+        {% if data['use_cdn'] == 'yes' %}
+<link
           rel="stylesheet"
           href="https://cdn.staticfile.org/xterm/3.14.5/addons/fullscreen/fullscreen.min.css"
           onerror="this.onerror=null;this.href='/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}'"
         />
+{% else %}
+<link href="/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}" rel="stylesheet" />
+{% endif %}
         <!-- jQuery -->
         <script src="https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="/static/js/jquery-1.12.4.min.js"><\/script>')</script>
@@ -138,9 +162,21 @@
         <!-- XTerm & Addons -->
         <script src="https://cdn.staticfile.org/xterm/3.14.5/xterm.min.js"></script>
         <script>window.Terminal || document.write('<script src="/static/build/xterm.js"><\/script>')</script>
-        <script src="https://cdn.staticfile.org/xterm/3.14.5/addons/attach/attach.min.js" onerror="this.onerror=null;this.src='/static/build/addons/attach/attach.js'"></script>
-        <script src="https://cdn.staticfile.org/xterm/3.14.5/addons/fit/fit.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fit/fit.js'"></script>
-        <script src="https://cdn.staticfile.org/xterm/3.14.5/addons/fullscreen/fullscreen.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fullscreen/fullscreen.js'"></script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/xterm/3.14.5/addons/attach/attach.min.js" onerror="this.onerror=null;this.src='/static/build/addons/attach/attach.js'"></script>
+{% else %}
+<script src="/static/build/addons/attach/attach.js"></script>
+{% endif %}
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/xterm/3.14.5/addons/fit/fit.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fit/fit.js'"></script>
+{% else %}
+<script src="/static/build/addons/fit/fit.js"></script>
+{% endif %}
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/xterm/3.14.5/addons/fullscreen/fullscreen.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fullscreen/fullscreen.js'"></script>
+{% else %}
+<script src="/static/build/addons/fullscreen/fullscreen.js"></script>
+{% endif %}
 
         <!-- Socket.io -->
         <script src="https://cdn.staticfile.org/socket.io/4.5.0/socket.io.min.js"></script>
@@ -266,10 +302,18 @@
   <script src="/static/codemirror/mode/markdown/markdown.js?v={{config.version}}"></script>
   <script src="/static/codemirror/mode/properties/properties.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/dialog/dialog.js?v={{config.version}}"></script>
-  <script src="https://cdn.staticfile.org/codemirror/5.21.0/addon/search/searchcursor.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/search/searchcursor.js?v={{config.version}}'"></script>
+  {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/codemirror/5.21.0/addon/search/searchcursor.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/search/searchcursor.js?v={{config.version}}'"></script>
+{% else %}
+<script src="/static/codemirror/addon/search/searchcursor.js?v={{config.version}}"></script>
+{% endif %}
   <script src="/static/codemirror/addon/search/search.js?v={{config.version}}"></script>
   <script src="/static/codemirror/addon/scroll/annotatescrollbar.js?v={{config.version}}"></script>
-  <script src="https://cdn.staticfile.org/codemirror/5.21.0/addon/selection/active-line.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/selection/active-line.js?v={{config.version}}'"></script>
+  {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/codemirror/5.21.0/addon/selection/active-line.min.js" onerror="this.onerror=null;this.src='/static/codemirror/addon/selection/active-line.js?v={{config.version}}'"></script>
+{% else %}
+<script src="/static/codemirror/addon/selection/active-line.js?v={{config.version}}"></script>
+{% endif %}
   <script src="/static/codemirror/addon/comment/comment.js?v={{config.version}}"></script>
   <script>CodeMirror.defaults.styleActiveLine = true;</script>
   

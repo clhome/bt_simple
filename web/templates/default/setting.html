@@ -29,6 +29,14 @@
                         <label class='btswitch-btn' for='panelIPv6' onclick="setIPv6()"></label>
                     </div>
                 </div>
+				
+				<div class="ss-text pull-left mr50">
+                    <em title="当主机速度非常慢才建议开启，会导致面板打开速度不可控">使用CDN</em>
+                    <div class='ssh-item'>
+                        <input class='btswitch btswitch-ios' id='panelCDN' type='checkbox' {% if data['use_cdn'] == 'yes' %}checked{% endif %}>
+                        <label class='btswitch-btn' for='panelCDN' onclick="setCDN()"></label>
+                    </div>
+                </div>
 			</div>
 		</div>
 		<div class="setbox bgw mtb15">

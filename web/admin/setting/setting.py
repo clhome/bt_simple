@@ -199,6 +199,19 @@ def set_ipv6_status():
     mw.restartMw()
     return mw.returnData(True, '设置成功!')
 
+# 设置CDN状态
+@blueprint.route('/set_cdn_status', endpoint='set_cdn_status', methods=['POST'])
+@panel_login_required
+def set_cdn_status():
+    use_cdn = thisdb.getOption('use_cdn', default='no')
+    if use_cdn == 'no':
+        thisdb.setOption('use_cdn', 'yes')
+        mw.writeLog('面板设置', '开启CDN加速!')
+        return mw.returnData(True, '开启CDN加速成功!')
+    thisdb.setOption('use_cdn', 'no')
+    mw.writeLog('面板设置', '关闭CDN加速!')
+    return mw.returnData(True, '关闭CDN加速成功!')
+
 # 设置面板用户
 @blueprint.route('/set_name', endpoint='set_name', methods=['POST'])
 @panel_login_required

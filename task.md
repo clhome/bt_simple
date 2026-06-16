@@ -4023,3 +4023,23 @@ gx_http_substitutions_filter_module 模块源码。
 - [x] 2. 修改 `web/admin/task/__init__.py`：新增 `/task/get_task_log_by_id` 路由接口，通过 `id` 读取日志全文。
 - [x] 3. 修改 `web/utils/task.py`：在 `removeTask` 函数中增加清理 `/tmp/panelTask_{task_id}.log` 的逻辑。
 - [x] 4. 修改 `web/static/app/public.js`：在 `remind` 渲染时，将任务名变为可点击的超链接，绑定点击事件弹出 `layer.open` 查看全量日志。
+
+## 需求：面板设置新增CDN切换开关并默认使用本地资源
+**问题描述：**
+由于使用CDN反倒使网页打开变慢了，需要：
+1、默认使用本地的js和css
+2、在面板设置中增加一个开关，使用CDN,鼠标移动到上面给出注释：“当主机速度非常慢才建议开启，会导致面板打开速度不可控”之类的注释，需要平滑过渡
+
+**涉及文件：**
+- `web/utils/config.py`
+- `web/admin/setting/setting.py`
+- `web/templates/default/setting.html`
+- `web/static/app/config.js`
+- `web/templates/default/layout.html`
+- `web/templates/default/index.html`
+- `web/templates/default/monitor.html`
+
+### Task List
+- [x] 后端支持：在 `web/utils/config.py` 和 `web/admin/setting/setting.py` 中增加对 `use_cdn` 选项的支持，提供切换接口
+- [x] 设置面板界面：在 `web/templates/default/setting.html` 增加开关，并在 `config.js` 增加开关的 js 操作函数
+- [x] 模板替换：在 `layout.html`, `index.html`, `monitor.html` 中应用 jinja 判断，根据 `use_cdn` 控制本地/CDN资源的加载
