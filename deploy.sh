@@ -55,7 +55,7 @@ get_github_url() {
     # 保留兼容性，但实际下载已由 github_download/github_clone 统一处理代理
     if check_china; then
         if [[ $original_url == *"github.com"* ]]; then
-            echo "https://gh-proxy.org/$original_url"
+            echo "https://gh-proxy.com/$original_url"
             return
         fi
     fi
@@ -68,11 +68,10 @@ setup_china_git_config() {
         
         # 定义备用代理列表 (与 github_download.sh 保持一致)
         local proxies=(
-            "https://ghproxy.net/"
-            "https://gh.con.sh/"
             "https://gh-proxy.com/"
             "https://cors.zme.ink/"
-            "https://gh-proxy.org/"
+            "https://gh.ddlc.top/"
+            "https://ghproxy.net/"
         )
         
         local best_proxy=""
@@ -92,7 +91,7 @@ setup_china_git_config() {
         for proxy in "${proxies[@]}"; do
             git config --global --remove-section url."${proxy}https://github.com/" 2>/dev/null || true
         done
-        git config --global --remove-section url."https://gh-proxy.org/https://github.com/" 2>/dev/null || true
+        git config --global --remove-section url."https://gh-proxy.com/https://github.com/" 2>/dev/null || true
         
         if [ -n "$best_proxy" ]; then
             log_info "选用存活的 GitHub 代理: $best_proxy"
