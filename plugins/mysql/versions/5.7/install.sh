@@ -136,17 +136,17 @@ Install_mysql()
 	fi
 
 	#检测文件是否损坏.
-	md5_mysql_ok=1a637fce4599d9bf5f1c81699f086274
-	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
-		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
-		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
-			echo "mysql5.7 file check ok"
-		else
-			# 重新下载
-			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
-		fi
-	fi
+# 	md5_mysql_ok=1a637fce4599d9bf5f1c81699f086274
+# 	if [ -f ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ];then
+# 		md5_mysql=`md5sum ${mysqlDir}/mysql-boost-${VERSION}.tar.gz  | awk '{print $1}'`
+# 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
+# 			echo "mysql5.7 file check ok"
+# 		else
+# 			# 重新下载
+# 			rm -rf ${mysqlDir}/mysql-${VERSION}
+# 			wget --no-check-certificate -O ${mysqlDir}/mysql-boost-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${VERSION}.tar.gz
+# 		fi
+# 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
 		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz

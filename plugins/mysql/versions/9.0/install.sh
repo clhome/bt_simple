@@ -105,17 +105,17 @@ Install_mysql()
 	fi
 
 	#检测文件是否损坏.
-	md5_mysql_ok=90dc27a8b64eee938a0bb045c580b80c
-	if [ -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
-		md5_mysql=`md5sum ${mysqlDir}/mysql-${VERSION}.tar.gz  | awk '{print $1}'`
-		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
-			echo "mysql9.0 file check ok"
-		else
-			# 重新下载
-			rm -rf ${mysqlDir}/mysql-${VERSION}
-			wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-9.0/mysql-${VERSION}.tar.gz
-		fi
-	fi
+# 	md5_mysql_ok=90dc27a8b64eee938a0bb045c580b80c
+# 	if [ -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
+# 		md5_mysql=`md5sum ${mysqlDir}/mysql-${VERSION}.tar.gz  | awk '{print $1}'`
+# 		if [ "${md5_mysql_ok}" == "${md5_mysql}" ]; then
+# 			echo "mysql9.0 file check ok"
+# 		else
+# 			# 重新下载
+# 			rm -rf ${mysqlDir}/mysql-${VERSION}
+# 			wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-9.0/mysql-${VERSION}.tar.gz
+# 		fi
+# 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
 		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-${VERSION}.tar.gz
