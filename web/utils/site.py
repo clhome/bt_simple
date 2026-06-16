@@ -203,6 +203,15 @@ class sites(object):
         self.createRootDir(self.sitePath)
         self.nginxAddConf()
 
+        # 如果目录原来有.user.ini,先强制删除
+        user_ini = self.sitePath + '/.user.ini'
+        if os.path.exists(user_ini):
+            mw.execShell("which chattr && chattr -i " + user_ini)
+            os.remove(user_ini)
+            
+        # 创建完成后，调用重新开启防跨站
+        self.addDirUserIni(self.sitePath, '')
+
         # 主域名配置
         thisdb.addDomain(site_id, self.siteName, self.sitePort)
         # 添加更多域名
@@ -773,15 +782,23 @@ class sites(object):
     def addDirUserIni(self, site_path, run_path):
         new_path = site_path + run_path
         filename = new_path + '/.user.ini'
-        if os.path.exists(filename):
-            return mw.returnData(True, '已打开防跨站设置!')
 
         open_path = 'open_basedir={}/:{}/'.format(new_path, site_path)
         if run_path == '/' or run_path == '':
             open_path = 'open_basedir={}/'.format(site_path)
 
-        mw.writeFile(filename, open_path + ':/www/server/php:/tmp/:/proc/')
+        new_content = open_path + ':/www/server/php:/tmp/:/proc/'
+
+        if os.path.exists(filename):
+            content = mw.readFile(filename)
+            if content and '/www/server/php' in content:
+                return mw.returnData(True, '已打开防跨站设置!')
+            else:
+                mw.execShell("which chattr && chattr -i " + filename)
+
+        mw.writeFile(filename, new_content)
         mw.execShell("which chattr && chattr +i " + filename)
+        return mw.returnData(True, '已打开防跨站设置!')
 
     def setDirUserIni(self, site_path, run_path):
         filename = site_path + '/.user.ini'

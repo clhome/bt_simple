@@ -1,4 +1,4 @@
-﻿## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
+## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
 
 **问题描述：** MySQL 5.7 插件安装后，MySQL 服务正常运行，但点击「添加数据库」时弹出"数据库密码错误,在管理列表-点击【修复】！"错误。
 
@@ -4049,3 +4049,20 @@ gx_http_substitutions_filter_module 模块源码。
 - [x] 在 soft.js 的 ddVersion 函数中，放大 MySQL 安装弹窗的尺寸（从 380px 增大到 540px）。
 - [x] 在 `plugins/mysql` 目录下创建独立的 `install.html` 配置文件，实现对源码编译与极速安装差异及场景的高雅排版。
 - [x] 利用暴露在 `window` 的回调钩子（如 `install_hook_mysql`），动态篡改装载参数，彻底实现逻辑代码与面板主工程的解耦。
+
+## 需求：修复宝塔面板迁移后 open_basedir 导致 PHP 运行报错的问题
+
+**问题描述：**
+用户从宝塔面板迁移网站到御风面板后，添加同名网站并访问时出现 `open_basedir restriction in effect` 的报错，提示 `app_start.php` 不在允许的路径中，且页面返回 Fatal error。
+
+**根本原因分析：**
+1. 御风面板（bt_simple）的 PHP-FPM 配置（如 `php-fpm.conf`）全局使用了 `php_value[auto_prepend_file]={$SERVER_PATH}/php/app_start.php` 以注入运行前置脚本。
+2. 宝塔面板迁移过来的网站根目录下存在原有的 `.user.ini` 文件，该文件内的 `open_basedir` 仅允许网站自身目录（如 `/www/wwwroot/site/`）和 `/tmp/`，缺乏新面板需要的 `/www/server/php/`。
+3. `web/utils/site.py` 中的 `addDirUserIni` 函数在创建网站时，若发现 `.user.ini` 已经存在，会直接跳过（`return`），导致原有配置未被更新，进而被 PHP 的防跨站安全策略拦截。
+
+**修复文件：**
+- `web/utils/site.py`
+
+### Task List
+- [x] 修改 `web/utils/site.py` 中的 `add` 创建网站方法：检测网站目录若存在旧的 `.user.ini`，先执行解锁（`chattr -i`）并强制删除，并在建站流程末尾显式调用 `self.addDirUserIni` 重新生成包含 `/www/server/php/` 路径的最新防跨站规则。 @done(2026-06-16 18:03)
+- [x] 修改 `web/utils/site.py` 中的 `addDirUserIni` 方法：进一步保障已存在的 `.user.ini` 能被读取检测并覆盖写入正确规则。 @done(2026-06-16 17:53)
