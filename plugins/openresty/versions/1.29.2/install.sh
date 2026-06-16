@@ -199,9 +199,10 @@ Install_openresty()
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_http_substitutions_filter_module-master"
 
 	# br
-	if [ ! -d ${openrestyDir}/ngx_brotli ];then
+	if [ ! -d ${openrestyDir}/ngx_brotli/deps/brotli/c ];then
+		rm -rf ${openrestyDir}/ngx_brotli
 		github_clone ${openrestyDir}/ngx_brotli https://github.com/wxx9248/ngx_brotli.git
-		cd /ngx_brotli && github_clone deps/brotli https://github.com/google/brotli.git
+		cd ${openrestyDir}/ngx_brotli && github_clone deps/brotli https://github.com/google/brotli.git
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_brotli"
 
