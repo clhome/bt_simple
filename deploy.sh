@@ -914,6 +914,21 @@ migrate_from_bt() {
         log_info "宝塔面板已移至: ${BT_DIR}.bak.${TIMESTAMP}"
     fi
 
+    # 安全关闭数据服务以确保进行干净的离线备份（Clean Shutdown）
+    log_info "正在安全停止各数据服务以确保数据完整无脏页残留..."
+    if [ -f /etc/init.d/mysqld ]; then
+        /etc/init.d/mysqld stop
+        sleep 2
+    fi
+    if [ -f /etc/init.d/redis ]; then
+        /etc/init.d/redis stop
+        sleep 1
+    fi
+    if [ -f /etc/init.d/pgsql ]; then
+        /etc/init.d/pgsql stop
+        sleep 1
+    fi
+
     # 备份隔离原本宝塔软件安装目录，避免判定冲突
     log_info "正在隔离备份原本的宝塔软件目录以避免环境冲突..."
     if [ -d "/www/server/mysql" ]; then

@@ -490,6 +490,37 @@ def restore_bt_data():
 
     if os.path.exists(new_mysql_dir) and old_data_dir != "":
         print("-> 检测到已安装新 MySQL，且存在旧宝塔 MySQL 数据目录，开始接管数据...")
+        
+        # 版本强校验
+        old_mysql_ver = ""
+        new_mysql_ver = ""
+        try:
+            migrated_json = mw.getPanelDir() + "/data/bt_migrated_software.json"
+            if os.path.exists(migrated_json):
+                bt_software = json.loads(mw.readFile(migrated_json))
+                old_mysql_ver = bt_software.get('mysql', '')
+            
+            if not old_mysql_ver:
+                old_ver_pl = "/www/server/mysql_bt_bak/version.pl"
+                if os.path.exists(old_ver_pl):
+                    old_mysql_ver = mw.readFile(old_ver_pl).strip()
+
+            new_ver_pl = new_mysql_dir + "/version.pl"
+            if os.path.exists(new_ver_pl):
+                new_mysql_ver = mw.readFile(new_ver_pl).strip()
+            
+            if old_mysql_ver and new_mysql_ver:
+                old_major = '.'.join(old_mysql_ver.split('.')[:2])
+                new_major = '.'.join(new_mysql_ver.split('.')[:2])
+                
+                if old_major != new_major:
+                    print("  ❌ 致命错误：检测到新旧 MySQL 版本不匹配！(旧: %s, 新: %s)" % (old_mysql_ver, new_mysql_ver))
+                    print("  ⚠️  跨大版本直接拷贝 data 目录会造成严重的数据损坏和系统表冲突。")
+                    print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装与旧版本一致的 MySQL %s 后，再执行本命令。" % old_major)
+                    return
+        except Exception as e:
+            print("  警告：版本检查异常: " + str(e))
+
         print("  正在停止 MySQL 服务...")
         os.system("systemctl stop mysql 2>/dev/null")
         os.system("systemctl stop mysqld 2>/dev/null")
