@@ -1,4 +1,4 @@
-﻿## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
+## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
 
 **问题描述：** MySQL 5.7 插件安装后，MySQL 服务正常运行，但点击「添加数据库」时弹出"数据库密码错误,在管理列表-点击【修复】！"错误。
 
@@ -4008,3 +4008,18 @@ gx_http_substitutions_filter_module 模块源码。
 - [x] 深度分析 MySQL `install.sh` 执行流程及失败原因
 - [x] 修改 `install.sh`：保存初始插件路径，在执行 `source lib.sh` 之后强制恢复 `curPath` 与当前工作目录
 - [x] 剥离传入参数中可能因为 Python 传递导致的 CRLF 换行符（如 `\r`），提升脚本传参容错性
+
+## 需求：消息盒子查看插件安装完整日志
+**问题描述：** 在消息盒子的消息列表中，点击某个消息，查看安装这个插件的完整日志。就算是安装中的也可以查看，但是不支持自动刷新，只查看当前最新的日志。
+
+**涉及文件：**
+- `panel_task.py`
+- `web/admin/task/__init__.py`
+- `web/utils/task.py`
+- `web/static/app/public.js`
+
+### Task List
+- [x] 1. 修改 `panel_task.py`：重构 `execShell` 和 `downloadFile` 函数，支持传入 `task_id`，并实现双写日志到专属日志文件。
+- [x] 2. 修改 `web/admin/task/__init__.py`：新增 `/task/get_task_log_by_id` 路由接口，通过 `id` 读取日志全文。
+- [x] 3. 修改 `web/utils/task.py`：在 `removeTask` 函数中增加清理 `/tmp/panelTask_{task_id}.log` 的逻辑。
+- [x] 4. 修改 `web/static/app/public.js`：在 `remind` 渲染时，将任务名变为可点击的超链接，绑定点击事件弹出 `layer.open` 查看全量日志。

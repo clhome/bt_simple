@@ -35,7 +35,7 @@ g_log_file = mw.getPanelTaskExecLog()
 if not os.path.exists(g_log_file):
     os.system("touch " + g_log_file)
 
-def execShell(cmdstring, cwd=None, timeout=None, shell=True):
+def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
     import subprocess
     import time
     
@@ -48,6 +48,14 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
         log_file_handle = open(g_log_file, 'w', encoding='utf-8')
     except:
         log_file_handle = None
+
+    task_log_handle = None
+    if task_id:
+        task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+        try:
+            task_log_handle = open(task_log_file, 'w', encoding='utf-8')
+        except:
+            pass
 
     # 实时读取
     while True:
@@ -71,17 +79,31 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
                     log_file_handle.flush()
                 except:
                     pass
+            if task_log_handle:
+                try:
+                    if line.strip():
+                        task_log_handle.write(time_str + line)
+                    else:
+                        task_log_handle.write(line)
+                    task_log_handle.flush()
+                except:
+                    pass
 
     if log_file_handle:
         try:
             log_file_handle.close()
         except:
             pass
+    if task_log_handle:
+        try:
+            task_log_handle.close()
+        except:
+            pass
 
     return (str(sub.returncode), '')
 
 
-def writeLogs(data):
+def writeLogs(data, task_id=None):
     # 写输出日志
     try:
         fp = open(g_log_file, 'w+')
@@ -89,8 +111,15 @@ def writeLogs(data):
         fp.close()
     except:
         pass
+    if task_id:
+        task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+        try:
+            with open(task_log_file, 'a+', encoding='utf-8') as f:
+                f.write(data + "\n")
+        except:
+            pass
 
-def downloadFile(url, filename):
+def downloadFile(url, filename, task_id=None):
     # 下载文件
     try:
         import urllib
@@ -102,22 +131,22 @@ def downloadFile(url, filename):
         opener.addheaders = [headers]
         urllib.request.install_opener(opener)
 
+        def downloadHook(count, blockSize, totalSize):
+            # 下载文件进度回调
+            used = count * blockSize
+            pre = int((100.0 * used / totalSize))
+            speed = {'total': totalSize, 'used': used, 'pre': pre}
+            writeLogs(json.dumps(speed), task_id)
+
         urllib.request.urlretrieve(url, filename=filename, reporthook=downloadHook)
 
         if not mw.isAppleSystem():
             os.system('chown www.www ' + filename)
 
-        writeLogs(filename + ' download success!')
+        writeLogs(filename + ' download success!', task_id)
     except Exception as e:
-        writeLogs(str(e))
+        writeLogs(str(e), task_id)
     return True
-
-def downloadHook(count, blockSize, totalSize):
-    # 下载文件进度回调
-    used = count * blockSize
-    pre = int((100.0 * used / totalSize))
-    speed = {'total': totalSize, 'used': used, 'pre': pre}
-    writeLogs(json.dumps(speed))
 
 def runPanelTask():
     # 站点过期检查
@@ -138,9 +167,9 @@ def runPanelTask():
 
                 if run_task['type'] == 'download':
                     argv = run_task['cmd'].split('|mw|')
-                    downloadFile(argv[0], argv[1])
+                    downloadFile(argv[0], argv[1], task_id=run_task['id'])
                 elif run_task['type'] == 'execshell':
-                    execShell(run_task['cmd'])
+                    execShell(run_task['cmd'], task_id=run_task['id'])
 
                 end = int(time.time())
                 thisdb.setTaskData(run_task['id'], end=end)

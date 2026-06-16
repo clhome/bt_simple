@@ -44,6 +44,19 @@ def get_exec_log():
     return mw.getLastLine(file, 100)
 
 
+@blueprint.route('/get_task_log_by_id', endpoint='get_task_log_by_id', methods=['POST'])
+@panel_login_required
+def get_task_log_by_id():
+    task_id = request.form.get('id', '')
+    if task_id == '':
+        return mw.returnData(False, '任务ID不能为空!')
+    import os
+    task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+    if not os.path.exists(task_log_file):
+        return mw.returnData(False, '暂无日志记录。')
+    return mw.returnData(True, mw.readFile(task_log_file))
+
+
 @blueprint.route('/get_task_speed', endpoint='get_task_speed', methods=['POST'])
 @panel_login_required
 def get_task_speed():

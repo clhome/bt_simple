@@ -62,4 +62,12 @@ def removeTask(task_id):
     task_log = mw.getPanelDir() + "/tmp/panelTask.pl"
     if os.path.exists(task_log):
         os.remove(task_log)
+    
+    specific_log = mw.getPanelDir() + "/tmp/panelTask_{}.log".format(task_id)
+    if os.path.exists(specific_log):
+        try:
+            os.remove(specific_log)
+        except:
+            pass
+            
     return mw.returnData(True, '任务已删除!')

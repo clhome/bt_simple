@@ -1519,6 +1519,28 @@ function execLog(){
 	});
 }
 
+//查看指定任务的日志
+function showTaskLog(id, name) {
+	var loadT = layer.msg('正在获取日志...', { icon: 16, time: 0, shade: 0.3 });
+	$.post('/task/get_task_log_by_id', {id: id}, function(rdata) {
+		layer.close(loadT);
+		var logContent = '';
+		if (rdata.status) {
+			logContent = rdata.msg;
+		} else {
+			logContent = rdata.msg;
+		}
+		layer.open({
+			type: 1,
+			title: name + ' - 执行日志',
+			area: ['670px', '500px'],
+			shadeClose: false,
+			closeBtn: 1,
+			content: '<div class="pd15"><textarea readonly style="margin: 0px;width: 100%;height: 400px;background-color: #333;color:#fff; padding:5px; border:none">' + logContent + '</textarea></div>'
+		});
+	}, 'json');
+}
+
 /**
  * 获取时分秒
  * @param {Number} seconds 总秒数
@@ -1569,7 +1591,7 @@ function remind(a){
 			e += '<tr>\
 				<td><input type="checkbox"></td>\
 				<td>\
-					<div class="titlename c3">'+g.data[d].name+'</span>\
+					<div class="titlename c3"><a href="javascript:;" class="btlink" onclick="showTaskLog('+g.data[d].id+', \''+g.data[d].name+'\')">'+g.data[d].name+'</a></span>\
 						<span class="rs-status">【'+status_text+'】<span>\
 						<span class="rs-time">'+cos_text+'</span>\
 					</div>\
