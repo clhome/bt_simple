@@ -544,8 +544,35 @@ def restore_bt_data():
         os.system("systemctl start mysql 2>/dev/null")
         os.system("systemctl start mysqld 2>/dev/null")
         time.sleep(2)
+        
+        print("  正在修复 MySQL root 密码与面板同步...")
+        os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py fix_db_access >/dev/null 2>&1")
+        
         if os.path.exists(new_mysql_dir + "/bin/mysql_upgrade"):
-            os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot -p$(cat " + new_mysql_dir + "/default.pl 2>/dev/null) 2>/dev/null")
+            pwd = ""
+            try:
+                pwd = mw.M('config').dbPos(mw.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
+            except Exception:
+                pass
+            
+            if type(pwd) is not str:
+                pwd = ""
+
+            if not pwd:
+                pwd_file = new_mysql_dir + "/default.pl"
+                if os.path.exists(pwd_file):
+                    pwd = mw.readFile(pwd_file).strip()
+            
+            if not pwd and os.path.exists("/www/server/panel/data/mysql_root.pl"):
+                pwd = mw.readFile("/www/server/panel/data/mysql_root.pl").strip()
+            
+            if pwd:
+                os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot -p\"" + pwd + "\" >/dev/null 2>&1")
+            else:
+                os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot >/dev/null 2>&1")
+
+            print("  正在从 MySQL 同步数据库列表到面板...")
+            os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")
             
         print("  ✅ MySQL 数据无缝迁移成功！")
         mysql_restored = True
