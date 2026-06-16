@@ -833,11 +833,27 @@ def initdUinstall():
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
-        os.remove(initd_bin)
+        if os.path.exists(initd_bin):
+            os.remove(initd_bin)
         mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable mysql')
+    if mw.isSupportSystemctl():
+        mw.execShell('systemctl disable mysql')
+        systemd_path = '/usr/lib/systemd/system/mysql.service'
+        if os.path.exists(systemd_path):
+            os.remove(systemd_path)
+        systemd_path_etc = '/etc/systemd/system/mysql.service'
+        if os.path.exists(systemd_path_etc):
+            os.remove(systemd_path_etc)
+        mw.execShell('systemctl daemon-reload')
+    else:
+        initd_bin = getInitDFile()
+        if os.path.exists(initd_bin):
+            mw.execShell('chkconfig --del mysql')
+            mw.execShell('update-rc.d -f mysql remove')
+            os.remove(initd_bin)
+
     return 'ok'
 
 
@@ -4008,18 +4024,26 @@ def installPreInspection(version):
 
 
 def uninstallPreInspection(version):
-    data_dir = getDataDir()
-    if os.path.exists(data_dir):
-        stop(version)
-
-    if mw.isDebugMode():
-        return 'ok'
-
+    try:
+        data_dir = getDataDir()
+        if os.path.exists(data_dir):
+            stop(version)
+            # 备份数据目录，防止被删除
+            bak_dir = mw.getServerDir() + '/mysql_data_bak_' + time.strftime('%Y%m%d%H%M%S')
+            mw.execShell('mv ' + data_dir + ' ' + bak_dir)
+    except Exception as e:
+        pass
+        
+    initdUinstall()
+    
+    # 清理残余套接字
+    mw.execShell('rm -f /tmp/mysql.sock*')
+    mw.execShell('rm -f /var/tmp/mysql.sock*')
 
     from utils.plugin import plugin as MwPlugin
     MwPlugin.instance().removeIndex(getPluginName(), version)
 
-    return "请手动删除MySQL[{}]<br/> rm -rf {}".format(version, getServerDir())
+    return 'ok'
 
 if __name__ == "__main__":
     func = sys.argv[1]
