@@ -41,21 +41,63 @@ class jdk_main:
         if not os.path.exists(version_pl):
             mw.writeFile(version_pl, '1.0')
 
-    def get_jdk_list(self, args=None):
-        """获取JDK列表，标注默认和类型"""
-        ret = []
-        config = json.loads(mw.readFile(self._config_file))
-        custom_jdks = config.get("custom", [])
-        default_jdk = config.get("default", "")
+    def get_config(self):
+        return json.loads(mw.readFile(self._config_file))
 
-        # 1. 预设国内镜像下载源 (Adoptium 等)
-        # 此处使用硬编码列表展示支持在线安装的版本
-        online_jdks = [
-            {"version": "jdk-8", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/x64/linux/OpenJDK8U-jdk_x64_linux_hotspot_8u412b08.tar.gz"},
-            {"version": "jdk-11", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/x64/linux/OpenJDK11U-jdk_x64_linux_hotspot_11.0.23_9.tar.gz"},
-            {"version": "jdk-17", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/x64/linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.11_9.tar.gz"},
-            {"version": "jdk-21", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/x64/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.3_9.tar.gz"}
+    def get_online_jdks(self, force_update=False):
+        cache_file = self._plugin_path + '/versions.json'
+        default_jdks = [
+            {"version": "jdk-8", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/x64/linux/OpenJDK8U-jdk_x64_linux_hotspot_8u492b09.tar.gz"},
+            {"version": "jdk-11", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/x64/linux/OpenJDK11U-jdk_x64_linux_hotspot_11.0.31_11.tar.gz"},
+            {"version": "jdk-17", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/x64/linux/OpenJDK17U-jdk_x64_linux_hotspot_17.0.19_10.tar.gz"},
+            {"version": "jdk-21", "url": "https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/x64/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.11_10.tar.gz"}
         ]
+
+        if not force_update and os.path.exists(cache_file):
+            try:
+                content = mw.readFile(cache_file)
+                if content:
+                    return json.loads(content)
+            except:
+                pass
+                
+        import urllib.request
+        import re
+        updated_jdks = []
+        for jdk in default_jdks:
+            v_num = jdk['version'].split('-')[1]
+            base_url = f"https://mirrors.tuna.tsinghua.edu.cn/Adoptium/{v_num}/jdk/x64/linux/"
+            try:
+                req = urllib.request.Request(base_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    html = response.read().decode('utf-8')
+                    pattern = r'href="(OpenJDK' + v_num + r'U-jdk_x64_linux_hotspot_[^"]+\.tar\.gz)"'
+                    matches = re.findall(pattern, html)
+                    if matches:
+                        latest_file = sorted(matches)[-1]
+                        updated_jdks.append({
+                            "version": jdk['version'],
+                            "url": base_url + latest_file
+                        })
+                        continue
+            except Exception as e:
+                pass
+            updated_jdks.append(jdk)
+            
+        mw.writeFile(cache_file, json.dumps(updated_jdks))
+        return updated_jdks
+
+    def get_jdk_list(self, args=None):
+        """获取所有JDK列表 (包括预设在线版本和已安装版本)"""
+        ret = []
+        default_jdk = ""
+        config = self.get_config()
+        if config:
+            default_jdk = config.get("default", "")
+
+        # 1. 获取在线版本 (带本地缓存)
+        online_jdks = self.get_online_jdks()
+        custom_jdks = config.get("custom", [])
 
         # 检查在线版本是否已安装
         for jdk in online_jdks:
@@ -137,6 +179,22 @@ class jdk_main:
         if not version or not url:
             return mw.returnJson(False, '参数错误')
             
+        # 下载前预检URL，如果404则自动刷新提取最新版本
+        import urllib.request
+        import urllib.error
+        try:
+            req = urllib.request.Request(url, method='HEAD', headers={'User-Agent': 'Mozilla/5.0'})
+            urllib.request.urlopen(req, timeout=5)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                online_jdks = self.get_online_jdks(force_update=True)
+                for jdk in online_jdks:
+                    if jdk['version'] == version:
+                        url = jdk['url']
+                        break
+        except Exception:
+            pass # 忽略其他网络错误，交由bash脚本处理
+
         dest_dir = self._java_dir + '/' + version
         java_bin = dest_dir + '/bin/java'
         if os.path.exists(java_bin):
