@@ -170,8 +170,12 @@
 			</div>
 		</div>
 	</div>
-</div><script src="https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js"></script>
+</div>{% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js"></script>
 <script>window.echarts || document.write('<script src="/static/js/echarts.min.js"><\/script>')</script>
+{% else %}
+<script src="/static/js/echarts.min.js"></script>
+{% endif %}
 <script type="text/javascript" src="/static/laydate/laydate.js?v={{config.version}}"></script>
 <script src="/static/app/control.js?v={{config.version}}"></script>
 {% endblock %}

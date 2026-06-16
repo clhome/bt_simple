@@ -133,35 +133,63 @@
 <link href="/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}" rel="stylesheet" />
 {% endif %}
         <!-- jQuery -->
-        <script src="https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="/static/js/jquery-1.12.4.min.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/static/js/jquery-1.12.4.min.js"><\/script>')</script>
+{% else %}
+<script src="/static/js/jquery-1.12.4.min.js"></script>
+{% endif %}
 
         <!-- jQuery Cookie -->
-        <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
-        <script>$.cookie || document.write('<script src="/static/js/jquery.cookie-1.4.1.min.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script>$.cookie || document.write('<script src="/static/js/jquery.cookie-1.4.1.min.js"><\/script>')</script>
+{% else %}
+<script src="/static/js/jquery.cookie-1.4.1.min.js"></script>
+{% endif %}
 
         <!-- Bootstrap -->
-        <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
-        <script>$.fn.modal || document.write('<script src="/static/js/bootstrap.min.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script>$.fn.modal || document.write('<script src="/static/js/bootstrap.min.js"><\/script>')</script>
+{% else %}
+<script src="/static/js/bootstrap.min.js"></script>
+{% endif %}
 
         <!-- Layer -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/layer/3.5.1/layer.js"></script>
-        <script>window.layer || document.write('<script src="/static/layer/layer.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/layer/3.5.1/layer.js"></script>
+<script>window.layer || document.write('<script src="/static/layer/layer.js"><\/script>')</script>
+{% else %}
+<script src="/static/layer/layer.js"></script>
+{% endif %}
 
         <!-- Marked -->
-        <script src="https://cdn.staticfile.org/marked/15.0.12/marked.min.js"></script>
-        <script>window.marked || document.write('<script src="/static/js/marked.min.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/marked/15.0.12/marked.min.js"></script>
+<script>window.marked || document.write('<script src="/static/js/marked.min.js"><\/script>')</script>
+{% else %}
+<script src="/static/js/marked.min.js"></script>
+{% endif %}
 
         <!-- jQuery Fly (本地加载，体积小) -->
         <script src="/static/js/jquery.fly.min.js"></script>
 
         <!-- Clipboard -->
-        <script src="https://cdn.staticfile.org/clipboard.js/2.0.1/clipboard.min.js"></script>
-        <script>window.ClipboardJS || document.write('<script src="/static/js/clipboard.min.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/clipboard.js/2.0.1/clipboard.min.js"></script>
+<script>window.ClipboardJS || document.write('<script src="/static/js/clipboard.min.js"><\/script>')</script>
+{% else %}
+<script src="/static/js/clipboard.min.js"></script>
+{% endif %}
 
         <!-- XTerm & Addons -->
-        <script src="https://cdn.staticfile.org/xterm/3.14.5/xterm.min.js"></script>
-        <script>window.Terminal || document.write('<script src="/static/build/xterm.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/xterm/3.14.5/xterm.min.js"></script>
+<script>window.Terminal || document.write('<script src="/static/build/xterm.js"><\/script>')</script>
+{% else %}
+<script src="/static/build/xterm.js"></script>
+{% endif %}
         {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/xterm/3.14.5/addons/attach/attach.min.js" onerror="this.onerror=null;this.src='/static/build/addons/attach/attach.js'"></script>
 {% else %}
@@ -179,8 +207,12 @@
 {% endif %}
 
         <!-- Socket.io -->
-        <script src="https://cdn.staticfile.org/socket.io/4.5.0/socket.io.min.js"></script>
-        <script>window.io || document.write('<script src="/static/js/socket.io.min.js"><\/script>')</script>
+        {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/socket.io/4.5.0/socket.io.min.js"></script>
+<script>window.io || document.write('<script src="/static/js/socket.io.min.js"><\/script>')</script>
+{% else %}
+<script src="/static/js/socket.io.min.js"></script>
+{% endif %}
 
         <!-- Local custom configurations and utilities -->
         <script src="/static/build/addons/winptyCompat/winptyCompat.js"></script>
@@ -292,8 +324,12 @@
     }
   </script>
   <!-- CodeMirror CDN & Fallback -->
-  <script src="https://cdn.staticfile.org/codemirror/5.21.0/codemirror.min.js"></script>
-  <script>window.CodeMirror || document.write('<script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"><\/script>')</script>
+  {% if data['use_cdn'] == 'yes' %}
+<script src="https://cdn.staticfile.org/codemirror/5.21.0/codemirror.min.js"></script>
+<script>window.CodeMirror || document.write('<script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"><\/script>')</script>
+{% else %}
+<script src="/static/codemirror/lib/codemirror.js?v={{config.version}}"></script>
+{% endif %}
   <script src="/static/codemirror/addon/edit/editAll.js?v={{config.version}}"></script>
   <script src="/static/codemirror/mode/modeAll.js?v={{config.version}}"></script>
   <script src="/static/codemirror/mode/python/python.js?v={{config.version}}"></script>
