@@ -338,63 +338,66 @@ class plugin(object):
         if name.strip() == '':
             return mw.returnData(False, "缺少插件名称!", ())
 
+        # 解析真实安装目录以支持备份功能
+        real_install_path = None
+        plugin_path = self.__plugin_dir + '/' + name
+        info_file = plugin_path + '/info.json'
+        if os.path.exists(info_file):
+            try:
+                info_data = json.loads(mw.readFile(info_file))
+                install_path = info_data.get('path', '')
+                if install_path:
+                    # 兼容带有 VERSION 的路径占位符
+                    if install_path.find('VERSION') > -1:
+                        target_ver = version.strip()
+                        if not target_ver and 'versions' in info_data:
+                            if isinstance(info_data['versions'], list) and len(info_data['versions']) > 0:
+                                target_ver = info_data['versions'][0]
+                            elif isinstance(info_data['versions'], str):
+                                target_ver = info_data['versions']
+                        if target_ver:
+                            install_path = install_path.replace('VERSION', target_ver)
+                    
+                    if not install_path.startswith('/'):
+                        install_path = mw.getFatherDir() + '/' + install_path
+                    
+                    real_install_path = os.path.abspath(install_path)
+            except Exception as e:
+                pass
+
+        server_base_dir = os.path.abspath(mw.getServerDir()) # 即 /www/server
+
+        # 安全屏障：必须是 /www/server 内部的子级目录，且不能等于 /www/server 自身或根级敏感父节点
+        if real_install_path and real_install_path.startswith(server_base_dir) and real_install_path != server_base_dir:
+            if os.path.exists(real_install_path):
+                # 统一执行卸载前打包备份
+                if backup:
+                    try:
+                        import time
+                        backup_dir = mw.getBackupDir()
+                        if not os.path.exists(backup_dir):
+                            os.makedirs(backup_dir)
+                        timestamp = time.strftime('%Y%m%d_%H%M%S')
+                        backup_file = "{0}/plugin_backup_{1}_{2}.tar.gz".format(backup_dir, name, timestamp)
+                        parent_dir = os.path.dirname(real_install_path)
+                        base_name = os.path.basename(real_install_path)
+                        tar_cmd = "tar -czf {0} -C {1} {2}".format(backup_file, parent_dir, base_name)
+                        mw.execShell(tar_cmd)
+                    except Exception as bex:
+                        print("卸载前打包备份失败:", mw.getTracebackInfo())
+
         # 强制卸载（直接物理删除并清理首页图标配置）
         if force:
-            plugin_path = self.__plugin_dir + '/' + name
-            
-            # 先读取插件的绝对物理安装目录以进行清理
-            info_file = plugin_path + '/info.json'
-            if os.path.exists(info_file):
-                try:
-                    info_data = json.loads(mw.readFile(info_file))
-                    install_path = info_data.get('path', '')
-                    if install_path:
-                        # 兼容带有 VERSION 的路径占位符
-                        if install_path.find('VERSION') > -1:
-                            target_ver = version.strip()
-                            if not target_ver and 'versions' in info_data:
-                                if isinstance(info_data['versions'], list) and len(info_data['versions']) > 0:
-                                    target_ver = info_data['versions'][0]
-                                elif isinstance(info_data['versions'], str):
-                                    target_ver = info_data['versions']
-                            if target_ver:
-                                install_path = install_path.replace('VERSION', target_ver)
-                        
-                        if not install_path.startswith('/'):
-                            install_path = mw.getFatherDir() + '/' + install_path
-                        
-                        real_install_path = os.path.abspath(install_path)
-                        server_base_dir = os.path.abspath(mw.getServerDir()) # 即 /www/server
-                        
-                        # 安全屏障：必须是 /www/server 内部的子级目录，且不能等于 /www/server 自身或根级敏感父节点
-                        if real_install_path.startswith(server_base_dir) and real_install_path != server_base_dir:
-                            if os.path.exists(real_install_path):
-                                # 强制删除前进行打包备份到 /www/backup
-                                if backup:
-                                    try:
-                                        import time
-                                        backup_dir = mw.getBackupDir()
-                                        if not os.path.exists(backup_dir):
-                                            os.makedirs(backup_dir)
-                                        timestamp = time.strftime('%Y%m%d_%H%M%S')
-                                        backup_file = "{0}/plugin_backup_{1}_{2}.tar.gz".format(backup_dir, name, timestamp)
-                                        parent_dir = os.path.dirname(real_install_path)
-                                        base_name = os.path.basename(real_install_path)
-                                        tar_cmd = "tar -czf {0} -C {1} {2}".format(backup_file, parent_dir, base_name)
-                                        mw.execShell(tar_cmd)
-                                    except Exception as bex:
-                                        print("强制卸载打包备份失败:", mw.getTracebackInfo())
-
-                                import shutil
-                                try:
-                                    if os.path.isdir(real_install_path):
-                                        shutil.rmtree(real_install_path)
-                                    else:
-                                        os.remove(real_install_path)
-                                except Exception as e:
-                                    mw.execShell("rm -rf " + real_install_path)
-                except Exception as ex:
-                    print("强制卸载数据目录清理出错:", mw.getTracebackInfo())
+            if real_install_path and real_install_path.startswith(server_base_dir) and real_install_path != server_base_dir:
+                if os.path.exists(real_install_path):
+                    import shutil
+                    try:
+                        if os.path.isdir(real_install_path):
+                            shutil.rmtree(real_install_path)
+                        else:
+                            os.remove(real_install_path)
+                    except Exception as e:
+                        mw.execShell("rm -rf " + real_install_path)
 
             # 从首页展示配置中移除
             try:

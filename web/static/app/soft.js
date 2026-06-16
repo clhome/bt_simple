@@ -426,25 +426,48 @@ function uninstallPreInspection(name, title, ver, callback){
 
 function runUninstallVersion(name, title, version){
     var title = title.replace("-"+version,"");
-    layer.confirm(msgTpl('您真的要卸载【{1}-{2}】吗?', [title, version]), { icon: 3, closeBtn: 1 }, function() {
-        var data = 'name=' + name + '&version=' + version;
-        var loadT = layer.msg('正在处理,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-        $.post('/plugins/uninstall', data, function(rdata) {
-            layer.close(loadT)
-            if (rdata.status) {
-                getSList();
-                layer.msg(rdata.msg, { icon: 1 });
-            } else {
-                layer.confirm(rdata.msg + '<br><span style="color: red;">插件卸载失败，是否要强制删除该插件？</span>', {
-                    title: '卸载失败提示',
-                    icon: 2,
-                    closeBtn: 1,
-                    btn: ['强制删除', '取消']
-                }, function() {
-                    forceUninstallPlugin(name, version);
-                });
-            }
-        },'json');
+    var contentHtml = "<div class='bt-form pd20 c6'>\
+        <div class='line' style='margin-bottom: 15px;'>\
+            <span style='font-size:14px;'>您真的要卸载【" + title + "-" + version + "】吗？</span>\
+        </div>\
+        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>\
+            <label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>\
+                <input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />\
+                卸载前将数据打包备份到 /www/backup (.tar.gz)\
+            </label>\
+        </div>\
+    </div>";
+
+    layer.open({
+        type: 1,
+        title: "卸载软件确认",
+        area: '400px',
+        closeBtn: 1,
+        shadeClose: false,
+        btn: ['确认卸载', '取消'],
+        content: contentHtml,
+        yes: function(index, layero) {
+            var isBackup = $("#normal_uninstall_backup_chk").prop("checked") ? 1 : 0;
+            layer.close(index);
+            var data = 'name=' + name + '&version=' + version + '&backup=' + isBackup;
+            var loadT = layer.msg('正在处理,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+            $.post('/plugins/uninstall', data, function(rdata) {
+                layer.close(loadT)
+                if (rdata.status) {
+                    getSList();
+                    layer.msg(rdata.msg, { icon: 1 });
+                } else {
+                    layer.confirm(rdata.msg + '<br><span style="color: red;">插件卸载失败，是否要强制删除该插件？</span>', {
+                        title: '卸载失败提示',
+                        icon: 2,
+                        closeBtn: 1,
+                        btn: ['强制删除', '取消']
+                    }, function() {
+                        forceUninstallPlugin(name, version);
+                    });
+                }
+            },'json');
+        }
     });
 }
 

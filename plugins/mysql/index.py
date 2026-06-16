@@ -4024,16 +4024,6 @@ def installPreInspection(version):
 
 
 def uninstallPreInspection(version):
-    try:
-        data_dir = getDataDir()
-        if os.path.exists(data_dir):
-            stop(version)
-            # 备份数据目录，防止被删除
-            bak_dir = mw.getServerDir() + '/mysql_data_bak_' + time.strftime('%Y%m%d%H%M%S')
-            mw.execShell('mv ' + data_dir + ' ' + bak_dir)
-    except Exception as e:
-        pass
-        
     initdUinstall()
     
     # 清理残余套接字
