@@ -286,63 +286,102 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
         option = '<span id="selectVersion" val="' + name + ' ' + ver + '">【' + titlename + '】 ' + ver + '</span>';
     }
 
-    var installMethodHtml = "";
-    if (name === "mysql") {
-        installMethodHtml = "<div class='line' style='margin-top:15px;display:flex;align-items:center;'>\
-            <span style='margin-right:15px;'>安装方式：</span>\
-            <label style='font-weight:normal;cursor:pointer;margin-bottom:0;display:flex;align-items:center;'><input type='radio' name='mysql_install_type' value='compile' checked='checked' style='margin:0 5px 0 0;' /> 源码编译</label>\
-            <label style='font-weight:normal;cursor:pointer;margin-left:15px;margin-bottom:0;display:flex;align-items:center;'><input type='radio' name='mysql_install_type' value='fast' style='margin:0 5px 0 0;' /> 极速安装(Tar)</label>\
-        </div>";
-    }
-
-    layer.open({
-        type: 1,
-        title: "安装"+titlename,
-        area: '380px',
-        closeBtn: 1,
-        shadeClose: true,
-        btn: ['提交','关闭'],
-        content: "<div class='bt-form pd20 c6'>\
-			<div class='version line'>安装版本：" + option + "</div>" + installMethodHtml + "\
-	    </div>",
-        success:function(){
-            $('.fangshi input').click(function() {
-                $(this).attr('checked', 'checked').parent().siblings().find("input").removeAttr('checked');
-            });
-            installTips();
-        },
-        yes:function(index,layero){
-            var info = $("#selectVersion").val();
-            if (info == null || info == undefined || info == ''){
-                info = $("#selectVersion").attr('val');
-            }
-            info = info.toLowerCase();
-            var info_split = info.split(' ');
-            var name = info_split[0];
-            var version = info_split[1];
-
-            if (name === "mysql") {
-                var install_method = $("input[name='mysql_install_type']:checked").val();
-                if (install_method === "fast") {
-                    version = version + "-fast";
-                }
-            }
-
-            var type = $('.fangshi').prop("checked") ? '1' : '0';
-            var request_args = "name=" + name + "&version=" + version + "&type=" + type;
-
-            if (install_pre_inspection){
-                //安装前置检测
-                installPreInspection(name, version, function(){
-                    runInstall(request_args);
-                    flySlow('layui-layer-btn0');
-                });      
-                return;
-            }
-
-            runInstall(request_args);
-            flySlow('layui-layer-btn0');
+    var customHtmlPath = "/plugins/file?name=" + name + "&f=install.html";
+    $.get(customHtmlPath, function(customHtml) {
+        if (typeof customHtml !== 'string' || customHtml.indexOf('404 Not Found') > -1 || customHtml.indexOf('{"status":false') > -1 || customHtml.trim() === '') {
+            customHtml = '';
         }
+        var layerArea = customHtml ? '540px' : '380px';
+        
+        layer.open({
+            type: 1,
+            title: "安装"+titlename,
+            area: layerArea,
+            closeBtn: 1,
+            shadeClose: true,
+            btn: ['提交','关闭'],
+            content: "<div class='bt-form pd20 c6'>\
+                <div class='version line'>安装版本：" + option + "</div>" + customHtml + "\
+            </div>",
+            success:function(){
+                $('.fangshi input').click(function() {
+                    $(this).attr('checked', 'checked').parent().siblings().find("input").removeAttr('checked');
+                });
+                installTips();
+            },
+            yes:function(index,layero){
+                var info = $("#selectVersion").val();
+                if (info == null || info == undefined || info == ''){
+                    info = $("#selectVersion").attr('val');
+                }
+                info = info.toLowerCase();
+                var info_split = info.split(' ');
+                var plugin_name = info_split[0];
+                var version = info_split[1];
+
+                if (typeof window['install_hook_' + plugin_name] === 'function') {
+                    version = window['install_hook_' + plugin_name](version);
+                }
+
+                var type = $('.fangshi').prop("checked") ? '1' : '0';
+                var request_args = "name=" + plugin_name + "&version=" + version + "&type=" + type;
+
+                if (install_pre_inspection){
+                    //安装前置检测
+                    installPreInspection(plugin_name, version, function(){
+                        runInstall(request_args);
+                        flySlow('layui-layer-btn0');
+                    });      
+                    return;
+                }
+
+                runInstall(request_args);
+                flySlow('layui-layer-btn0');
+            }
+        });
+    }).fail(function() {
+        layer.open({
+            type: 1,
+            title: "安装"+titlename,
+            area: '380px',
+            closeBtn: 1,
+            shadeClose: true,
+            btn: ['提交','关闭'],
+            content: "<div class='bt-form pd20 c6'>\
+                <div class='version line'>安装版本：" + option + "</div>\
+            </div>",
+            success:function(){
+                $('.fangshi input').click(function() {
+                    $(this).attr('checked', 'checked').parent().siblings().find("input").removeAttr('checked');
+                });
+                installTips();
+            },
+            yes:function(index,layero){
+                var info = $("#selectVersion").val();
+                if (info == null || info == undefined || info == ''){
+                    info = $("#selectVersion").attr('val');
+                }
+                info = info.toLowerCase();
+                var info_split = info.split(' ');
+                var plugin_name = info_split[0];
+                var version = info_split[1];
+
+                var type = $('.fangshi').prop("checked") ? '1' : '0';
+                var request_args = "name=" + plugin_name + "&version=" + version + "&type=" + type;
+
+                if (install_pre_inspection){
+                    //安装前置检测
+                    installPreInspection(plugin_name, version, function(){
+                        runInstall(request_args);
+                        flySlow('layui-layer-btn0');
+                    });      
+                    return;
+                }
+
+                runInstall(request_args);
+                flySlow('layui-layer-btn0');
+            }
+        });
     });
 }
 

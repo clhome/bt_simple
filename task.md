@@ -1,4 +1,4 @@
-## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
+﻿## 需求：修复 MySQL[Tar] 5.7 创建数据库时报"数据库密码错误"
 
 **问题描述：** MySQL 5.7 插件安装后，MySQL 服务正常运行，但点击「添加数据库」时弹出"数据库密码错误,在管理列表-点击【修复】！"错误。
 
@@ -4043,3 +4043,9 @@ gx_http_substitutions_filter_module 模块源码。
 - [x] 后端支持：在 `web/utils/config.py` 和 `web/admin/setting/setting.py` 中增加对 `use_cdn` 选项的支持，提供切换接口
 - [x] 设置面板界面：在 `web/templates/default/setting.html` 增加开关，并在 `config.js` 增加开关的 js 操作函数
 - [x] 模板替换：在 `layout.html`, `index.html`, `monitor.html` 中应用 jinja 判断，根据 `use_cdn` 控制本地/CDN资源的加载
+
+## 需求：MySQL 安装弹窗放大与极速安装说明美化
+
+- [x] 在 soft.js 的 ddVersion 函数中，放大 MySQL 安装弹窗的尺寸（从 380px 增大到 540px）。
+- [x] 在 `plugins/mysql` 目录下创建独立的 `install.html` 配置文件，实现对源码编译与极速安装差异及场景的高雅排版。
+- [x] 利用暴露在 `window` 的回调钩子（如 `install_hook_mysql`），动态篡改装载参数，彻底实现逻辑代码与面板主工程的解耦。
