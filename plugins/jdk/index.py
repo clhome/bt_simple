@@ -142,13 +142,13 @@ class jdk_main:
                     "operation": 4, "is_default": (sys_java == default_jdk)
                 })
 
-        # 返回按照状态排序：已默认 > 已安装 > 未安装，且版本号降序
+        # 纯粹按照版本号降序排列
         def get_ver(name):
             import re
             m = re.search(r'\d+', name)
             return int(m.group()) if m else 0
             
-        ret = sorted(ret, key=lambda x: (not x['is_default'], x['operation'] == 0, -get_ver(x['name'])))
+        ret = sorted(ret, key=lambda x: -get_ver(x['name']))
         return mw.returnJson(True, ret)
 
     def add_custom_jdk(self, args):
