@@ -290,7 +290,7 @@ def initDreplace(version=''):
         mw.execShell('systemctl daemon-reload')
 
     if not mw.isAppleSystem():
-        mw.execShell('chown -R mysql mysql ' + getServerDir())
+        mw.execShell('chown -R mysql:mysql ' + getServerDir())
 
     initd_path = getServerDir() + '/init.d'
     if not os.path.exists(initd_path):
@@ -552,7 +552,7 @@ def initMysql8Data():
         #     datadir + ' --initialize'
 
         myconf = serverdir + "/etc/my.cnf"
-        cmd = 'cd ' + serverdir + ' && ./bin/mysqld --basedir=' + serverdir + ' --datadir=' + \
+        cmd = 'cd ' + serverdir + ' && ./bin/mysqld --no-defaults --basedir=' + serverdir + ' --datadir=' + \
             datadir + ' --user=' + user + ' --initialize-insecure'
 
         data = mw.execShell(cmd)
@@ -689,7 +689,7 @@ def myOp(version, method):
     try:
         isInited = initMysqlData()
         if not isInited:
-
+            makeInitRsaKey(version)
             if not mw.isSupportSystemctl():
                 mw.execShell('service ' + getPluginName() + ' start')
             else:
