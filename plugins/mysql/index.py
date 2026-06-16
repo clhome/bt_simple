@@ -523,6 +523,11 @@ def initMysql57Data():
     datadir = getDataDir()
     if not os.path.exists(datadir + '/mysql'):
         serverdir = getServerDir()
+        
+        # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
+        if datadir == serverdir + '/data' and os.path.exists(datadir):
+            mw.execShell('rm -rf ' + datadir)
+
         myconf = serverdir + "/etc/my.cnf"
         user = pGetDbUser()
         cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + \
@@ -537,16 +542,24 @@ def initMysql8Data():
     datadir = getDataDir()
     if not os.path.exists(datadir + '/mysql'):
         serverdir = getServerDir()
+        
+        # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
+        if datadir == serverdir + '/data' and os.path.exists(datadir):
+            mw.execShell('rm -rf ' + datadir)
+
         user = pGetDbUser()
         # cmd = 'cd ' + serverdir + ' && ./bin/mysqld --basedir=' + serverdir + ' --datadir=' + \
         #     datadir + ' --initialize'
 
+        myconf = serverdir + "/etc/my.cnf"
         cmd = 'cd ' + serverdir + ' && ./bin/mysqld --basedir=' + serverdir + ' --datadir=' + \
-            datadir + ' --initialize-insecure'
+            datadir + ' --user=' + user + ' --initialize-insecure'
 
-        # print(cmd)
         data = mw.execShell(cmd)
-        # print(data)
+        
+        # 记录初始化命令及其输出到日志，用于诊断
+        mw.writeFile('/tmp/mysql8_init_debug.log', f"CMD: {cmd}\nSTDOUT: {data[0]}\nSTDERR: {data[1]}")
+        
         return False
     return True
 
