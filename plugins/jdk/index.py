@@ -137,7 +137,7 @@ wget -O {version}.tar.gz {url}
 tar -zxvf {version}.tar.gz -C {dest_dir} --strip-components=1
 rm -f {version}.tar.gz
 echo 'JDK {version} 安装完成'
-"""
+""".replace('\r\n', '\n')
         mw.writeFile(script_file, script_content)
         cmd = f"bash {script_file}"
         title = f'安装JDK-{version}'
@@ -180,7 +180,7 @@ echo 'JDK {version} 安装完成'
         env_content = f"""export JAVA_HOME={java_home}
 export PATH=$JAVA_HOME/bin:$PATH
 export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
-"""
+""".replace('\r\n', '\n')
         mw.writeFile('/etc/profile.d/java.sh', env_content)
         
         # 保存到配置文件

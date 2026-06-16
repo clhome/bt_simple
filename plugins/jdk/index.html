@@ -178,12 +178,12 @@
                                         title: '添加自定义JDK',
                                         closeBtn: 2,
                                         area: '450px',
-                                        content: '<div style="padding:20px;display: flex;align-items: center;">\
-                                                    <span style="width: 80px;" >JDK路径：</span>\
-                                                    <input class="bt-input-text mr10 file-path" style="width:300px" placeholder="/usr/local/java/jdk1.8.0/bin/java"/>\
-                                                    <span class="glyphicon glyphicon-folder-open cursor" style="color: black;" onclick="bt.select_path(\'file-path\', \'file\')"></span>\
-                                                  </div>\
-                                                  <div style="padding:0 20px 20px 20px; color:#999; font-size:12px;">提示: 请选择到 java 可执行文件级别。</div>',
+                                        content: '<div style="padding:20px;display: flex;align-items: center;">' +
+                                                    '<span style="width: 80px;" >JDK路径：</span>' +
+                                                    '<input class="bt-input-text mr10 file-path" style="width:300px" placeholder="/usr/local/java/jdk1.8.0/bin/java"/>' +
+                                                    '<span class="glyphicon glyphicon-folder-open cursor" style="color: black;" onclick="bt.select_path(\'file-path\', \'file\')"></span>' +
+                                                  '</div>' +
+                                                  '<div style="padding:0 20px 20px 20px; color:#999; font-size:12px;">提示: 请选择到 java 可执行文件级别。</div>',
                                         success: function (layero) {
                                             $(layero).find('.glyphicon-folder-open').click(function () {
                                                 bt.select_path('file-path', 'file', function (val) {
