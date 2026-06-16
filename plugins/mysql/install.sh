@@ -2,7 +2,8 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-curPath=`pwd`
+PLUGIN_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
+curPath=${PLUGIN_PATH}
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
@@ -15,9 +16,15 @@ if [ -f ${rootPath}/scripts/lib.sh ];then
 	source ${rootPath}/scripts/lib.sh
 fi
 
-action=$1
-type=$2
+# lib.sh 可能会改变 curPath 变量和当前工作目录，这里必须强制恢复
+curPath=${PLUGIN_PATH}
+cd ${PLUGIN_PATH}
+
+action="${1//$'\r'/}"
+type="${2//$'\r'/}"
 is_fast=false
+
+
 
 # 自动匹配剥离 -fast 后缀并切换模式
 if [[ "${type}" == *-fast ]]; then
@@ -38,7 +45,13 @@ if [ "${type}" == "" ];then
 	exit 0
 fi 
 
-if [ "${is_fast}" == "false" ] && [ ! -d $curPath/versions/$type ];then
+echo "[DEBUG] curPath is: '${curPath}'"
+echo "[DEBUG] type is: '${type}'"
+echo "[DEBUG] BASH_SOURCE[0] is: '${BASH_SOURCE[0]}'"
+echo "[DEBUG] pwd is: '$(pwd)'"
+echo "[DEBUG] Checking if directory exists: ${curPath}/versions/${type}"
+
+if [ "${is_fast}" == "false" ] && [ ! -d "$curPath/versions/$type" ];then
 	echo '缺少源码编译安装脚本...'
 	exit 0
 fi

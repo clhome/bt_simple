@@ -3972,3 +3972,39 @@ gx_http_substitutions_filter_module 模块源码。
 
 - [x] 在 web/utils/plugin.py 的 getIndexList 遍历 display_index 解析处，增加 	mp_len < 2 的容错 continue 过滤逻辑。 @done
 - [x] 在 web/utils/plugin.py 的 checkIndexList 中同样增加 	len < 2 的跳过逻辑，确保不会因提取版本号抛出异常。 @done
+
+
+## 需求：修复 mysql 插件安装时报错“缺少源码编译安装脚本...”
+
+**问题描述：**
+安装 mysql 时，即使所需版本的目录存在，仍会提示 `缺少源码编译安装脚本...` 并异常退出。
+
+**根本原因分析：**
+`mysql/install.sh` 脚本中使用了 `source ${rootPath}/scripts/lib.sh`，而 `lib.sh` 内部用全局变量重写了 `curPath` 为其自身的所在的 `scripts` 目录。
+这导致 `install.sh` 后续执行 `[ ! -d $curPath/versions/$type ]` 时，检查到了错误的路径，进而抛出“缺少源码编译安装脚本”的错误。
+
+**修复文件：**
+
+- `plugins/mysql/install.sh`
+
+### Task List
+
+- [x] 在 `plugins/mysql/install.sh` 中的 `source lib.sh` 之后，重新通过 `$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)` 获取并修正 `curPath`，彻底解决全局变量污染引发的路径解析错误。 @done(2026-06-16 11:51)
+
+## 需求：修复 MySQL 插件继续报错“缺少源码编译安装脚本”
+
+**问题描述：** 之前修复了 curPath 的解析，但 MySQL 插件依然报错“缺少源码编译安装脚本”。
+
+**根本原因分析：**
+- `scripts/lib.sh` 脚本在执行过程中，会执行 `cd /www/server/mdserver-web` 导致当前工作目录被改变。
+- 在 source `lib.sh` 之后再执行 `pwd` 或 `cd .`，获取到的当前目录不再是插件目录，而是面板根目录。
+- 这导致 `$curPath/versions/$type` 指向了错误的路径（如 `/www/server/mdserver-web/versions/5.7`），从而触发脚本检测失败并退出。
+
+**修复方案：**
+- 在 `install.sh` 中，**在 source lib.sh 之前**，先通过 `BASH_SOURCE[0]` 提前获取并保存真正的插件绝对路径到 `PLUGIN_PATH`。
+- 在 source `lib.sh` 之后，强制恢复 `curPath=${PLUGIN_PATH}` 并且强制 `cd ${PLUGIN_PATH}`，防止 `lib.sh` 污染变量和工作目录。
+
+### Task List
+- [x] 深度分析 MySQL `install.sh` 执行流程及失败原因
+- [x] 修改 `install.sh`：保存初始插件路径，在执行 `source lib.sh` 之后强制恢复 `curPath` 与当前工作目录
+- [x] 剥离传入参数中可能因为 Python 传递导致的 CRLF 换行符（如 `\r`），提升脚本传参容错性
