@@ -134,8 +134,9 @@ class jdk_main:
         # 3. 检查系统预装 JDK
         sys_java = '/usr/bin/java'
         if os.path.exists(sys_java):
-            # 防止重复添加
-            if not any(x['path'] == sys_java for x in ret):
+            real_sys_java = os.path.realpath(sys_java)
+            # 防止重复添加（如果它是指向面板已安装JDK的软连接，则不显示）
+            if not any(x['path'] == sys_java or x['path'] == real_sys_java for x in ret):
                 ret.append({
                     "name": "系统自带JDK", "type": "系统预装", "path": sys_java,
                     "operation": 4, "is_default": (sys_java == default_jdk)
@@ -272,6 +273,10 @@ export PATH=$JAVA_HOME/bin:$PATH
 export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 """.replace('\r\n', '\n')
         mw.writeFile('/etc/profile.d/java.sh', env_content)
+        
+        # 建立软连接，让当前已打开的终端也能立刻生效
+        mw.execShell(f"ln -sf {java_home}/bin/java /usr/bin/java")
+        mw.execShell(f"ln -sf {java_home}/bin/javac /usr/bin/javac")
         
         # 保存到配置文件
         config = json.loads(mw.readFile(self._config_file))
