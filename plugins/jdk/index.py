@@ -19,6 +19,7 @@ import threading
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
     sys.path.append(web_dir)
+    os.chdir(web_dir)
 import core.mw as mw
 
 class jdk_main:
@@ -34,6 +35,11 @@ class jdk_main:
             os.makedirs(self._java_dir)
         if not os.path.exists(self._config_file):
             mw.writeFile(self._config_file, json.dumps({"custom": [], "default": ""}))
+            
+        # 自动生成 version.pl 以便面板首页识别版本
+        version_pl = self._java_dir + '/version.pl'
+        if not os.path.exists(version_pl):
+            mw.writeFile(version_pl, '1.0')
 
     def get_jdk_list(self, args=None):
         """获取JDK列表，标注默认和类型"""
@@ -55,7 +61,10 @@ class jdk_main:
         for jdk in online_jdks:
             jdk_path = self._java_dir + '/' + jdk['version'] + '/bin/java'
             # Check if installing
-            is_installing = mw.execShell("ps -ef|grep 'wget'|grep '" + jdk['version'] + "'")[0].find('wget') != -1
+            is_installing = False
+            if os.name != 'nt':
+                cmd = "ps -ef | grep wget | grep '" + jdk['version'] + "' | grep -v grep | grep -v '\\-c'"
+                is_installing = mw.execShell(cmd)[0].find('wget') != -1
             if os.path.exists(jdk_path):
                 ret.append({
                     "name": jdk['version'], "type": "面板安装", "path": jdk_path,
@@ -90,8 +99,13 @@ class jdk_main:
                     "operation": 4, "is_default": (sys_java == default_jdk)
                 })
 
-        # 返回按照状态排序：已默认 > 已安装 > 未安装
-        ret = sorted(ret, key=lambda x: (not x['is_default'], x['operation'] == 0, x['name']))
+        # 返回按照状态排序：已默认 > 已安装 > 未安装，且版本号降序
+        def get_ver(name):
+            import re
+            m = re.search(r'\d+', name)
+            return int(m.group()) if m else 0
+            
+        ret = sorted(ret, key=lambda x: (not x['is_default'], x['operation'] == 0, -get_ver(x['name'])))
         return mw.returnJson(True, ret)
 
     def add_custom_jdk(self, args):
@@ -124,8 +138,13 @@ class jdk_main:
             return mw.returnJson(False, '参数错误')
             
         dest_dir = self._java_dir + '/' + version
+        java_bin = dest_dir + '/bin/java'
+        if os.path.exists(java_bin):
+            return mw.returnJson(False, '该版本已安装')
+        
+        # 如果存在空目录（上次安装失败残留），先清理
         if os.path.exists(dest_dir):
-            return mw.returnJson(False, '该版本似乎已安装或目录已存在')
+            mw.execShell('rm -rf ' + dest_dir)
             
         # 写入安装脚本并投递至任务队列
         import thisdb
@@ -133,9 +152,22 @@ class jdk_main:
         script_content = f"""#!/bin/bash
 mkdir -p {dest_dir}
 cd {self._java_dir}
-wget -O {version}.tar.gz {url}
-tar -zxvf {version}.tar.gz -C {dest_dir} --strip-components=1
+wget --timeout=60 --tries=3 -O {version}.tar.gz {url}
+if [ $? -ne 0 ]; then
+    echo 'JDK {version} 下载失败，请检查网络连接'
+    rm -f {version}.tar.gz
+    rm -rf {dest_dir}
+    exit 1
+fi
+tar -zxf {version}.tar.gz -C {dest_dir} --strip-components=1
+if [ ! -f "{dest_dir}/bin/java" ]; then
+    echo 'JDK {version} 解压异常，未找到 bin/java'
+    rm -f {version}.tar.gz
+    rm -rf {dest_dir}
+    exit 1
+fi
 rm -f {version}.tar.gz
+chmod +x {dest_dir}/bin/*
 echo 'JDK {version} 安装完成'
 """.replace('\r\n', '\n')
         mw.writeFile(script_file, script_content)
@@ -189,3 +221,44 @@ export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
         mw.writeFile(self._config_file, json.dumps(config))
         
         return mw.returnJson(True, '设置成功，全局环境变量已写入 /etc/profile.d/java.sh，在新的终端中即刻生效。')
+
+
+def getArgs():
+    tmp = {}
+    # 从 sys.argv[2:] 开始扫描，兼容面板框架 version 为空时索引偏移的情况
+    scan_args = sys.argv[2:]
+    if not scan_args:
+        return tmp
+    
+    args_str = " ".join(scan_args)
+    # 尝试直接解析整个拼接字符串
+    try:
+        parsed = json.loads(args_str)
+        if isinstance(parsed, dict):
+            return parsed
+    except:
+        pass
+    
+    # 逐个元素尝试解析 JSON
+    for arg in scan_args:
+        arg = arg.strip()
+        if not arg:
+            continue
+        try:
+            parsed = json.loads(arg)
+            if isinstance(parsed, dict):
+                return parsed
+        except:
+            continue
+    return tmp
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        func = sys.argv[1]
+        args = getArgs()
+        plugin_obj = jdk_main()
+        if hasattr(plugin_obj, func):
+            func_obj = getattr(plugin_obj, func)
+            print(func_obj(args))
+        else:
+            print('error')

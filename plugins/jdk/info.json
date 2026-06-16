@@ -3,7 +3,7 @@
     "name": "jdk",
     "type": "运行环境",
     "ps": "安装和管理Java JDK环境，支持全局环境变量一键设置与自定义JDK配置。",
-    "versions": "1.0",
+    "versions": ["1.0"],
     "shell": "install.sh",
     "checks": "server/jdk",
     "path": "server/jdk",

@@ -511,6 +511,10 @@ def readFile(filename):
 def writeFile(filename, content, mode='w+'):
     # 写文件内容
     try:
+        # 确保父目录存在
+        parent_dir = os.path.dirname(filename)
+        if parent_dir and not os.path.exists(parent_dir):
+            os.makedirs(parent_dir, exist_ok=True)
         fp = open(filename, mode, encoding='utf-8')
         fp.write(content)
         fp.close()
@@ -1205,6 +1209,10 @@ def writeFileLog(msg, path=None, limit_size=50 * 1024 * 1024, save_limit=3):
                 os.remove(logs[i])
                 # print('|---多余日志[' + logs[i] + ']已删除!')
 
+    # 确保日志目录存在
+    log_dir = os.path.dirname(log_file)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir, exist_ok=True)
     f = open(log_file, 'ab+')
     msg += "\n"
     if __name__ == '__main__':
