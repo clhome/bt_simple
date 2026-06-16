@@ -24,8 +24,8 @@ def check_and_migrate_bt_software():
         if mysql_ver:
             best_ver = match_plugin_version('mysql', mysql_ver)
             if best_ver:
-                plugin_mgr.install('mysql', best_ver)
-                mw.writeLog("面板迁移", "自动将宝塔 MySQL %s (适配为 %s) 重建任务加入队列" % (mysql_ver, best_ver))
+                plugin_mgr.install('mysql', best_ver + '-fast')
+                mw.writeLog("面板迁移", "自动将宝塔 MySQL %s (适配为 %s 极速版) 重建任务加入队列" % (mysql_ver, best_ver))
                 
         # 2. Redis
         redis_ver = data.get('redis')
