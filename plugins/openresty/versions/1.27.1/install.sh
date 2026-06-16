@@ -167,7 +167,7 @@ Install_openresty()
 			fi
 		fi
 		if [ -f '/usr/local/lib/libjemalloc.so' ] || [ -f '/usr/lib/libjemalloc.so' ] || [ -f '/usr/lib64/libjemalloc.so' ]; then
-			OPTIONS="${OPTIONS} --with-ld-opt=\"-ljemalloc\""
+			OPTIONS="${OPTIONS} --with-ld-opt=-ljemalloc"
 		fi
 	fi
 
