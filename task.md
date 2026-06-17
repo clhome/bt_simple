@@ -4094,3 +4094,15 @@ gx_http_substitutions_filter_module 模块源码。
 - [x] 修复 main.py 中的 getMemInfo 与 getMemUsed 函数：检测如果不存在 uffers 属性（如 Windows 环境），则安全略过 uffers 和 cached 的运算，防止 AttributeError。 @done
 - [x] 确诊并验证 /system/network 及相关首页数据接口由于 sys.getLoadAverage() 和 sys.getMemInfo() 的 Windows 兼容性修复，现已可以正常无报错响应。 @done
 - [x] 确诊首页的流量与磁盘 sys.stats().network() / disk() 获取均为内存级缓存字典的高性能比对算法，不存在高频 I/O 开销。 @done
+
+## 需求：修复所有软件改变状态时外部状态显示没有刷新问题
+
+**问题描述：**
+所有软件在管理弹窗中改变状态（例如：停止或启动服务）时，首页或软件列表的外部状态显示都没有刷新，需要完全刷新整个页面才会显示新状态。
+
+**涉及文件：**
+- web/static/app/public.js
+
+### Task List
+- [x] 修改 public.js 中的 pluginOpService，在状态变更后的 setTimeout 中增加对 getSList（软件列表页）和 indexListHtml（面板首页）的回调检查，实现状态变更后无缝刷新。 @done
+

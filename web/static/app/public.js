@@ -2476,8 +2476,12 @@ function pluginOpService(a, b, v, _suffix_name='') {
             }
 
             setTimeout(function(){
-            	// location.reload();
-            	getSList();
+                if (typeof getSList === 'function' && $("#softList").length > 0) {
+                    getSList();
+                }
+                if (typeof indexListHtml === 'function' && $("#indexsoft").length > 0) {
+                    indexListHtml();
+                }
             },2000);
         },'json').error(function() {
             layer.close(e);
