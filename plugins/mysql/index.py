@@ -453,6 +453,10 @@ def getErrorLog():
     args = getArgs()
     filename = getErrorLogsFile()
     if not os.path.exists(filename):
+        init_debug = '/tmp/mysql8_init_debug.log'
+        if os.path.exists(init_debug):
+            info = mw.getLastLine(init_debug, 50)
+            return mw.returnJson(True, '初始化错误(error.log尚未生成)', info)
         return mw.returnJson(False, '指定文件不存在!')
     if 'close' in args:
         mw.writeFile(filename, '')
@@ -724,6 +728,7 @@ def my8cmd(version, method):
             isInited = initMysql57Data()
 
         if not isInited:
+            makeInitRsaKey(version)
 
             if not mw.isSupportSystemctl():
                 cmd_init_start = init_file + ' start'
