@@ -127,8 +127,19 @@ Install_fast_mysql() {
     mkdir -p ${my_dir}
     mkdir -p ${serverPath}/mysql
 
+    local ext="tar.xz"
+    if [[ "${tar_file}" == *.tar.gz ]]; then
+        ext="tar.gz"
+    fi
+    local huawei_base="https://mirrors.huaweicloud.com/mysql/Downloads/${download_path}/"
+    local huawei_file=$(curl -sL --max-time 5 "${huawei_base}" 2>/dev/null | grep -oE "mysql-${version_main}\.[0-9]+-linux-glibc[0-9.]+-${os_arch}\.${ext}" | sort -V | tail -n 1)
+
     # 下载源列表（国内镜像优先，官方源兜底）
-    local mirrors=(
+    local mirrors=()
+    if [ -n "${huawei_file}" ]; then
+        mirrors+=("${huawei_base}${huawei_file}")
+    fi
+    mirrors+=(
         "https://mirrors.aliyun.com/mysql/${download_path}/${tar_file}"
         "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/${download_path}/${tar_file}"
         "https://cdn.mysql.com/Downloads/${download_path}/${tar_file}"
