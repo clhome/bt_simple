@@ -61,6 +61,7 @@ def mwcli(mw_input=0):
             '(5)    修改面板IP',
             '(6)    修改面板端口',
             '(7)    关闭安全入口',
+            '(9)    强制终止所有任务(处理卡死)',
             '(10)   查看面板默认信息',
             '(11)   修改面板密码',
             '(12)   修改面板用户名',
@@ -104,7 +105,7 @@ def mwcli(mw_input=0):
             mw_input = 0
 
     nums = [
-        1, 2, 3, 4, 5, 6, 7,
+        1, 2, 3, 4, 5, 6, 7, 9,
         10, 11, 12, 13, 14, 15,
         20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
         100, 101, 
@@ -165,6 +166,16 @@ def mwcli(mw_input=0):
     elif mw_input == 7:
         thisdb.setOption('admin_path', '')
         mw.echoInfo("关闭安全入口成功!")
+    elif mw_input == 9:
+        lock_file = panel_dir + '/logs/panel_task.lock'
+        if os.path.exists(lock_file):
+            os.remove(lock_file)
+            mw.echoInfo("已清除任务锁定文件!")
+        
+        # 杀死所有任务进程
+        os.system("ps -ef|grep panel_task.py | grep -v grep |awk '{print $2}' | xargs -I {} kill -9 {}")
+        os.system(INIT_CMD + " restart_task")
+        mw.echoInfo("后台任务已强制终止并重启!")
     elif mw_input == 10:
         os.system(INIT_CMD + " default")
     elif mw_input == 11:
