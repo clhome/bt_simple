@@ -138,21 +138,26 @@ Install_fast_mysql() {
     local download_success=false
     for mirror_url in "${mirrors[@]}"; do
         echo "正在尝试从节点下载部署包: ${mirror_url}"
+        
+        local tmp_file="/tmp/${tar_file}"
+        rm -f "${tmp_file}"
+        
         if command -v mw_download &> /dev/null; then
-            mw_download ${my_dir}/${tar_file} ${mirror_url}
+            mw_download "${tmp_file}" "${mirror_url}"
         else
-            wget --no-check-certificate -O ${my_dir}/${tar_file} ${mirror_url}
+            wget --no-check-certificate -O "${tmp_file}" "${mirror_url}"
         fi
 
-        if [ -f "${my_dir}/${tar_file}" ]; then
+        if [ -f "${tmp_file}" ]; then
             # 校验一：文件大小检测 (官方包普遍远大于50MB)
-            local file_size=$(stat -c%s "${my_dir}/${tar_file}" 2>/dev/null || stat -f%z "${my_dir}/${tar_file}" 2>/dev/null)
+            local file_size=$(stat -c%s "${tmp_file}" 2>/dev/null || stat -f%z "${tmp_file}" 2>/dev/null)
             if [ -n "${file_size}" ] && [ "${file_size}" -gt 52428800 ]; then
                 # 校验二：文件类型检测 (防止下载到 HTML 错误页)
                 if command -v file >/dev/null 2>&1; then
-                    local file_type=$(file -b "${my_dir}/${tar_file}")
+                    local file_type=$(file -b "${tmp_file}")
                     if [[ "${file_type}" == *"XZ compressed"* ]] || [[ "${file_type}" == *"gzip compressed"* ]] || [[ "${file_type}" == *"tar archive"* ]]; then
                         echo "包下载完成且校验通过。"
+                        mv -f "${tmp_file}" "${my_dir}/${tar_file}"
                         download_success=true
                         break
                     else
@@ -161,6 +166,7 @@ Install_fast_mysql() {
                 else
                     # 缺少 file 命令时，依赖大小作为基础校验
                     echo "包下载完成，文件大小校验通过。"
+                    mv -f "${tmp_file}" "${my_dir}/${tar_file}"
                     download_success=true
                     break
                 fi
@@ -171,6 +177,7 @@ Install_fast_mysql() {
             echo "下载失败，文件未生成。切换下一个节点..."
         fi
         # 清理异常文件以便下一次重试
+        rm -f "${tmp_file}"
         rm -f "${my_dir}/${tar_file}"
     done
 
