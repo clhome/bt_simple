@@ -776,6 +776,10 @@ def appCMD(version, action):
 
 
 def start(version=''):
+    stop(version)
+    mw.execShell('pkill -9 mysqld')
+    mw.execShell('pkill -9 mariadbd')
+    time.sleep(1)
     return appCMD(version, 'start')
 
 
@@ -784,6 +788,10 @@ def stop(version=''):
 
 
 def restart(version=''):
+    stop(version)
+    mw.execShell('pkill -9 mysqld')
+    mw.execShell('pkill -9 mariadbd')
+    time.sleep(1)
     return appCMD(version, 'restart')
 
 

@@ -4119,3 +4119,19 @@ gx_http_substitutions_filter_module 模块源码。
 ### Task List
 - [x] 在 `install.sh` 中的 `Install_fast_mysql` 下载失败退出逻辑前，增加 `rm -rf ${serverPath}/mysql` 以清理空目录，防止面板产生误判。
 - [x] 由于多个镜像源 CDN 移除了旧版本通用二进制包，在 `install.sh` 镜像源列表最后追加官方 Archives 归档库（`https://downloads.mysql.com/archives/get/p/23/file/${tar_file}`）作为最坚实的兜底下载源。
+
+## 需求：修复 MySQL 端口被占用导致启动失败问题
+
+**问题描述：**
+MySQL 8.4 快速安装完成后，如果系统内原先的 3306 端口被占用（例如存在僵尸进程），会导致启动或重启失败。
+
+**根本原因分析：**
+在执行 start 或 estart 启动 MySQL 服务前，没有先强行关闭可能残存的占用进程。
+
+**修复文件：**
+- plugins/mysql/index.py
+
+### Task List
+- [x] 在 index.py 的 start 与 estart 函数中，在执行 ppCMD(..., 'start') / 'restart' 前，先调用 stop(version) 执行关闭操作。
+
+- [x] 在 index.py 中补充强行杀死僵尸mysqld进程的命令 pkill -9 mysqld，作为 stop 之后的兜底保护。
