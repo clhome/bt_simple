@@ -1,4 +1,4 @@
-[client]
+﻿[client]
 user = root
 #password	= your_password
 port		= 3306
@@ -6,6 +6,7 @@ socket		= {$SERVER_APP_PATH}/mysql.sock
 default-character-set = UTF8MB4
 
 [mysqld]
+mysqlx = 0
 !include {$SERVER_APP_PATH}/etc/mode/classic.cnf
 
 sha256_password_private_key_path={$SERVER_APP_PATH}/data/mysql.pem
@@ -62,7 +63,7 @@ binlog_expire_logs_seconds=604800
 relay-log=mdserver
 relay-log-index=mdserver
 
-#多主设置
+#澶氫富璁剧疆
 #auto_increment_offset=2
 #auto_increment_increment=2
 

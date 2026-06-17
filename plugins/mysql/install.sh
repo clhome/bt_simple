@@ -248,5 +248,6 @@ if [ "${action}" == "install" ]; then
         # 执行初始化与自启动服务写入
         cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py start ${type}
         cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py initd_install ${type}
+        cd ${rootPath} && python3 ${rootPath}/plugins/mysql/index.py fixDbAccess ${type}
     fi
 fi

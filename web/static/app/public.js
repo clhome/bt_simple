@@ -2475,14 +2475,19 @@ function pluginOpService(a, b, v, _suffix_name='') {
                 layer.msg(g.data, {icon: 2,time: 6000,shade: 0.3,shadeClose: true});
             }
 
-            setTimeout(function(){
+            var checkCount = 0;
+            var checkInterval = setInterval(function(){
                 if (typeof getSList === 'function' && $("#softList").length > 0) {
-                    getSList();
+                    getSList(true);
                 }
                 if (typeof indexListHtml === 'function' && $("#indexsoft").length > 0) {
                     indexListHtml();
                 }
-            },2000);
+                checkCount++;
+                if (checkCount >= 5) {
+                    clearInterval(checkInterval);
+                }
+            }, 2000);
         },'json').error(function() {
             layer.close(e);
             layer.msg('操作异常!', {icon: 1});

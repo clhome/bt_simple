@@ -2456,6 +2456,12 @@ def getMasterStatus(version=''):
 
         db = pMysqlDb()
         dlist = db.query(query_status_cmd)
+        
+        isError = isSqlError(dlist)
+        if isError:
+            return isError
+        if type(dlist) != list and type(dlist) != tuple:
+            return mw.returnJson(False, "查询状态失败:" + str(dlist))
 
         for v in dlist:
 
