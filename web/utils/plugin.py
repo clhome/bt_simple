@@ -485,23 +485,22 @@ class plugin(object):
             tmpt = mw.getStrBetween('[', ']', task['name'])
             if not tmpt:
                 continue
-            task_sign = tmpt.split('-')
-            task_len = len(task_sign)
-            if task_len<2:
-                continue
 
-            task_name = task_sign[0].lower()
-            task_ver = task_sign[1]
-            if task_len > 2:
-                nameArr = task_sign[0:task_len - 1]
-                task_name = '-'.join(nameArr).lower()
-                task_ver = task_sign[task_len - 1]
-            if coexist:
-                if task_name == name and task_ver == version:
-                    isTask = task['status']
-            else:
-                if task_name == name:
-                    isTask = task['status']
+            if not tmpt.startswith(name + '-'):
+                continue
+            
+            remainder = tmpt[len(name)+1:]
+            valid_versions = version if isinstance(version, list) else [version]
+            matched = False
+            for v in valid_versions:
+                if remainder == v or remainder.startswith(v + '-'):
+                    matched = True
+                    break
+            
+            if matched:
+                isTask = task['status']
+                break
+
         return isTask
 
     def checkDisplayIndex(self, name, version, coexist):
@@ -752,22 +751,22 @@ class plugin(object):
                 tmpt = mw.getStrBetween('[', ']', task['name'])
                 if not tmpt:
                     continue
-                task_sign = tmpt.split('-')
-                task_len = len(task_sign)
-                if task_len < 2:
+
+                if not tmpt.startswith(name + '-'):
                     continue
-                task_name = task_sign[0].lower()
-                task_ver = task_sign[1]
-                if task_len > 2:
-                    nameArr = task_sign[0:task_len - 1]
-                    task_name = '-'.join(nameArr).lower()
-                    task_ver = task_sign[task_len - 1]
-                if coexist:
-                    if task_name == name and task_ver == version:
-                        isTask = task['status']
-                else:
-                    if task_name == name:
-                        isTask = task['status']
+                
+                remainder = tmpt[len(name)+1:]
+                valid_versions = version if isinstance(version, list) else [version]
+                matched = False
+                for v in valid_versions:
+                    if remainder == v or remainder.startswith(v + '-'):
+                        matched = True
+                        break
+                
+                if matched:
+                    isTask = task['status']
+                    break
+            
             pInfo['task'] = isTask
             
         return plist
