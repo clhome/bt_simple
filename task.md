@@ -4106,3 +4106,16 @@ gx_http_substitutions_filter_module 模块源码。
 ### Task List
 - [x] 修改 public.js 中的 pluginOpService，在状态变更后的 setTimeout 中增加对 getSList（软件列表页）和 indexListHtml（面板首页）的回调检查，实现状态变更后无缝刷新。 @done
 
+
+
+## 需求：修复 MySQL 极速安装失败时残留不完整目录导致面板误判问题
+
+**问题描述：**
+在极速安装 MySQL 时，如果由于网络原因所有节点的包均下载失败，安装脚本虽然退出报错，但在此之前已经创建了 `/www/server/mysql` 目录。这导致面板在后续检测时误认为 MySQL 已安装成功，但在服务管理中却显示未启动且无法使用。
+
+**修复文件：**
+- `plugins/mysql/install.sh`
+
+### Task List
+- [x] 在 `install.sh` 中的 `Install_fast_mysql` 下载失败退出逻辑前，增加 `rm -rf ${serverPath}/mysql` 以清理空目录，防止面板产生误判。
+- [x] 由于多个镜像源 CDN 移除了旧版本通用二进制包，在 `install.sh` 镜像源列表最后追加官方 Archives 归档库（`https://downloads.mysql.com/archives/get/p/23/file/${tar_file}`）作为最坚实的兜底下载源。

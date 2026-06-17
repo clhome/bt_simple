@@ -132,6 +132,7 @@ Install_fast_mysql() {
         "https://mirrors.aliyun.com/mysql/${download_path}/${tar_file}"
         "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/${download_path}/${tar_file}"
         "https://cdn.mysql.com/Downloads/${download_path}/${tar_file}"
+        "https://downloads.mysql.com/archives/get/p/23/file/${tar_file}"
     )
 
     local download_success=false
@@ -175,6 +176,7 @@ Install_fast_mysql() {
 
     if [ "${download_success}" != "true" ]; then
         echo "网络错误：所有节点的 MySQL 通用预编译包均下载失败或文件损坏！"
+        rm -rf ${serverPath}/mysql
         exit 1
     fi
 
