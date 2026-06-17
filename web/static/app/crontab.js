@@ -1304,3 +1304,22 @@ function importTaskSequential(tasks, index) {
         importTaskSequential(tasks, index + 1);
     });
 }
+
+// 从服务器同步计划任务
+function syncServerTasks() {
+    layer.confirm('将导入服务器上存在的系统计划任务，\n 确定要同步吗？', { icon: 3, title: '提示' }, function(index) {
+        layer.close(index);
+        var load = layer.msg('正在同步,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        $.post('/crontab/sync_sys_cron', function(rdata) {
+            layer.close(load);
+            if (rdata.status) {
+                layer.msg(rdata.msg, { icon: 1, time: 2000 });
+                setTimeout(function(){
+                    getCronData(1);
+                }, 2000);
+            } else {
+                layer.msg(rdata.msg, { icon: 2, time: 3000 });
+            }
+        }, 'json');
+    });
+}

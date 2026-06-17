@@ -39,7 +39,7 @@ def init_acme_cron():
     name = "[勿删]ACME定时强制更新"
     res = mw.M("crontab").field("id, name").where("name=?", (name,)).find()
     if res:
-        return True
+        return False
 
     cmd = "/root/.acme.sh/acme.sh --cron --force --standalone"
     params = {
@@ -65,7 +65,7 @@ def init_auto_update():
     name = "[可删]面板自动更新"
     res = mw.M("crontab").field("id, name").where("name=?", (name,)).find()
     if res:
-        return True
+        return False
 
     cmd = "mw update"
     params = {
@@ -140,3 +140,12 @@ def init_cron():
 
     # cron_list = content.split("\n")
     # print(cron_list)
+
+def sync_all_tasks():
+    count = 0
+    if init_acme_cron():
+        count += 1
+    if init_auto_update():
+        count += 1
+    
+    return count
