@@ -60,9 +60,10 @@ class monitor:
         if not os.path.exists(sql_file_md5):
             mw.writeFile(sql_file_md5, content_md5)
 
-        content_src_md5 = mw.readFile(sql_file)
+        content_src_md5 = mw.readFile(sql_file_md5)
         if content_md5 != content_src_md5:
             is_reload = True
+            mw.writeFile(sql_file_md5, content_md5)
 
         if os.path.exists(self._dbfile) and not is_reload:
             return True
@@ -75,10 +76,14 @@ class monitor:
 
     def getMonitorDay(self):
         monitor_day = mw.M('option').field('name').where('name=?',('monitor_day',)).getField('value')
+        if not monitor_day:
+            return 30
         return int(monitor_day)
 
     def isOnlyNetIoStats(self):
         monitor_only_netio = mw.M('option').field('name').where('name=?',('monitor_only_netio',)).getField('value')
+        if not monitor_only_netio:
+            monitor_only_netio = 'open'
         if monitor_only_netio == 'open':
             return True
         return False
@@ -133,7 +138,11 @@ class monitor:
         return info
 
     def getLoadAverage(self):
-        c = os.getloadavg()
+        if hasattr(os, 'getloadavg'):
+            c = os.getloadavg()
+        else:
+            # Windows fallback
+            c = (0.0, 0.0, 0.0)
         data = {}
         data['one'] = round(float(c[0]), 2)
         data['five'] = round(float(c[1]), 2)

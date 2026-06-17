@@ -4066,3 +4066,18 @@ gx_http_substitutions_filter_module 模块源码。
 ### Task List
 - [x] 修改 `web/utils/site.py` 中的 `add` 创建网站方法：检测网站目录若存在旧的 `.user.ini`，先执行解锁（`chattr -i`）并强制删除，并在建站流程末尾显式调用 `self.addDirUserIni` 重新生成包含 `/www/server/php/` 路径的最新防跨站规则。 @done(2026-06-16 18:03)
 - [x] 修改 `web/utils/site.py` 中的 `addDirUserIni` 方法：进一步保障已存在的 `.user.ini` 能被读取检测并覆盖写入正确规则。 @done(2026-06-16 17:53)
+
+## 需求：修复宝塔面板迁移后监控页面所有监控内容是空的问题，并优化监控效率
+
+**问题描述：**
+1. 用户从宝塔面板迁移到御风面板后，由于 default.db 结构或迁移数据缺失，部分设置（如 monitor_day 和 monitor_only_netio）为空，导致监控记录任务在后台发生异常报错 TypeError: int() argument must be a string。
+2. Windows 下不存在 os.getloadavg() 函数，进一步导致获取系统负载时报 AttributeError: module 'os' has no attribute 'getloadavg' 错误。这些异常双重阻塞了后台任务向 system.db 中插入监控数据。
+3. monitor.py 的初始化函数 initDBFile() 中存在逻辑缺陷，每次监控循环（5秒）时使用文件的 MD5 值去比对文件源码内容，导致判定条件永远为真，系统会每 5 秒高频执行一次大量建表与索引的数据库写入（CREATE TABLE IF NOT EXISTS...），大量耗费 CPU 与 I/O 资源。
+
+**涉及文件：**
+- web/utils/system/monitor.py
+
+### Task List
+- [x] 在 monitor.py 的 getMonitorDay 和 isOnlyNetIoStats 函数中增加对数据库返回 None 值的校验与默认值回退逻辑，防止 int(None) 报错崩溃。 @done
+- [x] 在 monitor.py 的 getLoadAverage 函数中添加针对 Windows 系统的兼容性 Fallback，判断若不存在 os.getloadavg() 则返回默认值 (0.0, 0.0, 0.0) 避免程序崩溃。 @done
+- [x] 修复 initDBFile 函数中的严重性能缺陷，确保读取 sql_file_md5 文件与实时 MD5 值正确比对且覆写一致，避免在每 5 秒的循环中重复执行建表和索引重建查询。 @done
