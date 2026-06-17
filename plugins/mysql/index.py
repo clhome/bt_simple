@@ -732,12 +732,15 @@ def my8cmd(version, method):
 
             if not mw.isSupportSystemctl():
                 cmd_init_start = init_file + ' start'
-                subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=True,
+                r = subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=True,
                                  bufsize=4096, stderr=subprocess.PIPE)
-
+                out, err = r.communicate()
+                mw.writeFile('/tmp/mysql8_init_debug.log', mw.readFile('/tmp/mysql8_init_debug.log') + f'\nINITD_START_OUT:\n{out}\nINITD_START_ERR:\n{err}')
                 time.sleep(6)
             else:
-                mw.execShell('systemctl start mysql')
+                out = mw.execShell('systemctl start mysql')
+                mw.writeFile('/tmp/mysql8_init_debug.log', mw.readFile('/tmp/mysql8_init_debug.log') + f'\nSYSTEMCTL_START_OUT:\n{out[0]}\nSYSTEMCTL_START_ERR:\n{out[1]}')
+
 
             for x in range(10):
                 mydb_status = process_status()

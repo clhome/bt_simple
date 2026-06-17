@@ -1,4 +1,4 @@
-﻿[client]
+[client]
 user = root
 #password	= your_password
 port		= 3306
@@ -11,7 +11,7 @@ mysqlx = 0
 
 sha256_password_private_key_path={$SERVER_APP_PATH}/data/mysql.pem
 sha256_password_public_key_path={$SERVER_APP_PATH}/data/mysql.pub
-authentication_policy=mysql_native_password
+default_authentication_plugin=mysql_native_password
 
 pid-file = {$SERVER_APP_PATH}/data/mysql.pid
 user = mysql
@@ -93,8 +93,7 @@ innodb_data_home_dir = {$SERVER_APP_PATH}/data
 innodb_data_file_path = ibdata1:10M:autoextend
 innodb_log_group_home_dir = {$SERVER_APP_PATH}/data
 innodb_buffer_pool_size = 16M
-#innodb_log_file_size = 5M
-innodb_redo_log_capacity = 4G
+innodb_log_file_size = 128M
 innodb_log_buffer_size = 8M
 innodb_flush_log_at_trx_commit = 1
 innodb_lock_wait_timeout = 120
