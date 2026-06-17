@@ -307,7 +307,7 @@ def autoCpHtml(file):
 def autoMakeLuaConf(conf_reload=False, cp_reload=False):
     conf_list = ['args', 'cookie', 'ip_black', 'ip_white',
                  'ipv6_black', 'post', 'scan_black', 'url',
-                 'url_white', 'user_agent', 'ssrf', 'vuln']
+                 'url_white', 'user_agent', 'ssrf', 'vuln', 'spider_ip']
     for x in conf_list:
         autoMakeLuaConfSingle(x, conf_reload)
 

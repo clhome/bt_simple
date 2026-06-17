@@ -209,3 +209,13 @@ def get_panel_resources():
         return mw.returnData(True, 'ok', data)
     except Exception as e:
         return mw.returnData(False, str(e))
+
+# 获取系统详细信息
+@blueprint.route('/get_system_details', endpoint='get_system_details', methods=['GET'])
+@panel_login_required
+def get_system_details():
+    try:
+        data = sys.getSystemDetails()
+        return mw.returnData(True, 'ok', data)
+    except Exception as e:
+        return mw.returnData(False, str(e))

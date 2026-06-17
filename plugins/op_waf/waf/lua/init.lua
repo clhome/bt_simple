@@ -38,6 +38,9 @@ local url_white_rules = require "rule_url_white"
 local ssrf_rules = require "rule_ssrf"
 local vuln_rules = require "rule_vuln"
 
+local ok_spider, spider_ip_rules = pcall(require, "rule_spider_ip")
+if not ok_spider then spider_ip_rules = {} end
+
 local waf_area_limit = require "waf_area_limit"
 
 -- local server_name = string.gsub(C:get_sn(config_domains),'_','.')
@@ -276,6 +279,46 @@ local function waf_url_white()
         return true
     end
     return false
+end
+
+local function waf_spider()
+    if not config['spider'] or not config['spider']['open'] then return false end
+    
+    local ua = params['request_header']['user-agent']
+    if not ua or type(ua) ~= "string" then return false end
+    
+    if not ngx.re.find(ua, "(Baiduspider|Googlebot|bingbot|Sogou|360Spider|YisouSpider|YandexBot|Bytespider|PetalBot)", "ijo") then
+        return false
+    end
+    
+    local matched = false
+    local matcher = C:get_ipmatcher(spider_ip_rules, "spider_rules")
+    if matcher then
+        if matcher:match(params['ip']) then
+            matched = true
+        end
+    else
+        for _,rule in ipairs(spider_ip_rules) do
+            if type(rule) == "string" then
+                if rule == params['ip'] then 
+                    matched = true
+                    break
+                end
+            elseif type(rule) == "table" and C:compare_ip(rule) then 
+                matched = true
+                break
+            end
+        end
+    end
+    
+    if matched then
+        return true
+    else
+        C:write_log('spider', '伪造蜘蛛已被拦截')
+        local status = config['spider']['status'] or 444
+        ngx.exit(status)
+        return true
+    end
 end
 
 local function waf_ip_black()
@@ -980,6 +1023,9 @@ function run_app_waf()
         -- url white
         if waf_url_white() then return true end
         -- C:D("waf_url_white")
+
+        -- spider verify
+        if waf_spider() then return true end
 
         -- black ip
         if waf_ip_black() then return true end

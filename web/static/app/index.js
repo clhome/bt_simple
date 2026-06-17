@@ -1622,3 +1622,167 @@ var index = {
         index.task();
     }
 }
+
+function showSystemDetails() {
+    var loadT = layer.msg('正在获取系统详细信息...', { icon: 16, time: 0, shade: 0.3 });
+    $.get('/system/get_system_details', function(res) {
+        layer.close(loadT);
+        if (!res.status) {
+            layer.msg('获取系统信息失败: ' + res.msg, { icon: 2 });
+            return;
+        }
+        var data = res.data;
+        
+        var css = '<style>' +
+            '.glass-layer { background: rgba(255,255,255,0.65) !important; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; border-radius: 12px !important; }' +
+            '.glass-layer .layui-layer-title { background: transparent !important; border-bottom: 1px solid rgba(0,0,0,0.08) !important; font-weight: bold; color: #333; font-size:15px; border-radius: 12px 12px 0 0 !important; }' +
+            '.glass-card { background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); border-radius: 10px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); height: 100%; transition: all 0.3s ease; }' +
+            '.glass-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); background: rgba(255,255,255,0.7); }' +
+            '.glass-card h4 { margin-top: 0; margin-bottom: 12px; color: #222; font-size: 15px; font-weight: bold; display: flex; align-items: center; }' +
+            '.glass-card table td { border: none !important; color: #555; padding: 5px 0 !important; font-size: 13px; }' +
+            '.glass-card table td:last-child { text-align: right; font-weight: 500; color: #111; }' +
+            '.glass-card table tr:not(:last-child) td { border-bottom: 1px dashed rgba(0,0,0,0.06) !important; }' +
+            '.glass-progress-bg { height: 6px; background: rgba(0,0,0,0.08); border-radius: 3px; margin: 5px 0; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }' +
+            '.glass-progress-bar { height: 100%; border-radius: 3px; transition: width 0.6s ease; }' +
+            '</style>';
+
+        var renderProgress = function(percent, type) {
+            var color = '#20a53a';
+            if (percent > 80) color = '#e74c3c';
+            else if (percent > 60) color = '#f39c12';
+            return '<div class="glass-progress-bg">' +
+                   '<div class="glass-progress-bar" style="width: ' + percent + '%; background-color: ' + color + ';"></div>' +
+                   '</div>';
+        };
+
+                var renderFlags = function(flags) {
+            if (!flags) flags = {'AES': false, 'VMX': false, 'AVX2': false, 'AVX512': false};
+            var getDesc = function(k) {
+                if (k === 'AES') return 'AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。';
+                if (k === 'VMX') return 'VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。';
+                if (k === 'AVX2') return 'AVX2：决定了服务器基础的向量运算和浮点运算性能。';
+                if (k === 'AVX512') return 'AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。';
+                return k;
+            };
+            var html = '';
+            for (var key in flags) {
+                var desc = getDesc(key);
+                if (flags[key]) {
+                    html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[支持] ' + desc + '">' + key + '</span>';
+                } else {
+                    html += '<span style="color:#ccc; margin-right:6px; " title="[不支持] ' + desc + '">' + key + '</span>';
+                }
+            }
+            return html;
+        };
+
+        var renderTcpCc = function(activeCc) {
+            if (!activeCc || activeCc === "未知" || activeCc === "X") return "-";
+            var algorithms = ['BBR', 'Cubic', 'Reno'];
+            var getDesc = function(a) {
+                if (a === 'BBR') return 'BBR：由 Google 开发，能最大化利用带宽，降低延迟。';
+                if (a === 'Cubic') return 'Cubic：Linux 默认算法，适合高带宽、低延迟环境。';
+                if (a === 'Reno') return 'Reno：传统的拥塞算法，对丢包较敏感。';
+                return a;
+            };
+            var html = '';
+            var activeLower = activeCc.toLowerCase();
+            var found = false;
+            for (var i = 0; i < algorithms.length; i++) {
+                var algo = algorithms[i];
+                var desc = getDesc(algo);
+                if (algo.toLowerCase() === activeLower) {
+                    html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效] ' + desc + '">' + algo + '</span>';
+                    found = true;
+                } else {
+                    html += '<span style="color:#ccc; margin-right:6px; " title="[未生效] ' + desc + '">' + algo + '</span>';
+                }
+            }
+            if (!found) {
+                html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效]">' + activeCc + '</span>';
+            }
+            return html;
+        };
+
+        var html = css + '<div style="padding: 15px 20px; overflow:hidden;">' +
+            '<div class="row">' +
+            
+            // 操作系统
+            '<div class="col-sm-4" style="margin-bottom:15px;">' +
+                '<div class="glass-card">' +
+                    '<h4><i class="glyphicon glyphicon-modal-window" style="color:#20a53a; margin-right:8px;"></i>操作系统</h4>' +
+                    '<table class="table table-condensed" style="margin-bottom:0;">' +
+                        '<tr title="操作系统具体的发行版及版本号"><td style="width:70px;">发行版本</td><td>' + data.os.system + '</td></tr>' +
+                        '<tr title="系统核心程序版本，影响底层功能和驱动支持"><td>内核版本</td><td>' + data.os.kernel + '</td></tr>' +
+                        '<tr title="CPU和操作系统的位数架构，通常为x86_64或aarch64"><td>系统架构</td><td>' + data.os.arch + '</td></tr>' +
+                        '<tr title="当前系统运行的物理机或虚拟机环境平台"><td>底层环境</td><td>' + data.os.virtualization + '</td></tr>' +
+                    '</table>' +
+                '</div>' +
+            '</div>' +
+
+            // CPU
+            '<div class="col-sm-4" style="margin-bottom:15px;">' +
+                '<div class="glass-card">' +
+                    '<h4><i class="glyphicon glyphicon-tasks" style="color:#20a53a; margin-right:8px;"></i>处理器</h4>' +
+                    '<table class="table table-condensed" style="margin-bottom:0;">' +
+                        '<tr title="处理器具体的品牌和型号名称"><td style="width:70px;">硬件型号</td><td>' + data.cpu.model + '</td></tr>' +
+                        '<tr title="处理器的物理核心数与逻辑线程总数"><td>核心线程</td><td>' + data.cpu.cores + ' 核 / ' + data.cpu.threads + ' 线程</td></tr>' +
+                        '<tr title="处理器当前运行的基础时钟频率"><td>基础频率</td><td>' + data.cpu.freq + '</td></tr>' +
+                        '<tr title="处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能"><td>指令集</td><td>' + renderFlags(data.cpu.flags) + '</td></tr>' +
+                    '</table>' +
+                '</div>' +
+            '</div>' +
+
+            // 网络与状态
+            '<div class="col-sm-4" style="margin-bottom:15px;">' +
+                '<div class="glass-card">' +
+                    '<h4><i class="glyphicon glyphicon-globe" style="color:#20a53a; margin-right:8px;"></i>网络与状态</h4>' +
+                    '<table class="table table-condensed" style="margin-bottom:0;">' +
+                        '<tr title="服务器对外的公网或内网IP地址"><td style="width:70px;">IPv4/v6</td><td style="word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;">' + (data.network.ipv4 === "X" ? "-" : data.network.ipv4) + '<br>' + (data.network.ipv6 === "X" ? "-" : data.network.ipv6.split("%")[0]) + '</td></tr>' +
+                        '<tr title="服务器所在机房的网络运营商及地理位置"><td>网络节点</td><td>' + data.network.isp + ' (' + data.network.location + ')</td></tr>' +
+                        '<tr title="决定网络传输速度和稳定性的 TCP 拥塞控制策略"><td>拥塞算法</td><td>' + renderTcpCc(data.network.tcp_cc) + '</td></tr>' +
+                        '<tr title="系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度"><td>负载平均</td><td>' + data.status.load + '</td></tr>' +
+                    '</table>' +
+                '</div>' +
+            '</div>' +
+
+            // 内存
+            '<div class="col-sm-6" style="margin-bottom:0;">' +
+                '<div class="glass-card">' +
+                    '<h4><i class="glyphicon glyphicon-hdd" style="color:#20a53a; margin-right:8px;"></i>物理内存 & Swap</h4>' +
+                    '<table class="table table-condensed" style="margin-bottom:0;">' +
+                        '<tr title="服务器安装的实际物理内存容量及当前使用率"><td style="width:70px;">物理内存</td><td>' + data.memory.used + ' / ' + data.memory.total + ' (' + data.memory.percent.toFixed(1) + '%)</td></tr>' +
+                        '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.memory.percent) + '</td></tr>' +
+                        '<tr title="当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)"><td>交换分区</td><td>' + data.memory.swap_used + ' / ' + data.memory.swap_total + ' (' + data.memory.swap_percent.toFixed(1) + '%)</td></tr>' +
+                        '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;">' + renderProgress(data.memory.swap_percent) + '</td></tr>' +
+                    '</table>' +
+                '</div>' +
+            '</div>' +
+
+            // 磁盘
+            '<div class="col-sm-6" style="margin-bottom:0;">' +
+                '<div class="glass-card">' +
+                    '<h4><i class="glyphicon glyphicon-floppy-disk" style="color:#20a53a; margin-right:8px;"></i>磁盘容量</h4>' +
+                    '<table class="table table-condensed" style="margin-bottom:0;">' +
+                        '<tr title="系统根目录所在磁盘的总容量与已用空间"><td>根目录</td><td>' + data.disk.used + ' / ' + data.disk.total + '</td></tr>' +
+                        '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.disk.percent) + '</td></tr>' +
+                        '<tr title="磁盘当前尚未被占用、可供存储的剩余物理空间"><td>剩余可用</td><td>' + data.disk.free + ' (' + (100 - data.disk.percent).toFixed(1) + '%)</td></tr>' +
+                        '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;"><div style="height:6px; margin:5px 0;"></div></td></tr>' +
+                    '</table>' +
+                '</div>' +
+            '</div>' +
+
+            '</div>' +
+            '</div>';
+
+        layer.open({
+            type: 1,
+            title: '系统详细环境',
+            area: ['900px', '460px'], // 增加宽度减少高度，彻底消除滚动条
+            shadeClose: true,
+            closeBtn: 1,
+            skin: 'glass-layer',
+            content: html
+        });
+    }, 'json');
+}
