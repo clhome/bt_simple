@@ -103,7 +103,10 @@ def getDiskInfo():
 
 
 def getLoadAverage():
-    c = os.getloadavg()
+    if hasattr(os, 'getloadavg'):
+        c = os.getloadavg()
+    else:
+        c = (0.0, 0.0, 0.0)
     data = {}
     data['one'] = round(float(c[0]), 2)
     data['five'] = round(float(c[1]), 2)
@@ -200,6 +203,14 @@ def getMemInfo():
     if sys.platform == 'darwin':
         memInfo = {'memTotal': mem.total}
         memInfo['memRealUsed'] = memInfo['memTotal'] * (mem.percent / 100)
+    elif sys.platform == 'win32' or not hasattr(mem, 'buffers'):
+        memInfo = {
+            'memTotal': mem.total,
+            'memFree': getattr(mem, 'free', mem.available),
+            'memBuffers': 0,
+            'memCached': 0
+        }
+        memInfo['memRealUsed'] = getattr(mem, 'used', mem.total - mem.available)
     else:
         memInfo = {
             'memTotal': mem.total,
@@ -217,6 +228,8 @@ def getMemUsed():
         mem = psutil.virtual_memory()
 
         if mw.getOs() == 'darwin':
+            return mem.percent
+        elif sys.platform == 'win32' or not hasattr(mem, 'buffers'):
             return mem.percent
 
         memInfo = {'memTotal': mem.total / 1024 / 1024, 'memFree': mem.free / 1024 / 1024,

@@ -4081,3 +4081,16 @@ gx_http_substitutions_filter_module 模块源码。
 - [x] 在 monitor.py 的 getMonitorDay 和 isOnlyNetIoStats 函数中增加对数据库返回 None 值的校验与默认值回退逻辑，防止 int(None) 报错崩溃。 @done
 - [x] 在 monitor.py 的 getLoadAverage 函数中添加针对 Windows 系统的兼容性 Fallback，判断若不存在 os.getloadavg() 则返回默认值 (0.0, 0.0, 0.0) 避免程序崩溃。 @done
 - [x] 修复 initDBFile 函数中的严重性能缺陷，确保读取 sql_file_md5 文件与实时 MD5 值正确比对且覆写一致，避免在每 5 秒的循环中重复执行建表和索引重建查询。 @done
+
+## 需求：修复 Windows 下首页监控数据加载失败问题
+
+**问题描述：**
+首页网络流量与磁盘 I/O 的曲线图通过高频轮询 /system/network 接口获取数据。由于该接口会同时拉取内存和系统负载状态，在 Windows 环境下 psutil.virtual_memory() 不存在 uffers 和 cached 属性，导致内存获取抛出异常；且此前修复的 os.getloadavg() 在该接口中也有调用。这会导致首页数据接口直接 500 报错，图表数据为空。
+
+**涉及文件：**
+- web/utils/system/main.py
+
+### Task List
+- [x] 修复 main.py 中的 getMemInfo 与 getMemUsed 函数：检测如果不存在 uffers 属性（如 Windows 环境），则安全略过 uffers 和 cached 的运算，防止 AttributeError。 @done
+- [x] 确诊并验证 /system/network 及相关首页数据接口由于 sys.getLoadAverage() 和 sys.getMemInfo() 的 Windows 兼容性修复，现已可以正常无报错响应。 @done
+- [x] 确诊首页的流量与磁盘 sys.stats().network() / disk() 获取均为内存级缓存字典的高性能比对算法，不存在高频 I/O 开销。 @done
