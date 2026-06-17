@@ -180,6 +180,11 @@ Install_mysql()
 		WHERE_DIR_GPP=/usr/bin/g++-11
 	fi
 
+	if [ -d $serverPath/mysql ] && [ ! -f $serverPath/mysql/bin/mysql ]; then
+		echo "检测到残留的不完整 MySQL 编译安装目录，正在清理..."
+		rm -rf $serverPath/mysql
+	fi
+
 	if [ ! -d $serverPath/mysql ];then
 		# -DCMAKE_CXX_STANDARD=17 \
 		cd ${mysqlDir}/mysql-${VERSION} && ${INSTALL_CMD} \

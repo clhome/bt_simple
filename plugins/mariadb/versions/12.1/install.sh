@@ -72,6 +72,11 @@ Install_app()
 		INSTALL_CMD=cmake3
 	fi
 
+	if [ -d $serverPath/mariadb ] && [ ! -f $serverPath/mariadb/bin/mysql ]; then
+		echo "检测到残留的不完整 MariaDB 编译安装目录，正在清理..."
+		rm -rf $serverPath/mariadb
+	fi
+
 	if [ ! -d $serverPath/mariadb ];then
 		cd ${mariadbDir}/mariadb-${MY_VER} && ${INSTALL_CMD} \
 		-DCMAKE_INSTALL_PREFIX=$serverPath/mariadb \

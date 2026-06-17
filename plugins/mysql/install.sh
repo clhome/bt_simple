@@ -234,8 +234,13 @@ fi
 
 if [ "${action}" == "install" ]; then
     if [ -d $serverPath/mysql ]; then
-        echo 'MySQL 服务已存在，跳过安装。'
-        exit 0
+        if [ -f $serverPath/mysql/bin/mysql ]; then
+            echo 'MySQL 服务已存在，跳过安装。'
+            exit 0
+        else
+            echo '检测到残留的不完整 MySQL 目录，正在清理...'
+            rm -rf $serverPath/mysql
+        fi
     fi
 
     if [ "${is_fast}" == "true" ]; then

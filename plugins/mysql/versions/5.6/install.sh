@@ -134,6 +134,11 @@ Install_mysql()
 		OPTIONS="-DWITH_SSL=${serverPath}/lib/openssl11"
 	fi
 
+	if [ -d $serverPath/mysql ] && [ ! -f $serverPath/mysql/bin/mysql ]; then
+		echo "检测到残留的不完整 MySQL 编译安装目录，正在清理..."
+		rm -rf $serverPath/mysql
+	fi
+
 	if [ ! -d $serverPath/mysql ];then
 		cd ${mysqlDir}/mysql-${VERSION} && cmake \
 		-DCMAKE_INSTALL_PREFIX=$serverPath/mysql \
