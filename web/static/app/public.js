@@ -1436,7 +1436,7 @@ function getSpeed(sele){
 }
 
 function tasklist(){
-	var con='<div style="height: 520px; display: flex; flex-direction: column; justify-content: space-between;"><ul class="cmdlist" style="margin: 0; padding: 0; max-height: 490px; overflow: auto;"></ul><div style="text-align: center; color: #999; padding-bottom: 5px;">若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列</div></div>';
+	var con='<div style="height: 520px; position: relative;"><ul class="cmdlist" style="margin: 0; padding: 0; height: 100%; overflow: auto;"></ul><div style="position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;">若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列</div></div>';
 	$("#msg_box .taskcon").html(con);
 	$.post("/task/list", "tojs=getTaskList&table=tasks&limit=10&p=1", function(g) {
 		$('#msg_box .msg_count').html(g.count);

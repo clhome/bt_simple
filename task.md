@@ -4154,3 +4154,8 @@ efreshDynamicStatus 任务状态的获取逻辑。
 - [x] 前端 UI: 修改 index.html 使系统信息变为可点击状态
 - [x] 前端 UI: 在 index.js 中实现 showSystemDetails 弹窗渲染
 - [x] 测试验证
+
+## 消息盒子任务重置提示样式优化
+- [x] 修改 `public.js` 中 `tasklist` 渲染逻辑，改为 `flex: 1` 占据剩余空间并加上 margin，使底部提示信息上下间距保持一致。
+- [x] 进一步优化：改用 `position: absolute` 将提示文字悬浮定位至底部外边距的红框位置，使列表框充分利用高度，且不再遮挡或挤压安装内容区域。
+- [x] 微调优化：将 `bottom` 从 `-12px` 调整为 `-15px`，使其完美紧贴下方的服务器状态信息栏（刚好抵消 `.bt-w-con` 的 15px 内边距）。
