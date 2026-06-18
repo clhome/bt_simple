@@ -150,7 +150,7 @@ def init_cron():
                             sbody = command
                         
                         add_dbdata = {
-                            'name': f'[恢复任务] {hash_val[:8]}',
+                            'name': f'[恢复任务] {hash_val[-8:]}',
                             'type': info.get('type', 'day'),
                             'where1': info.get('where1', ''),
                             'where_hour': info.get('hour', '0'),
