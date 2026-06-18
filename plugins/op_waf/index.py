@@ -1533,7 +1533,42 @@ def getDropIpList():
     except Exception as e:
         return mw.returnJson(False, str(e), [])
 
+def getIpLocationBatch():
+    args = getArgs()
+    data = checkArgs(args, ['ips'])
+    if not data[0]:
+        return data[1]
+    
+    ips_json = args['ips']
+    try:
+        ips = json.loads(ips_json)
+        if not isinstance(ips, list):
+            return mw.returnJson(False, 'ips must be a JSON array', [])
+        
+        import urllib.request
+        req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
+        req.add_header('Content-Type', 'application/json')
+        response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
+        result = response.read().decode('utf-8')
+        return mw.returnJson(True, 'ok!', json.loads(result))
+    except Exception as e:
+        return mw.returnJson(False, str(e), [])
 
+def getIpLocation():
+    args = getArgs()
+    data = checkArgs(args, ['ip'])
+    if not data[0]:
+        return data[1]
+    
+    ip = args['ip']
+    try:
+        import urllib.request
+        url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
+        response = urllib.request.urlopen(url, timeout=10)
+        result = response.read().decode('utf-8')
+        return mw.returnJson(True, 'ok!', json.loads(result))
+    except Exception as e:
+        return mw.returnJson(False, str(e), [])
 def removeDropIp():
     args = getArgs()
     data = checkArgs(args, ['ip'])
