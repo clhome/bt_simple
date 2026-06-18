@@ -273,7 +273,19 @@ def getSystemDetails():
     cpu_info['threads'] = psutil.cpu_count()
     
     try:
-        cpu_info['freq'] = f"{psutil.cpu_freq().max:.2f} MHz" if psutil.cpu_freq() else "未知"
+        freq = psutil.cpu_freq()
+        if freq and freq.max > 0:
+            cpu_info['freq'] = f"{int(freq.max)} MHz"
+        else:
+            # Fallback 1: Extract from CPU model string
+            match = re.search(r'@\s*([\d\.]+)\s*(GHz|MHz)', cpu_info['model'], re.IGNORECASE)
+            if match:
+                val = float(match.group(1))
+                if match.group(2).upper() == 'GHZ':
+                    val *= 1000
+                cpu_info['freq'] = f"{int(val)} MHz"
+            else:
+                cpu_info['freq'] = "未知"
     except:
         cpu_info['freq'] = "未知"
         
@@ -285,6 +297,12 @@ def getSystemDetails():
             cache_match = re.search(r'cache size\s*:\s*(.+)', cpuinfo_text)
             if cache_match:
                 cache = cache_match.group(1)
+            
+            # Fallback 2: Read from /proc/cpuinfo if still unknown
+            if cpu_info.get('freq', '未知') == '未知':
+                freq_match = re.search(r'cpu MHz\s*:\s*([\d\.]+)', cpuinfo_text, re.IGNORECASE)
+                if freq_match:
+                    cpu_info['freq'] = f"{int(float(freq_match.group(1)))} MHz"
             
             has_aes = 'aes' in cpuinfo_text
             has_vmx = 'vmx' in cpuinfo_text or 'svm' in cpuinfo_text

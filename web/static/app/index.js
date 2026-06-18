@@ -1777,7 +1777,7 @@ function showSystemDetails() {
 
         layer.open({
             type: 1,
-            title: '系统详细环境',
+            title: '系统详情',
             area: ['900px', '460px'], // 增加宽度减少高度，彻底消除滚动条
             shadeClose: true,
             closeBtn: 1,

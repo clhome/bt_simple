@@ -4159,3 +4159,33 @@ efreshDynamicStatus 任务状态的获取逻辑。
 - [x] 修改 `public.js` 中 `tasklist` 渲染逻辑，改为 `flex: 1` 占据剩余空间并加上 margin，使底部提示信息上下间距保持一致。
 - [x] 进一步优化：改用 `position: absolute` 将提示文字悬浮定位至底部外边距的红框位置，使列表框充分利用高度，且不再遮挡或挤压安装内容区域。
 - [x] 微调优化：将 `bottom` 从 `-12px` 调整为 `-15px`，使其完美紧贴下方的服务器状态信息栏（刚好抵消 `.bt-w-con` 的 15px 内边距）。
+
+## 需求：修复系统详细环境中基础频率显示为 0MHz 的问题
+
+**问题描述：**
+在虚拟机环境（如 VMware）或某些特定的 Linux 环境下，`psutil.cpu_freq()` 可能无法正确读取到 CPU 的频率，导致在“系统详细环境”中“基础频率”显示为 `0.00 MHz` 或者未显示。
+
+**根本原因分析：**
+- `web/utils/system/main.py` 中的 `getSystemDetails` 仅依赖 `psutil.cpu_freq().max`，当它返回 `0.0` 或异常时未进行处理。
+- 可以通过解析 CPU 型号字符串（例如 `Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz`）中的频率，或者在 Linux 下读取 `/proc/cpuinfo` 中的 `cpu MHz` 作为降级回退方案。
+
+**涉及文件：**
+- `web/utils/system/main.py`
+
+### Task List
+
+- [ ] 修改 `web/utils/system/main.py` 的 `getSystemDetails` 函数，在 `psutil.cpu_freq()` 读取失败或返回 0 时，通过正则表达式从 CPU 型号字符串中提取基础频率。
+- [x] 验证正则提取功能，支持提取 GHz 并转换为 MHz。
+- [ ] （可选）如果型号字符串中没有，降级去读取 `/proc/cpuinfo` 中的 `cpu MHz`。
+
+## 需求：优化基础频率显示格式为整数
+
+**问题描述：**
+用户要求在“系统详细环境”中，将“基础频率”的显示由带有两位小数的格式（如 `2200.00 MHz`）改为纯整数格式（如 `2200 MHz`），使界面更加简洁直观。
+
+**涉及文件：**
+- `web/utils/system/main.py`
+
+### Task List
+
+- [ ] 修改 `web/utils/system/main.py` 的 `getSystemDetails` 函数，将三个获取基础频率的分支输出统一格式化为 `int` 整数（即 `{int(freq)} MHz`）。
