@@ -51,3 +51,13 @@
 
 [20260618 17:44]Code committed
 
+## 需求：修复 deploy.sh 在 Linux 下因 CRLF 换行符报错的问题
+
+- [x] 将 `deploy.sh` 文件的换行符从 CRLF 转换为 LF。
+- [x] 确保 `deploy.sh` 的编码为 UTF-8 (无 BOM)。
+- [x] 排查 `scripts/` 目录下的其他 `*.sh` 脚本并统一转换修复了 CRLF 与 BOM。
+
+------
+
+[20260618 18:26]Code committed
+
