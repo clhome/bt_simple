@@ -3,7 +3,7 @@
 # description: MW Cloud Service
 
 ### BEGIN INIT INFO
-# Provides:          Midoks
+# Provides:          mw
 # Required-Start:    $all
 # Required-Stop:     $all
 # Default-Start:     2 3 4 5
@@ -260,123 +260,16 @@ function AutoSizeStr(){
     echo -e " ❖   ${1}${FIX_SPACE}${2})"
 }
 
-function ChooseProxyURL(){
-    clear
-    echo -e '+---------------------------------------------------+'
-    echo -e '|                                                   |'
-    echo -e '|   =============================================   |'
-    echo -e '|                                                   |'
-    echo -e '|     欢迎使用 Linux 一键安装御风面板源码   |'
-    echo -e '|                                                   |'
-    echo -e '|   =============================================   |'
-    echo -e '|                                                   |'
-    echo -e '+---------------------------------------------------+'
-    echo -e ''
-    echo -e '#####################################################'
-    echo -e ''
-    echo -e '            提供以下国内代理地址可供选择:                  '
-    echo -e ''
-    echo -e '#####################################################'
-    echo -e ''
-    cm_i=0
-    for V in ${SOURCE_LIST_KEY[@]}; do
-    num=`expr $cm_i + 1`
-    AutoSizeStr "${V}" "$num"
-    cm_i=`expr $cm_i + 1`
-    done
-    echo -e ''
-    echo -e '#####################################################'
-    echo -e ''
-    echo -e "        系统时间  ${BLUE}$(date "+%Y-%m-%d %H:%M:%S")${PLAIN}"
-    echo -e ''
-    echo -e '#####################################################'
-    CHOICE_A=$(echo -e "\n${BOLD}└─ 请选择并输入你想使用的代理地址 [ 1-${SOURCE_LIST_LEN} ]：${PLAIN}")
-
-    read -p "${CHOICE_A}" INPUT
-    # echo $INPUT
-    if [ "$INPUT" == "" ];then
-        INPUT=1
-        TMP_INPUT=`expr $INPUT - 1`
-        INPUT_KEY=${SOURCE_LIST_KEY[$TMP_INPUT]}
-        echo -e "\n默认选择[${BLUE}${INPUT_KEY}${PLAIN}]安装！"
-    fi
-
-    if [ "$INPUT" -lt "0" ];then
-        INPUT=1
-        TMP_INPUT=`expr $INPUT - 1`
-        INPUT_KEY=${SOURCE_LIST_KEY[$TMP_INPUT]}
-        echo -e "\n低于边界错误!选择[${BLUE}${INPUT_KEY}${PLAIN}]安装！"
-        sleep 2s
-    fi
-
-    if [ "$INPUT" -gt "${SOURCE_LIST_LEN}" ];then
-        INPUT=${SOURCE_LIST_LEN}
-        TMP_INPUT=`expr $INPUT - 1`
-        INPUT_KEY=${SOURCE_LIST_KEY[$TMP_INPUT]}
-        echo -e "\n超出边界错误!选择[${BLUE}${INPUT_KEY}${PLAIN}]安装！"
-        sleep 2s
-    fi
-
-    INPUT=`expr $INPUT - 1`
-    INPUT_KEY=${SOURCE_LIST_KEY[$INPUT]}
-    HTTP_PREFIX=${PROXY_URL[$INPUT_KEY]}
-}
-
-
-mw_common_proxy(){
-    HTTP_PREFIX="https://"
-    LOCAL_ADDR=common
-    cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
-    if [ ! -z "$cn" ] || [ "$?" == "0" ] ;then
-        LOCAL_ADDR=cn
-    fi
-
-    if [ "$LOCAL_ADDR" != "common" ];then
-        # https://github.akams.cn
-        declare -A PROXY_URL
-        PROXY_URL["gh_proxy_com"]="https://gh-proxy.com/"
-        PROXY_URL["github_do"]="https://github.do/"
-        PROXY_URL["gh_llkk_cc"]="https://gh.llkk.cc/https://"
-        PROXY_URL["gh_felicity_ac_cn"]="https://gh.felicity.ac.cn/https://"
-        PROXY_URL["ghfast_top"]="https://ghfast.top/"
-        PROXY_URL["ghproxy_net"]="https://gh-proxy.org/"
-        PROXY_URL["gh_927223_xyz"]="https://gh.927223.xyz/https://"
-        PROXY_URL["gh_proxy_net"]="https://gh-proxy.net/"
-        
-        PROXY_URL["source"]="https://"
-
-
-        SOURCE_LIST_KEY_SORT_TMP=$(echo ${!PROXY_URL[@]} | tr ' ' '\n' | sort -n)
-        SOURCE_LIST_KEY=(${SOURCE_LIST_KEY_SORT_TMP//'\n'/})
-        SOURCE_LIST_LEN=${#PROXY_URL[*]}
-    fi
-
-    if [ "$LOCAL_ADDR" != "common" ];then
-        ChooseProxyURL
-
-        if [ "$HTTP_PREFIX" != "https://" ];then
-            DOMAIN=`echo $HTTP_PREFIX | sed 's|https://||g'`
-            DOMAIN=`echo $DOMAIN | sed 's|/||g'`
-            ping -c 3 $DOMAIN > /dev/null 2>&1
-            if [ "$?" != "0" ];then
-                echo "无效代理地址:${HTTP_PREFIX}"
-                exit
-            fi
-        fi
-    fi
-}
-
 mw_install(){
    if [ -f ${PANEL_DIR}/task.py ];then
         echo "与后续版本差异太大,不再提供更新"
         exit 0
     fi
 
-    mw_common_proxy
-    echo "bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/master/scripts/install.sh")"
-    bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/master/scripts/update.sh")
+    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh) install"
+    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
     mw_clean_lib
-    bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/master/scripts/install.sh")
+    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
 }
 
 mw_update()
@@ -386,9 +279,8 @@ mw_update()
         exit 0
     fi
 
-    mw_common_proxy
-    echo "bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/master/scripts/update.sh")"
-    bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/master/scripts/update.sh")
+    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
+    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
 }
 
 mw_update_dev()
@@ -398,10 +290,9 @@ mw_update_dev()
         exit 0
     fi
 
-    mw_common_proxy
-    echo "bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/dev/scripts/update_dev.sh")"
+    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
     mw_clean_lib
-    bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/dev/scripts/update_dev.sh")
+    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
     cd ${PANEL_DIR}
 }
 
@@ -412,9 +303,8 @@ mw_dev()
         exit 0
     fi
 
-    mw_common_proxy
-    echo "bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/dev/scripts/update_dev.sh")"
-    bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/dev/scripts/update_dev.sh")
+    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
+    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
     cd ${PANEL_DIR}
 }
 
@@ -424,9 +314,8 @@ mw_update_venv()
     rm -rf ${PANEL_DIR}/lib64
     rm -rf ${PANEL_DIR}/lib
 
-    mw_common_proxy
-    echo "bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/dev/scripts/update_dev.sh")"
-    bash <(curl -fsSL "${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/dev/scripts/update_dev.sh")
+    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
+    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
     
     cd ${PANEL_DIR}
 }
@@ -440,7 +329,7 @@ mw_mirror()
     fi
 
     if [ "$LOCAL_ADDR" == "common" ];then
-        bash <(curl --insecure -sSL https://raw.githubusercontent.com/midoks/change-linux-mirrors/main/change-mirrors.sh)
+        bash <(curl --insecure -sSL https://raw.githubusercontent.com/supermanito/LinuxMirrors/main/ChangeMirrors.sh)
     else
         bash <(curl -sSL https://linuxmirrors.cn/main.sh)
     fi
