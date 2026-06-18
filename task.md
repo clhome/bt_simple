@@ -27,3 +27,27 @@
 ------
 
 [20260618 16:26]Code committed
+
+## 需求：优化更新脚本，增加版本判断避免资源浪费
+
+- [x] 在 `deploy.sh` 中新增 `check_version_and_update` 函数。
+- [x] 解析本地 `.version` 与 Github Releases 的 `tag_name` 进行 `sort -V` 大小对比。
+- [x] 将 `deploy.sh` 中 `update` 参数的行为从强制执行 `migrate_from_mw` 改为调用校验逻辑。
+- [x] 额外增加 `force_update` 参数用于特殊情况下的强制覆盖安装。
+
+------
+
+[20260618 17:36] 更新脚本增加版本比对功能完成
+
+## 需求：优化版本检测失败时的降级策略
+
+- [x] 在 `deploy.sh` 中修改 `check_version_and_update` 逻辑：当无法访问 GitHub API 获取远端版本号时，直接降级执行强制覆盖升级 `migrate_from_mw`，以保证网络受限情况下的更新可用性。
+
+------
+
+[20260618 17:41] 网络受限时强制覆盖更新逻辑修复完成
+
+------
+
+[20260618 17:44]Code committed
+

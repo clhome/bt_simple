@@ -1037,8 +1037,52 @@ migrate_from_bt() {
     echo "  3. 请在新面板中重新添加网站域名"
 }
 
+
+# =====================================================================
+# 检测并更新版本
+# =====================================================================
+check_version_and_update() {
+    local local_ver="0.0.0"
+    if [ -f ${PANEL_DIR}/.version ]; then
+        local_ver=$(cat ${PANEL_DIR}/.version | sed 's/^v//' | tr -d '
+
+ ')
+    fi
+
+    log_info "正在检查远端最新版本..."
+    local remote_ver=""
+    if type github_api_get >/dev/null 2>&1; then
+        remote_ver=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+    else
+        remote_ver=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+    fi
+
+    if [ -z "$remote_ver" ]; then
+        log_warn "获取远端版本号失败（可能受限于国内网络），将直接执行强行覆盖升级..."
+        migrate_from_mw
+        return 0
+    fi
+
+    log_info "当前本地版本: ${local_ver} | 远端最新版本: ${remote_ver}"
+
+    if [ "$local_ver" = "$remote_ver" ]; then
+        log_info "已经是最新版本，无需升级。"
+        return 0
+    fi
+
+    # 比较版本号
+    local winner=$(echo -e "${local_ver}\n${remote_ver}" | sort -V | tail -n 1)
+    if [ "$winner" = "$remote_ver" ] && [ "$local_ver" != "$remote_ver" ]; then
+        log_info "检测到新版本，开始静默升级..."
+        migrate_from_mw
+    else
+        log_info "本地版本已等于或高于远端版本，跳过升级。"
+    fi
+}
+
 # =====================================================================
 # 禁用上游自动更新
+
 # =====================================================================
 disable_upstream_update() {
     local mw_script="/etc/rc.d/init.d/mw"
@@ -1144,6 +1188,11 @@ main() {
     # 命令行参数处理
     case "$1" in
         update)
+            SILENT_MODE=true
+            check_version_and_update
+            exit 0
+            ;;
+        force_update)
             SILENT_MODE=true
             migrate_from_mw
             exit 0
