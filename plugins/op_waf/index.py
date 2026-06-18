@@ -1826,5 +1826,9 @@ if __name__ == "__main__":
         print(getDropIpLogs())
     elif func == 'setHoneypotPaths':
         print(setHoneypotPaths())
+    elif func == 'getIpLocationBatch':
+        print(getIpLocationBatch())
+    elif func == 'getIpLocation':
+        print(getIpLocation())
     else:
         print('error')
