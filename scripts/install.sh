@@ -280,11 +280,11 @@ if [ $OSNAME != "macos" ];then
 	mkdir -p /www/backup/site
 
 	if [ ! -d /www/server/mdserver-web ];then
-		curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/midoks/mdserver-web/archive/refs/heads/master.tar.gz
+		curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz
 		cd /tmp && tar -zxvf /tmp/master.tar.gz
-		mv -f /tmp/mdserver-web-master /www/server/mdserver-web
+		mv -f /tmp/bt_simple-master /www/server/mdserver-web
 		rm -rf /tmp/master.tar.gz
-		rm -rf /tmp/mdserver-web-master
+		rm -rf /tmp/bt_simple-master
 	fi
 
 	# install acme.sh
@@ -302,7 +302,7 @@ fi
 
 echo "use system version: ${OSNAME}"
 if [ "${OSNAME}" == "macos" ];then
-	curl --insecure -fsSL ${HTTP_PREFIX}raw.githubusercontent.com/midoks/mdserver-web/refs/heads/dev/scripts/install/macos.sh | bash
+	curl --insecure -fsSL ${HTTP_PREFIX}raw.githubusercontent.com/clhome/bt_simple/master/scripts/install/macos.sh | bash
 else
 	cd /www/server/mdserver-web && bash scripts/install/${OSNAME}.sh
 fi
