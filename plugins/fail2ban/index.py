@@ -948,6 +948,74 @@ class fail2ban_main:
         }
         return mw.returnJson(True, 'ok!', data)
 
+    def get_home_stats(self, args):
+        import sqlite3
+        import time
+        db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
+        ret = mw.execShell('fail2ban-client get dbfile')
+        if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
+            import re
+            match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
+            if match:
+                db_path = match.group(1)
+            elif '- ' in ret[0]:
+                db_path = ret[0].split('- ')[-1].strip()
+
+        now = int(time.time())
+        today_start = int(time.mktime(time.strptime(time.strftime("%Y-%m-%d 00:00:00", time.localtime()), "%Y-%m-%d %H:%M:%S")))
+        
+        total_bans = 0
+        today_bans = 0
+        jail_stats = {}
+        protect_days = 0
+
+        if os.path.exists(db_path):
+            try:
+                conn = sqlite3.connect(db_path)
+                c = conn.cursor()
+                
+                # Total bans
+                c.execute("SELECT count(*) FROM bans")
+                total_bans_row = c.fetchone()
+                if total_bans_row:
+                    total_bans = total_bans_row[0]
+                    
+                # Today bans
+                c.execute("SELECT count(*) FROM bans WHERE timeofban >= ?", (today_start,))
+                today_bans_row = c.fetchone()
+                if today_bans_row:
+                    today_bans = today_bans_row[0]
+                    
+                # Jail stats
+                c.execute("SELECT jail, count(*) FROM bans GROUP BY jail")
+                for row in c.fetchall():
+                    jail_stats[row[0]] = row[1]
+                    
+                # Protect days
+                c.execute("SELECT min(timeofban) FROM bans")
+                oldest_ban = c.fetchone()
+                if oldest_ban and oldest_ban[0]:
+                    protect_days = int((now - oldest_ban[0]) / 86400)
+                
+                conn.close()
+            except Exception as e:
+                pass
+                
+        if protect_days <= 0:
+            jail_local = f2bEtcDir() + "/jail.local"
+            if os.path.exists(jail_local):
+                protect_days = int((now - os.path.getctime(jail_local)) / 86400)
+                if protect_days < 0:
+                    protect_days = 0
+
+        data = {
+            "total_bans": total_bans,
+            "today_bans": today_bans,
+            "protect_days": protect_days,
+            "jail_stats": jail_stats
+        }
+        return mw.returnJson(True, 'ok!', data)
+
 fail2ban_inst = None
 def get_fail2ban_inst():
     global fail2ban_inst
@@ -1038,5 +1106,8 @@ if __name__ == "__main__":
         print(get_active_bans())
     elif func == 'unban_active_ip':
         print(unban_active_ip())
+    elif func == 'get_home_stats':
+        args = getArgs()
+        print(get_fail2ban_inst().get_home_stats(args))
     else:
         print('error')

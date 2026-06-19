@@ -2,6 +2,76 @@ function getVersion(){
     return $('.plugin_version').attr('version');
 }
 
+function f2bHome() {
+    var loadT = layer.msg('正在获取数据...', { icon: 16, time: 0, shade: 0.3 });
+    f2bPost('get_home_stats', '', {}, function(data){
+        layer.close(loadT);
+        var rdata = $.parseJSON(data.data);
+        var stats = rdata.data;
+        
+        var todayBans = stats.today_bans || 0;
+        var totalBans = stats.total_bans || 0;
+        var protectDays = stats.protect_days || 0;
+        var jailStats = stats.jail_stats || {};
+
+        var jailNames = {
+            'sshd': 'SSH 防爆破',
+            'ftpd': 'FTP 防爆破',
+            'mysql': 'MySQL 防爆破',
+            'dovecot': 'Dovecot 邮局',
+            'postfix': 'Postfix 邮局',
+            'global-cc': '全局防 CC 攻击',
+            'global-scan': '全局防恶意扫描'
+        };
+
+        var jailHtml = '';
+        var count = 0;
+        for (var jail in jailStats) {
+            var name = jailNames[jail] || jail;
+            var num = jailStats[jail];
+            jailHtml += '<div style="width: 23%; background: #fff; border: 1px solid #f0f0f0; border-radius: 4px; padding: 20px 0; text-align: center; margin-bottom: 15px; margin-right: 2%; box-shadow: 0 1px 2px rgba(0,0,0,.05); float: left;">\
+                            <div style="font-size: 13px; color: #666; margin-bottom: 10px;">' + name + '</div>\
+                            <div style="font-size: 24px; font-weight: bold; color: #333;">' + num + '</div>\
+                        </div>';
+            count++;
+        }
+        
+        if (count === 0) {
+            jailHtml = '<div style="width: 100%; text-align: center; color: #999; padding: 40px 0;">暂无拦截数据</div>';
+        }
+
+        var html = '<div style="padding: 15px;">\
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">\
+                <div style="width: 32%; background: #fd6e1e; border-radius: 6px; padding: 25px 0; text-align: center; color: #fff; box-shadow: 0 4px 8px rgba(253,110,30,.2);">\
+                    <div style="font-size: 15px; margin-bottom: 10px;">今日拦截 (次)</div>\
+                    <div style="font-size: 32px; font-weight: bold;">' + todayBans + '</div>\
+                </div>\
+                <div style="width: 32%; background: #00b96b; border-radius: 6px; padding: 25px 0; text-align: center; color: #fff; box-shadow: 0 4px 8px rgba(0,185,107,.2);">\
+                    <div style="font-size: 15px; margin-bottom: 10px;">总拦截 (次)</div>\
+                    <div style="font-size: 32px; font-weight: bold;">' + totalBans + '</div>\
+                </div>\
+                <div style="width: 32%; background: #2f69f8; border-radius: 6px; padding: 25px 0; text-align: center; color: #fff; box-shadow: 0 4px 8px rgba(47,105,248,.2);">\
+                    <div style="font-size: 15px; margin-bottom: 10px;">安全防护 (天)</div>\
+                    <div style="font-size: 32px; font-weight: bold;">' + protectDays + '</div>\
+                </div>\
+            </div>\
+            \
+            <div style="background: #fcfcfc; border: 1px solid #f0f0f0; border-radius: 6px; padding: 20px 20px 5px 20px; overflow: hidden; margin-bottom: 20px;">\
+                ' + jailHtml + '\
+                <div style="clear: both;"></div>\
+            </div>\
+            \
+            <div style="background: #f0f9f4; border-left: 4px solid #20a53a; padding: 15px 20px; border-radius: 4px; color: #333; line-height: 28px; font-size: 13px;">\
+                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> Fail2ban 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</div>\
+                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 系统防护用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。</div>\
+                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 网站防护自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。</div>\
+            </div>\
+        </div>';
+
+        $('.soft-man-con').html(html);
+    });
+}
+
 function f2bService() {
     pluginService('fail2ban');
     var waitTimer = setInterval(function() {
