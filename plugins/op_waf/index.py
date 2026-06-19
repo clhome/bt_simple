@@ -267,6 +267,8 @@ def autoMakeLuaConfSingle(file, conf_reload=False):
     dst_path = getServerDir() + "/waf/conf/rule_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
         content = mw.readFile(path)
+        if type(content) == bool or not content:
+            content = "[]"
         # print(content)
         content = json.loads(content)
         listToLuaFile(dst_path, content)
@@ -284,6 +286,8 @@ def autoMakeLuaImportSingle(file, conf_reload=False):
     dst_path = getServerDir() + "/waf/conf/waf_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
         content = mw.readFile(path)
+        if type(content) == bool or not content:
+            content = "{}"
         # print(content)
         content = json.loads(content)
         listToLuaFile(dst_path, content)
