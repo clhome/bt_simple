@@ -526,30 +526,68 @@ function f2bIpDetails(ip) {
         var logs = rdata.data.logs;
         var ban_count = rdata.data.ban_count;
         
-        var listHtml = '';
+        var tbodyHtml = '';
         if(logs.length > 0) {
             for(var i=0; i<logs.length; i++) {
-                var line = $('<div>').text(logs[i]).html();
-                line = line.replace(/ Ban /g, ' <strong style="color:red;">Ban</strong> ');
-                line = line.replace(/ Found /g, ' <strong style="color:orange;">Found</strong> ');
-                line = line.replace(/ Unban /g, ' <strong style="color:green;">Unban</strong> ');
-                listHtml += '<li>' + line + '</li>';
+                var line = logs[i]; // 原始日志行
+                
+                // 提取时间: "2026-06-19 04:51:02"
+                var timeMatch = line.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+                var timeStr = timeMatch ? timeMatch[1] : '-';
+                
+                // 提取规则名: "[global-cc]"
+                var jailMatch = line.match(/\]:\s+\w+\s+\[([^\]]+)\]/);
+                var jailStr = jailMatch ? jailMatch[1] : '-';
+                
+                // 提取并美化动作
+                var actionStr = '-';
+                if (line.indexOf(' Restore Ban ') > -1) {
+                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> 恢复封禁 (Restore Ban)</span>';
+                } else if (line.indexOf(' Unban ') > -1) {
+                    actionStr = '<span style="color:#5cb85c;"><i class="glyphicon glyphicon-ok-circle"></i> 解除封禁 (Unban)</span>';
+                } else if (line.indexOf(' Ban ') > -1) {
+                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> 封禁 (Ban)</span>';
+                } else if (line.indexOf(' Found ') > -1) {
+                    actionStr = '<span style="color:#f0ad4e;"><i class="glyphicon glyphicon-warning-sign"></i> 发现攻击 (Found)</span>';
+                } else {
+                    var actMatch = line.match(/\]:\s+\w+\s+\[[^\]]+\]\s+(.*)$/);
+                    if(actMatch) {
+                        actionStr = $('<div>').text(actMatch[1].replace(new RegExp(ip, 'g'), '').trim()).html();
+                    } else {
+                        actionStr = '<span style="color:#999;" title="' + $('<div>').text(line).html() + '">未知动作</span>'; // 容错处理
+                    }
+                }
+                
+                tbodyHtml += '<tr>\
+                    <td style="font-family: Consolas, monospace; font-size: 12.5px;">' + timeStr + '</td>\
+                    <td>' + $('<div>').text(jailStr).html() + '</td>\
+                    <td>' + actionStr + '</td>\
+                </tr>';
             }
         } else {
-            listHtml = '<li>暂无详细记录</li>';
+            tbodyHtml = '<tr><td colspan="3" style="text-align:center;">暂无详细记录</td></tr>';
         }
         
-        var content = '<div class="pd15 lib-box">\
-                        <table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
-                            <tbody>\
-                                <tr><th>用户IP</th><td>' + $('<div>').text(ip).html() + '</td><th>历史封禁次数</th><td><span style="color:red;font-weight:bold;">' + ban_count + '</span> 次</td></tr>\
-                            </tbody>\
-                        </table>\
-                        <div><b style="margin-left:10px">原始拦截日志 (最新在前)</b></div>\
-                        <div class="lib-con pull-left mt10" style="width:100%;">\
-                            <ul style="max-height: 350px; overflow-y: auto; background: #272822; color: #f8f8f2; padding: 10px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12px; margin: 0; list-style: none;">\
-                                ' + listHtml + '\
-                            </ul>\
+        var content = '<div class="pd15">\
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #f4f6f8; padding: 10px 15px; border-radius: 4px; border: 1px solid #e2e2e2; margin-bottom: 15px;">\
+                            <div style="font-size: 13px;"><b>防护目标IP：</b><span style="font-family: Consolas, monospace; color:#333; margin-left: 5px;">' + $('<div>').text(ip).html() + '</span></div>\
+                            <div style="font-size: 13px;"><b>历史封禁次数：</b><span style="color:#d9534f; font-weight:bold; font-size:15px; margin: 0 5px;">' + ban_count + '</span>次</div>\
+                        </div>\
+                        <div class="divtable">\
+                            <div style="max-height: 380px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">\
+                                <table class="table table-hover" style="margin:0; border:none;">\
+                                    <thead style="position: sticky; top: 0; background: #f2f2f2; z-index: 1;">\
+                                        <tr>\
+                                            <th width="35%" style="border-bottom: 1px solid #ddd;">时间</th>\
+                                            <th width="35%" style="border-bottom: 1px solid #ddd;">触发规则</th>\
+                                            <th width="30%" style="border-bottom: 1px solid #ddd;">执行动作</th>\
+                                        </tr>\
+                                    </thead>\
+                                    <tbody>\
+                                        ' + tbodyHtml + '\
+                                    </tbody>\
+                                </table>\
+                            </div>\
                         </div>\
                     </div>';
         
