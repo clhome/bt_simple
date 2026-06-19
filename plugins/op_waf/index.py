@@ -819,6 +819,9 @@ def addIpWhite():
     data.append(tmp)
     data.append(tmp2)
 
+    if data in content:
+        return mw.returnJson(False, '该 IP 段已存在白名单中!')
+
     content.append(data)
 
     cjson = mw.getJson(content)
@@ -876,6 +879,9 @@ def addIpBlack():
 
     data.append(tmp)
     data.append(tmp2)
+
+    if data in content:
+        return mw.returnJson(False, '该 IP 段已存在黑名单中!')
 
     content.append(data)
 

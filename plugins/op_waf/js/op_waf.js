@@ -912,6 +912,21 @@ function addIpBlack() {
     });
 }
 
+function confirmAddIpBlackArgs(ip) {
+    layer.confirm('<div style="line-height:22px; font-size:13px;">' +
+        '<b>是否确认将该 IP 永久拉黑？</b><br><br>' +
+        '<span style="color:#666;">加入永久黑名单后，该 IP 对本服务器的所有访问将被防火墙直接阻断（拦截响应代码 444），且该操作长期有效。<br><br>' +
+        '后续如需解除封禁，请前往面板的 <b>全局配置 ➔ IP黑名单</b> 进行手动删除解封。</span></div>', 
+    {
+        title: '永久拉黑确认',
+        icon: 3,
+        btn: ['确认拉黑', '取消']
+    }, function(index){
+        layer.close(index);
+        addIpBlackArgs(ip);
+    });
+}
+
 function addIpBlackArgs(ip) {
     var pdata = {
         start_ip: ip,
@@ -2094,7 +2109,7 @@ function wafLogRequest(page){
                 shadeClose: false,
                 content: '<div class="pd15 lib-box">\
                         <table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
-                        <tbody><tr><th>时间</th><td>'+ time + '</td><th>用户IP</th><td><a class="btlink" href="javascript:addIpBlackArgs(\'' + escapeHTML(ip) + '\')" title="加入黑名单">' + escapeHTML(ip) + '</a></td></tr><tr><th>类型</th><td>' + escapeHTML(res.method) + '</td><th>过滤器</th><td>' + escapeHTML(res.rule_name) + '</td></tr></tbody></table>\
+                        <tbody><tr><th>时间</th><td>'+ time + '</td><th>用户IP</th><td>' + escapeHTML(ip) + ' <a class="btlink" style="color:red; margin-left:10px;" href="javascript:confirmAddIpBlackArgs(\'' + escapeHTML(ip) + '\')" title="永久拉黑此IP">永久拉黑</a></td></tr><tr><th>类型</th><td>' + escapeHTML(res.method) + '</td><th>过滤器</th><td>' + escapeHTML(res.rule_name) + '</td></tr></tbody></table>\
                         <div><b style="margin-left:10px">URI地址</b></div>\
                         <div class="lib-con pull-left mt10"><div class="divpre">'+ escapeHTML(res.uri) + '</div></div>\
                         <div><b style="margin-left:10px">User-Agent</b></div>\
