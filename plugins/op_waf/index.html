@@ -237,6 +237,19 @@
 .help-info-text {
     margin-top: 0px;
 }
+
+/* Fix scrolling left menu and footer overlap */
+.bt-w-main {
+    height: 600px;
+}
+.bt-w-menu {
+    height: 100%;
+}
+.bt-w-con {
+    height: 100%;
+    overflow-y: auto;
+    padding-bottom: 35px !important;
+}
 </style>
 <div class="bt-form">
 	<div class="bt-w-main">
@@ -255,7 +268,7 @@
 		<div class="bt-w-con pd15">
 			<div class="soft-man-con"></div>
 		</div>
-        <div id="yufeng-footer" style="position: absolute; bottom: 15px; right: 20px; font-size: 12px; color: #b0b0b0; letter-spacing: 1px; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; display: flex; align-items: center; z-index: 10;">
+        <div id="yufeng-footer" style="position: absolute; bottom: 10px; right: 25px; font-size: 12px; color: #b0b0b0; letter-spacing: 1px; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif; display: flex; align-items: center; z-index: 10; pointer-events: none; background: rgba(255,255,255,0.7); padding: 2px 6px; border-radius: 4px;">
             <span style="opacity: 0.8;">衢州御风科技有限公司 出品</span>
         </div>
 	</div>
