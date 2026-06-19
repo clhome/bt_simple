@@ -149,8 +149,8 @@ function f2bServerAnti() {
     f2bPost('get_anti_info', '', {}, function(data){
         layer.close(loadT);
         var rdata = $.parseJSON(data.data);
-        var serverRules = rdata.server || [];
-        var defaultSshPort = rdata.default_ssh_port || '22';
+        var serverRules = (rdata.data && rdata.data.server) ? rdata.data.server : [];
+        var defaultSshPort = (rdata.data && rdata.data.default_ssh_port) ? rdata.data.default_ssh_port : '22';
         
         // 预设服务列表
         var presetServices = [
@@ -236,7 +236,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 if(rdata.status) {
                     layer.close(index);
-                    f2bServerAnti();
+                    if (mode.indexOf('-') > 0) f2bSiteAnti(); else f2bServerAnti();
                 }
             });
         }
@@ -262,7 +262,7 @@ function f2bSiteAnti() {
     f2bPost('get_anti_info', '', {}, function(data){
         layer.close(loadT);
         var rdata = $.parseJSON(data.data);
-        var siteRules = rdata.site || [];
+        var siteRules = (rdata.data && rdata.data.site) ? rdata.data.site : [];
         
         // 预设服务列表
         var presetServices = [
