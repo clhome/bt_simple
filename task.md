@@ -88,3 +88,13 @@
 - [x] 重构前端 `plugins/fail2ban/js/fail2ban.js` 中的 `f2bBanIp()` 方法，废弃原有 CodeMirror 文本框设计，改为表格展示。
 - [x] 前端表格增加“IP 地址”、“IP 归属”、“操作”列，支持基于 LocalStorage 的归属地缓存及批量查询渲染。
 - [x] 实现 `f2bAddDropIp`（添加）与 `f2bRemoveDropIp`（删除）的交互逻辑，并联动底层 `set_black_ip` 接口。
+
+------
+
+[20260619 17:38] 优化“服务”首页说明与“运行日志”UI风格
+
+## 需求：优化“服务”界面的软件使用指引，美化“运行日志”页面
+
+- [x] 在 `js/fail2ban.js` 封装 `f2bService()` 接管默认的 `pluginService()` 调用，利用定时器监听状态栏加载完成后，动态在“服务”标签下方注入一个优雅的包含 `Fail2ban 使用指南` 的说明面板。
+- [x] 修改 `index.html` 的入口调用，将默认加载和左侧菜单的 onclick 均替换为 `f2bService()`。
+- [x] 修改 `js/fail2ban.js` 中的 `f2bLogs()` 方法，将日志显示的 textarea 背景色设为 `#1e1e1e` (深黑)，字体设为 `#d4d4d4` 配合 `Consolas` 等宽字体，使其看起来具备黑底白字的纯粹命令行风格。

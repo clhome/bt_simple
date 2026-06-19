@@ -2,6 +2,29 @@ function getVersion(){
     return $('.plugin_version').attr('version');
 }
 
+function f2bService() {
+    pluginService('fail2ban');
+    var waitTimer = setInterval(function() {
+        if ($('.soft-man-con').text().indexOf('当前状态') !== -1) {
+            clearInterval(waitTimer);
+            if ($('.soft-man-con').find('#f2b_intro_panel').length === 0) {
+                var infoHtml = '<div id="f2b_intro_panel" class="help-info-text c7" style="margin-top: 15px; padding: 15px; border: 1px dashed #ccc; border-radius: 4px; line-height: 24px;">\
+                    <h3 style="margin-top:0; margin-bottom: 10px; font-size: 14px; font-weight: bold; color: #333;">📖 Fail2ban 使用指南</h3>\
+                    <p style="margin-bottom: 5px;"><b>Fail2ban</b> 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</p>\
+                    <ul style="margin-bottom: 0; padding-left: 20px;">\
+                        <li><b>系统防护</b>：用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。</li>\
+                        <li><b>网站防护</b>：自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。</li>\
+                        <li><b>IP黑名单</b>：您可以在此查看当前被防火墙封禁拦截的攻击源 IP，并支持手动添加或解除封禁。</li>\
+                    </ul>\
+                </div>';
+                $('.soft-man-con').append(infoHtml);
+            }
+        }
+    }, 100);
+    // 5秒后停止检测，防止死循环
+    setTimeout(function() { clearInterval(waitTimer); }, 5000);
+}
+
 function f2bPost(method, version, args,callback){
     var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
 
@@ -67,8 +90,8 @@ function f2bBanIpSave(black_ip){
 // 运行日志
 function f2bLogs(){
     var con = '<div class="divtable">' +
-                '<textarea class="bt-input-text" style="height: 440px; width: 100%; line-height:18px; padding: 10px;" id="f2bLogBody" readonly></textarea>' +
-                '<button id="f2bClearLogBtn" class="btn btn-default btn-sm" style="margin-top:10px;">清空日志</button>' +
+                '<textarea class="bt-input-text" style="height: 440px; width: 100%; line-height:22px; padding: 10px; background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace; border: none; border-radius: 4px;" id="f2bLogBody" readonly></textarea>' +
+                '<div style="margin-top:10px;"><button id="f2bClearLogBtn" class="btn btn-default btn-sm">清空日志</button></div>' +
                '</div>';
     $(".soft-man-con").html(con);
     

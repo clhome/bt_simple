@@ -11,7 +11,7 @@
 	<div class='plugin_version'></div>
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
-			<p class="bgw" onclick="pluginService('fail2ban');">服务</p>
+			<p class="bgw" onclick="f2bService();">服务</p>
 			<p onclick="pluginInitD('fail2ban');">自启动</p>
 			<p onclick="pluginConfigTpl('fail2ban',$('.plugin_version').attr('version'));">配置修改</p>
 			<p onclick="f2bServerAnti();">系统防护</p>
@@ -29,6 +29,6 @@
 resetPluginWinWidth(1000);
 // resetPluginWinHeight(500);
 $.getScript( "/plugins/file?name=fail2ban&f=js/fail2ban.js", function(){
-	pluginService('fail2ban', $('.plugin_version').attr('version'));
+	f2bService();
 });
 </script>
