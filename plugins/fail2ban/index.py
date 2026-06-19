@@ -461,8 +461,8 @@ def get_active_bans():
     else:
         return mw.returnJson(False, '未找到Fail2ban数据库: ' + db_path)
 
-    # 排序，永久封禁排在最前，其次按剩余时间排序
-    active_bans.sort(key=lambda x: (x['bantime'] >= 0, x['expire_time']))
+    # 排序，永久封禁排在最前，其次按剩余时间降序排序
+    active_bans.sort(key=lambda x: (x['bantime'] >= 0, -x['expire_time']))
     return mw.returnJson(True, 'ok', active_bans)
 
 def unban_active_ip():
