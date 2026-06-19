@@ -116,3 +116,11 @@
 - [x] 重构 `panel_task.py`，将现有的 6 个挂起的守护线程合并为一个事件调度线程。
 - [x] 在 `mw.py` 增加底层的 `removeDir` 纯 Python 原生方法。
 - [x] 编写 Python 替换脚本或批量替换，将 `site.py` 等文件中缓慢的 `mw.execShell("mkdir -p x")` 和 `mw.execShell("rm -rf x")` 升级为高速的 `os.makedirs` 与 `shutil.rmtree` 级别调用。
+
+## 需求：资源与 I/O 深度优化（第四阶段）
+
+- [x] 在 `mw.py` 中引入 `lru_cache` 缓存 `returnMsg` 和语言 JSON 文件。
+- [x] 将 `mw.py` 的 `writeSpeed()` 节流（最小落盘间隔 1 秒）。
+- [x] 重构 `mw.py` 的 `notifyMessageTry()` 采用内存字典替代 `notify_lock.json` 写磁盘。
+- [x] 为 `mw.py` 中易阻塞的 GitHub 测速 `getGithubProxyInfo` 增加缓存过期机制。
+- [x] 在 `panel_task.py` 中将 `systemTask_step` 监控轮询间隔由 5s 放宽至 15s。

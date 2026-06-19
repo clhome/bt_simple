@@ -398,7 +398,7 @@ class TaskScheduler:
 def run():
     scheduler = TaskScheduler()
     
-    scheduler.add_task(systemTask_step, 5)
+    scheduler.add_task(systemTask_step, 15)
     scheduler.add_task(check502Task_step, 10)
     scheduler.add_task(openrestyRestartAtOnce_step, 3)
     scheduler.add_task(openrestyAutoRestart_step, 86400)

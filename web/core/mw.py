@@ -216,9 +216,11 @@ def isChina():
         return readFile(is_china_file).strip() == 'True'
     return False
 
+_IS_TESTING_GITHUB = False
+
 def getGithubProxyInfo():
     """
-    获取最快的 GitHub 代理站信息，如果在中国境内，则进行测速并缓存10分钟
+    获取最快的 GitHub 代理站信息，如果在中国境内，则进行后台测速并缓存10分钟
     返回格式：{"name": "gh-proxy.org", "url": "https://gh-proxy.org/"}
     """
     if not isChina():
@@ -226,60 +228,75 @@ def getGithubProxyInfo():
 
     cache_file = getPanelTmp() + '/fastest_github_proxy.json'
     import time
+    global _IS_TESTING_GITHUB
     
+    cached_data = None
     # 尝试命中缓存
     if os.path.exists(cache_file):
         try:
             mtime = os.path.getmtime(cache_file)
+            cached_data = getObjectByJson(readFile(cache_file))
             if time.time() - mtime < 600: # 10分钟缓存
-                data = getObjectByJson(readFile(cache_file))
-                if data and 'name' in data and 'url' in data:
-                    return data
+                if cached_data and 'name' in cached_data and 'url' in cached_data:
+                    return cached_data
         except Exception:
             pass
 
-    # 缓存失效或不存在，进行自动测速
-    test_list = {
-        "ghproxy.net": "https://ghproxy.net/",
-        "gh.con.sh": "https://gh.con.sh/",
-        "gh-proxy.com": "https://gh-proxy.com/",
-        "cors.zme.ink": "https://cors.zme.ink/"
-    }
-    
-    test_url = "https://raw.githubusercontent.com/clhome/bt_simple/master/README.md"
-    best_time = 999.0
-    best_name = "ghproxy.net" # 备退默认值
-    best_url = "https://ghproxy.net/"
+    if _IS_TESTING_GITHUB:
+        if cached_data and 'name' in cached_data and 'url' in cached_data:
+            return cached_data
+        return {"name": "ghproxy.net", "url": "https://ghproxy.net/"}
 
-    # 使用 curl + execShell 进行测速，彻底免去 Python SSL 及 DNS 挂起风险
-    for name, prefix in test_list.items():
+    _IS_TESTING_GITHUB = True
+    
+    def test_speed_bg():
+        global _IS_TESTING_GITHUB
+        test_list = {
+            "ghproxy.net": "https://ghproxy.net/",
+            "gh.con.sh": "https://gh.con.sh/",
+            "gh-proxy.com": "https://gh-proxy.com/",
+            "cors.zme.ink": "https://cors.zme.ink/"
+        }
+        
+        test_url = "https://raw.githubusercontent.com/clhome/bt_simple/master/README.md"
+        best_time = 999.0
+        best_name = "ghproxy.net"
+        best_url = "https://ghproxy.net/"
+
+        for name, prefix in test_list.items():
+            try:
+                full_url = prefix + test_url
+                cmd = 'curl -s -m 2 -o /dev/null -w "%{{time_total}}" "{}"'.format(full_url)
+                out, err = execShell(cmd)
+                elapsed = float(out.strip())
+                if elapsed <= 0:
+                    elapsed = 999.0
+                
+                if elapsed < best_time:
+                    best_time = elapsed
+                    best_name = name
+                    best_url = prefix
+            except Exception:
+                continue
+
+        result = {"name": best_name, "url": best_url}
         try:
-            full_url = prefix + test_url
-            cmd = f'curl -s -m 2 -o /dev/null -w "%{{time_total}}" "{full_url}"'
-            out, err = execShell(cmd)
-            elapsed = float(out.strip())
-            if elapsed <= 0:
-                elapsed = 999.0
-            
-            if elapsed < best_time:
-                best_time = elapsed
-                best_name = name
-                best_url = prefix
+            cache_dir = os.path.dirname(cache_file)
+            if not os.path.exists(cache_dir):
+                os.makedirs(cache_dir)
+            writeFile(cache_file, getJson(result))
         except Exception:
-            continue
+            pass
+            
+        _IS_TESTING_GITHUB = False
+        
+    import threading
+    t = threading.Thread(target=test_speed_bg)
+    t.start()
 
-    result = {"name": best_name, "url": best_url}
-    
-    # 写入缓存
-    try:
-        cache_dir = os.path.dirname(cache_file)
-        if not os.path.exists(cache_dir):
-            os.makedirs(cache_dir)
-        writeFile(cache_file, getJson(result))
-    except Exception:
-        pass
-
-    return result
+    if cached_data and 'name' in cached_data and 'url' in cached_data:
+        return cached_data
+    return {"name": "ghproxy.net", "url": "https://ghproxy.net/"}
 
 
 def getGithubProxy():
@@ -971,10 +988,22 @@ def getStaticJson(name="public"):
     return file
 
 
+import functools
+
+@functools.lru_cache(maxsize=128)
+def _getCachedStaticJson(name, lang):
+    file = 'static/language/' + lang + '/' + name + '.json'
+    if not os.path.exists(file):
+        file = 'route/static/language/' + lang + '/' + name + '.json'
+    try:
+        return json.loads(readFile(file))
+    except:
+        return {}
+
 def returnMsg(status, msg, args=()):
-    # 取通用字曲返回
-    pjson = getStaticJson('public')
-    logMessage = json.loads(readFile(pjson))
+    # 取通用字典返回
+    lang = getLanguage()
+    logMessage = _getCachedStaticJson('public', lang)
     keys = logMessage.keys()
 
     if msg in keys:
@@ -1249,16 +1278,30 @@ def writeDbLog(stype, msg, args=(), uid=1):
         print("writeDbLog:"+str(e))
         return False
 
+_LAST_WRITE_TIME = 0
+
 def writeSpeed(title, used, total, speed=0):
+    global _LAST_WRITE_TIME
+    now = time.time()
+
     panel_dir = getPanelDir()
     speed_file= panel_dir + '/data/panel_speed.pl'
     # 写进度
     if not title:
         data = {'title': None, 'progress': 0,'total': 0, 'used': 0, 'speed': 0}
-    else:
-        progress = int((100.0 * used / total))
-        data = {'title': title, 'progress': progress,'total': total, 'used': used, 'speed': speed}
+        writeFile(speed_file, json.dumps(data))
+        _LAST_WRITE_TIME = now
+        return True
+        
+    progress = int((100.0 * used / total))
+    data = {'title': title, 'progress': progress,'total': total, 'used': used, 'speed': speed}
+    
+    # 节流：1秒内不重复落盘，除非进度跑完或结束
+    if now - _LAST_WRITE_TIME < 1 and progress < 100:
+        return True
+        
     writeFile(speed_file, json.dumps(data))
+    _LAST_WRITE_TIME = now
     return True
 
 
@@ -2268,23 +2311,20 @@ def emailNotifyTest(data):
     return emailNotifyMessage(data)
 
 
+_NOTIFY_MEMORY_LOCK = {}
+
 def notifyMessageTry(msg, stype='common', trigger_time=300, is_write_log=True):
+    global _NOTIFY_MEMORY_LOCK
+    now = time.time()
 
-    lock_file = getPanelTmp() + '/notify_lock.json'
-    if not os.path.exists(lock_file):
-        writeFile(lock_file, '{}')
-
-    lock_data = json.loads(readFile(lock_file))
-    if stype in lock_data:
-        diff_time = time.time() - lock_data[stype]['do_time']
+    if stype in _NOTIFY_MEMORY_LOCK:
+        diff_time = now - _NOTIFY_MEMORY_LOCK[stype]['do_time']
         if diff_time >= trigger_time:
-            lock_data[stype]['do_time'] = time.time()
+            _NOTIFY_MEMORY_LOCK[stype]['do_time'] = now
         else:
             return False
     else:
-        lock_data[stype] = {'do_time': time.time()}
-
-    writeFile(lock_file, json.dumps(lock_data))
+        _NOTIFY_MEMORY_LOCK[stype] = {'do_time': now}
 
     if is_write_log:
         writeLog("通知管理[" + stype + "]", msg)
