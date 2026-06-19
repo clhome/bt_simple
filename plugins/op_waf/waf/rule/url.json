@@ -85,7 +85,7 @@
     ],
     [
         1,
-        "^/(phpmyadmin|\\.env|vendor/phpunit|admin\\.php|\\.git|config\\.php\\.bak)",
+        "/(phpmyadmin|\\.env|vendor/phpunit|admin\\.php|\\.git|config\\.php\\.bak)",
         "蜜罐目录探测",
         0
     ]

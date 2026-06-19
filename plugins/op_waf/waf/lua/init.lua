@@ -619,16 +619,18 @@ local function waf_honeypot()
     local paths = config['honeypot']['paths']
     if not paths then return false end
 
+    local uri = string.gsub(params['uri'] or "", "//+", "/")
+
     for _, path in ipairs(paths) do
         local is_match = false
         if string.sub(path, -1) == '/' then
-            -- 目录前缀匹配 (例如 '/.git/' 会匹配 '/.git/config')
-            if string.sub(params['uri'], 1, string.len(path)) == path then
+            -- 目录包含匹配 (例如 '/.git/' 会匹配 '/.git/config' 和 '/backend/.git/')
+            if string.find(uri, path, 1, true) then
                 is_match = true
             end
         else
-            -- 精确完整匹配 (例如 '/.env')
-            if params['uri'] == path then
+            -- 文件包含匹配 (例如 '/.env' 匹配 '/.env' 和 '/backend/.env')
+            if string.find(uri, path, 1, true) then
                 is_match = true
             end
         end
