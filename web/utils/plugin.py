@@ -11,6 +11,7 @@
 import os
 import sys
 import json
+import shlex
 import threading
 import multiprocessing
 
@@ -1064,9 +1065,9 @@ class plugin(object):
 
         py = 'python3 ' + path
         if args == '':
-            py_cmd = py + ' ' + func + ' ' + version
+            py_cmd = py + ' ' + func + ' ' + shlex.quote(version)
         else:
-            py_cmd = py + ' ' + func + ' ' + version + ' ' + args
+            py_cmd = py + ' ' + func + ' ' + shlex.quote(version) + ' ' + shlex.quote(args)
 
         if not os.path.exists(path):
             return ('', '')

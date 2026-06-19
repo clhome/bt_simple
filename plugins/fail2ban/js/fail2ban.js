@@ -458,3 +458,220 @@ function f2bSiteAnti() {
         $(".soft-man-con").html(con);
     });
 }
+
+function f2bLogRequest(page){
+    var args = {};   
+    args['page'] = page;
+    args['page_size'] = 10;
+    
+    var query_date = 'today';
+    if ($('#time_choose').attr("data-name") != '' && $('#time_choose').attr("data-name") != undefined){
+        query_date = $('#time_choose').attr("data-name");
+    } else {
+        query_date = $('#search_time button.cur').attr("data-name");
+    }
+
+    args['query_date'] = query_date;
+    args['tojs'] = 'f2bLogRequest';
+
+    f2bPost('get_logs_list', '', args, function(rdata){
+        var rdata = $.parseJSON(rdata.data);
+        var list = '';
+        var data = rdata.data.data;
+        if (data.length > 0){
+            for(i in data){
+                list += '<tr>';
+                list += '<td><span class="overflow_hide" title="' + getLocalTime(data[i]['time']) + '" style="width:145px;">' + getLocalTime(data[i]['time'])+'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + data[i]['ip'] + '" style="width:120px; font-family: Consolas, monospace; font-weight:bold; color:#d9534f;">' + data[i]['ip'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + data[i]['rule_name'] + '" style="width:100px;">' + data[i]['rule_name'] +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + data[i]['reason'] + '" style="width:300px;">' + data[i]['reason'] +'</span></td>';
+                list += '<td style="text-align:right;"><a onclick="f2bIpDetails(\''+data[i]['ip']+'\')" href="javascript:;" class="btlink f2b-details" title="详情">详情</a></td>';
+                list += '</tr>';
+            }
+        } else{
+             list += '<tr><td colspan="4" style="text-align:center;">封锁日志为空</td></tr>';
+        }
+        
+        var table = '<div class="tablescroll">\
+                            <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
+                            <thead><tr>\
+                            <th>时间</th>\
+                            <th>IP</th>\
+                            <th>规则名</th>\
+                            <th>原因</th>\
+                            <th style="text-align:right;">操作</th>\
+                            </tr></thead>\
+                            <tbody>\
+                            '+ list +'\
+                            </tbody></table>\
+                        </div>\
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">\
+                            <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">导出excel</button></div>\
+                            <div id="wsPage" class="dataTables_paginate paging_bootstrap page" style="margin:0;"></div>\
+                        </div>';
+        $('#ws_table').html(table);
+        $('#wsPage').html(rdata.data.page);
+    });
+}
+
+function f2bIpDetails(ip) {
+    var loadT = layer.msg('正在获取详情...', { icon: 16, time: 0, shade: 0.3 });
+    f2bPost('get_ip_logs', '', {ip: ip}, function(data){
+        layer.close(loadT);
+        var rdata = $.parseJSON(data.data);
+        if(!rdata.status) {
+            layer.msg(rdata.msg, {icon: 2});
+            return;
+        }
+        var logs = rdata.data.logs;
+        var ban_count = rdata.data.ban_count;
+        
+        var listHtml = '';
+        if(logs.length > 0) {
+            for(var i=0; i<logs.length; i++) {
+                var line = $('<div>').text(logs[i]).html();
+                line = line.replace(/ Ban /g, ' <strong style="color:red;">Ban</strong> ');
+                line = line.replace(/ Found /g, ' <strong style="color:orange;">Found</strong> ');
+                line = line.replace(/ Unban /g, ' <strong style="color:green;">Unban</strong> ');
+                listHtml += '<li>' + line + '</li>';
+            }
+        } else {
+            listHtml = '<li>暂无详细记录</li>';
+        }
+        
+        var content = '<div class="pd15 lib-box">\
+                        <table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
+                            <tbody>\
+                                <tr><th>用户IP</th><td>' + $('<div>').text(ip).html() + '</td><th>历史封禁次数</th><td><span style="color:red;font-weight:bold;">' + ban_count + '</span> 次</td></tr>\
+                            </tbody>\
+                        </table>\
+                        <div><b style="margin-left:10px">原始拦截日志 (最新在前)</b></div>\
+                        <div class="lib-con pull-left mt10" style="width:100%;">\
+                            <ul style="max-height: 350px; overflow-y: auto; background: #272822; color: #f8f8f2; padding: 10px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12px; margin: 0; list-style: none;">\
+                                ' + listHtml + '\
+                            </ul>\
+                        </div>\
+                    </div>';
+        
+        layer.open({
+            type: 1,
+            title: "【"+$('<div>').text(ip).html() + "】 触发详情",
+            area: '650px',
+            closeBtn: 1,
+            shadeClose: false,
+            content: content
+        });
+    });
+}
+
+function f2bSiteHistory(){
+    var randstr = getRandomString(10);
+    var html = '<div>\
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom:10px;">\
+                    <div style="display: flex; align-items: center;">\
+                        <span style="margin-left:10px">时间: </span>\
+                        <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
+                            <div id="search_time" class="input-group-btn btn-group-sm">\
+                                <button data-name="today" type="button" class="btn btn-default cur">今日</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            </div>\
+                            <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
+                        </div>\
+                    </div>\
+                    <div>\
+                        <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">刷新</button>\
+                    </div>\
+                </div>\
+                <div class="divtable mtb10" id="ws_table"></div>\
+            </div>';
+    $(".soft-man-con").html(html);
+    
+    $(".soft-man-con").off("click", "#exportExcel").on("click", "#exportExcel", function(){
+        var args = {};
+        args['page'] = 1;
+        args['page_size'] = 100000;
+        var query_date = 'today';
+        if ($('#time_choose').attr("data-name") != '' && $('#time_choose').attr("data-name") != undefined){
+            query_date = $('#time_choose').attr("data-name");
+        } else {
+            query_date = $('#search_time button.cur').attr("data-name");
+        }
+        args['query_date'] = query_date;
+        args['tojs'] = 'f2bLogRequest';
+
+        var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        f2bPost('get_logs_list', '', args, function(rdata){
+            layer.close(loadT);
+            var rdata = $.parseJSON(rdata.data);
+            var data = rdata.data.data;
+            if(!data || data.length == 0) {
+                layer.msg("没有数据可导出", {icon: 2});
+                return;
+            }
+            var csv = "\uFEFF时间,IP,规则名,原因\n";
+            for(var i=0; i<data.length; i++) {
+                var d = data[i];
+                csv += getLocalTime(d.time) + "," + d.ip + "," + d.rule_name + "," + '"' + (d.reason||'').replace(/"/g, '""') + '"\n';
+            }
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = "防护历史.csv";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    });
+
+    $("#refreshLogs").click(function(){
+        f2bLogRequest(1);
+    });
+
+    //日期范围
+    if(typeof laydate !== 'undefined') {
+        laydate.render({
+            elem: '#time_choose',
+            value:'',
+            range:true,
+            done:function(value, startDate, endDate){
+                if(!value){
+                    return false;
+                }
+
+                $('#search_time button').each(function(){
+                    $(this).removeClass('cur');
+                });
+
+                var timeA  = value.split('-');
+                var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
+                var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+                var query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
+
+                $('#time_choose').attr("data-name",query_txt);
+                $('#time_choose').addClass("cur");
+
+                f2bLogRequest(1);
+            },
+        });
+    }
+
+    $('#search_time button').click(function(){
+        $('#search_time button').each(function(){
+            if ($(this).hasClass('cur')){
+                $(this).removeClass('cur');
+            }
+        });
+        $('#time_choose').attr("data-name",'');
+        $('#time_choose').removeClass("cur");
+        $('#time_choose').val('');
+
+        $(this).addClass('cur');
+
+        f2bLogRequest(1);
+    });
+
+    f2bLogRequest(1);
+}

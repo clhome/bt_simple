@@ -66,39 +66,35 @@ def getInitDTpl():
 def getArgs():
     args = sys.argv[3:]
     tmp = {}
-    args_len = len(args)
-    if args_len == 0:
+    if not args:
         return tmp
 
-    # 优先尝试将 args[0] 当作完整的 JSON 来解析
-    if args_len == 1:
-        try:
-            val = args[0].strip()
-            if val.startswith('{') and val.endswith('}'):
-                try:
-                    tmp = json.loads(val)
-                    if isinstance(tmp, dict):
-                        return tmp
-                except Exception:
-                    pass
-        except Exception:
-            pass
+    val = " ".join(args).strip()
+    if val.startswith("'") and val.endswith("'"):
+        val = val[1:-1]
+        
+    try:
+        parsed = json.loads(val)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        pass
 
-    # 传统的 key:value 参数提取
+    # Fallback for Windows CMD mangling where commas become arg separators
     for arg in args:
-        try:
-            if not arg:
+        arg = arg.strip().strip("'").strip('"').strip('{').strip('}')
+        if not arg:
+            continue
+        for part in arg.split(','):
+            part = part.strip()
+            if not part:
                 continue
-            t = arg.strip().strip('{').strip('}')
-            if not t:
-                continue
-            t_list = t.split(':')
+            t_list = part.split(':')
             if len(t_list) >= 2:
                 k = t_list[0].strip().strip('"').strip("'")
                 v = ':'.join(t_list[1:]).strip().strip('"').strip("'")
                 tmp[k] = v
-        except (IndexError, TypeError, AttributeError):
-            pass
+            
     return tmp
 
 def checkArgs(data, ck=[]):
@@ -475,10 +471,12 @@ class fail2ban_main:
         if 'args' in args and isinstance(args['args'], str):
             try:
                 import json
-                inner_args = json.loads(args['args'])
+                raw_args = args['args'].replace('\\"', '"')
+                inner_args = json.loads(raw_args)
                 args.update(inner_args)
-            except Exception:
-                pass
+            except Exception as e:
+                args['args_parse_error'] = str(e)
+                args['args_raw'] = args['args']
         return args
 
     def get_ssh_port(self):
@@ -703,6 +701,146 @@ class fail2ban_main:
             return mw.returnJson(False, str(e), [])
 
 
+    def get_logs_list(self, args):
+        args = self.parse_inner_args(args)
+        page = int(args.get('page', 1))
+        page_size = int(args.get('page_size', 10))
+        query_date = args.get('query_date', 'today')
+        tojs = args.get('tojs', '')
+
+        log_file = runLog()
+        
+        logs = []
+        if os.path.exists(log_file):
+            try:
+                import time
+                with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                    for line in f:
+                        if ' Ban ' in line:
+                            parts = line.strip().split()
+                            if len(parts) >= 4 and parts[-2] == 'Ban':
+                                date_str = parts[0]
+                                time_str = parts[1].split(',')[0]
+                                jail_str = parts[-3].strip('[]')
+                                ip_str = parts[-1]
+                                
+                                try:
+                                    time_obj = time.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
+                                    unix_time = int(time.mktime(time_obj))
+                                except:
+                                    unix_time = int(time.time())
+                                
+                                reason = "触发防御规则，已被自动拦截"
+                                if jail_str.endswith('-cc'):
+                                    reason = "请求频率过高，触发CC防御拦截"
+                                elif jail_str.endswith('-scan'):
+                                    reason = "触发恶意扫描防护，已被自动拦截"
+                                elif jail_str == 'sshd':
+                                    reason = "SSH登录失败次数过多，防暴破拦截"
+                                elif jail_str == 'ftpd':
+                                    reason = "FTP登录失败次数过多，防暴破拦截"
+                                elif jail_str == 'mysql':
+                                    reason = "MySQL登录失败次数过多，防暴破拦截"
+
+                                logs.append({
+                                    "time": unix_time,
+                                    "domain": "ALL",
+                                    "ip": ip_str,
+                                    "uri": "-",
+                                    "rule_name": jail_str,
+                                    "reason": reason
+                                })
+            except Exception as e:
+                pass
+
+        logs.reverse()
+
+        filtered_logs = []
+        import time
+        now = int(time.time())
+        today_start = int(time.mktime(time.strptime(time.strftime("%Y-%m-%d 00:00:00", time.localtime()), "%Y-%m-%d %H:%M:%S")))
+        
+        if query_date == 'today':
+            start_time = today_start
+            end_time = now + 86400
+        elif query_date == 'yesterday':
+            start_time = today_start - 86400
+            end_time = today_start
+        elif query_date == 'l7':
+            start_time = today_start - 86400 * 6
+            end_time = now + 86400
+        elif query_date == 'l30':
+            start_time = today_start - 86400 * 29
+            end_time = now + 86400
+        elif '-' in query_date:
+            try:
+                start_time, end_time = [int(x) for x in query_date.split('-')]
+            except:
+                start_time = 0
+                end_time = now + 86400
+        else:
+            start_time = 0
+            end_time = now + 86400
+            
+        for log in logs:
+            if start_time <= log['time'] <= end_time:
+                filtered_logs.append(log)
+
+        total_count = len(filtered_logs)
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paged_logs = filtered_logs[start_idx:end_idx]
+
+        _page = {}
+        _page['count'] = total_count
+        _page['p'] = page
+        _page['row'] = page_size
+        _page['tojs'] = tojs
+        
+        data = {
+            "page": mw.getPage(_page),
+            "data": paged_logs
+        }
+        
+        return mw.returnJson(True, 'ok!', data)
+
+    def get_ip_logs(self, args):
+        args = self.parse_inner_args(args)
+        ip = args.get('ip', '')
+        
+        if not ip and 'args' in args:
+            if isinstance(args['args'], dict):
+                ip = args['args'].get('ip', '')
+            elif isinstance(args['args'], str):
+                import re
+                m = re.search(r'"ip"\s*:\s*"([^"]+)"', args['args'].replace('\\', ''))
+                if m:
+                    ip = m.group(1)
+
+        if not ip:
+            return mw.returnJson(False, f'IP不能为空! args dump: {str(args)}')
+
+        log_file = runLog()
+        logs = []
+        ban_count = 0
+        if os.path.exists(log_file):
+            try:
+                with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+                    for line in f:
+                        if ip in line:
+                            logs.append(line.strip())
+                            if ' Ban ' in line:
+                                ban_count += 1
+            except Exception as e:
+                pass
+
+        logs.reverse()
+        data = {
+            "ban_count": ban_count,
+            "logs": logs
+        }
+        return mw.returnJson(True, 'ok!', data)
+
 fail2ban_inst = None
 def get_fail2ban_inst():
     global fail2ban_inst
@@ -753,6 +891,12 @@ if __name__ == "__main__":
     elif func == 'getIpLocation':
         args = getArgs()
         print(get_fail2ban_inst().getIpLocation(args))
+    elif func == 'get_logs_list':
+        args = getArgs()
+        print(get_fail2ban_inst().get_logs_list(args))
+    elif func == 'get_ip_logs':
+        args = getArgs()
+        print(get_fail2ban_inst().get_ip_logs(args))
     elif func == 'status':
         print(status())
     elif func == 'start':
