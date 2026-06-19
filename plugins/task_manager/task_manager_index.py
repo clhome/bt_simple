@@ -319,7 +319,7 @@ class mainClass(object):
             elif name.lower() == 'python' or name.lower() == 'python3':
                 p_exe_arr = p_exe.split('/')
                 if p_exe_arr[-1] in ['task.py']:
-                    return 'MW面板-后台任务进程'
+                    return '御风面板-后台任务进程'
                 elif p_exe_arr[-1] in ['BT-Panel', 'runserver.py']:
                     return '面板-主进程'
                 elif p_exe.find('process_network_total') != -1:
@@ -351,14 +351,14 @@ class mainClass(object):
                     elif cmdline.find('/www/server/cron/') != -1:
                         return '面板计划任务'
                     elif cmdline.find('task.py') != -1:
-                        return 'MW面板-后台任务'
+                        return '御风面板-后台任务'
                     elif cmdline.find('mdserver-web') != -1 and cmdline.find('gunicorn -c setting.py app:app') != -1:
-                        return 'MW面板'
+                        return '御风面板'
             elif name.lower() == 'gunicorn':
                 if p:
                     cmdline = ' '.join(p.cmdline()).strip()
                     if cmdline.find('mdserver-web') != -1 and cmdline.find('gunicorn -c setting.py app:app') != -1:
-                        return 'MW面板'
+                        return '御风面板'
 
             elif name == 'nginx':
                 default_name = 'Nginx'
@@ -374,11 +374,11 @@ class mainClass(object):
                     return 'OpenResty子进程'
                 return 'OpenResty主进程'
             elif name == 'mw':
-                return 'MW面板-命令'
+                return '御风面板-命令'
             elif p_exe == '/usr/bin/bash':
                 cmdline = ' '.join(p.cmdline()).strip()
                 if cmdline.find('task.py') != -1:
-                    return 'MW面板-后台任务'
+                    return '御风面板-后台任务'
                 if cmdline.find('/www/server/cron/') != -1:
                     return '面板计划任务'
                 elif cmdline.find('mdserver-web/plugins') != -1:
@@ -387,7 +387,7 @@ class mainClass(object):
 
         if name in processPs: return processPs[name]
 
-        # if self.is_panel_process(pid): return 'MW面板'
+        # if self.is_panel_process(pid): return '御风面板'
 
         if p_exe:
             exe_keys = {
