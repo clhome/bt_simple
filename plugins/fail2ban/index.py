@@ -672,6 +672,36 @@ class fail2ban_main:
         mw.execShell('echo "" > ' + log_file)
         return mw.returnJson(True, '清空日志成功!')
 
+    def getIpLocationBatch(self, args):
+        args = self.parse_inner_args(args)
+        ips_json = args.get('ips', '[]')
+        try:
+            import json
+            import urllib.request
+            ips = json.loads(ips_json)
+            if not isinstance(ips, list):
+                return mw.returnJson(False, 'ips must be a JSON array', [])
+            req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
+            req.add_header('Content-Type', 'application/json')
+            response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
+            result = response.read().decode('utf-8')
+            return mw.returnJson(True, 'ok!', json.loads(result))
+        except Exception as e:
+            return mw.returnJson(False, str(e), [])
+
+    def getIpLocation(self, args):
+        args = self.parse_inner_args(args)
+        ip = args.get('ip', '')
+        try:
+            import json
+            import urllib.request
+            url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
+            response = urllib.request.urlopen(url, timeout=10)
+            result = response.read().decode('utf-8')
+            return mw.returnJson(True, 'ok!', json.loads(result))
+        except Exception as e:
+            return mw.returnJson(False, str(e), [])
+
 
 fail2ban_inst = None
 def get_fail2ban_inst():
@@ -717,6 +747,12 @@ if __name__ == "__main__":
     elif func == 'clear_log':
         args = getArgs()
         print(get_fail2ban_inst().clear_log(args))
+    elif func == 'getIpLocationBatch':
+        args = getArgs()
+        print(get_fail2ban_inst().getIpLocationBatch(args))
+    elif func == 'getIpLocation':
+        args = getArgs()
+        print(get_fail2ban_inst().getIpLocation(args))
     elif func == 'status':
         print(status())
     elif func == 'start':

@@ -98,46 +98,170 @@ function f2bLogs(){
     });
 }
 
-function f2bBanIp(){
-    var con = '<p style="color: #666; margin-bottom: 7px">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!</p>\
-                <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
-                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">保存</button>\
-                <ul class="help-info-text c7 ptb15">\
-                    <li>如有多个请以换行隔开例：<br/>\
-                    192.168.1.1<br/>\
-                    192.168.1.0/24\
-                    </li>\
-                </ul>';
+function f2bBanIp() {
+    var html = '<div class="waf-drop-ip-con">\
+        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">\
+            <div style="display:flex; align-items:center;">\
+                <input class="bt-input-text" type="text" id="f2b_add_ip_input" placeholder="输入IP地址，例如1.1.1.1" style="width: 200px; margin-right: 5px;">\
+                <button class="btn btn-success btn-sm" onclick="f2bAddDropIp();">添加黑名单</button>\
+            </div>\
+            <button class="btn btn-default btn-sm" onclick="f2bBanIp();"><i class="glyphicon glyphicon-refresh"></i> 刷新</button>\
+        </div>\
+        <div class="divtable">\
+            <table class="table table-hover">\
+                <thead>\
+                    <tr>\
+                        <th width="35%">IP 地址</th>\
+                        <th width="35%">IP归属</th>\
+                        <th width="30%" style="text-align: right;">操作</th>\
+                    </tr>\
+                </thead>\
+                <tbody id="f2b_drop_ip_list_body">\
+                    <tr><td colspan="3" style="text-align:center;">正在加载数据...</td></tr>\
+                </tbody>\
+            </table>\
+        </div>\
+    </div>';
 
-    $(".soft-man-con").html(con);
-    $("#textBody").empty();
-    var editor = CodeMirror.fromTextArea(document.getElementById("textBody"), {
-        extraKeys: {
-            "Ctrl-Space": "autocomplete",
-            "Ctrl-F": "findPersistent",
-            "Ctrl-H": "replaceAll",
-            "Ctrl-S": function() {
-                $("#textBody").text(editor.getValue());
-                f2bPost('set_black_list', '', {'black_ip':editor.getValue()}, function(data){
-                    var rdata = $.parseJSON(data.data);
-                    layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
-                });
-
-                f2bBanIpSave(editor.getValue());
-            }
-        },
-        lineNumbers: true,
-        matchBrackets:true,
-    });
-    editor.focus();
+    $('.soft-man-con').html(html);
 
     f2bPost('get_black_list', '', {}, function(data){
         var rdata = $.parseJSON(data.data);
-        $("#textBody").text(rdata.data);
-    });
+        var ipListStr = rdata.data;
+        var ipList = ipListStr ? ipListStr.split('\n').filter(function(x) { return x.trim() !== ''; }) : [];
 
-    $("#onlineEditFileBtn").click(function(){
-        f2bBanIpSave(editor.getValue());
+        if (!ipList || ipList.length === 0) {
+            $('#f2b_drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center;">暂无黑名单 IP。</td></tr>');
+            return;
+        }
+
+        // 读取缓存
+        var cacheStr = localStorage.getItem('f2b_ip_loc_cache');
+        var locCache = {};
+        if (cacheStr) {
+            try { locCache = JSON.parse(cacheStr); } catch(e) {}
+        }
+
+        var tbodyHtml = '';
+        var pendingIps = [];
+        
+        for (var i = 0; i < ipList.length; i++) {
+            var ip = ipList[i].trim();
+            if (!ip) continue;
+            var ipId = 'ip_loc_' + ip.replace(/\./g, '_').replace(/:/g, '_');
+            var locStr = locCache[ip];
+            var locDisplay = '';
+            if (locStr) {
+                locDisplay = locStr;
+            } else {
+                locDisplay = '<span style="color:#999;">正在获取...</span>';
+                pendingIps.push(ip);
+            }
+
+            tbodyHtml += '<tr>\
+                <td><span style="color:#d9534f; font-family: Consolas, monospace; font-weight:bold;">' + ip + '</span></td>\
+                <td id="' + ipId + '">' + locDisplay + '</td>\
+                <td style="text-align: right;">\
+                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="f2bRemoveDropIp(\'' + ip + '\')">删除</a>\
+                </td>\
+            </tr>';
+        }
+        $('#f2b_drop_ip_list_body').html(tbodyHtml);
+
+        // 如果有未命中的，分片请求
+        if (pendingIps.length > 0) {
+            var chunkSize = 100;
+            for (var i = 0; i < pendingIps.length; i += chunkSize) {
+                var chunk = pendingIps.slice(i, i + chunkSize);
+                (function(ips) {
+                    f2bPost('getIpLocationBatch', '', {ips: JSON.stringify(ips)}, function(data) {
+                        var loc_res = $.parseJSON(data.data);
+                        if (loc_res.status && loc_res.data) {
+                            var batchData = loc_res.data;
+                            for (var j = 0; j < batchData.length; j++) {
+                                var item = batchData[j];
+                                if (item && item.query && item.status === 'success') {
+                                    var country = item.country || '';
+                                    var regionName = item.regionName || '';
+                                    var city = item.city || '';
+                                    var org = item.org || '';
+                                    
+                                    var locParts = [];
+                                    if (country) locParts.push(country);
+                                    if (regionName && regionName !== country) locParts.push(regionName);
+                                    if (city && city !== regionName) locParts.push(city);
+                                    if (org) locParts.push(org);
+                                    
+                                    var finalStr = locParts.join('_');
+                                    if (!finalStr) finalStr = '未知';
+                                    
+                                    locCache[item.query] = finalStr;
+                                    var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
+                                    $('#' + pId).html(finalStr);
+                                } else if (item && item.query) {
+                                    locCache[item.query] = '局域网/保留地址';
+                                    var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
+                                    $('#' + pId).html('局域网/保留地址');
+                                }
+                            }
+                            localStorage.setItem('f2b_ip_loc_cache', JSON.stringify(locCache));
+                        }
+                    });
+                })(chunk);
+            }
+        }
+    });
+}
+
+function f2bRemoveDropIp(ip) {
+    layer.confirm('确定要删除该 IP (' + ip + ') 并解封吗？', {title: '删除黑名单', icon: 3}, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在删除...', {icon: 16, time: 0, shade: 0.3});
+        
+        // 先获取现有列表，过滤掉这个IP然后再保存
+        f2bPost('get_black_list', '', {}, function(data){
+            var rdata = $.parseJSON(data.data);
+            var ipListStr = rdata.data;
+            var ipList = ipListStr ? ipListStr.split('\n').filter(function(x) { return x.trim() !== '' && x.trim() !== ip; }) : [];
+            
+            f2bPost('set_black_ip', '', {'black_ip': JSON.stringify(ipList)}, function(sdata){
+                layer.close(loadT);
+                var srdata = $.parseJSON(sdata.data);
+                layer.msg('已删除并尝试解封该IP', {icon: 1});
+                f2bBanIp();
+            });
+        });
+    });
+}
+
+function f2bAddDropIp() {
+    var ip = $('#f2b_add_ip_input').val().trim();
+    if (!ip) {
+        layer.msg('请输入IP地址', {icon: 2});
+        return;
+    }
+    var loadT = layer.msg('正在添加...', {icon: 16, time: 0, shade: 0.3});
+    f2bPost('get_black_list', '', {}, function(data){
+        var rdata = $.parseJSON(data.data);
+        var ipListStr = rdata.data;
+        var ipList = ipListStr ? ipListStr.split('\n').filter(function(x) { return x.trim() !== ''; }) : [];
+        
+        if (ipList.indexOf(ip) === -1) {
+            ipList.push(ip);
+        } else {
+            layer.close(loadT);
+            layer.msg('该IP已在黑名单中', {icon: 2});
+            return;
+        }
+        
+        f2bPost('set_black_ip', '', {'black_ip': JSON.stringify(ipList)}, function(sdata){
+            layer.close(loadT);
+            var srdata = $.parseJSON(sdata.data);
+            layer.msg(srdata.msg, {icon: srdata.status ? 1 : 2});
+            if (srdata.status) {
+                f2bBanIp();
+            }
+        });
     });
 }
 

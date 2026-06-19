@@ -77,3 +77,14 @@
 
 - [x] 修复 `fail2ban.js` 中拉取配置接口 JSON 解析层级缺失（缺少 `.data`）导致状态全部显示“未配置”的错误。
 - [x] 修复 `f2bConfigService` 保存防护规则后，强制跳转刷新到“系统防护”界面的问题，根据 `mode` 实现对应面板刷新（如网站防护刷新当前项）。
+
+------
+
+[20260619 17:25] 修复UI状态显示及跳转逻辑
+
+## 需求：重构 fail2ban IP黑名单界面，增加归属地显示及表格化
+
+- [x] 在后端 `plugins/fail2ban/index.py` 中新增 `getIpLocationBatch` 和 `getIpLocation` 接口，以便支持前端对 IP 的归属地批量查询（采用与 `op_waf` 相同的第三方接口）。
+- [x] 重构前端 `plugins/fail2ban/js/fail2ban.js` 中的 `f2bBanIp()` 方法，废弃原有 CodeMirror 文本框设计，改为表格展示。
+- [x] 前端表格增加“IP 地址”、“IP 归属”、“操作”列，支持基于 LocalStorage 的归属地缓存及批量查询渲染。
+- [x] 实现 `f2bAddDropIp`（添加）与 `f2bRemoveDropIp`（删除）的交互逻辑，并联动底层 `set_black_ip` 接口。
