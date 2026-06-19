@@ -134,13 +134,15 @@ function f2bBanIp() {
             <table class="table table-hover">\
                 <thead>\
                     <tr>\
-                        <th width="35%">IP 地址</th>\
-                        <th width="35%">IP归属</th>\
-                        <th width="30%" style="text-align: right;">操作</th>\
+                        <th width="20%">IP 地址</th>\
+                        <th width="15%">触发规则</th>\
+                        <th width="30%">IP归属</th>\
+                        <th width="20%">剩余封禁时间</th>\
+                        <th width="15%" style="text-align: right;">操作</th>\
                     </tr>\
                 </thead>\
                 <tbody id="f2b_drop_ip_list_body">\
-                    <tr><td colspan="3" style="text-align:center;">正在加载数据...</td></tr>\
+                    <tr><td colspan="5" style="text-align:center;">正在加载数据...</td></tr>\
                 </tbody>\
             </table>\
         </div>\
@@ -148,13 +150,16 @@ function f2bBanIp() {
 
     $('.soft-man-con').html(html);
 
-    f2bPost('get_black_list', '', {}, function(data){
+    f2bPost('get_active_bans', '', {}, function(data){
         var rdata = $.parseJSON(data.data);
-        var ipListStr = rdata.data;
-        var ipList = ipListStr ? ipListStr.split('\n').filter(function(x) { return x.trim() !== ''; }) : [];
+        if(!rdata.status) {
+            $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center; color:red;">' + rdata.msg + '</td></tr>');
+            return;
+        }
 
-        if (!ipList || ipList.length === 0) {
-            $('#f2b_drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center;">暂无黑名单 IP。</td></tr>');
+        var bans = rdata.data;
+        if (!bans || bans.length === 0) {
+            $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center;">暂无封禁 IP。</td></tr>');
             return;
         }
 
@@ -167,25 +172,50 @@ function f2bBanIp() {
 
         var tbodyHtml = '';
         var pendingIps = [];
+        var nowTimestamp = Math.floor(Date.now() / 1000);
         
-        for (var i = 0; i < ipList.length; i++) {
-            var ip = ipList[i].trim();
-            if (!ip) continue;
-            var ipId = 'ip_loc_' + ip.replace(/\./g, '_').replace(/:/g, '_');
+        for (var i = 0; i < bans.length; i++) {
+            var item = bans[i];
+            var ip = item.ip;
+            var jail = item.jail;
+            var bantime = item.bantime;
+            var expire_time = item.expire_time;
+            
+            var ipId = 'ip_loc_' + ip.replace(/\./g, '_').replace(/:/g, '_') + '_' + i;
             var locStr = locCache[ip];
             var locDisplay = '';
             if (locStr) {
                 locDisplay = locStr;
             } else {
                 locDisplay = '<span style="color:#999;">正在获取...</span>';
-                pendingIps.push(ip);
+                if(pendingIps.indexOf(ip) === -1) pendingIps.push(ip);
+            }
+
+            var timeRemaining = '';
+            if (bantime < 0) {
+                timeRemaining = '<span style="color:#d9534f; font-weight:bold;">永久封禁</span>';
+            } else {
+                var diff = expire_time - nowTimestamp;
+                if (diff <= 0) {
+                    timeRemaining = '<span style="color:#f0ad4e;">即将解封...</span>';
+                } else {
+                    var hours = Math.floor(diff / 3600);
+                    var minutes = Math.floor((diff % 3600) / 60);
+                    if (hours > 0) {
+                        timeRemaining = hours + ' 小时 ' + minutes + ' 分钟';
+                    } else {
+                        timeRemaining = minutes + ' 分钟';
+                    }
+                }
             }
 
             tbodyHtml += '<tr>\
                 <td><span style="color:#d9534f; font-family: Consolas, monospace; font-weight:bold;">' + ip + '</span></td>\
+                <td>' + jail + '</td>\
                 <td id="' + ipId + '">' + locDisplay + '</td>\
+                <td>' + timeRemaining + '</td>\
                 <td style="text-align: right;">\
-                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="f2bRemoveDropIp(\'' + ip + '\')">删除</a>\
+                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="f2bRemoveDropIp(\'' + ip + '\', \'' + jail + '\')">解除封禁</a>\
                 </td>\
             </tr>';
         }
@@ -202,12 +232,12 @@ function f2bBanIp() {
                         if (loc_res.status && loc_res.data) {
                             var batchData = loc_res.data;
                             for (var j = 0; j < batchData.length; j++) {
-                                var item = batchData[j];
-                                if (item && item.query && item.status === 'success') {
-                                    var country = item.country || '';
-                                    var regionName = item.regionName || '';
-                                    var city = item.city || '';
-                                    var org = item.org || '';
+                                var bItem = batchData[j];
+                                if (bItem && bItem.query && bItem.status === 'success') {
+                                    var country = bItem.country || '';
+                                    var regionName = bItem.regionName || '';
+                                    var city = bItem.city || '';
+                                    var org = bItem.org || '';
                                     
                                     var locParts = [];
                                     if (country) locParts.push(country);
@@ -218,13 +248,11 @@ function f2bBanIp() {
                                     var finalStr = locParts.join('_');
                                     if (!finalStr) finalStr = '未知';
                                     
-                                    locCache[item.query] = finalStr;
-                                    var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
-                                    $('#' + pId).html(finalStr);
-                                } else if (item && item.query) {
-                                    locCache[item.query] = '局域网/保留地址';
-                                    var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
-                                    $('#' + pId).html('局域网/保留地址');
+                                    locCache[bItem.query] = finalStr;
+                                    $('[id^="ip_loc_' + bItem.query.replace(/\./g, '_').replace(/:/g, '_') + '"]').html(finalStr);
+                                } else if (bItem && bItem.query) {
+                                    locCache[bItem.query] = '局域网/保留地址';
+                                    $('[id^="ip_loc_' + bItem.query.replace(/\./g, '_').replace(/:/g, '_') + '"]').html('局域网/保留地址');
                                 }
                             }
                             localStorage.setItem('f2b_ip_loc_cache', JSON.stringify(locCache));
@@ -236,23 +264,20 @@ function f2bBanIp() {
     });
 }
 
-function f2bRemoveDropIp(ip) {
-    layer.confirm('确定要删除该 IP (' + ip + ') 并解封吗？', {title: '删除黑名单', icon: 3}, function(index) {
+function f2bRemoveDropIp(ip, jail) {
+    layer.confirm('确定要解除对 IP (' + ip + ') 的封禁吗？', {title: '解除封禁', icon: 3}, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在删除...', {icon: 16, time: 0, shade: 0.3});
+        var loadT = layer.msg('正在解封...', {icon: 16, time: 0, shade: 0.3});
         
-        // 先获取现有列表，过滤掉这个IP然后再保存
-        f2bPost('get_black_list', '', {}, function(data){
-            var rdata = $.parseJSON(data.data);
-            var ipListStr = rdata.data;
-            var ipList = ipListStr ? ipListStr.split('\n').filter(function(x) { return x.trim() !== '' && x.trim() !== ip; }) : [];
-            
-            f2bPost('set_black_ip', '', {'black_ip': JSON.stringify(ipList)}, function(sdata){
-                layer.close(loadT);
-                var srdata = $.parseJSON(sdata.data);
-                layer.msg('已删除并尝试解封该IP', {icon: 1});
-                f2bBanIp();
-            });
+        f2bPost('unban_active_ip', '', {'ip': ip, 'jail': jail}, function(sdata){
+            layer.close(loadT);
+            var srdata = $.parseJSON(sdata.data);
+            if (srdata.status) {
+                layer.msg(srdata.msg, {icon: 1});
+            } else {
+                layer.msg(srdata.msg, {icon: 2});
+            }
+            f2bBanIp();
         });
     });
 }
@@ -542,7 +567,7 @@ function f2bIpDetails(ip) {
                 // 提取并美化动作
                 var actionStr = '-';
                 if (line.indexOf(' Restore Ban ') > -1) {
-                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> 恢复封禁 (Restore Ban)</span>';
+                    actionStr = '<span style="color:#d9534f;"><i class="glyphicon glyphicon-ban-circle"></i> 服务重启后继续封禁 (Restore Ban)</span>';
                 } else if (line.indexOf(' Unban ') > -1) {
                     actionStr = '<span style="color:#5cb85c;"><i class="glyphicon glyphicon-ok-circle"></i> 解除封禁 (Unban)</span>';
                 } else if (line.indexOf(' Ban ') > -1) {

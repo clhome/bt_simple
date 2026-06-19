@@ -407,6 +407,79 @@ def setBlackIp():
     mw.writeFile(getBlackFile(), json.dumps(ip_list))
     return mw.returnJson(True, "添加黑名单成功")
 
+def get_active_bans():
+    import sqlite3
+    import time
+    db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
+    # 尝试从 client 获取 db 路径
+    ret = mw.execShell('fail2ban-client get dbfile')
+    if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
+        import re
+        match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
+        if match:
+            db_path = match.group(1)
+        elif '- ' in ret[0]:
+            db_path = ret[0].split('- ')[-1].strip()
+
+    active_bans = []
+    if os.path.exists(db_path):
+        try:
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+            c.execute("SELECT jail, ip, timeofban, bantime FROM bans")
+            rows = c.fetchall()
+            now = int(time.time())
+            
+            # 手动添加的黑名单 IPs，用于在 UI 中优先标识
+            black_list = getBlackListArr()
+
+            for row in rows:
+                jail, ip, timeofban, bantime = row
+                expire_time = timeofban + bantime
+                # 未过期的封禁或者是永久封禁
+                if bantime < 0 or expire_time > now or ip in black_list:
+                    # 如果是从 black_list 来的，强行设为永久封禁
+                    if ip in black_list:
+                        bantime = -1
+                    
+                    active_bans.append({
+                        'jail': jail,
+                        'ip': ip,
+                        'timeofban': timeofban,
+                        'bantime': bantime,
+                        'expire_time': expire_time
+                    })
+            conn.close()
+        except Exception as e:
+            return mw.returnJson(False, '无法读取Fail2ban数据库: ' + str(e))
+    else:
+        return mw.returnJson(False, '未找到Fail2ban数据库: ' + db_path)
+
+    # 排序，永久封禁排在最前，其次按剩余时间排序
+    active_bans.sort(key=lambda x: (x['bantime'] >= 0, x['expire_time']))
+    return mw.returnJson(True, 'ok', active_bans)
+
+def unban_active_ip():
+    args = getArgs()
+    ip = args.get('ip', '')
+    jail = args.get('jail', '')
+    
+    if not ip:
+        return mw.returnJson(False, 'IP不能为空')
+        
+    if jail:
+        mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=jail, ip=ip))
+    else:
+        mw.execShell('fail2ban-client -vvv unban {ip}'.format(ip=ip))
+        
+    # 同时从 black_list 中移除
+    ip_list = getBlackListArr()
+    if ip in ip_list:
+        ip_list.remove(ip)
+        mw.writeFile(getBlackFile(), json.dumps(ip_list))
+        
+    return mw.returnJson(True, '解除封禁成功')
+
 def runInfo():
     # 获取 Jail 状态与封禁详情
     jails = []
@@ -927,5 +1000,9 @@ if __name__ == "__main__":
         print(getBlackList())
     elif func == 'set_black_ip':
         print(setBlackIp())
+    elif func == 'get_active_bans':
+        print(get_active_bans())
+    elif func == 'unban_active_ip':
+        print(unban_active_ip())
     else:
         print('error')
