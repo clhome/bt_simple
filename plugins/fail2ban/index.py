@@ -794,8 +794,14 @@ class fail2ban_main:
                             if len(parts) >= 4 and parts[-2] == 'Ban':
                                 date_str = parts[0]
                                 time_str = parts[1].split(',')[0]
-                                jail_str = parts[-3].strip('[]')
                                 ip_str = parts[-1]
+                                
+                                is_restore = False
+                                if parts[-3] == 'Restore':
+                                    jail_str = parts[-4].strip('[]')
+                                    is_restore = True
+                                else:
+                                    jail_str = parts[-3].strip('[]')
                                 
                                 try:
                                     time_obj = time.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M:%S")
@@ -807,13 +813,18 @@ class fail2ban_main:
                                 if jail_str.endswith('-cc'):
                                     reason = "请求频率过高，触发CC防御拦截"
                                 elif jail_str.endswith('-scan'):
-                                    reason = "触发恶意扫描防护，已被自动拦截"
+                                    reason = "触发恶意扫描，已被自动拦截"
                                 elif jail_str == 'sshd':
-                                    reason = "SSH登录失败次数过多，防暴破拦截"
+                                    reason = "SSH登录失败过多，防暴破拦截"
                                 elif jail_str == 'ftpd':
-                                    reason = "FTP登录失败次数过多，防暴破拦截"
+                                    reason = "FTP登录失败过多，防暴破拦截"
                                 elif jail_str == 'mysql':
-                                    reason = "MySQL登录失败次数过多，防暴破拦截"
+                                    reason = "MySQL登录失败过多，防暴破拦截"
+                                elif jail_str == 'panel.yftec.top-cc' or jail_str.endswith('-cc'):
+                                    reason = "面板/网站请求频率过高，触发CC拦截"
+                                    
+                                if is_restore:
+                                    reason = "服务重启，恢复历史封禁 (" + reason + ")"
 
                                 logs.append({
                                     "time": unix_time,
