@@ -5362,9 +5362,11 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     height: 40px !important;
 }
 .index-pos-box .position {
+    height: 40px !important;
     line-height: 40px !important;
 }
 .index-pos-box .pull-right {
+    height: 40px !important;
     line-height: 40px !important;
 }
 

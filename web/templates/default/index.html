@@ -1,7 +1,7 @@
 {% extends "layout.html" %} {% block content %}
 <div class="main-content">
 
-    <div class="index-pos-box bgw">
+    <div class="index-pos-box bgw clearfix">
         <div class="position f12 pull-left" style="margin-left: 15px; padding-left: 18px; line-height: 52px; height: 52px;">
             <div style="display: inline-block; vertical-align: middle; margin-left: 28px; cursor:pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); padding:0 14px; height:28px; line-height:26px; border-radius:4px; background: linear-gradient(90deg, rgba(32,165,58,0.1), rgba(32,165,58,0.02)); border: 1px solid rgba(32,165,58,0.35); color: #20a53a; box-shadow: 0 0 8px rgba(32,165,58,0.08);" onmouseover="this.style.background='linear-gradient(90deg, rgba(32,165,58,0.15), rgba(32,165,58,0.05))'; this.style.borderColor='rgba(32,165,58,0.5)'; this.style.boxShadow='0 0 15px rgba(32,165,58,0.15)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='linear-gradient(90deg, rgba(32,165,58,0.1), rgba(32,165,58,0.02))'; this.style.borderColor='rgba(32,165,58,0.35)'; this.style.boxShadow='0 0 8px rgba(32,165,58,0.08)'; this.style.transform='translateY(0)';" onclick="showSystemDetails()" title="点击查看系统详细环境">
                 <span class="ico-system" style="font-weight:bold; vertical-align: middle; margin-left: 0; position: relative; left: 0;">系统:</span>
@@ -26,9 +26,7 @@
         </div>
 
         <div class="server bgw mtb15">
-            <div class="title c6 f16 plr15">
-                <h3 class="c6 f16 pull-left">状态</h3>
-            </div>
+            <div class="title c6 f16 plr15">状态</div>
             <div class="server-circle">
                 <ul class="row" id="systemInfoList">
                     <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="LoadList">
