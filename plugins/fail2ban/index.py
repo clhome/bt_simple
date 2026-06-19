@@ -467,12 +467,29 @@ class fail2ban_main:
 
     def get_anti_info(self, args=None):
         try:
+            default_sshd = {
+                "mode": "sshd",
+                "port": "22",
+                "maxretry": "5",
+                "findtime": "300",
+                "bantime": "86400",
+                "act": "true"
+            }
             conf = mw.readFile(self._config)
             if not conf:
-                conf = {"server": [], "site": []}
-                mw.writeFile(self._config, json.dumps(conf))
-                return conf
-            return json.loads(conf)
+                conf_data = {"server": [default_sshd], "site": []}
+                mw.writeFile(self._config, json.dumps(conf_data))
+                self.sync_jail_local(conf_data)
+                return conf_data
+                
+            conf_data = json.loads(conf)
+            # If server config is completely empty, initialize it with sshd defaults
+            if 'server' not in conf_data or len(conf_data['server']) == 0:
+                conf_data['server'] = [default_sshd]
+                mw.writeFile(self._config, json.dumps(conf_data))
+                self.sync_jail_local(conf_data)
+                
+            return conf_data
         except Exception:
             return {"server": [], "site": []}
 
