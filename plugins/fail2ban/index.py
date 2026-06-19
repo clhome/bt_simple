@@ -1016,6 +1016,33 @@ class fail2ban_main:
         }
         return mw.returnJson(True, 'ok!', data)
 
+    def get_total_statistics(self, args):
+        home_res = self.get_home_stats(args)
+        try:
+            import json
+            home_data = json.loads(home_res)
+            if home_data.get('status') and home_data.get('data'):
+                today_bans = home_data['data'].get('today_bans', 0)
+                total_bans = home_data['data'].get('total_bans', 0)
+                count_str = str(today_bans) + '/' + str(total_bans)
+                ver_content = mw.readFile(getPluginDir() + '/info.json')
+                version = "1.0"
+                if ver_content:
+                    try:
+                        vdata = json.loads(ver_content)
+                        version = vdata.get('versions', "1.0")
+                    except:
+                        pass
+                res = {
+                    "count": count_str,
+                    "ver": version
+                }
+                return mw.returnJson(True, "ok", res)
+        except:
+            pass
+            
+        return mw.returnJson(False, "error")
+
 fail2ban_inst = None
 def get_fail2ban_inst():
     global fail2ban_inst
@@ -1109,5 +1136,8 @@ if __name__ == "__main__":
     elif func == 'get_home_stats':
         args = getArgs()
         print(get_fail2ban_inst().get_home_stats(args))
+    elif func == 'get_total_statistics':
+        args = getArgs()
+        print(get_fail2ban_inst().get_total_statistics(args))
     else:
         print('error')

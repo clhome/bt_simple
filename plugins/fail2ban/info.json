@@ -2,7 +2,7 @@
     "sort": 55,
     "ps": "防止恶意IP地址暴力破解服务、站点，禁止导致多个身份验证错误的主机",
     "name": "fail2ban",
-    "title": "fail2ban",
+    "title": "御风F2B防火墙",
     "shell": "install.sh",
     "versions": [
         "1.2.0"
@@ -11,7 +11,7 @@
     "checks": "server/fail2ban",
     "path": "server/fail2ban",
     "display": 2,
-    "author": "fail2ban",
+    "author": "fail2ban，yufengtec",
     "date": "2026-05-28",
     "home": "https://www.fail2ban.org",
     "type": 0,

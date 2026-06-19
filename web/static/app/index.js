@@ -1021,7 +1021,7 @@ function pluginInit(){
 }
 
 function loadKeyDataCount(){
-    var plist = ['mysql', 'gogs', 'gitea', 'op_waf'];
+    var plist = ['mysql', 'gogs', 'gitea', 'op_waf', 'fail2ban'];
     for (var i = 0; i < plist.length; i++) {
         pname = plist[i];
         function call(pname){
@@ -1043,6 +1043,8 @@ function loadKeyDataCount(){
                     show_name = 'Gogs';
                 } else if (pname == 'gitea') {
                     show_name = 'Gitea';
+                } else if (pname == 'fail2ban') {
+                    show_name = '御风F2B底层防火墙';
                 }
                 var onclick_str = 'softMain(\''+pname+'\',\''+show_name+'\',\''+rdata['data']['ver']+'\')';
                 if (pname == 'mysql') {
