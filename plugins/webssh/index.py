@@ -29,7 +29,7 @@ class App():
 
         self.__host_dir = self.getServerDir() + '/host'
         if not os.path.exists(self.__host_dir):
-            mw.execShell('mkdir -p ' + self.__host_dir)
+            mw.makeDirs(self.__host_dir)
 
     def getPluginName(self):
         return 'webssh'

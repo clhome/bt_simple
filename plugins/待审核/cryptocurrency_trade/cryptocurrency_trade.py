@@ -140,7 +140,7 @@ def syncDataAddTaskUninstall():
     name = "ct_task"
     sup_task_dst = sup_path + '/conf.d/' + name + '.ini'
     if os.path.exists(sup_task_dst):
-        mw.execShell('rm -rf ' + sup_task_dst)
+        mw.removeDir(sup_task_dst)
 
     restartSup()
     return mw.returnJson(True, '删除同步数据任务成功!')

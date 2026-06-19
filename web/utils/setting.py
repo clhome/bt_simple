@@ -145,7 +145,7 @@ class setting(object):
         if choose == 'local':
             dst_path = mw.getPanelDir() + '/ssl/local'
             if os.path.exists(dst_path):
-                mw.execShell('rm -rf ' + dst_path)
+                mw.removeDir(dst_path)
                 mw.restartMw()
                 return mw.returnData(True, '删除本地面板SSL成功!',to_panel_url)
             else:
@@ -156,12 +156,12 @@ class setting(object):
             
             dst_path = mw.getPanelDir() + '/ssl/nginx'
             if os.path.exists(dst_path):
-                mw.execShell('rm -rf ' + dst_path)
+                mw.removeDir(dst_path)
             
             if bind_domain != '':
                 acme_domain_dir = mw.getAcmeDomainDir(bind_domain)
                 if os.path.exists(acme_domain_dir):
-                    mw.execShell('rm -rf ' + acme_domain_dir)
+                    mw.removeDir(acme_domain_dir)
 
             panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
             panel_ssl_data['open'] = False
@@ -231,7 +231,7 @@ class setting(object):
         dst_key = dst_path + "/private.pem"
 
         if not os.path.exists(dst_path):
-            mw.execShell("mkdir -p " + dst_path)
+            mw.makeDirs(dst_path)
 
         mw.buildSoftLink(src_cert, dst_cert, True)
         mw.buildSoftLink(src_key, dst_key, True)
@@ -357,7 +357,7 @@ class setting(object):
 
     #     tmp_well_know = auth_to + '/.well-known'
     #     if os.path.exists(tmp_well_know):
-    #         mw.execShell('rm -rf ' + tmp_well_know)
+    #         mw.removeDir(tmp_well_know)
 
     #     if os.path.exists(dst_path):
     #         choose_file = self.__file['ssl']

@@ -100,7 +100,7 @@ def appConf():
 def appAuthPwd(name):
     nameDir = getServerDir() + '/receive/' + name
     if not os.path.exists(nameDir):
-        mw.execShell("mkdir -p " + nameDir)
+        mw.makeDirs(nameDir)
     return nameDir + '/auth.db'
 
 
@@ -492,7 +492,7 @@ def delRecBy(name):
                 secrets_file = tmp['secrets file']
                 tp = os.path.dirname(secrets_file)
                 if os.path.exists(tp):
-                    mw.execShell("rm -rf " + tp)
+                    mw.removeDir(tp)
 
                 if x + 1 == ret_list_len:
                     is_end = True
@@ -613,7 +613,7 @@ def makeLsyncdConf(data):
             t = lsyncd_list[x]
             name_dir = send_dir + "/" + t["name"]
             if not os.path.exists(name_dir):
-                mw.execShell("mkdir -p " + name_dir)
+                mw.makeDirs(name_dir)
 
             cmd_exclude = name_dir + "/exclude"
             cmd_exclude_txt = ""

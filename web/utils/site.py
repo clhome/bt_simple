@@ -40,28 +40,28 @@ class sites(object):
 
         self.vhostPath = vhost = self.setupPath + '/nginx/vhost'
         if not os.path.exists(vhost):
-            mw.execShell("mkdir -p " + vhost + " && chmod -R 755 " + vhost)
+            mw.makeDirs(vhost + " && chmod -R 755 " + vhost)
         self.rewritePath = rewrite = self.setupPath + '/nginx/rewrite'
         if not os.path.exists(rewrite):
-            mw.execShell("mkdir -p " + rewrite + " && chmod -R 755 " + rewrite)
+            mw.makeDirs(rewrite + " && chmod -R 755 " + rewrite)
 
         self.passPath = passwd = self.setupPath + '/nginx/pass'
         if not os.path.exists(passwd):
-            mw.execShell("mkdir -p " + passwd + " && chmod -R 755 " + passwd)
+            mw.makeDirs(passwd + " && chmod -R 755 " + passwd)
 
         self.redirectPath = redirect = self.setupPath + '/nginx/redirect'
         if not os.path.exists(redirect):
-            mw.execShell("mkdir -p " + redirect +" && chmod -R 755 " + redirect)
+            mw.makeDirs(redirect +" && chmod -R 755 " + redirect)
 
         self.proxyPath = proxy = self.setupPath + '/nginx/proxy'
         if not os.path.exists(proxy):
-            mw.execShell("mkdir -p " + proxy + " && chmod -R 755 " + proxy)
+            mw.makeDirs(proxy + " && chmod -R 755 " + proxy)
 
         # ssl conf
         self.sslDir = self.setupPath + '/ssl'
         self.sslLetsDir = self.setupPath + '/letsencrypt'
         if not os.path.exists(self.sslLetsDir):
-            mw.execShell("mkdir -p " + self.sslLetsDir +" && chmod -R 755 " + self.sslLetsDir)
+            mw.makeDirs(self.sslLetsDir +" && chmod -R 755 " + self.sslLetsDir)
 
 
     def runHook(self, hook_name, func_name):
@@ -236,7 +236,7 @@ class sites(object):
         for b in binding:
             bpath = path + '/' + b['path']
             if not os.path.exists(bpath):
-                mw.execShell('mkdir -p ' + bpath)
+                mw.makeDirs(bpath)
                 mw.execShell('ln -sf ' + path +'/index.html ' + bpath + '/index.html')
 
 
@@ -390,11 +390,11 @@ class sites(object):
         # 重定向目录
         redirectDir = self.setupPath + '/nginx/redirect/' + webname
         if os.path.exists(redirectDir):
-            mw.execShell('rm -rf ' + redirectDir)
+            mw.removeDir(redirectDir)
         # 代理目录
         proxyDir = self.setupPath + '/nginx/proxy/' + webname
         if os.path.exists(proxyDir):
-            mw.execShell('rm -rf ' + proxyDir)
+            mw.removeDir(proxyDir)
 
     def delete(self, site_id, path):
         info = thisdb.getSitesById(site_id)
@@ -403,20 +403,20 @@ class sites(object):
 
         if path == '1':
             web_root_path = mw.getWwwDir() + '/' + webname
-            mw.execShell('rm -rf ' + web_root_path)
+            mw.removeDir(web_root_path)
 
         # ssl
         ssl_dir = self.sslDir + '/' + webname
         if os.path.exists(ssl_dir):
-            mw.execShell('rm -rf ' + ssl_dir)
+            mw.removeDir(ssl_dir)
 
         ssl_lets_dir = self.sslLetsDir + '/' + webname
         if os.path.exists(ssl_lets_dir):
-            mw.execShell('rm -rf ' + ssl_lets_dir)
+            mw.removeDir(ssl_lets_dir)
 
         ssl_acme_dir = mw.getAcmeDir() + '/' + webname
         if os.path.exists(ssl_acme_dir):
-            mw.execShell('rm -rf ' + ssl_acme_dir)
+            mw.removeDir(ssl_acme_dir)
 
         thisdb.deleteSitesById(site_id)
         thisdb.deleteDomainBySiteId(site_id)
@@ -428,9 +428,9 @@ class sites(object):
             site_error = tag + ".error.log"
 
             if os.path.exists(site_log):
-                mw.execShell('rm -rf ' + site_log)
+                mw.removeDir(site_log)
             if os.path.exists(site_error):
-                mw.execShell('rm -rf ' + site_error)
+                mw.removeDir(site_error)
 
         thisdb.deleteBindingBySiteId(site_id)
         mw.restartWeb()
@@ -483,7 +483,7 @@ class sites(object):
     def setSsl(self, site_name, key, csr):
         path = self.sslDir + '/' + site_name
         if not os.path.exists(path):
-            mw.execShell('mkdir -p ' + path)
+            mw.makeDirs(path)
 
         csrpath = path + "/fullchain.pem"  # 生成证书路径
         keypath = path + "/privkey.pem"    # 密钥文件路径
@@ -1043,7 +1043,7 @@ class sites(object):
         # 写密码配置
         passDir = self.passPath
         if not os.path.exists(passDir):
-            mw.execShell('mkdir -p ' + passDir)
+            mw.makeDirs(passDir)
         mw.writeFile(filename, passconf)
 
         msg = mw.getInfo('设置网站[{1}]为需要密码认证!', (siteName,))
@@ -1313,7 +1313,7 @@ class sites(object):
     def getRedirect(self, site_name):
         redirect_file = self.getRedirectDataPath(site_name)
         if not os.path.exists(redirect_file):
-            mw.execShell("mkdir " + self.getRedirectPath(site_name))
+            mw.makeDirs(self.getRedirectPath(site_name))
             return mw.returnData(True, "no exists!", {"result": [], "count": 0})
 
         content = mw.readFile(redirect_file)
@@ -2207,7 +2207,7 @@ location ^~ {from} {\n\
             if status:
                 return mw.returnData(False, '使用中,先关闭再删除')
             if os.path.exists(path):
-                mw.execShell('rm -rf ' + path)
+                mw.removeDir(path)
             else:
                 return mw.returnData(False, '还未申请!')
         elif ssl_type == 'lets':
@@ -2215,13 +2215,13 @@ location ^~ {from} {\n\
             csr_lets_path = ssl_lets_dir + '/fullchain.pem'  # 生成证书路径
             if mw.md5(mw.readFile(csr_lets_path)) == mw.md5(mw.readFile(csr_path)):
                 return mw.returnData(False, '使用中,先关闭再删除')
-            mw.execShell('rm -rf ' + ssl_lets_dir)
+            mw.removeDir(ssl_lets_dir)
         elif ssl_type == 'acme':
             ssl_acme_dir = mw.getAcmeDomainDir(site_name)
             csr_acme_path = ssl_acme_dir + '/fullchain.cer'  # 生成证书路径
             if mw.md5(mw.readFile(csr_acme_path)) == mw.md5(mw.readFile(csr_path)):
                 return mw.returnData(False, '使用中,先关闭再删除')
-            mw.execShell('rm -rf ' + ssl_acme_dir)
+            mw.removeDir(ssl_acme_dir)
 
         mw.restartWeb()
         return mw.returnData(True, '删除成功')
@@ -2321,7 +2321,7 @@ location ^~ {from} {\n\
         dst_key = dst_path + "/privkey.pem"  # 密钥文件路径
 
         if not os.path.exists(dst_path):
-            mw.execShell("mkdir -p " + dst_path)
+            mw.makeDirs(dst_path)
 
         mw.buildSoftLink(src_cert, dst_cert, True)
         mw.buildSoftLink(src_key, dst_key, True)
@@ -2426,7 +2426,7 @@ export PATH
             dst_key = dst_path + "/privkey.pem"  # 密钥文件路径
 
             if not os.path.exists(dst_path):
-                mw.execShell("mkdir -p " + dst_path)
+                mw.makeDirs(dst_path)
 
             mw.buildSoftLink(src_cert, dst_cert, True)
             mw.buildSoftLink(src_key, dst_key, True)
@@ -2520,7 +2520,7 @@ export PATH
             dst_key = dst_path + "/privkey.pem"  # 密钥文件路径
 
             if not os.path.exists(dst_path):
-                mw.execShell("mkdir -p " + dst_path)
+                mw.makeDirs(dst_path)
 
             mw.buildSoftLink(src_cert, dst_cert, True)
             mw.buildSoftLink(src_key, dst_key, True)
@@ -2631,7 +2631,7 @@ export PATH
                         'type'] + '</p><p><span>错误代码:</span>' + emsg['detail'] + '</p>'
                 return mw.returnData(data['status'], msg, data['msg'])
 
-        mw.execShell('mkdir -p ' + dst_letpath)
+        mw.makeDirs(dst_letpath)
         mw.buildSoftLink(src_csrpath, dst_csrpath, True)
         mw.buildSoftLink(src_keypath, dst_keypath, True)
         mw.execShell('echo "lets" > "' + dst_letpath + '/README"')

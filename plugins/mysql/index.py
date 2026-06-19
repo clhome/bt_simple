@@ -530,7 +530,7 @@ def initMysql57Data():
         
         # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
         if datadir == serverdir + '/data' and os.path.exists(datadir):
-            mw.execShell('rm -rf ' + datadir)
+            mw.removeDir(datadir)
 
         myconf = serverdir + "/etc/my.cnf"
         user = pGetDbUser()
@@ -549,7 +549,7 @@ def initMysql8Data():
         
         # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
         if datadir == serverdir + '/data' and os.path.exists(datadir):
-            mw.execShell('rm -rf ' + datadir)
+            mw.removeDir(datadir)
 
         user = pGetDbUser()
         # cmd = 'cd ' + serverdir + ' && ./bin/mysqld --basedir=' + serverdir + ' --datadir=' + \
@@ -893,7 +893,7 @@ def setMyDbPos(version):
         return mw.returnJson(False, '与当前存储目录相同，无法迁移文件!')
 
     if not os.path.exists(t_datadir):
-        mw.execShell('mkdir -p ' + t_datadir)
+        mw.makeDirs(t_datadir)
 
     # mw.execShell('/etc/init.d/mysqld stop')
     stop(version)
@@ -1086,7 +1086,7 @@ def __createUser(dbname, username, password, address):
 def getDbBackupListFunc(dbname=''):
     bkDir = mw.getBackupDir() + '/database'
     if not os.path.exists(bkDir):
-        mw.execShell('mkdir -p ' + bkDir)
+        mw.makeDirs(bkDir)
 
     blist = os.listdir(bkDir)
     r = []
@@ -3377,7 +3377,7 @@ def syncDatabaseRepair(version=''):
     inconsistent_table = []
 
     tmp_dir = '/tmp/sync_db_repair'
-    mw.execShell('mkdir -p '+tmp_dir)
+    mw.makeDirs(tmp_dir)
 
     for tb in tables:
 

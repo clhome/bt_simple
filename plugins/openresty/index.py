@@ -71,11 +71,11 @@ def checkArgs(data, ck=[]):
 
 def clearTemp():
     path_bin = getServerDir() + "/nginx"
-    mw.execShell('rm -rf ' + path_bin + '/client_body_temp')
-    mw.execShell('rm -rf ' + path_bin + '/fastcgi_temp')
-    mw.execShell('rm -rf ' + path_bin + '/proxy_temp')
-    mw.execShell('rm -rf ' + path_bin + '/scgi_temp')
-    mw.execShell('rm -rf ' + path_bin + '/uwsgi_temp')
+    mw.removeDir(path_bin + '/client_body_temp')
+    mw.removeDir(path_bin + '/fastcgi_temp')
+    mw.removeDir(path_bin + '/proxy_temp')
+    mw.removeDir(path_bin + '/scgi_temp')
+    mw.removeDir(path_bin + '/uwsgi_temp')
 
 
 def getConf():
@@ -330,7 +330,7 @@ def confReplace():
     # lua配置
     lua_conf_dir = mw.getServerDir() + '/web_conf/nginx/lua'
     if not os.path.exists(lua_conf_dir):
-        mw.execShell('mkdir -p ' + lua_conf_dir)
+        mw.makeDirs(lua_conf_dir)
 
     lua_conf = lua_conf_dir + '/lua.conf'
     lua_conf_tpl = getPluginDir() + '/conf/lua.conf'
@@ -377,7 +377,7 @@ def confReplace():
     # 静态配置
     php_conf = mw.getServerDir() + '/web_conf/php/conf'
     if not os.path.exists(php_conf):
-        mw.execShell('mkdir -p ' + php_conf)
+        mw.makeDirs(php_conf)
     static_conf = mw.getServerDir() + '/web_conf/php/conf/enable-php-00.conf'
     if not os.path.exists(static_conf):
         mw.writeFile(static_conf, 'set $PHP_ENV 0;')
@@ -386,7 +386,7 @@ def confReplace():
     vhost_dir = mw.getServerDir() + '/web_conf/nginx/vhost'
     vhost_tpl_dir = getPluginDir() + '/conf/vhost'
     if not os.path.exists(vhost_dir):
-        mw.execShell('mkdir -p ' + vhost_dir)
+        mw.makeDirs(vhost_dir)
 
     vhost_list = ['0.websocket.conf', '0.nginx_status.conf']
     for f in vhost_list:

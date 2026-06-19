@@ -280,7 +280,7 @@ def initDreplace():
     path = getServerDir()
     logs_path = path + '/logs'
     if not os.path.exists(logs_path):
-        mw.execShell('mkdir -p ' + logs_path)
+        mw.makeDirs(logs_path)
 
     # 首次启动自动初始化默认配置（base.json 开关、IP 文件目录）
     initDefaultConfig()

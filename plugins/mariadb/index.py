@@ -568,7 +568,7 @@ def setMyDbPos():
         return mw.returnJson(False, '与当前存储目录相同，无法迁移文件!')
 
     if not os.path.exists(t_datadir):
-        mw.execShell('mkdir -p ' + t_datadir)
+        mw.makeDirs(t_datadir)
 
     stop()
     mw.execShell('cp -rf ' + s_datadir + '/* ' + t_datadir + '/')
@@ -2922,7 +2922,7 @@ def syncDatabaseRepair(version=''):
     inconsistent_table = []
 
     tmp_dir = '/tmp/sync_db_repair'
-    mw.execShell('mkdir -p '+tmp_dir)
+    mw.makeDirs(tmp_dir)
 
     for tb in tables:
 

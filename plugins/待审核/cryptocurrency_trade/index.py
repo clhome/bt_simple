@@ -96,7 +96,7 @@ def isSqlError(mysqlMsg):
 def initDreplace():
     log_dir = getServerDir() + '/logs'
     if not os.path.exists(log_dir):
-        d = mw.execShell('mkdir -p ' + log_dir)
+        d = mw.makeDirs(log_dir)
 
         data = getConfigData()
         data['token'] = ['btc']
@@ -261,7 +261,7 @@ def syncDataAddTaskUninstall():
     name = "ct_task"
     sup_task_dst = sup_path + '/conf.d/' + name + '.ini'
     if os.path.exists(sup_task_dst):
-        mw.execShell('rm -rf ' + sup_task_dst)
+        mw.removeDir(sup_task_dst)
 
     restartSup()
     return mw.returnJson(True, '删除同步数据任务成功!')

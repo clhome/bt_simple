@@ -47,7 +47,7 @@ def pSqliteDb(dbname='web_logs', site_name='unset', fn="logs"):
 
     db_dir = getServerDir() + '/logs/' + site_name
     if not os.path.exists(db_dir):
-        mw.execShell('mkdir -p ' + db_dir)
+        mw.makeDirs(db_dir)
 
     name = fn
     file = db_dir + '/' + name + '.db'

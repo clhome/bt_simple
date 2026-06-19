@@ -182,7 +182,7 @@ def pSqliteDb(dbname='web_logs', site_name='unset', name="logs"):
 
     db_dir = getServerDir() + '/logs/' + site_name
     if not os.path.exists(db_dir):
-        mw.execShell('mkdir -p ' + db_dir)
+        mw.makeDirs(db_dir)
 
     file = db_dir + '/' + name + '.db'
     if not os.path.exists(file):
@@ -251,11 +251,11 @@ def initDreplace():
 
     lua_dir = getServerDir() + "/lua"
     if not os.path.exists(lua_dir):
-        mw.execShell('mkdir -p ' + lua_dir)
+        mw.makeDirs(lua_dir)
 
     log_path = getServerDir() + "/logs"
     if not os.path.exists(log_path):
-        mw.execShell('mkdir -p ' + log_path)
+        mw.makeDirs(log_path)
 
     file_list = [
         'webstats_common.lua',

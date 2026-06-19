@@ -141,10 +141,10 @@ def makeOpenrestyConf(version):
     dst_dir_conf = sdir + '/web_conf/php/conf'
 
     if not os.path.exists(dst_dir):
-        mw.execShell('mkdir -p ' + dst_dir)
+        mw.makeDirs(dst_dir)
 
     if not os.path.exists(dst_dir_conf):
-        mw.execShell('mkdir -p ' + dst_dir_conf)
+        mw.makeDirs(dst_dir_conf)
 
     d_pathinfo = sdir + '/web_conf/php/pathinfo.conf'
     if not os.path.exists(d_pathinfo):
@@ -817,8 +817,8 @@ def getPhpinfo(version):
     sock_file = getFpmAddress(version)
     root_dir = mw.getFatherDir() + '/phpinfo'
 
-    mw.execShell("rm -rf " + root_dir)
-    mw.execShell("mkdir -p " + root_dir)
+    mw.removeDir(root_dir)
+    mw.makeDirs(root_dir)
     mw.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
     sock_data = mw.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
     os.system("rm -rf " + root_dir)

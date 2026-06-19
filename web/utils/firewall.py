@@ -400,6 +400,7 @@ class Firewall(object):
         return mw.returnData(True, '设置成功!')
 
     def addAcceptPortCmd(self, port, protocol ='tcp', stype='port'):
+        port = mw.shlexQuote(port)
         if self.__isUfw:
             if stype == 'port':
                 if protocol == 'tcp':
@@ -533,6 +534,7 @@ class Firewall(object):
     def delAcceptPortCmdInSystem(self, port,
         protocol ='tcp', stype='port'
     ):
+        port = mw.shlexQuote(port)
         if self.__isUfw:
             if stype == 'port':
                 if protocol == 'tcp':

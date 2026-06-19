@@ -170,15 +170,15 @@ def makeOpenrestyConf():
 
     dst_dir = sdir + '/web_conf/php'
     if not os.path.exists(dst_dir):
-        mw.execShell('mkdir -p ' + dst_dir)
+        mw.makeDirs(dst_dir)
 
     dst_dir_conf = sdir + '/web_conf/php/conf'
     if not os.path.exists(dst_dir_conf):
-        mw.execShell('mkdir -p ' + dst_dir_conf)
+        mw.makeDirs(dst_dir_conf)
 
     dst_dir_upstream = sdir + '/web_conf/php/upstream'
     if not os.path.exists(dst_dir_upstream):
-        mw.execShell('mkdir -p ' + dst_dir_upstream)
+        mw.makeDirs(dst_dir_upstream)
 
     dst_pathinfo = sdir + '/web_conf/php/pathinfo.conf'
     if not os.path.exists(dst_pathinfo):
@@ -214,7 +214,7 @@ def makeOpenrestyConf():
     vhost_dir = mw.getServerDir() + '/web_conf/nginx/vhost'
     write_php_upstream_conf = mw.getServerDir()+'/web_conf/php/upstream/*.conf;'
     if not os.path.exists(vhost_dir):
-        mw.execShell('mkdir -p ' + vhost_dir)
+        mw.makeDirs(vhost_dir)
 
     vhost_php_upstream = vhost_dir+'/0.php_upstream.conf'
     if not os.path.exists(vhost_php_upstream):
@@ -348,12 +348,12 @@ def initReplace(version):
 
     session_path = getServerDir() + '/tmp/session'
     if not os.path.exists(session_path):
-        mw.execShell('mkdir -p ' + session_path)
+        mw.makeDirs(session_path)
         mw.execShell('chown -R www:www ' + session_path)
 
     upload_path = getServerDir() + '/tmp/upload'
     if not os.path.exists(upload_path):
-        mw.execShell('mkdir -p ' + upload_path)
+        mw.makeDirs(upload_path)
         mw.execShell('chown -R www:www ' + upload_path)
 
     # systemd
@@ -971,8 +971,8 @@ def getPhpinfo(version):
     sock_file = getFpmAddress(version)
     root_dir = mw.getFatherDir() + '/phpinfo'
 
-    mw.execShell("rm -rf " + root_dir)
-    mw.execShell("mkdir -p " + root_dir)
+    mw.removeDir(root_dir)
+    mw.makeDirs(root_dir)
     mw.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
     sock_data = mw.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
     os.system("rm -rf " + root_dir)

@@ -576,7 +576,7 @@ cron_id=%s
 ''' % (mw.getPanelDir() + '/web', param.get('id', '0'))
         cron_path = mw.getServerDir() + '/cron'
         if not os.path.exists(cron_path):
-            mw.execShell('mkdir -p ' + cron_path)
+            mw.makeDirs(cron_path)
 
         
         file = cron_path + '/' + cron_name

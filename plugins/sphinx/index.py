@@ -131,9 +131,9 @@ def mkdirAll():
 
     for x in tmp:
         if x.find('binlog') != -1:
-            mw.execShell('mkdir -p ' + x)
+            mw.makeDirs(x)
         else:
-            mw.execShell('mkdir -p ' + os.path.dirname(x))
+            mw.makeDirs(os.path.dirname(x))
 
 
 def initDreplace():

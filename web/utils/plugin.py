@@ -321,9 +321,9 @@ class plugin(object):
         info_data = json.loads(mw.readFile(info_file))
 
         exec_bash = 'cd {0} && bash {1} install {2}'.format(
-            mw.getPluginDir() + '/'+name,
-            info_data['shell'],
-            version
+            mw.shlexQuote(mw.getPluginDir() + '/'+name),
+            mw.shlexQuote(info_data['shell']),
+            mw.shlexQuote(version)
         )
 
         self.hookInstall(info_data)
@@ -398,7 +398,7 @@ class plugin(object):
                         else:
                             os.remove(real_install_path)
                     except Exception as e:
-                        mw.execShell("rm -rf " + real_install_path)
+                        mw.removeDir(real_install_path)
 
             # 从首页展示配置中移除
             try:
@@ -429,9 +429,9 @@ class plugin(object):
         info_data = json.loads(mw.readFile(info_file))
 
         exec_bash = "cd {0} && /bin/bash {1} uninstall {2}".format(
-            mw.getPluginDir() + '/'+name,
-            info_data['shell'],
-            version
+            mw.shlexQuote(mw.getPluginDir() + '/'+name),
+            mw.shlexQuote(info_data['shell']),
+            mw.shlexQuote(version)
         )
         self.hookUninstall(info_data)
         data = mw.execShell(exec_bash)
@@ -696,7 +696,7 @@ class plugin(object):
         # 清除下载的安装包缓存
         source_dir = mw.getServerDir() + '/source'
         if os.path.exists(source_dir):
-            mw.execShell('rm -rf ' + source_dir + '/*')
+            mw.removeDir(source_dir + '/*')
             
         return True
 
@@ -969,7 +969,7 @@ class plugin(object):
         tmp_path = mw.getPanelDir() + '/temp'
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
-        mw.execShell("rm -rf " + tmp_path + '/*')
+        mw.removeDir(tmp_path + '/*')
 
         tmp_file = tmp_path + '/plugin_tmp.zip'
         if request_zip.filename[-4:] != '.zip':
@@ -1012,7 +1012,7 @@ class plugin(object):
                 except:
                     pass
         except:
-            mw.execShell("rm -rf " + tmp_path)
+            mw.removeDir(tmp_path)
             return mw.returnData(False, '在压缩包中没有找到插件信息,请检查插件包!')
         protectPlist = ('openresty', 'mysql', 'php', 'redis', 'memcached'
                         'mongodb', 'swap', 'gogs', 'pureftp')
@@ -1025,7 +1025,7 @@ class plugin(object):
             return mw.returnData(False, '临时文件不存在,请重新上传!')
         plugin_path = mw.getPluginDir() + '/' + plugin_name
         if not os.path.exists(plugin_path):
-            print(mw.execShell('mkdir -p ' + plugin_path))
+            print(mw.makeDirs(plugin_path))
         mw.execShell("cp -rf " + tmp_path + '/* ' + plugin_path + '/')
         mw.execShell('chmod -R 755 ' + plugin_path)
         p_info = mw.readFile(plugin_path + '/info.json')
@@ -1033,7 +1033,7 @@ class plugin(object):
             self.__plugin_list_static_cache = None
             mw.writeLog('软件管理', '安装第三方插件[%s]' %json.loads(p_info)['title'])
             return mw.returnData(True, '安装成功!')
-        mw.execShell("rm -rf " + plugin_path)
+        mw.removeDir(plugin_path)
         return mw.returnData(False, '安装失败!')
 
     # [start|stop]操作,删除缓存!

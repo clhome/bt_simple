@@ -155,7 +155,7 @@ def initDreplace():
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
-        mw.execShell("mkdir -p " + initD_path)
+        mw.makeDirs(initD_path)
 
     file_bin = initD_path + '/' + getPluginName()
 

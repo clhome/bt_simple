@@ -144,7 +144,7 @@ def initDreplace():
 
     # conf_bin = getConf()
     # if not os.path.exists(conf_bin):
-    #     mw.execShell('mkdir -p ' + getServerDir() + '/custom/conf')
+    #     mw.makeDirs(getServerDir() + '/custom/conf')
     #     conf_tpl = getConfTpl()
     #     content = mw.readFile(conf_tpl)
     #     content = contentReplace(content)
@@ -676,7 +676,7 @@ def projectScriptLoad():
     post_receive = path + '/custom_hooks/post-receive'
 
     if not os.path.exists(path + '/custom_hooks'):
-        mw.execShell('mkdir -p ' + path + '/custom_hooks')
+        mw.makeDirs(path + '/custom_hooks')
 
     pct_content = mw.readFile(post_receive_tpl)
     pct_content = pct_content.replace('{$PATH}', path + '/custom_hooks')

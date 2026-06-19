@@ -45,9 +45,6 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
         data = sub.communicate()
         raise Exception("Timeout：%s" % cmdstring)
 
-    if sys.version_info[0] == 2:
-        return data
-
     data = data
 
     success = data[0]
@@ -67,6 +64,30 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
         except Exception as e:
             error = str(e)
     return (success, error)
+
+def shlexQuote(s):
+    # 安全的 shell 转义
+    import shlex
+    return shlex.quote(str(s))
+
+def makeDirs(path):
+    try:
+        os.makedirs(path, exist_ok=True)
+        return True
+    except:
+        return False
+
+def removeDir(path):
+    import shutil
+    try:
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+        return True
+    except:
+        return False
 
 def checkBinExist(name):
     import shutil
@@ -532,8 +553,7 @@ def backFile(file, act=None):
     if act:
         file_type = "_def"
 
-    # print("cp -p {0} {1}".format(file, file + file_type))
-    execShell("cp -p {0} {1}".format(file, file + file_type))
+    execShell("cp -p {0} {1}".format(shlexQuote(file), shlexQuote(file + file_type)))
 
 
 def removeBackFile(file, act=None):
@@ -545,7 +565,7 @@ def removeBackFile(file, act=None):
     file_type = "_bak"
     if act:
         file_type = "_def"
-    execShell("rm -rf {0}".format(file + file_type))
+    execShell("rm -rf {0}".format(shlexQuote(file + file_type)))
 
 
 def restoreFile(file, act=None):
@@ -557,7 +577,7 @@ def restoreFile(file, act=None):
     file_type = "_bak"
     if act:
         file_type = "_def"
-    execShell("cp -p {1} {0}".format(file, file + file_type))
+    execShell("cp -p {1} {0}".format(shlexQuote(file), shlexQuote(file + file_type)))
 
 def systemdCfgDir():
     # ubuntu
@@ -647,7 +667,7 @@ def getFileMd5(filename):
         return False
 
     myhash = hashlib.md5()
-    f = file(filename, 'rb')
+    f = open(filename, 'rb')
     while True:
         b = f.read(8096)
         if not b:
@@ -1299,11 +1319,42 @@ def deDoubleCrypt(key, strings):
         writeFileLog(getTracebackInfo())
         return strings
 
-def aesEncrypt(data, key='ABCDEFGHIJKLMNOP', vi='0102030405060708'):
+_aes_key_cache = None
+
+def getAesKey():
+    global _aes_key_cache
+    if _aes_key_cache:
+        return _aes_key_cache
+    
+    aes_file = getPanelDataDir() + '/aes.json'
+    if os.path.exists(aes_file):
+        try:
+            with open(aes_file, 'r') as f:
+                _aes_key_cache = json.loads(f.read())
+                return _aes_key_cache
+        except:
+            pass
+            
+    key = getRandomString(16)
+    vi = getRandomString(16)
+    _aes_key_cache = {'key': key, 'vi': vi}
+    try:
+        with open(aes_file, 'w') as f:
+            f.write(json.dumps(_aes_key_cache))
+    except:
+        pass
+    return _aes_key_cache
+
+def aesEncrypt(data, key=None, vi=None):
     # aes加密
     # @param data 被加密的数据
     # @param key 加解密密匙 16位
     # @param vi 16位
+    
+    if key is None or vi is None:
+        aes_info = getAesKey()
+        key = aes_info['key']
+        vi = aes_info['vi']
 
     from cryptography.hazmat.primitives import padding
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -1337,11 +1388,16 @@ def aesEncrypt(data, key='ABCDEFGHIJKLMNOP', vi='0102030405060708'):
     return edata
 
 
-def aesDecrypt(data, key='ABCDEFGHIJKLMNOP', vi='0102030405060708'):
+def aesDecrypt(data, key=None, vi=None):
     # aes加密
     # @param data 被解密的数据
     # @param key 加解密密匙 16位
     # @param vi 16位
+
+    if key is None or vi is None:
+        aes_info = getAesKey()
+        key = aes_info['key']
+        vi = aes_info['vi']
 
     from cryptography.hazmat.primitives import padding
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -1468,36 +1524,20 @@ def HttpGet(url, timeout=10):
     @timeout 超时时间默认60秒
     return string
     """
-    if sys.version_info[0] == 2:
+    try:
+        import urllib.request
+        import ssl
         try:
-            import urllib2
-            import ssl
-            if sys.version_info[0] == 2:
-                reload(urllib2)
-                reload(ssl)
-            try:
-                ssl._create_default_https_context = ssl._create_unverified_context
-            except:
-                pass
-            response = urllib2.urlopen(url, timeout=timeout)
-            return response.read()
-        except Exception as ex:
-            return str(ex)
-    else:
-        try:
-            import urllib.request
-            import ssl
-            try:
-                ssl._create_default_https_context = ssl._create_unverified_context
-            except:
-                pass
-            response = urllib.request.urlopen(url, timeout=timeout)
-            result = response.read()
-            if type(result) == bytes:
-                result = result.decode('utf-8')
-            return result
-        except Exception as ex:
-            return str(ex)
+            ssl._create_default_https_context = ssl._create_unverified_context
+        except:
+            pass
+        response = urllib.request.urlopen(url, timeout=timeout)
+        result = response.read()
+        if type(result) == bytes:
+            result = result.decode('utf-8')
+        return result
+    except Exception as ex:
+        return str(ex)
 
 
 def HttpGet2(url, timeout):
@@ -1529,35 +1569,22 @@ def HttpPost(url, data, timeout=10):
     @timeout 超时时间默认60秒
     return string
     """
-    if sys.version_info[0] == 2:
+    try:
+        import urllib.request
+        import ssl
         try:
-            import urllib
-            import urllib2
-            import ssl
             ssl._create_default_https_context = ssl._create_unverified_context
-            data = urllib.urlencode(data)
-            req = urllib2.Request(url, data)
-            response = urllib2.urlopen(req, timeout=timeout)
-            return response.read()
-        except Exception as ex:
-            return str(ex)
-    else:
-        try:
-            import urllib.request
-            import ssl
-            try:
-                ssl._create_default_https_context = ssl._create_unverified_context
-            except:
-                pass
-            data = urllib.parse.urlencode(data).encode('utf-8')
-            req = urllib.request.Request(url, data)
-            response = urllib.request.urlopen(req, timeout=timeout)
-            result = response.read()
-            if type(result) == bytes:
-                result = result.decode('utf-8')
-            return result
-        except Exception as ex:
-            return str(ex)
+        except:
+            pass
+        data = urllib.parse.urlencode(data).encode('utf-8')
+        req = urllib.request.Request(url, data)
+        response = urllib.request.urlopen(req, timeout=timeout)
+        result = response.read()
+        if type(result) == bytes:
+            result = result.decode('utf-8')
+        return result
+    except Exception as ex:
+        return str(ex)
 
 
 def httpPost(url, data, timeout=10):
@@ -1963,7 +1990,7 @@ def createLocalSSL():
     cert.gmtime_adj_notBefore(0)
     cert.gmtime_adj_notAfter(86400 * 3650)
     cert.set_pubkey(key)
-    cert.sign(key, 'md5')
+    cert.sign(key, 'sha256')
     cert_ca = OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
     private_key = OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key)
     if len(cert_ca) > 100 and len(private_key) > 100:

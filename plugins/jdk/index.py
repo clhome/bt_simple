@@ -203,7 +203,7 @@ class jdk_main:
         
         # 如果存在空目录（上次安装失败残留），先清理
         if os.path.exists(dest_dir):
-            mw.execShell('rm -rf ' + dest_dir)
+            mw.removeDir(dest_dir)
             
         # 写入安装脚本并投递至任务队列
         import thisdb

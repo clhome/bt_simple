@@ -68,7 +68,7 @@ def backup_panel():
     panel_dir = mw.getPanelDir()
     backup_dir = '/www/backup/panel'
     if not os.path.exists(backup_dir):
-        mw.execShell('mkdir -p ' + backup_dir)
+        mw.makeDirs(backup_dir)
     
     timestamp = time.strftime('%Y%m%d_%H%M%S')
     version_file = panel_dir + '/.version'
@@ -127,7 +127,7 @@ def updateServer(stype, version='', step='all'):
             # 1. 下载阶段
             if step == 'download' or step == 'all':
                 if not os.path.exists(toPath):
-                    mw.execShell('mkdir -p ' + toPath)
+                    mw.makeDirs(toPath)
 
                 newUrl = mw.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
                 dist_mw = toPath + '/mw.zip'
@@ -174,8 +174,8 @@ def updateServer(stype, version='', step='all'):
                 mw.execShell('cp -rf ' + src_path + '/* ' + panel_dir)
                 
                 # 清理临时文件
-                mw.execShell('rm -rf ' + src_path)
-                mw.execShell('rm -rf ' + toPath + '/mw.zip')
+                mw.removeDir(src_path)
+                mw.removeDir(toPath + '/mw.zip')
                 
                 # 自动写入版本号到 .version 文件
                 version_path = panel_dir + '/.version'

@@ -46,7 +46,7 @@ class backupTools:
 
         backup_path = mw.getFatherDir() + '/backup/database/mariadb'
         if not os.path.exists(backup_path):
-            mw.execShell("mkdir -p " + backup_path)
+            mw.makeDirs(backup_path)
 
         version_prefix = 'mariadb104'
         version_file = db_path + '/version.pl'

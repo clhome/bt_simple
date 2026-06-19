@@ -209,55 +209,40 @@ def siteEdateCheck():
         print('siteEdateCheck:',mw.getTracebackInfo())
 
 # 任务队列
-def startPanelTask():
-    while True:
-        try:
-            runPanelTask()
-            time.sleep(5)
-        except Exception as e:
-            print('startPanelTask:', mw.getTracebackInfo())
-            time.sleep(30)
+def startPanelTask_step():
+    try:
+        runPanelTask()
+    except Exception as e:
+        print('startPanelTask:', mw.getTracebackInfo())
 
-def systemTask():
+def systemTask_step():
     # 系统监控任务
-    from  utils.system import monitor
-    while True:
-        try:
-            monitor_status = thisdb.getOption('monitor_status',type='monitor',default='open')
-            if monitor_status == 'open':
-                monitor.instance().run()
-            time.sleep(5)
-        except Exception as ex:
-            print('systemTask:',mw.getTracebackInfo())
-            time.sleep(30)
+    from utils.system import monitor
+    try:
+        monitor_status = thisdb.getOption('monitor_status',type='monitor',default='open')
+        if monitor_status == 'open':
+            monitor.instance().run()
+    except Exception as ex:
+        print('systemTask:',mw.getTracebackInfo())
 
 
-def panelPluginStatusCheck():
-    # 系统监控任务
-    from  utils.plugin import plugin
-    while True:
-        try:
-            # start_t = time.time()
-            plugin.instance().autoCachePluginStatus()
-            # end_t = time.time()
-            time.sleep(60)
-        except Exception as ex:
-            print('panelPluginStatusCheck:',mw.getTracebackInfo())
-            time.sleep(120)
+def panelPluginStatusCheck_step():
+    # 插件状态缓存
+    from utils.plugin import plugin
+    try:
+        plugin.instance().autoCachePluginStatus()
+    except Exception as ex:
+        print('panelPluginStatusCheck:',mw.getTracebackInfo())
 
 # -------------------------------------- PHP监控 start --------------------------------------------- #
-# 502错误检查线程
-def check502Task():
+# 502错误检查步进
+def check502Task_step():
     check_file = mw.getPanelDir() + '/data/502Task.pl'
-    while True:
-        try:
-            if os.path.exists(check_file):
-                check502()
-            time.sleep(10)
-        except Exception as e:
-            print('check502Task:', mw.getTracebackInfo())
-            time.sleep(30)
-
+    try:
+        if os.path.exists(check_file):
+            check502()
+    except Exception as e:
+        print('check502Task:', mw.getTracebackInfo())
 
 def check502():
     try:
@@ -358,87 +343,82 @@ def checkPHPVersion(version):
 
 # --------------------------------------OpenResty Auto Restart Start --------------------------------------------- #
 # 解决acme.sh续签后,未起效。
-def openrestyAutoRestart():
-    while True:
-        try:
-            # 检查是否安装
-            odir = mw.getServerDir() + '/openresty'
-            if not os.path.exists(odir):
-                time.sleep(86400)
-                continue
-            mw.opWeb('reload')
-            time.sleep(86400)
-        except Exception as e:
-            mw.writeLog('OpenResty检测', '自动修复异常:'+str(e))
-            time.sleep(86400)
-
+def openrestyAutoRestart_step():
+    try:
+        odir = mw.getServerDir() + '/openresty'
+        if not os.path.exists(odir):
+            return
+        mw.opWeb('reload')
+    except Exception as e:
+        mw.writeLog('OpenResty检测', '自动修复异常:'+str(e))
 # --------------------------------------OpenResty Auto Restart End   --------------------------------------------- #
 
+
 # ------------------------------------  OpenResty Restart At Once Start ------------------------------------------ #
-
-
-def openrestyRestartAtOnce():
+def openrestyRestartAtOnce_step():
     restart_nginx_tip = mw.getPanelDir()+'/data/restart_nginx.pl'
-    while True:
-        if os.path.exists(restart_nginx_tip):
-            os.remove(restart_nginx_tip)
-            mw.opWeb('reload')
-        time.sleep(3)
+    if os.path.exists(restart_nginx_tip):
+        os.remove(restart_nginx_tip)
+        mw.opWeb('reload')
 # -----------------------------------   OpenResty Restart At Once End   ------------------------------------------ #
 
 
 # --------------------------------------Panel Restart Start   --------------------------------------------- #
-def restartPanelService():
+def restartPanelService_step():
     restart_tip = mw.getPanelDir()+'/data/restart.pl'
-    while True:
-        if os.path.exists(restart_tip):
-            print("restart panel")
-            os.remove(restart_tip)
-            mw.panelCmd('restart_panel')
-        time.sleep(3)
+    if os.path.exists(restart_tip):
+        print("restart panel")
+        os.remove(restart_tip)
+        mw.panelCmd('restart_panel')
 # --------------------------------------Panel Restart End   --------------------------------------------- #
 
+class TaskScheduler:
+    def __init__(self):
+        self.tasks = []
+        
+    def add_task(self, func, interval_seconds):
+        self.tasks.append({
+            'func': func,
+            'interval': interval_seconds,
+            'next_run': time.time()
+        })
+        
+    def run(self):
+        while True:
+            now = time.time()
+            for task in self.tasks:
+                if now >= task['next_run']:
+                    try:
+                        task['func']()
+                    except Exception as e:
+                        print("Task {} failed: {}".format(task['func'].__name__, str(e)))
+                    task['next_run'] = time.time() + task['interval']
+            time.sleep(1)
 
-def setDaemon(t):
+def run():
+    scheduler = TaskScheduler()
+    
+    scheduler.add_task(systemTask_step, 5)
+    scheduler.add_task(check502Task_step, 10)
+    scheduler.add_task(openrestyRestartAtOnce_step, 3)
+    scheduler.add_task(openrestyAutoRestart_step, 86400)
+    scheduler.add_task(panelPluginStatusCheck_step, 60)
+    scheduler.add_task(restartPanelService_step, 3)
+    scheduler.add_task(startPanelTask_step, 5)
+
+    def thread_runner():
+        scheduler.run()
+        
+    t = threading.Thread(target=thread_runner)
     if sys.version_info.major == 3 and sys.version_info.minor >= 10:
         t.daemon = True
     else:
         t.setDaemon(True)
-    return t
+    t.start()
 
-def run():
-    # 系统监控
-    sysTask = threading.Thread(target=systemTask)
-    sysTask = setDaemon(sysTask)
-    sysTask.start()
-
-    # PHP 502错误检查线程
-    php502 = threading.Thread(target=check502Task)
-    php502 = setDaemon(php502)
-    php502.start()
-
-    # OpenResty Restart At Once Start
-    oraos = threading.Thread(target=openrestyRestartAtOnce)
-    oraos = setDaemon(oraos)
-    oraos.start()
-
-    # OpenResty Auto Restart Start
-    oar = threading.Thread(target=openrestyAutoRestart)
-    oar = setDaemon(oar)
-    oar.start()
-
-    # Panel Plugin Status Check
-    pps = threading.Thread(target=panelPluginStatusCheck)
-    pps = setDaemon(pps)
-    pps.start()
-
-    # Panel Restart Start
-    rps = threading.Thread(target=restartPanelService)
-    rps = setDaemon(rps)
-    rps.start()
-
-    # 面板后台任务
-    startPanelTask()
+    # 保持主线程运行
+    while True:
+        time.sleep(86400)
 
 if __name__ == "__main__":
     run()

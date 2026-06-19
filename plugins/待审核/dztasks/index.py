@@ -160,7 +160,7 @@ def initDreplace():
 
     app_dir = getServerDir() + '/custom/conf'
     if not os.path.exists(app_dir):
-        mw.execShell('mkdir -p ' + app_dir)
+        mw.makeDirs(app_dir)
 
     # config replace
     dst_conf = getServerDir() + '/custom/conf/app.conf'

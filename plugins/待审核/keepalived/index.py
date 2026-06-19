@@ -194,7 +194,7 @@ def copyScripts():
     src_scripts_path = getPluginDir() + '/scripts'
     dst_scripts_path = getServerDir() + '/scripts'
     if not os.path.exists(dst_scripts_path):
-        mw.execShell('mkdir -p ' + dst_scripts_path)
+        mw.makeDirs(dst_scripts_path)
         olist = os.listdir(src_scripts_path)
         for o in range(len(olist)):
             src_file = src_scripts_path+'/'+olist[o]

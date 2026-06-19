@@ -104,3 +104,15 @@
 - [x] 优化 `mw.py` 中的 `execShell`，移除 0.1s 轮询等待，改为 `sub.communicate(timeout=timeout)`。
 - [x] 优化 `db.py`，引入 `threading.local()` 实现 SQLite 数据库连接的线程级复用。
 - [x] 优化 `common.py` 中的 `isLogined()`，引入内存缓存机制减少频繁的数据库查询。
+
+## 需求：安全性问题优化（第二阶段）
+
+- [x] 修复 `mw.py` 中 AES 加解密的硬编码弱密钥，实现动态密钥生成与持久化。
+- [x] 修复 `mw.py` 中 `createLocalSSL` 方法生成的自签证书的 MD5 弱签名问题，更换为 SHA-256。
+- [x] 修复 `mw.py`、`firewall.py`、`plugin.py` 中直接拼接外部参数导致的 Shell 命令注入漏洞，全面引入 `shlex.quote()` 转义。
+
+## 需求：资源优化与冗余清理（第三阶段）
+
+- [x] 重构 `panel_task.py`，将现有的 6 个挂起的守护线程合并为一个事件调度线程。
+- [x] 在 `mw.py` 增加底层的 `removeDir` 纯 Python 原生方法。
+- [x] 编写 Python 替换脚本或批量替换，将 `site.py` 等文件中缓慢的 `mw.execShell("mkdir -p x")` 和 `mw.execShell("rm -rf x")` 升级为高速的 `os.makedirs` 与 `shutil.rmtree` 级别调用。

@@ -153,7 +153,7 @@ def dtRemoveFilePath():
     dir_path = getServerDir() + '/trace'
     path = dir_path + '/' + args['file']
     if os.path.exists(path):
-        mw.execShell('rm -rf ' + path)
+        mw.removeDir(path)
     return mw.returnJson(True, '删除成功!')
 
 

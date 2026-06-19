@@ -188,7 +188,7 @@ class App:
             if siteInfoTmp['siteName'] in names:
                 newData.append(siteInfoTmp)
             else:
-                mw.execShell("rm -rf " + self.getServerDir() +
+                mw.removeDir(self.getServerDir() +
                              '/sites/' + siteInfoTmp['siteName'])
                 n += 1
         if n > 0:

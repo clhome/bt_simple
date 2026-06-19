@@ -130,7 +130,7 @@ def initDreplace():
 
     conf_dir = getServerDir()+'/conf'
     if not os.path.exists(conf_dir):
-        mw.execShell('mkdir -p ' + conf_dir)
+        mw.makeDirs(conf_dir)
 
     file_tpl = getConfTpl()
     dst_file = getConf()

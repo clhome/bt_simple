@@ -818,7 +818,7 @@ def dirDelete(path):
         if recycle_bin == 'open':
             if mvRecycleBin(path):
                 return mw.returnData(True, '已将文件移动到回收站!')
-        mw.execShell('rm -rf ' + path)
+        mw.removeDir(path)
         mw.writeLog('文件管理', '删除{1}成功！', (path,))
         return mw.returnData(True, '删除文件成功!')
     except:

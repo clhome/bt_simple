@@ -90,7 +90,7 @@ def pSqliteDb(dbname='logs'):
     db_dir = getServerDir() + '/logs/'
 
     if not os.path.exists(db_dir):
-        mw.execShell('mkdir -p ' + db_dir)
+        mw.makeDirs(db_dir)
 
     file = db_dir + name + '.db'
     if not os.path.exists(file):
@@ -526,7 +526,7 @@ def initDreplace():
 
     logs_path = path + '/logs'
     if not os.path.exists(logs_path):
-        mw.execShell('mkdir -p ' + logs_path)
+        mw.makeDirs(logs_path)
 
     debug_log = path + '/debug.log'
     if not os.path.exists(debug_log):
@@ -605,7 +605,7 @@ def reload():
 
     elog = mw.getServerDir() + "/openresty/nginx/logs/error.log"
     if os.path.exists(elog):
-        mw.execShell('rm -rf ' + elog)
+        mw.removeDir(elog)
 
     mw.opWeb('start')
     return 'ok'

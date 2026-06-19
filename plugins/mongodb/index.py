@@ -330,7 +330,7 @@ def reload():
 
 def restart():
     if os.path.exists("/tmp/mongodb-27017.sock"):
-        mw.execShell('rm -rf ' + "/tmp/mongodb-27017.sock")
+        mw.removeDir("/tmp/mongodb-27017.sock")
 
     return mgOp('restart')
 

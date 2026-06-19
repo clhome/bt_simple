@@ -113,8 +113,8 @@ def getPhpinfo(version):
     sock_file = getFpmAddress(version)
     root_dir = mw.getFatherDir() + '/phpinfo'
 
-    mw.execShell("rm -rf " + root_dir)
-    mw.execShell("mkdir -p " + root_dir)
+    mw.removeDir(root_dir)
+    mw.makeDirs(root_dir)
     mw.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
     sock_data = mw.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
     os.system("rm -rf " + root_dir)

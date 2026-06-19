@@ -158,7 +158,7 @@ def initDreplace():
 
     git_dir = mw.getServerDir() + '/git'
     if not os.path.exists(git_dir):
-        mw.execShell('mkdir -p ' + git_dir)
+        mw.makeDirs(git_dir)
         mw.execShell('chown -R www:www ' + git_dir)
 
 
@@ -737,7 +737,7 @@ def projectScriptLoad():
     post_receive = path + '/hooks/post-receive.d/post-receive'
 
     if not os.path.exists(path + '/custom_hooks'):
-        mw.execShell('mkdir -p ' + path + '/custom_hooks')
+        mw.makeDirs(path + '/custom_hooks')
         mw.execShell('chown -R www:www ' + path + '/custom_hooks')
 
     pct_content = mw.readFile(post_receive_tpl)

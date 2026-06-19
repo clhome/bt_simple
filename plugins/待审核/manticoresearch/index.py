@@ -124,9 +124,9 @@ def mkdirAll():
 
     for x in tmp:
         if x.find('binlog') != -1:
-            mw.execShell('mkdir -p ' + x)
+            mw.makeDirs(x)
         else:
-            mw.execShell('mkdir -p ' + os.path.dirname(x))
+            mw.makeDirs(os.path.dirname(x))
         mw.execShell("chown -R manticore:manticore "+x)
 
 def isInitFile():
@@ -146,7 +146,7 @@ def initDreplace():
 
     for d in dirs_list:
         if not os.path.exists(d):
-            mw.execShell('mkdir -p ' + d)
+            mw.makeDirs(d)
 
     mw.execShell("chown -R manticore:manticore /var/run/manticore")
 
