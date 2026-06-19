@@ -606,34 +606,34 @@ if __name__ == "__main__":
     # Class methods wrapper
     if func == 'set_anti':
         args = getArgs()
-        print(get_fail2ban_inst().set_anti(mw.dict_obj(args)))
+        print(get_fail2ban_inst().set_anti(args))
     elif func == 'del_anti':
         args = getArgs()
-        print(get_fail2ban_inst().del_anti(mw.dict_obj(args)))
+        print(get_fail2ban_inst().del_anti(args))
     elif func == 'get_anti_info':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_anti_info(mw.dict_obj(args))))
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_anti_info(args)))
     elif func == 'get_status':
         args = getArgs()
-        print(get_fail2ban_inst().get_status(mw.dict_obj(args)))
+        print(get_fail2ban_inst().get_status(args))
     elif func == 'ban_ip_release':
         args = getArgs()
-        print(get_fail2ban_inst().ban_ip_release(mw.dict_obj(args)))
+        print(get_fail2ban_inst().ban_ip_release(args))
     elif func == 'get_mode_list':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_mode_list(mw.dict_obj(args))))
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_mode_list(args)))
     elif func == 'get_all_sitename':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_all_sitename(mw.dict_obj(args))))
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_all_sitename(args)))
     elif func == 'ban_ip':
         args = getArgs()
-        print(get_fail2ban_inst().ban_ip(mw.dict_obj(args)))
+        print(get_fail2ban_inst().ban_ip(args))
     elif func == 'unban_ip':
         args = getArgs()
-        print(get_fail2ban_inst().unban_ip(mw.dict_obj(args)))
+        print(get_fail2ban_inst().unban_ip(args))
     elif func == 'get_last_log':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_last_log(mw.dict_obj(args))))
+        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_last_log(args)))
     elif func == 'status':
         print(status())
     elif func == 'start':
