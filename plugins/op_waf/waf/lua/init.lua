@@ -1005,9 +1005,9 @@ function run_app_waf()
     if waf_smuggling() then return true end
 
     -- 自动放行 ACME SSL 证书验证请求 (Let's Encrypt / ZeroSSL 等)
-    -- HTTP-01 验证需要访问 /.well-known/acme-challenge/ 路径
+    -- 放行整个 /.well-known/ 文件夹默认作为白名单
     local raw_uri = ngx.var.uri
-    if raw_uri and string.sub(raw_uri, 1, 28) == "/.well-known/acme-challenge/" then
+    if raw_uri and (raw_uri == "/.well-known" or string.sub(raw_uri, 1, 13) == "/.well-known/") then
         return false
     end
     
