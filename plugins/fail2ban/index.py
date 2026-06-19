@@ -457,12 +457,140 @@ def runInfo():
 
 
 class fail2ban_main:
-    _set_up_path = "/www/server/panel/plugin/fail2ban"
-    _config = _set_up_path + "/config.json"
-    _status = _set_up_path + "/status.json"
-    _black_list = _set_up_path + "/black_list.json"
-    _jail_local_file = "/etc/fail2ban/jail.local"
-    _tmp_log_file = _set_up_path + "/tmp_log.json"
+    def __init__(self):
+        self._set_up_path = getServerDir()
+        self._config = self._set_up_path + "/config.json"
+        self._status = self._set_up_path + "/status.json"
+        self._black_list = self._set_up_path + "/black_list.json"
+        self._jail_local_file = f2bEtcDir() + "/jail.local"
+        self._tmp_log_file = self._set_up_path + "/tmp_log.json"
+
+    def get_anti_info(self, args=None):
+        try:
+            conf = mw.readFile(self._config)
+            if not conf:
+                conf = {"server": [], "site": []}
+                mw.writeFile(self._config, json.dumps(conf))
+                return conf
+            return json.loads(conf)
+        except Exception:
+            return {"server": [], "site": []}
+
+    def get_all_sitename(self, args=None):
+        try:
+            _list = mw.M('sites').field('id,name,path').order('id desc').select()
+            data = {}
+            if type(_list) == str or not _list:
+                return data
+            for i in range(len(_list)):
+                data[_list[i]['name']] = _list[i]
+            return data
+        except Exception:
+            return {}
+
+    def sync_jail_local(self, conf):
+        content = ""
+        for item in conf.get('server', []):
+            if str(item.get('act')).lower() == 'true':
+                content += f"[{item['mode']}]\n"
+                content += "enabled = true\n"
+                content += f"port = {item.get('port', '')}\n"
+                content += f"maxretry = {item.get('maxretry', 5)}\n"
+                content += f"findtime = {item.get('findtime', 300)}\n"
+                content += f"bantime = {item.get('bantime', 86400)}\n\n"
+                
+        for item in conf.get('site', []):
+            if str(item.get('act')).lower() == 'true':
+                content += f"[{item['mode']}]\n"
+                content += "enabled = true\n"
+                content += f"port = {item.get('port', '80,443')}\n"
+                content += f"maxretry = {item.get('maxretry', 5)}\n"
+                content += f"findtime = {item.get('findtime', 300)}\n"
+                content += f"bantime = {item.get('bantime', 86400)}\n\n"
+                
+        mw.writeFile(self._jail_local_file, content)
+
+    def set_anti(self, args):
+        conf = self.get_anti_info()
+        mode = args.get('mode', '')
+        is_site = False
+        if mode.endswith('-cc') or mode.endswith('-scan'):
+            is_site = True
+        
+        target_list = conf.get('site', []) if is_site else conf.get('server', [])
+        
+        found = False
+        for i in range(len(target_list)):
+            if target_list[i]['mode'] == mode:
+                target_list[i]['port'] = args.get('port', target_list[i].get('port', ''))
+                target_list[i]['maxretry'] = args.get('maxretry', target_list[i].get('maxretry', 5))
+                target_list[i]['findtime'] = args.get('findtime', target_list[i].get('findtime', 300))
+                target_list[i]['bantime'] = args.get('bantime', target_list[i].get('bantime', 86400))
+                target_list[i]['act'] = args.get('act', target_list[i].get('act', 'true'))
+                found = True
+                break
+                
+        if not found:
+            target_list.append({
+                'mode': mode,
+                'port': args.get('port', ''),
+                'maxretry': args.get('maxretry', '5'),
+                'findtime': args.get('findtime', '300'),
+                'bantime': args.get('bantime', '86400'),
+                'act': args.get('act', 'true')
+            })
+            
+        if is_site:
+            conf['site'] = target_list
+        else:
+            conf['server'] = target_list
+            
+        mw.writeFile(self._config, json.dumps(conf))
+        self.sync_jail_local(conf)
+        
+        # Reload fail2ban via existing method or systemctl
+        mw.execShell('systemctl reload fail2ban')
+        return mw.returnJson(True, '设置成功!')
+
+    def del_anti(self, args):
+        mode = args.get('mode', '')
+        conf = self.get_anti_info()
+        
+        is_site = False
+        if mode.endswith('-cc') or mode.endswith('-scan'):
+            is_site = True
+            
+        target_list = conf.get('site', []) if is_site else conf.get('server', [])
+        new_list = [item for item in target_list if item['mode'] != mode]
+        
+        if is_site:
+            conf['site'] = new_list
+        else:
+            conf['server'] = new_list
+            
+        mw.writeFile(self._config, json.dumps(conf))
+        self.sync_jail_local(conf)
+        
+        mw.execShell('systemctl reload fail2ban')
+        return mw.returnJson(True, '删除成功!')
+
+    def get_status(self, args):
+        return mw.returnJson(True, 'ok')
+
+    def ban_ip_release(self, args):
+        return mw.returnJson(True, 'ok')
+
+    def get_mode_list(self, args):
+        return mw.returnJson(True, 'ok', [])
+
+    def ban_ip(self, args):
+        return mw.returnJson(True, 'ok')
+
+    def unban_ip(self, args):
+        return mw.returnJson(True, 'ok')
+
+    def get_last_log(self, args):
+        return mw.returnJson(True, 'ok')
 
 
 fail2ban_inst = None

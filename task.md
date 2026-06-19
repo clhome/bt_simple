@@ -61,3 +61,10 @@
 
 [20260618 18:26]Code committed
 
+## 需求：修复 fail2ban_main 类核心方法报错
+
+- [x] 在 `plugins/fail2ban/index.py` 中补全 `fail2ban_main` 类的方法，修改错误的硬编码配置路径。
+- [x] 实现 `get_anti_info` 读取当前配置的规则，若配置不存在则自动初始化。
+- [x] 实现 `get_all_sitename` 以通过 `mw.M('sites')` 动态读取面板绑定的所有网站列表。
+- [x] 补全 `set_anti`、`del_anti` 功能，实现前端开启/修改及删除防护规则的逻辑，并联动 `jail.local` 文件和 fail2ban 服务重启。
+- [x] 增加其他空方法防止后续报错。
