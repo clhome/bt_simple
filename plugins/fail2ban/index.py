@@ -521,11 +521,12 @@ class fail2ban_main:
                 mw.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
+            conf_data['default_ssh_port'] = self.get_ssh_port()
             return conf_data
         except Exception:
             # Re-initialize on corruption
-            conf_data = {"server": [default_sshd], "site": []}
-            mw.writeFile(self._config, json.dumps(conf_data))
+            conf_data = {"server": [default_sshd], "site": [], "default_ssh_port": self.get_ssh_port()}
+            mw.writeFile(self._config, json.dumps({"server": [default_sshd], "site": []}))
             self.sync_jail_local(conf_data)
             return conf_data
 
@@ -555,13 +556,13 @@ class fail2ban_main:
         for item in conf.get('site', []):
             if str(item.get('act')).lower() == 'true':
                 mode = item['mode']
-                site_name = mode.replace('-cc', '').replace('-scan', '')
                 
                 content += f"[{mode}]\n"
                 content += "enabled = true\n"
+                content += "backend = auto\n"
                 content += f"port = {item.get('port', '80,443')}\n"
                 content += f"filter = {mode}\n"
-                content += f"logpath = /www/wwwlogs/{site_name}.log\n"
+                content += "logpath = /www/wwwlogs/*.log\n"
                 content += f"maxretry = {item.get('maxretry', 5)}\n"
                 content += f"findtime = {item.get('findtime', 300)}\n"
                 content += f"bantime = {item.get('bantime', 86400)}\n\n"
@@ -659,7 +660,17 @@ class fail2ban_main:
         return mw.returnJson(True, 'ok')
 
     def get_last_log(self, args):
-        return mw.returnJson(True, 'ok')
+        log_file = runLog()
+        if not os.path.exists(log_file):
+            return mw.returnJson(True, 'ok', '')
+        
+        data = mw.execShell('tail -n 200 ' + log_file)
+        return mw.returnJson(True, 'ok', data[0])
+
+    def clear_log(self, args):
+        log_file = runLog()
+        mw.execShell('echo "" > ' + log_file)
+        return mw.returnJson(True, '清空日志成功!')
 
 
 fail2ban_inst = None
@@ -702,7 +713,10 @@ if __name__ == "__main__":
         print(get_fail2ban_inst().unban_ip(args))
     elif func == 'get_last_log':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_last_log(args)))
+        print(get_fail2ban_inst().get_last_log(args))
+    elif func == 'clear_log':
+        args = getArgs()
+        print(get_fail2ban_inst().clear_log(args))
     elif func == 'status':
         print(status())
     elif func == 'start':
