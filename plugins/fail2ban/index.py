@@ -64,8 +64,14 @@ def getInitDTpl():
 
 
 def getArgs():
-    args = sys.argv[3:]
+    args = sys.argv[2:]
     tmp = {}
+    if not args:
+        return tmp
+    
+    if len(args) >= 1 and not args[0].startswith('{') and ':' not in args[0]:
+        args = args[1:]
+        
     if not args:
         return tmp
 

@@ -1063,11 +1063,11 @@ class plugin(object):
         if not os.path.exists(path):
             path = self.__plugin_dir + '/' + name + '/' + name + '.py'
 
-        py = 'python3 ' + path
-        if args == '':
-            py_cmd = py + ' ' + func + ' ' + shlex.quote(version)
-        else:
-            py_cmd = py + ' ' + func + ' ' + shlex.quote(version) + ' ' + shlex.quote(args)
+        py_cmd = f"python3 {path} {func}"
+        if version != '':
+            py_cmd += f" {shlex.quote(version)}"
+        if args != '':
+            py_cmd += f" {shlex.quote(args)}"
 
         if not os.path.exists(path):
             return ('', '')
