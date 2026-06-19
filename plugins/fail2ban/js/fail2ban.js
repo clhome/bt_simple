@@ -549,7 +549,28 @@ function f2bSiteAnti() {
                   '<thead><tr><th>防护类型</th><th>端口</th><th>拦截条件</th><th>封禁时长</th><th>状态</th><th style="text-align: right;">操作</th></tr></thead>' +
                   '<tbody>' + tbody + '</tbody>' +
                   '</table>' +
-                  '<ul class="help-info-text c7 ptb15"><li>开启全局防护后，将自动应用到所有网站，对访问日志进行聚合分析和攻击拦截。</li></ul>' +
+                  '<ul class="help-info-text c7 ptb15" style="margin-bottom:0;"><li>开启全局防护后，将自动应用到所有网站，对访问日志进行聚合分析和攻击拦截。</li></ul>' +
+                  '<div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin-top: 5px;">\
+                      <h4 style="color: #333; font-size: 14px; font-weight: bold; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eaeaea; padding-bottom: 10px;">\
+                          <span class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:8px;"></span>网站防护机制深度解析\
+                      </h4>\
+                      <div style="margin-bottom: 15px;">\
+                          <div style="color: #333; font-weight: 600; font-size: 13px; margin-bottom: 6px;">\
+                              <span style="display:inline-block; width:6px; height:6px; background:#fd6e1e; border-radius:50%; margin-right:8px; vertical-align:middle;"></span>全局防 CC 攻击 (global-cc)\
+                          </div>\
+                          <div style="color: #666; font-size: 13px; line-height: 22px; padding-left: 14px;">\
+                              基于自适应的高频请求识别算法，实时监控所有站点的访问频次。当发现独立 IP 异常密集地请求网页或接口，疑似发起资源枯竭型（CC）攻击时，防火墙将在网络底层直接阻断其连接，确保您的服务器性能不被巨量并发请求拖垮。\
+                          </div>\
+                      </div>\
+                      <div>\
+                          <div style="color: #333; font-weight: 600; font-size: 13px; margin-bottom: 6px;">\
+                              <span style="display:inline-block; width:6px; height:6px; background:#00b96b; border-radius:50%; margin-right:8px; vertical-align:middle;"></span>全局防恶意扫描 (global-scan)\
+                          </div>\
+                          <div style="color: #666; font-size: 13px; line-height: 22px; padding-left: 14px;">\
+                              采用启发式的访问日志特征分析机制，敏锐捕捉黑客的漏洞探测、敏感文件窥探及自动化扫描器行为。一旦发现非正常的试探性探测，系统将果断封禁该攻击源，将被动防御化为主动拦截，大幅降低站点被渗透的风险。\
+                          </div>\
+                      </div>\
+                  </div>' +
                   '</div>';
         $(".soft-man-con").html(con);
     });
