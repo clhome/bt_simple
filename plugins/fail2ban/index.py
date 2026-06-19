@@ -154,10 +154,16 @@ def getPidFile():
     return f2dir+'/fail2ban.pid'
 
 def status():
-    pid_file = getPidFile()
-    if not os.path.exists(pid_file):
-        return 'stop'
-    return 'start'
+    data = mw.execShell('fail2ban-client ping')
+    if 'pong' in data[0]:
+        return 'start'
+        
+    # Fallback to systemctl check
+    data = mw.execShell('systemctl is-active fail2ban')
+    if data[0].strip() == 'active':
+        return 'start'
+        
+    return 'stop'
 
 def contentReplace(content):
     service_path = mw.getServerDir()
@@ -466,15 +472,16 @@ class fail2ban_main:
         self._tmp_log_file = self._set_up_path + "/tmp_log.json"
 
     def get_anti_info(self, args=None):
+        default_sshd = {
+            "mode": "sshd",
+            "port": "22",
+            "maxretry": "5",
+            "findtime": "300",
+            "bantime": "86400",
+            "act": "true"
+        }
+        
         try:
-            default_sshd = {
-                "mode": "sshd",
-                "port": "22",
-                "maxretry": "5",
-                "findtime": "300",
-                "bantime": "86400",
-                "act": "true"
-            }
             conf = mw.readFile(self._config)
             if not conf:
                 conf_data = {"server": [default_sshd], "site": []}
@@ -483,15 +490,22 @@ class fail2ban_main:
                 return conf_data
                 
             conf_data = json.loads(conf)
+            if not isinstance(conf_data, dict):
+                conf_data = {"server": [], "site": []}
+                
             # If server config is completely empty, initialize it with sshd defaults
-            if 'server' not in conf_data or len(conf_data['server']) == 0:
+            if 'server' not in conf_data or not isinstance(conf_data['server'], list) or len(conf_data['server']) == 0:
                 conf_data['server'] = [default_sshd]
                 mw.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
             return conf_data
         except Exception:
-            return {"server": [], "site": []}
+            # Re-initialize on corruption
+            conf_data = {"server": [default_sshd], "site": []}
+            mw.writeFile(self._config, json.dumps(conf_data))
+            self.sync_jail_local(conf_data)
+            return conf_data
 
     def get_all_sitename(self, args=None):
         try:
