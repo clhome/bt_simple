@@ -34,7 +34,7 @@ def system_total():
     data['time'] = sys.getBootTime()
     data['system'] = sys.getSystemVersion()
     data['version'] = '0.0.1'
-    return data
+    return mw.getJson(data)
 
 # 获取环境信息
 @blueprint.route('/get_env_info', endpoint='get_env_info', methods=['GET','POST'])
@@ -54,7 +54,7 @@ def network():
     stat['network'] = sys.stats().network()
     # 注入任务排队数量，实现高频接口合并
     stat['task_count'] = thisdb.getTaskUnexecutedCount()
-    return stat
+    return mw.getJson(stat)
 
 # 获取系统的磁盘信息
 @blueprint.route('/disk_info', endpoint='disk_info', methods=['GET','POST'])
@@ -139,6 +139,12 @@ def set_control():
         thisdb.setOption('monitor_day', day, type='monitor')
         thisdb.setOption('monitor_status', 'open', type='monitor')
         return mw.returnData(True, "开启监控成功!")
+    elif stype == 'save_day':
+        _day = int(day)
+        if _day < 1:
+            return mw.returnData(False, "保存天数异常!")
+        thisdb.setOption('monitor_day', day, type='monitor')
+        return mw.returnData(True, "修改保存天数成功!")
     elif stype == '2':
         thisdb.setOption('monitor_only_netio', 'close', type='monitor')
         return mw.returnData(True, "关闭仅统计外网成功!")
@@ -165,7 +171,7 @@ def set_control():
         else:
             data['stat_all_status'] = False
 
-        return data
+        return mw.getJson(data)
 
     return mw.returnData(False, "异常!")
     

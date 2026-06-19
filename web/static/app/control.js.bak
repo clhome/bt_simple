@@ -179,13 +179,8 @@ function setControl(act, value=false){
 	} else if (act == 'stat'){
 		var type = $("#stat_witch").prop('checked')?'2':'3';
 	} else if (act == 'save_day'){
-		var type = $("#ctswitch").prop('checked')?'1':'0';
+		var type = 'save_day';
 		var day = $("#save_day").val();
-
-		if(type == 0){
-			layer.msg('先开启监控!',{icon:2});
-			return;
-		}
 
 		if(day < 1){
 			layer.msg('保存天数不合法!',{icon:2});

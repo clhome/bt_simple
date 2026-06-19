@@ -55,20 +55,22 @@ var render_dlist = [
 	'networkbtn_rtime'
 ];
 
-for (var i = 0; i < render_dlist.length; i++) {
-	
-	laydate.render({
-		elem: '#'+render_dlist[i]
-		,type: 'datetime'
-		,range: true
-	});
+$(function() {
+	for (var i = 0; i < render_dlist.length; i++) {
+		
+		laydate.render({
+			elem: '#'+render_dlist[i]
+			,type: 'datetime'
+			,range: true
+		});
 
 
-	var b = getBeforeDate(28).replaceAll('/','-') + " 00:00:00";
-	var e = getBeforeDate(0).replaceAll('/','-') + " 23:59:59";
+		var b = getBeforeDate(28).replaceAll('/','-') + " 00:00:00";
+		var e = getBeforeDate(0).replaceAll('/','-') + " 23:59:59";
 
-	$('#'+render_dlist[i]).val(b + ' - ' + e);
-}
+		$('#'+render_dlist[i]).val(b + ' - ' + e);
+	}
+});
 //渲染日期时间范围 end
 
 
@@ -179,13 +181,8 @@ function setControl(act, value=false){
 	} else if (act == 'stat'){
 		var type = $("#stat_witch").prop('checked')?'2':'3';
 	} else if (act == 'save_day'){
-		var type = $("#ctswitch").prop('checked')?'1':'0';
+		var type = 'save_day';
 		var day = $("#save_day").val();
-
-		if(type == 0){
-			layer.msg('先开启监控!',{icon:2});
-			return;
-		}
 
 		if(day < 1){
 			layer.msg('保存天数不合法!',{icon:2});
