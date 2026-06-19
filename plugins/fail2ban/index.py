@@ -471,10 +471,32 @@ class fail2ban_main:
         self._jail_local_file = f2bEtcDir() + "/jail.local"
         self._tmp_log_file = self._set_up_path + "/tmp_log.json"
 
+    def parse_inner_args(self, args):
+        if 'args' in args and isinstance(args['args'], str):
+            try:
+                import json
+                inner_args = json.loads(args['args'])
+                args.update(inner_args)
+            except Exception:
+                pass
+        return args
+
+    def get_ssh_port(self):
+        try:
+            conf = mw.readFile('/etc/ssh/sshd_config')
+            if conf:
+                import re
+                m = re.search(r"^\s*Port\s+([0-9]+)", conf, re.MULTILINE)
+                if m:
+                    return m.group(1)
+        except Exception:
+            pass
+        return '22'
+
     def get_anti_info(self, args=None):
         default_sshd = {
             "mode": "sshd",
-            "port": "22",
+            "port": self.get_ssh_port(),
             "maxretry": "5",
             "findtime": "300",
             "bantime": "86400",
@@ -532,16 +554,31 @@ class fail2ban_main:
                 
         for item in conf.get('site', []):
             if str(item.get('act')).lower() == 'true':
-                content += f"[{item['mode']}]\n"
+                mode = item['mode']
+                site_name = mode.replace('-cc', '').replace('-scan', '')
+                
+                content += f"[{mode}]\n"
                 content += "enabled = true\n"
                 content += f"port = {item.get('port', '80,443')}\n"
+                content += f"filter = {mode}\n"
+                content += f"logpath = /www/wwwlogs/{site_name}.log\n"
                 content += f"maxretry = {item.get('maxretry', 5)}\n"
                 content += f"findtime = {item.get('findtime', 300)}\n"
                 content += f"bantime = {item.get('bantime', 86400)}\n\n"
                 
+                # Ensure the filter exists
+                filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
+                if not os.path.exists(filter_file):
+                    if mode.endswith('-cc'):
+                        filter_content = "[Definition]\nfailregex = ^<HOST> \\-.*\nignoreregex = "
+                    else:
+                        filter_content = "[Definition]\nfailregex = ^<HOST> \\-.*\"(?:GET|POST|HEAD).*\" (400|401|403|404|444|500|502|503)\nignoreregex = "
+                    mw.writeFile(filter_file, filter_content)
+                
         mw.writeFile(self._jail_local_file, content)
 
     def set_anti(self, args):
+        args = self.parse_inner_args(args)
         conf = self.get_anti_info()
         mode = args.get('mode', '')
         is_site = False
@@ -584,6 +621,7 @@ class fail2ban_main:
         return mw.returnJson(True, '设置成功!')
 
     def del_anti(self, args):
+        args = self.parse_inner_args(args)
         mode = args.get('mode', '')
         conf = self.get_anti_info()
         
