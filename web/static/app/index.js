@@ -550,13 +550,27 @@ function updateMsg(){
             "<span class='label label-warning'>测试版本</span>" : 
             "<span class='label label-success arrowed'>正式版本</span>";
 
-        var htmlContent = '';
-        try {
-            htmlContent = marked.parse(rdata.data.content);
-        } catch(e) {
-            htmlContent = rdata.data.content.replace(/\n/g, '<br/>');
+        var parseContent = function() {
+            try {
+                return marked.parse(rdata.data.content);
+            } catch(e) {
+                return rdata.data.content.replace(/\n/g, '<br/>');
+            }
+        };
+
+        var showIt = function(htmlContent) {
+            showUpdateUI(v, v_info + '<span class="badge badge-inverse">版本更新 ['+v+']</span>', htmlContent, rdata.data.speed_name);
+        };
+
+        if (typeof marked !== 'undefined') {
+            showIt(parseContent());
+        } else {
+            loadScript(staticUrl('/static/js/marked.min.js')).then(function() {
+                showIt(parseContent());
+            }).catch(function() {
+                showIt(rdata.data.content.replace(/\n/g, '<br/>'));
+            });
         }
-        showUpdateUI(v, v_info + '<span class="badge badge-inverse">版本更新 ['+v+']</span>', htmlContent, rdata.data.speed_name);
     },'json');
 }
 

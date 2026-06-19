@@ -1610,7 +1610,15 @@ function setAuthBind(){
 			success:function(layero,index){
 
 				$('input[name="secret"]').val(rdata.data['secret']);
-				$('.qrcode').qrcode({ text: rdata.data['url']});
+				var renderQRCode = function() {
+					$('.qrcode').qrcode({ text: rdata.data['url']});
+				};
+
+				if ($.fn.qrcode) {
+					renderQRCode();
+				} else {
+					loadScript(staticUrl('/static/js/jquery-qrcode-0.18.0.min.js')).then(renderQRCode);
+				}
 
 				$('.reset_secret').click(function(){
 					layer.confirm('您确定要重置当前密钥吗？<br/><span style="color: red; ">重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。</span>',{title:'重置密钥',closeBtn:2,icon:13,cancel:function(){
@@ -1618,7 +1626,14 @@ function setAuthBind(){
 						$.post('/setting/get_auth_secret', {'reset':"1"},function(rdata){
 							showMsg("接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。", function(){
 								$('input[name="secret"]').val(rdata.data['secret']);
-								$('.qrcode').html('').qrcode({ text: rdata.data['url']});
+								$('.qrcode').html('');
+								if ($.fn.qrcode) {
+									$('.qrcode').qrcode({ text: rdata.data['url']});
+								} else {
+									loadScript(staticUrl('/static/js/jquery-qrcode-0.18.0.min.js')).then(function(){
+										$('.qrcode').qrcode({ text: rdata.data['url']});
+									});
+								}
 							} ,{icon:1}, 2000);
 						},'json');
 					});

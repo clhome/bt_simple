@@ -114,24 +114,7 @@
           class="mw_copy"
           data-clipboard-text=""
         ></button>
-        {% if data['use_cdn'] == 'yes' %}
-<link
-          rel="stylesheet"
-          href="https://cdn.staticfile.org/xterm/3.14.5/xterm.min.css"
-          onerror="this.onerror=null;this.href='/static/build/xterm.css?v={{config.version}}'"
-        />
-{% else %}
-<link href="/static/build/xterm.css?v={{config.version}}" rel="stylesheet" />
-{% endif %}
-        {% if data['use_cdn'] == 'yes' %}
-<link
-          rel="stylesheet"
-          href="https://cdn.staticfile.org/xterm/3.14.5/addons/fullscreen/fullscreen.min.css"
-          onerror="this.onerror=null;this.href='/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}'"
-        />
-{% else %}
-<link href="/static/build/addons/fullscreen/fullscreen.css?v={{config.version}}" rel="stylesheet" />
-{% endif %}
+
         <!-- jQuery -->
         {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js"></script>
@@ -164,16 +147,10 @@
 <script src="/static/layer/layer.js"></script>
 {% endif %}
 
-        <!-- Marked -->
-        {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/marked/15.0.12/marked.min.js"></script>
-<script>window.marked || document.write('<script src="/static/js/marked.min.js"><\/script>')</script>
-{% else %}
-<script src="/static/js/marked.min.js"></script>
-{% endif %}
+
 
         <!-- jQuery Fly (本地加载，体积小) -->
-        <script src="/static/js/jquery.fly.min.js"></script>
+        <script src="/static/js/jquery.fly.min.js?v={{config.version}}"></script>
 
         <!-- Clipboard -->
         {% if data['use_cdn'] == 'yes' %}
@@ -183,51 +160,14 @@
 <script src="/static/js/clipboard.min.js"></script>
 {% endif %}
 
-        <!-- XTerm & Addons -->
-        {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/xterm/3.14.5/xterm.min.js"></script>
-<script>window.Terminal || document.write('<script src="/static/build/xterm.js"><\/script>')</script>
-{% else %}
-<script src="/static/build/xterm.js"></script>
-{% endif %}
-        {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/xterm/3.14.5/addons/attach/attach.min.js" onerror="this.onerror=null;this.src='/static/build/addons/attach/attach.js'"></script>
-{% else %}
-<script src="/static/build/addons/attach/attach.js"></script>
-{% endif %}
-        {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/xterm/3.14.5/addons/fit/fit.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fit/fit.js'"></script>
-{% else %}
-<script src="/static/build/addons/fit/fit.js"></script>
-{% endif %}
-        {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/xterm/3.14.5/addons/fullscreen/fullscreen.min.js" onerror="this.onerror=null;this.src='/static/build/addons/fullscreen/fullscreen.js'"></script>
-{% else %}
-<script src="/static/build/addons/fullscreen/fullscreen.js"></script>
-{% endif %}
 
-        <!-- Socket.io -->
-        {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/socket.io/4.5.0/socket.io.min.js"></script>
-<script>window.io || document.write('<script src="/static/js/socket.io.min.js"><\/script>')</script>
-{% else %}
-<script src="/static/js/socket.io.min.js"></script>
-{% endif %}
 
         <!-- Local custom configurations and utilities -->
-        <script src="/static/build/addons/winptyCompat/winptyCompat.js"></script>
-        <script src="/static/js/term-websocketio.js"></script>
         <script src="/static/app/upload.js?v={{config.version}}"></script>
         <script src="/static/app/public.js?v={{config.version}}"></script>
 
         <!-- jQuery dragsort (本地，较小且定制多) -->
-        <script src="/static/js/jquery.dragsort-0.5.2.min.js"></script>
-
-        <!-- jQuery QRCode (本地加载) -->
-        <script src="/static/js/jquery-qrcode-0.18.0.min.js?v={{config.version}}"></script>
-
-        <!-- XM-Select (本地加载) -->
-        <script src="/static/js/xm-select.js"></script>
+        <script src="/static/js/jquery.dragsort-0.5.2.min.js?v={{config.version}}"></script>
 
         {% block content %}{% endblock %}
         <div class="footer bgw">

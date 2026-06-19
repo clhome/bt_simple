@@ -1,4 +1,104 @@
 
+// ============================================
+// 动态资源加载器（按需加载 JS/CSS，带缓存防重复）
+// ============================================
+var _loadedResources = {};
+
+/**
+ * 动态加载单个 JS 文件，返回 Promise
+ * @param {string} url - JS 文件 URL
+ * @returns {Promise}
+ */
+function loadScript(url) {
+    if (_loadedResources[url]) return _loadedResources[url];
+    _loadedResources[url] = new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = url;
+        s.onload = resolve;
+        s.onerror = function() {
+            delete _loadedResources[url];
+            reject(new Error('Failed to load: ' + url));
+        };
+        document.head.appendChild(s);
+    });
+    return _loadedResources[url];
+}
+
+/**
+ * 动态加载单个 CSS 文件，返回 Promise
+ * @param {string} url - CSS 文件 URL
+ * @returns {Promise}
+ */
+function loadCSS(url) {
+    if (_loadedResources[url]) return _loadedResources[url];
+    _loadedResources[url] = new Promise(function(resolve, reject) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = url;
+        link.onload = resolve;
+        link.onerror = function() {
+            delete _loadedResources[url];
+            reject(new Error('Failed to load: ' + url));
+        };
+        document.head.appendChild(link);
+    });
+    return _loadedResources[url];
+}
+
+/**
+ * 批量加载多个资源，返回 Promise
+ * @param {Array} urls - [{type:'js'|'css', url:'...'}]
+ * @returns {Promise}
+ */
+function loadResources(urls) {
+    var promises = [];
+    for (var i = 0; i < urls.length; i++) {
+        if (urls[i].type === 'css') {
+            promises.push(loadCSS(urls[i].url));
+        } else {
+            promises.push(loadScript(urls[i].url));
+        }
+    }
+    return Promise.all(promises);
+}
+
+/**
+ * 获取带版本号的静态资源URL（从页面已有 script 标签提取版本号用于缓存控制）
+ */
+var _staticVersion = '';
+(function() {
+    var scripts = document.querySelectorAll('script[src*="v="]');
+    for (var i = 0; i < scripts.length; i++) {
+        var match = scripts[i].src.match(/[?&]v=([^&]+)/);
+        if (match) { _staticVersion = match[1]; break; }
+    }
+})();
+function staticUrl(path) {
+    var sep = path.indexOf('?') > -1 ? '&' : '?';
+    return path + (_staticVersion ? sep + 'v=' + _staticVersion : '');
+}
+
+// WebSSH 终端资源按需加载（约 510KB，仅在打开终端时才加载）
+var _webshellReady = null;
+function loadWebShellResources() {
+    if (_webshellReady) return _webshellReady;
+    _webshellReady = loadResources([
+        {type: 'css', url: staticUrl('/static/build/xterm.css')},
+        {type: 'css', url: staticUrl('/static/build/addons/fullscreen/fullscreen.css')},
+        {type: 'js',  url: staticUrl('/static/build/xterm.js')},
+        {type: 'js',  url: staticUrl('/static/js/socket.io.min.js')}
+    ]).then(function() {
+        return loadResources([
+            {type: 'js', url: staticUrl('/static/build/addons/attach/attach.js')},
+            {type: 'js', url: staticUrl('/static/build/addons/fit/fit.js')},
+            {type: 'js', url: staticUrl('/static/build/addons/fullscreen/fullscreen.js')},
+            {type: 'js', url: staticUrl('/static/build/addons/winptyCompat/winptyCompat.js')},
+            {type: 'js', url: staticUrl('/static/js/term-websocketio.js')}
+        ]);
+    });
+    return _webshellReady;
+}
+
 $(document).ready(function() {
 	$(".sub-menu a.sub-menu-a").click(function() {
 		$(this).next(".sub").slideToggle("slow").siblings(".sub:visible").slideUp("slow");
@@ -1812,6 +1912,17 @@ function loadImage(){
 
 var socket, gterm;
 function webShell() {
+    var loadT = layer.msg('正在加载终端组件...', {icon: 16, time: 0, shade: [0.1, '#000']});
+    loadWebShellResources().then(function() {
+        layer.close(loadT);
+        _webShellInit();
+    }).catch(function(err) {
+        layer.close(loadT);
+        layer.msg('终端组件加载失败，请刷新页面重试', {icon: 2});
+        console.error(err);
+    });
+}
+function _webShellInit() {
     var termCols = 83;
     var termRows = 21;
     var sendTotal = 0;
@@ -3105,12 +3216,17 @@ function aboutPanel() {
         }
         
         var content = rdata.data;
-        var htmlContent = '';
-        try {
-            htmlContent = marked.parse(content);
-        } catch (e) {
-            htmlContent = '<pre>' + content + '</pre>';
-        }
+        var renderContent = function() {
+            var htmlContent = '';
+            try {
+                htmlContent = marked.parse(content);
+            } catch (e) {
+                htmlContent = '<pre>' + content + '</pre>';
+            }
+            return htmlContent;
+        };
+
+        var showRelease = function(htmlContent) {
         
         layer.open({
             type: 1,
@@ -3150,6 +3266,18 @@ function aboutPanel() {
                 }, 1000);
             }
         });
+        };
+
+        // 按需加载 marked（如果已全局可用则直接用，否则动态加载）
+        if (typeof marked !== 'undefined') {
+            showRelease(renderContent());
+        } else {
+            loadScript(staticUrl('/static/js/marked.min.js')).then(function() {
+                showRelease(renderContent());
+            }).catch(function() {
+                showRelease('<pre>' + content + '</pre>');
+            });
+        }
     }, 'json');
 }
 
