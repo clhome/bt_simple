@@ -323,12 +323,13 @@ function f2bServerAnti() {
         var rdata = $.parseJSON(data.data);
         var serverRules = (rdata.data && rdata.data.server) ? rdata.data.server : [];
         var defaultSshPort = (rdata.data && rdata.data.default_ssh_port) ? rdata.data.default_ssh_port : '22';
+        var defaultMysqlPort = (rdata.data && rdata.data.default_mysql_port) ? rdata.data.default_mysql_port : '3306';
         
         // 预设服务列表
         var presetServices = [
             {name: 'SSH 防爆破', mode: 'sshd', port: defaultSshPort, maxretry: 5, findtime: 300, bantime: 86400},
             {name: 'FTP 防爆破', mode: 'ftpd', port: '21', maxretry: 5, findtime: 300, bantime: 86400},
-            {name: 'MySQL 防爆破', mode: 'mysql', port: '3306', maxretry: 5, findtime: 300, bantime: 86400},
+            {name: 'MySQL 防爆破', mode: 'mysql', port: defaultMysqlPort, maxretry: 5, findtime: 300, bantime: 86400},
             {name: 'Dovecot (邮局)', mode: 'dovecot', port: '110', maxretry: 5, findtime: 300, bantime: 86400},
             {name: 'Postfix (邮局)', mode: 'postfix', port: '25', maxretry: 5, findtime: 300, bantime: 86400}
         ];

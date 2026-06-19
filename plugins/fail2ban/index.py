@@ -564,6 +564,22 @@ class fail2ban_main:
             pass
         return '22'
 
+    def get_mysql_port(self):
+        try:
+            mysql_cnf = mw.getServerDir() + '/mysql/etc/my.cnf'
+            paths = [mysql_cnf, '/etc/my.cnf']
+            for path in paths:
+                if os.path.exists(path):
+                    conf = mw.readFile(path)
+                    if conf:
+                        import re
+                        m = re.search(r"^\s*port\s*=\s*([0-9]+)", conf, re.MULTILINE | re.IGNORECASE)
+                        if m:
+                            return m.group(1)
+        except Exception:
+            pass
+        return '3306'
+
     def get_anti_info(self, args=None):
         default_sshd = {
             "mode": "sshd",
@@ -593,10 +609,11 @@ class fail2ban_main:
                 self.sync_jail_local(conf_data)
                 
             conf_data['default_ssh_port'] = self.get_ssh_port()
+            conf_data['default_mysql_port'] = self.get_mysql_port()
             return conf_data
         except Exception:
             # Re-initialize on corruption
-            conf_data = {"server": [default_sshd], "site": [], "default_ssh_port": self.get_ssh_port()}
+            conf_data = {"server": [default_sshd], "site": [], "default_ssh_port": self.get_ssh_port(), "default_mysql_port": self.get_mysql_port()}
             mw.writeFile(self._config, json.dumps({"server": [default_sshd], "site": []}))
             self.sync_jail_local(conf_data)
             return conf_data
