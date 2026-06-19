@@ -35,22 +35,20 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
         cmdstring_list = cmdstring
     else:
         cmdstring_list = shlex.split(cmdstring)
-    if timeout:
-        end_time = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
-
     sub = subprocess.Popen(cmdstring_list, cwd=cwd, stdin=subprocess.PIPE,
                            shell=shell, bufsize=4096, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    while sub.poll() is None:
-        time.sleep(0.1)
-        if timeout:
-            if end_time <= datetime.datetime.now():
-                raise Exception("Timeout：%s" % cmdstring)
+    try:
+        data = sub.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        sub.kill()
+        data = sub.communicate()
+        raise Exception("Timeout：%s" % cmdstring)
 
     if sys.version_info[0] == 2:
-        return sub.communicate()
+        return data
 
-    data = sub.communicate()
+    data = data
 
     success = data[0]
     error = data[1]

@@ -98,3 +98,9 @@
 - [x] 在 `js/fail2ban.js` 封装 `f2bService()` 接管默认的 `pluginService()` 调用，利用定时器监听状态栏加载完成后，动态在“服务”标签下方注入一个优雅的包含 `Fail2ban 使用指南` 的说明面板。
 - [x] 修改 `index.html` 的入口调用，将默认加载和左侧菜单的 onclick 均替换为 `f2bService()`。
 - [x] 修改 `js/fail2ban.js` 中的 `f2bLogs()` 方法，将日志显示的 textarea 背景色设为 `#1e1e1e` (深黑)，字体设为 `#d4d4d4` 配合 `Consolas` 等宽字体，使其看起来具备黑底白字的纯粹命令行风格。
+
+## 需求：执行效率优化（第一阶段）
+
+- [x] 优化 `mw.py` 中的 `execShell`，移除 0.1s 轮询等待，改为 `sub.communicate(timeout=timeout)`。
+- [x] 优化 `db.py`，引入 `threading.local()` 实现 SQLite 数据库连接的线程级复用。
+- [x] 优化 `common.py` 中的 `isLogined()`，引入内存缓存机制减少频繁的数据库查询。

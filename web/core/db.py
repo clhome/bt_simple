@@ -16,8 +16,11 @@
 import os
 import sys
 import sqlite3
+import threading
 
 import core.mw as mw
+
+_local = threading.local()
 
 def getPanelDir():
     return os.path.dirname(os.getcwd())
@@ -49,8 +52,13 @@ class Sql():
         # 取数据库对象
         try:
             if self.__DB_CONN == None:
-                self.__DB_CONN = sqlite3.connect(self.__DB_FILE)
-                self.__DB_CONN.text_factory = str
+                if not hasattr(_local, 'connections'):
+                    _local.connections = {}
+                if self.__DB_FILE not in _local.connections:
+                    conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=10)
+                    conn.text_factory = str
+                    _local.connections[self.__DB_FILE] = conn
+                self.__DB_CONN = _local.connections[self.__DB_FILE]
         except Exception as ex:
             print(getTracebackInfo())
             return "error: " + str(ex)
@@ -438,9 +446,8 @@ class Sql():
         self.__OPT_PARAM = ()
 
     def close(self):
-        # 释放资源
+        # 释放资源（由于使用了线程池，不再物理关闭）
         try:
-            self.__DB_CONN.close()
             self.__DB_CONN = None
         except:
             pass
