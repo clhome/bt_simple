@@ -3346,3 +3346,79 @@ function tryRestartPHP(siteName){
 	    },'json');
 	},'json');
 }
+
+
+// 导出所有站点
+function exportAllSites() {
+	var loadT = layer.load(0, { shade: [0.3, '#000'] });
+	$.post('/site/export_all', function(rdata) {
+		layer.close(loadT);
+		if (rdata.status) {
+			var blob = new Blob([JSON.stringify(rdata.data, null, 4)], { type: "application/json" });
+			var url = URL.createObjectURL(blob);
+			var dateStr = new Date().toISOString().slice(0, 10);
+			var downloadAnchor = document.createElement('a');
+			downloadAnchor.setAttribute("href", url);
+			downloadAnchor.setAttribute("download", "sites_backup_" + dateStr + ".json");
+			document.body.appendChild(downloadAnchor);
+			downloadAnchor.click();
+			downloadAnchor.remove();
+			URL.revokeObjectURL(url);
+			layer.msg("导出成功!", { icon: 1 });
+		} else {
+			layer.msg(rdata.msg, { icon: 2 });
+		}
+	}, 'json');
+}
+
+// 导入所有站点
+function importAllSites() {
+	$('#import_sites_file').val('');
+	$('#import_sites_file').click();
+}
+
+$(document).ready(function() {
+	$('#import_sites_file').change(function(e) {
+		var file = e.target.files[0];
+		if (!file) return;
+		
+		var reader = new FileReader();
+		reader.onload = function(evt) {
+			try {
+				var importData = JSON.parse(evt.target.result);
+				if (!importData.sites || importData.sites.length === 0) {
+					layer.msg("未找到有效的网站配置数据!", { icon: 2 });
+					return;
+				}
+				
+				var totalSites = importData.sites.length;
+				layer.confirm("检测到 " + totalSites + " 个站点的配置。是否开始执行导入？<br><br><span style='color:red;'>注意：已存在的同名站点将被自动跳过以确保安全。</span>", {
+					title: '导入确认',
+					icon: 3,
+					btn: ['确定', '取消']
+				}, function() {
+					var loadT = layer.msg('正在导入站点并配置环境, 请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+					$.post('/site/import_all', { data: JSON.stringify(importData) }, function(rdata) {
+						layer.close(loadT);
+						if (rdata.status) {
+							var res = rdata.data;
+							layer.alert("导入完成!<br>成功恢复: " + res.success + " 个站点<br>跳过: " + res.skip + " 个站点", {
+								title: '导入结果',
+								icon: 1
+							}, function(index) {
+								layer.close(index);
+								getWeb(1); // 重新加载列表
+							});
+						} else {
+							layer.msg(rdata.msg, { icon: 2 });
+						}
+					}, 'json');
+				});
+			} catch (err) {
+				layer.msg("解析备份文件失败, 请确认文件格式是否正确!", { icon: 2 });
+			}
+		};
+		reader.readAsText(file);
+	});
+});
+

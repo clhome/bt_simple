@@ -23,8 +23,15 @@
 					<button onclick="getDefaultSite();" class="btn btn-default btn-sm btn-title" type="button">默认站点</button>
 					<button onclick="setClassType();" class="btn btn-default btn-sm btn-title" type="button">分类管理</button>
 					<button onclick="setPHPVer();" class="btn btn-default btn-sm btn-title" type="button">PHP命令行版本</button>
-					<span>
-						<button  batch="true" style="float: right; margin-left: 10px;display: none;" onclick="allDeleteSite();" class="btn btn-default btn-sm">删除选中</button>
+					<span style="float: right;">
+						<button onclick="exportAllSites();" class="btn btn-default btn-sm btn-title" type="button" style="margin-left: 10px;">
+							<span class="glyphicon glyphicon-export"></span> 导出
+						</button>
+						<button onclick="importAllSites();" class="btn btn-default btn-sm btn-title" type="button" style="margin-left: 5px;">
+							<span class="glyphicon glyphicon-import"></span> 导入
+						</button>
+						<input type="file" id="import_sites_file" accept=".json" style="display:none;" />
+						<button batch="true" style="margin-left: 10px;display: none;" onclick="allDeleteSite();" class="btn btn-default btn-sm">删除选中</button>
 					</span>
 					<div class="move_class">
 		                <button batch="false" style="float: right; margin-left: 10px;display: none;" class="btn btn-default btn-sm" onclick="moveClassTYpe()">移动至</button>

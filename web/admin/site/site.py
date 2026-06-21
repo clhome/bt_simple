@@ -387,4 +387,241 @@ def set_default_site():
     return MwSites.instance().setDefaultSite(name)
 
 
+# 导出所有站点配置
+@blueprint.route('/export_all', endpoint='export_all', methods=['POST'])
+@panel_login_required
+def export_all():
+    try:
+        site_list = mw.M('sites').field('id,name,path,status,ps,edate,type_id,add_time,update_time').select()
+        exported_sites = []
+        mw_sites = MwSites.instance()
+        
+        for s in site_list:
+            site_id = s['id']
+            site_name = s['name']
+            
+            domains = mw.M('domain').where('pid=?', (site_id,)).field('name,port,add_time').select()
+            bindings = mw.M('binding').where('pid=?', (site_id,)).field('domain,port,path,add_time').select()
+            
+            # vhost conf
+            vhost_file = mw_sites.getHostConf(site_name)
+            vhost_conf = ""
+            if os.path.exists(vhost_file):
+                vhost_conf = mw.readFile(vhost_file)
+                
+            # rewrite conf
+            rewrite_file = mw_sites.getRewriteConf(site_name)
+            rewrite_conf = ""
+            if os.path.exists(rewrite_file):
+                rewrite_conf = mw.readFile(rewrite_file)
+                
+            # binding rewrites
+            binding_rewrites = {}
+            for b in bindings:
+                b_path = b['path']
+                b_rew_file = mw_sites.getDirBindRewrite(site_name, b_path)
+                if os.path.exists(b_rew_file):
+                    binding_rewrites[b_path] = mw.readFile(b_rew_file)
+                    
+            # pass conf
+            pass_file = mw_sites.passPath + '/' + site_name + '.pass'
+            pass_conf = ""
+            if os.path.exists(pass_file):
+                pass_conf = mw.readFile(pass_file)
+                
+            # proxy
+            proxy_data = {}
+            proxy_data_file = mw_sites.getProxyDataPath(site_name)
+            if os.path.exists(proxy_data_file):
+                proxy_data['data_json'] = mw.readFile(proxy_data_file)
+                proxy_confs = {}
+                proxy_dir = mw_sites.getProxyPath(site_name)
+                if os.path.exists(proxy_dir):
+                    for f in os.listdir(proxy_dir):
+                        if f.endswith('.conf'):
+                            p_id = f[:-5]
+                            p_conf_file = proxy_dir + '/' + f
+                            proxy_confs[p_id] = mw.readFile(p_conf_file)
+                proxy_data['confs'] = proxy_confs
+                
+            # redirect
+            redirect_data = {}
+            redirect_data_file = mw_sites.getRedirectDataPath(site_name)
+            if os.path.exists(redirect_data_file):
+                redirect_data['data_json'] = mw.readFile(redirect_data_file)
+                redirect_confs = {}
+                redirect_dir = mw_sites.getRedirectPath(site_name)
+                if os.path.exists(redirect_dir):
+                    for f in os.listdir(redirect_dir):
+                        if f.endswith('.conf'):
+                            r_id = f[:-5]
+                            r_conf_file = redirect_dir + '/' + f
+                            redirect_confs[r_id] = mw.readFile(r_conf_file)
+                redirect_data['confs'] = redirect_confs
+                
+            # ssl
+            ssl_data = {}
+            fullchain_file = mw_sites.sslDir + '/' + site_name + '/fullchain.pem'
+            privkey_file = mw_sites.sslDir + '/' + site_name + '/privkey.pem'
+            if os.path.exists(fullchain_file):
+                ssl_data['fullchain'] = mw.readFile(fullchain_file)
+            if os.path.exists(privkey_file):
+                ssl_data['privkey'] = mw.readFile(privkey_file)
+                
+            exported_sites.append({
+                'site': s,
+                'domains': domains,
+                'bindings': bindings,
+                'vhost_conf': vhost_conf,
+                'rewrite_conf': rewrite_conf,
+                'binding_rewrites': binding_rewrites,
+                'pass_conf': pass_conf,
+                'proxy': proxy_data,
+                'redirect': redirect_data,
+                'ssl': ssl_data
+            })
+        return mw.returnData(True, "导出成功", {'sites': exported_sites})
+    except Exception as e:
+        return mw.returnData(False, "导出失败: " + str(e))
+
+
+# 导入所有站点配置
+@blueprint.route('/import_all', endpoint='import_all', methods=['POST'])
+@panel_login_required
+def import_all():
+    data_str = request.form.get('data', '')
+    if not data_str:
+        return mw.returnData(False, "导入数据不能为空")
+    try:
+        import_data = json.loads(data_str)
+    except Exception as e:
+        return mw.returnData(False, "解析导入数据失败: " + str(e))
+        
+    sites_list = import_data.get('sites', [])
+    if not sites_list:
+        return mw.returnData(False, "未检测到有效的站点配置")
+        
+    success_count = 0
+    skip_count = 0
+    mw_sites = MwSites.instance()
+    
+    for s in sites_list:
+        site_data = s.get('site')
+        if not site_data:
+            continue
+        site_name = site_data.get('name')
+        if not site_name:
+            continue
+            
+        # 检查站点是否已经存在 (数据库中或 vhost 配置文件存在)
+        if thisdb.isSitesExist(site_name) or os.path.exists(mw_sites.getHostConf(site_name)):
+            skip_count += 1
+            continue
+            
+        try:
+            # 1. 插入站点数据库
+            insert_data = {
+                'name': site_name,
+                'path': site_data.get('path'),
+                'status': site_data.get('status', 1),
+                'ps': site_data.get('ps', site_name),
+                'type_id': site_data.get('type_id', 0),
+                'edate': site_data.get('edate', '0000-00-00'),
+                'add_time': site_data.get('add_time', mw.getDateFromNow()),
+                'update_time': site_data.get('update_time', mw.getDateFromNow())
+            }
+            new_site_id = mw.M('sites').insert(insert_data)
+            if new_site_id < 1:
+                skip_count += 1
+                continue
+                
+            # 2. 插入 domain 记录
+            for d in s.get('domains', []):
+                mw.M('domain').insert({
+                    'pid': new_site_id,
+                    'name': d.get('name'),
+                    'port': d.get('port', '80'),
+                    'add_time': d.get('add_time', mw.getDateFromNow())
+                })
+                
+            # 3. 插入 binding 记录
+            for b in s.get('bindings', []):
+                mw.M('binding').insert({
+                    'pid': new_site_id,
+                    'domain': b.get('domain'),
+                    'port': b.get('port', '80'),
+                    'path': b.get('path'),
+                    'add_time': b.get('add_time', mw.getDateFromNow())
+                })
+                
+            # 4. 创建站点目录
+            site_path = site_data.get('path')
+            mw_sites.createRootDir(site_path)
+            
+            # 5. 还原各项配置文件
+            # vhost_conf
+            vhost_file = mw_sites.getHostConf(site_name)
+            if s.get('vhost_conf'):
+                mw.writeFile(vhost_file, s['vhost_conf'])
+                
+            # rewrite_conf
+            rewrite_file = mw_sites.getRewriteConf(site_name)
+            if s.get('rewrite_conf'):
+                mw.writeFile(rewrite_file, s['rewrite_conf'])
+                
+            # binding_rewrites
+            for b_path, b_rewrite_content in s.get('binding_rewrites', {}).items():
+                b_rew_file = mw_sites.getDirBindRewrite(site_name, b_path)
+                mw.writeFile(b_rew_file, b_rewrite_content)
+                
+            # pass_conf
+            if s.get('pass_conf'):
+                pass_file = mw_sites.passPath + '/' + site_name + '.pass'
+                mw.writeFile(pass_file, s['pass_conf'])
+                
+            # proxy
+            if s.get('proxy'):
+                p_data = s['proxy']
+                proxy_dir = mw_sites.getProxyPath(site_name)
+                if p_data.get('data_json'):
+                    proxy_json_file = mw_sites.getProxyDataPath(site_name)
+                    mw.writeFile(proxy_json_file, p_data['data_json'])
+                for p_id, p_conf_content in p_data.get('confs', {}).items():
+                    p_conf_file = proxy_dir + '/' + p_id + '.conf'
+                    mw.writeFile(p_conf_file, p_conf_content)
+                    
+            # redirect
+            if s.get('redirect'):
+                r_data = s['redirect']
+                redirect_dir = mw_sites.getRedirectPath(site_name)
+                if r_data.get('data_json'):
+                    redirect_json_file = mw_sites.getRedirectDataPath(site_name)
+                    mw.writeFile(redirect_json_file, r_data['data_json'])
+                for r_id, r_conf_content in r_data.get('confs', {}).items():
+                    r_conf_file = redirect_dir + '/' + r_id + '.conf'
+                    mw.writeFile(r_conf_file, r_conf_content)
+                    
+            # ssl
+            if s.get('ssl'):
+                ssl_data = s['ssl']
+                ssl_site_dir = mw_sites.sslDir + '/' + site_name
+                if ssl_data.get('fullchain'):
+                    mw.writeFile(ssl_site_dir + '/fullchain.pem', ssl_data['fullchain'])
+                if ssl_data.get('privkey'):
+                    mw.writeFile(ssl_site_dir + '/privkey.pem', ssl_data['privkey'])
+                    
+            # 6. 防跨站配置
+            mw_sites.addDirUserIni(site_path, '')
+            success_count += 1
+        except Exception as e:
+            # 忽略单个站点报错，继续下一个
+            skip_count += 1
+            
+    if success_count > 0:
+        mw.restartWeb()
+        
+    return mw.returnData(True, "导入处理完成", {'success': success_count, 'skip': skip_count})
+
+
+
 
