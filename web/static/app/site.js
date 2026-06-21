@@ -3391,29 +3391,88 @@ $(document).ready(function() {
 					return;
 				}
 				
-				var totalSites = importData.sites.length;
-				layer.confirm("检测到 " + totalSites + " 个站点的配置。是否开始执行导入？<br><br><span style='color:red;'>注意：已存在的同名站点将被自动跳过以确保安全。</span>", {
-					title: '导入确认',
-					icon: 3,
-					btn: ['确定', '取消']
-				}, function() {
-					var loadT = layer.msg('正在导入站点并配置环境, 请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-					$.post('/site/import_all', { data: JSON.stringify(importData) }, function(rdata) {
-						layer.close(loadT);
-						if (rdata.status) {
-							var res = rdata.data;
-							layer.alert("导入完成!<br>成功恢复: " + res.success + " 个站点<br>跳过: " + res.skip + " 个站点", {
-								title: '导入结果',
-								icon: 1
-							}, function(index) {
-								layer.close(index);
-								getWeb(1); // 重新加载列表
-							});
-						} else {
-							layer.msg(rdata.msg, { icon: 2 });
+				var loadT = layer.msg('正在检查导入冲突, 请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+				$.post('/site/check_import_conflicts', { data: JSON.stringify(importData) }, function(checkData) {
+					layer.close(loadT);
+					if(!checkData.status) {
+						layer.msg(checkData.msg, {icon: 2});
+						return;
+					}
+					
+					var conflicts = checkData.data.conflicts || [];
+					var normal = checkData.data.normal || [];
+					
+					if (conflicts.length === 0) {
+						// 没有冲突，直接导入
+						layer.confirm("检测到 " + normal.length + " 个站点的配置。是否开始执行导入？", {
+							title: '导入确认',
+							icon: 3,
+							btn: ['确定', '取消']
+						}, function(index) {
+							layer.close(index);
+							doImportAllSites(importData);
+						});
+					} else {
+						// 有冲突，弹出选择框
+						var html = '<div style="padding:20px;">';
+						html += '<p>以下站点存在冲突，请选择是否覆盖更新（覆盖将清除原配置信息重建）：</p>';
+						html += '<div style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #ddd; padding: 10px;">';
+						for (var i = 0; i < conflicts.length; i++) {
+							var c = conflicts[i];
+							html += '<div style="margin-bottom: 8px;">';
+							html += '<label><input type="checkbox" class="conflict-checkbox" data-site="'+c.name+'" /> <b>'+c.name+'</b> <span style="color:red;font-size:12px;">(冲突: '+c.reasons+')</span></label>';
+							html += '</div>';
 						}
-					}, 'json');
-				});
+						html += '</div>';
+						
+						if (normal.length > 0) {
+							html += '<p>此外有 ' + normal.length + ' 个站点无冲突，将直接导入。</p>';
+						}
+						html += '</div>';
+						
+						layer.open({
+							type: 1,
+							title: '导入冲突确认',
+							area: '500px',
+							content: html,
+							btn: ['确认导入', '取消'],
+							yes: function(index, layero) {
+								var overwriteSites = [];
+								layero.find('.conflict-checkbox:checked').each(function(){
+									overwriteSites.push($(this).attr('data-site'));
+								});
+								
+								// 整理最终数据
+								var finalSites = [];
+								for(var i=0; i<importData.sites.length; i++) {
+									var sName = importData.sites[i].site.name;
+									var isConflict = conflicts.some(function(item){ return item.name === sName; });
+									
+									if (isConflict) {
+										if (overwriteSites.indexOf(sName) !== -1) {
+											importData.sites[i].overwrite = true;
+											finalSites.push(importData.sites[i]);
+										}
+										// 不勾选的冲突站点将被抛弃，不放入 finalSites
+									} else {
+										finalSites.push(importData.sites[i]);
+									}
+								}
+								
+								layer.close(index);
+								
+								if (finalSites.length === 0) {
+									layer.msg('没有需要导入的站点', {icon: 0});
+									return;
+								}
+								
+								importData.sites = finalSites;
+								doImportAllSites(importData);
+							}
+						});
+					}
+				}, 'json');
+				
 			} catch (err) {
 				layer.msg("解析备份文件失败, 请确认文件格式是否正确!", { icon: 2 });
 			}
@@ -3421,4 +3480,23 @@ $(document).ready(function() {
 		reader.readAsText(file);
 	});
 });
+
+function doImportAllSites(importData) {
+	var loadT = layer.msg('正在导入站点并配置环境, 请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+	$.post('/site/import_all', { data: JSON.stringify(importData) }, function(rdata) {
+		layer.close(loadT);
+		if (rdata.status) {
+			var res = rdata.data;
+			layer.alert("导入完成!<br>成功恢复: " + res.success + " 个站点<br>跳过: " + res.skip + " 个站点", {
+				title: '导入结果',
+				icon: 1
+			}, function(index) {
+				layer.close(index);
+				getWeb(1); // 重新加载列表
+			});
+		} else {
+			layer.msg(rdata.msg, { icon: 2 });
+		}
+	}, 'json');
+}
 
