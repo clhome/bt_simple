@@ -299,32 +299,31 @@ class Firewall(object):
         sshd_file = '/etc/ssh/sshd_config'
         if  os.path.exists(sshd_file):
             conf = mw.readFile(sshd_file)
-            rep = r"#*Port\s+([0-9]+)\s*\n"
-            port = re.search(rep, conf).groups(0)[0]
+            # 端口配置检查
+            port_match = re.search(r"^\s*#?\s*Port\s+(\d+)", conf, re.M | re.I)
+            if port_match:
+                port = port_match.group(1)
 
             # 密码登陆配置检查
-            pass_rep = r"PasswordAuthentication\s+(\w*)\s*\n"
-            pass_status = re.search(pass_rep, conf)
-            if pass_status:
-                if pass_status and pass_status.groups(0)[0].strip() == 'no':
+            pass_match = re.search(r"^\s*PasswordAuthentication\s+(\w+)", conf, re.M | re.I)
+            if pass_match:
+                if pass_match.group(1).strip().lower() == 'no':
                     data['pass_prohibit_status'] = True
             else:
                 data['pass_prohibit_status'] = True
 
             # 密钥登陆配置检查
-            pass_rep = r"PubkeyAuthentication\s+(\w*)\s*\n"
-            pass_status = re.search(pass_rep, conf)
-            if pass_status:
-                if pass_status and pass_status.groups(0)[0].strip() == 'no':
+            pubkey_match = re.search(r"^\s*PubkeyAuthentication\s+(\w+)", conf, re.M | re.I)
+            if pubkey_match:
+                if pubkey_match.group(1).strip().lower() == 'no':
                     data['pubkey_prohibit_status'] = True
             else:
                 data['pubkey_prohibit_status'] = True
 
             # root登陆配置检查
-            root_rep = r"PermitRootLogin\s+(\w*)\s*\n"
-            root_status = re.search(root_rep, conf)
-            if root_status:
-                if root_status and root_status.groups(0)[0].strip() == 'no':
+            root_match = re.search(r"^\s*PermitRootLogin\s+(\w+)", conf, re.M | re.I)
+            if root_match:
+                if root_match.group(1).strip().lower() == 'no':
                     data['root_prohibit_status'] = True
             else:
                 data['root_prohibit_status'] = True
