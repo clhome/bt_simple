@@ -231,6 +231,7 @@ def setBatchData(path, stype, access, user, data):
         data = json.loads(data)
         l = len(data)
         i = 0
+        failed_files = []
         for key in data:
             try:
                 filename = path + '/' + key
@@ -244,19 +245,34 @@ def setBatchData(path, stype, access, user, data):
                     if not checkDir(filename):
                         return mw.returnData(False, '请不要花样作死!')
                     if is_recycle:
-                        mvRecycleBin(topath)
+                        if not mvRecycleBin(topath):
+                            failed_files.append(filename)
                     else:
                         shutil.rmtree(filename)
+                        if os.path.exists(filename):
+                            failed_files.append(filename)
                 else:
                     if key == '.user.ini':
                         os.system('which chattr && chattr -i ' + filename)
                     if is_recycle:
-                        mvRecycleBin(topath)
+                        if not mvRecycleBin(topath):
+                            failed_files.append(filename)
                     else:
                         os.remove(filename)
+                        if os.path.exists(filename):
+                            failed_files.append(filename)
             except:
+                failed_files.append(filename)
                 continue
             mw.writeSpeed(None, 0, 0)
+            
+        if failed_files:
+            occ = getOccupyingProcess(failed_files[0])
+            msg = '部分文件/目录删除失败，例如: ' + failed_files[0].split('/')[-1]
+            if occ:
+                msg += '，' + occ
+            return mw.returnData(False, msg)
+            
         mw.writeLog('文件管理', '批量删除成功!')
         return mw.returnData(True, '批量删除成功！')
 
@@ -785,6 +801,42 @@ def getSysUserList():
         return sys_users
     return ['root','mysql','www']
 
+def getOccupyingProcess(path):
+    try:
+        # 尝试使用 lsof
+        cmd = "lsof '%s' 2>/dev/null" % (path,)
+        if os.path.isdir(path):
+            cmd = "lsof +D '%s' 2>/dev/null" % (path,)
+            
+        out, err = mw.execShell(cmd)
+        if out:
+            lines = out.strip().split('\n')
+            if len(lines) > 1:
+                parts = lines[1].split()
+                if len(parts) >= 2:
+                    return "被进程 " + parts[0] + " (PID: " + parts[1] + ") 占用"
+                    
+        # 尝试使用 fuser (应对某些未安装 lsof 的 Linux 发行版)
+        cmd_fuser = "fuser -v '%s' 2>&1" % (path,)
+        out2, err2 = mw.execShell(cmd_fuser)
+        if out2:
+            lines = out2.strip().split('\n')
+            for line in lines:
+                parts = line.split()
+                # 典型的 fuser -v 输出中，包含 PID 的行通常第2个元素是纯数字
+                # /path:               root       1234 ..c.. bash
+                if len(parts) >= 4 and parts[1].isdigit():
+                    return "被进程 " + parts[3] + " (PID: " + parts[1] + ") 占用"
+                    
+        import platform
+        if platform.system() == 'Windows':
+            return "(当前为Windows开发环境，未配置lsof命令，暂无法展示具体锁死进程)"
+            
+        return "(未检测到具体占用进程，可能是权限不足或隐藏系统进程占用)"
+    except:
+        pass
+    return "(请检查目录/文件权限或是否被占用)"
+
 def fileDelete(path):
     if not os.path.exists(path):
         return mw.returnData(False, '指定文件不存在!')
@@ -799,30 +851,62 @@ def fileDelete(path):
         if recycle_bin == 'open':
             if mvRecycleBin(path):
                 return mw.returnData(True, '已将文件移动到回收站!')
-            return mw.returnData(False, '移动到回收站失败!') 
+            occ = getOccupyingProcess(path)
+            msg = '移动到回收站失败!'
+            if occ:
+                msg += ' ' + occ
+            return mw.returnData(False, msg)
+            
         os.remove(path)
+        if os.path.exists(path):
+            occ = getOccupyingProcess(path)
+            msg = '删除文件失败!'
+            if occ:
+                msg += ' ' + occ
+            return mw.returnData(False, msg)
+            
         mw.writeLog('文件管理', mw.getInfo('删除文件[{1}]成功!', (path,)))
         return mw.returnData(True, '删除文件成功!')
     except Exception as e:
-        return mw.returnData(False, '删除文件失败!')
+        occ = getOccupyingProcess(path)
+        msg = '删除文件失败!'
+        if occ:
+            msg += ' ' + occ
+        return mw.returnData(False, msg)
 
 def dirDelete(path):
     if not os.path.exists(path):
         return mw.returnData(False, '指定文件不存在!')
 
     # 检查是否为.user.ini
-    if path.find('.user.ini'):
+    if path.find('.user.ini') >= 0:
         os.system("which chattr && chattr -i '" + path + "'")
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
         if recycle_bin == 'open':
             if mvRecycleBin(path):
                 return mw.returnData(True, '已将文件移动到回收站!')
-        mw.removeDir(path)
+            occ = getOccupyingProcess(path)
+            msg = '移动到回收站失败!'
+            if occ:
+                msg += ' ' + occ
+            return mw.returnData(False, msg)
+            
+        if not mw.removeDir(path) or os.path.exists(path):
+            occ = getOccupyingProcess(path)
+            msg = '删除目录失败!'
+            if occ:
+                msg += ' ' + occ
+            return mw.returnData(False, msg)
+            
         mw.writeLog('文件管理', '删除{1}成功！', (path,))
         return mw.returnData(True, '删除文件成功!')
     except:
-        return mw.returnData(False, '删除文件失败!')
+        occ = getOccupyingProcess(path)
+        msg = '删除目录失败!'
+        if occ:
+            msg += ' ' + occ
+        return mw.returnData(False, msg)
 
 # 关闭
 def toggleRecycleBin():
