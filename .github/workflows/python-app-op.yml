@@ -4,10 +4,7 @@
 name: MW APP OpenResty
 
 on:
-  push:
-    branches: [ "master", "dev" ]
-  pull_request:
-    branches: [ "master", "dev" ]
+  workflow_dispatch:
 
 permissions:
   contents: read

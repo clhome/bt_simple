@@ -4,10 +4,7 @@
 name: MW APP MySQL80
 
 on:
-  push:
-    branches: [ "run_test" ]
-  pull_request:
-    branches: [ "run_test" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
