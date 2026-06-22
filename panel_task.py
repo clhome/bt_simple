@@ -384,8 +384,10 @@ class TaskScheduler:
         })
         
     def run(self):
+        event = threading.Event()
         while True:
             now = time.time()
+            next_run_times = []
             for task in self.tasks:
                 if now >= task['next_run']:
                     try:
@@ -393,7 +395,14 @@ class TaskScheduler:
                     except Exception as e:
                         print("Task {} failed: {}".format(task['func'].__name__, str(e)))
                     task['next_run'] = time.time() + task['interval']
-            time.sleep(1)
+                next_run_times.append(task['next_run'])
+            
+            # 计算距离下一次最近任务的等待时间
+            next_time = min(next_run_times)
+            wait_time = next_time - time.time()
+            # 限制等待范围 0.1s - 2.0s，兼顾 CPU 挂起节能与文件检查的响应延时
+            wait_time = max(0.1, min(wait_time, 2.0))
+            event.wait(timeout=wait_time)
 
 def run():
     scheduler = TaskScheduler()

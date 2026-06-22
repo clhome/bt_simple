@@ -54,10 +54,24 @@ class Sql():
             if self.__DB_CONN == None:
                 if not hasattr(_local, 'connections'):
                     _local.connections = {}
-                if self.__DB_FILE not in _local.connections:
+                
+                conn = _local.connections.get(self.__DB_FILE)
+                if conn is None:
                     conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=10)
                     conn.text_factory = str
                     _local.connections[self.__DB_FILE] = conn
+                else:
+                    try:
+                        conn.execute("SELECT 1")
+                    except (sqlite3.ProgrammingError, sqlite3.OperationalError):
+                        try:
+                            conn.close()
+                        except:
+                            pass
+                        conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=10)
+                        conn.text_factory = str
+                        _local.connections[self.__DB_FILE] = conn
+                
                 self.__DB_CONN = _local.connections[self.__DB_FILE]
         except Exception as ex:
             print(getTracebackInfo())

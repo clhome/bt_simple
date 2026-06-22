@@ -21,10 +21,17 @@ def isLogined():
         username = session['username']
         now_time = int(time.time())
 
-        # 检查短期缓存 (TTL: 10s)
-        if username in _login_cache:
-            cache_time, cache_result = _login_cache[username]
-            if now_time - cache_time < 10:
+        # 确保 session 有唯一的 session_id 标识
+        session_id = session.get('session_id')
+        if not session_id:
+            import uuid
+            session_id = str(uuid.uuid4())
+            session['session_id'] = session_id
+
+        # 检查短期缓存 (TTL: 20s)
+        if session_id in _login_cache:
+            cache_time, cache_result = _login_cache[session_id]
+            if now_time - cache_time < 20:
                 if 'overdue' in session and now_time > session['overdue']:
                     session.clear()
                     return False
@@ -35,12 +42,12 @@ def isLogined():
 
         info = thisdb.getUserByName(username)
         if info is None:
-            _login_cache[username] = (now_time, False)
+            _login_cache[session_id] = (now_time, False)
             return False
 
         # print(userInfo)
         if info['name'] != session['username']:
-            _login_cache[username] = (now_time, False)
+            _login_cache[session_id] = (now_time, False)
             return False
 
         if 'overdue' in session and now_time > session['overdue']:
@@ -51,6 +58,6 @@ def isLogined():
             session.clear()
             return False
             
-        _login_cache[username] = (now_time, True)
+        _login_cache[session_id] = (now_time, True)
         return True
     return False

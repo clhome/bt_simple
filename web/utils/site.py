@@ -20,6 +20,36 @@ import multiprocessing
 import core.mw as mw
 import thisdb
 
+def chownR(path, user, group=None):
+    if mw.isAppleSystem():
+        return True
+    if not hasattr(os, 'chown'):
+        return True
+    try:
+        mw.setOwn(path, user, group)
+        if os.path.isdir(path):
+            for root, dirs, files in os.walk(path):
+                for d in dirs:
+                    mw.setOwn(os.path.join(root, d), user, group)
+                for f in files:
+                    mw.setOwn(os.path.join(root, f), user, group)
+    except Exception as e:
+        pass
+    return True
+
+def chmodR(path, mode):
+    try:
+        mw.setMode(path, mode)
+        if os.path.isdir(path):
+            for root, dirs, files in os.walk(path):
+                for d in dirs:
+                    mw.setMode(os.path.join(root, d), mode)
+                for f in files:
+                    mw.setMode(os.path.join(root, f), mode)
+    except Exception as e:
+        pass
+    return True
+
 
 class sites(object):
     # lock
@@ -175,11 +205,11 @@ class sites(object):
             autoInit = True
             os.makedirs(path)
         if not mw.isAppleSystem():
-            mw.execShell('chown -R www:www ' + path)
+            chownR(path, 'www', 'www')
 
         if autoInit:
             mw.writeFile(path + '/index.html', 'Work has started!!!')
-            mw.execShell('chmod -R 755 ' + path)
+            chmodR(path, 755)
 
     def add(self, site_info, port, ps, path, version):
         site_root_dir = mw.getWwwDir()
@@ -237,7 +267,17 @@ class sites(object):
             bpath = path + '/' + b['path']
             if not os.path.exists(bpath):
                 mw.makeDirs(bpath)
-                mw.execShell('ln -sf ' + path +'/index.html ' + bpath + '/index.html')
+                src_link = path + '/index.html'
+                dst_link = bpath + '/index.html'
+                if os.path.exists(dst_link) or os.path.islink(dst_link):
+                    try:
+                        os.remove(dst_link)
+                    except:
+                        pass
+                try:
+                    os.symlink(src_link, dst_link)
+                except:
+                    pass
 
 
         # nginx
@@ -1336,9 +1376,15 @@ class sites(object):
         conf_txt = "{}/{}/{}.conf.txt".format(self.redirectPath, site_name, redirect_id)
 
         if status == '1':
-            mw.execShell('mv ' + conf_txt + ' ' + conf_file)
+            try:
+                os.rename(conf_txt, conf_file)
+            except:
+                pass
         else:
-            mw.execShell('mv ' + conf_file + ' ' + conf_txt)
+            try:
+                os.rename(conf_file, conf_txt)
+            except:
+                pass
 
         mw.restartWeb()
         return mw.returnData(True, "OK")
@@ -1459,7 +1505,12 @@ class sites(object):
             if len(data) == 0:
                 self.operateRedirectConf(siteName, 'stop')
             # remove conf file
-            mw.execShell("rm -rf {}/{}.conf".format(self.getRedirectPath(siteName), rid))
+            target_conf = "{}/{}.conf".format(self.getRedirectPath(siteName), rid)
+            if os.path.exists(target_conf):
+                try:
+                    os.remove(target_conf)
+                except:
+                    pass
         except Exception as e:
             return mw.returnData(False, "删除失败:"+str(e))
         return mw.returnData(True, "删除成功!")
@@ -1469,7 +1520,7 @@ class sites(object):
         data_path = self.getProxyDataPath(site_name)
 
         if not os.path.exists(data_path):
-            mw.execShell("mkdir {}/{}".format(self.proxyPath, site_name))
+            os.makedirs("{}/{}".format(self.proxyPath, site_name), exist_ok=True)
             return mw.returnData(True, "", {"result": [], "count": 0})
 
         content = mw.readFile(data_path)
@@ -1697,9 +1748,15 @@ location ^~ {from} {\n\
         conf_txt = "{}/{}/{}.conf.txt".format(self.proxyPath, site_name, proxy_id)
 
         if status == '1':
-            mw.execShell('mv ' + conf_txt + ' ' + conf_file)
+            try:
+                os.rename(conf_txt, conf_file)
+            except:
+                pass
         else:
-            mw.execShell('mv ' + conf_file + ' ' + conf_txt)
+            try:
+                os.rename(conf_file, conf_txt)
+            except:
+                pass
 
         mw.restartWeb()
         return mw.returnData(True, "OK")
@@ -1717,7 +1774,10 @@ location ^~ {from} {\n\
                 proxy_txt = "{}/{}/{}.conf.txt".format(self.proxyPath, site_name, proxy['id'])
                 if os.path.exists(proxy_conf):
                     self.close_proxy.append(proxy['id'])
-                    mw.execShell('mv ' + proxy_conf + ' ' + proxy_txt)
+                    try:
+                        os.rename(proxy_conf, proxy_txt)
+                    except:
+                        pass
             mw.restartWeb()
         return True
 
@@ -1727,7 +1787,10 @@ location ^~ {from} {\n\
             proxy_conf = proxy_dir + '/' + proxy_id + '.conf'
             proxy_txt = "{}/{}/{}.conf.txt".format(self.proxyPath, site_name, proxy_id)
             if os.path.exists(proxy_txt):
-                mw.execShell('mv ' + proxy_txt + ' ' + proxy_conf)
+                try:
+                    os.rename(proxy_txt, proxy_conf)
+                except:
+                    pass
 
         if len(self.close_proxy) > 0:
             mw.restartWeb()
@@ -1746,7 +1809,10 @@ location ^~ {from} {\n\
                 redirect_txt = "{}/{}/{}.conf.txt".format(self.redirectPath, site_name, redirect_data['id'])
                 if os.path.exists(redirect_conf):
                     self.close_redirect.append(redirect_data['id'])
-                    mw.execShell('mv ' + redirect_conf + ' ' + redirect_txt)
+                    try:
+                        os.rename(redirect_conf, redirect_txt)
+                    except:
+                        pass
             mw.restartWeb()
 
     def openRedirectByOpen(self, site_name):
@@ -1755,7 +1821,10 @@ location ^~ {from} {\n\
             redirect_conf = redirect_dir + '/' + redirect_id + '.conf'
             redirect_txt = "{}/{}/{}.conf.txt".format(self.redirectPath, site_name, redirect_id)
             if os.path.exists(redirect_txt):
-                mw.execShell('mv ' + redirect_txt + ' ' + redirect_conf)
+                try:
+                    os.rename(redirect_txt, redirect_conf)
+                except:
+                    pass
 
         if len(self.close_redirect) > 0:
             mw.restartWeb()

@@ -973,12 +973,25 @@ def getCpuType():
     return cpuType
 
 
+_LANG_CACHE = {'mtime': 0, 'lang': 'Simplified_Chinese'}
+
 def getLanguage():
+    global _LANG_CACHE
     panel_dir = getPanelDir()
     path = panel_dir+'/data/language.pl'
     if not os.path.exists(path):
         return 'Simplified_Chinese'
-    return readFile(path).strip()
+    try:
+        mtime = os.path.getmtime(path)
+        if mtime == _LANG_CACHE['mtime']:
+            return _LANG_CACHE['lang']
+        
+        lang = readFile(path).strip()
+        _LANG_CACHE['mtime'] = mtime
+        _LANG_CACHE['lang'] = lang
+        return lang
+    except Exception:
+        return 'Simplified_Chinese'
 
 
 def getStaticJson(name="public"):
