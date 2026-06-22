@@ -1809,7 +1809,7 @@ function showSystemDetails() {
         layer.open({
             type: 1,
             title: '系统详情',
-            area: ['900px', '460px'], // 增加宽度减少高度，彻底消除滚动条
+            area: ['900px', '500px'], // 增加高度，彻底消除滚动条
             shadeClose: true,
             closeBtn: 1,
             skin: 'glass-layer',
