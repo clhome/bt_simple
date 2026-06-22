@@ -18,8 +18,6 @@ import os
 import json
 import time
 import threading
-import psutil
-
 
 web_dir = os.getcwd() + "/web"
 os.chdir(web_dir)
@@ -27,9 +25,6 @@ sys.path.append(web_dir)
 
 import core.mw as mw
 import thisdb
-
-from admin import setup
-setup.init()
 
 g_log_file = mw.getPanelTaskExecLog()
 if not os.path.exists(g_log_file):
@@ -411,7 +406,7 @@ def run():
     scheduler.add_task(check502Task_step, 10)
     scheduler.add_task(openrestyRestartAtOnce_step, 3)
     scheduler.add_task(openrestyAutoRestart_step, 86400)
-    scheduler.add_task(panelPluginStatusCheck_step, 60)
+    scheduler.add_task(panelPluginStatusCheck_step, 90)
     scheduler.add_task(restartPanelService_step, 3)
     scheduler.add_task(startPanelTask_step, 5)
 
@@ -430,5 +425,7 @@ def run():
         time.sleep(86400)
 
 if __name__ == "__main__":
+    from admin import setup
+    setup.init()
     run()
     

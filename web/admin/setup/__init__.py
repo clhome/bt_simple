@@ -17,7 +17,6 @@ from .init_db_system import init_db_system
 from .init_cmd import init_cmd
 from .init_cron import init_cron,init_acme_cron, init_auto_update
 
-from utils.firewall import Firewall as MwFirewall
 
 import thisdb
 import config
@@ -42,6 +41,7 @@ def init():
     # 自动识别防火墙配置
     firewall_port = thisdb.getOption('setpu_auto_identify_firewall_port', default='no')
     if firewall_port == 'no':
+        from utils.firewall import Firewall as MwFirewall
         MwFirewall.instance().aIF()
         thisdb.setOption('setpu_auto_identify_firewall_port', 'yes')
 

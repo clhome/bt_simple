@@ -855,27 +855,38 @@ class plugin(object):
         return info
 
     def autoCachePluginStatus(self):
-        info = []
-        for name in os.listdir(self.__plugin_dir):
-            if name.startswith('.'):
-                continue
-            t = self.getPluginList(name)
-            for index in range(len(t)):
-                info.append(t[index])
+        def _do_cache():
+            try:
+                info = []
+                for name in os.listdir(self.__plugin_dir):
+                    if name.startswith('.'):
+                        continue
+                    t = self.getPluginList(name)
+                    for index in range(len(t)):
+                        info.append(t[index])
 
-        self.__plugin_status_data = {}
-        for x in info:
-            if not x['setup']:
-                continue
-            data = self.run(x['name'], 'status', x['setup_version'])
-            k = x['name']
-            if 'coexist' in x and x['coexist']:
-                k = x['title']
-            if data[0].strip() == 'start':
-                self.__plugin_status_data[k] = True
-            else:
-                self.__plugin_status_data[k] = False
-        thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
+                status_data = {}
+                for x in info:
+                    if not x['setup']:
+                        continue
+                    data = self.run(x['name'], 'status', x['setup_version'])
+                    k = x['name']
+                    if 'coexist' in x and x['coexist']:
+                        k = x['title']
+                    if data[0].strip() == 'start':
+                        status_data[k] = True
+                    else:
+                        status_data[k] = False
+                
+                self.__plugin_status_data = status_data
+                thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
+            except Exception as e:
+                print('autoCachePluginStatus error:', mw.getTracebackInfo())
+
+        import threading
+        t = threading.Thread(target=_do_cache)
+        t.daemon = True
+        t.start()
         return True
 
     # 多线程检查插件状态
