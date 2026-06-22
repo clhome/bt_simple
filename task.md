@@ -65,3 +65,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 ------
 
 20260622 17:28Code committed
+
+- [x] 修复 fail2ban 重新安装后无法启动且报 pidfile 找不到的 BUG
+    - [x] 1. 修复由于配置未完全覆盖导致的 `/www/server/panel/plugin/fail2ban` (旧宝塔残留) 异常路径错误：在 `fail2ban.d/default.conf` 中显式添加 `[Definition]` 段块并指定 `pidfile` 和 `socket` 为正确的 `/run/fail2ban` 路径。
+    - [x] 2. 修复 `fail2ban.d/default.conf` 中混入拦截器动作配置 (如 `action` 等 `jail.conf` 配置项) 导致解析失效并触发 `sendmail` 未找到报错的问题。将其正确迁移至专属拦截配置文件 `jail.d/default.conf` 中。
+
+------
+
+20260622 17:43Code committed
