@@ -841,10 +841,9 @@ def fileDelete(path):
     if not os.path.exists(path):
         return mw.returnData(False, '指定文件不存在!')
 
-    # 检查是否为.user.ini
-    if path.find('.user.ini') >= 0:
-        cmd = "which chattr && chattr -i {0}".format(path)
-        mw.execShell(cmd)
+    # 解除可能存在的文件防篡改锁定 (chattr +i)
+    cmd = "which chattr && chattr -i '%s' 2>/dev/null" % (path,)
+    mw.execShell(cmd)
 
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
@@ -876,11 +875,12 @@ def fileDelete(path):
 
 def dirDelete(path):
     if not os.path.exists(path):
-        return mw.returnData(False, '指定文件不存在!')
+        return mw.returnData(False, '指定目录不存在!')
 
-    # 检查是否为.user.ini
-    if path.find('.user.ini') >= 0:
-        os.system("which chattr && chattr -i '" + path + "'")
+    # 解除可能存在的文件防篡改锁定 (例如建站生成的 .user.ini 会带有 chattr +i 属性)
+    cmd = "which chattr && chattr -R -i '%s' 2>/dev/null" % (path,)
+    mw.execShell(cmd)
+
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
         if recycle_bin == 'open':
