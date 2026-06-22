@@ -10,6 +10,7 @@
 # ---------------------------------------------------------------------------------
 
 import os
+import json
 
 from flask import Blueprint, render_template
 from flask import request
@@ -489,65 +490,69 @@ def export_all():
 @blueprint.route('/check_import_conflicts', endpoint='check_import_conflicts', methods=['POST'])
 @panel_login_required
 def check_import_conflicts():
-    data_str = request.form.get('data', '')
-    if not data_str:
-        return mw.returnData(False, "导入数据不能为空")
     try:
-        import_data = json.loads(data_str)
+        data_str = request.form.get('data', '')
+        if not data_str:
+            return mw.returnData(False, "导入数据不能为空")
+        try:
+            import_data = json.loads(data_str)
+        except Exception as e:
+            return mw.returnData(False, "解析导入数据失败: " + str(e))
+            
+        sites_list = import_data.get('sites', [])
+        if not sites_list:
+            return mw.returnData(False, "未检测到有效的站点配置")
+            
+        conflicts = []
+        normal = []
+        mw_sites = MwSites.instance()
+        
+        for s in sites_list:
+            site_data = s.get('site')
+            if not site_data:
+                continue
+                
+            site_name = site_data.get('name')
+            site_path = site_data.get('path')
+            domains = [d.get('name') for d in s.get('domains', [])]
+            
+            is_conflict = False
+            conflict_reasons = []
+            
+            # 1. 检查站点名或配置文件
+            if thisdb.isSitesExist(site_name) or os.path.exists(mw_sites.getHostConf(site_name)):
+                is_conflict = True
+                conflict_reasons.append("站点名已存在")
+                
+            # 2. 检查目录
+            site_in_db = mw.M('sites').where('path=?', (site_path,)).getField('name')
+            if site_in_db and site_in_db != site_name:
+                is_conflict = True
+                conflict_reasons.append("网站目录已被 [{}] 占用".format(site_in_db))
+                
+            # 3. 检查域名
+            for d in domains:
+                domain_in_db = mw.M('domain').where('name=?', (d,)).getField('pid')
+                if domain_in_db:
+                    pid_site_name = mw.M('sites').where('id=?', (domain_in_db,)).getField('name')
+                    if pid_site_name and pid_site_name != site_name:
+                        is_conflict = True
+                        conflict_reasons.append("域名 [{}] 已被 [{}] 绑定".format(d, pid_site_name))
+                        
+            if is_conflict:
+                conflicts.append({
+                    'name': site_name,
+                    'reasons': "、".join(set(conflict_reasons))
+                })
+            else:
+                normal.append({
+                    'name': site_name
+                })
+                
+        return mw.returnData(True, "检查完成", {'conflicts': conflicts, 'normal': normal})
     except Exception as e:
-        return mw.returnData(False, "解析导入数据失败: " + str(e))
-        
-    sites_list = import_data.get('sites', [])
-    if not sites_list:
-        return mw.returnData(False, "未检测到有效的站点配置")
-        
-    conflicts = []
-    normal = []
-    mw_sites = MwSites.instance()
-    
-    for s in sites_list:
-        site_data = s.get('site')
-        if not site_data:
-            continue
-            
-        site_name = site_data.get('name')
-        site_path = site_data.get('path')
-        domains = [d.get('name') for d in s.get('domains', [])]
-        
-        is_conflict = False
-        conflict_reasons = []
-        
-        # 1. 检查站点名或配置文件
-        if thisdb.isSitesExist(site_name) or os.path.exists(mw_sites.getHostConf(site_name)):
-            is_conflict = True
-            conflict_reasons.append("站点名已存在")
-            
-        # 2. 检查目录
-        site_in_db = mw.M('sites').where('path=?', (site_path,)).getField('name')
-        if site_in_db and site_in_db != site_name:
-            is_conflict = True
-            conflict_reasons.append("网站目录已被 [{}] 占用".format(site_in_db))
-            
-        # 3. 检查域名
-        for d in domains:
-            domain_in_db = mw.M('domain').where('name=?', (d,)).getField('pid')
-            if domain_in_db:
-                pid_site_name = mw.M('sites').where('id=?', (domain_in_db,)).getField('name')
-                if pid_site_name and pid_site_name != site_name:
-                    is_conflict = True
-                    conflict_reasons.append("域名 [{}] 已被 [{}] 绑定".format(d, pid_site_name))
-                    
-        if is_conflict:
-            conflicts.append({
-                'name': site_name,
-                'reasons': "、".join(list(set(conflict_reasons)))
-            })
-        else:
-            normal.append({
-                'name': site_name
-            })
-            
-    return mw.returnData(True, "检查完成", {'conflicts': conflicts, 'normal': normal})
+        import traceback
+        return mw.returnData(False, "500 Error: " + str(traceback.format_exc()))
 
 
 # 导入所有站点配置
