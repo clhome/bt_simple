@@ -231,7 +231,7 @@ class ORM:
             pass
         
         try:
-            if hasattr(self, '__DB_POOL') and self.__DB_POOL and self.__DB_CONN:
+            if hasattr(self, '_ORM__DB_POOL') and self.__DB_POOL and self.__DB_CONN:
                 self.__DB_POOL.release_connection(self.__DB_CONN)
             elif self.__DB_CONN:
                 self.__DB_CONN.close()
