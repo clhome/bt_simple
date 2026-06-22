@@ -208,7 +208,26 @@ class sites(object):
             chownR(path, 'www', 'www')
 
         if autoInit:
-            mw.writeFile(path + '/index.html', 'Work has started!!!')
+            default_html = '''<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>站点创建成功</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f5f7fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { text-align: center; background: #fff; padding: 40px 60px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h1 { font-size: 24px; margin-bottom: 10px; color: #2c3e50; font-weight: 500; }
+        p { font-size: 14px; color: #7f8c8d; margin: 0; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>衢州御风科技有限公司出品</h1>
+        <p>Produced by Quzhou Yufeng Technology Co., Ltd</p>
+    </div>
+</body>
+</html>'''
+            mw.writeFile(path + '/index.html', default_html)
             chmodR(path, 755)
 
     def add(self, site_info, port, ps, path, version):

@@ -647,12 +647,12 @@ def import_all():
             # 5. 还原各项配置文件
             # vhost_conf
             vhost_file = mw_sites.getHostConf(site_name)
-            if s.get('vhost_conf'):
+            if s.get('vhost_conf') is not None:
                 mw.writeFile(vhost_file, s['vhost_conf'])
                 
             # rewrite_conf
             rewrite_file = mw_sites.getRewriteConf(site_name)
-            if s.get('rewrite_conf'):
+            if s.get('rewrite_conf') is not None:
                 mw.writeFile(rewrite_file, s['rewrite_conf'])
                 
             # binding_rewrites
@@ -661,7 +661,7 @@ def import_all():
                 mw.writeFile(b_rew_file, b_rewrite_content)
                 
             # pass_conf
-            if s.get('pass_conf'):
+            if s.get('pass_conf') is not None:
                 pass_file = mw_sites.passPath + '/' + site_name + '.pass'
                 mw.writeFile(pass_file, s['pass_conf'])
                 
@@ -669,7 +669,7 @@ def import_all():
             if s.get('proxy'):
                 p_data = s['proxy']
                 proxy_dir = mw_sites.getProxyPath(site_name)
-                if p_data.get('data_json'):
+                if p_data.get('data_json') is not None:
                     proxy_json_file = mw_sites.getProxyDataPath(site_name)
                     mw.writeFile(proxy_json_file, p_data['data_json'])
                 for p_id, p_conf_content in p_data.get('confs', {}).items():
@@ -680,7 +680,7 @@ def import_all():
             if s.get('redirect'):
                 r_data = s['redirect']
                 redirect_dir = mw_sites.getRedirectPath(site_name)
-                if r_data.get('data_json'):
+                if r_data.get('data_json') is not None:
                     redirect_json_file = mw_sites.getRedirectDataPath(site_name)
                     mw.writeFile(redirect_json_file, r_data['data_json'])
                 for r_id, r_conf_content in r_data.get('confs', {}).items():
@@ -691,9 +691,9 @@ def import_all():
             if s.get('ssl'):
                 ssl_data = s['ssl']
                 ssl_site_dir = mw_sites.sslDir + '/' + site_name
-                if ssl_data.get('fullchain'):
+                if ssl_data.get('fullchain') is not None:
                     mw.writeFile(ssl_site_dir + '/fullchain.pem', ssl_data['fullchain'])
-                if ssl_data.get('privkey'):
+                if ssl_data.get('privkey') is not None:
                     mw.writeFile(ssl_site_dir + '/privkey.pem', ssl_data['privkey'])
                     
             # 6. 防跨站配置

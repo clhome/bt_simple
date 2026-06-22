@@ -72,4 +72,19 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 
 ------
 
-20260622 17:43Code committed
+------
+
+20260622 17:48Code committed
+
+- [x] 修复站点配置导入导致 OpenResty 无法启动的 BUG
+    - [x] 1. 分析日志报错，定位到原因为导入时 `rewrite_conf` 内容为空字符串，由于 `if s.get('rewrite_conf'):` 隐式判定为 `False` 导致缺少该配置文件还原。
+    - [x] 2. 修复 `web/admin/site/site.py` 文件中 `import_all` 方法，将相关配置文件判定由 `if s.get(...):` 显式改为 `if s.get(...) is not None:` 确保空配置也能生成对应的占位空文件。
+
+- [x] 优化新建站点的默认页 HTML 结构
+    - [x] 1. 修复默认页面中由于直接写入普通文本 `\n` 而导致 HTML 在浏览器中未换行的问题。
+    - [x] 2. 将 `web/utils/site.py` 里的纯文本提示升级为包含居中布局、阴影卡片与清晰字体的全结构 HTML，提升视觉体验。
+
+------
+
+20260622 18:03Code committed
+
