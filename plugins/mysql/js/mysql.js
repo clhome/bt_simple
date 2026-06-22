@@ -3038,3 +3038,26 @@ function masterOrSlaveConf(version=''){
     }
     getMasterStatus();
 }
+
+function mySqlServiceWrapper(version) {
+    pluginService('mysql', version);
+    myPost('check_anomaly_backup', '', function(data){
+        var rdata = $.parseJSON(data.data);
+        if(rdata.status && rdata.data.length > 0) {
+            var checkInterval = setInterval(function(){
+                if($(".soft-man-con .sfm-opt").length > 0) {
+                    clearInterval(checkInterval);
+                    var warningHtml = '<div style="margin-top:20px;border:1px solid #f5c6cb;padding:15px;border-radius:4px;background-color:#f8d7da;color:#721c24;">' +
+                        '<h4 style="margin-top:0;">⚠️ 异常备份目录检测</h4>' +
+                        '<p style="margin-bottom:10px;">系统检测到因服务异常而触发安全保护生成的备份数据目录：</p>';
+                    for (var i = 0; i < rdata.data.length; i++) {
+                        var bdir = rdata.data[i];
+                        warningHtml += '<p style="margin-bottom:5px; word-break: break-all;"><strong>' + bdir + '</strong> <button class="btn btn-danger btn-xs" style="margin-left:10px;" onclick="openPath(\'' + bdir + '\')">打开目录</button></p>';
+                    }
+                    warningHtml += '</div>';
+                    $(".soft-man-con").append(warningHtml);
+                }
+            }, 100);
+        }
+    });
+}

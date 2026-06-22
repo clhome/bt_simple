@@ -38,3 +38,14 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 ------
 
 20260622 13:11Code committed
+- [x] 修复 MySQL 服务重启导致数据清空的严重 BUG
+    - [x] 1. 将 `plugins/mysql/index.py` 中的 `removeDir(datadir)` 改为改名备份备份机制
+
+- [ ] 增加 MySQL 异常备份目录检测与提示
+    - [x] 1. 修改 `plugins/mysql/index.py` 增加 `check_anomaly_backup` 接口
+    - [x] 2. 修改 `plugins/mysql/js/mysql.js` 增加 `mySqlServiceWrapper` 检测逻辑与弹窗渲染
+    - [x] 3. 修改 `plugins/mysql/index.html` 替换点击与初始化服务入口
+
+------
+
+20260622 14:19Code committed

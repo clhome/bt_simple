@@ -529,8 +529,13 @@ def initMysql57Data():
         serverdir = getServerDir()
         
         # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
+        # 极度危险：不再直接 removeDir，而是改名备份，避免意外清空用户现存的其他数据库
         if datadir == serverdir + '/data' and os.path.exists(datadir):
-            mw.removeDir(datadir)
+            import time
+            backup_dir = datadir + '_backup_' + str(int(time.time()))
+            os.rename(datadir, backup_dir)
+            mw.makeDirs(datadir)
+            mw.execShell('chown -R mysql:mysql ' + datadir)
 
         myconf = serverdir + "/etc/my.cnf"
         user = pGetDbUser()
@@ -548,8 +553,13 @@ def initMysql8Data():
         serverdir = getServerDir()
         
         # 兜底清理：如果因为之前的失败启动导致 datadir 不为空（例如留下了 mysql.pem），会导致后续 initialize 失败
+        # 极度危险：不再直接 removeDir，而是改名备份，避免意外清空用户现存的其他数据库
         if datadir == serverdir + '/data' and os.path.exists(datadir):
-            mw.removeDir(datadir)
+            import time
+            backup_dir = datadir + '_backup_' + str(int(time.time()))
+            os.rename(datadir, backup_dir)
+            mw.makeDirs(datadir)
+            mw.execShell('chown -R mysql:mysql ' + datadir)
 
         user = pGetDbUser()
         # cmd = 'cd ' + serverdir + ' && ./bin/mysqld --basedir=' + serverdir + ' --datadir=' + \
@@ -4057,6 +4067,16 @@ def uninstallPreInspection(version):
 
     return 'ok'
 
+def checkAnomalyBackup():
+    datadir = getDataDir()
+    import glob
+    backup_dirs = glob.glob(datadir + '_backup_*')
+    valid_dirs = []
+    for d in backup_dirs:
+        if os.path.isdir(d):
+            valid_dirs.append(d.replace('\\', '/'))
+    return mw.returnJson(True, 'ok', valid_dirs)
+
 if __name__ == "__main__":
     func = sys.argv[1]
 
@@ -4243,5 +4263,7 @@ if __name__ == "__main__":
         print(syncDatabaseRepair())
     elif func == 'sync_database_repair_log':
         print(syncDatabaseRepairLog())
+    elif func == 'check_anomaly_backup':
+        print(checkAnomalyBackup())
     else:
         print('error')
