@@ -186,10 +186,11 @@ class ORM:
         try:
             result = self.__DB_CUR.execute(sql)
             self.__DB_CONN.commit()
-            self.__Close()
             return result
         except Exception as ex:
             return ex
+        finally:
+            self.__Close()
 
     def ping(self):
         try:
@@ -215,10 +216,11 @@ class ORM:
             # print(result)
             # 将元组转换成列表
             # data = map(list, result)
-            self.__Close()
             return result
         except Exception as ex:
             return ex
+        finally:
+            self.__Close()
 
     def __Close(self):
         # 关闭连接

@@ -2078,40 +2078,43 @@ def getDbInfo():
     pdb = pMysqlDb()
     # print 'show tables from `%s`' % db_name
     tables = pdb.query('show tables from `%s`' % db_name)
+    if isinstance(tables, Exception):
+        return mw.returnJson(False, '获取表列表失败: ' + str(tables))
 
     ret = {}
     sql = "select sum(DATA_LENGTH)+sum(INDEX_LENGTH) as sum_size from information_schema.tables  where table_schema='%s'" % db_name
     data_sum = pdb.query(sql)
 
     data = 0
-    if data_sum[0]['sum_size'] != None:
+    if not isinstance(data_sum, Exception) and len(data_sum) > 0 and data_sum[0]['sum_size'] != None:
         data = data_sum[0]['sum_size']
 
     ret['data_size'] = mw.toSize(data)
     ret['database'] = db_name
 
     ret3 = []
-    table_key = "Tables_in_" + db_name
-    for i in tables:
-        tb_sql = "show table status from `%s` where name = '%s'" % (db_name, i[
-                                                                    table_key])
-        table = pdb.query(tb_sql)
-
+    
+    # optimize: single query for all tables
+    table_status_list = pdb.query("show table status from `%s`" % db_name)
+    if isinstance(table_status_list, Exception):
+        return mw.returnJson(False, '获取表状态失败: ' + str(table_status_list))
+        
+    for table in table_status_list:
         tmp = {}
-        tmp['type'] = table[0]["Engine"]
-        tmp['rows_count'] = table[0]["Rows"]
-        tmp['collation'] = table[0]["Collation"]
+        tmp['type'] = table.get("Engine", "Unknown")
+        tmp['rows_count'] = table.get("Rows", 0)
+        tmp['collation'] = table.get("Collation", "Unknown")
 
         data_size = 0
-        if table[0]['Avg_row_length'] != None:
-            data_size = table[0]['Avg_row_length']
+        if table.get('Avg_row_length') != None:
+            data_size = table['Avg_row_length']
 
-        if table[0]['Data_length'] != None:
-            data_size = table[0]['Data_length']
+        if table.get('Data_length') != None:
+            data_size = table['Data_length']
 
         tmp['data_byte'] = data_size
         tmp['data_size'] = mw.toSize(data_size)
-        tmp['table_name'] = table[0]["Name"]
+        tmp['table_name'] = table.get("Name", "Unknown")
         ret3.append(tmp)
 
     ret['tables'] = (ret3)

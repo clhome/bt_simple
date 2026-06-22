@@ -13,7 +13,7 @@ port		= 3306
 socket		= {$SERVER_APP_PATH}/mysql.sock
 basedir = {$SERVER_APP_PATH}
 datadir = {$SERVER_APP_PATH}/data
-log-error =  {$SERVER_APP_PATH}/data/error.log
+log-error = {$SERVER_APP_PATH}/data/error.log
 server-id	= {$SERVER_ID}
 
 default_storage_engine = InnoDB
