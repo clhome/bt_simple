@@ -5,7 +5,6 @@ import io
 import os
 import time
 import re
-import pymongo
 import json
 
 import core.mw as mw

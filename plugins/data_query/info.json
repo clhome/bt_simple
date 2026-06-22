@@ -20,7 +20,7 @@
         }
     ],
     "sort": 100,
-    "ps": "数据简单管理(memcached,redis,mongodb)",
+    "ps": "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。",
     "name": "data_query",
     "title": "数据管理",
     "shell": "install.sh",
@@ -32,5 +32,6 @@
     "author": "midoks & yufeng tec",
     "date": "2024-01-22",
     "type": 0,
-    "pid": "2"
+    "pid": "2",
+    "display_status": false
 }

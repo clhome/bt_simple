@@ -5,12 +5,8 @@ import io
 import os
 import time
 import re
-import pymongo
 import json
 import yaml
-
-from bson.objectid import ObjectId
-from bson.json_util import dumps
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -135,6 +131,7 @@ class nosqlMongodb():
 
 
     def mgdb_conn(self):
+        import pymongo
 
         if self.__DB_HOST in ['127.0.0.1', 'localhost']:
             mgdb_path = "{}/mongodb".format(mw.getServerDir())
@@ -231,6 +228,9 @@ class nosqlMongodbCtr():
         return mw.returnData(True,'ok', result)
 
     def getDataList(self, args):
+        from bson.objectid import ObjectId
+        from bson.json_util import dumps
+
         sid = args['sid']
         db = args['db']
         collection = args['collection']
@@ -299,6 +299,8 @@ class nosqlMongodbCtr():
         return mw.returnData(True,'ok', rdata)
 
     def delById(self,args):
+        from bson.objectid import ObjectId
+
         sid = args['sid']
         db = args['db']
         collection = args['collection']

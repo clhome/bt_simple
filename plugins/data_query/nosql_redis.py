@@ -5,7 +5,6 @@ import io
 import os
 import time
 import re
-import redis
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -40,6 +39,7 @@ class nosqlRedis():
 
 
     def redis_conn(self, db_idx=0):
+        import redis
 
         if self.__DB_HOST in ['127.0.0.1', 'localhost']:
             redis_path = "{}/redis".format(mw.getServerDir())
