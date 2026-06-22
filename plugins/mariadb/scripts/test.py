@@ -55,7 +55,7 @@ def getConf():
 def pMysqlDb():
     db = mw.getMyORM()
     db.setDbConf(getConf())
-    db.__DB_SOCKET = mw.getServerDir() + '/mysql/mysql.socket'
+    db.setSocket(mw.getServerDir() + '/mysql/mysql.socket')
 
     print(mw.getServerDir() + '/mysql/mysql.socket')
     db.setPwd(pSqliteDb('config').where('id=?', (1,)).getField('mysql_root'))
