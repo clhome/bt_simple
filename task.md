@@ -202,3 +202,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 1. 分析发现首页 `loadKeyDataCount` 中循环发出 5 次 `/plugins/run` 请求。
     - [x] 2. 在后端 `web/admin/plugins/__init__.py` 中新增 `run_batch` 批量处理接口，支持一次性处理多个插件回调并返回 JSON。
     - [x] 3. 在前端 `web/static/app/index.js` 重构 `loadKeyDataCount`，收集所有需要查询的插件，发起一次单一的 POST 请求，获取所有数据后再集中渲染。
+
+------
+
+20260623 15:35 面板性能分步优化 第九阶段（核心数据库查询索引优化）
+- [x] 为 `panel.db` 中的核心表增加索引，解决日益增长的数据导致的全表扫描性能问题
+    - [x] 1. 修改 `web/admin/setup/sql/default.sql`，添加缺失的 `CREATE INDEX IF NOT EXISTS` 语句（涉及 domain, binding, backup, logs, tasks 表）。
+    - [x] 2. 编写脚本同步修改线上生产环境的 `panel.db`，动态应用这些索引以提升查询效率。
+    - [x] 3. 验证索引是否已正确应用。
