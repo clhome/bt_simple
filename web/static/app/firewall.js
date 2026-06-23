@@ -1,11 +1,3 @@
-setTimeout(function(){
-	getSshInfo();
-},500);
-	
-setTimeout(function(){
-	showAccept(1);
-},1000);
-
 var currentType = 'port';
 function switchTab(type, obj) {
     currentType = type;
@@ -28,6 +20,9 @@ function switchTab(type, obj) {
 
 	
 $(function(){
+	getSshInfo();
+	showAccept(1);
+
 	// start 
 	$.post('/firewall/get_www_path',function(data){
 		var html ='<a class="btlink" href="javascript:openPath(\''+data['path']+'\');">日志目录</a>\

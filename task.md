@@ -187,3 +187,10 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 - [x] 优化文件列表请求初始化时间点过晚的问题
     - [x] 1. 分析文件页面 `get_dir` 请求发起时间过晚的原因
     - [x] 2. 修改 `web/templates/default/files.html`，移除原有的 `setTimeout`（500ms 和 800ms）人为延迟，改用 jQuery 的 `$(function() { ... })` 实现 DOM 加载完毕后立即请求，提升页面性能表现
+
+------
+
+20260623 15:08 面板性能分步优化 第七阶段（安全页面加载延迟移除）
+- [x] 优化安全防火墙列表请求初始化时间点过晚的问题
+    - [x] 1. 分析安全页面 `get_list` 请求发起时间过晚的原因
+    - [x] 2. 修改 `web/static/app/firewall.js`，移除全局原有的 `setTimeout`（500ms 和 1000ms）人为延迟，将 `getSshInfo()` 和 `showAccept(1)` 移入现有的 jQuery `$(function() { ... })` 代码块中，使得 DOM 加载完毕后立即请求，彻底解决防火墙和SSH信息加载过慢的白屏问题
