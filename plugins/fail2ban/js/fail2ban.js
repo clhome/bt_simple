@@ -62,7 +62,7 @@ function f2bHome() {
             </div>\
             \
             <div style="background: #f0f9f4; border-left: 4px solid #20a53a; padding: 15px 20px; border-radius: 4px; color: #333; line-height: 28px; font-size: 13px;">\
-                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> Fail2ban 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</div>\
+                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 御风F2B底层防火墙 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</div>\
                 <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 系统防护用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。</div>\
                 <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 网站防护自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。</div>\
             </div>\
