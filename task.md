@@ -88,3 +88,22 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 
 20260622 18:03Code committed
 
+------
+
+- [x] 实现左侧菜单的 Pjax 局部刷新功能
+    - [x] 1. 修改 `web/templates/default/layout.html`，引入 `#pjax-container` 容器。
+    - [x] 2. 迁移按需加载的插件专属 CSS 和 JS 逻辑到 `#pjax-container` 内。
+    - [x] 3. 在模板底部新增 Pjax 的核心 JavaScript 拦截与 DOM 替换逻辑。
+
+- [x] 修复 Pjax 加载多页面时出现的 JS 脚本执行顺序混乱与定时器内存泄漏导致页面空白问题
+    - [x] 1. 拦截全局 `setInterval`，在每次 Pjax 页面切换时主动清理旧页面的定时器，防止定时器叠加导致网络请求雪崩。
+    - [x] 2. 在 Pjax 回调中主动分离 `<script>` 标签，改为串行阻塞式加载：先执行按需外部加载，再执行内联 JS，确保依赖函数提前注册。
+
+- [x] 修复 Pjax 返回首页时软状态（State Leak）导致组件未渲染的 Bug
+    - [x] 1. 在 Pjax 页面跳转前/后清理由于页面重用导致的挂载状态变量（如 `window.isStatusLoaded`），确保每次进入首页都能触发初次渲染的生命周期方法。
+
+- [x] 修复 Pjax 菜单跳转回不同页面时，因为专属控制脚本被缓存跳过导致新 DOM 元素未绑定事件且内容为空的 Bug
+    - [x] 1. 修改 `web/templates/default/layout.html`，对业务专属控制脚本（路径含 `/static/app/` 或 `/plugins/`）排除加载缓存过滤，每次 Pjax 页面载入时重新执行。
+    - [x] 2. 编写本地 Python 部署脚本 `deploy_patch.py` 并通过 SSH/SFTP 将修改同步到远程服务器。
+    - [x] 3. 远程重启面板服务以应用更新，并在服务器上记录和保存本次部署的操作日志，提供给用户。
+    - [x] 4. 修复首页 `index.html` 以及 `soft.html`、`site.html`、`files.html`、`monitor.html` 结尾处多余的 `</div>` 闭合标签，防止 Pjax 局部刷新容器被提前闭合导致后面的业务 JS 脚本未执行。

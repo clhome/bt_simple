@@ -44,14 +44,7 @@
       <script src="/static/js/requestAnimationFrame.js"></script>
     <![endif]-->
 
-    {% for menu in data['hook_menu'] %} {% if menu['css_path'] and
-    data['hook_tag'] == menu['name'] %}
-    <!-- 加载插件css -->
-    <link
-      href="/plugins/file?name={{menu['name']}}&v={{config.version}}&f={{menu['css_path']}}"
-      rel="stylesheet"
-    />
-    {% endif %} {% endfor %}
+
 
     <!-- 全局静态HOOK -->
     {% for menu in data['hook_global_static'] %} {% if menu['css_path'] %}
@@ -169,7 +162,44 @@
         <!-- jQuery dragsort (本地，较小且定制多) -->
         <script src="/static/js/jquery.dragsort-0.5.2.min.js?v={{config.version}}"></script>
 
-        {% block content %}{% endblock %}
+        <!-- Pjax 定时器拦截与管理 -->
+        <script type="text/javascript">
+            window._pjaxIntervals = [];
+            window._originalSetInterval = window.setInterval;
+            window.setInterval = function(fn, delay) {
+                var id = window._originalSetInterval(fn, delay);
+                window._pjaxIntervals.push(id);
+                return id;
+            };
+            window.clearPjaxTimers = function() {
+                if (window._pjaxIntervals) {
+                    window._pjaxIntervals.forEach(clearInterval);
+                    window._pjaxIntervals = [];
+                }
+            };
+            window.loadedScripts = window.loadedScripts || {};
+            // 初始化时记录页面上已有的外联 JS，避免重复加载
+            $('script[src]').each(function() {
+                var src = $(this).attr('src');
+                if (src) {
+                    var cleanSrc = src.split('?')[0];
+                    window.loadedScripts[cleanSrc] = true;
+                }
+            });
+        </script>
+
+        <div id="pjax-container">
+            {% for menu in data['hook_menu'] %} {% if menu['css_path'] and data['hook_tag'] == menu['name'] %}
+            <!-- 加载插件css -->
+            <link href="/plugins/file?name={{menu['name']}}&v={{config.version}}&f={{menu['css_path']}}" rel="stylesheet" />
+            {% endif %} {% endfor %}
+            
+            {% block content %}{% endblock %}
+
+            {% for menu in data['hook_menu'] %} {% if menu['js_path'] and data['hook_tag'] == menu['name'] %}
+            <script src="/plugins/file?name={{menu['name']}}&f={{menu['js_path']}}&v={{config.version}}"></script>
+            {% endif %} {% endfor %}
+        </div>
         <div class="footer bgw">
           <span>
             御风面板 &copy;2026
@@ -296,13 +326,118 @@
   <!-- LayDate (本地加载，防止皮肤文件丢失) -->
   <script src="/static/laydate/laydate.js?v={{config.version}}"></script>
 
-  {% for menu in data['hook_menu'] %} {% if menu['js_path'] and data['hook_tag']
-  == menu['name'] %}
-  <script src="/plugins/file?name={{menu['name']}}&f={{menu['js_path']}}&v={{config.version}}"></script>
-  {% endif %} {% endfor %}
-
   <!-- 全局静态HOOK -->
   {% for menu in data['hook_global_static'] %} {% if menu['js_path'] %}
   <script src="/plugins/file?name={{menu['name']}}&f={{menu['js_path']}}&v={{config.version}}"></script>
   {% endif %} {% endfor %}
+
+  <!-- Pjax 局部刷新逻辑 -->
+  <script type="text/javascript">
+    $(document).ready(function() {
+        // 绑定左侧菜单点击事件
+        $(document).on('click', '.menu a', function(e) {
+            var url = $(this).attr('href');
+            // 忽略无具体地址、外链或是当前页面
+            if (!url || url === 'javascript:;' || url.startsWith('javascript:') || url === '#' || $(this).attr('target') === '_blank') {
+                return;
+            }
+            
+            e.preventDefault();
+            
+            // 手动更新左侧菜单高亮
+            $('.menu li').removeClass('active');
+            $(this).parent('li').addClass('active');
+
+            var loadingIndex = layer.load(2, {shade: [0.1,'#fff']});
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'html',
+                success: function(data) {
+                    var dom = new DOMParser().parseFromString(data, 'text/html');
+                    var newTitle = $(dom).find('title').text();
+                    var container = $(dom).find('#pjax-container');
+
+                    if (container.length > 0) {
+                        document.title = newTitle;
+                        
+                        // 清理旧页面残留的定时器，防止叠加内存泄漏
+                        if (typeof window.clearPjaxTimers === 'function') {
+                            window.clearPjaxTimers();
+                        }
+                        
+                        // 清理基于页面的软状态，防止回到主页时因为状态残留导致拒绝初始化
+                        window.isStatusLoaded = false;
+
+                        // 提取所有的 script 标签，阻止 jQuery html() 的异步并发执行
+                        var scripts = [];
+                        container.find('script').each(function() {
+                            var src = $(this).attr('src');
+                            var text = $(this).html();
+                            scripts.push({ src: src, text: text });
+                            $(this).remove(); // 剔除标签
+                        });
+
+                        $('#pjax-container').html(container.html());
+                        
+                        // URL无感变化
+                        history.pushState({url: url}, newTitle, url);
+                        layer.close(loadingIndex);
+
+                        // 串行执行 script 标签，保证依赖顺序
+                        function loadScripts(index) {
+                            if (index >= scripts.length) return;
+                            var s = scripts[index];
+                            if (s.src) {
+                                var cleanSrc = s.src.split('?')[0];
+                                var isAppScript = cleanSrc.indexOf('/static/app/') > -1 || cleanSrc.indexOf('/plugins/') > -1;
+                                if (window.loadedScripts[cleanSrc] && !isAppScript) {
+                                    // 已经加载过的公共基础库，直接跳过防止重复绑定事件
+                                    loadScripts(index + 1);
+                                } else {
+                                    // 页面专属业务控制脚本或未加载的基础库，重新获取并阻塞执行
+                                    $.ajax({
+                                        url: s.src,
+                                        dataType: "script",
+                                        cache: true,
+                                        success: function() {
+                                            window.loadedScripts[cleanSrc] = true;
+                                            loadScripts(index + 1);
+                                        },
+                                        error: function() {
+                                            loadScripts(index + 1);
+                                        }
+                                    });
+                                }
+                            } else {
+                                // 执行内联的初始化代码
+                                try {
+                                    $.globalEval(s.text);
+                                } catch(e) {
+                                    console.error("Inline script error:", e);
+                                }
+                                loadScripts(index + 1);
+                            }
+                        }
+                        // 启动脚本加载队列
+                        loadScripts(0);
+
+                    } else {
+                        // 如果未找到容器，降级为普通跳转
+                        window.location.href = url;
+                    }
+                },
+                error: function() {
+                    window.location.href = url;
+                }
+            });
+        });
+
+        // 监听浏览器后退/前进
+        window.addEventListener('popstate', function(e) {
+            window.location.reload();
+        });
+    });
+  </script>
 </html>
