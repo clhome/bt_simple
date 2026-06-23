@@ -72,10 +72,24 @@ def getUnauthStatus(
         data['text'] = "默认-安全入口错误提示"
     return data
 
+
+_global_var_cache = None
+_global_var_cache_time = 0
+_GLOBAL_VAR_TTL = 30  # 30秒TTL
+
 def getGlobalVar():
     '''
     获取全局变量
     '''
+    global _global_var_cache, _global_var_cache_time
+    import time
+    now = time.time()
+    
+    if _global_var_cache is not None and (now - _global_var_cache_time) < _GLOBAL_VAR_TTL:
+        data = _global_var_cache.copy()
+        data['systemdate'] = time.strftime('%Y-%m-%d %H:%M:%S %Z %z', time.localtime())
+        return data
+
     data = {}
     data['title'] = thisdb.getOption('title', default='御风面板（BtSimple）')
     
@@ -107,11 +121,6 @@ def getGlobalVar():
     data['basic_auth'] = thisdb.getOptionByJson('basic_auth', default={'open':False})
     data['two_step_verification'] = thisdb.getOptionByJson('two_step_verification', default={'open':False})
 
-    # 服务器时间
-    sformat = 'date +"%Y-%m-%d %H:%M:%S %Z %z"'
-    data['systemdate'] = mw.execShell(sformat)[0].strip()
-
-
     data['hook_menu'] = thisdb.getOptionByJson('hook_menu',type='hook',default=[])
     data['hook_global_static'] = thisdb.getOptionByJson('hook_global_static',type='hook',default=[])
     data['hook_database'] = thisdb.getOptionByJson('hook_database',type='hook',default=[])
@@ -126,5 +135,11 @@ def getGlobalVar():
     data['panel_ssl'] = thisdb.getOptionByJson('panel_ssl', default={'open':False})
     data['panel_domain'] = thisdb.getOption('panel_domain', default='')
     data['use_cdn'] = thisdb.getOption('use_cdn', default='no')
-    
-    return data
+
+    # 将没有动态时间的原始数据存入缓存
+    _global_var_cache = data.copy()
+    _global_var_cache_time = now
+
+    # 动态加上系统时间并返回
+    data['systemdate'] = time.strftime('%Y-%m-%d %H:%M:%S %Z %z', time.localtime())
+    return data

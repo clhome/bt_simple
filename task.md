@@ -137,3 +137,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 优化 `web/admin/site/site.py` 中的网站列表获取接口，通过批量预读 vhost 配置并使用正则匹配解析 PHP 版本和 SSL 状态，消除 N+1 文件I/O和数据库查询
     - [x] 3. 优化 `web/templates/default/site.html`，消除前端 500ms 的 `setTimeout` 加载延迟，使页面能够立刻加载
     - [x] 4. 验证并测试优化效果，确保优化后加载正常，性能提升显著，然后编写 walkthrough.md 汇总
+
+------
+
+20260623 14:25 面板性能分步优化 第一阶段（getGlobalVar缓存与site.js事件委托）
+- [x] 优化核心全局变量与前端网站列表事件绑定
+    - [x] 1. 编写并提交 implementation_plan.md 并设置 request_feedback 寻求用户审核
+    - [x] 2. 优化 `web/utils/config.py` 中的 `getGlobalVar()`，实现 30s 缓存，并将 `systemdate` 的 shell date 命令改为原生 Python `time.strftime` 以消除 shell fork 子进程带来的重大开销
+    - [x] 3. 优化 `web/static/app/site.js`，将 `.setTimes` 点击事件重构为外层事件委托，消除 `getWeb` 每次渲染时在 `#webBody` 上产生的事件绑定内存泄漏与重复初始化问题
+    - [x] 4. 进行功能测试与语法校验，完成优化并编写 walkthrough.md

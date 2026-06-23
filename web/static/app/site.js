@@ -103,22 +103,27 @@ function getDate(a) {
 					</td></tr>"
 			
 			$("#webBody").append(body);
-            $('#webBody').on('click','#site_'+ list[i].id,function(){
-				var _this = $(this);
-				var id = $(this).attr('data-ids');
+		}
+
+		// 使用事件委托统一绑定有效期点击事件，避免内存泄漏和重复绑定
+		$('#webBody').off('click', '.setTimes').on('click', '.setTimes', function(){
+			var _this = $(this);
+			var id = _this.attr('data-ids');
+			
+			if (!_this.data('laydate-initialized')) {
 				laydate.render({
-					elem: '#site_'+ id,
-					min:getDate(-1),
-					max:'9999-12-31',
-					vlue:getDate(365),
-					type:'date',
-					format :'yyyy-MM-dd',
-					trigger:'click',
-					btns:['perpetual', 'confirm'],
-					theme:'#20a53a',
-					done:function(dates){
+					elem: '#site_' + id,
+					min: getDate(-1),
+					max: '9999-12-31',
+					vlue: getDate(365),
+					type: 'date',
+					format: 'yyyy-MM-dd',
+					trigger: 'click',
+					btns: ['perpetual', 'confirm'],
+					theme: '#20a53a',
+					done: function(dates){
 						if(_this.html() == '永久'){
-						 	dates = '0000-00-00';
+							dates = '0000-00-00';
 						}
 						var loadT = layer.msg('正在保存...', { icon: 16, time: 0, shade: [0.3, "#000"]}); 
 						$.post('/site/set_end_date','id='+id+'&edate='+dates,function(rdata){
@@ -127,9 +132,10 @@ function getDate(a) {
 						},'json');
 					}
 				});
-            	this.click();
-            });
-		}
+				_this.data('laydate-initialized', true);
+				this.click(); // 初始化后模拟点击以触发 laydate 弹窗
+			}
+		});
 		if(body.length < 10){
 			body = "<tr><td colspan='9' style='text-align: center;'>当前没有站点数据</td></tr>";
 			$("#webBody").html(body);
