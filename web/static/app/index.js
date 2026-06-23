@@ -282,6 +282,9 @@ function getNet() {
         setImg();
         showCpuTips(net);
 
+        if (typeof window.updateNetChart === 'function') {
+            window.updateNetChart();
+        }
     },'json');
 }
 
@@ -451,11 +454,7 @@ function netImg() {
     };
 
     var echartsNetImg = echarts.init(document.getElementById('netImg'));
-    setInterval(function() {
-        if (document.visibilityState !== 'visible') {
-            return; // 网页切入后台，自动暂停高频轮询以节省能耗与带宽
-        }
-        getNet();
+    window.updateNetChart = function() {
         addData(true);
         echartsNetImg.setOption({
             yAxis: {
@@ -474,6 +473,13 @@ function netImg() {
                 data: zData
             }]
         });
+    };
+
+    setInterval(function() {
+        if (document.visibilityState !== 'visible') {
+            return; // 网页切入后台，自动暂停高频轮询以节省能耗与带宽
+        }
+        getNet();
     }, 3000);
 
     // 使用刚指定的配置项和数据显示图表。

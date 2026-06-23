@@ -163,3 +163,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 1. 优化 `web/admin/__init__.py` 中的 `requestCheck()` 过滤器，实现 `getRequestCheckOption()` 对基本权限选项的 10 秒微缓存，杜绝每次 HTTP 请求无条件查库的行为
     - [x] 2. 优化 `web/static/app/soft.js`，将每 8 秒发送匿名请求的 `setInterval` 轮询删除，改用成功回调后依据当前是否有在安装任务动态调整延时（有任务8秒，无任务30秒）的 `setTimeout` 智能轮询，并彻底消除轮询过程中反复强弹 loading 遮罩的问题
     - [x] 3. 运行 py_compile 检验 `__init__.py` 语法，并编写 walkthrough.md 报告
+
+------
+
+20260623 14:50 面板性能分步优化 第四阶段（首页ECharts图表异步数据渲染优化）
+- [x] 优化首页图表渲染与定时轮询数据对齐
+    - [x] 1. 优化 `web/static/app/index.js` 中的 ECharts 网卡流量图表刷新逻辑，建立全局 `window.updateNetChart` 接口
+    - [x] 2. 重构定时刷新，使 ECharts 仅在 `getNet()` 网络请求异步成功返回后才做图表重绘（setOption）与数据装载（addData），消除原先定时器立即渲染和网络回调多次渲染引起的重复开销和数据错位
+    - [x] 3. 编写 walkthrough.md 优化结果报告
