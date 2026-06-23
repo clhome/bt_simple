@@ -1,3 +1,4 @@
+{% if not g.is_pjax %}
 <!doctype html>
 <html>
   <head>
@@ -187,6 +188,7 @@
                 }
             });
         </script>
+{% endif %}
 
         <div id="pjax-container">
             {% for menu in data['hook_menu'] %} {% if menu['css_path'] and data['hook_tag'] == menu['name'] %}
@@ -200,6 +202,7 @@
             <script src="/plugins/file?name={{menu['name']}}&f={{menu['js_path']}}&v={{config.version}}"></script>
             {% endif %} {% endfor %}
         </div>
+{% if not g.is_pjax %}
         <div class="footer bgw">
           <span>
             御风面板 &copy;2026
@@ -265,9 +268,11 @@
           </div>
         </div>
       </div>
-    </div>
+  </div>
   </body>
+{% endif %}
 
+{% if not g.is_pjax %}
   <script type="text/javascript">
     (function ($) {
       $.getUrlParam = function (name) {
@@ -350,83 +355,121 @@
 
             var loadingIndex = layer.load(2, {shade: [0.1,'#fff']});
 
+            // P1: 发送 X-PJAX 请求头，服务器只返回 #pjax-container 内容片段
             $.ajax({
                 url: url,
                 type: 'GET',
                 dataType: 'html',
-                success: function(data) {
-                    var dom = new DOMParser().parseFromString(data, 'text/html');
-                    var newTitle = $(dom).find('title').text();
-                    var container = $(dom).find('#pjax-container');
+                headers: {'X-PJAX': 'true'},
+                success: function(responseData) {
+                    var newTitle = '';
+                    var containerHtml = '';
+                    var scripts = [];
 
-                    if (container.length > 0) {
-                        document.title = newTitle;
-                        
-                        // 清理旧页面残留的定时器，防止叠加内存泄漏
-                        if (typeof window.clearPjaxTimers === 'function') {
-                            window.clearPjaxTimers();
-                        }
-                        
-                        // 清理基于页面的软状态，防止回到主页时因为状态残留导致拒绝初始化
-                        window.isStatusLoaded = false;
-
-                        // 提取所有的 script 标签，阻止 jQuery html() 的异步并发执行
-                        var scripts = [];
-                        container.find('script').each(function() {
-                            var src = $(this).attr('src');
-                            var text = $(this).html();
-                            scripts.push({ src: src, text: text });
-                            $(this).remove(); // 剔除标签
-                        });
-
-                        $('#pjax-container').html(container.html());
-                        
-                        // URL无感变化
-                        history.pushState({url: url}, newTitle, url);
-                        layer.close(loadingIndex);
-
-                        // 串行执行 script 标签，保证依赖顺序
-                        function loadScripts(index) {
-                            if (index >= scripts.length) return;
-                            var s = scripts[index];
-                            if (s.src) {
-                                var cleanSrc = s.src.split('?')[0];
-                                var isAppScript = cleanSrc.indexOf('/static/app/') > -1 || cleanSrc.indexOf('/plugins/') > -1;
-                                if (window.loadedScripts[cleanSrc] && !isAppScript) {
-                                    // 已经加载过的公共基础库，直接跳过防止重复绑定事件
-                                    loadScripts(index + 1);
-                                } else {
-                                    // 页面专属业务控制脚本或未加载的基础库，重新获取并阻塞执行
-                                    $.ajax({
-                                        url: s.src,
-                                        dataType: "script",
-                                        cache: true,
-                                        success: function() {
-                                            window.loadedScripts[cleanSrc] = true;
-                                            loadScripts(index + 1);
-                                        },
-                                        error: function() {
-                                            loadScripts(index + 1);
-                                        }
-                                    });
-                                }
-                            } else {
-                                // 执行内联的初始化代码
-                                try {
-                                    $.globalEval(s.text);
-                                } catch(e) {
-                                    console.error("Inline script error:", e);
-                                }
-                                loadScripts(index + 1);
-                            }
-                        }
-                        // 启动脚本加载队列
-                        loadScripts(0);
-
+                    // P1: 判断响应是片段还是完整页面
+                    if (responseData.trim().indexOf('<!doctype') === -1 && responseData.trim().indexOf('<html') === -1) {
+                        // 服务器已返回 Pjax 片段（无完整 HTML 框架）
+                        // 从片段中提取 title 和 container 内容
+                        var tmpDom = $(responseData);
+                        newTitle = tmpDom.filter('title').text() || document.title;
+                        containerHtml = responseData;
                     } else {
-                        // 如果未找到容器，降级为普通跳转
-                        window.location.href = url;
+                        // 降级：服务器返回了完整页面，走原有解析逻辑
+                        var dom = new DOMParser().parseFromString(responseData, 'text/html');
+                        newTitle = $(dom).find('title').text();
+                        var container = $(dom).find('#pjax-container');
+                        if (container.length === 0) {
+                            // 完全找不到容器，降级为普通跳转
+                            window.location.href = url;
+                            return;
+                        }
+                        containerHtml = container.html();
                     }
+
+                    document.title = newTitle;
+
+                    // 清理旧页面残留的定时器，防止叠加内存泄漏
+                    if (typeof window.clearPjaxTimers === 'function') {
+                        window.clearPjaxTimers();
+                    }
+
+                    // 清理基于页面的软状态，防止回到主页时因为状态残留导致拒绝初始化
+                    window.isStatusLoaded = false;
+
+                    // 提取所有的 script 标签，阻止 jQuery html() 的异步并发执行
+                    var $temp = $('<div>').html(containerHtml);
+                    $temp.find('script').each(function() {
+                        var src = $(this).attr('src');
+                        var text = $(this).html();
+                        scripts.push({ src: src, text: text });
+                        $(this).remove();
+                    });
+
+                    $('#pjax-container').html($temp.html());
+
+                    // URL无感变化
+                    history.pushState({url: url}, newTitle, url);
+
+                    // P2: DOM 注入后立即关闭遮罩，让用户尽快看到页面骨架
+                    layer.close(loadingIndex);
+
+                    // P0: 并行加载外部脚本，全部就绪后按顺序执行内联初始化
+                    // 1. 分离外部脚本与内联脚本
+                    var externalScripts = [];
+                    var inlineScripts = [];
+                    scripts.forEach(function(s) {
+                        if (s.src) {
+                            externalScripts.push(s);
+                        } else {
+                            inlineScripts.push(s);
+                        }
+                    });
+
+                    // 2. 确定哪些外部脚本需要实际加载
+                    var toLoad = externalScripts.filter(function(s) {
+                        var cleanSrc = s.src.split('?')[0];
+                        var isAppScript = cleanSrc.indexOf('/static/app/') > -1 || cleanSrc.indexOf('/plugins/') > -1;
+                        // app/plugin 脚本每次都重新执行；基础库已加载则跳过
+                        return isAppScript || !window.loadedScripts[cleanSrc];
+                    });
+
+                    // 3. 内联脚本执行函数（在所有外部脚本完成后调用）
+                    function runInlineScripts() {
+                        inlineScripts.forEach(function(s) {
+                            try {
+                                $.globalEval(s.text);
+                            } catch(e) {
+                                console.error("Inline script error:", e);
+                            }
+                        });
+                    }
+
+                    // 4. 若无需加载的外部脚本，直接执行内联初始化
+                    if (toLoad.length === 0) {
+                        runInlineScripts();
+                        return;
+                    }
+
+                    // 5. 并行加载所有需要的外部脚本，全部完成后执行内联初始化
+                    var loadedCount = 0;
+                    toLoad.forEach(function(s) {
+                        var cleanSrc = s.src.split('?')[0];
+                        $.ajax({
+                            url: s.src,
+                            dataType: "script",
+                            cache: true,
+                            success: function() {
+                                window.loadedScripts[cleanSrc] = true;
+                            },
+                            complete: function() {
+                                loadedCount++;
+                                if (loadedCount === toLoad.length) {
+                                    // 所有外部脚本已就绪，执行内联初始化
+                                    runInlineScripts();
+                                }
+                            }
+                        });
+                    });
                 },
                 error: function() {
                     window.location.href = url;
@@ -441,3 +484,4 @@
     });
   </script>
 </html>
+{% endif %}

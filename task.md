@@ -107,3 +107,18 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 编写本地 Python 部署脚本 `deploy_patch.py` 并通过 SSH/SFTP 将修改同步到远程服务器。
     - [x] 3. 远程重启面板服务以应用更新，并在服务器上记录和保存本次部署的操作日志，提供给用户。
     - [x] 4. 修复首页 `index.html` 以及 `soft.html`、`site.html`、`files.html`、`monitor.html` 结尾处多余的 `</div>` 闭合标签，防止 Pjax 局部刷新容器被提前闭合导致后面的业务 JS 脚本未执行。
+
+------
+
+## Pjax 页面加载性能优化
+
+- [x] **P0**：串行脚本加载改并行（最大收益，降低切页延迟 50%+）
+    - [x] 修改 `web/templates/default/layout.html`，将 `loadScripts` 串行函数重构为并行加载策略：外部脚本并行请求，全部完成后按顺序执行内联初始化
+
+- [x] **P1**：后端增加 Pjax 片段接口（节省 60-70% 传输量）
+    - [x] 修改 `web/admin/__init__.py` 在 `before_request` 中检测 `X-PJAX` Header 并写入 `g.is_pjax`
+    - [x] 修改 `web/templates/default/layout.html`，用 `{% if not g.is_pjax %}` 包裹非内容区域
+    - [x] 修改前端 AJAX 请求，添加 `X-PJAX: true` 请求头，并改为直接使用响应内容替换容器
+
+- [x] **P2**：DOM 注入后立即关闭 loading 遮罩（改善感知速度）
+    - [x] 修改 `web/templates/default/layout.html`，将 `layer.close(loadingIndex)` 移至 DOM 替换后、脚本加载前

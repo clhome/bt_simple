@@ -16,6 +16,7 @@ import time
 import uuid
 import logging
 
+from flask import g
 from datetime import timedelta
 
 from flask import Flask
@@ -127,6 +128,9 @@ def acme_challenge_file(filename):
 @app.before_request
 def requestCheck():
     request.start_time = time.time()
+
+    # 检测 Pjax 片段请求（前端发送 X-PJAX: true 时，只需返回内容片段）
+    g.is_pjax = request.headers.get('X-PJAX', '') == 'true'
 
     # 豁免 acme 挑战路由
     if request.path.startswith('/.well-known/acme-challenge/'):
