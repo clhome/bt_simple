@@ -194,3 +194,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 - [x] 优化安全防火墙列表请求初始化时间点过晚的问题
     - [x] 1. 分析安全页面 `get_list` 请求发起时间过晚的原因
     - [x] 2. 修改 `web/static/app/firewall.js`，移除全局原有的 `setTimeout`（500ms 和 1000ms）人为延迟，将 `getSshInfo()` 和 `showAccept(1)` 移入现有的 jQuery `$(function() { ... })` 代码块中，使得 DOM 加载完毕后立即请求，彻底解决防火墙和SSH信息加载过慢的白屏问题
+
+------
+
+20260623 15:20 面板性能分步优化 第八阶段（首页软件状态批量接口）
+- [x] 优化首页“软件概览”加载产生并发 N+1 网络请求导致渲染缓慢的问题
+    - [x] 1. 分析发现首页 `loadKeyDataCount` 中循环发出 5 次 `/plugins/run` 请求。
+    - [x] 2. 在后端 `web/admin/plugins/__init__.py` 中新增 `run_batch` 批量处理接口，支持一次性处理多个插件回调并返回 JSON。
+    - [x] 3. 在前端 `web/static/app/index.js` 重构 `loadKeyDataCount`，收集所有需要查询的插件，发起一次单一的 POST 请求，获取所有数据后再集中渲染。

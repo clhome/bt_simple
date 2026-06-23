@@ -260,4 +260,46 @@ def callback():
         return mw.returnData(True, "OK", data[1])
     return mw.returnData(False, data[1])
 
+# 插件统一批量回调入口API (专门用于前端聚合查询等性能优化场景)
+@blueprint.route('/run_batch', endpoint='run_batch', methods=['POST'])
+@panel_login_required
+def run_batch():
+    batch_req = request.form.get('list', '[]')
+    try:
+        req_list = json.loads(batch_req)
+    except:
+        req_list = []
+
+    pg = MwPlugin.instance()
+    import time
+    now = time.time()
+    results = {}
+
+    for item in req_list:
+        name = item.get('name', '')
+        func = item.get('func', '')
+        version = item.get('version', '')
+        args = item.get('args', '')
+        script = item.get('script', 'index')
+
+        cache_key = (name, func, version, args, script)
+        if func == 'get_total_statistics' and cache_key in RUN_CACHE:
+            cache_data, cache_time = RUN_CACHE[cache_key]
+            if now - cache_time < 10:
+                results[name] = cache_data
+                continue
+
+        data = pg.run(name, func, version, args, script)
+        if data[1] == '':
+            r = mw.returnData(True, "OK", data[0].strip())
+        else:
+            r = mw.returnData(False, data[1].strip())
+
+        if func == 'get_total_statistics':
+            RUN_CACHE[cache_key] = (r, now)
+
+        results[name] = r
+
+    return mw.getJson(results)
+
 

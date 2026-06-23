@@ -1032,46 +1032,54 @@ function pluginInit(){
 
 function loadKeyDataCount(){
     var plist = ['mysql', 'gogs', 'gitea', 'op_waf', 'fail2ban'];
+    var post_data = [];
     for (var i = 0; i < plist.length; i++) {
-        pname = plist[i];
-        function call(pname){
-            $.post('/plugins/run', {name:pname, func:'get_total_statistics'}, function(data) {
-                try {
-                    var rdata = $.parseJSON(data['data']);
-                } catch(e){
-                    return;
-                }
-                if (!rdata['status']){
-                    return;
-                }
-                var show_name = pname;
-                if (pname == 'op_waf') {
-                    show_name = '御风OP防火墙';
-                } else if (pname == 'mysql') {
-                    show_name = 'MySQL';
-                } else if (pname == 'gogs') {
-                    show_name = 'Gogs';
-                } else if (pname == 'gitea') {
-                    show_name = 'Gitea';
-                } else if (pname == 'fail2ban') {
-                    show_name = '御风F2B底层防火墙';
-                }
-                var onclick_str = 'softMain(\''+pname+'\',\''+show_name+'\',\''+rdata['data']['ver']+'\')';
-                if (pname == 'mysql') {
-                    onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'dbList\'; ' + onclick_str;
-                }
-                if (pname == 'op_waf') {
-                    onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'wafIndex\'; ' + onclick_str;
-                }
-                var html = '<li class="sys-li-box col-xs-3 col-sm-3 col-md-3 col-lg-3">\
-                        <p class="name f15 c9">'+show_name+'</p>\
-                        <div class="val"><a class="btlink" onclick="' + onclick_str + '">'+rdata['data']['count']+'</a></div>\
-                    </li>';
-                $('#index_overview').append(html);
-            },'json');
-        }
-        call(pname);
+        post_data.push({name: plist[i], func: 'get_total_statistics'});
     }
+
+    $.post('/plugins/run_batch', {list: JSON.stringify(post_data)}, function(data) {
+        for (var i = 0; i < plist.length; i++) {
+            var pname = plist[i];
+            var rdata_raw = data[pname];
+            if (!rdata_raw) continue;
+            
+            var rdata;
+            try {
+                if (typeof rdata_raw === 'string') {
+                    rdata_raw = $.parseJSON(rdata_raw);
+                }
+                rdata = typeof rdata_raw.data === 'string' ? $.parseJSON(rdata_raw.data) : rdata_raw.data;
+            } catch(e) {
+                continue;
+            }
+            if (!rdata || !rdata['status']) continue;
+
+            var show_name = pname;
+            if (pname == 'op_waf') {
+                show_name = '御风OP防火墙';
+            } else if (pname == 'mysql') {
+                show_name = 'MySQL';
+            } else if (pname == 'gogs') {
+                show_name = 'Gogs';
+            } else if (pname == 'gitea') {
+                show_name = 'Gitea';
+            } else if (pname == 'fail2ban') {
+                show_name = '御风F2B底层防火墙';
+            }
+            var onclick_str = 'softMain(\''+pname+'\',\''+show_name+'\',\''+rdata['data']['ver']+'\')';
+            if (pname == 'mysql') {
+                onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'dbList\'; ' + onclick_str;
+            }
+            if (pname == 'op_waf') {
+                onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'wafIndex\'; ' + onclick_str;
+            }
+            var html = '<li class="sys-li-box col-xs-3 col-sm-3 col-md-3 col-lg-3">\
+                    <p class="name f15 c9">'+show_name+'</p>\
+                    <div class="val"><a class="btlink" onclick="' + onclick_str + '">'+rdata['data']['count']+'</a></div>\
+                </li>';
+            $('#index_overview').append(html);
+        }
+    }, 'json');
 }
 
 $(function() {
