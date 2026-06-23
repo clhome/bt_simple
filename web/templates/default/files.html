@@ -330,9 +330,9 @@ $("#search_file").focus().keyup(function(e){
 });
 
 
+var xPath = getCookie('open_dir_path');
 $(function() {
     getDisk();
-    var xPath = getCookie('open_dir_path');
     getFiles((xPath != undefined ? xPath : '/www/wwwroot'));
     initDragDrop();
     initFileTabs();

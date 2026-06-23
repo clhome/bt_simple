@@ -210,3 +210,10 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 1. 修改 `web/admin/setup/sql/default.sql`，添加缺失的 `CREATE INDEX IF NOT EXISTS` 语句（涉及 domain, binding, backup, logs, tasks 表）。
     - [x] 2. 编写脚本同步修改线上生产环境的 `panel.db`，动态应用这些索引以提升查询效率。
     - [x] 3. 验证索引是否已正确应用。
+
+------
+
+20260623 15:43 修复文件页面 xPath 未定义的报错
+- [x] 修复点击“文件”菜单时抛出 xPath is not defined 异常
+    - [x] 1. 分析 `web/templates/default/files.html` 中变量 `xPath` 作用域丢失的问题。
+    - [x] 2. 修复 `pathPlaceBtn((xPath != undefined ? xPath : '/www/wwwroot'));` 调用时 `xPath` 未定义的作用域问题。
