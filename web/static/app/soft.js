@@ -237,13 +237,33 @@ function getSList(isdisplay) {
 
 
         $("#softList").html(sBody);
-        $(".menu-sub span").click(function() {
+        $(".menu-sub span").off("click").click(function() {
             setCookie('soft_type', $(this).attr('typeid'));
             $(this).addClass("on").siblings().removeClass("on");
             getSList();
         });
 
         loadImage();
+
+        // 智能自适应轮询
+        var has_active_task = false;
+        if (rdata.data) {
+            for (var k = 0; k < rdata.data.length; k++) {
+                var p_item = rdata.data[k];
+                if (p_item && (p_item.task == '-2' || p_item.task == '-1' || p_item.task == '0')) {
+                    has_active_task = true;
+                    break;
+                }
+            }
+        }
+        
+        if (window.softTimer) clearTimeout(window.softTimer);
+        if (window.document.location.pathname == '/soft/') {
+            var delay = has_active_task ? 8000 : 30000; // 有任务8秒，无任务30秒
+            window.softTimer = setTimeout(function() {
+                getSList(true); // 传入 true，避免弹出 loading 遮罩
+            }, delay);
+        }
     },'json');
 }
 
@@ -769,9 +789,7 @@ function refreshPluginList() {
 }
 
 $(function() {
-    if (window.document.location.pathname == '/soft/') {
-        setInterval(function() { getSList(); }, 8000);
-    }
+
 
     // 点击外部隐藏设置下拉框
     $(document).click(function(e) {

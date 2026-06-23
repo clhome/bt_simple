@@ -125,6 +125,25 @@ def acme_challenge_file(filename):
     path = os.path.join(mw.getRunDir(), 'tmp', '.well-known', 'acme-challenge')
     return send_from_directory(path, filename)
 
+_request_check_cache = {}
+_request_check_cache_time = {}
+
+def getRequestCheckOption(key, is_json=False, default=None):
+    global _request_check_cache, _request_check_cache_time
+    import time
+    now = time.time()
+    if key in _request_check_cache and (now - _request_check_cache_time.get(key, 0)) < 10:
+        return _request_check_cache[key]
+    
+    if is_json:
+        val = thisdb.getOptionByJson(key, default=default)
+    else:
+        val = thisdb.getOption(key, default=default)
+        
+    _request_check_cache[key] = val
+    _request_check_cache_time[key] = now
+    return val
+
 @app.before_request
 def requestCheck():
     request.start_time = time.time()
@@ -136,13 +155,13 @@ def requestCheck():
     if request.path.startswith('/.well-known/acme-challenge/'):
         return
 
-    admin_close = thisdb.getOption('admin_close')
+    admin_close = getRequestCheckOption('admin_close', default='no')
     if admin_close == 'yes':
         if not request.path.startswith('/close'):
             return redirect('/close')
     # 自定义basic auth认证
     if app.config['BASIC_AUTH_OPEN']:
-        basic_auth = thisdb.getOptionByJson('basic_auth', default={'open':False})
+        basic_auth = getRequestCheckOption('basic_auth', is_json=True, default={'open':False})
         if not basic_auth['open']:
             return
 

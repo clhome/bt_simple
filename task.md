@@ -155,3 +155,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 优化 `web/static/app/files.js`，在每次 `getFiles()` 渲染完数据后，对所有事件绑定（如 checkbox 点击、全选点击、mousedown 绑定等）增加对应的 `.off()` 调用以先解除可能存在的旧事件绑定，彻底解决文件浏览过程中的事件叠加和内存泄漏
     - [x] 3. 优化 `web/static/app/index.js` 中的 `setImg()` 方法，引入 100ms 防抖限制，避免在首页频繁的轮询图表和数据中重复进行 DOM 遍历和事件解绑绑定
     - [x] 4. 进行语法和页面校验，完成优化并编写 walkthrough.md
+
+------
+
+20260623 14:46 面板性能分步优化 第三阶段（before_request路由拦截与soft.js轮询优化）
+- [x] 优化请求拦截性能与软件管理智能轮询
+    - [x] 1. 优化 `web/admin/__init__.py` 中的 `requestCheck()` 过滤器，实现 `getRequestCheckOption()` 对基本权限选项的 10 秒微缓存，杜绝每次 HTTP 请求无条件查库的行为
+    - [x] 2. 优化 `web/static/app/soft.js`，将每 8 秒发送匿名请求的 `setInterval` 轮询删除，改用成功回调后依据当前是否有在安装任务动态调整延时（有任务8秒，无任务30秒）的 `setTimeout` 智能轮询，并彻底消除轮询过程中反复强弹 loading 遮罩的问题
+    - [x] 3. 运行 py_compile 检验 `__init__.py` 语法，并编写 walkthrough.md 报告
