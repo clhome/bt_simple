@@ -330,17 +330,13 @@ $("#search_file").focus().keyup(function(e){
 });
 
 
-setTimeout(function() {
+$(function() {
     getDisk();
-}, 500);
-
-
-var xPath = getCookie('open_dir_path');
-setTimeout(function() {
+    var xPath = getCookie('open_dir_path');
     getFiles((xPath != undefined ? xPath : '/www/wwwroot'));
     initDragDrop();
     initFileTabs();
-}, 800);
+});
 
 pathPlaceBtn((xPath != undefined ? xPath : '/www/wwwroot'));
 setCookie('uploadSize', 1024 * 1024 * 1024);

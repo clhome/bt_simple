@@ -180,3 +180,10 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 重构 `web/static/app/site.js` 添加网站处的 `syncPost('/site/get_root_dir')` 为嵌套异步 `$.post` 调用，避免主界面打开新建弹窗时短暂“假死”
     - [x] 3. 重构 `web/static/app/site.js` 伪静态与配置文件处的 `syncPost`（包括 get_host_conf, get_rewrite_conf 和 get_rewrite_tpl），彻底将站点管理内的同步网络阻塞升级为非阻塞回调交互
     - [x] 4. 验证各项弹框行为完全一致，编写 walkthrough.md 报告
+
+------
+
+20260623 15:02 面板性能分步优化 第六阶段（文件页面加载延迟移除）
+- [x] 优化文件列表请求初始化时间点过晚的问题
+    - [x] 1. 分析文件页面 `get_dir` 请求发起时间过晚的原因
+    - [x] 2. 修改 `web/templates/default/files.html`，移除原有的 `setTimeout`（500ms 和 800ms）人为延迟，改用 jQuery 的 `$(function() { ... })` 实现 DOM 加载完毕后立即请求，提升页面性能表现
