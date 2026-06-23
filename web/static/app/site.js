@@ -256,10 +256,9 @@ function webAddPage(type) {
             php_version += "<option value='"+rdata[i].version+"'>"+rdata[i].name+"</option>";
         }
 
-        var www = syncPost('/site/get_root_dir');
-
-		php_version += "</select><span id='php_w' style='color:red;margin-left: 10px;'></span></div>";
-		layer.open({
+        $.post('/site/get_root_dir', function(www) {
+			php_version += "</select><span id='php_w' style='color:red;margin-left: 10px;'></span></div>";
+			layer.open({
 			type: 1,
 			skin: 'demo-class',
 			area: '640px',
@@ -358,6 +357,7 @@ function webAddPage(type) {
 			var timestamp = new Date().getTime().toString();
 			var dtpw = timestamp.substring(7);
 		});
+	}, 'json');
 	}, 'json');
 }
 
@@ -2927,8 +2927,8 @@ function setPHPVersion(siteName){
 
 //配置文件
 function configFile(webSite){
-	var info = syncPost('/site/get_host_conf', {siteName:webSite});
-	$.post('/files/get_body','path='+info['host'],function(rdata){
+	$.post('/site/get_host_conf', {siteName:webSite}, function(info) {
+		$.post('/files/get_body','path='+info['host'],function(rdata){
 		var mBody = "<div class='webEdit-box padding-10'>\
 		<textarea style='height: 320px; width: 740px; margin-left: 20px;line-height:18px' id='configBody'>"+rdata.data.data+"</textarea>\
 			<div class='info-r'>\
@@ -2969,6 +2969,7 @@ function configFile(webSite){
 			saveConfigFile(webSite,rdata.data.encoding, info['host']);
 		})
 	},'json');
+	},'json');
 }
 
 //保存配置文件
@@ -2988,9 +2989,9 @@ function saveConfigFile(webSite,encoding,path){
 //伪静态
 function rewrite(siteName){
 	$.post("/site/get_rewrite_list", 'siteName='+siteName,function(rdata){
-		var info = syncPost('/site/get_rewrite_conf', {siteName:siteName});
-		var filename = info['rewrite'];
-		$.post('/files/get_body','path='+filename,function(fileBody){
+		$.post('/site/get_rewrite_conf', {siteName:siteName}, function(info) {
+			var filename = info['rewrite'];
+			$.post('/files/get_body','path='+filename,function(fileBody){
 			var centent = fileBody['data']['data'];
 			var rList = ''; 
 			for(var i=0;i<rdata.rewrite.length;i++){
@@ -3051,20 +3052,25 @@ function rewrite(siteName){
 				var rewriteName = $(this).val();
 				if(rewriteName == '0'){
 					rpath = filename;
+					$.post('/files/get_body','path='+rpath,function(fileBody){
+						$("#rewriteBody").val(fileBody['data']['data']);
+						editor.setValue(fileBody['data']['data']);
+					},'json');
 				}else{
-					var info = syncPost('/site/get_rewrite_tpl', {tplname:rewriteName});
-					if (!info['status']){
-						layer.msg(info['msg']);
-						return;
-					}
-					rpath = info['data'];
+					$.post('/site/get_rewrite_tpl', {tplname:rewriteName}, function(info) {
+						if (!info['status']){
+							layer.msg(info['msg']);
+							return;
+						}
+						rpath = info['data'];
+						$.post('/files/get_body','path='+rpath,function(fileBody){
+							$("#rewriteBody").val(fileBody['data']['data']);
+							editor.setValue(fileBody['data']['data']);
+						},'json');
+					},'json');
 				}
-				
-				$.post('/files/get_body','path='+rpath,function(fileBody){
-					$("#rewriteBody").val(fileBody['data']['data']);
-					editor.setValue(fileBody['data']['data']);
-				},'json');
 			});
+		},'json');
 		},'json');
 	},'json');
 }

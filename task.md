@@ -171,3 +171,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 1. 优化 `web/static/app/index.js` 中的 ECharts 网卡流量图表刷新逻辑，建立全局 `window.updateNetChart` 接口
     - [x] 2. 重构定时刷新，使 ECharts 仅在 `getNet()` 网络请求异步成功返回后才做图表重绘（setOption）与数据装载（addData），消除原先定时器立即渲染和网络回调多次渲染引起的重复开销和数据错位
     - [x] 3. 编写 walkthrough.md 优化结果报告
+
+------
+
+20260623 14:54 面板性能分步优化 第五阶段（syncPost同步交互异步化改动）
+- [x] 消除站点配置及新建交互中的同步阻塞
+    - [x] 1. 编写并提交 implementation_plan.md 并设置 request_feedback 寻求用户审核
+    - [x] 2. 重构 `web/static/app/site.js` 添加网站处的 `syncPost('/site/get_root_dir')` 为嵌套异步 `$.post` 调用，避免主界面打开新建弹窗时短暂“假死”
+    - [x] 3. 重构 `web/static/app/site.js` 伪静态与配置文件处的 `syncPost`（包括 get_host_conf, get_rewrite_conf 和 get_rewrite_tpl），彻底将站点管理内的同步网络阻塞升级为非阻塞回调交互
+    - [x] 4. 验证各项弹框行为完全一致，编写 walkthrough.md 报告
