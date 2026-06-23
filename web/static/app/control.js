@@ -237,6 +237,7 @@ function getBeforeDate(n){
 //cpu
 function cpu(b,e){
 	$.get('/system/get_cpu_io?start='+b+'&end='+e,function(rdata){
+		if (!document.getElementById('cupview')) return;
 		var rdata = rdata.data;
 		var myChartCpu = echarts.init(document.getElementById('cupview'));
 		var xData = [];
@@ -313,6 +314,7 @@ function cpu(b,e){
 //内存
 function mem(b,e){
 	$.get('/system/get_cpu_io?start='+b+'&end='+e,function(rdata){
+		if (!document.getElementById('memview')) return;
 		var rdata = rdata.data;
 		var myChartMen = echarts.init(document.getElementById('memview'));
 		var xData = [];
@@ -389,6 +391,7 @@ function mem(b,e){
 //磁盘io
 function disk(b,e){
 	$.get('/system/get_disk_io?start='+b+'&end='+e,function(rdata){
+		if (!document.getElementById('diskview')) return;
 		var rdata = rdata.data;
 		var myChartDisk = echarts.init(document.getElementById('diskview'));
 		var rData = [];
@@ -481,6 +484,7 @@ function disk(b,e){
 //网络Io
 function network(b,e){
 	$.get('/system/get_network_io?start='+b+'&end='+e,function(rdata){
+		if (!document.getElementById('network')) return;
 		var rdata = rdata.data;
 		var myChartNetwork = echarts.init(document.getElementById('network'));
 		var aData = [];
@@ -709,6 +713,7 @@ function getload_old(b,e){
 //系统负载
 function getload(b,e){
 	$.get('/system/get_load_average?start='+b+'&end='+e,function(rdata){
+		if (!document.getElementById('getloadview')) return;
 		var rdata = rdata.data;
 		var myChartgetload = echarts.init(document.getElementById('getloadview'));
 		var aData = [];

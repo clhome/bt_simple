@@ -122,3 +122,9 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 
 - [x] **P2**：DOM 注入后立即关闭 loading 遮罩（改善感知速度）
     - [x] 修改 `web/templates/default/layout.html`，将 `layer.close(loadingIndex)` 移至 DOM 替换后、脚本加载前
+
+- [x] 修复监控页面切换到其他页面时 ECharts 异步初始化导致的 DOM 找不到报错 BUG
+    - [x] 1. 分析并调研问题，制定排查方案并编写 `implementation_plan.md` 供用户审核。
+    - [x] 2. 修改 `web/static/app/control.js`，在所有图表渲染函数（`cpu`, `mem`, `disk`, `network`, `getload`） of `$.get` 成功回调函数首行，增加 DOM 元素存在性防御校验。
+    - [x] 3. 编写本地 Python 部署脚本，将修复后的 `control.js` 同步部署到远程服务器并验证。
+    - [x] 4. 编写 `walkthrough.md` 记录本次修复情况。
