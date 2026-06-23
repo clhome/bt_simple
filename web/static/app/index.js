@@ -484,26 +484,30 @@ function netImg() {
 }
 
 
+var setImgTimer = null;
 function setImg() {
-    $('.circle').each(function(index, el) {
-        var num = $(this).find('span').text() * 3.6;
-        if (num <= 180) {
-            $(this).find('.left').css('transform', "rotate(0deg)");
-            $(this).find('.right').css('transform', "rotate(" + num + "deg)");
-        } else {
-            $(this).find('.right').css('transform', "rotate(180deg)");
-            $(this).find('.left').css('transform', "rotate(" + (num - 180) + "deg)");
-        };
-    });
+    if (setImgTimer) clearTimeout(setImgTimer);
+    setImgTimer = setTimeout(function() {
+        $('.circle').each(function(index, el) {
+            var num = $(this).find('span').text() * 3.6;
+            if (num <= 180) {
+                $(this).find('.left').css('transform', "rotate(0deg)");
+                $(this).find('.right').css('transform', "rotate(" + num + "deg)");
+            } else {
+                $(this).find('.right').css('transform', "rotate(180deg)");
+                $(this).find('.left').css('transform', "rotate(" + (num - 180) + "deg)");
+            };
+        });
 
-    $('.diskbox .mask').unbind().hover(function() {
-        layer.closeAll('tips');
-        var that = this;
-        var conterError = $(this).attr("data");
-        layer.tips(conterError, that, { time: 0, tips: [1, '#999'] });
-    }, function() {
-        layer.closeAll('tips');
-    });
+        $('.diskbox .mask').unbind().hover(function() {
+            layer.closeAll('tips');
+            var that = this;
+            var conterError = $(this).attr("data");
+            layer.tips(conterError, that, { time: 0, tips: [1, '#999'] });
+        }, function() {
+            layer.closeAll('tips');
+        });
+    }, 100);
 }
 
 // 检查更新

@@ -687,7 +687,7 @@ function getFiles(Path) {
         
         $("#BarTools").html(BarTools);
         
-        $("input[name=id]").click(function(){
+        $("input[name=id]").off("click").click(function(){
             if($(this).prop("checked")) {
                 $(this).prop("checked", true);
                 $(this).parents("tr").addClass("ui-selected");
@@ -699,7 +699,7 @@ function getFiles(Path) {
             showSeclect();
         });
 
-        $("#setBox").click(function() {
+        $("#setBox").off("click").click(function() {
             if ($(this).prop("checked")) {
                 $("input[name=id]").prop("checked", true);
                 $("#filesBody > tr").addClass("ui-selected");
@@ -711,22 +711,22 @@ function getFiles(Path) {
             showSeclect();
         });
         //阻止冒泡
-        $("#filesBody .btlink").click(function(e){
+        $("#filesBody .btlink").off("click").click(function(e){
             e.stopPropagation();
         });
-        $("input[name=id]").dblclick(function(e){
+        $("input[name=id]").off("dblclick").dblclick(function(e){
             e.stopPropagation();
         });
 
 
         //禁用右键
-        $("#fileCon").bind("contextmenu",function(e){
+        $("#fileCon").off("contextmenu").bind("contextmenu",function(e){
             return false;
         });
         bindselect();
 
         // //绑定右键
-        $("#fileCon").mousedown(function(e){
+        $("#fileCon").off("mousedown").mousedown(function(e){
             var count = totalFile();
             if(e.which == 3) {
                 if(count>1){
@@ -737,14 +737,14 @@ function getFiles(Path) {
             }
         });
 
-        $(".folderBox,.folderBoxTr").mousedown(function(e){
+        $(".folderBox,.folderBoxTr").off("mousedown").mousedown(function(e){
             var box = $(this);
             var option = rightMenuClick(box.attr("filetype"),box.attr("data-path"),box.find("input").val());
             box.contextify(option);
         });
         
         //每页行数
-        $(".showRow").change(function(){
+        $(".showRow").off("change").change(function(){
             setCookie('file_row',$(this).val());
             getFiles(p);
         });

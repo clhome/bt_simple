@@ -146,3 +146,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 优化 `web/utils/config.py` 中的 `getGlobalVar()`，实现 30s 缓存，并将 `systemdate` 的 shell date 命令改为原生 Python `time.strftime` 以消除 shell fork 子进程带来的重大开销
     - [x] 3. 优化 `web/static/app/site.js`，将 `.setTimes` 点击事件重构为外层事件委托，消除 `getWeb` 每次渲染时在 `#webBody` 上产生的事件绑定内存泄漏与重复初始化问题
     - [x] 4. 进行功能测试与语法校验，完成优化并编写 walkthrough.md
+
+------
+
+20260623 14:40 面板性能分步优化 第二阶段（files.js事件解绑与index.js防抖）
+- [x] 优化文件页面性能与首页高频轮询开销
+    - [x] 1. 编写并提交 implementation_plan.md 并设置 request_feedback 寻求用户审核
+    - [x] 2. 优化 `web/static/app/files.js`，在每次 `getFiles()` 渲染完数据后，对所有事件绑定（如 checkbox 点击、全选点击、mousedown 绑定等）增加对应的 `.off()` 调用以先解除可能存在的旧事件绑定，彻底解决文件浏览过程中的事件叠加和内存泄漏
+    - [x] 3. 优化 `web/static/app/index.js` 中的 `setImg()` 方法，引入 100ms 防抖限制，避免在首页频繁的轮询图表和数据中重复进行 DOM 遍历和事件解绑绑定
+    - [x] 4. 进行语法和页面校验，完成优化并编写 walkthrough.md
