@@ -128,3 +128,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 修改 `web/static/app/control.js`，在所有图表渲染函数（`cpu`, `mem`, `disk`, `network`, `getload`） of `$.get` 成功回调函数首行，增加 DOM 元素存在性防御校验。
     - [x] 3. 编写本地 Python 部署脚本，将修复后的 `control.js` 同步部署到远程服务器并验证。
     - [x] 4. 编写 `walkthrough.md` 记录本次修复情况。
+
+------
+
+20260623 14:16 网站列表性能优化（N+1查询消除与前端延迟移除）
+- [x] 优化网站列表的响应和渲染速度
+    - [x] 1. 编写并提交 implementation_plan.md 并设置 request_feedback 寻求用户审核
+    - [x] 2. 优化 `web/admin/site/site.py` 中的网站列表获取接口，通过批量预读 vhost 配置并使用正则匹配解析 PHP 版本和 SSL 状态，消除 N+1 文件I/O和数据库查询
+    - [x] 3. 优化 `web/templates/default/site.html`，消除前端 500ms 的 `setTimeout` 加载延迟，使页面能够立刻加载
+    - [x] 4. 验证并测试优化效果，确保优化后加载正常，性能提升显著，然后编写 walkthrough.md 汇总

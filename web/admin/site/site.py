@@ -53,22 +53,38 @@ def list():
     else:
         info = thisdb.getSitesList(page=int(p),size=int(limit),type_id=int(type_id), search=search,order=order)
 
+    # 优化：批量预读 vhost 配置，消除 N+1 磁盘 I/O 和数据库查询
+    import re
+    vhost_dir = MwSites.instance().vhostPath
+    vhost_cache = {}
+    if os.path.isdir(vhost_dir):
+        for f in os.listdir(vhost_dir):
+            if f.endswith('.conf'):
+                name = f[:-5]
+                conf_path = os.path.join(vhost_dir, f)
+                try:
+                    vhost_cache[name] = mw.readFile(conf_path)
+                except Exception:
+                    vhost_cache[name] = ""
+
     for site in info['list']:
         site_name = site['name']
+        conf_content = vhost_cache.get(site_name, '')
         
-        # 获取 PHP 版本
-        php_info = MwSites.instance().getSitePhpVersion(site_name)
-        site['php_version'] = php_info.get('phpversion', '00')
+        # 1. 获取 PHP 版本 (正则提取自 vhost 配置)
+        php_match = re.search(r"enable-php-(.*)\.conf", conf_content)
+        site['php_version'] = php_match.group(1) if php_match else '00'
         
-        # 获取 SSL 信息
-        ssl_info = MwSites.instance().getSsl(site_name, '')
-        ssl_data = ssl_info.get('data', {}) if isinstance(ssl_info, dict) else {}
-        if ssl_data.get('status') and ssl_data.get('cert_data'):
-            site['ssl_days'] = ssl_data['cert_data'].get('endtime', -1)
-        else:
-            site['ssl_days'] = -1
+        # 2. 获取 SSL 信息 (仅当配置中包含 ssl_certificate 且证书存在时，才解析过期天数)
+        site['ssl_days'] = -1
+        if conf_content.find('ssl_certificate') != -1:
+            cert_path = MwSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
+            if os.path.exists(cert_path):
+                cert_data = mw.getCertName(cert_path)
+                if cert_data:
+                    site['ssl_days'] = cert_data.get('endtime', -1)
             
-        # 获取日流量 (用当日日志文件大小估算)
+        # 3. 获取日流量 (用当日日志文件大小估算)
         log_path = mw.getLogsDir() + '/' + site_name + '.log'
         if os.path.exists(log_path):
             site['daily_traffic'] = os.path.getsize(log_path)
