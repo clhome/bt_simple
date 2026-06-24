@@ -326,3 +326,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 4. 修改 `deploy.sh` 中的 `get_github_url`，使其复用最优代理拼接，避免卡在普通 `git clone` 阶段
     - [x] 5. 校验 `scripts/github_download.sh` 和 `deploy.sh` 的语法
     - [x] 6. 更新 walkthrough.md
+
+------
+
+20260624 13:48 优化 GitHub 下载节点探测与缓存机制
+- [x] 优化 GitHub 下载节点探测与缓存机制
+    - [x] 1. 修改 `scripts/github_download.sh` 修复 `curl` 错误状态码拼接 `000000` 并通过全局缓存共享探测结果，提高克隆超时时间到 90 秒
+    - [x] 2. 修改 `deploy.sh` 同步更新探测逻辑的调用语法
+    - [x] 3. 运行语法校验，并编写 walkthrough.md 报告

@@ -71,7 +71,8 @@ get_github_url() {
         if [[ $original_url == *"github.com"* ]]; then
             local best_proxy=""
             if type _gh_get_best_proxy >/dev/null 2>&1; then
-                best_proxy=$(_gh_get_best_proxy)
+                _gh_get_best_proxy >/dev/null
+                best_proxy="$_GH_BEST_PROXY"
             fi
             local use_proxy="${best_proxy:-https://gh-proxy.com/}"
             
@@ -92,7 +93,8 @@ setup_china_git_config() {
         
         local best_proxy=""
         if type _gh_get_best_proxy >/dev/null 2>&1; then
-            best_proxy=$(_gh_get_best_proxy)
+            _gh_get_best_proxy >/dev/null
+            best_proxy="$_GH_BEST_PROXY"
         fi
         
         if [ -z "$best_proxy" ]; then
@@ -643,7 +645,8 @@ fresh_install() {
         if check_china; then
             local best_proxy=""
             if type _gh_get_best_proxy >/dev/null 2>&1; then
-                best_proxy=$(_gh_get_best_proxy)
+                _gh_get_best_proxy >/dev/null
+                best_proxy="$_GH_BEST_PROXY"
             fi
             local acme_proxy="${best_proxy:-https://gh-proxy.com/}"
             curl "${acme_proxy}https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh" | sh -s -- --install-online -m my@example.com 2>/dev/null

@@ -44,7 +44,10 @@ _gh_get_best_proxy() {
         echo -n "  - 正在探测节点: $proxy ... " >&2
         # 使用轻量级 refs 请求测试可用性，最大超时设为 3 秒
         local test_url="${proxy}https://github.com/clhome/bt_simple.git/info/refs?service=git-upload-pack"
-        local status=$(curl -s -o /dev/null -w "%{http_code}" -m 3 "$test_url" 2>/dev/null || echo "000")
+        local status=$(curl -s -o /dev/null -w "%{http_code}" -m 3 "$test_url" 2>/dev/null)
+        if [ $? -ne 0 ] || [ -z "$status" ]; then
+            status="000"
+        fi
         
         if [[ "$status" == "200" || "$status" == "401" || "$status" == "301" || "$status" == "302" ]]; then
             echo -e "\033[32m[存活]\033[0m" >&2
@@ -211,7 +214,8 @@ github_download() {
     echo "[github_download] ✗ 直连失败，准备使用代理加速节点..."
 
     # 步骤2: 极速探测获取缓存节点，避免盲目轮询
-    local best_proxy=$(_gh_get_best_proxy)
+    _gh_get_best_proxy >/dev/null
+    local best_proxy="$_GH_BEST_PROXY"
     if [ -n "$best_proxy" ]; then
         local proxy_url=$(_gh_proxy_url "$best_proxy" "$url")
         echo "[github_download] 命中最佳加速代理: ${best_proxy}"
@@ -256,7 +260,7 @@ github_clone() {
     local target_dir=$1
     local repo_url=$2
     local branch=${3:-""}
-    local timeout=30
+    local timeout=${4:-90}
 
     if [ -z "$target_dir" ] || [ -z "$repo_url" ]; then
         echo "[github_clone] 错误: 缺少参数。用法: github_clone <目标目录> <仓库URL> [分支]"
@@ -281,7 +285,8 @@ github_clone() {
     echo "[github_clone] ✗ 直连失败，准备使用代理加速节点..."
 
     # 步骤2: 极速获取缓存最佳代理
-    local best_proxy=$(_gh_get_best_proxy)
+    _gh_get_best_proxy >/dev/null
+    local best_proxy="$_GH_BEST_PROXY"
     if [ -n "$best_proxy" ]; then
         local proxy_repo_url=$(_gh_proxy_url "$best_proxy" "$repo_url")
         echo "[github_clone] 命中最佳加速代理: ${best_proxy}"
@@ -337,7 +342,8 @@ github_api_get() {
     fi
 
     # 步骤2: 读取最佳缓存节点
-    local best_proxy=$(_gh_get_best_proxy)
+    _gh_get_best_proxy >/dev/null
+    local best_proxy="$_GH_BEST_PROXY"
     if [ -n "$best_proxy" ]; then
         local proxy_url=$(_gh_proxy_url "$best_proxy" "$url")
         result=$(curl -s -m "$timeout" "$proxy_url" 2>/dev/null)
