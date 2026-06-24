@@ -255,3 +255,13 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 3. 修改 `web/static/app/public.js` 扩展 `webShell` 与 `_webShellInit` 支持 `dir` 参数，增加 socket 监听器解绑，在首帧响应时发送 `cd` 命令
     - [x] 4. 修改 `tmp/deploy_files.py` 添加 `public.js` 和 `files.js` 的发布映射
     - [ ] 5. 运行 `deploy_files.py` 部署到测试服务器，手动测试验证功能，然后编写 walkthrough.md 报告
+
+------
+
+20260624 10:15 fail2ban 插件增加严格模式勾选支持
+- [x] fail2ban 插件增加严格模式勾选支持
+    - [x] 1. 在 `task.md` 中添加任务规划
+    - [x] 2. 修改 `plugins/fail2ban/js/fail2ban.js` 中 `f2bService` 的渲染和改变监听事件，引入严格模式勾选框并绑定 AJAX 触发逻辑
+    - [x] 3. 修改 `plugins/fail2ban/index.py`，支持严格模式配置解析，在 `get_anti_info` 中增加默认初始化状态，更新 `sync_jail_local` 生成 allports 规则，并新增后端修改接口与 CLI 分发入口
+    - [x] 4. 运行语法测试并检查配置生成格式
+    - [x] 5. 验证测试功能并编写 walkthrough.md 报告

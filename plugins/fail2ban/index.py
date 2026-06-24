@@ -599,18 +599,23 @@ class fail2ban_main:
         try:
             conf = mw.readFile(self._config)
             if not conf:
-                conf_data = {"server": [default_sshd], "site": []}
+                conf_data = {"server": [default_sshd], "site": [], "strict": True}
                 mw.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 return conf_data
                 
             conf_data = json.loads(conf)
             if not isinstance(conf_data, dict):
-                conf_data = {"server": [], "site": []}
+                conf_data = {"server": [], "site": [], "strict": True}
                 
             # If server config is completely empty, initialize it with sshd defaults
             if 'server' not in conf_data or not isinstance(conf_data['server'], list) or len(conf_data['server']) == 0:
                 conf_data['server'] = [default_sshd]
+                mw.writeFile(self._config, json.dumps(conf_data))
+                self.sync_jail_local(conf_data)
+                
+            if 'strict' not in conf_data:
+                conf_data['strict'] = True
                 mw.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
@@ -619,8 +624,8 @@ class fail2ban_main:
             return conf_data
         except Exception:
             # Re-initialize on corruption
-            conf_data = {"server": [default_sshd], "site": [], "default_ssh_port": self.get_ssh_port(), "default_mysql_port": self.get_mysql_port()}
-            mw.writeFile(self._config, json.dumps({"server": [default_sshd], "site": []}))
+            conf_data = {"server": [default_sshd], "site": [], "strict": True, "default_ssh_port": self.get_ssh_port(), "default_mysql_port": self.get_mysql_port()}
+            mw.writeFile(self._config, json.dumps({"server": [default_sshd], "site": [], "strict": True}))
             self.sync_jail_local(conf_data)
             return conf_data
 
@@ -638,11 +643,14 @@ class fail2ban_main:
 
     def sync_jail_local(self, conf):
         content = ""
+        strict = conf.get('strict', True)
         for item in conf.get('server', []):
             if str(item.get('act')).lower() == 'true':
                 content += f"[{item['mode']}]\n"
                 content += "enabled = true\n"
                 content += f"port = {item.get('port', '')}\n"
+                if strict:
+                    content += "banaction = %(banaction_allports)s\n"
                 content += f"maxretry = {item.get('maxretry', 5)}\n"
                 content += f"findtime = {item.get('findtime', 300)}\n"
                 content += f"bantime = {item.get('bantime', 86400)}\n\n"
@@ -657,6 +665,8 @@ class fail2ban_main:
                 content += f"port = {item.get('port', '80,443')}\n"
                 content += f"filter = {mode}\n"
                 content += "logpath = /www/wwwlogs/*.log\n"
+                if strict:
+                    content += "banaction = %(banaction_allports)s\n"
                 content += f"maxretry = {item.get('maxretry', 5)}\n"
                 content += f"findtime = {item.get('findtime', 300)}\n"
                 content += f"bantime = {item.get('bantime', 86400)}\n\n"
@@ -737,6 +747,21 @@ class fail2ban_main:
         
         mw.execShell('systemctl reload fail2ban')
         return mw.returnJson(True, '删除成功!')
+
+    def set_strict_mode(self, args):
+        args = self.parse_inner_args(args)
+        strict_val = args.get('strict', 'true')
+        if isinstance(strict_val, str):
+            strict = strict_val.lower() == 'true'
+        else:
+            strict = bool(strict_val)
+        conf = self.get_anti_info()
+        conf['strict'] = strict
+        mw.writeFile(self._config, json.dumps(conf))
+        self.sync_jail_local(conf)
+        
+        mw.execShell('systemctl reload fail2ban')
+        return mw.returnJson(True, '设置成功!')
 
     def get_status(self, args):
         return mw.returnJson(True, 'ok')
@@ -1060,6 +1085,9 @@ if __name__ == "__main__":
     elif func == 'del_anti':
         args = getArgs()
         print(get_fail2ban_inst().del_anti(args))
+    elif func == 'set_strict_mode':
+        args = getArgs()
+        print(get_fail2ban_inst().set_strict_mode(args))
     elif func == 'get_anti_info':
         args = getArgs()
         print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_anti_info(args)))

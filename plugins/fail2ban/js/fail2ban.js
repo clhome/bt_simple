@@ -78,13 +78,46 @@ function f2bService() {
         if ($('.soft-man-con').text().indexOf('当前状态') !== -1) {
             clearInterval(waitTimer);
             if ($('.soft-man-con').find('#f2b_intro_panel').length === 0) {
+                // Fetch the config info to see if strict mode is enabled
+                f2bPost('get_anti_info', '', {}, function(data) {
+                    var rdata = {};
+                    try {
+                        rdata = $.parseJSON(data.data);
+                    } catch(e) {}
+                    var strict = true;
+                    if (rdata && rdata.hasOwnProperty('strict')) {
+                        strict = rdata.strict;
+                    }
+                    
+                    // Add checkbox next to reload button in .sfm-opt
+                    var checkboxHtml = '<label style="margin-left: 30px; font-weight: normal; cursor: pointer; display: inline-flex; align-items: center; vertical-align: middle; user-select: none;">\
+                        <input type="checkbox" id="f2b_strict_mode" style="margin-right: 5px; width: 15px; height: 15px; cursor: pointer; margin-top: 0;" ' + (strict ? 'checked' : '') + '> 严格模式\
+                    </label>\
+                    <span style="color: #666; margin-left: 10px; font-size: 12px; vertical-align: middle; display: inline-block;">（开启后，任意项目触发将封禁该IP访问所有配置的服务）</span>';
+                    
+                    var sfmOpt = $('.soft-man-con').find('.sfm-opt');
+                    if (sfmOpt.find('#f2b_strict_mode').length === 0) {
+                        sfmOpt.append(checkboxHtml);
+                    }
+                    
+                    // Listen to changes on the checkbox
+                    $('#f2b_strict_mode').off('change').on('change', function() {
+                        var isChecked = $(this).prop('checked');
+                        f2bPost('set_strict_mode', '', { strict: isChecked }, function(res) {
+                            var r = $.parseJSON(res.data);
+                            layer.msg(r.msg, { icon: r.status ? 1 : 2 });
+                        });
+                    });
+                });
+
                 var infoHtml = '<div id="f2b_intro_panel" class="help-info-text c7" style="margin-top: 15px; padding: 15px; border: 1px dashed #ccc; border-radius: 4px; line-height: 24px;">\
-                    <h3 style="margin-top:0; margin-bottom: 10px; font-size: 14px; font-weight: bold; color: #333;">📖 Fail2ban 使用指南</h3>\
-                    <p style="margin-bottom: 5px;"><b>Fail2ban</b> 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</p>\
+                    <h3 style="margin-top:0; margin-bottom: 10px; font-size: 14px; font-weight: bold; color: #333;">📖 御风F2B底层防火墙  使用指南</h3>\
+                    <p style="margin-bottom: 5px;"><b>御风F2B底层防火墙</b> 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</p>\
                     <ul style="margin-bottom: 0; padding-left: 20px;">\
                         <li><b>系统防护</b>：用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。</li>\
                         <li><b>网站防护</b>：自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。</li>\
                         <li><b>IP黑名单</b>：您可以在此查看当前被防火墙封禁拦截的攻击源 IP，并支持手动添加或解除封禁。</li>\
+                        <li><b>严格模式</b>：开启后，任意受保护的项目触发拦截，将封禁该 IP 访问所有已配置的防护内容。</li>\
                     </ul>\
                 </div>';
                 $('.soft-man-con').append(infoHtml);
