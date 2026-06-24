@@ -302,3 +302,27 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 3. 编写发布脚本或执行部署，将修改同步到测试服务器。
     - [x] 4. 现场验证 Fail2ban 启动后，列表状态能在 4 秒内自动更新，且无残留状态缓存。
     - [x] 5. 更新 walkthrough.md 报告。
+
+------
+
+20260624 11:45 优化 deploy.sh 安装脚本速度
+- [x] 优化 deploy.sh 安装脚本速度
+    - [x] 1. 在 `task.md` 中添加任务规划并初始化
+    - [x] 2. 修改 `deploy.sh` 优化 `check_china` 网络判定，引入 `_IS_CHINA` 全局缓存，避免重复同步请求
+    - [x] 3. 修改 `deploy.sh` 优化 `setup_china_git_config` 复用 `github_download.sh` 中的 `_gh_get_best_proxy`
+    - [x] 4. 修改 `deploy.sh` 优化 `setup_domestic_mirrors` 中的 `apt-get update -y` 命令，增加 `-o Acquire::Languages=none` 跳过语言包更新
+    - [x] 5. 修改 `deploy.sh` 中的 `pip3 install` 命令，附加 `--disable-pip-version-check` 以及 `--no-warn-script-location` 跳过无谓的检查和警告
+    - [x] 6. 修改 `deploy.sh` 中的 `acme.sh` 下载，使用最优测速得到的代理前缀进行替换
+    - [x] 7. 运行本地语法检测 `bash -n deploy.sh`，确保无语法错误
+    - [x] 8. 编写并提供 walkthrough.md 报告
+
+------
+
+20260624 11:50 优化网络检测与代理旋转展示
+- [x] 优化网络检测与代理旋转展示
+    - [x] 1. 更新 `task.md` 任务清单并分配进度
+    - [x] 2. 修改 `scripts/github_download.sh` 中的 `_gh_get_best_proxy` 增加 `>&2` 的实时旋转探测输出
+    - [x] 3. 修改 `deploy.sh` 中的 `check_china`，增加基于 `myip.ipip.net` 的快速判定，降级使用 `ipapi.co`
+    - [x] 4. 修改 `deploy.sh` 中的 `get_github_url`，使其复用最优代理拼接，避免卡在普通 `git clone` 阶段
+    - [x] 5. 校验 `scripts/github_download.sh` 和 `deploy.sh` 的语法
+    - [x] 6. 更新 walkthrough.md

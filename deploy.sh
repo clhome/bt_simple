@@ -34,29 +34,52 @@ GIT_REPO_BASE="https://github.com/clhome/bt_simple.git"
 GIT_REPO="${BT_SIMPLE_REPO:-$GIT_REPO_BASE}"
 GIT_BRANCH="${BT_SIMPLE_BRANCH:-master}"
 FORCE_CN=false
+_IS_CHINA=""
 
 # ---------- 中国区加速 ----------
 check_china() {
     if [ "$FORCE_CN" = "true" ]; then
         return 0
     fi
+    if [ -n "$_IS_CHINA" ]; then
+        [ "$_IS_CHINA" = "true" ] && return 0 || return 1
+    fi
     # 通过 IP 地理位置判断是否在中国境内
     local status=$(curl -s -m 2 http://www.baidu.com > /dev/null && echo "ok" || echo "fail")
     if [ "$status" = "ok" ]; then
+        # 优先使用 myip.ipip.net，它在国内非常快速且直接返回中文归属地
+        local ipip_cn=$(curl -s -m 2 http://myip.ipip.net 2>/dev/null)
+        if [[ "$ipip_cn" == *"中国"* ]]; then
+            _IS_CHINA="true"
+            return 0
+        fi
+        
+        # 降级：若 ipip.net 接口由于网络抖动不可达，则降级使用 ipapi.co
         local cn=$(curl -s -m 2 https://ipapi.co/country/ 2>/dev/null)
         if [ "$cn" = "CN" ]; then
+            _IS_CHINA="true"
             return 0
         fi
     fi
+    _IS_CHINA="false"
     return 1
 }
 
 get_github_url() {
     local original_url=$1
-    # 保留兼容性，但实际下载已由 github_download/github_clone 统一处理代理
     if check_china; then
         if [[ $original_url == *"github.com"* ]]; then
-            echo "https://gh-proxy.com/$original_url"
+            local best_proxy=""
+            if type _gh_get_best_proxy >/dev/null 2>&1; then
+                best_proxy=$(_gh_get_best_proxy)
+            fi
+            local use_proxy="${best_proxy:-https://gh-proxy.com/}"
+            
+            if type _gh_proxy_url >/dev/null 2>&1; then
+                _gh_proxy_url "$use_proxy" "$original_url"
+            else
+                echo "${use_proxy}${original_url}"
+            fi
             return
         fi
     fi
@@ -67,26 +90,22 @@ setup_china_git_config() {
     if check_china; then
         log_info "配置 Git 全局代理加速 (GitHub -> ghproxy)..."
         
-        # 定义备用代理列表 (与 github_download.sh 保持一致)
+        local best_proxy=""
+        if type _gh_get_best_proxy >/dev/null 2>&1; then
+            best_proxy=$(_gh_get_best_proxy)
+        fi
+        
+        if [ -z "$best_proxy" ]; then
+            best_proxy="https://gh-proxy.com/"
+        fi
+        
+        # 定义备用代理列表 (与 github_download.sh 保持一致，用于清理旧规则)
         local proxies=(
             "https://gh-proxy.com/"
             "https://cors.zme.ink/"
             "https://gh.ddlc.top/"
             "https://ghproxy.net/"
         )
-        
-        local best_proxy=""
-        log_info "正在为您寻找存活的 GitHub 加速节点..."
-        for proxy in "${proxies[@]}"; do
-            # 测试代理可用性，超时 3 秒 (使用 info/refs 模拟 git clone 的前期请求)
-            local test_url="${proxy}https://github.com/clhome/bt_simple.git/info/refs?service=git-upload-pack"
-            local status=$(curl -s -o /dev/null -w "%{http_code}" -m 3 "$test_url" 2>/dev/null || echo "000")
-            
-            if [[ "$status" == "200" || "$status" == "401" || "$status" == "301" || "$status" == "302" ]]; then
-                best_proxy="$proxy"
-                break
-            fi
-        done
         
         # 先清理以前可能设置过的所有代理规则，防止堆积
         for proxy in "${proxies[@]}"; do
@@ -285,13 +304,13 @@ EOF
             sed -i "s/deb.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list
             sed -i "s/security.debian.org/mirrors.aliyun.com/g" /etc/apt/sources.list
             
-            apt-get update -y >/dev/null 2>&1
+            apt-get update -y -o Acquire::Languages=none >/dev/null 2>&1
             if [ $? -eq 0 ]; then
                 log_info "APT 加速源配置完成"
             else
                 log_warn "APT 源更新遇到问题，已回滚源配置..."
                 \cp -rpa /etc/apt/sources.list.btbackup /etc/apt/sources.list
-                apt-get update -y >/dev/null 2>&1
+                apt-get update -y -o Acquire::Languages=none >/dev/null 2>&1
             fi
         fi
     fi
@@ -622,7 +641,12 @@ fresh_install() {
     if [ ! -d /root/.acme.sh ]; then
         log_info "安装 acme.sh ..."
         if check_china; then
-            curl https://gh-proxy.org/https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh | sh -s -- --install-online -m my@example.com 2>/dev/null
+            local best_proxy=""
+            if type _gh_get_best_proxy >/dev/null 2>&1; then
+                best_proxy=$(_gh_get_best_proxy)
+            fi
+            local acme_proxy="${best_proxy:-https://gh-proxy.com/}"
+            curl "${acme_proxy}https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh" | sh -s -- --install-online -m my@example.com 2>/dev/null
         else
             curl -fsSL https://get.acme.sh | bash 2>/dev/null
         fi
@@ -740,9 +764,9 @@ migrate_from_mw() {
     log_info "检查 Python 依赖..."
     if [ -f ${PANEL_DIR}/bin/activate ]; then
         cd ${PANEL_DIR} && source bin/activate
-        pip3 install -r requirements.txt 2>&1 | grep -v 'already satisfied' | tee -a $LOG_FILE
+        pip3 install --disable-pip-version-check --no-warn-script-location -r requirements.txt 2>&1 | grep -v 'already satisfied' | tee -a $LOG_FILE
         # 强制升级 requests 库以消除可能的 RequestsDependencyWarning 版本冲突警告
-        pip3 install --upgrade requests 2>&1 | tee -a $LOG_FILE
+        pip3 install --disable-pip-version-check --no-warn-script-location --upgrade requests 2>&1 | tee -a $LOG_FILE
     fi
 
     # 启动

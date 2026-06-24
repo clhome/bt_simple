@@ -37,20 +37,27 @@ _gh_get_best_proxy() {
         return 0
     fi
     
+    echo -e "正在寻找存活的 GitHub 加速节点..." >&2
     # 极速测速并获取存活节点
     local proxy
     for proxy in "${_GH_PROXY_LIST[@]}"; do
+        echo -n "  - 正在探测节点: $proxy ... " >&2
         # 使用轻量级 refs 请求测试可用性，最大超时设为 3 秒
         local test_url="${proxy}https://github.com/clhome/bt_simple.git/info/refs?service=git-upload-pack"
         local status=$(curl -s -o /dev/null -w "%{http_code}" -m 3 "$test_url" 2>/dev/null || echo "000")
         
         if [[ "$status" == "200" || "$status" == "401" || "$status" == "301" || "$status" == "302" ]]; then
+            echo -e "\033[32m[存活]\033[0m" >&2
             export _GH_BEST_PROXY="$proxy"
+            echo -e "选用存活的 GitHub 代理: \033[32m$proxy\033[0m" >&2
             echo "$_GH_BEST_PROXY"
             return 0
+        else
+            echo -e "\033[31m[不可用]\033[0m" >&2
         fi
     done
     
+    echo -e "✗ 所有 GitHub 代理节点均探测失败，本次将使用 GitHub 官方直连" >&2
     return 1
 }
 
