@@ -1897,6 +1897,7 @@ function asyncLoadImage(obj, url){
 
 	function showImage(obj){
 	    obj.src = this.src;
+	    $(obj).attr('data-src', '');
 	}
 	loadImage(obj, url, showImage);
 }

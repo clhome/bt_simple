@@ -154,27 +154,40 @@ def file():
             return ''
 
     suffix = mw.getPathSuffix(file)
+    from flask import Response
+    from flask import make_response
+
+    headers = {
+        'Cache-Control': 'public, max-age=2592000'
+    }
+
     if suffix == '.css':
         content = mw.readFile(file)
-        from flask import Response
-        from flask import make_response
-        v = Response(content, headers={'Content-Type': 'text/css; charset="utf-8"'})
-        return make_response(v)
+        headers['Content-Type'] = 'text/css; charset="utf-8"'
+        return make_response(Response(content, headers=headers))
     elif suffix == '.js':
         content = mw.readFile(file)
-        from flask import Response
-        from flask import make_response
-        v = Response(content, headers={'Content-Type': 'application/javascript; charset="utf-8"'})
-        return make_response(v)
+        headers['Content-Type'] = 'application/javascript; charset="utf-8"'
+        return make_response(Response(content, headers=headers))
     elif suffix == '.svg':
         content = open(file, 'rb').read()
-        from flask import Response
-        from flask import make_response
-        v = Response(content, headers={'Content-Type': 'image/svg+xml; charset="utf-8"'})
-        return make_response(v)
+        headers['Content-Type'] = 'image/svg+xml; charset="utf-8"'
+        return make_response(Response(content, headers=headers))
+    elif suffix == '.png':
+        content = open(file, 'rb').read()
+        headers['Content-Type'] = 'image/png'
+        return make_response(Response(content, headers=headers))
+    elif suffix in ('.jpg', '.jpeg'):
+        content = open(file, 'rb').read()
+        headers['Content-Type'] = 'image/jpeg'
+        return make_response(Response(content, headers=headers))
+    elif suffix == '.gif':
+        content = open(file, 'rb').read()
+        headers['Content-Type'] = 'image/gif'
+        return make_response(Response(content, headers=headers))
     
     content = open(file, 'rb').read()
-    return content
+    return make_response(Response(content, headers=headers))
 
 
 # 插件上传
