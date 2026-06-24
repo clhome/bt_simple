@@ -50,16 +50,18 @@ Install_openresty()
 
 	MEM_INFO=$(free -m|grep Mem|awk '{printf("%.f",($2)/1024)}')
 	if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ];then
-	    if [ "${cpuCore}" -gt "${MEM_INFO}" ];then
-	        cpuCore="${MEM_INFO}"
+	    limitCore=$((MEM_INFO * 2))
+	    if [ "${limitCore}" -lt "1" ]; then
+	        limitCore="1"
+	    fi
+	    if [ "${cpuCore}" -gt "${limitCore}" ];then
+	        cpuCore="${limitCore}"
 	    fi
 	else
 	    cpuCore="1"
 	fi
 
-	if [ "$cpuCore" -gt "2" ];then
-		cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
-	else
+	if [ "${cpuCore}" -lt "1" ]; then
 		cpuCore="1"
 	fi
 	# ----- cpu end ------
@@ -168,7 +170,12 @@ Install_openresty()
 				cd ${openrestyDir} && tar -xvf jemalloc-${jemallocVersion}.tar.bz2
 				cd jemalloc-${jemallocVersion}
 				./configure
-				make && make install
+				CMD_MAKE=`which gmake`
+				if [ "$?" == "0" ];then
+					gmake -j${cpuCore} && gmake install
+				else
+					make -j${cpuCore} && make install
+				fi
 				ldconfig
 			fi
 		fi

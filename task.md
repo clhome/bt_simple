@@ -226,3 +226,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 复制 `versions/1.29.2/install.sh` 并修改为 `1.31.1/install.sh`，指定 `VERSION=1.31.1.1` 并优化 HTTP/3 条件判断
     - [x] 3. 校验新脚本的换行符为 LF，编码为 UTF-8 无 BOM
     - [x] 4. 编写 walkthrough.md 报告
+
+------
+
+20260624 08:52 优化 OpenResty 1.31.1.1 编译速度
+- [x] 优化 OpenResty 1.31.1.1 编译核心数及多核编译以加速安装
+    - [x] 1. 修改 `plugins/openresty/versions/1.31.1/install.sh` 优化 `cpuCore` 的计算逻辑
+    - [x] 2. 修改 `plugins/openresty/versions/1.31.1/install.sh` 为 jemalloc 编译引入多核编译
+    - [x] 3. 校验修改后脚本的换行符为 LF，编码为 UTF-8 无 BOM
+    - [x] 4. 编写 walkthrough.md 报告
