@@ -235,3 +235,13 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 修改 `plugins/openresty/versions/1.31.1/install.sh` 为 jemalloc 编译引入多核编译
     - [x] 3. 校验修改后脚本的换行符为 LF，编码为 UTF-8 无 BOM
     - [x] 4. 编写 walkthrough.md 报告
+
+------
+
+20260624 09:25 修复 OpenResty 安装并发冲突与错误穿透 BUG
+- [x] 修复 OpenResty 安装并发冲突与错误穿透 BUG
+    - [x] 1. 修改 `plugins/openresty/install.sh` 引入排它锁与子脚本返回值校验
+    - [x] 2. 修改 `plugins/openresty/versions/1.29.2/install.sh` 在 `./configure` 后引入即时退出校验
+    - [x] 3. 修改 `plugins/openresty/versions/1.31.1/install.sh` 在 `./configure` 后引入即时退出校验
+    - [x] 4. 校验修改后所有脚本的换行符为 LF，编码为 UTF-8 无 BOM
+    - [x] 5. 编写 walkthrough.md 报告

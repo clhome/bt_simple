@@ -25,6 +25,17 @@ sysName=`uname`
 action=$1
 type=$2
 
+lockFile="/var/run/mw_openresty_install.lock"
+if [ -f "${lockFile}" ];then
+    pid=$(cat "${lockFile}")
+    if ps -p $pid > /dev/null 2>&1; then
+        echo "Another OpenResty installation is already running (PID: $pid). Exiting."
+        exit 1
+    fi
+fi
+echo $$ > "${lockFile}"
+trap "rm -f ${lockFile}" EXIT
+
 VERSION=$2
 openrestyDir=${serverPath}/source/openresty
 
@@ -38,6 +49,10 @@ fi
 
 if [ "${action}" == "upgrade" ];then
 	sh -x $curPath/versions/$2/install.sh $1
+	if [ "$?" != "0" ];then
+		echo "Sub-script install.sh failed!"
+		exit 1
+	fi
 	
 	echo "${VERSION}" > $serverPath/openresty/version.pl
 
@@ -86,6 +101,10 @@ if [ "${action}" == "install" ] || [ "${action}" == "upgrade" ];then
 fi
 
 sh -x $curPath/versions/$2/install.sh $1
+if [ "$?" != "0" ];then
+	echo "Sub-script install.sh failed!"
+	exit 1
+fi
 
 if [ "${action}" == "install" ] && [ -d $serverPath/openresty ];then
 	echo "${VERSION}" > $serverPath/openresty/version.pl
