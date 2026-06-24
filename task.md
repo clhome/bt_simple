@@ -217,3 +217,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 - [x] 修复点击“文件”菜单时抛出 xPath is not defined 异常
     - [x] 1. 分析 `web/templates/default/files.html` 中变量 `xPath` 作用域丢失的问题。
     - [x] 2. 修复 `pathPlaceBtn((xPath != undefined ? xPath : '/www/wwwroot'));` 调用时 `xPath` 未定义的作用域问题。
+
+------
+
+20260624 08:40 增加 OpenResty 1.31.1.1 版本安装脚本
+- [x] 增加 OpenResty 1.31.1.1 版本的安装支持
+    - [x] 1. 在 `plugins/openresty/versions` 目录下新建 `1.31.1` 文件夹
+    - [x] 2. 复制 `versions/1.29.2/install.sh` 并修改为 `1.31.1/install.sh`，指定 `VERSION=1.31.1.1` 并优化 HTTP/3 条件判断
+    - [x] 3. 校验新脚本的换行符为 LF，编码为 UTF-8 无 BOM
+    - [x] 4. 编写 walkthrough.md 报告
