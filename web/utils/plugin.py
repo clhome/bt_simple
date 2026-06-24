@@ -1060,6 +1060,21 @@ class plugin(object):
             del(data[name])
             thisdb.setOption(self.__plugin_status_cachekey, json.dumps(data))
 
+        if func in ['start', 'restart']:
+            def delay_clear():
+                import time
+                time.sleep(3.5)
+                try:
+                    d = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
+                    if name in d:
+                        del(d[name])
+                        thisdb.setOption(self.__plugin_status_cachekey, json.dumps(d))
+                except Exception as e:
+                    print('delay clear status cache error:', str(e))
+            t = threading.Thread(target=delay_clear)
+            t.daemon = True
+            t.start()
+
     # shell/bash方式调用
     def run(self, name, func,
         version = '',

@@ -292,3 +292,13 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 修复 `plugins/fail2ban/install.sh`，在 apt 安装命令中加入 `-o Dpkg::Options::="--force-confmiss" --reinstall` 参数，强制补全缺失的系统依赖配置文件
     - [x] 3. 远程执行修复，运行 `dpkg --configure -a` 并强制重装，验证 `/etc/fail2ban` 下包括 `paths-debian.conf` 在内的所有依赖文件已全部恢复，服务正常启动
     - [x] 4. 更新 walkthrough.md 报告
+
+------
+
+20260624 11:15 延迟清理列表状态缓存以解决软件启动状态延迟显示问题
+- [/] 延迟清理列表状态缓存以解决软件启动状态延迟显示问题
+    - [ ] 1. 修改 `web/utils/plugin.py` 中的 `runByCache` 函数，在 `start` 或 `restart` 后，创建后台线程延迟 3.5 秒再次清除插件状态缓存。
+    - [ ] 2. 对修改后的 `web/utils/plugin.py` 进行语法检测。
+    - [ ] 3. 编写发布脚本或执行部署，将修改同步到测试服务器。
+    - [ ] 4. 现场验证 Fail2ban 启动后，列表状态能在 4 秒内自动更新，且无残留状态缓存。
+    - [ ] 5. 更新 walkthrough.md 报告。
