@@ -48,7 +48,37 @@ def getInitDFile():
     return '/etc/init.d/' + getPluginName()
 
 
+def initConfigFiles():
+    # Check etc dir
+    etc_dir = f2bEtcDir()
+    if not os.path.exists(etc_dir):
+        os.makedirs(etc_dir)
+        
+    # Check fail2ban.conf (daemon config)
+    f2b_conf = etc_dir + '/fail2ban.conf'
+    if not os.path.exists(f2b_conf):
+        default_f2b_conf = """[Definition]
+loglevel = INFO
+logtarget = /var/log/fail2ban.log
+syslogsocket = auto
+socket = /run/fail2ban/fail2ban.sock
+pidfile = /run/fail2ban/fail2ban.pid
+dbfile = /var/lib/fail2ban/fail2ban.sqlite3
+dbpurgeage = 1d
+"""
+        mw.writeFile(f2b_conf, default_f2b_conf)
+
+    # Check jail.conf (jail config template)
+    jail_conf = etc_dir + '/jail.conf'
+    if not os.path.exists(jail_conf):
+        tpl_path = getConfTpl() # which is getPluginDir() + "/tpl/fail2ban.conf"
+        if os.path.exists(tpl_path):
+            content = mw.readFile(tpl_path)
+            content = contentReplace(content)
+            mw.writeFile(jail_conf, content)
+
 def getConf():
+    initConfigFiles()
     path = f2bEtcDir() + "/fail2ban.conf"
     return path
 
@@ -110,6 +140,7 @@ def checkArgs(data, ck=[]):
     return (True, mw.returnJson(True, 'ok'))
 
 def configTpl():
+    initConfigFiles()
     path = f2bEtcDir()
     pathFile = os.listdir(path)
     tmp = []
@@ -209,6 +240,7 @@ def initDreplace():
     #     mw.writeFile(dst_conf, content)
     #     mw.writeFile(dst_conf_init, 'ok')
 
+    initConfigFiles()
     initFail2BanD()
     initJailD()
 
@@ -596,21 +628,44 @@ class fail2ban_main:
             "act": "true"
         }
         
+        default_global_cc = {
+            "mode": "global-cc",
+            "port": "80,443",
+            "maxretry": "60",
+            "findtime": "60",
+            "bantime": "86400",
+            "act": "true"
+        }
+        
+        default_global_scan = {
+            "mode": "global-scan",
+            "port": "80,443",
+            "maxretry": "30",
+            "findtime": "60",
+            "bantime": "86400",
+            "act": "true"
+        }
+        
         try:
             conf = mw.readFile(self._config)
             if not conf:
-                conf_data = {"server": [default_sshd], "site": [], "strict": True}
+                conf_data = {"server": [default_sshd], "site": [default_global_cc, default_global_scan], "strict": True}
                 mw.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 return conf_data
                 
             conf_data = json.loads(conf)
             if not isinstance(conf_data, dict):
-                conf_data = {"server": [], "site": [], "strict": True}
+                conf_data = {"server": [], "site": [default_global_cc, default_global_scan], "strict": True}
                 
             # If server config is completely empty, initialize it with sshd defaults
             if 'server' not in conf_data or not isinstance(conf_data['server'], list) or len(conf_data['server']) == 0:
                 conf_data['server'] = [default_sshd]
+                mw.writeFile(self._config, json.dumps(conf_data))
+                self.sync_jail_local(conf_data)
+                
+            if 'site' not in conf_data or not isinstance(conf_data['site'], list):
+                conf_data['site'] = [default_global_cc, default_global_scan]
                 mw.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
@@ -624,8 +679,14 @@ class fail2ban_main:
             return conf_data
         except Exception:
             # Re-initialize on corruption
-            conf_data = {"server": [default_sshd], "site": [], "strict": True, "default_ssh_port": self.get_ssh_port(), "default_mysql_port": self.get_mysql_port()}
-            mw.writeFile(self._config, json.dumps({"server": [default_sshd], "site": [], "strict": True}))
+            conf_data = {
+                "server": [default_sshd], 
+                "site": [default_global_cc, default_global_scan], 
+                "strict": True, 
+                "default_ssh_port": self.get_ssh_port(), 
+                "default_mysql_port": self.get_mysql_port()
+            }
+            mw.writeFile(self._config, json.dumps({"server": [default_sshd], "site": [default_global_cc, default_global_scan], "strict": True}))
             self.sync_jail_local(conf_data)
             return conf_data
 

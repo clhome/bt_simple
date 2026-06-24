@@ -261,7 +261,34 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 20260624 10:15 fail2ban 插件增加严格模式勾选支持
 - [x] fail2ban 插件增加严格模式勾选支持
     - [x] 1. 在 `task.md` 中添加任务规划
-    - [x] 2. 修改 `plugins/fail2ban/js/fail2ban.js` 中 `f2bService` 的渲染和改变监听事件，引入严格模式勾选框并绑定 AJAX 触发逻辑
+    - [x] 2. 修改 `plugins/fail2ban/js/fail2ban.js` 中 `f2bService` 的渲染 and 改变监听事件，引入严格模式勾选框并绑定 AJAX 触发逻辑
     - [x] 3. 修改 `plugins/fail2ban/index.py`，支持严格模式配置解析，在 `get_anti_info` 中增加默认初始化状态，更新 `sync_jail_local` 生成 allports 规则，并新增后端修改接口与 CLI 分发入口
     - [x] 4. 运行语法测试并检查配置生成格式
     - [x] 5. 验证测试功能并编写 walkthrough.md 报告
+
+------
+
+20260624 10:50 修复配置修改时“文件不存在”报错
+- [x] 修复配置修改时“文件不存在”报错
+    - [x] 1. 在 `task.md` 中添加任务规划
+    - [x] 2. 修改 `plugins/fail2ban/index.py`，在 `initDreplace` 前插入 `initConfigFiles` 自愈函数，自动补全缺失的 `fail2ban.conf` 和 `jail.conf` 配置文件
+    - [x] 3. 运行编译与测试验证，检查文件是否成功自愈恢复，配置修改页面是否正常加载
+    - [x] 4. 更新 walkthrough.md 报告
+
+------
+
+20260624 10:58 首次安装默认自动配置网站防护
+- [x] 首次安装默认自动配置网站防护
+    - [x] 1. 在 `task.md` 中添加任务规划
+    - [x] 2. 修改 `plugins/fail2ban/index.py` 中的 `get_anti_info` 函数，在首次初始化 config.json 或异常重置时，默认预填充 global-cc 和 global-scan 规则，并同步生成对应的规则文件
+    - [x] 3. 运行编译与测试，确认配置默认值正确生效
+    - [x] 4. 更新 walkthrough.md 报告
+
+------
+
+20260624 11:03 修复重新安装后缺失系统配置文件（如 paths-debian.conf）导致无法启动的问题
+- [x] 修复重新安装后缺失系统配置文件导致无法启动的问题
+    - [x] 1. 分析并定位到原因为卸载时 rm -rf /etc/fail2ban 导致系统自带 include 配置文件丢失，且普通 apt install 不会自动恢复 missing conffiles
+    - [x] 2. 修复 `plugins/fail2ban/install.sh`，在 apt 安装命令中加入 `-o Dpkg::Options::="--force-confmiss" --reinstall` 参数，强制补全缺失的系统依赖配置文件
+    - [x] 3. 远程执行修复，运行 `dpkg --configure -a` 并强制重装，验证 `/etc/fail2ban` 下包括 `paths-debian.conf` 在内的所有依赖文件已全部恢复，服务正常启动
+    - [x] 4. 更新 walkthrough.md 报告

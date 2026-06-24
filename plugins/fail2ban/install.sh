@@ -19,7 +19,7 @@ Install_App()
 	mkdir -p $serverPath/source
 
 	which yum && yum install -y fail2ban
-	which apt && apt install -y fail2ban
+	which apt && apt install -o Dpkg::Options::="--force-confmiss" --reinstall -y fail2ban
 
 	mkdir -p $serverPath/fail2ban
 	echo "${VERSION}" > $serverPath/fail2ban/version.pl
