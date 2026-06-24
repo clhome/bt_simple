@@ -245,3 +245,13 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 3. 修改 `plugins/openresty/versions/1.31.1/install.sh` 在 `./configure` 后引入即时退出校验
     - [x] 4. 校验修改后所有脚本的换行符为 LF，编码为 UTF-8 无 BOM
     - [x] 5. 编写 walkthrough.md 报告
+
+------
+
+20260624 10:05 实现本地终端自动切换至当前所处目录
+- [/] 本地终端自动切换至当前所处目录
+    - [x] 1. 更新 `task.md` 任务清单并分配进度
+    - [x] 2. 修改 `web/static/app/files.js` 让“命令行”图标按钮的 `onclick` 事件将 `rdata.path` 传递给 `webShell()`
+    - [x] 3. 修改 `web/static/app/public.js` 扩展 `webShell` 与 `_webShellInit` 支持 `dir` 参数，增加 socket 监听器解绑，在首帧响应时发送 `cd` 命令
+    - [x] 4. 修改 `tmp/deploy_files.py` 添加 `public.js` 和 `files.js` 的发布映射
+    - [ ] 5. 运行 `deploy_files.py` 部署到测试服务器，手动测试验证功能，然后编写 walkthrough.md 报告

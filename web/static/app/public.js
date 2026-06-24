@@ -1911,22 +1911,27 @@ function loadImage(){
 }
 
 var socket, gterm;
-function webShell() {
+function webShell(dir) {
     var loadT = layer.msg('正在加载终端组件...', {icon: 16, time: 0, shade: [0.1, '#000']});
     loadWebShellResources().then(function() {
         layer.close(loadT);
-        _webShellInit();
+        _webShellInit(dir);
     }).catch(function(err) {
         layer.close(loadT);
         layer.msg('终端组件加载失败，请刷新页面重试', {icon: 2});
         console.error(err);
     });
 }
-function _webShellInit() {
+function _webShellInit(dir) {
     var termCols = 83;
     var termRows = 21;
     var sendTotal = 0;
     if(!socket)socket = io.connect();
+
+    // 移除已有的同一监听器，避免重复绑定内存泄漏和写冲突
+    socket.off('server_response');
+
+    var isFirstResponse = true;
     var term = new Terminal({
         cols: termCols,
         rows: termRows,
@@ -1941,6 +1946,15 @@ function _webShellInit() {
 
     socket.on('server_response', function (data) {
         term.write(data.data);
+
+        // 自动切换工作目录
+        if (isFirstResponse && dir) {
+            isFirstResponse = false;
+            setTimeout(function() {
+                socket.emit('webssh', 'cd "' + dir + '"\r');
+            }, 100);
+        }
+
         if (data.data == '\r\n登出\r\n' || 
             data.data == '登出\r\n' || 
             data.data == '\r\nlogout\r\n' || 
