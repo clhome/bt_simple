@@ -2922,6 +2922,11 @@ function setPHPVersion(siteName){
 	$.post('/site/set_php_version',data,function(rdata){
 		layer.close(loadT);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
+		if(rdata.status){
+			var php_version = $("#phpVersion").val();
+			var php_text = php_version == '00' ? "<span style='color:#20a53a'>静态</span>" : "<span style='color:#20a53a'>" + (php_version.length == 2 ? php_version.substring(0,1) + '.' + php_version.substring(1) : php_version) + "</span>";
+			$("input[name='id'][title='" + siteName + "']").closest("tr").find("td").eq(7).html(php_text);
+		}
 	},'json');
 }
 
