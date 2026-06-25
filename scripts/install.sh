@@ -302,6 +302,10 @@ if [ $OSNAME != "macos" ];then
 	    else
 	    	curl -fsSL https://get.acme.sh | bash
 	    fi
+	    
+	    if [ -d /root/.acme.sh ];then
+	        /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+	    fi
 	fi
 fi
 

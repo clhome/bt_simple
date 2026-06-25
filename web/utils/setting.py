@@ -196,6 +196,9 @@ class setting(object):
         if not os.path.exists(acme_dir):
             return mw.returnData(False, '尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>')
 
+        # 确保全局默认 CA 设置为 letsencrypt，避免使用不稳定的 ZeroSSL
+        mw.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
+
         main_domain = domains[0]
         
         # 1. 自动检测并创建同域名站点以桥接官方文件/DNS验证及后续的自动续签闭环

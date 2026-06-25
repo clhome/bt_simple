@@ -2365,7 +2365,7 @@ location ^~ {from} {\n\
         self.writeAcmeLog('开始ACME申请...')
         log_file = self.acmeLogFile()
 
-        if apply_ca == "let": 
+        if apply_ca == "let" or apply_ca == "default": 
             cmd = cmd + " --server letsencrypt "
         elif apply_ca == "zerossl":
             cmd = cmd + " --server zerossl "
@@ -2468,7 +2468,7 @@ location ^~ {from} {\n\
 
     # acme手动申请方式
     # https://github.com/acmesh-official/acme.sh/wiki/dns-manual-mode
-    def createAcmeDnsTypeNone(self, site_name, domains, email, dnspai, wildcard_domain, force, renew, dns_alias):
+    def createAcmeDnsTypeNone(self, site_name, apply_ca, domains, email, dnspai, wildcard_domain, force, renew, dns_alias):
         # print(site_name, domains, email, dnspai, wildcard_domain, force, renew)
         acme_dir = mw.getAcmeDir()
         log_file = self.acmeLogFile()
@@ -2487,6 +2487,13 @@ export PATH
             else:
                 cmd += "acme.sh --issue -d " + d + " "
             cmd += " --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please"
+
+            if apply_ca == "let" or apply_ca == "default": 
+                cmd += " --server letsencrypt "
+            elif apply_ca == "zerossl":
+                cmd += " --server zerossl "
+            elif apply_ca == "buypass":
+                cmd += " --server buypass "
 
             if dns_alias != '':
                 cmd += ' --domain-alias '+str(dns_alias)
@@ -2538,7 +2545,7 @@ export PATH
 
         # 手动方式申请
         if dnspai == 'none':
-            return self.createAcmeDnsTypeNone(site_name, domains, email, dnspai, wildcard_domain, force, renew, dns_alias)
+            return self.createAcmeDnsTypeNone(site_name, apply_ca, domains, email, dnspai, wildcard_domain, force, renew, dns_alias)
 
         if not dnspai in dnsapi_option:
             return mw.returnData(False, '['+dnspai+']未设置!')
@@ -2569,7 +2576,7 @@ export PATH
                 cmd += ' --domain-alias '+str(dns_alias)
 
 
-            if apply_ca == "let": 
+            if apply_ca == "let" or apply_ca == "default": 
                 cmd = cmd + " --server letsencrypt "
             elif apply_ca == "zerossl":
                 cmd = cmd + " --server zerossl "
@@ -2643,6 +2650,9 @@ export PATH
                 pass
         if not os.path.exists(acme_dir):
             return mw.returnData(False, '尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>')
+
+        # 确保全局默认 CA 设置为 letsencrypt，避免使用不稳定的 ZeroSSL
+        mw.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
 
         # 避免频繁执行
         checkAcmeRun = mw.execShell('ps -ef|grep acme.sh |grep -v grep')

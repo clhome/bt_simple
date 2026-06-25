@@ -559,4 +559,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 3. 编写部署脚本将 `site.html` 和 `site.js` 同步部署到测试服务器
     - [x] 4. 远程测试并验证已停止的站点行底纹显示正常，且运行/停止切换交互正常
 
+------
 
+20260625 15:30 优化并切换默认 SSL CA 为 Let's Encrypt
+- [x] 优化并切换默认 SSL CA 为 Let's Encrypt
+    - [x] 1. 在 `web/utils/site.py` 中修改 `createAcmeFile`、`createAcmeDns` 和 `createAcmeDnsTypeNone` 方法，在 `apply_ca` 为 "default" 时显式指定为 `letsencrypt`，并让 `createAcmeDnsTypeNone` 正确支持 `apply_ca` 传参
+    - [x] 2. 在 `web/utils/site.py` 中修改 `createAcme` 方法，在检测/安装 `acme.sh` 后执行配置命令，设定全局默认 CA 为 `letsencrypt`
+    - [x] 3. 在 `web/utils/setting.py` 中修改检测/安装 `acme.sh` 逻辑，在之后同样设定全局默认 CA 为 `letsencrypt`
+    - [x] 4. 在 `scripts/install.sh` 与 `scripts/install_dev.sh` 脚本中，在安装完 `acme.sh` 后追加设定全局默认 CA 为 `letsencrypt` 的命令
+    - [x] 5. 验证证书申请及默认 CA 状态修改，编写 walkthrough.md 报告
