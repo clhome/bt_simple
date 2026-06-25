@@ -696,7 +696,7 @@ def getCfg():
         {"name": "gzip_comp_level", "ps": "压缩率", 'type': 2, 'default': '6'},
         {"name": "client_max_body_size", "ps": "最大上传文件", 'type': 2, 'default': '20m'},
         {"name": "server_names_hash_bucket_size",
-            "ps": "服务器名字的hash表大小", 'type': 2, 'default': '32'},
+            "ps": "服务器名字的hash表大小", 'type': 2, 'default': '64'},
         {"name": "client_header_buffer_size", "ps": "客户端请求头buffer大小", 'type': 2, 'default': '32k'},
     ]
 
