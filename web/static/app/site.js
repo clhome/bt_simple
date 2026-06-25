@@ -56,10 +56,12 @@ function getDate(a) {
 		var list = data.data;
 		for (var i = 0; i < list.length; i++) {
 			//当前站点状态
+			var trClass = '';
 			if (list[i].status == '正在运行' || list[i].status == '1') {
 				var status = "<a href='javascript:;' title='停用这个站点' onclick=\"webStop(" + list[i].id + ",'" + list[i].name + "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>运行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>";
 			} else {
 				var status = "<a href='javascript:;' title='启用这个站点' onclick=\"webStart(" + list[i].id + ",'" + list[i].name + "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>";
+				trClass = ' class="danger-row"';
 			}
 
 			//是否有备份
@@ -87,7 +89,7 @@ function getDate(a) {
 			var daily_traffic = toSize(list[i].daily_traffic);
 			var add_time_str = list[i].add_time && list[i].add_time.length >= 10 ? list[i].add_time.substring(0,10) : list[i].add_time;
 			
-			body = "<tr><td><input type='checkbox' name='id' title='"+list[i].name+"' onclick='checkSelect();' value='" + list[i].id + "'></td>\
+			body = "<tr" + trClass + "><td><input type='checkbox' name='id' title='"+list[i].name+"' onclick='checkSelect();' value='" + list[i].id + "'></td>\
 					<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "')\" title='"+list[i].name+"'>" + shortwebname + "</td>\
 					<td>" + status + "</td>\
 					<td>" + backup + "</td>\

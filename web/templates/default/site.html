@@ -1,6 +1,15 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<style>
+/* 已停止的站点行增加浅红色底纹 */
+.table > tbody > tr.danger-row > td {
+	background-color: #fff5f5 !important;
+}
+.table > tbody > tr.danger-row:hover > td {
+	background-color: #ffebeb !important;
+}
+</style>
 <div class="main-content pb55">
 			<div class="container-fluid">
 				<div class="pos-box bgw mtb15">
