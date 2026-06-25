@@ -463,4 +463,37 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 
 
 
+------
+
+20260625 11:30 PHP 默认配置审计与性能/安全调优
+- [x] PHP 默认配置审计与性能/安全调优
+    - [x] 1. 修改 `plugins/php-apt/index.py` 中的 `initReplace` 默认配置字典
+    - [x] 2. 在 `index.py` 中实现 `tunePhpConfig` 单版本调优与 `tuneAllPhpConfig` 重构，并提供 CLI/API 入口
+    - [x] 3. 在 `plugins/php-apt/js/php.js` 性能调整页面中增加“一键调优”按钮及 `tunePhpConfig` 前端逻辑
+    - [x] 4. 编写并更新 `tmp/deploy_php.py` 部署脚本，包含前端 JS 与后端 Python 代码
+    - [x] 5. 部署到测试服务器，并在管理弹窗中测试单版本“一键调优”与命令行 `tune_all` 的执行情况，确认 FPM 服务重启与配置文件修改正确
+    - [x] 6. 编写并提供 walkthrough.md 报告
+
+------
+
+20260625 11:47 编译安装版 PHP 插件配置审计与一键调优
+- [x] 编译安装版 PHP 插件配置审计与一键调优
+    - [x] 1. 修改 `plugins/php/index.py` 自适应模块路径及默认 `configs_to_set` 配置字典
+    - [x] 2. 在 `index.py` 中实现 `tunePhpConfig` 与 `tuneAllPhpConfig` 并注册 CLI/API 入口
+    - [x] 3. 修改 `plugins/php/js/php.js` 添加“一键调优”按钮及 `tunePhpConfig` 前端 Ajax 逻辑
+    - [x] 4. 编写 `tmp/deploy_compiled_php.py` 部署脚本并同步上传前后端代码至测试服务器
+    - [x] 5. 执行调优命令，远程验证 `php.ini` 更改与平滑重启服务效果
+    - [x] 6. 编写并提供 walkthrough.md 报告
+
+------
+
+20260625 13:16 解决 php-apt 一键调优后 open_basedir 引起的页面无法解析故障
+- [x] 解决 php-apt 一键调优后 open_basedir 故障
+    - [x] 1. 修改 `plugins/php-apt/conf/php-fpm.conf` 模板中的自动引导文件路径为 `/www/server/php/app_start_apt.php`
+    - [x] 2. 修改 `plugins/php-apt/index.py` 里的 `phpPrependFile` 物理路径并为 `tunePhpConfig` 引入自愈正则更新逻辑
+    - [x] 3. 更新 `tmp/deploy_php.py` 把 FPM 配置模板加入上传列表
+    - [x] 4. 远程发布运行，调优自愈已安装的 PHP 8.4 版本的 `php-fpm.conf` 配置
+    - [x] 5. 测试网站 PHP 页面，验证自愈后故障是否消除并可正常解析
+    - [x] 6. 编写并提供 walkthrough.md 报告
+
 

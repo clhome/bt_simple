@@ -11,7 +11,9 @@ import shutil
 # reload(sys)
 # sys.setdefaultencoding('utf8')
 
-web_dir = os.getcwd() + "/web"
+# 动态获取项目根目录，避免因执行脚本时当前工作目录(Cwd)不同而导致 core 依赖导入失败
+panel_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+web_dir = os.path.join(panel_root, "web")
 if os.path.exists(web_dir):
     sys.path.append(web_dir)
     os.chdir(web_dir)
@@ -304,10 +306,18 @@ def makePhpIni(version):
             'short_open_tag': 'On',
             'cgi.fix_pathinfo': '1',
             'max_execution_time': '300',
-            'display_errors': 'On',
-            'error_reporting': 'E_ALL & ~E_NOTICE',
-            'disable_functions': 'passthru,exec,system,putenv,chroot,chgrp,chown,shell_exec,popen,proc_open,pcntl_exec,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,imap_open,apache_setenv',
-            'expose_php': 'Off'
+            'display_errors': 'Off',
+            'log_errors': 'On',
+            'expose_php': 'Off',
+            'session.cookie_httponly': 'On',
+            'disable_functions': 'passthru,exec,system,chroot,chgrp,chown,shell_exec,popen,proc_open,pcntl_exec,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,imap_open,apache_setenv',
+            'opcache.enable': '1',
+            'opcache.enable_cli': '1',
+            'opcache.memory_consumption': '128',
+            'opcache.interned_strings_buffer': '8',
+            'opcache.max_accelerated_files': '10000',
+            'opcache.revalidate_freq': '60',
+            'opcache.save_comments': '1'
         }
         
         for k, v in configs_to_set.items():
@@ -372,6 +382,89 @@ def initReplace(version):
         mw.execShell('systemctl daemon-reload')
 
     return file_bin
+
+
+def tunePhpConfig(version):
+    ini_file = getConf(version)
+    if not os.path.exists(ini_file):
+        return mw.returnJson(False, '该版本的 PHP 配置文件不存在！')
+
+    content = mw.readFile(ini_file)
+    if not content:
+        return mw.returnJson(False, '读取 PHP 配置文件失败！')
+
+    def remove_putenv(match):
+        line = match.group(0)
+        eq_idx = line.find('=')
+        prefix = line[:eq_idx+1]
+        funcs_str = line[eq_idx+1:].strip()
+        funcs = [f.strip() for f in funcs_str.split(',') if f.strip()]
+        if 'putenv' in funcs:
+            funcs.remove('putenv')
+        return prefix + ' ' + ','.join(funcs) + '\n'
+
+    content = re.sub(r'(?m)^;?\s*disable_functions\s*=.*', remove_putenv, content)
+
+    tune_options = {
+        'display_errors': 'Off',
+        'log_errors': 'On',
+        'expose_php': 'Off',
+        'session.cookie_httponly': 'On',
+        'opcache.enable': '1',
+        'opcache.enable_cli': '1',
+        'opcache.memory_consumption': '128',
+        'opcache.interned_strings_buffer': '8',
+        'opcache.max_accelerated_files': '10000',
+        'opcache.revalidate_freq': '60',
+        'opcache.save_comments': '1'
+    }
+
+    for k, v in tune_options.items():
+        pattern = r'(?m)^;?\s*' + re.escape(k) + r'\s*=.*'
+        if re.search(pattern, content):
+            content = re.sub(pattern, f'{k} = {v}', content)
+        else:
+            content += f'\n{k} = {v}\n'
+
+    mw.writeFile(ini_file, content)
+    
+    service_name = "php" + version
+    current_os = mw.getOs()
+    if current_os == 'darwin':
+        file_bin = getServerDir() + '/init.d/php' + version
+        mw.execShell(file_bin + " restart")
+    elif current_os.startswith('freebsd'):
+        mw.execShell('service php' + version + ' restart')
+    else:
+        file_bin = getServerDir() + '/init.d/php' + version
+        mw.execShell(file_bin + ' stop')
+        mw.execShell("systemctl restart " + service_name)
+
+    return mw.returnJson(True, '成功对 PHP-' + version + ' 配置执行一键调优！')
+
+
+def tuneAllPhpConfig():
+    php_dir = getServerDir()
+    if not os.path.exists(php_dir):
+        return mw.returnJson(False, '/www/server/php 目录不存在！')
+
+    versions = []
+    for item in os.listdir(php_dir):
+        full_path = os.path.join(php_dir, item)
+        if os.path.isdir(full_path):
+            if re.match(r'^\d+$', item):
+                versions.append(item)
+
+    if not versions:
+        return mw.returnJson(False, '没有发现已安装的 PHP 版本！')
+
+    tuned_versions = []
+    for ver in versions:
+        res = json.loads(tunePhpConfig(ver))
+        if res.get('status'):
+            tuned_versions.append(ver)
+
+    return mw.returnJson(True, '成功对以下版本的 PHP 配置执行调优: ' + ', '.join(tuned_versions))
 
 
 def phpOp(version, method):
@@ -1105,11 +1198,20 @@ def installPreInspection(version):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         print('missing parameters')
         exit(0)
 
     func = sys.argv[1]
+
+    if func == 'tune_all':
+        print(tuneAllPhpConfig())
+        exit(0)
+
+    if len(sys.argv) < 3:
+        print('missing parameters')
+        exit(0)
+
     version = sys.argv[2]
 
     if func == 'status':
@@ -1140,6 +1242,8 @@ if __name__ == "__main__":
         print(getConfAppStart())
     elif func == 'opcache_blacklist_file':
         print(opcacheBlacklistFile())
+    elif func == 'tune_php_config':
+        print(tunePhpConfig(version))
     elif func == 'get_php_conf':
         print(getPhpConf(version))
     elif func == 'get_fpm_conf_file':
