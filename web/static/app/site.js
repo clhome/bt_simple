@@ -25,7 +25,11 @@ function getDate(a) {
  * @param {Number} page   当前页
  * @param {String} search 搜索条件
  */
- function getWeb(page, type_id, search) {
+var current_site_page = 1;
+function getWeb(page, type_id, search) {
+	if (page != undefined) {
+		current_site_page = page;
+	}
  	if ( typeof(search) == 'undefined' ){
 		search = $('#site_search_input').val();
 	}

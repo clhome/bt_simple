@@ -594,3 +594,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 修改 `web/utils/site.py` 的 `createAcmeDns` 和 `createAcmeDnsTypeNone`，增加同样的 mtime 精确验证
     - [x] 3. 验证并更新 walkthrough.md 报告
 
+------
+
+20260625 16:40 网站列表增加刷新列表功能
+- [x] 网站列表增加刷新列表功能
+    - [x] 1. 修改 `web/templates/default/site.html` 在浮动区域增加带有 20px 间距的刷新图标按钮
+    - [x] 2. 修改 `web/static/app/site.js` 在 `getWeb` 函数中增加全局页码 `current_site_page` 记录
+    - [x] 3. 验证点击刷新按钮时列表局部刷新且停留在当前页，更新 walkthrough.md 报告
+
