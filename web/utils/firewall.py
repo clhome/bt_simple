@@ -586,6 +586,42 @@ class Firewall(object):
             pass
         return True
 
+    def setSshStatus(self, status):
+        msg = '停用SSH服务成功'
+        act = 'stop'
+        if status == '0':
+            msg = '启用SSH服务成功'
+            act = 'start'
+
+        if os.path.exists('/usr/bin/apt-get'):
+            mw.execShell('service ssh ' + act)
+            if mw.isSupportSystemctl():
+                if status == '0':
+                    mw.execShell('systemctl enable ssh')
+                else:
+                    mw.execShell('systemctl disable ssh')
+        else:
+            import system_api
+            version = system_api.system_api().getSystemVersion()
+            if version.find(' Mac ') != -1:
+                return mw.returnData(True, msg)
+            
+            if mw.isSupportSystemctl():
+                mw.execShell("systemctl " + act + " sshd.service")
+                if status == '0':
+                    mw.execShell('systemctl enable sshd.service')
+                else:
+                    mw.execShell('systemctl disable sshd.service')
+            else:
+                mw.execShell("/etc/init.d/sshd " + act)
+
+        if status == '1':
+            mw.execShell("pkill -9 -f sshd")
+            mw.execShell("killall -9 sshd")
+
+        mw.writeLog("SSH管理", msg)
+        return mw.returnData(True, msg)
+
     def setSshRootStatus(self, status):
         msg = '禁止root登陆成功'
         if status == "1":

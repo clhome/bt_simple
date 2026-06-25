@@ -334,3 +334,21 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 1. 修改 `scripts/github_download.sh` 修复 `curl` 错误状态码拼接 `000000` 并通过全局缓存共享探测结果，提高克隆超时时间到 90 秒
     - [x] 2. 修改 `deploy.sh` 同步更新探测逻辑的调用语法
     - [x] 3. 运行语法校验，并编写 walkthrough.md 报告
+
+------
+
+20260625 09:00 修复系统安全下SSH管理启动开关无效的问题
+- [x] 修复系统安全下SSH管理启动开关无效的问题
+    - [x] 1. 在 `web/admin/firewall/__init__.py` 中添加 `/set_ssh_status` 路由
+    - [x] 2. 在 `web/utils/firewall.py` 中实现 `setSshStatus` 方法来启动或停止 SSH 服务
+    - [x] 3. 运行语法检测并进行远程部署与验证
+    - [x] 4. 更新 walkthrough.md
+
+------
+
+20260625 09:55 停用SSH服务时注销/踢出所有已登录用户
+- [x] 停用SSH服务时注销/踢出所有已登录用户
+    - [x] 1. 修改 `web/utils/firewall.py` 中的 `setSshStatus` 方法，在停用服务后，杀死所有现存的 sshd 会话进程
+    - [x] 2. 运行语法检测并进行远程部署与验证
+    - [x] 3. 更新 walkthrough.md
+
