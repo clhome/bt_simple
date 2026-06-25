@@ -81,8 +81,9 @@ function getDate(a) {
 			}
 			var idname = list[i].name.replace(/\./g,'_');
 			
-			var php_text = list[i].php_version == '00' ? "<span style='color:#20a53a'>静态</span>" : "<span style='color:#20a53a'>" + (list[i].php_version.length == 2 ? list[i].php_version.substring(0,1) + '.' + list[i].php_version.substring(1) : list[i].php_version) + "</span>";
-			var ssl_text = list[i].ssl_days == -1 ? "<span style='color:#bbb'>未部署</span>" : (list[i].ssl_days < 10 ? "<span style='color:red'>剩余" + list[i].ssl_days + "天</span>" : "<span style='color:#20a53a'>剩余" + list[i].ssl_days + "天</span>");
+			var php_show_text = list[i].php_version == '00' ? "静态" : (list[i].php_version.length == 2 ? list[i].php_version.substring(0,1) + '.' + list[i].php_version.substring(1) : list[i].php_version);
+			var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + list[i].name + "', '" + list[i].php_version + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
+			var ssl_text = list[i].ssl_days == -1 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:#bbb'>未部署</a>" : (list[i].ssl_days < 10 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:red'>剩余" + list[i].ssl_days + "天</a>" : "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:#20a53a'>剩余" + list[i].ssl_days + "天</a>");
 			var daily_traffic = toSize(list[i].daily_traffic);
 			var add_time_str = list[i].add_time && list[i].add_time.length >= 10 ? list[i].add_time.substring(0,10) : list[i].add_time;
 			
@@ -1039,7 +1040,7 @@ function setIndexList(id){
 
 
 /* 站点修改 */
-function webEdit(id,website,endTime,addtime){
+function webEdit(id,website,endTime,addtime,defaultTab){
 	// 暂时关闭 - 子目录绑定
 	// <p onclick='dirBinding("+id+")'>子目录绑定</p>\
 	layer.open({
@@ -1091,7 +1092,13 @@ function webEdit(id,website,endTime,addtime){
 				$(this).addClass("bgw").siblings().removeClass("bgw");
 			});
 
-			domainEdit(id,website);
+			if (defaultTab === 'ssl') {
+				var sslTab = $(".bt-w-menu p:contains('SSL')");
+				sslTab.addClass("bgw").siblings().removeClass("bgw");
+				setSSL(id, website);
+			} else {
+				domainEdit(id,website);
+			}
 		}
 	});	
 }
@@ -2924,10 +2931,72 @@ function setPHPVersion(siteName){
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		if(rdata.status){
 			var php_version = $("#phpVersion").val();
-			var php_text = php_version == '00' ? "<span style='color:#20a53a'>静态</span>" : "<span style='color:#20a53a'>" + (php_version.length == 2 ? php_version.substring(0,1) + '.' + php_version.substring(1) : php_version) + "</span>";
+			var php_show_text = php_version == '00' ? '静态' : (php_version.length == 2 ? php_version.substring(0,1) + '.' + php_version.substring(1) : php_version);
+			var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + siteName + "', '" + php_version + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
 			$("input[name='id'][title='" + siteName + "']").closest("tr").find("td").eq(7).html(php_text);
 		}
 	},'json');
+}
+
+//直接在列表页修改PHP版本
+function changePHPVersion(id, siteName, currentVersion){
+	var currentVersionText = currentVersion == '00' ? '静态' : (currentVersion.length == 2 ? currentVersion.substring(0,1) + '.' + currentVersion.substring(1) : currentVersion);
+	
+	$.post('/site/get_php_version', function(data){
+		var rdata = data.data;
+		var optionsHtml = '';
+		for(var i = 0; i < rdata.length; i++){
+			var isSelected = (currentVersion == rdata[i].version) ? 'selected' : '';
+			optionsHtml += "<option value='" + rdata[i].version + "' " + isSelected + ">" + rdata[i].name + "</option>";
+		}
+		
+		var bodyContent = "<div class='bt-form pd20' style='padding-bottom: 50px;'>\
+							<p style='font-size: 14px;'>修改域名【" + siteName + "】，目前PHP版本为：" + currentVersionText + "</p>\
+							<p class='line' style='margin-top:15px;'>\
+								<span class='tname' style='width:120px;text-align:left;'>修改 PHP 版本号为：</span>\
+								<select id='newPHPVersion' class='bt-input-text' style='width:150px;'>" + optionsHtml + "</select>\
+							</p>\
+							<div class='bt-form-submit-btn'>\
+								<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>取消</button>\
+								<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('" + siteName + "', '" + currentVersionText + "')\">确定</button>\
+							</div>\
+						</div>";
+		
+		layer.open({
+			type: 1,
+			skin: 'demo-class',
+			area: '480px',
+			title: '修改 PHP 版本',
+			closeBtn: 1,
+			shift: 0,
+			shadeClose: false,
+			content: bodyContent
+		});
+	}, 'json');
+}
+
+//提交列表直接修改的PHP版本并进行二次确认
+function submitChangePHPVersion(siteName, currentVersionText){
+	var newVersion = $("#newPHPVersion").val();
+	var newVersionText = $("#newPHPVersion option:selected").text();
+	
+	var confirmMsg = "修改域名【" + siteName + "】，目前PHP版本为：" + currentVersionText + "<br>确定修改 PHP 版本号为：" + newVersionText + " 吗？";
+	
+	layer.confirm(confirmMsg, {icon: 3, title: '确认修改PHP版本', closeBtn: 2}, function(index){
+		layer.close(index);
+		var loadT = layer.msg('正在保存...', {icon: 16, time: 0, shade: [0.3, '#000']});
+		var data = 'version=' + newVersion + '&siteName=' + siteName;
+		$.post('/site/set_php_version', data, function(rdata){
+			layer.close(loadT);
+			layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
+			if(rdata.status){
+				layer.closeAll();
+				var php_show_text = newVersion == '00' ? '静态' : (newVersion.length == 2 ? newVersion.substring(0,1) + '.' + newVersion.substring(1) : newVersion);
+				var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + siteName + "', '" + newVersion + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
+				$("input[name='id'][title='" + siteName + "']").closest("tr").find("td").eq(7).html(php_text);
+			}
+		}, 'json');
+	});
 }
 
 //配置文件

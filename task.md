@@ -516,3 +516,27 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [ ] 3. 编写本地发布与同步脚本，将更新后的 JS 代码同步部署到远程服务器上
     - [ ] 4. 刷新网页并手动验证 PHP 版本修改后，主列表无需刷新页面和闪烁即可实时更新 PHP 版本列，且状态不丢失
     - [ ] 5. 编写并提供 walkthrough.md 报告
+
+------
+
+20260625 14:16 网站列表直改PHP版本及二次确认
+- [x] 网站列表直改PHP版本及二次确认
+    - [x] 1. 修改 `web/static/app/site.js`，将网站列表中 PHP 版本列修改为可点击 of 超链接并绑定 `changePHPVersion` 点击事件
+    - [x] 2. 在 `web/static/app/site.js` 中实现 `changePHPVersion(id, siteName, currentVersion)` 函数，弹窗展示修改提示 and 版本选择下拉菜单
+    - [x] 3. 在 `web/static/app/site.js` 中实现 `submitChangePHPVersion(siteName, currentVersionText)` 函数，在点击“确定”时显示包含之前提示的二次确认弹窗
+    - [x] 4. 在 `web/static/app/site.js` 的 `setPHPVersion` (原网站修改面板保存) 中同步超链接渲染，保证两种修改途径最终均展示超链接样式并可再次点击
+    - [x] 5. 编写本地发布部署脚本，同步代码至测试服务器
+    - [x] 6. 进行手动验证，测试列表直接修改、二次确认、以及修改后列表局部 DOM 刷新与再次点击功能
+    - [x] 7. 编写并提供 walkthrough.md 报告
+
+------
+
+20260625 14:22 网站列表SSL证书点击直达管理页
+- [x] 网站列表SSL证书点击直达管理页
+    - [x] 1. 修改 `web/static/app/site.js` 中的 `ssl_text` 渲染逻辑，将其封装为超链接且保留原本颜色，并传递 `'ssl'` 参数调用 `webEdit`
+    - [x] 2. 修改 `web/static/app/site.js` 中的 `webEdit` 声明，增加第五个可选参数 `defaultTab`
+    - [x] 3. 在 `web/static/app/site.js` 的 `webEdit` 函数 `success` 回调中判断 `defaultTab`，若为 `'ssl'` 则自动激活高亮左侧 SSL 菜单并执行 `setSSL`
+    - [x] 4. 重新运行部署脚本 `deploy_site_js.py` 将修改后的 `site.js` 部署至测试服务器
+    - [x] 5. 进行手动验证，测试直达 SSL 证书页面 and 原本的域名管理页面均加载正确
+    - [x] 6. 编写并提供 walkthrough.md 报告
+
