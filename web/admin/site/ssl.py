@@ -119,7 +119,7 @@ def renew_ssl():
     ssl_type = request.form.get('ssl_type', '')
     
     acme_dir = mw.getAcmeDir()
-    log_file = MwSites.instance().letLogFile()
+    log_file = MwSites.instance().acmeLogFile()
     mw.writeFile(log_file, "开始续签证书...\n")
     
     # 记录执行前文件的修改时间，用于精确判断续签是否真正成功，防止因旧证书存在而产生的假成功

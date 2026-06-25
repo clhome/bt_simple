@@ -580,6 +580,14 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 
 ------
 
+20260625 16:30 修复手动续签无日志显示的 Bug
+- [x] 修复手动续签无日志显示的 Bug
+    - [x] 1. 修改 `web/admin/site/ssl.py` 的 `renew_ssl`，将 `log_file` 修改为 `acmeLogFile`
+    - [x] 2. 修改 `web/static/app/site.js` 的 `renewSSL`，将日志轮询函数由 `site.get_let_logs` 更改为 `site.get_acme_logs`
+    - [x] 3. 验证并更新 walkthrough.md 报告
+
+------
+
 20260625 16:20 修复普通申请逻辑（文件/DNS验证）中的假成功 Bug
 - [x] 修复普通申请逻辑中的假成功 Bug
     - [x] 1. 修改 `web/utils/site.py` 的 `createAcmeFile`，在执行申请前记录 mtime，执行后根据 mtime 更新比对判定真实成功
