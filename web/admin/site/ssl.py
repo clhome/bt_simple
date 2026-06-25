@@ -185,7 +185,15 @@ def renew_ssl():
     MwSites.instance().setSslConf(site_name)
     mw.restartWeb()
     
-    return mw.returnData(True, '证书续签成功！')
+    # 获取最新的 SSL 到期剩余天数
+    ssl_days = -1
+    cert_path = MwSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
+    if os.path.exists(cert_path):
+        cert_data = mw.getCertName(cert_path)
+        if cert_data:
+            ssl_days = cert_data.get('endtime', -1)
+            
+    return mw.returnData(True, '证书续签成功！', ssl_days)
 
 
 

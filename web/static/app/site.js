@@ -101,7 +101,7 @@ function getWeb(page, type_id, search) {
 					<td>" + add_time_str + "</td>\
 					<td>" + daily_traffic + "</td>\
 					<td>" + php_text + "</td>\
-					<td>" + ssl_text + "</td>\
+					<td id='ssl_state_" + idname + "'>" + ssl_text + "</td>\
 					<td><a class='btlink setTimes' id='site_"+list[i].id+"' data-ids='"+list[i].id+"'>" + web_end_time + "</a></td>\
 					<td><a class='btlinkbed' href='javascript:;' data-id='"+list[i].id+"'>" + list[i].ps + "</a></td>\
 					<td style='text-align:right; color:#bbb'>\
@@ -2162,6 +2162,18 @@ function renewSSL(type,id,siteName){
 			showMsg(rdata.msg, function(){
 				if (rdata.status){
 					layer.close(index);
+					if (rdata.data !== undefined && rdata.data !== -1) {
+						var ssl_days = rdata.data;
+						var a_tag = $("#ssl_state_" + siteName.replace(/\./g, '_')).find('a');
+						if (a_tag.length > 0) {
+							a_tag.text("剩余" + ssl_days + "天");
+							if (ssl_days < 10) {
+								a_tag.css('color', 'red');
+							} else {
+								a_tag.css('color', '#20a53a');
+							}
+						}
+					}
 					opSSL(type,id,siteName);
 				}
 			},{icon:rdata.status?1:2}, 2000);

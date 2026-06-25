@@ -602,3 +602,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 修改 `web/static/app/site.js` 在 `getWeb` 函数中增加全局页码 `current_site_page` 记录
     - [x] 3. 验证点击刷新按钮时列表局部刷新且停留在当前页，更新 walkthrough.md 报告
 
+------
+
+20260625 16:45 手动续签成功后局部刷新主列表 SSL 剩余时间
+- [x] 手动续签成功后局部刷新主列表 SSL 剩余时间
+    - [x] 1. 修改 `web/admin/site/ssl.py` 的 `renew_ssl`，计算并返回最新的 `ssl_days`
+    - [x] 2. 修改 `web/static/app/site.js` 的 `getWeb` 列表渲染，为 SSL 这一列 the `td` 加上 `ssl_state_[idname]` 的唯一 ID
+    - [x] 3. 修改 `web/static/app/site.js` 的 `renewSSL` 回调函数，在成功提示后更新对应的 `td a` 文本和颜色
+    - [x] 4. 验证手动续签成功后主列表的 SSL 剩余时间确实被立刻局部更新，更新 walkthrough.md 报告
+
