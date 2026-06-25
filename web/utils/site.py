@@ -2372,6 +2372,15 @@ location ^~ {from} {\n\
         elif apply_ca == "buypass":
             cmd = cmd + " --server buypass "
 
+        src_path = mw.getAcmeDomainDir(domains[0])
+        src_cert = src_path + '/fullchain.cer'
+        src_key = src_path + '/' + domains[0] + '.key'
+        src_cert.replace("\\*", "*")
+
+        old_mtime = 0
+        if os.path.exists(src_cert):
+            old_mtime = os.path.getmtime(src_cert)
+
         cmd = 'export ACCOUNT_EMAIL=' + email + ' && ' + cmd + ' >> ' + log_file
         # print(cmd)
         result = mw.execShell(cmd)
@@ -2381,17 +2390,12 @@ location ^~ {from} {\n\
         # 开启重定向
         self.openRedirectByOpen(site_name)
 
-        src_path = mw.getAcmeDomainDir(domains[0])
-        src_cert = src_path + '/fullchain.cer'
-        src_key = src_path + '/' + domains[0] + '.key'
-        src_cert.replace("\\*", "*")
-
         msg = '签发失败,您尝试申请证书的失败次数已达上限!<p>1、检查域名是否绑定到对应站点</p>\
             <p>2、检查域名是否正确解析到本服务器,或解析还未完全生效</p>\
             <p>3、如果您的站点设置了反向代理,或使用了CDN,请先将其关闭</p>\
             <p>4、如果您的站点设置了301重定向,请先将其关闭</p>\
             <p>5、如果以上检查都确认没有问题，请尝试更换DNS服务商</p>'
-        if not os.path.exists(src_cert):
+        if not os.path.exists(src_cert) or (old_mtime > 0 and os.path.getmtime(src_cert) == old_mtime):
             data = {}
             data['err'] = result
             data['out'] = result[0]
@@ -2501,16 +2505,21 @@ export PATH
             if renew == 'true':
                 cmd += " --renew"
             cmd +=  ' > ' + log_file
-            # print(cmd)
-            result = mw.execShell(cmd)
-            # print(result)
-
+            
             # acme源的ssl证书
             src_path = mw.getAcmeDomainDir(d)
             src_cert = src_path + '/fullchain.cer'
             src_key = src_path + '/' + d + '.key'
 
-            if not os.path.exists(src_cert):
+            old_mtime = 0
+            if os.path.exists(src_cert):
+                old_mtime = os.path.getmtime(src_cert)
+
+            # print(cmd)
+            result = mw.execShell(cmd)
+            # print(result)
+
+            if not os.path.exists(src_cert) or (old_mtime > 0 and os.path.getmtime(src_cert) == old_mtime):
                 info = self.findAcmeHandDnsNotice(top_domain)
                 if len(info) != 0:
                     return mw.returnData(True, '手动解析', info)
@@ -2584,19 +2593,24 @@ export PATH
                 cmd = cmd + " --server buypass "
                 
             cmd +=  ' > ' + log_file
-            # print(cmd)
-            result = mw.execShell(cmd)
-            # print(result)
 
             # acme源的ssl证书
             src_path = mw.getAcmeDomainDir(d)
             src_cert = src_path + '/fullchain.cer'
             src_key = src_path + '/' + d + '.key'
+
+            old_mtime = 0
+            if os.path.exists(src_cert):
+                old_mtime = os.path.getmtime(src_cert)
+
+            # print(cmd)
+            result = mw.execShell(cmd)
+            # print(result)
             
             msg = '签发失败,您尝试申请证书的失败次数已达上限!\
                 <p>1、检查域名是否正确解析到本服务器,或解析还未完全生效</p>\
                 <p>2、如果以上检查都确认没有问题，请尝试更换DNS服务商</p>'
-            if not os.path.exists(src_cert):
+            if not os.path.exists(src_cert) or (old_mtime > 0 and os.path.getmtime(src_cert) == old_mtime):
                 data = {}
                 data['err'] = result
                 data['out'] = result[0]

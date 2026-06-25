@@ -578,3 +578,11 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 3. 当第一轮常规续签失败时，自动使用 `--server letsencrypt` 作为后备重试，以解决 ZeroSSL 失败和实现配置自愈迁移
     - [x] 4. 验证手动续签的防拦截、真成功判断以及自动后备切换，更新 walkthrough.md 报告
 
+------
+
+20260625 16:20 修复普通申请逻辑（文件/DNS验证）中的假成功 Bug
+- [x] 修复普通申请逻辑中的假成功 Bug
+    - [x] 1. 修改 `web/utils/site.py` 的 `createAcmeFile`，在执行申请前记录 mtime，执行后根据 mtime 更新比对判定真实成功
+    - [x] 2. 修改 `web/utils/site.py` 的 `createAcmeDns` 和 `createAcmeDnsTypeNone`，增加同样的 mtime 精确验证
+    - [x] 3. 验证并更新 walkthrough.md 报告
+
