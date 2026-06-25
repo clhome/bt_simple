@@ -388,6 +388,17 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 5. 清理 `mysql.js` 内存计算中无用参数 `innodb_additional_mem_pool_size` 的历史包袱
     - [x] 6. 编写 walkthrough.md 汇总并验证本次前端重构
 
+------
+
+20260625 10:30 检查并修复 MariaDB 插件中的默认配置不合理与性能优化兼容性问题
+- [x] 检查并修复 MariaDB 插件中的默认配置不合理与性能优化兼容性问题
+    - [x] 1. 更新 `task.md` 任务清单并分配进度
+    - [x] 2. 检查 MariaDB 默认配置文件模板 `conf/my.cnf` 并进行专业参数优化
+    - [x] 3. 检查前端 `js/mariadb.js` 性能优化页面，确认并修复可能存在的参数设计冲突
+    - [x] 4. 编写 walkthrough.md 汇总并验证 MariaDB 优化结果
+
+
+
 
 
 

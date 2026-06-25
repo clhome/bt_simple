@@ -227,6 +227,14 @@ function changeMySQLDataPath(act) {
 
 //数据库配置状态
 function myPerfOpt() {
+    var version = $('.plugin_version').attr('version') || '10.3';
+    var isMdb10_4 = false;
+    try {
+        if (parseFloat(version) >= 10.4) {
+            isMdb10_4 = true;
+        }
+    } catch(e) {}
+
     //获取MySQL配置
     myPost('db_status','',function(data){
         var rdata = $.parseJSON(data.data);
@@ -237,10 +245,9 @@ function myPerfOpt() {
 
         // console.log(rdata);
         var key_buffer_size = toSizeM(rdata.mem.key_buffer_size);
-        var query_cache_size = toSizeM(rdata.mem.query_cache_size);
+        var query_cache_size = isMdb10_4 ? 0 : toSizeM(rdata.mem.query_cache_size);
         var tmp_table_size = toSizeM(rdata.mem.tmp_table_size);
         var innodb_buffer_pool_size = toSizeM(rdata.mem.innodb_buffer_pool_size);
-        var innodb_additional_mem_pool_size = toSizeM(rdata.mem.innodb_additional_mem_pool_size);
         var innodb_log_buffer_size = toSizeM(rdata.mem.innodb_log_buffer_size);
 
         var sort_buffer_size = toSizeM(rdata.mem.sort_buffer_size);
@@ -250,10 +257,11 @@ function myPerfOpt() {
         var thread_stack = toSizeM(rdata.mem.thread_stack);
         var binlog_cache_size = toSizeM(rdata.mem.binlog_cache_size);
 
-        var a = key_buffer_size + query_cache_size + tmp_table_size + innodb_buffer_pool_size + innodb_additional_mem_pool_size + innodb_log_buffer_size;
+        var a = key_buffer_size + query_cache_size + tmp_table_size + innodb_buffer_pool_size + innodb_log_buffer_size;
         var b = sort_buffer_size + read_buffer_size + read_rnd_buffer_size + join_buffer_size + thread_stack + binlog_cache_size;
         var memSize = a + rdata.mem.max_connections * b;
 
+        var queryCacheHtml = isMdb10_4 ? '' : '<p><span>query_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="query_cache_size" value="' + query_cache_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_query_cache_size + '</font></p>';
 
         var memCon = '<div class="conf_p" style="margin-bottom:0">\
                         <div style="border-bottom:#ccc 1px solid;padding-bottom:10px;margin-bottom:10px"><span><b>最大使用内存: </b></span>\
@@ -264,15 +272,16 @@ function myPerfOpt() {
                             <option value="3">4-8GB</option>\
                             <option value="4">8-16GB</option>\
                             <option value="5">16-32GB</option>\
+                            <option value="6">32-64GB</option>\
+                            <option value="7">64-128GB</option>\
                         </select>\
                         <span>' + lan.soft.mysql_set_maxmem + ': </span><input style="width:70px;background-color:#eee;" class="bt-input-text mr5" name="memSize" type="text" value="' + memSize.toFixed(2) + '" readonly>MB\
                         </div>\
                         <p><span>key_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="key_buffer_size" value="' + key_buffer_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_key_buffer_size + '</font></p>\
-                        <p><span>query_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="query_cache_size" value="' + query_cache_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_query_cache_size + '</font></p>\
+                        ' + queryCacheHtml + '\
                         <p><span>tmp_table_size</span><input style="width: 70px;" class="bt-input-text mr5" name="tmp_table_size" value="' + tmp_table_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_tmp_table_size + '</font></p>\
                         <p><span>innodb_buffer_pool_size</span><input style="width: 70px;" class="bt-input-text mr5" name="innodb_buffer_pool_size" value="' + innodb_buffer_pool_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_innodb_buffer_pool_size + '</font></p>\
                         <p><span>innodb_log_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="innodb_log_buffer_size" value="' + innodb_log_buffer_size + '" type="number">MB, <font>' + lan.soft.mysql_set_innodb_log_buffer_size + '</font></p>\
-                        <p style="display:none;"><span>innodb_additional_mem_pool_size</span><input style="width: 70px;" class="bt-input-text mr5" name="innodb_additional_mem_pool_size" value="' + innodb_additional_mem_pool_size + '" type="number" >MB</p>\
                         <p><span>sort_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="sort_buffer_size" value="' + (sort_buffer_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_sort_buffer_size + '</font></p>\
                         <p><span>read_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="read_buffer_size" value="' + (read_buffer_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_read_buffer_size + ' </font></p>\
                         <p><span>read_rnd_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="read_rnd_buffer_size" value="' + (read_rnd_buffer_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_read_rnd_buffer_size + ' </font></p>\
@@ -305,6 +314,14 @@ function reBootMySqld(){
 
 //设置MySQL配置参数
 function setMySQLConf() {
+    var version = $('.plugin_version').attr('version') || '10.3';
+    var isMdb10_4 = false;
+    try {
+        if (parseFloat(version) >= 10.4) {
+            isMdb10_4 = true;
+        }
+    } catch(e) {}
+
     $.post('/system/system_total', '', function(memInfo) {
         var memSize = memInfo['memTotal'];
         var setSize = parseInt($("input[name='memSize']").val());
@@ -316,9 +333,9 @@ function setMySQLConf() {
             return;
         }
 
-        var query_cache_size = parseInt($("input[name='query_cache_size']").val());
+        var query_cache_size = isMdb10_4 ? 0 : parseInt($("input[name='query_cache_size']").val());
         var query_cache_type = 0;
-        if (query_cache_size > 0) {
+        if (!isMdb10_4 && query_cache_size > 0) {
             query_cache_type = 1;
         }
         var data = {
@@ -352,7 +369,17 @@ function setMySQLConf() {
 
 //MySQL内存优化方案
 function mySQLMemOpt(opt) {
-    var query_size = parseInt($("input[name='query_cache_size']").val());
+    var version = $('.plugin_version').attr('version') || '10.3';
+    var isMdb10_4 = false;
+    try {
+        if (parseFloat(version) >= 10.4) {
+            isMdb10_4 = true;
+        }
+    } catch(e) {}
+
+    var query_size = isMdb10_4 ? 0 : parseInt($("input[name='query_cache_size']").val());
+    var thread_stack_val = isMdb10_4 ? 512 : 256;
+
     switch (opt) {
         case '0':
             $("input[name='key_buffer_size']").val(8);
@@ -363,7 +390,7 @@ function mySQLMemOpt(opt) {
             $("input[name='read_buffer_size']").val(256);
             $("input[name='read_rnd_buffer_size']").val(128);
             $("input[name='join_buffer_size']").val(128);
-            $("input[name='thread_stack']").val(256);
+            $("input[name='thread_stack']").val(thread_stack_val);
             $("input[name='binlog_cache_size']").val(32);
             $("input[name='thread_cache_size']").val(4);
             $("input[name='table_open_cache']").val(32);
@@ -378,7 +405,7 @@ function mySQLMemOpt(opt) {
             $("input[name='read_buffer_size']").val(768);
             $("input[name='read_rnd_buffer_size']").val(512);
             $("input[name='join_buffer_size']").val(1024);
-            $("input[name='thread_stack']").val(256);
+            $("input[name='thread_stack']").val(thread_stack_val);
             $("input[name='binlog_cache_size']").val(64);
             $("input[name='thread_cache_size']").val(64);
             $("input[name='table_open_cache']").val(128);
@@ -393,7 +420,7 @@ function mySQLMemOpt(opt) {
             $("input[name='read_buffer_size']").val(768);
             $("input[name='read_rnd_buffer_size']").val(512);
             $("input[name='join_buffer_size']").val(2048);
-            $("input[name='thread_stack']").val(256);
+            $("input[name='thread_stack']").val(thread_stack_val);
             $("input[name='binlog_cache_size']").val(64);
             $("input[name='thread_cache_size']").val(96);
             $("input[name='table_open_cache']").val(192);
@@ -408,7 +435,7 @@ function mySQLMemOpt(opt) {
             $("input[name='read_buffer_size']").val(1024);
             $("input[name='read_rnd_buffer_size']").val(768);
             $("input[name='join_buffer_size']").val(2048);
-            $("input[name='thread_stack']").val(256);
+            $("input[name='thread_stack']").val(thread_stack_val);
             $("input[name='binlog_cache_size']").val(128);
             $("input[name='thread_cache_size']").val(128);
             $("input[name='table_open_cache']").val(384);
@@ -423,7 +450,7 @@ function mySQLMemOpt(opt) {
             $("input[name='read_buffer_size']").val(2048);
             $("input[name='read_rnd_buffer_size']").val(1024);
             $("input[name='join_buffer_size']").val(4096);
-            $("input[name='thread_stack']").val(384);
+            $("input[name='thread_stack']").val(isMdb10_4 ? 512 : 384);
             $("input[name='binlog_cache_size']").val(192);
             $("input[name='thread_cache_size']").val(192);
             $("input[name='table_open_cache']").val(1024);
@@ -438,22 +465,33 @@ function mySQLMemOpt(opt) {
             $("input[name='read_buffer_size']").val(4096);
             $("input[name='read_rnd_buffer_size']").val(2048);
             $("input[name='join_buffer_size']").val(8192);
-            $("input[name='thread_stack']").val(512);
+            $("input[name='thread_stack']").val(isMdb10_4 ? 512 : 512);
             $("input[name='binlog_cache_size']").val(256);
             $("input[name='thread_cache_size']").val(256);
             $("input[name='table_open_cache']").val(2048);
             $("input[name='max_connections']").val(500);
             break;
     }
+
+    if (isMdb10_4) {
+        $("input[name='query_cache_size']").val(0);
+    }
 }
 
 //计算MySQL内存开销
 function comMySqlMem() {
+    var version = $('.plugin_version').attr('version') || '10.3';
+    var isMdb10_4 = false;
+    try {
+        if (parseFloat(version) >= 10.4) {
+            isMdb10_4 = true;
+        }
+    } catch(e) {}
+
     var key_buffer_size = parseInt($("input[name='key_buffer_size']").val());
-    var query_cache_size = parseInt($("input[name='query_cache_size']").val());
+    var query_cache_size = isMdb10_4 ? 0 : (parseInt($("input[name='query_cache_size']").val()) || 0);
     var tmp_table_size = parseInt($("input[name='tmp_table_size']").val());
     var innodb_buffer_pool_size = parseInt($("input[name='innodb_buffer_pool_size']").val());
-    var innodb_additional_mem_pool_size = parseInt($("input[name='innodb_additional_mem_pool_size']").val());
     var innodb_log_buffer_size = parseInt($("input[name='innodb_log_buffer_size']").val());
 
     var sort_buffer_size = $("input[name='sort_buffer_size']").val() / 1024;
@@ -464,9 +502,9 @@ function comMySqlMem() {
     var binlog_cache_size = $("input[name='binlog_cache_size']").val() / 1024;
     var max_connections = $("input[name='max_connections']").val();
 
-    var a = key_buffer_size + query_cache_size + tmp_table_size + innodb_buffer_pool_size + innodb_additional_mem_pool_size + innodb_log_buffer_size
-    var b = sort_buffer_size + read_buffer_size + read_rnd_buffer_size + join_buffer_size + thread_stack + binlog_cache_size
-    var memSize = a + max_connections * b
+    var a = key_buffer_size + query_cache_size + tmp_table_size + innodb_buffer_pool_size + innodb_log_buffer_size;
+    var b = sort_buffer_size + read_buffer_size + read_rnd_buffer_size + join_buffer_size + thread_stack + binlog_cache_size;
+    var memSize = a + max_connections * b;
     $("input[name='memSize']").val(memSize.toFixed(2));
 }
 
