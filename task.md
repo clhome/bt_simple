@@ -496,4 +496,16 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 5. 测试网站 PHP 页面，验证自愈后故障是否消除并可正常解析
     - [x] 6. 编写并提供 walkthrough.md 报告
 
+------
+
+20260625 13:22 php-yum 插件配置审计与一键调优及自愈
+- [x] php-yum 插件配置审计与一键调优及自愈
+    - [x] 1. 修改 `plugins/php-yum/conf/php-fpm.conf` 中的自动引导文件路径为 `/www/server/php/app_start_yum.php`
+    - [x] 2. 修改 `plugins/php-yum/index.py` 修复模块路径、自愈 app_start_yum 包含，以及实现单版本/多版本调优 API 与 CLI
+    - [x] 3. 修改 `plugins/php-yum/js/php.js` 性能调整页面，加入“一键调优”按钮及 `tunePhpConfig` 前端交互
+    - [x] 4. 编写 `tmp/deploy_yum_php.py` 并同步上传代码至测试服务器
+    - [x] 5. 执行调优自愈，验证 Remi PHP 的配置修改及服务平滑重启情况
+    - [x] 6. 编写并提供 walkthrough.md 报告
+
+
 

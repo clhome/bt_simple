@@ -198,7 +198,7 @@ function getFpmConfig(version, pool = 'www'){
             "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>*起始进程数（服务启动后初始进程数量）</span></p>" +
             "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>*最小空闲进程数（清理空闲进程后的保留数量）</span></p>" +
             "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + rdata.max_spare_servers + "' />   <span class='c9'>*最大空闲进程数（当空闲进程达到此值时清理）</span></p>" +
-            "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>保存</button></div>" +
+            "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>保存</button><button class='btn btn-default btn-sm' onclick='tunePhpConfig(\"" + version + "\")' style='margin-left:15px;'>一键调优</button></div>" +
             "</div>";
 
         $(".soft-man-con").html(body);
@@ -707,6 +707,17 @@ function uninstallPHPLib(version, name, title, pathinfo) {
                 phpLibConfig(version);
             },{ icon: rdata.status ? 1 : 2 },5000);
             
+        });
+    });
+}
+
+function tunePhpConfig(version) {
+    layer.confirm('您确定要对 PHP-' + version + ' 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？', { icon: 3, closeBtn: 2 }, function() {
+        phpPost('tune_php_config', version, '', function(data){
+            var rdata = $.parseJSON(data.data);
+            showMsg(rdata.msg, function(){
+                getFpmConfig(version);
+            },{ icon: rdata.status ? 1 : 2 });
         });
     });
 }
