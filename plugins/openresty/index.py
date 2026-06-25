@@ -46,19 +46,58 @@ def getInitDFile():
 
 def getArgs():
     args = sys.argv[2:]
-    # print(args)
     tmp = {}
-    args_len = len(args)
+    
+    full_str = " ".join(args).strip()
+    
+    # 1. 尝试使用标准的 JSON 反序列化
+    try:
+        import json
+        parsed = json.loads(full_str)
+        if isinstance(parsed, dict):
+            return {k.strip(): str(v).strip() for k, v in parsed.items()}
+    except Exception as e:
+        pass
 
+    # 2. 如果 JSON 序列化由于转义或引号丢失失败，使用智能正则拆分法
+    content = full_str.strip('{').strip('}').strip()
+    content = content.replace('\\:', ':').replace('\\,', ',').replace('\\"', '"').replace('\\\\', '\\')
+    
+    if content.endswith('\\}'):
+        content = content[:-2] + '}'
+    elif content.endswith('\\'):
+        content = content[:-1]
+
+    pairs = content.split(',')
+    has_valid_pair = False
+    for pair in pairs:
+        pair = pair.strip()
+        if ':' in pair:
+            parts = pair.split(':', 1)
+            k = parts[0].strip().strip('"').strip("'").strip('\\').strip()
+            v = parts[1].strip().strip('"').strip("'").strip('\\').strip()
+            if k:
+                tmp[k] = v
+                has_valid_pair = True
+                
+    if has_valid_pair and 'worker_processes' in tmp:
+        return tmp
+        
+    # 3. 如果还是失败，回退到历史默认的分隔逻辑
+    args_len = len(args)
     if args_len == 1:
         t = args[0].strip('{').strip('}')
         t = t.split(':',2)
-        tmp[t[0]] = t[1]
+        k = t[0].strip().strip('"').strip("'")
+        v = t[1].strip().strip('"').strip("'")
+        tmp[k] = v
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':',2)
-            tmp[t[0]] = t[1]
-    # print(tmp)
+            k = t[0].strip().strip('"').strip("'").strip('{').strip('}')
+            v = t[1].strip().strip('"').strip("'").strip('{').strip('}')
+            tmp[k] = v
+            
     return tmp
 
 

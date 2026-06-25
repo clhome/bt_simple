@@ -172,11 +172,50 @@ function setOpCfg(){
         var con = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
                         ' + mlist + '\
                         <div style="margin-top:10px; padding-right:15px" class="text-right">\
+                            <button class="btn btn-default btn-sm mr5" style="color: #d9534f; border-color: #d9534f;" onclick="restoreDefault()">还原默认</button>\
                             <button class="btn btn-success btn-sm mr5" onclick="setOpCfg()">刷新</button>\
                             <button class="btn btn-success btn-sm" onclick="submitConf()">保存</button>\
                         </div>\
                     </div>'
         $(".soft-man-con").html(con);
+    });
+}
+
+function restoreDefault() {
+    layer.confirm('您确定要将配置还原为默认调优配置吗？这会覆盖您当前的自定义调整并重载服务。', {icon:3,closeBtn: 2}, function() {
+        orPost('get_os',{},function(data){
+            var rdata = $.parseJSON(data.data);
+            var c = "name=openresty&func=reload";
+            if (!rdata['auth']){
+                layer.prompt({title: '检查到权限不足,需要输入密码!', formType: 1},function(pwd, index){
+                    layer.close(index);
+                    var data = {'pwd':pwd};
+                    c += '&args='+JSON.stringify(data);
+                    restoreDefaultOp(c);
+                });
+            } else {
+                restoreDefaultOp(c);
+            }
+        });
+    });
+}
+
+function restoreDefaultOp(c) {
+    var e = layer.msg('正在还原默认配置,请稍候...', {icon: 16,time: 0});
+    $.post('/plugins/run', c, function(g) {
+        layer.close(e);
+        if (g.data == 'ok') {
+            layer.msg('还原默认配置成功！', {icon: 1});
+            setOpCfg();
+        } else {
+            layer.msg('还原默认配置失败！', {icon: 2});
+            if( g.status && g.data != 'ok' ) {
+                layer.msg(g.data, {icon: 2,time: 10000,shade: 0.3});
+            }
+        }
+    },'json').error(function() {
+        layer.close(e);
+        layer.msg('操作异常!', {icon: 2});
     });
 }
 

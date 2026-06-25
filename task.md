@@ -427,6 +427,26 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 6. 执行优化修改：更新 index.py 中对应的配置默认值与逻辑
     - [x] 7. 运行本地校验，编写并提供 walkthrough.md 报告
 
+------
+
+20260625 11:05 支持已安装用户点击“还原默认”恢复至调优配置
+- [x] 支持已安装用户点击“还原默认”恢复至调优配置
+    - [x] 1. 修改 plugins/openresty/js/openresty.js，在性能调整界面增加“还原默认”按钮并实现 restoreDefault 逻辑
+    - [x] 2. 运行本地语法与逻辑校验
+    - [x] 3. 编写并提供 walkthrough.md 报告
+
+------
+
+20260625 11:09 修复点击还原默认后保存报 worker_processes 缺失的问题
+- [x] 修复点击还原默认后保存报 worker_processes 缺失的问题
+    - [x] 1. 深入分析并定位 Windows 环境下由于命令行转义导致 JSON 解析失败的 Bug 根源
+    - [x] 2. 修改 plugins/openresty/index.py 中的 getArgs() 方法，使其能够智能识别 JSON、自动修复转义与剥离引号
+    - [x] 3. 运行本地测试，确认命令行传参已能成功解析为字典
+    - [x] 4. 更新 walkthrough.md 并提供修复报告
+
+
+
+
 
 
 
