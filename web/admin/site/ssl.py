@@ -122,16 +122,51 @@ def renew_ssl():
     log_file = MwSites.instance().letLogFile()
     mw.writeFile(log_file, "开始续签证书...\n")
     
-    # 执行续签命令
-    cmd = f"{acme_dir}/acme.sh --renew -d {site_name} --force >> {log_file} 2>&1"
-    mw.execShell(cmd)
-    
-    # 校验新证书是否成功生成
+    # 记录执行前文件的修改时间，用于精确判断续签是否真正成功，防止因旧证书存在而产生的假成功
     src_path = mw.getAcmeDomainDir(site_name)
     src_cert = src_path + '/fullchain.cer'
     src_key = src_path + '/' + site_name + '.key'
     
-    if not os.path.exists(src_cert):
+    old_mtime = 0
+    if os.path.exists(src_cert):
+        old_mtime = os.path.getmtime(src_cert)
+
+    # 1. 临时关闭该站点的反向代理和重定向，避免 Nginx 规则拦截 CA 的验证请求
+    try:
+        MwSites.instance().closeProxyAll(site_name)
+        MwSites.instance().closeRedirectAll(site_name)
+    except:
+        pass
+    
+    is_success = False
+    try:
+        # 2. 执行常规续签命令
+        cmd = f"{acme_dir}/acme.sh --renew -d {site_name} --force >> {log_file} 2>&1"
+        mw.execShell(cmd)
+        
+        # 检查是否续签成功（即证书文件生成了且修改时间被更新）
+        if os.path.exists(src_cert) and (old_mtime == 0 or os.path.getmtime(src_cert) > old_mtime):
+            is_success = True
+            
+        # 3. 如果第一轮续签失败（比如 ZeroSSL 超时失败），自动使用 Let's Encrypt 进行后备强制重试以实现自愈
+        if not is_success:
+            mw.writeFile(log_file, "常规续签失败，自动尝试使用 Let's Encrypt 进行后备强制重试...\n")
+            cmd_backup = f"{acme_dir}/acme.sh --renew -d {site_name} --force --server letsencrypt >> {log_file} 2>&1"
+            mw.execShell(cmd_backup)
+            
+            if os.path.exists(src_cert) and (old_mtime == 0 or os.path.getmtime(src_cert) > old_mtime):
+                is_success = True
+    except Exception as e:
+        mw.writeFile(log_file, f"续签发生内部异常: {str(e)}\n")
+    finally:
+        # 4. 无论成功与否，在退出前必须重新恢复站点的反向代理和重定向配置
+        try:
+            MwSites.instance().openProxyByOpen(site_name)
+            MwSites.instance().openRedirectByOpen(site_name)
+        except:
+            pass
+            
+    if not is_success:
         return mw.returnData(False, '续签失败，详细信息请查看日志！')
         
     # 软链接新证书并重启服务

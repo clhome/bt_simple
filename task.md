@@ -568,3 +568,13 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 3. 在 `web/utils/setting.py` 中修改检测/安装 `acme.sh` 逻辑，在之后同样设定全局默认 CA 为 `letsencrypt`
     - [x] 4. 在 `scripts/install.sh` 与 `scripts/install_dev.sh` 脚本中，在安装完 `acme.sh` 后追加设定全局默认 CA 为 `letsencrypt` 的命令
     - [x] 5. 验证证书申请及默认 CA 状态修改，编写 walkthrough.md 报告
+
+------
+
+20260625 16:00 修复手动续签假成功、反代拦截与 CA 自动后备
+- [x] 修复手动续签假成功、反代拦截与 CA 自动后备
+    - [x] 1. 修改 `web/admin/site/ssl.py` 的 `renew_ssl` 方法，在续签前后临时解开/恢复站点的反代和重定向配置
+    - [x] 2. 在 `renew_ssl` 中记录旧证书文件的 mtime，执行续签后通过 mtime 对比验证是否真实更新，修复假成功 Bug
+    - [x] 3. 当第一轮常规续签失败时，自动使用 `--server letsencrypt` 作为后备重试，以解决 ZeroSSL 失败和实现配置自愈迁移
+    - [x] 4. 验证手动续签的防拦截、真成功判断以及自动后备切换，更新 walkthrough.md 报告
+
