@@ -540,3 +540,13 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 5. 进行手动验证，测试直达 SSL 证书页面 and 原本的域名管理页面均加载正确
     - [x] 6. 编写并提供 walkthrough.md 报告
 
+------
+
+20260625 14:33 站点 SSL 配置页增加手动续签按钮
+- [/] 站点 SSL 配置页增加手动续签按钮
+    - [x] 1. 修改 `web/admin/site/ssl.py`，新增 `/renew_ssl` 路由，处理调用 acme.sh 续签、写入 letLogFile、重做证书软链并重启 Web
+    - [x] 2. 修改 `web/static/app/site.js` 的 `opSSLNow` 回调，在已部署 SSL 证书时向按钮容器 `.ssl-btn` 动态追加 `手动续签` 按钮并绑定 `renewSSL` 事件
+    - [x] 3. 编写及运行部署脚本，将修改后的 Python 后端文件与 JS 前端文件部署到测试服务器
+    - [/] 4. 进行手动验证，测试直达 SSL 证书页面后点击“手动续签”按钮是否能正常拉起进度弹窗、展示滚动日志并续签成功
+    - [ ] 5. 编写并提供 walkthrough.md 报告
+

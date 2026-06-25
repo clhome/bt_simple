@@ -111,6 +111,48 @@ def close_to_https():
     site_name = request.form.get('siteName', '')
     return MwSites.instance().closeToHttps(site_name)
 
+# 续签证书
+@blueprint.route('/renew_ssl', endpoint='renew_ssl', methods=['POST'])
+@panel_login_required
+def renew_ssl():
+    site_name = request.form.get('site_name', '')
+    ssl_type = request.form.get('ssl_type', '')
+    
+    acme_dir = mw.getAcmeDir()
+    log_file = MwSites.instance().letLogFile()
+    mw.writeFile(log_file, "开始续签证书...\n")
+    
+    # 执行续签命令
+    cmd = f"{acme_dir}/acme.sh --renew -d {site_name} --force >> {log_file} 2>&1"
+    mw.execShell(cmd)
+    
+    # 校验新证书是否成功生成
+    src_path = mw.getAcmeDomainDir(site_name)
+    src_cert = src_path + '/fullchain.cer'
+    src_key = src_path + '/' + site_name + '.key'
+    
+    if not os.path.exists(src_cert):
+        return mw.returnData(False, '续签失败，详细信息请查看日志！')
+        
+    # 软链接新证书并重启服务
+    dst_path = MwSites.instance().sslDir + '/' + site_name
+    dst_cert = dst_path + "/fullchain.pem"
+    dst_key = dst_path + "/privkey.pem"
+    
+    if not os.path.exists(dst_path):
+        mw.makeDirs(dst_path)
+        
+    mw.buildSoftLink(src_cert, dst_cert, True)
+    mw.buildSoftLink(src_key, dst_key, True)
+    mw.execShell('echo "acme" > "' + dst_path + '/README"')
+    
+    # 应用 SSL 配置并重启 Web
+    MwSites.instance().setSslConf(site_name)
+    mw.restartWeb()
+    
+    return mw.returnData(True, '证书续签成功！')
+
+
 
 
 

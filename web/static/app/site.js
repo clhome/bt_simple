@@ -2318,6 +2318,7 @@ function opSSLNow(type, id, siteName, callback){
 			$('.warning_info').css('display','none');
 			
 			$(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\" style='margin-left:3px;'>关闭SSL</button>");
+			$(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"renewSSL('acme',"+id+",'"+siteName+"')\" style='margin-left:3px;'>手动续签</button>");
 			$('#now_ssl').html('当前证书 - <i style="color:#20a53a;">[已部署SSL]</i>');
 		} else{
 			$('.warning_info').css('display','block');
