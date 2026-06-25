@@ -1230,7 +1230,14 @@ class sites(object):
             return mw.returnData(False, '当前未开启SSL')
         to = "#error_page 404/404.html;\n\
     #HTTP_TO_HTTPS_START\n\
-    if ($server_port !~ 443){\n\
+    set $isRedcert 1;\n\
+    if ($server_port != 443) {\n\
+        set $isRedcert 2;\n\
+    }\n\
+    if ($uri ~ /\\.well-known/) {\n\
+        set $isRedcert 1;\n\
+    }\n\
+    if ($isRedcert != 1) {\n\
         rewrite ^(/.*)$ https://$host$1 permanent;\n\
     }\n\
     #HTTP_TO_HTTPS_END"

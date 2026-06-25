@@ -611,3 +611,12 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 3. 修改 `web/static/app/site.js` 的 `renewSSL` 回调函数，在成功提示后更新对应的 `td a` 文本和颜色
     - [x] 4. 验证手动续签成功后主列表的 SSL 剩余时间确实被立刻局部更新，更新 walkthrough.md 报告
 
+------
+
+20260625 18:05 优化强制 HTTPS 的重定向逻辑以防拦截 SSL 证书申请
+- [/] 优化强制 HTTPS 的重定向逻辑以防拦截 SSL 证书申请
+    - [/] 1. 修改 `web/utils/site.py` 中的 `httpToHttps`，将默认 rewrite 规则更新为排除 `.well-known` 的判定逻辑
+    - [ ] 2. 验证与测试新写入的强制跳转规则，确保既能实现强制 HTTPS，又不影响 `.well-known` 的 HTTP 访问
+    - [ ] 3. 编写并提供 walkthrough.md 报告
+
+
