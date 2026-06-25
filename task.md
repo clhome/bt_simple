@@ -369,6 +369,29 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 2. 对每个不同版本的默认 cnf 配置文件（my5.5.cnf - my9.4.cnf）进行专业化参数调整
     - [x] 3. 编写 walkthrough.md 汇总所做的配置调整
 
+------
+
+20260625 10:22 分析多版本 MySQL 模板与优化界面的合理性及差异化配置
+- [x] 分析多版本 MySQL 模板与优化界面的合理性及差异化配置
+    - [x] 1. 更新 `task.md` 任务清单并分配进度
+    - [x] 2. 深入审查 `mysql.js` 与 `index.py` 中跨版本参数的逻辑冲突
+    - [x] 3. 撰写 `mysql_version_config_strategy.md` 差异化配置分析报告
+
+------
+
+20260625 10:25 实施多版本 MySQL 性能优化页面的前端兼容性重构
+- [x] 实施多版本 MySQL 性能优化页面的前端兼容性重构
+    - [x] 1. 更新 `task.md` 任务清单并分配进度
+    - [x] 2. 修改 `plugins/mysql/js/mysql.js` 引入 `version` 级版本条件判定
+    - [x] 3. 在 `mysql.js` 渲染和保存中对 MySQL 8.0+ 屏蔽 query_cache 字段
+    - [x] 4. 在 `mysql.js` 一键内存优化中对 MySQL 8.0+ 的 thread_stack 锁定为 1024K
+    - [x] 5. 清理 `mysql.js` 内存计算中无用参数 `innodb_additional_mem_pool_size` 的历史包袱
+    - [x] 6. 编写 walkthrough.md 汇总并验证本次前端重构
+
+
+
+
+
 
 
 
