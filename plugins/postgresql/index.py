@@ -617,8 +617,9 @@ def pgDbStatus():
 
             effective_cache_size_num = re.match(r'\d+', effective_cache_size.strip(
             )).group() if re.match(r'\d+', effective_cache_size.strip()) else ""
+            eff_unit = getUnit(effective_cache_size)
             data['effective_cache_size'] = [effective_cache_size_num,
-                                            "GB", "PG能够使用的最大缓存,比如4G的内存，可以设置为3GB."]
+                                            eff_unit, "PG优化器估算的操作系统可用物理内存缓存大小（建议设置为系统总内存的50%~75%）。"]
 
             if i.strip().startswith("temp_buffers "):
                 temp_buffers = i.split("=")[1]
