@@ -631,6 +631,8 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
         - [x] 修改 `web/utils/site.py` 中的 `tpl_proxy_cors`，在 OPTIONS 的 `if` 块内部补上跨域头部并重新校验
     - [x] 6. 优化创建/编辑反向代理弹窗的“目标URL”为可自由编辑前缀 + 端口的智能拼接交互设计
         - [x] 修改 `web/static/app/site.js` 的代理弹窗，将 IP/域名 前缀设为默认填入 `http://127.0.0.1` 且可编辑的输入框，与后面的“端口”输入框联动自动拼接，并在编辑代理时自动解析回填
+    - [x] 7. 解决站点配置文件编辑器缺少 Nginx 高亮 mode 且存在 C 风格多行注释通配符 Bug 的问题
+        - [x] 补全本地 `web/static/codemirror/mode/nginx/nginx.js` 并移除其中不符合 Nginx 规范的 `/* ... */` 多行注释判定（解决 `/*.conf` 通配符导致的大段绿屏 Bug），并在 `web/templates/default/layout.html` 中引入该语法高亮包，确保配置文件和反代配置文件正确进行 Nginx 模式语法着色。
 
 
 
