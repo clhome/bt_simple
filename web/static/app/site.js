@@ -1696,9 +1696,12 @@ function toProxy(siteName, type, obj) {
 				<div class='line'>\
 					<span class='tname'>目标URL</span>\
 					<div class='info-r ml0'>\
-					<input name='to' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px''>\
+					<input name='proxy_url' class='bt-input-text mr5' type='text' value='http://127.0.0.1' style='width:150px;float: left;margin-right:5px'>\
+					<span style='float: left; margin-right: 5px; line-height: 30px; font-weight: bold;'>:</span>\
+					<input name='proxy_port' class='bt-input-text mr5' type='number' placeholder='端口' style='width:65px;float: left;margin-right:15px'>\
+					<input name='to' type='hidden' value='http://127.0.0.1'>\
 					<span class='tname' style='width:90px'>发送域名</span>\
-					<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:200px'>\
+					<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:100px'>\
 					</div>\
 				</div>\
 				<input name='id' value='' type='hidden'>\
@@ -1747,19 +1750,46 @@ function toProxy(siteName, type, obj) {
 
 	                $('input[name="id"]').val(obj['id']);
 	                $('input[name="cache_time"]').val(obj['cache_time']);
+
+					if (obj['to']){
+						var proxyUrl = obj['to'];
+						var proxyPort = '';
+						var portMatch = obj['to'].match(/:(\d+)(\/.*)?$/);
+						if (portMatch){
+							proxyPort = portMatch[1];
+							proxyUrl = obj['to'].replace(':' + portMatch[1], '');
+						}
+						$('input[name="proxy_url"]').val(proxyUrl);
+						$('input[name="proxy_port"]').val(proxyPort);
+					}
 				}
 
+				function updateTargetUrl() {
+					var url = $('input[name="proxy_url"]').val();
+					var port = $('input[name="proxy_port"]').val();
+					var finalUrl = url;
+					if (port) {
+						if (url.indexOf('://') == -1) {
+							url = 'http://' + url;
+							$('input[name="proxy_url"]').val(url);
+						}
+						finalUrl = url + ':' + port;
+					}
+					$('input[name="to"]').val(finalUrl);
 
-				$('input[name="to"]').on('keyup', function(){
-					var url = $(this).val();
+					var hostUrl = finalUrl;
 					var ip_reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
-	                url = url.replace(/^http[s]?:\/\//, '');
-	                url = url.replace(/(:|\?|\/|\\)(.*)$/, '');
-	                if (ip_reg.test(url)) {
-	                    $("[name='host']").val('$host');
-	                } else {
-	                    $("[name='host']").val(url);
-	                }
+					hostUrl = hostUrl.replace(/^http[s]?:\/\//, '');
+					hostUrl = hostUrl.replace(/(:|\?|\/|\\)(.*)$/, '');
+					if (ip_reg.test(hostUrl)) {
+						$("[name='host']").val('$host');
+					} else {
+						$("[name='host']").val(hostUrl);
+					}
+				}
+
+				$('input[name="proxy_url"], input[name="proxy_port"]').on('input keyup', function(){
+					updateTargetUrl();
 				});
 
 				$("#open_proxy").click(function(){

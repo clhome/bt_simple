@@ -629,6 +629,8 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [x] 4. 验证测试功能，编写并提供 walkthrough.md 报告
     - [x] 5. 优化 `tpl_proxy_cors` 模块中的 OPTIONS 响应以支持跨域预检
         - [x] 修改 `web/utils/site.py` 中的 `tpl_proxy_cors`，在 OPTIONS 的 `if` 块内部补上跨域头部并重新校验
+    - [x] 6. 优化创建/编辑反向代理弹窗的“目标URL”为可自由编辑前缀 + 端口的智能拼接交互设计
+        - [x] 修改 `web/static/app/site.js` 的代理弹窗，将 IP/域名 前缀设为默认填入 `http://127.0.0.1` 且可编辑的输入框，与后面的“端口”输入框联动自动拼接，并在编辑代理时自动解析回填
 
 
 
