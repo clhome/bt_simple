@@ -1634,7 +1634,7 @@ location  {from} {\n\
     # 2.完美兼容WebSocket 和普通HTTP协议  \n\
     proxy_http_version 1.1;\n\
     proxy_set_header Upgrade $http_upgrade;\n\
-    proxy_set_header Connection  \"upgrade\";\n\
+    proxy_set_header Connection $http_upgrade;\n\
     # 3. 完整的标准 Web 代理透传头\n\
     proxy_set_header User-Agent $http_user_agent;\n\
     proxy_set_header X-Forwarded-Proto $scheme;\n\
@@ -1675,7 +1675,7 @@ location  {from} {\n\
 "
 
         tpl_proxy_nocache = "\n\
-    add_header Cache-Control no-cache;\n\
+    # add_header Cache-Control no-cache;\n\
 "
         tpl_proxy_cors = "\n\
     add_header Access-Control-Allow-Origin *;\n\
