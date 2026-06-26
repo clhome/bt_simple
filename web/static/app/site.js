@@ -3117,11 +3117,36 @@ function rewrite(siteName){
 			$.post('/files/get_body','path='+filename,function(fileBody){
 			var centent = fileBody['data']['data'];
 			var rList = ''; 
+			var rewriteNames = {
+				'EmpireCMS': 'EmpireCMS (帝国CMS)',
+				'dedecms': 'dedecms (织梦)',
+				'discuzx': 'discuzx (Discuz!)',
+				'discuzx2': 'discuzx2 (Discuz!)',
+				'discuzx3': 'discuzx3 (Discuz!)',
+				'drupal': 'drupal (Drupal)',
+				'ecshop': 'ecshop (ECShop)',
+				'emlog': 'emlog (Emlog)',
+				'laravel5': 'laravel5 (Laravel)',
+				'mvc': 'mvc (通用 MVC 伪静态)',
+				'phpcms': 'phpcms (PHPCMS)',
+				'phpwind': 'phpwind (PHPWind)',
+				'sablog': 'sablog (SaBlog-X)',
+				'seacms': 'seacms (海洋CMS)',
+				'shopex': 'shopex (ShopEx)',
+				'thinkphp': 'thinkphp (ThinkPHP)',
+				'typecho': 'typecho (Typecho)',
+				'whmcs': 'whmcs (WHMCS)',
+				'wmcms': 'wmcms (完美CMS)',
+				'wordpress': 'wordpress (WordPress)',
+				'zblog': 'zblog (Z-Blog)'
+			};
 			for(var i=0;i<rdata.rewrite.length;i++){
+				var name = rdata.rewrite[i];
+				var displayName = rewriteNames[name] || name;
 				if (i==0){
-					rList += "<option value='0'>"+rdata.rewrite[i]+"</option>";	
+					rList += "<option value='0'>"+name+"</option>";	
 				} else {
-					rList += "<option value='"+rdata.rewrite[i]+"'>"+rdata.rewrite[i]+"</option>";		
+					rList += "<option value='"+name+"'>"+displayName+"</option>";		
 				}
 			}
 			var webBakHtml = "<div class='bt-form'>\
