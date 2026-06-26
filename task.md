@@ -619,4 +619,16 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
     - [ ] 2. 验证与测试新写入的强制跳转规则，确保既能实现强制 HTTPS，又不影响 `.well-known` 的 HTTP 访问
     - [ ] 3. 编写并提供 walkthrough.md 报告
 
+------
+
+20260626 15:30 优化反向代理缓存、跨域和 HTTP/3 配置冲突问题
+- [x] 优化反向代理缓存、跨域和 HTTP/3 配置冲突问题
+    - [x] 1. 修改 `web/utils/site.py` 中的 `tpl_proxy_cache` 引入 `bypass_cache` 以防止动态接口数据泄露
+    - [x] 2. 修改 `web/utils/site.py` 中的 `tpl_proxy_cors` 引入 `proxy_hide_header` 以防止跨域头部重复
+    - [x] 3. 修改 `web/utils/site.py` 中的 `setProxy`，在引入 `add_header` 时自动补回外层的 HSTS 等安全响应头以防丢失
+    - [x] 4. 验证测试功能，编写并提供 walkthrough.md 报告
+    - [x] 5. 优化 `tpl_proxy_cors` 模块中的 OPTIONS 响应以支持跨域预检
+        - [x] 修改 `web/utils/site.py` 中的 `tpl_proxy_cors`，在 OPTIONS 的 `if` 块内部补上跨域头部并重新校验
+
+
 

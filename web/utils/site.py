@@ -1593,16 +1593,6 @@ class sites(object):
         if not re.match(rep, to):
             return mw.returnData(False, "错误的目标地址!")
 
-        # get host from url
-        # try:
-        #     if host == "$host":
-        #         host_tmp = urlparse(to)
-        #         host = host_tmp.netloc
-
-        # except Exception as e:
-        #     return mw.returnData(False, "错误的目标地址")
-        # print(host)
-
         proxy_site_path = self.getProxyDataPath(site_name)
         data_content = mw.readFile(proxy_site_path) if os.path.exists(proxy_site_path) else ""
         data = json.loads(data_content) if data_content != "" else []
@@ -1648,19 +1638,25 @@ location  {from} {\n\
     proxy_read_timeout 3600s;      # 读取超时延长至1小时（防止大文件或长连接断开）\n\
     {proxy_cache}\n\
     {http3}\n\
+    {hsts}\n\
 }\n\
 # PROXY-END"
 
         tpl_proxy_cache = "\n\
-    if ( $uri ~* \\.(gif|png|jpg|jpeg|css|js|svg|ttf|woff|woff2)$ )\n\
+    # 默认跳过缓存（非静态资源）\n\
+    set $bypass_cache 1;\n\
+    # 匹配静态资源，不跳过缓存，且设定 expires\n\
+    if ( $uri ~* \\.(gif|png|jpg|jpeg|css|js|svg|ttf|woff|woff2|ico|webp)$ )\n\
     {\n\
+        set $bypass_cache 0;\n\
         expires {cache_time}m;\n\
     }\n\
     proxy_ignore_headers Set-Cookie Cache-Control expires;\n\
     proxy_cache mw_cache;\n\
     proxy_cache_key \"$host$uri$is_args$args\";\n\
     proxy_cache_valid 200 304 301 302 {cache_time}m;\n\
-"
+    proxy_no_cache $bypass_cache;\n\
+    proxy_cache_bypass $bypass_cache;\n"
         tpl_proxy_nocache_bak = "\n\
     set $static_files_app 0; \n\
     if ( $uri ~* \\.(gif|png|jpg|jpeg|css|js|svg|ttf|woff|woff2)$ )\n\
@@ -1678,13 +1674,20 @@ location  {from} {\n\
     # add_header Cache-Control no-cache;\n\
 "
         tpl_proxy_cors = "\n\
-    add_header Access-Control-Allow-Origin *;\n\
-    add_header Access-Control-Allow-Headers *;\n\
-    add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';\n\
+    # 隐藏后端可能返回的跨域头，防止重复冲突\n\
+    proxy_hide_header Access-Control-Allow-Origin;\n\
+    proxy_hide_header Access-Control-Allow-Methods;\n\
+    proxy_hide_header Access-Control-Allow-Headers;\n\
+    # 统一由 Nginx 写入跨域头\n\
+    add_header Access-Control-Allow-Origin * always;\n\
+    add_header Access-Control-Allow-Headers * always;\n\
+    add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;\n\
     if ($request_method = 'OPTIONS') {\n\
+        add_header Access-Control-Allow-Origin * always;\n\
+        add_header Access-Control-Allow-Headers * always;\n\
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS' always;\n\
         return 204;\n\
-    }\n\
-"
+    }\n"
 
         tpl_proxy_http3 = "\n\
     add_header Alt-Svc 'h3=\":443\";ma=86400' always;\n\
@@ -1713,6 +1716,19 @@ location  {from} {\n\
             tpl = tpl.replace("{http3}", tpl_proxy_http3, 999)
         else:
             tpl = tpl.replace("{http3}", '', 999)
+
+        # 只要开启了跨域或HTTP/3（会导致当前 location 产生 add_header），就需要补齐被覆盖的 HSTS 安全头
+        hsts_header = ""
+        if open_cors == 'on' or open_http3 == 'on':
+            try:
+                vhost_file = self.getHostConf(site_name)
+                if os.path.exists(vhost_file):
+                    vhost_content = mw.readFile(vhost_file)
+                    if vhost_content and "Strict-Transport-Security" in vhost_content:
+                        hsts_header = "\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;"
+            except:
+                pass
+        tpl = tpl.replace("{hsts}", hsts_header, 999)
 
 
         conf_proxy = "{}/{}.conf".format(self.getProxyPath(site_name), proxy_id)
