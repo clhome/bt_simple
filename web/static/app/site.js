@@ -105,7 +105,7 @@ function getWeb(page, type_id, search) {
 					<td><a class='btlink setTimes' id='site_"+list[i].id+"' data-ids='"+list[i].id+"'>" + web_end_time + "</a></td>\
 					<td><a class='btlinkbed' href='javascript:;' data-id='"+list[i].id+"'>" + list[i].ps + "</a></td>\
 					<td style='text-align:right; color:#bbb'>\
-					<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" +list[i].edate + "','" + list[i].add_time + "')\">设置</a>\
+					<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" +list[i].edate + "','" + list[i].add_time + "', 'config')\">设置</a>\
                         | <a href='javascript:;' class='btlink' onclick=\"webDelete('" + list[i].id + "','" + list[i].name + "')\" title='删除站点'>删除</a>\
 					</td></tr>"
 			
@@ -1102,6 +1102,10 @@ function webEdit(id,website,endTime,addtime,defaultTab){
 				var sslTab = $(".bt-w-menu p:contains('SSL')");
 				sslTab.addClass("bgw").siblings().removeClass("bgw");
 				setSSL(id, website);
+			} else if (defaultTab === 'config') {
+				var configTab = $(".bt-w-menu p:contains('配置文件')");
+				configTab.addClass("bgw").siblings().removeClass("bgw");
+				configFile(website);
 			} else {
 				domainEdit(id,website);
 			}
