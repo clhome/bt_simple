@@ -1621,27 +1621,31 @@ class sites(object):
                     return mw.returnData(False, "代理目录已存在!!")
 
         tpl = "#PROXY-START\n\
-location ^~ {from} {\n\
-    add_header X-Cache $upstream_cache_status;\n\
+location  {from} {\n\
+    #add_header X-Cache $upstream_cache_status;    #缓存状态，用于调试 \n\
     {cors}\n\
     proxy_pass {to};\n\
+    # 1. 核心透传头，确保后端获取真实域名和 IP \n\
     proxy_set_header Host {host};\n\
     proxy_ssl_server_name on;\n\
     proxy_set_header X-Real-IP $remote_addr;\n\
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
     proxy_set_header REMOTE-HOST $remote_addr;\n\
-    proxy_set_header Upgrade $http_upgrade;\n\
-    proxy_set_header Connection $connection_upgrade;\n\
+    # 2.完美兼容WebSocket 和普通HTTP协议  \n\
     proxy_http_version 1.1;\n\
+    proxy_set_header Upgrade $http_upgrade;\n\
+    proxy_set_header Connection  \"upgrade\";\n\
+    # 3. 完整的标准 Web 代理透传头\n\
     proxy_set_header User-Agent $http_user_agent;\n\
     proxy_set_header X-Forwarded-Proto $scheme;\n\
     proxy_set_header X-Forwarded-Host $http_host;\n\
     proxy_set_header X-Forwarded-Port $server_port;\n\
     \n\
-    #ws\n\
-    proxy_buffering off;\n\
-    proxy_read_timeout 300s;\n\
-    proxy_connect_timeout 75s;\n\
+    # 4. 生产环境大坑防御（网盘大文件上传、长连接超时、流式AI响应）\n\
+    client_max_body_size 0;        # 取消上传大小限制（防止413错误）\n\
+    proxy_buffering off;           # 关闭缓冲区（支持AI打字机效果、实时进度条）\n\
+    proxy_connect_timeout 75s;     # 连接超时\n\
+    proxy_read_timeout 3600s;      # 读取超时延长至1小时（防止大文件或长连接断开）\n\
     {proxy_cache}\n\
     {http3}\n\
 }\n\
