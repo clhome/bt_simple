@@ -2331,15 +2331,19 @@ function opSSLNow(type, id, siteName, callback){
 		var rdata = data['data'];
 
 		if (rdata['cert_data']){
-			var issuer = rdata['cert_data']['issuer'].split(" ");
+			var issuer_o = rdata['cert_data']['issuer_o'] || '自签名/未知';
+			var issuer = rdata['cert_data']['issuer'] || '未知';
 			var domains = rdata['cert_data']['dns'].join("、");
 
 			var cert_data = "<div class='state_info_flex'>\
-				<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"+issuer[0]+"</span></div>\
-				<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"+rdata['cert_data']['endtime']+"天到期</span></div>\
+				<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>"+issuer_o+"</span></div>\
+				<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"+issuer+"</span></div>\
 			</div>\
 			<div class='state_info_flex'>\
+				<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"+rdata['cert_data']['endtime']+"天到期</span></div>\
 				<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>"+domains+"</span></div>\
+			</div>\
+			<div class='state_info_flex'>\
 				<div class='state_item'><span>强制HTTPS：</span><span class='switch'>\
 					<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>\
                     <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('" + siteName + "')\">\
@@ -2537,14 +2541,16 @@ function opSSLAcme(type, id, siteName, callback){
 		$(".tab-con").html(acme);
 
 		if (rdata['cert_data']){
-			var issuer = rdata['cert_data']['issuer'].split(" ");
+			var issuer_o = rdata['cert_data']['issuer_o'] || '自签名/未知';
+			var issuer = rdata['cert_data']['issuer'] || '未知';
 			var domains = rdata['cert_data']['dns'].join("、");
 
 			var cert_data = "<div class='state_info_flex'>\
-				<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"+issuer[0]+"</span></div>\
-				<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"+rdata['cert_data']['endtime']+"天到期</span></div>\
+				<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>"+issuer_o+"</span></div>\
+				<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"+issuer+"</span></div>\
 			</div>\
 			<div class='state_info_flex'>\
+				<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"+rdata['cert_data']['endtime']+"天到期</span></div>\
 				<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>"+domains+"</span></div>\
 			</div>";
 			$(".ssl_state_info").html(cert_data);
@@ -2687,14 +2693,16 @@ function opSSLLet(type, id, siteName, callback){
 		$(".tab-con").html(lets);
 
 		if (rdata['cert_data']){
-			var issuer = rdata['cert_data']['issuer'].split(" ");
+			var issuer_o = rdata['cert_data']['issuer_o'] || '自签名/未知';
+			var issuer = rdata['cert_data']['issuer'] || '未知';
 			var domains = rdata['cert_data']['dns'].join("、");
 
 			var cert_data = "<div class='state_info_flex'>\
-				<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"+issuer[0]+"</span></div>\
-				<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"+rdata['cert_data']['endtime']+"天到期</span></div>\
+				<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>"+issuer_o+"</span></div>\
+				<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"+issuer+"</span></div>\
 			</div>\
 			<div class='state_info_flex'>\
+				<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"+rdata['cert_data']['endtime']+"天到期</span></div>\
 				<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>"+domains+"</span></div>\
 			</div>";
 			$(".ssl_state_info").html(cert_data);

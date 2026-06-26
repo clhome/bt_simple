@@ -1986,6 +1986,18 @@ def getCertName(certPath):
         if not result['issuer']:
             if hasattr(issuer, 'O'):
                 result['issuer'] = issuer.O
+
+        # 取证书分类（Organization）
+        result['issuer_o'] = ''
+        if hasattr(issuer, 'O'):
+            result['issuer_o'] = issuer.O
+        if not result['issuer_o']:
+            issue_comp = issuer.get_components()
+            for iss in issue_comp:
+                if iss[0] in [b'O', 'O']:
+                    result['issuer_o'] = iss[1].decode()
+                    break
+
         # 取到期时间
         result['notAfter'] = strfDate(bytes.decode(x509.get_notAfter())[:-1])
         # 取申请时间

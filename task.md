@@ -680,3 +680,14 @@ bt_simple 是一个简洁的 Linux 面板（轻量版服务器管理面板），
 Python f-string 中的双引号和 sed 的引号嵌套层级有误，导致 shell 转义出错
 sed -i 在不同 Linux 发行版上的行为差异
 现在用 Python 原生 re.sub 直接替换 Le_Webroot='旧路径' 为 Le_Webroot='/www/wwwroot/ca.yftec.top/public'，更可靠。请重新部署后再次测试手动续签。
+
+---
+
+20260626 17:40 优化 SSL 证书显示方式，区分展示“证书分类”和“证书品牌”
+
+- [x] 优化 SSL 证书显示方式，区分展示“证书分类”和“证书品牌”
+  - [x] 1. 修改 `web/core/mw.py` 中的 `getCertName` 函数，在返回值中增加 `issuer_o` 字段提取 Organization 信息
+  - [x] 2. 修改 `web/static/app/site.js` 中的 `opSSLNow`、`opSSLAcme` 和 `opSSLLet` 界面，合并“证书分类”与“证书品牌”作为首行显示，并微调到期时间和认证域名的排版
+  - [x] 3. 修改 `web/static/app/config.js` 中的面板 SSL 管理部分（`local` 和 `nginx` 部分），同步展示“证书分类”与“证书品牌”
+  - [x] 4. 验证测试并提供 walkthrough.md 报告
+

@@ -1154,13 +1154,16 @@ function getPanelSSL(){
 						var cert = cert_all['local'];
 						var cert_data = '';
 						if (cert['info'] && cert['info']['issuer']){
+							var issuer_o = cert['info']['issuer_o'] || '自签名/未知';
 							cert_data = "<div class='ssl_state_info'><div class='state_info_flex'>\
+								<div class='state_item'><span>证书分类：</span>\
+								<span class='ellipsis_text ssl_issue_o'>"+issuer_o+"</span></div>\
 								<div class='state_item'><span>证书品牌：</span>\
 								<span class='ellipsis_text ssl_issue'>"+cert['info']['issuer']+"</span></div>\
-								<div class='state_item'><span>到期时间：</span>\
-								<span class='btlink ssl_endtime'>剩余"+cert['info']['endtime']+"天到期</span></div>\
 							</div>\
 							<div class='state_info_flex'>\
+								<div class='state_item'><span>到期时间：</span>\
+								<span class='btlink ssl_endtime'>剩余"+cert['info']['endtime']+"天到期</span></div>\
 								<div class='state_item'><span>认证域名：</span>\
 								<span class='ellipsis_text ssl_subject'>"+cert['info']['subject']+"</span></div>\
 							</div></div>";
@@ -1189,13 +1192,16 @@ function getPanelSSL(){
 							var cert = cert_all['nginx'];
 							var cert_data = '';
 							if (cert['info'] && cert['info']['issuer']){
+								var issuer_o = cert['info']['issuer_o'] || '自签名/未知';
 								cert_data = "<div class='ssl_state_info'><div class='state_info_flex'>\
+									<div class='state_item'><span>证书分类：</span>\
+									<span class='ellipsis_text ssl_issue_o'>"+issuer_o+"</span></div>\
 									<div class='state_item'><span>证书品牌：</span>\
 									<span class='ellipsis_text ssl_issue'>"+cert['info']['issuer']+"</span></div>\
-									<div class='state_item'><span>到期时间：</span>\
-									<span class='btlink ssl_endtime'>剩余"+cert['info']['endtime']+"天到期</span></div>\
 								</div>\
 								<div class='state_info_flex'>\
+									<div class='state_item'><span>到期时间：</span>\
+									<span class='btlink ssl_endtime'>剩余"+cert['info']['endtime']+"天到期</span></div>\
 									<div class='state_item'><span>认证域名：</span>\
 									<span class='ellipsis_text ssl_subject'>"+cert['info']['subject']+"</span></div>\
 								</div></div>";
