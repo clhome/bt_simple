@@ -1884,7 +1884,7 @@ function toProxy(siteName, type, obj) {
 				title: '编辑配置文件',
 				closeBtn: 1,
 				shadeClose: true,
-				area: ['500px', '500px'],
+				area: ['700px', '700px'],
 				btn: ['提交','关闭'],
 				content: mBody,
 				success: function () {
@@ -1906,7 +1906,7 @@ function toProxy(siteName, type, obj) {
 						}
 					});
 					editor.focus();
-					$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
+					$(".CodeMirror-scroll").css({"height":"500px","margin":0,"padding":0});
 					$("#onlineEditFileBtn").unbind('click');
 				},
 				yes:function(index,layero){
