@@ -140,6 +140,19 @@ def renew_ssl():
     
     is_success = False
     try:
+        # 获取当前的真实网站根目录，防止因为运行目录修改导致续签 404
+        # 注意：acme.sh --renew 不接受 -w 参数，它只读取配置文件中的 Le_Webroot
+        # 因此必须在续签前直接修改 acme.sh 的域名配置文件
+        w_path = MwSites.instance().getSitePath(site_name)
+        if w_path:
+            import re as _re
+            acme_conf = src_path + '/' + site_name + '.conf'
+            if os.path.exists(acme_conf):
+                conf_content = mw.readFile(acme_conf)
+                if conf_content:
+                    conf_content = _re.sub(r"Le_Webroot='[^']*'", f"Le_Webroot='{w_path}'", conf_content)
+                    mw.writeFile(acme_conf, conf_content)
+
         # 2. 执行常规续签命令
         cmd = f"{acme_dir}/acme.sh --renew -d {site_name} --force >> {log_file} 2>&1"
         mw.execShell(cmd)
