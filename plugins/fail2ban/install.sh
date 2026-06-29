@@ -19,7 +19,11 @@ Install_App()
 	mkdir -p $serverPath/source
 
 	which yum && yum install -y fail2ban
-	which apt && apt install -o Dpkg::Options::="--force-confmiss" --reinstall -y fail2ban
+	if which apt >/dev/null 2>&1; then
+		dpkg --configure -a || true
+		apt install -o Dpkg::Options::="--force-confmiss" -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -y fail2ban
+		apt install -o Dpkg::Options::="--force-confmiss" -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" --reinstall -y fail2ban
+	fi
 
 	mkdir -p $serverPath/fail2ban
 	echo "${VERSION}" > $serverPath/fail2ban/version.pl
@@ -31,8 +35,11 @@ Install_App()
 
 Uninstall_App()
 {
-	which apt && apt remove -y fail2ban
-	which apt && apt purge -y fail2ban
+	if which apt >/dev/null 2>&1; then
+		dpkg --configure -a || true
+		apt remove -y fail2ban
+		apt purge -y fail2ban
+	fi
 
 	which yum && yum remove -y fail2ban
 	which yum && yum purge -y fail2ban
