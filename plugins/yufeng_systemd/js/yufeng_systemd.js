@@ -1,8 +1,26 @@
+// 全局 JS 错误捕获，方便诊断无反应的异常
+window.onerror = function(message, source, lineno, colno, error) {
+    var err_msg = "JS 异常: " + message + "\n文件: " + source + "\n行号: " + lineno + ":" + colno;
+    console.error(err_msg, error);
+    if (window.layer) {
+        layer.alert(err_msg.replace(/\n/g, '<br>'), {icon: 2, title: "JavaScript 运行错误"});
+    } else {
+        alert(err_msg);
+    }
+    return false;
+};
+
 var yufeng_systemd = {
     plugin_name: 'yufeng_systemd',
     
     init: function() {
+        this.show_tab('config');
         this.get_list();
+    },
+    
+    show_tab: function(tab_name) {
+        $('.tab-con').hide();
+        $('#yufeng_' + tab_name + '_tab').show();
     },
     
     // 获取列表
@@ -59,13 +77,13 @@ var yufeng_systemd = {
         var is_edit = service_name ? true : false;
         var title = is_edit ? '修改服务 [' + service_name + ']' : '添加专属守护服务';
         
-        var form_html = '<div class="bt-form pd20 pb70" style="position: relative;">' +
-            '<button class="btn btn-success btn-sm" style="position: absolute; top: 20px; right: 20px;" onclick="yufeng_systemd.save_service()">提交保存</button>' +
+        var form_html = '<div id="yufeng_service_form" class="bt-form pd20">' +
             '<div class="form-horizontal">' +
                 '<div class="line">' +
                     '<span class="tname">服务名称</span>' +
                     '<div class="info-r">' +
                         '<input name="service_name" class="bt-input-text mr5" type="text" style="width:150px; ' + (is_edit ? 'background-color: #f5f5f5;' : '') + '" value="' + (service_name||'') + '" ' + (is_edit?'readonly':'') + ' placeholder="如: my_node_app">' +
+                        '<span style="color: #ff4d4f; margin-left: 10px; font-weight: bold;">请勿使用中文名称</span>' +
                     '</div>' +
                 '</div>' +
                 '<div class="line">' +
@@ -121,11 +139,15 @@ var yufeng_systemd = {
         layer.open({
             type: 1,
             title: title,
-            area: ['600px', '500px'],
+            area: ['600px', '460px'],
             offset: 'auto',
             closeBtn: 1,
             shadeClose: false,
+            btn: ['提交保存', '取消'],
             content: form_html,
+            yes: function(index, layero) {
+                yufeng_systemd.save_service();
+            },
             success: function(layero, index) {
                 // 如果是编辑高级模式，需要回显数据
                 if (is_edit) {
@@ -134,7 +156,7 @@ var yufeng_systemd = {
                         layer.close(loadT);
                         if(res.status) {
                             var content = res.data;
-                            $('textarea[name="service_content"]').val(content);
+                            $('#yufeng_service_form textarea[name="service_content"]').val(content);
                             
                             // 尝试回显极简模式的数据
                             var userMatch = content.match(/^User=(.*)$/m);
@@ -142,20 +164,20 @@ var yufeng_systemd = {
                             var execStartMatch = content.match(/^ExecStart=(.*)$/m);
                             
                             if (userMatch && workDirMatch && execStartMatch) {
-                                $('select[name="run_user"]').val($.trim(userMatch[1]));
-                                $('input[name="work_dir"]').val($.trim(workDirMatch[1]));
-                                $('input[name="exec_start"]').val($.trim(execStartMatch[1]));
+                                $('#yufeng_service_form select[name="run_user"]').val($.trim(userMatch[1]));
+                                $('#yufeng_service_form input[name="work_dir"]').val($.trim(workDirMatch[1]));
+                                $('#yufeng_service_form input[name="exec_start"]').val($.trim(execStartMatch[1]));
                                 // 如果能成功解析关键字段，则默认停留在极简模式
-                                $('select[name="mode"]').val('simple').trigger('change');
+                                $('#yufeng_service_form select[name="mode"]').val('simple').trigger('change');
                             } else {
                                 // 结构复杂，退化到高级模式
-                                $('select[name="mode"]').val('advanced').trigger('change');
+                                $('#yufeng_service_form select[name="mode"]').val('advanced').trigger('change');
                             }
                         }
                     });
                 } else {
                     var default_tpl = "[Unit]\nDescription=Managed by yufeng_systemd Plugin\nAfter=network-online.target\n\n[Service]\nType=simple\nUser=www\nWorkingDirectory=/www/wwwroot/\nExecStart=\nRestart=always\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n";
-                    $('textarea[name="service_content"]').val(default_tpl);
+                    $('#yufeng_service_form textarea[name="service_content"]').val(default_tpl);
                 }
             }
         });
@@ -173,8 +195,8 @@ var yufeng_systemd = {
     
     save_service: function() {
         var data = {
-            service_name: $('input[name="service_name"]').val(),
-            mode: $('select[name="mode"]').val()
+            service_name: $('#yufeng_service_form input[name="service_name"]').val(),
+            mode: $('#yufeng_service_form select[name="mode"]').val()
         };
         
         if (!data.service_name) {
@@ -182,16 +204,23 @@ var yufeng_systemd = {
             return;
         }
         
+        // 校验服务名称格式，防止非 ASCII 字符或非法字符导致 Systemd 报错或后端拦截无反应
+        var name_pattern = /^[a-zA-Z0-9_-]+$/;
+        if (!name_pattern.test(data.service_name)) {
+            layer.msg('服务名只能包含字母、数字、下划线和中划线！', {icon: 2});
+            return;
+        }
+        
         if (data.mode === 'simple') {
-            data.run_user = $('select[name="run_user"]').val();
-            data.work_dir = $('input[name="work_dir"]').val();
-            data.exec_start = $('input[name="exec_start"]').val();
+            data.run_user = $('#yufeng_service_form select[name="run_user"]').val();
+            data.work_dir = $('#yufeng_service_form input[name="work_dir"]').val();
+            data.exec_start = $('#yufeng_service_form input[name="exec_start"]').val();
             if (!data.work_dir || !data.exec_start) {
                 layer.msg('项目路径和启动命令不能为空', {icon: 2});
                 return;
             }
         } else {
-            data.service_content = $('textarea[name="service_content"]').val();
+            data.service_content = $('#yufeng_service_form textarea[name="service_content"]').val();
             if (data.service_content.indexOf('[Unit]') === -1 || data.service_content.indexOf('[Service]') === -1) {
                 layer.msg('高级配置必须包含 [Unit] 和 [Service] 节点', {icon: 2});
                 return;

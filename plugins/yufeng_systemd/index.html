@@ -5,31 +5,168 @@
 .status-inactive { color: #888; }
 .btn-yufeng { margin-right: 5px; }
 .yufeng-notice { padding: 10px; background-color: #fcf8e3; border: 1px solid #faebcc; color: #8a6d3b; margin-bottom: 15px; border-radius: 4px; }
+
+/* 使用说明优雅样式 */
+.yf-readme-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #333;
+    line-height: 1.6;
+}
+.yf-card {
+    background: #fff;
+    border: 1px solid #e1e8ed;
+    border-radius: 6px;
+    padding: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.yf-card-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #20a53a;
+    margin-top: 0;
+    margin-bottom: 12px;
+    border-left: 3px solid #20a53a;
+    padding-left: 8px;
+}
+.yf-step-list {
+    padding-left: 18px;
+    margin-bottom: 0;
+}
+.yf-step-list li {
+    margin-bottom: 10px;
+    list-style-type: decimal;
+}
+.yf-step-title {
+    font-weight: bold;
+    color: #444;
+}
+.yf-code-block {
+    background: #2f3542;
+    color: #f1f2f6;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+    margin: 6px 0;
+    overflow-x: auto;
+}
+.yf-code-comment {
+    color: #747d8c;
+}
+.yf-code-highlight {
+    color: #2ed573;
+    font-weight: bold;
+}
+.yf-tip-box {
+    background-color: #f1f9f5;
+    border-left: 4px solid #2ed573;
+    color: #2f3542;
+    padding: 10px 12px;
+    border-radius: 0 4px 4px 0;
+    margin-top: 10px;
+    font-size: 13px;
+}
+.yf-tip-title {
+    font-weight: bold;
+    color: #20a53a;
+    margin-bottom: 3px;
+}
 </style>
+
 <div class="bt-form">
     <div class="bt-w-main">
-        <div class="bt-w-con pd15">
-            <div class="yufeng-notice">
-                <strong>【御风进程守护】提示：</strong> 这里的服务与系统原生服务完全隔离，底层强制绑定 <code>YuFeng</code> 标签。删除或修改此处配置不会影响系统正常运行，请放心使用。
-            </div>
-            <div class="bt-box">
-                <div class="bt-form">
-                    <button class="btn btn-success btn-sm" onclick="yufeng_systemd.open_edit('')"><span class="glyphicon glyphicon-plus"></span> 添加守护服务</button>
+        <!-- 左侧导航菜单 -->
+        <div class="bt-w-menu">
+            <p class="bgw" onclick="yufeng_systemd.show_tab('config')">配置</p>
+            <p onclick="yufeng_systemd.show_tab('readme')">使用说明</p>
+        </div>
+        
+        <!-- 右侧内容区域 -->
+        <div class="bt-w-con pd15" style="height: 480px; overflow-y: auto;">
+            <!-- 配置主界面 -->
+            <div id="yufeng_config_tab" class="tab-con">
+                <div class="yufeng-notice">
+                    <strong>【御风进程守护】提示：</strong> 这里的服务与系统原生服务完全隔离，底层强制绑定 <code>YuFeng</code> 标签。删除或修改此处配置不会影响系统正常运行，请放心使用。
                 </div>
-                <div class="divtable mt10">
-                    <table class="table table-hover yf-systemd-table">
-                        <thead>
-                            <tr>
-                                <th>服务名称</th>
-                                <th>运行状态</th>
-                                <th>自启状态</th>
-                                <th style="text-align: right;">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="yufeng_service_list">
-                            <!-- js render -->
-                        </tbody>
-                    </table>
+                <div class="bt-box">
+                    <div class="bt-form">
+                        <button class="btn btn-success btn-sm" onclick="yufeng_systemd.open_edit('')"><span class="glyphicon glyphicon-plus"></span> 添加守护服务</button>
+                    </div>
+                    <div class="divtable mt10">
+                        <table class="table table-hover yf-systemd-table">
+                            <thead>
+                                <tr>
+                                    <th>服务名称</th>
+                                    <th>运行状态</th>
+                                    <th>自启状态</th>
+                                    <th style="text-align: right;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="yufeng_service_list">
+                                <!-- js render -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 使用说明界面 -->
+            <div id="yufeng_readme_tab" class="tab-con" style="display: none;">
+                <div class="yf-readme-container">
+                    <!-- 一般使用说明 -->
+                    <div class="yf-card">
+                        <div class="yf-card-title">一般使用方法</div>
+                        <ul class="yf-step-list">
+                            <li>
+                                <span class="yf-step-title">添加守护服务</span>：点击上方【添加守护服务】按钮，根据需要填写配置。
+                            </li>
+                            <li>
+                                <span class="yf-step-title">配置模式选择</span>：
+                                <ul>
+                                    <li><strong>极简向导模式 (推荐)</strong>：填入服务名称、运行用户、项目路径(绝对路径)和启动命令即可。</li>
+                                    <li><strong>高级代码模式</strong>：适合高级定制。直接编写 Systemd 配置文件，后台会自动附加 <code>Documentation=tag:YuFeng</code> 标签以实现安全接管。</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <span class="yf-step-title">日常服务管理</span>：在列表中可以一键启动、停止、重启服务，切换自启状态，以及查看运行日志。
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Python 虚拟环境说明 -->
+                    <div class="yf-card">
+                        <div class="yf-card-title">Python 虚拟环境使用方法 (venv)</div>
+                        <p style="margin-bottom: 8px;">如果您的 Python 项目需要使用虚拟环境隔离依赖，请参考以下最佳实践进行配置：</p>
+                        <ul class="yf-step-list">
+                            <li>
+                                <span class="yf-step-title">在终端中创建虚拟环境并安装依赖</span>
+                                <div class="yf-code-block">
+                                    <span class="yf-code-comment"># 1. 进入您的项目目录</span><br>
+                                    cd /www/wwwroot/my_python_project<br><br>
+                                    <span class="yf-code-comment"># 2. 创建名为 venv 的虚拟环境</span><br>
+                                    python3 -m venv venv<br><br>
+                                    <span class="yf-code-comment"># 3. 激活虚拟环境并安装 requirements.txt 依赖</span><br>
+                                    source venv/bin/activate<br>
+                                    pip install -r requirements.txt
+                                </div>
+                            </li>
+                            <li>
+                                <span class="yf-step-title">在御风进程守护中进行配置</span>：
+                                <ul>
+                                    <li><strong>项目路径</strong>：填写您项目的绝对路径（如 <code class="yf-code-highlight">/www/wwwroot/my_python_project</code>）。</li>
+                                    <li><strong>启动命令</strong>：<span style="color: #ff4757; font-weight: bold;">极其重要！</span>请勿在启动命令中使用 <code style="text-decoration: line-through;">source venv/bin/activate</code>，亦不要使用相对路径。您必须直接调用虚拟环境内 Python 解释器的<strong>绝对路径</strong>。</li>
+                                </ul>
+                                <div class="yf-tip-box">
+                                    <div class="yf-tip-title">💡 启动命令配置示例</div>
+                                    <strong>标准 Python 脚本启动：</strong><br>
+                                    <code class="yf-code-highlight">/www/wwwroot/my_python_project/venv/bin/python main.py</code><br><br>
+                                    <strong>Django/Gunicorn 服务启动：</strong><br>
+                                    <code class="yf-code-highlight">/www/wwwroot/my_python_project/venv/bin/gunicorn -w 4 -b 127.0.0.1:8000 myproject.wsgi:application</code>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -37,7 +174,7 @@
 </div>
 
 <script type="text/javascript">
-    resetPluginWinWidth(800);
+    resetPluginWinWidth(850);
     resetPluginWinHeight(550);
     $.getScript("/plugins/file?name=yufeng_systemd&f=js/yufeng_systemd.js", function(){
         yufeng_systemd.init();
