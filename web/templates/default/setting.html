@@ -334,10 +334,10 @@ function migrateDatabase() {
 					layer.open({
 						type: 1,
 						title: '迁移执行结果',
-						area: ['600px', '400px'],
+						area: ['650px', '400px'],
 						closeBtn: 1,
 						shadeClose: true,
-						content: '<div style="padding: 15px;"><pre style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 320px; overflow-y: auto;">' + rdata.msg + '</pre></div>',
+						content: '<div style="padding: 15px;"><pre style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 300px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">' + rdata.msg + '</pre></div>',
 						end: function() {
 							window.location.reload();
 						}
