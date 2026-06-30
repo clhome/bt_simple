@@ -1860,21 +1860,102 @@ def delDb():
         sid = args['id']
         name = args['name']
         psdb = pSqliteDb('databases')
-        pdb = pMysqlDb()
         find = psdb.where("id=?", (sid,)).field(
             'id,pid,name,username,password,accept,ps,addtime').find()
-        accept = find['accept']
+        if not find:
+            return mw.returnJson(False, '删除失败! 数据库在面板记录中不存在。')
+        
         username = find['username']
 
-        # 删除MYSQL
-        result = pdb.execute("drop database `" + name + "`")
+        # 数据库连接参数
+        db_host = 'localhost'
+        db_port = int(getDbPort())
+        db_pass = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
+        db_socket = getSocketFile()
 
-        users = pdb.query("select Host from mysql.user where User='" +
-                          username + "' AND Host!='localhost'")
-        pdb.execute("drop user '" + username + "'@'localhost'")
-        for us in users:
-            pdb.execute("drop user '" + username + "'@'" + us["Host"] + "'")
-        pdb.execute("flush privileges")
+        import pymysql
+        import warnings
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+        # 封装底层执行命令
+        def doDeleteDb(read_timeout_val=30):
+            conn = None
+            try:
+                conn = pymysql.connect(
+                    host=db_host,
+                    user='root',
+                    password=db_pass,
+                    port=db_port,
+                    unix_socket=db_socket,
+                    connect_timeout=5,
+                    read_timeout=read_timeout_val,
+                    cursorclass=pymysql.cursors.DictCursor
+                )
+                with conn.cursor() as cursor:
+                    # 1. 删除数据库 (如果已经删除了，则忽略对应错误)
+                    try:
+                        cursor.execute("DROP DATABASE `" + name + "`")
+                    except Exception as e_db:
+                        # 1008 代表 Database doesn't exist
+                        if getattr(e_db, 'args', None) and e_db.args[0] == 1008:
+                            pass
+                        else:
+                            raise e_db
+                    
+                    # 2. 查找数据库对应的用户
+                    cursor.execute("SELECT Host FROM mysql.user WHERE User='" + username + "' AND Host!='localhost'")
+                    users = cursor.fetchall()
+
+                    # 3. 删除本地用户
+                    try:
+                        cursor.execute("DROP USER '" + username + "'@'localhost'")
+                    except Exception:
+                        pass
+
+                    # 4. 删除对应 Host 的用户
+                    for us in users:
+                        try:
+                            cursor.execute("DROP USER '" + username + "'@'" + us["Host"] + "'")
+                        except Exception:
+                            pass
+                    
+                    # 5. 刷新权限
+                    cursor.execute("FLUSH PRIVILEGES")
+                
+                conn.commit()
+                return True, None
+            except Exception as e:
+                return False, e
+            finally:
+                if conn:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+
+        # 第一次尝试删除数据库（设置 30 秒的超时）
+        ok, err = doDeleteDb(read_timeout_val=30)
+        
+        if not ok:
+            # 超过 30 秒超时或遇到锁等待阻碍等问题，自动重启 mysql
+            try:
+                db_version = version
+            except NameError:
+                db_version = "5.6"
+                version_pl = getServerDir() + "/version.pl"
+                if os.path.exists(version_pl):
+                    db_version = mw.readFile(version_pl).strip()
+
+            print("删除数据库卡住或发生异常，触发超时30秒保护逻辑，正在重启 mysql...")
+            restart(db_version)
+            
+            # 重启后稍微休眠等待 mysql 服务就绪
+            time.sleep(3)
+            
+            # 第二次尝试删除，不设超短读取超时（使用 60 秒）
+            ok2, err2 = doDeleteDb(read_timeout_val=60)
+            if not ok2:
+                raise Exception("重启后尝试删除数据库依然失败: " + str(err2))
 
         # 删除SQLITE
         psdb.where("id=?", (sid,)).delete()
