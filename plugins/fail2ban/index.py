@@ -260,6 +260,14 @@ def initDreplace():
 def f2bOp(method):
     file = initDreplace()
 
+    # 服务启动、重启、重载前，自动触发配置健康检查与同步，静默补齐缺失配置
+    if method in ['start', 'restart', 'reload']:
+        try:
+            inst = get_fail2ban_inst()
+            inst.sync_jail_local(inst.get_anti_info())
+        except Exception:
+            pass
+
     current_os = mw.getOs()
     if current_os == "darwin":
         data = mw.execShell(file + ' ' + method)
@@ -738,14 +746,31 @@ class fail2ban_main:
         strict = conf.get('strict', True)
         for item in conf.get('server', []):
             if str(item.get('act')).lower() == 'true':
-                content += f"[{item['mode']}]\n"
+                mode = item['mode']
+                content += f"[{mode}]\n"
                 content += "enabled = true\n"
                 content += f"port = {item.get('port', '')}\n"
                 if strict:
                     content += "banaction = %(banaction_allports)s\n"
                 content += f"maxretry = {item.get('maxretry', 5)}\n"
                 content += f"findtime = {item.get('findtime', 300)}\n"
-                content += f"bantime = {item.get('bantime', 86400)}\n\n"
+                content += f"bantime = {item.get('bantime', 86400)}\n"
+                
+                # 为 mysql / redis 等自定义服务配置日志路径并确保 filter 配置文件存在
+                if mode == 'mysql':
+                    content += "logpath = /www/server/data/*.err\n"
+                    filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
+                    if not os.path.exists(filter_file):
+                        filter_content = "[Definition]\nfailregex = ^.*Access denied for user.*'<HOST>'.*$\nignoreregex = "
+                        mw.writeFile(filter_file, filter_content)
+                elif mode == 'redis':
+                    content += "logpath = /var/log/redis/*.log\n"
+                    filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
+                    if not os.path.exists(filter_file):
+                        filter_content = "[Definition]\nfailregex = ^.*-ERR Auth failed.*from <HOST>.*$\nignoreregex = "
+                        mw.writeFile(filter_file, filter_content)
+                
+                content += "\n"
                 
         for item in conf.get('site', []):
             if str(item.get('act')).lower() == 'true':
