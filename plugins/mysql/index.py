@@ -1946,7 +1946,8 @@ def delDb():
                 if os.path.exists(version_pl):
                     db_version = mw.readFile(version_pl).strip()
 
-            print("删除数据库卡住或发生异常，触发超时30秒保护逻辑，正在重启 mysql...")
+            # 将调试信息写入日志，避免污染标准输出导致前端 JSON 解析失败
+            mw.writeFile('/tmp/mysql_del_retry.log', "删除数据库卡住或发生异常，触发超时30秒保护逻辑，正在重启 mysql...")
             restart(db_version)
             
             # 重启后稍微休眠等待 mysql 服务就绪
