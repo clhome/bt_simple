@@ -415,6 +415,7 @@ def setBlackIp():
         for d in data:
             for ip in ip_list:
                 mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
+                _delete_db_ban(ip, d)
 
         mw.writeFile(getBlackFile(), json.dumps([]))
         return mw.returnJson(True, "禁止IP成功")
@@ -438,6 +439,7 @@ def setBlackIp():
     for d in data:
         for ip in del_ip_list:
             mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
+            _delete_db_ban(ip, d)
 
     # 更新本地缓存，保留 new_ip_list 里的合法 IP 覆盖 ip_list
     ip_list = [ip for ip in new_ip_list if re.search(rep_ip, ip) or re.search(rep_ipv6, ip)]
@@ -497,6 +499,33 @@ def get_active_bans():
     active_bans.sort(key=lambda x: (x['bantime'] >= 0, -x['expire_time']))
     return mw.returnJson(True, 'ok', active_bans)
 
+def _delete_db_ban(ip, jail=None):
+    db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
+    ret = mw.execShell('fail2ban-client get dbfile')
+    if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
+        import re
+        match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
+        if match:
+            db_path = match.group(1)
+        elif '- ' in ret[0]:
+            db_path = ret[0].split('- ')[-1].strip()
+
+    if os.path.exists(db_path):
+        try:
+            import sqlite3
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+            if jail:
+                c.execute("DELETE FROM bans WHERE ip = ? AND jail = ?", (ip, jail))
+            else:
+                c.execute("DELETE FROM bans WHERE ip = ?", (ip,))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            pass
+    return False
+
 def unban_active_ip():
     args = getArgs()
     ip = args.get('ip', '')
@@ -507,8 +536,10 @@ def unban_active_ip():
         
     if jail:
         mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=jail, ip=ip))
+        _delete_db_ban(ip, jail)
     else:
         mw.execShell('fail2ban-client -vvv unban {ip}'.format(ip=ip))
+        _delete_db_ban(ip)
         
     # 同时从 black_list 中移除
     ip_list = getBlackListArr()
