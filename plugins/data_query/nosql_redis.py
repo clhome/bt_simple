@@ -37,6 +37,17 @@ class nosqlRedis():
     def __init__(self):
         self.__config = self.get_options(None)
 
+    def close(self):
+        if self.__DB_CONN:
+            try:
+                self.__DB_CONN.close()
+            except:
+                pass
+            try:
+                self.__DB_CONN.connection_pool.disconnect()
+            except:
+                pass
+            self.__DB_CONN = None
 
     def redis_conn(self, db_idx=0):
         import redis
@@ -309,35 +320,54 @@ class nosqlRedisCtr():
 
 
 # ---------------------------------- run ----------------------------------
+
+def close_connection_after(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            try:
+                nosqlRedis().close()
+            except:
+                pass
+    return wrapper
+
 # 获取 redis databases 列表
+@close_connection_after
 def get_list(args):
     t = nosqlRedisCtr()
     return t.getList(args)
 
 # 获取 redis key 列表
+@close_connection_after
 def get_dbkey_list(args):
     t = nosqlRedisCtr()
     return t.getDbKeyList(args)
 
 
+@close_connection_after
 def set_kv(args):
     t = nosqlRedisCtr()
     return t.setKv(args)
 
 
+@close_connection_after
 def del_val(args):
     t = nosqlRedisCtr()
     return t.delVal(args)
 
+@close_connection_after
 def batch_del_val(args):
     t = nosqlRedisCtr()
     return t.batchDelVal(args)
 
+@close_connection_after
 def clear_flushdb(args):
     t = nosqlRedisCtr()
     return t.clearFlushDB(args)
 
 # 测试
+@close_connection_after
 def test(args):
     sid = args['sid']
     t = nosqlRedis()

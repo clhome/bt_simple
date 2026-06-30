@@ -47,6 +47,95 @@ def singleton(cls):
     return inner
 
 
+import pymysql
+import core.orm as orm
+
+class PluginORM(orm.ORM):
+    def _ORM__Conn(self):
+        try:
+            if self._ORM__DB_HOST != 'localhost':
+                self._ORM__DB_CONN = pymysql.connect(
+                    host=self._ORM__DB_HOST,
+                    user=self._ORM__DB_USER,
+                    passwd=self._ORM__DB_PASS,
+                    database=self._ORM__DB_NAME,
+                    port=int(self._ORM__DB_PORT),
+                    charset=self._ORM__DB_CHARSET,
+                    connect_timeout=self._ORM__DB_TIMEOUT,
+                    cursorclass=pymysql.cursors.DictCursor
+                )
+            elif os.path.exists(self._ORM__DB_SOCKET):
+                try:
+                    self._ORM__DB_CONN = pymysql.connect(
+                        host=self._ORM__DB_HOST,
+                        user=self._ORM__DB_USER,
+                        passwd=self._ORM__DB_PASS,
+                        database=self._ORM__DB_NAME,
+                        port=int(self._ORM__DB_PORT),
+                        charset=self._ORM__DB_CHARSET,
+                        connect_timeout=self._ORM__DB_TIMEOUT,
+                        unix_socket=self._ORM__DB_SOCKET,
+                        cursorclass=pymysql.cursors.DictCursor
+                    )
+                except Exception as e:
+                    self._ORM__DB_HOST = '127.0.0.1'
+                    self._ORM__DB_CONN = pymysql.connect(
+                        host=self._ORM__DB_HOST,
+                        user=self._ORM__DB_USER,
+                        passwd=self._ORM__DB_PASS,
+                        database=self._ORM__DB_NAME,
+                        port=int(self._ORM__DB_PORT),
+                        charset=self._ORM__DB_CHARSET,
+                        connect_timeout=self._ORM__DB_TIMEOUT,
+                        unix_socket=self._ORM__DB_SOCKET,
+                        cursorclass=pymysql.cursors.DictCursor
+                    )
+            else:
+                try:
+                    self._ORM__DB_CONN = pymysql.connect(
+                        host=self._ORM__DB_HOST,
+                        user=self._ORM__DB_USER,
+                        passwd=self._ORM__DB_PASS,
+                        database=self._ORM__DB_NAME,
+                        port=int(self._ORM__DB_PORT),
+                        charset=self._ORM__DB_CHARSET,
+                        connect_timeout=self._ORM__DB_TIMEOUT,
+                        cursorclass=pymysql.cursors.DictCursor
+                    )
+                except Exception as e:
+                    self._ORM__DB_HOST = '127.0.0.1'
+                    self._ORM__DB_CONN = pymysql.connect(
+                        host=self._ORM__DB_HOST,
+                        user=self._ORM__DB_USER,
+                        passwd=self._ORM__DB_PASS,
+                        database=self._ORM__DB_NAME,
+                        port=int(self._ORM__DB_PORT),
+                        charset=self._ORM__DB_CHARSET,
+                        connect_timeout=self._ORM__DB_TIMEOUT,
+                        cursorclass=pymysql.cursors.DictCursor
+                    )
+
+            self._ORM__DB_CUR = self._ORM__DB_CONN.cursor()
+            return True
+        except Exception as e:
+            self._ORM__DB_ERR = e
+            return False
+
+    def _ORM__Close(self):
+        try:
+            if self._ORM__DB_CUR:
+                self._ORM__DB_CUR.close()
+        except:
+            pass
+        try:
+            if self._ORM__DB_CONN:
+                self._ORM__DB_CONN.close()
+        except:
+            pass
+        self._ORM__DB_CUR = None
+        self._ORM__DB_CONN = None
+
+
 @singleton
 class nosqlMySQL():
 
@@ -85,7 +174,7 @@ class nosqlMySQL():
         self.__DB_SOCKET = self.__config['socket']
 
         try:
-            db = mw.getMyORM()
+            db = PluginORM()
             db.setPort(self.__DB_PORT)
             db.setPwd(self.__DB_PASS)
             db.setUser(self.__DB_USER)

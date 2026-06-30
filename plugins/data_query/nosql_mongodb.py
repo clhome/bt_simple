@@ -129,6 +129,14 @@ class nosqlMongodb():
     def __init__(self):
         self.__config = self.get_options(None)
 
+    def close(self):
+        if self.__DB_CONN:
+            try:
+                self.__DB_CONN.close()
+            except:
+                pass
+            self.__DB_CONN = None
+
 
     def mgdb_conn(self):
         import pymongo
@@ -318,42 +326,63 @@ class nosqlMongodbCtr():
         return mw.returnData(True,'文档删除【%d】个成功!' % result.deleted_count)
 
 # ---------------------------------- run ----------------------------------
+
+def close_connection_after(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            try:
+                nosqlMongodb().close()
+            except:
+                pass
+    return wrapper
+
 # 获取 mongodb databases 列表
+@close_connection_after
 def get_db_list(args):
     t = nosqlMongodbCtr()
     return t.getDbList(args)
 
 # 获取 mongodb collections 列表
+@close_connection_after
 def get_collections_list(args):
     t = nosqlMongodbCtr()
     return t.getCollectionsList(args)
 
+@close_connection_after
 def get_data_list(args):
     t = nosqlMongodbCtr()
     return t.getDataList(args)
 
+@close_connection_after
 def set_kv(args):
     t = nosqlMongodbCtr()
     return t.setKv(args)
 
 
+@close_connection_after
 def del_val(args):
     t = nosqlMongodbCtr()
     return t.delVal(args)
 
+@close_connection_after
 def batch_del_val(args):
     t = nosqlMongodbCtr()
     return t.batchDelVal(args)
 
+@close_connection_after
 def clear_flushdb(args):
     t = nosqlMongodbCtr()
     return t.clearFlushDB(args)
 
+@close_connection_after
 def del_by_id(args):
     t = nosqlMongodbCtr()
     return t.delById(args)
 
 # 测试
+@close_connection_after
 def test(args):
     sid = args['sid']
     t = nosqlMongodbCtr()

@@ -42,6 +42,14 @@ class nosqlMemcached():
     def __init__(self):
         self.__config = self.get_options(None)
 
+    def close(self):
+        if self.__DB_CONN:
+            try:
+                self.__DB_CONN.close()
+            except:
+                pass
+            self.__DB_CONN = None
+
 
     def conn(self):
         import pymemcache
@@ -225,28 +233,46 @@ class nosqlMemcachedCtr():
         return mw.returnData(True,'清空成功!')
 
 # ---------------------------------- run ----------------------------------
+
+def close_connection_after(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            try:
+                nosqlMemcached().close()
+            except:
+                pass
+    return wrapper
+
 # 获取 memcached 列表
+@close_connection_after
 def get_items(args):
     t = nosqlMemcachedCtr()
     return t.getItems(args)
 
+@close_connection_after
 def get_key_list(args):
     t = nosqlMemcachedCtr()
     return t.getKeyList(args)
 
+@close_connection_after
 def del_val(args):
     t = nosqlMemcachedCtr()
     return t.delVal(args)
 
+@close_connection_after
 def set_kv(args):
     t = nosqlMemcachedCtr()
     return t.setKv(args)
 
+@close_connection_after
 def clear(args):
     t = nosqlMemcachedCtr()
     return t.clear(args)
 
 # 测试
+@close_connection_after
 def test(args):
     sid = args['sid']
     t = nosqlMemcachedCtr()
