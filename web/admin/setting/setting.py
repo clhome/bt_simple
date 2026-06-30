@@ -292,9 +292,24 @@ def save_menu_config():
 def check_migrate_backup():
     import os
     has_mysql = False
-    if os.path.exists("/www/server/data_bt_bak") or os.path.exists("/www/server/mysql_bt_bak/data"):
+    databases = []
+    old_data_dir = ""
+    if os.path.exists("/www/server/data_bt_bak"):
+        old_data_dir = "/www/server/data_bt_bak"
+    elif os.path.exists("/www/server/mysql_bt_bak/data"):
+        old_data_dir = "/www/server/mysql_bt_bak/data"
+        
+    if old_data_dir:
         has_mysql = True
-    return mw.getJson({'mysql': has_mysql})
+        ignore_dbs = ['mysql', 'performance_schema', 'information_schema', 'sys', 'test']
+        try:
+            for f in os.listdir(old_data_dir):
+                if os.path.isdir(os.path.join(old_data_dir, f)) and f not in ignore_dbs:
+                    databases.append(f)
+        except:
+            pass
+            
+    return mw.getJson({'mysql': has_mysql, 'databases': databases})
 
 # 数据库迁移恢复
 @blueprint.route('/migrate_restore', endpoint='migrate_restore', methods=['POST'])
@@ -304,19 +319,30 @@ def migrate_restore():
         args = []
         if request.form.get('mysql', '') == '1':
             args.append('mysql')
+            dbs = request.form.get('dbs', '*')
+            if dbs != '*':
+                args.append('--dbs=' + dbs)
             
         import sys
+        import os
         panel_dir = mw.getPanelDir()
-        cmd = "cd " + panel_dir + " && echo yes | " + sys.executable + " " + panel_dir + "/panel_tools.py migrate_restore " + " ".join(args)
-        data = mw.execShell(cmd)
-        stdout = data[0] if type(data) is tuple and len(data) > 0 else str(data)
-        stderr = data[1] if type(data) is tuple and len(data) > 1 else ''
+        log_file = "/tmp/migrate_restore.log"
+        mw.writeFile(log_file, "正在初始化迁移任务...\n")
         
-        msg = stdout
-        if stderr.strip():
-            msg += "\n\n--- 错误输出 (Stderr) ---\n" + stderr
-            
+        cmd = "cd " + panel_dir + " && echo yes | " + sys.executable + " " + panel_dir + "/panel_tools.py migrate_restore " + " ".join(args) + " > " + log_file + " 2>&1 &"
+        os.system(cmd)
+        
         mw.writeLog('面板设置', '执行数据库迁移恢复: ' + cmd)
-        return mw.returnData(True, msg)
+        return mw.returnData(True, "迁移已启动")
     except Exception as e:
-        return mw.returnData(False, '数据库还原命令执行失败: ' + str(e))
+        return mw.returnData(False, "迁移启动失败：" + str(e))
+
+@blueprint.route('/get_migrate_log', endpoint='get_migrate_log', methods=['POST'])
+@panel_login_required
+def get_migrate_log():
+    import os
+    log_file = "/tmp/migrate_restore.log"
+    if not os.path.exists(log_file):
+        return mw.returnData(False, "日志文件不存在或尚未生成")
+    content = mw.readFile(log_file)
+    return mw.returnData(True, content)

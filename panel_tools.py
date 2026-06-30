@@ -469,9 +469,13 @@ def main():
         print(getPanelSslType())
     elif method == 'migrate_restore':
         restore_mysql = True
+        selected_dbs = '*'
         if len(sys.argv) > 2:
             restore_mysql = 'mysql' in sys.argv
-        restore_bt_data(restore_mysql)
+            for arg in sys.argv[2:]:
+                if arg.startswith('--dbs='):
+                    selected_dbs = arg.split('=', 1)[1]
+        restore_bt_data(restore_mysql, selected_dbs)
     elif method == 'import_bt_sites':
         if len(sys.argv) > 2:
             import_bt_sites(sys.argv[2])
@@ -488,7 +492,7 @@ def main():
     else:
         print('ERROR: Parameter error')
 
-def restore_bt_data(restore_mysql=True):
+def restore_bt_data(restore_mysql=True, selected_dbs='*'):
     print("======================== 恢复宝塔软件数据 ==========================")
     print("本工具将协助您把原本在宝塔面板中的软件数据（MySQL、Redis等）接管并恢复到新面板中。")
     print("⚠️  重要提醒：执行恢复前，请确保新面板对应的软件（如 MySQL 5.7, Redis）已经通过任务队列安装完成！")
@@ -582,31 +586,49 @@ def restore_bt_data(restore_mysql=True):
             print("  正在修复 MySQL root 密码与面板同步...")
             os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py fix_db_access >/dev/null 2>&1")
             
-            if os.path.exists(new_mysql_dir + "/bin/mysql_upgrade"):
+            pwd = ""
+            try:
+                pwd = mw.M('config').dbPos(mw.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
+            except Exception:
+                pass
+            
+            if type(pwd) is not str:
                 pwd = ""
-                try:
-                    pwd = mw.M('config').dbPos(mw.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
-                except Exception:
-                    pass
-                
-                if type(pwd) is not str:
-                    pwd = ""
 
-                if not pwd:
-                    pwd_file = new_mysql_dir + "/default.pl"
-                    if os.path.exists(pwd_file):
-                        pwd = mw.readFile(pwd_file).strip()
-                
-                if not pwd and os.path.exists("/www/server/panel/data/mysql_root.pl"):
-                    pwd = mw.readFile("/www/server/panel/data/mysql_root.pl").strip()
-                
+            if not pwd:
+                pwd_file = new_mysql_dir + "/default.pl"
+                if os.path.exists(pwd_file):
+                    pwd = mw.readFile(pwd_file).strip()
+            
+            if not pwd and os.path.exists("/www/server/panel/data/mysql_root.pl"):
+                pwd = mw.readFile("/www/server/panel/data/mysql_root.pl").strip()
+
+            if os.path.exists(new_mysql_dir + "/bin/mysql_upgrade"):
                 if pwd:
                     os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot -p\"" + pwd + "\" >/dev/null 2>&1")
                 else:
                     os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot >/dev/null 2>&1")
 
-                print("  正在从 MySQL 同步数据库列表到面板...")
-                os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")
+            if selected_dbs != '*':
+                allowed_dbs = selected_dbs.split(',')
+                print("  正在清理未选择的数据库...")
+                import subprocess
+                pwd_param = f'-p"{pwd}"' if pwd else ""
+                cmd = f'{new_mysql_dir}/bin/mysql -uroot {pwd_param} -e "SHOW DATABASES;"'
+                res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                
+                if res.returncode == 0:
+                    ignore_dbs = ['mysql', 'performance_schema', 'information_schema', 'sys', 'test', 'Database']
+                    for db in res.stdout.splitlines():
+                        db = db.strip()
+                        if db and db not in ignore_dbs and db not in allowed_dbs:
+                            print(f"    - 删除未选择的数据库: {db}")
+                            os.system(f'{new_mysql_dir}/bin/mysql -uroot {pwd_param} -e "DROP DATABASE \\`{db}\\`;" >/dev/null 2>&1')
+                else:
+                    print("    - 清理未选择的数据库失败，无法连接MySQL。")
+
+            print("  正在从 MySQL 同步数据库列表到面板...")
+            os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")
                 
             print("  ✅ MySQL 数据无缝迁移成功！")
             mysql_restored = True
