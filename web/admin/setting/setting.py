@@ -285,3 +285,14 @@ def save_menu_config():
         return mw.returnData(True, '菜单配置保存成功!')
     except Exception as e:
         return mw.returnData(False, '保存失败: ' + str(e))
+
+# 数据库迁移恢复
+@blueprint.route('/migrate_restore', endpoint='migrate_restore', methods=['POST'])
+@panel_login_required
+def migrate_restore():
+    try:
+        mw.execShell("bs migrate_restore")
+        mw.writeLog('面板设置', '执行数据库迁移恢复(bs migrate_restore)')
+        return mw.returnData(True, '数据库还原命令已下发，面板可能需要重启以应用更改!')
+    except Exception as e:
+        return mw.returnData(False, '数据库还原命令执行失败: ' + str(e))
