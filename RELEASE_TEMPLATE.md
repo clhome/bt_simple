@@ -13,11 +13,11 @@
   - 主菜单及重要交互流程全面引入 Tty Fallback 降级捕获机制，保证在静默（SILENT_MODE）及非交互终端环境下能够无阻塞成功部署。
   - 宝塔迁移后置逻辑补充 acme.sh 安装与中国区专用 git config 初始化配置。
 
-#### 🛡️ Fail2ban 与网络安全引擎纵深加固 (Network Security & Hardening)
+#### 🛡️ 御风F2B底层防火墙 与网络安全引擎纵深加固 (Network Security & Hardening)
 
-- **Fail2ban 增强与严格校验模式**：
+- **增强与严格校验模式**：
   - 实现基于容器和主机的全局站点防护，支持 SSH 端口自动探测与渲染，防范外部暴力爆破。
-  - 新增 Fail2ban 运行严格模式（strict mode），避免因服务不可用引发的伪静默状态；封禁地址历史与日志审计实现降序排列，方便管理员优先处理高危攻击行为。
+  - 新增 严格模式（strict mode），避免因服务不可用引发的伪静默状态；封禁地址历史与日志审计实现降序排列，方便管理员优先处理高危攻击行为。
 - **防火墙蜜罐全域关键字拦截**：WAF（Web应用防火墙）蜜罐策略升级，任意深度目录结构下触发关键字攻击均会直接调用 iptables 实施 IP 物理封禁；新增黑名单加入前的防重复存在性检测，规避并发写日志报错。
 - **Let's Encrypt 证书验证平滑放行**：系统防火墙自动并默认允许 `/.well-known/` 的所有外部访问，完美免除因安全拦截引起的 ACME/Let's Encrypt 证书校验失败问题。
 - **IP 归属地数据分析**：防火墙封禁列表全面引入 MaxMind IP 归属地库解析展示，帮助运维人员可视化审计网络流量来源。
@@ -50,7 +50,7 @@
 #### ⚡ 静态资源极致加载加速 (Static Asset CDN & Fallback Optimization)
 
 - **按需延迟加载**：彻底将体积最大（336KB）的 `echarts.min.js` 从全局模板 `layout.html` 中移出，仅在渲染图表的首页 (`index.html`) 和监控页 (`monitor.html`) 底部按需动态引入。用户日常高频访问的 80% 以上非图表页面（文件管理、设置、日志、软件）加载速度实现质的飞跃。
-- **公共库 CDN 托管**：将通用的第三方核心库（jQuery、jQuery Cookie、Bootstrap JS、Layer JS、Marked、ClipboardJS、Socket.io、XTerm 系列、CodeMirror、LayDate 等）全面托管至国内与全球访问均极速的 **Staticfile CDN**，免除低带宽服务器 90% 以上的出站带宽开销。
+- **支持 CDN 加速**：将通用的第三方核心库（jQuery、jQuery Cookie、Bootstrap JS、Layer JS、Marked、ClipboardJS、Socket.io、XTerm 系列、CodeMirror、LayDate 等）全面托管至国内与全球访问均极速的 **Staticfile CDN**，免除低带宽服务器 90% 以上的出站带宽开销。
 - **本地 Fallback 双重保障回退**：
   - **CSS 回退**：利用 `<link>` 样式标签的 `onerror` 事件，在 CDN 域名解析被墙或失效时，一秒内自动无缝重写 `href` 指向服务器本地文件。
   - **JS 回退**：利用 inline 脚本对全局关键变量（如 `window.jQuery`、`window.layer` 等）的存在性进行校验，在 CDN 加载或解析失败时，直接通过 `document.write` 重新拉取本地服务器对应脚本，兼顾弱网下的秒开响应和 100% 离线/局域网环境的完美可用性。
