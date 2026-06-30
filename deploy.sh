@@ -136,9 +136,13 @@ confirm() {
         return 0
     fi
     local msg="$1"
-    local response
+    local response="no"
     echo -e "\n${BOLD}${YELLOW}$msg${PLAIN}"
-    read -p "请输入 [yes/no]: " response < /dev/tty
+    if [ -t 0 ]; then
+        read -p "请输入 [yes/no]: " response
+    else
+        read -p "请输入 [yes/no]: " response < /dev/tty 2>/dev/null || response="no"
+    fi
     [ "$response" = "yes" ]
 }
 
@@ -635,6 +639,9 @@ fresh_install() {
 
     # 下载代码
     download_code
+    if [ -d "${PANEL_DIR}" ]; then
+        rm -rf "${PANEL_DIR}"
+    fi
     mv /tmp/bt_simple_deploy ${PANEL_DIR}
     mkdir -p ${PANEL_DIR}/logs
     mkdir -p ${PANEL_DIR}/data
@@ -963,26 +970,32 @@ migrate_from_bt() {
     # 备份隔离原本宝塔软件安装目录，避免判定冲突
     log_info "正在隔离备份原本的宝塔软件目录以避免环境冲突..."
     if [ -d "/www/server/mysql" ]; then
+        [ -d "/www/server/mysql_bt_bak" ] && rm -rf /www/server/mysql_bt_bak
         mv /www/server/mysql /www/server/mysql_bt_bak
         log_info "已备份 MySQL 目录: /www/server/mysql -> /www/server/mysql_bt_bak"
     fi
     if [ -d "/www/server/data" ]; then
+        [ -d "/www/server/data_bt_bak" ] && rm -rf /www/server/data_bt_bak
         mv /www/server/data /www/server/data_bt_bak
         log_info "已备份 MySQL 数据目录: /www/server/data -> /www/server/data_bt_bak"
     fi
     if [ -d "/www/server/redis" ]; then
+        [ -d "/www/server/redis_bt_bak" ] && rm -rf /www/server/redis_bt_bak
         mv /www/server/redis /www/server/redis_bt_bak
         log_info "已备份 Redis 目录: /www/server/redis -> /www/server/redis_bt_bak"
     fi
     if [ -d "/www/server/postgresql" ]; then
+        [ -d "/www/server/postgresql_bt_bak" ] && rm -rf /www/server/postgresql_bt_bak
         mv /www/server/postgresql /www/server/postgresql_bt_bak
         log_info "已备份 PostgreSQL 目录: /www/server/postgresql -> /www/server/postgresql_bt_bak"
     fi
     if [ -d "/www/server/php" ]; then
+        [ -d "/www/server/php_bt_bak" ] && rm -rf /www/server/php_bt_bak
         mv /www/server/php /www/server/php_bt_bak
         log_info "已备份 PHP 目录: /www/server/php -> /www/server/php_bt_bak"
     fi
     if [ -d "/www/server/nginx" ]; then
+        [ -d "/www/server/nginx_bt_bak" ] && rm -rf /www/server/nginx_bt_bak
         mv /www/server/nginx /www/server/nginx_bt_bak
         log_info "已备份 Nginx/OpenResty 目录: /www/server/nginx -> /www/server/nginx_bt_bak"
     fi
@@ -1001,7 +1014,11 @@ migrate_from_bt() {
     fi
 
     # 全新安装 bt_simple
+    setup_china_git_config
     download_code
+    if [ -d "${PANEL_DIR}" ]; then
+        rm -rf "${PANEL_DIR}"
+    fi
     mv /tmp/bt_simple_deploy ${PANEL_DIR}
     mkdir -p ${PANEL_DIR}/logs
     mkdir -p ${PANEL_DIR}/data
@@ -1011,6 +1028,22 @@ migrate_from_bt() {
         cp /tmp/bt_migrated_software.json ${PANEL_DIR}/data/bt_migrated_software.json
         rm -f /tmp/bt_migrated_software.json
         log_info "已保存软件迁移数据至 ${PANEL_DIR}/data/bt_migrated_software.json"
+    fi
+
+    # 安装 acme.sh
+    if [ ! -d /root/.acme.sh ]; then
+        log_info "安装 acme.sh ..."
+        if check_china; then
+            local best_proxy=""
+            if type _gh_get_best_proxy >/dev/null 2>&1; then
+                _gh_get_best_proxy >/dev/null
+                best_proxy="$_GH_BEST_PROXY"
+            fi
+            local acme_proxy="${best_proxy:-https://gh-proxy.com/}"
+            curl "${acme_proxy}https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh" | sh -s -- --install-online -m my@example.com 2>/dev/null
+        else
+            curl -fsSL https://get.acme.sh | bash 2>/dev/null
+        fi
     fi
 
     # 安装依赖
@@ -1236,8 +1269,16 @@ main() {
     mkdir -p $BACKUP_DIR
     echo "===== bt_simple deploy $(date) =====" >> $LOG_FILE
 
+    # 处理 flag 参数（如 -cn），使其不与子命令互斥
+    while [[ "${1:-}" == -* ]]; do
+        case "$1" in
+            -cn) FORCE_CN=true; shift ;;
+            *) break ;;
+        esac
+    done
+
     # 命令行参数处理
-    case "$1" in
+    case "${1:-}" in
         update)
             SILENT_MODE=true
             check_version_and_update
@@ -1262,12 +1303,8 @@ main() {
             exit 0
             ;;
         uninstall)
-            uninstall_panel
+            log_warn "卸载功能暂未实现，请手动执行: bash /etc/rc.d/init.d/mw uninstall"
             exit 0
-            ;;
-        -cn)
-            FORCE_CN=true
-            shift
             ;;
     esac
 
@@ -1280,7 +1317,7 @@ main() {
         echo "  2) 从宝塔面板迁移"
         echo "  3) 取消"
         echo ""
-        read -p "请选择 [1-3]: " choice < /dev/tty
+        if [ -t 0 ]; then read -p "请选择 [1-3]: " choice; else read -p "请选择 [1-3]: " choice < /dev/tty 2>/dev/null || choice="3"; fi
         case "$choice" in
             1) migrate_from_mw ;;
             2) migrate_from_bt ;;
@@ -1292,7 +1329,7 @@ main() {
         echo "  1) 确认【升级】或者从 mdserver-web 迁移到 bt_simple"
         echo "  2) 取消"
         echo ""
-        read -p "请选择 [1-2]: " choice < /dev/tty
+        if [ -t 0 ]; then read -p "请选择 [1-2]: " choice; else read -p "请选择 [1-2]: " choice < /dev/tty 2>/dev/null || choice="2"; fi
         case "$choice" in
             1) migrate_from_mw ;;
             *) echo "已取消"; exit 0 ;;
@@ -1303,7 +1340,7 @@ main() {
         echo "  1) 从宝塔面板迁移到 bt_simple"
         echo "  2) 取消"
         echo ""
-        read -p "请选择 [1-2]: " choice < /dev/tty
+        if [ -t 0 ]; then read -p "请选择 [1-2]: " choice; else read -p "请选择 [1-2]: " choice < /dev/tty 2>/dev/null || choice="2"; fi
         case "$choice" in
             1) migrate_from_bt ;;
             *) echo "已取消"; exit 0 ;;
