@@ -912,7 +912,7 @@ migrate_from_bt() {
     echo "  1. 宝塔面板与 bt_simple 是不同架构，数据库/配置不通用"
     echo "  2. 迁移后原宝塔面板将被停止（不删除），bt_simple 全新安装"
     echo "  3. 已通过宝塔安装的软件将被隔离备份，并在迁移后自动重新安装相同版本"
-    echo "  4. 迁移完成后您可以通过 'bs migrate_restore' 恢复原有的数据库数据"
+    echo "  4. 迁移完成后您可以进入web管理页后在【面板设置->数据库迁移】中操作，也可以通过 'bs migrate_restore'命令行操作恢复原有的数据库数据"
     echo "  5. /www/wwwroot 下的网站文件完整保留"
     echo ""
     echo -e "${YELLOW}迁移后将保留的内容:${PLAIN}"

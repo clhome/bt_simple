@@ -286,6 +286,21 @@ def save_menu_config():
     except Exception as e:
         return mw.returnData(False, '保存失败: ' + str(e))
 
+# 检测数据库备份状态
+@blueprint.route('/check_migrate_backup', endpoint='check_migrate_backup', methods=['POST'])
+@panel_login_required
+def check_migrate_backup():
+    import os
+    has_mysql = False
+    if os.path.exists("/www/server/data_bt_bak") or os.path.exists("/www/server/mysql_bt_bak/data"):
+        has_mysql = True
+    
+    has_redis = False
+    if os.path.exists("/www/server/redis_bt_bak"):
+        has_redis = True
+        
+    return mw.getJson({'mysql': has_mysql, 'redis': has_redis})
+
 # 数据库迁移恢复
 @blueprint.route('/migrate_restore', endpoint='migrate_restore', methods=['POST'])
 @panel_login_required
@@ -297,7 +312,9 @@ def migrate_restore():
         if request.form.get('redis', '') == '1':
             args.append('redis')
             
-        cmd = "echo yes | bs migrate_restore " + " ".join(args)
+        import sys
+        import mw
+        cmd = "echo yes | " + sys.executable + " " + mw.getRunDir() + "/panel_tools.py migrate_restore " + " ".join(args)
         data = mw.execShell(cmd)
         stdout = data[0] if type(data) is tuple and len(data) > 0 else str(data)
         

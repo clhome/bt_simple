@@ -510,96 +510,96 @@ def restore_bt_data(restore_mysql=True, restore_redis=True):
         elif os.path.exists("/www/server/mysql_bt_bak/data"):
             old_data_dir = "/www/server/mysql_bt_bak/data"
 
-    if os.path.exists(new_mysql_dir) and old_data_dir != "":
-        print("-> 检测到已安装新 MySQL，且存在旧宝塔 MySQL 数据目录，开始接管数据...")
-        
-        # 版本强校验
-        old_mysql_ver = ""
-        new_mysql_ver = ""
-        try:
-            migrated_json = mw.getPanelDir() + "/data/bt_migrated_software.json"
-            if os.path.exists(migrated_json):
-                bt_software = json.loads(mw.readFile(migrated_json))
-                old_mysql_ver = bt_software.get('mysql', '')
+        if os.path.exists(new_mysql_dir) and old_data_dir != "":
+            print("-> 检测到已安装新 MySQL，且存在旧宝塔 MySQL 数据目录，开始接管数据...")
             
-            if not old_mysql_ver:
-                old_ver_pl = "/www/server/mysql_bt_bak/version.pl"
-                if os.path.exists(old_ver_pl):
-                    old_mysql_ver = mw.readFile(old_ver_pl).strip()
-
-            new_ver_pl = new_mysql_dir + "/version.pl"
-            if os.path.exists(new_ver_pl):
-                new_mysql_ver = mw.readFile(new_ver_pl).strip()
-            
-            if old_mysql_ver and new_mysql_ver:
-                old_major = '.'.join(old_mysql_ver.split('.')[:2])
-                new_major = '.'.join(new_mysql_ver.split('.')[:2])
-                
-                if old_major != new_major:
-                    print("  ❌ 致命错误：检测到新旧 MySQL 版本不匹配！(旧: %s, 新: %s)" % (old_mysql_ver, new_mysql_ver))
-                    print("  ⚠️  跨大版本直接拷贝 data 目录会造成严重的数据损坏和系统表冲突。")
-                    print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装与旧版本一致的 MySQL %s 后，再执行本命令。" % old_major)
-                    return
-        except Exception as e:
-            print("  警告：版本检查异常: " + str(e))
-
-        print("  正在停止 MySQL 服务...")
-        os.system("systemctl stop mysql 2>/dev/null")
-        os.system("systemctl stop mysqld 2>/dev/null")
-        
-        new_data_dir = new_mysql_dir + "/data"
-        if os.path.exists(new_data_dir):
-            backup_new_data = new_mysql_dir + "/data_orig_bak"
-            if not os.path.exists(backup_new_data):
-                os.rename(new_data_dir, backup_new_data)
-                print("  已备份新数据目录为: " + backup_new_data)
-            else:
-                os.system("rm -rf " + new_data_dir)
-        
-        print("  正在复制旧宝塔 MySQL 数据库文件...")
-        os.system("cp -rf " + old_data_dir + " " + new_data_dir)
-        
-        os.system("chown -R mysql:mysql " + new_data_dir)
-        os.system("chmod -R 700 " + new_data_dir)
-        
-        print("  正在启动 MySQL 服务并升级检查...")
-        os.system("systemctl start mysql 2>/dev/null")
-        os.system("systemctl start mysqld 2>/dev/null")
-        time.sleep(2)
-        
-        print("  正在修复 MySQL root 密码与面板同步...")
-        os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py fix_db_access >/dev/null 2>&1")
-        
-        if os.path.exists(new_mysql_dir + "/bin/mysql_upgrade"):
-            pwd = ""
+            # 版本强校验
+            old_mysql_ver = ""
+            new_mysql_ver = ""
             try:
-                pwd = mw.M('config').dbPos(mw.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
-            except Exception:
-                pass
+                migrated_json = mw.getPanelDir() + "/data/bt_migrated_software.json"
+                if os.path.exists(migrated_json):
+                    bt_software = json.loads(mw.readFile(migrated_json))
+                    old_mysql_ver = bt_software.get('mysql', '')
+                
+                if not old_mysql_ver:
+                    old_ver_pl = "/www/server/mysql_bt_bak/version.pl"
+                    if os.path.exists(old_ver_pl):
+                        old_mysql_ver = mw.readFile(old_ver_pl).strip()
+
+                new_ver_pl = new_mysql_dir + "/version.pl"
+                if os.path.exists(new_ver_pl):
+                    new_mysql_ver = mw.readFile(new_ver_pl).strip()
+                
+                if old_mysql_ver and new_mysql_ver:
+                    old_major = '.'.join(old_mysql_ver.split('.')[:2])
+                    new_major = '.'.join(new_mysql_ver.split('.')[:2])
+                    
+                    if old_major != new_major:
+                        print("  ❌ 致命错误：检测到新旧 MySQL 版本不匹配！(旧: %s, 新: %s)" % (old_mysql_ver, new_mysql_ver))
+                        print("  ⚠️  跨大版本直接拷贝 data 目录会造成严重的数据损坏和系统表冲突。")
+                        print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装与旧版本一致的 MySQL %s 后，再执行本命令。" % old_major)
+                        return
+            except Exception as e:
+                print("  警告：版本检查异常: " + str(e))
+
+            print("  正在停止 MySQL 服务...")
+            os.system("systemctl stop mysql 2>/dev/null")
+            os.system("systemctl stop mysqld 2>/dev/null")
             
-            if type(pwd) is not str:
+            new_data_dir = new_mysql_dir + "/data"
+            if os.path.exists(new_data_dir):
+                backup_new_data = new_mysql_dir + "/data_orig_bak"
+                if not os.path.exists(backup_new_data):
+                    os.rename(new_data_dir, backup_new_data)
+                    print("  已备份新数据目录为: " + backup_new_data)
+                else:
+                    os.system("rm -rf " + new_data_dir)
+            
+            print("  正在复制旧宝塔 MySQL 数据库文件...")
+            os.system("cp -rf " + old_data_dir + " " + new_data_dir)
+            
+            os.system("chown -R mysql:mysql " + new_data_dir)
+            os.system("chmod -R 700 " + new_data_dir)
+            
+            print("  正在启动 MySQL 服务并升级检查...")
+            os.system("systemctl start mysql 2>/dev/null")
+            os.system("systemctl start mysqld 2>/dev/null")
+            time.sleep(2)
+            
+            print("  正在修复 MySQL root 密码与面板同步...")
+            os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py fix_db_access >/dev/null 2>&1")
+            
+            if os.path.exists(new_mysql_dir + "/bin/mysql_upgrade"):
                 pwd = ""
+                try:
+                    pwd = mw.M('config').dbPos(mw.getServerDir(), 'mysql').where('id=?', (1,)).getField('mysql_root')
+                except Exception:
+                    pass
+                
+                if type(pwd) is not str:
+                    pwd = ""
 
-            if not pwd:
-                pwd_file = new_mysql_dir + "/default.pl"
-                if os.path.exists(pwd_file):
-                    pwd = mw.readFile(pwd_file).strip()
-            
-            if not pwd and os.path.exists("/www/server/panel/data/mysql_root.pl"):
-                pwd = mw.readFile("/www/server/panel/data/mysql_root.pl").strip()
-            
-            if pwd:
-                os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot -p\"" + pwd + "\" >/dev/null 2>&1")
-            else:
-                os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot >/dev/null 2>&1")
+                if not pwd:
+                    pwd_file = new_mysql_dir + "/default.pl"
+                    if os.path.exists(pwd_file):
+                        pwd = mw.readFile(pwd_file).strip()
+                
+                if not pwd and os.path.exists("/www/server/panel/data/mysql_root.pl"):
+                    pwd = mw.readFile("/www/server/panel/data/mysql_root.pl").strip()
+                
+                if pwd:
+                    os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot -p\"" + pwd + "\" >/dev/null 2>&1")
+                else:
+                    os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot >/dev/null 2>&1")
 
-            print("  正在从 MySQL 同步数据库列表到面板...")
-            os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")
-            
-        print("  ✅ MySQL 数据无缝迁移成功！")
-        mysql_restored = True
-    elif restore_mysql:
-        print("  ❌ 未检测到新 MySQL 环境或旧宝塔 MySQL 备份数据，跳过 MySQL 恢复。")
+                print("  正在从 MySQL 同步数据库列表到面板...")
+                os.system("cd " + mw.getPanelDir() + " && source bin/activate && python plugins/mysql/index.py sync_get_databases >/dev/null 2>&1")
+                
+            print("  ✅ MySQL 数据无缝迁移成功！")
+            mysql_restored = True
+        else:
+            print("  ❌ 未检测到新 MySQL 环境或旧宝塔 MySQL 备份数据，跳过 MySQL 恢复。")
     else:
         print("  ⏭️  用户未勾选 MySQL，已跳过。")
 
