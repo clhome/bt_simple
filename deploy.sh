@@ -1054,6 +1054,30 @@ migrate_from_bt() {
     set_panel_version
 
     disable_upstream_update
+
+    # 尝试导入宝塔站点
+    local bt_db_bak_path="${BT_DIR}.bak.${TIMESTAMP}/data/db/site.db"
+    if [ -f "${bt_db_bak_path}" ]; then
+        if [ "$SILENT_MODE" = "true" ]; then
+            log_info "静默模式，已自动跳过宝塔站点导入。"
+        else
+            echo -e "\n${BOLD}${YELLOW}是否需要导入宝塔面板站点到御风面板数据库 (y/n)?${PLAIN}"
+            local import_choice="n"
+            if [ -t 0 ]; then
+                read -p "请输入 [y/n]: " import_choice
+            else
+                read -p "请输入 [y/n]: " import_choice < /dev/tty 2>/dev/null || import_choice="n"
+            fi
+
+            if [ "$import_choice" = "y" ] || [ "$import_choice" = "Y" ]; then
+                log_info "正在导入宝塔站点到御风面板数据库..."
+                cd ${PANEL_DIR} && python3 panel_tools.py import_bt_sites "${bt_db_bak_path}"
+            else
+                log_info "已跳过宝塔站点导入。"
+            fi
+        fi
+    fi
+
     show_panel_info "$rand_pass"
 
     echo ""

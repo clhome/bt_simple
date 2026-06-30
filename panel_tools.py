@@ -469,6 +469,11 @@ def main():
         print(getPanelSslType())
     elif method == 'migrate_restore':
         restore_bt_data()
+    elif method == 'import_bt_sites':
+        if len(sys.argv) > 2:
+            import_bt_sites(sys.argv[2])
+        else:
+            print("ERROR: Missing db_path parameter")
     elif method == "cli":
         clinum = 0
         try:
@@ -649,6 +654,82 @@ def restore_bt_data():
     else:
         print("ℹ️ 未进行任何数据迁移动作。如有疑问请检查软件安装状态及备份目录是否存在。")
     print("====================================================================")
+
+def import_bt_sites(db_path):
+    print("======================== 导入宝塔面板站点 ==========================")
+    if not os.path.exists(db_path):
+        print("  [ERROR] 错误：宝塔站点数据库文件不存在: %s" % db_path)
+        return False
+
+    import sqlite3
+    try:
+        conn = sqlite3.connect(db_path)
+        c = conn.cursor()
+        c.execute("SELECT name, path, status, ps, addtime FROM sites")
+        sites_data = c.fetchall()
+        conn.close()
+    except Exception as e:
+        print("  [ERROR] 错误：读取宝塔站点数据库失败: %s" % str(e))
+        return False
+
+    if not sites_data:
+        print("  [INFO] 提示：宝塔站点数据库中没有站点数据。")
+        return True
+
+    from utils.site import sites as MwSites
+    mw_sites = MwSites.instance()
+
+    success_count = 0
+    fail_count = 0
+    skip_count = 0
+
+    for row in sites_data:
+        name, path, status, ps, addtime = row
+        name = name.strip()
+        path = path.strip()
+        status = str(status).strip()
+        ps = ps.strip() if ps else name
+        addtime = addtime.strip() if addtime else mw.getDateFromNow()
+
+        if thisdb.isSitesExist(name):
+            print("  [跳过] 站点 [%s] 已在御风面板中存在。" % name)
+            skip_count += 1
+            continue
+
+        print("  [导入中] 站点 [%s] ..." % name)
+
+        # 构造 site_info 的 json。port 默认 80。version 默认 '00' (静态)
+        site_info_json = json.dumps({"domain": name, "domainlist": []})
+
+        try:
+            res = mw_sites.add(site_info_json, '80', ps, path, '00')
+            if res.get('status'):
+                # 导入成功后，获取刚刚生成的 site_id
+                new_site = thisdb.getSitesByName(name)
+                if new_site:
+                    site_id = new_site['id']
+
+                    # 1. 修正 add_time 字段
+                    mw.M('sites').where('id=?', (site_id,)).update({'add_time': addtime})
+
+                    # 2. 如果原状态是停止状态 (status 为 '0')，则调用停止站点的逻辑
+                    if status == '0':
+                        mw_sites.stop(site_id)
+                        print("    -> 已根据宝塔状态将该站点设置为[停用]")
+
+                print("  [OK] 站点 [%s] 导入成功！" % name)
+                success_count += 1
+            else:
+                print("  [ERROR] 站点 [%s] 导入失败: %s" % (name, res.get('msg', '未知原因')))
+                fail_count += 1
+        except Exception as e:
+            print("  [ERROR] 站点 [%s] 导入时发生异常: %s" % (name, str(e)))
+            fail_count += 1
+
+    print("--------------------------------------------------------------------")
+    print("[STATS] 导入统计: 成功 %d 个, 失败 %d 个, 跳过 %d 个。" % (success_count, fail_count, skip_count))
+    print("====================================================================")
+    return True
 
 if __name__ == "__main__":
     main()
