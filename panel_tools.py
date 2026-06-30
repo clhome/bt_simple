@@ -469,11 +469,9 @@ def main():
         print(getPanelSslType())
     elif method == 'migrate_restore':
         restore_mysql = True
-        restore_redis = True
         if len(sys.argv) > 2:
             restore_mysql = 'mysql' in sys.argv
-            restore_redis = 'redis' in sys.argv
-        restore_bt_data(restore_mysql, restore_redis)
+        restore_bt_data(restore_mysql)
     elif method == 'import_bt_sites':
         if len(sys.argv) > 2:
             import_bt_sites(sys.argv[2])
@@ -490,7 +488,7 @@ def main():
     else:
         print('ERROR: Parameter error')
 
-def restore_bt_data(restore_mysql=True, restore_redis=True):
+def restore_bt_data(restore_mysql=True):
     print("======================== 恢复宝塔软件数据 ==========================")
     print("本工具将协助您把原本在宝塔面板中的软件数据（MySQL、Redis等）接管并恢复到新面板中。")
     print("⚠️  重要提醒：执行恢复前，请确保新面板对应的软件（如 MySQL 5.7, Redis）已经通过任务队列安装完成！")
@@ -527,6 +525,11 @@ def restore_bt_data(restore_mysql=True, restore_redis=True):
                     if os.path.exists(old_ver_pl):
                         old_mysql_ver = mw.readFile(old_ver_pl).strip()
 
+                if not old_mysql_ver:
+                    upgrade_info = old_data_dir + "/mysql_upgrade_info"
+                    if os.path.exists(upgrade_info):
+                        old_mysql_ver = mw.readFile(upgrade_info).strip()
+
                 new_ver_pl = new_mysql_dir + "/version.pl"
                 if os.path.exists(new_ver_pl):
                     new_mysql_ver = mw.readFile(new_ver_pl).strip()
@@ -540,8 +543,17 @@ def restore_bt_data(restore_mysql=True, restore_redis=True):
                         print("  ⚠️  跨大版本直接拷贝 data 目录会造成严重的数据损坏和系统表冲突。")
                         print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装与旧版本一致的 MySQL %s 后，再执行本命令。" % old_major)
                         return
+                else:
+                    if not old_mysql_ver:
+                        print("  ❌ 致命错误：无法获取旧宝塔 MySQL 的版本信息！")
+                        print("  ⚠️  为防止跨大版本复制导致数据严重损坏，已拒绝强制接管。")
+                        return
+                    if not new_mysql_ver:
+                        print("  ❌ 致命错误：无法获取当前新 MySQL 的版本信息！")
+                        return
             except Exception as e:
                 print("  警告：版本检查异常: " + str(e))
+                return
 
             print("  正在停止 MySQL 服务...")
             os.system("systemctl stop mysql 2>/dev/null")
@@ -603,64 +615,8 @@ def restore_bt_data(restore_mysql=True, restore_redis=True):
     else:
         print("  ⏭️  用户未勾选 MySQL，已跳过。")
 
-    # 2. 恢复 Redis 数据
-    redis_restored = False
-    if restore_redis:
-        new_redis_dir = "/www/server/redis"
-    old_redis_dir = "/www/server/redis_bt_bak"
-    if os.path.exists(new_redis_dir) and os.path.exists(old_redis_dir):
-        print("-> 检测到已安装新 Redis，且存在旧宝塔 Redis 备份，开始接管数据...")
-        print("  正在停止 Redis 服务...")
-        os.system("systemctl stop redis 2>/dev/null")
-        
-        old_rdb = old_redis_dir + "/dump.rdb"
-        if not os.path.exists(old_rdb) and os.path.exists(old_redis_dir + "/data/dump.rdb"):
-            old_rdb = old_redis_dir + "/data/dump.rdb"
-            
-        if os.path.exists(old_rdb):
-            new_rdb_dir = new_redis_dir + "/data"
-            os.system("mkdir -p " + new_rdb_dir)
-            os.system("cp -f " + old_rdb + " " + new_rdb_dir + "/dump.rdb")
-            os.system("chown -R redis:redis " + new_redis_dir)
-            print("  已成功恢复 Redis 数据快照 dump.rdb")
-            
-        old_conf = old_redis_dir + "/redis.conf"
-        new_conf = new_redis_dir + "/redis.conf"
-        if os.path.exists(old_conf) and os.path.exists(new_conf):
-            try:
-                old_conf_data = mw.readFile(old_conf)
-                pass_match = re.search(r'requirepass\s+([^\s\r\n]+)', old_conf_data)
-                port_match = re.search(r'port\s+(\d+)', old_conf_data)
-                
-                new_conf_data = mw.readFile(new_conf)
-                if pass_match:
-                    old_pass = pass_match.group(1)
-                    if 'requirepass' in new_conf_data:
-                        new_conf_data = re.sub(r'requirepass\s+[^\s\r\n]+', 'requirepass ' + old_pass, new_conf_data)
-                    else:
-                        new_conf_data += "\nrequirepass " + old_pass
-                    print("  已成功提取并配置旧 Redis 访问密码")
-                    
-                if port_match:
-                    old_port = port_match.group(1)
-                    new_conf_data = re.sub(r'port\s+\d+', 'port ' + old_port, new_conf_data)
-                    print("  已成功提取并配置旧 Redis 运行端口: " + old_port)
-                    
-                mw.writeFile(new_conf, new_conf_data)
-            except Exception as e:
-                print("  警告：提取 Redis 配置参数失败: " + str(e))
-                
-        print("  正在启动 Redis 服务...")
-        os.system("systemctl start redis 2>/dev/null")
-        print("  ✅ Redis 数据无缝迁移成功！")
-        redis_restored = True
-    elif restore_redis:
-        print("  ❌ 未检测到新 Redis 环境或旧宝塔 Redis 备份，跳过 Redis 恢复。")
-    else:
-        print("  ⏭️  用户未勾选 Redis，已跳过。")
-
     print("====================================================================")
-    if mysql_restored or redis_restored:
+    if mysql_restored:
         print("🎉 宝塔软件数据迁移完毕！所有接管的服务已成功拉起，请返回面板查验。")
     else:
         print("ℹ️ 未进行任何数据迁移动作。如有疑问请检查软件安装状态及备份目录是否存在。")

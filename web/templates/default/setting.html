@@ -296,23 +296,13 @@ function migrateDatabase() {
 	$.post('/setting/check_migrate_backup', {}, function(res) {
 		layer.close(loadT);
 		
-		if (!res.mysql && !res.redis) {
-			layer.msg("未检测到宝塔面板的 MySQL 或 Redis 备份数据！", {icon: 2});
+		if (!res.mysql) {
+			layer.msg("未检测到宝塔面板的 MySQL 备份数据！", {icon: 2});
 			return;
 		}
 
-		var checkbox_html = '';
-		if (res.mysql) {
-			checkbox_html += '<label style="margin-right: 15px; cursor: pointer;"><input type="checkbox" id="cb_migrate_mysql" value="1" checked style="vertical-align: middle; margin-top: -2px;"> 恢复 MySQL</label>';
-		} else {
-			checkbox_html += '<input type="checkbox" id="cb_migrate_mysql" value="0" style="display:none;">';
-		}
+		var checkbox_html = '<label style="margin-right: 15px; cursor: pointer;"><input type="checkbox" id="cb_migrate_mysql" value="1" checked style="vertical-align: middle; margin-top: -2px;"> 恢复 MySQL</label>';
 
-		if (res.redis) {
-			checkbox_html += '<label style="cursor: pointer;"><input type="checkbox" id="cb_migrate_redis" value="1" checked style="vertical-align: middle; margin-top: -2px;"> 恢复 Redis</label>';
-		} else {
-			checkbox_html += '<input type="checkbox" id="cb_migrate_redis" value="0" style="display:none;">';
-		}
 
 		layer.open({
 			type:1,
@@ -340,15 +330,14 @@ function migrateDatabase() {
 					return;
 				}
 				var mysql_checked = $('#cb_migrate_mysql').is(':checked') ? '1' : '0';
-				var redis_checked = $('#cb_migrate_redis').is(':checked') ? '1' : '0';
 
-				if (mysql_checked == '0' && redis_checked == '0') {
-					layer.msg("请至少勾选一项要恢复的数据库!", {icon: 2});
+				if (mysql_checked == '0') {
+					layer.msg("请勾选要恢复的数据库!", {icon: 2});
 					return;
 				}
 
 				var loadRestore = layer.msg('正在执行数据库还原，这可能需要一些时间，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-				$.post('/setting/migrate_restore',{mysql: mysql_checked, redis: redis_checked}, function(rdata){
+				$.post('/setting/migrate_restore',{mysql: mysql_checked}, function(rdata){
 					layer.close(loadRestore);
 					layer.close(index);
 					if (rdata.status) {

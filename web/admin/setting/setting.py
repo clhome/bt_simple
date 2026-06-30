@@ -294,12 +294,7 @@ def check_migrate_backup():
     has_mysql = False
     if os.path.exists("/www/server/data_bt_bak") or os.path.exists("/www/server/mysql_bt_bak/data"):
         has_mysql = True
-    
-    has_redis = False
-    if os.path.exists("/www/server/redis_bt_bak"):
-        has_redis = True
-        
-    return mw.getJson({'mysql': has_mysql, 'redis': has_redis})
+    return mw.getJson({'mysql': has_mysql})
 
 # 数据库迁移恢复
 @blueprint.route('/migrate_restore', endpoint='migrate_restore', methods=['POST'])
@@ -309,16 +304,19 @@ def migrate_restore():
         args = []
         if request.form.get('mysql', '') == '1':
             args.append('mysql')
-        if request.form.get('redis', '') == '1':
-            args.append('redis')
             
         import sys
-        import mw
-        cmd = "echo yes | " + sys.executable + " " + mw.getRunDir() + "/panel_tools.py migrate_restore " + " ".join(args)
+        panel_dir = mw.getPanelDir()
+        cmd = "cd " + panel_dir + " && echo yes | " + sys.executable + " " + panel_dir + "/panel_tools.py migrate_restore " + " ".join(args)
         data = mw.execShell(cmd)
         stdout = data[0] if type(data) is tuple and len(data) > 0 else str(data)
+        stderr = data[1] if type(data) is tuple and len(data) > 1 else ''
         
+        msg = stdout
+        if stderr.strip():
+            msg += "\n\n--- 错误输出 (Stderr) ---\n" + stderr
+            
         mw.writeLog('面板设置', '执行数据库迁移恢复: ' + cmd)
-        return mw.returnData(True, stdout)
+        return mw.returnData(True, msg)
     except Exception as e:
         return mw.returnData(False, '数据库还原命令执行失败: ' + str(e))
