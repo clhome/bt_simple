@@ -296,14 +296,18 @@ function migrateDatabase() {
 		type:1,
 		closeBtn: 1,
 		title:"危险操作：数据库迁移",
-		area: ['480px','280px'],
+		area: ['480px','330px'],
 		btn: ["确定还原","取消"],
 		shadeClose: true,
 		content: '<div class="bt-form" style="padding: 25px 40px;">\
 			<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">\
-				<div class="hint_con">此操作将<b style="color:red;">清空现有面板数据</b>并从备份还原，不可逆！</div>\
+				<div class="hint_con">此操作将<b style="color:red;">清空现有对应数据库</b>并从备份还原！</div>\
 			</div>\
-			<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;">\
+			<div style="margin-top: 15px; text-align: center;">\
+				<label style="margin-right: 15px; cursor: pointer;"><input type="checkbox" id="cb_migrate_mysql" value="1" checked style="vertical-align: middle; margin-top: -2px;"> 恢复 MySQL</label>\
+				<label style="cursor: pointer;"><input type="checkbox" id="cb_migrate_redis" value="1" checked style="vertical-align: middle; margin-top: -2px;"> 恢复 Redis</label>\
+			</div>\
+			<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 15px;">\
 				<div>请手动输入【<span style="color: #fc6d26;">我要还原</span>】，完成验证</div>\
 				<input onpaste="return false;" id="prompt_input_box_migrate" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">\
 			</div>\
@@ -314,16 +318,33 @@ function migrateDatabase() {
 				layer.msg("验证失败，已取消还原!", {icon: 2});
 				return;
 			}
+			var mysql_checked = $('#cb_migrate_mysql').is(':checked') ? '1' : '0';
+			var redis_checked = $('#cb_migrate_redis').is(':checked') ? '1' : '0';
 
-			var loadT = layer.msg('正在执行数据库还原，这可能需要一些时间并会导致面板重启，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-			$.post('/setting/migrate_restore',{}, function(rdata){
+			if (mysql_checked == '0' && redis_checked == '0') {
+				layer.msg("请至少勾选一项要恢复的数据库!", {icon: 2});
+				return;
+			}
+
+			var loadT = layer.msg('正在执行数据库还原，这可能需要一些时间，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+			$.post('/setting/migrate_restore',{mysql: mysql_checked, redis: redis_checked}, function(rdata){
 				layer.close(loadT);
-				showMsg(rdata.msg,function(){
-					if (rdata.status){
-						layer.close(index);
-						window.location.reload();
-					}
-				},{icon:rdata.status?1:2}, 3000);
+				layer.close(index);
+				if (rdata.status) {
+					layer.open({
+						type: 1,
+						title: '迁移执行结果',
+						area: ['600px', '400px'],
+						closeBtn: 1,
+						shadeClose: true,
+						content: '<div style="padding: 15px;"><pre style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 320px; overflow-y: auto;">' + rdata.msg + '</pre></div>',
+						end: function() {
+							window.location.reload();
+						}
+					});
+				} else {
+					layer.msg(rdata.msg, {icon: 2, time: 3000});
+				}
 			},'json').fail(function() {
 				// If the panel restarts, the connection might drop.
 				layer.close(loadT);

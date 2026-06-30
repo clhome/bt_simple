@@ -468,7 +468,12 @@ def main():
     elif method == 'panel_ssl_type':
         print(getPanelSslType())
     elif method == 'migrate_restore':
-        restore_bt_data()
+        restore_mysql = True
+        restore_redis = True
+        if len(sys.argv) > 2:
+            restore_mysql = 'mysql' in sys.argv
+            restore_redis = 'redis' in sys.argv
+        restore_bt_data(restore_mysql, restore_redis)
     elif method == 'import_bt_sites':
         if len(sys.argv) > 2:
             import_bt_sites(sys.argv[2])
@@ -485,7 +490,7 @@ def main():
     else:
         print('ERROR: Parameter error')
 
-def restore_bt_data():
+def restore_bt_data(restore_mysql=True, restore_redis=True):
     print("======================== 恢复宝塔软件数据 ==========================")
     print("本工具将协助您把原本在宝塔面板中的软件数据（MySQL、Redis等）接管并恢复到新面板中。")
     print("⚠️  重要提醒：执行恢复前，请确保新面板对应的软件（如 MySQL 5.7, Redis）已经通过任务队列安装完成！")
@@ -497,12 +502,13 @@ def restore_bt_data():
 
     # 1. 恢复 MySQL 数据
     mysql_restored = False
-    new_mysql_dir = "/www/server/mysql"
-    old_data_dir = ""
-    if os.path.exists("/www/server/data_bt_bak"):
-        old_data_dir = "/www/server/data_bt_bak"
-    elif os.path.exists("/www/server/mysql_bt_bak/data"):
-        old_data_dir = "/www/server/mysql_bt_bak/data"
+    if restore_mysql:
+        new_mysql_dir = "/www/server/mysql"
+        old_data_dir = ""
+        if os.path.exists("/www/server/data_bt_bak"):
+            old_data_dir = "/www/server/data_bt_bak"
+        elif os.path.exists("/www/server/mysql_bt_bak/data"):
+            old_data_dir = "/www/server/mysql_bt_bak/data"
 
     if os.path.exists(new_mysql_dir) and old_data_dir != "":
         print("-> 检测到已安装新 MySQL，且存在旧宝塔 MySQL 数据目录，开始接管数据...")
@@ -592,12 +598,15 @@ def restore_bt_data():
             
         print("  ✅ MySQL 数据无缝迁移成功！")
         mysql_restored = True
-    else:
+    elif restore_mysql:
         print("  ❌ 未检测到新 MySQL 环境或旧宝塔 MySQL 备份数据，跳过 MySQL 恢复。")
+    else:
+        print("  ⏭️  用户未勾选 MySQL，已跳过。")
 
     # 2. 恢复 Redis 数据
     redis_restored = False
-    new_redis_dir = "/www/server/redis"
+    if restore_redis:
+        new_redis_dir = "/www/server/redis"
     old_redis_dir = "/www/server/redis_bt_bak"
     if os.path.exists(new_redis_dir) and os.path.exists(old_redis_dir):
         print("-> 检测到已安装新 Redis，且存在旧宝塔 Redis 备份，开始接管数据...")
@@ -645,8 +654,10 @@ def restore_bt_data():
         os.system("systemctl start redis 2>/dev/null")
         print("  ✅ Redis 数据无缝迁移成功！")
         redis_restored = True
-    else:
+    elif restore_redis:
         print("  ❌ 未检测到新 Redis 环境或旧宝塔 Redis 备份，跳过 Redis 恢复。")
+    else:
+        print("  ⏭️  用户未勾选 Redis，已跳过。")
 
     print("====================================================================")
     if mysql_restored or redis_restored:

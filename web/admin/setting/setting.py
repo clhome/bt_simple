@@ -291,8 +291,17 @@ def save_menu_config():
 @panel_login_required
 def migrate_restore():
     try:
-        mw.execShell("bs migrate_restore")
-        mw.writeLog('面板设置', '执行数据库迁移恢复(bs migrate_restore)')
-        return mw.returnData(True, '数据库还原命令已下发，面板可能需要重启以应用更改!')
+        args = []
+        if request.form.get('mysql', '') == '1':
+            args.append('mysql')
+        if request.form.get('redis', '') == '1':
+            args.append('redis')
+            
+        cmd = "echo yes | bs migrate_restore " + " ".join(args)
+        data = mw.execShell(cmd)
+        stdout = data[0] if type(data) is tuple and len(data) > 0 else str(data)
+        
+        mw.writeLog('面板设置', '执行数据库迁移恢复: ' + cmd)
+        return mw.returnData(True, stdout)
     except Exception as e:
         return mw.returnData(False, '数据库还原命令执行失败: ' + str(e))
