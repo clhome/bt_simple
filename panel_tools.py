@@ -501,7 +501,11 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
     print("本工具将协助您把原本在宝塔面板中的软件数据（MySQL、Redis等）接管并恢复到新面板中。")
     print("⚠️  重要提醒：执行恢复前，请确保新面板对应的软件（如 MySQL 5.7, Redis）已经通过任务队列安装完成！")
     
-    confirm = mw_input_cmd("确认开始恢复吗？[yes/no]：")
+    if sys.stdin is None or not sys.stdin.isatty():
+        confirm = 'yes'
+        print("确认开始恢复吗？[yes/no]：yes (检测到非交互式环境，已自动确认)")
+    else:
+        confirm = mw_input_cmd("确认开始恢复吗？[yes/no]：")
     if confirm.strip().lower() != 'yes':
         print("操作已取消。")
         return

@@ -329,7 +329,7 @@ def migrate_restore():
         log_file = "/tmp/migrate_restore.log"
         mw.writeFile(log_file, "正在初始化迁移任务...\n")
         
-        cmd = "cd " + panel_dir + " && echo yes | " + sys.executable + " " + panel_dir + "/panel_tools.py migrate_restore " + " ".join(args) + " > " + log_file + " 2>&1 &"
+        cmd = "cd " + panel_dir + " && echo yes | " + sys.executable + " -u " + panel_dir + "/panel_tools.py migrate_restore " + " ".join(args) + " > " + log_file + " 2>&1 &"
         os.system(cmd)
         
         mw.writeLog('面板设置', '执行数据库迁移恢复: ' + cmd)
