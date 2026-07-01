@@ -1971,6 +1971,11 @@ function runSpeedTest() {
             '        </div>' +
             '    </div>' +
             '    <pre id="speed_log_lst" style="display:none;"></pre>' +
+            '    <!-- 出品信息 -->' +
+            '    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 16px; font-size: 11px; color: #94a3b8; font-weight: 500; user-select: none;">' +
+            '        <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' +
+            '        <span>衢州御风科技有限公司出品</span>' +
+            '    </div>' +
             '    <style>' +
             '        @keyframes spin {' +
             '            0% { transform: rotate(0deg); }' +
@@ -1985,7 +1990,7 @@ function runSpeedTest() {
             type: 1,
             closeBtn: 1,
             shade: 0.3,
-            area: ["860px", "740px"],
+            area: ["860px", "710px"],
             content: elegantHtml,
             success: function(layers, index) {
                 // 开始定时轮询读取日志

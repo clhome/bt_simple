@@ -109,13 +109,8 @@ test_download() {
     if [ -z "$res" ] || [ $(echo "$res" | awk '{print ($1 == 0 ? "yes" : "no")}') = "yes" ]; then
         echo "  -> 节点: ${node_name} ... 连接超时或失败"
     else
-        local speed_mb=$(echo "$res" | awk '{print sprintf("%.2f", $1 / 1024 / 1024)}')
-        local speed_kb=$(echo "$res" | awk '{print sprintf("%.2f", $1 / 1024)}')
-        if [ $(echo "$speed_mb" | awk '{print ($1 > 1.0 ? "yes" : "no")}') = "yes" ]; then
-            echo "  -> 节点: ${node_name} ... ${speed_mb} MB/s"
-        else
-            echo "  -> 节点: ${node_name} ... ${speed_kb} KB/s"
-        fi
+        local speed_mbps=$(echo "$res" | awk '{print sprintf("%.2f", $1 * 8 / 1024 / 1024)}')
+        echo "  -> 节点: ${node_name} ... ${speed_mbps} Mbps"
     fi
 }
 
