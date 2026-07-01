@@ -457,7 +457,7 @@ function addAcceptPort(){
 	
 	if(ps.length < 1){
 		layer.msg('备注/说明 不能为空!',{icon:2});
-		$("#Ps").focus();
+		$("#Ps").trigger('focus');
 		return;
 	}
 	var loadT = layer.msg('正在添加,请稍候...',{icon:16,time:0,shade: [0.3, '#000']})

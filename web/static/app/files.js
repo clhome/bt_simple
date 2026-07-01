@@ -1067,7 +1067,7 @@ function createFile(type, path) {
                     </div>\
                 </div>',
         success:function(){
-            $("#newFileName").focus().on('keyup', function(e){
+            $("#newFileName").trigger('focus').on('keyup', function(e){
                 if(e.keyCode == 13) $("#createFileBtn").click();
             });
         }
@@ -1107,7 +1107,7 @@ function createDir(type, path) {
                     </div>\
                 </div>',
         success:function(){
-            $("#newDirName").focus().on('keyup', function(e){
+            $("#newDirName").trigger('focus').on('keyup', function(e){
                 if(e.keyCode == 13) {
                     $("#createDirBtn").click();
                 }
@@ -1259,7 +1259,7 @@ function reName(type, fileName) {
                     </div>\
                 </div>',
         success:function(){
-            $("#newFileName").focus().on('keyup', function(e){
+            $("#newFileName").trigger('focus').on('keyup', function(e){
                 if(e.keyCode == 13) $(".layui-layer-btn0").click();
             });
         },
@@ -1929,7 +1929,7 @@ function pathLeft(){
 $("#PathPlaceBtn").on("click", function(e){
     if($("#DirPathPlace").is(":hidden")){
         $("#DirPathPlace").css("display","inline");
-        $("#DirPathPlace input").focus();
+        $("#DirPathPlace input").trigger('focus');
         $(this).hide();
     }else{
         $("#DirPathPlace").hide();

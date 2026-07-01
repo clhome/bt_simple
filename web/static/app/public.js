@@ -604,7 +604,7 @@ function createFolder() {
 	} else {
 		$("#tbody tr:first-child").before(a)
 	}
-	$(".newFolderName").focus();
+	$(".newFolderName").trigger('focus');
 	$("#nameOk").on('click', function() {
 		var c = $("#newFolderName").val();
 		var b = $("#PathPlace").find("span").text();
@@ -1077,7 +1077,7 @@ function safeMessage(j, h, g, f, checkName) {
 				<button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div>\
 			</div>"
 	});
-	$("#vcodeResult").focus().on('keyup', function(a) {
+	$("#vcodeResult").trigger('focus').on('keyup', function(a) {
 		if(a.keyCode == 13) {
 			$("#toSubmit").click()
 		}

@@ -239,7 +239,7 @@ function isURL(str_url){
 function planAdd(){
 	var name = $(".planname input[name='name']").val();
 	if(name == ''){
-		$(".planname input[name='name']").focus();
+		$(".planname input[name='name']").trigger('focus');
 		layer.msg('任务名称不能为空!',{icon:2});
 		return;
 	}
@@ -270,21 +270,21 @@ function planAdd(){
 	$("#cronConfig input[name='where1']").val(where1);
 
 	if(where1 > is1 || where1 < is2){
-		$("#ptime input[name='where1']").focus();
+		$("#ptime input[name='where1']").trigger('focus');
 		layer.msg('表单不合法,请重新输入!',{icon:2});
 		return;
 	}
 	
 	var hour = $("#ptime input[name='hour']").val();
 	if(hour > 23 || hour < 0){
-		$("#ptime input[name='hour']").focus();
+		$("#ptime input[name='hour']").trigger('focus');
 		layer.msg('小时值不合法!',{icon:2});
 		return;
 	}
 	$("#cronConfig input[name='hour']").val(hour);
 	var minute = $("#ptime input[name='minute']").val();
 	if(minute > 59 || minute < 0){
-		$("#ptime input[name='minute']").focus();
+		$("#ptime input[name='minute']").trigger('focus');
 		layer.msg('分钟值不合法!',{icon:2});
 		return;
 	}
@@ -304,7 +304,7 @@ function planAdd(){
 
 	if (cron_type == 'toShell'){
 		if(sBody == ''){
-			$("#implement textarea[name='sbody']").focus();
+			$("#implement textarea[name='sbody']").trigger('focus');
 			layer.msg('脚本代码不能为空!',{icon:2});
 			return;
 		}
@@ -321,7 +321,7 @@ function planAdd(){
 	if(cron_type == 'toUrl'){
 		if(!isURL(url_address)){
 			layer.msg('URL地址不正确!',{icon:2});
-			$("implement textarea[name='url_address']").focus();
+			$("implement textarea[name='url_address']").trigger('focus');
 			return;
 		}
 	}

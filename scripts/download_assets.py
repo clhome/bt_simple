@@ -61,6 +61,11 @@ ASSETS_TO_DOWNLOAD = [
     {
         'url': 'https://cdn.staticfile.org/twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff2',
         'dest': 'web/static/bootstrap-3.4.1/fonts/glyphicons-halflings-regular.woff2'
+    },
+    # 6. jQuery UI 1.13.2
+    {
+        'url': 'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js',
+        'dest': 'web/static/js/jquery-ui.min.js'
     }
 ]
 
@@ -78,6 +83,7 @@ BACKUP_SOURCES = {
     'glyphicons-halflings-regular.ttf': 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.ttf',
     'glyphicons-halflings-regular.woff': 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff',
     'glyphicons-halflings-regular.woff2': 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/fonts/glyphicons-halflings-regular.woff2',
+    'jquery-ui.min.js': 'https://cdn.staticfile.org/jqueryui/1.13.2/jquery-ui.min.js',
 }
 
 def download_file(url, dest_path):

@@ -325,7 +325,7 @@
 <script type="text/javascript">
 
 
-$("#search_file").focus().on('keyup', function(e){
+$("#search_file").trigger('focus').on('keyup', function(e){
     if(e.keyCode == 13) searchFile(1);
 });
 

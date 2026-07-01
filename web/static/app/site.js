@@ -164,7 +164,7 @@ function getWeb(page, type_id, search) {
 				databak = '';
 			}
 			$(this).hide().after("<input class='baktext' type='text' data-id='"+dataid+"' data-page='"+page+"' name='bak' value='" + databak + "' placeholder='备注信息' onblur='getBakPost(\"sites\")' />");
-			$(".baktext").focus();
+			$(".baktext").trigger('focus');
 		});
 
 		readerTableChecked();
@@ -306,7 +306,7 @@ function webAddPage(type) {
 			$('#mainDomain').after(placeholder);
 			$(".placeholder").on('click', function(){
 				$(this).hide();
-				$('#mainDomain').focus();
+				$('#mainDomain').trigger('focus');
 			})
 			$('#mainDomain').on('focus', function() {
 			    $(".placeholder").hide();
@@ -669,7 +669,7 @@ function domainEdit(id, name, msg, status) {
 		$('#newdomain').after(placeholder);
 		$(".placeholder").on('click', function(){
 			$(this).hide();
-			$('#newdomain').focus();
+			$('#newdomain').trigger('focus');
 		})
 		$('#newdomain').on('focus', function() {
 		    $(".placeholder").hide();
@@ -1080,7 +1080,7 @@ function webEdit(id,website,endTime,addtime,defaultTab){
 			$('#newdomain').after(placeholder);
 			$(".placeholder").on('click', function(){
 				$(this).hide();
-				$('#newdomain').focus();
+				$('#newdomain').trigger('focus');
 			});
 
 			$('#newdomain').on('focus', function() {
@@ -3266,7 +3266,7 @@ function setRewriteTel(act){
 					</div>\
 				</div>',
 		success:function(index){
-			$("#rewriteName").focus().on('keyup', function(e){
+			$("#rewriteName").trigger('focus').on('keyup', function(e){
 				if(e.keyCode == 13) $("#rewriteNameBtn").click();
 			});
 		},
