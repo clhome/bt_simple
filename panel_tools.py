@@ -180,11 +180,10 @@ def mwcli(mw_input=0):
     elif mw_input == 10:
         os.system(INIT_CMD + " default")
     elif mw_input == 11:
-        input_pwd = mw_input_cmd("请输入新的面板密码：")
-        if len(input_pwd.strip()) < 5:
-            mw.echoInfo("错误，密码长度不能小于5位")
-            return
-        set_panel_pwd(input_pwd.strip(), True)
+        import random
+        pwd_len = random.randint(8, 12)
+        rand_pwd = mw.getRandomString(pwd_len)
+        set_panel_pwd(rand_pwd, True)
     elif mw_input == 12:
         input_user = mw_input_cmd("请输入新的面板用户名(>=5位)：")
         set_panel_username(input_user.strip())
@@ -775,6 +774,7 @@ def import_bt_sites(db_path):
     print("--------------------------------------------------------------------")
     print("[STATS] 导入统计: 成功 %d 个, 失败 %d 个, 跳过 %d 个。" % (success_count, fail_count, skip_count))
     print("====================================================================")
+    print("注意：由于底层的限制，并不能将PHP版本导入，导入站点默认都是静态站点！后续请手动在面板中修改PHP版本！")
     return True
 
 if __name__ == "__main__":

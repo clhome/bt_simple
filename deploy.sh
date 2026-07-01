@@ -1130,7 +1130,7 @@ migrate_from_bt() {
     echo -e "${YELLOW}提示:${PLAIN}"
     echo "  1. 原宝塔面板备份在: ${BT_DIR}.bak.${TIMESTAMP}"
     echo "  2. 如需回滚请执行: bash $0 rollback_bt"
-    echo "  3. 请在新面板中重新添加网站域名"
+    echo "  3. 第一次使用御风面板请使用【bs 11】命令初始化密码"
 }
 
 

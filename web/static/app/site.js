@@ -570,7 +570,7 @@ function webDelete(wid, wname){
 	    	<label><input type='checkbox' id='delpath' name='path'><span>根目录</span></label>\
 	    	</div>";
 	var info = '是否要删除同名根目录';
-	safeMessage('删除站点'+"["+wname+"]",info, function(){
+	safeMessage('删除站点'+"【"+wname+"】",info, function(){
 		var path='';
 		if($("#delpath").is(":checked")){
 			path='&path=1';
