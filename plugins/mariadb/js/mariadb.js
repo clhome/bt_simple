@@ -843,7 +843,7 @@ function delDb(id, name){
                 dbList();
             },{icon: rdata.status ? 1 : 2}, 600);
         });
-    });
+    }, '', name);
 }
 
 function delDbBatch(){

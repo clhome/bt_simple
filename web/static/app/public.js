@@ -1047,7 +1047,7 @@ function isChineseChar(b) {
 	return a.test(b)
 }
 
-function safeMessage(j, h, g, f) {
+function safeMessage(j, h, g, f, checkName) {
 	if(f == undefined) {
 		f = ""
 	}
@@ -1057,14 +1057,21 @@ function safeMessage(j, h, g, f) {
 	e = d + c;
 	sumtext = d + " + " + c;
 	setCookie("vcodesum", e);
+	var checkHtml = "";
+	var dbNameMsg = (lan.bt && lan.bt.db_name_msg) ? lan.bt.db_name_msg : "我需要删除的数据库名称是";
+	var dbNameErr = (lan.bt && lan.bt.db_name_err) ? lan.bt.db_name_err : "数据库名称输入错误!";
+	if (checkName) {
+		checkHtml = "<div style='margin-top: 15px; font-size: 14px; color: #d9534f; font-weight: bold; text-align: left;'>" + dbNameMsg + " <input type='text' id='dbNameResult' value='' style='width: 120px; height: 28px; line-height: 28px; border: 1.5px solid #d9534f; border-radius: 8px; padding: 0 8px; color: #444; outline: none; margin-left: 5px; display: inline-block;'></div>";
+	}
 	var mess = layer.open({
 		type: 1,
 		title: j,
-		area: "350px",
+		area: checkName ? "380px" : "350px",
 		closeBtn: 1,
 		shadeClose: true,
 		content: "<div class='bt-form webDelete pd20 pb70'>\
 			<p>" + h + "</p>" + f + "<div class='vcode'>"+lan.bt.cal_msg+"<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div>\
+			" + checkHtml + "\
 			<div class='bt-form-submit-btn'>\
 				<button type='button' class='btn btn-danger btn-sm bt-cancel'>"+lan.public.cancel+"</button>\
 				<button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div>\
@@ -1075,6 +1082,13 @@ function safeMessage(j, h, g, f) {
 			$("#toSubmit").click()
 		}
 	});
+	if (checkName) {
+		$("#dbNameResult").keyup(function(a) {
+			if(a.keyCode == 13) {
+				$("#toSubmit").click()
+			}
+		});
+	}
 	$(".bt-cancel").click(function(){
 		layer.close(mess);
 	});
@@ -1087,6 +1101,13 @@ function safeMessage(j, h, g, f) {
 		if(a != getCookie("vcodesum")) {
 			layer.msg('请正确输入计算结果!');
 			return
+		}
+		if (checkName) {
+			var b = $("#dbNameResult").val().replace(/ /g, "");
+			if (b != checkName) {
+				layer.msg(dbNameErr);
+				return
+			}
 		}
 		layer.close(mess);
 		g();
