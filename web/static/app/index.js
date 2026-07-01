@@ -1862,7 +1862,13 @@ function runSpeedTest() {
             '                </div>' +
             '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' +
             '                    <tr style="border:none;"><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">系统版本</td><td id="sp-os" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
-            '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">CPU型号</td><td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
+            '                    <tr>' +
+            '                        <td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;">CPU型号</td>' +
+            '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' +
+            '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' +
+            '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' +
+            '                        </td>' +
+            '                    </tr>' +
             '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">物理内存</td><td id="sp-mem" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;">-</td></tr>' +
             '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">硬盘大小</td><td id="sp-disk" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
             '                </table>' +
@@ -1902,8 +1908,11 @@ function runSpeedTest() {
             '    </div>' +
             '    <!-- 下载速度 -->' +
             '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' +
-            '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
-            '            <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> 多区域节点下载测速' +
+            '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' +
+            '            <div style="display: flex; align-items: center; gap: 6px;">' +
+            '                <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> 多区域节点下载测速' +
+            '            </div>' +
+            '            <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>' +
             '        </div>' +
             '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' +
             '            <div class="node-row" data-node="阿里云杭州镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
@@ -1976,7 +1985,7 @@ function runSpeedTest() {
             type: 1,
             closeBtn: 1,
             shade: 0.3,
-            area: ["860px", "680px"],
+            area: ["860px", "740px"],
             content: elegantHtml,
             success: function(layers, index) {
                 // 开始定时轮询读取日志
@@ -1997,7 +2006,34 @@ function runSpeedTest() {
                                 $("#sp-sys-loader").hide();
                                 $("#sp-sys-table").show();
                                 if (data.os) $("#sp-os").text(data.os).attr('title', data.os);
-                                if (data.cpu) $("#sp-cpu").text(data.cpu).attr('title', data.cpu);
+                                if (data.cpu) {
+                                    var cpuRaw = data.cpu;
+                                    var cpuModel = cpuRaw;
+                                    var cpuDetail = '';
+                                    if (cpuRaw.indexOf(' @ ') > -1) {
+                                        var parts = cpuRaw.split(' @ ');
+                                        cpuModel = parts[0].trim();
+                                        cpuDetail = parts[1].trim();
+                                    } else if (cpuRaw.indexOf('@') > -1) {
+                                        var parts = cpuRaw.split('@');
+                                        cpuModel = parts[0].trim();
+                                        cpuDetail = parts[1].trim();
+                                    }
+                                    
+                                    if (cpuDetail) {
+                                        var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
+                                        var detailParts = cleanDetail.split(' ');
+                                        if (detailParts.length >= 2) {
+                                            cpuDetail = '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1];
+                                        } else {
+                                            cpuDetail = cleanDetail;
+                                        }
+                                        $("#sp-cpu-detail").text(cpuDetail).show();
+                                    } else {
+                                        $("#sp-cpu-detail").hide();
+                                    }
+                                    $("#sp-cpu-model").text(cpuModel).attr('title', cpuRaw);
+                                }
                                 if (data.mem) $("#sp-mem").text(data.mem);
                                 if (data.disk) $("#sp-disk").text(data.disk);
                             }
