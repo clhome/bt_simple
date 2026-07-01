@@ -225,3 +225,96 @@ def get_system_details():
         return mw.returnData(True, 'ok', data)
     except Exception as e:
         return mw.returnData(False, str(e))
+
+# 运行服务器测速
+_speed_test_process = None
+
+@blueprint.route('/speed_test', endpoint='speed_test', methods=['POST'])
+@panel_login_required
+def speed_test():
+    global _speed_test_process
+    sh_path = os.path.join(mw.getPanelDir(), 'scripts', 'speed.sh')
+    log_path = os.path.join(mw.getPanelDir(), 'tmp', 'speed_test.log')
+    
+    # 检查进程是否还在运行
+    is_running = False
+    if _speed_test_process is not None:
+        try:
+            if hasattr(_speed_test_process, 'poll'):
+                if _speed_test_process.poll() is None:
+                    is_running = True
+                else:
+                    _speed_test_process = None
+        except:
+            _speed_test_process = None
+            
+    if is_running:
+        return mw.returnData(True, 'OK', log_path)
+        
+    # 如果不在运行，清空或新建日志文件
+    if os.path.exists(log_path):
+        try:
+            os.remove(log_path)
+        except:
+            pass
+            
+    # Windows 环境模拟
+    if os.name == 'nt':
+        import time
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        with open(log_path, 'w', encoding='utf-8') as f:
+            f.write("==========================================================\n")
+            f.write("          御风面板 (BT-Simple) 服务器测速工具 (Windows 模拟)\n")
+            f.write("==========================================================\n")
+            f.write(" 开始时间: " + time.strftime('%Y-%m-%d %H:%M:%S') + "\n")
+            f.write("----------------------------------------------------------\n")
+            f.write(" [1] 系统基本信息\n")
+            f.write(" CPU 型号: Intel(R) Core(TM) i7-12700K CPU @ 3.60GHz (12 核)\n")
+            f.write(" 物理内存: 16384 MB\n")
+            f.write(" 硬盘分区: C盘共 500G, 已用 240G, 剩余 260G\n")
+            f.write(" 操作系统: Windows 11 家庭中文版\n")
+            f.write(" 系统架构: x86_64\n")
+            f.write("----------------------------------------------------------\n")
+            f.write(" [2] 磁盘 I/O 读写性能测试\n")
+            f.write(" 正在进行磁盘写入测试 (写入 512MB 数据)...\n")
+            f.write(" 磁盘写入速度: 382.5 MB/s\n")
+            f.write(" 正在进行磁盘读取测试 (读取 512MB 数据)...\n")
+            f.write(" 磁盘读取速度: 512.8 MB/s\n")
+            f.write("----------------------------------------------------------\n")
+            f.write(" [3] 网络下载速度测试 (多区域节点)\n")
+            f.write("  -> 节点: Cloudflare 全球边缘 ... 55.40 MB/s\n")
+            f.write("  -> 节点: 阿里云杭州镜像源 ... 96.15 MB/s\n")
+            f.write("  -> 节点: 腾讯云南京镜像源 ... 92.40 MB/s\n")
+            f.write("  -> 节点: 华为云深圳镜像源 ... 85.30 MB/s\n")
+            f.write("  -> 节点: 网易 163 镜像源 ... 89.20 MB/s\n")
+            f.write("----------------------------------------------------------\n")
+            f.write(" 测速完毕！所有临时文件已清理。\n")
+            f.write(" 结束时间: " + time.strftime('%Y-%m-%d %H:%M:%S') + "\n")
+            f.write("==========================================================\n")
+            
+        class MockProcess:
+            def poll(self):
+                return 0
+        _speed_test_process = MockProcess()
+        return mw.returnData(True, 'OK', log_path)
+
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    
+    # 启动测速子进程 (Linux)
+    try:
+        import subprocess
+        log_file = open(log_path, 'w', encoding='utf-8')
+        try:
+            os.chmod(sh_path, 0o755)
+        except:
+            pass
+        _speed_test_process = subprocess.Popen(
+            ["bash", sh_path],
+            stdout=log_file,
+            stderr=log_file,
+            preexec_fn=os.setsid if hasattr(os, 'setsid') else None
+        )
+        return mw.returnData(True, 'OK', log_path)
+    except Exception as e:
+        return mw.returnData(False, '启动测速失败: ' + str(e))
+
