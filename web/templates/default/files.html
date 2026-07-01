@@ -320,7 +320,20 @@
 <input type="file" id="manual_upload_dir" webkitdirectory style="display:none">
 
 <script src="/static/app/files.js?v={{config.version}}"></script>
+<script type="text/javascript">
+    // 在加载 jQuery UI 之前，保存 Bootstrap 的 $.fn.button
+    window._bootstrapButton = $.fn.button;
+</script>
 <script src="/static/js/jquery-ui.min.js?v={{config.version}}"></script>
+<script type="text/javascript">
+    // jQuery UI 加载后覆盖了 $.fn.button，将其重命名为 $.fn.uiButton
+    // 然后恢复 Bootstrap 的原始 $.fn.button，避免 layer.js 弹窗按钮失效
+    if (typeof $.widget === 'function' && $.ui && $.ui.button) {
+        $.fn.uiButton = $.fn.button;                  // 保留 jQuery UI button 为 uiButton
+        $.fn.button = window._bootstrapButton;         // 恢复 Bootstrap button
+    }
+    delete window._bootstrapButton;
+</script>
 <script src="/static/js/jquery.contextify.min.js?v={{config.version}}"></script>
 <script type="text/javascript">
 
