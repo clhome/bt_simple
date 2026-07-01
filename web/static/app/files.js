@@ -982,9 +982,9 @@ function getExtName(fileName){
 
 //操作显示
 function ShowEditMenu(){
-    $("#filesBody > tr").hover(function(){
+    $("#filesBody > tr").on('mouseenter', function(){
         $(this).addClass("hover");
-    },function(){
+    }).on('mouseleave', function(){
         $(this).removeClass("hover");
     }).on('click', function(){
         $(this).addClass("on").siblings().removeClass("on");
@@ -2265,9 +2265,9 @@ function showAddMoreMenu(obj) {
                 'text-decoration': 'none',
                 'border-bottom': '1px solid #f0f0f0',
                 'transition': 'all 0.2s'
-            }).hover(function() {
+            }).on('mouseenter', function() {
                 $(this).css('background-color', '#f5f5f5');
-            }, function() {
+            }).on('mouseleave', function() {
                 $(this).css('background-color', '#fff');
             });
             $(layero).find('.add-more-menu a:last-child').css('border-bottom', 'none');

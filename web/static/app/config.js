@@ -109,9 +109,9 @@ $('input[name="bind_domain"]').on('change', function(){
 					</div>',
 					success: function(layero, index) {
 						// 鼠标悬停变色效果
-						$('#new-domain-box').hover(function() {
+						$('#new-domain-box').on('mouseenter', function() {
 							$(this).css('background', '#eef9ef');
-						}, function() {
+						}).on('mouseleave', function() {
 							$(this).css('background', '#f8f9fa');
 						});
 						
@@ -222,9 +222,9 @@ function showSSLSuccessWindow(new_url, title) {
 		</div>',
 		success: function(layero, index) {
 			// 鼠标悬停变色效果
-			$('#ssl-domain-box').hover(function() {
+			$('#ssl-domain-box').on('mouseenter', function() {
 				$(this).css('background', '#eef9ef');
-			}, function() {
+			}).on('mouseleave', function() {
 				$(this).css('background', '#f8f9fa');
 			});
 			

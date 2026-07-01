@@ -30,7 +30,8 @@ def build_update_zip(root_dir):
         'web/static/js/jquery-3.7.1.min.js',
         'web/static/js/jquery-migrate-3.4.1.js',
         'web/static/js/jquery-migrate-3.4.1.min.js',
-        'web/static/js/bootstrap.min.js'
+        'web/static/js/bootstrap.min.js',
+        'web/static/js/jquery.dragsort-0.5.2.min.js'
     ]
     
     # 递归添加特定目录 (如新增的 bootstrap-3.4.1)

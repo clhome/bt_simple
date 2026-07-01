@@ -1141,13 +1141,13 @@ if(W_window <= 980) {
 	})
 }
 $(function() {
-	$(".fb-ico").hover(function() {
+	$(".fb-ico").on('mouseenter', function() {
 		$(".fb-text").css({
 			left: "36px",
 			top: 0,
 			width: "80px"
 		})
-	}, function() {
+	}).on('mouseleave', function() {
 		$(".fb-text").css({
 			left: 0,
 			width: "36px"

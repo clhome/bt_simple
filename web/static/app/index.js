@@ -35,7 +35,7 @@ $('#LoadList .circle').on('click', function() {
     // getNet();
 });
 
-$('#LoadList .mask').hover(function() {
+$('#LoadList .mask').on('mouseenter', function() {
     var one, five, fifteen;
     var that = this;
     one = getCookie('one');
@@ -43,13 +43,13 @@ $('#LoadList .mask').hover(function() {
     fifteen = getCookie('fifteen');
     var text = '最近1分钟平均负载：' + one + '</br>最近5分钟平均负载：' + five + '</br>最近15分钟平均负载：' + fifteen + '';
     layer.tips(text, that, { time: 0, tips: [1, '#999'] });
-}, function() {
+}).on('mouseleave', function() {
     layer.closeAll('tips');
 });
 
 
 function showCpuTips(rdata){
-    $('#cpuChart .mask').off().hover(function() {
+    $('#cpuChart .mask').off().on('mouseenter', function() {
         var cpuText = '';
         if (rdata.cpu[2].length == 1){
             var cpuUse = parseFloat(rdata.cpu[2][0] == 0 ? 0 : rdata.cpu[2][0]).toFixed(1);
@@ -66,7 +66,7 @@ function showCpuTips(rdata){
             } 
         }
         layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + "个物理CPU，" + (rdata.cpu[4]) + "个物理核心，" + rdata.cpu[1] + "个逻辑核心</br>" + cpuText, this, { time: 0, tips: [1, '#999'] });
-    }, function() {
+    }).on('mouseleave', function() {
         layer.closeAll('tips');
     });
 }
@@ -505,12 +505,12 @@ function setImg() {
             };
         });
 
-        $('.diskbox .mask').off().hover(function() {
+        $('.diskbox .mask').off().on('mouseenter', function() {
             layer.closeAll('tips');
             var that = this;
             var conterError = $(this).attr("data");
             layer.tips(conterError, that, { time: 0, tips: [1, '#999'] });
-        }, function() {
+        }).on('mouseleave', function() {
             layer.closeAll('tips');
         });
     }, 100);
@@ -1083,7 +1083,7 @@ function loadKeyDataCount(){
 }
 
 $(function() {
-    $(".mem-release").hover(function() {
+    $(".mem-release").on('mouseenter', function() {
         $(this).addClass("shine_green");
         if (!($(this).hasClass("mem-action"))) {
             $(this).find(".mem-re-min").hide();
@@ -1092,7 +1092,7 @@ $(function() {
             $(this).find(".mem-re-con").animate({ "top": "0", opacity: 1 });
             $("#memory").text('内存释放');
         }
-    }, function() {
+    }).on('mouseleave', function() {
         $(this).removeClass("shine_green");
         $(this).find(".mask").css({ "color": "#20a53a" });
         $(this).find(".mem-re-con").css({ "top": "15px", opacity: 1, "display": "none" });

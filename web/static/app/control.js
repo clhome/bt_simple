@@ -29,10 +29,10 @@ $(".searcTime .st").on('click', function(){
 });
 
 //自定义时间-切换
-$(".searcTime .st").hover(function(){
+$(".searcTime .st").on('mouseenter', function(){
 	$(this).data('status','show');
 	$(this).next().show();
-},function(){
+}).on('mouseleave', function(){
 	// $(this).next().hide();
 	// $(this).next().hover(function(){
 	// 	$(this).show();

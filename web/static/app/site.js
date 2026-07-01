@@ -148,9 +148,9 @@ function getWeb(page, type_id, search) {
 			$("#webBody").html(body);
 		}
 		//输出数据列表
-		$(".btn-more").hover(function(){
+		$(".btn-more").on('mouseenter', function(){
 			$(this).addClass("open");
-		},function(){
+		}).on('mouseleave', function(){
 			$(this).removeClass("open");
 		});
 		

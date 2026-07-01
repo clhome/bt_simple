@@ -1,6 +1,6 @@
 {
   "summary": {
-    "total_warnings": 21,
+    "total_warnings": 7,
     "total_errors": 0,
     "pass": false
   },
@@ -29,9 +29,7 @@
       "url": "http://172.17.60.248:29768/site",
       "status": "WARN",
       "warnings": [
-        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1",
-        "[warning] JQMIGRATE: jQuery.fn.hover() is deprecated",
-        "[warning] JQMIGRATE: jQuery.fn.mousedown() event shorthand is deprecated"
+        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1"
       ],
       "errors": []
     },
@@ -40,9 +38,7 @@
       "url": "http://172.17.60.248:29768/files",
       "status": "WARN",
       "warnings": [
-        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1",
-        "[warning] JQMIGRATE: jQuery.fn.hover() is deprecated",
-        "[warning] JQMIGRATE: jQuery.fn.mousedown() event shorthand is deprecated"
+        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1"
       ],
       "errors": []
     },
@@ -51,9 +47,7 @@
       "url": "http://172.17.60.248:29768/crontab",
       "status": "WARN",
       "warnings": [
-        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1",
-        "[warning] JQMIGRATE: jQuery.fn.hover() is deprecated",
-        "[warning] JQMIGRATE: jQuery.fn.mousedown() event shorthand is deprecated"
+        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1"
       ],
       "errors": []
     },
@@ -62,9 +56,7 @@
       "url": "http://172.17.60.248:29768/firewall",
       "status": "WARN",
       "warnings": [
-        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1",
-        "[warning] JQMIGRATE: jQuery.fn.hover() is deprecated",
-        "[warning] JQMIGRATE: jQuery.fn.mousedown() event shorthand is deprecated"
+        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1"
       ],
       "errors": []
     },
@@ -73,9 +65,7 @@
       "url": "http://172.17.60.248:29768/soft",
       "status": "WARN",
       "warnings": [
-        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1",
-        "[warning] JQMIGRATE: jQuery.fn.hover() is deprecated",
-        "[warning] JQMIGRATE: jQuery.fn.mousedown() event shorthand is deprecated"
+        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1"
       ],
       "errors": []
     },
@@ -84,9 +74,7 @@
       "url": "http://172.17.60.248:29768/setting",
       "status": "WARN",
       "warnings": [
-        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1",
-        "[warning] JQMIGRATE: jQuery.fn.hover() is deprecated",
-        "[warning] JQMIGRATE: jQuery.fn.mousedown() event shorthand is deprecated"
+        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1"
       ],
       "errors": []
     },
@@ -95,9 +83,7 @@
       "url": "http://172.17.60.248:29768/logs",
       "status": "WARN",
       "warnings": [
-        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1",
-        "[warning] JQMIGRATE: jQuery.fn.hover() is deprecated",
-        "[warning] JQMIGRATE: jQuery.fn.mousedown() event shorthand is deprecated"
+        "[log] JQMIGRATE: Migrate is installed with logging active, version 3.4.1"
       ],
       "errors": []
     }
