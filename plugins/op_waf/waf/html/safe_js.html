@@ -1,28 +1,225 @@
 <!doctype html>
-<html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<title>御风面板OP网站防火墙|安全校验</title>
-<style>
-*{margin:0;padding:0;color:#444}
-.main{width:600px;margin:10% auto;}
-.title{background: #20a53a;color: #fff;font-size: 16px;height: 40px;line-height: 40px;text-align: center;}
-.content{background-color:#f3f7f9; height:280px;border:1px dashed #c6d9b6;padding:20px}
-#change{
-	font-size: 200px;
-	text-align: center;
-}
-</style>
-</head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>御风面板OP网站防火墙 | 安全校验</title>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --primary: #10b981;
+            --primary-bg: #ecfdf5;
+            --primary-border: #a7f3d0;
+            --border-radius: 12px;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            max-width: 500px;
+            width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            animation: slideUp 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background-color: var(--primary);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon {
+            width: 56px;
+            height: 56px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        .icon svg {
+            width: 32px;
+            height: 32px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .content {
+            padding: 32px 24px;
+        }
+
+        .alert-box {
+            background-color: var(--primary-bg);
+            border: 1px solid var(--primary-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .alert-box::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--primary);
+            border-radius: 8px 0 0 8px;
+        }
+
+        .alert-text {
+            color: #065f46;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .countdown-wrapper {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        #change {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .countdown-unit {
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .details {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .details p {
+            margin-bottom: 8px;
+        }
+
+        .details p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .details strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .footer {
+            border-top: 1px solid #e5e7eb;
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 13px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
 <body>
-	<div class="main">
-		<div class="title">御风面板OP网站防火墙|安全校验</div>
-		<div class="content">
-			<p id="change">3</p>
-		</div>
-		<div id="status" style="display: none;">false</div>
-	</div>
+    <div class="container">
+        <div class="header">
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="m9 11 2 2 4-4"/>
+                </svg>
+            </div>
+            <h1>安全校验提示</h1>
+        </div>
+        <div class="content">
+            <div class="alert-box">
+                <p class="alert-text">正在进行浏览器安全验证</p>
+                <div class="countdown-wrapper">
+                    <span id="change">3</span>
+                    <span class="countdown-unit"></span>
+                </div>
+            </div>
+            <div class="details">
+                <p><strong>校验原因：</strong>为了防护恶意爬虫和自动化安全扫描，系统需要对您的浏览器进行一次快速安全验证。</p>
+                <p><strong>如何验证：</strong></p>
+                <ul style="padding-left: 20px; margin-top: 4px;">
+                    <li>请确保您的浏览器已启用 JavaScript 支持</li>
+                    <li>验证过程通常需要 3 秒钟</li>
+                    <li><strong>验证通过后将自动进入原网站，如有误报请联系网站服务商</strong></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer">
+            Protected by 衢州御风科技有限公司
+        </div>
+        <div id="status" style="display: none;">false</div>
+    </div>
 </body>
 
 <script type="text/javascript">
@@ -162,4 +359,3 @@ var ok = setInterval(function(){
 },1000);
 </script>
 </html>
-
