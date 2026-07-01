@@ -498,8 +498,8 @@ def main():
 
 def restore_bt_data(restore_mysql=True, selected_dbs='*'):
     print("======================== 恢复宝塔软件数据 ==========================")
-    print("本工具将协助您把原本在宝塔面板中的软件数据（MySQL、Redis等）接管并恢复到新面板中。")
-    print("⚠️  重要提醒：执行恢复前，请确保新面板对应的软件（如 MySQL 5.7, Redis）已经通过任务队列安装完成！")
+    print("本工具将协助您把原本在宝塔面板中的软件数据（MySQL）接管并恢复到新面板中。")
+    print("⚠️  重要提醒：执行恢复前，请确保新面板对应的软件（如 MySQL 5.7）已经通过任务队列安装完成！")
     
     if sys.stdin is None or not sys.stdin.isatty():
         confirm = 'yes'
