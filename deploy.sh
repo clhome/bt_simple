@@ -141,9 +141,47 @@ confirm() {
     if [ -t 0 ]; then
         read -p "请输入 [yes/no]: " response
     else
-        read -p "请输入 [yes/no]: " response < /dev/tty 2>/dev/null || response="no"
+        printf "请输入 [yes/no]: "
+        read response < /dev/tty 2>/dev/null || response="no"
     fi
     [ "$response" = "yes" ]
+}
+
+install_acme() {
+    if [ -d /root/.acme.sh ]; then
+        return 0
+    fi
+    log_info "安装 acme.sh ..."
+    local acme_downloaded=false
+    if type github_download >/dev/null 2>&1; then
+        log_info "正在使用统一网络库下载 acme.sh ..."
+        if github_download "/tmp/acme.sh.tar.gz" "https://github.com/acmesh-official/acme.sh/archive/master.tar.gz" 30; then
+            mkdir -p /tmp/acme-src
+            tar -zxf /tmp/acme.sh.tar.gz -C /tmp/acme-src --strip-components=1
+            cd /tmp/acme-src && ./acme.sh --install -m my@example.com 2>/dev/null
+            cd - >/dev/null
+            rm -rf /tmp/acme-src /tmp/acme.sh.tar.gz
+            acme_downloaded=true
+        fi
+    fi
+
+    if [ "$acme_downloaded" = "false" ]; then
+        if check_china; then
+            local best_proxy=""
+            if type _gh_get_best_proxy >/dev/null 2>&1; then
+                _gh_get_best_proxy >/dev/null
+                best_proxy="$_GH_BEST_PROXY"
+            fi
+            local acme_proxy="${best_proxy:-https://gh-proxy.com/}"
+            curl "${acme_proxy}https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh" | sh -s -- --install-online -m my@example.com 2>/dev/null
+        else
+            curl -fsSL https://get.acme.sh | bash 2>/dev/null
+        fi
+    fi
+
+    if [ -d /root/.acme.sh ]; then
+        /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+    fi
 }
 
 check_root() {
@@ -411,7 +449,7 @@ show_banner() {
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
-    echo -e '|          bt_simple 面板一键部署工具               |'
+    echo -e '|          御风面板 bt_simple一键部署工具             |'
     echo -e '|                                                   |'
     echo -e '|   =============================================   |'
     echo -e '|                                                   |'
@@ -647,20 +685,7 @@ fresh_install() {
     mkdir -p ${PANEL_DIR}/data
 
     # 安装 acme.sh
-    if [ ! -d /root/.acme.sh ]; then
-        log_info "安装 acme.sh ..."
-        if check_china; then
-            local best_proxy=""
-            if type _gh_get_best_proxy >/dev/null 2>&1; then
-                _gh_get_best_proxy >/dev/null
-                best_proxy="$_GH_BEST_PROXY"
-            fi
-            local acme_proxy="${best_proxy:-https://gh-proxy.com/}"
-            curl "${acme_proxy}https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh" | sh -s -- --install-online -m my@example.com 2>/dev/null
-        else
-            curl -fsSL https://get.acme.sh | bash 2>/dev/null
-        fi
-    fi
+    install_acme
 
     # 安装系统依赖
     log_info "安装系统依赖（可能需要几分钟）..."
@@ -1031,20 +1056,7 @@ migrate_from_bt() {
     fi
 
     # 安装 acme.sh
-    if [ ! -d /root/.acme.sh ]; then
-        log_info "安装 acme.sh ..."
-        if check_china; then
-            local best_proxy=""
-            if type _gh_get_best_proxy >/dev/null 2>&1; then
-                _gh_get_best_proxy >/dev/null
-                best_proxy="$_GH_BEST_PROXY"
-            fi
-            local acme_proxy="${best_proxy:-https://gh-proxy.com/}"
-            curl "${acme_proxy}https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh" | sh -s -- --install-online -m my@example.com 2>/dev/null
-        else
-            curl -fsSL https://get.acme.sh | bash 2>/dev/null
-        fi
-    fi
+    install_acme
 
     # 安装依赖
     log_info "安装系统依赖..."
