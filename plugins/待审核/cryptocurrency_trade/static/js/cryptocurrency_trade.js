@@ -494,7 +494,7 @@ function onlineEditStrategyFile(k, f, tag) {
                 });
                 code_mirror.focus();
                 code_mirror.setSize("auto", q - 180);
-                $(window).resize(function(){
+                $(window).on('resize', function(){
                     var q = $(window).height() * 0.9;
                     code_mirror.setSize("auto", q - 180);
                 });   
@@ -599,7 +599,7 @@ function getStrategyList(p=1){
         $('#strategy_list_page').html(rdata.data.list);
 
 
-        $('#strategy_list .strategy_status').click(function(){
+        $('#strategy_list .strategy_status').on('click', function(){
             var id = $(this).parent().parent().data('id');
             var status = 'stop';
             if ($(this).hasClass('glyphicon-pause')){
@@ -608,12 +608,12 @@ function getStrategyList(p=1){
             setStrategyStatus(id,status);
         });
 
-        $('#strategy_list .restart').click(function(){
+        $('#strategy_list .restart').on('click', function(){
             var id = $(this).parent().parent().data('id');
             setStrategyRestart(id);
         });
 
-        $('#strategy_list .edit').click(function(){
+        $('#strategy_list .edit').on('click', function(){
             var id = $(this).parent().parent().data('id');
             setStrategyEdit(id);
         });
@@ -957,7 +957,7 @@ $(function() {
     }
 });
 
-$(window).resize(function(){
+$(window).on('resize', function(){
     changeDivH();
 });
 

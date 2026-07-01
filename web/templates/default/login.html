@@ -216,7 +216,7 @@ $(function(){
 	});
 });
 
-$('#login-button').click(function(){
+$('#login-button').on('click', function(){
 	var username = encodeURIComponent($("input[name='username']").val());
 	var password = encodeURIComponent($("input[name='password']").val());
 	var code = $("input[name='code']").val();

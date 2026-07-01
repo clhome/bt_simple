@@ -125,7 +125,7 @@ function createDir(){
                     </p>\
                 </div>',
         success:function(){
-            $("input[name='newPath']").focus().keyup(function(e){
+            $("input[name='newPath']").focus().on('keyup', function(e){
                 if(e.keyCode == 13) $(".layui-layer-btn0").click();
             });
         },
@@ -233,11 +233,11 @@ function osList(path){
 
         upPathLeft();
 
-        $('#backBtn').off().click(function() {
+        $('#backBtn').off().on('click', function() {
             osList(backPath);
         });
 
-        $('.upyunCon .refreshBtn').off().click(function(){
+        $('.upyunCon .refreshBtn').off().on('click', function(){
             osList(path);
         });
     });

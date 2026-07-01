@@ -123,7 +123,7 @@ function pgPort(){
             </div></div>';
         $(".soft-man-con").html(con);
 
-        $('#btn_change_port').click(function(){
+        $('#btn_change_port').on('click', function(){
             var port = $("input[name='port']").val();
             myPost('set_pg_port','port='+port,function(data){
                 var rdata = JSON.parse(data.data);
@@ -161,7 +161,7 @@ function pgPerfOpt() {
 
         $(".soft-man-con").html(memCon);
 
-        $("#pg_conf").change(function (e) {
+        $("#pg_conf").on('change', function (e) {
         　　e.preventDefault();
             var data = {};
             $('#pg_conf p input').each(function (index, element) {
@@ -335,7 +335,7 @@ function setDbAccess(name){
                     $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' class='bt-input-text mr5' type='text' name='address' placeholder='如: 192.168.1.0/24' style='width: 230px; display: inline-block;'>");
                 }
 
-                $('select[name="dataAccess"]').change(function(){
+                $('select[name="dataAccess"]').on('change', function(){
                     var v = $(this).val();
                     if (v == 'ip'){
                         $(this).after("<input class='bt-input-text mr5' type='text' name='address' placeholder='如: 192.168.1.0/24' style='width: 230px; display: inline-block;'>");
@@ -385,7 +385,7 @@ function setDbAccess(name){
 
                 renderPrivileges(rdata);
 
-                $('#btn_onekey_grant').click(function(){
+                $('#btn_onekey_grant').on('click', function(){
                     var loadT = layer.msg('正在一键赋权...', { icon: 16, time: 0, shade: 0.3 });
                     myPost('set_db_privileges', {name: name}, function(grantData){
                         layer.close(loadT);
@@ -524,12 +524,12 @@ function addDatabase(type,layer_index){
                   </form>",
         success:function(){
 
-            $("input[name='name']").keyup(function(){
+            $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
                 $("input[name='db_user']").val(v);
             });
 
-            $('select[name="dataAccess"]').change(function(){
+            $('select[name="dataAccess"]').on('change', function(){
                 var v = $(this).val();
                 if (v == 'ip'){
                     $('input[name="ip_segment"]').show();
@@ -593,7 +593,7 @@ function setDbPs(id, name, obj) {
     var _input = $("<input class='baktext' value=\""+_span.text()+"\" type='text' placeholder='备注信息' />");
     _span.hide().after(_input);
     _input.focus();
-    _input.blur(function(){
+    _input.on('blur', function(){
         $(this).remove();
         var ps = _input.val();
         _span.text(ps).show();
@@ -603,7 +603,7 @@ function setDbPs(id, name, obj) {
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
     });
-    _input.keyup(function(){
+    _input.on('keyup', function(){
         if(event.keyCode == 13){
             _input.trigger('blur');
         }
@@ -656,7 +656,7 @@ function uploadDbFiles(upload_dir, callback){
                 <ul id="up_box"></ul>\
             </div>',
         success:function(){
-            $('#filesClose').click(function(){
+            $('#filesClose').on('click', function(){
                 layer.close(up_db);
             });
             uploadStart(function(){
@@ -727,7 +727,7 @@ function setBackup(db_name,obj){
             </div>'
         });
 
-        $('#btn_backup').click(function(){
+        $('#btn_backup').on('click', function(){
             myPost('pg_back',{name:db_name}, function(data){
                 layer.msg('执行成功!');
 
@@ -738,7 +738,7 @@ function setBackup(db_name,obj){
             });
         });
 
-        $('#btn_sync_backup').click(function(){
+        $('#btn_sync_backup').on('click', function(){
             myPost('pg_back_list', {name:db_name, sync: 1}, function(syncData){
                 var syncRdata = JSON.parse(syncData.data);
                 var syncList = syncRdata.list || [];
@@ -747,7 +747,7 @@ function setBackup(db_name,obj){
             });
         });
 
-        $('#btn_upload_backup').click(function(){
+        $('#btn_upload_backup').on('click', function(){
             uploadDbFiles(upload_dir, function(){
                 myPost('pg_back_list', {name:db_name}, function(refreshData){
                     var refreshRdata = JSON.parse(refreshData.data);
@@ -916,13 +916,13 @@ function addMasterRepSlaveUser(){
             <input type='hidden' name='ps' value='' />\
           </form>",
         success:function(){
-            $("input[name='name']").keyup(function(){
+            $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
                 $("input[name='db_user']").val(v);
                 $("input[name='ps']").val(v);
             });
 
-            $('select[name="dataAccess"]').change(function(){
+            $('select[name="dataAccess"]').on('change', function(){
                 var v = $(this).val();
                 if (v == 'ip'){
                     $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
@@ -976,7 +976,7 @@ function updateMasterRepSlaveUser(username){
           </form>",
     });
 
-    $('#submit_update_master').click(function(){
+    $('#submit_update_master').on('click', function(){
         var data = $("#update_master").serialize();
         data = decodeURIComponent(data);
         var dataObj = str2Obj(data);
@@ -1017,7 +1017,7 @@ function getMasterRepSlaveUserCmd(username, db=''){
 
        
         copyPass(cmd);
-        $('.class-copy-cmd').click(function(){
+        $('.class-copy-cmd').on('click', function(){
             copyPass(cmd);
         });
     });
@@ -1144,7 +1144,7 @@ function getFullSyncStatus(db){
         });
     }
 
-    $('#begin_full_sync').click(function(){
+    $('#begin_full_sync').on('click', function(){
         var val = $(this).attr('data-status');
         if (val == 'init'){
             fullSync(db,1);
@@ -1311,7 +1311,7 @@ function handlerRun(){
           </form>",
         });
         copyPass(cmd);
-        $('.class-copy-cmd').click(function(){
+        $('.class-copy-cmd').on('click', function(){
             copyPass(cmd);
         });
     });
@@ -1341,7 +1341,7 @@ function slaveSyncCmd(){
         });
        
         copyPass(cmd);
-        $('.class-copy-cmd').click(function(){
+        $('.class-copy-cmd').on('click', function(){
             copyPass(cmd);
         });
     });
@@ -1442,7 +1442,7 @@ function masterOrSlaveConf(version=''){
             $(".soft-man-con").html(limitCon);
 
             //设置主服务器配置
-            $(".btn-master").click(function () {
+            $(".btn-master").on('click', function () {
                 myPost('set_master_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
@@ -1452,7 +1452,7 @@ function masterOrSlaveConf(version=''){
                 });
             });
 
-            $(".btn-slave").click(function () {
+            $(".btn-slave").on('click', function () {
                 myPost('set_slave_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });

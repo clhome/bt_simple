@@ -166,7 +166,7 @@ function addHook(){
                     $('#hook_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
                 }
 
-                $('#hook_tpl').change(function(){
+                $('#hook_tpl').on('change', function(){
                     var selected = $(this).val();
                     if (selected == '0') {
                         return;

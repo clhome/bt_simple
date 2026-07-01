@@ -22,7 +22,7 @@ $(function() {
 
 function dynamicTrackingLoad(){
     changeDivH();
-    $(window).resize(function(){
+    $(window).on('resize', function(){
         changeDivH();
     });
 
@@ -31,7 +31,7 @@ function dynamicTrackingLoad(){
 }
 
 
-$('.data-collect').click(function(){
+$('.data-collect').on('click', function(){
     layer.msg('开始采样',{icon:0,time:2000});
     var pid = $('#searchValue').val();
 
@@ -134,7 +134,7 @@ function dtFileList(){
         $('#file_list .list').html(tli);
 
         dtGetFile(alist[0]['name']);
-        $('#file_list li .file').click(function(){
+        $('#file_list li .file').on('click', function(){
             $('#file_list li').removeClass('active');
             $(this).parent().addClass('active');
             var i = $(this).parent().data('index');
@@ -142,7 +142,7 @@ function dtFileList(){
         });
 
 
-        $('#file_list li .glyphicon-link').click(function(){
+        $('#file_list li .glyphicon-link').on('click', function(){
            var i = $(this).parent().parent().data('index');
            var abs_p = alist[i]['abs_path'];
 
@@ -150,7 +150,7 @@ function dtFileList(){
            window.open(durl);
         });
 
-        $('#file_list li .glyphicon-trash').click(function(){
+        $('#file_list li .glyphicon-trash').on('click', function(){
             var i = $(this).parent().parent().data('index');
             var f = alist[i]['name'];
             dtPost('remove_file_path', '',{file:f}, function(rdata){

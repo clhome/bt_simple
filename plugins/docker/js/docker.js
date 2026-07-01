@@ -302,7 +302,7 @@ function createConTemplate() {
                     </div>',
             success: function() {
 
-                $(".plus").click(function() {
+                $(".plus").on('click', function() {
                     var name1 = $(".type-port input[name='name1']").val();
                     var name2 = $(".type-port input[name='name2']").val();
                     if (name1 < 1 || name1 > 65535 || name2 < 1 || name2 > 65535 || isNaN(name1) || isNaN(name2)) {
@@ -342,7 +342,7 @@ function createConTemplate() {
                         </tr>';
                         $("#portabletr").append(portable);
                         $(".more1").remove();
-                        $(".minus").click(function() {
+                        $(".minus").on('click', function() {
                             $(this).parents("tr").remove();
                             if ($("#portabletr").children().length == 0) {
                                 $("#portabletr").html('<tr class="more1"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加端口映射</td></tr>');
@@ -351,7 +351,7 @@ function createConTemplate() {
                     });
                 });
 
-                $(".plus2").click(function() {
+                $(".plus2").on('click', function() {
                     var path1 = $(".type-volumes input[name='path1']").val();
                     var path2 = $(".type-volumes input[name='path2']").val();
 
@@ -377,7 +377,7 @@ function createConTemplate() {
                     </tr>';
                     $("#portabletr2").append(portable);
                     $(".more2").remove();
-                    $(".minus2").click(function() {
+                    $(".minus2").on('click', function() {
                         $(this).parents("tr").remove();
                         if ($("#portabletr2").children().length == 0) {
                             $("#portabletr2").html('<tr class="more2"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加目录映射</td></tr>');
@@ -589,13 +589,13 @@ function dockerPullImagesFileTemplate() {
                 </div>',
         success: function(layero, layer_id) {
 
-            $('.docker-sub span').click(function() {
+            $('.docker-sub span').on('click', function() {
                 var index = $(this).index();
                 $(this).addClass('on').siblings().removeClass('on');
                 $(this).parent().next().find('.conter').eq(index).show().siblings().hide();
             });
 
-                        $('.official_pull_btn').click(function() {
+                        $('.official_pull_btn').on('click', function() {
                 var name = $('[name="official_pull_name"]').val();
                 if (name == '') {
                     layer.msg('镜像名不能为空!');
@@ -668,7 +668,7 @@ function dockerPullImagesFileTemplate() {
                 });
             });
 
-            $('.public_pull_btn').click(function() {
+            $('.public_pull_btn').on('click', function() {
                 var path = $('[name="public_pull_path"]').val();
                 if (path == '') {
                     layer.msg('公共网络镜像地址不能为空。');
@@ -685,7 +685,7 @@ function dockerPullImagesFileTemplate() {
                     }, { icon: rdata.status ? 1 : 2 });
                 });
             });
-            $('.private_pull_btn').click(function() {
+            $('.private_pull_btn').on('click', function() {
                 var path = $('[name="private_pull_path"]').val();
                 if (path == '') {
                     layer.msg('专用镜像地址不能为空!');
@@ -816,7 +816,7 @@ function uploadImageFiles(upload_dir) {
                 <ul id="up_box"></ul>\
             </div>',
         success: function() {
-            $('#filesClose').click(function() {
+            $('#filesClose').on('click', function() {
                 layer.close(image_layer);
             });
         }
@@ -920,7 +920,7 @@ function dockerImageOutput() {
     $(".soft-man-con").html(con);
 
 
-    $('#btn_image_upload').click(function() {
+    $('#btn_image_upload').on('click', function() {
         dPostOrgin({
             name: 'docker',
             func: 'image_pick_dir',
@@ -1044,7 +1044,7 @@ function repoLogin() {
             '</div>' +
             '</div>',
         success: function() {
-            $('[name="dtype"]').change(function(e) {
+            $('[name="dtype"]').on('change', function(e) {
                 var docker_type = $(this).val();
                 if (docker_type == 'Other Repository') {
                     $('.docker_content .line').show();
@@ -1052,7 +1052,7 @@ function repoLogin() {
                     $('.docker_content .line').filter(":lt(3)").show().end().filter(":gt(4)").hide();
                 }
             });
-            $('.login_aliyun').click(function() {
+            $('.login_aliyun').on('click', function() {
                 var user = $('[name="user"]').val(),
                     passwd = $('[name="passwd"]').val(),
                     registry = $('[name="registry"]').val(),
@@ -1157,7 +1157,7 @@ function repoList() {
     $(".soft-man-con").html(con);
 
     //login
-    $('#docker_login').click(function() {
+    $('#docker_login').on('click', function() {
         repoLogin();
     });
 

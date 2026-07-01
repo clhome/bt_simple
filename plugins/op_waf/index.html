@@ -290,7 +290,7 @@ if (typeof window._original_pluginSetService === 'undefined') {
 }
 
 $(function() {
-    $('.bt-w-menu p').click(function(){
+    $('.bt-w-menu p').on('click', function(){
         if($(this).text() !== '功能介绍') {
             $('#yufeng-footer').show();
         } else {

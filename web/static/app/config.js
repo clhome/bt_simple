@@ -1,5 +1,5 @@
 /** op **/
-// $(".set-submit").click(function(){
+// $(".set-submit").on('click', function(){
 // 	var data = $("#set_config").serialize();
 // 	layer.msg('正在保存配置...',{icon:16,time:0,shade: [0.3, '#000']});
 // 	$.post('/config/set',data,function(rdata){
@@ -13,10 +13,10 @@
 // 	},'json');
 // });
 
-$('input[name="webname"]').change(function(){
+$('input[name="webname"]').on('change', function(){
 	var webname = $(this).val();
 	$('.btn_webname').removeAttr('disabled');
-	$('.btn_webname').off().click(function(){
+	$('.btn_webname').off().on('click', function(){
 		$.post('/setting/set_webname','webname='+webname, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
@@ -24,21 +24,21 @@ $('input[name="webname"]').change(function(){
 });
 
 
-$('input[name="host_ip"]').change(function(){
+$('input[name="host_ip"]').on('change', function(){
 	var host_ip = $(this).val();
 	$('.btn_host_ip').removeAttr('disabled');
-	$('.btn_host_ip').off().click(function(){
+	$('.btn_host_ip').off().on('click', function(){
 		$.post('/setting/set_ip','host_ip='+host_ip, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
 	});
 });
 
-$('input[name="port"]').change(function(){
+$('input[name="port"]').on('change', function(){
 	var port = $(this).val();
 	var old_port = $(this).data('port');
 	$('.btn_port').removeAttr('disabled');
-	$('.btn_port').off().click(function(){
+	$('.btn_port').off().on('click', function(){
 		$.post('/setting/set_port','port='+port, function(rdata){
 			showMsg(rdata.msg,function(){
 				window.location.href = window.location.href.replace(old_port,port);
@@ -48,10 +48,10 @@ $('input[name="port"]').change(function(){
 	});
 });
 
-$('input[name="sites_path"]').change(function(){
+$('input[name="sites_path"]').on('change', function(){
 	var sites_path = $(this).val();
 	$('.btn_sites_path').removeAttr('disabled');
-	$('.btn_sites_path').off().click(function(){
+	$('.btn_sites_path').off().on('click', function(){
 		$.post('/setting/set_www_dir','sites_path='+sites_path, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
@@ -59,10 +59,10 @@ $('input[name="sites_path"]').change(function(){
 });
 
 
-$('input[name="backup_path"]').change(function(){
+$('input[name="backup_path"]').on('change', function(){
 	var backup_path = $(this).val();
 	$('.btn_backup_path').removeAttr('disabled');
-	$('.btn_backup_path').off().click(function(){
+	$('.btn_backup_path').off().on('click', function(){
 		$.post('/setting/set_backup_dir','backup_path='+backup_path, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
@@ -70,10 +70,10 @@ $('input[name="backup_path"]').change(function(){
 });
 
 
-$('input[name="bind_domain"]').change(function(){
+$('input[name="bind_domain"]').on('change', function(){
 	var domain = $(this).val();
 	$('.btn_bind_domain').removeAttr('disabled');
-	$('.btn_bind_domain').off().click(function(){
+	$('.btn_bind_domain').off().on('click', function(){
 		$.post('/setting/set_panel_domain','domain='+domain, function(rdata){
 			if (domain == '') {
 				// 清空域名直接重启跳转
@@ -116,12 +116,12 @@ $('input[name="bind_domain"]').change(function(){
 						});
 						
 						// 点击复制事件
-						$('#new-domain-box').click(function() {
+						$('#new-domain-box').on('click', function() {
 							copyTextToClipboard(new_url);
 						});
 						
 						// 确认并重启
-						$('#btn-reboot-confirm').click(function() {
+						$('#btn-reboot-confirm').on('click', function() {
 							layer.close(index);
 							var loadT = layer.load(2);
 							$.post('/system/restart', '', function() {
@@ -229,12 +229,12 @@ function showSSLSuccessWindow(new_url, title) {
 			});
 			
 			// 点击复制事件
-			$('#ssl-domain-box').click(function() {
+			$('#ssl-domain-box').on('click', function() {
 				copyTextToClipboard(new_url);
 			});
 			
 			// 确认并重启
-			$('#btn-ssl-reboot-confirm').click(function() {
+			$('#btn-ssl-reboot-confirm').on('click', function() {
 				layer.close(index);
 				var loadT = layer.load(2);
 				$.post('/system/restart', '', function() {
@@ -257,7 +257,7 @@ function showSSLSuccessWindow(new_url, title) {
 	});
 }
 
-$('input[name="bind_ssl"]').click(function(){
+$('input[name="bind_ssl"]').on('click', function(){
 	var panel_ssl = $(this).prop("checked");
 	$(this).prop("checked",!panel_ssl);
 
@@ -1249,7 +1249,7 @@ function getPanelSSL(){
 				switchPanelSSLView(choose);
 
 				// 监听下拉切换
-				$('select[name="choose"]').change(function(){
+				$('select[name="choose"]').on('change', function(){
 					switchPanelSSLView($(this).val());
 				});
 
@@ -1399,7 +1399,7 @@ function getTempAccessLogs(id){
 				</div>",
 		success:function(){
 			getTempAccessLogsReq(id);
-			$('.refresh_log').click(function(){
+			$('.refresh_log').on('click', function(){
 				getTempAccessLogsReq(id);
 			});
 		}
@@ -1543,7 +1543,7 @@ function setTempAccess(){
 		success:function(){
 			setTempAccessReq();
 
-			$('.create_temp_login').click(function(){
+			$('.create_temp_login').on('click', function(){
 				layer.confirm('<span style="color:red">注意1：滥用临时授权可能导致安全风险。</br>注意2：请勿在公共场合发布临时授权连接</span></br>即将创建临时授权连接，继续吗？',{
 					title:'风险提示',
 					closeBtn:1,
@@ -1576,7 +1576,7 @@ function setTempAccess(){
 								$('#temp_link').val(temp_link);
 
 								copyText(temp_link);
-								$('.btn-copy-temp-link').click(function(){
+								$('.btn-copy-temp-link').on('click', function(){
 									copyText(temp_link);
 								});
 							}
@@ -1626,7 +1626,7 @@ function setAuthBind(){
 					loadScript(staticUrl('/static/js/jquery-qrcode-0.18.0.min.js')).then(renderQRCode);
 				}
 
-				$('.reset_secret').click(function(){
+				$('.reset_secret').on('click', function(){
 					layer.confirm('您确定要重置当前密钥吗？<br/><span style="color: red; ">重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。</span>',{title:'重置密钥',closeBtn:2,icon:13,cancel:function(){
 					}}, function() {
 						$.post('/setting/get_auth_secret', {'reset':"1"},function(rdata){
@@ -1731,7 +1731,7 @@ function setBasicAuth(){
 			</ul>\
 		</div>',
 				success:function(){
-					$('.save_auth_cfg').click(function(){
+					$('.save_auth_cfg').on('click', function(){
 						var basic_user = $('input[name="basic_user"]').val();
 						var basic_pwd = $('input[name="basic_pwd"]').val();
 						$.post('/setting/set_basic_auth', {'basic_user':basic_user,'basic_pwd':basic_pwd},function(rdata){
@@ -1798,7 +1798,7 @@ function showPanelApi(){
 				$('textarea[name="api_limit_addr"]').val(rdata.data.limit_addr);
 
 
-				$('.reset_token').click(function(){
+				$('.reset_token').on('click', function(){
 					layer.confirm('您确定要重置当前密钥吗？<br/><span style="color: red; ">重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。</span>',{title:'重置密钥',closeBtn:2,icon:13,cancel:function(){
 					}}, function() {
 						$.post('/config/set_panel_token', {'op_type':"1"},function(rdata){
@@ -1809,7 +1809,7 @@ function showPanelApi(){
 					});
 				});
 
-				$('.save_api').click(function(){
+				$('.save_api').on('click', function(){
 					var limit_addr = $('textarea[name="api_limit_addr"]').val();
 					$.post('/config/set_panel_token', {'op_type':"3",'limit_addr':limit_addr},function(rdata){
 						showMsg(rdata.msg, function(){
@@ -1930,15 +1930,15 @@ function addApp(){
 			$('input[name="app_id"]').val(getRandomString(10));
 			$('input[name="app_secret"]').val(getRandomString(20));
 
-			$('.app_id').click(function(){
+			$('.app_id').on('click', function(){
 				$('input[name="app_id"]').val(getRandomString(10));
 			});
 
-			$('.app_secret').click(function(){
+			$('.app_secret').on('click', function(){
 				$('input[name="app_secret"]').val(getRandomString(20));
 			});
 
-			$('.save_app_data').click(function(){
+			$('.save_app_data').on('click', function(){
 				var app_id = $('input[name="app_id"]').val();
 				var app_secret = $('input[name="app_secret"]').val();
 				var limit_addr = $('textarea[name="api_limit_addr"]').val();
@@ -1984,7 +1984,7 @@ function appPage(){
 		</div>",
 		success:function(){
 			getAppList();
-			$('.app_add').click(function(){
+			$('.app_add').on('click', function(){
 				addApp();
 			});
 		}

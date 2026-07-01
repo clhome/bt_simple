@@ -167,7 +167,7 @@ function addNode(){
                         tbody += '</tr>';
                         $('#nodecon').append(tbody);
 
-                        $('#nodecon .delete').click(function(){
+                        $('#nodecon .delete').on('click', function(){
                             $(this).parent().parent().remove();
                             if ($('#nodecon tr').length == 1 ){
                                 $('#nodecon .nulltr').show();
@@ -251,7 +251,7 @@ function addBalance(){
             var rval = getRandomString(6);
             $('input[name="upstream_name"]').val('load_balance_'+rval);
 
-            $('.add_node').click(function(){
+            $('.add_node').on('click', function(){
                 addNode();
             });
         },
@@ -428,14 +428,14 @@ function editBalance(data, row){
                 $('#nodecon').append(tbody);
             }
 
-            $('#nodecon .delete').click(function(){
+            $('#nodecon .delete').on('click', function(){
                 $(this).parent().parent().remove();
                 if ($('#nodecon tr').length == 1 ){
                     $('#nodecon .nulltr').show();
                 }
             });
 
-            $('.add_node').click(function(){
+            $('.add_node').on('click', function(){
                 addNode();
             });
         },
@@ -505,18 +505,18 @@ function loadBalanceListRender(){
 
         $('#nodeTable').html(tbody);
         $('.nodeTablePage .Pcount').text('共'+alist.length+'条');
-        $('#nodeTable .edit').click(function(){
+        $('#nodeTable .edit').on('click', function(){
             var row = $(this).data('row');
             editBalance(alist[row],row);
         });
 
-        $('#nodeTable .log_look').click(function(){
+        $('#nodeTable .log_look').on('click', function(){
             var row = $(this).data('row');
             var args = {'domain':alist[row]['domain']};
             pluginRollingLogs('op_load_balance','','get_logs',JSON.stringify(args),20);
         });
 
-        $('#nodeTable .health_status').click(function(){
+        $('#nodeTable .health_status').on('click', function(){
             var row = $(this).data('row');
             ooPost('get_health_status', {row:row}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
@@ -563,7 +563,7 @@ function loadBalanceListRender(){
             });
         });
 
-        $('#nodeTable .delete').click(function(){
+        $('#nodeTable .delete').on('click', function(){
             var row = $(this).data('row');
             ooPost('load_balance_delete', {row:row}, function(rdata){
                 var rdata = JSON.parse(rdata.data);

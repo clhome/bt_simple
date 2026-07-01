@@ -97,7 +97,7 @@ function getSafeConfigPathList(tag){
         }
 
         $('#safe-file-table tbody').html(body);
-        $('.safe_path_delete').click(function(){
+        $('.safe_path_delete').on('click', function(){
             var id = $(this).attr('row');
             ssPost('del_safe_path',{tag:tag,index:id}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
@@ -151,7 +151,7 @@ function setSafeConfigPath(tag, alist){
                   </form>",
         success:function(){
 
-            $('.add_safe_config').click(function(){
+            $('.add_safe_config').on('click', function(){
                 var path = $('input[name="s_path"]').val();
                 var chattr = $('select[name="chattr"]').val();
                 var d_mode = $('input[name="d_mode"]').val();
@@ -205,7 +205,7 @@ function setSafeConfigSsh(tag, alist){
         success:function(){
             setSafeConfigSshData();
 
-            $('.save_safe_ssh').click(function(){
+            $('.save_safe_ssh').on('click', function(){
                 var cycle = $('input[name="s_cycle"]').val();
                 var limit_count = $('input[name="s_limit_count"]').val();
                 var limit = $('input[name="s_limit"]').val();
@@ -235,7 +235,7 @@ function setSafeConfigProcessList(tag){
         }
 
         $('#safe-file-table tbody').html(body);
-        $('.safe_path_delete').click(function(){
+        $('.safe_path_delete').on('click', function(){
             var id = $(this).attr('row');
             ssPost('del_safe_proccess_name',{tag:tag,index:id}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
@@ -276,7 +276,7 @@ function setSafeConfigProcess(tag, alist){
                     </ul>\
                   </form>",
         success:function(){
-            $('.add_process_white').click(function(){
+            $('.add_process_white').on('click', function(){
                 var process_name = $('input[name="s_name"]').val();
                 ssPost('add_process_white',{process_name:process_name}, function(rdata){
                     var rdata = JSON.parse(rdata.data);
@@ -377,13 +377,13 @@ function ssConfigList(){
 
         $('.soft-man-con').html(con);
 
-        $('#system_safe_list .service_switch').click(function(){
+        $('#system_safe_list .service_switch').on('click', function(){
             var val = $(this).prev().attr('id');
             val = val.replace('sys_service_','');
             setSafeStatus(this,val);
         });
 
-        $('.set_safe_config').click(function(){
+        $('.set_safe_config').on('click', function(){
             var name = $(this).attr('id');
             // console.log(name);
             name = name.replace('conf_sys_service_','');
@@ -439,7 +439,7 @@ function ssLogAuditList(){
         var log_name = $('#system_safe_log_audit option:first').val();
         ssLogAuditFile(log_name);
 
-        $('#system_safe_log_audit').change(function(){
+        $('#system_safe_log_audit').on('change', function(){
              var log_name = $('#system_safe_log_audit option:selected').val();
             ssLogAuditFile(log_name);
         });
@@ -556,7 +556,7 @@ function ssLockAddressList(){
         }
 
         $('#system_lock_address tbody').html(tbody);
-        $('#system_lock_address .remove_ssh_limit').click(function(){
+        $('#system_lock_address .remove_ssh_limit').on('click', function(){
             var address = $(this).attr('ip');
             ssPost('remove_ssh_limit', {ip:address}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
@@ -593,7 +593,7 @@ function ssLockAddress(){
 
     $('.soft-man-con').html(con);
 
-    $('.add_lock_address').click(function(){
+    $('.add_lock_address').on('click', function(){
         var address = $('input[name="s_address"]').val();
         ssPost('add_ssh_limit', {ip:address}, function(rdata){
             var rdata = JSON.parse(rdata.data);

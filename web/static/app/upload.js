@@ -10,18 +10,18 @@ MyAjax.prototype.handle = function(d, f) {
 			var e = this.serverdata = d.responseText.replace(/(^\s*)|(\s*$)/g, "");
 			"function" == typeof f.success && f.success(e)
 		} else {
-			this.erromsg = d.status, "function" == typeof f.error && f.error(d.status)
+			this.erromsg = d.status, "function" == typeof f.error && f.fail(d.status)
 		}
 	} else {
 		if(0 == d.readyState) {
 			if(this.stop === !0) {
 				return
 			}
-			f.timeout && f.async && (clearTimeout(this.timeout), this.timeout = !1), this.erromsg = d.readyState, this.transit = !0, "function" == typeof f.error && f.error(d.readyState)
+			f.timeout && f.async && (clearTimeout(this.timeout), this.timeout = !1), this.erromsg = d.readyState, this.transit = !0, "function" == typeof f.error && f.fail(d.readyState)
 		}
 	}
 }, MyAjax.prototype.out = function(b) {
-	this.transit = !0, this.erromsg = 504, this.stop = !0, "function" == typeof b.error && b.error(504)
+	this.transit = !0, this.erromsg = 504, this.stop = !0, "function" == typeof b.error && b.fail(504)
 }, MyAjax.prototype.carry = function(j) {
 	var i, h, g, l;
 	if(j.lock && !this.transit) {
@@ -45,7 +45,7 @@ MyAjax.prototype.handle = function(d, f) {
 				i.open("GET", j.url + g[1], j.async), j.cache === !0 || i.setRequestHeader("If-Modified-Since", "0")
 		}
 	} catch(k) {
-		return this.erromsg = 505, j.timeout && j.async && (clearTimeout(this.timeout), this.timeout = !1), this.transit = !0, "function" == typeof j.error && j.error(505), void 0
+		return this.erromsg = 505, j.timeout && j.async && (clearTimeout(this.timeout), this.timeout = !1), this.transit = !0, "function" == typeof j.error && j.fail(505), void 0
 	}
 	i.send(g[0]), j.async === !1 && l.handle(i, j)
 };

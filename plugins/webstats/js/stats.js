@@ -565,12 +565,12 @@ laydate.render({
     },
 });
 
-$('#ov_refresh').click(function(){
+$('#ov_refresh').on('click', function(){
     wsOverviewRequest(1);
 });
 
 $('#time_order button:eq(0)').addClass('cur');
-$('#time_order button').click(function(){
+$('#time_order button').on('click', function(){
     $('#time_order button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -583,7 +583,7 @@ $('#time_order button').click(function(){
 
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -620,11 +620,11 @@ function initRealtimeTraffic(){
 
 
 initRealtimeTraffic();
-$('#check_realtime_second').change(function(){
+$('#check_realtime_second').on('change', function(){
     initRealtimeTraffic();
 });
 
-$('.indicators-container input[type=radio]').click(function(){
+$('.indicators-container input[type=radio]').on('click', function(){
     $('.indicators-container input[type=radio]').each(function(){
         $(this).removeAttr('checked');
     });
@@ -650,7 +650,7 @@ wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html(select);
     wsOverviewRequest(1);
 
-    $('select[name="site"]').change(function(){
+    $('select[name="site"]').on('change', function(){
         wsOverviewRequest(1);
     });
 });
@@ -757,7 +757,7 @@ function wsSitesListRequest(page){
         $('#ws_table').html(table);
 
 
-        $(".tablescroll .web_set").click(function(){
+        $(".tablescroll .web_set").on('click', function(){
             var index = $(this).attr('data-id');
 
             var domain = data[index]["site"];
@@ -794,7 +794,7 @@ function wsSitesListRequest(page){
 
  
                         $('#site_conf .tab-con textarea').text(rdata['cdn_headers'].join('\n'));
-                        $('#site_conf .tab-nav span').click(function(e){
+                        $('#site_conf .tab-nav span').on('click', function(e){
                             $('#site_conf .tab-nav span').removeClass('on');
                             $(this).addClass('on');
                             $('#site_conf .tab-con').html('');
@@ -1019,7 +1019,7 @@ laydate.render({
 
 
 $('#time_order button:eq(0)').addClass('cur');
-$('#time_order button').click(function(){
+$('#time_order button').on('click', function(){
     $('#time_order button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -1032,7 +1032,7 @@ $('#time_order button').click(function(){
 
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -1324,7 +1324,7 @@ laydate.render({
 });
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -1339,7 +1339,7 @@ $('#search_time button').click(function(){
 });
 
 
-$('select[name="status_code"]').change(function(){
+$('select[name="status_code"]').on('change', function(){
     wsSpiderStatLogRequest(1);
 });
 
@@ -1360,7 +1360,7 @@ wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html(select);
     wsSpiderStatLogRequest(1);
 
-    $('select[name="site"]').change(function(){
+    $('select[name="site"]').on('change', function(){
         wsSpiderStatLogRequest(1);
     });
 });
@@ -1717,7 +1717,7 @@ laydate.render({
 });
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -1732,7 +1732,7 @@ $('#search_time button').click(function(){
 });
 
 
-$('select[name="status_code"]').change(function(){
+$('select[name="status_code"]').on('change', function(){
     wsClientStatLogRequest(1);
 });
 
@@ -1753,7 +1753,7 @@ wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html(select);
     wsClientStatLogRequest(1);
 
-    $('select[name="site"]').change(function(){
+    $('select[name="site"]').on('change', function(){
         wsClientStatLogRequest(1);
     });
 });
@@ -1840,7 +1840,7 @@ $(".soft-man-con").html(html);
 
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -1871,7 +1871,7 @@ wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html(select);
     wsIpStatLogRequest(1);
 
-    $('select[name="site"]').change(function(){
+    $('select[name="site"]').on('change', function(){
         wsIpStatLogRequest(1);
     });
 });
@@ -1955,7 +1955,7 @@ $(".soft-man-con").html(html);
 
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -1986,7 +1986,7 @@ wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html(select);
     wsUriStatLogRequest(1);
 
-    $('select[name="site"]').change(function(){
+    $('select[name="site"]').on('change', function(){
         wsUriStatLogRequest(1);
     });
 });
@@ -2057,7 +2057,7 @@ function wsTableErrorLogRequest(page){
         $('#wsPage').html(rdata.data.page);
 
 
-        $(".tablescroll .details").click(function(){
+        $(".tablescroll .details").on('click', function(){
             var index = $(this).attr('data-id');
             var res = data[index];
             layer.open({
@@ -2156,7 +2156,7 @@ laydate.render({
 });
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -2171,7 +2171,7 @@ $('#search_time button').click(function(){
 });
 
 
-$('select[name="status_code"]').change(function(){
+$('select[name="status_code"]').on('change', function(){
     wsTableErrorLogRequest(1);
 });
 
@@ -2192,7 +2192,7 @@ wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html(select);
     wsTableErrorLogRequest(1);
 
-    $('select[name="site"]').change(function(){
+    $('select[name="site"]').on('change', function(){
         wsTableErrorLogRequest(1);
     });
 });
@@ -2312,7 +2312,7 @@ function wsTableLogRequest(page){
         $('#ws_table').html(table);
         $('#wsPage').html(rdata.data.page);
 
-        $(".tablescroll .details").click(function(){
+        $(".tablescroll .details").on('click', function(){
             var index = $(this).attr('data-id');
             var res = data[index];
             layer.open({
@@ -2343,7 +2343,7 @@ function wsTableLogRequest(page){
             });
         });
 
-        $(".tablescroll .http_data").click(function(){
+        $(".tablescroll .http_data").on('click', function(){
             var index = $(this).attr('data-id');
             var res = data[index];
             var request_headers = res.request_headers;
@@ -2490,7 +2490,7 @@ var html = '<div>\
 $(".soft-man-con").html(html);
 
 $('input[name="ip"]').on('focus', function(e){
-    $(this).keyup(function(e){
+    $(this).on('keyup', function(e){
         if(e.keyCode == 13) {
             wsTableLogRequest(1);
         }
@@ -2498,7 +2498,7 @@ $('input[name="ip"]').on('focus', function(e){
 });
 
 $('input[name="search_uri"]').on('focus', function(e){
-    $(this).keyup(function(e){
+    $(this).on('keyup', function(e){
         if(e.keyCode == 13) {
             wsTableLogRequest(1);
         }
@@ -2534,7 +2534,7 @@ laydate.render({
 });
 
 $('#search_time button:eq(0)').addClass('cur');
-$('#search_time button').click(function(){
+$('#search_time button').on('click', function(){
     $('#search_time button').each(function(){
         if ($(this).hasClass('cur')){
             $(this).removeClass('cur');
@@ -2548,31 +2548,31 @@ $('#search_time button').click(function(){
     wsTableLogRequest(1);
 });
 
-$('select[name="method"]').change(function(){
+$('select[name="method"]').on('change', function(){
     wsTableLogRequest(1);
 });
 
-$('select[name="status_code"]').change(function(){
+$('select[name="status_code"]').on('change', function(){
     wsTableLogRequest(1);
 });
 
-$('select[name="spider_type"]').change(function(){
+$('select[name="spider_type"]').on('change', function(){
     wsTableLogRequest(1);
 });
 
-$('select[name="referer"]').change(function(){
+$('select[name="referer"]').on('change', function(){
     wsTableLogRequest(1);
 });
 
-$('select[name="request_time"]').change(function(){
+$('select[name="request_time"]').on('change', function(){
     wsTableLogRequest(1);
 });
 
-$('select[name="request_size"]').change(function(){
+$('select[name="request_size"]').on('change', function(){
     wsTableLogRequest(1);
 });
 
-$('#logs_search').click(function(){
+$('#logs_search').on('click', function(){
     wsTableLogRequest(1);
 });
 
@@ -2593,7 +2593,7 @@ wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html(select);
     wsTableLogRequest(1);
 
-    $('select[name="site"]').change(function(){
+    $('select[name="site"]').on('change', function(){
         wsTableLogRequest(1);
     });
 });

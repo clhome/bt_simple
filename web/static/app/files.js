@@ -202,7 +202,7 @@ function recycleBin(type){
                 recycleBin(1);
             }
         }
-        $(".re-con-menu p").click(function(){
+        $(".re-con-menu p").on('click', function(){
             $(this).addClass("on").siblings().removeClass("on");
         })
     },'json');
@@ -687,7 +687,7 @@ function getFiles(Path) {
         
         $("#BarTools").html(BarTools);
         
-        $("input[name=id]").off("click").click(function(){
+        $("input[name=id]").off("click").on('click', function(){
             if($(this).prop("checked")) {
                 $(this).prop("checked", true);
                 $(this).parents("tr").addClass("ui-selected");
@@ -699,7 +699,7 @@ function getFiles(Path) {
             showSeclect();
         });
 
-        $("#setBox").off("click").click(function() {
+        $("#setBox").off("click").on('click', function() {
             if ($(this).prop("checked")) {
                 $("input[name=id]").prop("checked", true);
                 $("#filesBody > tr").addClass("ui-selected");
@@ -711,10 +711,10 @@ function getFiles(Path) {
             showSeclect();
         });
         //阻止冒泡
-        $("#filesBody .btlink").off("click").click(function(e){
+        $("#filesBody .btlink").off("click").on('click', function(e){
             e.stopPropagation();
         });
-        $("input[name=id]").off("dblclick").dblclick(function(e){
+        $("input[name=id]").off("dblclick").on('dblclick', function(e){
             e.stopPropagation();
         });
 
@@ -726,7 +726,7 @@ function getFiles(Path) {
         bindselect();
 
         // //绑定右键
-        $("#fileCon").off("mousedown").mousedown(function(e){
+        $("#fileCon").off("mousedown").on('mousedown', function(e){
             var count = totalFile();
             if(e.which == 3) {
                 if(count>1){
@@ -737,14 +737,14 @@ function getFiles(Path) {
             }
         });
 
-        $(".folderBox,.folderBoxTr").off("mousedown").mousedown(function(e){
+        $(".folderBox,.folderBoxTr").off("mousedown").on('mousedown', function(e){
             var box = $(this);
             var option = rightMenuClick(box.attr("filetype"),box.attr("data-path"),box.find("input").val());
             box.contextify(option);
         });
         
         //每页行数
-        $(".showRow").off("change").change(function(){
+        $(".showRow").off("change").on('change', function(){
             setCookie('file_row',$(this).val());
             getFiles(p);
         });
@@ -794,7 +794,7 @@ function bindselect(){
     });
     $("#filesBody,#fileCon").selectable("refresh");
     //重绑图标点击事件
-    $(".ico-folder").click(function(){
+    $(".ico-folder").on('click', function(){
         $(this).parent().addClass("ui-selected").siblings().removeClass("ui-selected");
         $(".ui-selectee").find("input").prop("checked", false);
         $(this).prev("input").prop("checked", true);
@@ -818,7 +818,7 @@ function showSeclect(){
 }
 
 //滚动条事件
-$(window).scroll(function () {
+$(window).on('scroll', function () {
     if($(window).scrollTop() > 16){
         $("#tipTools").css({"position":"fixed","top":"0","left":"195px","box-shadow":"0 1px 10px 3px #ccc"});
     }else{
@@ -986,7 +986,7 @@ function ShowEditMenu(){
         $(this).addClass("hover");
     },function(){
         $(this).removeClass("hover");
-    }).click(function(){
+    }).on('click', function(){
         $(this).addClass("on").siblings().removeClass("on");
     });
 }
@@ -1067,7 +1067,7 @@ function createFile(type, path) {
                     </div>\
                 </div>',
         success:function(){
-            $("#newFileName").focus().keyup(function(e){
+            $("#newFileName").focus().on('keyup', function(e){
                 if(e.keyCode == 13) $("#createFileBtn").click();
             });
         }
@@ -1107,7 +1107,7 @@ function createDir(type, path) {
                     </div>\
                 </div>',
         success:function(){
-            $("#newDirName").focus().keyup(function(e){
+            $("#newDirName").focus().on('keyup', function(e){
                 if(e.keyCode == 13) {
                     $("#createDirBtn").click();
                 }
@@ -1215,7 +1215,7 @@ function downloadFile(action){
                     </div>\
                 </form>',
         success:function(){
-            $("#mUrl").keyup(function(){
+            $("#mUrl").on('keyup', function(){
                 durl = $(this).val();
                 tmp = durl.split('/');
                 $("#dfilename").val(tmp[tmp.length-1]);
@@ -1259,7 +1259,7 @@ function reName(type, fileName) {
                     </div>\
                 </div>',
         success:function(){
-            $("#newFileName").focus().keyup(function(e){
+            $("#newFileName").focus().on('keyup', function(e){
                 if(e.keyCode == 13) $(".layui-layer-btn0").click();
             });
         },
@@ -1438,7 +1438,7 @@ function zip(dirName,submits) {
                     + '</div>'
                 +'</div>',
         success:function(){
-            $('#change_dir').click(function(){
+            $('#change_dir').on('click', function(){
                 changePathCallback('dfile', function(val){
                     var z_type = $('select[name="z_type"]').val();
                     $('#dfile').val(val+'/'+fileName+'_'+randStr+'.'+z_type.replace('_','.'));
@@ -1446,7 +1446,7 @@ function zip(dirName,submits) {
                 });
             });
 
-            $('select[name="z_type"]').change(function(){
+            $('select[name="z_type"]').on('change', function(){
                 var z_type = $(this).val();
                 var path = $('#path').val();
                 var newPathName = path+'/'+fileName+'_'+randStr;
@@ -1467,7 +1467,7 @@ function zip(dirName,submits) {
                 }
             });
 
-            $("#dfile").change(function(){
+            $("#dfile").on('change', function(){
                 var dfile = $(this).val();
                 $(this).val(dfile.replace(/\/\//g,'/'));
             });
@@ -1725,11 +1725,11 @@ function setChmod(action,fileName){
         });
         
         onAccess();
-        $("#access").keyup(function(){
+        $("#access").on('keyup', function(){
             onAccess();
         });
         
-        $("input[type=checkbox]").change(function(){
+        $("input[type=checkbox]").on('change', function(){
             var idName = ['owner','group','public'];
             var onacc = '';
             for(var n=0;n<idName.length;n++){
@@ -1871,12 +1871,12 @@ function getPathSize(){
     },'json');
 }
 
-$("body").not(".def-log").click(function(){
+$("body").not(".def-log").on('click', function(){
     $("#rmenu").hide();
 });
 
 //指定路径
-$("#DirPathPlace input").keyup(function(e){
+$("#DirPathPlace input").on('keyup', function(e){
     if(e.keyCode == 13) {
         var fpath = $(this).val();
         fpath = filterPath(fpath);
@@ -1900,7 +1900,7 @@ function pathPlaceBtn(path){
     
     html = '<div style="width:1200px;height:26px"><ul>'+html+'</ul></div>';
     $("#PathPlaceBtn").html(html);
-    $("#PathPlaceBtn ul li a").click(function(e){
+    $("#PathPlaceBtn ul li a").on('click', function(e){
         var go_path = $(this).attr("title");
         if(go_path.length>1){
             if(go_path.substr(go_path.length-1,go_path.length) =='/'){
@@ -1990,11 +1990,11 @@ function initDragDrop() {
         }
     }, true);
 
-    $('#manual_upload_files').change(function(e) {
+    $('#manual_upload_files').on('change', function(e) {
         handleManualSelect(e.target.files);
         $(this).val('');
     });
-    $('#manual_upload_dir').change(function(e) {
+    $('#manual_upload_dir').on('change', function(e) {
         handleManualSelect(e.target.files);
         $(this).val('');
     });
@@ -2232,7 +2232,7 @@ function showConfirmUpload(existMap) {
                 </div>\
             </div>',
         success: function(layero, index) {
-            layero.find('#confirmUpBtn').click(function() {
+            layero.find('#confirmUpBtn').on('click', function() {
                 if (pendingUploadFiles.length === 0) {
                     layer.msg('请先添加要上传的项目', { icon: 0 });
                     return;
@@ -2306,7 +2306,7 @@ function executeUpload(files, basePath) {
     var ajax = new MyAjax();
     var isStop = false;
 
-    $('#stopUp').show().click(function() {
+    $('#stopUp').show().on('click', function() {
         isStop = true;
         ajax.stop = true;
         layer.msg('已停止上传');

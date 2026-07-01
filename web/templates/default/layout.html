@@ -445,7 +445,7 @@
                                 script.text = s.text;
                                 document.head.appendChild(script).parentNode.removeChild(script);
                             } catch(e) {
-                                console.error("Inline script error:", e);
+                                console.fail("Inline script error:", e);
                             }
                         });
                     }

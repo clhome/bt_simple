@@ -141,7 +141,7 @@ function autoMakeConf(){
                 $('select[name="dbname"]').html(db_html);
             });
 
-            $('select[name="dbname"]').change(function(){
+            $('select[name="dbname"]').on('change', function(){
                 var db = $('select[name="dbname"]').val();
                 initDbSelect(db);
             });

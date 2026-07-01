@@ -152,7 +152,7 @@ function addFtp() {
         },
 	});
 	
-	$("#ftpUser").keyup(function(){
+	$("#ftpUser").on('keyup', function(){
 		var ftpName = $(this).val();
 		$("#inputPath").val(defaultPath+'/'+ftpName);
 		$("#ftp_ps").val(ftpName);
@@ -196,11 +196,11 @@ function modFtpPort(type, port){
 			      </form>",
 	});
 
-	$('#ftp_port_close').click(function(){
+	$('#ftp_port_close').on('click', function(){
 		$('.layui-layer-close1').click();
 	});
 
-	$('#ftp_port_submit').click(function(){
+	$('#ftp_port_submit').on('click', function(){
 		var port = $('#ftpPort').val();
 		data = 'port='+port
 		ftpPost('mod_ftp_port', data,function(data){
@@ -241,11 +241,11 @@ function ftpModPwd(id,name,password){
 	});
 
 
-	$('#ftp_mod_close').click(function(){
+	$('#ftp_mod_close').on('click', function(){
 		$('.layui-layer-close1').click();
 	});
 
-	$('#ftp_mod_submit').click(function(){
+	$('#ftp_mod_submit').on('click', function(){
 		pwd = $('#MyPassword').val();
 		data='id='+id+'&name='+name+'&password='+pwd
 		ftpPost('mod_ftp', data,function(data){

@@ -186,7 +186,7 @@ function myDbPos(){
             </div></div>';
         $(".soft-man-con").html(con);
 
-        $('#btn_change_path').click(function(){
+        $('#btn_change_path').on('click', function(){
             var datadir = $("input[name='datadir']").val();
             myPost('set_db_pos','datadir='+datadir,function(data){
                 var rdata = JSON.parse(data.data);
@@ -205,7 +205,7 @@ function myPort(){
             </div></div>';
         $(".soft-man-con").html(con);
 
-        $('#btn_change_port').click(function(){
+        $('#btn_change_port').on('click', function(){
             var port = $("input[name='port']").val();
             myPost('set_my_port','port='+port,function(data){
                 var rdata = JSON.parse(data.data);
@@ -291,11 +291,11 @@ function myPerfOpt() {
 
         $(".soft-man-con").html(memCon);
 
-        $(".conf_p input[name*='size'],.conf_p input[name='max_connections'],.conf_p input[name='thread_stack']").change(function() {
+        $(".conf_p input[name*='size'],.conf_p input[name='max_connections'],.conf_p input[name='thread_stack']").on('change', function() {
             comMySqlMem();
         });
 
-        $(".conf_p select[name='mysql_set']").change(function() {
+        $(".conf_p select[name='mysql_set']").on('change', function() {
             mySQLMemOpt($(this).val());
             comMySqlMem();
         });
@@ -718,7 +718,7 @@ function setDbAccess(username){
                     $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
                 }
 
-                 $('select[name="dataAccess"]').change(function(){
+                 $('select[name="dataAccess"]').on('change', function(){
                     var v = $(this).val();
                     if (v == 'ip'){
                         $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
@@ -842,13 +842,13 @@ function addDatabase(type){
                     <input type='hidden' name='ps' value='' />\
                   </form>",
         success:function(){
-            $("input[name='name']").keyup(function(){
+            $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
                 $("input[name='db_user']").val(v);
                 $("input[name='ps']").val(v);
             });
 
-            $('select[name="dataAccess"]').change(function(){
+            $('select[name="dataAccess"]').on('change', function(){
                 var v = $(this).val();
                 if (v == 'ip'){
                     $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
@@ -923,7 +923,7 @@ function setDbPs(id, name, obj) {
     var _input = $("<input class='baktext' value=\""+_span.text()+"\" type='text' placeholder='备注信息' />");
     _span.hide().after(_input);
     _input.focus();
-    _input.blur(function(){
+    _input.on('blur', function(){
         $(this).remove();
         var ps = _input.val();
         _span.text(ps).show();
@@ -933,7 +933,7 @@ function setDbPs(id, name, obj) {
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
     });
-    _input.keyup(function(){
+    _input.on('keyup', function(){
         if(event.keyCode == 13){
             _input.trigger('blur');
         }
@@ -1102,7 +1102,7 @@ function setLocalImport(db_name){
                     <ul id="up_box"></ul>\
                 </div>',
             success:function(){
-                $('#filesClose').click(function(){
+                $('#filesClose').on('click', function(){
                     layer.close(up_db);
                 });
             }
@@ -1186,7 +1186,7 @@ function setLocalImport(db_name){
                 </div>\
         </div>',
         success:function(index){
-            $('#btn_file_upload').click(function(){
+            $('#btn_file_upload').on('click', function(){
                 var upload_dir = $('input[name="upload_dir"]').val();
                 uploadDbFiles(upload_dir);
             });
@@ -1230,7 +1230,7 @@ function setBackup(db_name){
                 </div>\
         </div>',
         success:function(index){
-            $('#btn_backup').click(function(){
+            $('#btn_backup').on('click', function(){
                 myPost('set_db_backup',{name:db_name}, function(data){
                     showMsg('执行成功!', function(){
                         setBackupReq(db_name);
@@ -1238,7 +1238,7 @@ function setBackup(db_name){
                 });
             });
 
-            $('#btn_local_import').click(function(){
+            $('#btn_local_import').on('click', function(){
                 setLocalImport(db_name);
             });
 
@@ -1415,7 +1415,7 @@ function myBinRollingLogs(_name, func, _args, line){
 
             $('#my_rolling_cmd').html(cmd);
 
-            $('#my_rolling_copy').click(function(){
+            $('#my_rolling_copy').on('click', function(){
                 copyText(cmd);
             });
 
@@ -1493,13 +1493,13 @@ function myBinLogsRender(page){
         $('#binlog_page').html(rdata.page);
 
 
-        $('#binlog_list .look').click(function(){
+        $('#binlog_list .look').on('click', function(){
             var i = $(this).data('index');
             var file = rdata.data[i]['name'];
             myBinRollingLogs('查看BINLOG','binLogListLook',{'file':file },100);
         });
 
-        $('#binlog_list .look_decode').click(function(){
+        $('#binlog_list .look_decode').on('click', function(){
             var i = $(this).data('index');
             var file = rdata.data[i]['name'];
             myBinRollingLogs('查看解码BINLOG','binLogListLookDecode',{'file':file },100);
@@ -1528,11 +1528,11 @@ function myBinLogs(){
     $(".soft-man-con").html(con);
     myBinLogsRender(1);
 
-    $('.soft-man-con .relay_trace').click(function(){
+    $('.soft-man-con .relay_trace').on('click', function(){
         myBinRollingLogs('中继日志跟踪','binLogListTraceRelay',{'file':''},100);
     });
 
-    $('.soft-man-con .binlog_trace').click(function(){
+    $('.soft-man-con .binlog_trace').on('click', function(){
         myBinRollingLogs('最新BINLOG日志跟踪','binLogListTraceBinLog',{'file':''},100);
     });
 }
@@ -1559,7 +1559,7 @@ function myLogs(){
         $(".soft-man-con").html(limitCon);
 
         //设置二进制日志
-        $(".btn-bin").click(function () {
+        $(".btn-bin").on('click', function () {
             myPost('bin_log', 'close=change', function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
@@ -1567,7 +1567,7 @@ function myLogs(){
             });
         });
 
-        $(".clean-btn-bin").click(function () {
+        $(".clean-btn-bin").on('click', function () {
             myPost('clean_bin_log', '', function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
@@ -1576,7 +1576,7 @@ function myLogs(){
         });
 
          //清空日志
-        $(".btn-clear").click(function () {
+        $(".btn-clear").on('click', function () {
             myPost('error_log', 'close=1', function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
@@ -1781,13 +1781,13 @@ function addMasterRepSlaveUser(){
             <input type='hidden' name='ps' value='' />\
           </form>",
         success:function(){
-            $("input[name='name']").keyup(function(){
+            $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
                 $("input[name='db_user']").val(v);
                 $("input[name='ps']").val(v);
             });
 
-            $('select[name="dataAccess"]').change(function(){
+            $('select[name="dataAccess"]').on('change', function(){
                 var v = $(this).val();
                 if (v == 'ip'){
                     $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
@@ -1841,7 +1841,7 @@ function updateMasterRepSlaveUser(username, password){
           </form>",
     });
 
-    $('#submit_update_master').click(function(){
+    $('#submit_update_master').on('click', function(){
         var data = $("#update_master").serialize();
         data = decodeURIComponent(data);
         var dataObj = toArrayObject(data);
@@ -1933,7 +1933,7 @@ function setDbMasterAccess(username){
                     $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
                 }
 
-                 $('select[name="dataAccess"]').change(function(){
+                 $('select[name="dataAccess"]').on('change', function(){
                     var v = $(this).val();
                     if (v == 'ip'){
                         $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
@@ -2099,7 +2099,7 @@ function getFullSyncStatus(db){
                 clearInterval(timeId);
             },
             success:function(){
-                $('#begin_full_sync').click(function(){
+                $('#begin_full_sync').on('click', function(){
                     var val = $(this).data('status');
                     var sign = '';
                     if (dataSource !=''){
@@ -2117,7 +2117,7 @@ function getFullSyncStatus(db){
                     }
                 });
 
-                $('#full_sync_cmd').click(function(){
+                $('#full_sync_cmd').on('click', function(){
                     myPostN('full_sync_cmd', {'db':db,'sign':''}, function(rdata){
                         var rdata = JSON.parse(rdata.data);
                         layer.open({
@@ -2424,7 +2424,7 @@ function addSlaveSyncUser(ip=''){
               </form>",
             success:function(){
                 $('textarea[name="cmd"]').html(cmd);
-                $('textarea[name="cmd"]').change(function(){
+                $('textarea[name="cmd"]').on('change', function(){
                     var val = $(this).val();
                     val = val.replace(';','');
                     var a = {};
@@ -2568,15 +2568,15 @@ function getSlaveCfg(){
                     </p>\
                 </div>",
             success:function(){
-                $('.btn-slave-ssh').click(function(){
+                $('.btn-slave-ssh').on('click', function(){
                     getSlaveSSHList();
                 });
 
-                $('.btn-slave-user').click(function(){
+                $('.btn-slave-user').on('click', function(){
                     getSlaveUserList();
                 });
 
-                $('.slave-db-mode').click(function(){
+                $('.slave-db-mode').on('click', function(){
                     var _this = this;
                     var mode = 'none';
                     if ($(this).hasClass('btn-ssh')){
@@ -2665,7 +2665,7 @@ function handlerRun(){
           </form>",
         });
         copyPass(cmd);
-        $('.class-copy-cmd').click(function(){
+        $('.class-copy-cmd').on('click', function(){
             copyPass(cmd);
         });
     });
@@ -2820,7 +2820,7 @@ function masterOrSlaveConf(version=''){
             // </div>
             $(".table_slave_status_list").html(con);
 
-            $(".btn_delete_slave").click(function(){
+            $(".btn_delete_slave").on('click', function(){
                 var id = $(this).data('id');
                 var v = rdata.data[id];
                 if ('Channel_Name' in v){
@@ -2830,7 +2830,7 @@ function masterOrSlaveConf(version=''){
                 }
             });
 
-             $('.db_error').click(function(){
+             $('.db_error').on('click', function(){
                 var id = $(this).data('id');
                 var info = rdata.data[id];
 
@@ -3004,7 +3004,7 @@ function masterOrSlaveConf(version=''){
             $(".soft-man-con").html(limitCon);
 
             //设置主服务器配置
-            $(".btn-master").click(function () {
+            $(".btn-master").on('click', function () {
                 myPost('set_master_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
@@ -3014,7 +3014,7 @@ function masterOrSlaveConf(version=''){
                 });
             });
 
-            $(".btn-slave").click(function () {
+            $(".btn-slave").on('click', function () {
                 myPost('set_slave_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
@@ -3024,7 +3024,7 @@ function masterOrSlaveConf(version=''){
                 });
             });
 
-            $('.db-mode').click(function(){
+            $('.db-mode').on('click', function(){
                 if ($(this).hasClass('btn-success')){
                     //no action
                     return;

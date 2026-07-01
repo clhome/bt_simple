@@ -33,7 +33,7 @@ function mtCommonFunc(){
 
     $(".soft-man-con").html(con);
 
-    $('#mtproxy_url').click(function(){
+    $('#mtproxy_url').on('click', function(){
     	mtPost('url', '', {}, function(rdata){
             var data = JSON.parse(rdata.data);
 

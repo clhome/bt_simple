@@ -28,7 +28,7 @@ var wrapPid = {}; // 展开的父进程
 var TaskProcessLayerIndex = '';  // 进程详情弹窗的index
 var canScroll2TaskMangerPossess = true; // 是否可以定位到选中的进程
 
-$('.t-mana .man-menu-sub span').click(function () {
+$('.t-mana .man-menu-sub span').on('click', function () {
     $(this).siblings().removeClass("on");
     tab_name = $(this).attr('class');
     $(this).addClass("on")
@@ -57,7 +57,7 @@ $('.search-bar .search_input').on({
     },
 });
 
-$('.search-bar .glyphicon').click(function (e) {
+$('.search-bar .glyphicon').on('click', function (e) {
     get_list_bytab();
 });
 
@@ -81,7 +81,7 @@ function setTableHead(data) {
     $(".plug_menu").on("contextmenu", function () {
       return false;
     })
-    $('#change_thead').mousedown(function (e) {
+    $('#change_thead').on('mousedown', function (e) {
       e.preventDefault();
       if (e.which == 3) {  // 1 = 鼠标左键; 2 = 鼠标中键; 3 = 鼠标右键
         var menu = $('.setting_ul');
@@ -110,13 +110,13 @@ function setTableHead(data) {
 }
 
 
-$('.layui-layer').not($('.setting_ul_li')).click(function () {
+$('.layui-layer').not($('.setting_ul_li')).on('click', function () {
     $(".plug_menu").hide()
     $(".setting_ul").hide();
 });
 var isProcessing = false; // 设置标志
 
-$('.setting_ul_li').off('click').click(function (e) {
+$('.setting_ul_li').off('click').on('click', function (e) {
     var that = $(this);
     e.stopPropagation();
     // 检查标志
@@ -1094,7 +1094,7 @@ function dropAddress(address) {
 
 function show_task() {
     $(".ts-line").width($("#TaskManagement").width());
-    $("#TaskManagement tbody td").click(function () {
+    $("#TaskManagement tbody td").on('click', function () {
         // console.log('---');
         $(this).parents("tr").addClass("active").siblings().removeClass("active");
     });

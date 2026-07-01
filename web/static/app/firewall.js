@@ -44,7 +44,7 @@ function closeLogs(){
 	},'json');
 }
 
-$("#firewalldType").change(function(){
+$("#firewalldType").on('change', function(){
 	var type = $(this).val();
 	var t = '放行';
 	var m = '说明: 仅输入开始端口即可放行单个端口';
@@ -571,7 +571,7 @@ function syncServer() {
         } else {
             layer.msg(rdata.msg, {icon: 2});
         }
-    }, 'json').error(function() {
+    }, 'json').fail(function() {
         layer.close(loadT);
         layer.msg('同步请求失败，请检查网络连接或服务器状态。', {icon: 2});
     });

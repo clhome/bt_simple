@@ -613,13 +613,13 @@ function addDatabase(type){
                     <input type='hidden' name='ps' value='' />\
                   </form>",
         success:function(){
-            $("input[name='name']").keyup(function(){
+            $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
                 $("input[name='db_user']").val(v);
                 $("input[name='ps']").val(v);
             });
 
-            $('select[name="dataAccess"]').change(function(){
+            $('select[name="dataAccess"]').on('change', function(){
                 var v = $(this).val();
                 if (v == 'ip'){
                     $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
@@ -738,7 +738,7 @@ function setDbPs(id, name, obj) {
     var _input = $("<input class='baktext' value=\""+_span.text()+"\" type='text' placeholder='备注信息' />");
     _span.hide().after(_input);
     _input.focus();
-    _input.blur(function(){
+    _input.on('blur', function(){
         $(this).remove();
         var ps = _input.val();
         _span.text(ps).show();
@@ -748,7 +748,7 @@ function setDbPs(id, name, obj) {
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
     });
-    _input.keyup(function(){
+    _input.on('keyup', function(){
         if(event.keyCode == 13){
             _input.trigger('blur');
         }
@@ -905,7 +905,7 @@ function repTools(db_name, res){
 
 		        $('#mongodb_list tbody').html(tbody);
 
-		        $('#mongodb_list .delete').click(function(){
+		        $('#mongodb_list .delete').on('click', function(){
 		        	var index = $(this).data('index');
 
 		        	var name = db_name;
@@ -1058,7 +1058,7 @@ function setBackup(db_name){
                 </div>\
         </div>',
         success:function(index){
-            $('#btn_backup').click(function(){
+            $('#btn_backup').on('click', function(){
                 mgPost('set_db_backup', '',{name:db_name}, function(data){
                     showMsg('执行成功!', function(){
                         setBackupReq(db_name);
@@ -1066,7 +1066,7 @@ function setBackup(db_name){
                 });
             });
 
-            $('#btn_local_import').click(function(){
+            $('#btn_local_import').on('click', function(){
                 setLocalImport(db_name);
             });
 
@@ -1145,7 +1145,7 @@ function setLocalImport(db_name){
                     <ul id="up_box"></ul>\
                 </div>',
             success:function(){
-                $('#filesClose').click(function(){
+                $('#filesClose').on('click', function(){
                     layer.close(up_db);
                 });
             }
@@ -1225,7 +1225,7 @@ function setLocalImport(db_name){
                 </div>\
         </div>',
         success:function(index){
-            $('#btn_file_upload').click(function(){
+            $('#btn_file_upload').on('click', function(){
                 var upload_dir = $('input[name="upload_dir"]').val();
                 uploadDbFiles(upload_dir);
             });

@@ -60,7 +60,7 @@ function gCommonFunc(){
 
     $(".soft-man-con").html(con);
 
-    $('#grafana_url').click(function(){
+    $('#grafana_url').on('click', function(){
         gPost('grafana_url', '', {}, function(rdata){
             layer.open({
                 title: "Grafana连接",

@@ -170,7 +170,7 @@ function initTabFunc(tab){
 function initDataQuery(){
     var tab = $('#cutTab .tabs-item.active').data('name');
     initTabFunc(tab);
-    $('#cutTab .tabs-item').click(function(){
+    $('#cutTab .tabs-item').on('click', function(){
         var tab = $(this).data('name');
         $('#cutTab .tabs-item').removeClass('active');
         $(this).addClass('active');
@@ -183,12 +183,12 @@ function initTabRedis(){
     //渲染数据
     redisGetList();
 
-    $('#redis_add_key').off('click').click(function(){
+    $('#redis_add_key').off('click').on('click', function(){
         redisAdd();
     });
 
     //搜索
-    $('#redis_ksearch').off('click').keyup(function(e){
+    $('#redis_ksearch').off('click').on('keyup', function(e){
         if (e.keyCode == 13){
             var val = $(this).val();
             if (val == ''){
@@ -199,7 +199,7 @@ function initTabRedis(){
         }
     });
 
-    $('#redis_ksearch_span').off('click').click(function(){
+    $('#redis_ksearch_span').off('click').on('click', function(){
         var val = $('#redis_ksearch').val();
         if (val == ''){
             layer.msg('搜索不能为空!',{icon:7});
@@ -209,12 +209,12 @@ function initTabRedis(){
     });
 
     //批量删除
-    $('#redis_batch_del').off('click').click(function(){
+    $('#redis_batch_del').off('click').on('click', function(){
         redisBatchDel();
     });
 
     //清空所有
-    $('#redis_clear_all').off('click').click(function(){
+    $('#redis_clear_all').off('click').on('click', function(){
         redisBatchClear();
     });
 
@@ -230,11 +230,11 @@ function initTabMongodb(){
 function initTabMemcached(){
     memcachedGetList();
 
-    $('#memcached_add_key').off('click').click(function(){
+    $('#memcached_add_key').off('click').on('click', function(){
         memcachedAdd();
     });
 
-    $('#memcached_clear_all').off('click').click(function(){
+    $('#memcached_clear_all').off('click').on('click', function(){
         var sid = memcachedGetSid();
         memPostCB('clear',{'sid':sid} ,function(rdata){
             // console.log(rdata);
@@ -266,7 +266,7 @@ function initTabMySQL(){
         }
     },2000);
 
-    $('#mysql_list_tab .tab-nav span').off('click').click(function(){
+    $('#mysql_list_tab .tab-nav span').off('click').on('click', function(){
         $('#mysql_list_tab .tab-nav span').removeClass('on');
         $(this).addClass('on');
         var name = $(this).data('name');
@@ -343,7 +343,7 @@ function mysqlCommonFuncMysqlNSQL(){
         success:function(i,l){
             renderSQL();
 
-            $('#real_time_label').click(function(){
+            $('#real_time_label').on('click', function(){
                 sql_timer = setInterval(function(){
                     var t = $('#real_time_monitoring').is(':checked');
                     if (t){
@@ -422,7 +422,7 @@ function mysqlCommonFuncMysqlNet(){
         success:function(i,l){
             renderSQL();
 
-            $('#real_qps_label').click(function(){
+            $('#real_qps_label').on('click', function(){
                 sql_timer = setInterval(function(){
                     var t = $('#real_qps_monitoring').is(':checked');
                     if (t){
@@ -456,7 +456,7 @@ function mysqlCommonFuncRedundantIndexes(){
                     tbody += t;
                 }
                 $('#redundant_indexes tbody').html(tbody);
-                $('#redundant_indexes tbody .exec').click(function(){
+                $('#redundant_indexes tbody .exec').on('click', function(){
                     var index = $(this).attr('index');
                     myPostCB('redundant_indexes_cmd', {'sid':sid, 'index':index}, function(rdata){
                         var data = rdata.data;
@@ -612,7 +612,7 @@ function mysqlCommonFuncConnCount(){
         success:function(i,l){
             renderSQL();
 
-            $('#app_ip_label').click(function(){
+            $('#app_ip_label').on('click', function(){
                 sql_timer = setInterval(function(){
                     var t = $('#app_ip_monitoring').is(':checked');
                     if (t){
@@ -696,7 +696,7 @@ function mysqlCommonFuncLockSQL(){
                 }
                 $('#mysql_data_id tbody').html(tbody);
 
-                $('#mysql_data_id tbody .exec').click(function(){
+                $('#mysql_data_id tbody .exec').on('click', function(){
                     var index = $(this).attr('index');
                     var pid = items[index]['processlist_id'];
                     myPostCB('kill_lock_pid', {'sid':sid, 'pid':pid}, function(rdata){
@@ -746,7 +746,7 @@ function mysqlCommonFuncLockSQL(){
         success:function(i,l){
             renderSQL();
 
-            $('#kill_all').off('click').click(function(){
+            $('#kill_all').off('click').on('click', function(){
                 var sid = mysqlGetSid();
                 myPostCB('kill_all_lock', {'sid':sid}, function(rdata){
                     var data = rdata.data;
@@ -816,7 +816,7 @@ function mysqlCommonFuncSlaveStatus(){
 }
 
 function mysqlCommonFunc(){
-    $('#mysql_common').off('click').click(function(){
+    $('#mysql_common').off('click').on('click', function(){
         layer.open({
             type: 1,
             title: "MySQL常用功能",
@@ -835,39 +835,39 @@ function mysqlCommonFunc(){
                 <button style="margin-bottom: 8px;" id="mysql_slave_status" type="button" class="btn btn-default btn-sm">查看主从复制信息</button>\
             </div>',
             success:function(i,l){
-                $('#mysql_top_nsql').click(function(){
+                $('#mysql_top_nsql').on('click', function(){
                     mysqlCommonFuncMysqlNSQL();
                 });
 
-                $('#mysql_net_stat').click(function(){
+                $('#mysql_net_stat').on('click', function(){
                     mysqlCommonFuncMysqlNet();
                 });
 
-                $('#mysql_redundant_indexes').click(function(){
+                $('#mysql_redundant_indexes').on('click', function(){
                     mysqlCommonFuncRedundantIndexes();
                 });
 
-                $('#mysql_table_info').click(function(){
+                $('#mysql_table_info').on('click', function(){
                     mysqlCommonFuncTableInfo();
                 });
 
-                $('#mysql_conn_count').click(function(){
+                $('#mysql_conn_count').on('click', function(){
                     mysqlCommonFuncConnCount();
                 });
 
-                $('#mysql_fpk_info').click(function(){
+                $('#mysql_fpk_info').on('click', function(){
                     mysqlCommonFuncFpkInfo();
                 });
 
-                $('#mysql_lock_sql').click(function(){
+                $('#mysql_lock_sql').on('click', function(){
                     mysqlCommonFuncLockSQL();
                 });
 
-                $('#mysql_deadlock_info').click(function(){
+                $('#mysql_deadlock_info').on('click', function(){
                     mysqlCommonFuncDeadlockInfo();
                 });
 
-                $('#mysql_slave_status').click(function(){
+                $('#mysql_slave_status').on('click', function(){
                     mysqlCommonFuncSlaveStatus();
                 });
             }
@@ -915,7 +915,7 @@ function mysqlInitField(f, data){
 
     $('select[name="mysql_field_key"]').html(option_html);
 
-    $('#mysql_find').off('click').click(function(){
+    $('#mysql_find').off('click').on('click', function(){
         var val = $('input[name="mysql_field_value"]').val();
         if (val == ''){
             layer.msg('搜索不能为空!',{icon:7});
@@ -943,7 +943,7 @@ function mysqlGetServerList(call_func){
 
 
             $('#mysql select[name=sid]').html(content);
-            $('#mysql select[name=sid]').change(function(){
+            $('#mysql select[name=sid]').on('change', function(){
                 mysqlGetDbList();
             });
             if (typeof(call_func) == 'function'){
@@ -972,7 +972,7 @@ function mysqlGetDbList(){
             }
             // console.log(content);
             $('#mysql .mysql_db_list select[name=mysql_db]').html(content);
-            $('#mysql .mysql_db_list select[name=mysql_db]').change(function(){
+            $('#mysql .mysql_db_list select[name=mysql_db]').on('change', function(){
                 mysqlGetTableList(1);
             });
 
@@ -1005,7 +1005,7 @@ function mysqlGetTableList(p){
             }
             // console.log(content);
             $('#mysql .mysql_table_list select[name=mysql_table]').html(content);
-            $('#mysql .mysql_table_list select[name=mysql_table]').change(function(){
+            $('#mysql .mysql_table_list select[name=mysql_table]').on('change', function(){
                 mysqlGetDataList(1);
             });
 
@@ -1215,7 +1215,7 @@ function memcachedGetList(){
                 }
             }
             $('#memcached .item_list select').html(content);
-            $('#memcached .item_list select').change(function(){
+            $('#memcached .item_list select').on('change', function(){
                 memcachedGetKeyList(1);
             });
             closeInstallLayer();
@@ -1261,12 +1261,12 @@ function memcachedGetKeyList(p){
             $('.memcached_list_page').html(data.page);
 
 
-            $('.del').click(function(){
+            $('.del').on('click', function(){
                 var i = $(this).data('index');
                 memcachedDeleteKey(dlist[i]['k']);
             });
 
-            $('.copy').click(function(){
+            $('.copy').on('click', function(){
                 var i = $(this).data('index');
                 copyText(dlist[i]['v']);
             });
@@ -1370,7 +1370,7 @@ function mongodbInitField(f, data){
 
     $('select[name="mongodb_field_key"]').html(option_html);
 
-    $('#mongodb .mongodb_find').off('click').click(function(){
+    $('#mongodb .mongodb_find').off('click').on('click', function(){
         var val = $('input[name="mongodb_field_value"]').val();
         if (val == ''){
             layer.msg('搜索不能为空!',{icon:7});
@@ -1379,7 +1379,7 @@ function mongodbInitField(f, data){
         mongodbDataList(1);
     });
 
-    $('#mongodb .mongodb_refresh').off('click').click(function(){
+    $('#mongodb .mongodb_refresh').off('click').on('click', function(){
         mongodbDataList(1);
     });
 }
@@ -1416,7 +1416,7 @@ function mongodbGetList(){
                 mongodbGetCollections(list[0]);
             }
 
-            $('#mongodb_select .db_list select[name="db"]').change(function(){
+            $('#mongodb_select .db_list select[name="db"]').on('change', function(){
                 var collection_name = $(this).val();
                 mongodbGetCollections(collection_name);
             });
@@ -1571,7 +1571,7 @@ function mongodbDataList(p){
             $('#mongodb .mongodb_table tbody').html(tbody);
             $('#mongodb .mongodb_list_page').html(data.page);
 
-            $('#mongodb .del').click(function(){
+            $('#mongodb .del').on('click', function(){
                 var i = $(this).data('index');
                 mongodbDel(dlist[i]['_id']['$oid']);
             });
@@ -1619,7 +1619,7 @@ function redisGetList(){
             }
             $('#redis_list_tab .tab-nav').html(content);
 
-            $('#redis_list_tab .tab-nav span').click(function(){
+            $('#redis_list_tab .tab-nav span').on('click', function(){
                 $('#redis_list_tab .tab-nav span').removeClass('on');
                 $(this).addClass('on');
                 redisGetKeyList(1);
@@ -1678,12 +1678,12 @@ function redisGetKeyList(page,search = ''){
             $('.redis_list_page').html(rdata.data.data.page);
 
 
-            $('.edit').click(function(){
+            $('.edit').on('click', function(){
                 var i = $(this).data('index');
                 redisEditKv(data[i].name,data[i].val,data[i].endtime);
             });
 
-            $('.copy').click(function(){
+            $('.copy').on('click', function(){
                 var i = $(this).data('index');
                 copyText(data[i].val);
             });

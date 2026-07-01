@@ -263,13 +263,13 @@ function phpFpmConfigFile(version, func, pool = 'www'){
             });
             editor.focus();
             $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-            $("#onlineEditFileBtn").click(function(){
+            $("#onlineEditFileBtn").on('click', function(){
                 $("#textBody").text(editor.getValue());
                 pluginConfigSave(fileName);
             });
         },'json');
 
-        $('select[name="pool"]').change(function(){
+        $('select[name="pool"]').on('change', function(){
             var pool = $(this).val();
             phpFpmConfigFile(version, func, pool);
         });
@@ -313,7 +313,7 @@ function getFpmConfig(version, pool = 'www'){
             "</div>";
 
         $(".soft-man-con").html(body);
-        $("select[name='limit']").change(function() {
+        $("select[name='limit']").on('change', function() {
             var type = $(this).val();
             var max_children = rdata.max_children;
             var start_servers = rdata.start_servers;
@@ -388,7 +388,7 @@ function getFpmConfig(version, pool = 'www'){
             $("input[name='max_spare_servers']").val(max_spare_servers);
         });
 
-        $('select[name="pool"]').change(function(){
+        $('select[name="pool"]').on('change', function(){
             var pool = $(this).val();
             getFpmConfig(version, pool);
         });
@@ -498,7 +498,7 @@ function getFpmStatus(version, pool = 'www'){
         $(".get_fpm_status td,.get_fpm_status th").css("padding", "7px");
 
 
-        $('select[name="pool"]').change(function(){
+        $('select[name="pool"]').on('change', function(){
             var pool = $(this).val();
             getFpmStatus(version, pool);
         });
@@ -548,7 +548,7 @@ function getSessionConfig(version){
         }
 
         // change event
-        $("select[name='save_handler']").change(function() {
+        $("select[name='save_handler']").on('change', function() {
             var type = $(this).val();
 
             var passwd = $('input[name="passwd"]').val();
@@ -617,7 +617,7 @@ function getSessionConfig(version){
             $("#session_clear").html(html_var);
 
 
-            $('#clean_func').click(function(){
+            $('#clean_func').on('click', function(){
                 phpPost('clean_session_old', version, '', function(ret_data){
                     var rdata = JSON.parse(ret_data.data);
                     showMsg(rdata.msg,function(){

@@ -77,7 +77,7 @@ function gorseCommonFunc(){
         </p>';
 
         $(".soft-man-con").html(con);
-        $('#open_url').click(function(){
+        $('#open_url').on('click', function(){
             var url = 'http://' + info.ip + ':' + info.http_port;
             window.open(url);
             copyText(url);

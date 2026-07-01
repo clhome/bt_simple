@@ -17,7 +17,7 @@ setTimeout(function(){
 },1500);
 
 
-$(".searcTime .st").click(function(){
+$(".searcTime .st").on('click', function(){
 	var status = $(this).data('status');
 	if (status == 'show'){
 		$(this).next().hide();
@@ -41,7 +41,7 @@ $(".searcTime .st").hover(function(){
 	// })
 })
 
-$(".searcTime .gt").click(function(){
+$(".searcTime .gt").on('click', function(){
 	$(this).addClass("on").siblings().removeClass("on");
 })
 
@@ -74,7 +74,7 @@ $(function() {
 //渲染日期时间范围 end
 
 
-$('.sbtn').click(function(){
+$('.sbtn').on('click', function(){
 	$(".searcTime .st").next().hide();
 
 	var rtime = $(this).parent().find(".rtime").val();

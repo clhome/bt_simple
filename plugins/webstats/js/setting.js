@@ -65,7 +65,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 	var common_tpl_area = '<textarea name="setting-cdn" cols="52" rows="8"></textarea>';
 
 	$('#webstats .tab-con textarea').text(rdata['global']['cdn_headers'].join('\n'));
-	$('#webstats .tab-nav span').click(function(e){
+	$('#webstats .tab-nav span').on('click', function(e){
 		$('#webstats .tab-nav span').removeClass('on');
 		$(this).addClass('on');
 		$('#webstats .tab-con').html('');
@@ -158,7 +158,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 
 	});
 
-	$('#ip_top_num').click(function(){
+	$('#ip_top_num').on('click', function(){
 		var num = $('input[name="ip_top_num"]').val();
 		if(num == '' || num <= 0 || num > 2000) return layer.msg('请设置1-2000范围的统计数量',{icon:2});
 		wsPost('set_global_conf','',{ip_top_num:num}, function(rdata){
@@ -167,7 +167,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 		});
 	});
 
-	$('#uri_top_num').click(function(){
+	$('#uri_top_num').on('click', function(){
 		var num = $('input[name="uri_top_num"]').val();
 		if(num == '' || num <= 0 || num > 2000) return layer.msg('请设置1-2000范围的统计数量',{icon:2})
 		wsPost('set_global_conf','',{uri_top_num:num}, function(rdata){
@@ -176,7 +176,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 		});
 	});
 
-	$('#save_day').click(function(){
+	$('#save_day').on('click', function(){
 		var num = $('input[name="save_day"]').val();
 		wsPost('set_global_conf','',{save_day:num}, function(rdata){
 			var rdata = JSON.parse(rdata.data);
@@ -184,7 +184,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 		});
 	});
 
-	$('#submitSetting').click(function(){
+	$('#submitSetting').on('click', function(){
 		var select = $('#webstats .tab-nav span');
 		var select_pos = 0;
 		$('#webstats .tab-nav span').each(function(i){
@@ -245,7 +245,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 	});
 
 
-	$('#setAll').click(function(){
+	$('#setAll').on('click', function(){
 		var args = "name=webstats&func=reload";
 		layer.confirm('您真的要同步所有站点吗?', {icon:3,closeBtn: 1}, function() {
 	        var e = layer.msg('正在同步,请稍候...', {icon: 16,time: 0});
@@ -256,7 +256,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 	            } else {
 	            	layer.msg('同步成功!', {icon: 1,time: 0});
 	            }
-	        },'json').error(function() {
+	        },'json').fail(function() {
 	            layer.close(e);
 	            layer.msg('操作异常!', {icon: 1});
 	        });

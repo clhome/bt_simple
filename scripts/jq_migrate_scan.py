@@ -11,7 +11,8 @@ import shutil
 SCAN_DIRS = [
     'web/static/app',
     'web/templates',
-    'plugins'
+    'plugins',
+    'web/static/js/jquery.dragsort-0.5.2.min.js'
 ]
 
 # 需要排除的特定文件（例如第三方库、已有的压缩文件等）
@@ -78,6 +79,34 @@ REPLACE_RULES = [
         re.compile(r'\$\(document\)\.ready\(\s*function\s*\(\)\s*\{'),
         '$(function() {',
         '$(document).ready() 缩写为 $(function())'
+    ),
+    # 8. .error(function) -> .fail(function) (jQuery 3.x 移除了 jQXHR.error)
+    (
+        '.error_to_fail',
+        re.compile(r'\.error\(\s*'),
+        '.fail(',
+        '.error(fn) 替换为 .fail(fn)'
+    ),
+    # 9. .size() -> .length (jQuery 3.x 移除了 .size())
+    (
+        '.size_to_length',
+        re.compile(r'\.size\(\)'),
+        '.length',
+        '.size() 替换为 .length'
+    ),
+    # 10. 事件简写绑定（匿名函数）如 .click(function() { -> .on('click', function() {
+    (
+        'event_shorthand_fn',
+        re.compile(r'\.(click|dblclick|blur|focus|resize|scroll|mousedown|mouseup|mousemove|mouseover|mouseout|mouseenter|mouseleave|change|select|submit|keydown|keypress|keyup)\(\s*function\b'),
+        r".on('\1', function",
+        '事件简写绑定（匿名函数）替换为 .on()'
+    ),
+    # 11. 事件简写绑定（回调变量）如 .resize(autoHeight) -> .on('resize', autoHeight)
+    (
+        'event_shorthand_var',
+        re.compile(r'\.(click|dblclick|blur|focus|resize|scroll|mousedown|mouseup|mousemove|mouseover|mouseout|mouseenter|mouseleave|change|select|submit|keydown|keypress|keyup)\(\s*([a-zA-Z0-9_$.]+)\s*\)'),
+        r".on('\1', \2)",
+        '事件简写绑定（回调变量）替换为 .on()'
     )
 ]
 
@@ -102,8 +131,8 @@ def scan_files(root_dir):
             dirs[:] = [d for d in dirs if d.lower() not in exclude_dirs]
             
             for file in files:
-                # 排除文件名以 jquery 开头的第三方插件/库文件，例如 jquery-1.2.6.js, jquery.tooltip.js 等
-                if file.lower().startswith('jquery') and not file.lower().startswith('jquery-3.7.1'):
+                # 排除文件名以 jquery 开头的第三方插件/库文件，但特许 dragsort 插件以自动修复 .size()
+                if file.lower().startswith('jquery') and not file.lower().startswith('jquery-3.7.1') and 'dragsort' not in file.lower():
                     continue
                 if file.endswith(('.js', '.html')):
                     if not any(ex in file for ex in EXCLUDE_FILES):

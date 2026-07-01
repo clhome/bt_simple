@@ -55,7 +55,7 @@ function xuiCommonFunc(){
         </p>';
 
         $(".soft-man-con").html(con);
-        $('#open_url').click(function(){
+        $('#open_url').on('click', function(){
             var url = 'http://' + info.ip + ':' + info.port + info.path;
             window.open(url);
             copyText(url);

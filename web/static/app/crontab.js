@@ -406,7 +406,7 @@ function planAdd(){
 
 initDropdownMenu();
 function initDropdownMenu(){
-	$(".dropdown ul li a").click(function(){
+	$(".dropdown ul li a").on('click', function(){
 		$('#tag_exclude_dir').hide();
 		var txt = $(this).text();
 		var type = $(this).attr("value");
@@ -570,7 +570,7 @@ function toLogsHtml(type){
 		$("#implement").html(sBody);
 		getselectname();
 
-		$('.changePathDir').click(function(){
+		$('.changePathDir').on('click', function(){
 			changePathCallback($('#sname').val(),function(select_dir){
 				$(".planname input[name='name']").val('备份目录['+select_dir+']');
 				$('#implement .sname b').attr('val',select_dir).text(select_dir);
@@ -578,7 +578,7 @@ function toLogsHtml(type){
 		});
 
 
-		$(".dropdown ul li a").click(function(){
+		$(".dropdown ul li a").on('click', function(){
 			var sname = $("#sname").attr("val");
 			if(!sname) return;
 			$(".planname input[name='name']").val(sMsg+'['+sname+']');
@@ -675,7 +675,7 @@ function toBackup(type){
 		$("#implement").html(sBody);
 		getselectname();
 
-		$('.changePathDir').click(function(){
+		$('.changePathDir').on('click', function(){
 			changePathCallback($('#sname').val(),function(select_dir){
 				$(".planname input[name='name']").val('备份目录['+select_dir+']');
 				$('#implement .sname b').attr('val',select_dir).text(select_dir);
@@ -683,7 +683,7 @@ function toBackup(type){
 		});
 
 
-		$(".dropdown ul li a").click(function(){
+		$(".dropdown ul li a").on('click', function(){
 			var sname = $("#sname").attr("val");
 			if(!sname) return;
 			$(".planname input[name='name']").val(sMsg+'['+sname+']');
@@ -886,7 +886,7 @@ function editTaskInfo(id){
 
 				success:function(){
 
-					$('.changePathDir').click(function(){
+					$('.changePathDir').on('click', function(){
 						changePathCallback($('#sName').val(),function(select_dir){
 							$('input[name="name"]').val('备份目录['+select_dir+']');
 							$('.sName_btn .sname b').attr('val',select_dir).text(select_dir);
@@ -908,43 +908,43 @@ function editTaskInfo(id){
 					obj.from.hour = $('.hour_create').val();
 					obj.from.where1 = $('.where1_create').val();
 
-					$('.sname_create').blur(function () {
+					$('.sname_create').on('blur', function () {
 						obj.from.name = $(this).val();
 					});
-					$('.where1_create').blur(function () {
+					$('.where1_create').on('blur', function () {
 						obj.from.where1 = $(this).val();
 					});
 		
-					$('.hour_create').blur(function () {
+					$('.hour_create').on('blur', function () {
 						obj.from.hour = $(this).val();
 					});
 		
-					$('.minute_create').blur(function () {
+					$('.minute_create').on('blur', function () {
 						obj.from.minute = $(this).val();
 					});
 		
-					$('.save_create').blur(function () {
+					$('.save_create').on('blur', function () {
 						obj.from.save = $(this).val();
 					});
 		
-					$('.sbody_create').blur(function () {
+					$('.sbody_create').on('blur', function () {
 						obj.from.sbody = $(this).val();
 					});
 
-					$('.attr_create').blur(function () {
+					$('.attr_create').on('blur', function () {
 						obj.from.attr = $(this).val();
 					});
 
 					
-					$('.url_create').blur(function () {
+					$('.url_create').on('blur', function () {
 						obj.from.url_address = $(this).val();
 					});
 
-                    $("input[name='day_type_radio_edit']").change(function() {
+                    $("input[name='day_type_radio_edit']").on('change', function() {
                         obj.from.day_type = $(this).val();
                     });
 		
-					$('[aria-labelledby="cycle"] a').off().click(function () {
+					$('[aria-labelledby="cycle"] a').off().on('click', function () {
 						$('.cycle_btn').find('b').attr('val',$(this).attr('value')).html($(this).html());
 						var type = $(this).attr('value');
 						switch(type){
@@ -1023,16 +1023,16 @@ function editTaskInfo(id){
 						obj.from.type = $(this).attr('value');
 					});
 		
-					$('[aria-labelledby="week"] a').off().click(function () {
+					$('[aria-labelledby="week"] a').off().on('click', function () {
 						$('.week_btn').find('b').attr('val',$(this).attr('value')).html($(this).html());
 						obj.from.week = $(this).attr('value');
 					});
 		
-					$('[aria-labelledby="backupTo"] a').off().click(function () {
+					$('[aria-labelledby="backupTo"] a').off().on('click', function () {
 						$('.backup_btn').find('b').attr('val',$(this).attr('value')).html($(this).html());
 						obj.from.backup_to = $(this).attr('value');
 					});
-					$('.plan-submits').off().click(function(){
+					$('.plan-submits').off().on('click', function(){
 						if(obj.from.type == 'hour-n'){
 							obj.from.where1 = obj.from.hour;
 							obj.from.hour = '';
@@ -1070,7 +1070,7 @@ function editTaskInfo(id){
 
 //下拉菜单名称
 function getselectname(){
-	$(".dropdown ul li a").click(function(){
+	$(".dropdown ul li a").on('click', function(){
 		var txt = $(this).text();
 		var type = $(this).attr("value");
 		$(this).parents(".dropdown").find("button b").text(txt).attr("val",type);
@@ -1157,7 +1157,7 @@ function rememory(){
 }
 //上传
 function fileupload(){
-	$("#sFile").change(function(){
+	$("#sFile").on('change', function(){
 		$("#viewfile").val($("#sFile").val());
 	});
 	$("#sFile").click();
@@ -1299,7 +1299,7 @@ function importTaskSequential(tasks, index) {
             console.log('导入失败: ' + task.name + ' - ' + rdata.msg);
         }
         importTaskSequential(tasks, index + 1);
-    }, 'json').error(function(){
+    }, 'json').fail(function(){
         layer.close(load);
         importTaskSequential(tasks, index + 1);
     });

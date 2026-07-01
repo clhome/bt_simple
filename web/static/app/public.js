@@ -100,7 +100,7 @@ function loadWebShellResources() {
 }
 
 $(function() {
-	$(".sub-menu a.sub-menu-a").click(function() {
+	$(".sub-menu a.sub-menu-a").on('click', function() {
 		$(this).next(".sub").slideToggle("slow").siblings(".sub:visible").slideUp("slow");
 	});
 });
@@ -302,7 +302,7 @@ function repeatPwd(a) {
 	$("#MyPassword").val(randomStrPwd(a))
 }
 
-$(".menu-icon").click(function() {
+$(".menu-icon").on('click', function() {
 	$(".sidebar-scroll").toggleClass("sidebar-close");
 	$(".main-content").toggleClass("main-content-open");
 	if($(".sidebar-close")) {
@@ -446,11 +446,11 @@ function changePathCallback(default_dir, callback) {
 			<button type='button' class='btn btn-success btn-sm btn-choose'>选择</button>\
 		</div>",
 		success:function(layero,layer_index){
-			$('.btn-close').click(function(){
+			$('.btn-close').on('click', function(){
 				layer.close(layer_index);
 			});
 
-			$('.btn-choose').click(function(){
+			$('.btn-choose').on('click', function(){
 				var a = $("#PathPlace").find("span").text();
 				a = a.replace(new RegExp(/(\\)/g), "/");
 				a_len = a.length;
@@ -605,7 +605,7 @@ function createFolder() {
 		$("#tbody tr:first-child").before(a)
 	}
 	$(".newFolderName").focus();
-	$("#nameOk").click(function() {
+	$("#nameOk").on('click', function() {
 		var c = $("#newFolderName").val();
 		var b = $("#PathPlace").find("span").text();
 		newTxt = b.replace(new RegExp(/(\/\/)/g), "/") + c;
@@ -623,7 +623,7 @@ function createFolder() {
 			getDiskList(b);
 		},'json');
 	});
-	$("#nameNOk").click(function() {
+	$("#nameNOk").on('click', function() {
 		$(this).parents("tr").remove()
 	})
 }
@@ -947,7 +947,7 @@ function onlineEditFile(k, f, callback) {
 				code_mirror.focus();
 				code_mirror.setSize("auto", q - 180);
 
-				$(window).resize(function(){
+				$(window).on('resize', function(){
 	                var q = $(window).height() * 0.9;
 	                code_mirror.setSize("auto", q - 180);
 	            });
@@ -1077,22 +1077,22 @@ function safeMessage(j, h, g, f, checkName) {
 				<button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div>\
 			</div>"
 	});
-	$("#vcodeResult").focus().keyup(function(a) {
+	$("#vcodeResult").focus().on('keyup', function(a) {
 		if(a.keyCode == 13) {
 			$("#toSubmit").click()
 		}
 	});
 	if (checkName) {
-		$("#dbNameResult").keyup(function(a) {
+		$("#dbNameResult").on('keyup', function(a) {
 			if(a.keyCode == 13) {
 				$("#toSubmit").click()
 			}
 		});
 	}
-	$(".bt-cancel").click(function(){
+	$(".bt-cancel").on('click', function(){
 		layer.close(mess);
 	});
-	$("#toSubmit").click(function() {
+	$("#toSubmit").on('click', function() {
 		var a = $("#vcodeResult").val().replace(/ /g, "");
 		if(a == undefined || a == "") {
 			layer.msg('请正确输入计算结果!');
@@ -1127,7 +1127,7 @@ function isAction() {
 
 var W_window = $(window).width();
 if(W_window <= 980) {
-	$(window).scroll(function() {
+	$(window).on('scroll', function() {
 		var a = $(window).scrollTop();
 		$(".sidebar-scroll").css({
 			position: "absolute",
@@ -1152,22 +1152,22 @@ $(function() {
 			left: 0,
 			width: "36px"
 		})
-	}).click(function() {
+	}).on('click', function() {
 		$(".fb-text").css({
 			left: 0,
 			width: "36px"
 		});
 		$(".zun-feedback-suggestion").show()
 	});
-	$(".fb-close").click(function() {
+	$(".fb-close").on('click', function() {
 		$(".zun-feedback-suggestion").hide()
 	});
-	$(".fb-attitudes li").click(function() {
+	$(".fb-attitudes li").on('click', function() {
 		$(this).addClass("fb-selected").siblings().removeClass("fb-selected")
 	})
 });
 
-$("#signout").click(function() {
+$("#signout").on('click', function() {
 	layer.confirm('您真的要退出面板吗?', {icon:3,closeBtn: 1}, function() {
 		window.location.href = "/login?signout=True"
 	});
@@ -1194,7 +1194,7 @@ function removeTask(b) {
 		layer.msg(c.msg, {
 			icon: c.status ? 1 : 5
 		});
-	},'json').error(function(){
+	},'json').fail(function(){
 		layer.msg(lan.bt.task_close,{icon:1});
 	});
 }
@@ -1232,10 +1232,10 @@ function jump() {
 }
 
 function installTips() {
-	$(".fangshi label").mouseover(function() {
+	$(".fangshi label").on('mouseover', function() {
 		var a = $(this).attr("data-title");
 		layer.tips(a, this, {tips: [1, "#787878"],time: 0});
-	}).mouseout(function() {
+	}).on('mouseout', function() {
 		$(".layui-layer-tips").remove()
 	})
 }
@@ -1243,7 +1243,7 @@ function installTips() {
 
 // function fly(a) {
 // 	var b = $("#task").offset();
-// 	$("." + a).click(function(d) {
+// 	$("." + a).on('click', function(d) {
 // 		var e = $(this);
 // 		var c = $('<span class="yuandian"></span>');
 // 		c.fly({
@@ -1363,11 +1363,11 @@ function getPanelList(){
 		}
 
 		$("#newbtpc").html(con);
-		$(".mypcipnew").hover(function(){
+		$(".mypcipnew").on('mouseenter', function(){
 			$(this).css("opacity","1");
-		},function(){
+		}).on('mouseleave', function(){
 			$(this).css("opacity",".6");
-		}).click(function(){
+		}).on('click', function(){
 			// $("#panel_form").remove();
 			var murl = $(this).attr("data-url");
 			var user = $(this).attr("data-user");
@@ -1417,7 +1417,7 @@ function getPanelList(){
 			// 	window.open(murl);
 			// },2000);
 		});
-		$(".btedit").click(function(e){
+		$(".btedit").on('click', function(e){
 			e.stopPropagation();
 		});
 	},'json');
@@ -1506,7 +1506,7 @@ function bindPanel(a,type,ip,btid,url,user,pw){
 						$("#bttitle").val(iptext[0]);
 					}
 				}
-			}).blur(function(){
+			}).on('blur', function(){
 				var str =$(this).val();
 				var isip = /([\w-]+\.){2,6}\w+/;
 				var iptext = str.match(isip);
@@ -1595,7 +1595,7 @@ function messageBox() {
 			</div>\
 		</div>',
 		success:function(){
-			$(".bt-w-menu p").click(function(){
+			$(".bt-w-menu p").on('click', function(){
 				$(this).addClass("bgw").siblings().removeClass("bgw");
 			});
 			tasklist();
@@ -1742,7 +1742,7 @@ function remind(a){
 
 		$(".msg_count").text(g.count);
 		$("#taskPage").html(g.page);
-		$("#Rs-checkAll").click(function(){
+		$("#Rs-checkAll").on('click', function(){
 			if($(this).prop("checked")){
 				$("#remind").find("input").prop("checked",true);
 			} else {
@@ -1820,7 +1820,7 @@ function getReloads() {
 			}catch(e){
 				return;
 			}
-		},'json').error(function(){});
+		},'json').fail(function(){});
 	}
 
 	renderRunTask();
@@ -1941,7 +1941,7 @@ function webShell(dir) {
     }).catch(function(err) {
         layer.close(loadT);
         layer.msg('终端组件加载失败，请刷新页面重试', {icon: 2});
-        console.error(err);
+        console.fail(err);
     });
 }
 function _webShellInit(dir) {
@@ -2635,7 +2635,7 @@ function pluginOpService(a, b, v, _suffix_name='') {
                     clearInterval(checkInterval);
                 }
             }, 2000);
-        },'json').error(function() {
+        },'json').fail(function() {
             layer.close(e);
             layer.msg('操作异常!', {icon: 1});
         });
@@ -2709,7 +2709,7 @@ function pluginConfig(_name, version, func){
             });
             editor.focus();
             $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-            $("#onlineEditFileBtn").click(function(){
+            $("#onlineEditFileBtn").on('click', function(){
                 saveDataFunc();
             });
         },'json');
@@ -2768,7 +2768,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     		$('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
     	}
 
-    	$('#config_tpl').change(function(){
+    	$('#config_tpl').on('change', function(){
     		var selected = $(this).val();
     		if (selected != '0'){
     			var loadT = layer.msg('配置模版获取中...',{icon:16,time:0,shade: [0.3, '#000']});
@@ -2805,7 +2805,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
 		            });
 		            editor.focus();
 		            $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-		            $("#onlineEditFileBtn").off('click').click(function(){
+		            $("#onlineEditFileBtn").off('click').on('click', function(){
 		                saveDataFunc();
 		            });
     			},'json');
@@ -2845,7 +2845,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
             });
             editor.focus();
             $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-            $("#onlineEditFileBtn").click(function(){
+            $("#onlineEditFileBtn").on('click', function(){
                 saveDataFunc();
             });
         },'json');
@@ -2915,7 +2915,7 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
             });
             editor.focus();
             $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-            $("#onlineEditFileBtn").click(function(){
+            $("#onlineEditFileBtn").on('click', function(){
                 saveDataFunc();
             });
         },'json');
@@ -2934,7 +2934,7 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
     		loadTextBody(rdata[0]);
     	}
 
-    	$('#config_tpl').change(function(){
+    	$('#config_tpl').on('change', function(){
     		var selected = $(this).val();
     		fileName = selected;
     
@@ -2968,7 +2968,7 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
 	            });
 	            editor.focus();
 	            $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-	            $("#onlineEditFileBtn").off('click').click(function(){
+	            $("#onlineEditFileBtn").off('click').on('click', function(){
 	                saveDataFunc();
 	            });
 			},'json');
@@ -3070,7 +3070,7 @@ function pluginOpInitD(a, _version, b, _suffix_name='') {
             if(g.data != 'ok') {
                 layer.msg(g.data, {icon: 2,time: 0,shade: 0.3,shadeClose: true});
             }
-        },'json').error(function() {
+        },'json').fail(function() {
             layer.close(e);
             layer.msg('系统异常!', {icon: 0});
         });
@@ -3239,7 +3239,7 @@ $(function() {
 	setInterval(function(){check_login();},6000);
 	autoHeight();
 });
-$(window).resize(function() {
+$(window).on('resize', function() {
 	autoHeight();
 });
 function aboutPanel() {

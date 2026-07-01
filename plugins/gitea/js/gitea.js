@@ -198,7 +198,7 @@ function giteaUserList(page, search) {
 
         $(".soft-man-con").html(content);
 
-        $('.find_user').click(function(){
+        $('.find_user').on('click', function(){
             var name = $('#find_user').val();
             giteaUserList(page, name);
         });
@@ -296,19 +296,19 @@ function projectScript(user, name,has_hook){
         content:'<div class="change-default pd20">'+html+'</div>',
         success:function(layero,index) {
 
-            $('.hook_edit').click(function(){
+            $('.hook_edit').on('click', function(){
                 projectScriptEdit(user,name,index);
             });
 
-            $('.hook_log').click(function(){
+            $('.hook_log').on('click', function(){
                 projectScriptDebug(user,name,index);
             });
 
-            $('.hook_load').click(function(){
+            $('.hook_load').on('click', function(){
                 projectScriptLoad(user,name,index);
             });
 
-            $('.hook_unload').click(function(){
+            $('.hook_unload').on('click', function(){
                 projectScriptUnload(user,name,index);
             });
         }
@@ -417,13 +417,13 @@ function gogsRepoListPage(page, search){
         $('#repo_list tbody').html(body);
         $('#repo_list_page').html(rdata['data']['list']);
 
-        $('.find_repo').click(function(){
+        $('.find_repo').on('click', function(){
             var find_repo = $('#find_repo').val();
             gogsRepoListPage(page, find_repo);
         });
 
 
-        $('#repo_list .load').click(function(){
+        $('#repo_list .load').on('click', function(){
             var i = $(this).data('index');
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
@@ -440,7 +440,7 @@ function gogsRepoListPage(page, search){
             });
         });
 
-        $('#repo_list .unload').click(function(){
+        $('#repo_list .unload').on('click', function(){
             var i = $(this).data('index');
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
@@ -458,7 +458,7 @@ function gogsRepoListPage(page, search){
             });
         });
 
-        $('#repo_list .edit').click(function(){
+        $('#repo_list .edit').on('click', function(){
             var i = $(this).data('index');
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
@@ -474,7 +474,7 @@ function gogsRepoListPage(page, search){
         });
 
 
-        $('#repo_list .debug').click(function(){
+        $('#repo_list .debug').on('click', function(){
             var i = $(this).data('index');
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
@@ -490,7 +490,7 @@ function gogsRepoListPage(page, search){
         });
 
 
-        $('#repo_list .run').click(function(){
+        $('#repo_list .run').on('click', function(){
             var i = $(this).data('index');
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
@@ -567,7 +567,7 @@ function projectScriptSelfRender(user, name){
         $('#gogs_self_table tbody').html(body);
         $('#gogs_self_table .page').html(rdata['data']['list']);
 
-        $('#gogs_self_table .status').click(function(){
+        $('#gogs_self_table .status').on('click', function(){
             var i = $(this).data('index');
             var file = data[i]["name"];
             var status = '1';
@@ -582,7 +582,7 @@ function projectScriptSelfRender(user, name){
             });
         });
 
-        $('#gogs_self_table .del').click(function(){
+        $('#gogs_self_table .del').on('click', function(){
             var i = $(this).data('index');
             var file = data[i]["name"];
             gogsPost('project_script_self_del', {'user':user,'name':name,'file':file}, function(data){
@@ -593,13 +593,13 @@ function projectScriptSelfRender(user, name){
             });
         });
 
-        $('#gogs_self_table .edit').click(function(){
+        $('#gogs_self_table .edit').on('click', function(){
             var i = $(this).data('index');
             var path = data[i]["path"];
             onlineEditFile(0,path);
         });
 
-        $('#gogs_self_table .logs').click(function(){
+        $('#gogs_self_table .logs').on('click', function(){
             var i = $(this).data('index');
             var file = data[i]["name"];
             gogsPost('project_script_self_logs', {'user':user,'name':name,'file':file}, function(data){
@@ -613,7 +613,7 @@ function projectScriptSelfRender(user, name){
             });
         });
 
-        $('#gogs_self_table .run').click(function(){
+        $('#gogs_self_table .run').on('click', function(){
             var i = $(this).data('index');
             var file = data[i]["name"];
             if (data[i]["is_hidden"]){
@@ -627,7 +627,7 @@ function projectScriptSelfRender(user, name){
         });
 
 
-        $('#gogs_self_table .rename').click(function(){
+        $('#gogs_self_table .rename').on('click', function(){
             var i = $(this).data('index');
             var file = data[i]["name"];
 
@@ -651,7 +651,7 @@ function projectScriptSelfRender(user, name){
                             </div>\
                         </div>',
                 success:function(){
-                    $("#newFileName").focus().keyup(function(e){
+                    $("#newFileName").focus().on('keyup', function(e){
                         if(e.keyCode == 13) $(".layui-layer-btn0").click();
                     });
                 },
@@ -705,7 +705,7 @@ function createScriptFile(type, user, name, file) {
                     </div>\
                 </div>',
         success:function(){
-            $("#newFileName").focus().keyup(function(e){
+            $("#newFileName").focus().on('keyup', function(e){
                 if(e.keyCode == 13) $(".layui-layer-btn0").click();
             });
         },
@@ -741,11 +741,11 @@ function projectScriptSelf(user, name){
         success:function(){
             projectScriptSelfRender(user, name);
 
-            $('#create_script').click(function(){
+            $('#create_script').on('click', function(){
                 createScriptFile(0, user, name);
             });
 
-            $('#script_hook_enable').click(function(){
+            $('#script_hook_enable').on('click', function(){
                 var enable = $('#open_script').prop('checked');
                 var enable_option = '0';
                 if (!enable){

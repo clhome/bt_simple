@@ -325,7 +325,7 @@
 <script type="text/javascript">
 
 
-$("#search_file").focus().keyup(function(e){
+$("#search_file").focus().on('keyup', function(e){
     if(e.keyCode == 13) searchFile(1);
 });
 
@@ -344,26 +344,26 @@ if (getCookie('rank') == undefined || getCookie('rank') == null) {
     setCookie('rank', 'a');
 }
 
-$("#set_icon").click(function() {
+$("#set_icon").on('click', function() {
     setCookie('rank', 'b');
     $(this).addClass("active");
     $("#set_list").removeClass("active");
     getFiles(getCookie('open_dir_path'));
 });
 
-$("#set_list").click(function() {
+$("#set_list").on('click', function() {
     setCookie('rank', 'a');
     $(this).addClass("active");
     $("#set_icon").removeClass("active");
     getFiles(getCookie('open_dir_path'));
 })
 
-$(".refreshBtn").click(function() {
+$(".refreshBtn").on('click', function() {
     getFiles(getCookie('open_dir_path'));
 })
 
 
-$('#search_all').click(function(){
+$('#search_all').on('click', function(){
     $(this).toggleClass('active');
 });
 </script>

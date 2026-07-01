@@ -27,7 +27,7 @@ function softMain(name, title, version) {
             shift: 0,
             content: rdata
         });
-        $(".bt-w-menu p").click(function() {
+        $(".bt-w-menu p").on('click', function() {
             $(this).addClass("bgw").siblings().removeClass("bgw");
         });
 
@@ -237,7 +237,7 @@ function getSList(isdisplay) {
 
 
         $("#softList").html(sBody);
-        $(".menu-sub span").off("click").click(function() {
+        $(".menu-sub span").off("click").on('click', function() {
             setCookie('soft_type', $(this).attr('typeid'));
             $(this).addClass("on").siblings().removeClass("on");
             getSList();
@@ -324,7 +324,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
                 <div class='version line'>安装版本：" + option + "</div>" + customHtml + "\
             </div>",
             success:function(){
-                $('.fangshi input').click(function() {
+                $('.fangshi input').on('click', function() {
                     $(this).attr('checked', 'checked').parent().siblings().find("input").removeAttr('checked');
                 });
                 installTips();
@@ -371,7 +371,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
                 <div class='version line'>安装版本：" + option + "</div>\
             </div>",
             success:function(){
-                $('.fangshi input').click(function() {
+                $('.fangshi input').on('click', function() {
                     $(this).attr('checked', 'checked').parent().siblings().find("input").removeAttr('checked');
                 });
                 installTips();
@@ -792,7 +792,7 @@ $(function() {
 
 
     // 点击外部隐藏设置下拉框
-    $(document).click(function(e) {
+    $(document).on('click', function(e) {
         if (!$(e.target).closest('.plugin-settings-dropdown').length) {
             $('#third_party_setting_box').hide();
         }

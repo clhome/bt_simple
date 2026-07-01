@@ -38,7 +38,7 @@ function createDir(){
                     </p>\
                 </div>',
         success:function(){
-            $("input[name='newPath']").focus().keyup(function(e){
+            $("input[name='newPath']").focus().on('keyup', function(e){
                 if(e.keyCode == 13) $(".layui-layer-btn0").click();
             });
         },
@@ -97,7 +97,7 @@ function authApi(){
 		        area: '240px',
 		        content:'<div class="change-default pd20">'+html+'</div>',
 		        success: function(){
-		        	$('#clear_auth').click(function(){
+		        	$('#clear_auth').on('click', function(){
 		        		gdPost('clear_auth', {}, function(rdata){
 							var rdata = JSON.parse(rdata.data);
 							showMsg(rdata.msg,function(){
@@ -128,11 +128,11 @@ function authApi(){
             		$('.check_api .step_two_url').val(rdata.data['auth_url']);
             		$('.check_api .open_btlink').attr('href',rdata.data['auth_url']);
 
-            		$('.check_api .ico-copy').click(function(){
+            		$('.check_api .ico-copy').on('click', function(){
             			copyPass(rdata.data['auth_url']);
             		});
 
-            		$('.check_api .set_auth_btn').click(function(){
+            		$('.check_api .set_auth_btn').on('click', function(){
 
             			var url = $('.check_api .google_drive').val();
 						if ( url == ''){
@@ -219,11 +219,11 @@ function gdList(file_id){
         $(".upyunCon .place-input ul").html(pathLi);
         $(".upyunlist .list-list").html(listBody);
 
-        $('#backBtn').off().click(function() {
+        $('#backBtn').off().on('click', function() {
             gdList('');
         });
 
-        $('.upyunCon .refreshBtn').off().click(function(){
+        $('.upyunCon .refreshBtn').off().on('click', function(){
             var file_id = $('#myPath').val();
             gdList(file_id);
         });

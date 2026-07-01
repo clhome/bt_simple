@@ -60,7 +60,7 @@ function gCommonFunc(){
 
     $(".soft-man-con").html(con);
 
-    $('#prometheus_url').click(function(){
+    $('#prometheus_url').on('click', function(){
         gPost('prometheus_url', '', {}, function(rdata){
             layer.open({
                 title: "prometheus连接",

@@ -210,7 +210,7 @@ function f2bLogs(){
     }
     refreshLog();
     
-    $("#f2bClearLogBtn").click(function(){
+    $("#f2bClearLogBtn").on('click', function(){
         layer.confirm('确定要清空 fail2ban 的运行日志吗？', {title: '清空日志'}, function(index) {
             f2bPost('clear_log', '', {}, function(data){
                 var rdata = JSON.parse(data.data);
@@ -814,7 +814,7 @@ function f2bSiteHistory(){
         });
     });
 
-    $("#refreshLogs").click(function(){
+    $("#refreshLogs").on('click', function(){
         f2bLogRequest(1);
     });
 
@@ -846,7 +846,7 @@ function f2bSiteHistory(){
         });
     }
 
-    $('#search_time button').click(function(){
+    $('#search_time button').on('click', function(){
         $('#search_time button').each(function(){
             if ($(this).hasClass('cur')){
                 $(this).removeClass('cur');

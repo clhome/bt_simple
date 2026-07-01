@@ -185,10 +185,10 @@ function setCcRule(cycle, limit, endtime, siteName, increase){
                 </div>\
             </form>',
             success:function(layero,index){
-                $('.btn_cc_all').click(function(){
+                $('.btn_cc_all').on('click', function(){
                     saveCcRule(siteName,1,$('[name="enhance_mode"]').val());
                 });
-                $('.btn_cc_present').click(function(){
+                $('.btn_cc_present').on('click', function(){
                     saveCcRule(siteName,0,$('[name="enhance_mode"]').val());
                 });
             }
@@ -227,10 +227,10 @@ function setRetry(retry_cycle, retry, retry_time, siteName) {
                 </div>\
             </form>',
         success:function(){
-            $('.btn_retry_all').click(function(){
+            $('.btn_retry_all').on('click', function(){
                 saveRetry(siteName,1);
             });
-            $('.btn_retry_present').click(function(){
+            $('.btn_retry_present').on('click', function(){
                 saveRetry(siteName,0);
             });
         }
@@ -285,7 +285,7 @@ function setSafeVerify(auto, cpu, time, mode,siteName) {
                 </div>\
             </form>',
         success:function(index){
-            $('.btn_sv_present').click(function(){
+            $('.btn_sv_present').on('click', function(){
                 var pdata = {
                     siteName: siteName,
                     cpu: $("input[name='cpu']").val(),
@@ -353,7 +353,7 @@ function modifyRule(index, ruleName) {
     var rulePs = $('.rule_ps_' + index).text();
     $('.rule_ps_' + index).html('<input class="bt-input-text" type="text" name="rule_ps_' + index + '" value="' + rulePs + '" />');
     $('.rule_modify_' + index).html('<a class="btlink" onclick="modifyRuleSave(' + index + ',\'' + ruleName + '\')">保存</a> | <a class="btlink modr_cancel_' + index + '">取消</a>');
-    $(".modr_cancel_" + index).click(function () {
+    $(".modr_cancel_" + index).on('click', function () {
         $('.rule_body_' + index).html(ruleValue);
         $('.rule_ps_' + index).html(rulePs);
         $('.rule_modify_' + index).html('<a class="btlink" onclick="modifyRule(' + index + ',\'' + ruleName + '\')">编辑</a>');
@@ -768,7 +768,7 @@ function ipWhite(type) {
                 <div class="pd15 ipv6_list">\
                 </div>',
             success:function(index,layero){
-                // $('.tab_list .tab_block').click(function(){
+                // $('.tab_list .tab_block').on('click', function(){
                 //     $(this).addClass('active').siblings().removeClass('active');
                 //     console.log($(this).index());
                 //     if($(this).index() === 0){
@@ -1011,7 +1011,7 @@ function ipBlack(type) {
                 </ul>\
             </div>',
             success:function(index,layero){
-                $('.tab_list .tab_block').click(function(){
+                $('.tab_list .tab_block').on('click', function(){
                     $(this).addClass('active').siblings().removeClass('active');
                     if($(this).index() === 0){
                         $('.ipv4_block').show().next().hide();
@@ -1040,7 +1040,7 @@ function ipBlack(type) {
                         });
                     }
                 });
-                $('.btn_add_ipv6').click(function(){
+                $('.btn_add_ipv6').on('click', function(){
                     var ipv6 = $('[name="ipv6_address"]').val();
                     addIpv6Req(ipv6, function(res){
                         layer.msg(res.msg,{icon:res.status?1:2});
@@ -1839,7 +1839,7 @@ function wafAreaLimitRender(){
         }
 
         $('#con_list tbody').html(list);
-        $('.area_limit_del').click(function(){
+        $('.area_limit_del').on('click', function(){
             var data_id = $(this).data('id');
 
             var site = [],region = [];
@@ -1914,7 +1914,7 @@ function wafAreaLimit(){
     wafAreaLimitRender();
     wafAreaLimitSwitch();
 
-    $('#create_area_limit').click(function(){
+    $('#create_area_limit').on('click', function(){
         var site_list;
         var area_list;
         var site_length = 0;
@@ -2096,7 +2096,7 @@ function wafLogRequest(page){
         $('#ws_table').html(table);
         $('#wsPage').html(rdata.data.page);
 
-        $(".tablescroll .details").click(function(){
+        $(".tablescroll .details").on('click', function(){
             var index = $(this).attr('data-id');
             var res = data[index];
             var ip = res.ip;
@@ -2196,11 +2196,11 @@ function wafLogs(){
         });
     });
 
-    $("#refreshLogs").click(function(){
+    $("#refreshLogs").on('click', function(){
         wafLogRequest(1);
     });
 
-    $("#UncoverAll").click(function(){
+    $("#UncoverAll").on('click', function(){
         owPost('clean_drop_ip',{},function(data){
             var rdata = JSON.parse(data.data);
             var ndata = JSON.parse(rdata.data);
@@ -2213,7 +2213,7 @@ function wafLogs(){
     });
 
     //测试demo
-    $("#testRun").click(function(){
+    $("#testRun").on('click', function(){
         owPost('test_run',{},function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){
@@ -2249,7 +2249,7 @@ function wafLogs(){
     });
 
     $('#search_time button:eq(0)').addClass('cur');
-    $('#search_time button').click(function(){
+    $('#search_time button').on('click', function(){
         $('#search_time button').each(function(){
             if ($(this).hasClass('cur')){
                 $(this).removeClass('cur');
@@ -2280,7 +2280,7 @@ function wafLogs(){
         $('select[name="site"]').html(select);
         wafLogRequest(1);
 
-        $('select[name="site"]').change(function(){
+        $('select[name="site"]').on('change', function(){
             wafLogRequest(1);
         });
     });

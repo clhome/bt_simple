@@ -207,7 +207,7 @@ function createSendTask(name = ''){
                 $('[data-toggle="tooltip"]').tooltip();
 
                 $(".conn-user").hide();
-                $("select[name='conn_type']").change(function(){
+                $("select[name='conn_type']").on('change', function(){
                     if($(this).val() == 'key'){
                         $(".conn-user").hide();
                         $(".conn-key").show();
@@ -226,7 +226,7 @@ function createSendTask(name = ''){
                     $('.hour input,.minute input').val('0');
                     $('.minute-n input').val('1');
                 }   
-                $('.synchronization').change(function(event) {
+                $('.synchronization').on('change', function(event) {
                     var selVal = $('.synchronization option:selected').val();
                     if (selVal == "false"){
                         $('#period').show();
@@ -237,7 +237,7 @@ function createSendTask(name = ''){
                     }
                 });
 
-                $("select[name='delete']").change(function(){
+                $("select[name='delete']").on('change', function(){
                     if($(this).val() == 'true'){
                         var mpath = $('input[name="path"]').val();
                         var msg = '<div><span style="color:orangered;">警告：您选择了完全同步，将会使本机同步与目标机器指定目录的文件保持一致，'
@@ -268,7 +268,7 @@ function createSendTask(name = ''){
                         $('.minute-n input').val('1');
                     }
                 }
-                $('#period').change(function(event) {
+                $('#period').on('change', function(event) {
                     var selVal = $('#period select option:selected').val();
                     if (selVal == 'day'){
                         $('.hour,.minute').show();
@@ -445,7 +445,7 @@ function lsyncdExclude(name){
             }
         });
     }
-    $('.addList').click(function(event) {
+    $('.addList').on('click', function(event) {
         var val = $(this).prev().val();
         if(val == ''){
             layer.msg('当前输入内容为空,请输入');
@@ -453,7 +453,7 @@ function lsyncdExclude(name){
         }
         addArgs(name,val);
     });
-    $('.lsyncd_exclude input').keyup(function(event){
+    $('.lsyncd_exclude input').on('keyup', function(event){
         if (event.which == 13){
             var val = $(this).val();
             if(val == ''){

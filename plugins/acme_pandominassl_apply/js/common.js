@@ -127,7 +127,7 @@ function emailAdd(type){
                     </div>\
                   </form>",
         success:function(){
-            $("input[name='addr']").keyup(function(){
+            $("input[name='addr']").on('keyup', function(){
                 var v = $(this).val();
                 $("input[name='remark']").val(v);
             });
@@ -357,7 +357,7 @@ function dnsapiAdd(row){
                     <input name='id' value='"+option_id+"' type='hidden'>\
                   </form>",
         success:function(){
-            $("input[name='name']").keyup(function(){
+            $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
                 $("input[name='remark']").val(v);
             });
@@ -374,7 +374,7 @@ function dnsapiAdd(row){
 
             renderDnsapiOption(option_type, option_val);
             $('select[name="type"]').html(option);
-            $('select[name="type"]').change(function(){
+            $('select[name="type"]').on('change', function(){
                 var name = $(this).val();
                 if (option_type == name){
                     renderDnsapiOption(name, option_val);
@@ -470,7 +470,7 @@ function dnsapiList(page, search){
         $(".soft-man-con").html(con);
         $('.dataTables_paginate').html(rdata.page);
 
-        $('.edit').click(function(){
+        $('.edit').on('click', function(){
             var idx = $(this).attr('index');
             var row = rdata.data[idx];
             // console.log(row);
@@ -653,7 +653,7 @@ function domainAdd(row){
                     <input name='id' value='"+option_id+"' type='hidden'>\
                   </form>",
         success:function(){
-            // $("input[name='domain']").keyup(function(){
+            // $("input[name='domain']").on('keyup', function(){
             //     var v = $(this).val();
             //     $("input[name='remark']").val(v);
             // });
@@ -669,7 +669,7 @@ function domainAdd(row){
                     }
                 }
 
-                $('select[name="dnsapi_id"]').change(function(){
+                $('select[name="dnsapi_id"]').on('change', function(){
                     var val = $('select[name="dnsapi_id"]').find("option:selected").attr('val');
                     var val_arr = val.split("|");
                     for (var i = 0; i < val_arr.length; i++) {
@@ -778,19 +778,19 @@ function domainList(page, search){
         $(".soft-man-con").html(con);
         $('.dataTables_paginate').html(rdata.page);
 
-        $('.edit').click(function(){
+        $('.edit').on('click', function(){
             var idx = $(this).attr('index');
             var row = rdata.data[idx];
             domainAdd(row);
         });
 
-        $('.status').click(function(){
+        $('.status').on('click', function(){
             var idx = $(this).attr('index');
             var row = rdata.data[idx];
             domainStatusToggle(row['id']);
         });
 
-        $('.cmd').click(function(){
+        $('.cmd').on('click', function(){
             var idx = $(this).attr('index');
             var row = rdata.data[idx];
             domainIdCmd(row['id']);

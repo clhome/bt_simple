@@ -1,7 +1,7 @@
 // 全局 JS 错误捕获，方便诊断无反应的异常
 window.onerror = function(message, source, lineno, colno, error) {
     var err_msg = "JS 异常: " + message + "\n文件: " + source + "\n行号: " + lineno + ":" + colno;
-    console.error(err_msg, error);
+    console.fail(err_msg, error);
     if (window.layer) {
         layer.alert(err_msg.replace(/\n/g, '<br>'), {icon: 2, title: "JavaScript 运行错误"});
     } else {

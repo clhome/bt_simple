@@ -241,7 +241,7 @@ function pingIpList(){
         $('select[name="ip_list"]').html(option);
 
 
-        $('select[name="ip_list"]').change(function(){
+        $('select[name="ip_list"]').on('change', function(){
             chartPingData = [];
             pingDataGraphData(0);
         });
@@ -274,7 +274,7 @@ function pingDataGraph(){
     </div>';
     $('.soft-man-con').html(tpl);
 
-    $('.searcTime span').click(function(e){
+    $('.searcTime span').on('click', function(e){
         $('.searcTime span').removeClass('on');
         $(this).addClass('on');
     });
@@ -465,7 +465,7 @@ function pingMySQLDataGraph(){
     </div>';
     $('.soft-man-con').html(tpl);
 
-    $('.searcTime span').click(function(e){
+    $('.searcTime span').on('click', function(e){
         $('.searcTime span').removeClass('on');
         $(this).addClass('on');
     });

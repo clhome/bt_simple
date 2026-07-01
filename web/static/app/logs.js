@@ -16,7 +16,7 @@ function changeLogsViewH(){
 
 function logsLoad(){
     changeLogsViewH();
-    $(window).resize(function(){
+    $(window).on('resize', function(){
         changeLogsViewH();
     });
 
@@ -25,7 +25,7 @@ function logsLoad(){
 
 
 
-$('#cutTab .tabs-item').click(function(){
+$('#cutTab .tabs-item').on('click', function(){
 	var type = $(this).data('name');
 
 	$('#cutTab .tabs-item').removeClass('active');
@@ -47,11 +47,11 @@ $('#cutTab .tabs-item').click(function(){
 });
 
 
-$('#panelLogs .refresh').click(function(){
+$('#panelLogs .refresh').on('click', function(){
 	getLogs(1);
 });
 
-$('#panelLogs .clear').click(function(){
+$('#panelLogs .clear').on('click', function(){
 	delLogs(1);
 });
 
@@ -73,7 +73,7 @@ function getAuditLogsFiles(){
         $("#logAudit .logAuditTab").html(option);
 
         getAuditFile(data[0]['name']);
-        $('#logAudit .logAuditItem').click(function(){
+        $('#logAudit .logAuditItem').on('click', function(){
         	$('#logAudit .logAuditItem').removeClass('active');
         	$(this).addClass('active');
         	getAuditFile($(this).data('file'));
@@ -158,7 +158,7 @@ function getAuditFile(log_name){
 			    }
 			    $('#logAudit .logAuditContent tbody').html(tbody);
 
-			    $('#logAudit .refresh').click(function(){
+			    $('#logAudit .refresh').on('click', function(){
 			    	getAuditFile(log_name);
 			    });
             }

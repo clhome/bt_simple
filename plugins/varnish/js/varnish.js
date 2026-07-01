@@ -187,7 +187,7 @@ function varnishPluginConfig(_name, version, func){
             });
             editor.focus();
             $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-            $("#onlineEditFileBtn").click(function(){
+            $("#onlineEditFileBtn").on('click', function(){
                 $("#textBody").text(editor.getValue());
                 pluginConfigSave(fileName);
             });

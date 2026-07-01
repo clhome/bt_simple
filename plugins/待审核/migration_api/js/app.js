@@ -294,7 +294,7 @@ function initStep(){
         $('input[name="sync_app_secret"]').val(rdata.data['app_secret']);
     });
 
-    $('.infoNext').click(function(){
+    $('.infoNext').on('click', function(){
         initStep1();
     });
 

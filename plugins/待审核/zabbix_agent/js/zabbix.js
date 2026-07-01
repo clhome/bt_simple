@@ -106,7 +106,7 @@ function zagentDConfigTpl(_name, version, func, config_tpl_func, read_config_tpl
             $('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
         }
 
-        $('#config_tpl').change(function(){
+        $('#config_tpl').on('change', function(){
             var selected = $(this).val();
             if (selected != '0'){
                 var loadT = layer.msg('配置模版获取中...',{icon:16,time:0,shade: [0.3, '#000']});
@@ -138,7 +138,7 @@ function zagentDConfigTpl(_name, version, func, config_tpl_func, read_config_tpl
                     editor.focus();
                     $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
                     $("#onlineEditFileBtn").off('click');
-                    $("#onlineEditFileBtn").click(function(){
+                    $("#onlineEditFileBtn").on('click', function(){
                         $("#textBody").text(editor.getValue());
                         pluginConfigSave(fileName, save_callback_func);
                     });
@@ -177,7 +177,7 @@ function zagentDConfigTpl(_name, version, func, config_tpl_func, read_config_tpl
             });
             editor.focus();
             $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-            $("#onlineEditFileBtn").click(function(){
+            $("#onlineEditFileBtn").on('click', function(){
                 $("#textBody").text(editor.getValue());
                 pluginConfigSave(fileName,save_callback_func);
             });

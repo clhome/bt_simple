@@ -103,7 +103,7 @@ function orPluginOpServiceOp(a,b,c,d,a,v,request_callback){
             layer.msg(g.data, {icon: 2,time: 10000,shade: 0.3});
         }
 
-    },'json').error(function() {
+    },'json').fail(function() {
         layer.close(e);
         layer.msg('操作异常!', {icon: 2});
     });
@@ -213,7 +213,7 @@ function restoreDefaultOp(c) {
                 layer.msg(g.data, {icon: 2,time: 10000,shade: 0.3});
             }
         }
-    },'json').error(function() {
+    },'json').fail(function() {
         layer.close(e);
         layer.msg('操作异常!', {icon: 2});
     });

@@ -15,7 +15,7 @@
 </div>
 
 <script>
-    $("input[name='mysql_install_type']").change(function() {
+    $("input[name='mysql_install_type']").on('change', function() {
         if ($(this).val() === 'compile') {
             $('#mysql_install_tips_compile').show();
             $('#mysql_install_tips_fast').hide();

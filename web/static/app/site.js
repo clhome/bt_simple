@@ -1,12 +1,12 @@
 
 
-$("#site_search_input").keyup(function(event){
+$("#site_search_input").on('keyup', function(event){
 	if(event.keyCode == 13) {
 		getWeb(1, -1, $(this).val());
 	}
 });
 
-$('#site_search').click(function(){
+$('#site_search').on('click', function(){
 	getWeb(1, -1, $('#site_search_input').val());
 });
 
@@ -157,7 +157,7 @@ function getWeb(page, type_id, search) {
 		//输出分页
 		$("#webPage").html(data.page);
 		
-		$(".btlinkbed").click(function(){
+		$(".btlinkbed").on('click', function(){
 			var dataid = $(this).attr("data-id");
 			var databak = $(this).text();
 			if(databak == null){
@@ -304,22 +304,22 @@ function webAddPage(type) {
 		$(function() {
 			var placeholder = "<div class='placeholder c9' style='top:10px;left:10px'>"+lan.site.domain_help+"</div>";
 			$('#mainDomain').after(placeholder);
-			$(".placeholder").click(function(){
+			$(".placeholder").on('click', function(){
 				$(this).hide();
 				$('#mainDomain').focus();
 			})
-			$('#mainDomain').focus(function() {
+			$('#mainDomain').on('focus', function() {
 			    $(".placeholder").hide();
 			});
 			
-			$('#mainDomain').blur(function() {
+			$('#mainDomain').on('blur', function() {
 				if($(this).val().length==0){
 					$(".placeholder").show();
 				}  
 			});
 			
 			//验证PHP版本
-			$("select[name='version']").change(function(){
+			$("select[name='version']").on('change', function(){
 				if($(this).val() == '52'){
 					var msgerr = 'PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!';
 					$('#php_w').text(msgerr);
@@ -421,14 +421,14 @@ function webPathEdit(id){
 				+'</div>';
 
 		$("#webedit-con").html(content);		
-		$("#userini").change(function(){
+		$("#userini").on('change', function(){
 			$.post('/site/set_dir_user_ini',{'path':site_path,'run_path':run_path,},function(userini){
 				layer.msg(data.msg+'<p style="color:red;">注意：设置防跨站需要重启PHP才能生效!</p>',{icon:data.status?1:2});
 				tryRestartPHP(site_name);
 			},'json');
 		});
 		
-		$("#logs").change(function(){
+		$("#logs").on('change', function(){
 			var loadT = layer.msg("正在设置中...",{icon:16,time:10000,shade: [0.3, '#000']});
 			$.post('/site/logs_open','id='+id, function(rdata){
 				layer.close(loadT);
@@ -667,15 +667,15 @@ function domainEdit(id, name, msg, status) {
 		}
 		var placeholder = "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>";
 		$('#newdomain').after(placeholder);
-		$(".placeholder").click(function(){
+		$(".placeholder").on('click', function(){
 			$(this).hide();
 			$('#newdomain').focus();
 		})
-		$('#newdomain').focus(function() {
+		$('#newdomain').on('focus', function() {
 		    $(".placeholder").hide();
 		});
 		
-		$('#newdomain').blur(function() {
+		$('#newdomain').on('blur', function() {
 			if($(this).val().length==0){
 				$(".placeholder").show();
 			}  
@@ -1078,23 +1078,23 @@ function webEdit(id,website,endTime,addtime,defaultTab){
 			//域名输入提示
 			var placeholder = "<div class='placeholder'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>";
 			$('#newdomain').after(placeholder);
-			$(".placeholder").click(function(){
+			$(".placeholder").on('click', function(){
 				$(this).hide();
 				$('#newdomain').focus();
 			});
 
-			$('#newdomain').focus(function() {
+			$('#newdomain').on('focus', function() {
 			    $(".placeholder").hide();
 			});
 			
-			$('#newdomain').blur(function() {
+			$('#newdomain').on('blur', function() {
 				if($(this).val().length == 0){
 					$(".placeholder").show();
 				}  
 			});
 
 			//切换
-			$(".bt-w-menu p").click(function(){
+			$(".bt-w-menu p").on('click', function(){
 				$(this).addClass("bgw").siblings().removeClass("bgw");
 			});
 
@@ -1216,7 +1216,7 @@ function limitNet(id){
 				+"<ul class='help-info-text c7 mtb15'><li>"+lan.site.limit_net_11+"</li><li>"+lan.site.limit_net_13+"</li><li>"+lan.site.limit_net_15+"</li></ul>"
 		$("#webedit-con").html(body);
 			
-		$("select[name='limit']").change(function(){
+		$("select[name='limit']").on('change', function(){
 			var type = $(this).val();
 			perserver = 300;
 			perip = 25;
@@ -1360,14 +1360,14 @@ function showRewrite(rdata){
 		content:webBakHtml,
 		success:function(){
 
-			$("#myRewrite").change(function(){
+			$("#myRewrite").on('change', function(){
 				var rewriteName = $(this).val();
 				$.post('/files/get_body','path='+rdata['rewrite_dir']+'/'+rewriteName+'.conf',function(fileBody){
 					 $("#rewriteBody").val(fileBody.data.data);
 				},'json');
 			});
 
-			$('#setRewriteBtn').click(function(){
+			$('#setRewriteBtn').on('click', function(){
 				var data = $("#rewriteBody").val();
 				setRewrite(rdata.filename, encodeURIComponent(data));
 			});
@@ -1796,7 +1796,7 @@ function toProxy(siteName, type, obj) {
 					updateTargetUrl();
 				});
 
-				$("#open_proxy").click(function(){
+				$("#open_proxy").on('click', function(){
 					var status = $("input[name='open_proxy']").prop("checked")==true?1:0;
 					if(status==1){
 						$("input[name='open_proxy']").prop("checked",false);
@@ -1805,7 +1805,7 @@ function toProxy(siteName, type, obj) {
 					}
 				});
 
-				$('#open_cache').click(function(){
+				$('#open_cache').on('click', function(){
 					var status = $("input[name='open_cache']").prop("checked")==true?1:0;
 					if(status==1){
 						$('#cache_time').hide();
@@ -1816,7 +1816,7 @@ function toProxy(siteName, type, obj) {
 					}
 				});
 
-				$('#open_cors').click(function(){
+				$('#open_cors').on('click', function(){
 					var status = $("input[name='open_cors']").prop("checked")==true?1:0;
 					if(status==1){
 						$("input[name='open_cors']").prop("checked",false);
@@ -1825,7 +1825,7 @@ function toProxy(siteName, type, obj) {
 					}
 				});
 
-				$('#open_http3').click(function(){
+				$('#open_http3').on('click', function(){
 					var status = $("input[name='open_http3']").prop("checked")==true?1:0;
 					if(status==1){
 						$("input[name='open_http3']").prop("checked",false);
@@ -2052,22 +2052,22 @@ function toProxy(siteName, type, obj) {
 			$("#md-301-body").append(tmp);
 		}
 
-		$('#md-301-body .detail').click(function(){
+		$('#md-301-body .detail').on('click', function(){
 			var index = $(this).data('index');
 			toProxy(siteName, 3 ,data[index]['id']);
 		});
 
-		$('#md-301-body .edit').click(function(){
+		$('#md-301-body .edit').on('click', function(){
 			var index = $(this).data('index');
 			toProxy(siteName, 1 ,data[index]);
 		});
 
-		$('#md-301-body .delete').click(function(){
+		$('#md-301-body .delete').on('click', function(){
 			var index = $(this).data('index');
 			toProxy(siteName, 2 ,data[index]['id']);
 		});
 
-		$('#md-301-body .cache').click(function(){
+		$('#md-301-body .cache').on('click', function(){
 			var index = $(this).data('index');
 			if ($(this).hasClass('on')){
 				toProxy(siteName, 21 ,data[index]);
@@ -2144,10 +2144,10 @@ function setSSL(id,siteName){
 	                </div></div>'
 			  + '<div class="tab-con" style="padding: 0px;"></div>';
 	$("#webedit-con").html(sslHtml);
-	$(".tab-nav span").click(function(){
+	$(".tab-nav span").on('click', function(){
 		$(this).addClass("on").siblings().removeClass("on");
 	});
-	$('.cutTabView').click(function(){
+	$('.cutTabView').on('click', function(){
 		$('.tab-nav span').eq(1).click();
 	});
 	opSSL('now',id,siteName);
@@ -2495,10 +2495,10 @@ function opSSLAcme(type, id, siteName, callback){
 				}
 				$("input[name='admin_email']").val(data.email);
 				$("#ymlist").html(opt);
-				$("#ymlist li input").click(function(e){
+				$("#ymlist li input").on('click', function(e){
 					e.stopPropagation();
 				})
-				$("#ymlist li").click(function(){
+				$("#ymlist li").on('click', function(){
 					var o = $(this).find("input");
 					if(o.prop("checked")){
 						o.prop("checked",false)
@@ -2507,7 +2507,7 @@ function opSSLAcme(type, id, siteName, callback){
 						o.prop("checked",true);
 					}
 				})
-				$(".letsApply").click(function(){
+				$(".letsApply").on('click', function(){
 					var c = $("#ymlist input[type='checkbox']");
 					var str = [];
 					var domains = '';
@@ -2646,10 +2646,10 @@ function opSSLLet(type, id, siteName, callback){
 				}
 				$("input[name='admin_email']").val(data.email);
 				$("#ymlist").html(opt);
-				$("#ymlist li input").click(function(e){
+				$("#ymlist li input").on('click', function(e){
 					e.stopPropagation();
 				})
-				$("#ymlist li").click(function(){
+				$("#ymlist li").on('click', function(){
 					var o = $(this).find("input");
 					if(o.prop("checked")){
 						o.prop("checked",false)
@@ -2658,7 +2658,7 @@ function opSSLLet(type, id, siteName, callback){
 						o.prop("checked",true);
 					}
 				})
-				$(".letsApply").click(function(){
+				$(".letsApply").on('click', function(){
 					var c = $("#ymlist input[type='checkbox']");
 					var str = [];
 					var domains = '';
@@ -2970,7 +2970,7 @@ function phpVersion(siteName){
 					</div>";
 			$("#webedit-con").html(versionSelect);
 			//验证PHP版本
-			$("select[name='phpVersion']").change(function(){
+			$("select[name='phpVersion']").on('change', function(){
 				if($(this).val() == '52'){
 					var msgerr = 'PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!';
 					$('#php_w').text(msgerr);
@@ -3098,7 +3098,7 @@ function configFile(webSite){
 		editor.setSize("740px", "580px");
 		$(".CodeMirror").css({"margin-left":"20px"});
 		$(".CodeMirror-scroll").css({"height":"580px","margin":0,"padding":0});
-		$("#SaveConfigFileBtn").click(function(){
+		$("#SaveConfigFileBtn").on('click', function(){
 			$("#configBody").empty();
 			$("#configBody").text(editor.getValue());
 			saveConfigFile(webSite,rdata.data.encoding, info['host']);
@@ -3197,18 +3197,18 @@ function rewrite(siteName){
 			});
 			editor.setSize("740px", "560px");
 			$(".CodeMirror-scroll").css({"height":"560px","margin":0,"padding":0});
-			$("#SetRewriteBtn").click(function(){
+			$("#SetRewriteBtn").on('click', function(){
 				$("#rewriteBody").empty();
 				$("#rewriteBody").text(editor.getValue());
 				setRewrite(filename, encodeURIComponent(editor.getValue()));
 			});
-			$("#SetRewriteBtnTel").click(function(){
+			$("#SetRewriteBtnTel").on('click', function(){
 				$("#rewriteBody").empty();
 				$("#rewriteBody").text(editor.getValue());
 				setRewriteTel();
 			});
 			
-			$("#myRewrite").change(function(){
+			$("#myRewrite").on('change', function(){
 				var rewriteName = $(this).val();
 				if(rewriteName == '0'){
 					rpath = filename;
@@ -3266,7 +3266,7 @@ function setRewriteTel(act){
 					</div>\
 				</div>',
 		success:function(index){
-			$("#rewriteName").focus().keyup(function(e){
+			$("#rewriteName").focus().on('keyup', function(e){
 				if(e.keyCode == 13) $("#rewriteNameBtn").click();
 			});
 		},
@@ -3422,7 +3422,7 @@ function editClassType(id,name){
                   </form>"
 	});
 
-	$('#site_type_mod').off().click(function(){
+	$('#site_type_mod').off().on('click', function(){
 		var _name = $('input[name=site_type_mod]').val();
 		$.post('/site/modify_site_type_name','id='+id+'&name='+_name, function(rdata){
 			showMsg(rdata.msg,function(){
@@ -3550,7 +3550,7 @@ function importAllSites() {
 }
 
 $(function() {
-	$('#import_sites_file').change(function(e) {
+	$('#import_sites_file').on('change', function(e) {
 		var file = e.target.files[0];
 		if (!file) return;
 		

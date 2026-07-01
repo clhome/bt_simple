@@ -151,7 +151,7 @@ function botExtListP(p=1){
         $('#ext_list').html(tBody);
         $('#ext_list_page').html(rdata.data.list);
 
-        $('#ext_list .ext_status').click(function(){
+        $('#ext_list .ext_status').on('click', function(){
             var name = $(this).parent().parent().data('name');
             var status = 'stop';
             if ($(this).hasClass('glyphicon-pause')){

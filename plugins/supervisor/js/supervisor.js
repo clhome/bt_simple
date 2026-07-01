@@ -400,7 +400,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
         });
         editor.focus();
 
-    	$('#config_tpl').change(function(){
+    	$('#config_tpl').on('change', function(){
     		var selected = $(this).val();
     		if (selected != '0'){
     			fileName = selected;
@@ -433,7 +433,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
 		            editor.focus();
 		            $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
 		            $("#onlineEditFileBtn").off('click');
-		            $("#onlineEditFileBtn").click(function(){
+		            $("#onlineEditFileBtn").on('click', function(){
 		                $("#textBody").html(editor.getValue());
 		                pluginConfigSave(fileName);
 		            });
@@ -492,7 +492,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     ob.scrollTop = ob.scrollHeight;
 
     function clearLog(file){
-    	$('#sup_clear_log').click(function(){
+    	$('#sup_clear_log').on('click', function(){
     		myPost('sup_clear_log', {'file':file}, function (data) {
     			var rdata = JSON.parse(data.data);
     			layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
@@ -501,7 +501,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     }
 
     function errorLog(file,file_line){
-    	$('#sup_error_log').click(function(){
+    	$('#sup_error_log').on('click', function(){
     		var _args = JSON.stringify({file:file,line:file_line});
 			$.post('/plugins/run', {name:_name, func:'read_config_log_error_tpl',args:_args}, function(data){
 				var rdata = JSON.parse(data.data);
@@ -524,7 +524,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     		$('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
     	}
 
-    	$('#config_tpl').change(function(){
+    	$('#config_tpl').on('change', function(){
     	///
     		var selected = $(this).val();
     		if (selected == '0'){

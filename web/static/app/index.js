@@ -31,7 +31,7 @@ function getLoad(data) {
     setImg();
 }
 
-$('#LoadList .circle').click(function() {
+$('#LoadList .circle').on('click', function() {
     // getNet();
 });
 
@@ -526,7 +526,7 @@ setTimeout(function() {
             $('#toUpdate a').css("position","relative");
             return;
         }
-    },'json').error(function() {
+    },'json').fail(function() {
     });
 }, 3000);
 
@@ -719,7 +719,7 @@ function updateStep(step, version, barId, textId, callback) {
             $("#start-update-btn").attr("disabled", false).removeClass("disabled").text("重试");
             $(".layui-layer-close").show();
         }
-    }, 'json').error(function() {
+    }, 'json').fail(function() {
         if (intervalId) clearInterval(intervalId);
         if (step == 'install') {
             $(barId).css("width", "100%");
@@ -765,7 +765,7 @@ function reBoot() {
             </div>'
     });
 
-    $('.rebt-con a').click(function () {
+    $('.rebt-con a').on('click', function () {
         var type = $(this).attr('data-id');
         switch (type) {
             case 'panel':
@@ -819,10 +819,10 @@ function reBoot() {
                         </div>"
                 });
                 setTimeout(function () {
-                    $(".btn-reboot").click(function () {
+                    $(".btn-reboot").on('click', function () {
                         rebootbox.close();
                     })
-                    $(".WSafeRestart").click(function () {
+                    $(".WSafeRestart").on('click', function () {
                         var body = '<div class="SafeRestartCode pd15" style="line-height:26px"></div>';
                         $(".bt-window-restart").html(body);
                         $(".SafeRestartCode").append("<p>正在停止Web服务</p>");
@@ -862,7 +862,7 @@ function repPanel() {
         $.get('/system?action=RepPanel', function(rdata) {
             layer.close(loadT);
             layer.msg(lan.index.rep_panel_ok, { icon: 1 });
-        }).error(function() {
+        }).fail(function() {
             layer.close(loadT);
             layer.msg(lan.index.rep_panel_ok, { icon: 1 });
         });
@@ -991,7 +991,7 @@ function pluginInit(){
             </div>\
         </div>",
             success:function(l,index){
-                $('.rec-box-con .onekey').click(function(){
+                $('.rec-box-con .onekey').on('click', function(){
                     var post_data = [];
                     for (var i = 0; i < rdata.length; i++) {
                         var key_ver = '#select_'+rdata[i]['name'];
@@ -1098,7 +1098,7 @@ $(function() {
         $(this).find(".mem-re-con").css({ "top": "15px", opacity: 1, "display": "none" });
         $("#memory").text(getCookie("mem-before"));
         $(this).find(".mem-re-min").hide();
-    }).click(function() {
+    }).on('click', function() {
         $(this).find(".mem-re-min").hide();
         if (!($(this).hasClass("mem-action"))) {
             reMemory();
@@ -1113,7 +1113,7 @@ $(function() {
         }
     });
 
-    $("select[name='network-io'],select[name='disk-io']").change(function () {
+    $("select[name='network-io'],select[name='disk-io']").on('change', function () {
         var key = $(this).val(), type = $(this).attr('name');
         if (type == 'network-io') {
             if (key == 'ALL') {
@@ -1128,7 +1128,7 @@ $(function() {
         }
     });
 
-    $('.tabs-nav span').click(function () {
+    $('.tabs-nav span').on('click', function () {
         var indexs = $(this).index();
         $(this).addClass('active').siblings().removeClass('active');
         $('.tabs-content .tabs-item:eq(' + indexs + ')').addClass('tabs-active').siblings().removeClass('tabs-active');

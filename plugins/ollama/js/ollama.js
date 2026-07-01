@@ -143,7 +143,7 @@ var ollama = {
         }
 
         // 绑定菜单栏高亮点击行为
-        $('.bt-w-menu p').off('click').click(function () {
+        $('.bt-w-menu p').off('click').on('click', function () {
             $(this).addClass('bgw').siblings().removeClass('bgw');
         });
     },

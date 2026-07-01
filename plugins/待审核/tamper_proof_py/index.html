@@ -160,7 +160,7 @@
 
 var siteList = [];
 $('.layui-layer-page').css({'width': '800px','height':'500px'});
-$(".bt-w-menu p").click(function () {
+$(".bt-w-menu p").on('click', function () {
     $(this).addClass('bgw').siblings().removeClass('bgw');
 });
 
@@ -326,7 +326,7 @@ get_day: function () {
     
     $(".anti-tamper-con").html(con);
     anti_tamper.index();
-    $(".search-day span").not(".last-span").click(function () {
+    $(".search-day span").not(".last-span").on('click', function () {
         $(this).addClass("cur").siblings().removeClass("cur");
     })
 
@@ -443,7 +443,7 @@ index: function (day) {
             $('.webDataStats-day').html(con1);
             tableFixed("site_list_box");
 
-            $('.anti_home_box .bt_table .cust—checkbox,.anti_home_box .bt_table .cust—checkbox-input').click(function(){
+            $('.anti_home_box .bt_table .cust—checkbox,.anti_home_box .bt_table .cust—checkbox-input').on('click', function(){
                 var checkbox = $(this).data('checkbox'),
                 length = $('#site_list_box tbody tr').length,
                 active = $(this).prop('checked');
@@ -477,7 +477,7 @@ index: function (day) {
                 }
             });
 
-            $('.anti_home_box .setBatchStatus').click(function(){
+            $('.anti_home_box .setBatchStatus').on('click', function(){
                 var siteState = parseInt($('.anti_home_box [name="status"]').val());
                 var siteNames = [];
 
@@ -652,7 +652,7 @@ show_site_log: function (siteName, day) {
     			</div>\
     		</div>',
             success: function () {
-                $('.remove_logs').click(function () {
+                $('.remove_logs').on('click', function () {
                     var select = $('#selectLogDay').val();
                     var confirm = layer.confirm('是否清理&nbsp;[' + select + ']&nbsp;的日志？', {title: '提示',btn: ['确定', '取消'],icon: 0,closeBtn: 2}, function () {
                         var loadT = layer.msg('正在清理日志，请稍候..', {
@@ -767,7 +767,7 @@ site_exclude_path: function (siteName,path) {
         shadeClose: false,
         content: con,
         success:function(index,lay){
-            $("#select-exclude").change(function(){
+            $("#select-exclude").on('change', function(){
                 var exclude = $("#input-exclude").val()
                 var select_exclude = $(this).val();
                 $(this).val(path);
@@ -799,7 +799,7 @@ site_exclude_path_post: function (siteName, callback) {
                 </tr>';
         }
         $("#site_exclude_path_con").html(excludeBody);
-        $('.rule_out_box .bt_table .cust—checkbox,.rule_out_box .bt_table .cust—checkbox-input').click(function(){
+        $('.rule_out_box .bt_table .cust—checkbox,.rule_out_box .bt_table .cust—checkbox-input').on('click', function(){
             var checkbox = $(this).data('checkbox'),
             length = $('#site_exclude_path tbody tr').length,
             active = $(this).prop('checked');
@@ -828,7 +828,7 @@ site_exclude_path_post: function (siteName, callback) {
                 $('.rule_out_box [data-checkbox="all"]').removeClass('active');
             }
         });
-        $('.rule_out_box .setBatchStatus').click(function(){
+        $('.rule_out_box .setBatchStatus').on('click', function(){
             
             var siteState = parseInt($('.rule_out_box [name="status"]').val());
             var rules = [];
@@ -899,7 +899,7 @@ site_tmaper_ext: function (siteName,path) {
         shadeClose: false,
         content: con,
         success:function(index,lay){
-            $("#select-safe").change(function(){
+            $("#select-safe").on('change', function(){
                 var safe = $("#input-safe").val()
                 var select_safe = $(this).val();
                 $(this).val(path);
@@ -930,7 +930,7 @@ site_tmaper_ext_post: function (siteName, callback) {
             '","' + rdata.protectExt[i] + '")\' class="btlink">删除</a></td></tr>';
         }
         $("#site_exclude_path_con").html(protectBody);
-        $('.rule_protect_box .bt_table .cust—checkbox,.rule_protect_box .bt_table .cust—checkbox-input').click(function(){
+        $('.rule_protect_box .bt_table .cust—checkbox,.rule_protect_box .bt_table .cust—checkbox-input').on('click', function(){
             var checkbox = $(this).data('checkbox'),
             length = $('#site_exclude_path tbody tr').length,
             active = $(this).prop('checked'),
@@ -961,7 +961,7 @@ site_tmaper_ext_post: function (siteName, callback) {
             }
         });
 
-        $('.rule_protect_box .setBatchStatus').click(function(){
+        $('.rule_protect_box .setBatchStatus').on('click', function(){
             var siteState = parseInt($('.rule_protect_box [name="status"]').val());
             var rules = [];
             $('#site_exclude_path tbody tr .cust—checkbox-input.active').each(function(){

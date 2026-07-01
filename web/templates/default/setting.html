@@ -450,7 +450,7 @@ function migrateSites() {
 			content: '<div class="bt-form" style="padding: 25px 40px;">' + select_html + '</div>',
 			success: function(layero, index) {
 				// 监听单选框变化
-				layero.find('input[name="migrate_site_db_path"]').change(function() {
+				layero.find('input[name="migrate_site_db_path"]').on('change', function() {
 					if ($(this).val() === 'custom') {
 						$('#custom_db_path_div').show();
 					} else {

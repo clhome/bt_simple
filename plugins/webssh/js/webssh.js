@@ -99,11 +99,11 @@ function webShell_Resize(){
 }
 
 function webShell_Load(){
-    $(window).resize(function(){
+    $(window).on('resize', function(){
         webShell_Resize();
     });
 
-    $('.term_content_tab .term-tool-button').click(function(){
+    $('.term_content_tab .term-tool-button').on('click', function(){
         var container = $('.term-app-container');
         if ($(this).hasClass('tool-show')){
             container.removeClass('sidebar-collapsed');
@@ -121,7 +121,7 @@ function webShell_Load(){
 
 
 
-    $('.full_exit_screen').click(function(ele){
+    $('.full_exit_screen').on('click', function(ele){
         if($(this).hasClass('glyphicon-resize-full')){
             requestFullScreen($('#term_box_view')[0]);
             $(this).removeClass('glyphicon-resize-full').addClass('glyphicon-resize-small');
@@ -131,15 +131,15 @@ function webShell_Load(){
         }
     });
 
-    $('.addServer').click(function(){
+    $('.addServer').on('click', function(){
         webShell_addServer();
     });
 
-    $('.tootls_host_btn').click(function(){
+    $('.tootls_host_btn').on('click', function(){
         webShell_addServer();
     });
 
-    $('.tootls_commonly_btn').click(function(){
+    $('.tootls_commonly_btn').on('click', function(){
         webShell_cmd();
     });
 
@@ -165,7 +165,7 @@ function webShell_Load(){
     webShell_getCmdList();
 
     //服务器列表和命令切换
-    $('.term_tootls .tab-nav span').click(function(){
+    $('.term_tootls .tab-nav span').on('click', function(){
         var list_type = $(this).attr('data-type');
         if (!$(this).hasClass('on')){
 
@@ -265,13 +265,13 @@ function webShell_getCmdList(){
     
         $('.tootls_commonly_list').html(tli);
 
-        $('.data-cmd-list .glyphicon-edit').click(function(){
+        $('.data-cmd-list .glyphicon-edit').on('click', function(){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
             webShell_cmd(t['title'], t['cmd'], t['title']);
         });
 
-        $('.data-cmd-list .glyphicon-trash').click(function(){
+        $('.data-cmd-list .glyphicon-trash').on('click', function(){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
             appPost('del_cmd', {title:t['title']}, function(rdata){
@@ -282,7 +282,7 @@ function webShell_getCmdList(){
             });
         });
 
-        $('.data-cmd-list .span_title').click(function(e){
+        $('.data-cmd-list .span_title').on('click', function(e){
             e.preventDefault();
             var cmd = $(this).parent().attr('data-clipboard-text');
             var cur_ssh = $('.term_item_tab .list .active');
@@ -410,13 +410,13 @@ function webShell_getHostList(info){
     
         $('.tootls_host_list').html(tli);
 
-        $('.data-host-list .glyphicon-edit').click(function(e){
+        $('.data-host-list .glyphicon-edit').on('click', function(e){
             var index = $(this).parent().parent().attr('data-index');
             var info = alist[index];
             webShell_addServer(info);
         });
 
-        $('.data-host-list .glyphicon-trash').click(function(e){
+        $('.data-host-list .glyphicon-trash').on('click', function(e){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
             appPost('del_server', {host:t['host']}, function(rdata){
@@ -532,7 +532,7 @@ function webShell_addServer(info=[]){
                 });
             }
 
-            $('.auth_type_checkbox').click(function(){
+            $('.auth_type_checkbox').on('click', function(){
                 var ctype = $(this).attr('data-ctype');
                 $('.auth_type_checkbox').removeClass('btn-success');
                 $(this).addClass('btn-success');
