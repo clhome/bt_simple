@@ -12,7 +12,7 @@ function memcachedStatus() {
     		return;
     	}
         
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if ($.isEmptyObject(rdata)){
             showMsg('memcached服务没有启动!', function(){}, undefined, 3000);
             return;
@@ -52,7 +52,7 @@ function memcachedCache() {
             return;
         }
         
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if ($.isEmptyObject(rdata)){
             showMsg('memcached服务没有启动!', function(){}, undefined, 3000);
             return;

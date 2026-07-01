@@ -23,7 +23,7 @@ function varnishStatus() {
 
         var rdata;
         try {
-            rdata = typeof(data.data) === 'string' ? $.parseJSON(data.data) : data.data;
+            rdata = typeof(data.data) === 'string' ? JSON.parse(data.data) : data.data;
         } catch(e) {
             layer.msg('解析 Varnish 状态数据失败！', {icon: 0, time: 2000, shade: [0.3, '#000']});
             var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">解析 Varnish 状态数据失败。这通常是因为 Varnish 服务未正常启动或未生成状态 JSON 序列。</div>';

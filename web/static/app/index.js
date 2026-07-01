@@ -49,7 +49,7 @@ $('#LoadList .mask').hover(function() {
 
 
 function showCpuTips(rdata){
-    $('#cpuChart .mask').unbind().hover(function() {
+    $('#cpuChart .mask').off().hover(function() {
         var cpuText = '';
         if (rdata.cpu[2].length == 1){
             var cpuUse = parseFloat(rdata.cpu[2][0] == 0 ? 0 : rdata.cpu[2][0]).toFixed(1);
@@ -505,7 +505,7 @@ function setImg() {
             };
         });
 
-        $('.diskbox .mask').unbind().hover(function() {
+        $('.diskbox .mask').off().hover(function() {
             layer.closeAll('tips');
             var that = this;
             var conterError = $(this).attr("data");
@@ -1046,9 +1046,9 @@ function loadKeyDataCount(){
             var rdata;
             try {
                 if (typeof rdata_raw === 'string') {
-                    rdata_raw = $.parseJSON(rdata_raw);
+                    rdata_raw = JSON.parse(rdata_raw);
                 }
-                rdata = typeof rdata_raw.data === 'string' ? $.parseJSON(rdata_raw.data) : rdata_raw.data;
+                rdata = typeof rdata_raw.data === 'string' ? JSON.parse(rdata_raw.data) : rdata_raw.data;
             } catch(e) {
                 continue;
             }

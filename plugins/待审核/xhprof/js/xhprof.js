@@ -33,7 +33,7 @@ function xhAsyncPost(method,args){
 
 function homePage(){
     xhPost('get_home_page', '', function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
@@ -79,7 +79,7 @@ function phpVerChange(type, msg) {
 //xhprf 安全设置
 function safeConf() {
     var data = xhAsyncPost('get_xhprof_port');
-    var rdata = $.parseJSON(data.data);
+    var rdata = JSON.parse(data.data);
     if (!rdata.status){
         layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
         return;
@@ -102,7 +102,7 @@ function xhprofPort() {
     var data = 'port=' + pmport;
     
     xhPost('set_xhprof_port',data, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }

@@ -60,7 +60,7 @@ function phpPostCallback(method, version, args,callback){
 function phpSetConfig(version) {
     phpPost('get_php_conf', version,'',function(data){
         // console.log(data);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var mlist = '';
         for (var i = 0; i < rdata.length; i++) {
@@ -116,7 +116,7 @@ function submitConf(version) {
     };
 
     phpPost('submit_php_conf', version, data, function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -126,7 +126,7 @@ function submitConf(version) {
 //php超时限制
 function phpCommonFunc(version){
     phpPost('get_limit_conf', version, '', function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         var con = '<p class="conf_p">\
             <span>超时限制</span>\
             <input class="phpTimeLimit bt-input-text mr5" type="number" value="' + rdata['maxTime'] + '">, 秒\
@@ -154,7 +154,7 @@ function phpCommonFunc(version){
 function setPHPMaxTime(version) {
     var max = $(".phpTimeLimit").val();
     phpPost('set_max_time',version,{'time':max},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
             phpCommonFunc(version);
         },{ icon: rdata.status ? 1 : 2 });
@@ -171,7 +171,7 @@ function setPHPMaxSize(version) {
     }
 
     phpPost('set_max_size',version,{'max':max},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -229,7 +229,7 @@ function phpFpmConfigFile(version, func, pool = 'www'){
         layer.close(loadT);
 
         try{
-            var jdata = $.parseJSON(data.data);
+            var jdata = JSON.parse(data.data);
             if (!jdata['status']){
                 layer.msg(jdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
                 return;
@@ -279,7 +279,7 @@ function phpFpmConfigFile(version, func, pool = 'www'){
 function getFpmConfig(version, pool = 'www'){
     phpPost('get_fpm_conf', version, {'pool':pool}, function(data){
         // console.log(data);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var limitList = "<option value='0'>自定义</option>" +
             "<option value='0' " + (rdata.max_children == 2 ? 'selected' : '') + ">2并发</option>" +
@@ -438,7 +438,7 @@ function setFpmConfig(version){
         pool:pool,
     };
     phpPost('set_fpm_conf', version, data, function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -446,7 +446,7 @@ function setFpmConfig(version){
 
 function getFpmStatus(version, pool = 'www'){
     phpPost('get_fpm_status', version, {'pool':pool}, function(ret_data){
-        var tmp_data = $.parseJSON(ret_data.data);
+        var tmp_data = JSON.parse(ret_data.data);
         if(!tmp_data.status){
             layer.msg(tmp_data.msg, { icon: tmp_data.status ? 1 : 2 });
             return;
@@ -508,7 +508,7 @@ function getFpmStatus(version, pool = 'www'){
 
 function getSessionConfig(version){
     phpPost('get_session_conf', version, '', function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         if(!rdata.status){
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             return;
@@ -599,7 +599,7 @@ function getSessionConfig(version){
 
         //load session stats
         phpPost('get_session_count', version, '', function(ret_data){
-            var rdata = $.parseJSON(ret_data.data);
+            var rdata = JSON.parse(ret_data.data);
             if(!rdata.status){
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 return;
@@ -619,7 +619,7 @@ function getSessionConfig(version){
 
             $('#clean_func').click(function(){
                 phpPost('clean_session_old', version, '', function(ret_data){
-                    var rdata = $.parseJSON(ret_data.data);
+                    var rdata = JSON.parse(ret_data.data);
                     showMsg(rdata.msg,function(){
                         getSessionConfig(version);
                     },{ icon: rdata.status ? 1 : 2 });
@@ -642,7 +642,7 @@ function setSessionConfig(version){
         save_handler:save_handler,
     };
     phpPost('set_session_conf', version, data, function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -651,7 +651,7 @@ function setSessionConfig(version){
 //禁用函数
 function disableFunc(version) {
     phpPost('get_disable_func', version,'',function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var disable_functions = rdata.disable_functions.split(',');
         var dbody = ''
         for (var i = 0; i < disable_functions.length; i++) {
@@ -706,7 +706,7 @@ function setDisableFunc(version, act, fs) {
     };
 
     phpPost('set_disable_func', version,data,function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         showMsg(rdata.status ? msg : rdata.msg, function(){
             disableFunc(version);
         } ,{ icon: rdata.status ? 1 : 2 });        
@@ -757,7 +757,7 @@ function getPHPInfo(version) {
 function phpLibConfig(version){
 
     // phpPost('get_lib_conf', version, {}, function(rdata){
-        // var rdata = $.parseJSON(rdata.data);
+        // var rdata = JSON.parse(rdata.data);
     // });
     
     phpPostCallback('get_lib_conf', version, {}, function(rdata){
@@ -829,7 +829,7 @@ function installPHPLib(version, name, title, pathinfo) {
         var data = "name=" + name + "&version=" + version + "&type=1";
 
         phpPost('install_lib', version, data, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             showMsg(rdata.msg, function(){
                 getTaskCount();
@@ -846,7 +846,7 @@ function uninstallPHPLib(version, name, title, pathinfo) {
         name = name.toLowerCase();
         var data = 'name=' + name + '&version=' + version;
         phpPost('uninstall_lib', version, data, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             showMsg(rdata.msg, function(){
                 getTaskCount();
@@ -860,7 +860,7 @@ function uninstallPHPLib(version, name, title, pathinfo) {
 function tunePhpConfig(version) {
     layer.confirm('您确定要对 PHP-' + version + ' 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？', { icon: 3, closeBtn: 2 }, function() {
         phpPost('tune_php_config', version, '', function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){
                 getFpmConfig(version);
             },{ icon: rdata.status ? 1 : 2 });

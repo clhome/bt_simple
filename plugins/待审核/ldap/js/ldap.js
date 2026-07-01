@@ -57,7 +57,7 @@ function ldapPostCallbak(method, version, args,callback){
 function getLadpConfig(version) {
     ladpPost('get_redis_conf', version,'',function(data){
         // console.log(data);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var mlist = '';
         for (var i = 0; i < rdata.length; i++) {
@@ -100,7 +100,7 @@ function submitConf(version) {
     };
 
     redisPost('submit_ladp_conf', version, data, function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }

@@ -69,7 +69,7 @@ function ssPostCallbak(method, args, callback){
 
 function getSafeConfigPathList(tag){
     ssPost('get_safe_data', {tag:tag}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var slist = rdata.data.paths;
 
         var body = '';
@@ -100,7 +100,7 @@ function getSafeConfigPathList(tag){
         $('.safe_path_delete').click(function(){
             var id = $(this).attr('row');
             ssPost('del_safe_path',{tag:tag,index:id}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     getSafeConfigPathList(tag);
                 },{icon:rdata.status?1:2,shade: [0.3, '#000']},2000);
@@ -156,7 +156,7 @@ function setSafeConfigPath(tag, alist){
                 var chattr = $('select[name="chattr"]').val();
                 var d_mode = $('input[name="d_mode"]').val();
                 ssPost('add_safe_path',{tag:tag,path:path,chattr:chattr,d_mode:d_mode}, function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     showMsg(rdata.msg, function(){
                         getSafeConfigPathList(tag);
                     },{icon:rdata.status?1:2,shade: [0.3, '#000']},2000);
@@ -174,7 +174,7 @@ function setSafeConfigSsh(tag, alist){
 
     function setSafeConfigSshData(){
         ssPost('get_ssh_data', {}, function(rdata){
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             var info = rdata.data;
 
             $('input[name="s_cycle"]').val(info['cycle']);
@@ -210,7 +210,7 @@ function setSafeConfigSsh(tag, alist){
                 var limit_count = $('input[name="s_limit_count"]').val();
                 var limit = $('input[name="s_limit"]').val();
                 ssPost('save_safe_ssh',{cycle:cycle,limit_count:limit_count,limit:limit}, function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     showMsg(rdata.msg, function(){
                         setSafeConfigSshData();
                     },{icon:rdata.status?1:2,shade: [0.3, '#000']},2000);
@@ -223,7 +223,7 @@ function setSafeConfigSsh(tag, alist){
 
 function setSafeConfigProcessList(tag){
     ssPost('get_process_data', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var slist = rdata.data.process_white;
 
         var body = '';
@@ -238,7 +238,7 @@ function setSafeConfigProcessList(tag){
         $('.safe_path_delete').click(function(){
             var id = $(this).attr('row');
             ssPost('del_safe_proccess_name',{tag:tag,index:id}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     setSafeConfigProcessList(tag);
                 },{icon:rdata.status?1:2,shade: [0.3, '#000']},2000);
@@ -279,7 +279,7 @@ function setSafeConfigProcess(tag, alist){
             $('.add_process_white').click(function(){
                 var process_name = $('input[name="s_name"]').val();
                 ssPost('add_process_white',{process_name:process_name}, function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     showMsg(rdata.msg, function(){
                         setSafeConfigProcessList(tag);
                     },{icon:rdata.status?1:2,shade: [0.3, '#000']},2000);
@@ -313,7 +313,7 @@ function setSafeStatus(obj,tag){
     var o = $(obj).prev();
     var status = $(o).prop('checked');
     ssPost('set_safe_status', {tag:tag,status:!status}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
 
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -327,7 +327,7 @@ function setSafeStatus(obj,tag){
 function ssConfigList(){
 
     ssPost('conf',{},function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var libs = rdata.data;
         // console.log(libs);
         var body = '';
@@ -396,7 +396,7 @@ function ssConfigList(){
 
 function ssOpLogList(p){
     ssPost('op_log',{p:p},function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var plist = rdata.data.data;
 
         var body = '';
@@ -427,7 +427,7 @@ function ssOpLog(){
 
 function ssLogAuditList(){
     ssPost('get_sys_logfiles',{},function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var plist = rdata.data;
         var option = '';
         // console.log(plist);
@@ -492,7 +492,7 @@ function ssLogAuditFileRenderObject(plist){
 function ssLogAuditFile(log_name){
     // ssPost('get_sys_log',{log_name:log_name},function(rdata){
     //     try{
-    //         var rdata = $.parseJSON(rdata.data);
+    //         var rdata = JSON.parse(rdata.data);
     //         if (typeof(rdata.data) == 'object'){
                 
     //             if (!rdata.status){
@@ -511,7 +511,7 @@ function ssLogAuditFile(log_name){
 
     ssPostCallbak('get_sys_log',{log_name:log_name},function(rdata){
         try{
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             if (typeof(rdata.data) == 'object'){
                 if (!rdata.status){
                     layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -539,7 +539,7 @@ function ssLogAudit(){
 
 function ssLockAddressList(){
     ssPost('get_ssh_limit_info',{},function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var libs = rdata.data;
         var tbody = '';
         for (var i in libs) {
@@ -559,7 +559,7 @@ function ssLockAddressList(){
         $('#system_lock_address .remove_ssh_limit').click(function(){
             var address = $(this).attr('ip');
             ssPost('remove_ssh_limit', {ip:address}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     ssLockAddressList();
                 },{icon:rdata.status?1:2,shade: [0.3, '#000']},2000);
@@ -596,7 +596,7 @@ function ssLockAddress(){
     $('.add_lock_address').click(function(){
         var address = $('input[name="s_address"]').val();
         ssPost('add_ssh_limit', {ip:address}, function(rdata){
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             showMsg(rdata.msg, function(){
                 ssLockAddressList();
             },{icon:rdata.status?1:2,shade: [0.3, '#000']},2000);

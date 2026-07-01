@@ -31,7 +31,7 @@ function swapPost(method, version, args,callback){
 
 function swapStatus() {
     swapPost('swap_status', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var size = parseInt(rdata.data['size']) || 0;           // 插件专属 Swap (MB)
         var system_total = parseInt(rdata.data['system_total']) || 0; // 系统实际总 Swap (MB)
         var mem_total = parseInt(rdata.data['mem_total']) || 0;       // 物理内存总量 (MB)
@@ -191,7 +191,7 @@ function submitSwap(){
             return;
         }
 
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5, time: 3000 });
         swapStatus();
     }, 'json');

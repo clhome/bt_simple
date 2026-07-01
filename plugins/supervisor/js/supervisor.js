@@ -42,7 +42,7 @@ function supList(page, search){
     }
 
     myPost('get_sup_list', _data, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata.data);
         var list = '';
         for(i in rdata.data){
@@ -121,7 +121,7 @@ function supList(page, search){
 
 function startOrStop(name,status){
 	myPost('start_job',{'name':name,'status':status}, function(data){
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		showMsg(rdata.msg, function(){
 			supList(1,10);
 		},{icon:rdata.status?1:2}, rdata.status ? 2000 : 10000);
@@ -130,7 +130,7 @@ function startOrStop(name,status){
 
 function restartJob(name,status){
 	myPost('restart_job',{'name':name,'status':status}, function(data){
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		setTimeout(function(){
 			supList(1,10);
@@ -140,7 +140,7 @@ function restartJob(name,status){
 
 function updateJob(name){
 	myPost('get_job_info',{'name':name},function(data){
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		// console.log(rdata);
 		var defaultPath = $("#defaultPath").html();
 		var ulist = "<div class='line'><span class='tname'>启动用户</span><select class='bt-input-text' name='user' id='c_k3' style='width:270px'>";
@@ -210,7 +210,7 @@ function updateJob(name){
 			　　}
 
 				myPost("update_job", opval, function(data){
-					rdata = $.parseJSON(data.data);
+					rdata = JSON.parse(data.data);
 					layer.msg(rdata.msg,{icon:rdata.status?1:2});
 					rdata.status ? layer.close(index):'';
 					supList(1,10);
@@ -231,7 +231,7 @@ function delJob(name) {
         myPost('del_job', data, function(rdata){
         	layer.close(loadT)
 
-        	rdata = $.parseJSON(rdata.data);
+        	rdata = JSON.parse(rdata.data);
          	supList(1,10);
          	layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
@@ -242,7 +242,7 @@ function delJob(name) {
 //添加站点
 function supAdd() {
 	myPost('get_user_list',{},function(data){
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		// console.log(rdata);
 
 		var defaultPath = $("#defaultPath").html();
@@ -328,7 +328,7 @@ function supAdd() {
 			　　}
 
 				myPost("add_job", opval, function(data){
-					rdata = $.parseJSON(data.data);
+					rdata = JSON.parse(data.data);
 					layer.msg(rdata.msg,{icon:rdata.status?1:2});
 					rdata.status ? layer.close(index):'';
 					supList(1,10);
@@ -380,7 +380,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
 
     var fileName = '';
     $.post('/plugins/run',{name:_name, func:_config_tpl_func,version:version}, function(data){
-    	var rdata = $.parseJSON(data.data);
+    	var rdata = JSON.parse(data.data);
     	for (var i = 0; i < rdata.length; i++) {
     		$('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
     	}
@@ -409,7 +409,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
     			var _args = JSON.stringify({file:selected});
     			$.post('/plugins/run', {name:_name, func:_read_config_tpl_func,version:version,args:_args}, function(data){
     				layer.close(loadT);
-    				var rdata = $.parseJSON(data.data);
+    				var rdata = JSON.parse(data.data);
     				if (!rdata.status){
 		                layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
 		                return;
@@ -432,7 +432,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
 		            });
 		            editor.focus();
 		            $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-		            $("#onlineEditFileBtn").unbind('click');
+		            $("#onlineEditFileBtn").off('click');
 		            $("#onlineEditFileBtn").click(function(){
 		                $("#textBody").html(editor.getValue());
 		                pluginConfigSave(fileName);
@@ -494,7 +494,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     function clearLog(file){
     	$('#sup_clear_log').click(function(){
     		myPost('sup_clear_log', {'file':file}, function (data) {
-    			var rdata = $.parseJSON(data.data);
+    			var rdata = JSON.parse(data.data);
     			layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
     		});
     	});
@@ -504,7 +504,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     	$('#sup_error_log').click(function(){
     		var _args = JSON.stringify({file:file,line:file_line});
 			$.post('/plugins/run', {name:_name, func:'read_config_log_error_tpl',args:_args}, function(data){
-				var rdata = $.parseJSON(data.data);
+				var rdata = JSON.parse(data.data);
 				if (!rdata.status){
 	                layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
 	                return;
@@ -519,7 +519,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     $.post('/plugins/run', {name:_name, func:_config_tpl_func},function (data) {
         layer.close(loadT);
 
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
     	for (var i = 0; i < rdata.length; i++) {
     		$('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
     	}
@@ -537,7 +537,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
 			var _args = JSON.stringify({file:selected,line:file_line});
 			$.post('/plugins/run', {name:_name, func:_read_config_tpl_func,args:_args}, function(data){
 				layer.close(loadT);
-				var rdata = $.parseJSON(data.data);
+				var rdata = JSON.parse(data.data);
 				if (!rdata.status){
 	                layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
 	                return;
@@ -580,7 +580,7 @@ function confdList(page, search){
     }
 
     myPost('confd_list', _data, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata.data);
         var list = '';
         for(i in rdata.data){

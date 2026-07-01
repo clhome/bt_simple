@@ -53,7 +53,7 @@ function createDir(){
             var loadT = layer.msg('正在创建目录['+dirname+']...',{icon:16,time:0,shade: [0.3, '#000']});
             msodPost('create_dir', {path:path,name:dirname}, function(data){
             	layer.close(loadT);
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 if(rdata.status) {
                     showMsg(rdata.msg, function(){
                         layer.close(index);
@@ -72,7 +72,7 @@ function createDir(){
 function authApi(){
 
     msodPost('conf', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
 
         // console.log(rdata);
         // console.log(rdata.data.auth_url);
@@ -90,7 +90,7 @@ function authApi(){
 		        success: function(){
 		        	$('#clear_auth').click(function(){
 		        		msodPost('clear_auth', {}, function(rdata){
-							var rdata = $.parseJSON(rdata.data);
+							var rdata = JSON.parse(rdata.data);
 							showMsg(rdata.msg,function(){
 								layer.close(loadOpen);
 					            odList('/');
@@ -132,7 +132,7 @@ function authApi(){
 						}
 						// console.log(url);
 						msodPost('set_auth_url', {url:url}, function(rdata){
-							var rdata = $.parseJSON(rdata.data);
+							var rdata = JSON.parse(rdata.data);
 							var show_time = 2000;
 							if (!rdata.status){
 								show_time = 10000;
@@ -170,7 +170,7 @@ function upPathLeft(){
 
 function odList(path){
     msodPost('get_list', {path:path}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if(rdata.status === false){
             showMsg(rdata.msg,function(){
                 authApi();
@@ -220,11 +220,11 @@ function odList(path){
 
         upPathLeft();
 
-        $('#backBtn').unbind().click(function() {
+        $('#backBtn').off().click(function() {
             odList(backPath);
         });
 
-        $('.upyunCon .refreshBtn').unbind().click(function(){
+        $('.upyunCon .refreshBtn').off().click(function(){
             odList(path);
         });
     });
@@ -238,7 +238,7 @@ function deleteFile(name, is_dir){
             var path = $("#myPath").val();
             var filename = name;
             msodPost('delete_file', {filename:filename,path:path}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg,function(){
                     odList(path);
                 },{icon:rdata.status?1:2},2000);
@@ -248,7 +248,7 @@ function deleteFile(name, is_dir){
         safeMessage('删除文件夹','删除后将无法恢复，真的要删除['+name+']吗?',function(){
             var path = $("#myPath").val();
             msodPost('delete_dir', {dir_name:name,path:path}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg,function(){
                     odList(path);
                 },{icon:rdata.status?1:2},2000);

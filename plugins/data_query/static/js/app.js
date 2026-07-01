@@ -1,4 +1,4 @@
-$(document).ready(function(){
+$(function() {
     var tag = $.getUrlParam('tag');
     if(tag == 'data_query'){
         initDataQuery();
@@ -183,12 +183,12 @@ function initTabRedis(){
     //渲染数据
     redisGetList();
 
-    $('#redis_add_key').unbind('click').click(function(){
+    $('#redis_add_key').off('click').click(function(){
         redisAdd();
     });
 
     //搜索
-    $('#redis_ksearch').unbind('click').keyup(function(e){
+    $('#redis_ksearch').off('click').keyup(function(e){
         if (e.keyCode == 13){
             var val = $(this).val();
             if (val == ''){
@@ -199,7 +199,7 @@ function initTabRedis(){
         }
     });
 
-    $('#redis_ksearch_span').unbind('click').click(function(){
+    $('#redis_ksearch_span').off('click').click(function(){
         var val = $('#redis_ksearch').val();
         if (val == ''){
             layer.msg('搜索不能为空!',{icon:7});
@@ -209,12 +209,12 @@ function initTabRedis(){
     });
 
     //批量删除
-    $('#redis_batch_del').unbind('click').click(function(){
+    $('#redis_batch_del').off('click').click(function(){
         redisBatchDel();
     });
 
     //清空所有
-    $('#redis_clear_all').unbind('click').click(function(){
+    $('#redis_clear_all').off('click').click(function(){
         redisBatchClear();
     });
 
@@ -230,11 +230,11 @@ function initTabMongodb(){
 function initTabMemcached(){
     memcachedGetList();
 
-    $('#memcached_add_key').unbind('click').click(function(){
+    $('#memcached_add_key').off('click').click(function(){
         memcachedAdd();
     });
 
-    $('#memcached_clear_all').unbind('click').click(function(){
+    $('#memcached_clear_all').off('click').click(function(){
         var sid = memcachedGetSid();
         memPostCB('clear',{'sid':sid} ,function(rdata){
             // console.log(rdata);
@@ -266,7 +266,7 @@ function initTabMySQL(){
         }
     },2000);
 
-    $('#mysql_list_tab .tab-nav span').unbind('click').click(function(){
+    $('#mysql_list_tab .tab-nav span').off('click').click(function(){
         $('#mysql_list_tab .tab-nav span').removeClass('on');
         $(this).addClass('on');
         var name = $(this).data('name');
@@ -746,7 +746,7 @@ function mysqlCommonFuncLockSQL(){
         success:function(i,l){
             renderSQL();
 
-            $('#kill_all').unbind('click').click(function(){
+            $('#kill_all').off('click').click(function(){
                 var sid = mysqlGetSid();
                 myPostCB('kill_all_lock', {'sid':sid}, function(rdata){
                     var data = rdata.data;
@@ -816,7 +816,7 @@ function mysqlCommonFuncSlaveStatus(){
 }
 
 function mysqlCommonFunc(){
-    $('#mysql_common').unbind('click').click(function(){
+    $('#mysql_common').off('click').click(function(){
         layer.open({
             type: 1,
             title: "MySQL常用功能",
@@ -915,7 +915,7 @@ function mysqlInitField(f, data){
 
     $('select[name="mysql_field_key"]').html(option_html);
 
-    $('#mysql_find').unbind('click').click(function(){
+    $('#mysql_find').off('click').click(function(){
         var val = $('input[name="mysql_field_value"]').val();
         if (val == ''){
             layer.msg('搜索不能为空!',{icon:7});
@@ -1370,7 +1370,7 @@ function mongodbInitField(f, data){
 
     $('select[name="mongodb_field_key"]').html(option_html);
 
-    $('#mongodb .mongodb_find').unbind('click').click(function(){
+    $('#mongodb .mongodb_find').off('click').click(function(){
         var val = $('input[name="mongodb_field_value"]').val();
         if (val == ''){
             layer.msg('搜索不能为空!',{icon:7});
@@ -1379,7 +1379,7 @@ function mongodbInitField(f, data){
         mongodbDataList(1);
     });
 
-    $('#mongodb .mongodb_refresh').unbind('click').click(function(){
+    $('#mongodb .mongodb_refresh').off('click').click(function(){
         mongodbDataList(1);
     });
 }

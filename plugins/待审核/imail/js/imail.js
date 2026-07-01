@@ -40,7 +40,7 @@ var mail  = {
                 return;
             }
 
-            var ret_data = $.parseJSON(res.data);
+            var ret_data = JSON.parse(res.data);
             console.log("send:",ret_data);
             // if (!ret_data.status){
             //     layer.msg(ret_data.msg,{icon:2,time:2000});
@@ -81,7 +81,7 @@ var mail  = {
                 return;
             }
 
-            var ret_data = $.parseJSON(res.data);
+            var ret_data = JSON.parse(res.data);
               if (!ret_data.status){
                 layer.msg(ret_data.msg,{icon:2,time:2000});
                 return;

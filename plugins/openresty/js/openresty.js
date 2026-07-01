@@ -60,7 +60,7 @@ function orPluginOpService(a, b, v,request_callback) {
     }
     layer.confirm( msgTpl('您真的要{1}{2}{3}服务吗？', [d,a,v]), {icon:3,closeBtn: 2}, function() {
         orPost('get_os',{},function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             if (!rdata['auth']){
                 layer.prompt({title: '检查到权限不足,需要输入密码!', formType: 1},function(pwd, index){
                 
@@ -116,7 +116,7 @@ function getOpStatus() {
     $.post('/plugins/run', {name:'openresty', func:'run_info'}, function(data) {
         layer.close(loadT); 
         try {
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             if ('status' in rdata && !rdata.status){
                 showMsg(rdata.msg, function(){}, null,3000);
                 return;
@@ -141,7 +141,7 @@ function getOpStatus() {
 
 function setOpCfg(){
     orPost('get_cfg', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var rdata = rdata.data;
         // console.log(rdata);
 
@@ -184,7 +184,7 @@ function setOpCfg(){
 function restoreDefault() {
     layer.confirm('您确定要将配置还原为默认调优配置吗？这会覆盖您当前的自定义调整并重载服务。', {icon:3,closeBtn: 2}, function() {
         orPost('get_os',{},function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             var c = "name=openresty&func=reload";
             if (!rdata['auth']){
                 layer.prompt({title: '检查到权限不足,需要输入密码!', formType: 1},function(pwd, index){
@@ -236,7 +236,7 @@ function submitConf() {
 
     // console.log(data);
     orPost('set_cfg', data, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -252,14 +252,14 @@ function otherFunc(){
 
 function cronAddCheck(){
     orPost('cron_add_check', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
 
 function cronDelCheck(){
     orPost('cron_del_check', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }

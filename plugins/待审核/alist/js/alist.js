@@ -56,7 +56,7 @@ function alistPostCallbak(method, version, args,callback){
 function clearTaskCopy(){
     layer.confirm('您真的要清空复制任务吗?', { icon: 3, closeBtn: 2 }, function() {
         alistPost('clear_copy_task', '', {}, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){},{ icon: rdata.status ? 1 : 2 });
         });
     });
@@ -64,7 +64,7 @@ function clearTaskCopy(){
 
 function commonHomePage(){
     alistPost('home_page', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         window.open(rdata.data);
     });
 }

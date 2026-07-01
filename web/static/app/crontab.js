@@ -944,7 +944,7 @@ function editTaskInfo(id){
                         obj.from.day_type = $(this).val();
                     });
 		
-					$('[aria-labelledby="cycle"] a').unbind().click(function () {
+					$('[aria-labelledby="cycle"] a').off().click(function () {
 						$('.cycle_btn').find('b').attr('val',$(this).attr('value')).html($(this).html());
 						var type = $(this).attr('value');
 						switch(type){
@@ -1023,16 +1023,16 @@ function editTaskInfo(id){
 						obj.from.type = $(this).attr('value');
 					});
 		
-					$('[aria-labelledby="week"] a').unbind().click(function () {
+					$('[aria-labelledby="week"] a').off().click(function () {
 						$('.week_btn').find('b').attr('val',$(this).attr('value')).html($(this).html());
 						obj.from.week = $(this).attr('value');
 					});
 		
-					$('[aria-labelledby="backupTo"] a').unbind().click(function () {
+					$('[aria-labelledby="backupTo"] a').off().click(function () {
 						$('.backup_btn').find('b').attr('val',$(this).attr('value')).html($(this).html());
 						obj.from.backup_to = $(this).attr('value');
 					});
-					$('.plan-submits').unbind().click(function(){
+					$('.plan-submits').off().click(function(){
 						if(obj.from.type == 'hour-n'){
 							obj.from.where1 = obj.from.hour;
 							obj.from.hour = '';

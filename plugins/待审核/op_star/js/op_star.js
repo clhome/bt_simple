@@ -9,7 +9,7 @@ function osPost(method, args, callback){
         }
         
         try {
-            var inner = $.parseJSON(data.data);
+            var inner = JSON.parse(data.data);
             if(inner && typeof inner.status !== 'undefined') {
                 if(inner.status === false) {
                     layer.msg(inner.msg, {icon:0, time:2000, shade: [0.3, '#000']});
@@ -33,7 +33,7 @@ function osPostN(method, args, callback){
         }
         
         try {
-            var inner = $.parseJSON(data.data);
+            var inner = JSON.parse(data.data);
             if(inner && typeof inner.status !== 'undefined') {
                 if(inner.status === false) {
                     layer.msg(inner.msg, {icon:0, time:2000, shade: [0.3, '#000']});
@@ -137,7 +137,7 @@ function wafDashboard(){
     osPostN('get_logs', {}, function(data){
         var logs = [];
         try {
-            logs = $.parseJSON(data.data);
+            logs = JSON.parse(data.data);
         } catch(e) {
             logs = [];
         }
@@ -162,7 +162,7 @@ function wafDashboard(){
 // ---------------- 防护全局开关 ----------------
 function wafGlobalConfig(){
     osPost('get_rule', {rule_name: 'base'}, function(data){
-        var config = $.parseJSON(data.data);
+        var config = JSON.parse(data.data);
         
         var con = '<div class="card-box">\
             <p style="font-size:15px;font-weight:bold;margin-bottom:15px;color:#333;">OpenStar 安全防御模块总控开关</p>\
@@ -217,7 +217,7 @@ function wafGlobalConfig(){
 
 function toggleGlobalModule(key){
     osPostN('get_rule', {rule_name: 'base'}, function(data){
-        var config = $.parseJSON(data.data);
+        var config = JSON.parse(data.data);
         
         if (key === 'args_Mod' || key === 'post_Mod') {
             if (typeof config[key] !== 'object') {
@@ -259,7 +259,7 @@ function wafRulesConfig(ruleName){
     osPost('get_rule', {rule_name: currentRuleName}, function(data){
         var rules = [];
         try {
-            rules = $.parseJSON(data.data);
+            rules = JSON.parse(data.data);
         } catch(e) {
             rules = [];
         }
@@ -404,7 +404,7 @@ function saveWafRule(){
     osPostN('get_rule', {rule_name: currentRuleName}, function(data){
         var rules = [];
         try {
-            rules = $.parseJSON(data.data);
+            rules = JSON.parse(data.data);
         } catch(e) {
             rules = [];
         }
@@ -437,7 +437,7 @@ function saveWafRule(){
 
 function toggleRuleState(index){
     osPostN('get_rule', {rule_name: currentRuleName}, function(data){
-        var rules = $.parseJSON(data.data);
+        var rules = JSON.parse(data.data);
         var rule = rules[index];
         if (Array.isArray(rule)) {
             rule[3] = rule[3] == 'on' ? 'off' : 'on';
@@ -455,7 +455,7 @@ function toggleRuleState(index){
 function deleteRule(index){
     safeMessage('删除规则', '您确认要删除这条匹配正则规则吗？', function(){
         osPostN('get_rule', {rule_name: currentRuleName}, function(data){
-            var rules = $.parseJSON(data.data);
+            var rules = JSON.parse(data.data);
             rules.splice(index, 1);
             
             osPost('save_rule', {rule_name: currentRuleName, rule_data: JSON.stringify(rules)}, function(res){
@@ -471,7 +471,7 @@ function wafIpList(){
     osPost('get_rule', {rule_name: 'ip_Mod'}, function(data){
         var rules = [];
         try {
-            rules = $.parseJSON(data.data);
+            rules = JSON.parse(data.data);
         } catch(e) {
             rules = [];
         }
@@ -540,7 +540,7 @@ function addIpRule(){
     osPostN('get_rule', {rule_name: 'ip_Mod'}, function(data){
         var rules = [];
         try {
-            rules = $.parseJSON(data.data);
+            rules = JSON.parse(data.data);
         } catch(e) {
             rules = [];
         }
@@ -559,7 +559,7 @@ function addIpRule(){
 function deleteIpRule(index){
     safeMessage('移除策略', '您确认要彻底删除该 IP 的防护策略吗？', function(){
         osPostN('get_rule', {rule_name: 'ip_Mod'}, function(data){
-            var rules = $.parseJSON(data.data);
+            var rules = JSON.parse(data.data);
             rules.splice(index, 1);
             
             osPost('save_rule', {rule_name: 'ip_Mod', rule_data: JSON.stringify(rules)}, function(res){
@@ -575,7 +575,7 @@ function wafBlockedHistory(){
     osPost('get_logs', {}, function(data){
         var logs = [];
         try {
-            logs = $.parseJSON(data.data);
+            logs = JSON.parse(data.data);
         } catch(e) {
             logs = [];
         }
@@ -637,7 +637,7 @@ function wafTemplates(){
     osPost('get_templates', {}, function(data){
         var templates = [];
         try {
-            templates = $.parseJSON(data.data);
+            templates = JSON.parse(data.data);
         } catch(e) {
             templates = [];
         }

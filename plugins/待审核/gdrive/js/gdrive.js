@@ -58,7 +58,7 @@ function createDir(){
             var loadT = layer.msg('正在创建目录['+dirname+']...',{icon:16,time:0,shade: [0.3, '#000']});
             gdPost('create_dir', {parents:parents,name:dirname}, function(data){
             	layer.close(loadT);
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 if(rdata.status) {
                     showMsg(rdata.msg, function(){
                         layer.close(index);
@@ -81,7 +81,7 @@ function createDir(){
 function authApi(){
 
     gdPost('conf', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
 
         // console.log(rdata);
         // console.log(rdata.data.auth_url);
@@ -99,7 +99,7 @@ function authApi(){
 		        success: function(){
 		        	$('#clear_auth').click(function(){
 		        		gdPost('clear_auth', {}, function(rdata){
-							var rdata = $.parseJSON(rdata.data);
+							var rdata = JSON.parse(rdata.data);
 							showMsg(rdata.msg,function(){
 								layer.close(loadOpen);
 					            gdList('');
@@ -141,7 +141,7 @@ function authApi(){
 						}
 						// console.log(url);
 						gdPost('set_auth_url', {url:url}, function(rdata){
-							var rdata = $.parseJSON(rdata.data);
+							var rdata = JSON.parse(rdata.data);
 							var show_time = 2000;
 							if (!rdata.status){
 								show_time = 10000;
@@ -184,7 +184,7 @@ function getGDTime(a) {
 function gdList(file_id){
     $('#curPath').val(file_id);
     gdPost('get_list', {file_id:file_id}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         console.log(rdata);
         if(rdata.status === false){
             showMsg(rdata.msg,function(){
@@ -219,11 +219,11 @@ function gdList(file_id){
         $(".upyunCon .place-input ul").html(pathLi);
         $(".upyunlist .list-list").html(listBody);
 
-        $('#backBtn').unbind().click(function() {
+        $('#backBtn').off().click(function() {
             gdList('');
         });
 
-        $('.upyunCon .refreshBtn').unbind().click(function(){
+        $('.upyunCon .refreshBtn').off().click(function(){
             var file_id = $('#myPath').val();
             gdList(file_id);
         });
@@ -238,7 +238,7 @@ function deleteFile(name, is_dir){
             var path = $("#myPath").val();
             var filename = name;
             gdPost('delete_file', {filename:filename,path:path}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg,function(){
                     var file_id = $('#myPath').val();
                     gdList(file_id);
@@ -249,7 +249,7 @@ function deleteFile(name, is_dir){
         safeMessage('删除文件夹','删除后将无法恢复，真的要删除文件资源['+name+']吗?',function(){
             var path = $("#myPath").val();
             gdPost('delete_dir', {dir_name:name,path:path}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg,function(){
                     var file_id = $('#myPath').val();
                     gdList(file_id);

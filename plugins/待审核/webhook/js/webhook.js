@@ -161,7 +161,7 @@ function addHook(){
 
 
             whPostNoMessage('config_tpl','', function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 for (var i = 0; i < rdata.length; i++) {
                     $('#hook_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
                 }
@@ -176,7 +176,7 @@ function addHook(){
                     var loadT = layer.msg('配置模版获取中...',{icon:16,time:0,shade: [0.3, '#000']});
                     whPostNoMessage('read_config_tpl', {file:selected,title:title}, function(data){
                         layer.close(loadT);
-                        var rdata = $.parseJSON(data.data);
+                        var rdata = JSON.parse(data.data);
                         if (!rdata.status){
                             layer.msg(rdata.msg,{icon:16,time:2000,shade: [5, '#000']});
                             return;
@@ -211,7 +211,7 @@ function addHook(){
               shell: whEditor.getValue(),
             }
             // whPost('add_hook', data, function(rdata){
-            //     var rdata = $.parseJSON(rdata.data);
+            //     var rdata = JSON.parse(rdata.data);
             //     if (!rdata.status){
             //         layer.msg(rdata.msg,{icon:2});
             //         return;
@@ -223,7 +223,7 @@ function addHook(){
             // });
 
             whPostCallbak('addHookShell', '', data, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 if (!rdata.status){
                     layer.msg(rdata.msg,{icon:2});
                     return;
@@ -239,7 +239,7 @@ function addHook(){
 //获取列表
 function getHookList(){
     whPost('get_list', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var zbody = '';
         var mlist = rdata.data.list;
         var script_dir = rdata.data.script_dir;
@@ -284,7 +284,7 @@ function showWebHookCode(url,code){
 
 function getLogsTimer(path,success,error){
      whPostNoMessage('get_log', {"path":path}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status){
             if (typeof(error) == 'function'){
                 error();
@@ -348,7 +348,7 @@ function getLogs(path){
 //运行
 function runHook(key){
     whPost('run_shell', {"access_key":key}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2});
         }
@@ -362,7 +362,7 @@ function runHook(key){
 
 function getRunHookCmd(key) {
     whPost('run_shell_cmd', {"access_key":key}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2});
         }
@@ -394,7 +394,7 @@ function deleteHook(key, title){
         title:'是否删除Hook-['+ title +']任务，是否继续'
     },function(){
         whPost('del_hook', {"access_key":key}, function(rdata){
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             if (!rdata.status){
                 layer.msg(rdata.msg,{icon:2});
             }

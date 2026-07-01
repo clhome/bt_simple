@@ -127,7 +127,7 @@ function autoMakeConf(){
             });
 
             myPost('get_db_list', {"page":1,"page_size":20}, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 var dblist = rdata.data;
 
                 var db_html = '';
@@ -155,7 +155,7 @@ function autoMakeConf(){
             args['tables'] = xm_db_list.getValue('value').join(',');
             // console.log(args);
             spPost('db_to_sphinx', args, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 // console.log(rdata);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
@@ -173,7 +173,7 @@ function autoMakeConf(){
             return;
         }
         getDbInfo(db, function(rdata){
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             var tables = rdata.tables;
 
             var idx_db = [];
@@ -241,7 +241,7 @@ function secToTime(s) {
 
 function mcsRunStatus(){
     spPost('run_status', '', function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (!rdata['status']){
             layer.msg(rdata['msg'],{icon:2,time:2000,shade: [0.3, '#000']});
             return;
@@ -275,7 +275,7 @@ function mcsRunStatus(){
 
 function mcsReadme(){
     spPost('sphinx_cmd', '', function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (!rdata['status']){
             layer.msg(rdata['msg'],{icon:2,time:2000,shade: [0.3, '#000']});
             return;

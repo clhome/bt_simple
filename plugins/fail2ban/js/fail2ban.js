@@ -6,7 +6,7 @@ function f2bHome() {
     var loadT = layer.msg('正在获取数据...', { icon: 16, time: 0, shade: 0.3 });
     f2bPost('get_home_stats', '', {}, function(data){
         layer.close(loadT);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var stats = rdata.data;
         
         var todayBans = stats.today_bans || 0;
@@ -82,7 +82,7 @@ function f2bService() {
                 f2bPost('get_anti_info', '', {}, function(data) {
                     var rdata = {};
                     try {
-                        rdata = $.parseJSON(data.data);
+                        rdata = JSON.parse(data.data);
                     } catch(e) {}
                     var strict = true;
                     if (rdata && rdata.hasOwnProperty('strict')) {
@@ -104,7 +104,7 @@ function f2bService() {
                     $('#f2b_strict_mode').off('change').on('change', function() {
                         var isChecked = $(this).prop('checked');
                         f2bPost('set_strict_mode', '', { strict: isChecked }, function(res) {
-                            var r = $.parseJSON(res.data);
+                            var r = JSON.parse(res.data);
                             layer.msg(r.msg, { icon: r.status ? 1 : 2 });
                         });
                     });
@@ -185,7 +185,7 @@ function f2bPostCallbak(method, version, args, callback){
 
 function f2bBanIpSave(black_ip){
     f2bPost('ban_ip_release', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -202,7 +202,7 @@ function f2bLogs(){
         var loadT = layer.msg('正在获取日志...', { icon: 16, time: 0, shade: 0.3 });
         f2bPost('get_last_log', '', {}, function(data){
             layer.close(loadT);
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             $("#f2bLogBody").text(rdata.data);
             var textarea = document.getElementById('f2bLogBody');
             textarea.scrollTop = textarea.scrollHeight;
@@ -213,7 +213,7 @@ function f2bLogs(){
     $("#f2bClearLogBtn").click(function(){
         layer.confirm('确定要清空 fail2ban 的运行日志吗？', {title: '清空日志'}, function(index) {
             f2bPost('clear_log', '', {}, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 if (rdata.status) {
                     refreshLog();
@@ -254,7 +254,7 @@ function f2bBanIp() {
     $('.soft-man-con').html(html);
 
     f2bPost('get_active_bans', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if(!rdata.status) {
             $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center; color:red;">' + rdata.msg + '</td></tr>');
             return;
@@ -331,7 +331,7 @@ function f2bBanIp() {
                 var chunk = pendingIps.slice(i, i + chunkSize);
                 (function(ips) {
                     f2bPost('getIpLocationBatch', '', {ips: JSON.stringify(ips)}, function(data) {
-                        var loc_res = $.parseJSON(data.data);
+                        var loc_res = JSON.parse(data.data);
                         if (loc_res.status && loc_res.data) {
                             var batchData = loc_res.data;
                             for (var j = 0; j < batchData.length; j++) {
@@ -374,7 +374,7 @@ function f2bRemoveDropIp(ip, jail) {
         
         f2bPost('unban_active_ip', '', {'ip': ip, 'jail': jail}, function(sdata){
             layer.close(loadT);
-            var srdata = $.parseJSON(sdata.data);
+            var srdata = JSON.parse(sdata.data);
             if (srdata.status) {
                 layer.msg(srdata.msg, {icon: 1});
             } else {
@@ -393,7 +393,7 @@ function f2bAddDropIp() {
     }
     var loadT = layer.msg('正在添加...', {icon: 16, time: 0, shade: 0.3});
     f2bPost('get_black_list', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var ipListStr = rdata.data;
         var ipList = ipListStr ? ipListStr.split('\n').filter(function(x) { return x.trim() !== ''; }) : [];
         
@@ -407,7 +407,7 @@ function f2bAddDropIp() {
         
         f2bPost('set_black_ip', '', {'black_ip': JSON.stringify(ipList)}, function(sdata){
             layer.close(loadT);
-            var srdata = $.parseJSON(sdata.data);
+            var srdata = JSON.parse(sdata.data);
             layer.msg(srdata.msg, {icon: srdata.status ? 1 : 2});
             if (srdata.status) {
                 f2bBanIp();
@@ -423,7 +423,7 @@ function f2bServerAnti() {
     var loadT = layer.msg('正在获取配置...', { icon: 16, time: 0, shade: 0.3 });
     f2bPost('get_anti_info', '', {}, function(data){
         layer.close(loadT);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var serverRules = (rdata.data && rdata.data.server) ? rdata.data.server : [];
         var defaultSshPort = (rdata.data && rdata.data.default_ssh_port) ? rdata.data.default_ssh_port : '22';
         var defaultMysqlPort = (rdata.data && rdata.data.default_mysql_port) ? rdata.data.default_mysql_port : '3306';
@@ -508,7 +508,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
                 act: $('select[name="act"]').val()
             };
             f2bPost('set_anti', '', postData, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 if(rdata.status) {
                     layer.close(index);
@@ -522,7 +522,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
 function f2bDelAnti(mode) {
     layer.confirm('确定要删除并停用该防护规则吗？', {title: '停用规则'}, function(index) {
         f2bPost('del_anti', '', {mode: mode, type: 'edit'}, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             if(rdata.status) {
                 layer.close(index);
@@ -537,7 +537,7 @@ function f2bSiteAnti() {
     var loadT = layer.msg('正在拉取防护状态...', { icon: 16, time: 0, shade: 0.3 });
     f2bPost('get_anti_info', '', {}, function(data){
         layer.close(loadT);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var siteRules = (rdata.data && rdata.data.site) ? rdata.data.site : [];
         
         // 预设服务列表
@@ -625,7 +625,7 @@ function f2bLogRequest(page){
     args['tojs'] = 'f2bLogRequest';
 
     f2bPost('get_logs_list', '', args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -668,7 +668,7 @@ function f2bIpDetails(ip) {
     var loadT = layer.msg('正在获取详情...', { icon: 16, time: 0, shade: 0.3 });
     f2bPost('get_ip_logs', '', {ip: ip}, function(data){
         layer.close(loadT);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if(!rdata.status) {
             layer.msg(rdata.msg, {icon: 2});
             return;
@@ -792,7 +792,7 @@ function f2bSiteHistory(){
         var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         f2bPost('get_logs_list', '', args, function(rdata){
             layer.close(loadT);
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             var data = rdata.data.data;
             if(!data || data.length == 0) {
                 layer.msg("没有数据可导出", {icon: 2});
@@ -834,8 +834,8 @@ function f2bSiteHistory(){
                 });
 
                 var timeA  = value.split('-');
-                var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
-                var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+                var start = String(timeA[0]+'-'+timeA[1]+'-'+timeA[2]).trim()
+                var end = String(timeA[3]+'-'+timeA[4]+'-'+timeA[5]).trim()
                 var query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
 
                 $('#time_choose').attr("data-name",query_txt);

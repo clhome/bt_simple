@@ -256,7 +256,7 @@ speed_index: null,
 //查看面板运行日志
 get_run_logs: function () {
     appPost('get_run_logs',{},function (rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2 });
             return;
@@ -345,7 +345,7 @@ index: function (day) {
     var _this = this;
     $(".webDataStats-day").html("<div class='cloading' style='margin-top:120px'>加载中，请稍侯</div>");
     appPost('get_index', {day:day}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var rdata = rdata.data;
         if (rdata === false) {
             layer.closeAll();
@@ -515,7 +515,7 @@ index: function (day) {
 set_site_bath_status:function(config,fun){
     var siteNames = [];
     appPost('set_site_status_all', {siteNames:JSON.stringify(config.siteNames),siteState:config.siteState}, function(res){
-        var res = $.parseJSON(res.data);
+        var res = JSON.parse(res.data);
         setTimeout(function(){
             anti_tamper.get_speed();
         },1000);
@@ -552,7 +552,7 @@ service_status: function () {
         }
     }, function () {
         appPost('service_admin', {serviceStatus: _status}, function(rdata){
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             if (!rdata.status){
                 layer.msg(rdata.msg, {icon: 2,time: 2000,shade: 0.3});
                 $("#close_anti").prop("checked", false);
@@ -581,7 +581,7 @@ set_site_status: function (siteName, _lock, index) {
         }
     }, function () {
         appPost('set_site_status', {siteName: siteName}, function(rdata){
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             anti_tamper.get_day();
             layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
             // anti_tamper.get_speed();
@@ -598,7 +598,7 @@ show_site_log: function (siteName, day) {
         pdata['day'] = day;
     }
     appPost('get_safe_logs', {siteName: siteName,day: day}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var rdata = rdata.data;
 
         var selectLogDay = "";
@@ -689,7 +689,7 @@ show_site_log_con: function (siteName, day) {
     var _this = this;
     $("#site_waf_log").scrollTop(0);
     appPost('get_safe_logs', {siteName: siteName,day: day}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (rdata.logs == "") {
             layer.msg("暂无日志记录", {icon: 6,shade: 0.3,time: 1000});
             return;
@@ -788,7 +788,7 @@ site_exclude_path_post: function (siteName, callback) {
     var that = this;
     var pdata = {siteName: siteName};
     appPost('get_site_find',pdata,function (rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var rdata = rdata.data;
         var excludeBody = ''
         for (var i = 0; i < rdata.excludePath.length; i++) {
@@ -921,7 +921,7 @@ site_tmaper_ext_post: function (siteName, callback) {
     var pdata = {siteName: siteName};
 
     appPost('get_site_find',pdata,function (rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var rdata = rdata.data;
         var protectBody = ''
         for (var i = 0; i < rdata.protectExt.length; i++) {
@@ -987,7 +987,7 @@ site_tmaper_ext_post: function (siteName, callback) {
 // 批量删除排除规则 
 batch_del_rule_out:function(config){
     appPost('remove_excloud',{siteName:config.siteName,excludePath:config.rule},function(res){
-        var res = $.parseJSON(res.data);
+        var res = JSON.parse(res.data);
         if(!res.status && typeof res.msg  === "string"){
             layer.msg(res.msg, {icon: 1});
             return false;
@@ -1003,7 +1003,7 @@ add_exclude_path: function (siteName, path, event) {
     path = $("#input-exclude").val();
     pdata = {siteName: siteName,excludePath: path};
     appPost('add_excloud', pdata, function (rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (rdata.status) {
             $(event).prev().val('');
             anti_tamper.site_exclude_path_post(siteName, function () {
@@ -1033,7 +1033,7 @@ add_protect_ext: function (siteName, ext, event) {
     ext = $("#input-safe").val();
     pdata = {siteName: siteName,protectExt: ext}
     appPost('add_protect_ext',pdata, function (rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (rdata.status) {
             $(event).prev().val('');
             anti_tamper.site_tmaper_ext_post(siteName, function () {
@@ -1049,7 +1049,7 @@ remove_protect_ext: function (siteName, ext) {
     pdata = {siteName: siteName,protectExt: ext};
 
     appPost('remove_protect_ext',pdata, function (rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (rdata.status) {
             $(event).prev().val('');
             anti_tamper.site_tmaper_ext_post(siteName, function () {
@@ -1063,7 +1063,7 @@ remove_protect_ext: function (siteName, ext) {
 // 批量删除保护扩展名/文件名
 batch_del_ext_name:function(config){
     appPost('remove_protect_ext',{siteName:config.siteName,protectExt:config.rule},function(res){
-        var res = $.parseJSON(res.data);
+        var res = JSON.parse(res.data);
         if(!res.status && typeof res.msg  === "string"){
           layer.msg(res.msg, {icon: 1});
           return false;
@@ -1114,7 +1114,7 @@ operation_log: function (p) {
 // 模拟攻击
 sim_test: function (data, callback) {
     appPost('sim_test', data, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
 		if (rdata.status) {
 			callback && callback(rdata);
 		} else {

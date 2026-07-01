@@ -143,7 +143,7 @@ var ollama = {
         }
 
         // 绑定菜单栏高亮点击行为
-        $('.bt-w-menu p').unbind('click').click(function () {
+        $('.bt-w-menu p').off('click').click(function () {
             $(this).addClass('bgw').siblings().removeClass('bgw');
         });
     },
@@ -171,7 +171,7 @@ var ollama = {
 
             var ret_data = null;
             try {
-                ret_data = $.parseJSON(res.data);
+                ret_data = JSON.parse(res.data);
             } catch (e) {
                 ret_data = res.data;
             }

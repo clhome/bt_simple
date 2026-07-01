@@ -57,7 +57,7 @@ function redisPostCallbak(method, version, args,callback){
 function redisStatus(version) {
 
     redisPost('run_info',version, {},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -91,7 +91,7 @@ function redisStatus(version) {
 
 function replStatus(version){
     redisPost('info_replication', version, {},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -148,7 +148,7 @@ function replStatus(version){
 
 function clusterStatus(version){
     redisPost('cluster_info', version, {},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -199,7 +199,7 @@ function clusterStatus(version){
 
 function clusterNodes(version){
     redisPost('cluster_nodes', version, {},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -231,7 +231,7 @@ function clusterNodes(version){
 function getRedisConfig(version) {
     redisPost('get_redis_conf', version,'',function(data){
         // console.log(data);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var mlist = '';
         for (var i = 0; i < rdata.length; i++) {
@@ -274,7 +274,7 @@ function submitConf(version) {
     };
 
     redisPost('submit_redis_conf', version, data, function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }

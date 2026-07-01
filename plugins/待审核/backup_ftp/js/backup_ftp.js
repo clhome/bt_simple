@@ -34,7 +34,7 @@ var i = null;
 function upyunApi(){
 
     bkfPost('conf', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var token = rdata.data;
         var check_status = token.use_sftp;
         var sftp_checked = check_status === "true" ? " checked=\"checked\"" : "";
@@ -94,7 +94,7 @@ function upyunApi(){
                     backup_path:$("input[name='backup_path']").val()
                 }
                 bkfPost('set_config', data, function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     if (rdata.status){
                         showMsg(rdata.msg,function(){
                             layer.close(index);
@@ -139,7 +139,7 @@ function createDir(){
             var dirname = name;
             // var loadT = layer.msg('正在创建目录['+dirname+']...',{icon:16,time:0,shade: [0.3, '#000']});
             bkfPost('create_dir', {path:path,name:dirname}, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 if(rdata.status) {
                     showMsg(rdata.msg, function(){
                         layer.close(index);
@@ -160,7 +160,7 @@ function deleteFile(name, is_dir){
             var path = $("#myPath").val();
             var filename = name;
             bkfPost('delete_file', {filename:filename,path:path}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg,function(){
                     osList(path);
                 },{icon:rdata.status?1:2},2000);
@@ -170,7 +170,7 @@ function deleteFile(name, is_dir){
         safeMessage('删除文件夹','删除后将无法恢复，真的要删除['+name+']吗?',function(){
             var path = $("#myPath").val();
             bkfPost('delete_dir', {dir_name:name,path:path}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg,function(){
                     osList(path);
                 },{icon:rdata.status?1:2},2000);
@@ -182,7 +182,7 @@ function deleteFile(name, is_dir){
 function osList(path){
     bkfPost('get_list', {path:path}, function(rdata){
         
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if(rdata.status === false){
             showMsg(rdata.msg,function(){
                 upyunApi();
@@ -233,11 +233,11 @@ function osList(path){
 
         upPathLeft();
 
-        $('#backBtn').unbind().click(function() {
+        $('#backBtn').off().click(function() {
             osList(backPath);
         });
 
-        $('.upyunCon .refreshBtn').unbind().click(function(){
+        $('.upyunCon .refreshBtn').off().click(function(){
             osList(path);
         });
     });

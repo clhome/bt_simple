@@ -62,7 +62,7 @@ function dPostCallbak(method, version, args, callback) {
 
 function logsCon(id) {
     dPost('docker_con_log', '', { Hostname: id }, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2 });
             return;
@@ -90,7 +90,7 @@ function deleteCon(Hostname) {
     // 删除容器
     safeMessage('删除容器 ', '删除容器 [' + Hostname + '], 确定?', function() {
         dPost('docker_remove_con', '', { Hostname: Hostname }, function(rdata) {
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             showMsg(rdata.msg, function() {
                 if (rdata.status) {
                     dockerConListRender();
@@ -103,7 +103,7 @@ function deleteCon(Hostname) {
 
 function startCon(Hostname) {
     dPost('docker_run_con', '', { Hostname: Hostname }, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg, function() {
             if (rdata.status) {
                 dockerConListRender();
@@ -114,7 +114,7 @@ function startCon(Hostname) {
 
 function stopCon(Hostname) {
     dPost('docker_stop_con', '', { Hostname: Hostname }, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg, function() {
             if (rdata.status) {
                 dockerConListRender();
@@ -136,7 +136,7 @@ function execCon(Hostname) {
     }, 500);
     setTimeout(function() {
         dPost('docker_exec', '', { Hostname: Hostname }, function(res) {
-            var res = $.parseJSON(res.data);
+            var res = JSON.parse(res.data);
             if (!res.status) {
                 layer.msg(res.msg, { icon: res.status ? 1 : 2 });
             } else {
@@ -150,7 +150,7 @@ function execCon(Hostname) {
 
 function dockerConListRender() {
     dPost('con_list', '', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         console.log(rdata);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
@@ -198,7 +198,7 @@ function dockerConListRender() {
 function createConTemplate() {
 
     dPost('get_docker_create_info', '', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         var rdata = rdata.data;
         var imageOpt = '';
@@ -327,7 +327,7 @@ function createConTemplate() {
                     var loadT = layer.msg('正在检测中... <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
                     dPost('docker_port_check', '',{port:port}, function(rdata){
                         layer.close(loadT);
-                        var rdata = $.parseJSON(rdata.data);
+                        var rdata = JSON.parse(rdata.data);
                         if (rdata.status){
                             layer.msg('端口 [' + name2 + ']已在映射列表中！', { icon: 2 });
                             return;
@@ -459,7 +459,7 @@ function createConTemplate() {
 
                 // console.log(data);
                 dPost('docker_create_con','', data, function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     showMsg(rdata.msg,function(){
                         if(rdata.status) {
                             layer.close(layer_index);
@@ -499,7 +499,7 @@ function dockerConList() {
 function deleteImages(tag, id) {
     safeMessage('删除镜像', '删除镜像[' + tag + '],确定？', function() {
         dPost('docker_remove_image', '', { imageId: id, repoTags: tag }, function(rdata) {
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             showMsg(rdata.msg, function() {
                 if (rdata.status) {
                     dockerImageListRender();
@@ -516,7 +516,7 @@ function pullImages(tag, id) {
 
 function dockerImageListRender() {
     dPost('image_list', '', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
@@ -609,7 +609,7 @@ function dockerPullImagesFileTemplate() {
                     dPost('docker_pull_with_mirror', '', { images: name, mirrors: JSON.stringify([""]) }, function(rdata) {
                         layer.close(loadT);
                         var res = {status: false, msg: 'Unknown'};
-                        try { res = $.parseJSON(rdata.data); } catch(e) {}
+                        try { res = JSON.parse(rdata.data); } catch(e) {}
                         if (res.status) {
                             layer.close(layer_index);
                             layer.msg('已加入后台任务列表！', {icon: 1, time: 2000});
@@ -624,7 +624,7 @@ function dockerPullImagesFileTemplate() {
                 var loadT = layer.msg('正在准备拉取...', { icon: 16, time: 0, shade: 0.3 });
                 dPost('get_accelerator', '', {}, function(rdata) {
                     var res = {data: []};
-                    try { res = $.parseJSON(rdata.data); } catch(e) {}
+                    try { res = JSON.parse(rdata.data); } catch(e) {}
                     var rawData = res.data ? res.data : [];
                     var customMirrors = Array.isArray(rawData) ? rawData : (typeof rawData === 'string' ? [rawData] : []);
                     
@@ -655,7 +655,7 @@ function dockerPullImagesFileTemplate() {
                     dPost('docker_pull_with_mirror', '', { images: name, mirrors: JSON.stringify(allMirrors) }, function(rdata) {
                         layer.closeAll('dialog');
                         var pullRes = {status: false, msg: 'Unknown'};
-                        try { pullRes = $.parseJSON(rdata.data); } catch(e) {}
+                        try { pullRes = JSON.parse(rdata.data); } catch(e) {}
                         
                         if (pullRes.status) {
                             layer.close(layer_index);
@@ -676,7 +676,7 @@ function dockerPullImagesFileTemplate() {
                 }
 
                 dPost('docker_pull_reg', '', { path: path }, function(rdata) {
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     showMsg(rdata.msg, function() {
                         if (rdata.status) {
                             layer.close(layer_index);
@@ -693,7 +693,7 @@ function dockerPullImagesFileTemplate() {
                 }
 
                 dPost('docker_pull_private_new', '', { path: path }, function(rdata) {
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     showMsg(rdata.msg, function() {
                         if (rdata.status) {
                             layer.close(layer_index);
@@ -752,7 +752,7 @@ function dockerDeleteFile(fileName) {
 
 function dockerLoadFile(fileName) {
     dPost('image_pick_load', '', { file: fileName }, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg, function() {
             dockerImageOutputRender();
         }, { icon: rdata.status ? 1 : 2 });
@@ -761,7 +761,7 @@ function dockerLoadFile(fileName) {
 
 function dockerImageOutputRender() {
     dPost('image_pick_list', '', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 10000 });
             return;
@@ -833,7 +833,7 @@ function uploadImageFiles(upload_dir) {
 function dockerImagePick() {
 
     dPost('image_list', '', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var imageList = rdata.data;
         // console.log(imageList);
         var _tbody = '';
@@ -888,7 +888,7 @@ function dockerImagePick() {
                 }
 
                 dPost('image_pick_save', '', { images: data }, function(rdata) {
-                    var rdata = $.parseJSON(rdata['data']);
+                    var rdata = JSON.parse(rdata['data']);
                     showMsg(rdata.msg, function() {
                         dockerImageOutputRender();
                         layer.close(layerS);
@@ -926,7 +926,7 @@ function dockerImageOutput() {
             func: 'image_pick_dir',
             version: '',
         }, function(rdata) {
-            var rdata = $.parseJSON(rdata['data']);
+            var rdata = JSON.parse(rdata['data']);
             var upload_dir = rdata['data'];
             uploadImageFiles(upload_dir);
         });
@@ -938,7 +938,7 @@ function dockerImageOutput() {
 function deleteIpList(address) {
     safeMessage('删除IP', '你将删除从IP地址池[' + address + '],确定？', function() {
         dPost('docker_del_ip', '', { address: address }, function(rdata) {
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             showMsg(rdata.msg, function() {
                 if (rdata.status) {
                     dockerIpListRender();
@@ -950,7 +950,7 @@ function deleteIpList(address) {
 
 function dockerIpListRender() {
     dPost('docker_get_iplist', '', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
@@ -983,7 +983,7 @@ function dockerAddIpPool() {
     var netmask = $('input[name="netmask"]').val();
     var gateway = $('input[name="gateway"]').val();
     dPost('docker_add_ip', '', { address: address, netmask: netmask, gateway: gateway }, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg, function() {
             dockerIpListRender();
         }, { icon: rdata.status ? 1 : 2 })
@@ -1076,7 +1076,7 @@ function repoLogin() {
 
                 console.log(obj);
                 dPost('docker_login', '', args, function(rdata) {
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     console.log(rdata);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                     if (res.status) {
@@ -1095,7 +1095,7 @@ function delRepo(address) {
     safeMessage('退出', '你将退出 [' + address + '],确定?', function() {
         dPost('docker_logout', '', { registry: address },
             function(rdata) {
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 if (rdata.status) {
                     repoListRender();
@@ -1108,7 +1108,7 @@ function delRepo(address) {
 
 function repoListRender() {
     dPost('repo_list', '', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         console.log(rdata);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
@@ -1172,7 +1172,7 @@ function dockerAccelerator() {
         layer.close(loadT);
         var res = {data: []};
         try {
-            res = $.parseJSON(rdata.data);
+            res = JSON.parse(rdata.data);
         } catch(e) {}
         var rawData = res.data ? res.data : [];
         var mirrors = Array.isArray(rawData) ? rawData : (typeof rawData === 'string' ? [rawData] : []);
@@ -1253,7 +1253,7 @@ function saveDockerAccelerator() {
         layer.close(loadT);
         var res = {status: false, msg: '配置保存失败'};
         try {
-            res = $.parseJSON(rdata.data);
+            res = JSON.parse(rdata.data);
         } catch(e) {}
         if (res.status) {
             layer.msg(res.msg, { icon: 1 });

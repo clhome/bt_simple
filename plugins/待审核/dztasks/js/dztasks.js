@@ -55,7 +55,7 @@ function zdPostCallbak(method, version, args,callback){
 
 function commonHomePage(){
     zdPost('home_page', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         window.open(rdata.data);
     });
 }
@@ -75,7 +75,7 @@ function postCrossPort(data, url) {
 function dzLogin(){
 
     zdPost('run_info', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var info = rdata.data;
         var post_url = info['url']+'/do_login';
 

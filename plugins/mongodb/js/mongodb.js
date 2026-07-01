@@ -75,7 +75,7 @@ function mongoStatus() {
     		return;
     	}
 
-    	var rdata = $.parseJSON(data.data);
+    	var rdata = JSON.parse(data.data);
         var con = '<div class="divtable">\
 						<table class="table table-hover table-bordered" style="width: 660px;">\
 						<thead><th>字段</th><th>当前值</th><th>说明</th></thead>\
@@ -109,7 +109,7 @@ function mongoDocStatus() {
     		return;
     	}
 
-    	var rdata = $.parseJSON(data.data);
+    	var rdata = JSON.parse(data.data);
 
 		var t = '';
 		for(var i=0; i<rdata.dbs.length;i++){
@@ -145,7 +145,7 @@ function mongoReplStatus() {
     		return;
     	}
 
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		var rdata = rdata.data;
 
 		var tbody = '';
@@ -250,7 +250,7 @@ function mongoReplCfgReplSetName(){
             	return;
             }
             mgPost('repl_set_name', '',data, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata['status']){
                 		layer.close(index);
@@ -333,7 +333,7 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
             data['arbiterOnly'] = $('select[name=arbiterOnly]').val();
             data['idx'] = idx;
             mgPost('repl_set_node', '',data, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                 	if (rdata['status']){
                 		layer.close(index);
@@ -347,7 +347,7 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
 
 function mongoReplCfgDelNode(host){
 	mgPost('del_repl_node', '', {"node":host}, function(data){
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		// console.log(rdata['status']);
         showMsg(rdata.msg,function(){
         	if (rdata['status']){
@@ -359,7 +359,7 @@ function mongoReplCfgDelNode(host){
 
 function mongoReplCfgInit(){
 	mgPostN('get_repl_config', '', '', function(data){
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		$('#repl_name').html("同步副本："+rdata.data['name']);
 
 		var node = '';
@@ -415,7 +415,7 @@ function mongoReplCfg(){
         },
         yes:function(){
         	mgPost('repl_init', '', '', function(data){
-        		var rdata = $.parseJSON(data.data);
+        		var rdata = JSON.parse(data.data);
 				showMsg(rdata.msg,function(){
 					mongoReplStatus();
 		        },{icon: rdata.status ? 1 : 2});
@@ -432,7 +432,7 @@ function mongoReplCfg(){
         },
         btn5:function(){
         	mgPost('repl_close', '', '', function(data){
-        		var rdata = $.parseJSON(data.data);
+        		var rdata = JSON.parse(data.data);
 				showMsg(rdata.msg,function(){
 					if (rdata['status']){
 						mongoReplStatus();
@@ -447,7 +447,7 @@ function mongoReplCfg(){
 //配置修改
 function mongoSetConfig() {
     mgPost('get_config', '','',function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (!rdata['status']){
         	layer.msg(rdata['msg']);
         	return;
@@ -478,7 +478,7 @@ function mongoSetConfig() {
 
 function mongoConfigAuth(){
 	mgPost('set_config_auth', '','',function(rdata){
-		var rdata = $.parseJSON(rdata.data);
+		var rdata = JSON.parse(rdata.data);
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -493,7 +493,7 @@ function mongoConfigSave(){
 
 	mgPost('set_config', '',data,function(rdata){
 		// console.log(rdata);
-		var rdata = $.parseJSON(rdata.data);
+		var rdata = JSON.parse(rdata.data);
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -513,7 +513,7 @@ function dbList(page, search){
    	// console.log(_data);
     mgPost('get_db_list', '',_data, function(data){
     	// console.log(data);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var list = '';
         for(i in rdata.data){
@@ -636,7 +636,7 @@ function addDatabase(type){
                 dataObj['address'] = dataObj['dataAccess'];
             }
             mgPost('add_db', '',dataObj, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
                         layer.close(index);
@@ -652,7 +652,7 @@ function setRootPwd(type, pwd){
     if (type==1){
         var password = $("#MyPassword").val();
         mgPost('set_root_pwd', '',{password:password}, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
             },{icon: rdata.status ? 1 : 2});   
@@ -679,7 +679,7 @@ function setRootPwd(type, pwd){
         yes:function(layerIndex){
             var password = $("#MyPassword").val();
             mgPost('set_root_pwd', '',{password:password}, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(layerIndex);
                     dbList();
@@ -698,7 +698,7 @@ function setRootPwd(type, pwd){
                 layer.close(index);
                 var password = $("#MyPassword").val();
                 mgPost('set_root_pwd', '',{password:password,force:'1'}, function(data){
-                    var rdata = $.parseJSON(data.data);
+                    var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(layerIndex);
                         dbList();
@@ -712,7 +712,7 @@ function setRootPwd(type, pwd){
 
 function syncGetDatabase(){
     mgPost('sync_get_databases', '', '', function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
             dbList();
         },{ icon: rdata.status ? 1 : 2 });
@@ -744,7 +744,7 @@ function setDbPs(id, name, obj) {
         _span.text(ps).show();
         var data = {name:name,id:id,ps:ps};
         mgPost('set_db_ps', '',data, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
     });
@@ -759,7 +759,7 @@ function delDb(id, name){
     safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         mgPost('del_db', '', data, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
             },{icon: rdata.status ? 1 : 2}, 600);
@@ -771,7 +771,7 @@ function delDbTable( name, table_name){
     safeMessage('删除['+name+']','您真的要删除['+table_name+']吗？',function(){
         var data='name='+name+'&table_name='+table_name;
         mgPost('del_db_table', '', data, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 repTools(name);
             },{icon: rdata.status ? 1 : 2}, 600);
@@ -793,7 +793,7 @@ function delDbBatch(){
         var i = 0;
         $(arr).each(function(){
             var data  = mgAsyncPost('del_db', this);
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             if (!rdata.status){
                 layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
             }
@@ -836,7 +836,7 @@ function setDbPass(id, username, password){
             data['password'] = $('#MyPassword').val();
             data['id'] = $('input[name=id]').val();
             mgPost('set_user_pwd', '',data, function(data){
-                var rdata = $.parseJSON(data.data);
+                var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(index);
                     dbList();
@@ -849,7 +849,7 @@ function setDbPass(id, username, password){
 function repTools(db_name, res){
 	
     mgPost('get_db_info', '', {name:db_name}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var rdata = rdata.data;
 
         layer.open({
@@ -914,7 +914,7 @@ function repTools(db_name, res){
 		        	safeMessage('删除['+name+']','您真的要删除['+table_name+']吗？',function(){
 				        var data='name='+name+'&table_name='+table_name;
 				        mgPost('del_db_table', '', data, function(data){
-				            var rdata = $.parseJSON(data.data);
+				            var rdata = JSON.parse(data.data);
 				            showMsg(rdata.msg,function(){
 				            	layer.close(layer_index);
 				                repTools(name);
@@ -936,7 +936,7 @@ function syncToDatabase(type){
     });
     var postData = 'type='+type+'&ids='+JSON.stringify(data); 
     mgPost('sync_to_databases', '',postData, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         showMsg(rdata.msg,function(){
             dbList();
@@ -946,7 +946,7 @@ function syncToDatabase(type){
 
 function setDbAccess(username,name){
     mgPost('get_db_access','','username='+username, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
             return;
@@ -1016,7 +1016,7 @@ function setDbAccess(username,name){
                 dataObj['username'] = username;
                 dataObj['name'] = name;
                 mgPost('set_db_access', '',dataObj, function(data){
-                    var rdata = $.parseJSON(data.data);
+                    var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(index);
                         dbList();
@@ -1077,7 +1077,7 @@ function setBackup(db_name){
 
 function setBackupReq(db_name, obj){
      mgPost('get_db_backup_list', '', {name:db_name}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var tbody = '';
         for (var i = 0; i < rdata.data.length; i++) {
             tbody += '<tr>\
@@ -1159,7 +1159,7 @@ function setLocalImport(db_name){
 
     function getList(){
         mgPost('get_db_backup_import_list','',{}, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
 
             var file_list = rdata.data.list;
             var upload_dir = rdata.data.upload_dir;
@@ -1251,14 +1251,14 @@ function otherFunc(){
 
 function cronAddCheck(){
     mgPost('cron_add_check', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
 
 function cronDelCheck(){
     mgPost('cron_del_check', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }

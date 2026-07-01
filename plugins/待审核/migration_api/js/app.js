@@ -94,7 +94,7 @@ function initStep1(){
     var app_id = $('input[name="sync_app_id"]').val();
     var app_secret = $('input[name="sync_app_secret"]').val();
     maPost('step_one',{'url':url,'app_id':app_id,'app_secret':app_secret}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg,function(){
             if (rdata.status){
                 initStep2();
@@ -105,7 +105,7 @@ function initStep1(){
 
 function initStep2(){
     maPost('step_two',{}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         console.log(rdata);
         showMsg(rdata.msg,function(){
             if (rdata.status){
@@ -158,7 +158,7 @@ function initStep2(){
 
 function initStep3(){
     maPost('step_three',{}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg,function(){
             if (rdata.status){
                 selectProgress(3);
@@ -208,7 +208,7 @@ function initStep3(){
 
 function renderMigrationProgress(){
     maPostNoMsg('get_speed',{}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         // console.log('speed:',rdata.data);
         if (rdata.status){
             if (rdata['data']['action'] == 'True'){
@@ -260,7 +260,7 @@ function initStep4(){
     });
 
     maPost('step_four',{sites:site_checked,databases:databases_checked,plugin:plugin_checked}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         selectProgress(4);
 
         var progress = '<div style="margin: 0 40px;">\
@@ -288,7 +288,7 @@ function initStep4(){
 
 function initStep(){
     maPost('get_conf',{}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         $('input[name="sync_url"]').val(rdata.data['url']);
         $('input[name="sync_app_id"]').val(rdata.data['app_id']);
         $('input[name="sync_app_secret"]').val(rdata.data['app_secret']);

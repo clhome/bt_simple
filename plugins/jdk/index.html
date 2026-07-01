@@ -50,7 +50,7 @@
                 }
                 var rdata;
                 try {
-                    rdata = $.parseJSON(data.data);
+                    rdata = JSON.parse(data.data);
                 } catch(e) {
                     rdata = data.data;
                 }

@@ -134,7 +134,7 @@ function addNode(){
             var fail_timeout = $('input[name="fail_timeout"]').val();
 
             ooPost('check_url', {ip:ip,port:port,path:path},function(rdata){             
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     if (rdata.status){
                         layer.close(index);
@@ -312,7 +312,7 @@ function addBalance(){
             });
             data['node_list'] = node_list;
             ooPostCallbak('add_load_balance', data, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     layer.close(index);
                     loadBalanceListRender();
@@ -476,7 +476,7 @@ function editBalance(data, row){
             data['node_list'] = node_list;
             data['row'] = row;
             ooPostCallbak('edit_load_balance', data, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     layer.close(index);
                     loadBalanceListRender();
@@ -488,7 +488,7 @@ function editBalance(data, row){
 
 function loadBalanceListRender(){
     ooPost('load_balance_list', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var alist = rdata.data;
 
         var tbody = '';
@@ -519,7 +519,7 @@ function loadBalanceListRender(){
         $('#nodeTable .health_status').click(function(){
             var row = $(this).data('row');
             ooPost('get_health_status', {row:row}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
 
                 var tval = '';
                 for (var i = 0; i < rdata.data.length; i++) {
@@ -566,7 +566,7 @@ function loadBalanceListRender(){
         $('#nodeTable .delete').click(function(){
             var row = $(this).data('row');
             ooPost('load_balance_delete', {row:row}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     loadBalanceListRender();
                 },{ icon: rdata.status ? 1 : 2 }, 2000);

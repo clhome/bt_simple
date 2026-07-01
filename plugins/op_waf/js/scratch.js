@@ -1,8 +1,8 @@
 
 function setHoneypotDialog() {
     owPost('waf_conf', {}, function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         var paths = [];
         if (rdata.honeypot && rdata.honeypot.paths) {
             paths = rdata.honeypot.paths;
@@ -34,7 +34,7 @@ function saveHoneypotPaths() {
     var lines = rawText.split('\n');
     var paths = [];
     for (var i = 0; i < lines.length; i++) {
-        var line = $.trim(lines[i]);
+        var line = String(lines[i]).trim();
         if (line !== '') {
             if (line.charAt(0) !== '/') {
                 line = '/' + line;
@@ -46,7 +46,7 @@ function saveHoneypotPaths() {
     var loadT = layer.msg('正在保存配置...', {icon: 16, time: 0, shade: 0.3});
     owPost('setHoneypotPaths', {paths: JSON.stringify(paths)}, function(res_raw) {
         layer.close(loadT);
-        var res = $.parseJSON(res_raw.data);
+        var res = JSON.parse(res_raw.data);
         layer.msg(res.msg, {icon: res.status ? 1 : 2});
         if (res.status) {
             setTimeout(function(){

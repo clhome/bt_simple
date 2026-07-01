@@ -187,7 +187,7 @@ function wsOverviewRequest(page){
     // console.log(select_option);
 
     wsPost('get_overview_list', '' ,args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
         var statData = rdata.data.stat_list;
@@ -391,7 +391,7 @@ function wsOverviewRequest(page){
 
                 wsOriginPost("get_logs_realtime_info",'',{"site":args["site"], "type":select_option,'second':second} , function(rdata){    
                     
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
 
                     var realtime_traffic = rdata.data['realtime_traffic'];
                     var realtime_request = rdata.data['realtime_request'];
@@ -554,8 +554,8 @@ laydate.render({
         });
 
         var timeA  = value.split('-')
-        var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
-        var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+        var start = String(timeA[0]+'-'+timeA[1]+'-'+timeA[2]).trim()
+        var end = String(timeA[3]+'-'+timeA[4]+'-'+timeA[5]).trim()
         query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
 
         $('#time_choose').attr("data-name",query_txt);
@@ -636,7 +636,7 @@ $('.indicators-container input[type=radio]').click(function(){
 wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = $.parseJSON(rdata.data);
+    var rdata = JSON.parse(rdata.data);
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -673,7 +673,7 @@ function wsSitesListRequest(page){
 
     wsPost('get_site_list', '' ,args, function(rdata){
 
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var data = rdata.data;
 
 
@@ -762,7 +762,7 @@ function wsSitesListRequest(page){
 
             var domain = data[index]["site"];
             wsPost('get_site_conf', '' ,{"site":domain}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 var rdata = rdata.data;
                 console.log(rdata);
                 layer.open({
@@ -906,7 +906,7 @@ function wsSitesListRequest(page){
                             }
 
                             wsPost('set_site_conf','', args, function(rdata){
-                                var rdata = $.parseJSON(rdata.data);
+                                var rdata = JSON.parse(rdata.data);
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
                         }
@@ -925,7 +925,7 @@ function wsSitesListRequest(page){
                             }
                             args['exclude_url'] = list;
                             wsPost('set_site_conf','', args, function(rdata){
-                                var rdata = $.parseJSON(rdata.data);
+                                var rdata = JSON.parse(rdata.data);
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
                         }
@@ -936,7 +936,7 @@ function wsSitesListRequest(page){
                             args["record_post_args"] = record_post_args;
                             args['record_get_403_args'] = record_get_403_args;
                             wsPost('set_site_conf','', args, function(rdata){
-                                var rdata = $.parseJSON(rdata.data);
+                                var rdata = JSON.parse(rdata.data);
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
                         }
@@ -1006,8 +1006,8 @@ laydate.render({
         });
 
         var timeA  = value.split('-')
-        var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
-        var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+        var start = String(timeA[0]+'-'+timeA[1]+'-'+timeA[2]).trim()
+        var end = String(timeA[3]+'-'+timeA[4]+'-'+timeA[5]).trim()
         query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
 
         $('#time_choose').attr("data-name",query_txt);
@@ -1070,7 +1070,7 @@ function wsSpiderStatLogRequest(page){
 
     args['tojs'] = 'wsSpiderStatLogRequest';
     wsPost('get_spider_stat_list', '' ,args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -1312,8 +1312,8 @@ laydate.render({
         });
 
         var timeA  = value.split('-')
-        var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
-        var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+        var start = String(timeA[0]+'-'+timeA[1]+'-'+timeA[2]).trim()
+        var end = String(timeA[3]+'-'+timeA[4]+'-'+timeA[5]).trim()
         query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
 
         $('#time_choose').attr("data-name",query_txt);
@@ -1346,7 +1346,7 @@ $('select[name="status_code"]').change(function(){
 wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = $.parseJSON(rdata.data);
+    var rdata = JSON.parse(rdata.data);
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -1388,7 +1388,7 @@ function wsClientStatLogRequest(page){
 
     args['tojs'] = 'wsClientStatLogRequest';
     wsPost('get_client_stat_list', '' ,args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -1705,8 +1705,8 @@ laydate.render({
         });
 
         var timeA  = value.split('-')
-        var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
-        var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+        var start = String(timeA[0]+'-'+timeA[1]+'-'+timeA[2]).trim()
+        var end = String(timeA[3]+'-'+timeA[4]+'-'+timeA[5]).trim()
         query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
 
         $('#time_choose').attr("data-name",query_txt);
@@ -1739,7 +1739,7 @@ $('select[name="status_code"]').change(function(){
 wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = $.parseJSON(rdata.data);
+    var rdata = JSON.parse(rdata.data);
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -1773,7 +1773,7 @@ function wsIpStatLogRequest(page){
 
     args['tojs'] = 'wsIpStatLogRequest';
     wsPost('get_ip_stat_list', '' ,args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data;
         // console.log(rdata,data);
@@ -1857,7 +1857,7 @@ $('#search_time button').click(function(){
 wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = $.parseJSON(rdata.data);
+    var rdata = JSON.parse(rdata.data);
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -1890,7 +1890,7 @@ function wsUriStatLogRequest(page){
 
     args['tojs'] = 'wsUriStatLogRequest';
     wsPost('get_uri_stat_list', '' ,args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data;
         // console.log(rdata,data);
@@ -1972,7 +1972,7 @@ $('#search_time button').click(function(){
 wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = $.parseJSON(rdata.data);
+    var rdata = JSON.parse(rdata.data);
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -2017,7 +2017,7 @@ function wsTableErrorLogRequest(page){
 
     args['tojs'] = 'wsTableErrorLogRequest';
     wsPost('get_logs_error_list', '' ,args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -2144,8 +2144,8 @@ laydate.render({
         });
 
         var timeA  = value.split('-');
-        var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
-        var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+        var start = String(timeA[0]+'-'+timeA[1]+'-'+timeA[2]).trim()
+        var end = String(timeA[3]+'-'+timeA[4]+'-'+timeA[5]).trim()
         query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
 
         $('#time_choose').attr("data-name",query_txt);
@@ -2178,7 +2178,7 @@ $('select[name="status_code"]').change(function(){
 wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = $.parseJSON(rdata.data);
+    var rdata = JSON.parse(rdata.data);
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -2259,7 +2259,7 @@ function wsTableLogRequest(page){
     wsPost('get_logs_list', '' ,args, function(rdata){
     // wsPostCallbak('get_logs_list', '' ,args, function(rdata){
         $('#logs_search').attr('req','end');
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
         // console.log(data);
@@ -2351,7 +2351,7 @@ function wsTableLogRequest(page){
             var req_data_html = res.method +' ' + res.uri + '<br/>';
 
             try {
-                var req_data = $.parseJSON(request_headers);
+                var req_data = JSON.parse(request_headers);
                 for (var d in req_data) {
                     if (d == 'payload'){
                         req_data_html += '<b style="color:red;">'+d +"</b>:"+req_data[d]+"<br/>";
@@ -2489,7 +2489,7 @@ var html = '<div>\
             </div>';
 $(".soft-man-con").html(html);
 
-$('input[name="ip"]').bind('focus', function(e){
+$('input[name="ip"]').on('focus', function(e){
     $(this).keyup(function(e){
         if(e.keyCode == 13) {
             wsTableLogRequest(1);
@@ -2497,7 +2497,7 @@ $('input[name="ip"]').bind('focus', function(e){
     });
 });
 
-$('input[name="search_uri"]').bind('focus', function(e){
+$('input[name="search_uri"]').on('focus', function(e){
     $(this).keyup(function(e){
         if(e.keyCode == 13) {
             wsTableLogRequest(1);
@@ -2522,8 +2522,8 @@ laydate.render({
         });
 
         var timeArr  = value.split('~');
-        var start = $.trim(timeArr[0]);
-        var end = $.trim(timeArr[1]);
+        var start = String(timeArr[0]).trim();
+        var end = String(timeArr[1]).trim();
         query_txt = toUnixTime(start) + "-"+ toUnixTime(end);
 
         $('#time_choose').attr("data-name",query_txt);
@@ -2579,7 +2579,7 @@ $('#logs_search').click(function(){
 wsPost('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = $.parseJSON(rdata.data);
+    var rdata = JSON.parse(rdata.data);
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';

@@ -9,12 +9,12 @@
     <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon" />
     {% if data['use_cdn'] == 'yes' %}
 <link
-      href="https://cdn.staticfile.org/twitter-bootstrap/3.3.5/css/bootstrap.min.css"
+      href="https://cdn.staticfile.org/twitter-bootstrap/3.4.1/css/bootstrap.min.css"
       rel="stylesheet"
-      onerror="this.onerror=null;this.href='/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}'"
+      onerror="this.onerror=null;this.href='/static/bootstrap-3.4.1/css/bootstrap.min.css?v={{config.version}}'"
     />
 {% else %}
-<link href="/static/bootstrap-3.3.5/css/bootstrap.min.css?v={{config.version}}" rel="stylesheet" />
+<link href="/static/bootstrap-3.4.1/css/bootstrap.min.css?v={{config.version}}" rel="stylesheet" />
 {% endif %}
     {% if data['use_cdn'] == 'yes' %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/layer/3.5.1/theme/default/layer.css" rel="stylesheet" onerror="this.onerror=null;this.href='/static/layer/skin/default/layer.css?v={{config.version}}'" />
@@ -111,11 +111,14 @@
 
         <!-- jQuery -->
         {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/jquery/1.12.4/jquery.min.js"></script>
-<script>window.jQuery || document.write('<script src="/static/js/jquery-1.12.4.min.js"><\/script>')</script>
+<script src="https://cdn.staticfile.org/jquery/3.7.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/static/js/jquery-3.7.1.min.js"><\/script>')</script>
 {% else %}
-<script src="/static/js/jquery-1.12.4.min.js"></script>
+<script src="/static/js/jquery-3.7.1.js"></script>
 {% endif %}
+
+        <!-- jQuery Migrate -->
+        <script src="/static/js/jquery-migrate-3.4.1.js"></script>
 
         <!-- jQuery Cookie -->
         {% if data['use_cdn'] == 'yes' %}
@@ -127,7 +130,7 @@
 
         <!-- Bootstrap -->
         {% if data['use_cdn'] == 'yes' %}
-<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
 <script>$.fn.modal || document.write('<script src="/static/js/bootstrap.min.js"><\/script>')</script>
 {% else %}
 <script src="/static/js/bootstrap.min.js"></script>
@@ -339,7 +342,7 @@
 
   <!-- Pjax 局部刷新逻辑 -->
   <script type="text/javascript">
-    $(document).ready(function() {
+    $(function() {
         // 绑定左侧菜单点击事件
         $(document).on('click', '.menu a', function(e) {
             var url = $(this).attr('href');
@@ -438,7 +441,9 @@
                     function runInlineScripts() {
                         inlineScripts.forEach(function(s) {
                             try {
-                                $.globalEval(s.text);
+                                var script = document.createElement('script');
+                                script.text = s.text;
+                                document.head.appendChild(script).parentNode.removeChild(script);
                             } catch(e) {
                                 console.error("Inline script error:", e);
                             }

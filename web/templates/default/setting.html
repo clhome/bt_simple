@@ -463,12 +463,12 @@ function migrateSites() {
 				if (res.paths && res.paths.length > 0) {
 					var selected_val = $('input[name="migrate_site_db_path"]:checked').val();
 					if (selected_val === 'custom') {
-						final_path = $.trim($('#custom_site_db_path').val());
+						final_path = String($('#custom_site_db_path').val()).trim();
 					} else {
 						final_path = selected_val;
 					}
 				} else {
-					final_path = $.trim($('#custom_site_db_path').val());
+					final_path = String($('#custom_site_db_path').val()).trim();
 				}
 
 				if (!final_path) {

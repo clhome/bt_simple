@@ -16,7 +16,7 @@
 $('input[name="webname"]').change(function(){
 	var webname = $(this).val();
 	$('.btn_webname').removeAttr('disabled');
-	$('.btn_webname').unbind().click(function(){
+	$('.btn_webname').off().click(function(){
 		$.post('/setting/set_webname','webname='+webname, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
@@ -27,7 +27,7 @@ $('input[name="webname"]').change(function(){
 $('input[name="host_ip"]').change(function(){
 	var host_ip = $(this).val();
 	$('.btn_host_ip').removeAttr('disabled');
-	$('.btn_host_ip').unbind().click(function(){
+	$('.btn_host_ip').off().click(function(){
 		$.post('/setting/set_ip','host_ip='+host_ip, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
@@ -38,7 +38,7 @@ $('input[name="port"]').change(function(){
 	var port = $(this).val();
 	var old_port = $(this).data('port');
 	$('.btn_port').removeAttr('disabled');
-	$('.btn_port').unbind().click(function(){
+	$('.btn_port').off().click(function(){
 		$.post('/setting/set_port','port='+port, function(rdata){
 			showMsg(rdata.msg,function(){
 				window.location.href = window.location.href.replace(old_port,port);
@@ -51,7 +51,7 @@ $('input[name="port"]').change(function(){
 $('input[name="sites_path"]').change(function(){
 	var sites_path = $(this).val();
 	$('.btn_sites_path').removeAttr('disabled');
-	$('.btn_sites_path').unbind().click(function(){
+	$('.btn_sites_path').off().click(function(){
 		$.post('/setting/set_www_dir','sites_path='+sites_path, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
@@ -62,7 +62,7 @@ $('input[name="sites_path"]').change(function(){
 $('input[name="backup_path"]').change(function(){
 	var backup_path = $(this).val();
 	$('.btn_backup_path').removeAttr('disabled');
-	$('.btn_backup_path').unbind().click(function(){
+	$('.btn_backup_path').off().click(function(){
 		$.post('/setting/set_backup_dir','backup_path='+backup_path, function(rdata){
 			showMsg(rdata.msg,function(){window.location.reload();},{icon:rdata.status?1:2},2000);
 		},'json');
@@ -73,7 +73,7 @@ $('input[name="backup_path"]').change(function(){
 $('input[name="bind_domain"]').change(function(){
 	var domain = $(this).val();
 	$('.btn_bind_domain').removeAttr('disabled');
-	$('.btn_bind_domain').unbind().click(function(){
+	$('.btn_bind_domain').off().click(function(){
 		$.post('/setting/set_panel_domain','domain='+domain, function(rdata){
 			if (domain == '') {
 				// 清空域名直接重启跳转

@@ -2,7 +2,7 @@
 function wsGlobalSetting(){
 ////////////////////////////////////////////////
 wsPost('get_global_conf', '' ,{}, function(rdata){
-	var rdata = $.parseJSON(rdata.data);
+	var rdata = JSON.parse(rdata.data);
 	var rdata = rdata.data;
 	var html = '<div id="webstats">\
 		<div class="ws_setting">\
@@ -162,7 +162,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 		var num = $('input[name="ip_top_num"]').val();
 		if(num == '' || num <= 0 || num > 2000) return layer.msg('请设置1-2000范围的统计数量',{icon:2});
 		wsPost('set_global_conf','',{ip_top_num:num}, function(rdata){
-			var rdata = $.parseJSON(rdata.data);
+			var rdata = JSON.parse(rdata.data);
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		});
 	});
@@ -171,7 +171,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 		var num = $('input[name="uri_top_num"]').val();
 		if(num == '' || num <= 0 || num > 2000) return layer.msg('请设置1-2000范围的统计数量',{icon:2})
 		wsPost('set_global_conf','',{uri_top_num:num}, function(rdata){
-			var rdata = $.parseJSON(rdata.data);
+			var rdata = JSON.parse(rdata.data);
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		});
 	});
@@ -179,7 +179,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 	$('#save_day').click(function(){
 		var num = $('input[name="save_day"]').val();
 		wsPost('set_global_conf','',{save_day:num}, function(rdata){
-			var rdata = $.parseJSON(rdata.data);
+			var rdata = JSON.parse(rdata.data);
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		});
 	});
@@ -208,7 +208,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 			}
 
 			wsPost('set_global_conf','', args, function(rdata){
-				var rdata = $.parseJSON(rdata.data);
+				var rdata = JSON.parse(rdata.data);
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			});
 		}
@@ -226,7 +226,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 				}
 			}
 			wsPost('set_global_conf','', {"exclude_url":list}, function(rdata){
-				var rdata = $.parseJSON(rdata.data);
+				var rdata = JSON.parse(rdata.data);
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			});
 		}
@@ -236,7 +236,7 @@ wsPost('get_global_conf', '' ,{}, function(rdata){
 			var record_post_args = $('input[name="record_post_args"]').prop('checked');
 			var record_get_403_args = $('input[name="record_get_403_args"]').prop('checked');
 			wsPost('set_global_conf','', {"record_post_args":record_post_args,'record_get_403_args':record_get_403_args}, function(rdata){
-				var rdata = $.parseJSON(rdata.data);
+				var rdata = JSON.parse(rdata.data);
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			});
 		}

@@ -432,7 +432,7 @@ function forceUninstallPlugin(name, version) {
         btn: ['强制删除', '取消'],
         content: contentHtml,
         yes: function(index, layero) {
-            var confirmName = $.trim($("#force_uninstall_confirm_name").val());
+            var confirmName = String($("#force_uninstall_confirm_name").val()).trim();
             if (confirmName !== name) {
                 layer.msg('输入的插件名称不匹配，操作已取消！', { icon: 2 });
                 return false;
@@ -679,7 +679,7 @@ function indexSoft(onFirstRender) {
         for(i in data){
             // console.log(data[i]);
             if (data[i] != ''){
-                tmp.push($.trim(data[i]));
+                tmp.push(String(data[i]).trim());
             }
         }
         var ssort = tmp.join("|");

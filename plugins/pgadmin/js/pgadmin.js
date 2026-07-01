@@ -35,7 +35,7 @@ function pgAsyncPost(method,args){
 
 function homePage(){
     pgPost('get_home_page', '', function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
@@ -49,7 +49,7 @@ function homePage(){
 //phpmyadmin安全设置
 function safeConf() {
     pgPost('get_pg_option', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
             return;
@@ -90,7 +90,7 @@ function safeConf() {
 function setPgUsername(){
     var username = $("input[name=username]").val();
     pgPost('set_pg_username',{'username':username}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -98,7 +98,7 @@ function setPgUsername(){
 function setPgPassword(){
     var password = $("input[name=password]").val();
     pgPost('set_pg_password',{'password':password}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -113,7 +113,7 @@ function setPgPort() {
     var data = 'port=' + pmport;
     
     pgPost('set_pg_port',data, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -122,7 +122,7 @@ function pgService() {
     pluginService('pgadmin');
     setTimeout(function() {
         pgPost('get_pg_access_info', '', function(rdata) {
-            var data = $.parseJSON(rdata.data);
+            var data = JSON.parse(rdata.data);
             if (!data.status) {
                 return;
             }

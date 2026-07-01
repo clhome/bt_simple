@@ -720,7 +720,7 @@ function getFiles(Path) {
 
 
         //禁用右键
-        $("#fileCon").off("contextmenu").bind("contextmenu",function(e){
+        $("#fileCon").off("contextmenu").on("contextmenu", function(e){
             return false;
         });
         bindselect();

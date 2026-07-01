@@ -101,7 +101,7 @@ function zagentDConfigTpl(_name, version, func, config_tpl_func, read_config_tpl
 
     var fileName = '';
     $.post('/plugins/run',{name:_name, func:_config_tpl_func,version:version}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         for (var i = 0; i < rdata.length; i++) {
             $('#config_tpl').append('<option value="'+rdata[i]+'"">'+getFileName(rdata[i])+'</option>');
         }
@@ -114,7 +114,7 @@ function zagentDConfigTpl(_name, version, func, config_tpl_func, read_config_tpl
                 var _args = JSON.stringify({file:selected});
                 $.post('/plugins/run', {name:_name, func:_read_config_tpl_func,version:version,args:_args}, function(data){
                     layer.close(loadT);
-                    var rdata = $.parseJSON(data.data);
+                    var rdata = JSON.parse(data.data);
                     if (!rdata.status){
                         layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
                         return;
@@ -137,7 +137,7 @@ function zagentDConfigTpl(_name, version, func, config_tpl_func, read_config_tpl
                     });
                     editor.focus();
                     $(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-                    $("#onlineEditFileBtn").unbind('click');
+                    $("#onlineEditFileBtn").off('click');
                     $("#onlineEditFileBtn").click(function(){
                         $("#textBody").text(editor.getValue());
                         pluginConfigSave(fileName, save_callback_func);

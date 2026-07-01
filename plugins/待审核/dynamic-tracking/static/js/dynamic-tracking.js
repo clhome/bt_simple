@@ -13,7 +13,7 @@ function changeDivH(){
 }
 
 
-$(document).ready(function(){
+$(function() {
    var tag = $.getUrlParam('tag');
     if(tag == 'dynamic-tracking'){
         dynamicTrackingLoad();
@@ -37,7 +37,7 @@ $('.data-collect').click(function(){
 
     dtPost('simple_trace', '', {pid:pid}, function(rdata){
         // console.log(rdata);
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         layer.msg(rdata['msg'],{icon:rdata['status']?1:2,time:2000,shade: [0.3, '#000']});
     });
 });
@@ -101,7 +101,7 @@ function dtPostCb(method, version, args,callback){
 
 function dtFileList(){
     dtPost('file_list', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var alist = rdata.data;
 
         if (alist.length == 0){
@@ -154,7 +154,7 @@ function dtFileList(){
             var i = $(this).parent().parent().data('index');
             var f = alist[i]['name'];
             dtPost('remove_file_path', '',{file:f}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 layer.msg(rdata['msg'],{icon:rdata['status']?1:2,time:2000});
                 if (rdata.status){
                     dtFileList();
@@ -166,7 +166,7 @@ function dtFileList(){
 
 function dtGetFile(file){
     dtPost('get_file_path', '', {file:file}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [2, '#000']});

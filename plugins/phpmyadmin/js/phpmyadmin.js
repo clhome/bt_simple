@@ -45,7 +45,7 @@ function pmaAsyncPost(method,args){
 
 function homePage(){
     pmaPost('get_home_page', '', function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
@@ -92,7 +92,7 @@ function phpVerChange(type, msg) {
 //phpmyadmin安全设置
 function safeConf() {
     pmaPost('get_pma_option', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
             return;
@@ -139,7 +139,7 @@ function safeConf() {
 function setPmaChoose(){
     var choose = $("#access_choose").val();
     pmaPost('set_pma_choose',{'choose':choose}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -147,7 +147,7 @@ function setPmaChoose(){
 function setPmaUsername(){
     var username = $("input[name=username]").val();
     pmaPost('set_pma_username',{'username':username}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -155,7 +155,7 @@ function setPmaUsername(){
 function setPmaPassword(){
     var password = $("input[name=password]").val();
     pmaPost('set_pma_password',{'password':password}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -163,7 +163,7 @@ function setPmaPassword(){
 function setPmaPath(){
     var path = $("input[name=path]").val();
     pmaPost('set_pma_path',{'path':path}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -178,7 +178,7 @@ function setPamPort() {
     var data = 'port=' + pmport;
     
     pmaPost('set_pma_port',data, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -187,7 +187,7 @@ function pmaService() {
     pluginService('phpmyadmin');
     setTimeout(function() {
         pmaPost('get_pma_access_info', '', function(rdata) {
-            var data = $.parseJSON(rdata.data);
+            var data = JSON.parse(rdata.data);
             if (!data.status) {
                 return;
             }

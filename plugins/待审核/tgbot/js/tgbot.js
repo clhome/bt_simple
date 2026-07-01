@@ -47,7 +47,7 @@ function appPostCallbak(method, args,callback){
 
 function botConf(){
     appPost('get_bot_conf','',function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var app_token = 'app_token';
         if(rdata['status']){
             db_data = rdata['data'];
@@ -72,7 +72,7 @@ function submitBotConf(){
     var pull_data = {};
     pull_data['app_token'] = base64_encode($('input[name="app_token"]').val());
     appPost('set_bot_conf',pull_data,function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata['msg'],{icon:rdata['status']?1:2,time:2000,shade: [0.3, '#000']});
     });
 }
@@ -100,7 +100,7 @@ function botExtList(){
 
 function setBotExtStatus(name,status){
     appPost('set_ext_status',{'name':name,'status':status}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         layer.msg(rdata['msg'],);
         showMsg(rdata['msg'], function(){
             botExtListP(1);
@@ -111,7 +111,7 @@ function setBotExtStatus(name,status){
 function botExtListP(p=1){
     appPost('bot_ext_list',{'p':p}, function(rdata){
         // console.log(rdata);
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         var tBody = '';
 

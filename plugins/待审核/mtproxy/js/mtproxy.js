@@ -35,7 +35,7 @@ function mtCommonFunc(){
 
     $('#mtproxy_url').click(function(){
     	mtPost('url', '', {}, function(rdata){
-            var data = $.parseJSON(rdata.data);
+            var data = JSON.parse(rdata.data);
 
             layer.open({
                 title: "mtproxy代理信息",

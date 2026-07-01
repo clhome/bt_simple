@@ -57,7 +57,7 @@ function kpPostCallbak(method, version, args,callback){
 function redisStatus(version) {
 
     redisPost('run_info',version, {},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // if (!rdata.status){
         //     layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
         //     return;
@@ -93,7 +93,7 @@ function redisStatus(version) {
 function getRedisConfig(version) {
     redisPost('get_redis_conf', version,'',function(data){
         // console.log(data);
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var mlist = '';
         for (var i = 0; i < rdata.length; i++) {
@@ -136,7 +136,7 @@ function submitConf(version) {
     };
 
     redisPost('submit_redis_conf', version, data, function(ret_data){
-        var rdata = $.parseJSON(ret_data.data);
+        var rdata = JSON.parse(ret_data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }

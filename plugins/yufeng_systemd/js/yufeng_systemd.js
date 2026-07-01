@@ -173,9 +173,9 @@ var yufeng_systemd = {
                             var execStartMatch = content.match(/^ExecStart=(.*)$/m);
                             
                             if (userMatch && workDirMatch && execStartMatch) {
-                                $('#yufeng_service_form select[name="run_user"]').val($.trim(userMatch[1]));
-                                $('#yufeng_service_form input[name="work_dir"]').val($.trim(workDirMatch[1]));
-                                $('#yufeng_service_form input[name="exec_start"]').val($.trim(execStartMatch[1]));
+                                $('#yufeng_service_form select[name="run_user"]').val(String(userMatch[1]).trim());
+                                $('#yufeng_service_form input[name="work_dir"]').val(String(workDirMatch[1]).trim());
+                                $('#yufeng_service_form input[name="exec_start"]').val(String(execStartMatch[1]).trim());
                                 // 如果能成功解析关键字段，则默认停留在极简模式
                                 $('#yufeng_service_form select[name="mode"]').val('simple').trigger('change');
                             } else {
@@ -347,7 +347,7 @@ var yufeng_systemd = {
                 }
                 var rdata;
                 try {
-                    rdata = $.parseJSON(data.data);
+                    rdata = JSON.parse(data.data);
                 } catch (e) {
                     rdata = data.data;
                 }

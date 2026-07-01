@@ -289,7 +289,7 @@ if (typeof window._original_pluginSetService === 'undefined') {
     };
 }
 
-$(document).ready(function() {
+$(function() {
     $('.bt-w-menu p').click(function(){
         if($(this).text() !== '功能介绍') {
             $('#yufeng-footer').show();
@@ -365,9 +365,9 @@ function renderWafAdditionalContent() {
     rules.forEach(function(r) {
         owPost('get_rule', {rule_name: r}, function(res_raw) {
             try {
-                var tmp = $.parseJSON(res_raw.data);
+                var tmp = JSON.parse(res_raw.data);
                 if(tmp.status) {
-                    var rdata = $.parseJSON(tmp.data);
+                    var rdata = JSON.parse(tmp.data);
                     var count = rdata.length;
                     $('#waf-rule-count-' + r).text(count);
                 }

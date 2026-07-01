@@ -32,7 +32,7 @@ function createSendTask(name = ''){
     var args = {};
     args["name"] = name;
     rsPost('lsyncd_get', args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var data = rdata.data;
         console.log(data);
 
@@ -334,7 +334,7 @@ function createSendTask(name = ''){
                 args['minute-n'] = $('input[name="minute-n"]').val();
 
                 rsPost('lsyncd_add', args, function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
 
                     if (rdata.status){
@@ -356,7 +356,7 @@ function lsyncdDelete(name){
         var args = {};
         args['name'] = name;
         rsPost('lsyncd_delete', args, function(rdata){
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
             setTimeout(function(){lsyncdSend();},2000);
         });
@@ -368,7 +368,7 @@ function lsyncdRun(name){
     var args = {};
     args["name"] = name;
     rsPost('lsyncd_run', args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
     });
 }
@@ -416,7 +416,7 @@ function lsyncdExclude(name){
         rsPost('lsyncd_get_exclude',{"name":mName}, function(rdata) {
             layer.close(loadT);
 
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             var res = rdata.data;
 
             var list=''
@@ -472,7 +472,7 @@ function lsyncdExclude(name){
             layer.close(loadT);
 
             console.log(rdata)
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             var res = rdata.data;
 
             var list=''
@@ -490,7 +490,7 @@ function lsyncdConfLog(){
 
 function lsyncdSend(){
     rsPost('lsyncd_list', '', function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         console.log(rdata);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
@@ -577,7 +577,7 @@ function rsyncdLog(){
 
 function rsyncdReceive(){
 	rsPost('rec_list', '', function(data){
-		var rdata = $.parseJSON(data.data);
+		var rdata = JSON.parse(data.data);
 		if (!rdata.status){
 			layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
 			return;
@@ -625,7 +625,7 @@ function rsyncdReceive(){
 
 function addReceive(name = ""){
     rsPost('get_rec',{"name":name},function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var data = rdata.data;
 
         var readonly = "";
@@ -675,7 +675,7 @@ function addReceive(name = ""){
                 args['ps'] = $('#ps').val();
                 var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
                 rsPost('add_rec', args, function(data){
-                    var rdata = $.parseJSON(data.data);
+                    var rdata = JSON.parse(data.data);
                     if (rdata['status']){
                         layer.close(loadOpen);
                         layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
@@ -695,7 +695,7 @@ function delReceive(name){
 		var _data = {};
 		_data['name'] = name;
 		rsPost('del_rec', _data, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
             setTimeout(function(){rsyncdReceive();},2000);
         });
@@ -706,7 +706,7 @@ function cmdRecSecretKey(name){
 	var _data = {};
 	_data['name'] = name;
 	rsPost('cmd_rec_secret_key', _data, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 	    layer.open({
 	        type: 1,
 	        title: '接收密钥',
@@ -720,7 +720,7 @@ function cmdRecCmd(name){
     var _data = {};
     _data['name'] = name;
     rsPost('cmd_rec_cmd', _data, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.open({
             type: 1,
             title: '接收命令例子',

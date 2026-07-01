@@ -75,10 +75,10 @@ function setTableHead(data) {
         }
     });
 
-    $('#change_thead').bind("contextmenu", function () {
+    $('#change_thead').on("contextmenu", function () {
       return false;
     })
-    $(".plug_menu").bind("contextmenu", function () {
+    $(".plug_menu").on("contextmenu", function () {
       return false;
     })
     $('#change_thead').mousedown(function (e) {
@@ -313,7 +313,7 @@ function get_process_list(sortx, reverse, rx) {
             setCookie('table_config_tip',true);
         }
         // 清除掉之前绑定的滚动事件
-        // $("#table-cont").unbind('scroll');
+        // $("#table-cont").off('scroll');
         // 重新绑定滚动事件
         // $('#table-cont').scroll(task_manager_possess_scroll());
     });

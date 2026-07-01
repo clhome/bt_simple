@@ -1529,7 +1529,7 @@ function to301(siteName, type, obj){
 						});
 						editor.focus();
 						$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
-						$("#onlineEditFileBtn").unbind('click');
+						$("#onlineEditFileBtn").off('click');
 					},
 					yes:function(index,layero){
 						$("#configRedirectBody").empty().text(editor.getValue());
@@ -1941,7 +1941,7 @@ function toProxy(siteName, type, obj) {
 					});
 					editor.focus();
 					$(".CodeMirror-scroll").css({"height":"500px","margin":0,"padding":0});
-					$("#onlineEditFileBtn").unbind('click');
+					$("#onlineEditFileBtn").off('click');
 				},
 				yes:function(index,layero){
 					saveDataFunc();
@@ -2302,7 +2302,7 @@ function renderDnsapi(){
 			}
 		});
 
-		$('#dnsapi_set').unbind('click').on('click', function(){
+		$('#dnsapi_set').off('click').on('click', function(){
 			var index = $('#dnsapi_option option:selected').attr('index');
 			renderDnsapiHtml(data[index]);
 		});
@@ -3328,7 +3328,7 @@ function getClassType(){
 			$(select).append('<option value="'+rdata[i]['id']+'">'+rdata[i]['name']+'</option>');
 		}
 
-		$(select).bind('change',function(){
+		$(select).on('change', function(){
 			var select_id = $(this).val();
 			getWeb(1,select_id, '');
 		})
@@ -3422,7 +3422,7 @@ function editClassType(id,name){
                   </form>"
 	});
 
-	$('#site_type_mod').unbind().click(function(){
+	$('#site_type_mod').off().click(function(){
 		var _name = $('input[name=site_type_mod]').val();
 		$.post('/site/modify_site_type_name','id='+id+'&name='+_name, function(rdata){
 			showMsg(rdata.msg,function(){
@@ -3549,7 +3549,7 @@ function importAllSites() {
 	$('#import_sites_file').click();
 }
 
-$(document).ready(function() {
+$(function() {
 	$('#import_sites_file').change(function(e) {
 		var file = e.target.files[0];
 		if (!file) return;

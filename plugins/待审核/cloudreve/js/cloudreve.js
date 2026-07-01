@@ -56,7 +56,7 @@ function alistPostCallbak(method, version, args,callback){
 
 function commonHomePage(){
     alistPost('home_page', '', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         window.open(rdata.data);
     });
 }

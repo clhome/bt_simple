@@ -229,7 +229,7 @@ function pingDataGraphRender(){
 
 function pingIpList(){
     pingPost('ip_list', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var ips = rdata.data;
 
         var option = '';

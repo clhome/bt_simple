@@ -29,7 +29,7 @@ function xuiPost(method, version, args,callback){
 function xuiCommonFunc(){
 
     xuiPost('info', '', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var info = rdata['data'];
         var con = '<p class="conf_p">\
             <span>用户名</span>\

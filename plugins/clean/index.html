@@ -45,7 +45,7 @@ function cleanPost(method, version, args, callback){
 
 function cleanRun(){
 	cleanPost('clean_run', '', {}, function(rdata){
-		// var rdata = $.parseJSON(rdata.data);
+		// var rdata = JSON.parse(rdata.data);
         // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
 	});
 

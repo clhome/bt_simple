@@ -69,7 +69,7 @@ function appPostCallbak(method, args, callback){
     },'json'); 
 }
 
-$(document).ready(function(){
+$(function() {
    var tag = $.getUrlParam('tag');
     if(tag == 'webssh'){
         webShell_Load();
@@ -248,7 +248,7 @@ function exitFull() {
 
 function webShell_getCmdList(){
     appPost('get_cmd_list', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var alist = rdata.data;
 
         var tli = '';
@@ -275,7 +275,7 @@ function webShell_getCmdList(){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
             appPost('del_cmd', {title:t['title']}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     webShell_getCmdList();
                 },{ icon: rdata.status ? 1 : 2 });
@@ -393,7 +393,7 @@ function webShell_removeTermView(id){
 
 function webShell_getHostList(info){
     appPost('get_server_list', {}, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var alist = rdata.data;
 
         var tli = '';
@@ -420,7 +420,7 @@ function webShell_getHostList(info){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
             appPost('del_server', {host:t['host']}, function(rdata){
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     webShell_getHostList();
                 },{ icon: rdata.status ? 1 : 2 });
@@ -502,7 +502,7 @@ function webShell_addServer(info=[]){
             if (typeof(info['host'])!='undefined'){
                 $('input[name="host"]').val(info['host']);
                 appPost('get_server_by_host',{host:info['host']},function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     var jdata = rdata.data;
                     if (jdata['type'] == 0){
                         $('input[name="password"]').val(jdata['password']);
@@ -581,7 +581,7 @@ function webShell_addServer(info=[]){
 
             appPost('add_server',req_data,function(rdata){
                 layer.close(l);
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     webShell_getHostList();
                 },{ icon: rdata.status ? 1 : 2 });
@@ -629,7 +629,7 @@ function webShell_cmd(title='', cmd='', old_title=''){
             var clean_title = new_title.trim();
 
             appPost('get_cmd_list', {}, function(rdata){
-                var list = $.parseJSON(rdata.data).data;
+                var list = JSON.parse(rdata.data).data;
                 var exists = false;
                 if(list) {
                     for(var i=0; i<list.length; i++) {
@@ -648,7 +648,7 @@ function webShell_cmd(title='', cmd='', old_title=''){
                 var doSave = function() {
                     appPost('add_cmd', {title: clean_title, cmd: new_cmd}, function(rdata2){
                         layer.close(l);
-                        var rdata2 = $.parseJSON(rdata2.data);
+                        var rdata2 = JSON.parse(rdata2.data);
                         showMsg(rdata2.msg, function(){
                             webShell_getCmdList();
                         },{ icon: rdata2.status ? 1 : 2 });

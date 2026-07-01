@@ -68,7 +68,7 @@ function setRequestCode(ruleName, statusCode){
 function setState(ruleName){
     var statusCode = $('#statusCode').val();
     owPost('set_obj_status', {obj:ruleName,statusCode:statusCode},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             wafGloabl();
@@ -80,7 +80,7 @@ function setState(ruleName){
 
 function setObjOpen(ruleName){
     owPost('set_obj_open', {obj:ruleName},function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (rdata.status){
 
             showMsg(rdata.msg, function(){
@@ -117,7 +117,7 @@ function saveCcRule(siteName,is_open_global, type) {
     if (siteName != 'undefined') act = 'set_site_cc_conf';
 
     owPost(act, pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         setTimeout(function(){
             if (siteName != 'undefined') {
@@ -295,7 +295,7 @@ function setSafeVerify(auto, cpu, time, mode,siteName) {
                 }
                 var act = 'set_safe_verify';
                 owPost(act, pdata, function(data){
-                    var rdata = $.parseJSON(data.data);
+                    var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg, function() {
                        layer.close(svlayer);
                        wafGloabl();
@@ -322,7 +322,7 @@ function saveRetry(siteName,type) {
     var act = 'set_retry';
     if (siteName != undefined) act = 'set_site_retry';
     owPost(act, pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         layer.close(create_layer);
         wafGloablRefresh(1000);
@@ -337,7 +337,7 @@ function addRule(ruleName) {
     }
 
     owPost('add_rule', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
@@ -369,7 +369,7 @@ function modifyRuleSave(index, ruleName) {
     }
 
     owPost('modify_rule', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -387,7 +387,7 @@ function removeRule(ruleName, index) {
     }
     safeMessage('删除规则', '您真的要删除这条过滤规则吗？', function () {
         owPost('remove_rule', pdata, function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             if (rdata.status) {
                 setTimeout(function(){
@@ -405,7 +405,7 @@ function setRuleState(ruleName, index) {
     }
     
     owPost('set_rule_state', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
@@ -454,8 +454,8 @@ function setObjConf(ruleName, type) {
     }
 
     getRuleByName(ruleName, function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         var tbody = ''
         for (var i = 0; i < rdata.length; i++) {
             var removeRule = ''
@@ -480,7 +480,7 @@ function setObjConf(ruleName, type) {
 // CDN增强检测
 function cdnEnhancedRule() {
     owPost('waf_conf', {}, function(data){
-        var tmp = $.parseJSON(data.data);
+        var tmp = JSON.parse(data.data);
         var trusted_proxies = tmp.trusted_proxy || [];
         var tbody = '';
         for (var i = 0; i < trusted_proxies.length; i++) {
@@ -525,7 +525,7 @@ function addTrustedProxy() {
     var pdata = { ip: $("input[name='trusted_proxy_ip']").val() };
     if (!pdata.ip) { layer.msg("IP不能为空"); return; }
     owPost('add_trusted_proxy', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
     });
@@ -533,7 +533,7 @@ function addTrustedProxy() {
 
 function removeTrustedProxy(index) {
     owPost('remove_trusted_proxy', { index: index }, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
     });
@@ -544,8 +544,8 @@ function removeTrustedProxy(index) {
 function scanRule() {
 
     getRuleByName('scan_black', function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
 
         create_l = layer.open({
             type: 1,
@@ -586,7 +586,7 @@ function saveScanRule() {
         args: $("textarea[name='scan_args']").val()
     }
     owPost('save_scan_rule', pdata,function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         layer.close(create_l);
         wafGloablRefresh(1000);
@@ -606,7 +606,7 @@ function addIpWhite() {
     }
 
     owPost('add_ip_white', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
@@ -619,7 +619,7 @@ function addIpWhite() {
 //从IP白名单删除IP段
 function removeIpWhite(index) {
     owPost('remove_ip_white', { index: index }, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (rdata.status) {
             setTimeout(function(){
                 ipWhite(1);
@@ -693,8 +693,8 @@ function outputData(name, callback) {
     var loadT = layer.msg('正在导出数据..', { icon: 16, time: 0 });
 
     owPost('output_data', { sname: name } , function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         if (callback) callback(rdata,res);
         outputLayer(rdata, name, true);
     });
@@ -703,7 +703,7 @@ function outputData(name, callback) {
 //导入数据
 function importData(name, pdata, callback) {
     owPost('import_data', { sname: name, pdata: pdata } , function(data){
-        var rdata = $.parseJSON(data.data);   
+        var rdata = JSON.parse(data.data);   
         if (callback) callback();
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -716,8 +716,8 @@ function fileInput(name) {
 
 function ipWhiteLoadList(){
     getRuleByName('ip_white', function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         var tbody = ''
         for (var i = 0; i < rdata.length; i++) {
             tbody += '<tr>\
@@ -827,8 +827,8 @@ function urlWhite(type) {
     }
 
     getRuleByName(ruleName, function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         console.log(rdata);
         var tbody = ''
         for (var i = 0; i < rdata.length; i++) {
@@ -854,8 +854,8 @@ function urlWhite(type) {
 // 获取IPV4黑名单
 function getIpv4Address(callback){
     getRuleByName('ip_black', function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         callback(rdata);
     });
 }
@@ -863,8 +863,8 @@ function getIpv4Address(callback){
 // 获取IPV6黑名单
 function getIpv6Address(callback){
     getRuleByName('ipv6_black', function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         callback(rdata);
     });
 }
@@ -874,7 +874,7 @@ function getIpv6Address(callback){
 function addIpv6Req(ip,callback){
     var ip = ip.replace(/:/g, '_');
     owPost('set_ipv6_black', {addr:ip}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if(callback) callback(rdata);
     });
 }
@@ -883,7 +883,7 @@ function addIpv6Req(ip,callback){
 function removeIpv6Black(ip,callback){
     var ip = ip.replace(/:/g, '_');
     owPost('del_ipv6_black', {addr:ip}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg,{icon:rdata.status?1:2});
         $('.tab_list .tab_block:eq(1)').click();
 
@@ -904,7 +904,7 @@ function addIpBlack() {
     }
 
     owPost('add_ip_black', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (rdata.status) {
             ipBlack(1);
         }
@@ -939,7 +939,7 @@ function addIpBlackArgs(ip) {
     }
 
     owPost('add_ip_black', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -948,7 +948,7 @@ function addIpBlackArgs(ip) {
 //从IP黑名单删除IP段
 function removeIpBlack(index) {
     owPost('remove_ip_black', { index: index }, function (data) {
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (rdata.status) {
             ipBlack(1);
         }
@@ -1062,7 +1062,7 @@ function ipBlack(type) {
 function wafScreen(){
 
     owPost('waf_srceen', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
         var end_time = Date.now();
         var cos_time = (end_time/1000) - parseInt(rdata['start_time']);
@@ -1163,7 +1163,7 @@ function wafGloablRefresh(time){
 
 function wafGloabl(){
     owPost('waf_conf', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
         var con = '<div class="divtable">\
             <table class="table table-hover waftable">\
@@ -1318,7 +1318,7 @@ function addSiteRule(siteName, ruleName) {
     }
 
     owPost('add_site_rule', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
@@ -1337,7 +1337,7 @@ function removeSiteRule(siteName, ruleName, index) {
     }
 
     owPost('remove_site_rule', pdata, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             if (ruleName == 'url_tell') {
@@ -1416,8 +1416,8 @@ function siteRuleAdmin(siteName, ruleName, type) {
     }
 
     owPost('get_site_rule', { siteName: siteName, ruleName: ruleName }, function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         var tbody = ''
         for (var i = 0; i < rdata.length; i++) {
             tbody += '<tr>\
@@ -1463,7 +1463,7 @@ function cdnHeader(siteName, type) {
     }
 
     owPost('get_site_config_byname', { siteName: siteName }, function(data){
-        var tmp = $.parseJSON(data.data);
+        var tmp = JSON.parse(data.data);
         var t1 = tmp.data;
         var rdata = t1['cdn_header'];
         var tbody = ''
@@ -1491,7 +1491,7 @@ function addCdnHeader(siteName) {
     }
 
     owPost('add_site_cdn_header', pdata, function(data){
-        var rdata = $.parseJSON(data);
+        var rdata = JSON.parse(data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
@@ -1504,7 +1504,7 @@ function addCdnHeader(siteName) {
  //删除CDN-Header
 function removeCdnHeader(siteName, cdn_header_key) {
     owPost('remove_site_cdn_header', { siteName: siteName, cdn_header: cdn_header_key }, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
             setTimeout(function(){
@@ -1518,7 +1518,7 @@ function removeCdnHeader(siteName, cdn_header_key) {
 function setSiteObjState(siteName, obj) {
     // var loadT = layer.msg('正在处理，请稍候..', { icon: 16, time: 0 });
     owPost('set_site_obj_open', { siteName: siteName, obj: obj } , function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         setTimeout(function(){
             siteWafConfig(siteName, 1);
@@ -1567,8 +1567,8 @@ function setSiteObjConf(siteName, ruleName, type) {
     }
 
     getRuleByName(ruleName, function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         var tbody = '';
         var tbody = '';
         for (var i = 0; i < rdata.length; i++) {
@@ -1600,7 +1600,7 @@ function siteWafConfig(siteName, type) {
     }
 
     owPost('get_site_config_byname', { siteName: siteName }, function(data){
-        var tmp = $.parseJSON(data.data);
+        var tmp = JSON.parse(data.data);
         var rdata = tmp.data;
         nginx_config = rdata;
         var con = '<div class="pd15">\
@@ -1743,8 +1743,8 @@ function siteWafConfig(siteName, type) {
 
 function wafSite(){
     owPost('get_site_config', {}, function(data){
-        var tmp = $.parseJSON(data.data);
-        var rdata = $.parseJSON(tmp.data);
+        var tmp = JSON.parse(data.data);
+        var rdata = JSON.parse(tmp.data);
         var tbody = '';
         var i = 0;
         $.each(rdata, function (k, v) {
@@ -1812,7 +1812,7 @@ function wafAreaLimitRender(){
         return str.toString();
     }
     owPost('get_area_limit', {}, function(rdata) {
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
             return;
@@ -1857,7 +1857,7 @@ function wafAreaLimitRender(){
                 region:region.toString(),
                 types:type,
             }, function(rdata) {
-                var rdata = $.parseJSON(rdata.data);
+                var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     if (rdata.status){
                         wafAreaLimit();
@@ -1870,7 +1870,7 @@ function wafAreaLimitRender(){
 
 function wafAreaLimitSwitch(){
     owPostN('waf_conf', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         if (rdata['area_limit']){
             $('#area_limit_switch').prop('checked', true);
         } else{
@@ -1887,7 +1887,7 @@ function setWafAreaLimitSwitch(){
         area_limit = 'on';
     }
     owPostN('area_limit_switch', {'area_limit': area_limit}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -1958,7 +1958,7 @@ function wafAreaLimit(){
                 });
 
                 owPostN('get_default_site','', function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     var rlist = rdata.data.list;
 
 
@@ -1982,7 +1982,7 @@ function wafAreaLimit(){
                     data: [],
                 });
                 owPostN('get_country','', function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     var rlist = rdata.data;
 
                     var pdata = [];
@@ -2025,7 +2025,7 @@ function wafAreaLimit(){
                     types:reg_type,
                     region:region,
                 }, function(rdata){
-                    var rdata = $.parseJSON(rdata.data);
+                    var rdata = JSON.parse(rdata.data);
                     showMsg(rdata.msg, function(){
                         if (rdata.status){
                             layer.close(indexs);
@@ -2056,7 +2056,7 @@ function wafLogRequest(page){
     args['tojs'] = 'wafLogRequest';
 
     owPost('get_logs_list', args, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -2174,7 +2174,7 @@ function wafLogs(){
         var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         owPost('get_logs_list', args, function(rdata){
             layer.close(loadT);
-            var rdata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(rdata.data);
             var data = rdata.data.data;
             if(!data || data.length == 0) {
                 layer.msg("没有数据可导出", {icon: 2});
@@ -2202,8 +2202,8 @@ function wafLogs(){
 
     $("#UncoverAll").click(function(){
         owPost('clean_drop_ip',{},function(data){
-            var rdata = $.parseJSON(data.data);
-            var ndata = $.parseJSON(rdata.data);
+            var rdata = JSON.parse(data.data);
+            var ndata = JSON.parse(rdata.data);
             if (ndata.status == 0){
                 layer.msg("解封所有成功",{icon:1,time:2000,shade: [0.3, '#000']});
             } else{
@@ -2215,7 +2215,7 @@ function wafLogs(){
     //测试demo
     $("#testRun").click(function(){
         owPost('test_run',{},function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){
                 wafLogRequest(1);
             },{icon:1,shade: [0.3, '#000']},2000);
@@ -2237,8 +2237,8 @@ function wafLogs(){
             });
 
             var timeA  = value.split('-');
-            var start = $.trim(timeA[0]+'-'+timeA[1]+'-'+timeA[2])
-            var end = $.trim(timeA[3]+'-'+timeA[4]+'-'+timeA[5])
+            var start = String(timeA[0]+'-'+timeA[1]+'-'+timeA[2]).trim()
+            var end = String(timeA[3]+'-'+timeA[4]+'-'+timeA[5]).trim()
             query_txt = toUnixTime(start + " 00:00:00") + "-"+ toUnixTime(end + " 00:00:00")
 
             $('#time_choose').attr("data-name",query_txt);
@@ -2266,7 +2266,7 @@ function wafLogs(){
     owPostN('get_default_site',{},function(rdata){
         $('select[name="site"]').html('');
 
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         var rdata = rdata.data;
         var default_site = rdata["default"];
         var select = '';
@@ -2329,7 +2329,7 @@ function wafDropIpList() {
     $('.soft-man-con').html(html);
 
     owPost('getDropIpList', {}, function(res_raw) {
-        var res = $.parseJSON(res_raw.data);
+        var res = JSON.parse(res_raw.data);
         if (!res.status) {
             $('#drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center; color:red;">获取失败: ' + res.msg + '</td></tr>');
             return;
@@ -2381,7 +2381,7 @@ function wafDropIpList() {
                 var chunk = pendingIps.slice(i, i + chunkSize);
                 (function(ips) {
                     owPost('getIpLocationBatch', {ips: JSON.stringify(ips)}, function(loc_res_raw) {
-                        var loc_res = $.parseJSON(loc_res_raw.data);
+                        var loc_res = JSON.parse(loc_res_raw.data);
                         if (loc_res.status && loc_res.data) {
                             var batchData = loc_res.data;
                             for (var j = 0; j < batchData.length; j++) {
@@ -2425,7 +2425,7 @@ function releaseDropIp(ip) {
         var loadT = layer.msg('正在释放...', {icon: 16, time: 0, shade: 0.3});
         owPost('removeDropIp', {ip: ip}, function(res_raw) {
             layer.close(loadT);
-            var res = $.parseJSON(res_raw.data);
+            var res = JSON.parse(res_raw.data);
             layer.msg(res.msg, {icon: res.status ? 1 : 2});
             if (res.status) {
                 wafDropIpList();
@@ -2438,7 +2438,7 @@ function showDropIpLogs(ip) {
     var loadT = layer.msg('正在获取日志...', {icon: 16, time: 0, shade: 0.3});
     owPost('getDropIpLogs', {ip: ip}, function(res_raw) {
         layer.close(loadT);
-        var res = $.parseJSON(res_raw.data);
+        var res = JSON.parse(res_raw.data);
         if (!res.status) {
             layer.msg('获取日志失败: ' + res.msg, {icon: 2});
             return;
@@ -2486,7 +2486,7 @@ function showDropIpLogs(ip) {
 
 function setHoneypotDialog() {
     owPost('waf_conf', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var paths = [];
         if (rdata.honeypot && rdata.honeypot.paths && rdata.honeypot.paths.length > 0) {
             paths = rdata.honeypot.paths;
@@ -2521,7 +2521,7 @@ function saveHoneypotPaths() {
     var lines = rawText.split('\n');
     var paths = [];
     for (var i = 0; i < lines.length; i++) {
-        var line = $.trim(lines[i]);
+        var line = String(lines[i]).trim();
         if (line !== '') {
             if (line.charAt(0) !== '/') {
                 line = '/' + line;
@@ -2533,7 +2533,7 @@ function saveHoneypotPaths() {
     var loadT = layer.msg('正在保存配置...', {icon: 16, time: 0, shade: 0.3});
     owPost('setHoneypotPaths', {paths: JSON.stringify(paths)}, function(res_raw) {
         layer.close(loadT);
-        var res = $.parseJSON(res_raw.data);
+        var res = JSON.parse(res_raw.data);
         layer.msg(res.msg, {icon: res.status ? 1 : 2});
         if (res.status) {
             setTimeout(function(){

@@ -125,7 +125,7 @@ function appPostCallbakNoMsg(method, args,callback, script){
 
 function dbConf(){
 	appPost('get_db_conf','',function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var db_host = '127.0.0.1';
         var db_port = '3306';
@@ -170,7 +170,7 @@ function submitDbConf(){
 	pull_data['db_pass'] = $('input[name="db_pass"]').val();
 
 	appPost('set_db_conf',pull_data,function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata['msg'],{icon:rdata['status']?1:2,time:2000,shade: [0.3, '#000']});
     });
 }
@@ -178,7 +178,7 @@ function submitDbConf(){
 
 function userConf(){
 	appPost('get_user_conf','',function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var app_key = 'app_key';
         var secret = 'secret';
         var password = 'password';
@@ -222,14 +222,14 @@ function submitUserConf(){
     pull_data['exchange'] = $('input[name="exchange"]').val();
 
 	appPost('set_user_conf',pull_data,function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata['msg'],{icon:rdata['status']?1:2,time:2000,shade: [0.3, '#000']});
     });
 }
 
 function syncDataList(){
     appPost('sync_data_list', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
 
 
         var list = '';
@@ -295,7 +295,7 @@ function syncDataList(){
 function syncDataAddTask(){
     var at_check = $('#add_task').prop('checked');
     appPost("sync_data_add_task", {'check':at_check?'0':'1'}, function(data){
-        rdata = $.parseJSON(data.data);
+        rdata = JSON.parse(data.data);
 
         showMsg(rdata.msg,function(){
             if (rdata.status){
@@ -307,7 +307,7 @@ function syncDataAddTask(){
 
 function syncDataDelete(name){
     appPost("sync_data_delete", {"token":name}, function(data){
-        rdata = $.parseJSON(data.data);
+        rdata = JSON.parse(data.data);
 
         showMsg(rdata.msg,function(){
             if (rdata.status){
@@ -341,7 +341,7 @@ function syncDataAdd() {
 
             var token = $('input[name="name"]').val();
             appPost("sync_data_add", {"token":token}, function(data){
-                rdata = $.parseJSON(data.data);
+                rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
                         layer.close(index);
@@ -934,7 +934,7 @@ function calcKLineChats(){
     option && myChart.setOption(option);
 }
 
-$(document).ready(function(){
+$(function() {
    var tag = $.getUrlParam('tag');
     if(tag == 'cryptocurrency_trade'){
         changeDivH();

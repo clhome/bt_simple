@@ -50,7 +50,7 @@ function ftpList(page, search){
 
     ftpPost('get_ftp_list', _data, function(data){
 
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         // console.log(rdata);
         content = '<div class="info-title-tips" style="display: flex; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>当前FTP地址为：ftp://'+rdata['info']['ip']+':'+rdata['info']['port']+'</p>';
         content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">修改端口</button></div>';
@@ -329,7 +329,7 @@ function pureftpService() {
 
             var ftpData = {info: {ip: "127.0.0.1", port: "21"}, data: []};
             try {
-                ftpData = $.parseJSON(rdata.data);
+                ftpData = JSON.parse(rdata.data);
             } catch(e) {}
             
             var innerIp = ftpData.info.ip;

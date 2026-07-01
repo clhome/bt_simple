@@ -60,7 +60,7 @@ function orPluginOpService(a, b, v,request_callback) {
     }
     layer.confirm( msgTpl('您真的要{1}{2}{3}服务吗？', [d,a,v]), {icon:3,closeBtn: 2}, function() {
         httpPost('get_os',{},function(data){
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
             if (!rdata['auth']){
                 layer.prompt({title: '检查到权限不足,需要输入密码!', formType: 1},function(pwd, index){
                 
@@ -117,7 +117,7 @@ var httpdStatusTimer = null;
 function getHttpdStatus() {
     $.post('/plugins/run', {name:'apache', func:'run_info'}, function(data) {
         try {
-            var rdata = $.parseJSON(data.data);
+            var rdata = JSON.parse(data.data);
 
             console.log(rdata);
             if ('status' in rdata && !rdata.status){
@@ -184,7 +184,7 @@ function stopHttpdStatusAutoRefresh() {
 
 function setOpCfg(){
     httpPost('get_cfg', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         var rdata = rdata.data;
         // console.log(rdata);
 
@@ -237,7 +237,7 @@ function submitConf() {
 
     // console.log(data);
     httpPost('set_cfg', data, function(rdata){
-        var rdata = $.parseJSON(rdata.data);
+        var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -253,14 +253,14 @@ function otherFunc(){
 
 function cronAddCheck(){
     httpPost('cron_add_check', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
 
 function cronDelCheck(){
     httpPost('cron_del_check', {}, function(data){
-        var rdata = $.parseJSON(data.data);
+        var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
