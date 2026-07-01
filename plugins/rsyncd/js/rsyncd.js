@@ -352,7 +352,7 @@ function createSendTask(name = ''){
 }
 
 function lsyncdDelete(name){
-    safeMessage('删除['+name+']', '您真的要删除['+name+']吗？', function(){
+    safeMessage('删除['+name+']', '您真的要删除【'+name+'】吗？', function(){
         var args = {};
         args['name'] = name;
         rsPost('lsyncd_delete', args, function(rdata){
@@ -691,7 +691,7 @@ function addReceive(name = ""){
 
 
 function delReceive(name){
-	safeMessage('删除['+name+']', '您真的要删除['+name+']吗？', function(){
+	safeMessage('删除['+name+']', '您真的要删除【'+name+'】吗？', function(){
 		var _data = {};
 		_data['name'] = name;
 		rsPost('del_rec', _data, function(data){

@@ -756,7 +756,7 @@ function setDbPs(id, name, obj) {
 }
 
 function delDb(id, name){
-    safeMessage('删除['+name+']','您真的要删除['+name+']吗？',function(){
+    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         mgPost('del_db', '', data, function(data){
             var rdata = $.parseJSON(data.data);

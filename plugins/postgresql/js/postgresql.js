@@ -547,7 +547,7 @@ function addDatabase(type,layer_index){
 }
 
 function delDb(id, name){
-    safeMessage('删除['+name+']','您真的要删除['+name+']吗？',function(){
+    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name
         myPost('del_db', data, function(data){
             var rdata = $.parseJSON(data.data);

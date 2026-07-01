@@ -96,7 +96,7 @@ function apaReadme(){
 
 
 function emailDel(id, name){
-    safeMessage('删除['+name+']','您真的要删除['+name+']吗？',function(){
+    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         apaPost('email_del', data, function(data){
             var rdata = $.parseJSON(data.data);
@@ -204,7 +204,7 @@ function emailList(page, search){
 
 
 function dnsapiDel(id, name){
-    safeMessage('删除['+name+']','您真的要删除['+name+']吗？',function(){
+    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         apaPost('dnsapi_del', data, function(data){
             var rdata = $.parseJSON(data.data);
@@ -483,7 +483,7 @@ function dnsapiList(page, search){
 
 
 function domainDel(id, name){
-    safeMessage('删除['+name+']','您真的要删除['+name+']吗？',function(){
+    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         apaPost('domain_del', data, function(data){
             var rdata = $.parseJSON(data.data);
