@@ -120,11 +120,17 @@ test_download() {
 }
 
 # 测试不同的云节点
-test_download "Cloudflare 全球边缘" "https://speed.cloudflare.com/__down?bytes=25000000"
 test_download "阿里云杭州镜像源" "https://mirrors.aliyun.com/debian/ls-lR.gz"
 test_download "腾讯云南京镜像源" "https://mirrors.cloud.tencent.com/debian/ls-lR.gz"
 test_download "华为云深圳镜像源" "https://mirrors.huaweicloud.com/debian/ls-lR.gz"
-test_download "网易 163 镜像源" "http://mirrors.163.com/debian/ls-lR.gz"
+
+echo "----------------------------------------------------------"
+echo "  -> 分割线: 境外测试节点"
+
+test_download "美国官方节点" "http://ftp.us.debian.org/debian/ls-lR.gz"
+test_download "英国官方节点" "http://ftp.uk.debian.org/debian/ls-lR.gz"
+test_download "德国官方节点" "http://ftp.de.debian.org/debian/ls-lR.gz"
+test_download "日本官方节点" "http://ftp.jp.debian.org/debian/ls-lR.gz"
 
 echo "----------------------------------------------------------"
 echo " 测速完毕！所有临时文件已清理。"

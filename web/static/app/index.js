@@ -1848,8 +1848,6 @@ function runSpeedTest() {
         }
         
         var log_path = rdata.data;
-        
-        // 自定义精美的仪表盘样式 HTML 结构
         var elegantHtml = 
             '<div class="elegant-speed-container" style="padding: 20px; background: #fafafa; font-family: -apple-system,BlinkMacSystemFont,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif; color: #333; height: 100%; overflow-y: auto;">' +
             '    <div class="row" style="margin-left: -10px; margin-right: -10px;">' +
@@ -1905,16 +1903,9 @@ function runSpeedTest() {
             '    <!-- 下载速度 -->' +
             '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' +
             '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
-            '            <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> 多区域节点带宽下载测速' +
+            '            <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> 多区域节点下载测速' +
             '        </div>' +
             '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' +
-            '            <div class="node-row" data-node="Cloudflare 全球边缘" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>Cloudflare 全球边缘</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
             '            <div class="node-row" data-node="阿里云杭州镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
             '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
             '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
@@ -1936,10 +1927,35 @@ function runSpeedTest() {
             '                </div>' +
             '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
             '            </div>' +
-            '            <div class="node-row" data-node="网易 163 镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+            '            <!-- 境内外分割线 -->' +
+            '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' +
+            '                <span style="background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;">境外测试节点 (US / UK / DE / JP)</span>' +
+            '            </div>' +
+            '            <div class="node-row" data-node="美国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
             '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
             '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>网易 163 镜像源</span>' +
+            '                    <span>美国官方节点</span>' +
+            '                </div>' +
+            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+            '            </div>' +
+            '            <div class="node-row" data-node="英国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+            '                    <span>英国官方节点</span>' +
+            '                </div>' +
+            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+            '            </div>' +
+            '            <div class="node-row" data-node="德国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+            '                    <span>德国官方节点</span>' +
+            '                </div>' +
+            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+            '            </div>' +
+            '            <div class="node-row" data-node="日本官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+            '                    <span>日本官方节点</span>' +
             '                </div>' +
             '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
             '            </div>' +
@@ -1960,7 +1976,7 @@ function runSpeedTest() {
             type: 1,
             closeBtn: 1,
             shade: 0.3,
-            area: ["860px", "580px"],
+            area: ["860px", "680px"],
             content: elegantHtml,
             success: function(layers, index) {
                 // 开始定时轮询读取日志
