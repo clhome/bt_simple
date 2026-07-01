@@ -1839,288 +1839,466 @@ function showSystemDetails() {
 // 运行服务器测速
 // 运行服务器测速
 function runSpeedTest() {
+    var cacheDataStr = localStorage.getItem('bt_speed_test_result');
+    var cacheData = null;
+    if (cacheDataStr) {
+        try {
+            cacheData = JSON.parse(cacheDataStr);
+        } catch(e) {
+            cacheData = null;
+        }
+    }
+    
+    // 如果存在缓存且有基本 CPU 信息，说明上次测速成功，直接展示历史数据
+    if (cacheData && cacheData.cpu) {
+        renderSpeedTestModal(cacheData);
+    } else {
+        // 否则直接发起新测速
+        renderSpeedTestModal(null);
+    }
+}
+
+// 重置界面并启动新测速
+function triggerSpeedReTest() {
+    $("#btn-re-test").hide();
+    
+    // 重置系统配置卡片
+    $("#sp-sys-table").hide();
+    $("#sp-sys-loader").show();
+    $("#sp-os").text('-');
+    $("#sp-cpu-model").text('-');
+    $("#sp-cpu-detail").hide();
+    $("#sp-mem").text('-');
+    $("#sp-disk").text('-');
+    
+    // 重置磁盘IO卡片
+    $("#sp-io-container").hide();
+    $("#sp-io-loader").show();
+    $("#sp-write-val").text('测试中...');
+    $("#sp-write-bar").css('width', '0%');
+    $("#sp-read-val").text('等待中...').css('color', '#94a3b8');
+    $("#sp-read-bar").css('width', '0%');
+    
+    // 重置云节点状态
+    $('.node-row').each(function() {
+        $(this).css({
+            'background': '#f8fafc',
+            'border-color': '#f1f5f9'
+        });
+        $(this).find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-time').css({
+            'animation': '',
+            'color': '#94a3b8'
+        });
+        $(this).find('.node-speed').text('排队中').css('color', '#64748b');
+    });
+    
+    startRealNewTest();
+}
+
+// 发起后台测速并开启轮询
+function startRealNewTest() {
     var loadT = layer.msg('正在初始化测速环境...', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post('/system/speed_test', {}, function(rdata) {
         layer.close(loadT);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2 });
+            $("#btn-re-test").show();
             return;
         }
-        
-        var log_path = rdata.data;
-        var elegantHtml = 
-            '<div class="elegant-speed-container" style="padding: 20px; background: #fafafa; font-family: -apple-system,BlinkMacSystemFont,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif; color: #333; height: 100%; overflow-y: auto;">' +
-            '    <div class="row" style="margin-left: -10px; margin-right: -10px;">' +
-            '        <!-- 系统配置 -->' +
-            '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' +
-            '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' +
-            '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
-            '                    <span class="glyphicon glyphicon-info-sign" style="color: #20a53a; font-size:14px;"></span> 系统基本信息' +
-            '                </div>' +
-            '                <div id="sp-sys-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' +
-            '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>环境准备中...' +
-            '                </div>' +
-            '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' +
-            '                    <tr style="border:none;"><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">系统版本</td><td id="sp-os" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
-            '                    <tr>' +
-            '                        <td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;">CPU型号</td>' +
-            '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' +
-            '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' +
-            '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' +
-            '                        </td>' +
-            '                    </tr>' +
-            '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">物理内存</td><td id="sp-mem" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;">-</td></tr>' +
-            '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">硬盘大小</td><td id="sp-disk" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
-            '                </table>' +
-            '            </div>' +
-            '        </div>' +
-            '        <!-- 磁盘IO -->' +
-            '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' +
-            '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' +
-            '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
-            '                    <span class="glyphicon glyphicon-hdd" style="color: #20a53a; font-size:14px;"></span> 磁盘 I/O 读写性能' +
-            '                </div>' +
-            '                <div id="sp-io-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' +
-            '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>等待测速信号...' +
-            '                </div>' +
-            '                <div id="sp-io-container" style="display: none; padding-top: 8px;">' +
-            '                    <div style="margin-bottom: 15px;">' +
-            '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' +
-            '                            <span style="color:#64748b;">磁盘写入速度</span>' +
-            '                            <span id="sp-write-val" style="font-weight:600; color:#20a53a;">测试中...</span>' +
-            '                        </div>' +
-            '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' +
-            '                            <div id="sp-write-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #42d392, #20a53a); transition: width 0.5s ease;"></div>' +
-            '                        </div>' +
-            '                    </div>' +
-            '                    <div>' +
-            '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' +
-            '                            <span style="color:#64748b;">磁盘读取速度</span>' +
-            '                            <span id="sp-read-val" style="font-weight:600; color:#94a3b8;">等待中...</span>' +
-            '                        </div>' +
-            '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' +
-            '                            <div id="sp-read-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.5s ease;"></div>' +
-            '                        </div>' +
-            '                    </div>' +
-            '                </div>' +
-            '            </div>' +
-            '        </div>' +
-            '    </div>' +
-            '    <!-- 下载速度 -->' +
-            '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' +
-            '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' +
-            '            <div style="display: flex; align-items: center; gap: 6px;">' +
-            '                <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> 多区域节点下载测速' +
-            '            </div>' +
-            '            <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>' +
-            '        </div>' +
-            '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' +
-            '            <div class="node-row" data-node="阿里云杭州镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>阿里云杭州镜像源</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
-            '            <div class="node-row" data-node="腾讯云南京镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>腾讯云南京镜像源</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
-            '            <div class="node-row" data-node="华为云深圳镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>华为云深圳镜像源</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
-            '            <!-- 境内外分割线 -->' +
-            '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' +
-            '                <span style="background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;">境外测试节点 (US / UK / DE / JP)</span>' +
-            '            </div>' +
-            '            <div class="node-row" data-node="美国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>美国官方节点</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
-            '            <div class="node-row" data-node="英国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>英国官方节点</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
-            '            <div class="node-row" data-node="德国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>德国官方节点</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
-            '            <div class="node-row" data-node="日本官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
-            '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
-            '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-            '                    <span>日本官方节点</span>' +
-            '                </div>' +
-            '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
-            '            </div>' +
-            '        </div>' +
-            '    </div>' +
-            '    <pre id="speed_log_lst" style="display:none;"></pre>' +
-            '    <!-- 出品信息 -->' +
-            '    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 16px; font-size: 11px; color: #94a3b8; font-weight: 500; user-select: none;">' +
-            '        <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' +
-            '        <span>衢州御风科技有限公司出品</span>' +
-            '    </div>' +
-            '    <style>' +
-            '        @keyframes spin {' +
-            '            0% { transform: rotate(0deg); }' +
-            '            100% { transform: rotate(360deg); }' +
-            '        }' +
-            '    </style>' +
-            '</div>';
+        runLogPolling(rdata.data);
+    }, 'json');
+}
 
-        // 打开弹出层
-        var showSpeedKey = layer.open({
-            title: '<span style="display: inline-flex; align-items: center; gap: 6px;"><svg viewBox="0 0 64 64" width="16" height="16" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M16 22 h32 v30 h-32 z" /><path d="M26 22 L28 8 h8 L38 22" /><path d="M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16" stroke-width="3.5" /><path d="M24 52 v6 h16 v-6" /></svg>服务器性能与带宽测速</span>',
-            type: 1,
-            closeBtn: 1,
-            shade: 0.3,
-            area: ["860px", "710px"],
-            content: elegantHtml,
-            success: function(layers, index) {
-                // 开始定时轮询读取日志
-                var speedTimer = setInterval(function() {
-                    if ($("#speed_log_lst").length < 1) {
-                        clearInterval(speedTimer);
-                        return;
+// 渲染测速弹窗公共方法
+function renderSpeedTestModal(historyData) {
+    var elegantHtml = 
+        '<div class="elegant-speed-container" style="padding: 20px; background: #fafafa; font-family: -apple-system,BlinkMacSystemFont,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif; color: #333; height: 100%; overflow-y: auto;">' +
+        '    <div class="row" style="margin-left: -10px; margin-right: -10px;">' +
+        '        <!-- 系统配置 -->' +
+        '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' +
+        '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' +
+        '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
+        '                    <span class="glyphicon glyphicon-info-sign" style="color: #20a53a; font-size:14px;"></span> 系统基本信息' +
+        '                </div>' +
+        '                <div id="sp-sys-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' +
+        '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>环境准备中...' +
+        '                </div>' +
+        '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' +
+        '                    <tr style="border:none;"><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">系统版本</td><td id="sp-os" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
+        '                    <tr>' +
+        '                        <td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;">CPU型号</td>' +
+        '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' +
+        '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' +
+        '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' +
+        '                        </td>' +
+        '                    </tr>' +
+        '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">物理内存</td><td id="sp-mem" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;">-</td></tr>' +
+        '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">硬盘大小</td><td id="sp-disk" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
+        '                </table>' +
+        '            </div>' +
+        '        </div>' +
+        '        <!-- 磁盘IO -->' +
+        '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' +
+        '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' +
+        '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
+        '                    <span class="glyphicon glyphicon-hdd" style="color: #20a53a; font-size:14px;"></span> 磁盘 I/O 读写性能' +
+        '                </div>' +
+        '                <div id="sp-io-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' +
+        '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>等待测速信号...' +
+        '                </div>' +
+        '                <div id="sp-io-container" style="display: none; padding-top: 8px;">' +
+        '                    <div style="margin-bottom: 15px;">' +
+        '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' +
+        '                            <span style="color:#64748b;">磁盘写入速度</span>' +
+        '                            <span id="sp-write-val" style="font-weight:600; color:#20a53a;">测试中...</span>' +
+        '                        </div>' +
+        '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' +
+        '                            <div id="sp-write-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #42d392, #20a53a); transition: width 0.5s ease;"></div>' +
+        '                        </div>' +
+        '                    </div>' +
+        '                    <div>' +
+        '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' +
+        '                            <span style="color:#64748b;">磁盘读取速度</span>' +
+        '                            <span id="sp-read-val" style="font-weight:600; color:#94a3b8;">等待中...</span>' +
+        '                        </div>' +
+        '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' +
+        '                            <div id="sp-read-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.5s ease;"></div>' +
+        '                        </div>' +
+        '                    </div>' +
+        '                </div>' +
+        '            </div>' +
+        '        </div>' +
+        '    </div>' +
+        '    <!-- 下载速度 -->' +
+        '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' +
+        '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' +
+        '            <div style="display: flex; align-items: center; gap: 6px;">' +
+        '                <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> 多区域节点下载测速' +
+        '            </div>' +
+        '            <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>' +
+        '        </div>' +
+        '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' +
+        '            <div class="node-row" data-node="阿里云杭州镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+        '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+        '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+        '                    <span>阿里云杭州镜像源</span>' +
+        '                </div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '            </div>' +
+        '            <div class="node-row" data-node="腾讯云南京镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+        '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+        '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+        '                    <span>腾讯云南京镜像源</span>' +
+        '                </div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '            </div>' +
+        '            <div class="node-row" data-node="华为云深圳镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+        '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+        '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+        '                    <span>华为云深圳镜像源</span>' +
+        '                </div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '            </div>' +
+        '            <!-- 境内外分割线 -->' +
+        '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' +
+        '                <span style="background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;">境外测试节点 (US / UK / DE / JP)</span>' +
+        '            </div>' +
+        '            <div class="node-row" data-node="美国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+        '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+        '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+        '                    <span>美国官方节点</span>' +
+        '                </div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '            </div>' +
+        '            <div class="node-row" data-node="英国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+        '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+        '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+        '                    <span>英国官方节点</span>' +
+        '                </div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '            </div>' +
+        '            <div class="node-row" data-node="德国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+        '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+        '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+        '                    <span>德国官方节点</span>' +
+        '                </div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '            </div>' +
+        '            <div class="node-row" data-node="日本官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
+        '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
+        '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
+        '                    <span>日本官方节点</span>' +
+        '                </div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '            </div>' +
+        '        </div>' +
+        '    </div>' +
+        '    <pre id="speed_log_lst" style="display:none;"></pre>' +
+        '    <!-- 底部控制栏与出品信息 -->' +
+        '    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' +
+        '        <div>' +
+        '            <button id="btn-re-test" class="btn btn-default btn-xs" style="display: none; padding: 4px 12px; font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; transition: all 0.2s ease; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="triggerSpeedReTest()">' +
+        '                <span class="glyphicon glyphicon-repeat" style="font-size: 10px; margin-right: 4px;"></span>再次测试' +
+        '            </button>' +
+        '        </div>' +
+        '        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; font-weight: 500;">' +
+        '            <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' +
+        '            <span>衢州御风科技有限公司出品</span>' +
+        '        </div>' +
+        '    </div>' +
+        '    <style>' +
+        '        @keyframes spin {' +
+        '            0% { transform: rotate(0deg); }' +
+        '            100% { transform: rotate(360deg); }' +
+        '        }' +
+        '    </style>' +
+        '</div>';
+
+    // 打开弹出层
+    layer.open({
+        title: '<span style="display: inline-flex; align-items: center; gap: 6px;"><svg viewBox="0 0 64 64" width="16" height="16" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M16 22 h32 v30 h-32 z" /><path d="M26 22 L28 8 h8 L38 22" /><path d="M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16" stroke-width="3.5" /><path d="M24 52 v6 h16 v-6" /></svg>服务器性能与带宽测速</span>',
+        type: 1,
+        closeBtn: 1,
+        shade: 0.3,
+        area: ["860px", "740px"],
+        content: elegantHtml,
+        success: function(layers, index) {
+            if (historyData) {
+                // 有历史缓存，直接渲染还原数据
+                $("#sp-sys-loader").hide();
+                $("#sp-sys-table").show();
+                if (historyData.os) $("#sp-os").text(historyData.os).attr('title', historyData.os);
+                
+                if (historyData.cpu) {
+                    var cpuRaw = historyData.cpu;
+                    var cpuModel = cpuRaw;
+                    var cpuDetail = '';
+                    if (cpuRaw.indexOf(' @ ') > -1) {
+                        var parts = cpuRaw.split(' @ ');
+                        cpuModel = parts[0].trim();
+                        cpuDetail = parts[1].trim();
+                    } else if (cpuRaw.indexOf('@') > -1) {
+                        var parts = cpuRaw.split('@');
+                        cpuModel = parts[0].trim();
+                        cpuDetail = parts[1].trim();
                     }
                     
-                    $.post('/files/get_last_body', { path: log_path, line: '150' }, function(res) {
-                        if (res.status && res.data) {
-                            $("#speed_log_lst").html(res.data);
-                            
-                            var data = parseSpeedLog(res.data);
-                            
-                            // 渲染系统配置
-                            if (data.os || data.cpu || data.mem || data.disk) {
-                                $("#sp-sys-loader").hide();
-                                $("#sp-sys-table").show();
-                                if (data.os) $("#sp-os").text(data.os).attr('title', data.os);
-                                if (data.cpu) {
-                                    var cpuRaw = data.cpu;
-                                    var cpuModel = cpuRaw;
-                                    var cpuDetail = '';
-                                    if (cpuRaw.indexOf(' @ ') > -1) {
-                                        var parts = cpuRaw.split(' @ ');
-                                        cpuModel = parts[0].trim();
-                                        cpuDetail = parts[1].trim();
-                                    } else if (cpuRaw.indexOf('@') > -1) {
-                                        var parts = cpuRaw.split('@');
-                                        cpuModel = parts[0].trim();
-                                        cpuDetail = parts[1].trim();
-                                    }
-                                    
-                                    if (cpuDetail) {
-                                        var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
-                                        var detailParts = cleanDetail.split(' ');
-                                        if (detailParts.length >= 2) {
-                                            cpuDetail = '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1];
-                                        } else {
-                                            cpuDetail = cleanDetail;
-                                        }
-                                        $("#sp-cpu-detail").text(cpuDetail).show();
-                                    } else {
-                                        $("#sp-cpu-detail").hide();
-                                    }
-                                    $("#sp-cpu-model").text(cpuModel).attr('title', cpuRaw);
-                                }
-                                if (data.mem) $("#sp-mem").text(data.mem);
-                                if (data.disk) $("#sp-disk").text(data.disk);
-                            }
-                            
-                            // 磁盘IO渲染
-                            if (data.write_speed) {
-                                $("#sp-io-loader").hide();
-                                $("#sp-io-container").show();
-                                $("#sp-write-val").text(data.write_speed);
-                                var wSpeed = parseFloat(data.write_speed);
-                                var wPercent = Math.min(100, Math.round((wSpeed / 600) * 100));
-                                if (data.write_speed.indexOf('GB/s') > -1) wPercent = 100;
-                                $("#sp-write-bar").css('width', wPercent + '%');
-                            }
-                            
-                            if (data.read_speed) {
-                                $("#sp-read-val").text(data.read_speed).css('color', '#20a53a');
-                                var rSpeed = parseFloat(data.read_speed);
-                                var rPercent = Math.min(100, Math.round((rSpeed / 800) * 100));
-                                if (data.read_speed.indexOf('GB/s') > -1) rPercent = 100;
-                                $("#sp-read-bar").css('width', rPercent + '%');
-                            } else if (data.write_speed) {
-                                $("#sp-read-val").text('测试中...').css('color', '#94a3b8');
-                            }
-                            
-                            // 节点状态渲染
-                            Object.keys(data.nodes).forEach(function(nodeName) {
-                                var node = data.nodes[nodeName];
-                                var $row = $('.node-row[data-node="' + nodeName + '"]');
-                                if ($row.length > 0) {
-                                    if (node.status === 'running') {
-                                        $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-refresh').css({
-                                            'animation': 'spin 1.2s linear infinite',
-                                            'color': '#20a53a'
-                                        });
-                                        $row.find('.node-speed').text(node.speed).css('color', '#20a53a');
-                                        $row.css({
-                                            'background': 'rgba(32,165,58,0.03)',
-                                            'border-color': 'rgba(32,165,58,0.15)'
-                                        });
-                                    } else if (node.status === 'finished') {
-                                        $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ok-sign').css({
-                                            'animation': '',
-                                            'color': '#20a53a'
-                                        });
-                                        $row.find('.node-speed').text(node.speed).css('color', '#20a53a');
-                                        $row.css({
-                                            'background': 'rgba(32,165,58,0.05)',
-                                            'border-color': 'rgba(32,165,58,0.2)'
-                                        });
-                                    } else if (node.status === 'failed') {
-                                        $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-remove-sign').css({
-                                            'animation': '',
-                                            'color': '#ef4444'
-                                        });
-                                        $row.find('.node-speed').text('超时/失败').css('color', '#ef4444');
-                                        $row.css({
-                                            'background': 'rgba(239,68,68,0.03)',
-                                            'border-color': 'rgba(239,68,68,0.15)'
-                                        });
-                                    }
-                                }
-                            });
-                            
-                            // 判断结束
-                            if (res.data.indexOf('测速完毕') > -1 || res.data.indexOf('结束时间:') > -1) {
-                                clearInterval(speedTimer);
-                                $('.node-row').each(function() {
-                                    var txt = $(this).find('.node-speed').text();
-                                    if (txt === '排队中' || txt === '等待中') {
-                                        $(this).find('.node-speed').text('已跳过').css('color', '#94a3b8');
-                                        $(this).find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ban-circle').css('color', '#94a3b8');
-                                    }
+                    if (cpuDetail) {
+                        var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
+                        var detailParts = cleanDetail.split(' ');
+                        if (detailParts.length >= 2) {
+                            cpuDetail = '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1];
+                        } else {
+                            cpuDetail = cleanDetail;
+                        }
+                        $("#sp-cpu-detail").text(cpuDetail).show();
+                    } else {
+                        $("#sp-cpu-detail").hide();
+                    }
+                    $("#sp-cpu-model").text(cpuModel).attr('title', cpuRaw);
+                }
+                if (historyData.mem) $("#sp-mem").text(historyData.mem);
+                if (historyData.disk) $("#sp-disk").text(historyData.disk);
+                
+                // 还原磁盘IO
+                if (historyData.write_speed) {
+                    $("#sp-io-loader").hide();
+                    $("#sp-io-container").show();
+                    $("#sp-write-val").text(historyData.write_speed);
+                    var wSpeed = parseFloat(historyData.write_speed);
+                    var wPercent = Math.min(100, Math.round((wSpeed / 600) * 100));
+                    if (historyData.write_speed.indexOf('GB/s') > -1) wPercent = 100;
+                    $("#sp-write-bar").css('width', wPercent + '%');
+                }
+                
+                if (historyData.read_speed) {
+                    $("#sp-read-val").text(historyData.read_speed).css('color', '#20a53a');
+                    var rSpeed = parseFloat(historyData.read_speed);
+                    var rPercent = Math.min(100, Math.round((rSpeed / 800) * 100));
+                    if (historyData.read_speed.indexOf('GB/s') > -1) rPercent = 100;
+                    $("#sp-read-bar").css('width', rPercent + '%');
+                }
+                
+                // 还原云节点
+                if (historyData.nodes) {
+                    Object.keys(historyData.nodes).forEach(function(nodeName) {
+                        var node = historyData.nodes[nodeName];
+                        var $row = $('.node-row[data-node="' + nodeName + '"]');
+                        if ($row.length > 0) {
+                            if (node.status === 'finished') {
+                                $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ok-sign').css({
+                                    'animation': '',
+                                    'color': '#20a53a'
+                                });
+                                $row.find('.node-speed').text(node.speed).css('color', '#20a53a');
+                                $row.css({
+                                    'background': 'rgba(32,165,58,0.05)',
+                                    'border-color': 'rgba(32,165,58,0.2)'
+                                });
+                            } else if (node.status === 'failed') {
+                                $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-remove-sign').css({
+                                    'animation': '',
+                                    'color': '#ef4444'
+                                });
+                                $row.find('.node-speed').text('超时/失败').css('color', '#ef4444');
+                                $row.css({
+                                    'background': 'rgba(239,68,68,0.03)',
+                                    'border-color': 'rgba(239,68,68,0.15)'
+                                });
+                            } else if (node.status === 'skipped') {
+                                $row.find('.node-speed').text('已跳过').css('color', '#94a3b8');
+                                $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ban-circle').css({
+                                    'animation': '',
+                                    'color': '#94a3b8'
                                 });
                             }
                         }
-                    }, 'json');
-                }, 1000);
+                    });
+                }
+                
+                // 历史记录下，默认展示再次测试按钮
+                $("#btn-re-test").show();
+            } else {
+                // 无历史缓存，直接触发一次全新的真实测速
+                startRealNewTest();
             }
-        });
-    }, 'json');
+        }
+    });
 }
+
+// 轮询并渲染测速日志
+function runLogPolling(log_path) {
+    var speedTimer = setInterval(function() {
+        if ($("#speed_log_lst").length < 1) {
+            clearInterval(speedTimer);
+            return;
+        }
+        
+        $.post('/files/get_last_body', { path: log_path, line: '150' }, function(res) {
+            if (res.status && res.data) {
+                $("#speed_log_lst").html(res.data);
+                
+                var data = parseSpeedLog(res.data);
+                
+                // 渲染系统配置
+                if (data.os || data.cpu || data.mem || data.disk) {
+                    $("#sp-sys-loader").hide();
+                    $("#sp-sys-table").show();
+                    if (data.os) $("#sp-os").text(data.os).attr('title', data.os);
+                    if (data.cpu) {
+                        var cpuRaw = data.cpu;
+                        var cpuModel = cpuRaw;
+                        var cpuDetail = '';
+                        if (cpuRaw.indexOf(' @ ') > -1) {
+                            var parts = cpuRaw.split(' @ ');
+                            cpuModel = parts[0].trim();
+                            cpuDetail = parts[1].trim();
+                        } else if (cpuRaw.indexOf('@') > -1) {
+                            var parts = cpuRaw.split('@');
+                            cpuModel = parts[0].trim();
+                            cpuDetail = parts[1].trim();
+                        }
+                        
+                        if (cpuDetail) {
+                            var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
+                            var detailParts = cleanDetail.split(' ');
+                            if (detailParts.length >= 2) {
+                                cpuDetail = '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1];
+                            } else {
+                                cpuDetail = cleanDetail;
+                            }
+                            $("#sp-cpu-detail").text(cpuDetail).show();
+                        } else {
+                            $("#sp-cpu-detail").hide();
+                        }
+                        $("#sp-cpu-model").text(cpuModel).attr('title', cpuRaw);
+                    }
+                    if (data.mem) $("#sp-mem").text(data.mem);
+                    if (data.disk) $("#sp-disk").text(data.disk);
+                }
+                
+                // 磁盘IO渲染
+                if (data.write_speed) {
+                    $("#sp-io-loader").hide();
+                    $("#sp-io-container").show();
+                    $("#sp-write-val").text(data.write_speed);
+                    var wSpeed = parseFloat(data.write_speed);
+                    var wPercent = Math.min(100, Math.round((wSpeed / 600) * 100));
+                    if (data.write_speed.indexOf('GB/s') > -1) wPercent = 100;
+                    $("#sp-write-bar").css('width', wPercent + '%');
+                }
+                
+                if (data.read_speed) {
+                    $("#sp-read-val").text(data.read_speed).css('color', '#20a53a');
+                    var rSpeed = parseFloat(data.read_speed);
+                    var rPercent = Math.min(100, Math.round((rSpeed / 800) * 100));
+                    if (data.read_speed.indexOf('GB/s') > -1) rPercent = 100;
+                    $("#sp-read-bar").css('width', rPercent + '%');
+                } else if (data.write_speed) {
+                    $("#sp-read-val").text('测试中...').css('color', '#94a3b8');
+                }
+                
+                // 节点状态渲染
+                Object.keys(data.nodes).forEach(function(nodeName) {
+                    var node = data.nodes[nodeName];
+                    var $row = $('.node-row[data-node="' + nodeName + '"]');
+                    if ($row.length > 0) {
+                        if (node.status === 'running') {
+                            $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-refresh').css({
+                                'animation': 'spin 1.2s linear infinite',
+                                'color': '#20a53a'
+                            });
+                            $row.find('.node-speed').text(node.speed).css('color', '#20a53a');
+                            $row.css({
+                                'background': 'rgba(32,165,58,0.03)',
+                                'border-color': 'rgba(32,165,58,0.15)'
+                            });
+                        } else if (node.status === 'finished') {
+                            $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ok-sign').css({
+                                'animation': '',
+                                'color': '#20a53a'
+                            });
+                            $row.find('.node-speed').text(node.speed).css('color', '#20a53a');
+                            $row.css({
+                                'background': 'rgba(32,165,58,0.05)',
+                                'border-color': 'rgba(32,165,58,0.2)'
+                            });
+                        } else if (node.status === 'failed') {
+                            $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-remove-sign').css({
+                                'animation': '',
+                                'color': '#ef4444'
+                            });
+                            $row.find('.node-speed').text('超时/失败').css('color', '#ef4444');
+                            $row.css({
+                                'background': 'rgba(239,68,68,0.03)',
+                                'border-color': 'rgba(239,68,68,0.15)'
+                            });
+                        }
+                    }
+                });
+                
+                // 判断结束
+                if (res.data.indexOf('测速完毕') > -1 || res.data.indexOf('结束时间:') > -1) {
+                    clearInterval(speedTimer);
+                    $('.node-row').each(function() {
+                        var nodeName = $(this).attr('data-node');
+                        var txt = $(this).find('.node-speed').text();
+                        if (txt === '排队中' || txt === '等待中') {
+                            $(this).find('.node-speed').text('已跳过').css('color', '#94a3b8');
+                            $(this).find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ban-circle').css('color', '#94a3b8');
+                            data.nodes[nodeName] = { status: 'skipped', speed: '已跳过' };
+                        }
+                    });
+                    
+                    // 序列化测速完毕的真实数据并持久化到浏览器 localStorage
+                    localStorage.setItem('bt_speed_test_result', JSON.stringify(data));
+                    $("#btn-re-test").fadeIn(300);
+                }
+            }
+        }, 'json');
+    }, 1000);
+}
+
 
 // 辅助解析日志函数
 function parseSpeedLog(logText) {
