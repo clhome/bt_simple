@@ -663,6 +663,9 @@ def find_bt_site_db():
     
     if not paths:
         print("未自动检测到宝塔面板站点数据库（site.db）。")
+        if sys.stdin is None or not sys.stdin.isatty():
+            print("  ❌ 检测到非交互式环境，无法手动输入路径。")
+            return None
         db_path = mw_input_cmd("请输入宝塔 site.db 的绝对路径：")
         db_path = db_path.strip()
         if os.path.exists(db_path):
@@ -673,10 +676,16 @@ def find_bt_site_db():
             
     if len(paths) == 1:
         print("检测到唯一的宝塔站点数据库备份: %s" % paths[0])
-        confirm = mw_input_cmd("确定使用该数据库恢复网站列表吗？[yes/no]：")
+        if sys.stdin is None or not sys.stdin.isatty():
+            confirm = 'yes'
+            print("确定使用该数据库恢复网站列表吗？[yes/no]：yes (检测到非交互式环境，已自动确认)")
+        else:
+            confirm = mw_input_cmd("确定使用该数据库恢复网站列表吗？[yes/no]：")
         if confirm.strip().lower() == 'yes':
             return paths[0]
         else:
+            if sys.stdin is None or not sys.stdin.isatty():
+                return None
             db_path = mw_input_cmd("请手动输入宝塔 site.db 的绝对路径：")
             db_path = db_path.strip()
             if os.path.exists(db_path):
@@ -688,10 +697,20 @@ def find_bt_site_db():
         print("  (%d) %s" % (i + 1, path))
     print("  (0) 手动输入路径")
     
-    choice = mw_input_cmd("请选择编号：")
+    if sys.stdin is None or not sys.stdin.isatty():
+        choice = 1
+        print("请选择编号：1 (检测到非交互式环境，已自动选择最近的备份)")
+    else:
+        choice_str = mw_input_cmd("请选择编号：")
+        try:
+            choice = int(choice_str.strip())
+        except:
+            choice = -1
+
     try:
-        choice = int(choice.strip())
         if choice == 0:
+            if sys.stdin is None or not sys.stdin.isatty():
+                return None
             db_path = mw_input_cmd("请输入宝塔 site.db 的绝对路径：")
             db_path = db_path.strip()
             if os.path.exists(db_path):

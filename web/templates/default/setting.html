@@ -116,6 +116,11 @@
 						<button type="button" class="btn btn-default btn-sm ml5" style="border-color: #d9534f; color: #d9534f; background-color: transparent;" onclick="migrateDatabase()">从备份数据库还原至御风面板</button>
 						<span class="set-info c7">将备份数据库还原至面板，<b style="color:red;">会导致现有面板数据被覆盖，请谨慎操作！</b></span>
 					</p>
+					<p class="mtb15">
+						<span class="set-tit text-right" title="网站列表迁移" style="color: #fc6d26; font-weight: bold;">网站列表迁移</span>
+						<button type="button" class="btn btn-default btn-sm ml5" style="border-color: #fc6d26; color: #fc6d26; background-color: transparent;" onclick="migrateSites()">从备份数据库导入网站列表</button>
+						<span class="set-info c7">从旧面板数据库恢复网站列表到当前面板</span>
+					</p>
 				</form>
 			</div>
 
@@ -403,6 +408,125 @@ function migrateDatabase() {
 		layer.close(loadT);
 		layer.msg("检测备份数据失败！", {icon: 2});
 	});
+}
+
+function migrateSites() {
+	var loadT = layer.msg('正在检测站点备份数据...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+	$.post('/setting/check_migrate_sites', {}, function(res) {
+		layer.close(loadT);
+		
+		var select_html = '';
+		if (res.paths && res.paths.length > 0) {
+			select_html += '<div style="margin-bottom: 15px; text-align: left;">';
+			select_html += '<div style="font-weight: bold; margin-bottom: 8px;">自动检测到以下宝塔站点数据库备份：</div>';
+			for (var i = 0; i < res.paths.length; i++) {
+				var checked = (i === 0) ? 'checked' : '';
+				select_html += '<label style="display: block; cursor: pointer; margin-bottom: 8px; font-weight: normal; word-break: break-all;">';
+				select_html += '<input type="radio" name="migrate_site_db_path" value="' + res.paths[i] + '" ' + checked + ' style="vertical-align: middle; margin-top: -3px; margin-right: 5px;"> ';
+				select_html += res.paths[i];
+				select_html += '</label>';
+			}
+			select_html += '<label style="display: block; cursor: pointer; margin-bottom: 8px; font-weight: normal;">';
+			select_html += '<input type="radio" name="migrate_site_db_path" value="custom" style="vertical-align: middle; margin-top: -3px; margin-right: 5px;"> 手动输入绝对路径';
+			select_html += '</label>';
+			select_html += '</div>';
+		} else {
+			select_html += '<div style="margin-bottom: 15px; text-align: left; color: #666;">未自动检测到宝塔面板站点数据库（site.db）。</div>';
+		}
+		
+		var custom_input_style = (res.paths && res.paths.length > 0) ? 'display: none;' : '';
+		select_html += '<div id="custom_db_path_div" style="' + custom_input_style + ' text-align: left;">';
+		select_html += '<div style="font-weight: bold; margin-bottom: 8px;">请输入宝塔 site.db 的绝对路径：</div>';
+		select_html += '<input id="custom_site_db_path" class="bt-input-text" style="width: 100%; height: 35px; line-height: 35px;" type="text" placeholder="例如: /www/backup/site.db">';
+		select_html += '</div>';
+
+		layer.open({
+			type: 1,
+			closeBtn: 1,
+			title: "导入网站列表",
+			area: ['520px', '360px'],
+			btn: ["确定导入", "取消"],
+			shadeClose: true,
+			content: '<div class="bt-form" style="padding: 25px 40px;">' + select_html + '</div>',
+			success: function(layero, index) {
+				// 监听单选框变化
+				layero.find('input[name="migrate_site_db_path"]').change(function() {
+					if ($(this).val() === 'custom') {
+						$('#custom_db_path_div').show();
+					} else {
+						$('#custom_db_path_div').hide();
+					}
+				});
+			},
+			yes: function(index) {
+				var final_path = '';
+				if (res.paths && res.paths.length > 0) {
+					var selected_val = $('input[name="migrate_site_db_path"]:checked').val();
+					if (selected_val === 'custom') {
+						final_path = $.trim($('#custom_site_db_path').val());
+					} else {
+						final_path = selected_val;
+					}
+				} else {
+					final_path = $.trim($('#custom_site_db_path').val());
+				}
+
+				if (!final_path) {
+					layer.msg("请输入或选择 site.db 的绝对路径！", {icon: 2});
+					return;
+				}
+
+				var startLoad = layer.msg('正在启动导入任务...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+				$.post('/setting/migrate_sites', { db_path: final_path }, function(rdata) {
+					layer.close(startLoad);
+					layer.close(index);
+					if (rdata.status) {
+						var logIndex = layer.open({
+							type: 1,
+							title: '网站列表导入进度',
+							area: ['650px', '400px'],
+							closeBtn: 0,
+							shadeClose: false,
+							btn: ['完成'],
+							yes: function(idx) {
+								layer.close(idx);
+								window.location.reload();
+							},
+							content: '<div style="padding: 15px;"><pre id="migrate_sites_log_view" style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 260px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">正在初始化任务...</pre></div>',
+							success: function(layero, idx) {
+								var btn = layero.find('.layui-layer-btn0');
+								btn.hide();
+								
+								var timer = setInterval(function() {
+									$.post('/setting/get_migrate_sites_log', {}, function(logRes) {
+										if (logRes.status) {
+											var $logView = $('#migrate_sites_log_view');
+											$logView.text(logRes.msg);
+											$logView.scrollTop($logView[0].scrollHeight);
+											
+											if (logRes.msg.indexOf('[STATS] 导入统计') !== -1 || logRes.msg.indexOf('[ERROR] 错误') !== -1) {
+												clearInterval(timer);
+												btn.show();
+											}
+										}
+									}, 'json');
+								}, 1000);
+							}
+						});
+					} else {
+						layer.msg(rdata.msg, {icon: 2, time: 3000});
+					}
+				}, 'json').fail(function() {
+					layer.close(startLoad);
+					layer.msg("请求失败，请稍后重试。", {icon: 2});
+				});
+			}
+		});
+	}, 'json').fail(function() {
+		layer.close(loadT);
+		layer.msg("检测站点备份数据失败！", {icon: 2});
+	});
+}
 }
 </script>
 <script src="/static/app/config.js?v={{config.version}}"></script>

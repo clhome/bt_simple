@@ -346,3 +346,50 @@ def get_migrate_log():
         return mw.returnData(False, "日志文件不存在或尚未生成")
     content = mw.readFile(log_file)
     return mw.returnData(True, content)
+
+# 网站列表迁移检测
+@blueprint.route('/check_migrate_sites', endpoint='check_migrate_sites', methods=['POST'])
+@panel_login_required
+def check_migrate_sites():
+    import glob
+    import os
+    paths = glob.glob('/www/server/panel.bak.*/data/db/site.db')
+    if os.path.exists('/www/server/panel/data/db/site.db'):
+        paths.append('/www/server/panel/data/db/site.db')
+    paths = list(set(paths))
+    paths.sort(reverse=True)
+    return mw.getJson({'paths': paths})
+
+# 执行网站列表迁移
+@blueprint.route('/migrate_sites', endpoint='migrate_sites', methods=['POST'])
+@panel_login_required
+def migrate_sites():
+    try:
+        db_path = request.form.get('db_path', '').strip()
+        if not db_path:
+            return mw.returnData(False, "数据库路径不能为空")
+            
+        import sys
+        import os
+        panel_dir = mw.getPanelDir()
+        log_file = "/tmp/migrate_sites.log"
+        mw.writeFile(log_file, "正在初始化站点导入任务...\n")
+        
+        cmd = "cd " + panel_dir + " && " + sys.executable + " -u " + panel_dir + "/panel_tools.py import_bt_sites " + db_path + " > " + log_file + " 2>&1 &"
+        os.system(cmd)
+        
+        mw.writeLog('面板设置', '执行宝塔站点导入: ' + cmd)
+        return mw.returnData(True, "站点导入已启动")
+    except Exception as e:
+        return mw.returnData(False, "站点导入启动失败：" + str(e))
+
+# 获取网站列表迁移日志
+@blueprint.route('/get_migrate_sites_log', endpoint='get_migrate_sites_log', methods=['POST'])
+@panel_login_required
+def get_migrate_sites_log():
+    import os
+    log_file = "/tmp/migrate_sites.log"
+    if not os.path.exists(log_file):
+        return mw.returnData(False, "日志文件不存在或尚未生成")
+    content = mw.readFile(log_file)
+    return mw.returnData(True, content)
