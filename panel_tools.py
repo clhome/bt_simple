@@ -83,7 +83,8 @@ def mwcli(mw_input=0):
             '(200)  切换Linux系统软件源',
             '(201)  简单速度测试',
             '(202)  SSH终端管理',
-            '(30)   恢复宝塔软件数据(迁移接管)',
+            '(30)   恢复宝塔MySQL数据',
+            '(31)   恢复宝塔网站列表数据',
             '(0)    取消'
         ]
         cmd_list_num = len(cmd_list)
@@ -107,7 +108,7 @@ def mwcli(mw_input=0):
     nums = [
         1, 2, 3, 4, 5, 6, 7, 9,
         10, 11, 12, 13, 14, 15,
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
         100, 101, 
         200, 201, 202
     ]
@@ -339,6 +340,10 @@ def mwcli(mw_input=0):
                 print(str(x) +") " + tag)
     elif mw_input == 30:
         restore_bt_data()
+    elif mw_input == 31:
+        db_path = find_bt_site_db()
+        if db_path:
+            import_bt_sites(db_path)
 
 def open_ssh_port():
     
@@ -643,6 +648,58 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
     else:
         print("ℹ️ 未进行任何数据迁移动作。如有疑问请检查软件安装状态及备份目录是否存在。")
     print("====================================================================")
+
+def find_bt_site_db():
+    import glob
+    paths = glob.glob('/www/server/panel.bak.*/data/db/site.db')
+    if os.path.exists('/www/server/panel/data/db/site.db'):
+        paths.append('/www/server/panel/data/db/site.db')
+        
+    paths = list(set(paths))
+    paths.sort(reverse=True)
+    
+    if not paths:
+        print("未自动检测到宝塔面板站点数据库（site.db）。")
+        db_path = mw_input_cmd("请输入宝塔 site.db 的绝对路径：")
+        db_path = db_path.strip()
+        if os.path.exists(db_path):
+            return db_path
+        else:
+            print("  ❌ 路径不存在: " + db_path)
+            return None
+            
+    if len(paths) == 1:
+        print("检测到唯一的宝塔站点数据库备份: %s" % paths[0])
+        confirm = mw_input_cmd("确定使用该数据库恢复网站列表吗？[yes/no]：")
+        if confirm.strip().lower() == 'yes':
+            return paths[0]
+        else:
+            db_path = mw_input_cmd("请手动输入宝塔 site.db 的绝对路径：")
+            db_path = db_path.strip()
+            if os.path.exists(db_path):
+                return db_path
+            return None
+            
+    print("检测到多个宝塔站点数据库备份：")
+    for i, path in enumerate(paths):
+        print("  (%d) %s" % (i + 1, path))
+    print("  (0) 手动输入路径")
+    
+    choice = mw_input_cmd("请选择编号：")
+    try:
+        choice = int(choice.strip())
+        if choice == 0:
+            db_path = mw_input_cmd("请输入宝塔 site.db 的绝对路径：")
+            db_path = db_path.strip()
+            if os.path.exists(db_path):
+                return db_path
+            return None
+        elif 1 <= choice <= len(paths):
+            return paths[choice - 1]
+    except Exception as e:
+        pass
+    print("无效选择。")
+    return None
 
 def import_bt_sites(db_path):
     print("======================== 导入宝塔面板站点 ==========================")
