@@ -25,13 +25,16 @@ class pg_thread(threading.Thread):
         self.name = name
         self.func = func
         self.args = args
-        self.result = self.func(*self.args)
+        self.result = None
+
+    def run(self):
+        try:
+            self.result = self.func(*self.args)
+        except Exception:
+            self.result = None
 
     def getResult(self):
-        try:
-            return self.result
-        except Exception:
-            return None
+        return self.result
 
 class plugin(object):
 
@@ -101,6 +104,12 @@ class plugin(object):
     """插件类初始化"""
     def __init__(self):
         self.__plugin_dir = mw.getPluginDir()
+
+
+    def refreshSetupStatus(self, plist):
+        for pInfo in plist:
+            pInfo['setup'] = os.path.exists(pInfo['install_checks'])
+        return plist
 
 
     def getIndexList(self, simple=False):
@@ -862,7 +871,11 @@ class plugin(object):
                 info_copy = copy.deepcopy(info)
                 def _async_refresh():
                     try:
-                        fresh_data = {}
+                        db_cache = thisdb.getOptionByJson(self.__plugin_status_cachekey, default=None)
+                        if db_cache is None or type(db_cache) != dict:
+                            db_cache = {}
+                        fresh_data = db_cache.copy()
+
                         threads = []
                         ntmp_list = range(len(info_copy))
                         for i in ntmp_list:
@@ -875,6 +888,8 @@ class plugin(object):
                         for i in ntmp_list:
                             t = threads[i].getResult()
                             k = info_copy[i]['name']
+                            if 'coexist' in info_copy[i] and info_copy[i]['coexist']:
+                                k = info_copy[i].get('title', info_copy[i]['name'])
                             fresh_data[k] = t
                         thisdb.setOption(self.__plugin_status_cachekey, json.dumps(fresh_data))
                     except Exception as e:
@@ -897,6 +912,8 @@ class plugin(object):
                 for i in ntmp_list:
                     t = threads[i].getResult()
                     k = info[i]['name']
+                    if 'coexist' in info[i] and info[i]['coexist']:
+                        k = info[i].get('title', info[i]['name'])
                     self.__plugin_status_data[k] = t
                     info[i]['status'] = t
                 thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
@@ -976,7 +993,7 @@ class plugin(object):
         import copy
         plist = copy.deepcopy(static_list)
         
-        plist = self.refreshDynamicStatus(plist)
+        plist = self.refreshSetupStatus(plist)
         
         filtered_list = []
         for p in plist:
@@ -1004,6 +1021,8 @@ class plugin(object):
         start = (page - 1) * size
         end = start + size
         page_items = filtered_list[start:end]
+        
+        page_items = self.refreshDynamicStatus(page_items)
         
         page_items = self.checkStatusMThreadsByCache(page_items)
         return (page_items, len(filtered_list))
