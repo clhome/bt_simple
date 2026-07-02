@@ -4,28 +4,36 @@
 - 面板相关命令
 
 ```
-mw start    | 启动面板服务器
-mw stop     | 停止面板服务器
-mw restart  | 重启面板服务器
-mw default	| 显示登录信息
-mw db 		| 快捷连接MySQL
-mw redis 	| 快捷连接Redis
-mw valkey 	| 快捷连接valkey
-mw mongodb 	| 快捷连接MongoDB
-mw pgdb 	| 快捷连接PostgreSQL
-mw ssh 		| 快捷连接ssh
+bs start            | 启动面板服务器
+bs stop             | 停止面板服务器
+bs restart          | 重启面板服务器
+bs status           | 查看面板状态
+bs default          | 显示登录信息
+bs list             | 显示命令列表
+bs db               | 快捷连接MySQL/MariaDB
+bs redis            | 快捷连接Redis
+bs valkey           | 快捷连接Valkey
+bs mongodb          | 快捷连接MongoDB
+bs pgdb             | 快捷连接PostgreSQL
+bs ssh              | 快捷连接SSH
+bs logs             | 查看面板错误日志
 ----------------------------------------
-mw open				| 开启面板
-mw close			| 关闭面板
+bs open             | 开启面板 (允许公网访问)
+bs close            | 关闭面板 (禁止公网访问)
+bs close_admin_path | 关闭面板安全入口
+bs unbind_domain    | 解绑面板域名
+bs unbind_ssl       | 解绑面板SSL
 
-mw debug			| 开发测试
-mw venv				| 进入虚拟环境
-mw mirror			| 切换镜像
-mw install_app			| 快捷安装常用软件
-mw update 			| 更新到正式
-mw dev/update_dev		| 更新到开发
+bs debug            | 停止当前服务并以前台调试模式启动面板
+bs venv             | 重置/更新面板 Python 虚拟环境
+bs mirror           | 切换系统镜像源
+bs install_app      | 快捷安装常用软件
+bs update           | 更新到正式环境最新代码
+bs update_dev       | 更新到测试环境最新代码
+bs migrate_restore  | 一键恢复宝塔面板网站列表数据
+bs uninstall        | 彻底卸载面板
 
-service mw [start|stop|reload|restart|status]
+systemctl [start|stop|reload|restart|status] bs
 ```
 
 - OpenResty
@@ -56,9 +64,9 @@ systemctl [start|stop|reload|restart|status] mariadb
 
 ```
 
-systemctl [start|stop|reload|restart|status] php[54-81] 
+systemctl [start|stop|reload|restart|status] php[54-85] 
 
-systemctl start php71
+systemctl start php74
 ```
 
 - Redis
@@ -78,7 +86,7 @@ systemctl [start|stop|reload|restart|status] memcached
 ```
 
 
-- sphinx
+- Sphinx
 
 ```
 
