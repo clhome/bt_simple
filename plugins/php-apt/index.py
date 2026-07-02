@@ -47,14 +47,18 @@ def getArgs():
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':')
-        tmp[t[0]] = t[1]
+        try:
+            tmp = json.loads(args[0])
+        except Exception:
+            t = args[0].strip('{').strip('}')
+            t = t.split(':')
+            if len(t) >= 2:
+                tmp[t[0]] = t[1]
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':')
-            tmp[t[0]] = t[1]
-
+            if len(t) >= 2:
+                tmp[t[0]] = t[1]
     return tmp
 
 
@@ -372,6 +376,16 @@ def phpOp(version, method):
     if mw.isAppleSystem():
         return 'fail'
     
+    if method in ['start', 'restart', 'reload']:
+        sock_file = getFpmAddress(version)
+        if isinstance(sock_file, str) and os.path.exists(sock_file):
+            os.system('rm -f ' + sock_file)
+        pid_file = '/run/php/php' + version + '-fpm.pid'
+        if os.path.exists(pid_file):
+            pid = mw.readFile(pid_file).strip()
+            if pid:
+                os.system('kill -9 ' + pid)
+    
     data = mw.execShell('systemctl ' + method + ' ' +'php' + version + '-fpm')
     if data[1] == '':
         return 'ok'
@@ -665,7 +679,10 @@ def getFpmStatus(version):
         sock_data = mw.requestFcgiPHP(sock_file, '/phpfpm_status_apt' + version + '?json')
 
         result = str(sock_data, encoding='utf-8')
-        data = json.loads(result)
+        try:
+            data = json.loads(result)
+        except Exception as e:
+            return mw.returnJson(False, '获取状态失败, 返回内容异常: ' + result)
         fTime = time.localtime(int(data['start time']))
         data['start time'] = time.strftime('%Y-%m-%d %H:%M:%S', fTime)
     except Exception as e:
