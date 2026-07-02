@@ -241,7 +241,7 @@ function delJob(name) {
 
 //添加站点
 function supAdd() {
-	myPost('get_user_list',{},function(data){
+	myPost('get_user_list',{},async function(data){
 		var rdata = JSON.parse(data.data);
 		// console.log(rdata);
 
@@ -251,7 +251,7 @@ function supAdd() {
             ulist += "<option value='"+rdata[i]+"'>"+rdata[i]+"</option>";
         }
 
-        var www = syncPost('/site/get_root_dir');
+        var www = await syncPost('/site/get_root_dir');
 		ulist += "</select><span id='php_w' style='color:red;margin-left: 10px;width:270px;'></span></div>";
 		layer.open({
 			type: 1,

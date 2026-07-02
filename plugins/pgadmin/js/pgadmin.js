@@ -22,7 +22,7 @@ function pgPost(method,args,callback){
 }
 
 
-function pgAsyncPost(method,args){
+async function pgAsyncPost(method,args){
 
     var _args = null; 
     if (typeof(args) == 'string'){
@@ -30,7 +30,7 @@ function pgAsyncPost(method,args){
     } else {
         _args = JSON.stringify(args);
     }
-    return syncPost('/plugins/run', {name:'pgadmin', func:method, args:_args}); 
+    return await syncPost('/plugins/run', {name:'pgadmin', func:method, args:_args}); 
 }
 
 function homePage(){

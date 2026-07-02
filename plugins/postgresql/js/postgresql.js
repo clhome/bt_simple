@@ -67,7 +67,7 @@ function myPostN(method,args,callback, title){
     },'json'); 
 }
 
-function myAsyncPost(method,args){
+async function myAsyncPost(method,args){
     var _args = null; 
     if (typeof(args) == 'string'){
         _args = JSON.stringify(str2Obj(args));
@@ -76,7 +76,9 @@ function myAsyncPost(method,args){
     }
 
     var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    return syncPost('/plugins/run', {name:'mysql', func:method, args:_args}); 
+    var res = await syncPost('/plugins/run', {name:'mysql', func:method, args:_args}); 
+    layer.close(loadT);
+    return res;
 }
 
 function runInfo(){
@@ -569,16 +571,16 @@ function delDbBatch(){
         }
     });
 
-    safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>',function(){
+    safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
         var i = 0;
-        $(arr).each(function(){
-            var data  = myAsyncPost('del_db', this);
+        for (var idx = 0; idx < arr.length; idx++) {
+            var data  = await myAsyncPost('del_db', arr[idx]);
             var rdata = JSON.parse(data.data);
             if (!rdata.status){
                 layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
             }
             i++;
-        });
+        }
         
         var msg = '成功删除['+i+']个数据库!';
         showMsg(msg,function(){

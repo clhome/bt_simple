@@ -46,7 +46,7 @@ function appPostN(method,args,callback, title){
     },'json'); 
 }
 
-function appAsyncPost(method,args){
+async function appAsyncPost(method,args){
     var _args = null; 
     if (typeof(args) == 'string'){
         _args = JSON.stringify(toArrayObject(args));
@@ -55,7 +55,9 @@ function appAsyncPost(method,args){
     }
 
     var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    return syncPost('/plugins/run', {name:'cryptocurrency_trade', func:method, args:_args});
+    var res = await syncPost('/plugins/run', {name:'cryptocurrency_trade', func:method, args:_args});
+    layer.close(loadT);
+    return res;
 }
 
 

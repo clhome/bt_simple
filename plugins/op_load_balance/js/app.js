@@ -20,14 +20,14 @@ function ooPost(method,args,callback){
     },'json'); 
 }
 
-function ooAsyncPost(method,args){
+async function ooAsyncPost(method,args){
     var _args = null; 
     if (typeof(args) == 'string'){
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
-    return syncPost('/plugins/run', {name:'op_load_balance', func:method, args:_args}); 
+    return await syncPost('/plugins/run', {name:'op_load_balance', func:method, args:_args}); 
 }
 
 function ooPostCallbak(method, args, callback){

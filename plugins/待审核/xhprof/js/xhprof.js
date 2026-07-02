@@ -21,14 +21,14 @@ function xhPost(method,args,callback){
     },'json'); 
 }
 
-function xhAsyncPost(method,args){
+async function xhAsyncPost(method,args){
     var _args = null; 
     if (typeof(args) == 'string'){
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
-    return syncPost('/plugins/run', {name:'xhprof', func:method, args:_args}); 
+    return await syncPost('/plugins/run', {name:'xhprof', func:method, args:_args}); 
 }
 
 function homePage(){
@@ -44,9 +44,9 @@ function homePage(){
 }
 
 //phpmyadmin切换php版本
-function phpVer(version) {
+async function phpVer(version) {
 
-    var _version = xhAsyncPost('get_set_php_ver','')
+    var _version = await xhAsyncPost('get_set_php_ver','')
     if (_version['data'] != ''){
         version = _version['data'];
     }
@@ -77,8 +77,8 @@ function phpVerChange(type, msg) {
 
 
 //xhprf 安全设置
-function safeConf() {
-    var data = xhAsyncPost('get_xhprof_port');
+async function safeConf() {
+    var data = await xhAsyncPost('get_xhprof_port');
     var rdata = JSON.parse(data.data);
     if (!rdata.status){
         layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});

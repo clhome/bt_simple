@@ -28,14 +28,14 @@ function ssPost(method,args,callback){
     },'json'); 
 }
 
-function ssAsyncPost(method,args){
+async function ssAsyncPost(method,args){
     var _args = null; 
     if (typeof(args) == 'string'){
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
-    return syncPost('/plugins/run', {name:'system_safe', func:method, args:_args}); 
+    return await syncPost('/plugins/run', {name:'system_safe', func:method, args:_args}); 
 }
 
 function ssPostCallbak(method, args, callback){

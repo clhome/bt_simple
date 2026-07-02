@@ -32,14 +32,14 @@ function appPost(method,args,callback){
     },'json'); 
 }
 
-function appAsyncPost(method,args){
+async function appAsyncPost(method,args){
     var _args = null; 
     if (typeof(args) == 'string'){
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
-    return syncPost('/plugins/run', {name:'webssh', func:method, args:_args}); 
+    return await syncPost('/plugins/run', {name:'webssh', func:method, args:_args}); 
 }
 
 function appPostCallbak(method, args, callback){

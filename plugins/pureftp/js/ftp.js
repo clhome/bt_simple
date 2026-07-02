@@ -21,8 +21,8 @@ function ftpPost(method,args,callback){
 }
 
 
-function ftpAsyncPost(method,args){
-	return syncPost('/plugins/run',
+async function ftpAsyncPost(method,args){
+	return await syncPost('/plugins/run',
 		{name:'pureftp', func:method, args:JSON.stringify(args)}
 	);
 }
@@ -103,9 +103,9 @@ function ftpList(page, search){
 /**
  *添加FTP帐户
  */
-function addFtp() {
+async function addFtp() {
 
-	var data = ftpAsyncPost('get_www_dir');
+	var data = await ftpAsyncPost('get_www_dir');
 	var defaultPath = data.data;
 	var indexFtp = layer.open({
 		type: 1,

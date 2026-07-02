@@ -32,7 +32,7 @@ function pmaPost(method,args,callback){
 }
 
 
-function pmaAsyncPost(method,args){
+async function pmaAsyncPost(method,args){
 
     var _args = null; 
     if (typeof(args) == 'string'){
@@ -40,7 +40,7 @@ function pmaAsyncPost(method,args){
     } else {
         _args = JSON.stringify(args);
     }
-    return syncPost('/plugins/run', {name:'phpmyadmin', func:method, args:_args}); 
+    return await syncPost('/plugins/run', {name:'phpmyadmin', func:method, args:_args}); 
 }
 
 function homePage(){
@@ -56,9 +56,9 @@ function homePage(){
 }
 
 //phpmyadmin切换php版本
-function phpVer(version) {
+async function phpVer(version) {
 
-    var _version = pmaAsyncPost('get_set_php_ver','')
+    var _version = await pmaAsyncPost('get_set_php_ver','')
     if (_version['data'] != ''){
         version = _version['data'];
     }

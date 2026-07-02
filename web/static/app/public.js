@@ -320,19 +320,18 @@ function mwsPost(path, args, callback){
 	},'json');
 }
 
-function syncPost(path, args){
-	var retData;
-	 $.ajax({
-		type : 'post',
-		url : path,  
-		data : args,  
-		async : false,  
-		dataType:'json',
-		success : function(data){  
-        	retData = data;
-		} 
-    });
-	return retData;
+async function syncPost(path, args) {
+	try {
+		return await $.ajax({
+			type: 'post',
+			url: path,
+			data: args,
+			dataType: 'json'
+		});
+	} catch (e) {
+		console.error("syncPost error:", e);
+		return null;
+	}
 }
 
 function repeatPwd(a) {

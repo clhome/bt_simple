@@ -40,14 +40,14 @@ function maPost(method,args,callback, msg = '正在获取...'){
     },'json'); 
 }
 
-function maAsyncPost(method,args){
+async function maAsyncPost(method,args){
     var _args = null; 
     if (typeof(args) == 'string'){
         _args = JSON.stringify(toArrayObject(args));
     } else {
         _args = JSON.stringify(args);
     }
-    return syncPost('/plugins/run', {name:'migration_api', func:method, args:_args}); 
+    return await syncPost('/plugins/run', {name:'migration_api', func:method, args:_args}); 
 }
 
 
