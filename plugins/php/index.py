@@ -53,16 +53,21 @@ def getArgs():
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        if t.strip() == '':
-            tmp = []
-        else:
-            t = t.split(':', 1)
-            tmp[t[0]] = t[1]
+        try:
+            tmp = json.loads(args[0])
+            if type(tmp) != dict:
+                tmp = {}
+        except:
+            t = args[0].strip('{').strip('}')
+            if t.strip() == '':
+                tmp = []
+            else:
+                t = t.split(':', 1)
+                tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
     return tmp
 
 
@@ -485,6 +490,28 @@ def phpOp(version, method):
 
     if method == 'stop' or method == 'restart':
         mw.execShell(file + ' ' + 'stop')
+        if method == 'restart':
+            time.sleep(0.5)
+
+    if method in ['start', 'restart']:
+        server_dir = mw.getServerDir()
+        clean_cmd = f"""
+        pid_file="{server_dir}/php/{version}/var/run/php-fpm.pid"
+        if [ -f "$pid_file" ]; then
+            pid=$(cat "$pid_file")
+            if [ -n "$pid" ]; then
+                kill -9 $pid 2>/dev/null
+                pkill -9 -P $pid 2>/dev/null
+            fi
+        fi
+        master_pids=$(ps aux | grep 'php-fpm: master process' | grep '/php/{version}/' | awk '{{print $2}}')
+        for mpid in $master_pids; do
+            kill -9 $mpid 2>/dev/null
+            pkill -9 -P $mpid 2>/dev/null
+        done
+        rm -f /tmp/php-cgi-{version}*.sock
+        """
+        mw.execShell(clean_cmd)
 
     data = mw.execShell('systemctl ' + method + ' php' + version)
     if data[1] == '':
@@ -847,7 +874,27 @@ def getFpmStatus(version):
 
     
     result = str(sock_data, encoding='utf-8')
-    data = json.loads(result)
+    try:
+        data = json.loads(result)
+    except Exception as e:
+        diag_info = ""
+        try:
+            fpm_conf_path = getFpmConfFile(version, pool)
+            conf_content = mw.readFile(fpm_conf_path)
+            status_path_match = re.search(r"pm\.status_path\s*=\s*(.+)", conf_content)
+            listen_match = re.search(r"listen\s*=\s*(.+)", conf_content)
+            diag_info = f"\n[Conf: {fpm_conf_path}]"
+            if status_path_match:
+                diag_info += f" [status_path: {status_path_match.group(1).strip()}]"
+            else:
+                diag_info += " [status_path: NOT FOUND]"
+            if listen_match:
+                diag_info += f" [listen: {listen_match.group(1).strip()}]"
+            else:
+                diag_info += " [listen: NOT FOUND]"
+        except Exception as diag_err:
+            diag_info = f"\n[Diag Err: {str(diag_err)}]"
+        return mw.returnJson(False, "获取状态失败, 返回内容异常: " + result + diag_info)
     fTime = time.localtime(int(data['start time']))
     data['start time'] = time.strftime('%Y-%m-%d %H:%M:%S', fTime)
     return mw.returnJson(True, "OK", data)

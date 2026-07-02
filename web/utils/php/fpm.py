@@ -162,8 +162,12 @@ class fpm(object):
         if content:
             content = StringIO(content)
 
+        script_filename = '%s%s' % (self.document_root, script_name)
+        if script_name.startswith('/phpfpm_status'):
+            script_filename = script_name
+
         env = {
-            'SCRIPT_FILENAME': '%s%s' % (self.document_root, script_name),
+            'SCRIPT_FILENAME': script_filename,
             'QUERY_STRING': query_string,
             'REQUEST_METHOD': method,
             'SCRIPT_NAME': self.last_path + script_name,
