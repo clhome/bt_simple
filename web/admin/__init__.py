@@ -50,7 +50,7 @@ app = Flask(__name__, template_folder='templates/default')
 
 # curl --compressed -I "http://127.0.0.1:44010/" -H "Accept-Encoding: br" --write-out "%{json}"
 app.config["COMPRESS_ALGORITHM"] = ["br", "zstd", "gzip", "deflate"]
-app.config["COMPRESS_LEVEL"] = 9  # 最高压缩级别
+app.config["COMPRESS_LEVEL"] = 6  # 平衡压缩率与CPU开销（级别9 CPU消耗高3~5倍，压缩率仅提升1~3%）
 app.config["COMPRESS_MIN_SIZE"] = 500  # 最小压缩大小
 Compress(app)
 
@@ -93,7 +93,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
 
 # db的配置
 # app.config['SQLALCHEMY_DATABASE_URI'] = mw.getSqitePrefix()+config.SQLITE_PATH+"?timeout=20"  # 使用 SQLite 数据库
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # BASIC AUTH
 app.config['BASIC_AUTH_OPEN'] = False

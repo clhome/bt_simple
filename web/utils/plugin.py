@@ -825,30 +825,82 @@ class plugin(object):
         else:
             return False
 
-    # 多线程检查插件状态[cache]
+    # 多线程检查插件状态[cache] —— 缓存优先 + 后台异步刷新策略
     def checkStatusMThreadsByCache(self, info):
         try:
-            self.__plugin_status_data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default=None)
-            if self.__plugin_status_data is None or type(self.__plugin_status_data) != dict:
-                self.__plugin_status_data = {}
-            threads = []
-            ntmp_list = range(len(info))
-            for i in ntmp_list:
-                t = pg_thread(self.checkStatusThreadsByCache,(info[i], i))
-                threads.append(t)
+            cached_data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default=None)
+            if cached_data is None or type(cached_data) != dict:
+                cached_data = {}
 
-            for i in ntmp_list:
-                threads[i].start()
-            for i in ntmp_list:
-                threads[i].join()
+            self.__plugin_status_data = cached_data
 
-            for i in ntmp_list:
-                t = threads[i].getResult()
-                k = info[i]['name']
-                self.__plugin_status_data[k] = t
-                info[i]['status'] = t
+            # 判断缓存是否可用（已安装的插件在缓存中都有对应条目）
+            has_full_cache = True
+            for item in info:
+                if not item.get('setup', False):
+                    continue
+                k = item['name']
+                if 'coexist' in item and item['coexist']:
+                    k = item.get('title', item['name'])
+                if k not in cached_data:
+                    has_full_cache = False
+                    break
 
-            thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
+            if has_full_cache:
+                # 缓存完整：直接使用缓存值返回（零阻塞），后台异步刷新
+                for i in range(len(info)):
+                    if not info[i].get('setup', False):
+                        info[i]['status'] = False
+                        continue
+                    k = info[i]['name']
+                    if 'coexist' in info[i] and info[i]['coexist']:
+                        k = info[i].get('title', info[i]['name'])
+                    info[i]['status'] = cached_data.get(k, False)
+
+                # 启动后台线程异步刷新缓存（不阻塞当前请求）
+                import copy
+                info_copy = copy.deepcopy(info)
+                def _async_refresh():
+                    try:
+                        fresh_data = {}
+                        threads = []
+                        ntmp_list = range(len(info_copy))
+                        for i in ntmp_list:
+                            t = pg_thread(self.checkStatusThreadsByCache, (info_copy[i], i))
+                            threads.append(t)
+                        for i in ntmp_list:
+                            threads[i].start()
+                        for i in ntmp_list:
+                            threads[i].join()
+                        for i in ntmp_list:
+                            t = threads[i].getResult()
+                            k = info_copy[i]['name']
+                            fresh_data[k] = t
+                        thisdb.setOption(self.__plugin_status_cachekey, json.dumps(fresh_data))
+                    except Exception as e:
+                        print('async refresh plugin status error:', str(e))
+
+                refresh_thread = threading.Thread(target=_async_refresh)
+                refresh_thread.daemon = True
+                refresh_thread.start()
+            else:
+                # 冷启动：没有完整缓存，必须同步获取（仅首次）
+                threads = []
+                ntmp_list = range(len(info))
+                for i in ntmp_list:
+                    t = pg_thread(self.checkStatusThreadsByCache, (info[i], i))
+                    threads.append(t)
+                for i in ntmp_list:
+                    threads[i].start()
+                for i in ntmp_list:
+                    threads[i].join()
+                for i in ntmp_list:
+                    t = threads[i].getResult()
+                    k = info[i]['name']
+                    self.__plugin_status_data[k] = t
+                    info[i]['status'] = t
+                thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
+
         except Exception as e:
             print(mw.getTracebackInfo())
             print('checkStatusMThreadsByCache:', str(e))

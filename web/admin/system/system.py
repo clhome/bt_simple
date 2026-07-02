@@ -42,10 +42,19 @@ def system_total():
 def get_env_info():
     return sys.getEnvInfo()
 
-# 获取系统的网络流量信息
+# 获取系统的网络流量信息（1.5秒服务端缓存，避免首页+messageBox双轮询重复采集）
+_network_cache = None
+_network_cache_time = 0
+
 @blueprint.route('/network', endpoint='network')
 @panel_login_required
 def network():
+    import time
+    global _network_cache, _network_cache_time
+    now = time.time()
+    if _network_cache is not None and (now - _network_cache_time) < 1.5:
+        return _network_cache
+
     stat = {}
     stat['cpu'] = sys.getCpuInfo()
     stat['load'] = sys.getLoadAverage()
@@ -54,7 +63,11 @@ def network():
     stat['network'] = sys.stats().network()
     # 注入任务排队数量，实现高频接口合并
     stat['task_count'] = thisdb.getTaskUnexecutedCount()
-    return mw.getJson(stat)
+    result = mw.getJson(stat)
+
+    _network_cache = result
+    _network_cache_time = now
+    return result
 
 # 获取系统的磁盘信息
 @blueprint.route('/disk_info', endpoint='disk_info', methods=['GET','POST'])
