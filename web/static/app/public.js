@@ -2579,6 +2579,12 @@ function pluginSetService(_name ,status, version, _suffix_name=''){
             <div style="margin-bottom: 4px;"><b style="color:#333;">重载配置 (Reload)</b>：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现<b style="color:#20a53a;">业务零中断</b>，推荐日常修改配置后使用。</div>\
             <div><b style="color:#333;">重启服务 (Restart)</b>：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。</div>\
         </div>';
+        serviceCon += '<div style="margin-top: 20px;">\
+            <button class="btn btn-danger btn-sm" onclick="pluginOpService(\''+_name+'\',\'kill_all_php\',\''+version+'\',\''+_suffix_name+'\')">kill所有php进程</button>\
+            <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">\
+                <div><b style="color:#d9534f;">注意</b>：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，<b style="color:red;">执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。</b></div>\
+            </div>\
+        </div>';
     }
 
     $(".soft-man-con").html(serviceCon);
@@ -2600,6 +2606,7 @@ function pluginOpService(a, b, v, _suffix_name='') {
         case "start":d = '启动';break;
         case "restart":d = '重启';break;
         case "reload":d = '重载';break;
+        case "kill":d = '强杀';break;
     }
 
     _ver = v;

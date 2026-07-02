@@ -448,6 +448,7 @@ def tunePhpConfig(version):
     return mw.returnJson(True, '成功对 PHP-' + version + ' 配置执行一键调优！')
 
 
+
 def tuneAllPhpConfig():
     php_dir = getServerDir()
     if not os.path.exists(php_dir):
@@ -544,6 +545,10 @@ def reload(version):
     if version == '52':
         return phpOp(version, 'restart')
     return phpOp(version, 'reload')
+
+def killAllPhp(version):
+    mw.execShell('pkill -f php-fpm')
+    return 'ok'
 
 
 def initdStatus(version):
@@ -830,8 +835,8 @@ def getFpmAddress(version, pool='www'):
         fpm_address = '/tmp/php-cgi-{}.{}.sock'.format(version,pool)
     php_fpm_file = getFpmConfFile(version)
     try:
-        content = readFile(php_fpm_file)
-        tmp = re.findall(r"listen\s*=\s*(.+)", content)
+        content = mw.readFile(php_fpm_file)
+        tmp = re.findall(r"^(?!\s*;)\s*listen\s*=\s*(.+)", content, re.M)
         if not tmp:
             return fpm_address
         if tmp[0].find('sock') != -1:
@@ -881,8 +886,8 @@ def getFpmStatus(version):
         try:
             fpm_conf_path = getFpmConfFile(version, pool)
             conf_content = mw.readFile(fpm_conf_path)
-            status_path_match = re.search(r"pm\.status_path\s*=\s*(.+)", conf_content)
-            listen_match = re.search(r"listen\s*=\s*(.+)", conf_content)
+            status_path_match = re.search(r"^(?!\s*;)\s*pm\.status_path\s*=\s*(.+)", conf_content, re.M)
+            listen_match = re.search(r"^(?!\s*;)\s*listen\s*=\s*(.+)", conf_content, re.M)
             diag_info = f"\n[Conf: {fpm_conf_path}]"
             if status_path_match:
                 diag_info += f" [status_path: {status_path_match.group(1).strip()}]"
@@ -1271,6 +1276,8 @@ if __name__ == "__main__":
         print(restart(version))
     elif func == 'reload':
         print(reload(version))
+    elif func == 'kill_all_php':
+        print(killAllPhp(version))
     elif func == 'install_pre_inspection':
         print(installPreInspection(version))
     elif func == 'initd_status':

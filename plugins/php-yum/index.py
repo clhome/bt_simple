@@ -428,6 +428,10 @@ def restart(version):
 def reload(version):
     return phpOp(version, 'reload')
 
+def killAllPhp(version):
+    mw.execShell('pkill -f php-fpm')
+    return 'ok'
+
 
 def initdStatus(version):
     if mw.isAppleSystem():
@@ -672,8 +676,8 @@ def getFpmAddress(version):
     fpm_address = '/var/opt/remi/php{}/run/php-fpm/www.sock'.format(version)
     php_fpm_file = getFpmConfFile(version)
     try:
-        content = readFile(php_fpm_file)
-        tmp = re.findall(r"listen\s*=\s*(.+)", content)
+        content = mw.readFile(php_fpm_file)
+        tmp = re.findall(r"^(?!\s*;)\s*listen\s*=\s*(.+)", content, re.M)
         if not tmp:
             return fpm_address
         if tmp[0].find('sock') != -1:
@@ -1072,6 +1076,8 @@ if __name__ == "__main__":
         print(restart(version))
     elif func == 'reload':
         print(reload(version))
+    elif func == 'kill_all_php':
+        print(killAllPhp(version))
     elif func == 'install_pre_inspection':
         print(installPreInspection(version))
     elif func == 'initd_status':
