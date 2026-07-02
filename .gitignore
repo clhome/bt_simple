@@ -197,3 +197,5 @@ plugins/goedge-happy
 *.md5
 /bak
 /参考
+/tmp
+
