@@ -288,6 +288,8 @@ def run_batch():
     now = time.time()
     results = {}
 
+    tasks_to_run = []
+
     for item in req_list:
         name = item.get('name', '')
         func = item.get('func', '')
@@ -302,16 +304,47 @@ def run_batch():
                 results[name] = cache_data
                 continue
 
-        data = pg.run(name, func, version, args, script)
-        if data[1] == '':
-            r = mw.returnData(True, "OK", data[0].strip())
-        else:
-            r = mw.returnData(False, data[1].strip())
+        tasks_to_run.append({
+            'name': name,
+            'func': func,
+            'version': version,
+            'args': args,
+            'script': script,
+            'cache_key': cache_key
+        })
 
-        if func == 'get_total_statistics':
-            RUN_CACHE[cache_key] = (r, now)
+    if tasks_to_run:
+        from concurrent.futures import ThreadPoolExecutor
 
-        results[name] = r
+        def run_single_task(task):
+            pg_inst = MwPlugin.instance()
+            try:
+                data = pg_inst.run(task['name'], task['func'], task['version'], task['args'], task['script'])
+                return task, data, None
+            except Exception as e:
+                return task, (None, None), e
+
+        max_workers = min(len(tasks_to_run), 10)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(run_single_task, t) for t in tasks_to_run]
+            for future in futures:
+                task, data, exc = future.result()
+                name = task['name']
+                func = task['func']
+                cache_key = task['cache_key']
+
+                if exc:
+                    r = mw.returnData(False, str(exc))
+                else:
+                    if data[1] == '':
+                        r = mw.returnData(True, "OK", data[0].strip())
+                    else:
+                        r = mw.returnData(False, data[1].strip())
+
+                if func == 'get_total_statistics' and not exc:
+                    RUN_CACHE[cache_key] = (r, now)
+
+                results[name] = r
 
     return mw.getJson(results)
 
