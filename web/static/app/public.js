@@ -2606,7 +2606,7 @@ function pluginOpService(a, b, v, _suffix_name='') {
         case "start":d = '启动';break;
         case "restart":d = '重启';break;
         case "reload":d = '重载';break;
-        case "kill":d = '强杀';break;
+        case "kill":d = '强制停止（kill）';break;
     }
 
     _ver = v;
