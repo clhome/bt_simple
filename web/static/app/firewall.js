@@ -147,7 +147,7 @@ function getSshInfo(){
 		}else{
 			fStatus = "<input class='btswitch btswitch-ios' id='firewall_status' type='checkbox'><label class='btswitch-btn' for='firewall_status' onclick='firewall(0)'></label>";
 		}
-		$("#firewall_status").html(fStatus);
+		$("#firewall_status_container").html(fStatus);
 		
 		// showAccept(1);
 
