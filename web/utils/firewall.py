@@ -281,15 +281,18 @@ class Firewall(object):
             isPing = True
 
         # sshd 检测
-        status = True
-        cmd = "service sshd status | grep -P '(dead|stop)'|grep -v grep"
-        ssh_status = mw.execShell(cmd)
-        if ssh_status[0] != '':
-            status = False
-
-        cmd = "systemctl status sshd | grep 'dead'|grep -v grep"
-        ssh_status = mw.execShell(cmd)
-        if ssh_status[0] != '':
+        status = False
+        try:
+            import psutil
+            for p in psutil.process_iter(attrs=['name']):
+                try:
+                    pname = p.info['name']
+                    if pname and pname.lower().startswith('sshd'):
+                        status = True
+                        break
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+        except Exception:
             status = False
 
         data['pubkey_prohibit_status'] = False
