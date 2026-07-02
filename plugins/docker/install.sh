@@ -26,7 +26,7 @@ Install_Docker()
 		LOCAL_ADDR=$(get_local_addr)
 		if [ "$LOCAL_ADDR" == "cn" ];then
 			# 大陆环境通过阿里云加速脚本下载并安装 Docker
-			curl -fsSL https://get.docker.com | bash -s docker
+			curl -fsSL https://gitee.com/tech-shrimp/docker_installer/releases/download/latest/linux.sh | bash -s docker --mirror Aliyun
 		else
 			# 海外环境直接通过官方一键脚本下载并安装
 			curl -fsSL https://get.docker.com | bash
