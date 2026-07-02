@@ -38,13 +38,20 @@ def getArgs():
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':')
-        tmp[t[0]] = t[1]
+        val = args[0].strip().strip("'").strip('"')
+        if val.startswith('{') and val.endswith('}'):
+            try:
+                return json.loads(val)
+            except Exception as e:
+                pass
+        t = val.strip('{').strip('}').split(':')
+        if len(t) >= 2:
+            tmp[t[0].strip().strip('"').strip("'")] = t[1].strip().strip('"').strip("'")
     elif args_len > 1:
         for i in range(len(args)):
-            t = args[i].split(':')
-            tmp[t[0]] = t[1]
+            t = args[i].strip().strip("'").strip('"').split(':')
+            if len(t) >= 2:
+                tmp[t[0].strip().strip('"').strip("'")] = t[1].strip().strip('"').strip("'")
 
     return tmp
 
