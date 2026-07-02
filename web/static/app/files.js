@@ -1927,7 +1927,7 @@ function pathLeft(){
 
 //路径快捷点击
 $("#PathPlaceBtn").on("click", function(e){
-    if($("#DirPathPlace").is(":hidden")){
+    if($("#DirPathPlace").css("display") === "none"){
         $("#DirPathPlace").css("display","inline");
         $("#DirPathPlace input").trigger('focus');
         $(this).hide();

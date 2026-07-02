@@ -101,7 +101,7 @@ function loadWebShellResources() {
 
 $(function() {
 	$(".sub-menu a.sub-menu-a").on('click', function() {
-		$(this).next(".sub").slideToggle("slow").siblings(".sub:visible").slideUp("slow");
+		$(this).next(".sub").slideToggle("slow").siblings(".sub").filter(":visible").slideUp("slow");
 	});
 });
 
