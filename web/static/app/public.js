@@ -2572,6 +2572,15 @@ function pluginSetService(_name ,status, version, _suffix_name=''){
             <button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\''+restart_name+'\',\''+version+'\',\''+_suffix_name+'\')">重启</button>\
             <button class="btn btn-default btn-sm" onclick="pluginOpService(\''+_name+'\',\''+reload_name+'\',\''+version+'\',\''+_suffix_name+'\')">重载配置</button>\
         </div>'; 
+        
+    if (_name.indexOf('php') !== -1) {
+        serviceCon += '<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">\
+            <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>操作指引</div>\
+            <div style="margin-bottom: 4px;"><b style="color:#333;">重载配置 (Reload)</b>：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现<b style="color:#20a53a;">业务零中断</b>，推荐日常修改配置后使用。</div>\
+            <div><b style="color:#333;">重启服务 (Restart)</b>：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。</div>\
+        </div>';
+    }
+
     $(".soft-man-con").html(serviceCon);
 }
 
