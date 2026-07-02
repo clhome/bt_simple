@@ -1311,7 +1311,7 @@ function memcachedAdd(){
             <div class='line'>\
                 <span class='tname'>值</span>\
                 <div class='info-r c4'>\
-                    <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'/></textarea>\
+                    <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'></textarea>\
                 </div>\
             </div>\
             <div class='line'>\
@@ -1735,7 +1735,7 @@ function redisAdd(){
             <div class='line'>\
                 <span class='tname'>值</span>\
                 <div class='info-r c4'>\
-                    <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'/></textarea>\
+                    <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'></textarea>\
                 </div>\
             </div>\
             <div class='line'>\
@@ -1805,7 +1805,7 @@ function redisEditKv(name, val, endtime){
             <div class='line'>\
                 <span class='tname'>值</span>\
                 <div class='info-r c4'>\
-                    <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'/></textarea>\
+                    <textarea class='bt-input-text' name='val' style='width:260px;height:100px;'></textarea>\
                 </div>\
             </div>\
             <div class='line'>\
