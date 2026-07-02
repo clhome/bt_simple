@@ -555,9 +555,11 @@ function updateMsg(){
             updateStatus();return;
         }
         var v = rdata.data.version;
-        var v_info = (v.split('.').length > 3) ? 
-            "<span class='label label-warning'>测试版本</span>" : 
-            "<span class='label label-success arrowed'>正式版本</span>";
+        var isTest = (v.split('.').length > 3);
+        var tagHtml = isTest ? 
+            '<span style="background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;">测试版本</span>' : 
+            '<span style="background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;">正式版本</span>';
+        var titleHtml = '<div style="display: flex; align-items: center; height: 100%;">' + tagHtml + '<span style="font-size: 14px; font-weight: bold; color: #333;">版本更新 [' + v + ']</span></div>';
 
         var parseContent = function() {
             try {
@@ -568,7 +570,7 @@ function updateMsg(){
         };
 
         var showIt = function(htmlContent) {
-            showUpdateUI(v, v_info + '<span class="badge badge-inverse">版本更新 ['+v+']</span>', htmlContent, rdata.data.speed_name);
+            showUpdateUI(v, titleHtml, htmlContent, rdata.data.speed_name);
         };
 
         if (typeof marked !== 'undefined') {
@@ -589,8 +591,24 @@ function showUpdateUI(version, title, content, speedName) {
         title: title,
         area: '650px',
         shadeClose: false,
-        closeBtn: 2,
-        content: '<div class="setchmod bt-form pd20 pb70" style="background: #fcfcfc;">'
+        closeBtn: 1,
+        content: '<style>'
+                + '  .update-markdown-wrapper .markdown-body ul, .update-markdown-wrapper .markdown-body ol {'
+                + '      padding-left: 1.2em !important;'
+                + '      margin-bottom: 12px;'
+                + '  }'
+                + '  .update-markdown-wrapper .markdown-body li {'
+                + '      margin-top: 6px;'
+                + '  }'
+                + '  .update-markdown-wrapper .markdown-body p {'
+                + '      margin-bottom: 12px;'
+                + '  }'
+                + '  .update-markdown-wrapper .markdown-body h3, .update-markdown-wrapper .markdown-body h4 {'
+                + '      margin-top: 16px;'
+                + '      margin-bottom: 12px;'
+                + '  }'
+                + '</style>'
+                + '<div class="setchmod bt-form pd20 pb70 update-markdown-wrapper" style="background: #fcfcfc;">'
                 + (content ? '<div class="markdown-body" style="padding: 15px 20px; line-height: 1.6; max-height: 400px; overflow-y: auto; margin-bottom: 20px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0,0,0,0.03);">' + content + '</div>' : '')
                 + '<div class="update-progress-group" style="padding: 15px 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);">'
                 + '    <div style="margin-bottom: 12px;">'
@@ -607,9 +625,9 @@ function showUpdateUI(version, title, content, speedName) {
                 + '    </div>'
                 + '</div>'
                 + '<div class="bt-form-submit-btn" style="margin-top: 20px;">'
-                + '<button type="button" class="btn btn-danger btn-sm btn-title" style="border-radius:4px; padding: 5px 15px;" onclick="layer.closeAll()">取消</button>'
-                + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" style="border-radius:4px; padding: 5px 15px; margin-left: 10px;" onclick="executeSteps(\''+version+'\')" >开始执行</button>'
-                + '<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none; border-radius:4px; padding: 5px 15px; margin-left: 10px;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >强制刷新</button>'
+                + '<button type="button" class="btn btn-danger btn-sm btn-title" style="border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;" onclick="layer.closeAll()">取消</button>'
+                + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" style="border-radius:6px; padding: 6px 18px; margin-left: 10px; font-weight: 500; background-color: #20a53a; border-color: #20a53a; transition: all 0.2s;" onclick="executeSteps(\''+version+'\')" >开始执行</button>'
+                + '<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >强制刷新</button>'
                 + '</div>'
                 + '</div>',
         success: function() {
