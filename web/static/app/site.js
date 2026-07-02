@@ -277,7 +277,7 @@ function webAddPage(type) {
 				<div class='line'>\
                     <span class='tname'>"+lan.site.domain+"</span>\
                     <div class='info-r c4'>\
-						<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px' /></textarea>\
+						<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px'></textarea>\
 					</div>\
 				</div>\
                 <div class='line'>\
