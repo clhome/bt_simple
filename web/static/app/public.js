@@ -103,6 +103,43 @@ $(function() {
 	$(".sub-menu a.sub-menu-a").on('click', function() {
 		$(this).next(".sub").slideToggle("slow").siblings(".sub").filter(":visible").slideUp("slow");
 	});
+
+	// 事件委托：选择目录弹窗中的文件夹点击
+	$(document).on('click', '#tbody td.folder-link', function() {
+		var path = $(this).attr('data-path');
+		getDiskList(path);
+	});
+
+	// 事件委托：选择目录弹窗中的删除文件夹
+	$(document).on('click', '#tbody .delfile-btn', function() {
+		var path = $(this).attr('data-path');
+		newDelFile(path);
+	});
+
+	// 事件委托：新建文件夹确定按钮
+	$(document).on('click', '#tbody .nameOk', function() {
+		var c = $("#newFolderName").val();
+		var b = $("#PathPlace").find("span").text();
+		var newTxt = b.replace(new RegExp(/(\/\/)/g), "/") + c;
+		var d = "path=" + newTxt;
+		$.post("/files/create_dir", d, function(e) {
+			if(e.status == true) {
+				layer.msg(e.msg, {
+					icon: 1
+				});
+			} else {
+				layer.msg(e.msg, {
+					icon: 2
+				});
+			}
+			getDiskList(b);
+		},'json');
+	});
+
+	// 事件委托：新建文件夹取消按钮
+	$(document).on('click', '#tbody .nameNOk', function() {
+		$(this).parents("tr").remove();
+	});
 });
 
 function toSize(a) {
@@ -551,11 +588,11 @@ function getDiskList(b) {
 			}
 
 			d += "<tr>\
-				<td onclick=\"getDiskList('" + h.path + "/" + g[0] + "')\" title='" + g[0] + "'>\
+				<td class='folder-link' data-path='" + h.path + "/" + g[0] + "' title='" + g[0] + "'>\
 					<span class='glyphicon glyphicon-folder-open'></span>" + e + "</td><td>" + getMatchTime(g[2]) + "</td>\
 				<td>" + g[3] + "</td>\
 				<td>" + g[4] + "</td>\
-				<td><span class='delfile-btn' onclick=\"newDelFile('" + h.path + "/" + g[0] + "')\">X</span></td>\
+				<td><span class='delfile-btn' data-path='" + h.path + "/" + g[0] + "'>X</span></td>\
 			</tr>";
 		}
 		if(h.files != null && h.files != "") {
@@ -596,8 +633,8 @@ function getDiskList(b) {
 function createFolder() {
 	var a = "<tr>\
 		<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\
-		<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm'>确定</button>\
-			&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm'>取消</button></td>\
+		<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm nameOk'>确定</button>\
+			&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm nameNOk'>取消</button></td>\
 		</tr>";
 	if($("#tbody tr").length == 0) {
 		$("#tbody").append(a)
@@ -605,27 +642,6 @@ function createFolder() {
 		$("#tbody tr:first-child").before(a)
 	}
 	$(".newFolderName").trigger('focus');
-	$("#nameOk").on('click', function() {
-		var c = $("#newFolderName").val();
-		var b = $("#PathPlace").find("span").text();
-		newTxt = b.replace(new RegExp(/(\/\/)/g), "/") + c;
-		var d = "path=" + newTxt;
-		$.post("/files/create_dir", d, function(e) {
-			if(e.status == true) {
-				layer.msg(e.msg, {
-					icon: 1
-				})
-			} else {
-				layer.msg(e.msg, {
-					icon: 2
-				})
-			}
-			getDiskList(b);
-		},'json');
-	});
-	$("#nameNOk").on('click', function() {
-		$(this).parents("tr").remove()
-	})
 }
 
 function newDelFile(c) {
