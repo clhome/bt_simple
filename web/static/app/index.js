@@ -550,8 +550,10 @@ function checkUpdate() {
 }
 
 function updateMsg(){
+    var loadT = layer.msg('正在获取更新信息，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.get('/system/update_server?type=info',function(rdata){
         if (rdata.data == 'download'){
+            layer.close(loadT);
             updateStatus();return;
         }
         var v = rdata.data.version;
@@ -570,6 +572,7 @@ function updateMsg(){
         };
 
         var showIt = function(htmlContent) {
+            layer.close(loadT);
             showUpdateUI(v, titleHtml, htmlContent, rdata.data.speed_name);
         };
 
@@ -579,10 +582,14 @@ function updateMsg(){
             loadScript(staticUrl('/static/js/marked.min.js')).then(function() {
                 showIt(parseContent());
             }).catch(function() {
-                showIt(rdata.data.content.replace(/\n/g, '<br/>'));
+                layer.close(loadT);
+                showUpdateUI(v, titleHtml, rdata.data.content.replace(/\n/g, '<br/>'), rdata.data.speed_name);
             });
         }
-    },'json');
+    },'json').fail(function() {
+        layer.close(loadT);
+        layer.msg('获取更新数据失败，请检查网络后重试！', {icon: 2});
+    });
 }
 
 function showUpdateUI(version, title, content, speedName) {
