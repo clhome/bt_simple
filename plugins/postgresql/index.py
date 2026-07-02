@@ -477,18 +477,30 @@ def initdUinstall():
 
 def getMyDbPos():
     file = getConf()
+    if not os.path.exists(file):
+        return ""
     content = mw.readFile(file)
+    if type(content) == bool or not content:
+        return ""
     rep = r'datadir\s*=\s*(.*)'
     tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if tmp:
+        return tmp.groups()[0].strip()
+    return ""
 
 
 def getPgPort():
     file = getConf()
+    if not os.path.exists(file):
+        return ""
     content = mw.readFile(file)
+    if type(content) == bool or not content:
+        return ""
     rep = r'port\s*=\s*(.*)'
     tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    if tmp:
+        return tmp.groups()[0].strip()
+    return ""
 
 
 def setPgPort():
@@ -588,7 +600,12 @@ def pgDbStatus():
     data_directory = getServerDir() + "/data"
     data = {}
     shared_buffers, work_mem, effective_cache_size, maintence_work_mem, max_connections, temp_buffers, max_prepared_transactions, max_stack_depth, bgwriter_lru_maxpages, max_worker_processes, listen_addresses = '', '', '', '', '', '', '', '', '', '', ''
-    with open("{}/postgresql.conf".format(data_directory)) as f:
+    
+    pg_conf = "{}/postgresql.conf".format(data_directory)
+    if not os.path.exists(pg_conf):
+        return mw.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
+
+    with open(pg_conf) as f:
         for i in f:
             if i.strip().startswith("shared_buffers"):
                 shared_buffers = i.split("=")[1]
@@ -1442,7 +1459,13 @@ def getMasterStatus(version=''):
     data['status'] = False
     data['slave_status'] = False
     pg_conf = getServerDir() + "/data/postgresql.conf"
+    
+    if not os.path.exists(pg_conf):
+        return mw.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
+
     pg_content = mw.readFile(pg_conf)
+    if type(pg_content) == bool or not pg_content:
+        return mw.returnJson(False, '读取postgresql配置失败!')
 
     if pg_content.find('#archive_mode') > -1:
         data['status'] = False
