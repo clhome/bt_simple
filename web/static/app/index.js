@@ -187,32 +187,45 @@ function setMemImg(info){
     if (memFree/(1024*1024) < 64) {
         $("#messageError").show();
         $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;">当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！</span></p>')
+}
+}
+
+function setSystemInfo(system_str) {
+    $("#info").html(system_str);
+    var _system = system_str;
+    $(".ico-system").removeClass("ico-windows ico-centos ico-ubuntu ico-debian ico-fedora ico-mac ico-linux");
+    if(_system.indexOf("Windows") != -1){
+        $(".ico-system").addClass("ico-windows");
+    } else if(_system.indexOf("CentOS") != -1) {
+        $(".ico-system").addClass("ico-centos");
+    } else if(_system.indexOf("Ubuntu") != -1) {
+        $(".ico-system").addClass("ico-ubuntu");
+    } else if(_system.indexOf("Debian") != -1) {
+        $(".ico-system").addClass("ico-debian");
+    } else if(_system.indexOf("Fedora") != -1) {
+        $(".ico-system").addClass("ico-fedora");
+    } else if(_system.indexOf("Mac") != -1){
+        $(".ico-system").addClass("ico-mac");
+    } else {
+        $(".ico-system").addClass("ico-linux");
     }
 }
+
+$(document).ready(function() {
+    var cachedSystem = localStorage.getItem('cached_system_info');
+    if (cachedSystem) {
+        setSystemInfo(cachedSystem);
+    }
+});
 
 function getInfo() {
     $.get("/system/system_total", function(info) {
 
         setMemImg(info);
 
-        $("#info").html(info.system);
+        setSystemInfo(info.system);
+        localStorage.setItem('cached_system_info', info.system);
         $("#running").html(info.time);
-        var _system = info.system;
-        if(_system.indexOf("Windows") != -1){
-            $(".ico-system").addClass("ico-windows");
-        } else if(_system.indexOf("CentOS") != -1) {
-            $(".ico-system").addClass("ico-centos");
-        } else if(_system.indexOf("Ubuntu") != -1) {
-            $(".ico-system").addClass("ico-ubuntu");
-        } else if(_system.indexOf("Debian") != -1) {
-            $(".ico-system").addClass("ico-debian");
-        } else if(_system.indexOf("Fedora") != -1) {
-            $(".ico-system").addClass("ico-fedora");
-        } else if(_system.indexOf("Mac") != -1){
-            $(".ico-system").addClass("ico-mac");
-        } else {
-            $(".ico-system").addClass("ico-linux");
-        }
         $("#core").html(info.cpuNum + ' 核心');
         $("#state").html(parseFloat(info.cpuRealUsed).toFixed(1));
         setcolor(info.cpuRealUsed, "#state", 30, 70, 90);
