@@ -220,8 +220,7 @@
                 <ul>
                     <li class="active" data-tab="tab-basic"><span class="glyphicon glyphicon-cog"></span>基础配置</li>
                     <li data-tab="tab-security"><span class="glyphicon glyphicon-lock"></span>安全与认证</li>
-                    <li data-tab="tab-panel"><span class="glyphicon glyphicon-tasks"></span>面板功能</li>
-                    <li data-tab="tab-data"><span class="glyphicon glyphicon-folder-open"></span>路径与数据</li>
+                    <li data-tab="tab-data"><span class="glyphicon glyphicon-folder-open"></span>数据迁移</li>
                     <li data-tab="tab-notice"><span class="glyphicon glyphicon-bell"></span>通知设置</li>
                 </ul>
             </div>
@@ -231,9 +230,6 @@
                 <!-- 基础配置 -->
                 <div id="tab-basic" class="settings-tab-pane active">
                     <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">基础配置</h3>
-                    <div class="info-title-tips" style="margin-bottom: 20px; background-color: #fdfaf4; padding: 10px; border-radius: 4px; border-left: 4px solid #f39c12;">
-                        <p style="margin:0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>为了提高安全，请及时修改面板密码!</p>
-                    </div>
 
                     <form id="set_config">
                         <div class="setting-item">
@@ -287,7 +283,33 @@
                                 <input name="password_" class="inputtxt bt-input-text disable" type="text" value="******" disabled>
                                 <button type="button" class="btn btn-success btn-sm" onclick="setPassword()">设置</button>
                             </div>
-                            <span class="set-info">设置面板密码</span>
+                            <span class="set-info" style="color: #e67e22;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 4px;"></span>为了提高安全，请您定期更新随机密码</span>
+                        </div>
+
+                        <div class="setting-item">
+                            <span class="set-tit" title="默认建站目录">默认建站目录</span>
+                            <div class="set-input-group">
+                                <input name="sites_path" class="inputtxt bt-input-text" type="text" value="{{data['site_path']}}">
+                                <button type="button" class="btn btn-success btn-sm btn_sites_path" disabled>保存</button>
+                            </div>
+                            <span class="set-info">新创建的站点，默认将保存到该目录的下级目录!</span>
+                        </div>
+
+                        <div class="setting-item">
+                            <span class="set-tit" title="默认备份目录">默认备份目录</span>
+                            <div class="set-input-group">
+                                <input name="backup_path" class="inputtxt bt-input-text" type="text" value="{{data['backup_path']}}">
+                                <button type="button" class="btn btn-success btn-sm btn_backup_path" disabled>保存</button>
+                            </div>
+                            <span class="set-info">网站和数据库的备份目录!</span>
+                        </div>
+
+                        <div class="setting-item">
+                            <span class="set-tit" title="菜单控制">菜单控制</span>
+                            <div class="set-input-group">
+                                <button type="button" class="btn btn-success btn-sm" onclick="setMenuConfig()">设置</button>
+                            </div>
+                            <span class="set-info">拖拽排序或隐藏主界面的左侧菜单</span>
                         </div>
                     </form>
                 </div>
@@ -379,40 +401,9 @@
                     </div>
                 </div>
 
-                <!-- 面板功能 -->
-                <div id="tab-panel" class="settings-tab-pane">
-                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">面板功能</h3>
-                    
-                    <div class="setting-item">
-                        <span class="set-tit" title="菜单控制">菜单控制</span>
-                        <div class="set-input-group">
-                            <button type="button" class="btn btn-success btn-sm" onclick="setMenuConfig()">设置</button>
-                        </div>
-                        <span class="set-info">拖拽排序或隐藏主界面的左侧菜单</span>
-                    </div>
-                </div>
-
-                <!-- 路径与数据 -->
+                <!-- 数据迁移 -->
                 <div id="tab-data" class="settings-tab-pane">
-                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">路径与数据</h3>
-                    
-                    <div class="setting-item">
-                        <span class="set-tit" title="默认建站目录">默认建站目录</span>
-                        <div class="set-input-group">
-                            <input name="sites_path" class="inputtxt bt-input-text" type="text" value="{{data['site_path']}}">
-                            <button type="button" class="btn btn-success btn-sm btn_sites_path" disabled>保存</button>
-                        </div>
-                        <span class="set-info">新创建的站点，默认将保存到该目录的下级目录!</span>
-                    </div>
-
-                    <div class="setting-item">
-                        <span class="set-tit" title="默认备份目录">默认备份目录</span>
-                        <div class="set-input-group">
-                            <input name="backup_path" class="inputtxt bt-input-text" type="text" value="{{data['backup_path']}}">
-                            <button type="button" class="btn btn-success btn-sm btn_backup_path" disabled>保存</button>
-                        </div>
-                        <span class="set-info">网站和数据库的备份目录!</span>
-                    </div>
+                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">数据迁移</h3>
 
                     <!-- 危险操作区 -->
                     <div class="danger-zone">
