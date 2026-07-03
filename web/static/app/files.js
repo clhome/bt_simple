@@ -656,8 +656,8 @@ function getFiles(Path) {
                 新建<span class="caret"></span>\
             </button>\
             <ul class="dropdown-menu">\
-                <li><a href="javascript:createFile(0,\'' + Path + '\');">新建空白文件</a></li>\
-                <li><a href="javascript:createDir(0,\'' + Path + '\');">新建目录</a></li>\
+                <li><a href="javascript:createFile(0,\'' + Path + '\');"><span class="glyphicon glyphicon-file"></span> 新建空白文件</a></li>\
+                <li><a href="javascript:createDir(0,\'' + Path + '\');"><span class="glyphicon glyphicon-folder-open"></span> 新建目录</a></li>\
             </ul>\
         </div>';
         if (rdata.path != '/') {
