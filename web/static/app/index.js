@@ -1707,9 +1707,9 @@ function showSystemDetails() {
         var data = res.data;
         
         var css = '<style>' +
-            '.glass-layer { background: rgba(255,255,255,0.65) !important; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; border-radius: 12px !important; }' +
+            '.glass-layer { background: rgba(255,255,255,0.65) !important; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; border-radius: 12px !important; will-change: transform, opacity; transform: translateZ(0); }' +
             '.glass-layer .layui-layer-title { background: transparent !important; border-bottom: 1px solid rgba(0,0,0,0.08) !important; font-weight: bold; color: #333; font-size:15px; border-radius: 12px 12px 0 0 !important; }' +
-            '.glass-card { background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); border-radius: 10px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); height: 100%; transition: all 0.3s ease; }' +
+            '.glass-card { background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); border-radius: 10px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); height: 100%; transition: all 0.3s ease; will-change: transform, box-shadow; transform: translateZ(0); }' +
             '.glass-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); background: rgba(255,255,255,0.7); }' +
             '.glass-card h4 { margin-top: 0; margin-bottom: 12px; color: #222; font-size: 15px; font-weight: bold; display: flex; align-items: center; }' +
             '.glass-card table td { border: none !important; color: #555; padding: 5px 0 !important; font-size: 13px; }' +
