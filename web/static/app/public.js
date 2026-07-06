@@ -1045,6 +1045,12 @@ function onlineEditFile(k, f, callback) {
 						var outerSaveColor = layero.find('.layui-layer-btn0').css('background-color') || '#20a53a';
 						var outerSaveBorder = layero.find('.layui-layer-btn0').css('border-color') || '#20a53a';
 						
+						confirmLayero.find('.layui-layer-btn').css({
+							'display': 'flex',
+							'justify-content': 'space-between',
+							'padding': '10px 25px'
+						});
+
 						confirmLayero.find('.layui-layer-btn0').css({
 							'border-color': '#a9a9a9',
 							'background-color': '#a9a9a9',
@@ -1054,7 +1060,7 @@ function onlineEditFile(k, f, callback) {
 							'border-color': outerSaveBorder,
 							'background-color': outerSaveColor,
 							'color': '#fff',
-							'margin-left': '50px'
+							'margin-left': '0'
 						});
 					}
 				}, function(confirmIndex) {
