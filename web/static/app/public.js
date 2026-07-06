@@ -914,7 +914,7 @@ function onlineEditFile(k, f, callback) {
 		shift: 5,
 		closeBtn: 1,
 		area: ["90%", "90%"],
-		btn:['保存', '关闭', '刷新'],
+		btn:['<span class="glyphicon glyphicon-floppy-disk"></span> 保存', '<span class="glyphicon glyphicon-refresh"></span> 刷新'],
 		title: "在线编辑[" + f + "]",
 		shade: 0.0000001,
 		content: '<form class="bt-form pd20">\
@@ -968,13 +968,13 @@ function onlineEditFile(k, f, callback) {
 	            });
 				
 				// 自动刷新滑块
-				var toggleHtml = '<div class="auto-refresh-toggle" style="float: left; display: flex; align-items: center; height: 28px; margin-left: 10px; margin-top: 4px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent;">\
+				var toggleHtml = '<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">\
 					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">\
 						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>\
 					</div>\
 					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">自动刷新</span>\
 				</div>';
-				layero.find('.layui-layer-btn').prepend(toggleHtml);
+				layero.append(toggleHtml);
 				
 				layero.find('.auto-refresh-toggle').on('click', function() {
 					var $track = $(this).find('.toggle-track');
@@ -1007,6 +1007,14 @@ function onlineEditFile(k, f, callback) {
 						}, 5000);
 					}
 				});
+				
+				// 调整刷新按钮的背景色，并增加两个按钮之间的间距
+				layero.find('.layui-layer-btn1').css({
+					'background-color': '#7488bf',
+					'border-color': '#7488bf',
+					'color': '#fff',
+					'margin-right': '15px'
+				});
 			});
 		},
 		end:function(){
@@ -1016,7 +1024,7 @@ function onlineEditFile(k, f, callback) {
 			$("#textBody").text(code_mirror.getValue());
 			onlineEditFile(1, f, callback);
 		},
-		btn3:function(){
+		btn2:function(){
 			var loading_refresh = layer.msg('正在刷新中,请稍候...', {icon: 16,time: 0});
 			renderBody(function(rdata){
 				layer.close(loading_refresh);
