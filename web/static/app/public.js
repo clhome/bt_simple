@@ -941,8 +941,8 @@ function onlineEditFile(k, f, callback) {
 
 				code_mirror = CodeMirror.fromTextArea(document.getElementById("textBody"), {
 					extraKeys: {
-						"Ctrl-F": "findPersistent",
-						"Ctrl-H": "replace",
+						"Ctrl-F": function(cm){ showAdvancedSearchDialog(cm, false); },
+						"Ctrl-H": function(cm){ showAdvancedSearchDialog(cm, true); },
 						"Ctrl-/": "toggleComment",
 						"Ctrl-S": function() {
 							$("#textBody").text(code_mirror.getValue());
@@ -2761,8 +2761,8 @@ function pluginConfig(_name, version, func){
                 matchBrackets:true,
                 extraKeys: {
                     "Ctrl-Space": "autocomplete",
-                    "Ctrl-F": "findPersistent",
-                    "Ctrl-H": "replaceAll",
+                    "Ctrl-F": function(cm){ showAdvancedSearchDialog(cm, false); },
+                    "Ctrl-H": function(cm){ showAdvancedSearchDialog(cm, true); },
                     "Ctrl-S": function() {
                     	saveDataFunc();
                     },
@@ -2857,8 +2857,8 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
 		                matchBrackets:true,
 		                extraKeys: {
 		                    "Ctrl-Space": "autocomplete",
-		                    "Ctrl-F": "findPersistent",
-		                    "Ctrl-H": "replaceAll",
+		                    "Ctrl-F": function(cm){ showAdvancedSearchDialog(cm, false); },
+		                    "Ctrl-H": function(cm){ showAdvancedSearchDialog(cm, true); },
 		                    "Ctrl-S": function() {
 		                    	saveDataFunc();
 		                    },
@@ -2965,8 +2965,8 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
             editor = CodeMirror.fromTextArea(document.getElementById("textBody"), {
                 extraKeys: {
                     "Ctrl-Space": "autocomplete",
-                    "Ctrl-F": "findPersistent",
-                    "Ctrl-H": "replaceAll",
+                    "Ctrl-F": function(cm){ showAdvancedSearchDialog(cm, false); },
+                    "Ctrl-H": function(cm){ showAdvancedSearchDialog(cm, true); },
                     "Ctrl-S": function() {
                     	saveDataFunc();
                     },
@@ -3385,4 +3385,139 @@ function toggleMenuMini() {
     var body = document.body;
     var isMini = body.classList.toggle('sidebar-mini');
     localStorage.setItem('menuMini', isMini);
+}
+function showAdvancedSearchDialog(cm, isReplaceMode) {
+    if (cm.state.advSearch) {
+        if (isReplaceMode && !cm.state.advSearch.isReplaceMode) {
+            cm.state.advSearch.replaceRow.style.display = 'flex';
+            cm.state.advSearch.isReplaceMode = true;
+        }
+        cm.state.advSearch.searchInput.focus();
+        return;
+    }
+    var wrapper = cm.getWrapperElement();
+    var dialog = document.createElement('div');
+    dialog.className = 'cm-advanced-search-dialog';
+    dialog.style.cssText = 'position: absolute; top: 15px; right: 30px; z-index: 999; background: #fff; padding: 12px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px; font-size: 13px; width: 320px; transition: all 0.2s;';
+    var html = '<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'>' +
+        '<input type=\'text\' class=\'cm-search-input bt-input-text\' placeholder=\'查找内容...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>' +
+        '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-prev\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'上一个\'><i class=\'glyphicon glyphicon-chevron-up\'></i></button>' +
+        '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-next\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'下一个\'><i class=\'glyphicon glyphicon-chevron-down\'></i></button>' +
+        '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-close\' style=\'padding: 4px 8px; margin-left: 5px;\' title=\'关闭\'><i class=\'glyphicon glyphicon-remove\'></i></button>' +
+    '</div>' +
+    '<div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'>' +
+        '<input type=\'text\' class=\'cm-replace-input bt-input-text\' placeholder=\'替换为...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>' +
+        '<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换当前\'>替换</button>' +
+        '<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换全部\'>全部</button>' +
+    '</div>' +
+    '<div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>';
+    dialog.innerHTML = html;
+    wrapper.appendChild(dialog);
+    var searchInput = dialog.querySelector('.cm-search-input');
+    var replaceInput = dialog.querySelector('.cm-replace-input');
+    var replaceRow = dialog.querySelector('.cm-replace-row');
+    var infoText = dialog.querySelector('.cm-search-info');
+    var state = { isReplaceMode: isReplaceMode, replaceRow: replaceRow, searchInput: searchInput, lastQuery: null, overlay: null };
+    cm.state.advSearch = state;
+    function getQuery() { return searchInput.value; }
+    function clearOverlay() {
+        if (state.overlay) { cm.removeOverlay(state.overlay); state.overlay = null; }
+    }
+    function searchOverlay(query) {
+        if (typeof query == 'string') query = new RegExp(query.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'gi');
+        return {
+            token: function(stream) {
+                query.lastIndex = stream.pos;
+                var match = query.exec(stream.string);
+                if (match && match.index == stream.pos) {
+                    stream.pos += match[0].length || 1;
+                    return 'searching';
+                } else if (match) {
+                    stream.pos = match.index;
+                } else {
+                    stream.skipToEnd();
+                }
+            }
+        };
+    }
+    function updateMatchCount(pos) {
+        var query = getQuery();
+        if (!query) { infoText.innerText = '0 / 0'; clearOverlay(); return; }
+        if (query !== state.lastQuery) {
+            clearOverlay();
+            state.overlay = searchOverlay(query);
+            cm.addOverlay(state.overlay);
+            state.lastQuery = query;
+        }
+        var cursor = cm.getSearchCursor(query, CodeMirror.Pos(cm.firstLine(), 0), false);
+        var total = 0, current = 0;
+        while(cursor.findNext()) {
+            total++;
+            if (current === 0 && CodeMirror.cmpPos(cursor.from(), pos) >= 0) { current = total; }
+        }
+        if (total > 0) { infoText.innerText = (current || 1) + ' / ' + total; } else { infoText.innerText = '未找到匹配项'; }
+    }
+    function findNext(reverse) {
+        var query = getQuery();
+        if (!query) return;
+        var cursor = cm.getSearchCursor(query, reverse ? cm.getCursor('from') : cm.getCursor('to'), false);
+        if (reverse ? !cursor.findPrevious() : !cursor.findNext()) {
+            cursor = cm.getSearchCursor(query, reverse ? CodeMirror.Pos(cm.lastLine()) : CodeMirror.Pos(cm.firstLine(), 0), false);
+            if (reverse ? !cursor.findPrevious() : !cursor.findNext()) return;
+        }
+        cm.setSelection(cursor.from(), cursor.to());
+        cm.scrollIntoView({from: cursor.from(), to: cursor.to()}, 20);
+        updateMatchCount(cursor.from());
+    }
+    function replaceNext() {
+        var query = getQuery();
+        if (!query) return;
+        var replacement = replaceInput.value;
+        var cursor = cm.getSearchCursor(query, cm.getCursor('from'), false);
+        if (cursor.findNext()) {
+            var selection = cm.getSelection();
+            if (selection.toLowerCase() === query.toLowerCase()) {
+                cursor.replace(replacement);
+                findNext(false);
+            } else {
+                findNext(false);
+            }
+        }
+    }
+    function replaceAll() {
+        var query = getQuery();
+        if (!query) return;
+        var replacement = replaceInput.value;
+        cm.operation(function() {
+            var cursor = cm.getSearchCursor(query, CodeMirror.Pos(cm.firstLine(), 0), false);
+            while(cursor.findNext()) { cursor.replace(replacement); }
+        });
+        updateMatchCount(cm.getCursor('from'));
+    }
+    function closeDialog() {
+        clearOverlay();
+        if (dialog.parentNode) dialog.parentNode.removeChild(dialog);
+        delete cm.state.advSearch;
+        cm.focus();
+    }
+    dialog.querySelector('.cm-search-next').onclick = function() { findNext(false); };
+    dialog.querySelector('.cm-search-prev').onclick = function() { findNext(true); };
+    dialog.querySelector('.cm-replace-btn').onclick = function() { replaceNext(); };
+    dialog.querySelector('.cm-replace-all-btn').onclick = function() { replaceAll(); };
+    dialog.querySelector('.cm-search-close').onclick = function() { closeDialog(); };
+    searchInput.onkeyup = function(e) {
+        if (e.keyCode === 13) findNext(e.shiftKey);
+        else if (e.keyCode === 27) closeDialog();
+        else updateMatchCount(cm.getCursor('from'));
+    };
+    replaceInput.onkeyup = function(e) {
+        if (e.keyCode === 13) replaceNext();
+        else if (e.keyCode === 27) closeDialog();
+    };
+    var selection = cm.getSelection();
+    if (selection && selection.indexOf('\n') === -1) {
+        searchInput.value = selection;
+        updateMatchCount(cm.getCursor('from'));
+    }
+    searchInput.focus();
 }
