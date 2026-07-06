@@ -36,135 +36,158 @@
 					<button class="btn btn-default btn-sm" type="button" onclick="closeControl()">清空记录</button>
 				</div>
 			</div>
-			<div class="control">
-				<div class="col-xs-12 col-sm-12 col-md-12 pull-left pd0 view0">
-					<div class="mb15">
-						<div class="bgw pb15">
-							<div class="title c6 plr15 mb15">
-								<h3 class="c-tit f16">平均负载</h3>
-								<div class="searcTime pull-right">
-									<span class="tit">区间检索：</span>
-									<span class="gt" onclick="Wday(1,'getload')">昨天</span>
-									<span class="gt on" onclick="Wday(0,'getload')">今天</span>
-									<span class="gt" onclick="Wday(7,'getload')">最近7天</span>
-									<span class="gt" onclick="Wday(30,'getload')">最近30天</span>
-									<div class="ss">
-										<span class="st">自定义时间</span>
-										<div class="time">
-											<span class="bt">时间范围
-												<input id="loadbtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
-											</span>
-											<div class="sbtn loadbtn">提交</div>
-										</div>
+			<style>
+				.monitor-col { padding: 0 5px; margin-bottom: 10px; }
+				.monitor-box { background: #fff; padding-bottom: 0px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: visible; }
+				.monitor-title { padding: 10px 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+				.monitor-title h3 { margin: 0; font-size: 15px; font-weight: 500; color: #333; }
+				.monitor-chart { width: 100%; height: calc((100vh - 280px) / 2); min-height: 200px; margin: 0 auto; }
+				.enlarge-btn { cursor: pointer; color: #999; transition: all 0.2s; font-size: 14px; margin-left: 10px; }
+				.enlarge-btn:hover { color: #20a53a; transform: scale(1.1); }
+				.searcTime { font-size: 12px; display: flex; align-items: center; gap: 8px; position: relative; }
+				.searcTime .tit { display: none; }
+				.searcTime .gt { padding: 2px 6px; margin: 0; cursor: pointer; color: #666; transition: background 0.2s; }
+				.searcTime .gt:hover { color: #20a53a; }
+				.searcTime .gt.on { background: #20a53a; color: #fff; border-radius: 3px; }
+				.searcTime .ss { position: relative; margin-left: 2px; }
+				.searcTime .st { cursor: pointer; color: #666; transition: color 0.2s; }
+				.searcTime .st:hover { color: #20a53a; }
+				.searcTime .time { display: none; position: absolute; right: 0; top: 25px; z-index: 10; background: #fff; border: 1px solid #e2e2e2; padding: 10px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: max-content; }
+				.searcTime .time .bt { display: block; margin-bottom: 8px; color: #666; }
+				.searcTime .time .rtime { border: 1px solid #ccc; border-radius: 3px; padding: 3px 5px; font-size: 12px; width: 260px; outline: none; }
+				.searcTime .time .sbtn { display: block; background: #20a53a; color: #fff; text-align: center; border-radius: 3px; padding: 5px 0; cursor: pointer; transition: background 0.2s; }
+				.searcTime .time .sbtn:hover { background: #1b8a31; }
+			</style>
+			<div class="control row" style="margin: 0 -5px;">
+				<!-- Box 1: 资源使用率 -->
+				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+					<div class="monitor-box">
+						<div class="monitor-title">
+							<h3>系统资源使用率</h3>
+							<div class="searcTime">
+								<span class="gt on" onclick="Wday(0,'getload')">今天</span>
+								<span class="gt" onclick="Wday(1,'getload')">昨天</span>
+								<span class="gt" onclick="Wday(7,'getload')">7天</span>
+								<span class="gt" onclick="Wday(30,'getload')">30天</span>
+								<div class="ss">
+									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
+									<div class="time">
+										<span class="bt">自定义范围：<br><input id="loadbtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn loadbtn">提交</div>
 									</div>
 								</div>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_resource_view', '系统资源使用率')" title="放大图表"></span>
 							</div>
-							<div id="getloadview" style="width: 96%; height:280px; margin: 0 auto;"></div>
 						</div>
+						<div id="getload_resource_view" class="monitor-chart"></div>
 					</div>
 				</div>
-				<div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0 view1">
-					<div class="pr8">
-						<div class="bgw pb15">
-							<div class="title c6 plr15">
-								<h3 class="c-tit f16">CPU</h3>
-								<div class="searcTime pull-right">
-									<span class="tit">区间检索：</span>
-									<span class="gt" onclick="Wday(1,'cpu')">昨天</span>
-									<span class="gt on" onclick="Wday(0,'cpu')">今天</span>
-									<span class="gt" onclick="Wday(7,'cpu')">最近7天</span>
-									<span class="gt" onclick="Wday(30,'cpu')">最近30天</span>
-									<div class="ss">
-										<span class="st">自定义时间</span>
-										<div class="time">
-											<span class="bt">时间范围
-												<input id="cpubtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
-											</span>
-											<div class="sbtn cpubtn">提交</div>
-										</div>
-									</div>
-								</div>
+				<!-- Box 2: 平均负载 -->
+				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+					<div class="monitor-box">
+						<div class="monitor-title">
+							<h3>平均负载 (1/5/15分钟)</h3>
+							<div class="searcTime">
+								<span class="gt on" onclick="Wday(0,'getload')">今天</span>
+								<span class="gt" onclick="Wday(1,'getload')">昨天</span>
+								<span class="gt" onclick="Wday(7,'getload')">7天</span>
+								<span class="gt" onclick="Wday(30,'getload')">30天</span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_average_view', '平均负载')" title="放大图表"></span>
 							</div>
-							<div id="cupview" style="width: 96%; height:280px; margin: 0 auto;"></div>
 						</div>
+						<div id="getload_average_view" class="monitor-chart"></div>
 					</div>
 				</div>
-				<div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0 view2">
-					<div class="pl7">
-						<div class="bgw pb15">
-							<div class="title c6 plr15">
-								<h3 class="c-tit f16">内存</h3>
-								<div class="searcTime pull-right">
-									<span class="tit">区间检索：</span>
-									<span class="gt" onclick="Wday(1,'mem')">昨天</span>
-									<span class="gt on" onclick="Wday(0,'mem')">今天</span>、
-									<span class="gt" onclick="Wday(7,'mem')">最近7天</span>
-									<span class="gt" onclick="Wday(30,'mem')">最近30天</span>
-									<div class="ss">
-										<span class="st">自定义时间</span>
-										<div class="time">
-											<span class="bt">时间范围
-												<input id="membtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
-											</span>
-											<div class="sbtn membtn">提交</div>
-										</div>
+				<!-- Box 3: CPU -->
+				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+					<div class="monitor-box">
+						<div class="monitor-title">
+							<h3>CPU使用率</h3>
+							<div class="searcTime">
+								<span class="gt on" onclick="Wday(0,'cpu')">今天</span>
+								<span class="gt" onclick="Wday(1,'cpu')">昨天</span>
+								<span class="gt" onclick="Wday(7,'cpu')">7天</span>
+								<span class="gt" onclick="Wday(30,'cpu')">30天</span>
+								<div class="ss">
+									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
+									<div class="time">
+										<span class="bt">自定义范围：<br><input id="cpubtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn cpubtn">提交</div>
 									</div>
 								</div>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('cupview', 'CPU使用率')" title="放大图表"></span>
 							</div>
-							<div id="memview" style="width: 96%; height:280px; margin: 0 auto;"></div>
 						</div>
+						<div id="cupview" class="monitor-chart"></div>
 					</div>
 				</div>
-				<div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0 view1">
-					<div class="pr8">
-						<div class="bgw pb15">
-							<div class="title c6 plr15 mb15">
-								<h3 class="c-tit f16">磁盘IO</h3>
-								<div class="searcTime pull-right">
-									<span class="tit">$data['lan']['S1']</span>
-									<span class="gt" onclick="Wday(1,'disk')">昨天</span>
-									<span class="gt on" onclick="Wday(0,'disk')">今天</span>
-									<span class="gt" onclick="Wday(7,'disk')">最近7天</span>
-									<span class="gt" onclick="Wday(30,'disk')">最近30天</span>
-									<div class="ss">
-										<span class="st">自定义时间</span>
-										<div class="time">
-											<span class="bt">时间范围
-												<input id="diskbtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
-											</span>
-											<div class="sbtn diskbtn">提交</div>
-										</div>
+				<!-- Box 4: 内存 -->
+				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+					<div class="monitor-box">
+						<div class="monitor-title">
+							<h3>内存使用率</h3>
+							<div class="searcTime">
+								<span class="gt on" onclick="Wday(0,'mem')">今天</span>
+								<span class="gt" onclick="Wday(1,'mem')">昨天</span>
+								<span class="gt" onclick="Wday(7,'mem')">7天</span>
+								<span class="gt" onclick="Wday(30,'mem')">30天</span>
+								<div class="ss">
+									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
+									<div class="time">
+										<span class="bt">自定义范围：<br><input id="membtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn membtn">提交</div>
 									</div>
 								</div>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('memview', '内存使用率')" title="放大图表"></span>
 							</div>
-							<div id="diskview" style="width: 96%; height:280px; margin: 0 auto;"></div>
 						</div>
+						<div id="memview" class="monitor-chart"></div>
 					</div>
 				</div>
-				<div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0 view2">
-					<div class="pl7">
-						<div class="bgw pb15">
-							<div class="title c6 plr15 mb15">
-								<h3 class="c-tit f16">网络IO</h3>
-								<div class="searcTime pull-right">
-									<span class="tit">$data['lan']['S1']</span>
-									<span class="gt" onclick="Wday(1,'network')">昨天</span>
-									<span class="gt on" onclick="Wday(0,'network')">今天</span>
-									<span class="gt" onclick="Wday(7,'network')">最近7天</span>
-									<span class="gt" onclick="Wday(30,'network')">最近30天</span>
-									<div class="ss">
-										<span class="st">自定义时间</span>
-										<div class="time">
-											<span class="bt">时间范围
-												<input id="networkbtn_rtime" class="rtime" type="text" value="2023-07-06 00:00:00 - 2023-08-08 00:00:00">
-											</span>
-											<div class="sbtn networkbtn">提交</div>
-										</div>
+				<!-- Box 5: 磁盘IO -->
+				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+					<div class="monitor-box">
+						<div class="monitor-title">
+							<h3>磁盘 I/O</h3>
+							<div class="searcTime">
+								<span class="gt on" onclick="Wday(0,'disk')">今天</span>
+								<span class="gt" onclick="Wday(1,'disk')">昨天</span>
+								<span class="gt" onclick="Wday(7,'disk')">7天</span>
+								<span class="gt" onclick="Wday(30,'disk')">30天</span>
+								<div class="ss">
+									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
+									<div class="time">
+										<span class="bt">自定义范围：<br><input id="diskbtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn diskbtn">提交</div>
 									</div>
 								</div>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('diskview', '磁盘 I/O')" title="放大图表"></span>
 							</div>
-							<div id="network" style="width: 96%; height:280px; margin: 0 auto;"></div>
 						</div>
+						<div id="diskview" class="monitor-chart"></div>
+					</div>
+				</div>
+				<!-- Box 6: 网络IO -->
+				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+					<div class="monitor-box">
+						<div class="monitor-title">
+							<h3>网络 I/O</h3>
+							<div class="searcTime">
+								<span class="gt on" onclick="Wday(0,'network')">今天</span>
+								<span class="gt" onclick="Wday(1,'network')">昨天</span>
+								<span class="gt" onclick="Wday(7,'network')">7天</span>
+								<span class="gt" onclick="Wday(30,'network')">30天</span>
+								<div class="ss">
+									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
+									<div class="time">
+										<span class="bt">自定义范围：<br><input id="networkbtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn networkbtn">提交</div>
+									</div>
+								</div>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('network', '网络 I/O')" title="放大图表"></span>
+							</div>
+						</div>
+						<div id="network" class="monitor-chart"></div>
 					</div>
 				</div>
 			</div>
