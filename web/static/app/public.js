@@ -3417,7 +3417,7 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
     var replaceInput = dialog.querySelector('.cm-replace-input');
     var replaceRow = dialog.querySelector('.cm-replace-row');
     var infoText = dialog.querySelector('.cm-search-info');
-    var state = { isReplaceMode: isReplaceMode, replaceRow: replaceRow, searchInput: searchInput, lastQuery: null, overlay: null };
+    var state = { isReplaceMode: isReplaceMode, replaceRow: replaceRow, searchInput: searchInput, lastQuery: null, overlay: null, matchLine: null };
     cm.state.advSearch = state;
     function getQuery() { return searchInput.value; }
     function clearOverlay() {
@@ -3442,7 +3442,15 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
     }
     function updateMatchCount(pos) {
         var query = getQuery();
+        if (state.matchLine !== null) {
+            cm.removeLineClass(state.matchLine, 'gutter', 'CodeMirror-search-match-line');
+            state.matchLine = null;
+        }
         if (!query) { infoText.innerText = '0 / 0'; clearOverlay(); return; }
+        if (pos) {
+            cm.addLineClass(pos.line, 'gutter', 'CodeMirror-search-match-line');
+            state.matchLine = pos.line;
+        }
         if (query !== state.lastQuery) {
             clearOverlay();
             state.overlay = searchOverlay(query);
@@ -3495,6 +3503,10 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
         updateMatchCount(cm.getCursor('from'));
     }
     function closeDialog() {
+        if (state.matchLine !== null) {
+            cm.removeLineClass(state.matchLine, 'gutter', 'CodeMirror-search-match-line');
+            state.matchLine = null;
+        }
         clearOverlay();
         if (dialog.parentNode) dialog.parentNode.removeChild(dialog);
         delete cm.state.advSearch;
