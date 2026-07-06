@@ -28,11 +28,11 @@ def get_menu_config():
         default_menu = [
             {"id": "memuA", "name": "首页", "class": "menu_home", "url": "/", "show": True},
             {"id": "memuAsite", "name": "网站", "class": "menu_web", "url": "/site/index", "show": True},
-            {"id": "memuAmonitor", "name": "监控", "class": "menu_control", "url": "/monitor/index", "show": True},
-            {"id": "memuAfirewall", "name": "安全", "class": "menu_firewall", "url": "/firewall/index", "show": True},
             {"id": "memuAfiles", "name": "文件", "class": "menu_folder", "url": "/files/index", "show": True},
-            {"id": "memuAlogs", "name": "日志", "class": "menu_logs", "url": "/logs/index", "show": True},
+            {"id": "memuAfirewall", "name": "安全", "class": "menu_firewall", "url": "/firewall/index", "show": True},
             {"id": "memuAcrontab", "name": "计划任务", "class": "menu_day", "url": "/crontab/index", "show": True},
+            {"id": "memuAmonitor", "name": "监控", "class": "menu_control", "url": "/monitor/index", "show": True},
+            {"id": "memuAlogs", "name": "日志", "class": "menu_logs", "url": "/logs/index", "show": True},
             {"id": "memuAsoft", "name": "软件管理", "class": "menu_soft", "url": "/soft/index", "show": True},
             {"id": "memuAsetting", "name": "面板设置", "class": "menu_set", "url": "/setting/index", "show": True}
         ]
@@ -142,4 +142,4 @@ def getGlobalVar():
 
     # 动态加上系统时间并返回
     data['systemdate'] = time.strftime('%Y-%m-%d %H:%M:%S %Z %z', time.localtime())
-    return data
+    return data
