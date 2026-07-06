@@ -406,12 +406,12 @@ def get_bt_backups():
         return mw.getJson({'status': True, 'data': []})
         
     targets = {
-        'mysql_bt_bak': 'MySQL主程序备份',
-        'data_bt_bak': 'MySQL数据备份',
-        'nginx_bt_bak': 'Nginx环境备份',
-        'php_bt_bak': 'PHP环境备份',
-        'redis_bt_bak': 'Redis环境备份',
-        'postgresql_bt_bak': 'PgSQL环境备份'
+        'mysql_bt_bak': ('MySQL主程序备份', '无特殊影响，释放硬盘空间'),
+        'data_bt_bak': ('MySQL用户数据备份', '彻底丢失旧数据，且无法使用上方的数据库还原功能'),
+        'nginx_bt_bak': ('Nginx环境备份', '无特殊影响，释放硬盘空间'),
+        'php_bt_bak': ('PHP环境备份', '无特殊影响，释放硬盘空间'),
+        'redis_bt_bak': ('Redis环境备份', '无特殊影响，释放硬盘空间'),
+        'postgresql_bt_bak': ('PgSQL环境备份', '无法恢复旧版PgSQL数据库')
     }
     
     from utils.file import getDirSize
@@ -422,17 +422,20 @@ def get_bt_backups():
             continue
             
         desc = ""
+        warning = ""
         if f in targets:
-            desc = targets[f]
+            desc = targets[f][0]
+            warning = targets[f][1]
         elif f.startswith('panel.bak.'):
             desc = "面板程序备份"
+            warning = "无法回滚至原宝塔面板"
             
         if desc:
             try:
                 size = getDirSize(full_path)
             except:
                 size = 0
-            data.append({'name': f, 'path': full_path, 'desc': desc, 'type': 'dir', 'size': mw.toSize(size)})
+            data.append({'name': f, 'path': full_path, 'desc': desc, 'warning': warning, 'type': 'dir', 'size': mw.toSize(size)})
             
     # 按名称排序
     data.sort(key=lambda x: x['name'])

@@ -826,8 +826,11 @@ function loadBtBackups() {
                 if(item.type == 'dir') {
                     tdBtn.append('<a href="javascript:;" class="btlink" onclick="compressBtBackup(\''+item.path+'\')" style="margin-right:10px;">压缩</a>');
                 }
-                tdBtn.append('<a href="javascript:;" class="btlink" onclick="deleteBtBackup(\''+item.path+'\')">删除</a>');
             }
+            
+            var warningHtml = item.warning ? '<span style="color:#aaa; font-size:12px; margin-left:10px;">(删除后：'+item.warning+')</span>' : '';
+            tdBtn.append('<a href="javascript:;" class="btlink" style="color:red;" onclick="deleteBtBackup(\''+item.path+'\')">删除</a>' + warningHtml);
+            
             tr.append(tdBtn);
             tbody.append(tr);
         }
