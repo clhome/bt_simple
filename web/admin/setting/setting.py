@@ -407,7 +407,7 @@ def get_bt_backups():
         
     targets = {
         'mysql_bt_bak': ('MySQL主程序备份', '无特殊影响，释放硬盘空间'),
-        'data_bt_bak': ('MySQL用户数据备份', '彻底丢失旧数据，且无法使用上方的数据库还原功能'),
+        'data_bt_bak': ('MySQL用户数据备份', '彻底删除备份数据库，无法使用数据库还原功能'),
         'nginx_bt_bak': ('Nginx环境备份', '无特殊影响，释放硬盘空间'),
         'php_bt_bak': ('PHP环境备份', '无特殊影响，释放硬盘空间'),
         'redis_bt_bak': ('Redis环境备份', '无特殊影响，释放硬盘空间'),
@@ -427,7 +427,7 @@ def get_bt_backups():
             desc = targets[f][0]
             warning = targets[f][1]
         elif f.startswith('panel.bak.'):
-            desc = "面板程序备份"
+            desc = "原面板备份"
             warning = "无法回滚至原宝塔面板"
             
         if desc:

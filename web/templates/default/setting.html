@@ -829,7 +829,7 @@ function loadBtBackups() {
             }
             
             var warningHtml = item.warning ? '<span style="color:#aaa; font-size:12px; margin-left:10px;">(删除后：'+item.warning+')</span>' : '';
-            tdBtn.append('<a href="javascript:;" class="btlink" style="color:red;" onclick="deleteBtBackup(\''+item.path+'\')">删除</a>' + warningHtml);
+            tdBtn.append('<a href="javascript:;" class="btlink" style="color:red;" onclick="deleteBtBackup(\''+item.path+'\', \''+(item.warning || '')+'\')">删除</a>' + warningHtml);
             
             tr.append(tdBtn);
             tbody.append(tr);
@@ -854,8 +854,9 @@ function compressBtBackup(path) {
     });
 }
 
-function deleteBtBackup(path) {
-    layer.confirm('确定要删除宝塔备份吗？<br><span style="color:red;">'+path+'</span>', {title: '删除确认', icon: 3}, function(index) {
+function deleteBtBackup(path, warning) {
+    var warningStr = warning ? '<br><span style="color:#999; font-size:12px; margin-top:5px; display:inline-block;">(删除后：'+warning+')</span>' : '';
+    layer.confirm('确定要删除【宝塔备份】吗？<br><span style="color:red;">'+path+'</span>' + warningStr, {title: '删除确认', icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg('正在删除，请稍候...', {icon: 16, time: 0, shade: 0.3});
         $.post('/setting/delete_bt_backup', {path: path}, function(rdata) {
