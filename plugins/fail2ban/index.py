@@ -917,11 +917,41 @@ class fail2ban_main:
             ips = json.loads(ips_json)
             if not isinstance(ips, list):
                 return mw.returnJson(False, 'ips must be a JSON array', [])
-            req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
-            req.add_header('Content-Type', 'application/json')
-            response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
-            result = response.read().decode('utf-8')
-            return mw.returnJson(True, 'ok!', json.loads(result))
+            
+            try:
+                req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
+                req.add_header('Content-Type', 'application/json')
+                response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=5)
+                result = response.read().decode('utf-8')
+                return mw.returnJson(True, 'ok!', json.loads(result))
+            except Exception:
+                # 备用API (太平洋电脑网)
+                result_list = []
+                for ip in ips:
+                    try:
+                        url = 'https://whois.pconline.com.cn/ipJson.jsp?ip={}&json=true'.format(ip)
+                        response = urllib.request.urlopen(url, timeout=3)
+                        res_str = response.read().decode('gbk', errors='ignore')
+                        res_data = json.loads(res_str)
+                        
+                        regionName = res_data.get('pro', '')
+                        if not regionName:
+                            regionName = res_data.get('addr', '').strip()
+                            
+                        result_list.append({
+                            "query": ip,
+                            "status": "success",
+                            "country": "中国" if res_data.get('pro') else "",
+                            "regionName": regionName,
+                            "city": res_data.get('city', ''),
+                            "org": res_data.get('addr', '')
+                        })
+                    except Exception:
+                        result_list.append({
+                            "query": ip,
+                            "status": "fail"
+                        })
+                return mw.returnJson(True, 'ok!', result_list)
         except Exception as e:
             return mw.returnJson(False, str(e), [])
 
@@ -931,10 +961,31 @@ class fail2ban_main:
         try:
             import json
             import urllib.request
-            url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
-            response = urllib.request.urlopen(url, timeout=10)
-            result = response.read().decode('utf-8')
-            return mw.returnJson(True, 'ok!', json.loads(result))
+            try:
+                url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
+                response = urllib.request.urlopen(url, timeout=5)
+                result = response.read().decode('utf-8')
+                return mw.returnJson(True, 'ok!', json.loads(result))
+            except Exception:
+                # 备用API (太平洋电脑网)
+                url = 'https://whois.pconline.com.cn/ipJson.jsp?ip={}&json=true'.format(ip)
+                response = urllib.request.urlopen(url, timeout=5)
+                res_str = response.read().decode('gbk', errors='ignore')
+                res_data = json.loads(res_str)
+                
+                regionName = res_data.get('pro', '')
+                if not regionName:
+                    regionName = res_data.get('addr', '').strip()
+                
+                fallback_res = {
+                    "query": ip,
+                    "status": "success",
+                    "country": "中国" if res_data.get('pro') else "",
+                    "regionName": regionName,
+                    "city": res_data.get('city', ''),
+                    "org": res_data.get('addr', '')
+                }
+                return mw.returnJson(True, 'ok!', fallback_res)
         except Exception as e:
             return mw.returnJson(False, str(e), [])
 
