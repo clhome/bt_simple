@@ -247,7 +247,7 @@ var lan = {
 		"save_file":"正在保存,请稍候...",
 		"read_file":"正在读取文件,请稍候...",
 		"edit_title":"在线编辑",
-		"edit_ps":"提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!",
+		"edit_ps":"提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!",
 		"stop":"停止",
 		"start":"启动",
 		"restart":"重启",
