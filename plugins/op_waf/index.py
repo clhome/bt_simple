@@ -1631,32 +1631,41 @@ def getIpLocationBatch():
             result = response.read().decode('utf-8')
             return mw.returnJson(True, 'ok!', json.loads(result))
         except Exception:
-            # 备用API (太平洋电脑网) 顺序请求避免并发被拦截
+            # 备用API (ipwhois.app) 顺序请求避免并发被拦截
             result_list = []
+            import time
             for ip in ips:
                 try:
-                    url = 'https://whois.pconline.com.cn/ipJson.jsp?ip={}&json=true'.format(ip)
+                    url = 'https://ipwhois.app/json/{}?lang=zh-CN'.format(ip)
                     response = urllib.request.urlopen(url, timeout=3)
-                    res_str = response.read().decode('gbk', errors='ignore')
+                    res_str = response.read().decode('utf-8', errors='ignore').strip()
                     res_data = json.loads(res_str)
                     
-                    regionName = res_data.get('pro', '')
-                    if not regionName:
-                        regionName = res_data.get('addr', '').strip()
+                    if res_data.get('success'):
+                        country = res_data.get('country', '')
+                        regionName = res_data.get('region', '')
+                        city = res_data.get('city', '')
+                        org = res_data.get('org', '') or res_data.get('isp', '')
                         
-                    result_list.append({
-                        "query": ip,
-                        "status": "success",
-                        "country": "中国" if res_data.get('pro') else "",
-                        "regionName": regionName,
-                        "city": res_data.get('city', ''),
-                        "org": res_data.get('addr', '')
-                    })
+                        result_list.append({
+                            "query": ip,
+                            "status": "success",
+                            "country": country,
+                            "regionName": regionName,
+                            "city": city,
+                            "org": org
+                        })
+                    else:
+                        result_list.append({
+                            "query": ip,
+                            "status": "fail"
+                        })
                 except Exception:
                     result_list.append({
                         "query": ip,
                         "status": "fail"
                     })
+                time.sleep(0.2) # 防止被限流
             return mw.returnJson(True, 'ok!', result_list)
     except Exception as e:
         return mw.returnJson(False, str(e), [])
@@ -1679,25 +1688,29 @@ def getIpLocation():
                 return mw.returnJson(True, 'ok!', res_data)
             raise Exception("ip-api failed")
         except Exception:
-            # 备用API (太平洋电脑网)
-            url = 'https://whois.pconline.com.cn/ipJson.jsp?ip={}&json=true'.format(ip)
+            # 备用API (ipwhois.app)
+            url = 'https://ipwhois.app/json/{}?lang=zh-CN'.format(ip)
             response = urllib.request.urlopen(url, timeout=5)
-            res_str = response.read().decode('gbk', errors='ignore')
+            res_str = response.read().decode('utf-8', errors='ignore').strip()
             res_data = json.loads(res_str)
             
-            regionName = res_data.get('pro', '')
-            if not regionName:
-                regionName = res_data.get('addr', '').strip()
-            
-            fallback_res = {
-                "query": ip,
-                "status": "success",
-                "country": "中国" if res_data.get('pro') else "",
-                "regionName": regionName,
-                "city": res_data.get('city', ''),
-                "org": res_data.get('addr', '')
-            }
-            return mw.returnJson(True, 'ok!', fallback_res)
+            if res_data.get('success'):
+                country = res_data.get('country', '')
+                regionName = res_data.get('region', '')
+                city = res_data.get('city', '')
+                org = res_data.get('org', '') or res_data.get('isp', '')
+                
+                fallback_res = {
+                    "query": ip,
+                    "status": "success",
+                    "country": country,
+                    "regionName": regionName,
+                    "city": city,
+                    "org": org
+                }
+                return mw.returnJson(True, 'ok!', fallback_res)
+            else:
+                return mw.returnJson(False, '获取归属地失败', [])
     except Exception as e:
         return mw.returnJson(False, str(e), [])
 def removeDropIp():
