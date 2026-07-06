@@ -486,8 +486,8 @@ def delete_bt_backup():
 @panel_login_required
 def set_home_notice():
     home_notice = request.form.get('home_notice', '')
-    if len(home_notice) > 200:
-        return mw.returnData(False, '首页提醒最长不能超过200个字!')
+    if len(home_notice) > 50:
+        return mw.returnData(False, '首页提醒最长不能超过50个字!')
     
     src_home_notice = thisdb.getOption('home_notice')
     if home_notice != src_home_notice:

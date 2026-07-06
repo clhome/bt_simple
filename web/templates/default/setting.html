@@ -461,10 +461,11 @@
                     <div class="setting-item">
                         <span class="set-tit" title="首页提醒">首页提醒</span>
                         <div class="set-input-group">
-                            <input name="home_notice" class="inputtxt bt-input-text" type="text" value="{{data['home_notice']}}" maxlength="200" style="width: 350px;">
+                            <input name="home_notice" class="inputtxt bt-input-text" type="text" value="{{data['home_notice']}}" maxlength="50" style="width: 350px;">
+                            <span id="home_notice_count" style="color: #c25c3f; font-size: 12px; font-weight: bold;">0/50</span>
                             <button type="button" class="btn btn-success btn-sm btn_home_notice" onclick="setHomeNotice(this)">保存</button>
                         </div>
-                        <span class="set-info">在首页顶部展示提醒信息，最长200字</span>
+                        <span class="set-info">在首页顶部展示提醒信息，最长50字</span>
                     </div>
                 </div>
 
@@ -815,6 +816,16 @@ function setHomeNotice(obj) {
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     }, 'json');
 }
+
+$(document).ready(function() {
+    var $noticeInput = $("input[name='home_notice']");
+    var $noticeCount = $("#home_notice_count");
+    function updateNoticeCount() {
+        $noticeCount.text($noticeInput.val().length + "/50");
+    }
+    $noticeInput.on('input', updateNoticeCount);
+    updateNoticeCount();
+});
 
 function loadBtBackups() {
     $.post('/setting/get_bt_backups', function(rdata) {
