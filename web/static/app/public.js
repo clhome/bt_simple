@@ -947,10 +947,14 @@ function onlineEditFile(k, f, callback) {
 						"Ctrl-S": function() {
 							$("#textBody").text(code_mirror.getValue());
 							onlineEditFile(2, f, callback);
+							code_mirror.markClean();
+							layero.find('.layui-layer-btn0 .cm-dirty-mark').remove();
 						},
 						"Cmd-S":function() {
 							$("#textBody").text(code_mirror.getValue());
 							onlineEditFile(2, f, callback);
+							code_mirror.markClean();
+							layero.find('.layui-layer-btn0 .cm-dirty-mark').remove();
 						},
 					},
 					mode: d,
@@ -1015,14 +1019,27 @@ function onlineEditFile(k, f, callback) {
 					'color': '#fff',
 					'margin-right': '15px'
 				});
+
+				code_mirror.on("change", function(cm) {
+					var saveBtn = layero.find('.layui-layer-btn0');
+					if (!cm.isClean()) {
+						if (saveBtn.find('.cm-dirty-mark').length === 0) {
+							saveBtn.append('<span class="cm-dirty-mark" style="display:inline-block; width:16px; height:16px; line-height:16px; text-align:center; border-radius:50%; background-color:#f58f00; color:#000; font-weight:bold; font-size:13px; margin-left:4px; vertical-align:middle; position:relative; top:-1px;">!</span>');
+						}
+					} else {
+						saveBtn.find('.cm-dirty-mark').remove();
+					}
+				});
 			});
 		},
 		end:function(){
 			clearInterval(code_timer);
 		},
-		yes:function(){
+		yes:function(index, layero){
 			$("#textBody").text(code_mirror.getValue());
 			onlineEditFile(1, f, callback);
+			code_mirror.markClean();
+			layero.find('.layui-layer-btn0 .cm-dirty-mark').remove();
 		},
 		btn2:function(){
 			var loading_refresh = layer.msg('正在刷新中,请稍候...', {icon: 16,time: 0});
