@@ -1035,6 +1035,41 @@ function onlineEditFile(k, f, callback) {
 		end:function(){
 			clearInterval(code_timer);
 		},
+		cancel: function(index, layero) {
+			if (!code_mirror.isClean()) {
+				layer.confirm('检测到文件已被修改，是否保存？', {
+					title: '温馨提示',
+					icon: 0,
+					btn: ['<span class="glyphicon glyphicon-remove"></span> 不保存', '<span class="glyphicon glyphicon-floppy-disk"></span> 保存'],
+					success: function(confirmLayero) {
+						var outerSaveColor = layero.find('.layui-layer-btn0').css('background-color') || '#20a53a';
+						var outerSaveBorder = layero.find('.layui-layer-btn0').css('border-color') || '#20a53a';
+						
+						confirmLayero.find('.layui-layer-btn0').css({
+							'border-color': '#a9a9a9',
+							'background-color': '#a9a9a9',
+							'color': '#fff'
+						});
+						confirmLayero.find('.layui-layer-btn1').css({
+							'border-color': outerSaveBorder,
+							'background-color': outerSaveColor,
+							'color': '#fff',
+							'margin-left': '50px'
+						});
+					}
+				}, function(confirmIndex) {
+					layer.close(confirmIndex);
+					layer.close(index);
+				}, function(confirmIndex) {
+					$("#textBody").text(code_mirror.getValue());
+					onlineEditFile(1, f, callback);
+					code_mirror.markClean();
+					layer.close(confirmIndex);
+					layer.close(index);
+				});
+				return false;
+			}
+		},
 		yes:function(index, layero){
 			$("#textBody").text(code_mirror.getValue());
 			onlineEditFile(1, f, callback);
