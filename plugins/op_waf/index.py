@@ -1619,51 +1619,45 @@ def getIpLocationBatch():
     
     ips_json = args['ips']
     try:
+        import urllib.request
         ips = json.loads(ips_json)
         if not isinstance(ips, list):
             return mw.returnJson(False, 'ips must be a JSON array', [])
         
-        result_list = []
         try:
-            import urllib.request
             req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
             req.add_header('Content-Type', 'application/json')
             response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=5)
             result = response.read().decode('utf-8')
-            result_list = json.loads(result)
+            return mw.returnJson(True, 'ok!', json.loads(result))
         except Exception:
+            # 备用API (太平洋电脑网) 顺序请求避免并发被拦截
             result_list = []
-        
-        success_map = {}
-        for item in result_list:
-            if item and item.get('status') == 'success' and 'query' in item:
-                success_map[item['query']] = item
-        
-        ips_to_query = [ip for ip in ips if ip not in success_map]
-        fallback_results = {}
-        
-        if ips_to_query:
-            from concurrent.futures import ThreadPoolExecutor
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                futures = {executor.submit(get_location_from_pconline, ip): ip for ip in ips_to_query}
-                for future in futures:
-                    ip = futures[future]
-                    try:
-                        res = future.result()
-                        fallback_results[ip] = res
-                    except Exception:
-                        fallback_results[ip] = {"status": "fail", "query": ip}
-        
-        final_list = []
-        for ip in ips:
-            if ip in success_map:
-                final_list.append(success_map[ip])
-            elif ip in fallback_results:
-                final_list.append(fallback_results[ip])
-            else:
-                final_list.append({"status": "fail", "query": ip})
-                
-        return mw.returnJson(True, 'ok!', final_list)
+            for ip in ips:
+                try:
+                    url = 'https://whois.pconline.com.cn/ipJson.jsp?ip={}&json=true'.format(ip)
+                    response = urllib.request.urlopen(url, timeout=3)
+                    res_str = response.read().decode('gbk', errors='ignore')
+                    res_data = json.loads(res_str)
+                    
+                    regionName = res_data.get('pro', '')
+                    if not regionName:
+                        regionName = res_data.get('addr', '').strip()
+                        
+                    result_list.append({
+                        "query": ip,
+                        "status": "success",
+                        "country": "中国" if res_data.get('pro') else "",
+                        "regionName": regionName,
+                        "city": res_data.get('city', ''),
+                        "org": res_data.get('addr', '')
+                    })
+                except Exception:
+                    result_list.append({
+                        "query": ip,
+                        "status": "fail"
+                    })
+            return mw.returnJson(True, 'ok!', result_list)
     except Exception as e:
         return mw.returnJson(False, str(e), [])
 
@@ -1676,18 +1670,36 @@ def getIpLocation():
     ip = args['ip']
     try:
         import urllib.request
-        url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
-        response = urllib.request.urlopen(url, timeout=5)
-        result = response.read().decode('utf-8')
-        res_data = json.loads(result)
-        if res_data.get('status') == 'success':
-            return mw.returnJson(True, 'ok!', res_data)
-        raise Exception("ip-api failed")
-    except Exception:
-        fallback_res = get_location_from_pconline(ip)
-        if fallback_res.get('status') == 'success':
+        try:
+            url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
+            response = urllib.request.urlopen(url, timeout=5)
+            result = response.read().decode('utf-8')
+            res_data = json.loads(result)
+            if res_data.get('status') == 'success':
+                return mw.returnJson(True, 'ok!', res_data)
+            raise Exception("ip-api failed")
+        except Exception:
+            # 备用API (太平洋电脑网)
+            url = 'https://whois.pconline.com.cn/ipJson.jsp?ip={}&json=true'.format(ip)
+            response = urllib.request.urlopen(url, timeout=5)
+            res_str = response.read().decode('gbk', errors='ignore')
+            res_data = json.loads(res_str)
+            
+            regionName = res_data.get('pro', '')
+            if not regionName:
+                regionName = res_data.get('addr', '').strip()
+            
+            fallback_res = {
+                "query": ip,
+                "status": "success",
+                "country": "中国" if res_data.get('pro') else "",
+                "regionName": regionName,
+                "city": res_data.get('city', ''),
+                "org": res_data.get('addr', '')
+            }
             return mw.returnJson(True, 'ok!', fallback_res)
-        return mw.returnJson(False, '获取归属地失败', [])
+    except Exception as e:
+        return mw.returnJson(False, str(e), [])
 def removeDropIp():
     args = getArgs()
     data = checkArgs(args, ['ip'])
