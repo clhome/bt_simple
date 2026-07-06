@@ -431,10 +431,7 @@
                     </div>
                     
                     <div class="setting-item" style="margin-top: 20px;">
-                        <span class="set-tit" title="宝塔面板备份" style="line-height: 1.8; padding-top: 5px;">
-                            宝塔面板备份<br>
-                            <span style="font-size: 12px; font-weight: bold; color: #333;">/www/backup/panel</span>
-                        </span>
+                        <span class="set-tit" title="宝塔面板备份">宝塔面板备份</span>
                         <div class="set-input-group" style="width: auto; min-width: 400px; padding-top: 4px;">
                             <table class="table table-hover" style="margin-bottom: 0; background: transparent; border: none;">
                                 <tbody id="bt_backup_list">
@@ -493,6 +490,10 @@ $(document).ready(function() {
     // jQuery 选项卡切换逻辑与平滑过渡
     $('.settings-nav li').on('click', function() {
         var target = $(this).data('tab');
+        
+        if (target == 'tab-data') {
+            loadBtBackups();
+        }
         
         if ($(this).hasClass('active')) return;
 
@@ -817,15 +818,15 @@ function loadBtBackups() {
             var icon = item.type == 'dir' ? 'glyphicon-folder-open' : 'glyphicon-file';
             var color = item.type == 'dir' ? '#edca5c' : '#999';
             var tr = $('<tr></tr>');
-            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="glyphicon '+icon+'" style="color:'+color+'; margin-right:8px;"></span>'+item.name+'</td>');
+            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="glyphicon '+icon+'" style="color:'+color+'; margin-right:8px;"></span>'+item.path+' <span style="color:#888; font-size:12px; margin-left:10px;">('+item.desc+')</span></td>');
             tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;">'+item.size+'</td>');
             
             var tdBtn = $('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;"></td>');
             if($('#debugMode').prop('checked')) {
                 if(item.type == 'dir') {
-                    tdBtn.append('<a href="javascript:;" class="btlink" onclick="compressBtBackup(\''+item.name+'\')" style="margin-right:10px;">压缩</a>');
+                    tdBtn.append('<a href="javascript:;" class="btlink" onclick="compressBtBackup(\''+item.path+'\')" style="margin-right:10px;">压缩</a>');
                 }
-                tdBtn.append('<a href="javascript:;" class="btlink" onclick="deleteBtBackup(\''+item.name+'\')">删除</a>');
+                tdBtn.append('<a href="javascript:;" class="btlink" onclick="deleteBtBackup(\''+item.path+'\')">删除</a>');
             }
             tr.append(tdBtn);
             tbody.append(tr);
@@ -835,9 +836,9 @@ function loadBtBackups() {
     });
 }
 
-function compressBtBackup(name) {
+function compressBtBackup(path) {
     layer.msg('正在压缩，请稍候...', {icon: 16, time: 0, shade: 0.3});
-    $.post('/setting/compress_bt_backup', {name: name}, function(rdata) {
+    $.post('/setting/compress_bt_backup', {path: path}, function(rdata) {
         layer.closeAll();
         if (typeof rdata === 'string') { try { rdata = JSON.parse(rdata); } catch(e) {} }
         layer.msg(rdata.msg || (rdata.status ? '操作成功' : '操作失败'), {icon: rdata.status ? 1 : 2});
@@ -850,11 +851,11 @@ function compressBtBackup(name) {
     });
 }
 
-function deleteBtBackup(name) {
-    layer.confirm('确定要删除宝塔备份【'+name+'】吗？', {title: '删除确认', icon: 3}, function(index) {
+function deleteBtBackup(path) {
+    layer.confirm('确定要删除宝塔备份吗？<br><span style="color:red;">'+path+'</span>', {title: '删除确认', icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg('正在删除，请稍候...', {icon: 16, time: 0, shade: 0.3});
-        $.post('/setting/delete_bt_backup', {name: name}, function(rdata) {
+        $.post('/setting/delete_bt_backup', {path: path}, function(rdata) {
             layer.close(loadT);
             if (typeof rdata === 'string') { try { rdata = JSON.parse(rdata); } catch(e) {} }
             layer.msg(rdata.msg || (rdata.status ? '操作成功' : '操作失败'), {icon: rdata.status ? 1 : 2});
@@ -869,7 +870,7 @@ function deleteBtBackup(name) {
 }
 
 $(function() {
-    loadBtBackups();
+    // Other init code
 });
 </script>
 <script src="/static/app/config.js?v={{config.version}}"></script>

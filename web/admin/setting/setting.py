@@ -399,69 +399,81 @@ def get_migrate_sites_log():
 @panel_login_required
 def get_bt_backups():
     import os
-    backup_path = "/www/backup/panel/"
-    if not os.path.exists(backup_path):
-        return mw.getJson({'status': True, 'data': []})
-    
     data = []
-    for f in os.listdir(backup_path):
-        full_path = os.path.join(backup_path, f)
-        if os.path.isdir(full_path):
+    
+    server_path = "/www/server/"
+    if not os.path.exists(server_path):
+        return mw.getJson({'status': True, 'data': []})
+        
+    targets = {
+        'mysql_bt_bak': 'MySQL主程序备份',
+        'data_bt_bak': 'MySQL数据备份',
+        'nginx_bt_bak': 'Nginx环境备份',
+        'php_bt_bak': 'PHP环境备份',
+        'redis_bt_bak': 'Redis环境备份',
+        'postgresql_bt_bak': 'PgSQL环境备份'
+    }
+    
+    from utils.file import getDirSize
+    
+    for f in os.listdir(server_path):
+        full_path = os.path.join(server_path, f)
+        if not os.path.isdir(full_path):
+            continue
+            
+        desc = ""
+        if f in targets:
+            desc = targets[f]
+        elif f.startswith('panel.bak.'):
+            desc = "面板程序备份"
+            
+        if desc:
             try:
-                from utils.file import getDirSize
                 size = getDirSize(full_path)
             except:
                 size = 0
-            data.append({'name': f, 'type': 'dir', 'size': mw.toSize(size)})
-        elif f.endswith('.zip') or f.endswith('.tar.gz') or f.endswith('.gz'):
-            size = os.path.getsize(full_path)
-            data.append({'name': f, 'type': 'file', 'size': mw.toSize(size)})
+            data.append({'name': f, 'path': full_path, 'desc': desc, 'type': 'dir', 'size': mw.toSize(size)})
             
-    # sort directories first, then files
-    data.sort(key=lambda x: (0 if x['type'] == 'dir' else 1, x['name']))
+    # 按名称排序
+    data.sort(key=lambda x: x['name'])
     return mw.getJson({'status': True, 'data': data})
 
 # 压缩宝塔备份目录
 @blueprint.route('/compress_bt_backup', endpoint='compress_bt_backup', methods=['POST'])
 @panel_login_required
 def compress_bt_backup():
-    name = request.form.get('name', '')
-    if not name:
-        return mw.returnData(False, '参数错误')
+    path = request.form.get('path', '')
+    if not path or not path.startswith('/www/server/'):
+        return mw.returnData(False, '参数错误或无权限')
     
     import os
-    backup_path = "/www/backup/panel/"
-    full_path = os.path.join(backup_path, name)
-    
-    if not os.path.exists(full_path) or not os.path.isdir(full_path):
+    if not os.path.exists(path) or not os.path.isdir(path):
         return mw.returnData(False, '目录不存在')
         
-    zip_file = os.path.join(backup_path, name + '.zip')
-    cmd = "cd {} && zip -r {}.zip {}".format(backup_path, name, name)
+    parent_dir = os.path.dirname(path)
+    base_name = os.path.basename(path)
+    cmd = "cd {} && zip -r {}.zip {}".format(parent_dir, base_name, base_name)
     mw.execShell(cmd)
     
-    return mw.returnData(True, '压缩成功')
+    return mw.returnData(True, '压缩成功，文件保存在同级目录下')
 
 # 删除宝塔备份
 @blueprint.route('/delete_bt_backup', endpoint='delete_bt_backup', methods=['POST'])
 @panel_login_required
 def delete_bt_backup():
-    name = request.form.get('name', '')
-    if not name:
-        return mw.returnData(False, '参数错误')
+    path = request.form.get('path', '')
+    if not path or not path.startswith('/www/server/'):
+        return mw.returnData(False, '参数错误或无权限')
     
     import os, shutil
-    backup_path = "/www/backup/panel/"
-    full_path = os.path.join(backup_path, name)
-    
-    if not os.path.exists(full_path):
+    if not os.path.exists(path):
         return mw.returnData(False, '文件/目录不存在')
         
     try:
-        if os.path.isdir(full_path):
-            shutil.rmtree(full_path)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
         else:
-            os.remove(full_path)
+            os.remove(path)
         return mw.returnData(True, '删除成功')
     except Exception as e:
         return mw.returnData(False, '删除失败: ' + str(e))
