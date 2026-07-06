@@ -818,7 +818,7 @@ function loadBtBackups() {
             var icon = item.type == 'dir' ? 'glyphicon-folder-open' : 'glyphicon-file';
             var color = item.type == 'dir' ? '#edca5c' : '#999';
             var tr = $('<tr></tr>');
-            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="glyphicon '+icon+'" style="color:'+color+'; margin-right:8px;"></span>'+item.path+' <span style="color:#888; font-size:12px; margin-left:10px;">('+item.desc+')</span></td>');
+            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="glyphicon '+icon+'" style="color:'+color+'; margin-right:8px;"></span><a href="javascript:;" class="btlink" title="在文件管理中打开" onclick="openPath(\''+item.path+'\')">'+item.path+'</a> <span style="color:#888; font-size:12px; margin-left:10px;">('+item.desc+')</span></td>');
             tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;">'+item.size+'</td>');
             
             var tdBtn = $('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;"></td>');
