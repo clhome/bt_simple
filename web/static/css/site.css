@@ -5724,7 +5724,7 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .safe.bgw { border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); padding: 20px; transition: box-shadow var(--transition-fast); }
 .safe.bgw:hover { box-shadow: var(--shadow-md); }
 
-.pos-box.bgw { border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); padding: 12px 20px; background-color: var(--glass-bg); backdrop-filter: blur(10px); }
+.pos-box.bgw { border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); padding: 0 20px; background-color: var(--glass-bg); backdrop-filter: blur(10px); }
 .ser-text { border-radius: var(--radius-sm) 0 0 var(--radius-sm); border: 1px solid var(--border-color); transition: all var(--transition-fast); }
 .ser-text:focus { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); outline: none; }
 .ser-sub { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
