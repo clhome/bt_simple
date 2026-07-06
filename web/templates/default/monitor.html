@@ -4,36 +4,27 @@
 
 <div class="main-content">
 		<div class="container-fluid" style="padding-bottom: 50px;">
-			<div class="pos-box bgw mtb15">
-				<div class="position f14 c9 pull-left">
+			<div class="pos-box bgw mtb15" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; min-height: 50px;">
+				<div class="position f14 c9">
 					<a class="plr10 c4" href="/">首页</a>/<span class="plr10 c4">系统监控</span>
 				</div>
-			</div>
-			<div class="safe container-fluid  bgw mtb15 pd15" style="overflow: hidden;">
-				<div class="mr50 pull-left">
-					<div class="ss-text pull-left">
-						<em>开启监控</em>
-						<div class='ssh-item' id="openJK"></div>
+				<div class="safe" style="display: flex; align-items: center; gap: 20px; font-size: 14px; color: #999;">
+					<div style="display: flex; align-items: center; gap: 10px;">
+						<span>开启监控</span>
+						<div class='ssh-item' id="openJK" style="margin: 0;"></div>
 					</div>
-				</div>
-				<div class="mr50 pull-left">
-					<div class="ss-text pull-left">
-						<em>保存天数：</em>
-						<input class="bt-input-text" id="save_day" value="" type="number">
+					<div style="display: flex; align-items: center; gap: 10px;">
+						<span>保存天数：</span>
+						<input class="bt-input-text" id="save_day" value="" type="number" style="width: 70px; height: 30px; font-size: 14px; margin: 0;">
+						<button class="btn btn-default btn-sm" type="button" onclick="setControl('save_day',true);" style="height: 30px;">更改</button>
 					</div>
-					<div class="ss-text pull-left" style="margin-left:10px">
-						<button class="btn btn-default btn-sm" type="button" onclick="setControl('save_day',true);">更改</button>
+					<div style="display: flex; align-items: center; gap: 10px; padding-left: 20px; border-left: 1px solid #eee;">
+						<span>仅统计外网</span>
+						<div class='ssh-item' id="statAll" style="margin: 0;"></div>
 					</div>
-				</div>
-				<div class="mr50 pull-left" style="padding-left:10px; border-left:#ccc 1px solid; margin-right:0">
-					<div class="mr50 pull-left">
-						<div class="ss-text pull-left">
-							<em>仅统计外网</em>
-							<div class='ssh-item' id="statAll"></div>
-						</div>
+					<div style="padding-left: 10px;">
+						<button class="btn btn-default btn-sm" type="button" onclick="closeControl()" style="height: 30px;">清空记录</button>
 					</div>
-
-					<button class="btn btn-default btn-sm" type="button" onclick="closeControl()">清空记录</button>
 				</div>
 			</div>
 			<style>
@@ -41,7 +32,7 @@
 				.monitor-box { background: #fff; padding-bottom: 0px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: visible; }
 				.monitor-title { padding: 10px 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
 				.monitor-title h3 { margin: 0; font-size: 15px; font-weight: 500; color: #333; }
-				.monitor-chart { width: 100%; height: calc((100vh - 280px) / 2); min-height: 200px; margin: 0 auto; }
+				.monitor-chart { width: 100%; height: calc((100vh - 210px) / 2); min-height: 200px; margin: 0 auto; }
 				.enlarge-btn { cursor: pointer; color: #999; transition: all 0.2s; font-size: 14px; margin-left: 10px; }
 				.enlarge-btn:hover { color: #20a53a; transform: scale(1.1); }
 				.searcTime { font-size: 12px; display: flex; align-items: center; gap: 8px; position: relative; }
