@@ -3392,9 +3392,9 @@ function aboutPanel() {
             closeBtn: 0,
             area: ['850px', '812px'],
             shadeClose: true,
-            content: '<div class=\"about-container\" style=\"position: relative; padding-top: 5px;\">' +
+            content: '<div class=\"about-container\" style=\"position: relative; padding-top: 0px;\">' +
                         '<div class=\"about-close\" style=\"position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;\" onmouseover=\"this.style.color=\'#333\'\" onmouseout=\"this.style.color=\'#999\'\" onclick=\"layer.closeAll(\'page\')\">×</div>' +
-                        '<div class=\"about-header\" style=\"padding-top: 10px;\">' +
+                        '<div class=\"about-header\" style=\"padding-top: 5px;\">' +
                             '<img src=\"/static/img/logo.webp\" style=\"width: 160px; margin-bottom: 5px;\">' +
                             '<h2 style=\"margin-top: 5px;\">御风面板（BtSimple）</h2>' +
                             '<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>' +
