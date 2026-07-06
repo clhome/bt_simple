@@ -99,12 +99,18 @@ def getSitesList(
     start = (int(page) - 1) * (int(size))
     limit = str(start) + ',' +str(size)
 
-    if order.find("none") > -1:
-        site_list = dbM.limit(limit).order('').select()
-    elif order is not None:
-        site_list = dbM.limit(limit).order(order).select()
+    # 修改排序逻辑，确保status='0'（已停止）的网站总是在最后
+    if order is None:
+        order = ''
     else:
-        site_list = dbM.limit(limit).order('id desc').select()
+        order = str(order).strip()
+
+    if order.find("none") > -1 or order == '':
+        final_order = 'status desc, id desc'
+    else:
+        final_order = 'status desc, ' + order
+
+    site_list = dbM.limit(limit).order(final_order).select()
 
     data = {}
     data['list'] = site_list

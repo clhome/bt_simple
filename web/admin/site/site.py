@@ -93,6 +93,8 @@ def list():
 
     if is_ssl_sort:
         info['list'].sort(key=lambda x: x['ssl_days'], reverse=ssl_sort_desc)
+        # 确保已停止（status='0'）的网站在最后
+        info['list'].sort(key=lambda x: str(x.get('status', '0')) == '0')
         start = (int(p) - 1) * int(limit)
         end = start + int(limit)
         info['list'] = info['list'][start:end]
