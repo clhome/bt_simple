@@ -393,3 +393,76 @@ def get_migrate_sites_log():
         return mw.returnData(False, "日志文件不存在或尚未生成")
     content = mw.readFile(log_file)
     return mw.returnData(True, content)
+
+# 获取宝塔备份列表
+@blueprint.route('/get_bt_backups', endpoint='get_bt_backups', methods=['POST'])
+@panel_login_required
+def get_bt_backups():
+    import os
+    backup_path = "/www/backup/panel/"
+    if not os.path.exists(backup_path):
+        return mw.getJson({'status': True, 'data': []})
+    
+    data = []
+    for f in os.listdir(backup_path):
+        full_path = os.path.join(backup_path, f)
+        if os.path.isdir(full_path):
+            try:
+                from utils.file import getDirSize
+                size = getDirSize(full_path)
+            except:
+                size = 0
+            data.append({'name': f, 'type': 'dir', 'size': mw.toSize(size)})
+        elif f.endswith('.zip') or f.endswith('.tar.gz') or f.endswith('.gz'):
+            size = os.path.getsize(full_path)
+            data.append({'name': f, 'type': 'file', 'size': mw.toSize(size)})
+            
+    # sort directories first, then files
+    data.sort(key=lambda x: (0 if x['type'] == 'dir' else 1, x['name']))
+    return mw.getJson({'status': True, 'data': data})
+
+# 压缩宝塔备份目录
+@blueprint.route('/compress_bt_backup', endpoint='compress_bt_backup', methods=['POST'])
+@panel_login_required
+def compress_bt_backup():
+    name = request.form.get('name', '')
+    if not name:
+        return mw.returnData(False, '参数错误')
+    
+    import os
+    backup_path = "/www/backup/panel/"
+    full_path = os.path.join(backup_path, name)
+    
+    if not os.path.exists(full_path) or not os.path.isdir(full_path):
+        return mw.returnData(False, '目录不存在')
+        
+    zip_file = os.path.join(backup_path, name + '.zip')
+    cmd = "cd {} && zip -r {}.zip {}".format(backup_path, name, name)
+    mw.execShell(cmd)
+    
+    return mw.returnData(True, '压缩成功')
+
+# 删除宝塔备份
+@blueprint.route('/delete_bt_backup', endpoint='delete_bt_backup', methods=['POST'])
+@panel_login_required
+def delete_bt_backup():
+    name = request.form.get('name', '')
+    if not name:
+        return mw.returnData(False, '参数错误')
+    
+    import os, shutil
+    backup_path = "/www/backup/panel/"
+    full_path = os.path.join(backup_path, name)
+    
+    if not os.path.exists(full_path):
+        return mw.returnData(False, '文件/目录不存在')
+        
+    try:
+        if os.path.isdir(full_path):
+            shutil.rmtree(full_path)
+        else:
+            os.remove(full_path)
+        return mw.returnData(True, '删除成功')
+    except Exception as e:
+        return mw.returnData(False, '删除失败: ' + str(e))
+

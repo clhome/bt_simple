@@ -429,6 +429,20 @@
                             <span class="set-info">从旧面板数据库恢复网站列表到当前面板</span>
                         </div>
                     </div>
+                    
+                    <div class="setting-item" style="margin-top: 20px;">
+                        <span class="set-tit" title="宝塔面板备份" style="line-height: 1.8; padding-top: 5px;">
+                            宝塔面板备份<br>
+                            <span style="font-size: 12px; font-weight: bold; color: #333;">/www/backup/panel</span>
+                        </span>
+                        <div class="set-input-group" style="width: auto; min-width: 400px; padding-top: 4px;">
+                            <table class="table table-hover" style="margin-bottom: 0; background: transparent; border: none;">
+                                <tbody id="bt_backup_list">
+                                    <tr><td>正在加载...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 通知设置 -->
@@ -782,6 +796,81 @@ function migrateSites() {
 		layer.msg("检测站点备份数据失败！", {icon: 2});
 	});
 }
+
+function loadBtBackups() {
+    $.post('/setting/get_bt_backups', function(rdata) {
+        if (typeof rdata === 'string') {
+            try { rdata = JSON.parse(rdata); } catch(e) {}
+        }
+        var tbody = $('#bt_backup_list');
+        tbody.empty();
+        if(!rdata.status) {
+            tbody.append('<tr><td>' + (rdata.msg || '加载失败') + '</td></tr>');
+            return;
+        }
+        if(!rdata.data || rdata.data.length == 0) {
+            tbody.append('<tr><td>无备份数据</td></tr>');
+            return;
+        }
+        for(var i=0; i<rdata.data.length; i++) {
+            var item = rdata.data[i];
+            var icon = item.type == 'dir' ? 'glyphicon-folder-open' : 'glyphicon-file';
+            var color = item.type == 'dir' ? '#edca5c' : '#999';
+            var tr = $('<tr></tr>');
+            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="glyphicon '+icon+'" style="color:'+color+'; margin-right:8px;"></span>'+item.name+'</td>');
+            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;">'+item.size+'</td>');
+            
+            var tdBtn = $('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;"></td>');
+            if($('#debugMode').prop('checked')) {
+                if(item.type == 'dir') {
+                    tdBtn.append('<a href="javascript:;" class="btlink" onclick="compressBtBackup(\''+item.name+'\')" style="margin-right:10px;">压缩</a>');
+                }
+                tdBtn.append('<a href="javascript:;" class="btlink" onclick="deleteBtBackup(\''+item.name+'\')">删除</a>');
+            }
+            tr.append(tdBtn);
+            tbody.append(tr);
+        }
+    }).fail(function(xhr, status, error) {
+        $('#bt_backup_list').html('<tr><td style="color:red;">请求失败: ' + (error || status || '可能未重启面板') + '</td></tr>');
+    });
+}
+
+function compressBtBackup(name) {
+    layer.msg('正在压缩，请稍候...', {icon: 16, time: 0, shade: 0.3});
+    $.post('/setting/compress_bt_backup', {name: name}, function(rdata) {
+        layer.closeAll();
+        if (typeof rdata === 'string') { try { rdata = JSON.parse(rdata); } catch(e) {} }
+        layer.msg(rdata.msg || (rdata.status ? '操作成功' : '操作失败'), {icon: rdata.status ? 1 : 2});
+        if(rdata.status) {
+            loadBtBackups();
+        }
+    }).fail(function() {
+        layer.closeAll();
+        layer.msg('请求后端失败，请确认面板是否已重启。', {icon: 2});
+    });
+}
+
+function deleteBtBackup(name) {
+    layer.confirm('确定要删除宝塔备份【'+name+'】吗？', {title: '删除确认', icon: 3}, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在删除，请稍候...', {icon: 16, time: 0, shade: 0.3});
+        $.post('/setting/delete_bt_backup', {name: name}, function(rdata) {
+            layer.close(loadT);
+            if (typeof rdata === 'string') { try { rdata = JSON.parse(rdata); } catch(e) {} }
+            layer.msg(rdata.msg || (rdata.status ? '操作成功' : '操作失败'), {icon: rdata.status ? 1 : 2});
+            if(rdata.status) {
+                loadBtBackups();
+            }
+        }).fail(function() {
+            layer.close(loadT);
+            layer.msg('请求后端失败，请确认面板是否已重启。', {icon: 2});
+        });
+    });
+}
+
+$(function() {
+    loadBtBackups();
+});
 </script>
 <script src="/static/app/config.js?v={{config.version}}"></script>
 {% endblock %}
