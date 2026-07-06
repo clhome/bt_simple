@@ -354,7 +354,6 @@ function f2bBanIp() {
                                     locCache[bItem.query] = finalStr;
                                     $('[id^="ip_loc_' + bItem.query.replace(/\./g, '_').replace(/:/g, '_') + '"]').html(finalStr);
                                 } else if (bItem && bItem.query) {
-                                    locCache[bItem.query] = '局域网/保留地址';
                                     $('[id^="ip_loc_' + bItem.query.replace(/\./g, '_').replace(/:/g, '_') + '"]').html('局域网/保留地址');
                                 }
                             }

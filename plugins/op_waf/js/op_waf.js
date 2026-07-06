@@ -2405,7 +2405,6 @@ function wafDropIpList() {
                                     var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
                                     $('#' + pId).html(finalStr);
                                 } else if (item && item.query) {
-                                    locCache[item.query] = '局域网/保留地址';
                                     var pId = 'ip_loc_' + item.query.replace(/\./g, '_').replace(/:/g, '_');
                                     $('#' + pId).html('局域网/保留地址');
                                 }
