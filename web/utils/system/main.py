@@ -172,7 +172,7 @@ def getBootTime():
     days = math.floor(hours / 24)
     hours = math.floor(hours - (days * 24))
     min = math.floor(min - (days * 60 * 24) - (hours * 60))
-    return mw.getInfo('已不间断运行: {1}天{2}小时{3}分钟', (str(int(days)), str(int(hours)), str(int(min))))
+    return mw.getInfo('已运行: {1}天{2}小时{3}分钟', (str(int(days)), str(int(hours)), str(int(min))))
 
 def getCpuInfo(interval=None):
     # 取CPU信息
