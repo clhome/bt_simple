@@ -918,49 +918,23 @@ class fail2ban_main:
             if not isinstance(ips, list):
                 return mw.returnJson(False, 'ips must be a JSON array', [])
             
-            try:
-                req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
-                req.add_header('Content-Type', 'application/json')
-                response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=5)
-                result = response.read().decode('utf-8')
-                return mw.returnJson(True, 'ok!', json.loads(result))
-            except Exception:
-                # 备用API (ipwhois.app)
-                result_list = []
-                import time
-                for ip in ips:
-                    try:
-                        url = 'https://ipwhois.app/json/{}?lang=zh-CN'.format(ip)
-                        response = urllib.request.urlopen(url, timeout=3)
-                        res_str = response.read().decode('utf-8', errors='ignore').strip()
-                        res_data = json.loads(res_str)
-                        
-                        if res_data.get('success'):
-                            country = res_data.get('country', '')
-                            regionName = res_data.get('region', '')
-                            city = res_data.get('city', '')
-                            org = res_data.get('org', '') or res_data.get('isp', '')
-                            
-                            result_list.append({
-                                "query": ip,
-                                "status": "success",
-                                "country": country,
-                                "regionName": regionName,
-                                "city": city,
-                                "org": org
-                            })
-                        else:
-                            result_list.append({
-                                "query": ip,
-                                "status": "fail"
-                            })
-                    except Exception:
-                        result_list.append({
-                            "query": ip,
-                            "status": "fail"
-                        })
-                    time.sleep(0.2) # 防止被限流
-                return mw.returnJson(True, 'ok!', result_list)
+            import urllib.request
+            import time
+            
+            max_retries = 2
+            for attempt in range(max_retries):
+                try:
+                    req = urllib.request.Request('http://ip-api.com/batch?lang=zh-CN')
+                    req.add_header('Content-Type', 'application/json')
+                    response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
+                    result = response.read().decode('utf-8')
+                    return mw.returnJson(True, 'ok!', json.loads(result))
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        # 所有重试均失败
+                        result_list = [{"query": ip, "status": "fail"} for ip in ips]
+                        return mw.returnJson(True, 'ok!', result_list)
+                    time.sleep(0.5)
         except Exception as e:
             return mw.returnJson(False, str(e), [])
 
@@ -970,35 +944,20 @@ class fail2ban_main:
         try:
             import json
             import urllib.request
-            try:
-                url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
-                response = urllib.request.urlopen(url, timeout=5)
-                result = response.read().decode('utf-8')
-                return mw.returnJson(True, 'ok!', json.loads(result))
-            except Exception:
-                # 备用API (ipwhois.app)
-                url = 'https://ipwhois.app/json/{}?lang=zh-CN'.format(ip)
-                response = urllib.request.urlopen(url, timeout=5)
-                res_str = response.read().decode('utf-8', errors='ignore').strip()
-                res_data = json.loads(res_str)
-                
-                if res_data.get('success'):
-                    country = res_data.get('country', '')
-                    regionName = res_data.get('region', '')
-                    city = res_data.get('city', '')
-                    org = res_data.get('org', '') or res_data.get('isp', '')
-                    
-                    fallback_res = {
-                        "query": ip,
-                        "status": "success",
-                        "country": country,
-                        "regionName": regionName,
-                        "city": city,
-                        "org": org
-                    }
-                    return mw.returnJson(True, 'ok!', fallback_res)
-                else:
-                    return mw.returnJson(False, '获取归属地失败', [])
+            import urllib.request
+            import time
+            
+            max_retries = 2
+            for attempt in range(max_retries):
+                try:
+                    url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
+                    response = urllib.request.urlopen(url, timeout=10)
+                    result = response.read().decode('utf-8')
+                    return mw.returnJson(True, 'ok!', json.loads(result))
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        return mw.returnJson(False, '获取归属地失败', [])
+                    time.sleep(0.5)
         except Exception as e:
             return mw.returnJson(False, str(e), [])
 
