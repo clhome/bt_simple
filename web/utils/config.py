@@ -135,6 +135,7 @@ def getGlobalVar():
     data['panel_ssl'] = thisdb.getOptionByJson('panel_ssl', default={'open':False})
     data['panel_domain'] = thisdb.getOption('panel_domain', default='')
     data['use_cdn'] = thisdb.getOption('use_cdn', default='no')
+    data['home_notice'] = thisdb.getOption('home_notice', default='')
 
     # 将没有动态时间的原始数据存入缓存
     _global_var_cache = data.copy()

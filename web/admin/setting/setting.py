@@ -481,3 +481,15 @@ def delete_bt_backup():
     except Exception as e:
         return mw.returnData(False, '删除失败: ' + str(e))
 
+# 设置首页提醒
+@blueprint.route('/set_home_notice', endpoint='set_home_notice', methods=['POST'])
+@panel_login_required
+def set_home_notice():
+    home_notice = request.form.get('home_notice', '')
+    if len(home_notice) > 200:
+        return mw.returnData(False, '首页提醒最长不能超过200个字!')
+    
+    src_home_notice = thisdb.getOption('home_notice')
+    if home_notice != src_home_notice:
+        thisdb.setOption('home_notice', home_notice)
+    return mw.returnData(True, '首页提醒保存成功!')

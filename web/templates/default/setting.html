@@ -457,6 +457,15 @@
                         </div>
                         <span class="set-info">邮件通知</span>
                     </div>
+
+                    <div class="setting-item">
+                        <span class="set-tit" title="首页提醒">首页提醒</span>
+                        <div class="set-input-group">
+                            <input name="home_notice" class="inputtxt bt-input-text" type="text" value="{{data['home_notice']}}" maxlength="200" style="width: 350px;">
+                            <button type="button" class="btn btn-success btn-sm btn_home_notice" onclick="setHomeNotice(this)">保存</button>
+                        </div>
+                        <span class="set-info">在首页顶部展示提醒信息，最长200字</span>
+                    </div>
                 </div>
 
             </div>
@@ -796,6 +805,15 @@ function migrateSites() {
 		layer.close(loadT);
 		layer.msg("检测站点备份数据失败！", {icon: 2});
 	});
+}
+
+function setHomeNotice(obj) {
+    var home_notice = $("input[name='home_notice']").val();
+    var loadT = layer.msg('正在保存...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.post('/setting/set_home_notice', { home_notice: home_notice }, function(rdata) {
+        layer.close(loadT);
+        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+    }, 'json');
 }
 
 function loadBtBackups() {
