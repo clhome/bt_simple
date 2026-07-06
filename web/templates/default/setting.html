@@ -63,12 +63,18 @@
 .setting-item {
     display: flex;
     align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px dashed #eee;
-    transition: background 0.3s ease;
+    padding: 15px 10px;
+    border-bottom: 1px dashed var(--border-color);
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
+    border-radius: var(--radius-sm);
 }
 .setting-item:hover {
-    background-color: #fafbfc;
+    background-color: var(--primary-light);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    z-index: 10;
+    position: relative;
+    border-bottom-color: transparent;
 }
 .setting-item:last-child {
     border-bottom: none;
