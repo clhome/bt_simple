@@ -914,7 +914,7 @@ function onlineEditFile(k, f, callback) {
 		shift: 5,
 		closeBtn: 1,
 		area: ["90%", "90%"],
-		btn:['保存', '关闭', '刷新', '开启自动刷新', '关闭自动刷新'],
+		btn:['保存', '关闭', '刷新'],
 		title: "在线编辑[" + f + "]",
 		shade: 0.0000001,
 		content: '<form class="bt-form pd20">\
@@ -966,6 +966,47 @@ function onlineEditFile(k, f, callback) {
 	                var q = $(window).height() * 0.9;
 	                code_mirror.setSize("auto", q - 180);
 	            });
+				
+				// 自动刷新滑块
+				var toggleHtml = '<div class="auto-refresh-toggle" style="float: left; display: flex; align-items: center; height: 28px; margin-left: 10px; margin-top: 4px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent;">\
+					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">\
+						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>\
+					</div>\
+					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">自动刷新</span>\
+				</div>';
+				layero.find('.layui-layer-btn').prepend(toggleHtml);
+				
+				layero.find('.auto-refresh-toggle').on('click', function() {
+					var $track = $(this).find('.toggle-track');
+					var $thumb = $(this).find('.toggle-thumb');
+					var $text = $(this).find('.toggle-text');
+					var isActive = $(this).hasClass('active');
+					
+					if (isActive) {
+						// 关闭自动刷新
+						$(this).removeClass('active');
+						$(this).css('background', 'transparent');
+						$track.css({'border-color': '#ccc', 'background': '#fff'});
+						$thumb.css({'border-color': '#ccc', 'right': '2px', 'background': '#fff'});
+						$text.css('color', '#999');
+						clearInterval(code_timer);
+					} else {
+						// 开启自动刷新
+						$(this).addClass('active');
+						$(this).css('background', '#5FB878');
+						$track.css({'border-color': '#fff', 'background': 'transparent'});
+						$thumb.css({'border-color': '#fff', 'right': '18px', 'background': '#fff'});
+						$text.css('color', '#fff');
+						
+						code_timer = setInterval(function(){
+							renderBody(function(rdata){
+								code_mirror.setValue(rdata.data.data);
+								var scrollInfo = code_mirror.getScrollInfo();
+								code_mirror.scrollTo(null, scrollInfo.height);
+							});
+						}, 5000);
+					}
+				});
 			});
 		},
 		end:function(){
@@ -981,22 +1022,6 @@ function onlineEditFile(k, f, callback) {
 				layer.close(loading_refresh);
 				code_mirror.setValue(rdata.data.data);
 			});
-			return false;
-		},
-		btn4:function(){
-			code_timer = setInterval(function(){
-				renderBody(function(rdata){
-					code_mirror.setValue(rdata.data.data);
-					var scrollInfo = code_mirror.getScrollInfo();
-					code_mirror.scrollTo(null, scrollInfo.height);
-				});
-			},5000);
-			layer.msg('开启自动刷新成功', {icon: 1,time: 1000});
-			return false;
-		},
-		btn5:function(){
-			clearInterval(code_timer);
-			layer.msg('关闭自动刷新成功', {icon: 1,time: 1000});
 			return false;
 		}
 	});
