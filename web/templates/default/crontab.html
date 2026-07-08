@@ -6,6 +6,70 @@
 	.sort-icons { display: inline-flex; flex-direction: column; vertical-align: middle; margin-left: 4px; }
 	.sort-icons i { font-size: 10px; color: #ccc; line-height: 7px; height: 7px; }
 	.sort-icons i.active { color: #20a53a; }
+	
+	/* 添加计划任务表单美化 */
+	#add_task_form_box .plan {
+		display: flex;
+		align-items: flex-start;
+		margin-bottom: 18px;
+	}
+	#add_task_form_box .plan .typename {
+		width: 100px;
+		line-height: 34px;
+		margin-right: 15px;
+		text-align: right;
+		font-weight: 500;
+		flex-shrink: 0;
+	}
+	#add_task_form_box .plan .planname input.bt-input-text {
+		width: 350px;
+	}
+	#add_task_form_box .plan .planSign {
+		line-height: 34px;
+		color: #888;
+		margin-left: 15px;
+		font-size: 13px;
+	}
+	#add_task_form_box .plan .planSign i {
+		color: #ff5722;
+		font-style: normal;
+		margin-right: 5px;
+	}
+	#add_task_form_box .plan .txtsjs {
+		width: 500px;
+		height: 140px;
+		resize: vertical;
+		border-radius: 4px;
+		padding: 8px 12px;
+	}
+	#add_task_form_box .help-info-text {
+		background: #f4f8fb;
+		padding: 12px 15px 12px 30px;
+		border-radius: 4px;
+		border: 1px solid #e6f0f9;
+		border-left: 4px solid #20a53a;
+		margin: 20px 0 0 115px;
+		width: 500px;
+		box-sizing: border-box;
+	}
+	#add_task_form_box .help-info-text li {
+		color: #666;
+		margin-bottom: 6px;
+		font-size: 13px;
+		list-style-type: disc;
+	}
+	#add_task_form_box .help-info-text li:last-child {
+		margin-bottom: 0;
+	}
+    /* 调整日期限制样式的展示 */
+    #add_task_form_box .plan label {
+        line-height: 34px;
+        margin-bottom: 0;
+    }
+    #ptime {
+        display: flex;
+        align-items: center;
+    }
 </style>
 {% endblock %}
 
@@ -42,7 +106,7 @@
 								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toUrl">访问URL</a></li>
 							</ul>
 						</div>
-						<span class="planSign"><i>*</i>任务类型包含以下部分：Shell脚本、备份网站、备份数据库、备份目录、日志切割、释放内存、访问URL</span>
+						<span class="planSign"><i>*</i>任务类型包含：Shell脚本、备份网站、备份数据库、备份目录、日志切割、释放内存、访问URL</span>
 					</div>
 					<div class="clearfix plan">
 						<span class="typename c4 pull-left f14 text-right mr20">任务名称</span>

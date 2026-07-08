@@ -1168,7 +1168,7 @@ function showAddTask() {
     var index = layer.open({
         type: 1,
         title: '添加计划任务',
-        area: ['900px', '600px'],
+        area: ['900px', '650px'],
         skin: 'layer-create-content',
         shadeClose: false,
         closeBtn: 1,
