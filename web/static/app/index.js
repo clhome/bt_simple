@@ -2097,7 +2097,7 @@ function renderSpeedTestModal(historyData) {
         type: 1,
         closeBtn: 1,
         shade: 0.3,
-        area: ["860px", "740px"],
+        area: ["860px", "760px"],
         content: elegantHtml,
         success: function(layers, index) {
             if (historyData) {
