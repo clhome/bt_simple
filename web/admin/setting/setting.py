@@ -281,6 +281,7 @@ def save_menu_config():
         
         # 更新内存缓存
         utils_config._menu_cache = menus
+        utils_config._global_var_cache_time = 0
         
         return mw.returnData(True, '菜单配置保存成功!')
     except Exception as e:
