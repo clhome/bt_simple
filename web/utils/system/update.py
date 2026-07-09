@@ -139,6 +139,10 @@ def updateServer(stype, version='', step='all'):
                 if not os.path.exists(dist_mw):
                     return mw.returnData(False, '文件下载失败!')
 
+                if os.path.getsize(dist_mw) < 1048576:
+                    mw.execShell('rm -f ' + dist_mw)
+                    return mw.returnData(False, '下载到的文件异常（小于1MB），可能是网络原因或代理失效导致下载失败!')
+
                 # 解压
                 os.system('unzip -o ' + dist_mw + ' -d ' + toPath)
                 if step == 'download':
