@@ -214,7 +214,19 @@ def isChina():
     is_china_file = getPanelDataDir() + '/is_china.pl'
     if os.path.exists(is_china_file):
         return readFile(is_china_file).strip() == 'True'
-    return False
+    
+    try:
+        import urllib.request
+        import json
+        req = urllib.request.Request("http://ipinfo.io/json", headers={'User-Agent': 'curl/7.68.0'})
+        res = urllib.request.urlopen(req, timeout=3)
+        res_json = json.loads(res.read().decode('utf-8'))
+        is_cn = res_json.get('country', '') == 'CN'
+        writeFile(is_china_file, 'True' if is_cn else 'False')
+        return is_cn
+    except Exception:
+        writeFile(is_china_file, 'False')
+        return False
 
 _IS_TESTING_GITHUB = False
 
