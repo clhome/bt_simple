@@ -30,35 +30,46 @@ if [ -z "$_GH_BEST_PROXY" ]; then
     export _GH_BEST_PROXY=""
 fi
 
-# 获取最佳代理节点 (探测一次后缓存)
+# 获取最佳代理节点 (测速后取延迟最低节点)
 _gh_get_best_proxy() {
     if [ -n "$_GH_BEST_PROXY" ]; then
         echo "$_GH_BEST_PROXY"
         return 0
     fi
     
-    echo -e "正在寻找存活的 GitHub 加速节点..." >&2
-    # 极速测速并获取存活节点
-    local proxy
+    echo -e "正在测速寻找最优的 GitHub 加速节点..." >&2
+    local best_proxy=""
+    local min_time=999999
+    
     for proxy in "${_GH_PROXY_LIST[@]}"; do
         echo -n "  - 正在探测节点: $proxy ... " >&2
-        # 使用轻量级 refs 请求测试可用性，最大超时设为 3 秒
         local test_url="${proxy}https://github.com/clhome/bt_simple.git/info/refs?service=git-upload-pack"
-        local status=$(curl -s -o /dev/null -w "%{http_code}" -m 3 "$test_url" 2>/dev/null)
-        if [ $? -ne 0 ] || [ -z "$status" ]; then
-            status="000"
-        fi
+        # 增加 %{time_total} 获取请求总耗时(秒)
+        local result=$(curl -s -o /dev/null -w "%{http_code}:%{time_total}" -m 3 "$test_url" 2>/dev/null)
+        
+        local status=$(echo "$result" | cut -d: -f1)
+        local time_total=$(echo "$result" | cut -d: -f2)
+        
+        if [ -z "$status" ]; then status="000"; fi
         
         if [[ "$status" == "200" || "$status" == "401" || "$status" == "301" || "$status" == "302" ]]; then
-            echo -e "\033[32m[存活]\033[0m" >&2
-            export _GH_BEST_PROXY="$proxy"
-            echo -e "选用存活的 GitHub 代理: \033[32m$proxy\033[0m" >&2
-            echo "$_GH_BEST_PROXY"
-            return 0
+            echo -e "\033[32m[存活, 延迟: ${time_total}s]\033[0m" >&2
+            # 利用 awk 比较浮点数，选出耗时最短的节点
+            if awk -v t1="$time_total" -v t2="$min_time" 'BEGIN{if(t1<t2) exit 0; else exit 1}'; then
+                min_time=$time_total
+                best_proxy=$proxy
+            fi
         else
-            echo -e "\033[31m[不可用]\033[0m" >&2
+            echo -e "\033[31m[不可用或超时]\033[0m" >&2
         fi
     done
+    
+    if [ -n "$best_proxy" ]; then
+        export _GH_BEST_PROXY="$best_proxy"
+        echo -e "选用延迟最低的 GitHub 代理: \033[32m$best_proxy\033[0m (延迟: ${min_time}s)" >&2
+        echo "$_GH_BEST_PROXY"
+        return 0
+    fi
     
     echo -e "✗ 所有 GitHub 代理节点均探测失败，本次将使用 GitHub 官方直连" >&2
     return 1
