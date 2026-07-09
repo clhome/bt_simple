@@ -218,15 +218,37 @@ def isChina():
     try:
         import urllib.request
         import json
-        req = urllib.request.Request("http://ipinfo.io/json", headers={'User-Agent': 'curl/7.68.0'})
-        res = urllib.request.urlopen(req, timeout=3)
-        res_json = json.loads(res.read().decode('utf-8'))
-        is_cn = res_json.get('country', '') == 'CN'
+        is_cn = None
+        
+        # 1. 尝试 ipinfo.io
+        try:
+            req1 = urllib.request.Request("http://ipinfo.io/json", headers={'User-Agent': 'curl/7.68.0'})
+            res1 = urllib.request.urlopen(req1, timeout=3)
+            res_json1 = json.loads(res1.read().decode('utf-8'))
+            is_cn = res_json1.get('country', '') == 'CN'
+        except Exception:
+            pass
+            
+        # 2. 尝试 ipwhois.app 作为备用
+        if is_cn is None:
+            try:
+                req2 = urllib.request.Request("https://ipwhois.app/json/?lang=zh-CN", headers={'User-Agent': 'curl/7.68.0'})
+                res2 = urllib.request.urlopen(req2, timeout=3)
+                res_json2 = json.loads(res2.read().decode('utf-8'))
+                is_cn = res_json2.get('country_code', '') == 'CN'
+            except Exception:
+                pass
+                
+        # 3. 如果全部失败，默认当做国内服务器 (置为 True)
+        if is_cn is None:
+            is_cn = True
+            
         writeFile(is_china_file, 'True' if is_cn else 'False')
         return is_cn
     except Exception:
-        writeFile(is_china_file, 'False')
-        return False
+        # 万一整体发生其他异常，默认置为 True
+        writeFile(is_china_file, 'True')
+        return True
 
 _IS_TESTING_GITHUB = False
 
