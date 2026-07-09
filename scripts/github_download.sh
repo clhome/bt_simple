@@ -30,43 +30,52 @@ if [ -z "$_GH_BEST_PROXY" ]; then
     export _GH_BEST_PROXY=""
 fi
 
-# 获取最佳代理节点 (测速后取延迟最低节点)
+# 获取最佳代理节点 (测速后取带宽最大的节点)
 _gh_get_best_proxy() {
     if [ -n "$_GH_BEST_PROXY" ]; then
         echo "$_GH_BEST_PROXY"
         return 0
     fi
     
-    echo -e "正在测速寻找最优的 GitHub 加速节点..." >&2
+    echo -e "正在测速寻找带宽最大的 GitHub 加速节点..." >&2
     local best_proxy=""
-    local min_time=999999
+    local max_speed=0
     
     for proxy in "${_GH_PROXY_LIST[@]}"; do
-        echo -n "  - 正在探测节点: $proxy ... " >&2
-        local test_url="${proxy}https://github.com/clhome/bt_simple.git/info/refs?service=git-upload-pack"
-        # 增加 %{time_total} 获取请求总耗时(秒)
-        local result=$(curl -s -o /dev/null -w "%{http_code}:%{time_total}" -m 3 "$test_url" 2>/dev/null)
+        echo -n "  - 正在测速节点: $proxy ... " >&2
+        # 使用真实的 release 压缩包进行测速
+        local test_url="${proxy}https://github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz"
+        
+        # 增加 -L (跟随重定向) 和 %{speed_download} (提取速度字节/秒)，严格限制 5 秒超时，不落盘。
+        # 设定 LC_ALL=C 避免某些语种环境小数点变成逗号导致截断报错
+        local result=$(LC_ALL=C curl -s -L -o /dev/null -w "%{http_code}:%{speed_download}" -m 5 "$test_url" 2>/dev/null)
         
         local status=$(echo "$result" | cut -d: -f1)
-        local time_total=$(echo "$result" | cut -d: -f2)
+        local speed=$(echo "$result" | cut -d: -f2)
         
         if [ -z "$status" ]; then status="000"; fi
+        if [ -z "$speed" ]; then speed="0"; fi
         
-        if [[ "$status" == "200" || "$status" == "401" || "$status" == "301" || "$status" == "302" ]]; then
-            echo -e "\033[32m[存活, 延迟: ${time_total}s]\033[0m" >&2
-            # 利用 awk 比较浮点数，选出耗时最短的节点
-            if awk -v t1="$time_total" -v t2="$min_time" 'BEGIN{if(t1<t2) exit 0; else exit 1}'; then
-                min_time=$time_total
+        # 重定向后一般是 200 状态码
+        if [[ "$status" == "200" || "$status" == "206" ]]; then
+            # 把速度转为 MB/s，保留两位小数
+            local speed_mbps=$(awk -v s="$speed" 'BEGIN{printf "%.2f", s/1024/1024}')
+            echo -e "\033[32m[存活, 速度: ${speed_mbps} MB/s]\033[0m" >&2
+            
+            # 利用 awk 比较，选出速度最大(max_speed)的节点
+            if awk -v s1="$speed" -v s2="$max_speed" 'BEGIN{if(s1>s2) exit 0; else exit 1}'; then
+                max_speed=$speed
                 best_proxy=$proxy
             fi
         else
-            echo -e "\033[31m[不可用或超时]\033[0m" >&2
+            echo -e "\033[31m[不可用或响应错]\033[0m" >&2
         fi
     done
     
     if [ -n "$best_proxy" ]; then
         export _GH_BEST_PROXY="$best_proxy"
-        echo -e "选用延迟最低的 GitHub 代理: \033[32m$best_proxy\033[0m (延迟: ${min_time}s)" >&2
+        local final_speed_mbps=$(awk -v s="$max_speed" 'BEGIN{printf "%.2f", s/1024/1024}')
+        echo -e "选用下载最快的 GitHub 代理: \033[32m$best_proxy\033[0m (速度: ${final_speed_mbps} MB/s)" >&2
         echo "$_GH_BEST_PROXY"
         return 0
     fi
