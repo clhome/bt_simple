@@ -699,25 +699,34 @@ function updateStep(step, version, barId, textId, callback) {
         var twentyMinutes = 20 * 60 * 1000;
         
         var bracket = $("#download-tip-bracket");
-        bracket.text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）");
+        var nodeName = "获取中...";
+        
+        bracket.text("（当前下载节点：" + nodeName + "，当前下载速度为0.00 mbps）");
         setTimeout(function() {
-            bracket.text("（查找最近加速节点）");
             $.get('/system/update_server?type=info', function(rdata) {
-                if (rdata && rdata.data && rdata.data.speed_name && rdata.data.speed_name !== 'Direct') {
-                    setTimeout(function() {
-                        bracket.text("（正在使用 " + rdata.data.speed_name + " 节点进行加速下载）");
-                    }, 800);
+                if (rdata && rdata.data && rdata.data.speed_name) {
+                    if (rdata.data.speed_name === 'Direct') {
+                        nodeName = 'github.com';
+                    } else {
+                        nodeName = rdata.data.speed_name;
+                    }
                 } else {
-                    setTimeout(function() {
-                        bracket.text("（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）");
-                    }, 800);
+                    nodeName = 'github.com';
                 }
             }, 'json');
-        }, 1000);
+        }, 500);
         
         intervalId = setInterval(function() {
             var now = new Date().getTime();
             var elapsed = now - startTime;
+            
+            // 请求全局网速更新面板UI
+            $.get('/system/network', function(netData) {
+                if (netData && netData.network && netData.network.ALL && netData.network.ALL.down) {
+                    var speed = (netData.network.ALL.down / 1048576).toFixed(2);
+                    bracket.text("（当前下载节点：" + nodeName + "，当前下载速度为" + speed + " mbps）");
+                }
+            }, 'json');
             
             if (elapsed >= twentyMinutes) {
                 clearInterval(intervalId);
