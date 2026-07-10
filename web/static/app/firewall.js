@@ -8,11 +8,13 @@ function switchTab(type, obj) {
         $("#port_firewall_view").show();
         $("#ip_firewall_view").hide();
         $("#th_protocol").show();
+        $("#th_port_status").show();
         $("#th_port").text("端口/IP");
     } else {
         $("#port_firewall_view").hide();
         $("#ip_firewall_view").show();
         $("#th_protocol").hide();
+        $("#th_port_status").hide();
         $("#th_port").text("IP地址/段");
     }
     showAccept(1);
@@ -400,10 +402,22 @@ function showAccept(page) {
 				port_display = type_text + ':[' + data.data[i].port + ']';
 			}
 
+			var port_status_td = "";
+			if (currentType == 'port') {
+			    if (data.data[i].port_status) {
+			        var ps = data.data[i].port_status;
+			        var ps_json = encodeURIComponent(JSON.stringify(ps));
+			        port_status_td = "<td><a href='javascript:;' class='btlink' onclick=\"showPortProcessInfo('"+ps_json+"', '"+data.data[i].port+"')\">" + ps.name + "</a></td>";
+			    } else {
+			        port_status_td = "<td></td>";
+			    }
+			}
+
 			body += "<tr>\
 				<td><em class='dlt-num'>" + data.data[i].id + "</em></td>\
 				" + protocol_td + "\
 				<td>" + port_display + "</td>\
+				" + port_status_td + "\
 				<td>" + status + "</td>\
 				<td>" + data.data[i].ps + "</td>\
 				<td>" + data.data[i].add_time + "</td>\
@@ -412,7 +426,7 @@ function showAccept(page) {
 		}
 
 		if (data.data.length == 0){
-			var colspan = currentType == 'port' ? 7 : 6;
+			var colspan = currentType == 'port' ? 8 : 6;
 			body = '<tr><td colspan="'+colspan+'" style="text-align: center;">当前没有数据</td></tr>';
 		}
 
@@ -574,5 +588,26 @@ function syncServer() {
     }, 'json').fail(function() {
         layer.close(loadT);
         layer.msg('同步请求失败，请检查网络连接或服务器状态。', {icon: 2});
+    });
+}
+
+function showPortProcessInfo(ps_json, port) {
+    var ps = JSON.parse(decodeURIComponent(ps_json));
+    var con = '<div style="padding: 20px;">\
+        <table class="table table-bordered table-hover" style="table-layout: fixed; word-wrap: break-word;">\
+            <tbody>\
+                <tr><td width="100" style="background-color: #f9f9f9; font-weight: bold;">进程名</td><td>' + ps.name + '</td></tr>\
+                <tr><td style="background-color: #f9f9f9; font-weight: bold;">进程pid</td><td>' + ps.pid + '</td></tr>\
+                <tr><td style="background-color: #f9f9f9; font-weight: bold;">启动命令</td><td>' + ps.cmdline + '</td></tr>\
+            </tbody>\
+        </table>\
+    </div>';
+    layer.open({
+        type: 1,
+        title: port + "-端口使用进程详情",
+        area: ['500px', '300px'],
+        closeBtn: 1,
+        shadeClose: false,
+        content: con
     });
 }

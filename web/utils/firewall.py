@@ -209,8 +209,37 @@ class Firewall(object):
                         if thisdb.getFirewallCountByPort(ip, stype='address_deny') == 0:
                             thisdb.addFirewall(ip, ps='服务器同步', protocol='tcp/udp', stype='address_deny')
 
+    def getPortProcessInfo(self, port):
+        import psutil
+        try:
+            for conn in psutil.net_connections(kind='inet'):
+                if conn.laddr.port == int(port) and conn.status == psutil.CONN_LISTEN:
+                    if conn.pid:
+                        try:
+                            p = psutil.Process(conn.pid)
+                            cmdline = p.cmdline()
+                            cmdline_str = ' '.join(cmdline) if cmdline else p.name()
+                            return {
+                                'name': p.name(),
+                                'pid': p.pid,
+                                'cmdline': cmdline_str
+                            }
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            pass
+        except Exception:
+            pass
+        return None
+
     def getList(self, page=1, size=10, search_port='', search_ps='', stype='port'):
         info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps, stype=stype)
+        
+        for i in range(len(info['list'])):
+            if info['list'][i].get('type', 'port') == 'port' or stype == 'port':
+                port_val = str(info['list'][i]['port'])
+                if port_val.isdigit():
+                    info['list'][i]['port_status'] = self.getPortProcessInfo(port_val)
+                else:
+                    info['list'][i]['port_status'] = None
 
         rdata = {}
         rdata['data'] = info['list']
