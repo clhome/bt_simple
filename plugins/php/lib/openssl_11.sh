@@ -8,6 +8,10 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -25,10 +29,10 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     if [ ! -f ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz ];then
         github_download ${SOURCE_ROOT}/openssl-${opensslVersion}.tar.gz https://github.com/openssl/openssl/releases/download/OpenSSL_${opensslVersion//./_}/openssl-${opensslVersion}.tar.gz
     fi 
-    tar -zxvf openssl-${opensslVersion}.tar.gz
+    tar -zxf openssl-${opensslVersion}.tar.gz
     cd openssl-${opensslVersion}
     ./config --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
-    make && make install
+    make -j${cpuCore:-1} && make install
 
     # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/www/server/lib/openssl11/lib
     if [ -d /etc/ld.so.conf.d ];then

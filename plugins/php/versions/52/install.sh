@@ -68,7 +68,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 		echo "PHP source file missing!"
 		exit 1
 	fi
-	cd $sourcePath/php && tar -zxvf $sourcePath/php/php-${version}.tar.gz
+	cd $sourcePath/php && tar -zxf $sourcePath/php/php-${version}.tar.gz
 	mv $sourcePath/php/php-${version} $sourcePath/php/php${PHP_VER}
 
 
@@ -127,7 +127,7 @@ if [ ! -d $serverPath/php/${PHP_VER} ];then
 	--enable-fastcgi \
 	--enable-fpm
 	# ZEND_EXTRA_LIBS='-liconv'
-	make && make install && make clean
+	make -j${cpuCore:-1} && make install && make clean
 fi
 
 if [ "$?" != "0" ];then

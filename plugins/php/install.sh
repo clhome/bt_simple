@@ -60,7 +60,11 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 	cd ${rootPath} && python3 ${rootPath}/plugins/php/index.py initd_install ${type}
 
 	# 安装通用扩展
-	echo "install PHP${type} extend start"
+	# 导出 cpuCore 供扩展脚本使用多核编译
+	_env_lib=${rootPath}/plugins/php/lib/common_env.sh
+	if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+	export cpuCore
+	echo "install PHP${type} extend start (cpuCore=${cpuCore})"
 
 	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash iconv.sh install 53
 	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash intl.sh install 73

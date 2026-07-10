@@ -8,6 +8,10 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -30,12 +34,12 @@ if [ ! -d ${SERVER_ROOT}/libzip ];then
     fi
 
     if [ ! -d ${SOURCE_ROOT}/libzip-1.3.2 ];then
-        cd $SOURCE_ROOT && tar -zxvf libzip-1.3.2.tar.gz
+        cd $SOURCE_ROOT && tar -zxf libzip-1.3.2.tar.gz
     fi
 
     cd ${SOURCE_ROOT}/libzip-1.3.2
 
-    ./configure --prefix=${SERVER_ROOT}/libzip && make && make install
+    ./configure --prefix=${SERVER_ROOT}/libzip && make -j${cpuCore:-1} && make install
     #cd $SOURCE_ROOT
 
     if [ "$?" == "0" ];then

@@ -8,6 +8,10 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -28,10 +32,10 @@ if [ ! -d ${SERVER_ROOT}/icu ];then
 	fi
 
 	if [ ! -d ${SERVER_ROOT}/lib/icu/lib ];then
-		cd ${SOURCE_ROOT} && tar -zxvf icu4c-52_2-src.tgz
+		cd ${SOURCE_ROOT} && tar -zxf icu4c-52_2-src.tgz
 
 		cd ${SOURCE_ROOT}/icu/source
-		./runConfigureICU Linux --prefix=${SERVER_ROOT}/icu && make  CXXFLAGS="-g -O2 -std=c++11" && make install
+		./runConfigureICU Linux --prefix=${SERVER_ROOT}/icu && make -j${cpuCore:-1} CXXFLAGS="-g -O2 -std=c++11" && make install
 
 		# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/www/server/lib/icu/lib
 		if [ -d /etc/ld.so.conf.d ];then

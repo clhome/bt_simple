@@ -54,14 +54,14 @@ Install_lib()
 		if [ ! -d $php_lib/${LIBNAME}-${LIBV} ];then
 			github_download $php_lib/${LIBNAME}-${LIBV}.tar.gz https://github.com/eaccelerator/eaccelerator/archive/${LIBV}.tar.gz
 			# wget -O $php_lib/${LIBNAME}-${LIBV}.tar.bz2 http://dl.wdlinux.cn:5180/soft/eaccelerator-0.9.6.1.tar.bz2
-			cd $php_lib && tar -zxvf ${LIBNAME}-${LIBV}.tar.gz
+			cd $php_lib && tar -zxf ${LIBNAME}-${LIBV}.tar.gz
 		fi
 		cd $php_lib/${LIBNAME}-${LIBV}
 
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config \
 		--enable-eaccelerator=shared
-		make && make install && make clean
+		make -j${cpuCore:-1} && make install && make clean
 
 	fi
 	

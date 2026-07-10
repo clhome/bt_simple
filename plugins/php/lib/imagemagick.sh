@@ -2,6 +2,10 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -23,7 +27,7 @@ if [ ! -d ${SERVER_ROOT}/ImageMagick ];then
     tar -zxf ImageMagick-${igmVersion}.tar.gz
     cd ImageMagick-${igmVersion}
     ./configure --prefix=${SERVER_ROOT}/ImageMagick --disable-openmp
-    make && make install
+    make -j${cpuCore:-1} && make install
 
     if [ -d /etc/ld.so.conf.d ];then
         echo "/www/server/lib/ImageMagick/lib" > /etc/ld.so.conf.d/ImageMagick.conf

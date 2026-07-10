@@ -70,7 +70,7 @@ Install_lib()
 		cd $sourcePath/php${version}/ext/${LIBNAME}
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
-		make clean && make && make install && make clean
+		make clean && make -j${cpuCore:-1} && make install && make clean
 	fi
 
 	if [ ! -f "$extFile" ];then

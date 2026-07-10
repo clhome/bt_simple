@@ -8,6 +8,10 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -30,11 +34,11 @@ if [ ! -d ${SERVER_ROOT}/zlib ];then
     fi
 
     if [ ! -d ${SOURCE_ROOT}/zlib-1.2.11 ];then
-        cd $SOURCE_ROOT && tar -zxvf zlib-1.2.11.tar.gz
+        cd $SOURCE_ROOT && tar -zxf zlib-1.2.11.tar.gz
     fi
     cd ${SOURCE_ROOT}/zlib-1.2.11
 
-    ./configure --prefix=${SERVER_ROOT}/zlib && make && make install
+    ./configure --prefix=${SERVER_ROOT}/zlib && make -j${cpuCore:-1} && make install
 
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/zlib-1.2.11
     #rm -rf zlib-1.2.11

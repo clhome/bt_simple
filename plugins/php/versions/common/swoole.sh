@@ -86,7 +86,7 @@ Install_lib()
 		--enable-openssl \
 		--with-openssl-dir=$serverPath/lib/openssl11 \
 		--enable-sockets
-		make clean && make && make install && make clean
+		make clean && make -j${cpuCore:-1} && make install && make clean
 
 		cd $php_lib && rm -rf $php_lib/${LIBNAME}-${LIBV}
 	fi

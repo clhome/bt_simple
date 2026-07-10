@@ -8,6 +8,10 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -27,10 +31,10 @@ if [ "$?" != "0" ];then
     fi
 
     if [ ! -d  cd ${SOURCE_ROOT}/oniguruma-6.9.4 ];then
-        cd ${SOURCE_ROOT} && tar -zxvf oniguruma-6.9.4.tar.gz
+        cd ${SOURCE_ROOT} && tar -zxf oniguruma-6.9.4.tar.gz
     fi
     
-    cd ${SOURCE_ROOT}/oniguruma-6.9.4 && ./autogen.sh && ./configure --prefix=/usr && make && make install
+    cd ${SOURCE_ROOT}/oniguruma-6.9.4 && ./autogen.sh && ./configure --prefix=/usr && make -j${cpuCore:-1} && make install
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/oniguruma-6.9.4
 fi
 

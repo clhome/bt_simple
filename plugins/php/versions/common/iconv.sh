@@ -63,7 +63,7 @@ Install_lib()
 
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
-		make clean && make && make install && make clean
+		make clean && make -j${cpuCore:-1} && make install && make clean
 		
 	fi
 

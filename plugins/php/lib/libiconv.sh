@@ -8,6 +8,10 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -29,12 +33,12 @@ if [ ! -d ${SERVER_ROOT}/libiconv ];then
     fi
 
     if [ ! -d ${SOURCE_ROOT}/libiconv-1.15 ];then
-        cd $SOURCE_ROOT && tar -zxvf libiconv-1.15.tar.gz
+        cd $SOURCE_ROOT && tar -zxf libiconv-1.15.tar.gz
     fi
 
     cd ${SOURCE_ROOT}/libiconv-1.15
 
-    ./configure --prefix=${SERVER_ROOT}/libiconv --enable-static && make && make install
+    ./configure --prefix=${SERVER_ROOT}/libiconv --enable-static && make -j${cpuCore:-1} && make install
 
     if [ -d $SOURCE_ROOT/libiconv-1.15 ];then 
         cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/libiconv-1.15

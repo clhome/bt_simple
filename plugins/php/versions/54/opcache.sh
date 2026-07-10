@@ -49,7 +49,7 @@ Install_lib()
 
 		$serverPath/php/$version/bin/phpize
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config $OPTIONS
-		make && make install && make clean
+		make -j${cpuCore:-1} && make install && make clean
 
 		# cp modules/opcache.la $serverPath/php/${version}/lib/php/extensions/no-debug-non-zts-20100525/
 

@@ -58,11 +58,11 @@ Install_lib()
 		mkdir -p $php_lib
 		if [ ! -f $php_lib/ioncube_loaders_lin.tar.gz ];then
 			wget -O $php_lib/ioncube_loaders_lin.tar.gz https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_${DEFAULT_ARCH}.tar.gz
-			cd $php_lib && tar -zxvf ioncube_loaders_lin.tar.gz
+			cd $php_lib && tar -zxf ioncube_loaders_lin.tar.gz
 		fi 
 
 		if [ ! -d $php_lib/ioncube ];then
-			cd $php_lib && tar -zxvf ioncube_loaders_lin.tar.gz
+			cd $php_lib && tar -zxf ioncube_loaders_lin.tar.gz
 		fi
 		cd $php_lib/ioncube
 		

@@ -2,6 +2,16 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入统一的 GitHub 下载函数库
+_gh_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../../scripts 2>/dev/null && pwd)/github_download.sh
+if [ -f "$_gh_lib" ]; then
+    source "$_gh_lib"
+fi
+
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -17,17 +27,17 @@ if [ ! -d ${SERVER_ROOT}/freetype_old ];then
     cd $SOURCE_ROOT
 
     if [ ! -f $SOURCE_ROOT/freetype-2.7.1.tar.gz ];then
-        wget -O freetype-2.7.1.tar.gz --no-check-certificate https://download.savannah.gnu.org/releases/freetype/freetype-2.7.1.tar.gz  -T 5
+        github_download $SOURCE_ROOT/freetype-2.7.1.tar.gz https://github.com/clhome/bt_simple/releases/download/init/freetype-2.7.1.tar.gz
     fi
 
     if [ ! -d $SOURCE_ROOT/freetype-2.7.1 ];then
-        tar zxvf freetype-2.7.1.tar.gz
+        tar -zxf freetype-2.7.1.tar.gz
         cd freetype-2.7.1
     else
         cd freetype-2.7.1
     fi
     
-    ./configure --prefix=${SERVER_ROOT}/freetype_old && make && make install
+    ./configure --prefix=${SERVER_ROOT}/freetype_old && make -j${cpuCore:-1} && make install
     cd $SOURCE_ROOT && rm -rf freetype-2.7.1
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/freetype-2.7.1
     #rm -rf freetype-2.7.1.tar.gz

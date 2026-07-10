@@ -66,7 +66,7 @@ Install_lib()
 			OPTIONS="$OPTIONS --with-gmp=$(brew --prefix gmp)"
 		fi
 
-		make clean && make && make install && make clean
+		make clean && make -j${cpuCore:-1} && make install && make clean
 		
 		if [ -d $sourcePath/php${version} ];then
 			cd ${sourcePath} && rm -rf $sourcePath/php${version}

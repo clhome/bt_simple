@@ -66,7 +66,7 @@ Install_lib()
 		./configure --with-php-config=$serverPath/php/$version/bin/php-config \
 		$OPTIONS \
 		--enable-memcache --with-zlib-dir
-		make clean && make && make install && make clean
+		make clean && make -j${cpuCore:-1} && make install && make clean
 
 		cd $php_lib && rm -rf $php_lib/${LIBNAME}-${LIBV}
 	fi

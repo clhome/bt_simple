@@ -54,7 +54,7 @@ Install_lib()
 		$OPTIONS \
 		--with-icu-dir=${serverPath}/lib/icu
 
-		make && make install && make clean
+		make -j${cpuCore:-1} && make install && make clean
 
 		cd $php_lib && rm -rf $php_lib/${LIBNAME}-${LIBV}
 		

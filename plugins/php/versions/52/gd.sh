@@ -83,7 +83,7 @@ Install_lib()
 		--with-freetype-dir=${serverPath}/lib/freetype_old \
 		--enable-gd-native-ttf
 
-		make clean && make && make install && make clean
+		make clean && make -j${cpuCore:-1} && make install && make clean
 		
 	fi
 

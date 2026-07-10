@@ -85,7 +85,7 @@ Install_lib()
 		fi
 
 
-		make clean && make && make install && make clean
+		make clean && make -j${cpuCore:-1} && make install && make clean
 		
 		if [ -d $sourcePath/php${version} ];then
 			cd ${sourcePath} && rm -rf $sourcePath/php${version}
