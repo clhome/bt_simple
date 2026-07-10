@@ -30,6 +30,26 @@ if [ -z "$_GH_BEST_PROXY" ]; then
     export _GH_BEST_PROXY=""
 fi
 
+# 全局缓存 GitHub 直连状态: "ok" (通畅), "fail" (阻断), "" (未测)
+if [ -z "$_GH_DIRECT_STATE" ]; then
+    export _GH_DIRECT_STATE=""
+fi
+
+# 快速检测 GitHub 直连连通性 (5秒超时)
+_gh_check_direct() {
+    if [ "$_GH_DIRECT_STATE" == "ok" ]; then return 0; fi
+    if [ "$_GH_DIRECT_STATE" == "fail" ]; then return 1; fi
+    
+    # 快速探测 GitHub 主站，限制 5 秒超时
+    if LC_ALL=C curl -s -m 5 -o /dev/null "https://github.com" 2>/dev/null; then
+        export _GH_DIRECT_STATE="ok"
+        return 0
+    else
+        export _GH_DIRECT_STATE="fail"
+        return 1
+    fi
+}
+
 # 获取最佳代理节点 (测速后取带宽最大的节点)
 _gh_get_best_proxy() {
     if [ -n "$_GH_BEST_PROXY" ]; then
@@ -226,12 +246,17 @@ github_download() {
     echo "[github_download] 保存路径: $file"
 
     # 步骤1: 直连 GitHub
-    echo "[github_download] 尝试直连 GitHub (${timeout}s)..."
-    if _gh_try_download "$file" "$url" "$timeout"; then
-        echo "[github_download] ✓ 直连成功"
-        return 0
+    if _gh_check_direct; then
+        echo "[github_download] 尝试直连 GitHub (${timeout}s)..."
+        if _gh_try_download "$file" "$url" "$timeout"; then
+            echo "[github_download] ✓ 直连成功"
+            return 0
+        fi
+        echo "[github_download] ✗ 直连失败，标记直连不可用，准备使用代理加速节点..."
+        export _GH_DIRECT_STATE="fail"
+    else
+        echo "[github_download] ⚠ GitHub 直连不通，跳过直连死等，直接使用代理加速..."
     fi
-    echo "[github_download] ✗ 直连失败，准备使用代理加速节点..."
 
     # 步骤2: 极速探测获取缓存节点，避免盲目轮询
     _gh_get_best_proxy >/dev/null
@@ -297,12 +322,17 @@ github_clone() {
     echo "[github_clone] 目标目录: $target_dir"
 
     # 步骤1: 直连
-    echo "[github_clone] 尝试直连 GitHub (${timeout}s)..."
-    if _gh_try_clone "$target_dir" "$repo_url" "$branch" "$timeout"; then
-        echo "[github_clone] ✓ 直连克隆成功"
-        return 0
+    if _gh_check_direct; then
+        echo "[github_clone] 尝试直连 GitHub (${timeout}s)..."
+        if _gh_try_clone "$target_dir" "$repo_url" "$branch" "$timeout"; then
+            echo "[github_clone] ✓ 直连克隆成功"
+            return 0
+        fi
+        echo "[github_clone] ✗ 直连失败，标记直连不可用，准备使用代理加速节点..."
+        export _GH_DIRECT_STATE="fail"
+    else
+        echo "[github_clone] ⚠ GitHub 直连不通，跳过直连死等，直接使用代理加速..."
     fi
-    echo "[github_clone] ✗ 直连失败，准备使用代理加速节点..."
 
     # 步骤2: 极速获取缓存最佳代理
     _gh_get_best_proxy >/dev/null
@@ -355,10 +385,13 @@ github_api_get() {
 
     # 步骤1: 直连
     local result
-    result=$(curl -s -m "$timeout" "$url" 2>/dev/null)
-    if [ $? -eq 0 ] && [ -n "$result" ]; then
-        echo "$result"
-        return 0
+    if _gh_check_direct; then
+        result=$(curl -s -m "$timeout" "$url" 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$result" ]; then
+            echo "$result"
+            return 0
+        fi
+        export _GH_DIRECT_STATE="fail"
     fi
 
     # 步骤2: 读取最佳缓存节点
