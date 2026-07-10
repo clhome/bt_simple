@@ -396,7 +396,7 @@ function showAccept(page) {
 			var protocol_td = currentType == 'port' ? "<td>" + data.data[i].protocol + "</td>" : "";
 			var port_display = data.data[i].port;
 			if (currentType == 'port'){
-				port_display = (data.data[i].port.indexOf('.') == -1?'放行端口'+':['+data.data[i].port+']':'屏蔽IP'+':['+data.data[i].port+']');
+				port_display = (data.data[i].port.indexOf('.') == -1 ? data.data[i].port : '屏蔽IP:['+data.data[i].port+']');
 			} else {
 				var type_text = data.data[i].type == 'address_allow' ? '<span style="color:#20a53a;">放行IP</span>' : '<span style="color:red;">禁止IP</span>';
 				port_display = type_text + ':[' + data.data[i].port + ']';
