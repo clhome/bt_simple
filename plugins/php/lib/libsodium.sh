@@ -2,6 +2,10 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
+# 引入共享编译环境 (cpuCore)
+_env_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common_env.sh
+if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
+
 curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
@@ -22,9 +26,9 @@ if [ ! -f /usr/local/lib/libsodium.so ];then
         # wget --no-check-certificate -O libsodium-1.0.18-stable.tar.gz https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-stable.tar.gz -T 20
         wget --no-check-certificate -O libsodium-${VERSION}-stable.tar.gz https://download.libsodium.org/libsodium/releases/libsodium-${VERSION}-stable.tar.gz -T 20
     fi 
-    tar -zxvf libsodium-${VERSION}-stable.tar.gz
+    tar -zxf libsodium-${VERSION}-stable.tar.gz
     cd libsodium-stable
-    ./configure  && make && make check && make install
+    ./configure && make -j${cpuCore:-1} && make check && make install
 
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/libsodium-stable
 fi
