@@ -11,6 +11,15 @@ export LANG=en_US.UTF-8
 _gh_deploy_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)/scripts/github_download.sh"
 if [ -f "$_gh_deploy_lib" ]; then
     source "$_gh_deploy_lib"
+else
+    _gh_deploy_lib="/tmp/github_download.sh"
+    _gh_dl_url="https://raw.githubusercontent.com/clhome/bt_simple/master/scripts/github_download.sh"
+    # 本地不存在时尝试网络拉取（兼容单脚本一键安装场景），使用 -f 参数避免下载到 502 HTML 错误页
+    if curl -sSLf --connect-timeout 2 "$_gh_dl_url" -o "$_gh_deploy_lib" 2>/dev/null || \
+       curl -sSLf "https://gh-proxy.com/$_gh_dl_url" -o "$_gh_deploy_lib" 2>/dev/null || \
+       curl -sSLf "https://ghproxy.net/$_gh_dl_url" -o "$_gh_deploy_lib" 2>/dev/null; then
+        source "$_gh_deploy_lib"
+    fi
 fi
 
 # ---------- 颜色定义 ----------
