@@ -54,7 +54,7 @@ Install_App()
 	if [ -d $serverPath/source/keepalived/keepalived-${VERSION} ];then
 		cd $serverPath/source/keepalived/keepalived-${VERSION}
 	else 
-		cd $serverPath/source/keepalived && tar -zxvf keepalived-${VERSION}.tar.gz
+		cd $serverPath/source/keepalived && tar -zxf keepalived-${VERSION}.tar.gz
 		cd $serverPath/source/keepalived/keepalived-${VERSION}
 	fi
 

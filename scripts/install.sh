@@ -285,7 +285,7 @@ if [ $OSNAME != "macos" ];then
 			cp -r $PWD /www/server/mdserver-web
 		else
 			curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz
-			cd /tmp && tar -zxvf /tmp/master.tar.gz
+			cd /tmp && tar -zxf /tmp/master.tar.gz
 			mv -f /tmp/bt_simple-master /www/server/mdserver-web
 			rm -rf /tmp/master.tar.gz
 			rm -rf /tmp/bt_simple-master

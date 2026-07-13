@@ -33,7 +33,7 @@ Install_App()
 		wget --no-check-certificate -O $REDIS_DIR/${FILE_TGZ} https://download.redis.io/releases/${FILE_TGZ}
 	fi
 	
-	cd $REDIS_DIR && tar -zxvf ${FILE_TGZ}
+	cd $REDIS_DIR && tar -zxf ${FILE_TGZ}
 
 	# 获取CPU核心数用于多核并行编译加速
 	cpuCore=$(nproc 2>/dev/null)

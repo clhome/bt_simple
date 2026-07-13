@@ -59,7 +59,7 @@ Install_app()
 	fi
 
 	if [ ! -d ${mariadbDir}/mariadb-${MY_VER} ];then
-		 cd ${mariadbDir} && tar -zxvf  ${mariadbDir}/mariadb-${MY_VER}.tar.gz
+		 cd ${mariadbDir} && tar -zxf  ${mariadbDir}/mariadb-${MY_VER}.tar.gz
 	fi
 	
 

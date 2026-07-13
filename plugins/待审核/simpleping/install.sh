@@ -40,7 +40,7 @@ Install_App()
 	fi
 	
 	mkdir -p $serverPath/simpleping
-	cd $APP_DIR && tar -zxvf ${FILE_TGZ} -C $serverPath/simpleping
+	cd $APP_DIR && tar -zxf ${FILE_TGZ} -C $serverPath/simpleping
 	echo "${VERSION}" > $serverPath/simpleping/version.pl
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/simpleping/index.py start

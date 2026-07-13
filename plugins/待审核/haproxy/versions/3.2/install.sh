@@ -37,7 +37,7 @@ Install_App()
 	mw_download ${APP_DIR}/haproxy-${VERSION}.tar.gz ${URL}
 	
 	if [ ! -d ${APP_DIR}/haproxy-${VERSION} ];then
-		cd ${APP_DIR} && tar -zxvf haproxy-${VERSION}.tar.gz
+		cd ${APP_DIR} && tar -zxf haproxy-${VERSION}.tar.gz
 	fi
 
 	CPU_CORES=$(get_cpu_cores)

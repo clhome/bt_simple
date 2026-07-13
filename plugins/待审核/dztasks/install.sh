@@ -51,7 +51,7 @@ Install_App()
 		fi
 	fi
 
-	cd $DZ_DIR && tar -zxvf ${FILE_TGZ} -C $serverPath/dztasks
+	cd $DZ_DIR && tar -zxf ${FILE_TGZ} -C $serverPath/dztasks
 	echo "${VERSION}" > $serverPath/dztasks/version.pl
 	cd ${rootPath} && python3 ${rootPath}/plugins/dztasks/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/dztasks/index.py initd_install

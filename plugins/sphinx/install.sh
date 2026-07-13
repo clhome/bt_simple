@@ -113,7 +113,7 @@ Install_sphinx()
 		wget --no-check-certificate -O ${SPHINX_DIR}/${FILE_TGZ} http://sphinxsearch.com/files/${FILE_TGZ}
 	fi
 
-	cd ${SPHINX_DIR} && tar -zxvf ${FILE_TGZ}
+	cd ${SPHINX_DIR} && tar -zxf ${FILE_TGZ}
 	
 	if [ "$?" == "0" ];then
 		mkdir -p $SPHINX_DIR

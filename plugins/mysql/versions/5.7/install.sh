@@ -149,7 +149,7 @@ Install_mysql()
 # 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
-		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz
+		 cd ${mysqlDir} && tar -zxf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz
 	fi
 
 	WHERE_DIR_GCC=/usr/bin/gcc

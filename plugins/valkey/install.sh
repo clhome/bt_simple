@@ -46,7 +46,7 @@ Install_App()
 		github_download $VALKEY_DIR/${FILE_TGZ} https://github.com/valkey-io/valkey/archive/refs/tags/${FILE_TGZ}
 	fi
 	
-	cd $VALKEY_DIR && tar -zxvf ${FILE_TGZ}
+	cd $VALKEY_DIR && tar -zxf ${FILE_TGZ}
 	if [ "$?" != "0" ];then
 		echo "解压 ${FILE_TGZ} 失败，文件可能已损坏。已清理损坏文件，请重试安装。"
 		rm -f ${FILE_TGZ}

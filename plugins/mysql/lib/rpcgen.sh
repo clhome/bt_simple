@@ -27,7 +27,7 @@ if [ "$?" != "0" ];then
 	fi
 
 	if [ ! -d ${SERVER_ROOT}/rpcsvc-proto-1.4 ];then
-		cd ${SOURCE_ROOT} && tar -zxvf rpcsvc-proto-1.4.tar.gz
+		cd ${SOURCE_ROOT} && tar -zxf rpcsvc-proto-1.4.tar.gz
 		cd ${SOURCE_ROOT}/rpcsvc-proto-1.4
 		./configure && make  && make install
 	fi	

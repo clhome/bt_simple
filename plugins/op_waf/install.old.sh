@@ -110,7 +110,7 @@ Install_App(){
 			wget --no-check-certificate -O ${libmaxminddb_local_path} ${libmaxminddb_url_path}
 		fi
 
-		cd $serverPath/source/op_waf && tar -zxvf ${libmaxminddb_local_path} && \
+		cd $serverPath/source/op_waf && tar -zxf ${libmaxminddb_local_path} && \
 		cd $serverPath/source/op_waf/libmaxminddb-${libmaxminddb_ver} && \
 		./configure --prefix=$serverPath/op_waf/waf/mmdb && make && make install
 	fi

@@ -21,7 +21,7 @@ Install_mem(){
 		wget --no-check-certificate -O $serverPath/source/memcached/memcached.tar.gz https://www.memcached.org/files/memcached-${VERSION}.tar.gz
 	fi
 	
-	cd $serverPath/source/memcached && tar -zxvf memcached.tar.gz
+	cd $serverPath/source/memcached && tar -zxf memcached.tar.gz
 
 	OPTIONS=''
 	if [ ${sys_os} == "Darwin" ]; then
