@@ -1038,6 +1038,9 @@ function pluginInit(){
         </div>",
             success:function(l,index){
                 $('.rec-box-con .onekey').on('click', function(){
+                    var _this = $(this);
+                    if (_this.hasClass('disabled')) return;
+                    _this.addClass('disabled');
                     var post_data = [];
                     for (var i = 0; i < rdata.length; i++) {
                         var key_ver = '#select_'+rdata[i]['name'];
@@ -1060,9 +1063,13 @@ function pluginInit(){
                             if (data.status){
                                 layer.closeAll();
                                 messageBox();
+                            } else {
+                                $('.rec-box-con .onekey').removeClass('disabled');
                             }
                         },{ icon: data.status ? 1 : 2 },2000);
-                    },'json');
+                    },'json').fail(function() {
+                        $('.rec-box-con .onekey').removeClass('disabled');
+                    });
                 });   
             },
             cancel:function(){
