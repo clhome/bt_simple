@@ -147,10 +147,17 @@ def verifyLogin():
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
-    password = mw.md5(password)
 
-    info = thisdb.getUserByRoot()
-    if info['name'] != username or info['password'] != password:
+    info = thisdb.getUserByName(username)
+    is_correct = False
+    if info:
+        password_md5 = mw.md5(password)
+        if info['password'] == password_md5:
+            is_correct = True
+        elif mw.checkPwd(password, info['password']):
+            is_correct = True
+
+    if not is_correct:
         return mw.returnJson(-1, "密码错误?")
 
     auth = request.form.get('auth', '').strip()    

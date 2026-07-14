@@ -45,7 +45,7 @@ def get_auth_secret():
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
 
     ip = mw.getHostAddr()
-    url = pyotp.totp.TOTP(secret).provisioning_uri(name=ip, issuer_name=tag)
+    url = pyotp.totp.TOTP(secret).provisioning_uri(name=ip, issuer_name='YuFeng_panel')
 
     rdata = {}
     rdata['secret'] = secret
