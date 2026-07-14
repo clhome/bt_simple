@@ -43,11 +43,11 @@ Install_App()
 		LOCAL_ADDR=$(get_local_addr)
 		if [ "$LOCAL_ADDR" == "cn" ];then
 			echo "检测到大陆网络环境，自动为您启用国内高速 GitHub Proxy 代理镜像源..."
-			wget --no-check-certificate -O $DZ_DIR/${FILE_TGZ} https://ghfast.top/${DOWNLOAD_URL} || \
-			wget --no-check-certificate -O $DZ_DIR/${FILE_TGZ} https://mirror.ghproxy.com/${DOWNLOAD_URL} || \
-			wget --no-check-certificate -O $DZ_DIR/${FILE_TGZ} ${DOWNLOAD_URL}
+			wget -nv --no-check-certificate -O $DZ_DIR/${FILE_TGZ} https://ghfast.top/${DOWNLOAD_URL} || \
+			wget -nv --no-check-certificate -O $DZ_DIR/${FILE_TGZ} https://mirror.ghproxy.com/${DOWNLOAD_URL} || \
+			wget -nv --no-check-certificate -O $DZ_DIR/${FILE_TGZ} ${DOWNLOAD_URL}
 		else
-			wget --no-check-certificate -O $DZ_DIR/${FILE_TGZ} ${DOWNLOAD_URL}
+			wget -nv --no-check-certificate -O $DZ_DIR/${FILE_TGZ} ${DOWNLOAD_URL}
 		fi
 	fi
 

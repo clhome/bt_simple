@@ -43,7 +43,7 @@ Install_App()
 	echo "https://github.com/gorse-io/gorse/releases/download/v${VERSION}/${FILE_TGZ}"
 
 	if [ ! -f $GORSE_DIR/${FILE_TGZ} ];then
-		wget -O $GORSE_DIR/${FILE_TGZ} https://github.com/gorse-io/gorse/releases/download/v${VERSION}/${FILE_TGZ}
+		wget -nv -O $GORSE_DIR/${FILE_TGZ} https://github.com/gorse-io/gorse/releases/download/v${VERSION}/${FILE_TGZ}
 	fi
 	
 	mkdir -p $serverPath/gorse/bin

@@ -59,11 +59,11 @@ Install_App()
 	APR_UTIL_VERSION=1.6.3
 
 	if [ ! -f ${apacheDir}/apr-${APR_VERSION}.tar.bz2 ];then
-		wget --no-check-certificate -O ${apacheDir}/apr-${APR_VERSION}.tar.bz2 https://downloads.apache.org/apr/apr-${APR_VERSION}.tar.bz2 -T 3
+		wget -nv --no-check-certificate -O ${apacheDir}/apr-${APR_VERSION}.tar.bz2 https://downloads.apache.org/apr/apr-${APR_VERSION}.tar.bz2 -T 3
 	fi
 
 	if [ ! -f ${apacheDir}/apr-util-${APR_UTIL_VERSION}.tar.bz2 ];then
-		wget --no-check-certificate -O ${apacheDir}/apr-util-${APR_UTIL_VERSION}.tar.bz2 https://downloads.apache.org/apr/apr-util-${APR_UTIL_VERSION}.tar.bz2 -T 3
+		wget -nv --no-check-certificate -O ${apacheDir}/apr-util-${APR_UTIL_VERSION}.tar.bz2 https://downloads.apache.org/apr/apr-util-${APR_UTIL_VERSION}.tar.bz2 -T 3
 	fi
 
 	# 安装 APR
@@ -106,7 +106,7 @@ Install_App()
 	fi
 
 	if [ ! -f ${apacheDir}/httpd-${VERSION}.tar.bz2 ];then
-		wget --no-check-certificate -O ${apacheDir}/httpd-${VERSION}.tar.bz2 https://downloads.apache.org/httpd/httpd-${VERSION}.tar.bz2 -T 3
+		wget -nv --no-check-certificate -O ${apacheDir}/httpd-${VERSION}.tar.bz2 https://downloads.apache.org/httpd/httpd-${VERSION}.tar.bz2 -T 3
 	fi
 
 	if [ ! -d ${apacheDir}/httpd-${VERSION} ];then

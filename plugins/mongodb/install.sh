@@ -161,7 +161,7 @@ Install_app()
     FILE_NAME_TGZ=${FILE_NAME}.tgz
 
     if [ ! -f $MG_DIR/${FILE_NAME_TGZ} ]; then
-        wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/linux/${FILE_NAME_TGZ} || exit 1
+        wget -nv --no-check-certificate -T 120 -t 3 -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/linux/${FILE_NAME_TGZ} || exit 1
     fi
 
     if [ ! -d $MG_DIR/${FILE_NAME} ];then 
@@ -183,7 +183,7 @@ Install_app()
     TOOL_FILE_NAME_TGZ=${TOOL_FILE_NAME}.tgz
     
     if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
-        wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ} || exit 1
+        wget -nv --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ} || exit 1
     fi
 
     if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
@@ -202,7 +202,7 @@ Install_app()
         TOOL_FILE_NAME_TGZ=${TOOL_FILE_NAME}.tgz
 
         if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
-            wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ} || exit 1
+            wget -nv --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ} || exit 1
         fi
 
         if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 

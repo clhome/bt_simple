@@ -34,7 +34,7 @@ Install_App()
 	fi
 
 	if [ ! -f $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz ];then
-		wget -O $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz https://keepalived.org/software/keepalived-${VERSION}.tar.gz
+		wget -nv -O $serverPath/source/keepalived/keepalived-${VERSION}.tar.gz https://keepalived.org/software/keepalived-${VERSION}.tar.gz
 	fi
 
 	#检测文件是否损坏.

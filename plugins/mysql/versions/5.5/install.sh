@@ -128,7 +128,7 @@ Install_mysql()
 	# ----- cpu end ------
 
 	if [ ! -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-5.5/mysql-${VERSION}.tar.gz
+		wget -nv --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-5.5/mysql-${VERSION}.tar.gz
 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then

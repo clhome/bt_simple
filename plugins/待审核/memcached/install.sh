@@ -18,7 +18,7 @@ Install_mem(){
 	echo '正在安装脚本文件...'
 
 	if [ ! -f $serverPath/source/memcached.tar.gz ];then
-		wget --no-check-certificate -O $serverPath/source/memcached/memcached.tar.gz https://www.memcached.org/files/memcached-${VERSION}.tar.gz
+		wget -nv --no-check-certificate -O $serverPath/source/memcached/memcached.tar.gz https://www.memcached.org/files/memcached-${VERSION}.tar.gz
 	fi
 	
 	cd $serverPath/source/memcached && tar -zxf memcached.tar.gz

@@ -42,17 +42,17 @@ Install_App()
 
     if [ "${LOCAL_ADDR}" == "cn" ];then
     	if [ ! -f ${APP_DIR}/haproxy-${VERSION}.tar.gz ];then
-			wget -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://ghp.ci/https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
+			wget -nv -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://ghp.ci/https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
 		fi
     	if [ ! -f ${APP_DIR}/haproxy-${VERSION}.tar.gz ];then
-			wget -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://mirror.ghproxy.com/https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
+			wget -nv -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://mirror.ghproxy.com/https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
 		fi
     fi
 
 	
 	if [ ! -f ${APP_DIR}/haproxy-${VERSION}.tar.gz ];then
 		if [ $sysName == 'Darwin' ]; then
-			wget --no-check-certificate -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
+			wget -nv --no-check-certificate -O ${APP_DIR}/haproxy-${VERSION}.tar.gz https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
 		else
 			curl -sSLo ${APP_DIR}/haproxy-${VERSION}.tar.gz https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz
 		fi

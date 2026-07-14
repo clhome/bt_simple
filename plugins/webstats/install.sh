@@ -64,7 +64,7 @@ Install_App()
 	
 	# luarocks
 	if [ ! -f $serverPath/source/webstats/luarocks-3.5.0.tar.gz ];then
-		wget --no-check-certificate -O $serverPath/source/webstats/luarocks-3.5.0.tar.gz http://luarocks.org/releases/luarocks-3.5.0.tar.gz
+		wget -nv --no-check-certificate -O $serverPath/source/webstats/luarocks-3.5.0.tar.gz http://luarocks.org/releases/luarocks-3.5.0.tar.gz
 	fi
 
 	if [ ! -d $serverPath/source/webstats/luarocks-3.5.0  ];then
