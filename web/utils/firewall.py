@@ -807,7 +807,7 @@ class Firewall(object):
 
 
     def checkRootSshKey(self):
-        key_file = '/root/.ssh/id_rsa'
+        key_file = '/root/.ssh/id_ed25519'
         if os.path.exists(key_file):
             return mw.returnJson(True, 'OK')
         return mw.returnJson(False, '未找到密钥文件，请先生成')
@@ -815,8 +815,8 @@ class Firewall(object):
     def resetRootSshKey(self):
         if not os.path.exists('/root/.ssh'):
             mw.execShell("mkdir -p /root/.ssh && chmod 700 /root/.ssh")
-        mw.execShell("rm -f /root/.ssh/id_rsa*")
-        mw.execShell("ssh-keygen -t rsa -b 2048 -N '' -f /root/.ssh/id_rsa -q")
-        if os.path.exists('/root/.ssh/id_rsa'):
+        mw.execShell("rm -f /root/.ssh/id_ed25519*")
+        mw.execShell("ssh-keygen -t ed25519 -N '' -f /root/.ssh/id_ed25519 -q")
+        if os.path.exists('/root/.ssh/id_ed25519'):
             return mw.returnJson(True, '重置/生成密钥成功')
         return mw.returnJson(False, '生成密钥失败')

@@ -615,7 +615,7 @@ function downloadRootKey(){
             layer.msg(rdata.msg, {icon: 2});
             return;
         }
-        window.open('/files/download?filename=/root/.ssh/id_rsa');
+        window.open('/files/download?filename=/root/.ssh/id_ed25519');
     }, 'json');
 }
 
