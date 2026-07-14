@@ -572,6 +572,14 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                         print("  ⚠️  跨大版本直接拷贝 data 目录会造成严重的数据损坏和系统表冲突。")
                         print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装与旧版本一致的 MySQL %s 后，再执行本命令。" % old_major)
                         return
+                    else:
+                        old_parts = [int(i) for i in old_mysql_ver.split('.') if i.isdigit()]
+                        new_parts = [int(i) for i in new_mysql_ver.split('.') if i.isdigit()]
+                        if old_parts > new_parts:
+                            print("  ❌ 致命错误：不支持 MySQL 版本降级！(旧: %s, 新: %s)" % (old_mysql_ver, new_mysql_ver))
+                            print("  ⚠️  高版本的物理数据文件无法被低版本 MySQL 引擎加载，这会导致数据库服务完全无法启动。")
+                            print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装高于或等于旧版本 (%s) 的 MySQL。" % old_mysql_ver)
+                            return
                 else:
                     if not old_mysql_ver:
                         print("  ❌ 致命错误：无法获取旧宝塔 MySQL 的版本信息！")
