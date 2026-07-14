@@ -9,9 +9,7 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/caddy && bash install.sh install 2.11
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/caddy && bash install.sh upgrade 2.11
-# cd /www/server/mdserver-web/plugins/caddy && bash install.sh install 2.11
+
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

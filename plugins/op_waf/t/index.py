@@ -62,8 +62,12 @@ def httpUpload(url, timeout=10):
     try:
         import requests
 
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        plugin_dir = os.path.dirname(current_dir)
+        version_pl_path = os.path.join(plugin_dir, 'version.pl')
+
         files = {
-            'file': open('/Users/midoks/Desktop/mwdev/server/op_waf/version.pl', 'rb')
+            'file': open(version_pl_path, 'rb')
         }
         res = requests.post(url=url, files=files)
         return res

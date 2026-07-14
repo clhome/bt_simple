@@ -2,21 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/apache && bash install.sh install 2.4
-# cd /www/server/mdserver-web/plugins/apache && bash install.sh install 2.4
-# cd /www/server/mdserver-web/plugins/apache && bash install.sh upgrade 2.4
 
-# curl -I -H "Accept-Encoding: br" http://localhost
-# curl -I -H "Accept-Encoding: zstd" http://localhost
-# curl --http3 -v https://www.xxx.com
-
-# apt install ncat -y
-# nc -u -v www.xx.com 443
-
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/apache && python3 plugins/apache/index.py start
-# cd /www/server/mdserver-web && python3 plugins/apache/index.py start
-# cd /www/server/mdserver-web && python3 plugins/apache/index.py run_info
-# ps -ef|grep httpd | grep -v grep | awk '{print $2}'|xargs kill
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

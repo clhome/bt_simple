@@ -10,9 +10,6 @@ serverPath=$(dirname "$rootPath")
 VERSION=1.0
 sysName=`uname`
 
-# bash install.sh install 1.0
-# cd /www/server/mdserver-web/plugins/ollama && bash install.sh install 1.0
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/ollama && bash install.sh install 1.0
 
 bash ${rootPath}/scripts/getos.sh
 

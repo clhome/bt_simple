@@ -1,9 +1,5 @@
 # coding:utf-8
 
-'''
-cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/op_waf && bash install.sh install 0.3.2
-python3 /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/op_waf/index.py reload
-'''
 import sys
 import io
 import os

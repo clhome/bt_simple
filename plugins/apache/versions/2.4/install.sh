@@ -2,8 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/apache && bash install.sh install 2.4
-# cd /www/server/mdserver-web/plugins/apache && bash install.sh install 2.4
+
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

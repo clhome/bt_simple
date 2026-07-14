@@ -15,7 +15,7 @@
 # =========================================================================
 
 # ---------- 代理站列表 ----------
-# 与 scripts/install.sh 和 web/core/mw.py 保持一致
+# 与 scripts/install.sh 和 web/core/yf.py 保持一致
 _GH_PROXY_LIST=(
     "https://gh-proxy.com/"
     "https://cors.zme.ink/"
