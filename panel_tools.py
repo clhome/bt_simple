@@ -181,6 +181,23 @@ def mwcli(mw_input=0):
         os.system(INIT_CMD + " default")
     elif mw_input == 11:
         import random
+        try:
+            from core.crypt_salt import get_salt, init_salt
+            salt = get_salt()
+            if salt is None:
+                print("检测到加密 Salt 不存在，正在生成...")
+                init_salt()
+                print("加密 Salt 已生成并保存到备份位置。")
+                
+                try:
+                    from core.crypt_migrate import migrate_encrypted_data
+                    migrate_encrypted_data()
+                    print("存量加密数据已使用新 Salt 重新加密。")
+                except Exception as e:
+                    print("数据迁移失败: " + str(e))
+        except Exception as e:
+            pass
+
         pwd_len = random.randint(8, 12)
         rand_pwd = mw.getRandomString(pwd_len)
         set_panel_pwd(rand_pwd, True)
