@@ -711,7 +711,7 @@ function doSetGpuDetect(isEnable) {
     $.post('/setting/set_gpu_detect', {}, function (rdata) {
         layer.close(loadT);
         if (rdata.status && isEnable) {
-            layer.confirm('成功开启GPU首页检测！<br><br><span style="color:red">提示：由于浏览器缓存，需返回首页按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制刷新才能展示GPU状态。</span>', {
+            layer.confirm('成功开启GPU首页检测！<br><br><span style="color:red">提示：由于浏览器缓存，如首页未显示GPU状态，<br>需返回首页按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制刷新才能展示GPU状态。</span>', {
                 title: '设置成功',
                 icon: 1,
                 btn: ['强制刷新，返回首页', '留在当前页']
