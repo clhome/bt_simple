@@ -19,3 +19,9 @@
 - `[x]` 12. 重构系统服务模板（`scripts/init.d/*.tpl`）：重命名文件并修改内部环境变量及进程匹配逻辑。
 - `[x]` 13. 调整 `cli.sh` 终端输出，修改所有 Python 业务文件中的 `import mw` 和相关方法。
 - `[x]` 14. 改造 `deploy.sh` 与安装升级脚本：实现环境监测、目录平滑迁移、兼容软链接创建等逻辑。
+- `[x]` 15. 修复 `panel_tools.py` 中的 `INIT_CMD` 硬编码路径。
+- `[x]` 16. 修复 `web/core/yf.py` 中 `restartTask` 和 `panelCmd` 的 `mw` 路径硬编码问题。
+- `[x]` 17. 修复 `deploy.sh` 中更新数据库配置时的 `config` 表名拼写错误（改为 `option`）。
+- `[x]` 18. 修复 Systemd 服务模板中的 `ExecStart` 路径以符合 Systemd 绝对路径规范并使用虚拟环境 Python。
+- `[x]` 19. 优化 `deploy.sh` 中的 `start_panel` 与 `stop_panel` 逻辑，优先调用新服务。
+- `[x]` 20. 清理 `web/branding.py` 中的 `APP_NAME` 为 `'yufeng_panel'`，并更新 `web/utils/php/fcgi_client.py` 中的日志路径。

@@ -12,7 +12,7 @@
 # ---------------------------------------------------------------------------------
 
 # UI中显示的应用程序的名称
-APP_NAME = 'mdserver-web'
+APP_NAME = 'yufeng_panel'
 APP_ICON = 'icon'
 
 APP_LOG_NAME = 'panel'

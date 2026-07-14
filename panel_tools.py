@@ -32,7 +32,7 @@ INIT_DIR = "/etc/rc.d/init.d"
 if mw.isAppleSystem():
     INIT_DIR = mw.getPanelDir() + "/scripts/init.d"
 
-INIT_CMD = INIT_DIR + "/mw"
+INIT_CMD = INIT_DIR + "/yf"
 
 
 def yf_input_cmd(msg):

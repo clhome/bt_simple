@@ -573,11 +573,16 @@ rollback_bt_panel() {
 # 服务控制
 # =====================================================================
 stop_panel() {
-    # 停止 mdserver-web
-    if [ -f /usr/bin/mw ]; then
+    # 停止 yufeng_panel 或 mdserver-web
+    if [ -f /usr/bin/yf ]; then
+        yf stop 2>/dev/null
+    elif [ -f /usr/bin/mw ]; then
         mw 2 2>/dev/null
     fi
-    if [ -f /etc/init.d/mw ]; then
+
+    if [ -f /etc/init.d/yf ]; then
+        /etc/init.d/yf stop 2>/dev/null
+    elif [ -f /etc/init.d/mw ]; then
         /etc/init.d/mw stop 2>/dev/null
     fi
     # 停止宝塔
@@ -590,8 +595,12 @@ stop_panel() {
 }
 
 start_panel() {
-    if [ -f /usr/bin/mw ]; then
+    if [ -f /usr/bin/yf ]; then
+        yf start
+    elif [ -f /usr/bin/mw ]; then
         mw 3
+    elif [ -f /etc/init.d/yf ]; then
+        /etc/init.d/yf start
     elif [ -f /etc/init.d/mw ]; then
         /etc/init.d/mw start
     elif [ -f ${PANEL_DIR}/cli.sh ]; then
@@ -869,7 +878,7 @@ import sqlite3
 db_path = '${PANEL_DIR}/data/panel.db'
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
-cursor.execute(\"UPDATE config SET value = REPLACE(value, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE value LIKE '%mdserver-web%'\")
+cursor.execute(\"UPDATE option SET value = REPLACE(value, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE value LIKE '%mdserver-web%'\")
 cursor.execute(\"UPDATE crontab SET command = REPLACE(command, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE command LIKE '%mdserver-web%'\")
 cursor.execute(\"UPDATE crontab SET sBody = REPLACE(sBody, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE sBody LIKE '%mdserver-web%'\")
 conn.commit()

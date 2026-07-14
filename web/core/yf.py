@@ -1753,7 +1753,7 @@ def triggerTask():
     writeFile(lock_file, 'True')
 
 def restartTask():
-    initd = getPanelDir() + '/scripts/init.d/mw'
+    initd = getPanelDir() + '/scripts/init.d/yf'
     if os.path.exists(initd):
         cmd = initd + ' ' + 'restart_task'
         os.system(cmd)
@@ -1765,12 +1765,12 @@ def restartMw():
     return True
 
 def panelCmd(method):
-    cmd = getPanelDir() + '/scripts/init.d/mw'
+    cmd = getPanelDir() + '/scripts/init.d/yf'
     if os.path.exists(cmd):
         os.system('nohup ' + cmd + ' ' + method + ' >> /tmp/panelCmd.log 2>&1 &')
         return
 
-    cmd = '/etc/init.d/mw'
+    cmd = '/etc/init.d/yf'
     if os.path.exists(cmd):
         os.system('nohup ' + cmd + ' ' + method + ' >> /tmp/panelCmd.log 2>&1 &')
         return
