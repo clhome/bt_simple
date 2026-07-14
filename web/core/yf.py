@@ -578,6 +578,33 @@ def readFile(filename):
         # print('readFile:',str(e))
         return False
 
+def readFileEnd(filename, lines=100):
+    # 读取文件尾部指定行数
+    try:
+        with open(filename, 'rb') as f:
+            f.seek(0, 2)
+            filesize = f.tell()
+            buffer_size = 8192
+            if filesize == 0:
+                return ''
+            block = -1
+            data = b''
+            while True:
+                if (abs(block * buffer_size)) <= filesize:
+                    f.seek(block * buffer_size, 2)
+                    data = f.read(buffer_size) + data
+                else:
+                    f.seek(0, 0)
+                    data = f.read(filesize + (block + 1) * buffer_size) + data
+                    break
+                if data.count(b'\n') >= lines:
+                    break
+                block -= 1
+            lines_list = data.splitlines()[-lines:]
+            return (b'\n'.join(lines_list)).decode('utf-8', errors='replace')
+    except Exception:
+        return False
+
 def writeFile(filename, content, mode='w+'):
     # 写文件内容
     try:
@@ -604,8 +631,11 @@ def backFile(file, act=None):
     if act:
         file_type = "_def"
 
-    execShell("cp -p {0} {1}".format(shlexQuote(file), shlexQuote(file + file_type)))
-
+    import shutil
+    try:
+        shutil.copy2(file, file + file_type)
+    except Exception as e:
+        pass
 
 def removeBackFile(file, act=None):
     """
@@ -616,7 +646,16 @@ def removeBackFile(file, act=None):
     file_type = "_bak"
     if act:
         file_type = "_def"
-    execShell("rm -rf {0}".format(shlexQuote(file + file_type)))
+    import shutil
+    target = file + file_type
+    try:
+        if os.path.exists(target):
+            if os.path.isdir(target):
+                shutil.rmtree(target)
+            else:
+                os.remove(target)
+    except Exception as e:
+        pass
 
 
 def restoreFile(file, act=None):
@@ -628,7 +667,11 @@ def restoreFile(file, act=None):
     file_type = "_bak"
     if act:
         file_type = "_def"
-    execShell("cp -p {1} {0}".format(shlexQuote(file), shlexQuote(file + file_type)))
+    import shutil
+    try:
+        shutil.copy2(file + file_type, file)
+    except Exception as e:
+        pass
 
 def systemdCfgDir():
     # ubuntu
@@ -1870,9 +1913,37 @@ def isInstalledWeb():
         return True
     return False
 
+import threading
+_reload_timer = None
+_reload_lock = threading.Lock()
+
+def _do_reload():
+    systemd = systemdCfgDir() + '/openresty.service'
+    if os.path.exists(systemd):
+        execShell('systemctl reload openresty')
+        return True
+    sys_initd = '/etc/init.d/openresty'
+    if os.path.exists(sys_initd):
+        os.system(sys_initd + ' reload')
+        return True
+    initd = getServerDir() + '/openresty/init.d/openresty'
+    if os.path.exists(initd):
+        execShell(initd + ' reload')
+        return True
+    return False
+
 def opWeb(method):
     if not isInstalledWeb():
         return False
+        
+    global _reload_timer
+    if method == 'reload':
+        with _reload_lock:
+            if _reload_timer:
+                _reload_timer.cancel()
+            _reload_timer = threading.Timer(1.5, _do_reload)
+            _reload_timer.start()
+        return True
 
     # systemd
     systemd = systemdCfgDir() + '/openresty.service'

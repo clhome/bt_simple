@@ -26,26 +26,37 @@ def chownR(path, user, group=None):
     if not hasattr(os, 'chown'):
         return True
     try:
-        yf.setOwn(path, user, group)
+        from pwd import getpwnam
+        try:
+            user_info = getpwnam(user)
+            uid = user_info.pw_uid
+            gid = getpwnam(group).pw_gid if group else user_info.pw_gid
+        except:
+            user_info = getpwnam('www')
+            uid = user_info.pw_uid
+            gid = user_info.pw_gid
+            
+        os.chown(path, uid, gid)
         if os.path.isdir(path):
             for root, dirs, files in os.walk(path):
                 for d in dirs:
-                    yf.setOwn(os.path.join(root, d), user, group)
+                    os.chown(os.path.join(root, d), uid, gid)
                 for f in files:
-                    yf.setOwn(os.path.join(root, f), user, group)
+                    os.chown(os.path.join(root, f), uid, gid)
     except Exception as e:
         pass
     return True
 
 def chmodR(path, mode):
     try:
-        yf.setMode(path, mode)
+        mode_val = int(str(mode), 8)
+        os.chmod(path, mode_val)
         if os.path.isdir(path):
             for root, dirs, files in os.walk(path):
                 for d in dirs:
-                    yf.setMode(os.path.join(root, d), mode)
+                    os.chmod(os.path.join(root, d), mode_val)
                 for f in files:
-                    yf.setMode(os.path.join(root, f), mode)
+                    os.chmod(os.path.join(root, f), mode_val)
     except Exception as e:
         pass
     return True

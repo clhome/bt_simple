@@ -28,3 +28,8 @@
 - `[x]` 21. 编写代码清理脚本，全局统一 `import core.yf as mw` 和 `import mw` 的别名为 `yf`，并替换相关代码中的 `mw.` 调用。
 - `[x]` 22. 清理 `panel_tools.py` 及其它地方硬编码的 `mw_xxx = yf_xxx` 等向下兼容别名。
 - `[x]` 23. 全局执行替换脚本并进行校验，确保 0 报错，消除 `DeprecatedProxy` 的性能损耗。
+- `[x]` 24. 性能优化：替换 `yf.py` 中的原生系统调用（`execShell("cp/rm")` 改为 `shutil`/`os`）
+- `[x]` 25. 性能优化：解决 `site.py` 递归文件遍历中的耗时查询（提前获取 `uid`/`gid`）
+- `[x]` 26. 性能优化：在 `db.py` 中引入内存缓存以优化 SQLite 表结构查询 (`PRAGMA table_info`)
+- `[x]` 27. 性能优化：实现服务重载（Nginx）去抖动机制，避免频繁阻塞
+- `[x]` 28. 性能优化：在 `yf.py` 中增加大文件尾部读取函数 `readFileEnd`

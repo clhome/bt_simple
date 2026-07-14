@@ -21,6 +21,7 @@ import threading
 import core.yf as yf
 
 _local = threading.local()
+_table_fields_cache = {}
 
 def getPanelDir():
     return os.path.dirname(os.getcwd())
@@ -150,6 +151,10 @@ class Sql():
         return self
 
     def getDbField(self,name):
+        global _table_fields_cache
+        if name in _table_fields_cache:
+            return _table_fields_cache[name]
+
         sql = "PRAGMA table_info(%s)" % name
         result = self.__DB_CONN.execute(sql)
         data = result.fetchall()
@@ -157,6 +162,8 @@ class Sql():
         fields = []
         for i in data:
             fields.append(i[1])
+            
+        _table_fields_cache[name] = fields
         return fields
 
     def getDbFieldString(self,name):
