@@ -17,6 +17,16 @@ VERSION=$2
 Install_swap()
 {
 	echo '正在安装脚本文件...'
+
+	# 清理旧版本可能在 mdserver-web (rootPath) 目录下创建的巨大残留文件夹
+	if [ -d "${rootPath}/swap" ]; then
+		echo "发现旧版本遗留的 ${rootPath}/swap 目录，正在清理..."
+		if [ -f "${rootPath}/swap/swapfile" ]; then
+			swapoff "${rootPath}/swap/swapfile" 2>/dev/null
+		fi
+		rm -rf "${rootPath}/swap"
+	fi
+
 	mkdir -p $serverPath/source
 	mkdir -p $serverPath/swap
 	echo "${VERSION}" > $serverPath/swap/version.pl

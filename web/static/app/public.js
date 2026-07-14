@@ -2047,7 +2047,7 @@ function webShell(dir) {
     }).catch(function(err) {
         layer.close(loadT);
         layer.msg('终端组件加载失败，请刷新页面重试', {icon: 2});
-        console.fail(err);
+        console.error(err);
     });
 }
 function _webShellInit(dir) {
@@ -2095,7 +2095,7 @@ function _webShellInit(dir) {
         }
     });
 
-    $(window).unload(function(){
+    $(window).on('unload', function(){
   　     term.destroy();
         clearInterval(interval);
     });
