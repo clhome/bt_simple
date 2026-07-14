@@ -92,6 +92,7 @@ def getGlobalVar():
 
     data = {}
     data['title'] = thisdb.getOption('title', default='御风面板（BtSimple）')
+    data['gpu_detect'] = thisdb.getOption('gpu_detect', default='no')
     
     ip = thisdb.getOption('server_ip', default='127.0.0.1')
     if ip in ['127.0.0.1', 'localhost', '::1', '']:

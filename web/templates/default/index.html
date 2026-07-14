@@ -84,6 +84,21 @@
                         </div>
                         <h4 id="core" class="c5 f15">获取中...</h4>
                     </li>
+                    {% if data['gpu_detect'] == 'yes' %}
+                    <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center" id="gpuChart" style="display: none;">
+                        <h3 class="c5 f15">GPU使用率</h3>
+                        <div class="circle">
+                            <div class="pie_left">
+                                <div class="left"></div>
+                            </div>
+                            <div class="pie_right">
+                                <div class="right"></div>
+                            </div>
+                            <div class="mask"><span id="gpu_state">...</span>%</div>
+                        </div>
+                        <h4 id="gpu_mem" class="c5 f15">获取中...</h4>
+                    </li>
+                    {% endif %}
                     <li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center">
                         <h3 class="c5 f15">内存使用率</h3>
                         <div class="circle mem-release">

@@ -217,6 +217,14 @@
                     <label class='btswitch-btn' for='panelCDN' onclick="setCDN()"></label>
                 </div>
             </div>
+
+            <div class="quick-setting-item" title="开启后首页将尝试获取英伟达GPU信息">
+                <em style="color: #d9534f;">英伟达GPU首页检测</em>
+                <div class='ssh-item'>
+                    <input class='btswitch btswitch-ios' id='gpuDetect' type='checkbox' {% if data['gpu_detect'] == 'yes' %}checked{% endif %}>
+                    <label class='btswitch-btn' for='gpuDetect' onclick="setGpuDetect()"></label>
+                </div>
+            </div>
         </div>
 
         <!-- 主体设置区域 -->

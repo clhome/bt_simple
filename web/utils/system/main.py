@@ -414,3 +414,49 @@ def getSystemDetails():
     details['memory'] = mem_info
     
     return details
+
+
+HAS_GPU = None
+
+def getGpuInfo():
+    global HAS_GPU
+    if HAS_GPU is False:
+        return {'status': False, 'msg': 'nvidia-smi not found'}
+        
+    if HAS_GPU is None:
+        import shutil
+        if shutil.which('nvidia-smi'):
+            HAS_GPU = True
+        else:
+            HAS_GPU = False
+            return {'status': False, 'msg': 'nvidia-smi not found'}
+            
+    try:
+        cmd = "nvidia-smi --query-gpu=index,name,utilization.gpu,utilization.memory,memory.total,memory.free,memory.used,temperature.gpu --format=csv,noheader,nounits"
+        import subprocess
+        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=2, text=True)
+        if result.returncode == 0:
+            lines = result.stdout.strip().split('\n')
+            gpus = []
+            for line in lines:
+                if not line:
+                    continue
+                parts = [p.strip() for p in line.split(',')]
+                if len(parts) >= 8:
+                    gpus.append({
+                        'index': parts[0],
+                        'name': parts[1],
+                        'gpu_util': parts[2],
+                        'mem_util': parts[3],
+                        'mem_total': parts[4],
+                        'mem_free': parts[5],
+                        'mem_used': parts[6],
+                        'temperature': parts[7]
+                    })
+            return {'status': True, 'data': gpus}
+        else:
+            return {'status': False, 'msg': 'nvidia-smi execution failed'}
+    except subprocess.TimeoutExpired:
+        return {'status': False, 'msg': 'nvidia-smi timeout'}
+    except Exception as e:
+        return {'status': False, 'msg': str(e)}

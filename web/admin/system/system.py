@@ -76,6 +76,18 @@ def disk_info():
     data = sys.getDiskInfo()
     return mw.returnData(True, 'ok', data)
 
+# 获取系统的GPU信息
+@blueprint.route('/get_gpu_info', endpoint='get_gpu_info', methods=['GET','POST'])
+@panel_login_required
+def get_gpu_info():
+    gpu_detect = thisdb.getOption('gpu_detect', default='no')
+    if gpu_detect != 'yes':
+        return mw.returnData(False, '未开启GPU检测')
+    data = sys.getGpuInfo()
+    if data['status']:
+        return mw.returnData(True, 'ok', data['data'])
+    return mw.returnData(False, data['msg'])
+
 # 获取系统的负载统计信息
 @blueprint.route('/get_load_average', endpoint='get_load_average', methods=['GET'])
 @panel_login_required

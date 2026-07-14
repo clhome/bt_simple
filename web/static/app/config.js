@@ -679,6 +679,15 @@ function setCDN() {
     },'json');
 }
 
+function setGpuDetect() {
+    var loadT = layer.msg('正在配置,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.post('/setting/set_gpu_detect', {}, function (rdata) {
+        layer.close(loadT);
+        layer.msg(rdata.msg, {icon:rdata.status?1:2});
+        setTimeout(function(){window.location.reload();},1500);
+    },'json');
+}
+
 
 //设置面板SSL
 function setPanelSSL(){
