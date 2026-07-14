@@ -19,9 +19,9 @@ is64bit=`getconf LONG_BIT`
 
 startTime=`date +%s`
 
-if [ -f /www/server/mdserver-web/tools.py ];then
+if [ -f /www/server/yufeng_panel/tools.py ];then
 	echo -e "存在旧版代码,不能安装!,已知风险的情况下" 
-	echo -e "rm -rf /www/server/mdserver-web"
+	echo -e "rm -rf /www/server/yufeng_panel"
 	echo -e "可安装!" 
 	exit 0
 fi
@@ -34,11 +34,11 @@ if [ "$EUID" -ne 0 ]
 	exit
 fi
 
-if [ ${_os} != "Darwin" ] && [ ! -d /www/server/mdserver-web/logs ]; then
-	mkdir -p /www/server/mdserver-web/logs
+if [ ${_os} != "Darwin" ] && [ ! -d /www/server/yufeng_panel/logs ]; then
+	mkdir -p /www/server/yufeng_panel/logs
 fi
 
-LOG_FILE=/var/log/mw-update.log
+LOG_FILE=/var/log/yf-update.log
 
 {
 
@@ -275,7 +275,7 @@ echo "update mdserver-web dev code start"
 
 curl --insecure -sSLo /tmp/dev.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/dev.tar.gz
 cd /tmp && tar -zxf /tmp/dev.tar.gz
-$CP_CMD -rf /tmp/bt_simple-dev/* /www/server/mdserver-web
+$CP_CMD -rf /tmp/bt_simple-dev/* /www/server/yufeng_panel
 rm -rf /tmp/dev.tar.gz
 rm -rf /tmp/bt_simple-dev
 
@@ -284,30 +284,28 @@ echo "update mdserver-web dev code end"
 
 #pip uninstall public
 echo "use system version: ${OSNAME}"
-cd /www/server/mdserver-web && bash scripts/update/${OSNAME}.sh
+cd /www/server/yufeng_panel && bash scripts/update/${OSNAME}.sh
 
-bash /etc/rc.d/init.d/mw restart
-bash /etc/rc.d/init.d/mw default
+bash /etc/rc.d/init.d/yf restart
+bash /etc/rc.d/init.d/yf default
 
-if [ -f /usr/bin/mw ];then
-	rm -rf /usr/bin/mw
+if [ -f /usr/bin/yf ];then
+	rm -rf /usr/bin/yf
+    rm -rf /usr/bin/mw
+    rm -rf /usr/bin/bs
 fi
 
 if [ -f /usr/bin/bs ];then
 	rm -rf /usr/bin/bs
 fi
 
-if [ ! -e /usr/bin/mw ]; then
-	if [ ! -f /usr/bin/mw ];then
-		ln -s /etc/rc.d/init.d/mw /usr/bin/mw
+if [ ! -e /usr/bin/yf ]; then
+	if [ ! -f /usr/bin/yf ];then
+		ln -s /etc/rc.d/init.d/yf /usr/bin/mw
 	fi
 fi
 
-if [ ! -e /usr/bin/bs ]; then
-	if [ ! -f /usr/bin/bs ];then
-		ln -s /etc/rc.d/init.d/mw /usr/bin/bs
-	fi
-fi
+
 
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))

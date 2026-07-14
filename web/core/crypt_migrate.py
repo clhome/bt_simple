@@ -21,7 +21,7 @@ def migrate_encrypted_data():
     if 'secret' in two_step:
         decrypted = yf.deDoubleCrypt('mdserver-web', two_step['secret'])
         if decrypted and decrypted != two_step['secret']:
-            two_step['secret'] = yf.enDoubleCrypt('mdserver-web', decrypted)
+            two_step['secret'] = yf.enDoubleCrypt('yufeng_panel', decrypted)
             thisdb.setOption('two_step_verification', json.dumps(two_step))
             
     # 2. 迁移邮件通知
@@ -50,7 +50,7 @@ def migrate_encrypted_data():
                     rdata = yf.readFile(info_file)
                     decrypted = yf.deDoubleCrypt('mdserver-web', rdata)
                     if decrypted and decrypted != rdata:
-                        enstr = yf.enDoubleCrypt('mdserver-web', decrypted)
+                        enstr = yf.enDoubleCrypt('yufeng_panel', decrypted)
                         yf.writeFile(info_file, enstr)
                 except:
                     pass

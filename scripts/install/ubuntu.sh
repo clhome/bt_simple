@@ -230,8 +230,8 @@ if [ ! -f /usr/lib/libaio.so.1 ];then
 	fi
 fi
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 
 
 if [ "${VERSION_ID}" == "22.04" ];then

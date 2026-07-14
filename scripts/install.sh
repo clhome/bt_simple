@@ -18,14 +18,14 @@ WORKING='[\033[34m*\033[0m]'
 # LANG=en_US.UTF-8
 is64bit=`getconf LONG_BIT`
 
-if [ -f /www/server/mdserver-web/tools.py ];then
+if [ -f /www/server/yufeng_panel/tools.py ];then
 	echo -e "存在旧版代码,不能安装!,已知风险的情况下" 
-	echo -e "rm -rf /www/server/mdserver-web"
+	echo -e "rm -rf /www/server/yufeng_panel"
 	echo -e "可安装!" 
 	exit 0
 fi
 
-LOG_FILE=/var/log/mw-install.log
+LOG_FILE=/var/log/yf-install.log
 {
 
 HTTP_PREFIX="https://"
@@ -279,14 +279,14 @@ if [ $OSNAME != "macos" ];then
 	mkdir -p /www/backup/database
 	mkdir -p /www/backup/site
 
-	if [ ! -d /www/server/mdserver-web ];then
+	if [ ! -d /www/server/yufeng_panel ];then
 		if [ -f "$PWD/cli.sh" ] && [ -d "$PWD/scripts" ]; then
 			echo "Local repository detected, copying files..."
-			cp -r $PWD /www/server/mdserver-web
+			cp -r $PWD /www/server/yufeng_panel
 		else
 			curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz
 			cd /tmp && tar -zxf /tmp/master.tar.gz
-			mv -f /tmp/bt_simple-master /www/server/mdserver-web
+			mv -f /tmp/bt_simple-master /www/server/yufeng_panel
 			rm -rf /tmp/master.tar.gz
 			rm -rf /tmp/bt_simple-master
 		fi
@@ -313,7 +313,7 @@ echo "use system version: ${OSNAME}"
 if [ "${OSNAME}" == "macos" ];then
 	curl --insecure -fsSL ${HTTP_PREFIX}raw.githubusercontent.com/clhome/bt_simple/master/scripts/install/macos.sh | bash
 else
-	cd /www/server/mdserver-web && bash scripts/install/${OSNAME}.sh
+	cd /www/server/yufeng_panel && bash scripts/install/${OSNAME}.sh
 fi
 
 if [ "${OSNAME}" == "macos" ];then
@@ -321,10 +321,10 @@ if [ "${OSNAME}" == "macos" ];then
 	exit 0
 fi
 
-cd /www/server/mdserver-web && bash cli.sh start
+cd /www/server/yufeng_panel && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
-while [ ! -f /etc/rc.d/init.d/mw ];
+while [ ! -f /etc/rc.d/init.d/yf ];
 do
     echo -e ".\c"
     sleep 1
@@ -335,22 +335,18 @@ do
     fi
 done
 
-cd /www/server/mdserver-web && bash /etc/rc.d/init.d/mw stop
-cd /www/server/mdserver-web && bash /etc/rc.d/init.d/mw start
-cd /www/server/mdserver-web && bash /etc/rc.d/init.d/mw default
+cd /www/server/yufeng_panel && bash /etc/rc.d/init.d/yf stop
+cd /www/server/yufeng_panel && bash /etc/rc.d/init.d/yf start
+cd /www/server/yufeng_panel && bash /etc/rc.d/init.d/yf default
 
 sleep 2
-if [ ! -e /usr/bin/mw ]; then
-	if [ -f /etc/rc.d/init.d/mw ];then
-		ln -s /etc/rc.d/init.d/mw /usr/bin/mw
+if [ ! -e /usr/bin/yf ]; then
+	if [ -f /etc/rc.d/init.d/yf ];then
+		ln -s /etc/rc.d/init.d/yf /usr/bin/mw
 	fi
 fi
 
-if [ ! -e /usr/bin/bs ]; then
-	if [ -f /etc/rc.d/init.d/mw ];then
-		ln -s /etc/rc.d/init.d/mw /usr/bin/bs
-	fi
-fi
+
 
 endTime=`date +%s`
 ((outTime=(${endTime}-${startTime})/60))
@@ -358,5 +354,5 @@ echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 
 } 1> >(tee $LOG_FILE) 2>&1
 
-echo -e "\nInstall completed. If error occurs, please contact us with the log file mw-install.log ."
-echo "安装完毕，如果出现错误，请带上同目录下的安装日志 mw-install.log 联系我们反馈：admin@yftec.top."
+echo -e "\nInstall completed. If error occurs, please contact us with the log file yf-install.log ."
+echo "安装完毕，如果出现错误，请带上同目录下的安装日志 yf-install.log 联系我们反馈：admin@yftec.top."

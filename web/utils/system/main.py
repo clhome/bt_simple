@@ -27,8 +27,8 @@ def yf_async(f):
         thr.start()
     return wrapper
 
-# 兼容旧版 yf_async 调用
-yf_async = yf_async
+# 兼容旧版 mw_async 调用
+mw_async = yf_async
 
 @yf_async
 def restartServer():

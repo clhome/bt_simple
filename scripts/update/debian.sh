@@ -26,31 +26,33 @@ fi
 
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 if [ "$VERSION_ID" == "9" ];then
-    sed "s/flask==2.0.3/flask==1.1.1/g" -i /www/server/mdserver-web/requirements.txt
-    sed "s/cryptography==3.3.2/cryptography==2.5/g" -i /www/server/mdserver-web/requirements.txt
-    sed "s/configparser==5.2.0/configparser==4.0.2/g" -i /www/server/mdserver-web/requirements.txt
-    sed "s/flask-socketio==5.2.0/flask-socketio==4.2.0/g" -i /www/server/mdserver-web/requirements.txt
-    sed "s/python-engineio==4.3.2/python-engineio==3.9.0/g" -i /www/server/mdserver-web/requirements.txt
-    # pip3 install -r /www/server/mdserver-web/requirements.txt
+    sed "s/flask==2.0.3/flask==1.1.1/g" -i /www/server/yufeng_panel/requirements.txt
+    sed "s/cryptography==3.3.2/cryptography==2.5/g" -i /www/server/yufeng_panel/requirements.txt
+    sed "s/configparser==5.2.0/configparser==4.0.2/g" -i /www/server/yufeng_panel/requirements.txt
+    sed "s/flask-socketio==5.2.0/flask-socketio==4.2.0/g" -i /www/server/yufeng_panel/requirements.txt
+    sed "s/python-engineio==4.3.2/python-engineio==3.9.0/g" -i /www/server/yufeng_panel/requirements.txt
+    # pip3 install -r /www/server/yufeng_panel/requirements.txt
 fi
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 
 
-if [ -f /etc/rc.d/init.d/mw ];then
-    if [ -f /usr/bin/mw ];then
-        rm -rf /usr/bin/mw
+if [ -f /etc/rc.d/init.d/yf ];then
+    if [ -f /usr/bin/yf ];then
+        rm -rf /usr/bin/yf
+    rm -rf /usr/bin/mw
+    rm -rf /usr/bin/bs
     fi
-    bash /etc/rc.d/init.d/mw stop && rm -rf /www/server/mdserver-web/scripts/init.d/mw && rm -rf /etc/rc.d/init.d/mw
+    bash /etc/rc.d/init.d/yf stop && rm -rf /www/server/yufeng_panel/scripts/init.d/yf && rm -rf /etc/rc.d/init.d/yf
 fi
 
 echo -e "stop mw"
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 
 port=7200
-if [ -f /www/server/mdserver-web/data/port.pl ];then
-    port=$(cat /www/server/mdserver-web/data/port.pl)
+if [ -f /www/server/yufeng_panel/data/port.pl ];then
+    port=$(cat /www/server/yufeng_panel/data/port.pl)
 fi
 
 n=0
@@ -67,10 +69,10 @@ done
 
 
 echo -e "start mw"
-cd /www/server/mdserver-web && bash cli.sh start
+cd /www/server/yufeng_panel && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
-while [[ ! -f /etc/rc.d/init.d/mw ]];
+while [[ ! -f /etc/rc.d/init.d/yf ]];
 do
     echo -e ".\c"
     sleep 1

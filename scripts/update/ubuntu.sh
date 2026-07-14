@@ -12,23 +12,25 @@ if grep -Eq "Ubuntu" /etc/*-release; then
 fi
 
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 
 
-if [ -f /etc/rc.d/init.d/mw ];then
-    if [ -f /usr/bin/mw ];then
-        rm -rf /usr/bin/mw
+if [ -f /etc/rc.d/init.d/yf ];then
+    if [ -f /usr/bin/yf ];then
+        rm -rf /usr/bin/yf
+    rm -rf /usr/bin/mw
+    rm -rf /usr/bin/bs
     fi
-    bash /etc/rc.d/init.d/mw stop && rm -rf /www/server/mdserver-web/scripts/init.d/mw && rm -rf /etc/rc.d/init.d/mw
+    bash /etc/rc.d/init.d/yf stop && rm -rf /www/server/yufeng_panel/scripts/init.d/yf && rm -rf /etc/rc.d/init.d/yf
 fi
 
 echo -e "stop mw"
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 port=7200
 
-if [ -f /www/server/mdserver-web/data/port.pl ];then
-    port=$(cat /www/server/mdserver-web/data/port.pl)
+if [ -f /www/server/yufeng_panel/data/port.pl ];then
+    port=$(cat /www/server/yufeng_panel/data/port.pl)
 fi
 n=0
 while [[ "$isStart" != "" ]];
@@ -44,10 +46,10 @@ done
 
 
 echo -e "start mw"
-cd /www/server/mdserver-web && bash cli.sh start
+cd /www/server/yufeng_panel && bash cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
-while [[ ! -f /etc/rc.d/init.d/mw ]];
+while [[ ! -f /etc/rc.d/init.d/yf ]];
 do
     echo -e ".\c"
     sleep 1

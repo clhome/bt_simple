@@ -56,5 +56,5 @@ cd $DEV/server/mdserver-web && ./cli.sh start
 cd $DEV/server/mdserver-web && ./cli.sh stop
 
 sleep 5
-cd $DEV/server/mdserver-web && ./scripts/init.d/mw default
+cd $DEV/server/mdserver-web && ./scripts/init.d/yf default
 cd $DEV/server/mdserver-web && ./cli.sh debug

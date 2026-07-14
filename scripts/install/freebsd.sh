@@ -93,6 +93,6 @@ fi
 service ipfw stop
 
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 

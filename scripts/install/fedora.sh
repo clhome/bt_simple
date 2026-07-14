@@ -121,6 +121,6 @@ do yum -y install $yumPack;done
 
 dnf install libxml2 libxml2-devel -y
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 

@@ -4,19 +4,19 @@ export PATH
 LANG=en_US.UTF-8
 
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 
 
-if [ -f /etc/rc.d/init.d/mw ];then
-    bash /etc/rc.d/init.d/mw stop && rm -rf /www/server/mdserver-web/scripts/init.d/mw && rm -rf /etc/rc.d/init.d/mw
+if [ -f /etc/rc.d/init.d/yf ];then
+    bash /etc/rc.d/init.d/yf stop && rm -rf /www/server/yufeng_panel/scripts/init.d/yf && rm -rf /etc/rc.d/init.d/yf
 fi
 
 echo -e "start mw"
-cd /www/server/mdserver-web && bash cli.sh start
+cd /www/server/yufeng_panel && bash cli.sh start
 isStart=`ps -aux|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
-while [[ ! -f /etc/rc.d/init.d/mw ]];
+while [[ ! -f /etc/rc.d/init.d/yf ]];
 do
     echo -e ".\c"
     sleep 1
@@ -28,5 +28,5 @@ do
 done
 echo -e "start mw success"
 
-cd /www/server/mdserver-web && bash /etc/rc.d/init.d/mw stop
-cd /www/server/mdserver-web && bash /etc/rc.d/init.d/mw start
+cd /www/server/yufeng_panel && bash /etc/rc.d/init.d/yf stop
+cd /www/server/yufeng_panel && bash /etc/rc.d/init.d/yf start

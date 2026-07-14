@@ -127,6 +127,6 @@ do dnf --enablerepo=crb install -y $yumPack;done
 # echo "/usr/local/lib64" >> /etc/ld.so.conf
 
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 

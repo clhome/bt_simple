@@ -105,7 +105,7 @@ dnf --enablerepo=powertools install -y oniguruma oniguruma-devel
 dnf --enablerepo=powertools install -y re2c bison bison-devel
 dnf install -y libjpeg-turbo libjpeg-turbo-devel
 
-cd /www/server/mdserver-web/scripts && bash lib.sh
-chmod 755 /www/server/mdserver-web/data
+cd /www/server/yufeng_panel/scripts && bash lib.sh
+chmod 755 /www/server/yufeng_panel/data
 
 echo "rocky ok"
