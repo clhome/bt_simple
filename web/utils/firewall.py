@@ -310,12 +310,18 @@ class Firewall(object):
             if mw.isAppleSystem():
                 isPing = True
             else:
-                file = '/etc/sysctl.conf'
-                sys_conf = mw.readFile(file)
-                rep = r"#*net\.ipv4\.icmp_echo_ignore_all\s*=\s*([0-9]+)"
-                tmp = re.search(rep, sys_conf).groups(0)[0]
-                if tmp == '1':
-                    isPing = False
+                proc_file = '/proc/sys/net/ipv4/icmp_echo_ignore_all'
+                if os.path.exists(proc_file):
+                    if mw.readFile(proc_file).strip() == '1':
+                        isPing = False
+                else:
+                    file = '/etc/sysctl.conf'
+                    sys_conf = mw.readFile(file)
+                    rep = r"^\s*net\.ipv4\.icmp_echo_ignore_all\s*=\s*([0-9]+)"
+                    if re.search(rep, sys_conf, re.M):
+                        tmp = re.search(rep, sys_conf, re.M).group(1)
+                        if tmp == '1':
+                            isPing = False
         except:
             isPing = True
 
@@ -346,9 +352,11 @@ class Firewall(object):
                 if c: conf += c + "\n"
             conf += mw.readFile(sshd_file)
             # 端口配置检查
-            port_match = re.search(r"^\s*#?\s*Port\s+(\d+)", conf, re.M | re.I)
+            port_match = re.search(r"^\s*Port\s+(\d+)", conf, re.M | re.I)
             if port_match:
                 port = port_match.group(1)
+            else:
+                port = '22'
 
             # 密码登陆配置检查
             pass_match = re.search(r"^\s*PasswordAuthentication\s+(\S+)", conf, re.M | re.I)
