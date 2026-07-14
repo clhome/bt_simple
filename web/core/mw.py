@@ -18,4 +18,5 @@ class DeprecatedProxy:
         return dir(self._target)
 
 import sys
-sys.modules[__name__] = DeprecatedProxy(sys.modules['web.core.yf'])
+yf_module_name = __name__[:-2] + 'yf'
+sys.modules[__name__] = DeprecatedProxy(sys.modules[yf_module_name])
