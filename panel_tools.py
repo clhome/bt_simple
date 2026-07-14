@@ -575,7 +575,8 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                     else:
                         old_parts = [int(i) for i in old_mysql_ver.split('.') if i.isdigit()]
                         new_parts = [int(i) for i in new_mysql_ver.split('.') if i.isdigit()]
-                        if old_parts > new_parts:
+                        min_len = min(len(old_parts), len(new_parts))
+                        if old_parts[:min_len] > new_parts[:min_len]:
                             print("  ❌ 致命错误：不支持 MySQL 版本降级！(旧: %s, 新: %s)" % (old_mysql_ver, new_mysql_ver))
                             print("  ⚠️  高版本的物理数据文件无法被低版本 MySQL 引擎加载，这会导致数据库服务完全无法启动。")
                             print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装高于或等于旧版本 (%s) 的 MySQL。" % old_mysql_ver)
