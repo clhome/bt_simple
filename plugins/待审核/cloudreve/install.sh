@@ -47,7 +47,7 @@ Install_App()
 	
 	mkdir -p $serverPath/cloudreve
 
-	cd $CLOUDREVE_DIR && tar -zxvf ${FILE_TGZ}  -C $serverPath/cloudreve
+	cd $CLOUDREVE_DIR && tar -zxf ${FILE_TGZ}  -C $serverPath/cloudreve
 	echo "${VERSION}" > $serverPath/cloudreve/version.pl
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/cloudreve/index.py start

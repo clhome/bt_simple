@@ -91,7 +91,7 @@ Install_fast_mysql() {
         tar_file="mysql-${suffix_name}.tar.gz"
         download_path="MySQL-5.7"
     elif [[ "${version_main}" == "8.0" ]]; then
-        mysql_full_ver="8.0.40"
+        mysql_full_ver="8.0.46"
         suffix_name="${mysql_full_ver}-linux-glibc2.28-${os_arch}"
         tar_file="mysql-${suffix_name}.tar.xz"
         download_path="MySQL-8.0"
@@ -132,13 +132,10 @@ Install_fast_mysql() {
         ext="tar.gz"
     fi
     local huawei_base="https://mirrors.huaweicloud.com/mysql/Downloads/${download_path}/"
-    local huawei_file=$(curl -sL --max-time 5 "${huawei_base}" 2>/dev/null | grep -oE "mysql-${version_main}\.[0-9]+-linux-glibc[0-9.]+-${os_arch}\.${ext}" | sort -V | tail -n 1)
 
     # 下载源列表（国内镜像优先，官方源兜底）
     local mirrors=()
-    if [ -n "${huawei_file}" ]; then
-        mirrors+=("${huawei_base}${huawei_file}")
-    fi
+    mirrors+=("${huawei_base}${tar_file}")
     mirrors+=(
         "https://mirrors.aliyun.com/mysql/${download_path}/${tar_file}"
         "https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/${download_path}/${tar_file}"
@@ -156,7 +153,7 @@ Install_fast_mysql() {
         if command -v mw_download &> /dev/null; then
             mw_download "${tmp_file}" "${mirror_url}"
         else
-            wget --no-check-certificate -O "${tmp_file}" "${mirror_url}"
+            wget -nv --no-check-certificate -O "${tmp_file}" "${mirror_url}"
         fi
 
         if [ -f "${tmp_file}" ]; then

@@ -52,7 +52,7 @@ download_file() {
     if test -x "$(command -v curl)"; then
         code=$(curl --connect-timeout 15 -w '%{http_code}' -L "${url}" -o "${destination}")
     elif test -x "$(command -v wget)"; then
-        code=$(wget -t2 -T15 -O "${destination}" --server-response "${url}" 2>&1 | awk '/^  HTTP/{print $2}' | tail -1)
+        code=$(wget -nv -t2 -T15 -O "${destination}" --server-response "${url}" 2>&1 | awk '/^  HTTP/{print $2}' | tail -1)
     else
         printf "\e[1;31mNeither curl nor wget was available to perform http requests.\e[0m\n"
         exit 1

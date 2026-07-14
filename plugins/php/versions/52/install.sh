@@ -41,17 +41,17 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 
 	if [ "$LOCAL_ADDR" == "cn" ];then
 		if [ ! -f $sourcePath/php/php-${version}.tar.xz ];then
-			wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://mirrors.nju.edu.cn/php/php-${version}.tar.xz
+			wget -nv --no-check-certificate -O $sourcePath/php/php-${version}.tar.xz https://mirrors.nju.edu.cn/php/php-${version}.tar.xz
 		fi
 	fi
 	# ----------------------------------------------------------------------- #
 
 	if [ ! -f $sourcePath/php/php-${version}.tar.gz ];then
-		wget --no-check-certificate -O $sourcePath/php/php-${version}.tar.gz https://museum.php.net/php5/php-${version}.tar.gz
+		wget -nv --no-check-certificate -O $sourcePath/php/php-${version}.tar.gz https://museum.php.net/php5/php-${version}.tar.gz
 	fi
 	
 	if [ ! -f $sourcePath/php/php-5.2.17-fpm-0.5.14.diff.gz ]; then
-		wget --no-check-certificate -O $sourcePath/php/php-5.2.17-fpm-0.5.14.diff.gz http://php-fpm.org/downloads/php-5.2.17-fpm-0.5.14.diff.gz
+		wget -nv --no-check-certificate -O $sourcePath/php/php-5.2.17-fpm-0.5.14.diff.gz http://php-fpm.org/downloads/php-5.2.17-fpm-0.5.14.diff.gz
 	fi
 
 
@@ -60,7 +60,7 @@ if [ ! -d $sourcePath/php/php${PHP_VER} ];then
 	fi
 
 	if [ ! -f $sourcePath/php/php-5.x.x.patch ]; then
-		wget --no-check-certificate -O $sourcePath/php/php-5.x.x.patch https://mail.gnome.org/archives/xml/2012-August/txtbgxGXAvz4N.txt
+		wget -nv --no-check-certificate -O $sourcePath/php/php-5.x.x.patch https://mail.gnome.org/archives/xml/2012-August/txtbgxGXAvz4N.txt
 	fi
 
 

@@ -566,7 +566,7 @@ def initMysql8Data():
         #     datadir + ' --initialize'
 
         myconf = serverdir + "/etc/my.cnf"
-        cmd = 'cd ' + serverdir + ' && ./bin/mysqld --no-defaults --basedir=' + serverdir + ' --datadir=' + \
+        cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + ' --basedir=' + serverdir + ' --datadir=' + \
             datadir + ' --user=' + user + ' --initialize-insecure'
 
         data = mw.execShell(cmd)

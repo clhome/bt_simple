@@ -112,6 +112,41 @@ def login():
             return render_template('%s/path.html' % name)
         return Response(status=int(unauthorized_status))
 
+@blueprint.route('/do_signout', endpoint='do_signout', methods=['POST'])
+def do_signout():
+    session.clear()
+    session['login'] = False
+    session['overdue'] = 0
+    return mw.returnData(True, '已安全退出')
+
+@blueprint.route('/logout_success', endpoint='logout_success')
+def logout_success():
+    html_content = '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>退出成功</title>
+        <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f2f2f2; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+            .container { background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+            h2 { color: #333; margin-top: 0; }
+            p { color: #666; line-height: 1.6; }
+            .icon { font-size: 48px; color: #5cb85c; margin-bottom: 20px; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">✓</div>
+            <h2>已安全退出</h2>
+            <p>您已成功退出御风面板。</p>
+            <p style="font-size: 14px; color: #999; margin-top: 20px;">为了系统安全，如需再次登录，<br>请手动访问您的安全入口地址。</p>
+        </div>
+    </body>
+    </html>
+    '''
+    return html_content
+
 @blueprint.route('/close')
 def close():
     name = thisdb.getOption('template', default='default')
@@ -147,10 +182,17 @@ def verifyLogin():
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
-    password = mw.md5(password)
 
-    info = thisdb.getUserByRoot()
-    if info['name'] != username or info['password'] != password:
+    info = thisdb.getUserByName(username)
+    is_correct = False
+    if info:
+        password_md5 = mw.md5(password)
+        if info['password'] == password_md5:
+            is_correct = True
+        elif mw.checkPwd(password, info['password']):
+            is_correct = True
+
+    if not is_correct:
         return mw.returnJson(-1, "密码错误?")
 
     auth = request.form.get('auth', '').strip()    

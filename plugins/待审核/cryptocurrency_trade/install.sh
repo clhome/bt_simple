@@ -32,7 +32,7 @@ Install_App()
 	echo "${VERSION}" > $serverPath/cryptocurrency_trade/version.pl
 
 	if [ ! -f $serverPath/source/cryptocurrency_trade/ta-lib-0.4.0-src.tar.gz ];then
-		wget -O $serverPath/source/cryptocurrency_trade/ta-lib-0.4.0-src.tar.gz https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+		wget -nv -O $serverPath/source/cryptocurrency_trade/ta-lib-0.4.0-src.tar.gz https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
 	fi
 
 	if [ ! -d $serverPath/source/cryptocurrency_trade/ta-lib ];then

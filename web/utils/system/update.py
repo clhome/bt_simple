@@ -78,8 +78,8 @@ def backup_panel():
     
     backup_file = f"{backup_dir}/bt_simple_{version}_{timestamp}.tar.gz"
     
-    # 备份 web, panel_task.py, panel_tools.py 等核心文件
-    cmd = f"cd {panel_dir} && tar -czf {backup_file} web panel_task.py panel_tools.py cli.sh version.py requirements.txt"
+    # 备份 web, panel_task.py, panel_tools.py 等核心文件，以及重要的安全配置文件
+    cmd = f"cd {panel_dir} && tar -czf {backup_file} web panel_task.py panel_tools.py cli.sh version.py requirements.txt data/.crypt_salt 2>/dev/null || tar -czf {backup_file} web panel_task.py panel_tools.py cli.sh version.py requirements.txt"
     mw.execShell(cmd)
     
     if os.path.exists(backup_file):

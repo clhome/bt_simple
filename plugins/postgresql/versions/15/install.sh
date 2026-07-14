@@ -75,7 +75,7 @@ Install_App()
 	# ----- cpu end ------
 
 	if [ ! -f ${postgreDir}/postgresql-${VERSION}.tar.bz2 ];then
-		wget --no-check-certificate -O ${postgreDir}/postgresql-${VERSION}.tar.bz2 --tries=3 https://ftp.postgresql.org/pub/source/v${VERSION}/postgresql-${VERSION}.tar.bz2
+		wget -nv --no-check-certificate -O ${postgreDir}/postgresql-${VERSION}.tar.bz2 --tries=3 https://ftp.postgresql.org/pub/source/v${VERSION}/postgresql-${VERSION}.tar.bz2
 	fi
 
 	if [ ! -d ${postgreDir}/postgresql-${VERSION} ];then

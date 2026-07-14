@@ -212,6 +212,21 @@ def set_cdn_status():
     mw.writeLog('面板设置', '关闭CDN加速!')
     return mw.returnData(True, '关闭CDN加速成功!')
 
+# 设置GPU检测状态
+@blueprint.route('/set_gpu_detect', endpoint='set_gpu_detect', methods=['POST'])
+@panel_login_required
+def set_gpu_detect():
+    gpu_detect = thisdb.getOption('gpu_detect', default='no')
+    if gpu_detect == 'no':
+        thisdb.setOption('gpu_detect', 'yes')
+        utils_config._global_var_cache_time = 0
+        mw.writeLog('面板设置', '开启英伟达GPU首页检测!')
+        return mw.returnData(True, '开启英伟达GPU首页检测成功!')
+    thisdb.setOption('gpu_detect', 'no')
+    utils_config._global_var_cache_time = 0
+    mw.writeLog('面板设置', '关闭英伟达GPU首页检测!')
+    return mw.returnData(True, '关闭英伟达GPU首页检测成功!')
+
 # 设置面板用户
 @blueprint.route('/set_name', endpoint='set_name', methods=['POST'])
 @panel_login_required

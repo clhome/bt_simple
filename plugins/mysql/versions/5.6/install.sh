@@ -93,11 +93,11 @@ Install_mysql()
 	
 
 	if [ ! -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-5.6/mysql-${VERSION}.tar.gz
+		wget -nv --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://cdn.mysql.com/Downloads/MySQL-5.6/mysql-${VERSION}.tar.gz
 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
-		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-${VERSION}.tar.gz
+		 cd ${mysqlDir} && tar -zxf  ${mysqlDir}/mysql-${VERSION}.tar.gz
 	fi
 
 	WHERE_DIR_GCC=/usr/bin/gcc

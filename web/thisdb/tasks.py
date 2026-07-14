@@ -59,6 +59,11 @@ def addTask(
     if cmd is None:
         return False
 
+    # 检查是否已经在执行队列中
+    isTask = mw.M('tasks').where('status!=? AND cmd=?',(1,cmd)).count()
+    if isTask > 0:
+        return False
+
     add_time = mw.formatDate()
     insert_data = {
         'name':name,

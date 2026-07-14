@@ -181,6 +181,23 @@ def mwcli(mw_input=0):
         os.system(INIT_CMD + " default")
     elif mw_input == 11:
         import random
+        try:
+            from core.crypt_salt import get_salt, init_salt
+            salt = get_salt()
+            if salt is None:
+                print("检测到加密 Salt 不存在，正在生成...")
+                init_salt()
+                print("加密 Salt 已生成并保存到备份位置。")
+                
+                try:
+                    from core.crypt_migrate import migrate_encrypted_data
+                    migrate_encrypted_data()
+                    print("存量加密数据已使用新 Salt 重新加密。")
+                except Exception as e:
+                    print("数据迁移失败: " + str(e))
+        except Exception as e:
+            pass
+
         pwd_len = random.randint(8, 12)
         rand_pwd = mw.getRandomString(pwd_len)
         set_panel_pwd(rand_pwd, True)
@@ -555,6 +572,15 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                         print("  ⚠️  跨大版本直接拷贝 data 目录会造成严重的数据损坏和系统表冲突。")
                         print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装与旧版本一致的 MySQL %s 后，再执行本命令。" % old_major)
                         return
+                    else:
+                        old_parts = [int(i) for i in old_mysql_ver.split('.') if i.isdigit()]
+                        new_parts = [int(i) for i in new_mysql_ver.split('.') if i.isdigit()]
+                        min_len = min(len(old_parts), len(new_parts))
+                        if old_parts[:min_len] > new_parts[:min_len]:
+                            print("  ❌ 致命错误：不支持 MySQL 版本降级！(旧: %s, 新: %s)" % (old_mysql_ver, new_mysql_ver))
+                            print("  ⚠️  高版本的物理数据文件无法被低版本 MySQL 引擎加载，这会导致数据库服务完全无法启动。")
+                            print("  💡 解决方法：请在面板中卸载当前 MySQL，重新安装高于或等于旧版本 (%s) 的 MySQL。" % old_mysql_ver)
+                            return
                 else:
                     if not old_mysql_ver:
                         print("  ❌ 致命错误：无法获取旧宝塔 MySQL 的版本信息！")

@@ -40,7 +40,7 @@ Install_App()
 	fi
 
 	if [ ! -d $InstallDir/bin/grafana ];then
-		cd ${SourceDir} && tar -zxvf ${FILE_TGZ}
+		cd ${SourceDir} && tar -zxf ${FILE_TGZ}
 		cd ${SourceDir}/grafana-v*
 		cp -rf ./* $InstallDir
 	fi

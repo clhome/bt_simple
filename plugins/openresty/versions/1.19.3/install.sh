@@ -74,7 +74,7 @@ Install_openresty()
 
 	# wget -O openresty-1.21.4.1.tar.gz https://openresty.org/download/openresty-1.21.4.1.tar.gz
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://openresty.org/download/openresty-${VERSION}.tar.gz -T 3
+		wget -nv --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://openresty.org/download/openresty-${VERSION}.tar.gz -T 3
 	fi
 
 	DOWNLOAD_SIZE=`wc -c ${openrestyDir}/openresty-${VERSION}.tar.gz | awk '{print $1}'`
@@ -85,10 +85,10 @@ Install_openresty()
 
 	# Last Download Method (USTC Mirror)
 	if [ ! -f ${openrestyDir}/openresty-${VERSION}.tar.gz ];then
-		wget --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirrors.ustc.edu.cn/openresty/download/openresty-${VERSION}.tar.gz -T 10
+		wget -nv --no-check-certificate -O ${openrestyDir}/openresty-${VERSION}.tar.gz https://mirrors.ustc.edu.cn/openresty/download/openresty-${VERSION}.tar.gz -T 10
 	fi
 
-	cd ${openrestyDir} && tar -zxvf openresty-${VERSION}.tar.gz
+	cd ${openrestyDir} && tar -zxf openresty-${VERSION}.tar.gz
 
 	OPTIONS=''
 	OPTIONS="${OPTIONS} --with-ipv6"
@@ -99,11 +99,11 @@ Install_openresty()
 	if [ "$sysName" == "Darwin" ];then
 
 		if [ ! -f ${openrestyDir}/pcre-${pcreVersion}.tar.gz ];then
-			wget --no-check-certificate -O ${openrestyDir}/pcre-${pcreVersion}.tar.gz https://netix.dl.sourceforge.net/project/pcre/pcre/${pcreVersion}/pcre-${pcreVersion}.tar.gz
+			wget -nv --no-check-certificate -O ${openrestyDir}/pcre-${pcreVersion}.tar.gz https://netix.dl.sourceforge.net/project/pcre/pcre/${pcreVersion}/pcre-${pcreVersion}.tar.gz
 		fi
 
 		if [ ! -d ${openrestyDir}/pcre-${pcreVersion} ];then
-			cd ${openrestyDir} &&  tar -zxvf pcre-${pcreVersion}.tar.gz
+			cd ${openrestyDir} &&  tar -zxf pcre-${pcreVersion}.tar.gz
 		fi
 		OPTIONS="${OPTIONS} --with-pcre=${openrestyDir}/pcre-${pcreVersion}"
 
@@ -113,7 +113,7 @@ Install_openresty()
 	    fi
 
 	    if [ ! -d ${openrestyDir}/openssl-${opensslVersion} ];then
-			cd ${openrestyDir} &&  tar -zxvf openssl-${opensslVersion}.tar.gz
+			cd ${openrestyDir} &&  tar -zxf openssl-${opensslVersion}.tar.gz
 		fi
 	    OPTIONS="${OPTIONS} --with-openssl=${openrestyDir}/openssl-${opensslVersion}"
 
@@ -125,11 +125,11 @@ Install_openresty()
 		# OPTIONS="${OPTIONS} --with-openssl=${OPENSSL_LIB_DEPEND_DIR}"
 	else
 		if [ ! -f ${openrestyDir}/pcre-${pcreVersion}.tar.gz ];then
-			wget --no-check-certificate -O ${openrestyDir}/pcre-${pcreVersion}.tar.gz https://netix.dl.sourceforge.net/project/pcre/pcre/${pcreVersion}/pcre-${pcreVersion}.tar.gz
+			wget -nv --no-check-certificate -O ${openrestyDir}/pcre-${pcreVersion}.tar.gz https://netix.dl.sourceforge.net/project/pcre/pcre/${pcreVersion}/pcre-${pcreVersion}.tar.gz
 		fi
 
 		if [ ! -d ${openrestyDir}/pcre-${pcreVersion} ];then
-			cd ${openrestyDir} &&  tar -zxvf pcre-${pcreVersion}.tar.gz
+			cd ${openrestyDir} &&  tar -zxf pcre-${pcreVersion}.tar.gz
 		fi
 		OPTIONS="${OPTIONS} --with-pcre=${openrestyDir}/pcre-${pcreVersion}"
 		
@@ -139,7 +139,7 @@ Install_openresty()
 	    # fi
 
 	    # if [ ! -d ${openrestyDir}/openssl-${opensslVersion} ];then
-		# 	cd ${openrestyDir} &&  tar -zxvf openssl-${opensslVersion}.tar.gz
+		# 	cd ${openrestyDir} &&  tar -zxf openssl-${opensslVersion}.tar.gz
 		# fi
 		# OPTIONS="${OPTIONS} --with-openssl=${openrestyDir}/openssl-${opensslVersion}"
 	fi
@@ -168,21 +168,21 @@ Install_openresty()
 	# ngx_cache_purge
 	if [ ! -d ${openrestyDir}/ngx_cache_purge-master ];then
 		github_download ${openrestyDir}/ngx_cache_purge.tar.gz https://github.com/nginx-modules/ngx_cache_purge/archive/refs/heads/master.tar.gz
-		cd ${openrestyDir} && tar -zxvf ngx_cache_purge.tar.gz
+		cd ${openrestyDir} && tar -zxf ngx_cache_purge.tar.gz
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_cache_purge-master"
 
 	# nginx-http-concat
 	if [ ! -d ${openrestyDir}/nginx-http-concat-master ];then
 		github_download ${openrestyDir}/nginx-http-concat.tar.gz https://github.com/alibaba/nginx-http-concat/archive/refs/heads/master.tar.gz
-		cd ${openrestyDir} && tar -zxvf nginx-http-concat.tar.gz
+		cd ${openrestyDir} && tar -zxf nginx-http-concat.tar.gz
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/nginx-http-concat-master"
 
 	# ngx_http_substitutions_filter_module
 	if [ ! -d ${openrestyDir}/ngx_http_substitutions_filter_module-master ];then
 		github_download ${openrestyDir}/ngx_http_substitutions_filter_module.tar.gz https://github.com/yaoweibin/ngx_http_substitutions_filter_module/archive/refs/heads/master.tar.gz
-		cd ${openrestyDir} && tar -zxvf ngx_http_substitutions_filter_module.tar.gz
+		cd ${openrestyDir} && tar -zxf ngx_http_substitutions_filter_module.tar.gz
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_http_substitutions_filter_module-master"
 
@@ -200,7 +200,7 @@ Install_openresty()
 
 	if [ ! -d ${openrestyDir}/zstd-nginx-module-master ];then
 		github_download $openrestyDir/zstd-nginx-module.tar.gz https://github.com/tokers/zstd-nginx-module/archive/refs/heads/master.tar.gz
-		cd ${openrestyDir} && tar -zxvf zstd-nginx-module.tar.gz
+		cd ${openrestyDir} && tar -zxf zstd-nginx-module.tar.gz
 	fi
 
 	pkg-config --exists --print-errors libzstd

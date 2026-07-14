@@ -13,7 +13,9 @@ import os
 import re
 import threading
 import re
+import threading
 import time
+import glob
 
 
 import core.mw as mw
@@ -259,15 +261,23 @@ class Firewall(object):
             pass
 
     def reloadSshd(self):
-        if self.__isUfw:
-            mw.execShell("service ssh restart")
-        elif self.__isIptables:
-            mw.execShell("/etc/init.d/sshd restart")
-        elif self.__isFirewalld:
-            mw.execShell("systemctl restart sshd.service")
+        if os.path.exists('/usr/bin/apt-get'):
+            mw.execShell('service ssh restart')
+            mw.execShell('systemctl restart ssh')
         else:
-            return False
+            mw.execShell("systemctl restart sshd.service")
+            mw.execShell("/etc/init.d/sshd restart")
         return True
+
+    def __clear_sshd_config_d(self, keyword):
+        d_files = glob.glob('/etc/ssh/sshd_config.d/*.conf')
+        for d_file in d_files:
+            d_conf = mw.readFile(d_file)
+            if d_conf:
+                rep = r"^\s*" + keyword + r"\s+\S+"
+                if re.search(rep, d_conf, re.M | re.I):
+                    d_conf = re.sub(rep, "#" + keyword + " ", d_conf, flags=re.M | re.I)
+                    mw.writeFile(d_file, d_conf)
 
     def getFwStatus(self):
         if self.__isUfw:
@@ -300,12 +310,18 @@ class Firewall(object):
             if mw.isAppleSystem():
                 isPing = True
             else:
-                file = '/etc/sysctl.conf'
-                sys_conf = mw.readFile(file)
-                rep = r"#*net\.ipv4\.icmp_echo_ignore_all\s*=\s*([0-9]+)"
-                tmp = re.search(rep, sys_conf).groups(0)[0]
-                if tmp == '1':
-                    isPing = False
+                proc_file = '/proc/sys/net/ipv4/icmp_echo_ignore_all'
+                if os.path.exists(proc_file):
+                    if mw.readFile(proc_file).strip() == '1':
+                        isPing = False
+                else:
+                    file = '/etc/sysctl.conf'
+                    sys_conf = mw.readFile(file)
+                    rep = r"^\s*net\.ipv4\.icmp_echo_ignore_all\s*=\s*([0-9]+)"
+                    if re.search(rep, sys_conf, re.M):
+                        tmp = re.search(rep, sys_conf, re.M).group(1)
+                        if tmp == '1':
+                            isPing = False
         except:
             isPing = True
 
@@ -330,35 +346,41 @@ class Firewall(object):
         port = '22'
         sshd_file = '/etc/ssh/sshd_config'
         if  os.path.exists(sshd_file):
-            conf = mw.readFile(sshd_file)
+            conf = ''
+            for d_file in sorted(glob.glob('/etc/ssh/sshd_config.d/*.conf')):
+                c = mw.readFile(d_file)
+                if c: conf += c + "\n"
+            conf += mw.readFile(sshd_file)
             # 端口配置检查
-            port_match = re.search(r"^\s*#?\s*Port\s+(\d+)", conf, re.M | re.I)
+            port_match = re.search(r"^\s*Port\s+(\d+)", conf, re.M | re.I)
             if port_match:
                 port = port_match.group(1)
+            else:
+                port = '22'
 
             # 密码登陆配置检查
-            pass_match = re.search(r"^\s*PasswordAuthentication\s+(\w+)", conf, re.M | re.I)
+            pass_match = re.search(r"^\s*PasswordAuthentication\s+(\S+)", conf, re.M | re.I)
             if pass_match:
                 if pass_match.group(1).strip().lower() == 'no':
                     data['pass_prohibit_status'] = True
             else:
-                data['pass_prohibit_status'] = True
+                data['pass_prohibit_status'] = False
 
             # 密钥登陆配置检查
-            pubkey_match = re.search(r"^\s*PubkeyAuthentication\s+(\w+)", conf, re.M | re.I)
+            pubkey_match = re.search(r"^\s*PubkeyAuthentication\s+(\S+)", conf, re.M | re.I)
             if pubkey_match:
                 if pubkey_match.group(1).strip().lower() == 'no':
                     data['pubkey_prohibit_status'] = True
             else:
-                data['pubkey_prohibit_status'] = True
+                data['pubkey_prohibit_status'] = False
 
             # root登陆配置检查
-            root_match = re.search(r"^\s*PermitRootLogin\s+(\w+)", conf, re.M | re.I)
+            root_match = re.search(r"^\s*PermitRootLogin\s+(\S+)", conf, re.M | re.I)
             if root_match:
                 if root_match.group(1).strip().lower() == 'no':
                     data['root_prohibit_status'] = True
             else:
-                data['root_prohibit_status'] = True
+                data['root_prohibit_status'] = False
 
         data['port'] = port
         data['status'] = status
@@ -665,20 +687,27 @@ class Firewall(object):
 
         conf = mw.readFile(file)
 
-        root_rep = r"PermitRootLogin\s+(\w*)\s*\n"
-        root_status = re.search(root_rep, conf)
-        if not root_status:
-            rep = r"(#)?PermitRootLogin\s+(\w*)\s*\n"
-            conf = re.sub(rep, "PermitRootLogin yes\n", conf)
+        self.__clear_sshd_config_d('PermitRootLogin')
+        
+        # check if it exists (uncommented)
+        root_rep = r"^\s*PermitRootLogin\s+\S+"
+        if not re.search(root_rep, conf, re.M | re.I):
+            # Try to find commented version and replace it
+            rep = r"^\s*#\s*PermitRootLogin\s+\S+"
+            if re.search(rep, conf, re.M | re.I):
+                conf = re.sub(rep, "PermitRootLogin yes", conf, count=1, flags=re.M | re.I)
+            else:
+                # Append to file
+                conf += "\nPermitRootLogin yes\n"
 
         if status == '1':
-            rep = r"PermitRootLogin\s+(\w*)\s*\n"
-            conf = re.sub(rep, "PermitRootLogin yes\n", conf)
+            conf = re.sub(r"^\s*PermitRootLogin\s+\S+", "PermitRootLogin yes", conf, flags=re.M | re.I)
         else:
-            rep = r"PermitRootLogin\s+(\w*)\s*\n"
-            conf = re.sub(rep, "PermitRootLogin no\n", conf)
+            conf = re.sub(r"^\s*PermitRootLogin\s+\S+", "PermitRootLogin no", conf, flags=re.M | re.I)
+            
         mw.writeFile(file, conf)
-        mw.execShell("systemctl restart sshd")
+        
+        self.reloadSshd()
         mw.writeLog("SSH管理", msg)
         return mw.returnData(True, msg)
 
@@ -693,20 +722,23 @@ class Firewall(object):
 
         conf = mw.readFile(file)
 
-        pass_rep = r"PasswordAuthentication\s+(\w*)\s*\n"
-        pass_status = re.search(pass_rep, conf)
-        if not pass_status:
-            rep = r"(#)?PasswordAuthentication\s+(\w*)\s*\n"
-            conf = re.sub(rep, "PasswordAuthentication yes\n", conf)
+        self.__clear_sshd_config_d('PasswordAuthentication')
+        
+        pass_rep = r"^\s*PasswordAuthentication\s+\S+"
+        if not re.search(pass_rep, conf, re.M | re.I):
+            rep = r"^\s*#\s*PasswordAuthentication\s+\S+"
+            if re.search(rep, conf, re.M | re.I):
+                conf = re.sub(rep, "PasswordAuthentication yes", conf, count=1, flags=re.M | re.I)
+            else:
+                conf += "\nPasswordAuthentication yes\n"
 
         if status == '1':
-            rep = r"PasswordAuthentication\s+(\w*)\s*\n"
-            conf = re.sub(rep, "PasswordAuthentication yes\n", conf)
+            conf = re.sub(r"^\s*PasswordAuthentication\s+\S+", "PasswordAuthentication yes", conf, flags=re.M | re.I)
         else:
-            rep = r"PasswordAuthentication\s+(\w*)\s*\n"
-            conf = re.sub(rep, "PasswordAuthentication no\n", conf)
+            conf = re.sub(r"^\s*PasswordAuthentication\s+\S+", "PasswordAuthentication no", conf, flags=re.M | re.I)
+            
         mw.writeFile(file, conf)
-        mw.execShell("systemctl restart sshd")
+        self.reloadSshd()
         mw.writeLog("SSH管理", msg)
         return mw.returnData(True, msg)
 
@@ -721,22 +753,38 @@ class Firewall(object):
 
         content = mw.readFile(file)
 
-        pubkey_rep = r"PubkeyAuthentication\s+(\w*)\s*\n"
-        pubkey_status = re.search(pubkey_rep, content)
-        if not pubkey_status:
-            rep = r"(#)?PubkeyAuthentication\s+(\w*)\s*\n"
-            content = re.sub(rep, "PubkeyAuthentication yes\n", content)
+        self.__clear_sshd_config_d('PubkeyAuthentication')
+        
+        pubkey_rep = r"^\s*PubkeyAuthentication\s+\S+"
+        if not re.search(pubkey_rep, content, re.M | re.I):
+            rep = r"^\s*#\s*PubkeyAuthentication\s+\S+"
+            if re.search(rep, content, re.M | re.I):
+                content = re.sub(rep, "PubkeyAuthentication yes", content, count=1, flags=re.M | re.I)
+            else:
+                content += "\nPubkeyAuthentication yes\n"
 
         if status == '1':
-            rep = r"PubkeyAuthentication\s+(\w*)\s*\n"
-            content = re.sub(rep, "PubkeyAuthentication yes\n", content)
+            content = re.sub(r"^\s*PubkeyAuthentication\s+\S+", "PubkeyAuthentication yes", content, flags=re.M | re.I)
         else:
-            rep = r"PubkeyAuthentication\s+(\w*)\s*\n"
-            content = re.sub(rep, "PubkeyAuthentication no\n", content)
+            content = re.sub(r"^\s*PubkeyAuthentication\s+\S+", "PubkeyAuthentication no", content, flags=re.M | re.I)
+            
         mw.writeFile(file, content)
-        mw.execShell("systemctl restart sshd")
+        self.reloadSshd()
         mw.writeLog("SSH管理", msg)
         return mw.returnData(True, msg)
+
+    def resetRootSshKey(self):
+        ssh_dir = '/root/.ssh'
+        if not os.path.exists(ssh_dir):
+            os.makedirs(ssh_dir)
+            mw.execShell('chmod 700 ' + ssh_dir)
+
+        mw.execShell('rm -f /root/.ssh/id_rsa /root/.ssh/id_rsa.pub')
+        mw.execShell('ssh-keygen -q -t rsa -P "" -f /root/.ssh/id_rsa')
+        mw.execShell('cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys')
+        mw.execShell('chmod 600 /root/.ssh/authorized_keys')
+        
+        return mw.returnJson(True, '重置成功！请及时下载保存新私钥，并谨慎保管！')
 
     def setStatus(self, id, port, protocol, status):
         if not self.getFwStatus():
@@ -758,4 +806,17 @@ class Firewall(object):
         return mw.returnData(True, msg)
 
 
+    def checkRootSshKey(self):
+        key_file = '/root/.ssh/id_ed25519'
+        if os.path.exists(key_file):
+            return mw.returnJson(True, 'OK')
+        return mw.returnJson(False, '未找到密钥文件，请先生成')
 
+    def resetRootSshKey(self):
+        if not os.path.exists('/root/.ssh'):
+            mw.execShell("mkdir -p /root/.ssh && chmod 700 /root/.ssh")
+        mw.execShell("rm -f /root/.ssh/id_ed25519*")
+        mw.execShell("ssh-keygen -t ed25519 -N '' -f /root/.ssh/id_ed25519 -q")
+        if os.path.exists('/root/.ssh/id_ed25519'):
+            return mw.returnJson(True, '重置/生成密钥成功')
+        return mw.returnJson(False, '生成密钥失败')

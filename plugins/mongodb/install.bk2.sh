@@ -61,7 +61,7 @@ Install_app()
 	fi
 
 	if [ ! -d $MG_DIR/mongodb-src-r${VERSION} ];then
-		cd $MG_DIR && tar -zxvf $MG_DIR/mongodb-src-r${VERSION}.tar.gz
+		cd $MG_DIR && tar -zxf $MG_DIR/mongodb-src-r${VERSION}.tar.gz
 	fi
 
 	cd $MG_DIR/mongodb-src-r${VERSION} && python3 -m pip install requirements_parser

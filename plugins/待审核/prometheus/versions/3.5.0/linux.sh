@@ -42,7 +42,7 @@ Install_App()
 
 
 	if [ ! -d $InstallDir/bin/prometheus ];then
-		cd ${SourceDir} && tar -zxvf ${FILE_TGZ}
+		cd ${SourceDir} && tar -zxf ${FILE_TGZ}
 		cd ${SourceDir}/prometheus-${VERSION}.linux-${ARCH_NAME}
 		cp -rf ./* $InstallDir
 	fi

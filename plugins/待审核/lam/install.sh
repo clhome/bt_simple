@@ -58,7 +58,7 @@ Install_App()
 	
 
 	if [ ! -f $serverPath/source/phpmyadmin/$FILE ];then
-		wget --no-check-certificate -O $serverPath/source/lam/$FILE $DOWNLOAD
+		wget -nv --no-check-certificate -O $serverPath/source/lam/$FILE $DOWNLOAD
 	fi
 
 	if [ ! -d $serverPath/source/lam/$FDIR ];then

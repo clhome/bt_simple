@@ -53,7 +53,7 @@ Install_App()
 	mw_download ${mosquittoDir}/mosquitto-${VERSION}.tar.gz ${URL}
 	
 	if [ ! -d ${mosquittoDir}/mosquitto-${VERSION} ];then
-		cd ${mosquittoDir} && tar -zxvf mosquitto-${VERSION}.tar.gz
+		cd ${mosquittoDir} && tar -zxf mosquitto-${VERSION}.tar.gz
 	fi
 
 

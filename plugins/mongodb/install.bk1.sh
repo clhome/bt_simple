@@ -33,7 +33,7 @@ Install_app_mac()
 		wget -O $serverPath/source/mongodb-macos-x86_64-${G_VERSION}.tgz https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-${G_VERSION}.tgz
 	fi
 
-	cd $serverPath/source && tar -zxvf mongodb-macos-x86_64-${G_VERSION}.tgz
+	cd $serverPath/source && tar -zxf mongodb-macos-x86_64-${G_VERSION}.tgz
 	cd  mongodb-macos-x86_64-${G_VERSION} && mv  ./* $serverPath/mongodb
 }
 

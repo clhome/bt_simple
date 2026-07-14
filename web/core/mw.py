@@ -1377,13 +1377,22 @@ def enDoubleCrypt(key, strings):
     # 加密字符串
     try:
         import base64
-        _key = md5(key).encode('utf-8')
+        import cryptography
+        from cryptography.fernet import Fernet
+        
+        try:
+            from core.crypt_salt import get_salt
+            salt = get_salt()
+        except:
+            salt = None
+            
+        composite_key = key + salt if salt else key
+        _key = md5(composite_key).encode('utf-8')
         _key = base64.urlsafe_b64encode(_key)
 
         if type(strings) != bytes:
             strings = strings.encode('utf-8')
-        import cryptography
-        from cryptography.fernet import Fernet
+            
         f = Fernet(_key)
         result = f.encrypt(strings)
         return result.decode('utf-8')
@@ -1396,12 +1405,30 @@ def deDoubleCrypt(key, strings):
     # 解密字符串
     try:
         import base64
-        _key = md5(key).encode('utf-8')
-        _key = base64.urlsafe_b64encode(_key)
-
+        from cryptography.fernet import Fernet, InvalidToken
+        
         if type(strings) != bytes:
             strings = strings.encode('utf-8')
-        from cryptography.fernet import Fernet
+
+        try:
+            from core.crypt_salt import get_salt
+            salt = get_salt()
+        except:
+            salt = None
+
+        if salt:
+            composite_key = key + salt
+            _key = md5(composite_key).encode('utf-8')
+            _key = base64.urlsafe_b64encode(_key)
+            try:
+                f = Fernet(_key)
+                result = f.decrypt(strings).decode('utf-8')
+                return result
+            except InvalidToken:
+                pass
+
+        _key = md5(key).encode('utf-8')
+        _key = base64.urlsafe_b64encode(_key)
         f = Fernet(_key)
         result = f.decrypt(strings).decode('utf-8')
         return result

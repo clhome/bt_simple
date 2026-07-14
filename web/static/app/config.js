@@ -679,6 +679,54 @@ function setCDN() {
     },'json');
 }
 
+function setGpuDetect() {
+    // 延迟获取最新状态，避免 label 的 onclick 获取到旧状态
+    setTimeout(function() {
+        var isChecked = $("#gpuDetect").prop("checked");
+        if (isChecked) {
+            var loadT = layer.msg('正在检测GPU环境,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+            $.get('/system/get_gpu_info', function(res) {
+                layer.close(loadT);
+                if (!res.status || !res.data || res.data.length === 0) {
+                    // 未检测到显卡，回退开关状态
+                    $("#gpuDetect").prop("checked", false);
+                    layer.msg('该服务器未检测到英伟达GPU或未安装nvidia-smi命令，无法开启！', {icon: 2, time: 3000});
+                    return;
+                }
+                // 验证通过，保存设置
+                doSetGpuDetect(true);
+            }, 'json').fail(function() {
+                layer.close(loadT);
+                $("#gpuDetect").prop("checked", false);
+                layer.msg('环境检测请求失败，请稍后重试', {icon: 2});
+            });
+        } else {
+            doSetGpuDetect(false);
+        }
+    }, 10);
+}
+
+function doSetGpuDetect(isEnable) {
+    var loadT = layer.msg('正在配置,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    $.post('/setting/set_gpu_detect', {}, function (rdata) {
+        layer.close(loadT);
+        if (rdata.status && isEnable) {
+            layer.confirm('成功开启GPU首页检测！<br><br><span style="color:red">提示：由于浏览器缓存，如首页未显示GPU状态，<br>需返回首页按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制刷新才能展示GPU状态。</span>', {
+                title: '设置成功',
+                icon: 1,
+                btn: ['强制刷新，返回首页', '留在当前页']
+            }, function() {
+                window.location.href = '/';
+            }, function() {
+                window.location.reload();
+            });
+        } else {
+            layer.msg(rdata.msg, {icon:rdata.status?1:2});
+            setTimeout(function(){window.location.reload();},1500);
+        }
+    },'json');
+}
+
 
 //设置面板SSL
 function setPanelSSL(){

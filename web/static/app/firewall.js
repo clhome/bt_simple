@@ -65,58 +65,52 @@ $("#AcceptPortStart").on('keyup change', function(){
 function sshMgr(){
 	$.post('/firewall/get_ssh_info', '', function(rdata){
 		var ssh_status = rdata.status ? 'checked':'';
-		var pass_prohibit_status = rdata.pass_prohibit_status ? 'checked':'';
-		var pubkey_prohibit_status = rdata.pubkey_prohibit_status ? 'checked':'';
-		var root_prohibit_status = rdata.root_prohibit_status ? 'checked':'';
-		var con = '<div class="pd15">\
-            <div class="divtable">\
-                <table class="table table-hover waftable">\
-                    <thead><tr><th>名称</th><th width="80">状态</th></tr></thead>\
-                    <tbody>\
-                        <tr>\
-                            <td>启动SSH</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" '+ssh_status+'>\
-                                    <label class="btswitch-btn" for="sshswitch" onclick=\'setMstscStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                        <tr>\
-                            <td>禁止root登陆</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="root_status" type="checkbox" '+root_prohibit_status+'>\
-                                    <label class="btswitch-btn" for="root_status" onclick=\'setSshRootStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                        <tr>\
-                            <td>禁止密码登陆</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="pass_status" type="checkbox" '+pass_prohibit_status+'>\
-                                    <label class="btswitch-btn" for="pass_status" onclick=\'setSshPassStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                        <tr>\
-                            <td>禁止密钥登陆</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="pubkey_status" type="checkbox" '+pubkey_prohibit_status+'>\
-                                    <label class="btswitch-btn" for="pubkey_status" onclick=\'setSshPubkeyStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                    </tbody>\
-                </table>\
+		var pass_prohibit_status = !rdata.pass_prohibit_status ? 'checked':'';
+		var pubkey_prohibit_status = !rdata.pubkey_prohibit_status ? 'checked':'';
+		var root_prohibit_status = !rdata.root_prohibit_status ? 'checked':'';
+		var con = '<div class="pd15" style="padding: 20px;">\
+            <div style="display: flex; flex-direction: column; gap: 15px;">\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">启动SSH</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" '+ssh_status+'>\
+                        <label class="btswitch-btn" for="sshswitch" onclick=\'setMstscStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">允许root登陆</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="root_status" type="checkbox" '+root_prohibit_status+'>\
+                        <label class="btswitch-btn" for="root_status" onclick=\'setSshRootStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">允许密码登陆</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="pass_status" type="checkbox" '+pass_prohibit_status+'>\
+                        <label class="btswitch-btn" for="pass_status" onclick=\'setSshPassStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">允许密钥登陆</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="pubkey_status" type="checkbox" '+pubkey_prohibit_status+'>\
+                        <label class="btswitch-btn" for="pubkey_status" onclick=\'setSshPubkeyStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 5px;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">Root密钥</span>\
+                    <div class="ssh-item" style="margin-left:0; display: flex; gap: 10px;">\
+                        <button class="btn btn-default btn-sm" onclick="downloadRootKey()" style="border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;">下载密钥</button>\
+                        <button class="btn btn-default btn-sm" onclick="resetRootKey()" style="border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;">重置/生成密钥</button>\
+                    </div>\
+                </div>\
             </div>\
         </div>';
         layer.open({
 	        type: 1,
 	        title: "SSH管理",
-	        area: ['300px', '310px'],
+	        area: ['420px', 'auto'],
 	        closeBtn: 1,
 	        shadeClose: false,
 	        content: '<div id="ssh_list">'+con+'</div>',
@@ -281,10 +275,11 @@ function setMstscStatus(){
  * @param {Int} state 0.启用 1.关闭
  */
 function setSshRootStatus(){
-	status = $("#root_status").prop("checked")==true?1:0;
-	var msg = status==1?'开启密码登陆,继续吗？':'确定禁止密码登陆吗？';
+	var checked = $("#root_status").prop("checked");
+	var status = checked ? 0 : 1;
+	var msg = checked ? '确定允许root登陆吗？' : '确定禁止root登陆吗？';
 	layer.confirm(msg,{title:'警告',closeBtn:2,cancel:function(){
-		if(status == 0){
+		if(checked){
 			$("#root_status").prop("checked",false);
 		} else {
 			$("#root_status").prop("checked",true);
@@ -297,7 +292,7 @@ function setSshRootStatus(){
 			},'json');
 		}
 	},function(){
-		if(status == 0){
+		if(checked){
 			$("#root_status").prop("checked",false);
 		} else {
 			$("#root_status").prop("checked",true);
@@ -310,10 +305,11 @@ function setSshRootStatus(){
  * @param {Int} state 0.启用 1.关闭
  */
 function setSshPassStatus(){
-	status = $("#pass_status").prop("checked")==true?1:0;
-	var msg = status==1?'开启密码登陆,继续吗？':'确定禁止密码登陆吗？';
+	var checked = $("#pass_status").prop("checked");
+	var status = checked ? 0 : 1;
+	var msg = checked ? '确定允许密码登陆吗？' : '确定禁止密码登陆吗？';
 	layer.confirm(msg,{title:'警告',closeBtn:2,cancel:function(){
-		if(status == 0){
+		if(checked){
 			$("#pass_status").prop("checked",false);
 		} else {
 			$("#pass_status").prop("checked",true);
@@ -326,7 +322,7 @@ function setSshPassStatus(){
 			},'json');
 		}
 	},function(){
-		if(status == 0){
+		if(checked){
 			$("#pass_status").prop("checked",false);
 		} else {
 			$("#pass_status").prop("checked",true);
@@ -341,10 +337,11 @@ function setSshPassStatus(){
  * @param {Int} state 0.启用 1.关闭
  */
 function setSshPubkeyStatus(){
-	status = $("#pubkey_status").prop("checked")==true?1:0;
-	var msg = status==1?'开启密码登陆,继续吗？':'确定禁止密码登陆吗？';
+	var checked = $("#pubkey_status").prop("checked");
+	var status = checked ? 0 : 1;
+	var msg = checked ? '确定允许密钥登陆吗？' : '确定禁止密钥登陆吗？';
 	layer.confirm(msg,{title:'警告',closeBtn:2,cancel:function(){
-		if(status == 0){
+		if(checked){
 			$("#pubkey_status").prop("checked",false);
 		} else {
 			$("#pubkey_status").prop("checked",true);
@@ -357,7 +354,7 @@ function setSshPubkeyStatus(){
 			},'json');
 		}
 	},function(){
-		if(status == 0){
+		if(checked){
 			$("#pubkey_status").prop("checked",false);
 		} else {
 			$("#pubkey_status").prop("checked",true);
@@ -609,5 +606,25 @@ function showPortProcessInfo(ps_json, port) {
         closeBtn: 1,
         shadeClose: false,
         content: con
+    });
+}
+
+function downloadRootKey(){
+    $.post('/firewall/check_root_ssh_key', function(rdata){
+        if(!rdata.status){
+            layer.msg(rdata.msg, {icon: 2});
+            return;
+        }
+        window.open('/files/download?filename=/root/.ssh/id_ed25519');
+    }, 'json');
+}
+
+function resetRootKey(){
+    layer.confirm('重置后旧的私钥将无法再用于免密登录此服务器（如果已开启密钥登录），是否确认重新生成 Root 密钥？', {title: '重置 Root 密钥', icon: 3}, function(index){
+        var loadT = layer.msg('正在重新生成密钥对并授权，请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+        $.post('/firewall/reset_root_ssh_key', {}, function(rdata){
+            layer.close(loadT);
+            layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2, time: 3000});
+        }, 'json');
     });
 }

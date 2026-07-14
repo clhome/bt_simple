@@ -43,7 +43,7 @@ Install_App()
 	# FlameGraph start
 	if [ ! -d $serverPath/dynamic-tracking/FlameGraph ];then
 		if [ ! -f $serverPath/source/FlameGraph.zip ]; then
-	    	wget --no-check-certificate -O $serverPath/source/FlameGraph.zip ${HTTP_PREFIX}github.com/brendangregg/FlameGraph/archive/refs/heads/master.zip
+	    	wget -nv --no-check-certificate -O $serverPath/source/FlameGraph.zip ${HTTP_PREFIX}github.com/brendangregg/FlameGraph/archive/refs/heads/master.zip
 		fi
 
 		cd $serverPath/source && unzip $serverPath/source/FlameGraph.zip

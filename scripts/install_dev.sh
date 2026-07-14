@@ -293,7 +293,7 @@ if [ $OSNAME != "macos" ];then
 		else
 			echo "downloading ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/dev.tar.gz"
 			curl --insecure -sSLo /tmp/dev.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/dev.tar.gz
-			cd /tmp && tar -zxvf /tmp/dev.tar.gz
+			cd /tmp && tar -zxf /tmp/dev.tar.gz
 			mv -f /tmp/bt_simple-dev /www/server/mdserver-web
 			rm -rf /tmp/dev.tar.gz
 			rm -rf /tmp/bt_simple-dev

@@ -45,7 +45,7 @@ Install_App()
 	
 	mkdir -p $serverPath/alist
 
-	cd $ALIST_DIR && tar -zxvf ${FILE_TGZ}  -C $serverPath/alist
+	cd $ALIST_DIR && tar -zxf ${FILE_TGZ}  -C $serverPath/alist
 	echo "${VERSION}" > $serverPath/alist/version.pl
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/alist/index.py start

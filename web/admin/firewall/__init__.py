@@ -156,3 +156,14 @@ def set_firewall_status():
 @panel_login_required
 def sync_server():
     return MwFirewall.instance().syncServer()
+
+
+@blueprint.route('/check_root_ssh_key', endpoint='check_root_ssh_key', methods=['POST'])
+@panel_login_required
+def check_root_ssh_key():
+    return MwFirewall.instance().checkRootSshKey()
+
+@blueprint.route('/reset_root_ssh_key', endpoint='reset_root_ssh_key', methods=['POST'])
+@panel_login_required
+def reset_root_ssh_key():
+    return MwFirewall.instance().resetRootSshKey()

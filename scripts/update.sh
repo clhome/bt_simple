@@ -256,7 +256,7 @@ fi
 echo "update bt_simple code start"
 
 curl --insecure -sSLo /tmp/master.tar.gz ${HTTP_PREFIX}github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz
-cd /tmp && tar -zxvf /tmp/master.tar.gz
+cd /tmp && tar -zxf /tmp/master.tar.gz
 $CP_CMD -rf /tmp/bt_simple-master/* /www/server/mdserver-web
 rm -rf /tmp/master.tar.gz
 rm -rf /tmp/bt_simple-master

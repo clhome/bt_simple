@@ -36,11 +36,11 @@ Install_App()
 
 	# https://github.com/midoks/simpleping/releases/download/1.0/simpleping_linux_amd64.tar.gz
 	if [ ! -f $APP_DIR/${FILE_TGZ} ];then
-		wget -O $APP_DIR/${FILE_TGZ} https://github.com/midoks/simpleping/releases/download/2.0/${FILE_TGZ}
+		wget -nv -O $APP_DIR/${FILE_TGZ} https://github.com/midoks/simpleping/releases/download/2.0/${FILE_TGZ}
 	fi
 	
 	mkdir -p $serverPath/simpleping
-	cd $APP_DIR && tar -zxvf ${FILE_TGZ} -C $serverPath/simpleping
+	cd $APP_DIR && tar -zxf ${FILE_TGZ} -C $serverPath/simpleping
 	echo "${VERSION}" > $serverPath/simpleping/version.pl
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/simpleping/index.py start

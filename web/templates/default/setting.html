@@ -217,6 +217,14 @@
                     <label class='btswitch-btn' for='panelCDN' onclick="setCDN()"></label>
                 </div>
             </div>
+
+            <div class="quick-setting-item" title="开启后首页将尝试获取英伟达GPU信息">
+                <em>英伟达GPU首页检测</em>
+                <div class='ssh-item'>
+                    <input class='btswitch btswitch-ios' id='gpuDetect' type='checkbox' {% if data['gpu_detect'] == 'yes' %}checked{% endif %}>
+                    <label class='btswitch-btn' for='gpuDetect' onclick="setGpuDetect()"></label>
+                </div>
+            </div>
         </div>
 
         <!-- 主体设置区域 -->
@@ -403,7 +411,7 @@
                             </div>
                             <button type="button" class="btn btn-default btn-sm" onclick="setAuthBind();">绑定设置</button>
                         </div>
-                        <span class="set-info">二步验证，加强安全登录</span>
+                        <span class="set-info">二步验证，加强安全登录,手机下载Authenticator（Microsoft出品），扫码即可记录账户</span>
                     </div>
                 </div>
 

@@ -101,7 +101,7 @@ Install_mysql()
 	fi
 
 	if [ ! -f ${mysqlDir}/mysql-${VERSION}.tar.gz ];then
-         wget --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-9.0/mysql-${VERSION}.tar.gz
+         wget -nv --no-check-certificate -O ${mysqlDir}/mysql-${VERSION}.tar.gz --tries=3 https://dev.mysql.com/get/Downloads/MySQL-9.0/mysql-${VERSION}.tar.gz
 	fi
 
 	#检测文件是否损坏.
@@ -118,7 +118,7 @@ Install_mysql()
 # 	fi
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
-		 cd ${mysqlDir} && tar -zxvf  ${mysqlDir}/mysql-${VERSION}.tar.gz
+		 cd ${mysqlDir} && tar -zxf  ${mysqlDir}/mysql-${VERSION}.tar.gz
 	fi
 
 	OPTIONS=''
@@ -155,7 +155,7 @@ Install_mysql()
 
 		LIBTIRPC_VER=`pkg-config libtirpc --modversion`
 		if [ ! -f ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 ];then
-			wget --no-check-certificate -O ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 https://downloads.sourceforge.net/libtirpc/libtirpc-1.3.3.tar.bz2
+			wget -nv --no-check-certificate -O ${mysqlDir}/libtirpc_1.3.3.orig.tar.bz2 https://downloads.sourceforge.net/libtirpc/libtirpc-1.3.3.tar.bz2
 			cd ${mysqlDir} && tar -jxvf libtirpc_1.3.3.orig.tar.bz2
 			cd libtirpc-1.3.3 && ./configure
 		fi

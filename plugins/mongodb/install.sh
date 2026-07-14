@@ -161,11 +161,11 @@ Install_app()
     FILE_NAME_TGZ=${FILE_NAME}.tgz
 
     if [ ! -f $MG_DIR/${FILE_NAME_TGZ} ]; then
-        wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/linux/${FILE_NAME_TGZ} || exit 1
+        wget -nv --no-check-certificate -T 120 -t 3 -O $MG_DIR/${FILE_NAME_TGZ} https://fastdl.mongodb.org/linux/${FILE_NAME_TGZ} || exit 1
     fi
 
     if [ ! -d $MG_DIR/${FILE_NAME} ];then 
-        cd $MG_DIR && tar -zxvf ${FILE_NAME_TGZ} || { rm -f ${FILE_NAME_TGZ}; exit 1; }
+        cd $MG_DIR && tar -zxf ${FILE_NAME_TGZ} || { rm -f ${FILE_NAME_TGZ}; exit 1; }
     fi
 
     mkdir -p $serverPath/mongodb/bin
@@ -183,11 +183,11 @@ Install_app()
     TOOL_FILE_NAME_TGZ=${TOOL_FILE_NAME}.tgz
     
     if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
-        wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ} || exit 1
+        wget -nv --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://fastdl.mongodb.org/tools/db/${TOOL_FILE_NAME_TGZ} || exit 1
     fi
 
     if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
-        cd $MG_DIR && tar -zxvf ${TOOL_FILE_NAME_TGZ} || { rm -f ${TOOL_FILE_NAME_TGZ}; exit 1; }
+        cd $MG_DIR && tar -zxf ${TOOL_FILE_NAME_TGZ} || { rm -f ${TOOL_FILE_NAME_TGZ}; exit 1; }
     fi
 
     cd ${MG_DIR}/${TOOL_FILE_NAME} && cp -rpa ./bin/* $serverPath/mongodb/bin/
@@ -202,11 +202,11 @@ Install_app()
         TOOL_FILE_NAME_TGZ=${TOOL_FILE_NAME}.tgz
 
         if [ ! -f $MG_DIR/${TOOL_FILE_NAME_TGZ} ]; then
-            wget --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ} || exit 1
+            wget -nv --no-check-certificate -T 120 -t 3 -O $MG_DIR/${TOOL_FILE_NAME_TGZ} https://downloads.mongodb.com/compass/${TOOL_FILE_NAME_TGZ} || exit 1
         fi
 
         if [ ! -d $MG_DIR/${TOOL_FILE_NAME} ];then 
-            cd $MG_DIR && tar -zxvf ${TOOL_FILE_NAME_TGZ} || { rm -f ${TOOL_FILE_NAME_TGZ}; exit 1; }
+            cd $MG_DIR && tar -zxf ${TOOL_FILE_NAME_TGZ} || { rm -f ${TOOL_FILE_NAME_TGZ}; exit 1; }
         fi
 
         cd ${MG_DIR}/${TOOL_FILE_NAME} && cp -rf ./bin/* $serverPath/mongodb/bin/

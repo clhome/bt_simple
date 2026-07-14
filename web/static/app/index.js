@@ -240,6 +240,36 @@ function getInfo() {
 }
 
 
+function getGpuInfo() {
+    $.get('/system/get_gpu_info', function(res) {
+        if (!res.status || !res.data || res.data.length === 0) {
+            $("#gpuChart").hide();
+            return;
+        }
+        var info = res.data[0]; // 获取第一张显卡的数据
+        if (info) {
+            $("#gpuChart").show();
+            var gpuUse = parseFloat(info.gpu_util || 0).toFixed(1);
+            var memUse = parseFloat(info.mem_util || 0).toFixed(1);
+            $("#gpu_state").html(gpuUse);
+            setcolor(gpuUse, "#gpu_state", 30, 70, 90);
+            
+            var memText = info.mem_used + 'M / ' + info.mem_total + 'M';
+            $("#gpu_mem").html(memText);
+            
+            var tips = "型号: " + info.name + "<br>显卡温度: " + (info.temperature || '-') + "°C<br>显存使用率: " + memUse + "%";
+            $('#gpuChart .mask').off('mouseenter').on('mouseenter', function() {
+                layer.tips(tips, this, { time: 0, tips: [1, '#999'] });
+            }).on('mouseleave', function() {
+                layer.closeAll('tips');
+            });
+        }
+    }, 'json').fail(function() {
+        $("#gpuChart").hide();
+    });
+}
+
+
 function setcolor(pre, s, s1, s2, s3) {
     var LoadColor;
     if (pre <= s1) {
@@ -262,7 +292,7 @@ function setcolor(pre, s, s1, s2, s3) {
 
 function getNet() {
     var up, down;
-    $.get("/system/network", function(net) {
+    $.get("/system/network?t=" + new Date().getTime(), function(net) {
 
         console.log(net);
 
@@ -1038,6 +1068,9 @@ function pluginInit(){
         </div>",
             success:function(l,index){
                 $('.rec-box-con .onekey').on('click', function(){
+                    var _this = $(this);
+                    if (_this.hasClass('disabled')) return;
+                    _this.addClass('disabled');
                     var post_data = [];
                     for (var i = 0; i < rdata.length; i++) {
                         var key_ver = '#select_'+rdata[i]['name'];
@@ -1060,9 +1093,13 @@ function pluginInit(){
                             if (data.status){
                                 layer.closeAll();
                                 messageBox();
+                            } else {
+                                $('.rec-box-con .onekey').removeClass('disabled');
                             }
                         },{ icon: data.status ? 1 : 2 },2000);
-                    },'json');
+                    },'json').fail(function() {
+                        $('.rec-box-con .onekey').removeClass('disabled');
+                    });
                 });   
             },
             cancel:function(){
@@ -1702,6 +1739,10 @@ var index = {
             //绑定hover事件
             setImg();
             showCpuTips(net);
+            
+            if ($("#gpuChart").length > 0) {
+                getGpuInfo();
+            }
 
         },'json');
     },

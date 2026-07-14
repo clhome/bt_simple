@@ -110,10 +110,10 @@ Install_sphinx()
 	echo $FILE_TGZ
 	# curl -sSLo ${SPHINX_DIR}/${FILE_TGZ} http://sphinxsearch.com/files/${FILE_TGZ}
 	if [ ! -f ${SPHINX_DIR}/${FILE_TGZ} ];then
-		wget --no-check-certificate -O ${SPHINX_DIR}/${FILE_TGZ} http://sphinxsearch.com/files/${FILE_TGZ}
+		wget -nv --no-check-certificate -O ${SPHINX_DIR}/${FILE_TGZ} http://sphinxsearch.com/files/${FILE_TGZ}
 	fi
 
-	cd ${SPHINX_DIR} && tar -zxvf ${FILE_TGZ}
+	cd ${SPHINX_DIR} && tar -zxf ${FILE_TGZ}
 	
 	if [ "$?" == "0" ];then
 		mkdir -p $SPHINX_DIR
