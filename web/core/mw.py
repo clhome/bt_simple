@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from .yf import *
+import sys
 
 def log_deprecated_call(func_name):
     logger = logging.getLogger('mw_compat')
@@ -9,14 +9,20 @@ def log_deprecated_call(func_name):
 class DeprecatedProxy:
     def __init__(self, target):
         self._target = target
+        self._warned = set()
 
     def __getattr__(self, name):
-        log_deprecated_call(name)
+        if name not in self._warned:
+            log_deprecated_call(name)
+            self._warned.add(name)
         return getattr(self._target, name)
 
     def __dir__(self):
         return dir(self._target)
 
-import sys
-yf_module_name = __name__[:-2] + 'yf'
-sys.modules[__name__] = DeprecatedProxy(sys.modules[yf_module_name])
+try:
+    from . import yf
+except ImportError:
+    import yf
+
+sys.modules[__name__] = DeprecatedProxy(yf)
