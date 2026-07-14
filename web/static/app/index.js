@@ -292,7 +292,7 @@ function setcolor(pre, s, s1, s2, s3) {
 
 function getNet() {
     var up, down;
-    $.get("/system/network", function(net) {
+    $.get("/system/network?t=" + new Date().getTime(), function(net) {
 
         console.log(net);
 

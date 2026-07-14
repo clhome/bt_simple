@@ -1311,7 +1311,7 @@ function removeTask(b) {
 
 //获取任务总数
 function getTaskCount() {
-	$.get("/task/count", '', function(data) {
+	$.get("/task/count?t=" + new Date().getTime(), '', function(data) {
 		$(".task").text(data.data);
 	},'json');
 }
