@@ -42,6 +42,9 @@ def yf_input_cmd(msg):
         in_val = input(msg)
     return in_val
 
+# 兼容旧版调用
+mw_input_cmd = yf_input_cmd
+
 def getRemainLen(cmd, max_length=100):
     cmd_len = len(cmd)
     cmd_u8_len = len(cmd.encode('utf-8'))
@@ -827,3 +830,6 @@ def import_bt_sites(db_path):
 
 if __name__ == "__main__":
     main()
+
+# 兼容旧版调用
+mwcli = yfcli
