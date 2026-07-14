@@ -68,64 +68,49 @@ function sshMgr(){
 		var pass_prohibit_status = rdata.pass_prohibit_status ? 'checked':'';
 		var pubkey_prohibit_status = rdata.pubkey_prohibit_status ? 'checked':'';
 		var root_prohibit_status = rdata.root_prohibit_status ? 'checked':'';
-		var con = '<div class="pd15">\
-            <div class="divtable">\
-                <table class="table table-hover waftable">\
-                    <thead><tr><th>名称</th><th width="80">状态</th></tr></thead>\
-                    <tbody>\
-                        <tr>\
-                            <td>启动SSH</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" '+ssh_status+'>\
-                                    <label class="btswitch-btn" for="sshswitch" onclick=\'setMstscStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                        <tr>\
-                            <td>禁止root登陆</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="root_status" type="checkbox" '+root_prohibit_status+'>\
-                                    <label class="btswitch-btn" for="root_status" onclick=\'setSshRootStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                        <tr>\
-                            <td>禁止密码登陆</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="pass_status" type="checkbox" '+pass_prohibit_status+'>\
-                                    <label class="btswitch-btn" for="pass_status" onclick=\'setSshPassStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                        <tr>\
-                            <td>禁止密钥登陆</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <input class="btswitch btswitch-ios" id="pubkey_status" type="checkbox" '+pubkey_prohibit_status+'>\
-                                    <label class="btswitch-btn" for="pubkey_status" onclick=\'setSshPubkeyStatus()\'></label>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                        <tr>\
-                            <td>Root密钥</td>\
-                            <td>\
-                                <div class="ssh-item" style="margin-left:0">\
-                                    <button class="btn btn-default btn-xs" onclick="downloadRootKey()">下载密钥</button>\
-                                    <button class="btn btn-default btn-xs" style="margin-left:5px" onclick="resetRootKey()">重置/生成密钥</button>\
-                                </div>\
-                            </td>\
-                        </tr>\
-                    </tbody>\
-                </table>\
+		var con = '<div class="pd15" style="padding: 20px;">\
+            <div style="display: flex; flex-direction: column; gap: 15px;">\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">启动SSH</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" '+ssh_status+'>\
+                        <label class="btswitch-btn" for="sshswitch" onclick=\'setMstscStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">禁止root登陆</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="root_status" type="checkbox" '+root_prohibit_status+'>\
+                        <label class="btswitch-btn" for="root_status" onclick=\'setSshRootStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">禁止密码登陆</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="pass_status" type="checkbox" '+pass_prohibit_status+'>\
+                        <label class="btswitch-btn" for="pass_status" onclick=\'setSshPassStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">禁止密钥登陆</span>\
+                    <div class="ssh-item" style="margin-left:0">\
+                        <input class="btswitch btswitch-ios" id="pubkey_status" type="checkbox" '+pubkey_prohibit_status+'>\
+                        <label class="btswitch-btn" for="pubkey_status" onclick=\'setSshPubkeyStatus()\'></label>\
+                    </div>\
+                </div>\
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 5px;">\
+                    <span style="font-size: 14px; font-weight: 500; color: #333;">Root密钥</span>\
+                    <div class="ssh-item" style="margin-left:0; display: flex; gap: 10px;">\
+                        <button class="btn btn-default btn-sm" onclick="downloadRootKey()" style="border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;">下载密钥</button>\
+                        <button class="btn btn-default btn-sm" onclick="resetRootKey()" style="border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;">重置/生成密钥</button>\
+                    </div>\
+                </div>\
             </div>\
         </div>';
         layer.open({
 	        type: 1,
 	        title: "SSH管理",
-	        area: ['300px', '310px'],
+	        area: ['420px', 'auto'],
 	        closeBtn: 1,
 	        shadeClose: false,
 	        content: '<div id="ssh_list">'+con+'</div>',
