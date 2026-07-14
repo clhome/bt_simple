@@ -117,6 +117,10 @@ def test_start():
 
 
 if __name__ == "__main__":
-    os.system('cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/webstats && sh install.sh uninstall 0.2.2 && sh install.sh install 0.2.2')
-    os.system('cd /Users/midoks/Desktop/mwdev/server/mdserver-web/ && python3 plugins/openresty/index.py stop && python3 plugins/openresty/index.py start')
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    plugin_dir = os.path.dirname(current_dir)
+    web_dir = os.path.dirname(os.path.dirname(plugin_dir))
+
+    os.system('cd {} && sh install.sh uninstall 0.2.2 && sh install.sh install 0.2.2'.format(plugin_dir))
+    os.system('cd {} && python3 plugins/openresty/index.py stop && python3 plugins/openresty/index.py start'.format(web_dir))
     test_start()

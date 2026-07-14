@@ -10,8 +10,7 @@ serverPath=$(dirname "$rootPath")
 sys_os=`uname`
 VERSION=1.6.22
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/lvs && bash install.sh install 1.0
-# cd /www/server/mdserver-web/plugins/lvs && bash install.sh install 1.0
+
 
 
 Install_LVS(){

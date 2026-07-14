@@ -9,8 +9,6 @@ serverPath=$(dirname "$rootPath")
 sysName=`uname`
 sysArch=`arch`
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/gorse && bash install.sh install 0.4.15
-# cd /www/server/mdserver-web/plugins/gorse && bash install.sh install 0.4.15
 
 VERSION=$2
 

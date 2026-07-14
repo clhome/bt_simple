@@ -9,9 +9,6 @@ if [ -f "$_gh_lib" ]; then
 fi
 
 
-## https://www.yangshuaibin.com/detail/392251
-# cd /www/server/mdserver-web/plugins/webstats && bash install.sh install 0.2.5
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/webstats && bash install.sh install 0.2.5
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

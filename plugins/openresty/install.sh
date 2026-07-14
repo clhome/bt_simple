@@ -2,19 +2,6 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/openresty && bash install.sh install 1.21.4
-# cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.21.4
-# cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.29.2
-# cd /www/server/mdserver-web/plugins/openresty && bash install.sh upgrade 1.29.2
-
-# curl -I -H "Accept-Encoding: br" http://localhost
-# curl -I -H "Accept-Encoding: zstd" http://localhost
-# curl --http3 -v https://www.xxx.com
-
-# apt install ncat -y
-# nc -u -v www.xx.com 443
-
-# cd /www/server/mdserver-web && python3 plugins/openresty/index.py run_info
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

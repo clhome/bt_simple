@@ -9,14 +9,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/keepalived && bash install.sh install 2.2.8
-# cd /www/server/mdserver-web/plugins/keepalived && bash install.sh install 2.2.8
 
-# /www/server/keepalived/init.d/keepalived start
-
-# systemctl status keepalived
-# systemctl restart keepalived
-# ifconfig
 
 VERSION=$2
 

@@ -11,11 +11,9 @@ import threading
 import asyncio
 import logging
 
-# python /Users/midoks/Desktop/mwdev/server/tgclient/tgclient.py
 
-'''
-cd /www/server/mdserver-web && source bin/activate  &&  python3 /www/server/tgclient/tgclient.py
-'''
+
+
 
 from telethon import TelegramClient
 

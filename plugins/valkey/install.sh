@@ -13,16 +13,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-# https://www.cnblogs.com/zlonger/p/16177595.html
-# https://www.cnblogs.com/BNTang/articles/15841688.html
 
-# ps -ef|grep valkey |grep -v grep | awk '{print $2}' | xargs kill
-
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/valkey && bash install.sh install 7.2.2
-
-# cmd查看| info replication
-# /Users/midoks/Desktop/mwdev/server/valkey/bin/valkey-cli -h 127.0.0.1 -p 6399
-# /www/server/valkey/bin/valkey-cli -h 127.0.0.1 -p 6399
 
 VERSION=$2
 

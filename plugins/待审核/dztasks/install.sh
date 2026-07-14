@@ -7,8 +7,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/dztasks && bash install.sh install 1.0
-# cd /wwww/server/mdserver-web/plugins/dztasks && bash install.sh install 1.0
+
 VERSION=$2
 sysArch=`arch`
 sysName=`uname`

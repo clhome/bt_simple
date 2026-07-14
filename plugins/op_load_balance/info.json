@@ -9,7 +9,7 @@
 	"shell":"install.sh",
 	"checks":"server/op_load_balance",
 	"path":"server/op_load_balance",
-	"author":"midoks",
+	"author":"midoks/yufeng tec",
 	"home":"",
 	"date":"2026-05-28",
 	"pid": "1",

@@ -9,8 +9,6 @@ if [ -f "$_gh_lib" ]; then
     source "$_gh_lib"
 fi
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/openresty && bash install.sh install 1.21.4.2
-# cd /www/server/mdserver-web/plugins/openresty && bash install.sh install 1.27.1
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

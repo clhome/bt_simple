@@ -11,8 +11,6 @@ if [ -f ${rootPath}/scripts/lib.sh ];then
 	source ${rootPath}/scripts/lib.sh
 fi
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/cloudreve && bash install.sh install 3.8.3
-# cd /www/server/mdserver-web/plugins/cloudreve && bash install.sh install 3.8.3
 
 VERSION=$2
 

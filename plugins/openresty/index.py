@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
     sys.path.append(web_dir)
     os.chdir(web_dir)
 
-import core.mw as mw
+import core.yf as yf
 
 app_debug = False
 if yf.isAppleSystem():
@@ -341,9 +341,11 @@ def confReplace():
     current_os = yf.getOs()
     if current_os == 'darwin':
         # macosx do
-        # user = yf.execShell(
-        #     "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
-        user = 'midoks'
+        import getpass
+        try:
+            user = os.environ.get('SUDO_USER') or getpass.getuser()
+        except Exception:
+            user = 'root'
         user_group = 'staff'
         content = content.replace('{$EVENT_MODEL}', 'kqueue')
     elif current_os.startswith('freebsd'):

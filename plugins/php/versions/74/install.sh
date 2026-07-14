@@ -18,8 +18,7 @@ echo "安装php-${version} ..."
 mkdir -p $sourcePath/php
 mkdir -p $serverPath/php
 
-# cd /Users/midoks/Desktop/mwdev/server/mdserver-web/plugins/php/lib && /bin/bash libzip.sh
-# cd /www/server/mdserver-web/plugins/php/lib && /bin/bash libzip.sh
+
 cd ${rootPath}/plugins/php/lib && /bin/bash freetype_new.sh
 cd ${rootPath}/plugins/php/lib && /bin/bash zlib.sh
 cd ${rootPath}/plugins/php/lib && /bin/bash libzip.sh
