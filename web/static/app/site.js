@@ -647,7 +647,7 @@ function domainEdit(id, name, msg, status) {
 		var echoHtml = "";
 		for (var i = 0; i < domain.length; i++) {
 			echoHtml += "<tr>\
-				<td><a title='"+lan.site.click_access+"' target='_blank' href='http://" + domain[i].name + ":" + domain[i].port + "' class='btlinkbed'>" + domain[i].name + "</a></td>\
+				<td><a title='"+lan.site.click_access+"' target='_blank' href='http://" + domain[i].name + (domain[i].port == '80' ? '' : ':' + domain[i].port) + "' class='btlinkbed'>" + domain[i].name + "</a></td>\
 				<td><a class='btlinkbed'>" + domain[i].port + "</a></td>\
 				<td class='text-center'><a class='table-btn-del' href='javascript:;' onclick=\"delDomain(" + id + ",'" + name + "','" + domain[i].name + "','" + domain[i].port + "',1)\"><span class='glyphicon glyphicon-trash'></span></a></td>\
 				</tr>";
