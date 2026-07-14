@@ -1274,10 +1274,14 @@ $(function() {
 });
 
 $("#signout").on('click', function() {
-	layer.confirm('您真的要退出面板吗?', {icon:3,closeBtn: 1}, function() {
-		window.location.href = "/login?signout=True"
+	layer.confirm('是否要退出御风面板?', {icon:3,closeBtn: 1}, function() {
+		$.post("/do_signout", {}, function(rdata) {
+			layer.msg(rdata.msg, {icon: 1, time: 1000}, function() {
+				window.location.href = "/logout_success";
+			});
+		}, 'json');
 	});
-	return false
+	return false;
 });
 
 

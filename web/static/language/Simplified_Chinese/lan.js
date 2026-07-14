@@ -288,7 +288,7 @@ var lan = {
 		"db_name_msg":"我需要删除的数据库名称是",
 		"db_name_err":"数据库名称输入错误!",
 
-		"loginout":"您真的要退出面板吗?",
+		"loginout":"是否要退出御风面板?",
 		"pass_err_len":"面板密码不能少于8位!",
 		"pass_err":"面板密码不能为弱口令",
 		"pass_err_re":"两次输入的密码不一致",
