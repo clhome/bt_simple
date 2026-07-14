@@ -14,5 +14,8 @@ class DeprecatedProxy:
         log_deprecated_call(name)
         return getattr(self._target, name)
 
+    def __dir__(self):
+        return dir(self._target)
+
 import sys
 sys.modules[__name__] = DeprecatedProxy(sys.modules['web.core.yf'])

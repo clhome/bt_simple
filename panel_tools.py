@@ -362,6 +362,7 @@ def yfcli(mw_input=0):
         db_path = find_bt_site_db()
         if db_path:
             import_bt_sites(db_path)
+mwcli = yfcli
 
 def open_ssh_port():
     

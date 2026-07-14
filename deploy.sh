@@ -675,6 +675,43 @@ deploy_code() {
 fresh_install() {
     log_info "===== 开始全新安装 bt_simple ====="
 
+    # 如果检测到旧版的真正 mdserver-web 目录存在，且它不是一个软链接
+    if [ -d "/www/server/mdserver-web" ] && [ ! -L "/www/server/mdserver-web" ]; then
+        log_warn "检测到旧版 mdserver-web 面板安装目录！"
+        log_info "正在自动将其重命名为 yufeng_panel 保证安装正常..."
+
+        # 停止旧面板服务
+        if [ -f "/etc/init.d/mw" ]; then
+            /etc/init.d/mw stop >/dev/null 2>&1
+        elif [ -f "/etc/init.d/yf" ]; then
+            /etc/init.d/yf stop >/dev/null 2>&1
+        fi
+
+        # 安全重命名物理目录
+        if [ -d "/www/server/yufeng_panel" ]; then
+            cp -af /www/server/mdserver-web/* /www/server/yufeng_panel/
+            rm -rf /www/server/mdserver-web
+        else
+            mv /www/server/mdserver-web /www/server/yufeng_panel
+        fi
+
+        if [ -d "/www/server/yufeng_panel" ]; then
+            log_info "物理目录迁移成功: mdserver-web -> yufeng_panel"
+            # 创建向下兼容的软链接
+            ln -sf /www/server/yufeng_panel /www/server/mdserver-web
+            log_info "已创建兼容性软链接: mdserver-web -> yufeng_panel"
+
+            # ⚠️ 关键防御保护：若在全新安装过程中检测到并迁移了旧数据，
+            # 必须直接重定向调用 migrate_from_mw 函数，以防后续的 fresh_install 流程执行 rm -rf 清空该目录！
+            log_info "检测到老版本数据已自动重命名，全新安装程序将自动切换为【迁移升级模式】..."
+            migrate_from_mw
+            exit 0
+        else
+            log_error "目录迁移失败，请检查权限！"
+            exit 1
+        fi
+    fi
+
     # 创建目录结构
     if id www >/dev/null 2>&1; then
         log_info "www 用户已存在"
@@ -823,6 +860,31 @@ migrate_from_mw() {
     # 下载并部署
     download_code
     deploy_code
+
+    # 更新数据库存储路径 (Section 7.1 step 8)
+    if [ -f ${PANEL_DIR}/data/panel.db ]; then
+        log_info "更新 SQLite 数据库中的路径参数..."
+        python3 -c "
+import sqlite3
+db_path = '${PANEL_DIR}/data/panel.db'
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+cursor.execute(\"UPDATE config SET value = REPLACE(value, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE value LIKE '%mdserver-web%'\")
+cursor.execute(\"UPDATE crontab SET command = REPLACE(command, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE command LIKE '%mdserver-web%'\")
+cursor.execute(\"UPDATE crontab SET sBody = REPLACE(sBody, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE sBody LIKE '%mdserver-web%'\")
+conn.commit()
+conn.close()
+" 2>&1 | tee -a $LOG_FILE
+    fi
+
+    # 递归替换 Nginx / OpenResty 的配置项 (Section 7.1 step 9)
+    log_info "更新 Web 服务配置文件路径..."
+    if [ -d "/www/server/nginx/conf/" ]; then
+        find /www/server/nginx/conf/ -type f -name "*.conf" -exec sed -i 's|/www/server/mdserver-web|/www/server/yufeng_panel|g' {} + 2>/dev/null
+    fi
+    if [ -d "/www/server/openresty/" ]; then
+        find /www/server/openresty/ -type f -name "*.conf" -exec sed -i 's|/www/server/mdserver-web|/www/server/yufeng_panel|g' {} + 2>/dev/null
+    fi
 
     # 检查依赖
     log_info "检查 Python 依赖..."
