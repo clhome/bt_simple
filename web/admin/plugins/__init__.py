@@ -61,10 +61,10 @@ def list():
     search = request.args.get('search', '').lower()
     show_third_party = request.args.get('show_third_party', '0')
 
-    if not mw.isNumber(plugins_type):
+    if not yf.isNumber(plugins_type):
         plugins_type = 1
 
-    if not mw.isNumber(page):
+    if not yf.isNumber(page):
         page = 0
 
     pg = MwPlugin.instance()
@@ -121,7 +121,7 @@ def menu():
     for menu_data in hook_menu:
         if tag == menu_data['name'] and 'path' in menu_data:
             t = pg.menuGetAbsPath(tag, menu_data['path'])
-            content = mw.readFile(t)
+            content = yf.readFile(t)
     #------------------------------------------------------------
     data['hook_tag'] = tag
     data['plugin_content'] = content
@@ -140,8 +140,8 @@ def file():
         return ''
 
     if f in ('ico.png', 'ico.svg'):
-        svg_file = mw.getPluginDir() + '/' + name + '/ico.svg'
-        png_file = mw.getPluginDir() + '/' + name + '/ico.png'
+        svg_file = yf.getPluginDir() + '/' + name + '/ico.svg'
+        png_file = yf.getPluginDir() + '/' + name + '/ico.png'
         if os.path.exists(svg_file):
             file = svg_file
         elif os.path.exists(png_file):
@@ -149,11 +149,11 @@ def file():
         else:
             return ''
     else:
-        file = mw.getPluginDir() + '/' + name + '/' + f
+        file = yf.getPluginDir() + '/' + name + '/' + f
         if not os.path.exists(file):
             return ''
 
-    suffix = mw.getPathSuffix(file)
+    suffix = yf.getPathSuffix(file)
     from flask import Response
     from flask import make_response
 
@@ -162,11 +162,11 @@ def file():
     }
 
     if suffix == '.css':
-        content = mw.readFile(file)
+        content = yf.readFile(file)
         headers['Content-Type'] = 'text/css; charset="utf-8"'
         return make_response(Response(content, headers=headers))
     elif suffix == '.js':
-        content = mw.readFile(file)
+        content = yf.readFile(file)
         headers['Content-Type'] = 'application/javascript; charset="utf-8"'
         return make_response(Response(content, headers=headers))
     elif suffix == '.svg':
@@ -211,7 +211,7 @@ def input_zip():
 @panel_login_required
 def clear_cache():
     MwPlugin.instance().clearCache()
-    return mw.returnData(True, '缓存已清除')
+    return yf.returnData(True, '缓存已清除')
 
 
 # 插件设置页
@@ -219,8 +219,8 @@ def clear_cache():
 @panel_login_required
 def setting():
     name = request.args.get('name', '')
-    html = mw.getPluginDir() + '/' + name + '/index.html'
-    return mw.readFile(html)
+    html = yf.getPluginDir() + '/' + name + '/index.html'
+    return yf.readFile(html)
 
 
 # 插件缓存，过期时间为 10 秒
@@ -248,9 +248,9 @@ def run():
     pg = MwPlugin.instance()
     data = pg.run(name, func, version, args, script)
     if data[1] == '':
-        r = mw.returnData(True, "OK", data[0].strip())
+        r = yf.returnData(True, "OK", data[0].strip())
     else:
-        r = mw.returnData(False, data[1].strip())
+        r = yf.returnData(False, data[1].strip())
 
     if func == 'get_total_statistics':
         RUN_CACHE[cache_key] = (r, now)
@@ -270,8 +270,8 @@ def callback():
     pg = MwPlugin.instance()
     data = pg.callback(name, func, args=args, script=script)
     if data[0]:
-        return mw.returnData(True, "OK", data[1])
-    return mw.returnData(False, data[1])
+        return yf.returnData(True, "OK", data[1])
+    return yf.returnData(False, data[1])
 
 # 插件统一批量回调入口API (专门用于前端聚合查询等性能优化场景)
 @blueprint.route('/run_batch', endpoint='run_batch', methods=['POST'])
@@ -334,18 +334,18 @@ def run_batch():
                 cache_key = task['cache_key']
 
                 if exc:
-                    r = mw.returnData(False, str(exc))
+                    r = yf.returnData(False, str(exc))
                 else:
                     if data[1] == '':
-                        r = mw.returnData(True, "OK", data[0].strip())
+                        r = yf.returnData(True, "OK", data[0].strip())
                     else:
-                        r = mw.returnData(False, data[1].strip())
+                        r = yf.returnData(False, data[1].strip())
 
                 if func == 'get_total_statistics' and not exc:
                     RUN_CACHE[cache_key] = (r, now)
 
                 results[name] = r
 
-    return mw.getJson(results)
+    return yf.getJson(results)
 
 

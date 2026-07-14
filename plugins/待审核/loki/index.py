@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,15 +23,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -80,31 +80,31 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pidfile\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def status():
     cmd = "ps aux|grep loki |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
 
 def getInstallVerion():
     version_pl = getServerDir() + "/version.pl"
-    version = mw.readFile(version_pl).strip()
+    version = yf.readFile(version_pl).strip()
     return version
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$APP_PATH}', service_path+"/loki")
     content = content.replace('{$LOG_PATH}', service_path+"/loki/logs")
@@ -126,48 +126,48 @@ def initDreplace():
     init_file = getServerDir() + '/init.pl'
     if not os.path.exists(init_file):
         # openPort()
-        mw.writeFile(init_file, 'ok')
+        yf.writeFile(init_file, 'ok')
 
     conf_dir = getServerDir()+'/conf'
     if not os.path.exists(conf_dir):
-        mw.makeDirs(conf_dir)
+        yf.makeDirs(conf_dir)
 
     file_tpl = getConfTpl()
     dst_file = getConf()
     if not os.path.exists(dst_file):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(dst_file, content)
+        yf.writeFile(dst_file, content)
 
 
     file_tpl = getPromtailConfTpl()
     dst_file = getPromtailConf()
     if not os.path.exists(dst_file):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(dst_file, content)
+        yf.writeFile(dst_file, content)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/' + getPluginName() + '.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/' + getPluginName() + '.service.tpl'
-        service_path = mw.getServerDir()
-        content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/promtail.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/promtail.service.tpl'
-        service_path = mw.getServerDir()
-        content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
     return True
 
@@ -175,11 +175,11 @@ def initDreplace():
 def gOp(method):
     initDreplace()
 
-    data = mw.execShell('systemctl ' + method + ' '+getPluginName())
+    data = yf.execShell('systemctl ' + method + ' '+getPluginName())
     if data[1] != '':
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' promtail')
+    data = yf.execShell('systemctl ' + method + ' promtail')
     if data[1] != '':
         return data[1]
     return 'ok'
@@ -198,53 +198,53 @@ def reload():
     return gOp('reload')
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status loki|grep loaded|grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
 
     shell_cmd = 'systemctl status promtail|grep loaded|grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    data = mw.execShell('systemctl enable loki')
+    data = yf.execShell('systemctl enable loki')
     if data[1] != '':
         return data[1]
 
-    data = mw.execShell('systemctl enable promtail')
+    data = yf.execShell('systemctl enable promtail')
     if data[1] != '':
         return data[1]
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    data = mw.execShell('systemctl disable loki')
+    data = yf.execShell('systemctl disable loki')
     if data[1] != '':
         return data[1]
 
-    data = mw.execShell('systemctl enable promtail')
+    data = yf.execShell('systemctl enable promtail')
     if data[1] != '':
         return data[1]
     return 'ok'
 
 def grafanaUrl():
-    ip = mw.getLocalIp()
+    ip = yf.getLocalIp()
     return 'http://'+ip+':'+"3100"
 
 def installPreInspection():

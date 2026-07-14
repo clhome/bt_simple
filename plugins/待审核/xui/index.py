@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,11 +23,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getArgs():
@@ -48,14 +48,14 @@ def getArgs():
 
 def status():
     cmd = "ps -ef|grep x-ui |grep -v grep | grep -v python  | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
 
 
 def getServiceFile():
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     return systemDir + '/xui.service'
 
 
@@ -83,7 +83,7 @@ def __delete_port(port):
 
 
 def pSqliteDb(dbname='databases'):
-    conn = mw.M(dbname).dbPos('/etc/x-ui', 'x-ui')
+    conn = yf.M(dbname).dbPos('/etc/x-ui', 'x-ui')
     return conn
 
 def initDreplace():
@@ -93,9 +93,9 @@ def initDreplace():
 def xuiOp(method):
     file = initDreplace()
 
-    if not mw.isAppleSystem():
-        mw.execShell('systemctl daemon-reload')
-        data = mw.execShell('systemctl ' + method + ' x-ui')
+    if not yf.isAppleSystem():
+        yf.execShell('systemctl daemon-reload')
+        data = yf.execShell('systemctl ' + method + ' x-ui')
         if data[1] == '':
             return 'ok'
         return data[1]
@@ -122,26 +122,26 @@ def reload():
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status x-ui | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
-    mw.execShell('systemctl enable x-ui')
+    yf.execShell('systemctl enable x-ui')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
-    mw.execShell('systemctl disable x-ui')
+    yf.execShell('systemctl disable x-ui')
     return 'ok'
 
 def openPort():
@@ -175,16 +175,16 @@ def getXuiInfo():
     data['password'] = info['password']
     data['port'] = port_data['value']
 
-    data['ip'] = mw.getHostAddr()
-    return mw.returnJson(True, 'ok', data)
+    data['ip'] = yf.getHostAddr()
+    return yf.returnJson(True, 'ok', data)
 
 def installPreInspection():
-    sys = mw.execShell("cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'")
+    sys = yf.execShell("cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'")
 
     if sys[1] != '':
         return '不支持该系统'
 
-    sys_id = mw.execShell("cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
+    sys_id = yf.execShell("cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
 
     sysName = sys[0].strip().lower()
     sysId = sys_id[0].strip()

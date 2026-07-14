@@ -16,7 +16,7 @@ import core.mw as mw
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -30,11 +30,11 @@ def getInitDTpl():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -63,8 +63,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def checkNameSafe(name):
@@ -74,18 +74,18 @@ def checkNameSafe(name):
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
     content = content.replace('{$SERVER_PATH}', service_path)
     return content
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep rsync |grep -v grep | grep -v python | awk '{print $2}'")
     if data[0] == '':
         return 'stop'
 
-    # data = mw.execShell(
+    # data = yf.execShell(
     #     "ps -ef|grep lsyncd |grep -v grep | grep -v python | awk '{print $2}'")
     # if data[0] == '':
     #     return 'stop'
@@ -100,13 +100,13 @@ def appConf():
 def appAuthPwd(name):
     nameDir = getServerDir() + '/receive/' + name
     if not os.path.exists(nameDir):
-        mw.makeDirs(nameDir)
+        yf.makeDirs(nameDir)
     return nameDir + '/auth.db'
 
 
 def getLog():
     conf_path = appConf()
-    conf = mw.readFile(conf_path)
+    conf = yf.readFile(conf_path)
     rep = r'log file\s*=\s*(.*)'
     tmp = re.search(rep, conf)
     if not tmp:
@@ -116,7 +116,7 @@ def getLog():
 
 def getLsyncdLog():
     path = getServerDir() + "/lsyncd.conf"
-    conf = mw.readFile(path)
+    conf = yf.readFile(path)
     rep = r'logfile\s*=\s*\"(.*)\"'
     tmp = re.search(rep, conf)
     if not tmp:
@@ -145,8 +145,8 @@ def initDReceive():
     conf_path = appConf()
     conf_tpl_path = getPluginDir() + '/conf/rsyncd.conf'
     if not os.path.exists(conf_path):
-        content = mw.readFile(conf_tpl_path)
-        mw.writeFile(conf_path, content)
+        content = yf.readFile(conf_tpl_path)
+        yf.writeFile(conf_path, content)
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -157,49 +157,49 @@ def initDReceive():
     # print(file_bin, file_tpl)
     # initd replace
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     lock_file = getServerDir() + "/installed_rsyncd.pl"
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/rsyncd.service'
     systemServiceTpl = getPluginDir() + '/init.d/rsyncd.service.tpl'
     if not os.path.exists(lock_file):
 
-        rsync_bin = mw.execShell('which rsync')[0].strip()
+        rsync_bin = yf.execShell('which rsync')[0].strip()
         if rsync_bin == '':
             print('rsync missing!')
             exit(0)
 
-        service_path = mw.getServerDir()
-        se = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        se = yf.readFile(systemServiceTpl)
         se = se.replace('{$SERVER_PATH}', service_path)
         se = se.replace('{$RSYNC_BIN}', rsync_bin)
-        mw.writeFile(systemService, se)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se)
+        yf.execShell('systemctl daemon-reload')
 
-        mw.writeFile(lock_file, "ok")
+        yf.writeFile(lock_file, "ok")
         openPort()
 
     rlog = getLog()
     if os.path.exists(rlog):
-        mw.writeFile(rlog, '')
+        yf.writeFile(rlog, '')
     return file_bin
 
 
 def initDSend():
 
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     conf_path = getServerDir() + '/lsyncd.conf'
     conf_tpl_path = getPluginDir() + '/conf/lsyncd.conf'
     if not os.path.exists(conf_path):
-        content = mw.readFile(conf_tpl_path)
+        content = yf.readFile(conf_tpl_path)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(conf_path, content)
+        yf.writeFile(conf_path, content)
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -209,47 +209,47 @@ def initDSend():
     file_bin = initD_path + '/lsyncd'
     file_tpl = getPluginDir() + "/init.d/lsyncd.tpl"
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     lock_file = getServerDir() + "/installed.pl"
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/lsyncd.service'
     systemServiceTpl = getPluginDir() + '/init.d/lsyncd.service.tpl'
     if not os.path.exists(lock_file):
-        lsyncd_bin = mw.execShell('which lsyncd')[0].strip()
+        lsyncd_bin = yf.execShell('which lsyncd')[0].strip()
         if lsyncd_bin == '':
             print('lsyncd missing!')
             exit(0)
 
-        content = mw.readFile(systemServiceTpl)
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
         content = content.replace('{$LSYNCD_BIN}', lsyncd_bin)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
-        mw.writeFile(lock_file, "ok")
+        yf.writeFile(lock_file, "ok")
 
     lslog = getLsyncdLog()
     if os.path.exists(lslog):
-        mw.writeFile(lslog, '')
+        yf.writeFile(lslog, '')
 
     return file_bin
 
 
 def getDefaultConf():
     path = getServerDir() + "/config.json"
-    data = mw.readFile(path)
+    data = yf.readFile(path)
     data = json.loads(data)
     return data
 
 
 def setDefaultConf(data):
     path = getServerDir() + "/config.json"
-    mw.writeFile(path, json.dumps(data))
+    yf.writeFile(path, json.dumps(data))
     return True
 
 
@@ -257,9 +257,9 @@ def initConfigJson():
     path = getServerDir() + "/config.json"
     tpl = getPluginDir() + "/conf/config.json"
     if not os.path.exists(path):
-        data = mw.readFile(tpl)
+        data = yf.readFile(tpl)
         data = json.loads(data)
-        mw.writeFile(path, json.dumps(data))
+        yf.writeFile(path, json.dumps(data))
 
 
 def initDreplace():
@@ -275,21 +275,21 @@ def initDreplace():
 
 def rsyncOp(method):
     file = initDreplace()
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' rsyncd')
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' rsyncd')
         if data[1] == '':
             return 'ok'
         return 'fail'
 
-    data = mw.execShell(file + ' ' + method)
+    data = yf.execShell(file + ' ' + method)
     if data[1] == '':
         return 'ok'
     return 'fail'
 
 
 def lsyncdOp(method):
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' lsyncd')
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' lsyncd')
         if data[1] == '':
             return 'ok'
         return 'fail'
@@ -316,16 +316,16 @@ def reload():
     return status
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status rsyncd | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
 
     shell_cmd = 'systemctl status lsyncd | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
 
@@ -333,27 +333,27 @@ def initdStatus():
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable lsyncd')
-    mw.execShell('systemctl enable rsyncd')
+    yf.execShell('systemctl enable lsyncd')
+    yf.execShell('systemctl enable rsyncd')
     return 'ok'
 
 
 def initdUinstall():
     if not app_debug:
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable lsyncd')
-    mw.execShell('systemctl disable rsyncd')
+    yf.execShell('systemctl disable lsyncd')
+    yf.execShell('systemctl disable rsyncd')
     return 'ok'
 
 
 def getRecListData():
     path = appConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
 
     flist = re.findall("\\[(.*)\\]", content)
 
@@ -390,7 +390,7 @@ def getRecListDataBy(name):
 
 def getRecList():
     ret_list = getRecListData()
-    return mw.returnJson(True, 'ok', ret_list)
+    return yf.returnJson(True, 'ok', ret_list)
 
 
 def addRec():
@@ -401,19 +401,19 @@ def addRec():
 
     args_name = args['name']
     if not checkNameSafe(args_name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
 
     args_pwd = args['pwd']
     args_path = args['path']
     args_ps = args['ps']
 
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         if os.path.exists(args_path):
             import utils.file as utils_file
             info = utils_file.getAccess(args_path)
             file_chown = info['chown']
             if file_chown != 'www':
-                return mw.returnJson(False, '建议手动执行命令: chown -R www:www '+ args_path)
+                return yf.returnJson(False, '建议手动执行命令: chown -R www:www '+ args_path)
         else:
             os.system("mkdir -p " + args_path + " &")
             os.system("chown -R  www:www " + args_path + " &")
@@ -423,11 +423,11 @@ def addRec():
 
     auth_path = appAuthPwd(args_name)
     pwd_content = args_name + ':' + args_pwd + "\n"
-    mw.writeFile(auth_path, pwd_content)
-    mw.execShell("chmod 600 " + auth_path)
+    yf.writeFile(auth_path, pwd_content)
+    yf.execShell("chmod 600 " + auth_path)
 
     path = appConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
 
     con = "\n\n" + '[' + args_name + ']' + "\n"
     con += 'path = ' + args_path + "\n"
@@ -440,12 +440,12 @@ def addRec():
     hosts_allow = args.get('hosts_allow', '').strip()
     if hosts_allow:
         if not re.match(r'^[0-9a-zA-Z\.\,\/\s\*]+$', hosts_allow):
-            return mw.returnJson(False, 'IP白名单格式错误！')
+            return yf.returnJson(False, 'IP白名单格式错误！')
         con += "\n" + 'hosts allow = ' + hosts_allow
 
     content = content.strip() + "\n" + con
-    mw.writeFile(path, content)
-    return mw.returnJson(True, '添加成功')
+    yf.writeFile(path, content)
+    return yf.returnJson(True, '添加成功')
 
 
 def getRec():
@@ -456,22 +456,22 @@ def getRec():
 
     name = args['name']
     if name != "" and not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
 
     if name == "":
         tmp = {}
         tmp["name"] = ""
         tmp["comment"] = ""
-        tmp["path"] = mw.getWwwDir()
-        tmp["pwd"] = mw.getRandomString(16)
-        return mw.returnJson(True, 'OK', tmp)
+        tmp["path"] = yf.getWwwDir()
+        tmp["pwd"] = yf.getRandomString(16)
+        return yf.returnJson(True, 'OK', tmp)
 
     data = getRecListDataBy(name)
 
-    content = mw.readFile(data['secrets file'])
+    content = yf.readFile(data['secrets file'])
     pwd = content.strip().split(":")
     data['pwd'] = pwd[1]
-    return mw.returnJson(True, 'OK', data)
+    return yf.returnJson(True, 'OK', data)
 
 
 def delRecBy(name):
@@ -479,7 +479,7 @@ def delRecBy(name):
         return False
     try:
         path = appConf()
-        content = mw.readFile(path)
+        content = yf.readFile(path)
 
         reclist = getRecListData()
         ret_list_len = len(reclist)
@@ -492,7 +492,7 @@ def delRecBy(name):
                 secrets_file = tmp['secrets file']
                 tp = os.path.dirname(secrets_file)
                 if os.path.exists(tp):
-                    mw.removeDir(tp)
+                    yf.removeDir(tp)
 
                 if x + 1 == ret_list_len:
                     is_end = True
@@ -506,7 +506,7 @@ def delRecBy(name):
 
         conre = re.search(reg,  content, re.S)
         content = content.replace("[" + name + "]\n" + conre.groups()[0], '')
-        mw.writeFile(path, content)
+        yf.writeFile(path, content)
     except Exception as e:
         return False
     return True
@@ -519,11 +519,11 @@ def delRec():
         return data[1]
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
     ok = delRecBy(name)
     if ok:
-        return mw.returnJson(True, '删除成功!')
-    return mw.returnJson(False, '删除失败!')
+        return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(False, '删除失败!')
 
 
 def cmdRecSecretKey():
@@ -536,11 +536,11 @@ def cmdRecSecretKey():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
     info = getRecListDataBy(name)
 
     secrets_file = info['secrets file']
-    content = mw.readFile(info['secrets file'])
+    content = yf.readFile(info['secrets file'])
     pwd = content.strip().split(":")
 
     m = {"A": info['name'], "B": pwd[1], "C": "873"}
@@ -548,7 +548,7 @@ def cmdRecSecretKey():
     m = m.encode("utf-8")
     m = base64.b64encode(m)
     cmd = m.decode("utf-8")
-    return mw.returnJson(True, 'OK!', cmd)
+    return yf.returnJson(True, 'OK!', cmd)
 
 
 def cmdRecCmd():
@@ -559,11 +559,11 @@ def cmdRecCmd():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
     info = getRecListDataBy(name)
-    ip = mw.getLocalIp()
+    ip = yf.getLocalIp()
 
-    content = mw.readFile(info['secrets file'])
+    content = yf.readFile(info['secrets file'])
     pwd = content.strip().split(":")
 
     tmp_name = '/tmp/' + name + '.pass'
@@ -572,18 +572,18 @@ def cmdRecCmd():
     cmd += 'chmod 600 ' + tmp_name + ' <br>'
     cmd += 'rsync -arv --password-file=' + tmp_name + \
         ' --progress --delete  /project  ' + name + '@' + ip + '::' + name
-    return mw.returnJson(True, 'OK!', cmd)
+    return yf.returnJson(True, 'OK!', cmd)
 
 
 # ----------------------------- rsyncdSend start -------------------------
 
 def lsyncdReload():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep lsyncd |grep -v grep | grep -v python | awk '{print $2}'")
     if data[0] == '':
-        mw.execShell('systemctl start lsyncd')
+        yf.execShell('systemctl start lsyncd')
     else:
-        mw.execShell('systemctl restart lsyncd')
+        yf.execShell('systemctl restart lsyncd')
 
 
 def makeLsyncdConf(data):
@@ -604,7 +604,7 @@ def makeLsyncdConf(data):
 
     lsyncd_list = lsyncd_data['list']
 
-    rsync_bin = mw.execShell('which rsync')[0].strip()
+    rsync_bin = yf.execShell('which rsync')[0].strip()
     send_dir = getServerDir() + "/send"
 
     if len(lsyncd_list) > 0:
@@ -613,18 +613,18 @@ def makeLsyncdConf(data):
             t = lsyncd_list[x]
             name_dir = send_dir + "/" + t["name"]
             if not os.path.exists(name_dir):
-                mw.makeDirs(name_dir)
+                yf.makeDirs(name_dir)
 
             cmd_exclude = name_dir + "/exclude"
             cmd_exclude_txt = ""
             for x in t['exclude']:
                 cmd_exclude_txt += x + "\n"
-            mw.writeFile(cmd_exclude, cmd_exclude_txt)
+            yf.writeFile(cmd_exclude, cmd_exclude_txt)
             cmd_pass = name_dir + "/pass"
             if os.path.exists(cmd_pass):
-                mw.execShell("chmod 755 " + cmd_pass)
-            mw.writeFile(cmd_pass, t['password'])
-            mw.execShell("chmod 600 " + cmd_pass)
+                yf.execShell("chmod 755 " + cmd_pass)
+            yf.writeFile(cmd_pass, t['password'])
+            yf.execShell("chmod 600 " + cmd_pass)
 
             delete_ok = ' '
             if t['delete'] == "true":
@@ -633,8 +633,8 @@ def makeLsyncdConf(data):
             remote_addr = t['name'] + '@' + t['ip'] + "::" + t['name']
             cmd = rsync_bin + " -avzP " + "--port=" + str(t['rsync']['port']) + " --bwlimit=" + t['rsync'][
                 'bwlimit'] + delete_ok + "  --exclude-from=" + cmd_exclude + " --password-file=" + cmd_pass + " " + t["path"] + " " + remote_addr
-            mw.writeFile(name_dir + "/cmd", cmd)
-            mw.execShell("chmod +x " + name_dir + "/cmd")
+            yf.writeFile(name_dir + "/cmd", cmd)
+            yf.execShell("chmod +x " + name_dir + "/cmd")
 
             if t['realtime'] == "false":
                 continue
@@ -669,7 +669,7 @@ def makeLsyncdConf(data):
             content += "}\n"
 
     path = getServerDir() + "/lsyncd.conf"
-    mw.writeFile(path, content)
+    yf.writeFile(path, content)
 
     lsyncdReload()
 
@@ -694,7 +694,7 @@ def lsyncdListFindName(slist, name):
 def lsyncdList():
     data = getDefaultConf()
     send = data['send']
-    return mw.returnJson(True, "设置成功!", send)
+    return yf.returnJson(True, "设置成功!", send)
 
 
 def lsyncdGet():
@@ -706,7 +706,7 @@ def lsyncdGet():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
 
     data = getDefaultConf()
 
@@ -723,7 +723,7 @@ def lsyncdGet():
     info = {
         "secret_key": '',
         "ip": '',
-        "path": mw.getServerDir(),
+        "path": yf.getServerDir(),
         'rsync': rsync,
         'realtime': "true",
         'delete': "false",
@@ -736,7 +736,7 @@ def lsyncdGet():
         m = m.encode("utf-8")
         m = base64.b64encode(m)
         info['secret_key'] = m.decode("utf-8")
-    return mw.returnJson(True, "OK", info)
+    return yf.returnJson(True, "OK", info)
 
 
 def lsyncdDelete():
@@ -747,7 +747,7 @@ def lsyncdDelete():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
 
     data = getDefaultConf()
     slist = data['send']["list"]
@@ -760,7 +760,7 @@ def lsyncdDelete():
     data['send']["list"] = slist
     setDefaultConf(data)
     makeLsyncdConf(data)
-    return mw.returnJson(True, "OK")
+    return yf.returnJson(True, "OK")
 
 
 def lsyncdAdd():
@@ -774,13 +774,13 @@ def lsyncdAdd():
     ip = args['ip']
     path = args['path']
 
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         if os.path.exists(path):
             import utils.file as utils_file
             info = utils_file.getAccess(path)
             file_chown = info['chown']
             if file_chown != 'www':
-                return mw.returnJson(False, '建议手动执行命令: chown -R www:www '+ path)
+                return yf.returnJson(False, '建议手动执行命令: chown -R www:www '+ path)
         else:
             os.system("mkdir -p " + path + " &")
             os.system("chown -R  www:www " + path + " &")
@@ -826,7 +826,7 @@ def lsyncdAdd():
             info['password'] = m['B']
             info['port'] = m['C']
         except Exception as e:
-            return mw.returnJson(False, "接收密钥格式错误!")
+            return yf.returnJson(False, "接收密钥格式错误!")
     else:
         data = checkArgs(args, ['sname', 'password'])
         if not data[0]:
@@ -837,7 +837,7 @@ def lsyncdAdd():
         info['port'] = args['port']
 
     if not checkNameSafe(info['name']):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
 
     try:
         port_num = int(info['port'])
@@ -845,7 +845,7 @@ def lsyncdAdd():
             raise ValueError
         info['port'] = port_num
     except Exception:
-        return mw.returnJson(False, "端口格式不合法！")
+        return yf.returnJson(False, "端口格式不合法！")
 
     rsync = {
         'bwlimit': bwlimit,
@@ -881,7 +881,7 @@ def lsyncdAdd():
 
     setDefaultConf(data)
     makeLsyncdConf(data)
-    return mw.returnJson(True, "设置成功!")
+    return yf.returnJson(True, "设置成功!")
 
 
 def lsyncdRun():
@@ -892,14 +892,14 @@ def lsyncdRun():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
 
     send_dir = getServerDir() + "/send"
     app_dir = send_dir + "/" + name
 
     cmd = "bash " + app_dir + "/cmd >> " + app_dir + "/run.log" + " 2>&1 &"
-    mw.execShell(cmd)
-    return mw.returnJson(True, "执行成功!")
+    yf.execShell(cmd)
+    return yf.returnJson(True, "执行成功!")
 
 
 def lsyncdConfLog():
@@ -915,7 +915,7 @@ def lsyncdLog():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
 
     send_dir = getServerDir() + "/send"
     app_dir = send_dir + "/" + name
@@ -930,14 +930,14 @@ def lsyncdGetExclude():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
 
     data = getDefaultConf()
     slist = data['send']["list"]
     res = lsyncdListFindName(slist, name)
     i = res[1]
     info = slist[i]
-    return mw.returnJson(True, "OK!", info['exclude'])
+    return yf.returnJson(True, "OK!", info['exclude'])
 
 
 def lsyncdRemoveExclude():
@@ -948,7 +948,7 @@ def lsyncdRemoveExclude():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
 
     exclude = args['exclude']
 
@@ -970,7 +970,7 @@ def lsyncdRemoveExclude():
     data['send']["list"][i]['exclude'] = exclude_list
     setDefaultConf(data)
     makeLsyncdConf(data)
-    return mw.returnJson(True, "OK!", exclude_list)
+    return yf.returnJson(True, "OK!", exclude_list)
 
 
 def lsyncdAddExclude():
@@ -981,7 +981,7 @@ def lsyncdAddExclude():
 
     name = args['name']
     if not checkNameSafe(name):
-        return mw.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
 
     exclude = args['exclude']
 
@@ -997,7 +997,7 @@ def lsyncdAddExclude():
     data['send']["list"][i]['exclude'] = exclude_list
     setDefaultConf(data)
     makeLsyncdConf(data)
-    return mw.returnJson(True, "OK!", exclude_list)
+    return yf.returnJson(True, "OK!", exclude_list)
 
 if __name__ == "__main__":
     func = sys.argv[1]

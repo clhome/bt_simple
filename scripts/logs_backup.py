@@ -24,7 +24,7 @@ print('==================================================================')
 print('★[' + time.strftime("%Y/%m/%d %H:%M:%S") + ']，切割日志')
 print('==================================================================')
 print('|--当前保留最新的[' + sys.argv[2] + ']份')
-logsPath = mw.getLogsDir()
+logsPath = yf.getLogsDir()
 px = '.log'
 
 
@@ -50,7 +50,7 @@ def split_logs(oldFileName, num):
 
 
 def split_all(save):
-    sites = mw.M('sites').field('name').select()
+    sites = yf.M('sites').field('name').select()
     for site in sites:
         oldFileName = logsPath + '/' +site['name'] + px
         split_logs(oldFileName, save)
@@ -73,5 +73,5 @@ if __name__ == '__main__':
         split_logs(oldFileName, num)
         if os.path.exists(errOldFileName):
             split_logs(errOldFileName, num)
-    path = mw.getServerDir()
+    path = yf.getServerDir()
     os.system("kill -USR1 `cat " + path + "/openresty/nginx/logs/nginx.pid`")

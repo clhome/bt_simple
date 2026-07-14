@@ -76,9 +76,9 @@ class FtpPSClient:
             "backup_path": self.default_backup_path
         }
 
-        cfg = mw.getServerDir() + "/backup_ftp/" + self.config_file
+        cfg = yf.getServerDir() + "/backup_ftp/" + self.config_file
         if os.path.exists(cfg):
-            data = mw.readFile(cfg)
+            data = yf.readFile(cfg)
             return json.loads(data)
         else:
             return default_config
@@ -172,7 +172,7 @@ class FtpPSClient:
         print("|-正在上传文件到 {}".format(object_name))
 
         total_bytes = os.path.getsize(filename)
-        object_md5_name = mw.md5(object_name)
+        object_md5_name = yf.md5(object_name)
         pg_file = os.path.join(upload_tmp_dir, object_md5_name + ".pl")
 
         block_size = BLOCK_SIZE
@@ -191,9 +191,9 @@ class FtpPSClient:
                 "total_bytes": total_bytes,
                 "uploaded_bytes": 0,
             }
-            mw.writeFile(pg_file, json.dumps(progress_info))
+            yf.writeFile(pg_file, json.dumps(progress_info))
         else:
-            progress_info = json.loads(mw.readFile(pg_file))
+            progress_info = json.loads(yf.readFile(pg_file))
             if total_bytes == progress_info.get("total_bytes"):
                 # 取远程文件大小
                 _max_loop = 10

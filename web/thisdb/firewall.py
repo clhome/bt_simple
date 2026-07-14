@@ -9,15 +9,15 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.yf as mw
+import core.yf as yf
 
 try:
-    mw.M('firewall').execute('ALTER TABLE firewall ADD COLUMN status INTEGER DEFAULT 1', ())
+    yf.M('firewall').execute('ALTER TABLE firewall ADD COLUMN status INTEGER DEFAULT 1', ())
 except:
     pass
 
 try:
-    mw.M('firewall').execute('ALTER TABLE firewall ADD COLUMN type TEXT DEFAULT "port"', ())
+    yf.M('firewall').execute('ALTER TABLE firewall ADD COLUMN type TEXT DEFAULT "port"', ())
 except:
     pass
 
@@ -27,7 +27,7 @@ def getFirewallList(page=1, size=10, search_port='', search_ps='', stype='port')
     start = (int(page) - 1) * (int(size))
     limit = str(start) + ',' + str(size)
 
-    m = mw.M('firewall').field(__FIELD)
+    m = yf.M('firewall').field(__FIELD)
     
     where = ""
     params = []
@@ -63,7 +63,7 @@ def getFirewallList(page=1, size=10, search_port='', search_ps='', stype='port')
     firewall_list = m.limit(limit).order('id desc').select()
     
     # 再次使用带条件的对象获取总数
-    count_obj = mw.M('firewall')
+    count_obj = yf.M('firewall')
     if where:
         count_obj = count_obj.where(where, tuple(params))
     count = count_obj.count()
@@ -81,7 +81,7 @@ def addFirewall(port, protocol='tcp', ps='备注', stype='port') -> bool:
     :ps -> str 备注 (可选)
     :stype -> str 类型 (可选|port,address_allow,address_deny)
     '''
-    now_time = mw.formatDate()
+    now_time = yf.formatDate()
     insert_data = {
         'port':port,
         'protocol':protocol,
@@ -91,11 +91,11 @@ def addFirewall(port, protocol='tcp', ps='备注', stype='port') -> bool:
         'add_time':now_time,
         'update_time':now_time,
     }
-    mw.M('firewall').insert(insert_data)
+    yf.M('firewall').insert(insert_data)
     return True
 
 
 def getFirewallCountByPort(port, stype='port'):
-    return mw.M('firewall').where('port=? AND type=?',(port, stype)).count()
+    return yf.M('firewall').where('port=? AND type=?',(port, stype)).count()
 
 

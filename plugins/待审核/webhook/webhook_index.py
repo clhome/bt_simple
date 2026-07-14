@@ -15,7 +15,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,11 +23,11 @@ def getPluginName():
     return 'webhook'
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getCfgFilePath():
@@ -39,7 +39,7 @@ def getCfg():
     if not os.path.exists(cfg):
         initCfg()
 
-    data = mw.readFile(cfg)
+    data = yf.readFile(cfg)
     data = json.loads(data)
     return data
 
@@ -62,6 +62,6 @@ def runShellArgs(args):
             os.system(cmd)
             data[i]['count'] += 1
             data[i]['uptime'] = int(time.time())
-            mw.writeFile(getCfgFilePath(), json.dumps(data))
-            return mw.returnJson(True, '运行成功!')
-    return mw.returnJson(False, '指定Hook不存在!')
+            yf.writeFile(getCfgFilePath(), json.dumps(data))
+            return yf.returnJson(True, '运行成功!')
+    return yf.returnJson(False, '指定Hook不存在!')

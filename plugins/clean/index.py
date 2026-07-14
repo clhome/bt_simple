@@ -13,7 +13,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -22,11 +22,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -178,7 +178,7 @@ def initConf():
         for x in range(len(l)):
             abspath = rootDir + "/" + l[x]
             content += abspath + "\n"
-        mw.writeFile(conf, content)
+        yf.writeFile(conf, content)
 
 
 def start():
@@ -186,7 +186,7 @@ def start():
 
     lock_file = getLockFile()
     if not os.path.exists(lock_file):
-        mw.writeFile(lock_file, "")
+        yf.writeFile(lock_file, "")
 
         import tool_task
         tool_task.createBgTask()
@@ -221,7 +221,7 @@ def cleanFileLog(path):
     filepath, shotname, extension = get_filePath_fileName_fileExt(path)
     if extension == ".log":
         cmd = "echo \"\" > " + path
-        tmp = mw.execShell(cmd)
+        tmp = yf.execShell(cmd)
         if tmp[1] != "":
             cmd += " | error:" + tmp[1].strip()
         print(cmd)
@@ -231,7 +231,7 @@ def cleanSelfFileLog(path):
     filepath, shotname, extension = get_filePath_fileName_fileExt(path)
     if extension == ".log":
         cmd = "echo \"\" > " + path
-        tmp = mw.execShell(cmd)
+        tmp = yf.execShell(cmd)
         if tmp[1] != "":
             cmd += " | error:" + tmp[1].strip()
         print(cmd)
@@ -250,13 +250,13 @@ def cleanDirLog(path):
 def cleanRun():
     plugin_dir = getPluginDir()
     log_file = getServerDir()+'/clean.log'
-    cmd = 'cd '+mw.getPanelDir()+' && python3 '+plugin_dir+'/index.py clean > '+log_file
+    cmd = 'cd '+yf.getPanelDir()+' && python3 '+plugin_dir+'/index.py clean > '+log_file
     os.system(cmd)
-    return mw.returnJson(True, '执行成功!')
+    return yf.returnJson(True, '执行成功!')
 
 def cleanLog():
     conf = getConf()
-    clist = mw.readFile(conf).strip()
+    clist = yf.readFile(conf).strip()
     clist = clist.split("\n")
 
     for x in clist:
@@ -265,7 +265,7 @@ def cleanLog():
         if abspath.find('*') > 1:
             cmd = 'rm -rf ' + abspath
             print(cmd)
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             # print(data)
             continue
 

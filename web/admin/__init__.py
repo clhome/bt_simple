@@ -36,7 +36,7 @@ from werkzeug.local import LocalProxy
 
 from admin.common import isLogined
 
-import core.yf as mw
+import core.yf as yf
 import config
 import utils.config as utils_config
 import thisdb
@@ -67,13 +67,13 @@ app.jinja_env.trim_blocks = True
 # app.wsgi_app = WhiteNoise(app.wsgi_app, root="../web/static/", prefix="static/", max_age=604800)
 
 # session配置
-secret_file = mw.getPanelDataDir() + '/secret_key.pl'
+secret_file = yf.getPanelDataDir() + '/secret_key.pl'
 if os.path.exists(secret_file):
-    app.config['SECRET_KEY'] = mw.readFile(secret_file).strip()
+    app.config['SECRET_KEY'] = yf.readFile(secret_file).strip()
 else:
     import os as native_os
     key = native_os.urandom(24).hex()
-    mw.writeFile(secret_file, key)
+    yf.writeFile(secret_file, key)
     os.chmod(secret_file, 0o600)  # 仅 root 可读
     app.config['SECRET_KEY'] = key
 
@@ -92,7 +92,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=31)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
 
 # db的配置
-# app.config['SQLALCHEMY_DATABASE_URI'] = mw.getSqitePrefix()+config.SQLITE_PATH+"?timeout=20"  # 使用 SQLite 数据库
+# app.config['SQLALCHEMY_DATABASE_URI'] = yf.getSqitePrefix()+config.SQLITE_PATH+"?timeout=20"  # 使用 SQLite 数据库
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # BASIC AUTH
@@ -113,7 +113,7 @@ for module in get_submodules():
 
 def sendAuthenticated():
     # 发送http认证信息
-    request_host = mw.getHostAddr()
+    request_host = yf.getHostAddr()
     result = Response('', 401, {'WWW-Authenticate': 'Basic realm="%s"' % request_host.strip()})
     if not 'login' in session and not 'admin_auth' in session:
         session.clear()
@@ -122,7 +122,7 @@ def sendAuthenticated():
 @app.route('/.well-known/acme-challenge/<path:filename>')
 def acme_challenge_file(filename):
     from flask import send_from_directory
-    path = os.path.join(mw.getRunDir(), 'tmp', '.well-known', 'acme-challenge')
+    path = os.path.join(yf.getRunDir(), 'tmp', '.well-known', 'acme-challenge')
     return send_from_directory(path, filename)
 
 _request_check_cache = {}
@@ -172,8 +172,8 @@ def requestCheck():
             return sendAuthenticated()
 
         salt = basic_auth['salt']
-        basic_user = mw.md5(auth.username.strip() + salt)
-        basic_pwd = mw.md5(auth.password.strip() + salt)
+        basic_user = yf.md5(auth.username.strip() + salt)
+        basic_pwd = yf.md5(auth.password.strip() + salt)
         if basic_user != basic_auth['basic_user'] or basic_pwd != basic_auth['basic_pwd']:
             return sendAuthenticated()
 
@@ -190,7 +190,7 @@ def requestCheck():
                 if origin and host not in origin:
                     return Response('Forbidden', status=403)
 
-    # domain_check = mw.checkDomainPanel()
+    # domain_check = yf.checkDomainPanel()
     # if domain_check:
     #     return domain_check
             
@@ -224,7 +224,7 @@ def page_unauthorized(error):
 @app.context_processor
 def inject_global_variables():
     app_ver = config.APP_VERSION
-    if mw.isDebugMode():
+    if yf.isDebugMode():
         app_ver = app_ver + str(time.time())
 
     data = utils_config.getGlobalVar()

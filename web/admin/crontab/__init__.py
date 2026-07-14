@@ -16,7 +16,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.crontab import crontab as MwCrontab
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 blueprint = Blueprint('crontab', __name__, url_prefix='/crontab', template_folder='../../templates')
@@ -145,7 +145,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.crontab import crontab as MwCrontab
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 blueprint = Blueprint('crontab', __name__, url_prefix='/crontab', template_folder='../../templates')
@@ -264,17 +264,17 @@ def add():
 
     info = thisdb.getCronByName(request_data['name'])
     if info is not None:
-        return mw.returnData(False, '任务名称重复')
+        return yf.returnData(False, '任务名称重复')
 
     try:
         data = MwCrontab.instance().add(request_data)
         if isinstance(data, dict):
             return data
         if data > 0:
-            return mw.returnData(True, '添加成功')
-        return mw.returnData(False, '添加失败')
+            return yf.returnData(True, '添加成功')
+        return yf.returnData(False, '添加失败')
     except Exception as e:
-        return mw.returnData(False, '添加异常: ' + str(e))
+        return yf.returnData(False, '添加异常: ' + str(e))
 
 # 同步系统级和面板内置计划任务
 @blueprint.route('/sync_sys_cron', endpoint='sync_sys_cron', methods=['POST'])
@@ -284,8 +284,8 @@ def sync_sys_cron():
         from admin.setup.init_cron import sync_all_tasks
         count = sync_all_tasks()
         if count > 0:
-            return mw.returnData(True, '成功检测并同步了 {} 个任务'.format(count))
+            return yf.returnData(True, '成功检测并同步了 {} 个任务'.format(count))
         else:
-            return mw.returnData(True, '当前任务列表已是最新，无缺失任务需要同步')
+            return yf.returnData(True, '当前任务列表已是最新，无缺失任务需要同步')
     except Exception as e:
-        return mw.returnData(False, '同步异常: ' + str(e))
+        return yf.returnData(False, '同步异常: ' + str(e))

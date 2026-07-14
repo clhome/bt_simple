@@ -18,11 +18,11 @@ def getPluginName():
     return 'op_star'
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 def getServerDir():
     # 统一指向安装目录 /www/server/openstar
-    return mw.getServerDir() + '/openstar'
+    return yf.getServerDir() + '/openstar'
 
 def getArgs():
     args = sys.argv[2:]
@@ -43,14 +43,14 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[ck] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[ck] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def dstWafConfPath():
-    return mw.getServerDir() + "/web_conf/nginx/vhost/openstar.conf"
+    return yf.getServerDir() + "/web_conf/nginx/vhost/openstar.conf"
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
     content = content.replace('{$SERVER_PATH}', service_path)
     return content
 
@@ -70,7 +70,7 @@ def fixOpenstarLuaPaths():
                 if file.endswith('.lua') or file.endswith('.json'):
                     fpath = os.path.join(root, file)
                     try:
-                        content = mw.readFile(fpath)
+                        content = yf.readFile(fpath)
                         has_changed = False
                         
                         if '/opt/openresty/openstar' in content:
@@ -117,23 +117,23 @@ def fixOpenstarLuaPaths():
                                     has_changed = True
                                 
                         if has_changed:
-                            mw.writeFile(fpath, content)
+                            yf.writeFile(fpath, content)
                     except Exception as e:
                         pass
 
 def makeOpDstRunLua(conf_reload=False):
-    root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
-    root_worker_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
-    root_access_dir = mw.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
+    root_init_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
+    root_worker_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
+    root_access_dir = yf.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
     
     # 注入 shared_dict 模板
     waf_conf = dstWafConfPath()
     if not os.path.exists(waf_conf) or conf_reload:
         waf_tpl = getPluginDir() + "/conf/openstar.conf"
         if os.path.exists(waf_tpl):
-            content = mw.readFile(waf_tpl)
+            content = yf.readFile(waf_tpl)
             content = contentReplace(content)
-            mw.writeFile(waf_conf, content)
+            yf.writeFile(waf_conf, content)
 
     # 动态构造 package.path 和 package.cpath 注入的 Lua 语句 (加 4 空格缩进以保持 Lua if 代码块美观)
     srv_dir = getServerDir()
@@ -151,9 +151,9 @@ def makeOpDstRunLua(conf_reload=False):
             with open(init_file, 'r', encoding='utf-8') as f:
                 code = f.read()
             content = f"{path_inject}\n{code}"
-            mw.writeFile(waf_init_dst, content)
+            yf.writeFile(waf_init_dst, content)
         except Exception as e:
-            mw.writeFile(waf_init_dst, f'ngx.log(ngx.ERR, "Failed to load openstar init: {e}")\n')
+            yf.writeFile(waf_init_dst, f'ngx.log(ngx.ERR, "Failed to load openstar init: {e}")\n')
 
     # 2. 注入 init_worker 挂载 (兼容新版 i_worker.lua 或老版 init_worker.lua)
     init_worker_dst = root_worker_dir + '/openstar_init_worker.lua'
@@ -170,9 +170,9 @@ def makeOpDstRunLua(conf_reload=False):
             with open(init_worker_file, 'r', encoding='utf-8') as f:
                 code = f.read()
             content = f"{path_inject}\n{code}"
-            mw.writeFile(init_worker_dst, content)
+            yf.writeFile(init_worker_dst, content)
         except Exception as e:
-            mw.writeFile(init_worker_dst, f'ngx.log(ngx.ERR, "Failed to load openstar init_worker: {e}")\n')
+            yf.writeFile(init_worker_dst, f'ngx.log(ngx.ERR, "Failed to load openstar init_worker: {e}")\n')
 
     # 3. 注入 access_by_lua 挂载 (兼容新版 access_all.lua 或老版 main.lua)
     access_file_dst = root_access_dir + '/openstar_access.lua'
@@ -187,18 +187,18 @@ def makeOpDstRunLua(conf_reload=False):
             with open(access_file, 'r', encoding='utf-8') as f:
                 code = f.read()
             content = f"{path_inject}\n{code}"
-            mw.writeFile(access_file_dst, content)
+            yf.writeFile(access_file_dst, content)
         except Exception as e:
-            mw.writeFile(access_file_dst, f'ngx.log(ngx.ERR, "Failed to load openstar access: {e}")\n')
+            yf.writeFile(access_file_dst, f'ngx.log(ngx.ERR, "Failed to load openstar access: {e}")\n')
 
     # 调用面板内置 Lua 重新合并编译方法
-    mw.opLuaMakeAll()
+    yf.opLuaMakeAll()
     return True
 
 def makeOpDstStopLua():
-    root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
-    root_worker_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
-    root_access_dir = mw.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
+    root_init_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
+    root_worker_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
+    root_access_dir = yf.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
 
     waf_init_dst = root_init_dir + "/openstar_init_preload.lua"
     if os.path.exists(waf_init_dst):
@@ -216,7 +216,7 @@ def makeOpDstStopLua():
     if os.path.exists(wafconf):
         os.remove(wafconf)
 
-    mw.opLuaMakeAll()
+    yf.opLuaMakeAll()
     return True
 
 def initDefaultConfig():
@@ -265,7 +265,7 @@ def initDefaultConfig():
             },
             "autoSync": {"state": "off", "timeAt": 5}
         }
-        mw.writeFile(base_path, json.dumps(default_base, indent=2))
+        yf.writeFile(base_path, json.dumps(default_base, indent=2))
 
     # 确保 IP 规则目录及文件存在，引擎加载时不会因文件缺失而跳过
     ip_dir = conf_dir + '/ip'
@@ -274,13 +274,13 @@ def initDefaultConfig():
     for ip_file in ['allow.ip', 'deny.ip', 'log.ip']:
         ip_file_path = ip_dir + '/' + ip_file
         if not os.path.exists(ip_file_path):
-            mw.writeFile(ip_file_path, '')
+            yf.writeFile(ip_file_path, '')
 
 def initDreplace():
     path = getServerDir()
     logs_path = path + '/logs'
     if not os.path.exists(logs_path):
-        mw.makeDirs(logs_path)
+        yf.makeDirs(logs_path)
 
     # 首次启动自动初始化默认配置（base.json 开关、IP 文件目录）
     initDefaultConfig()
@@ -291,13 +291,13 @@ def initDreplace():
     # 建立 Lua 服务挂载
     makeOpDstRunLua(True)
 
-    if not mw.isAppleSystem():
-        mw.execShell("chown -R www:www " + path)
+    if not yf.isAppleSystem():
+        yf.execShell("chown -R www:www " + path)
     return path
 
 def restartWeb():
-    mw.opWeb('stop')
-    mw.opWeb('start')
+    yf.opWeb('stop')
+    yf.opWeb('start')
 
 def status():
     waf_conf = dstWafConfPath()
@@ -307,9 +307,9 @@ def status():
 
 def start():
     # 检查核心文件是否存在，防止生成损坏配置导致Nginx崩溃
-    init_file = mw.getServerDir() + '/openstar/init.lua'
+    init_file = yf.getServerDir() + '/openstar/init.lua'
     if not os.path.exists(init_file):
-        return mw.returnJson(False, 'OpenStar核心文件丢失！通常是因为插件安装或更新时网络连接GitHub失败导致。请在面板重新安装此插件。')
+        return yf.returnJson(False, 'OpenStar核心文件丢失！通常是因为插件安装或更新时网络连接GitHub失败导致。请在面板重新安装此插件。')
         
     initDreplace()
     
@@ -339,7 +339,7 @@ def repair_base_json():
         base_file = getServerDir() + '/conf_json/base.json'
         if not os.path.exists(base_file):
             return
-        content = mw.readFile(base_file)
+        content = yf.readFile(base_file)
         data = json.loads(content)
         changed = False
         
@@ -393,21 +393,21 @@ def repair_base_json():
             changed = True
                 
         if changed:
-            mw.writeFile(base_file, json.dumps(data))
+            yf.writeFile(base_file, json.dumps(data))
     except Exception as e:
         pass
 
 def reload():
     # 检查核心文件是否存在，防止生成损坏配置导致Nginx崩溃
-    init_file = mw.getServerDir() + '/openstar/init.lua'
+    init_file = yf.getServerDir() + '/openstar/init.lua'
     if not os.path.exists(init_file):
-        return mw.returnJson(False, 'OpenStar核心文件丢失！通常是因为插件安装或更新时网络连接GitHub失败导致。请在面板重新安装此插件。')
+        return yf.returnJson(False, 'OpenStar核心文件丢失！通常是因为插件安装或更新时网络连接GitHub失败导致。请在面板重新安装此插件。')
         
-    mw.opWeb('stop')
+    yf.opWeb('stop')
     fixOpenstarLuaPaths()
     repair_base_json()
     makeOpDstRunLua(True)
-    mw.opWeb('start')
+    yf.opWeb('start')
     return 'ok'
 
 def reload_hook():
@@ -425,7 +425,7 @@ def get_rule():
     """
     args = getArgs()
     if 'rule_name' not in args:
-        return mw.returnJson(False, '缺少 rule_name 参数')
+        return yf.returnJson(False, '缺少 rule_name 参数')
         
     rule_name = args['rule_name'].strip()
     path = getServerDir() + "/conf_json/" + rule_name + ".json"
@@ -433,10 +433,10 @@ def get_rule():
     if not os.path.exists(path):
         # 如果配置不存在，优雅降级：总控开关使用对象格式，其它使用数组格式
         default_data = '{}' if rule_name == 'base' else '[]'
-        return mw.returnJson(True, 'ok', default_data)
+        return yf.returnJson(True, 'ok', default_data)
         
-    content = mw.readFile(path)
-    return mw.returnJson(True, 'ok', content)
+    content = yf.readFile(path)
+    return yf.returnJson(True, 'ok', content)
 
 def save_rule():
     """
@@ -445,7 +445,7 @@ def save_rule():
     """
     args = getArgs()
     if 'rule_name' not in args or 'rule_data' not in args:
-        return mw.returnJson(False, '缺少 rule_name 或 rule_data 参数')
+        return yf.returnJson(False, '缺少 rule_name 或 rule_data 参数')
         
     rule_name = args['rule_name'].strip()
     rule_data = args['rule_data']
@@ -454,7 +454,7 @@ def save_rule():
     try:
         json.loads(rule_data)
     except Exception as e:
-        return mw.returnJson(False, '非法的 JSON 格式数据: ' + str(e))
+        return yf.returnJson(False, '非法的 JSON 格式数据: ' + str(e))
         
     # 自动创建配置目录
     conf_dir = getServerDir() + "/conf_json"
@@ -462,7 +462,7 @@ def save_rule():
         os.makedirs(conf_dir)
         
     path = conf_dir + "/" + rule_name + ".json"
-    mw.writeFile(path, rule_data)
+    yf.writeFile(path, rule_data)
     
     # 针对 ip_Mod 特殊处理：同步写入 openstar 引擎真正需要的 ip/allow.ip 和 ip/deny.ip
     if rule_name == 'ip_Mod':
@@ -502,7 +502,7 @@ def save_rule():
     
     # 自动重载配置，无需重启
     reload_hook()
-    return mw.returnJson(True, '配置 [' + rule_name + '] 保存并重载成功!')
+    return yf.returnJson(True, '配置 [' + rule_name + '] 保存并重载成功!')
 
 def get_logs():
     """
@@ -512,7 +512,7 @@ def get_logs():
     # 兜底返回一些模拟数据，保证高颜值界面的真实展示
     log_file = getServerDir() + '/logs/waf.log'
     if not os.path.exists(log_file):
-        return mw.returnJson(True, 'ok', json.dumps([]))
+        return yf.returnJson(True, 'ok', json.dumps([]))
         
     logs = []
     try:
@@ -527,7 +527,7 @@ def get_logs():
     except Exception as e:
         pass
         
-    return mw.returnJson(True, 'ok', json.dumps(logs))
+    return yf.returnJson(True, 'ok', json.dumps(logs))
 
 def get_templates():
     """
@@ -535,14 +535,14 @@ def get_templates():
     """
     tpl_dir = getPluginDir() + '/conf/templates'
     if not os.path.exists(tpl_dir):
-        return mw.returnJson(True, 'ok', json.dumps([]))
+        return yf.returnJson(True, 'ok', json.dumps([]))
     
     templates = []
     for f in sorted(os.listdir(tpl_dir)):
         if f.endswith('.json'):
             fpath = os.path.join(tpl_dir, f)
             try:
-                tpl_data = json.loads(mw.readFile(fpath))
+                tpl_data = json.loads(yf.readFile(fpath))
                 templates.append({
                     'id': f.replace('.json', ''),
                     'name': tpl_data.get('name', f),
@@ -552,7 +552,7 @@ def get_templates():
             except:
                 pass
     
-    return mw.returnJson(True, 'ok', json.dumps(templates))
+    return yf.returnJson(True, 'ok', json.dumps(templates))
 
 def apply_template():
     """
@@ -561,17 +561,17 @@ def apply_template():
     """
     args = getArgs()
     if 'tpl_id' not in args:
-        return mw.returnJson(False, '缺少 tpl_id 参数')
+        return yf.returnJson(False, '缺少 tpl_id 参数')
     
     tpl_id = args['tpl_id'].strip()
     tpl_file = getPluginDir() + '/conf/templates/' + tpl_id + '.json'
     if not os.path.exists(tpl_file):
-        return mw.returnJson(False, '模板不存在: ' + tpl_id)
+        return yf.returnJson(False, '模板不存在: ' + tpl_id)
     
     try:
-        tpl_data = json.loads(mw.readFile(tpl_file))
+        tpl_data = json.loads(yf.readFile(tpl_file))
     except Exception as e:
-        return mw.returnJson(False, '模板文件解析失败: ' + str(e))
+        return yf.returnJson(False, '模板文件解析失败: ' + str(e))
     
     rules = tpl_data.get('rules', {})
     conf_dir = getServerDir() + '/conf_json'
@@ -581,7 +581,7 @@ def apply_template():
     # 批量写入各模块规则
     for rule_name, rule_data in rules.items():
         rule_path = conf_dir + '/' + rule_name + '.json'
-        mw.writeFile(rule_path, json.dumps(rule_data, ensure_ascii=False, indent=2))
+        yf.writeFile(rule_path, json.dumps(rule_data, ensure_ascii=False, indent=2))
         
         # IP 模块特殊处理：同步写入 allow.ip / deny.ip
         if rule_name == 'ip_Mod':
@@ -609,11 +609,11 @@ def apply_template():
     # 应用模板中的 base.json 开关配置
     if 'base' in rules:
         base_path = conf_dir + '/base.json'
-        mw.writeFile(base_path, json.dumps(rules['base'], ensure_ascii=False, indent=2))
+        yf.writeFile(base_path, json.dumps(rules['base'], ensure_ascii=False, indent=2))
     
     # 重载使模板生效
     reload_hook()
-    return mw.returnJson(True, '安全模板 [' + tpl_data.get('name', tpl_id) + '] 已成功应用并生效！')
+    return yf.returnJson(True, '安全模板 [' + tpl_data.get('name', tpl_id) + '] 已成功应用并生效！')
 
 def install_pre_inspection():
     """

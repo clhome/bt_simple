@@ -15,7 +15,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -24,15 +24,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -72,8 +72,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
     path = getPluginDir() + '/tpl'
@@ -82,7 +82,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -91,13 +91,13 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     if not content:
         return ""
     rep = r'pidfile\s*(.*)'
@@ -113,11 +113,11 @@ def status():
     return 'start'
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$SERVER_APP}', service_path + '/'+getPluginName())
-    content = content.replace('{$VALKEY_PASS}', mw.getRandomString(10))
+    content = content.replace('{$VALKEY_PASS}', yf.getRandomString(10))
     return content
 
 
@@ -125,7 +125,7 @@ def contentReplace(content):
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -134,37 +134,37 @@ def initDreplace():
 
     # initd replace
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     # log
     dataLog = getServerDir() + '/data'
     if not os.path.exists(dataLog):
-        mw.makeDirs(dataLog)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.makeDirs(dataLog)
+        yf.execShell('chmod +x ' + file_bin)
 
     # config replace
     dst_conf = getConf()
     dst_conf_init = getServerDir() + '/init.pl'
     if not os.path.exists(dst_conf_init):
-        content = mw.readFile(getConfTpl())
+        content = yf.readFile(getConfTpl())
         content = content.replace('{$SERVER_PATH}', service_path)
-        content = content.replace('{$VALKEY_PASS}', mw.getRandomString(10))
+        content = content.replace('{$VALKEY_PASS}', yf.getRandomString(10))
 
-        mw.writeFile(dst_conf, content)
-        mw.writeFile(dst_conf_init, 'ok')
+        yf.writeFile(dst_conf, content)
+        yf.writeFile(dst_conf_init, 'ok')
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/' + getPluginName() + '.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/' + getPluginName() + '.service.tpl'
-        content = mw.readFile(systemServiceTpl)
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
@@ -172,20 +172,20 @@ def initDreplace():
 def wkOp(method):
     file = initDreplace()
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service ' + getPluginName() + ' ' + method)
+        data = yf.execShell('service ' + getPluginName() + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -203,7 +203,7 @@ def restart():
     status = wkOp('restart')
 
     log_file = runLog()
-    mw.execShell("echo '' > " + log_file)
+    yf.execShell("echo '' > " + log_file)
     return status
 
 
@@ -213,7 +213,7 @@ def reload():
 
 def getPort():
     conf = getServerDir() + '/valkey.conf'
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     if not content:
         return '6379'
 
@@ -228,7 +228,7 @@ def getPort():
 def getRedisCmd():
     requirepass = ""
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     if not content:
         content = ""
     rep = r"^(requirepass)\s*([.0-9A-Za-z_& ~]+)"
@@ -238,9 +238,9 @@ def getRedisCmd():
 
     default_ip = '127.0.0.1'
     port = getPort()
-    # findDebian = mw.execShell('cat /etc/issue |grep Debian')
+    # findDebian = yf.execShell('cat /etc/issue |grep Debian')
     # if findDebian[0] != '':
-    #     default_ip = mw.getLocalIp()
+    #     default_ip = yf.getLocalIp()
     cmd = getServerDir() + "/bin/valkey-cli -h " + default_ip + ' -p ' + port + " "
 
     if requirepass != "":
@@ -251,12 +251,12 @@ def getRedisCmd():
 def runInfo():
     s = status()
     if s == 'stop':
-        return mw.returnJson(False, '未启动')
+        return yf.returnJson(False, '未启动')
 
     
     cmd = getRedisCmd()
     cmd = cmd + 'info'
-    data = mw.execShell(cmd)[0]
+    data = yf.execShell(cmd)[0]
     res = [
         'tcp_port',
         'uptime_in_days',  # 已运行天数
@@ -281,19 +281,19 @@ def runInfo():
         if not t[0] in res:
             continue
         result[t[0]] = t[1]
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 def infoReplication():
     # 复制信息
     s = status()
     if s == 'stop':
-        return mw.returnJson(False, '未启动')
+        return yf.returnJson(False, '未启动')
 
     cmd = getRedisCmd()
     cmd = cmd + 'info replication'
 
     # print(cmd)
-    data = mw.execShell(cmd)[0]
+    data = yf.execShell(cmd)[0]
     # print(data)
     res = [
         #slave
@@ -343,7 +343,7 @@ def infoReplication():
                 continue
             result[t[0]] = t[1]
 
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 
 def clusterInfo():
@@ -351,13 +351,13 @@ def clusterInfo():
     # https://redis.io/commands/cluster-info/
     s = status()
     if s == 'stop':
-        return mw.returnJson(False, '未启动')
+        return yf.returnJson(False, '未启动')
 
     cmd = getRedisCmd()
     cmd = cmd + 'cluster info'
 
     # print(cmd)
-    data = mw.execShell(cmd)[0]
+    data = yf.execShell(cmd)[0]
     # print(data)
 
     res = [
@@ -385,25 +385,25 @@ def clusterInfo():
             continue
         result[t[0]] = t[1]
 
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 def clusterNodes():
     s = status()
     if s == 'stop':
-        return mw.returnJson(False, '未启动')
+        return yf.returnJson(False, '未启动')
 
     cmd = getRedisCmd()
     cmd = cmd + 'cluster nodes'
 
     # print(cmd)
-    data = mw.execShell(cmd)[0]
+    data = yf.execShell(cmd)[0]
     # print(data)
 
     data = data.strip().split("\n")
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -414,14 +414,14 @@ def initdStatus():
 
     shell_cmd = 'systemctl status ' + \
         getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -431,26 +431,26 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable ' + getPluginName())
+    yf.execShell('systemctl enable ' + getPluginName())
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable ' + getPluginName())
+    yf.execShell('systemctl disable ' + getPluginName())
     return 'ok'
 
 
@@ -472,7 +472,7 @@ def getRedisConfInfo():
         {'name': 'slaveof', 'type': 2, 'ps': '同步主库地址','must_show':0},
         {'name': 'masterauth', 'type': 2, 'ps': '同步主库密码', 'must_show':0}
     ]
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     if not content:
         content = ""
 
@@ -497,7 +497,7 @@ def getRedisConfInfo():
 
 def getRedisConf():
     data = getRedisConfInfo()
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def submitRedisConf():
@@ -505,7 +505,7 @@ def submitRedisConf():
             'databases', 'requirepass', 'maxmemory','slaveof','masterauth']
     args = getArgs()
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     if not content:
         content = ""
     for g in gets:
@@ -524,9 +524,9 @@ def submitRedisConf():
 
             if g != 'requirepass':
                 content = re.sub(rep, val, content)
-    mw.writeFile(conf, content)
+    yf.writeFile(conf, content)
     reload()
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 if __name__ == "__main__":
     func = sys.argv[1]

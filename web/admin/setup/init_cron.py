@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------------
 
 import os
-import core.yf as mw
+import core.yf as yf
 from utils.crontab import crontab
 from croniter import croniter
 from datetime import datetime
@@ -51,7 +51,7 @@ def cron_todb(data):
 
 def init_acme_cron():
     name = "[勿删]ACME定时强制更新"
-    res = mw.M("crontab").field("id, name").where("name=?", (name,)).find()
+    res = yf.M("crontab").field("id, name").where("name=?", (name,)).find()
     if res:
         return False
 
@@ -77,7 +77,7 @@ def init_acme_cron():
 
 def init_auto_update():
     name = "[可删]面板自动更新"
-    res = mw.M("crontab").field("id, name").where("name=?", (name,)).find()
+    res = yf.M("crontab").field("id, name").where("name=?", (name,)).find()
     if res:
         return False
 
@@ -138,13 +138,13 @@ def init_cron():
                 # 例如 /www/server/cron/27ebacfd7e79a01c69c22d41a345ca58 >> ...
                 try:
                     hash_val = command.split("/www/server/cron/")[1].split(" ")[0].strip()
-                    res = mw.M('crontab').where('echo=?', (hash_val,)).find()
+                    res = yf.M('crontab').where('echo=?', (hash_val,)).find()
                     if not res:
                         # 尝试从文件中恢复 name, sbody 等（如果文件存在）
-                        cron_path = mw.getServerDir() + '/cron/' + hash_val
+                        cron_path = yf.getServerDir() + '/cron/' + hash_val
                         sbody = ''
                         if os.path.exists(cron_path):
-                            sbody = mw.readFile(cron_path)
+                            sbody = yf.readFile(cron_path)
                             
                         if not sbody:
                             sbody = command
@@ -170,13 +170,13 @@ def init_cron():
             else:
                 # 其它系统任务
                 # 先根据 echo 匹配，避免重复
-                res = mw.M('crontab').where('echo=?', (command,)).find()
+                res = yf.M('crontab').where('echo=?', (command,)).find()
                 # 或者通过 sbody 匹配
-                res2 = mw.M('crontab').where('sbody=?', (command,)).find()
+                res2 = yf.M('crontab').where('sbody=?', (command,)).find()
                 if not res and not res2:
                     name_prefix = command[:15] + '...' if len(command) > 15 else command
                     # 避免系统内置名称冲突
-                    if mw.M('crontab').where('name=?', (f'[系统任务] {name_prefix}',)).find():
+                    if yf.M('crontab').where('name=?', (f'[系统任务] {name_prefix}',)).find():
                         name_prefix += f"_{cron_expression[0]}"
                         
                     add_dbdata = {

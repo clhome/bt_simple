@@ -17,13 +17,13 @@ import math
 import psutil
 
 
-import core.yf as mw
+import core.yf as yf
 
 # --------------------------------------------  数据查询相关 --------------------------------------------
 def get_sampling_condition(table, start, end):
     # 底层数据库级降采样：极大降低 Python 内存使用和字典拼装开销
     try:
-        count = mw.M(table).dbPos(mw.getPanelDataDir(), 'system')\
+        count = yf.M(table).dbPos(yf.getPanelDataDir(), 'system')\
             .where("addtime>=? AND addtime<=?", (start, end)).count()
         he = 1
         if count > 1000:
@@ -84,7 +84,7 @@ def toUseAddtime(data):
 def getLoadAverageByDB(start, end):
     # 获取系统的负载统计信息
     where_str = get_sampling_condition('load_average', start, end)
-    data = mw.M('load_average').dbPos(mw.getPanelDataDir(),'system')\
+    data = yf.M('load_average').dbPos(yf.getPanelDataDir(),'system')\
         .where(where_str, (start, end,))\
         .field('pro,one,five,fifteen,addtime')\
         .order('id asc').select()
@@ -94,7 +94,7 @@ def getLoadAverageByDB(start, end):
 def getDiskIoByDB(start, end):
     # 获取系统的磁盘IO统计信息
     where_str = get_sampling_condition('diskio', start, end)
-    data = mw.M('diskio').dbPos(mw.getPanelDataDir(),'system')\
+    data = yf.M('diskio').dbPos(yf.getPanelDataDir(),'system')\
         .where(where_str, (start, end))\
         .field('read_count,write_count,read_bytes,write_bytes,read_time,write_time,addtime')\
         .order('id asc').select()
@@ -104,7 +104,7 @@ def getDiskIoByDB(start, end):
 def getCpuIoByDB(start, end):
     # 获取系统的CPU/IO统计信息
     where_str = get_sampling_condition('cpuio', start, end)
-    data = mw.M('cpuio').dbPos(mw.getPanelDataDir(),'system')\
+    data = yf.M('cpuio').dbPos(yf.getPanelDataDir(),'system')\
         .where(where_str,(start, end))\
         .field('pro,mem,addtime')\
         .order('id asc').select()
@@ -115,7 +115,7 @@ def getNetworkIoByDB(start, end):
     # 获取系统网络IO统计信息
     # id,
     where_str = get_sampling_condition('network', start, end)
-    data = mw.M('network').dbPos(mw.getPanelDataDir(),'system')\
+    data = yf.M('network').dbPos(yf.getPanelDataDir(),'system')\
         .where(where_str, (start, end))\
         .field('up,down,total_up,total_down,down_packets,up_packets,addtime')\
         .order('id asc').select()

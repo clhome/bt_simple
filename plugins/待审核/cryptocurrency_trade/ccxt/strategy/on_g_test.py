@@ -28,7 +28,7 @@ sys.path.append(os.getcwd() + "/plugins/cryptocurrency_trade/strategy")
 import common
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 exchange = ccxt.gate({
     "apiKey": '756e1ff80526cb0ac9620c75680fc506',

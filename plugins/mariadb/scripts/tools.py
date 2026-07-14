@@ -6,11 +6,11 @@ import json
 import time
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 import db
 
 cmd = 'ls /usr/local/lib/ | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
-info = mw.execShell(cmd)
+info = yf.execShell(cmd)
 p = "/usr/local/lib/" + info[0].strip() + "/site-packages"
 sys.path.append(p)
 
@@ -50,13 +50,13 @@ echo '==========================================='
 echo "root密码成功修改为: ${pwd}"
 echo "The root password set ${pwd}  successuful"'''
 
-    server = mw.getServerDir() + '/mariadb'
+    server = yf.getServerDir() + '/mariadb'
     root_mysql = root_mysql.replace('${server}', server)
-    mw.writeFile('mysql_root.sh', root_mysql)
+    yf.writeFile('mysql_root.sh', root_mysql)
     os.system("/bin/bash mysql_root.sh " + password)
     os.system("rm -f mysql_root.sh")
 
-    pos = mw.getServerDir() + '/mariadb'
+    pos = yf.getServerDir() + '/mariadb'
     result = sql.table('config').dbPos(pos, 'mysql').where(
         'id=?', (1,)).setField('mysql_root', password)
 

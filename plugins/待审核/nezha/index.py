@@ -18,7 +18,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -79,8 +79,8 @@ class App:
     def checkArgs(self, data, ck=[]):
         for i in range(len(ck)):
             if not ck[i] in data:
-                return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-        return (True, mw.returnJson(True, 'ok'))
+                return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+        return (True, yf.returnJson(True, 'ok'))
 
     def __release_port(self, port):
         from collections import namedtuple
@@ -100,10 +100,10 @@ class App:
         return 'nezha'
 
     def getPluginDir(self):
-        return mw.getPluginDir() + '/' + self.getPluginName()
+        return yf.getPluginDir() + '/' + self.getPluginName()
 
     def getServerDir(self):
-        return mw.getServerDir() + '/' + self.getPluginName()
+        return yf.getServerDir() + '/' + self.getPluginName()
 
     def getInitdConfTpl(self):
         path = self.getPluginDir() + "/init.d/nezha.tpl"
@@ -114,56 +114,56 @@ class App:
         return path
 
     def getHomeDir(self):
-        if mw.isAppleSystem():
-            user = mw.execShell(
+        if yf.isAppleSystem():
+            user = yf.execShell(
                 "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
             return '/Users/' + user
         else:
             return '/root'
 
     def getRunUser(self):
-        if mw.isAppleSystem():
-            user = mw.execShell(
+        if yf.isAppleSystem():
+            user = yf.execShell(
                 "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
             return user
         else:
             return 'root'
 
     def status(self):
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             # 使用 systemctl is-active 更加标准、轻量和精准
             cmd = "systemctl is-active nezha"
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[0].strip() == "active":
                 return "start"
             return "stop"
 
         cmd = "ps -ef|grep " + self.getPluginName() + \
             " |grep -v grep | grep -v nezha-agent | grep -v python | awk '{print $2}'"
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0] == '':
             return "stop"
         return 'start'
 
     def status_agent(self):
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             # 使用 systemctl is-active 更加精准
             cmd = "systemctl is-active nezha-agent"
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[0].strip() == "active":
                 return "start"
             return "stop"
 
         cmd = "ps -ef | grep nezha-agent | grep -v grep | grep -v python | awk '{print $2}'"
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0] == '':
             return 'stop'
         return 'start'
 
     def contentReplace(self, content):
 
-        service_path = mw.getServerDir()
-        content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+        service_path = yf.getServerDir()
+        content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
         content = content.replace('{$SERVER_PATH}', service_path)
         content = content.replace('{$RUN_USER}', self.getRunUser())
         content = content.replace('{$HOME_DIR}', self.getHomeDir())
@@ -173,7 +173,7 @@ class App:
     def initDreplace(self):
 
         file_tpl = self.getInitdConfTpl()
-        service_path = mw.getServerDir()
+        service_path = yf.getServerDir()
 
         initD_path = self.getServerDir() + '/init.d'
         if not os.path.exists(initD_path):
@@ -183,21 +183,21 @@ class App:
         file_bin = initD_path + '/' + self.getPluginName()
 
         if not os.path.exists(file_bin):
-            content = mw.readFile(file_tpl)
+            content = yf.readFile(file_tpl)
             content = self.contentReplace(content)
-            mw.writeFile(file_bin, content)
-            mw.execShell('chmod +x ' + file_bin)
+            yf.writeFile(file_bin, content)
+            yf.execShell('chmod +x ' + file_bin)
 
         # systemd
-        systemDir = mw.systemdCfgDir()
+        systemDir = yf.systemdCfgDir()
         systemService = systemDir + '/nezha.service'
         systemServiceTpl = self.getPluginDir() + '/init.d/nezha.service.tpl'
         if os.path.exists(systemDir) and not os.path.exists(systemService):
-            service_path = mw.getServerDir()
-            se_content = mw.readFile(systemServiceTpl)
+            service_path = yf.getServerDir()
+            se_content = yf.readFile(systemServiceTpl)
             se_content = self.contentReplace(se_content)
-            mw.writeFile(systemService, se_content)
-            mw.execShell('systemctl daemon-reload')
+            yf.writeFile(systemService, se_content)
+            yf.execShell('systemctl daemon-reload')
 
         return file_bin
 
@@ -219,22 +219,22 @@ class App:
 
         file_agent_bin = initD_path + '/nezha-agent'
 
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = self.contentReplace(content)
         content = self.contentAgentReplace(content)
-        mw.writeFile(file_agent_bin, content)
-        mw.execShell('chmod +x ' + file_agent_bin)
+        yf.writeFile(file_agent_bin, content)
+        yf.execShell('chmod +x ' + file_agent_bin)
 
         # systemd
-        sysDir = mw.systemdCfgDir()
+        sysDir = yf.systemdCfgDir()
         sysService = sysDir + '/nezha-agent.service'
         sysServiceTpl = self.getPluginDir() + '/init.d/nezha-agent.service.tpl'
-        service_path = mw.getServerDir()
-        content = mw.readFile(sysServiceTpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(sysServiceTpl)
         content = self.contentReplace(content)
         content = self.contentAgentReplace(content)
-        mw.writeFile(sysService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(sysService, content)
+        yf.execShell('systemctl daemon-reload')
 
         return file_agent_bin
 
@@ -246,14 +246,14 @@ class App:
 
         file = self.initDreplace()
 
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             cmd = 'systemctl {} {}'.format(method, self.getPluginName())
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[1] == '':
                 return 'ok'
             return 'fail'
 
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[0]
@@ -277,14 +277,14 @@ class App:
         if not os.path.exists(path):
             return '请先设置Agent配置!'
 
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             cmd = 'systemctl {} {}'.format(method, 'nezha-agent')
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[1] == '':
                 return 'ok'
             return 'fail'
 
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[0]
@@ -303,32 +303,32 @@ class App:
 
     def initd_status(self):
         cmd = 'systemctl status nezha | grep loaded | grep "enabled;"'
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0] == '':
             return 'fail'
         return 'ok'
 
     def initd_install(self):
-        mw.execShell('systemctl enable nezha')
+        yf.execShell('systemctl enable nezha')
         return 'ok'
 
     def initd_uninstall(self):
-        mw.execShell('systemctl disable nezha')
+        yf.execShell('systemctl disable nezha')
         return 'ok'
 
     def initd_status_agent(self):
         cmd = 'systemctl status nezha-agent | grep loaded | grep "enabled;"'
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0] == '':
             return 'fail'
         return 'ok'
 
     def initd_install_agent(self):
-        mw.execShell('systemctl enable nezha-agent')
+        yf.execShell('systemctl enable nezha-agent')
         return 'ok'
 
     def initd_uninstall_agent(self):
-        mw.execShell('systemctl disable nezha-agent')
+        yf.execShell('systemctl disable nezha-agent')
         return 'ok'
 
     def conf(self):
@@ -339,22 +339,22 @@ class App:
         if not os.path.exists(path):
             d = {}
             cmd_un = 'cd ' + self.getServerDir() + '/dashboard && ./nezha conf -u ""'
-            mw.execShell(cmd_un)
-            td = mw.execShell(cmd_un)
+            yf.execShell(cmd_un)
+            td = yf.execShell(cmd_un)
             d['username'] = td[0].strip()
 
-            pwd = mw.getRandomString(16)
+            pwd = yf.getRandomString(16)
             cmd_pwd = 'cd ' + self.getServerDir() + '/dashboard && ./nezha conf -u "" -p ' + pwd
-            td = mw.execShell(cmd_pwd)
+            td = yf.execShell(cmd_pwd)
             d['password'] = pwd
 
-            mw.writeFile(path, mw.enDoubleCrypt('nezha', mw.getJson(d)))
+            yf.writeFile(path, yf.enDoubleCrypt('nezha', yf.getJson(d)))
 
-        info = mw.readFile(path)
-        info = mw.deDoubleCrypt('nezha', info)
+        info = yf.readFile(path)
+        info = yf.deDoubleCrypt('nezha', info)
 
         info = json.loads(info)
-        return mw.returnJson(True, 'ok', info)
+        return yf.returnJson(True, 'ok', info)
 
     def nezha_save_cfg(self):
         args = self.getArgs()
@@ -366,15 +366,15 @@ class App:
         cmd = 'cd ' + self.getServerDir() + '/dashboard && ./nezha conf -su "' + \
             args['username'] + '" -p ' + args['password']
         # print(cmd)
-        t = mw.execShell(cmd)
+        t = yf.execShell(cmd)
         # print(t)
-        mw.writeFile(path, mw.enDoubleCrypt('nezha', mw.getJson(args)))
-        return mw.returnJson(True, '修改成功!')
+        yf.writeFile(path, yf.enDoubleCrypt('nezha', yf.getJson(args)))
+        return yf.returnJson(True, '修改成功!')
 
     def get_agent_cfg(self):
         path = self.__agent_cfg
-        info = mw.readFile(path)
-        info = mw.deDoubleCrypt('agent', info)
+        info = yf.readFile(path)
+        info = yf.deDoubleCrypt('agent', info)
         info = json.loads(info)
         return info
 
@@ -384,10 +384,10 @@ class App:
             d = {}
             d['host'] = '127.0.0.1:5555'
             d['secret'] = 'secret'
-            mw.writeFile(path, mw.enDoubleCrypt('agent', mw.getJson(d)))
+            yf.writeFile(path, yf.enDoubleCrypt('agent', yf.getJson(d)))
 
         info = self.get_agent_cfg()
-        return mw.returnJson(True, 'ok', info)
+        return yf.returnJson(True, 'ok', info)
 
     def agent_save_cfg(self):
         args = self.getArgs()
@@ -395,8 +395,8 @@ class App:
         if not data[0]:
             return data[1]
         path = self.__agent_cfg
-        mw.writeFile(path, mw.enDoubleCrypt('agent', mw.getJson(args)))
-        return mw.returnJson(True, '修改成功!')
+        yf.writeFile(path, yf.enDoubleCrypt('agent', yf.getJson(args)))
+        return yf.returnJson(True, '修改成功!')
 
     def run_log(self):
         return self.getServerDir() + '/logs/nezha.log'

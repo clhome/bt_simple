@@ -9,10 +9,10 @@ import json
 import shutil
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 def getPluginName():
@@ -20,14 +20,14 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 def pingData(args = ()):
     # print(args)
-    conn = mw.M('sp_ping').dbPos(getServerDir()+'/data', 'simpleping', 'db3')
+    conn = yf.M('sp_ping').dbPos(getServerDir()+'/data', 'simpleping', 'db3')
     field = 'id,speed,created_unix'
     conn = conn.field(field)
     data = []
@@ -56,7 +56,7 @@ def pingData(args = ()):
 
 
 def pingMySQLData(args = ()):
-    conn = mw.M('sp_mysql_ping').dbPos(getServerDir()+'/data', 'simpleping', 'db3')
+    conn = yf.M('sp_mysql_ping').dbPos(getServerDir()+'/data', 'simpleping', 'db3')
     field = 'id,value,created_unix'
     conn = conn.field(field)
     data = []

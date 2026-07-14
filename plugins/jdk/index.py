@@ -23,9 +23,9 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 class jdk_main:
-    _panel_path = mw.getPanelDir()
-    _plugin_path = mw.getPluginDir() + '/jdk'
-    _java_dir = mw.getServerDir() + '/jdk'
+    _panel_path = yf.getPanelDir()
+    _plugin_path = yf.getPluginDir() + '/jdk'
+    _java_dir = yf.getServerDir() + '/jdk'
     _config_file = _plugin_path + '/data.json'
 
     def __init__(self):
@@ -34,15 +34,15 @@ class jdk_main:
         if not os.path.exists(self._java_dir):
             os.makedirs(self._java_dir)
         if not os.path.exists(self._config_file):
-            mw.writeFile(self._config_file, json.dumps({"custom": [], "default": ""}))
+            yf.writeFile(self._config_file, json.dumps({"custom": [], "default": ""}))
             
         # 自动生成 version.pl 以便面板首页识别版本
         version_pl = self._java_dir + '/version.pl'
         if not os.path.exists(version_pl):
-            mw.writeFile(version_pl, '1.0')
+            yf.writeFile(version_pl, '1.0')
 
     def get_config(self):
-        return json.loads(mw.readFile(self._config_file))
+        return json.loads(yf.readFile(self._config_file))
 
     def get_online_jdks(self, force_update=False):
         cache_file = self._plugin_path + '/versions.json'
@@ -55,7 +55,7 @@ class jdk_main:
 
         if not force_update and os.path.exists(cache_file):
             try:
-                content = mw.readFile(cache_file)
+                content = yf.readFile(cache_file)
                 if content:
                     return json.loads(content)
             except:
@@ -84,7 +84,7 @@ class jdk_main:
                 pass
             updated_jdks.append(jdk)
             
-        mw.writeFile(cache_file, json.dumps(updated_jdks))
+        yf.writeFile(cache_file, json.dumps(updated_jdks))
         return updated_jdks
 
     def get_jdk_list(self, args=None):
@@ -106,7 +106,7 @@ class jdk_main:
             is_installing = False
             if os.name != 'nt':
                 cmd = "ps -ef | grep wget | grep '" + jdk['version'] + "' | grep -v grep | grep -v '\\-c'"
-                is_installing = mw.execShell(cmd)[0].find('wget') != -1
+                is_installing = yf.execShell(cmd)[0].find('wget') != -1
             if os.path.exists(jdk_path):
                 ret.append({
                     "name": jdk['version'], "type": "面板安装", "path": jdk_path,
@@ -149,36 +149,36 @@ class jdk_main:
             return int(m.group()) if m else 0
             
         ret = sorted(ret, key=lambda x: -get_ver(x['name']))
-        return mw.returnJson(True, ret)
+        return yf.returnJson(True, ret)
 
     def add_custom_jdk(self, args):
         """添加自定义JDK"""
         path = args.get("path", "").strip()
         if not path.endswith('/bin/java'):
-            return mw.returnJson(False, '路径必须指向 java 可执行文件，例如 /opt/jdk/bin/java')
+            return yf.returnJson(False, '路径必须指向 java 可执行文件，例如 /opt/jdk/bin/java')
         if not os.path.exists(path):
-            return mw.returnJson(False, 'JDK路径不存在')
+            return yf.returnJson(False, 'JDK路径不存在')
             
-        ret = mw.execShell(path + ' -version')
+        ret = yf.execShell(path + ' -version')
         if ret[1].find('version') == -1 and ret[0].find('version') == -1:
-            return mw.returnJson(False, 'JDK验证失败，可能不是合法的Java可执行文件')
+            return yf.returnJson(False, 'JDK验证失败，可能不是合法的Java可执行文件')
 
-        config = json.loads(mw.readFile(self._config_file))
+        config = json.loads(yf.readFile(self._config_file))
         if "custom" not in config:
             config["custom"] = []
         if path in config["custom"]:
-            return mw.returnJson(False, '该JDK路径已存在记录中')
+            return yf.returnJson(False, '该JDK路径已存在记录中')
             
         config["custom"].append(path)
-        mw.writeFile(self._config_file, json.dumps(config))
-        return mw.returnJson(True, '添加自定义JDK成功！')
+        yf.writeFile(self._config_file, json.dumps(config))
+        return yf.returnJson(True, '添加自定义JDK成功！')
 
     def install_jdk(self, args):
         """发起后台下载并解压"""
         version = args.get("version", "")
         url = args.get("download_url", "")
         if not version or not url:
-            return mw.returnJson(False, '参数错误')
+            return yf.returnJson(False, '参数错误')
             
         # 下载前预检URL，如果404则自动刷新提取最新版本
         import urllib.request
@@ -199,11 +199,11 @@ class jdk_main:
         dest_dir = self._java_dir + '/' + version
         java_bin = dest_dir + '/bin/java'
         if os.path.exists(java_bin):
-            return mw.returnJson(False, '该版本已安装')
+            return yf.returnJson(False, '该版本已安装')
         
         # 如果存在空目录（上次安装失败残留），先清理
         if os.path.exists(dest_dir):
-            mw.removeDir(dest_dir)
+            yf.removeDir(dest_dir)
             
         # 写入安装脚本并投递至任务队列
         import thisdb
@@ -229,26 +229,26 @@ rm -f {version}.tar.gz
 chmod +x {dest_dir}/bin/*
 echo 'JDK {version} 安装完成'
 """.replace('\r\n', '\n')
-        mw.writeFile(script_file, script_content)
+        yf.writeFile(script_file, script_content)
         cmd = f"bash {script_file}"
         title = f'安装JDK-{version}'
         thisdb.addTask(name=title, cmd=cmd, status=0)
-        mw.triggerTask()
-        return mw.returnJson(True, '已投递后台安装任务，请稍后查看状态！')
+        yf.triggerTask()
+        return yf.returnJson(True, '已投递后台安装任务，请稍后查看状态！')
 
     def uninstall_jdk(self, args):
         """卸载/移除JDK"""
         path = args.get("path", "")
         jdk_type = args.get("type", "")
         
-        config = json.loads(mw.readFile(self._config_file))
+        config = json.loads(yf.readFile(self._config_file))
         
         if jdk_type == '面板安装':
             # 校验是否被使用
-            out, err = mw.execShell(f"lsof +D {os.path.dirname(os.path.dirname(path))}")
+            out, err = yf.execShell(f"lsof +D {os.path.dirname(os.path.dirname(path))}")
             if out:
-                return mw.returnJson(False, '当前目录有进程正在使用，禁止卸载以防系统崩溃！')
-            mw.execShell(f"rm -rf {os.path.dirname(os.path.dirname(path))}")
+                return yf.returnJson(False, '当前目录有进程正在使用，禁止卸载以防系统崩溃！')
+            yf.execShell(f"rm -rf {os.path.dirname(os.path.dirname(path))}")
         elif jdk_type == '用户自定义':
             if path in config.get("custom", []):
                 config["custom"].remove(path)
@@ -256,34 +256,34 @@ echo 'JDK {version} 安装完成'
         if config.get("default") == path:
             config["default"] = ""
             # 清除环境变量
-            mw.execShell("rm -f /etc/profile.d/java.sh && source /etc/profile")
+            yf.execShell("rm -f /etc/profile.d/java.sh && source /etc/profile")
             
-        mw.writeFile(self._config_file, json.dumps(config))
-        return mw.returnJson(True, '清理完成')
+        yf.writeFile(self._config_file, json.dumps(config))
+        return yf.returnJson(True, '清理完成')
 
     def set_default_jdk(self, args):
         """设置系统级默认全局JAVA_HOME"""
         path = args.get("path", "")
         if not os.path.exists(path):
-            return mw.returnJson(False, '目标可执行文件不存在')
+            return yf.returnJson(False, '目标可执行文件不存在')
             
         java_home = os.path.dirname(os.path.dirname(path))
         env_content = f"""export JAVA_HOME={java_home}
 export PATH=$JAVA_HOME/bin:$PATH
 export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 """.replace('\r\n', '\n')
-        mw.writeFile('/etc/profile.d/java.sh', env_content)
+        yf.writeFile('/etc/profile.d/java.sh', env_content)
         
         # 建立软连接，让当前已打开的终端也能立刻生效
-        mw.execShell(f"ln -sf {java_home}/bin/java /usr/bin/java")
-        mw.execShell(f"ln -sf {java_home}/bin/javac /usr/bin/javac")
+        yf.execShell(f"ln -sf {java_home}/bin/java /usr/bin/java")
+        yf.execShell(f"ln -sf {java_home}/bin/javac /usr/bin/javac")
         
         # 保存到配置文件
-        config = json.loads(mw.readFile(self._config_file))
+        config = json.loads(yf.readFile(self._config_file))
         config["default"] = path
-        mw.writeFile(self._config_file, json.dumps(config))
+        yf.writeFile(self._config_file, json.dumps(config))
         
-        return mw.returnJson(True, '设置成功，全局环境变量已写入 /etc/profile.d/java.sh，在新的终端中即刻生效。')
+        return yf.returnJson(True, '设置成功，全局环境变量已写入 /etc/profile.d/java.sh，在新的终端中即刻生效。')
 
 
 def getArgs():

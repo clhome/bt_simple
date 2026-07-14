@@ -15,7 +15,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -24,11 +24,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -57,8 +57,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getInitdConfTpl():
@@ -71,7 +71,7 @@ def getInitdConf():
     return path
 
     if not os.path.exists(path):
-        return mw.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + mw.getLocalIp() + ":3000")
+        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
     return path
 
 
@@ -81,7 +81,7 @@ def getConfTpl():
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep " + getPluginName() + " |grep -v grep | grep -v python | awk '{print $2}'")
     if data[0] == '':
         return 'stop'
@@ -89,8 +89,8 @@ def status():
 
 
 def getHomeDir():
-    if mw.isAppleSystem():
-        user = mw.execShell(
+    if yf.isAppleSystem():
+        user = yf.execShell(
             "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return '/Users/' + user
     else:
@@ -100,8 +100,8 @@ def getHomeDir():
 
 def contentReplace(content):
 
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     return content
 
@@ -109,25 +109,25 @@ def contentReplace(content):
 def initDreplace():
 
     file_tpl = getInitdConfTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
 
     conf_toml = getServerDir() + '/config.toml'
     if not os.path.exists(conf_toml):
         conf_tpl = getConfTpl()
-        content = mw.readFile(conf_tpl)
-        mw.writeFile(conf_toml, content)
+        content = yf.readFile(conf_tpl)
+        yf.writeFile(conf_toml, content)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/doh.service'
     systemServiceTpl = getPluginDir() + '/init.d/doh.service.tpl'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        service_path = mw.getServerDir()
-        se_content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     log_path = getServerDir() + '/log'
     if not os.path.exists(log_path):
@@ -140,8 +140,8 @@ def initDreplace():
 
 def appOp(method):
     initDreplace()
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
         if data[1] == '':
             return 'ok'
         return 'fail'
@@ -165,29 +165,29 @@ def reload():
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status ' + getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable ' + getPluginName())
+    yf.execShell('systemctl enable ' + getPluginName())
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable ' + getPluginName())
+    yf.execShell('systemctl disable ' + getPluginName())
     return 'ok'
 
 
@@ -203,12 +203,12 @@ def getTotalStatistics():
         count = list_count[0]["num"]
         data['status'] = True
         data['count'] = count
-        data['ver'] = mw.readFile(getServerDir() + '/version.pl').strip()
-        return mw.returnJson(True, 'ok', data)
+        data['ver'] = yf.readFile(getServerDir() + '/version.pl').strip()
+        return yf.returnJson(True, 'ok', data)
 
     data['status'] = False
     data['count'] = 0
-    return mw.returnJson(False, 'fail', data)
+    return yf.returnJson(False, 'fail', data)
 
 
 def uninstallPreInspection():

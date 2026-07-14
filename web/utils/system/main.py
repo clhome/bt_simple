@@ -16,7 +16,7 @@ import time
 import math
 import psutil
 
-import core.yf as mw
+import core.yf as yf
 
 from threading import Thread
 from time import sleep
@@ -27,15 +27,15 @@ def yf_async(f):
         thr.start()
     return wrapper
 
-# 兼容旧版 mw_async 调用
-mw_async = yf_async
+# 兼容旧版 yf_async 调用
+yf_async = yf_async
 
 @yf_async
 def restartServer():
-    if not mw.isRestart():
-        return mw.returnData(False, '请等待所有安装任务完成再执行!')
-    mw.execShell("sync && init 6 &")
-    return mw.returnData(True, '命令发送成功!')
+    if not yf.isRestart():
+        return yf.returnData(False, '请等待所有安装任务完成再执行!')
+    yf.execShell("sync && init 6 &")
+    return yf.returnData(True, '命令发送成功!')
 
 def getPid(self, pname):
     try:
@@ -50,7 +50,7 @@ def getPid(self, pname):
 def getEnvInfo():
     data = {}
     data['status'] = True
-    sdir = mw.getServerDir()
+    sdir = yf.getServerDir()
 
     data['webserver'] = '未安装'
     if os.path.exists(sdir + '/openresty/nginx/sbin/nginx'):
@@ -70,12 +70,12 @@ def getEnvInfo():
     except:
         diskInfo = psutil.disk_usage('/')
     data['disk'] = diskInfo[2]
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)
 
 def getDiskInfo():
     # 取磁盘分区信息
-    temp = mw.execShell("df -h -P|grep '/'|grep -v tmpfs | grep -v devfs")[0]
-    tempInodes = mw.execShell("df -i -P|grep '/'|grep -v tmpfs | grep -v devfs")[0]
+    temp = yf.execShell("df -h -P|grep '/'|grep -v tmpfs | grep -v devfs")[0]
+    tempInodes = yf.execShell("df -i -P|grep '/'|grep -v tmpfs | grep -v devfs")[0]
     temp1 = temp.split('\n')
     tempInodes1 = tempInodes.split('\n')
     diskInfo = []
@@ -121,49 +121,49 @@ def getLoadAverage():
 
 def getSystemVersion():
     # 取操作系统版本
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     # sys_temper = self.getSystemDeviceTemperature()
     # print(sys_temper)
     # mac
     if current_os == 'darwin':
-        data = mw.execShell('sw_vers')[0]
+        data = yf.execShell('sw_vers')[0]
         data_list = data.strip().split("\n")
         mac_version = ''
         for x in data_list:
             xlist = x.split("\t")
             mac_version += xlist[len(xlist)-1] + ' '
 
-        arch_ver = mw.execShell("arch")
+        arch_ver = yf.execShell("arch")
         return mac_version + " (" + arch_ver[0].strip() + ")"
 
     # freebsd
     if current_os.startswith('freebsd'):
-        version = mw.execShell(
+        version = yf.execShell(
             "cat /etc/*-release | grep PRETTY_NAME | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
-        arch_ver = mw.execShell(
+        arch_ver = yf.execShell(
             "sysctl -a | egrep -i 'hw.machine_arch' | awk -F ':' '{print $2}'")
         return version[0].strip() + " (" + arch_ver[0].strip() + ")"
 
     redhat_series = '/etc/redhat-release'
     if os.path.exists(redhat_series):
-        version = mw.readFile('/etc/redhat-release')
+        version = yf.readFile('/etc/redhat-release')
         version = version.replace('release ', '').strip()
 
-        arch_ver = mw.execShell("arch")
+        arch_ver = yf.execShell("arch")
         return version + " (" + arch_ver[0].strip() + ")"
 
     os_series = '/etc/os-release'
     if os.path.exists(os_series):
-        version = mw.execShell(
+        version = yf.execShell(
             "cat /etc/*-release | grep PRETTY_NAME | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
 
-        arch_ver = mw.execShell("arch")
+        arch_ver = yf.execShell("arch")
         return version[0].strip() + " (" + arch_ver[0].strip() + ")"
 
 def getBootTime():
     # 取系统启动时间
     if os.path.exists('/proc/uptime'):
-        uptime = mw.readFile('/proc/uptime')
+        uptime = yf.readFile('/proc/uptime')
         run_time = uptime.split()[0]
     else:
         start_time = psutil.boot_time()
@@ -175,7 +175,7 @@ def getBootTime():
     days = math.floor(hours / 24)
     hours = math.floor(hours - (days * 24))
     min = math.floor(min - (days * 60 * 24) - (hours * 60))
-    return mw.getInfo('已运行: {1}天{2}小时{3}分钟', (str(int(days)), str(int(hours)), str(int(min))))
+    return yf.getInfo('已运行: {1}天{2}小时{3}分钟', (str(int(days)), str(int(hours)), str(int(min))))
 
 def getCpuInfo(interval=None):
     # 取CPU信息
@@ -193,11 +193,11 @@ def getCpuInfo(interval=None):
         
     cpuLogicalNum = 0
     if os.path.exists('/proc/cpuinfo'):
-        c_tmp = mw.readFile('/proc/cpuinfo')
+        c_tmp = yf.readFile('/proc/cpuinfo')
         d_tmp = re.findall("physical id.+", c_tmp)
         cpuLogicalNum = len(set(d_tmp))
 
-    cpu_name = mw.getCpuType() + " * {}".format(cpuLogicalNum)
+    cpu_name = yf.getCpuType() + " * {}".format(cpuLogicalNum)
     return used, cpuCount, used_all, cpu_name, cpuCount, cpuLogicalNum
 
 def getMemInfo():
@@ -230,7 +230,7 @@ def getMemUsed():
         import psutil
         mem = psutil.virtual_memory()
 
-        if mw.getOs() == 'darwin':
+        if yf.getOs() == 'darwin':
             return mem.percent
         elif sys.platform == 'win32' or not hasattr(mem, 'buffers'):
             return mem.percent
@@ -259,11 +259,11 @@ def getSystemDetails():
     
     virt = "未知"
     if sys.platform != 'win32':
-        virt_cmd = mw.execShell('systemd-detect-virt')[0].strip()
+        virt_cmd = yf.execShell('systemd-detect-virt')[0].strip()
         if virt_cmd and 'not found' not in virt_cmd and 'No such' not in virt_cmd:
             virt = virt_cmd.upper()
         else:
-            virt_cmd2 = mw.execShell("cat /sys/class/dmi/id/product_name")[0].strip()
+            virt_cmd2 = yf.execShell("cat /sys/class/dmi/id/product_name")[0].strip()
             if virt_cmd2:
                 virt = virt_cmd2
     os_info['virtualization'] = virt
@@ -271,7 +271,7 @@ def getSystemDetails():
     
     # --- 2. CPU ---
     cpu_info = {}
-    cpu_info['model'] = mw.getCpuType()
+    cpu_info['model'] = yf.getCpuType()
     cpu_info['cores'] = psutil.cpu_count(logical=False)
     cpu_info['threads'] = psutil.cpu_count()
     
@@ -295,7 +295,7 @@ def getSystemDetails():
     cache = "未知"
     aes_vmx = "x / x"
     if sys.platform != 'win32' and os.path.exists('/proc/cpuinfo'):
-        cpuinfo_text = mw.readFile('/proc/cpuinfo')
+        cpuinfo_text = yf.readFile('/proc/cpuinfo')
         if cpuinfo_text:
             cache_match = re.search(r'cache size\s*:\s*(.+)', cpuinfo_text)
             if cache_match:
@@ -321,9 +321,9 @@ def getSystemDetails():
     disk_info = {}
     try:
         usage = psutil.disk_usage('/')
-        disk_info['total'] = mw.toSize(usage.total)
-        disk_info['used'] = mw.toSize(usage.used)
-        disk_info['free'] = mw.toSize(usage.free)
+        disk_info['total'] = yf.toSize(usage.total)
+        disk_info['used'] = yf.toSize(usage.used)
+        disk_info['free'] = yf.toSize(usage.free)
         disk_info['percent'] = usage.percent
     except:
         disk_info['total'] = "0"
@@ -335,7 +335,7 @@ def getSystemDetails():
     # --- 4. 系统状态 (System Status) ---
     status_info = {}
     if os.path.exists('/proc/uptime'):
-        uptime = mw.readFile('/proc/uptime')
+        uptime = yf.readFile('/proc/uptime')
         run_time = float(uptime.split()[0])
     else:
         run_time = float(time.time() - psutil.boot_time())
@@ -370,23 +370,23 @@ def getSystemDetails():
     
     tcp_cc = "未知"
     if sys.platform != 'win32' and os.path.exists('/proc/sys/net/ipv4/tcp_congestion_control'):
-        tcp_cc = mw.readFile('/proc/sys/net/ipv4/tcp_congestion_control').strip()
+        tcp_cc = yf.readFile('/proc/sys/net/ipv4/tcp_congestion_control').strip()
     net_info['tcp_cc'] = tcp_cc.capitalize() if tcp_cc != "未知" else tcp_cc
     
     ip_data = None
-    ip_cache_file = '/tmp/panel_ip_info.json' if sys.platform != 'win32' else os.path.join(mw.getRunDir(), 'tmp', 'panel_ip_info.json')
+    ip_cache_file = '/tmp/panel_ip_info.json' if sys.platform != 'win32' else os.path.join(yf.getRunDir(), 'tmp', 'panel_ip_info.json')
     if os.path.exists(ip_cache_file) and time.time() - os.path.getmtime(ip_cache_file) < 86400:
         try:
-            ip_data = json.loads(mw.readFile(ip_cache_file))
+            ip_data = json.loads(yf.readFile(ip_cache_file))
         except:
             pass
             
     if not ip_data:
         try:
-            ip_res = mw.execShell('curl -fsSL -m 3 http://ipinfo.io/json')[0]
+            ip_res = yf.execShell('curl -fsSL -m 3 http://ipinfo.io/json')[0]
             if ip_res:
                 ip_data = json.loads(ip_res)
-                mw.writeFile(ip_cache_file, json.dumps(ip_data))
+                yf.writeFile(ip_cache_file, json.dumps(ip_data))
         except:
             pass
             
@@ -400,15 +400,15 @@ def getSystemDetails():
     # --- 6. 内存 (Memory) ---
     mem_info = {}
     mem = psutil.virtual_memory()
-    mem_info['total'] = mw.toSize(mem.total)
+    mem_info['total'] = yf.toSize(mem.total)
     used = getattr(mem, 'used', mem.total - mem.available)
-    mem_info['used'] = mw.toSize(used)
+    mem_info['used'] = yf.toSize(used)
     mem_info['percent'] = mem.percent
     
     try:
         swap = psutil.swap_memory()
-        mem_info['swap_total'] = mw.toSize(swap.total)
-        mem_info['swap_used'] = mw.toSize(swap.used)
+        mem_info['swap_total'] = yf.toSize(swap.total)
+        mem_info['swap_used'] = yf.toSize(swap.used)
         mem_info['swap_percent'] = swap.percent
     except:
         mem_info['swap_total'] = "0"

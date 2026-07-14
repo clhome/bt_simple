@@ -18,7 +18,7 @@ import sys
 import sqlite3
 import threading
 
-import core.yf as mw
+import core.yf as yf
 
 _local = threading.local()
 
@@ -224,7 +224,7 @@ class Sql():
         try:
             sql = "SELECT " + self.__OPT_FIELD + " FROM " + self.__DB_TABLE + \
                 self.__OPT_WHERE + self.__OPT_GROUP + self.__OPT_ORDER + self.__OPT_LIMIT
-            # if mw.isDebugMode():
+            # if yf.isDebugMode():
             #     print(sql, self.__OPT_PARAM)
             result = self.__DB_CONN.execute(sql, self.__OPT_PARAM)
             data = result.fetchall()
@@ -436,8 +436,8 @@ class Sql():
     def create(self, name):
         # 创建数据表
         self.__getConn()
-        import core.yf as mw
-        script = mw.readFile('data/' + name + '.sql')
+        import core.yf as yf
+        script = yf.readFile('data/' + name + '.sql')
         result = self.__DB_CONN.executescript(script)
         self.__DB_CONN.commit()
         return result.rowcount
@@ -445,8 +445,8 @@ class Sql():
     def fofile(self, filename):
         # 执行脚本
         self.__getConn()
-        import core.yf as mw
-        script = mw.readFile(filename)
+        import core.yf as yf
+        script = yf.readFile(filename)
         result = self.__DB_CONN.executescript(script)
         self.__DB_CONN.commit()
         return result.rowcount

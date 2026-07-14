@@ -17,7 +17,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 from utils.system import monitor
 
-import core.yf as mw
+import core.yf as yf
 import utils.system as sys
 import thisdb
 
@@ -34,7 +34,7 @@ def system_total():
     data['time'] = sys.getBootTime()
     data['system'] = sys.getSystemVersion()
     data['version'] = '0.0.1'
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 # 获取环境信息
 @blueprint.route('/get_env_info', endpoint='get_env_info', methods=['GET','POST'])
@@ -63,7 +63,7 @@ def network():
     stat['network'] = sys.stats().network()
     # 注入任务排队数量，实现高频接口合并
     stat['task_count'] = thisdb.getTaskUnexecutedCount()
-    result = mw.getJson(stat)
+    result = yf.getJson(stat)
 
     _network_cache = result
     _network_cache_time = now
@@ -74,7 +74,7 @@ def network():
 @panel_login_required
 def disk_info():
     data = sys.getDiskInfo()
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)
 
 # 获取系统的GPU信息
 @blueprint.route('/get_gpu_info', endpoint='get_gpu_info', methods=['GET','POST'])
@@ -82,8 +82,8 @@ def disk_info():
 def get_gpu_info():
     data = sys.getGpuInfo()
     if data['status']:
-        return mw.returnData(True, 'ok', data['data'])
-    return mw.returnData(False, data['msg'])
+        return yf.returnData(True, 'ok', data['data'])
+    return yf.returnData(False, data['msg'])
 
 # 获取系统的负载统计信息
 @blueprint.route('/get_load_average', endpoint='get_load_average', methods=['GET'])
@@ -92,7 +92,7 @@ def get_load_average():
     start = request.args.get('start', '')
     end = request.args.get('end', '')
     data = sys.getLoadAverageByDB(start, end)
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)
 
 # 获取系统的磁盘IO统计信息
 @blueprint.route('/get_disk_io', endpoint='get_disk_io', methods=['GET'])
@@ -101,7 +101,7 @@ def get_disk_io():
     start = request.args.get('start', '')
     end = request.args.get('end', '')
     data = sys.getDiskIoByDB(start, end)
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)
 
 # 获取系统的CPU/IO统计信息
 @blueprint.route('/get_cpu_io', endpoint='get_cpu_io', methods=['GET'])
@@ -110,7 +110,7 @@ def get_cpu_io():
     start = request.args.get('start', '')
     end = request.args.get('end', '')
     data = sys.getCpuIoByDB(start, end)
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)
 
 # 获取系统网络IO统计信息
 @blueprint.route('/get_network_io', endpoint='get_network_io', methods=['GET'])
@@ -119,23 +119,23 @@ def get_network_io():
     start = request.args.get('start', '')
     end = request.args.get('end', '')
     data = sys.getNetworkIoByDB(start, end)
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)
 
 # 重启面板
 @blueprint.route('/restart', endpoint='restart', methods=['POST'])
 @panel_login_required
 def restart():
-    mw.restartMw()
-    return mw.returnData(True, '面板已重启!')
+    yf.restartMw()
+    return yf.returnData(True, '面板已重启!')
 
 # 重启面板
 @blueprint.route('/restart_server', endpoint='restart_server', methods=['POST'])
 @panel_login_required
 def restart_server():
-    if mw.isAppleSystem():
-        return mw.returnData(False, "开发环境不可重起!")
+    if yf.isAppleSystem():
+        return yf.returnData(False, "开发环境不可重起!")
     sys.restartServer()
-    return mw.returnData(True, '正在重启服务器!')
+    return yf.returnData(True, '正在重启服务器!')
 
 # 设置
 @blueprint.route('/set_control', endpoint='set_control', methods=['POST'])
@@ -149,35 +149,35 @@ def set_control():
     if stype == '0':
         _day = int(day)
         if _day < 1:
-            return mw.returnData(False, "保存天数异常!")
+            return yf.returnData(False, "保存天数异常!")
         thisdb.setOption('monitor_day', day, type='monitor')
         thisdb.setOption('monitor_status', 'close', type='monitor')
-        return mw.returnData(True, "关闭监控成功!")
+        return yf.returnData(True, "关闭监控成功!")
     elif stype == '1':
         _day = int(day)
         if _day < 1:
-            return mw.returnData(False, "保存天数异常!")
+            return yf.returnData(False, "保存天数异常!")
 
         thisdb.setOption('monitor_day', day, type='monitor')
         thisdb.setOption('monitor_status', 'open', type='monitor')
-        return mw.returnData(True, "开启监控成功!")
+        return yf.returnData(True, "开启监控成功!")
     elif stype == 'save_day':
         _day = int(day)
         if _day < 1:
-            return mw.returnData(False, "保存天数异常!")
+            return yf.returnData(False, "保存天数异常!")
         thisdb.setOption('monitor_day', day, type='monitor')
-        return mw.returnData(True, "修改保存天数成功!")
+        return yf.returnData(True, "修改保存天数成功!")
     elif stype == '2':
         thisdb.setOption('monitor_only_netio', 'close', type='monitor')
-        return mw.returnData(True, "关闭仅统计外网成功!")
+        return yf.returnData(True, "关闭仅统计外网成功!")
     elif stype == '3':
         thisdb.setOption('monitor_only_netio', 'open', type='monitor')
-        return mw.returnData(True, "开启仅统计外网成功!")
+        return yf.returnData(True, "开启仅统计外网成功!")
     elif stype == 'del':
-        if not mw.isRestart():
-            return mw.returnData(False, '请等待所有安装任务完成再执行')
+        if not yf.isRestart():
+            return yf.returnData(False, '请等待所有安装任务完成再执行')
         monitor.instance().clearDbFile()
-        return mw.returnData(True, "清空监控记录成功!")
+        return yf.returnData(True, "清空监控记录成功!")
     else:
         monitor_status = thisdb.getOption('monitor_status', default='open', type='monitor')
         monitor_day = thisdb.getOption('monitor_day', default='30', type='monitor')
@@ -193,22 +193,22 @@ def set_control():
         else:
             data['stat_all_status'] = False
 
-        return mw.getJson(data)
+        return yf.getJson(data)
 
-    return mw.returnData(False, "异常!")
+    return yf.returnData(False, "异常!")
     
 # 获取版本发布说明
 @blueprint.route('/get_release_info', endpoint='get_release_info', methods=['GET'])
 @panel_login_required
 def get_release_info():
-    release_file = os.path.join(mw.getPanelDir(), 'RELEASE_TEMPLATE.md')
+    release_file = os.path.join(yf.getPanelDir(), 'RELEASE_TEMPLATE.md')
     if not os.path.exists(release_file):
-        release_file = os.path.join(mw.getPanelDir(), 'README.md')
+        release_file = os.path.join(yf.getPanelDir(), 'README.md')
     
     if os.path.exists(release_file):
-        content = mw.readFile(release_file)
-        return mw.returnData(True, 'ok', content)
-    return mw.returnData(False, '未找到发行说明')
+        content = yf.readFile(release_file)
+        return yf.returnData(True, 'ok', content)
+    return yf.returnData(False, '未找到发行说明')
 
 # 获取面板自身占用的系统资源
 @blueprint.route('/get_panel_resources', endpoint='get_panel_resources', methods=['GET'])
@@ -234,9 +234,9 @@ def get_panel_resources():
             'cpu': round(cpu_percent, 2),
             'mem': round(mem_mb, 2)
         }
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
     except Exception as e:
-        return mw.returnData(False, str(e))
+        return yf.returnData(False, str(e))
 
 # 获取系统详细信息
 @blueprint.route('/get_system_details', endpoint='get_system_details', methods=['GET'])
@@ -244,9 +244,9 @@ def get_panel_resources():
 def get_system_details():
     try:
         data = sys.getSystemDetails()
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
     except Exception as e:
-        return mw.returnData(False, str(e))
+        return yf.returnData(False, str(e))
 
 # 运行服务器测速
 _speed_test_process = None
@@ -255,8 +255,8 @@ _speed_test_process = None
 @panel_login_required
 def speed_test():
     global _speed_test_process
-    sh_path = os.path.join(mw.getPanelDir(), 'scripts', 'speed.sh')
-    log_path = os.path.join(mw.getPanelDir(), 'tmp', 'speed_test.log')
+    sh_path = os.path.join(yf.getPanelDir(), 'scripts', 'speed.sh')
+    log_path = os.path.join(yf.getPanelDir(), 'tmp', 'speed_test.log')
     
     # 检查进程是否还在运行
     is_running = False
@@ -271,7 +271,7 @@ def speed_test():
             _speed_test_process = None
             
     if is_running:
-        return mw.returnData(True, 'OK', log_path)
+        return yf.returnData(True, 'OK', log_path)
         
     # 如果不在运行，清空或新建日志文件
     if os.path.exists(log_path):
@@ -321,7 +321,7 @@ def speed_test():
             def poll(self):
                 return 0
         _speed_test_process = MockProcess()
-        return mw.returnData(True, 'OK', log_path)
+        return yf.returnData(True, 'OK', log_path)
 
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     
@@ -339,7 +339,7 @@ def speed_test():
             stderr=log_file,
             preexec_fn=os.setsid if hasattr(os, 'setsid') else None
         )
-        return mw.returnData(True, 'OK', log_path)
+        return yf.returnData(True, 'OK', log_path)
     except Exception as e:
-        return mw.returnData(False, '启动测速失败: ' + str(e))
+        return yf.returnData(False, '启动测速失败: ' + str(e))
 

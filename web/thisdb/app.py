@@ -9,12 +9,12 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.yf as mw
+import core.yf as yf
 
 __FIELD = 'id,app_id,app_secret,white_list,status,add_time,update_time'
 
 def addApp(app_id,app_secret,white_list):
-    now_time = mw.getDateFromNow()
+    now_time = yf.getDateFromNow()
     add_data = {
         'app_id': app_id,
         'app_secret': app_secret,
@@ -23,10 +23,10 @@ def addApp(app_id,app_secret,white_list):
         'add_time': now_time,
         'update_time': now_time
     }
-    return mw.M('app').insert(add_data)
+    return yf.M('app').insert(add_data)
 
 def getAppList(page=1,size=10):  
-    m = mw.M('app').field(__FIELD)
+    m = yf.M('app').field(__FIELD)
 
     start = (int(page) - 1) * (int(size))
     limit = str(start) + ',' +str(size)
@@ -39,19 +39,19 @@ def getAppList(page=1,size=10):
     return data
 
 def getAppById(aid):
-    return mw.M('app').field(__FIELD).where("id=?", (aid,)).find()
+    return yf.M('app').field(__FIELD).where("id=?", (aid,)).find()
 
 def getAppByAppId(app_id):
-    return mw.M('app').field(__FIELD).where("app_id=?", (app_id,)).find()
+    return yf.M('app').field(__FIELD).where("app_id=?", (app_id,)).find()
 
 def deleteAppById(aid):
-    return mw.M('app').where("id=?", (aid,)).delete()
+    return yf.M('app').where("id=?", (aid,)).delete()
 
 def toggleAppStatus(aid):
-    info = mw.M('app').field(__FIELD).where("id=?", (aid,)).find()
+    info = yf.M('app').field(__FIELD).where("id=?", (aid,)).find()
     if info['status'] == 1:
-        return mw.M('app').where('id=?',(aid,)).update({'status':0})
-    return mw.M('app').where('id=?',(aid,)).update({'status':1})
+        return yf.M('app').where('id=?',(aid,)).update({'status':0})
+    return yf.M('app').where('id=?',(aid,)).update({'status':1})
 
 
 def setAppData(aid, status=None, app_id=None, app_secret=None):
@@ -62,4 +62,4 @@ def setAppData(aid, status=None, app_id=None, app_secret=None):
         up_data['app_id'] = app_id
     if app_secret is not None:
         up_data['app_secret'] = app_secret
-    return mw.M('app').where('id=?',(aid,)).update(up_data)
+    return yf.M('app').where('id=?',(aid,)).update(up_data)

@@ -13,7 +13,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -22,11 +22,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -49,8 +49,8 @@ def getInitDTpl():
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$SERVER_APP}', service_path + '/varnish')
     return content
@@ -75,12 +75,12 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep varnish |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
 
     if data[0] == '':
@@ -89,8 +89,8 @@ def status():
 
 
 def vaOp(method):
-    mw.execShell("systemctl daemon-reload")
-    data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    yf.execShell("systemctl daemon-reload")
+    data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
     if data[1] == '':
         return 'ok'
     return 'fail'
@@ -114,7 +114,7 @@ def reload():
 
 def runInfo():
     cmd = "varnishstat -j"
-    data = mw.execShell(cmd)[0].strip()
+    data = yf.execShell(cmd)[0].strip()
     return data
 
 
@@ -125,7 +125,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -140,38 +140,38 @@ def readConfigTpl():
     
     # 确保文件处于 tpl_dir 内部并且以 .vcl 结尾
     if not target_file.startswith(tpl_dir + os.sep) or not target_file.endswith('.vcl'):
-        return mw.returnJson(False, '越权访问拦截：仅允许读取模板目录下的VCL配置文件！')
+        return yf.returnJson(False, '越权访问拦截：仅允许读取模板目录下的VCL配置文件！')
 
-    content = mw.readFile(target_file)
+    content = yf.readFile(target_file)
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status ' + \
         getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable ' + getPluginName())
+    yf.execShell('systemctl enable ' + getPluginName())
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable ' + getPluginName())
+    yf.execShell('systemctl disable ' + getPluginName())
     return 'ok'
 
 
@@ -184,7 +184,7 @@ def runLog():
 
 
 def confService():
-    return mw.systemdCfgDir() + '/varnish.service'
+    return yf.systemdCfgDir() + '/varnish.service'
 
 if __name__ == "__main__":
     func = sys.argv[1]

@@ -16,7 +16,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -30,15 +30,15 @@ def f2bEtcDir():
     return '/etc/'+getPluginName()
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -66,16 +66,16 @@ pidfile = /run/fail2ban/fail2ban.pid
 dbfile = /var/lib/fail2ban/fail2ban.sqlite3
 dbpurgeage = 1d
 """
-        mw.writeFile(f2b_conf, default_f2b_conf)
+        yf.writeFile(f2b_conf, default_f2b_conf)
 
     # Check jail.conf (jail config template)
     jail_conf = etc_dir + '/jail.conf'
     if not os.path.exists(jail_conf):
         tpl_path = getConfTpl() # which is getPluginDir() + "/tpl/fail2ban.conf"
         if os.path.exists(tpl_path):
-            content = mw.readFile(tpl_path)
+            content = yf.readFile(tpl_path)
             content = contentReplace(content)
-            mw.writeFile(jail_conf, content)
+            yf.writeFile(jail_conf, content)
 
 def getConf():
     initConfigFiles()
@@ -136,8 +136,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
     initConfigFiles()
@@ -148,7 +148,7 @@ def configTpl():
         if one.endswith("conf"):
             file = path + '/' + one
             tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -162,7 +162,7 @@ def readConfigTpl():
     # 强制只获取纯文件名，完全阻断越权目录穿越及非法路径读取
     filename = os.path.basename(raw_file)
     if not filename.endswith('.conf'):
-        return mw.returnJson(False, '只允许读取.conf配置文件')
+        return yf.returnJson(False, '只允许读取.conf配置文件')
 
     # 路径合法性沙箱校验，强行限制只能读取 /etc/fail2ban 目录下的配置文件
     target_dir = os.path.abspath(f2bEtcDir())
@@ -170,14 +170,14 @@ def readConfigTpl():
     
     # 双重安全防护线：绝对路径必须在目标目录内，且不能越权向上穿越
     if not path.startswith(target_dir + os.sep) and not path.startswith(target_dir + '/'):
-        return mw.returnJson(False, '越权路径读取被拒绝')
+        return yf.returnJson(False, '越权路径读取被拒绝')
 
     if not os.path.exists(path):
-        return mw.returnJson(False, '配置文件不存在')
+        return yf.returnJson(False, '配置文件不存在')
 
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 def runLog():
     return '/var/log/fail2ban.log'
@@ -187,20 +187,20 @@ def getPidFile():
     return f2dir+'/fail2ban.pid'
 
 def status():
-    data = mw.execShell('fail2ban-client ping')
+    data = yf.execShell('fail2ban-client ping')
     if 'pong' in data[0]:
         return 'start'
         
     # Fallback to systemctl check
-    data = mw.execShell('systemctl is-active fail2ban')
+    data = yf.execShell('systemctl is-active fail2ban')
     if data[0].strip() == 'active':
         return 'start'
         
     return 'stop'
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     return content
 
@@ -209,22 +209,22 @@ def initFail2BanD():
     dst_conf = f2bEtcDir() + '/fail2ban.d/default.conf'
     dst_conf_tpl = getPluginDir() + '/tpl/fail2ban.d/default.conf'
     if not os.path.exists(dst_conf):
-        content = mw.readFile(dst_conf_tpl)
+        content = yf.readFile(dst_conf_tpl)
         content = contentReplace(content)
-        mw.writeFile(dst_conf, content)
+        yf.writeFile(dst_conf, content)
 
 def initJailD():
     dst_conf = f2bEtcDir() + '/jail.d/default.conf'
     dst_conf_tpl = getPluginDir() + '/tpl/jail.d/default.conf'
     if not os.path.exists(dst_conf):
-        content = mw.readFile(dst_conf_tpl)
+        content = yf.readFile(dst_conf_tpl)
         content = contentReplace(content)
-        mw.writeFile(dst_conf, content)
+        yf.writeFile(dst_conf, content)
 
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -235,24 +235,24 @@ def initDreplace():
     # dst_conf = getConf()
     # dst_conf_init = getServerDir() + '/init.pl'
     # if not os.path.exists(dst_conf_init):
-    #     content = mw.readFile(getConfTpl())
+    #     content = yf.readFile(getConfTpl())
     #     content = contentReplace(content)
-    #     mw.writeFile(dst_conf, content)
-    #     mw.writeFile(dst_conf_init, 'ok')
+    #     yf.writeFile(dst_conf, content)
+    #     yf.writeFile(dst_conf_init, 'ok')
 
     initConfigFiles()
     initFail2BanD()
     initJailD()
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/' + getPluginName() + '.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/' + getPluginName() + '.service.tpl'
-        content = mw.readFile(systemServiceTpl)
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
@@ -268,20 +268,20 @@ def f2bOp(method):
         except Exception:
             pass
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service ' + getPluginName() + ' ' + method)
+        data = yf.execShell('service ' + getPluginName() + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -299,7 +299,7 @@ def restart():
     status = f2bOp('restart')
 
     log_file = runLog()
-    mw.execShell("echo '' > " + log_file)
+    yf.execShell("echo '' > " + log_file)
     return status
 
 
@@ -308,7 +308,7 @@ def reload():
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -319,14 +319,14 @@ def initdStatus():
 
     shell_cmd = 'systemctl status ' + \
         getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -336,38 +336,38 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable ' + getPluginName())
+    yf.execShell('systemctl enable ' + getPluginName())
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable ' + getPluginName())
+    yf.execShell('systemctl disable ' + getPluginName())
     return 'ok'
 
 
 # 读取配置
 def _read_conf(path, l=None):
-    conf = mw.readFile(path)
+    conf = yf.readFile(path)
     if not conf:
         if not l:
             conf = {}
         else:
             conf = []
-        mw.writeFile(path, json.dumps(conf))
+        yf.writeFile(path, json.dumps(conf))
         return conf
     return json.loads(conf)
 
@@ -390,7 +390,7 @@ def getBlackListArr():
 def getBlackList():
     conf = getBlackListArr()
     content = "\n".join(conf)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 def setBlackIp():
     ip_list = getBlackListArr()
@@ -422,11 +422,11 @@ def setBlackIp():
     if len(new_ip_list) == 0:
         for d in data:
             for ip in ip_list:
-                mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
+                yf.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
                 _delete_db_ban(ip, d)
 
-        mw.writeFile(getBlackFile(), json.dumps([]))
-        return mw.returnJson(True, "禁止IP成功")
+        yf.writeFile(getBlackFile(), json.dumps([]))
+        return yf.returnJson(True, "禁止IP成功")
 
     add_ip_list = [new_ip for new_ip in new_ip_list if new_ip not in ip_list]
     del_ip_list = [del_ip for del_ip in ip_list if del_ip not in new_ip_list]
@@ -436,31 +436,31 @@ def setBlackIp():
     # 检查IP格式
     for ip in add_ip_list:
         if not re.search(rep_ip, ip) and not re.search(rep_ipv6, ip):
-            return mw.returnJson(False, "IP格式错误 {}".format(ip))
+            return yf.returnJson(False, "IP格式错误 {}".format(ip))
 
     # 添加新IP到黑名单
     for d in data:
         for ip in add_ip_list:
-            mw.execShell('fail2ban-client -vvv set {jail} banip {ip}'.format(jail=d, ip=ip))
+            yf.execShell('fail2ban-client -vvv set {jail} banip {ip}'.format(jail=d, ip=ip))
 
     # 检查是否有清理掉的IP
     for d in data:
         for ip in del_ip_list:
-            mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
+            yf.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=d, ip=ip))
             _delete_db_ban(ip, d)
 
     # 更新本地缓存，保留 new_ip_list 里的合法 IP 覆盖 ip_list
     ip_list = [ip for ip in new_ip_list if re.search(rep_ip, ip) or re.search(rep_ipv6, ip)]
 
-    mw.writeFile(getBlackFile(), json.dumps(ip_list))
-    return mw.returnJson(True, "添加黑名单成功")
+    yf.writeFile(getBlackFile(), json.dumps(ip_list))
+    return yf.returnJson(True, "添加黑名单成功")
 
 def get_active_bans():
     import sqlite3
     import time
     db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
     # 尝试从 client 获取 db 路径
-    ret = mw.execShell('fail2ban-client get dbfile')
+    ret = yf.execShell('fail2ban-client get dbfile')
     if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
         import re
         match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
@@ -499,17 +499,17 @@ def get_active_bans():
                     })
             conn.close()
         except Exception as e:
-            return mw.returnJson(False, '无法读取Fail2ban数据库: ' + str(e))
+            return yf.returnJson(False, '无法读取Fail2ban数据库: ' + str(e))
     else:
-        return mw.returnJson(False, '未找到Fail2ban数据库: ' + db_path)
+        return yf.returnJson(False, '未找到Fail2ban数据库: ' + db_path)
 
     # 排序，永久封禁排在最前，其次按剩余时间降序排序
     active_bans.sort(key=lambda x: (x['bantime'] >= 0, -x['expire_time']))
-    return mw.returnJson(True, 'ok', active_bans)
+    return yf.returnJson(True, 'ok', active_bans)
 
 def _delete_db_ban(ip, jail=None):
     db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
-    ret = mw.execShell('fail2ban-client get dbfile')
+    ret = yf.execShell('fail2ban-client get dbfile')
     if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
         import re
         match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
@@ -540,22 +540,22 @@ def unban_active_ip():
     jail = args.get('jail', '')
     
     if not ip:
-        return mw.returnJson(False, 'IP不能为空')
+        return yf.returnJson(False, 'IP不能为空')
         
     if jail:
-        mw.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=jail, ip=ip))
+        yf.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=jail, ip=ip))
         _delete_db_ban(ip, jail)
     else:
-        mw.execShell('fail2ban-client -vvv unban {ip}'.format(ip=ip))
+        yf.execShell('fail2ban-client -vvv unban {ip}'.format(ip=ip))
         _delete_db_ban(ip)
         
     # 同时从 black_list 中移除
     ip_list = getBlackListArr()
     if ip in ip_list:
         ip_list.remove(ip)
-        mw.writeFile(getBlackFile(), json.dumps(ip_list))
+        yf.writeFile(getBlackFile(), json.dumps(ip_list))
         
-    return mw.returnJson(True, '解除封禁成功')
+    return yf.returnJson(True, '解除封禁成功')
 
 def runInfo():
     # 获取 Jail 状态与封禁详情
@@ -564,7 +564,7 @@ def runInfo():
     banned_ips = {}
     
     if status() == 'start':
-        ret = mw.execShell('fail2ban-client status')
+        ret = yf.execShell('fail2ban-client status')
         if ret[0] != '':
             match = re.search(r'Jail list:\s+(.*)', ret[0])
             if match:
@@ -572,7 +572,7 @@ def runInfo():
                 
         # 遍历各个 Jail 获取具体被封禁的 IP 和统计数量
         for jail in jails:
-            jail_status = mw.execShell('fail2ban-client status {}'.format(jail))
+            jail_status = yf.execShell('fail2ban-client status {}'.format(jail))
             if jail_status[0] != '':
                 # 解析当前封禁数量 (Currently banned)
                 count_match = re.search(r'Currently banned:\s+(\d+)', jail_status[0])
@@ -604,7 +604,7 @@ def runInfo():
         'banned_ips': banned_ips,
         'log': ''.join(log_lines)
     }
-    return mw.returnJson(True, 'ok', res)
+    return yf.returnJson(True, 'ok', res)
 
 
 
@@ -631,7 +631,7 @@ class fail2ban_main:
 
     def get_ssh_port(self):
         try:
-            conf = mw.readFile('/etc/ssh/sshd_config')
+            conf = yf.readFile('/etc/ssh/sshd_config')
             if conf:
                 import re
                 m = re.search(r"^\s*Port\s+([0-9]+)", conf, re.MULTILINE)
@@ -643,11 +643,11 @@ class fail2ban_main:
 
     def get_mysql_port(self):
         try:
-            mysql_cnf = mw.getServerDir() + '/mysql/etc/my.cnf'
+            mysql_cnf = yf.getServerDir() + '/mysql/etc/my.cnf'
             paths = [mysql_cnf, '/etc/my.cnf']
             for path in paths:
                 if os.path.exists(path):
-                    conf = mw.readFile(path)
+                    conf = yf.readFile(path)
                     if conf:
                         import re
                         m = re.search(r"^\s*port\s*=\s*([0-9]+)", conf, re.MULTILINE | re.IGNORECASE)
@@ -686,10 +686,10 @@ class fail2ban_main:
         }
         
         try:
-            conf = mw.readFile(self._config)
+            conf = yf.readFile(self._config)
             if not conf:
                 conf_data = {"server": [default_sshd], "site": [default_global_cc, default_global_scan], "strict": True}
-                mw.writeFile(self._config, json.dumps(conf_data))
+                yf.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 return conf_data
                 
@@ -700,17 +700,17 @@ class fail2ban_main:
             # If server config is completely empty, initialize it with sshd defaults
             if 'server' not in conf_data or not isinstance(conf_data['server'], list) or len(conf_data['server']) == 0:
                 conf_data['server'] = [default_sshd]
-                mw.writeFile(self._config, json.dumps(conf_data))
+                yf.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
             if 'site' not in conf_data or not isinstance(conf_data['site'], list):
                 conf_data['site'] = [default_global_cc, default_global_scan]
-                mw.writeFile(self._config, json.dumps(conf_data))
+                yf.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
             if 'strict' not in conf_data:
                 conf_data['strict'] = True
-                mw.writeFile(self._config, json.dumps(conf_data))
+                yf.writeFile(self._config, json.dumps(conf_data))
                 self.sync_jail_local(conf_data)
                 
             conf_data['default_ssh_port'] = self.get_ssh_port()
@@ -725,13 +725,13 @@ class fail2ban_main:
                 "default_ssh_port": self.get_ssh_port(), 
                 "default_mysql_port": self.get_mysql_port()
             }
-            mw.writeFile(self._config, json.dumps({"server": [default_sshd], "site": [default_global_cc, default_global_scan], "strict": True}))
+            yf.writeFile(self._config, json.dumps({"server": [default_sshd], "site": [default_global_cc, default_global_scan], "strict": True}))
             self.sync_jail_local(conf_data)
             return conf_data
 
     def get_all_sitename(self, args=None):
         try:
-            _list = mw.M('sites').field('id,name,path').order('id desc').select()
+            _list = yf.M('sites').field('id,name,path').order('id desc').select()
             data = {}
             if type(_list) == str or not _list:
                 return data
@@ -762,13 +762,13 @@ class fail2ban_main:
                     filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
                     if not os.path.exists(filter_file):
                         filter_content = "[Definition]\nfailregex = ^.*Access denied for user.*'<HOST>'.*$\nignoreregex = "
-                        mw.writeFile(filter_file, filter_content)
+                        yf.writeFile(filter_file, filter_content)
                 elif mode == 'redis':
                     content += "logpath = /var/log/redis/*.log\n"
                     filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
                     if not os.path.exists(filter_file):
                         filter_content = "[Definition]\nfailregex = ^.*-ERR Auth failed.*from <HOST>.*$\nignoreregex = "
-                        mw.writeFile(filter_file, filter_content)
+                        yf.writeFile(filter_file, filter_content)
                 
                 content += "\n"
                 
@@ -795,9 +795,9 @@ class fail2ban_main:
                         filter_content = "[Definition]\nfailregex = ^<HOST> \\-.*\nignoreregex = "
                     else:
                         filter_content = "[Definition]\nfailregex = ^<HOST> \\-.*\"(?:GET|POST|HEAD).*\" (400|401|403|404|444|500|502|503)\nignoreregex = "
-                    mw.writeFile(filter_file, filter_content)
+                    yf.writeFile(filter_file, filter_content)
                 
-        mw.writeFile(self._jail_local_file, content)
+        yf.writeFile(self._jail_local_file, content)
 
     def set_anti(self, args):
         args = self.parse_inner_args(args)
@@ -835,12 +835,12 @@ class fail2ban_main:
         else:
             conf['server'] = target_list
             
-        mw.writeFile(self._config, json.dumps(conf))
+        yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
         
         # Reload fail2ban via existing method or systemctl
-        mw.execShell('systemctl reload fail2ban')
-        return mw.returnJson(True, '设置成功!')
+        yf.execShell('systemctl reload fail2ban')
+        return yf.returnJson(True, '设置成功!')
 
     def del_anti(self, args):
         args = self.parse_inner_args(args)
@@ -859,11 +859,11 @@ class fail2ban_main:
         else:
             conf['server'] = new_list
             
-        mw.writeFile(self._config, json.dumps(conf))
+        yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
         
-        mw.execShell('systemctl reload fail2ban')
-        return mw.returnJson(True, '删除成功!')
+        yf.execShell('systemctl reload fail2ban')
+        return yf.returnJson(True, '删除成功!')
 
     def set_strict_mode(self, args):
         args = self.parse_inner_args(args)
@@ -874,39 +874,39 @@ class fail2ban_main:
             strict = bool(strict_val)
         conf = self.get_anti_info()
         conf['strict'] = strict
-        mw.writeFile(self._config, json.dumps(conf))
+        yf.writeFile(self._config, json.dumps(conf))
         self.sync_jail_local(conf)
         
-        mw.execShell('systemctl reload fail2ban')
-        return mw.returnJson(True, '设置成功!')
+        yf.execShell('systemctl reload fail2ban')
+        return yf.returnJson(True, '设置成功!')
 
     def get_status(self, args):
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
     def ban_ip_release(self, args):
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
     def get_mode_list(self, args):
-        return mw.returnJson(True, 'ok', [])
+        return yf.returnJson(True, 'ok', [])
 
     def ban_ip(self, args):
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
     def unban_ip(self, args):
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
     def get_last_log(self, args):
         log_file = runLog()
         if not os.path.exists(log_file):
-            return mw.returnJson(True, 'ok', '')
+            return yf.returnJson(True, 'ok', '')
         
-        data = mw.execShell('tail -n 200 ' + log_file)
-        return mw.returnJson(True, 'ok', data[0])
+        data = yf.execShell('tail -n 200 ' + log_file)
+        return yf.returnJson(True, 'ok', data[0])
 
     def clear_log(self, args):
         log_file = runLog()
-        mw.execShell('echo "" > ' + log_file)
-        return mw.returnJson(True, '清空日志成功!')
+        yf.execShell('echo "" > ' + log_file)
+        return yf.returnJson(True, '清空日志成功!')
 
     def getIpLocationBatch(self, args):
         args = self.parse_inner_args(args)
@@ -916,7 +916,7 @@ class fail2ban_main:
             import urllib.request
             ips = json.loads(ips_json)
             if not isinstance(ips, list):
-                return mw.returnJson(False, 'ips must be a JSON array', [])
+                return yf.returnJson(False, 'ips must be a JSON array', [])
             
             import urllib.request
             import time
@@ -928,15 +928,15 @@ class fail2ban_main:
                     req.add_header('Content-Type', 'application/json')
                     response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
                     result = response.read().decode('utf-8')
-                    return mw.returnJson(True, 'ok!', json.loads(result))
+                    return yf.returnJson(True, 'ok!', json.loads(result))
                 except Exception as e:
                     if attempt == max_retries - 1:
                         # 所有重试均失败
                         result_list = [{"query": ip, "status": "fail"} for ip in ips]
-                        return mw.returnJson(True, 'ok!', result_list)
+                        return yf.returnJson(True, 'ok!', result_list)
                     time.sleep(0.5)
         except Exception as e:
-            return mw.returnJson(False, str(e), [])
+            return yf.returnJson(False, str(e), [])
 
     def getIpLocation(self, args):
         args = self.parse_inner_args(args)
@@ -953,13 +953,13 @@ class fail2ban_main:
                     url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
                     response = urllib.request.urlopen(url, timeout=10)
                     result = response.read().decode('utf-8')
-                    return mw.returnJson(True, 'ok!', json.loads(result))
+                    return yf.returnJson(True, 'ok!', json.loads(result))
                 except Exception as e:
                     if attempt == max_retries - 1:
-                        return mw.returnJson(False, '获取归属地失败', [])
+                        return yf.returnJson(False, '获取归属地失败', [])
                     time.sleep(0.5)
         except Exception as e:
-            return mw.returnJson(False, str(e), [])
+            return yf.returnJson(False, str(e), [])
 
 
     def get_logs_list(self, args):
@@ -1070,11 +1070,11 @@ class fail2ban_main:
         _page['tojs'] = tojs
         
         data = {
-            "page": mw.getPage(_page),
+            "page": yf.getPage(_page),
             "data": paged_logs
         }
         
-        return mw.returnJson(True, 'ok!', data)
+        return yf.returnJson(True, 'ok!', data)
 
     def get_ip_logs(self, args):
         args = self.parse_inner_args(args)
@@ -1090,7 +1090,7 @@ class fail2ban_main:
                     ip = m.group(1)
 
         if not ip:
-            return mw.returnJson(False, f'IP不能为空! args dump: {str(args)}')
+            return yf.returnJson(False, f'IP不能为空! args dump: {str(args)}')
 
         log_file = runLog()
         logs = []
@@ -1111,13 +1111,13 @@ class fail2ban_main:
             "ban_count": ban_count,
             "logs": logs
         }
-        return mw.returnJson(True, 'ok!', data)
+        return yf.returnJson(True, 'ok!', data)
 
     def get_home_stats(self, args):
         import sqlite3
         import time
         db_path = '/var/lib/fail2ban/fail2ban.sqlite3'
-        ret = mw.execShell('fail2ban-client get dbfile')
+        ret = yf.execShell('fail2ban-client get dbfile')
         if ret[0] and ret[0].strip() and ret[0].strip() != 'None':
             import re
             match = re.search(r'(/[^`\s]+\.sqlite3)', ret[0])
@@ -1179,7 +1179,7 @@ class fail2ban_main:
             "protect_days": protect_days,
             "jail_stats": jail_stats
         }
-        return mw.returnJson(True, 'ok!', data)
+        return yf.returnJson(True, 'ok!', data)
 
     def get_total_statistics(self, args):
         home_res = self.get_home_stats(args)
@@ -1190,7 +1190,7 @@ class fail2ban_main:
                 today_bans = home_data['data'].get('today_bans', 0)
                 total_bans = home_data['data'].get('total_bans', 0)
                 count_str = str(today_bans) + '/' + str(total_bans)
-                ver_content = mw.readFile(getPluginDir() + '/info.json')
+                ver_content = yf.readFile(getPluginDir() + '/info.json')
                 version = "1.0"
                 if ver_content:
                     try:
@@ -1202,11 +1202,11 @@ class fail2ban_main:
                     "count": count_str,
                     "ver": version
                 }
-                return mw.returnJson(True, "ok", res)
+                return yf.returnJson(True, "ok", res)
         except:
             pass
             
-        return mw.returnJson(False, "error")
+        return yf.returnJson(False, "error")
 
 fail2ban_inst = None
 def get_fail2ban_inst():
@@ -1230,7 +1230,7 @@ if __name__ == "__main__":
         print(get_fail2ban_inst().set_strict_mode(args))
     elif func == 'get_anti_info':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_anti_info(args)))
+        print(yf.returnJson(True, 'ok', get_fail2ban_inst().get_anti_info(args)))
     elif func == 'get_status':
         args = getArgs()
         print(get_fail2ban_inst().get_status(args))
@@ -1239,10 +1239,10 @@ if __name__ == "__main__":
         print(get_fail2ban_inst().ban_ip_release(args))
     elif func == 'get_mode_list':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_mode_list(args)))
+        print(yf.returnJson(True, 'ok', get_fail2ban_inst().get_mode_list(args)))
     elif func == 'get_all_sitename':
         args = getArgs()
-        print(mw.returnJson(True, 'ok', get_fail2ban_inst().get_all_sitename(args)))
+        print(yf.returnJson(True, 'ok', get_fail2ban_inst().get_all_sitename(args)))
     elif func == 'ban_ip':
         args = getArgs()
         print(get_fail2ban_inst().ban_ip(args))

@@ -16,7 +16,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -28,11 +28,11 @@ def getIpvsadm():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -60,8 +60,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getConf():
@@ -70,7 +70,7 @@ def getConf():
 
 
 def status():
-    data = mw.execShell("which ipvsadm")
+    data = yf.execShell("which ipvsadm")
     if data[0] == '':
         return 'stop'
     return 'start'
@@ -79,7 +79,7 @@ def status():
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -88,10 +88,10 @@ def initDreplace():
 
     # initd replace
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
 
     return file_bin
@@ -117,7 +117,7 @@ def reload():
     return haOp('reload')
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -128,32 +128,32 @@ def initdStatus():
 
     shell_cmd = 'systemctl status ' + \
         getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable ' + getIpvsadm())
+    yf.execShell('systemctl enable ' + getIpvsadm())
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable ' + getIpvsadm())
+    yf.execShell('systemctl disable ' + getIpvsadm())
     return 'ok'
 
 def runLog():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'log\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0]

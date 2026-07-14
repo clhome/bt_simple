@@ -11,46 +11,46 @@
 
 import os
 
-import core.yf as mw
+import core.yf as yf
 
 __field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,last_run_time,add_time,update_time'
 
 # 尝试增加 last_run_time 字段 (迁移逻辑)
 try:
-    mw.M('crontab').execute("ALTER TABLE crontab ADD COLUMN last_run_time TEXT")
+    yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN last_run_time TEXT")
 except:
     pass
 
 # 尝试增加 day_type 字段 (迁移逻辑)
 try:
-    mw.M('crontab').execute("ALTER TABLE crontab ADD COLUMN day_type INTEGER DEFAULT 0")
+    yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN day_type INTEGER DEFAULT 0")
 except:
     pass
 
 def addCrontab(data):
-    now_time = mw.formatDate()
+    now_time = yf.formatDate()
     data['add_time'] = now_time
     data['update_time'] = now_time
     if 'day_type' not in data:
         data['day_type'] = 0
-    return mw.M('crontab').insert(data)
+    return yf.M('crontab').insert(data)
 
 def getCronByName(name):
-    return mw.M('crontab').where("name=?", (name,)).find()
+    return yf.M('crontab').where("name=?", (name,)).find()
 
 def setCrontabData(cron_id, data):
-    mw.M('crontab').where('id=?', (cron_id,)).update(data)
+    yf.M('crontab').where('id=?', (cron_id,)).update(data)
     return True
 
 def setCrontabStatus(cron_id, status):
-    mw.M('crontab').where('id=?', (cron_id,)).update({'status':status})
+    yf.M('crontab').where('id=?', (cron_id,)).update({'status':status})
     return True
 
 def getCrond(id):
-    return mw.M('crontab').where('id=?', (id,)).field(__field).find()
+    return yf.M('crontab').where('id=?', (id,)).field(__field).find()
 
 def deleteCronById(cron_id):
-    mw.M('crontab').where("id=?", (cron_id,)).delete()
+    yf.M('crontab').where("id=?", (cron_id,)).delete()
     return True
 
 def getCrontabList(
@@ -70,13 +70,13 @@ def getCrontabList(
 
     order_str = orderby + ' ' + order
 
-    m = mw.M('crontab')
+    m = yf.M('crontab')
     if search != '':
         m = m.where("name LIKE ?", ('%' + search + '%',))
     
     cron_list = m.field(__field).limit(limit).order(order_str).select()
 
-    m_count = mw.M('crontab')
+    m_count = yf.M('crontab')
     if search != '':
         m_count = m_count.where("name LIKE ?", ('%' + search + '%',))
     count = m_count.count()

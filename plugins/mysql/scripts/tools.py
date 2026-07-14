@@ -6,11 +6,11 @@ import json
 import time
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 import db
 
 cmd = 'ls /usr/local/lib/ | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
-info = mw.execShell(cmd)
+info = yf.execShell(cmd)
 p = "/usr/local/lib/" + info[0].strip() + "/site-packages"
 sys.path.append(p)
 
@@ -50,13 +50,13 @@ echo '==========================================='
 echo "root密码成功修改为: ${pwd}"
 echo "The root password set ${pwd}  successuful"'''
 
-    server = mw.getServerDir() + '/mysql'
+    server = yf.getServerDir() + '/mysql'
     root_mysql = root_mysql.replace('${server}', server)
-    mw.writeFile('mysql_root.sh', root_mysql)
+    yf.writeFile('mysql_root.sh', root_mysql)
     os.system("/bin/bash mysql_root.sh " + password)
     os.system("rm -f mysql_root.sh")
 
-    pos = mw.getServerDir() + '/mysql'
+    pos = yf.getServerDir() + '/mysql'
     result = sql.table('config').dbPos(pos, 'mysql').where(
         'id=?', (1,)).setField('mysql_root', password)
 
@@ -66,7 +66,7 @@ def set_panel_pwd(password, ncli=False):
     import db
     sql = db.Sql()
     result = sql.table('users').where('id=?', (1,)).setField(
-        'password', mw.md5(password))
+        'password', yf.md5(password))
     username = sql.table('users').where('id=?', (1,)).getField('username')
     if ncli:
         print("|-用户名: " + username)
@@ -93,14 +93,14 @@ def set_panel_username(username=None):
 
     username = sql.table('users').where('id=?', (1,)).getField('username')
     if username == 'admin':
-        username = mw.getRandomString(8).lower()
+        username = yf.getRandomString(8).lower()
         sql.table('users').where('id=?', (1,)).setField('username', username)
     print('username: ' + username)
 
 
 def getServerIp():
     version = sys.argv[2]
-    ip = mw.execShell(
+    ip = yf.execShell(
         "curl -{} -sS --connect-timeout 5 -m 60 https://v6r.ipip.net/?format=text".format(version))
     print(ip[0])
 

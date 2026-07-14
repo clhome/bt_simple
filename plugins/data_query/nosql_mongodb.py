@@ -28,11 +28,11 @@ def getPluginName():
     return 'mongodb'
     
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 def getConf():
     path = getServerDir() + "/mongodb.conf"
@@ -48,33 +48,33 @@ def pSqliteDb(dbname='users'):
     name = 'mongodb'
 
     sql_file = getPluginDir() + '/config/mongodb.sql'
-    import_sql = mw.readFile(sql_file)
+    import_sql = yf.readFile(sql_file)
     # print(sql_file,import_sql)
-    md5_sql = mw.md5(import_sql)
+    md5_sql = yf.md5(import_sql)
 
     import_sign = False
     save_md5_file = getServerDir() + '/import_mongodb.md5'
     if os.path.exists(save_md5_file):
-        save_md5_sql = mw.readFile(save_md5_file)
+        save_md5_sql = yf.readFile(save_md5_file)
         if save_md5_sql != md5_sql:
             import_sign = True
-            mw.writeFile(save_md5_file, md5_sql)
+            yf.writeFile(save_md5_file, md5_sql)
     else:
-        mw.writeFile(save_md5_file, md5_sql)
+        yf.writeFile(save_md5_file, md5_sql)
 
     if not os.path.exists(file) or import_sql:
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
         csql_list = import_sql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
 
-    conn = mw.M(dbname).dbPos(getServerDir(), name)
+    conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 def getConfigData():
     cfg = getConf()
     # print(cfg)
-    config_data = mw.readFile(cfg)
+    config_data = yf.readFile(cfg)
     try:
         config = yaml.safe_load(config_data)
     except:
@@ -82,10 +82,10 @@ def getConfigData():
             "systemLog": {
                 "destination": "file",
                 "logAppend": True,
-                "path": mw.getServerDir()+"/mongodb/log/mongodb.log"
+                "path": yf.getServerDir()+"/mongodb/log/mongodb.log"
             },
             "storage": {
-                "dbPath": mw.getServerDir()+"/mongodb/data",
+                "dbPath": yf.getServerDir()+"/mongodb/data",
                 "directoryPerDB": True,
                 "journal": {
                     "enabled": True
@@ -93,7 +93,7 @@ def getConfigData():
             },
             "processManagement": {
                 "fork": True,
-                "pidFilePath": mw.getServerDir()+"/mongodb/log/mongodb.pid"
+                "pidFilePath": yf.getServerDir()+"/mongodb/log/mongodb.pid"
             },
             "net": {
                 "port": 27017,
@@ -142,7 +142,7 @@ class nosqlMongodb():
         import pymongo
 
         if self.__DB_HOST in ['127.0.0.1', 'localhost']:
-            mgdb_path = "{}/mongodb".format(mw.getServerDir())
+            mgdb_path = "{}/mongodb".format(yf.getServerDir())
             if not os.path.exists(mgdb_path): return False
 
         if not self.__DB_LOCAL:
@@ -163,13 +163,13 @@ class nosqlMongodb():
             return False
         except Exception as e:
             # print(e)
-            self.__DB_ERR = mw.getTracebackInfo()
+            self.__DB_ERR = yf.getTracebackInfo()
         return False
 
     # 获取配置项
     def get_options(self, get=None):
         result = {}
-        mgdb_content = mw.readFile("{}/mongodb/mongodb.conf".format(mw.getServerDir()))
+        mgdb_content = yf.readFile("{}/mongodb/mongodb.conf".format(yf.getServerDir()))
         if not mgdb_content: return False
 
         keys = ["bind_ip", "port"]
@@ -211,7 +211,7 @@ class nosqlMongodbCtr():
         sid = args['sid']
         mgdb_instance = self.getInstanceBySid(sid).mgdb_conn()
         if mgdb_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         result = {}
         doc_list = mgdb_instance.list_database_names()
@@ -220,7 +220,7 @@ class nosqlMongodbCtr():
             if not x in ['admin', 'config', 'local']:
                 rlist.append(x)
         result['list'] = rlist
-        return mw.returnData(True,'ok', result)
+        return yf.returnData(True,'ok', result)
 
     def getCollectionsList(self, args):
         sid = args['sid']
@@ -228,12 +228,12 @@ class nosqlMongodbCtr():
 
         mgdb_instance = self.getInstanceBySid(sid).mgdb_conn()
         if mgdb_instance is False:
-            return mw.returnData(False,'无法链接.')
+            return yf.returnData(False,'无法链接.')
 
         result = {}
         collections = mgdb_instance[name].list_collection_names()
         result['collections'] = collections
-        return mw.returnData(True,'ok', result)
+        return yf.returnData(True,'ok', result)
 
     def getDataList(self, args):
         from bson.objectid import ObjectId
@@ -252,7 +252,7 @@ class nosqlMongodbCtr():
 
         mgdb_instance = self.getInstanceBySid(sid).mgdb_conn()
         if mgdb_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         db_instance = mgdb_instance[db]
         collection_instance = db_instance[collection]
@@ -295,7 +295,7 @@ class nosqlMongodbCtr():
         page_args['row'] = size
 
         rdata = {}
-        rdata['page'] = mw.getPage(page_args)
+        rdata['page'] = yf.getPage(page_args)
         rdata['list'] = result
         rdata['count'] = count
 
@@ -304,7 +304,7 @@ class nosqlMongodbCtr():
             rdata['soso_field'] = args_where['field']
 
 
-        return mw.returnData(True,'ok', rdata)
+        return yf.returnData(True,'ok', rdata)
 
     def delById(self,args):
         from bson.objectid import ObjectId
@@ -315,7 +315,7 @@ class nosqlMongodbCtr():
 
         mgdb_instance = self.getInstanceBySid(sid).mgdb_conn()
         if mgdb_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         db_instance = mgdb_instance[db]
         collection_instance = db_instance[collection]
@@ -323,7 +323,7 @@ class nosqlMongodbCtr():
         _id = args['_id']
         result = collection_instance.delete_one({"_id": ObjectId(_id)})
 
-        return mw.returnData(True,'文档删除【%d】个成功!' % result.deleted_count)
+        return yf.returnData(True,'文档删除【%d】个成功!' % result.deleted_count)
 
 # ---------------------------------- run ----------------------------------
 

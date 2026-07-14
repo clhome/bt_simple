@@ -16,7 +16,7 @@ root_dir = os.path.dirname(os.path.dirname(plugin_dir))
 # print(root_dir)
 
 sys.path.append(root_dir + "/class/core")
-import mw
+import yf
 
 os.chdir(root_dir)
 
@@ -37,13 +37,13 @@ def pSqliteDb(dbname='databases'):
     file = getServerDir() + '/mariadb.db'
     name = 'mysql'
     if not os.path.exists(file):
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
-        csql = mw.readFile(getPluginDir() + '/conf/mariadb.sql')
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
+        csql = yf.readFile(getPluginDir() + '/conf/mariadb.sql')
         csql_list = csql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
     else:
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 
@@ -53,11 +53,11 @@ def getConf():
 
 
 def pMysqlDb():
-    db = mw.getMyORM()
+    db = yf.getMyORM()
     db.setDbConf(getConf())
-    db.setSocket(mw.getServerDir() + '/mysql/mysql.socket')
+    db.setSocket(yf.getServerDir() + '/mysql/mysql.socket')
 
-    print(mw.getServerDir() + '/mysql/mysql.socket')
+    print(yf.getServerDir() + '/mysql/mysql.socket')
     db.setPwd(pSqliteDb('config').where('id=?', (1,)).getField('mysql_root'))
     return db
 

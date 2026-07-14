@@ -18,10 +18,10 @@ import core.mw as mw
 
 
 def getServerDir():
-    return mw.getServerDir() + '/mysql'
+    return yf.getServerDir() + '/mysql'
 
 def getPluginDir():
-    return mw.getPluginDir() + '/mysql'
+    return yf.getPluginDir() + '/mysql'
 
 def getConf():
     path = getServerDir() + '/etc/my.cnf'
@@ -29,14 +29,14 @@ def getConf():
 
 def getDbPort():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'port\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def getSocketFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'socket\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -45,12 +45,12 @@ def pSqliteDb(dbname='databases'):
     file = getServerDir() + '/mysql.db'
     name = 'mysql'
 
-    conn = mw.M(dbname).dbPos(getServerDir(), name)
+    conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 def pMysqlDb():
     # pymysql
-    db = mw.getMyORM()
+    db = yf.getMyORM()
 
     db.setPort(getDbPort())
     db.setSocket(getSocketFile())
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `{$DB_NAME}`.`{$TABLE_NAME}` (
 
 			if len(fields) == 1:
 				# print(fields[0]['DATA_TYPE'])
-				if mw.inArray(['bigint','smallint','tinyint','int','mediumint'], fields[0]['DATA_TYPE']):
+				if yf.inArray(['bigint','smallint','tinyint','int','mediumint'], fields[0]['DATA_TYPE']):
 					key = pkey_name
 		return key
 
@@ -169,7 +169,7 @@ searchd
     pid_file = /var/run/manticore/searchd.pid
 }
 		'''
-		conf = conf.replace("{$server_dir}", mw.getServerDir())
+		conf = conf.replace("{$server_dir}", yf.getServerDir())
 		return conf
 
 	def makeSphinxDbSourceRangeSql(self, db, table):
@@ -230,7 +230,7 @@ index {$DB_NAME}_{$TABLE_NAME}_delta:{$DB_NAME}_{$TABLE_NAME}
 {$SPH_FIELD_INDEX}
 }
 ''';
-		conf = conf.replace("{$server_dir}", mw.getServerDir())
+		conf = conf.replace("{$server_dir}", yf.getServerDir())
 		conf = conf.replace("{$PATH_NAME}", self.pathVerName())
 		
 		conf = conf.replace("{$DB_NAME}", db)
@@ -287,7 +287,7 @@ index {$DB_NAME}_{$TABLE_NAME}
 {$SPH_FIELD_INDEX}
 }
 	'''
-		conf = conf.replace("{$server_dir}", mw.getServerDir())
+		conf = conf.replace("{$server_dir}", yf.getServerDir())
 		conf = conf.replace("{$PATH_NAME}", self.pathVerName())
 
 		conf = conf.replace("{$DB_NAME}", db)
@@ -371,9 +371,9 @@ index {$DB_NAME}_{$TABLE_NAME}
 			data_type = cols[x]['DATA_TYPE']
 			column_name = cols[x]['COLUMN_NAME']
 
-			if mw.inArray(['varchar'], data_type):
+			if yf.inArray(['varchar'], data_type):
 				return True
-			if mw.inArray(['text','mediumtext','tinytext','longtext'], data_type):
+			if yf.inArray(['text','mediumtext','tinytext','longtext'], data_type):
 				return True
 		return False
 
@@ -390,7 +390,7 @@ index {$DB_NAME}_{$TABLE_NAME}
 			column_name = cols[x]['COLUMN_NAME']
 			# print(column_name+":"+data_type)
 
-			# if mw.inArray(['tinyint'], data_type):
+			# if yf.inArray(['tinyint'], data_type):
 			# 	conf += 'sql_attr_bool = '+ column_name + "\n"
 
 			if pkey_name == column_name:
@@ -398,42 +398,42 @@ index {$DB_NAME}_{$TABLE_NAME}
 				# conf += '\tsql_attr_bigint = '+column_name+"\n"
 				continue
 
-			if mw.inArray(['enum'], data_type):
+			if yf.inArray(['enum'], data_type):
 				run_pos += 1
 				conf += '\t'+self.eqVerField('sql_attr_string')+' = '+ column_name + "\n"
 				continue
 
-			if mw.inArray(['decimal'], data_type):
+			if yf.inArray(['decimal'], data_type):
 				run_pos += 1
 				conf += '\t'+self.eqVerField('sql_attr_float')+' = '+ column_name + "\n"
 				continue
 
-			if mw.inArray(['bigint','smallint','tinyint','int','mediumint'], data_type):
+			if yf.inArray(['bigint','smallint','tinyint','int','mediumint'], data_type):
 				run_pos += 1
 				conf += '\t'+self.eqVerField('sql_attr_bigint')+' = '+ column_name + "\n"
 				continue
 
 
-			if mw.inArray(['float'], data_type):
+			if yf.inArray(['float'], data_type):
 				run_pos += 1
 				conf += '\t'+self.eqVerField('sql_attr_float')+' = '+ column_name + "\n"
 				continue
 
-			if mw.inArray(['char'], data_type):
+			if yf.inArray(['char'], data_type):
 				conf += '\t'+self.eqVerField('sql_attr_string')+' = '+ column_name + "\n"
 				continue
 
-			if mw.inArray(['varchar'], data_type):
+			if yf.inArray(['varchar'], data_type):
 				run_pos += 1
 				conf += '\t'+self.eqVerField('sql_field_string')+' = '+ column_name + "\n"
 				continue
 
-			if mw.inArray(['text','mediumtext','tinytext','longtext'], data_type):
+			if yf.inArray(['text','mediumtext','tinytext','longtext'], data_type):
 				run_pos += 1
 				conf += '\t'+self.eqVerField('sql_field_string')+' = '+ column_name + "\n"
 				continue
 
-			if mw.inArray(['datetime','date'], data_type):
+			if yf.inArray(['datetime','date'], data_type):
 				run_pos += 1
 				conf += '\t'+self.eqVerField('sql_attr_timestamp')+' = '+ column_name + "\n"
 				continue
@@ -463,7 +463,7 @@ index {$DB_NAME}_{$TABLE_NAME}
 	    # conf += makeSqlToSphinxDb(pdb, 'bbs')
 	    for x in range(len(dblist)):
 	        dbname = dblist[x]['Database']
-	        if mw.inArray(filter_db, dbname):
+	        if yf.inArray(filter_db, dbname):
 	            continue
 	        conf += self.makeSqlToSphinxDb(dbname)
 	    return conf

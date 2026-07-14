@@ -53,7 +53,7 @@ class nosqlRedis():
         import redis
 
         if self.__DB_HOST in ['127.0.0.1', 'localhost']:
-            redis_path = "{}/redis".format(mw.getServerDir())
+            redis_path = "{}/redis".format(yf.getServerDir())
             if not os.path.exists(redis_path):
                 return False
 
@@ -70,14 +70,14 @@ class nosqlRedis():
         except redis.exceptions.ConnectionError:
             return False
         except Exception:
-            self.__DB_ERR = mw.getTracebackInfo()
+            self.__DB_ERR = yf.getTracebackInfo()
         return False
 
     # 获取配置项
     def get_options(self, get=None):
 
         result = {}
-        redis_conf = mw.readFile("{}/redis/redis.conf".format(mw.getServerDir()))
+        redis_conf = yf.readFile("{}/redis/redis.conf".format(yf.getServerDir()))
         if not redis_conf: return False
 
         keys = ["bind", "port", "timeout", "maxclients", "databases", "requirepass", "maxmemory"]
@@ -128,13 +128,13 @@ class nosqlRedisCtr():
         sid = args['sid']
         redis_instance = self.getInstanceBySid(sid).redis_conn(0)
         if redis_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
 
         redis_info = redis_instance.info()
         is_cluster = redis_info.get("cluster_enabled", 0)
         if is_cluster != 0:
-            return mw.returnData(False, "当前不支持连接redis集群！")
+            return yf.returnData(False, "当前不支持连接redis集群！")
 
         db_num = 16
         if sid != 0:
@@ -152,14 +152,14 @@ class nosqlRedisCtr():
             except:
                 break
 
-        return mw.returnData(True,'ok', result)
+        return yf.returnData(True,'ok', result)
 
     def getDbKeyList(self, args):
         p = 1
         size = 10
 
         if not 'sid' in args:
-            return mw.returnData(False, "缺少参数！sid")
+            return yf.returnData(False, "缺少参数！sid")
 
         if 'p' in args:
             p = args['p']
@@ -243,17 +243,17 @@ class nosqlRedisCtr():
         page_args['row'] = size
 
         rdata = {}
-        rdata['page'] = mw.getPage(page_args)
+        rdata['page'] = yf.getPage(page_args)
         rdata['data'] = items
-        return mw.returnData(True,'ok',rdata)
+        return yf.returnData(True,'ok',rdata)
 
     def setKv(self,args):
         if not 'name' in args:
-            return mw.returnData(False, "缺少参数！name")
+            return yf.returnData(False, "缺少参数！name")
         if not 'val' in args:
-            return mw.returnData(False, "缺少参数！val")
+            return yf.returnData(False, "缺少参数！val")
         if not 'idx' in args:
-            return mw.returnData(False, "缺少参数！idx")
+            return yf.returnData(False, "缺少参数！idx")
 
         sid = args['sid']
         idx = args['idx']
@@ -266,14 +266,14 @@ class nosqlRedisCtr():
 
         redis_info = redis_instance.info()
         if redis_info['role'] == 'slave':
-            return mw.returnData(False,'从库不能写操作!')
+            return yf.returnData(False,'从库不能写操作!')
 
         if endtime != '0':
             redis_instance.set(name, val, int(endtime))
         else:
             redis_instance.set(name, val)
 
-        return mw.returnData(True,'操作成功')
+        return yf.returnData(True,'操作成功')
 
     def delVal(self, args):
         sid = args['sid']
@@ -283,10 +283,10 @@ class nosqlRedisCtr():
 
         redis_info = redis_instance.info()
         if redis_info['role'] == 'slave':
-            return mw.returnData(False,'从库不能删除操作!')
+            return yf.returnData(False,'从库不能删除操作!')
 
         redis_instance.delete(name)
-        return mw.returnData(True,'操作成功')
+        return yf.returnData(True,'操作成功')
 
     def batchDelVal(self, args):
         sid = args['sid']
@@ -296,11 +296,11 @@ class nosqlRedisCtr():
 
         redis_info = redis_instance.info()
         if redis_info['role'] == 'slave':
-            return mw.returnData(False,'从库不能删除操作!')
+            return yf.returnData(False,'从库不能删除操作!')
 
         for k in keys:
             redis_instance.delete(k)
-        return mw.returnData(True,'操作成功')
+        return yf.returnData(True,'操作成功')
 
     def clearFlushDB(self, args):
 
@@ -312,11 +312,11 @@ class nosqlRedisCtr():
 
             redis_info = redis_instance.info()
             if redis_info['role'] == 'slave':
-                return mw.returnData(False,'从库不能清空操作!')
+                return yf.returnData(False,'从库不能清空操作!')
 
             redis_instance.flushdb()
 
-        return mw.returnData(True,'操作成功')
+        return yf.returnData(True,'操作成功')
 
 
 # ---------------------------------- run ----------------------------------

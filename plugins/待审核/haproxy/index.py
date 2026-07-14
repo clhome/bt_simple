@@ -16,7 +16,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -25,11 +25,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -72,8 +72,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def configTpl():
@@ -83,7 +83,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -94,30 +94,30 @@ def readConfigTpl():
 
     filename = os.path.basename(args['file'])
     if not filename.endswith('.tpl'):
-        return mw.returnJson(False, '仅支持读取.tpl模板文件！')
+        return yf.returnJson(False, '仅支持读取.tpl模板文件！')
 
     tpl_dir = getPluginDir() + '/tpl'
     file_path = tpl_dir + '/' + filename
     if not os.path.exists(file_path):
-        return mw.returnJson(False, '模板文件不存在！')
+        return yf.returnJson(False, '模板文件不存在！')
 
-    content = mw.readFile(file_path)
+    content = yf.readFile(file_path)
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
-    content = content.replace('{$HA_USER}', mw.getRandomString(8))
-    content = content.replace('{$HA_PWD}', mw.getRandomString(10))
+    content = content.replace('{$HA_USER}', yf.getRandomString(8))
+    content = content.replace('{$HA_PWD}', yf.getRandomString(10))
     content = content.replace('{$SERVER_APP}', service_path + '/haproxy')
     return content
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep haproxy |grep -v grep | grep -v python | awk '{print $2}'")
     if data[0] == '':
         return 'stop'
@@ -127,7 +127,7 @@ def status():
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -136,28 +136,28 @@ def initDreplace():
 
     # initd replace
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     # config replace
     conf_bin = getConf()
     if not os.path.exists(conf_bin):
-        conf_content = mw.readFile(getConfTpl())
+        conf_content = yf.readFile(getConfTpl())
         conf_content = contentReplace(conf_content)
-        mw.writeFile(getServerDir() + '/haproxy.conf', conf_content)
+        yf.writeFile(getServerDir() + '/haproxy.conf', conf_content)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/haproxy.service'
     systemServiceTpl = getPluginDir() + '/init.d/haproxy.service.tpl'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        service_path = mw.getServerDir()
-        se_content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
@@ -168,17 +168,17 @@ def haOp(method):
     # check config
     sdir = getServerDir()
     cmd_check = sdir+'/sbin/haproxy -c -f ' + sdir + '/haproxy.conf'
-    chk_data = mw.execShell(cmd_check)
+    chk_data = yf.execShell(cmd_check)
     if chk_data[1]!= '':
         return chk_data[1]
 
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' haproxy')
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' haproxy')
         if data[1] == '':
             return 'ok'
         return 'fail'
 
-    data = mw.execShell(file + ' ' + method)
+    data = yf.execShell(file + ' ' + method)
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -201,29 +201,29 @@ def reload():
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status haproxy | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable haproxy')
+    yf.execShell('systemctl enable haproxy')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable haproxy')
+    yf.execShell('systemctl disable haproxy')
     return 'ok'
 
 

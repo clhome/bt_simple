@@ -19,7 +19,7 @@ sys.path.append(os.getcwd() + "/plugins/cryptocurrency_trade/strategy")
 import common
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 exchange = common.initEx()
 exchange.load_markets()
@@ -46,11 +46,11 @@ def onBuyOrderTry(symbol, stop_loss_price, profit=0.005, timeframe='15m'):
     # 信号只在一个周期内执行一次|start
     lock_file = common.getServerDir() + '/signal.json'
     if not os.path.exists(lock_file):
-        mw.writeFile(lock_file, '{}')
+        yf.writeFile(lock_file, '{}')
 
     stype = symbol.replace('/', '_') + '_' + timeframe
     trigger_time = common.toUnixTimeSecond(timeframe)
-    lock_data = json.loads(mw.readFile(lock_file))
+    lock_data = json.loads(yf.readFile(lock_file))
     if stype in lock_data:
         diff_time = time.time() - lock_data[stype]['do_time']
         if diff_time >= trigger_time:
@@ -60,7 +60,7 @@ def onBuyOrderTry(symbol, stop_loss_price, profit=0.005, timeframe='15m'):
     else:
         lock_data[stype] = {'do_time': time.time()}
 
-    mw.writeFile(lock_file, json.dumps(lock_data))
+    yf.writeFile(lock_file, json.dumps(lock_data))
     # 信号只在一个周期内执行一次|end
 
     common.writeLogEx('------做多----------------------------------', symbol)
@@ -156,7 +156,7 @@ def onBuyOrder(symbol, stop_loss_price, profit=0.005, timeframe='15m'):
     try:
         return onBuyOrderTry(symbol, stop_loss_price, profit, timeframe)
     except Exception as e:
-        common.writeLogErrorEx(mw.getTracebackInfo(), symbol)
+        common.writeLogErrorEx(yf.getTracebackInfo(), symbol)
         return False, 0, 0
 
 
@@ -165,11 +165,11 @@ def onSellOrderTry(symbol, stop_loss_price, profit=0.005, timeframe='15m'):
     # 信号只在一个周期内执行一次|start
     lock_file = common.getServerDir() + '/signal.json'
     if not os.path.exists(lock_file):
-        mw.writeFile(lock_file, '{}')
+        yf.writeFile(lock_file, '{}')
 
     stype = symbol.replace('/', '_') + '_' + timeframe
     trigger_time = common.toUnixTimeSecond(timeframe)
-    lock_data = json.loads(mw.readFile(lock_file))
+    lock_data = json.loads(yf.readFile(lock_file))
     if stype in lock_data:
         diff_time = time.time() - lock_data[stype]['do_time']
         if diff_time >= trigger_time:
@@ -179,7 +179,7 @@ def onSellOrderTry(symbol, stop_loss_price, profit=0.005, timeframe='15m'):
     else:
         lock_data[stype] = {'do_time': time.time()}
 
-    mw.writeFile(lock_file, json.dumps(lock_data))
+    yf.writeFile(lock_file, json.dumps(lock_data))
     # 信号只在一个周期内执行一次|end
     common.writeLogEx('------做空----------------------------------', symbol)
 
@@ -276,7 +276,7 @@ def onSellOrder(symbol, stop_loss_price, profit=0.005, timeframe='15m'):
     try:
         return onSellOrderTry(symbol, stop_loss_price, profit, timeframe)
     except Exception as e:
-        common.writeLogErrorEx(mw.getTracebackInfo(), symbol)
+        common.writeLogErrorEx(yf.getTracebackInfo(), symbol)
         return False, 0, 0
 
 

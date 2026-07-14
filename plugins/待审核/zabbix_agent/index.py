@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,15 +23,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
     return '/etc/init.d/' + getPluginName()
@@ -64,26 +64,26 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pidfile\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def status():
     cmd = "ps aux|grep zabbix_agentd |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     return content
 
@@ -92,7 +92,7 @@ def zabbixAgentConf():
 
 def runLog():
     za_conf = zabbixAgentConf()
-    content = mw.readFile(za_conf)
+    content = yf.readFile(za_conf)
 
     rep = r'LogFile=\s*(.*)'
     tmp = re.search(rep, content)
@@ -106,9 +106,9 @@ def initAgentConf():
     za_dst_path = zabbixAgentConf()
 
     # zabbix_agent配置
-    content = mw.readFile(za_src_tpl)
+    content = yf.readFile(za_src_tpl)
     content = contentReplace(content)
-    mw.writeFile(za_dst_path, content)
+    yf.writeFile(za_dst_path, content)
 
 def initAgentDConf():
     clist = ['userparameter_mysql.conf', 'userparameter_examples.conf']
@@ -117,8 +117,8 @@ def initAgentDConf():
         za_src_tpl = getPluginDir()+'/conf/zabbix_agentd/'+c
         dst_path = dst_dir+'/'+c
         if not os.path.exists(dst_path):
-            content = mw.readFile(za_src_tpl)
-            mw.writeFile(dst_path,content)
+            content = yf.readFile(za_src_tpl)
+            yf.writeFile(dst_path,content)
 
 def initDreplace():
 
@@ -127,7 +127,7 @@ def initDreplace():
         initAgentDConf()
         initAgentConf()
         openPort()
-        mw.writeFile(init_file, 'ok')
+        yf.writeFile(init_file, 'ok')
     return True
 
 def openPort():
@@ -143,7 +143,7 @@ def zOp(method):
 
     initDreplace()
 
-    data = mw.execShell('systemctl ' + method + ' zabbix-agent')
+    data = yf.execShell('systemctl ' + method + ' zabbix-agent')
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -166,37 +166,37 @@ def reload():
     return zOp('reload')
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status zabbix-agent | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable zabbix-agent')
+    yf.execShell('systemctl enable zabbix-agent')
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable zabbix-agent')
+    yf.execShell('systemctl disable zabbix-agent')
     return 'ok'
 
 
 def installPreInspection():
-    zabbix_dir = mw.getServerDir()+'/zabbix'
+    zabbix_dir = yf.getServerDir()+'/zabbix'
     if os.path.exists(zabbix_dir):
         return '已经安装zabbix插件'
     return 'ok'
@@ -217,7 +217,7 @@ def agentdConf():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 def agentdReadConf():
     args = getArgs()
@@ -225,9 +225,9 @@ def agentdReadConf():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 

@@ -11,19 +11,19 @@
 
 __FIELD = 'id,name'
 
-import core.yf as mw
+import core.yf as yf
 
 def addSiteTypes(name):
-    return mw.M('site_types').add("name", (name,))
+    return yf.M('site_types').add("name", (name,))
 
 def getSiteTypesCount():
-    return mw.M('site_types').count()
+    return yf.M('site_types').count()
 
 def getSiteTypesCountByName(name):
-    return mw.M('site_types').where('name=?', (name,)).count()
+    return yf.M('site_types').where('name=?', (name,)).count()
 
 def getSiteTypesList():
     # .debug(True)
-    return mw.M('site_types').field(__FIELD).order("id asc").select()
+    return yf.M('site_types').field(__FIELD).order("id asc").select()
 
 

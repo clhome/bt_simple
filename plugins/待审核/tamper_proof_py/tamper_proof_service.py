@@ -37,10 +37,10 @@ class MyEventHandler(pyinotify.ProcessEvent):
         return 'tamper_proof_py'
 
     def getPluginDir(self):
-        return mw.getPluginDir() + '/' + self.getPluginName()
+        return yf.getPluginDir() + '/' + self.getPluginName()
 
     def getServerDir(self):
-        return mw.getServerDir() + '/' + self.getPluginName()
+        return yf.getServerDir() + '/' + self.getPluginName()
 
     def rmdir(self, filename):
         try:
@@ -284,7 +284,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
     def get_SITE_CONFIG(self, pathname):
         if not self._SITES_DATA:
             self._SITES_DATA = json.loads(
-                mw.readFile(self._PLUGIN_PATH + self._SITES))
+                yf.readFile(self._PLUGIN_PATH + self._SITES))
         for site in self._SITES_DATA:
             length = len(site['path'])
             if len(pathname) < length:
@@ -298,7 +298,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
         if self._CONFIG_DATA:
             return self._CONFIG_DATA
         self._CONFIG_DATA = json.loads(
-            mw.readFile(self._PLUGIN_PATH + self._CONFIG))
+            yf.readFile(self._PLUGIN_PATH + self._CONFIG))
 
     def list_DIR(self, path, siteInfo):  # path 站点路径
         if not os.path.exists(path):
@@ -333,7 +333,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
                     continue  # 是否为排除的文件名
                 lock_files.append('"' + name + '"')
             except:
-                print(mw.getTracebackInfo())
+                print(yf.getTracebackInfo())
         if lock_files:
             self.thread_exec(lock_files, path, 'i')
         if lock_dirs:
@@ -386,7 +386,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
                 totalData = {"total": 0, "delete": 0,
                              "create": 0, "modify": 0, "move": 0}
             else:
-                dataTmp = mw.readFile(totalLogFile)
+                dataTmp = yf.readFile(totalLogFile)
                 if dataTmp:
                     totalData = json.loads(dataTmp)
                 else:
@@ -395,7 +395,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
 
             totalData['total'] += 1
             totalData[eventType] += 1
-            mw.writeFile(totalLogFile, json.dumps(totalData))
+            yf.writeFile(totalLogFile, json.dumps(totalData))
 
     # 设置.user.ini
     def set_user_ini(self, path, up=0):
@@ -427,7 +427,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
         sites = self.get_sites()
         print("")
         print("=" * 60)
-        print("{}Disabling anti tampering, please wait...".format(mw.formatDate()))
+        print("{}Disabling anti tampering, please wait...".format(yf.formatDate()))
         print("-" * 60)
         for siteInfo in sites:
             tip = self._PLUGIN_PATH + '/tips/' + siteInfo['siteName'] + '.pl'
@@ -436,9 +436,9 @@ class MyEventHandler(pyinotify.ProcessEvent):
             if close_reload and siteInfo['open']:
                 continue
             if sys.version_info[0] == 2:
-                print("【{}】|-Unlock website[{}]".format(mw.formatDate(), siteInfo['siteName'])),
+                print("【{}】|-Unlock website[{}]".format(yf.formatDate(), siteInfo['siteName'])),
             else:
-                print("{}|-Unlock website[{}]".format(mw.formatDate(), siteInfo['siteName']), end="", flush=True)
+                print("{}|-Unlock website[{}]".format(yf.formatDate(), siteInfo['siteName']), end="", flush=True)
             self.unlock(siteInfo['path'])
             if os.path.exists(tip):
                 os.remove(tip)
@@ -451,10 +451,10 @@ class MyEventHandler(pyinotify.ProcessEvent):
     # 获取网站配置列表
     def get_sites(self):
         siteconf = self._PLUGIN_PATH + '/sites.json'
-        d = mw.readFile(siteconf)
+        d = yf.readFile(siteconf)
         if not os.path.exists(siteconf) or not d:
-            mw.writeFile(siteconf, "[]")
-        data = json.loads(mw.readFile(siteconf))
+            yf.writeFile(siteconf, "[]")
+        data = json.loads(yf.readFile(siteconf))
 
         # 处理多余字段开始 >>>>>>>>>>
         is_write = False
@@ -470,7 +470,7 @@ class MyEventHandler(pyinotify.ProcessEvent):
                     i.pop(o)
                     is_write = True
         if is_write:
-            mw.writeFile(siteconf, json.dumps(data))
+            yf.writeFile(siteconf, json.dumps(data))
         # 处理多余字段结束 <<<<<<<<<<<<<
         return data
 
@@ -491,7 +491,7 @@ def run():
     # 处理网站属性
     sites = event.get_sites()
     print("=" * 60)
-    print("{} Starting anti tampering, please wait...".format(mw.formatDate()))
+    print("{} Starting anti tampering, please wait...".format(yf.formatDate()))
     print("-" * 60)
     tip_path = event._PLUGIN_PATH + '/tips/'
     if not os.path.exists(tip_path):
@@ -503,31 +503,31 @@ def run():
         if not siteInfo['open']:
             continue
         if sys.version_info[0] == 2:
-            print("{}|-website[{}]".format(mw.formatDate(),siteInfo['siteName'])),
+            print("{}|-website[{}]".format(yf.formatDate(),siteInfo['siteName'])),
         else:
-            print("{}|-website[{}]".format(mw.formatDate(), siteInfo['siteName']), end="", flush=True)
-        mw.writeFile(speed_file, "Processing website[{}]please wait a moment...".format(
+            print("{}|-website[{}]".format(yf.formatDate(), siteInfo['siteName']), end="", flush=True)
+        yf.writeFile(speed_file, "Processing website[{}]please wait a moment...".format(
             siteInfo['siteName']))
         if not os.path.exists(tip):
             event.list_DIR(siteInfo['path'], siteInfo)
         try:
             watchManager.add_watch(siteInfo['path'], mode, auto_add=True, rec=True)
         except:
-            print(mw.getTracebackInfo())
+            print(yf.getTracebackInfo())
         tout = round(time.time() - s, 2)
-        mw.writeFile(tip, '1')
+        yf.writeFile(tip, '1')
         print("\t\t=> Completed, time-consuming {}s".format(tout))
 
     # 启动服务
     endtime = round(time.time() - starttime, 2)
-    mw.writeLog('防篡改程序', "The website anti tampering service has been successfully started,[%s]s" % endtime)
+    yf.writeLog('防篡改程序', "The website anti tampering service has been successfully started,[%s]s" % endtime)
     notifier = pyinotify.Notifier(watchManager, event)
     print("-" * 60)
     print('|-Anti tampering service has been started')
     print("=" * 60)
     end_tips = ">>>>>>>>>>END<<<<<<<<<<"
     print(end_tips)
-    mw.writeFile(speed_file, end_tips)
+    yf.writeFile(speed_file, end_tips)
     notifier.loop()
 
 

@@ -18,7 +18,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -60,52 +60,52 @@ class App:
     def checkArgs(self, data, ck=[]):
         for i in range(len(ck)):
             if not ck[i] in data:
-                return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-        return (True, mw.returnJson(True, 'ok'))
+                return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+        return (True, yf.returnJson(True, 'ok'))
 
     def getPluginName(self):
         return 'ollama'
 
     def getPluginDir(self):
-        return mw.getPluginDir() + '/' + self.getPluginName()
+        return yf.getPluginDir() + '/' + self.getPluginName()
 
     def getServerDir(self):
-        return mw.getServerDir() + '/' + self.getPluginName()
+        return yf.getServerDir() + '/' + self.getPluginName()
 
     def getHomeDir(self):
-        if mw.isAppleSystem():
-            user = mw.execShell(
+        if yf.isAppleSystem():
+            user = yf.execShell(
                 "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
             return '/Users/' + user
         else:
             return '/root'
 
     def getRunUser(self):
-        if mw.isAppleSystem():
-            user = mw.execShell(
+        if yf.isAppleSystem():
+            user = yf.execShell(
                 "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
             return user
         else:
             return 'root'
 
     def status(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             cmd = "ps -ef|grep " + self.getPluginName() + " |grep -v grep | grep -v python | awk '{print $2}'"
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[0] == '':
                 return "stop"
             return 'start'
         
         # Linux 环境下基于 systemctl 精准探测服务状态
         cmd = "systemctl is-active ollama"
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0].strip() == 'active':
             return 'start'
         return 'stop'
 
     def contentReplace(self, content):
-        service_path = mw.getServerDir()
-        content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+        service_path = yf.getServerDir()
+        content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
         content = content.replace('{$SERVER_PATH}', service_path)
         content = content.replace('{$RUN_USER}', self.getRunUser())
         content = content.replace('{$HOME_DIR}', self.getHomeDir())
@@ -125,15 +125,15 @@ class App:
         self.initDreplace()
 
     def oaOp(self, method):
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             cmd = 'systemctl {} {}'.format(method, self.getPluginName())
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[1] == '':
                 return 'ok'
             return 'fail'
 
         file = self.initDreplace()
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[0]
@@ -151,34 +151,34 @@ class App:
         return self.oaOp('reload')
 
     def initd_status(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return 'fail'
         cmd = 'systemctl status '+self.getPluginName()+' | grep loaded | grep "enabled;"'
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0] == '':
             return 'fail'
         return 'ok'
 
     def initd_install(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return 'ok'
-        mw.execShell('systemctl enable '+self.getPluginName())
+        yf.execShell('systemctl enable '+self.getPluginName())
         return 'ok'
 
     def initd_uninstall(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return 'ok'
-        mw.execShell('systemctl disable '+self.getPluginName())
+        yf.execShell('systemctl disable '+self.getPluginName())
         return 'ok'
 
     # --- 以下为 v1.1 新增的高级管理接口 ---
 
     def get_models(self):
         cmd = "ollama list"
-        res = mw.execShell(cmd)
+        res = yf.execShell(cmd)
         # 如果连接被拒绝，提示需要启动服务
         if res[1] != '' and 'connection refused' in res[1].lower():
-            return mw.returnJson(False, '无法连接到 Ollama 服务，请确保服务已正常启动！')
+            return yf.returnJson(False, '无法连接到 Ollama 服务，请确保服务已正常启动！')
         
         lines = res[0].strip().split('\n')
         models = []
@@ -193,13 +193,13 @@ class App:
                         'size': parts[2],
                         'modified': parts[3]
                     })
-        return mw.returnJson(True, 'ok', models)
+        return yf.returnJson(True, 'ok', models)
 
     def get_running_models(self):
         cmd = "ollama ps"
-        res = mw.execShell(cmd)
+        res = yf.execShell(cmd)
         if res[1] != '' and 'connection refused' in res[1].lower():
-            return mw.returnJson(False, '无法连接到 Ollama 服务！')
+            return yf.returnJson(False, '无法连接到 Ollama 服务！')
             
         lines = res[0].strip().split('\n')
         models = []
@@ -214,27 +214,27 @@ class App:
                         'processor': parts[3],
                         'until': parts[4]
                     })
-        return mw.returnJson(True, 'ok', models)
+        return yf.returnJson(True, 'ok', models)
 
     def pull_model(self):
         args = self.getArgs()
         model_name = args.get('model_name', '').strip()
         if not model_name:
-            return mw.returnJson(False, '模型名称不能为空！')
+            return yf.returnJson(False, '模型名称不能为空！')
 
         # 对模型名称进行强校验防御命令行注入
         if not re.match(r'^[a-zA-Z0-9.:\-_/]+$', model_name):
-            return mw.returnJson(False, '模型名称包含非法字符！')
+            return yf.returnJson(False, '模型名称包含非法字符！')
 
         log_file = self.getServerDir() + '/pull.log'
         pulling_file = self.getServerDir() + '/pulling_name.pl'
         
         # 写入正在拉取的模型
-        mw.writeFile(pulling_file, model_name)
+        yf.writeFile(pulling_file, model_name)
         # 后台异步启动拉取进程并保存日志
         cmd = "nohup ollama pull {} > {} 2>&1 &".format(model_name, log_file)
-        mw.execShell(cmd)
-        return mw.returnJson(True, '模型拉取任务已在后台成功启动！')
+        yf.execShell(cmd)
+        return yf.returnJson(True, '模型拉取任务已在后台成功启动！')
 
     def get_pull_log(self):
         log_file = self.getServerDir() + '/pull.log'
@@ -242,12 +242,12 @@ class App:
         
         model_name = ''
         if os.path.exists(pulling_file):
-            model_name = mw.readFile(pulling_file).strip()
+            model_name = yf.readFile(pulling_file).strip()
 
         if not os.path.exists(log_file):
-            return mw.returnJson(True, '等待任务初始化...', {'status': 'running', 'log': '正在初始化拉取任务...\n', 'model': model_name})
+            return yf.returnJson(True, '等待任务初始化...', {'status': 'running', 'log': '正在初始化拉取任务...\n', 'model': model_name})
 
-        content = mw.readFile(log_file)
+        content = yf.readFile(log_file)
         # 将 \r 换行处理以防多进度堆叠，只向前端返回最后20行
         clean_content = content.replace('\r', '\n')
         lines = clean_content.split('\n')
@@ -255,7 +255,7 @@ class App:
 
         # 判定进程是否已结束
         cmd = "ps -ef | grep 'ollama pull' | grep -v grep"
-        process_res = mw.execShell(cmd)
+        process_res = yf.execShell(cmd)
         
         is_running = False
         if model_name and model_name in process_res[0]:
@@ -271,22 +271,22 @@ class App:
             elif 'error' in content.lower() or 'failed' in content.lower():
                 status = 'failed'
 
-        return mw.returnJson(True, 'ok', {'status': status, 'log': display_log, 'model': model_name})
+        return yf.returnJson(True, 'ok', {'status': status, 'log': display_log, 'model': model_name})
 
     def delete_model(self):
         args = self.getArgs()
         model_name = args.get('model_name', '').strip()
         if not model_name:
-            return mw.returnJson(False, '模型名称不能为空！')
+            return yf.returnJson(False, '模型名称不能为空！')
 
         if not re.match(r'^[a-zA-Z0-9.:\-_/]+$', model_name):
-            return mw.returnJson(False, '非法的模型名称！')
+            return yf.returnJson(False, '非法的模型名称！')
 
         cmd = "ollama rm {}".format(model_name)
-        res = mw.execShell(cmd)
+        res = yf.execShell(cmd)
         if res[1] == '':
-            return mw.returnJson(True, '模型删除成功！')
-        return mw.returnJson(False, '删除失败：{}'.format(res[1]))
+            return yf.returnJson(True, '模型删除成功！')
+        return yf.returnJson(False, '删除失败：{}'.format(res[1]))
 
     def get_service_file(self):
         paths = [
@@ -305,7 +305,7 @@ class App:
         models_path = '/usr/share/ollama/.ollama/models'
         
         if service_file:
-            content = mw.readFile(service_file)
+            content = yf.readFile(service_file)
             host_match = re.search(r'Environment\s*=\s*"?OLLAMA_HOST=([^"\n\s]+)"?', content)
             if host_match:
                 host = host_match.group(1)
@@ -316,11 +316,11 @@ class App:
 
         # 检测 11434 防火墙端口
         port_open = False
-        firewall_res = mw.execShell('firewall-cmd --list-ports')
+        firewall_res = yf.execShell('firewall-cmd --list-ports')
         if '11434/tcp' in firewall_res[0]:
             port_open = True
 
-        return mw.returnJson(True, 'ok', {
+        return yf.returnJson(True, 'ok', {
             'host': host,
             'models_path': models_path,
             'port_open': port_open,
@@ -334,19 +334,19 @@ class App:
         port_open = args.get('port_open', '') # 'true' / 'false'
 
         if not host:
-            return mw.returnJson(False, '监听 Host 不能为空！')
+            return yf.returnJson(False, '监听 Host 不能为空！')
 
         if not re.match(r'^[0-9a-zA-Z.:\-_]+$', host):
-            return mw.returnJson(False, 'Host 包含非法字符！')
+            return yf.returnJson(False, 'Host 包含非法字符！')
 
         if models_path and not re.match(r'^[0-9a-zA-Z.:\-_/]+$', models_path):
-            return mw.returnJson(False, '存储路径包含非法字符！')
+            return yf.returnJson(False, '存储路径包含非法字符！')
 
         service_file = self.get_service_file()
         if not service_file:
-            return mw.returnJson(False, '找不到 Ollama 服务文件，无法修改配置！')
+            return yf.returnJson(False, '找不到 Ollama 服务文件，无法修改配置！')
 
-        content = mw.readFile(service_file)
+        content = yf.readFile(service_file)
         lines = content.split('\n')
         new_lines = []
         for line in lines:
@@ -361,30 +361,30 @@ class App:
                 break
 
         if service_idx == -1:
-            return mw.returnJson(False, 'Systemd 文件格式损坏！')
+            return yf.returnJson(False, 'Systemd 文件格式损坏！')
 
         new_lines.insert(service_idx + 1, 'Environment="OLLAMA_HOST={}"'.format(host))
         if models_path:
             new_lines.insert(service_idx + 2, 'Environment="OLLAMA_MODELS={}"'.format(models_path))
 
-        mw.writeFile(service_file, '\n'.join(new_lines))
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(service_file, '\n'.join(new_lines))
+        yf.execShell('systemctl daemon-reload')
 
         # 管理端口防火墙放行
         if '0.0.0.0' in host:
             if port_open == 'true':
-                mw.execShell('firewall-cmd --zone=public --add-port=11434/tcp --permanent')
+                yf.execShell('firewall-cmd --zone=public --add-port=11434/tcp --permanent')
             else:
-                mw.execShell('firewall-cmd --zone=public --remove-port=11434/tcp --permanent')
-            mw.execShell('firewall-cmd --reload')
+                yf.execShell('firewall-cmd --zone=public --remove-port=11434/tcp --permanent')
+            yf.execShell('firewall-cmd --reload')
 
-        mw.execShell('systemctl restart ollama')
-        return mw.returnJson(True, '配置更新成功，服务已重启生效！')
+        yf.execShell('systemctl restart ollama')
+        return yf.returnJson(True, '配置更新成功，服务已重启生效！')
 
     def get_service_logs(self):
         # 获取服务最新 100 行日志
-        res = mw.execShell('journalctl -u ollama --no-pager -n 100')
-        return mw.returnJson(True, 'ok', res[0])
+        res = yf.execShell('journalctl -u ollama --no-pager -n 100')
+        return yf.returnJson(True, 'ok', res[0])
 
     def get_ollama_access_info(self):
         try:
@@ -398,16 +398,16 @@ class App:
                 internal_ip = '127.0.0.1'
                 
             try:
-                external_ip = mw.getHostAddr()
+                external_ip = yf.getHostAddr()
             except:
                 external_ip = internal_ip
 
-            return mw.returnJson(True, 'ok', {
+            return yf.returnJson(True, 'ok', {
                 'internal_url': 'http://' + internal_ip + ':11434/api/tags',
                 'external_url': 'http://' + external_ip + ':11434/api/tags'
             })
         except Exception as e:
-            return mw.returnJson(False, str(e))
+            return yf.returnJson(False, str(e))
 
 
 if __name__ == "__main__":
@@ -415,7 +415,7 @@ if __name__ == "__main__":
     
     # 强正则校验白名单，彻底阻断 eval/系统注入可能
     if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', func):
-        print(mw.returnJson(False, '函数参数不合法！'))
+        print(yf.returnJson(False, '函数参数不合法！'))
         sys.exit(0)
         
     classApp = App()
@@ -426,6 +426,6 @@ if __name__ == "__main__":
             data = method()
             print(data)
         else:
-            print(mw.returnJson(False, '找不到对应的方法: ' + func))
+            print(yf.returnJson(False, '找不到对应的方法: ' + func))
     except Exception as e:
-        print(mw.returnJson(False, '执行异常: ' + str(e)))
+        print(yf.returnJson(False, '执行异常: ' + str(e)))

@@ -24,7 +24,7 @@ from werkzeug.utils import secure_filename
 from admin.user_login_check import panel_login_required
 from admin import session
 
-import core.yf as mw
+import core.yf as yf
 import utils.file as file
 import thisdb
 
@@ -70,7 +70,7 @@ def check_exists_files():
                 data.append(tmp)
             except Exception:
                 pass
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)
 
 
 # 粘贴内容
@@ -104,8 +104,8 @@ def file_access():
 @blueprint.route('/set_file_access', endpoint='set_file_access', methods=['POST'])
 @panel_login_required
 def set_file_access():
-    if mw.isAppleSystem():
-        return mw.returnData(True, '开发机不设置!')
+    if yf.isAppleSystem():
+        return yf.returnData(True, '开发机不设置!')
 
     filename = request.form.get('filename', '')
     user = request.form.get('user', '')
@@ -145,13 +145,13 @@ def get_file_last_body():
     line = request.form.get('line', '100')
 
     if not os.path.exists(path):
-        return mw.returnData(False, '文件不存在', (path,))
+        return yf.returnData(False, '文件不存在', (path,))
 
     try:
-        data = mw.getLastLine(path, int(line))
-        return mw.returnData(True, 'OK', data)
+        data = yf.getLastLine(path, int(line))
+        return yf.returnData(True, 'OK', data)
     except Exception as ex:
-        return mw.returnData(False, '无法正确读取文件!' + str(ex))
+        return yf.returnData(False, '无法正确读取文件!' + str(ex))
 
 
 # 获取文件列表
@@ -160,7 +160,7 @@ def get_file_last_body():
 def get_dir():
     path = request.form.get('path', '')
     if not os.path.exists(path):
-        path = mw.getFatherDir() + '/wwwroot'
+        path = yf.getFatherDir() + '/wwwroot'
     search = request.form.get('search', '').strip().lower()
     search_all = request.form.get('all', '').strip().lower()
     page = request.form.get('p', '1').strip().lower()
@@ -172,7 +172,7 @@ def get_dir():
     else:
         dir_list = file.getDirList(path, int(page), int(row), order, search)
 
-    dir_list['page'] = mw.getPage({'p':page, 'row': row, 'tojs':'getFiles', 'count': dir_list['count']}, '1,2,3,4,5,6,7,8')
+    dir_list['page'] = yf.getPage({'p':page, 'row': row, 'tojs':'getFiles', 'count': dir_list['count']}, '1,2,3,4,5,6,7,8')
     return dir_list
 
 # 解压ZIP
@@ -237,9 +237,9 @@ def upload_file():
     except:
         pass
 
-    msg = mw.getInfo('上传文件[{1}] 到 [{2}]成功!', (filename, path))
-    mw.writeLog('文件管理', msg)
-    return mw.returnData(True, '上传成功!')
+    msg = yf.getInfo('上传文件[{1}] 到 [{2}]成功!', (filename, path))
+    yf.writeLog('文件管理', msg)
+    return yf.returnData(True, '上传成功!')
 
 
 # 上传文件
@@ -287,9 +287,9 @@ def create_dir():
 def get_dir_size():
     path = request.form.get('path', '')
     size = file.getDirSizeByBash(path)
-    return mw.returnData(True, size)
+    return yf.returnData(True, size)
     # size = file.getDirSize(path)
-    # return mw.returnData(True, mw.toSize(size))
+    # return yf.returnData(True, yf.toSize(size))
 
 
 # 删除文件
@@ -335,8 +335,8 @@ def download_file():
     title = '下载文件[' + filename + ']'
     thisdb.addTaskByDownload(name=title, cmd=execstr)
     # self.setFileAccept(path + '/' + filename)
-    mw.triggerTask()
-    return mw.returnData(True, '已将下载任务添加到队列!')
+    yf.triggerTask()
+    return yf.returnData(True, '已将下载任务添加到队列!')
 
 # 日志清空
 @blueprint.route('/close_logs', endpoint='close_logs', methods=['POST'])

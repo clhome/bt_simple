@@ -15,7 +15,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -24,11 +24,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getArgs():
@@ -54,8 +54,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getCfgFilePath():
@@ -65,7 +65,7 @@ def getCfgFilePath():
 def initCfg():
     cfg = getCfgFilePath()
     data = []
-    mw.writeFile(cfg, json.dumps(data))
+    yf.writeFile(cfg, json.dumps(data))
 
 
 def getCfg():
@@ -73,7 +73,7 @@ def getCfg():
     if not os.path.exists(cfg):
         initCfg()
 
-    data = mw.readFile(cfg)
+    data = yf.readFile(cfg)
     data = json.loads(data)
     return data
 
@@ -82,7 +82,7 @@ def addCfg(val):
     cfg = getCfgFilePath()
     data = getCfg()
     data.append(val)
-    mw.writeFile(cfg, json.dumps(data))
+    yf.writeFile(cfg, json.dumps(data))
 
 
 def status():
@@ -98,9 +98,9 @@ def addHook():
     hook = {}
     hook['title'] = args['title']
     if hook['title'] == '':
-        return mw.returnJson(False, '名称不能为空!')
+        return yf.returnJson(False, '名称不能为空!')
 
-    hook['access_key'] = mw.md5(hook['title'])
+    hook['access_key'] = yf.md5(hook['title'])
     hook['count'] = 0
     hook['addtime'] = int(time.time())
     hook['uptime'] = 0
@@ -111,16 +111,16 @@ def addHook():
 
     addCfg(hook)
     shellFile = script_dir + '/' + hook['access_key']
-    mw.writeFile(shellFile, args['shell'])
-    return mw.returnJson(True, '添加成功!')
+    yf.writeFile(shellFile, args['shell'])
+    return yf.returnJson(True, '添加成功!')
 
 def addHookShell(args):
     if args['title'] == '':
-        return mw.returnJson(False, '名称不能为空!')
+        return yf.returnJson(False, '名称不能为空!')
 
     hook = {}
     hook['title'] = args['title']
-    hook['access_key'] = mw.md5(hook['title'])
+    hook['access_key'] = yf.md5(hook['title'])
     hook['count'] = 0
     hook['addtime'] = int(time.time())
     hook['uptime'] = 0
@@ -131,8 +131,8 @@ def addHookShell(args):
 
     addCfg(hook)
     shellFile = script_dir + '/' + hook['access_key']
-    mw.writeFile(shellFile, args['shell'])
-    return mw.returnJson(True, '添加成功!')
+    yf.writeFile(shellFile, args['shell'])
+    return yf.returnJson(True, '添加成功!')
 
 
 def getList():
@@ -141,7 +141,7 @@ def getList():
     rdata = {}
     rdata['list'] = data
     rdata['script_dir'] = getServerDir() + "/scripts"
-    return mw.returnJson(True, 'ok', rdata)
+    return yf.returnJson(True, 'ok', rdata)
 
 
 def getLog():
@@ -152,14 +152,14 @@ def getLog():
 
     logPath = args['path']
 
-    content = mw.getLastLine(logPath, 500)
-    return mw.returnJson(True, 'ok', content)
+    content = yf.getLastLine(logPath, 500)
+    return yf.returnJson(True, 'ok', content)
 
 def getLogCb(args):
     # print(args)
     logPath = args['path']
-    content = mw.getLastLine(logPath, 3000)
-    return mw.returnData(True, 'ok', content)
+    content = yf.getLastLine(logPath, 3000)
+    return yf.returnData(True, 'ok', content)
 
 
 def runShellArgs(args):
@@ -180,9 +180,9 @@ def runShellArgs(args):
             os.system(cmd)
             data[i]['count'] += 1
             data[i]['uptime'] = int(time.time())
-            mw.writeFile(getCfgFilePath(), json.dumps(data))
-            return mw.returnJson(True, '运行成功!')
-    return mw.returnJson(False, '指定Hook不存在!')
+            yf.writeFile(getCfgFilePath(), json.dumps(data))
+            return yf.returnJson(True, '运行成功!')
+    return yf.returnJson(False, '指定Hook不存在!')
 
 def getRunShellCmd():
     args = getArgs()
@@ -201,7 +201,7 @@ def getRunShellCmd():
     cmd += "git config --global credential.helper store\n"
     cmd += "git config --global pull.rebase false\n"
     cmd += "bash {} {}".format(shellFile, param)
-    return mw.returnJson(True, 'ok', cmd)
+    return yf.returnJson(True, 'ok', cmd)
 
 
 def runShell():
@@ -230,19 +230,19 @@ def delHook():
     jsonFile = getCfgFilePath()
     shellFile = getServerDir() + "/scripts/" + args['access_key']
     if not os.path.exists(shellFile):
-        return mw.returnJson(False, '删除失败!')
+        return yf.returnJson(False, '删除失败!')
     os.remove(shellFile)
     log_file = "{}.log".format(shellFile)
     if os.path.exists(log_file):
         os.remove(log_file)
 
-    mw.writeFile(jsonFile, json.dumps(newdata))
-    return mw.returnJson(True, '删除成功!')
+    yf.writeFile(jsonFile, json.dumps(newdata))
+    return yf.returnJson(True, '删除成功!')
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     return content
 
 
@@ -253,7 +253,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 def readConfigTpl():
     args = getArgs()
@@ -262,15 +262,15 @@ def readConfigTpl():
         return data[1]
 
     if args['title'] == '':
-        return mw.returnJson(False, '名称不能为空!')
+        return yf.returnJson(False, '名称不能为空!')
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
 
     content = content.replace('{$REPO}', args['title'])
-    content = content.replace('{$REPO_NAME}', mw.md5(args['title']))
+    content = content.replace('{$REPO_NAME}', yf.md5(args['title']))
 
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 if __name__ == "__main__":
     func = sys.argv[1]

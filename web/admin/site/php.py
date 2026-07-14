@@ -20,7 +20,7 @@ from admin.user_login_check import panel_login_required
 from utils.plugin import plugin as MwPlugin
 from utils.site import sites as MwSites
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 from .site import blueprint
@@ -28,9 +28,9 @@ from .site import blueprint
 @blueprint.route('/get_cli_php_version', endpoint='get_cli_php_version',methods=['POST'])
 @panel_login_required
 def get_cli_php_version():
-    php_dir = mw.getServerDir() + '/php'
+    php_dir = yf.getServerDir() + '/php'
     if not os.path.exists(php_dir):
-        return mw.returnData(False, '未安装PHP,无法设置')
+        return yf.returnData(False, '未安装PHP,无法设置')
 
     php_bin = '/usr/bin/php'
     data = MwSites.instance().getPhpVersion()
@@ -38,7 +38,7 @@ def get_cli_php_version():
     php_versions = php_versions[1:]
 
     if len(php_versions) < 1:
-        return mw.returnData(False, '未安装PHP,无法设置')
+        return yf.returnData(False, '未安装PHP,无法设置')
 
     if os.path.exists(php_bin) and os.path.islink(php_bin):
         link_re = os.readlink(php_bin)
@@ -51,8 +51,8 @@ def get_cli_php_version():
 @blueprint.route('/set_cli_php_version', endpoint='set_cli_php_version',methods=['POST'])
 @panel_login_required
 def set_cli_php_version():
-    if mw.isAppleSystem():
-        return mw.returnData(False, "开发机不可设置!")
+    if yf.isAppleSystem():
+        return yf.returnData(False, "开发机不可设置!")
     version = request.form.get('version', '')
     return MwSites.instance().setCliPhpVersion(version)
 

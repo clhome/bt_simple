@@ -16,7 +16,7 @@ import re
 import time
 import json
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 class setting(object):
@@ -38,30 +38,30 @@ class setting(object):
 
     # 保存面板证书
     def savePanelSsl(self, choose, cert_pem, private_key):
-        if not mw.inArray(['local','nginx'], choose):
-            return mw.returnData(True, '保存错误面板SSL类型!')
+        if not yf.inArray(['local','nginx'], choose):
+            return yf.returnData(True, '保存错误面板SSL类型!')
 
-        pdir = mw.getPanelDir()
+        pdir = yf.getPanelDir()
         keyPath = pdir+'/ssl/'+choose+'/private.pem'
         certPath = pdir+'/ssl/'+choose+'/cert.pem'
         check_cert_pl = '/tmp/cert.pl'
 
         if not os.path.exists(keyPath):
-            return mw.returnData(False, '【'+choose+'】SSL类型不存在,先申请!')
+            return yf.returnData(False, '【'+choose+'】SSL类型不存在,先申请!')
 
         if(private_key.find('KEY') == -1):
-            return mw.returnData(False, '秘钥错误，请检查!')
+            return yf.returnData(False, '秘钥错误，请检查!')
         if(cert_pem.find('CERTIFICATE') == -1):
-            return mw.returnData(False, '证书错误，请检查!')
+            return yf.returnData(False, '证书错误，请检查!')
 
-        mw.writeFile(check_cert_pl, cert_pem)
+        yf.writeFile(check_cert_pl, cert_pem)
         if private_key:
-            mw.writeFile(keyPath, private_key)
+            yf.writeFile(keyPath, private_key)
         if cert_pem:
-            mw.writeFile(certPath, cert_pem)
-        if not mw.checkCert(check_cert_pl):
+            yf.writeFile(certPath, cert_pem)
+        if not yf.checkCert(check_cert_pl):
             os.remove(check_cert_pl)
-            return mw.returnData(False, '证书错误,请检查!')
+            return yf.returnData(False, '证书错误,请检查!')
         os.remove(check_cert_pl)
         
         # 自定义贴证书部署成功后，更新数据库中 panel_ssl 状态并组装 https 地址返回前端
@@ -70,43 +70,43 @@ class setting(object):
         panel_ssl_data['choose'] = choose
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
         
-        port = mw.getPanelPort()
+        port = yf.getPanelPort()
         admin_path = thisdb.getOption('admin_path', default='')
         if admin_path and not admin_path.startswith('/'):
             admin_path = '/' + admin_path
             
         domain = thisdb.getOption('panel_domain', default='')
         if domain == '':
-            domain = mw.getLocalIp()
+            domain = yf.getLocalIp()
             
         to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
-        return mw.returnData(True, '证书已保存!', to_panel_url)
+        return yf.returnData(True, '证书已保存!', to_panel_url)
 
     def getPanelSsl(self):
         rdata = {}
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False, 'choose':'local'})
         rdata['choose'] = panel_ssl_data.get('choose', 'local')
 
-        pdir = mw.getPanelDir()
+        pdir = yf.getPanelDir()
 
         keyPath = pdir+'/ssl/local/private.pem'
         certPath = pdir+'/ssl/local/cert.pem'
 
         if not os.path.exists(certPath):
-            mw.createLocalSSL()
+            yf.createLocalSSL()
 
         cert = {}
-        cert['privateKey'] = mw.readFile(keyPath)
+        cert['privateKey'] = yf.readFile(keyPath)
         cert['is_https'] = ''
-        cert['certPem'] = mw.readFile(certPath)
-        cert['info'] = mw.getCertName(certPath)
+        cert['certPem'] = yf.readFile(certPath)
+        cert['info'] = yf.getCertName(certPath)
         rdata['local'] = cert
 
-        panel_ssl = mw.getServerDir() + "/web_conf/nginx/vhost/panel.conf"
+        panel_ssl = yf.getServerDir() + "/web_conf/nginx/vhost/panel.conf"
         if not os.path.exists(panel_ssl):
             cert['is_https'] = ''
         else:
-            ssl_data = mw.readFile(panel_ssl)
+            ssl_data = yf.readFile(panel_ssl)
             if ssl_data.find('$server_port !~ 443') != -1:
                 cert['is_https'] = 'checked'
 
@@ -118,11 +118,11 @@ class setting(object):
         cert['certPem'] = ''
         cert['info'] = {}
         if os.path.exists(keyPath):
-            cert['privateKey'] = mw.readFile(keyPath)
+            cert['privateKey'] = yf.readFile(keyPath)
 
         if os.path.exists(keyPath):
-            cert['certPem'] = mw.readFile(certPath)
-            cert['info'] = mw.getCertName(certPath)
+            cert['certPem'] = yf.readFile(certPath)
+            cert['info'] = yf.getCertName(certPath)
 
         rdata['nginx'] = cert
         rdata['panel_domain'] = thisdb.getOption('panel_domain', default='')
@@ -132,45 +132,45 @@ class setting(object):
 
     # 删除面板证书
     def delPanelSsl(self, choose):
-        ip = mw.getLocalIp()
-        if mw.isAppleSystem():
+        ip = yf.getLocalIp()
+        if yf.isAppleSystem():
             ip = '127.0.0.1'
 
-        if not mw.inArray(['local','nginx'], choose):
-            return mw.returnData(True, '删除错误面板SSL类型!')
+        if not yf.inArray(['local','nginx'], choose):
+            return yf.returnData(True, '删除错误面板SSL类型!')
 
-        port = mw.getPanelPort()
+        port = yf.getPanelPort()
         to_panel_url = 'http://'+ip+":"+port+'/setting/index'
 
         if choose == 'local':
-            dst_path = mw.getPanelDir() + '/ssl/local'
+            dst_path = yf.getPanelDir() + '/ssl/local'
             if os.path.exists(dst_path):
-                mw.removeDir(dst_path)
-                mw.restartMw()
-                return mw.returnData(True, '删除本地面板SSL成功!',to_panel_url)
+                yf.removeDir(dst_path)
+                yf.restartMw()
+                return yf.returnData(True, '删除本地面板SSL成功!',to_panel_url)
             else:
-                return mw.returnData(True, '已经删除本地面板SSL!',to_panel_url)
+                return yf.returnData(True, '已经删除本地面板SSL!',to_panel_url)
 
         if choose == 'nginx':
             bind_domain = thisdb.getOption('panel_domain', default='')
             
-            dst_path = mw.getPanelDir() + '/ssl/nginx'
+            dst_path = yf.getPanelDir() + '/ssl/nginx'
             if os.path.exists(dst_path):
-                mw.removeDir(dst_path)
+                yf.removeDir(dst_path)
             
             if bind_domain != '':
-                acme_domain_dir = mw.getAcmeDomainDir(bind_domain)
+                acme_domain_dir = yf.getAcmeDomainDir(bind_domain)
                 if os.path.exists(acme_domain_dir):
-                    mw.removeDir(acme_domain_dir)
+                    yf.removeDir(acme_domain_dir)
 
             panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
             panel_ssl_data['open'] = False
             panel_ssl_data['choose'] = 'local'
             thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
             
-            mw.restartMw()
-            return mw.returnData(True, '已删除面板90天证书并重启面板，请使用HTTP协议访问！', to_panel_url)
-        return  mw.returnData(False, '未知类型!')
+            yf.restartMw()
+            return yf.returnData(True, '已删除面板90天证书并重启面板，请使用HTTP协议访问！', to_panel_url)
+        return  yf.returnData(False, '未知类型!')
 
     def createPanelAcme(self, domains, force, renew, apply_type, dnspai, email, dns_alias):
         import json
@@ -178,26 +178,26 @@ class setting(object):
         
         domains = json.loads(domains)
         if len(domains) < 1:
-            return mw.returnData(False, '请选择域名')
+            return yf.returnData(False, '请选择域名')
         
         if email.strip() != '':
             thisdb.setOption('ssl_email', email)
 
         if email.strip() == '':
-            email = mw.getRandomString(10)+"."+mw.getRandomString(3) + '@gmail.com'
+            email = yf.getRandomString(10)+"."+yf.getRandomString(3) + '@gmail.com'
 
         # 检测acme是否安装
-        acme_dir = mw.getAcmeDir()
+        acme_dir = yf.getAcmeDir()
         if not os.path.exists(acme_dir):
             try:
-                mw.execShell("curl -sS curl https://get.acme.sh | sh")
+                yf.execShell("curl -sS curl https://get.acme.sh | sh")
             except:
                 pass
         if not os.path.exists(acme_dir):
-            return mw.returnData(False, '尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>')
+            return yf.returnData(False, '尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>')
 
         # 确保全局默认 CA 设置为 letsencrypt，避免使用不稳定的 ZeroSSL
-        mw.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
+        yf.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
 
         main_domain = domains[0]
         
@@ -205,11 +205,11 @@ class setting(object):
         site_info = thisdb.getSitesByName(main_domain)
         if not site_info:
             site_json = json.dumps({"domain": main_domain, "domainlist": []})
-            site_path = mw.getWwwDir() + '/' + main_domain
+            site_path = yf.getWwwDir() + '/' + main_domain
             # 自动创建 80 端口的纯静态站点
             res_add = MwSites.instance().add(site_json, "80", "<span style='color:red'>（面板SSL专用配置站点，勿删）</span>", site_path, "00")
             if not res_add['status']:
-                return mw.returnData(False, '桥接站点创建失败: ' + res_add['msg'])
+                return yf.returnData(False, '桥接站点创建失败: ' + res_add['msg'])
 
         # 2. 桥接调用官方完全成熟的 MwSites 证书签发机制，不仅稳定性100%，还一并彻底解决了ACME自动续签的问题
         if apply_type == 'file':
@@ -219,7 +219,7 @@ class setting(object):
             # 调用 MwSites 的 createAcmeDns 进行DNS接口签发
             res_acme = MwSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'dns', 'let', dnspai, email, 'false', dns_alias)
         else:
-            return mw.returnData(False, '不支持的验证类型')
+            return yf.returnData(False, '不支持的验证类型')
 
         if not res_acme['status']:
             return res_acme
@@ -229,16 +229,16 @@ class setting(object):
         src_cert = src_path + '/fullchain.pem'
         src_key = src_path + '/privkey.pem'
 
-        dst_path = mw.getPanelDir() + '/ssl/nginx'
+        dst_path = yf.getPanelDir() + '/ssl/nginx'
         dst_cert = dst_path + "/cert.pem"
         dst_key = dst_path + "/private.pem"
 
         if not os.path.exists(dst_path):
-            mw.makeDirs(dst_path)
+            yf.makeDirs(dst_path)
 
-        mw.buildSoftLink(src_cert, dst_cert, True)
-        mw.buildSoftLink(src_key, dst_key, True)
-        mw.execShell('echo "acme" > "' + dst_path + '/README"')
+        yf.buildSoftLink(src_cert, dst_cert, True)
+        yf.buildSoftLink(src_key, dst_key, True)
+        yf.execShell('echo "acme" > "' + dst_path + '/README"')
 
         # 4. 更新数据库配置，开启面板 nginx SSL 并重启面板
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
@@ -246,13 +246,13 @@ class setting(object):
         panel_ssl_data['choose'] = 'nginx'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
 
-        port = mw.getPanelPort()
+        port = yf.getPanelPort()
         admin_path = thisdb.getOption('admin_path', default='')
         if admin_path and not admin_path.startswith('/'):
             admin_path = '/' + admin_path
         
         to_panel_url = 'https://' + main_domain + ":" + str(port) + admin_path
-        return mw.returnData(True, '证书已成功申请并部署！', to_panel_url)
+        return yf.returnData(True, '证书已成功申请并部署！', to_panel_url)
 
     # 面板本地SSL设置
     def setPanelLocalSsl(self, cert_type):
@@ -261,27 +261,27 @@ class setting(object):
         if not panel_ssl_data['open']:
             panel_ssl_data['open'] = True
 
-        pdir = mw.getPanelDir()
+        pdir = yf.getPanelDir()
         cert = {}
         keyPath = pdir+'/ssl/local/private.pem'
         certPath = pdir+'/ssl/local/cert.pem'
         if not os.path.exists(certPath):
-            mw.createLocalSSL()
+            yf.createLocalSSL()
 
         panel_ssl_data['choose'] = 'local'
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
         
-        port = mw.getPanelPort()
+        port = yf.getPanelPort()
         admin_path = thisdb.getOption('admin_path', default='')
         if admin_path and not admin_path.startswith('/'):
             admin_path = '/' + admin_path
             
         domain = thisdb.getOption('panel_domain', default='')
         if domain == '':
-            domain = mw.getLocalIp()
+            domain = yf.getLocalIp()
             
         to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
-        return mw.returnData(True, '设置成功', to_panel_url)
+        return yf.returnData(True, '设置成功', to_panel_url)
 
     def closePanelSsl(self):
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
@@ -290,51 +290,51 @@ class setting(object):
             panel_ssl_data['open'] = False
 
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
-        mw.restartMw()
-        return mw.returnData(True, '设置成功')
+        yf.restartMw()
+        return yf.returnData(True, '设置成功')
 
 
     # 申请面板let证书
     # def applyPanelAcmeSsl(self):
     #     bind_domain = self.__file['bind_domain']
     #     if not os.path.exists(bind_domain):
-    #         return mw.returnJson(False, '先要绑定域名!')
+    #         return yf.returnJson(False, '先要绑定域名!')
 
     #     # 生成nginx配置
-    #     domain = mw.readFile(bind_domain)
-    #     panel_tpl = mw.getRunDir() + "/data/tpl/nginx_panel.conf"
-    #     dst_panel_path = mw.getServerDir() + "/web_conf/nginx/vhost/panel.conf"
+    #     domain = yf.readFile(bind_domain)
+    #     panel_tpl = yf.getRunDir() + "/data/tpl/nginx_panel.conf"
+    #     dst_panel_path = yf.getServerDir() + "/web_conf/nginx/vhost/panel.conf"
     #     if not os.path.exists(dst_panel_path):
     #         reg = r"^([\w\-\*]{1,100}\.){1,4}(\w{1,10}|\w{1,10}\.\w{1,10})$"
     #         if not re.match(reg, domain):
-    #             return mw.returnJson(False, '主域名格式不正确')
+    #             return yf.returnJson(False, '主域名格式不正确')
 
-    #         op_dir = mw.getServerDir() + "/openresty"
+    #         op_dir = yf.getServerDir() + "/openresty"
     #         if not os.path.exists(op_dir):
-    #             return mw.returnJson(False, '依赖OpenResty,先安装启动它!')
+    #             return yf.returnJson(False, '依赖OpenResty,先安装启动它!')
 
-    #         content = mw.readFile(panel_tpl)
+    #         content = yf.readFile(panel_tpl)
     #         content = content.replace("{$PORT}", "80")
     #         content = content.replace("{$SERVER_NAME}", domain)
-    #         content = content.replace("{$PANAL_PORT}", mw.readFile('data/port.pl'))
-    #         content = content.replace("{$LOGPATH}", mw.getRunDir() + '/logs')
-    #         content = content.replace("{$PANAL_ADDR}", mw.getRunDir())
-    #         mw.writeFile(dst_panel_path, content)
-    #         mw.restartNginx()
+    #         content = content.replace("{$PANAL_PORT}", yf.readFile('data/port.pl'))
+    #         content = content.replace("{$LOGPATH}", yf.getRunDir() + '/logs')
+    #         content = content.replace("{$PANAL_ADDR}", yf.getRunDir())
+    #         yf.writeFile(dst_panel_path, content)
+    #         yf.restartNginx()
 
-    #     siteName = mw.readFile(bind_domain).strip()
-    #     auth_to = mw.getRunDir() + "/tmp"
+    #     siteName = yf.readFile(bind_domain).strip()
+    #     auth_to = yf.getRunDir() + "/tmp"
     #     to_args = {
     #         'domains': [siteName],
     #         'auth_type': 'http',
     #         'auth_to': auth_to,
     #     }
 
-    #     src_path = mw.getServerDir() + '/web_conf/letsencrypt/' + siteName
+    #     src_path = yf.getServerDir() + '/web_conf/letsencrypt/' + siteName
     #     src_csrpath = src_path + "/fullchain.pem"  # 生成证书路径
     #     src_keypath = src_path + "/privkey.pem"  # 密钥文件路径
 
-    #     dst_path = mw.getRunDir() + '/ssl/nginx'
+    #     dst_path = yf.getRunDir() + '/ssl/nginx'
     #     dst_csrpath = dst_path + '/cert.pem'
     #     dst_keypath = dst_path + '/private.pem'
 
@@ -350,42 +350,42 @@ class setting(object):
     #                 emsg = data['msg'][1]['challenges'][0]['error']
     #                 msg = msg + '<p><span>响应状态:</span>' + str(emsg['status']) + '</p><p><span>错误类型:</span>' + emsg[
     #                     'type'] + '</p><p><span>错误代码:</span>' + emsg['detail'] + '</p>'
-    #             return mw.returnJson(data['status'], msg, data['msg'])
+    #             return yf.returnJson(data['status'], msg, data['msg'])
     #     else:
     #         is_already_apply = True
 
-    #     mw.buildSoftLink(src_csrpath, dst_csrpath, True)
-    #     mw.buildSoftLink(src_keypath, dst_keypath, True)
-    #     mw.execShell('echo "acme" > "' + dst_path + '/README"')
+    #     yf.buildSoftLink(src_csrpath, dst_csrpath, True)
+    #     yf.buildSoftLink(src_keypath, dst_keypath, True)
+    #     yf.execShell('echo "acme" > "' + dst_path + '/README"')
 
     #     tmp_well_know = auth_to + '/.well-known'
     #     if os.path.exists(tmp_well_know):
-    #         mw.removeDir(tmp_well_know)
+    #         yf.removeDir(tmp_well_know)
 
     #     if os.path.exists(dst_path):
     #         choose_file = self.__file['ssl']
-    #         mw.writeFile(choose_file, 'nginx')
+    #         yf.writeFile(choose_file, 'nginx')
 
     #     data = self.getPanelSslData()
 
     #     if is_already_apply:
-    #         return mw.returnJson(True, '重复申请!', data)
-    #     return mw.returnJson(True, '申请成功!', data)
+    #         return yf.returnJson(True, '重复申请!', data)
+    #     return yf.returnJson(True, '申请成功!', data)
 
     def setPanelDomain(self, domain):
-        port = mw.getPanelPort()
+        port = yf.getPanelPort()
         
         panel_domain = thisdb.getOption('panel_domain', default='')
         if domain == '':
-            ip = mw.getLocalIp()
-            client_ip = mw.getClientIp()
+            ip = yf.getLocalIp()
+            client_ip = yf.getClientIp()
             if client_ip in ['127.0.0.1', 'localhost', '::1']:
                 ip = client_ip
 
             to_panel_url = 'http://'+ip+":"+str(port)+'/setting/index'
             thisdb.setOption('panel_domain', '')
-            mw.restartMw()
-            return mw.returnData(True, '清空域名成功!', to_panel_url)
+            yf.restartMw()
+            return yf.returnData(True, '清空域名成功!', to_panel_url)
 
         thisdb.setOption('panel_domain', domain)
         
@@ -402,6 +402,6 @@ class setting(object):
         to_panel_url = scheme + '://' + domain + ":" + str(port) + admin_path
         
         # 绑定域名成功，保存但不在此重启，由前端弹出提示并触发确认重启
-        return mw.returnData(True, '设置域名成功!', to_panel_url)
+        return yf.returnData(True, '设置域名成功!', to_panel_url)
 
 

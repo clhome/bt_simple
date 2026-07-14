@@ -15,7 +15,7 @@ import core.mw as mw
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -24,11 +24,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -65,8 +65,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def status():
@@ -115,19 +115,19 @@ def get_file(args):
     path = dir_path + '/' + args['file'] + '/main.svg'
 
     if os.path.exists(path):
-        d = mw.readFile(path)
-        return mw.returnData(True, 'ok', d)
+        d = yf.readFile(path)
+        return yf.returnData(True, 'ok', d)
     else:
-        return mw.returnData(False, '无效目录')
+        return yf.returnData(False, '无效目录')
 
 
 def get_file_path(args):
     dir_path = getServerDir() + '/trace'
     path = dir_path + '/' + args['file'] + '/main.svg'
     if os.path.exists(path):
-        return mw.returnData(True, 'ok', path)
+        return yf.returnData(True, 'ok', path)
     else:
-        return mw.returnData(False, '无效目录')
+        return yf.returnData(False, '无效目录')
 
 
 def dtGetFilePath():
@@ -139,9 +139,9 @@ def dtGetFilePath():
     dir_path = getServerDir() + '/trace'
     path = dir_path + '/' + args['file'] + '/main.svg'
     if os.path.exists(path):
-        return mw.returnJson(True, 'ok', path)
+        return yf.returnJson(True, 'ok', path)
     else:
-        return mw.returnJson(False, '无效目录')
+        return yf.returnJson(False, '无效目录')
 
 
 def dtRemoveFilePath():
@@ -153,8 +153,8 @@ def dtRemoveFilePath():
     dir_path = getServerDir() + '/trace'
     path = dir_path + '/' + args['file']
     if os.path.exists(path):
-        mw.removeDir(path)
-    return mw.returnJson(True, '删除成功!')
+        yf.removeDir(path)
+    return yf.returnJson(True, '删除成功!')
 
 
 def dtFileList():
@@ -173,18 +173,18 @@ def dtFileList():
             info['name'] = name
             info['abs_path'] = dir_path + '/' + name + '/main.svg'
         except Exception as e:
-            return mw.returnJson(False, str(e))
+            return yf.returnJson(False, str(e))
 
         file_info.append(info)
 
     file_info = sorted(file_info, key=lambda x: x['name'], reverse=False)
-    return mw.returnJson(True, 'ok!', file_info)
+    return yf.returnJson(True, 'ok!', file_info)
 
 
 def dtSimpleTrace():
     try:
-        if mw.isAppleSystem():
-            return mw.returnJson(False, 'macosx只能手动执行!')
+        if yf.isAppleSystem():
+            return yf.returnJson(False, 'macosx只能手动执行!')
 
         args = getArgs()
         data = checkArgs(args, ['pid'])
@@ -195,24 +195,24 @@ def dtSimpleTrace():
         try:
             safe_pid = int(args['pid'])
         except (ValueError, TypeError):
-            return mw.returnJson(False, '非法的进程PID，仅支持纯数字进程号！')
+            return yf.returnJson(False, '非法的进程PID，仅支持纯数字进程号！')
 
         if safe_pid <= 0:
-            return mw.returnJson(False, 'PID进程号必须为正整数！')
+            return yf.returnJson(False, 'PID进程号必须为正整数！')
 
         # 2. 并发防死锁：检查后台是否已有正在运行的追踪采样任务
-        check_running = mw.execShell("ps -ef | grep 'simple_trace.sh' | grep -v 'grep'")[0].strip()
+        check_running = yf.execShell("ps -ef | grep 'simple_trace.sh' | grep -v 'grep'")[0].strip()
         if check_running != "":
-            return mw.returnJson(False, '后台已有调试采样任务正在执行，请等待其完成后再开启新任务！')
+            return yf.returnJson(False, '后台已有调试采样任务正在执行，请等待其完成后再开启新任务！')
 
         plugins_shell = getPluginDir() + '/shell/simple_trace.sh'
         
         # 3. 安全拼接纯整型参数，100% 免疫注入
         cmd = f"{plugins_shell} {safe_pid}"
-        mw.execShell("bash " + cmd + " &")
-        return mw.returnJson(True, '任务添加成功！正在后台进行 30 秒无侵入 CPU 采样，完成后将自动绘制火焰图！')
+        yf.execShell("bash " + cmd + " &")
+        return yf.returnJson(True, '任务添加成功！正在后台进行 30 秒无侵入 CPU 采样，完成后将自动绘制火焰图！')
     except Exception as e:
-        return mw.returnJson(False, '启动追踪任务失败: ' + str(e))
+        return yf.returnJson(False, '启动追踪任务失败: ' + str(e))
 
 
 

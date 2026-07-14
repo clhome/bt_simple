@@ -77,25 +77,25 @@ def get_services():
                     })
         except Exception:
             continue
-    return mw.returnJson(True, "获取成功", services)
+    return yf.returnJson(True, "获取成功", services)
 
 def get_service_detail():
     args = getArgs()
     service_name = args.get('service_name', '').strip()
     if not re.match(r"^[a-zA-Z0-9_-]+$", service_name):
-        return mw.returnJson(False, "服务名不合法")
+        return yf.returnJson(False, "服务名不合法")
         
     file_path = f"/etc/systemd/system/{service_name}.service"
     if not os.path.exists(file_path):
-        return mw.returnJson(False, "服务不存在")
+        return yf.returnJson(False, "服务不存在")
         
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
         
     if f"Documentation=tag:{__target_tag}" not in content and "Documentation=https://yufeng.tag" not in content:
-        return mw.returnJson(False, "越权拦截：非专属服务禁止读取配置！")
+        return yf.returnJson(False, "越权拦截：非专属服务禁止读取配置！")
         
-    return mw.returnJson(True, "获取成功", content)
+    return yf.returnJson(True, "获取成功", content)
 
 def create_or_modify_service():
     args = getArgs()
@@ -103,7 +103,7 @@ def create_or_modify_service():
     mode = args.get('mode', 'simple')
     
     if not re.match(r"^[a-zA-Z0-9_-]+$", service_name):
-        return mw.returnJson(False, "服务名只能包含字母、数字、下划线和中划线！")
+        return yf.returnJson(False, "服务名只能包含字母、数字、下划线和中划线！")
         
     service_id = f"{service_name}.service"
     file_path = f"/etc/systemd/system/{service_id}"
@@ -120,9 +120,9 @@ def create_or_modify_service():
         exec_start = re.sub(r'[\r\n]', '', exec_start)
         
         if not work_dir.startswith('/'):
-            return mw.returnJson(False, "工作目录必须是绝对路径（以 / 开头）")
+            return yf.returnJson(False, "工作目录必须是绝对路径（以 / 开头）")
         if not exec_start:
-            return mw.returnJson(False, "启动命令不能为空")
+            return yf.returnJson(False, "启动命令不能为空")
             
         service_content = f"""[Unit]
 Description=Managed by yufeng_systemd Plugin
@@ -143,7 +143,7 @@ WantedBy=multi-user.target
     else:
         user_content = args.get('service_content', '').strip()
         if not user_content or '[Unit]' not in user_content or '[Service]' not in user_content:
-            return mw.returnJson(False, "配置格式错误，必须包含 [Unit] 和 [Service] 节点")
+            return yf.returnJson(False, "配置格式错误，必须包含 [Unit] 和 [Service] 节点")
             
         content = re.sub(r'^Documentation=.*$\n?', '', user_content, flags=re.MULTILINE)
         service_content = content.replace('[Unit]', f'[Unit]\nDocumentation=https://yufeng.tag')
@@ -153,14 +153,14 @@ WantedBy=multi-user.target
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(service_content)
     except Exception as e:
-        return mw.returnJson(False, f"保存配置文件失败: {str(e)}")
+        return yf.returnJson(False, f"保存配置文件失败: {str(e)}")
         
     _run_cmd("systemctl daemon-reload")
     _run_cmd(f"systemctl enable {service_id}")
     _run_cmd(f"systemctl restart {service_id}")
     _run_cmd(f"systemctl reset-failed {service_id}")
     
-    return mw.returnJson(True, "服务配置成功并已启动")
+    return yf.returnJson(True, "服务配置成功并已启动")
 
 def control_service():
     args = getArgs()
@@ -168,19 +168,19 @@ def control_service():
     action = args.get('action', '').strip()
     
     if not re.match(r"^[a-zA-Z0-9_-]+$", service_name):
-        return mw.returnJson(False, "服务名不合法")
+        return yf.returnJson(False, "服务名不合法")
         
     if action not in ['start', 'stop', 'restart', 'enable', 'disable']:
-        return mw.returnJson(False, "不支持的操作")
+        return yf.returnJson(False, "不支持的操作")
         
     service_id = f"{service_name}.service"
     file_path = f"/etc/systemd/system/{service_id}"
     if not os.path.exists(file_path):
-        return mw.returnJson(False, "服务不存在")
+        return yf.returnJson(False, "服务不存在")
     with open(file_path, 'r', encoding='utf-8') as f:
         file_body = f.read()
         if f"Documentation=tag:{__target_tag}" not in file_body and "Documentation=https://yufeng.tag" not in file_body:
-            return mw.returnJson(False, "越权拦截：非专属服务禁止操作！")
+            return yf.returnJson(False, "越权拦截：非专属服务禁止操作！")
             
     _sync_daemon_reload(service_id)
     
@@ -189,30 +189,30 @@ def control_service():
         
     res = _run_cmd(f"systemctl {action} {service_id}")
     if res["status"]:
-        return mw.returnJson(True, "操作成功")
+        return yf.returnJson(True, "操作成功")
     else:
-        return mw.returnJson(False, f"操作失败: {res['error']}")
+        return yf.returnJson(False, f"操作失败: {res['error']}")
 
 def delete_service():
     args = getArgs()
     service_name = args.get('service_name', '').strip()
     if not re.match(r"^[a-zA-Z0-9_-]+$", service_name):
-        return mw.returnJson(False, "服务名不合法")
+        return yf.returnJson(False, "服务名不合法")
         
     service_id = f"{service_name}.service"
     file_path = f"/etc/systemd/system/{service_id}"
     
     if not os.path.exists(file_path):
-        return mw.returnJson(False, "服务不存在")
+        return yf.returnJson(False, "服务不存在")
         
     with open(file_path, 'r', encoding='utf-8') as f:
         file_body = f.read()
         if f"Documentation=tag:{__target_tag}" not in file_body and "Documentation=https://yufeng.tag" not in file_body:
-            return mw.returnJson(False, "越权拦截：非专属服务禁止删除！")
+            return yf.returnJson(False, "越权拦截：非专属服务禁止删除！")
             
     active_status = _run_cmd(f"systemctl is-active {service_id}")["data"]
     if active_status == "active":
-        return mw.returnJson(False, "请先停止该服务后再进行删除")
+        return yf.returnJson(False, "请先停止该服务后再进行删除")
         
     _run_cmd(f"systemctl disable {service_id}")
     os.remove(file_path)
@@ -227,13 +227,13 @@ def delete_service():
             
     _run_cmd("systemctl daemon-reload")
     
-    return mw.returnJson(True, "服务删除成功")
+    return yf.returnJson(True, "服务删除成功")
 
 def get_service_logs():
     args = getArgs()
     service_name = args.get('service_name', '').strip()
     if not re.match(r"^[a-zA-Z0-9_-]+$", service_name):
-        return mw.returnJson(False, "服务名不合法")
+        return yf.returnJson(False, "服务名不合法")
         
     service_id = f"{service_name}.service"
     clear_file = f"/etc/systemd/system/{service_id}.clear_time"
@@ -252,15 +252,15 @@ def get_service_logs():
     res = _run_cmd(cmd)
     
     if res["status"]:
-        return mw.returnJson(True, "获取成功", res["data"])
+        return yf.returnJson(True, "获取成功", res["data"])
     else:
-        return mw.returnJson(False, f"获取日志失败: {res['error']}")
+        return yf.returnJson(False, f"获取日志失败: {res['error']}")
 
 def clear_service_logs():
     args = getArgs()
     service_name = args.get('service_name', '').strip()
     if not re.match(r"^[a-zA-Z0-9_-]+$", service_name):
-        return mw.returnJson(False, "服务名不合法")
+        return yf.returnJson(False, "服务名不合法")
         
     service_id = f"{service_name}.service"
     clear_file = f"/etc/systemd/system/{service_id}.clear_time"
@@ -271,9 +271,9 @@ def clear_service_logs():
     try:
         with open(clear_file, 'w', encoding='utf-8') as f:
             f.write(now_str)
-        return mw.returnJson(True, "日志已成功清空")
+        return yf.returnJson(True, "日志已成功清空")
     except Exception as e:
-        return mw.returnJson(False, f"清空日志失败: {str(e)}")
+        return yf.returnJson(False, f"清空日志失败: {str(e)}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

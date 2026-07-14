@@ -23,10 +23,10 @@ web_dir = os.getcwd() + "/web"
 os.chdir(web_dir)
 sys.path.append(web_dir)
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
-g_log_file = mw.getPanelTaskExecLog()
+g_log_file = yf.getPanelTaskExecLog()
 if not os.path.exists(g_log_file):
     os.system("touch " + g_log_file)
 
@@ -46,7 +46,7 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
 
     task_log_handle = None
     if task_id:
-        task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+        task_log_file = yf.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
         task_log_dir = os.path.dirname(task_log_file)
         if not os.path.exists(task_log_dir):
             try:
@@ -113,7 +113,7 @@ def writeLogs(data, task_id=None):
     except:
         pass
     if task_id:
-        task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+        task_log_file = yf.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
         task_log_dir = os.path.dirname(task_log_file)
         if not os.path.exists(task_log_dir):
             try:
@@ -147,7 +147,7 @@ def downloadFile(url, filename, task_id=None):
 
         urllib.request.urlretrieve(url, filename=filename, reporthook=downloadHook)
 
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             os.system('chown www.www ' + filename)
 
         writeLogs(filename + ' download success!', task_id)
@@ -159,7 +159,7 @@ def runPanelTask():
     # 站点过期检查
     siteEdateCheck()
 
-    lock_file = mw.getTriggerTaskLockFile()
+    lock_file = yf.getTriggerTaskLockFile()
     try:
         if os.path.exists(lock_file):
             bash_list = thisdb.getTaskList(status=-1)
@@ -185,7 +185,7 @@ def runPanelTask():
             if thisdb.getTaskUnexecutedCount() < 1:
                 os.remove(lock_file)
     except Exception as e:
-        print('runPanelTask:',mw.getTracebackInfo())
+        print('runPanelTask:',yf.getTracebackInfo())
 
 # 网站到期处理
 def siteEdateCheck():
@@ -201,14 +201,14 @@ def siteEdateCheck():
             MwSites.instance().stop(site['id'])
         thisdb.setOption('website_edate', now_time_ymd)
     except Exception as e:
-        print('siteEdateCheck:',mw.getTracebackInfo())
+        print('siteEdateCheck:',yf.getTracebackInfo())
 
 # 任务队列
 def startPanelTask_step():
     try:
         runPanelTask()
     except Exception as e:
-        print('startPanelTask:', mw.getTracebackInfo())
+        print('startPanelTask:', yf.getTracebackInfo())
 
 def systemTask_step():
     # 系统监控任务
@@ -218,7 +218,7 @@ def systemTask_step():
         if monitor_status == 'open':
             monitor.instance().run()
     except Exception as ex:
-        print('systemTask:',mw.getTracebackInfo())
+        print('systemTask:',yf.getTracebackInfo())
 
 
 def panelPluginStatusCheck_step():
@@ -227,21 +227,21 @@ def panelPluginStatusCheck_step():
     try:
         plugin.instance().autoCachePluginStatus()
     except Exception as ex:
-        print('panelPluginStatusCheck:',mw.getTracebackInfo())
+        print('panelPluginStatusCheck:',yf.getTracebackInfo())
 
 # -------------------------------------- PHP监控 start --------------------------------------------- #
 # 502错误检查步进
 def check502Task_step():
-    check_file = mw.getPanelDir() + '/data/502Task.pl'
+    check_file = yf.getPanelDir() + '/data/502Task.pl'
     try:
         if os.path.exists(check_file):
             check502()
     except Exception as e:
-        print('check502Task:', mw.getTracebackInfo())
+        print('check502Task:', yf.getTracebackInfo())
 
 def check502():
     try:
-        server_dir = mw.getServerDir()
+        server_dir = yf.getServerDir()
         php_dir = server_dir + '/php'
         verlist = []
         if os.path.exists(php_dir):
@@ -258,20 +258,20 @@ def check502():
                 continue
             if startPHPVersion(ver):
                 print('检测到PHP-' + ver + '处理异常,已自动修复!')
-                mw.writeLog('PHP守护程序', '检测到PHP-' + ver + '处理异常,已自动修复!')
+                yf.writeLog('PHP守护程序', '检测到PHP-' + ver + '处理异常,已自动修复!')
 
     except Exception as e:
-        mw.writeLog('PHP守护程序', '自动修复异常:'+str(e))
+        yf.writeLog('PHP守护程序', '自动修复异常:'+str(e))
 
 
 # 处理指定PHP版本
 def startPHPVersion(version):
-    server_dir = mw.getServerDir()
+    server_dir = yf.getServerDir()
     try:
         # system
-        phpService = mw.systemdCfgDir() + '/php' + version + '.service'
+        phpService = yf.systemdCfgDir() + '/php' + version + '.service'
         if os.path.exists(phpService):
-            mw.execShell("systemctl restart php" + version)
+            yf.execShell("systemctl restart php" + version)
             if checkPHPVersion(version):
                 return True
 
@@ -293,7 +293,7 @@ def startPHPVersion(version):
         # 尝试重启服务
         cgi = '/tmp/php-cgi-' + version + '.sock'
         pid = server_dir + '/php/' + version + '/var/run/php-fpm.pid'
-        data = mw.execShell("ps -ef | grep php/" + version +" | grep -v grep|grep -v python |awk '{print $2}'")
+        data = yf.execShell("ps -ef | grep php/" + version +" | grep -v grep|grep -v python |awk '{print $2}'")
         if data[0] != '':
             os.system("ps -ef | grep php/" + version + " | grep -v grep|grep -v python |awk '{print $2}' | xargs kill ")
         time.sleep(0.5)
@@ -309,16 +309,16 @@ def startPHPVersion(version):
         if os.path.exists(cgi):
             return True
     except Exception as e:
-        print('startPHPVersion:',mw.getTracebackInfo())
-        mw.writeLog('PHP守护程序', '自动修复异常:'+str(e))
+        print('startPHPVersion:',yf.getTracebackInfo())
+        yf.writeLog('PHP守护程序', '自动修复异常:'+str(e))
         return True
 
 
 def checkPHPVersion(version):
     # 检查指定PHP版本
     try:
-        sock = mw.getFpmAddress(version)
-        data = mw.requestFcgiPHP(sock, '/phpfpm_status_' + version + '?json')
+        sock = yf.getFpmAddress(version)
+        data = yf.requestFcgiPHP(sock, '/phpfpm_status_' + version + '?json')
         result = str(data, encoding='utf-8')
     except Exception as e:
         result = 'Bad Gateway'
@@ -340,31 +340,31 @@ def checkPHPVersion(version):
 # 解决acme.sh续签后,未起效。
 def openrestyAutoRestart_step():
     try:
-        odir = mw.getServerDir() + '/openresty'
+        odir = yf.getServerDir() + '/openresty'
         if not os.path.exists(odir):
             return
-        mw.opWeb('reload')
+        yf.opWeb('reload')
     except Exception as e:
-        mw.writeLog('OpenResty检测', '自动修复异常:'+str(e))
+        yf.writeLog('OpenResty检测', '自动修复异常:'+str(e))
 # --------------------------------------OpenResty Auto Restart End   --------------------------------------------- #
 
 
 # ------------------------------------  OpenResty Restart At Once Start ------------------------------------------ #
 def openrestyRestartAtOnce_step():
-    restart_nginx_tip = mw.getPanelDir()+'/data/restart_nginx.pl'
+    restart_nginx_tip = yf.getPanelDir()+'/data/restart_nginx.pl'
     if os.path.exists(restart_nginx_tip):
         os.remove(restart_nginx_tip)
-        mw.opWeb('reload')
+        yf.opWeb('reload')
 # -----------------------------------   OpenResty Restart At Once End   ------------------------------------------ #
 
 
 # --------------------------------------Panel Restart Start   --------------------------------------------- #
 def restartPanelService_step():
-    restart_tip = mw.getPanelDir()+'/data/restart.pl'
+    restart_tip = yf.getPanelDir()+'/data/restart.pl'
     if os.path.exists(restart_tip):
         print("restart panel")
         os.remove(restart_tip)
-        mw.panelCmd('restart_panel')
+        yf.panelCmd('restart_panel')
 # --------------------------------------Panel Restart End   --------------------------------------------- #
 
 class TaskScheduler:

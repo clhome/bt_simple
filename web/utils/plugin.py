@@ -15,7 +15,7 @@ import shlex
 import threading
 import multiprocessing
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 class pg_thread(threading.Thread):
@@ -103,7 +103,7 @@ class plugin(object):
 
     """插件类初始化"""
     def __init__(self):
-        self.__plugin_dir = mw.getPluginDir()
+        self.__plugin_dir = yf.getPluginDir()
 
 
     def refreshSetupStatus(self, plist):
@@ -129,7 +129,7 @@ class plugin(object):
 
             read_json_file = self.__plugin_dir + '/' + plugin_name + '/info.json'
             if os.path.exists(read_json_file):
-                content = mw.readFile(read_json_file)
+                content = yf.readFile(read_json_file)
                 try:
                     data = json.loads(content)
                     data = self.makeCoexistList(data)
@@ -144,7 +144,7 @@ class plugin(object):
                             plist.append(data[index])
 
                 except Exception as e:
-                    print('getIndexList:', mw.getTracebackInfo())
+                    print('getIndexList:', yf.getTracebackInfo())
 
         plist = self.checkStatusMThreadsByCache(plist)
 
@@ -163,7 +163,7 @@ class plugin(object):
                 simple_list.append(simple_item)
             plist = simple_list
 
-        return mw.returnData(True, 'ok', plist)
+        return yf.returnData(True, 'ok', plist)
 
     def init(self):
         plugin_names = {
@@ -174,8 +174,8 @@ class plugin(object):
             'phpmyadmin': '4.4.15',
         }
 
-        pn_dir = mw.getPluginDir()
-        pn_server_dir = mw.getServerDir()
+        pn_dir = yf.getPluginDir()
+        pn_server_dir = yf.getServerDir()
         pn_list = []
         for pn in plugin_names:
             info = {}
@@ -183,7 +183,7 @@ class plugin(object):
             pn_server = pn_server_dir + '/' + pn
             if not os.path.exists(pn_server):
 
-                tmp = mw.readFile(pn_json)
+                tmp = yf.readFile(pn_json)
                 tmp = json.loads(tmp)
 
                 info['title'] = tmp['title']
@@ -192,9 +192,9 @@ class plugin(object):
                 info['default_ver'] = plugin_names[pn]
                 pn_list.append(info)
             else:
-                return mw.returnData(False, 'ok')
+                return yf.returnData(False, 'ok')
 
-        return mw.returnData(True, 'ok', pn_list)
+        return yf.returnData(True, 'ok', pn_list)
 
     def initInstall(self, plugin_list):
         try:
@@ -203,51 +203,51 @@ class plugin(object):
                 name = pn['name']
                 version = pn['version']
                 info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
-                pluginInfo = json.loads(mw.readFile(info_file))
+                pluginInfo = json.loads(yf.readFile(info_file))
                 self.hookInstall(pluginInfo)
 
                 cmd = 'cd {0} && bash {1} install {2}'.format(
-                    mw.getPluginDir() + '/'+name,
+                    yf.getPluginDir() + '/'+name,
                     pluginInfo['shell'],
                     version
                 )
                 title = '安装[' + name + '-' + version + ']'
                 thisdb.addTask(name=title,cmd=cmd)
-            os.mkdir(mw.getServerDir() + '/php')
+            os.mkdir(yf.getServerDir() + '/php')
             # 任务执行相关
-            mw.triggerTask()
-            return mw.returnData(True, '添加成功')
+            yf.triggerTask()
+            return yf.returnData(True, '添加成功')
         except Exception as e:
-            return mw.returnData(False, mw.getTracebackInfo())
+            return yf.returnData(False, yf.getTracebackInfo())
 
     def menuGetAbsPath(self, tag, path):
         if path[0:1] == '/':
             return path
         else:
-            return mw.getPluginDir() + '/' + tag + '/' + path
+            return yf.getPluginDir() + '/' + tag + '/' + path
 
     def addIndex(self, name, version):
         vname = name + '-' + version
         indexList = thisdb.getOptionByJson('display_index',default=[])
 
         if vname in indexList:
-            return mw.returnData(False, '请不要重复添加!')
+            return yf.returnData(False, '请不要重复添加!')
         if len(indexList) > 12:
-            return mw.returnData(False, '首页最多只能显示12个软件!')
+            return yf.returnData(False, '首页最多只能显示12个软件!')
 
         indexList.append(vname)
 
         thisdb.setOption('display_index', json.dumps(indexList))
-        return mw.returnData(True, '添加成功!')
+        return yf.returnData(True, '添加成功!')
 
     def removeIndex(self, name, version):
         vname = name + '-' + version
         indexList = thisdb.getOptionByJson('display_index', default=[])
         if not vname in indexList:
-            return mw.returnData(True, '删除成功!!')
+            return yf.returnData(True, '删除成功!!')
         indexList.remove(vname)
         thisdb.setOption('display_index', json.dumps(indexList))
-        return mw.returnData(True, '删除成功!')
+        return yf.returnData(True, '删除成功!')
 
     def hookInstallOption(self, hook_name, info):
         hn_name = 'hook_'+hook_name
@@ -313,10 +313,10 @@ class plugin(object):
         upgrade = None
     ):
         if name.strip() == '':
-            return mw.returnData(False, '缺少插件名称!', ())
+            return yf.returnData(False, '缺少插件名称!', ())
 
         if version.strip() == '':
-            return mw.returnData(False, '缺少版本信息!', ())
+            return yf.returnData(False, '缺少版本信息!', ())
 
         msg_head = '安装'
         if upgrade is not None and upgrade is True:
@@ -325,28 +325,28 @@ class plugin(object):
 
         info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
         if not os.path.exists(info_file):
-            return mw.returnData(False, "配置文件不存在!", ())
+            return yf.returnData(False, "配置文件不存在!", ())
 
-        info_data = json.loads(mw.readFile(info_file))
+        info_data = json.loads(yf.readFile(info_file))
 
         exec_bash = 'cd {0} && bash {1} install {2}'.format(
-            mw.shlexQuote(mw.getPluginDir() + '/'+name),
-            mw.shlexQuote(info_data['shell']),
-            mw.shlexQuote(version)
+            yf.shlexQuote(yf.getPluginDir() + '/'+name),
+            yf.shlexQuote(info_data['shell']),
+            yf.shlexQuote(version)
         )
 
         self.hookInstall(info_data)
         title = '{0}[{1}-{2}]'.format(msg_head,name,version)
         thisdb.addTask(name=title,cmd=exec_bash, status=0)
-        mw.triggerTask()
+        yf.triggerTask()
         # 调式日志
-        mw.debugLog(exec_bash)
-        return mw.returnData(True, '已将安装任务添加到队列!')
+        yf.debugLog(exec_bash)
+        return yf.returnData(True, '已将安装任务添加到队列!')
 
     # 卸载插件
     def uninstall(self, name, version, force=False, backup=False):
         if name.strip() == '':
-            return mw.returnData(False, "缺少插件名称!", ())
+            return yf.returnData(False, "缺少插件名称!", ())
 
         # 解析真实安装目录以支持备份功能
         real_install_path = None
@@ -354,7 +354,7 @@ class plugin(object):
         info_file = plugin_path + '/info.json'
         if os.path.exists(info_file):
             try:
-                info_data = json.loads(mw.readFile(info_file))
+                info_data = json.loads(yf.readFile(info_file))
                 install_path = info_data.get('path', '')
                 if install_path:
                     # 兼容带有 VERSION 的路径占位符
@@ -369,13 +369,13 @@ class plugin(object):
                             install_path = install_path.replace('VERSION', target_ver)
                     
                     if not install_path.startswith('/'):
-                        install_path = mw.getFatherDir() + '/' + install_path
+                        install_path = yf.getFatherDir() + '/' + install_path
                     
                     real_install_path = os.path.abspath(install_path)
             except Exception as e:
                 pass
 
-        server_base_dir = os.path.abspath(mw.getServerDir()) # 即 /www/server
+        server_base_dir = os.path.abspath(yf.getServerDir()) # 即 /www/server
 
         # 安全屏障：必须是 /www/server 内部的子级目录，且不能等于 /www/server 自身或根级敏感父节点
         if real_install_path and real_install_path.startswith(server_base_dir) and real_install_path != server_base_dir:
@@ -384,7 +384,7 @@ class plugin(object):
                 if backup:
                     try:
                         import time
-                        backup_dir = mw.getBackupDir()
+                        backup_dir = yf.getBackupDir()
                         if not os.path.exists(backup_dir):
                             os.makedirs(backup_dir)
                         timestamp = time.strftime('%Y%m%d_%H%M%S')
@@ -392,9 +392,9 @@ class plugin(object):
                         parent_dir = os.path.dirname(real_install_path)
                         base_name = os.path.basename(real_install_path)
                         tar_cmd = "tar -czf {0} -C {1} {2}".format(backup_file, parent_dir, base_name)
-                        mw.execShell(tar_cmd)
+                        yf.execShell(tar_cmd)
                     except Exception as bex:
-                        print("卸载前打包备份失败:", mw.getTracebackInfo())
+                        print("卸载前打包备份失败:", yf.getTracebackInfo())
 
         # 强制卸载（直接物理删除并清理首页图标配置）
         if force:
@@ -407,7 +407,7 @@ class plugin(object):
                         else:
                             os.remove(real_install_path)
                     except Exception as e:
-                        mw.removeDir(real_install_path)
+                        yf.removeDir(real_install_path)
 
             # 从首页展示配置中移除
             try:
@@ -426,28 +426,28 @@ class plugin(object):
                 pass
 
             self.__plugin_list_static_cache = None
-            return mw.returnData(True, '强制删除成功!')
+            return yf.returnData(True, '强制删除成功!')
 
         if version.strip() == '':
-            return mw.returnData(False, "缺少版本信息!", ())
+            return yf.returnData(False, "缺少版本信息!", ())
 
         info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
         if not os.path.exists(info_file):
-            return mw.returnData(False, "配置文件不存在!", ())
+            return yf.returnData(False, "配置文件不存在!", ())
 
-        info_data = json.loads(mw.readFile(info_file))
+        info_data = json.loads(yf.readFile(info_file))
 
         exec_bash = "cd {0} && /bin/bash {1} uninstall {2}".format(
-            mw.shlexQuote(mw.getPluginDir() + '/'+name),
-            mw.shlexQuote(info_data['shell']),
-            mw.shlexQuote(version)
+            yf.shlexQuote(yf.getPluginDir() + '/'+name),
+            yf.shlexQuote(info_data['shell']),
+            yf.shlexQuote(version)
         )
         self.hookUninstall(info_data)
-        data = mw.execShell(exec_bash)
+        data = yf.execShell(exec_bash)
         self.removeIndex(name, version)
-        mw.debugLog(exec_bash, data)
+        yf.debugLog(exec_bash, data)
         self.__plugin_list_static_cache = None
-        return mw.returnData(True, '卸载执行成功!')
+        return yf.returnData(True, '卸载执行成功!')
 
     # 插件搜索匹配
     def searchKey(self, info,
@@ -468,7 +468,7 @@ class plugin(object):
     def getVersion(self, path):
         version_pl = path + '/version.pl'
         if os.path.exists(version_pl):
-            return mw.readFile(version_pl).strip()
+            return yf.readFile(version_pl).strip()
         return ''
 
     def checkIndexList(self, name, version):
@@ -492,7 +492,7 @@ class plugin(object):
         self.__tasks = thisdb.getTaskRunAll()
         isTask = '1'
         for task in self.__tasks:
-            tmpt = mw.getStrBetween('[', ']', task['name'])
+            tmpt = yf.getStrBetween('[', ']', task['name'])
             if not tmpt:
                 continue
 
@@ -553,13 +553,13 @@ class plugin(object):
         if info["checks"].startswith('/'):
             checks = info["checks"]
         else:
-            checks = mw.getFatherDir() + '/' + info['checks']
+            checks = yf.getFatherDir() + '/' + info['checks']
 
         if 'path' in info:
             path = info['path']
 
         if not path.startswith('/'):
-            path = mw.getFatherDir() + '/' + path
+            path = yf.getFatherDir() + '/' + path
 
         if 'coexist' in info and info['coexist']:
             coexist = True
@@ -616,7 +616,7 @@ class plugin(object):
             if os.path.isdir(pInfo['install_checks']):
                 pInfo['setup_version'] = self.getVersion(pInfo['install_checks'])
             else:
-                pInfo['setup_version'] = mw.readFile(pInfo['install_checks']).strip()
+                pInfo['setup_version'] = yf.readFile(pInfo['install_checks']).strip()
 
         if 'install_pre_inspection' in info:
             pInfo['install_pre_inspection'] = info['install_pre_inspection']
@@ -675,7 +675,7 @@ class plugin(object):
         if not os.path.exists(info_path):
             return info
         try:
-            data = json.loads(mw.readFile(info_path))
+            data = json.loads(yf.readFile(info_path))
             return data
         except Exception as e:
             return info
@@ -703,9 +703,9 @@ class plugin(object):
         self.__plugin_list_static_cache = None
         
         # 清除下载的安装包缓存
-        source_dir = mw.getServerDir() + '/source'
+        source_dir = yf.getServerDir() + '/source'
         if os.path.exists(source_dir):
-            mw.removeDir(source_dir + '/*')
+            yf.removeDir(source_dir + '/*')
             
         return True
 
@@ -727,7 +727,7 @@ class plugin(object):
                 if os.path.isdir(install_checks):
                     pInfo['setup_version'] = self.getVersion(install_checks)
                 else:
-                    pInfo['setup_version'] = mw.readFile(install_checks).strip()
+                    pInfo['setup_version'] = yf.readFile(install_checks).strip()
             else:
                 pInfo['setup_version'] = ""
                 
@@ -758,7 +758,7 @@ class plugin(object):
             
             isTask = '1'
             for task in self.__tasks:
-                tmpt = mw.getStrBetween('[', ']', task['name'])
+                tmpt = yf.getStrBetween('[', ']', task['name'])
                 if not tmpt:
                     continue
 
@@ -919,7 +919,7 @@ class plugin(object):
                 thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
 
         except Exception as e:
-            print(mw.getTracebackInfo())
+            print(yf.getTracebackInfo())
             print('checkStatusMThreadsByCache:', str(e))
         return info
 
@@ -950,7 +950,7 @@ class plugin(object):
                 self.__plugin_status_data = status_data
                 thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
             except Exception as e:
-                print('autoCachePluginStatus error:', mw.getTracebackInfo())
+                print('autoCachePluginStatus error:', yf.getTracebackInfo())
 
         import threading
         t = threading.Thread(target=_do_cache)
@@ -1044,21 +1044,21 @@ class plugin(object):
     
         data = self.getAllPluginList(type, keyword, page, size, show_third_party)
         rdata['data'] = data[0]
-        rdata['list'] = mw.getPage({'count':data[1],'p':page,'tojs':'getSList','row':size})
+        rdata['list'] = yf.getPage({'count':data[1],'p':page,'tojs':'getSList','row':size})
         return rdata
 
     def updateZip(self, request_zip):
-        tmp_path = mw.getPanelDir() + '/temp'
+        tmp_path = yf.getPanelDir() + '/temp'
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)
-        mw.removeDir(tmp_path + '/*')
+        yf.removeDir(tmp_path + '/*')
 
         tmp_file = tmp_path + '/plugin_tmp.zip'
         if request_zip.filename[-4:] != '.zip':
-            return mw.returnData(False, '仅支持zip文件!')
+            return yf.returnData(False, '仅支持zip文件!')
 
         request_zip.save(tmp_file)
-        mw.execShell('cd ' + tmp_path + ' && unzip ' + tmp_file)
+        yf.execShell('cd ' + tmp_path + ' && unzip ' + tmp_file)
         os.remove(tmp_file)
 
         p_info = tmp_path + '/info.json'
@@ -1078,49 +1078,49 @@ class plugin(object):
                 tmp_path = d_path
                 p_info = tmp_path + '/info.json'
         try:
-            data = json.loads(mw.readFile(p_info))
-            data['size'] = mw.getPathSize(tmp_path)
+            data = json.loads(yf.readFile(p_info))
+            data['size'] = yf.getPathSize(tmp_path)
             if not 'author' in data:
                 data['author'] = '未知'
             if not 'home' in data:
                 data['home'] = 'https://github.com/clhome/bt_simple'
-            plugin_path = mw.getPluginDir() + data['name'] + '/info.json'
+            plugin_path = yf.getPluginDir() + data['name'] + '/info.json'
             data['old_version'] = '0'
             data['tmp_path'] = tmp_path
             if os.path.exists(plugin_path):
                 try:
-                    old_info = json.loads(mw.readFile(plugin_path))
+                    old_info = json.loads(yf.readFile(plugin_path))
                     data['old_version'] = old_info['versions']
                 except:
                     pass
         except:
-            mw.removeDir(tmp_path)
-            return mw.returnData(False, '在压缩包中没有找到插件信息,请检查插件包!')
+            yf.removeDir(tmp_path)
+            return yf.returnData(False, '在压缩包中没有找到插件信息,请检查插件包!')
         protectPlist = ('openresty', 'mysql', 'php', 'redis', 'memcached'
                         'mongodb', 'swap', 'gogs', 'pureftp')
         if data['name'] in protectPlist:
-            return mw.returnData(False, '[' + data['name'] + '],重要插件不可修改!')
+            return yf.returnData(False, '[' + data['name'] + '],重要插件不可修改!')
         return data
 
     def inputZipApi(self, plugin_name,tmp_path):
         if not os.path.exists(tmp_path):
-            return mw.returnData(False, '临时文件不存在,请重新上传!')
-        plugin_path = mw.getPluginDir() + '/' + plugin_name
+            return yf.returnData(False, '临时文件不存在,请重新上传!')
+        plugin_path = yf.getPluginDir() + '/' + plugin_name
         if not os.path.exists(plugin_path):
-            print(mw.makeDirs(plugin_path))
-        mw.execShell("cp -rf " + tmp_path + '/* ' + plugin_path + '/')
-        mw.execShell('chmod -R 755 ' + plugin_path)
-        p_info = mw.readFile(plugin_path + '/info.json')
+            print(yf.makeDirs(plugin_path))
+        yf.execShell("cp -rf " + tmp_path + '/* ' + plugin_path + '/')
+        yf.execShell('chmod -R 755 ' + plugin_path)
+        p_info = yf.readFile(plugin_path + '/info.json')
         if p_info:
             self.__plugin_list_static_cache = None
-            mw.writeLog('软件管理', '安装第三方插件[%s]' %json.loads(p_info)['title'])
-            return mw.returnData(True, '安装成功!')
-        mw.removeDir(plugin_path)
-        return mw.returnData(False, '安装失败!')
+            yf.writeLog('软件管理', '安装第三方插件[%s]' %json.loads(p_info)['title'])
+            return yf.returnData(True, '安装成功!')
+        yf.removeDir(plugin_path)
+        return yf.returnData(False, '安装失败!')
 
     # [start|stop]操作,删除缓存!
     def runByCache(self, name, func, version):
-        ppos = mw.getServerDir()+'/'+name
+        ppos = yf.getServerDir()+'/'+name
         if not os.path.exists(ppos):
             return
         data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
@@ -1153,7 +1153,7 @@ class plugin(object):
         script  = 'index',
     ):
 
-        if mw.inArray(['start','stop','restart','reload','uninstall_pre_inspection','install','uninstall'], func):
+        if yf.inArray(['start','stop','restart','reload','uninstall_pre_inspection','install','uninstall'], func):
             self.runByCache(name, func, version)
 
         path = self.__plugin_dir + '/' + name + '/' + script + '.py'
@@ -1168,11 +1168,11 @@ class plugin(object):
 
         if not os.path.exists(path):
             return ('', '')
-        py_cmd = 'cd ' + mw.getPanelDir() + " && "+ py_cmd
-        data = mw.execShell(py_cmd)
+        py_cmd = 'cd ' + yf.getPanelDir() + " && "+ py_cmd
+        data = yf.execShell(py_cmd)
 
         # print(data)
-        if mw.isDebugMode():
+        if yf.isDebugMode():
             print('run:', py_cmd)
             print(data)
         # print os.path.exists(py_cmd)
@@ -1190,15 +1190,15 @@ class plugin(object):
             sys.path.append(package)
 
         cmd = "__import__('" + script + "')." + func + '(' + args + ')'
-        if mw.isDebugMode():
+        if yf.isDebugMode():
             print('callback', cmd)
 
         data = None
         try:
             data = eval(cmd)
         except Exception as e:
-            print(mw.getTracebackInfo())
-            return (False, mw.getTracebackInfo())        
+            print(yf.getTracebackInfo())
+            return (False, yf.getTracebackInfo())        
         return (True, data)
 
 

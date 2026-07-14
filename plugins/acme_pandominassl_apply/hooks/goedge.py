@@ -65,8 +65,8 @@ def listSSLCerts(domain):
     response_data = commonReq('/SSLCertService/listSSLCerts', request_data)
 
     data = response_data['data']['sslCertsJSON']
-    data = mw.base64StrDecode(data)
-    data = mw.getObjectByJson(data)
+    data = yf.base64StrDecode(data)
+    data = yf.getObjectByJson(data)
     # print(data)
     return data
 
@@ -81,14 +81,14 @@ def createSSLCert(domain, did=0):
         print("没有有效证书!")
         return ''
     # print(ssl_cer_file)
-    ssl_info = mw.getCertName(ssl_cer_file)
-    cer_data = mw.readFile(ssl_cer_file)
-    cer_data = mw.base64StrEncode(cer_data)
+    ssl_info = yf.getCertName(ssl_cer_file)
+    cer_data = yf.readFile(ssl_cer_file)
+    cer_data = yf.base64StrEncode(cer_data)
     # print('cer',cer_data)
 
     ssl_key_file = ssl_path + '/'+domain+'.key'
-    key_data = mw.readFile(ssl_key_file)
-    key_data = mw.base64StrEncode(key_data)
+    key_data = yf.readFile(ssl_key_file)
+    key_data = yf.base64StrEncode(key_data)
     # print('ssl_info',ssl_info)
 
     timeBeginAt = int(time.mktime(time.strptime(ssl_info['notBefore'], "%Y-%m-%d")))

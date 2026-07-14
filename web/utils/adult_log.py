@@ -12,7 +12,7 @@
 import os
 from datetime import datetime
 
-import core.yf as mw
+import core.yf as yf
 
 __months = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
             'Jul': '07', 'Aug': '08', 'Sep': '09', 'Sept': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
@@ -139,7 +139,7 @@ def getAuditLast(log_name):
     # 获取日志
     cmd = '''LANG=en_US.UTF-8 last -n 200 -x -f {} |grep -v 127.0.0.1|grep -v " begins"'''.format(
         '/var/log/' + log_name)
-    result = mw.execShell(cmd)
+    result = yf.execShell(cmd)
     lastlog_list = []
     for _line in result[0].split("\n"):
         if not _line:
@@ -172,11 +172,11 @@ def getAuditLast(log_name):
         # tmp['_line'] = _line
         lastlog_list.append(tmp)
     # lastlog_list = sorted(lastlog_list,key=lambda x:x['时间'],reverse=True)
-    return mw.returnData(True, 'ok!', lastlog_list)
+    return yf.returnData(True, 'ok!', lastlog_list)
 
 def getAuditLastLog():
     cmd = '''LANG=en_US.UTF-8 lastlog|grep -v Username'''
-    result = mw.execShell(cmd)
+    result = yf.execShell(cmd)
     lastlog_list = []
     for _line in result[0].split("\n"):
         if not _line:
@@ -200,7 +200,7 @@ def getAuditLastLog():
     for i in range(len(lastlog_list)):
         if lastlog_list[i]['最后登录时间'] == '0':
             lastlog_list[i]['最后登录时间'] = '从未登录过'
-    return mw.returnData(True, 'ok!', lastlog_list)
+    return yf.returnData(True, 'ok!', lastlog_list)
 
 def parseAuditFileLine(log_name, _line):
     is_string = True
@@ -272,12 +272,12 @@ def getAuditLogsName(log_name):
 
     if log_name.find('sa/sa') == 0:
         if log_name.find('sa/sar') == -1:
-            return mw.execShell("sar -f /var/log/{}".format(log_name))[0]
+            return yf.execShell("sar -f /var/log/{}".format(log_name))[0]
     log_dir = '/var/log'
     log_file = log_dir + '/' + log_name
     if not os.path.exists(log_file):
-        return mw.returnData(False, '日志文件不存在!')
-    result = mw.getLastLine(log_file, 100)
+        return yf.returnData(False, '日志文件不存在!')
+    result = yf.getLastLine(log_file, 100)
     try:
         log_list = parseAuditFile(log_name, result)
         _string = []
@@ -298,13 +298,13 @@ def getAuditLogsName(log_name):
         if _str_len > _dict_len + _list_len:
             return "\n".join(_string)
         elif _dict_len > _str_len + _list_len:
-            return mw.returnData(True, 'ok!', _dict)
+            return yf.returnData(True, 'ok!', _dict)
         else:
-            return mw.returnData(True, 'ok!', _list)
+            return yf.returnData(True, 'ok!', _list)
 
     except Exception as e:
-        # print(mw.getTracebackInfo())
-        return mw.returnData(True, 'ok!', result)
+        # print(yf.getTracebackInfo())
+        return yf.returnData(True, 'ok!', result)
 
 def getLogsTitle(log_name):
     log_name = log_name.replace('.1', '')

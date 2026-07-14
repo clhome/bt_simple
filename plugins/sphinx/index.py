@@ -16,19 +16,19 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 def getPluginName():
     return 'sphinx'
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 sys.path.append(getPluginDir() +"/class")
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -81,8 +81,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def configTpl():
@@ -92,7 +92,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -101,21 +101,21 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$SERVER_APP}', service_path + '/'+getPluginName())
     return content
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep sphinx |grep -v grep | grep -v mdserver-web | awk '{print $2}'")
     # print(data)
     if data[0] == '':
@@ -124,22 +124,22 @@ def status():
 
 
 def mkdirAll():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'path\s*=\s*(.*)'
     p = re.compile(rep)
     tmp = p.findall(content)
 
     for x in tmp:
         if x.find('binlog') != -1:
-            mw.makeDirs(x)
+            yf.makeDirs(x)
         else:
-            mw.makeDirs(os.path.dirname(x))
+            yf.makeDirs(os.path.dirname(x))
 
 
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -148,34 +148,34 @@ def initDreplace():
 
     # initd replace
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     # config replace
     conf_bin = getConf()
     if not os.path.exists(conf_bin):
-        conf_content = mw.readFile(getConfTpl())
+        conf_content = yf.readFile(getConfTpl())
         conf_content = contentReplace(conf_content)
-        mw.writeFile(getServerDir() + '/sphinx.conf', conf_content)
+        yf.writeFile(getServerDir() + '/sphinx.conf', conf_content)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/sphinx.service'
     systemServiceTpl = getPluginDir() + '/init.d/sphinx.service.tpl'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        se_content = mw.readFile(systemServiceTpl)
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     mkdirAll()
     return file_bin
 
 
 def checkIndexSph():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'path\s*=\s*(.*)'
     p = re.compile(rep)
     tmp = p.findall(content)
@@ -192,13 +192,13 @@ def checkIndexSph():
 def sphOp(method):
     file = initDreplace()
 
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
         if data[1] == '':
             return 'ok'
         return 'fail'
 
-    data = mw.execShell(file + ' ' + method)
+    data = yf.execShell(file + ' ' + method)
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -227,42 +227,42 @@ def reload():
 def rebuild():
     file = initDreplace()
     cmd = file + ' rebuild'
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0].find('successfully')<0:
         return data[0].replace("\n","<br/>")
     return 'ok'
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status sphinx | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable sphinx')
+    yf.execShell('systemctl enable sphinx')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable sphinx')
+    yf.execShell('systemctl disable sphinx')
     return 'ok'
 
 
 def runLog():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'log\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0]
@@ -270,7 +270,7 @@ def runLog():
 
 def getPort():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'listen\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0]
@@ -278,7 +278,7 @@ def getPort():
 
 def queryLog():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'query_log\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0]
@@ -287,7 +287,7 @@ def queryLog():
 def runStatus():
     s = status()
     if s != 'start':
-        return mw.returnJson(False, '没有启动程序')
+        return yf.returnJson(False, '没有启动程序')
 
     sys.path.append(getPluginDir() + "/class")
     import sphinxapi
@@ -301,13 +301,13 @@ def runStatus():
     for x in range(len(info_status)):
         rData[info_status[x][0]] = info_status[x][1]
 
-    return mw.returnJson(True, 'ok', rData)
+    return yf.returnJson(True, 'ok', rData)
 
 
 def sphinxConfParse():
     file = getConf()
     bin_dir = getServerDir()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'index\s(.*)'
     sindex = re.findall(rep, content)
     indexlen = len(sindex)
@@ -347,9 +347,9 @@ def sphinxConfParse():
 def sphinxCmd():
     data = sphinxConfParse()
     if 'index' in data:
-        return mw.returnJson(True, 'ok', data)
+        return yf.returnJson(True, 'ok', data)
     else:
-        return mw.returnJson(False, 'no index')
+        return yf.returnJson(False, 'no index')
 
 def makeDbToSphinxTest():        
     conf_file = getConf()
@@ -357,7 +357,7 @@ def makeDbToSphinxTest():
     sph_make = sphinx_make.sphinxMake()
     conf = sph_make.makeSqlToSphinxAll()
 
-    mw.writeFile(conf_file,conf)
+    yf.writeFile(conf_file,conf)
     print(conf)
     # makeSqlToSphinxTable()
     return True
@@ -374,7 +374,7 @@ def makeDbToSphinx():
     is_cover = args['is_cover']
 
     if is_cover != 'yes':
-        return mw.returnJson(False,'暂时仅支持覆盖!')
+        return yf.returnJson(False,'暂时仅支持覆盖!')
 
     sph_file = getConf()
 
@@ -383,22 +383,22 @@ def makeDbToSphinx():
 
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl).strip()
+        version = yf.readFile(version_pl).strip()
         sph_make.setVersion(version)
 
     if not sph_make.checkDbName(db):
-        return mw.returnJson(False,'保留数据库名称,不可用!')
+        return yf.returnJson(False,'保留数据库名称,不可用!')
     is_delta_bool = False
     if is_delta == 'yes':
         is_delta_bool = True
     if is_cover == 'yes':
         tables = tables.split(',')
         content = sph_make.makeSqlToSphinx(db, tables, is_delta_bool)
-        mw.writeFile(sph_file,content)
+        yf.writeFile(sph_file,content)
         mkdirAll()
-        return mw.returnJson(True,'设置成功!')
+        return yf.returnJson(True,'设置成功!')
 
-    return mw.returnJson(True,'测试中')
+    return yf.returnJson(True,'测试中')
 
 
 # 全量更新
@@ -453,9 +453,9 @@ def updateDelta():
     return ''
 
 def installPreInspection(version):
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return 'ok'
-    data = mw.execShell('arch')
+    data = yf.execShell('arch')
     if data[0].strip().startswith('aarch'):
         return '不支持aarch架构'
     return 'ok'
@@ -464,7 +464,7 @@ if __name__ == "__main__":
     version = "3.1.1"
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl).strip()
+        version = yf.readFile(version_pl).strip()
 
     func = sys.argv[1]
     if func == 'status':

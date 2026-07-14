@@ -16,15 +16,15 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     cmd = 'ls /usr/local/lib/ | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
-    info = mw.execShell(cmd)
+    info = yf.execShell(cmd)
     p = "/usr/local/lib/" + info[0].strip() + "/site-packages"
     sys.path.append(p)
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -33,7 +33,7 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getSPluginDir():
@@ -41,7 +41,7 @@ def getSPluginDir():
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getConf():
@@ -51,7 +51,7 @@ def getConf():
 
 def getDataDir():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'datadir\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -59,7 +59,7 @@ def getDataDir():
 
 def getRelayLogName():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'relay-log\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -67,7 +67,7 @@ def getRelayLogName():
 
 def getLogBinName():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'log-bin\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -85,7 +85,7 @@ def binLogListLook(args):
     cmd = my_binlog_cmd + ' --no-defaults ' + \
         data_dir + '/' + file + '|tail -' + str(line)
 
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
 
     rdata = {}
     rdata['cmd'] = cmd
@@ -106,7 +106,7 @@ def binLogListLookDecode(args):
     cmd = my_binlog_cmd + ' --no-defaults --base64-output=decode-rows -vvvv ' + \
         data_dir + '/' + file + '|tail -' + str(line)
 
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
 
     rdata = {}
     rdata['cmd'] = cmd
@@ -144,7 +144,7 @@ def binLogListTraceRelay(args):
     cmd = my_binlog_cmd + ' --no-defaults --base64-output=decode-rows -vvvv ' + \
         data_dir + '/' + file + '|tail -' + str(line)
 
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
 
     rdata['cmd'] = cmd
     rdata['data'] = data[0]
@@ -182,7 +182,7 @@ def binLogListTraceBinLog(args):
     cmd = my_binlog_cmd + ' --no-defaults --base64-output=decode-rows -vvvv ' + \
         data_dir + '/' + file + '|tail -' + str(line)
 
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
 
     rdata['cmd'] = cmd
     rdata['data'] = data[0]

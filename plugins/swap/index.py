@@ -13,7 +13,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -22,11 +22,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -67,8 +67,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def status():
@@ -81,7 +81,7 @@ def status():
             if sfile in f.read():
                 return 'start'
     except Exception as e:
-        data = mw.execShell("cat /proc/swaps")
+        data = yf.execShell("cat /proc/swaps")
         if sfile in data[0]:
             return 'start'
     return 'stop'
@@ -95,7 +95,7 @@ def getInitDTpl():
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -104,14 +104,14 @@ def initDreplace():
 
     # initd replace
     # 每次强制使用最新的模板更新，确保老用户的脚本也能一并修复
-    content = mw.readFile(file_tpl)
+    content = yf.readFile(file_tpl)
     content = content.replace(
         '{$SERVER_PATH}', getServerDir() + '/swapfile')
-    mw.writeFile(file_bin, content)
-    mw.execShell('chmod +x ' + file_bin)
+    yf.writeFile(file_bin, content)
+    yf.execShell('chmod +x ' + file_bin)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/swap.service'
     systemServiceTpl = getPluginDir() + '/init.d/swap.service.tpl'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
@@ -122,12 +122,12 @@ def initDreplace():
         swapoff_bin = shutil.which('swapoff')
         if not swapoff_bin:
             swapoff_bin = '/sbin/swapoff'
-        content = mw.readFile(systemServiceTpl)
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
         content = content.replace('{$SWAPON_BIN}', swapon_bin)
         content = content.replace('{$SWAPOFF_BIN}', swapoff_bin)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
@@ -135,8 +135,8 @@ def initDreplace():
 def swapOp(method):
     file = initDreplace()
 
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' swap')
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' swap')
         
         # 针对 start/stop/restart 方法，直接通过 status() 的真实结果进行判定，而非完全依赖 stderr 为空
         if method == 'start':
@@ -158,7 +158,7 @@ def swapOp(method):
             return 'ok'
         return 'fail'
 
-    data = mw.execShell(file + ' ' + method)
+    data = yf.execShell(file + ' ' + method)
     if data[1] == '':
         return 'ok'
     return 'fail'
@@ -181,29 +181,29 @@ def reload():
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status swap | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable swap')
+    yf.execShell('systemctl enable swap')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable swap')
+    yf.execShell('systemctl disable swap')
     return 'ok'
 
 
@@ -227,7 +227,7 @@ def swapStatus():
                         break
     except Exception as e:
         # 备用方案：读取 free -m，兼容不同 Locale 的 "Swap" 与 "交换"
-        data = mw.execShell("free -m")
+        data = yf.execShell("free -m")
         for line in data[0].split('\n'):
             if 'Swap:' in line or '交换:' in line:
                 parts = line.split()
@@ -249,7 +249,7 @@ def swapStatus():
                         break
     except Exception as e:
         # 备用方案：从 free -m 获取，兼容不同 Locale
-        data = mw.execShell("free -m")
+        data = yf.execShell("free -m")
         for line in data[0].split('\n'):
             if 'Mem:' in line or '内存:' in line:
                 parts = line.split()
@@ -264,7 +264,7 @@ def swapStatus():
         'system_total': system_total,
         'mem_total': mem_total
     }
-    return mw.returnJson(True, "ok", data)
+    return yf.returnJson(True, "ok", data)
 
 
 def changeSwap():
@@ -279,10 +279,10 @@ def changeSwap():
     try:
         size_int = int(size)
         if size_int < 100 or size_int > 32768: # 限制虚拟内存范围为 100MB 至 32GB
-            return mw.returnJson(False, '容量大小不合法！范围应在 100MB - 32768MB 之间。')
+            return yf.returnJson(False, '容量大小不合法！范围应在 100MB - 32768MB 之间。')
         size = str(size_int)
     except ValueError:
-        return mw.returnJson(False, '容量大小必须为纯正整数！')
+        return yf.returnJson(False, '容量大小必须为纯正整数！')
 
     swapOp('stop')
 
@@ -290,11 +290,11 @@ def changeSwap():
 
     cmd = 'dd if=/dev/zero of=' + gsdir + '/swapfile bs=1M count=' + size
     cmd += ' && mkswap ' + gsdir + '/swapfile && chmod 600 ' + gsdir + '/swapfile'
-    msg = mw.execShell(cmd)
+    msg = yf.execShell(cmd)
     swapOp('start')
 
     # 可用性提升：不再将 dd 底层的多行英文状态日志原样输出，而是净化为优雅、亲切的中文成功提示
-    return mw.returnJson(True, "修改成功：已成功挂载 " + size + " MB 专属虚拟内存文件！")
+    return yf.returnJson(True, "修改成功：已成功挂载 " + size + " MB 专属虚拟内存文件！")
 
 if __name__ == "__main__":
     func = sys.argv[1]

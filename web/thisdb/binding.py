@@ -9,7 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.yf as mw
+import core.yf as yf
 
 # 站点-子目录绑定
 
@@ -17,10 +17,10 @@ __FIELD = 'id,pid,domain,port,path,add_time'
 
 def getBindingCountByDomain(name):
     # .debug(True)
-    return mw.M('binding').where("domain=?", (name,)).count()
+    return yf.M('binding').where("domain=?", (name,)).count()
 
 def addBinding(pid, domain, port, path):
-    now_time = mw.getDateFromNow()
+    now_time = yf.getDateFromNow()
     insert_data = {
         'pid': pid,
         'domain': domain,
@@ -28,19 +28,19 @@ def addBinding(pid, domain, port, path):
         'path':path,
         'add_time': now_time,
     }
-    return mw.M('binding').insert(insert_data)
+    return yf.M('binding').insert(insert_data)
 
 def getBindingListBySiteId(site_id):
     # .debug(True)
-    binding_list = mw.M('binding').field(__FIELD).where('pid=?', (site_id,)).select()
+    binding_list = yf.M('binding').field(__FIELD).where('pid=?', (site_id,)).select()
     return binding_list
 
 def getBindingById(site_id):
-    return mw.M('binding').where("id=?", (site_id,)).field(__FIELD).find()
+    return yf.M('binding').where("id=?", (site_id,)).field(__FIELD).find()
 
 
 def deleteBindingById(binding_id):
-    return mw.M('binding').where("id=?", (binding_id,)).delete()
+    return yf.M('binding').where("id=?", (binding_id,)).delete()
 
 def deleteBindingBySiteId(site_id):
-    return mw.M('binding').where("pid=?", (site_id,)).delete()
+    return yf.M('binding').where("pid=?", (site_id,)).delete()

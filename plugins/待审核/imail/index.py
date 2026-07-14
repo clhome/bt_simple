@@ -18,7 +18,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -69,33 +69,33 @@ class App:
         return 'imail'
 
     def getPluginDir(self):
-        return mw.getPluginDir() + '/' + self.getPluginName()
+        return yf.getPluginDir() + '/' + self.getPluginName()
 
     def getServerDir(self):
-        return mw.getServerDir() + '/' + self.getPluginName()
+        return yf.getServerDir() + '/' + self.getPluginName()
 
     def getInitdConfTpl(self):
         path = self.getPluginDir() + "/init.d/imail.tpl"
         return path
 
     def getHomeDir(self):
-        if mw.isAppleSystem():
-            user = mw.execShell(
+        if yf.isAppleSystem():
+            user = yf.execShell(
                 "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
             return '/Users/' + user
         else:
             return '/root'
 
     def getRunUser(self):
-        if mw.isAppleSystem():
-            user = mw.execShell(
+        if yf.isAppleSystem():
+            user = yf.execShell(
                 "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
             return user
         else:
             return 'root'
 
     def status(self):
-        data = mw.execShell(
+        data = yf.execShell(
             "ps -ef|grep " + self.getPluginName() + " |grep -v grep | grep -v python | awk '{print $2}'")
         if data[0] == '':
             return 'stop'
@@ -103,8 +103,8 @@ class App:
 
     def contentReplace(self, content):
 
-        service_path = mw.getServerDir()
-        content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+        service_path = yf.getServerDir()
+        content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
         content = content.replace('{$SERVER_PATH}', service_path)
         content = content.replace('{$RUN_USER}', self.getRunUser())
         content = content.replace('{$HOME_DIR}', self.getHomeDir())
@@ -114,7 +114,7 @@ class App:
     def initDreplace(self):
 
         file_tpl = self.getInitdConfTpl()
-        service_path = mw.getServerDir()
+        service_path = yf.getServerDir()
 
         initD_path = self.getServerDir() + '/init.d'
         if not os.path.exists(initD_path):
@@ -124,21 +124,21 @@ class App:
         file_bin = initD_path + '/' + self.getPluginName()
 
         if not os.path.exists(file_bin):
-            content = mw.readFile(file_tpl)
+            content = yf.readFile(file_tpl)
             content = self.contentReplace(content)
-            mw.writeFile(file_bin, content)
-            mw.execShell('chmod +x ' + file_bin)
+            yf.writeFile(file_bin, content)
+            yf.execShell('chmod +x ' + file_bin)
 
         # systemd
-        systemDir = mw.systemdCfgDir()
+        systemDir = yf.systemdCfgDir()
         systemService = systemDir + '/imail.service'
         systemServiceTpl = self.getPluginDir() + '/init.d/imail.service.tpl'
         if os.path.exists(systemDir) and not os.path.exists(systemService):
-            service_path = mw.getServerDir()
-            se_content = mw.readFile(systemServiceTpl)
+            service_path = yf.getServerDir()
+            se_content = yf.readFile(systemServiceTpl)
             se_content = se_content.replace('{$SERVER_PATH}', service_path)
-            mw.writeFile(systemService, se_content)
-            mw.execShell('systemctl daemon-reload')
+            yf.writeFile(systemService, se_content)
+            yf.execShell('systemctl daemon-reload')
 
         log_path = self.getServerDir() + '/logs'
         if not os.path.exists(log_path):
@@ -149,14 +149,14 @@ class App:
     def imOp(self, method):
         file = self.initDreplace()
 
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             cmd = 'systemctl {} {}'.format(method, self.getPluginName())
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[1] == '':
                 return 'ok'
             return 'fail'
 
-        data = mw.execShell(self.__SR + file + ' ' + method)
+        data = yf.execShell(self.__SR + file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[0]
@@ -174,40 +174,40 @@ class App:
         return self.imOp('reload')
 
     def initd_status(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
         cmd = 'systemctl status imail | grep loaded | grep "enabled;"'
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0] == '':
             return 'fail'
         return 'ok'
 
     def initd_install(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
-        mw.execShell('systemctl enable imail')
+        yf.execShell('systemctl enable imail')
         return 'ok'
 
     def initd_uinstall(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
-        mw.execShell('systemctl disable imail')
+        yf.execShell('systemctl disable imail')
         return 'ok'
 
     def conf(self):
         conf_path = self.getServerDir() + '/custom/conf/app.conf'
         if not os.path.exists(conf_path):
-            return mw.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + mw.getLocalIp() + ":1080")
+            return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":1080")
 
         return self.getServerDir() + '/custom/conf/app.conf'
 
     def run_log(self):
         ilog = self.getServerDir() + '/logs/imail.log'
         if not os.path.exists(ilog):
-            return mw.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + mw.getLocalIp() + ":1080")
+            return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":1080")
 
         return self.getServerDir() + '/logs/imail.log'
 

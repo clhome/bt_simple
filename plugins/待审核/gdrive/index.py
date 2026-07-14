@@ -21,7 +21,7 @@ import core.mw as mw
 import core.db as db
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -30,11 +30,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def in_array(name, arr=[]):
@@ -73,8 +73,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def status():
@@ -91,8 +91,8 @@ def isAuthApi():
 def getConf():
     if not isAuthApi():
         sign_in_url, state = gd.get_sign_in_url()
-        return mw.returnJson(False, "未授权!", {'auth_url': sign_in_url})
-    return mw.returnJson(True, "OK")
+        return yf.returnJson(False, "未授权!", {'auth_url': sign_in_url})
+    return yf.returnJson(True, "OK")
 
 
 def setAuthUrl():
@@ -109,22 +109,22 @@ def setAuthUrl():
         token = gd.set_auth_url(url)
         # gd.store_token(token)
         # gd.store_user()
-        return mw.returnJson(True, "授权成功!")
+        return yf.returnJson(True, "授权成功!")
     except Exception as e:
-        return mw.returnJson(False, "授权失败2!:" + str(e))
-    return mw.returnJson(False, "授权失败!:" + str(e))
+        return yf.returnJson(False, "授权失败2!:" + str(e))
+    return yf.returnJson(False, "授权失败!:" + str(e))
 
 
 def clearAuth():
     token = getServerDir() + "/token.json"
     if os.path.exists(token):
         os.remove(token)
-    return mw.returnJson(True, "清空授权成功!")
+    return yf.returnJson(True, "清空授权成功!")
 
 
 def getList():
     if not isAuthApi():
-        return mw.returnJson(False, "未配置,请点击`授权`", [])
+        return yf.returnJson(False, "未配置,请点击`授权`", [])
 
     args = getArgs()
     data = checkArgs(args, ['file_id'])
@@ -133,14 +133,14 @@ def getList():
 
     try:
         flist = gd.get_list(args['file_id'])
-        return mw.returnJson(True, "ok", flist)
+        return yf.returnJson(True, "ok", flist)
     except Exception as e:
-        return mw.returnJson(False, str(e), [])
+        return yf.returnJson(False, str(e), [])
 
 
 def createDir():
     if not isAuthApi():
-        return mw.returnJson(False, "未配置,请点击`授权`", [])
+        return yf.returnJson(False, "未配置,请点击`授权`", [])
 
     args = getArgs()
     data = checkArgs(args, ['parents', 'name'])
@@ -148,8 +148,8 @@ def createDir():
         return data[1]
     isok = gd.create_folder(args['name'], args['parents'])
     if isok:
-        return mw.returnJson(True, "创建成功")
-    return mw.returnJson(False, "创建失败")
+        return yf.returnJson(True, "创建成功")
+    return yf.returnJson(False, "创建失败")
 
 
 def deleteDir():
@@ -160,8 +160,8 @@ def deleteDir():
 
     isok = gd.delete_file_by_id(args['dir_name'])
     if isok:
-        return mw.returnJson(True, "删除成功")
-    return mw.returnJson(False, "文件不为空,删除失败!")
+        return yf.returnJson(True, "删除成功")
+    return yf.returnJson(False, "文件不为空,删除失败!")
 
 
 def deleteFile():
@@ -172,8 +172,8 @@ def deleteFile():
 
     isok = gd.delete_file(args['filename'])
     if isok:
-        return mw.returnJson(True, "删除成功")
-    return mw.returnJson(False, "删除失败")
+        return yf.returnJson(True, "删除成功")
+    return yf.returnJson(False, "删除失败")
 
 
 def findPathName(path, filename):
@@ -189,11 +189,11 @@ def findPathName(path, filename):
 
 def backupAllFunc(stype):
     if not isAuthApi():
-        mw.echoInfo("未授权API,无法使用!!!")
+        yf.echoInfo("未授权API,无法使用!!!")
         return ''
 
-    backup_dir = mw.getBackupDir()
-    run_dir = mw.getPanelDir()
+    backup_dir = yf.getBackupDir()
+    run_dir = yf.getPanelDir()
 
     stype = sys.argv[1]
     name = sys.argv[2]
@@ -209,12 +209,12 @@ def backupAllFunc(stype):
     # print("stype:", stype)
     # 提前获取-清理多余备份
     if stype == 'site':
-        pid = mw.M('sites').where('name=?', (name,)).getField('id')
-        backups = mw.M('backup').where('type=? and pid=?', ('0', pid)).field('id,filename').select()
+        pid = yf.M('sites').where('name=?', (name,)).getField('id')
+        backups = yf.M('backup').where('type=? and pid=?', ('0', pid)).field('id,filename').select()
     if stype == 'database':
-        db_path = mw.getServerDir() + '/mysql'
-        pid = mw.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
-        backups = mw.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
+        db_path = yf.getServerDir() + '/mysql'
+        pid = yf.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
+        backups = yf.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
     if stype == 'path':
         backup_path = backup_dir + '/path'
         _name = 'path_{}'.format(os.path.basename(name))
@@ -223,9 +223,9 @@ def backupAllFunc(stype):
     # 其他类型关系性数据库(mysql类的)
     if stype.find('database_') > -1:
         plugin_name = stype.replace('database_', '')
-        db_path = mw.getServerDir() + '/' + plugin_name
-        pid = mw.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
-        backups = mw.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
+        db_path = yf.getServerDir() + '/' + plugin_name
+        pid = yf.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
+        backups = yf.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
 
     args = stype + " " + name + " " + num
     cmd = 'python3 ' + run_dir + '/scripts/backup.py ' + args
@@ -255,31 +255,31 @@ def backupAllFunc(stype):
 
     # print(find_new_file)
 
-    filename = mw.execShell(find_new_file)[0].strip()
+    filename = yf.execShell(find_new_file)[0].strip()
     if filename == "":
-        mw.echoInfo("not find upload file!")
+        yf.echoInfo("not find upload file!")
         return False
 
-    mw.echoInfo("准备上传文件 {}".format(filename))
-    mw.echoStart('开始上传')
+    yf.echoInfo("准备上传文件 {}".format(filename))
+    yf.echoStart('开始上传')
     # gd.setDebug(False)
     gd.upload_file(filename, stype)
-    mw.echoEnd('上传成功')
+    yf.echoEnd('上传成功')
 
     # print(backups)
     backups = sorted(backups, key=lambda x: x['filename'], reverse=False)
-    mw.echoStart('开始删除远程备份')
+    yf.echoStart('开始删除远程备份')
     num = int(num)
     sep = len(backups) - num
     if sep > -1:
         for backup in backups:
             fn = os.path.basename(backup['filename'])
             gd.delete_file(fn, stype)
-            mw.echoInfo("---已清理远程过期备份文件：" + fn)
+            yf.echoInfo("---已清理远程过期备份文件：" + fn)
             sep -= 1
             if sep < 0:
                 break
-    mw.echoEnd('结束删除远程备份')
+    yf.echoEnd('结束删除远程备份')
 
     return ''
 

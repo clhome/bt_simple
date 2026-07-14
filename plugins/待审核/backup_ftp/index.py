@@ -21,7 +21,7 @@ import core.mw as mw
 import core.db as db
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -30,7 +30,7 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 sys.path.append(getPluginDir() + "/class")
@@ -38,7 +38,7 @@ from ftp_client import FtpPSClient
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getArgs():
@@ -60,8 +60,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def status():
@@ -74,10 +74,10 @@ def getConf():
         rdata = {
             'use_sftp':False,
         }
-        return mw.returnJson(False, "未配置", rdata)
-    data = mw.readFile(cfg)
+        return yf.returnJson(False, "未配置", rdata)
+    data = yf.readFile(cfg)
     data = json.loads(data)
-    return mw.returnJson(True, "OK", data)
+    return yf.returnJson(True, "OK", data)
 
 
 def setConf():
@@ -94,7 +94,7 @@ def setConf():
               'ftp_host']
     for v in values:
         if args[v] == '':
-            return mw.returnJson(False, '必填资料不能为空，请核实!', [])
+            return yf.returnJson(False, '必填资料不能为空，请核实!', [])
 
     if args['backup_path'] == '':
         args['backup_path'] = "/backup"
@@ -104,16 +104,16 @@ def setConf():
         ftp.injection_config(args)
         data = ftp.getList("/")
         if data:
-            mw.writeFile(cfg, mw.getJson(args))
-            return mw.returnJson(True, '设置成功', [])
+            yf.writeFile(cfg, yf.getJson(args))
+            return yf.returnJson(True, '设置成功', [])
     except Exception as e:
-        return mw.returnJson(False, "FTP校验失败，请核实!\n" + str(e), [])
+        return yf.returnJson(False, "FTP校验失败，请核实!\n" + str(e), [])
 
 
 def getList():
     cfg = getServerDir() + "/cfg.json"
     if not os.path.exists(cfg):
-        return mw.returnJson(False, "未配置FTP,请点击`账户设置`", [])
+        return yf.returnJson(False, "未配置FTP,请点击`账户设置`", [])
 
     args = getArgs()
     data = checkArgs(args, ['path'])
@@ -123,15 +123,15 @@ def getList():
     try:
         ftp = FtpPSClient()
         flist = ftp.getList(args['path'])
-        return mw.returnJson(True, "ok", flist)
+        return yf.returnJson(True, "ok", flist)
     except Exception as e:
-        return mw.returnJson(False, str(e), [])
+        return yf.returnJson(False, str(e), [])
 
 
 def createDir():
     cfg = getServerDir() + "/cfg.json"
     if not os.path.exists(cfg):
-        return mw.returnJson(False, "未配置FTP,请点击`账户设置`", [])
+        return yf.returnJson(False, "未配置FTP,请点击`账户设置`", [])
 
     args = getArgs()
     data = checkArgs(args, ['path', 'name'])
@@ -141,8 +141,8 @@ def createDir():
     ftp = FtpPSClient()
     isok = ftp.createDir(args['path'], args['name'])
     if isok:
-        return mw.returnJson(True, "创建成功")
-    return mw.returnJson(False, "创建失败")
+        return yf.returnJson(True, "创建成功")
+    return yf.returnJson(False, "创建失败")
 
 
 def deleteDir():
@@ -154,8 +154,8 @@ def deleteDir():
     ftp = FtpPSClient()
     isok = ftp.deleteDir(args['path'], args['dir_name'])
     if isok:
-        return mw.returnJson(True, "删除成功")
-    return mw.returnJson(False, "删除失败")
+        return yf.returnJson(True, "删除成功")
+    return yf.returnJson(False, "删除失败")
 
 
 def deleteFile():
@@ -167,8 +167,8 @@ def deleteFile():
     ftp = FtpPSClient()
     isok = ftp.deleteFile(args['path'] + "/" + args['filename'])
     if isok:
-        return mw.returnJson(True, "删除成功")
-    return mw.returnJson(False, "删除失败")
+        return yf.returnJson(True, "删除成功")
+    return yf.returnJson(False, "删除失败")
 
 def findPathName(path, filename):
     f = os.scandir(path)
@@ -195,14 +195,14 @@ def backupAllFunc(stype):
     # print("stype:", stype)
     # 提前获取-清理多余备份
     if stype == 'site':
-        pid = mw.M('sites').where('name=?', (name,)).getField('id')
-        backups = mw.M('backup').where('type=? and pid=?', ('0', pid)).field('id,filename').select()
+        pid = yf.M('sites').where('name=?', (name,)).getField('id')
+        backups = yf.M('backup').where('type=? and pid=?', ('0', pid)).field('id,filename').select()
     if stype == 'database':
-        db_path = mw.getServerDir() + '/mysql'
-        pid = mw.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
-        backups = mw.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
+        db_path = yf.getServerDir() + '/mysql'
+        pid = yf.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
+        backups = yf.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
     if stype == 'path':
-        backup_dir = mw.getBackupDir()
+        backup_dir = yf.getBackupDir()
         backup_path = backup_dir + '/path'
         _name = 'path_{}'.format(os.path.basename(name))
         backups = findPathName(backup_path, _name)
@@ -210,16 +210,16 @@ def backupAllFunc(stype):
     # 其他类型关系性数据库(mysql类的)
     if stype.find('database_') > -1:
         plugin_name = stype.replace('database_', '')
-        db_path = mw.getServerDir() + '/' + plugin_name
-        pid = mw.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
-        backups = mw.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
+        db_path = yf.getServerDir() + '/' + plugin_name
+        pid = yf.M('databases').dbPos(db_path, 'mysql').where('name=?', (name,)).getField('id')
+        backups = yf.M('backup').where('type=? and pid=?', ('1', pid)).field('id,filename').select()
 
     args = stype + " " + name + " " + num
-    cmd = 'python3 ' + mw.getPanelDir() + '/scripts/backup.py ' + args
+    cmd = 'python3 ' + yf.getPanelDir() + '/scripts/backup.py ' + args
     if stype.find('database_') > -1:
         plugin_name = stype.replace('database_', '')
         args = "database " + name + " " + num
-        cmd = 'python3 ' + mw.getPanelDir() + '/plugins/' + plugin_name + '/scripts/backup.py ' + args
+        cmd = 'python3 ' + yf.getPanelDir() + '/plugins/' + plugin_name + '/scripts/backup.py ' + args
 
     os.system(cmd)
 
@@ -234,25 +234,25 @@ def backupAllFunc(stype):
         bk_prefix = prefix_dict[stype]
         bk_name = stype
 
-    find_path = mw.getBackupDir() + '/' + bk_name + '/' + bk_prefix + '_' + name
+    find_path = yf.getBackupDir() + '/' + bk_name + '/' + bk_prefix + '_' + name
     if stype == 'path':
         _name = 'path_{}'.format(os.path.basename(name))
-        find_path = mw.getBackupDir() + '/path/'+_name
+        find_path = yf.getBackupDir() + '/path/'+_name
 
     find_new_file = "ls " + find_path + "_* | grep '.gz' | cut -d \\  -f 1 | awk 'END {print}'"
 
-    filename = mw.execShell(find_new_file)[0].strip()
+    filename = yf.execShell(find_new_file)[0].strip()
     if filename == "":
-        mw.echoInfo("not find upload file!")
+        yf.echoInfo("not find upload file!")
         return ''
 
-    mw.echoInfo("准备上传文件 {}".format(filename))
+    yf.echoInfo("准备上传文件 {}".format(filename))
     ftp = FtpPSClient()
     ftp.uploadFile(filename, stype)
 
     # print(backups)
     backups = sorted(backups, key=lambda x: x['filename'], reverse=False)
-    mw.echoStart('开始删除远程备份')
+    yf.echoStart('开始删除远程备份')
     num = int(num)
     sep = len(backups) - num
     if sep > -1:
@@ -260,11 +260,11 @@ def backupAllFunc(stype):
             fn = os.path.basename(backup['filename'])
             object_name = ftp.buildDirName(stype, fn)
             ftp.deleteFile(object_name)
-            mw.echoInfo("已清理远程过期备份文件：" + object_name)
+            yf.echoInfo("已清理远程过期备份文件：" + object_name)
             sep -= 1
             if sep < 0:
                 break
-    mw.echoEnd('结束删除远程备份')
+    yf.echoEnd('结束删除远程备份')
 
     return ''
 

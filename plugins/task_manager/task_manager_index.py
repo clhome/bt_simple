@@ -21,7 +21,7 @@ import core.mw as mw
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -30,11 +30,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 class mainClass(object):
@@ -61,7 +61,7 @@ class mainClass(object):
 
     def __init__(self):
         # print("__init__")
-        self.is_mac = mw.isAppleSystem()
+        self.is_mac = yf.isAppleSystem()
         self.old_path = getServerDir()+'/task_old.json'
         self.old_net_path = getServerDir()+'/network_old.json'
 
@@ -81,7 +81,7 @@ class mainClass(object):
         import copy
         w_file = '/dev/shm/mw_net_process'
         if not os.path.exists(w_file): return
-        net_process_body = mw.readFile(w_file)
+        net_process_body = yf.readFile(w_file)
         if not net_process_body: return
         net_process = net_process_body.split('\n')
         for np in net_process:
@@ -471,7 +471,7 @@ class mainClass(object):
             if meter_head_name in ['ps', 'memory_used', 'cpu_percent', 'name']:
                 return False
             self.meter_head[meter_head_name] = not self.meter_head[meter_head_name]
-            mw.writeFile(meter_head_file, json.dumps(self.meter_head))
+            yf.writeFile(meter_head_file, json.dumps(self.meter_head))
             return True
         except:
             return False
@@ -479,7 +479,7 @@ class mainClass(object):
     def get_meter_head(self, get=None):
         meter_head_file = getServerDir()+'/meter_head.json'
         if os.path.exists(meter_head_file):
-            self.meter_head = json.loads(mw.readFile(meter_head_file))
+            self.meter_head = json.loads(yf.readFile(meter_head_file))
         else:
             self.meter_head = {
                 'name': True,
@@ -496,7 +496,7 @@ class mainClass(object):
                 'io_write_bytes': True,
                 'connects': True
             }
-            mw.writeFile(meter_head_file, json.dumps(self.meter_head))
+            yf.writeFile(meter_head_file, json.dumps(self.meter_head))
         return self.meter_head
 
     # 添加进程查找
@@ -514,7 +514,7 @@ class mainClass(object):
                             ldata.append(i)
             return ldata
         except:
-            print(mw.getTracebackInfo())
+            print(yf.getTracebackInfo())
             return data
 
     def get_cpu_time(self):
@@ -527,7 +527,7 @@ class mainClass(object):
 
     # 获取python的路径
     def get_python_bin(self):
-        mw_dir = mw.getServerDir() + '/mdserver-web'
+        mw_dir = yf.getServerDir() + '/mdserver-web'
         bin_file = mw_dir + '/bin/python3'
         if os.path.exists(bin_file):
             return bin_file
@@ -535,16 +535,16 @@ class mainClass(object):
 
     # 检查process_network_total.py是否运行
     def check_process_net_total(self):
-        mw_dir = mw.getServerDir() + '/mdserver-web'
+        mw_dir = yf.getServerDir() + '/mdserver-web'
         _pid_file = mw_dir+'/logs/process_network_total.pid'
         if os.path.exists(_pid_file):
-            pid = mw.readFile(_pid_file)
+            pid = yf.readFile(_pid_file)
             if os.path.exists('/proc/' + pid): return True
 
         cmd_file = mw_dir+'/plugins/task_manager/process_network_total.py'
         python_bin = self.get_python_bin()
         _cmd = 'nohup {} {} &> /tmp/net.log &'.format(python_bin, cmd_file)
-        mw.execShell(_cmd)
+        yf.execShell(_cmd)
 
     # 进程折叠，将子进程折叠到父进程下，并将使用资源累加。
     def __pro_s_s(self, data: List) -> List:
@@ -610,13 +610,13 @@ class mainClass(object):
     # 外部接口，结束进程，pid30以上
     def kill_process(self, get):
         pid = int(get['pid'])
-        if pid < 30: return mw.returnData(False, '不能结束系统关键进程!')
-        if not pid in psutil.pids(): return mw.returnData(False, '指定进程不存在!')
+        if pid < 30: return yf.returnData(False, '不能结束系统关键进程!')
+        if not pid in psutil.pids(): return yf.returnData(False, '指定进程不存在!')
         if not 'killall' in get:
             p = psutil.Process(pid)
-            if self.is_panel_process(pid): return mw.returnData(False, '不能结束面板服务进程')
+            if self.is_panel_process(pid): return yf.returnData(False, '不能结束面板服务进程')
             p.kill()
-            return mw.returnData(True, '进程已结束')
+            return yf.returnData(True, '进程已结束')
         return self.kill_process_all(pid)
 
     # 是否为面板进程
@@ -626,7 +626,7 @@ class mainClass(object):
         if pid == self.panel_pid: return True
         if not self.task_pid:
             try:
-                self.task_pid = int(mw.execShell("ps aux | grep 'python3 task.py' |grep -v grep|head -n1|awk '{print $2}'")[0])
+                self.task_pid = int(yf.execShell("ps aux | grep 'python3 task.py' |grep -v grep|head -n1|awk '{print $2}'")[0])
             except:
                 self.task_pid = -1
         if pid == self.task_pid: return True
@@ -647,26 +647,26 @@ class mainClass(object):
 
     # 结束进程树 kill_process——>引用kill_process_all
     def kill_process_all(self, pid):
-        if pid < 30: return mw.returnData(True, '已结束此进程树!')
-        if self.is_panel_process(pid): return mw.returnData(False, '不能结束面板服务进程')
+        if pid < 30: return yf.returnData(True, '已结束此进程树!')
+        if self.is_panel_process(pid): return yf.returnData(False, '不能结束面板服务进程')
         try:
-            if not pid in psutil.pids(): mw.returnData(True, '已结束此进程树!')
+            if not pid in psutil.pids(): yf.returnData(True, '已结束此进程树!')
             p = psutil.Process(pid)
             ppid = p.ppid()
             name = p.name()
             p.kill()
-            mw.execShell('pkill -9 ' + shlex.quote(name))
+            yf.execShell('pkill -9 ' + shlex.quote(name))
             if name.find('php-') != -1:
-                mw.execShell("rm -f /tmp/php-cgi-*.sock")
+                yf.execShell("rm -f /tmp/php-cgi-*.sock")
             elif name.find('mysql') != -1:
-                mw.execShell("rm -f /tmp/mysql.sock")
+                yf.execShell("rm -f /tmp/mysql.sock")
             elif name.find('nginx') != -1:
-                mw.execShell("rm -f /tmp/mysql.sock")
+                yf.execShell("rm -f /tmp/mysql.sock")
             self.kill_process_lower(pid)
             if ppid: return self.kill_process_all(ppid)
         except:
             pass
-        return mw.returnData(True, '已结束此进程树!')
+        return yf.returnData(True, '已结束此进程树!')
 
     
 
@@ -765,7 +765,7 @@ class mainClass(object):
                 del (p)
                 del (tmp)
             except Exception as e:
-                print("err:", mw.getTracebackInfo())
+                print("err:", yf.getTracebackInfo())
                 continue
 
 
@@ -893,7 +893,7 @@ class mainClass(object):
                 del (p)
                 del (tmp)
             except Exception as e:
-                print(mw.getTracebackInfo())
+                print(yf.getTracebackInfo())
                 continue
 
         processList = self.__pro_s_s(processList)
@@ -977,8 +977,8 @@ class mainClass(object):
             processInfo['threads'] = p.num_threads()
             processInfo['ps'] = self.get_process_ps(processInfo['name'], pid, processInfo['exe'], p)
         except Exception as e:
-            # print(mw.getTracebackInfo())
-            return mw.returnData(False, '指定进程已关闭!')
+            # print(yf.getTracebackInfo())
+            return yf.returnData(False, '指定进程已关闭!')
         return processInfo
 
     # 获取用户组处理函数  get_user_list——>引用get_group_name
@@ -1001,7 +1001,7 @@ class mainClass(object):
 
     # 获取服务器的组名和id，从/etc/group中读取。存储到self.groupList,get_user_list——>引用get_group_list
     def get_group_list(self, get):
-        tmpList = mw.readFile('/etc/group').split("\n")
+        tmpList = yf.readFile('/etc/group').split("\n")
         groupList = []
         for gl in tmpList:
             tmp = gl.split(':')
@@ -1015,36 +1015,36 @@ class mainClass(object):
     # 外部接口，删除用户，不能删除系统运行环境用户
     def remove_user(self, get):
         if self.is_mac:
-            return mw.returnData(False, '无法操作!')
+            return yf.returnData(False, '无法操作!')
         users = ['www', 'root', 'mysql', 'shutdown', 'postfix', 
                 'smmsp', 'sshd', 'systemd-network', 'systemd-bus-proxy',
                 'avahi-autoipd', 'mail', 'sync', 'lp', 
                 'adm', 'bin', 'mailnull', 'ntp', 'daemon', 'sys'];
 
         if not 'user' in get:
-            return mw.returnData(False, '缺少参数!') 
+            return yf.returnData(False, '缺少参数!') 
 
-        if get['user'] in users: return mw.returnData(False, '不能删除系统和环境关键用户!')
+        if get['user'] in users: return yf.returnData(False, '不能删除系统和环境关键用户!')
 
         user = get['user']
 
-        r = mw.execShell("userdel " + shlex.quote(user))
+        r = yf.execShell("userdel " + shlex.quote(user))
         if r[1].find('process') != -1:
             try:
                 pid = r[1].split()[-1]
                 p = psutil.Process(int(pid))
                 pname = p.name()
                 p.kill()
-                mw.execShell("pkill -9 " + shlex.quote(pname))
-                r = mw.execShell("userdel " + shlex.quote(user))
+                yf.execShell("pkill -9 " + shlex.quote(pname))
+                r = yf.execShell("userdel " + shlex.quote(user))
             except:
                 pass
-        if r[1].find('userdel:') != -1: return mw.returnData(False, r[1]);
-        return mw.returnData(True, '删除成功!')
+        if r[1].find('userdel:') != -1: return yf.returnData(False, r[1]);
+        return yf.returnData(True, '删除成功!')
 
     # 获取用户列表  从/etc/passwd文件中读取
     def get_user_list(self, get={}):
-        tmpList = mw.readFile('/etc/passwd').strip().split("\n")
+        tmpList = yf.readFile('/etc/passwd').strip().split("\n")
         userList = []
         self.groupList = self.get_group_list(get)
         for ul in tmpList:
@@ -1076,7 +1076,7 @@ class mainClass(object):
                     ldata.append(i)
             return ldata
         except:
-            mw.writeLog('任务管理', traceback.format_exc())
+            yf.writeLog('任务管理', traceback.format_exc())
             return data
 
     # get_network_list ——>引用get_network
@@ -1172,11 +1172,11 @@ class mainClass(object):
     # 获取当前运行级别  get_service_list ——> 引用get_my_runlevel
     def get_my_runlevel(self):
         try:
-            runlevel = mw.execShell('runlevel')[0].split()[1]
+            runlevel = yf.execShell('runlevel')[0].split()[1]
         except:
             runlevel_dict = {"multi-user.target": '3', 'rescue.target': '1', 'poweroff.target': '0',
                              'graphical.target': '5', "reboot.target": '6'}
-            r_tmp = mw.execShell('systemctl get-default')[0].strip()
+            r_tmp = yf.execShell('systemctl get-default')[0].strip()
             if r_tmp in runlevel_dict:
                 runlevel = runlevel_dict[r_tmp]
             else:
@@ -1227,7 +1227,7 @@ class mainClass(object):
         runList = []
         for rfile in runFile:
             if not os.path.exists(rfile): continue
-            bodyR = self.clear_comments(mw.readFile(rfile))
+            bodyR = self.clear_comments(yf.readFile(rfile))
             if not bodyR: continue
             stat = os.stat(rfile)
             accept = str(oct(stat.st_mode)[-3:])
@@ -1316,55 +1316,55 @@ class mainClass(object):
     # 外部接口，删除服务。不能删除mw
     def remove_service(self, get):
         if not 'serviceName' in get:
-            return mw.returnData(False,'缺少参数');
+            return yf.returnData(False,'缺少参数');
 
         serviceName = get['serviceName']
-        if serviceName == 'mw': return mw.returnData(False, '不能通过面板结束面板服务!')
+        if serviceName == 'mw': return yf.returnData(False, '不能通过面板结束面板服务!')
         systemctl_user_path = '/usr/lib/systemd/system/'
         if os.path.exists(systemctl_user_path + serviceName + '.service'):  
-            return mw.returnData(False,'Systemctl托管的服务不能通过面板删除');
+            return yf.returnData(False,'Systemctl托管的服务不能通过面板删除');
 
-        mw.execShell('service ' + shlex.quote(serviceName) + ' stop')
+        yf.execShell('service ' + shlex.quote(serviceName) + ' stop')
         if os.path.exists('/usr/sbin/update-rc.d'):
-            mw.execShell('update-rc.d ' + shlex.quote(serviceName) + ' remove')
+            yf.execShell('update-rc.d ' + shlex.quote(serviceName) + ' remove')
         elif os.path.exists('/usr/sbin/chkconfig'):
-            mw.execShell('chkconfig --del ' + shlex.quote(serviceName))
+            yf.execShell('chkconfig --del ' + shlex.quote(serviceName))
         else:
-            mw.execShell("rm -f /etc/rc0.d/*" + shlex.quote(serviceName))
-            mw.execShell("rm -f /etc/rc1.d/*" + shlex.quote(serviceName))
-            mw.execShell("rm -f /etc/rc2.d/*" + shlex.quote(serviceName))
-            mw.execShell("rm -f /etc/rc3.d/*" + shlex.quote(serviceName))
-            mw.execShell("rm -f /etc/rc4.d/*" + shlex.quote(serviceName))
-            mw.execShell("rm -f /etc/rc5.d/*" + shlex.quote(serviceName))
-            mw.execShell("rm -f /etc/rc6.d/*" + shlex.quote(serviceName))
+            yf.execShell("rm -f /etc/rc0.d/*" + shlex.quote(serviceName))
+            yf.execShell("rm -f /etc/rc1.d/*" + shlex.quote(serviceName))
+            yf.execShell("rm -f /etc/rc2.d/*" + shlex.quote(serviceName))
+            yf.execShell("rm -f /etc/rc3.d/*" + shlex.quote(serviceName))
+            yf.execShell("rm -f /etc/rc4.d/*" + shlex.quote(serviceName))
+            yf.execShell("rm -f /etc/rc5.d/*" + shlex.quote(serviceName))
+            yf.execShell("rm -f /etc/rc6.d/*" + shlex.quote(serviceName))
         filename = '/etc/init.d/' + serviceName
         if os.path.exists(filename): os.remove(filename)
-        return mw.returnData(True, '删除成功!')
+        return yf.returnData(True, '删除成功!')
 
     # 外部接口，设置软件运行环境，不能设置0，6
     def set_runlevel_state(self, get):
         if not 'runlevel' in get:
-            return mw.returnData(False,'缺少参数[runlevel]')
+            return yf.returnData(False,'缺少参数[runlevel]')
 
         if not 'serviceName' in get:
-            return mw.returnData(False,'缺少参数[serviceName]')
+            return yf.returnData(False,'缺少参数[serviceName]')
 
         runlevel = get['runlevel']
         serviceName = get['serviceName']
         if runlevel == '0' or runlevel == '6': 
-            return mw.returnData(False,'为安全考虑,不能通过面板直接修改此运行级别')
+            return yf.returnData(False,'为安全考虑,不能通过面板直接修改此运行级别')
 
         systemctl_user_path = '/usr/lib/systemd/system/'
         systemctl_run_path = '/etc/systemd/system/multi-user.target.wants/'
         if os.path.exists(systemctl_user_path + serviceName + '.service'):
-            runlevel_cmd = mw.execShell('runlevel')[0].split()[1]
+            runlevel_cmd = yf.execShell('runlevel')[0].split()[1]
             if runlevel_cmd != runlevel: 
-                return mw.returnData(False,'Systemctl托管的服务不能设置非当前运行级别的状态')
+                return yf.returnData(False,'Systemctl托管的服务不能设置非当前运行级别的状态')
             action = 'enable'
             if os.path.exists(systemctl_run_path + serviceName + '.service'): 
                 action = 'disable'
-            mw.execShell('systemctl ' + action + ' ' + shlex.quote(serviceName) + '.service')
-            return mw.returnData(True, '设置成功!')
+            yf.execShell('systemctl ' + action + ' ' + shlex.quote(serviceName) + '.service')
+            return yf.returnData(True, '设置成功!')
 
         rc_d = '/etc/rc' + runlevel + '.d/'
         import shutil
@@ -1375,8 +1375,8 @@ class mainClass(object):
             if d[:1] == 'S': c = 'K'
             dfile = rc_d + c + d[1:]
             shutil.move(sfile, dfile)
-            return mw.returnData(True, '设置成功!')
-        return mw.returnData(False, '设置失败!')
+            return yf.returnData(True, '设置成功!')
+        return yf.returnData(False, '设置失败!')
 
 
     # 外部接口 查询服务启动级别 /etc/init.d/
@@ -1431,7 +1431,7 @@ class mainClass(object):
         if os.path.exists(filename): return filename
         filename = '/var/spool/cron/root'
         if not os.path.exists(filename):
-            mw.writeFile(filename, "")
+            yf.writeFile(filename, "")
         return filename
 
     # 数转周
@@ -1497,7 +1497,7 @@ class mainClass(object):
         cronList = []
         if not os.path.exists(filename):
             return cronList
-        tmpList = mw.readFile(filename).split("\n")
+        tmpList = yf.readFile(filename).split("\n")
         for c in tmpList:
             c = c.strip()
             if c.startswith('#'): continue
@@ -1530,41 +1530,41 @@ class mainClass(object):
      # 重启cron服务
     def crondReload(self):
         if os.path.exists('/etc/init.d/crond'):
-            mw.execShell('/etc/init.d/crond reload')
+            yf.execShell('/etc/init.d/crond reload')
         elif os.path.exists('/etc/init.d/cron'):
-            mw.execShell('service cron restart')
+            yf.execShell('service cron restart')
         else:
-            mw.execShell("systemctl reload crond")
+            yf.execShell("systemctl reload crond")
 
     # 外部接口，删除计划任务
     def remove_cron(self, get):
         if not 'index' in get:
-            return mw.returnData(False, '参数不存在[index]!')
+            return yf.returnData(False, '参数不存在[index]!')
 
         index = int(get['index'])
         cronList = self.get_cron_list({})
-        if index > len(cronList) + 1: return mw.returnData(False, '指定任务不存在!')
+        if index > len(cronList) + 1: return yf.returnData(False, '指定任务不存在!')
         toCron = []
         for i in range(len(cronList)):
             if i == index: continue
             toCron.append(cronList[i]['command'])
         cronStr = "\n".join(toCron) + "\n\n"
         filename = self.get_cron_file()
-        mw.writeFile(filename, cronStr)
-        mw.execShell("chmod 600 " + filename)
+        yf.writeFile(filename, cronStr)
+        yf.execShell("chmod 600 " + filename)
         self.crondReload()
-        return mw.returnData(True, '删除成功!')
+        return yf.returnData(True, '删除成功!')
 
     # 外部接口 强制结束会话
     def pkill_session(self, get= {}):
         if not 'pts' in get:
-            return mw.returnData(False, '缺少参数!')
-        mw.execShell("pkill -kill -t " + shlex.quote(get['pts']))
-        return mw.returnData(True, '已强行结束会话[' + get['pts'] + ']')
+            return yf.returnData(False, '缺少参数!')
+        yf.execShell("pkill -kill -t " + shlex.quote(get['pts']))
+        return yf.returnData(True, '已强行结束会话[' + get['pts'] + ']')
 
     # 获取当前会话
     def get_who(self, get = {}):
-        whoTmp = mw.execShell('who')[0]
+        whoTmp = yf.execShell('who')[0]
         tmpList = whoTmp.split("\n")
         whoList = []
         for w in tmpList:
@@ -1613,7 +1613,7 @@ def kill_process(args = {}):
 
 def kill_process_all(args = {}):
     if not 'pid' in args:
-            return mw.returnData(False, '缺少参数!')
+            return yf.returnData(False, '缺少参数!')
     return mainClass.instance().kill_process_all(int(args['pid']))
 
 def set_meter_head(args = {}):

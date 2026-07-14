@@ -18,7 +18,7 @@ import core.mw as mw
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -27,11 +27,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -60,8 +60,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getInitdConfTpl():
@@ -85,7 +85,7 @@ def getConfTpl():
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep " + getPluginName() + " |grep -v grep | grep -v python | awk '{print $2}'")
     if data[0] == '':
         return 'stop'
@@ -93,8 +93,8 @@ def status():
 
 
 def getHomeDir():
-    if mw.isAppleSystem():
-        user = mw.execShell(
+    if yf.isAppleSystem():
+        user = yf.execShell(
             "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return '/Users/' + user
     else:
@@ -102,8 +102,8 @@ def getHomeDir():
 
 
 def getRunUser():
-    if mw.isAppleSystem():
-        user = mw.execShell("who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
+    if yf.isAppleSystem():
+        user = yf.execShell("who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return user
     else:
         return 'root'
@@ -117,8 +117,8 @@ export HOME=%s && ''' % ( getRunUser(), getHomeDir())
 
 def contentReplace(content):
 
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$RUN_USER}', getRunUser())
     content = content.replace('{$HOME_DIR}', getHomeDir())
@@ -129,7 +129,7 @@ def contentReplace(content):
 def initDreplace():
 
     file_tpl = getInitdConfTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -137,29 +137,29 @@ def initDreplace():
     file_bin = initD_path + '/' + getPluginName()
 
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     # conf_bin = getConf()
     # if not os.path.exists(conf_bin):
-    #     mw.makeDirs(getServerDir() + '/custom/conf')
+    #     yf.makeDirs(getServerDir() + '/custom/conf')
     #     conf_tpl = getConfTpl()
-    #     content = mw.readFile(conf_tpl)
+    #     content = yf.readFile(conf_tpl)
     #     content = contentReplace(content)
-    #     mw.writeFile(conf_bin, content)
+    #     yf.writeFile(conf_bin, content)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/gogs.service'
     systemServiceTpl = getPluginDir() + '/init.d/gogs.service.tpl'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        service_path = mw.getServerDir()
-        se_content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     log_path = getServerDir() + '/log'
     if not os.path.exists(log_path):
@@ -169,7 +169,7 @@ def initDreplace():
 
 
 def getRootUrl():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'ROOT_URL\\s*=\\s*(.*)'
     tmp = re.search(rep, content)
     if tmp:
@@ -183,7 +183,7 @@ def getRootUrl():
 
 
 def getSshPort():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'SSH_PORT\\s*=\\s*(.*)'
     tmp = re.search(rep, content)
     if not tmp:
@@ -192,7 +192,7 @@ def getSshPort():
 
 
 def getHttpPort():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'HTTP_PORT\\s*=\\s*(.*)'
     tmp = re.search(rep, content)
     if not tmp:
@@ -201,7 +201,7 @@ def getHttpPort():
 
 
 def getRootPath():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'ROOT\\s*=\\s*(.*)'
     tmp = re.search(rep, content)
     if not tmp:
@@ -214,7 +214,7 @@ def getDbConfValue():
     if not os.path.exists(conf):
         return {}
 
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     rep_scope = r"\\[database\\](.*?)\\["
     tmp = re.findall(rep_scope, content, re.S)
 
@@ -231,9 +231,9 @@ def getDbConfValue():
 def pMysqlDb(conf):
     host = conf['HOST'].split(':')
     # pymysql
-    db = mw.getMyORM()
+    db = yf.getMyORM()
     # MySQLdb |
-    # db = mw.getMyORMDb()
+    # db = yf.getMyORMDb()
 
     db.setPort(int(host[1]))
     db.setUser(conf['USER'])
@@ -301,34 +301,34 @@ def isSqlError(mysqlMsg):
     _mysqlMsg = str(mysqlMsg)
     # print _mysqlMsg
     if "MySQLdb" in _mysqlMsg:
-        return mw.returnData(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入： pip install mysql-python')
+        return yf.returnData(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入： pip install mysql-python')
     if "2002," in _mysqlMsg:
-        return mw.returnData(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnData(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "using password:" in _mysqlMsg:
-        return mw.returnData(False, '数据库管理密码错误!')
+        return yf.returnData(False, '数据库管理密码错误!')
     if "Connection refused" in _mysqlMsg:
-        return mw.returnData(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnData(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "1133," in _mysqlMsg:
-        return mw.returnData(False, '数据库用户不存在!')
+        return yf.returnData(False, '数据库用户不存在!')
     if "1007," in _mysqlMsg:
-        return mw.returnData(False, '数据库已经存在!')
+        return yf.returnData(False, '数据库已经存在!')
     if "1044," in _mysqlMsg:
-        return mw.returnData(False, mysqlMsg[1])
+        return yf.returnData(False, mysqlMsg[1])
     if "2003," in _mysqlMsg:
-        return mw.returnData(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
-    return mw.returnData(True, 'OK')
+        return yf.returnData(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
+    return yf.returnData(True, 'OK')
 
 
 def gogsOp(method):
     file = initDreplace()
 
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' gogs')
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' gogs')
         if data[1] == '':
             return 'ok'
         return 'fail'
 
-    data = mw.execShell(__SR + file + ' ' + method)
+    data = yf.execShell(__SR + file + ' ' + method)
     if data[1] == '':
         return 'ok'
     return data[0]
@@ -351,29 +351,29 @@ def reload():
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status gogs | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable gogs')
+    yf.execShell('systemctl enable gogs')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable gogs')
+    yf.execShell('systemctl disable gogs')
     return 'ok'
 
 
@@ -390,7 +390,7 @@ def postReceiveLog():
 def getGogsConf():
     conf = getConf()
     if not os.path.exists(conf):
-        return mw.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + mw.getLocalIp() + ":3000")
+        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
 
     gets = [
         {'name': 'DOMAIN', 'type': -1, 'ps': '服务器域名'},
@@ -412,7 +412,7 @@ def getGogsConf():
         {'name': 'SHOW_FOOTER_VERSION', 'type': 2, 'ps': 'Gogs版本信息'},
         {'name': 'SHOW_FOOTER_TEMPLATE_LOAD_TIME', 'type': 2, 'ps': 'Gogs模板加载时间'},
     ]
-    conf = mw.readFile(conf)
+    conf = yf.readFile(conf)
     result = []
 
     for g in gets:
@@ -422,7 +422,7 @@ def getGogsConf():
             continue
         g['value'] = tmp.groups()[0]
         result.append(g)
-    return mw.returnJson(True, 'OK', result)
+    return yf.returnJson(True, 'OK', result)
 
 
 def submitGogsConf():
@@ -442,34 +442,34 @@ def submitGogsConf():
             'SHOW_FOOTER_TEMPLATE_LOAD_TIME']
     args = getArgs()
     filename = getConf()
-    conf = mw.readFile(filename)
+    conf = yf.readFile(filename)
     for g in gets:
         if g in args:
             rep = g + '\\s*=\\s*(.*)'
             val = g + ' = ' + args[g]
             conf = re.sub(rep, val, conf)
-    mw.writeFile(filename, conf)
+    yf.writeFile(filename, conf)
     reload()
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 
 def gogsEditTpl():
     data = {}
     data['post_receive'] = getPluginDir() + '/hook/post-receive.tpl'
     data['commit'] = getPluginDir() + '/hook/commit.tpl'
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def userList():
 
     conf = getConf()
     if not os.path.exists(conf):
-        return mw.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + mw.getLocalIp() + ":3000")
+        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
 
     conf = getDbConfValue()
     gtype = getGogsDbType(conf)
     if gtype != 'mysql':
-        return mw.returnJson(False, "仅支持mysql数据操作!")
+        return yf.returnJson(False, "仅支持mysql数据操作!")
 
     import math
     args = getArgs()
@@ -499,13 +499,13 @@ def userList():
     count = list_count[0]["num"]
     list_data = pQuery(
         'select id,name,email from user ' + user_where2 + ' order by id desc limit ' + str(start) + ',' + str(page_size))
-    data['list'] = mw.getPage({'count': count, 'p': page,
+    data['list'] = yf.getPage({'count': count, 'p': page,
                                'row': page_size, 'tojs': 'gogsUserList'})
     data['page'] = page
     data['page_size'] = page_size
     data['page_count'] = int(math.ceil(count / page_size))
     data['data'] = list_data
-    return mw.returnJson(True, 'OK', data)
+    return yf.returnJson(True, 'OK', data)
 
 
 def checkRepoListIsHasScript(data):
@@ -524,12 +524,12 @@ def repoList():
 
     conf = getConf()
     if not os.path.exists(conf):
-        return mw.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + mw.getLocalIp() + ":3000")
+        return yf.returnJson(False, "请先安装初始化!<br/>默认地址:http://" + yf.getLocalIp() + ":3000")
 
     conf = getDbConfValue()
     gtype = getGogsDbType(conf)
     if gtype != 'mysql':
-        return mw.returnJson(False, "仅支持mysql数据操作!")
+        return yf.returnJson(False, "仅支持mysql数据操作!")
 
     import math
     args = getArgs()
@@ -565,12 +565,12 @@ def repoList():
     # print(list_data)
     list_data = checkRepoListIsHasScript(list_data)
 
-    data['list'] = mw.getPage({'count': count, 'p': page, 'row': page_size, 'tojs': 'gogsRepoListPage'})
+    data['list'] = yf.getPage({'count': count, 'p': page, 'row': page_size, 'tojs': 'gogsRepoListPage'})
     data['page'] = page
     data['page_size'] = page_size
     data['page_count'] = int(math.ceil(count / page_size))
     data['data'] = list_data
-    return mw.returnJson(True, 'OK', data)
+    return yf.returnJson(True, 'OK', data)
 
 
 def getAllUserProject(user, search=''):
@@ -613,7 +613,7 @@ def userProjectList():
     search = ''
 
     if not 'name' in args:
-        return mw.returnJson(False, '缺少参数name')
+        return yf.returnJson(False, '缺少参数name')
     if 'page' in args:
         page = int(args['page'])
 
@@ -635,38 +635,38 @@ def userProjectList():
     data['root_url'] = getRootUrl()
     data['data'] = ret_data
     data['args'] = args
-    data['list'] = mw.getPage(
+    data['list'] = yf.getPage(
         {'count': dlist_sum, 'p': page, 'row': page_size, 'tojs': 'userProjectListPage'})
 
-    return mw.returnJson(True, 'OK', data)
+    return yf.returnJson(True, 'OK', data)
 
 
 def projectScriptEdit():
     args = getArgs()
 
     if not 'user' in args:
-        return mw.returnJson(True, 'username missing')
+        return yf.returnJson(True, 'username missing')
 
     if not 'name' in args:
-        return mw.returnJson(True, 'project name missing')
+        return yf.returnJson(True, 'project name missing')
 
     user = args['user']
     name = args['name'] + '.git'
     post_receive = getRootPath() + '/' + user + '/' + name + \
         '/custom_hooks/commit'
     if os.path.exists(post_receive):
-        return mw.returnJson(True, 'OK', {'path': post_receive})
+        return yf.returnJson(True, 'OK', {'path': post_receive})
     else:
-        return mw.returnJson(False, 'file does not exist')
+        return yf.returnJson(False, 'file does not exist')
 
 
 def projectScriptLoad():
     args = getArgs()
     if not 'user' in args:
-        return mw.returnJson(True, 'username missing')
+        return yf.returnJson(True, 'username missing')
 
     if not 'name' in args:
-        return mw.returnJson(True, 'project name missing')
+        return yf.returnJson(True, 'project name missing')
 
     user = args['user']
     name = args['name'] + '.git'
@@ -676,28 +676,28 @@ def projectScriptLoad():
     post_receive = path + '/custom_hooks/post-receive'
 
     if not os.path.exists(path + '/custom_hooks'):
-        mw.makeDirs(path + '/custom_hooks')
+        yf.makeDirs(path + '/custom_hooks')
 
-    pct_content = mw.readFile(post_receive_tpl)
+    pct_content = yf.readFile(post_receive_tpl)
     pct_content = pct_content.replace('{$PATH}', path + '/custom_hooks')
-    mw.writeFile(post_receive, pct_content)
-    mw.execShell('chmod 777 ' + post_receive)
+    yf.writeFile(post_receive, pct_content)
+    yf.execShell('chmod 777 ' + post_receive)
 
     commit_tpl = getPluginDir() + '/hook/commit.tpl'
     commit = path + '/custom_hooks/commit'
 
-    codeDir = mw.getFatherDir() + '/git'
+    codeDir = yf.getFatherDir() + '/git'
 
-    cc_content = mw.readFile(commit_tpl)
+    cc_content = yf.readFile(commit_tpl)
 
     gitPath = getRootPath()
     cc_content = cc_content.replace('{$GITROOTURL}', gitPath)
     cc_content = cc_content.replace('{$CODE_DIR}', codeDir)
     cc_content = cc_content.replace('{$USERNAME}', user)
     cc_content = cc_content.replace('{$PROJECT}', args['name'])
-    cc_content = cc_content.replace('{$WEB_ROOT}', mw.getWwwDir())
-    mw.writeFile(commit, cc_content)
-    mw.execShell('chmod 777 ' + commit)
+    cc_content = cc_content.replace('{$WEB_ROOT}', yf.getWwwDir())
+    yf.writeFile(commit, cc_content)
+    yf.execShell('chmod 777 ' + commit)
 
     return 'ok'
 
@@ -713,11 +713,11 @@ def projectScriptUnload():
 
     post_receive = getRootPath() + '/' + user + '/' + name + \
         '/custom_hooks/post-receive'
-    mw.execShell('rm -f ' + post_receive)
+    yf.execShell('rm -f ' + post_receive)
 
     commit = getRootPath() + '/' + user + '/' + name + \
         '/custom_hooks/commit'
-    mw.execShell('rm -f ' + commit)
+    yf.execShell('rm -f ' + commit)
     return 'ok'
 
 
@@ -740,7 +740,7 @@ def projectScriptDebug():
         data['status'] = False
         data['msg'] = '没有日志文件'
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def projectScriptRun():
@@ -758,10 +758,10 @@ def projectScriptRun():
     script_run = 'sh -x ' + commit_sh + ' 2>' + commit_log
 
     if not os.path.exists(commit_sh):
-        return mw.returnJson(False, '脚本文件不存在!')
+        return yf.returnJson(False, '脚本文件不存在!')
 
-    mw.execShell(script_run)
-    return mw.returnJson(True, '脚本文件执行成功,观察日志!')
+    yf.execShell(script_run)
+    return yf.returnJson(True, '脚本文件执行成功,观察日志!')
 
 
 def projectScriptSelf():
@@ -808,10 +808,10 @@ def projectScriptSelf():
     rdata = {}
     rdata['data'] = dlist
     rdata['self_hook'] = self_hook_exist
-    rdata['list'] = mw.getPage(
+    rdata['list'] = yf.getPage(
         {'count': dlist_sum, 'p': 1, 'row': 100, 'tojs': 'self_page'})
 
-    return mw.returnJson(True, 'ok', rdata)
+    return yf.returnJson(True, 'ok', rdata)
 
 
 def projectScriptSelf_Create():
@@ -831,13 +831,13 @@ def projectScriptSelf_Create():
 
     abs_file = self_path + '/' + file + '.sh'
     if os.path.exists(abs_file):
-        return mw.returnJson(False, '脚本已经存在!')
+        return yf.returnJson(False, '脚本已经存在!')
 
-    mw.writeFile(abs_file, "#!/bin/bash\necho `date +'%Y-%m-%d %H:%M:%S'`\n")
+    yf.writeFile(abs_file, "#!/bin/bash\necho `date +'%Y-%m-%d %H:%M:%S'`\n")
 
     rdata = {}
     rdata['abs_file'] = abs_file
-    return mw.returnJson(True, '创建文件成功!', rdata)
+    return yf.returnJson(True, '创建文件成功!', rdata)
 
 
 def projectScriptSelf_Del():
@@ -860,7 +860,7 @@ def projectScriptSelf_Del():
     abs_file = self_path + '/' + file
     # print(abs_file)
     if not os.path.exists(abs_file):
-        return mw.returnJson(False, '脚本已经删除!')
+        return yf.returnJson(False, '脚本已经删除!')
 
     os.remove(abs_file)
 
@@ -869,7 +869,7 @@ def projectScriptSelf_Del():
     if os.path.exists(log_file):
         os.remove(log_file)
 
-    return mw.returnJson(True, '脚本删除成功!')
+    return yf.returnJson(True, '脚本删除成功!')
 
 
 def projectScriptSelf_Logs():
@@ -892,9 +892,9 @@ def projectScriptSelf_Logs():
     if os.path.exists(logs_file):
         rdata = {}
         rdata['path'] = logs_file
-        return mw.returnJson(True, 'ok', rdata)
+        return yf.returnJson(True, 'ok', rdata)
 
-    return mw.returnJson(False, '日志不存在!')
+    return yf.returnJson(False, '日志不存在!')
 
 
 def projectScriptSelf_Run():
@@ -913,8 +913,8 @@ def projectScriptSelf_Run():
     self_logs_path = custom_hooks + '/self_logs/' + file + '.log'
 
     shell = "sh -x " + self_path + " 2>" + self_logs_path + ' &'
-    mw.execShell(shell)
-    return mw.returnJson(True, '执行成功!')
+    yf.execShell(shell)
+    return yf.returnJson(True, '执行成功!')
 
 
 def projectScriptSelf_Rename():
@@ -937,7 +937,7 @@ def projectScriptSelf_Rename():
 
     o_file_abs = self_path + '/' + o_file + '.sh'
     if not os.path.exists(o_file_abs):
-        return mw.returnJson(False, '原文件已经不存在了!')
+        return yf.returnJson(False, '原文件已经不存在了!')
 
     n_file_abs = self_path + '/' + n_file + '.sh'
 
@@ -948,7 +948,7 @@ def projectScriptSelf_Rename():
     if os.path.exists(log_file):
         os.remove(log_file)
 
-    return mw.returnJson(True, '重命名成功!')
+    return yf.returnJson(True, '重命名成功!')
 
 
 def projectScriptSelf_Enable():
@@ -972,27 +972,27 @@ def projectScriptSelf_Enable():
     self_hook_tpl = getPluginDir() + '/hook/self_hook.tpl'
 
     if enable == '1':
-        content = mw.readFile(self_hook_tpl)
+        content = yf.readFile(self_hook_tpl)
         content = content.replace('{$HOOK_DIR}', custom_path + '/self')
         content = content.replace(
             '{$HOOK_LOGS_DIR}', custom_path + '/self_logs')
-        mw.writeFile(self_file, content)
-        mw.execShell("chmod 777 " + self_file)
+        yf.writeFile(self_file, content)
+        yf.execShell("chmod 777 " + self_file)
 
-        commit_content = mw.readFile(commit_path)
+        commit_content = yf.readFile(commit_path)
         commit_content += "\n\n" + "bash " + self_file + " " + note
-        mw.writeFile(commit_path, commit_content)
+        yf.writeFile(commit_path, commit_content)
 
-        return mw.returnJson(True, '开启成功!')
+        return yf.returnJson(True, '开启成功!')
     else:
-        commit_content = mw.readFile(commit_path)
+        commit_content = yf.readFile(commit_path)
         rep = ".*" + note
         commit_content = re.sub(rep, '', commit_content, re.M)
         commit_content = commit_content.strip()
-        mw.writeFile(commit_path, commit_content)
+        yf.writeFile(commit_path, commit_content)
         if os.path.exists(self_file):
             os.remove(self_file)
-        return mw.returnJson(True, '关闭成功!')
+        return yf.returnJson(True, '关闭成功!')
 
 
 def projectScriptSelf_Status():
@@ -1022,25 +1022,25 @@ def projectScriptSelf_Status():
         file_abs = self_path + '/' + file
         file_text_abs = self_path + '/' + file + '.txt'
         os.rename(file_abs, file_text_abs)
-        return mw.returnJson(True, '开始禁用成功!')
+        return yf.returnJson(True, '开始禁用成功!')
     else:
         file_abs = self_path + '/' + file.strip('.txt')
         file_text_abs = self_path + '/' + file
         os.rename(file_text_abs, file_abs)
-        return mw.returnJson(True, '开始使用成功!')
+        return yf.returnJson(True, '开始使用成功!')
 
-    return mw.returnJson(True, '禁用成功!')
+    return yf.returnJson(True, '禁用成功!')
 
 
 def getRsaPublic():
     path = getHomeDir()
     path += '/.ssh/id_rsa.pub'
 
-    content = mw.readFile(path)
+    content = yf.readFile(path)
 
     data = {}
     data['mw'] = content
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def getTotalStatistics():
@@ -1051,12 +1051,12 @@ def getTotalStatistics():
         count = list_count[0]["num"]
         data['status'] = True
         data['count'] = count
-        data['ver'] = mw.readFile(getServerDir() + '/version.pl').strip()
-        return mw.returnJson(True, 'ok', data)
+        data['ver'] = yf.readFile(getServerDir() + '/version.pl').strip()
+        return yf.returnJson(True, 'ok', data)
 
     data['status'] = False
     data['count'] = 0
-    return mw.returnJson(False, 'fail', data)
+    return yf.returnJson(False, 'fail', data)
 
 
 if __name__ == "__main__":

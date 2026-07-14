@@ -15,7 +15,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -24,11 +24,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getArgs():
@@ -51,17 +51,17 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getConf():
-    return mw.getServerDir() + '/web_conf/nginx/vhost/pgadmin.conf'
+    return yf.getServerDir() + '/web_conf/nginx/vhost/pgadmin.conf'
 
 
 def getPort():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'listen\s*(.*);'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -72,23 +72,23 @@ def getHomePage():
     try:
         port = getPort()
         ip = '127.0.0.1'
-        if not mw.isAppleSystem():
-            ip = mw.getLocalIp()
+        if not yf.isAppleSystem():
+            ip = yf.getLocalIp()
 
         cfg = getCfg()
         auth = cfg['username']+':'+cfg['password']
         url = 'http://' + auth + '@' + ip + ':' + port + '/'
-        return mw.returnJson(True, 'OK', url)
+        return yf.returnJson(True, 'OK', url)
     except Exception as e:
-        return mw.returnJson(False, '插件未启动!')
+        return yf.returnJson(False, '插件未启动!')
 
 
 
 def contentReplace(content):
     cfg = getCfg()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$APP_PATH}', service_path+'/'+getPluginName()+'/data')
 
@@ -109,27 +109,27 @@ def initCfg():
 
         data['web_pg_username'] = 'yftec@gmail.com'
         data['web_pg_password'] = 'admin'
-        mw.writeFile(cfg, json.dumps(data))
+        yf.writeFile(cfg, json.dumps(data))
 
 
 def setCfg(key, val):
     cfg = getServerDir() + "/cfg.json"
-    data = mw.readFile(cfg)
+    data = yf.readFile(cfg)
     data = json.loads(data)
     data[key] = val
-    mw.writeFile(cfg, json.dumps(data))
+    yf.writeFile(cfg, json.dumps(data))
 
 
 def getCfg():
     cfg = getServerDir() + "/cfg.json"
-    data = mw.readFile(cfg)
+    data = yf.readFile(cfg)
     data = json.loads(data)
     return data
 
 
 def returnCfg():
     cfg = getServerDir() + "/cfg.json"
-    data = mw.readFile(cfg)
+    data = yf.readFile(cfg)
     return data
 
 
@@ -176,11 +176,11 @@ def cleanNginxLog():
     for i in [log_a, log_e]:
         if os.path.exists(i):
             cmd = "echo '' > " + i
-            mw.execShell(cmd)
+            yf.execShell(cmd)
 
 def getPythonName():
     cmd = "ls /www/server/pgadmin/run/lib/ | grep python | cut -d \\  -f 1 | awk 'END {print}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     return data[0].strip();
 
 def initPgConfFile():
@@ -188,10 +188,10 @@ def initPgConfFile():
     file_tpl = getPluginDir() + '/conf/config_local.py'
     dst_file = getServerDir()+'/run/lib/'+pyname+'/site-packages/pgadmin4/config_local.py'
     if not os.path.exists(dst_file):
-        service_path = mw.getServerDir()
-        content = mw.readFile(file_tpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(file_tpl)
         content = content.replace('{$DATA_PATH}', service_path+'/'+getPluginName()+'/data')
-        mw.writeFile(dst_file, content)
+        yf.writeFile(dst_file, content)
 
 
 def initReplace():
@@ -200,61 +200,61 @@ def initReplace():
     file_tpl = getPluginDir() + '/conf/pgadmin.conf'
     file_run = getConf()
     if not os.path.exists(file_run):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_run, content)
+        yf.writeFile(file_run, content)
 
     pass_path = getServerDir() + '/pg.pass'
     if not os.path.exists(pass_path):
-        username = mw.getRandomString(8)
-        password = mw.getRandomString(10)
-        pass_cmd = username + ':' + mw.hasPwd(password)
+        username = yf.getRandomString(8)
+        password = yf.getRandomString(10)
+        pass_cmd = username + ':' + yf.hasPwd(password)
         setCfg('username', username)
         setCfg('password', password)
-        mw.writeFile(pass_path, pass_cmd)
+        yf.writeFile(pass_path, pass_cmd)
 
     # pg_conf = getCfg()
     judge_file = getServerDir()+'/data/pgadmin4/pgadmin4.db'
     if not os.path.exists(judge_file):
         pg_init_bash = getPluginDir()+'/pg_init.sh'
-        pg_rand = mw.getRandomString(8)
+        pg_rand = yf.getRandomString(8)
         pg_username = "yftec_"+pg_rand+"@gmail.com"
         setCfg('web_pg_username', pg_username)
-        pg_password = mw.getRandomString(10)
+        pg_password = yf.getRandomString(10)
         setCfg('web_pg_password', pg_password)
-        t = mw.execShell("bash "+ pg_init_bash + " " + pg_username + " " + pg_password)
+        t = yf.execShell("bash "+ pg_init_bash + " " + pg_username + " " + pg_password)
         # print(t)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/pgadmin.service'
 
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/pgadmin.service.tpl'
-        service_path = mw.getServerDir()
-        content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
         content = content.replace('{$PY_VER}', getPythonName())
 
         
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
 
 def pgOp(method):
     file = initReplace()
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
         return 'ok'
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service' + getPluginName() + ' ' + method)
+        data = yf.execShell('service' + getPluginName() + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method+ ' ' + getPluginName())
+    data = yf.execShell('systemctl ' + method+ ' ' + getPluginName())
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -272,7 +272,7 @@ def start():
 
     pgOp('start')
 
-    mw.restartWeb()
+    yf.restartWeb()
     return 'ok'
 
 
@@ -284,14 +284,14 @@ def stop():
         os.remove(conf)
 
     delPort()
-    mw.restartWeb()
+    yf.restartWeb()
     return 'ok'
 
 
 def restart():
     cleanNginxLog()
     state = pgOp('restart')
-    mw.restartWeb()
+    yf.restartWeb()
     return state
 
 
@@ -301,16 +301,16 @@ def reload():
 
 def getPgOption():
     data = getCfg()
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def getPgPort():
     try:
         port = getPort()
-        return mw.returnJson(True, 'OK', port)
+        return yf.returnJson(True, 'OK', port)
     except Exception as e:
         # print(e)
-        return mw.returnJson(False, '插件未启动!')
+        return yf.returnJson(False, '插件未启动!')
 
 
 def setPgPort():
@@ -321,19 +321,19 @@ def setPgPort():
 
     port = args['port']
     if port == '80':
-        return mw.returnJson(False, '80端不能使用!')
+        return yf.returnJson(False, '80端不能使用!')
 
     file = getConf()
     if not os.path.exists(file):
-        return mw.returnJson(False, '插件未启动!')
-    content = mw.readFile(file)
+        return yf.returnJson(False, '插件未启动!')
+    content = yf.readFile(file)
     rep = r'listen\s*(.*);'
     content = re.sub(rep, "listen " + port + ';', content)
-    mw.writeFile(file, content)
+    yf.writeFile(file, content)
 
     setCfg("port", port)
-    mw.restartWeb()
-    return mw.returnJson(True, '修改成功!')
+    yf.restartWeb()
+    return yf.returnJson(True, '修改成功!')
 
 
 def setPgUsername():
@@ -347,12 +347,12 @@ def setPgUsername():
 
     cfg = getCfg()
     pma_path = getServerDir() + '/pg.pass'
-    username = mw.getRandomString(10)
-    pass_cmd = cfg['username'] + ':' + mw.hasPwd(cfg['password'])
-    mw.writeFile(pma_path, pass_cmd)
+    username = yf.getRandomString(10)
+    pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
+    yf.writeFile(pma_path, pass_cmd)
 
-    mw.restartWeb()
-    return mw.returnJson(True, '修改成功!')
+    yf.restartWeb()
+    return yf.returnJson(True, '修改成功!')
 
 
 def setPgPassword():
@@ -366,12 +366,12 @@ def setPgPassword():
 
     cfg = getCfg()
     pma_path = getServerDir() + '/pg.pass'
-    username = mw.getRandomString(10)
-    pass_cmd = cfg['username'] + ':' + mw.hasPwd(cfg['password'])
-    mw.writeFile(pma_path, pass_cmd)
+    username = yf.getRandomString(10)
+    pass_cmd = cfg['username'] + ':' + yf.hasPwd(cfg['password'])
+    yf.writeFile(pma_path, pass_cmd)
 
-    mw.restartWeb()
-    return mw.returnJson(True, '修改成功!')
+    yf.restartWeb()
+    return yf.returnJson(True, '修改成功!')
 
 
 def accessLog():
@@ -382,7 +382,7 @@ def errorLog():
 
 
 def installVersion():
-    return mw.readFile(getServerDir() + '/version.pl')
+    return yf.readFile(getServerDir() + '/version.pl')
 
 def getPgAccessInfo():
     try:
@@ -400,7 +400,7 @@ def getPgAccessInfo():
             internal_ip = '127.0.0.1'
             
         try:
-            external_ip = mw.getHostAddr()
+            external_ip = yf.getHostAddr()
         except:
             external_ip = internal_ip
         
@@ -410,9 +410,9 @@ def getPgAccessInfo():
         data['password'] = cfg['password']
         data['web_pg_username'] = cfg.get('web_pg_username', '')
         data['web_pg_password'] = cfg.get('web_pg_password', '')
-        return mw.returnJson(True, 'ok', data)
+        return yf.returnJson(True, 'ok', data)
     except Exception as e:
-        return mw.returnJson(False, '插件未启动!')
+        return yf.returnJson(False, '插件未启动!')
 
 if __name__ == "__main__":
     func = sys.argv[1]

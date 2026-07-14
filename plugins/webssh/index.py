@@ -25,20 +25,20 @@ class App():
         self.__cmd_path = self.getServerDir() + '/' + self.__cmd_file
 
         if not os.path.exists(self.__cmd_path):
-            mw.writeFile(self.__cmd_path, '[]')
+            yf.writeFile(self.__cmd_path, '[]')
 
         self.__host_dir = self.getServerDir() + '/host'
         if not os.path.exists(self.__host_dir):
-            mw.makeDirs(self.__host_dir)
+            yf.makeDirs(self.__host_dir)
 
     def getPluginName(self):
         return 'webssh'
 
     def getPluginDir(self):
-        return mw.getPluginDir() + '/' + self.getPluginName()
+        return yf.getPluginDir() + '/' + self.getPluginName()
 
     def getServerDir(self):
-        return mw.getServerDir() + '/' + self.getPluginName()
+        return yf.getServerDir() + '/' + self.getPluginName()
 
     def getArgs(self):
         args = sys.argv[2:]
@@ -64,14 +64,14 @@ class App():
     def checkArgs(self, data, ck=[]):
         for i in range(len(ck)):
             if not ck[i] in data:
-                return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-        return (True, mw.returnJson(True, 'ok'))
+                return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+        return (True, yf.returnJson(True, 'ok'))
 
     def status(self):
         return 'start'
 
     def saveCmd(self, t):
-        rdata = mw.readFile(self.__cmd_path)
+        rdata = yf.readFile(self.__cmd_path)
         if not rdata:
             rdata = '[]'
         data_tmp = json.loads(rdata)
@@ -82,7 +82,7 @@ class App():
                 data_tmp[x]['cmd'] = t['cmd']
         if not is_has:
             data_tmp.append(t)
-        mw.writeFile(self.__cmd_path, json.dumps(data_tmp))
+        yf.writeFile(self.__cmd_path, json.dumps(data_tmp))
 
     def add_cmd(self):
         args = self.getArgs()
@@ -99,7 +99,7 @@ class App():
         }
         self.saveCmd(t)
 
-        return mw.returnJson(True, '添加成功!')
+        return yf.returnJson(True, '添加成功!')
 
     def del_cmd(self):
         args = self.getArgs()
@@ -108,27 +108,27 @@ class App():
             return check[1]
 
         title = args['title'].strip()
-        rdata = mw.readFile(self.__cmd_path)
+        rdata = yf.readFile(self.__cmd_path)
         if not rdata:
             rdata = '[]'
         data_tmp = json.loads(rdata)
         for x in range(0, len(data_tmp)):
             if data_tmp[x]['title'] == title:
                 del(data_tmp[x])
-                mw.writeFile(self.__cmd_path, json.dumps(data_tmp))
-                return mw.returnJson(True, '删除成功')
-        return mw.returnJson(False, '删除无效')
+                yf.writeFile(self.__cmd_path, json.dumps(data_tmp))
+                return yf.returnJson(True, '删除成功')
+        return yf.returnJson(False, '删除无效')
 
     def get_cmd_list(self):
-        rdata = mw.readFile(self.__cmd_path)
+        rdata = yf.readFile(self.__cmd_path)
         if not rdata:
             rdata = '[]'
         alist = json.loads(rdata)
-        return mw.returnJson(True, 'ok', alist)
+        return yf.returnJson(True, 'ok', alist)
 
     def getSshInfo(self, file):
-        rdata = mw.readFile(file)
-        destr = mw.deDoubleCrypt('mdserver-web', rdata)
+        rdata = yf.readFile(file)
+        destr = yf.deDoubleCrypt('mdserver-web', rdata)
         return json.loads(destr)
 
     def get_server_by_host_data(self, host):
@@ -158,10 +158,10 @@ class App():
                 if 'pkey_passwd' in info_tmp:
                     host_info['pkey_passwd'] = info_tmp['pkey_passwd']
             except Exception as e:
-                return mw.returnJson(False, '错误:' + str(e))
+                return yf.returnJson(False, '错误:' + str(e))
 
-            return mw.returnJson(True, 'ok!', host_info)
-        return mw.returnJson(False, '不存在此配置')
+            return yf.returnJson(True, 'ok!', host_info)
+        return yf.returnJson(False, '不存在此配置')
 
     def get_server_list(self):
         host_list = []
@@ -183,7 +183,7 @@ class App():
                     # host_info['sort'] = int(info_tmp['sort'])
                 except Exception as e:
                     # print(e)
-                    return mw.returnJson(False, str(e))
+                    return yf.returnJson(False, str(e))
 
                     # if os.path.exists(info_file):
                     #     os.remove(info_file)
@@ -192,7 +192,7 @@ class App():
                 host_list.append(host_info)
 
         host_list = sorted(host_list, key=lambda x: x['host'], reverse=False)
-        return mw.returnJson(True, 'ok!', host_list)
+        return yf.returnJson(True, 'ok!', host_list)
 
     def del_server(self):
         args = self.getArgs()
@@ -201,8 +201,8 @@ class App():
             return check[1]
         host = args['host']
         info_file = self.__host_dir + '/' + host
-        mw.execShell('rm -rf {}'.format(info_file))
-        return mw.returnJson(True, '删除成功!')
+        yf.execShell('rm -rf {}'.format(info_file))
+        return yf.returnJson(True, '删除成功!')
 
     def add_server(self):
         args = self.getArgs()
@@ -229,9 +229,9 @@ class App():
         if not os.path.exists(dst_host_dir):
             os.makedirs(dst_host_dir)
 
-        enstr = mw.enDoubleCrypt('mdserver-web', json.dumps(info))
-        mw.writeFile(dst_host_dir + '/info.json', enstr)
-        return mw.returnJson(True, '添加成功!')
+        enstr = yf.enDoubleCrypt('mdserver-web', json.dumps(info))
+        yf.writeFile(dst_host_dir + '/info.json', enstr)
+        return yf.returnJson(True, '添加成功!')
 
 if __name__ == "__main__":
     func = sys.argv[1]
@@ -240,4 +240,4 @@ if __name__ == "__main__":
         data = eval("classApp." + func + "()")
         print(data)
     except Exception as e:
-        print(mw.getTracebackInfo())
+        print(yf.getTracebackInfo())

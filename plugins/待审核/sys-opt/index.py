@@ -20,11 +20,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getArgs():
@@ -46,13 +46,13 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$SERVER_APP}', service_path + '/sys-opt')
     return content
@@ -63,22 +63,22 @@ def status():
 
 
 def start():
-    mw.execShell('sysctl -p')
+    yf.execShell('sysctl -p')
     return "ok"
 
 
 def stop():
-    mw.execShell('sysctl -p')
+    yf.execShell('sysctl -p')
     return 'ok'
 
 
 def restart():
-    mw.execShell('sysctl -p')
+    yf.execShell('sysctl -p')
     return 'ok'
 
 
 def reload():
-    mw.execShell('sysctl -p')
+    yf.execShell('sysctl -p')
     return 'ok'
 
 
@@ -89,7 +89,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -98,9 +98,9 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 def sysConf():

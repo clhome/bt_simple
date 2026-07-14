@@ -16,7 +16,7 @@ from utils.crontab import crontab as MwCrontab
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -25,11 +25,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getTaskConf():
@@ -40,7 +40,7 @@ def getTaskConf():
 def getConfigData():
     conf = getTaskConf()
     if os.path.exists(conf):
-        return json.loads(mw.readFile(getTaskConf()))
+        return json.loads(yf.readFile(getTaskConf()))
     return {
         "task_id": -1,
         "period": "day-n",
@@ -59,18 +59,18 @@ def createBgTaskByName(name):
     cfg = getConfigData()
 
     _name = "[勿删]御风OP防火墙后台任务"
-    res = mw.M("crontab").field("id, name").where("name=?", (_name,)).find()
+    res = yf.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
         return True
 
     if "task_id" in cfg.keys() and cfg["task_id"] > 0:
-        res = mw.M("crontab").field("id, name").where(
+        res = yf.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
             print("计划任务已经存在!")
             return True
 
-    mw_dir = mw.getPanelDir()
+    mw_dir = yf.getPanelDir()
     cmd = '''
 mw_dir=%s
 rname=%s
@@ -106,39 +106,39 @@ logs_file=$plugin_path/${rname}.log
     task_id = MwCrontab.instance().add(params)
     if task_id > 0:
         cfg["task_id"] = task_id        
-        mw.writeFile(getTaskConf(), json.dumps(cfg))
+        yf.writeFile(getTaskConf(), json.dumps(cfg))
 
 
 def removeBgTask():
     cfg = getConfigData()
     for x in range(len(cfg)):
         if "task_id" in cfg.keys() and cfg["task_id"] > 0:
-            res = mw.M("crontab").field("id, name").where(
+            res = yf.M("crontab").field("id, name").where(
                 "id=?", (cfg["task_id"],)).find()
             if res and res["id"] == cfg["task_id"]:
                 data = MwCrontab.instance().delete(cfg["task_id"])
                 if data['status']:
                     cfg["task_id"] = -1
-                    mw.writeFile(getTaskConf(), json.dumps(cfg))
+                    yf.writeFile(getTaskConf(), json.dumps(cfg))
                     return True
     return False
 
 
 def getCpuUsed():
     path = getServerDir() + "/cpu.info"
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         import psutil
         used = psutil.cpu_percent(interval=1)
-        mw.writeFile(path, str(int(used)))
+        yf.writeFile(path, str(int(used)))
     else:
         cmd = "top -bn 1 | fgrep 'Cpu(s)' | awk '{print 100 -$8}' | awk -F . '{print $1}'"
-        data = mw.execShell(cmd)
-        mw.writeFile(path, str(int(data[0].strip())))
+        data = yf.execShell(cmd)
+        yf.writeFile(path, str(int(data[0].strip())))
 
 
 def pSqliteDb(dbname='logs'):
     db_dir = getServerDir() + '/logs/'
-    conn = mw.M(dbname).dbPos(db_dir, "waf")
+    conn = yf.M(dbname).dbPos(db_dir, "waf")
 
     conn.execute("PRAGMA synchronous = 0")
     conn.execute("PRAGMA cache_size = 8000")

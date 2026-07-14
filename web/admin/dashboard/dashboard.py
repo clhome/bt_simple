@@ -26,7 +26,7 @@ from admin.common import isLogined
 from admin.user_login_check import panel_login_required
 from admin import cache,session
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 
@@ -59,7 +59,7 @@ def admin_safe_path(path):
             if info is None:
                 return redirect('/')
 
-            if info['password'] != mw.md5(data['password']):
+            if info['password'] != yf.md5(data['password']):
                 return redirect('/')
 
             session['login'] = True
@@ -101,11 +101,11 @@ def webhook():
         'params': params,
     }
 
-    wh_install_path = mw.getServerDir() + '/webhook'
+    wh_install_path = yf.getServerDir() + '/webhook'
     if not os.path.exists(wh_install_path):
-        return mw.returnData(False, '请先安装WebHook插件!')
+        return yf.returnData(False, '请先安装WebHook插件!')
 
-    package = mw.getPanelDir() + "/plugins/webhook"
+    package = yf.getPanelDir() + "/plugins/webhook"
     if not package in sys.path:
         sys.path.append(package)
         

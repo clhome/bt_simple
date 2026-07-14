@@ -16,7 +16,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 def getPluginName():
@@ -26,12 +26,12 @@ def getSeName():
     return 'manticore'
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 sys.path.append(getPluginDir() +"/class")
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -74,8 +74,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def configTpl():
@@ -85,7 +85,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -94,14 +94,14 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$SERVER_APP}', service_path + '/'+getPluginName())
     return content
@@ -109,7 +109,7 @@ def contentReplace(content):
 
 def status():
     cmd = "ps -ef|grep manticore |grep -v grep | grep -v mdserver-web | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     # print(data)
     if data[0] == '':
         return 'stop'
@@ -117,23 +117,23 @@ def status():
 
 
 def mkdirAll():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'path\s*=\s*(.*)'
     p = re.compile(rep)
     tmp = p.findall(content)
 
     for x in tmp:
         if x.find('binlog') != -1:
-            mw.makeDirs(x)
+            yf.makeDirs(x)
         else:
-            mw.makeDirs(os.path.dirname(x))
-        mw.execShell("chown -R manticore:manticore "+x)
+            yf.makeDirs(os.path.dirname(x))
+        yf.execShell("chown -R manticore:manticore "+x)
 
 def isInitFile():
     path = getServerDir() + '/init.pl'
     if os.path.exists(path):
         return True
-    mw.writeFile(path, 'ok')
+    yf.writeFile(path, 'ok')
     return False
 
 def initDreplace():
@@ -146,24 +146,24 @@ def initDreplace():
 
     for d in dirs_list:
         if not os.path.exists(d):
-            mw.makeDirs(d)
+            yf.makeDirs(d)
 
-    mw.execShell("chown -R manticore:manticore /var/run/manticore")
+    yf.execShell("chown -R manticore:manticore /var/run/manticore")
 
 
     # config replace
     conf_bin = getConf()
     if not os.path.exists(conf_bin) or not isInitFile():
-        conf_content = mw.readFile(getConfTpl())
+        conf_content = yf.readFile(getConfTpl())
         conf_content = contentReplace(conf_content)
-        mw.writeFile(getConf(), conf_content)
+        yf.writeFile(getConf(), conf_content)
         mkdirAll()
 
     return "ok"
 
 
 def checkIndexSph():
-    content = mw.readFile(getConf())
+    content = yf.readFile(getConf())
     rep = r'path\s*=\s*(.*)'
     p = re.compile(rep)
     tmp = p.findall(content)
@@ -178,7 +178,7 @@ def checkIndexSph():
 
 def mcsOp(method):
     initDreplace()
-    data = mw.execShell('systemctl ' + method + ' ' + getSeName())
+    data = yf.execShell('systemctl ' + method + ' ' + getSeName())
     if data[1] == '':
         return 'ok'
     return 'fail'
@@ -206,7 +206,7 @@ def reload():
 
 def rebuild():
     cmd = 'indexer --all --rotate'
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0].find('successfully')<0:
         return data[0].replace("\n","<br/>")
     return 'ok'
@@ -215,7 +215,7 @@ def rebuild():
 def initdStatus():
     service_name = getSeName()
     shell_cmd = 'systemctl status '+service_name+' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
@@ -223,19 +223,19 @@ def initdStatus():
 
 def initdInstall():
     service_name = getSeName()
-    mw.execShell('systemctl enable '+service_name)
+    yf.execShell('systemctl enable '+service_name)
     return 'ok'
 
 
 def initdUinstall():
     service_name = getSeName()
-    mw.execShell('systemctl disable '+service_name)
+    yf.execShell('systemctl disable '+service_name)
     return 'ok'
 
 
 def runLog():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'log\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0]
@@ -243,7 +243,7 @@ def runLog():
 
 def getMainPort():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'listen\s*=\s*(.*)'
     conf = re.search(rep, content)
     port_line = conf.groups()[0]
@@ -251,7 +251,7 @@ def getMainPort():
 
 def getMysqlPort():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'listen\s*=\s*(.*):mysql'
     conf = re.search(rep, content)
     port_line = conf.groups()[0]
@@ -259,7 +259,7 @@ def getMysqlPort():
 
 def getHttpPort():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'listen\s*=\s*(.*):http'
     conf = re.search(rep, content)
     port_line = conf.groups()[0]
@@ -268,7 +268,7 @@ def getHttpPort():
 
 def queryLog():
     path = getConf()
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'query_log\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0]
@@ -277,7 +277,7 @@ def queryLog():
 def runStatus():
     s = status()
     if s != 'start':
-        return mw.returnJson(False, '没有启动程序')
+        return yf.returnJson(False, '没有启动程序')
 
     sys.path.append(getPluginDir() + "/class")
     import sphinxapi
@@ -288,18 +288,18 @@ def runStatus():
     info_status = sh.Status()
 
     if info_status is None:
-        return mw.returnJson(False,'无法获取运行状态!') 
+        return yf.returnJson(False,'无法获取运行状态!') 
 
     rData = {}
     for x in range(len(info_status)):
         rData[info_status[x][0]] = info_status[x][1]
 
-    return mw.returnJson(True, 'ok', rData)
+    return yf.returnJson(True, 'ok', rData)
 
 def runStatusTest():
     s = status()
     if s != 'start':
-        return mw.returnJson(False, '没有启动程序')
+        return yf.returnJson(False, '没有启动程序')
 
     sys.path.append(getPluginDir() + "/class")
     import sphinxapi
@@ -313,13 +313,13 @@ def runStatusTest():
     for x in range(len(info_status)):
         rData[info_status[x][0]] = info_status[x][1]
 
-    return mw.returnJson(True, 'ok', rData)
+    return yf.returnJson(True, 'ok', rData)
 
 
 def sphinxConfParse():
     file = getConf()
     bin_dir = getServerDir()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'index\s(.*)'
     sindex = re.findall(rep, content)
     indexlen = len(sindex)
@@ -359,9 +359,9 @@ def sphinxConfParse():
 def sphinxCmd():
     data = sphinxConfParse()
     if 'index' in data:
-        return mw.returnJson(True, 'ok', data)
+        return yf.returnJson(True, 'ok', data)
     else:
-        return mw.returnJson(False, 'no index')
+        return yf.returnJson(False, 'no index')
 
 def makeDbToSphinxTest():        
     conf_file = getConf()
@@ -369,7 +369,7 @@ def makeDbToSphinxTest():
     sph_make = sphinx_make.sphinxMake()
     conf = sph_make.makeSqlToSphinxAll()
 
-    mw.writeFile(conf_file,conf)
+    yf.writeFile(conf_file,conf)
     print(conf)
     # makeSqlToSphinxTable()
     return True
@@ -386,7 +386,7 @@ def makeDbToSphinx():
     is_cover = args['is_cover']
 
     if is_cover != 'yes':
-        return mw.returnJson(False,'暂时仅支持覆盖!')
+        return yf.returnJson(False,'暂时仅支持覆盖!')
 
     sph_file = getConf()
 
@@ -395,22 +395,22 @@ def makeDbToSphinx():
 
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl).strip()
+        version = yf.readFile(version_pl).strip()
         sph_make.setVersion(version)
 
     if not sph_make.checkDbName(db):
-        return mw.returnJson(False,'保留数据库名称,不可用!')
+        return yf.returnJson(False,'保留数据库名称,不可用!')
     is_delta_bool = False
     if is_delta == 'yes':
         is_delta_bool = True
     if is_cover == 'yes':
         tables = tables.split(',')
         content = sph_make.makeSqlToSphinx(db, tables, is_delta_bool)
-        mw.writeFile(sph_file,content)
+        yf.writeFile(sph_file,content)
         mkdirAll()
-        return mw.returnJson(True,'设置成功!')
+        return yf.returnJson(True,'设置成功!')
 
-    return mw.returnJson(True,'测试中')
+    return yf.returnJson(True,'测试中')
 
 
 # 全量更新
@@ -450,7 +450,7 @@ def updateDelta():
     return ''
 
 def installPreInspection(version):
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return '不支持mac系统'
     return 'ok'
 
@@ -458,7 +458,7 @@ if __name__ == "__main__":
     version = "3.1.1"
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl).strip()
+        version = yf.readFile(version_pl).strip()
 
     func = sys.argv[1]
     if func == 'status':

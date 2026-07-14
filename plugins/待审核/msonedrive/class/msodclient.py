@@ -54,7 +54,7 @@ class msodclient:
 
     def load(self):
         credential_path = os.path.join(self.plugin_dir, self.credential_file)
-        credential = json.loads(mw.readFile(credential_path))
+        credential = json.loads(yf.readFile(credential_path))
         # print(credential)
         self.credential = credential["onedrive-international"]
 
@@ -72,13 +72,13 @@ class msodclient:
 
     def store_token(self, token):
         """存储token"""
-        enstr = mw.enDoubleCrypt('msodc', json.dumps(token))
-        mw.writeFile(self.token_path, enstr)
+        enstr = yf.enDoubleCrypt('msodc', json.dumps(token))
+        yf.writeFile(self.token_path, enstr)
         return True
 
     def get_store_token(self):
-        rdata = mw.readFile(self.token_path)
-        destr = mw.deDoubleCrypt('msodc', rdata)
+        rdata = yf.readFile(self.token_path)
+        destr = yf.deDoubleCrypt('msodc', rdata)
         return json.loads(destr)
 
     def clear_token(self):
@@ -202,7 +202,7 @@ class msodclient:
         user = self.get_user_from_ms()
         if user:
             path = os.path.join(self.server_dir, self.user_conf)
-            mw.writeFile(path, user)
+            yf.writeFile(path, user)
         else:
             raise RuntimeError("无法获取用户信息。")
 

@@ -18,7 +18,7 @@ import logging
 import os
 import sys
 
-import core.yf as mw
+import core.yf as yf
 
 from branding import APP_NAME, APP_ICON, APP_COPYRIGHT, APP_LOG_NAME, APP_SQLITE_NAME
 from version import APP_VERSION, APP_RELEASE, APP_REVISION, APP_SUFFIX
@@ -53,10 +53,10 @@ PROXY_X_PORT_COUNT = 1
 PROXY_X_PREFIX_COUNT = 0
 
 
-DATA_DIR = mw.getPanelDataDir()
+DATA_DIR = yf.getPanelDataDir()
 
 # 日志文件名。这将进入数据目录，服务器模式下的非Windows平台除外。
-LOG_FILE = os.path.join(mw.getMWLogs(), APP_LOG_NAME + '.log')
+LOG_FILE = os.path.join(yf.getMWLogs(), APP_LOG_NAME + '.log')
 
 CONSOLE_LOG_FORMAT = '%(asctime)s: %(levelname)s\t%(name)s:\t%(message)s'
 FILE_LOG_FORMAT = '%(asctime)s: %(levelname)s\t%(name)s:\t%(message)s'

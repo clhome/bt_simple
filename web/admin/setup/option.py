@@ -11,7 +11,7 @@
 
 import json
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 def init_option():
@@ -49,19 +49,19 @@ def init_option():
     thisdb.setOption('monitor_only_netio', 'open', type='monitor')
 
     # 初始化安全路径
-    thisdb.setOption('admin_path', mw.getRandomString(8))
+    thisdb.setOption('admin_path', yf.getRandomString(8))
 
     # API是否开启|默认关闭
     thisdb.setOption('panel_api', json.dumps({'open':False}))
 
     # 获取服务器IP
-    ip = mw.getLocalIp()
+    ip = yf.getLocalIp()
     thisdb.setOption('server_ip', ip)
 
     # 默认备份目录
-    thisdb.setOption('backup_path', mw.getFatherDir()+'/backup')
+    thisdb.setOption('backup_path', yf.getFatherDir()+'/backup')
     # 默认站点目录
-    thisdb.setOption('site_path', mw.getFatherDir()+'/wwwroot')
+    thisdb.setOption('site_path', yf.getFatherDir()+'/wwwroot')
 
 
     # 异步邮件通知

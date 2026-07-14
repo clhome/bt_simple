@@ -16,7 +16,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -25,15 +25,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile(version):
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -55,7 +55,7 @@ def status_progress(version):
     # ps -ef|grep 'php/81' |grep -v grep | grep -v python | awk '{print $2}
     cmd = "ps aux|grep 'php/" + version + \
         "' |grep -v grep | grep -v python | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
@@ -63,7 +63,7 @@ def status_progress(version):
 
 def getPhpSocket(version):
     path = getFpmConfFile(version)
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     rep = r'listen\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -111,12 +111,12 @@ def getPhpinfo(version):
         return 'PHP[' + version + ']未启动,不可访问!!!'
 
     sock_file = getFpmAddress(version)
-    root_dir = mw.getFatherDir() + '/phpinfo'
+    root_dir = yf.getFatherDir() + '/phpinfo'
 
-    mw.removeDir(root_dir)
-    mw.makeDirs(root_dir)
-    mw.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
-    sock_data = mw.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
+    yf.removeDir(root_dir)
+    yf.makeDirs(root_dir)
+    yf.writeFile(root_dir + '/phpinfo.php', '<?php phpinfo(); ?>')
+    sock_data = yf.requestFcgiPHP(sock_file, '/phpinfo.php', root_dir)
     os.system("rm -rf " + root_dir)
     phpinfo = str(sock_data, encoding='utf-8')
     return phpinfo
@@ -125,12 +125,12 @@ def getPhpinfo(version):
 def libConfCommon(version):
     fname = getConf(version)
     if not os.path.exists(fname):
-        return mw.returnJson(False, '指定PHP版本不存在!')
+        return yf.returnJson(False, '指定PHP版本不存在!')
 
-    phpini = mw.readFile(fname)
+    phpini = yf.readFile(fname)
 
     libpath = getPluginDir() + '/versions/phplib.conf'
-    phplib = json.loads(mw.readFile(libpath))
+    phplib = json.loads(yf.readFile(libpath))
 
     php_dir = getServerDir() + "/" + version
     ext_dir = php_dir+"/lib/php/extensions"
@@ -142,11 +142,11 @@ def libConfCommon(version):
             break
 
     libs = []
-    tasks = mw.M('tasks').where("status!=?", ('1',)).field('status,name').select()
+    tasks = yf.M('tasks').where("status!=?", ('1',)).field('status,name').select()
     for lib in phplib:
         lib['task'] = '1'
         for task in tasks:
-            tmp = mw.getStrBetween('[', ']', task['name'])
+            tmp = yf.getStrBetween('[', ']', task['name'])
             if not tmp:
                 continue
             tmp1 = tmp.split('-')
@@ -173,4 +173,4 @@ def get_php_info(args):
 
 def get_lib_conf(data):
     libs = libConfCommon(data['version'])
-    return mw.returnData(True, 'OK!', libs)
+    return yf.returnData(True, 'OK!', libs)

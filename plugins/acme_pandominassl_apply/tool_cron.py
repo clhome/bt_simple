@@ -21,7 +21,7 @@ from utils.crontab import crontab as MwCrontab
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -30,11 +30,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getTaskConf():
@@ -48,7 +48,7 @@ def getTaskDeltaConf():
 
 def getConfigData():
     try:
-        return json.loads(mw.readFile(getTaskConf()))
+        return json.loads(yf.readFile(getTaskConf()))
     except:
         pass
     return {
@@ -69,18 +69,18 @@ def createBgTask():
 def createBgTaskByName(name):
     args = getConfigData()
     _name = "[勿删]ACME泛域名SSL[APA]"
-    res = mw.M("crontab").field("id, name").where("name=?", (_name,)).find()
+    res = yf.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
         return True
 
     if "task_id" in args and args["task_id"] > 0:
-        res = mw.M("crontab").field("id, name").where(
+        res = yf.M("crontab").field("id, name").where(
             "id=?", (args["task_id"],)).find()
         if res and res["id"] == args["task_id"]:
             print("计划任务已经存在!")
             return True
 
-    mw_dir = mw.getPanelDir()
+    mw_dir = yf.getPanelDir()
     cmd = '''
 mw_dir=%s
 rname=%s
@@ -114,13 +114,13 @@ logs_file=$plugin_path/${rname}.log
     if task_id > 0:
         args["task_id"] = task_id
         args["name"] = name
-        mw.writeFile(getTaskConf(), json.dumps(args))
+        yf.writeFile(getTaskConf(), json.dumps(args))
 
 
 def removeBgTask():
     cfg = getConfigData()
     if "task_id" in cfg and cfg["task_id"] > 0:
-        res = mw.M("crontab").field("id, name").where(
+        res = yf.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
             import crontab_api
@@ -128,7 +128,7 @@ def removeBgTask():
             data = api.delete(cfg["task_id"])
             if data[0]:
                 cfg["task_id"] = -1
-                mw.writeFile(getTaskConf(), json.dumps(cfg))
+                yf.writeFile(getTaskConf(), json.dumps(cfg))
                 return True
     return False
 

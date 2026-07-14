@@ -30,10 +30,10 @@ import core.db as db
 class backupTools:
 
     def backupDatabase(self, name, count):
-        db_path = mw.getServerDir() + '/mariadb'
-        db_sock = mw.getServerDir() + '/mariadb/'
+        db_path = yf.getServerDir() + '/mariadb'
+        db_sock = yf.getServerDir() + '/mariadb/'
         db_name = 'mysql'
-        name = mw.M('databases').dbPos(db_path, 'mysql').where(
+        name = yf.M('databases').dbPos(db_path, 'mysql').where(
             'name=?', (name,)).getField('name')
         startTime = time.time()
         if not name:
@@ -44,14 +44,14 @@ class backupTools:
                 "----------------------------------------------------------------------------")
             return
 
-        backup_path = mw.getFatherDir() + '/backup/database/mariadb'
+        backup_path = yf.getFatherDir() + '/backup/database/mariadb'
         if not os.path.exists(backup_path):
-            mw.makeDirs(backup_path)
+            yf.makeDirs(backup_path)
 
         version_prefix = 'mariadb104'
         version_file = db_path + '/version.pl'
         if os.path.exists(version_file):
-            ver = mw.readFile(version_file).strip()
+            ver = yf.readFile(version_file).strip()
             parts = ver.split('.')
             if len(parts) >= 2:
                 version_prefix = parts[0] + parts[1]
@@ -71,27 +71,27 @@ class backupTools:
         filename = backup_path + "/" + version_prefix + "_" + name + "_" + \
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + ".sql.gz"
 
-        mysql_root = mw.M('config').dbPos(db_path, db_name).where(
+        mysql_root = yf.M('config').dbPos(db_path, db_name).where(
             "id=?", (1,)).getField('mysql_root')
 
         my_conf_path = db_path + '/etc/my.cnf'
-        content = mw.readFile(my_conf_path)
+        content = yf.readFile(my_conf_path)
         rep = r"\[mysqldump\]\nuser=root"
         sea = "[mysqldump]\n"
         subStr = sea + "user=root\npassword=" + mysql_root + "\n"
         content = content.replace(sea, subStr)
         if len(content) > 100:
-            mw.writeFile(my_conf_path, content)
+            yf.writeFile(my_conf_path, content)
 
-        # mw.execShell(db_path + "/bin/mysqldump --defaults-file=" + my_conf_path + " --opt --default-character-set=utf8 " +
+        # yf.execShell(db_path + "/bin/mysqldump --defaults-file=" + my_conf_path + " --opt --default-character-set=utf8 " +
         #              name + " | gzip > " + filename)
 
-        # mw.execShell(db_path + "/bin/mysqldump --defaults-file=" + my_conf_path + " --skip-lock-tables --default-character-set=utf8 " +
+        # yf.execShell(db_path + "/bin/mysqldump --defaults-file=" + my_conf_path + " --skip-lock-tables --default-character-set=utf8 " +
         #              name + " | gzip > " + filename)
 
         cmd = db_path + "/bin/mariadb-dump --defaults-file=" + my_conf_path + "  --single-transaction --quick --default-character-set=utf8 " + \
             name + " | gzip > " + filename
-        mw.execShell(cmd)
+        yf.execShell(cmd)
 
         if not os.path.exists(filename):
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
@@ -101,42 +101,42 @@ class backupTools:
                 "----------------------------------------------------------------------------")
             return
 
-        mycnf = mw.readFile(db_path + '/etc/my.cnf')
+        mycnf = yf.readFile(db_path + '/etc/my.cnf')
         mycnf = mycnf.replace(subStr, sea)
         if len(mycnf) > 100:
-            mw.writeFile(db_path + '/etc/my.cnf', mycnf)
+            yf.writeFile(db_path + '/etc/my.cnf', mycnf)
 
         endDate = time.strftime('%Y/%m/%d %X', time.localtime())
         outTime = time.time() - startTime
-        pid = mw.M('databases').dbPos(db_path, db_name).where(
+        pid = yf.M('databases').dbPos(db_path, db_name).where(
             'name=?', (name,)).getField('id')
 
-        mw.M('backup').add('type,name,pid,filename,addtime,size', (3, os.path.basename(
+        yf.M('backup').add('type,name,pid,filename,addtime,size', (3, os.path.basename(
             filename), pid, filename, endDate, os.path.getsize(filename)))
         log = "数据库[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
-        mw.writeLog('计划任务', log)
+        yf.writeLog('计划任务', log)
         print("★[" + endDate + "] " + log)
         print("|---保留最新的[" + count + "]份备份")
         print("|---文件名:" + filename)
 
         # 清理多余备份
-        backups = mw.M('backup').where(
+        backups = yf.M('backup').where(
             'type=? and pid=?', ('3', pid)).field('id,filename').select()
 
         num = len(backups) - int(count)
         if num > 0:
             for backup in backups:
-                mw.execShell("rm -f " + backup['filename'])
-                mw.M('backup').where('id=?', (backup['id'],)).delete()
+                yf.execShell("rm -f " + backup['filename'])
+                yf.M('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
                 print("|---已清理过期备份文件：" + backup['filename'])
                 if num < 1:
                     break
 
     def backupDatabaseAll(self, save):
-        db_path = mw.getServerDir() + '/mariadb'
+        db_path = yf.getServerDir() + '/mariadb'
         db_name = 'mysql'
-        databases = mw.M('databases').dbPos(
+        databases = yf.M('databases').dbPos(
             db_path, db_name).field('name').select()
         for database in databases:
             self.backupDatabase(database['name'], save)

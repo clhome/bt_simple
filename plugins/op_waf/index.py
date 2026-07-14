@@ -21,7 +21,7 @@ import core.mw as mw
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -30,11 +30,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getArgs():
@@ -68,8 +68,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 sys.path.append(getPluginDir() + "/class")
@@ -79,21 +79,21 @@ from luamaker import luamaker
 def listToLuaFile(path, lists):
     content = luamaker.makeLuaTable(lists)
     content = "return " + content
-    mw.writeFile(path, content)
+    yf.writeFile(path, content)
 
 
 def htmlToLuaFile(path, content):
     content = "return [[" + content + "]]"
-    mw.writeFile(path, content)
+    yf.writeFile(path, content)
 
 
 def getConf():
-    path = mw.getServerDir() + "/openresty/nginx/conf/nginx.conf"
+    path = yf.getServerDir() + "/openresty/nginx/conf/nginx.conf"
     return path
 
 
 def dstWafConfPath():
-    return mw.getServerDir() + "/web_conf/nginx/vhost/opwaf.conf"
+    return yf.getServerDir() + "/web_conf/nginx/vhost/opwaf.conf"
 
 
 def pSqliteDb(dbname='logs'):
@@ -101,17 +101,17 @@ def pSqliteDb(dbname='logs'):
     db_dir = getServerDir() + '/logs/'
 
     if not os.path.exists(db_dir):
-        mw.makeDirs(db_dir)
+        yf.makeDirs(db_dir)
 
     file = db_dir + name + '.db'
     if not os.path.exists(file):
-        conn = mw.M(dbname).dbPos(db_dir, name)
-        sql = mw.readFile(getPluginDir() + '/conf/init.sql')
+        conn = yf.M(dbname).dbPos(db_dir, name)
+        sql = yf.readFile(getPluginDir() + '/conf/init.sql')
         sql_list = sql.split(';')
         for index in range(len(sql_list)):
             conn.execute(sql_list[index])
     else:
-        conn = mw.M(dbname).dbPos(db_dir, name)
+        conn = yf.M(dbname).dbPos(db_dir, name)
 
     conn.execute("PRAGMA synchronous = 0")
     conn.execute("PRAGMA page_size = 4096")
@@ -123,7 +123,7 @@ def pSqliteDb(dbname='logs'):
 def initDomainInfo(conf_reload=False):
     data = []
     path_domains = getJsonPath('domains')
-    _list = mw.M('sites').field('id,name,path').where(
+    _list = yf.M('sites').field('id,name,path').where(
         'status=?', ('1',)).order('id desc').select()
 
     for i in range(len(_list)):
@@ -131,7 +131,7 @@ def initDomainInfo(conf_reload=False):
         tmp['name'] = _list[i]['name']
         tmp['path'] = _list[i]['path']
 
-        _list_domain = mw.M('domain').field('name').where(
+        _list_domain = yf.M('domain').field('name').where(
             'pid=?', (_list[i]['id'],)).order('id desc').select()
 
         tmp_j = []
@@ -140,8 +140,8 @@ def initDomainInfo(conf_reload=False):
 
         tmp['domains'] = tmp_j
         data.append(tmp)
-    cjson = mw.getJson(data)
-    mw.writeFile(path_domains, cjson)
+    cjson = yf.getJson(data)
+    yf.writeFile(path_domains, cjson)
 
 
 def initSiteInfo(conf_reload=False):
@@ -151,14 +151,14 @@ def initSiteInfo(conf_reload=False):
     path_domains = getJsonPath('domains')
     path_config = getJsonPath('config')
 
-    config_contents = mw.readFile(path_config)
+    config_contents = yf.readFile(path_config)
     config_contents = json.loads(config_contents)
 
-    domain_contents = mw.readFile(path_domains)
+    domain_contents = yf.readFile(path_domains)
     domain_contents = json.loads(domain_contents)
 
     try:
-        site_contents = mw.readFile(path_site)
+        site_contents = yf.readFile(path_site)
         if not site_contents:
             site_contents = "{}"
     except Exception as e:
@@ -213,8 +213,8 @@ def initSiteInfo(conf_reload=False):
 
             site_contents_new[name] = tmp
 
-    cjson = mw.getJson(site_contents_new)
-    mw.writeFile(path_site, cjson)
+    cjson = yf.getJson(site_contents_new)
+    yf.writeFile(path_site, cjson)
 
 
 def initTotalInfo(conf_reload=False):
@@ -223,11 +223,11 @@ def initTotalInfo(conf_reload=False):
     path_total = getJsonPath('total')
     path_domains = getJsonPath('domains')
 
-    domain_contents = mw.readFile(path_domains)
+    domain_contents = yf.readFile(path_domains)
     domain_contents = json.loads(domain_contents)
 
     try:
-        total_contents = mw.readFile(path_total)
+        total_contents = yf.readFile(path_total)
     except Exception as e:
         total_contents = "{}"
 
@@ -252,20 +252,20 @@ def initTotalInfo(conf_reload=False):
             total_contents['sites'][name] = tmp
 
     total_contents['start_time'] = str(time.time())
-    cjson = mw.getJson(total_contents)
-    mw.writeFile(path_total, cjson)
+    cjson = yf.getJson(total_contents)
+    yf.writeFile(path_total, cjson)
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
     waf_root = getServerDir()
     waf_path = waf_root + "/waf"
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$WAF_PATH}', waf_path)
     content = content.replace('{$WAF_ROOT}', waf_root)
 
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         content = content.replace('{$MMDB_FILE_SUFFIX}', 'dylib')
     else:
         content = content.replace('{$MMDB_FILE_SUFFIX}', 'so')
@@ -277,7 +277,7 @@ def autoMakeLuaConfSingle(file, conf_reload=False):
     path = getServerDir() + "/waf/rule/" + file + ".json"
     dst_path = getServerDir() + "/waf/conf/rule_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
-        content = mw.readFile(path)
+        content = yf.readFile(path)
         if type(content) == bool or not content:
             content = "[]"
         # print(content)
@@ -288,15 +288,15 @@ def autoMakeLuaConfSingle(file, conf_reload=False):
 def autoCpImport(file):
     path = getPluginDir() + "/waf/" + file + ".json"
     dst_path = getServerDir() + "/waf/" + file + ".json"
-    content = mw.readFile(path)
-    mw.writeFile(dst_path, content)
+    content = yf.readFile(path)
+    yf.writeFile(dst_path, content)
 
 
 def autoMakeLuaImportSingle(file, conf_reload=False):
     path = getServerDir() + "/waf/" + file + ".json"
     dst_path = getServerDir() + "/waf/conf/waf_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
-        content = mw.readFile(path)
+        content = yf.readFile(path)
         if type(content) == bool or not content:
             content = "{}"
         # print(content)
@@ -308,15 +308,15 @@ def autoMakeLuaHtmlSingle(file, conf_reload=False):
     path = getServerDir() + "/waf/html/" + file + ".html"
     dst_path = getServerDir() + "/waf/html/html_" + file + ".lua"
     if not os.path.exists(dst_path) or conf_reload:
-        content = mw.readFile(path)
+        content = yf.readFile(path)
         htmlToLuaFile(dst_path, content)
 
 
 def autoCpHtml(file):
     path = getPluginDir() + "/waf/html/" + file + ".html"
     dst_path = getServerDir() + "/waf/html/" + file + ".html"
-    content = mw.readFile(path)
-    mw.writeFile(dst_path, content)
+    content = yf.readFile(path)
+    yf.writeFile(dst_path, content)
 
 
 def autoMakeLuaConf(conf_reload=False, cp_reload=False):
@@ -344,7 +344,7 @@ def initDefaultInfo(conf_reload=False):
     if os.path.exists(dst_path):
         return True
     source_path = path + "/waf/domains.json"
-    content = mw.readFile(source_path)
+    content = yf.readFile(source_path)
     content = json.loads(content)
 
     ddata = {}
@@ -356,7 +356,7 @@ def initDefaultInfo(conf_reload=False):
     ddata["list"] = dlist
     default_site = "ALL"
 
-    mw.writeFile(dst_path, default_site)
+    yf.writeFile(dst_path, default_site)
 
 
 def getSiteListData():
@@ -364,14 +364,14 @@ def getSiteListData():
     source_path = path + "/waf/domains.json"
     dst_path = path + "/waf/default.pl"
 
-    content = mw.readFile(source_path)
+    content = yf.readFile(source_path)
     content = json.loads(content)
     dlist = []
     dlist.append('ALL')
     for i in content:
         dlist.append(i["name"])
 
-    default_site = mw.readFile(dst_path)
+    default_site = yf.readFile(dst_path)
     if not default_site or default_site == 'unset':
         default_site = 'ALL'
 
@@ -384,13 +384,13 @@ def getSiteListData():
 def setDefaultSite(name):
     path = getServerDir()
     dst_path = path + "/waf/default.pl"
-    mw.writeFile(dst_path, name)
-    return mw.returnJson(True, 'OK')
+    yf.writeFile(dst_path, name)
+    return yf.returnJson(True, 'OK')
 
 
 def getDefaultSite():
     data = getSiteListData()
-    return mw.returnJson(True, 'OK', data)
+    return yf.returnJson(True, 'OK', data)
 
 
 def getCountry():
@@ -413,7 +413,7 @@ def getCountry():
             '乍得', '汤加', '瑙鲁', '圣多美和普林西比', '安圭拉岛', '法属圣马丁', '图瓦卢', '库克群岛', '密克罗尼西亚联邦', '根西岛', '东帝汶', '中非',
             '几内亚比绍', '帕劳', '美属萨摩亚', '厄立特里亚', '科摩罗', '圣皮埃尔和密克隆', '瓦利斯和富图纳', '英属印度洋领地', '托克劳', '马绍尔群岛', '基里巴斯',
             '纽埃', '诺福克岛', '蒙特塞拉特岛', '朝鲜', '马约特', '圣卢西亚', '圣巴泰勒米岛']
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def autoMakeConfig(conf_reload=False, cp_reload=False):
@@ -425,83 +425,83 @@ def autoMakeConfig(conf_reload=False, cp_reload=False):
 
 
 def setConfRestartWeb():
-    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
-        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
+    if not hasattr(mw, 'isYufengPanel') or not yf.isYufengPanel():
+        return yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
     autoMakeConfig(True, False)
-    mw.opWeb('stop')
-    mw.opWeb('start')
+    yf.opWeb('stop')
+    yf.opWeb('start')
 
 
 def restartWeb():
-    mw.opWeb('stop')
-    mw.opWeb('start')
+    yf.opWeb('stop')
+    yf.opWeb('start')
 
 
 def makeOpDstRunLua(conf_reload=False):
-    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
-        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
-    root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
-    root_worker_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
-    root_access_dir = mw.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
-    root_log_dir = mw.getServerDir() + '/web_conf/nginx/lua/log_by_lua_file'
+    if not hasattr(mw, 'isYufengPanel') or not yf.isYufengPanel():
+        return yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
+    root_init_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
+    root_worker_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
+    root_access_dir = yf.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
+    root_log_dir = yf.getServerDir() + '/web_conf/nginx/lua/log_by_lua_file'
     path = getServerDir()
     path_tpl = getPluginDir()
 
     waf_common_dst = path + "/waf/lua/waf_common.lua"
     if not os.path.exists(waf_common_dst) or conf_reload:
         waf_common_tpl = path_tpl + "/waf/lua/waf_common.lua"
-        content = mw.readFile(waf_common_tpl)
+        content = yf.readFile(waf_common_tpl)
         content = contentReplace(content)
-        mw.writeFile(waf_common_dst, content)
+        yf.writeFile(waf_common_dst, content)
 
     waf_init_dst = root_init_dir + "/waf_init_preload.lua"
     if not os.path.exists(waf_init_dst) or conf_reload:
         waf_init_tpl = path_tpl + "/waf/lua/init_preload.lua"
-        content = mw.readFile(waf_init_tpl)
+        content = yf.readFile(waf_init_tpl)
         content = contentReplace(content)
-        mw.writeFile(waf_init_dst, content)
+        yf.writeFile(waf_init_dst, content)
 
     init_worker_dst = root_worker_dir + '/opwaf_init_worker.lua'
     if not os.path.exists(init_worker_dst) or conf_reload:
         init_worker_tpl = path_tpl + "/waf/lua/init_worker.lua"
-        content = mw.readFile(init_worker_tpl)
+        content = yf.readFile(init_worker_tpl)
         content = contentReplace(content)
-        mw.writeFile(init_worker_dst, content)
+        yf.writeFile(init_worker_dst, content)
 
     access_file_dst = root_access_dir + '/opwaf_init.lua'
     if not os.path.exists(access_file_dst) or conf_reload:
         access_file_tpl = path_tpl + "/waf/lua/init.lua"
         access_file_dst_s = path + "/waf/lua/init.lua"
-        content = mw.readFile(access_file_tpl)
+        content = yf.readFile(access_file_tpl)
         content = contentReplace(content)
-        mw.writeFile(access_file_dst, content)
-        mw.writeFile(access_file_dst_s, content)
+        yf.writeFile(access_file_dst, content)
+        yf.writeFile(access_file_dst_s, content)
 
     log_file_dst = root_log_dir + '/opwaf_log.lua'
     if not os.path.exists(log_file_dst) or conf_reload:
         log_file_tpl = path_tpl + "/waf/lua/log.lua"
         log_file_dst_s = path + "/waf/lua/log.lua"
         if os.path.exists(log_file_tpl):
-            content = mw.readFile(log_file_tpl)
+            content = yf.readFile(log_file_tpl)
             content = contentReplace(content)
-            mw.writeFile(log_file_dst, content)
-            mw.writeFile(log_file_dst_s, content)
+            yf.writeFile(log_file_dst, content)
+            yf.writeFile(log_file_dst_s, content)
 
     waf_mmdb_dst = path + "/waf/lua/waf_maxminddb.lua"
     if not os.path.exists(waf_mmdb_dst) or conf_reload:
         waf_mmdb_tpl = path_tpl + "/waf/lua/waf_maxminddb.lua"
-        content = mw.readFile(waf_mmdb_tpl)
+        content = yf.readFile(waf_mmdb_tpl)
         content = contentReplace(content)
-        mw.writeFile(waf_mmdb_dst, content)
+        yf.writeFile(waf_mmdb_dst, content)
 
-    mw.opLuaMakeAll()
+    yf.opLuaMakeAll()
     return True
 
 
 def makeOpDstStopLua():
-    root_init_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
-    root_worker_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
-    root_access_dir = mw.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
+    root_init_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_by_lua_file'
+    root_worker_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
+    root_access_dir = yf.getServerDir() + '/web_conf/nginx/lua/access_by_lua_file'
 
     waf_init_dst = root_init_dir + "/waf_init_preload.lua"
     if os.path.exists(waf_init_dst):
@@ -515,7 +515,7 @@ def makeOpDstStopLua():
     if os.path.exists(access_file_dst):
         os.remove(access_file_dst)
 
-    root_log_dir = mw.getServerDir() + '/web_conf/nginx/lua/log_by_lua_file'
+    root_log_dir = yf.getServerDir() + '/web_conf/nginx/lua/log_by_lua_file'
     log_file_dst = root_log_dir + '/opwaf_log.lua'
     if os.path.exists(log_file_dst):
         os.remove(log_file_dst)
@@ -524,7 +524,7 @@ def makeOpDstStopLua():
     if os.path.exists(wafconf):
         os.remove(wafconf)
 
-    mw.opLuaMakeAll()
+    yf.opLuaMakeAll()
     return True
 
 
@@ -533,37 +533,37 @@ def initDreplace():
     if not os.path.exists(path + '/waf/lua'):
         sdir = getPluginDir() + '/waf'
         cmd = 'cp -rf ' + sdir + ' ' + path
-        mw.execShell(cmd)
+        yf.execShell(cmd)
 
     logs_path = path + '/logs'
     if not os.path.exists(logs_path):
-        mw.makeDirs(logs_path)
+        yf.makeDirs(logs_path)
 
     debug_log = path + '/debug.log'
     if not os.path.exists(debug_log):
-        mw.execShell('echo "" > ' + debug_log)
+        yf.execShell('echo "" > ' + debug_log)
 
     config = path + '/waf/config.json'
-    content = mw.readFile(config)
+    content = yf.readFile(config)
     content = json.loads(content)
     content['reqfile_path'] = path + "/waf/html"
-    mw.writeFile(config, mw.getJson(content))
+    yf.writeFile(config, yf.getJson(content))
 
     makeOpDstRunLua()
 
     waf_conf = dstWafConfPath()
     if not os.path.exists(waf_conf):
         waf_tpl = getPluginDir() + "/conf/luawaf.conf"
-        content = mw.readFile(waf_tpl)
+        content = yf.readFile(waf_tpl)
         content = contentReplace(content)
-        mw.writeFile(waf_conf, content)
+        yf.writeFile(waf_conf, content)
 
     autoMakeConfig(True, False)
 
     pSqliteDb()
 
-    if not mw.isAppleSystem():
-        mw.execShell("chown -R www:www " + path)
+    if not yf.isAppleSystem():
+        yf.execShell("chown -R www:www " + path)
     return path
 
 
@@ -579,8 +579,8 @@ def status():
 
 
 def start():
-    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
-        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
+    if not hasattr(mw, 'isYufengPanel') or not yf.isYufengPanel():
+        return yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
     initDreplace()
 
     import tool_task
@@ -607,18 +607,18 @@ def restart():
 
 
 def reload():
-    if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
-        return mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
-    mw.opWeb('stop')
+    if not hasattr(mw, 'isYufengPanel') or not yf.isYufengPanel():
+        return yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
+    yf.opWeb('stop')
 
     makeOpDstRunLua(True)
     autoMakeConfig(True, False)
 
-    elog = mw.getServerDir() + "/openresty/nginx/logs/error.log"
+    elog = yf.getServerDir() + "/openresty/nginx/logs/error.log"
     if os.path.exists(elog):
-        mw.removeDir(elog)
+        yf.removeDir(elog)
 
-    mw.opWeb('start')
+    yf.opWeb('start')
     return 'ok'
 
 def reload_hook():
@@ -646,8 +646,8 @@ def getRule():
 
     rule_name = args['rule_name']
     fpath = getRuleJsonPath(rule_name)
-    content = mw.readFile(fpath)
-    return mw.returnJson(True, 'ok', content)
+    content = yf.readFile(fpath)
+    return yf.returnJson(True, 'ok', content)
 
 
 def addRule():
@@ -661,7 +661,7 @@ def addRule():
     ps = args['ps']
 
     fpath = getRuleJsonPath(ruleName)
-    content = mw.readFile(fpath)
+    content = yf.readFile(fpath)
     content = json.loads(content)
 
     tmp_k = []
@@ -672,11 +672,11 @@ def addRule():
 
     content.append(tmp_k)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(fpath, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', content)
+    return yf.returnJson(True, '设置成功!', content)
 
 
 def removeRule():
@@ -689,17 +689,17 @@ def removeRule():
     ruleName = args['ruleName']
 
     fpath = getRuleJsonPath(ruleName)
-    content = mw.readFile(fpath)
+    content = yf.readFile(fpath)
     content = json.loads(content)
 
     k = content[index]
     content.remove(k)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(fpath, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', content)
+    return yf.returnJson(True, '设置成功!', content)
 
 
 def setRuleState():
@@ -712,7 +712,7 @@ def setRuleState():
     ruleName = args['ruleName']
 
     fpath = getRuleJsonPath(ruleName)
-    content = mw.readFile(fpath)
+    content = yf.readFile(fpath)
     content = json.loads(content)
 
     b = content[index][0]
@@ -721,11 +721,11 @@ def setRuleState():
     else:
         content[index][0] = 1
 
-    cjson = mw.getJson(content)
-    mw.writeFile(fpath, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', content)
+    return yf.returnJson(True, '设置成功!', content)
 
 
 def modifyRule():
@@ -740,7 +740,7 @@ def modifyRule():
     rulePs = args['rulePs']
 
     fpath = getRuleJsonPath(ruleName)
-    content = mw.readFile(fpath)
+    content = yf.readFile(fpath)
     content = json.loads(content)
 
     tmp = content[index]
@@ -753,11 +753,11 @@ def modifyRule():
 
     content[index] = tmp_k
 
-    cjson = mw.getJson(content)
-    mw.writeFile(fpath, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(fpath, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', content)
+    return yf.returnJson(True, '设置成功!', content)
 
 
 def getSiteRule():
@@ -770,13 +770,13 @@ def getSiteRule():
     siteRule = args['ruleName']
 
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     r = content[siteName][siteRule]
 
-    cjson = mw.getJson(r)
-    return mw.returnJson(True, 'ok!', cjson)
+    cjson = yf.getJson(r)
+    return yf.returnJson(True, 'ok!', cjson)
 
 
 def addSiteRule():
@@ -790,16 +790,16 @@ def addSiteRule():
     ruleValue = args['ruleValue']
 
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     content[siteName][siteRule].append(ruleValue)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def addIpWhite():
@@ -812,7 +812,7 @@ def addIpWhite():
     end_ip = args['end_ip']
 
     path = getRuleJsonPath('ip_white')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     data = []
@@ -831,14 +831,14 @@ def addIpWhite():
     data.append(tmp2)
 
     if data in content:
-        return mw.returnJson(False, '该 IP 段已存在白名单中!')
+        return yf.returnJson(False, '该 IP 段已存在白名单中!')
 
     content.append(data)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def removeIpWhite():
@@ -850,17 +850,17 @@ def removeIpWhite():
     index = args['index']
 
     path = getRuleJsonPath('ip_white')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     k = content[int(index)]
     content.remove(k)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def addIpBlack():
@@ -873,7 +873,7 @@ def addIpBlack():
     end_ip = args['end_ip']
 
     path = getRuleJsonPath('ip_black')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     data = []
@@ -892,15 +892,15 @@ def addIpBlack():
     data.append(tmp2)
 
     if data in content:
-        return mw.returnJson(False, '该 IP 段已存在黑名单中!')
+        return yf.returnJson(False, '该 IP 段已存在黑名单中!')
 
     content.append(data)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def removeIpBlack():
@@ -912,17 +912,17 @@ def removeIpBlack():
     index = args['index']
 
     path = getRuleJsonPath('ip_black')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     k = content[int(index)]
     content.remove(k)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def setIpv6Black():
@@ -934,14 +934,14 @@ def setIpv6Black():
     addr = args['addr'].replace('_', ':')
     path = getRuleJsonPath('ipv6_black')
 
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
     content.append(addr)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def delIpv6Black():
@@ -953,15 +953,15 @@ def delIpv6Black():
     addr = args['addr'].replace('_', ':')
     path = getRuleJsonPath('ipv6_black')
 
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     content.remove(addr)
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def removeSiteRule():
@@ -975,17 +975,17 @@ def removeSiteRule():
     index = args['index']
 
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     ruleValue = content[siteName][siteRule][int(index)]
     content[siteName][siteRule].remove(ruleValue)
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def setObjStatus():
@@ -995,18 +995,18 @@ def setObjStatus():
         return data[1]
 
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
 
     o = args['obj']
     status = int(args['statusCode'])
     cobj[o]['status'] = status
 
-    cjson = mw.getJson(cobj)
-    mw.writeFile(conf, cjson)
+    cjson = yf.getJson(cobj)
+    yf.writeFile(conf, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def setRetry():
@@ -1017,7 +1017,7 @@ def setRetry():
         return data[1]
 
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
     
     ## 修复数据类型错误
@@ -1027,11 +1027,11 @@ def setRetry():
     tmp['retry_cycle'] = int(tmp['retry_cycle'])
     
     cobj['retry'] = tmp
-    cjson = mw.getJson(cobj)
-    mw.writeFile(conf, cjson)
+    cjson = yf.getJson(cobj)
+    yf.writeFile(conf, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', [])
+    return yf.returnJson(True, '设置成功!', [])
 
 
 def setSafeVerify():
@@ -1041,7 +1041,7 @@ def setSafeVerify():
         return data[1]
 
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
 
     cobj['safe_verify']['time'] = args['time']
@@ -1053,15 +1053,15 @@ def setSafeVerify():
     else:
         cobj['safe_verify']['auto'] = True
 
-    cjson = mw.getJson(cobj)
-    mw.writeFile(conf, cjson)
+    cjson = yf.getJson(cobj)
+    yf.writeFile(conf, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', [])
+    return yf.returnJson(True, '设置成功!', [])
 
 
 def setSiteRetry():
-    return mw.returnJson(True, '设置成功-?!', [])
+    return yf.returnJson(True, '设置成功-?!', [])
 
 
 def setCcConf():
@@ -1072,7 +1072,7 @@ def setCcConf():
         return data[1]
 
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
 
     tmp = cobj['cc']
@@ -1084,15 +1084,15 @@ def setCcConf():
     tmp['increase'] = args['increase']
     cobj['cc'] = tmp
 
-    cjson = mw.getJson(cobj)
-    mw.writeFile(conf, cjson)
+    cjson = yf.getJson(cobj)
+    yf.writeFile(conf, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', [])
+    return yf.returnJson(True, '设置成功!', [])
 
 
 def setSiteCcConf():
-    return mw.returnJson(False, '暂未开发!', [])
+    return yf.returnJson(False, '暂未开发!', [])
 
 
 def saveScanRule():
@@ -1102,21 +1102,21 @@ def saveScanRule():
         return data[1]
 
     path = getRuleJsonPath('scan_black')
-    cjson = mw.getJson(args)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(args)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!', [])
+    return yf.returnJson(True, '设置成功!', [])
 
 
 def getSiteConfig():
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
 
     content = json.loads(content)
 
     total = getJsonPath('total')
-    total_content = mw.readFile(total)
+    total_content = yf.readFile(total)
     total_content = json.loads(total_content)
 
     # print total_content
@@ -1141,8 +1141,8 @@ def getSiteConfig():
         # print tmp
         content[x]['total'] = tmp
 
-    content = mw.getJson(content)
-    return mw.returnJson(True, 'ok!', content)
+    content = yf.getJson(content)
+    return yf.returnJson(True, 'ok!', content)
 
 
 def getSiteConfigByName():
@@ -1151,7 +1151,7 @@ def getSiteConfigByName():
     if not data[0]:
         return data[1]
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     siteName = args['siteName']
@@ -1159,7 +1159,7 @@ def getSiteConfigByName():
     if siteName in content:
         retData = content[siteName]
 
-    return mw.returnJson(True, 'ok!', retData)
+    return yf.returnJson(True, 'ok!', retData)
 
 
 def addSiteCdnHeader():
@@ -1168,7 +1168,7 @@ def addSiteCdnHeader():
     if not data[0]:
         return data[1]
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     siteName = args['siteName']
@@ -1176,11 +1176,11 @@ def addSiteCdnHeader():
     if siteName in content:
         content[siteName]['cdn_header'].append(args['cdn_header'])
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def removeSiteCdnHeader():
@@ -1189,7 +1189,7 @@ def removeSiteCdnHeader():
     if not data[0]:
         return data[1]
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     siteName = args['siteName']
@@ -1197,11 +1197,11 @@ def removeSiteCdnHeader():
     if siteName in content:
         content[siteName]['cdn_header'].remove(args['cdn_header'])
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
 
     setConfRestartWeb()
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 def outputData():
@@ -1211,8 +1211,8 @@ def outputData():
         return data[1]
 
     path = getRuleJsonPath(args['sname'])
-    content = mw.readFile(path)
-    return mw.returnJson(True, 'ok', content)
+    content = yf.readFile(path)
+    return yf.returnJson(True, 'ok', content)
 
 
 def importData():
@@ -1223,7 +1223,7 @@ def importData():
 
     path = getRuleJsonPath(args['sname'])
 
-    source_data = mw.readFile(path)
+    source_data = yf.readFile(path)
     source_data = json.loads(source_data)
 
     save_data = []
@@ -1231,7 +1231,7 @@ def importData():
     pdata = args['pdata'].strip()
     try:
         pdata = json.loads(pdata)
-        mw.writeFile(path, json.dumps(pdata))
+        yf.writeFile(path, json.dumps(pdata))
     except Exception as e:
         pdata = pdata.split("\\n")
         for x in pdata:
@@ -1239,9 +1239,9 @@ def importData():
             if pval != "":
                 vv = json.loads(pval)
                 save_data.append(vv[0])
-        mw.writeFile(path, json.dumps(save_data))
+        yf.writeFile(path, json.dumps(save_data))
     # restartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def getLogsList():
@@ -1280,10 +1280,10 @@ def getLogsList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = tojs
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.returnJson(True, 'ok!', data)
+    return yf.returnJson(True, 'ok!', data)
 
 
 def getSafeLogs():
@@ -1295,7 +1295,7 @@ def getSafeLogs():
     path = getServerDir() + '/logs'
     file = path + '/' + args['siteName'] + '_' + args['toDate'] + '.log'
     if not os.path.exists(file):
-        return mw.returnJson(False, "文件不存在!")
+        return yf.returnJson(False, "文件不存在!")
 
     retData = []
     file = open(file)
@@ -1307,7 +1307,7 @@ def getSafeLogs():
 
             retData.append(json.loads(line))
 
-    return mw.returnJson(True, '设置成功!', retData)
+    return yf.returnJson(True, '设置成功!', retData)
 
 
 def setObjOpen():
@@ -1317,7 +1317,7 @@ def setObjOpen():
         return data[1]
 
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
 
     o = args['obj']
@@ -1326,10 +1326,10 @@ def setObjOpen():
     else:
         cobj[o]["open"] = True
 
-    cjson = mw.getJson(cobj)
-    mw.writeFile(conf, cjson)
+    cjson = yf.getJson(cobj)
+    yf.writeFile(conf, cjson)
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def setSiteObjOpen():
@@ -1342,7 +1342,7 @@ def setSiteObjOpen():
     obj = args['obj']
 
     path = getJsonPath('site')
-    content = mw.readFile(path)
+    content = yf.readFile(path)
     content = json.loads(content)
 
     if type(content[siteName][obj]) == bool:
@@ -1356,15 +1356,15 @@ def setSiteObjOpen():
         else:
             content[siteName][obj]['open'] = True
 
-    cjson = mw.getJson(content)
-    mw.writeFile(path, cjson)
+    cjson = yf.getJson(content)
+    yf.writeFile(path, cjson)
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def getWafSrceen():
     conf = getJsonPath('total')
-    return mw.readFile(conf)
+    return yf.readFile(conf)
 
 
 def getTotalStatistics():
@@ -1372,7 +1372,7 @@ def getTotalStatistics():
     isInstall = os.path.exists(getServerDir() + '/waf/total.json')
     if isInstall:
         try:
-            content = mw.readFile(getServerDir() + '/waf/total.json')
+            content = yf.readFile(getServerDir() + '/waf/total.json')
             total_data = json.loads(content)
             total = total_data.get('total', 0)
             today_total = 0
@@ -1385,20 +1385,20 @@ def getTotalStatistics():
             data['count'] = f"{today_total}/{total}"
             
             info_path = getPluginDir() + '/info.json'
-            info_data = json.loads(mw.readFile(info_path))
+            info_data = json.loads(yf.readFile(info_path))
             data['ver'] = info_data['versions'][0]
-            return mw.returnJson(True, 'ok', data)
+            return yf.returnJson(True, 'ok', data)
         except Exception as e:
             pass
             
     data['status'] = False
     data['count'] = '0/0'
-    return mw.returnJson(False, 'fail', data)
+    return yf.returnJson(False, 'fail', data)
 
 
 def getWafConf():
     conf = getJsonPath('config')
-    return mw.readFile(conf)
+    return yf.readFile(conf)
 
 
 def areaLimitSwitch():
@@ -1409,7 +1409,7 @@ def areaLimitSwitch():
 
     path_config = getJsonPath('config')
 
-    config_contents = mw.readFile(path_config)
+    config_contents = yf.readFile(path_config)
     config_contents = json.loads(config_contents)
 
     msg = '关闭成功!'
@@ -1419,21 +1419,21 @@ def areaLimitSwitch():
     else:
         config_contents['area_limit'] = False
 
-    mw.writeFile(path_config, json.dumps(config_contents))
+    yf.writeFile(path_config, json.dumps(config_contents))
 
     autoMakeConfig(True, True)
     restart()
-    return mw.returnJson(True, msg)
+    return yf.returnJson(True, msg)
 
 
 def getAreaLimit():
     conf = getJsonPath('area_limit')
     if not os.path.exists(conf):
-        mw.writeFile(conf, '[]')
+        yf.writeFile(conf, '[]')
 
-    d = mw.readFile(conf)
+    d = yf.readFile(conf)
     data = json.loads(d)
-    return mw.returnJson(True, 'ok!', data)
+    return yf.returnJson(True, 'ok!', data)
 
 
 def delAreaLimit():
@@ -1444,7 +1444,7 @@ def delAreaLimit():
 
     type_list = ["refuse", "accept"]
     if not args['types'] in type_list:
-        return mw.returnJson(False, '输入的类型错误!')
+        return yf.returnJson(False, '输入的类型错误!')
 
     region_l = args['region'].split(",")
     site_l = args['site'].split(",")
@@ -1467,22 +1467,22 @@ def delAreaLimit():
             sitesMode[i] = "1"
 
     if len(paramMode) == 0:
-        return mw.returnJson(False, '输入的请求类型错误!')
+        return yf.returnJson(False, '输入的请求类型错误!')
     if len(sitesMode) == 0:
-        return mw.returnJson(False, '输入的站点错误!')
+        return yf.returnJson(False, '输入的站点错误!')
 
     conf = getJsonPath('area_limit')
-    t_data = json.loads(mw.readFile(conf))
+    t_data = json.loads(yf.readFile(conf))
 
     data = {"site": sitesMode, "types": args['types'], "region": paramMode}
     if not data in t_data:
-        return mw.returnJson(False, '不存在!')
+        return yf.returnJson(False, '不存在!')
 
     t_data.remove(data)
-    mw.writeFile(conf, json.dumps(t_data))
+    yf.writeFile(conf, json.dumps(t_data))
 
     setConfRestartWeb()
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 def addAreaLimit():
@@ -1493,7 +1493,7 @@ def addAreaLimit():
 
     type_list = ["refuse", "accept"]
     if not args['types'] in type_list:
-        return mw.returnJson(False, '输入的类型错误!')
+        return yf.returnJson(False, '输入的类型错误!')
 
     region_l = args['region'].split(",")
     site_l = args['site'].split(",")
@@ -1507,7 +1507,7 @@ def addAreaLimit():
             paramMode[i] = "1"
 
     if '海外' in paramMode and '中国' in paramMode:
-        return mw.returnJson(False, '不允许设置【中国大陆】和【中国大陆以外地区】一同开启地区限制!')
+        return yf.returnJson(False, '不允许设置【中国大陆】和【中国大陆以外地区】一同开启地区限制!')
 
     sitesMode = {}
     for i in site_l:
@@ -1519,40 +1519,40 @@ def addAreaLimit():
             sitesMode[i] = "1"
 
     if len(paramMode) == 0:
-        return mw.returnJson(False, '输入的请求类型错误!')
+        return yf.returnJson(False, '输入的请求类型错误!')
     if len(sitesMode) == 0:
-        return mw.returnJson(False, '输入的站点错误!')
+        return yf.returnJson(False, '输入的站点错误!')
 
     conf = getJsonPath('area_limit')
-    t_data = json.loads(mw.readFile(conf))
+    t_data = json.loads(yf.readFile(conf))
 
     data = {"site": sitesMode, "types": args['types'], "region": paramMode}
     if data in t_data:
-        return mw.returnJson(False, '已存在!')
+        return yf.returnJson(False, '已存在!')
 
     t_data.insert(0, data)
-    mw.writeFile(conf, json.dumps(t_data))
+    yf.writeFile(conf, json.dumps(t_data))
 
     setConfRestartWeb()
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def cleanDropIp():
     url = "http://127.0.0.1/clean_waf_drop_ip"
-    data = mw.httpGet(url)
-    return mw.returnJson(True, 'ok!', data)
+    data = yf.httpGet(url)
+    return yf.returnJson(True, 'ok!', data)
 
 
 def getDropIpList():
     url = "http://127.0.0.1/get_waf_drop_ip"
     try:
-        data = mw.httpGet(url)
+        data = yf.httpGet(url)
         res = json.loads(data)
         if res['status'] == 0:
-            return mw.returnJson(True, 'ok!', res['msg'])
-        return mw.returnJson(False, 'Failed to fetch', [])
+            return yf.returnJson(True, 'ok!', res['msg'])
+        return yf.returnJson(False, 'Failed to fetch', [])
     except Exception as e:
-        return mw.returnJson(False, str(e), [])
+        return yf.returnJson(False, str(e), [])
 
 def get_location_from_pconline(ip):
     try:
@@ -1622,7 +1622,7 @@ def getIpLocationBatch():
         import urllib.request
         ips = json.loads(ips_json)
         if not isinstance(ips, list):
-            return mw.returnJson(False, 'ips must be a JSON array', [])
+            return yf.returnJson(False, 'ips must be a JSON array', [])
         
         import urllib.request
         import time
@@ -1634,14 +1634,14 @@ def getIpLocationBatch():
                 req.add_header('Content-Type', 'application/json')
                 response = urllib.request.urlopen(req, data=ips_json.encode('utf-8'), timeout=10)
                 result = response.read().decode('utf-8')
-                return mw.returnJson(True, 'ok!', json.loads(result))
+                return yf.returnJson(True, 'ok!', json.loads(result))
             except Exception as e:
                 if attempt == max_retries - 1:
                     result_list = [{"query": ip, "status": "fail"} for ip in ips]
-                    return mw.returnJson(True, 'ok!', result_list)
+                    return yf.returnJson(True, 'ok!', result_list)
                 time.sleep(0.5)
     except Exception as e:
-        return mw.returnJson(False, str(e), [])
+        return yf.returnJson(False, str(e), [])
 
 def getIpLocation():
     args = getArgs()
@@ -1662,14 +1662,14 @@ def getIpLocation():
                 result = response.read().decode('utf-8')
                 res_data = json.loads(result)
                 if res_data.get('status') == 'success':
-                    return mw.returnJson(True, 'ok!', res_data)
+                    return yf.returnJson(True, 'ok!', res_data)
                 raise Exception("ip-api failed")
             except Exception as e:
                 if attempt == max_retries - 1:
-                    return mw.returnJson(False, '获取归属地失败', [])
+                    return yf.returnJson(False, '获取归属地失败', [])
                 time.sleep(0.5)
     except Exception as e:
-        return mw.returnJson(False, str(e), [])
+        return yf.returnJson(False, str(e), [])
 def removeDropIp():
     args = getArgs()
     data = checkArgs(args, ['ip'])
@@ -1678,13 +1678,13 @@ def removeDropIp():
     ip = args['ip']
     url = "http://127.0.0.1/remove_waf_drop_ip?ip=" + ip
     try:
-        res_data = mw.httpGet(url)
+        res_data = yf.httpGet(url)
         res = json.loads(res_data)
         if res['status'] == 0:
-            return mw.returnJson(True, '释放成功!')
-        return mw.returnJson(False, res.get('msg', '释放失败'))
+            return yf.returnJson(True, '释放成功!')
+        return yf.returnJson(False, res.get('msg', '释放失败'))
     except Exception as e:
-        return mw.returnJson(False, str(e))
+        return yf.returnJson(False, str(e))
 
 
 def getDropIpLogs():
@@ -1711,7 +1711,7 @@ def getDropIpLogs():
         except Exception:
             pass
             
-    return mw.returnJson(True, 'ok!', logs)
+    return yf.returnJson(True, 'ok!', logs)
 
 
 def addTrustedProxy():
@@ -1721,7 +1721,7 @@ def addTrustedProxy():
         return data[1]
     
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
     
     if "trusted_proxy" not in cobj:
@@ -1730,10 +1730,10 @@ def addTrustedProxy():
     if args['ip'] not in cobj["trusted_proxy"]:
         cobj["trusted_proxy"].append(args['ip'])
         
-    cjson = mw.getJson(cobj)
-    mw.writeFile(conf, cjson)
+    cjson = yf.getJson(cobj)
+    yf.writeFile(conf, cjson)
     setConfRestartWeb()
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def removeTrustedProxy():
@@ -1744,16 +1744,16 @@ def removeTrustedProxy():
     
     index = int(args['index'])
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
     
     if "trusted_proxy" in cobj and index < len(cobj["trusted_proxy"]):
         cobj["trusted_proxy"].pop(index)
-        cjson = mw.getJson(cobj)
-        mw.writeFile(conf, cjson)
+        cjson = yf.getJson(cobj)
+        yf.writeFile(conf, cjson)
         setConfRestartWeb()
-        return mw.returnJson(True, '删除成功!')
-    return mw.returnJson(False, '删除失败!')
+        return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(False, '删除失败!')
 
 
 def setHoneypotPaths():
@@ -1763,7 +1763,7 @@ def setHoneypotPaths():
         return data[1]
 
     conf = getJsonPath('config')
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     cobj = json.loads(content)
 
     paths = args['paths']
@@ -1779,9 +1779,9 @@ def setHoneypotPaths():
         }
 
     cobj['honeypot']['paths'] = paths
-    mw.writeFile(conf, json.dumps(cobj))
+    yf.writeFile(conf, json.dumps(cobj))
     setConfRestartWeb()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 def testRun():
     # args = getArgs()
@@ -1790,17 +1790,17 @@ def testRun():
     #     return data[1]
 
     default_path = getServerDir() + "/waf/default.pl"
-    default_site = mw.readFile(default_path)
+    default_site = yf.readFile(default_path)
     url = "http://" + default_site + '/?t=../etc/passwd'
-    returnData = mw.httpGet(url, 10)
+    returnData = yf.httpGet(url, 10)
 
     # url = "https://" + default_site + '/?t=../etc/passwd'
-    # returnData = mw.httpGet(url, 3)
-    return mw.returnJson(True, '测试运行成功!', returnData)
+    # returnData = yf.httpGet(url, 3)
+    return yf.returnJson(True, '测试运行成功!', returnData)
 
 
 def installPreInspection():
-    check_op = mw.getServerDir() + "/openresty"
+    check_op = yf.getServerDir() + "/openresty"
     if not os.path.exists(check_op):
         return "请先安装OpenResty"
     return 'ok'
@@ -1809,11 +1809,11 @@ def installPreInspection():
 if __name__ == "__main__":
     func = sys.argv[1]
     if func not in ['status', 'install_pre_inspection']:
-        if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
-            print(mw.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8')))
+        if not hasattr(mw, 'isYufengPanel') or not yf.isYufengPanel():
+            print(yf.returnJson(False, __import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8')))
             sys.exit(0)
     elif func == 'install_pre_inspection':
-        if not hasattr(mw, 'isYufengPanel') or not mw.isYufengPanel():
+        if not hasattr(mw, 'isYufengPanel') or not yf.isYufengPanel():
             print(__import__('base64').b64decode('5oKo55qE6Z2i5p2/546v5aKD5LiN5Yy56YWN77yM6K+36LCo5oWO5L2/55So77yB').decode('utf-8'))
             sys.exit(0)
             

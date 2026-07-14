@@ -12,74 +12,74 @@
 import os
 import shutil
 
-import core.yf as mw
+import core.yf as yf
 
 def cmdContent():
-    script = mw.getPanelDir() + '/scripts/init.d/yf.tpl'
-    content = mw.readFile(script)
-    content = content.replace("{$SERVER_PATH}", mw.getPanelDir())
-    content += "\n# make:{0}".format(mw.formatDate())
+    script = yf.getPanelDir() + '/scripts/init.d/yf.tpl'
+    content = yf.readFile(script)
+    content = content.replace("{$SERVER_PATH}", yf.getPanelDir())
+    content += "\n# make:{0}".format(yf.formatDate())
     return content
 
 
 def init_cmd():
     cmd_content = cmdContent()
-    script_bin = mw.getPanelDir() + '/scripts/init.d/yf'
-    mw.writeFile(script_bin, cmd_content)
-    mw.execShell('chmod +x ' + script_bin)
+    script_bin = yf.getPanelDir() + '/scripts/init.d/yf'
+    yf.writeFile(script_bin, cmd_content)
+    yf.execShell('chmod +x ' + script_bin)
 
     # 在linux系统中,确保/etc/init.d存在
-    if not mw.isAppleSystem() and not os.path.exists("/etc/rc.d/init.d"):
-        mw.execShell('mkdir -p /etc/rc.d/init.d')
+    if not yf.isAppleSystem() and not os.path.exists("/etc/rc.d/init.d"):
+        yf.execShell('mkdir -p /etc/rc.d/init.d')
 
-    if not mw.isAppleSystem() and not os.path.exists("/etc/init.d"):
-        mw.execShell('mkdir -p /etc/init.d')
+    if not yf.isAppleSystem() and not os.path.exists("/etc/init.d"):
+        yf.execShell('mkdir -p /etc/init.d')
     # initd
     if os.path.exists('/etc/rc.d/init.d'):
         initd_bin = '/etc/rc.d/init.d/yf'
         if True:
-            mw.execShell('rm -f ' + initd_bin)
-            mw.writeFile(initd_bin, cmd_content)
-            mw.execShell('chmod +x ' + initd_bin)
+            yf.execShell('rm -f ' + initd_bin)
+            yf.writeFile(initd_bin, cmd_content)
+            yf.execShell('chmod +x ' + initd_bin)
         # 加入自启动
-        mw.execShell('which chkconfig && chkconfig --add yf')
+        yf.execShell('which chkconfig && chkconfig --add yf')
         
         # 确保 /usr/bin/yf, /usr/bin/mw 和 /usr/bin/bs 存在
-        mw.execShell('rm -f /usr/bin/yf && ln -sf ' + initd_bin + ' /usr/bin/yf')
-        mw.execShell('rm -f /usr/bin/mw && ln -sf ' + initd_bin + ' /usr/bin/mw')
-        mw.execShell('rm -f /usr/bin/bs && ln -sf ' + initd_bin + ' /usr/bin/bs')
-        mw.execShell('rm -f /etc/rc.d/init.d/bs && ln -sf ' + initd_bin + ' /etc/rc.d/init.d/bs')
+        yf.execShell('rm -f /usr/bin/yf && ln -sf ' + initd_bin + ' /usr/bin/yf')
+        yf.execShell('rm -f /usr/bin/mw && ln -sf ' + initd_bin + ' /usr/bin/mw')
+        yf.execShell('rm -f /usr/bin/bs && ln -sf ' + initd_bin + ' /usr/bin/bs')
+        yf.execShell('rm -f /etc/rc.d/init.d/bs && ln -sf ' + initd_bin + ' /etc/rc.d/init.d/bs')
 
 
     if os.path.exists('/etc/init.d'):
         initd_bin = '/etc/init.d/yf'
         if True:
-            mw.execShell('rm -f ' + initd_bin)
-            mw.writeFile(initd_bin, cmd_content)
-            mw.execShell('chmod +x ' + initd_bin)
+            yf.execShell('rm -f ' + initd_bin)
+            yf.writeFile(initd_bin, cmd_content)
+            yf.execShell('chmod +x ' + initd_bin)
         # 加入自启动
-        mw.execShell('which update-rc.d && update-rc.d -f yf defaults')
+        yf.execShell('which update-rc.d && update-rc.d -f yf defaults')
 
         # 确保 /usr/bin/yf, /usr/bin/mw 和 /usr/bin/bs 存在
-        mw.execShell('rm -f /usr/bin/yf && ln -sf ' + initd_bin + ' /usr/bin/yf')
-        mw.execShell('rm -f /usr/bin/mw && ln -sf ' + initd_bin + ' /usr/bin/mw')
-        mw.execShell('rm -f /usr/bin/bs && ln -sf ' + initd_bin + ' /usr/bin/bs')
-        mw.execShell('rm -f /etc/init.d/bs && ln -sf ' + initd_bin + ' /etc/init.d/bs')
+        yf.execShell('rm -f /usr/bin/yf && ln -sf ' + initd_bin + ' /usr/bin/yf')
+        yf.execShell('rm -f /usr/bin/mw && ln -sf ' + initd_bin + ' /usr/bin/mw')
+        yf.execShell('rm -f /usr/bin/bs && ln -sf ' + initd_bin + ' /usr/bin/bs')
+        yf.execShell('rm -f /etc/init.d/bs && ln -sf ' + initd_bin + ' /etc/init.d/bs')
 
-    # sys_name = mw.getOsName()
+    # sys_name = yf.getOsName()
     # if sys_name == 'opensuse':
     #     init_cmd_systemd()
     return True
 
 
 def init_cmd_systemd():
-    systemd_dir = mw.systemdCfgDir()
+    systemd_dir = yf.systemdCfgDir()
 
     systemd_mw = systemd_dir + '/yf.service'
     systemd_mw_task = systemd_dir + '/yf-task.service'
 
-    systemd_mw_tpl = mw.getPanelDir() + '/scripts/init.d/yf.service.tpl'
-    systemd_mw_task_tpl = mw.getPanelDir() + '/scripts/init.d/yf-task.service.tpl'
+    systemd_mw_tpl = yf.getPanelDir() + '/scripts/init.d/yf.service.tpl'
+    systemd_mw_task_tpl = yf.getPanelDir() + '/scripts/init.d/yf-task.service.tpl'
 
     if os.path.exists(systemd_mw):
         os.remove(systemd_mw)
@@ -89,6 +89,6 @@ def init_cmd_systemd():
     contentReplace(systemd_mw_tpl, systemd_mw)
     contentReplace(systemd_mw_task_tpl, systemd_mw_task)
 
-    mw.execShell('systemctl enable yf')
-    mw.execShell('systemctl enable yf-task')
-    mw.execShell('systemctl daemon-reload')
+    yf.execShell('systemctl enable yf')
+    yf.execShell('systemctl enable yf-task')
+    yf.execShell('systemctl daemon-reload')

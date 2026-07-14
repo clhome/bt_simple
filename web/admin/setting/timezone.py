@@ -18,7 +18,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 
-import core.yf as mw
+import core.yf as yf
 import utils.config as utils_config
 
 from .setting import blueprint
@@ -31,17 +31,17 @@ def get_timezone_list():
     # 获取时区列表
     # pytz.all_timezones | 所有
     # pytz.common_timezones
-    return mw.returnData(True, 'ok', pytz.all_timezones)
+    return yf.returnData(True, 'ok', pytz.all_timezones)
 
 @blueprint.route('/sync_date', endpoint='sync_date', methods=['POST'])
 @panel_login_required
 def sync_date():
-    if mw.isAppleSystem():
-        return mw.returnData(True, '开发系统不必同步时间!')
-    data = mw.execShell('ntpdate -s time.nist.gov')
+    if yf.isAppleSystem():
+        return yf.returnData(True, '开发系统不必同步时间!')
+    data = yf.execShell('ntpdate -s time.nist.gov')
     if data[0] == '':
-        return mw.returnData(True, '同步成功!')
-    return mw.returnData(False, '同步失败:' + data[0])
+        return yf.returnData(True, '同步成功!')
+    return yf.returnData(False, '同步失败:' + data[0])
 
 @blueprint.route('/set_timezone', endpoint='set_timezone', methods=['POST'])
 @panel_login_required
@@ -49,8 +49,8 @@ def set_timezone():
     # 设置时区列表
     timezone = request.form.get('timezone', '').strip()
     cmd = 'timedatectl set-timezone "'+timezone+'"'
-    mw.execShell(cmd)
-    return mw.returnData(True, '设置成功!')
+    yf.execShell(cmd)
+    return yf.returnData(True, '设置成功!')
         
 
         

@@ -16,7 +16,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -25,15 +25,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -78,13 +78,13 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getHomeDir():
-    if mw.isAppleSystem():
-        user = mw.execShell(
+    if yf.isAppleSystem():
+        user = yf.execShell(
             "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return '/Users/' + user
     else:
@@ -92,8 +92,8 @@ def getHomeDir():
 
 
 def getRunUser():
-    if mw.isAppleSystem():
-        user = mw.execShell(
+    if yf.isAppleSystem():
+        user = yf.execShell(
             "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return user
     else:
@@ -106,7 +106,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -115,13 +115,13 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pidfile\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -130,11 +130,11 @@ def status():
     return 'start'
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$SERVER_APP}', service_path + '/redis')
-    content = content.replace('{$REDIS_PASS}', mw.getRandomString(10))
+    content = content.replace('{$REDIS_PASS}', yf.getRandomString(10))
     return content
 
 
@@ -142,26 +142,26 @@ def pSqliteDb(dbname='dnsapi'):
     file = getServerDir() + '/acme.db'
     name = 'acme'
 
-    import_sql = mw.readFile(getPluginDir() + '/conf/acme.sql')
-    md5_sql = mw.md5(import_sql)
+    import_sql = yf.readFile(getPluginDir() + '/conf/acme.sql')
+    md5_sql = yf.md5(import_sql)
 
     import_sign = False
     save_md5_file = getServerDir() + '/acme.md5'
     if os.path.exists(save_md5_file):
-        save_md5_sql = mw.readFile(save_md5_file)
+        save_md5_sql = yf.readFile(save_md5_file)
         if save_md5_sql != md5_sql:
             import_sign = True
-            mw.writeFile(save_md5_file, md5_sql)
+            yf.writeFile(save_md5_file, md5_sql)
     else:
-        mw.writeFile(save_md5_file, md5_sql)
+        yf.writeFile(save_md5_file, md5_sql)
 
     if not os.path.exists(file) or import_sql:
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
         csql_list = import_sql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
 
-    conn = mw.M(dbname).dbPos(getServerDir(), name)
+    conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 def initDreplace():
@@ -175,11 +175,11 @@ def initDreplace():
 
     run_log_file = runLog()
     if not os.path.exists(run_log_file):
-        mw.writeFile(run_log_file,'')
+        yf.writeFile(run_log_file,'')
 
     hook_file = getConf()
     if not os.path.exists(hook_file):
-        mw.writeFile(hook_file,'')
+        yf.writeFile(hook_file,'')
 
     return file_bin
 
@@ -188,20 +188,20 @@ def apaOp(method):
     file = initDreplace()
     return 'ok'
 
-    # current_os = mw.getOs()
+    # current_os = yf.getOs()
     # if current_os == "darwin":
-    #     data = mw.execShell(file + ' ' + method)
+    #     data = yf.execShell(file + ' ' + method)
     #     if data[1] == '':
     #         return 'ok'
     #     return data[1]
 
     # if current_os.startswith("freebsd"):
-    #     data = mw.execShell('service ' + getPluginName() + ' ' + method)
+    #     data = yf.execShell('service ' + getPluginName() + ' ' + method)
     #     if data[1] == '':
     #         return 'ok'
     #     return data[1]
 
-    # data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    # data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
     # if data[1] == '':
     #     return 'ok'
     # return data[1]
@@ -243,7 +243,7 @@ def dnsapiAdd():
     sid = args['id'].strip()
 
     if name == '':
-        return mw.returnJson(False, '名称不能为空!')
+        return yf.returnJson(False, '名称不能为空!')
 
     if sid != '0' : #修改操作
         conn.where("id=?", (sid,)).update({
@@ -252,15 +252,15 @@ def dnsapiAdd():
             'val':val,
             'remark':remark,
         })
-        return mw.returnJson(True, '修改成功!')
+        return yf.returnJson(True, '修改成功!')
 
     if conn.where("name=?", (name,)).count():
-        return mw.returnJson(False, name+'已存在!')
+        return yf.returnJson(False, name+'已存在!')
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     err = conn.add('name,type,val,remark,addtime', (name, stype, val,remark, addTime))
     # print(err)
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 def dnsapiDel():
     args = getArgs()
@@ -273,9 +273,9 @@ def dnsapiDel():
         sid = args['id']
         name = args['name']
         conn.where("id=?", (sid,)).delete()
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
     except Exception as ex:
-        return mw.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, '删除失败!' + str(ex))
 
 def dnsapiList():
     args = getArgs()
@@ -307,16 +307,16 @@ def dnsapiList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'dbList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 def dnsapiListAll():
     conn = pSqliteDb('dnsapi')
     field = 'id,name,type,val,remark,addtime'
     data = conn.field(field).limit('1000').select()
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 def emailList():
     args = getArgs()
@@ -348,10 +348,10 @@ def emailList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'dbList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 def emailAdd():
     args = getArgs()
@@ -363,13 +363,13 @@ def emailAdd():
     remark = args['remark'].strip()
 
     if addr == '':
-        return mw.returnJson(False, '邮件地址不能为空!')
+        return yf.returnJson(False, '邮件地址不能为空!')
 
     conn = pSqliteDb('email')
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     conn.add('addr,remark,addtime', (addr, remark, addTime))
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 def emailDel():
     args = getArgs()
@@ -382,9 +382,9 @@ def emailDel():
         sid = args['id']
         name = args['name']
         conn.where("id=?", (sid,)).delete()
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
     except Exception as ex:
-        return mw.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, '删除失败!' + str(ex))
 
 def domainAdd():
     args = getArgs()
@@ -399,9 +399,9 @@ def domainAdd():
     dnsapi_id = args['dnsapi_id'].strip()
 
     if domain == '':
-        return mw.returnJson(False, '域名不能为空!')
+        return yf.returnJson(False, '域名不能为空!')
     if email == '':
-        return mw.returnJson(False, '邮件不能为空!')
+        return yf.returnJson(False, '邮件不能为空!')
 
     conn = pSqliteDb('domain')
 
@@ -412,16 +412,16 @@ def domainAdd():
             'email':email,
             'remark':remark,
         })
-        return mw.returnJson(True, '修改成功!')
+        return yf.returnJson(True, '修改成功!')
 
     if conn.where("domain=?", (domain,)).count():
-        return mw.returnJson(False, domain+'已存在!')
+        return yf.returnJson(False, domain+'已存在!')
 
     
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     conn.add('domain,dnsapi_id,email,remark,addtime', (domain, dnsapi_id,email,remark, addTime))
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 def domainDel():
     args = getArgs()
@@ -434,9 +434,9 @@ def domainDel():
         sid = args['id']
         name = args['name']
         conn.where("id=?", (sid,)).delete()
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
     except Exception as ex:
-        return mw.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, '删除失败!' + str(ex))
 
 def domainStatusToggle():
     args = getArgs()
@@ -458,7 +458,7 @@ def domainStatusToggle():
     conn.where("id=?", (args['id'],)).update({
         'status':fstatus,
     })
-    return mw.returnJson(True, '切换成功!')
+    return yf.returnJson(True, '切换成功!')
 
 def domainList():
     args = getArgs()
@@ -499,10 +499,10 @@ def domainList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'dbList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 def getDnsapiData(dnsapi_id):
     if dnsapi_id == '0':
@@ -536,7 +536,7 @@ def getDnsapiKv(val):
 
 def domainApplyPathJudge(domain):
     acme_dir = "/root/.acme.sh"
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         user = getRunUser()
         acme_dir = "/Users/"+user+"/.acme.sh"
 
@@ -558,21 +558,21 @@ def hookWriteLog(line):
     mdate = time.strftime('%Y-%m-%d %X', time.localtime())
     log = "["+mdate+"]:"+line
     print(log)
-    return mw.writeFile(hook_file,log+"\n",'a+')
+    return yf.writeFile(hook_file,log+"\n",'a+')
 
 def runHookPy(domain,path):
     # print(domain,path)
     run_log = runLog()
     hook_file = getConf()
-    cmd = 'cd '+mw.getPanelDir()
+    cmd = 'cd '+yf.getPanelDir()
     cmd += ' && python3 '+hook_file + ' ' + domain + ' ' + path
     cmd += ' >> '+ run_log
     print(cmd)
-    return mw.execShell(cmd)
+    return yf.execShell(cmd)
 
 def autoUpdateSslData(domain, path):
     ssl_cer_file = path + '/'+domain+'.cer'
-    ssl_info = mw.getCertName(ssl_cer_file)
+    ssl_info = yf.getCertName(ssl_cer_file)
 
     time_begin = int(time.mktime(time.strptime(ssl_info['notBefore'], "%Y-%m-%d")))
     time_end = int(time.mktime(time.strptime(ssl_info['notAfter'], "%Y-%m-%d")))
@@ -604,7 +604,7 @@ def runHookDstDomain(row):
     cmd += "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin:/root/.acme.sh\n"
     cmd += "export PATH\n"
 
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         user = getRunUser()
         cmd += "source /Users/"+user+"/.zshrc\n"
 
@@ -647,9 +647,9 @@ def getHookIdCmd():
     if not data[0]:
         return data[1]
 
-    cmd = "cd "+mw.getPanelDir()+" "
+    cmd = "cd "+yf.getPanelDir()+" "
     cmd += '&& python3 plugins/acme_pandominassl_apply/index.py run_hook_id 1.0 {"id":"'+args['id']+'"}'
-    return mw.returnJson(True, 'ok',cmd)
+    return yf.returnJson(True, 'ok',cmd)
 
 def runHookId():
     args = getArgs()
@@ -664,9 +664,9 @@ def runHookId():
     return 'run hook '+args['id']+' end'
 
 def runHookCmd():
-    cmd = "cd "+mw.getPanelDir()+" "
+    cmd = "cd "+yf.getPanelDir()+" "
     cmd += '&& python3 plugins/acme_pandominassl_apply/index.py run_hook'
-    return mw.returnJson(True, 'ok',cmd)
+    return yf.returnJson(True, 'ok',cmd)
 
 def runHook():
     conn = pSqliteDb('domain')
@@ -741,9 +741,9 @@ def runSyncCfData():
     return ''
 
 def runSyncCfCmd():
-    cmd = "cd "+mw.getPanelDir()+" "
+    cmd = "cd "+yf.getPanelDir()+" "
     cmd += '&& python3 plugins/acme_pandominassl_apply/index.py run_sync_cf_data'
-    return mw.returnJson(True, 'ok',cmd)
+    return yf.returnJson(True, 'ok',cmd)
 
 def runSyncDnspodDataRow(row, page = 1):
     # print(row, page)
@@ -794,9 +794,9 @@ def runSyncDnsPodData():
     return ''
 
 def runSyncDnsPodCmd():
-    cmd = "cd "+mw.getPanelDir()+" "
+    cmd = "cd "+yf.getPanelDir()+" "
     cmd += '&& python3 plugins/acme_pandominassl_apply/index.py run_sync_dnspod_data'
-    return mw.returnJson(True, 'ok',cmd)
+    return yf.returnJson(True, 'ok',cmd)
 
 if __name__ == "__main__":
     func = sys.argv[1]

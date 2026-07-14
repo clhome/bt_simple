@@ -25,15 +25,15 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     cmd = 'ls /usr/local/lib/ | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
-    info = mw.execShell(cmd)
+    info = yf.execShell(cmd)
     p = "/usr/local/lib/" + info[0].strip() + "/site-packages"
     sys.path.append(p)
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -42,11 +42,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/pgsql'
+    return yf.getServerDir() + '/pgsql'
 
 
 def getInitDFile():
@@ -126,17 +126,17 @@ def checkSafeAccess(access):
 
 
 def getBackupDir():
-    bk_path = mw.getBackupDir() + "/database/postgresql"
+    bk_path = yf.getBackupDir() + "/database/postgresql"
     if not os.path.isdir(bk_path):
-        mw.execShell("mkdir -p {}".format(bk_path))
+        yf.execShell("mkdir -p {}".format(bk_path))
     return bk_path
 
 
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getConf():
@@ -152,7 +152,7 @@ def configTpl():
     clist.append(app_dir + "/data/postgresql.conf")
     clist.append(app_dir + "/data/pg_hba.conf")
 
-    return mw.getJson(clist)
+    return yf.getJson(clist)
 
 
 def pgHbaConf():
@@ -165,13 +165,13 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
-    return mw.returnJson(True, 'ok', content)
+    content = yf.readFile(args['file'])
+    return yf.returnJson(True, 'ok', content)
 
 
 def getDbPort():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'port\s*=\s*(\d*)?'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -198,8 +198,8 @@ def getInitdTpl(version=''):
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$APP_PATH}', getServerDir())
     return content
@@ -208,19 +208,19 @@ def contentReplace(content):
 def pSqliteDb(dbname='databases', name='pgsql'):
     file = getServerDir() + '/' + name + '.db'
     if not os.path.exists(file):
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
-        csql = mw.readFile(getPluginDir() + '/conf/pgsql.sql')
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
+        csql = yf.readFile(getPluginDir() + '/conf/pgsql.sql')
         csql_list = csql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
     else:
         # 现有run
-        # conn = mw.M(dbname).dbPos(getServerDir(), name)
-        # csql = mw.readFile(getPluginDir() + '/conf/mysql.sql')
+        # conn = yf.M(dbname).dbPos(getServerDir(), name)
+        # csql = yf.readFile(getPluginDir() + '/conf/mysql.sql')
         # csql_list = csql.split(';')
         # for index in range(len(csql_list)):
         #     conn.execute(csql_list[index], ())
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 
@@ -242,24 +242,24 @@ def initConfig(version=''):
     conf_dir = getServerDir()
     init_pl = conf_dir + "/init.pl"
     if not os.path.exists(init_pl):
-        mw.writeFile(init_pl, 'ok')
+        yf.writeFile(init_pl, 'ok')
 
         # postgresql.conf
         pg_conf = conf_dir + '/data/postgresql.conf'
         tpl = getPluginDir() + '/conf/postgresql.conf'
-        content = mw.readFile(tpl)
+        content = yf.readFile(tpl)
         content = contentReplace(content)
-        mw.writeFile(pg_conf, content)
+        yf.writeFile(pg_conf, content)
 
         # pg_hba.conf
         tpl = getPluginDir() + '/conf/pg_hba.conf'
         pg_hba_conf = conf_dir + '/data/pg_hba.conf'
-        content = mw.readFile(tpl)
-        mw.writeFile(pg_hba_conf, content)
+        content = yf.readFile(tpl)
+        yf.writeFile(pg_hba_conf, content)
 
         logfile = runLog()
         if not os.path.exists(logfile):
-            mw.writeFile(logfile, '')
+            yf.writeFile(logfile, '')
 
 
 def initDreplace(version=''):
@@ -275,18 +275,18 @@ def initDreplace(version=''):
             os.mkdir(c)
 
     # systemd
-    system_dir = mw.systemdCfgDir()
+    system_dir = yf.systemdCfgDir()
     service = system_dir + '/postgresql.service'
     if os.path.exists(system_dir):
         tpl = getPluginDir() + '/init.d/postgresql.service.tpl'
-        service_path = mw.getServerDir()
-        content = mw.readFile(tpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(tpl)
         content = contentReplace(content)
-        mw.writeFile(service, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(service, content)
+        yf.execShell('systemctl daemon-reload')
 
-    if not mw.isAppleSystem():
-        mw.execShell('chown -R postgres:postgres ' + getServerDir())
+    if not yf.isAppleSystem():
+        yf.execShell('chown -R postgres:postgres ' + getServerDir())
 
     initd_path = getServerDir() + '/init.d'
     if not os.path.exists(initd_path):
@@ -295,17 +295,17 @@ def initDreplace(version=''):
     file_bin = initd_path + '/' + getPluginName()
     if True:
         tpl = getInitdTpl(version)
-        content = mw.readFile(tpl)
+        content = yf.readFile(tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
     return file_bin
 
 
 def status(version=''):
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         # 1. 优先使用 systemctl 精准探测
-        state_data = mw.execShell("systemctl is-active postgresql")
+        state_data = yf.execShell("systemctl is-active postgresql")
         if state_data[0].strip() == "active":
             return 'start'
 
@@ -313,7 +313,7 @@ def status(version=''):
         pid_file = getServerDir() + "/data/postmaster.pid"
         if os.path.exists(pid_file):
             try:
-                content = mw.readFile(pid_file)
+                content = yf.readFile(pid_file)
                 if content:
                     lines = content.strip().split('\n')
                     if len(lines) > 0:
@@ -324,7 +324,7 @@ def status(version=''):
                 pass
         return 'stop'
     else:
-        data = mw.execShell(
+        data = yf.execShell(
             "ps -ef|grep postgres |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
         if data[0] == '':
             return 'stop'
@@ -336,12 +336,12 @@ def pgCmd(cmd):
 
 
 def execShellPg(cmd):
-    return mw.execShell(pgCmd(cmd))
+    return yf.execShell(pgCmd(cmd))
 
 
 def pGetDbUser():
-    if mw.isAppleSystem():
-        user = mw.execShell(
+    if yf.isAppleSystem():
+        user = yf.execShell(
             "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return user
     return 'postgresql'
@@ -351,10 +351,10 @@ def initPgData():
     serverdir = getServerDir()
     if not os.path.exists(serverdir + '/data'):
         cmd = serverdir + '/bin/initdb -D ' + serverdir + "/data"
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             execShellPg(cmd)
             return False
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         return False
     return True
 
@@ -362,22 +362,22 @@ def initPgData():
 def initPgPwd():
 
     serverdir = getServerDir()
-    pwd = mw.getRandomString(16)
+    pwd = yf.getRandomString(16)
 
     cmd_pass = serverdir + '/bin/createuser -s -r postgres'
 
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         cmd_pass = 'su - postgres -c "' + cmd_pass + '"'
-    data = mw.execShell(cmd_pass)
+    data = yf.execShell(cmd_pass)
 
     cmd_pass = "echo \"alter user postgres with password '" + pwd + "'\" | "
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         cmd = serverdir + '/bin/psql -d postgres'
         cmd_pass = cmd_pass + ' ' + pgCmd(cmd)
     else:
         cmd_pass = cmd_pass + serverdir + '/bin/psql -d postgres'
 
-    data = mw.execShell(cmd_pass)
+    data = yf.execShell(cmd_pass)
     # print(cmd_pass)
     # print(data)
 
@@ -394,31 +394,31 @@ def pgOp(version, method):
         isInited = initPgData()
         initConfig(version)
         if not isInited:
-            if mw.isAppleSystem():
+            if yf.isAppleSystem():
                 cmd_init_start = init_file + ' start'
                 subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=True,
                                  bufsize=4096, stderr=subprocess.PIPE)
 
                 time.sleep(6)
             else:
-                mw.execShell('systemctl start postgresql')
+                yf.execShell('systemctl start postgresql')
 
             initPgPwd()
 
-            if mw.isAppleSystem():
+            if yf.isAppleSystem():
                 cmd_init_stop = init_file + ' stop'
                 subprocess.Popen(cmd_init_stop, stdout=subprocess.PIPE, shell=True,
                                  bufsize=4096, stderr=subprocess.PIPE)
                 time.sleep(3)
             else:
-                mw.execShell('systemctl stop postgresql')
+                yf.execShell('systemctl stop postgresql')
 
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             sub = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                    bufsize=4096, stderr=subprocess.PIPE)
             sub.wait(5)
         else:
-            mw.execShell('systemctl ' + method + ' postgresql')
+            yf.execShell('systemctl ' + method + ' postgresql')
         return 'ok'
     except Exception as e:
         # raise
@@ -444,34 +444,34 @@ def restart(version=''):
 def reload(version=''):
     logfile = runLog()
     if os.path.exists(logfile):
-        mw.writeFile(logfile, '')
+        yf.writeFile(logfile, '')
     return appCMD(version, 'reload')
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl is-enabled postgresql'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0].strip() == 'enabled':
         return 'ok'
     return 'fail'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable postgresql')
+    yf.execShell('systemctl enable postgresql')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable postgresql')
+    yf.execShell('systemctl disable postgresql')
     return 'ok'
 
 
@@ -479,7 +479,7 @@ def getMyDbPos():
     file = getConf()
     if not os.path.exists(file):
         return ""
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     if type(content) == bool or not content:
         return ""
     rep = r'datadir\s*=\s*(.*)'
@@ -493,7 +493,7 @@ def getPgPort():
     file = getConf()
     if not os.path.exists(file):
         return ""
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     if type(content) == bool or not content:
         return ""
     rep = r'port\s*=\s*(.*)'
@@ -511,34 +511,34 @@ def setPgPort():
 
     port = args['port']
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r"port\s*=\s*([0-9]+)\s*\n"
     content = re.sub(rep, 'port = ' + port + '\n', content)
-    mw.writeFile(file, content)
+    yf.writeFile(file, content)
     restart()
-    return mw.returnJson(True, '编辑成功!')
+    return yf.returnJson(True, '编辑成功!')
 
 
 def runInfo():
 
     if status(version) == 'stop':
-        return mw.returnJson(False, 'PG未启动', [])
+        return yf.returnJson(False, 'PG未启动', [])
 
     db = pgDb()
     data_dir = getServerDir() + "/data"
     port = getPgPort()
     result = {}
 
-    result['uptime'] = mw.execShell(
+    result['uptime'] = yf.execShell(
         '''cat {}/postmaster.pid |sed -n 3p '''.format(data_dir))[0]
     timestamp = result['uptime']
     time_local = time.localtime(int(timestamp))
     dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
     result['uptime'] = dt
 
-    result['progress_num'] = mw.execShell(
+    result['progress_num'] = yf.execShell(
         "ps -ef |grep postgres |wc -l")[0].strip()
-    result['pid'] = mw.execShell(
+    result['pid'] = yf.execShell(
         '''cat {}/postmaster.pid |sed -n 1p '''.format(data_dir))[0].strip()
     res = db.query(
         "select count(*) from pg_stat_activity where not pid=pg_backend_pid()")
@@ -548,29 +548,29 @@ def runInfo():
 
     res = db.query("select pg_size_pretty(pg_database_size('postgres'))")
     result['pg_size'] = res[0][0]
-    result['pg_mem'] = mw.execShell(
+    result['pg_mem'] = yf.execShell(
         '''cat /proc/%s/status|grep VmRSS|awk -F: '{print $2}' ''' % (result['pid']))[0]
 
-    result['pg_vm_lock'] = mw.execShell(
+    result['pg_vm_lock'] = yf.execShell(
         '''cat /proc/%s/status|grep VmLck|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_vm_high'] = mw.execShell(
+    result['pg_vm_high'] = yf.execShell(
         '''cat /proc/%s/status|grep VmHWM|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_vm_data_size'] = mw.execShell(
+    result['pg_vm_data_size'] = yf.execShell(
         '''cat /proc/%s/status|grep VmData|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_vm_sk_size'] = mw.execShell(
+    result['pg_vm_sk_size'] = yf.execShell(
         '''cat /proc/%s/status|grep VmStk|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_vm_code_size'] = mw.execShell(
+    result['pg_vm_code_size'] = yf.execShell(
         '''cat /proc/%s/status|grep VmExe|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_vm_lib_size'] = mw.execShell(
+    result['pg_vm_lib_size'] = yf.execShell(
         '''cat /proc/%s/status|grep VmLib|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_vm_swap_size'] = mw.execShell(
+    result['pg_vm_swap_size'] = yf.execShell(
         '''cat /proc/%s/status|grep VmSwap|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_vm_page_size'] = mw.execShell(
+    result['pg_vm_page_size'] = yf.execShell(
         '''cat /proc/%s/status|grep VmPTE|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
-    result['pg_sigq'] = mw.execShell(
+    result['pg_sigq'] = yf.execShell(
         '''cat /proc/%s/status|grep SigQ|awk -F: '{print $2}'  ''' % (result['pid'].strip()))[0]
 
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 
 def runLog():
@@ -603,7 +603,7 @@ def pgDbStatus():
     
     pg_conf = "{}/postgresql.conf".format(data_directory)
     if not os.path.exists(pg_conf):
-        return mw.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
+        return yf.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
 
     with open(pg_conf) as f:
         for i in f:
@@ -710,7 +710,7 @@ def pgDbStatus():
 
     # 返回数据到前端
     data['status'] = True
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def sedConf(name, val):
@@ -722,7 +722,7 @@ def sedConf(name, val):
                 i = "{} = {} \n".format(name, val)
             content += i
 
-    mw.writeFile(path, content)
+    yf.writeFile(path, content)
     return True
 
 
@@ -741,7 +741,7 @@ def pgSetDbStatus():
         sedConf(k, v)
 
     restart()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def setUserPwd(version=''):
@@ -755,9 +755,9 @@ def setUserPwd(version=''):
     uid = args['id']
 
     if not checkSafeName(username):
-        return mw.returnJson(False, '用户名不合法，不能包含特殊字符！')
+        return yf.returnJson(False, '用户名不合法，不能包含特殊字符！')
     if not checkSafePassword(newpwd):
-        return mw.returnJson(False, '密码格式不合法！')
+        return yf.returnJson(False, '密码格式不合法！')
 
     try:
         pdb = pgDb()
@@ -768,16 +768,16 @@ def setUserPwd(version=''):
             "alter user {} with password '{}'".format(username, newpwd))
 
         psdb.where("id=?", (uid,)).setField('password', newpwd)
-        return mw.returnJson(True, mw.getInfo('修改数据库[{1}]密码成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (name,)))
     except Exception as ex:
-        return mw.returnJson(False, mw.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
+        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
 
 
 def getPgVersion():
     version = "14.4"
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl).strip()
+        version = yf.readFile(version_pl).strip()
     return version
 
 
@@ -843,7 +843,7 @@ def setDbBackup():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
@@ -859,14 +859,14 @@ def setDbBackup():
     file_path = backup_dir + '/' + filename
 
     # 确保 postgres 用户拥有对备份目录的写权限
-    if not mw.isAppleSystem() and os.name != 'nt':
-        mw.execShell("chown -R postgres:postgres " + backup_dir)
+    if not yf.isAppleSystem() and os.name != 'nt':
+        yf.execShell("chown -R postgres:postgres " + backup_dir)
 
     port = getDbPort()
 
     if os.name == 'nt':
         cmd = '"' + getServerDir() + '/bin/pg_dump" -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
-        mw.execShell(cmd)
+        yf.execShell(cmd)
     else:
         # 使用 pgCmd 通过 postgres 用户调用 pg_dump 备份并 gzip
         cmd = getServerDir() + '/bin/pg_dump -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
@@ -874,17 +874,17 @@ def setDbBackup():
 
         # 还原 file_path 的所有权为 root:root 以保持安全性与普通权限
         if os.path.exists(file_path):
-            mw.execShell("chown root:root " + file_path)
+            yf.execShell("chown root:root " + file_path)
 
     if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-        return mw.returnJson(True, '备份成功!')
+        return yf.returnJson(True, '备份成功!')
     else:
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
             except:
                 pass
-        return mw.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
+        return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
 
 def rootPwd():
     return pSqliteDb('config').where('id=?', (1,)).getField('pg_root')
@@ -898,7 +898,7 @@ def getDbBackupList():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     is_sync = False
     if 'sync' in args and args['sync'] == '1':
@@ -915,7 +915,7 @@ def getDbBackupList():
         data_item['name'] = r[x]
 
         rsize = os.path.getsize(p)
-        data_item['size'] = mw.toSize(rsize)
+        data_item['size'] = yf.toSize(rsize)
 
         t = os.path.getctime(p)
         t = time.localtime(t)
@@ -930,7 +930,7 @@ def getDbBackupList():
         'list': rr,
         'upload_dir': bkDir
     }
-    return mw.returnJson(True, 'ok', res_data)
+    return yf.returnJson(True, 'ok', res_data)
 
 
 def getDbList():
@@ -973,7 +973,7 @@ def getDbList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'dbList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
     info = {}
@@ -981,7 +981,7 @@ def getDbList():
         'id=?', (1,)).getField('pg_root')
     data['info'] = info
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def syncGetDatabases():
@@ -1009,8 +1009,8 @@ def syncGetDatabases():
         if psdb.add('name,username,password,accept,ps,addtime', (vdb_name, vdb_name, '', host, ps, addTime)):
             n += 1
 
-    msg = mw.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
-    return mw.returnJson(True, msg)
+    msg = yf.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
+    return yf.returnJson(True, msg)
 
 
 def addDb():
@@ -1033,19 +1033,19 @@ def addDb():
         listen_ip = args['listen_ip'].strip()
 
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不能带有特殊符号!')
+        return yf.returnJson(False, '数据库名称不能带有特殊符号!')
 
     if not checkSafeName(dbuser):
-        return mw.returnJson(False, '数据库用户名称不能带有特殊符号!')
+        return yf.returnJson(False, '数据库用户名称不能带有特殊符号!')
 
     if password and not checkSafePassword(password):
-        return mw.returnJson(False, '密码格式不合法！')
+        return yf.returnJson(False, '密码格式不合法！')
 
     if listen_ip and not checkSafeAccess(listen_ip):
-        return mw.returnJson(False, '监听权限段不合法！')
+        return yf.returnJson(False, '监听权限段不合法！')
 
     if not re.match(r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}/\d+", listen_ip):
-        return mw.returnJson(False, "你输入的权限不合法，添加失败！")
+        return yf.returnJson(False, "你输入的权限不合法，添加失败！")
 
     # 修改监听所有地址
     if listen_ip not in ["127.0.0.1/32", "localhost", "127.0.0.1"]:
@@ -1053,18 +1053,18 @@ def addDb():
 
     checks = ['root', 'mysql', 'test', 'sys', 'postgres', 'postgresql']
     if dbuser in checks or len(dbuser) < 1:
-        return mw.returnJson(False, '数据库用户名不合法!')
+        return yf.returnJson(False, '数据库用户名不合法!')
     if dbname in checks or len(dbname) < 1:
-        return mw.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, '数据库名称不合法!')
 
     if len(password) < 1:
-        password = mw.md5(time.time())[0:8]
+        password = yf.md5(time.time())[0:8]
 
     pdb = pgDb()
     psdb = pSqliteDb('databases')
 
     if psdb.where("name=? or username=?", (dbname, dbuser)).count():
-        return mw.returnJson(False, '数据库或用户已存在!')
+        return yf.returnJson(False, '数据库或用户已存在!')
 
     sql = "select pg_terminate_backend(pid) from pg_stat_activity where DATNAME = 'template1';"
     pdb.execute(sql)
@@ -1078,17 +1078,17 @@ def addDb():
 
     pg_hba = getServerDir() + "/data/pg_hba.conf"
 
-    content = mw.readFile(pg_hba)
+    content = yf.readFile(pg_hba)
     content += "\nhost    {}  {}    {}    md5".format(
         dbname, dbuser, listen_ip)
-    mw.writeFile(pg_hba, content)
+    yf.writeFile(pg_hba, content)
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('pid,name,username,password,accept,ps,addtime',
              (0, dbname, dbuser, password, listen_ip, dbname, addTime))
 
     restart()
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def delDb():
@@ -1101,7 +1101,7 @@ def delDb():
     name = args['name']
 
     if not checkSafeName(name):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     pdb = pgDb()
     psdb = pSqliteDb('databases')
@@ -1110,7 +1110,7 @@ def delDb():
     # print(username, len(username))
     if len(username) > 0:
         if not checkSafeName(username):
-            return mw.returnJson(False, '用户名不合法！')
+            return yf.returnJson(False, '用户名不合法！')
         r = pdb.execute("drop user " + str(username))
         # print(r)
 
@@ -1123,12 +1123,12 @@ def delDb():
     # print(r)
 
     pg_hba = pgHbaConf()
-    old_config = mw.readFile(pg_hba)
+    old_config = yf.readFile(pg_hba)
     new_config = re.sub(r'host\s*{}.*'.format(name), '', old_config).strip()
-    mw.writeFile(pg_hba, new_config)
+    yf.writeFile(pg_hba, new_config)
 
     psdb.where("id=?", (did,)).delete()
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 def setDbRw(version=''):
@@ -1142,14 +1142,14 @@ def setDbRw(version=''):
     rw = args['rw']
 
     if not checkSafeName(username):
-        return mw.returnJson(False, '用户名不合法！')
+        return yf.returnJson(False, '用户名不合法！')
 
     pdb = pgDb()
     psdb = pSqliteDb('databases')
     dbname = psdb.where("id=?", (uid,)).getField('name')
 
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     sql = "REVOKE ALL ON database " + dbname + " FROM " + username
     pdb.query(sql)
@@ -1163,7 +1163,7 @@ def setDbRw(version=''):
 
     r = pdb.execute(sql)
     psdb.where("id=?", (uid,)).setField('rw', rw)
-    return mw.returnJson(True, '切换成功!')
+    return yf.returnJson(True, '切换成功!')
 
 
 def pgBack():
@@ -1175,7 +1175,7 @@ def pgBack():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
@@ -1191,14 +1191,14 @@ def pgBack():
     file_path = backup_dir + '/' + filename
 
     # 确保 postgres 用户拥有对备份目录的写权限
-    if not mw.isAppleSystem() and os.name != 'nt':
-        mw.execShell("chown -R postgres:postgres " + backup_dir)
+    if not yf.isAppleSystem() and os.name != 'nt':
+        yf.execShell("chown -R postgres:postgres " + backup_dir)
 
     port = getPgPort()
 
     if os.name == 'nt':
         cmd = '"' + getServerDir() + '/bin/pg_dump" -p ' + port + ' ' + dbname + ' | gzip > ' + file_path
-        mw.execShell(cmd)
+        yf.execShell(cmd)
     else:
         # 使用更正确的绝对路径获取二进制程序
         pg_dump_bin = getServerDir() + '/bin/pg_dump'
@@ -1207,17 +1207,17 @@ def pgBack():
 
         # 还原 file_path 的所有权以保持安全性与普通权限
         if os.path.exists(file_path):
-            mw.execShell("chown root:root " + file_path)
+            yf.execShell("chown root:root " + file_path)
 
     if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-        return mw.returnJson(True, '备份成功!')
+        return yf.returnJson(True, '备份成功!')
     else:
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
             except:
                 pass
-        return mw.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
+        return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
 
 
 def pgBackList():
@@ -1228,7 +1228,7 @@ def pgBackList():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     is_sync = False
     if 'sync' in args and args['sync'] == '1':
@@ -1245,7 +1245,7 @@ def pgBackList():
         data_item['name'] = r[x]
 
         rsize = os.path.getsize(p)
-        data_item['size'] = mw.toSize(rsize)
+        data_item['size'] = yf.toSize(rsize)
 
         t = os.path.getctime(p)
         t = time.localtime(t)
@@ -1259,7 +1259,7 @@ def pgBackList():
         'list': rr,
         'upload_dir': bk_path_upload
     }
-    return mw.getJson(res_data)
+    return yf.getJson(res_data)
 def getDbAccess():
     args = getArgs()
     data = checkArgs(args, ['name'])
@@ -1268,7 +1268,7 @@ def getDbAccess():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('username,accept').find()
@@ -1315,7 +1315,7 @@ def getDbAccess():
         'username': dbuser,
         'privileges': privileges_list
     }
-    return mw.returnJson(True, accept, res_data)
+    return yf.returnJson(True, accept, res_data)
 
 
 def setDbPrivileges():
@@ -1326,12 +1326,12 @@ def setDbPrivileges():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
 
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('username').find()
     if not db_info:
-        return mw.returnJson(False, '数据库不存在!')
+        return yf.returnJson(False, '数据库不存在!')
 
     dbuser = db_info['username']
 
@@ -1351,9 +1351,9 @@ def setDbPrivileges():
         for sql in sqls:
             pdb.execute(sql)
     except Exception as e:
-        return mw.returnJson(False, '一键赋权失败: ' + str(e))
+        return yf.returnJson(False, '一键赋权失败: ' + str(e))
 
-    return mw.returnJson(True, '一键赋权成功!')
+    return yf.returnJson(True, '一键赋权成功!')
 
 
 def setDbAccess():
@@ -1366,14 +1366,14 @@ def setDbAccess():
     access = args['access']
 
     if not checkSafeName(dbname):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
     if not checkSafeAccess(access):
-        return mw.returnJson(False, '访问IP/网络格式不合法！')
+        return yf.returnJson(False, '访问IP/网络格式不合法！')
 
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('id,username,accept').find()
     if not db_info:
-        return mw.returnJson(False, '数据库不存在!')
+        return yf.returnJson(False, '数据库不存在!')
 
     dbuser = db_info['username']
 
@@ -1382,7 +1382,7 @@ def setDbAccess():
 
     # 2. 更新 pg_hba.conf
     pg_hba = pgHbaConf()
-    content = mw.readFile(pg_hba)
+    content = yf.readFile(pg_hba)
     new_line = "host    {}  {}    {}    md5".format(dbname, dbuser, access)
     
     # 查找并替换
@@ -1392,11 +1392,11 @@ def setDbAccess():
     else:
         content += "\n" + new_line
         
-    mw.writeFile(pg_hba, content)
+    yf.writeFile(pg_hba, content)
 
     # 3. 重启生效
     restart()
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 
@@ -1410,30 +1410,30 @@ def importDbBackup():
     name = args['name']
 
     if not checkSafeName(name):
-        return mw.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, '数据库名称不合法！')
     if not checkSafeFilename(file):
-        return mw.returnJson(False, '备份文件名不合法！')
+        return yf.returnJson(False, '备份文件名不合法！')
 
     bk_path_upload = getBackupDir()
     file_path = os.path.join(bk_path_upload, file)
     if not os.path.exists(file_path):
-        return mw.returnJson(False, '备份文件不存在!')
+        return yf.returnJson(False, '备份文件不存在!')
 
     # 让 postgres 有权限读取备份文件
-    if not mw.isAppleSystem() and os.name != 'nt':
-        mw.execShell("chown postgres:postgres " + file_path)
+    if not yf.isAppleSystem() and os.name != 'nt':
+        yf.execShell("chown postgres:postgres " + file_path)
 
     port = getPgPort()
     
     if os.name == 'nt':
         cmd = 'gunzip -c ' + file_path + ' | "' + getServerDir() + '/bin/psql" -p ' + port + ' -d ' + name
-        mw.execShell(cmd)
+        yf.execShell(cmd)
     else:
         psql_bin = getServerDir() + '/bin/psql'
         cmd = 'gunzip -c ' + file_path + ' | ' + psql_bin + ' -p ' + port + ' -d ' + name
         execShellPg(cmd)
 
-    return mw.returnJson(True, '导入成功!')
+    return yf.returnJson(True, '导入成功!')
 
 
 def deleteDbBackup():
@@ -1444,11 +1444,11 @@ def deleteDbBackup():
 
     filename = args['filename']
     if not checkSafeFilename(filename):
-        return mw.returnJson(False, '备份文件名不合法！')
+        return yf.returnJson(False, '备份文件名不合法！')
 
     bk_path_upload = getBackupDir()
     os.remove(bk_path_upload + '/' + filename)
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 ############ 主从功能 ######################
@@ -1461,11 +1461,11 @@ def getMasterStatus(version=''):
     pg_conf = getServerDir() + "/data/postgresql.conf"
     
     if not os.path.exists(pg_conf):
-        return mw.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
+        return yf.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
 
-    pg_content = mw.readFile(pg_conf)
+    pg_content = yf.readFile(pg_conf)
     if type(pg_content) == bool or not pg_content:
-        return mw.returnJson(False, '读取postgresql配置失败!')
+        return yf.returnJson(False, '读取postgresql配置失败!')
 
     if pg_content.find('#archive_mode') > -1:
         data['status'] = False
@@ -1477,12 +1477,12 @@ def getMasterStatus(version=''):
     else:
         data['slave_status'] = True
 
-    return mw.returnJson(True, '设置成功', data)
+    return yf.returnJson(True, '设置成功', data)
 
 
 def setMasterStatus(version=''):
     pg_conf = getServerDir() + "/data/postgresql.conf"
-    data = mw.readFile(pg_conf)
+    data = yf.readFile(pg_conf)
 
     if data.find('#archive_mode') > -1:
         data = data.replace('#archive_mode', 'archive_mode')
@@ -1497,14 +1497,14 @@ def setMasterStatus(version=''):
         data = data.replace('max_wal_senders', '#max_wal_senders')
         data = data.replace('wal_sender_timeout', '#wal_sender_timeout')
 
-    mw.writeFile(pg_conf, data)
+    yf.writeFile(pg_conf, data)
     restart(version)
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 
 def setSlaveStatus(version):
     pg_conf = getServerDir() + "/data/postgresql.conf"
-    data = mw.readFile(pg_conf)
+    data = yf.readFile(pg_conf)
     if data.find('#hot_standby') > -1:
         data = data.replace('#hot_standby', 'hot_standby')
         data = data.replace('#primary_conninfo', 'primary_conninfo')
@@ -1526,10 +1526,10 @@ def setSlaveStatus(version):
         data = data.replace('#recovery_target_timeline',
                             'recovery_target_timeline')
 
-    mw.writeFile(pg_conf, data)
+    yf.writeFile(pg_conf, data)
 
     restart(version)
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 
 def getSlaveList(version=''):
@@ -1552,7 +1552,7 @@ def getSlaveList(version=''):
     data = {}
     data['data'] = []
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def getSlaveSSHByIp(version=''):
@@ -1563,11 +1563,11 @@ def getSlaveSSHByIp(version=''):
 
     ip = args['ip']
     if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'IP格式不合法！')
 
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     data = conn.field('ip,port,db_user,id_rsa').where("ip=?", (ip,)).select()
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def getSlaveSSHList(version=''):
@@ -1592,10 +1592,10 @@ def getSlaveSSHList(version=''):
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = args['tojs']
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def addSlaveSSH(version=''):
@@ -1608,10 +1608,10 @@ def addSlaveSSH(version=''):
 
     ip = args['ip']
     if ip == "":
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
     if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'IP格式不合法！')
 
     data = checkArgs(args, ['port', 'id_rsa'])
     if not data[0]:
@@ -1621,7 +1621,7 @@ def addSlaveSSH(version=''):
     port = args['port']
     
     if not str(port).isdigit():
-        return mw.returnJson(False, '端口必须是数字！')
+        return yf.returnJson(False, '端口必须是数字！')
 
     user = 'root'
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
@@ -1635,7 +1635,7 @@ def addSlaveSSH(version=''):
         conn.add('ip,port,user,id_rsa,ps,addtime',
                  (ip, port, user, id_rsa, '', addTime))
 
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def delSlaveSSH(version=''):
@@ -1646,11 +1646,11 @@ def delSlaveSSH(version=''):
 
     ip = args['ip']
     if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'IP格式不合法！')
 
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     conn.where("ip=?", (ip,)).delete()
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 def updateSlaveSSH(version=''):
@@ -1661,12 +1661,12 @@ def updateSlaveSSH(version=''):
 
     ip = args['ip']
     if not checkSafeAccess(ip):
-        return mw.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'IP格式不合法！')
 
     id_rsa = args['id_rsa']
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     conn.where("ip=?", (ip,)).save('id_rsa', (id_rsa,))
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 def getMasterRepSlaveList(version=''):
@@ -1691,10 +1691,10 @@ def getMasterRepSlaveList(version=''):
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'getMasterRepSlaveList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def addMasterRepSlaveUser(version=''):
@@ -1708,44 +1708,44 @@ def addMasterRepSlaveUser(version=''):
     password = args['password'].strip()
 
     if not checkSafeName(username):
-        return mw.returnJson(False, '用户名不能带有特殊符号!')
+        return yf.returnJson(False, '用户名不能带有特殊符号!')
     if not checkSafePassword(password):
-        return mw.returnJson(False, '密码格式不合法!')
+        return yf.returnJson(False, '密码格式不合法!')
     if not checkSafeAccess(address):
-        return mw.returnJson(False, '地址/IP段格式不合法!')
+        return yf.returnJson(False, '地址/IP段格式不合法!')
 
     if len(password) < 1:
-        password = mw.md5(time.time())[0:8]
+        password = yf.md5(time.time())[0:8]
 
     if not re.match(r"^[\w\.-]+$", username):
-        return mw.returnJson(False, '用户名不能带有特殊符号!')
+        return yf.returnJson(False, '用户名不能带有特殊符号!')
     checks = ['root', 'mysql', 'test', 'sys', 'panel_logs']
     if username in checks or len(username) < 1:
-        return mw.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, '用户名不合法!')
     if password in checks or len(password) < 1:
-        return mw.returnJson(False, '密码不合法!')
+        return yf.returnJson(False, '密码不合法!')
 
     pdb = pgDb()
     psdb = pSqliteDb('master_replication_user')
 
     if psdb.where("username=?", (username)).count() > 0:
-        return mw.returnJson(False, '用户已存在!')
+        return yf.returnJson(False, '用户已存在!')
 
     sql = "CREATE ROLE " + username + " login replication password '" + password.replace("'", "''") + "'"
     pdb.execute(sql)
 
     pg_conf = pgHbaConf()
-    data = mw.readFile(pg_conf)
+    data = yf.readFile(pg_conf)
 
     data = data + "\nhost   replication  " + \
         username + "   " + address + "     md5"
 
-    mw.writeFile(pg_conf, data)
+    yf.writeFile(pg_conf, data)
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('username,password,accept,ps,addtime',
              (username, password, address, '', addTime))
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def delMasterRepSlaveUser(version=''):
@@ -1756,7 +1756,7 @@ def delMasterRepSlaveUser(version=''):
 
     name = args['username']
     if not checkSafeName(name):
-        return mw.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, '用户名不合法!')
 
     pdb = pgDb()
     psdb = pSqliteDb('master_replication_user')
@@ -1764,13 +1764,13 @@ def delMasterRepSlaveUser(version=''):
     pdb.execute("drop user " + name)
 
     pg_hba = pgHbaConf()
-    old_config = mw.readFile(pg_hba)
+    old_config = yf.readFile(pg_hba)
     new_config = re.sub(
         r'host\s*replication\s*{}.*'.format(name), '', old_config).strip()
-    mw.writeFile(pg_hba, new_config)
+    yf.writeFile(pg_hba, new_config)
 
     psdb.where("username=?", (args['username'],)).delete()
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 def getMasterRepSlaveUserCmd(version=''):
@@ -1783,14 +1783,14 @@ def getMasterRepSlaveUserCmd(version=''):
     db = args['db']
     
     if username != '' and not checkSafeName(username):
-        return mw.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, '用户名不合法!')
     if db != '' and not checkSafeName(db):
-        return mw.returnJson(False, '数据库名不合法!')
+        return yf.returnJson(False, '数据库名不合法!')
 
     psdb = pSqliteDb('master_replication_user')
     mdir = getServerDir()
     port = getPgPort()
-    localIp = mw.getLocalIp()
+    localIp = yf.getLocalIp()
     f = 'username,password'
     if username == '':
         clist = psdb.field(f).limit('1').order('id desc').select()
@@ -1799,7 +1799,7 @@ def getMasterRepSlaveUserCmd(version=''):
             "username=?", (username,)).order('id desc').select()
 
     if len(clist) == 0:
-        return mw.returnJson(False, '请添加同步账户!')
+        return yf.returnJson(False, '请添加同步账户!')
 
     cmd = 'echo "' + clist[0]['password'].replace('"', '\\"') + '" | ' + mdir + '/bin/pg_basebackup -Fp --progress -D ' + mdir + \
         '/postgresql/data -h ' + localIp + ' -p ' + port + \
@@ -1808,18 +1808,18 @@ def getMasterRepSlaveUserCmd(version=''):
     data = {}
     data['cmd'] = cmd
     data['info'] = clist
-    return mw.returnJson(True, 'ok!', data)
+    return yf.returnJson(True, 'ok!', data)
 
 
 def slaveSyncCmd(version=''):
     data = {}
     data['cmd'] = 'cd /www/server/mdserver-web && python3 plugins/postgresql/index.py do_full_sync'
-    return mw.returnJson(True, 'ok!', data)
+    return yf.returnJson(True, 'ok!', data)
 
 
 def writeDbSyncStatus(data):
     path = '/tmp/db_async_status.txt'
-    mw.writeFile(path, json.dumps(data))
+    yf.writeFile(path, json.dumps(data))
 
 
 def doFullSync(version=''):
@@ -1831,7 +1831,7 @@ def doFullSync(version=''):
 
     SSH_PRIVATE_KEY = getPluginDir() + "/pg_sync_id_rsa.txt"
     id_rsa = data['id_rsa'].replace('\\n', '\n')
-    mw.writeFile(SSH_PRIVATE_KEY, id_rsa)
+    yf.writeFile(SSH_PRIVATE_KEY, id_rsa)
     if os.path.exists(SSH_PRIVATE_KEY):
         try:
             os.chmod(SSH_PRIVATE_KEY, 0o600)
@@ -1912,7 +1912,7 @@ send "%s\r"
 interact
 """ % (cmd, password)
 
-    mw.writeFile(cmd_tmp, cmd_tmp_data)
+    yf.writeFile(cmd_tmp, cmd_tmp_data)
     if os.path.exists(cmd_tmp):
         try:
             os.chmod(cmd_tmp, 0o600)
@@ -1949,7 +1949,7 @@ if __name__ == "__main__":
     version = "14.4"
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl).strip()
+        version = yf.readFile(version_pl).strip()
 
     if func == 'status':
         print(status(version))

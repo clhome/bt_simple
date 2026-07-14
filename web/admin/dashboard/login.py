@@ -22,14 +22,14 @@ from admin.common import isLogined
 from admin.user_login_check import panel_login_required
 from admin import cache,session
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 from .dashboard import blueprint
 
 
 def getErrorNum(key, limit=None):
-    key = mw.md5(key)
+    key = yf.md5(key)
     num = cache.get(key)
     if not num:
         num = 0
@@ -41,7 +41,7 @@ def getErrorNum(key, limit=None):
 
 
 def setErrorNum(key, empty=False, expire=3600):
-    key = mw.md5(key)
+    key = yf.md5(key)
     num = cache.get(key)
     if not num:
         num = 0
@@ -56,7 +56,7 @@ def login_temp_user(token):
     if len(token) != 32:
         return '错误的参数!'
 
-    skey = mw.getClientIp() + '_temp_login'
+    skey = yf.getClientIp() + '_temp_login'
     if not getErrorNum(skey, 10):
         return '连续10次验证失败，禁止1小时'
 
@@ -72,10 +72,10 @@ def login_temp_user(token):
         return "过期"
 
     user_data = thisdb.getUserById(1)
-    login_addr = mw.getClientIp() + ":" + str(request.environ.get('REMOTE_PORT'))
-    mw.writeLog('用户临时登录', "登录成功,帐号:{1},登录IP:{2}",(user_data['name'], login_addr))
+    login_addr = yf.getClientIp() + ":" + str(request.environ.get('REMOTE_PORT'))
+    yf.writeLog('用户临时登录', "登录成功,帐号:{1},登录IP:{2}",(user_data['name'], login_addr))
 
-    mw.M('temp_login').where('id=?',(tmp_data['id'],)).update({"login_time": stime, 'state': 1, 'login_addr': login_addr})
+    yf.M('temp_login').where('id=?',(tmp_data['id'],)).update({"login_time": stime, 'state': 1, 'login_addr': login_addr})
     
     session['login'] = True
     session['username'] = user_data['name']
@@ -117,7 +117,7 @@ def do_signout():
     session.clear()
     session['login'] = False
     session['overdue'] = 0
-    return mw.returnData(True, '已安全退出')
+    return yf.returnData(True, '已安全退出')
 
 @blueprint.route('/logout_success', endpoint='logout_success')
 def logout_success():
@@ -164,7 +164,7 @@ def code():
     codeImage = vie.GetCodeImage(80, 4)
     out = io.BytesIO()
     codeImage[0].save(out, "png")
-    session['code'] = mw.md5(''.join(codeImage[1]).lower())
+    session['code'] = yf.md5(''.join(codeImage[1]).lower())
 
     img = Response(out.getvalue(), headers={'Content-Type': 'image/png'})
     return make_response(img)
@@ -173,8 +173,8 @@ def code():
 @blueprint.route('/check_login',methods=['GET','POST'])
 def check_login():
     if isLogined():
-        return mw.returnData(True,'已登录')
-    return mw.returnData(False,'未登录')
+        return yf.returnData(True,'已登录')
+    return yf.returnData(False,'未登录')
 
 @blueprint.route("/verify_login", methods=['POST'])
 def verifyLogin():
@@ -186,19 +186,19 @@ def verifyLogin():
     info = thisdb.getUserByName(username)
     is_correct = False
     if info:
-        password_md5 = mw.md5(password)
+        password_md5 = yf.md5(password)
         if info['password'] == password_md5:
             is_correct = True
-        elif mw.checkPwd(password, info['password']):
+        elif yf.checkPwd(password, info['password']):
             is_correct = True
 
     if not is_correct:
-        return mw.returnJson(-1, "密码错误?")
+        return yf.returnJson(-1, "密码错误?")
 
     auth = request.form.get('auth', '').strip()    
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
     if two_step_verification['open']:
-        sec = mw.deDoubleCrypt('mdserver-web', two_step_verification['secret'])
+        sec = yf.deDoubleCrypt('mdserver-web', two_step_verification['secret'])
         totp = pyotp.TOTP(sec)
         if totp.verify(auth):
             session['login'] = True
@@ -206,32 +206,32 @@ def verifyLogin():
             session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
 
             thisdb.updateUserLoginTime()
-            return mw.returnData(1, '二次验证成功!')
-    return mw.returnData(-1, '二次验证失败!')
+            return yf.returnData(1, '二次验证成功!')
+    return yf.returnData(-1, '二次验证失败!')
 
 # 执行登录操作
 @blueprint.route('/do_login', endpoint='do_login', methods=['POST'])
 def do_login():
     admin_close = thisdb.getOption('admin_close')
     if admin_close == 'yes':
-        return mw.returnData(False, '面板已经关闭!')
+        return yf.returnData(False, '面板已经关闭!')
 
-    client_ip = mw.getClientIp()
+    client_ip = yf.getClientIp()
     ban_key = 'ban_' + client_ip
     if cache.get(ban_key):
-        return mw.returnData(False, '该IP已被临时封禁，请1小时后重试!')
+        return yf.returnData(False, '该IP已被临时封禁，请1小时后重试!')
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
     code = request.form.get('code', '').strip()
 
     login_cache_count = 5
-    client_ip = mw.getClientIp()
+    client_ip = yf.getClientIp()
     login_limit_key = 'login_limit_' + client_ip
     login_cache_limit = cache.get(login_limit_key)
 
     if 'code' in session:
-        if session['code'] != mw.md5(code):
+        if session['code'] != yf.md5(code):
             if login_cache_limit == None:
                 login_cache_limit = 1
             else:
@@ -239,26 +239,26 @@ def do_login():
 
             if login_cache_limit >= login_cache_count:
                 cache.set(ban_key, True, timeout=3600)  # 封禁1小时
-                return mw.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
+                return yf.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
 
             cache.set(login_limit_key, login_cache_limit, timeout=10000)
-            login_err_msg = mw.getInfo("验证码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit)))
-            mw.writeLog('用户登录', login_err_msg)
-            return mw.returnData(False, login_err_msg)
+            login_err_msg = yf.getInfo("验证码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit)))
+            yf.writeLog('用户登录', login_err_msg)
+            return yf.returnData(False, login_err_msg)
 
     info = thisdb.getUserByName(username)
     is_correct = False
     if info:
-        password_md5 = mw.md5(password)
+        password_md5 = yf.md5(password)
         if info['password'] == password_md5:
             is_correct = True
             # 平滑迁移到 bcrypt
             thisdb.setUserPwdByName(username, password)
-        elif mw.checkPwd(password, info['password']):
+        elif yf.checkPwd(password, info['password']):
             is_correct = True
 
     if not is_correct:
-        msg = mw.getInfo("<a style='color: red'>用户名或密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", (username, '******', request.remote_addr))
+        msg = yf.getInfo("<a style='color: red'>用户名或密码错误</a>,帐号:{1},密码:{2},登录IP:{3}", (username, '******', request.remote_addr))
         if login_cache_limit == None:
             login_cache_limit = 1
         else:
@@ -266,21 +266,21 @@ def do_login():
 
         if login_cache_limit >= login_cache_count:
             cache.set(ban_key, True, timeout=3600)  # 封禁1小时
-            return mw.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
+            return yf.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
 
         cache.set(login_limit_key, login_cache_limit, timeout=10000)
-        mw.writeLog('用户登录', msg)
-        return mw.returnData(-1, mw.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit))))
+        yf.writeLog('用户登录', msg)
+        return yf.returnData(-1, yf.getInfo("用户名或密码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit))))
 
     cache.delete(login_limit_key)
     # 二步验证密钥
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
     if two_step_verification['open']:
-        return mw.returnData(2, '需要两步验证!')
+        return yf.returnData(2, '需要两步验证!')
 
     session['login'] = True
     session['username'] = info['name']
     session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
     
     thisdb.updateUserLoginTime()
-    return mw.returnData(1, '登录成功,正在跳转...')
+    return yf.returnData(1, '登录成功,正在跳转...')

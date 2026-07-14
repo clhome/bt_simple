@@ -164,7 +164,7 @@ class nosqlMySQL():
             return False
 
         if self.__sid is not None:
-            mycnf_path = "{}/{}/etc/my.cnf".format(mw.getServerDir(),self.__sid)
+            mycnf_path = "{}/{}/etc/my.cnf".format(yf.getServerDir(),self.__sid)
             if not os.path.exists(mycnf_path):
                 return False
 
@@ -183,13 +183,13 @@ class nosqlMySQL():
 
             return db
         except Exception:
-            self.__DB_ERR = mw.get_error_info()
+            self.__DB_ERR = yf.get_error_info()
         return False
 
     def sqliteDb(self, db_pos_name, dbname='databases'):
-        mydb_path = mw.getServerDir() +'/'+db_pos_name
+        mydb_path = yf.getServerDir() +'/'+db_pos_name
         name = 'mysql'
-        conn = mw.M(dbname).dbPos(mydb_path, name)
+        conn = yf.M(dbname).dbPos(mydb_path, name)
         return conn
 
     # 获取配置项
@@ -201,11 +201,11 @@ class nosqlMySQL():
         result['username'] = 'root'
 
         if sid in ['mysql', 'mysql-apt', 'mysql-yum', 'mysql-community']:
-            my_cnf_path = "{}/{}/etc/my.cnf".format(mw.getServerDir(),sid)
+            my_cnf_path = "{}/{}/etc/my.cnf".format(yf.getServerDir(),sid)
             if not os.path.exists(my_cnf_path):
                 return False
 
-            mydb_content = mw.readFile(my_cnf_path)
+            mydb_content = yf.readFile(my_cnf_path)
             if not mydb_content: return False
 
             mysql_pass = self.sqliteDb(sid, 'config').where('id=?', (1,)).getField('mysql_root')
@@ -234,25 +234,25 @@ class nosqlMySQL():
         return self
 
     def getServerList(self):
-        my_cnf_path = "{}/mysql/etc/my.cnf".format(mw.getServerDir())
+        my_cnf_path = "{}/mysql/etc/my.cnf".format(yf.getServerDir())
         data = []
 
-        local_mysql = "{}/mysql/etc/my.cnf".format(mw.getServerDir())
+        local_mysql = "{}/mysql/etc/my.cnf".format(yf.getServerDir())
         if os.path.exists(local_mysql):
             data.append({'name':'本地服务器', 'val':'mysql'})
 
-        local_mysql_apt = "{}/mysql-apt/etc/my.cnf".format(mw.getServerDir())
+        local_mysql_apt = "{}/mysql-apt/etc/my.cnf".format(yf.getServerDir())
         if os.path.exists(local_mysql_apt):
             data.append({'name':'本地服务器[apt]', 'val':'mysql-apt'})
 
-        local_mysql_yum = "{}/mysql-yum/etc/my.cnf".format(mw.getServerDir())
+        local_mysql_yum = "{}/mysql-yum/etc/my.cnf".format(yf.getServerDir())
         if os.path.exists(local_mysql_yum):
             data.append({'name':'本地服务器[yum]', 'val':'mysql-yum'})
 
-        local_mysql_yum = "{}/mysql-community/etc/my.cnf".format(mw.getServerDir())
+        local_mysql_yum = "{}/mysql-community/etc/my.cnf".format(yf.getServerDir())
         if os.path.exists(local_mysql_yum):
             data.append({'name':'本地服务器[Tar]', 'val':'mysql-community'})
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
 
 @singleton
 class nosqlMySQLCtr():
@@ -273,7 +273,7 @@ class nosqlMySQLCtr():
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         result = {}
         db_list = my_instance.query('show databases')
@@ -282,7 +282,7 @@ class nosqlMySQLCtr():
             if not x['Database'] in ['information_schema', 'mysql', 'performance_schema','sys']:
                 rlist.append(x['Database'])
         result['list'] = rlist
-        return mw.returnData(True,'ok', result)
+        return yf.returnData(True,'ok', result)
 
     def getTableList(self, args):
         try:
@@ -290,25 +290,25 @@ class nosqlMySQLCtr():
             db = args['db']
 
             if not safe_sql_identifier(db):
-                return mw.returnData(False, '非法数据库名参数！')
+                return yf.returnData(False, '非法数据库名参数！')
 
             my_instance = self.getInstanceBySid(sid).conn()
             if my_instance is False:
-                return mw.returnData(False, '无法连接数据库')
+                return yf.returnData(False, '无法连接数据库')
 
             sql = "select * from information_schema.tables where table_schema = '" + escape_string(db) + "'"
             table_list = my_instance.query(sql)
             if table_list is None:
-                return mw.returnData(False, '获取表列表失败')
+                return yf.returnData(False, '获取表列表失败')
 
             rlist = []
             for x in table_list:
                 rlist.append(x['TABLE_NAME'])
             result = {}
             result['list'] = rlist
-            return mw.returnData(True, 'ok', result)
+            return yf.returnData(True, 'ok', result)
         except Exception as e:
-            return mw.returnData(False, '获取表列表发生异常: ' + str(e))
+            return yf.returnData(False, '获取表列表发生异常: ' + str(e))
 
 
     def getDataList(self, args):
@@ -324,13 +324,13 @@ class nosqlMySQLCtr():
                 page_args['row'] = 10
 
                 rdata = {}
-                rdata['page'] = mw.getPage(page_args)
+                rdata['page'] = yf.getPage(page_args)
                 rdata['list'] = []
                 rdata['count'] = 0
-                return mw.returnData(True,'ok', rdata)
+                return yf.returnData(True,'ok', rdata)
 
             if not safe_sql_identifier(db) or not safe_sql_identifier(table):
-                return mw.returnData(False, '非法库名或表名参数！')
+                return yf.returnData(False, '非法库名或表名参数！')
 
             p = 1
             size = 10
@@ -358,7 +358,7 @@ class nosqlMySQLCtr():
                     s_field = args_where['field']
                     s_value = args_where['value']
                     if not safe_sql_identifier(s_field):
-                        return mw.returnData(False, '非法字段名参数！')
+                        return yf.returnData(False, '非法字段名参数！')
                     
                     escaped_val = escape_string(s_value)
                     if s_field == 'id' or s_field.find('id') > -1:
@@ -368,13 +368,13 @@ class nosqlMySQLCtr():
 
             my_instance = self.getInstanceBySid(sid).conn()
             if my_instance is False:
-                return mw.returnData(False,'无法链接')
+                return yf.returnData(False,'无法链接')
 
             my_instance.setDbName(db)
             sql = 'select count(*) as num from `' + table + '`' + where_sql
             count_result = my_instance.query(sql)
             if count_result is None or len(count_result) == 0:
-                return mw.returnData(False, '查询数据量失败')
+                return yf.returnData(False, '查询数据量失败')
             count = count_result[0]['num']
 
             sql = 'select * from `' + table + '`' + where_sql + ' limit ' + str(int(start_index)) + ',' + str(int(size))
@@ -393,7 +393,7 @@ class nosqlMySQLCtr():
             page_args['row'] = size
 
             rdata = {}
-            rdata['page'] = mw.getPage(page_args)
+            rdata['page'] = yf.getPage(page_args)
             rdata['list'] = result
             rdata['count'] = count
 
@@ -401,9 +401,9 @@ class nosqlMySQLCtr():
             if 'field' in args_where:
                 rdata['soso_field'] = args_where['field']
 
-            return mw.returnData(True,'ok', rdata)
+            return yf.returnData(True,'ok', rdata)
         except Exception as e:
-            return mw.returnData(False, '获取数据列表发生异常: ' + str(e))
+            return yf.returnData(False, '获取数据列表发生异常: ' + str(e))
 
 
     def showProcessList(self,args):
@@ -412,12 +412,12 @@ class nosqlMySQLCtr():
 
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         result = my_instance.query(sql)
         rdata = {}
         rdata['list'] = result
-        return mw.returnData(True,'ok', rdata)
+        return yf.returnData(True,'ok', rdata)
 
     def showStatusList(self,args):
         sql = 'show status';
@@ -425,12 +425,12 @@ class nosqlMySQLCtr():
 
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         result = my_instance.query(sql)
         rdata = {}
         rdata['list'] = result
-        return mw.returnData(True,'ok', rdata)
+        return yf.returnData(True,'ok', rdata)
 
     def showStatsList(self, args):
         sql = "show status like 'Com_%'";
@@ -438,12 +438,12 @@ class nosqlMySQLCtr():
 
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         result = my_instance.query(sql)
         rdata = {}
         rdata['list'] = result
-        return mw.returnData(True,'ok', rdata)
+        return yf.returnData(True,'ok', rdata)
 
     def getNetRow(self, my_instance):
         row = {}
@@ -475,7 +475,7 @@ class nosqlMySQLCtr():
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         rdata = []
         row = {}
@@ -506,28 +506,28 @@ class nosqlMySQLCtr():
         row['send_mbps'] = "{:.2f}".format(send_per_second * 8 / 1000000) + " MBit/s"
 
         rdata.append(row)
-        return mw.returnData(True, 'ok', rdata)
+        return yf.returnData(True, 'ok', rdata)
 
 
     def getTopnList(self, args):
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         is_performance_schema = my_instance.find("SELECT @@performance_schema")
         if is_performance_schema is None:
-            return mw.returnData(False,'异常中断,重试!')
+            return yf.returnData(False,'异常中断,重试!')
 
         if is_performance_schema["@@performance_schema"] == 0:
             msg = "performance_schema参数未开启。\n"
             msg += "在my.cnf配置文件里添加performance_schema=1，并重启mysqld进程生效。"
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
 
         my_instance.execute("SET @sys.statement_truncate_len=4096")
         data = my_instance.query("select query,db,last_seen,exec_count,max_latency,avg_latency from sys.statement_analysis order by exec_count desc, last_seen desc limit 20")
         if data is None:
-            return mw.returnData(False, "查询失败!")
+            return yf.returnData(False, "查询失败!")
 
         filter_db = args['filter_db']
         if filter_db == 'yes':
@@ -535,50 +535,50 @@ class nosqlMySQLCtr():
             for x in data:
                 if x['db'] is not None:
                     new_data.append(x)
-            return mw.returnData(True, 'ok', new_data)
-        return mw.returnData(True, 'ok', data)
+            return yf.returnData(True, 'ok', new_data)
+        return yf.returnData(True, 'ok', data)
 
     # 查看重复或冗余的索引
     def getRedundantIndexes(self, args):
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         is_performance_schema = my_instance.find("SELECT @@performance_schema")
         if is_performance_schema["@@performance_schema"] == 0:
             msg = "performance_schema参数未开启。\n"
             msg += "在my.cnf配置文件里添加performance_schema=1，并重启mysqld进程生效。"
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
 
         data = my_instance.query("select table_schema,table_name,redundant_index_name,redundant_index_columns,sql_drop_index from sys.schema_redundant_indexes")
         if data is None:
-            return mw.returnData(False, "查询失败!")
+            return yf.returnData(False, "查询失败!")
         # print(data)
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
 
     def redundantIndexesCmd(self, args):
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         is_performance_schema = my_instance.find("SELECT @@performance_schema")
         if is_performance_schema["@@performance_schema"] == 0:
             msg = "performance_schema参数未开启。\n"
             msg += "在my.cnf配置文件里添加performance_schema=1，并重启mysqld进程生效。"
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
 
         data = my_instance.query("select table_schema,table_name,redundant_index_name,redundant_index_columns,sql_drop_index from sys.schema_redundant_indexes")
         if data is None:
-            return mw.returnData(False, "查询失败!")
+            return yf.returnData(False, "查询失败!")
 
         index = int(args['index'])
 
         cmd = data[index]['sql_drop_index']
 
         my_instance.execute(cmd)
-        return mw.returnData(True, '执行成功!')
+        return yf.returnData(True, '执行成功!')
 
     def getTableInfo(self, args):
         from decimal import Decimal
@@ -586,7 +586,7 @@ class nosqlMySQLCtr():
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         my_instance.execute("SET sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))")
         data = my_instance.query(
@@ -606,7 +606,7 @@ class nosqlMySQLCtr():
         )
 
         if data is None:
-            return mw.returnData(True, 'ok', [])
+            return yf.returnData(True, 'ok', [])
 
         for i in range(len(data)):
             row = data[i]
@@ -652,14 +652,14 @@ class nosqlMySQLCtr():
             else:
                 RESIDUAL_AUTO_INCREMENT = "主键非自增"
             data[i]['RESIDUAL_AUTO_INCREMENT'] = RESIDUAL_AUTO_INCREMENT
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
 
     # 查看应用端IP连接数总和
     def getConnCount(self, args):
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         data = my_instance.query(
             "SELECT user,db,substring_index(HOST,':',1) AS Client_IP,count(1) AS count FROM information_schema.PROCESSLIST "
@@ -676,14 +676,14 @@ class nosqlMySQLCtr():
         # data2 = my_instance.query("SELECT USER, COUNT(*) as nums FROM information_schema.PROCESSLIST GROUP BY USER ORDER BY COUNT(*) DESC")
         # print(data)
         # print(data2)
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
 
     # 快速找出没有主键的表
     def getFpkInfo(self, args):
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         data = my_instance.query(
             """
@@ -699,13 +699,13 @@ class nosqlMySQLCtr():
               AND t.table_type = 'BASE TABLE';
             """
         )
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
 
     def getLockSql(self, args):
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         data = my_instance.query(
             """
@@ -730,32 +730,32 @@ class nosqlMySQLCtr():
                 a.trx_started
             """
         )
-        return mw.returnData(True, 'ok', data)
+        return yf.returnData(True, 'ok', data)
 
     def killLockPid(self, args):
         try:
             sid = args['sid']
             my_instance = self.getInstanceBySid(sid).conn()
             if my_instance is False:
-                return mw.returnData(False, '无法连接数据库')
+                return yf.returnData(False, '无法连接数据库')
 
             pid = args['pid']
             try:
                 safe_pid = int(pid)
             except ValueError:
-                return mw.returnData(False, '非法的会话ID！')
+                return yf.returnData(False, '非法的会话ID！')
 
             my_instance.execute('kill %d' % safe_pid)
-            return mw.returnData(True, '执行成功!')
+            return yf.returnData(True, '执行成功!')
         except Exception as e:
-            return mw.returnData(False, '杀死会话失败: ' + str(e))
+            return yf.returnData(False, '杀死会话失败: ' + str(e))
 
     def killAllLock(self, args):
         try:
             sid = args['sid']
             my_instance = self.getInstanceBySid(sid).conn()
             if my_instance is False:
-                return mw.returnData(False, '无法连接数据库')
+                return yf.returnData(False, '无法连接数据库')
 
             data = self.getLockSql(args)
             if data['status']:
@@ -767,9 +767,9 @@ class nosqlMySQLCtr():
                         my_instance.execute(cmd)
                     except:
                         pass
-            return mw.returnData(True, '执行成功!')
+            return yf.returnData(True, '执行成功!')
         except Exception as e:
-            return mw.returnData(False, '杀死全部阻塞会话失败: ' + str(e))
+            return yf.returnData(False, '杀死全部阻塞会话失败: ' + str(e))
 
 
     
@@ -778,26 +778,26 @@ class nosqlMySQLCtr():
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         data = my_instance.find("SHOW ENGINE INNODB STATUS")
         if data is not None:
             innodb_status = data['Status']
             deadlock_info = re.search(r"LATEST DETECTED DEADLOCK.*?WE ROLL BACK TRANSACTION\s+\(\d+\)", innodb_status, re.DOTALL)
             if deadlock_info is None:
-                return mw.returnData(True, 'ok', '无锁表')
-            return mw.returnData(True, 'ok', deadlock_info.group(0))
-        return mw.returnData(True, 'ok', '无锁表')
+                return yf.returnData(True, 'ok', '无锁表')
+            return yf.returnData(True, 'ok', deadlock_info.group(0))
+        return yf.returnData(True, 'ok', '无锁表')
 
     def getSlaveStatus(self, args):
         sid = args['sid']
         my_instance = self.getInstanceBySid(sid).conn()
         if my_instance is False:
-            return mw.returnData(False,'无法链接')
+            return yf.returnData(False,'无法链接')
 
         slave_info = my_instance.find('SHOW SLAVE STATUS')
         if slave_info is None:
-            return mw.returnData(True, 'ok', '未开启从库!')
+            return yf.returnData(True, 'ok', '未开启从库!')
 
         msg = ''
         if slave_info['Auto_Position'] != 1:
@@ -807,9 +807,9 @@ class nosqlMySQLCtr():
         if slave_info['Slave_IO_Running'] == 'Yes' and slave_info['Slave_SQL_Running'] == 'Yes':
             if slave_info['Seconds_Behind_Master'] == 0:
                 msg = "同步正常，无延迟"
-                return mw.returnData(True, 'ok', msg)
+                return yf.returnData(True, 'ok', msg)
             else:
-                return mw.returnData(True, 'ok', '同步正常，但有延迟，延迟时间为：%s' % slave_info['Seconds_Behind_Master'])
+                return yf.returnData(True, 'ok', '同步正常，但有延迟，延迟时间为：%s' % slave_info['Seconds_Behind_Master'])
         else:
             msg = '主从复制报错，请检查\nSlave_IO_Running状态值是：%s, |  Slave_SQL_Running状态值是：%s\nLast_Error错误信息是：%s\nLast_SQL_Error错误信息是：%s\n' \
             % (slave_info['Slave_IO_Running'], slave_info['Slave_SQL_Running'], slave_info['Last_Error'], slave_info['Last_SQL_Error'])
@@ -818,7 +818,7 @@ class nosqlMySQLCtr():
             msg += '错误信息是：%s \n' % error_dict['LAST_ERROR_MESSAGE']
             msg += '报错时间是：%s \n' % error_dict['LAST_ERROR_TIMESTAMP']
             msg += 'MySQL Replication Health is NOT OK!'
-            return mw.returnData(True, 'ok', msg)
+            return yf.returnData(True, 'ok', msg)
 
 # ---------------------------------- run ----------------------------------
 

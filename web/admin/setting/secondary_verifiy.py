@@ -20,7 +20,7 @@ from flask import request
 from admin import session
 from admin.user_login_check import panel_login_required
 
-import core.yf as mw
+import core.yf as yf
 import utils.config as utils_config
 
 from .setting import blueprint
@@ -37,20 +37,20 @@ def get_auth_secret():
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
 
     if 'secret' in two_step_verification and reset != '1':
-        secret = mw.deDoubleCrypt(tag, two_step_verification['secret'])
+        secret = yf.deDoubleCrypt(tag, two_step_verification['secret'])
     else:
         secret = pyotp.random_base32()
-        crypt_data = mw.enDoubleCrypt(tag, secret)
+        crypt_data = yf.enDoubleCrypt(tag, secret)
         two_step_verification['secret'] = crypt_data
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
 
-    ip = mw.getHostAddr()
+    ip = yf.getHostAddr()
     url = pyotp.totp.TOTP(secret).provisioning_uri(name=ip, issuer_name='YuFeng_panel')
 
     rdata = {}
     rdata['secret'] = secret
     rdata['url'] = url
-    return mw.returnData(True, '设置成功!', rdata)
+    return yf.returnData(True, '设置成功!', rdata)
 
 
 # 设置二次验证，加强安全登录
@@ -61,11 +61,11 @@ def set_auth_secret():
     if two_step_verification['open']:
         two_step_verification['open'] = False
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
-        return mw.returnData(True, '关闭成功!', 0)
+        return yf.returnData(True, '关闭成功!', 0)
     else:
         two_step_verification['open'] = True
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
-        return mw.returnData(True, '开启成功!', 1)
+        return yf.returnData(True, '开启成功!', 1)
 
 
         

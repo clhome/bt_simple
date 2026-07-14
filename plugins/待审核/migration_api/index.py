@@ -18,7 +18,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -44,7 +44,7 @@ class classApi:
         self._SPEED_FILE = getServerDir() + '/config/speed.json'
         self._INFO_FILE = getServerDir() + '/config/sync_info.json'
         self._SYNC_INFO = self.get_sync_info(None)
-        self.__VHOST_PATH = mw.getServerDir() + '/web_conf'
+        self.__VHOST_PATH = yf.getServerDir() + '/web_conf'
 
     def post(self, endpoint, request_data, timeout=60):
         url = self.__MW_PANEL + endpoint  
@@ -97,18 +97,18 @@ class classApi:
         if os.path.exists(log_file):
             os.remove(log_file)
 
-        plugins_dir = mw.getServerDir() + '/mdserver-web'
+        plugins_dir = yf.getServerDir() + '/mdserver-web'
         exe = "cd {0} && source bin/activate && python3 plugins/migration_api/index.py bg_process &>{1} &".format(
             plugins_dir, log_file_error)
-        # mw.execShell(exe)
+        # yf.execShell(exe)
         # os.system(exe)
         subprocess.Popen(exe, shell=True, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
         time.sleep(1)
         # 检查是否执行成功
         if not getPid():
-            return mw.returnJson(False, '创建进程失败!<br>{}'.format(mw.readFile(log_file_error)))
-        return mw.returnJson(True, "迁移进程创建成功!")
+            return yf.returnJson(False, '创建进程失败!<br>{}'.format(yf.readFile(log_file_error)))
+        return yf.returnJson(True, "迁移进程创建成功!")
 
     def set_sync_info(self, args):
         # 设置要被迁移的网站、数据库
@@ -123,15 +123,15 @@ class classApi:
             sync_info['databases'][i]['error'] = ''
             sync_info['databases'][i]['state'] = 0
             sync_info['total'] += 1
-        mw.writeFile(self._INFO_FILE, json.dumps(sync_info))
+        yf.writeFile(self._INFO_FILE, json.dumps(sync_info))
         self.fock_process(None)
-        return mw.returnJson(True, '设置成功!')
+        return yf.returnJson(True, '设置成功!')
 
     def get_sync_info(self, args):
         # 获取要被迁移的网站、数据库
         if not os.path.exists(self._INFO_FILE):
-            return mw.returnJson(False, '迁移信息不存在!')
-        sync_info = json.loads(mw.readFile(self._INFO_FILE))
+            return yf.returnJson(False, '迁移信息不存在!')
+        sync_info = json.loads(yf.readFile(self._INFO_FILE))
         if not args:
             return sync_info
         result = []
@@ -146,7 +146,7 @@ class classApi:
     def write_speed(self, key, value):
         # 写进度
         if os.path.exists(self._SPEED_FILE):
-            speed_info = json.loads(mw.readFile(self._SPEED_FILE))
+            speed_info = json.loads(yf.readFile(self._SPEED_FILE))
         else:
             speed_info = {"time": int(time.time()), "size": 0, "used": 0, "total_size": 0,
                           "speed": 0, "action": "等待中", "done": "等待中", "end_time": int(time.time())}
@@ -156,7 +156,7 @@ class classApi:
             speed_info[key] += value
         else:
             speed_info[key] = value
-        mw.writeFile(self._SPEED_FILE, json.dumps(speed_info))
+        yf.writeFile(self._SPEED_FILE, json.dumps(speed_info))
 
     # 设置文件权限
     def set_mode(self, filename, mode):
@@ -201,7 +201,7 @@ class classApi:
     def error(self, error_msg, is_exit=False):
         # 发生错误
         write_log("=" * 50)
-        write_log("|-发生时间: {}".format(mw.formatDate()))
+        write_log("|-发生时间: {}".format(yf.formatDate()))
         write_log("|-错误信息: {}".format(error_msg))
         if is_exit:
             write_log("|-处理结果: 终止迁移任务")
@@ -229,15 +229,15 @@ class classApi:
 
     def close_sync(self, args):
         # 取消迁移
-        mw.execShell("kill -9 {}".format(self.get_pid()))
-        mw.execShell("kill -9 $(ps aux|grep index.py|grep -v grep|awk '{print $2}')")
+        yf.execShell("kill -9 {}".format(self.get_pid()))
+        yf.execShell("kill -9 $(ps aux|grep index.py|grep -v grep|awk '{print $2}')")
         # 删除迁移配置
         time.sleep(1)
         if os.path.exists(self._INFO_FILE):
             os.remove(self._INFO_FILE)
         if os.path.exists(self._SPEED_FILE):
             os.remove(self._SPEED_FILE)
-        return mw.returnJson(True, '已取消迁移任务!')
+        return yf.returnJson(True, '已取消迁移任务!')
 
     def send_file(self, pdata, f):
         success_num = 0  # 连续发送成功次数
@@ -302,7 +302,7 @@ class classApi:
 
                 # 超过重试次数
                 write_log("|-上传失败, 跳过本次上传任务")
-                write_log(mw.getTracebackInfo())
+                write_log(yf.getTracebackInfo())
                 return False
 
             result = res.json()
@@ -354,7 +354,7 @@ class classApi:
 
         if os.path.islink(spath):
             dpath = os.readlink(spath)
-            # mw.buildSoftLink(spath, dpath, True)
+            # yf.buildSoftLink(spath, dpath, True)
             self.send('/files/exec_shell',
                       {"shell": 'ln -sf "' + spath + '" "' + dpath + '"', "path": "/www"}, 30)
             return True
@@ -365,18 +365,18 @@ class classApi:
         # 创建目录
         self.send('/files/create_dir', {"path": dpath})
 
-        backup_path = mw.getFatherDir() + '/backup'
+        backup_path = yf.getFatherDir() + '/backup'
         if not os.path.exists(backup_path):
             os.makedirs(backup_path, 384)
 
         zip_file = backup_path + \
             "/psync_tmp_{}.tar.gz".format(os.path.basename(spath))
-        zip_dst = mw.getPanelDir() + '/tmp/psync_tmp_{}.tar.gz'.format(
+        zip_dst = yf.getPanelDir() + '/tmp/psync_tmp_{}.tar.gz'.format(
             os.path.basename(dpath))
         write_log("|-正在压缩目录[{}]...".format(spath))
         self.write_speed('done', '正在压缩')
 
-        mw.execShell("cd {} && tar zcvf {} ./ > /dev/null".format(spath, zip_file))
+        yf.execShell("cd {} && tar zcvf {} ./ > /dev/null".format(spath, zip_file))
         if not os.path.exists(zip_file):
             self.error("目录[{}]打包失败!".format(spath))
             return False
@@ -407,7 +407,7 @@ class classApi:
 
     def save(self):
         # 保存迁移配置
-        mw.writeFile(self._INFO_FILE, json.dumps(self._SYNC_INFO))
+        yf.writeFile(self._INFO_FILE, json.dumps(self._SYNC_INFO))
 
     def format_domain(self, domain):
         # 格式化域名
@@ -466,8 +466,8 @@ class classApi:
             [self.__VHOST_PATH + "/ssl/" + siteInfo['name'], "网站SSL目录"],
         ]
 
-        if not mw.isAppleSystem():
-            acme_dir = mw.getAcmeDomainDir(siteInfo['name'])
+        if not yf.isAppleSystem():
+            acme_dir = yf.getAcmeDomainDir(siteInfo['name'])
             s_files.append([acme_dir, "网站[ACME]SSL证书"])
 
         s_files.append(
@@ -489,7 +489,7 @@ class classApi:
             site_name = sites[i]['name']
             try:
                 self.state('sites', i, 1)
-                siteInfo = mw.M('sites').where('name=?', (site_name,)).field(
+                siteInfo = yf.M('sites').where('name=?', (site_name,)).field(
                     'id,name,path,ps,status,edate,add_time').find()
 
                 if not siteInfo:
@@ -499,47 +499,47 @@ class classApi:
                     continue
                 site_id = siteInfo['id']
 
-                siteInfo['port'] = mw.M('domain').where(
+                siteInfo['port'] = yf.M('domain').where(
                     'pid=? and name=?', (site_id, site_name,)).getField('port')
 
-                siteInfo['domain'] = mw.M('domain').where(
+                siteInfo['domain'] = yf.M('domain').where(
                     'pid=? and name!=?', (site_id, site_name)).field('name,port').select()
 
-                siteInfo['binding'] = mw.M('binding').where(
+                siteInfo['binding'] = yf.M('binding').where(
                     'pid=?', (id,)).field('domain,path,port').select()
 
                 if self.send_site(siteInfo, i):
                     self.state('sites', i, 2)
                 write_log("=" * 50)
             except Exception as e:
-                self.error(mw.getTracebackInfo())
+                self.error(yf.getTracebackInfo())
 
     def getConf(self, mtype='mysql'):
-        path = mw.getServerDir() + '/' + mtype + '/etc/my.cnf'
+        path = yf.getServerDir() + '/' + mtype + '/etc/my.cnf'
         return path
 
     def getSocketFile(self, mtype='mysql'):
         file = self.getConf(mtype)
-        content = mw.readFile(file)
+        content = yf.readFile(file)
         rep = r'socket\s*=\s*(.*)'
         tmp = re.search(rep, content)
         return tmp.groups()[0].strip()
 
     def getDbPort(self, mtype='mysql'):
         file = self.getConf(mtype)
-        content = mw.readFile(file)
+        content = yf.readFile(file)
         rep = r'port\s*=\s*(.*)'
         tmp = re.search(rep, content)
         return tmp.groups()[0].strip()
 
     def getDbConn(self, mtype='mysql', db='databases'):
-        my_db_pos = mw.getServerDir() + '/' + mtype
-        conn = mw.M(db).dbPos(my_db_pos, 'mysql')
+        my_db_pos = yf.getServerDir() + '/' + mtype
+        conn = yf.M(db).dbPos(my_db_pos, 'mysql')
         return conn
 
     def getMyConn(self, mtype='mysql'):
         # pymysql
-        db = mw.getMyORM()
+        db = yf.getMyORM()
 
         db.setPort(self.getDbPort(mtype))
         db.setSocket(self.getSocketFile(mtype))
@@ -588,15 +588,15 @@ class classApi:
         # 检测数据库执行错误
         mysqlMsg = str(mysqlMsg)
         if "MySQLdb" in mysqlMsg:
-            return mw.returnData(False, 'DATABASE_ERR_MYSQLDB')
+            return yf.returnData(False, 'DATABASE_ERR_MYSQLDB')
         if "2002," in mysqlMsg or '2003,' in mysqlMsg:
-            return mw.returnData(False, 'DATABASE_ERR_CONNECT')
+            return yf.returnData(False, 'DATABASE_ERR_CONNECT')
         if "using password:" in mysqlMsg:
-            return mw.returnData(False, 'DATABASE_ERR_PASS')
+            return yf.returnData(False, 'DATABASE_ERR_PASS')
         if "Connection refused" in mysqlMsg:
-            return mw.returnData(False, 'DATABASE_ERR_CONNECT')
+            return yf.returnData(False, 'DATABASE_ERR_CONNECT')
         if "1133" in mysqlMsg:
-            return mw.returnData(False, 'DATABASE_ERR_NOT_EXISTS')
+            return yf.returnData(False, 'DATABASE_ERR_NOT_EXISTS')
         return None
 
     def getDatabaseCharacter(self, db_name):
@@ -638,25 +638,25 @@ class classApi:
     def myPass(self, act, root):
         # conf_file = '/etc/my.cnf'
         conf_file = self.getConf('mysql')
-        mw.execShell("sed -i '/user=root/d' {}".format(conf_file))
-        mw.execShell("sed -i '/password=/d' {}".format(conf_file))
+        yf.execShell("sed -i '/user=root/d' {}".format(conf_file))
+        yf.execShell("sed -i '/password=/d' {}".format(conf_file))
         if act:
-            mycnf = mw.readFile(conf_file)
+            mycnf = yf.readFile(conf_file)
             src_dump = "[mysqldump]\n"
             sub_dump = src_dump + "user=root\npassword=\"{}\"\n".format(root)
             if not mycnf:
                 return False
             mycnf = mycnf.replace(src_dump, sub_dump)
             if len(mycnf) > 100:
-                mw.writeFile(conf_file, mycnf)
+                yf.writeFile(conf_file, mycnf)
             return True
         return True
 
     def recognizeDbMode(self):
         conf = self.getConf('mysql')
-        con = mw.readFile(conf)
+        con = yf.readFile(conf)
 
-        path = mw.getServerDir() + '/mysql'
+        path = yf.getServerDir() + '/mysql'
         rep = r"!include %s/(.*)?\.cnf" % (path + "/etc/mode",)
         mode = 'none'
         try:
@@ -681,7 +681,7 @@ class classApi:
         root = self.getDbConn('mysql', 'config').where(
             'id=?', (1,)).getField('mysql_root')
 
-        backup_path = mw.getFatherDir() + '/backup'
+        backup_path = yf.getFatherDir() + '/backup'
         if not os.path.exists(backup_path):
             os.makedirs(backup_path, 384)
 
@@ -689,7 +689,7 @@ class classApi:
         if os.path.exists(backup_name):
             os.remove(backup_name)
 
-        root_dir = mw.getServerDir() + '/mysql'
+        root_dir = yf.getServerDir() + '/mysql'
         my_cnf = self.getConf('mysql')
 
         mode = self.recognizeDbMode()
@@ -702,7 +702,7 @@ class classApi:
             self.getDatabaseCharacter(
                 name) + gtid_option + " --force --opt \"" + name + "\" | gzip > " + backup_name
         # print(cmd)
-        mw.execShell(cmd)
+        yf.execShell(cmd)
 
         self.myPass(False, root)
         if not os.path.exists(backup_name) or os.path.getsize(backup_name) < 30:
@@ -761,7 +761,7 @@ class classApi:
                     self.state('databases', i, 2)
                 write_log("=" * 50)
             except:
-                self.error(mw.getTracebackInfo())
+                self.error(yf.getTracebackInfo())
 
 
     def print_directory_tree(self, directory, prefix=""):
@@ -794,7 +794,7 @@ class classApi:
 
     def sync_plugin_webssh(self):
         name = "webssh"
-        webssh_dir = mw.getServerDir()+'/'+name
+        webssh_dir = yf.getServerDir()+'/'+name
 
         # 递归遍历所有文件和目录并打印
         print(f"\n目录树结构: {webssh_dir}")
@@ -846,11 +846,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -867,15 +867,15 @@ def getConf():
 def getCfgData():
     path = getConf()
     if not os.path.exists(path):
-        mw.writeFile(path, "{}")
+        yf.writeFile(path, "{}")
 
-    t = mw.readFile(path)
+    t = yf.readFile(path)
     return json.loads(t)
 
 
 def writeConf(data):
     path = getConf()
-    mw.writeFile(path, json.dumps(data))
+    yf.writeFile(path, json.dumps(data))
     return True
 
 
@@ -904,8 +904,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def status():
@@ -921,7 +921,7 @@ def initDreplace():
 
 def getStepOneData():
     data = getCfgData()
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def stepOne():
@@ -947,21 +947,21 @@ def stepOne():
     # classApi('http://127.0.0.1:7200','HfJNKGP5RPqGvhIOyrwpXG4A2fTjSh9B')
     rdata = api.send('/task/count', {})
     if not rdata['status']:
-        return mw.returnJson(False, rdata['msg'])
+        return yf.returnJson(False, rdata['msg'])
     data = getCfgData()
     data['url'] = url
     data['app_id'] = app_id
     data['app_secret'] = app_secret
     writeConf(data)
 
-    return mw.returnJson(True, '验证成功')
+    return yf.returnJson(True, '验证成功')
 
 
 # 获取本地服务器和环境配置
 def get_src_config(args):
     data = {}
     data['status'] = True
-    sdir = mw.getServerDir()
+    sdir = yf.getServerDir()
 
     data['webserver'] = '未安装'
     if os.path.exists(sdir + '/openresty/nginx/sbin/nginx'):
@@ -983,7 +983,7 @@ def get_src_config(args):
     except:
         diskInfo = psutil.disk_usage('/')
 
-    data['disk'] = mw.toSize(diskInfo[2])
+    data['disk'] = yf.toSize(diskInfo[2])
     return data
 
 
@@ -1005,21 +1005,21 @@ def stepTwo():
     data = {}
     data['local'] = get_src_config(None)
     data['remote'] = get_dst_config(None)
-    return mw.returnJson(True, '获取成功!', data)
+    return yf.returnJson(True, '获取成功!', data)
 
 
 def get_src_info(args):
     # 获取本地服务器网站、数据库.
     data = {}
-    data['sites'] = mw.M('sites').field("id,name,path,ps,status,add_time").order("id desc").select()
+    data['sites'] = yf.M('sites').field("id,name,path,ps,status,add_time").order("id desc").select()
 
-    my_db_pos = mw.getServerDir() + '/mysql'
-    conn = mw.M('databases').dbPos(my_db_pos, 'mysql')
+    my_db_pos = yf.getServerDir() + '/mysql'
+    conn = yf.M('databases').dbPos(my_db_pos, 'mysql')
     data['databases'] = conn.field('id,name,ps').order("id desc").select()
     data['plugin'] = []
 
     plugin_webssh_name = "webssh"
-    webssh_dir =  mw.getServerDir()  + '/'+plugin_webssh_name
+    webssh_dir =  yf.getServerDir()  + '/'+plugin_webssh_name
     if os.path.exists(webssh_dir):
         data['plugin'].append(plugin_webssh_name)
 
@@ -1028,12 +1028,12 @@ def get_src_info(args):
 
 def stepThree():
     data = get_src_info(None)
-    return mw.returnJson(True, '同步数据,获取成功!', data)
+    return yf.returnJson(True, '同步数据,获取成功!', data)
 
 
 def getPid():
     cmd = "ps aux|grep 'plugins/migration_api/index.py bg_process' |grep -v grep|awk '{print $2}'|xargs"
-    result = mw.execShell(cmd)[0].strip()
+    result = yf.execShell(cmd)[0].strip()
     if not result:
         return None
     return result
@@ -1063,7 +1063,7 @@ def bgProcessRun():
 
 def stepFour():
     if getPid():
-        return mw.returnJson(True, '正在运行中..')
+        return yf.returnJson(True, '正在运行中..')
     args = getArgs()
     data = checkArgs(args, ['sites', 'databases'])
     if not data[0]:
@@ -1085,7 +1085,7 @@ def stepFour():
 
 def get_speed_data():
     path = getServerDir() + '/config/speed.json'
-    data = mw.readFile(path)
+    data = yf.readFile(path)
     return json.loads(data)
 
 
@@ -1093,12 +1093,12 @@ def getSpeed():
     # 取迁移进度
     path = getServerDir() + '/config/speed.json'
     if not os.path.exists(path):
-        return mw.returnJson(False, '正在准备..')
+        return yf.returnJson(False, '正在准备..')
 
     try:
-        speed_info = json.loads(mw.readFile(path))
+        speed_info = json.loads(yf.readFile(path))
     except Exception as e:
-        return mw.returnJson(True, str(e)+'...')
+        return yf.returnJson(True, str(e)+'...')
     data = getCfgData()
     api = classApi(data['url'], data['app_id'], data['app_secret'])
     sync_info = api.get_sync_info(None)
@@ -1107,9 +1107,9 @@ def getSpeed():
     speed_info['total_time'] = speed_info['end_time'] - speed_info['time']
     speed_info['total_time'] = str(int(speed_info['total_time'] // 60)) + "分" + str(int(speed_info['total_time'] % 60)) + "秒"
     log_file = getServerDir() + '/sync.log'
-    speed_info['log'] = mw.execShell("tail -n 10 {}".format(log_file))[0]
+    speed_info['log'] = yf.execShell("tail -n 10 {}".format(log_file))[0]
     speed_info['log_file'] = log_file
-    return mw.returnJson(True, 'ok', speed_info)
+    return yf.returnJson(True, 'ok', speed_info)
 
 if __name__ == "__main__":
     func = sys.argv[1]

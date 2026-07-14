@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,15 +23,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -73,31 +73,31 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pidfile\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def status():
     cmd = "ps aux|grep zabbix_server |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
 
 def getInstallVerion():
     version_pl = getServerDir() + "/version.pl"
-    version = mw.readFile(version_pl).strip()
+    version = yf.readFile(version_pl).strip()
     return version
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$ZABBIX_ROOT}', '/usr/share/zabbix')
     content = content.replace('{$ZABBIX_PORT}', '18888')
@@ -112,44 +112,44 @@ def contentReplace(content):
 def getMySQLConf():
     choose_mysql = getServerDir()+'/mysql.pl'
     if os.path.exists(choose_mysql):
-        ver = mw.readFile(choose_mysql)
-        return mw.getServerDir() + '/'+ver+'/etc/my.cnf'
+        ver = yf.readFile(choose_mysql)
+        return yf.getServerDir() + '/'+ver+'/etc/my.cnf'
 
-    apt_path = mw.getServerDir() + '/mysql-apt/etc/my.cnf'
+    apt_path = yf.getServerDir() + '/mysql-apt/etc/my.cnf'
     if os.path.exists(apt_path):
-        mw.writeFile(choose_mysql, 'mysql-apt')
+        yf.writeFile(choose_mysql, 'mysql-apt')
         return apt_path
 
-    yum_path = mw.getServerDir() + '/mysql-yum/etc/my.cnf'
+    yum_path = yf.getServerDir() + '/mysql-yum/etc/my.cnf'
     if os.path.exists(yum_path):
-        mw.writeFile(choose_mysql, 'mysql-yum')
+        yf.writeFile(choose_mysql, 'mysql-yum')
         return yum_path
 
-    path = mw.getServerDir() + '/mysql/etc/my.cnf'
+    path = yf.getServerDir() + '/mysql/etc/my.cnf'
     if os.path.exists(path):
-        mw.writeFile(choose_mysql, 'mysql')
+        yf.writeFile(choose_mysql, 'mysql')
         return path
     return path
 
 
 def getMySQLPort():
     file = getMySQLConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'port\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def getMySQLSocketFile():
     file = getMySQLConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'socket\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def getMySQLBin():
     choose_mysql = getServerDir()+'/mysql.pl'
-    ver = mw.readFile(choose_mysql)
-    mysql_dir = mw.getServerDir() + '/'+ver
+    ver = yf.readFile(choose_mysql)
+    mysql_dir = yf.getServerDir() + '/'+ver
 
     if ver == 'mysql-apt':
         return '/www/server/mysql-apt/bin/usr/bin/mysql'
@@ -159,8 +159,8 @@ def getMySQLBin():
 
 def getMySQLBinLink():
     choose_mysql = getServerDir()+'/mysql.pl'
-    ver = mw.readFile(choose_mysql)
-    mysql_dir = mw.getServerDir() + '/'+ver
+    ver = yf.readFile(choose_mysql)
+    mysql_dir = yf.getServerDir() + '/'+ver
 
     if ver == 'mysql-apt':
         return '/www/server/mysql-apt/bin/usr/bin/mysql -S /www/server/mysql-apt/mysql.sock'
@@ -170,16 +170,16 @@ def getMySQLBinLink():
 
 def pSqliteDb(dbname='databases'):
     choose_mysql = getServerDir()+'/mysql.pl'
-    ver = mw.readFile(choose_mysql)
+    ver = yf.readFile(choose_mysql)
 
-    mysql_dir = mw.getServerDir() + '/'+ver
-    conn = mw.M(dbname).dbPos(mysql_dir, 'mysql')
+    mysql_dir = yf.getServerDir() + '/'+ver
+    conn = yf.M(dbname).dbPos(mysql_dir, 'mysql')
     return conn
 
 
 def pMysqlDb():
     # pymysql
-    db = mw.getMyORM()
+    db = yf.getMyORM()
     db.setDbName('zabbix')
     db.setPort(getMySQLPort())
     db.setSocket(getMySQLSocketFile())
@@ -193,7 +193,7 @@ def getInstalledPhpConfDir():
 
     for pt in php_type:
         for ver in phpver:
-            php_install_dir = mw.getServerDir() + '/'+ pt+'/'+ver
+            php_install_dir = yf.getServerDir() + '/'+ pt+'/'+ver
             if os.path.exists(php_install_dir):
                 if pt == 'php-apt':
                     return pt + ver[0:1]+'.'+ver[1:2]
@@ -210,7 +210,7 @@ def isInstalledPhp():
 
     for pt in php_type:
         for ver in phpver:
-            php_install_dir = mw.getServerDir() + '/'+ pt+'/'+ver
+            php_install_dir = yf.getServerDir() + '/'+ pt+'/'+ver
             if os.path.exists(php_install_dir):
                 return True
     return False
@@ -218,14 +218,14 @@ def isInstalledPhp():
 def isInstalledMySQL():
     mysql_type = ['mysql-apt','mysql-yum', 'mysql'];
     for mt in mysql_type:
-        mysql_install_dir = mw.getServerDir() + '/'+ mt
+        mysql_install_dir = yf.getServerDir() + '/'+ mt
         if os.path.exists(mysql_install_dir):
             return True
     return False
 
 
 def zabbixNginxConf():
-    return mw.getServerDir()+'/web_conf/nginx/vhost/zabbix.conf'
+    return yf.getServerDir()+'/web_conf/nginx/vhost/zabbix.conf'
 
 def zabbixPhpConf():
     # ver = getInstallVerion()
@@ -255,17 +255,17 @@ def zabbixImportMySQLData():
         exit("需要安装MySQL")
 
     choose_mysql = getServerDir()+'/mysql.pl'
-    ver = mw.readFile(choose_mysql)
+    ver = yf.readFile(choose_mysql)
 
     pmdb = pMysqlDb()
     psdb = pSqliteDb('databases')
     find_ps_zabbix = psdb.field('id').where('name = ?', ('zabbix',)).select()
     if len(find_ps_zabbix) < 1:
-        db_pass = mw.getRandomString(16)
+        db_pass = yf.getRandomString(16)
         # 创建数据
         cmd = 'python3 plugins/'+ver+'/index.py add_db  {"name":"zabbix","codeing":"utf8mb4","db_user":"zabbix","password":"'+db_pass+'","dataAccess":"127.0.0.1","ps":"zabbix","address":"127.0.0.1"}'
         # print(cmd)
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         pmdb.query("ALTER DATABASE `zabbix` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_bin")
         pmdb.query("grant all privileges on zabbix.* to zabbix@127.0.0.1")
 
@@ -282,7 +282,7 @@ def zabbixImportMySQLData():
         # zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | /www/server/mysql/bin/mysql --default-character-set=utf8mb4 -uzabbix -p"LGhb1f7QG6SDL5CX" zabbix
         import_data_cmd = 'zcat '+tgz_file+' | '+mysql_bin+' --default-character-set=utf8mb4 -uzabbix -p"'+db_pass+'" zabbix'
         # print(import_data_cmd)
-        mw.execShell(import_data_cmd)
+        yf.execShell(import_data_cmd)
         # pmdb.query("set global log_bin_trust_function_creators=0")
 
 
@@ -300,10 +300,10 @@ def initOpConf():
 
     # nginx配置
     if not os.path.exists(nginx_dst_vhost):
-        content = mw.readFile(nginx_src_tpl)
+        content = yf.readFile(nginx_src_tpl)
         content = contentReplace(content)
         content = content.replace('{$PHP_VER}',phpver)
-        mw.writeFile(nginx_dst_vhost, content)
+        yf.writeFile(nginx_dst_vhost, content)
 
 def initZsConf():
     ver = getInstallVerion()
@@ -314,27 +314,27 @@ def initZsConf():
     zs_dst_path = zabbixServerConf()
 
     # zabbix_server配置
-    content = mw.readFile(zs_src_tpl)
+    content = yf.readFile(zs_src_tpl)
     content = contentReplace(content)
-    mw.writeFile(zs_dst_path, content)
+    yf.writeFile(zs_dst_path, content)
 
 def initPhpConf():
     php_src_tpl = getPluginDir()+'/conf/zabbix.conf.php'
     php_dst_path = zabbixPhpConf()
     # php配置
     # if not os.path.exists(php_dst_path):
-    content = mw.readFile(php_src_tpl)
+    content = yf.readFile(php_src_tpl)
     content = contentReplace(content)
-    mw.writeFile(php_dst_path, content)
+    yf.writeFile(php_dst_path, content)
 
 def initAgentConf():
     za_src_tpl = getPluginDir()+'/conf/zabbix_agentd.conf'
     za_dst_path = zabbixAgentConf()
 
     # zabbix_agent配置
-    content = mw.readFile(za_src_tpl)
+    content = yf.readFile(za_src_tpl)
     content = contentReplace(content)
-    mw.writeFile(za_dst_path, content)
+    yf.writeFile(za_dst_path, content)
 
 def openPort():
     try:
@@ -362,7 +362,7 @@ def initDreplace():
         initAgentConf()
         initPhpConf()
         openPort()
-        mw.writeFile(init_file, 'ok')
+        yf.writeFile(init_file, 'ok')
     return True
 
 
@@ -370,8 +370,8 @@ def zOp(method):
 
     initDreplace()
 
-    data = mw.execShell('systemctl ' + method + ' zabbix-server')
-    mw.execShell('systemctl ' + method + ' zabbix-agent')
+    data = yf.execShell('systemctl ' + method + ' zabbix-server')
+    yf.execShell('systemctl ' + method + ' zabbix-agent')
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -379,7 +379,7 @@ def zOp(method):
 
 def start():
     val = zOp('start')
-    mw.restartWeb()
+    yf.restartWeb()
     return val
 
 
@@ -391,7 +391,7 @@ def stop():
     if os.path.exists(nginx_dst_vhost):
         os.remove(nginx_dst_vhost)
 
-    mw.restartWeb()
+    yf.restartWeb()
 
     return val
 
@@ -406,41 +406,41 @@ def reload():
     return zOp('reload')
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status zabbix-server | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    data = mw.execShell('systemctl enable zabbix-server')
+    data = yf.execShell('systemctl enable zabbix-server')
     if data[1] != '':
         return data[1]
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
-    data = mw.execShell('systemctl disable zabbix-server')
+    data = yf.execShell('systemctl disable zabbix-server')
     if data[1] != '':
         return data[1]
     return 'ok'
 
 def runLog():
     zs_conf = zabbixServerConf()
-    content = mw.readFile(zs_conf)
+    content = yf.readFile(zs_conf)
 
     rep = r'LogFile=\s*(.*)'
     tmp = re.search(rep, content)
@@ -451,7 +451,7 @@ def runLog():
 
 def zabbixAgentLog():
     za_conf = zabbixAgentConf()
-    content = mw.readFile(za_conf)
+    content = yf.readFile(za_conf)
 
     rep = r'LogFile=\s*(.*)'
     tmp = re.search(rep, content)
@@ -463,11 +463,11 @@ def zabbixAgentLog():
 
 def installPreInspection():
     cmd = "cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'"
-    sys = mw.execShell(cmd)
+    sys = yf.execShell(cmd)
 
 
     cmd = "cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'"
-    sys_id = mw.execShell(cmd)
+    sys_id = yf.execShell(cmd)
 
     sysName = sys[0].strip().lower()
     sysId = sys_id[0].strip().lower()
@@ -479,7 +479,7 @@ def installPreInspection():
     if sysName == 'debian' and not sysId in ['12']:
         return '不支持,'+sysName+'['+sysId+'],仅支持debian12!'
 
-    openresty_dir = mw.getServerDir() + "/openresty"
+    openresty_dir = yf.getServerDir() + "/openresty"
     if not os.path.exists(openresty_dir):
         return '需要安装Openresty插件'
 

@@ -12,11 +12,11 @@
 import json
 
 
-import core.yf as mw
+import core.yf as yf
 
 def clearLog():
-    mw.M('logs').where('id>?', (0,)).delete()
-    mw.M('logs').execute("update sqlite_sequence set seq=0 where name='logs'")
+    yf.M('logs').where('id>?', (0,)).delete()
+    yf.M('logs').execute("update sqlite_sequence set seq=0 where name='logs'")
     return True
 
 def addLog(type, log, uid = 1) -> bool:
@@ -30,13 +30,13 @@ def addLog(type, log, uid = 1) -> bool:
     # if log.find("eval") > -1:
     #     return False
 
-    add_time = mw.formatDate()
+    add_time = yf.formatDate()
     insert_data = {
         'type':type,
         'log':log,
         'add_time':add_time,
     }
-    mw.M('logs').insert(insert_data)
+    yf.M('logs').insert(insert_data)
     return True
 
 def getLogsList(page = 1,size = 10,search = ''):
@@ -45,16 +45,16 @@ def getLogsList(page = 1,size = 10,search = ''):
         sql_where = " type like '%" + search + "%' or log like '%" + search + "%' "
 
     field = 'id,type,log,uid,add_time'
-    dbM = dbC = mw.M('logs').field(field)
+    dbM = dbC = yf.M('logs').field(field)
 
     if sql_where != '':
-        count = mw.M('logs').field(field).where(sql_where).count()
+        count = yf.M('logs').field(field).where(sql_where).count()
     else:
-        count = mw.M('logs').field(field).count()
+        count = yf.M('logs').field(field).count()
 
     start = (int(page) - 1) * (int(size))
     limit = str(start) + ',' +str(size)
-    logs_list = mw.M('logs').field(field).limit(limit).order('id desc').select()
+    logs_list = yf.M('logs').field(field).limit(limit).order('id desc').select()
 
     data = {}
     data['list'] = logs_list

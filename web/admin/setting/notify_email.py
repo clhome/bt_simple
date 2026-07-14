@@ -20,7 +20,7 @@ from flask import request
 from admin import session
 from admin.user_login_check import panel_login_required
 
-import core.yf as mw
+import core.yf as yf
 import utils.config as utils_config
 
 from .setting import blueprint
@@ -33,12 +33,12 @@ def get_notify_email():
     notify_email = thisdb.getOptionByJson('notify_email', default={'open':False}, type='notify')
 
     if 'cfg' in notify_email:
-        decrypt_data = mw.deDoubleCrypt('email', notify_email['cfg'])
+        decrypt_data = yf.deDoubleCrypt('email', notify_email['cfg'])
         notify_email['email'] =  json.loads(decrypt_data)
     else:
         notify_email['email'] = {'smtp_host':'','smtp_port':'','smtp_ssl':'','to_mail_addr':'','username':'','password':''}
     
-    return mw.returnData(True,'ok',notify_email)
+    return yf.returnData(True,'ok',notify_email)
 
 
 # 设置邮件信息
@@ -48,13 +48,13 @@ def set_notify_email():
     tag = request.form.get('tag', '').strip()
     data = request.form.get('data', '').strip()
 
-    crypt_data = mw.enDoubleCrypt(tag, data)
+    crypt_data = yf.enDoubleCrypt(tag, data)
     
     notify_email = thisdb.getOptionByJson('notify_email', default={'open':False}, type='notify')
     notify_email['cfg'] = crypt_data
 
     thisdb.setOption('notify_email', json.dumps(notify_email), type='notify')
-    return mw.returnData(True,'设置成功')
+    return yf.returnData(True,'设置成功')
 
 
 # 设置邮件测试
@@ -65,10 +65,10 @@ def set_notify_email_test():
     tag_data = request.form.get('data', '').strip()
 
     data = json.loads(tag_data)
-    test_pass = mw.emailNotifyTest(data)
+    test_pass = yf.emailNotifyTest(data)
     if test_pass == True:
-        return mw.returnData(True, '验证成功')
-    return mw.returnData(False, '验证失败:'+test_pass)
+        return yf.returnData(True, '验证成功')
+    return yf.returnData(False, '验证失败:'+test_pass)
 
 # 切换邮件开关
 @blueprint.route('/set_notify_email_enable', endpoint='set_notify_email_enable', methods=['POST'])
@@ -87,4 +87,4 @@ def set_notify_email_enable():
         notify_email['open'] = True
 
     thisdb.setOption('notify_email', json.dumps(notify_email), type='notify')
-    return mw.returnData(True, op_action+'成功')
+    return yf.returnData(True, op_action+'成功')

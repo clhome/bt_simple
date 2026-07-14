@@ -15,7 +15,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -24,11 +24,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getConf():
@@ -83,8 +83,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def checkSafeName(name):
@@ -116,19 +116,19 @@ def getSupervisorctlBin():
     2. 其次通过 which 查找系统全局路径；
     3. 最后退回为默认的 supervisorctl 执行。
     """
-    activate_file = mw.getPanelDir() + '/bin/activate'
+    activate_file = yf.getPanelDir() + '/bin/activate'
     if os.path.exists(activate_file):
-        bin_path = mw.execShell('source ' + activate_file + ' && which supervisorctl')[0].strip()
+        bin_path = yf.execShell('source ' + activate_file + ' && which supervisorctl')[0].strip()
         if bin_path and os.path.exists(bin_path):
             return bin_path
-    bin_path = mw.execShell('which supervisorctl')[0].strip()
+    bin_path = yf.execShell('which supervisorctl')[0].strip()
     if bin_path:
         return bin_path
     return 'supervisorctl'
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps -ef|grep supervisor | grep -v grep | grep -v index.py | awk '{print $2}'")
     if data[0] == '':
         return 'stop'
@@ -138,11 +138,11 @@ def status():
 def initDreplace():
     confD = getServerDir() + "/conf.d"
     conf = getServerDir() + "/supervisor.conf"
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/supervisor.service'
     systemServiceTpl = getPluginDir() + '/init.d/supervisor.service'
 
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     if not os.path.exists(confD):
         os.mkdir(confD)
@@ -150,28 +150,28 @@ def initDreplace():
     if not os.path.exists(conf):
         # config replace
         user = 'root'
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             cmd = "who | sed -n '2, 1p' |awk '{print $1}'"
-            user = mw.execShell(cmd)[0].strip()
+            user = yf.execShell(cmd)[0].strip()
 
-        conf_content = mw.readFile(getConfTpl())
+        conf_content = yf.readFile(getConfTpl())
         conf_content = conf_content.replace('{$SERVER_PATH}', service_path)
         conf_content = conf_content.replace('{$OS_USER}', user)
-        mw.writeFile(conf, conf_content)
+        yf.writeFile(conf, conf_content)
 
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        activate_file = mw.getPanelDir() + '/bin/activate'
+        activate_file = yf.getPanelDir() + '/bin/activate'
         if os.path.exists(activate_file):
-            supervisord_bin = mw.execShell(
+            supervisord_bin = yf.execShell(
                 'source ' + activate_file + '&& which supervisord')[0].strip()
         else:
-            supervisord_bin = mw.execShell('which supervisord')[0].strip()
+            supervisord_bin = yf.execShell('which supervisord')[0].strip()
 
-        se_content = mw.readFile(systemServiceTpl)
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
         se_content = se_content.replace('{$SUP_BIN}', supervisord_bin)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     return True
 
@@ -179,8 +179,8 @@ def initDreplace():
 def supOp(method):
     initDreplace()
 
-    if not mw.isAppleSystem():
-        data = mw.execShell('systemctl ' + method + ' supervisor')
+    if not yf.isAppleSystem():
+        data = yf.execShell('systemctl ' + method + ' supervisor')
         if data[1] == '':
             return 'ok'
         return data[1]
@@ -191,7 +191,7 @@ def supOp(method):
     cmd = 'supervisord -c ' + getServerDir() + '/supervisor.conf'
     if method == 'stop':
         cmd = "ps -ef|grep supervisor | grep -v grep | grep -v index.py | awk '{print $2}'|xargs kill"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -214,31 +214,31 @@ def reload():
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status supervisor | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable supervisor')
+    yf.execShell('systemctl enable supervisor')
     return 'ok'
 
 
 def initdUinstall():
     if not app_debug:
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
     # 修复 diable 为 disable 的拼写错误
-    mw.execShell('systemctl disable supervisor')
+    yf.execShell('systemctl disable supervisor')
     return 'ok'
 
 
@@ -248,11 +248,11 @@ def getSupList():
     statusFile = getServerDir() + "/status.txt"
     supCtl = getSupervisorctlBin()
     cmd = "%s -c %s/supervisor.conf update; %s -c %s/supervisor.conf status > %s" % (supCtl, getServerDir(), supCtl, getServerDir(), statusFile)
-    mw.execShell(cmd)
+    yf.execShell(cmd)
 
     if not os.path.exists(statusFile):
         data['data'] = []
-        return mw.getJson(data)
+        return yf.getJson(data)
 
     with open(statusFile, "r") as fr:
         lines = fr.readlines()
@@ -296,7 +296,7 @@ def getSupList():
 
     data = {}
     data['data'] = array_list
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def confDList():
@@ -310,7 +310,7 @@ def confDList():
 
     data = {}
     data['data'] = array_list
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def confDlistTraceLog():
@@ -321,13 +321,13 @@ def confDlistTraceLog():
 
     name = args['name']
     if not checkSafeName(name):
-        return mw.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, '进程名称不合法！')
 
     confd_dir = getServerDir() + '/conf.d/' + name
     if not checkSafeFile(confd_dir):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
-    content = mw.readFile(confd_dir)
+    content = yf.readFile(confd_dir)
     rep = r'stdout_logfile\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -341,13 +341,13 @@ def confDlistErrorLog():
 
     name = args['name']
     if not checkSafeName(name):
-        return mw.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, '进程名称不合法！')
 
     confd_dir = getServerDir() + '/conf.d/' + name
     if not checkSafeFile(confd_dir):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
-    content = mw.readFile(confd_dir)
+    content = yf.readFile(confd_dir)
     rep = r'stderr_logfile\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -380,9 +380,9 @@ def getUserListData():
                 continue
             user_list.append(user)
 
-    if mw.isAppleSystem() or len(user_list) == 0:
+    if yf.isAppleSystem() or len(user_list) == 0:
         cmd = "who | sed -n '2, 1p' |awk '{print $1}'"
-        user = mw.execShell(cmd)[0].strip()
+        user = yf.execShell(cmd)[0].strip()
         if user and user not in user_list:
             user_list.append(user)
 
@@ -393,7 +393,7 @@ def getUserListData():
 
 def getUserList():
     user_list = getUserListData()
-    return mw.getJson(user_list)
+    return yf.getJson(user_list)
 
 
 def addJob():
@@ -404,7 +404,7 @@ def addJob():
 
     program = args['name']
     if not checkSafeName(program):
-        return mw.returnJson(False, '进程名称不合法！仅支持英文字母、数字、下划线、中划线和点。')
+        return yf.returnJson(False, '进程名称不合法！仅支持英文字母、数字、下划线、中划线和点。')
 
     command = args['command']
     path = args['path']
@@ -431,11 +431,11 @@ def addJob():
 
     dstFile = getSubConfDir() + "/" + program + '.ini'
     if not checkSafeFile(dstFile):
-        return mw.returnJson(False, '非法的目标配置文件路径！')
+        return yf.returnJson(False, '非法的目标配置文件路径！')
 
-    mw.writeFile(dstFile, w_body)
+    yf.writeFile(dstFile, w_body)
 
-    return mw.returnJson(True, '增加守护进程成功!')
+    return yf.returnJson(True, '增加守护进程成功!')
 
 
 def startJob():
@@ -446,7 +446,7 @@ def startJob():
 
     name = args['name']
     if not checkSafeName(name):
-        return mw.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, '进程名称不合法！')
 
     supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
 
@@ -457,11 +457,11 @@ def startJob():
     if status == 'start':
         action = "停止"
         cmd = supCtl + " stop " + name + ":"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
 
     if data[1] != '':
-        return mw.returnJson(False, action + '[' + name + ']失败!')
-    return mw.returnJson(True, action + '[' + name + ']成功!')
+        return yf.returnJson(False, action + '[' + name + ']失败!')
+    return yf.returnJson(True, action + '[' + name + ']成功!')
 
 
 def restartJob():
@@ -472,7 +472,7 @@ def restartJob():
 
     name = args['name']
     if not checkSafeName(name):
-        return mw.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, '进程名称不合法！')
 
     supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
 
@@ -480,13 +480,13 @@ def restartJob():
     status = args['status']
 
     cmd = supCtl + " stop " + name + ":"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     cmd = supCtl + " start " + name + ":"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
 
     if data[1] != '':
-        return mw.returnJson(False,  '[' + name + ']重启失败!')
-    return mw.returnJson(True,  '[' + name + ']重启成功!')
+        return yf.returnJson(False,  '[' + name + ']重启失败!')
+    return yf.returnJson(True,  '[' + name + ']重启成功!')
 
 
 def delJob():
@@ -496,12 +496,12 @@ def delJob():
         return data[1]
     name = args['name']
     if not checkSafeName(name):
-        return mw.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, '进程名称不合法！')
 
     supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
     log_dir = getServerDir() + '/log/'
 
-    result = mw.execShell("{0} stop ".format(supCtl) + name + ":")
+    result = yf.execShell("{0} stop ".format(supCtl) + name + ":")
     program = getServerDir() + "/conf.d/" + name + ".ini"
 
     # 删除日志文件
@@ -515,13 +515,13 @@ def delJob():
     # 删除ini文件
     if os.path.isfile(program):
         os.remove(program)
-        result = mw.execShell(
+        result = yf.execShell(
             "{0} update".format(supCtl))
-        return mw.returnJson(True, '删除守护进程成功!')
+        return yf.returnJson(True, '删除守护进程成功!')
     else:
-        result = mw.execShell(
+        result = yf.execShell(
             "{0} update".format(supCtl))
-        return mw.returnJson(False, '该守护进程不存在!')
+        return yf.returnJson(False, '该守护进程不存在!')
 
 
 def updateJob():
@@ -534,11 +534,11 @@ def updateJob():
     priority = args['priority']
     name = args['name']
     if not checkSafeName(name):
-        return mw.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, '进程名称不合法！')
 
     programFile = getServerDir() + "/conf.d/" + name + ".ini"
     if not checkSafeFile(programFile):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
     mess = {}
     infos = []
@@ -569,9 +569,9 @@ def updateJob():
     w_body += "numprocs={0}".format(numprocs) + "\n"
     w_body += "process_name=%(program_name)s_%(process_num)02d"
 
-    mw.writeFile(programFile, w_body)
+    yf.writeFile(programFile, w_body)
 
-    return mw.returnJson(True, '修改守护进程成功!')
+    return yf.returnJson(True, '修改守护进程成功!')
 
 
 def getJobInfo():
@@ -581,14 +581,14 @@ def getJobInfo():
         return data[1]
     name = args['name']
     if not checkSafeName(name):
-        return mw.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, '进程名称不合法！')
 
     mess = {}
     infos = []
     info = {}
     program = getServerDir() + "/conf.d/" + name + ".ini"
     if not checkSafeFile(program):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
     with open(program, "r") as fr:
         infos = fr.readlines()
@@ -603,7 +603,7 @@ def getJobInfo():
     userlist = getUserListData()
     info["userlist"] = userlist
     info["daemoninfo"] = mess
-    return mw.getJson(info)
+    return yf.getJson(info)
 
 
 def configTpl():
@@ -614,7 +614,7 @@ def configTpl():
         if one.endswith(".ini"):
             file = path + '/' + one
             tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -625,10 +625,10 @@ def readConfigTpl():
 
     filepath = args['file']
     if not checkSafeFile(filepath):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
-    content = mw.readFile(filepath)
-    return mw.returnJson(True, 'ok', content)
+    content = yf.readFile(filepath)
+    return yf.returnJson(True, 'ok', content)
 
 
 def readConfigLogTpl():
@@ -639,7 +639,7 @@ def readConfigLogTpl():
     file_log = args['file']
     line_log = args['line']
     if not checkSafeFile(file_log):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
     with open(file_log, "r") as fr:
         infos = fr.readlines()
@@ -650,9 +650,9 @@ def readConfigLogTpl():
             stdout_logfile = line.strip().split('=')[1]
 
     if stdout_logfile != '':
-        data = mw.getLastLine(stdout_logfile, int(line_log))
-        return mw.returnJson(True, 'OK', data)
-    return mw.returnJson(False, 'OK', '')
+        data = yf.getLastLine(stdout_logfile, int(line_log))
+        return yf.returnJson(True, 'OK', data)
+    return yf.returnJson(False, 'OK', '')
 
 
 def readConfigLogErrorTpl():
@@ -663,7 +663,7 @@ def readConfigLogErrorTpl():
     file_log = args['file']
     line_log = args['line']
     if not checkSafeFile(file_log):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
     with open(file_log, "r") as fr:
         infos = fr.readlines()
@@ -674,9 +674,9 @@ def readConfigLogErrorTpl():
             stderr_logfile = line.strip().split('=')[1]
 
     if stderr_logfile != '':
-        data = mw.getLastLine(stderr_logfile, int(line_log))
-        return mw.returnJson(True, 'OK', data)
-    return mw.returnJson(False, 'OK', '')
+        data = yf.getLastLine(stderr_logfile, int(line_log))
+        return yf.returnJson(True, 'OK', data)
+    return yf.returnJson(False, 'OK', '')
 
 
 def supClearLog():
@@ -686,7 +686,7 @@ def supClearLog():
         return data[1]
     file_log = args['file']
     if not checkSafeFile(file_log):
-        return mw.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, '非法的配置文件路径！')
 
     with open(file_log, "r") as fr:
         infos = fr.readlines()
@@ -707,9 +707,9 @@ def supClearLog():
         if stderr_logfile and os.path.exists(stderr_logfile):
             with open(stderr_logfile, 'w') as f:
                 f.write('')
-        return mw.returnJson(True, '清空成功')
+        return yf.returnJson(True, '清空成功')
     except Exception as e:
-        return mw.returnJson(False, '清空失败: ' + str(e))
+        return yf.returnJson(False, '清空失败: ' + str(e))
 
 
 def runLog():

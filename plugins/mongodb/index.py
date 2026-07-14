@@ -17,7 +17,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -33,11 +33,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
@@ -60,7 +60,7 @@ def getConfTpl():
 
 def getConfigData():
     cfg = getConf()
-    config_data = mw.readFile(cfg)
+    config_data = yf.readFile(cfg)
     try:
         config = yaml.safe_load(config_data)
     except:
@@ -68,10 +68,10 @@ def getConfigData():
             "systemLog": {
                 "destination": "file",
                 "logAppend": True,
-                "path": mw.getServerDir()+"/mongodb/log/mongodb.log"
+                "path": yf.getServerDir()+"/mongodb/log/mongodb.log"
             },
             "storage": {
-                "dbPath": mw.getServerDir()+"/mongodb/data",
+                "dbPath": yf.getServerDir()+"/mongodb/data",
                 "directoryPerDB": True,
                 "journal": {
                     "enabled": True
@@ -79,7 +79,7 @@ def getConfigData():
             },
             "processManagement": {
                 "fork": True,
-                "pidFilePath": mw.getServerDir()+"/mongodb/log/mongodb.pid"
+                "pidFilePath": yf.getServerDir()+"/mongodb/log/mongodb.pid"
             },
             "net": {
                 "port": 27017,
@@ -96,7 +96,7 @@ def setConfig(config_data):
     # t = status()
     cfg = getConf()
     try:
-        mw.writeFile(cfg, yaml.safe_dump(config_data))
+        yf.writeFile(cfg, yaml.safe_dump(config_data))
     except:
         return False
     return True
@@ -117,7 +117,7 @@ def getConfPort():
     data = getConfigData()
     return data['net']['port']
     # file = getConf()
-    # content = mw.readFile(file)
+    # content = yf.readFile(file)
     # rep = 'port\s*=\s*(.*)'
     # tmp = re.search(rep, content)
     # return tmp.groups()[0].strip()
@@ -126,7 +126,7 @@ def getConfAuth():
     data = getConfigData()
     return data['security']['authorization']
     # file = getConf()
-    # content = mw.readFile(file)
+    # content = yf.readFile(file)
     # rep = 'auth\s*=\s*(.*)'
     # tmp = re.search(rep, content)
     # return tmp.groups()[0].strip()
@@ -158,26 +158,26 @@ def check_safe_name(val):
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def status():
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         status_cmd = 'systemctl is-active mongodb'
-        res = mw.execShell(status_cmd)
+        res = yf.execShell(status_cmd)
         if res[0].strip() == 'active':
             return 'start'
     
     pid_file = getServerDir() + "/mongodb/log/mongodb.pid"
     if os.path.exists(pid_file):
         try:
-            pid = int(mw.readFile(pid_file).strip())
+            pid = int(yf.readFile(pid_file).strip())
             if os.path.exists("/proc/" + str(pid)):
                 return 'start'
         except:
             pass
 
-    data = mw.execShell("pgrep -x mongod")
+    data = yf.execShell("pgrep -x mongod")
     if data[0].strip() != '':
         return 'start'
     return 'stop'
@@ -187,27 +187,27 @@ def pSqliteDb(dbname='users'):
     name = 'mongodb'
 
     sql_file = getPluginDir() + '/config/mongodb.sql'
-    import_sql = mw.readFile(sql_file)
+    import_sql = yf.readFile(sql_file)
     # print(sql_file,import_sql)
-    md5_sql = mw.md5(import_sql)
+    md5_sql = yf.md5(import_sql)
 
     import_sign = False
     save_md5_file = getServerDir() + '/import_mongodb.md5'
     if os.path.exists(save_md5_file):
-        save_md5_sql = mw.readFile(save_md5_file)
+        save_md5_sql = yf.readFile(save_md5_file)
         if save_md5_sql != md5_sql:
             import_sign = True
-            mw.writeFile(save_md5_file, md5_sql)
+            yf.writeFile(save_md5_file, md5_sql)
     else:
-        mw.writeFile(save_md5_file, md5_sql)
+        yf.writeFile(save_md5_file, md5_sql)
 
     if not os.path.exists(file) or import_sql:
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
         csql_list = import_sql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
 
-    conn = mw.M(dbname).dbPos(getServerDir(), name)
+    conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 def mongdbClientS():
@@ -244,11 +244,11 @@ def initDreplace():
 
     mg_key = getServerDir() + "/mongodb.key"
     if not os.path.exists(mg_key):
-        mw.execShell("openssl rand -base64 756 >> "+mg_key)
-        mw.execShell("chmod 400 "+mg_key)
+        yf.execShell("openssl rand -base64 756 >> "+mg_key)
+        yf.execShell("chmod 400 "+mg_key)
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -268,54 +268,54 @@ def initDreplace():
     bt_conf = getServerDir() + '/config.conf'
     if not os.path.exists(dst_conf):
         if os.path.exists(bt_conf):
-            mw.execShell(f"cp -f {bt_conf} {dst_conf}")
+            yf.execShell(f"cp -f {bt_conf} {dst_conf}")
         else:
-            conf_content = mw.readFile(getConfTpl())
+            conf_content = yf.readFile(getConfTpl())
             conf_content = conf_content.replace('{$SERVER_PATH}', service_path)
-            mw.writeFile(dst_conf, conf_content)
+            yf.writeFile(dst_conf, conf_content)
 
     install_ok = getServerDir() + "/install.lock"
     if os.path.exists(install_ok):
         return file_bin
-    mw.writeFile(install_ok, 'ok')
+    yf.writeFile(install_ok, 'ok')
 
     # initd replace
-    content = mw.readFile(file_tpl)
+    content = yf.readFile(file_tpl)
     content = content.replace('{$SERVER_PATH}', service_path)
-    mw.writeFile(file_bin, content)
-    mw.execShell('chmod +x ' + file_bin)
+    yf.writeFile(file_bin, content)
+    yf.execShell('chmod +x ' + file_bin)
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/mongodb.service'
     systemServiceTpl = getPluginDir() + '/init.d/mongodb.service.tpl'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        service_path = mw.getServerDir()
-        se_content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
 
 def mgOp(method):
     file = initDreplace()
-    if mw.isAppleSystem():
-        data = mw.execShell(file + ' ' + method)
+    if yf.isAppleSystem():
+        data = yf.execShell(file + ' ' + method)
         # print(data)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
     if data[1] == '':
         return 'ok'
     return 'fail'
 
 
 def start():
-    mw.execShell(
+    yf.execShell(
         'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/www/server/lib/openssl11/lib')
     return mgOp('start')
 
@@ -330,7 +330,7 @@ def reload():
 
 def restart():
     if os.path.exists("/tmp/mongodb-27017.sock"):
-        mw.removeDir("/tmp/mongodb-27017.sock")
+        yf.removeDir("/tmp/mongodb-27017.sock")
 
     return mgOp('restart')
 
@@ -338,9 +338,9 @@ def restart():
 def getConfig():
     t = status()
     if t == 'stop':
-        return mw.returnJson(False,'未启动!')
+        return yf.returnJson(False,'未启动!')
     d = getConfigData()
-    return mw.returnJson(True,'ok',d)
+    return yf.returnJson(True,'ok',d)
 
 def saveConfig():
     d = getConfigData()
@@ -357,7 +357,7 @@ def saveConfig():
     d['processManagement']['pidFilePath'] = args['pid_file_path']
     setConfig(d)
     restart()
-    return mw.returnJson(True,'设置成功')
+    return yf.returnJson(True,'设置成功')
 
 def initMgRoot(password='',force=0):
     if force == 1:
@@ -382,7 +382,7 @@ def initMgRoot(password='',force=0):
     ]
 
     if password =='':
-        mg_pass = mw.getRandomString(8)
+        mg_pass = yf.getRandomString(8)
     else:
         mg_pass = password
 
@@ -424,7 +424,7 @@ def initUserRoot():
         {'role': 'dbAdmin', 'db': 'admin'}
     ]
     # db.command("updateUser", "root", pwd=mg_pass, roles=db_all_rules)
-    mg_pass = mw.getRandomString(8)
+    mg_pass = yf.getRandomString(8)
     try:
         r1 = db.command("createUser", "root", pwd=mg_pass, roles=db_all_rules)
         # print(r1)
@@ -445,7 +445,7 @@ def setConfigAuth():
     init_db_root = getServerDir() + '/init_db_root.lock'
     if not os.path.exists(init_db_root):
         initUserRoot()
-        mw.writeFile(init_db_root,'ok')
+        yf.writeFile(init_db_root,'ok')
 
     d = getConfigData()
     if d['security']['authorization'] == 'enabled':
@@ -453,13 +453,13 @@ def setConfigAuth():
         del d['security']['keyFile']
         setConfig(d)
         restart()
-        return mw.returnJson(True,'关闭成功')
+        return yf.returnJson(True,'关闭成功')
     else:
         d['security']['authorization'] = 'enabled'
         d['security']['keyFile'] = getServerDir()+'/mongodb.key'
         setConfig(d)
         restart()
-        return mw.returnJson(True,'开启成功')
+        return yf.returnJson(True,'开启成功')
 
 def runInfo():
     '''
@@ -471,7 +471,7 @@ def runInfo():
     try:
         serverStatus = db.command('serverStatus')
     except Exception as e:
-        return mw.returnJson(False, str(e))
+        return yf.returnJson(False, str(e))
     
 
     listDbs = client.list_database_names()
@@ -487,7 +487,7 @@ def runInfo():
     pf = serverStatus['opcounters']
     result['pf'] = pf
     
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 
 def runDocInfo():    
@@ -498,7 +498,7 @@ def runDocInfo():
     try:
         serverStatus = db.command('serverStatus')
     except Exception as e:
-        return mw.returnJson(False, str(e))
+        return yf.returnJson(False, str(e))
 
 
     serverStatus = db.command('serverStatus')
@@ -517,7 +517,7 @@ def runDocInfo():
         showDbList.append(stats)
 
     result["dbs"] = showDbList
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 def runReplInfo():
     client = mongdbClient()
@@ -526,7 +526,7 @@ def runReplInfo():
     try:
         serverStatus = db.command('serverStatus')
     except Exception as e:
-        return mw.returnJson(False, str(e))
+        return yf.returnJson(False, str(e))
 
     d = getConfigData()
     if 'replication' in d and 'replSetName' in d['replication']:
@@ -544,11 +544,11 @@ def runReplInfo():
         if 'secondary' in repl and not repl['secondary']:
             result['status'] = '主'
 
-        result['setName'] = mw.getDefault(repl,'setName', '') 
-        result['primary'] = mw.getDefault(repl,'primary', '') 
-        result['me'] = mw.getDefault(repl,'me', '') 
+        result['setName'] = yf.getDefault(repl,'setName', '') 
+        result['primary'] = yf.getDefault(repl,'primary', '') 
+        result['me'] = yf.getDefault(repl,'me', '') 
 
-        hosts = mw.getDefault(repl,'hosts', '') 
+        hosts = yf.getDefault(repl,'hosts', '') 
         result['hosts'] = ','.join(hosts)
 
     result['members'] = []
@@ -567,7 +567,7 @@ def runReplInfo():
     except Exception as e:
         pass
         
-    return mw.returnJson(True, 'OK', result)
+    return yf.returnJson(True, 'OK', result)
 
 def getDbList():
     args = getArgs()
@@ -606,19 +606,19 @@ def getDbList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'dbList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
     info = {}
     info['root_pwd'] = '******'
     data['info'] = info
-    return mw.getJson(data)
-    # return mw.returnJson(True,'ok',data)
+    return yf.getJson(data)
+    # return yf.returnJson(True,'ok',data)
 
 def addDb():
     t = status()
     if t == 'stop':
-        return mw.returnJson(False,'未启动!')
+        return yf.returnJson(False,'未启动!')
 
     client = mongdbClient()
     db = client.admin
@@ -630,15 +630,15 @@ def addDb():
 
     data_name = args['name'].strip()
     if not data_name:
-        return mw.returnJson(False, "数据库名不能为空！")
+        return yf.returnJson(False, "数据库名不能为空！")
 
     username = args['db_user'].strip()
     if not check_safe_name(data_name) or not check_safe_name(username):
-        return mw.returnJson(False, "安全拦截：数据库名与用户名仅允许英文字母、数字和下划线与中划线！")
+        return yf.returnJson(False, "安全拦截：数据库名与用户名仅允许英文字母、数字和下划线与中划线！")
 
     nameArr = ['admin', 'config', 'local']
     if data_name in nameArr:
-        return mw.returnJson(False, "数据库名是保留名称!")
+        return yf.returnJson(False, "数据库名是保留名称!")
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     username = ''
@@ -666,7 +666,7 @@ def addDb():
 
     # 添加入SQLITE
     pSqliteDb('databases').add('name,username,password,accept,ps,addtime', (data_name, username, password, '127.0.0.1', ps, addTime))
-    return mw.returnJson(True, '添加成功')
+    return yf.returnJson(True, '添加成功')
 
 
 def delDb():
@@ -681,7 +681,7 @@ def delDb():
     
     name = args['name'].strip()
     if not check_safe_name(name):
-        return mw.returnJson(False, "安全拦截：非法数据库名！")
+        return yf.returnJson(False, "安全拦截：非法数据库名！")
 
     try:
         sid = args['id']
@@ -699,9 +699,9 @@ def delDb():
 
         # 删除SQLITE
         sqlite_db.where("id=?", (sid,)).delete()
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
     except Exception as ex:
-        return mw.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, '删除失败!' + str(ex))
 
 
 def delDbTable():
@@ -720,9 +720,9 @@ def delDbTable():
     try:
         cur_db = client[name]
         cur_db[table_name].drop()
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
     except Exception as ex:
-        return mw.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, '删除失败!' + str(ex))
 
 def setRootPwd(version=''):
     args = getArgs()
@@ -737,15 +737,15 @@ def setRootPwd(version=''):
 
     password = args['password']
     if password == '******':
-        return mw.returnJson(True, '数据库root密码未发生变更')
+        return yf.returnJson(True, '数据库root密码未发生变更')
     try:
         msg = ''
         if force == 1:
             msg = ',无须强制!'
         initMgRoot(password, force)
-        return mw.returnJson(True, '数据库root密码修改成功!'+msg)
+        return yf.returnJson(True, '数据库root密码修改成功!'+msg)
     except Exception as ex:
-        return mw.returnJson(False, '修改错误:' + str(ex))
+        return yf.returnJson(False, '修改错误:' + str(ex))
 
 def setUserPwd(version=''):
 
@@ -771,9 +771,9 @@ def setUserPwd(version=''):
             db.command("createUser", username, pwd=newpassword, roles=user_roles)
 
         sqlite_db.where("id=?", (uid,)).setField('password', newpassword)
-        return mw.returnJson(True, mw.getInfo('修改数据库[{1}]密码成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (name,)))
     except Exception as ex:
-        return mw.returnJson(False, mw.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
+        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
 
 
 def syncGetDatabases():
@@ -802,8 +802,8 @@ def syncGetDatabases():
         if sqlite_db.add('name,username,password,accept,ps,addtime', (vdb_name, vdb_name, '', host, ps, addTime)):
             n += 1
 
-    msg = mw.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
-    return mw.returnJson(True, msg)
+    msg = yf.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
+    return yf.returnJson(True, msg)
 
 def setDbPs():
     args = getArgs()
@@ -817,9 +817,9 @@ def setDbPs():
     try:
         psdb = pSqliteDb('databases')
         psdb.where("id=?", (sid,)).setField('ps', ps)
-        return mw.returnJson(True, mw.getInfo('修改数据库[{1}]备注成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注成功!', (name,)))
     except Exception as e:
-        return mw.returnJson(True, mw.getInfo('修改数据库[{1}]备注失败!', (name,)))
+        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注失败!', (name,)))
 
 
 def getDbInfo():
@@ -859,7 +859,7 @@ def getDbInfo():
         }
         result["collection_list"].append(data)
     
-    return mw.returnJson(True,'ok', result)
+    return yf.returnJson(True,'ok', result)
 
 def toDbBase(find):
     client = mongdbClient()
@@ -900,8 +900,8 @@ def syncToDatabases():
             result = toDbBase(find)
             if result == 1:
                 n += 1
-    msg = mw.getInfo('本次共同步了{1}个数据库!', (str(n),))
-    return mw.returnJson(True, msg)
+    msg = yf.getInfo('本次共同步了{1}个数据库!', (str(n),))
+    return yf.returnJson(True, msg)
 
 
 def getAllRole():
@@ -944,7 +944,7 @@ def getAllRole():
         if mongo_role.get(role["role"]) is not None:
             role["name"] = mongo_role.get(role["role"])
             result.append(role)
-    return mw.returnJson(True, 'ok', result)
+    return yf.returnJson(True, 'ok', result)
 
 def getDbAccess():
     args = getArgs()
@@ -1007,7 +1007,7 @@ def getDbAccess():
             result["db"] = user.get("db", username)
             result["roles"] = user.get("roles", [])
 
-    return mw.returnJson(True, 'ok', result)
+    return yf.returnJson(True, 'ok', result)
 
 def setDbAccess():
     args = getArgs()
@@ -1037,30 +1037,30 @@ def setDbAccess():
         db.command('dropUser',username)
         db.command("createUser", username, pwd=mg_pass, roles=user_roles)
 
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 def getReplConfigData():
     import json
     f = getServerDir()+'/repl.json'
     if os.path.exists(f):
-        c = mw.readFile(f)
+        c = yf.readFile(f)
         return json.loads(c)
     else:
         t = {}
         t['name'] =  ''
         t['nodes'] = []
-        mw.writeFile(f, mw.getJson(t))
+        yf.writeFile(f, yf.getJson(t))
         return t
 
 def setReplConfigData(c):
     import json
     f = getServerDir()+'/repl.json'
-    mw.writeFile(f, mw.getJson(c))
+    yf.writeFile(f, yf.getJson(c))
     return c
 
 def getReplConfig():
     c = getReplConfigData()
-    return mw.returnJson(True, 'ok!', c)
+    return yf.returnJson(True, 'ok!', c)
 
 def replSetName():
     args = getArgs()
@@ -1078,7 +1078,7 @@ def replSetName():
     setConfig(d)
     restart()
 
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 def replSetNode():
     args = getArgs()
@@ -1097,7 +1097,7 @@ def replSetNode():
 
     priority = int(priority)
     if priority<0 or priority>100:
-        return mw.returnJson(False, 'priority应该在[0-100]之间!')
+        return yf.returnJson(False, 'priority应该在[0-100]之间!')
 
     arbiterOnly = 0
     if 'arbiterOnly' in  args:
@@ -1119,7 +1119,7 @@ def replSetNode():
                 nodes[i]['arbiterOnly'] = arbiterOnly
         c['nodes'] = nodes
         setReplConfigData(c)
-        return mw.returnJson(True, '编辑成功!')
+        return yf.returnJson(True, '编辑成功!')
 
     is_have = False
     for x in nodes:
@@ -1127,7 +1127,7 @@ def replSetNode():
             is_have = True
 
     if is_have:
-        return mw.returnJson(False, add_node+',节点已经存在!')
+        return yf.returnJson(False, add_node+',节点已经存在!')
 
     t = {}
     t['host'] = add_node
@@ -1138,7 +1138,7 @@ def replSetNode():
     nodes.append(t)
     c['nodes'] = nodes
     setReplConfigData(c)
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def delReplNode():
@@ -1159,7 +1159,7 @@ def delReplNode():
     c['nodes'] = filter_nodes
     setReplConfigData(c)
 
-    return mw.returnJson(True, '删除节点'+args['node']+'成功!')
+    return yf.returnJson(True, '删除节点'+args['node']+'成功!')
 
 
 def replInit():
@@ -1169,7 +1169,7 @@ def replInit():
     nodes = c['nodes']
 
     if name == '':
-        return mw.returnJson(False, '副本名不能为空!')
+        return yf.returnJson(False, '副本名不能为空!')
 
     # d = getConfigData()
     # d['replication']['replSetName'] = name
@@ -1177,7 +1177,7 @@ def replInit():
     # restart()
 
     if len(nodes) == 0:
-        return mw.returnJson(False, '节点不能为空!')
+        return yf.returnJson(False, '节点不能为空!')
 
     cfg_node = []
 
@@ -1200,7 +1200,7 @@ def replInit():
         cfg_node.append(t)
 
     # print(cfg_node)
-    # return mw.returnJson(False, '设置副本成功!')
+    # return yf.returnJson(False, '设置副本成功!')
 
     config = {
         '_id': name,
@@ -1217,12 +1217,12 @@ def replInit():
             try:
                 client.admin.command('replSetReconfig',config,force=True,maxTimeMS=10)
             except Exception as re_err:
-                return mw.returnJson(False, str(re_err))
+                return yf.returnJson(False, str(re_err))
             
-            return mw.returnJson(True, '重置副本同步成功!')
-        return mw.returnJson(False, str(e))
+            return yf.returnJson(True, '重置副本同步成功!')
+        return yf.returnJson(False, str(e))
 
-    return mw.returnJson(True, '设置副本初始化成功!')
+    return yf.returnJson(True, '设置副本初始化成功!')
 
 def replClose():
 
@@ -1237,12 +1237,12 @@ def replClose():
     try:
         restart()
     except Exception as e:
-        return mw.returnJson(False, str(e))
+        return yf.returnJson(False, str(e))
     
-    return mw.returnJson(True, '关闭副本同步成功!')
+    return yf.returnJson(True, '关闭副本同步成功!')
 
 def getDbBackupListFunc(dbname=''):
-    bkDir = mw.getBackupDir() + '/database'
+    bkDir = yf.getBackupDir() + '/database'
     blist = os.listdir(bkDir)
     r = []
 
@@ -1261,7 +1261,7 @@ def getDbBackupList():
         return data[1]
 
     r = getDbBackupListFunc(args['name'])
-    bkDir = mw.getBackupDir() + '/database'
+    bkDir = yf.getBackupDir() + '/database'
     rr = []
     for x in range(0, len(r)):
         p = bkDir + '/' + r[x]
@@ -1269,7 +1269,7 @@ def getDbBackupList():
         data['name'] = r[x]
 
         rsize = os.path.getsize(p)
-        data['size'] = mw.toSize(rsize)
+        data['size'] = yf.toSize(rsize)
 
         t = os.path.getctime(p)
         t = time.localtime(t)
@@ -1279,11 +1279,11 @@ def getDbBackupList():
 
         data['file'] = p
 
-    return mw.returnJson(True, 'ok', rr)
+    return yf.returnJson(True, 'ok', rr)
 
 def getDbBackupImportList():
 
-    bkImportDir = mw.getBackupDir() + '/mongodb_import'
+    bkImportDir = yf.getBackupDir() + '/mongodb_import'
     if not os.path.exists(bkImportDir):
         os.mkdir(bkImportDir)
 
@@ -1297,7 +1297,7 @@ def getDbBackupImportList():
         data['name'] = name
 
         rsize = os.path.getsize(p)
-        data['size'] = mw.toSize(rsize)
+        data['size'] = yf.toSize(rsize)
 
         t = os.path.getctime(p)
         t = time.localtime(t)
@@ -1311,7 +1311,7 @@ def getDbBackupImportList():
         "list": rr,
         "upload_dir": bkImportDir,
     }
-    return mw.returnJson(True, 'ok', rdata)
+    return yf.returnJson(True, 'ok', rdata)
 
 def deleteDbBackup():
     args = getArgs()
@@ -1321,12 +1321,12 @@ def deleteDbBackup():
 
     path = args['path']
     full_file = ""
-    bkDir = mw.getBackupDir() + '/database'
+    bkDir = yf.getBackupDir() + '/database'
     full_file = bkDir + '/' + args['filename']
     if path != "":
         full_file = path + "/" + args['filename']
     os.remove(full_file)
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 def setDbBackup():
     args = getArgs()
@@ -1336,19 +1336,19 @@ def setDbBackup():
 
     name = args['name'].strip()
     if not check_safe_name(name):
-        return mw.returnJson(False, "安全拦截：非法数据库名！")
+        return yf.returnJson(False, "安全拦截：非法数据库名！")
 
     scDir = getPluginDir() + '/scripts/backup.py'
     import subprocess
     try:
         subprocess.Popen(['python3', scDir, 'database', name, '3'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except Exception as e:
-        return mw.returnJson(False, '启动备份任务失败: ' + str(e))
-    return mw.returnJson(True, 'ok')
+        return yf.returnJson(False, '启动备份任务失败: ' + str(e))
+    return yf.returnJson(True, 'ok')
 
 
 def getListBson(dbname=''):
-    bkDir = mw.getBackupDir() + '/mongodb_import/'+dbname
+    bkDir = yf.getBackupDir() + '/mongodb_import/'+dbname
     blist = os.listdir(bkDir)
     r = []
 
@@ -1374,20 +1374,20 @@ def importDbExternal():
 
     # 安全检查：禁止数据库名带特殊字符，限制文件名只能在安全前缀下且没有穿越符
     if not check_safe_name(name) or '..' in file or '/' in file or '\\' in file:
-        return mw.returnJson(False, '安全拦截：非法数据库名或导入文件名！')
+        return yf.returnJson(False, '安全拦截：非法数据库名或导入文件名！')
 
-    import_dir = mw.getBackupDir() + '/mongodb_import/'
+    import_dir = yf.getBackupDir() + '/mongodb_import/'
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
     port = getConfPort()
 
     file_path = import_dir + file
     if not os.path.exists(file_path):
-        return mw.returnJson(False, '文件突然消失?')
+        return yf.returnJson(False, '文件突然消失?')
 
     exts = ['gz', 'tgz', 'zip']
-    ext = mw.getFileSuffix(file)
+    ext = yf.getFileSuffix(file)
     if ext not in exts:
-        return mw.returnJson(False, '导入数据库格式不对!')
+        return yf.returnJson(False, '导入数据库格式不对!')
 
     auth = getConfAuth()
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
@@ -1404,7 +1404,7 @@ def importDbExternal():
             with tarfile.open(file_tgz, 'r:gz') as tar_ref:
                 tar_ref.extractall(path=file_dir)
         except Exception as e:
-            return mw.returnJson(False, '解压备份文件失败: ' + str(e))
+            return yf.returnJson(False, '解压备份文件失败: ' + str(e))
 
         bson_list = getListBson(name)
         restore_bin = getServerDir() + "/bin/mongorestore"
@@ -1422,16 +1422,16 @@ def importDbExternal():
                 stdout, stderr = p.communicate()
                 err_out = stderr.decode('utf-8', errors='ignore')
                 if p.returncode != 0 or 'error' in err_out.lower():
-                    return mw.returnJson(False, '导入失败: ' + err_out)
+                    return yf.returnJson(False, '导入失败: ' + err_out)
             except Exception as e:
-                return mw.returnJson(False, '执行导入命令时发生异常: ' + str(e))
+                return yf.returnJson(False, '执行导入命令时发生异常: ' + str(e))
 
     # 删除临时文件
     if os.path.exists(file_dir):
         import shutil
         shutil.rmtree(file_dir)
 
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 def importDbBackup():
@@ -1445,11 +1445,11 @@ def importDbBackup():
 
     # 安全检查
     if not check_safe_name(name) or '..' in file or '/' in file or '\\' in file:
-        return mw.returnJson(False, '安全拦截：非法数据库名或备份文件名！')
+        return yf.returnJson(False, '安全拦截：非法数据库名或备份文件名！')
 
     port = getConfPort()
 
-    backup_dir = mw.getBackupDir() + '/database/'
+    backup_dir = yf.getBackupDir() + '/database/'
     file_tgz = backup_dir + file
     file_dir = backup_dir + file.replace('.tar.gz', '')
 
@@ -1463,7 +1463,7 @@ def importDbBackup():
             with tarfile.open(file_tgz, 'r:gz') as tar_ref:
                 tar_ref.extractall(path=file_dir)
         except Exception as e:
-            return mw.returnJson(False, '解压备份文件失败: ' + str(e))
+            return yf.returnJson(False, '解压备份文件失败: ' + str(e))
 
     auth = getConfAuth()
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
@@ -1481,16 +1481,16 @@ def importDbBackup():
         stdout, stderr = p.communicate()
         err_out = stderr.decode('utf-8', errors='ignore')
         if p.returncode != 0:
-            return mw.returnJson(False, '导入备份失败: ' + err_out)
+            return yf.returnJson(False, '导入备份失败: ' + err_out)
     except Exception as e:
-        return mw.returnJson(False, '执行导入备份发生异常: ' + str(e))
+        return yf.returnJson(False, '执行导入备份发生异常: ' + str(e))
 
     # 删除解压的临时目录
     if os.path.exists(file_dir):
         import shutil
         shutil.rmtree(file_dir)
 
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 def testData():
     '''
@@ -1504,7 +1504,7 @@ def testData():
     db = client.test
     col = db["demo"]
 
-    rndStr = mw.getRandomString(10)
+    rndStr = yf.getRandomString(10)
     insert_dict = { "name": "v1", "value": rndStr}
     x = col.insert_one(insert_dict)
     print(x)
@@ -1523,7 +1523,7 @@ def test():
     client = mongdbClient()
     db = client.admin
 
-    mg_pass = mw.getRandomString(10)
+    mg_pass = yf.getRandomString(10)
     config = {
         '_id': 'test',
         'members': [
@@ -1563,33 +1563,33 @@ def test():
     # serverStatus = db.command('serverStatus')
     # print(serverStatus)
     
-    return mw.returnJson(True, 'OK')
+    return yf.returnJson(True, 'OK')
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status mongodb | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl enable mongodb')
+    yf.execShell('systemctl enable mongodb')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
-    mw.execShell('systemctl disable mongodb')
+    yf.execShell('systemctl disable mongodb')
     return 'ok'
 
 
@@ -1616,17 +1616,17 @@ def cronAddCheck():
     try:
         import tool_task
         tool_task.createBgTask()
-        return mw.returnJson(True, '添加检查任务成功')
+        return yf.returnJson(True, '添加检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '添加检查任务失败:'+str(e))
+        return yf.returnJson(False, '添加检查任务失败:'+str(e))
 
 def cronDelCheck():
     try:
         import tool_task
         tool_task.removeBgTask()
-        return mw.returnJson(True, '删除检查任务成功')
+        return yf.returnJson(True, '删除检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '删除检查任务失败:'+str(e))
+        return yf.returnJson(False, '删除检查任务失败:'+str(e))
 
 
 def installPreInspectionDebainCheck(sysId,version):
@@ -1636,26 +1636,26 @@ def installPreInspectionDebainCheck(sysId,version):
     return ''
 
 def installPreInspection(version):
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return 'ok'
 
     # 安全预检 CPU 的 AVX 指令集，避免 5.0+ 部署在无 AVX 系统上崩溃
     if version in ['5.0', '6.0', '7.0', '8.0', '8.2']:
         has_avx = False
         if os.path.exists('/proc/cpuinfo'):
-            cpuinfo = mw.readFile('/proc/cpuinfo')
+            cpuinfo = yf.readFile('/proc/cpuinfo')
             if 'avx' in cpuinfo.lower():
                 has_avx = True
         if not has_avx:
             return '预检失败：MongoDB ' + version + ' 强依赖 CPU 的 AVX 指令集，当前服务器 CPU 未检测到 AVX 标志，运行将导致 Illegal instruction 核心崩溃。建议安装 4.4 版本或升级服务器 CPU 环境。'
 
     cmd = "cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'"
-    sys = mw.execShell(cmd)
+    sys = yf.execShell(cmd)
 
     if sys[1] != '':
         return '暂时不支持该系统'
 
-    sys_id = mw.execShell("cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
+    sys_id = yf.execShell("cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
 
     sysName = sys[0].strip().lower()
     sysId = sys_id[0].strip()

@@ -19,15 +19,15 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     cmd = 'ls /usr/local/lib/ | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
-    info = mw.execShell(cmd)
+    info = yf.execShell(cmd)
     p = "/usr/local/lib/" + info[0].strip() + "/site-packages"
     sys.path.append(p)
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -36,7 +36,7 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getSPluginDir():
@@ -44,11 +44,11 @@ def getSPluginDir():
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -103,8 +103,8 @@ def safe_check_args(db_name=None, sign_val=None, username=None):
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getConf():
@@ -114,7 +114,7 @@ def getConf():
 
 def getDbPort():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'port\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -122,7 +122,7 @@ def getDbPort():
 
 def getDbServerId():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'server-id\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -130,7 +130,7 @@ def getDbServerId():
 
 def getSocketFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'socket\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -138,14 +138,14 @@ def getSocketFile():
 
 def getErrorLogsFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'log-error\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
 
 def getAuthPolicy():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'authentication_policy\s*=\s*(.*)'
     tmp = re.search(rep, content)
     if tmp:
@@ -163,15 +163,15 @@ def getInitdTpl(version=''):
 
 def contentReplace(content):
 
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$SERVER_APP_PATH}', service_path + '/mysql')
 
     server_id = int(time.time())
     content = content.replace('{$SERVER_ID}', str(server_id))
 
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         content = content.replace(
             'lower_case_table_names=0', 'lower_case_table_names=2')
 
@@ -182,34 +182,34 @@ def pSqliteDb(dbname='databases'):
     file = getServerDir() + '/mysql.db'
     name = 'mysql'
 
-    import_sql = mw.readFile(getPluginDir() + '/conf/mysql.sql')
-    md5_sql = mw.md5(import_sql)
+    import_sql = yf.readFile(getPluginDir() + '/conf/mysql.sql')
+    md5_sql = yf.md5(import_sql)
 
     import_sign = False
     save_md5_file = getServerDir() + '/import_sql.md5'
     if os.path.exists(save_md5_file):
-        save_md5_sql = mw.readFile(save_md5_file)
+        save_md5_sql = yf.readFile(save_md5_file)
         if save_md5_sql != md5_sql:
             import_sign = True
-            mw.writeFile(save_md5_file, md5_sql)
+            yf.writeFile(save_md5_file, md5_sql)
     else:
-        mw.writeFile(save_md5_file, md5_sql)
+        yf.writeFile(save_md5_file, md5_sql)
 
     if not os.path.exists(file) or import_sql:
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
         csql_list = import_sql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
 
-    conn = mw.M(dbname).dbPos(getServerDir(), name)
+    conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 
 def pMysqlDb():
     # pymysql
-    db = mw.getMyORM()
+    db = yf.getMyORM()
     # MySQLdb |
-    # db = mw.getMyORMDb()
+    # db = yf.getMyORMDb()
     # print(getDbPort())
     db.setPort(getDbPort())
     db.setSocket(getSocketFile())
@@ -226,17 +226,17 @@ def makeInitRsaKey(version=''):
 
     mysql_pem = datadir + "/mysql.pem"
     if not os.path.exists(mysql_pem):
-        rdata = mw.execShell(
+        rdata = yf.execShell(
             'cd ' + datadir + ' && openssl genrsa -out mysql.pem 1024')
         # print(data)
-        rdata = mw.execShell(
+        rdata = yf.execShell(
             'cd ' + datadir + ' && openssl rsa -in mysql.pem -pubout -out mysql.pub')
         # print(rdata)
-    if not mw.isAppleSystem():
-        mw.execShell('cd ' + datadir + ' && chmod 400 mysql.pem')
-        mw.execShell('cd ' + datadir + ' && chmod 444 mysql.pub')
-        mw.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pem')
-        mw.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pub')
+    if not yf.isAppleSystem():
+        yf.execShell('cd ' + datadir + ' && chmod 400 mysql.pem')
+        yf.execShell('cd ' + datadir + ' && chmod 444 mysql.pub')
+        yf.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pem')
+        yf.execShell('cd ' + datadir + ' && chown mysql:mysql mysql.pub')
 
 
 def initDreplace(version=''):
@@ -254,43 +254,43 @@ def initDreplace(version=''):
     tmp_dir = getServerDir() + '/tmp'
     if not os.path.exists(tmp_dir):
         os.mkdir(tmp_dir)
-        mw.execShell("chown -R mysql:mysql " + tmp_dir)
-        mw.execShell("chmod 750 " + tmp_dir)
+        yf.execShell("chown -R mysql:mysql " + tmp_dir)
+        yf.execShell("chmod 750 " + tmp_dir)
 
     my_conf = conf_dir + '/my.cnf'
     if not os.path.exists(my_conf):
         tpl = getPluginDir() + '/conf/my' + version + '.cnf'
-        content = mw.readFile(tpl)
+        content = yf.readFile(tpl)
         content = contentReplace(content)
-        mw.writeFile(my_conf, content)
+        yf.writeFile(my_conf, content)
 
     classic_conf = mode_dir + '/classic.cnf'
     if not os.path.exists(classic_conf):
         tpl = getPluginDir() + '/conf/classic.cnf'
-        content = mw.readFile(tpl)
+        content = yf.readFile(tpl)
         content = contentReplace(content)
-        mw.writeFile(classic_conf, content)
+        yf.writeFile(classic_conf, content)
 
     gtid_conf = mode_dir + '/gtid.cnf'
     if not os.path.exists(gtid_conf):
         tpl = getPluginDir() + '/conf/gtid.cnf'
-        content = mw.readFile(tpl)
+        content = yf.readFile(tpl)
         content = contentReplace(content)
-        mw.writeFile(gtid_conf, content)
+        yf.writeFile(gtid_conf, content)
 
     # systemd
-    system_dir = mw.systemdCfgDir()
+    system_dir = yf.systemdCfgDir()
     service = system_dir + '/mysql.service'
     if os.path.exists(system_dir) and not os.path.exists(service):
         tpl = getPluginDir() + '/init.d/mysql.service.tpl'
-        service_path = mw.getServerDir()
-        content = mw.readFile(tpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(tpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(service, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(service, content)
+        yf.execShell('systemctl daemon-reload')
 
-    if not mw.isAppleSystem():
-        mw.execShell('chown -R mysql:mysql ' + getServerDir())
+    if not yf.isAppleSystem():
+        yf.execShell('chown -R mysql:mysql ' + getServerDir())
 
     initd_path = getServerDir() + '/init.d'
     if not os.path.exists(initd_path):
@@ -299,16 +299,16 @@ def initDreplace(version=''):
     file_bin = initd_path + '/' + getPluginName()
     if not os.path.exists(file_bin):
         initd_tpl = getInitdTpl(version)
-        content = mw.readFile(initd_tpl)
+        content = yf.readFile(initd_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
     return file_bin
 
 
 def process_status():
     cmd = "ps -ef|grep mysql |grep -v grep | grep -v python | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
@@ -328,7 +328,7 @@ def status(version=''):
 
 def getDataDir():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'datadir\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -336,7 +336,7 @@ def getDataDir():
 
 def getLogBinName():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'log-bin\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -344,7 +344,7 @@ def getLogBinName():
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pid-file\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -353,11 +353,11 @@ def getPidFile():
 def binLog(version = ''):
     args = getArgs()
     conf = getConf()
-    con = mw.readFile(conf)
+    con = yf.readFile(conf)
 
     if con.find('#log-bin=mysql-bin') != -1:
         if 'status' in args:
-            return mw.returnJson(False, '0')
+            return yf.returnJson(False, '0')
         con = con.replace('#log-bin=mysql-bin', 'log-bin=mysql-bin')
         con = con.replace('#binlog_format=mixed', 'binlog_format=mixed')
 
@@ -365,8 +365,8 @@ def binLog(version = ''):
         con = con.replace('disable-log-bin', '#disable-log-bin')
         con = con.replace('skip-slave-start', '#skip-slave-start')
 
-        mw.writeFile(conf, con)
-        mw.execShell('sync')
+        yf.writeFile(conf, con)
+        yf.execShell('sync')
         restart(version)
     else:
         path = getDataDir()
@@ -377,7 +377,7 @@ def binLog(version = ''):
                     continue
                 if n[0:9] == 'mysql-bin':
                     dsize += os.path.getsize(path + '/' + n)
-            return mw.returnJson(True, dsize)
+            return yf.returnJson(True, dsize)
         con = con.replace('log-bin=mysql-bin', '#log-bin=mysql-bin')
         con = con.replace('binlog_format=mixed', '#binlog_format=mixed')
 
@@ -385,14 +385,14 @@ def binLog(version = ''):
         con = con.replace('#disable-log-bin', 'disable-log-bin')
         con = con.replace('#skip-slave-start', 'skip-slave-start')
 
-        mw.writeFile(conf, con)
-        mw.execShell('sync')
+        yf.writeFile(conf, con)
+        yf.execShell('sync')
         restart(version)
-        mw.execShell('rm -f ' + path + '/mysql-bin.*')
-        mw.execShell('rm -f ' + path + '/binlog.*')
+        yf.execShell('rm -f ' + path + '/mysql-bin.*')
+        yf.execShell('rm -f ' + path + '/binlog.*')
 
     
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def binLogList():
@@ -416,7 +416,7 @@ def binLogList():
             abspath = data_dir + '/' + f
             t['name'] = f
             t['size'] = os.path.getsize(abspath)
-            t['time'] = mw.getDataFromInt(os.path.getctime(abspath))
+            t['time'] = yf.getDataFromInt(os.path.getctime(abspath))
             log_bin_l.append(t)
 
     log_bin_l = sorted(log_bin_l, key=lambda x: x['time'], reverse=True)
@@ -437,17 +437,17 @@ def binLogList():
     page_args['p'] = page
     page_args['row'] = page_size
     page_args['tojs'] = args['tojs']
-    data['page'] = mw.getPage(page_args)
+    data['page'] = yf.getPage(page_args)
     data['data'] = log_bin_l[page_start:page_end]
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def cleanBinLog():
     db = pMysqlDb()
     cleanTime = time.strftime('%Y-%m-%d %H:%i:%s', time.localtime())
     db.execute("PURGE MASTER LOGS BEFORE '" + cleanTime + "';")
-    return mw.returnJson(True, '清理BINLOG成功!')
+    return yf.returnJson(True, '清理BINLOG成功!')
 
 def getErrorLog():
     args = getArgs()
@@ -455,19 +455,19 @@ def getErrorLog():
     if not os.path.exists(filename):
         init_debug = '/tmp/mysql8_init_debug.log'
         if os.path.exists(init_debug):
-            info = mw.getLastLine(init_debug, 50)
-            return mw.returnJson(True, '初始化错误(error.log尚未生成)', info)
-        return mw.returnJson(False, '指定文件不存在!')
+            info = yf.getLastLine(init_debug, 50)
+            return yf.returnJson(True, '初始化错误(error.log尚未生成)', info)
+        return yf.returnJson(False, '指定文件不存在!')
     if 'close' in args:
-        mw.writeFile(filename, '')
-        return mw.returnJson(False, '日志已清空')
-    info = mw.getLastLine(filename, 18)
-    return mw.returnJson(True, 'OK', info)
+        yf.writeFile(filename, '')
+        return yf.returnJson(False, '日志已清空')
+    info = yf.getLastLine(filename, 18)
+    return yf.returnJson(True, 'OK', info)
 
 
 def getShowLogFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'slow-query-log-file\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -477,7 +477,7 @@ def getMdb8Ver():
     try:
         info_file = getPluginDir() + '/info.json'
         if os.path.exists(info_file):
-            info = json.loads(mw.readFile(info_file))
+            info = json.loads(yf.readFile(info_file))
             versions = info.get('versions', [])
             mdb8_versions = []
             for v in versions:
@@ -496,13 +496,13 @@ def getMdb8Ver():
 
 def getSlaveName():
     mdb8 = getMdb8Ver()
-    if mw.inArray(mdb8, version):
+    if yf.inArray(mdb8, version):
         return 'replica'
     return 'slave'
 
 def pGetDbUser():
-    if mw.isAppleSystem():
-        user = mw.execShell(
+    if yf.isAppleSystem():
+        user = yf.execShell(
             "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         return user
     return 'mysql'
@@ -515,7 +515,7 @@ def initMysqlData():
         myconf = serverdir + "/etc/my.cnf"
         user = pGetDbUser()
         cmd = 'cd ' + serverdir + ' && ./scripts/mysql_install_db --defaults-file=' + myconf
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         return False
     return True
 
@@ -534,14 +534,14 @@ def initMysql57Data():
             import time
             backup_dir = datadir + '_backup_' + str(int(time.time()))
             os.rename(datadir, backup_dir)
-            mw.makeDirs(datadir)
-            mw.execShell('chown -R mysql:mysql ' + datadir)
+            yf.makeDirs(datadir)
+            yf.execShell('chown -R mysql:mysql ' + datadir)
 
         myconf = serverdir + "/etc/my.cnf"
         user = pGetDbUser()
         cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + \
             ' --initialize-insecure --explicit_defaults_for_timestamp --user=mysql'
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         # print(data)
         return False
     return True
@@ -558,8 +558,8 @@ def initMysql8Data():
             import time
             backup_dir = datadir + '_backup_' + str(int(time.time()))
             os.rename(datadir, backup_dir)
-            mw.makeDirs(datadir)
-            mw.execShell('chown -R mysql:mysql ' + datadir)
+            yf.makeDirs(datadir)
+            yf.execShell('chown -R mysql:mysql ' + datadir)
 
         user = pGetDbUser()
         # cmd = 'cd ' + serverdir + ' && ./bin/mysqld --basedir=' + serverdir + ' --datadir=' + \
@@ -569,10 +569,10 @@ def initMysql8Data():
         cmd = 'cd ' + serverdir + ' && ./bin/mysqld --defaults-file=' + myconf + ' --basedir=' + serverdir + ' --datadir=' + \
             datadir + ' --user=' + user + ' --initialize-insecure'
 
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         
         # 记录初始化命令及其输出到日志，用于诊断
-        mw.writeFile('/tmp/mysql8_init_debug.log', f"CMD: {cmd}\nSTDOUT: {data[0]}\nSTDERR: {data[1]}")
+        yf.writeFile('/tmp/mysql8_init_debug.log', f"CMD: {cmd}\nSTDOUT: {data[0]}\nSTDERR: {data[1]}")
         
         return False
     return True
@@ -584,7 +584,7 @@ def initMysqlPwd(version='5.7'):
 
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
-    pwd = mw.getRandomString(16)
+    pwd = yf.getRandomString(16)
 
     if version.startswith('5.7'):
         # MySQL 5.7: flush privileges + ALTER USER (与 8.x 一致)
@@ -599,9 +599,9 @@ def initMysqlPwd(version='5.7'):
         alter_root_pwd += "flush privileges;"
 
         tmp_file = "/tmp/mysql_init_tmp.log"
-        mw.writeFile(tmp_file, alter_root_pwd)
+        yf.writeFile(tmp_file, alter_root_pwd)
         cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot < ' + tmp_file
-        data = mw.execShell(cmd_pass)
+        data = yf.execShell(cmd_pass)
         # print(data)
         os.remove(tmp_file)
     else:
@@ -610,29 +610,29 @@ def initMysqlPwd(version='5.7'):
         db_option = " -S " + getSocketFile()
         sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
         cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
-        data = mw.execShell(cmd_pass)
+        data = yf.execShell(cmd_pass)
         # print(data)
 
     # 删除空账户
     drop_empty_user = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -p"' + \
         pwd + '" -e "use mysql;delete from user where USER=\'\'"'
-    mw.execShell(drop_empty_user)
+    yf.execShell(drop_empty_user)
 
     # 删除测试数据库
     drop_test_db = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot -p"' + \
         pwd + '" -e "drop database test";'
-    mw.execShell(drop_test_db)
+    yf.execShell(drop_test_db)
 
     # 删除冗余账户
-    hostname = mw.execShell('hostname')[0].strip()
+    hostname = yf.execShell('hostname')[0].strip()
     if hostname != 'localhost':
         drop_hostname = serverdir + '/bin/mysql  --defaults-file=' + \
             myconf + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
-        mw.execShell(drop_hostname)
+        yf.execShell(drop_hostname)
 
         drop_root_hostname = serverdir + '/bin/mysql  --defaults-file=' + \
             myconf + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
-        mw.execShell(drop_root_hostname)
+        yf.execShell(drop_root_hostname)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
     return True
@@ -646,7 +646,7 @@ def initMysql8Pwd():
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
 
-    pwd = mw.getRandomString(16)
+    pwd = yf.getRandomString(16)
 
     alter_root_pwd = 'flush privileges;'
 
@@ -661,7 +661,7 @@ def initMysql8Pwd():
 
     cmd_pass = serverdir + '/bin/mysqladmin --defaults-file=' + \
         myconf + ' -uroot password root'
-    data = mw.execShell(cmd_pass)
+    data = yf.execShell(cmd_pass)
     # print(cmd_pass)
     # print(data)
 
@@ -672,26 +672,26 @@ def initMysql8Pwd():
     cmd_pass = serverdir + '/bin/mysql --defaults-file=' + \
         myconf + ' -uroot -proot < ' + tmp_file
 
-    data = mw.execShell(cmd_pass)
+    data = yf.execShell(cmd_pass)
     os.remove(tmp_file)
 
     # 删除测试数据库
     drop_test_db = serverdir + '/bin/mysql  --defaults-file=' + \
         myconf + ' -uroot -p"' + pwd + '" -e "drop database test";'
-    mw.execShell(drop_test_db)
+    yf.execShell(drop_test_db)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
 
     # 删除冗余账户
-    hostname = mw.execShell('hostname')[0].strip()
+    hostname = yf.execShell('hostname')[0].strip()
     if hostname != 'localhost':
         drop_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
             myconf + ' -uroot -p"' + pwd + '" -e "drop user \'\'@\'' + hostname + '\'";'
-        mw.execShell(drop_hostname)
+        yf.execShell(drop_hostname)
 
         drop_root_hostname =  serverdir + '/bin/mysql  --defaults-file=' + \
             myconf + ' -uroot -p"' + pwd + '" -e "drop user \'root\'@\'' + hostname + '\'";'
-        mw.execShell(drop_root_hostname)
+        yf.execShell(drop_root_hostname)
 
     return True
 
@@ -699,27 +699,27 @@ def initMysql8Pwd():
 def myOp(version, method):
     # import commands
     init_file = initDreplace(version)
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     try:
         isInited = initMysqlData()
         if not isInited:
             makeInitRsaKey(version)
-            if not mw.isSupportSystemctl():
-                mw.execShell('service ' + getPluginName() + ' start')
+            if not yf.isSupportSystemctl():
+                yf.execShell('service ' + getPluginName() + ' start')
             else:
-                mw.execShell('systemctl start mysql')
+                yf.execShell('systemctl start mysql')
 
             initMysqlPwd(version)
 
-            if not mw.isSupportSystemctl():
-                mw.execShell('service ' + getPluginName() + ' stop')
+            if not yf.isSupportSystemctl():
+                yf.execShell('service ' + getPluginName() + ' stop')
             else:
-                mw.execShell('systemctl stop mysql')
+                yf.execShell('systemctl stop mysql')
 
-        if not mw.isSupportSystemctl():
-            mw.execShell('service ' + getPluginName() + ' ' + method)
+        if not yf.isSupportSystemctl():
+            yf.execShell('service ' + getPluginName() + ' ' + method)
         else:
-            mw.execShell('systemctl ' + method + ' mysql')
+            yf.execShell('systemctl ' + method + ' mysql')
         return 'ok'
     except Exception as e:
         return str(e)
@@ -732,7 +732,7 @@ def my8cmd(version, method):
     mdb8 = getMdb8Ver()
     try:
         isInited = True
-        if mw.inArray(mdb8, version):
+        if yf.inArray(mdb8, version):
             isInited = initMysql8Data()
         else:
             isInited = initMysql57Data()
@@ -740,42 +740,42 @@ def my8cmd(version, method):
         if not isInited:
             makeInitRsaKey(version)
 
-            if not mw.isSupportSystemctl():
+            if not yf.isSupportSystemctl():
                 cmd_init_start = init_file + ' start'
                 r = subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=True,
                                  bufsize=4096, stderr=subprocess.PIPE)
                 out, err = r.communicate()
-                mw.writeFile('/tmp/mysql8_init_debug.log', mw.readFile('/tmp/mysql8_init_debug.log') + f'\nINITD_START_OUT:\n{out}\nINITD_START_ERR:\n{err}')
+                yf.writeFile('/tmp/mysql8_init_debug.log', yf.readFile('/tmp/mysql8_init_debug.log') + f'\nINITD_START_OUT:\n{out}\nINITD_START_ERR:\n{err}')
                 time.sleep(6)
             else:
-                out = mw.execShell('systemctl start mysql')
-                mw.writeFile('/tmp/mysql8_init_debug.log', mw.readFile('/tmp/mysql8_init_debug.log') + f'\nSYSTEMCTL_START_OUT:\n{out[0]}\nSYSTEMCTL_START_ERR:\n{out[1]}')
+                out = yf.execShell('systemctl start mysql')
+                yf.writeFile('/tmp/mysql8_init_debug.log', yf.readFile('/tmp/mysql8_init_debug.log') + f'\nSYSTEMCTL_START_OUT:\n{out[0]}\nSYSTEMCTL_START_ERR:\n{out[1]}')
 
 
             for x in range(10):
                 mydb_status = process_status()
                 if mydb_status == 'start':
-                    if mw.inArray(mdb8, version):
+                    if yf.inArray(mdb8, version):
                         initMysql8Pwd()
                     else:
                         initMysqlPwd(version)
                     break
                 time.sleep(1)
 
-            if not mw.isSupportSystemctl():
+            if not yf.isSupportSystemctl():
                 cmd_init_stop = init_file + ' stop'
                 subprocess.Popen(cmd_init_stop, stdout=subprocess.PIPE, shell=True,
                                  bufsize=4096, stderr=subprocess.PIPE)
                 time.sleep(3)
             else:
-                mw.execShell('systemctl stop mysql')
+                yf.execShell('systemctl stop mysql')
 
-        if not mw.isSupportSystemctl():
+        if not yf.isSupportSystemctl():
             sub = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                    bufsize=4096, stderr=subprocess.PIPE)
             sub.wait(5)
         else:
-            mw.execShell('systemctl ' + method + ' mysql')
+            yf.execShell('systemctl ' + method + ' mysql')
         return 'ok'
     except Exception as e:
         return str(e)
@@ -786,7 +786,7 @@ def appCMD(version, action):
     mdb8 = getMdb8Ver()
     mdb8.append('5.7')
     # print(mdb8)
-    if mw.inArray(mdb8, version):
+    if yf.inArray(mdb8, version):
         status = my8cmd(version, action)
     else:
         status = myOp(version, action)
@@ -795,8 +795,8 @@ def appCMD(version, action):
 
 def start(version=''):
     stop(version)
-    mw.execShell('pkill -9 mysqld')
-    mw.execShell('pkill -9 mariadbd')
+    yf.execShell('pkill -9 mysqld')
+    yf.execShell('pkill -9 mariadbd')
     time.sleep(1)
     return appCMD(version, 'start')
 
@@ -807,8 +807,8 @@ def stop(version=''):
 
 def restart(version=''):
     stop(version)
-    mw.execShell('pkill -9 mysqld')
-    mw.execShell('pkill -9 mariadbd')
+    yf.execShell('pkill -9 mysqld')
+    yf.execShell('pkill -9 mariadbd')
     time.sleep(1)
     return appCMD(version, 'restart')
 
@@ -818,7 +818,7 @@ def reload(version=''):
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -828,14 +828,14 @@ def initdStatus():
             return 'ok'
 
     shell_cmd = 'systemctl status mysql | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -844,16 +844,16 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable mysql')
+    yf.execShell('systemctl enable mysql')
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -861,23 +861,23 @@ def initdUinstall():
         initd_bin = getInitDFile()
         if os.path.exists(initd_bin):
             os.remove(initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    if mw.isSupportSystemctl():
-        mw.execShell('systemctl disable mysql')
+    if yf.isSupportSystemctl():
+        yf.execShell('systemctl disable mysql')
         systemd_path = '/usr/lib/systemd/system/mysql.service'
         if os.path.exists(systemd_path):
             os.remove(systemd_path)
         systemd_path_etc = '/etc/systemd/system/mysql.service'
         if os.path.exists(systemd_path_etc):
             os.remove(systemd_path_etc)
-        mw.execShell('systemctl daemon-reload')
+        yf.execShell('systemctl daemon-reload')
     else:
         initd_bin = getInitDFile()
         if os.path.exists(initd_bin):
-            mw.execShell('chkconfig --del mysql')
-            mw.execShell('update-rc.d -f mysql remove')
+            yf.execShell('chkconfig --del mysql')
+            yf.execShell('update-rc.d -f mysql remove')
             os.remove(initd_bin)
 
     return 'ok'
@@ -885,7 +885,7 @@ def initdUinstall():
 
 def getMyDbPos():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'datadir\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -900,42 +900,42 @@ def setMyDbPos(version):
     s_datadir = getMyDbPos()
     t_datadir = args['datadir']
     if t_datadir == s_datadir:
-        return mw.returnJson(False, '与当前存储目录相同，无法迁移文件!')
+        return yf.returnJson(False, '与当前存储目录相同，无法迁移文件!')
 
     if not os.path.exists(t_datadir):
-        mw.makeDirs(t_datadir)
+        yf.makeDirs(t_datadir)
 
-    # mw.execShell('/etc/init.d/mysqld stop')
+    # yf.execShell('/etc/init.d/mysqld stop')
     stop(version)
-    mw.execShell('cp -rf ' + s_datadir + '/* ' + t_datadir + '/')
-    mw.execShell('chown -R mysql mysql ' + t_datadir)
-    mw.execShell('chmod -R 755 ' + t_datadir)
-    mw.execShell('rm -f ' + t_datadir + '/*.pid')
-    mw.execShell('rm -f ' + t_datadir + '/*.err')
+    yf.execShell('cp -rf ' + s_datadir + '/* ' + t_datadir + '/')
+    yf.execShell('chown -R mysql mysql ' + t_datadir)
+    yf.execShell('chmod -R 755 ' + t_datadir)
+    yf.execShell('rm -f ' + t_datadir + '/*.pid')
+    yf.execShell('rm -f ' + t_datadir + '/*.err')
 
     path = getServerDir()
     myfile = path + '/etc/my.cnf'
-    mycnf = mw.readFile(myfile)
-    mw.writeFile(path + '/etc/my_backup.cnf', mycnf)
+    mycnf = yf.readFile(myfile)
+    yf.writeFile(path + '/etc/my_backup.cnf', mycnf)
 
     mycnf = mycnf.replace(s_datadir, t_datadir)
-    mw.writeFile(myfile, mycnf)
+    yf.writeFile(myfile, mycnf)
     start(version)
 
-    result = mw.execShell('ps aux|grep mysqld| grep -v grep|grep -v python')
+    result = yf.execShell('ps aux|grep mysqld| grep -v grep|grep -v python')
     if len(result[0]) > 10:
-        mw.writeFile('data/datadir.pl', t_datadir)
-        return mw.returnJson(True, '存储目录迁移成功!')
+        yf.writeFile('data/datadir.pl', t_datadir)
+        return yf.returnJson(True, '存储目录迁移成功!')
     else:
-        mw.execShell('pkill -9 mysqld')
-        mw.writeFile(myfile, mw.readFile(path + '/etc/my_backup.cnf'))
+        yf.execShell('pkill -9 mysqld')
+        yf.writeFile(myfile, yf.readFile(path + '/etc/my_backup.cnf'))
         start(version)
-        return mw.returnJson(False, '文件迁移失败!')
+        return yf.returnJson(False, '文件迁移失败!')
 
 
 def getMyPort():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'port\s*=\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -949,18 +949,18 @@ def setMyPort(version):
 
     port = args['port']
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r"port\s*=\s*([0-9]+)\s*\n"
     content = re.sub(rep, 'port = ' + port + '\n', content)
-    mw.writeFile(file, content)
+    yf.writeFile(file, content)
     restart(version)
-    return mw.returnJson(True, '编辑成功!')
+    return yf.returnJson(True, '编辑成功!')
 
 
 def runInfo(version):
 
     if status(version) == 'stop':
-        return mw.returnJson(False, 'MySQL未启动', [])
+        return yf.returnJson(False, 'MySQL未启动', [])
 
     db = pMysqlDb()
     data = db.query('show global status')
@@ -990,12 +990,12 @@ def runInfo(version):
     except:
         result['File'] = 'OFF'
         result['Position'] = 'OFF'
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 
 def myDbStatus(ver):
     if status(ver) == 'stop':
-        return mw.returnJson(False, 'MySQL未启动', [])
+        return yf.returnJson(False, 'MySQL未启动', [])
 
     result = {}
     db = pMysqlDb()
@@ -1017,7 +1017,7 @@ def myDbStatus(ver):
             # print(g)
             if vname == g:
                 result['mem'][g] = d["Value"]
-    return mw.getJson(result)
+    return yf.getJson(result)
 
 
 def setDbStatus(ver):
@@ -1032,7 +1032,7 @@ def setDbStatus(ver):
     emptys = ['max_connections', 'thread_cache_size', 'table_open_cache']
     args = getArgs()
     conFile = getConf()
-    content = mw.readFile(conFile)
+    content = yf.readFile(conFile)
     n = 0
     for g in gets:
         s = 'M'
@@ -1047,31 +1047,31 @@ def setDbStatus(ver):
         else:
             content = content.replace('[mysqld]\n', '[mysqld]\n' + c)
         n += 1
-    mw.writeFile(conFile, content)
-    return mw.returnJson(True, '设置成功!')
+    yf.writeFile(conFile, content)
+    return yf.returnJson(True, '设置成功!')
 
 
 def isSqlError(mysqlMsg):
     # 检测数据库执行错误
     mysqlMsg = str(mysqlMsg)
     if "MySQLdb" in mysqlMsg:
-        return mw.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
+        return yf.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
     if "2002," in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "2003," in mysqlMsg:
-        return mw.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
+        return yf.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
     if "using password:" in mysqlMsg:
-        return mw.returnJson(False, '数据库密码错误,在管理列表-点击【修复】!')
+        return yf.returnJson(False, '数据库密码错误,在管理列表-点击【修复】!')
     if "1045," in mysqlMsg:
-        return mw.returnJson(False, '连接错误!')
+        return yf.returnJson(False, '连接错误!')
     if "SQL syntax" in mysqlMsg:
-        return mw.returnJson(False, 'SQL语法错误!')
+        return yf.returnJson(False, 'SQL语法错误!')
     if "Connection refused" in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "1133," in mysqlMsg:
-        return mw.returnJson(False, '数据库用户不存在!')
+        return yf.returnJson(False, '数据库用户不存在!')
     if "1007," in mysqlMsg:
-        return mw.returnJson(False, '数据库已经存在!')
+        return yf.returnJson(False, '数据库已经存在!')
     return None
 
 
@@ -1094,9 +1094,9 @@ def __createUser(dbname, username, password, address):
 
 
 def getDbBackupListFunc(dbname=''):
-    bkDir = mw.getBackupDir() + '/database'
+    bkDir = yf.getBackupDir() + '/database'
     if not os.path.exists(bkDir):
-        mw.makeDirs(bkDir)
+        yf.makeDirs(bkDir)
 
     blist = os.listdir(bkDir)
     r = []
@@ -1105,7 +1105,7 @@ def getDbBackupListFunc(dbname=''):
     version_prefix = 'mysql57'
     version_file = db_path + '/version.pl'
     if os.path.exists(version_file):
-        ver = mw.readFile(version_file).strip()
+        ver = yf.readFile(version_file).strip()
         parts = ver.split('.')
         if len(parts) >= 2:
             version_prefix = parts[0] + parts[1]
@@ -1141,26 +1141,26 @@ def setDbBackup():
     if not data[0]:
         return data[1]
 
-    scDir = mw.getPanelDir() + '/scripts/backup.py'
+    scDir = yf.getPanelDir() + '/scripts/backup.py'
     cmd = 'python3 ' + scDir + ' database ' + args['name'] + ' 3'
     os.system(cmd)
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 # 数据库密码处理
 def myPass(act, root):
     conf_file = getConf()
-    mw.execShell("sed -i '/user=root/d' {}".format(conf_file))
-    mw.execShell("sed -i '/password=/d' {}".format(conf_file))
+    yf.execShell("sed -i '/user=root/d' {}".format(conf_file))
+    yf.execShell("sed -i '/password=/d' {}".format(conf_file))
     if act:
-        mycnf = mw.readFile(conf_file)
+        mycnf = yf.readFile(conf_file)
         src_dump = "[mysqldump]\n"
         sub_dump = src_dump + "user=root\npassword=\"{}\"\n".format(root)
         if not mycnf:
             return False
         mycnf = mycnf.replace(src_dump, sub_dump)
         if len(mycnf) > 100:
-            mw.writeFile(conf_file, mycnf)
+            yf.writeFile(conf_file, mycnf)
         return True
     return True
 
@@ -1179,16 +1179,16 @@ def importDbExternal():
     file = args['file']
     name = args['name']
 
-    import_dir = mw.getFatherDir() + '/backup/import/'
+    import_dir = yf.getFatherDir() + '/backup/import/'
 
     file_path = import_dir + file
     if not os.path.exists(file_path):
-        return mw.returnJson(False, '文件突然消失?')
+        return yf.returnJson(False, '文件突然消失?')
 
     exts = ['sql', 'gz', 'zip']
-    ext = mw.getFileSuffix(file)
+    ext = yf.getFileSuffix(file)
     if ext not in exts:
-        return mw.returnJson(False, '导入数据库格式不对!')
+        return yf.returnJson(False, '导入数据库格式不对!')
 
     tmp = file.split('/')
     tmpFile = tmp[len(tmp) - 1]
@@ -1201,25 +1201,25 @@ def importDbExternal():
     if file.find("sql.gz") > -1:
         cmd = 'cd ' + import_dir + ' && gzip -dc ' + \
             file + " > " + import_dir + tmpFile
-        info = mw.execShell(cmd)
+        info = yf.execShell(cmd)
         if info[1] == "":
             import_sql = import_dir + tmpFile
 
     if file.find(".zip") > -1:
         cmd = 'cd ' + import_dir + ' && unzip -o ' + file
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         import_sql = import_dir + tmpFile
 
     if file.find("tar.gz") > -1:
         cmd = 'cd ' + import_dir + ' && tar -zxvf ' + file
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         import_sql = import_dir + tmpFile
 
     if file.find(".sql") > -1 and file.find(".sql.gz") == -1:
         import_sql = import_dir + file
 
     if import_sql == "":
-        return mw.returnJson(False, '未找SQL文件')
+        return yf.returnJson(False, '未找SQL文件')
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
@@ -1231,16 +1231,16 @@ def importDbExternal():
         ' -uroot -p"' + pwd + '" -f ' + name + ' < ' + import_sql
 
     # print(mysql_cmd)
-    rdata = mw.execShell(mysql_cmd)
+    rdata = yf.execShell(mysql_cmd)
     myPass(False, pwd)
     # print(rdata)
     if ext != 'sql':
         os.remove(import_sql)
 
     if rdata[1].lower().find('error') > -1:
-        return mw.returnJson(False, rdata[1])
+        return yf.returnJson(False, rdata[1])
 
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 def importDbExternalProgress():
     args = getArgs()
@@ -1251,9 +1251,9 @@ def importDbExternalProgress():
     file = args['file']
     name = args['name']
 
-    cmd = 'cd '+mw.getServerDir()+'/mdserver-web && source bin/activate && '
-    cmd += 'python3 '+mw.getServerDir()+'/mdserver-web/plugins/mysql/index.py import_db_external_progress_bar  {"file":"'+file+'","name":"'+name+'"}'
-    return mw.returnJson(True, 'ok',cmd)
+    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && '
+    cmd += 'python3 '+yf.getServerDir()+'/mdserver-web/plugins/mysql/index.py import_db_external_progress_bar  {"file":"'+file+'","name":"'+name+'"}'
+    return yf.returnJson(True, 'ok',cmd)
 
 def importDbExternalProgressBar():
     args = getArgs()
@@ -1264,16 +1264,16 @@ def importDbExternalProgressBar():
     file = args['file']
     name = args['name']
 
-    import_dir = mw.getFatherDir() + '/backup/import/'
+    import_dir = yf.getFatherDir() + '/backup/import/'
 
     file_path = import_dir + file
     if not os.path.exists(file_path):
-        return mw.returnJson(False, '文件突然消失?')
+        return yf.returnJson(False, '文件突然消失?')
 
     exts = ['sql', 'gz', 'zip']
-    ext = mw.getFileSuffix(file)
+    ext = yf.getFileSuffix(file)
     if ext not in exts:
-        return mw.returnJson(False, '导入数据库格式不对!')
+        return yf.returnJson(False, '导入数据库格式不对!')
 
     tmp = file.split('/')
     tmpFile = tmp[len(tmp) - 1]
@@ -1286,25 +1286,25 @@ def importDbExternalProgressBar():
     if file.find("sql.gz") > -1:
         cmd = 'cd ' + import_dir + ' && gzip -dc ' + \
             file + " > " + import_dir + tmpFile
-        info = mw.execShell(cmd)
+        info = yf.execShell(cmd)
         if info[1] == "":
             import_sql = import_dir + tmpFile
 
     if file.find(".zip") > -1:
         cmd = 'cd ' + import_dir + ' && unzip -o ' + file
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         import_sql = import_dir + tmpFile
 
     if file.find("tar.gz") > -1:
         cmd = 'cd ' + import_dir + ' && tar -zxvf ' + file
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         import_sql = import_dir + tmpFile
 
     if file.find(".sql") > -1 and file.find(".sql.gz") == -1:
         import_sql = import_dir + file
 
     if import_sql == "":
-        return mw.returnJson(False, '未找SQL文件')
+        return yf.returnJson(False, '未找SQL文件')
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
@@ -1327,12 +1327,12 @@ def importDbBackup():
     file = args['file']
     name = args['name']
 
-    file_path = mw.getFatherDir() + '/backup/database/' + file
-    file_path_sql = mw.getFatherDir() + '/backup/database/' + file.replace('.gz', '')
+    file_path = yf.getFatherDir() + '/backup/database/' + file
+    file_path_sql = yf.getFatherDir() + '/backup/database/' + file.replace('.gz', '')
 
     if not os.path.exists(file_path_sql):
-        cmd = 'cd ' + mw.getFatherDir() + '/backup/database && gzip -d ' + file
-        mw.execShell(cmd)
+        cmd = 'cd ' + yf.getFatherDir() + '/backup/database && gzip -d ' + file
+        yf.execShell(cmd)
 
     local_mode = recognizeDbMode()
     if local_mode == 'gtid':
@@ -1347,11 +1347,11 @@ def importDbBackup():
     # print(mysql_cmd)
     # os.system(mysql_cmd)
 
-    rdata = mw.execShell(mysql_cmd)
+    rdata = yf.execShell(mysql_cmd)
     if rdata[1].lower().find('error') > -1:
-        return mw.returnJson(False, rdata[1])
+        return yf.returnJson(False, rdata[1])
 
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 def importDbBackupProgress():
@@ -1363,11 +1363,11 @@ def importDbBackupProgress():
     file = args['file']
     name = args['name']
 
-    cmd = 'cd '+mw.getServerDir()+'/mdserver-web && source bin/activate && '
-    cmd += 'python3 '+mw.getServerDir()+'/mdserver-web/plugins/mysql/index.py import_db_backup_progress_bar  {"file":"'+file+'","name":"'+name+'"}'
-    return mw.returnJson(True, 'ok',cmd)
+    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && '
+    cmd += 'python3 '+yf.getServerDir()+'/mdserver-web/plugins/mysql/index.py import_db_backup_progress_bar  {"file":"'+file+'","name":"'+name+'"}'
+    return yf.returnJson(True, 'ok',cmd)
 
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 def importDbBackupProgressBar():
     args = getArgs()
@@ -1378,12 +1378,12 @@ def importDbBackupProgressBar():
     file = args['file']
     name = args['name']
 
-    file_path = mw.getFatherDir() + '/backup/database/' + file
-    file_path_sql = mw.getFatherDir() + '/backup/database/' + file.replace('.gz', '')
+    file_path = yf.getFatherDir() + '/backup/database/' + file
+    file_path_sql = yf.getFatherDir() + '/backup/database/' + file.replace('.gz', '')
 
     if not os.path.exists(file_path_sql):
-        cmd = 'cd ' + mw.getFatherDir() + '/backup/database && gzip -d ' + file
-        mw.execShell(cmd)
+        cmd = 'cd ' + yf.getFatherDir() + '/backup/database && gzip -d ' + file
+        yf.execShell(cmd)
 
     local_mode = recognizeDbMode()
     if local_mode == 'gtid':
@@ -1409,12 +1409,12 @@ def deleteDbBackup():
 
     path = args['path']
     full_file = ""
-    bkDir = mw.getFatherDir() + '/backup/database'
+    bkDir = yf.getFatherDir() + '/backup/database'
     full_file = bkDir + '/' + args['filename']
     if path != "":
         full_file = path + "/" + args['filename']
     os.remove(full_file)
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 def getDbBackupList():
@@ -1424,7 +1424,7 @@ def getDbBackupList():
         return data[1]
 
     r = getDbBackupListFunc(args['name'])
-    bkDir = mw.getFatherDir() + '/backup/database'
+    bkDir = yf.getFatherDir() + '/backup/database'
     rr = []
     for x in range(0, len(r)):
         p = bkDir + '/' + r[x]
@@ -1434,7 +1434,7 @@ def getDbBackupList():
         data['name'] = r[x]
 
         rsize = os.path.getsize(p)
-        data['size'] = mw.toSize(rsize)
+        data['size'] = yf.toSize(rsize)
 
         t = os.path.getctime(p)
         t = time.localtime(t)
@@ -1444,12 +1444,12 @@ def getDbBackupList():
 
         data['file'] = p
 
-    return mw.returnJson(True, bkDir, rr)
+    return yf.returnJson(True, bkDir, rr)
 
 
 def getDbBackupImportList():
 
-    bkImportDir = mw.getFatherDir() + '/backup/import'
+    bkImportDir = yf.getFatherDir() + '/backup/import'
     if not os.path.exists(bkImportDir):
         os.mkdir(bkImportDir)
 
@@ -1463,7 +1463,7 @@ def getDbBackupImportList():
         data['name'] = name
 
         rsize = os.path.getsize(p)
-        data['size'] = mw.toSize(rsize)
+        data['size'] = yf.toSize(rsize)
 
         t = os.path.getctime(p)
         t = time.localtime(t)
@@ -1477,7 +1477,7 @@ def getDbBackupImportList():
         "list": rr,
         "upload_dir": bkImportDir,
     }
-    return mw.returnJson(True, 'ok', rdata)
+    return yf.returnJson(True, 'ok', rdata)
 
 
 def getDbList():
@@ -1518,7 +1518,7 @@ def getDbList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'dbList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
     info = {}
@@ -1526,7 +1526,7 @@ def getDbList():
         'id=?', (1,)).getField('mysql_root')
     data['info'] = info
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def syncGetDatabases():
@@ -1561,13 +1561,13 @@ def syncGetDatabases():
 
         ps = vdb_name
         if vdb_name == 'test':
-            ps = mw.getMsg('DATABASE_TEST')
+            ps = yf.getMsg('DATABASE_TEST')
         addTime = time.strftime('%Y-%m-%d %X', time.localtime())
         if psdb.add('name,username,password,accept,ps,addtime', (vdb_name, vdb_name, '', host, ps, addTime)):
             n += 1
 
-    msg = mw.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
-    return mw.returnJson(True, msg)
+    msg = yf.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
+    return yf.returnJson(True, msg)
 
 
 def toDbBase(find):
@@ -1575,7 +1575,7 @@ def toDbBase(find):
     psdb = pSqliteDb('databases')
     if len(find['password']) < 3:
         find['username'] = find['name']
-        find['password'] = mw.md5(str(time.time()) + find['name'])[0:10]
+        find['password'] = yf.md5(str(time.time()) + find['name'])[0:10]
         psdb.where("id=?", (find['id'],)).save(
             'password,username', (find['password'], find['username']))
 
@@ -1621,19 +1621,19 @@ def syncToDatabases():
             result = toDbBase(find)
             if result == 1:
                 n += 1
-    msg = mw.getInfo('本次共同步了{1}个数据库!', (str(n),))
-    return mw.returnJson(True, msg)
+    msg = yf.getInfo('本次共同步了{1}个数据库!', (str(n),))
+    return yf.returnJson(True, msg)
 
 def adjust_password_policy(version):
     if version.startswith("8."):
         serverdir = getServerDir()
-        mw.execShell(serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.policy=LOW;\"")
-        mw.execShell(serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.length=4;\"")
+        yf.execShell(serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.policy=LOW;\"")
+        yf.execShell(serverdir+f"/bin/mysql -u root -e \"SET GLOBAL validate_password.length=4;\"")
 
 def setRootPwdForce(new_password,version=''):
     # stop(version)
     # | awk '{print $2}'| xargs kill
-    data = mw.execShell("ps -ef|grep mysql|grep -v plugins |grep -v grep | awk '{print $2}'| xargs kill")
+    data = yf.execShell("ps -ef|grep mysql|grep -v plugins |grep -v grep | awk '{print $2}'| xargs kill")
     # print(data)
     time.sleep(1)
 
@@ -1648,15 +1648,15 @@ def setRootPwdForce(new_password,version=''):
 
     if version.startswith("5.5") or version.startswith("5.6"):
         cmd_mod_root = serverdir+f"/bin/mysql -u root -e \"UPDATE mysql.user SET Password=PASSWORD('{new_password}') WHERE user='root'; FLUSH PRIVILEGES;\""
-        data = mw.execShell(cmd_mod_root)
+        data = yf.execShell(cmd_mod_root)
         # print("修改root密码", cmd_mod_root)
         # print(data)
     else:
         cmd_clear_root = serverdir+"/bin/mysql -u root -e \"UPDATE mysql.user SET authentication_string = '' WHERE user = 'root'; FLUSH PRIVILEGES;\""
-        data = mw.execShell(cmd_clear_root)
+        data = yf.execShell(cmd_clear_root)
         # print(cmd_clear_root,"清空root密码",data)
 
-    data = mw.execShell("ps -ef|grep mysql|grep -v plugins |grep -v grep | awk '{print $2}'| xargs kill")
+    data = yf.execShell("ps -ef|grep mysql|grep -v plugins |grep -v grep | awk '{print $2}'| xargs kill")
     # print("停止安全模式",data)
 
     # 正常启动MySQL
@@ -1669,13 +1669,13 @@ def setRootPwdForce(new_password,version=''):
             adjust_password_policy(version)
         # 设置新密码
         cmd_newpass = serverdir+f"/bin/mysql -u root -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '{new_password}'; FLUSH PRIVILEGES;\""
-        data = mw.execShell(cmd_newpass)
+        data = yf.execShell(cmd_newpass)
         # print("新密码",cmd_newpass)
         # print(data)
     
     # 验证密码
     cmd = serverdir+f"/bin/mysql -u root -p'{new_password}' -e 'SHOW DATABASES;'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[1] == '':
         return True
     return False
@@ -1692,7 +1692,7 @@ def setRootPwd(version=''):
     force = 0
     if 'force' in args and args['force'] == '1':
         pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (password,))
-        return mw.returnJson(True, '【强制本地记录】数据库root密码修改成功(立马检查)!')
+        return yf.returnJson(True, '【强制本地记录】数据库root密码修改成功(立马检查)!')
     if 'force' in args and args['force'] == '2':
         force = 2
         ok = setRootPwdForce(password,version)
@@ -1701,7 +1701,7 @@ def setRootPwd(version=''):
         if ok and version.startswith("8"):
             pdb = pMysqlDb()
             pdb.query("SET GLOBAL validate_password.policy=MEDIUM;")
-        return mw.returnJson(True, '【强制】数据库root密码修改成功!')
+        return yf.returnJson(True, '【强制】数据库root密码修改成功!')
     
     try:
         pdb = pMysqlDb()
@@ -1727,9 +1727,9 @@ def setRootPwd(version=''):
         if force == 1:
             msg = ',无须强制!'
 
-        return mw.returnJson(True, '数据库root密码修改成功!'+msg)
+        return yf.returnJson(True, '数据库root密码修改成功!'+msg)
     except Exception as ex:
-        return mw.returnJson(False, '修改错误:' + str(ex))
+        return yf.returnJson(False, '修改错误:' + str(ex))
 
 
 def setUserPwd(version=''):
@@ -1765,9 +1765,9 @@ def setUserPwd(version=''):
 
         pdb.execute("flush privileges")
         psdb.where("id=?", (uid,)).setField('password', newpassword)
-        return mw.returnJson(True, mw.getInfo('修改数据库[{1}]密码成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (name,)))
     except Exception as ex:
-        return mw.returnJson(False, mw.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
+        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
 
 
 def setDbPs():
@@ -1782,9 +1782,9 @@ def setDbPs():
     try:
         psdb = pSqliteDb('databases')
         psdb.where("id=?", (sid,)).setField('ps', ps)
-        return mw.returnJson(True, mw.getInfo('修改数据库[{1}]备注成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注成功!', (name,)))
     except Exception as e:
-        return mw.returnJson(True, mw.getInfo('修改数据库[{1}]备注失败!', (name,)))
+        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注失败!', (name,)))
 
 
 def addDb():
@@ -1808,15 +1808,15 @@ def addDb():
 
     reg = r"^[\w-]+$"
     if not re.match(reg, args['name']):
-        return mw.returnJson(False, '数据库名称不能带有特殊符号!')
+        return yf.returnJson(False, '数据库名称不能带有特殊符号!')
     checks = ['root', 'mysql', 'test', 'sys', 'performance_schema','information_schema']
     if dbuser in checks or len(dbuser) < 1:
-        return mw.returnJson(False, '数据库用户名不合法!')
+        return yf.returnJson(False, '数据库用户名不合法!')
     if dbname in checks or len(dbname) < 1:
-        return mw.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, '数据库名称不合法!')
 
     if len(password) < 1:
-        password = mw.md5(time.time())[0:8]
+        password = yf.md5(time.time())[0:8]
 
     wheres = {
         'utf8':   'utf8_general_ci',
@@ -1830,7 +1830,7 @@ def addDb():
     psdb = pSqliteDb('databases')
 
     if psdb.where("name=? or username=?", (dbname, dbuser)).count():
-        return mw.returnJson(False, '数据库已存在!')
+        return yf.returnJson(False, '数据库已存在!')
 
     result = pdb.execute("create database `" + dbname +
                          "` DEFAULT CHARACTER SET " + codeing + " COLLATE " + codeStr)
@@ -1848,7 +1848,7 @@ def addDb():
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('pid,name,username,password,accept,ps,addtime',
              (0, dbname, dbuser, password, address, ps, addTime))
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def delDb():
@@ -1863,7 +1863,7 @@ def delDb():
         find = psdb.where("id=?", (sid,)).field(
             'id,pid,name,username,password,accept,ps,addtime').find()
         if not find:
-            return mw.returnJson(False, '删除失败! 数据库在面板记录中不存在。')
+            return yf.returnJson(False, '删除失败! 数据库在面板记录中不存在。')
         
         username = find['username']
 
@@ -1944,10 +1944,10 @@ def delDb():
                 db_version = "5.6"
                 version_pl = getServerDir() + "/version.pl"
                 if os.path.exists(version_pl):
-                    db_version = mw.readFile(version_pl).strip()
+                    db_version = yf.readFile(version_pl).strip()
 
             # 将调试信息写入日志，避免污染标准输出导致前端 JSON 解析失败
-            mw.writeFile('/tmp/mysql_del_retry.log', "删除数据库卡住或发生异常，触发超时30秒保护逻辑，正在重启 mysql...")
+            yf.writeFile('/tmp/mysql_del_retry.log', "删除数据库卡住或发生异常，触发超时30秒保护逻辑，正在重启 mysql...")
             restart(db_version)
             
             # 重启后稍微休眠等待 mysql 服务就绪
@@ -1960,9 +1960,9 @@ def delDb():
 
         # 删除SQLITE
         psdb.where("id=?", (sid,)).delete()
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
     except Exception as ex:
-        return mw.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, '删除失败!' + str(ex))
 
 
 def getDbAccess():
@@ -1981,12 +1981,12 @@ def getDbAccess():
         return isError
 
     if len(users) < 1:
-        return mw.returnJson(True, "127.0.0.1")
+        return yf.returnJson(True, "127.0.0.1")
     accs = []
     for c in users:
         accs.append(c["Host"])
     userStr = ','.join(accs)
-    return mw.returnJson(True, userStr)
+    return yf.returnJson(True, userStr)
 
 
 def setDbAccess():
@@ -2016,40 +2016,40 @@ def setDbAccess():
     __createUser(dbname, name, password, access)
 
     psdb.where('username=?', (name,)).save('accept,rw', (access, 'rw',))
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def openSkipGrantTables():
     mycnf = getConf()
-    content = mw.readFile(mycnf)
+    content = yf.readFile(mycnf)
     content = content.replace('#skip-grant-tables','skip-grant-tables')
-    mw.writeFile(mycnf, content)
+    yf.writeFile(mycnf, content)
     return True
 
 def closeSkipGrantTables():
     mycnf = getConf()
-    content = mw.readFile(mycnf)
+    content = yf.readFile(mycnf)
     content = content.replace('skip-grant-tables','#skip-grant-tables')
-    mw.writeFile(mycnf, content)
+    yf.writeFile(mycnf, content)
     return True
 
 
 def resetDbRootPwd(version):
     serverdir = getServerDir()
     myconf = serverdir + "/etc/my.cnf"
-    pwd = mw.getRandomString(16)
+    pwd = yf.getRandomString(16)
 
     pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (pwd,))
 
     mdb8 = getMdb8Ver()
     # MySQL 5.7+ 和 8.x/9.x 都使用 flush privileges + ALTER USER 方式重置密码
     # 5.5/5.6 使用旧的 PASSWORD() 函数方式
-    if not mw.inArray(mdb8, version) and not version.startswith('5.7'):
+    if not yf.inArray(mdb8, version) and not version.startswith('5.7'):
         # MySQL 5.5 / 5.6 旧方式
         db_option = " -S " + getSocketFile()
         sql_cmd = "UPDATE mysql.user SET password=PASSWORD('" + pwd + "') WHERE user='root';flush privileges;"
         cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + db_option + ' -uroot -e "' + sql_cmd + '"'
-        data = mw.execShell(cmd_pass)
+        data = yf.execShell(cmd_pass)
         # print(data)
     else:
         # MySQL 5.7+ / 8.x / 9.x 使用 flush privileges + ALTER USER
@@ -2071,7 +2071,7 @@ def resetDbRootPwd(version):
             fh.write(reset_pwd)
         cmd_pass = serverdir + '/bin/mysql --defaults-file=' + myconf + ' -uroot < ' + tmp_file
 
-        data = mw.execShell(cmd_pass)
+        data = yf.execShell(cmd_pass)
         # print(data)
         os.remove(tmp_file)
     return True
@@ -2081,7 +2081,7 @@ def fixDbAccess(version):
     pdb = pMysqlDb()
     mdb_ddir = getDataDir()
     if not os.path.exists(mdb_ddir):
-        return mw.returnJson(False, '数据目录不存在,尝试重启重建!')
+        return yf.returnJson(False, '数据目录不存在,尝试重启重建!')
 
     try:
         data = pdb.query('show databases')
@@ -2103,10 +2103,10 @@ def fixDbAccess(version):
             appCMD(version, 'start')
             time.sleep(3)
 
-            return mw.returnJson(True, '修复成功!')
-        return mw.returnJson(True, '正常无需修复!')
+            return yf.returnJson(True, '修复成功!')
+        return yf.returnJson(True, '正常无需修复!')
     except Exception as e:
-        return mw.returnJson(False, '修复失败,错误: ' + str(e))
+        return yf.returnJson(False, '修复失败,错误: ' + str(e))
 
 
 def setDbRw(version=''):
@@ -2147,7 +2147,7 @@ def setDbRw(version=''):
     pdb.execute("flush privileges")
     r = psdb.where("id=?", (uid,)).setField('rw', rw)
     # print(r)
-    return mw.returnJson(True, '切换成功!')
+    return yf.returnJson(True, '切换成功!')
 
 
 def getDbInfo():
@@ -2161,7 +2161,7 @@ def getDbInfo():
     # print 'show tables from `%s`' % db_name
     tables = pdb.query('show tables from `%s`' % db_name)
     if isinstance(tables, Exception):
-        return mw.returnJson(False, '获取表列表失败: ' + str(tables))
+        return yf.returnJson(False, '获取表列表失败: ' + str(tables))
 
     ret = {}
     sql = "select sum(DATA_LENGTH)+sum(INDEX_LENGTH) as sum_size from information_schema.tables  where table_schema='%s'" % db_name
@@ -2171,7 +2171,7 @@ def getDbInfo():
     if not isinstance(data_sum, Exception) and len(data_sum) > 0 and data_sum[0]['sum_size'] != None:
         data = data_sum[0]['sum_size']
 
-    ret['data_size'] = mw.toSize(data)
+    ret['data_size'] = yf.toSize(data)
     ret['database'] = db_name
 
     ret3 = []
@@ -2179,7 +2179,7 @@ def getDbInfo():
     # optimize: single query for all tables
     table_status_list = pdb.query("show table status from `%s`" % db_name)
     if isinstance(table_status_list, Exception):
-        return mw.returnJson(False, '获取表状态失败: ' + str(table_status_list))
+        return yf.returnJson(False, '获取表状态失败: ' + str(table_status_list))
         
     for table in table_status_list:
         tmp = {}
@@ -2195,13 +2195,13 @@ def getDbInfo():
             data_size = table['Data_length']
 
         tmp['data_byte'] = data_size
-        tmp['data_size'] = mw.toSize(data_size)
+        tmp['data_size'] = yf.toSize(data_size)
         tmp['table_name'] = table.get("Name", "Unknown")
         ret3.append(tmp)
 
     ret['tables'] = (ret3)
 
-    return mw.getJson(ret)
+    return yf.getJson(ret)
 
 
 def repairTable():
@@ -2225,8 +2225,8 @@ def repairTable():
     if len(ret) > 0:
         for i in ret:
             pdb.execute('REPAIR TABLE `%s`.`%s`' % (db_name, i))
-        return mw.returnJson(True, "修复完成!")
-    return mw.returnJson(False, "修复失败!")
+        return yf.returnJson(True, "修复完成!")
+    return yf.returnJson(False, "修复失败!")
 
 
 def optTable():
@@ -2249,8 +2249,8 @@ def optTable():
     if len(ret) > 0:
         for i in ret:
             pdb.execute('OPTIMIZE TABLE `%s`.`%s`' % (db_name, i))
-        return mw.returnJson(True, "优化成功!")
-    return mw.returnJson(False, "优化失败或者已经优化过了!")
+        return yf.returnJson(True, "优化成功!")
+    return yf.returnJson(False, "优化失败或者已经优化过了!")
 
 
 def alterTable():
@@ -2276,8 +2276,8 @@ def alterTable():
         for i in ret:
             pdb.execute('alter table `%s`.`%s` ENGINE=`%s`' %
                         (db_name, i, table_type))
-        return mw.returnJson(True, "更改成功!")
-    return mw.returnJson(False, "更改失败!")
+        return yf.returnJson(True, "更改成功!")
+    return yf.returnJson(False, "更改失败!")
 
 
 def getTotalStatistics():
@@ -2289,17 +2289,17 @@ def getTotalStatistics():
     if st == 'start' and isInstall:
         data['status'] = True
         data['count'] = pSqliteDb('databases').count()
-        data['ver'] = mw.readFile(getServerDir() + '/version.pl').strip()
-        return mw.returnJson(True, 'ok', data)
+        data['ver'] = yf.readFile(getServerDir() + '/version.pl').strip()
+        return yf.returnJson(True, 'ok', data)
     else:
         data['status'] = False
         data['count'] = 0
-        return mw.returnJson(False, 'fail', data)
+        return yf.returnJson(False, 'fail', data)
 
 
 def recognizeDbMode():
     conf = getConf()
-    con = mw.readFile(conf)
+    con = yf.readFile(conf)
     rep = r"!include %s/(.*)?\.cnf" % (getServerDir() + "/etc/mode",)
     mode = 'none'
     try:
@@ -2312,12 +2312,12 @@ def recognizeDbMode():
 
 def getDbrunMode(version=''):
     mode = recognizeDbMode()
-    return mw.returnJson(True, "ok", {'mode': mode})
+    return yf.returnJson(True, "ok", {'mode': mode})
 
 
 def setDbrunMode(version=''):
     if version == '5.5':
-        return mw.returnJson(False, "不支持切换")
+        return yf.returnJson(False, "不支持切换")
 
     args = getArgs()
     data = checkArgs(args, ['mode', 'reload'])
@@ -2328,15 +2328,15 @@ def setDbrunMode(version=''):
     dbreload = args['reload']
 
     if not mode in ['classic', 'gtid']:
-        return mw.returnJson(False, "mode的值无效:" + mode)
+        return yf.returnJson(False, "mode的值无效:" + mode)
 
     origin_mode = recognizeDbMode()
     path = getConf()
-    con = mw.readFile(path)
+    con = yf.readFile(path)
     rep = r"!include %s/%s\.cnf" % (getServerDir() + "/etc/mode", origin_mode)
     rep_after = "!include %s/%s.cnf" % (getServerDir() + "/etc/mode", mode)
     con = re.sub(rep, rep_after, con)
-    mw.writeFile(path, con)
+    yf.writeFile(path, con)
 
     if version == '5.6':
         dbreload = 'yes'
@@ -2362,12 +2362,12 @@ def setDbrunMode(version=''):
     if dbreload == "yes":
         restart(version)
 
-    return mw.returnJson(True, "切换成功!")
+    return yf.returnJson(True, "切换成功!")
 
 
 def findBinlogDoDb():
     conf = getConf()
-    con = mw.readFile(conf)
+    con = yf.readFile(conf)
     rep = r"binlog-do-db\s*?=\s*?(.*)"
     dodb = re.findall(rep, con, re.M)
     return dodb
@@ -2375,7 +2375,7 @@ def findBinlogDoDb():
 
 def findBinlogSlaveDoDb():
     conf = getConf()
-    con = mw.readFile(conf)
+    con = yf.readFile(conf)
     rep = r"replicate-do-db\s*?=\s*?(.*)"
     dodb = re.findall(rep, con, re.M)
     return dodb
@@ -2405,7 +2405,7 @@ def setDbMasterAccess():
 
     pdb.execute("flush privileges")
     psdb.where('username=?', (username,)).save('accept', (access,))
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def resetMaster(version=''):
@@ -2414,7 +2414,7 @@ def resetMaster(version=''):
     isError = isSqlError(r)
     if isError != None:
         return isError
-    return mw.returnJson(True, '重置成功!')
+    return yf.returnJson(True, '重置成功!')
 
 
 def getMasterDbList(version=''):
@@ -2464,11 +2464,11 @@ def getMasterDbList(version=''):
         _page['p'] = page
         _page['row'] = page_size
         _page['tojs'] = 'dbList'
-        data['page'] = mw.getPage(_page)
+        data['page'] = yf.getPage(_page)
         data['data'] = clist
-        return mw.getJson(data)
+        return yf.getJson(data)
     except Exception as e:
-        return mw.returnJson(False, "数据库密码错误,在管理列表-点击【修复】!")
+        return yf.returnJson(False, "数据库密码错误,在管理列表-点击【修复】!")
 
 
 def setDbMaster(version):
@@ -2478,7 +2478,7 @@ def setDbMaster(version):
         return data[1]
 
     conf = getConf()
-    con = mw.readFile(conf)
+    con = yf.readFile(conf)
     rep = r"(binlog-do-db\s*?=\s*?(.*))"
     dodb = re.findall(rep, con, re.M)
 
@@ -2489,16 +2489,16 @@ def setDbMaster(version):
             isHas = True
 
             con = con.replace(dodb[x][0] + "\n", '')
-            mw.writeFile(conf, con)
+            yf.writeFile(conf, con)
 
     if not isHas:
         prefix = '#binlog-do-db'
         con = con.replace(prefix, prefix + "\nbinlog-do-db=" + args['name'])
-        mw.writeFile(conf, con)
+        yf.writeFile(conf, con)
 
     restart(version)
     time.sleep(4)
-    return mw.returnJson(True, '设置成功', [args, dodb])
+    return yf.returnJson(True, '设置成功', [args, dodb])
 
 
 def setDbSlave(version):
@@ -2508,7 +2508,7 @@ def setDbSlave(version):
         return data[1]
 
     conf = getConf()
-    con = mw.readFile(conf)
+    con = yf.readFile(conf)
     rep = r"(replicate-do-db\s*?=\s*?(.*))"
     dodb = re.findall(rep, con, re.M)
 
@@ -2518,34 +2518,34 @@ def setDbSlave(version):
             isHas = True
 
             con = con.replace(dodb[x][0] + "\n", '')
-            mw.writeFile(conf, con)
+            yf.writeFile(conf, con)
 
     if not isHas:
         prefix = '#replicate-do-db'
         con = con.replace(
             prefix, prefix + "\nreplicate-do-db=" + args['name'])
-        mw.writeFile(conf, con)
+        yf.writeFile(conf, con)
 
     restart(version)
     time.sleep(4)
-    return mw.returnJson(True, '设置成功', [args, dodb])
+    return yf.returnJson(True, '设置成功', [args, dodb])
 
 
 def getMasterStatus(version=''):
     if status(version) == 'stop':
-        return mw.returnJson(False, 'MySQL未启动,或正在启动中...!', [])
+        return yf.returnJson(False, 'MySQL未启动,或正在启动中...!', [])
 
     query_status_cmd = 'show slave status'
     is_mdb8 = False
     mdb8 = getMdb8Ver()
-    if mw.inArray(mdb8, version):
+    if yf.inArray(mdb8, version):
         is_mdb8 = True
         query_status_cmd = 'show replica status'
 
     try:
         
         conf = getConf()
-        content = mw.readFile(conf)
+        content = yf.readFile(conf)
         master_status = False
         if content.find('#log-bin') == -1 and content.find('log-bin') > 1:
             dodb = findBinlogDoDb()
@@ -2564,7 +2564,7 @@ def getMasterStatus(version=''):
         if isError:
             return isError
         if type(dlist) != list and type(dlist) != tuple:
-            return mw.returnJson(False, "查询状态失败:" + str(dlist))
+            return yf.returnJson(False, "查询状态失败:" + str(dlist))
 
         for v in dlist:
 
@@ -2575,18 +2575,18 @@ def getMasterStatus(version=''):
                 if (v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes'):
                     data['slave_status'] = True
 
-        return mw.returnJson(master_status, '设置成功', data)
+        return yf.returnJson(master_status, '设置成功', data)
     except Exception as e:
-        return mw.returnJson(False, "数据库密码错误,在管理列表-点击【修复】,"+str(mw.getTracebackInfo()), 'pwd')
+        return yf.returnJson(False, "数据库密码错误,在管理列表-点击【修复】,"+str(yf.getTracebackInfo()), 'pwd')
 
 
 def setMasterStatus(version=''):
 
     conf = getConf()
-    con = mw.readFile(conf)
+    con = yf.readFile(conf)
 
     if con.find('#log-bin') != -1:
-        return mw.returnJson(False, '必须开启二进制日志')
+        return yf.returnJson(False, '必须开启二进制日志')
 
     sign = 'mdserver_ms_open'
 
@@ -2594,17 +2594,17 @@ def setMasterStatus(version=''):
     if not sign in dodb:
         prefix = '#binlog-do-db'
         con = con.replace(prefix, prefix + "\nbinlog-do-db=" + sign)
-        mw.writeFile(conf, con)
+        yf.writeFile(conf, con)
     else:
         con = con.replace("binlog-do-db=" + sign + "\n", '')
         rep = r"(binlog-do-db\s*?=\s*?(.*))"
         dodb = re.findall(rep, con, re.M)
         for x in range(0, len(dodb)):
             con = con.replace(dodb[x][0] + "\n", '')
-        mw.writeFile(conf, con)
+        yf.writeFile(conf, con)
 
     restart(version)
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 
 def getMasterRepSlaveList(version=''):
@@ -2638,10 +2638,10 @@ def getMasterRepSlaveList(version=''):
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = 'getMasterRepSlaveList'
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def addMasterRepSlaveUser(version=''):
@@ -2663,15 +2663,15 @@ def addMasterRepSlaveUser(version=''):
 
     reg = r"^[\w-]+$"
     if not re.match(reg, username):
-        return mw.returnJson(False, '用户名不能带有特殊符号!')
+        return yf.returnJson(False, '用户名不能带有特殊符号!')
     checks = ['root', 'mysql', 'test', 'sys', 'performance_schema','information_schema']
     if username in checks or len(username) < 1:
-        return mw.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, '用户名不合法!')
     if password in checks or len(password) < 1:
-        return mw.returnJson(False, '密码不合法!')
+        return yf.returnJson(False, '密码不合法!')
 
     if len(password) < 1:
-        password = mw.md5(time.time())[0:8]
+        password = yf.md5(time.time())[0:8]
 
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
@@ -2679,10 +2679,10 @@ def addMasterRepSlaveUser(version=''):
     auth_policy = getAuthPolicy()
 
     if psdb.where("username=?", (username)).count() > 0:
-        return mw.returnJson(False, '用户已存在!')
+        return yf.returnJson(False, '用户已存在!')
 
     mdb8 = getMdb8Ver()
-    if mw.inArray(mdb8,version):
+    if yf.inArray(mdb8,version):
         sql = "CREATE USER '" + username + \
             "'  IDENTIFIED WITH "+auth_policy+" BY '" + password + "';"
         pdb.execute(sql)
@@ -2706,7 +2706,7 @@ def addMasterRepSlaveUser(version=''):
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('username,password,accept,ps,addtime',
              (username, password, '%', '', addTime))
-    return mw.returnJson(True, '添加成功!')
+    return yf.returnJson(True, '添加成功!')
 
 
 def getMasterRepSlaveUserCmd(version):
@@ -2721,14 +2721,14 @@ def getMasterRepSlaveUserCmd(version):
     if username == '':
         count = psdb.count()
         if count == 0:
-            return mw.returnJson(False, '请添加同步账户!')
+            return yf.returnJson(False, '请添加同步账户!')
 
         clist = psdb.field(f).limit('1').order('id desc').select()
     else:
         clist = psdb.field(f).where("username=?", (username,)).limit(
             '1').order('id desc').select()
 
-    ip = mw.getLocalIp()
+    ip = yf.getLocalIp()
     port = getMyPort()
     db = pMysqlDb()
 
@@ -2737,7 +2737,7 @@ def getMasterRepSlaveUserCmd(version):
         cmd_status = "SHOW BINARY LOG STATUS"
     mstatus = db.query(cmd_status)
     if len(mstatus) == 0:
-        return mw.returnJson(False, '未开启!')
+        return yf.returnJson(False, '未开启!')
 
     mode = recognizeDbMode()
 
@@ -2748,7 +2748,7 @@ def getMasterRepSlaveUserCmd(version):
 
     mdb8 = getMdb8Ver()
     sql = ''
-    if not mw.inArray(mdb8,version):
+    if not yf.inArray(mdb8,version):
         base_sql = "CHANGE MASTER TO MASTER_HOST='" + ip + "', MASTER_PORT=" + port + ", MASTER_USER='" + \
                 clist[0]['username'] + "', MASTER_PASSWORD='" + clist[0]['password'] + "'"
 
@@ -2775,7 +2775,7 @@ def getMasterRepSlaveUserCmd(version):
     data["info"] = clist[0]
     data['mode'] = mode
 
-    return mw.returnJson(True, 'ok!', data)
+    return yf.returnJson(True, 'ok!', data)
 
 
 def delMasterRepSlaveUser(version=''):
@@ -2798,7 +2798,7 @@ def delMasterRepSlaveUser(version=''):
 
     psdb.where("username=?", (args['username'],)).delete()
 
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 def updateMasterRepSlaveUser(version=''):
@@ -2817,7 +2817,7 @@ def updateMasterRepSlaveUser(version=''):
     psdb.where("username=?", (args['username'],)).save(
         'password', args['password'])
 
-    return mw.returnJson(True, '更新成功!')
+    return yf.returnJson(True, '更新成功!')
 
 
 def getSlaveSSHList(version=''):
@@ -2842,10 +2842,10 @@ def getSlaveSSHList(version=''):
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = args['tojs']
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def getSlaveSyncUserByIp(version=''):
@@ -2859,7 +2859,7 @@ def getSlaveSyncUserByIp(version=''):
     conn = pSqliteDb('slave_sync_user')
     data = conn.field('ip,port,user,pass,mode,cmd').where(
         "ip=?", (ip,)).select()
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def addSlaveSyncUser(version=''):
@@ -2872,7 +2872,7 @@ def addSlaveSyncUser(version=''):
 
     ip = args['ip']
     if ip == "":
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
     data = checkArgs(args, ['port', 'user', 'pass', 'mode'])
     if not data[0]:
@@ -2894,7 +2894,7 @@ def addSlaveSyncUser(version=''):
         conn.add('ip,port,user,cmd,user,pass,mode,addtime',
                  (ip, port, user, cmd, user, apass, mode, addTime))
 
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def delSlaveSyncUser(version=''):
@@ -2907,7 +2907,7 @@ def delSlaveSyncUser(version=''):
 
     conn = pSqliteDb('slave_sync_user')
     conn.where("ip=?", (ip,)).delete()
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 def getSlaveSyncUserList(version=''):
@@ -2932,10 +2932,10 @@ def getSlaveSyncUserList(version=''):
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = args['tojs']
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def getSyncModeFile():
@@ -2945,9 +2945,9 @@ def getSyncModeFile():
 def getSlaveSyncMode(version):
     sync_mode = getSyncModeFile()
     if os.path.exists(sync_mode):
-        mode = mw.readFile(sync_mode).strip()
-        return mw.returnJson(True, 'ok', mode)
-    return mw.returnJson(False, 'fail')
+        mode = yf.readFile(sync_mode).strip()
+        return yf.returnJson(True, 'ok', mode)
+    return yf.returnJson(False, 'fail')
 
 
 def setSlaveSyncMode(version):
@@ -2961,8 +2961,8 @@ def setSlaveSyncMode(version):
     if mode == 'none':
         os.remove(sync_mode)
     else:
-        mw.writeFile(sync_mode, mode)
-    return mw.returnJson(True, '设置成功', mode)
+        yf.writeFile(sync_mode, mode)
+    return yf.returnJson(True, '设置成功', mode)
 
 
 def getSlaveSSHByIp(version=''):
@@ -2975,7 +2975,7 @@ def getSlaveSSHByIp(version=''):
 
     conn = pSqliteDb('slave_id_rsa')
     data = conn.field('ip,port,db_user,id_rsa').where("ip=?", (ip,)).select()
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def addSlaveSSH(version=''):
@@ -2988,7 +2988,7 @@ def addSlaveSSH(version=''):
 
     ip = args['ip']
     if ip == "":
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
     data = checkArgs(args, ['port', 'id_rsa', 'db_user'])
     if not data[0]:
@@ -3009,7 +3009,7 @@ def addSlaveSSH(version=''):
         conn.add('ip,port,user,id_rsa,db_user,ps,addtime',
                  (ip, port, user, id_rsa, db_user, '', addTime))
 
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 
 def delSlaveSSH(version=''):
@@ -3022,7 +3022,7 @@ def delSlaveSSH(version=''):
 
     conn = pSqliteDb('slave_id_rsa')
     conn.where("ip=?", (ip,)).delete()
-    return mw.returnJson(True, '删除SSH成功!')
+    return yf.returnJson(True, '删除SSH成功!')
 
 
 def updateSlaveSSH(version=''):
@@ -3035,18 +3035,18 @@ def updateSlaveSSH(version=''):
     id_rsa = args['id_rsa']
     conn = pSqliteDb('slave_id_rsa')
     conn.where("ip=?", (ip,)).save('id_rsa', (id_rsa,))
-    return mw.returnJson(True, 'ok')
+    return yf.returnJson(True, 'ok')
 
 
 def getSlaveList(version=''):
 
     query_status_cmd = 'show slave status'
     mdb8 = getMdb8Ver()
-    if mw.inArray(mdb8, version):
+    if yf.inArray(mdb8, version):
         query_status_cmd = 'show replica status'
 
     if status(version) == 'stop':
-        return mw.returnJson(False, 'MySQL未启动', [])
+        return yf.returnJson(False, 'MySQL未启动', [])
 
     db = pMysqlDb()
     dlist = db.query(query_status_cmd)
@@ -3054,25 +3054,25 @@ def getSlaveList(version=''):
     # print(dlist)
     data = {}
     data['data'] = dlist
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def trySlaveSyncBugfix(version=''):
     if status(version) == 'stop':
-        return mw.returnJson(False, 'MySQL未启动', [])
+        return yf.returnJson(False, 'MySQL未启动', [])
 
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
-        return mw.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, '需要先设置同步配置')
 
-    mode = mw.readFile(mode_file)
+    mode = yf.readFile(mode_file)
     if mode != 'sync-user':
-        return mw.returnJson(False, '仅支持【同步账户】模式')
+        return yf.returnJson(False, '仅支持【同步账户】模式')
 
     conn = pSqliteDb('slave_sync_user')
     slave_sync_data = conn.field('ip,port,user,pass,mode,cmd').select()
     if len(slave_sync_data) < 1:
-        return mw.returnJson(False, '需要先添加【同步用户】配置!')
+        return yf.returnJson(False, '需要先添加【同步用户】配置!')
 
     # print(slave_sync_data)
     # 本地从库
@@ -3092,7 +3092,7 @@ def trySlaveSyncBugfix(version=''):
 
         # print(port, password, host)
 
-        mdb = mw.getMyORM()
+        mdb = yf.getMyORM()
         mdb.setHost(host)
         mdb.setPort(port)
         mdb.setUser(user)
@@ -3112,26 +3112,26 @@ def trySlaveSyncBugfix(version=''):
     # print(sql)
     sdb.query(sql)
     sdb.query('start slave')
-    return mw.returnJson(True, '修复成功!')
+    return yf.returnJson(True, '修复成功!')
 
 
 def getSlaveSyncCmd(version=''):
-    root = mw.getPanelDir()
+    root = yf.getPanelDir()
     cmd = 'cd ' + root + ' && python3 ' + root + \
         '/plugins/mysql/index.py do_full_sync {"db":"all","sign",""}'
-    return mw.returnJson(True, 'ok', cmd)
+    return yf.returnJson(True, 'ok', cmd)
 
 
 def initSlaveStatus(version=''):
     if status(version) == 'stop':
-        return mw.returnJson(False, 'MySQL未启动', [])
+        return yf.returnJson(False, 'MySQL未启动', [])
 
     mode_file = getSyncModeFile()
     # print(mode_file)
     if not os.path.exists(mode_file):
-        return mw.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, '需要先设置同步配置')
 
-    mode = mw.readFile(mode_file)
+    mode = yf.readFile(mode_file)
     if mode == 'ssh':
         return initSlaveStatusSSH(version)
     if mode == 'sync-user':
@@ -3182,7 +3182,7 @@ def initSlaveStatusSyncUser(version=''):
     conn = pSqliteDb('slave_sync_user')
     slave_data = conn.field('ip,port,user,pass,mode,cmd').select()
     if len(slave_data) < 1:
-        return mw.returnJson(False, '需要先添加同步用户配置!')
+        return yf.returnJson(False, '需要先添加同步用户配置!')
 
     slave_name = getSlaveName()
     # print(data)
@@ -3191,7 +3191,7 @@ def initSlaveStatusSyncUser(version=''):
         cmd_slave = 'show '+slave_name+' status'
         dlist = pdb.query(cmd_slave)
         if dlist and len(dlist) > 0:
-            return mw.returnJson(False, '已经初始化好了zz...')
+            return yf.returnJson(False, '已经初始化好了zz...')
 
     msg = ''
     local_mode = recognizeDbMode()
@@ -3216,7 +3216,7 @@ def initSlaveStatusSyncUser(version=''):
         try:
             pinfo = parseSlaveSyncCmd(cmd_sql)
         except Exception as e:
-            return mw.returnJson(False, base_t + '->CMD同步命令不合规范!')
+            return yf.returnJson(False, base_t + '->CMD同步命令不合规范!')
         # print(cmd_sql)
         t = pdb.query(cmd_sql)
         # print(t)
@@ -3232,7 +3232,7 @@ def initSlaveStatusSyncUser(version=''):
 
     if msg == '':
         msg = '初始化成功!'
-    return mw.returnJson(True, msg)
+    return yf.returnJson(True, msg)
 
 
 def initSlaveStatusSSH(version=''):
@@ -3244,7 +3244,7 @@ def initSlaveStatusSSH(version=''):
     ssh_list = conn.field('ip,port,id_rsa,db_user').select()
 
     if len(ssh_list) < 1:
-        return mw.returnJson(False, '需要先配置【[主]SSH配置】!')
+        return yf.returnJson(False, '需要先配置【[主]SSH配置】!')
 
     local_mode = recognizeDbMode()
 
@@ -3258,8 +3258,8 @@ def initSlaveStatusSSH(version=''):
         ip = data['ip']
         SSH_PRIVATE_KEY = "/tmp/t_ssh_" + ip + ".txt"
         master_port = data['port']
-        mw.writeFile(SSH_PRIVATE_KEY, data['id_rsa'].replace('\\n', '\n'))
-        mw.execShell("chmod 600 " + SSH_PRIVATE_KEY)
+        yf.writeFile(SSH_PRIVATE_KEY, data['id_rsa'].replace('\\n', '\n'))
+        yf.execShell("chmod 600 " + SSH_PRIVATE_KEY)
         try:
             key = paramiko.RSAKey.from_private_key_file(SSH_PRIVATE_KEY)
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -3275,14 +3275,14 @@ def initSlaveStatusSSH(version=''):
             result = stdout.read()
             result = result.decode('utf-8')
             if result.strip() == "":
-                return mw.returnJson(False, '[主][' + ip + ']:获取同步命令失败!')
+                return yf.returnJson(False, '[主][' + ip + ']:获取同步命令失败!')
 
             cmd_data = json.loads(result)
             if not cmd_data['status']:
-                return mw.returnJson(False, '[主][' + ip + ']:' + cmd_data['msg'])
+                return yf.returnJson(False, '[主][' + ip + ']:' + cmd_data['msg'])
 
             if local_mode != cmd_data['data']['mode']:
-                return mw.returnJson(False, '[主][' + ip + ']:【{}】从【{}】,运行模式不一致!'.format(cmd_data['data']['mode'], local_mode))
+                return yf.returnJson(False, '[主][' + ip + ']:【{}】从【{}】,运行模式不一致!'.format(cmd_data['data']['mode'], local_mode))
 
             u = cmd_data['data']['info']
 
@@ -3305,23 +3305,23 @@ def initSlaveStatusSSH(version=''):
             if os.path.exists(SSH_PRIVATE_KEY):
                 os.system("rm -rf " + SSH_PRIVATE_KEY)
         except Exception as e:
-            return mw.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+            return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
     db.query('start '+slave_name)
-    return mw.returnJson(True, '初始化成功!')
+    return yf.returnJson(True, '初始化成功!')
 
 
 def setSlaveStatus(version=''):
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
-        return mw.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, '需要先设置同步配置')
 
-    mode = mw.readFile(mode_file)
+    mode = yf.readFile(mode_file)
     pdb = pMysqlDb()
 
     slave_name = getSlaveName()
     dlist = pdb.query(cmd)
     if len(dlist) == 0:
-        return mw.returnJson(False, '需要手动添加同步账户或者执行初始化!')
+        return yf.returnJson(False, '需要手动添加同步账户或者执行初始化!')
 
     for v in dlist:
         connection_name = ''
@@ -3336,7 +3336,7 @@ def setSlaveStatus(version=''):
         else:
             pdb.query("start {}".format(cmd))
 
-    return mw.returnJson(True, '设置成功!')
+    return yf.returnJson(True, '设置成功!')
 
 def deleteSlaveFunc(sign = ''):
     db = pMysqlDb()
@@ -3355,7 +3355,7 @@ def deleteSlave(version=''):
     if 'sign' in args:
         sign = args['sign']
     deleteSlaveFunc(sign)
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 def dumpMysqlData(version=''):
@@ -3383,7 +3383,7 @@ def dumpMysqlData(version=''):
             pwd + " --force --databases " + \
             args['db'] + " | gzip > /tmp/dump.sql.gz"
 
-    ret = mw.execShell(cmd)
+    ret = yf.execShell(cmd)
     if ret[0] == '':
         return 'ok'
     return 'fail'
@@ -3402,7 +3402,7 @@ def getSyncMysqlDB(dbname,sign = ''):
     port = data['port']
     ip = data['ip']
     # 远程数据
-    sync_db = mw.getMyORM()
+    sync_db = yf.getMyORM()
     # MySQLdb |
     sync_db.setPort(port)
     sync_db.setHost(ip)
@@ -3413,7 +3413,7 @@ def getSyncMysqlDB(dbname,sign = ''):
     return sync_db
 
 def syncDatabaseRepairTempFile():
-    tmp_log = mw.getMWLogs()+ '/mysql-check.log'
+    tmp_log = yf.getMWLogs()+ '/mysql-check.log'
     return tmp_log
 
 def syncDatabaseRepairLog(version=''):
@@ -3426,25 +3426,25 @@ def syncDatabaseRepairLog(version=''):
     sync_args_db = args['db']
     sync_args_sign = args['sign']
     if not safe_check_args(db_name=sync_args_db, sign_val=sync_args_sign):
-        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     op = args['op']
     tmp_log = syncDatabaseRepairTempFile()
-    cmd = 'cd '+mw.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py sync_database_repair  {"db":"'+sync_args_db+'","sign":"'+sync_args_sign+'"}'
+    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py sync_database_repair  {"db":"'+sync_args_db+'","sign":"'+sync_args_sign+'"}'
     # print(cmd)
 
     if op == 'get':
-        log = mw.getLastLine(tmp_log, 15)
-        return mw.returnJson(True, log)
+        log = yf.getLastLine(tmp_log, 15)
+        return yf.returnJson(True, log)
 
     if op == 'cmd':
-        return mw.returnJson(True, 'ok', cmd)
+        return yf.returnJson(True, 'ok', cmd)
 
     if op == 'do':
         os.system(' echo "开始执行" > '+ tmp_log)
         os.system(cmd +' >> '+ tmp_log +' &')
-        return mw.returnJson(True, 'ok')
+        return yf.returnJson(True, 'ok')
 
-    return mw.returnJson(False, '无效请求!')
+    return yf.returnJson(False, '无效请求!')
 
 
 def syncDatabaseRepair(version=''):
@@ -3460,7 +3460,7 @@ def syncDatabaseRepair(version=''):
     sync_args_db = args['db']
     sync_args_sign = args['sign']
     if not safe_check_args(db_name=sync_args_db, sign_val=sync_args_sign):
-        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     
     # 本地数据
     local_db = pMysqlDb()
@@ -3472,7 +3472,7 @@ def syncDatabaseRepair(version=''):
     inconsistent_table = []
 
     tmp_dir = '/tmp/sync_db_repair'
-    mw.makeDirs(tmp_dir)
+    yf.makeDirs(tmp_dir)
 
     for tb in tables:
 
@@ -3506,8 +3506,8 @@ def syncDatabaseRepair(version=''):
                     print("all data compare: ",local_count_data, sync_count_data)
                 else:
                     print(table_name+' smart compare check ok.')
-                    mw.writeFile(tmp_log, table_name+' smart compare check ok.\n','a+')
-                    mw.execShell("echo 'ok' > "+table_check_file)
+                    yf.writeFile(tmp_log, table_name+' smart compare check ok.\n','a+')
+                    yf.execShell("echo 'ok' > "+table_check_file)
                     continue
 
 
@@ -3520,17 +3520,17 @@ def syncDatabaseRepair(version=''):
         if local_count_data != sync_count_data:
             if sync_count_data == None:
                 print("sync:"+table_name+" is not exists!!!")
-                mw.writeFile(tmp_log, "sync:"+table_name+" is not exists!!!"+'\n','a+')
+                yf.writeFile(tmp_log, "sync:"+table_name+" is not exists!!!"+'\n','a+')
             else:
                 print("all data compare: ",local_count_data, sync_count_data)
                 inconsistent_table.append(table_name)
                 diff = sync_count_data[0]['num'] - local_count_data[0]['num']
                 print(table_name+', need sync. diff,'+str(diff))
-                mw.writeFile(tmp_log, table_name+', need sync. diff,'+str(diff)+'\n','a+')
+                yf.writeFile(tmp_log, table_name+', need sync. diff,'+str(diff)+'\n','a+')
         else:
             print(table_name+' check ok.')
-            mw.writeFile(tmp_log, table_name+' check ok.\n','a+')
-            mw.execShell("echo 'ok' > "+table_check_file)
+            yf.writeFile(tmp_log, table_name+' check ok.\n','a+')
+            yf.execShell("echo 'ok' > "+table_check_file)
 
 
     # inconsistent_table = ['xx.xx']
@@ -3543,7 +3543,7 @@ def syncDatabaseRepair(version=''):
             sync_db.ping()
 
             print("check table:"+table_name)
-            mw.writeFile(tmp_log, "check table:"+table_name+'\n','a+')
+            yf.writeFile(tmp_log, "check table:"+table_name+'\n','a+')
             table_name_pos = 0
             table_name_pos_file = tmp_dir+'/'+table_name+'.pos.txt'
             primary_key_sql = "SHOW INDEX FROM "+table_name+" WHERE Key_name = 'PRIMARY';";
@@ -3551,7 +3551,7 @@ def syncDatabaseRepair(version=''):
             pkey_name = primary_key_data[0]['Column_name']
 
             if os.path.exists(table_name_pos_file):
-                table_name_pos = mw.readFile(table_name_pos_file)
+                table_name_pos = yf.readFile(table_name_pos_file)
             
 
             data_select_sql = 'select * from '+table_name + ' where '+pkey_name+' > '+str(table_name_pos)+' limit 10000'
@@ -3561,7 +3561,7 @@ def syncDatabaseRepair(version=''):
             time_s = time.time()
             sync_select_data = sync_db.query(data_select_sql)
             print(f'sync query cos:{time.time() - time_s:.4f}s')
-            mw.writeFile(tmp_log, f'sync query cos:{time.time() - time_s:.4f}s\n','a+')
+            yf.writeFile(tmp_log, f'sync query cos:{time.time() - time_s:.4f}s\n','a+')
 
             # print(local_select_data)
             # print(sync_select_data)
@@ -3588,7 +3588,7 @@ def syncDatabaseRepair(version=''):
             if local_select_data == sync_select_data:
                 data_count = len(local_select_data)
                 if data_count == 0:
-                    # mw.writeFile(table_name_pos_file, '0')
+                    # yf.writeFile(table_name_pos_file, '0')
                     print(table_name+",data is equal ok..")
                     is_break = True
                     break
@@ -3598,7 +3598,7 @@ def syncDatabaseRepair(version=''):
                 print('pos',pos)
                 progress = pos/sync_count_data[0]['num']
                 print('progress,%.2f' % progress+'%')
-                mw.writeFile(table_name_pos_file, str(pos))
+                yf.writeFile(table_name_pos_file, str(pos))
             else:
                 sync_select_data_len = len(sync_select_data)
                 skip_idx = 0
@@ -3612,7 +3612,7 @@ def syncDatabaseRepair(version=''):
                         if sync_select_data[idx] == local_idx_data:
                             skip_idx = idx
                             pos = local_select_data[idx][pkey_name]
-                            mw.writeFile(table_name_pos_file, str(pos))
+                            yf.writeFile(table_name_pos_file, str(pos))
 
                         # print(insert_data)
                         local_inquery_sql = 'select * from ' + table_name+ ' where ' +pkey_name+' = '+ str(sync_idx_data[pkey_name])
@@ -3679,7 +3679,7 @@ def syncDatabaseRepair(version=''):
             time.sleep(3)
     print(f'data check cos:{time.time() - time_stats_s:.4f}s')
     print("data supplementation completed")
-    mw.execShell('rm -rf  '+tmp_dir)
+    yf.execShell('rm -rf  '+tmp_dir)
     return 'ok'
 
 ############### --- 重要 同步---- ###########
@@ -3691,7 +3691,7 @@ def asyncTmpfile():
 
 def writeDbSyncStatus(data):
     path = asyncTmpfile()
-    mw.writeFile(path, json.dumps(data))
+    yf.writeFile(path, json.dumps(data))
     return True
 
 def fullSyncCmd():
@@ -3704,22 +3704,22 @@ def fullSyncCmd():
     db = args['db']
     sign = args['sign']
     if not safe_check_args(db_name=db, sign_val=sign):
-        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
-    cmd = 'cd '+mw.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py do_full_sync  {"db":"'+db+'","sign":"'+sign+'"}'
-    return mw.returnJson(True,'ok',cmd)
+    cmd = 'cd '+yf.getServerDir()+'/mdserver-web && source bin/activate && python3 plugins/mysql/index.py do_full_sync  {"db":"'+db+'","sign":"'+sign+'"}'
+    return yf.returnJson(True,'ok',cmd)
 
 def doFullSync(version=''):
     args = getArgs()
     db = args.get('db')
     sign = args.get('sign')
     if not safe_check_args(db_name=db, sign_val=sign):
-        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
-        return mw.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, '需要先设置同步配置')
 
-    mode = mw.readFile(mode_file)
+    mode = yf.readFile(mode_file)
     if mode == 'ssh':
         return doFullSyncSSH(version)
     if mode == 'sync-user':
@@ -3747,7 +3747,7 @@ def getChannelNameForCmd(cmd):
 
 def doFullSyncUserImportContentForChannel(file, channel_name):
     # print(file, channel_name)
-    content = mw.readFile(file)
+    content = yf.readFile(file)
 
     slave_name = getSlaveName()
     slave_name = slave_name.upper()
@@ -3765,13 +3765,13 @@ def doFullSyncUserImportContentForChannel(file, channel_name):
             if find_str.lower().find('channel')==-1:
                 content = content.replace(find_str+';', find_str+" for channel '{}';".format(channel_name))
 
-    mw.writeFile(file,content)
+    yf.writeFile(file,content)
     return True
 
 
 def doFullSyncUser(version=''):
     slave_name = getSlaveName()
-    which_pv = mw.execShell('which pv')
+    which_pv = yf.execShell('which pv')
     is_exist_pv = False
     if os.path.exists(which_pv[0]):
         is_exist_pv = True
@@ -3782,7 +3782,7 @@ def doFullSyncUser(version=''):
     if not data[0]:
         return data[1]
     if not safe_check_args(db_name=args['db'], sign_val=args['sign']):
-        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     sync_db = args['db']
     sync_db_import = args['db']
@@ -3833,7 +3833,7 @@ def doFullSyncUser(version=''):
     writeDbSyncStatus({'code': 1, 'msg': '正在停止从库...', 'progress': 15})
 
     mdb8 = getMdb8Ver()
-    if mw.inArray(mdb8,version):
+    if yf.inArray(mdb8,version):
         db.query("stop {} user='{}' password='{}';".format(slave_name,user, apass))
     else:
         db.query("stop "+slave_name)
@@ -3852,7 +3852,7 @@ def doFullSyncUser(version=''):
     # --skip-opt --create-options
     # --master-data=1
 
-    find_run_dump = mw.execShell('ps -ef | grep mysqldump | grep -v grep')
+    find_run_dump = yf.execShell('ps -ef | grep mysqldump | grep -v grep')
     if find_run_dump[0] != "":
         print("正在远程导出数据中,别着急...")
         writeDbSyncStatus({'code': 3.1, 'msg': '正在远程导出数据中,别着急...', 'progress': 19})
@@ -3866,7 +3866,7 @@ def doFullSyncUser(version=''):
 
     if not os.path.exists(bak_file):
         dmp_option += ' '
-        if mw.inArray(mdb8,version):
+        if yf.inArray(mdb8,version):
             # --compression-algorithms
             dmp_option += " --source-data=1 --apply-replica-statements --include-source-host-port "
         else:
@@ -3876,7 +3876,7 @@ def doFullSyncUser(version=''):
             port + " -u" + user + " -p'" + apass + "' " + ssl_mode + " " + sync_db + " > " + bak_file
         print(dump_sql_data)
         time_s = time.time()
-        r = mw.execShell(dump_sql_data)
+        r = yf.execShell(dump_sql_data)
         print(r)
     time_e = time.time()
     export_cos = time_e - time_s
@@ -3884,7 +3884,7 @@ def doFullSyncUser(version=''):
     
     writeDbSyncStatus({'code': 3, 'msg': '导出耗时:'+str(int(export_cos))+'秒,正在到本地导入数据中...', 'progress': 40})
 
-    find_run_import = mw.execShell('ps -ef | grep mysql| grep '+ bak_file +' | grep -v grep')
+    find_run_import = yf.execShell('ps -ef | grep mysql| grep '+ bak_file +' | grep -v grep')
     if find_run_import[0] != "":
         print("正在导入数据中,别着急...")
         writeDbSyncStatus({'code': 4.1, 'msg': '正在导入数据中,别着急...', 'progress': 39})
@@ -3913,7 +3913,7 @@ def doFullSyncUser(version=''):
         else:
             my_import_cmd = getServerDir() + '/bin/mysql -S ' + sock + " -uroot -p'" + pwd + "' " + sync_db_import + ' < ' + bak_file
             print(my_import_cmd)
-            mw.execShell(my_import_cmd)
+            yf.execShell(my_import_cmd)
 
         # 加快导入 - 结束
         # db.execute('set global innodb_flush_log_at_trx_commit = 1')
@@ -3929,7 +3929,7 @@ def doFullSyncUser(version=''):
     # r = db.query(cmd)
     # print(r)
 
-    if mw.inArray(mdb8,version):
+    if yf.inArray(mdb8,version):
         db.query("start replica user='{}' password='{}';".format(user, apass))
     else:
         db.query("start "+slave_name)
@@ -3952,7 +3952,7 @@ def doFullSyncSSH(version=''):
     if not data[0]:
         return data[1]
     if not safe_check_args(db_name=args['db'], sign_val=args['sign']):
-        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     sync_db = args['db']
     sync_sign = args['sign']
@@ -3968,7 +3968,7 @@ def doFullSyncSSH(version=''):
 
     SSH_PRIVATE_KEY = "/tmp/mysql_sync_id_rsa.txt"
     id_rsa = data['id_rsa'].replace('\\n', '\n')
-    mw.writeFile(SSH_PRIVATE_KEY, id_rsa)
+    yf.writeFile(SSH_PRIVATE_KEY, id_rsa)
 
     ip = data["ip"]
     master_port = data['port']
@@ -3988,7 +3988,7 @@ def doFullSyncSSH(version=''):
 
     try:
         # ssh.load_system_host_keys()
-        mw.execShell("chmod 600 " + SSH_PRIVATE_KEY)
+        yf.execShell("chmod 600 " + SSH_PRIVATE_KEY)
         key = paramiko.RSAKey.from_private_key_file(SSH_PRIVATE_KEY)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         print(ip, master_port)
@@ -4061,12 +4061,12 @@ def doFullSyncSSH(version=''):
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     root_dir = getServerDir()
     msock = root_dir + "/mysql.sock"
-    mw.execShell("cd /tmp && gzip -d dump.sql.gz")
+    yf.execShell("cd /tmp && gzip -d dump.sql.gz")
     cmd = root_dir + "/bin/mysql -S " + msock + \
         " -uroot -p" + pwd + " < /tmp/dump.sql"
 
     print(cmd)
-    import_data = mw.execShell(cmd)
+    import_data = yf.execShell(cmd)
     if import_data[0] == '':
         print(import_data[1])
         writeDbSyncStatus({'code': 5, 'msg': '导入数据完成...', 'progress': 90})
@@ -4076,7 +4076,7 @@ def doFullSyncSSH(version=''):
         return 'fail'
     
     mdb8 = getMdb8Ver()
-    if mw.inArray(mdb8,version):
+    if yf.inArray(mdb8,version):
         db.query("start slave user='{}' password='{}';".format(uinfo['username'], uinfo['password']))
     else:
         db.query("start slave")
@@ -4094,7 +4094,7 @@ def fullSync(version=''):
     if not data[0]:
         return data[1]
     if not safe_check_args(db_name=args['db'], sign_val=args.get('sign')):
-        return mw.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
+        return yf.returnJson(False, '安全警告：参数包含非法字符，拒绝执行!')
 
     sign = ''
     if 'sign' in args:
@@ -4102,21 +4102,21 @@ def fullSync(version=''):
 
     status_file = asyncTmpfile()
     if args['begin'] == '1':
-        cmd = 'cd ' + mw.getPanelDir() + ' && python3 ' + getPluginDir() + \
+        cmd = 'cd ' + yf.getPanelDir() + ' && python3 ' + getPluginDir() + \
             '/index.py do_full_sync {"db":"' + \
             args['db'] + '","sign":"' + sign + '"} &'
         # print(cmd)
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         return json.dumps({'code': 0, 'msg': '同步数据中!', 'progress': 0})
 
     if os.path.exists(status_file):
-        c = mw.readFile(status_file)
+        c = yf.readFile(status_file)
         tmp = json.loads(c)
         if tmp['code'] == 1:
             sys_dump_sql = "/tmp/dump.sql"
             if os.path.exists(sys_dump_sql):
                 dump_size = os.path.getsize(sys_dump_sql)
-                tmp['msg'] = tmp['msg'] + ":" + "同步文件:" + mw.toSize(dump_size)
+                tmp['msg'] = tmp['msg'] + ":" + "同步文件:" + yf.toSize(dump_size)
             c = json.dumps(tmp)
 
         # if tmp['code'] == 6:
@@ -4134,7 +4134,7 @@ def installPreInspection(version):
     if memG > 2:
         return 'ok'
 
-    swap_path = mw.getServerDir() + "/swap"
+    swap_path = yf.getServerDir() + "/swap"
     if not os.path.exists(swap_path):
         return "内存小,为了稳定安装MySQL,先安装swap插件!"
     return 'ok'
@@ -4144,8 +4144,8 @@ def uninstallPreInspection(version):
     initdUinstall()
     
     # 清理残余套接字
-    mw.execShell('rm -f /tmp/mysql.sock*')
-    mw.execShell('rm -f /var/tmp/mysql.sock*')
+    yf.execShell('rm -f /tmp/mysql.sock*')
+    yf.execShell('rm -f /var/tmp/mysql.sock*')
 
     from utils.plugin import plugin as MwPlugin
     MwPlugin.instance().removeIndex(getPluginName(), version)
@@ -4160,7 +4160,7 @@ def checkAnomalyBackup():
     for d in backup_dirs:
         if os.path.isdir(d):
             valid_dirs.append(d.replace('\\', '/'))
-    return mw.returnJson(True, 'ok', valid_dirs)
+    return yf.returnJson(True, 'ok', valid_dirs)
 
 if __name__ == "__main__":
     func = sys.argv[1]
@@ -4168,7 +4168,7 @@ if __name__ == "__main__":
     version = "5.6"
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl).strip()
+        version = yf.readFile(version_pl).strip()
 
     if func == 'status':
         print(status(version))

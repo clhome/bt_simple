@@ -16,7 +16,7 @@ import core.mw as mw
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -25,7 +25,7 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 sys.path.append(getPluginDir() + "/class")
@@ -35,11 +35,11 @@ from LuaMaker import LuaMaker
 def listToLuaFile(path, lists):
     content = LuaMaker.makeLuaTable(lists)
     content = "return " + content
-    mw.writeFile(path, content)
+    yf.writeFile(path, content)
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getConf():
@@ -67,12 +67,12 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def luaConf():
-    return mw.getServerDir() + '/web_conf/nginx/vhost/webstats.conf'
+    return yf.getServerDir() + '/web_conf/nginx/vhost/webstats.conf'
 
 
 def status():
@@ -88,10 +88,10 @@ def loadLuaFile(name):
 
     if not os.path.exists(lua_dst):
         lua_tpl = getPluginDir() + '/lua/' + name
-        content = mw.readFile(lua_tpl)
+        content = yf.readFile(lua_tpl)
         content = content.replace('{$SERVER_APP}', getServerDir())
-        content = content.replace('{$ROOT_PATH}', mw.getServerDir())
-        mw.writeFile(lua_dst, content)
+        content = content.replace('{$ROOT_PATH}', yf.getServerDir())
+        yf.writeFile(lua_dst, content)
 
 
 def loadLuaFileReload(name):
@@ -99,22 +99,22 @@ def loadLuaFileReload(name):
     lua_dst = lua_dir + "/" + name
 
     lua_tpl = getPluginDir() + '/lua/' + name
-    content = mw.readFile(lua_tpl)
+    content = yf.readFile(lua_tpl)
     content = content.replace('{$SERVER_APP}', getServerDir())
-    content = content.replace('{$ROOT_PATH}', mw.getServerDir())
-    mw.writeFile(lua_dst, content)
+    content = content.replace('{$ROOT_PATH}', yf.getServerDir())
+    yf.writeFile(lua_dst, content)
 
 
 def loadConfigFile():
     lua_dir = getServerDir() + "/lua"
     conf_tpl = getPluginDir() + "/conf/config.json"
 
-    content = mw.readFile(conf_tpl)
+    content = yf.readFile(conf_tpl)
     content = json.loads(content)
 
     dst_conf_json = getServerDir() + "/lua/config.json"
     if not os.path.exists(dst_conf_json):
-        mw.writeFile(dst_conf_json, json.dumps(content))
+        yf.writeFile(dst_conf_json, json.dumps(content))
 
     dst_conf_lua = getServerDir() + "/lua/webstats_config.lua"
     if not os.path.exists(dst_conf_lua):
@@ -126,11 +126,11 @@ def loadConfigFile():
 #     lua_dir = getServerDir() + "/lua"
 #     conf_tpl = getPluginDir() + "/conf/config.json"
 
-#     content = mw.readFile(conf_tpl)
+#     content = yf.readFile(conf_tpl)
 #     content = json.loads(content)
 
 #     dst_conf_json = getServerDir() + "/lua/config.json"
-#     mw.writeFile(dst_conf_json, json.dumps(content))
+#     yf.writeFile(dst_conf_json, json.dumps(content))
 
 #     dst_conf_lua = getServerDir() + "/lua/webstats_config.lua"
 #     listToLuaFile(dst_conf_lua, content)
@@ -144,7 +144,7 @@ def loadLuaSiteFile():
         pSqliteDb('web_log', content[index]['name'])
 
     lua_site_json = lua_dir + "/sites.json"
-    mw.writeFile(lua_site_json, json.dumps(content))
+    yf.writeFile(lua_site_json, json.dumps(content))
 
     # 设置默认列表
     default_json = lua_dir + "/default.json"
@@ -160,7 +160,7 @@ def loadLuaSiteFile():
     else:
         ddata["default"] = dlist[0]
 
-    mw.writeFile(default_json, json.dumps(ddata))
+    yf.writeFile(default_json, json.dumps(ddata))
 
     lua_site = lua_dir + "/webstats_sites.lua"
 
@@ -175,24 +175,24 @@ def loadLuaSiteFile():
 def loadDebugLogFile():
     debug_log = getServerDir() + "/debug.log"
     lua_dir = getServerDir() + "/lua"
-    mw.writeFile(debug_log, '')
+    yf.writeFile(debug_log, '')
 
 
 def pSqliteDb(dbname='web_logs', site_name='unset', name="logs"):
 
     db_dir = getServerDir() + '/logs/' + site_name
     if not os.path.exists(db_dir):
-        mw.makeDirs(db_dir)
+        yf.makeDirs(db_dir)
 
     file = db_dir + '/' + name + '.db'
     if not os.path.exists(file):
-        conn = mw.M(dbname).dbPos(db_dir, name)
-        sql = mw.readFile(getPluginDir() + '/conf/init.sql')
+        conn = yf.M(dbname).dbPos(db_dir, name)
+        sql = yf.readFile(getPluginDir() + '/conf/init.sql')
         sql_list = sql.split(';')
         for index in range(len(sql_list)):
             conn.execute(sql_list[index])
     else:
-        conn = mw.M(dbname).dbPos(db_dir, name)
+        conn = yf.M(dbname).dbPos(db_dir, name)
 
     conn.execute("PRAGMA synchronous = 0")
     conn.execute("PRAGMA cache_size = 8000")
@@ -203,8 +203,8 @@ def pSqliteDb(dbname='web_logs', site_name='unset', name="logs"):
 
 
 def makeSiteConfig():
-    siteM = mw.M('sites')
-    domainM = mw.M('domain')
+    siteM = yf.M('sites')
+    domainM = yf.M('domain')
     slist = siteM.field('id,name').where(
         'status=?', (1,)).order('id desc').select()
 
@@ -235,15 +235,15 @@ def initDreplace():
     path = luaConf()
     path_tpl = getPluginDir() + '/conf/webstats.conf'
     if not os.path.exists(path):
-        content = mw.readFile(path_tpl)
+        content = yf.readFile(path_tpl)
         content = content.replace('{$SERVER_APP}', service_path)
-        content = content.replace('{$ROOT_PATH}', mw.getServerDir())
-        mw.writeFile(path, content)
+        content = content.replace('{$ROOT_PATH}', yf.getServerDir())
+        yf.writeFile(path, content)
 
     # 已经安装的
     al_config = getServerDir() + "/lua/config.json"
     if os.path.exists(al_config):
-        tmp = json.loads(mw.readFile(al_config))
+        tmp = json.loads(yf.readFile(al_config))
         if tmp['global']['record_post_args'] or tmp['global']['record_get_403_args']:
             openLuaNeedRequestBody()
         else:
@@ -251,11 +251,11 @@ def initDreplace():
 
     lua_dir = getServerDir() + "/lua"
     if not os.path.exists(lua_dir):
-        mw.makeDirs(lua_dir)
+        yf.makeDirs(lua_dir)
 
     log_path = getServerDir() + "/logs"
     if not os.path.exists(log_path):
-        mw.makeDirs(log_path)
+        yf.makeDirs(log_path)
 
     file_list = [
         'webstats_common.lua',
@@ -269,14 +269,14 @@ def initDreplace():
     loadLuaSiteFile()
     loadDebugLogFile()
 
-    if not mw.isAppleSystem():
-        mw.execShell("chown -R www:www " + getServerDir())
+    if not yf.isAppleSystem():
+        yf.execShell("chown -R www:www " + getServerDir())
     return 'ok'
 
 
 def luaRestart():
-    mw.opWeb("stop")
-    mw.opWeb("start")
+    yf.opWeb("stop")
+    yf.opWeb("start")
 
 
 def start():
@@ -327,32 +327,32 @@ def reload():
 
 def getGlobalConf():
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     content = json.loads(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 def openLuaNeedRequestBody():
     conf = luaConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     content = re.sub(r"lua_need_request_body (.*);",
                      'lua_need_request_body on;', content)
-    mw.writeFile(conf, content)
+    yf.writeFile(conf, content)
 
 
 def closeLuaNeedRequestBody():
     conf = luaConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     content = re.sub(r"lua_need_request_body (.*);",
                      'lua_need_request_body off;', content)
-    mw.writeFile(conf, content)
+    yf.writeFile(conf, content)
 
 
 def setGlobalConf():
     args = getArgs()
 
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     content = json.loads(content)
 
     open_force_get_request_body = False
@@ -396,11 +396,11 @@ def setGlobalConf():
                 exclude_url_val.append(val)
         content['global']['exclude_url'] = exclude_url_val
 
-    mw.writeFile(conf, json.dumps(content))
+    yf.writeFile(conf, json.dumps(content))
     conf_lua = getServerDir() + "/lua/webstats_config.lua"
     listToLuaFile(conf_lua, content)
     luaRestart()
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 
 def getSiteConf():
@@ -412,7 +412,7 @@ def getSiteConf():
 
     domain = args['site']
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     content = json.loads(content)
 
     site_conf = {}
@@ -428,7 +428,7 @@ def getSiteConf():
         site_conf["record_get_403_args"] = content[
             'global']['record_get_403_args']
 
-    return mw.returnJson(True, 'ok', site_conf)
+    return yf.returnJson(True, 'ok', site_conf)
 
 
 def setSiteConf():
@@ -439,7 +439,7 @@ def setSiteConf():
 
     domain = args['site']
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     content = json.loads(content)
 
     site_conf = {}
@@ -489,33 +489,33 @@ def setSiteConf():
 
     content[domain] = site_conf
 
-    mw.writeFile(conf, json.dumps(content))
+    yf.writeFile(conf, json.dumps(content))
     conf_lua = getServerDir() + "/lua/webstats_config.lua"
     listToLuaFile(conf_lua, content)
     luaRestart()
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 
 def getSiteListData():
     lua_dir = getServerDir() + "/lua"
     path = lua_dir + "/default.json"
-    data = mw.readFile(path)
+    data = yf.readFile(path)
     return json.loads(data)
 
 
 def getDefaultSite():
     data = getSiteListData()
-    return mw.returnJson(True, 'OK', data)
+    return yf.returnJson(True, 'OK', data)
 
 
 def setDefaultSite(name):
     lua_dir = getServerDir() + "/lua"
     path = lua_dir + "/default.json"
-    data = mw.readFile(path)
+    data = yf.readFile(path)
     data = json.loads(data)
     data['default'] = name
-    mw.writeFile(path, json.dumps(data))
-    return mw.returnJson(True, 'OK')
+    yf.writeFile(path, json.dumps(data))
+    return yf.returnJson(True, 'OK')
 
 
 def toSumField(sql):
@@ -630,7 +630,7 @@ def getOverviewList():
     data['data'] = dlist
     data['stat_list'] = stat_list[0]
 
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def getSiteList():
@@ -649,7 +649,7 @@ def getSiteList():
         tmp = getSiteStatInfo(x, query_date)
         tmp["site"] = x
         rdata.append(tmp)
-    return mw.returnJson(True, 'ok', rdata)
+    return yf.returnJson(True, 'ok', rdata)
 
 
 def getLogsRealtimeInfo():
@@ -689,7 +689,7 @@ def getLogsRealtimeInfo():
     data['realtime_traffic'] = body_count
     data['realtime_request'] = req_count
 
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def attacHistoryLogHack(conn, site_name, query_date='today'):
@@ -824,10 +824,10 @@ def getLogsList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = tojs
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def getLogsErrorList():
@@ -889,10 +889,10 @@ def getLogsErrorList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = tojs
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
 
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def getClientStatList():
@@ -1005,12 +1005,12 @@ def getClientStatList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = tojs
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
     data['stat_list'] = statlist
     data['sum_data'] = sum_data
 
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def getDateRangeList(start, end):
@@ -1166,7 +1166,7 @@ def getIpStatList():
             except Exception as e:
                 clist[i]['area'] = "内网?"
 
-    return mw.returnJson(True, 'ok', clist)
+    return yf.returnJson(True, 'ok', clist)
 
 
 def getUriStatList():
@@ -1264,7 +1264,7 @@ def getUriStatList():
         clist[i]['day_rate'] = round((clist[i]['day'] / total_req) * 100, 2)
         clist[i]['flow_rate'] = round((clist[i]['flow'] / total_flow) * 100, 2)
 
-    return mw.returnJson(True, 'ok', clist)
+    return yf.returnJson(True, 'ok', clist)
 
 
 def getWebLogCount(domain, query_date):
@@ -1384,16 +1384,16 @@ def getSpiderStatList():
     _page['p'] = page
     _page['row'] = page_size
     _page['tojs'] = tojs
-    data['page'] = mw.getPage(_page)
+    data['page'] = yf.getPage(_page)
     data['data'] = clist
     data['stat_list'] = statlist
     data['sum_data'] = sum_data
 
-    return mw.returnJson(True, 'ok', data)
+    return yf.returnJson(True, 'ok', data)
 
 
 def installPreInspection():
-    check_op = mw.getServerDir() + "/openresty"
+    check_op = yf.getServerDir() + "/openresty"
     if not os.path.exists(check_op):
         return "请先安装OpenResty"
     return 'ok'

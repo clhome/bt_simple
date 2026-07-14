@@ -35,7 +35,7 @@ import json
 
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 
 def getPluginName():
@@ -43,11 +43,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 # print(getPluginDir())
@@ -72,11 +72,11 @@ gd.setDebug(True)
 #             authorized_url=url)
 #         msodc.store_token(token)
 #         msodc.store_user()
-#         return mw.returnJson(True, "授权成功！")
+#         return yf.returnJson(True, "授权成功！")
 #     except Exception as e:
 #         print(e)
-#         return mw.returnJson(False, "授权失败2！:" + str(e))
-#     return mw.returnJson(False, "授权失败！:" + str(e))
+#         return yf.returnJson(False, "授权失败2！:" + str(e))
+#     return yf.returnJson(False, "授权失败！:" + str(e))
 
 # url = 'http://localhost/?code=M.C106_BAY.2.310112f3-a158-c400-9667-d158cbd1de6c&state=jEJz0ucR9bpZYD9PGxp2GgRDotrzO6'
 # token = set_auth_url(url)

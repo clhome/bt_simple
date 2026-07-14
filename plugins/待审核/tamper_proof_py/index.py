@@ -19,7 +19,7 @@ import core.mw as mw
 from utils.site import sites as MwSites
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -35,10 +35,10 @@ class App:
         return 'tamper_proof_py'
 
     def getPluginDir(self):
-        return mw.getPluginDir() + '/' + self.getPluginName()
+        return yf.getPluginDir() + '/' + self.getPluginName()
 
     def getServerDir(self):
-        return mw.getServerDir() + '/' + self.getPluginName()
+        return yf.getServerDir() + '/' + self.getPluginName()
 
     def getInitDFile(self):
         if app_debug:
@@ -70,8 +70,8 @@ class App:
     def checkArgs(self, data, ck=[]):
         for i in range(len(ck)):
             if not ck[i] in data:
-                return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-        return (True, mw.returnJson(True, 'ok'))
+                return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+        return (True, yf.returnJson(True, 'ok'))
 
     def getTotal(self, siteName=None, day=None):
         defaultTotal = {"total": 0, "delete": 0,
@@ -82,7 +82,7 @@ class App:
             if not os.path.exists(total_path):
                 total['site'] = defaultTotal
             else:
-                total_data = mw.readFile(total_path)
+                total_data = yf.readFile(total_path)
                 if total_data['site']:
                     total['site'] = json.loads(total_data['site'])
                 else:
@@ -94,7 +94,7 @@ class App:
             if not os.path.exists(total_day_path):
                 total['day'] = defaultTotal
             else:
-                total['day'] = mw.readFile(total_day_path)
+                total['day'] = yf.readFile(total_day_path)
                 if total['day']:
                     total['day'] = json.loads(total['day'])
                 else:
@@ -102,17 +102,17 @@ class App:
         else:
             filename = self.getServerDir() + '/sites/' + self.__total
             if os.path.exists(filename):
-                total = json.loads(mw.readFile(filename))
+                total = json.loads(yf.readFile(filename))
             else:
                 total = defaultTotal
         return total
 
     def getSites(self):
         sites_path = self.getServerDir() + '/sites.json'
-        t = mw.readFile(sites_path)
+        t = yf.readFile(sites_path)
         if not os.path.exists(sites_path) or not t:
-            mw.writeFile(sites_path, '[]')
-        data = json.loads(mw.readFile(sites_path))
+            yf.writeFile(sites_path, '[]')
+        data = json.loads(yf.readFile(sites_path))
 
         is_write = False
         rm_keys = ['lock', 'bak_open']
@@ -127,14 +127,14 @@ class App:
                     i.pop(o)
                     is_write = True
         if is_write:
-            mw.writeFile(sites_path, json.dumps(data))
+            yf.writeFile(sites_path, json.dumps(data))
 
         self.__sites = data
         return data
 
     def writeSites(self, data):
-        mw.writeFile(self.getServerDir() + '/sites.json', json.dumps(data))
-        # mw.ExecShell('/etc/init.d/bt_tamper_proof reload')
+        yf.writeFile(self.getServerDir() + '/sites.json', json.dumps(data))
+        # yf.ExecShell('/etc/init.d/bt_tamper_proof reload')
 
     def __getFind(self, siteName):
         data = self.getSites()
@@ -144,7 +144,7 @@ class App:
         return None
 
     def writeLog(self, log):
-        mw.writeLog('防篡改程序', log)
+        yf.writeLog('防篡改程序', log)
 
     def saveSiteConfig(self, siteInfo):
         data = self.getSites()
@@ -157,10 +157,10 @@ class App:
 
     def syncSites(self):
         data = self.getSites()
-        sites = mw.M('sites').field('name,path').select()
+        sites = yf.M('sites').field('name,path').select()
 
         config_path = self.getPluginDir() + '/conf/config.json'
-        config = json.loads(mw.readFile(config_path))
+        config = json.loads(yf.readFile(config_path))
         names = []
         n = 0
 
@@ -188,7 +188,7 @@ class App:
             if siteInfoTmp['siteName'] in names:
                 newData.append(siteInfoTmp)
             else:
-                mw.removeDir(self.getServerDir() +
+                yf.removeDir(self.getServerDir() +
                              '/sites/' + siteInfoTmp['siteName'])
                 n += 1
         if n > 0:
@@ -207,21 +207,21 @@ class App:
         file_bin = initD_path + '/' + self.getPluginName()
         if not os.path.exists(file_bin):
             # initd replace
-            content = mw.readFile(file_tpl)
+            content = yf.readFile(file_tpl)
             content = content.replace('{$SERVER_PATH}', service_path)
-            mw.writeFile(file_bin, content)
-            mw.execShell('chmod +x ' + file_bin)
+            yf.writeFile(file_bin, content)
+            yf.execShell('chmod +x ' + file_bin)
 
         # systemd
         # /usr/lib/systemd/system
-        systemDir = mw.systemdCfgDir()
+        systemDir = yf.systemdCfgDir()
         systemService = systemDir + '/tamper_proof_py.service'
         systemServiceTpl = self.getPluginDir() + '/init.d/tamper_proof_py.service.tpl'
         if os.path.exists(systemDir) and not os.path.exists(systemService):
-            se_content = mw.readFile(systemServiceTpl)
+            se_content = yf.readFile(systemServiceTpl)
             se_content = se_content.replace('{$SERVER_PATH}', service_path)
-            mw.writeFile(systemService, se_content)
-            mw.execShell('systemctl daemon-reload')
+            yf.writeFile(systemService, se_content)
+            yf.execShell('systemctl daemon-reload')
 
         return file_bin
 
@@ -246,25 +246,25 @@ class App:
         if not os.path.exists(initd_file):
             return 'stop'
         cmd = initd_file + ' status|grep already'
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[0] != '':
             return 'start'
         return 'stop'
 
     def tpOp(self, method):
         file = self.initDreplace()
-        if not mw.isAppleSystem():
+        if not yf.isAppleSystem():
             cmd = 'systemctl ' + method + ' ' + self.getPluginName()
-            data = mw.execShell(cmd)
+            data = yf.execShell(cmd)
             if data[1] == '':
-                return mw.returnJson(True, '操作成功')
-            return mw.returnJson(False, '操作失败')
+                return yf.returnJson(True, '操作成功')
+            return yf.returnJson(False, '操作失败')
 
         cmd = file + ' ' + method
-        data = mw.execShell(cmd)
+        data = yf.execShell(cmd)
         if data[1] == '':
-            return mw.returnJson(True, '操作成功')
-        return mw.returnJson(False, '操作失败')
+            return yf.returnJson(True, '操作成功')
+        return yf.returnJson(False, '操作失败')
 
     def start(self):
         return self.tpOp('start')
@@ -273,8 +273,8 @@ class App:
         return self.tpOp('restart')
 
     def service_admin(self):
-        if mw.isAppleSystem():
-            return mw.returnJson(False, '仅支持Linux!')
+        if yf.isAppleSystem():
+            return yf.returnJson(False, '仅支持Linux!')
 
         args = self.getArgs()
         check = self.checkArgs(args, ['serviceStatus'])
@@ -285,27 +285,27 @@ class App:
         return self.tpOp(method)
 
     def initd_status(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
         shell_cmd = 'systemctl status %s | grep loaded | grep "enabled;"' % (
             self.getPluginName())
-        data = mw.execShell(shell_cmd)
+        data = yf.execShell(shell_cmd)
         if data[0] == '':
             return 'fail'
         return 'ok'
 
     def initd_install(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
-        mw.execShell('systemctl enable ' + self.getPluginName())
+        yf.execShell('systemctl enable ' + self.getPluginName())
         return 'ok'
 
     def initd_uninstall(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
-        mw.execShell('systemctl disable ' + self.getPluginName())
+        yf.execShell('systemctl disable ' + self.getPluginName())
         return 'ok'
 
     def set_site_status(self):
@@ -317,7 +317,7 @@ class App:
         siteName = args['siteName']
         siteInfo = self.__getFind(siteName)
         if not siteInfo:
-            return mw.returnJson(False, '指定站点不存在!')
+            return yf.returnJson(False, '指定站点不存在!')
         try:
             siteInfo['open'] = not siteInfo['open']
         except:
@@ -328,11 +328,11 @@ class App:
         self.siteReload(siteInfo)
         self.saveSiteConfig(siteInfo)
         self.restart()
-        return mw.returnJson(True, '设置成功!')
+        return yf.returnJson(True, '设置成功!')
 
     def get_run_logs(self):
         log_file = self.getServerDir() + '/service.log'
-        return mw.returnJson(True, mw.getLastLine(log_file, 200))
+        return yf.returnJson(True, yf.getLastLine(log_file, 200))
 
     # 取文件指定尾行数
     def getNumLines(self, path, num, p=1):
@@ -388,7 +388,7 @@ class App:
             arr = []
             for d in data:
                 arr.insert(0, json.dumps(d))
-            mw.writeFile(path, "\n".join(arr))
+            yf.writeFile(path, "\n".join(arr))
         return data
 
     def get_safe_logs(self):
@@ -417,7 +417,7 @@ class App:
             data['get_day'] = day
             logs_path = path + '/' + day + '/logs.json'
             data['logs'] = self.getNumLines(logs_path, 2000, int(p))
-        return mw.returnJson(True, 'ok', data)
+        return yf.returnJson(True, 'ok', data)
 
     def get_site_find(self):
         args = self.getArgs()
@@ -427,13 +427,13 @@ class App:
 
         siteName = args['siteName']
         data = self.__getFind(siteName)
-        return mw.returnJson(True, 'ok', data)
+        return yf.returnJson(True, 'ok', data)
 
     def siteReload(self, siteInfo):
         cmd = "python3 {} {}".format(
-            mw.getPluginDir() + '/tamper_proof_service.py unlock', siteInfo['path'])
-        mw.execShell(cmd)
-        tip_file = mw.getServerDir() + '/tips/' + siteInfo['siteName'] + '.pl'
+            yf.getPluginDir() + '/tamper_proof_service.py unlock', siteInfo['path'])
+        yf.execShell(cmd)
+        tip_file = yf.getServerDir() + '/tips/' + siteInfo['siteName'] + '.pl'
         if os.path.exists(tip_file):
             os.remove(tip_file)
 
@@ -449,9 +449,9 @@ class App:
         siteInfo = self.__getFind(siteName)
 
         if not siteInfo:
-            return mw.returnJson(False, '指定站点不存在!')
+            return yf.returnJson(False, '指定站点不存在!')
         if not protectExt:
-            return mw.returnJson(False, '被删除的保护列表不能为空')
+            return yf.returnJson(False, '被删除的保护列表不能为空')
 
         for protectExt in protectExt.split(','):
             if not protectExt in siteInfo['protectExt']:
@@ -460,7 +460,7 @@ class App:
             self.writeLog('站点[%s]从受保护列表中删除[.%s]' % (siteInfo['siteName'], protectExt))
         self.siteReload(siteInfo)
         self.saveSiteConfig(siteInfo)
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
 
     def add_protect_ext(self):
         args = self.getArgs()
@@ -473,7 +473,7 @@ class App:
 
         siteInfo = self.__getFind(siteName)
         if not siteInfo:
-            return mw.returnJson(False, '指定站点不存在!')
+            return yf.returnJson(False, '指定站点不存在!')
         protectExt = protectExt.lower()
         for protectExt in protectExt.split("\n"):
             if protectExt[0] == '/':
@@ -486,7 +486,7 @@ class App:
                           (siteInfo['siteName'], protectExt))
         self.siteReload(siteInfo)
         self.saveSiteConfig(siteInfo)
-        return mw.returnJson(True, '添加成功!')
+        return yf.returnJson(True, '添加成功!')
 
     def add_excloud(self):
         args = self.getArgs()
@@ -498,10 +498,10 @@ class App:
         excludePath = args['excludePath'].strip()
         siteInfo = self.__getFind(siteName)
         if not siteInfo:
-            return mw.returnJson(False, '指定站点不存在!')
+            return yf.returnJson(False, '指定站点不存在!')
 
         if not excludePath:
-            return mw.returnJson(False, '排除内容不能为空')
+            return yf.returnJson(False, '排除内容不能为空')
 
         for excludePath in excludePath.split('\n'):
             if not excludePath:
@@ -520,7 +520,7 @@ class App:
 
         self.siteReload(siteInfo)
         self.saveSiteConfig(siteInfo)
-        return mw.returnJson(True, '添加成功!')
+        return yf.returnJson(True, '添加成功!')
 
     def remove_excloud(self):
         args = self.getArgs()
@@ -532,9 +532,9 @@ class App:
         siteInfo = self.__getFind(siteName)
         excludePath = args['excludePath'].strip()
         if excludePath == '':
-            return mw.returnJson(False, '排除文件或目录不能为空')
+            return yf.returnJson(False, '排除文件或目录不能为空')
         if not siteInfo:
-            return mw.returnJson(False, '指定站点不存在!')
+            return yf.returnJson(False, '指定站点不存在!')
 
         for excludePath in excludePath.split(','):
             if not excludePath:
@@ -546,7 +546,7 @@ class App:
                           (siteInfo['siteName'], excludePath))
         self.siteReload(siteInfo)
         self.saveSiteConfig(siteInfo)
-        return mw.returnJson(True, '删除成功!')
+        return yf.returnJson(True, '删除成功!')
 
     def sim_test(self):
         args = self.getArgs()
@@ -556,27 +556,27 @@ class App:
 
         path = args['path'].strip()
         if not os.path.exists(path):
-            return mw.returnJson(False, "此目录不存在")
+            return yf.returnJson(False, "此目录不存在")
 
         # 判断是否安装php
         php_version = MwSites.instance().getPhpVersion()
         if not php_version['data']:
-            return mw.returnJson(False, "未安装PHP测试失败")
+            return yf.returnJson(False, "未安装PHP测试失败")
 
         php_path = '/www/server/php/' + php_version['data'][1]['version'] + '/bin/php'
         php_name = path + "/" + str(int(time.time())) + ".php"
         if os.path.exists(php_name):
-            mw.execShell("rm -rf %s" % php_name)
+            yf.execShell("rm -rf %s" % php_name)
         # 写入
         cmd = php_path + \
             " -r \"file_put_contents('{}','{}');\"".format(php_name, php_name)
-        mw.execShell(cmd)
+        yf.execShell(cmd)
         time.sleep(0.5)
         if os.path.exists(php_name):
             if os.path.exists(php_name):
-                mw.execShell("rm -rf %s" % php_name)
-            return mw.returnJson(False, "拦截失败,可能未开启防篡改")
-        return mw.returnJson(True, "拦截成功")
+                yf.execShell("rm -rf %s" % php_name)
+            return yf.returnJson(False, "拦截失败,可能未开启防篡改")
+        return yf.returnJson(True, "拦截成功")
 
     def set_site_status_all(self):
         args = self.getArgs()
@@ -593,7 +593,7 @@ class App:
                 sites[i]['open'] = siteState
                 self.writeLog('%s站点[%s]防篡改保护' % (m_logs[siteState], sites[i]['siteName']))
         self.writeSites(sites)
-        return mw.returnJson(True, '批量设置成功')
+        return yf.returnJson(True, '批量设置成功')
 
     def get_index(self):
         self.syncSites()
@@ -613,7 +613,7 @@ class App:
         for i in range(len(data['sites'])):
             data['sites'][i]['total'] = self.getTotal(
                 data['sites'][i]['siteName'], day)
-        return mw.returnJson(True, 'ok', data)
+        return yf.returnJson(True, 'ok', data)
 
     def get_speed(self):
         print("12")
@@ -627,6 +627,6 @@ if __name__ == "__main__":
             data = getattr(classApp, func)()
             print(data)
         else:
-            print(mw.returnJson(False, '方法不存在!'))
+            print(yf.returnJson(False, '方法不存在!'))
     except Exception as e:
-        print(mw.getTracebackInfo())
+        print(yf.getTracebackInfo())

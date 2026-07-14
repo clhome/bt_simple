@@ -19,7 +19,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -40,10 +40,10 @@ class App:
         return 'system_safe'
 
     def getPluginDir(self):
-        return mw.getPluginDir() + '/' + self.getPluginName()
+        return yf.getPluginDir() + '/' + self.getPluginName()
 
     def getServerDir(self):
-        return mw.getServerDir() + '/' + self.getPluginName()
+        return yf.getServerDir() + '/' + self.getPluginName()
 
     def getInitDFile(self):
         if app_debug:
@@ -78,8 +78,8 @@ class App:
     def checkArgs(self, data, ck=[]):
         for i in range(len(ck)):
             if not ck[i] in data:
-                return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-        return (True, mw.returnJson(True, 'ok'))
+                return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+        return (True, yf.returnJson(True, 'ok'))
 
     def getServerConfPath(self):
         return self.getServerDir() + "/config.json"
@@ -89,20 +89,20 @@ class App:
         cpath_tpl = self.getPluginDir() + "/conf/config.json"
 
         if not os.path.exists(cpath):
-            t_data = mw.readFile(cpath_tpl)
+            t_data = yf.readFile(cpath_tpl)
             t_data = json.loads(t_data)
             t = json.dumps(t_data)
-            mw.writeFile(cpath, t)
+            yf.writeFile(cpath, t)
             return t_data
 
-        t_data = mw.readFile(cpath)
+        t_data = yf.readFile(cpath)
         t_data = json.loads(t_data)
         return t_data
 
     def writeConf(self, data):
         cpath = self.getServerConfPath()
         tmp_conf = json.dumps(data)
-        mw.writeFile(cpath, tmp_conf)
+        yf.writeFile(cpath, tmp_conf)
 
     def initDreplace(self):
 
@@ -117,35 +117,35 @@ class App:
         file_bin = initD_path + '/' + self.getPluginName()
         if not os.path.exists(file_bin):
             # initd replace
-            content = mw.readFile(file_tpl)
+            content = yf.readFile(file_tpl)
             content = content.replace('{$SERVER_PATH}', service_path)
-            mw.writeFile(file_bin, content)
-            mw.execShell('chmod +x ' + file_bin)
+            yf.writeFile(file_bin, content)
+            yf.execShell('chmod +x ' + file_bin)
 
         # systemd
         # /usr/lib/systemd/system
-        systemDir = mw.systemdCfgDir()
+        systemDir = yf.systemdCfgDir()
         systemService = systemDir + '/system_safe.service'
         systemServiceTpl = self.getPluginDir() + '/init.d/system_safe.service.tpl'
         if os.path.exists(systemDir) and not os.path.exists(systemService):
-            se_content = mw.readFile(systemServiceTpl)
+            se_content = yf.readFile(systemServiceTpl)
             se_content = se_content.replace('{$SERVER_PATH}', service_path)
-            mw.writeFile(systemService, se_content)
-            mw.execShell('systemctl daemon-reload')
+            yf.writeFile(systemService, se_content)
+            yf.execShell('systemctl daemon-reload')
 
         return file_bin
 
     def ssOp(self, method):
         file = self.initDreplace()
 
-        if not mw.isAppleSystem():
-            data = mw.execShell('systemctl ' + method +
+        if not yf.isAppleSystem():
+            data = yf.execShell('systemctl ' + method +
                                 ' ' + self.getPluginName())
             if data[1] == '':
                 return 'ok'
             return 'fail'
 
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return 'fail'
@@ -160,13 +160,13 @@ class App:
         pid_file = self.getServerDir() + '/system_safe.pid'
         if os.path.exists(pid_file):
             try:
-                pid = int(mw.readFile(pid_file).strip())
+                pid = int(yf.readFile(pid_file).strip())
                 if psutil.pid_exists(pid):
                     return 'start'
             except:
                 pass
 
-        data = mw.execShell(
+        data = yf.execShell(
             'ps -ef|grep "system_safe/system_safe.py bg_start" | grep -v grep | awk \'{print $2}\'')
         if data[0] == '':
             return 'stop'
@@ -176,7 +176,7 @@ class App:
         return self.ssOp('start')
 
     def writeLog(self, msg):
-        mw.writeDbLog(self.__name, msg)
+        yf.writeDbLog(self.__name, msg)
 
     __limit = 30
     __vmsize = 1048576 * 100
@@ -199,10 +199,10 @@ class App:
         config_file = self.getServerDir() + '/sys_process.json'
         is_force = False
         if not os.path.exists(config_file):
-            mw.writeFile(config_file, json.dumps([]))
+            yf.writeFile(config_file, json.dumps([]))
             is_force = True
 
-        data = json.loads(mw.readFile(config_file))
+        data = json.loads(yf.readFile(config_file))
         self.__sys_process = data
         return True
 
@@ -253,7 +253,7 @@ class App:
         fname = '/proc/' + str(pid) + '/comm'
         if not os.path.exists(fname):
             return
-        name = mw.readFile(fname).strip()
+        name = yf.readFile(fname).strip()
         is_num_name = re.match(r"^\d+$", name)
         if not is_num_name:
             if self.checkWhite(name):
@@ -274,7 +274,7 @@ class App:
                 self.writeLog("已强制结束异常进程:[%s],PID:[%s],CPU:[%s],CMD:[%s]" % (
                     name, pid, percent, cmdline))
         except:
-            print(mw.getTracebackInfo())
+            print(yf.getTracebackInfo())
             return
 
     def checkMain(self):
@@ -288,7 +288,7 @@ class App:
             for pid in pids:
                 self.checkMainProccess(pid)
         except Exception as e:
-            print(mw.getTracebackInfo())
+            print(yf.getTracebackInfo())
 
     def processTask(self):
 
@@ -312,13 +312,13 @@ class App:
 
     def bg_start(self):
         pid_file = self.getServerDir() + '/system_safe.pid'
-        mw.writeFile(pid_file, str(os.getpid()))
+        yf.writeFile(pid_file, str(os.getpid()))
         try:
             self.processTask()
         except Exception as e:
-            print(mw.getTracebackInfo())
+            print(yf.getTracebackInfo())
             self.bg_stop()
-            self.writeLog('【{}】系统加固监控进程启动异常关闭'.format(mw.getDate()))
+            self.writeLog('【{}】系统加固监控进程启动异常关闭'.format(yf.getDate()))
         return 'ok'
 
     def bg_stop(self):
@@ -331,8 +331,8 @@ class App:
         try:
             self.setOpen(0)
         except Exception as e:
-            print(mw.getTracebackInfo())
-            print('【{}】系统加固监控进程停止异常关闭'.format(mw.getDate()))
+            print(yf.getTracebackInfo())
+            print('【{}】系统加固监控进程停止异常关闭'.format(yf.getDate()))
         return ''
 
     def stop(self):
@@ -345,27 +345,27 @@ class App:
         return self.ssOp('reload')
 
     def initd_status(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
         shell_cmd = 'systemctl status %s | grep loaded | grep "enabled;"' % (
             self.getPluginName())
-        data = mw.execShell(shell_cmd)
+        data = yf.execShell(shell_cmd)
         if data[0] == '':
             return 'fail'
         return 'ok'
 
     def initd_install(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
-        mw.execShell('systemctl enable ' + self.getPluginName())
+        yf.execShell('systemctl enable ' + self.getPluginName())
         return 'ok'
 
     def initd_uninstall(self):
-        if mw.isAppleSystem():
+        if yf.isAppleSystem():
             return "Apple Computer does not support"
 
-        mw.execShell('systemctl disable ' + self.getPluginName())
+        yf.execShell('systemctl disable ' + self.getPluginName())
         return 'ok'
 
     def __lock_path(self, info):
@@ -381,7 +381,7 @@ class App:
                 os.chmod(info['path'], info['d_mode'])
             if info['chattr']:
                 cmd = 'chattr -R +%s "%s"' % (info['chattr'], info['path'])
-                mw.execShell(cmd)
+                yf.execShell(cmd)
             return True
         except Exception as e:
 
@@ -398,13 +398,13 @@ class App:
 
             if info['chattr']:
                 cmd = 'chattr -R -%s "%s"' % (info['chattr'], info['path'])
-                mw.execShell(cmd)
+                yf.execShell(cmd)
 
             if info['s_mode']:
                 os.chmod(info['path'], info['s_mode'])
             return True
         except Exception as e:
-            mw.getTracebackInfo()
+            yf.getTracebackInfo()
             return False
 
     def __set_safe_state(self, paths, lock=False):
@@ -426,7 +426,7 @@ class App:
 
     def conf(self):
         data = self.getConf()
-        return mw.returnJson(True, 'ok', data)
+        return yf.returnJson(True, 'ok', data)
 
     def setOpen(self, is_open=-1):
         cpath = self.getServerConfPath()
@@ -469,12 +469,12 @@ class App:
             status = True
 
         if not tag in ['bin', 'service', 'home', 'user', 'bin', 'cron', 'process']:
-            return mw.returnJson(False, '不存在此配置[{}]!'.format(tag))
+            return yf.returnJson(False, '不存在此配置[{}]!'.format(tag))
 
         data = self.getConf()
         data[tag]['open'] = status
         self.writeConf(data)
-        return mw.returnJson(True, '设置成功')
+        return yf.returnJson(True, '设置成功')
 
     # 取文件或目录锁定状态
     def __get_path_state(self, path):
@@ -488,7 +488,7 @@ class App:
         else:
             shell_cmd = 'lsattr "%s/" |grep "%s$"|awk \'{{print $1}}\'' % (
                 os.path.dirname(path), os.path.basename(path))
-        result = mw.execShell(shell_cmd)[0]
+        result = yf.execShell(shell_cmd)[0]
         if result.find('-i-') != -1:
             return 'i'
         if result.find('-a-') != -1:
@@ -519,18 +519,18 @@ class App:
 
         tag = args['tag']
         if not tag in ['bin', 'service', 'home', 'user', 'bin', 'cron']:
-            return mw.returnJson(False, '不存在此配置[{}]!'.format(tag))
+            return yf.returnJson(False, '不存在此配置[{}]!'.format(tag))
 
         cpath = self.getServerConfPath()
         data = self.getConf()
         tmp = data[tag]
         tmp['paths'] = self.__list_safe_state(tmp['paths'])
-        return mw.returnJson(True, {'open': data['open']}, tmp)
+        return yf.returnJson(True, {'open': data['open']}, tmp)
 
     def get_process_data(self):
         data = self.getConf()
         tmp = data['process']
-        return mw.returnJson(True, {'open': data['open']}, tmp)
+        return yf.returnJson(True, {'open': data['open']}, tmp)
 
      # 添加防护对象
     def add_safe_path(self):
@@ -547,17 +547,17 @@ class App:
             path = path[:-1]
 
         if not path or not re.match(r'^[a-zA-Z0-9_\-\./\s]+$', path) or '..' in path:
-            return mw.returnJson(False, '非法的防护路径格式，添加失败！')
+            return yf.returnJson(False, '非法的防护路径格式，添加失败！')
         if chattr not in ['i', 'a']:
-            return mw.returnJson(False, '非法的属性设置！')
+            return yf.returnJson(False, '非法的属性设置！')
 
         if not os.path.exists(path):
-            return mw.returnJson(False, '指定文件或目录不存在!')
+            return yf.returnJson(False, '指定文件或目录不存在!')
         data = self.getConf()
 
         for m_path in data[tag]['paths']:
             if path == m_path['path']:
-                return mw.returnJson(False, '指定文件或目录已经添加过了!')
+                return yf.returnJson(False, '指定文件或目录已经添加过了!')
 
         path_info = {}
         path_info['path'] = path
@@ -570,14 +570,14 @@ class App:
 
         data[tag]['paths'].insert(0, path_info)
         if 'paths' in data[tag]:
-            mw.execShell('chattr -R -%s "%s"' %
+            yf.execShell('chattr -R -%s "%s"' %
                          (path_info['chattr'], path_info['path']))
             if data['open']:
                 self.__set_safe_state([path_info], data[tag]['open'])
         msg = '添加防护对象[%s]到[%s]' % (path, data[tag]['name'])
         self.writeLog(msg)
         self.writeConf(data)
-        return mw.returnJson(True, msg)
+        return yf.returnJson(True, msg)
 
     # 添加进程白名单
     def add_process_white(self):
@@ -589,13 +589,13 @@ class App:
         data = self.getConf()
         process_name = args['process_name']
         if process_name in data['process']['process_white']:
-            return mw.returnJson(False, '指定进程名已在白名单')
+            return yf.returnJson(False, '指定进程名已在白名单')
         data['process']['process_white'].insert(0, process_name)
         self.writeConf(data)
         msg = '添加进程名[%s]到进程白名单' % process_name
         self.writeLog(msg)
         self.restart()
-        return mw.returnJson(True, msg)
+        return yf.returnJson(True, msg)
 
     def del_safe_proccess_name(self):
         args = self.getArgs()
@@ -611,8 +611,8 @@ class App:
 
         del(data[tag]['process_white'][index])
         t = json.dumps(data)
-        mw.writeFile(cpath, t)
-        return mw.returnJson(True, '删除成功')
+        yf.writeFile(cpath, t)
+        return yf.returnJson(True, '删除成功')
 
     def del_safe_path(self):
         args = self.getArgs()
@@ -628,8 +628,8 @@ class App:
 
         del(data[tag]['paths'][index])
         t = json.dumps(data)
-        mw.writeFile(cpath, t)
-        return mw.returnJson(True, '删除成功')
+        yf.writeFile(cpath, t)
+        return yf.returnJson(True, '删除成功')
 
     def get_log_title(self, log_name):
         log_name = log_name.replace('.1', '')
@@ -723,13 +723,13 @@ class App:
                     }
                     log_files.append(tmp)
         log_files = sorted(log_files, key=lambda x: x['name'], reverse=True)
-        return mw.returnJson(True, 'ok', log_files)
+        return yf.returnJson(True, 'ok', log_files)
 
     def get_last(self, log_name):
         # 获取日志
         cmd = '''LANG=en_US.UTF-8 last -n 200 -x -f {} |grep -v 127.0.0.1|grep -v " begins"'''.format(
             '/var/log/' + log_name)
-        result = mw.execShell(cmd)
+        result = yf.execShell(cmd)
         lastlog_list = []
         for _line in result[0].split("\n"):
             if not _line:
@@ -765,11 +765,11 @@ class App:
             # tmp['_line'] = _line
             lastlog_list.append(tmp)
         # lastlog_list = sorted(lastlog_list,key=lambda x:x['时间'],reverse=True)
-        return mw.returnJson(True, 'ok!', lastlog_list)
+        return yf.returnJson(True, 'ok!', lastlog_list)
 
     def get_lastlog(self):
         cmd = '''LANG=en_US.UTF-8 lastlog|grep -v Username'''
-        result = mw.execShell(cmd)
+        result = yf.execShell(cmd)
         lastlog_list = []
         for _line in result[0].split("\n"):
             if not _line:
@@ -794,16 +794,16 @@ class App:
         for i in range(len(lastlog_list)):
             if lastlog_list[i]['最后登录时间'] == '0':
                 lastlog_list[i]['最后登录时间'] = '从未登录过'
-        return mw.returnJson(True, 'ok!', lastlog_list)
+        return yf.returnJson(True, 'ok!', lastlog_list)
 
     def get_sys_log_with_name(self, log_name):
         if not log_name or not re.match(r'^[a-zA-Z0-9_\-\./]+$', log_name):
-            return mw.returnJson(False, '非法的日志文件名，拒绝访问！')
+            return yf.returnJson(False, '非法的日志文件名，拒绝访问！')
 
         log_dir = '/var/log'
         log_file = os.path.abspath(log_dir + '/' + log_name)
         if not log_file.startswith(log_dir):
-            return mw.returnJson(False, '越界访问，拒绝读取！')
+            return yf.returnJson(False, '越界访问，拒绝读取！')
 
         if log_name in ['wtmp', 'btmp', 'utmp'] or log_name.find('wtmp') == 0 or log_name.find('btmp') == 0 or log_name.find('utmp') == 0:
             return self.get_last(log_name)
@@ -813,11 +813,11 @@ class App:
 
         if log_name.find('sa/sa') == 0:
             if log_name.find('sa/sar') == -1:
-                return mw.execShell('sar -f "/var/log/%s"' % log_name)[0]
+                return yf.execShell('sar -f "/var/log/%s"' % log_name)[0]
 
         if not os.path.exists(log_file):
-            return mw.returnJson(False, '日志文件不存在!')
-        result = mw.getLastLine(log_file, 100)
+            return yf.returnJson(False, '日志文件不存在!')
+        result = yf.getLastLine(log_file, 100)
         log_list = []
         is_string = True
         for _line in result.split("\n"):
@@ -892,13 +892,13 @@ class App:
             if _str_len > _dict_len + _list_len:
                 return "\n".join(_string)
             elif _dict_len > _str_len + _list_len:
-                return mw.returnJson(True, 'ok!', _dict)
+                return yf.returnJson(True, 'ok!', _dict)
             else:
-                return mw.returnJson(True, 'ok!', _list)
+                return yf.returnJson(True, 'ok!', _list)
 
         except:
             data = '\n'.join(log_list)
-            return mw.returnJson(True, 'ok!', data)
+            return yf.returnJson(True, 'ok!', data)
 
     def get_sys_log(self):
         args = self.getArgs()
@@ -937,17 +937,17 @@ class App:
         limit = 10
         start = (p - 1) * limit
 
-        _list = mw.M('logs').field(
+        _list = yf.M('logs').field(
             'id,type,log,addtime').where('type=?', (self.__name,)).limit(str(start) + ',' + str(limit)).order('id desc').select()
         data = {}
         data['data'] = _list
-        count = mw.M('logs').where('type=?', (self.__name,)).count()
+        count = yf.M('logs').where('type=?', (self.__name,)).count()
         _page = {}
         _page['count'] = count
         _page['tojs'] = 'ssOpLogList'
         _page['p'] = p
-        data['page'] = mw.getPage(_page)
-        return mw.returnJson(True, 'ok', data)
+        data['page'] = yf.getPage(_page)
+        return yf.returnJson(True, 'ok', data)
 
 
 def get_sys_log(args):
@@ -962,4 +962,4 @@ if __name__ == "__main__":
         data = eval("classApp." + func + "()")
         print(data)
     except Exception as e:
-        print(mw.getTracebackInfo())
+        print(yf.getTracebackInfo())

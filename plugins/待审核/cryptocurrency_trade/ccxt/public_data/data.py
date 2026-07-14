@@ -13,7 +13,7 @@ from pprint import pprint
 
 # print(os.getcwd())
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 # cd /www/server/mdserver-web && source bin/activate
 # python3 plugins/cryptocurrency_trade/ccxt/public_data/data.py run
@@ -38,18 +38,18 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getConfigData():
     cfg_path = getServerDir() + "/data.cfg"
     if not os.path.exists(cfg_path):
-        mw.writeFile(cfg_path, '{}')
-    t = mw.readFile(cfg_path)
+        yf.writeFile(cfg_path, '{}')
+    t = yf.readFile(cfg_path)
     return json.loads(t)
 
 
@@ -58,7 +58,7 @@ def writeLog(log_str):
         print(log_str)
 
     log_file = getServerDir() + '/logs/datasource.log'
-    mw.writeFileLog(log_str, log_file, 1 * 1024 * 1024)
+    yf.writeFileLog(log_str, log_file, 1 * 1024 * 1024)
     return True
 
 
@@ -86,29 +86,29 @@ def isSqlError(mysqlMsg):
     # 检测数据库执行错误
     mysqlMsg = str(mysqlMsg)
     if "MySQLdb" in mysqlMsg:
-        return mw.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
+        return yf.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
     if "2002," in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "2003," in mysqlMsg:
-        return mw.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
+        return yf.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
     if "using password:" in mysqlMsg:
-        return mw.returnJson(False, '数据库密码错误')
+        return yf.returnJson(False, '数据库密码错误')
     if "1045" in mysqlMsg:
-        return mw.returnJson(False, '连接错误!')
+        return yf.returnJson(False, '连接错误!')
     if "SQL syntax" in mysqlMsg:
-        return mw.returnJson(False, 'SQL语法错误!')
+        return yf.returnJson(False, 'SQL语法错误!')
     if "Connection refused" in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "1133" in mysqlMsg:
-        return mw.returnJson(False, '数据库用户不存在!')
+        return yf.returnJson(False, '数据库用户不存在!')
     if "1007" in mysqlMsg:
-        return mw.returnJson(False, '数据库已经存在!')
+        return yf.returnJson(False, '数据库已经存在!')
     return None
 
 
 def pMysqlDb():
     # pymysql
-    db = mw.getMyORM()
+    db = yf.getMyORM()
     data = getConfigData()
     db_data = data['db']
     db.setHost(db_data['db_host'])
@@ -235,7 +235,7 @@ def createSql(input_type="btc", input_tf="1m"):
         return True
 
     sql_tpl = getPluginDir() + "/conf/create.sql"
-    content = mw.readFile(sql_tpl)
+    content = yf.readFile(sql_tpl)
     content = content.replace("xx1", input_type)
     content = content.replace("xx2", input_tf)
 

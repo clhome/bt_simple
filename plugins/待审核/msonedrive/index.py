@@ -32,7 +32,7 @@ if is_py2:
     sys.setdefaultencoding('utf-8')
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -41,11 +41,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def in_array(name, arr=[]):
@@ -85,8 +85,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def status():
@@ -103,8 +103,8 @@ def isAuthApi():
 def getConf():
     if not isAuthApi():
         sign_in_url, state = msodc.get_sign_in_url()
-        return mw.returnJson(False, "未授权!", {'auth_url': sign_in_url})
-    return mw.returnJson(True, "OK")
+        return yf.returnJson(False, "未授权!", {'auth_url': sign_in_url})
+    return yf.returnJson(True, "OK")
 
 
 def setAuthUrl():
@@ -121,10 +121,10 @@ def setAuthUrl():
         token = msodc.get_token_from_authorized_url(authorized_url=url)
         msodc.store_token(token)
         msodc.store_user()
-        return mw.returnJson(True, "授权成功!")
+        return yf.returnJson(True, "授权成功!")
     except Exception as e:
-        return mw.returnJson(False, "授权失败2!:" + str(e))
-    return mw.returnJson(False, "授权失败!:" + str(e))
+        return yf.returnJson(False, "授权失败2!:" + str(e))
+    return yf.returnJson(False, "授权失败!:" + str(e))
 
 
 def clearAuth():
@@ -136,13 +136,13 @@ def clearAuth():
     if os.path.exists(token):
         os.remove(token)
 
-    return mw.returnJson(True, "清空授权成功!")
+    return yf.returnJson(True, "清空授权成功!")
 
 
 def getList():
     cfg = getServerDir() + "/user.conf"
     if not os.path.exists(cfg):
-        return mw.returnJson(False, "未配置,请点击`授权`", [])
+        return yf.returnJson(False, "未配置,请点击`授权`", [])
 
     args = getArgs()
     data = checkArgs(args, ['path'])
@@ -151,15 +151,15 @@ def getList():
 
     try:
         flist = msodc.get_list(args['path'])
-        return mw.returnJson(True, "ok", flist)
+        return yf.returnJson(True, "ok", flist)
     except Exception as e:
-        return mw.returnJson(False, str(e), [])
+        return yf.returnJson(False, str(e), [])
 
 
 def createDir():
     cfg = getServerDir() + "/user.conf"
     if not os.path.exists(cfg):
-        return mw.returnJson(False, "未配置OneDrive,请点击`授权`", [])
+        return yf.returnJson(False, "未配置OneDrive,请点击`授权`", [])
 
     args = getArgs()
     data = checkArgs(args, ['path', 'name'])
@@ -169,8 +169,8 @@ def createDir():
     file = args['path'] + "/" + args['name']
     isok = msodc.create_dir(file)
     if isok:
-        return mw.returnJson(True, "创建成功")
-    return mw.returnJson(False, "创建失败")
+        return yf.returnJson(True, "创建成功")
+    return yf.returnJson(False, "创建失败")
 
 
 def deleteDir():
@@ -183,8 +183,8 @@ def deleteDir():
     file = file.strip('/')
     isok = msodc.delete_object(file)
     if isok:
-        return mw.returnJson(True, "删除成功")
-    return mw.returnJson(False, "文件不为空,删除失败!")
+        return yf.returnJson(True, "删除成功")
+    return yf.returnJson(False, "文件不为空,删除失败!")
 
 
 def deleteFile():
@@ -197,8 +197,8 @@ def deleteFile():
     file = file.strip('/')
     isok = msodc.delete_object(file)
     if isok:
-        return mw.returnJson(True, "删除成功")
-    return mw.returnJson(False, "删除失败")
+        return yf.returnJson(True, "删除成功")
+    return yf.returnJson(False, "删除失败")
 
 
 def findPathName(path, filename):
@@ -214,12 +214,12 @@ def findPathName(path, filename):
 
 def backupAllFunc(stype):
     if not isAuthApi():
-        mw.echoInfo("未授权API,无法使用!!!")
+        yf.echoInfo("未授权API,无法使用!!!")
         return ''
 
-    os.chdir(mw.getPanelDir())
-    backup_dir = mw.getBackupDir()
-    run_dir = mw.getPanelDir()
+    os.chdir(yf.getPanelDir())
+    backup_dir = yf.getBackupDir()
+    run_dir = yf.getPanelDir()
 
     stype = sys.argv[1]
     name = sys.argv[2]
@@ -241,8 +241,8 @@ def backupAllFunc(stype):
         backups = sql.table('backup').where(
             'type=? and pid=?', ('0', pid)).field('id,filename').select()
     if stype == 'database':
-        db_path = mw.getServerDir() + '/mysql'
-        pid = mw.M('databases').dbPos(db_path, 'mysql').where(
+        db_path = yf.getServerDir() + '/mysql'
+        pid = yf.M('databases').dbPos(db_path, 'mysql').where(
             'name=?', (name,)).getField('id')
         backups = sql.table('backup').where(
             'type=? and pid=?', ('1', pid)).field('id,filename').select()
@@ -254,8 +254,8 @@ def backupAllFunc(stype):
     # 其他类型关系性数据库(mysql类的)
     if stype.find('database_') > -1:
         plugin_name = stype.replace('database_', '')
-        db_path = mw.getServerDir() + '/' + plugin_name
-        pid = mw.M('databases').dbPos(db_path, 'mysql').where(
+        db_path = yf.getServerDir() + '/' + plugin_name
+        pid = yf.M('databases').dbPos(db_path, 'mysql').where(
             'name=?', (name,)).getField('id')
         backups = sql.table('backup').where(
             'type=? and pid=?', ('1', pid)).field('id,filename').select()
@@ -289,30 +289,30 @@ def backupAllFunc(stype):
 
     # print(find_new_file)
 
-    filename = mw.execShell(find_new_file)[0].strip()
+    filename = yf.execShell(find_new_file)[0].strip()
     if filename == "":
-        mw.echoInfo("not find upload file!")
+        yf.echoInfo("not find upload file!")
         return False
 
-    mw.echoInfo("准备上传文件 {}".format(filename))
-    mw.echoStart('开始上传')
+    yf.echoInfo("准备上传文件 {}".format(filename))
+    yf.echoStart('开始上传')
     msodc.upload_file(filename, stype)
-    mw.echoEnd('上传成功')
+    yf.echoEnd('上传成功')
 
     # print(backups)
     backups = sorted(backups, key=lambda x: x['filename'], reverse=False)
-    mw.echoStart('开始删除远程备份')
+    yf.echoStart('开始删除远程备份')
     num = int(num)
     sep = len(backups) - num
     if sep > -1:
         for backup in backups:
             fn = os.path.basename(backup['filename'])
             msodc.delete_file(fn, stype)
-            mw.echoInfo("---已清理远程过期备份文件：" + fn)
+            yf.echoInfo("---已清理远程过期备份文件：" + fn)
             sep -= 1
             if sep < 0:
                 break
-    mw.echoEnd('结束删除远程备份')
+    yf.echoEnd('结束删除远程备份')
 
     return ''
 

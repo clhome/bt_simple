@@ -23,7 +23,7 @@ import re
 
 from io import BytesIO, StringIO
 
-import core.yf as mw
+import core.yf as yf
 import paramiko
 
 from flask_socketio import SocketIO, emit, send
@@ -41,7 +41,7 @@ class ssh_local(object):
     _instance_lock = threading.Lock()
 
     def __init__(self):
-        self.__debug_file = mw.getPanelDir()+ '/logs/ssh_terminal.log'
+        self.__debug_file = yf.getPanelDir()+ '/logs/ssh_terminal.log'
 
     @classmethod
     def instance(cls, *args, **kwargs):
@@ -52,11 +52,11 @@ class ssh_local(object):
         return ssh_local._instance
 
     def debug(self, msg):
-        msg = "{} - {}:{} => {} \n".format(mw.formatDate(),
+        msg = "{} - {}:{} => {} \n".format(yf.formatDate(),
                                            self.__host, self.__port, msg)
-        if not mw.isDebugMode():
+        if not yf.isDebugMode():
             return
-        mw.writeFile(self.__debug_file, msg, 'a+')
+        yf.writeFile(self.__debug_file, msg, 'a+')
 
     def returnMsg(self, status, msg):
         return {'status': status, 'msg': msg}
@@ -69,10 +69,10 @@ class ssh_local(object):
 
         import paramiko
         ssh = paramiko.SSHClient()
-        mw.createSshInfo()
+        yf.createSshInfo()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        port = mw.getSSHPort()
+        port = yf.getSSHPort()
         try:
             ssh.connect('127.0.0.1', 22, timeout=5)
         except Exception as e:
@@ -80,7 +80,7 @@ class ssh_local(object):
         except Exception as e:
             ssh.connect('localhost', port, timeout=5)
         except Exception as e:
-            ssh.connect(mw.getHostAddr(), port, timeout=30)
+            ssh.connect(yf.getHostAddr(), port, timeout=30)
         except Exception as e:
             return False
 

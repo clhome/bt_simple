@@ -17,7 +17,7 @@ from admin.user_login_check import panel_login_required
 
 from utils.firewall import Firewall as MwFirewall
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 blueprint = Blueprint('firewall', __name__, url_prefix='/firewall', template_folder='../../templates')
@@ -43,13 +43,13 @@ def get_list():
 @blueprint.route('/get_client_ip', endpoint='get_client_ip', methods=['POST'])
 @panel_login_required
 def get_client_ip():
-    return {'ip': mw.getClientIp()}
+    return {'ip': yf.getClientIp()}
 
 # 获取站点日志目录
 @blueprint.route('/get_www_path', endpoint='get_www_path', methods=['POST'])
 @panel_login_required
 def get_www_path():
-    path = mw.getLogsDir()
+    path = yf.getLogsDir()
     return {'path': path}
 
 # 获取ssh信息
@@ -98,40 +98,40 @@ def del_accept_port():
 @blueprint.route('/set_fw', endpoint='set_fw', methods=['POST'])
 @panel_login_required
 def set_fw():
-    if mw.isAppleSystem():
-        return mw.returnData(True, '开发机不能设置!')
+    if yf.isAppleSystem():
+        return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
     return MwFirewall.instance().setFw(status)
 
 @blueprint.route('/set_ssh_status', endpoint='set_ssh_status', methods=['POST'])
 @panel_login_required
 def set_ssh_status():
-    if mw.isAppleSystem():
-        return mw.returnData(True, '开发机不能设置!')
+    if yf.isAppleSystem():
+        return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
     return MwFirewall.instance().setSshStatus(status)
 
 @blueprint.route('/set_ssh_root_status', endpoint='set_ssh_root_status', methods=['POST'])
 @panel_login_required
 def set_ssh_root_status():
-    if mw.isAppleSystem():
-        return mw.returnData(True, '开发机不能设置!')
+    if yf.isAppleSystem():
+        return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
     return MwFirewall.instance().setSshRootStatus(status)
 
 @blueprint.route('/set_ssh_pass_status', endpoint='set_ssh_pass_status', methods=['POST'])
 @panel_login_required
 def set_ssh_pass_status():
-    if mw.isAppleSystem():
-        return mw.returnData(True, '开发机不能设置!')
+    if yf.isAppleSystem():
+        return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
     return MwFirewall.instance().setSshPassStatus(status)
 
 @blueprint.route('/set_ssh_pubkey_status', endpoint='set_ssh_pubkey_status', methods=['POST'])
 @panel_login_required
 def set_ssh_pubkey_status():
-    if mw.isAppleSystem():
-        return mw.returnData(True, '开发机不能设置!')
+    if yf.isAppleSystem():
+        return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
     return MwFirewall.instance().setSshPubkeyStatus(status)
 

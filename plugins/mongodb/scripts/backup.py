@@ -28,11 +28,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getConf():
@@ -41,7 +41,7 @@ def getConf():
 
 def getConfigData():
     cfg = getConf()
-    config_data = mw.readFile(cfg)
+    config_data = yf.readFile(cfg)
     try:
         config = yaml.safe_load(config_data)
     except:
@@ -49,10 +49,10 @@ def getConfigData():
             "systemLog": {
                 "destination": "file",
                 "logAppend": True,
-                "path": mw.getServerDir()+"/mongodb/log/mongodb.log"
+                "path": yf.getServerDir()+"/mongodb/log/mongodb.log"
             },
             "storage": {
-                "dbPath": mw.getServerDir()+"/mongodb/data",
+                "dbPath": yf.getServerDir()+"/mongodb/data",
                 "directoryPerDB": True,
                 "journal": {
                     "enabled": True
@@ -60,7 +60,7 @@ def getConfigData():
             },
             "processManagement": {
                 "fork": True,
-                "pidFilePath": mw.getServerDir()+"/mongodb/log/mongodb.pid"
+                "pidFilePath": yf.getServerDir()+"/mongodb/log/mongodb.pid"
             },
             "net": {
                 "port": 27017,
@@ -91,27 +91,27 @@ def pSqliteDb(dbname='users'):
     name = 'mongodb'
 
     sql_file = getPluginDir() + '/config/mongodb.sql'
-    import_sql = mw.readFile(sql_file)
+    import_sql = yf.readFile(sql_file)
     # print(sql_file,import_sql)
-    md5_sql = mw.md5(import_sql)
+    md5_sql = yf.md5(import_sql)
 
     import_sign = False
     save_md5_file = getServerDir() + '/import_mongodb.md5'
     if os.path.exists(save_md5_file):
-        save_md5_sql = mw.readFile(save_md5_file)
+        save_md5_sql = yf.readFile(save_md5_file)
         if save_md5_sql != md5_sql:
             import_sign = True
-            mw.writeFile(save_md5_file, md5_sql)
+            yf.writeFile(save_md5_file, md5_sql)
     else:
-        mw.writeFile(save_md5_file, md5_sql)
+        yf.writeFile(save_md5_file, md5_sql)
 
     if not os.path.exists(file) or import_sql:
-        conn = mw.M(dbname).dbPos(getServerDir(), name)
+        conn = yf.M(dbname).dbPos(getServerDir(), name)
         csql_list = import_sql.split(';')
         for index in range(len(csql_list)):
             conn.execute(csql_list[index], ())
 
-    conn = mw.M(dbname).dbPos(getServerDir(), name)
+    conn = yf.M(dbname).dbPos(getServerDir(), name)
     return conn
 
 def mongdbClient():
@@ -132,7 +132,7 @@ def mongdbClient():
 class backupTools:
 
     def getDbBackupList(self,dbname=''):
-        bkDir = mw.getFatherDir() + '/backup/database'
+        bkDir = yf.getFatherDir() + '/backup/database'
         blist = os.listdir(bkDir)
         r = []
 
@@ -155,9 +155,9 @@ class backupTools:
             print("★安全拦截：非法数据库名或备份份数！")
             return
 
-        db_path = mw.getServerDir() + '/mongodb'
+        db_path = yf.getServerDir() + '/mongodb'
         db_name = 'mongodb'
-        name = mw.M('databases').dbPos(db_path, db_name).where('name=?', (name,)).getField('name')
+        name = yf.M('databases').dbPos(db_path, db_name).where('name=?', (name,)).getField('name')
 
         startTime = time.time()
         if not name:
@@ -167,7 +167,7 @@ class backupTools:
             print("----------------------------------------------------------------------------")
             return
 
-        backup_path = mw.getBackupDir() + '/database'
+        backup_path = yf.getBackupDir() + '/database'
         if not os.path.exists(backup_path):
             os.makedirs(backup_path)
 
@@ -217,7 +217,7 @@ class backupTools:
         outTime = time.time() - startTime
 
         log = "数据库MongoDB[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
-        mw.writeLog('计划任务', log)
+        yf.writeLog('计划任务', log)
         print("★[" + endDate + "] " + log)
         print("|---保留最新的[" + count + "]份备份")
         print("|---文件名:" + filename)
@@ -238,9 +238,9 @@ class backupTools:
                     break
 
     def backupDatabaseAll(self, save):
-        db_path = mw.getServerDir() + '/mongodb'
+        db_path = yf.getServerDir() + '/mongodb'
         db_name = 'mongodb'
-        databases = mw.M('databases').dbPos(
+        databases = yf.M('databases').dbPos(
             db_path, db_name).field('name').select()
         for db in databases:
             self.backupDatabase(db['name'], save)

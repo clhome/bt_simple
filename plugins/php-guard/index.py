@@ -18,10 +18,10 @@ def getPluginName():
     return 'php-guard'
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 # ==================== Callback API ====================
 
@@ -29,11 +29,11 @@ def get_status():
     """获取PHP守护状态及各PHP实例连通状态"""
     try:
         # 1. 检查守护总开关是否开启
-        check_file = mw.getPanelDir() + '/data/502Task.pl'
+        check_file = yf.getPanelDir() + '/data/502Task.pl'
         daemon_enabled = os.path.exists(check_file)
 
         # 2. 动态扫描已安装的 PHP 实例
-        php_dir = mw.getServerDir() + '/php'
+        php_dir = yf.getServerDir() + '/php'
         installed_versions = []
         if os.path.exists(php_dir):
             for name in os.listdir(php_dir):
@@ -47,9 +47,9 @@ def get_status():
             status = "stopped"
             sock = ""
             try:
-                sock = mw.getFpmAddress(ver)
+                sock = yf.getFpmAddress(ver)
                 # 利用 fcgi 请求获取状态
-                data = mw.requestFcgiPHP(sock, '/phpfpm_status_' + ver + '?json')
+                data = yf.requestFcgiPHP(sock, '/phpfpm_status_' + ver + '?json')
                 result = str(data, encoding='utf-8')
                 if result.find('Bad Gateway') == -1 and result.find('HTTP Error 404') == -1 and result.find('Connection refused') == -1:
                     status = "running"
@@ -78,7 +78,7 @@ def get_status():
 def get_repair_logs():
     """获取最近50条PHP守护自愈日志"""
     try:
-        logs = mw.M('logs').field('id,type,log,add_time').where('type=?', ('PHP守护程序',)).order('id desc').limit('50').select()
+        logs = yf.M('logs').field('id,type,log,add_time').where('type=?', ('PHP守护程序',)).order('id desc').limit('50').select()
         return {
             "status": True,
             "msg": "ok",
@@ -93,21 +93,21 @@ def repair_version(version):
     try:
         # 重置/重启逻辑
         # 1. 尝试使用 systemd
-        phpService = mw.systemdCfgDir() + '/php' + version + '.service'
+        phpService = yf.systemdCfgDir() + '/php' + version + '.service'
         if os.path.exists(phpService):
-            mw.execShell("systemctl restart php" + version)
+            yf.execShell("systemctl restart php" + version)
             return {"status": True, "msg": "PHP-" + version + " 已通过 systemd 重启"}
 
         # 2. 尝试使用 init.d 脚本
-        fpm = mw.getServerDir() + '/php/init.d/php' + version
+        fpm = yf.getServerDir() + '/php/init.d/php' + version
         if os.path.exists(fpm):
-            mw.execShell(fpm + " restart")
+            yf.execShell(fpm + " restart")
             return {"status": True, "msg": "PHP-" + version + " 已通过 init.d 重启"}
 
         # 3. 兜底尝试套接字/PID文件强杀并启动
         cgi = '/tmp/php-cgi-' + version + '.sock'
-        pid = mw.getServerDir() + '/php/' + version + '/var/run/php-fpm.pid'
-        mw.execShell("ps -ef | grep php/" + version + " | grep -v grep | grep -v python | awk '{print $2}' | xargs kill -9")
+        pid = yf.getServerDir() + '/php/' + version + '/var/run/php-fpm.pid'
+        yf.execShell("ps -ef | grep php/" + version + " | grep -v grep | grep -v python | awk '{print $2}' | xargs kill -9")
         time.sleep(0.5)
         if os.path.exists(cgi):
             os.remove(cgi)
@@ -116,7 +116,7 @@ def repair_version(version):
         
         # 再次尝试寻找可执行脚本启动
         if os.path.exists(fpm):
-            mw.execShell(fpm + " start")
+            yf.execShell(fpm + " start")
             return {"status": True, "msg": "PHP-" + version + " 已强杀并成功通过服务启动"}
 
         return {"status": False, "msg": "未找到 PHP-" + version + " 的任何启动管理服务，请检查安装！"}

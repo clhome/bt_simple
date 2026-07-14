@@ -19,7 +19,7 @@ from admin.user_login_check import panel_login_required
 from utils.plugin import plugin as MwPlugin
 from utils.site import sites as MwSites
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 from .site import blueprint
@@ -30,10 +30,10 @@ def get_site_doc():
     stype = request.form.get('type', '0').strip()
     vlist = []
     vlist.append('')
-    vlist.append(mw.getServerDir() +'/openresty/nginx/html/index.html')
-    vlist.append(mw.getServerDir() + '/openresty/nginx/html/404.html')
-    vlist.append(mw.getServerDir() +'/openresty/nginx/html/index.html')
-    vlist.append(mw.getServerDir() + '/web_conf/stop/index.html')
+    vlist.append(yf.getServerDir() +'/openresty/nginx/html/index.html')
+    vlist.append(yf.getServerDir() + '/openresty/nginx/html/404.html')
+    vlist.append(yf.getServerDir() +'/openresty/nginx/html/index.html')
+    vlist.append(yf.getServerDir() + '/web_conf/stop/index.html')
     data = {}
     data['path'] = vlist[int(stype)]
-    return mw.returnData(True, 'ok', data)
+    return yf.returnData(True, 'ok', data)

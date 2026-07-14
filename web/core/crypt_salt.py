@@ -4,9 +4,9 @@ import os
 import json
 import time
 import base64
-import core.yf as mw
+import core.yf as yf
 
-SALT_MAIN = mw.getPanelDataDir() + '/.crypt_salt'
+SALT_MAIN = yf.getPanelDataDir() + '/.crypt_salt'
 SALT_BAK1 = '/etc/yufeng/.crypt_salt.bak'
 SALT_BAK2 = '/root/.yufeng_crypt_salt'
 
@@ -75,12 +75,12 @@ def get_salt():
     # 同步恢复缺失的副本
     if not data_main:
         _write_salt(SALT_MAIN, valid_data)
-        mw.writeLog('安全机制', '加密主 Salt 文件丢失，已自动从备份恢复。')
+        yf.writeLog('安全机制', '加密主 Salt 文件丢失，已自动从备份恢复。')
     if not data_bak1:
         _write_salt(SALT_BAK1, valid_data)
-        mw.writeLog('安全机制', '加密备1 Salt 文件丢失，已自动恢复。')
+        yf.writeLog('安全机制', '加密备1 Salt 文件丢失，已自动恢复。')
     if not data_bak2:
         _write_salt(SALT_BAK2, valid_data)
-        mw.writeLog('安全机制', '加密备2 Salt 文件丢失，已自动恢复。')
+        yf.writeLog('安全机制', '加密备2 Salt 文件丢失，已自动恢复。')
         
     return valid_data['salt']

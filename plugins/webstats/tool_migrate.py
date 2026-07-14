@@ -15,7 +15,7 @@ import core.mw as mw
 from utils.crontab import crontab as MwCrontab
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -24,11 +24,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getConf():
@@ -38,7 +38,7 @@ def getConf():
 
 def getGlobalConf():
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     result = json.loads(content)
     return result
 
@@ -47,19 +47,19 @@ def pSqliteDb(dbname='web_logs', site_name='unset', fn="logs"):
 
     db_dir = getServerDir() + '/logs/' + site_name
     if not os.path.exists(db_dir):
-        mw.makeDirs(db_dir)
+        yf.makeDirs(db_dir)
 
     name = fn
     file = db_dir + '/' + name + '.db'
 
     if not os.path.exists(file):
-        conn = mw.M(dbname).dbPos(db_dir, name)
-        sql = mw.readFile(getPluginDir() + '/conf/init.sql')
+        conn = yf.M(dbname).dbPos(db_dir, name)
+        sql = yf.readFile(getPluginDir() + '/conf/init.sql')
         sql_list = sql.split(';')
         for index in range(len(sql_list)):
             conn.execute(sql_list[index], ())
     else:
-        conn = mw.M(dbname).dbPos(db_dir, name)
+        conn = yf.M(dbname).dbPos(db_dir, name)
 
     conn.execute("PRAGMA synchronous = 0", ())
     conn.execute("PRAGMA page_size = 4096", ())
@@ -83,13 +83,13 @@ def migrateSiteHotLogs(site_name, query_date):
     try:
         import shutil
         print("coping {} to {} ...".format(hot_db, hot_db_tmp))
-        mw.writeFile(migrating_flag, "yes")
+        yf.writeFile(migrating_flag, "yes")
         time.sleep(3)
         shutil.copy(hot_db, hot_db_tmp)
         if not os.path.exists(hot_db_tmp):
-            return mw.returnMsg(False, "migrating fail, copy tmp file!")
+            return yf.returnMsg(False, "migrating fail, copy tmp file!")
     except:
-        return mw.returnMsg(False, "{} migrating fail.".format(site_name))
+        return yf.returnMsg(False, "{} migrating fail.".format(site_name))
     finally:
         if os.path.exists(migrating_flag):
             os.remove(migrating_flag)
@@ -152,7 +152,7 @@ def migrateSiteHotLogs(site_name, query_date):
 
         # 3. delete merged data and clean up statistics
         print("delete merged thermal data...")
-        mw.writeFile(migrating_flag, "yes")
+        yf.writeFile(migrating_flag, "yes")
 
         hot_db_conn = pSqliteDb('web_logs', site_name)
         del_hot_log = "delete from web_logs where time<{}".format(todayUt)
@@ -191,15 +191,15 @@ def migrateSiteHotLogs(site_name, query_date):
 
     print("{} logs migrate ok.".format(site_name))
 
-    if not mw.isAppleSystem():
-        mw.execShell("chown -R www:www " + getServerDir())
+    if not yf.isAppleSystem():
+        yf.execShell("chown -R www:www " + getServerDir())
 
-    return mw.returnMsg(True, "{} logs migrate ok".format(site_name))
+    return yf.returnMsg(True, "{} logs migrate ok".format(site_name))
 
 
 def migrateHotLogs(query_date="today"):
     print("begin migrate hot logs")
-    sites = mw.M('sites').field('name').order("add_time").select()
+    sites = yf.M('sites').field('name').order("add_time").select()
     
     unset_site = {"name": "unset"}
     sites.append(unset_site)

@@ -20,7 +20,7 @@ from flask import request
 from admin import session
 from admin.user_login_check import panel_login_required
 
-import core.yf as mw
+import core.yf as yf
 import utils.config as utils_config
 
 from .setting import blueprint
@@ -34,11 +34,11 @@ def set_panel_api():
     if not panel_api['open']:
         panel_api['open'] = True
         thisdb.setOption('panel_api', json.dumps(panel_api))
-        return mw.returnData(True, '开启API成功!')
+        return yf.returnData(True, '开启API成功!')
     else:
         panel_api['open'] = False
         thisdb.setOption('panel_api', json.dumps(panel_api))
-        return mw.returnData(True, '关闭API成功!')
+        return yf.returnData(True, '关闭API成功!')
 
 
 # 获取APP列表
@@ -52,7 +52,7 @@ def get_app_list():
     info = thisdb.getAppList(page=int(page),size=int(limit))
     data = {}
     data['data'] = info['list']
-    data['page'] = mw.getPage({'count':info['count'],'tojs':tojs,'p':page,'row':limit})
+    data['page'] = yf.getPage({'count':info['count'],'tojs':tojs,'p':page,'row':limit})
     return data
 
 
@@ -64,12 +64,12 @@ def add_app():
     app_secret = request.form.get('app_secret', '1').strip()
     limit_addr = request.form.get('limit_addr', '').strip()
     if limit_addr == '':
-        return mw.returnData(False, 'IP限制不能为空!')
+        return yf.returnData(False, 'IP限制不能为空!')
 
     rid = thisdb.addApp(app_id,app_secret,limit_addr)
     if rid > 0:
-        return mw.returnData(True, '添加成功!')
-    return mw.returnData(False, '添加失败!')
+        return yf.returnData(True, '添加成功!')
+    return yf.returnData(False, '添加失败!')
 
 # 添加APP列表
 @blueprint.route('/toggle_app_status', endpoint='toggle_app_status', methods=['POST'])
@@ -78,8 +78,8 @@ def toggle_app_status():
     aid = request.form.get('id', '').strip()
     rid = thisdb.toggleAppStatus(aid)
     if rid > 0:
-        return mw.returnData(True, '切换成功!')
-    return mw.returnData(False, '切换失败!')
+        return yf.returnData(True, '切换成功!')
+    return yf.returnData(False, '切换失败!')
 
 
 # 获取APP列表
@@ -89,5 +89,5 @@ def delete_app():
     aid = request.form.get('id', '').strip()
     rid = thisdb.deleteAppById(aid)
     if rid > 0:
-        return mw.returnData(True, '删除成功!')
-    return mw.returnData(False, '删除失败!')
+        return yf.returnData(True, '删除成功!')
+    return yf.returnData(False, '删除失败!')

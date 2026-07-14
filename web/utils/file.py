@@ -16,18 +16,18 @@ import shutil
 import json
 import base64
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files):
-    if not mw.fileNameCheck(name):
-        return mw.returnData(False, '文件名中不能包含特殊字符!')
+    if not yf.fileNameCheck(name):
+        return yf.returnData(False, '文件名中不能包含特殊字符!')
 
     if path == '/':
-        return mw.returnData(False, '不能直接上传文件到系统根目录!')
+        return yf.returnData(False, '不能直接上传文件到系统根目录!')
 
     if name.find('./') != -1 or path.find('./') != -1:
-        return mw.returnData(False, '错误的参数')
+        return yf.returnData(False, '错误的参数')
 
     if not os.path.exists(path):
         os.makedirs(path, 493)
@@ -40,7 +40,7 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
         d_size = os.path.getsize(save_path)
 
     if d_size != int(start):
-        return mw.returnData(True, 'size', d_size)
+        return yf.returnData(True, 'size', d_size)
 
     f = open(save_path, 'ab')
     if b64_data == '1':
@@ -53,42 +53,42 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
     f.close()
     f_size = os.path.getsize(save_path)
     if f_size != int(size):
-        return mw.returnData(True, 'size', f_size)
+        return yf.returnData(True, 'size', f_size)
 
     new_name = os.path.join(path, name)
     if os.path.exists(new_name):
         if new_name.find('.user.ini') != -1:
-            mw.execShell("chattr -i " + new_name)
+            yf.execShell("chattr -i " + new_name)
         try:
             os.remove(new_name)
         except:
-            mw.execShell("rm -f %s" % new_name)
+            yf.execShell("rm -f %s" % new_name)
 
     os.renames(save_path, new_name)
 
     if dir_mode != '' and dir_mode != '':
         mode_tmp1 = dir_mode.split(',')
-        mw.setMode(path, mode_tmp1[0])
-        mw.setOwn(path, mode_tmp1[1])
+        yf.setMode(path, mode_tmp1[0])
+        yf.setOwn(path, mode_tmp1[1])
         mode_tmp2 = file_mode.split(',')
-        mw.setMode(new_name, mode_tmp2[0])
-        mw.setOwn(new_name, mode_tmp2[1])
+        yf.setMode(new_name, mode_tmp2[0])
+        yf.setOwn(new_name, mode_tmp2[1])
     else:
         setMode(new_name)
 
-    msg = mw.getInfo('上传文件[{1}] 到 [{2}]成功!', (new_name, path))
-    mw.writeLog('文件管理', msg)
-    return mw.returnData(True, '上传成功!', f_size)
+    msg = yf.getInfo('上传文件[{1}] 到 [{2}]成功!', (new_name, path))
+    yf.writeLog('文件管理', msg)
+    return yf.returnData(True, '上传成功!', f_size)
 
 
 def mvFile(sfile, dfile):
     if not checkFileName(dfile):
-        return mw.returnData(False, '文件名中不能包含特殊字符!')
+        return yf.returnData(False, '文件名中不能包含特殊字符!')
     if not os.path.exists(sfile):
-        return mw.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, '指定文件不存在!')
 
     if not checkDir(sfile):
-        return mw.returnData(False, 'FILE_DANGER')
+        return yf.returnData(False, 'FILE_DANGER')
 
 
     try:
@@ -98,45 +98,45 @@ def mvFile(sfile, dfile):
 
     try:
         shutil.move(sfile, dfile)
-        msg = mw.getInfo('移动或重名命文件[{1}]到[{2}]成功!', (sfile, dfile,))
-        mw.writeLog('文件管理', msg)
-        return mw.returnData(True, '移动或重名命文件成功!')
+        msg = yf.getInfo('移动或重名命文件[{1}]到[{2}]成功!', (sfile, dfile,))
+        yf.writeLog('文件管理', msg)
+        return yf.returnData(True, '移动或重名命文件成功!')
     except Exception as e:
-        return mw.returnData(False, '移动或重名命文件失败!'+str(e))
+        return yf.returnData(False, '移动或重名命文件失败!'+str(e))
 
 def unzip(sfile, dfile, stype, path):
     if dfile == '' or dfile == '/':
-        return mw.returnData(False, '不能在根目录解压!')
+        return yf.returnData(False, '不能在根目录解压!')
 
     if not os.path.exists(sfile):
-        return mw.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, '指定文件不存在!')
 
     try:
-        tmps = mw.getPanelDir() + '/logs/panel_exec.log'
+        tmps = yf.getPanelDir() + '/logs/panel_exec.log'
         if stype == 'zip':
-            mw.execShell("cd " + path + " && unzip -o -d '" + dfile +"' '" + sfile + "' > " + tmps + " 2>&1 &")
+            yf.execShell("cd " + path + " && unzip -o -d '" + dfile +"' '" + sfile + "' > " + tmps + " 2>&1 &")
         else:
             sfiles = ''
             for sfile in sfile.split(','):
                 if not sfile:
                     continue
                 sfiles += " '" + sfile + "'"
-            mw.execShell("cd " + path + " && tar -zxvf " + sfiles +" -C " + dfile + " > " + tmps + " 2>&1 &")
+            yf.execShell("cd " + path + " && tar -zxvf " + sfiles +" -C " + dfile + " > " + tmps + " 2>&1 &")
 
         if os.path.exists(dfile):
             if dfile.startswith("/www/wwwroot"):
                 setFileAccept(dfile)
-        mw.writeLog("文件管理", '文件[{1}]解压[{2}]成功!', (sfile, dfile))
-        return mw.returnData(True, '文件解压成功!')
+        yf.writeLog("文件管理", '文件[{1}]解压[{2}]成功!', (sfile, dfile))
+        return yf.returnData(True, '文件解压成功!')
     except:
-        return mw.returnData(False, '文件解压失败!')
+        return yf.returnData(False, '文件解压失败!')
 
 def uncompress(sfile, dfile, path):
     if dfile == '' or dfile == '/':
-        return mw.returnData(False, '不能在根目录解压!')
+        return yf.returnData(False, '不能在根目录解压!')
 
     if not os.path.exists(sfile):
-        return mw.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, '指定文件不存在!')
 
     filename = os.path.basename(sfile)
     extension = os.path.splitext(filename)[-1]
@@ -149,46 +149,46 @@ def uncompress(sfile, dfile, path):
         extension = suffix_gz
 
     if not extension in ['tar.gz', 'gz', 'zip', 'rar', '7z', 'xz','bz2']:
-        return mw.returnData(False, '现在仅支持gz,zip,rar,7z,xz,bz2格式解压!')
+        return yf.returnData(False, '现在仅支持gz,zip,rar,7z,xz,bz2格式解压!')
 
-    if extension == 'rar' and not mw.checkBinExist('rar'):
-        return mw.returnData(False, 'rar解压命令不存在，请安装!')
-    if extension == '7z' and not mw.checkBinExist('7z'):
-        return mw.returnData(False, '7z解压命令不存在，请安装!')
+    if extension == 'rar' and not yf.checkBinExist('rar'):
+        return yf.returnData(False, 'rar解压命令不存在，请安装!')
+    if extension == '7z' and not yf.checkBinExist('7z'):
+        return yf.returnData(False, '7z解压命令不存在，请安装!')
 
 
     cmd = "cd " + path + " "
     try:
-        tmps = mw.getPanelDir() + '/logs/panel_exec.log'
+        tmps = yf.getPanelDir() + '/logs/panel_exec.log'
         if extension == 'zip':
             cmd += "&& unzip -o -d '" + dfile + "' '" + sfile + "' > " + tmps + " 2>&1 &"
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         elif extension == 'tar.gz':
             cmd += "&& tar -zxvf " + sfile + " -C " + dfile + " > " + tmps + " 2>&1 &"
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         elif extension == 'gz':
             cmd += "&& gunzip -k " + sfile + " > " + tmps + " 2>&1 &"
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         elif extension == 'rar':
             cmd += "&& unrar x " + sfile + " " + dfile + " > " + tmps + " 2>&1 &"
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         elif extension == '7z':
             cmd += "&& 7z x " + sfile + " -r -o" + dfile + " > " + tmps + " 2>&1 &"
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         elif extension == 'xz':
             cmd += "&& tar -Jxvf " + sfile + " -C " + dfile + " > " + tmps + " 2>&1 &"
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         elif extension == 'bz2':
             cmd += "&& tar -xjvf " + sfile + " -C " + dfile + " > " + tmps + " 2>&1 &"
-            mw.execShell(cmd)
+            yf.execShell(cmd)
 
         if os.path.exists(dfile):
             if dfile.startswith("/www/wwwroot"):
                 setFileAccept(dfile)
-        mw.writeLog("文件管理", '文件[{1}]解压[{2}]成功!', (sfile, dfile,))
-        return mw.returnData(True, '文件解压成功!')
+        yf.writeLog("文件管理", '文件[{1}]解压[{2}]成功!', (sfile, dfile,))
+        return yf.returnData(True, '文件解压成功!')
     except Exception as e:
-        return mw.returnData(False, '文件解压失败!:' + str(e))
+        return yf.returnData(False, '文件解压失败!:' + str(e))
 
 def setBatchData(path, stype, access, user, data):
     from admin import session
@@ -200,13 +200,13 @@ def setBatchData(path, stype, access, user, data):
             'user': user,
             'data': data
         }
-        return mw.returnData(True, '标记成功,请在目标目录点击粘贴所有按钮!')
+        return yf.returnData(True, '标记成功,请在目标目录点击粘贴所有按钮!')
     elif stype == '3':
         for key in json.loads(data):
             try:
                 filename = path + '/' + key
                 if not checkDir(filename):
-                    return mw.returnData(False, 'FILE_DANGER')
+                    return yf.returnData(False, 'FILE_DANGER')
                 
                 # 使用原生 Python 操作替换 os.system
                 mode = int(access, 8)
@@ -221,8 +221,8 @@ def setBatchData(path, stype, access, user, data):
                 shutil.chown(filename, user, user)
             except:
                 continue
-        mw.writeLog('文件管理', '批量设置权限成功!')
-        return mw.returnData(True, '批量设置权限成功!')
+        yf.writeLog('文件管理', '批量设置权限成功!')
+        return yf.returnData(True, '批量设置权限成功!')
     else:
         recycle_bin = thisdb.getOption('recycle_bin')
         is_recycle = False
@@ -240,10 +240,10 @@ def setBatchData(path, stype, access, user, data):
                     continue
 
                 i += 1
-                mw.writeSpeed(key, i, l)
+                yf.writeSpeed(key, i, l)
                 if os.path.isdir(filename):
                     if not checkDir(filename):
-                        return mw.returnData(False, '请不要花样作死!')
+                        return yf.returnData(False, '请不要花样作死!')
                     if is_recycle:
                         if not mvRecycleBin(topath):
                             failed_files.append(filename)
@@ -264,29 +264,29 @@ def setBatchData(path, stype, access, user, data):
             except:
                 failed_files.append(filename)
                 continue
-            mw.writeSpeed(None, 0, 0)
+            yf.writeSpeed(None, 0, 0)
             
         if failed_files:
             occ = getOccupyingProcess(failed_files[0])
             msg = '部分文件/目录删除失败，例如: ' + failed_files[0].split('/')[-1]
             if occ:
                 msg += '，' + occ
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
             
-        mw.writeLog('文件管理', '批量删除成功!')
-        return mw.returnData(True, '批量删除成功！')
+        yf.writeLog('文件管理', '批量删除成功!')
+        return yf.returnData(True, '批量删除成功！')
 
 def batchPaste(path, stype):
     from admin import session
     if not checkDir(path):
-        return mw.returnData(False, '请不要花样作死!')
+        return yf.returnData(False, '请不要花样作死!')
     i = 0
     myfiles = json.loads(session['selected']['data'])
     l = len(myfiles)
     if stype == '1':
         for key in myfiles:
             i += 1
-            mw.writeSpeed(key, i, l)
+            yf.writeSpeed(key, i, l)
             try:
 
                 sfile = session['selected'][
@@ -301,13 +301,13 @@ def batchPaste(path, stype):
                 os.chown(dfile, stat.st_uid, stat.st_gid)
             except:
                 continue
-        msg = mw.getInfo('从[{1}]批量复制到[{2}]成功',(session['selected']['path'], path,))
-        mw.writeLog('文件管理', msg)
+        msg = yf.getInfo('从[{1}]批量复制到[{2}]成功',(session['selected']['path'], path,))
+        yf.writeLog('文件管理', msg)
     else:
         for key in myfiles:
             try:
                 i += 1
-                mw.writeSpeed(key, i, l)
+                yf.writeSpeed(key, i, l)
 
                 sfile = session['selected'][
                     'path'] + '/' + key
@@ -316,73 +316,73 @@ def batchPaste(path, stype):
                 shutil.move(sfile, dfile)
             except:
                 continue
-        msg = mw.getInfo('从[{1}]批量移动到[{2}]成功',(session['selected']['path'], path,))
-        mw.writeLog('文件管理', msg)
-    mw.writeSpeed(None, 0, 0)
+        msg = yf.getInfo('从[{1}]批量移动到[{2}]成功',(session['selected']['path'], path,))
+        yf.writeLog('文件管理', msg)
+    yf.writeSpeed(None, 0, 0)
     errorCount = len(myfiles) - i
     del(session['selected'])
-    msg = mw.getInfo('批量操作成功[{1}],失败[{2}]', (str(i), str(errorCount)))
-    return mw.returnData(True, msg)
+    msg = yf.getInfo('批量操作成功[{1}],失败[{2}]', (str(i), str(errorCount)))
+    return yf.returnData(True, msg)
 
 
 def zip(sfile, dfile, stype, path):
-    tmps = mw.getPanelDir() + '/logs/panel_exec.log'
+    tmps = yf.getPanelDir() + '/logs/panel_exec.log'
     if sfile.find(',') == -1:
         if stype == 'zip':
-            mw.execShell("cd '" + path + "' && zip '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
+            yf.execShell("cd '" + path + "' && zip '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
         elif stype == '7z':
-            if not mw.checkBinExist('7z'):
-                return mw.returnData(False, '7z压缩命令不存在，请安装!')
-            mw.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
+            if not yf.checkBinExist('7z'):
+                return yf.returnData(False, '7z压缩命令不存在，请安装!')
+            yf.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
         elif stype == 'tar_gz':
-            mw.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
+            yf.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
         elif stype == 'xz':
-            # if not mw.checkBinExist('xz'):
-            #     return mw.returnData(False, 'xz压缩命令不存在，请安装!')
+            # if not yf.checkBinExist('xz'):
+            #     return yf.returnData(False, 'xz压缩命令不存在，请安装!')
             # dfile = dfile.strip(".xz")
             # cmd = "cd '" + path + "' && tar -cvf '" + dfile + ".tar' " + sfile + " && xz -z '" + dfile + ".tar' > " + tmps + " 2>&1 &"
             cmd = "cd '" + path + "' && tar -cJf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1"
             # print(cmd)
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         elif stype == 'rar':
-            if not mw.checkBinExist('rar'):
-                return mw.returnData(False, 'rar压缩命令不存在，请安装!')
-            mw.execShell("cd '" + path + "' && rar a '" + dfile + "' '" + sfile + "' > " + tmps + " 2>&1")
+            if not yf.checkBinExist('rar'):
+                return yf.returnData(False, 'rar压缩命令不存在，请安装!')
+            yf.execShell("cd '" + path + "' && rar a '" + dfile + "' '" + sfile + "' > " + tmps + " 2>&1")
         elif stype == 'bz2':
-            mw.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
+            yf.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
         else:
-            return mw.returnData(False, '未知压缩格式')
-        mw.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfile, dfile))
+            return yf.returnData(False, '未知压缩格式')
+        yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfile, dfile))
     else:
         sfiles = ''
         for sfile in sfile.split(','):
             if not sfile:
                 continue
             if not os.path.exists(sfile):
-                return mw.returnData(False, '指定文件不存在!')
+                return yf.returnData(False, '指定文件不存在!')
             
             sfiles += " '" + sfile.replace(path+'/','') + "'"
 
         if stype == 'zip':
-            mw.execShell("cd '" + path + "' && zip '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
+            yf.execShell("cd '" + path + "' && zip '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
         elif stype == '7z':
-            if not mw.checkBinExist('7z'):
-                return mw.returnData(False, '7z压缩命令不存在，请安装!')
-            mw.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
+            if not yf.checkBinExist('7z'):
+                return yf.returnData(False, '7z压缩命令不存在，请安装!')
+            yf.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
         elif stype == 'tar_gz':
-            mw.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
+            yf.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
         elif stype == 'rar':
-            if not mw.checkBinExist('rar'):
-                return mw.returnData(False, 'rar压缩命令不存在，请安装!')
-            mw.execShell("cd '" + path + "' && rar a '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
+            if not yf.checkBinExist('rar'):
+                return yf.returnData(False, 'rar压缩命令不存在，请安装!')
+            yf.execShell("cd '" + path + "' && rar a '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
         elif stype == 'bz2':
-            mw.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
+            yf.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
         else:
-            return mw.returnData(False, '未知压缩格式')
+            return yf.returnData(False, '未知压缩格式')
 
-        mw.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfiles, dfile))
+        yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfiles, dfile))
     setFileAccept(dfile)
-    return mw.returnData(True, '文件压缩成功!')
+    return yf.returnData(True, '文件压缩成功!')
 
 def getAccess(filename):
     data = {}
@@ -397,45 +397,45 @@ def getAccess(filename):
 
 def copyDir(src_file, dst_file):
     if not os.path.exists(src_file):
-        return mw.returnData(False, '指定目录不存在!')
+        return yf.returnData(False, '指定目录不存在!')
 
     if os.path.exists(dst_file):
-        return mw.returnData(False, '指定目录已存在!')
+        return yf.returnData(False, '指定目录已存在!')
 
     try:
         shutil.copytree(src_file, dst_file)
         stat = os.stat(src_file)
         os.chown(dst_file, stat.st_uid, stat.st_gid)
-        msg = mw.getInfo('复制目录[{1}]到[{2}]成功!', (src_file, dst_file))
-        mw.writeLog('文件管理', msg)
-        return mw.returnData(True, '目录复制成功!')
+        msg = yf.getInfo('复制目录[{1}]到[{2}]成功!', (src_file, dst_file))
+        yf.writeLog('文件管理', msg)
+        return yf.returnData(True, '目录复制成功!')
     except:
-        return mw.returnData(False, '目录复制失败!')
+        return yf.returnData(False, '目录复制失败!')
 
 def copyFile(src_file, dst_file):
     if src_file == dst_file:
-        return mw.returnJson(False, '源与目的一致!')
+        return yf.returnJson(False, '源与目的一致!')
 
     if not os.path.exists(src_file):
-        return mw.returnJson(False, '指定文件不存在!')
+        return yf.returnJson(False, '指定文件不存在!')
 
     if os.path.isdir(src_file):
         return copyDir(src_file, dst_file)
 
     try:
         shutil.copyfile(src_file, dst_file)
-        msg = mw.getInfo('复制文件[{1}]到[{2}]成功!', (src_file, dst_file,))
-        mw.writeLog('文件管理', msg)
+        msg = yf.getInfo('复制文件[{1}]到[{2}]成功!', (src_file, dst_file,))
+        yf.writeLog('文件管理', msg)
         stat = os.stat(src_file)
         os.chown(dst_file, stat.st_uid, stat.st_gid)
-        return mw.returnData(True, '文件复制成功!')
+        return yf.returnData(True, '文件复制成功!')
     except:
-        return mw.returnData(False, '文件复制失败!')
+        return yf.returnData(False, '文件复制失败!')
 
 def setFileAccept(filename):
     auth = 'www:www'
-    if mw.getOs() == 'darwin':
-        user = mw.execShell("who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
+    if yf.getOs() == 'darwin':
+        user = yf.execShell("who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         auth = user + ':staff'
     os.system('chown -R ' + auth + ' ' + filename)
     os.system('chmod -R 755 ' + filename)
@@ -443,34 +443,34 @@ def setFileAccept(filename):
 def createFile(file_path):
     try:
         if not checkFileName(file_path):
-            return mw.returnData(False, '文件名中不能包含特殊字符!')
+            return yf.returnData(False, '文件名中不能包含特殊字符!')
         if os.path.exists(file_path):
-            return mw.returnData(False, '指定文件已存在!')
+            return yf.returnData(False, '指定文件已存在!')
         _path = os.path.dirname(file_path)
         if not os.path.exists(_path):
             os.makedirs(_path)
         open(file_path, 'w+').close()
         setFileAccept(file_path)
-        msg = mw.getInfo('创建文件[{1}]成功!', (file_path,))
-        mw.writeLog('文件管理', msg)
-        return mw.returnData(True, '文件创建成功!')
+        msg = yf.getInfo('创建文件[{1}]成功!', (file_path,))
+        yf.writeLog('文件管理', msg)
+        return yf.returnData(True, '文件创建成功!')
     except Exception as e:
-        return mw.returnData(True, '文件创建失败:'+str(e))
+        return yf.returnData(True, '文件创建失败:'+str(e))
 
 def createDir(path):
     try:
         if not checkFileName(path):
-            return mw.returnData(False, '目录名中不能包含特殊字符!')
+            return yf.returnData(False, '目录名中不能包含特殊字符!')
         if os.path.exists(path):
-            return mw.returnData(False, '指定目录已存在!')
+            return yf.returnData(False, '指定目录已存在!')
         os.makedirs(path)
         setFileAccept(path)
-        msg = mw.getInfo('创建目录[{1}]成功!', (path,))
-        mw.writeLog('文件管理', msg)
-        return mw.returnData(True, '目录创建成功!')
+        msg = yf.getInfo('创建目录[{1}]成功!', (path,))
+        yf.writeLog('文件管理', msg)
+        return yf.returnData(True, '目录创建成功!')
     except Exception as e:
         print(e)
-        return mw.returnData(False, '目录创建失败!')
+        return yf.returnData(False, '目录创建失败!')
 
 # 检查敏感目录
 def checkDir(path):
@@ -501,18 +501,18 @@ def checkDir(path):
         '/srv',
         '/selinux',
         '/www/server',
-        mw.getRootDir())
+        yf.getRootDir())
     return not path in sense_dir
 
 def getFileBody(path):
     if not os.path.exists(path):
-        return mw.returnData(False, '文件不存在', (path,))
+        return yf.returnData(False, '文件不存在', (path,))
 
     if os.path.getsize(path) > 2097152:
-        return mw.returnData(False, '不能在线编辑大于2MB的文件!')
+        return yf.returnData(False, '不能在线编辑大于2MB的文件!')
 
     if os.path.isdir(path):
-        return mw.returnData(False, '这不是一个文件!')
+        return yf.returnData(False, '这不是一个文件!')
 
     fp = open(path, 'rb')
     data = {}
@@ -529,14 +529,14 @@ def getFileBody(path):
                 break
             except Exception as ex:
                 if el == 'BIG5':
-                    return mw.returnData(False, '文件编码不被兼容，无法正确读取文件!' + str(ex))
+                    return yf.returnData(False, '文件编码不被兼容，无法正确读取文件!' + str(ex))
     else:
-        return mw.returnData(False, '文件未正常打开!')
-    return mw.returnData(True, 'OK', data)
+        return yf.returnData(False, '文件未正常打开!')
+    return yf.returnData(True, 'OK', data)
 
 def saveBody(path, data, encoding):
     if not os.path.exists(path):
-        return mw.returnData(False, '文件不存在')
+        return yf.returnData(False, '文件不存在')
     try:
         if encoding == 'ascii':
             encoding = 'utf-8'
@@ -547,11 +547,11 @@ def saveBody(path, data, encoding):
         fp.close()
 
         if path.find("web_conf") > 0:
-            mw.restartWeb()
-        mw.writeLog('文件管理', '文件[{1}]保存成功', (path,))
-        return mw.returnData(True, '文件保存成功')
+            yf.restartWeb()
+        yf.writeLog('文件管理', '文件[{1}]保存成功', (path,))
+        return yf.returnData(True, '文件保存成功')
     except Exception as ex:
-        return mw.returnData(False, '文件保存错误:' + str(ex))
+        return yf.returnData(False, '文件保存错误:' + str(ex))
 
 
 def sortFileList(path, ftype = 'mtime', sort = 'desc'):
@@ -658,7 +658,7 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
     for dst_file in plist:
         if not os.path.exists(dst_file):
             continue
-        stat = mw.getFileStatsDesc(dst_file, path)
+        stat = yf.getFileStatsDesc(dst_file, path)
         if os.path.isdir(dst_file):
             dirnames.append(stat)
         else:
@@ -706,7 +706,7 @@ def getDirList(path, page=1, size=10, order = '', search=None):
         if not os.path.exists(abs_file):
             continue
 
-        stats = mw.getFileStatsDesc(abs_file, path)
+        stats = yf.getFileStatsDesc(abs_file, path)
         if os.path.isdir(abs_file):
             dirnames.append(stats)
         else:
@@ -742,7 +742,7 @@ def getDirSize(filePath, size=0):
 
 # 获取目录大小(bash)
 def getDirSizeByBash(path):
-    tmp = mw.execShell('du -sh ' + path)
+    tmp = yf.execShell('du -sh ' + path)
     return tmp[0].split()[0].lower()
 
 # 计算文件数量
@@ -774,10 +774,10 @@ def setFileAccess(filename,user,access):
     sall = '-R'
     try:
         if not checkDir(filename):
-            return mw.returnData(False, '请不要花样作死')
+            return yf.returnData(False, '请不要花样作死')
 
         if not os.path.exists(filename):
-            return mw.returnData(False, '指定文件不存在!')
+            return yf.returnData(False, '指定文件不存在!')
 
         # 使用原生 Python 操作替换 os.system
         mode = int(access, 8)
@@ -791,16 +791,16 @@ def setFileAccess(filename,user,access):
         os.chmod(filename, mode)
         shutil.chown(filename, user, user)
 
-        msg = mw.getInfo('设置[{1}]权限为[{2}]所有者为[{3}]', (filename, access, user,))
-        mw.writeLog('文件管理', msg)
-        return mw.returnData(True, '设置成功!')
+        msg = yf.getInfo('设置[{1}]权限为[{2}]所有者为[{3}]', (filename, access, user,))
+        yf.writeLog('文件管理', msg)
+        return yf.returnData(True, '设置成功!')
     except Exception as e:
-        return mw.returnData(False, '设置失败!'+str(e))
+        return yf.returnData(False, '设置失败!'+str(e))
 
 def getSysUserList():
     pwd_file = '/etc/passwd'
     if os.path.exists(pwd_file):
-        content = mw.readFile(pwd_file)
+        content = yf.readFile(pwd_file)
         clist = content.split('\n')
         sys_users = []
         for line in clist:
@@ -818,7 +818,7 @@ def getOccupyingProcess(path):
         if os.path.isdir(path):
             cmd = "lsof +D '%s' 2>/dev/null" % (path,)
             
-        out, err = mw.execShell(cmd)
+        out, err = yf.execShell(cmd)
         if out:
             lines = out.strip().split('\n')
             if len(lines) > 1:
@@ -828,7 +828,7 @@ def getOccupyingProcess(path):
                     
         # 尝试使用 fuser (应对某些未安装 lsof 的 Linux 发行版)
         cmd_fuser = "fuser -v '%s' 2>&1" % (path,)
-        out2, err2 = mw.execShell(cmd_fuser)
+        out2, err2 = yf.execShell(cmd_fuser)
         if out2:
             lines = out2.strip().split('\n')
             for line in lines:
@@ -849,22 +849,22 @@ def getOccupyingProcess(path):
 
 def fileDelete(path):
     if not os.path.exists(path):
-        return mw.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, '指定文件不存在!')
 
     # 解除可能存在的文件防篡改锁定 (chattr +i)
     cmd = "which chattr && chattr -i '%s' 2>/dev/null" % (path,)
-    mw.execShell(cmd)
+    yf.execShell(cmd)
 
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
         if recycle_bin == 'open':
             if mvRecycleBin(path):
-                return mw.returnData(True, '已将文件移动到回收站!')
+                return yf.returnData(True, '已将文件移动到回收站!')
             occ = getOccupyingProcess(path)
             msg = '移动到回收站失败!'
             if occ:
                 msg += ' ' + occ
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
             
         os.remove(path)
         if os.path.exists(path):
@@ -872,66 +872,66 @@ def fileDelete(path):
             msg = '删除文件失败!'
             if occ:
                 msg += ' ' + occ
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
             
-        mw.writeLog('文件管理', mw.getInfo('删除文件[{1}]成功!', (path,)))
-        return mw.returnData(True, '删除文件成功!')
+        yf.writeLog('文件管理', yf.getInfo('删除文件[{1}]成功!', (path,)))
+        return yf.returnData(True, '删除文件成功!')
     except Exception as e:
         occ = getOccupyingProcess(path)
         msg = '删除文件失败!'
         if occ:
             msg += ' ' + occ
-        return mw.returnData(False, msg)
+        return yf.returnData(False, msg)
 
 def dirDelete(path):
     if not os.path.exists(path):
-        return mw.returnData(False, '指定目录不存在!')
+        return yf.returnData(False, '指定目录不存在!')
 
     # 解除可能存在的文件防篡改锁定 (例如建站生成的 .user.ini 会带有 chattr +i 属性)
     cmd = "which chattr && chattr -R -i '%s' 2>/dev/null" % (path,)
-    mw.execShell(cmd)
+    yf.execShell(cmd)
 
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
         if recycle_bin == 'open':
             if mvRecycleBin(path):
-                return mw.returnData(True, '已将文件移动到回收站!')
+                return yf.returnData(True, '已将文件移动到回收站!')
             occ = getOccupyingProcess(path)
             msg = '移动到回收站失败!'
             if occ:
                 msg += ' ' + occ
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
             
-        if not mw.removeDir(path) or os.path.exists(path):
+        if not yf.removeDir(path) or os.path.exists(path):
             occ = getOccupyingProcess(path)
             msg = '删除目录失败!'
             if occ:
                 msg += ' ' + occ
-            return mw.returnData(False, msg)
+            return yf.returnData(False, msg)
             
-        mw.writeLog('文件管理', '删除{1}成功！', (path,))
-        return mw.returnData(True, '删除文件成功!')
+        yf.writeLog('文件管理', '删除{1}成功！', (path,))
+        return yf.returnData(True, '删除文件成功!')
     except:
         occ = getOccupyingProcess(path)
         msg = '删除目录失败!'
         if occ:
             msg += ' ' + occ
-        return mw.returnData(False, msg)
+        return yf.returnData(False, msg)
 
 # 关闭
 def toggleRecycleBin():
     recycle_bin = thisdb.getOption('recycle_bin')
     if recycle_bin == 'open':
         thisdb.setOption('recycle_bin','close')
-        mw.writeLog('文件管理', '已关闭回收站功能!')
-        return mw.returnData(True, '已关闭回收站功能!')
+        yf.writeLog('文件管理', '已关闭回收站功能!')
+        return yf.returnData(True, '已关闭回收站功能!')
     else:
         thisdb.setOption('recycle_bin','open')
-        mw.writeLog('文件管理', '已开启回收站功能!')
-        return mw.returnData(True, '已开启回收站功能!')
+        yf.writeLog('文件管理', '已开启回收站功能!')
+        return yf.returnData(True, '已开启回收站功能!')
 
 def getRecycleBin():
-    rb_dir = mw.getRecycleBinDir()
+    rb_dir = yf.getRecycleBinDir()
     recycle_bin = thisdb.getOption('recycle_bin')
 
     data = {}
@@ -967,10 +967,10 @@ def getRecycleBin():
         except Exception as e:
             continue
 
-    return mw.returnJson(True, 'OK', data)
+    return yf.returnJson(True, 'OK', data)
 
 def delRecycleBin(path):
-    rb_dir = mw.getRecycleBinDir()
+    rb_dir = yf.getRecycleBinDir()
     rb_file = rb_dir + '/' + path
     if os.path.isdir(rb_file):
         import shutil
@@ -979,56 +979,56 @@ def delRecycleBin(path):
         os.remove(rb_file)
 
     tfile = path.replace('_mw_', '/').split('_t_')[0]
-    msg = mw.getInfo('已彻底从回收站删除[{1}]!', (tfile,))
-    mw.writeLog('文件管理', msg)
-    return mw.returnJson(True, msg)
+    msg = yf.getInfo('已彻底从回收站删除[{1}]!', (tfile,))
+    yf.writeLog('文件管理', msg)
+    return yf.returnJson(True, msg)
 
 # 移动到回收站
 def mvRecycleBin(path):
-    rb_dir = mw.getRecycleBinDir()
+    rb_dir = yf.getRecycleBinDir()
     rb_file = rb_dir + '/' + path.replace('/', '_mw_') + '_t_' + str(time.time())
     try:
         import shutil
         shutil.move(path, rb_file)
-        mw.writeLog('文件管理', mw.getInfo('移动[{1}]到回收站成功!', (path,)))
+        yf.writeLog('文件管理', yf.getInfo('移动[{1}]到回收站成功!', (path,)))
         return True
     except Exception as e:
-        mw.writeLog('文件管理', mw.getInfo('移动[{1}]到回收站失败!', (path,)))
+        yf.writeLog('文件管理', yf.getInfo('移动[{1}]到回收站失败!', (path,)))
         return False
 
 # 回收站文件恢复
 def reRecycleBin(path):
-    rb_dir = mw.getRecycleBinDir()
+    rb_dir = yf.getRecycleBinDir()
     dst_file = path.replace('_mw_', '/').split('_t_')[0]
     try:
         import shutil
         shutil.move(rb_dir + '/' + path, dst_file)
-        msg = mw.getInfo('移动文件[{1}]到回收站成功!', (dst_file,))
-        mw.writeLog('文件管理', msg)
-        return mw.returnData(True, '恢复成功!')
+        msg = yf.getInfo('移动文件[{1}]到回收站成功!', (dst_file,))
+        yf.writeLog('文件管理', msg)
+        return yf.returnData(True, '恢复成功!')
     except Exception as e:
-        msg = mw.getInfo('从回收站恢复[{1}]失败!', (dst_file,))
-        mw.writeLog('文件管理', msg)
-        return mw.returnData(False, '恢复失败!')
+        msg = yf.getInfo('从回收站恢复[{1}]失败!', (dst_file,))
+        yf.writeLog('文件管理', msg)
+        return yf.returnData(False, '恢复失败!')
 
 
 def closeRecycleBin():
-    rb_dir = mw.getRecycleBinDir()
-    mw.execShell('which chattr && chattr -R -i ' + rb_dir)
+    rb_dir = yf.getRecycleBinDir()
+    yf.execShell('which chattr && chattr -R -i ' + rb_dir)
     rlist = os.listdir(rb_dir)
     i = 0
     l = len(rlist)
     for name in rlist:
         i += 1
         path = rb_dir + '/' + name
-        mw.writeSpeed(name, i, l)
+        yf.writeSpeed(name, i, l)
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:
             os.remove(path)
-    mw.writeSpeed(None, 0, 0)
-    mw.writeLog('文件管理', '已清空回收站!')
-    return mw.returnJson(True, '已清空回收站!')
+    yf.writeSpeed(None, 0, 0)
+    yf.writeLog('文件管理', '已清空回收站!')
+    return yf.returnJson(True, '已清空回收站!')
 
 
 # 设置文件和目录权限
@@ -1040,10 +1040,10 @@ def setMode(path):
 
 
 def closeLogs():
-    log_file = mw.getLogsDir()
+    log_file = yf.getLogsDir()
     os.system('rm -rf ' + log_file + '/*')
-    mw.opWeb('reload')
-    # os.system('kill -USR1 `cat ' + mw.getServerDir() +'/openresty/nginx/logs/nginx.pid`')
-    mw.writeLog('文件管理', '网站日志已被清空!')
+    yf.opWeb('reload')
+    # os.system('kill -USR1 `cat ' + yf.getServerDir() +'/openresty/nginx/logs/nginx.pid`')
+    yf.writeLog('文件管理', '网站日志已被清空!')
     tmp = getDirSizeByBash(log_file)
-    return mw.returnData(True, tmp)
+    return yf.returnData(True, tmp)

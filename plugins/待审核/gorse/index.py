@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,15 +23,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -78,8 +78,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
     path = getPluginDir() + '/tpl'
@@ -88,7 +88,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -97,13 +97,13 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pidfile\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -114,7 +114,7 @@ def status():
     #     return 'stop'
 
     cmd = "ps aux|grep gorse |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
 
     if data[0] == '':
         return 'stop'
@@ -123,8 +123,8 @@ def status():
 
 def initRedisConf():
     requirepass = ""
-    conf = mw.getServerDir() + '/redis/redis.conf'
-    content = mw.readFile(conf)
+    conf = yf.getServerDir() + '/redis/redis.conf'
+    content = yf.readFile(conf)
     rep = r"^(requirepass)\s*([.0-9A-Za-z_& ~]+)"
     tmp = re.search(rep, content, re.M)
     if tmp:
@@ -139,11 +139,11 @@ def initRedisConf():
     return 'redis://:'+requirepass+'@127.0.0.1:'+port+'/3'
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
-    content = content.replace('{$CONFIG_ADMIN}', mw.getRandomString(6))
-    content = content.replace('{$CONFIG_PASS}', mw.getRandomString(10))
+    content = content.replace('{$CONFIG_ADMIN}', yf.getRandomString(6))
+    content = content.replace('{$CONFIG_PASS}', yf.getRandomString(10))
     content = content.replace('{$CONFIG_REDIS}', initRedisConf())
     return content
 
@@ -151,46 +151,46 @@ def contentReplace(content):
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
-        mw.makeDirs(initD_path)
+        yf.makeDirs(initD_path)
 
     file_bin = initD_path + '/' + getPluginName()
 
     # initd replace
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     # log
     dataLog = getServerDir() + '/data'
     if not os.path.exists(dataLog):
-        mw.execShell('chmod +x ' + file_bin)
+        yf.execShell('chmod +x ' + file_bin)
 
     # config replace
     dst_conf = getServerDir() + '/gorse.toml'
     dst_conf_init = getServerDir() + '/init.pl'
     if not os.path.exists(dst_conf_init):
-        content = mw.readFile(getConfTpl())
+        content = yf.readFile(getConfTpl())
         content = content.replace('{$SERVER_PATH}', service_path)
         content = contentReplace(content)
-        mw.writeFile(dst_conf, content)
-        mw.writeFile(dst_conf_init, 'ok')
+        yf.writeFile(dst_conf, content)
+        yf.writeFile(dst_conf_init, 'ok')
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/' + getPluginName() + '.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/' + getPluginName() + '.service.tpl'
-        service_path = mw.getServerDir()
-        content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
@@ -200,20 +200,20 @@ def gorseOp(method):
 
     # print(file)
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service ' + getPluginName() + ' ' + method)
+        data = yf.execShell('service ' + getPluginName() + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -230,7 +230,7 @@ def stop():
 def restart():
     status = gorseOp('restart')
     log_file = runLog()
-    mw.execShell("echo '' > " + log_file)
+    yf.execShell("echo '' > " + log_file)
     return status
 
 
@@ -240,7 +240,7 @@ def reload():
 
 def getPort():
     conf = getServerDir() + '/gorse.conf'
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
 
     rep = "^(" + 'port' + ')\\s*([.0-9A-Za-z_& ~]+)'
     tmp = re.search(rep, content, re.M)
@@ -251,7 +251,7 @@ def getPort():
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -261,14 +261,14 @@ def initdStatus():
             return 'ok'
 
     shell_cmd = 'systemctl status ' + getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -278,26 +278,26 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable ' + getPluginName())
+    yf.execShell('systemctl enable ' + getPluginName())
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable ' + getPluginName())
+    yf.execShell('systemctl disable ' + getPluginName())
     return 'ok'
 
 
@@ -306,7 +306,7 @@ def runLog():
 
 def getGorseInfo():
     conf_file = getConf()
-    content = mw.readFile(conf_file)
+    content = yf.readFile(conf_file)
 
     rdata = {}
 
@@ -329,20 +329,20 @@ def getGorseInfo():
     if tmp:
         rdata['http_port'] = tmp.groups()[0]
 
-    rdata['ip'] = mw.getHostAddr()
-    return mw.returnJson(True,'ok', rdata)
+    rdata['ip'] = yf.getHostAddr()
+    return yf.returnJson(True,'ok', rdata)
 
 def installPreInspection():
-    redis_path = mw.getServerDir() + "/redis"
+    redis_path = yf.getServerDir() + "/redis"
     if not os.path.exists(redis_path):
         return "默认需要安装Redis"
 
-    mongodb_path = mw.getServerDir() + "/mongodb"
+    mongodb_path = yf.getServerDir() + "/mongodb"
     if not os.path.exists(mongodb_path):
         return "默认需要安装MongoDB"
 
-    if not mw.isAppleSystem():
-        glibc_ver = mw.getGlibcVersion()
+    if not yf.isAppleSystem():
+        glibc_ver = yf.getGlibcVersion()
         if float(glibc_ver) < 2.32:
             return '当前libc{}过低，需要大于2.31'.format(glibc_ver)
     return 'ok'

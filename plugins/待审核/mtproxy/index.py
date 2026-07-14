@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,11 +23,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getServiceTpl():
@@ -63,14 +63,14 @@ def getArgs():
 
 def status():
     cmd = "ps -ef|grep mtproxy| grep mtg |grep -v grep | grep -v python  | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
 
 
 def getServiceFile():
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     return systemDir + '/mtproxy.service'
 
 
@@ -114,24 +114,24 @@ def initDreplace():
     envTpl = getConfEnvTpl()
     dstEnv = getConfEnv()
     cmd = getServerDir() + '/mtg/mtg generate-secret `head -c 16 /dev/urandom | xxd -ps`'
-    secret = mw.execShell(cmd)
+    secret = yf.execShell(cmd)
     if not os.path.exists(dstEnv):
-        env_content = mw.readFile(envTpl)
+        env_content = yf.readFile(envTpl)
         env_content = env_content.replace('{$PORT}', getMtproxyPort())
         env_content = env_content.replace('{$SECRET}', secret[0].strip())
-        mw.writeFile(dstEnv, env_content)
+        yf.writeFile(dstEnv, env_content)
         openPort()
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/mtproxy.service'
     systemServiceTpl = getServiceTpl()
     if os.path.exists(systemDir) and not os.path.exists(systemService):
-        service_path = mw.getServerDir()
-        se_content = mw.readFile(systemServiceTpl)
+        service_path = yf.getServerDir()
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     return 'ok'
 
@@ -139,9 +139,9 @@ def initDreplace():
 def mtOp(method):
     file = initDreplace()
 
-    if not mw.isAppleSystem():
-        mw.execShell('systemctl daemon-reload')
-        data = mw.execShell('systemctl ' + method + ' mtproxy')
+    if not yf.isAppleSystem():
+        yf.execShell('systemctl daemon-reload')
+        data = yf.execShell('systemctl ' + method + ' mtproxy')
         if data[1] == '':
             return 'ok'
         return data[1]
@@ -166,31 +166,31 @@ def reload():
 
 
 def initdStatus():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
 
     shell_cmd = 'systemctl status mtproxy | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 def initdInstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
-    mw.execShell('systemctl enable mtproxy')
+    yf.execShell('systemctl enable mtproxy')
     return 'ok'
 
 
 def initdUinstall():
-    if mw.isAppleSystem():
+    if yf.isAppleSystem():
         return "Apple Computer does not support"
-    mw.execShell('systemctl disable mtproxy')
+    yf.execShell('systemctl disable mtproxy')
     return 'ok'
 
 def getMtproxyUrl():
     conf = getConfEnv()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
 
 
     rep = r'bind-to\s*=\s*(.*)'
@@ -205,18 +205,18 @@ def getMtproxyUrl():
 
     info = bind_to.split(":")
 
-    ip = mw.getLocalIp()
+    ip = yf.getLocalIp()
 
     url = 'tg://proxy?server={0}&port={1}&secret={2}'.format(ip, info[1], secret)
-    return mw.returnJson(True, 'ok', url)
+    return yf.returnJson(True, 'ok', url)
 
 def installPreInspection():
-    sys = mw.execShell("cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'")
+    sys = yf.execShell("cat /etc/*-release | grep PRETTY_NAME |awk -F = '{print $2}' | awk -F '\"' '{print $2}'| awk '{print $1}'")
 
     if sys[1] != '':
         return '不支持该系统'
 
-    sys_id = mw.execShell("cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
+    sys_id = yf.execShell("cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F '\"' '{print $2}'")
 
     sysName = sys[0].strip().lower()
     sysId = sys_id[0].strip()

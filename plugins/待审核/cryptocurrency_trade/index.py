@@ -17,7 +17,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -26,16 +26,16 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace(
         '{$SERVER_APP}', service_path + '/' + getPluginName())
@@ -65,38 +65,38 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def isSqlError(mysqlMsg):
     # 检测数据库执行错误
     mysqlMsg = str(mysqlMsg)
     if "MySQLdb" in mysqlMsg:
-        return mw.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
+        return yf.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
     if "2002," in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "2003," in mysqlMsg:
-        return mw.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
+        return yf.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
     if "using password:" in mysqlMsg:
-        return mw.returnJson(False, '数据库密码错误')
+        return yf.returnJson(False, '数据库密码错误')
     if "1045" in mysqlMsg:
-        return mw.returnJson(False, '连接错误!')
+        return yf.returnJson(False, '连接错误!')
     if "SQL syntax" in mysqlMsg:
-        return mw.returnJson(False, 'SQL语法错误!')
+        return yf.returnJson(False, 'SQL语法错误!')
     if "Connection refused" in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "1133" in mysqlMsg:
-        return mw.returnJson(False, '数据库用户不存在!')
+        return yf.returnJson(False, '数据库用户不存在!')
     if "1007" in mysqlMsg:
-        return mw.returnJson(False, '数据库已经存在!')
+        return yf.returnJson(False, '数据库已经存在!')
     return None
 
 
 def initDreplace():
     log_dir = getServerDir() + '/logs'
     if not os.path.exists(log_dir):
-        d = mw.makeDirs(log_dir)
+        d = yf.makeDirs(log_dir)
 
         data = getConfigData()
         data['token'] = ['btc']
@@ -127,22 +127,22 @@ def op():
 def getConfigData():
     cfg_path = getServerDir() + "/data.cfg"
     if not os.path.exists(cfg_path):
-        mw.writeFile(cfg_path, '{}')
-    t = mw.readFile(cfg_path)
+        yf.writeFile(cfg_path, '{}')
+    t = yf.readFile(cfg_path)
     return json.loads(t)
 
 
 def writeConf(data):
     cfg_path = getServerDir() + "/data.cfg"
-    mw.writeFile(cfg_path, json.dumps(data))
+    yf.writeFile(cfg_path, json.dumps(data))
     return True
 
 
 def getDbConf():
     data = getConfigData()
     if 'db' in data:
-        return mw.returnJson(True, 'ok', data['db'])
-    return mw.returnJson(False, 'ok', {})
+        return yf.returnJson(True, 'ok', data['db'])
+    return yf.returnJson(False, 'ok', {})
 
 
 def setDbConf():
@@ -156,7 +156,7 @@ def setDbConf():
     data['db'] = args
     writeConf(data)
 
-    db = mw.getMyORM()
+    db = yf.getMyORM()
 
     db.setHost(args['db_host'])
     db.setPort(args['db_port'])
@@ -168,27 +168,27 @@ def setDbConf():
     if isError != None:
         return isError
 
-    return mw.returnJson(True, '保存成功,并连通成功!', [])
+    return yf.returnJson(True, '保存成功,并连通成功!', [])
 
 
 def getUserConf():
     data = getConfigData()
     if 'user' in data:
-        return mw.returnJson(True, 'ok', data['user'])
-    return mw.returnJson(False, 'ok', {})
+        return yf.returnJson(True, 'ok', data['user'])
+    return yf.returnJson(False, 'ok', {})
 
 
 def getUserConf():
     data = getConfigData()
     if 'user' in data:
         try:
-            udata = mw.deDoubleCrypt('mw', data['user'])
+            udata = yf.deDoubleCrypt('mw', data['user'])
             udata = json.loads(udata)
 
-            return mw.returnJson(True, 'ok', udata)
+            return yf.returnJson(True, 'ok', udata)
         except Exception as e:
             pass
-    return mw.returnJson(False, 'ok', {})
+    return yf.returnJson(False, 'ok', {})
 
 
 def setUserConf():
@@ -199,10 +199,10 @@ def setUserConf():
         return data_args[1]
 
     data = getConfigData()
-    data['user'] = mw.enDoubleCrypt('mw', json.dumps(args))
+    data['user'] = yf.enDoubleCrypt('mw', json.dumps(args))
     writeConf(data)
 
-    return mw.returnJson(True, '保存成功!', [])
+    return yf.returnJson(True, '保存成功!', [])
 
 
 def syncDataList():
@@ -213,14 +213,14 @@ def syncDataList():
 
         rdata = {}
         rdata['task_status'] = False
-        sup_path = mw.getServerDir() + '/supervisor'
+        sup_path = yf.getServerDir() + '/supervisor'
         sup_task_dst = sup_path + '/conf.d/' + name + '.ini'
         if os.path.exists(sup_task_dst):
             rdata['task_status'] = True
 
         rdata['list'] = data['token']
-        return mw.returnJson(True, 'ok', rdata)
-    return mw.returnJson(False, 'ok')
+        return yf.returnJson(True, 'ok', rdata)
+    return yf.returnJson(False, 'ok')
 
 
 def syncDataAdd():
@@ -239,53 +239,53 @@ def syncDataAdd():
         data['token'] = [add_token]
     writeConf(data)
 
-    return mw.returnJson(True, '保存成功!')
+    return yf.returnJson(True, '保存成功!')
 
 
 def restartSup():
     cmd = 'python3 plugins/supervisor/index.py restart'
-    mw.execShell(cmd)
+    yf.execShell(cmd)
 
 
 def restartSupDst(name):
     cmd = 'python3 plugins/supervisor/index.py restart_job  {"name":"' + \
         name + '","status":"stop"}'
-    mw.execShell(cmd)
+    yf.execShell(cmd)
 
 
 def syncDataAddTaskUninstall():
-    sup_path = mw.getServerDir() + '/supervisor'
+    sup_path = yf.getServerDir() + '/supervisor'
     if not os.path.exists(sup_path):
-        return mw.returnJson(False, '需要安装并启动supervisor插件')
+        return yf.returnJson(False, '需要安装并启动supervisor插件')
 
     name = "ct_task"
     sup_task_dst = sup_path + '/conf.d/' + name + '.ini'
     if os.path.exists(sup_task_dst):
-        mw.removeDir(sup_task_dst)
+        yf.removeDir(sup_task_dst)
 
     restartSup()
-    return mw.returnJson(True, '删除同步数据任务成功!')
+    return yf.returnJson(True, '删除同步数据任务成功!')
 
 
 def syncDataAddTaskInstall():
-    sup_path = mw.getServerDir() + '/supervisor'
+    sup_path = yf.getServerDir() + '/supervisor'
     if not os.path.exists(sup_path):
-        return mw.returnJson(False, '需要安装并启动supervisor插件')
+        return yf.returnJson(False, '需要安装并启动supervisor插件')
 
     name = "ct_task"
     sup_task_tpl = getPluginDir() + '/conf/sup_task.tpl'
     sup_task_dst = sup_path + '/conf.d/' + name + '.ini'
-    content = mw.readFile(sup_task_tpl)
+    content = yf.readFile(sup_task_tpl)
     content = content.replace(
-        '{$RUN_ROOT}', mw.getServerDir() + '/mdserver-web')
+        '{$RUN_ROOT}', yf.getServerDir() + '/mdserver-web')
     content = content.replace(
         '{$SUP_ROOT}', sup_path)
     content = content.replace(
         '{$NAME}', name)
 
-    mw.writeFile(sup_task_dst, content)
+    yf.writeFile(sup_task_dst, content)
     restartSup()
-    return mw.returnJson(True, '添加同步数据任务成功!')
+    return yf.returnJson(True, '添加同步数据任务成功!')
 
 
 def syncDataAddTask():
@@ -312,7 +312,7 @@ def syncDataDelete():
         data['token'].remove(del_token)
     writeConf(data)
 
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 if __name__ == "__main__":

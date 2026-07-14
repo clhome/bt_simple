@@ -19,7 +19,7 @@ from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as MwPlugin
 from utils.site import sites as MwSites
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 from .site import blueprint
@@ -31,8 +31,8 @@ from .site import blueprint
 def get_let_logs():
     log_file = MwSites.instance().letLogFile()
     if not os.path.exists(log_file):
-        mw.execShell('touch ' + log_file)
-    return mw.returnData(True, 'OK', log_file)
+        yf.execShell('touch ' + log_file)
+    return yf.returnData(True, 'OK', log_file)
 
 
 @blueprint.route('/create_let', endpoint='create_let', methods=['POST'])

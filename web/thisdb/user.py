@@ -9,30 +9,30 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.yf as mw
+import core.yf as yf
 
 __field = 'id,name,password,login_ip,login_time,phone,email,add_time,update_time'
 
 # 尝试增加缺失的字段 (向后兼容迁移逻辑)
-mw.M('users').execute("ALTER TABLE users ADD COLUMN login_ip TEXT")
-mw.M('users').execute("ALTER TABLE users ADD COLUMN login_time TEXT")
-mw.M('users').execute("ALTER TABLE users ADD COLUMN phone TEXT")
-mw.M('users').execute("ALTER TABLE users ADD COLUMN email TEXT")
-mw.M('users').execute("ALTER TABLE users ADD COLUMN add_time TEXT")
-mw.M('users').execute("ALTER TABLE users ADD COLUMN update_time TEXT")
+yf.M('users').execute("ALTER TABLE users ADD COLUMN login_ip TEXT")
+yf.M('users').execute("ALTER TABLE users ADD COLUMN login_time TEXT")
+yf.M('users').execute("ALTER TABLE users ADD COLUMN phone TEXT")
+yf.M('users').execute("ALTER TABLE users ADD COLUMN email TEXT")
+yf.M('users').execute("ALTER TABLE users ADD COLUMN add_time TEXT")
+yf.M('users').execute("ALTER TABLE users ADD COLUMN update_time TEXT")
 
 # 初始化用户信息
 def initAdminUser():
     # 检查是否真的一个用户都没有
-    data = mw.M('users').find()
+    data = yf.M('users').find()
     if data is None:
-        name = mw.getRandomString(8).lower()
-        password = mw.getRandomString(12).lower()
-        now_time = mw.formatDate()
+        name = yf.getRandomString(8).lower()
+        password = yf.getRandomString(12).lower()
+        now_time = yf.formatDate()
         login_ip = '127.0.0.1'
         add_user = {
             'name':name, 
-            'password':mw.hasPwd(password),
+            'password':yf.hasPwd(password),
             'login_ip':login_ip,
             'login_time':now_time,
             'phone':'',
@@ -40,9 +40,9 @@ def initAdminUser():
             'add_time':now_time,
             'update_time':now_time
         }
-        file_pass_pl = mw.getPanelDataDir() + '/default.pl'
-        mw.writeFile(file_pass_pl, password)
-        mw.M('users').insert(add_user)
+        file_pass_pl = yf.getPanelDataDir() + '/default.pl'
+        yf.writeFile(file_pass_pl, password)
+        yf.M('users').insert(add_user)
         return True
     return False
 
@@ -52,9 +52,9 @@ def getUserByName(name) -> None:
     获取用户信息通过用户名
     '''
     # 优先尝试 name 字段，兼容性处理
-    data = mw.M('users').where('name=?', (name,)).find()
+    data = yf.M('users').where('name=?', (name,)).find()
     if data is None:
-        data = mw.M('users').where('username=?', (name,)).find()
+        data = yf.M('users').where('username=?', (name,)).find()
 
     if data is None:
         return None
@@ -74,14 +74,14 @@ def getUserById(id) -> None:
     获取用户信息
     '''
     # 采用最原始的 SELECT * 方式，完全避开字段名不匹配的问题
-    data = mw.M('users').where('id=?', (id,)).find()
+    data = yf.M('users').where('id=?', (id,)).find()
     if data is None:
-        data = mw.M('users').find() # 尝试获取第一个用户
+        data = yf.M('users').find() # 尝试获取第一个用户
     
     if data is None:
         # 如果依然没有用户，说明表是空的，立即初始化一个
         initAdminUser()
-        data = mw.M('users').find()
+        data = yf.M('users').find()
         if data is None: return None
 
     row = {}
@@ -103,16 +103,16 @@ def getUserByRoot() -> None:
     return getUserById(1)
 
 def updateUserLoginTime():
-    now_time = mw.formatDate()
-    mw.M('users').field(__field).where('id=?', (1,)).update({'login_time':now_time})
+    now_time = yf.formatDate()
+    yf.M('users').field(__field).where('id=?', (1,)).update({'login_time':now_time})
     return True
 
 def setUserByName(name, new_name):
-    return mw.M('users').where("name=?", (name,)).setField('name', new_name.strip())
+    return yf.M('users').where("name=?", (name,)).setField('name', new_name.strip())
 
 def setUserPwdByName(name, password):
-    pwd = mw.hasPwd(password)
-    return mw.M('users').where("name=?", (name,)).setField('password', pwd)
+    pwd = yf.hasPwd(password)
+    return yf.M('users').where("name=?", (name,)).setField('password', pwd)
 
 def setUserByRoot(name = None,password = None) -> bool:
     '''
@@ -123,11 +123,11 @@ def setUserByRoot(name = None,password = None) -> bool:
     '''
     data = {}
     if name is not None:
-        mw.M('users').where('id=?', (1,)).setField('name', name)
+        yf.M('users').where('id=?', (1,)).setField('name', name)
 
     if password is not None:
-        pwd = mw.hasPwd(password)
-        mw.M('users').where('id=?', (1,)).setField('password', pwd)
+        pwd = yf.hasPwd(password)
+        yf.M('users').where('id=?', (1,)).setField('password', pwd)
 
     if not data:
         return False

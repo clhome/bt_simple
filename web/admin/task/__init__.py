@@ -17,7 +17,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 
-import core.yf as mw
+import core.yf as yf
 import utils.task as MwTasks
 import thisdb
 
@@ -27,7 +27,7 @@ blueprint = Blueprint('task', __name__, url_prefix='/task', template_folder='../
 @blueprint.route('/count', endpoint='task_count',methods=['GET','POST'])
 @panel_login_required
 def task_count():
-    return mw.returnData(True, 'ok',thisdb.getTaskUnexecutedCount())
+    return yf.returnData(True, 'ok',thisdb.getTaskUnexecutedCount())
 
 @blueprint.route('/list', endpoint='list', methods=['POST'])
 @panel_login_required
@@ -40,8 +40,8 @@ def list():
 @blueprint.route('/get_exec_log', endpoint='get_exec_log', methods=['POST'])
 @panel_login_required
 def get_exec_log():
-    file = mw.getPanelTaskExecLog()
-    return mw.getLastLine(file, 100)
+    file = yf.getPanelTaskExecLog()
+    return yf.getLastLine(file, 100)
 
 
 @blueprint.route('/get_task_log_by_id', endpoint='get_task_log_by_id', methods=['POST'])
@@ -49,12 +49,12 @@ def get_exec_log():
 def get_task_log_by_id():
     task_id = request.form.get('id', '')
     if task_id == '':
-        return mw.returnData(False, '任务ID不能为空!')
+        return yf.returnData(False, '任务ID不能为空!')
     import os
-    task_log_file = mw.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
+    task_log_file = yf.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
     if not os.path.exists(task_log_file):
-        return mw.returnData(False, '暂无日志记录。')
-    return mw.returnData(True, mw.readFile(task_log_file))
+        return yf.returnData(False, '暂无日志记录。')
+    return yf.returnData(True, yf.readFile(task_log_file))
 
 
 @blueprint.route('/get_task_speed', endpoint='get_task_speed', methods=['POST'])
@@ -62,13 +62,13 @@ def get_task_log_by_id():
 def get_task_speed():
     count = thisdb.getTaskUnexecutedCount()
     if count == 0:
-        return mw.returnData(False, '当前没有任务队列在执行-2!')
+        return yf.returnData(False, '当前没有任务队列在执行-2!')
     
     row = thisdb.getTaskFirstByRun()
     if row is None:
-        return mw.returnData(False, '当前没有任务队列在执行-3!')
+        return yf.returnData(False, '当前没有任务队列在执行-3!')
 
-    task_logfile = mw.getPanelTaskExecLog()
+    task_logfile = yf.getPanelTaskExecLog()
 
     data = {}
     data['name'] = row['name']
@@ -78,16 +78,16 @@ def get_task_speed():
         readLine = ''
         for i in range(3):
             try:
-                readLine = mw.readFile(task_logfile)
+                readLine = yf.readFile(task_logfile)
                 data['msg'] = json.loads(readLine)
                 data['isDownload'] = True
             except Exception as e:
                 if i == 2:
                     thisdb.setTaskStatus(row['id'],0)
-                    return mw.returnData(False, '当前没有任务队列在执行-4:' + str(e))
+                    return yf.returnData(False, '当前没有任务队列在执行-4:' + str(e))
             time.sleep(0.5)
     else:
-        data['msg'] = mw.getLastLine(task_logfile, 10)
+        data['msg'] = yf.getLastLine(task_logfile, 10)
         data['isDownload'] = False
 
     data['count'] = count
@@ -99,7 +99,7 @@ def get_task_speed():
 def remove_task():
     task_id = request.form.get('id', '')
     if task_id == '':
-        return mw.returnData(False, '任务ID不能为空!')
+        return yf.returnData(False, '任务ID不能为空!')
     return MwTasks.removeTask(task_id)
 
 

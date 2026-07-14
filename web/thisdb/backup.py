@@ -9,13 +9,13 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.yf as mw
+import core.yf as yf
 
 __FIELD = 'id,pid,type,name,filename,size,add_time'
 
 def addBackup(pid,name,filename,size,type=0):
 
-    add_time = mw.formatDate()
+    add_time = yf.formatDate()
     insert_data = {
         'type':type,
         'name':name,
@@ -24,17 +24,17 @@ def addBackup(pid,name,filename,size,type=0):
         'size':size,
         'add_time':add_time,
     }
-    mw.M('backup').insert(insert_data)
+    yf.M('backup').insert(insert_data)
     return True
 
 def getBackupById(bp_id):
-    return mw.M('backup').field(__FIELD).where("id=?", (bp_id,)).find()
+    return yf.M('backup').field(__FIELD).where("id=?", (bp_id,)).find()
 
 def getBackupPage(site_id,page = 1,size = 10):
     start = (int(page) - 1) * int(size)
     limit = str(start) + ',' + str(size)
-    bk_list = mw.M('backup').where('pid=?', (site_id,)).field(__FIELD).limit(limit).order('id desc').select()
-    count = mw.M('backup').where('pid=?', (site_id,)).count()
+    bk_list = yf.M('backup').where('pid=?', (site_id,)).field(__FIELD).limit(limit).order('id desc').select()
+    count = yf.M('backup').where('pid=?', (site_id,)).count()
 
     rdata = {}
     rdata['list'] = bk_list
@@ -42,4 +42,4 @@ def getBackupPage(site_id,page = 1,size = 10):
     return rdata
 
 def deleteBackupById(bp_id):
-    return mw.M('backup').where("id=?", (bp_id,)).delete()
+    return yf.M('backup').where("id=?", (bp_id,)).delete()

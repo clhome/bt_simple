@@ -15,9 +15,9 @@ if os.path.exists(web_dir):
 
 import core.mw as mw
 
-gd_dir = mw.getServerDir() +'/gdrive/lib'
+gd_dir = yf.getServerDir() +'/gdrive/lib'
 cmd = 'ls '+gd_dir+' | grep python  | cut -d \\  -f 1 | awk \'END {print}\''
-info = mw.execShell(cmd)
+info = yf.execShell(cmd)
 p = gd_dir +'/'+ info[0].strip() + "/site-packages"
 sys.path.append(p)
 
@@ -115,7 +115,7 @@ class gdriveclient():
     def set_auth_url(self, url):
         token_file = self.__server_dir + '/token.json'
         if os.path.exists(token_file):
-            return mw.returnJson(True, "验证成功")
+            return yf.returnJson(True, "验证成功")
 
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             self.__plugin_dir + '/credentials.json',
@@ -138,8 +138,8 @@ class gdriveclient():
         with open(token_file, 'w') as token:
             json.dump(credentials_data, token)
         if not self.set_creds():
-            return mw.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
-        return mw.returnJson(True, "验证成功")
+            return yf.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
+        return yf.returnJson(True, "验证成功")
 
     # 获取token
     def get_token(self, get):
@@ -148,20 +148,20 @@ class gdriveclient():
         try:
             respone = requests.get("https://www.google.com", timeout=2)
         except:
-            return mw.returnJson(False, "连接谷歌失败")
+            return yf.returnJson(False, "连接谷歌失败")
         if respone.status_code != 200:
-            return mw.returnJson(False, "连接谷歌失败")
+            return yf.returnJson(False, "连接谷歌失败")
         if not self.set_creds():
-            return mw.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
+            return yf.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
         if not os.path.exists(token_file):
-            return mw.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
-        return mw.returnJson(True, "验证成功")
+            return yf.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
+        return yf.returnJson(True, "验证成功")
 
     # 获取auth_url
     def get_auth_url(self, get):
         self.get_sign_in_url()
         if os.path.exists("/tmp/auth_url"):
-            return mw.readFile("/tmp/auth_url")
+            return yf.readFile("/tmp/auth_url")
 
     # 检查连接
     def check_connect(self, get):
@@ -171,16 +171,16 @@ class gdriveclient():
                 self.set_creds()
         else:
             self.D("Failed to get Google token, please verify before use")
-            return mw.returnJson(True, "Failed to get Google token, please verify before use")
+            return yf.returnJson(True, "Failed to get Google token, please verify before use")
         service = build('drive', 'v3', credentials=self.__creds)
         results = service.files().list(
             pageSize=10, fields="nextPageToken, files(id, name)").execute()
         try:
             results.get('files', [])
-            return mw.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
-            return mw.returnJson(True, "验证成功")
+            return yf.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
+            return yf.returnJson(True, "验证成功")
         except:
-            return mw.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
+            return yf.returnJson(False, "验证失败，请根据页面1 2 3 步骤完成验证")
 
     def _get_filename(self, filename):
         l = filename.split("/")

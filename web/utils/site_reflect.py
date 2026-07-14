@@ -17,11 +17,11 @@ import time
 import threading
 import multiprocessing
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 def getVhostDir():
-	sdir = mw.getServerDir()
+	sdir = yf.getServerDir()
 	nginx_conf = sdir + "/web_conf/nginx"
 	vhosts = nginx_conf+"/vhost"
 	return vhosts
@@ -80,7 +80,7 @@ def parseSite(d):
 	domain = d.replace(".conf","")
 
 	dconf = vhosts + '/' + d
-	content = mw.readFile(dconf)
+	content = yf.readFile(dconf)
 
 	root_dir = getRootDir(content)
 	sn_list = getServerName(content)

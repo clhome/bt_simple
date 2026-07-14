@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,15 +23,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -79,8 +79,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
     path = "/etc/ldap/schema"
@@ -89,7 +89,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -98,13 +98,13 @@ def readConfigTpl():
     if not data[0]:
         return data[1]
 
-    content = mw.readFile(args['file'])
+    content = yf.readFile(args['file'])
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pidfile\s*(.*)'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -114,7 +114,7 @@ def status():
     if not os.path.exists(pid_file):
         return 'stop'
 
-    # data = mw.execShell(
+    # data = yf.execShell(
     #     "ps aux|grep redis |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
 
     # if data[0] == '':
@@ -122,36 +122,36 @@ def status():
     return 'start'
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     return content
 
 def initDreplace():
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     conf = getConf()
     conf_tpl = getConfTpl()
     if not os.path.exists(conf):
-        content = mw.readFile(conf_tpl)
+        content = yf.readFile(conf_tpl)
         content = contentReplace(content)
-        mw.writeFile(conf, content)
+        yf.writeFile(conf, content)
     return True
 
 
 def ladpOp(method):
     initDreplace()
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
         return 'ok'
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service slapd ' + method)
+        data = yf.execShell('service slapd ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' slapd')
+    data = yf.execShell('systemctl ' + method + ' slapd')
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -169,7 +169,7 @@ def restart():
     status = ladpOp('restart')
 
     log_file = runLog()
-    mw.execShell("echo '' > " + log_file)
+    yf.execShell("echo '' > " + log_file)
     return status
 
 
@@ -179,7 +179,7 @@ def reload():
 
 def getPort():
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
 
     rep = r"^(port)\s*([.0-9A-Za-z_& ~]+)"
     tmp = re.search(rep, content, re.M)
@@ -189,7 +189,7 @@ def getPort():
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -199,14 +199,14 @@ def initdStatus():
             return 'ok'
 
     shell_cmd = 'systemctl status slapd | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -216,26 +216,26 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc slapd_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc slapd_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable slapd')
+    yf.execShell('systemctl enable slapd')
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc slapd_enable="NO"')
+        yf.execShell('sysrc slapd_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable slapd')
+    yf.execShell('systemctl disable slapd')
     return 'ok'
 
 
@@ -257,7 +257,7 @@ def getRedisConfInfo():
         {'name': 'slaveof', 'type': 2, 'ps': '同步主库地址','must_show':0},
         {'name': 'masterauth', 'type': 2, 'ps': '同步主库密码', 'must_show':0}
     ]
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
 
     result = []
     for g in gets:
@@ -280,7 +280,7 @@ def getRedisConfInfo():
 
 def getRedisConf():
     data = getRedisConfInfo()
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def submitRedisConf():
@@ -288,7 +288,7 @@ def submitRedisConf():
             'databases', 'requirepass', 'maxmemory','slaveof','masterauth']
     args = getArgs()
     conf = getConf()
-    content = mw.readFile(conf)
+    content = yf.readFile(conf)
     for g in gets:
         if g in args:
             rep = g + r'\s*([.0-9A-Za-z_& ~]+)'
@@ -305,9 +305,9 @@ def submitRedisConf():
 
             if g != 'requirepass':
                 content = re.sub(rep, val, content)
-    mw.writeFile(conf, content)
+    yf.writeFile(conf, content)
     reload()
-    return mw.returnJson(True, '设置成功')
+    return yf.returnJson(True, '设置成功')
 
 def installPreInspection():
     slapd_path = '/etc/ldap/slapd.d'

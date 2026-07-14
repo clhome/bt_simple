@@ -20,7 +20,7 @@ from flask import request
 from admin import session
 from admin.user_login_check import panel_login_required
 
-import core.yf as mw
+import core.yf as yf
 import utils.config as utils_config
 
 from utils.setting import setting as MwSetting

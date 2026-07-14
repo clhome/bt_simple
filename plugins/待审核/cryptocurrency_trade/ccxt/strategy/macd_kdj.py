@@ -16,7 +16,7 @@ sys.path.append(os.getcwd() + "/plugins/cryptocurrency_trade/strategy")
 import common
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 
 pd.set_option('display.max_rows', None)
@@ -89,7 +89,7 @@ def checkData():
         # print(last['low'])
         # print(last['close'])
 
-        now = mw.getDateFromNow()
+        now = yf.getDateFromNow()
         if isKdj(last, last_pre):
             msg = now + "|{}|{}|检查到金叉状态!".format(tag, tf_frame)
             common.notifyMsg(msg, tf_frame, tag)

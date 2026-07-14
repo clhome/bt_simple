@@ -23,7 +23,7 @@ import re
 
 from io import BytesIO, StringIO
 
-import core.yf as mw
+import core.yf as yf
 import paramiko
 
 from flask_socketio import SocketIO, emit, send
@@ -60,7 +60,7 @@ class ssh_terminal(object):
     _instance_lock = threading.Lock()
 
     def __init__(self):
-        self.__debug_file = mw.getPanelDir()+ '/logs/ssh_terminal.log'
+        self.__debug_file = yf.getPanelDir()+ '/logs/ssh_terminal.log'
         ht = threading.Thread(target=self.heartbeat)
         ht.start()
 
@@ -73,11 +73,11 @@ class ssh_terminal(object):
         return ssh_terminal._instance
 
     def debug(self, msg):
-        msg = "{} - {}:{} => {} \n".format(mw.formatDate(),
+        msg = "{} - {}:{} => {} \n".format(yf.formatDate(),
                                            self.__host, self.__port, msg)
-        if not mw.isDebugMode():
+        if not yf.isDebugMode():
             return
-        mw.writeFile(self.__debug_file, msg, 'a+')
+        yf.writeFile(self.__debug_file, msg, 'a+')
 
     def returnMsg(self, status, msg):
         return {'status': status, 'msg': msg}
@@ -86,13 +86,13 @@ class ssh_terminal(object):
         '''
         重启ssh 无参数传递
         '''
-        version = mw.readFile('/etc/redhat-release')
+        version = yf.readFile('/etc/redhat-release')
         if not os.path.exists('/etc/redhat-release'):
-            mw.execShell('service ssh ' + act)
+            yf.execShell('service ssh ' + act)
         elif version.find(' 7.') != -1 or version.find(' 8.') != -1:
-            mw.execShell("systemctl " + act + " sshd.service")
+            yf.execShell("systemctl " + act + " sshd.service")
         else:
-            mw.execShell("/etc/init.d/sshd " + act)
+            yf.execShell("/etc/init.d/sshd " + act)
 
     def isRunning(self, rep=False):
         try:
@@ -119,13 +119,13 @@ class ssh_terminal(object):
             if not os.path.exists(sshd_config_file):
                 return False
 
-            sshd_config = mw.readFile(sshd_config_file)
+            sshd_config = yf.readFile(sshd_config_file)
             if not sshd_config:
                 return False
 
             if rep:
                 if self.__sshd_config_backup:
-                    mw.writeFile(sshd_config_file, self.__sshd_config_backup)
+                    yf.writeFile(sshd_config_file, self.__sshd_config_backup)
                     self.restartSsh()
                 return True
 
@@ -157,7 +157,7 @@ class ssh_terminal(object):
                 is_write = True
 
             if is_write:
-                mw.writeFile(sshd_config_file, sshd_config)
+                yf.writeFile(sshd_config_file, sshd_config)
                 self.__rep_ssh_config = True
                 self.restartSsh()
             else:
@@ -184,16 +184,16 @@ class ssh_terminal(object):
         self.__lock = True
 
         try:
-            mw.createSshInfo()
+            yf.createSshInfo()
             self.__ps = paramiko.SSHClient()
             self.__ps.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            self.__port = mw.getSSHPort()
+            self.__port = yf.getSSHPort()
             
             # 主动读取本地生成的私钥作为保底认证凭据
             local_key = None
             try:
-                ssh_dir = mw.getSshDir()
+                ssh_dir = yf.getSshDir()
                 key_path = os.path.join(ssh_dir, 'id_rsa')
                 if os.path.exists(key_path):
                     local_key = paramiko.RSAKey.from_private_key_file(key_path)
@@ -231,7 +231,7 @@ class ssh_terminal(object):
                 if not e:
                     self.debug('SSH协议握手超时')
                     return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
-                err = mw.getTracebackInfo()
+                err = yf.getTracebackInfo()
                 self.debug(err)
                 return self.returnMsg(False, "未知错误: {}".format(err))
 
@@ -240,7 +240,7 @@ class ssh_terminal(object):
                 term='xterm', width=83, height=21, environment={'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'})
             ssh.setblocking(0)
             self.__ssh_list[sid] = ssh
-            mw.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
+            yf.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
                 self.__host, self.__port))
             self.debug('local-ssh:通道已构建')
 
@@ -343,7 +343,7 @@ class ssh_terminal(object):
                 if not e:
                     self.debug('SSH协议握手超时')
                     return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
-                err = mw.getTracebackInfo()
+                err = yf.getTracebackInfo()
                 self.debug(err)
                 return self.returnMsg(False, "未知错误: {}".format(err))
 
@@ -354,7 +354,7 @@ class ssh_terminal(object):
             ssh.get_pty(term='xterm', width=100, height=34)
             ssh.invoke_shell()
             self.__ssh_list[sid] = ssh
-            mw.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
+            yf.writeLog(self.__log_type, '成功登录到SSH服务器 [{}:{}]'.format(
                 self.__host, self.__port))
             self.debug('通道已构建')
         except Exception as e:
@@ -365,8 +365,8 @@ class ssh_terminal(object):
         return self.returnMsg(True, '连接成功.')
 
     def getSshInfo(self, file):
-        rdata = mw.readFile(file)
-        destr = mw.deDoubleCrypt('mdserver-web', rdata)
+        rdata = yf.readFile(file)
+        destr = yf.deDoubleCrypt('mdserver-web', rdata)
         return json.loads(destr)
 
     def setAttr(self, sid, info):
@@ -374,7 +374,7 @@ class ssh_terminal(object):
 
         # 外部连接获取
         if not self.__host in ['127.0.0.1', 'localhost']:
-            dst_info = mw.getServerDir() + '/webssh/host/' + self.__host + '/info.json'
+            dst_info = yf.getServerDir() + '/webssh/host/' + self.__host + '/info.json'
             if os.path.exists(dst_info):
                 info = self.getSshInfo(dst_info)
 

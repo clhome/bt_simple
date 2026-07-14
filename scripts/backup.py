@@ -36,9 +36,9 @@ class backupTools:
                 "----------------------------------------------------------------------------")
             return
 
-        backup_path = mw.getBackupDir() + '/site'
+        backup_path = yf.getBackupDir() + '/site'
         if not os.path.exists(backup_path):
-            mw.execShell("mkdir -p " + backup_path)
+            yf.execShell("mkdir -p " + backup_path)
 
         filename = backup_path + "/web_" + name + "_" + \
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + '.tar.gz'
@@ -47,7 +47,7 @@ class backupTools:
             filename + "' " + exclude_dir_cmd + " '" + os.path.basename(path) + "' > /dev/null"
 
         # print(cmd)
-        mw.execShell(cmd)
+        yf.execShell(cmd)
 
         endDate = time.strftime('%Y/%m/%d %X', time.localtime())
         # print(filename)
@@ -62,7 +62,7 @@ class backupTools:
         sql.table('backup').add('type,name,pid,filename,add_time,size', ('0', os.path.basename(
             filename), pid, filename, endDate, os.path.getsize(filename)))
         log = "网站[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
-        mw.writeLog('计划任务', log)
+        yf.writeLog('计划任务', log)
         print("★[" + endDate + "] " + log)
         print("|---保留最新的[" + count + "]份备份")
         print("|---文件名:" + filename)
@@ -74,7 +74,7 @@ class backupTools:
         num = len(backups) - int(count)
         if num > 0:
             for backup in backups:
-                mw.execShell("rm -f " + backup['filename'])
+                yf.execShell("rm -f " + backup['filename'])
                 sql.table('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
                 print("|---已清理过期备份文件：" + backup['filename'])
@@ -82,13 +82,13 @@ class backupTools:
                     break
 
     def getConf(self, mtype='mysql'):
-        path = mw.getServerDir() + '/' + mtype + '/etc/my.cnf'
+        path = yf.getServerDir() + '/' + mtype + '/etc/my.cnf'
         return path
 
     def recognizeDbMode(self, mtype='mysql'):
         conf = self.getConf(mtype)
-        con = mw.readFile(conf)
-        rep = r"!include %s/(.*)?\.cnf" % (mw.getServerDir() +'/'+ mtype +"/etc/mode",)
+        con = yf.readFile(conf)
+        rep = r"!include %s/(.*)?\.cnf" % (yf.getServerDir() +'/'+ mtype +"/etc/mode",)
         mode = 'none'
         try:
             data = re.findall(rep, con, re.M)
@@ -100,24 +100,24 @@ class backupTools:
      # 数据库密码处理
     def mypass(self, act, root):
         conf_file = self.getConf('mysql')
-        mw.execShell("sed -i '/user=root/d' {}".format(conf_file))
-        mw.execShell("sed -i '/password=/d' {}".format(conf_file))
+        yf.execShell("sed -i '/user=root/d' {}".format(conf_file))
+        yf.execShell("sed -i '/password=/d' {}".format(conf_file))
         if act:
-            mycnf = mw.readFile(conf_file)
+            mycnf = yf.readFile(conf_file)
             src_dump = "[mysqldump]\n"
             sub_dump = src_dump + "user=root\npassword=\"{}\"\n".format(root)
             if not mycnf:
                 return False
             mycnf = mycnf.replace(src_dump, sub_dump)
             if len(mycnf) > 100:
-                mw.writeFile(conf_file, mycnf)
+                yf.writeFile(conf_file, mycnf)
             return True
         return True
 
     def backupDatabase(self, name, count):
-        db_path = mw.getServerDir() + '/mysql'
+        db_path = yf.getServerDir() + '/mysql'
         db_name = 'mysql'
-        name = mw.M('databases').dbPos(db_path, 'mysql').where(
+        name = yf.M('databases').dbPos(db_path, 'mysql').where(
             'name=?', (name,)).getField('name')
         startTime = time.time()
         if not name:
@@ -128,14 +128,14 @@ class backupTools:
                 "----------------------------------------------------------------------------")
             return
 
-        backup_path = mw.getBackupDir() + '/database'
+        backup_path = yf.getBackupDir() + '/database'
         if not os.path.exists(backup_path):
-            mw.execShell("mkdir -p " + backup_path)
+            yf.execShell("mkdir -p " + backup_path)
 
         version_prefix = 'mysql57'
         version_file = db_path + '/version.pl'
         if os.path.exists(version_file):
-            ver = mw.readFile(version_file).strip()
+            ver = yf.readFile(version_file).strip()
             parts = ver.split('.')
             if len(parts) >= 2:
                 version_prefix = parts[0] + parts[1]
@@ -155,16 +155,16 @@ class backupTools:
         filename = backup_path + "/" + version_prefix + "_" + name + "_" + \
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + ".sql.gz"
 
-        mysql_root = mw.M('config').dbPos(db_path, db_name).where(
+        mysql_root = yf.M('config').dbPos(db_path, db_name).where(
             "id=?", (1,)).getField('mysql_root')
 
         my_cnf = self.getConf('mysql')
         self.mypass(True, mysql_root)
 
-        # mw.execShell(db_path + "/bin/mysqldump --opt --default-character-set=utf8 " +
+        # yf.execShell(db_path + "/bin/mysqldump --opt --default-character-set=utf8 " +
         #              name + " | gzip > " + filename)
 
-        # mw.execShell(db_path + "/bin/mysqldump  --single-transaction --quick --default-character-set=utf8 " +
+        # yf.execShell(db_path + "/bin/mysqldump  --single-transaction --quick --default-character-set=utf8 " +
         #              name + " | gzip > " + filename)
 
         # 开启一致性事务 会lock表
@@ -180,7 +180,7 @@ class backupTools:
         cmd = db_path + "/bin/mysqldump --defaults-file=" + my_cnf +" " + option +" --single-transaction -q --default-character-set=utf8mb4 " + \
             name + " | gzip > " + filename
         # print(cmd)
-        mw.execShell(cmd)
+        yf.execShell(cmd)
 
         if not os.path.exists(filename):
             endDate = time.strftime('%Y/%m/%d %X', time.localtime())
@@ -194,40 +194,40 @@ class backupTools:
 
         endDate = time.strftime('%Y/%m/%d %X', time.localtime())
         outTime = time.time() - startTime
-        pid = mw.M('databases').dbPos(db_path, db_name).where(
+        pid = yf.M('databases').dbPos(db_path, db_name).where(
             'name=?', (name,)).getField('id')
 
-        mw.M('backup').add('type,name,pid,filename,add_time,size', (1, os.path.basename(
+        yf.M('backup').add('type,name,pid,filename,add_time,size', (1, os.path.basename(
             filename), pid, filename, endDate, os.path.getsize(filename)))
         log = "数据库[" + name + "]备份成功,用时[" + str(round(outTime, 2)) + "]秒"
-        mw.writeLog('计划任务', log)
+        yf.writeLog('计划任务', log)
         print("★[" + endDate + "] " + log)
         print("|---保留最新的[" + count + "]份备份")
         print("|---文件名:" + filename)
 
         # 清理多余备份
-        backups = mw.M('backup').where(
+        backups = yf.M('backup').where(
             'type=? and pid=?', ('1', pid)).field('id,filename').select()
 
         num = len(backups) - int(count)
         if num > 0:
             for backup in backups:
-                mw.execShell("rm -f " + backup['filename'])
-                mw.M('backup').where('id=?', (backup['id'],)).delete()
+                yf.execShell("rm -f " + backup['filename'])
+                yf.M('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
                 print("|---已清理过期备份文件：" + backup['filename'])
                 if num < 1:
                     break
 
     def backupSiteAll(self, save):
-        sites = mw.M('sites').field('name').select()
+        sites = yf.M('sites').field('name').select()
         for site in sites:
             self.backupSite(site['name'], save)
 
     def backupDatabaseAll(self, save):
-        db_path = mw.getServerDir() + '/mysql'
+        db_path = yf.getServerDir() + '/mysql'
         db_name = 'mysql'
-        databases = mw.M('databases').dbPos(
+        databases = yf.M('databases').dbPos(
             db_path, db_name).field('name').select()
         for database in databases:
             self.backupDatabase(database['name'], save)
@@ -242,7 +242,7 @@ class backupTools:
 
     def makeExcludeDirCmd(self,echo):
         exclude_dirs = []
-        crontab_list = mw.M('crontab').where('echo=?', (echo,)).field('attr').find()
+        crontab_list = yf.M('crontab').where('echo=?', (echo,)).field('attr').find()
         if crontab_list:
             attr = crontab_list['attr']
             if attr != "":
@@ -260,34 +260,34 @@ class backupTools:
 
         exclude_dir_cmd = self.makeExcludeDirCmd(echo)
         # print(exclude_dir_cmd)
-        mw.echoStart('备份')
+        yf.echoStart('备份')
 
-        backup_path = mw.getBackupDir() + '/path'
+        backup_path = yf.getBackupDir() + '/path'
         if not os.path.exists(backup_path):
-            mw.execShell("mkdir -p " + backup_path)
+            yf.execShell("mkdir -p " + backup_path)
 
         dirname = os.path.basename(path)
         fname = 'path_{}_{}.tar.gz'.format(
-            dirname, mw.formatDate("%Y%m%d_%H%M%S"))
+            dirname, yf.formatDate("%Y%m%d_%H%M%S"))
         dfile = os.path.join(backup_path, fname)
 
-        p_size = mw.getPathSize(path)
+        p_size = yf.getPathSize(path)
         stime = time.time()
 
         cmd = "cd " + os.path.dirname(path) + " && tar zcvf '" + dfile + "' " + exclude_dir_cmd + " '" + dirname + "' 2>{err_log} 1> /dev/null".format(
             err_log='/tmp/backup_err.log')
         # print(cmd)
-        mw.execShell(cmd)
+        yf.execShell(cmd)
 
         tar_size = os.path.getsize(dfile)
 
-        mw.echoInfo('备份目录：' + path)
-        mw.echoInfo('目录已备份到：' + dfile)
-        mw.echoInfo("目录大小：{}".format(mw.toSize(p_size)))
-        mw.echoInfo("开始压缩文件：{}".format(mw.formatDate(times=stime)))
-        mw.echoInfo("文件压缩完成，耗时{:.2f}秒，压缩包大小：{}".format(
-            time.time() - stime, mw.toSize(tar_size)))
-        mw.echoInfo('保留最新的备份数：' + count + '份')
+        yf.echoInfo('备份目录：' + path)
+        yf.echoInfo('目录已备份到：' + dfile)
+        yf.echoInfo("目录大小：{}".format(yf.toSize(p_size)))
+        yf.echoInfo("开始压缩文件：{}".format(yf.formatDate(times=stime)))
+        yf.echoInfo("文件压缩完成，耗时{:.2f}秒，压缩包大小：{}".format(
+            time.time() - stime, yf.toSize(tar_size)))
+        yf.echoInfo('保留最新的备份数：' + count + '份')
 
         backups = self.findPathName(backup_path, 'path_{}'.format(dirname))
         num = len(backups) - int(count)
@@ -295,13 +295,13 @@ class backupTools:
         if num > 0:
             for backup in backups:
                 abspath_bk = backup_path + "/" + backup
-                mw.execShell("rm -f " + abspath_bk)
-                mw.echoInfo("已清理过期备份文件：" + abspath_bk)
+                yf.execShell("rm -f " + abspath_bk)
+                yf.echoInfo("已清理过期备份文件：" + abspath_bk)
                 num -= 1
                 if num < 1:
                     break
 
-        mw.echoEnd('备份')
+        yf.echoEnd('备份')
 
 if __name__ == "__main__":
     backup = backupTools()

@@ -50,8 +50,8 @@ def init():
         from .bt_migration import check_and_migrate_bt_software
         check_and_migrate_bt_software()
     except Exception as e:
-        import core.yf as mw
-        mw.writeLog("面板迁移", "宝塔迁移自动安装调用异常: " + str(e))
+        import core.yf as yf
+        yf.writeLog("面板迁移", "宝塔迁移自动安装调用异常: " + str(e))
 
     # 安全升级：初始化加密 Salt 与敏感数据一次性迁移
     try:
@@ -59,13 +59,13 @@ def init():
         salt = get_salt()
         if salt is None:
             init_salt()
-            import core.yf as mw
-            mw.writeLog('安全机制', 'Salt 文件不存在，已自动生成新的加密 Salt。')
+            import core.yf as yf
+            yf.writeLog('安全机制', 'Salt 文件不存在，已自动生成新的加密 Salt。')
             
         from core.crypt_migrate import migrate_encrypted_data
         migrate_encrypted_data()
     except Exception as e:
-        import core.yf as mw
-        mw.writeLog('安全机制', '安全加密机制初始化异常: ' + str(e))
+        import core.yf as yf
+        yf.writeLog('安全机制', '安全加密机制初始化异常: ' + str(e))
 
 

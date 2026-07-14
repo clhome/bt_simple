@@ -21,7 +21,7 @@ from telethon import TelegramClient
 
 
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -33,11 +33,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 sys.path.append(getServerDir() + "/extend")
@@ -46,22 +46,22 @@ sys.path.append(getServerDir() + "/extend")
 def getConfigData():
     cfg_path = getServerDir() + "/data.cfg"
     if not os.path.exists(cfg_path):
-        mw.writeFile(cfg_path, '{}')
-    t = mw.readFile(cfg_path)
+        yf.writeFile(cfg_path, '{}')
+    t = yf.readFile(cfg_path)
     return json.loads(t)
 
 
 def writeConf(data):
     cfg_path = getServerDir() + "/data.cfg"
-    mw.writeFile(cfg_path, json.dumps(data))
+    yf.writeFile(cfg_path, json.dumps(data))
     return True
 
 
 def getExtCfg():
     cfg_path = getServerDir() + "/extend.cfg"
     if not os.path.exists(cfg_path):
-        mw.writeFile(cfg_path, '{}')
-    t = mw.readFile(cfg_path)
+        yf.writeFile(cfg_path, '{}')
+    t = yf.readFile(cfg_path)
     return json.loads(t)
 
 
@@ -79,9 +79,9 @@ def writeLog(log_str):
     if __name__ == "__main__":
         print(log_str)
 
-    now = mw.getDateFromNow()
+    now = yf.getDateFromNow()
     log_file = getServerDir() + '/task.log'
-    mw.writeFileLog(now + ':' + log_str, log_file, limit_size=5 * 1024)
+    yf.writeFileLog(now + ':' + log_str, log_file, limit_size=5 * 1024)
     return True
 
 
@@ -107,7 +107,7 @@ async def plugins_run_task():
             await __import__(script).run(client)
         except Exception as e:
             writeLog('----- client error start -------')
-            writeLog(mw.getTracebackInfo())
+            writeLog(yf.getTracebackInfo())
             writeLog('----- client error end -------')
 
 async def plugins_run():

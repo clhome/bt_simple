@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -23,15 +23,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -79,8 +79,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
     path = getPluginDir() + '/tpl'
@@ -89,7 +89,7 @@ def configTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def readConfigTpl():
@@ -104,14 +104,14 @@ def readConfigTpl():
     target_path = os.path.abspath(tpl_dir + '/' + filename)
 
     if not target_path.startswith(os.path.abspath(tpl_dir)):
-        return mw.returnJson(False, '非法的文件读取路径！')
+        return yf.returnJson(False, '非法的文件读取路径！')
 
     if not os.path.exists(target_path):
-        return mw.returnJson(False, '模板文件不存在！')
+        return yf.returnJson(False, '模板文件不存在！')
 
-    content = mw.readFile(target_path)
+    content = yf.readFile(target_path)
     content = contentReplace(content)
-    return mw.returnJson(True, 'ok', content)
+    return yf.returnJson(True, 'ok', content)
 
 
 def defaultScriptsTpl():
@@ -125,11 +125,11 @@ def configScriptsTpl():
     for one in pathFile:
         file = path + '/' + one
         tmp.append(file)
-    return mw.getJson(tmp)
+    return yf.getJson(tmp)
 
 
 def status():
-    data = mw.execShell(
+    data = yf.execShell(
         "ps aux|grep keepalived |grep -v grep | grep -v python | grep -v mdserver-web | awk '{print $2}'")
 
     if data[0] == '':
@@ -139,22 +139,22 @@ def status():
 
 def getDefaultInterface():
     # 优先使用 ip route show
-    res = mw.execShell("ip route show | grep default | awk '{print $5}'")
+    res = yf.execShell("ip route show | grep default | awk '{print $5}'")
     if res[0].strip():
         return res[0].strip()
 
     # 备选：ip route get 8.8.8.8
-    res = mw.execShell("ip route get 8.8.8.8 2>/dev/null | grep -oE 'dev [a-zA-Z0-9_.-]+' | awk '{print $2}'")
+    res = yf.execShell("ip route get 8.8.8.8 2>/dev/null | grep -oE 'dev [a-zA-Z0-9_.-]+' | awk '{print $2}'")
     if res[0].strip():
         return res[0].strip()
 
     # 备选：route -n
-    res = mw.execShell("route -n 2>/dev/null | grep ^0.0.0.0 | awk '{print $8}'")
+    res = yf.execShell("route -n 2>/dev/null | grep ^0.0.0.0 | awk '{print $8}'")
     if res[0].strip():
         return res[0].strip()
 
     # 最后兜底降级：寻找首个非环回物理网卡
-    res = mw.execShell("ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo' | grep -v 'docker' | head -n 1")
+    res = yf.execShell("ip -o link show | awk -F': ' '{print $2}' | grep -v 'lo' | grep -v 'docker' | head -n 1")
     if res[0].strip():
         return res[0].strip()
 
@@ -165,16 +165,16 @@ def getKeepalivedPass():
     if not os.path.exists(getServerDir()):
         os.makedirs(getServerDir())
     if os.path.exists(pass_file):
-        password = mw.readFile(pass_file).strip()
+        password = yf.readFile(pass_file).strip()
         if password and password != 'ok':
             return password
     
-    password = mw.getRandomString(8)
-    mw.writeFile(pass_file, password)
+    password = yf.getRandomString(8)
+    yf.writeFile(pass_file, password)
     return password
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$PLUGIN_PATH}', getPluginDir())
 
@@ -194,25 +194,25 @@ def copyScripts():
     src_scripts_path = getPluginDir() + '/scripts'
     dst_scripts_path = getServerDir() + '/scripts'
     if not os.path.exists(dst_scripts_path):
-        mw.makeDirs(dst_scripts_path)
+        yf.makeDirs(dst_scripts_path)
         olist = os.listdir(src_scripts_path)
         for o in range(len(olist)):
             src_file = src_scripts_path+'/'+olist[o]
             dst_file = dst_scripts_path+'/'+olist[o]
 
-            content = mw.readFile(src_file)
+            content = yf.readFile(src_file)
             content = contentReplace(content)
-            mw.writeFile(dst_file, content)
+            yf.writeFile(dst_file, content)
 
             cmd = 'chmod +x ' + dst_file
-            mw.execShell(cmd)
+            yf.execShell(cmd)
         return True
     return False
 
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
     if not os.path.exists(initD_path):
@@ -221,37 +221,37 @@ def initDreplace():
 
     # initd replace
     if not os.path.exists(file_bin):
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = contentReplace(content)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     # log
     dataLog = getServerDir() + '/data'
     if not os.path.exists(dataLog):
-        mw.execShell('chmod +x ' + file_bin)
+        yf.execShell('chmod +x ' + file_bin)
 
     # config replace
     dst_conf = getServerDir() + '/etc/keepalived/keepalived.conf'
     dst_conf_init = getServerDir() + '/init.pl'
     if not os.path.exists(dst_conf_init):
-        content = mw.readFile(getConfTpl())
+        content = yf.readFile(getConfTpl())
         content = contentReplace(content)
-        mw.writeFile(dst_conf, content)
-        mw.writeFile(dst_conf_init, 'ok')
+        yf.writeFile(dst_conf, content)
+        yf.writeFile(dst_conf_init, 'ok')
 
     # 复制检查脚本
     copyScripts()
 
     # systemd
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/' + getPluginName() + '.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/' + getPluginName() + '.service.tpl'
-        content = mw.readFile(systemServiceTpl)
+        content = yf.readFile(systemServiceTpl)
         content = contentReplace(content)
-        mw.writeFile(systemService, content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
@@ -259,20 +259,20 @@ def initDreplace():
 def kpOp(method):
     file = initDreplace()
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service ' + getPluginName() + ' ' + method)
+        data = yf.execShell('service ' + getPluginName() + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' ' + getPluginName())
+    data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -290,7 +290,7 @@ def restart():
     status = kpOp('restart')
 
     log_file = runLog()
-    mw.execShell("echo '' > " + log_file)
+    yf.execShell("echo '' > " + log_file)
     return status
 
 
@@ -305,7 +305,7 @@ def runInfo():
     vips = []
     conf_path = getConf()
     if os.path.exists(conf_path):
-        conf_content = mw.readFile(conf_path)
+        conf_content = yf.readFile(conf_path)
         vip_match = re.search(r'virtual_ipaddress\s*\{(.*?)\}', conf_content, re.S)
         if vip_match:
             lines = vip_match.group(1).split('\n')
@@ -317,7 +317,7 @@ def runInfo():
                         vips.append(parts[0])
 
     active_vips = []
-    ip_addr_out = mw.execShell("ip addr show")
+    ip_addr_out = yf.execShell("ip addr show")
     if ip_addr_out[0]:
         for vip in vips:
             if vip in ip_addr_out[0]:
@@ -333,7 +333,7 @@ def runInfo():
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -344,14 +344,14 @@ def initdStatus():
 
     shell_cmd = 'systemctl status ' + \
         getPluginName() + ' | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -361,26 +361,26 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable ' + getPluginName())
+    yf.execShell('systemctl enable ' + getPluginName())
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable ' + getPluginName())
+    yf.execShell('systemctl disable ' + getPluginName())
     return 'ok'
 
 

@@ -17,7 +17,7 @@ import core.mw as mw
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -34,11 +34,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getArgs():
@@ -64,40 +64,40 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getConf():
     path = getServerDir() + "/cfg.json"
 
     if not os.path.exists(path):
-        mw.writeFile(path, '[]')
+        yf.writeFile(path, '[]')
 
-    c = mw.readFile(path)
+    c = yf.readFile(path)
     return json.loads(c)
 
 
 def writeConf(data):
     path = getServerDir() + "/cfg.json"
-    mw.writeFile(path, json.dumps(data))
+    yf.writeFile(path, json.dumps(data))
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace('{$APP_PATH}', app_path)
     return content
 
 
 def restartWeb():
-    mw.opWeb('stop')
-    mw.opWeb('start')
+    yf.opWeb('stop')
+    yf.opWeb('start')
 
 
 def loadBalanceConf():
-    path = mw.getServerDir() + '/web_conf/nginx/vhost/load_balance.conf'
+    path = yf.getServerDir() + '/web_conf/nginx/vhost/load_balance.conf'
     return path
 
 
@@ -107,12 +107,12 @@ def initDreplace():
     dst_conf = loadBalanceConf()
 
     if not os.path.exists(dst_conf):
-        con = mw.readFile(dst_conf_tpl)
-        mw.writeFile(dst_conf, con)
+        con = yf.readFile(dst_conf_tpl)
+        yf.writeFile(dst_conf, con)
 
 
 def status():
-    if not mw.getWebStatus():
+    if not yf.getWebStatus():
         return 'stop'
 
     dst_conf = loadBalanceConf()
@@ -148,7 +148,7 @@ def reload():
 
 
 def installPreInspection():
-    check_op = mw.getServerDir() + "/openresty"
+    check_op = yf.getServerDir() + "/openresty"
     if not os.path.exists(check_op):
         return "请先安装OpenResty"
     return 'ok'
@@ -156,10 +156,10 @@ def installPreInspection():
 
 def deleteLoadBalanceAllCfg():
     cfg = getConf()
-    upstream_dir = mw.getServerDir() + '/web_conf/nginx/upstream'
-    lua_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
-    rewrite_dir = mw.getServerDir() + '/web_conf/nginx/rewrite'
-    vhost_dir = mw.getServerDir() + '/web_conf/nginx/vhost'
+    upstream_dir = yf.getServerDir() + '/web_conf/nginx/upstream'
+    lua_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
+    rewrite_dir = yf.getServerDir() + '/web_conf/nginx/rewrite'
+    vhost_dir = yf.getServerDir() + '/web_conf/nginx/vhost'
 
     for conf in cfg:
         upstream_file = upstream_dir + '/' + conf['upstream_name'] + '.conf'
@@ -171,16 +171,16 @@ def deleteLoadBalanceAllCfg():
             os.remove(lua_file)
 
         rewrite_file = rewrite_dir + '/' + conf['domain'] + '.conf'
-        mw.writeFile(rewrite_file, '')
+        yf.writeFile(rewrite_file, '')
 
         path = vhost_dir + '/' + conf['domain'] + '.conf'
 
-        content = mw.readFile(path)
+        content = yf.readFile(path)
         if isinstance(content, str):
             content = re.sub('include ' + upstream_file + ';' + "\n", '', content)
-            mw.writeFile(path, content)
+            yf.writeFile(path, content)
 
-    mw.opLuaInitWorkerFile()
+    yf.opLuaInitWorkerFile()
 
 
 def makeConfServerList(data):
@@ -207,9 +207,9 @@ def makeLoadBalanceAllCfg(row):
     # 生成所有配置
     cfg = getConf()
 
-    upstream_dir = mw.getServerDir() + '/web_conf/nginx/upstream'
-    rewrite_dir = mw.getServerDir() + '/web_conf/nginx/rewrite'
-    vhost_dir = mw.getServerDir() + '/web_conf/nginx/vhost'
+    upstream_dir = yf.getServerDir() + '/web_conf/nginx/upstream'
+    rewrite_dir = yf.getServerDir() + '/web_conf/nginx/rewrite'
+    vhost_dir = yf.getServerDir() + '/web_conf/nginx/vhost'
     upstream_tpl = getPluginDir() + '/conf/upstream.tpl.conf'
     rewrite_tpl = getPluginDir() + '/conf/rewrite.tpl.conf'
 
@@ -220,25 +220,25 @@ def makeLoadBalanceAllCfg(row):
 
     # replace vhost start
     vhost_file = vhost_dir + '/' + conf['domain'] + '.conf'
-    vcontent = mw.readFile(vhost_file)
+    vcontent = yf.readFile(vhost_file)
     if not isinstance(vcontent, str):
         vcontent = ''
 
     vhost_find_str = 'upstream/' + conf['upstream_name'] + '.conf'
-    vhead = 'include ' + mw.getServerDir() + '/web_conf/nginx/' + \
+    vhead = 'include ' + yf.getServerDir() + '/web_conf/nginx/' + \
         vhost_find_str + ';'
 
     vpos = vcontent.find(vhost_find_str)
     if vpos < 0:
         vcontent = vhead + "\n" + vcontent
-        mw.writeFile(vhost_file, vcontent)
+        yf.writeFile(vhost_file, vcontent)
     # replace vhost end
 
     # make upstream start
     upstream_file = upstream_dir + '/' + conf['upstream_name'] + '.conf'
     content = ''
     if len(conf['node_list']) > 0:
-        content = mw.readFile(upstream_tpl)
+        content = yf.readFile(upstream_tpl)
         slist = makeConfServerList(conf['node_list'])
         content = content.replace('{$NODE_SERVER_LIST}', slist)
         content = content.replace('{$UPSTREAM_NAME}', conf['upstream_name'])
@@ -246,32 +246,32 @@ def makeLoadBalanceAllCfg(row):
             content = content.replace('{$NODE_ALGO}', conf['node_algo'] + ';')
         else:
             content = content.replace('{$NODE_ALGO}', '')
-    mw.writeFile(upstream_file, content)
+    yf.writeFile(upstream_file, content)
     # make upstream end
 
     # make rewrite start
     rewrite_file = rewrite_dir + '/' + conf['domain'] + '.conf'
     rcontent = ''
     if len(conf['node_list']) > 0:
-        rcontent = mw.readFile(rewrite_tpl)
+        rcontent = yf.readFile(rewrite_tpl)
         rcontent = rcontent.replace('{$UPSTREAM_NAME}', conf['upstream_name'])
-    mw.writeFile(rewrite_file, rcontent)
+    yf.writeFile(rewrite_file, rcontent)
     # make rewrite end
 
     # health check start
-    lua_dir = mw.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
+    lua_dir = yf.getServerDir() + '/web_conf/nginx/lua/init_worker_by_lua_file'
     lua_init_worker_file = lua_dir + '/' + conf['upstream_name'] + '.lua'
     if conf['node_health_check'] == 'ok':
         lua_dir_tpl = getPluginDir() + '/lua/health_check.lua.tpl'
-        content = mw.readFile(lua_dir_tpl)
+        content = yf.readFile(lua_dir_tpl)
         content = content.replace('{$UPSTREAM_NAME}', conf['upstream_name'])
         content = content.replace('{$DOMAIN}', conf['domain'])
-        mw.writeFile(lua_init_worker_file, content)
+        yf.writeFile(lua_init_worker_file, content)
     else:
         if os.path.exists(lua_init_worker_file):
             os.remove(lua_init_worker_file)
 
-    mw.opLuaInitWorkerFile()
+    yf.opLuaInitWorkerFile()
     # health check end
     return True
 
@@ -289,10 +289,10 @@ def add_load_balance(args):
     domain = tmp['domain']
 
     if not is_valid_domain(domain):
-        return mw.returnJson(False, '域名格式不合法')
+        return yf.returnJson(False, '域名格式不合法')
 
     if not is_valid_upstream(args['upstream_name']):
-        return mw.returnJson(False, '负载名称格式不合法')
+        return yf.returnJson(False, '负载名称格式不合法')
 
     try:
         nodes = args['node_list']
@@ -300,9 +300,9 @@ def add_load_balance(args):
             nodes = json.loads(nodes)
         for x in nodes:
             if not is_valid_domain(x['ip']):
-                return mw.returnJson(False, '节点IP/主机名不合法')
+                return yf.returnJson(False, '节点IP/主机名不合法')
             if not re.match(r'^[0-9]+$', str(x['port'])):
-                return mw.returnJson(False, '节点端口不合法')
+                return yf.returnJson(False, '节点端口不合法')
     except Exception as e:
         pass
 
@@ -320,14 +320,14 @@ def add_load_balance(args):
 
     import site_api
     sobj = site_api.site_api()
-    domain_path = mw.getWwwDir() + '/' + domain
+    domain_path = yf.getWwwDir() + '/' + domain
 
     ps = '负载均衡[' + domain + ']'
     data = sobj.add(domain_json, '80', ps, domain_path, '00')
 
     makeLoadBalanceAllCfg(cfg_len)
-    mw.restartWeb()
-    return mw.returnJson(True, '添加成功', data)
+    yf.restartWeb()
+    return yf.returnJson(True, '添加成功', data)
 
 
 def edit_load_balance(args):
@@ -347,13 +347,13 @@ def edit_load_balance(args):
     writeConf(cfg)
 
     makeLoadBalanceAllCfg(row)
-    mw.restartWeb()
-    return mw.returnJson(True, '修改成功', data)
+    yf.restartWeb()
+    return yf.returnJson(True, '修改成功', data)
 
 
 def loadBalanceList():
     cfg = getConf()
-    return mw.returnJson(True, 'ok', cfg)
+    return yf.returnJson(True, 'ok', cfg)
 
 
 def loadBalanceDelete():
@@ -370,12 +370,12 @@ def loadBalanceDelete():
     import site_api
     sobj = site_api.site_api()
 
-    sid = mw.M('sites').where('name=?', (data['domain'],)).getField('id')
+    sid = yf.M('sites').where('name=?', (data['domain'],)).getField('id')
 
     if type(sid) == list:
         del(cfg[row])
         writeConf(cfg)
-        return mw.returnJson(False, '已经删除了!')
+        return yf.returnJson(False, '已经删除了!')
 
     status = sobj.delete(sid, data['domain'], 1)
     status_data = json.loads(status)
@@ -384,8 +384,8 @@ def loadBalanceDelete():
         del(cfg[row])
         writeConf(cfg)
 
-    upstream_dir = mw.getServerDir() + '/web_conf/nginx/upstream'
-    rewrite_dir = mw.getServerDir() + '/web_conf/nginx/rewrite'
+    upstream_dir = yf.getServerDir() + '/web_conf/nginx/upstream'
+    rewrite_dir = yf.getServerDir() + '/web_conf/nginx/rewrite'
 
     upstream_file = upstream_dir + '/' + data['upstream_name'] + '.conf'
     if os.path.exists(upstream_file):
@@ -393,9 +393,9 @@ def loadBalanceDelete():
 
     rewrite_file = rewrite_dir + '/' + data['domain'] + '.conf'
     if os.path.exists(rewrite_file):
-        mw.writeFile(rewrite_file, '')
+        yf.writeFile(rewrite_file, '')
 
-    return mw.returnJson(status_data['status'], status_data['msg'])
+    return yf.returnJson(status_data['status'], status_data['msg'])
 
 
 def http_get(url):
@@ -429,8 +429,8 @@ def checkUrl():
         url = 'http://' + str(ip) + ':' + str(port) + str(path.strip())
     ret = http_get(url)
     if not ret:
-        return mw.returnJson(False, '访问节点[%s]失败' % url)
-    return mw.returnJson(True, '访问节点[%s]成功' % url)
+        return yf.returnJson(False, '访问节点[%s]失败' % url)
+    return yf.returnJson(True, '访问节点[%s]成功' % url)
 
 
 def getHealthStatus():
@@ -447,8 +447,8 @@ def getHealthStatus():
     url = 'http://' + data['domain'] + \
         '/upstream_status_' + data['upstream_name']
 
-    url_data = mw.httpGet(url)
-    return mw.returnJson(True, 'ok', json.loads(url_data))
+    url_data = yf.httpGet(url)
+    return yf.returnJson(True, 'ok', json.loads(url_data))
 
 
 def getLogs():
@@ -458,7 +458,7 @@ def getLogs():
         return data[1]
 
     domain = args['domain']
-    logs = mw.getLogsDir() + '/' + domain + '.log'
+    logs = yf.getLogsDir() + '/' + domain + '.log'
     return logs
 
 if __name__ == "__main__":

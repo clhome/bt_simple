@@ -8,5 +8,5 @@ import web.core.mw as mw
 import index
 
 index.makeOpDstRunLua()
-mw.restartWeb()
+yf.restartWeb()
 print("Reloaded Lua scripts and restarted OpenResty.")

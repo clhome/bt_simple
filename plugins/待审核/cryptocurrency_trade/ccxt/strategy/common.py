@@ -15,7 +15,7 @@ from datetime import datetime
 
 # print(os.getcwd())
 sys.path.append(os.getcwd() + "/class/core")
-import mw
+import yf
 
 exchange = ccxt.poloniex()
 
@@ -105,18 +105,18 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getConfigData():
     cfg_path = getServerDir() + "/data.cfg"
     if not os.path.exists(cfg_path):
-        mw.writeFile(cfg_path, '{}')
-    t = mw.readFile(cfg_path)
+        yf.writeFile(cfg_path, '{}')
+    t = yf.readFile(cfg_path)
     return json.loads(t)
 
 
@@ -124,7 +124,7 @@ def getUserCfgData():
     data = getConfigData()
     if 'user' in data:
         try:
-            udata = mw.deDoubleCrypt('mw', data['user'])
+            udata = yf.deDoubleCrypt('mw', data['user'])
             udata = json.loads(udata)
             return udata
         except Exception as e:
@@ -165,7 +165,7 @@ def toUnixTimeSecond(tf="1m"):
 
 def notifyMsg(msg, tf='15m', tag='btc'):
     trigger_time = toUnixTimeSecond(tf)
-    return mw.notifyMessage(msg, '量化交易/' + tag, trigger_time)
+    return yf.notifyMessage(msg, '量化交易/' + tag, trigger_time)
 
 
 def makeTableName(input_type="btc", input_tf="1m"):
@@ -178,7 +178,7 @@ def writeLog(log_str):
         print(log_str)
 
     log_file = getServerDir() + '/logs/strategy.log'
-    mw.writeFileLog(log_str, log_file)
+    yf.writeFileLog(log_str, log_file)
     return True
 
 
@@ -189,7 +189,7 @@ def writeLogEx(log_str, tag='btc'):
         print(log_str)
 
     log_file = getServerDir() + '/logs/strategy_' + tag + '.log'
-    mw.writeFileLog(log_str, log_file)
+    yf.writeFileLog(log_str, log_file)
     return True
 
 
@@ -200,13 +200,13 @@ def writeLogErrorEx(log_str, tag='btc'):
         print(log_str)
 
     log_file = getServerDir() + '/logs/strategy_' + tag + '.err.log'
-    mw.writeFileLog(log_str, log_file)
+    yf.writeFileLog(log_str, log_file)
     return True
 
 
 def pMysqlDb():
     # pymysql
-    db = mw.getMyORM()
+    db = yf.getMyORM()
     data = getConfigData()
     db_data = data['db']
 
@@ -345,7 +345,7 @@ class MsgTpl():
         if self.__closing_price != '':
             msg += '止盈价:' + str(self.__closing_price) + "\n"
 
-        msg += '发送时间:' + mw.getDateFromNow() + "\n"
+        msg += '发送时间:' + yf.getDateFromNow() + "\n"
 
         if self.__msg != '':
             msg += __msg

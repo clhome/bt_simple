@@ -17,7 +17,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -26,16 +26,16 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def contentReplace(content):
-    service_path = mw.getServerDir()
-    content = content.replace('{$ROOT_PATH}', mw.getFatherDir())
+    service_path = yf.getServerDir()
+    content = content.replace('{$ROOT_PATH}', yf.getFatherDir())
     content = content.replace('{$SERVER_PATH}', service_path)
     content = content.replace(
         '{$SERVER_APP}', service_path + '/' + getPluginName())
@@ -65,106 +65,106 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def isSqlError(mysqlMsg):
     # 检测数据库执行错误
     mysqlMsg = str(mysqlMsg)
     if "MySQLdb" in mysqlMsg:
-        return mw.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
+        return yf.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
     if "2002," in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "2003," in mysqlMsg:
-        return mw.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
+        return yf.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
     if "using password:" in mysqlMsg:
-        return mw.returnJson(False, '数据库密码错误')
+        return yf.returnJson(False, '数据库密码错误')
     if "1045" in mysqlMsg:
-        return mw.returnJson(False, '连接错误!')
+        return yf.returnJson(False, '连接错误!')
     if "SQL syntax" in mysqlMsg:
-        return mw.returnJson(False, 'SQL语法错误!')
+        return yf.returnJson(False, 'SQL语法错误!')
     if "Connection refused" in mysqlMsg:
-        return mw.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
     if "1133," in mysqlMsg:
-        return mw.returnJson(False, '数据库用户不存在!')
+        return yf.returnJson(False, '数据库用户不存在!')
     if "1007," in mysqlMsg:
-        return mw.returnJson(False, '数据库已经存在!')
+        return yf.returnJson(False, '数据库已经存在!')
     return None
 
 
 def getConfigData():
     cfg_path = getServerDir() + "/data.cfg"
     if not os.path.exists(cfg_path):
-        mw.writeFile(cfg_path, '{}')
-    t = mw.readFile(cfg_path)
+        yf.writeFile(cfg_path, '{}')
+    t = yf.readFile(cfg_path)
     return json.loads(t)
 
 
 def writeConf(data):
     cfg_path = getServerDir() + "/data.cfg"
-    mw.writeFile(cfg_path, json.dumps(data))
+    yf.writeFile(cfg_path, json.dumps(data))
     return True
 
 
 def getDbConf():
     data = getConfigData()
     if 'db' in data:
-        return mw.returnJson(True, 'ok', data['db'])
-    return mw.returnJson(False, 'ok', {})
+        return yf.returnJson(True, 'ok', data['db'])
+    return yf.returnJson(False, 'ok', {})
 
 
 def getUserConf():
     data = getConfigData()
     if 'user' in data:
-        return mw.returnJson(True, 'ok', data['user'])
-    return mw.returnJson(False, 'ok', {})
+        return yf.returnJson(True, 'ok', data['user'])
+    return yf.returnJson(False, 'ok', {})
 
 
 def restartSup():
     cmd = 'python3 plugins/supervisor/index.py restart'
-    mw.execShell(cmd)
+    yf.execShell(cmd)
 
 
 def restartSupDst(name):
     cmd = 'python3 plugins/supervisor/index.py restart_job  {"name":"' + \
         name + '","status":"stop"}'
-    mw.execShell(cmd)
+    yf.execShell(cmd)
 
 
 def syncDataAddTaskUninstall():
-    sup_path = mw.getServerDir() + '/supervisor'
+    sup_path = yf.getServerDir() + '/supervisor'
     if not os.path.exists(sup_path):
-        return mw.returnJson(False, '需要安装并启动supervisor插件')
+        return yf.returnJson(False, '需要安装并启动supervisor插件')
 
     name = "ct_task"
     sup_task_dst = sup_path + '/conf.d/' + name + '.ini'
     if os.path.exists(sup_task_dst):
-        mw.removeDir(sup_task_dst)
+        yf.removeDir(sup_task_dst)
 
     restartSup()
-    return mw.returnJson(True, '删除同步数据任务成功!')
+    return yf.returnJson(True, '删除同步数据任务成功!')
 
 
 def syncDataAddTaskInstall():
-    sup_path = mw.getServerDir() + '/supervisor'
+    sup_path = yf.getServerDir() + '/supervisor'
     if not os.path.exists(sup_path):
-        return mw.returnJson(False, '需要安装并启动supervisor插件')
+        return yf.returnJson(False, '需要安装并启动supervisor插件')
 
     name = "ct_task"
     sup_task_tpl = getPluginDir() + '/conf/sup_task.tpl'
     sup_task_dst = sup_path + '/conf.d/' + name + '.ini'
-    content = mw.readFile(sup_task_tpl)
+    content = yf.readFile(sup_task_tpl)
     content = content.replace(
-        '{$RUN_ROOT}', mw.getServerDir() + '/mdserver-web')
+        '{$RUN_ROOT}', yf.getServerDir() + '/mdserver-web')
     content = content.replace(
         '{$SUP_ROOT}', sup_path)
     content = content.replace(
         '{$NAME}', name)
 
-    mw.writeFile(sup_task_dst, content)
+    yf.writeFile(sup_task_dst, content)
     restartSup()
-    return mw.returnJson(True, '添加同步数据任务成功!')
+    return yf.returnJson(True, '添加同步数据任务成功!')
 
 
 def syncDataAddTask():
@@ -191,7 +191,7 @@ def syncDataDelete():
         data['token'].remove(del_token)
     writeConf(data)
 
-    return mw.returnJson(True, '删除成功!')
+    return yf.returnJson(True, '删除成功!')
 
 
 # callback ---------------------------------- start
@@ -199,7 +199,7 @@ def get_datasource_logs(args):
     log_file = getServerDir() + '/logs/datasource.log'
     if not os.path.exists(log_file):
         return '暂无日志'
-    data = mw.getLastLine(log_file, 10)
+    data = yf.getLastLine(log_file, 10)
     return data
 
 
@@ -207,7 +207,7 @@ def get_strategy_logs(args):
     log_file = getServerDir() + '/logs/strategy.log'
     if not os.path.exists(log_file):
         return '暂无日志'
-    data = mw.getLastLine(log_file, 10)
+    data = yf.getLastLine(log_file, 10)
     return data
 
 
@@ -220,7 +220,7 @@ def save_body(args):
     tag = args['tag']
 
     if not os.path.exists(path):
-        return mw.returnData(False, '文件不存在')
+        return yf.returnData(False, '文件不存在')
     try:
         if encoding == 'ascii':
             encoding = 'utf-8'
@@ -233,9 +233,9 @@ def save_body(args):
         fp.close()
 
         set_strategy_restart({'id': tag})
-        return mw.returnData(True, '文件保存成功')
+        return yf.returnData(True, '文件保存成功')
     except Exception as ex:
-        return mw.returnData(False, '文件保存错误:' + str(ex))
+        return yf.returnData(False, '文件保存错误:' + str(ex))
 
 
 def get_strategy_path(args):
@@ -243,13 +243,13 @@ def get_strategy_path(args):
     name = "ct_strategy_" + abs_id
 
     abs_file = get_strategy_absfile(abs_id)
-    return mw.returnData(True, abs_file)
+    return yf.returnData(True, abs_file)
 
 
 def set_strategy_restart(args):
-    sup_path = mw.getServerDir() + '/supervisor'
+    sup_path = yf.getServerDir() + '/supervisor'
     if not os.path.exists(sup_path):
-        return mw.returnData(False, '需要安装并启动supervisor插件')
+        return yf.returnData(False, '需要安装并启动supervisor插件')
 
     abs_id = args['id']
     name = "ct_strategy_" + abs_id
@@ -257,16 +257,16 @@ def set_strategy_restart(args):
     sup_strategy_dst = sup_path + '/conf.d/' + name + '.ini'
 
     if not os.path.exists(sup_strategy_dst):
-        return mw.returnData(False, '策略任务' + abs_id + '未添加!')
+        return yf.returnData(False, '策略任务' + abs_id + '未添加!')
 
     restartSupDst(name)
-    return mw.returnData(True, '重启策略任务' + abs_id + '成功!')
+    return yf.returnData(True, '重启策略任务' + abs_id + '成功!')
 
 
 def set_strategy_status(args):
-    sup_path = mw.getServerDir() + '/supervisor'
+    sup_path = yf.getServerDir() + '/supervisor'
     if not os.path.exists(sup_path):
-        return mw.returnData(False, '需要安装并启动supervisor插件')
+        return yf.returnData(False, '需要安装并启动supervisor插件')
 
     abs_id = args['id']
     name = "ct_strategy_" + abs_id
@@ -276,14 +276,14 @@ def set_strategy_status(args):
         if os.path.exists(sup_strategy_dst):
             os.remove(sup_strategy_dst)
         restartSup()
-        return mw.returnData(True, '删除策略任务' + abs_id + '成功!')
+        return yf.returnData(True, '删除策略任务' + abs_id + '成功!')
 
     abs_file = get_strategy_absfile(abs_id)
     sup_strategy_tpl = getPluginDir() + '/conf/sup_strategy.tpl'
 
-    content = mw.readFile(sup_strategy_tpl)
+    content = yf.readFile(sup_strategy_tpl)
     content = content.replace(
-        '{$RUN_ROOT}', mw.getServerDir() + '/mdserver-web')
+        '{$RUN_ROOT}', yf.getServerDir() + '/mdserver-web')
     content = content.replace(
         '{$SUP_ROOT}', sup_path)
     content = content.replace(
@@ -291,14 +291,14 @@ def set_strategy_status(args):
     content = content.replace(
         '{$ABS_FILE}', abs_file)
 
-    mw.writeFile(sup_strategy_dst, content)
+    yf.writeFile(sup_strategy_dst, content)
     restartSup()
-    return mw.returnData(True, '添加策略任务' + abs_id + '成功!')
+    return yf.returnData(True, '添加策略任务' + abs_id + '成功!')
 
 
 def get_strategy_absfile(abs_id):
     info = getPluginDir() + '/ccxt/strategy/info.json'
-    info = json.loads(mw.readFile(info))
+    info = json.loads(yf.readFile(info))
 
     path = getPluginDir() + '/ccxt/strategy'
     for x in range(len(info)):
@@ -310,9 +310,9 @@ def get_strategy_absfile(abs_id):
 
 def get_strategy_list(args):
     info = getPluginDir() + '/ccxt/strategy/info.json'
-    info = json.loads(mw.readFile(info))
+    info = json.loads(yf.readFile(info))
 
-    st_path = mw.getServerDir() + '/supervisor/conf.d'
+    st_path = yf.getServerDir() + '/supervisor/conf.d'
 
     page = 1
     page_size = 5
@@ -343,7 +343,7 @@ def get_strategy_list(args):
 
     data['data'] = ret_data
     data['args'] = args
-    data['list'] = mw.getPage(
+    data['list'] = yf.getPage(
         {'count': dlist_sum, 'p': page, 'row': page_size, 'tojs': 'getStrategyList'})
 
     return data

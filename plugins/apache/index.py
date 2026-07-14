@@ -17,7 +17,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -26,15 +26,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -65,8 +65,8 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def clearTemp():
@@ -90,9 +90,9 @@ def getConfTpl():
 
 def getOs():
     data = {}
-    data['os'] = mw.getOs()
+    data['os'] = yf.getOs()
     data['auth'] = True
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def getInitDTpl():
@@ -102,7 +102,7 @@ def getInitDTpl():
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pid\s*(.*);'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -124,19 +124,19 @@ def checkAuthEq(file, owner='root'):
 
 
 def confReplace():
-    service_path = mw.getServerDir()
-    content = mw.readFile(getConfTpl())
+    service_path = yf.getServerDir()
+    content = yf.readFile(getConfTpl())
     content = content.replace('{$SERVER_PATH}', service_path)
 
     # 主配置文件
     nconf = getServerDir() + '/httpd/conf/httpd.conf'
-    mw.writeFile(nconf, content)
+    yf.writeFile(nconf, content)
 
 
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
 
@@ -151,31 +151,31 @@ def initDreplace():
         os.mkdir(initD_path)
 
         # initd replace
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
         # config replace
         confReplace()
 
     # systemd
     # /usr/lib/systemd/system
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/httpd.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/httpd.service.tpl'
-        se_content = mw.readFile(systemServiceTpl)
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
 
 def status():
     cmd = "ps -ef|grep 'httpd/bin/httpd' |grep -v grep | grep -v python | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
@@ -186,41 +186,41 @@ def restyOp(method):
 
     # 启动时,先检查一下配置文件
     check = getServerDir() + "/httpd/bin/httpd -t"
-    check_data = mw.execShell(check)
+    check_data = yf.execShell(check)
     if not check_data[1].find('Syntax OK') > -1:
         return check_data[1]
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
     if current_os.startswith("freebsd"):
-        mw.execShell('service httpd '+method)
+        yf.execShell('service httpd '+method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' httpd')
+    data = yf.execShell('systemctl ' + method + ' httpd')
     if data[1] == '':
         return 'ok'
     return data[1]
 
 
 def op_submit_systemctl_restart():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os.startswith("freebsd"):
-        mw.execShell('service httpd restart')
+        yf.execShell('service httpd restart')
         return True
 
-    mw.execShell('systemctl restart httpd')
+    yf.execShell('systemctl restart httpd')
     return True
 
 
 def op_submit_init_restart(file):
-    mw.execShell(file + ' restart')
+    yf.execShell(file + ' restart')
 
 
 def restyOp_restart():
@@ -228,11 +228,11 @@ def restyOp_restart():
 
     # 启动时,先检查一下配置文件
     check = getServerDir() + "/httpd/bin/httpd -t"
-    check_data = mw.execShell(check)
+    check_data = yf.execShell(check)
     if not check_data[1].find('Syntax OK') > -1:
         return 'ERROR: 配置出错<br><a style="color:red;">' + check_data[1].replace("\n", '<br>') + '</a>'
 
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         threading.Timer(2, op_submit_systemctl_restart).start()
         return 'ok'
 
@@ -247,7 +247,7 @@ def start():
 def stop():
     r = restyOp('stop')
 
-    mw.execShell("ps -ef|grep httpd | grep -v grep | awk '{print $2}'|xargs -r kill")
+    yf.execShell("ps -ef|grep httpd | grep -v grep | awk '{print $2}'|xargs -r kill")
     return r
 
 
@@ -261,7 +261,7 @@ def reload():
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -271,14 +271,14 @@ def initdStatus():
             return 'ok'
 
     shell_cmd = 'systemctl status httpd | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -288,31 +288,31 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc httpd_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc httpd_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable httpd')
+    yf.execShell('systemctl enable httpd')
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc httpd_enable="NO"')
+        yf.execShell('sysrc httpd_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable httpd')
+    yf.execShell('systemctl disable httpd')
     return 'ok'
 
 def getHttpdStatusPort():
-    conf = mw.getServerDir() + '/apache/httpd/conf/httpd.conf'
-    content = mw.readFile(conf)
+    conf = yf.getServerDir() + '/apache/httpd/conf/httpd.conf'
+    content = yf.readFile(conf)
     if not content:
         return None
     rep = r'^\s*Listen\s*(?:\d+\.\d+\.\d+\.\d+:)?(\d+)'  # 匹配非注释行的 Listen 指令，忽略大小写
@@ -343,29 +343,29 @@ def runInfoDone(data):
 def runInfo():
     op_status = status()
     if op_status == 'stop':
-        return mw.returnJson(False, "未启动!")
+        return yf.returnJson(False, "未启动!")
 
     port = getHttpdStatusPort()
     if not port:
-        return mw.returnJson(False, "无法获取端口信息!")
+        return yf.returnJson(False, "无法获取端口信息!")
     
     # 取Openresty负载状态
     try:
         url = 'http://127.0.0.1:%s/server-status?auto' % port
-        result = mw.httpGet(url, timeout=3)
+        result = yf.httpGet(url, timeout=3)
         data = runInfoDone(result)
-        return mw.getJson(data)
+        return yf.getJson(data)
     except Exception as e:
         try:
-            url = 'http://' + mw.getHostAddr() + ':%s/server-status?auto' % port
-            result = mw.httpGet(url)
+            url = 'http://' + yf.getHostAddr() + ':%s/server-status?auto' % port
+            result = yf.httpGet(url)
             data = runInfoDone(result)
-            return mw.getJson(data)
+            return yf.getJson(data)
         except Exception as e:
-            return mw.returnJson(False, "apache异常!")
+            return yf.returnJson(False, "apache异常!")
         
     except Exception as e:
-        return mw.returnJson(False, "apache not started!")
+        return yf.returnJson(False, "apache not started!")
 
 
 def errorLogPath():
@@ -374,7 +374,7 @@ def errorLogPath():
 
 def getCfg():
     cfg = getConfMpm()
-    content = mw.readFile(cfg)
+    content = yf.readFile(cfg)
 
     unitrep = "[kmgKMG]"
     
@@ -470,7 +470,7 @@ def getCfg():
         kv = {"name": key, "value": v, "unit": u,
               "ps": i["ps"], "type": i["type"]}
         rdata.append(kv)
-    return mw.returnJson(True, "ok", rdata)
+    return yf.returnJson(True, "ok", rdata)
 
 def replaceChar(value, index, new_char):
     return value[:index] + new_char + value[index+1:]
@@ -480,8 +480,8 @@ def setCfg():
     
     # 检查参数，允许动态参数
     cfg = getConfMpm()
-    mw.backFile(cfg)
-    content = mw.readFile(cfg)
+    yf.backFile(cfg)
+    content = yf.readFile(cfg)
 
     # 获取当前 MPM 模块
     mpm_module = ""
@@ -493,7 +493,7 @@ def setCfg():
     for k, v in args.items():
         # 检查是否为数字参数
         if not re.search(r"\d+", v):
-            return mw.returnJson(False, '参数值错误,请输入数字整数')
+            return yf.returnJson(False, '参数值错误,请输入数字整数')
 
         # 替换 MPM 特定配置
         if mpm_module:
@@ -510,31 +510,31 @@ def setCfg():
         if re.search(rep, content):
             content = re.sub(rep, replace_common_config, content)
 
-    mw.writeFile(cfg, content)
-    isError = mw.checkHttpdConfig()
+    yf.writeFile(cfg, content)
+    isError = yf.checkHttpdConfig()
     if (isError != True):
-        mw.restoreFile(cfg)
-        return mw.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
+        yf.restoreFile(cfg)
+        return yf.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
 
-    mw.restartWeb()
-    return mw.returnJson(True, '设置成功')
+    yf.restartWeb()
+    return yf.returnJson(True, '设置成功')
 
 
 def cronAddCheck():
     try:
         import tool_task
         tool_task.createBgTask()
-        return mw.returnJson(True, '添加检查任务成功')
+        return yf.returnJson(True, '添加检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '添加检查任务失败:'+str(e))
+        return yf.returnJson(False, '添加检查任务失败:'+str(e))
 
 def cronDelCheck():
     try:
         import tool_task
         tool_task.removeBgTask()
-        return mw.returnJson(True, '删除检查任务成功')
+        return yf.returnJson(True, '删除检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '删除检查任务失败:'+str(e))
+        return yf.returnJson(False, '删除检查任务失败:'+str(e))
 
 def cronCheck():
     return 'ok'
@@ -549,7 +549,7 @@ if __name__ == "__main__":
     version = '2.4'
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl)
+        version = yf.readFile(version_pl)
 
 
     func = sys.argv[1]

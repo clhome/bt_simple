@@ -16,7 +16,7 @@ from utils.crontab import crontab as MwCrontab
 
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -25,11 +25,11 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getTaskConf():
@@ -40,7 +40,7 @@ def getTaskConf():
 def getConfigData():
     conf = getTaskConf()
     if os.path.exists(conf):
-        return json.loads(mw.readFile(getTaskConf()))
+        return json.loads(yf.readFile(getTaskConf()))
     return {
         "task_id": -1,
         "period": "minute-n",
@@ -58,18 +58,18 @@ def createBgTask():
 def createBgTaskByName(name):
     args = getConfigData()
     _name = "[OpenResty]检查任务"
-    res = mw.M("crontab").field("id, name").where("name=?", (_name,)).find()
+    res = yf.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
         return True
 
     if "task_id" in args and args["task_id"] > 0:
-        res = mw.M("crontab").field("id, name").where(
+        res = yf.M("crontab").field("id, name").where(
             "id=?", (args["task_id"],)).find()
         if res and res["id"] == args["task_id"]:
             print("计划任务已经存在!")
             return True
 
-    mw_dir = mw.getPanelDir()
+    mw_dir = yf.getPanelDir()
     cmd = '''
 mw_dir=%s
 rname=%s
@@ -98,19 +98,19 @@ script_path=%s
     if task_id > 0:
         args["task_id"] = task_id
         args["name"] = name
-        mw.writeFile(getTaskConf(), json.dumps(args))
+        yf.writeFile(getTaskConf(), json.dumps(args))
 
 
 def removeBgTask():
     cfg = getConfigData()
     if "task_id" in cfg and cfg["task_id"] > 0:
-        res = mw.M("crontab").field("id, name").where(
+        res = yf.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
             data = MwCrontab.instance().delete(cfg["task_id"])
             if data["status"]:
                 cfg["task_id"] = -1
-                mw.writeFile(getTaskConf(), json.dumps(cfg))
+                yf.writeFile(getTaskConf(), json.dumps(cfg))
                 return True
     return False
 

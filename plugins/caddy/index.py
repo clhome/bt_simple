@@ -17,7 +17,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -26,15 +26,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -65,15 +65,15 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def getOs():
     data = {}
-    data['os'] = mw.getOs()
+    data['os'] = yf.getOs()
     data['auth'] = True
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 def getConf():
     path = getServerDir() + "/Caddyfile"
@@ -91,7 +91,7 @@ def getInitDTpl():
 
 def initDreplace():
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
     initD_path = getServerDir() + '/init.d'
 
     # init.d
@@ -101,35 +101,35 @@ def initDreplace():
         os.mkdir(initD_path)
 
         # initd replace
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
     caddy_file = getConf()
     if not os.path.exists(caddy_file):
         caddy_file_tpl = getConfTpl()
-        content = mw.readFile(systemServiceTpl)
+        content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(caddy_file, content)
+        yf.writeFile(caddy_file, content)
 
     # systemd
     # /usr/lib/systemd/system
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/caddy.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/caddy.service.tpl'
-        se_content = mw.readFile(systemServiceTpl)
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
 
 def status():
     cmd = "ps -ef|grep 'caddy run' |grep -v grep | grep -v python | awk '{print $2}'"
-    data = mw.execShell(cmd)
+    data = yf.execShell(cmd)
     if data[0] == '':
         return 'stop'
     return 'start'
@@ -138,20 +138,20 @@ def status():
 def caddyOp(method):
     file = initDreplace()
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service caddy ' + method)
+        data = yf.execShell('service caddy ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' caddy')
+    data = yf.execShell('systemctl ' + method + ' caddy')
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -175,7 +175,7 @@ def reload():
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -185,14 +185,14 @@ def initdStatus():
             return 'ok'
 
     shell_cmd = 'systemctl status caddy | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -202,33 +202,33 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable caddy')
+    yf.execShell('systemctl enable caddy')
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable caddy')
+    yf.execShell('systemctl disable caddy')
     return 'ok'
 
 
 def runInfo():
     op_status = status()
     if op_status == 'stop':
-        return mw.returnJson(False, "未启动!")
+        return yf.returnJson(False, "未启动!")
 
 
 def errorLogPath():
@@ -237,7 +237,7 @@ def errorLogPath():
 
 def getCfg():
     cfg = getConf()
-    content = mw.readFile(cfg)
+    content = yf.readFile(cfg)
 
     unitrep = "[kmgKMG]"
     cfg_args = [
@@ -261,11 +261,11 @@ def getCfg():
         rep = r"(%s)\s+(\w+)" % i["name"]
         k = re.search(rep, content)
         if not k:
-            return mw.returnJson(False, "获取 key {} 失败".format(k))
+            return yf.returnJson(False, "获取 key {} 失败".format(k))
         k = k.group(1)
         v = re.search(rep, content)
         if not v:
-            return mw.returnJson(False, "获取 value {} 失败".format(v))
+            return yf.returnJson(False, "获取 value {} 失败".format(v))
         v = v.group(2)
 
         if re.search(unitrep, v):
@@ -282,7 +282,7 @@ def getCfg():
               "ps": i["ps"], "type": i["type"]}
         rdata.append(kv)
 
-    return mw.returnJson(True, "ok", rdata)
+    return yf.returnJson(True, "ok", rdata)
 
 def replaceChar(value, index, new_char):
     return value[:index] + new_char + value[index+1:]
@@ -291,7 +291,7 @@ def makeWorkerCpuAffinity(val):
     if val == "auto":
         return "auto"
 
-    if mw.isNumber(val):
+    if yf.isNumber(val):
         core_num = int(val)
         default_core_str = "0"*core_num
         core_num_arr = []
@@ -314,8 +314,8 @@ def setCfg():
         return data[1]
 
     cfg = getConf()
-    mw.backFile(cfg)
-    content = mw.readFile(cfg)
+    yf.backFile(cfg)
+    content = yf.readFile(cfg)
 
     unitrep = "[kmgKMG]"
     cfg_args = [
@@ -339,13 +339,13 @@ def setCfg():
         rep = r"%s\s+[^kKmMgG\;\n]+" % k
         if k == "worker_processes" or k == "gzip":
             if not re.search(r"auto|on|off|\d+", v):
-                return mw.returnJson(False, '参数值错误')
+                return yf.returnJson(False, '参数值错误')
         elif k == "zstd" or k == "brotli":
             if not re.search(r"auto|on|off|\d+", v):
-                return mw.returnJson(False, '参数值错误')
+                return yf.returnJson(False, '参数值错误')
         else:
             if not re.search(r"\d+", v):
-                return mw.returnJson(False, '参数值错误,请输入数字整数')
+                return yf.returnJson(False, '参数值错误,请输入数字整数')
 
         if k == "worker_processes" :
             k_wca = "worker_cpu_affinity"
@@ -362,31 +362,31 @@ def setCfg():
             newconf = "%s %s" % (k, v)
             content = re.sub(rep, newconf, content)
 
-    mw.writeFile(cfg, content)
-    isError = mw.checkWebConfig()
+    yf.writeFile(cfg, content)
+    isError = yf.checkWebConfig()
     if (isError != True):
-        mw.restoreFile(cfg)
-        return mw.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
+        yf.restoreFile(cfg)
+        return yf.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
 
-    mw.restartWeb()
-    return mw.returnJson(True, '设置成功')
+    yf.restartWeb()
+    return yf.returnJson(True, '设置成功')
 
 
 def cronAddCheck():
     try:
         import tool_task
         tool_task.createBgTask()
-        return mw.returnJson(True, '添加检查任务成功')
+        return yf.returnJson(True, '添加检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '添加检查任务失败:'+str(e))
+        return yf.returnJson(False, '添加检查任务失败:'+str(e))
 
 def cronDelCheck():
     try:
         import tool_task
         tool_task.removeBgTask()
-        return mw.returnJson(True, '删除检查任务成功')
+        return yf.returnJson(True, '删除检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '删除检查任务失败:'+str(e))
+        return yf.returnJson(False, '删除检查任务失败:'+str(e))
 
 def cronCheck():
     return 'ok'
@@ -401,7 +401,7 @@ if __name__ == "__main__":
     version = '1.27.1'
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl)
+        version = yf.readFile(version_pl)
 
 
     func = sys.argv[1]

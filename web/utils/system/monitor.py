@@ -20,7 +20,7 @@ import threading
 
 from .main import getMemUsed
 
-import core.yf as mw
+import core.yf as yf
 import core.db as db
 
 
@@ -28,7 +28,7 @@ import core.db as db
 # 监控系统数据入库
 class monitor:
 
-    _dbfile = mw.getPanelDataDir() + '/system.db'
+    _dbfile = yf.getPanelDataDir() + '/system.db'
     _diskinfo = None
     _netinfo = None
 
@@ -53,35 +53,35 @@ class monitor:
 
     def initDBFile(self):
         is_reload = False
-        sql_file = mw.getPanelDir() + '/web/admin/setup/sql/system.sql'
-        sql_file_md5 = mw.getPanelDir() + '/web/admin/setup/sql/system.md5'
-        content = mw.readFile(sql_file)
-        content_md5 = mw.md5(content)
+        sql_file = yf.getPanelDir() + '/web/admin/setup/sql/system.sql'
+        sql_file_md5 = yf.getPanelDir() + '/web/admin/setup/sql/system.md5'
+        content = yf.readFile(sql_file)
+        content_md5 = yf.md5(content)
         if not os.path.exists(sql_file_md5):
-            mw.writeFile(sql_file_md5, content_md5)
+            yf.writeFile(sql_file_md5, content_md5)
 
-        content_src_md5 = mw.readFile(sql_file_md5)
+        content_src_md5 = yf.readFile(sql_file_md5)
         if content_md5 != content_src_md5:
             is_reload = True
-            mw.writeFile(sql_file_md5, content_md5)
+            yf.writeFile(sql_file_md5, content_md5)
 
         if os.path.exists(self._dbfile) and not is_reload:
             return True
 
-        sql = db.Sql().dbPos(mw.getPanelDataDir(),'system')
+        sql = db.Sql().dbPos(yf.getPanelDataDir(),'system')
         csql_list = content.split(';')
         for index in range(len(csql_list)):
             sql.execute(csql_list[index], ())
         return True
 
     def getMonitorDay(self):
-        monitor_day = mw.M('option').field('name').where('name=?',('monitor_day',)).getField('value')
+        monitor_day = yf.M('option').field('name').where('name=?',('monitor_day',)).getField('value')
         if not monitor_day:
             return 30
         return int(monitor_day)
 
     def isOnlyNetIoStats(self):
-        monitor_only_netio = mw.M('option').field('name').where('name=?',('monitor_only_netio',)).getField('value')
+        monitor_only_netio = yf.M('option').field('name').where('name=?',('monitor_only_netio',)).getField('value')
         if not monitor_only_netio:
             monitor_only_netio = 'open'
         if monitor_only_netio == 'open':
@@ -172,19 +172,19 @@ class monitor:
 
         # CPU/内存数据入库
         cpu_mem_data = (info['used'], info['mem'], addtime)
-        cmd_objm = mw.M('cpuio').dbPos(mw.getPanelDataDir(),'system')
+        cmd_objm = yf.M('cpuio').dbPos(yf.getPanelDataDir(),'system')
         cmd_objm.add('pro,mem,addtime', cpu_mem_data)
         cmd_objm.where("addtime<?", (deltime,)).delete()
 
         # 网络数据入库
         netio_data = (netio['up'] / 5, netio['down'] / 5, netio['upTotal'], netio['downTotal'], netio['downPackets'], netio['upPackets'], addtime)
-        network_objm = mw.M('network').dbPos(mw.getPanelDataDir(),'system')
+        network_objm = yf.M('network').dbPos(yf.getPanelDataDir(),'system')
         network_objm.add('up,down,total_up,total_down,down_packets,up_packets,addtime', netio_data)
         network_objm.where("addtime<?", (deltime,)).delete()
 
         # 磁盘数据入库
         disk_data = (diskio['read_count'], diskio['write_count'], diskio['read_bytes'], diskio['write_bytes'], diskio['read_time'], diskio['write_time'], addtime)
-        disk_objm = mw.M('diskio').dbPos(mw.getPanelDataDir(),'system')
+        disk_objm = yf.M('diskio').dbPos(yf.getPanelDataDir(),'system')
         disk_objm.add('read_count,write_count,read_bytes,write_bytes,read_time,write_time,addtime', disk_data)
         disk_objm.where("addtime<?", (deltime,)).delete()
 
@@ -193,7 +193,7 @@ class monitor:
         lpro = round((load_data['one'] / load_data['max']) * 100, 2)
         if lpro > 100:
             lpro = 100
-        load_objm = mw.M('load_average').dbPos(mw.getPanelDataDir(),'system')
+        load_objm = yf.M('load_average').dbPos(yf.getPanelDataDir(),'system')
         load_objm.add('pro,one,five,fifteen,addtime', (lpro, load_data['one'], load_data['five'], load_data['fifteen'], addtime))
         load_objm.where("addtime<?", (deltime,)).delete()
         return True

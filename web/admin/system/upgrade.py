@@ -15,7 +15,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 
-import core.yf as mw
+import core.yf as yf
 import utils.system as sys
 
 from .system import blueprint

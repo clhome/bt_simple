@@ -9,35 +9,35 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.yf as mw
+import core.yf as yf
 
 from .option  import getOption
 
 __FIELD = 'id,name,path,status,ps,edate,type_id,add_time,update_time'
 
 def checkSitesDomainIsExist(domain, port):
-    nums = mw.M('domain').where("name=? AND port=?", (domain, port,)).count()
+    nums = yf.M('domain').where("name=? AND port=?", (domain, port,)).count()
     if nums>0:
         return True
 
-    nums = mw.M('binding').where("name=? AND port=?", (domain, port,)).count()
+    nums = yf.M('binding').where("name=? AND port=?", (domain, port,)).count()
     if nums>0:
         return True
     return False
 
 def getSitesCount():
-    return mw.M('sites').count()
+    return yf.M('sites').count()
 
 def getSitesById(site_id):
-    return mw.M('sites').field(__FIELD).where("id=?", (site_id,)).find()
+    return yf.M('sites').field(__FIELD).where("id=?", (site_id,)).find()
 
 def getSitesByName(site_name):
-    return mw.M('sites').field(__FIELD).where("name=?", (site_name,)).find()
+    return yf.M('sites').field(__FIELD).where("name=?", (site_name,)).find()
 
 def getSitesDomainById(site_id):
     data = {}
-    domains = mw.M('domain').where('pid=?', (site_id,)).field('name,id').select()
-    binding = mw.M('binding').where('pid=?', (site_id,)).field('domain,id').select()
+    domains = yf.M('domain').where('pid=?', (site_id,)).field('name,id').select()
+    binding = yf.M('binding').where('pid=?', (site_id,)).field('domain,id').select()
     for b in binding:
         t = {}
         t['name'] = b['domain']
@@ -48,7 +48,7 @@ def getSitesDomainById(site_id):
     return data
 
 def addSites(name, path, ps=None):
-    now_time = mw.getDateFromNow()
+    now_time = yf.getDateFromNow()
     if ps is None:
         ps = name
     insert_data = {
@@ -61,16 +61,16 @@ def addSites(name, path, ps=None):
         'add_time': now_time,
         'update_time': now_time
     }
-    return mw.M('sites').insert(insert_data)
+    return yf.M('sites').insert(insert_data)
 
 
 def isSitesExist(name):
-    if mw.M('sites').where("name=?", (name,)).count() > 0:
+    if yf.M('sites').where("name=?", (name,)).count() > 0:
         return True
     return False
 
 def getSitesEdateList(edate):
-    elist = mw.M('sites').field(__FIELD).where('edate>? AND edate<? AND status=?', ('0000-00-00', edate, 1,)).select()
+    elist = yf.M('sites').field(__FIELD).where('edate>? AND edate<? AND status=?', ('0000-00-00', edate, 1,)).select()
     return elist
 
 def getSitesList(
@@ -88,7 +88,7 @@ def getSitesList(
     if type_id != '' and int(type_id) >= 0:
         sql_where = " type_id=" + str(type_id)
 
-    dbM = dbC = mw.M('sites').field(__FIELD)
+    dbM = dbC = yf.M('sites').field(__FIELD)
 
     if sql_where != '':
         count = dbC.where(sql_where).count()
@@ -119,7 +119,7 @@ def getSitesList(
 
 
 def deleteSitesById(site_id):
-    return mw.M('sites').where("id=?", (site_id,)).delete()
+    return yf.M('sites').where("id=?", (site_id,)).delete()
 
 def setSitesData(site_id, edate = None, ps = None, path = None,status = None):
     update_data = {}
@@ -134,5 +134,5 @@ def setSitesData(site_id, edate = None, ps = None, path = None,status = None):
     if status is not None:
         update_data['status'] = status
 
-    return mw.M('sites').where('id=?',(site_id,)).update(update_data)
+    return yf.M('sites').where('id=?',(site_id,)).update(update_data)
 

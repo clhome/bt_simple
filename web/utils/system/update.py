@@ -16,7 +16,7 @@ import math
 import psutil
 import json
 
-import core.yf as mw
+import core.yf as yf
 
 def versionDiff(now, new):
     '''
@@ -53,7 +53,7 @@ def getServerInfo():
     except Exception as e:
         # 如果直连失败，尝试使用代理
         try:
-            upAddr = mw.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+            upAddr = yf.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
             req = urllib.request.urlopen(upAddr, context=context, timeout=10)
             result = req.read().decode('utf-8')
             version = json.loads(result)
@@ -65,22 +65,22 @@ def getServerInfo():
 
 def backup_panel():
     import time
-    panel_dir = mw.getPanelDir()
+    panel_dir = yf.getPanelDir()
     backup_dir = '/www/backup/panel'
     if not os.path.exists(backup_dir):
-        mw.makeDirs(backup_dir)
+        yf.makeDirs(backup_dir)
     
     timestamp = time.strftime('%Y%m%d_%H%M%S')
     version_file = panel_dir + '/.version'
     version = 'unknown'
     if os.path.exists(version_file):
-        version = mw.readFile(version_file).strip()
+        version = yf.readFile(version_file).strip()
     
     backup_file = f"{backup_dir}/bt_simple_{version}_{timestamp}.tar.gz"
     
     # 备份 web, panel_task.py, panel_tools.py 等核心文件，以及重要的安全配置文件
     cmd = f"cd {panel_dir} && tar -czf {backup_file} web panel_task.py panel_tools.py cli.sh version.py requirements.txt data/.crypt_salt 2>/dev/null || tar -czf {backup_file} web panel_task.py panel_tools.py cli.sh version.py requirements.txt"
-    mw.execShell(cmd)
+    yf.execShell(cmd)
     
     if os.path.exists(backup_file):
         return True, f"备份成功: {backup_file}"
@@ -90,12 +90,12 @@ def updateServer(stype, version='', step='all'):
     import config
     # 更新服务
     try:
-        if not mw.isRestart():
-            return mw.returnData(False, '请等待所有安装任务完成再执行!')
+        if not yf.isRestart():
+            return yf.returnData(False, '请等待所有安装任务完成再执行!')
 
         version_new_info = getServerInfo()
         if version_new_info is None:
-            return mw.returnData(False, '服务器数据或网络有问题!')
+            return yf.returnData(False, '服务器数据或网络有问题!')
 
         version_now = config.APP_VERSION
         # 使用 tag_name 替代 name，确保版本号和 tag 一致
@@ -103,55 +103,55 @@ def updateServer(stype, version='', step='all'):
         if stype == 'check':
             diff = versionDiff(version_now, new_ver)
             if diff == 'new':
-                return mw.returnData(True, '有新版本!', new_ver)
+                return yf.returnData(True, '有新版本!', new_ver)
             elif diff == 'test':
-                return mw.returnData(True, '有测试版本!', new_ver)
+                return yf.returnData(True, '有测试版本!', new_ver)
             else:
-                return mw.returnData(False, '已经是最新,无需更新!')
+                return yf.returnData(False, '已经是最新,无需更新!')
 
         if stype == 'info':
             diff = versionDiff(version_now, new_ver)
             data = {}
             data['version'] = new_ver
             data['content'] = version_new_info['body']
-            data['speed_name'] = mw.getGithubProxyName()
-            return mw.returnData(True, '更新信息!', data)
+            data['speed_name'] = yf.getGithubProxyName()
+            return yf.returnData(True, '更新信息!', data)
 
         if stype == 'update':
             if version == '':
-                return mw.returnData(False, '缺少版本信息!')
+                return yf.returnData(False, '缺少版本信息!')
 
-            toPath = mw.getPanelDir() + '/temp'
-            panel_dir = mw.getPanelDir()
+            toPath = yf.getPanelDir() + '/temp'
+            panel_dir = yf.getPanelDir()
 
             # 1. 下载阶段
             if step == 'download' or step == 'all':
                 if not os.path.exists(toPath):
-                    mw.makeDirs(toPath)
+                    yf.makeDirs(toPath)
 
-                newUrl = mw.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
-                dist_mw = toPath + '/mw.zip'
+                newUrl = yf.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
+                dist_mw = toPath + '/yf.zip'
                 # 强制重新下载
-                if os.path.exists(dist_mw): mw.execShell('rm -f ' + dist_mw)
+                if os.path.exists(dist_mw): yf.execShell('rm -f ' + dist_mw)
                 
-                mw.execShell('wget --no-check-certificate -O ' + dist_mw + ' ' + newUrl)
+                yf.execShell('wget --no-check-certificate -O ' + dist_mw + ' ' + newUrl)
                 
                 if not os.path.exists(dist_mw):
-                    return mw.returnData(False, '文件下载失败!')
+                    return yf.returnData(False, '文件下载失败!')
 
                 if os.path.getsize(dist_mw) < 1048576:
-                    mw.execShell('rm -f ' + dist_mw)
-                    return mw.returnData(False, '下载到的文件异常（小于1MB），可能是网络原因或代理失效导致下载失败!')
+                    yf.execShell('rm -f ' + dist_mw)
+                    return yf.returnData(False, '下载到的文件异常（小于1MB），可能是网络原因或代理失效导致下载失败!')
 
                 # 解压
                 os.system('unzip -o ' + dist_mw + ' -d ' + toPath)
                 if step == 'download':
-                    return mw.returnData(True, '下载并解压成功!')
+                    return yf.returnData(True, '下载并解压成功!')
 
             # 2. 备份阶段
             if step == 'backup':
                 status, msg = backup_panel()
-                return mw.returnData(status, msg)
+                return yf.returnData(status, msg)
 
             # 3. 安装阶段
             if step == 'install' or step == 'all':
@@ -172,18 +172,18 @@ def updateServer(stype, version='', step='all'):
                     if dirs:
                         src_path = dirs[0]
                     else:
-                        return mw.returnData(False, '更新源码包未找到，请先执行下载!')
+                        return yf.returnData(False, '更新源码包未找到，请先执行下载!')
 
                 # 执行代码覆盖
-                mw.execShell('cp -rf ' + src_path + '/* ' + panel_dir)
+                yf.execShell('cp -rf ' + src_path + '/* ' + panel_dir)
                 
                 # 清理临时文件
-                mw.removeDir(src_path)
-                mw.removeDir(toPath + '/mw.zip')
+                yf.removeDir(src_path)
+                yf.removeDir(toPath + '/yf.zip')
                 
                 # 自动写入版本号到 .version 文件
                 version_path = panel_dir + '/.version'
-                mw.writeFile(version_path, version)
+                yf.writeFile(version_path, version)
 
                 update_env = f'''
 #!/bin/bash
@@ -209,12 +209,12 @@ if [ -f {panel_dir}/version/r${{NEW_P_VER}}.txt ];then
 fi
 '''
                 os.system(update_env)
-                mw.restartMw()
-                return mw.returnData(True, '安装更新成功!')
+                yf.restartMw()
+                return yf.returnData(True, '安装更新成功!')
 
-        return mw.returnData(False, '未知操作!')
+        return yf.returnData(False, '未知操作!')
     except Exception as ex:
-        return mw.returnData(False, "操作失败: " + str(ex))
+        return yf.returnData(False, "操作失败: " + str(ex))
 
 
 

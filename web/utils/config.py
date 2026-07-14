@@ -12,7 +12,7 @@
 import os
 import json
 
-import core.yf as mw
+import core.yf as yf
 import thisdb
 
 _menu_cache = None
@@ -36,11 +36,11 @@ def get_menu_config():
             {"id": "memuAsoft", "name": "软件管理", "class": "menu_soft", "url": "/soft/index", "show": True},
             {"id": "memuAsetting", "name": "面板设置", "class": "menu_set", "url": "/setting/index", "show": True}
         ]
-        mw.writeFile(menu_file, json.dumps(default_menu))
+        yf.writeFile(menu_file, json.dumps(default_menu))
         _menu_cache = default_menu
     else:
         try:
-            content = mw.readFile(menu_file)
+            content = yf.readFile(menu_file)
             _menu_cache = json.loads(content)
         except Exception as e:
             _menu_cache = []
@@ -96,25 +96,25 @@ def getGlobalVar():
     
     ip = thisdb.getOption('server_ip', default='127.0.0.1')
     if ip in ['127.0.0.1', 'localhost', '::1', '']:
-        ip = mw.getLocalIp()
+        ip = yf.getLocalIp()
     data['ip'] = ip
 
-    data['site_path'] = thisdb.getOption('site_path', default=mw.getFatherDir()+'/wwwroot')
-    data['backup_path'] = thisdb.getOption('backup_path', default=mw.getFatherDir()+'/backup')
+    data['site_path'] = thisdb.getOption('site_path', default=yf.getFatherDir()+'/wwwroot')
+    data['backup_path'] = thisdb.getOption('backup_path', default=yf.getFatherDir()+'/backup')
     data['admin_path'] = '/'+thisdb.getOption('admin_path', default='')
     data['debug'] = thisdb.getOption('debug', default='close')
     data['admin_close'] = thisdb.getOption('admin_close', default='no')
     data['site_count'] = thisdb.getSitesCount()
-    data['port'] = mw.getHostPort()
+    data['port'] = yf.getHostPort()
 
-    __file = mw.getCommonFile()
+    __file = yf.getCommonFile()
     if os.path.exists(__file['ipv6']):
         data['ipv6'] = 'checked'
     else:
         data['ipv6'] = ''
 
     # 获取ROOT用户名
-    data['username'] = mw.M('users').where("id=?", (1,)).getField('name')
+    data['username'] = yf.M('users').where("id=?", (1,)).getField('name')
 
     # 获取未认证状态信息
     unauthorized_status = thisdb.getOption('unauthorized_status', default='0')

@@ -17,7 +17,7 @@ if os.path.exists(web_dir):
 import core.mw as mw
 
 app_debug = False
-if mw.isAppleSystem():
+if yf.isAppleSystem():
     app_debug = True
 
 
@@ -26,15 +26,15 @@ def getPluginName():
 
 
 def getPluginDir():
-    return mw.getPluginDir() + '/' + getPluginName()
+    return yf.getPluginDir() + '/' + getPluginName()
 
 
 def getServerDir():
-    return mw.getServerDir() + '/' + getPluginName()
+    return yf.getServerDir() + '/' + getPluginName()
 
 
 def getInitDFile():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return '/tmp/' + getPluginName()
 
@@ -104,17 +104,17 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, mw.returnJson(False, '参数:(' + ck[i] + ')没有!'))
-    return (True, mw.returnJson(True, 'ok'))
+            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+    return (True, yf.returnJson(True, 'ok'))
 
 
 def clearTemp():
     path_bin = getServerDir() + "/nginx"
-    mw.removeDir(path_bin + '/client_body_temp')
-    mw.removeDir(path_bin + '/fastcgi_temp')
-    mw.removeDir(path_bin + '/proxy_temp')
-    mw.removeDir(path_bin + '/scgi_temp')
-    mw.removeDir(path_bin + '/uwsgi_temp')
+    yf.removeDir(path_bin + '/client_body_temp')
+    yf.removeDir(path_bin + '/fastcgi_temp')
+    yf.removeDir(path_bin + '/proxy_temp')
+    yf.removeDir(path_bin + '/scgi_temp')
+    yf.removeDir(path_bin + '/uwsgi_temp')
 
 
 def getConf():
@@ -126,7 +126,7 @@ def confSelfHeal():
     try:
         conf_file = getConf()
         if os.path.exists(conf_file):
-            content = mw.readFile(conf_file)
+            content = yf.readFile(conf_file)
             need_write = False
             
             # 智能将 error_log 级别从 cri/crit 修正并升级为通用且利于诊断 of error;，杜绝崩溃日志被高过滤遮蔽
@@ -136,20 +136,20 @@ def confSelfHeal():
                 need_write = True
                 
             if need_write:
-                mw.writeFile(conf_file, content)
+                yf.writeFile(conf_file, content)
         
         # 执行目录权限与属主自愈，防止降权到 www 后 worker 进程写入 logs/temp 失败崩溃
         directoryPermissionSelfHeal()
 
         # 深度解耦自愈：若 OP 高性能防火墙 (OpenStar) 未安装或已被物理删除，则在此自动清理残留挂载，以杜绝 dofile init.lua 失败导致 OpenResty 启动崩溃
-        openstar_dir = mw.getServerDir() + '/openstar'
-        lua_conf_dir = mw.getServerDir() + '/web_conf/nginx/lua'
+        openstar_dir = yf.getServerDir() + '/openstar'
+        lua_conf_dir = yf.getServerDir() + '/web_conf/nginx/lua'
         if not os.path.exists(openstar_dir):
             openstar_removes = [
                 os.path.join(lua_conf_dir, 'init_by_lua_file', 'openstar_init_preload.lua'),
                 os.path.join(lua_conf_dir, 'init_worker_by_lua_file', 'openstar_init_worker.lua'),
                 os.path.join(lua_conf_dir, 'access_by_lua_file', 'openstar_access.lua'),
-                mw.getServerDir() + '/web_conf/nginx/vhost/openstar.conf'
+                yf.getServerDir() + '/web_conf/nginx/vhost/openstar.conf'
             ]
             need_remake = False
             for r_path in openstar_removes:
@@ -160,7 +160,7 @@ def confSelfHeal():
                     except Exception as e:
                         pass
             if need_remake:
-                mw.opLuaMakeAll()
+                yf.opLuaMakeAll()
     except Exception as e:
         pass
 
@@ -171,7 +171,7 @@ def directoryPermissionSelfHeal():
         user_group = 'www'
         
         # 兼容 macOS/FreeBSD 等非 Linux 系统
-        current_os = mw.getOs()
+        current_os = yf.getOs()
         if current_os == 'darwin':
             user = 'root'
             user_group = 'staff'
@@ -194,16 +194,16 @@ def directoryPermissionSelfHeal():
                     os.makedirs(d, exist_ok=True)
                 
                 # 递归地将属主赋予 www:www，并赋予 755 读写执行权限
-                mw.execShell(f"chown -R {user}:{user_group} {d}")
-                mw.execShell(f"chmod -R 755 {d}")
+                yf.execShell(f"chown -R {user}:{user_group} {d}")
+                yf.execShell(f"chmod -R 755 {d}")
 
             # 自动计算并加固全局站点日志目录 wwwlogs，防止虚拟主机因无写权限闪退且无 error.log 记录
             try:
-                wwwlogs_dir = os.path.abspath(mw.getServerDir() + "/../wwwlogs")
+                wwwlogs_dir = os.path.abspath(yf.getServerDir() + "/../wwwlogs")
                 if not os.path.exists(wwwlogs_dir):
                     os.makedirs(wwwlogs_dir, exist_ok=True)
-                mw.execShell(f"chown -R {user}:{user_group} {wwwlogs_dir}")
-                mw.execShell(f"chmod -R 755 {wwwlogs_dir}")
+                yf.execShell(f"chown -R {user}:{user_group} {wwwlogs_dir}")
+                yf.execShell(f"chmod -R 755 {wwwlogs_dir}")
             except:
                 pass
     except Exception as e:
@@ -213,9 +213,9 @@ def directoryPermissionSelfHeal():
 def getPortPid(port=80):
     try:
         # 优先使用 ss
-        res = mw.execShell("ss -tpln")
+        res = yf.execShell("ss -tpln")
         if res[0] == '' or res[1] != '':
-            res = mw.execShell("netstat -tpln")
+            res = yf.execShell("netstat -tpln")
         
         # 匹配监听指定端口的行，例如 :80 
         lines = res[0].split('\n')
@@ -238,7 +238,7 @@ def getProcessName(pid):
     try:
         comm_file = f"/proc/{pid}/comm"
         if os.path.exists(comm_file):
-            return mw.readFile(comm_file).strip()
+            return yf.readFile(comm_file).strip()
     except:
         pass
     return "unknown"
@@ -247,7 +247,7 @@ def getProcessName(pid):
 def getSystemdErrorDetail():
     detail = ""
     try:
-        res = mw.execShell("journalctl -n 20 -u openresty --no-pager")
+        res = yf.execShell("journalctl -n 20 -u openresty --no-pager")
         if res[0] != '':
             detail += "\n[系统服务日志明细]:\n" + res[0]
     except:
@@ -256,7 +256,7 @@ def getSystemdErrorDetail():
     try:
         err_log_file = getServerDir() + '/nginx/logs/error.log'
         if os.path.exists(err_log_file):
-            log_content = mw.readFile(err_log_file)
+            log_content = yf.readFile(err_log_file)
             if log_content:
                 lines = log_content.strip().split('\n')
                 last_lines = lines[-20:]
@@ -288,18 +288,18 @@ def checkModuleSupport(module_name):
 
 def getOs():
     data = {}
-    data['os'] = mw.getOs()
+    data['os'] = yf.getOs()
     ng_exe_bin = getServerDir() + "/nginx/sbin/nginx"
 
-    # if mw.isAppleSystem():
+    # if yf.isAppleSystem():
     #     data['auth'] = True
-    #     return mw.getJson(data)
+    #     return yf.getJson(data)
 
     if checkAuthEq(ng_exe_bin, 'root'):
         data['auth'] = True
     else:
         data['auth'] = False
-    return mw.getJson(data)
+    return yf.getJson(data)
 
 
 def getInitDTpl():
@@ -309,7 +309,7 @@ def getInitDTpl():
 
 def getPidFile():
     file = getConf()
-    content = mw.readFile(file)
+    content = yf.readFile(file)
     rep = r'pid\s*(.*);'
     tmp = re.search(rep, content)
     return tmp.groups()[0].strip()
@@ -331,17 +331,17 @@ def checkAuthEq(file, owner='root'):
 
 
 def confReplace():
-    service_path = mw.getServerDir()
-    content = mw.readFile(getConfTpl())
+    service_path = yf.getServerDir()
+    content = yf.readFile(getConfTpl())
     content = content.replace('{$SERVER_PATH}', service_path)
 
     user = 'www'
     user_group = 'www'
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         # macosx do
-        # user = mw.execShell(
+        # user = yf.execShell(
         #     "who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
         user = 'midoks'
         user_group = 'staff'
@@ -357,36 +357,36 @@ def confReplace():
     # ng_conf_md5 = ''
     # ng_conf_md5_file = getServerDir() + '/nginx_conf.md5'
     # if not os.path.exists(ng_conf_md5_file):
-    #     ng_conf_md5 = mw.md5(content)
-    #     mw.writeFile(ng_conf_md5_file, ng_conf_md5)
+    #     ng_conf_md5 = yf.md5(content)
+    #     yf.writeFile(ng_conf_md5_file, ng_conf_md5)
     # else:
-    #     ng_conf_md5 = mw.writeFile(ng_conf_md5_file).strip()
+    #     ng_conf_md5 = yf.writeFile(ng_conf_md5_file).strip()
 
     # 主配置文件
     nconf = getServerDir() + '/nginx/conf/nginx.conf'
-    mw.writeFile(nconf, content)
+    yf.writeFile(nconf, content)
 
     # lua配置
-    lua_conf_dir = mw.getServerDir() + '/web_conf/nginx/lua'
+    lua_conf_dir = yf.getServerDir() + '/web_conf/nginx/lua'
     if not os.path.exists(lua_conf_dir):
-        mw.makeDirs(lua_conf_dir)
+        yf.makeDirs(lua_conf_dir)
 
     lua_conf = lua_conf_dir + '/lua.conf'
     lua_conf_tpl = getPluginDir() + '/conf/lua.conf'
-    lua_content = mw.readFile(lua_conf_tpl)
+    lua_content = yf.readFile(lua_conf_tpl)
     lua_content = lua_content.replace('{$SERVER_PATH}', service_path)
-    mw.writeFile(lua_conf, lua_content)
+    yf.writeFile(lua_conf, lua_content)
 
     empty_lua = lua_conf_dir + '/empty.lua'
     if not os.path.exists(empty_lua):
-        mw.writeFile(empty_lua, '')
+        yf.writeFile(empty_lua, '')
 
     # 物理清除废弃防火墙 op_waf 残留挂载文件及配置，防止未物理清理彻底时失效的 require 模块阻碍正常启动
     opwaf_removes = [
         os.path.join(lua_conf_dir, 'access_by_lua_file', 'opwaf_init.lua'),
         os.path.join(lua_conf_dir, 'init_worker_by_lua_file', 'opwaf_init_worker.lua'),
         os.path.join(lua_conf_dir, 'init_by_lua_file', 'waf_init_preload.lua'),
-        mw.getServerDir() + '/web_conf/nginx/vhost/opwaf.conf'
+        yf.getServerDir() + '/web_conf/nginx/vhost/opwaf.conf'
     ]
     for r_path in opwaf_removes:
         if os.path.exists(r_path):
@@ -396,13 +396,13 @@ def confReplace():
                 pass
 
     # 深度解耦自愈：若 OP 高性能防火墙 (OpenStar) 未安装或已被物理删除，则在此自动清理残留挂载，以杜绝 dofile init.lua 失败导致 OpenResty 启动崩溃
-    openstar_dir = mw.getServerDir() + '/openstar'
+    openstar_dir = yf.getServerDir() + '/openstar'
     if not os.path.exists(openstar_dir):
         openstar_removes = [
             os.path.join(lua_conf_dir, 'init_by_lua_file', 'openstar_init_preload.lua'),
             os.path.join(lua_conf_dir, 'init_worker_by_lua_file', 'openstar_init_worker.lua'),
             os.path.join(lua_conf_dir, 'access_by_lua_file', 'openstar_access.lua'),
-            mw.getServerDir() + '/web_conf/nginx/vhost/openstar.conf'
+            yf.getServerDir() + '/web_conf/nginx/vhost/openstar.conf'
         ]
         for r_path in openstar_removes:
             if os.path.exists(r_path):
@@ -411,39 +411,39 @@ def confReplace():
                 except Exception as e:
                     pass
 
-    mw.opLuaMakeAll()
+    yf.opLuaMakeAll()
 
     # 静态配置
-    php_conf = mw.getServerDir() + '/web_conf/php/conf'
+    php_conf = yf.getServerDir() + '/web_conf/php/conf'
     if not os.path.exists(php_conf):
-        mw.makeDirs(php_conf)
-    static_conf = mw.getServerDir() + '/web_conf/php/conf/enable-php-00.conf'
+        yf.makeDirs(php_conf)
+    static_conf = yf.getServerDir() + '/web_conf/php/conf/enable-php-00.conf'
     if not os.path.exists(static_conf):
-        mw.writeFile(static_conf, 'set $PHP_ENV 0;')
+        yf.writeFile(static_conf, 'set $PHP_ENV 0;')
 
     # vhost
-    vhost_dir = mw.getServerDir() + '/web_conf/nginx/vhost'
+    vhost_dir = yf.getServerDir() + '/web_conf/nginx/vhost'
     vhost_tpl_dir = getPluginDir() + '/conf/vhost'
     if not os.path.exists(vhost_dir):
-        mw.makeDirs(vhost_dir)
+        yf.makeDirs(vhost_dir)
 
     vhost_list = ['0.websocket.conf', '0.nginx_status.conf']
     for f in vhost_list:
         a_conf = vhost_dir + '/' + f
         a_conf_tpl = vhost_tpl_dir + '/' + f
         if not os.path.exists(a_conf):
-            mw.writeFile(a_conf, mw.readFile(a_conf_tpl))
+            yf.writeFile(a_conf, yf.readFile(a_conf_tpl))
 
     # copy resty lib
     src_resty_dir = getPluginDir()+'/resty/*'
     dst_resty_dir = getServerDir()+'/lualib/resty'
-    mw.execShell('cp -rf ' + src_resty_dir + ' ' + dst_resty_dir)
+    yf.execShell('cp -rf ' + src_resty_dir + ' ' + dst_resty_dir)
 
 
 def initDreplace():
 
     file_tpl = getInitDTpl()
-    service_path = mw.getServerDir()
+    service_path = yf.getServerDir()
 
     initD_path = getServerDir() + '/init.d'
 
@@ -458,10 +458,10 @@ def initDreplace():
         os.mkdir(initD_path)
 
         # initd replace
-        content = mw.readFile(file_tpl)
+        content = yf.readFile(file_tpl)
         content = content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(file_bin, content)
-        mw.execShell('chmod +x ' + file_bin)
+        yf.writeFile(file_bin, content)
+        yf.execShell('chmod +x ' + file_bin)
 
         # config replace
         confReplace()
@@ -471,7 +471,7 @@ def initDreplace():
     if not checkAuthEq(ng_exe_bin, 'root'):
         user = 'www'
         user_group = 'www'
-        current_os = mw.getOs()
+        current_os = yf.getOs()
         if current_os == 'darwin':
             user = 'root'
             user_group = 'staff'
@@ -482,22 +482,22 @@ def initDreplace():
 
         sudoPwd = args['pwd']
         cmd_own = 'chown -R ' + user+':' + user_group + ' ' + ng_exe_bin
-        mw.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_own))
+        yf.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_own))
         cmd_mod = 'chmod 755 ' + ng_exe_bin
-        mw.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_mod))
+        yf.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_mod))
         cmd_s = 'chmod u+s ' + ng_exe_bin
-        mw.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_s))
+        yf.execShell('echo %s|sudo -S %s' % (sudoPwd, cmd_s))
 
     # systemd
     # /usr/lib/systemd/system
-    systemDir = mw.systemdCfgDir()
+    systemDir = yf.systemdCfgDir()
     systemService = systemDir + '/openresty.service'
     if os.path.exists(systemDir) and not os.path.exists(systemService):
         systemServiceTpl = getPluginDir() + '/init.d/openresty.service.tpl'
-        se_content = mw.readFile(systemServiceTpl)
+        se_content = yf.readFile(systemServiceTpl)
         se_content = se_content.replace('{$SERVER_PATH}', service_path)
-        mw.writeFile(systemService, se_content)
-        mw.execShell('systemctl daemon-reload')
+        yf.writeFile(systemService, se_content)
+        yf.execShell('systemctl daemon-reload')
 
     return file_bin
 
@@ -521,7 +521,7 @@ def restyOp(method):
             pname = getProcessName(pid)
             if pname in ['nginx', 'openresty']:
                 # 发现脱管残留的孤儿 nginx/openresty，强退释放端口
-                mw.execShell(f"kill -9 {pid}")
+                yf.execShell(f"kill -9 {pid}")
                 time.sleep(0.5)
             else:
                 # 被其他服务占用，返回友好而清晰的错误
@@ -531,24 +531,24 @@ def restyOp(method):
 
     # 启动时,先检查一下配置文件
     check = getServerDir() + "/bin/openresty -t"
-    check_data = mw.execShell(check)
+    check_data = yf.execShell(check)
     if not check_data[1].find('test is successful') > -1:
         return check_data[1]
 
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == "darwin":
-        data = mw.execShell(file + ' ' + method)
+        data = yf.execShell(file + ' ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
     if current_os.startswith("freebsd"):
-        data = mw.execShell('service openresty ' + method)
+        data = yf.execShell('service openresty ' + method)
         if data[1] == '':
             return 'ok'
         return data[1]
 
-    data = mw.execShell('systemctl ' + method + ' openresty')
+    data = yf.execShell('systemctl ' + method + ' openresty')
     if data[1] == '':
         return 'ok'
     
@@ -558,17 +558,17 @@ def restyOp(method):
 
 
 def op_submit_systemctl_restart():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os.startswith("freebsd"):
-        mw.execShell('service openresty restart')
+        yf.execShell('service openresty restart')
         return True
 
-    mw.execShell('systemctl restart openresty')
+    yf.execShell('systemctl restart openresty')
     return True
 
 
 def op_submit_init_restart(file):
-    mw.execShell(file + ' restart')
+    yf.execShell(file + ' restart')
 
 
 def restyOp_restart():
@@ -578,11 +578,11 @@ def restyOp_restart():
 
     # 启动时,先检查一下配置文件
     check = getServerDir() + "/bin/openresty -t"
-    check_data = mw.execShell(check)
+    check_data = yf.execShell(check)
     if not check_data[1].find('test is successful') > -1:
         return 'ERROR: 配置出错<br><a style="color:red;">' + check_data[1].replace("\n", '<br>') + '</a>'
 
-    if not mw.isAppleSystem():
+    if not yf.isAppleSystem():
         threading.Timer(2, op_submit_systemctl_restart).start()
         return 'ok'
 
@@ -612,7 +612,7 @@ def reload():
 
 
 def initdStatus():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -622,14 +622,14 @@ def initdStatus():
             return 'ok'
 
     shell_cmd = 'systemctl status openresty | grep loaded | grep "enabled;"'
-    data = mw.execShell(shell_cmd)
+    data = yf.execShell(shell_cmd)
     if data[0] == '':
         return 'fail'
     return 'ok'
 
 
 def initdInstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
@@ -639,31 +639,31 @@ def initdInstall():
         source_bin = initDreplace()
         initd_bin = getInitDFile()
         shutil.copyfile(source_bin, initd_bin)
-        mw.execShell('chmod +x ' + initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="YES"')
+        yf.execShell('chmod +x ' + initd_bin)
+        yf.execShell('sysrc ' + getPluginName() + '_enable="YES"')
         return 'ok'
 
-    mw.execShell('systemctl enable openresty')
+    yf.execShell('systemctl enable openresty')
     return 'ok'
 
 
 def initdUinstall():
-    current_os = mw.getOs()
+    current_os = yf.getOs()
     if current_os == 'darwin':
         return "Apple Computer does not support"
 
     if current_os.startswith('freebsd'):
         initd_bin = getInitDFile()
         os.remove(initd_bin)
-        mw.execShell('sysrc ' + getPluginName() + '_enable="NO"')
+        yf.execShell('sysrc ' + getPluginName() + '_enable="NO"')
         return 'ok'
 
-    mw.execShell('systemctl disable openresty')
+    yf.execShell('systemctl disable openresty')
     return 'ok'
 
 def getNgxStatusPort():
-    ngx_status_file = mw.getServerDir() + '/web_conf/nginx/vhost/0.nginx_status.conf'
-    content = mw.readFile(ngx_status_file)
+    ngx_status_file = yf.getServerDir() + '/web_conf/nginx/vhost/0.nginx_status.conf'
+    content = yf.readFile(ngx_status_file)
     rep = r'listen\s*(.*);'
     tmp = re.search(rep, content)
     port =  tmp.groups()[0].strip()
@@ -673,13 +673,13 @@ def getNgxStatusPort():
 def runInfo():
     op_status = status()
     if op_status == 'stop':
-        return mw.returnJson(False, "未启动!")
+        return yf.returnJson(False, "未启动!")
 
     port = getNgxStatusPort()
     # 取Openresty负载状态
     try:
         url = 'http://127.0.0.1:%s/nginx_status' % port
-        result = mw.httpGet(url, timeout=3)
+        result = yf.httpGet(url, timeout=3)
         tmp = result.split()
         data = {}
         data['active'] = tmp[2]
@@ -689,11 +689,11 @@ def runInfo():
         data['Reading'] = tmp[11]
         data['Writing'] = tmp[13]
         data['Waiting'] = tmp[15]
-        return mw.getJson(data)
+        return yf.getJson(data)
     except Exception as e:
         try:
-            url = 'http://' + mw.getHostAddr() + ':%s/nginx_status' % port
-            result = mw.httpGet(url)
+            url = 'http://' + yf.getHostAddr() + ':%s/nginx_status' % port
+            result = yf.httpGet(url)
             tmp = result.split()
             data = {}
             data['active'] = tmp[2]
@@ -703,12 +703,12 @@ def runInfo():
             data['Reading'] = tmp[11]
             data['Writing'] = tmp[13]
             data['Waiting'] = tmp[15]
-            return mw.getJson(data)
+            return yf.getJson(data)
         except Exception as e:
-            return mw.returnJson(False, "oprenresty异常!")
+            return yf.returnJson(False, "oprenresty异常!")
         
     except Exception as e:
-        return mw.returnJson(False, "oprenresty not started!")
+        return yf.returnJson(False, "oprenresty not started!")
 
 
 def errorLogPath():
@@ -717,7 +717,7 @@ def errorLogPath():
 
 def getCfg():
     cfg = getConf()
-    content = mw.readFile(cfg)
+    content = yf.readFile(cfg)
 
     # 检测模块支持情况
     has_zstd = checkModuleSupport('zstd')
@@ -766,7 +766,7 @@ def getCfg():
               "ps": i["ps"], "type": i["type"]}
         rdata.append(kv)
 
-    return mw.returnJson(True, "ok", rdata)
+    return yf.returnJson(True, "ok", rdata)
 
 def replaceChar(value, index, new_char):
     return value[:index] + new_char + value[index+1:]
@@ -775,7 +775,7 @@ def makeWorkerCpuAffinity(val):
     if val == "auto":
         return "auto"
 
-    if mw.isNumber(val):
+    if yf.isNumber(val):
         core_num = int(val)
         default_core_str = "0"*core_num
         core_num_arr = []
@@ -798,8 +798,8 @@ def setCfg():
         return data[1]
 
     cfg = getConf()
-    mw.backFile(cfg)
-    content = mw.readFile(cfg)
+    yf.backFile(cfg)
+    content = yf.readFile(cfg)
 
     unitrep = "[kmgKMG]"
     cfg_args = [
@@ -832,10 +832,10 @@ def setCfg():
 
         if k == "worker_processes" or k == "gzip" or k == "zstd" or k == "brotli":
             if not re.search(r"auto|on|off|\d+", v):
-                return mw.returnJson(False, '参数值错误')
+                return yf.returnJson(False, '参数值错误')
         else:
             if not re.search(r"\d+", v):
-                return mw.returnJson(False, '参数值错误,请输入数字整数')
+                return yf.returnJson(False, '参数值错误,请输入数字整数')
 
         if k == "worker_processes" :
             k_wca = "worker_cpu_affinity"
@@ -861,31 +861,31 @@ def setCfg():
                 # 其他参数（如 zstd, brotli, gzip等）写入 http 块中
                 content = re.sub(r'(http\s*\{)', r'\1\n    %s %s;' % (k, v), content, 1)
 
-    mw.writeFile(cfg, content)
-    isError = mw.checkWebConfig()
+    yf.writeFile(cfg, content)
+    isError = yf.checkWebConfig()
     if (isError != True):
-        mw.restoreFile(cfg)
-        return mw.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
+        yf.restoreFile(cfg)
+        return yf.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
 
-    mw.restartWeb()
-    return mw.returnJson(True, '设置成功')
+    yf.restartWeb()
+    return yf.returnJson(True, '设置成功')
 
 
 def cronAddCheck():
     try:
         import tool_task
         tool_task.createBgTask()
-        return mw.returnJson(True, '添加检查任务成功')
+        return yf.returnJson(True, '添加检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '添加检查任务失败:'+str(e))
+        return yf.returnJson(False, '添加检查任务失败:'+str(e))
 
 def cronDelCheck():
     try:
         import tool_task
         tool_task.removeBgTask()
-        return mw.returnJson(True, '删除检查任务成功')
+        return yf.returnJson(True, '删除检查任务成功')
     except Exception as e:
-        return mw.returnJson(False, '删除检查任务失败:'+str(e))
+        return yf.returnJson(False, '删除检查任务失败:'+str(e))
 
 def cronCheck():
     return 'ok'
@@ -900,7 +900,7 @@ if __name__ == "__main__":
     version = '1.27.1'
     version_pl = getServerDir() + "/version.pl"
     if os.path.exists(version_pl):
-        version = mw.readFile(version_pl)
+        version = yf.readFile(version_pl)
 
 
     func = sys.argv[1]

@@ -16,7 +16,7 @@ import time
 import math
 import psutil
 
-import core.yf as mw
+import core.yf as yf
 
 class stats:
     cache = {}

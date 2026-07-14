@@ -24,7 +24,7 @@ import os
 from admin import setup
 setup.init()
 
-import core.yf as mw
+import core.yf as yf
 import utils.system as system 
 import thisdb
 
@@ -32,8 +32,8 @@ cpu_info = system.getCpuInfo()
 # Flask-SocketIO 要求 worker 数量必须为 1，多 worker 会导致 SocketIO 握手 400 错误
 workers = 1
 
-panel_dir = mw.getPanelDir()
-log_dir = mw.getMWLogs()
+panel_dir = yf.getPanelDir()
+log_dir = yf.getMWLogs()
 if not os.path.exists(log_dir):
     os.mkdir(log_dir)
 
@@ -46,13 +46,13 @@ panel_port = '7200'
 from utils.firewall import Firewall as MwFirewall
 default_port_file = panel_dir+'/data/port.pl'
 if os.path.exists(default_port_file):
-    panel_port = mw.readFile(default_port_file)
+    panel_port = yf.readFile(default_port_file)
     panel_port.strip()
     MwFirewall.instance().addAcceptPort(panel_port,'PANEL端口', 'port')
 else:
     panel_port = str(random.randint(10000, 65530))
     MwFirewall.instance().addPanelPort(panel_port)
-    mw.writeFile(default_port_file, panel_port)
+    yf.writeFile(default_port_file, panel_port)
 
 bind = []
 default_ipv6_file = panel_dir+'/data/ipv6.pl'
@@ -64,7 +64,7 @@ else:
 panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
 if panel_ssl_data['open']:
     choose = panel_ssl_data['choose']
-    if mw.inArray(['local','nginx'],choose):
+    if yf.inArray(['local','nginx'],choose):
         panel_cert = panel_dir+'/ssl/'+choose+'/cert.pem'
         panel_private = panel_dir+'/ssl/'+choose+'/private.pem'
         if os.path.exists(panel_cert) and os.path.exists(panel_private):

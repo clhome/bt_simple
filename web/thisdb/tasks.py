@@ -9,17 +9,17 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.yf as mw
+import core.yf as yf
 
 __FIELD = 'id,name,type,start,end,cmd,status,add_time'
 
 def getTaskCount(status = -1) -> int:
-    return mw.M('tasks').where('status=?',(1,)).count()
+    return yf.M('tasks').where('status=?',(1,)).count()
 
 
 # 未执行任务总数
 def getTaskUnexecutedCount() -> int:
-    return mw.M('tasks').where('status!=?',(1,)).count()
+    return yf.M('tasks').where('status!=?',(1,)).count()
 
 def addTaskByDownload(name = '下载文件',cmd = None,type = 'download',status = 0):
     '''
@@ -31,7 +31,7 @@ def addTaskByDownload(name = '下载文件',cmd = None,type = 'download',status 
     if cmd is None:
         return False
 
-    add_time = mw.formatDate()
+    add_time = yf.formatDate()
     insert_data = {
         'name':name,
         'type':type,
@@ -41,7 +41,7 @@ def addTaskByDownload(name = '下载文件',cmd = None,type = 'download',status 
         'status':status,
         'add_time':add_time,
     }
-    mw.M('tasks').insert(insert_data)
+    yf.M('tasks').insert(insert_data)
     return True
 
 def addTask(
@@ -60,11 +60,11 @@ def addTask(
         return False
 
     # 检查是否已经在执行队列中
-    isTask = mw.M('tasks').where('status!=? AND cmd=?',(1,cmd)).count()
+    isTask = yf.M('tasks').where('status!=? AND cmd=?',(1,cmd)).count()
     if isTask > 0:
         return False
 
-    add_time = mw.formatDate()
+    add_time = yf.formatDate()
     insert_data = {
         'name':name,
         'type':type,
@@ -74,7 +74,7 @@ def addTask(
         'status':status,
         'add_time':add_time,
     }
-    mw.M('tasks').insert(insert_data)
+    yf.M('tasks').insert(insert_data)
     return True
 
 
@@ -85,7 +85,7 @@ def getTaskList(
 ):
     start = (page - 1) * size
     limit = str(start) + ',' + str(size)
-    task_list = mw.M('tasks').where('status=?', (status,)).field(__FIELD).limit(limit).order('id asc').select()
+    task_list = yf.M('tasks').where('status=?', (status,)).field(__FIELD).limit(limit).order('id asc').select()
     return task_list
 
 def getTaskPage(
@@ -95,8 +95,8 @@ def getTaskPage(
 ):
     start = (page - 1) * size
     limit = str(start) + ',' + str(size)
-    task_list = mw.M('tasks').where('', ()).field(__FIELD).limit(limit).order('id desc').select()
-    count = mw.M('tasks').where('', ()).count()
+    task_list = yf.M('tasks').where('', ()).field(__FIELD).limit(limit).order('id desc').select()
+    count = yf.M('tasks').where('', ()).count()
 
     rdata = {}
     rdata['list'] = task_list
@@ -104,7 +104,7 @@ def getTaskPage(
     return rdata
 
 def getTaskFirstByRun() -> None:
-    data = mw.M('tasks').where('status!=?', (1,)).field(__FIELD).order('id asc').find()
+    data = yf.M('tasks').where('status!=?', (1,)).field(__FIELD).order('id asc').find()
     if data is None:
         return None
     return data
@@ -112,19 +112,19 @@ def getTaskFirstByRun() -> None:
 def getTaskRunList(page = 1,size = 10):
     start = (page - 1) * size
     limit = str(start) + ',' + str(size)
-    task_list = mw.M('tasks').where('status!=?', (1,)).field(__FIELD).limit(limit).order('id asc').select()
+    task_list = yf.M('tasks').where('status!=?', (1,)).field(__FIELD).limit(limit).order('id asc').select()
     return task_list
 
 def getTaskRunAll():
-    task_list = mw.M('tasks').where('status!=?', (1,)).field(__FIELD).order('id asc').select()
+    task_list = yf.M('tasks').where('status!=?', (1,)).field(__FIELD).order('id asc').select()
     return task_list
 
 def getTaskRunPage(page = 1, size = 10):
     start = (page - 1) * size
     limit = str(start) + ',' + str(size)
 
-    task_list = mw.M('tasks').where('status!=?', (1,)).field(__FIELD).limit(limit).order('id asc').select()
-    count = mw.M('tasks').where('status!=?', (1,)).count()
+    task_list = yf.M('tasks').where('status!=?', (1,)).field(__FIELD).limit(limit).order('id asc').select()
+    count = yf.M('tasks').where('status!=?', (1,)).count()
 
     rdata = {}
     rdata['list'] = task_list
@@ -133,12 +133,12 @@ def getTaskRunPage(page = 1, size = 10):
 
 
 def setTaskStatus(task_id,status = 0):
-    mw.M('tasks').where('id=?',(task_id,)).update({'status':status})
+    yf.M('tasks').where('id=?',(task_id,)).update({'status':status})
     return True
 
 def setTaskData(id, start = None,end = None):
     if start is not None:
-        mw.M('tasks').where('id=?',(id,)).update({'start':start})
+        yf.M('tasks').where('id=?',(id,)).update({'start':start})
     if end is not None:
-        mw.M('tasks').where('id=?',(id,)).update({'end':end})
+        yf.M('tasks').where('id=?',(id,)).update({'end':end})
     return True
