@@ -109,6 +109,15 @@ function sshMgr(){
                                 </div>\
                             </td>\
                         </tr>\
+                        <tr>\
+                            <td>Root密钥</td>\
+                            <td>\
+                                <div class="ssh-item" style="margin-left:0">\
+                                    <button class="btn btn-default btn-xs" onclick="downloadRootKey()">下载密钥</button>\
+                                    <button class="btn btn-default btn-xs" style="margin-left:5px" onclick="resetRootKey()">重置/生成密钥</button>\
+                                </div>\
+                            </td>\
+                        </tr>\
                     </tbody>\
                 </table>\
             </div>\
@@ -609,5 +618,25 @@ function showPortProcessInfo(ps_json, port) {
         closeBtn: 1,
         shadeClose: false,
         content: con
+    });
+}
+
+function downloadRootKey(){
+    $.post('/firewall/check_root_ssh_key', function(rdata){
+        if(!rdata.status){
+            layer.msg(rdata.msg, {icon: 2});
+            return;
+        }
+        window.open('/download?filename=/root/.ssh/id_rsa');
+    }, 'json');
+}
+
+function resetRootKey(){
+    layer.confirm('重置后旧的私钥将无法再用于免密登录此服务器（如果已开启密钥登录），是否确认重新生成 Root 密钥？', {title: '重置 Root 密钥', icon: 3}, function(index){
+        var loadT = layer.msg('正在重新生成密钥对并授权，请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+        $.post('/firewall/reset_root_ssh_key', {}, function(rdata){
+            layer.close(loadT);
+            layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2, time: 3000});
+        }, 'json');
     });
 }

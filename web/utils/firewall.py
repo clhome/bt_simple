@@ -773,6 +773,19 @@ class Firewall(object):
         mw.writeLog("SSH管理", msg)
         return mw.returnData(True, msg)
 
+    def resetRootSshKey(self):
+        ssh_dir = '/root/.ssh'
+        if not os.path.exists(ssh_dir):
+            os.makedirs(ssh_dir)
+            mw.execShell('chmod 700 ' + ssh_dir)
+
+        mw.execShell('rm -f /root/.ssh/id_rsa /root/.ssh/id_rsa.pub')
+        mw.execShell('ssh-keygen -q -t rsa -P "" -f /root/.ssh/id_rsa')
+        mw.execShell('cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys')
+        mw.execShell('chmod 600 /root/.ssh/authorized_keys')
+        
+        return mw.returnJson(True, '重置成功！请及时下载保存新私钥，并谨慎保管！')
+
     def setStatus(self, id, port, protocol, status):
         if not self.getFwStatus():
             return mw.returnData(False, '防火墙启动时,才能操作!')
