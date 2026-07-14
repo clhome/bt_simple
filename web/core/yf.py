@@ -2275,9 +2275,7 @@ def processExists(pname, exe=None, cmdline=None):
 
 
 def createRsa():
-    # ssh-keygen -t rsa -P "" -C "midoks@163.com"
     ssh_dir = getSshDir()
-    # mw.execShell("rm -f /root/.ssh/*")
     if not os.path.exists(ssh_dir + '/authorized_keys'):
         execShell('touch ' + ssh_dir + '/authorized_keys')
 
