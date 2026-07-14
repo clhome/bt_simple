@@ -24,7 +24,7 @@ from werkzeug.utils import secure_filename
 from admin.user_login_check import panel_login_required
 from admin import session
 
-import core.mw as mw
+import core.yf as mw
 import utils.file as file
 import thisdb
 

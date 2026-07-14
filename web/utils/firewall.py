@@ -18,7 +18,7 @@ import time
 import glob
 
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 class Firewall(object):

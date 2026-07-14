@@ -18,7 +18,7 @@ from flask import send_file
 from flask import send_from_directory
 
 from admin.user_login_check import panel_login_required
-import core.mw as mw
+import core.yf as mw
 import utils.file as file
 
 from .files import blueprint

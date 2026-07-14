@@ -11,7 +11,7 @@
 
 import os
 
-import core.mw as mw
+import core.yf as mw
 
 __field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,last_run_time,add_time,update_time'
 

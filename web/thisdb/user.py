@@ -9,7 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.mw as mw
+import core.yf as mw
 
 __field = 'id,name,password,login_ip,login_time,phone,email,add_time,update_time'
 

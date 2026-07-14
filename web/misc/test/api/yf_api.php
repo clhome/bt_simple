@@ -1,19 +1,19 @@
-<?php
+﻿<?php
 /**
- * MW API接口示例Demo
- * 仅供参考，请根据实际项目需求开发，并做好安全处理
+ * YF API鎺ュ彛绀轰緥Demo
+ * 浠呬緵鍙傝€冿紝璇锋牴鎹疄闄呴」鐩渶姹傚紑鍙戯紝骞跺仛濂藉畨鍏ㄥ鐞?
  * date 2022-11-28
  * author midoks
  */
-class mwApi {
-	private $MW_PANEL      = "http://127.0.0.1:64307"; //面板地址
-	private $MW_APP_ID     = 'hC6XArWzRY';
-	private $MW_APP_SERECT = 'NSGaFhMWyaN5Yi3ftTkZ';
+class yfApi {
+	private $YF_PANEL      = "http://127.0.0.1:64307"; //闈㈡澘鍦板潃
+	private $YF_APP_ID     = 'hC6XArWzRY';
+	private $YF_APP_SERECT = 'NSGaFhMWyaN5Yi3ftTkZ';
 
-	//如果希望多台面板，可以在实例化对象时，将面板地址与密钥传入
-	public function __construct($mw_panel = null, $app_id = null, $app_secret = null) {
-		if ($mw_panel) {
-			$this->MW_PANEL = $mw_panel;
+	//濡傛灉甯屾湜澶氬彴闈㈡澘锛屽彲浠ュ湪瀹炰緥鍖栧璞℃椂锛屽皢闈㈡澘鍦板潃涓庡瘑閽ヤ紶鍏?
+	public function __construct($YF_panel = null, $app_id = null, $app_secret = null) {
+		if ($YF_panel) {
+			$this->MW_PANEL = $YF_panel;
 		}
 
 		if ($app_id) {
@@ -26,15 +26,15 @@ class mwApi {
 	}
 
 	/**
-	 * 发起POST请求
-	 * @param String $url 目标网填，带http://
-	 * @param Array|String $data 欲提交的数据
+	 * 鍙戣捣POST璇锋眰
+	 * @param String $url 鐩爣缃戝～锛屽甫http://
+	 * @param Array|String $data 娆叉彁浜ょ殑鏁版嵁
 	 * @return string
 	 */
 	private function httpPost($url, $data, $timeout = 60) {
 
 		$ch = curl_init();
-		// 设置头部信息
+		// 璁剧疆澶撮儴淇℃伅
 		$headers = [
 			'app-id: ' . $this->MW_APP_ID,
 			'app-secret: ' . $this->MW_APP_SERECT,
@@ -60,28 +60,28 @@ class mwApi {
 		return $this->httpPost($url, $data);
 	}
 
-	//示例取面板日志
+	//绀轰緥鍙栭潰鏉挎棩蹇?
 	public function getLogsList() {
 		$post_data['p']     = '1';
 		$post_data['limit'] = 10;
 
-		//请求面板接口
+		//璇锋眰闈㈡澘鎺ュ彛
 		$data = $this->panel('/logs/get_log_list', $post_data);
 
-		//解析JSON数据
+		//瑙ｆ瀽JSON鏁版嵁
 		// $data = json_decode($result, true);
 		return $data;
 	}
 
 }
 
-//实例化对象
-$api = new mwApi();
-//获取面板日志
+//瀹炰緥鍖栧璞?
+$api = new yfApi();
+//鑾峰彇闈㈡澘鏃ュ織
 $rdata = $api->getLogsList();
 
 // var_dump($rdata);
-//输出JSON数据到浏览器
+//杈撳嚭JSON鏁版嵁鍒版祻瑙堝櫒
 echo json_encode($rdata);
 
 ?>

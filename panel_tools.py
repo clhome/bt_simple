@@ -25,7 +25,7 @@ os.chdir(web_dir)
 sys.path.append(web_dir)
 
 from utils.firewall import Firewall as MwFirewall
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 INIT_DIR = "/etc/rc.d/init.d"
@@ -35,19 +35,21 @@ if mw.isAppleSystem():
 INIT_CMD = INIT_DIR + "/mw"
 
 
-def mw_input_cmd(msg):
+def yf_input_cmd(msg):
     if sys.version_info[0] == 2:
         in_val = raw_input(msg)
     else:
         in_val = input(msg)
     return in_val
 
+mw_input_cmd = yf_input_cmd
+
 def getRemainLen(cmd, max_length=100):
     cmd_len = len(cmd)
     cmd_u8_len = len(cmd.encode('utf-8'))
     return max_length-int((cmd_u8_len - cmd_len)/2+cmd_len)
 
-def mwcli(mw_input=0):
+def yfcli(mw_input=0):
     panel_dir = mw.getPanelDir()
 
     raw_tip = "========================================================================"
@@ -143,7 +145,7 @@ def mwcli(mw_input=0):
     elif mw_input == 4:
         os.system(INIT_CMD + " reload")
     elif mw_input == 5:
-        in_ip = mw_input_cmd("请输入设置的面板IP：")
+        in_ip = yf_input_cmd("请输入设置的面板IP：")
         in_ip = in_ip.strip()
         ip_text = panel_dir + '/data/iplist.txt'
         if not mw.isVaildIp(in_ip):
@@ -153,7 +155,7 @@ def mwcli(mw_input=0):
         thisdb.setOption('server_ip', in_ip)
         mw.echoInfo("设置面板IP: " + in_ip)
     elif mw_input == 6:
-        in_port = mw_input_cmd("请输入新的面板端口：")
+        in_port = yf_input_cmd("请输入新的面板端口：")
         in_port_int = int(in_port.strip())
         if in_port_int < 65536 and in_port_int > 0:
             MwFirewall.instance().addAcceptPort(in_port, 'WEB面板[TOOLS修改]', 'port')
@@ -202,7 +204,7 @@ def mwcli(mw_input=0):
         rand_pwd = mw.getRandomString(pwd_len)
         set_panel_pwd(rand_pwd, True)
     elif mw_input == 12:
-        input_user = mw_input_cmd("请输入新的面板用户名(>=5位)：")
+        input_user = yf_input_cmd("请输入新的面板用户名(>=5位)：")
         set_panel_username(input_user.strip())
     elif mw_input == 13:
         os.system('tail -100 ' + panel_dir + '/logs/panel_error.log')
@@ -509,7 +511,7 @@ def main():
                 clinum = int(sys.argv[2]) if sys.argv[2][:6] else sys.argv[2]
         except:
             clinum = sys.argv[2]
-        mwcli(clinum)
+        yfcli(clinum)
     else:
         print('ERROR: Parameter error')
 
@@ -522,7 +524,7 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
         confirm = 'yes'
         print("确认开始恢复吗？[yes/no]：yes (检测到非交互式环境，已自动确认)")
     else:
-        confirm = mw_input_cmd("确认开始恢复吗？[yes/no]：")
+        confirm = yf_input_cmd("确认开始恢复吗？[yes/no]：")
     if confirm.strip().lower() != 'yes':
         print("操作已取消。")
         return
@@ -692,7 +694,7 @@ def find_bt_site_db():
         if sys.stdin is None or not sys.stdin.isatty():
             print("  ❌ 检测到非交互式环境，无法手动输入路径。")
             return None
-        db_path = mw_input_cmd("请输入宝塔 site.db 的绝对路径：")
+        db_path = yf_input_cmd("请输入宝塔 site.db 的绝对路径：")
         db_path = db_path.strip()
         if os.path.exists(db_path):
             return db_path
@@ -706,13 +708,13 @@ def find_bt_site_db():
             confirm = 'yes'
             print("确定使用该数据库恢复网站列表吗？[yes/no]：yes (检测到非交互式环境，已自动确认)")
         else:
-            confirm = mw_input_cmd("确定使用该数据库恢复网站列表吗？[yes/no]：")
+            confirm = yf_input_cmd("确定使用该数据库恢复网站列表吗？[yes/no]：")
         if confirm.strip().lower() == 'yes':
             return paths[0]
         else:
             if sys.stdin is None or not sys.stdin.isatty():
                 return None
-            db_path = mw_input_cmd("请手动输入宝塔 site.db 的绝对路径：")
+            db_path = yf_input_cmd("请手动输入宝塔 site.db 的绝对路径：")
             db_path = db_path.strip()
             if os.path.exists(db_path):
                 return db_path
@@ -727,7 +729,7 @@ def find_bt_site_db():
         choice = 1
         print("请选择编号：1 (检测到非交互式环境，已自动选择最近的备份)")
     else:
-        choice_str = mw_input_cmd("请选择编号：")
+        choice_str = yf_input_cmd("请选择编号：")
         try:
             choice = int(choice_str.strip())
         except:
@@ -737,7 +739,7 @@ def find_bt_site_db():
         if choice == 0:
             if sys.stdin is None or not sys.stdin.isatty():
                 return None
-            db_path = mw_input_cmd("请输入宝塔 site.db 的绝对路径：")
+            db_path = yf_input_cmd("请输入宝塔 site.db 的绝对路径：")
             db_path = db_path.strip()
             if os.path.exists(db_path):
                 return db_path

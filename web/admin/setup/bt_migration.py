@@ -2,7 +2,7 @@
 
 import os
 import json
-import core.mw as mw
+import core.yf as mw
 import utils.plugin as pl
 
 def check_and_migrate_bt_software():

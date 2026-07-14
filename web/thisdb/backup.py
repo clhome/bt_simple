@@ -9,7 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.mw as mw
+import core.yf as mw
 
 __FIELD = 'id,pid,type,name,filename,size,add_time'
 

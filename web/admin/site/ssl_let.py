@@ -19,7 +19,7 @@ from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as MwPlugin
 from utils.site import sites as MwSites
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 from .site import blueprint

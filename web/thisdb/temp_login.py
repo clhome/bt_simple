@@ -11,7 +11,7 @@
 
 import time
 
-import core.mw as mw
+import core.yf as mw
 
 __FIELD = 'id,token,salt,state,login_time,login_addr,logout_time,expire,add_time'
 

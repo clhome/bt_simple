@@ -24,7 +24,7 @@ import os
 from admin import setup
 setup.init()
 
-import core.mw as mw
+import core.yf as mw
 import utils.system as system 
 import thisdb
 

@@ -31,7 +31,8 @@ PLAIN='\033[0m'
 BOLD='\033[1m'
 
 # ---------- 全局变量 ----------
-PANEL_DIR=/www/server/mdserver-web
+PANEL_DIR=/www/server/yufeng_panel
+LEGACY_PANEL_DIR=/www/server/mdserver-web
 BT_DIR=/www/server/panel
 BACKUP_DIR=/www/backup
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
@@ -441,10 +442,14 @@ set_panel_version() {
 
 # ---------- 环境检测 ----------
 detect_environment() {
+    HAS_YF=false
     HAS_MW=false
     HAS_BT=false
 
     if [ -d "$PANEL_DIR" ] && [ -f "$PANEL_DIR/cli.sh" ]; then
+        HAS_YF=true
+    fi
+    if [ -d "$LEGACY_PANEL_DIR" ] && [ -f "$LEGACY_PANEL_DIR/cli.sh" ] && [ ! -L "$LEGACY_PANEL_DIR" ]; then
         HAS_MW=true
     fi
     if [ -d "$BT_DIR" ] && { [ -f "$BT_DIR/BT-Panel" ] || [ -f "$BT_DIR/main.py" ]; }; then
@@ -690,6 +695,11 @@ fresh_install() {
         rm -rf "${PANEL_DIR}"
     fi
     mv /tmp/bt_simple_deploy ${PANEL_DIR}
+    
+    if [ ! -L "$LEGACY_PANEL_DIR" ]; then
+        ln -sf ${PANEL_DIR} ${LEGACY_PANEL_DIR}
+    fi
+    
     mkdir -p ${PANEL_DIR}/logs
     mkdir -p ${PANEL_DIR}/data
 
@@ -707,23 +717,26 @@ fresh_install() {
 
     # 等待 init 脚本生成
     local n=0
-    while [ ! -f /etc/rc.d/init.d/mw ] && [ $n -lt 30 ]; do
+    while [ ! -f /etc/rc.d/init.d/yf ] && [ $n -lt 30 ]; do
         sleep 1
         let n+=1
     done
 
     # 配置系统服务
-    if [ -f /etc/rc.d/init.d/mw ]; then
-        bash /etc/rc.d/init.d/mw stop
-        bash /etc/rc.d/init.d/mw start
+    if [ -f /etc/rc.d/init.d/yf ]; then
+        bash /etc/rc.d/init.d/yf stop
+        bash /etc/rc.d/init.d/yf start
     fi
 
     # 创建 mw/bs 命令
-    if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/mw ]; then
-        ln -sf /etc/rc.d/init.d/mw /usr/bin/mw
+    if [ ! -e /usr/bin/yf ] && [ -f /etc/rc.d/init.d/yf ]; then
+        ln -sf /etc/rc.d/init.d/yf /usr/bin/yf
     fi
-    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/mw ]; then
-        ln -sf /etc/rc.d/init.d/mw /usr/bin/bs
+    if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/yf ]; then
+        ln -sf /etc/rc.d/init.d/yf /usr/bin/mw
+    fi
+    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/yf ]; then
+        ln -sf /etc/rc.d/init.d/yf /usr/bin/bs
     fi
 
     # 开放面板端口
@@ -798,6 +811,13 @@ migrate_from_mw() {
         else
             log_error "目录重命名失败，请手动处理: mv /www/server/postgresql /www/server/pgsql"
         fi
+    fi
+
+    if [ -d "$LEGACY_PANEL_DIR" ] && [ ! -L "$LEGACY_PANEL_DIR" ]; then
+        log_info "迁移物理目录 ${LEGACY_PANEL_DIR} -> ${PANEL_DIR}..."
+        mv ${LEGACY_PANEL_DIR} ${PANEL_DIR}
+        ln -sf ${PANEL_DIR} ${LEGACY_PANEL_DIR}
+        log_info "已创建向下兼容的软链接: ${LEGACY_PANEL_DIR} -> ${PANEL_DIR}"
     fi
 
     # 下载并部署
@@ -1054,6 +1074,11 @@ migrate_from_bt() {
         rm -rf "${PANEL_DIR}"
     fi
     mv /tmp/bt_simple_deploy ${PANEL_DIR}
+    
+    if [ ! -L "$LEGACY_PANEL_DIR" ]; then
+        ln -sf ${PANEL_DIR} ${LEGACY_PANEL_DIR}
+    fi
+    
     mkdir -p ${PANEL_DIR}/logs
     mkdir -p ${PANEL_DIR}/data
 
@@ -1077,21 +1102,24 @@ migrate_from_bt() {
     sleep 3
 
     local n=0
-    while [ ! -f /etc/rc.d/init.d/mw ] && [ $n -lt 30 ]; do
+    while [ ! -f /etc/rc.d/init.d/yf ] && [ $n -lt 30 ]; do
         sleep 1
         let n+=1
     done
 
-    if [ -f /etc/rc.d/init.d/mw ]; then
-        bash /etc/rc.d/init.d/mw stop
-        bash /etc/rc.d/init.d/mw start
+    if [ -f /etc/rc.d/init.d/yf ]; then
+        bash /etc/rc.d/init.d/yf stop
+        bash /etc/rc.d/init.d/yf start
     fi
 
-    if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/mw ]; then
-        ln -sf /etc/rc.d/init.d/mw /usr/bin/mw
+    if [ ! -e /usr/bin/yf ] && [ -f /etc/rc.d/init.d/yf ]; then
+        ln -sf /etc/rc.d/init.d/yf /usr/bin/yf
     fi
-    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/mw ]; then
-        ln -sf /etc/rc.d/init.d/mw /usr/bin/bs
+    if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/yf ]; then
+        ln -sf /etc/rc.d/init.d/yf /usr/bin/mw
+    fi
+    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/yf ]; then
+        ln -sf /etc/rc.d/init.d/yf /usr/bin/bs
     fi
 
     # 开放面板端口
@@ -1190,7 +1218,7 @@ check_version_and_update() {
 
 # =====================================================================
 disable_upstream_update() {
-    local mw_script="/etc/rc.d/init.d/mw"
+    local mw_script="/etc/rc.d/init.d/yf"
     if [ -f "$mw_script" ]; then
         # 检查是否已禁用
         if grep -q "自动更新已禁用" "$mw_script" 2>/dev/null; then
@@ -1324,14 +1352,25 @@ main() {
             exit 0
             ;;
         uninstall)
-            log_warn "卸载功能暂未实现，请手动执行: bash /etc/rc.d/init.d/mw uninstall"
+            log_warn "卸载功能暂未实现，请手动执行: bash /etc/rc.d/init.d/yf uninstall"
             exit 0
             ;;
     esac
 
     show_banner
 
-    if $HAS_BT && $HAS_MW; then
+    if $HAS_YF; then
+        echo -e "${YELLOW}检测到已安装 yufeng_panel 面板${PLAIN}"
+        echo ""
+        echo "  1) 确认升级"
+        echo "  2) 取消"
+        echo ""
+        if [ -t 0 ]; then read -p "请选择 [1-2]: " choice; else read -p "请选择 [1-2]: " choice < /dev/tty 2>/dev/null || choice="2"; fi
+        case "$choice" in
+            1) migrate_from_mw ;;
+            *) echo "已取消"; exit 0 ;;
+        esac
+    elif $HAS_BT && $HAS_MW; then
         echo -e "${YELLOW}检测到同时存在宝塔面板和 mdserver-web${PLAIN}"
         echo ""
         echo "  1) 从 mdserver-web 迁移"

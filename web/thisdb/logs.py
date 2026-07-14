@@ -12,7 +12,7 @@
 import json
 
 
-import core.mw as mw
+import core.yf as mw
 
 def clearLog():
     mw.M('logs').where('id>?', (0,)).delete()

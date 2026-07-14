@@ -9,7 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.mw as mw
+import core.yf as mw
 
 # 站点-子目录绑定
 

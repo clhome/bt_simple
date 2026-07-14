@@ -9,7 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.mw as mw
+import core.yf as mw
 
 from .option  import getOption
 

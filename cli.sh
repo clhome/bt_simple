@@ -16,11 +16,11 @@ if [ -f ${DIR}/bin/activate ];then
 	fi
 fi
 
-mw_start_task()
+yf_start_task()
 {
     isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" == '' ];then
-        echo -e "starting bs-tasks... \c"
+        echo -e "starting yf-tasks... \c"
         cd $DIR && python3 panel_task.py >> ${DIR}/logs/panel_task.log 2>&1 &
         sleep 0.3
         isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
@@ -29,32 +29,32 @@ mw_start_task()
             echo '------------------------------------------------------'
             tail -n 20 $DIR/logs/panel_task.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: bs-tasks service startup failed.\033[0m"
+            echo -e "\033[31mError: yf-tasks service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo "starting bs-tasks... bs-tasks (pid $(echo $isStart)) already running"
+        echo "starting yf-tasks... yf-tasks (pid $(echo $isStart)) already running"
     fi
 }
 
-mw_start(){
+yf_start(){
 	# 后台任务
-	mw_start_task
+	yf_start_task
 	
 	cd ${DIR}/web && gunicorn -c setting.py app:app
 }
 
 
-mw_start_debug(){
+yf_start_debug(){
 	if [ ! -f $DIR/logs/panel_task.log ];then
 		echo '' > $DIR/logs/panel_task.log
 	fi
 
 	python3 panel_task.py >> $DIR/logs/panel_task.log 2>&1 &
 	port=7200
-    if [ -f /www/server/mdserver-web/data/port.pl ];then
-        port=$(cat /www/server/mdserver-web/data/port.pl)
+    if [ -f /www/server/yufeng_panel/data/port.pl ];then
+        port=$(cat /www/server/yufeng_panel/data/port.pl)
     fi
 
     if [ -f ${DIR}/data/port.pl ];then
@@ -64,7 +64,7 @@ mw_start_debug(){
 	# cd ${DIR}/web && gunicorn -b :${port} -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
 }
 
-mw_start_panel(){
+yf_start_panel(){
 	port=7200
 	if [ -f ${DIR}/data/port.pl ];then
         port=$(cat ${DIR}/data/port.pl)
@@ -74,13 +74,13 @@ mw_start_panel(){
 	
 }
 
-mw_start_bgtask(){
+yf_start_bgtask(){
 	cd ${DIR}/web && gunicorn -c setting.py app:app
 	cd ${DIR} && python3 panel_task.py
 }
 
 
-mw_stop()
+yf_stop()
 {
 	APP_LIST=`ps -ef|grep app:app |grep -v grep|awk '{print $2}'`
 	for p in $APP_LIST
@@ -102,35 +102,37 @@ mw_stop()
 }
 
 case "$1" in
-    'start') mw_start;;
-    'stop') mw_stop;;
+    'start') yf_start;;
+    'stop') yf_stop;;
     'restart') 
-		mw_stop 
+		yf_stop 
 		sleep 2
-		mw_start
+		yf_start
 		;;
 	'debug') 
-		mw_stop 
+		yf_stop 
 		sleep 2
-		mw_start_debug
+		yf_start_debug
 		;;
 	'panel') 
-		mw_stop 
+		yf_stop 
 		sleep 2
-		mw_start_panel
+		yf_start_panel
 		;;
 	'task') 
-		# mw_stop 
-		mw_start_bgtask
+		# yf_stop 
+		yf_start_bgtask
 		;;
 	'uninstall')
 		echo -e "\033[31m！！！ 警告 ！！！\033[0m"
 		echo -e "该操作将彻底卸载 bt_simple 面板。"
 		read -p "确定要继续吗? [yes/no]: " response
 		if [ "$response" == "yes" ]; then
-			mw_stop
+			yf_stop
+			rm -f /usr/bin/yf
 			rm -f /usr/bin/mw
 			rm -f /usr/bin/bs
+			rm -f /etc/init.d/yf
 			rm -f /etc/init.d/mw
 			rm -f /etc/init.d/bs
 			rm -rf $DIR

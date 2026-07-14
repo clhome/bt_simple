@@ -13,7 +13,7 @@ import os
 import pwd
 import time
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 def getTaskPage(page=1,size=10):

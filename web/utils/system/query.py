@@ -17,7 +17,7 @@ import math
 import psutil
 
 
-import core.mw as mw
+import core.yf as mw
 
 # --------------------------------------------  数据查询相关 --------------------------------------------
 def get_sampling_condition(table, start, end):

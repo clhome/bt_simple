@@ -16,7 +16,7 @@ import re
 import time
 import json
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 class setting(object):

@@ -11,7 +11,7 @@
 
 import os
 import json
-import core.mw as mw
+import core.yf as mw
 
 def getOption(name,type='common',default=None) -> str:
     '''

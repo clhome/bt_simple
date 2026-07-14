@@ -17,7 +17,7 @@ from admin.user_login_check import panel_login_required
 
 from utils.firewall import Firewall as MwFirewall
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 blueprint = Blueprint('firewall', __name__, url_prefix='/firewall', template_folder='../../templates')

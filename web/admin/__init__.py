@@ -36,7 +36,7 @@ from werkzeug.local import LocalProxy
 
 from admin.common import isLogined
 
-import core.mw as mw
+import core.yf as mw
 import config
 import utils.config as utils_config
 import thisdb

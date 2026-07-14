@@ -16,7 +16,7 @@ import math
 import psutil
 import json
 
-import core.mw as mw
+import core.yf as mw
 
 def versionDiff(now, new):
     '''

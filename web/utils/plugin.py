@@ -15,7 +15,7 @@ import shlex
 import threading
 import multiprocessing
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 class pg_thread(threading.Thread):

@@ -16,7 +16,7 @@ import shutil
 import json
 import base64
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files):

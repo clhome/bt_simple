@@ -23,7 +23,7 @@ web_dir = os.getcwd() + "/web"
 os.chdir(web_dir)
 sys.path.append(web_dir)
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 g_log_file = mw.getPanelTaskExecLog()

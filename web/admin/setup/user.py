@@ -12,7 +12,7 @@
 from flask import request
 
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 # 初始化用户信息

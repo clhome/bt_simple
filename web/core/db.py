@@ -18,7 +18,7 @@ import sys
 import sqlite3
 import threading
 
-import core.mw as mw
+import core.yf as mw
 
 _local = threading.local()
 
@@ -436,7 +436,7 @@ class Sql():
     def create(self, name):
         # 创建数据表
         self.__getConn()
-        import mw
+        import core.yf as mw
         script = mw.readFile('data/' + name + '.sql')
         result = self.__DB_CONN.executescript(script)
         self.__DB_CONN.commit()
@@ -445,7 +445,7 @@ class Sql():
     def fofile(self, filename):
         # 执行脚本
         self.__getConn()
-        import mw
+        import core.yf as mw
         script = mw.readFile(filename)
         result = self.__DB_CONN.executescript(script)
         self.__DB_CONN.commit()

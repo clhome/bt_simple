@@ -20,7 +20,7 @@ import threading
 
 from .main import getMemUsed
 
-import core.mw as mw
+import core.yf as mw
 import core.db as db
 
 

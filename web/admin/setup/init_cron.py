@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------------
 
 import os
-import core.mw as mw
+import core.yf as mw
 from utils.crontab import crontab
 from croniter import croniter
 from datetime import datetime
@@ -206,4 +206,4 @@ def sync_all_tasks():
         count += 1
     
     count += init_cron()
-    return count
+    return count

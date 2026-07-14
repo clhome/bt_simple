@@ -4,7 +4,7 @@ import os
 import json
 import time
 import base64
-import core.mw as mw
+import core.yf as mw
 
 SALT_MAIN = mw.getPanelDataDir() + '/.crypt_salt'
 SALT_BAK1 = '/etc/yufeng/.crypt_salt.bak'

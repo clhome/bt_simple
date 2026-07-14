@@ -17,7 +17,7 @@ import time
 import threading
 import multiprocessing
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 def getVhostDir():

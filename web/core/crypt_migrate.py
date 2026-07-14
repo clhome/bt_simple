@@ -2,7 +2,7 @@
 
 import os
 import json
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 def migrate_encrypted_data():

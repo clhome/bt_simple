@@ -9,7 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.mw as mw
+import core.yf as mw
 
 try:
     mw.M('firewall').execute('ALTER TABLE firewall ADD COLUMN status INTEGER DEFAULT 1', ())

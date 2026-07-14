@@ -11,7 +11,7 @@
 
 __FIELD = 'id,name'
 
-import core.mw as mw
+import core.yf as mw
 
 def addSiteTypes(name):
     return mw.M('site_types').add("name", (name,))

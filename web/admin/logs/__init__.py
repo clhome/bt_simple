@@ -15,7 +15,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 
-import core.mw as mw
+import core.yf as mw
 import utils.adult_log as adult_log
 import thisdb
 

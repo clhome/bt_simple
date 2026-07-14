@@ -17,7 +17,7 @@ import json
 import threading
 import multiprocessing
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 
@@ -572,7 +572,7 @@ echo "--------------------------------------------------------------------------
 # 更新最后执行时间到数据库
 web_dir=%s
 cron_id=%s
-/usr/bin/python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');import core.mw as mw,thisdb;thisdb.setCrontabData($cron_id,{'last_run_time':mw.formatDate()})"
+/usr/bin/python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');import core.yf as mw,thisdb;thisdb.setCrontabData($cron_id,{'last_run_time':mw.formatDate()})"
 ''' % (mw.getPanelDir() + '/web', param.get('id', '0'))
         cron_path = mw.getServerDir() + '/cron'
         if not os.path.exists(cron_path):

@@ -3,7 +3,7 @@
 # description: MW Cloud Service
 
 ### BEGIN INIT INFO
-# Provides:          mw
+# Provides:          yf
 # Required-Start:    $all
 # Required-Stop:     $all
 # Default-Start:     2 3 4 5
@@ -40,11 +40,11 @@ if [ -f ${PANEL_DIR}/bin/activate ];then
     fi
 fi
 
-mw_start_panel()
+yf_start_panel()
 {
     isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
     if [ "$isStart" == '' ];then
-        echo -e "starting bs-panel... \c"
+        echo -e "starting yf-panel... \c"
         cd ${PANEL_DIR}/web &&  gunicorn -c setting.py app:app
         port=$(cat ${PANEL_DIR}/data/port.pl)
         isStart=""
@@ -56,7 +56,7 @@ mw_start_panel()
             # isStart=$(lsof -n -P -i:$port|grep LISTEN|grep -v grep|awk '{print $2}'|xargs)
             isStart=$(ss -tulnp | grep ":$port" |grep LISTEN|grep -v grep|awk '{print $2}'|xargs)
             if [[ "$isStart" == "" ]];then
-                isStart=$(ps -ef|grep python3|grep mdserver-web|grep app:app|awk '{print $2}'|xargs)
+                isStart=$(ps -ef|grep python3|grep yufeng_panel|grep app:app|awk '{print $2}'|xargs)
             fi
             let n+=1
             if [ $n -gt 60 ];then
@@ -68,21 +68,21 @@ mw_start_panel()
             echo '------------------------------------------------------'
             tail -n 20 ${PANEL_DIR}/logs/panel_error.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: bs-panel service startup failed.\033[0m"
+            echo -e "\033[31mError: yf-panel service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo "starting bs-panel... bs(pid $(echo $isStart)) already running"
+        echo "starting yf-panel... yf(pid $(echo $isStart)) already running"
     fi
 }
 
 
-mw_start_task()
+yf_start_task()
 {
     isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" == '' ];then
-        echo -e "starting bs-tasks... \c"
+        echo -e "starting yf-tasks... \c"
         cd ${PANEL_DIR} && python3 panel_task.py >> ${PANEL_DIR}/logs/panel_task.log 2>&1 &
         sleep 0.3
         isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
@@ -91,30 +91,30 @@ mw_start_task()
             echo '------------------------------------------------------'
             tail -n 20 ${PANEL_DIR}/logs/panel_task.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: bs-tasks service startup failed.\033[0m"
+            echo -e "\033[31mError: yf-tasks service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo "starting bs-tasks... bs-tasks (pid $(echo $isStart)) already running"
+        echo "starting yf-tasks... yf-tasks (pid $(echo $isStart)) already running"
     fi
 }
 
-mw_start()
+yf_start()
 {
-    mw_start_task
-	mw_start_panel
+    yf_start_task
+	yf_start_panel
 }
 
-# /www/server/mdserver-web/logs/panel_task.lock && service mw restart_task
-mw_stop_task()
+# /www/server/yufeng_panel/logs/panel_task.lock && service yf restart_task
+yf_stop_task()
 {
     if [ -f ${PANEL_DIR}/logs/panel_task.lock ];then
         echo -e "\033[32mthe task is running and cannot be stopped\033[0m"
         return 0
     fi
 
-    echo -e "stopping bs-tasks... \c";
+    echo -e "stopping yf-tasks... \c";
     panel_task=$(ps aux | grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     for p in $panel_task
     do
@@ -129,9 +129,9 @@ mw_stop_task()
     echo -e "\033[32mdone\033[0m"
 }
 
-mw_stop_panel()
+yf_stop_panel()
 {
-    echo -e "stopping bs-panel... \c";
+    echo -e "stopping yf-panel... \c";
     pidfile=${PANEL_DIR}/logs/panel.pid
     if [ -f $pidfile ];then
         pid=`cat $pidfile`
@@ -153,31 +153,31 @@ mw_stop_panel()
     echo -e "\033[32mdone\033[0m"
 }
 
-mw_stop()
+yf_stop()
 {
-    mw_stop_task
-    mw_stop_panel
+    yf_stop_task
+    yf_stop_panel
 }
 
-mw_status()
+yf_status()
 {
     isStart=$(ps aux|grep 'gunicorn -c setting.py app:app'|grep -v grep|awk '{print $2}')
     if [ "$isStart" != '' ];then
-        echo -e "\033[32mbs (pid $(echo $isStart)) already running\033[0m"
+        echo -e "\033[32myf (pid $(echo $isStart)) already running\033[0m"
     else
-        echo -e "\033[31mbs not running\033[0m"
+        echo -e "\033[31myf not running\033[0m"
     fi
     
     isStart=$(ps aux |grep 'panel_task.py'|grep -v grep|awk '{print $2}')
     if [ "$isStart" != '' ];then
-        echo -e "\033[32mbs-task (pid $isStart) already running\033[0m"
+        echo -e "\033[32myf-task (pid $isStart) already running\033[0m"
     else
-        echo -e "\033[31mbs-task not running\033[0m"
+        echo -e "\033[31myf-task not running\033[0m"
     fi
 }
 
 
-mw_reload()
+yf_reload()
 {
 	isStart=$(ps aux|grep 'gunicorn -c setting.py app:app'|grep -v grep|awk '{print $2}')
     
@@ -193,46 +193,46 @@ mw_reload()
         if [ "$isStart" == '' ];then
             echo -e "\033[31mfailed\033[0m"
             echo '------------------------------------------------------'
-            tail -n 20 $mw_path/logs/error.log
+            tail -n 20 $yf_path/logs/error.log
             echo '------------------------------------------------------'
-            echo -e "\033[31mError: bs service startup failed.\033[0m"
+            echo -e "\033[31mError: yf service startup failed.\033[0m"
             return;
         fi
         echo -e "\033[32mdone\033[0m"
     else
-        echo -e "\033[31mbs not running\033[0m"
-        mw_start
+        echo -e "\033[31myf not running\033[0m"
+        yf_start
     fi
 }
 
-mw_close(){
+yf_close(){
     cd ${PANEL_DIR} && python3 panel_tools.py cli 14
 }
 
-mw_open()
+yf_open()
 {
     cd ${PANEL_DIR} && python3 panel_tools.py cli 15
 }
 
-mw_unbind_domain()
+yf_unbind_domain()
 {
     if [ -f ${PANEL_DIR}/data/bind_domain.pl ];then
         rm -rf ${PANEL_DIR}/data/bind_domain.pl
     fi
 }
 
-mw_unbind_ssl()
+yf_unbind_ssl()
 {
     if [ -f ${PANEL_DIR}/local ];then
         rm -rf ${PANEL_DIR}/local
     fi
 
-    if [ -f $mw_path/nginx ];then
-        rm -rf $mw_path/nginx
+    if [ -f $yf_path/nginx ];then
+        rm -rf $yf_path/nginx
     fi
 
-    if [ -f $mw_path/ssl/choose.pl ];then
-        rm -rf $mw_path/ssl/choose.pl
+    if [ -f $yf_path/ssl/choose.pl ];then
+        rm -rf $yf_path/ssl/choose.pl
     fi
 }
 
@@ -260,7 +260,7 @@ function AutoSizeStr(){
     echo -e " ❖   ${1}${FIX_SPACE}${2})"
 }
 
-mw_install(){
+yf_install(){
    if [ -f ${PANEL_DIR}/task.py ];then
         echo "与后续版本差异太大,不再提供更新"
         exit 0
@@ -268,11 +268,11 @@ mw_install(){
 
     echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh) install"
     bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
-    mw_clean_lib
+    yf_clean_lib
     bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
 }
 
-mw_update()
+yf_update()
 {
     if [ -f ${PANEL_DIR}/task.py ];then
         echo "与后续版本差异太大,不再提供更新"
@@ -283,7 +283,7 @@ mw_update()
     bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
 }
 
-mw_update_dev()
+yf_update_dev()
 {
     if [ -f ${PANEL_DIR}/task.py ];then
         echo "与后续版本差异太大,不再提供更新"
@@ -291,12 +291,12 @@ mw_update_dev()
     fi
 
     echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
-    mw_clean_lib
+    yf_clean_lib
     bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
     cd ${PANEL_DIR}
 }
 
-mw_dev()
+yf_dev()
 {
     if [ -f ${PANEL_DIR}/task.py ];then
         echo "与后续版本差异太大,不再提供更新"
@@ -308,7 +308,7 @@ mw_dev()
     cd ${PANEL_DIR}
 }
 
-mw_update_venv()
+yf_update_venv()
 {
     rm -rf ${PANEL_DIR}/bin
     rm -rf ${PANEL_DIR}/lib64
@@ -320,7 +320,7 @@ mw_update_venv()
     cd ${PANEL_DIR}
 }
 
-mw_mirror()
+yf_mirror()
 {
     LOCAL_ADDR=common
     cn=$(curl -fsSL -m 10 -s http://ipinfo.io/json | grep "\"country\": \"CN\"")
@@ -336,16 +336,16 @@ mw_mirror()
     cd ${ROOT_PATH}
 }
 
-mw_install_app()
+yf_install_app()
 {
-    bash $mw_path/scripts/quick/app.sh
+    bash $yf_path/scripts/quick/app.sh
 }
 
-mw_close_admin_path(){
+yf_close_admin_path(){
     cd ${PANEL_DIR} && python3 panel_tools.py cli 6
 }
 
-mw_force_kill()
+yf_force_kill()
 {
     PLIST=`ps -ef|grep app:app |grep -v grep|awk '{print $2}'`
     for i in $PLIST
@@ -360,9 +360,9 @@ mw_force_kill()
     done
 }
 
-mw_debug(){
-    mw_stop
-    mw_force_kill
+yf_debug(){
+    yf_stop
+    yf_force_kill
 
     port=7200    
     if [ -f ${PANEL_DIR}/data/port.pl ];then
@@ -376,7 +376,7 @@ mw_debug(){
     gunicorn -b :$port -k gevent -w 1  app:app
 }
 
-mw_connect_mysql(){
+yf_connect_mysql(){
     # choose mysql login
 
     declare -A DB_TYPE
@@ -433,7 +433,7 @@ mw_connect_mysql(){
     CHOICE_DB=${DB_TYPE[$INPUT_KEY]}
     echo "login to ${CHOICE_DB}:"
 
-    pwd=$(cd ${ROOT_PATH}/mdserver-web && python3 ${ROOT_PATH}/mdserver-web/plugins/${CHOICE_DB}/index.py root_pwd)
+    pwd=$(cd ${ROOT_PATH}/yufeng_panel && python3 ${ROOT_PATH}/yufeng_panel/plugins/${CHOICE_DB}/index.py root_pwd)
     if [ "$pwd" == "admin" ];then
         pwd=""
     fi
@@ -460,7 +460,7 @@ mw_connect_mysql(){
 }
 
 
-mw_connect_pgdb(){
+yf_connect_pgdb(){
     if [ ! -d "${ROOT_PATH}/postgresql" ];then
         echo -e "postgresql not install!"
         exit 1
@@ -474,7 +474,7 @@ mw_connect_pgdb(){
 }
 
 
-mw_mongodb(){
+yf_mongodb(){
     CONF="${ROOT_PATH}/mongodb/mongodb.conf"
     if [ ! -f "$CONF" ]; then
         echo -e "not install mongodb!"
@@ -496,7 +496,7 @@ mw_mongodb(){
 }
 
 
-mw_redis(){
+yf_redis(){
     CONF="${ROOT_PATH}/redis/redis.conf"
 
     if [ ! -f "$CONF" ]; then
@@ -514,7 +514,7 @@ mw_redis(){
     ${CLIEXEC}
 }
 
-mw_valkey(){
+yf_valkey(){
     CONF="${ROOT_PATH}/valkey/valkey.conf"
 
     if [ ! -f "$CONF" ]; then
@@ -532,7 +532,7 @@ mw_valkey(){
     ${CLIEXEC}
 }
 
-mw_ssh(){
+yf_ssh(){
     cd ${PANEL_DIR} && python3 panel_tools.py cli 202
 
     if [[ "$?" == "0" ]]; then
@@ -547,33 +547,33 @@ mw_ssh(){
     fi
 }
 
-mw_venv(){
+yf_venv(){
     cd ${PANEL_DIR} && source bin/activate
 }
 
-mw_clean_lib(){
+yf_clean_lib(){
     cd ${PANEL_DIR} && rm -rf lib
     cd ${PANEL_DIR} && rm -rf lib64
     cd ${PANEL_DIR} && rm -rf bin
     cd ${PANEL_DIR} && rm -rf include
 }
 
-mw_list(){
-    echo -e "bs default         - 显示面板默认信息"
-    echo -e "bs db              - 连接MySQL"
-    echo -e "bs pgdb            - 连接PostgreSQL"
-    echo -e "bs mongdb          - 连接MongoDB"
-    echo -e "bs redis           - 连接Redis"
-    echo -e "bs valkey          - 连接WalKey"
-    echo -e "bs install         - 执行安装脚本"
-    echo -e "bs update          - 更新到正式环境最新代码"
-    echo -e "bs update_dev      - 更新到测试环境最新代码"
-    echo -e "bs migrate_restore - 一键恢复宝塔面板软件数据"
-    echo -e "bs debug           - 调式开发面板"
-    echo -e "bs list            - 显示命令列表"
+yf_list(){
+    echo -e "yf default         - 显示面板默认信息"
+    echo -e "yf db              - 连接MySQL"
+    echo -e "yf pgdb            - 连接PostgreSQL"
+    echo -e "yf mongdb          - 连接MongoDB"
+    echo -e "yf redis           - 连接Redis"
+    echo -e "yf valkey          - 连接WalKey"
+    echo -e "yf install         - 执行安装脚本"
+    echo -e "yf update          - 更新到正式环境最新代码"
+    echo -e "yf update_dev      - 更新到测试环境最新代码"
+    echo -e "yf migrate_restore - 一键恢复宝塔面板软件数据"
+    echo -e "yf debug           - 调式开发面板"
+    echo -e "yf list            - 显示命令列表"
 }
 
-mw_default(){
+yf_default(){
     cd ${PANEL_DIR}
     port=7200
     scheme=$(cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py panel_ssl_type)
@@ -621,53 +621,53 @@ mw_default(){
     echo -e `cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py password`
     echo -e "\033[33m提示:\033[0m"
     echo -e "\033[33m如果无法访问面板，请在安全组开放端口 (${show_panel_ip}80|443|22)。\033[0m"
-    echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 bs 11 进行密码重置。\033[0m"
+    echo -e "\033[33m请保存好你的密码，为了您的安全性关闭后无法再次显示！如忘记密码请用 yf 11 进行密码重置。\033[0m"
     echo -e "=================================================================="
 }
 
 case "$1" in
-    'start') mw_start;;
-    'stop') mw_stop;;
-    'reload') mw_reload;;
+    'start') yf_start;;
+    'stop') yf_stop;;
+    'reload') yf_reload;;
     'restart') 
-        mw_stop
+        yf_stop
         sleep 2
-        mw_start
-        mw_default;;
+        yf_start
+        yf_default;;
     'restart_panel')
-        mw_stop_panel
+        yf_stop_panel
         sleep 2
-        mw_start_panel
-        mw_default;;
+        yf_start_panel
+        yf_default;;
     'restart_task')
-        mw_stop_task 
+        yf_stop_task 
         sleep 2
-        mw_start_task
-        mw_default;;
-    'status') mw_status;;
+        yf_start_task
+        yf_default;;
+    'status') yf_status;;
     'logs') error_logs;;
-    'close') mw_close;;
-    'open') mw_open;;
-    'install') mw_install;;
-    'update') mw_update;;
-    'dev') mw_dev;;
-    'update_dev') mw_update_dev;;
-    'install_app') mw_install_app;;
-    'close_admin_path') mw_close_admin_path;;
-    'unbind_domain') mw_unbind_domain;;
-    'unbind_ssl') mw_unbind_domain;;
-    'debug') mw_debug;;
-    'mirror') mw_mirror;;
-    'db') mw_connect_mysql;;
-    'pgdb') mw_connect_pgdb;;
-    'redis') mw_redis;;
-    'valkey')mw_valkey;;
-    'mongodb') mw_mongodb;;
-    'ssh') mw_ssh;;
-    'venv') mw_update_venv;;
-    'clean_lib') mw_clean_lib;;
-    'list') mw_list;;
-    'default') mw_default;;
+    'close') yf_close;;
+    'open') yf_open;;
+    'install') yf_install;;
+    'update') yf_update;;
+    'dev') yf_dev;;
+    'update_dev') yf_update_dev;;
+    'install_app') yf_install_app;;
+    'close_admin_path') yf_close_admin_path;;
+    'unbind_domain') yf_unbind_domain;;
+    'unbind_ssl') yf_unbind_domain;;
+    'debug') yf_debug;;
+    'mirror') yf_mirror;;
+    'db') yf_connect_mysql;;
+    'pgdb') yf_connect_pgdb;;
+    'redis') yf_redis;;
+    'valkey')yf_valkey;;
+    'mongodb') yf_mongodb;;
+    'ssh') yf_ssh;;
+    'venv') yf_update_venv;;
+    'clean_lib') yf_clean_lib;;
+    'list') yf_list;;
+    'default') yf_default;;
     'migrate_restore')
         cd ${PANEL_DIR} && python3 ${PANEL_DIR}/panel_tools.py cli migrate_restore
         ;;

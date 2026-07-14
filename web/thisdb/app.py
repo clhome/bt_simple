@@ -9,7 +9,7 @@
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
 
-import core.mw as mw
+import core.yf as mw
 
 __FIELD = 'id,app_id,app_secret,white_list,status,add_time,update_time'
 

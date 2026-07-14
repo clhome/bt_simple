@@ -16,18 +16,21 @@ import time
 import math
 import psutil
 
-import core.mw as mw
+import core.yf as mw
 
 from threading import Thread
 from time import sleep
 
-def mw_async(f):
+def yf_async(f):
     def wrapper(*args, **kwargs):
         thr = Thread(target=f, args=args, kwargs=kwargs)
         thr.start()
     return wrapper
 
-@mw_async
+# 兼容旧版 mw_async 调用
+mw_async = yf_async
+
+@yf_async
 def restartServer():
     if not mw.isRestart():
         return mw.returnData(False, '请等待所有安装任务完成再执行!')

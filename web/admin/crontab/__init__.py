@@ -16,7 +16,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.crontab import crontab as MwCrontab
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 blueprint = Blueprint('crontab', __name__, url_prefix='/crontab', template_folder='../../templates')
@@ -145,7 +145,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.crontab import crontab as MwCrontab
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 blueprint = Blueprint('crontab', __name__, url_prefix='/crontab', template_folder='../../templates')

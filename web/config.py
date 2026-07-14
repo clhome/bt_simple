@@ -18,7 +18,7 @@ import logging
 import os
 import sys
 
-import core.mw as mw
+import core.yf as mw
 
 from branding import APP_NAME, APP_ICON, APP_COPYRIGHT, APP_LOG_NAME, APP_SQLITE_NAME
 from version import APP_VERSION, APP_RELEASE, APP_REVISION, APP_SUFFIX

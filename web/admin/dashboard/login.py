@@ -22,7 +22,7 @@ from admin.common import isLogined
 from admin.user_login_check import panel_login_required
 from admin import cache,session
 
-import core.mw as mw
+import core.yf as mw
 import thisdb
 
 from .dashboard import blueprint
