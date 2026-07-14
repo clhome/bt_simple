@@ -556,24 +556,26 @@ def saveBody(path, data, encoding):
 
 def sortFileList(path, ftype = 'mtime', sort = 'desc'):
     flist = os.listdir(path)
-    if ftype == 'mtime':
-        try:
-            if sort == 'desc':
-                flist = sorted(flist, key=lambda f: os.path.getmtime(os.path.join(path,f)), reverse=True)
-            if sort == 'asc':
-                flist = sorted(flist, key=lambda f: os.path.getmtime(os.path.join(path,f)), reverse=False)
-        except Exception as e:
-            if sort == 'desc':
-                flist = sorted(flist, key=lambda f: os.path.getctime(os.path.join(path,f)), reverse=True)
-            if sort == 'asc':
-                flist = sorted(flist, key=lambda f: os.path.getctime(os.path.join(path,f)), reverse=False)
+    
+    def safe_mtime(f):
+        try: return os.lstat(os.path.join(path, f)).st_mtime
+        except: return 0
         
+    def safe_size(f):
+        try: return os.lstat(os.path.join(path, f)).st_size
+        except: return 0
+
+    if ftype == 'mtime':
+        if sort == 'desc':
+            flist = sorted(flist, key=safe_mtime, reverse=True)
+        if sort == 'asc':
+            flist = sorted(flist, key=safe_mtime, reverse=False)
 
     if ftype == 'size':
         if sort == 'desc':
-            flist = sorted(flist, key=lambda f: os.path.getsize(os.path.join(path,f)), reverse=True)
+            flist = sorted(flist, key=safe_size, reverse=True)
         if sort == 'asc':
-            flist = sorted(flist, key=lambda f: os.path.getsize(os.path.join(path,f)), reverse=False)
+            flist = sorted(flist, key=safe_size, reverse=False)
 
     if ftype == 'fname':
         if sort == 'desc':
@@ -610,17 +612,25 @@ def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '',limit = 30
                 count += 1
                 flist.append(filename)
 
+    def safe_mtime(f):
+        try: return os.lstat(f).st_mtime
+        except: return 0
+
+    def safe_size(f):
+        try: return os.lstat(f).st_size
+        except: return 0
+
     if ftype == 'mtime':
         if sort == 'desc':
-            flist = sorted(flist, key=lambda f: os.path.getmtime(f), reverse=True)
+            flist = sorted(flist, key=safe_mtime, reverse=True)
         if sort == 'asc':
-            flist = sorted(flist, key=lambda f: os.path.getmtime(f), reverse=False)
+            flist = sorted(flist, key=safe_mtime, reverse=False)
 
     if ftype == 'size':
         if sort == 'desc':
-            flist = sorted(flist, key=lambda f: os.path.getsize(f), reverse=True)
+            flist = sorted(flist, key=safe_size, reverse=True)
         if sort == 'asc':
-            flist = sorted(flist, key=lambda f: os.path.getsize(f), reverse=False)
+            flist = sorted(flist, key=safe_size, reverse=False)
     return flist
 
 def getAllDirList(path, page=1, size=10, order = '', search=None):
