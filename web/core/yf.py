@@ -122,7 +122,7 @@ def getPluginDir():
 def getPanelDataDir():
     return getPanelDir() + '/data'
 
-def getMWLogs():
+def getYfLogs():
     return getPanelDir() + '/logs'
 
 def getPanelLogs():
@@ -144,10 +144,10 @@ def getRecycleBinDir():
     return rb_dir
 
 def getPanelTaskLog():
-    return getMWLogs() + '/panel_task.log'
+    return getYfLogs() + '/panel_task.log'
 
 def getPanelTaskExecLog():
-    return getMWLogs() + '/panel_exec.log'
+    return getYfLogs() + '/panel_exec.log'
 
 def getWwwDir():
     import thisdb

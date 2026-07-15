@@ -3413,7 +3413,7 @@ def getSyncMysqlDB(dbname,sign = ''):
     return sync_db
 
 def syncDatabaseRepairTempFile():
-    tmp_log = yf.getMWLogs()+ '/mysql-check.log'
+    tmp_log = yf.getYfLogs()+ '/mysql-check.log'
     return tmp_log
 
 def syncDatabaseRepairLog(version=''):

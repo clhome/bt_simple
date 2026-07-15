@@ -2854,7 +2854,7 @@ def getSyncMysqlDB(dbname,sign = ''):
     return sync_db
 
 def syncDatabaseRepairTempFile():
-    tmp_log = yf.getMWLogs()+ '/mariadb-check.log'
+    tmp_log = yf.getYfLogs()+ '/mariadb-check.log'
     return tmp_log
 
 def syncDatabaseRepairLog(version=''):

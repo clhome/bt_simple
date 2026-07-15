@@ -56,7 +56,7 @@ PROXY_X_PREFIX_COUNT = 0
 DATA_DIR = yf.getPanelDataDir()
 
 # 日志文件名。这将进入数据目录，服务器模式下的非Windows平台除外。
-LOG_FILE = os.path.join(yf.getMWLogs(), APP_LOG_NAME + '.log')
+LOG_FILE = os.path.join(yf.getYfLogs(), APP_LOG_NAME + '.log')
 
 CONSOLE_LOG_FORMAT = '%(asctime)s: %(levelname)s\t%(name)s:\t%(message)s'
 FILE_LOG_FORMAT = '%(asctime)s: %(levelname)s\t%(name)s:\t%(message)s'

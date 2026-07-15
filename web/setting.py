@@ -33,7 +33,7 @@ cpu_info = system.getCpuInfo()
 workers = 1
 
 panel_dir = yf.getPanelDir()
-log_dir = yf.getMWLogs()
+log_dir = yf.getYfLogs()
 if not os.path.exists(log_dir):
     os.mkdir(log_dir)
 
