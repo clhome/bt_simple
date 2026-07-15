@@ -457,16 +457,16 @@ class Firewall(object):
         if self.__isUfw:
             if stype == 'port':
                 if protocol == 'tcp':
-                    yf.execShell('ufw allow ' + port + '/tcp')
+                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/tcp'))
                 if protocol == 'udp':
-                    yf.execShell('ufw allow ' + port + '/udp')
+                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/udp'))
                 if protocol == 'tcp/udp':
-                    yf.execShell('ufw allow ' + port + '/tcp')
-                    yf.execShell('ufw allow ' + port + '/udp')
+                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/tcp'))
+                    yf.execShell('ufw allow ' + yf.shlexQuote(port + '/udp'))
             elif stype == 'address_allow':
-                yf.execShell('ufw insert 1 allow from ' + port)
+                yf.execShell('ufw insert 1 allow from ' + yf.shlexQuote(port))
             elif stype == 'address_deny':
-                yf.execShell('ufw insert 1 deny from ' + port)
+                yf.execShell('ufw insert 1 deny from ' + yf.shlexQuote(port))
         elif self.__isFirewalld:
             if stype == 'port':
                 port = port.replace(':', '-')
@@ -482,9 +482,9 @@ class Firewall(object):
                     cmd = 'firewall-cmd --permanent --zone=public --add-port=' + port + '/udp'
                     yf.execShell(cmd)
             elif stype == 'address_allow':
-                yf.execShell('firewall-cmd --permanent --zone=trusted --add-source=' + port)
+                yf.execShell('firewall-cmd --permanent --zone=trusted --add-source=' + yf.shlexQuote(port))
             elif stype == 'address_deny':
-                yf.execShell('firewall-cmd --permanent --zone=drop --add-source=' + port)
+                yf.execShell('firewall-cmd --permanent --zone=drop --add-source=' + yf.shlexQuote(port))
         elif self.__isIptables:
             if stype == 'port':
                 if protocol == 'tcp':
@@ -499,9 +499,9 @@ class Firewall(object):
                     cmd = 'iptables -I INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT'
                     yf.execShell(cmd)
             elif stype == 'address_allow':
-                yf.execShell('iptables -I INPUT -s ' + port + ' -j ACCEPT')
+                yf.execShell('iptables -I INPUT -s ' + yf.shlexQuote(port) + ' -j ACCEPT')
             elif stype == 'address_deny':
-                yf.execShell('iptables -I INPUT -s ' + port + ' -j DROP')
+                yf.execShell('iptables -I INPUT -s ' + yf.shlexQuote(port) + ' -j DROP')
         else:
             pass
         return True
@@ -591,16 +591,16 @@ class Firewall(object):
         if self.__isUfw:
             if stype == 'port':
                 if protocol == 'tcp':
-                    yf.execShell('ufw delete allow ' + port + '/tcp')
+                    yf.execShell('ufw delete allow ' + yf.shlexQuote(port + '/tcp'))
                 if protocol == 'udp':
-                    yf.execShell('ufw delete allow ' + port + '/udp')
+                    yf.execShell('ufw delete allow ' + yf.shlexQuote(port + '/udp'))
                 if protocol == 'tcp/udp':
-                    yf.execShell('ufw delete allow ' + port + '/tcp')
-                    yf.execShell('ufw delete allow ' + port + '/udp')
+                    yf.execShell('ufw delete allow ' + yf.shlexQuote(port + '/tcp'))
+                    yf.execShell('ufw delete allow ' + yf.shlexQuote(port + '/udp'))
             elif stype == 'address_allow':
-                yf.execShell('ufw delete allow from ' + port)
+                yf.execShell('ufw delete allow from ' + yf.shlexQuote(port))
             elif stype == 'address_deny':
-                yf.execShell('ufw delete deny from ' + port)
+                yf.execShell('ufw delete deny from ' + yf.shlexQuote(port))
         elif self.__isFirewalld:
             if stype == 'port':
                 port = port.replace(':', '-')
@@ -616,9 +616,9 @@ class Firewall(object):
                     yf.execShell(
                         'firewall-cmd --permanent --zone=public --remove-port=' + port + '/udp')
             elif stype == 'address_allow':
-                yf.execShell('firewall-cmd --permanent --zone=trusted --remove-source=' + port)
+                yf.execShell('firewall-cmd --permanent --zone=trusted --remove-source=' + yf.shlexQuote(port))
             elif stype == 'address_deny':
-                yf.execShell('firewall-cmd --permanent --zone=drop --remove-source=' + port)
+                yf.execShell('firewall-cmd --permanent --zone=drop --remove-source=' + yf.shlexQuote(port))
         elif self.__isIptables:
             if stype == 'port':
                 if protocol == 'tcp':
@@ -633,9 +633,9 @@ class Firewall(object):
                     yf.execShell(
                         'iptables -D INPUT -p udp -m state --state NEW -m udp --dport ' + port + ' -j ACCEPT')
             elif stype == 'address_allow':
-                yf.execShell('iptables -D INPUT -s ' + port + ' -j ACCEPT')
+                yf.execShell('iptables -D INPUT -s ' + yf.shlexQuote(port) + ' -j ACCEPT')
             elif stype == 'address_deny':
-                yf.execShell('iptables -D INPUT -s ' + port + ' -j DROP')
+                yf.execShell('iptables -D INPUT -s ' + yf.shlexQuote(port) + ' -j DROP')
         else:
             pass
         return True

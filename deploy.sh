@@ -1314,18 +1314,18 @@ check_version_and_update() {
 
 # =====================================================================
 disable_upstream_update() {
-    local mw_script="/etc/rc.d/init.d/yf"
-    if [ -f "$mw_script" ]; then
+    local yf_script="/etc/rc.d/init.d/yf"
+    if [ -f "$yf_script" ]; then
         # 检查是否已禁用
-        if grep -q "自动更新已禁用" "$mw_script" 2>/dev/null; then
+        if grep -q "自动更新已禁用" "$yf_script" 2>/dev/null; then
             return
         fi
         # 在 mw_update 函数中插入禁用逻辑
-        sed -i '/^mw_update()/,/^}/{
-            /^mw_update()/!{
+        sed -i '/^yf_update()/,/^}/{
+            /^yf_update()/!{
                 /^{/a\    echo "自动更新已禁用(bt_simple fork)，请手动从仓库拉取更新"; return 0
             }
-        }' "$mw_script" 2>/dev/null
+        }' "$yf_script" 2>/dev/null
         log_info "已禁用上游自动更新"
     fi
 }
