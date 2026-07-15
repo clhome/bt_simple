@@ -81,7 +81,7 @@ def init_auto_update():
     if res:
         return False
 
-    cmd = "mw update"
+    cmd = "yf update"
     params = {
         'name': name,
         'type': 'month',

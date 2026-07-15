@@ -279,8 +279,8 @@ yf_update()
         exit 0
     fi
 
-    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh)"
-    bash <(curl -fsSL https://panel.yftec.top/deploy.sh)
+    echo "bash <(curl -fsSL https://panel.yftec.top/deploy.sh) update"
+    bash <(curl -fsSL https://panel.yftec.top/deploy.sh) update
 }
 
 yf_update_dev()
