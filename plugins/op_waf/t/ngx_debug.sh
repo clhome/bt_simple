@@ -1,8 +1,8 @@
 #!/bin/sh
 export PATH=$PATH:/opt/stap/bin:/opt/stapxx
 
-# cd /www/server/mdserver-web/plugins/op_waf/t && bash ngx_debug.sh lua ok
-# cd /www/server/mdserver-web/plugins/op_waf/t && bash ngx_debug.sh c ok
+# cd /www/server/yufeng_panel/plugins/op_waf/t && bash ngx_debug.sh lua ok
+# cd /www/server/yufeng_panel/plugins/op_waf/t && bash ngx_debug.sh c ok
 
 
 if [ ${_os} == "Darwin" ]; then

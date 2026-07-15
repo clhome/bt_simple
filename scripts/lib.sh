@@ -188,18 +188,18 @@ if [ ! -f /usr/local/bin/pip3 ] && [ ! -f /usr/bin/pip3 ];then
     pip3 install --upgrade pip setuptools wheel -i $PIPSRC
 fi
 
-if [ ! -f /www/server/mdserver-web/bin/activate ];then
+if [ ! -f /www/server/yufeng_panel/bin/activate ];then
     if version_ge "$P_VER" "3.11.0" ;then
         echo "python3 > 3.11"
-        cd /www/server/mdserver-web && python3 -m venv /www/server/mdserver-web
+        cd /www/server/yufeng_panel && python3 -m venv /www/server/yufeng_panel
     else
         echo "python3 < 3.10"
-        cd /www/server/mdserver-web && python3 -m venv .
-        cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/requirements.txt -i $PIPSRC
+        cd /www/server/yufeng_panel && python3 -m venv .
+        cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC
     fi
-    cd /www/server/mdserver-web && source /www/server/mdserver-web/bin/activate
+    cd /www/server/yufeng_panel && source /www/server/yufeng_panel/bin/activate
 else
-    cd /www/server/mdserver-web && source /www/server/mdserver-web/bin/activate
+    cd /www/server/yufeng_panel && source /www/server/yufeng_panel/bin/activate
 fi
 
 pip3 install --upgrade pip -i $PIPSRC
@@ -208,9 +208,9 @@ pip3 install --upgrade setuptools -i $PIPSRC
 
 # repeated attempts
 if [ "$LOCAL_ADDR" != "common" ];then
-    cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/requirements.txt
+    cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/requirements.txt
 fi
-cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/requirements.txt -i $PIPSRC
+cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC
 
 # 强制升级 requests 库以自动修复可能由 urllib3/charset-normalizer 升级引起的版本冲突警告
 pip3 install --upgrade requests -i $PIPSRC
@@ -221,9 +221,9 @@ P_VER_D=`echo "$P_VER"|awk -F '.' '{print $1}'`
 P_VER_M=`echo "$P_VER"|awk -F '.' '{print $2}'`
 NEW_P_VER=${P_VER_D}.${P_VER_M}
 
-if [ -f /www/server/mdserver-web/version/r${NEW_P_VER}.txt ];then
-    echo "cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/version/r${NEW_P_VER}.txt"
-    cd /www/server/mdserver-web && pip3 install -r /www/server/mdserver-web/version/r${NEW_P_VER}.txt -i $PIPSRC
+if [ -f /www/server/yufeng_panel/version/r${NEW_P_VER}.txt ];then
+    echo "cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/version/r${NEW_P_VER}.txt"
+    cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/version/r${NEW_P_VER}.txt -i $PIPSRC
 fi
 
 echo "lib ok!"

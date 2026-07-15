@@ -9,7 +9,7 @@ serverPath=$(dirname "$rootPath")
 
 VERSION=$2
 
-# /www/server/mdserver-web/bin/supervisorctl  -c /www/server/supervisor/supervisor.conf
+# /www/server/yufeng_panel/bin/supervisorctl  -c /www/server/supervisor/supervisor.conf
 # cmd | status
 
 bash ${rootPath}/scripts/getos.sh

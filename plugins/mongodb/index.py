@@ -23,10 +23,10 @@ if yf.isAppleSystem():
 
 # /usr/lib/systemd/system/mongod.service
 
-# python3 /www/server/mdserver-web/plugins/mongodb/index.py repl_init 
-# python3 /www/server/mdserver-web/plugins/mongodb/index.py run_repl_info
-# python3 /www/server/mdserver-web/plugins/mongodb/index.py test_data
-# python3 /www/server/mdserver-web/plugins/mongodb/index.py run_info
+# python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py repl_init 
+# python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py run_repl_info
+# python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py test_data
+# python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py run_info
 
 def getPluginName():
     return 'mongodb'
@@ -463,7 +463,7 @@ def setConfigAuth():
 
 def runInfo():
     '''
-    cd /www/server/mdserver-web && source bin/activate && python3 /www/server/mdserver-web/plugins/mongodb/index.py run_info
+    cd " + yf.getPanelDir() + " && source bin/activate && python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py run_info
     '''
     client = mongdbClient()
     db = client.admin
@@ -1494,7 +1494,7 @@ def importDbBackup():
 
 def testData():
     '''
-    cd /www/server/mdserver-web && source bin/activate && python3 /www/server/mdserver-web/plugins/mongodb/index.py test_data
+    cd " + yf.getPanelDir() + " && source bin/activate && python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py test_data
     '''
     import pymongo
     from pymongo import ReadPreference
@@ -1512,8 +1512,8 @@ def testData():
 
 def test():
     '''
-    python3 /www/server/mdserver-web/plugins/mongodb/index.py set_config_auth  {}
-    cd /www/server/mdserver-web && source bin/activate && python3 /www/server/mdserver-web/plugins/mongodb/index.py test
+    python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py set_config_auth  {}
+    cd " + yf.getPanelDir() + " && source bin/activate && python3 " + yf.getPanelDir() + "/plugins/mongodb/index.py test
     python3 plugins/mongodb/index.py test
     '''
     # https://pymongo.readthedocs.io/en/stable/examples/high_availability.html

@@ -19,19 +19,19 @@ PATH=/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 export LANG=en_US.UTF-8
 
 
-mw_path={$SERVER_PATH}
-PATH=$PATH:$mw_path/bin
+yf_path={$SERVER_PATH}
+PATH=$PATH:$yf_path/bin
 
-if [ -f $mw_path/bin/activate ];then
-    source $mw_path/bin/activate
+if [ -f $yf_path/bin/activate ];then
+    source $yf_path/bin/activate
 fi
 
 app_start(){	
 	isStart=`ps -ef|grep 'mosquitto' |grep -v grep | awk '{print $2}'`
     if [ "$isStart" == '' ];then
         echo -e "starting mosquitto... \c"
-        cd $mw_path
-        su -s /bin/sh -c "$mw_path/mosquitto/sbin/mosquitto -c $mw_path/mosquitto/etc/mosquitto/mosquitto.conf >> $mw_path/mosquitto/data/mosquitto.log 2>&1" mosquitto &
+        cd $yf_path
+        su -s /bin/sh -c "$yf_path/mosquitto/sbin/mosquitto -c $yf_path/mosquitto/etc/mosquitto/mosquitto.conf >> $yf_path/mosquitto/data/mosquitto.log 2>&1" mosquitto &
         isStart=""
         while [[ "$isStart" == "" ]];
         do

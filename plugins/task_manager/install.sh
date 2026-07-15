@@ -3,7 +3,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/hom
 export PATH
 
 # 路径校准
-rootPath=/www/server/mdserver-web
+rootPath=/www/server/yufeng_panel
 serverPath=/www/server
 
 VERSION=$2

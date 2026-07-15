@@ -19,11 +19,11 @@ PATH=/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 export LANG=en_US.UTF-8
 
 
-mw_path={$SERVER_PATH}
-PATH=$PATH:$mw_path/bin
+yf_path={$SERVER_PATH}
+PATH=$PATH:$yf_path/bin
 
-if [ -f $mw_path/bin/activate ];then
-    source $mw_path/bin/activate
+if [ -f $yf_path/bin/activate ];then
+    source $yf_path/bin/activate
 fi
 
 tg_start(){	
@@ -31,7 +31,7 @@ tg_start(){
 	isStart=`ps -ef|grep 'tgclient.py' |grep -v grep | awk '{print $2}'`
     if [ "$isStart" == '' ];then
         echo -e "starting tgclient... \c"
-        cd $mw_path
+        cd $yf_path
         echo "python3 {$APP_PATH}/tgclient.py"
         python3 {$APP_PATH}/tgclient.py >> {$APP_PATH}/task.log &
         isStart=""

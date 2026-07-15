@@ -11,8 +11,8 @@ sysArch=`arch`
 sysName=`uname`
 
 
-# cd /www/server/mdserver-web && python3 plugins/xui/index.py info
-# cd /www/server/mdserver-web/plugins/xui && /bin/bash install.sh install 1.0
+# cd /www/server/yufeng_panel && python3 plugins/xui/index.py info
+# cd /www/server/yufeng_panel/plugins/xui && /bin/bash install.sh install 1.0
 
 VERSION=$2
 Install_app()

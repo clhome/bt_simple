@@ -23,8 +23,8 @@ Install_App()
 	echo 'install complete'
 
 	# 初始化
-	cd ${serverPath}/mdserver-web && python3 plugins/system_safe/system_safe.py start $VERSION
-	cd ${serverPath}/mdserver-web && python3 plugins/system_safe/system_safe.py initd_install $VERSION
+	cd ${rootPath} && python3 plugins/system_safe/system_safe.py start $VERSION
+	cd ${rootPath} && python3 plugins/system_safe/system_safe.py initd_install $VERSION
 }
 
 Uninstall_App()

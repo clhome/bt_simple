@@ -118,7 +118,7 @@ def initDreplace():
     # initd replace
     # if not os.path.exists(file_bin):
     content = yf.readFile(file_tpl)
-    content = content.replace('{$SERVER_PATH}', service_path + '/mdserver-web')
+    content = content.replace('{$SERVER_PATH}', yf.getPanelDir())
     content = content.replace('{$APP_PATH}', app_path)
 
     yf.writeFile(file_bin, content)

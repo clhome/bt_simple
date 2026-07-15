@@ -52,7 +52,7 @@ UNINSTALL_MySQL()
             if [ -f /www/server/mysql/version.pl ];then
                 MYSQL_VER=$(cat /www/server/mysql/version.pl)
             fi
-            cd /www/server/mdserver-web/plugins/mysql && sh install.sh uninstall ${MYSQL_VER}
+            cd /www/server/yufeng_panel/plugins/mysql && sh install.sh uninstall ${MYSQL_VER}
             echo "卸载MySQL ${MYSQL_VER} 成功!"
         fi
     fi
@@ -70,7 +70,7 @@ UNINSTALL_OP()
             echo -e "------------"
             echo "取消卸载OpenResty"
         else
-            cd /www/server/mdserver-web/plugins/openresty && sh install.sh uninstall
+            cd /www/server/yufeng_panel/plugins/openresty && sh install.sh uninstall
             echo "卸载OpenResty成功!"
         fi
     fi
@@ -91,7 +91,7 @@ UNINSTALL_PHP()
             for PHP_VER in ${PHP_VER_LIST}; do
                 if [ -d /www/server/php/${PHP_VER} ];then
                     echo "正在卸载 PHP ${PHP_VER} ..."
-                    cd /www/server/mdserver-web/plugins/php && bash install.sh uninstall ${PHP_VER}
+                    cd /www/server/yufeng_panel/plugins/php && bash install.sh uninstall ${PHP_VER}
                     echo "卸载 PHP ${PHP_VER} 成功!"
                 fi
             done
@@ -110,7 +110,7 @@ UNINSTALL_MEMCACHED()
             echo -e "------------"
             echo "取消卸载Memcached"
         else
-            cd /www/server/mdserver-web/plugins/memcached && bash install.sh uninstall
+            cd /www/server/yufeng_panel/plugins/memcached && bash install.sh uninstall
             echo "卸载Memcached成功"
         fi
     fi
@@ -131,7 +131,7 @@ UNINSTALL_REDIS()
             if [ -f /www/server/redis/version.pl ];then
                 REDIS_VER=$(cat /www/server/redis/version.pl)
             fi
-            cd /www/server/mdserver-web/plugins/redis && bash install.sh uninstall ${REDIS_VER}
+            cd /www/server/yufeng_panel/plugins/redis && bash install.sh uninstall ${REDIS_VER}
             echo "卸载Redis ${REDIS_VER} 成功"
         fi
     fi
@@ -150,7 +150,7 @@ UNINSTALL_MW()
         rm -rf /usr/bin/mw
         rm -rf /etc/init.d/mw
         systemctl daemon-reload
-        rm -rf /www/server/mdserver-web
+        rm -rf /www/server/yufeng_panel
         echo "卸载面板成功"
     fi
 }

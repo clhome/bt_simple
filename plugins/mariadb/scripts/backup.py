@@ -9,7 +9,7 @@ import re
 import time
 
 if sys.platform != 'darwin':
-    os.chdir('/www/server/mdserver-web')
+    os.chdir(yf.getPanelDir())
 
 
 # chdir = os.getcwd()

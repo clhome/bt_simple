@@ -2,9 +2,9 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /www/server/mdserver-web/plugins/op_star && bash install.sh install 1.0
-# cd /www/server/mdserver-web && python3 plugins/op_star/index.py start
-# cd /www/server/mdserver-web && python3 plugins/op_star/index.py stop
+# cd /www/server/yufeng_panel/plugins/op_star && bash install.sh install 1.0
+# cd /www/server/yufeng_panel && python3 plugins/op_star/index.py start
+# cd /www/server/yufeng_panel && python3 plugins/op_star/index.py stop
 
 # 引入统一的 GitHub 下载函数库
 _gh_lib=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../scripts 2>/dev/null && pwd)/github_download.sh

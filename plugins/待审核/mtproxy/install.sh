@@ -11,8 +11,8 @@ sysArch=`arch`
 sysName=`uname`
 
 # systemctl status mtg
-# cd /www/server/mdserver-web && python3 plugins/mtproxy/index.py url
-# cd /www/server/mdserver-web/plugins/mtproxy && /bin/bash install.sh install 1.0
+# cd /www/server/yufeng_panel && python3 plugins/mtproxy/index.py url
+# cd /www/server/yufeng_panel/plugins/mtproxy && /bin/bash install.sh install 1.0
 
 bash ${rootPath}/scripts/getos.sh
 echo "bash ${rootPath}/scripts/getos.sh"

@@ -18,7 +18,7 @@ rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 rootPath=$(dirname "$rootPath")
 
-# cd /www/server/mdserver-web/plugins/php/lib && bash libedit.sh
+# cd /www/server/yufeng_panel/plugins/php/lib && bash libedit.sh
 
 # echo $rootPath
 

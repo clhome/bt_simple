@@ -60,7 +60,7 @@ fi
 OPTIONS=''
 if [ "$version" -lt "74" ];then
 
-	# cd /www/server/mdserver-web/plugins/php/lib && /bin/bash icu.sh
+	# cd /www/server/yufeng_panel/plugins/php/lib && /bin/bash icu.sh
 	cd ${rootPath}/plugins/php/lib && /bin/bash icu.sh
 	OPTIONS="--with-icu-dir=${serverPath}/lib/icu"
 fi

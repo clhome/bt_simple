@@ -40,7 +40,7 @@ def getPluginDir():
 
 
 def getSPluginDir():
-    return '/www/server/mdserver-web/plugins/' + getPluginName()
+    return '" + yf.getPanelDir() + "/plugins/' + getPluginName()
 
 
 def getServerDir():
@@ -3267,7 +3267,7 @@ def initSlaveStatusSSH(version=''):
                         username='root', pkey=key)
 
             db_user = data['db_user']
-            cmd = 'cd /www/server/mdserver-web && source bin/activate && python3 ' + \
+            cmd = 'cd " + yf.getPanelDir() + " && source bin/activate && python3 ' + \
                 getSPluginDir() + \
                 '/index.py get_master_rep_slave_user_cmd {"username":"' + \
                 db_user + '","db":""}'
@@ -4006,7 +4006,7 @@ def doFullSyncSSH(version=''):
     writeDbSyncStatus({'code': 0, 'msg': '登录Master成功...', 'progress': 5})
 
     dbname = args['db']
-    cmd = "cd /www/server/mdserver-web && source bin/activate && python3 " + \
+    cmd = "cd " + yf.getPanelDir() + " && source bin/activate && python3 " + \
         getSPluginDir() + "/index.py dump_mysql_data {\"db\":'" + dbname + "'}"
     print(cmd)
     stdin, stdout, stderr = ssh.exec_command(cmd)
@@ -4030,7 +4030,7 @@ def doFullSyncSSH(version=''):
     if copy_status == None:
         writeDbSyncStatus({'code': 2, 'msg': '数据同步本地完成...', 'progress': 40})
 
-    cmd = 'cd /www/server/mdserver-web && source bin/activate && python3 ' + \
+    cmd = 'cd " + yf.getPanelDir() + " && source bin/activate && python3 ' + \
         getSPluginDir() + \
         '/index.py get_master_rep_slave_user_cmd {"username":"' + \
         db_user + '","db":""}'

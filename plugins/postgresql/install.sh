@@ -7,7 +7,7 @@ rootPath=$(dirname "$curPath")
 rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 
-# cd /www/server/mdserver-web/plugins/postgresql && bash install.sh install 16
+# cd /www/server/yufeng_panel/plugins/postgresql && bash install.sh install 16
 
 action=$1
 type=$2

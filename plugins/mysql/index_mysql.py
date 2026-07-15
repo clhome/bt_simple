@@ -37,7 +37,7 @@ def getPluginDir():
 
 
 def getSPluginDir():
-    return '/www/server/mdserver-web/plugins/' + getPluginName()
+    return '" + yf.getPanelDir() + "/plugins/' + getPluginName()
 
 
 def getServerDir():

@@ -8,8 +8,8 @@ rootPath=$(dirname "$rootPath")
 serverPath=$(dirname "$rootPath")
 sysName=`uname`
 
-# cd /www/server/mdserver-web/plugins/php && bash install.sh install 73
-# cd /www/server/mdserver-web/plugins/php && bash install.sh install 85
+# cd /www/server/yufeng_panel/plugins/php && bash install.sh install 73
+# cd /www/server/yufeng_panel/plugins/php && bash install.sh install 85
 # https://www.php.net/releases
 
 if id www &> /dev/null ;then 
@@ -66,13 +66,13 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 	export cpuCore
 	echo "install PHP${type} extend start (cpuCore=${cpuCore})"
 
-	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash iconv.sh install 53
-	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash intl.sh install 73
-	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash gd.sh install 56
-	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash openssl.sh install 56
-	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash fileinfo.sh install 81
-	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash pgsql.sh install 84
-	# cd /www/server/mdserver-web/plugins/php/versions/common  && bash pdo_pgsql.sh install 84
+	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash iconv.sh install 53
+	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash intl.sh install 73
+	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash gd.sh install 56
+	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash openssl.sh install 56
+	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash fileinfo.sh install 81
+	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash pgsql.sh install 84
+	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash pdo_pgsql.sh install 84
 	cd ${rootPath}/plugins/php/versions/common && bash curl.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash gd.sh install ${type}
 	cd ${rootPath}/plugins/php/versions/common && bash readline.sh install ${type}

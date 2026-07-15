@@ -13,12 +13,12 @@
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-mw_path={$SERVER_PATH}
-rootPath=$(dirname "$mw_path")
-PATH=$PATH:$mw_path/bin
+yf_path={$SERVER_PATH}
+rootPath=$(dirname "$yf_path")
+PATH=$PATH:$yf_path/bin
 
-if [ -f $rootPath/mdserver-web/bin/activate ];then
-    source $rootPath/mdserver-web/bin/activate
+if [ -f $rootPath/yufeng_panel/bin/activate ];then
+    source $rootPath/yufeng_panel/bin/activate
 fi
 
 sys_start()
@@ -26,14 +26,14 @@ sys_start()
     isStart=$(ps aux |grep -E "(system_safe)"|grep -v grep|grep -v '/bin/bash'|grep -v 'system_safe/system_safe.py start' | grep -v 'system_safe/system_safe.py reload' | grep -v 'system_safe/system_safe.py restart' | grep -v systemctl | grep -v '/bin/sh' | awk '{print $2}'|xargs)
     if [ "$isStart" == '' ];then
         echo -e "Starting system_safe service... \c"
-        cd $rootPath/mdserver-web
-        nohup python3 plugins/system_safe/system_safe.py bg_start &> $mw_path/service.log &
+        cd $rootPath/yufeng_panel
+        nohup python3 plugins/system_safe/system_safe.py bg_start &> $yf_path/service.log &
         sleep 0.5
         isStart=$(ps aux |grep -E "(system_safe)"|grep -v grep|awk '{print $2}'|xargs)
         if [ "$isStart" == '' ];then
             echo -e "\033[31mfailed\033[0m"
             echo '------------------------------------------------------'
-            cat $mw_path/service.log
+            cat $yf_path/service.log
             echo '------------------------------------------------------'
             echo -e "\033[31mError: system_safe service startup failed.\033[0m"
             return;
@@ -47,7 +47,7 @@ sys_start()
 sys_stop()
 {
     echo -e "Stopping system_safe service... \c";
-    pid_file=$mw_path/system_safe.pid
+    pid_file=$yf_path/system_safe.pid
     if [ -f $pid_file ]; then
         pid=$(cat $pid_file)
         if [ "$pid" != "" ]; then
@@ -68,7 +68,7 @@ sys_stop()
 
 sys_status()
 {
-    pid_file=$mw_path/system_safe.pid
+    pid_file=$yf_path/system_safe.pid
     if [ -f $pid_file ]; then
         pid=$(cat $pid_file)
         if [ "$pid" != "" ] && ps -p $pid &>/dev/null; then

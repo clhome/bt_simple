@@ -3,8 +3,8 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/hom
 export PATH
 
 # https://www.cnblogs.com/n00dle/p/16916044.html
-# cd /www/server/mdserver-web/plugins/loki && /bin/bash install.sh install 3.5.3
-# cd /www/server/mdserver-web && python3 /www/server/mdserver-web/plugins/loki/index.py start
+# cd /www/server/yufeng_panel/plugins/loki && /bin/bash install.sh install 3.5.3
+# cd /www/server/yufeng_panel && python3 /www/server/yufeng_panel/plugins/loki/index.py start
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

@@ -14,11 +14,11 @@ if [ -d "/www/server/mysql" ] && [ ! -d "/www/server/mysql/data/mysql" ]; then
 fi
 
 # 2. 面板首次启动初始化（生成随机账密）
-if [ ! -f "/www/server/mdserver-web/data/panel_initialized.flag" ]; then
+if [ ! -f "/www/server/yufeng_panel/data/panel_initialized.flag" ]; then
     PANEL_USER=${PANEL_USER:-admin}
     PANEL_PASS=${PANEL_PASSWORD:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)}
     
-    cd /www/server/mdserver-web
+    cd /www/server/yufeng_panel
     bin/python tools.py username ${PANEL_USER}
     bin/python tools.py panel ${PANEL_PASS}
     
@@ -29,7 +29,7 @@ if [ ! -f "/www/server/mdserver-web/data/panel_initialized.flag" ]; then
     echo "  Notice: You can change them later in the panel."
     echo "=========================================================="
     
-    touch /www/server/mdserver-web/data/panel_initialized.flag
+    touch /www/server/yufeng_panel/data/panel_initialized.flag
 fi
 
 echo "Starting services..."
@@ -46,4 +46,4 @@ yf default || true
 echo "Container is running. Tailing logs..."
 
 # 5. 挂起进程，保持容器持续运行，同时输出部分错误日志
-tail -f /www/server/mdserver-web/logs/error.log /www/wwwlogs/*.log 2>/dev/null || sleep infinity
+tail -f /www/server/yufeng_panel/logs/error.log /www/wwwlogs/*.log 2>/dev/null || sleep infinity

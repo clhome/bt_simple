@@ -100,7 +100,7 @@ fi
 
 if [ "${SYS_ARCH}" == "aarch64" ];then
 	# 修复aarch64架构下安装
-	# /www/server/mdserver-web/plugins/php/versions/56/src/zend_multiply.h > /www/server/source/php/php56/Zend/zend_multiply.h
+	# /www/server/yufeng_panel/plugins/php/versions/56/src/zend_multiply.h > /www/server/source/php/php56/Zend/zend_multiply.h
 	cat ${curPath}/versions/${PHP_VER}/src/zend_multiply.h > $sourcePath/php/php${PHP_VER}/Zend/zend_multiply.h
 fi
 

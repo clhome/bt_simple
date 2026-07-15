@@ -10,7 +10,7 @@ import time
 import yaml
 
 if sys.platform != 'darwin':
-    os.chdir('/www/server/mdserver-web')
+    os.chdir(yf.getPanelDir())
 
 
 web_dir = os.getcwd() + "/web"

@@ -391,7 +391,7 @@ class mainClass(object):
 
         if p_exe:
             exe_keys = {
-                '/www/server/mdserver-web/plugins/': '面板插件',
+                '" + yf.getPanelDir() + "/plugins/': '面板插件',
                 '/www/server/cron/': '计划任务进程',
                 'pm2': 'PM2进程管理器',
                 'PM2': 'PM2进程管理器',

@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /www/server/mdserver-web/plugins/op_waf && bash install.sh install 0.4.1
+# cd /www/server/yufeng_panel/plugins/op_waf && bash install.sh install 0.4.1
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

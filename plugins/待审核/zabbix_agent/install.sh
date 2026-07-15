@@ -4,8 +4,8 @@ export PATH
 
 # https://www.zabbix.com
 
-# cd /www/server/mdserver-web/plugins/zabbix_agent && /bin/bash install.sh install 7.0
-# cd /www/server/mdserver-web && python3 /www/server/mdserver-web/plugins/zabbix_agent/index.py start
+# cd /www/server/yufeng_panel/plugins/zabbix_agent && /bin/bash install.sh install 7.0
+# cd /www/server/yufeng_panel && python3 /www/server/yufeng_panel/plugins/zabbix_agent/index.py start
 
 
 # /usr/sbin/zabbix_agentd -c /etc/zabbix/zabbix_agentd.conf

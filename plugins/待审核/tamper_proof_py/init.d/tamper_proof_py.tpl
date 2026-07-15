@@ -13,28 +13,28 @@
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-mw_path={$SERVER_PATH}
-rootPath=$(dirname "$mw_path")
-PATH=$PATH:$mw_path/bin
+yf_path={$SERVER_PATH}
+rootPath=$(dirname "$yf_path")
+PATH=$PATH:$yf_path/bin
 
-if [ -f $rootPath/mdserver-web/bin/activate ];then
-    source $rootPath/mdserver-web/bin/activate
+if [ -f $rootPath/yufeng_panel/bin/activate ];then
+    source $rootPath/yufeng_panel/bin/activate
 fi
 
-# cd /www/server/mdserver-web && python3 plugins/tamper_proof_py/tamper_proof_service.py start
+# cd /www/server/yufeng_panel && python3 plugins/tamper_proof_py/tamper_proof_service.py start
 sys_start()
 {
     isStart=$(ps aux |grep -E "(tamper_proof_service)"|grep -v grep |grep -v 'tamper_proof_py/tamper_proof_service.py start' | grep -v 'tamper_proof_py/tamper_proof_service.py reload' | grep -v 'tamper_proof_py/tamper_proof_service.py restart' | grep -v systemctl | grep -v '/bin/sh' | grep -v '/bin/bash' | awk '{print $2}'|xargs)
     if [ "$isStart" == '' ];then
         echo -e "Starting tamper_proof_service... \c"
-        cd $rootPath/mdserver-web
-        nohup python3 plugins/tamper_proof_py/tamper_proof_service.py start &> $mw_path/service.log &
+        cd $rootPath/yufeng_panel
+        nohup python3 plugins/tamper_proof_py/tamper_proof_service.py start &> $yf_path/service.log &
         sleep 0.5
         isStart=$(ps aux |grep -E "(tamper_proof_service)"|grep -v grep|awk '{print $2}'|xargs)
         if [ "$isStart" == '' ];then
             echo -e "\033[31mfailed\033[0m"
             echo '------------------------------------------------------'
-            cat $mw_path/service.log
+            cat $yf_path/service.log
             echo '------------------------------------------------------'
             echo -e "\033[31mError: tamper_proof_service startup failed.\033[0m"
             return;

@@ -13,10 +13,10 @@ if [ -f ${rootPath}/bin/activate ];then
 fi
 pip install pyinotify
 
-# cd /www/server/mdserver-web/plugins/tamper_proof_py && bash install.sh install 1.0
+# cd /www/server/yufeng_panel/plugins/tamper_proof_py && bash install.sh install 1.0
 
-# cd /www/server/mdserver-web && python3 plugins/tamper_proof_py/index.py start 1.0
-# cd /www/server/mdserver-web && python3 plugins/tamper_proof_py/index.py service_admin  {"serviceStatus":"start"}
+# cd /www/server/yufeng_panel && python3 plugins/tamper_proof_py/index.py start 1.0
+# cd /www/server/yufeng_panel && python3 plugins/tamper_proof_py/index.py service_admin  {"serviceStatus":"start"}
 # systemctl start tamper_proof_py
 # systemctl status tamper_proof_py
 
@@ -32,8 +32,8 @@ Install_App()
 	echo 'install complete'
 
 	#初始化 
-	cd ${serverPath}/mdserver-web && python3 plugins/tamper_proof_py/index.py start $VERSION
-	cd ${serverPath}/mdserver-web && python3 plugins/tamper_proof_py/index.py initd_install $VERSION
+	cd ${rootPath} && python3 plugins/tamper_proof_py/index.py start $VERSION
+	cd ${rootPath} && python3 plugins/tamper_proof_py/index.py initd_install $VERSION
 }
 
 Uninstall_App()

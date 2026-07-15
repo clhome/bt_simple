@@ -2,10 +2,10 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
-# cd /www/server/mdserver-web/plugins/op_waf && bash install.sh install 0.4.1
-# cd /www/server/mdserver-web && python3 plugins/op_waf/index.py start
-# cd /www/server/mdserver-web && python3 plugins/op_waf/index.py stop
-# cd /www/server/mdserver-web && python3 plugins/op_waf/tool_task.py run
+# cd /www/server/yufeng_panel/plugins/op_waf && bash install.sh install 0.4.1
+# cd /www/server/yufeng_panel && python3 plugins/op_waf/index.py start
+# cd /www/server/yufeng_panel && python3 plugins/op_waf/index.py stop
+# cd /www/server/yufeng_panel && python3 plugins/op_waf/tool_task.py run
 
 curPath=`pwd`
 rootPath=$(dirname "$curPath")

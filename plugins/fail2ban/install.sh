@@ -10,8 +10,8 @@ serverPath=$(dirname "$rootPath")
 
 VERSION=$2
 
-# cd /www/server/mdserver-web/plugins/fail2ban && bash install.sh install 1.1.0
-# cd /www/server/mdserver-web && python3 plugins/fail2ban/index.py config_tpl
+# cd /www/server/yufeng_panel/plugins/fail2ban && bash install.sh install 1.1.0
+# cd /www/server/yufeng_panel && python3 plugins/fail2ban/index.py config_tpl
 
 Install_App()
 {
