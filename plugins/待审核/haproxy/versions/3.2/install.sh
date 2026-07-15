@@ -34,7 +34,7 @@ Install_App()
 	echo $MIN_VERSION > $serverPath/haproxy/version.pl
 
 	URL="https://www.haproxy.org/download/${MIN_VERSION}/src/haproxy-${VERSION}.tar.gz"
-	mw_download ${APP_DIR}/haproxy-${VERSION}.tar.gz ${URL}
+	yf_download ${APP_DIR}/haproxy-${VERSION}.tar.gz ${URL}
 	
 	if [ ! -d ${APP_DIR}/haproxy-${VERSION} ];then
 		cd ${APP_DIR} && tar -zxf haproxy-${VERSION}.tar.gz

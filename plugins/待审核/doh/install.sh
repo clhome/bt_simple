@@ -36,7 +36,7 @@ Install_App()
 	file_xz="${file}.tar.bz2"
 	URL="${URL_DOWNLOAD}/${VERSION}/${file_xz}"
 	
-	mw_download $serverPath/source/doh/$file_xz $URL
+	yf_download $serverPath/source/doh/$file_xz $URL
 
 	if [ -f $serverPath/source/doh/$file_xz ];then
 		cd $serverPath/source/doh && tar -xjf $file_xz

@@ -41,7 +41,7 @@ Install_App()
 	ALIST_DIR=$serverPath/source/alist
 
 	URL="https://github.com/alist-org/alist/releases/download/v${VERSION}/${FILE_TGZ}"
-	mw_download $ALIST_DIR/${FILE_TGZ} ${URL}
+	yf_download $ALIST_DIR/${FILE_TGZ} ${URL}
 	
 	mkdir -p $serverPath/alist
 

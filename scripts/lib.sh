@@ -106,8 +106,8 @@ function get_cpu_cores() {
     echo $cores
 }
 
-# Usage: mw_download <file_path> <url> [timeout]
-function mw_download() {
+# Usage: yf_download <file_path> <url> [timeout]
+function yf_download() {
     local file=$1
     local url=$2
     local timeout=${3:-30}
@@ -227,3 +227,7 @@ if [ -f /www/server/mdserver-web/version/r${NEW_P_VER}.txt ];then
 fi
 
 echo "lib ok!"
+# 保留旧版命名，向下兼容第三方或未更新的旧脚本
+function mw_download() {
+    yf_download "$@"
+}

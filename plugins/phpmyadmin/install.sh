@@ -27,7 +27,7 @@ Install_phpmyadmin()
 	FILE=phpMyAdmin-${VER}-all-languages.tar.gz
 	URL="https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE"
 	
-	mw_download $serverPath/source/phpmyadmin/$FILE $URL
+	yf_download $serverPath/source/phpmyadmin/$FILE $URL
 
 	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
 		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE

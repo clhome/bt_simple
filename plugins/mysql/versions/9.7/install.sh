@@ -81,7 +81,7 @@ Install_mysql()
 	fi
 
 	URL="https://dev.mysql.com/get/Downloads/MySQL-9.7/mysql-boost-${VERSION}.tar.gz"
-	mw_download ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ${URL}
+	yf_download ${mysqlDir}/mysql-boost-${VERSION}.tar.gz ${URL}
 
 	if [ ! -d ${mysqlDir}/mysql-${VERSION} ];then
 		 cd ${mysqlDir} && tar -zxf  ${mysqlDir}/mysql-boost-${VERSION}.tar.gz

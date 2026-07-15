@@ -63,8 +63,8 @@ Install_App()
 	file_xz="${file}.xz"
 	URL="${URL_DOWNLOAD}/v${VERSION}/${file_xz}"
 	
-	# 改用 GitHub Releases 下载，以便 mw_download 能够自动启用国内的 Github 代理加速
-	mw_download $serverPath/source/gitea/$file_xz $URL
+	# 改用 GitHub Releases 下载，以便 yf_download 能够自动启用国内的 Github 代理加速
+	yf_download $serverPath/source/gitea/$file_xz $URL
 
 	cd $serverPath/source/gitea && xz -k -d $file_xz
 	if [ -f $file ];then

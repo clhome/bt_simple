@@ -41,7 +41,7 @@ Install_App()
 	FILE_TGZ=cloudreve_${VERSION}_${ALIST_NAME}_${ALIST_ARCH_NAME}.tar.gz
 	CLOUDREVE_DIR=$serverPath/source/cloudreve
 
-	mw_download $CLOUDREVE_DIR/${FILE_TGZ} https://github.com/cloudreve/Cloudreve/releases/download/${VERSION}/${FILE_TGZ}
+	yf_download $CLOUDREVE_DIR/${FILE_TGZ} https://github.com/cloudreve/Cloudreve/releases/download/${VERSION}/${FILE_TGZ}
 	
 	mkdir -p $serverPath/cloudreve
 

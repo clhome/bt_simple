@@ -30,7 +30,7 @@ Install_pureftp()
 	FILE_PATH=$serverPath/source/pureftp/pure-ftpd-${VER}.tar.gz
 	DOWNLOAD_URL=https://download.pureftpd.org/pub/pure-ftpd/releases/pure-ftpd-${VER}.tar.gz
 
-	mw_download $FILE_PATH $DOWNLOAD_URL
+	yf_download $FILE_PATH $DOWNLOAD_URL
 
 	if [ ! -d $serverPath/source/pureftp/pure-ftpd-${VER} ];then
 		cd $serverPath/source/pureftp  && tar zxvf pure-ftpd-${VER}.tar.gz

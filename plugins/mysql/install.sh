@@ -150,8 +150,8 @@ Install_fast_mysql() {
         local tmp_file="/tmp/${tar_file}"
         rm -f "${tmp_file}"
         
-        if command -v mw_download &> /dev/null; then
-            mw_download "${tmp_file}" "${mirror_url}"
+        if command -v yf_download &> /dev/null; then
+            yf_download "${tmp_file}" "${mirror_url}"
         else
             wget -nv --no-check-certificate -O "${tmp_file}" "${mirror_url}"
         fi

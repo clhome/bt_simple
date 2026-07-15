@@ -50,7 +50,7 @@ Install_App()
 	mkdir -p ${mosquittoDir}
 
 	URL="https://mosquitto.org/files/source/mosquitto-${VERSION}.tar.gz"
-	mw_download ${mosquittoDir}/mosquitto-${VERSION}.tar.gz ${URL}
+	yf_download ${mosquittoDir}/mosquitto-${VERSION}.tar.gz ${URL}
 	
 	if [ ! -d ${mosquittoDir}/mosquitto-${VERSION} ];then
 		cd ${mosquittoDir} && tar -zxf mosquitto-${VERSION}.tar.gz

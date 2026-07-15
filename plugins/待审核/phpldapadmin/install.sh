@@ -62,7 +62,7 @@ Install_App()
 	
 
 	if [ ! -f $serverPath/source/phpldapadmin/$FILE ];then
-		mw_download $serverPath/source/phpldapadmin/$FILE $DOWNLOAD
+		yf_download $serverPath/source/phpldapadmin/$FILE $DOWNLOAD
 	fi
 
 	if [ ! -d $serverPath/source/phpldapadmin/$FDIR ];then
