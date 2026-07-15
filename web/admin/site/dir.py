@@ -16,7 +16,7 @@ from flask import Blueprint, render_template
 from flask import request
 
 from admin.user_login_check import panel_login_required
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 
 import core.yf as yf
 import thisdb
@@ -28,7 +28,7 @@ from .site import blueprint
 @panel_login_required
 def get_dir_user_ini():
     site_id = request.form.get('id', '')
-    return MwSites.instance().getDirUserIni(site_id)
+    return YfSites.instance().getDirUserIni(site_id)
 
 # 设置防跨站攻击
 @blueprint.route('/set_dir_user_ini', endpoint='set_dir_user_ini',methods=['POST'])
@@ -36,14 +36,14 @@ def get_dir_user_ini():
 def set_dir_user_ini():
     path = request.form.get('path', '')
     run_path = request.form.get('run_path', '')
-    return MwSites.instance().setDirUserIni(path,run_path)
+    return YfSites.instance().setDirUserIni(path,run_path)
 
 # 获取子目录绑定
 @blueprint.route('/get_dir_binding', endpoint='get_dir_binding',methods=['POST'])
 @panel_login_required
 def get_dir_binding():
     site_id = request.form.get('id', '')
-    return MwSites.instance().getDirBinding(site_id)
+    return YfSites.instance().getDirBinding(site_id)
 
 
 # 添加子目录绑定
@@ -53,7 +53,7 @@ def add_dir_bind():
     site_id = request.form.get('id', '')
     domain = request.form.get('domain', '')
     dir_name = request.form.get('dir_name', '')
-    return MwSites.instance().addDirBind(site_id,domain,dir_name)
+    return YfSites.instance().addDirBind(site_id,domain,dir_name)
 
 
 # 获取目录绑定rewrite
@@ -62,7 +62,7 @@ def add_dir_bind():
 def get_dir_bind_rewrite():
     binding_id = request.form.get('id', '')
     add = request.form.get('add', '')
-    return MwSites.instance().getDirBindingRewrite(binding_id,add)
+    return YfSites.instance().getDirBindingRewrite(binding_id,add)
 
 
 # 获取目录绑定rewrite
@@ -70,6 +70,6 @@ def get_dir_bind_rewrite():
 @panel_login_required
 def del_dir_bind():
     binding_id = request.form.get('id', '')
-    return MwSites.instance().delDirBinding(binding_id)
+    return YfSites.instance().delDirBinding(binding_id)
 
 

@@ -19,7 +19,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 import core.yf as yf
 import thisdb
 
@@ -30,7 +30,7 @@ from .site import blueprint
 @blueprint.route('/get_acme_logs', endpoint='get_acme_logs', methods=['POST'])
 @panel_login_required
 def get_acme_logs():
-    log_file = MwSites.instance().acmeLogFile()
+    log_file = YfSites.instance().acmeLogFile()
     if not os.path.exists(log_file):
         yf.execShell('touch ' + log_file)
     return yf.returnData(True, 'OK', log_file)
@@ -50,7 +50,7 @@ def create_acme():
     
     dnspai = request.form.get('dnspai','')
     dns_alias = request.form.get('dns_alias','')
-    return MwSites.instance().createAcme(site_name, domains, force, renew, apply_type, apply_ca, dnspai, email, wildcard_domain,dns_alias)
+    return YfSites.instance().createAcme(site_name, domains, force, renew, apply_type, apply_ca, dnspai, email, wildcard_domain,dns_alias)
 
 
 

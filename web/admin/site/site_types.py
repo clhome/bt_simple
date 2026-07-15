@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 import core.yf as yf
 import thisdb
 
@@ -38,7 +38,7 @@ def get_site_types():
 @panel_login_required
 def add_site_type():
     name = request.form.get('name', '').strip()
-    return MwSites.instance().addSiteTypes(name)
+    return YfSites.instance().addSiteTypes(name)
 
 
 # 添加网站分类

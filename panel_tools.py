@@ -770,8 +770,8 @@ def import_bt_sites(db_path):
         print("  [INFO] 提示：宝塔站点数据库中没有站点数据。")
         return True
 
-    from utils.site import sites as MwSites
-    mw_sites = MwSites.instance()
+    from utils.site import sites as YfSites
+    mw_sites = YfSites.instance()
 
     success_count = 0
     fail_count = 0

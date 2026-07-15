@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 import core.yf as yf
 import thisdb
 
@@ -55,7 +55,7 @@ def list():
 
     # 优化：批量预读 vhost 配置，消除 N+1 磁盘 I/O 和数据库查询
     import re
-    vhost_dir = MwSites.instance().vhostPath
+    vhost_dir = YfSites.instance().vhostPath
     vhost_cache = {}
     if os.path.isdir(vhost_dir):
         for f in os.listdir(vhost_dir):
@@ -78,7 +78,7 @@ def list():
         # 2. 获取 SSL 信息 (仅当配置中包含 ssl_certificate 且证书存在时，才解析过期天数)
         site['ssl_days'] = -1
         if conf_content.find('ssl_certificate') != -1:
-            cert_path = MwSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
+            cert_path = YfSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
             if os.path.exists(cert_path):
                 cert_data = yf.getCertName(cert_path)
                 if cert_data:
@@ -113,21 +113,21 @@ def add():
     path = request.form.get('path', '')
     version = request.form.get('version', '')
     port = request.form.get('port', '')
-    return MwSites.instance().add(webinfo, port, ps, path, version)
+    return YfSites.instance().add(webinfo, port, ps, path, version)
 
 # 站点停止
 @blueprint.route('/stop', endpoint='stop',methods=['POST'])
 @panel_login_required
 def stop():
     site_id = request.form.get('id', '')
-    return MwSites.instance().stop(site_id)
+    return YfSites.instance().stop(site_id)
 
 # 站点开启
 @blueprint.route('/start', endpoint='start',methods=['POST'])
 @panel_login_required
 def start():
     site_id = request.form.get('id', '')
-    return MwSites.instance().start(site_id)
+    return YfSites.instance().start(site_id)
 
 # 添加站点 - 域名
 @blueprint.route('/add_domain', endpoint='add_domain',methods=['POST'])
@@ -136,7 +136,7 @@ def add_domain():
     domain = request.form.get('domain', '')
     site_name = request.form.get('site_name', '')
     site_id = request.form.get('id', '')
-    return MwSites.instance().addDomain(site_id, site_name, domain)
+    return YfSites.instance().addDomain(site_id, site_name, domain)
 
 # 删除站点 - 域名
 @blueprint.route('/del_domain', endpoint='del_domain',methods=['POST'])
@@ -146,7 +146,7 @@ def del_domain():
     site_id = request.form.get('id', '')
     domain = request.form.get('domain', '')
     port = request.form.get('port', '')
-    return MwSites.instance().delDomain(site_id, site_name, domain, port)
+    return YfSites.instance().delDomain(site_id, site_name, domain, port)
 
 # 站点删除
 @blueprint.route('/delete', endpoint='delete',methods=['POST'])
@@ -154,7 +154,7 @@ def del_domain():
 def delete():
     site_id = request.form.get('id', '')
     path = request.form.get('path', '')
-    return MwSites.instance().delete(site_id, path)
+    return YfSites.instance().delete(site_id, path)
 
 # 获取站点根目录
 @blueprint.route('/get_root_dir', endpoint='get_root_dir',methods=['POST'])
@@ -170,7 +170,7 @@ def get_root_dir():
 def get_index():
     site_id = request.form.get('id', '')
     data = {}
-    index = MwSites.instance().getIndex(site_id)
+    index = YfSites.instance().getIndex(site_id)
     data['index'] = index
     return data
 
@@ -180,14 +180,14 @@ def get_index():
 def set_index():
     site_id = request.form.get('id', '')
     index = request.form.get('index', '')
-    return MwSites.instance().setIndex(site_id, index)
+    return YfSites.instance().setIndex(site_id, index)
 
 # 获取站点默认文档
 @blueprint.route('/get_limit_net', endpoint='get_limit_net',methods=['POST'])
 @panel_login_required
 def get_limit_net():
     site_id = request.form.get('id', '')
-    return  MwSites.instance().getLimitNet(site_id)
+    return  YfSites.instance().getLimitNet(site_id)
 
 # 获取站点默认文档
 @blueprint.route('/set_limit_net', endpoint='set_limit_net',methods=['POST'])
@@ -197,21 +197,21 @@ def set_limit_net():
     perserver = request.form.get('perserver', '')
     perip = request.form.get('perip', '')
     limit_rate = request.form.get('limit_rate', '')
-    return MwSites.instance().setLimitNet(site_id, perserver,perip,limit_rate)
+    return YfSites.instance().setLimitNet(site_id, perserver,perip,limit_rate)
 
 # 获取站点默认文档
 @blueprint.route('/close_limit_net', endpoint='close_limit_net',methods=['POST'])
 @panel_login_required
 def close_limit_net():
     site_id = request.form.get('id', '')
-    return  MwSites.instance().closeLimitNet(site_id)
+    return  YfSites.instance().closeLimitNet(site_id)
 
 # 获取站点配置
 @blueprint.route('/get_host_conf', endpoint='get_host_conf',methods=['POST'])
 @panel_login_required
 def get_host_conf():
     siteName = request.form.get('siteName', '')      
-    host = MwSites.instance().getHostConf(siteName)
+    host = YfSites.instance().getHostConf(siteName)
     return {'host': host}
 
 # 设置站点配置
@@ -221,14 +221,14 @@ def save_host_conf():
     path = request.form.get('path', '')
     data = request.form.get('data', '')
     encoding = request.form.get('encoding', '')
-    return MwSites.instance().saveHostConf(path,data,encoding)
+    return YfSites.instance().saveHostConf(path,data,encoding)
 
 # 获取站点PHP版本
 @blueprint.route('/get_site_php_version', endpoint='get_site_php_version',methods=['POST'])
 @panel_login_required
 def get_site_php_version():
     siteName = request.form.get('siteName', '')      
-    return MwSites.instance().getSitePhpVersion(siteName)
+    return YfSites.instance().getSitePhpVersion(siteName)
 
 # 获取站点PHP版本
 @blueprint.route('/get_site_domains', endpoint='get_site_domains',methods=['POST'])
@@ -244,7 +244,7 @@ def get_site_domains():
 def set_php_version():
     siteName = request.form.get('siteName', '')
     version = request.form.get('version', '') 
-    return MwSites.instance().setPhpVersion(siteName,version)
+    return YfSites.instance().setPhpVersion(siteName,version)
 
 # 检查OpenResty安装/启动状态
 @blueprint.route('/check_web_status', endpoint='check_web_status',methods=['POST'])
@@ -266,7 +266,7 @@ def check_web_status():
 @blueprint.route('/get_php_version', endpoint='get_php_version',methods=['POST'])
 @panel_login_required
 def get_php_version():
-    return MwSites.instance().getPhpVersion()
+    return YfSites.instance().getPhpVersion()
 
 # 设置网站到期
 @blueprint.route('/set_end_date', endpoint='set_end_date',methods=['POST'])
@@ -274,7 +274,7 @@ def get_php_version():
 def set_end_date():
     site_id = request.form.get('id', '')
     edate = request.form.get('edate', '')
-    return MwSites.instance().setEndDate(site_id, edate)
+    return YfSites.instance().setEndDate(site_id, edate)
 
 
 # 设置网站备注
@@ -283,27 +283,27 @@ def set_end_date():
 def set_ps():
     site_id = request.form.get('id', '')
     ps = request.form.get('ps', '')
-    return MwSites.instance().setPs(site_id, ps)
+    return YfSites.instance().setPs(site_id, ps)
 
 # 站点绑定域名
 @blueprint.route('/get_domain', endpoint='get_domain',methods=['POST'])
 @panel_login_required
 def get_domain():
     site_id = request.form.get('pid', '')
-    return MwSites.instance().getDomain(site_id)
+    return YfSites.instance().getDomain(site_id)
 
 # 获取默认为静态列表
 @blueprint.route('/get_rewrite_list', endpoint='get_rewrite_list',methods=['POST'])
 @panel_login_required
 def get_rewrite_list():
-    return MwSites.instance().getRewriteList()
+    return YfSites.instance().getRewriteList()
 
 # 获取站点Rewrite配置
 @blueprint.route('/get_rewrite_conf', endpoint='get_rewrite_conf',methods=['POST'])
 @panel_login_required
 def get_rewrite_conf():
     siteName = request.form.get('siteName', '')
-    rewrite = MwSites.instance().getRewriteConf(siteName)
+    rewrite = YfSites.instance().getRewriteConf(siteName)
     return {'rewrite': rewrite}
 
 # 获取Rewrite模版名
@@ -311,7 +311,7 @@ def get_rewrite_conf():
 @panel_login_required
 def get_rewrite_tpl():
     tplname = request.form.get('tplname', '')
-    return MwSites.instance().getRewriteTpl(tplname)
+    return YfSites.instance().getRewriteTpl(tplname)
 
 # 设置站点Rewrite
 @blueprint.route('/set_rewrite', endpoint='set_rewrite',methods=['POST'])
@@ -320,7 +320,7 @@ def set_rewrite():
     data = request.form.get('data', '')
     path = request.form.get('path', '')
     encoding = request.form.get('encoding', '')
-    return MwSites.instance().setRewrite(path,data,encoding)
+    return YfSites.instance().setRewrite(path,data,encoding)
 
 
 # 设置Rewrite模版名
@@ -329,14 +329,14 @@ def set_rewrite():
 def set_rewrite_tpl():
     name = request.form.get('name', '')
     data = request.form.get('data', '')
-    return MwSites.instance().setRewriteTpl(name,data)
+    return YfSites.instance().setRewriteTpl(name,data)
 
 # 网站日志开关
 @blueprint.route('/logs_open', endpoint='logs_open',methods=['POST'])
 @panel_login_required
 def logs_open():
     site_id = request.form.get('id', '')
-    return MwSites.instance().logsOpen(site_id)
+    return YfSites.instance().logsOpen(site_id)
 
 # 设置网站路径
 @blueprint.route('/set_path', endpoint='set_path',methods=['POST'])
@@ -344,7 +344,7 @@ def logs_open():
 def set_path():
     site_id = request.form.get('id', '')
     path = request.form.get('path', '')
-    return MwSites.instance().setSitePath(site_id, path)
+    return YfSites.instance().setSitePath(site_id, path)
 
 
 # 设置网站路径
@@ -353,7 +353,7 @@ def set_path():
 def set_site_run_path():
     site_id = request.form.get('id', '')
     run_path = request.form.get('run_path', '')
-    return MwSites.instance().setSiteRunPath(site_id, run_path)
+    return YfSites.instance().setSiteRunPath(site_id, run_path)
 
 
 # 设置网站 - 开启密码访问
@@ -363,21 +363,21 @@ def set_has_pwd():
     site_id = request.form.get('id', '')
     username = request.form.get('username', '')
     password = request.form.get('password', '')
-    return MwSites.instance().setHasPwd(site_id, username, password)
+    return YfSites.instance().setHasPwd(site_id, username, password)
 
 # 设置网站 - 关闭密码访问
 @blueprint.route('/close_has_pwd', endpoint='close_has_pwd',methods=['POST'])
 @panel_login_required
 def close_has_pwd():
     site_id = request.form.get('id', '')
-    return MwSites.instance().closeHasPwd(site_id)
+    return YfSites.instance().closeHasPwd(site_id)
 
 # 获取防盗链信息
 @blueprint.route('/get_security', endpoint='get_security',methods=['POST'])
 @panel_login_required
 def get_security():
     site_id = request.form.get('id', '')
-    return MwSites.instance().getSecurity(site_id)
+    return YfSites.instance().getSecurity(site_id)
 
 # 设置防盗链
 @blueprint.route('/set_security', endpoint='set_security',methods=['POST'])
@@ -389,21 +389,21 @@ def set_security():
     name = request.form.get('name', '')
     none = request.form.get('none', '')
     site_id = request.form.get('id', '')
-    return MwSites.instance().setSecurity(site_id, fix, domains, status, none)
+    return YfSites.instance().setSecurity(site_id, fix, domains, status, none)
 
 
 # 设置默认网站信息
 @blueprint.route('/get_default_site', endpoint='get_default_site',methods=['POST'])
 @panel_login_required
 def get_default_site():
-    return MwSites.instance().getDefaultSite()
+    return YfSites.instance().getDefaultSite()
 
 # 设置默认站
 @blueprint.route('/set_default_site', endpoint='set_default_site',methods=['POST'])
 @panel_login_required
 def set_default_site():
     name = request.form.get('name', '')
-    return MwSites.instance().setDefaultSite(name)
+    return YfSites.instance().setDefaultSite(name)
 
 
 # 导出所有站点配置
@@ -413,7 +413,7 @@ def export_all():
     try:
         site_list = yf.M('sites').field('id,name,path,status,ps,edate,type_id,add_time,update_time').select()
         exported_sites = []
-        mw_sites = MwSites.instance()
+        mw_sites = YfSites.instance()
         
         for s in site_list:
             site_id = s['id']
@@ -523,7 +523,7 @@ def check_import_conflicts():
             
         conflicts = []
         normal = []
-        mw_sites = MwSites.instance()
+        mw_sites = YfSites.instance()
         
         for s in sites_list:
             site_data = s.get('site')
@@ -591,7 +591,7 @@ def import_all():
         
     success_count = 0
     skip_count = 0
-    mw_sites = MwSites.instance()
+    mw_sites = YfSites.instance()
     
     for s in sites_list:
         site_data = s.get('site')

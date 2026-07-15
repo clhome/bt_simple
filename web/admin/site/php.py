@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 
 import core.yf as yf
 import thisdb
@@ -33,7 +33,7 @@ def get_cli_php_version():
         return yf.returnData(False, '未安装PHP,无法设置')
 
     php_bin = '/usr/bin/php'
-    data = MwSites.instance().getPhpVersion()
+    data = YfSites.instance().getPhpVersion()
     php_versions = data['data']
     php_versions = php_versions[1:]
 
@@ -54,7 +54,7 @@ def set_cli_php_version():
     if yf.isAppleSystem():
         return yf.returnData(False, "开发机不可设置!")
     version = request.form.get('version', '')
-    return MwSites.instance().setCliPhpVersion(version)
+    return YfSites.instance().setCliPhpVersion(version)
 
 
 

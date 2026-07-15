@@ -190,7 +190,7 @@ def runPanelTask():
 # 网站到期处理
 def siteEdateCheck():
     try:
-        from utils.site import sites as MwSites
+        from utils.site import sites as YfSites
         website_edate = thisdb.getOption('website_edate', default='0000-00-00')
         now_time_ymd = time.strftime('%Y-%m-%d', time.localtime())
 
@@ -198,7 +198,7 @@ def siteEdateCheck():
             return False
         site_list = thisdb.getSitesEdateList(now_time_ymd)
         for site in site_list:
-            MwSites.instance().stop(site['id'])
+            YfSites.instance().stop(site['id'])
         thisdb.setOption('website_edate', now_time_ymd)
     except Exception as e:
         print('siteEdateCheck:',yf.getTracebackInfo())

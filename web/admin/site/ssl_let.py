@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 import core.yf as yf
 import thisdb
 
@@ -29,7 +29,7 @@ from .site import blueprint
 @blueprint.route('/get_let_logs', endpoint='get_let_logs', methods=['POST'])
 @panel_login_required
 def get_let_logs():
-    log_file = MwSites.instance().letLogFile()
+    log_file = YfSites.instance().letLogFile()
     if not os.path.exists(log_file):
         yf.execShell('touch ' + log_file)
     return yf.returnData(True, 'OK', log_file)
@@ -46,7 +46,7 @@ def create_let():
     wildcard_domain = request.form.get('wildcard_domain','')
     apply_type = request.form.get('apply_type', 'file')
     dnspai = request.form.get('dnspai','') 
-    return MwSites.instance().createLet(site_name, domains, force, renew, apply_type, dnspai, email, wildcard_domain)
+    return YfSites.instance().createLet(site_name, domains, force, renew, apply_type, dnspai, email, wildcard_domain)
 
 
 

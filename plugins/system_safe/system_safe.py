@@ -230,7 +230,7 @@ class App:
         if not self.__wslist:
             self.__wslist = self.getProcessRule(None)
         self.getSysProcess(None)
-        if name in ['mw', 'dnf', 'yum',
+        if name in ['yf', 'mw', 'dnf', 'yum',
                     'apt', 'apt-get', 'grep',
                     'awk', 'python', 'node', 'php', 'mysqld',
                     'httpd', 'openresty', 'wget', 'curl', 'openssl',

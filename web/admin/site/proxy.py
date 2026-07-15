@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 
 import core.yf as yf
 import thisdb
@@ -31,7 +31,7 @@ from .site import blueprint
 @panel_login_required
 def get_proxy_list():
     site_name = request.form.get("siteName", '')
-    return MwSites.instance().getProxyList(site_name)
+    return YfSites.instance().getProxyList(site_name)
 
 # 获取代理列表
 @blueprint.route('/set_proxy', endpoint='set_proxy', methods=['POST'])
@@ -48,7 +48,7 @@ def set_proxy():
     open_cache = request.form.get('open_cache', '')
     cache_time = request.form.get('cache_time', '')
     proxy_id = request.form.get('id', '')
-    return MwSites.instance().setProxy(site_name,site_from,to,host,name,open_proxy,open_cors,open_http3,open_cache,cache_time, proxy_id)
+    return YfSites.instance().setProxy(site_name,site_from,to,host,name,open_proxy,open_cors,open_http3,open_cache,cache_time, proxy_id)
 
 # 设置代理状态
 @blueprint.route('/set_proxy_status', endpoint='set_proxy_status', methods=['POST'])
@@ -57,7 +57,7 @@ def set_proxy_status():
     site_name = request.form.get("siteName", '')
     status = request.form.get("status", '')
     proxy_id = request.form.get("id", '')
-    return MwSites.instance().setProxyStatus(site_name,proxy_id,status)
+    return YfSites.instance().setProxyStatus(site_name,proxy_id,status)
 
 
 # 获取代理配置
@@ -66,7 +66,7 @@ def set_proxy_status():
 def get_proxy_conf():
     site_name = request.form.get("siteName", '')
     rid = request.form.get("id", '')
-    return MwSites.instance().getProxyConf(site_name, rid)
+    return YfSites.instance().getProxyConf(site_name, rid)
 
 # 设置代理
 @blueprint.route('/save_proxy_conf', endpoint='save_proxy_conf', methods=['POST'])
@@ -75,7 +75,7 @@ def save_proxy_conf():
     site_name = request.form.get("siteName", '')
     rid = request.form.get("id", '')
     config = request.form.get("config", "")
-    return MwSites.instance().saveProxyConf(site_name, rid, config)
+    return YfSites.instance().saveProxyConf(site_name, rid, config)
 
 
 # 删除代理配置
@@ -84,7 +84,7 @@ def save_proxy_conf():
 def del_proxy():
     site_name = request.form.get("siteName", '')
     rid = request.form.get("id", '')
-    return MwSites.instance().delProxy(site_name, rid)
+    return YfSites.instance().delProxy(site_name, rid)
 
 
 

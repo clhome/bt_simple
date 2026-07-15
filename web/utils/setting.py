@@ -174,7 +174,7 @@ class setting(object):
 
     def createPanelAcme(self, domains, force, renew, apply_type, dnspai, email, dns_alias):
         import json
-        from utils.site import sites as MwSites
+        from utils.site import sites as YfSites
         
         domains = json.loads(domains)
         if len(domains) < 1:
@@ -207,17 +207,17 @@ class setting(object):
             site_json = json.dumps({"domain": main_domain, "domainlist": []})
             site_path = yf.getWwwDir() + '/' + main_domain
             # 自动创建 80 端口的纯静态站点
-            res_add = MwSites.instance().add(site_json, "80", "<span style='color:red'>（面板SSL专用配置站点，勿删）</span>", site_path, "00")
+            res_add = YfSites.instance().add(site_json, "80", "<span style='color:red'>（面板SSL专用配置站点，勿删）</span>", site_path, "00")
             if not res_add['status']:
                 return yf.returnData(False, '桥接站点创建失败: ' + res_add['msg'])
 
-        # 2. 桥接调用官方完全成熟的 MwSites 证书签发机制，不仅稳定性100%，还一并彻底解决了ACME自动续签的问题
+        # 2. 桥接调用官方完全成熟的 YfSites 证书签发机制，不仅稳定性100%，还一并彻底解决了ACME自动续签的问题
         if apply_type == 'file':
-            # 调用 MwSites 的 createAcmeFile 进行文件签发
-            res_acme = MwSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'file', 'let', 'none', email, 'false', '')
+            # 调用 YfSites 的 createAcmeFile 进行文件签发
+            res_acme = YfSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'file', 'let', 'none', email, 'false', '')
         elif apply_type == 'dns':
-            # 调用 MwSites 的 createAcmeDns 进行DNS接口签发
-            res_acme = MwSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'dns', 'let', dnspai, email, 'false', dns_alias)
+            # 调用 YfSites 的 createAcmeDns 进行DNS接口签发
+            res_acme = YfSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'dns', 'let', dnspai, email, 'false', dns_alias)
         else:
             return yf.returnData(False, '不支持的验证类型')
 
@@ -225,7 +225,7 @@ class setting(object):
             return res_acme
 
         # 3. 签发成功，将生成的证书软链接到面板专用的 SSL/Nginx 证书路径中
-        src_path = MwSites.instance().sslDir + '/' + main_domain
+        src_path = YfSites.instance().sslDir + '/' + main_domain
         src_cert = src_path + '/fullchain.pem'
         src_key = src_path + '/privkey.pem'
 

@@ -14,7 +14,7 @@ if os.path.exists(web_dir):
 
 import core.yf as yf
 import thisdb
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 
 app_debug = False
 if yf.isAppleSystem():
@@ -97,7 +97,7 @@ def getHomePage():
 
 
 def getPhpVer(expect=83):
-    php_vers = MwSites.instance().getPhpVersion()
+    php_vers = YfSites.instance().getPhpVersion()
     v = php_vers['data']
     is_find = False
     for i in range(len(v)):

@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 from utils.plugin import plugin as YfPlugin
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 import core.yf as yf
 import thisdb
 
@@ -31,7 +31,7 @@ from .site import blueprint
 def get_ssl():
     site_name = request.form.get('site_name', '')
     ssl_type = request.form.get('ssl_type', '')
-    return MwSites.instance().getSsl(site_name, ssl_type)
+    return YfSites.instance().getSsl(site_name, ssl_type)
 
 # 获取证书信息
 @blueprint.route('/set_ssl', endpoint='set_ssl', methods=['POST'])
@@ -40,7 +40,7 @@ def set_ssl():
     site_name = request.form.get('siteName', '')
     key = request.form.get('key', '')
     csr = request.form.get('csr', '')
-    return MwSites.instance().setSsl(site_name, key, csr)
+    return YfSites.instance().setSsl(site_name, key, csr)
 
 
 # 删除证书
@@ -49,7 +49,7 @@ def set_ssl():
 def close_ssl_conf():
     site_name = request.form.get('siteName', '')
     ssl_type = request.form.get('updateOf', '')
-    return MwSites.instance().closeSslConf(site_name)
+    return YfSites.instance().closeSslConf(site_name)
 
 
 # 删除证书
@@ -58,21 +58,21 @@ def close_ssl_conf():
 def delete_ssl():
     site_name = request.form.get('site_name', '')
     ssl_type = request.form.get('ssl_type', '')
-    return MwSites.instance().deleteSsl(site_name, ssl_type)
+    return YfSites.instance().deleteSsl(site_name, ssl_type)
 
 
 # 获取证书列表
 @blueprint.route('/get_cert_list', endpoint='get_cert_list', methods=['GET','POST'])
 @panel_login_required
 def get_cert_list():
-    return MwSites.instance().getCertList()
+    return YfSites.instance().getCertList()
 
 
 # 获取DNSAPI
 @blueprint.route('/get_dnsapi', endpoint='get_dnsapi', methods=['GET','POST'])
 @panel_login_required
 def get_dnsapi():
-    return MwSites.instance().getDnsapi()
+    return YfSites.instance().getDnsapi()
 
 # 设置DNSAPI
 @blueprint.route('/set_dnsapi', endpoint='set_dnsapi', methods=['GET','POST'])
@@ -80,7 +80,7 @@ def get_dnsapi():
 def set_dnsapi():
     type = request.form.get('type', '')
     data = request.form.get('data')
-    return MwSites.instance().setDnsapi(type,data)
+    return YfSites.instance().setDnsapi(type,data)
 
 # 设置证书到站点
 @blueprint.route('/set_cert_to_site', endpoint='set_cert_to_site', methods=['GET','POST'])
@@ -88,28 +88,28 @@ def set_dnsapi():
 def set_cert_to_site():
     site_name = request.form.get('siteName', '')
     cert_name = request.form.get('certName', '')
-    return MwSites.instance().setCertToSite(site_name, cert_name)
+    return YfSites.instance().setCertToSite(site_name, cert_name)
 
 # 删除证书
 @blueprint.route('/remove_cert', endpoint='remove_cert', methods=['GET','POST'])
 @panel_login_required
 def remove_cert():
     cert_name = request.form.get('certName', '')
-    return MwSites.instance().removeCert(cert_name)
+    return YfSites.instance().removeCert(cert_name)
 
 # 强制开启HTTPS
 @blueprint.route('/http_to_https', endpoint='http_to_https', methods=['GET','POST'])
 @panel_login_required
 def http_to_https():
     site_name = request.form.get('siteName', '')
-    return MwSites.instance().httpToHttps(site_name)
+    return YfSites.instance().httpToHttps(site_name)
 
 # 强制关闭HTTPS
 @blueprint.route('/close_to_https', endpoint='close_to_https', methods=['GET','POST'])
 @panel_login_required
 def close_to_https():
     site_name = request.form.get('siteName', '')
-    return MwSites.instance().closeToHttps(site_name)
+    return YfSites.instance().closeToHttps(site_name)
 
 # 续签证书
 @blueprint.route('/renew_ssl', endpoint='renew_ssl', methods=['POST'])
@@ -119,7 +119,7 @@ def renew_ssl():
     ssl_type = request.form.get('ssl_type', '')
     
     acme_dir = yf.getAcmeDir()
-    log_file = MwSites.instance().acmeLogFile()
+    log_file = YfSites.instance().acmeLogFile()
     yf.writeFile(log_file, "开始续签证书...\n")
     
     # 记录执行前文件的修改时间，用于精确判断续签是否真正成功，防止因旧证书存在而产生的假成功
@@ -133,8 +133,8 @@ def renew_ssl():
 
     # 1. 临时关闭该站点的反向代理和重定向，避免 Nginx 规则拦截 CA 的验证请求
     try:
-        MwSites.instance().closeProxyAll(site_name)
-        MwSites.instance().closeRedirectAll(site_name)
+        YfSites.instance().closeProxyAll(site_name)
+        YfSites.instance().closeRedirectAll(site_name)
     except:
         pass
     
@@ -143,7 +143,7 @@ def renew_ssl():
         # 获取当前的真实网站根目录，防止因为运行目录修改导致续签 404
         # 注意：acme.sh --renew 不接受 -w 参数，它只读取配置文件中的 Le_Webroot
         # 因此必须在续签前直接修改 acme.sh 的域名配置文件
-        w_path = MwSites.instance().getSitePath(site_name)
+        w_path = YfSites.instance().getSitePath(site_name)
         if w_path:
             import re as _re
             acme_conf = src_path + '/' + site_name + '.conf'
@@ -174,8 +174,8 @@ def renew_ssl():
     finally:
         # 4. 无论成功与否，在退出前必须重新恢复站点的反向代理和重定向配置
         try:
-            MwSites.instance().openProxyByOpen(site_name)
-            MwSites.instance().openRedirectByOpen(site_name)
+            YfSites.instance().openProxyByOpen(site_name)
+            YfSites.instance().openRedirectByOpen(site_name)
         except:
             pass
             
@@ -183,7 +183,7 @@ def renew_ssl():
         return yf.returnData(False, '续签失败，详细信息请查看日志！')
         
     # 软链接新证书并重启服务
-    dst_path = MwSites.instance().sslDir + '/' + site_name
+    dst_path = YfSites.instance().sslDir + '/' + site_name
     dst_cert = dst_path + "/fullchain.pem"
     dst_key = dst_path + "/privkey.pem"
     
@@ -195,12 +195,12 @@ def renew_ssl():
     yf.execShell('echo "acme" > "' + dst_path + '/README"')
     
     # 应用 SSL 配置并重启 Web
-    MwSites.instance().setSslConf(site_name)
+    YfSites.instance().setSslConf(site_name)
     yf.restartWeb()
     
     # 获取最新的 SSL 到期剩余天数
     ssl_days = -1
-    cert_path = MwSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
+    cert_path = YfSites.instance().sslDir + '/' + site_name + '/fullchain.pem'
     if os.path.exists(cert_path):
         cert_data = yf.getCertName(cert_path)
         if cert_data:

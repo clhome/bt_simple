@@ -16,7 +16,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
-from utils.site import sites as MwSites
+from utils.site import sites as YfSites
 
 app_debug = False
 if yf.isAppleSystem():
@@ -559,7 +559,7 @@ class App:
             return yf.returnJson(False, "此目录不存在")
 
         # 判断是否安装php
-        php_version = MwSites.instance().getPhpVersion()
+        php_version = YfSites.instance().getPhpVersion()
         if not php_version['data']:
             return yf.returnJson(False, "未安装PHP测试失败")
 
