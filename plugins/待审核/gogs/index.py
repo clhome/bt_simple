@@ -1039,7 +1039,7 @@ def getRsaPublic():
     content = yf.readFile(path)
 
     data = {}
-    data['mw'] = content
+    data['pub_key'] = content
     return yf.getJson(data)
 
 

@@ -768,7 +768,7 @@ function getRsaPublic(){
         var rdata = JSON.parse(data.data);
         var con = '<div class="tab-con">\
             <div class="myKeyCon ptb15" style="padding: 10px 15px;">\
-                <textarea id="pubKeyText" readonly="readonly" style="margin:0px;width:570px;height:110px;outline:none;border-radius:4px;border:1px solid #ccc;padding:10px;resize:none;" spellcheck="false">'+rdata.mw+'</textarea>\
+                <textarea id="pubKeyText" readonly="readonly" style="margin:0px;width:570px;height:110px;outline:none;border-radius:4px;border:1px solid #ccc;padding:10px;resize:none;" spellcheck="false">'+rdata.pub_key+'</textarea>\
             </div>\
             <ul class="help-info-text c7 pull-left" style="padding: 0 15px 10px;">\
                 <li>💡 提示：公钥可直接添加至 Gitea 的 SSH 密钥列表中，用于服务器与 Git 仓库间免密推拉代码。</li>\

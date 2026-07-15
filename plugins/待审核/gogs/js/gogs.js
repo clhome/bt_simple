@@ -760,7 +760,7 @@ function getRsaPublic(){
         var rdata = JSON.parse(data.data);
         var con = '<div class="tab-con">\
             <div class="myKeyCon ptb15">\
-                <textarea style="margin:0px;width:580px;height:110px;outline:none;" spellcheck="false">'+rdata.mw+'</textarea>\
+                <textarea style="margin:0px;width:580px;height:110px;outline:none;" spellcheck="false">'+rdata.pub_key+'</textarea>\
             </div>\
             <ul class="help-info-text c7 pull-left"></ul>\
         </div>'

@@ -1152,7 +1152,7 @@ def getRsaPublic():
         content = content.strip()
 
     data = {}
-    data['mw'] = content
+    data['pub_key'] = content
     return yf.getJson(data)
 
 
