@@ -43,15 +43,15 @@ if not os.path.exists(data_dir):
 
 # default port
 panel_port = '7200'
-from utils.firewall import Firewall as MwFirewall
+from utils.firewall import Firewall as YfFirewall
 default_port_file = panel_dir+'/data/port.pl'
 if os.path.exists(default_port_file):
     panel_port = yf.readFile(default_port_file)
     panel_port.strip()
-    MwFirewall.instance().addAcceptPort(panel_port,'PANEL端口', 'port')
+    YfFirewall.instance().addAcceptPort(panel_port,'PANEL端口', 'port')
 else:
     panel_port = str(random.randint(10000, 65530))
-    MwFirewall.instance().addPanelPort(panel_port)
+    YfFirewall.instance().addPanelPort(panel_port)
     yf.writeFile(default_port_file, panel_port)
 
 bind = []

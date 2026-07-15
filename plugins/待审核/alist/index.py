@@ -99,16 +99,16 @@ def readConfigTpl():
 
 def __release_port(port, ps = '开启端口'):
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().addAcceptPort(port, ps, 'port')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().addAcceptPort(port, ps, 'port')
         return port
     except Exception as e:
         return "Release failed {}".format(e)
 
 def __delete_port(port):
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().delAcceptPortCmd(port, 'tcp')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().delAcceptPortCmd(port, 'tcp')
         return port
     except Exception as e:
         return "Delete failed {}".format(e)

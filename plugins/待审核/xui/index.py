@@ -66,8 +66,8 @@ def getXuiPort():
 def __release_port(port):
     from collections import namedtuple
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().addAcceptPort(port, 'xui', 'port')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().addAcceptPort(port, 'xui', 'port')
         return port
     except Exception as e:
         return "Release failed {}".format(e)
@@ -75,8 +75,8 @@ def __release_port(port):
 def __delete_port(port):
     from collections import namedtuple
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().delAcceptPortCmd(port, 'tcp')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().delAcceptPortCmd(port, 'tcp')
         return port
     except Exception as e:
         return "Delete failed {}".format(e)

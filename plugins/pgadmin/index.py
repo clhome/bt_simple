@@ -136,8 +136,8 @@ def returnCfg():
 def __release_port(port):
     from collections import namedtuple
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().addAcceptPort(port, 'pgAdmin默认端口', 'port')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().addAcceptPort(port, 'pgAdmin默认端口', 'port')
         return port
     except Exception as e:
         return "Release failed {}".format(e)
@@ -146,8 +146,8 @@ def __release_port(port):
 def __delete_port(port):
     from collections import namedtuple
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().delAcceptPort(port, 'tcp')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().delAcceptPort(port, 'tcp')
         return port
     except Exception as e:
         return "Release failed {}".format(e)

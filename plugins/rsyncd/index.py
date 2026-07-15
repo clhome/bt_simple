@@ -127,8 +127,8 @@ def getLsyncdLog():
 def __release_port(port):
     from collections import namedtuple
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().addAcceptPort(port, 'RSYNC同步', 'port')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().addAcceptPort(port, 'RSYNC同步', 'port')
         return port
     except Exception as e:
         return "Release failed {}".format(e)

@@ -24,7 +24,7 @@ web_dir = os.getcwd() + "/web"
 os.chdir(web_dir)
 sys.path.append(web_dir)
 
-from utils.firewall import Firewall as MwFirewall
+from utils.firewall import Firewall as YfFirewall
 import core.yf as yf
 import thisdb
 
@@ -157,7 +157,7 @@ def yfcli(yf_input=0):
         in_port = yf_input_cmd("请输入新的面板端口：")
         in_port_int = int(in_port.strip())
         if in_port_int < 65536 and in_port_int > 0:
-            MwFirewall.instance().addAcceptPort(in_port, 'WEB面板[TOOLS修改]', 'port')
+            YfFirewall.instance().addAcceptPort(in_port, 'WEB面板[TOOLS修改]', 'port')
             panel_port = panel_dir + '/data/port.pl'
             yf.writeFile(panel_port, in_port)
             os.system(INIT_CMD + " restart_panel")
@@ -286,7 +286,7 @@ def yfcli(yf_input=0):
         if not run_cmd:
             yf.echoInfo("未检测到防火墙!")
     elif yf_input == 28:
-        MwFirewall.instance().aIF()
+        YfFirewall.instance().aIF()
         yf.echoInfo("执行自动识别防火墙端口到面板成功!")
     elif yf_input == 29:
         from utils.site_reflect import parse as MwParse
@@ -370,7 +370,7 @@ def open_ssh_port():
         ssh_port = '22'
 
     yf.echoInfo("SSH端口: "+ str(ssh_port))
-    MwFirewall.instance().addAcceptPort(ssh_port, 'SSH远程管理服务', 'port')
+    YfFirewall.instance().addAcceptPort(ssh_port, 'SSH远程管理服务', 'port')
     return True
 
 

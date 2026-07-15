@@ -132,8 +132,8 @@ def initDreplace():
 
 def openPort():
     try:
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().addAcceptPort('10050', 'zabbix-agent', 'port')
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().addAcceptPort('10050', 'zabbix-agent', 'port')
         return port
     except Exception as e:
         return "Release failed {}".format(e)

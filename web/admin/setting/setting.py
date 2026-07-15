@@ -261,18 +261,18 @@ def set_password():
 def set_port():
     port = request.form.get('port', '')
     if port != yf.getHostPort():
-        from utils.firewall import Firewall as MwFirewall
+        from utils.firewall import Firewall as YfFirewall
 
         sysCfgDir = yf.systemdCfgDir()
         if os.path.exists(sysCfgDir + "/firewalld.service"):
-            if not MwFirewall.instance().getFwStatus():
+            if not YfFirewall.instance().getFwStatus():
                 return yf.returnData(False, 'firewalld必须先启动!')
 
         yf.setHostPort(port)
         msg = yf.getInfo('放行端口[{1}]成功', (port,))
         yf.writeLog("防火墙管理", msg)
 
-        MwFirewall.instance().addAcceptPort(port, 'PANEL端口-配置修改', 'port')
+        YfFirewall.instance().addAcceptPort(port, 'PANEL端口-配置修改', 'port')
         yf.restartMw()
 
     return yf.returnData(True, '端口保存成功!')

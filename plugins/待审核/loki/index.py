@@ -113,8 +113,8 @@ def contentReplace(content):
 
 # def openPort():
 #     try:
-#         from utils.firewall import Firewall as MwFirewall
-#         MwFirewall.instance().addAcceptPort('3000', 'grafana', 'port')
+#         from utils.firewall import Firewall as YfFirewall
+#         YfFirewall.instance().addAcceptPort('3000', 'grafana', 'port')
 #         return port
 #     except Exception as e:
 #         return "Release failed {}".format(e)

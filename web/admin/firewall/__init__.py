@@ -15,7 +15,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 
-from utils.firewall import Firewall as MwFirewall
+from utils.firewall import Firewall as YfFirewall
 
 import core.yf as yf
 import thisdb
@@ -37,7 +37,7 @@ def get_list():
     search_port = request.form.get('search_port', '').strip()
     search_ps = request.form.get('search_ps', '').strip()
     stype = request.form.get('stype', 'port').strip()
-    return MwFirewall.instance().getList(p, limit, search_port, search_ps, stype)
+    return YfFirewall.instance().getList(p, limit, search_port, search_ps, stype)
 
 # 获取客户端IP
 @blueprint.route('/get_client_ip', endpoint='get_client_ip', methods=['POST'])
@@ -56,7 +56,7 @@ def get_www_path():
 @blueprint.route('/get_ssh_info', endpoint='get_ssh_info', methods=['POST'])
 @panel_login_required
 def get_ssh_info():
-    return MwFirewall.instance().getSshInfo()
+    return YfFirewall.instance().getSshInfo()
 
 
 # 切换ping开关
@@ -64,14 +64,14 @@ def get_ssh_info():
 @panel_login_required
 def set_ping():
     status = request.form.get('status')
-    return MwFirewall.instance().setPing(status)
+    return YfFirewall.instance().setPing(status)
 
 # 修改ssh端口
 @blueprint.route('/set_ssh_port', endpoint='set_ssh_port', methods=['POST'])
 @panel_login_required
 def set_ssh_port():
     port = request.form.get('port', '1').strip()
-    return MwFirewall.instance().setSshPort(port)
+    return YfFirewall.instance().setSshPort(port)
 
 # 添加放行端口
 @blueprint.route('/add_accept_port', endpoint='add_accept_port', methods=['POST'])
@@ -82,7 +82,7 @@ def add_accept_port():
     protocol = request.form.get('protocol', '').strip()
     stype = request.form.get('type', '').strip()
 
-    return MwFirewall.instance().addAcceptPort(port, ps, stype, protocol=protocol)
+    return YfFirewall.instance().addAcceptPort(port, ps, stype, protocol=protocol)
 
 # 删除放行端口
 @blueprint.route('/del_accept_port', endpoint='del_accept_port', methods=['POST'])
@@ -91,7 +91,7 @@ def del_accept_port():
     port = request.form.get('port', '').strip()
     firewall_id = request.form.get('id', '').strip()
     protocol = request.form.get('protocol', '').strip()
-    return MwFirewall.instance().delAcceptPort(firewall_id, port, protocol=protocol)
+    return YfFirewall.instance().delAcceptPort(firewall_id, port, protocol=protocol)
 
 
 # 设置防火墙状态
@@ -101,7 +101,7 @@ def set_fw():
     if yf.isAppleSystem():
         return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
-    return MwFirewall.instance().setFw(status)
+    return YfFirewall.instance().setFw(status)
 
 @blueprint.route('/set_ssh_status', endpoint='set_ssh_status', methods=['POST'])
 @panel_login_required
@@ -109,7 +109,7 @@ def set_ssh_status():
     if yf.isAppleSystem():
         return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
-    return MwFirewall.instance().setSshStatus(status)
+    return YfFirewall.instance().setSshStatus(status)
 
 @blueprint.route('/set_ssh_root_status', endpoint='set_ssh_root_status', methods=['POST'])
 @panel_login_required
@@ -117,7 +117,7 @@ def set_ssh_root_status():
     if yf.isAppleSystem():
         return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
-    return MwFirewall.instance().setSshRootStatus(status)
+    return YfFirewall.instance().setSshRootStatus(status)
 
 @blueprint.route('/set_ssh_pass_status', endpoint='set_ssh_pass_status', methods=['POST'])
 @panel_login_required
@@ -125,7 +125,7 @@ def set_ssh_pass_status():
     if yf.isAppleSystem():
         return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
-    return MwFirewall.instance().setSshPassStatus(status)
+    return YfFirewall.instance().setSshPassStatus(status)
 
 @blueprint.route('/set_ssh_pubkey_status', endpoint='set_ssh_pubkey_status', methods=['POST'])
 @panel_login_required
@@ -133,7 +133,7 @@ def set_ssh_pubkey_status():
     if yf.isAppleSystem():
         return yf.returnData(True, '开发机不能设置!')
     status = request.form.get('status', '1')
-    return MwFirewall.instance().setSshPubkeyStatus(status)
+    return YfFirewall.instance().setSshPubkeyStatus(status)
 
 
 @blueprint.route('/set_firewall_status', endpoint='set_firewall_status', methods=['POST'])
@@ -143,7 +143,7 @@ def set_firewall_status():
     port = request.form.get('port', '')
     protocol = request.form.get('protocol', '')
     status = request.form.get('status', '1')
-    return MwFirewall.instance().setStatus(fid, port, protocol, status)
+    return YfFirewall.instance().setStatus(fid, port, protocol, status)
 
 
 
@@ -155,15 +155,15 @@ def set_firewall_status():
 @blueprint.route('/sync_server', endpoint='sync_server', methods=['POST'])
 @panel_login_required
 def sync_server():
-    return MwFirewall.instance().syncServer()
+    return YfFirewall.instance().syncServer()
 
 
 @blueprint.route('/check_root_ssh_key', endpoint='check_root_ssh_key', methods=['POST'])
 @panel_login_required
 def check_root_ssh_key():
-    return MwFirewall.instance().checkRootSshKey()
+    return YfFirewall.instance().checkRootSshKey()
 
 @blueprint.route('/reset_root_ssh_key', endpoint='reset_root_ssh_key', methods=['POST'])
 @panel_login_required
 def reset_root_ssh_key():
-    return MwFirewall.instance().resetRootSshKey()
+    return YfFirewall.instance().resetRootSshKey()

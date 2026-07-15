@@ -41,8 +41,8 @@ def init():
     # 自动识别防火墙配置
     firewall_port = thisdb.getOption('setpu_auto_identify_firewall_port', default='no')
     if firewall_port == 'no':
-        from utils.firewall import Firewall as MwFirewall
-        MwFirewall.instance().aIF()
+        from utils.firewall import Firewall as YfFirewall
+        YfFirewall.instance().aIF()
         thisdb.setOption('setpu_auto_identify_firewall_port', 'yes')
 
     # 宝塔面板迁移后的软件环境自动重建
