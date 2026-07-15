@@ -15,7 +15,7 @@ import json
 from flask import Blueprint, render_template
 from flask import request
 
-from utils.plugin import plugin as MwPlugin
+from utils.plugin import plugin as YfPlugin
 from admin.user_login_check import panel_login_required
 
 
@@ -35,21 +35,21 @@ def index():
 @blueprint.route('/init', endpoint='init', methods=['POST'])
 @panel_login_required
 def init():
-    return MwPlugin.instance().init()
+    return YfPlugin.instance().init()
 
 # 初始化安装
 @blueprint.route('/init_install', endpoint='init_install', methods=['POST'])
 @panel_login_required
 def init_install(): 
     plugin_list = request.form.get('list', '')
-    return MwPlugin.instance().initInstall(plugin_list)
+    return YfPlugin.instance().initInstall(plugin_list)
 
 # 首页软件展示
 @blueprint.route('/index_list', endpoint='index_list', methods=['GET','POST'])
 @panel_login_required
 def index_list():
     simple = request.args.get('simple', '0') == '1'
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     return pg.getIndexList(simple=simple)
 
 # 插件列表
@@ -67,7 +67,7 @@ def list():
     if not yf.isNumber(page):
         page = 0
 
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     return pg.getList(plugins_type, search, int(page), 10, show_third_party)
 
 # 插件设置是否在首页展示
@@ -78,7 +78,7 @@ def set_index():
     status = request.form.get('status', '0')
     version = request.form.get('version', '')
 
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     if status == '1':
         return pg.addIndex(name, version)
     return pg.removeIndex(name, version)
@@ -94,7 +94,7 @@ def install():
     if 'upgrade' in request.form:
         upgrade = True
 
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     return pg.install(name, version, upgrade=upgrade)
 
 # 插件卸载
@@ -105,7 +105,7 @@ def uninstall():
     version = request.form.get('version', '')
     force = request.form.get('force', '0') == '1'
     backup = request.form.get('backup', '0') == '1'
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     return pg.uninstall(name, version, force=force, backup=backup)
 
 # 文件读取
@@ -113,7 +113,7 @@ def uninstall():
 @panel_login_required
 def menu():
     data = utils_config.getGlobalVar()
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     tag = request.args.get('tag', '')
 
     hook_menu = thisdb.getOptionByJson('hook_menu',type='hook',default=[])
@@ -195,7 +195,7 @@ def file():
 @panel_login_required
 def update_zip():
     request_zip = request.files['plugin_zip']
-    return MwPlugin.instance().updateZip(request_zip)
+    return YfPlugin.instance().updateZip(request_zip)
 
 
 @blueprint.route('/input_zip', endpoint='input_zip', methods=['POST'])
@@ -203,14 +203,14 @@ def update_zip():
 def input_zip():
     plugin_name = request.form.get('plugin_name', '')
     tmp_path = request.form.get('tmp_path', '')
-    return MwPlugin.instance().inputZipApi(plugin_name,tmp_path)
+    return YfPlugin.instance().inputZipApi(plugin_name,tmp_path)
 
 
 # 清除插件缓存
 @blueprint.route('/clear_cache', endpoint='clear_cache', methods=['POST', 'GET'])
 @panel_login_required
 def clear_cache():
-    MwPlugin.instance().clearCache()
+    YfPlugin.instance().clearCache()
     return yf.returnData(True, '缓存已清除')
 
 
@@ -245,7 +245,7 @@ def run():
         if now - cache_time < 10:
             return cache_data
 
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     data = pg.run(name, func, version, args, script)
     if data[1] == '':
         r = yf.returnData(True, "OK", data[0].strip())
@@ -267,7 +267,7 @@ def callback():
     args = request.form.get('args', '')
     script = request.form.get('script', 'index')
 
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     data = pg.callback(name, func, args=args, script=script)
     if data[0]:
         return yf.returnData(True, "OK", data[1])
@@ -283,7 +283,7 @@ def run_batch():
     except:
         req_list = []
 
-    pg = MwPlugin.instance()
+    pg = YfPlugin.instance()
     import time
     now = time.time()
     results = {}
@@ -317,7 +317,7 @@ def run_batch():
         from concurrent.futures import ThreadPoolExecutor
 
         def run_single_task(task):
-            pg_inst = MwPlugin.instance()
+            pg_inst = YfPlugin.instance()
             try:
                 data = pg_inst.run(task['name'], task['func'], task['version'], task['args'], task['script'])
                 return task, data, None

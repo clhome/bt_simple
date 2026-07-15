@@ -1674,8 +1674,8 @@ def installPreInspection(version):
 def uninstallPreInspection(version):
     stop()
 
-    from utils.plugin import plugin as MwPlugin
-    MwPlugin.instance().removeIndex(getPluginName(), version)
+    from utils.plugin import plugin as YfPlugin
+    YfPlugin.instance().removeIndex(getPluginName(), version)
 
     return "强制删除会删除MongoDB[{}]数据目录<br/>  {}".format(version, getServerDir())
 

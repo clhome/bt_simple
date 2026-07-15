@@ -112,8 +112,8 @@ class sites(object):
         if hook_num == 0:
             return
 
-        from utils.plugin import plugin as MwPlugin
-        pa = MwPlugin.instance()
+        from utils.plugin import plugin as YfPlugin
+        pa = YfPlugin.instance()
 
         for x in range(hook_num):
             hook_data = hook_cfg[x]

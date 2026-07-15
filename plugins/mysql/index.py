@@ -4147,8 +4147,8 @@ def uninstallPreInspection(version):
     yf.execShell('rm -f /tmp/mysql.sock*')
     yf.execShell('rm -f /var/tmp/mysql.sock*')
 
-    from utils.plugin import plugin as MwPlugin
-    MwPlugin.instance().removeIndex(getPluginName(), version)
+    from utils.plugin import plugin as YfPlugin
+    YfPlugin.instance().removeIndex(getPluginName(), version)
 
     return 'ok'
 
