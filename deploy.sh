@@ -400,8 +400,24 @@ set_panel_version() {
     log_info "设置面板版本号..."
     local final_ver=""
     
+    # 0. 如果是执行远端最新版本升级，优先使用该版本，并同步修改本地文件
+    if [ "$IS_UPDATING_TO_LATEST" = "true" ] && [ -n "$LATEST_REMOTE_VER" ]; then
+        final_ver="$LATEST_REMOTE_VER"
+        # 尝试同步修改 version.py 的硬编码，以防下一次读取错误
+        if [ -f ${PANEL_DIR}/web/version.py ]; then
+            local new_rel=$(echo "$final_ver" | awk -F. '{print $1}')
+            local new_rev=$(echo "$final_ver" | awk -F. '{print $2}')
+            local new_smv=$(echo "$final_ver" | awk -F. '{print $3}' | awk -F- '{print $1}')
+            if [ -n "$new_rel" ] && [ -n "$new_rev" ] && [ -n "$new_smv" ]; then
+                sed -i "s/^[[:space:]]*APP_RELEASE[[:space:]]*=.*/APP_RELEASE = $new_rel/" ${PANEL_DIR}/web/version.py
+                sed -i "s/^[[:space:]]*APP_REVISION[[:space:]]*=.*/APP_REVISION = $new_rev/" ${PANEL_DIR}/web/version.py
+                sed -i "s/^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=.*/APP_SMALL_VERSION = $new_smv/" ${PANEL_DIR}/web/version.py
+            fi
+        fi
+    fi
+    
     # 1. 优先尝试从本地已下载覆盖的 web/version.py 中解析硬编码版本（最稳健的离线方案）
-    if [ -f ${PANEL_DIR}/web/version.py ]; then
+    if [ -z "$final_ver" ] && [ -f ${PANEL_DIR}/web/version.py ]; then
         local app_rel=$(grep -E '^[[:space:]]*APP_RELEASE[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
         local app_rev=$(grep -E '^[[:space:]]*APP_REVISION[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
         local app_smv=$(grep -E '^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=[[:space:]]*' ${PANEL_DIR}/web/version.py | awk -F '=' '{print $2}' | tr -d '[:space:]"')
@@ -1248,25 +1264,24 @@ migrate_from_bt() {
 check_version_and_update() {
     local local_ver="0.0.0"
     if [ -f ${PANEL_DIR}/.version ]; then
-        local_ver=$(cat ${PANEL_DIR}/.version | sed 's/^v//' | tr -d '
-
- ')
+        local_ver=$(cat ${PANEL_DIR}/.version | sed 's/^v//' | tr -d '\r\n ')
     fi
 
     log_info "正在检查远端最新版本..."
-    local remote_ver=""
+    local exact_tag=""
     if type github_api_get >/dev/null 2>&1; then
-        remote_ver=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+        exact_tag=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     else
-        remote_ver=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+        exact_tag=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     fi
 
-    if [ -z "$remote_ver" ]; then
+    if [ -z "$exact_tag" ]; then
         log_warn "获取远端版本号失败（可能受限于国内网络），将直接执行强行覆盖升级..."
         migrate_from_mw
         return 0
     fi
 
+    local remote_ver=$(echo "$exact_tag" | sed 's/^v//')
     log_info "当前本地版本: ${local_ver} | 远端最新版本: ${remote_ver}"
 
     if [ "$local_ver" = "$remote_ver" ]; then
@@ -1278,6 +1293,9 @@ check_version_and_update() {
     local winner=$(echo -e "${local_ver}\n${remote_ver}" | sort -V | tail -n 1)
     if [ "$winner" = "$remote_ver" ] && [ "$local_ver" != "$remote_ver" ]; then
         log_info "检测到新版本，开始静默升级..."
+        export GIT_BRANCH="$exact_tag"
+        export IS_UPDATING_TO_LATEST="true"
+        export LATEST_REMOTE_VER="${remote_ver}"
         migrate_from_mw
     else
         log_info "本地版本已等于或高于远端版本，跳过升级。"
