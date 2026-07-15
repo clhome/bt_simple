@@ -73,4 +73,4 @@ endTime=`date +%s`
 ((outTime=(${endTime}-${startTime})/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 
-} 1> >(tee /www/server/yufeng_panel/logs/mw-app.log) 2>&1
+} 1> >(tee /www/server/yufeng_panel/logs/yf-app.log) 2>&1

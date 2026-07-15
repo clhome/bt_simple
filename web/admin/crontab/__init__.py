@@ -15,7 +15,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 
-from utils.crontab import crontab as MwCrontab
+from utils.crontab import crontab as YfCrontab
 import core.yf as yf
 import thisdb
 
@@ -35,28 +35,28 @@ def list():
     search = request.args.get('search', '').strip()
     orderby = request.args.get('orderby', 'last_run_time').strip()
     order = request.args.get('order', 'desc').strip()
-    return MwCrontab.instance().getCrontabList(page=int(page),size=int(limit), search=search, orderby=orderby, order=order)
+    return YfCrontab.instance().getCrontabList(page=int(page),size=int(limit), search=search, orderby=orderby, order=order)
 
 # 计划任务日志
 @blueprint.route('/logs', endpoint='logs', methods=['POST'])
 @panel_login_required
 def logs():
     cron_id = request.form.get('id', '')
-    return MwCrontab.instance().cronLog(cron_id)
+    return YfCrontab.instance().cronLog(cron_id)
 
 # 删除计划任务
 @blueprint.route('/del', endpoint='del', methods=['POST'])
 @panel_login_required
 def crontab_del():
     cron_id = request.form.get('id', '')   
-    return MwCrontab.instance().delete(cron_id)
+    return YfCrontab.instance().delete(cron_id)
 
 # 删除计划任务日志
 @blueprint.route('/del_logs', endpoint='del_logs', methods=['POST'])
 @panel_login_required
 def del_logs():
     cron_id = request.form.get('id', '')   
-    return MwCrontab.instance().delLogs(cron_id)
+    return YfCrontab.instance().delLogs(cron_id)
 
 
 # 设置计划任务状态
@@ -64,14 +64,14 @@ def del_logs():
 @panel_login_required
 def set_cron_status():
     cron_id = request.form.get('id', '')   
-    return MwCrontab.instance().setCronStatus(cron_id)
+    return YfCrontab.instance().setCronStatus(cron_id)
 
 # 设置计划任务状态
 @blueprint.route('/get_data_list', endpoint='get_data_list', methods=['POST'])
 @panel_login_required
 def get_data_list():
     stype = request.form.get('type', '')
-    return MwCrontab.instance().getDataList(stype)
+    return YfCrontab.instance().getDataList(stype)
 
 
 # 获取计划任务
@@ -79,7 +79,7 @@ def get_data_list():
 @panel_login_required
 def get_crond_find():
     cron_id = request.form.get('id', '')
-    data = MwCrontab.instance().getCrondFind(cron_id)
+    data = YfCrontab.instance().getCrondFind(cron_id)
     return data
 
 # 修改计划任务
@@ -103,7 +103,7 @@ def modify_crond():
     request_data['attr'] = request.form.get('attr', '')
     request_data['day_type'] = request.form.get('day_type', '0')
     cron_id = request.form.get('id', '')
-    data = MwCrontab.instance().modifyCrond(cron_id,request_data)
+    data = YfCrontab.instance().modifyCrond(cron_id,request_data)
     return data
 
 # 执行计划任务
@@ -111,7 +111,7 @@ def modify_crond():
 @panel_login_required
 def start_task():
     cron_id = request.form.get('id', '')
-    return MwCrontab.instance().startTask(cron_id)
+    return YfCrontab.instance().startTask(cron_id)
 
 # 添加计划任务
 @blueprint.route('/add', endpoint='add', methods=['POST'])
@@ -144,7 +144,7 @@ from flask import request
 
 from admin.user_login_check import panel_login_required
 
-from utils.crontab import crontab as MwCrontab
+from utils.crontab import crontab as YfCrontab
 import core.yf as yf
 import thisdb
 
@@ -164,28 +164,28 @@ def list():
     search = request.args.get('search', '').strip()
     orderby = request.args.get('orderby', 'last_run_time').strip()
     order = request.args.get('order', 'desc').strip()
-    return MwCrontab.instance().getCrontabList(page=int(page),size=int(limit), search=search, orderby=orderby, order=order)
+    return YfCrontab.instance().getCrontabList(page=int(page),size=int(limit), search=search, orderby=orderby, order=order)
 
 # 计划任务日志
 @blueprint.route('/logs', endpoint='logs', methods=['POST'])
 @panel_login_required
 def logs():
     cron_id = request.form.get('id', '')
-    return MwCrontab.instance().cronLog(cron_id)
+    return YfCrontab.instance().cronLog(cron_id)
 
 # 删除计划任务
 @blueprint.route('/del', endpoint='del', methods=['POST'])
 @panel_login_required
 def crontab_del():
     cron_id = request.form.get('id', '')   
-    return MwCrontab.instance().delete(cron_id)
+    return YfCrontab.instance().delete(cron_id)
 
 # 删除计划任务日志
 @blueprint.route('/del_logs', endpoint='del_logs', methods=['POST'])
 @panel_login_required
 def del_logs():
     cron_id = request.form.get('id', '')   
-    return MwCrontab.instance().delLogs(cron_id)
+    return YfCrontab.instance().delLogs(cron_id)
 
 
 # 设置计划任务状态
@@ -193,14 +193,14 @@ def del_logs():
 @panel_login_required
 def set_cron_status():
     cron_id = request.form.get('id', '')   
-    return MwCrontab.instance().setCronStatus(cron_id)
+    return YfCrontab.instance().setCronStatus(cron_id)
 
 # 设置计划任务状态
 @blueprint.route('/get_data_list', endpoint='get_data_list', methods=['POST'])
 @panel_login_required
 def get_data_list():
     stype = request.form.get('type', '')
-    return MwCrontab.instance().getDataList(stype)
+    return YfCrontab.instance().getDataList(stype)
 
 
 # 获取计划任务
@@ -208,7 +208,7 @@ def get_data_list():
 @panel_login_required
 def get_crond_find():
     cron_id = request.form.get('id', '')
-    data = MwCrontab.instance().getCrondFind(cron_id)
+    data = YfCrontab.instance().getCrondFind(cron_id)
     return data
 
 # 修改计划任务
@@ -232,7 +232,7 @@ def modify_crond():
     request_data['attr'] = request.form.get('attr', '')
     request_data['day_type'] = request.form.get('day_type', '0')
     cron_id = request.form.get('id', '')
-    data = MwCrontab.instance().modifyCrond(cron_id,request_data)
+    data = YfCrontab.instance().modifyCrond(cron_id,request_data)
     return data
 
 # 执行计划任务
@@ -240,7 +240,7 @@ def modify_crond():
 @panel_login_required
 def start_task():
     cron_id = request.form.get('id', '')
-    return MwCrontab.instance().startTask(cron_id)
+    return YfCrontab.instance().startTask(cron_id)
 
 # 添加计划任务
 @blueprint.route('/add', endpoint='add', methods=['POST'])
@@ -267,7 +267,7 @@ def add():
         return yf.returnData(False, '任务名称重复')
 
     try:
-        data = MwCrontab.instance().add(request_data)
+        data = YfCrontab.instance().add(request_data)
         if isinstance(data, dict):
             return data
         if data > 0:

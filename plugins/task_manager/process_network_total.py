@@ -136,7 +136,7 @@ class process_network_total:
             self.write_net_process()
 
     def write_net_process(self):
-        w_file = '/dev/shm/mw_net_process'
+        w_file = '/dev/shm/yf_net_process'
         process_size = copy.deepcopy(self.__net_process_size)
         net_process = []
         for pid in process_size.keys():

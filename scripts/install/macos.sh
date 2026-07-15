@@ -4,7 +4,7 @@ export PATH
 LANG=en_US.UTF-8
 
 USER=$(who | sed -n "2,1p" |awk '{print $1}')
-DEV="/Users/${USER}/Desktop/mwdev"
+DEV="/Users/${USER}/Desktop/yfdev"
 
 
 mkdir -p $DEV

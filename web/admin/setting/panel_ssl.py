@@ -23,7 +23,7 @@ from admin.user_login_check import panel_login_required
 import core.yf as yf
 import utils.config as utils_config
 
-from utils.setting import setting as MwSetting
+from utils.setting import setting as YfSetting
 
 from .setting import blueprint
 import thisdb
@@ -32,7 +32,7 @@ import thisdb
 @blueprint.route('/get_panel_ssl', endpoint='get_panel_ssl', methods=['POST'])
 @panel_login_required
 def get_panel_ssl():
-    return MwSetting.instance().getPanelSsl()
+    return YfSetting.instance().getPanelSsl()
 
 
 # 获取面板证书信息
@@ -42,14 +42,14 @@ def save_panel_ssl():
     choose = request.form.get('choose', '').strip()
     certPem = request.form.get('certPem', '').strip()
     privateKey = request.form.get('privateKey', '').strip()
-    return MwSetting.instance().savePanelSsl(choose,certPem,privateKey)
+    return YfSetting.instance().savePanelSsl(choose,certPem,privateKey)
 
 # 获取面板证书信息
 @blueprint.route('/del_panel_ssl', endpoint='del_panel_ssl', methods=['POST'])
 @panel_login_required
 def del_panel_ssl():
     choose = request.form.get('choose', '').strip()
-    return MwSetting.instance().delPanelSsl(choose)
+    return YfSetting.instance().delPanelSsl(choose)
 
 # 申请面板ACME证书
 @blueprint.route('/apply_panel_acme_ssl', endpoint='apply_panel_acme_ssl', methods=['POST'])
@@ -62,27 +62,27 @@ def apply_panel_acme_ssl():
     apply_type = request.form.get('apply_type', 'file')
     dnspai = request.form.get('dnspai','')
     dns_alias = request.form.get('dns_alias','')
-    return MwSetting.instance().createPanelAcme(domains, force, renew, apply_type, dnspai, email, dns_alias)
+    return YfSetting.instance().createPanelAcme(domains, force, renew, apply_type, dnspai, email, dns_alias)
 
 # 开启面板证书
 @blueprint.route('/set_panel_local_ssl', endpoint='set_panel_local_ssl', methods=['POST'])
 @panel_login_required
 def set_panel_local_ssl():
     cert_type = request.form.get('cert_type', '').strip()
-    return MwSetting.instance().setPanelLocalSsl(cert_type)
+    return YfSetting.instance().setPanelLocalSsl(cert_type)
 
 # 关闭面板证书
 @blueprint.route('/close_panel_ssl', endpoint='close_panel_ssl', methods=['POST'])
 @panel_login_required
 def close_panel_ssl():
-    return MwSetting.instance().closePanelSsl()
+    return YfSetting.instance().closePanelSsl()
 
 # 设置面板域名
 @blueprint.route('/set_panel_domain', endpoint='set_panel_domain', methods=['POST'])
 @panel_login_required
 def set_panel_domain():
     domain = request.form.get('domain', '').strip()
-    return MwSetting.instance().setPanelDomain(domain)
+    return YfSetting.instance().setPanelDomain(domain)
 
 
 

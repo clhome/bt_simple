@@ -79,7 +79,7 @@ class mainClass(object):
 
     def get_process_net_list(self):
         import copy
-        w_file = '/dev/shm/mw_net_process'
+        w_file = '/dev/shm/yf_net_process'
         if not os.path.exists(w_file): return
         net_process_body = yf.readFile(w_file)
         if not net_process_body: return

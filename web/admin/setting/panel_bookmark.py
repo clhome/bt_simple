@@ -23,7 +23,7 @@ from admin.user_login_check import panel_login_required
 import core.yf as yf
 import utils.config as utils_config
 
-from utils.setting import setting as MwSetting
+from utils.setting import setting as YfSetting
 
 from .setting import blueprint
 import thisdb

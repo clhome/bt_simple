@@ -22,7 +22,7 @@ if [ -f /etc/rc.d/init.d/yf ];then
     bash /etc/rc.d/init.d/yf stop && rm -rf /www/server/yufeng_panel/scripts/init.d/yf && rm -rf /etc/rc.d/init.d/yf
 fi
 
-echo -e "stop mw"
+echo -e "stop yf"
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 
 port=7200
@@ -43,11 +43,11 @@ do
 done
 
 
-echo -e "start mw"
+echo -e "start yf"
 cd /www/server/yufeng_panel && sh cli.sh start
 isStart=`ps -ef|grep 'gunicorn -c setting.py app:app' |grep -v grep|awk '{print $2}'`
 n=0
-while [[ ! -f /etc/init.d/mw ]];
+while [[ ! -f /etc/init.d/yf ]];
 do
     echo -e ".\c"
     sleep 0.5
@@ -56,4 +56,4 @@ do
         break;
     fi
 done
-echo -e "start mw success"
+echo -e "start yf success"

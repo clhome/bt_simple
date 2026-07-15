@@ -289,8 +289,8 @@ def yfcli(yf_input=0):
         YfFirewall.instance().aIF()
         yf.echoInfo("执行自动识别防火墙端口到面板成功!")
     elif yf_input == 29:
-        from utils.site_reflect import parse as MwParse
-        MwParse()
+        from utils.site_reflect import parse as YfParse
+        YfParse()
         yf.echoInfo("自动识别配置站点信息成功!")
     elif yf_input == 100:
         php_conf = panel_dir + '/plugins/php/info.json'

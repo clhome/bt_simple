@@ -18,7 +18,7 @@ from flask import request
 from admin.user_login_check import panel_login_required
 
 import core.yf as yf
-import utils.task as MwTasks
+import utils.task as YfTasks
 import thisdb
 
 blueprint = Blueprint('task', __name__, url_prefix='/task', template_folder='../../templates/default')
@@ -35,7 +35,7 @@ def list():
     p = request.form.get('p', '1')
     limit = request.form.get('limit', '10').strip()
     search = request.form.get('search', '').strip()
-    return MwTasks.getTaskPage(int(p), int(limit))
+    return YfTasks.getTaskPage(int(p), int(limit))
 
 @blueprint.route('/get_exec_log', endpoint='get_exec_log', methods=['POST'])
 @panel_login_required
@@ -100,7 +100,7 @@ def remove_task():
     task_id = request.form.get('id', '')
     if task_id == '':
         return yf.returnData(False, '任务ID不能为空!')
-    return MwTasks.removeTask(task_id)
+    return YfTasks.removeTask(task_id)
 
 
     

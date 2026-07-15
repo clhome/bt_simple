@@ -136,4 +136,5 @@ data/sessions/*
 
 
 
-script/init.d/mw
+scripts/init.d/yf
+scripts/init.d/yf.tpl

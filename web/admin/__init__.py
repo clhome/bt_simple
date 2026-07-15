@@ -80,8 +80,8 @@ else:
 # app.config['sessions'] = dict()
 app.config['SESSION_PERMANENT'] = True
 app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'MW_:'
-app.config['SESSION_COOKIE_NAME'] = "MW_VER_1"
+app.config['SESSION_KEY_PREFIX'] = 'YF_:'
+app.config['SESSION_COOKIE_NAME'] = "YF_VER_1"
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
