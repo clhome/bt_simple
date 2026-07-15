@@ -879,7 +879,7 @@ db_path = '${PANEL_DIR}/data/panel.db'
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 cursor.execute(\"UPDATE option SET value = REPLACE(value, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE value LIKE '%mdserver-web%'\")
-cursor.execute(\"UPDATE crontab SET command = REPLACE(command, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE command LIKE '%mdserver-web%'\")
+cursor.execute(\"UPDATE crontab SET echo = REPLACE(echo, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE echo LIKE '%mdserver-web%'\")
 cursor.execute(\"UPDATE crontab SET sBody = REPLACE(sBody, '/www/server/mdserver-web', '/www/server/yufeng_panel') WHERE sBody LIKE '%mdserver-web%'\")
 conn.commit()
 conn.close()
