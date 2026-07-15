@@ -911,6 +911,13 @@ conn.close()
         find /www/server/openresty/ -type f -name "*.conf" -exec sed -i 's|/www/server/mdserver-web|/www/server/yufeng_panel|g' {} + 2>/dev/null
     fi
 
+    # 更新 cron 任务中可能残留的废弃模块调用
+    log_info "更新系统计划任务脚本中的废弃 Python 调用..."
+    if [ -d "/www/server/cron/" ]; then
+        find /www/server/cron/ -type f -exec sed -i 's/import core.mw as mw/import core.yf as yf/g' {} + 2>/dev/null
+        find /www/server/cron/ -type f -exec sed -i 's/mw.formatDate()/yf.formatDate()/g' {} + 2>/dev/null
+    fi
+
     # 检查依赖
     log_info "检查 Python 依赖..."
     if [ -f ${PANEL_DIR}/bin/activate ]; then
