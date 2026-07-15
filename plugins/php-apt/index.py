@@ -168,8 +168,8 @@ def phpFpmWwwReplace(version):
         yf.execShell('mv ' + service_php_fpmwww +
                      ' ' + service_php_fpmwww + '.bak')
 
-    service_php_fpm_mw = service_php_fpm_dir + '/yf.conf'
-    if not os.path.exists(service_php_fpm_mw):
+    service_php_fpm_yf = service_php_fpm_dir + '/yf.conf'
+    if not os.path.exists(service_php_fpm_yf):
         tpl_php_fpmwww = getPluginDir() + '/conf/www.conf'
         content = yf.readFile(tpl_php_fpmwww)
         content = contentReplace(content, version)
@@ -197,7 +197,7 @@ def phpFpmWwwReplace(version):
         except Exception as e:
             yf.writeLog('php-apt', '动态配置 FPM 进程数失败: ' + str(e))
 
-        yf.writeFile(service_php_fpm_mw, content)
+        yf.writeFile(service_php_fpm_yf, content)
 
 
 def deleteConfList(version):
