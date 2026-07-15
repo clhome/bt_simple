@@ -1,6 +1,6 @@
 <?php
 
-if (isset($_GET['mw_opcache_reset']) && $_GET['mw_opcache_reset'] == 'ok') {
+if (isset($_GET['yf_opcache_reset']) && $_GET['yf_opcache_reset'] == 'ok') {
 	opcache_reset();
 }
 

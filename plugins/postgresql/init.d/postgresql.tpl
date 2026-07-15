@@ -16,11 +16,11 @@
 PATH=/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export LC_ALL="en_US.UTF-8"
 
-MW_PATH={$SERVER_PATH}
-PATH=$PATH:$MW_PATH/bin
+YF_PATH={$SERVER_PATH}
+PATH=$PATH:$YF_PATH/bin
 
-if [ -f $MW_PATH/bin/activate ];then
-    source $MW_PATH/bin/activate
+if [ -f $YF_PATH/bin/activate ];then
+    source $YF_PATH/bin/activate
 fi
 
 pg_start()
