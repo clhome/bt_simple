@@ -130,21 +130,21 @@ def updateServer(stype, version='', step='all'):
                     yf.makeDirs(toPath)
 
                 newUrl = yf.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
-                dist_mw = toPath + '/yf.zip'
+                dist_yf = toPath + '/yf.zip'
                 # 强制重新下载
-                if os.path.exists(dist_mw): yf.execShell('rm -f ' + dist_mw)
+                if os.path.exists(dist_yf): yf.execShell('rm -f ' + dist_yf)
                 
-                yf.execShell('wget --no-check-certificate -O ' + dist_mw + ' ' + newUrl)
+                yf.execShell('wget --no-check-certificate -O ' + dist_yf + ' ' + newUrl)
                 
-                if not os.path.exists(dist_mw):
+                if not os.path.exists(dist_yf):
                     return yf.returnData(False, '文件下载失败!')
 
-                if os.path.getsize(dist_mw) < 1048576:
-                    yf.execShell('rm -f ' + dist_mw)
+                if os.path.getsize(dist_yf) < 1048576:
+                    yf.execShell('rm -f ' + dist_yf)
                     return yf.returnData(False, '下载到的文件异常（小于1MB），可能是网络原因或代理失效导致下载失败!')
 
                 # 解压
-                os.system('unzip -o ' + dist_mw + ' -d ' + toPath)
+                os.system('unzip -o ' + dist_yf + ' -d ' + toPath)
                 if step == 'download':
                     return yf.returnData(True, '下载并解压成功!')
 

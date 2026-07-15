@@ -413,7 +413,7 @@ def export_all():
     try:
         site_list = yf.M('sites').field('id,name,path,status,ps,edate,type_id,add_time,update_time').select()
         exported_sites = []
-        mw_sites = YfSites.instance()
+        yf_sites = YfSites.instance()
         
         for s in site_list:
             site_id = s['id']
@@ -423,13 +423,13 @@ def export_all():
             bindings = yf.M('binding').where('pid=?', (site_id,)).field('domain,port,path,add_time').select()
             
             # vhost conf
-            vhost_file = mw_sites.getHostConf(site_name)
+            vhost_file = yf_sites.getHostConf(site_name)
             vhost_conf = ""
             if os.path.exists(vhost_file):
                 vhost_conf = yf.readFile(vhost_file)
                 
             # rewrite conf
-            rewrite_file = mw_sites.getRewriteConf(site_name)
+            rewrite_file = yf_sites.getRewriteConf(site_name)
             rewrite_conf = ""
             if os.path.exists(rewrite_file):
                 rewrite_conf = yf.readFile(rewrite_file)
@@ -438,23 +438,23 @@ def export_all():
             binding_rewrites = {}
             for b in bindings:
                 b_path = b['path']
-                b_rew_file = mw_sites.getDirBindRewrite(site_name, b_path)
+                b_rew_file = yf_sites.getDirBindRewrite(site_name, b_path)
                 if os.path.exists(b_rew_file):
                     binding_rewrites[b_path] = yf.readFile(b_rew_file)
                     
             # pass conf
-            pass_file = mw_sites.passPath + '/' + site_name + '.pass'
+            pass_file = yf_sites.passPath + '/' + site_name + '.pass'
             pass_conf = ""
             if os.path.exists(pass_file):
                 pass_conf = yf.readFile(pass_file)
                 
             # proxy
             proxy_data = {}
-            proxy_data_file = mw_sites.getProxyDataPath(site_name)
+            proxy_data_file = yf_sites.getProxyDataPath(site_name)
             if os.path.exists(proxy_data_file):
                 proxy_data['data_json'] = yf.readFile(proxy_data_file)
                 proxy_confs = {}
-                proxy_dir = mw_sites.getProxyPath(site_name)
+                proxy_dir = yf_sites.getProxyPath(site_name)
                 if os.path.exists(proxy_dir):
                     for f in os.listdir(proxy_dir):
                         if f.endswith('.conf'):
@@ -465,11 +465,11 @@ def export_all():
                 
             # redirect
             redirect_data = {}
-            redirect_data_file = mw_sites.getRedirectDataPath(site_name)
+            redirect_data_file = yf_sites.getRedirectDataPath(site_name)
             if os.path.exists(redirect_data_file):
                 redirect_data['data_json'] = yf.readFile(redirect_data_file)
                 redirect_confs = {}
-                redirect_dir = mw_sites.getRedirectPath(site_name)
+                redirect_dir = yf_sites.getRedirectPath(site_name)
                 if os.path.exists(redirect_dir):
                     for f in os.listdir(redirect_dir):
                         if f.endswith('.conf'):
@@ -480,8 +480,8 @@ def export_all():
                 
             # ssl
             ssl_data = {}
-            fullchain_file = mw_sites.sslDir + '/' + site_name + '/fullchain.pem'
-            privkey_file = mw_sites.sslDir + '/' + site_name + '/privkey.pem'
+            fullchain_file = yf_sites.sslDir + '/' + site_name + '/fullchain.pem'
+            privkey_file = yf_sites.sslDir + '/' + site_name + '/privkey.pem'
             if os.path.exists(fullchain_file):
                 ssl_data['fullchain'] = yf.readFile(fullchain_file)
             if os.path.exists(privkey_file):
@@ -523,7 +523,7 @@ def check_import_conflicts():
             
         conflicts = []
         normal = []
-        mw_sites = YfSites.instance()
+        yf_sites = YfSites.instance()
         
         for s in sites_list:
             site_data = s.get('site')
@@ -538,7 +538,7 @@ def check_import_conflicts():
             conflict_reasons = []
             
             # 1. 检查站点名或配置文件
-            if thisdb.isSitesExist(site_name) or os.path.exists(mw_sites.getHostConf(site_name)):
+            if thisdb.isSitesExist(site_name) or os.path.exists(yf_sites.getHostConf(site_name)):
                 is_conflict = True
                 conflict_reasons.append("站点名已存在")
                 
@@ -591,7 +591,7 @@ def import_all():
         
     success_count = 0
     skip_count = 0
-    mw_sites = YfSites.instance()
+    yf_sites = YfSites.instance()
     
     for s in sites_list:
         site_data = s.get('site')
@@ -606,13 +606,13 @@ def import_all():
         site_id_in_db = yf.M('sites').where('name=?', (site_name,)).getField('id')
         
         # 检查站点是否已经存在 (数据库中或 vhost 配置文件存在)
-        if site_id_in_db or os.path.exists(mw_sites.getHostConf(site_name)):
+        if site_id_in_db or os.path.exists(yf_sites.getHostConf(site_name)):
             if not is_overwrite:
                 skip_count += 1
                 continue
             else:
                 if site_id_in_db:
-                    mw_sites.delete(str(site_id_in_db), '')
+                    yf_sites.delete(str(site_id_in_db), '')
         
         # 如果域名被其他站点占用且选择了覆盖，为了保证导入成功，将冲突的域名从原站点解除
         if is_overwrite:
@@ -660,35 +660,35 @@ def import_all():
                 
             # 4. 创建站点目录
             site_path = site_data.get('path')
-            mw_sites.createRootDir(site_path)
+            yf_sites.createRootDir(site_path)
             
             # 5. 还原各项配置文件
             # vhost_conf
-            vhost_file = mw_sites.getHostConf(site_name)
+            vhost_file = yf_sites.getHostConf(site_name)
             if s.get('vhost_conf') is not None:
                 yf.writeFile(vhost_file, s['vhost_conf'])
                 
             # rewrite_conf
-            rewrite_file = mw_sites.getRewriteConf(site_name)
+            rewrite_file = yf_sites.getRewriteConf(site_name)
             if s.get('rewrite_conf') is not None:
                 yf.writeFile(rewrite_file, s['rewrite_conf'])
                 
             # binding_rewrites
             for b_path, b_rewrite_content in s.get('binding_rewrites', {}).items():
-                b_rew_file = mw_sites.getDirBindRewrite(site_name, b_path)
+                b_rew_file = yf_sites.getDirBindRewrite(site_name, b_path)
                 yf.writeFile(b_rew_file, b_rewrite_content)
                 
             # pass_conf
             if s.get('pass_conf') is not None:
-                pass_file = mw_sites.passPath + '/' + site_name + '.pass'
+                pass_file = yf_sites.passPath + '/' + site_name + '.pass'
                 yf.writeFile(pass_file, s['pass_conf'])
                 
             # proxy
             if s.get('proxy'):
                 p_data = s['proxy']
-                proxy_dir = mw_sites.getProxyPath(site_name)
+                proxy_dir = yf_sites.getProxyPath(site_name)
                 if p_data.get('data_json') is not None:
-                    proxy_json_file = mw_sites.getProxyDataPath(site_name)
+                    proxy_json_file = yf_sites.getProxyDataPath(site_name)
                     yf.writeFile(proxy_json_file, p_data['data_json'])
                 for p_id, p_conf_content in p_data.get('confs', {}).items():
                     p_conf_file = proxy_dir + '/' + p_id + '.conf'
@@ -697,9 +697,9 @@ def import_all():
             # redirect
             if s.get('redirect'):
                 r_data = s['redirect']
-                redirect_dir = mw_sites.getRedirectPath(site_name)
+                redirect_dir = yf_sites.getRedirectPath(site_name)
                 if r_data.get('data_json') is not None:
-                    redirect_json_file = mw_sites.getRedirectDataPath(site_name)
+                    redirect_json_file = yf_sites.getRedirectDataPath(site_name)
                     yf.writeFile(redirect_json_file, r_data['data_json'])
                 for r_id, r_conf_content in r_data.get('confs', {}).items():
                     r_conf_file = redirect_dir + '/' + r_id + '.conf'
@@ -708,14 +708,14 @@ def import_all():
             # ssl
             if s.get('ssl'):
                 ssl_data = s['ssl']
-                ssl_site_dir = mw_sites.sslDir + '/' + site_name
+                ssl_site_dir = yf_sites.sslDir + '/' + site_name
                 if ssl_data.get('fullchain') is not None:
                     yf.writeFile(ssl_site_dir + '/fullchain.pem', ssl_data['fullchain'])
                 if ssl_data.get('privkey') is not None:
                     yf.writeFile(ssl_site_dir + '/privkey.pem', ssl_data['privkey'])
                     
             # 6. 防跨站配置
-            mw_sites.addDirUserIni(site_path, '')
+            yf_sites.addDirUserIni(site_path, '')
             success_count += 1
         except Exception as e:
             # 忽略单个站点报错，继续下一个

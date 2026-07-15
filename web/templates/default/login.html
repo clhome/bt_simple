@@ -167,7 +167,7 @@
 			<div class="line yzm" style="{% if not session['code'] %}display:none;{% else %}display:flex;{% endif %}">
 				<input type="text" class="inputtxt" name="code" nullmsg="请填写4位验证码" errormsg="验证码" datatype="*" placeholder="验证码">
 				<div class="Validform_checktip"></div>
-				<div id='mw_yzm'>{% if session['code'] %}<img width="100" height="40" class="passcode" onclick="this.src=this.src.split('?')[0] + '?'+new Date().getTime()" src="/code" style="border: 1px solid #ccc; float: right;" title="" >{% endif %}</div>
+				<div id='yf_yzm'>{% if session['code'] %}<img width="100" height="40" class="passcode" onclick="this.src=this.src.split('?')[0] + '?'+new Date().getTime()" src="/code" style="border: 1px solid #ccc; float: right;" title="" >{% endif %}</div>
 			</div>
 			<div class="login_btn"><input id="login-button" value="登录" type="submit"></div>
 			<p class="pwinfo" style="display:none"></p>
@@ -238,7 +238,7 @@ $('#login-button').on('click', function(){
 			num = rdata.msg.substring(rdata.msg.indexOf('[')+1,rdata.msg.indexOf(']'))
 			if(num < 5){
 				var code_html = '<img width="100" height="40" class="passcode" onClick="this.src=this.src.split(\'?\')[0] + \'?\'+new Date().getTime()" src="/code" style="border: 1px solid #ccc; float: right;">';
-				$('#mw_yzm').html(code_html);
+				$('#yf_yzm').html(code_html);
 				// $(".login").css("height","332px");
 				$("input[name='code']").val('');
 				$(".passcode").click();

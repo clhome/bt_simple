@@ -308,9 +308,9 @@ def getAuditLogsName(log_name):
 
 def getLogsTitle(log_name):
     log_name = log_name.replace('.1', '')
-    if log_name in ['mw-update.log']:
+    if log_name in ['mw-update.log', 'yf-update.log']:
         return '面板更新日志'
-    if log_name in ['mw-install.log']:
+    if log_name in ['mw-install.log', 'yf-install.log']:
         return '面板安装日志'
     if log_name in ['auth.log', 'secure'] or log_name.find('auth.') == 0:
         return '授权日志'

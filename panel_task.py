@@ -173,7 +173,7 @@ def runPanelTask():
                 thisdb.setTaskStatus(run_task['id'], -1)
 
                 if run_task['type'] == 'download':
-                    argv = run_task['cmd'].split('|mw|')
+                    argv = run_task['cmd'].split('|yf|')
                     downloadFile(argv[0], argv[1], task_id=run_task['id'])
                 elif run_task['type'] == 'execshell':
                     execShell(run_task['cmd'], task_id=run_task['id'])

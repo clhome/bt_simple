@@ -343,6 +343,7 @@ sleep 2
 if [ ! -e /usr/bin/yf ]; then
 	if [ -f /etc/rc.d/init.d/yf ];then
 		ln -s /etc/rc.d/init.d/yf /usr/bin/yf
+		ln -s /etc/rc.d/init.d/yf /usr/bin/mw
 	fi
 fi
 

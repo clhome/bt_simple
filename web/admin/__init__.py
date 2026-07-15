@@ -198,8 +198,6 @@ def requestCheck():
 
 @app.after_request
 def requestAfter(response):
-    # response.headers['soft'] = config.APP_NAME
-    # response.headers['mw-version'] = config.APP_VERSION
     response.headers['X-Response-Time'] = round(time.time() - request.start_time, 4) 
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-Content-Type-Options'] = 'nosniff'

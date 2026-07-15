@@ -945,10 +945,10 @@ def getRecycleBin():
         try:
             tmp = {}
             fname = rb_dir+'/'+ file
-            tmp1 = file.split('_mw_')
+            tmp1 = file.replace('_mw_', '_yf_').split('_yf_')
             tmp2 = tmp1[len(tmp1) - 1].split('_t_')
             tmp['rname'] = file
-            tmp['dname'] = file.replace('_mw_', '/').split('_t_')[0]
+            tmp['dname'] = file.replace('_mw_', '/').replace('_yf_', '/').split('_t_')[0]
             tmp['name'] = tmp2[0]
             tmp['time'] = int(float(tmp2[1]))
             if os.path.islink(fname):
@@ -978,7 +978,7 @@ def delRecycleBin(path):
     else:
         os.remove(rb_file)
 
-    tfile = path.replace('_mw_', '/').split('_t_')[0]
+    tfile = path.replace('_mw_', '/').replace('_yf_', '/').split('_t_')[0]
     msg = yf.getInfo('已彻底从回收站删除[{1}]!', (tfile,))
     yf.writeLog('文件管理', msg)
     return yf.returnJson(True, msg)
@@ -986,7 +986,7 @@ def delRecycleBin(path):
 # 移动到回收站
 def mvRecycleBin(path):
     rb_dir = yf.getRecycleBinDir()
-    rb_file = rb_dir + '/' + path.replace('/', '_mw_') + '_t_' + str(time.time())
+    rb_file = rb_dir + '/' + path.replace('/', '_yf_') + '_t_' + str(time.time())
     try:
         import shutil
         shutil.move(path, rb_file)
@@ -999,7 +999,7 @@ def mvRecycleBin(path):
 # 回收站文件恢复
 def reRecycleBin(path):
     rb_dir = yf.getRecycleBinDir()
-    dst_file = path.replace('_mw_', '/').split('_t_')[0]
+    dst_file = path.replace('_mw_', '/').replace('_yf_', '/').split('_t_')[0]
     try:
         import shutil
         shutil.move(rb_dir + '/' + path, dst_file)

@@ -163,7 +163,7 @@ class crontab(object):
             return yf.returnData(is_check_pass, msg)
 
         # 1. 预先生成随机标识
-        cron_name = yf.md5(yf.md5(str(time.time()) + '_mw'))
+        cron_name = yf.md5(yf.md5(str(time.time()) + '_yf'))
         data['echo'] = cron_name
 
         # 2. 构造数据库记录并插入以获取 tid
@@ -448,7 +448,7 @@ class crontab(object):
     # 取执行脚本
     def getShell(self, param):
         if not 'echo' in param:
-            cron_name = yf.md5(yf.md5(str(time.time()) + '_mw'))
+            cron_name = yf.md5(yf.md5(str(time.time()) + '_yf'))
         else:
             cron_name = param['echo']
         param['echo'] = cron_name
@@ -461,7 +461,7 @@ class crontab(object):
             head = "#!/bin/bash\nPATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin\nexport PATH\n"
             start_head = '''
 SCRIPT_RUN_TIME="0s"
-MW_ToSeconds()
+YF_ToSeconds()
 {
     SEC=$1
     if [ $SEC -lt 60 ]; then
@@ -472,7 +472,7 @@ MW_ToSeconds()
        SCRIPT_RUN_TIME="$(( SEC / 3600 ))h$(( (SEC % 3600) / 60 ))m$(( (SEC % 3600) % 60 ))s"
     fi
 }
-START_MW_SHELL_TIME=`date +%s`
+START_YF_SHELL_TIME=`date +%s`
 '''
 
             source_bin_activate = '''
@@ -563,9 +563,9 @@ fi
             shell += '''
 echo "----------------------------------------------------------------------------"
 endDate=`date +"%%Y-%%m-%%d %%H:%%M:%%S"`
-END_MW_SHELL_TIME=`date +"%%s"`
-((SHELL_COS_TIME=($END_MW_SHELL_TIME-$START_MW_SHELL_TIME)))
-MW_ToSeconds $SHELL_COS_TIME
+END_YF_SHELL_TIME=`date +"%%s"`
+((SHELL_COS_TIME=($END_YF_SHELL_TIME-$START_YF_SHELL_TIME)))
+YF_ToSeconds $SHELL_COS_TIME
 echo "★[$endDate] Successful | Script Run [$SCRIPT_RUN_TIME] "
 echo "----------------------------------------------------------------------------"
 

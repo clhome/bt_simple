@@ -329,7 +329,7 @@ def download_file():
     path = request.form.get('path', '')
     filename = request.form.get('filename', '')
     
-    execstr = url + '|mw|' + path + '/' + filename
+    execstr = url + '|yf|' + path + '/' + filename
     execstr = execstr.strip()
 
     title = '下载文件[' + filename + ']'

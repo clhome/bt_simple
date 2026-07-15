@@ -719,13 +719,13 @@ textarea:active,
     float: none !important;
 }
 
-#mw_yzm {
+#yf_yzm {
     width: 100px !important;
     height: 42px !important;
     flex-shrink: 0 !important;
 }
 
-#mw_yzm img {
+#yf_yzm img {
     width: 100% !important;
     height: 100% !important;
     border-radius: 8px !important;

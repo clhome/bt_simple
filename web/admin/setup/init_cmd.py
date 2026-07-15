@@ -75,19 +75,19 @@ def init_cmd():
 def init_cmd_systemd():
     systemd_dir = yf.systemdCfgDir()
 
-    systemd_mw = systemd_dir + '/yf.service'
-    systemd_mw_task = systemd_dir + '/yf-task.service'
+    systemd_yf = systemd_dir + '/yf.service'
+    systemd_yf_task = systemd_dir + '/yf-task.service'
 
-    systemd_mw_tpl = yf.getPanelDir() + '/scripts/init.d/yf.service.tpl'
-    systemd_mw_task_tpl = yf.getPanelDir() + '/scripts/init.d/yf-task.service.tpl'
+    systemd_yf_tpl = yf.getPanelDir() + '/scripts/init.d/yf.service.tpl'
+    systemd_yf_task_tpl = yf.getPanelDir() + '/scripts/init.d/yf-task.service.tpl'
 
-    if os.path.exists(systemd_mw):
-        os.remove(systemd_mw)
-    if os.path.exists(systemd_mw_task):
-        os.remove(systemd_mw_task)
+    if os.path.exists(systemd_yf):
+        os.remove(systemd_yf)
+    if os.path.exists(systemd_yf_task):
+        os.remove(systemd_yf_task)
 
-    contentReplace(systemd_mw_tpl, systemd_mw)
-    contentReplace(systemd_mw_task_tpl, systemd_mw_task)
+    contentReplace(systemd_yf_tpl, systemd_yf)
+    contentReplace(systemd_yf_task_tpl, systemd_yf_task)
 
     yf.execShell('systemctl enable yf')
     yf.execShell('systemctl enable yf-task')

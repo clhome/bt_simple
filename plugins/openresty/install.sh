@@ -12,7 +12,7 @@ sysName=`uname`
 action=$1
 type=$2
 
-lockFile="/var/run/mw_openresty_install.lock"
+lockFile="/var/run/yf_openresty_install.lock"
 if [ -f "${lockFile}" ];then
     pid=$(cat "${lockFile}")
     if ps -p $pid > /dev/null 2>&1; then

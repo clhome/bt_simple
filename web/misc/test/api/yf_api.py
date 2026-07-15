@@ -1,10 +1,10 @@
-﻿# coding: utf-8
+# coding: utf-8
 # +-----------------------------------------------------------------------------------
-# | YF Linux闈㈡澘
+# | YF Linux
 # +-----------------------------------------------------------------------------------
 # | Copyright (c) 2015-2099 MW(http://github.com/midoks/mdserver) All rights reserved.
 # +-----------------------------------------------------------------------------------
-# | Author: midoks
+# | Author: midoks/yftec
 # +-----------------------------------------------------------------------------------
 
 #------------------------------
@@ -18,11 +18,12 @@ import json
 
 
 class yfApi:
-    __YF_PANEL = 'http://154.12.53.90:51377/'
-    __YF_APP_ID = 'yhYkxGssPD'
-    __YF_APP_SERECT = 'ErmBdr563eJ5GMM5sWbc'
+    # 示例面板地址和密钥，使用时请替换为您自己的真实面板地址和接口密钥
+    __YF_PANEL = 'http://127.0.0.1:7200/'
+    __YF_APP_ID = 'exampleAppId'
+    __YF_APP_SERECT = 'exampleAppSecret'
     
-    # 濡傛灉甯屾湜澶氬彴闈㈡澘锛屽彲浠ュ湪瀹炰緥鍖栧璞℃椂锛屽皢闈㈡澘鍦板潃涓庡瘑閽ヤ紶鍏?
+    # 如果希望管理多台面板，可以在实例化对象时，将面板地址与密钥传入
     def __init__(self, panel_url=None, app_id=None, app_serect=None):
         if panel_url:
             self.__YF_PANEL = panel_url

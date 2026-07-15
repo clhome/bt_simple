@@ -771,7 +771,7 @@ def import_bt_sites(db_path):
         return True
 
     from utils.site import sites as YfSites
-    mw_sites = YfSites.instance()
+    yf_sites = YfSites.instance()
 
     success_count = 0
     fail_count = 0
@@ -796,7 +796,7 @@ def import_bt_sites(db_path):
         site_info_json = json.dumps({"domain": name, "domainlist": []})
 
         try:
-            res = mw_sites.add(site_info_json, '80', ps, path, '00')
+            res = yf_sites.add(site_info_json, '80', ps, path, '00')
             if res.get('status'):
                 # 导入成功后，获取刚刚生成的 site_id
                 new_site = thisdb.getSitesByName(name)
@@ -808,7 +808,7 @@ def import_bt_sites(db_path):
 
                     # 2. 如果原状态是停止状态 (status 为 '0')，则调用停止站点的逻辑
                     if status == '0':
-                        mw_sites.stop(site_id)
+                        yf_sites.stop(site_id)
                         print("    -> 已根据宝塔状态将该站点设置为[停用]")
 
                 print("  [OK] 站点 [%s] 导入成功！" % name)
