@@ -98,7 +98,7 @@ def set_admin_path():
         if admin_path in admin_path_sensitive:
             return yf.returnData(False, '该入口已被面板占用,请使用其它入口!')
         if not re.match(r"^/[\w]+$", admin_path):
-            return yf.returnData(False, '入口地址格式不正确,示例: /mw_rand')
+            return yf.returnData(False, '入口地址格式不正确,示例: /yf_rand')
     
     src_admin_path = thisdb.getOption('admin_path')
     if admin_path != src_admin_path:
@@ -196,7 +196,7 @@ def set_ipv6_status():
     else:
         yf.writeFile(ipv6_file, 'True')
         yf.writeLog('面板设置', '开启面板IPv6兼容!')
-    yf.restartMw()
+    yf.restartPanel()
     return yf.returnData(True, '设置成功!')
 
 # 设置CDN状态
@@ -273,7 +273,7 @@ def set_port():
         yf.writeLog("防火墙管理", msg)
 
         YfFirewall.instance().addAcceptPort(port, 'PANEL端口-配置修改', 'port')
-        yf.restartMw()
+        yf.restartPanel()
 
     return yf.returnData(True, '端口保存成功!')
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # chkconfig: 2345 55 25
-# description: MW Cloud Service
+
 
 ### BEGIN INIT INFO
 # Provides:          yf

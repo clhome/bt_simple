@@ -330,7 +330,7 @@ do
     sleep 1
     let n+=1
     if [ $n -gt 20 ];then
-    	echo -e "start mw fail"
+    	echo -e "start yf fail"
     	exit 1
     fi
 done
@@ -342,7 +342,7 @@ cd /www/server/yufeng_panel && bash /etc/rc.d/init.d/yf default
 sleep 2
 if [ ! -e /usr/bin/yf ]; then
 	if [ -f /etc/rc.d/init.d/yf ];then
-		ln -s /etc/rc.d/init.d/yf /usr/bin/mw
+		ln -s /etc/rc.d/init.d/yf /usr/bin/yf
 	fi
 fi
 

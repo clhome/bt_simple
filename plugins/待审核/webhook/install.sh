@@ -16,7 +16,7 @@ Install_App()
 	echo "${VERSION}" > $serverPath/webhook/version.pl
 	echo '安装完成'
 
-	which mw && mw restart
+	which yf && yf restart
 }
 
 Uninstall_App()

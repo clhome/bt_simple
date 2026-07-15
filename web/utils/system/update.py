@@ -209,7 +209,7 @@ if [ -f {panel_dir}/version/r${{NEW_P_VER}}.txt ];then
 fi
 '''
                 os.system(update_env)
-                yf.restartMw()
+                yf.restartPanel()
                 return yf.returnData(True, '安装更新成功!')
 
         return yf.returnData(False, '未知操作!')

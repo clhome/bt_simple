@@ -1802,7 +1802,7 @@ def restartTask():
         os.system(cmd)
     return True
 
-def restartMw():
+def restartPanel():
     restart_file = getPanelDir()+'/data/restart.pl'
     writeFile(restart_file, 'True')
     return True

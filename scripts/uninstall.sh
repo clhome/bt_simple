@@ -137,10 +137,10 @@ UNINSTALL_REDIS()
     fi
 }
 
-UNINSTALL_MW()
+UNINSTALL_YF()
 {
     echo -e "----------------------------------------------------"
-    echo -e "检查已有mderver-web环境，卸载可能影响现有站点及数据"
+    echo -e "检查已有yufeng_panel环境，卸载可能影响现有站点及数据"
     echo -e "----------------------------------------------------"
     read -p "输入yes强制卸载面板: " yes;
     if [ "$yes" != "yes" ];then
@@ -149,6 +149,8 @@ UNINSTALL_MW()
     else
         rm -rf /usr/bin/mw
         rm -rf /etc/init.d/mw
+        rm -rf /usr/bin/yf
+        rm -rf /etc/init.d/yf
         systemctl daemon-reload
         rm -rf /www/server/yufeng_panel
         echo "卸载面板成功"
@@ -162,7 +164,7 @@ UNINSTALL_PHP
 UNINSTALL_MySQL
 UNINSTALL_MEMCACHED
 UNINSTALL_REDIS
-UNINSTALL_MW
+UNINSTALL_YF
 
 endTime=`date +%s`
 ((outTime=(${endTime}-${startTime})/60))

@@ -146,7 +146,7 @@ class setting(object):
             dst_path = yf.getPanelDir() + '/ssl/local'
             if os.path.exists(dst_path):
                 yf.removeDir(dst_path)
-                yf.restartMw()
+                yf.restartPanel()
                 return yf.returnData(True, '删除本地面板SSL成功!',to_panel_url)
             else:
                 return yf.returnData(True, '已经删除本地面板SSL!',to_panel_url)
@@ -168,7 +168,7 @@ class setting(object):
             panel_ssl_data['choose'] = 'local'
             thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
             
-            yf.restartMw()
+            yf.restartPanel()
             return yf.returnData(True, '已删除面板90天证书并重启面板，请使用HTTP协议访问！', to_panel_url)
         return  yf.returnData(False, '未知类型!')
 
@@ -290,7 +290,7 @@ class setting(object):
             panel_ssl_data['open'] = False
 
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
-        yf.restartMw()
+        yf.restartPanel()
         return yf.returnData(True, '设置成功')
 
 
@@ -384,7 +384,7 @@ class setting(object):
 
             to_panel_url = 'http://'+ip+":"+str(port)+'/setting/index'
             thisdb.setOption('panel_domain', '')
-            yf.restartMw()
+            yf.restartPanel()
             return yf.returnData(True, '清空域名成功!', to_panel_url)
 
         thisdb.setOption('panel_domain', domain)

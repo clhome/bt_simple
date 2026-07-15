@@ -23,9 +23,9 @@ if yf.isAppleSystem():
 
 
 class classApi:
-    __MW_PANEL = 'http://127.0.0.1:7200'
-    __MW_APP_ID = ''
-    __MW_APP_SECRET = ''
+    __YF_PANEL = 'http://127.0.0.1:7200'
+    __YF_APP_ID = ''
+    __YF_APP_SECRET = ''
     __VHOST_PATH = ''
 
     _buff_size = 1024 * 1024 * 2
@@ -35,11 +35,11 @@ class classApi:
     _SYNC_INFO = None
 
     # 如果希望多台面板，可以在实例化对象时，将面板地址与密钥传入
-    def __init__(self, mw_panel=None, app_id=None, app_secret=None):
-        if mw_panel:
-            self.__MW_PANEL = mw_panel
-            self.__MW_APP_ID = app_id
-            self.__MW_APP_SECRET = app_secret
+    def __init__(self, yf_panel=None, app_id=None, app_secret=None):
+        if yf_panel:
+            self.__YF_PANEL = yf_panel
+            self.__YF_APP_ID = app_id
+            self.__YF_APP_SECRET = app_secret
 
         self._SPEED_FILE = getServerDir() + '/config/speed.json'
         self._INFO_FILE = getServerDir() + '/config/sync_info.json'
@@ -47,10 +47,10 @@ class classApi:
         self.__VHOST_PATH = yf.getServerDir() + '/web_conf'
 
     def post(self, endpoint, request_data, timeout=60):
-        url = self.__MW_PANEL + endpoint  
+        url = self.__YF_PANEL + endpoint  
         post_data = requests.post(url, data=request_data, headers={
-            'app-id':self.__MW_APP_ID,
-            'app-secret':self.__MW_APP_SECRET
+            'app-id':self.__YF_APP_ID,
+            'app-secret':self.__YF_APP_SECRET
         })
         try:
             return post_data.json()
@@ -264,10 +264,10 @@ class classApi:
             start_time = time.time()
 
             try:
-                url = self.__MW_PANEL + '/files/upload_segment'
+                url = self.__YF_PANEL + '/files/upload_segment'
                 res = requests.post(url, data=pdata, files=files, headers={
-                    'app-id':self.__MW_APP_ID,
-                    'app-secret':self.__MW_APP_SECRET
+                    'app-id':self.__YF_APP_ID,
+                    'app-secret':self.__YF_APP_SECRET
                 },timeout=30000)
 
                 success_num += 1

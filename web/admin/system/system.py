@@ -125,7 +125,7 @@ def get_network_io():
 @blueprint.route('/restart', endpoint='restart', methods=['POST'])
 @panel_login_required
 def restart():
-    yf.restartMw()
+    yf.restartPanel()
     return yf.returnData(True, '面板已重启!')
 
 # 重启面板
