@@ -35,13 +35,13 @@ fi
 echo "Starting services..."
 
 # 3. 逐个启动面板与运行环境
-[ -f "/etc/init.d/mw" ] && /etc/init.d/mw start
+[ -f "/etc/init.d/yf" ] && /etc/init.d/yf start
 [ -f "/etc/init.d/openresty" ] && /etc/init.d/openresty start
 [ -f "/etc/init.d/php74" ] && /etc/init.d/php74 start
 [ -f "/etc/init.d/mysql" ] && /etc/init.d/mysql start
 
 # 4. 输出面板默认连接信息
-mw default || true
+yf default || true
 
 echo "Container is running. Tailing logs..."
 

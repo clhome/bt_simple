@@ -12,7 +12,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
-from utils.crontab import crontab as MwCrontab
+from utils.crontab import crontab as YfCrontab
 
 
 
@@ -88,18 +88,18 @@ def createBgTaskByName(name):
             print("计划任务已经存在!")
             return True
 
-    mw_dir = yf.getPanelDir()
+    yf_dir = yf.getPanelDir()
     cmd = '''
-mw_dir=%s
+yf_dir=%s
 rname=%s
 plugin_path=%s
 script_path=%s
 logs_file=$plugin_path/${rname}.log
-''' % (mw_dir, name, getServerDir(), getPluginDir())
+''' % (yf_dir, name, getServerDir(), getPluginDir())
     cmd += 'echo "★【`date +"%Y-%m-%d %H:%M:%S"`】 STSRT★" >> $logs_file' + "\n"
     cmd += 'echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $logs_file' + "\n"
     cmd += 'echo "python3 $script_path/index.py update_all"' + "\n"
-    cmd += 'cd $mw_dir && python3 $script_path/index.py update_all' + "\n"
+    cmd += 'cd $yf_dir && python3 $script_path/index.py update_all' + "\n"
     cmd += 'echo "【`date +"%Y-%m-%d %H:%M:%S"`】 END★" >> $logs_file' + "\n"
     cmd += 'echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >> $logs_file' + "\n"
 
@@ -118,7 +118,7 @@ logs_file=$plugin_path/${rname}.log
         'url_address': '',
     }
 
-    task_id = MwCrontab.instance().add(params)
+    task_id = YfCrontab.instance().add(params)
     if task_id > 0:
         args["task_id"] = task_id
         args["name"] = name
@@ -137,18 +137,18 @@ def createBgTaskDeltaByName(name):
             print("计划任务已经存在!")
             return True
 
-    mw_dir = yf.getPanelDir()
+    yf_dir = yf.getPanelDir()
     cmd = '''
-mw_dir=%s
+yf_dir=%s
 rname=%s
 plugin_path=%s
 script_path=%s
 logs_file=$plugin_path/${rname}.log
-''' % (mw_dir, name, getServerDir(), getPluginDir())
+''' % (yf_dir, name, getServerDir(), getPluginDir())
     cmd += 'echo "★【`date +"%Y-%m-%d %H:%M:%S"`】 STSRT★" >> $logs_file' + "\n"
     cmd += 'echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $logs_file' + "\n"
     cmd += 'echo "python3 $script_path/index.py update_delta"' + "\n"
-    cmd += 'cd $mw_dir && python3 $script_path/index.py update_delta' + "\n"
+    cmd += 'cd $yf_dir && python3 $script_path/index.py update_delta' + "\n"
     cmd += 'echo "【`date +"%Y-%m-%d %H:%M:%S"`】 END★" >> $logs_file' + "\n"
     cmd += 'echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >> $logs_file' + "\n"
 
@@ -167,7 +167,7 @@ logs_file=$plugin_path/${rname}.log
         'url_address': '',
     }
 
-    task_id = MwCrontab.instance().add(params)
+    task_id = YfCrontab.instance().add(params)
     if task_id > 0:
         args["task_id"] = task_id
         args["name"] = name
@@ -180,7 +180,7 @@ def removeBgTask():
         res = yf.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
-            data = MwCrontab.instance().delete(cfg["task_id"])
+            data = YfCrontab.instance().delete(cfg["task_id"])
             if data['status']:
                 cfg["task_id"] = -1
                 yf.writeFile(getTaskConf(), json.dumps(cfg))
@@ -193,7 +193,7 @@ def removeDeltaBgTask():
         res = yf.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
-            data = MwCrontab.instance().delete(cfg["task_id"])
+            data = YfCrontab.instance().delete(cfg["task_id"])
             if data['status']:
                 cfg["task_id"] = -1
                 yf.writeFile(getTaskDeltaConf(), json.dumps(cfg))

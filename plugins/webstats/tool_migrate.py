@@ -12,7 +12,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
-from utils.crontab import crontab as MwCrontab
+from utils.crontab import crontab as YfCrontab
 
 app_debug = False
 if yf.isAppleSystem():

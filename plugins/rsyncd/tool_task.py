@@ -13,7 +13,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
-from utils.crontab import crontab as MwCrontab
+from utils.crontab import crontab as YfCrontab
 
 
 
@@ -124,7 +124,7 @@ logs_file=$plugin_path/send/${rname}/run.log
         'url_address': '',
     }
 
-    task_id = MwCrontab.instance().add(params)
+    task_id = YfCrontab.instance().add(params)
     if task_id > 0:
         cfg["task_id"] = task_id
         cfg["name"] = name
@@ -141,7 +141,7 @@ def removeBgTask():
         if "task_id" in cfg.keys() and cfg["task_id"] > 0:
             res = yf.M("crontab").field("id, name").where("id=?", (cfg["task_id"],)).find()
             if res and res["id"] == cfg["task_id"]:
-                data = MwCrontab.instance().delete(cfg["task_id"])
+                data = YfCrontab.instance().delete(cfg["task_id"])
                 if data[0]:
                     cfg["task_id"] = -1
                     cfg_list[x] = cfg

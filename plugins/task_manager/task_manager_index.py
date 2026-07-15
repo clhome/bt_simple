@@ -527,21 +527,21 @@ class mainClass(object):
 
     # 获取python的路径
     def get_python_bin(self):
-        mw_dir = yf.getServerDir() + '/mdserver-web'
-        bin_file = mw_dir + '/bin/python3'
+        yf_dir = yf.getServerDir() + '/mdserver-web'
+        bin_file = yf_dir + '/bin/python3'
         if os.path.exists(bin_file):
             return bin_file
         return '/usr/bin/python3'
 
     # 检查process_network_total.py是否运行
     def check_process_net_total(self):
-        mw_dir = yf.getServerDir() + '/mdserver-web'
-        _pid_file = mw_dir+'/logs/process_network_total.pid'
+        yf_dir = yf.getServerDir() + '/mdserver-web'
+        _pid_file = yf_dir+'/logs/process_network_total.pid'
         if os.path.exists(_pid_file):
             pid = yf.readFile(_pid_file)
             if os.path.exists('/proc/' + pid): return True
 
-        cmd_file = mw_dir+'/plugins/task_manager/process_network_total.py'
+        cmd_file = yf_dir+'/plugins/task_manager/process_network_total.py'
         python_bin = self.get_python_bin()
         _cmd = 'nohup {} {} &> /tmp/net.log &'.format(python_bin, cmd_file)
         yf.execShell(_cmd)

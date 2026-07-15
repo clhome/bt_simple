@@ -12,7 +12,7 @@ if os.path.exists(web_dir):
     os.chdir(web_dir)
 
 import core.yf as yf
-from utils.crontab import crontab as MwCrontab
+from utils.crontab import crontab as YfCrontab
 
 
 app_debug = False
@@ -69,15 +69,15 @@ def createBgTaskByName(name):
             print("计划任务已经存在!")
             return True
 
-    mw_dir = yf.getPanelDir()
+    yf_dir = yf.getPanelDir()
     cmd = '''
-mw_dir=%s
+yf_dir=%s
 rname=%s
 plugin_path=%s
 script_path=%s
-''' % (mw_dir, name, getServerDir(), getPluginDir())
+''' % (yf_dir, name, getServerDir(), getPluginDir())
     cmd += 'echo "bash $script_path/check.sh"' + "\n"
-    cmd += 'cd $mw_dir && bash $script_path/check.sh' + "\n"
+    cmd += 'cd $yf_dir && bash $script_path/check.sh' + "\n"
 
     params = {
         'name': _name,
@@ -94,7 +94,7 @@ script_path=%s
         'url_address': '',
     }
 
-    task_id = MwCrontab.instance().add(params)
+    task_id = YfCrontab.instance().add(params)
     if task_id > 0:
         args["task_id"] = task_id
         args["name"] = name
@@ -107,7 +107,7 @@ def removeBgTask():
         res = yf.M("crontab").field("id, name").where(
             "id=?", (cfg["task_id"],)).find()
         if res and res["id"] == cfg["task_id"]:
-            data = MwCrontab.instance().delete(cfg["task_id"])
+            data = YfCrontab.instance().delete(cfg["task_id"])
             if data["status"]:
                 cfg["task_id"] = -1
                 yf.writeFile(getTaskConf(), json.dumps(cfg))
