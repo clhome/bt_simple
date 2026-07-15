@@ -566,7 +566,7 @@ class App:
         php_path = '/www/server/php/' + php_version['data'][1]['version'] + '/bin/php'
         php_name = path + "/" + str(int(time.time())) + ".php"
         if os.path.exists(php_name):
-            yf.execShell("rm -rf %s" % php_name)
+            yf.removeDir(php_name)
         # 写入
         cmd = php_path + \
             " -r \"file_put_contents('{}','{}');\"".format(php_name, php_name)
@@ -574,7 +574,7 @@ class App:
         time.sleep(0.5)
         if os.path.exists(php_name):
             if os.path.exists(php_name):
-                yf.execShell("rm -rf %s" % php_name)
+                yf.removeDir(php_name)
             return yf.returnJson(False, "拦截失败,可能未开启防篡改")
         return yf.returnJson(True, "拦截成功")
 

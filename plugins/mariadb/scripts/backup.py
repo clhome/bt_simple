@@ -126,7 +126,7 @@ class backupTools:
         num = len(backups) - int(count)
         if num > 0:
             for backup in backups:
-                yf.execShell("rm -f " + backup['filename'])
+                yf.deleteFile(backup['filename'])
                 yf.M('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
                 print("|---已清理过期备份文件：" + backup['filename'])

@@ -30,15 +30,15 @@ def init_cmd():
 
     # 在linux系统中,确保/etc/init.d存在
     if not yf.isAppleSystem() and not os.path.exists("/etc/rc.d/init.d"):
-        yf.execShell('mkdir -p /etc/rc.d/init.d')
+        yf.makeDirs('/etc/rc.d/init.d')
 
     if not yf.isAppleSystem() and not os.path.exists("/etc/init.d"):
-        yf.execShell('mkdir -p /etc/init.d')
+        yf.makeDirs('/etc/init.d')
     # initd
     if os.path.exists('/etc/rc.d/init.d'):
         initd_bin = '/etc/rc.d/init.d/yf'
         if True:
-            yf.execShell('rm -f ' + initd_bin)
+            yf.deleteFile(initd_bin)
             yf.writeFile(initd_bin, cmd_content)
             yf.execShell('chmod +x ' + initd_bin)
         # 加入自启动
@@ -54,7 +54,7 @@ def init_cmd():
     if os.path.exists('/etc/init.d'):
         initd_bin = '/etc/init.d/yf'
         if True:
-            yf.execShell('rm -f ' + initd_bin)
+            yf.deleteFile(initd_bin)
             yf.writeFile(initd_bin, cmd_content)
             yf.execShell('chmod +x ' + initd_bin)
         # 加入自启动

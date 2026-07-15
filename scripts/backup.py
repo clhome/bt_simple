@@ -38,7 +38,7 @@ class backupTools:
 
         backup_path = yf.getBackupDir() + '/site'
         if not os.path.exists(backup_path):
-            yf.execShell("mkdir -p " + backup_path)
+            yf.makeDirs(backup_path)
 
         filename = backup_path + "/web_" + name + "_" + \
             time.strftime('%Y%m%d_%H%M%S', time.localtime()) + '.tar.gz'
@@ -74,7 +74,7 @@ class backupTools:
         num = len(backups) - int(count)
         if num > 0:
             for backup in backups:
-                yf.execShell("rm -f " + backup['filename'])
+                yf.deleteFile(backup['filename'])
                 sql.table('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
                 print("|---已清理过期备份文件：" + backup['filename'])
@@ -130,7 +130,7 @@ class backupTools:
 
         backup_path = yf.getBackupDir() + '/database'
         if not os.path.exists(backup_path):
-            yf.execShell("mkdir -p " + backup_path)
+            yf.makeDirs(backup_path)
 
         version_prefix = 'mysql57'
         version_file = db_path + '/version.pl'
@@ -212,7 +212,7 @@ class backupTools:
         num = len(backups) - int(count)
         if num > 0:
             for backup in backups:
-                yf.execShell("rm -f " + backup['filename'])
+                yf.deleteFile(backup['filename'])
                 yf.M('backup').where('id=?', (backup['id'],)).delete()
                 num -= 1
                 print("|---已清理过期备份文件：" + backup['filename'])
@@ -264,7 +264,7 @@ class backupTools:
 
         backup_path = yf.getBackupDir() + '/path'
         if not os.path.exists(backup_path):
-            yf.execShell("mkdir -p " + backup_path)
+            yf.makeDirs(backup_path)
 
         dirname = os.path.basename(path)
         fname = 'path_{}_{}.tar.gz'.format(
@@ -295,7 +295,7 @@ class backupTools:
         if num > 0:
             for backup in backups:
                 abspath_bk = backup_path + "/" + backup
-                yf.execShell("rm -f " + abspath_bk)
+                yf.deleteFile(abspath_bk)
                 yf.echoInfo("已清理过期备份文件：" + abspath_bk)
                 num -= 1
                 if num < 1:

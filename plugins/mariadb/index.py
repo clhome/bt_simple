@@ -75,7 +75,7 @@ def checkArgs(data, ck=[]):
 def getBackupDir():
     bk_path = yf.getBackupDir() + "/database/mariadb"
     if not os.path.isdir(bk_path):
-        yf.execShell("mkdir -p {}".format(bk_path))
+        yf.makeDirs(bk_path)
     return bk_path
 
 
@@ -3128,7 +3128,7 @@ def syncDatabaseRepair(version=''):
             time.sleep(3)
     print(f'data check cos:{time.time() - time_stats_s:.4f}s')
     print("data supplementation completed")
-    yf.execShell('rm -rf  '+tmp_dir)
+    yf.removeDir(tmp_dir)
     return 'ok'
 
 

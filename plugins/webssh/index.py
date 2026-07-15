@@ -201,7 +201,7 @@ class App():
             return check[1]
         host = args['host']
         info_file = self.__host_dir + '/' + host
-        yf.execShell('rm -rf {}'.format(info_file))
+        yf.removeDir(info_file)
         return yf.returnJson(True, '删除成功!')
 
     def add_server(self):

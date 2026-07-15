@@ -62,7 +62,7 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
         try:
             os.remove(new_name)
         except:
-            yf.execShell("rm -f %s" % new_name)
+            yf.deleteFile(new_name)
 
     os.renames(save_path, new_name)
 

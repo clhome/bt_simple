@@ -777,11 +777,11 @@ def projectScriptUnload():
 
     post_receive = getRootPath() + '/' + user + '/' + name + \
         '/hooks/post-receive.d/post-receive'
-    yf.execShell('rm -f ' + post_receive)
+    yf.deleteFile(post_receive)
 
     commit = getRootPath() + '/' + user + '/' + name + \
         '/custom_hooks/commit'
-    yf.execShell('rm -f ' + commit)
+    yf.deleteFile(commit)
     return 'ok'
 
 

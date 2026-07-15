@@ -3679,7 +3679,7 @@ def syncDatabaseRepair(version=''):
             time.sleep(3)
     print(f'data check cos:{time.time() - time_stats_s:.4f}s')
     print("data supplementation completed")
-    yf.execShell('rm -rf  '+tmp_dir)
+    yf.removeDir(tmp_dir)
     return 'ok'
 
 ############### --- 重要 同步---- ###########

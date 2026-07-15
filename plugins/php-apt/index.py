@@ -830,7 +830,7 @@ def getSessionCount_Origin(version):
     count = 0
     for i in d:
         if not os.path.exists(i):
-            yf.execShell('mkdir -p %s' % i)
+            yf.makeDirs(i)
         list = os.listdir(i)
         for l in list:
             if os.path.isdir(i + "/" + l):

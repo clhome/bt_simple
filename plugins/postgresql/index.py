@@ -128,7 +128,7 @@ def checkSafeAccess(access):
 def getBackupDir():
     bk_path = yf.getBackupDir() + "/database/postgresql"
     if not os.path.isdir(bk_path):
-        yf.execShell("mkdir -p {}".format(bk_path))
+        yf.makeDirs(bk_path)
     return bk_path
 
 

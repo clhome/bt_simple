@@ -2158,7 +2158,7 @@ location  {from} {\n\
         is_chattr = yf.execShell('lsattr /usr|grep /usr/bin')[0].find('-i-')
         if is_chattr != -1:
             yf.execShell('chattr -i /usr/bin')
-        yf.execShell("rm -f " + php_bin + ' ' + php_ize + ' ' + php_fpm + ' ' + php_pecl + ' ' + php_pear)
+        yf.deleteFile(php_bin + ' ' + php_ize + ' ' + php_fpm + ' ' + php_pecl + ' ' + php_pear)
         yf.execShell("ln -sf %s %s" % (php_bin_src, php_bin))
         yf.execShell("ln -sf %s %s" % (php_ize_src, php_ize))
         yf.execShell("ln -sf %s %s" % (php_fpm_src, php_fpm))
