@@ -7,7 +7,7 @@ import time
 import re
 import json
 
-import core.mw as mw
+import core.yf as yf
 
 def safe_sql_identifier(val):
     """

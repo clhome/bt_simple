@@ -4,7 +4,7 @@ import os
 plugin_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.abspath(os.path.join(plugin_path, '../../../')))
 
-import web.core.mw as mw
+import web.core.yf as yf
 import index
 
 index.makeOpDstRunLua()

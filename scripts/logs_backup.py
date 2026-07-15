@@ -18,7 +18,7 @@ if os.path.exists(web_dir):
     sys.path.append(web_dir)
     os.chdir(web_dir)
 
-import core.mw as mw
+import core.yf as yf
 
 print('==================================================================')
 print('★[' + time.strftime("%Y/%m/%d %H:%M:%S") + ']，切割日志')

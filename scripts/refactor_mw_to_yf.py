@@ -24,9 +24,15 @@ def main():
             # Replace import core.yf as mw to import core.yf as yf
             content = re.sub(r'^(\s*)import core\.yf as mw\b', r'\1import core.yf as yf', content, flags=re.MULTILINE)
             
+            # Replace import core.mw as mw to import core.yf as yf
+            content = re.sub(r'^(\s*)import core\.mw as mw\b', r'\1import core.yf as yf', content, flags=re.MULTILINE)
+            content = re.sub(r'^(\s*)import web\.core\.mw as mw\b', r'\1import web.core.yf as yf', content, flags=re.MULTILINE)
+
             # Replace import mw to import yf
             content = re.sub(r'^(\s*)import mw\b', r'\1import yf', content, flags=re.MULTILINE)
             content = re.sub(r'^(\s*)from mw import\b', r'\1from yf import', content, flags=re.MULTILINE)
+            content = re.sub(r'^(\s*)from core\.mw import\b', r'\1from core.yf import', content, flags=re.MULTILINE)
+            content = re.sub(r'^(\s*)from web\.core\.mw import\b', r'\1from web.core.yf import', content, flags=re.MULTILINE)
             
             # Replace calls mw.xxx -> yf.xxx
             content = re.sub(r'\bmw\.', r'yf.', content)
