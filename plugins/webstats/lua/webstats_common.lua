@@ -13,7 +13,7 @@ local total_key = "log_kv_total"
 
 local unset_server_name = "unset"
 local max_log_id = 99999999999999
-local cache = ngx.shared.mw_total
+local cache = ngx.shared.yf_total
 
 local today = ngx.re.gsub(ngx.today(),'-','')
 local request_header = ngx.req.get_headers()
@@ -284,7 +284,7 @@ function _M.cron(self)
 
     local timer_every_get_data = function (premature)
         
-        local llen, _ = ngx.shared.mw_total:llen(total_key)
+        local llen, _ = ngx.shared.yf_total:llen(total_key)
         -- self:D("PID:"..tostring(ngx.worker.id())..",llen:"..tostring(llen))
         if llen == 0 then
             return true
@@ -352,7 +352,7 @@ function _M.cron(self)
         
         -- 每秒100条
         for i=1,llen do
-            local data, _ = ngx.shared.mw_total:lpop(total_key)
+            local data, _ = ngx.shared.yf_total:lpop(total_key)
             if not data then
                 self:unlock_working(cron_key)
                 break
@@ -366,21 +366,21 @@ function _M.cron(self)
             local db = dbs[input_sn]
             local stat_fields_is = stat_fields[input_sn]
             if not db then
-                ngx.shared.mw_total:rpush(total_key, data)
+                ngx.shared.yf_total:rpush(total_key, data)
                 self:unlock_working(cron_key)
                 break
             end
 
             local input_stmts = stmts[input_sn]["web_logs"]
             if not input_stmts then
-                ngx.shared.mw_total:rpush(total_key, data)
+                ngx.shared.yf_total:rpush(total_key, data)
                 self:unlock_working(cron_key)
                 break
             end
 
             local insert_ok = self:store_logs_line(db, input_stmts, input_sn, info)
             if not insert_ok then
-                ngx.shared.mw_total:rpush(total_key, data)
+                ngx.shared.yf_total:rpush(total_key, data)
                 self:unlock_working(cron_key)
                 break
             end
@@ -862,12 +862,12 @@ function _M.clean_stats(self, db, input_sn)
 end
 
 function _M.lpop(self)
-    local cache = ngx.shared.mw_total
+    local cache = ngx.shared.yf_total
     return cache:lpop(total_key)
 end
 
 function _M.rpop(self)
-    local cache = ngx.shared.mw_total
+    local cache = ngx.shared.yf_total
     return cache:rpop(total_key)
 end
 

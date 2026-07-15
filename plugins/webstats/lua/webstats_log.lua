@@ -15,7 +15,7 @@ log_by_lua_block {
 	local C = __C:getInstance()
 
 	-- cache start ---
-	local cache = ngx.shared.mw_total
+	local cache = ngx.shared.yf_total
 	local function cache_set(server_name, id ,key, val)
 		local line_kv = "log_kv_"..server_name..'_'..id.."_"..key
 		-- cache:set(line_kv, val)
@@ -448,7 +448,7 @@ log_by_lua_block {
 		local push_data = json.encode(data)
 		-- C:D(json.encode(push_data))
 		local key = C:getTotalKey()
-		ngx.shared.mw_total:rpush(key, push_data)
+		ngx.shared.yf_total:rpush(key, push_data)
  	end
 
  	local function store_logs_line(db, stmt, input_server_name, lineno)

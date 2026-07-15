@@ -268,7 +268,7 @@ class App:
                     return
                 if cmdline.find('/www/server') != -1:
                     return
-                if name.find('kworker') != -1 or name.find('mw_') == 0:
+                if name.find('kworker') != -1 or name.find('yf_') == 0:
                     return
                 p.kill()
                 self.writeLog("已强制结束异常进程:[%s],PID:[%s],CPU:[%s],CMD:[%s]" % (

@@ -1,15 +1,15 @@
 #!/bin/bash
 # chkconfig: 2345 55 25
-# description: MW Cloud Service
+# description: YF Swap Service
 
 ### BEGIN INIT INFO
-# Provides:          bt
+# Provides:          yf-swap
 # Required-Start:    $all
 # Required-Stop:     $all
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts mw
-# Description:       starts the mw
+# Short-Description: starts yf-swap
+# Description:       starts the yf-swap
 ### END INIT INFO
 
 

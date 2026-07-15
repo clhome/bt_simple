@@ -373,7 +373,7 @@ class mainClass(object):
                 if p.username() == 'www':
                     return 'OpenResty子进程'
                 return 'OpenResty主进程'
-            elif name == 'mw':
+            elif name == 'yf':
                 return '御风面板-命令'
             elif p_exe == '/usr/bin/bash':
                 cmdline = ' '.join(p.cmdline()).strip()
@@ -1193,7 +1193,7 @@ class mainClass(object):
                  'php-fpm-71': 'PHP-7.1',
                  'php-fpm-72': 'PHP-7.2', 'rsync_inotify': 'rsync实时同步', 'pure-ftpd': 'FTP服务',
                  'mongodb': 'MongoDB', 'nginx': 'Web服务器(Nginx)',
-                 'httpd': 'Web服务器(Apache)', 'mw': '面板', 'mysqld': 'MySQL数据库', 'rsynd': 'rsync主服务',
+                 'httpd': 'Web服务器(Apache)', 'yf': '面板', 'mysqld': 'MySQL数据库', 'rsynd': 'rsync主服务',
                  'php-fpm': 'PHP服务', 'systemd': '系统核心服务',
                  '/etc/rc.local': '用户自定义启动脚本', '/etc/profile': '全局用户环境变量',
                  '/etc/inittab': '用于自定义系统运行级别', '/etc/rc.sysinit': '系统初始化时调用的脚本',
@@ -1313,13 +1313,13 @@ class mainClass(object):
             serviceList.append(serviceInfo)
         return serviceList
 
-    # 外部接口，删除服务。不能删除mw
+    # 外部接口，删除服务。不能删除yf
     def remove_service(self, get):
         if not 'serviceName' in get:
             return yf.returnData(False,'缺少参数');
 
         serviceName = get['serviceName']
-        if serviceName == 'mw': return yf.returnData(False, '不能通过面板结束面板服务!')
+        if serviceName == 'yf': return yf.returnData(False, '不能通过面板结束面板服务!')
         systemctl_user_path = '/usr/lib/systemd/system/'
         if os.path.exists(systemctl_user_path + serviceName + '.service'):  
             return yf.returnData(False,'Systemctl托管的服务不能通过面板删除');
