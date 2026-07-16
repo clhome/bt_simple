@@ -819,18 +819,17 @@ def projectScriptRun():
     path = getRootPath() + '/' + user + '/' + name
     commit_sh = path + '/custom_hooks/commit'
     commit_log = path + '/custom_hooks/sh.log'
-    script_run = 'sh -x ' + commit_sh + ' 2>' + commit_log
-
     if not os.path.exists(commit_sh):
         return yf.returnJson(False, '脚本文件不存在!')
 
     repo_dir = yf.getServerDir()+'/git/'+ args['name']
 
-    # yf.execShell(script_run)
-    subprocess.Popen(script_run, stdout=subprocess.PIPE, shell=True,
-                                 bufsize=4096, stderr=subprocess.PIPE)
-    subprocess.Popen('chown -R www:www ' + repo_dir, stdout=subprocess.PIPE, shell=True,
-                                 bufsize=4096, stderr=subprocess.PIPE)
+    try:
+        with open(commit_log, 'w') as err_log:
+            subprocess.Popen(['sh', '-x', commit_sh], stdout=subprocess.PIPE, stderr=err_log, shell=False, bufsize=4096)
+    except Exception as e:
+        pass
+    subprocess.Popen(['chown', '-R', 'www:www', repo_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, bufsize=4096)
     return yf.returnJson(True, '脚本文件执行成功,观察日志!')
 
 

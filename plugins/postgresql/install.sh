@@ -9,8 +9,14 @@ serverPath=$(dirname "$rootPath")
 
 # cd /www/server/yufeng_panel/plugins/postgresql && bash install.sh install 16
 
-action=$1
-type=$2
+action="$1"
+type="$2"
+
+if ! [[ "$type" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    # Type should be numbers, like 16 or 9.6
+    echo '参数格式错误...'
+    exit 0
+fi
 
 VERSION=(${type//./ })
 
@@ -22,18 +28,18 @@ fi
 
 pip install $PIP_OPT psycopg2-binary
 
-if [ -f ${rootPath}/bin/activate ];then
-	source ${rootPath}/bin/activate
+if [ -f "${rootPath}/bin/activate" ];then
+	source "${rootPath}/bin/activate"
 	pip install psycopg2-binary
 fi
 
 
-if [ "${2}" == "" ];then
+if [ -z "${type}" ];then
 	echo '缺少安装脚本...'
 	exit 0
 fi 
 
-if [ ! -d $curPath/versions/$VERSION ];then
+if [ ! -d "$curPath/versions/$VERSION" ];then
 	echo '缺少安装脚本2...'
 	exit 0
 fi
@@ -48,10 +54,10 @@ if [ "${action}" == "uninstall" ];then
 	fi
 fi
 
-sh -x $curPath/versions/$VERSION/install.sh $1
+sh -x "$curPath/versions/$VERSION/install.sh" "$action"
 
-if [ "${action}" == "install" ] && [ -d $serverPath/postgresql ];then
+if [ "${action}" == "install" ] && [ -d "$serverPath/postgresql" ];then
 	#初始化 
-	cd ${rootPath} && python3 ${rootPath}/plugins/postgresql/index.py start ${type}
-	cd ${rootPath} && python3 ${rootPath}/plugins/postgresql/index.py initd_install ${type}
+	cd "${rootPath}" && python3 "${rootPath}/plugins/postgresql/index.py" start "${type}"
+	cd "${rootPath}" && python3 "${rootPath}/plugins/postgresql/index.py" initd_install "${type}"
 fi

@@ -741,8 +741,8 @@ def my8cmd(version, method):
             makeInitRsaKey(version)
 
             if not yf.isSupportSystemctl():
-                cmd_init_start = init_file + ' start'
-                r = subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=True,
+                cmd_init_start = [init_file, 'start']
+                r = subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=False,
                                  bufsize=4096, stderr=subprocess.PIPE)
                 out, err = r.communicate()
                 yf.writeFile('/tmp/mysql8_init_debug.log', yf.readFile('/tmp/mysql8_init_debug.log') + f'\nINITD_START_OUT:\n{out}\nINITD_START_ERR:\n{err}')
@@ -763,15 +763,15 @@ def my8cmd(version, method):
                 time.sleep(1)
 
             if not yf.isSupportSystemctl():
-                cmd_init_stop = init_file + ' stop'
-                subprocess.Popen(cmd_init_stop, stdout=subprocess.PIPE, shell=True,
+                cmd_init_stop = [init_file, 'stop']
+                subprocess.Popen(cmd_init_stop, stdout=subprocess.PIPE, shell=False,
                                  bufsize=4096, stderr=subprocess.PIPE)
                 time.sleep(3)
             else:
                 yf.execShell('systemctl stop mysql')
 
         if not yf.isSupportSystemctl():
-            sub = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
+            sub = subprocess.Popen([init_file, method], stdout=subprocess.PIPE, shell=False,
                                    bufsize=4096, stderr=subprocess.PIPE)
             sub.wait(5)
         else:
@@ -1640,9 +1640,9 @@ def setRootPwdForce(new_password,version=''):
     serverdir = getServerDir()
 
     # 启动安全模式
-    cmd_msafe = serverdir+"/bin/mysqld_safe --skip-grant-tables --skip-networking"
+    cmd_msafe = [serverdir + "/bin/mysqld_safe", "--skip-grant-tables", "--skip-networking"]
     # print("cmd_msafe",cmd_msafe)
-    subprocess.Popen(cmd_msafe, stdout=subprocess.PIPE, shell=True,bufsize=4096, stderr=subprocess.PIPE)
+    subprocess.Popen(cmd_msafe, stdout=subprocess.PIPE, shell=False, bufsize=4096, stderr=subprocess.PIPE)
     # 等待MySQL安全模式启动...
     time.sleep(5)
 

@@ -435,9 +435,9 @@ def getGpuInfo():
             return {'status': False, 'msg': 'nvidia-smi not found'}
             
     try:
-        cmd = "nvidia-smi --query-gpu=index,name,utilization.gpu,utilization.memory,memory.total,memory.free,memory.used,temperature.gpu --format=csv,noheader,nounits"
+        cmd = ["nvidia-smi", "--query-gpu=index,name,utilization.gpu,utilization.memory,memory.total,memory.free,memory.used,temperature.gpu", "--format=csv,noheader,nounits"]
         import subprocess
-        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=2, text=True)
+        result = subprocess.run(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=2, text=True)
         if result.returncode == 0:
             lines = result.stdout.strip().split('\n')
             gpus = []

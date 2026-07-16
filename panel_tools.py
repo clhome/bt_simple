@@ -638,18 +638,21 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                 pwd = yf.readFile("/www/server/panel/data/mysql_root.pl").strip()
 
             if os.path.exists(new_mysql_dir + "/bin/mysql_upgrade"):
+                cmd_upgrade = [new_mysql_dir + "/bin/mysql_upgrade", "-uroot"]
                 if pwd:
-                    os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot -p\"" + pwd + "\" >/dev/null 2>&1")
-                else:
-                    os.system(new_mysql_dir + "/bin/mysql_upgrade -uroot >/dev/null 2>&1")
+                    cmd_upgrade.append("-p" + pwd)
+                import subprocess
+                subprocess.run(cmd_upgrade, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             if selected_dbs != '*':
                 allowed_dbs = selected_dbs.split(',')
                 print("  正在清理未选择的数据库...")
                 import subprocess
-                pwd_param = f'-p"{pwd}"' if pwd else ""
-                cmd = f'{new_mysql_dir}/bin/mysql -uroot {pwd_param} -e "SHOW DATABASES;"'
-                res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                cmd_show = [f'{new_mysql_dir}/bin/mysql', '-uroot']
+                if pwd:
+                    cmd_show.append(f'-p{pwd}')
+                cmd_show.extend(['-e', 'SHOW DATABASES;'])
+                res = subprocess.run(cmd_show, capture_output=True, text=True)
                 
                 if res.returncode == 0:
                     ignore_dbs = ['mysql', 'performance_schema', 'information_schema', 'sys', 'test', 'Database']
@@ -657,7 +660,11 @@ def restore_bt_data(restore_mysql=True, selected_dbs='*'):
                         db = db.strip()
                         if db and db not in ignore_dbs and db not in allowed_dbs:
                             print(f"    - 删除未选择的数据库: {db}")
-                            os.system(f'{new_mysql_dir}/bin/mysql -uroot {pwd_param} -e "DROP DATABASE \\`{db}\\`;" >/dev/null 2>&1')
+                            cmd_drop = [f'{new_mysql_dir}/bin/mysql', '-uroot']
+                            if pwd:
+                                cmd_drop.append(f'-p{pwd}')
+                            cmd_drop.extend(['-e', f'DROP DATABASE `{db}`;'])
+                            subprocess.run(cmd_drop, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 else:
                     print("    - 清理未选择的数据库失败，无法连接MySQL。")
 

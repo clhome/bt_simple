@@ -409,8 +409,8 @@ def pgOp(version, method):
         initConfig(version)
         if not isInited:
             if yf.isAppleSystem():
-                cmd_init_start = init_file + ' start'
-                subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=True,
+                cmd_init_start = [init_file, 'start']
+                subprocess.Popen(cmd_init_start, stdout=subprocess.PIPE, shell=False,
                                  bufsize=4096, stderr=subprocess.PIPE)
 
                 time.sleep(6)
@@ -420,15 +420,15 @@ def pgOp(version, method):
             initPgPwd()
 
             if yf.isAppleSystem():
-                cmd_init_stop = init_file + ' stop'
-                subprocess.Popen(cmd_init_stop, stdout=subprocess.PIPE, shell=True,
+                cmd_init_stop = [init_file, 'stop']
+                subprocess.Popen(cmd_init_stop, stdout=subprocess.PIPE, shell=False,
                                  bufsize=4096, stderr=subprocess.PIPE)
                 time.sleep(3)
             else:
                 yf.execShell('systemctl stop postgresql')
 
         if yf.isAppleSystem():
-            sub = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
+            sub = subprocess.Popen([init_file, method], stdout=subprocess.PIPE, shell=False,
                                    bufsize=4096, stderr=subprocess.PIPE)
             sub.wait(5)
         else:
