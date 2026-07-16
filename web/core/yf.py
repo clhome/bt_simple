@@ -1902,8 +1902,11 @@ def restartWeb():
     return opWeb("reload")
 
 def deleteFile(file):
-    if os.path.exists(file):
-        os.remove(file)
+    try:
+        if os.path.exists(file) or os.path.islink(file):
+            os.remove(file)
+    except Exception:
+        pass
 
 def isInstalledWeb():
     path = getServerDir() + '/openresty/nginx/sbin/nginx'

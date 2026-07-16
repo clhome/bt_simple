@@ -52,3 +52,6 @@
 - `[x]` 43. 优化 `deploy.sh` 脚本：适配测速返回为 `"direct"` 的情况，处理 `get_github_url`、`setup_china_git_config` 以及 `install_acme` 的调用逻辑。
 - `[x]` 44. 优化 `web/core/yf.py` 脚本：调整 Python 端代理列表及测速模块，使其支持直连测速并消除盲目直连等待。
 - `[x]` 45. 对修改后的 Shell 脚本与 Python 逻辑进行测试验证。
+
+- `[x]` 46. 优化 `web/core/yf.py`：重构 `deleteFile` 函数，增加对 `os.path.islink` 的死软链接兼容并用 `try-except` 捕获异常，彻底消除 Gunicorn 与后台任务并发初始化的竞态 FileNotFoundError。
+- `[x]` 47. 运行本地语法与编译校验，确保修改后的 `yf.py` 没有任何异常。
