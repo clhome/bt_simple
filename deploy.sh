@@ -400,19 +400,28 @@ set_panel_version() {
     log_info "设置面板版本号..."
     local final_ver=""
     
-    # 0. 如果是执行远端最新版本升级，优先使用该版本，并同步修改本地文件
+    # 0. 如果是执行远端最新版本升级，优先使用该版本
     if [ "$IS_UPDATING_TO_LATEST" = "true" ] && [ -n "$LATEST_REMOTE_VER" ]; then
         final_ver="$LATEST_REMOTE_VER"
-        # 尝试同步修改 version.py 的硬编码，以防下一次读取错误
-        if [ -f ${PANEL_DIR}/web/version.py ]; then
-            local new_rel=$(echo "$final_ver" | awk -F. '{print $1}')
-            local new_rev=$(echo "$final_ver" | awk -F. '{print $2}')
-            local new_smv=$(echo "$final_ver" | awk -F. '{print $3}' | awk -F- '{print $1}')
-            if [ -n "$new_rel" ] && [ -n "$new_rev" ] && [ -n "$new_smv" ]; then
-                sed -i "s/^[[:space:]]*APP_RELEASE[[:space:]]*=.*/APP_RELEASE = $new_rel/" ${PANEL_DIR}/web/version.py
-                sed -i "s/^[[:space:]]*APP_REVISION[[:space:]]*=.*/APP_REVISION = $new_rev/" ${PANEL_DIR}/web/version.py
-                sed -i "s/^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=.*/APP_SMALL_VERSION = $new_smv/" ${PANEL_DIR}/web/version.py
-            fi
+    fi
+    
+    # 0.5 如果是在全新安装/迁移中，自动匹配到了正式版 Release 标签，则优先使用它
+    if [ -z "$final_ver" ] && [ -n "${GIT_BRANCH:-}" ]; then
+        if echo "$GIT_BRANCH" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+'; then
+            final_ver=$(echo "$GIT_BRANCH" | sed 's/^v//')
+            log_info "从当前克隆的发布标签 ($GIT_BRANCH) 中解析版本号..."
+        fi
+    fi
+
+    # 尝试同步修改 version.py 的硬编码，以防原始文件内容未更新导致读取错误
+    if [ -n "$final_ver" ] && [ -f ${PANEL_DIR}/web/version.py ]; then
+        local new_rel=$(echo "$final_ver" | awk -F. '{print $1}')
+        local new_rev=$(echo "$final_ver" | awk -F. '{print $2}')
+        local new_smv=$(echo "$final_ver" | awk -F. '{print $3}' | awk -F- '{print $1}')
+        if [ -n "$new_rel" ] && [ -n "$new_rev" ] && [ -n "$new_smv" ]; then
+            sed -i "s/^[[:space:]]*APP_RELEASE[[:space:]]*=.*/APP_RELEASE = $new_rel/" ${PANEL_DIR}/web/version.py
+            sed -i "s/^[[:space:]]*APP_REVISION[[:space:]]*=.*/APP_REVISION = $new_rev/" ${PANEL_DIR}/web/version.py
+            sed -i "s/^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=.*/APP_SMALL_VERSION = $new_smv/" ${PANEL_DIR}/web/version.py
         fi
     fi
     
@@ -432,14 +441,10 @@ set_panel_version() {
         fi
     fi
     
-    # 2. 如果本地解析失败，且网络畅通，则尝试从 GitHub 接口获取 latest release 作为兜底
+    # 2. 如果本地解析失败，且网络畅通，则尝试从远端获取 latest release 作为兜底
     if [ -z "$final_ver" ]; then
-        local latest_ver
-        if type github_api_get >/dev/null 2>&1; then
-            latest_ver=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        else
-            latest_ver=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        fi
+        local repo_url=$(get_github_url "${GIT_REPO_BASE:-https://github.com/clhome/bt_simple.git}")
+        local latest_ver=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
         if [ -n "$latest_ver" ]; then
             final_ver="$latest_ver"
         fi
