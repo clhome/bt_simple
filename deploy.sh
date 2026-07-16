@@ -48,6 +48,12 @@ TIMESTAMP=$(date +%Y%m%d%H%M%S)
 LOG_FILE=/var/log/bt_simple_deploy.log
 SILENT_MODE=false
 
+if [ -d "/etc/rc.d/init.d" ]; then
+    INIT_D_SCRIPT="/etc/rc.d/init.d/yf"
+else
+    INIT_D_SCRIPT="/etc/init.d/yf"
+fi
+
 # fork 仓库地址（⚠️ 请根据实际修改为你的 GitHub 仓库地址）
 GIT_REPO_BASE="https://github.com/clhome/bt_simple.git"
 GIT_REPO="${BT_SIMPLE_REPO:-$GIT_REPO_BASE}"
@@ -584,13 +590,55 @@ rollback_yufeng_panel() {
     fi
     log_info "从备份恢复: $backup_file"
     stop_panel
-    rm -rf ${PANEL_DIR}/web ${PANEL_DIR}/panel_task.py ${PANEL_DIR}/panel_tools.py
+
+    # 清除向下兼容的软链接，将物理目录还原为 /www/server/mdserver-web
+    if [ -L "/www/server/mdserver-web" ]; then
+        rm -f /www/server/mdserver-web
+    fi
+    if [ -d "/www/server/yufeng_panel" ] && [ ! -L "/www/server/yufeng_panel" ]; then
+        log_info "恢复物理目录: /www/server/yufeng_panel -> /www/server/mdserver-web"
+        mv /www/server/yufeng_panel /www/server/mdserver-web
+    fi
+
+    # 清理物理目录下的新版代码文件
+    local target_legacy_dir="/www/server/mdserver-web"
+    rm -rf ${target_legacy_dir}/web ${target_legacy_dir}/panel_task.py ${target_legacy_dir}/panel_tools.py
+
+    # 解压备份还原老代码
     tar -xzf "$backup_file" -C /www/server
+
+    # 还原系统数据库
     local db_bak=$(ls -t ${BACKUP_DIR}/system.db.*.bak 2>/dev/null | head -1)
     if [ -n "$db_bak" ]; then
-        cp "$db_bak" ${PANEL_DIR}/data/system.db
+        cp "$db_bak" ${target_legacy_dir}/data/system.db
     fi
-    start_panel
+
+    # 动态修补老旧 monitor.py 中的 int(None) 崩溃 bug
+    local monitor_py="${target_legacy_dir}/web/utils/system/monitor.py"
+    if [ -f "$monitor_py" ]; then
+        sed -i 's/return int(monitor_day)/if not monitor_day: monitor_day = 30\n        return int(monitor_day)/g' "$monitor_py"
+        log_info "已自动修补老旧 monitor.py 中的 int(None) 异常问题"
+    fi
+
+    # 恢复原 CLI 软链接
+    local mw_init_script=""
+    if [ -d "/etc/rc.d/init.d" ]; then
+        mw_init_script="/etc/rc.d/init.d/mw"
+    else
+        mw_init_script="/etc/init.d/mw"
+    fi
+    if [ -f "$mw_init_script" ]; then
+        ln -sf "$mw_init_script" /usr/bin/mw
+        log_info "已恢复 CLI 软链接 /usr/bin/mw -> $mw_init_script"
+    fi
+
+    # 启动恢复后的老面板服务
+    log_info "正在启动恢复后的老面板服务..."
+    if [ -f "$mw_init_script" ]; then
+        "$mw_init_script" start
+    elif [ -f "${target_legacy_dir}/cli.sh" ]; then
+        cd ${target_legacy_dir} && bash cli.sh start
+    fi
     log_info "回滚完成!"
 }
 
@@ -869,7 +917,7 @@ fresh_install() {
 
     # 等待 init 脚本生成
     local n=0
-    while [ ! -f /etc/rc.d/init.d/yf ] && [ $n -lt 30 ]; do
+    while [ ! -f "$INIT_D_SCRIPT" ] && [ $n -lt 30 ]; do
         sleep 1
         let n+=1
     done
@@ -877,20 +925,20 @@ fresh_install() {
     # 配置系统服务
     # 提前设置版本号
     set_panel_version
-    if [ -f /etc/rc.d/init.d/yf ]; then
-        bash /etc/rc.d/init.d/yf stop
-        bash /etc/rc.d/init.d/yf start
+    if [ -f "$INIT_D_SCRIPT" ]; then
+        bash "$INIT_D_SCRIPT" stop
+        bash "$INIT_D_SCRIPT" start
     fi
 
     # 创建 mw/bs 命令
-    if [ ! -e /usr/bin/yf ] && [ -f /etc/rc.d/init.d/yf ]; then
-        ln -sf /etc/rc.d/init.d/yf /usr/bin/yf
+    if [ ! -e /usr/bin/yf ] && [ -f "$INIT_D_SCRIPT" ]; then
+        ln -sf "$INIT_D_SCRIPT" /usr/bin/yf
     fi
-    if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/yf ]; then
-        ln -sf /etc/rc.d/init.d/yf /usr/bin/mw
+    if [ ! -e /usr/bin/mw ] && [ -f "$INIT_D_SCRIPT" ]; then
+        ln -sf "$INIT_D_SCRIPT" /usr/bin/mw
     fi
-    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/yf ]; then
-        ln -sf /etc/rc.d/init.d/yf /usr/bin/bs
+    if [ ! -e /usr/bin/bs ] && [ -f "$INIT_D_SCRIPT" ]; then
+        ln -sf "$INIT_D_SCRIPT" /usr/bin/bs
     fi
 
     # 开放面板端口
@@ -1292,26 +1340,26 @@ migrate_from_bt() {
     sleep 3
 
     local n=0
-    while [ ! -f /etc/rc.d/init.d/yf ] && [ $n -lt 30 ]; do
+    while [ ! -f "$INIT_D_SCRIPT" ] && [ $n -lt 30 ]; do
         sleep 1
         let n+=1
     done
 
     # 提前设置版本号
     set_panel_version
-    if [ -f /etc/rc.d/init.d/yf ]; then
-        bash /etc/rc.d/init.d/yf stop
-        bash /etc/rc.d/init.d/yf start
+    if [ -f "$INIT_D_SCRIPT" ]; then
+        bash "$INIT_D_SCRIPT" stop
+        bash "$INIT_D_SCRIPT" start
     fi
 
-    if [ ! -e /usr/bin/yf ] && [ -f /etc/rc.d/init.d/yf ]; then
-        ln -sf /etc/rc.d/init.d/yf /usr/bin/yf
+    if [ ! -e /usr/bin/yf ] && [ -f "$INIT_D_SCRIPT" ]; then
+        ln -sf "$INIT_D_SCRIPT" /usr/bin/yf
     fi
-    if [ ! -e /usr/bin/mw ] && [ -f /etc/rc.d/init.d/yf ]; then
-        ln -sf /etc/rc.d/init.d/yf /usr/bin/mw
+    if [ ! -e /usr/bin/mw ] && [ -f "$INIT_D_SCRIPT" ]; then
+        ln -sf "$INIT_D_SCRIPT" /usr/bin/mw
     fi
-    if [ ! -e /usr/bin/bs ] && [ -f /etc/rc.d/init.d/yf ]; then
-        ln -sf /etc/rc.d/init.d/yf /usr/bin/bs
+    if [ ! -e /usr/bin/bs ] && [ -f "$INIT_D_SCRIPT" ]; then
+        ln -sf "$INIT_D_SCRIPT" /usr/bin/bs
     fi
 
     # 开放面板端口
@@ -1410,7 +1458,7 @@ check_version_and_update() {
 
 # =====================================================================
 disable_upstream_update() {
-    local yf_script="/etc/rc.d/init.d/yf"
+    local yf_script="$INIT_D_SCRIPT"
     if [ -f "$yf_script" ]; then
         # 检查是否已禁用
         if grep -q "自动更新已禁用" "$yf_script" 2>/dev/null; then
@@ -1544,7 +1592,7 @@ main() {
             exit 0
             ;;
         uninstall)
-            log_warn "卸载功能暂未实现，请手动执行: bash /etc/rc.d/init.d/yf uninstall"
+            log_warn "卸载功能暂未实现，请手动执行: bash $INIT_D_SCRIPT uninstall"
             exit 0
             ;;
     esac

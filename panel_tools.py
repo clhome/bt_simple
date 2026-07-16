@@ -29,6 +29,8 @@ import core.yf as yf
 import thisdb
 
 INIT_DIR = "/etc/rc.d/init.d"
+if not os.path.exists(INIT_DIR):
+    INIT_DIR = "/etc/init.d"
 if yf.isAppleSystem():
     INIT_DIR = yf.getPanelDir() + "/scripts/init.d"
 
