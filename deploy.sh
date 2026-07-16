@@ -648,11 +648,8 @@ download_code() {
     if [ "$GIT_BRANCH" = "master" ] && [ -z "${BT_SIMPLE_BRANCH:-}" ]; then
         log_info "尝试获取最新正式版 (Release) Tag..."
         local latest_tag=""
-        if type github_api_get >/dev/null 2>&1; then
-            latest_tag=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        else
-            latest_tag=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        fi
+        local repo_url=$(get_github_url "${GIT_REPO}")
+        latest_tag=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
         
         if [ -n "$latest_tag" ]; then
             export GIT_BRANCH="$latest_tag"
@@ -693,11 +690,8 @@ download_code() {
         
         # 尝试获取远端最新正式版的版本号，让开发版基于最新正式版号 + dev
         local latest_tag=""
-        if type github_api_get >/dev/null 2>&1; then
-            latest_tag=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        else
-            latest_tag=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        fi
+        local repo_url=$(get_github_url "${GIT_REPO}")
+        latest_tag=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
         
         if [ -n "$latest_tag" ]; then
             local clean_ver=$(echo "$latest_tag" | sed 's/^v//')
@@ -1341,11 +1335,8 @@ check_version_and_update() {
 
     log_info "正在检查远端最新版本..."
     local exact_tag=""
-    if type github_api_get >/dev/null 2>&1; then
-        exact_tag=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    else
-        exact_tag=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    fi
+    local repo_url=$(get_github_url "${GIT_REPO_BASE:-https://github.com/clhome/bt_simple.git}")
+    exact_tag=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
 
     if [ -z "$exact_tag" ]; then
         log_warn "获取远端版本号失败（可能受限于国内网络），将直接执行强行覆盖升级..."
