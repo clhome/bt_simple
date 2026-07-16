@@ -180,30 +180,37 @@ fi
 echo "local:${LOCAL_ADDR}"
 echo "pypi source:$PIPSRC"
 
-# 面板需要的库
-if [ ! -f /usr/local/bin/pip3 ] && [ ! -f /usr/bin/pip3 ];then
-    python3 -m pip install --upgrade pip setuptools wheel -i $PIPSRC
-
-    which pip3 && pip3 install --upgrade pip -i $PIPSRC
-    pip3 install --upgrade pip setuptools wheel -i $PIPSRC
-fi
+# 移除全局安装 pip3 的逻辑（遵循 PEP 668，避免破坏宿主机环境）
 
 if [ ! -f /www/server/yufeng_panel/bin/activate ];then
-    if version_ge "$P_VER" "3.11.0" ;then
-        echo "python3 > 3.11"
-        cd /www/server/yufeng_panel && python3 -m venv /www/server/yufeng_panel
-    else
-        echo "python3 < 3.10"
-        cd /www/server/yufeng_panel && python3 -m venv .
-        cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC
+    echo "正在创建独立的 Python 虚拟环境..."
+    cd /www/server/yufeng_panel || exit 1
+    
+    # 尝试标准创建 (自带 pip)
+    if ! python3 -m venv .; then
+        echo "标准 venv 创建失败(可能缺少 ensurepip)，尝试 --without-pip 回退模式..."
+        python3 -m venv --without-pip .
+        
+        # 激活没有 pip 的虚拟环境
+        source /www/server/yufeng_panel/bin/activate
+        
+        echo "正在为虚拟环境独立下载安装 pip..."
+        curl -fsSL -m 15 -o get-pip.py https://bootstrap.pypa.io/get-pip.py || wget -qO get-pip.py --timeout=15 https://bootstrap.pypa.io/get-pip.py
+        python3 get-pip.py -i $PIPSRC
+        rm -f get-pip.py
     fi
-    cd /www/server/yufeng_panel && source /www/server/yufeng_panel/bin/activate
+fi
+
+# 确保虚拟环境被正确激活
+if [ -f /www/server/yufeng_panel/bin/activate ]; then
+    source /www/server/yufeng_panel/bin/activate
 else
-    cd /www/server/yufeng_panel && source /www/server/yufeng_panel/bin/activate
+    echo "Error: 虚拟环境激活脚本不存在，环境初始化失败！"
+    exit 1
 fi
 
 pip3 install --upgrade pip -i $PIPSRC
-pip3 install --upgrade setuptools -i $PIPSRC
+pip3 install --upgrade setuptools wheel -i $PIPSRC
 
 
 # repeated attempts
