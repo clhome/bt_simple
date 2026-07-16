@@ -709,7 +709,9 @@ stop_panel() {
 }
 
 start_panel() {
-    if [ -f /usr/bin/yf ]; then
+    if [ -f "$INIT_D_SCRIPT" ]; then
+        bash "$INIT_D_SCRIPT" start
+    elif [ -f /usr/bin/yf ]; then
         yf start
     elif [ -f /usr/bin/mw ]; then
         mw 3
@@ -930,15 +932,11 @@ fresh_install() {
         bash "$INIT_D_SCRIPT" start
     fi
 
-    # 创建 mw/bs 命令
-    if [ ! -e /usr/bin/yf ] && [ -f "$INIT_D_SCRIPT" ]; then
-        ln -sf "$INIT_D_SCRIPT" /usr/bin/yf
-    fi
-    if [ ! -e /usr/bin/mw ] && [ -f "$INIT_D_SCRIPT" ]; then
-        ln -sf "$INIT_D_SCRIPT" /usr/bin/mw
-    fi
-    if [ ! -e /usr/bin/bs ] && [ -f "$INIT_D_SCRIPT" ]; then
-        ln -sf "$INIT_D_SCRIPT" /usr/bin/bs
+    # 强力重建并覆盖 mw/bs/yf 命令链接
+    if [ -f "$INIT_D_SCRIPT" ]; then
+        rm -f /usr/bin/yf && ln -sf "$INIT_D_SCRIPT" /usr/bin/yf
+        rm -f /usr/bin/mw && ln -sf "$INIT_D_SCRIPT" /usr/bin/mw
+        rm -f /usr/bin/bs && ln -sf "$INIT_D_SCRIPT" /usr/bin/bs
     fi
 
     # 开放面板端口
@@ -1090,6 +1088,14 @@ conn.close()
             rollback_yufeng_panel
             return
         fi
+    fi
+
+    # 强力重建并覆盖 mw/bs/yf 命令链接
+    if [ -f "$INIT_D_SCRIPT" ]; then
+        rm -f /usr/bin/yf && ln -sf "$INIT_D_SCRIPT" /usr/bin/yf
+        rm -f /usr/bin/mw && ln -sf "$INIT_D_SCRIPT" /usr/bin/mw
+        rm -f /usr/bin/bs && ln -sf "$INIT_D_SCRIPT" /usr/bin/bs
+        log_info "已强力重建 CLI 命令软链接 (yf/mw/bs)"
     fi
 
     # 如果缺少 default.pl（例如之前升级失败丢失），则重新生成密码
@@ -1352,14 +1358,11 @@ migrate_from_bt() {
         bash "$INIT_D_SCRIPT" start
     fi
 
-    if [ ! -e /usr/bin/yf ] && [ -f "$INIT_D_SCRIPT" ]; then
-        ln -sf "$INIT_D_SCRIPT" /usr/bin/yf
-    fi
-    if [ ! -e /usr/bin/mw ] && [ -f "$INIT_D_SCRIPT" ]; then
-        ln -sf "$INIT_D_SCRIPT" /usr/bin/mw
-    fi
-    if [ ! -e /usr/bin/bs ] && [ -f "$INIT_D_SCRIPT" ]; then
-        ln -sf "$INIT_D_SCRIPT" /usr/bin/bs
+    # 强力重建并覆盖 mw/bs/yf 命令链接
+    if [ -f "$INIT_D_SCRIPT" ]; then
+        rm -f /usr/bin/yf && ln -sf "$INIT_D_SCRIPT" /usr/bin/yf
+        rm -f /usr/bin/mw && ln -sf "$INIT_D_SCRIPT" /usr/bin/mw
+        rm -f /usr/bin/bs && ln -sf "$INIT_D_SCRIPT" /usr/bin/bs
     fi
 
     # 开放面板端口

@@ -46,3 +46,4 @@
 - `[x]` 38. 优化 `deploy.sh` 迁移回滚函数 `rollback_yufeng_panel`：移除兼容软链接并物理重命名恢复 `/www/server/mdserver-web` 目录物理路径，实现完美的物理回滚。
 - `[x]` 39. 优化 `deploy.sh` 迁移回滚函数 `rollback_yufeng_panel`：在解压老版代码后，动态使用 `sed` 补丁老版 `monitor.py` 中 `int(None)` 引起的崩溃 bug，并确保能正确使用原服务的 init 脚本启动。
 - `[x]` 40. 优化 `panel_tools.py`：动态判断 `INIT_DIR` 目录是否存在，使各种维护指令在 Ubuntu 等系统上能正常调用正确的系统服务脚本。
+- `[x]` 41. 优化 `deploy.sh` 中的 `start_panel` 启动函数与软链接重建，使其优先使用正确绝对路径启动，并使用 rm -f && ln -sf 强力覆盖并创建新链接，防止旧死链接阻碍。
