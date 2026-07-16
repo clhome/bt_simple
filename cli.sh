@@ -60,7 +60,7 @@ yf_start_debug(){
     if [ -f ${DIR}/data/port.pl ];then
         port=$(cat ${DIR}/data/port.pl)
     fi
-    cd ${DIR}/web && gunicorn -b :${port} -k gthread -w 1 app:app
+    cd ${DIR}/web && gunicorn -b :${port} -k gthread -w 1 --threads 5 app:app
 	# cd ${DIR}/web && gunicorn -b :${port} -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 app:app
 }
 
@@ -69,7 +69,7 @@ yf_start_panel(){
 	if [ -f ${DIR}/data/port.pl ];then
         port=$(cat ${DIR}/data/port.pl)
     fi
-	cd ${DIR}/web && gunicorn -b :${port} -k gthread -w 1  app:app
+	cd ${DIR}/web && gunicorn -b :${port} -k gthread -w 1 --threads 5 app:app
 	# cd ${DIR}/web && gunicorn -b :${port} -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1  app:app
 	
 }
@@ -85,19 +85,19 @@ yf_stop()
 	APP_LIST=`ps -ef|grep app:app |grep -v grep|awk '{print $2}'`
 	for p in $APP_LIST
 	do
-	    kill -9 $p > /dev/null 2>&1
+	    kill -15 $p > /dev/null 2>&1
 	done
 
 	TASK_LIST=`ps -ef|grep panel_task.py | grep -v grep |awk '{print $2}'`
     for p in $TASK_LIST
     do
-    	kill -9 $p > /dev/null 2>&1
+    	kill -15 $p > /dev/null 2>&1
     done
 
     zzpids=`ps -A -o stat,ppid,pid | grep -e '^[Zz]' | awk '{print $2}'`
     for p in $zzpids
     do
-        kill -9 ${p} > /dev/null 2>&1
+        kill -15 ${p} > /dev/null 2>&1
     done
 }
 

@@ -179,12 +179,12 @@ class ORM:
     def setDbName(self, name):
         self.__DB_NAME = name
 
-    def execute(self, sql):
+    def execute(self, sql, params=None):
         # 执行SQL语句返回受影响行
         if not self.__Conn():
             return self.__DB_ERR
         try:
-            result = self.__DB_CUR.execute(sql)
+            result = self.__DB_CUR.execute(sql, params or ())
             self.__DB_CONN.commit()
             return result
         except Exception as ex:
@@ -199,19 +199,19 @@ class ORM:
             print(e)
         return True
 
-    def find(self, sql):
-        d = self.query(sql)
+    def find(self, sql, params=None):
+        d = self.query(sql, params)
         if d is not None:
             if len(d) > 0:
                 return d[0]
         return None
 
-    def query(self, sql):
+    def query(self, sql, params=None):
         # 执行SQL语句返回数据集
         if not self.__Conn():
             return self.__DB_ERR
         try:
-            self.__DB_CUR.execute(sql)
+            self.__DB_CUR.execute(sql, params or ())
             result = self.__DB_CUR.fetchall()
             # print(result)
             # 将元组转换成列表

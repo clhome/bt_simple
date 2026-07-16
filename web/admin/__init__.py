@@ -88,7 +88,7 @@ panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
 if panel_ssl_data['open']:
     app.config['SESSION_COOKIE_SECURE'] = True
 
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=31)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
 
 # db的配置

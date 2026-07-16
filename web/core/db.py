@@ -60,6 +60,8 @@ class Sql():
                 if conn is None:
                     conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=10)
                     conn.text_factory = str
+                    conn.execute("PRAGMA journal_mode=WAL;")
+                    conn.execute("PRAGMA synchronous=NORMAL;")
                     _local.connections[self.__DB_FILE] = conn
                 else:
                     try:
@@ -71,6 +73,8 @@ class Sql():
                             pass
                         conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=10)
                         conn.text_factory = str
+                        conn.execute("PRAGMA journal_mode=WAL;")
+                        conn.execute("PRAGMA synchronous=NORMAL;")
                         _local.connections[self.__DB_FILE] = conn
                 
                 self.__DB_CONN = _local.connections[self.__DB_FILE]
