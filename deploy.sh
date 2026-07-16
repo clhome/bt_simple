@@ -7,12 +7,21 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 export LANG=en_US.UTF-8
 
+# 创建安全的独占临时文件夹，防止本地符号链接竞争与提权劫持
+YF_TMP_DIR=$(mktemp -d /tmp/yf_deploy.XXXXXX 2>/dev/null || echo "/tmp")
+cleanup_tmp() {
+    if [ -d "$YF_TMP_DIR" ] && [ "$YF_TMP_DIR" != "/tmp" ]; then
+        rm -rf "$YF_TMP_DIR"
+    fi
+}
+trap cleanup_tmp EXIT
+
 # 引入统一的 GitHub 下载函数库
 _gh_deploy_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)/scripts/github_download.sh"
 if [ -f "$_gh_deploy_lib" ]; then
     source "$_gh_deploy_lib"
 else
-    _gh_deploy_lib="/tmp/github_download.sh"
+    _gh_deploy_lib="$YF_TMP_DIR/github_download.sh"
     _gh_dl_url="https://raw.githubusercontent.com/clhome/bt_simple/master/scripts/github_download.sh"
     # 本地不存在时尝试网络拉取（兼容单脚本一键安装场景），使用 -f 参数避免下载到 502 HTML 错误页
     if curl -sSLf --connect-timeout 2 "$_gh_dl_url" -o "$_gh_deploy_lib" 2>/dev/null || \
@@ -189,12 +198,12 @@ install_acme() {
     local acme_downloaded=false
     if type github_download >/dev/null 2>&1; then
         log_info "正在使用统一网络库下载 acme.sh ..."
-        if github_download "/tmp/acme.sh.tar.gz" "https://github.com/acmesh-official/acme.sh/archive/master.tar.gz" 30; then
-            mkdir -p /tmp/acme-src
-            tar -zxf /tmp/acme.sh.tar.gz -C /tmp/acme-src --strip-components=1
-            cd /tmp/acme-src && ./acme.sh --install -m my@example.com 2>/dev/null
+        if github_download "$YF_TMP_DIR/acme.sh.tar.gz" "https://github.com/acmesh-official/acme.sh/archive/master.tar.gz" 30; then
+            mkdir -p "$YF_TMP_DIR/acme-src"
+            tar -zxf "$YF_TMP_DIR/acme.sh.tar.gz" -C "$YF_TMP_DIR/acme-src" --strip-components=1
+            cd "$YF_TMP_DIR/acme-src" && ./acme.sh --install -m my@example.com 2>/dev/null
             cd - >/dev/null
-            rm -rf /tmp/acme-src /tmp/acme.sh.tar.gz
+            rm -rf "$YF_TMP_DIR/acme-src" "$YF_TMP_DIR/acme.sh.tar.gz"
             acme_downloaded=true
         fi
     fi

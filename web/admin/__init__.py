@@ -186,8 +186,29 @@ def requestCheck():
             referer = request.headers.get('Referer', '')
             origin = request.headers.get('Origin', '')
             host = request.host
-            if referer and host not in referer:
-                if origin and host not in origin:
+
+            # 若 referer 和 origin 均为空，拦截以防御空 Referer 攻击
+            if not referer and not origin:
+                return Response('Forbidden', status=403)
+
+            def get_netloc(url_str):
+                if not url_str:
+                    return ""
+                if "://" not in url_str:
+                    url_str = "http://" + url_str
+                try:
+                    from urllib.parse import urlparse
+                    return urlparse(url_str).netloc
+                except:
+                    return ""
+
+            if referer:
+                ref_netloc = get_netloc(referer)
+                if ref_netloc != host:
+                    return Response('Forbidden', status=403)
+            elif origin:
+                orig_netloc = get_netloc(origin)
+                if orig_netloc != host:
                     return Response('Forbidden', status=403)
 
     # domain_check = yf.checkDomainPanel()

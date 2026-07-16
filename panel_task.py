@@ -28,7 +28,11 @@ import thisdb
 
 g_log_file = yf.getPanelTaskExecLog()
 if not os.path.exists(g_log_file):
-    os.system("touch " + g_log_file)
+    try:
+        with open(g_log_file, 'a'):
+            pass
+    except:
+        pass
 
 def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
     import subprocess
@@ -148,7 +152,14 @@ def downloadFile(url, filename, task_id=None):
         urllib.request.urlretrieve(url, filename=filename, reporthook=downloadHook)
 
         if not yf.isAppleSystem():
-            os.system('chown www.www ' + filename)
+            try:
+                import pwd
+                import grp
+                uid = pwd.getpwnam('www').pw_uid
+                gid = grp.getgrnam('www').gr_gid
+                os.chown(filename, uid, gid)
+            except:
+                yf.execShell(['chown', 'www:www', filename], shell=False)
 
         writeLogs(filename + ' download success!', task_id)
     except Exception as e:
@@ -271,7 +282,7 @@ def startPHPVersion(version):
         # system
         phpService = yf.systemdCfgDir() + '/php' + version + '.service'
         if os.path.exists(phpService):
-            yf.execShell("systemctl restart php" + version)
+            yf.execShell(["systemctl", "restart", "php" + version], shell=False)
             if checkPHPVersion(version):
                 return True
 
@@ -280,28 +291,36 @@ def startPHPVersion(version):
         php_path = server_dir + '/php/' + version + '/sbin/php-fpm'
         if not os.path.exists(php_path):
             if os.path.exists(fpm):
-                os.remove(fpm)
+                try:
+                    os.remove(fpm)
+                except:
+                    pass
             return False
 
         if not os.path.exists(fpm):
             return False
 
         # 尝试重载服务
-        os.system(fpm + ' reload')
+        yf.execShell([fpm, 'reload'], shell=False)
         if checkPHPVersion(version):
             return True
         # 尝试重启服务
         cgi = '/tmp/php-cgi-' + version + '.sock'
         pid = server_dir + '/php/' + version + '/var/run/php-fpm.pid'
-        data = yf.execShell("ps -ef | grep php/" + version +" | grep -v grep|grep -v python |awk '{print $2}'")
-        if data[0] != '':
-            os.system("ps -ef | grep php/" + version + " | grep -v grep|grep -v python |awk '{print $2}' | xargs kill ")
+        
+        # 安全且高效地杀死该版本的 php 进程，代替多管道 grep/awk
+        yf.execShell(['pkill', '-9', '-f', 'php/' + version], shell=False)
         time.sleep(0.5)
-        if not os.path.exists(cgi):
-            os.system('rm -f ' + cgi)
-        if not os.path.exists(pid):
-            os.system('rm -f ' + pid)
-        os.system(fpm + ' start')
+        
+        # 原生删除 socket 和 pid 文件
+        for temp_file in [cgi, pid]:
+            if os.path.exists(temp_file):
+                try:
+                    os.remove(temp_file)
+                except:
+                    pass
+                    
+        yf.execShell([fpm, 'start'], shell=False)
         if checkPHPVersion(version):
             return True
 

@@ -66,5 +66,5 @@ def clearTempLogin()->bool:
     '''
 
     now_time = int(time.time())
-    yf.M('temp_login').where('expire<?', (now_time)).delete()
+    yf.M('temp_login').where('expire<?', (now_time,)).delete()
     return True

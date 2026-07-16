@@ -36,5 +36,8 @@
 - `[x]` 29. 优化 `deploy.sh`：引入 `get_latest_release_tag` 辅助函数，优先通过 API + 代理获取最新正式版 tag，并以 `git ls-remote` 作为兜底，解决开发预览版注入时由于网络问题导致的 `-dev` 版本号抓取错误。
 - `[x]` 30. 优化 `deploy.sh` 的测速效率：在 `download_code` 和 `check_version_and_update` 函数开头在父 Shell 中提前执行测速以缓存 `_GH_BEST_PROXY`，避免子 Shell 运行导致重复测速。
 - `[x]` 31. 优化 `deploy.sh` 迁移回滚逻辑与统一命名：在部署时将 `deploy.sh` 写入面板目录，将回滚命令提示改为以固定的绝对路径指向新部署 of `/www/server/yufeng_panel/deploy.sh`，且函数名及参数统一重命名为 `yufeng_panel` / `rollback_yf`。
-
-
+- `[x]` 32. 安全优化：改进 `web/admin/__init__.py` 中的 CSRF 拦截逻辑，通过准确提取 Host 校验 Referer/Origin，阻断空 Referer 与子串欺骗绕过。
+- `[x]` 33. 安全优化：修复 `web/thisdb/temp_login.py` 中的 `(now_time)` 非元组传参，并为 `web/core/db.py` 里的 `where` 方法添加对非元组/列表入参的安全兼容包装。
+- `[x]` 34. 安全优化：修改 `deploy.sh` 中对 `_gh_deploy_lib` 的写入路径，使用 `mktemp -d` 专属目录防范 `/tmp` 软链接本地竞争提权风险。
+- `[x]` 35. 性能优化：为 `web/thisdb/option.py` 引入内存级的 Option 全局配置项缓存，减少高频 SQLite 读盘操作。
+- `[x]` 36. 性能优化：清除 `panel_task.py` 中的原生系统调用（替换 `touch`、`rm` 及部分外部进程杀死命令为 Python 原生原生调用或 `shell=False` 的 `subprocess` 调用）。

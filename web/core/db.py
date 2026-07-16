@@ -109,6 +109,8 @@ class Sql():
         # WHERE条件
         if where:
             self.__OPT_WHERE = " WHERE " + where
+            if param is not None and not isinstance(param, (tuple, list)):
+                param = (param,)
             self.__OPT_PARAM = param
         return self
 
@@ -116,8 +118,8 @@ class Sql():
         # WHERE条件
         if where:
             self.__OPT_WHERE = self.__OPT_WHERE + " and " + where
-            # print(param)
-            # print(self.__OPT_PARAM)
+            if param is not None and not isinstance(param, (tuple, list)):
+                param = (param,)
             self.__OPT_PARAM = self.__OPT_PARAM + param
         return self
 
