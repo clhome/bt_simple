@@ -644,6 +644,24 @@ download_code() {
     log_info "下载 bt_simple 代码..."
     rm -rf /tmp/bt_simple_deploy
 
+    # 如果用户没有显式指定分支，并且当前是默认的 master，则尝试自动获取最新 release
+    if [ "$GIT_BRANCH" = "master" ] && [ -z "${BT_SIMPLE_BRANCH:-}" ]; then
+        log_info "尝试获取最新正式版 (Release) Tag..."
+        local latest_tag=""
+        if type github_api_get >/dev/null 2>&1; then
+            latest_tag=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        else
+            latest_tag=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        fi
+        
+        if [ -n "$latest_tag" ]; then
+            export GIT_BRANCH="$latest_tag"
+            log_info "获取成功，本次将从正式版 Release (${GIT_BRANCH}) 下载代码"
+        else
+            log_warn "获取最新 Release 失败，将回退使用 master 分支"
+        fi
+    fi
+
     local download_url=$(get_github_url ${GIT_REPO})
     local clone_ret=0
 
@@ -1478,12 +1496,14 @@ main() {
     if $HAS_YF; then
         echo -e "${YELLOW}检测到已安装 yufeng_panel 面板${PLAIN}"
         echo ""
-        echo "  1) 确认升级"
-        echo "  2) 取消"
+        echo "  1) 检查并升级 (自动比对版本)"
+        echo "  2) 强制覆盖升级 (不比对版本)"
+        echo "  3) 取消"
         echo ""
-        if [ -t 0 ]; then read -p "请选择 [1-2]: " choice; else read -p "请选择 [1-2]: " choice < /dev/tty 2>/dev/null || choice="2"; fi
+        if [ -t 0 ]; then read -p "请选择 [1-3]: " choice; else read -p "请选择 [1-3]: " choice < /dev/tty 2>/dev/null || choice="3"; fi
         case "$choice" in
-            1) migrate_from_mw ;;
+            1) check_version_and_update ;;
+            2) migrate_from_mw ;;
             *) echo "已取消"; exit 0 ;;
         esac
     elif $HAS_BT && $HAS_MW; then
