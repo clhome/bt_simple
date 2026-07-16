@@ -2737,7 +2737,7 @@ function pluginOpService(a, b, v, _suffix_name='') {
             layer.msg(f, {icon: g.data == 'ok' ? 1 : 2});
             
             if( b != "reload" && g.data == 'ok' ) {
-                if ( b == 'start' ) {
+                if ( b == 'start' || b == 'restart' ) {
                     pluginSetService(a, true, v, _suffix_name);
                 } else if ( b == 'stop' ){
                     pluginSetService(a, false, v, _suffix_name);
