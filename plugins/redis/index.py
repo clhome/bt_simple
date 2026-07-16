@@ -215,14 +215,16 @@ def initDreplace():
             yf.execShell('rm -f /lib/systemd/system/redis-server.service')
             yf.execShell('rm -f /etc/systemd/system/redis-server.service')
             
-        # 始终清理 /etc 下残留的同名旧服务文件，避免优先级冲突导致系统找不到单位
-        if os.path.exists('/etc/systemd/system/redis.service'):
-            yf.execShell('rm -f /etc/systemd/system/redis.service')
+        # 清理旧路径下的同名服务，统一使用 /etc/systemd/system 作为标准配置目录
+        if os.path.exists('/lib/systemd/system/redis.service'):
+            yf.execShell('rm -f /lib/systemd/system/redis.service')
+        if os.path.exists('/usr/lib/systemd/system/redis.service'):
+            yf.execShell('rm -f /usr/lib/systemd/system/redis.service')
             
-        yf.execShell('systemctl daemon-reload')
-            
-        if not os.path.exists(systemService) or yf.readFile(systemService) != content:
-            yf.writeFile(systemService, content)
+        # 将标准配置写入优先级最高的 /etc/systemd/system/ 目录，直接覆盖宝塔残留配置
+        systemServiceEtc = '/etc/systemd/system/redis.service'
+        if not os.path.exists(systemServiceEtc) or yf.readFile(systemServiceEtc) != content:
+            yf.writeFile(systemServiceEtc, content)
             yf.execShell('systemctl daemon-reload')
 
     return file_bin

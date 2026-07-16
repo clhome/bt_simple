@@ -1063,9 +1063,9 @@ scan_bt_installed_software() {
     fi
 
     # 3. 检测 PostgreSQL
-    if [ -d "/www/server/postgresql" ]; then
-        if [ -f "/www/server/postgresql/version.pl" ]; then
-            postgres_ver=$(cat /www/server/postgresql/version.pl | tr -d '\r\n ')
+    if [ -d "/www/server/pgsql" ]; then
+        if [ -f "/www/server/pgsql/version.pl" ]; then
+            postgres_ver=$(cat /www/server/pgsql/version.pl | tr -d '\r\n ')
         else
             postgres_ver="16"
         fi

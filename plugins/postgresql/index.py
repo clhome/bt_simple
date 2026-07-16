@@ -278,12 +278,26 @@ def initDreplace(version=''):
     system_dir = yf.systemdCfgDir()
     service = system_dir + '/postgresql.service'
     if os.path.exists(system_dir):
+        # 清理旧版本的 init.d 脚本
+        if os.path.exists('/etc/init.d/postgresql'):
+            yf.execShell('rm -f /etc/init.d/postgresql')
+            
+        # 清理旧路径下的同名服务，统一使用 /etc/systemd/system 作为标准配置目录
+        if os.path.exists('/lib/systemd/system/postgresql.service'):
+            yf.execShell('rm -f /lib/systemd/system/postgresql.service')
+        if os.path.exists('/usr/lib/systemd/system/postgresql.service'):
+            yf.execShell('rm -f /usr/lib/systemd/system/postgresql.service')
+            
         tpl = getPluginDir() + '/init.d/postgresql.service.tpl'
         service_path = yf.getServerDir()
         content = yf.readFile(tpl)
         content = contentReplace(content)
-        yf.writeFile(service, content)
-        yf.execShell('systemctl daemon-reload')
+        
+        # 将标准配置写入优先级最高的 /etc/systemd/system/ 目录，直接覆盖宝塔残留配置
+        systemServiceEtc = '/etc/systemd/system/postgresql.service'
+        if not os.path.exists(systemServiceEtc) or yf.readFile(systemServiceEtc) != content:
+            yf.writeFile(systemServiceEtc, content)
+            yf.execShell('systemctl daemon-reload')
 
     if not yf.isAppleSystem():
         yf.execShell('chown -R postgres:postgres ' + getServerDir())
