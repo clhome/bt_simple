@@ -842,6 +842,8 @@ fresh_install() {
     done
 
     # 配置系统服务
+    # 提前设置版本号
+    set_panel_version
     if [ -f /etc/rc.d/init.d/yf ]; then
         bash /etc/rc.d/init.d/yf stop
         bash /etc/rc.d/init.d/yf start
@@ -868,8 +870,6 @@ fresh_install() {
         echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
     fi
 
-    # 设置面板版本号
-    set_panel_version
 
     disable_upstream_update
     show_panel_info "$rand_pass"
@@ -992,6 +992,7 @@ conn.close()
     fi
 
     # 启动
+    set_panel_version
     start_panel
     sleep 2
     disable_upstream_update
@@ -1021,8 +1022,6 @@ conn.close()
         log_info "检测到缺少默认密码文件，已重新生成面板密码"
     fi
 
-    # 设置面板版本号
-    set_panel_version
 
     show_panel_info "$rand_pass"
     echo ""
@@ -1265,6 +1264,8 @@ migrate_from_bt() {
         let n+=1
     done
 
+    # 提前设置版本号
+    set_panel_version
     if [ -f /etc/rc.d/init.d/yf ]; then
         bash /etc/rc.d/init.d/yf stop
         bash /etc/rc.d/init.d/yf start
@@ -1290,8 +1291,6 @@ migrate_from_bt() {
         echo "$rand_pass" > ${PANEL_DIR}/data/default.pl
     fi
 
-    # 设置面板版本号
-    set_panel_version
 
     disable_upstream_update
 
