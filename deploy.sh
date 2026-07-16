@@ -99,6 +99,12 @@ get_github_url() {
                 _gh_get_best_proxy >/dev/null
                 best_proxy="$_GH_BEST_PROXY"
             fi
+            
+            if [ "$best_proxy" = "direct" ]; then
+                echo "$original_url"
+                return
+            fi
+            
             local use_proxy="${best_proxy:-https://gh-proxy.com/}"
             
             if type _gh_proxy_url >/dev/null 2>&1; then
@@ -122,10 +128,6 @@ setup_china_git_config() {
             best_proxy="$_GH_BEST_PROXY"
         fi
         
-        if [ -z "$best_proxy" ]; then
-            best_proxy="https://gh-proxy.com/"
-        fi
-        
         # 定义备用代理列表 (与 github_download.sh 保持一致，用于清理旧规则)
         local proxies=(
             "https://gh-proxy.com/"
@@ -140,11 +142,11 @@ setup_china_git_config() {
         done
         git config --global --remove-section url."https://gh-proxy.com/https://github.com/" 2>/dev/null || true
         
-        if [ -n "$best_proxy" ]; then
+        if [ -n "$best_proxy" ] && [ "$best_proxy" != "direct" ]; then
             log_info "选用存活的 GitHub 代理: $best_proxy"
             git config --global url."${best_proxy}https://github.com/".insteadOf "https://github.com/"
         else
-            log_warn "所有 GitHub 代理节点均探测失败，本次将使用 GitHub 官方直连"
+            log_info "GitHub 直连速度良好或所有代理均失败，将使用 GitHub 官方直连"
         fi
         
         git config --global http.version HTTP/1.1
@@ -221,8 +223,21 @@ install_acme() {
                 _gh_get_best_proxy >/dev/null
                 best_proxy="$_GH_BEST_PROXY"
             fi
-            local acme_proxy="${best_proxy:-https://gh-proxy.com/}"
-            curl "${acme_proxy}https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh" | sh -s -- --install-online -m my@example.com 2>/dev/null
+            if [ "$best_proxy" = "direct" ]; then
+                best_proxy=""
+            elif [ -z "$best_proxy" ]; then
+                best_proxy="https://gh-proxy.com/"
+            fi
+            
+            local acme_url="https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh"
+            local acme_download_url
+            if type _gh_proxy_url >/dev/null 2>&1; then
+                acme_download_url=$(_gh_proxy_url "$best_proxy" "$acme_url")
+            else
+                acme_download_url="${best_proxy}${acme_url}"
+            fi
+            
+            curl -sSL "$acme_download_url" | sh -s -- --install-online -m my@example.com 2>/dev/null
         else
             curl -fsSL https://get.acme.sh | bash 2>/dev/null
         fi

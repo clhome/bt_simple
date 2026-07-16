@@ -47,3 +47,8 @@
 - `[x]` 39. 优化 `deploy.sh` 迁移回滚函数 `rollback_yufeng_panel`：在解压老版代码后，动态使用 `sed` 补丁老版 `monitor.py` 中 `int(None)` 引起的崩溃 bug，并确保能正确使用原服务的 init 脚本启动。
 - `[x]` 40. 优化 `panel_tools.py`：动态判断 `INIT_DIR` 目录是否存在，使各种维护指令在 Ubuntu 等系统上能正常调用正确的系统服务脚本。
 - `[x]` 41. 优化 `deploy.sh` 中的 `start_panel` 启动函数与软链接重建，使其优先使用正确绝对路径启动，并使用 rm -f && ln -sf 强力覆盖并创建新链接，防止旧死链接阻碍。
+
+- `[x]` 42. 优化 `scripts/github_download.sh`：将直连加入测速首位，增加大于 3MB/s 提前退出，改写下载和 API 获取逻辑以消除盲目超时等待。
+- `[x]` 43. 优化 `deploy.sh` 脚本：适配测速返回为 `"direct"` 的情况，处理 `get_github_url`、`setup_china_git_config` 以及 `install_acme` 的调用逻辑。
+- `[x]` 44. 优化 `web/core/yf.py` 脚本：调整 Python 端代理列表及测速模块，使其支持直连测速并消除盲目直连等待。
+- `[x]` 45. 对修改后的 Shell 脚本与 Python 逻辑进行测试验证。

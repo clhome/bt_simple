@@ -286,6 +286,7 @@ def getGithubProxyInfo():
     def test_speed_bg():
         global _IS_TESTING_GITHUB
         test_list = {
+            "direct": "",
             "ghproxy.net": "https://ghproxy.net/",
             "gh.con.sh": "https://gh.con.sh/",
             "gh-proxy.com": "https://gh-proxy.com/",
@@ -294,8 +295,8 @@ def getGithubProxyInfo():
         
         test_url = "https://raw.githubusercontent.com/clhome/bt_simple/master/README.md"
         best_time = 999.0
-        best_name = "ghproxy.net"
-        best_url = "https://ghproxy.net/"
+        best_name = "direct"
+        best_url = ""
 
         for name, prefix in test_list.items():
             try:
@@ -349,6 +350,7 @@ def getGithubProxyName():
 
 # ---------- GitHub 代理站列表（与 scripts/github_download.sh 保持一致） ----------
 _GITHUB_PROXY_LIST = [
+    "",
     "https://ghproxy.net/",
     "https://gh.con.sh/",
     "https://gh-proxy.com/",
@@ -368,11 +370,7 @@ def _makeGithubProxyUrl(proxy_prefix, original_url):
 def githubDownload(url, save_path, timeout=10):
     """
     统一的 GitHub 下载函数（Python 端）
-    流程与 Shell 端 github_download 完全一致：
-      1. 直连 GitHub（等待 timeout 秒）
-      2. 失败则轮询代理站列表（每个 timeout 秒）
-      3. 全部失败则等待 10 秒后再次完整代理轮询（最多 2 次）
-      4. 仍失败则返回 False
+    使用优选节点下载，失败后降级轮询。
 
     @param url: GitHub 原始 URL
     @param save_path: 保存文件路径
@@ -399,20 +397,20 @@ def githubDownload(url, save_path, timeout=10):
             os.remove(save_path)
         return False
 
-    # 步骤1: 直连 GitHub
-    if _try_download(url):
+    # 步骤1: 尝试最优节点下载
+    best_proxy_info = getGithubProxyInfo()
+    best_proxy = best_proxy_info.get('url', '')
+    best_url = _makeGithubProxyUrl(best_proxy, url)
+    if _try_download(best_url):
         return True
 
-    # 步骤2+3: 代理轮询，最多 2 轮
-    for round_num in range(1, 3):
-        if round_num > 1:
-            import time as _time
-            _time.sleep(10)
-
-        for proxy in _GITHUB_PROXY_LIST:
-            proxy_url = _makeGithubProxyUrl(proxy, url)
-            if _try_download(proxy_url):
-                return True
+    # 步骤2: 代理降级轮询机制
+    for proxy in _GITHUB_PROXY_LIST:
+        if proxy == best_proxy:
+            continue
+        proxy_url = _makeGithubProxyUrl(proxy, url)
+        if _try_download(proxy_url):
+            return True
 
     return False
 
