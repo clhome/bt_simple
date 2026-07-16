@@ -687,9 +687,29 @@ download_code() {
         exit 1
     fi
 
-    # 如果用户明确指定了 master 分支（尝鲜预览版），则主动为版本号打上 dev 后缀标签
+    # 如果用户明确指定了 master 分支（尝鲜预览版），则主动为版本号同步最新 Release 编号并打上 dev 后缀标签
     if [ "$BT_SIMPLE_BRANCH" = "master" ] && [ -f /tmp/bt_simple_deploy/web/version.py ]; then
         log_info "正在为开发预览版注入 -dev 版本标识..."
+        
+        # 尝试获取远端最新正式版的版本号，让开发版基于最新正式版号 + dev
+        local latest_tag=""
+        if type github_api_get >/dev/null 2>&1; then
+            latest_tag=$(github_api_get "https://api.github.com/repos/clhome/bt_simple/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        else
+            latest_tag=$(curl -s -m 5 "https://api.github.com/repos/clhome/bt_simple/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        fi
+        
+        if [ -n "$latest_tag" ]; then
+            local clean_ver=$(echo "$latest_tag" | sed 's/^v//')
+            local new_rel=$(echo "$clean_ver" | awk -F. '{print $1}')
+            local new_rev=$(echo "$clean_ver" | awk -F. '{print $2}')
+            local new_smv=$(echo "$clean_ver" | awk -F. '{print $3}' | awk -F- '{print $1}')
+            if [ -n "$new_rel" ] && [ -n "$new_rev" ] && [ -n "$new_smv" ]; then
+                sed -i "s/^[[:space:]]*APP_RELEASE[[:space:]]*=.*/APP_RELEASE = $new_rel/" /tmp/bt_simple_deploy/web/version.py
+                sed -i "s/^[[:space:]]*APP_REVISION[[:space:]]*=.*/APP_REVISION = $new_rev/" /tmp/bt_simple_deploy/web/version.py
+                sed -i "s/^[[:space:]]*APP_SMALL_VERSION[[:space:]]*=.*/APP_SMALL_VERSION = $new_smv/" /tmp/bt_simple_deploy/web/version.py
+            fi
+        fi
         sed -i "s/^[[:space:]]*APP_SUFFIX[[:space:]]*=.*/APP_SUFFIX = 'dev'/" /tmp/bt_simple_deploy/web/version.py
     fi
 
