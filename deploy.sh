@@ -494,20 +494,30 @@ show_banner() {
 # 备份功能
 # =====================================================================
 backup_mdserver_web() {
-    log_info "备份 mdserver-web 面板..."
     mkdir -p $BACKUP_DIR
-
-    tar -czf ${BACKUP_DIR}/mdserver-web-${TIMESTAMP}.tar.gz \
-        --exclude='mdserver-web/bin' \
-        --exclude='mdserver-web/lib' \
-        --exclude='mdserver-web/lib64' \
-        --exclude='mdserver-web/include' \
-        -C /www/server mdserver-web 2>/dev/null
+    if $HAS_YF; then
+        log_info "备份 yufeng_panel 面板..."
+        tar -czf ${BACKUP_DIR}/yufeng_panel-${TIMESTAMP}.tar.gz \
+            --exclude='yufeng_panel/bin' \
+            --exclude='yufeng_panel/lib' \
+            --exclude='yufeng_panel/lib64' \
+            --exclude='yufeng_panel/include' \
+            -C /www/server yufeng_panel 2>/dev/null
+        log_info "备份完成: ${BACKUP_DIR}/yufeng_panel-${TIMESTAMP}.tar.gz"
+    else
+        log_info "备份 mdserver-web 面板..."
+        tar -czf ${BACKUP_DIR}/mdserver-web-${TIMESTAMP}.tar.gz \
+            --exclude='mdserver-web/bin' \
+            --exclude='mdserver-web/lib' \
+            --exclude='mdserver-web/lib64' \
+            --exclude='mdserver-web/include' \
+            -C /www/server mdserver-web 2>/dev/null
+        log_info "备份完成: ${BACKUP_DIR}/mdserver-web-${TIMESTAMP}.tar.gz"
+    fi
 
     if [ -f ${PANEL_DIR}/data/system.db ]; then
         cp ${PANEL_DIR}/data/system.db ${BACKUP_DIR}/system.db.${TIMESTAMP}.bak
     fi
-    log_info "备份完成: ${BACKUP_DIR}/mdserver-web-${TIMESTAMP}.tar.gz"
 }
 
 backup_bt_panel() {
@@ -527,9 +537,12 @@ backup_bt_panel() {
 # 回滚功能
 # =====================================================================
 rollback_mdserver_web() {
-    local backup_file=$(ls -t ${BACKUP_DIR}/mdserver-web-*.tar.gz 2>/dev/null | head -1)
+    local backup_file=$(ls -t ${BACKUP_DIR}/yufeng_panel-*.tar.gz 2>/dev/null | head -1)
     if [ -z "$backup_file" ]; then
-        log_error "未找到 mdserver-web 备份文件!"
+        backup_file=$(ls -t ${BACKUP_DIR}/mdserver-web-*.tar.gz 2>/dev/null | head -1)
+    fi
+    if [ -z "$backup_file" ]; then
+        log_error "未找到面板备份文件!"
         return 1
     fi
     log_info "从备份恢复: $backup_file"
@@ -823,22 +836,29 @@ fresh_install() {
 # 场景2: 从 mdserver-web 迁移
 # =====================================================================
 migrate_from_mw() {
-    log_info "===== 从 mdserver-web 迁移到 bt_simple ====="
+    if $HAS_YF; then
+        log_info "===== 升级 yufeng_panel 面板 ====="
+        echo -e "${YELLOW}准备升级 yufeng_panel 面板${PLAIN}"
+        echo -e "当前面板信息:"
+        yf 10 2>/dev/null || bs 10 2>/dev/null || mw 10 2>/dev/null
+        echo ""
+    else
+        log_info "===== 从 mdserver-web 迁移到 bt_simple ====="
+        echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
+        echo -e "当前面板信息:"
+        mw 10 2>/dev/null
+        echo ""
 
-    echo -e "${YELLOW}检测到已安装 mdserver-web 面板${PLAIN}"
-    echo -e "当前面板信息:"
-    mw 10 2>/dev/null
-    echo ""
+        echo -e "${RED}注意事项:${PLAIN}"
+        echo "  1. 迁移仅替换面板 Python 代码，不影响已部署的网站和数据库"
+        echo "  2. data/ plugins/ ssl/ 等数据目录将完整保留"
+        echo "  3. 如迁移失败可一键回滚到原版"
+        echo ""
 
-    echo -e "${RED}注意事项:${PLAIN}"
-    echo "  1. 迁移仅替换面板 Python 代码，不影响已部署的网站和数据库"
-    echo "  2. data/ plugins/ ssl/ 等数据目录将完整保留"
-    echo "  3. 如迁移失败可一键回滚到原版"
-    echo ""
-
-    if ! confirm "是否确认【升级】或者从 mdserver-web 迁移到 bt_simple?"; then
-        log_info "用户取消迁移"
-        return
+        if ! confirm "是否确认【升级】或者从 mdserver-web 迁移到 bt_simple?"; then
+            log_info "用户取消迁移"
+            return
+        fi
     fi
 
     # 备份
