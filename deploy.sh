@@ -564,7 +564,7 @@ backup_bt_panel() {
 # =====================================================================
 # 回滚功能
 # =====================================================================
-rollback_mdserver_web() {
+rollback_yufeng_panel() {
     local backup_file=$(ls -t ${BACKUP_DIR}/yufeng_panel-*.tar.gz 2>/dev/null | head -1)
     if [ -z "$backup_file" ]; then
         backup_file=$(ls -t ${BACKUP_DIR}/mdserver-web-*.tar.gz 2>/dev/null | head -1)
@@ -745,7 +745,7 @@ deploy_code() {
     log_info "部署代码到 ${PANEL_DIR} ..."
 
     # 核心代码目录及文档
-    local CODE_ITEMS="web panel_task.py panel_tools.py cli.sh scripts route version.py branding.py requirements.txt README.md RELEASE_TEMPLATE.md"
+    local CODE_ITEMS="deploy.sh web panel_task.py panel_tools.py cli.sh scripts route version.py branding.py requirements.txt README.md RELEASE_TEMPLATE.md"
     for item in $CODE_ITEMS; do
         if [ -e ${src}/${item} ]; then
             rm -rf ${PANEL_DIR}/${item}
@@ -1029,8 +1029,8 @@ conn.close()
     else
         log_warn "面板可能未正常启动，请检查日志: tail -50 ${PANEL_DIR}/logs/panel_error.log"
         echo ""
-        if confirm "是否回滚到原版 mdserver-web?"; then
-            rollback_mdserver_web
+        if confirm "是否回滚到迁移前状态?"; then
+            rollback_yufeng_panel
             return
         fi
     fi
@@ -1049,8 +1049,8 @@ conn.close()
 
     show_panel_info "$rand_pass"
     echo ""
-    log_info "===== mdserver-web 迁移完成 ====="
-    echo -e "${YELLOW}提示: 如需回滚请执行: bash $0 rollback_mw${PLAIN}"
+    log_info "===== yufeng_panel 迁移完成 ====="
+    echo -e "${YELLOW}提示: 如需回滚请执行: bash /www/server/yufeng_panel/deploy.sh rollback_yf${PLAIN}"
 }
 
 # =====================================================================
@@ -1347,7 +1347,7 @@ migrate_from_bt() {
     log_info "===== 宝塔面板迁移完成 ====="
     echo -e "${YELLOW}提示:${PLAIN}"
     echo "  1. 原宝塔面板备份在: ${BT_DIR}.bak.${TIMESTAMP}"
-    echo "  2. 如需回滚请执行: bash $0 rollback_bt"
+    echo "  2. 如需回滚请执行: bash /www/server/yufeng_panel/deploy.sh rollback_bt"
     echo "  3. 第一次使用御风面板请使用【bs 11】命令初始化密码"
 }
 
@@ -1526,8 +1526,8 @@ main() {
             fresh_install
             exit 0
             ;;
-        rollback_mw)
-            rollback_mdserver_web
+        rollback_mw|rollback_yf)
+            rollback_yufeng_panel
             exit 0
             ;;
         rollback_bt)
