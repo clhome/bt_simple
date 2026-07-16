@@ -11,7 +11,12 @@ serverPath=$(dirname "$rootPath")
 if [ -f ${rootPath}/bin/activate ];then
 	source ${rootPath}/bin/activate
 fi
-pip install pyinotify
+
+SYS_PIP_OPT=""
+if pip install --help 2>/dev/null | grep -q "break-system-packages"; then
+	SYS_PIP_OPT="--break-system-packages"
+fi
+pip install $SYS_PIP_OPT pyinotify
 
 # cd /www/server/yufeng_panel/plugins/tamper_proof_py && bash install.sh install 1.0
 

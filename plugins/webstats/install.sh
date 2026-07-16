@@ -113,7 +113,11 @@ Install_App()
 	fi
 
 	# https://github.com/P3TERX/GeoLite.mmdb
-	pip install geoip2 -i $PIPSRC
+	SYS_PIP_OPT=""
+	if pip install --help 2>/dev/null | grep -q "break-system-packages"; then
+		SYS_PIP_OPT="--break-system-packages"
+	fi
+	pip install $SYS_PIP_OPT geoip2 -i $PIPSRC
 	# if [ ! -f $serverPath/webstats/GeoLite2-City.mmdb ];then
 	# 	wget --no-check-certificate -O $serverPath/webstats/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/download/2022.10.16/GeoLite2-City.mmdb
 	# fi

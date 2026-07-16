@@ -62,8 +62,12 @@ Install_app()
 		cd $MG_DIR && tar -zxf $MG_DIR/mongodb-src-r${VERSION}.tar.gz
 	fi
 
-	cd $MG_DIR/mongodb-src-r${VERSION} && python3 -m pip install requirements_parser
-	cd $MG_DIR/mongodb-src-r${VERSION} && python3 -m pip install -r etc/pip/compile-requirements.txt
+	SYS_PIP_OPT=""
+	if python3 -m pip install --help 2>/dev/null | grep -q "break-system-packages"; then
+		SYS_PIP_OPT="--break-system-packages"
+	fi
+	cd $MG_DIR/mongodb-src-r${VERSION} && python3 -m pip install $SYS_PIP_OPT requirements_parser
+	cd $MG_DIR/mongodb-src-r${VERSION} && python3 -m pip install $SYS_PIP_OPT -r etc/pip/compile-requirements.txt
 
 	# cd $MG_DIR/mongodb-src-r${VERSION} && python3 buildscripts/scons.py all -j 2
 	# echo "cd $MG_DIR/mongodb-src-r${VERSION} && python3 buildscripts/scons.py all -j 2"

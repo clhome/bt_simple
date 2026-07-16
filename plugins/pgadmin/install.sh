@@ -51,7 +51,12 @@ Install_pgadmin()
 		PIP_OPT="-i https://pypi.tuna.tsinghua.edu.cn/simple"
 	fi
 
-	pip install $PIP_OPT gunicorn pgadmin4
+	SYS_PIP_OPT=""
+	if pip install --help 2>/dev/null | grep -q "break-system-packages"; then
+		SYS_PIP_OPT="--break-system-packages"
+	fi
+
+	pip install $SYS_PIP_OPT $PIP_OPT gunicorn pgadmin4
 
 	cd ${rootPath} && python3 ${rootPath}/plugins/pgadmin/index.py start
 	echo '安装完成'

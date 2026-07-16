@@ -14,7 +14,14 @@ type=$2
 
 VERSION=(${type//./ })
 
-pip install psycopg2-binary
+# 动态检测当前系统的 pip 是否支持 --break-system-packages 参数（兼容新老版本Linux）
+PIP_OPT=""
+if pip install --help | grep -q "break-system-packages"; then
+    PIP_OPT="--break-system-packages"
+fi
+
+pip install $PIP_OPT psycopg2-binary
+
 if [ -f ${rootPath}/bin/activate ];then
 	source ${rootPath}/bin/activate
 	pip install psycopg2-binary

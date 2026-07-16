@@ -30,12 +30,17 @@ Install_app()
 	mkdir -p $serverPath/supervisor/run
 
 	echo 'supervisor install...'
+
+	SYS_PIP_OPT=""
+	if pip install --help 2>/dev/null | grep -q "break-system-packages"; then
+		SYS_PIP_OPT="--break-system-packages"
+	fi
 	if [ "centos" == "$OSNAME" ] || [ "fedora" == "$OSNAME" ];then
-    	pip install  supervisor
+    	pip install $SYS_PIP_OPT supervisor
     elif [ "ubuntu" == "$OSNAME" ] || [ "debian" == "$OSNAME" ] ;then
-    	pip install supervisor
+    	pip install $SYS_PIP_OPT supervisor
 	else
-		pip install supervisor
+		pip install $SYS_PIP_OPT supervisor
     	# brew install supervisor
 	fi
 
