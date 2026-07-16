@@ -157,6 +157,30 @@ confirm() {
     [ "$response" = "yes" ]
 }
 
+# 获取最新的正式版 Release Tag
+get_latest_release_tag() {
+    local repo_url=$(get_github_url "${GIT_REPO_BASE:-https://github.com/clhome/bt_simple.git}")
+    local latest_tag=""
+    
+    # 优先解析 repo 用户名/仓库名以调用 GitHub API
+    local repo_name="clhome/bt_simple"
+    if [[ "$GIT_REPO" == *"github.com"* ]]; then
+        repo_name=$(echo "$GIT_REPO" | sed -E 's|.*/github.com/||; s|\.git$||')
+    fi
+
+    # 1. 尝试使用统一的 GitHub API 获取
+    if type github_api_get >/dev/null 2>&1; then
+        latest_tag=$(github_api_get "https://api.github.com/repos/${repo_name}/releases/latest" 2>/dev/null | grep '"tag_name":' | head -n 1 | awk -F '"' '{print $4}')
+    fi
+
+    # 2. 如果 API 获取失败，则降级使用 git ls-remote 获取
+    if [ -z "$latest_tag" ]; then
+        latest_tag=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+    fi
+
+    echo "$latest_tag"
+}
+
 install_acme() {
     if [ -d /root/.acme.sh ]; then
         return 0
@@ -443,8 +467,7 @@ set_panel_version() {
     
     # 2. 如果本地解析失败，且网络畅通，则尝试从远端获取 latest release 作为兜底
     if [ -z "$final_ver" ]; then
-        local repo_url=$(get_github_url "${GIT_REPO_BASE:-https://github.com/clhome/bt_simple.git}")
-        local latest_ver=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+        local latest_ver=$(get_latest_release_tag)
         if [ -n "$latest_ver" ]; then
             final_ver="$latest_ver"
         fi
@@ -649,12 +672,10 @@ download_code() {
     log_info "下载 bt_simple 代码..."
     rm -rf /tmp/bt_simple_deploy
 
-    # 如果用户没有显式指定分支，并且当前是默认的 master，则尝试自动获取最新 release
+    # 如果用户没有显式指定分支，并且当前是默认 of master，则尝试自动获取最新 release
     if [ "$GIT_BRANCH" = "master" ] && [ -z "${BT_SIMPLE_BRANCH:-}" ]; then
         log_info "尝试获取最新正式版 (Release) Tag..."
-        local latest_tag=""
-        local repo_url=$(get_github_url "${GIT_REPO}")
-        latest_tag=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+        local latest_tag=$(get_latest_release_tag)
         
         if [ -n "$latest_tag" ]; then
             export GIT_BRANCH="$latest_tag"
@@ -694,9 +715,7 @@ download_code() {
         log_info "正在为开发预览版注入 -dev 版本标识..."
         
         # 尝试获取远端最新正式版的版本号，让开发版基于最新正式版号 + dev
-        local latest_tag=""
-        local repo_url=$(get_github_url "${GIT_REPO}")
-        latest_tag=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+        local latest_tag=$(get_latest_release_tag)
         
         if [ -n "$latest_tag" ]; then
             local clean_ver=$(echo "$latest_tag" | sed 's/^v//')
@@ -1338,9 +1357,7 @@ check_version_and_update() {
     fi
 
     log_info "正在检查远端最新版本..."
-    local exact_tag=""
-    local repo_url=$(get_github_url "${GIT_REPO_BASE:-https://github.com/clhome/bt_simple.git}")
-    exact_tag=$(git ls-remote --tags --refs "$repo_url" 2>/dev/null | awk -F/ '{print $NF}' | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1)
+    local exact_tag=$(get_latest_release_tag)
 
     if [ -z "$exact_tag" ]; then
         log_warn "获取远端版本号失败（可能受限于国内网络），将直接执行强行覆盖升级..."
