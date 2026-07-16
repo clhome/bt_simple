@@ -672,7 +672,7 @@ download_code() {
     else
         if command -v git >/dev/null 2>&1; then
             log_info "正在从 ${download_url} 拉取代码..."
-            git -c http.version=HTTP/1.1 clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
+            git -c advice.detachedHead=false -c http.version=HTTP/1.1 clone --depth 1 -b ${GIT_BRANCH} ${download_url} /tmp/bt_simple_deploy 2>&1 | tee -a $LOG_FILE
             clone_ret=$?
         else
             log_error "git 未安装，请先安装 git"
@@ -686,6 +686,13 @@ download_code() {
         rm -rf /tmp/bt_simple_deploy 2>/dev/null
         exit 1
     fi
+
+    # 如果用户明确指定了 master 分支（尝鲜预览版），则主动为版本号打上 dev 后缀标签
+    if [ "$BT_SIMPLE_BRANCH" = "master" ] && [ -f /tmp/bt_simple_deploy/web/version.py ]; then
+        log_info "正在为开发预览版注入 -dev 版本标识..."
+        sed -i "s/^[[:space:]]*APP_SUFFIX[[:space:]]*=.*/APP_SUFFIX = 'dev'/" /tmp/bt_simple_deploy/web/version.py
+    fi
+
     log_info "代码下载完成"
 }
 
@@ -1496,14 +1503,27 @@ main() {
     if $HAS_YF; then
         echo -e "${YELLOW}检测到已安装 yufeng_panel 面板${PLAIN}"
         echo ""
-        echo "  1) 检查并升级 (自动比对版本)"
-        echo "  2) 强制覆盖升级 (不比对版本)"
-        echo "  3) 取消"
+        echo "=================================================================="
+        echo -e " ${YELLOW}运维提示：版本降级与环境修复指引${PLAIN}"
+        echo " ----------------------------------------------------------------"
+        echo " 若当前面板正运行 [开发预览版 (-dev)]，或核心代码出现损坏缺失，"
+        echo " 且需要强制切回并锁定至最新的官方稳定发行版 (Stable Release)，"
+        echo " 请务必选择下方【 2) 强制覆盖升级 】以重置整个代码仓库。"
+        echo "=================================================================="
         echo ""
-        if [ -t 0 ]; then read -p "请选择 [1-3]: " choice; else read -p "请选择 [1-3]: " choice < /dev/tty 2>/dev/null || choice="3"; fi
+        echo "  1) 检查并升级 (自动比对稳定版版本)"
+        echo "  2) 强制覆盖升级 (不比对版本，适用于环境修复或回退正式版)"
+        echo "  3) 强制升级至开发预览版 (拉取 master 最新提交，存在不稳定风险)"
+        echo "  4) 取消"
+        echo ""
+        if [ -t 0 ]; then read -p "请选择 [1-4]: " choice; else read -p "请选择 [1-4]: " choice < /dev/tty 2>/dev/null || choice="4"; fi
         case "$choice" in
             1) check_version_and_update ;;
             2) migrate_from_mw ;;
+            3) 
+                export BT_SIMPLE_BRANCH="master"
+                migrate_from_mw
+                ;;
             *) echo "已取消"; exit 0 ;;
         esac
     elif $HAS_BT && $HAS_MW; then
