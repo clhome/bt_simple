@@ -205,13 +205,21 @@ def initDreplace():
         content = yf.readFile(systemServiceTpl)
         content = content.replace('{$SERVER_PATH}', service_path)
         
+        # 始终清理旧版本的 init.d 脚本，避免与 systemd 发生冲突
+        if os.path.exists('/etc/init.d/redis'):
+            yf.execShell('rm -f /etc/init.d/redis')
+            
         # 始终清理可能与 Debian/Ubuntu 系统 apt 源冲突的自带 redis-server 服务
         if os.path.exists('/lib/systemd/system/redis-server.service'):
             yf.execShell('systemctl disable redis-server')
             yf.execShell('rm -f /lib/systemd/system/redis-server.service')
             yf.execShell('rm -f /etc/systemd/system/redis-server.service')
+            
+        # 始终清理 /etc 下残留的同名旧服务文件，避免优先级冲突导致系统找不到单位
+        if os.path.exists('/etc/systemd/system/redis.service'):
             yf.execShell('rm -f /etc/systemd/system/redis.service')
-            yf.execShell('systemctl daemon-reload')
+            
+        yf.execShell('systemctl daemon-reload')
             
         if not os.path.exists(systemService) or yf.readFile(systemService) != content:
             yf.writeFile(systemService, content)
