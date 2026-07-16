@@ -684,6 +684,7 @@ function getFiles(Path) {
         $("#Batch").html(batchTools);
 
         $("#setBox").prop("checked", false);
+        showSeclect();
         
         $("#BarTools").html(BarTools);
         
@@ -815,6 +816,36 @@ function showSeclect(){
         //setCookie('BatchSelected', null);
     }
     $("#Batch").html(batchTools);
+
+    // 计算已选中文件大小
+    var total_size = 0;
+    $("input[name='id']:checked").each(function(){
+        var filename = $(this).val();
+        if (window.currentFilesMap && window.currentFilesMap[filename]) {
+            var fInfo = window.currentFilesMap[filename];
+            if (fInfo.size && fInfo.size > 0) {
+                total_size += fInfo.size;
+            }
+        }
+    });
+
+    if (count > 0) {
+        var size_text = "";
+        if (total_size === 0) {
+            size_text = "0B";
+        } else {
+            var mb = total_size / 1024 / 1024;
+            if (mb < 1024) {
+                size_text = parseFloat(mb.toFixed(2)) + "MB";
+            } else {
+                var gb = mb / 1024;
+                size_text = parseFloat(gb.toFixed(2)) + "G";
+            }
+        }
+        $("#selectSize").html("选中文件: " + size_text).show();
+    } else {
+        $("#selectSize").hide();
+    }
 }
 
 //滚动条事件
