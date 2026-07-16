@@ -840,6 +840,9 @@ deploy_code() {
 fresh_install() {
     log_info "===== 开始全新安装 bt_simple ====="
 
+    # 清除旧的垃圾 CLI 命令，避免干扰新安装
+    rm -f /usr/bin/yf /usr/bin/mw /usr/bin/bs
+
     # 如果检测到旧版的真正 mdserver-web 目录存在，且它不是一个软链接
     if [ -d "/www/server/mdserver-web" ] && [ ! -L "/www/server/mdserver-web" ]; then
         log_warn "检测到旧版 mdserver-web 面板安装目录！"
@@ -990,6 +993,9 @@ migrate_from_mw() {
     # 停止服务
     log_info "停止面板服务..."
     stop_panel
+
+    # 清除可能残留的死链接或硬编码的物理 CLI 文件，防止干扰 start_panel
+    rm -f /usr/bin/yf /usr/bin/mw /usr/bin/bs
 
     # PostgreSQL 路径兼容: md面板使用 postgresql，bt_simple 期望 pgsql
     if [ -d "/www/server/postgresql" ] && [ ! -d "/www/server/pgsql" ]; then
@@ -1204,6 +1210,9 @@ EOF
 # =====================================================================
 migrate_from_bt() {
     log_info "===== 从宝塔面板迁移到 bt_simple ====="
+
+    # 清除旧的垃圾 CLI 命令，避免干扰新迁移
+    rm -f /usr/bin/yf /usr/bin/mw /usr/bin/bs
 
     echo -e "${YELLOW}检测到已安装宝塔面板${PLAIN}"
     echo -e "${RED}重要提醒:${PLAIN}"
