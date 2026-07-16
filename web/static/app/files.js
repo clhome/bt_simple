@@ -569,7 +569,7 @@ function getFiles(Path) {
             totalSize +=  parseInt(fmp[1]);
             if(getCookie("rank")=="a"){
                 body += "<tr style='cursor:pointer;' class='folderBoxTr' data-path='" + rdata.path +"/"+ fmp[0] + "' filetype='" + fmp[0] + "' ondblclick='openFilename(this)'>\
-                    <td><input type='checkbox' name='id' value='"+fmp[0]+"'></td>\
+                    <td><label><input type='checkbox' name='id' value='"+fmp[0]+"'></label></td>\
                     <td class='column-name'><span class='ico ico-"+(getExtName(fmp[0]))+"'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></td>\
                     <td>" + (toSize(fmp[1])) + "</td>\
                     <td>" + ((fmp[2].length > 11)?fmp[2]:getMatchTime(fmp[2])) + "</td>\
@@ -633,7 +633,7 @@ function getFiles(Path) {
             var tablehtml = '<table width="100%" border="0" cellpadding="0" cellspacing="0" class="table table-hover">\
                 <thead>\
                     <tr>\
-                        <th width="30"><input type="checkbox" id="setBox" placeholder=""></th>\
+                        <th width="30"><label><input type="checkbox" id="setBox" placeholder=""></label></th>\
                         <th onclick="listFileOrder(\'fname\',this)" style="cursor: pointer;">文件名'+fname_icon+'</th>\
                         <th onclick="listFileOrder(\'size\',this)" style="cursor: pointer;">大小'+size_icon+'</th>\
                         <th onclick="listFileOrder(\'mtime\',this)" style="cursor: pointer;">修改时间'+mtime_icon+'</th>\
@@ -714,7 +714,7 @@ function getFiles(Path) {
         $("#filesBody .btlink").off("click").on('click', function(e){
             e.stopPropagation();
         });
-        $("input[name=id]").off("dblclick").on('dblclick', function(e){
+        $("#filesBody td:first-child").off("dblclick").on('dblclick', function(e){
             e.stopPropagation();
         });
 
@@ -773,7 +773,7 @@ function bindselect(){
     $("#filesBody,#fileCon").selectable({
         autoRefresh: false,
         filter:"tr,.folderBox",
-        cancel: "a,span,input,.ico-folder",
+        cancel: "a,span,input,label,.ico-folder",
         selecting:function(e){
             $(".ui-selecting").find("input").prop("checked", true);
             showSeclect();
