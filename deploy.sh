@@ -709,7 +709,9 @@ stop_panel() {
 }
 
 start_panel() {
-    if [ -f "$INIT_D_SCRIPT" ]; then
+    if [ -f ${PANEL_DIR}/cli.sh ]; then
+        cd ${PANEL_DIR} && bash cli.sh start
+    elif [ -f "$INIT_D_SCRIPT" ]; then
         bash "$INIT_D_SCRIPT" start
     elif [ -f /usr/bin/yf ]; then
         yf start
@@ -719,8 +721,6 @@ start_panel() {
         /etc/init.d/yf start
     elif [ -f /etc/init.d/mw ]; then
         /etc/init.d/mw start
-    elif [ -f ${PANEL_DIR}/cli.sh ]; then
-        cd ${PANEL_DIR} && bash cli.sh start
     fi
 }
 
