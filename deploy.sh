@@ -672,6 +672,11 @@ download_code() {
     log_info "下载 bt_simple 代码..."
     rm -rf /tmp/bt_simple_deploy
 
+    # 提前在父 Shell 中执行测速，避免子 Shell 调用导致重复测速
+    if type _gh_get_best_proxy >/dev/null 2>&1; then
+        _gh_get_best_proxy >/dev/null
+    fi
+
     # 如果用户没有显式指定分支，并且当前是默认 of master，则尝试自动获取最新 release
     if [ "$GIT_BRANCH" = "master" ] && [ -z "${BT_SIMPLE_BRANCH:-}" ]; then
         log_info "尝试获取最新正式版 (Release) Tag..."
@@ -1354,6 +1359,11 @@ check_version_and_update() {
     local local_ver="0.0.0"
     if [ -f ${PANEL_DIR}/.version ]; then
         local_ver=$(cat ${PANEL_DIR}/.version | sed 's/^v//' | tr -d '\r\n ')
+    fi
+
+    # 提前在父 Shell 中执行测速，避免子 Shell 调用导致重复测速
+    if type _gh_get_best_proxy >/dev/null 2>&1; then
+        _gh_get_best_proxy >/dev/null
     fi
 
     log_info "正在检查远端最新版本..."
