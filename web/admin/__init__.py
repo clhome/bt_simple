@@ -8,6 +8,24 @@
 # ---------------------------------------------------------------------------------
 # Author: midoks &yufeng tec
 # ---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
+# 动态修复高版本 Flask 搭配低版本 flask_socketio 导致的 RequestContext.session AttributeError (no setter) 异常
+try:
+    from flask.ctx import RequestContext
+    if hasattr(RequestContext, 'session'):
+        prop = RequestContext.session
+        if isinstance(prop, property) and prop.fset is None:
+            orig_fget = prop.fget
+            def new_get(self):
+                if 'session' in self.__dict__:
+                    return self.__dict__['session']
+                return orig_fget(self)
+            def new_set(self, value):
+                self.__dict__['session'] = value
+            RequestContext.session = property(new_get, new_set)
+except Exception as patch_err:
+    pass
+# ---------------------------------------------------------------------------------
 
 import os
 import sys
