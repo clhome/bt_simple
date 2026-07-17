@@ -266,8 +266,4 @@ root@debian:/root# bs
 
 **御风面板** 致力于成为 Linux 面板界的一股清流，感谢每一位用户的支持！
 
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=clhome/bt_simple&type=date&legend=top-left)](https://www.star-history.com/#clhome/bt_simple&type=date&legend=top-left)
-
 [GitHub 仓库](https://github.com/clhome/bt_simple) | [📖 零基础图文说明书](文档/御风面板说明书/说明书.md) | [WIKI 文档](https://github.com/clhome/bt_simple/wiki)
