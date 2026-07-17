@@ -1,16 +1,274 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8">
-    <title>安全入口校验失败</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全入口校验失败 - 御风面板</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border-color: #e2e8f0;
+            --code-bg: #f8fafc;
+            --code-text: #0f172a;
+            --code-border: #e2e8f0;
+            --warn-bg: #fff1f2;
+            --warn-border: #ffe4e6;
+            --warn-text: #b91c1c;
+            --accent-color: #2563eb;
+            --accent-bg: #eff6ff;
+            --footer-text: #94a3b8;
+            --shadow: 0 10px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0b0f19;
+                --card-bg: #151d30;
+                --text-primary: #f8fafc;
+                --text-secondary: #94a3b8;
+                --border-color: #1e293b;
+                --code-bg: #0b0f19;
+                --code-text: #38bdf8;
+                --code-border: #1e293b;
+                --warn-bg: #450a0a;
+                --warn-border: #7f1d1d;
+                --warn-text: #fca5a5;
+                --accent-color: #38bdf8;
+                --accent-bg: #0c4a6e;
+                --footer-text: #475569;
+                --shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 10px 10px -6px rgb(0 0 0 / 0.3);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            position: relative;
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 36px;
+            box-shadow: var(--shadow);
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+            margin-bottom: 60px;
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .icon-wrapper {
+            width: 56px;
+            height: 56px;
+            background-color: var(--warn-bg);
+            border: 1px solid var(--warn-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--warn-text);
+            margin-bottom: 16px;
+        }
+
+        .title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.025em;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .section-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .command-item {
+            background-color: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .command-item:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .command-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .command-description {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .command-string {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--code-text);
+        }
+
+        .btn-copy {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-copy:hover {
+            background-color: var(--text-primary);
+            color: var(--card-bg);
+            border-color: var(--text-primary);
+        }
+
+        .btn-copy.copied {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border-color: var(--accent-color);
+        }
+
+        .footer {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--footer-text);
+            width: 100%;
+            max-width: 520px;
+            padding-right: 12px;
+        }
+
+        @media (min-width: 640px) {
+            .footer {
+                position: absolute;
+                bottom: 24px;
+                right: 24px;
+                text-align: right;
+                width: auto;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>请使用正确的入口登录面板</h1>
-    <p><b>错误原因：</b>当前新安装的已经开启了安全入口登录，新装机器都会随机一个8位字符的安全入口名称，亦可以在面板设置处修改，如您没记录或不记得了，可以使用以下方式解决</p>
-    <p><b>解决方法：</b>在SSH终端输入以下一种命令来解决</p>
-    <p>1.查看面板入口：bs default</p>
-    <p>2.关闭安全入口：bs close_admin_path </p>
-    <p style="color:red;">注意：【关闭安全入口】将使您的面板登录地址被直接暴露在互联网上，非常危险，请谨慎操作</p>
+    <div class="container">
+        <div class="header">
+            <div class="icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <h1 class="title">请使用正确的入口登录面板</h1>
+        </div>
+
+        <div class="section">
+            <div class="section-title">错误原因</div>
+            <p class="section-desc">当前面板已启用安全入口登录。新装机器会自动随机生成一个安全的登录入口地址，亦可在面板设置中自定义修改。如果您忘记或未记录该入口，可使用下方方法获取。</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">解决方法</div>
+            <p class="section-desc">请通过 SSH 终端登录服务器，并运行以下命令进行查看：</p>
+
+            <div class="command-item">
+                <div class="command-details">
+                    <span class="command-description">查看面板默认入口及登录地址</span>
+                    <span class="command-string" id="cmd1">bs default</span>
+                </div>
+                <button class="btn-copy" onclick="copyText('cmd1', this)">复制</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        出品方：衢州御风科技有限公司
+    </div>
+
+    <script>
+        function copyText(elementId, btn) {
+            var text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(function() {
+                setCopiedState(btn);
+            }).catch(function() {
+                var textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    setCopiedState(btn);
+                } catch (err) {
+                    alert('复制失败，请手动选择复制');
+                }
+                document.body.removeChild(textarea);
+            });
+        }
+
+        function setCopiedState(btn) {
+            var originalText = btn.innerText;
+            btn.innerText = '已复制';
+            btn.classList.add('copied');
+            setTimeout(function() {
+                btn.innerText = originalText;
+                btn.classList.remove('copied');
+            }, 1500);
+        }
+    </script>
 </body>
 </html>
