@@ -60,4 +60,23 @@
 
 - `[x]` 49. 优化路径页样式 (`web/templates/default/path.html`)，要求专业性强，现代简约风格，并在右下角显示出品方：衢州御风科技有限公司。
 
+- `[x]` 50. 修复本地终端 `ssh_local.py` 中 `connectSsh()` 的死锁问题与 `try-except` 异常重试逻辑，增加 `try...finally` 块释放锁。
+- `[x]` 51. 修复本地终端 `ssh_local.py` 在连接本地 SSH 时，主动加载本地私钥以作凭证，并统一 `invoke_shell` 的本地化环境变量参数，解决特定服务器黑屏与连接失败问题。
+- `[x]` 52. 对重构后的本地终端连接 and 读取逻辑进行验证测试。
+
+- `[x]` 53. 优化 `ssh_local.py` 中 `connectSsh()` 连接目标顺序，优先请求自定义端口，将 22 端口移至兜底。
+- `[x]` 54. 实现 `connectSsh()` 每次尝试连接独立实例化 `paramiko.SSHClient`，确保连接失败时其内部状态能够被干净关闭与清理，避免状态污染导致后续尝试失效。
+- `[x]` 55. 再次在 Mock 脚本中验证多备用连接目标抛出 banner 异常时的状态清理和继续尝试流程。
+
+- `[x]` 56. 重构 `ssh_local.py` 的 `connectSsh()` 支持输出详细连接节点、加载状态、连接目标和异常报错等调试日志至 Web 终端。
+- `[x]` 57. 重构 `ssh_local.py` 的 `run(info)` 方法增加重试冷却（10s）与输入唤醒（有按键数据时立即重试）逻辑，避免报错刷屏。
+- `[x]` 58. 通过编写的 Mock 测试用例验证 10s 冷却限频和即时唤醒的功能性。
+
+- `[x]` 59. 在 `ssh_local.py` 的 `connectSsh()` 中引入本地 `authorized_keys` 授权公钥的精准第二列加密字符指纹比对与缺失自动追加写入。
+- `[x]` 60. 在 `connectSsh()` 中引入对 `/root/.ssh`（700）及 `authorized_keys`（600）目录和文件的安全权限加固。
+- `[x]` 61. 在 `ssh_local.py` 中 `ssh.connect()` 各个分支调用处显式指定 `username='root'`。
+- `[x]` 62. 在 Mock 测试脚本中验证权限设定逻辑与参数传递是否正常。
+
+- `[x]` 63. 在 `ssh_local.py` 的 `run(info)` 数据读取异常捕获中，通过 `exit_status_ready()` 对通道是否已经死亡进行精确判定，只在通道真死时重置 `self.__ssh = None`，保护正常的非阻塞读取超时。
+- `[x]` 64. 对修改后的连接状态和读取进行最终测试与打包。
 
