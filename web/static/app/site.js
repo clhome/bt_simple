@@ -3095,7 +3095,7 @@ function configFile(webSite){
 			matchBrackets:true,
 			mode: "text/x-nginx-conf",
 		});
-		editor.setSize("740px", "580px");
+		editor.setSize("795px", "580px");
 		$(".CodeMirror").css({"margin-left":"20px"});
 		$(".CodeMirror-scroll").css({"height":"580px","margin":0,"padding":0});
 		$("#SaveConfigFileBtn").on('click', function(){
@@ -3195,7 +3195,7 @@ function rewrite(siteName){
 				matchBrackets:true,
 				mode: "text/x-nginx-conf",
 			});
-			editor.setSize("740px", "560px");
+			editor.setSize("795px", "480px");
 			$(".CodeMirror-scroll").css({"height":"560px","margin":0,"padding":0});
 			$("#SetRewriteBtn").on('click', function(){
 				$("#rewriteBody").empty();
