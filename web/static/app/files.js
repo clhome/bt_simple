@@ -688,19 +688,35 @@ function getFiles(Path) {
         
         $("#BarTools").html(BarTools);
         
-        $("input[name=id]").off("click").on('click', function(){
+        $("input[name=id]").off("click").on('click', function(e){
+            e.stopPropagation();
             if($(this).prop("checked")) {
-                $(this).prop("checked", true);
                 $(this).parents("tr").addClass("ui-selected");
             }
             else{
-                $(this).prop("checked", false);
                 $(this).parents("tr").removeClass("ui-selected");
             }
             showSeclect();
         });
 
-        $("#setBox").off("click").on('click', function() {
+        $("#filesBody td:first-child").off("click").on('click', function(e){
+            e.stopPropagation();
+            if (e.target.tagName !== 'INPUT') {
+                var $checkbox = $(this).find('input[name=id]');
+                var isChecked = !$checkbox.prop("checked");
+                $checkbox.prop("checked", isChecked);
+                if(isChecked) {
+                    $(this).parents("tr").addClass("ui-selected");
+                }
+                else{
+                    $(this).parents("tr").removeClass("ui-selected");
+                }
+                showSeclect();
+            }
+        });
+
+        $("#setBox").off("click").on('click', function(e) {
+            e.stopPropagation();
             if ($(this).prop("checked")) {
                 $("input[name=id]").prop("checked", true);
                 $("#filesBody > tr").addClass("ui-selected");
