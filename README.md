@@ -9,7 +9,6 @@
   </p>
 </p>
 
-
 ---
 
 ## 🚀 软件介绍
@@ -53,7 +52,6 @@
   - **多标签页**：支持浏览器风格的多目录同时操作与本地状态持久化。
 
   ![多标签](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/image-20260605164326823.png)
-
   - **全屏拖拽**：深度支持文件/文件夹递归拖入上传，自动解析并保留目录层级。
   - **预上传清单**：上传前展示详细统计清单，当有同名项目时醒目提示 `(会覆盖)`，并直观横向对比服务器端与待上传文件的精确大小（如 `18.1KB <= 17.56KB`）。
 
@@ -92,9 +90,7 @@
   - 彻底修补多处命令注入漏洞；新增可视化加速器（Mirror）管理。独创了镜像拉取失败时的**自动节点容灾重试**机制，保障恶劣网络环境下的极速容器部署，并精准拦截假阳性报错。
 
 - **全能管理**：集成 OpenResty, MySQL, PHP, Redis, MongoDB 等常用环境。
-
 - **插件化架构**：功能高度解耦，按需安装，支持自定义插件开发。
-
 - **极致兼容**：完美支持一键从 **mdserver-web** 或 **宝塔面板 (BT.CN)** 平滑迁移。
 
 ---
@@ -116,13 +112,7 @@
 一条命令直接安装/升级/迁移，自动判断所在地区，自动调用加速节点：
 
 ```bash
-curl --insecure -fsSL https://panel.yftec.top/deploy.sh | bash
-```
-
-如果检测IP所在地接口失效，也可强制使用参数指定服务器所在地为中国，不需要判断直接调用中国地区加速点
-
-```sh
-curl --insecure -fsSL https://panel.yftec.top/deploy.sh | bash   -s -- -cn
+curl https://panel.yftec.top/deploy.sh | bash
 ```
 
 #### Github直接安装
@@ -130,17 +120,15 @@ curl --insecure -fsSL https://panel.yftec.top/deploy.sh | bash   -s -- -cn
 如果自建服务器暂时无法访问也可通过如下方式安装：
 
 ```bash
-curl --insecure -fsSL https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
+curl https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
 ```
 
-#### 🇨🇳 中国境内服务器加速
+#### 🇨🇳 中国境内中转节点
 
-针对中国境内服务器访问 GitHub 不稳定的问题，部署脚本内置了**自动加速功能**。它会自动检测服务器位置，并切换至国内镜像源（如 ghproxy 和清华 Pip 源）以确保安装成功。
-
-如果您需要强制开启中国区加速模式，请使用以下命令：
+若您暂时无法访问Github，也可以使用中转节点安装：
 
 ```bash
-curl --insecure -fsSL https://gh-proxy.org/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash -s -- -cn
+curl https://gh-proxy.org/https://raw.githubusercontent.com/clhome/bt_simple/refs/heads/master/deploy.sh | bash
 ```
 
 #### 宝塔面板 (BT.CN) 平滑迁移与数据无缝接管 🚀
@@ -153,7 +141,7 @@ curl --insecure -fsSL https://gh-proxy.org/https://raw.githubusercontent.com/clh
 4. **Mysql数据库迁移**：
    迁移脚本运行后会自动产生数据库备份文件，御风面板支持通过备份文件对数据库进行迁移，为了保证数据完整不出错，**要求原mysql和新mysql必须为相同版本**。可以通过【面板设置->数据库迁移】中操作，也可以通过如下命令行方式进行数据迁移。
    注意：**迁移操作会覆盖当前数据库，请务必谨慎操作。**
-   
+
    ```bash
    bs migrate_restore
    # 或者运行 bs 进入图形化命令行工具，选择 (30) 恢复宝塔软件数据(迁移接管)
@@ -225,8 +213,6 @@ root@debian:/root# bs
 请输入命令编号：
 ```
 
-
-
 ---
 
 ## 👨‍💻 开发方法
@@ -250,7 +236,7 @@ root@debian:/root# bs
 
 - 保持简单：避免过度工程化。
 - 事实优先：在提交 PR 前请确保经过充分测试。
-- 安全第一：使用内置的 `mw.shlex_quote` 处理系统命令。
+- 安全第一：使用内置的 `yf.shlex_quote` 处理系统命令。
 
 ---
 
