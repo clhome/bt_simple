@@ -2081,10 +2081,20 @@ function _webShellInit(dir) {
 
         // 自动切换工作目录
         if (isFirstResponse && dir) {
-            isFirstResponse = false;
-            setTimeout(function() {
-                socket.emit('webssh', 'cd "' + dir + '"\r');
-            }, 100);
+            var raw = (data.data || '').trim();
+            // 精准过滤掉我们后端输出的 [SSH]、[错误] 等一系列安全认证和连接调试日志前缀
+            // 只有当 Linux Shell 界面拉起输出非调试字符（如系统欢迎语或提示符）时，才执行 cd 并标记已响应
+            if (raw &&
+                !raw.startsWith('[SSH]') &&
+                !raw.startsWith('[错误]') &&
+                !raw.startsWith('[系统]') &&
+                !raw.startsWith('[建议]')) {
+                
+                isFirstResponse = false;
+                setTimeout(function() {
+                    socket.emit('webssh', 'cd "' + dir + '"\r');
+                }, 150);
+            }
         }
 
         if (data.data == '\r\n登出\r\n' || 
@@ -2322,6 +2332,9 @@ function _webShellInit(dir) {
             }, 300);
         },
         cancel: function () {
+            if (socket) {
+                socket.emit('webssh', 'exit\r');
+            }
             term.destroy();
             clearInterval(interval);
         }
