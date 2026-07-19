@@ -166,6 +166,8 @@ def initSiteInfo(conf_reload=False):
         name = domain_contents[x]['name']
         if name in site_contents:
             site_contents_new[name] = site_contents[name]
+            if 'allow_curl' not in site_contents_new[name]:
+                site_contents_new[name]['allow_curl'] = False
         else:
             tmp = {}
             tmp['cdn'] = True
@@ -1154,6 +1156,10 @@ def getSiteConfigByName():
     siteName = args['siteName']
     retData = {}
     if siteName in content:
+        if 'allow_curl' not in content[siteName]:
+            content[siteName]['allow_curl'] = False
+            cjson = yf.getJson(content)
+            yf.writeFile(path, cjson)
         retData = content[siteName]
 
     return yf.returnJson(True, 'ok!', retData)
@@ -1342,7 +1348,9 @@ def setSiteObjOpen():
     content = yf.readFile(path)
     content = json.loads(content)
 
-    if type(content[siteName][obj]) == bool:
+    if obj not in content[siteName]:
+        content[siteName][obj] = True
+    elif type(content[siteName][obj]) == bool:
         if content[siteName][obj]:
             content[siteName][obj] = False
         else:
