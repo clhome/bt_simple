@@ -1574,7 +1574,7 @@ show_panel_info() {
         # 兼容 JSON 格式中 user_number 带引号与不带引号的情况，使用原生文本处理方式以消除全局 python3 的环境依赖
         local user_number=$(echo "$report_res" | grep -o '"user_number":[^,}]*' | tr -d '" ' | awk -F: '{print $2}' 2>/dev/null)
         if [ -n "$user_number" ]; then
-            echo -e "${GREEN}您是御风面板第${user_number}位用户，衢州御风科技与您智领未来，共筑匠心${PLAIN}"
+            echo -e "${GREEN}您是御风面板第${user_number}位用户，衢州御风科技与您智领未来，共筑匠心.${PLAIN}"
             echo -e "=================================================================="
         fi
     fi
