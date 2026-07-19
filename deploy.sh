@@ -1564,7 +1564,7 @@ show_panel_info() {
 
     
     # 增加了浏览器请求头（User-Agent、Accept 等），防止被 防火墙误判为非法参数
-    local report_res=$(curl -skmL 10 \
+    local report_res=$(curl -skL -m 10 \
         -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
         -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
         -H "Accept-Language: zh-CN,zh;q=0.9" \
