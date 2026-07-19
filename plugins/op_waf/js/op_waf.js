@@ -1683,6 +1683,17 @@ function siteWafConfig(siteName, type) {
                                     </td>\
                                     <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'user_agent\')">规则</a></td>\
                                 </tr>\
+                                <tr>\
+                                    <td>允许Curl访问</td>\
+                                    <td>允许curl命令行工具访问该站点(默认拦截)</td>\
+                                    <td>\
+                                        <div class="ssh-item" style="margin-left:0">\
+                                            <input class="btswitch btswitch-ios" id="close_allow_curl" type="checkbox" '+ (rdata.allow_curl ? 'checked' : '') + '>\
+                                            <label class="btswitch-btn" for="close_allow_curl" onclick="setSiteObjState(\''+ siteName + '\',\'allow_curl\')"></label>\
+                                        </div>\
+                                    </td>\
+                                    <td class="text-right">&nbsp;</td>\
+                                </tr>\
                                  <tr>\
                                     <td>Cookie过滤</td>\
                                     <td>'+ rdata.cookie.ps + '</td>\

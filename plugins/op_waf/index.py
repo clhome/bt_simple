@@ -182,6 +182,7 @@ def initSiteInfo(conf_reload=False):
             tmp['cookie'] = config_contents['cookie']
             tmp['scan'] = config_contents['scan']
             tmp['safe_verify'] = config_contents['safe_verify']
+            tmp['allow_curl'] = False
 
             cdn_header = ['x-forwarded-for',
                           'x-real-ip',
@@ -1123,7 +1124,7 @@ def getSiteConfig():
         if 'sites' in total_content and x in total_content['sites']:
             tmp_v = total_content['sites'][x]
 
-        key_list = ['get', 'post', 'user-agent', 'cookie', 'cdn', 'cc']
+        key_list = ['get', 'post', 'user-agent', 'cookie', 'cdn', 'cc', 'allow_curl']
         for kx in range(len(key_list)):
             ktmp = {}
 

@@ -361,6 +361,23 @@ local function waf_ip_black()
 end
 
 
+local function waf_curl()
+    local ua = params['request_header']['user-agent']
+    if not ua or type(ua) ~= "string" then return false end
+    if not ngx.re.find(ua, "curl", "ijo") then return false end
+
+    -- 检查站点配置是否允许 curl
+    local site_cfg = site_config[server_name]
+    if site_cfg and site_cfg['allow_curl'] then
+        return false  -- 允许 curl，跳过拦截
+    end
+
+    -- 默认拦截 curl
+    C:write_log('user_agent', 'curl blocked')
+    C:return_html(config['user-agent']['status'], user_agent_html)
+    return true
+end
+
 local function waf_user_agent()
     -- user_agent 过滤
     -- if not config['user-agent']['open'] or not C:is_site_config('user-agent') then return false end
@@ -1048,6 +1065,8 @@ function run_app_waf()
             end
         end
 
+        -- curl check
+        if waf_curl() then return true end
         -- ua check
         if waf_user_agent() then return true end
         -- C:D("waf_user_agent")

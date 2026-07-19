@@ -25,7 +25,7 @@
     ],
     [
         1,
-        "(^$|Apache-HttpClient|colly|curl|okhttp|Go-http-client|python-requests|Python-urllib|python-httpx|Scrapy|aiohttp|Nmap Scripting Engine|Java|fasthttp|Wget)",
+        "(^$|Apache-HttpClient|colly|okhttp|Go-http-client|python-requests|Python-urllib|python-httpx|Scrapy|aiohttp|Nmap Scripting Engine|Java|fasthttp|Wget)",
         "非法脚本",
         0
     ],

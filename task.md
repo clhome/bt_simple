@@ -87,5 +87,11 @@
 - `[x]` 68. 修改 `web/admin/__init__.py`，在最顶部引入 RequestContext.session 兼容补丁以解决高版本 Flask 与老版本 flask_socketio 的 setter 写入异常。
 - `[x]` 69. 编写 Mock 校验脚本测试 Monkey Patch 作用于 RequestContext.session 的可行性与读写正确性。
 
+- `[x]` 70. 分析 `deploy.sh` 安装脚本的潜在错误与优化点，并提出修改建议。
+- `[x]` 71. 分析面板在新装、迁移等场景下是否会获取当前用户位数，并排查不显示的原因。
+- `[x]` 72. 实施 `deploy.sh` 脚本在用户位数、开发预览版判断、临时文件安全和 PostgreSQL 备份等 4 个维度的代码优化。
+- `[x]` 73. 对 `deploy.sh` 脚本执行 shell 语法校验和本地模拟验证。
+
+
 
 

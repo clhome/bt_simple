@@ -789,8 +789,8 @@ download_code() {
         exit 1
     fi
 
-    # 如果用户明确指定了 master 分支（尝鲜预览版），则主动为版本号同步最新 Release 编号并打上 dev 后缀标签
-    if [ "$BT_SIMPLE_BRANCH" = "master" ] && [ -f /tmp/bt_simple_deploy/web/version.py ]; then
+    # 如果实际克隆的分支是 master（用户指定或网络获取失败回退），则主动为版本号同步最新 Release 编号并打上 dev 后缀标签
+    if [ "$GIT_BRANCH" = "master" ] && [ -f /tmp/bt_simple_deploy/web/version.py ]; then
         log_info "正在为开发预览版注入 -dev 版本标识..."
         
         # 尝试获取远端最新正式版的版本号，让开发版基于最新正式版号 + dev
@@ -1206,9 +1206,8 @@ scan_bt_installed_software() {
         log_info "检测到宝塔 PHP 版本: ${php_vers}"
     fi
 
-    # 拼装为 JSON 文件
-    mkdir -p /tmp
-    cat > /tmp/bt_migrated_software.json <<EOF
+    # 拼装为 JSON 文件，写入到安全的独占临时文件夹中
+    cat > "$YF_TMP_DIR/bt_migrated_software.json" <<EOF
 {
   "mysql": "${mysql_ver}",
   "redis": "${redis_ver}",
@@ -1217,7 +1216,7 @@ scan_bt_installed_software() {
   "php": [${php_vers}]
 }
 EOF
-    log_info "已保存宝塔软件分析结果到 /tmp/bt_migrated_software.json"
+    log_info "已保存宝塔软件分析结果到 $YF_TMP_DIR/bt_migrated_software.json"
 }
 
 # =====================================================================
@@ -1311,6 +1310,11 @@ migrate_from_bt() {
         mv /www/server/postgresql /www/server/postgresql_bt_bak
         log_info "已备份 PostgreSQL 目录: /www/server/postgresql -> /www/server/postgresql_bt_bak"
     fi
+    if [ -d "/www/server/pgsql" ]; then
+        [ -d "/www/server/pgsql_bt_bak" ] && rm -rf /www/server/pgsql_bt_bak
+        mv /www/server/pgsql /www/server/pgsql_bt_bak
+        log_info "已备份 pgsql 目录: /www/server/pgsql -> /www/server/pgsql_bt_bak"
+    fi
     if [ -d "/www/server/php" ]; then
         [ -d "/www/server/php_bt_bak" ] && rm -rf /www/server/php_bt_bak
         mv /www/server/php /www/server/php_bt_bak
@@ -1351,9 +1355,8 @@ migrate_from_bt() {
     mkdir -p ${PANEL_DIR}/data
 
     # 写入迁移软件标记文件
-    if [ -f "/tmp/bt_migrated_software.json" ]; then
-        cp /tmp/bt_migrated_software.json ${PANEL_DIR}/data/bt_migrated_software.json
-        rm -f /tmp/bt_migrated_software.json
+    if [ -f "$YF_TMP_DIR/bt_migrated_software.json" ]; then
+        cp "$YF_TMP_DIR/bt_migrated_software.json" ${PANEL_DIR}/data/bt_migrated_software.json
         log_info "已保存软件迁移数据至 ${PANEL_DIR}/data/bt_migrated_software.json"
     fi
 
@@ -1560,9 +1563,10 @@ show_panel_info() {
     echo -e "=================================================================="
 
     
-    local report_res=$(curl -s -m 10 --location --request GET 'https://www.yftec.top/index.php/api/deploy/report' 2>/dev/null)
+    local report_res=$(curl -sk -m 10 --location --request GET 'https://www.yftec.top/index.php/api/deploy/report' 2>/dev/null)
     if [ -n "$report_res" ]; then
-        local user_number=$(echo "$report_res" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('data', {}).get('user_number', ''))" 2>/dev/null)
+        # 兼容 JSON 格式中 user_number 带引号与不带引号的情况，使用原生文本处理方式以消除全局 python3 的环境依赖
+        local user_number=$(echo "$report_res" | grep -o '"user_number":[^,}]*' | tr -d '" ' | awk -F: '{print $2}' 2>/dev/null)
         if [ -n "$user_number" ]; then
             echo -e "${GREEN}您是御风面板第${user_number}位用户，衢州御风科技与您智领未来，共筑匠心${PLAIN}"
             echo -e "=================================================================="
