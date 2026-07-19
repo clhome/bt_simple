@@ -1563,7 +1563,13 @@ show_panel_info() {
     echo -e "=================================================================="
 
     
-    local report_res=$(curl -sk -m 10 --location --request GET 'https://www.yftec.top/index.php/api/deploy/report' 2>/dev/null)
+    # 增加了浏览器请求头（User-Agent、Accept 等），防止被 防火墙误判为非法参数
+    local report_res=$(curl -skmL 10 \
+        -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+        -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+        -H "Accept-Language: zh-CN,zh;q=0.9" \
+        'https://www.yftec.top/index.php/api/deploy/report' 2>/dev/null)
+
     if [ -n "$report_res" ]; then
         # 兼容 JSON 格式中 user_number 带引号与不带引号的情况，使用原生文本处理方式以消除全局 python3 的环境依赖
         local user_number=$(echo "$report_res" | grep -o '"user_number":[^,}]*' | tr -d '" ' | awk -F: '{print $2}' 2>/dev/null)
