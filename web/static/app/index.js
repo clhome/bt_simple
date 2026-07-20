@@ -1049,9 +1049,9 @@ function pluginInit(){
         layer.open({
             type: 1,
             title: '推荐安装',
-            area: ["380px", "460px"],
+            area: ["380px", "auto"],
             skin: 'layui-layer-modern',
-            closeBtn: 2,
+            closeBtn: 1,
             shadeClose: false,
             content:"\
         <div class='rec-install'>\
