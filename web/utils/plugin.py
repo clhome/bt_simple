@@ -199,6 +199,8 @@ class plugin(object):
     def initInstall(self, plugin_list):
         try:
             pn_list = json.loads(plugin_list)
+            # 对安装列表进行排序，确保 swap 放置在首位最先安装
+            pn_list = sorted(pn_list, key=lambda x: 0 if x.get('name') == 'swap' else 1)
             for pn in pn_list:
                 name = pn['name']
                 version = pn['version']
