@@ -96,6 +96,9 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 		curl -sS https://getcomposer.org/installer | ${serverPath}/php/${type}/bin/php
 		mv composer.phar /usr/local/bin/composer
 		
+		# 临时将当前 PHP 的 bin 目录加入 PATH，以防 composer 找不到 php
+		export PATH=${serverPath}/php/${type}/bin:$PATH
+
 		# 智能测速选择 Composer 镜像源
 		echo "Testing Composer mirror speeds..."
 		aliyun_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.aliyun.com/composer/ || echo "999")

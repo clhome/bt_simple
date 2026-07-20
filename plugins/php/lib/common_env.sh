@@ -19,7 +19,10 @@ elif command -v sysctl >/dev/null 2>&1; then
     cpuCore=$(sysctl -n hw.ncpu 2>/dev/null || echo "1")
 fi
 
-MEM_INFO=$(which free > /dev/null 2>&1 && free -m | grep Mem | awk '{printf("%.f",($2)/1024)}' || echo "0")
+MEM_INFO=$(which free > /dev/null 2>&1 && free -m | awk '/Mem|内存/{printf("%.f",($2)/1024)}' || echo "0")
+if [ -z "${MEM_INFO}" ]; then
+    MEM_INFO="0"
+fi
 if [ "${cpuCore}" != "1" ] && [ "${MEM_INFO}" != "0" ]; then
     if [ "${cpuCore}" -gt "${MEM_INFO}" ]; then
         cpuCore="${MEM_INFO}"

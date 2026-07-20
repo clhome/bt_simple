@@ -112,4 +112,8 @@
 
 - `[x]` 89. 优化安全管理中 SSH 允许 root 登录状态检测逻辑：只有当 PermitRootLogin 明确为 yes 时才显示为开启，其它未配置或非 yes 值一律显示为关闭。
 - `[x]` 90. 运行本地 Python 语法编译校验，确保修改后的 firewall.py 没有任何异常。
+- `[x]` 91. 优化 `plugins/php/lib/common_env.sh`：重构 `MEM_INFO` 获取逻辑，处理中文/英文环境下的 `free` 提取，并防范空值保护，避免“需要整数表达式”错误。
+- `[x]` 92. 优化 `plugins/php/versions/80/install.sh`：重构 `MEM_INFO` 获取逻辑，防范空值，解决 PHP8.0 编译安装阶段的“需要整数表达式”警告。
+- `[x]` 93. 优化 `plugins/php/install.sh`：配置 Composer 前，临时将当前安装的 PHP bin 目录加入到 `PATH` 中，解决 `composer` 报错 `/usr/bin/env: php: 没有那个文件或目录` 的问题。
+
 
