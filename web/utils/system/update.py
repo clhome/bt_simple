@@ -129,19 +129,16 @@ def updateServer(stype, version='', step='all'):
                 if not os.path.exists(toPath):
                     yf.makeDirs(toPath)
 
-                newUrl = yf.getGithubProxy() + "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
+                originalUrl = "https://github.com/clhome/bt_simple/archive/refs/tags/" + version + ".zip"
                 dist_yf = toPath + '/yf.zip'
                 # 强制重新下载
                 if os.path.exists(dist_yf): yf.deleteFile(dist_yf)
                 
-                yf.execShell('wget --no-check-certificate -O ' + dist_yf + ' ' + newUrl)
+                # 使用带轮询降级机制的下载函数，设置期望最小大小为 1MB (1048576 bytes)，超时设置长一点
+                download_status = yf.githubDownload(originalUrl, dist_yf, timeout=20, min_size=1048576)
                 
-                if not os.path.exists(dist_yf):
-                    return yf.returnData(False, '文件下载失败!')
-
-                if os.path.getsize(dist_yf) < 1048576:
-                    yf.deleteFile(dist_yf)
-                    return yf.returnData(False, '下载到的文件异常（小于1MB），可能是网络原因或代理失效导致下载失败!')
+                if not download_status or not os.path.exists(dist_yf):
+                    return yf.returnData(False, '下载到的文件异常（小于1MB）或所有节点均下载失败，可能是网络原因或代理失效!')
 
                 # 解压
                 os.system('unzip -o ' + dist_yf + ' -d ' + toPath)

@@ -367,7 +367,7 @@ def _makeGithubProxyUrl(proxy_prefix, original_url):
     return proxy_prefix + original_url
 
 
-def githubDownload(url, save_path, timeout=10):
+def githubDownload(url, save_path, timeout=10, min_size=0):
     """
     统一的 GitHub 下载函数（Python 端）
     使用优选节点下载，失败后降级轮询。
@@ -375,10 +375,11 @@ def githubDownload(url, save_path, timeout=10):
     @param url: GitHub 原始 URL
     @param save_path: 保存文件路径
     @param timeout: 单次超时秒数
+    @param min_size: 期望的最小文件大小(字节)，如果下载结果小于该值将被视为失败并继续轮询
     @return: True=成功 False=全部失败
     """
-    # 如果文件已存在且大小 > 0，则跳过
-    if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+    # 如果文件已存在且大小 > min_size，则跳过
+    if os.path.exists(save_path) and os.path.getsize(save_path) > min_size:
         return True
 
     def _try_download(download_url):
@@ -390,9 +391,9 @@ def githubDownload(url, save_path, timeout=10):
             save_path, timeout, download_url
         )
         execShell(cmd)
-        if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
+        if os.path.exists(save_path) and os.path.getsize(save_path) > min_size:
             return True
-        # 清理空文件
+        # 清理异常小文件
         if os.path.exists(save_path):
             os.remove(save_path)
         return False
