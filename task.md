@@ -126,4 +126,6 @@
 - `[x]` 100. 优化 WAF 插件前端 `op_waf.js`，在渲染时进行站点名称的 `trim()` 去空白，并在日志请求时为站点名参数提供默认 `'ALL'` 回退。
 
 - `[x]` 101. 修复 Web 更新检查 `getServerInfo()` 在中国境内服务器始终失败及内容为空的 bug：GitHub 代理站不支持代理 `api.github.com`（返回 403），重构为通过代理利用 `releases/latest` 的 302 重定向获取最新 tag，并通过代理获取 `raw.githubusercontent.com` 上的 `RELEASE_TEMPLATE.md` 作为更新内容展示。若依然失败则提供包含 GitHub Release 链接的 Markdown 友好提示。
+- `[x]` 102. 优化 Web 端的 Python 下载代理节点选优机制 (`yf.py/test_speed_bg`)：将原来的小文件延迟测速（Ping 测试）重构为利用 `master.tar.gz` 进行真实带宽测速（`speed_download`），并与 Bash 脚本对齐增加大于 3MB/s 提前退出的机制，解决默认获取到高延迟低带宽节点导致更新下载极慢的问题。
+- `[x]` 103. 优化 `yf.githubDownload` 逻辑：下载大文件时强制阻塞等待（最多 10 秒）后台测速线程完成，确保完全命中测出的最优带宽节点后再进行下载，解决因“秒点”更新导致错过最优节点的问题。
 

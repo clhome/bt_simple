@@ -252,7 +252,7 @@ def isChina():
 
 _IS_TESTING_GITHUB = False
 
-def getGithubProxyInfo():
+def getGithubProxyInfo(wait_if_testing=False):
     """
     获取最快的 GitHub 代理站信息，如果在中国境内，则进行后台测速并缓存10分钟
     返回格式：{"name": "gh-proxy.org", "url": "https://gh-proxy.org/"}
@@ -277,9 +277,21 @@ def getGithubProxyInfo():
             pass
 
     if _IS_TESTING_GITHUB:
-        if cached_data and 'name' in cached_data and 'url' in cached_data:
-            return cached_data
-        return {"name": "ghproxy.net", "url": "https://ghproxy.net/"}
+        if wait_if_testing:
+            # 阻塞等待后台测速完成（最多等待 10 秒）
+            for _ in range(100):
+                if not _IS_TESTING_GITHUB:
+                    break
+                time.sleep(0.1)
+            if os.path.exists(cache_file):
+                try:
+                    return getObjectByJson(readFile(cache_file))
+                except Exception:
+                    pass
+        else:
+            if cached_data and 'name' in cached_data and 'url' in cached_data:
+                return cached_data
+            return {"name": "ghproxy.net", "url": "https://ghproxy.net/"}
 
     _IS_TESTING_GITHUB = True
     
@@ -293,24 +305,28 @@ def getGithubProxyInfo():
             "cors.zme.ink": "https://cors.zme.ink/"
         }
         
-        test_url = "https://raw.githubusercontent.com/clhome/bt_simple/master/README.md"
-        best_time = 999.0
+        test_url = "https://github.com/clhome/bt_simple/archive/refs/heads/master.tar.gz"
+        best_speed = -1.0
         best_name = "direct"
         best_url = ""
+        speed_limit = 3145728.0 # 3MB/s 阈值
 
         for name, prefix in test_list.items():
             try:
-                full_url = prefix + test_url
-                cmd = 'curl -s -m 2 -o /dev/null -w "%{{time_total}}" "{}"'.format(full_url)
+                full_url = prefix + test_url if prefix == "" else prefix + test_url.replace("https://", "")
+                cmd = 'LC_ALL=C curl -s -L -o /dev/null -w "%{{http_code}}:%{{speed_download}}" -m 5 "{}"'.format(full_url)
                 out, err = execShell(cmd)
-                elapsed = float(out.strip())
-                if elapsed <= 0:
-                    elapsed = 999.0
                 
-                if elapsed < best_time:
-                    best_time = elapsed
-                    best_name = name
-                    best_url = prefix
+                parts = out.strip().split(':')
+                if len(parts) >= 2 and parts[0] in ['200', '206']:
+                    speed = float(parts[1])
+                    if speed > best_speed:
+                        best_speed = speed
+                        best_name = name
+                        best_url = prefix
+                    
+                    if speed >= speed_limit:
+                        break # 速度达标，提前退出测速
             except Exception:
                 continue
 
@@ -328,6 +344,14 @@ def getGithubProxyInfo():
     import threading
     t = threading.Thread(target=test_speed_bg)
     t.start()
+    
+    if wait_if_testing:
+        t.join(timeout=10.0)
+        if os.path.exists(cache_file):
+            try:
+                return getObjectByJson(readFile(cache_file))
+            except Exception:
+                pass
 
     if cached_data and 'name' in cached_data and 'url' in cached_data:
         return cached_data
@@ -398,8 +422,8 @@ def githubDownload(url, save_path, timeout=10, min_size=0):
             os.remove(save_path)
         return False
 
-    # 步骤1: 尝试最优节点下载
-    best_proxy_info = getGithubProxyInfo()
+    # 步骤1: 尝试最优节点下载，如果是下载大文件，则强制等待后台测速完成
+    best_proxy_info = getGithubProxyInfo(wait_if_testing=True)
     best_proxy = best_proxy_info.get('url', '')
     best_url = _makeGithubProxyUrl(best_proxy, url)
     if _try_download(best_url):
