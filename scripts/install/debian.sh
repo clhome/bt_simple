@@ -68,17 +68,17 @@ fi
 # 批量安装常规系统依赖
 PACKAGES=(
     chrony ntpdate net-tools locales wget curl lsof unzip tar cron expect
-    locate lrzsz xz-utils rar unrar pv bc python3-pip python3-dev python3-venv
+    lrzsz xz-utils pv bc python3-pip python3-dev python3-venv
     libncurses5 libncurses5-dev bzip2 p7zip-full libnuma1 libaio1 libaio-dev
     libmecab2 libmm-dev dnsutils apache2-utils numactl xxd sshpass libbrotli-dev
     libvpx-dev libxpm-dev libwebp-dev libfreetype6 libfreetype6-dev libjpeg-dev libpng-dev
     build-essential devscripts autoconf gcc patchelf libffi-dev cmake automake make webp scons
-    lzma lzma-dev libpcre3 libpcre3-dev openssl libssl-dev libargon2-dev
+    liblzma-dev libpcre3 libpcre3-dev openssl libssl-dev libargon2-dev
     libmemcached-dev libsasl2-dev imagemagick libmagickcore-dev libmagickwand-dev
     libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev librecode-dev
-    libgmp-dev libgmp3-dev libreadline-dev libpq-dev dia pkg-config libevent-dev
+    libgmp-dev libreadline-dev libpq-dev pkg-config libevent-dev
     libldap2-dev libzip-dev libicu-dev libyaml-dev xsltproc libcurl4-openssl-dev
-    libcurl4-gnutls-dev libprotobuf-dev protobuf-compiler libboost-dev liblz4-tool
+    libprotobuf-dev protobuf-compiler libboost-dev liblz4-tool
     zstd libzstd-dev graphviz bison re2c flex libsqlite3-dev libonig-dev perl g++
     libtool libxslt1-dev libmariadb-dev libmariadb-dev-compat
 )
@@ -88,6 +88,10 @@ if [ "$VERSION_ID" != "9" ]; then
 fi
 
 smart_apt_install "${PACKAGES[@]}"
+
+# non-free 包单独静默安装，防止由于源限制导致批量依赖报错
+apt install -y rar unrar > /dev/null 2>&1
+
 
 apt autoremove -y
 

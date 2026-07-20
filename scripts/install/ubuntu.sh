@@ -58,22 +58,26 @@ fi
 
 # 批量安装常规系统依赖
 PACKAGES=(
-    chrony ntpdate wget curl unzip lsof rar unrar xz-utils python3-pip python3-venv
+    chrony ntpdate wget curl unzip lsof xz-utils python3-pip python3-venv
     python3-dev expect pv bc cron net-tools libncurses5 libncurses5-dev software-properties-common
-    bzip2 p7zip-full libnuma1 libaio1 libaio-dev libmecab2 numactl libaio1t64 libmm-dev
+    bzip2 p7zip-full libnuma1 libaio1 libaio-dev libmecab2 numactl libmm-dev
     dnsutils xxd libprotobuf-dev protobuf-compiler libboost-dev liblz4-tool zstd sshpass
     libzstd-dev libbrotli-dev devscripts autoconf gcc lrzsz libffi-dev cmake automake make
-    webp scons libwebp-dev lzma lzma-dev libunwind-dev libpcre3 libpcre3-dev openssl libssl-dev
+    webp scons libwebp-dev liblzma-dev libunwind-dev libpcre3 libpcre3-dev openssl libssl-dev
     libargon2-dev libmemcached-dev libsasl2-dev imagemagick libmagickcore-dev libmagickwand-dev
     libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev librecode-dev libgmp-dev
-    libgmp3-dev libreadline-dev libxpm-dev libpq-dev dia pkg-config zlib1g-dev libjpeg-dev
+    libreadline-dev libxpm-dev libpq-dev pkg-config zlib1g-dev libjpeg-dev
     libpng-dev libfreetype6 libjpeg62-turbo-dev libfreetype6-dev libevent-dev libldap2-dev
     libzip-dev libicu-dev libyaml-dev xsltproc build-essential libcurl4-openssl-dev
-    libcurl4-nss-dev libcurl4-gnutls-dev graphviz bison re2c flex libsqlite3-dev
+    graphviz bison re2c flex libsqlite3-dev
     libonig-dev perl g++ libtool libxslt1-dev libmariadb-dev libmariadb-dev-compat patchelf
 )
 
 smart_apt_install "${PACKAGES[@]}"
+
+# non-free 包单独静默安装，防止由于源限制导致批量依赖报错
+apt install -y rar unrar > /dev/null 2>&1
+
 
 apt autoremove -y
 
