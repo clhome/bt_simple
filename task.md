@@ -117,5 +117,9 @@
 - `[x]` 93. 优化 `plugins/php/install.sh`：配置 Composer 前，临时将当前安装的 PHP bin 目录加入到 `PATH` 中，解决 `composer` 报错 `/usr/bin/env: php: 没有那个文件或目录` 的问题。
 - `[x]` 94. 优化 OpenResty 所有版本的安装脚本（1.17.8 - 1.31.1 以及 rtmp）：优化 Brotli 依赖克隆逻辑，改为优先使用 github_download 下载 tar.gz 并解压缩剥离首层，解压失败再回退到原 github_clone，同时优化错误判断，避免在依赖缺失时盲目继续编译。
 
+- `[x]` 95. 优化系统安装脚本 `scripts/install/debian.sh`：引入 `smart_apt_install` 以实现系统依赖包的批量与智能降级安装，并前置 `apt update` 以防 404。
+- `[x]` 96. 优化系统安装脚本 `scripts/install/ubuntu.sh`：引入 `smart_apt_install` 以实现系统依赖包的批量与智能降级安装，并前置 `apt update` 以防 404。
+- `[x]` 97. 优化 Python 环境依赖安装脚本 `scripts/lib.sh`：修正国内环境下优先使用加速源，且在失败时支持降级使用官方源。
+
 
 

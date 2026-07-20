@@ -213,11 +213,20 @@ pip3 install --upgrade pip -i $PIPSRC
 pip3 install --upgrade setuptools wheel -i $PIPSRC
 
 
-# repeated attempts
-if [ "$LOCAL_ADDR" != "common" ];then
-    cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/requirements.txt
+# 安装 requirements.txt 中的依赖项
+if [ "$LOCAL_ADDR" != "common" ]; then
+    echo "正在使用国内加速源安装 Python 依赖..."
+    if ! cd /www/server/yufeng_panel || ! pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC; then
+        echo "警告: 加速源安装失败，正在尝试使用官方源..."
+        pip3 install -r /www/server/yufeng_panel/requirements.txt
+    fi
+else
+    echo "正在使用官方源安装 Python 依赖..."
+    if ! cd /www/server/yufeng_panel || ! pip3 install -r /www/server/yufeng_panel/requirements.txt; then
+        echo "警告: 官方源安装失败，正在尝试使用国内加速源..."
+        pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC
+    fi
 fi
-cd /www/server/yufeng_panel && pip3 install -r /www/server/yufeng_panel/requirements.txt -i $PIPSRC
 
 # 强制升级 requests 库以自动修复可能由 urllib3/charset-normalizer 升级引起的版本冲突警告
 pip3 install --upgrade requests -i $PIPSRC

@@ -15,63 +15,34 @@ if grep -Eq "Ubuntu" /etc/*-release; then
     #sudo dpkg-reconfigure dash
 fi
 
-# synchronize server
-# systemctl status chronyd -l
-apt install chrony -y
-apt install ntpdate -y
+# 前置更新软件包源，防止 404
+apt update -y -o Acquire::Languages=none
 
-apt update -y
-apt autoremove -y
+# 智能批量/分级安装函数
+function smart_apt_install() {
+    local pkgs=("$@")
+    echo "正在尝试一次性批量安装系统依赖包..."
+    if apt install -y "${pkgs[@]}"; then
+        return 0
+    fi
+    
+    echo "警告：批量安装失败，可能因为某些软件包在当前源中不存在。正在尝试逐个检查并安装..."
+    for pkg in "${pkgs[@]}"; do
+        if ! apt install -y "$pkg"; then
+            echo "警告: 软件包 $pkg 安装失败，跳过。"
+        fi
+    done
+}
 
-apt install -y wget curl unzip
-apt install -y lsof
-apt install -y rar unrar
-apt install -y xz-utils
-apt install -y python3-pip
-apt install -y python3-venv
-apt install -y python3-dev
-apt install -y expect
-apt install -y pv
-apt install -y bc
-apt install -y cron
-apt install -y net-tools
-apt install -y libncurses5
-apt install -y libncurses5-dev
-apt install -y software-properties-common
-apt install -y bzip2
-apt install -y p7zip-full
-
-apt install -y libnuma1
-apt install -y libaio1
-apt install -y libaio-dev
-apt install -y libmecab2
-apt install -y numactl
-apt install -y libaio1t64
-apt install -y libmm-dev
-
-apt install -y dnsutils
-apt install -y numactl
-apt install -y xxd
-
-# https://www.php.net/manual/zh/mysql-xdevapi.installation.php
-apt install -y libprotobuf-dev
-apt install -y protobuf-compiler
-apt install -y libboost-dev
-apt install -y liblz4-tool
-apt install -y zstd
-apt install -y sshpass
-apt install -y libzstd-dev
-apt install -y libbrotli
-
-P_VER=`python3 -V | awk '{print $2}'`
-if version_ge "$P_VER" "3.11.0" ;then
-    echo -e "\e[1;31mapt install python3.12-venv\e[0m"
-    apt install -y python3.12-venv
+# SSH 端口检测
+SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
+if [ "$SSH_PORT" == "" ];then
+	SSH_PORT_LINE=`cat /etc/ssh/sshd_config | grep "Port \d*" | tail -1`
+	SSH_PORT=${SSH_PORT_LINE/"Port "/""}
 fi
+echo "SSH PORT:${SSH_PORT}"
 
-# choose lang cmd
-# dpkg-reconfigure --frontend=noninteractive locales
-# dpkg-reconfigure locales
+# 区域与语言设置
 if [ ! -f /usr/sbin/locale-gen ];then
 	apt install -y locales
 	sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen
@@ -85,138 +56,74 @@ else
 	localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 > /dev/null 2>&1
 fi
 
-SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
-if [ "$SSH_PORT" == "" ];then
-	SSH_PORT_LINE=`cat /etc/ssh/sshd_config | grep "Port \d*" | tail -1`
-	SSH_PORT=${SSH_PORT_LINE/"Port "/""}
+# 批量安装常规系统依赖
+PACKAGES=(
+    chrony ntpdate wget curl unzip lsof rar unrar xz-utils python3-pip python3-venv
+    python3-dev expect pv bc cron net-tools libncurses5 libncurses5-dev software-properties-common
+    bzip2 p7zip-full libnuma1 libaio1 libaio-dev libmecab2 numactl libaio1t64 libmm-dev
+    dnsutils xxd libprotobuf-dev protobuf-compiler libboost-dev liblz4-tool zstd sshpass
+    libzstd-dev libbrotli devscripts autoconf gcc lrzsz libffi-dev cmake automake make
+    webp scons libwebp-dev lzma lzma-dev libunwind-dev libpcre3 libpcre3-dev openssl libssl-dev
+    libargon2-dev libmemcached-dev libsasl2-dev imagemagick libmagickcore-dev libmagickwand-dev
+    libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev librecode-dev libgmp-dev
+    libgmp3-dev libreadline-dev libxpm-dev libpq-dev dia pkg-config zlib1g-dev libjpeg-dev
+    libpng-dev libfreetype6 libjpeg62-turbo-dev libfreetype6-dev libevent-dev libldap2-dev
+    libzip-dev libicu-dev libyaml-dev xsltproc build-essential libcurl4-openssl-dev
+    libcurl4-nss-dev libcurl4-gnutls-dev graphviz bison re2c flex libsqlite3-dev
+    libonig-dev perl g++ libtool libxslt1-dev libmariadb-dev libmariadb-dev-compat patchelf
+)
+
+smart_apt_install "${PACKAGES[@]}"
+
+apt autoremove -y
+
+# 动态安装 python3-venv 兼容项
+P_VER=`python3 -V | awk '{print $2}'`
+if version_ge "$P_VER" "3.11.0" ;then
+    echo -e "\e[1;31mapt install python3.12-venv\e[0m"
+    apt install -y python3.12-venv
 fi
-echo "SSH PORT:${SSH_PORT}"
 
+# 防火墙相关配置
 if [ -f /usr/sbin/ufw ];then
-	# look
-	# ufw status
 	echo 'y' | ufw enable
-
 	if [ "$SSH_PORT" != "" ];then
 		ufw allow $SSH_PORT/tcp
 	else
 		ufw allow 22/tcp
 	fi
-
 	ufw allow 80/tcp
 	ufw allow 443/tcp
 	ufw allow 443/udp
-	# ufw allow 888/tcp
 fi
 
 if [ ! -f /usr/sbin/ufw ];then
 	apt install -y firewalld
 	systemctl enable firewalld
-	
-
 	if [ "$SSH_PORT" != "" ];then
 		firewall-cmd --permanent --zone=public --add-port=${SSH_PORT}/tcp
 	else
 		firewall-cmd --permanent --zone=public --add-port=22/tcp
 	fi
-
 	firewall-cmd --permanent --zone=public --add-port=80/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/tcp
 	firewall-cmd --permanent --zone=public --add-port=443/udp
-	# firewall-cmd --permanent --zone=public --add-port=888/tcp
-
 	systemctl start firewalld
-
-	# fix:debian10 firewalld faq
-	# https://kawsing.gitbook.io/opensystem/andoid-shou-ji/untitled/fang-huo-qiang#debian-10-firewalld-0.6.3-error-commandfailed-usrsbinip6tablesrestorewn-failed-ip6tablesrestore-v1.8
 	sed -i 's#IndividualCalls=no#IndividualCalls=yes#g' /etc/firewalld/firewalld.conf
-
 	firewall-cmd --reload
-	
-	# #安装时不开启
-	# systemctl stop firewalld
 fi
 
-apt install -y devscripts
-apt install -y python3-dev
-apt install -y autoconf
-apt install -y gcc
-apt install -y lrzsz
-
-apt install -y libffi-dev
-apt install -y cmake automake make
-
-apt install -y webp scons
-apt install -y libwebp-dev
-apt install -y lzma lzma-dev
-apt install -y libunwind-dev
-
-apt install -y libpcre3 libpcre3-dev 
-apt install -y openssl
-apt install -y libssl-dev
-apt install -y libargon2-dev
-
-apt install -y libmemcached-dev
-apt install -y libsasl2-dev
-apt install -y imagemagick
-apt install -y libmagickcore-dev
-apt install -y libmagickwand-dev
-
-apt install -y libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev librecode-dev
-apt install -y libgmp-dev libgmp3-dev libreadline-dev libxpm-dev
-apt install -y libpq-dev
-apt install -y dia
-
-apt install -y pkg-config
-apt install -y zlib1g-dev
-
-apt install -y libjpeg-dev libpng-dev
-apt install -y libfreetype6
-apt install -y libjpeg62-turbo-dev
-apt install -y libfreetype6-dev
-apt install -y libevent-dev libldap2-dev
-
-apt install -y libzip-dev
-apt install -y libicu-dev
-apt install -y libyaml-dev 
-
-# mqtt
-apt install -y xsltproc
-
-apt install -y build-essential
-
-apt install -y libcurl4-openssl-dev
-apt install -y libcurl4-nss-dev
-apt install -y curl libcurl4-gnutls-dev
-#https://blog.csdn.net/qq_36228377/article/details/123154344
-# ln -s  /usr/include/x86_64-linux-gnu/curl  /usr/include/curl
+# 创建 curl 头链接
 if [ ! -d /usr/include/curl ];then
 	SYS_ARCH=`arch`
 	if [ -f /usr/include/x86_64-linux-gnu/curl ];then
 		ln -s /usr/include/x86_64-linux-gnu/curl /usr/include/curl
 	else
-		# ln -s /usr/include/aarch64-linux-gnu/curl /usr/include/curl
 		ln -s /usr/include/${SYS_ARCH}-linux-gnu/curl /usr/include/curl
 	fi 
 fi
 
-
-apt install -y graphviz bison re2c flex
-apt install -y libsqlite3-dev
-apt install -y libonig-dev
-
-apt install -y perl g++ libtool    
-apt install -y libxslt1-dev
-
-apt install -y libmariadb-dev
-#apt install -y libmysqlclient-dev   
-apt install -y libmariadb-dev-compat
-#apt install -y libmariadbclient-dev
-
-
-# mysql8.0 在ubuntu22需要的库
-apt install -y patchelf
-
+# Ubuntu 22.04 特殊处理
 VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 if [ "${VERSION_ID}" == "22.04" ];then
 	apt install -y python3-cffi
