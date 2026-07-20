@@ -125,5 +125,5 @@
 - `[x]` 99. 优化 WAF 插件 `index.py`，使读取 `default.pl`、`domains.json` 时进行 `.strip()` 过滤和 `try-except` 异常保护。
 - `[x]` 100. 优化 WAF 插件前端 `op_waf.js`，在渲染时进行站点名称的 `trim()` 去空白，并在日志请求时为站点名参数提供默认 `'ALL'` 回退。
 
-- `[x]` 101. 修复 Web 更新检查 `getServerInfo()` 在中国境内服务器始终失败的 bug：GitHub 代理站不支持代理 `api.github.com`（返回 403），重构为通过代理利用 `releases/latest` 的 302 重定向获取最新 tag，再尝试代理获取 release body，最终兜底至少返回版本号信息。
+- `[x]` 101. 修复 Web 更新检查 `getServerInfo()` 在中国境内服务器始终失败及内容为空的 bug：GitHub 代理站不支持代理 `api.github.com`（返回 403），重构为通过代理利用 `releases/latest` 的 302 重定向获取最新 tag，并通过代理获取 `raw.githubusercontent.com` 上的 `RELEASE_TEMPLATE.md` 作为更新内容展示。若依然失败则提供包含 GitHub Release 链接的 Markdown 友好提示。
 

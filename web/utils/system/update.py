@@ -91,25 +91,33 @@ def _getServerInfoViaProxy():
     if not tag_name:
         return None
 
-    # 通过代理获取 release body（使用 GitHub API 的替代方案：获取 release 页面解析内容）
-    # 直接用代理下载 API JSON（部分代理可能支持 raw API JSON 下载）
-    raw_api_url = 'https://api.github.com/repos/clhome/bt_simple/releases/tags/' + tag_name
+    # 通过代理获取 release body
+    # 代理通常不支持 api.github.com，但支持 raw.githubusercontent.com
+    raw_md_url = 'https://raw.githubusercontent.com/clhome/bt_simple/' + tag_name + '/RELEASE_TEMPLATE.md'
     for proxy in proxy_list:
         try:
-            full_url = yf._makeGithubProxyUrl(proxy, raw_api_url)
-            cmd = 'curl -s -m 10 -H "Accept: application/json" "{}"'.format(full_url)
+            full_url = yf._makeGithubProxyUrl(proxy, raw_md_url)
+            cmd = 'curl -s -m 10 "{}"'.format(full_url)
             out, _ = yf.execShell(cmd)
-            data = json.loads(out.strip())
-            if 'tag_name' in data:
-                return data
+            # 如果成功获取到内容（不是 404）
+            if out and len(out) > 50 and '404: Not Found' not in out:
+                return {
+                    'tag_name': tag_name,
+                    'name': 'Release ' + tag_name,
+                    'body': out.strip()
+                }
         except Exception:
             continue
 
-    # 如果 release body 获取失败，至少返回版本号信息（确保能检查更新）
+    # 如果 release body 获取失败，提供默认的 Markdown 提示
+    default_body = "> ⚠️ 受限于当前网络环境，无法直接获取更新日志。\n\n"
+    default_body += "请点击下方链接前往 GitHub 查看详细内容：\n\n"
+    default_body += "[👉 查看 {} 更新说明](https://github.com/clhome/bt_simple/releases/tag/{})".format(tag_name, tag_name)
+
     return {
         'tag_name': tag_name,
         'name': 'Release ' + tag_name,
-        'body': ''
+        'body': default_body
     }
 
 def backup_panel():
