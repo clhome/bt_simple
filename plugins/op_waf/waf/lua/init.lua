@@ -482,7 +482,8 @@ local function waf_cc()
         local lock_time = (endtime * safe_count)
         if lock_time > 86400 then lock_time = 86400 end
 
-        C:dict_set("waf_drop_ip", block_target, 1, lock_time)
+        local retry = config['retry']['retry']
+        C:dict_set("waf_drop_ip", block_target, retry + 1, lock_time)
         local reason = cycle..'秒内累计超过请求限制,封锁' .. lock_time .. '秒'
         C:write_log('cc', reason)
         C:log(params, 'cc',reason)

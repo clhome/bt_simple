@@ -59,7 +59,8 @@ if status == 404 then
             end
             
             if count_5m >= 150 then
-                C:dict_set("waf_drop_ip", ip, 1, 5400)
+                local retry = config['retry']['retry']
+                C:dict_set("waf_drop_ip", ip, retry + 1, 5400)
                 if count_5m == 150 then
                     local reason = '5分钟内产生超过150次独立404错误,封锁5400秒'
                     local params = {
