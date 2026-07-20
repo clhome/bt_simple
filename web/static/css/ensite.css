@@ -1712,117 +1712,258 @@ html .menu .menu_exit:hover {
     height: 80px
 }
 
-.sl-s-info {
-    width: 124px;
-    border: #ccc 1px solid
+/* 自定义现代弹窗样式以隐藏滚动条 */
+.layui-layer-modern .layui-layer-content {
+    overflow: hidden !important;
+}
+
+.important-title {
+    display: flex;
+    align-items: center;
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    color: #166534;
+    font-size: 13px;
+    line-height: 1.5;
+    box-shadow: none;
+}
+
+.important-title>p {
+    flex: 1;
+    margin: 0;
 }
 
 .rec-install {
     padding: 16px;
     width: 100%;
-    float: left
 }
 
 .rec-install .rec-box {
-    width: 296px;
-    float: left
+    width: 100%;
 }
 
 .rec-install h3 {
-    font-size: 20px;
-    margin-bottom: 5px
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 12px;
+    text-align: center;
 }
 
 .rec-box-con {
-    border: #ddd 1px solid;
-    border-radius: 3px;
-    padding: 10px
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    transition: all 0.3s ease;
 }
 
-.rec-install .rec-box:hover .rec-box-con {
-    background-color: #f9f9f9;
-    border: #20a53a 1px solid
+.rec-install .rec-box:hover .rec-box-con, .rec-box-con-hover {
+    background-color: #ffffff;
+    border-color: #10b981;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.08), 0 4px 6px -2px rgba(16, 185, 129, 0.03);
 }
 
 .rec-box-con .ico img {
-    width: 22px;
-    margin-right: 10px
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    border-radius: 4px;
+}
+
+.rec-box-con ul {
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
 }
 
 .rec-box-con ul li {
-    line-height: 26px;
-    margin-bottom: 5px
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.rec-box-con ul li:last-child {
+    border-bottom: none;
+}
+
+.rec-box-con ul li .name {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 14px;
+}
+
+.sl-s-info {
+    width: 170px;
+    height: 30px;
+    padding: 0 10px;
+    font-size: 13px;
+    color: #334155;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 14px;
+    padding-right: 28px;
+}
+
+.sl-s-info:focus, .sl-s-info:hover {
+    background-color: #fff;
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.rec-box-con ul li input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    margin: 0;
+}
+
+.rec-box-con ul li input[type="checkbox"]:checked {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+.rec-box-con ul li input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.rec-box-con ul li input[type="checkbox"]:disabled {
+    background-color: #f1f5f9;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+
+.rec-box-con ul li input[type="checkbox"]:disabled:checked::after {
+    border-color: #94a3b8;
+}
+
+.rec-box-con .onekey {
+    font-family: inherit;
+    width: 100%;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    background: #10b981;
+    border-radius: 8px;
+    color: #fff;
+    margin-top: 16px;
+    margin-bottom: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+}
+
+.rec-box-con .onekey:hover {
+    background: #059669;
+    box-shadow: 0 8px 12px -3px rgba(5, 150, 105, 0.3);
+    transform: translateY(-1px);
+}
+
+.rec-box-con .onekey:active {
+    transform: translateY(0);
+}
+
+.rec-box-con .onekey.disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
 }
 
 .fangshi {
     line-height: 19px;
     margin-top: 10px;
     display: block;
-    margin-bottom: 15px
+    margin-bottom: 15px;
 }
 
 .fangshi label {
     font-weight: normal;
     margin-right: 44px;
-    float: right
+    float: right;
 }
 
 .fangshi label input {
     vertical-align: -2px;
-    margin-left: 5px
+    margin-left: 5px;
 }
 
 .zun-form-new .fangshi {
     padding: 0 30px 0;
-    line-height: 30px
+    line-height: 30px;
 }
 
 .zun-form-new .fangshi label {
     height: 20px;
     line-height: 20px;
-    margin: 4px 20px 0 0
+    margin: 4px 20px 0 0;
 }
 
 .zun-form-new .version {
-    padding: 0 30px
+    padding: 0 30px;
 }
 
 .zun-form-new .version select {
     height: 28px;
     margin-left: 30px;
-    width: 120px
+    width: 120px;
 }
 
 .sec-install-btn {
-    font-family: "宋体";
+    font-family: inherit;
     width: 90px;
-    height: 30px;
-    line-height: 30px;
+    height: 32px;
+    line-height: 32px;
     text-align: center;
-    background-color: #20a53a;
-    border-radius: 3px;
+    background-color: #10b981;
+    border-radius: 6px;
     color: #fff;
     cursor: pointer;
-    margin-top: 10px
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
 }
 
-.rec-box-con .onekey {
-    font-family: "宋体";
-    width: 90px;
-    height: 30px;
-    line-height: 30px;
-    text-align: center;
-    background-color: #20a53a;
-    border-radius: 3px;
-    color: #fff;
-    margin: 5px auto;
-    cursor: pointer
-}
-
-.rec-box-con .onekey:hover,
 .sec-install-btn:hover {
-    background: #10952a;
-    background: linear-gradient(#10952a, #088d22)
+    background-color: #059669;
+    box-shadow: 0 4px 6px rgba(5, 150, 105, 0.2);
 }
 
 .phppz {

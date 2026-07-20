@@ -167,11 +167,11 @@ class plugin(object):
 
     def init(self):
         plugin_names = {
-            'openresty': '1.27.1',
-            'php': '56',
+            'openresty': '1.31.1',
+            'php': '80',
             'swap': '1.1',
             'mysql': '5.7',
-            'phpmyadmin': '4.4.15',
+            'phpmyadmin': '5.2.1',
         }
 
         pn_dir = yf.getPluginDir()

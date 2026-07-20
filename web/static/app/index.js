@@ -1049,13 +1049,14 @@ function pluginInit(){
         layer.open({
             type: 1,
             title: '推荐安装',
-            area: ["320px", "400px"],
+            area: ["380px", "460px"],
+            skin: 'layui-layer-modern',
             closeBtn: 2,
             shadeClose: false,
             content:"\
         <div class='rec-install'>\
             <div class='important-title'>\
-                <p><span class='glyphicon glyphicon-alert' style='color: #f39c12; margin-right: 10px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#20a53a'>软件管理</a>按需选择。</p>\
+                <p><span class='glyphicon glyphicon-info-sign' style='color: #10b981; margin-right: 8px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#10b981'>软件管理</a>按需选择。</p>\
                 <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>不再显示推荐</button> -->\
             </div>\
             <div class='rec-box'>\
