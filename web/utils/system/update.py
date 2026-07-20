@@ -45,9 +45,10 @@ def getServerInfo():
     api_url = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
 
     # 步骤1: 直连 GitHub API（境外服务器通常可用）
+    # 境内机器直连 API 常常超时或阻断，将超时缩短为 3 秒，让其尽快降级到代理
     try:
         context = ssl._create_unverified_context()
-        req = urllib.request.urlopen(api_url, context=context, timeout=10)
+        req = urllib.request.urlopen(api_url, context=context, timeout=3)
         result = req.read().decode('utf-8')
         version = json.loads(result)
         return version
@@ -73,13 +74,21 @@ def _getServerInfoViaProxy():
 
     # 通过 curl 跟随重定向获取最新 tag（releases/latest 会 302 到 /tag/vX.Y.Z）
     latest_url = 'https://github.com/clhome/bt_simple/releases/latest'
-    proxy_list = [''] + [p for p in yf._GITHUB_PROXY_LIST if p]
+    
+    # 构造代理列表：优先使用系统测速最优的代理，其次轮询其他代理，最后再尝试直连
+    fastest_proxy = yf.getGithubProxy()
+    proxy_list = [fastest_proxy]
+    for p in yf._GITHUB_PROXY_LIST:
+        if p != fastest_proxy and p != "":
+            proxy_list.append(p)
+    if fastest_proxy != "":
+        proxy_list.append("") # 如果最优代理不是直连，则将直连作为兜底方案
 
     for proxy in proxy_list:
         try:
             full_url = yf._makeGithubProxyUrl(proxy, latest_url)
-            # -Ls: 跟随重定向并静默, -o /dev/null: 不保存内容, -w: 输出最终 URL
-            cmd = 'curl -Ls -o /dev/null -w "%{{url_effective}}" -m 8 "{}"'.format(full_url)
+            # -Ls: 跟随重定向并静默, -o /dev/null: 不保存内容, -w: 输出最终 URL。超时设为 5 秒加速重试
+            cmd = 'curl -Ls -o /dev/null -w "%{{url_effective}}" -m 5 "{}"'.format(full_url)
             out, _ = yf.execShell(cmd)
             final_url = out.strip()
             if '/tag/' in final_url:
@@ -97,7 +106,7 @@ def _getServerInfoViaProxy():
     for proxy in proxy_list:
         try:
             full_url = yf._makeGithubProxyUrl(proxy, raw_md_url)
-            cmd = 'curl -s -m 10 "{}"'.format(full_url)
+            cmd = 'curl -s -m 5 "{}"'.format(full_url)
             out, _ = yf.execShell(cmd)
             # 如果成功获取到内容（不是 404）
             if out and len(out) > 50 and '404: Not Found' not in out:
