@@ -2066,15 +2066,15 @@ function wafLogRequest(page){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
-        if (data.length > 0){
+        if (data && Array.isArray(data) && data.length > 0){
             for (var i = 0; i < data.length; i++) {
                 list += '<tr>';
                 list += '<td><span class="overflow_hide" title="' + getLocalTime(data[i]['time']) + '" style="width:125px;">' + getLocalTime(data[i]['time'])+'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['domain'] || '') + '" style="width:150px;">' + data[i]['domain'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['ip'] || '') + '" style="width:100px;">' + data[i]['ip'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['uri'] || '') + '" style="width:90px;">' + data[i]['uri'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['rule_name'] || '') + '" style="width:60px;">' + data[i]['rule_name'] +'</span></td>';
-                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['reason'] || '') + '" style="width:220px;">' + entitiesEncode(data[i]['reason']) +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['domain'] || '') + '" style="width:150px;">' + entitiesEncode(data[i]['domain'] || '') +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['ip'] || '') + '" style="width:100px;">' + entitiesEncode(data[i]['ip'] || '') +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['uri'] || '') + '" style="width:90px;">' + entitiesEncode(data[i]['uri'] || '') +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['rule_name'] || '') + '" style="width:60px;">' + entitiesEncode(data[i]['rule_name'] || '') +'</span></td>';
+                list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['reason'] || '') + '" style="width:220px;">' + entitiesEncode(data[i]['reason'] || '') +'</span></td>';
                 list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">详情</a></td>';
                 list += '</tr>';
             }

@@ -2477,6 +2477,10 @@ function toArrayObject(str){
 * @returns
 */
 function entitiesEncode(text) {
+    if (text === undefined || text === null) {
+        return "";
+    }
+    text = text.toString();
     text = text.replace(/&/g, "&amp;");
     text = text.replace(/</g, "&lt;");
     text = text.replace(/>/g, "&gt;");
