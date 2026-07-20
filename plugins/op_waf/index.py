@@ -422,7 +422,36 @@ def getCountry():
     return yf.returnJson(True, 'ok', data)
 
 
+def cleanUserAgentJsonRule():
+    path = getServerDir() + "/waf/rule/user_agent.json"
+    if not os.path.exists(path):
+        return False
+    try:
+        content = yf.readFile(path)
+        if not content:
+            return False
+        rules = json.loads(content)
+        modified = False
+        for rule in rules:
+            if len(rule) > 1 and "非法脚本" in rule[2]:
+                regex = rule[1]
+                if "curl|" in regex:
+                    rule[1] = regex.replace("curl|", "")
+                    modified = True
+                elif "|curl" in regex:
+                    rule[1] = regex.replace("|curl", "")
+                    modified = True
+        if modified:
+            yf.writeFile(path, json.dumps(rules, ensure_ascii=False))
+            return True
+    except Exception as e:
+        print("cleanUserAgentJsonRule error: " + str(e))
+    return False
+
+
 def autoMakeConfig(conf_reload=False, cp_reload=False):
+    if cleanUserAgentJsonRule():
+        conf_reload = True
     initDomainInfo(conf_reload)
     initSiteInfo(conf_reload)
     initTotalInfo(conf_reload)
