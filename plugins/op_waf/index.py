@@ -348,21 +348,27 @@ def initDefaultInfo(conf_reload=False):
     dst_path = path + "/waf/default.pl"
     default_site = ''
     if os.path.exists(dst_path):
-        return True
+        val = yf.readFile(dst_path)
+        if val and val.strip():
+            return True
     source_path = path + "/waf/domains.json"
     content = yf.readFile(source_path)
-    content = json.loads(content)
-
-    ddata = {}
     dlist = []
     dlist.append('ALL')
-    for i in content:
-        dlist.append(i["name"])
+    try:
+        if content:
+            content_json = json.loads(content)
+            for i in content_json:
+                dlist.append(i["name"])
+    except Exception:
+        pass
 
+    ddata = {}
     ddata["list"] = dlist
     default_site = "ALL"
 
     yf.writeFile(dst_path, default_site)
+
 
 
 def getSiteListData():
@@ -371,13 +377,19 @@ def getSiteListData():
     dst_path = path + "/waf/default.pl"
 
     content = yf.readFile(source_path)
-    content = json.loads(content)
     dlist = []
     dlist.append('ALL')
-    for i in content:
-        dlist.append(i["name"])
+    try:
+        if content:
+            content_json = json.loads(content)
+            for i in content_json:
+                dlist.append(i["name"])
+    except Exception:
+        pass
 
     default_site = yf.readFile(dst_path)
+    if default_site:
+        default_site = default_site.strip()
     if not default_site or default_site == 'unset':
         default_site = 'ALL'
 
@@ -1849,6 +1861,10 @@ def testRun():
 
     default_path = getServerDir() + "/waf/default.pl"
     default_site = yf.readFile(default_path)
+    if default_site:
+        default_site = default_site.strip()
+    else:
+        default_site = 'ALL'
     url = "http://" + default_site + '/?t=../etc/passwd'
     returnData = yf.httpGet(url, 10)
 

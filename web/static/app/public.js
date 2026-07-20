@@ -369,11 +369,18 @@ Date.prototype.format = function(b) {
 };
 
 function getLocalTime(a) {
+	if (a === undefined || a === null) {
+		return "-";
+	}
 	a = a.toString();
 	if(a.length > 10) {
 		a = a.substring(0, 10)
 	}
-	return new Date(parseInt(a) * 1000).format("yyyy/MM/dd hh:mm:ss")
+	var num = parseInt(a);
+	if (isNaN(num)) {
+		return "-";
+	}
+	return new Date(num * 1000).format("yyyy/MM/dd hh:mm:ss")
 }
 
 //获取符合当前时间的高亮时间字符串

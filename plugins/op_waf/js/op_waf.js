@@ -2050,7 +2050,7 @@ function wafLogRequest(page){
     var args = {};   
     args['page'] = page;
     args['page_size'] = 10;
-    args['site'] = $('select[name="site"]').val();
+    args['site'] = $('select[name="site"]').val() || 'ALL';
 
     var query_date = 'today';
     if ($('#time_choose').attr("data-name") != ''){
@@ -2067,7 +2067,7 @@ function wafLogRequest(page){
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
-            for(i in data){
+            for (var i = 0; i < data.length; i++) {
                 list += '<tr>';
                 list += '<td><span class="overflow_hide" title="' + getLocalTime(data[i]['time']) + '" style="width:125px;">' + getLocalTime(data[i]['time'])+'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['domain'] || '') + '" style="width:150px;">' + data[i]['domain'] +'</span></td>';
@@ -2280,17 +2280,20 @@ function wafLogs(site){
         var rdata = JSON.parse(rdata.data);
         var rdata = rdata.data;
         var default_site = rdata["default"];
+        if (default_site) default_site = $.trim(default_site);
         
         // 优先使用传入的特定站点进行日志过滤，无传入则回退至默认站点
         var target_site = default_site;
         if (typeof site !== 'undefined' && site !== '' && site !== null) {
             target_site = site;
         }
+        if (target_site) target_site = $.trim(target_site);
 
         var select = '';
         for (var i = 0; i < rdata["list"].length; i++) {
-            var is_selected = (target_site == rdata["list"][i]) ? 'selected' : '';
-            select += '<option value="'+rdata["list"][i]+'" ' + is_selected + '>'+rdata["list"][i]+'</option>';
+            var current_item = $.trim(rdata["list"][i]);
+            var is_selected = (target_site == current_item) ? 'selected' : '';
+            select += '<option value="'+current_item+'" ' + is_selected + '>'+current_item+'</option>';
         }
         $('select[name="site"]').html(select);
         wafLogRequest(1);
