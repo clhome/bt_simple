@@ -1756,6 +1756,7 @@ function wafSite(){
             i += 1;
             tbody += '<tr>\
                     <td><a onclick="siteWafConfig(\''+ k + '\')" class="sitename btlink" title="' + k + '">' + k + '</a></td>\
+                    <td><input onclick="setSiteObjState(\''+ k + '\',\'curl_protection\')" type="checkbox" ' + (v.curl_protection ? 'checked' : '') + '></td>\
                     <td><input onclick="setSiteObjState(\''+ k + '\',\'get\')" type="checkbox" ' + ((v.get === true || v.get.open) ? 'checked' : '') + '><span class="' + back_css(v.total[1].value) + '" title="拦截GET渗透次数:' + v.total[1].value + '">' + v.total[1].value + '</span></td>\
                     <td><input onclick="setSiteObjState(\''+ k + '\',\'post\')"  type="checkbox" ' + ((v.post === true || v.post.open) ? 'checked' : '') + '><span class="' + back_css(v.total[0].value) + '"  title="拦截POST渗透次数:' + v.total[0].value + '">' + v.total[0].value + '</span></td>\
                     <td><input onclick="setSiteObjState(\''+ k + '\',\'user-agent\')"  type="checkbox" ' + ((v['user-agent'] === true || v['user-agent'].open) ? 'checked' : '') + '><span class="' + back_css(v.total[3].value) + '" title="拦截恶意User-Agent次数:' + v.total[3].value + '">' + v.total[3].value + '</span></td>\
@@ -1781,6 +1782,7 @@ function wafSite(){
                             <thead>\
                                 <tr>\
                                     <th>站点</th>\
+                                    <th>curl</th>\
                                     <th>GET</th>\
                                     <th>POST</th>\
                                     <th>UA</th>\

@@ -1162,14 +1162,22 @@ def getSiteConfig():
         if 'sites' in total_content and x in total_content['sites']:
             tmp_v = total_content['sites'][x]
 
-        key_list = ['get', 'post', 'user-agent', 'cookie', 'cdn', 'cc', 'curl_protection']
+        # 正确映射前端 v.total 索引顺序，并解决 kx in tmp_v 的整型对比 Bug
+        key_list = ['post', 'get', 'cc', 'user-agent', 'cookie', 'cdn', 'curl_protection']
         for kx in range(len(key_list)):
             ktmp = {}
+            k_name = key_list[kx]
+            if k_name == 'user-agent':
+                k_name = 'user_agent'
+            
+            # 由于 curl 的拦截统计在 lua 中归于 user_agent，此列也可以选用此拦截数或独立输出
+            if k_name == 'curl_protection':
+                k_name = 'user_agent'
 
-            if kx in tmp_v:
-                ktmp['value'] = tmp_v[key_list[kx]]
+            if k_name in tmp_v:
+                ktmp['value'] = tmp_v[k_name]
             else:
-                ktmp['value'] = ''
+                ktmp['value'] = 0
             ktmp['key'] = key_list[kx]
             tmp.append(ktmp)
 
