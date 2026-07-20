@@ -1182,6 +1182,9 @@ class fail2ban_main:
         return yf.returnJson(True, 'ok!', data)
 
     def get_total_statistics(self, args):
+        if not os.path.exists('/www/server/fail2ban'):
+            return yf.returnJson(False, "not installed")
+        
         home_res = self.get_home_stats(args)
         try:
             import json

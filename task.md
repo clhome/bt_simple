@@ -120,6 +120,4 @@
 - `[x]` 95. 优化系统安装脚本 `scripts/install/debian.sh`：引入 `smart_apt_install` 以实现系统依赖包的批量与智能降级安装，并前置 `apt update` 以防 404。
 - `[x]` 96. 优化系统安装脚本 `scripts/install/ubuntu.sh`：引入 `smart_apt_install` 以实现系统依赖包的批量与智能降级安装，并前置 `apt update` 以防 404。
 - `[x]` 97. 优化 Python 环境依赖安装脚本 `scripts/lib.sh`：修正国内环境下优先使用加速源，且在失败时支持降级使用官方源。
-
-
-
+- `[x]` 98. 优化桌面概览中御风F2B底层防火墙的显示逻辑：在 `plugins/fail2ban/index.py` 的 `get_total_statistics` 方法中增加对 `/www/server/fail2ban` 目录是否存在的校验，确保仅在防火墙实际安装成功时才在前端首页显示概览卡片。
