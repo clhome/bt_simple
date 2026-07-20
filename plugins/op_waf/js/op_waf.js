@@ -2131,7 +2131,11 @@ function wafLogRequest(page){
     });
 }
 
-function wafLogs(){
+function wafLogs(site){
+    // 自动高亮左侧的“封锁历史”菜单
+    $('.bt-w-menu p').removeClass('bgw');
+    $(".bt-w-menu p[onclick^='wafLogs']").addClass('bgw');
+
     var randstr = getRandomString(10);
 
 
@@ -2276,13 +2280,17 @@ function wafLogs(){
         var rdata = JSON.parse(rdata.data);
         var rdata = rdata.data;
         var default_site = rdata["default"];
+        
+        // 优先使用传入的特定站点进行日志过滤，无传入则回退至默认站点
+        var target_site = default_site;
+        if (typeof site !== 'undefined' && site !== '' && site !== null) {
+            target_site = site;
+        }
+
         var select = '';
         for (var i = 0; i < rdata["list"].length; i++) {
-            if (default_site ==  rdata["list"][i]){
-                select += '<option value="'+rdata["list"][i]+'" selected>'+rdata["list"][i]+'</option>';
-            } else{
-                select += '<option value="'+rdata["list"][i]+'">'+rdata["list"][i]+'</option>';
-            }
+            var is_selected = (target_site == rdata["list"][i]) ? 'selected' : '';
+            select += '<option value="'+rdata["list"][i]+'" ' + is_selected + '>'+rdata["list"][i]+'</option>';
         }
         $('select[name="site"]').html(select);
         wafLogRequest(1);
