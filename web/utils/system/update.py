@@ -41,27 +41,76 @@ def versionDiff(now, new):
 def getServerInfo():
     import urllib.request
     import ssl
-    # GitHub API 优先使用直连，若失败再尝试代理或直接报错
-    # 增加超时时间到 10s，避免网络波动导致失败
-    upAddr = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+
+    api_url = 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
+
+    # 步骤1: 直连 GitHub API（境外服务器通常可用）
     try:
         context = ssl._create_unverified_context()
-        req = urllib.request.urlopen(upAddr, context=context, timeout=10)
+        req = urllib.request.urlopen(api_url, context=context, timeout=10)
         result = req.read().decode('utf-8')
         version = json.loads(result)
         return version
-    except Exception as e:
-        # 如果直连失败，尝试使用代理
-        try:
-            upAddr = yf.getGithubProxy() + 'https://api.github.com/repos/clhome/bt_simple/releases/latest'
-            req = urllib.request.urlopen(upAddr, context=context, timeout=10)
-            result = req.read().decode('utf-8')
-            version = json.loads(result)
-            return version
-        except:
-            print(str(e))
-            return None
+    except Exception:
+        pass
+
+    # 步骤2: 直连 API 失败（中国境内常见），改用代理轮询获取 releases 信息
+    # 注意：GitHub 代理站不支持代理 api.github.com（会返回 403），
+    # 但支持代理 github.com 的普通页面，利用 releases/latest 的 302 重定向获取最新 tag，
+    # 再通过代理获取 raw.githubusercontent.com 上的 release body。
+    try:
+        return _getServerInfoViaProxy()
+    except Exception:
+        pass
+
     return None
+
+
+def _getServerInfoViaProxy():
+    """通过代理站获取远程版本信息（API 代理不可用时的降级方案）"""
+    tag_name = None
+    body = ''
+
+    # 通过 curl 跟随重定向获取最新 tag（releases/latest 会 302 到 /tag/vX.Y.Z）
+    latest_url = 'https://github.com/clhome/bt_simple/releases/latest'
+    proxy_list = [''] + [p for p in yf._GITHUB_PROXY_LIST if p]
+
+    for proxy in proxy_list:
+        try:
+            full_url = yf._makeGithubProxyUrl(proxy, latest_url)
+            # -Ls: 跟随重定向并静默, -o /dev/null: 不保存内容, -w: 输出最终 URL
+            cmd = 'curl -Ls -o /dev/null -w "%{{url_effective}}" -m 8 "{}"'.format(full_url)
+            out, _ = yf.execShell(cmd)
+            final_url = out.strip()
+            if '/tag/' in final_url:
+                tag_name = final_url.split('/tag/')[-1].strip()
+                break
+        except Exception:
+            continue
+
+    if not tag_name:
+        return None
+
+    # 通过代理获取 release body（使用 GitHub API 的替代方案：获取 release 页面解析内容）
+    # 直接用代理下载 API JSON（部分代理可能支持 raw API JSON 下载）
+    raw_api_url = 'https://api.github.com/repos/clhome/bt_simple/releases/tags/' + tag_name
+    for proxy in proxy_list:
+        try:
+            full_url = yf._makeGithubProxyUrl(proxy, raw_api_url)
+            cmd = 'curl -s -m 10 -H "Accept: application/json" "{}"'.format(full_url)
+            out, _ = yf.execShell(cmd)
+            data = json.loads(out.strip())
+            if 'tag_name' in data:
+                return data
+        except Exception:
+            continue
+
+    # 如果 release body 获取失败，至少返回版本号信息（确保能检查更新）
+    return {
+        'tag_name': tag_name,
+        'name': 'Release ' + tag_name,
+        'body': ''
+    }
 
 def backup_panel():
     import time
