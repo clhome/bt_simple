@@ -21,14 +21,17 @@ apt update -y -o Acquire::Languages=none
 # 智能批量/分级安装函数
 function smart_apt_install() {
     local pkgs=("$@")
+    # --no-install-recommends: 跳过非必需的推荐包，大幅减少安装包数量（约减少 60%）
+    # --force-unsafe-io: 跳过 dpkg 的 fsync 磁盘同步，加速解压（全新安装环境可安全使用）
+    local APT_OPTS="--no-install-recommends -o Dpkg::Options::=--force-unsafe-io"
     echo "正在尝试一次性批量安装系统依赖包..."
-    if apt install -y "${pkgs[@]}"; then
+    if apt install -y $APT_OPTS "${pkgs[@]}"; then
         return 0
     fi
-    
+
     echo "警告：批量安装失败，可能因为某些软件包在当前源中不存在。正在尝试逐个检查并安装..."
     for pkg in "${pkgs[@]}"; do
-        if ! apt install -y "$pkg"; then
+        if ! apt install -y $APT_OPTS "$pkg"; then
             echo "警告: 软件包 $pkg 安装失败，跳过。"
         fi
     done
