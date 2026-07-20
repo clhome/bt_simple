@@ -70,7 +70,7 @@ PACKAGES=(
     chrony ntpdate net-tools locales wget curl lsof unzip tar cron expect
     locate lrzsz xz-utils rar unrar pv bc python3-pip python3-dev python3-venv
     libncurses5 libncurses5-dev bzip2 p7zip-full libnuma1 libaio1 libaio-dev
-    libmecab2 libmm-dev dnsutils apache2-utils numactl xxd sshpass libbrotli
+    libmecab2 libmm-dev dnsutils apache2-utils numactl xxd sshpass libbrotli-dev
     libvpx-dev libxpm-dev libwebp-dev libfreetype6 libfreetype6-dev libjpeg-dev libpng-dev
     build-essential devscripts autoconf gcc patchelf libffi-dev cmake automake make webp scons
     lzma lzma-dev libpcre3 libpcre3-dev openssl libssl-dev libargon2-dev
@@ -94,8 +94,9 @@ apt autoremove -y
 # 动态安装 python3-venv 兼容项
 P_VER=`python3 -V | awk '{print $2}'`
 if version_ge "$P_VER" "3.11.0" ;then
-    echo -e "\e[1;31mapt install python3.12-venv\e[0m"
-    apt install -y python3.12-venv
+    P_VER_M=`echo "$P_VER" | awk -F. '{print $2}'`
+    echo -e "\e[1;31mapt install python3.${P_VER_M}-venv\e[0m"
+    apt install -y python3.${P_VER_M}-venv
 fi
 
 # 防火墙相关配置
