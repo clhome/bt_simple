@@ -115,5 +115,7 @@
 - `[x]` 91. 优化 `plugins/php/lib/common_env.sh`：重构 `MEM_INFO` 获取逻辑，处理中文/英文环境下的 `free` 提取，并防范空值保护，避免“需要整数表达式”错误。
 - `[x]` 92. 优化 `plugins/php/versions/80/install.sh`：重构 `MEM_INFO` 获取逻辑，防范空值，解决 PHP8.0 编译安装阶段的“需要整数表达式”警告。
 - `[x]` 93. 优化 `plugins/php/install.sh`：配置 Composer 前，临时将当前安装的 PHP bin 目录加入到 `PATH` 中，解决 `composer` 报错 `/usr/bin/env: php: 没有那个文件或目录` 的问题。
+- `[x]` 94. 优化 OpenResty 所有版本的安装脚本（1.17.8 - 1.31.1 以及 rtmp）：优化 Brotli 依赖克隆逻辑，改为优先使用 github_download 下载 tar.gz 并解压缩剥离首层，解压失败再回退到原 github_clone，同时优化错误判断，避免在依赖缺失时盲目继续编译。
+
 
 

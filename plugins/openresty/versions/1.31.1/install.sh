@@ -207,7 +207,20 @@ Install_openresty()
 	if [ ! -d ${openrestyDir}/ngx_brotli/deps/brotli/c ];then
 		rm -rf ${openrestyDir}/ngx_brotli
 		github_clone ${openrestyDir}/ngx_brotli https://github.com/wxx9248/ngx_brotli.git
-		cd ${openrestyDir}/ngx_brotli && github_clone deps/brotli https://github.com/google/brotli.git
+		
+		mkdir -p ${openrestyDir}/ngx_brotli/deps/brotli
+		github_download ${openrestyDir}/ngx_brotli/deps/brotli.tar.gz https://github.com/google/brotli/archive/refs/tags/v1.1.0.tar.gz
+		if [ "$?" == "0" ]; then
+			cd ${openrestyDir}/ngx_brotli/deps && tar -zxf brotli.tar.gz -C brotli --strip-components=1
+			rm -f brotli.tar.gz
+		else
+			cd ${openrestyDir}/ngx_brotli && github_clone deps/brotli https://github.com/google/brotli.git
+		fi
+	fi
+
+	if [ ! -d ${openrestyDir}/ngx_brotli/deps/brotli/c ];then
+		echo "Error: Brotli library is missing from the ngx_brotli/deps/brotli/c directory!"
+		exit 1
 	fi
 	OPTIONS="${OPTIONS} --add-module=${openrestyDir}/ngx_brotli"
 
