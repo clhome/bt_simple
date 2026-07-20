@@ -980,6 +980,32 @@ class plugin(object):
 
         return info
 
+    def checkAndAutoFixFail2ban(self):
+        try:
+            f2b_checks = yf.getFatherDir() + '/server/fail2ban'
+            if not os.path.exists(f2b_checks):
+                import shutil
+                if shutil.which('fail2ban-client') is not None or os.path.exists('/usr/bin/fail2ban-client') or os.path.exists('/usr/sbin/fail2ban-client'):
+                    os.makedirs(f2b_checks, exist_ok=True)
+                    
+                    f2b_version = '1.2.0'
+                    import re
+                    ret = yf.execShell('fail2ban-client --version')
+                    if ret[0] and 'Fail2Ban v' in ret[0]:
+                        match = re.search(r'Fail2Ban v([0-9\.]+)', ret[0])
+                        if match:
+                            f2b_version = match.group(1)
+                    
+                    yf.writeFile(f2b_checks + '/version.pl', f2b_version)
+                    
+                    rootPath = yf.getPanelDir()
+                    yf.execShell('python3 ' + rootPath + '/plugins/fail2ban/index.py start')
+                    yf.execShell('python3 ' + rootPath + '/plugins/fail2ban/index.py initd_install')
+                    
+                    self.__plugin_list_static_cache = None
+        except Exception as e:
+            print('checkAndAutoFixFail2ban error:', str(e))
+
     def getAllPluginList(
         self,
         type = None,
@@ -988,6 +1014,7 @@ class plugin(object):
         size = 10, 
         show_third_party = 0,
     ):
+        self.checkAndAutoFixFail2ban()
         static_list = self.getStaticPluginList()
         
         import copy
