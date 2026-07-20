@@ -43,13 +43,7 @@ if [ "$VERSION_ID" == "10" ]; then
     apt install -y rustc
 fi
 
-# SSH 端口检测
-SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
-if [ "$SSH_PORT" == "" ];then
-	SSH_PORT_LINE=`cat /etc/ssh/sshd_config | grep "Port \d*" | tail -1`
-	SSH_PORT=${SSH_PORT_LINE/"Port "/""}
-fi
-echo "SSH PORT:${SSH_PORT}"
+
 
 # 区域与语言设置
 if [ ! -f /usr/sbin/locale-gen ];then
@@ -75,7 +69,7 @@ PACKAGES=(
     build-essential devscripts autoconf gcc patchelf libffi-dev cmake automake make webp scons
     liblzma-dev libpcre3 libpcre3-dev openssl libssl-dev libargon2-dev
     libmemcached-dev libsasl2-dev imagemagick libmagickcore-dev libmagickwand-dev
-    libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev librecode-dev
+    libxml2 libxml2-dev libbz2-dev libmcrypt-dev libpspell-dev
     libgmp-dev libreadline-dev libpq-dev pkg-config libevent-dev
     libldap2-dev libzip-dev libicu-dev libyaml-dev xsltproc libcurl4-openssl-dev
     libprotobuf-dev protobuf-compiler libboost-dev liblz4-tool
@@ -89,11 +83,19 @@ fi
 
 smart_apt_install "${PACKAGES[@]}"
 
-# non-free 包单独静默安装，防止由于源限制导致批量依赖报错
+# non-free 及旧版专属包单独静默安装，防止源限制或包废弃导致批量安装失败
 apt install -y rar unrar > /dev/null 2>&1
-
+apt install -y librecode-dev > /dev/null 2>&1
 
 apt autoremove -y
+
+# SSH 端口检测（置于 net-tools 安装之后，确保 netstat 可用）
+SSH_PORT=`netstat -ntpl|grep sshd|grep -v grep | sed -n "1,1p" | awk '{print $4}' | awk -F : '{print $2}'`
+if [ "$SSH_PORT" == "" ];then
+	SSH_PORT_LINE=`cat /etc/ssh/sshd_config | grep "Port \d*" | tail -1`
+	SSH_PORT=${SSH_PORT_LINE/"Port "/""}
+fi
+echo "SSH PORT:${SSH_PORT}"
 
 # 动态安装 python3-venv 兼容项
 P_VER=`python3 -V | awk '{print $2}'`
