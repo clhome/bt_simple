@@ -377,10 +377,12 @@ class Firewall(object):
             # root登陆配置检查
             root_match = re.search(r"^\s*PermitRootLogin\s+(\S+)", conf, re.M | re.I)
             if root_match:
-                if root_match.group(1).strip().lower() == 'no':
+                if root_match.group(1).strip().lower() == 'yes':
+                    data['root_prohibit_status'] = False
+                else:
                     data['root_prohibit_status'] = True
             else:
-                data['root_prohibit_status'] = False
+                data['root_prohibit_status'] = True
 
         data['port'] = port
         data['status'] = status
