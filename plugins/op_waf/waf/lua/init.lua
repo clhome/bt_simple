@@ -366,13 +366,13 @@ local function waf_curl()
     if not ua or type(ua) ~= "string" then return false end
     if not ngx.re.find(ua, "curl", "ijo") then return false end
 
-    -- 检查站点配置是否允许 curl
+    -- 检查站点配置是否开启了 curl 保护
     local site_cfg = site_config[server_name]
-    if site_cfg and site_cfg['allow_curl'] then
-        return false  -- 允许 curl，跳过拦截
+    if site_cfg and site_cfg['curl_protection'] == false then
+        return false  -- 关闭了 curl 保护，放行，跳过拦截
     end
 
-    -- 默认拦截 curl
+    -- 默认拦截 curl (开启了 curl 保护)
     C:write_log('user_agent', 'curl blocked')
     C:return_html(config['user-agent']['status'], user_agent_html)
     return true

@@ -166,8 +166,15 @@ def initSiteInfo(conf_reload=False):
         name = domain_contents[x]['name']
         if name in site_contents:
             site_contents_new[name] = site_contents[name]
-            if 'allow_curl' not in site_contents_new[name]:
-                site_contents_new[name]['allow_curl'] = False
+            # 兼容老数据的 allow_curl 字段并自动平滑迁移
+            if 'curl_protection' not in site_contents_new[name]:
+                if 'allow_curl' in site_contents_new[name]:
+                    site_contents_new[name]['curl_protection'] = not site_contents_new[name]['allow_curl']
+                    del site_contents_new[name]['allow_curl']
+                else:
+                    site_contents_new[name]['curl_protection'] = True
+            if 'allow_curl' in site_contents_new[name]:
+                del site_contents_new[name]['allow_curl']
         else:
             tmp = {}
             tmp['cdn'] = True
@@ -184,7 +191,7 @@ def initSiteInfo(conf_reload=False):
             tmp['cookie'] = config_contents['cookie']
             tmp['scan'] = config_contents['scan']
             tmp['safe_verify'] = config_contents['safe_verify']
-            tmp['allow_curl'] = False
+            tmp['curl_protection'] = True
 
             cdn_header = ['x-forwarded-for',
                           'x-real-ip',
@@ -1126,7 +1133,7 @@ def getSiteConfig():
         if 'sites' in total_content and x in total_content['sites']:
             tmp_v = total_content['sites'][x]
 
-        key_list = ['get', 'post', 'user-agent', 'cookie', 'cdn', 'cc', 'allow_curl']
+        key_list = ['get', 'post', 'user-agent', 'cookie', 'cdn', 'cc', 'curl_protection']
         for kx in range(len(key_list)):
             ktmp = {}
 
@@ -1156,8 +1163,17 @@ def getSiteConfigByName():
     siteName = args['siteName']
     retData = {}
     if siteName in content:
-        if 'allow_curl' not in content[siteName]:
-            content[siteName]['allow_curl'] = False
+        # 平滑迁移与兼容已存在的 allow_curl 字段
+        if 'curl_protection' not in content[siteName]:
+            if 'allow_curl' in content[siteName]:
+                content[siteName]['curl_protection'] = not content[siteName]['allow_curl']
+                del content[siteName]['allow_curl']
+            else:
+                content[siteName]['curl_protection'] = True
+            cjson = yf.getJson(content)
+            yf.writeFile(path, cjson)
+        if 'allow_curl' in content[siteName]:
+            del content[siteName]['allow_curl']
             cjson = yf.getJson(content)
             yf.writeFile(path, cjson)
         retData = content[siteName]

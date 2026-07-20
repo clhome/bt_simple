@@ -91,7 +91,8 @@
 - `[x]` 71. 分析面板在新装、迁移等场景下是否会获取当前用户位数，并排查不显示的原因。
 - `[x]` 72. 实施 `deploy.sh` 脚本在用户位数、开发预览版判断、临时文件安全和 PostgreSQL 备份等 4 个维度的代码优化。
 - `[x]` 73. 对 `deploy.sh` 脚本执行 shell 语法校验和本地模拟验证。
-
-
-
-
+- `[x]` 74. 在 `index.py` 中重构数据初始化 (`initSiteInfo`)，将新站点 `allow_curl` 改为 `curl_protection` 默认开启，并支持老配置平滑迁移。
+- `[x]` 75. 在 `index.py` 中重构 `getSiteConfig` 和 `getSiteConfigByName` 的配置获取与字段迁移写回。
+- `[x]` 76. 在 `init.lua` 中重构 `waf_curl` 拦截方法，使其适配并依赖新字段 `curl_protection`，同时实现关闭时的完美放行。
+- `[x]` 77. 在 `js/op_waf.js` 中重构站点详细配置 `siteWafConfig`，将 `curl` 开关移至顶部的防火墙开关旁，并删除底部原表格对应行。
+- `[x]` 78. 运行本地验证流程，检查 Python 端和 Lua 端逻辑，以及配置迁移。

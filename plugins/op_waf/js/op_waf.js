@@ -1604,11 +1604,16 @@ function siteWafConfig(siteName, type) {
         var rdata = tmp.data;
         nginx_config = rdata;
         var con = '<div class="pd15">\
-                <div class="lib-con-title">\
-                    <span>网站防火墙开关</span>\
-                    <div class="ssh-item" style="margin-right:20px;">\
+                <div class="lib-con-title" style="display: flex; align-items: center; height: 32px; border-bottom: #ccc 1px solid; margin-bottom: 10px; padding-bottom: 5px;">\
+                    <span style="font-weight: bold; margin-right: 10px; line-height: 20px; float: none;">网站防火墙开关</span>\
+                    <div class="ssh-item" style="margin-top: 0; padding: 0; margin-right: 30px; display: inline-block; vertical-align: middle;">\
                         <input class="btswitch btswitch-ios" id="closewaf_open" type="checkbox" '+ (rdata.open ? 'checked' : '') + '>\
                         <label class="btswitch-btn" for="closewaf_open" onclick="setSiteObjState(\''+ siteName + '\',\'open\')" style="width:2.4em;height:1.4em;margin-bottom: 0"></label>\
+                    </div>\
+                    <span style="font-weight: bold; margin-right: 10px; line-height: 20px; float: none;">Curl保护</span>\
+                    <div class="ssh-item" style="margin-top: 0; padding: 0; display: inline-block; vertical-align: middle;">\
+                        <input class="btswitch btswitch-ios" id="close_curl_protection" type="checkbox" '+ (rdata.curl_protection ? 'checked' : '') + '>\
+                        <label class="btswitch-btn" for="close_curl_protection" onclick="setSiteObjState(\''+ siteName + '\',\'curl_protection\')" style="width:2.4em;height:1.4em;margin-bottom: 0"></label>\
                     </div>\
                 </div>\
                 <div class="lib-con">\
@@ -1682,17 +1687,6 @@ function siteWafConfig(siteName, type) {
                                         </div>\
                                     </td>\
                                     <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'user_agent\')">规则</a></td>\
-                                </tr>\
-                                <tr>\
-                                    <td>允许Curl访问</td>\
-                                    <td>允许curl命令行工具访问该站点(默认拦截)</td>\
-                                    <td>\
-                                        <div class="ssh-item" style="margin-left:0">\
-                                            <input class="btswitch btswitch-ios" id="close_allow_curl" type="checkbox" '+ (rdata.allow_curl ? 'checked' : '') + '>\
-                                            <label class="btswitch-btn" for="close_allow_curl" onclick="setSiteObjState(\''+ siteName + '\',\'allow_curl\')"></label>\
-                                        </div>\
-                                    </td>\
-                                    <td class="text-right">&nbsp;</td>\
                                 </tr>\
                                  <tr>\
                                     <td>Cookie过滤</td>\
