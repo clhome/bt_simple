@@ -503,10 +503,10 @@ function getFiles(Path) {
                     <td><input type='checkbox' name='id' value='"+fmp[0]+"'></td>\
                     <td class='column-name'><span class='cursor' onclick=\"getFiles('" + rdata.path + "/" + fmp[0] + "')\">\
                     <span class='ico ico-folder'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></span></td>\
-                    <td><a class='btlink calculate-size-btn' onclick=\"calculateDirSize(event, this, '" + rdata.path + "/" + fmp[0] + "')\">计算</a></td>\
-                    <td>"+getMatchTime(fmp[2])+"</td>\
-                    <td>"+fmp[3]+"</td>\
-                    <td>"+fmp[4]+"</td>\
+                    <td style='text-align: center;'><a class='btlink calculate-size-btn' onclick=\"calculateDirSize(event, this, '" + rdata.path + "/" + fmp[0] + "')\">计算</a></td>\
+                    <td style='text-align: center;'>"+getMatchTime(fmp[2])+"</td>\
+                    <td style='text-align: center;'>"+fmp[3]+"</td>\
+                    <td style='text-align: center;'>"+fmp[4]+"</td>\
                     <td class='editmenu' style='text-align: left;'><span>\
                         <a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path +"/"+ fmp[0] + "')\">复制路径</a> | \
                         <a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.path +"/"+ fmp[0] + "')\">复制</a> | \
@@ -572,10 +572,10 @@ function getFiles(Path) {
                 body += "<tr style='cursor:pointer;' class='folderBoxTr' data-path='" + rdata.path +"/"+ fmp[0] + "' filetype='" + fmp[0] + "' ondblclick='openFilename(this)'>\
                     <td><label><input type='checkbox' name='id' value='"+fmp[0]+"'></label></td>\
                     <td class='column-name'><span class='ico ico-"+(getExtName(fmp[0]))+"'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></td>\
-                    <td>" + (toSize(fmp[1])) + "</td>\
-                    <td>" + ((fmp[2].length > 11)?fmp[2]:getMatchTime(fmp[2])) + "</td>\
-                    <td>"+fmp[3]+"</td>\
-                    <td>"+fmp[4]+"</td>\
+                    <td style='text-align: center;'>" + (toSize(fmp[1])) + "</td>\
+                    <td style='text-align: center;'>" + ((fmp[2].length > 11)?fmp[2]:getMatchTime(fmp[2])) + "</td>\
+                    <td style='text-align: center;'>"+fmp[3]+"</td>\
+                    <td style='text-align: center;'>"+fmp[4]+"</td>\
                     <td class='editmenu' style='text-align: left;'>\
                     <span><a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path +"/"+ fmp[0] + "')\">复制路径</a> | \
                     <a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.path +"/"+ fmp[0] + "')\">复制</a> | \
@@ -637,11 +637,11 @@ function getFiles(Path) {
                     <tr>\
                         <th width="30"><label><input type="checkbox" id="setBox" placeholder=""></label></th>\
                         <th onclick="listFileOrder(\'fname\',this)" style="cursor: pointer;">文件名'+fname_icon+'</th>\
-                        <th onclick="listFileOrder(\'size\',this)" style="cursor: pointer;">大小'+size_icon+'</th>\
-                        <th onclick="listFileOrder(\'mtime\',this)" style="cursor: pointer;" width="150">修改时间'+mtime_icon+'</th>\
-                        <th>权限</th>\
-                        <th>所有者</th>\
-                        <th style="text-align: left;" width="420">操作</th>\
+                        <th onclick="listFileOrder(\'size\',this)" style="cursor: pointer; text-align: center;">大小'+size_icon+'</th>\
+                        <th onclick="listFileOrder(\'mtime\',this)" style="cursor: pointer; text-align: center;" width="150">修改时间'+mtime_icon+'</th>\
+                        <th style="text-align: center;">权限</th>\
+                        <th style="text-align: center;">所有者</th>\
+                        <th style="text-align: center;" width="360">操作</th>\
                     </tr>\
                 </thead>\
                 <tbody id="filesBody" class="list-list">'+body+'</tbody>\
