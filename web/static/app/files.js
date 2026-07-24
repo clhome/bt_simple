@@ -507,7 +507,8 @@ function getFiles(Path) {
                     <td>"+getMatchTime(fmp[2])+"</td>\
                     <td>"+fmp[3]+"</td>\
                     <td>"+fmp[4]+"</td>\
-                    <td class='editmenu'><span>\
+                    <td class='editmenu' style='text-align: left;'><span>\
+                        <a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path +"/"+ fmp[0] + "')\">复制路径</a> | \
                         <a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.path +"/"+ fmp[0] + "')\">复制</a> | \
                         <a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.path +"/"+ fmp[0]+ "')\">剪切</a> | \
                         <a class='btlink' href='javascript:;' onclick=\"reName(0,'" + fmp[0] + "');\">重命名</a> | \
@@ -575,8 +576,9 @@ function getFiles(Path) {
                     <td>" + ((fmp[2].length > 11)?fmp[2]:getMatchTime(fmp[2])) + "</td>\
                     <td>"+fmp[3]+"</td>\
                     <td>"+fmp[4]+"</td>\
-                    <td class='editmenu'>\
-                    <span><a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.path +"/"+ fmp[0] + "')\">复制</a> | \
+                    <td class='editmenu' style='text-align: left;'>\
+                    <span><a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path +"/"+ fmp[0] + "')\">复制路径</a> | \
+                    <a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.path +"/"+ fmp[0] + "')\">复制</a> | \
                     <a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.path +"/"+ fmp[0] + "')\">剪切</a> | \
                     <a class='btlink' href='javascript:;' onclick=\"reName(0,'" + fmp[0] + "')\">重命名</a> | \
                     <a class='btlink' href=\"javascript:setChmod(0,'" + rdata.path +"/"+ fmp[0] + "');\">权限</a> | "
@@ -636,10 +638,10 @@ function getFiles(Path) {
                         <th width="30"><label><input type="checkbox" id="setBox" placeholder=""></label></th>\
                         <th onclick="listFileOrder(\'fname\',this)" style="cursor: pointer;">文件名'+fname_icon+'</th>\
                         <th onclick="listFileOrder(\'size\',this)" style="cursor: pointer;">大小'+size_icon+'</th>\
-                        <th onclick="listFileOrder(\'mtime\',this)" style="cursor: pointer;">修改时间'+mtime_icon+'</th>\
+                        <th onclick="listFileOrder(\'mtime\',this)" style="cursor: pointer;" width="150">修改时间'+mtime_icon+'</th>\
                         <th>权限</th>\
                         <th>所有者</th>\
-                        <th style="text-align: right;" width="330">操作</th>\
+                        <th style="text-align: left;" width="420">操作</th>\
                     </tr>\
                 </thead>\
                 <tbody id="filesBody" class="list-list">'+body+'</tbody>\
@@ -1328,6 +1330,16 @@ function cutFile(fileName) {
     setTimeout(function(){
         getFiles(path);
     },1000);
+}
+//复制路径
+function copyFilenameText(text) {
+    var textarea = document.createElement("textarea");
+    textarea.value = text.replace(/\/\//g, '/');
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("Copy");
+    document.body.removeChild(textarea);
+    layer.msg('已复制路径', {icon: 1});
 }
 //复制
 function copyFile(fileName) {
