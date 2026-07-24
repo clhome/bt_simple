@@ -54,23 +54,63 @@ function optStatus() {
 
         // 评分函数
         function getScore(key, val) {
-            if (val === undefined || val === null || val === '未设置') return '<span style="color:red; font-weight:bold;">✗</span>';
             var v = String(val).trim();
+            var isMissing = (val === undefined || val === null || val === '未设置');
             var ok = false;
+            var reason = "";
+
             switch(key) {
-                case 'vm_swappiness': ok = (v == '10'); break;
-                case 'vm_dirty_background_ratio': ok = (v == '5'); break;
-                case 'vm_dirty_ratio': ok = (v == '10'); break;
-                case 'net_core_somaxconn': ok = (parseInt(v) >= 8192); break;
-                case 'vm_max_map_count': ok = (parseInt(v) >= 262144); break;
-                case 'fs_file_max': ok = (parseInt(v) >= 6553500); break;
-                case 'net_ipv4_tcp_tw_reuse': ok = (v == '1'); break;
-                case 'net_ipv4_ip_local_port_range': ok = (v.indexOf('1024') !== -1 && v.indexOf('65000') !== -1); break;
-                case 'net_ipv4_tcp_max_syn_backlog': ok = (parseInt(v) >= 8192); break;
-                case 'net_ipv4_tcp_max_tw_buckets': ok = (parseInt(v) <= 5000 && parseInt(v) > 0); break;
-                case 'thp_enabled': ok = (v.indexOf('[never]') !== -1 || v === 'never'); break;
+                case 'vm_swappiness': 
+                    ok = !isMissing && (v == '10'); 
+                    reason = "合格标准：等于 10。推荐保留少量物理内存余量防止 OOM，避免过早使用 Swap。";
+                    break;
+                case 'vm_dirty_background_ratio': 
+                    ok = !isMissing && (v == '5'); 
+                    reason = "合格标准：等于 5。较早地平滑刷盘，避免积攒大量脏页引发 IO 突发卡顿。";
+                    break;
+                case 'vm_dirty_ratio': 
+                    ok = !isMissing && (v == '10'); 
+                    reason = "合格标准：等于 10。严格限制系统可用内存中脏页的最高比例。";
+                    break;
+                case 'net_core_somaxconn': 
+                    ok = !isMissing && (parseInt(v) >= 8192); 
+                    reason = "合格标准：≥ 8192。更高的 TCP 监听队列上限有助于应对高并发连接，防止 Connection Refused。";
+                    break;
+                case 'vm_max_map_count': 
+                    ok = !isMissing && (parseInt(v) >= 262144); 
+                    reason = "合格标准：≥ 262144。增加单个进程可拥有的最大 VMA 数量，是 Elasticsearch 等中间件运行的刚需。";
+                    break;
+                case 'fs_file_max': 
+                    ok = !isMissing && (parseInt(v) >= 6553500); 
+                    reason = "合格标准：≥ 6553500。极大地扩大系统级文件描述符数量上限，杜绝 Too many open files 错误。";
+                    break;
+                case 'net_ipv4_tcp_tw_reuse': 
+                    ok = !isMissing && (v == '1'); 
+                    reason = "合格标准：等于 1。允许复用处于 TIME-WAIT 状态的套接字，对高频短连接服务器尤为关键。";
+                    break;
+                case 'net_ipv4_ip_local_port_range': 
+                    ok = !isMissing && (v.indexOf('1024') !== -1 && v.indexOf('65000') !== -1); 
+                    reason = "合格标准：包含 1024 到 65000。释放更多本地动态端口，支持建立海量向外连接。";
+                    break;
+                case 'net_ipv4_tcp_max_syn_backlog': 
+                    ok = !isMissing && (parseInt(v) >= 8192); 
+                    reason = "合格标准：≥ 8192。增加 SYN 队列长度，可防范轻微 SYN 攻击并缓冲瞬时突发新建连接。";
+                    break;
+                case 'net_ipv4_tcp_max_tw_buckets': 
+                    ok = !isMissing && (parseInt(v) <= 5000 && parseInt(v) > 0); 
+                    reason = "合格标准：≤ 5000。限制系统中同时保持的 TIME_WAIT 数量上限，过高则会无端消耗系统内存。";
+                    break;
+                case 'thp_enabled': 
+                    ok = !isMissing && (v.indexOf('[never]') !== -1 || v === 'never'); 
+                    reason = "合格标准：never 或者 [never]。透明巨页 (THP) 在多数数据库场景下会导致延迟剧增，必须彻底关闭。";
+                    break;
             }
-            return ok ? '<span style="color:#20a53a; font-weight:bold; font-size:16px;">✓</span>' : '<span style="color:red; font-weight:bold; font-size:16px;">✗</span>';
+
+            var tip = ok ? ("【完美】" + reason) : ("【需要优化】" + reason + (isMissing ? " (当前未设置)" : " (当前值未达标)"));
+            
+            return ok 
+                ? '<span style="color:#20a53a; font-weight:bold; font-size:16px; cursor:help;" title="' + tip + '">✓</span>' 
+                : '<span style="color:red; font-weight:bold; font-size:16px; cursor:help;" title="' + tip + '">✗</span>';
         }
 
         // 大数字单位格式化
