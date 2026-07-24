@@ -2,7 +2,10 @@ var num = 0;
 var g_orderby = 'last_run_time';
 var g_order = 'desc';
 //查看任务日志
-function getLogs(id){
+function getLogs(id, task_name){
+    if (typeof(task_name) == 'undefined') {
+        task_name = '';
+    }
 
 	var reqTimer = null;
 	var reqCount = 0;
@@ -58,7 +61,8 @@ function getLogs(id){
 			+'<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;">'
 			+'<input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-top: -2px; margin-right: 5px;">5秒定时刷新'
 			+'</label>'
-			+'<button class="btn btn-default btn-sm" onclick="startTask('+id+', true)">执行任务</button>'
+			+'<button class="btn btn-default btn-sm" onclick="startTask('+id+', \''+(task_name||'').replace(/'/g, "\\'")+'\', true)">执行任务</button>'
+			+(task_name ? '<span style="margin-left: 20px; color: #666;">任务名称: </span><span style="color: #5cb85c;">'+task_name+'</span>' : '')
 			+'</div>'
 			+'</div>'
 			+'<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>'
@@ -133,9 +137,9 @@ function getCronData(page){
 					<td>"+(rdata.data[i].day_type_h == '无' ? '' : rdata.data[i].day_type_h)+"</td>\
 					<td>"+rdata.data[i].last_run_time+"</td>\
 					<td>\
-						<a href=\"javascript:startTask("+rdata.data[i].id+");\" class='btlink'>执行</a> | \
+						<a href=\"javascript:startTask("+rdata.data[i].id+", '"+rdata.data[i].name.replace('\\','\\\\').replace("'","\\'").replace('"','')+"');\" class='btlink'>执行</a> | \
 						<a href=\"javascript:editTaskInfo('"+rdata.data[i].id+"');\" class='btlink'>编辑</a> | \
-						<a href=\"javascript:getLogs("+rdata.data[i].id+");\" class='btlink'>日志</a> | \
+						<a href=\"javascript:getLogs("+rdata.data[i].id+", '"+rdata.data[i].name.replace('\\','\\\\').replace("'","\\'").replace('"','')+"');\" class='btlink'>日志</a> | \
 						<a href=\"javascript:planDel("+rdata.data[i].id+" ,'"+rdata.data[i].name.replace('\\','\\\\').replace("'","\\'").replace('"','')+"');\" class='btlink'>删除</a>\
 					</td>\
 				</tr>";
@@ -170,14 +174,18 @@ function setTaskStatus(id,status){
 }
 
 //执行任务脚本
-function startTask(id, is_log_open){
+function startTask(id, task_name, is_log_open){
+    if (typeof(task_name) == 'boolean') {
+        is_log_open = task_name;
+        task_name = '';
+    }
 	var loadT = layer.msg('正在处理,请稍候...',{icon:16,time:0,shade: [0.3, '#000']});
 	var data='id='+id;
 	$.post('/crontab/start_task',data,function(rdata){
 		layer.close(loadT);
 		if (rdata.status){
 			if (!is_log_open) {
-				getLogs(id);
+				getLogs(id, task_name);
 			} else {
 				$.post('/crontab/logs', 'id='+id, function(rdata){
 					if(!rdata.status) return;
