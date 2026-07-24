@@ -1,5 +1,8 @@
 ### 🚀 御风面板BtSimple 更新说明
 
 - **插件更新**：完成「御风系统优化插件 1.0」，并优化其显示效果。
+
+![御风系统优化](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/linux_sys_opt.webp)
+
 - **功能优化**：计划任务执行日志中增加显示对应的任务名称；优化文件管理中长文件名及软链接的显示，并在文件菜单中新增复制完整路径的功能。
 - **问题修复**：修复 Docker 镜像获取时的解析出错问题。
