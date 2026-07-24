@@ -62,7 +62,7 @@ function getLogs(id, task_name){
 			+'<input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-top: -2px; margin-right: 5px;">5秒定时刷新'
 			+'</label>'
 			+'<button class="btn btn-default btn-sm" onclick="startTask('+id+', \''+(task_name||'').replace(/'/g, "\\'")+'\', true)">执行任务</button>'
-			+(task_name ? '<span style="margin-left: 20px; color: #666;">任务名称: </span><span style="color: #5cb85c;">'+task_name+'</span>' : '')
+			+(task_name ? '<span style="margin-left: 20px; color: #666;">任务名称:</span><span style="margin-left: 20px; color: #5cb85c;">'+task_name+'</span>' : '')
 			+'</div>'
 			+'</div>'
 			+'<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>'
