@@ -5,7 +5,7 @@
     "title": "御风系统优化",
     "shell": "install.sh",
     "versions": "1.0",
-    "tip": "soft",
+    "tip": "lib",
     "checks": "server/linux_sys_opt",
     "path": "server/linux_sys_opt",
     "display": 2,

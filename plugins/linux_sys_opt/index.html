@@ -13,41 +13,103 @@
 <script type="text/javascript">
 resetPluginWinHeight(580);
 
+function sysOptPost(method, args, callback) {
+    var req_data = {
+        name: 'linux_sys_opt',
+        func: method,
+        version: '',
+        args: JSON.stringify(args || {})
+    };
+
+    $.post('/plugins/run', req_data, function(data) {
+        if(typeof(callback) == 'function'){
+            callback(data);
+        }
+    }, 'json').fail(function() {
+        layer.msg('请求失败', {icon: 2});
+    });
+}
+
 function optStatus() {
     $('.bgw').removeClass('bgw');
     $('.bt-w-menu p:eq(0)').addClass('bgw');
     var loadT = layer.msg('正在获取服务器参数状态...', { icon: 16, time: 0, shade: 0.3 });
     
-    requestPlugin('linux_sys_opt', 'get_status', '', function (rdata) {
+    sysOptPost('get_status', {}, function (resp) {
         layer.close(loadT);
-        if (!rdata.status) {
-            layer.msg(rdata.msg, { icon: 2 });
+        if (!resp.status) {
+            layer.msg(resp.msg, { icon: 2 });
             return;
         }
-        var data = rdata.data;
+        
+        // resp.data is often a JSON string returned by python's returnJson
+        var rdata = resp;
+        if (typeof resp.data === 'string') {
+            try {
+                rdata = JSON.parse(resp.data);
+            } catch(e) {}
+        }
+        
+        var data = rdata.data || rdata;
+
+        // 评分函数
+        function getScore(key, val) {
+            if (val === undefined || val === null || val === '未设置') return '<span style="color:red; font-weight:bold;">✗</span>';
+            var v = String(val).trim();
+            var ok = false;
+            switch(key) {
+                case 'vm_swappiness': ok = (v == '10'); break;
+                case 'vm_dirty_background_ratio': ok = (v == '5'); break;
+                case 'vm_dirty_ratio': ok = (v == '10'); break;
+                case 'net_core_somaxconn': ok = (parseInt(v) >= 8192); break;
+                case 'vm_max_map_count': ok = (parseInt(v) >= 262144); break;
+                case 'fs_file_max': ok = (parseInt(v) >= 6553500); break;
+                case 'net_ipv4_tcp_tw_reuse': ok = (v == '1'); break;
+                case 'net_ipv4_ip_local_port_range': ok = (v.indexOf('1024') !== -1 && v.indexOf('65000') !== -1); break;
+                case 'net_ipv4_tcp_max_syn_backlog': ok = (parseInt(v) >= 8192); break;
+                case 'net_ipv4_tcp_max_tw_buckets': ok = (parseInt(v) <= 5000 && parseInt(v) > 0); break;
+                case 'thp_enabled': ok = (v.indexOf('[never]') !== -1 || v === 'never'); break;
+            }
+            return ok ? '<span style="color:#20a53a; font-weight:bold; font-size:16px;">✓</span>' : '<span style="color:red; font-weight:bold; font-size:16px;">✗</span>';
+        }
+
+        // 大数字单位格式化
+        function formatLargeNumber(val) {
+            if (!val || isNaN(val)) return val;
+            var num = parseFloat(val);
+            if (num >= 1e18) return (num / 1e18).toFixed(2) + ' E';
+            if (num >= 1e15) return (num / 1e15).toFixed(2) + ' P';
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + ' T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + ' G';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + ' M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + ' K';
+            return num;
+        }
+
         var con = `<div class="p-3">
             <h3 style="margin-bottom: 15px;">内核与并发参数状态</h3>
             <div style="height: 400px; overflow-y: auto;">
-                <table class="table table-hover table-bordered" style="font-size: 13px;">
+                <table class="table table-hover table-bordered" style="font-size: 13px; white-space: nowrap; table-layout: fixed; width: 100%;">
                     <thead>
                         <tr>
-                            <th>参数名</th>
-                            <th>作用描述</th>
-                            <th>当前值</th>
+                            <th width="28%">参数名</th>
+                            <th width="35%">作用描述</th>
+                            <th width="25%">当前值</th>
+                            <th width="12%" style="text-align:center;">评分</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>vm.swappiness</td><td>优先使用物理内存</td><td>${data.vm_swappiness}</td></tr>
-                        <tr><td>vm.dirty_background_ratio</td><td>平滑刷盘，防止IO卡顿</td><td>${data.vm_dirty_background_ratio}</td></tr>
-                        <tr><td>vm.dirty_ratio</td><td>限制脏页比例上限</td><td>${data.vm_dirty_ratio}</td></tr>
-                        <tr><td>net.core.somaxconn</td><td>TCP监听队列上限</td><td>${data.net_core_somaxconn}</td></tr>
-                        <tr><td>vm.max_map_count</td><td>最大VMA数量</td><td>${data.vm_max_map_count}</td></tr>
-                        <tr><td>fs.file-max</td><td>系统最大文件描述符</td><td>${data.fs_file_max}</td></tr>
-                        <tr><td>net.ipv4.tcp_tw_reuse</td><td>TIME-WAIT socket 复用</td><td>${data.net_ipv4_tcp_tw_reuse}</td></tr>
-                        <tr><td>net.ipv4.ip_local_port_range</td><td>外连端口范围</td><td>${data.net_ipv4_ip_local_port_range}</td></tr>
-                        <tr><td>net.ipv4.tcp_max_syn_backlog</td><td>SYN backlog 大小</td><td>${data.net_ipv4_tcp_max_syn_backlog}</td></tr>
-                        <tr><td>net.ipv4.tcp_max_tw_buckets</td><td>TIME_WAIT 保持上限</td><td>${data.net_ipv4_tcp_max_tw_buckets}</td></tr>
-                        <tr><td>THP (透明巨页)</td><td>开启可能导致数据库卡顿</td><td>${data.thp_enabled}</td></tr>
+                        <tr><td>vm.swappiness</td><td>优先使用物理内存</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_swappiness}">${data.vm_swappiness}</td><td style="text-align:center;">${getScore('vm_swappiness', data.vm_swappiness)}</td></tr>
+                        <tr><td>vm.dirty_background_ratio</td><td>平滑刷盘，防止IO卡顿</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_background_ratio}">${data.vm_dirty_background_ratio}</td><td style="text-align:center;">${getScore('vm_dirty_background_ratio', data.vm_dirty_background_ratio)}</td></tr>
+                        <tr><td>vm.dirty_ratio</td><td>限制脏页比例上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_ratio}">${data.vm_dirty_ratio}</td><td style="text-align:center;">${getScore('vm_dirty_ratio', data.vm_dirty_ratio)}</td></tr>
+                        <tr><td>net.core.somaxconn</td><td>TCP监听队列上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_core_somaxconn}">${data.net_core_somaxconn}</td><td style="text-align:center;">${getScore('net_core_somaxconn', data.net_core_somaxconn)}</td></tr>
+                        <tr><td>vm.max_map_count</td><td>最大VMA数量</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_max_map_count}">${data.vm_max_map_count}</td><td style="text-align:center;">${getScore('vm_max_map_count', data.vm_max_map_count)}</td></tr>
+                        <tr><td>fs.file-max</td><td>系统最大文件描述符</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.fs_file_max}">${formatLargeNumber(data.fs_file_max)}</td><td style="text-align:center;">${getScore('fs_file_max', data.fs_file_max)}</td></tr>
+                        <tr><td>net.ipv4.tcp_tw_reuse</td><td>TIME-WAIT socket 复用</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_tw_reuse}">${data.net_ipv4_tcp_tw_reuse}</td><td style="text-align:center;">${getScore('net_ipv4_tcp_tw_reuse', data.net_ipv4_tcp_tw_reuse)}</td></tr>
+                        <tr><td>net.ipv4.ip_local_port_range</td><td>外连端口范围</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_ip_local_port_range}">${data.net_ipv4_ip_local_port_range}</td><td style="text-align:center;">${getScore('net_ipv4_ip_local_port_range', data.net_ipv4_ip_local_port_range)}</td></tr>
+                        <tr><td>net.ipv4.tcp_max_syn_backlog</td><td>SYN backlog 大小</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_syn_backlog}">${data.net_ipv4_tcp_max_syn_backlog}</td><td style="text-align:center;">${getScore('net_ipv4_tcp_max_syn_backlog', data.net_ipv4_tcp_max_syn_backlog)}</td></tr>
+                        <tr><td>net.ipv4.tcp_max_tw_buckets</td><td>TIME_WAIT 保持上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_tw_buckets}">${data.net_ipv4_tcp_max_tw_buckets}</td><td style="text-align:center;">${getScore('net_ipv4_tcp_max_tw_buckets', data.net_ipv4_tcp_max_tw_buckets)}</td></tr>
+                        <tr><td>THP (透明巨页)</td><td>开启可能导致数据库卡顿</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.thp_enabled}">${data.thp_enabled}</td><td style="text-align:center;">${getScore('thp_enabled', data.thp_enabled)}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -56,6 +118,15 @@ function optStatus() {
             </div>
         </div>`;
         $('.soft-man-con').html(con);
+
+        // 尝试自动拉宽所在的 layui-layer 弹窗，提供更好的视觉体验
+        var layuiLayer = $('.soft-man-con').closest('.layui-layer');
+        if(layuiLayer.length > 0 && layuiLayer.width() < 850) {
+            layuiLayer.css('width', '850px');
+            // 保持居中
+            var left = ($(window).width() - 850) / 2;
+            layuiLayer.css('left', left + 'px');
+        }
     });
 }
 
@@ -63,8 +134,21 @@ function applyOpt() {
     layer.confirm('确定要一键应用推荐的内核与并发参数优化吗？<br><br><span style="color:red;">应用后立即生效，此操作将提升高并发及数据库运行性能。</span>', {title: '系统优化提示'}, function(index) {
         layer.close(index);
         var loadT = layer.msg('正在执行内核及 THP 优化，请稍候...', { icon: 16, time: 0, shade: 0.3 });
-        requestPlugin('linux_sys_opt', 'apply_opt', '', function (rdata) {
+        
+        sysOptPost('apply_opt', {}, function (resp) {
             layer.close(loadT);
+            if (!resp.status) {
+                layer.msg(resp.msg, { icon: 2 });
+                return;
+            }
+            
+            var rdata = resp;
+            if (typeof resp.data === 'string') {
+                try {
+                    rdata = JSON.parse(resp.data);
+                } catch(e) {}
+            }
+            
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             if(rdata.status){
                 setTimeout(function(){
