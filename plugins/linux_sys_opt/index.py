@@ -18,6 +18,19 @@ def getPluginName():
 def getServerDir():
     return yf.getServerDir() + '/' + getPluginName()
 
+def get_mem_mb():
+    try:
+        mem = yf.readFile('/proc/meminfo')
+        if mem:
+            import re
+            m = re.search(r'MemTotal:\s+(\d+)\s+kB', mem)
+            if m:
+                return int(m.group(1)) // 1024
+    except:
+        pass
+    return 2048
+
+
 def get_status():
     data = {}
     
@@ -45,30 +58,51 @@ def get_status():
         thp_enabled = yf.readFile('/sys/kernel/mm/transparent_hugepage/enabled').strip()
     data['thp_enabled'] = thp_enabled
     
+    data['mem_mb'] = get_mem_mb()
+    
     return yf.returnJson(True, "ok", data)
 
 def apply_opt():
+    mem_mb = get_mem_mb()
+    
+    # 动态参数
+    if mem_mb <= 2048:
+        somaxconn = 1024
+        syn_backlog = 2048
+        tw_buckets = 5000
+        file_max = 1048576
+    elif mem_mb <= 8192:
+        somaxconn = 4096
+        syn_backlog = 8192
+        tw_buckets = 20000
+        file_max = 2097152
+    else:
+        somaxconn = 8192
+        syn_backlog = 16384
+        tw_buckets = 50000
+        file_max = 6553500
+
     # 写入 sysctl 配置
-    conf = """
+    conf = f"""
 # 1. 降低 Swap 换出倾向
 vm.swappiness = 10
 # 2. 脏页平滑刷盘
 vm.dirty_background_ratio = 5
 vm.dirty_ratio = 10
 # 3. 适度提高 TCP 监听队列上限
-net.core.somaxconn = 8192
+net.core.somaxconn = {somaxconn}
 # 4. 增加进程可拥有的最大 VMA 数量
 vm.max_map_count = 262144
 # 5. 系统级最大文件描述符数量
-fs.file-max = 6553500
+fs.file-max = {file_max}
 # 6. TIME_WAIT socket 复用
 net.ipv4.tcp_tw_reuse = 1
 # 7. 扩大向外连接的端口范围
 net.ipv4.ip_local_port_range = 1024 65000
 # 8. 应对高并发与 SYN 攻击
-net.ipv4.tcp_max_syn_backlog = 8192
+net.ipv4.tcp_max_syn_backlog = {syn_backlog}
 # 9. 限制最大 TIME_WAIT 数量，省内存
-net.ipv4.tcp_max_tw_buckets = 5000
+net.ipv4.tcp_max_tw_buckets = {tw_buckets}
 """
     yf.writeFile("/etc/sysctl.d/99-yufeng-server.conf", conf)
     yf.execShell("sysctl --system")

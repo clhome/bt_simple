@@ -52,12 +52,19 @@ function optStatus() {
         
         var data = rdata.data || rdata;
 
-        // 评分函数
-        function getScore(key, val) {
+        // 评分函数（返回完整 TD 标签，使悬浮范围扩大到整个单元格）
+        function getScoreTD(key, val) {
             var v = String(val).trim();
             var isMissing = (val === undefined || val === null || val === '未设置');
             var ok = false;
             var reason = "";
+            var mem = parseInt(data.mem_mb) || 2048;
+            
+            // 动态判定阈值
+            var expected_somaxconn = (mem <= 2048) ? 1024 : (mem <= 8192 ? 4096 : 8192);
+            var expected_syn_backlog = (mem <= 2048) ? 2048 : (mem <= 8192 ? 8192 : 16384);
+            var expected_tw_buckets = (mem <= 2048) ? 5000 : (mem <= 8192 ? 20000 : 50000);
+            var expected_file_max = (mem <= 2048) ? 1048576 : (mem <= 8192 ? 2097152 : 6553500);
 
             switch(key) {
                 case 'vm_swappiness': 
@@ -73,16 +80,16 @@ function optStatus() {
                     reason = "合格标准：等于 10。严格限制系统可用内存中脏页的最高比例。";
                     break;
                 case 'net_core_somaxconn': 
-                    ok = !isMissing && (parseInt(v) >= 8192); 
-                    reason = "合格标准：≥ 8192。更高的 TCP 监听队列上限有助于应对高并发连接，防止 Connection Refused。";
+                    ok = !isMissing && (parseInt(v) >= expected_somaxconn); 
+                    reason = "合格标准：≥ " + expected_somaxconn + " (当前内存" + (mem/1024).toFixed(1) + "G动态配置)。更高的 TCP 监听队列上限有助于应对高并发连接。";
                     break;
                 case 'vm_max_map_count': 
                     ok = !isMissing && (parseInt(v) >= 262144); 
                     reason = "合格标准：≥ 262144。增加单个进程可拥有的最大 VMA 数量，是 Elasticsearch 等中间件运行的刚需。";
                     break;
                 case 'fs_file_max': 
-                    ok = !isMissing && (parseInt(v) >= 6553500); 
-                    reason = "合格标准：≥ 6553500。极大地扩大系统级文件描述符数量上限，杜绝 Too many open files 错误。";
+                    ok = !isMissing && (parseInt(v) >= expected_file_max); 
+                    reason = "合格标准：≥ " + expected_file_max + " (当前内存" + (mem/1024).toFixed(1) + "G动态配置)。极大地扩大系统级文件描述符数量上限。";
                     break;
                 case 'net_ipv4_tcp_tw_reuse': 
                     ok = !isMissing && (v == '1'); 
@@ -93,12 +100,12 @@ function optStatus() {
                     reason = "合格标准：包含 1024 到 65000。释放更多本地动态端口，支持建立海量向外连接。";
                     break;
                 case 'net_ipv4_tcp_max_syn_backlog': 
-                    ok = !isMissing && (parseInt(v) >= 8192); 
-                    reason = "合格标准：≥ 8192。增加 SYN 队列长度，可防范轻微 SYN 攻击并缓冲瞬时突发新建连接。";
+                    ok = !isMissing && (parseInt(v) >= expected_syn_backlog); 
+                    reason = "合格标准：≥ " + expected_syn_backlog + " (当前内存" + (mem/1024).toFixed(1) + "G动态配置)。增加 SYN 队列长度，防范轻微 SYN 攻击。";
                     break;
                 case 'net_ipv4_tcp_max_tw_buckets': 
-                    ok = !isMissing && (parseInt(v) <= 5000 && parseInt(v) > 0); 
-                    reason = "合格标准：≤ 5000。限制系统中同时保持的 TIME_WAIT 数量上限，过高则会无端消耗系统内存。";
+                    ok = !isMissing && (parseInt(v) <= expected_tw_buckets && parseInt(v) > 0); 
+                    reason = "合格标准：≤ " + expected_tw_buckets + " (当前内存" + (mem/1024).toFixed(1) + "G动态配置)。限制系统中同时保持的 TIME_WAIT 数量上限，过高会耗尽内存。";
                     break;
                 case 'thp_enabled': 
                     ok = !isMissing && (v.indexOf('[never]') !== -1 || v === 'never'); 
@@ -108,9 +115,11 @@ function optStatus() {
 
             var tip = ok ? ("【完美】" + reason) : ("【需要优化】" + reason + (isMissing ? " (当前未设置)" : " (当前值未达标)"));
             
-            return ok 
-                ? '<span style="color:#20a53a; font-weight:bold; font-size:16px; cursor:pointer;" title="' + tip + '">✓</span>' 
-                : '<span style="color:red; font-weight:bold; font-size:16px; cursor:pointer;" title="' + tip + '">✗</span>';
+            var icon = ok 
+                ? '<span style="color:#20a53a; font-weight:bold; font-size:16px;">✓</span>' 
+                : '<span style="color:red; font-weight:bold; font-size:16px;">✗</span>';
+                
+            return '<td style="text-align:center; cursor:pointer;" title="' + tip + '">' + icon + '</td>';
         }
 
         // 大数字单位格式化
@@ -126,35 +135,45 @@ function optStatus() {
             return num;
         }
 
+        var mem = parseInt(data.mem_mb) || 2048;
+        var memGB = (mem / 1024).toFixed(1);
         var con = `<div class="p-3">
-            <h3 style="margin-bottom: 15px;">内核与并发参数状态</h3>
-            <div style="height: 400px; overflow-y: auto;">
-                <table class="table table-hover table-bordered" style="font-size: 13px; white-space: nowrap; table-layout: fixed; width: 100%;">
-                    <thead>
+            <div style="margin-bottom: 15px; display: flex; align-items: baseline;">
+                <h3 style="margin: 0; display: inline-block;">内核与并发参数状态</h3>
+                <span style="margin-left: 15px; font-size: 13px; color: #666;">
+                    当前内存为：<b style="color:#f39c12; font-size: 14px;">${memGB}GB</b>，优化脚本会<span style="color:#20a53a; font-weight:bold;">自动匹配</span>不同内存阶梯配置
+                </span>
+            </div>
+            <div style="height: 400px; overflow-y: auto; border: 1px solid #eee;">
+                <table class="table table-hover table-bordered" style="font-size: 13px; white-space: nowrap; table-layout: fixed; width: 100%; margin: 0; border: none;">
+                    <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 1;">
                         <tr>
-                            <th width="28%">参数名</th>
-                            <th width="35%">作用描述</th>
-                            <th width="25%">当前值</th>
-                            <th width="12%" style="text-align:center;">评分</th>
+                            <th width="28%" style="border-top: none;">参数名</th>
+                            <th width="35%" style="border-top: none;">作用描述</th>
+                            <th width="25%" style="border-top: none;">当前值</th>
+                            <th width="12%" style="text-align:center; border-top: none;">评分</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>vm.swappiness</td><td>优先使用物理内存</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_swappiness}">${data.vm_swappiness}</td><td style="text-align:center;">${getScore('vm_swappiness', data.vm_swappiness)}</td></tr>
-                        <tr><td>vm.dirty_background_ratio</td><td>平滑刷盘，防止IO卡顿</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_background_ratio}">${data.vm_dirty_background_ratio}</td><td style="text-align:center;">${getScore('vm_dirty_background_ratio', data.vm_dirty_background_ratio)}</td></tr>
-                        <tr><td>vm.dirty_ratio</td><td>限制脏页比例上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_ratio}">${data.vm_dirty_ratio}</td><td style="text-align:center;">${getScore('vm_dirty_ratio', data.vm_dirty_ratio)}</td></tr>
-                        <tr><td>net.core.somaxconn</td><td>TCP监听队列上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_core_somaxconn}">${data.net_core_somaxconn}</td><td style="text-align:center;">${getScore('net_core_somaxconn', data.net_core_somaxconn)}</td></tr>
-                        <tr><td>vm.max_map_count</td><td>最大VMA数量</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_max_map_count}">${data.vm_max_map_count}</td><td style="text-align:center;">${getScore('vm_max_map_count', data.vm_max_map_count)}</td></tr>
-                        <tr><td>fs.file-max</td><td>系统最大文件描述符</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.fs_file_max}">${formatLargeNumber(data.fs_file_max)}</td><td style="text-align:center;">${getScore('fs_file_max', data.fs_file_max)}</td></tr>
-                        <tr><td>net.ipv4.tcp_tw_reuse</td><td>TIME-WAIT socket 复用</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_tw_reuse}">${data.net_ipv4_tcp_tw_reuse}</td><td style="text-align:center;">${getScore('net_ipv4_tcp_tw_reuse', data.net_ipv4_tcp_tw_reuse)}</td></tr>
-                        <tr><td>net.ipv4.ip_local_port_range</td><td>外连端口范围</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_ip_local_port_range}">${data.net_ipv4_ip_local_port_range}</td><td style="text-align:center;">${getScore('net_ipv4_ip_local_port_range', data.net_ipv4_ip_local_port_range)}</td></tr>
-                        <tr><td>net.ipv4.tcp_max_syn_backlog</td><td>SYN backlog 大小</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_syn_backlog}">${data.net_ipv4_tcp_max_syn_backlog}</td><td style="text-align:center;">${getScore('net_ipv4_tcp_max_syn_backlog', data.net_ipv4_tcp_max_syn_backlog)}</td></tr>
-                        <tr><td>net.ipv4.tcp_max_tw_buckets</td><td>TIME_WAIT 保持上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_tw_buckets}">${data.net_ipv4_tcp_max_tw_buckets}</td><td style="text-align:center;">${getScore('net_ipv4_tcp_max_tw_buckets', data.net_ipv4_tcp_max_tw_buckets)}</td></tr>
-                        <tr><td>THP (透明巨页)</td><td>开启可能导致数据库卡顿</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.thp_enabled}">${data.thp_enabled}</td><td style="text-align:center;">${getScore('thp_enabled', data.thp_enabled)}</td></tr>
+                        <tr><td>vm.swappiness</td><td>优先使用物理内存</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_swappiness}">${data.vm_swappiness}</td>${getScoreTD('vm_swappiness', data.vm_swappiness)}</tr>
+                        <tr><td>vm.dirty_background_ratio</td><td>平滑刷盘，防止IO卡顿</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_background_ratio}">${data.vm_dirty_background_ratio}</td>${getScoreTD('vm_dirty_background_ratio', data.vm_dirty_background_ratio)}</tr>
+                        <tr><td>vm.dirty_ratio</td><td>限制脏页比例上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_ratio}">${data.vm_dirty_ratio}</td>${getScoreTD('vm_dirty_ratio', data.vm_dirty_ratio)}</tr>
+                        <tr><td>net.core.somaxconn</td><td>TCP监听队列上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_core_somaxconn}">${data.net_core_somaxconn}</td>${getScoreTD('net_core_somaxconn', data.net_core_somaxconn)}</tr>
+                        <tr><td>vm.max_map_count</td><td>最大VMA数量</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_max_map_count}">${data.vm_max_map_count}</td>${getScoreTD('vm_max_map_count', data.vm_max_map_count)}</tr>
+                        <tr><td>fs.file-max</td><td>系统最大文件描述符</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.fs_file_max}">${formatLargeNumber(data.fs_file_max)}</td>${getScoreTD('fs_file_max', data.fs_file_max)}</tr>
+                        <tr><td>net.ipv4.tcp_tw_reuse</td><td>TIME-WAIT socket 复用</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_tw_reuse}">${data.net_ipv4_tcp_tw_reuse}</td>${getScoreTD('net_ipv4_tcp_tw_reuse', data.net_ipv4_tcp_tw_reuse)}</tr>
+                        <tr><td>net.ipv4.ip_local_port_range</td><td>外连端口范围</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_ip_local_port_range}">${data.net_ipv4_ip_local_port_range}</td>${getScoreTD('net_ipv4_ip_local_port_range', data.net_ipv4_ip_local_port_range)}</tr>
+                        <tr><td>net.ipv4.tcp_max_syn_backlog</td><td>SYN backlog 大小</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_syn_backlog}">${data.net_ipv4_tcp_max_syn_backlog}</td>${getScoreTD('net_ipv4_tcp_max_syn_backlog', data.net_ipv4_tcp_max_syn_backlog)}</tr>
+                        <tr><td>net.ipv4.tcp_max_tw_buckets</td><td>TIME_WAIT 保持上限</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_tw_buckets}">${data.net_ipv4_tcp_max_tw_buckets}</td>${getScoreTD('net_ipv4_tcp_max_tw_buckets', data.net_ipv4_tcp_max_tw_buckets)}</tr>
+                        <tr><td>THP (透明巨页)</td><td>开启可能导致数据库卡顿</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.thp_enabled}">${data.thp_enabled}</td>${getScoreTD('thp_enabled', data.thp_enabled)}</tr>
                     </tbody>
                 </table>
             </div>
-            <div style="margin-top: 15px; text-align: center;">
-                <button class="btn btn-success btn-sm" onclick="applyOpt()">一键全局优化</button>
+            <div style="margin-top: 15px; text-align: center; position: relative;">
+                <button class="btn btn-success btn-sm" onclick="applyOpt()" style="padding: 5px 25px; font-size: 14px;">一键全局优化</button>
+                <div style="position: absolute; right: 0; bottom: 0; font-size: 12px; color: #bbb; pointer-events: none;">
+                    衢州御风科技有限公司出品
+                </div>
             </div>
         </div>`;
         $('.soft-man-con').html(con);
@@ -202,19 +221,37 @@ function applyOpt() {
 function readme() {
     $('.bgw').removeClass('bgw');
     $('.bt-w-menu p:eq(1)').addClass('bgw');
-    var con = `<div class="p-3" style="line-height: 24px; font-size: 14px;">
-        <h3 style="margin-bottom: 15px;">关于御风 Linux 系统优化插件</h3>
-        <p>本插件整合了业界最佳实践，主要用于对标准 Linux 系统（支持 CentOS/RHEL/Debian/Ubuntu 体系）进行全方位的性能优化。</p>
-        <p><b>主要优化包括：</b></p>
-        <ul>
-            <li>降低 Swap 倾向以防止 OOM，改善磁盘 IO 及脏页刷新平滑度。</li>
-            <li>提升内核的网络并发承载能力（Somaxconn, TCP TIME_WAIT 复用，本地端口范围等）。</li>
-            <li>全面扩大系统文件描述符上限（fs.file-max），告别 Too many open files。</li>
-            <li>提升单个进程允许的最大内存映射区域数，充分满足 Elasticsearch 和其他大型数据库需求。</li>
-            <li>一键彻底禁用 Transparent Huge Pages (THP)，兼容各种发行版，防止高负载下数据库（如 Redis, MySQL 等）发生周期性卡顿现象。</li>
-        </ul>
-        <br>
-        <p><i>注：本插件执行的优化符合绝大部分 Web 场景和 DB 场景，可放心一键套用。</i></p>
+    var con = `<div class="p-3" style="height: 480px; position: relative; background: #f8f9fa; border-radius: 4px;">
+        <div style="height: 100%; overflow-y: auto; padding-right: 10px;">
+            <div style="background: #fff; padding: 25px 25px 20px 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); line-height: 1.8; font-size: 14px;">
+                <h3 style="margin-bottom: 20px; margin-top: 0; color: #333; border-bottom: 2px solid #20a53a; padding-bottom: 10px; display: inline-block;">
+                    <span style="font-size: 18px; color: #20a53a; margin-right: 5px;">🚀</span>御风 Linux 核心引擎优化
+                </h3>
+                <p style="color: #666; margin-bottom: 20px;">本插件整合了业界最严苛的生产环境最佳实践，专门针对标准 Linux 系统（涵盖 CentOS / RHEL / Debian / Ubuntu 等体系）进行深度自适应性能调优。</p>
+                
+                <div style="background: #eef9f0; border-left: 4px solid #20a53a; padding: 12px 15px; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
+                    <b style="color: #20a53a; font-size: 15px;">⚡ 核心亮点：动态自适应架构</b>
+                    <p style="margin-top: 5px; margin-bottom: 0; color: #555;">彻底告别“一刀切”的危险操作。脚本会根据您的服务器真实物理内存自动推演并下发最优的网络并发及句柄容量。<b>既能防止低配机器 OOM 死机，也能彻底释放高配机器的极限吞吐能力。</b></p>
+                </div>
+
+                <p><b style="font-size: 15px; color: #444;">🛡️ 深度优化清单：</b></p>
+                <ul style="list-style: none; padding-left: 0; margin-bottom: 20px; color: #444;">
+                    <li style="margin-bottom: 10px;"><i style="color: #20a53a; margin-right: 8px; font-weight:bold;">✓</i> <b>智能内存管控：</b> 降低 Swap 倾向以防止 OOM，改善磁盘 IO 队列及脏页刷新平滑度。</li>
+                    <li style="margin-bottom: 10px;"><i style="color: #20a53a; margin-right: 8px; font-weight:bold;">✓</i> <b>极限网络承载：</b> 全面拉升 TCP 监听队列上限，优化 TIME_WAIT 套接字复用及释放海量本地端口。</li>
+                    <li style="margin-bottom: 10px;"><i style="color: #20a53a; margin-right: 8px; font-weight:bold;">✓</i> <b>打破文件束缚：</b> 按内存比例自适应扩大系统级文件描述符上限（fs.file-max），永久告别 <code>Too many open files</code>。</li>
+                    <li style="margin-bottom: 10px;"><i style="color: #20a53a; margin-right: 8px; font-weight:bold;">✓</i> <b>中间件专供：</b> 大幅提升单个进程允许的最大内存映射区域数，原生完美兼容 Elasticsearch 等重型数据引擎。</li>
+                    <li style="margin-bottom: 10px;"><i style="color: #20a53a; margin-right: 8px; font-weight:bold;">✓</i> <b>强杀透明巨页：</b> 一键彻底禁用 Transparent Huge Pages (THP)，底层根治 Redis、MySQL 等数据库的周期性延迟绝症。</li>
+                </ul>
+                
+                <div style="text-align: center; color: #999; font-size: 12px; margin-top: 20px; border-top: 1px dashed #eee; padding-top: 15px;">
+                    <i>* 本插件执行的优化符合绝大部分高性能 Web 及高并发 DB 场景，安全可靠，可放心一键套用。</i>
+                </div>
+            </div>
+            
+            <div style="text-align: right; margin-top: 15px; padding-right: 10px; font-size: 12px; color: #bbb; pointer-events: none;">
+                衢州御风科技有限公司出品
+            </div>
+        </div>
     </div>`;
     $('.soft-man-con').html(con);
 }
