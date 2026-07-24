@@ -69,23 +69,24 @@ def getArgs():
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        if t.strip() == '':
-            tmp = []
-        else:
-            t = t.split(':', 1)
-            tmp[t[0]] = t[1]
-        tmp[t[0]] = t[1]
+        try:
+            tmp = json.loads(args[0])
+        except:
+            t = args[0].strip('{').strip('}')
+            if t.strip() == '':
+                tmp = []
+            else:
+                t = t.split(':', 1)
+                tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
     elif args_len > 1:
         for i in range(len(args)):
             t = args[i].split(':', 1)
-            tmp[t[0]] = t[1]
+            tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
     return tmp
 
 
-def checkArgs(self, data, ck=[]):
+def checkArgs(data, ck=[]):
     for i in range(len(ck)):
-        print(data[i])
         if not ck[i] in data:
             return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
