@@ -1,0 +1,18 @@
+{
+    "sort": 60,
+    "ps": "一键化全平台内核参数与并发优化",
+    "name": "linux_sys_opt",
+    "title": "御风系统优化",
+    "shell": "install.sh",
+    "versions": "1.0",
+    "tip": "soft",
+    "checks": "server/linux_sys_opt",
+    "path": "server/linux_sys_opt",
+    "display": 2,
+    "author": "御风科技",
+    "date": "2026-07-24",
+    "home": "http://www.yftec.top",
+    "type": 0,
+    "pid": "4",
+    "display_status": false
+}
