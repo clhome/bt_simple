@@ -484,13 +484,13 @@ function getFiles(Path) {
             var cnametext =fmp[0] + fmp[5];
 
             fmp[0] = fmp[0].replace(/'/, "\\'");
-            if(cnametext.length>20){
-                cnametext = cnametext.substring(0,20) + '...';
+            if(cnametext.length>100){
+                cnametext = cnametext.substring(0,100) + '...';
             }
 
             if(isChineseChar(cnametext)){
-                if(cnametext.length>10){
-                    cnametext = cnametext.substring(0,10) + '...';
+                if(cnametext.length>60){
+                    cnametext = cnametext.substring(0,60) + '...';
                 }
             }
 
@@ -541,12 +541,12 @@ function getFiles(Path) {
             fmp[0] = fmp[0].replace(/'/,"\\'");
 
             if(isChineseChar(cnametext)){
-                if(cnametext.length>16){
-                    cnametext = cnametext.substring(0,16) + '...';
+                if(cnametext.length>60){
+                    cnametext = cnametext.substring(0,60) + '...';
                 }
             } else{
-                if( cnametext.length > 48 ){
-                    cnametext = cnametext.substring(0,48) + '...';
+                if( cnametext.length > 100 ){
+                    cnametext = cnametext.substring(0,100) + '...';
                 }
             }
 
