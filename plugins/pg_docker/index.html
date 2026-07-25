@@ -225,9 +225,14 @@ function loadList() {
                     '<td style="font-weight: bold; color: #333;">' + item.name + '</td>' +
                     '<td>' + statusIcon + '</td>' +
                     '<td><code style="background: #f1f1f1; padding: 2px 5px; border-radius: 3px; color: #e6522c;">' + item.port + '</code></td>' +
-                    '<td><span style="color: #666;">' + item.dbname + '</span></td>' +
+                    '<td>' +
+                        '<span class="btlink" style="color: #666; font-weight: bold;" title="点击复制数据库名" onclick="copyToClipboard(\''+item.dbname+'\', \'数据库名\')">' + item.dbname + '</span>' +
+                        '<i class="glyphicon glyphicon-user btlink" style="margin-left: 8px; color: #888;" title="点击复制用户名" onclick="copyToClipboard(\''+item.dbuser+'\', \'用户名\')"></i>' +
+                        '<i class="glyphicon glyphicon-lock btlink" style="margin-left: 8px; color: #888;" title="点击复制密码" onclick="copyToClipboard(\''+item.dbpass+'\', \'密码\')"></i>' +
+                    '</td>' +
                     '<td><span style="color: #999; font-size: 12px;">' + item.path + '</span></td>' +
                     '<td style="text-align: right;">' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px;"></i>备份管理</a>' +
                         '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>详细配置</a>' +
                         '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">卸载实例</a>' +
                     '</td>' +
@@ -372,6 +377,153 @@ function doUninstall(name, path) {
     });
 }
 
+function copyToClipboard(text, itemName) {
+    var textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";  // 防止页面滚动
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            layer.msg(itemName + ' 已复制到剪贴板', { icon: 1 });
+        } else {
+            layer.msg('复制失败，请手动复制', { icon: 2 });
+        }
+    } catch (err) {
+        layer.msg('复制失败，您的浏览器不支持', { icon: 2 });
+    }
+    document.body.removeChild(textarea);
+}
+
+function showBackups(name) {
+    var loadT = layer.msg('正在获取备份列表...', { icon: 16, time: 0, shade: 0.3 });
+    pgPost('get_backups', { instance_name: name }, function(resp) {
+        layer.close(loadT);
+        var data = resp.data;
+        if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch(e){}
+        }
+        if (data && data.data !== undefined) {
+            data = data.data;
+        }
+        if (!resp.status && (!data || data.status === false)) {
+            layer.msg(data && data.msg ? data.msg : resp.msg, { icon: 2 });
+            return;
+        }
+        var bk = typeof data === 'object' ? (data.data || data) : data;
+        
+        var renderTable = function(list) {
+            if (!list || list.length === 0) return '<tr><td colspan="4" style="text-align:center;color:#999;padding:15px;">暂无备份记录</td></tr>';
+            var h = '';
+            for (var i=0; i<list.length; i++) {
+                var it = list[i];
+                h += '<tr>' +
+                    '<td>'+it.name+'</td>' +
+                    '<td>'+it.size+'</td>' +
+                    '<td>'+it.time+'</td>' +
+                    '<td style="text-align:right;">' +
+                        '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+name+'\', \''+it.path+'\')">删除</a>' +
+                        '<a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="doRestore(\''+name+'\', \''+it.path+'\')">还原</a>' +
+                    '</td>' +
+                '</tr>';
+            }
+            return h;
+        };
+
+        var html = '<div style="padding: 15px;">' +
+            '<div class="mb15">' +
+                '<h4 style="display:inline-block; margin-right:15px;">日备份 (近7天)</h4>' +
+                '<button class="btn btn-success btn-xs" onclick="doManualBackup(\''+name+'\')"><i class="glyphicon glyphicon-floppy-save"></i> 一键备份当前数据</button>' +
+            '</div>' +
+            '<div class="divtable">' +
+                '<table class="table table-hover" width="100%">' +
+                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th style="text-align:right;">操作</th></tr></thead>' +
+                    '<tbody id="daily-backup-list">' + renderTable(bk.daily) + '</tbody>' +
+                '</table>' +
+            '</div>' +
+            '<h4 style="margin-top:20px;">周备份 (长效保留)</h4>' +
+            '<div class="divtable mt10">' +
+                '<table class="table table-hover" width="100%">' +
+                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th style="text-align:right;">操作</th></tr></thead>' +
+                    '<tbody>' + renderTable(bk.weekly) + '</tbody>' +
+                '</table>' +
+            '</div>' +
+        '</div>';
+
+        layer.open({
+            type: 1,
+            title: '实例 [' + name + '] 备份管理',
+            area: ['750px', '600px'],
+            closeBtn: 1,
+            shadeClose: true,
+            content: html
+        });
+    });
+}
+
+function doManualBackup(name) {
+    layer.confirm('确定要立即执行一次全量备份吗？', { title: '手动备份确认', icon: 3 }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在执行备份，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+        pgPost('create_backup', { instance_name: name }, function(resp) {
+            layer.close(loadT);
+            var resData = resp;
+            if (typeof resp.data === 'string') {
+                try { resData = JSON.parse(resp.data); } catch(e){}
+            }
+            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 3000 });
+            if (resData.status || resp.status) {
+                layer.closeAll('page');
+                setTimeout(function(){ showBackups(name); }, 1000);
+            }
+        });
+    });
+}
+
+function doRestore(name, path) {
+    layer.confirm('注意：本次还原操作会清空当前数据库，并用选定的备份文件覆盖当前数据，请谨慎操作！<br><br>确定要还原吗？', {
+        title: '⚠️ 危险操作确认',
+        icon: 0,
+        btn: ['确认覆盖还原', '取消']
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在执行数据还原，请耐心等待...', { icon: 16, time: 0, shade: 0.3 });
+        pgPost('restore_backup', { instance_name: name, file_path: path }, function(resp) {
+            layer.close(loadT);
+            var resData = resp;
+            if (typeof resp.data === 'string') {
+                try { resData = JSON.parse(resp.data); } catch(e){}
+            }
+            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 5000 });
+        });
+    });
+}
+
+function doDeleteBackup(name, path) {
+    layer.confirm('⚠️ 警告：确定要永久删除这个备份文件吗？<br><br><span style="color:#999; font-size:12px; word-break:break-all;">' + path + '</span>', {
+        title: '删除备份确认',
+        icon: 3,
+        btn: ['确定删除', '取消']
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在删除...', { icon: 16, time: 0, shade: 0.3 });
+        pgPost('delete_backup', { instance_name: name, file_path: path }, function(resp) {
+            layer.close(loadT);
+            var resData = resp;
+            if (typeof resp.data === 'string') {
+                try { resData = JSON.parse(resp.data); } catch(e){}
+            }
+            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 2000 });
+            if (resData.status || resp.status) {
+                layer.closeAll('page');
+                setTimeout(function(){ showBackups(name); }, 800);
+            }
+        });
+    });
+}
+
 // 随机生成 8-12 位乱序密码
 function generateRandomPassword() {
     var length = Math.floor(Math.random() * 5) + 8; // 8 - 12
@@ -385,9 +537,9 @@ function generateRandomPassword() {
 
 // 自动拉宽所在的 layui-layer 弹窗以适配表单宽度
 var layuiLayer = $('.bt-form').closest('.layui-layer');
-if(layuiLayer.length > 0 && layuiLayer.width() < 950) {
-    layuiLayer.css('width', '950px');
-    var left = ($(window).width() - 950) / 2;
+if(layuiLayer.length > 0 && layuiLayer.width() < 1000) {
+    layuiLayer.css('width', '1000px');
+    var left = ($(window).width() - 1000) / 2;
     layuiLayer.css('left', left + 'px');
 }
 

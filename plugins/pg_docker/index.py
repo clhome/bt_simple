@@ -4,6 +4,7 @@ import os
 import json
 import re
 import math
+import time
 
 web_dir = os.getcwd() + "/web"
 if os.path.exists(web_dir):
@@ -66,6 +67,8 @@ def get_list():
             # 读取一些基本信息
             port = "未知"
             dbname = "未知"
+            dbuser = "未知"
+            dbpass = "未知"
             try:
                 content = yf.readFile(compose_file)
                 # 仅显示 pg- 开头的容器，排除其他无关的 docker 容器
@@ -79,6 +82,12 @@ def get_list():
                 dbm = re.search(r'POSTGRES_DB:\s*"?(.*?)"?\n', content)
                 if dbm:
                     dbname = dbm.group(1)
+                usm = re.search(r'POSTGRES_USER:\s*"?(.*?)"?\n', content)
+                if usm:
+                    dbuser = usm.group(1)
+                pwm = re.search(r'POSTGRES_PASSWORD:\s*"?(.*?)"?\n', content)
+                if pwm:
+                    dbpass = pwm.group(1)
             except:
                 pass
             
@@ -94,6 +103,8 @@ def get_list():
                 "path": instance_path,
                 "port": port,
                 "dbname": dbname,
+                "dbuser": dbuser,
+                "dbpass": dbpass,
                 "status": is_running
             })
         else:
@@ -144,6 +155,121 @@ def toggle_status(args):
     else:
         yf.execShell(f"cd {instance_path} && docker compose stop")
         return yf.returnJson(True, "实例已成功停止")
+
+def get_backups(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+        
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    daily_dir = os.path.join(instance_path, "backups", "daily")
+    weekly_dir = os.path.join(instance_path, "backups", "weekly")
+    
+    def scan_dir(path):
+        lst = []
+        if os.path.exists(path):
+            for f in os.listdir(path):
+                if f.endswith('.dump'):
+                    fp = os.path.join(path, f)
+                    stat = os.stat(fp)
+                    size_mb = round(stat.st_size / (1024 * 1024), 2)
+                    lst.append({
+                        "name": f,
+                        "path": fp,
+                        "size": f"{size_mb} MB",
+                        "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stat.st_mtime)),
+                        "timestamp": stat.st_mtime
+                    })
+        lst.sort(key=lambda x: x["timestamp"], reverse=True)
+        return lst
+
+    result = {
+        "daily": scan_dir(daily_dir),
+        "weekly": scan_dir(weekly_dir)
+    }
+    return yf.returnJson(True, "ok", result)
+
+def create_backup(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+        
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    script_path = os.path.join(instance_path, "scripts", "backup.sh")
+    
+    if not os.path.exists(script_path):
+        return yf.returnJson(False, "备份脚本不存在，可能实例已损坏")
+        
+    # Execute backup script
+    output = yf.execShell(f"/bin/bash {script_path}")
+    if "备份失败" in output[0] or "备份失败" in output[1]:
+        return yf.returnJson(False, f"备份失败！输出: {output[0]} {output[1]}")
+    
+    return yf.returnJson(True, "一键备份成功！")
+
+def restore_backup(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    file_path = data.get('file_path', '').strip()
+    
+    if not file_path or not os.path.exists(file_path):
+        return yf.returnJson(False, "备份文件不存在或参数错误")
+        
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+        
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    script_path = os.path.join(instance_path, "scripts", "restore.sh")
+    
+    if not os.path.exists(script_path):
+        return yf.returnJson(False, "恢复脚本不存在，可能实例已损坏")
+        
+    # Execute restore script in background or wait for it.
+    # The restore script drops schema and restores data. It might take time, but we wait for it.
+    output = yf.execShell(f"/bin/bash {script_path} {file_path}")
+    if "数据还原完成" in output[0] or "数据还原完成" in output[1]:
+        return yf.returnJson(True, "数据已成功还原！")
+    else:
+        return yf.returnJson(False, f"还原可能失败，请检查日志！输出: {output[0][:200]}")
+
+def delete_backup(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    file_path = data.get('file_path', '').strip()
+    
+    if not file_path or not os.path.exists(file_path):
+        return yf.returnJson(False, "文件不存在或参数错误")
+        
+    # Ensure it's inside the backup dir for safety
+    if "/backups/" not in file_path:
+        return yf.returnJson(False, "非法的路径")
+        
+    try:
+        os.remove(file_path)
+        return yf.returnJson(True, "备份删除成功！")
+    except Exception as e:
+        return yf.returnJson(False, f"删除失败: {str(e)}")
 
 def create_instance(args):
     try:
@@ -451,5 +577,13 @@ if __name__ == "__main__":
         print(get_config(args))
     elif func == 'toggle_status':
         print(toggle_status(args))
+    elif func == 'get_backups':
+        print(get_backups(args))
+    elif func == 'create_backup':
+        print(create_backup(args))
+    elif func == 'restore_backup':
+        print(restore_backup(args))
+    elif func == 'delete_backup':
+        print(delete_backup(args))
     else:
         print('error')
