@@ -55,39 +55,39 @@ def get_list():
     
     for inst_name, base_dir in list(instances_data.items()):
         instance_path = os.path.join(base_dir, inst_name)
-            compose_file = os.path.join(instance_path, "docker-compose.yml")
-            if os.path.isdir(instance_path) and os.path.exists(compose_file):
-                # 读取一些基本信息
-                port = "未知"
-                dbname = "未知"
-                try:
-                    content = yf.readFile(compose_file)
-                    pm = re.search(r'ports:\s*\n\s*-\s*"(\d+):5432"', content)
-                    if pm:
-                        port = pm.group(1)
-                    dbm = re.search(r'POSTGRES_DB:\s*"?(.*?)"?\n', content)
-                    if dbm:
-                        dbname = dbm.group(1)
-                except:
-                    pass
-                
-                # 检查运行状态
-                status_cmd = f"cd {instance_path} && docker compose ps -q"
-                res = yf.execShell(status_cmd)
-                is_running = False
-                if res[0].strip() != '':
-                    is_running = True
-                
-                instances.append({
-                    "name": inst_name,
-                    "path": instance_path,
-                    "port": port,
-                    "dbname": dbname,
-                    "status": is_running
-                })
-            else:
-                # 目录或文件不存在，说明已失效，清理掉
-                del instances_data[inst_name]
+        compose_file = os.path.join(instance_path, "docker-compose.yml")
+        if os.path.isdir(instance_path) and os.path.exists(compose_file):
+            # 读取一些基本信息
+            port = "未知"
+            dbname = "未知"
+            try:
+                content = yf.readFile(compose_file)
+                pm = re.search(r'ports:\s*\n\s*-\s*"(\d+):5432"', content)
+                if pm:
+                    port = pm.group(1)
+                dbm = re.search(r'POSTGRES_DB:\s*"?(.*?)"?\n', content)
+                if dbm:
+                    dbname = dbm.group(1)
+            except:
+                pass
+            
+            # 检查运行状态
+            status_cmd = f"cd {instance_path} && docker compose ps -q"
+            res = yf.execShell(status_cmd)
+            is_running = False
+            if res[0].strip() != '':
+                is_running = True
+            
+            instances.append({
+                "name": inst_name,
+                "path": instance_path,
+                "port": port,
+                "dbname": dbname,
+                "status": is_running
+            })
+        else:
+            # 目录或文件不存在，说明已失效，清理掉
+            del instances_data[inst_name]
                 
     save_instances(instances_data)
     return yf.returnJson(True, "ok", instances)
