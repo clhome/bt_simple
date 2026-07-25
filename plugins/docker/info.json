@@ -1,5 +1,5 @@
 {
-    "sort": 100,
+    "sort": 11,
     "ps": "采用多个加速点轮询高速下载镜像，让Docker下载和拉取镜像如飞",
     "name": "docker",
     "title": "御风Docker管理器",

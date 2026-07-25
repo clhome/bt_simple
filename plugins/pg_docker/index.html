@@ -2,6 +2,7 @@
     #con-deploy > .bt-form-con > .line > .tname {
         width: 150px;
         white-space: nowrap;
+        text-align: left;
     }
     #con-deploy > .bt-form-con > .line > .info-r {
         margin-left: 150px;
@@ -54,47 +55,48 @@
             <div class="plugin-con" id="con-deploy" style="display: none; height: 100%; overflow-y: auto;">
                 <div class="bt-form-con">
                     <div class="line">
-                        <span class="tname">实例名称</span>
+                        <span class="tname"><i class="glyphicon glyphicon-tag" style="margin-right: 5px; color: #666;"></i>实例名称</span>
                         <div class="info-r">
                             <input type="text" class="bt-input-text mr5" name="inst_name" placeholder="例如: mall, 只能使用字母数字下划线" style="width: 250px;">
-                            <span class="c9">容器名将被设为 pg-[实例名]，用于严格隔离</span>
+                            <div class="c9" style="margin-top: 5px; line-height: 20px;">容器名将被设为 pg-[实例名]，用于严格隔离</div>
                         </div>
                     </div>
                     <div class="line">
-                        <span class="tname">基础存放目录</span>
+                        <span class="tname"><i class="glyphicon glyphicon-folder-open" style="margin-right: 5px; color: #666;"></i>基础存放目录</span>
                         <div class="info-r">
                             <input type="text" class="bt-input-text mr5" name="base_dir" value="/docker_data" style="width: 250px;">
                             <div class="c9" style="margin-top: 5px; line-height: 20px;">默认 /docker_data，该实例数据将存放在基础目录/[实例名]/ 下</div>
                         </div>
                     </div>
                     <div class="line">
-                        <span class="tname">数据库用户名</span>
+                        <span class="tname"><i class="glyphicon glyphicon-user" style="margin-right: 5px; color: #666;"></i>数据库用户名</span>
                         <div class="info-r">
-                            <input type="text" class="bt-input-text mr5" name="db_user" value="postgres" style="width: 250px;">
+                            <input type="text" class="bt-input-text mr5" name="db_user" placeholder="请输入数据库用户名" style="width: 250px;">
                         </div>
                     </div>
                     <div class="line">
-                        <span class="tname">数据库密码</span>
-                        <div class="info-r">
+                        <span class="tname"><i class="glyphicon glyphicon-lock" style="margin-right: 5px; color: #666;"></i>数据库密码</span>
+                        <div class="info-r" style="display: flex; align-items: center;">
                             <input type="text" class="bt-input-text mr5" name="db_pass" placeholder="建议使用复杂密码" style="width: 250px;">
+                            <span class="glyphicon glyphicon-random cursor" onclick="generateRandomPassword()" title="随机生成密码" style="color: #20a53a; font-size: 16px; margin-left: 5px;"></span>
                         </div>
                     </div>
                     <div class="line">
-                        <span class="tname">默认数据库名</span>
+                        <span class="tname"><i class="glyphicon glyphicon-hdd" style="margin-right: 5px; color: #666;"></i>默认数据库名</span>
                         <div class="info-r">
-                            <input type="text" class="bt-input-text mr5" name="db_name" value="mydb" style="width: 250px;">
+                            <input type="text" class="bt-input-text mr5" name="db_name" placeholder="请输入数据库名" style="width: 250px;">
                         </div>
                     </div>
                     <div class="line">
-                        <span class="tname">宿主机端口</span>
+                        <span class="tname"><i class="glyphicon glyphicon-resize-horizontal" style="margin-right: 5px; color: #666;"></i>宿主机端口</span>
                         <div class="info-r">
-                            <input type="number" class="bt-input-text mr5" name="port" value="5432" style="width: 250px;">
-                            <span class="c9">确保不与服务器已用端口冲突</span>
+                            <input type="number" class="bt-input-text mr5" name="port" placeholder="请输入对外映射的TCP端口号" style="width: 250px;">
+                            <div class="c9" style="margin-top: 5px; line-height: 20px;">确保不与服务器已用端口冲突</div>
                         </div>
                     </div>
                     
                     <div class="line">
-                        <span class="tname">硬盘类型</span>
+                        <span class="tname"><i class="glyphicon glyphicon-floppy-disk" style="margin-right: 5px; color: #666;"></i>硬盘类型</span>
                         <div class="info-r">
                             <select class="bt-input-text mr5" name="disk_type" style="width: 250px;">
                                 <option value="ssd">固态硬盘/NVMe (推荐)</option>
@@ -106,7 +108,7 @@
                     </div>
                     
                     <div class="line">
-                        <span class="tname">业务场景</span>
+                        <span class="tname"><i class="glyphicon glyphicon-briefcase" style="margin-right: 5px; color: #666;"></i>业务场景</span>
                         <div class="info-r">
                             <select class="bt-input-text mr5" name="scenario" style="width: 250px;">
                                 <option value="general">通用场景 (安全与性能均衡)</option>
@@ -117,7 +119,7 @@
                     </div>
 
                     <div class="line">
-                        <span class="tname">内存上限(MB)</span>
+                        <span class="tname"><i class="glyphicon glyphicon-dashboard" style="margin-right: 5px; color: #666;"></i>内存上限(MB)</span>
                         <div class="info-r">
                             <input type="number" class="bt-input-text mr5" name="mem_limit" placeholder="留空则按服务器总内存自动计算" style="width: 250px;">
                             <div class="c9" style="margin-top: 5px; line-height: 20px;">强制不超过服务器总内存 75%，共享缓存等参数将基于此自动推算</div>
@@ -126,7 +128,7 @@
 
                     <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ddd;">
                     <div class="line">
-                        <span class="tname" style="font-weight: bold; color: #333;">自动备份</span>
+                        <span class="tname" style="font-weight: bold; color: #333;"><i class="glyphicon glyphicon-time" style="margin-right: 5px; color: #333;"></i>自动备份</span>
                         <div class="info-r">
                             <div class="c9" style="margin-top: 5px; line-height: 20px;">每日凌晨 2 点自动对实例进行全量备份</div>
                         </div>
@@ -310,6 +312,17 @@ function doUninstall(name, path) {
     });
 }
 
+// 随机生成 8-12 位乱序密码
+function generateRandomPassword() {
+    var length = Math.floor(Math.random() * 5) + 8; // 8 - 12
+    var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#_-";
+    var retVal = "";
+    for (var i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    $("input[name='db_pass']").val(retVal);
+}
+
 // 自动拉宽所在的 layui-layer 弹窗以适配表单宽度
 var layuiLayer = $('.bt-form').closest('.layui-layer');
 if(layuiLayer.length > 0 && layuiLayer.width() < 850) {
@@ -317,6 +330,13 @@ if(layuiLayer.length > 0 && layuiLayer.width() < 850) {
     var left = ($(window).width() - 850) / 2;
     layuiLayer.css('left', left + 'px');
 }
+
+// 实例名称联动数据库用户名和数据库名
+$("input[name='inst_name']").on('input', function() {
+    var val = $(this).val();
+    $("input[name='db_user']").val(val);
+    $("input[name='db_name']").val(val);
+});
 
 // 初始化
 loadList();

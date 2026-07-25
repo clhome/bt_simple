@@ -15,7 +15,7 @@ import core.yf as yf
 def installPreInspection():
     check_docker = yf.getServerDir() + '/docker'
     if not os.path.exists(check_docker):
-        return '安装 PostgreSQL容器化管理 之前必须先安装 御风Docker管理器，不然无法保证是否已经在系统层面安装了docker和docker compose'
+        return '请先安装【御风Docker管理器】'
     return 'ok'
 
 def getPluginName():
@@ -398,5 +398,7 @@ if __name__ == "__main__":
         print(create_instance(args))
     elif func == 'uninstall_instance':
         print(uninstall_instance(args))
+    elif func == 'install_pre_inspection':
+        print(installPreInspection())
     else:
         print('error')
