@@ -1,3 +1,29 @@
+<style>
+    #con-deploy > .bt-form-con > .line > .tname {
+        width: 150px;
+        white-space: nowrap;
+    }
+    #con-deploy > .bt-form-con > .line > .info-r {
+        margin-left: 150px;
+    }
+    
+    /* 修复左侧菜单随页面滚动的排版 */
+    .bt-form, .bt-w-main {
+        height: 100%;
+    }
+    .bt-w-main {
+        display: flex;
+    }
+    .bt-w-menu {
+        float: none !important;
+        height: 100%;
+    }
+    .bt-w-con {
+        flex: 1;
+        height: 100%;
+        overflow-y: auto;
+    }
+</style>
 <div class="bt-form">
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
@@ -38,7 +64,7 @@
                         <span class="tname">基础存放目录</span>
                         <div class="info-r">
                             <input type="text" class="bt-input-text mr5" name="base_dir" value="/docker_data" style="width: 250px;">
-                            <span class="c9">默认 /docker_data，该实例数据将存放在基础目录/[实例名]/ 下</span>
+                            <div class="c9" style="margin-top: 5px; line-height: 20px;">默认 /docker_data，该实例数据将存放在基础目录/[实例名]/ 下</div>
                         </div>
                     </div>
                     <div class="line">
@@ -72,9 +98,10 @@
                         <div class="info-r">
                             <select class="bt-input-text mr5" name="disk_type" style="width: 250px;">
                                 <option value="ssd">固态硬盘/NVMe (推荐)</option>
-                                <option value="hdd">机械硬盘单片/普通阵列</option>
+                                <option value="hdd_single">机械硬盘单片</option>
+                                <option value="hdd_raid">普通阵列硬盘</option>
                             </select>
-                            <span class="c9">影响磁盘随机读写预估成本参数 (random_page_cost)</span>
+                            <div class="c9" style="margin-top: 5px; line-height: 20px;">影响磁盘随机读写预估成本参数 (random_page_cost)</div>
                         </div>
                     </div>
                     
@@ -93,17 +120,27 @@
                         <span class="tname">内存上限(MB)</span>
                         <div class="info-r">
                             <input type="number" class="bt-input-text mr5" name="mem_limit" placeholder="留空则按服务器总内存自动计算" style="width: 250px;">
-                            <span class="c9">强制不超过服务器总内存 75%，共享缓存等参数将基于此自动推算</span>
+                            <div class="c9" style="margin-top: 5px; line-height: 20px;">强制不超过服务器总内存 75%，共享缓存等参数将基于此自动推算</div>
                         </div>
                     </div>
 
+                    <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ddd;">
                     <div class="line">
-                        <span class="tname">备份保留(日)</span>
+                        <span class="tname" style="font-weight: bold; color: #333;">自动备份</span>
                         <div class="info-r">
-                            <input type="number" class="bt-input-text mr5" name="daily_retention" value="7" style="width: 100px;">
-                            <span style="margin-left: 20px;" class="tname">备份保留(周)</span>
-                            <input type="number" class="bt-input-text mr5" name="weekly_retention" value="30" style="width: 100px;">
-                            <span class="c9">每日凌晨 2 点自动备份</span>
+                            <div class="c9" style="margin-top: 5px; line-height: 20px;">每日凌晨 2 点自动对实例进行全量备份</div>
+                        </div>
+                    </div>
+                    <div class="line">
+                        <span class="tname">日备份保留天数</span>
+                        <div class="info-r">
+                            <input type="number" class="bt-input-text mr5" name="daily_retention" value="7" style="width: 250px;">
+                        </div>
+                    </div>
+                    <div class="line">
+                        <span class="tname">周保留备份天数</span>
+                        <div class="info-r">
+                            <input type="number" class="bt-input-text mr5" name="weekly_retention" value="30" style="width: 250px;">
                         </div>
                     </div>
                     
@@ -275,9 +312,9 @@ function doUninstall(name, path) {
 
 // 自动拉宽所在的 layui-layer 弹窗以适配表单宽度
 var layuiLayer = $('.bt-form').closest('.layui-layer');
-if(layuiLayer.length > 0 && layuiLayer.width() < 700) {
-    layuiLayer.css('width', '700px');
-    var left = ($(window).width() - 700) / 2;
+if(layuiLayer.length > 0 && layuiLayer.width() < 850) {
+    layuiLayer.css('width', '850px');
+    var left = ($(window).width() - 850) / 2;
     layuiLayer.css('left', left + 'px');
 }
 

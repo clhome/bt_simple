@@ -114,7 +114,7 @@ def create_instance(args):
     db_pass = data.get('db_pass', '123456')
     db_name = data.get('db_name', 'mydb')
     port = data.get('port', '5432')
-    disk_type = data.get('disk_type', 'ssd') # ssd, hdd
+    disk_type = data.get('disk_type', 'ssd') # ssd, hdd_single, hdd_raid
     scenario = data.get('scenario', 'general') # general, high_concurrency, high_throughput
     mem_limit = data.get('mem_limit', '')
     daily_retention = data.get('daily_retention', 7)
@@ -197,6 +197,9 @@ def create_instance(args):
     if disk_type == 'ssd':
         pg_conf.append("random_page_cost = 1.1")
         pg_conf.append("effective_io_concurrency = 200")
+    elif disk_type == 'hdd_single':
+        pg_conf.append("random_page_cost = 4.0")
+        pg_conf.append("effective_io_concurrency = 1")
     else:
         pg_conf.append("random_page_cost = 4.0")
         pg_conf.append("effective_io_concurrency = 2")
