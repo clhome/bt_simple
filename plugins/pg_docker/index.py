@@ -122,11 +122,11 @@ def create_instance(args):
 
     sys_mem = get_mem_mb()
     try:
-        user_mem = int(mem_limit) if mem_limit else sys_mem
-        if user_mem > sys_mem * 0.8:
-            user_mem = int(sys_mem * 0.8)
+        user_mem = int(mem_limit) if mem_limit else int(sys_mem * 0.75)
+        if user_mem > sys_mem * 0.75:
+            user_mem = int(sys_mem * 0.75)
     except:
-        user_mem = sys_mem
+        user_mem = int(sys_mem * 0.75)
 
     if user_mem < 256:
         user_mem = 256
@@ -230,7 +230,7 @@ def create_instance(args):
       POSTGRES_PASSWORD: "{db_pass}"
       PGDATA: /var/lib/postgresql/data/pgdata
       TZ: Asia/Shanghai
-    shm_size: {int(user_mem * 0.75)}m
+    shm_size: {user_mem}m
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U {db_user} -d {db_name}"]
       interval: 10s
