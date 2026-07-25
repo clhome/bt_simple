@@ -31,6 +31,7 @@
 		<div class="bt-w-menu">
 			<p class="bgw" onclick="switchTab('list');">实例列表</p>
 			<p onclick="switchTab('deploy');">部署新实例</p>
+			<p onclick="switchTab('readme');">使用说明</p>
 		</div>
 		<div class="bt-w-con pd15">
 			<div class="plugin-con" id="con-list">
@@ -155,6 +156,38 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="plugin-con" id="con-readme" style="display: none; height: 100%; overflow-y: auto; padding-right: 15px;">
+                <div style="background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                    <h3 style="margin-top: 0; color: #333; font-weight: 600; font-size: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 20px;">PostgreSQL 容器化管理指南</h3>
+                    
+                    <div style="background: #fff7e6; border-left: 4px solid #ffa39e; padding: 15px 20px; border-radius: 4px; margin-bottom: 25px;">
+                        <div style="color: #cf1322; font-weight: 600; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center;">
+                            <i class="glyphicon glyphicon-warning-sign" style="margin-right: 8px; font-size: 16px;"></i>架构安全警示：Docker 网络与系统防火墙
+                        </div>
+                        <div style="color: #666; font-size: 13px; line-height: 1.6;">
+                            请高度注意：Docker 在暴露映射端口（如 <code>0.0.0.0:5432</code>）时，会直接向系统的 <strong>iptables</strong> 写入底层 `PREROUTING` 转发规则。这意味着 <strong>外部流量将直接绕过 UFW、firewalld 等主机层防火墙</strong> 抵达容器。<br>
+                            <strong>最佳实践建议：</strong> 如果无需外部直连数据库，建议将宿主机端口绑定为 <code>127.0.0.1:端口号</code>，或者在服务器所在的云厂商控制台（安全组配置）中拦截高危端口，切勿仅依赖系统内防火墙。
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-th-large" style="margin-right: 6px;"></i>物理级实例隔离</h4>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">本插件基于 <code>docker-compose</code> 构建环境。每一个创建的 PostgreSQL 实例都是完全隔离的独立容器系统，相互之间进程分离、环境解耦，彻底避免了多项目共用数据库导致的依赖冲突或全局崩溃风险。</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-time" style="margin-right: 6px;"></i>全自动化灾备体系</h4>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">实例部署后，系统会自动向宿主机的 <code>crontab</code> 注入守护任务，严格执行“每日增量快照”与“长效周备份”策略。您可以随时在“备份管理”中查阅 <code>.dump</code> 格式的历史快照，或者手动触发无锁全量备份，将核心数据资产紧紧握在手中。</p>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-refresh" style="margin-right: 6px;"></i>一键式状态管理与重建</h4>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">我们为您提供了丝滑的生命周期管理能力：点击运行状态即可完成容器启停；如遇灾难级故障，仅需在备份管理中点击“还原”，底层引擎将自动掐断残留连接、清理损坏的 Schema 并瞬间完成历史快照的注水恢复，让业务即刻起死回生。</p>
+                    </div>
+                </div>
+            </div>
+            
 		</div>
 	</div>
 </div>
@@ -187,6 +220,9 @@ function switchTab(tab) {
         $('.bt-w-menu p:eq(0)').addClass('bgw');
         $('#con-list').show();
         loadList();
+    } else if (tab === 'readme') {
+        $('.bt-w-menu p:eq(2)').addClass('bgw');
+        $('#con-readme').show();
     } else {
         $('.bt-w-menu p:eq(1)').addClass('bgw');
         $('#con-deploy').show();
@@ -221,10 +257,15 @@ function loadList() {
                 var statusIcon = item.status 
                     ? '<span style="color: #20a53a; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'stop\')" title="点击停止实例"><i class="glyphicon glyphicon-play-circle" style="margin-right: 3px;"></i>运行中</span>' 
                     : '<span style="color: red; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'start\')" title="点击启动实例"><i class="glyphicon glyphicon-ban-circle" style="margin-right: 3px;"></i>已停止</span>';
+                var extColor = item.is_external ? 'red' : '#999';
+                var extChecked = item.is_external ? 'checked' : '';
+                var extHtml = '<label style="margin-left:8px; cursor:pointer; font-weight:normal; color:' + extColor + ';">' +
+                              '<input type="checkbox" ' + extChecked + ' style="vertical-align: middle; margin-top:-2px; margin-right:3px;" onclick="toggleExternal(\''+item.name+'\', this.checked, event)">外</label>';
+
                 html += '<tr>' +
                     '<td style="font-weight: bold; color: #333;">' + item.name + '</td>' +
                     '<td>' + statusIcon + '</td>' +
-                    '<td><code style="background: #f1f1f1; padding: 2px 5px; border-radius: 3px; color: #e6522c;">' + item.port + '</code></td>' +
+                    '<td><code style="background: #f1f1f1; padding: 2px 5px; border-radius: 3px; color: #e6522c;">' + item.port + '</code>' + extHtml + '</td>' +
                     '<td>' +
                         '<span class="btlink" style="color: #666; font-weight: bold;" title="点击复制数据库名" onclick="copyToClipboard(\''+item.dbname+'\', \'数据库名\')">' + item.dbname + '</span>' +
                         '<i class="glyphicon glyphicon-user btlink" style="margin-left: 8px; color: #888;" title="点击复制用户名" onclick="copyToClipboard(\''+item.dbuser+'\', \'用户名\')"></i>' +
@@ -310,6 +351,30 @@ function showConfig(name) {
             closeBtn: 1,
             shadeClose: true,
             content: '<div style="padding: 15px;"><pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; height: 650px; overflow-y: auto; font-family: Consolas, monospace;">' + content + '</pre></div>'
+        });
+    });
+}
+
+function toggleExternal(name, checked, e) {
+    e.preventDefault(); // 阻止默认的选中动画，等待确认后再刷新状态
+    var actionName = checked ? '允许外部直连访问 (监听 0.0.0.0)' : '限制仅本地访问 (监听 127.0.0.1)';
+    layer.confirm('确定要切换为【' + actionName + '】吗？<br><br><span style="color:#e6522c;">此操作将自动重启该容器以应用最新网络配置。</span>', {
+        title: '端口监听范围调整确认',
+        icon: 3,
+        btn: ['确定重启', '取消']
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在重建容器网络配置...', { icon: 16, time: 0, shade: 0.3 });
+        pgPost('toggle_external_port', { instance_name: name, is_external: checked }, function(resp) {
+            layer.close(loadT);
+            var resData = resp;
+            if (typeof resp.data === 'string') {
+                try { resData = JSON.parse(resp.data); } catch(err){}
+            }
+            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 3000 });
+            if (resData.status || resp.status) {
+                loadList();
+            }
         });
     });
 }

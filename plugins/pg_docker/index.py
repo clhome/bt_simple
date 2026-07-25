@@ -76,9 +76,12 @@ def get_list():
                     del instances_data[inst_name]
                     continue
 
-                pm = re.search(r'ports:\s*\n\s*-\s*"(\d+):5432"', content)
+                is_external = True
+                pm = re.search(r'ports:\s*\n\s*-\s*"(?:(127\.0\.0\.1):)?(\d+):5432"', content)
                 if pm:
-                    port = pm.group(1)
+                    if pm.group(1) == '127.0.0.1':
+                        is_external = False
+                    port = pm.group(2)
                 dbm = re.search(r'POSTGRES_DB:\s*"?(.*?)"?\n', content)
                 if dbm:
                     dbname = dbm.group(1)
@@ -102,6 +105,7 @@ def get_list():
                 "name": inst_name,
                 "path": instance_path,
                 "port": port,
+                "is_external": is_external,
                 "dbname": dbname,
                 "dbuser": dbuser,
                 "dbpass": dbpass,
@@ -241,8 +245,19 @@ def restore_backup(args):
     if not os.path.exists(script_path):
         return yf.returnJson(False, "恢复脚本不存在，可能实例已损坏")
         
+    # 热修复老实例的 restore.sh，使其通过管道读取文件，避免容器内外路径不一致
+    try:
+        with open(script_path, 'r', encoding='utf-8') as f:
+            script_content = f.read()
+        target_cmd = 'pg_restore -U ${DB_USER} -d ${DB_NAME} "$RESTORE_FILE"'
+        if target_cmd in script_content:
+            script_content = script_content.replace(target_cmd, 'pg_restore -U ${DB_USER} -d ${DB_NAME} < "$RESTORE_FILE"')
+            with open(script_path, 'w', encoding='utf-8') as f:
+                f.write(script_content)
+    except:
+        pass
+        
     # Execute restore script in background or wait for it.
-    # The restore script drops schema and restores data. It might take time, but we wait for it.
     output = yf.execShell(f"/bin/bash {script_path} {file_path}")
     if "数据还原完成" in output[0] or "数据还原完成" in output[1]:
         return yf.returnJson(True, "数据已成功还原！")
@@ -270,6 +285,45 @@ def delete_backup(args):
         return yf.returnJson(True, "备份删除成功！")
     except Exception as e:
         return yf.returnJson(False, f"删除失败: {str(e)}")
+
+def toggle_external_port(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    is_ext = data.get('is_external', False)
+    
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+        
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    compose_file = os.path.join(instance_path, "docker-compose.yml")
+    if not os.path.exists(compose_file):
+        return yf.returnJson(False, "配置文件不存在")
+        
+    content = yf.readFile(compose_file)
+    
+    pm = re.search(r'ports:\s*\n\s*-\s*"(?:127\.0\.0\.1:)?(\d+):5432"', content)
+    if not pm:
+        return yf.returnJson(False, "无法解析端口配置")
+        
+    port = pm.group(1)
+    old_ports = pm.group(0)
+    
+    if is_ext:
+        new_ports = f'ports:\n      - "{port}:5432"'
+    else:
+        new_ports = f'ports:\n      - "127.0.0.1:{port}:5432"'
+        
+    content = content.replace(old_ports, new_ports)
+    yf.writeFile(compose_file, content)
+    
+    yf.execShell(f"cd {instance_path} && docker compose down && docker compose up -d")
+    
+    return yf.returnJson(True, "配置已更新，容器已重启生效")
 
 def create_instance(args):
     try:
@@ -498,7 +552,7 @@ SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${{DB_NA
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public AUTHORIZATION ${{DB_USER}};
 "
-docker exec -i ${{CONTAINER_NAME}} pg_restore -U ${{DB_USER}} -d ${{DB_NAME}} "$RESTORE_FILE"
+docker exec -i ${{CONTAINER_NAME}} pg_restore -U ${{DB_USER}} -d ${{DB_NAME}} < "$RESTORE_FILE"
 echo "✅ 数据还原完成！"
 """
     yf.writeFile(f"{inst_dir}/scripts/restore.sh", restore_sh)
@@ -585,5 +639,7 @@ if __name__ == "__main__":
         print(restore_backup(args))
     elif func == 'delete_backup':
         print(delete_backup(args))
+    elif func == 'toggle_external_port':
+        print(toggle_external_port(args))
     else:
         print('error')
