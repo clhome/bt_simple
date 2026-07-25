@@ -12,6 +12,12 @@ if os.path.exists(web_dir):
 
 import core.yf as yf
 
+def installPreInspection():
+    check_docker = yf.getServerDir() + '/docker'
+    if not os.path.exists(check_docker):
+        return '安装 PostgreSQL容器化管理 之前必须先安装 御风Docker管理器，不然无法保证是否已经在系统层面安装了docker和docker compose'
+    return 'ok'
+
 def getPluginName():
     return 'pg_docker'
 
