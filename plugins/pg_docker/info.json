@@ -1,0 +1,18 @@
+{
+    "sort": 61,
+    "ps": "一键化隔离部署与管理多实例 PostgreSQL Docker 环境，支持按服务器内存动态计算调优参数。",
+    "name": "pg_docker",
+    "title": "PostgreSQL 容器化管理",
+    "shell": "install.sh",
+    "versions": "1.0",
+    "tip": "lib",
+    "checks": "server/pg_docker",
+    "path": "server/pg_docker",
+    "display": 2,
+    "author": "Antigravity",
+    "date": "2026-07-25",
+    "home": "https://github.com",
+    "type": 0,
+    "pid": "4",
+    "display_status": false
+}

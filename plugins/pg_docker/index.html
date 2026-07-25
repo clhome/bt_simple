@@ -1,0 +1,286 @@
+<div class="bt-form">
+	<div class="bt-w-main">
+		<div class="bt-w-menu">
+			<p class="bgw" onclick="switchTab('list');">实例列表</p>
+			<p onclick="switchTab('deploy');">部署新实例</p>
+		</div>
+		<div class="bt-w-con pd15">
+			<div class="plugin-con" id="con-list">
+                <div class="divtable">
+                    <table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">
+                        <thead>
+                            <tr>
+                                <th>实例名称</th>
+                                <th>运行状态</th>
+                                <th>映射端口</th>
+                                <th>数据库名</th>
+                                <th>实例目录</th>
+                                <th style="text-align: right;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pg-instance-list">
+                            <!-- JS动态渲染 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="plugin-con" id="con-deploy" style="display: none; height: 100%; overflow-y: auto;">
+                <div class="bt-form-con">
+                    <div class="line">
+                        <span class="tname">实例名称</span>
+                        <div class="info-r">
+                            <input type="text" class="bt-input-text mr5" name="inst_name" placeholder="例如: mall, 只能使用字母数字下划线" style="width: 250px;">
+                            <span class="c9">容器名将被设为 pg-[实例名]，用于严格隔离</span>
+                        </div>
+                    </div>
+                    <div class="line">
+                        <span class="tname">基础存放目录</span>
+                        <div class="info-r">
+                            <input type="text" class="bt-input-text mr5" name="base_dir" value="/docker_data" style="width: 250px;">
+                            <span class="c9">默认 /docker_data，该实例数据将存放在基础目录/[实例名]/ 下</span>
+                        </div>
+                    </div>
+                    <div class="line">
+                        <span class="tname">数据库用户名</span>
+                        <div class="info-r">
+                            <input type="text" class="bt-input-text mr5" name="db_user" value="postgres" style="width: 250px;">
+                        </div>
+                    </div>
+                    <div class="line">
+                        <span class="tname">数据库密码</span>
+                        <div class="info-r">
+                            <input type="text" class="bt-input-text mr5" name="db_pass" placeholder="建议使用复杂密码" style="width: 250px;">
+                        </div>
+                    </div>
+                    <div class="line">
+                        <span class="tname">默认数据库名</span>
+                        <div class="info-r">
+                            <input type="text" class="bt-input-text mr5" name="db_name" value="mydb" style="width: 250px;">
+                        </div>
+                    </div>
+                    <div class="line">
+                        <span class="tname">宿主机端口</span>
+                        <div class="info-r">
+                            <input type="number" class="bt-input-text mr5" name="port" value="5432" style="width: 250px;">
+                            <span class="c9">确保不与服务器已用端口冲突</span>
+                        </div>
+                    </div>
+                    
+                    <div class="line">
+                        <span class="tname">硬盘类型</span>
+                        <div class="info-r">
+                            <select class="bt-input-text mr5" name="disk_type" style="width: 250px;">
+                                <option value="ssd">固态硬盘/NVMe (推荐)</option>
+                                <option value="hdd">机械硬盘单片/普通阵列</option>
+                            </select>
+                            <span class="c9">影响磁盘随机读写预估成本参数 (random_page_cost)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="line">
+                        <span class="tname">业务场景</span>
+                        <div class="info-r">
+                            <select class="bt-input-text mr5" name="scenario" style="width: 250px;">
+                                <option value="general">通用场景 (安全与性能均衡)</option>
+                                <option value="high_concurrency">高并发报表 (读多写少，分配更多工作内存)</option>
+                                <option value="high_throughput">高吞吐日志/IoT (关闭同步提交，极致写入性能)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="line">
+                        <span class="tname">内存上限(MB)</span>
+                        <div class="info-r">
+                            <input type="number" class="bt-input-text mr5" name="mem_limit" placeholder="留空则按服务器总内存自动计算" style="width: 250px;">
+                            <span class="c9">强制不超过服务器总内存 80%，共享缓存等参数将基于此自动推算</span>
+                        </div>
+                    </div>
+
+                    <div class="line">
+                        <span class="tname">备份保留(日)</span>
+                        <div class="info-r">
+                            <input type="number" class="bt-input-text mr5" name="daily_retention" value="7" style="width: 100px;">
+                            <span style="margin-left: 20px;" class="tname">备份保留(周)</span>
+                            <input type="number" class="bt-input-text mr5" name="weekly_retention" value="30" style="width: 100px;">
+                            <span class="c9">每日凌晨 2 点自动备份</span>
+                        </div>
+                    </div>
+                    
+                    <div class="line" style="margin-top: 20px;">
+                        <span class="tname"></span>
+                        <div class="info-r">
+                            <button class="btn btn-success btn-sm" onclick="deployInstance()">提交部署配置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+resetPluginWinHeight(650);
+
+function pgPost(method, args, callback) {
+    var req_data = {
+        name: 'pg_docker',
+        func: method,
+        version: '',
+        args: JSON.stringify(args || {})
+    };
+
+    $.post('/plugins/run', req_data, function(data) {
+        if(typeof(callback) == 'function'){
+            callback(data);
+        }
+    }, 'json').fail(function() {
+        layer.msg('请求失败', {icon: 2});
+    });
+}
+
+function switchTab(tab) {
+    $('.bt-w-menu p').removeClass('bgw');
+    $('.plugin-con').hide();
+    
+    if (tab === 'list') {
+        $('.bt-w-menu p:eq(0)').addClass('bgw');
+        $('#con-list').show();
+        loadList();
+    } else {
+        $('.bt-w-menu p:eq(1)').addClass('bgw');
+        $('#con-deploy').show();
+    }
+}
+
+function loadList() {
+    var loadT = layer.msg('正在获取实例列表...', { icon: 16, time: 0, shade: 0.3 });
+    pgPost('get_list', {}, function(resp) {
+        layer.close(loadT);
+        if (!resp.status) {
+            layer.msg(resp.msg, { icon: 2 });
+            return;
+        }
+        var data = resp.data;
+        if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch(e) {}
+        }
+        
+        var html = '';
+        if (data.length === 0) {
+            html = '<tr><td colspan="6" style="text-align:center;">暂无任何 PostgreSQL Docker 实例</td></tr>';
+        } else {
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                var statusIcon = item.status ? '<span style="color: green;">运行中</span>' : '<span style="color: red;">已停止/异常</span>';
+                html += '<tr>' +
+                    '<td>' + item.name + '</td>' +
+                    '<td>' + statusIcon + '</td>' +
+                    '<td>' + item.port + '</td>' +
+                    '<td>' + item.dbname + '</td>' +
+                    '<td>' + item.path + '</td>' +
+                    '<td style="text-align: right;">' +
+                        '<a href="javascript:;" class="btlink" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">卸载</a>' +
+                    '</td>' +
+                '</tr>';
+            }
+        }
+        $('#pg-instance-list').html(html);
+    });
+}
+
+function deployInstance() {
+    var args = {
+        instance_name: $('input[name="inst_name"]').val(),
+        base_dir: $('input[name="base_dir"]').val(),
+        db_user: $('input[name="db_user"]').val(),
+        db_pass: $('input[name="db_pass"]').val(),
+        db_name: $('input[name="db_name"]').val(),
+        port: $('input[name="port"]').val(),
+        disk_type: $('select[name="disk_type"]').val(),
+        scenario: $('select[name="scenario"]').val(),
+        mem_limit: $('input[name="mem_limit"]').val(),
+        daily_retention: $('input[name="daily_retention"]').val(),
+        weekly_retention: $('input[name="weekly_retention"]').val()
+    };
+    
+    if (!args.instance_name || !args.db_user || !args.db_pass || !args.db_name) {
+        layer.msg('所有带输入框的字段都必须填写完整', {icon: 2});
+        return;
+    }
+    
+    var reg = /^[a-zA-Z0-9_]+$/;
+    if (!reg.test(args.instance_name)) {
+        layer.msg('实例名称只能使用字母、数字、下划线', {icon: 2});
+        return;
+    }
+
+    var loadT = layer.msg('正在渲染模板并拉起容器，这可能需要1-3分钟...', { icon: 16, time: 0, shade: 0.3 });
+    pgPost('create_instance', args, function(resp) {
+        layer.close(loadT);
+        var resData = resp;
+        if(typeof resp.data === 'string') {
+            try { resData = JSON.parse(resp.data); } catch(e){}
+        }
+        
+        layer.msg(resData.msg || resp.msg, { icon: resp.status ? 1 : 2, time: 3000 });
+        if (resp.status) {
+            // 清空表单
+            $('input[name="inst_name"]').val('');
+            switchTab('list');
+        }
+    });
+}
+
+function uninstallInstance(name, path) {
+    layer.open({
+        type: 1,
+        title: '卸载 PostgreSQL 实例',
+        area: '400px',
+        closeBtn: 2,
+        shadeClose: true,
+        content: '<div style="padding: 20px;">' +
+            '<p style="color: red; font-weight: bold;">注意：此操作将停止并移除容器 <code>pg-'+name+'</code>，以及清理所有的定时备份任务！</p>' +
+            '<div style="margin-top: 20px;">' +
+                '<label><input type="checkbox" id="del_data_cb" value="1"> 彻底删除挂载的卷和配置数据 ('+path+')</label>' +
+            '</div>' +
+            '<div style="margin-top: 10px; color: #999; font-size: 12px;">强烈建议勾选前先确保所有重要数据已备份。</div>' +
+            '<div style="margin-top: 20px; text-align: center;">' +
+                '<button class="btn btn-danger btn-sm" onclick="doUninstall(\''+name+'\', \''+path+'\')">确认卸载</button>' +
+            '</div>' +
+        '</div>'
+    });
+}
+
+function doUninstall(name, path) {
+    var keep_data = !$('#del_data_cb').is(':checked');
+    layer.closeAll();
+    var loadT = layer.msg('正在卸载实例...', { icon: 16, time: 0, shade: 0.3 });
+    
+    // 从 path 推算 base_dir
+    var base_dir = path.substring(0, path.lastIndexOf('/'));
+    
+    pgPost('uninstall_instance', { instance_name: name, keep_data: keep_data, base_dir: base_dir }, function(resp) {
+        layer.close(loadT);
+        var resData = resp;
+        if(typeof resp.data === 'string') {
+            try { resData = JSON.parse(resp.data); } catch(e){}
+        }
+        layer.msg(resData.msg || resp.msg, { icon: resp.status ? 1 : 2 });
+        if (resp.status) {
+            loadList();
+        }
+    });
+}
+
+// 自动拉宽所在的 layui-layer 弹窗以适配表单宽度
+var layuiLayer = $('.bt-form').closest('.layui-layer');
+if(layuiLayer.length > 0 && layuiLayer.width() < 700) {
+    layuiLayer.css('width', '700px');
+    var left = ($(window).width() - 700) / 2;
+    layuiLayer.css('left', left + 'px');
+}
+
+// 初始化
+loadList();
+</script>
