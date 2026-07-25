@@ -68,6 +68,11 @@ def get_list():
             dbname = "未知"
             try:
                 content = yf.readFile(compose_file)
+                # 仅显示 pg- 开头的容器，排除其他无关的 docker 容器
+                if 'container_name: pg-' not in content and 'container_name: "pg-' not in content:
+                    del instances_data[inst_name]
+                    continue
+
                 pm = re.search(r'ports:\s*\n\s*-\s*"(\d+):5432"', content)
                 if pm:
                     port = pm.group(1)
@@ -97,6 +102,48 @@ def get_list():
                 
     save_instances(instances_data)
     return yf.returnJson(True, "ok", instances)
+
+def get_config(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+    
+    inst_name = data.get('instance_name', '').strip()
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+    
+    compose_file = os.path.join(instances_data[inst_name], inst_name, "docker-compose.yml")
+    if not os.path.exists(compose_file):
+        return yf.returnJson(False, "配置文件不存在")
+        
+    content = yf.readFile(compose_file)
+    return yf.returnJson(True, "ok", content)
+
+def toggle_status(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+    
+    inst_name = data.get('instance_name', '').strip()
+    action = data.get('action', 'start') # 'start' or 'stop'
+    
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+    
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    if not os.path.exists(instance_path):
+        return yf.returnJson(False, "实例目录不存在")
+        
+    if action == 'start':
+        yf.execShell(f"cd {instance_path} && docker compose start")
+        return yf.returnJson(True, "实例已成功启动")
+    else:
+        yf.execShell(f"cd {instance_path} && docker compose stop")
+        return yf.returnJson(True, "实例已成功停止")
 
 def create_instance(args):
     try:
@@ -400,5 +447,9 @@ if __name__ == "__main__":
         print(uninstall_instance(args))
     elif func == 'install_pre_inspection':
         print(installPreInspection())
+    elif func == 'get_config':
+        print(get_config(args))
+    elif func == 'toggle_status':
+        print(toggle_status(args))
     else:
         print('error')
