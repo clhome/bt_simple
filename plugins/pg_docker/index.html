@@ -185,10 +185,16 @@
                         <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-refresh" style="margin-right: 6px;"></i>一键式状态管理与重建</h4>
                         <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">我们为您提供了丝滑的生命周期管理能力：点击运行状态即可完成容器启停；如遇灾难级故障，仅需在备份管理中点击“还原”，底层引擎将自动掐断残留连接、清理损坏的 Schema 并瞬间完成历史快照的注水恢复，让业务即刻起死回生。</p>
                     </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-globe" style="margin-right: 6px;"></i>动态网络边界控制 (外网访问)</h4>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">实例列表中映射端口旁的 <strong style="color:red;">“外”</strong> 字复选框，用于动态管理数据库的网络暴露范围。勾选（红色）代表允许外部网络直连访问（监听 <code>0.0.0.0</code>）；取消勾选（灰色）代表严格限制仅允许服务器本地访问（监听 <code>127.0.0.1</code>）。每次点击切换，面板都会在后台为您自动修改 Docker 配置并瞬间重启容器，保障边界安全的同时免去手敲命令的烦恼。</p>
+                    </div>
                 </div>
             </div>
             
 		</div>
+        <div style="position: absolute; bottom: 15px; right: 30px; color: #c0c4cc; font-size: 12px; font-weight: 500; letter-spacing: 1px; pointer-events: none; z-index: 100;">衢州御风科技有限公司出品</div>
 	</div>
 </div>
 
@@ -259,7 +265,7 @@ function loadList() {
                     : '<span style="color: red; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'start\')" title="点击启动实例"><i class="glyphicon glyphicon-ban-circle" style="margin-right: 3px;"></i>已停止</span>';
                 var extColor = item.is_external ? 'red' : '#999';
                 var extChecked = item.is_external ? 'checked' : '';
-                var extHtml = '<label style="margin-left:8px; cursor:pointer; font-weight:normal; color:' + extColor + ';">' +
+                var extHtml = '<label title="勾选允许外部网络访问(0.0.0.0)&#10;取消仅限本地网络访问(127.0.0.1)" style="margin-left:8px; cursor:pointer; font-weight:normal; color:' + extColor + ';">' +
                               '<input type="checkbox" ' + extChecked + ' style="vertical-align: middle; margin-top:-2px; margin-right:3px;" onclick="toggleExternal(\''+item.name+'\', this.checked, event)">外</label>';
 
                 html += '<tr>' +
