@@ -39,11 +39,11 @@
                         <thead>
                             <tr>
                                 <th style="text-align: left; width: 15%;">实例名称</th>
-                                <th style="text-align: left; width: 15%;">运行状态</th>
-                                <th style="text-align: left; width: 12%;">映射端口</th>
-                                <th style="text-align: left; width: 18%;">数据库名</th>
+                                <th style="text-align: left; width: 10%;">运行状态</th>
+                                <th style="text-align: left; width: 10%;">映射端口</th>
+                                <th style="text-align: left; width: 15%;">数据库名</th>
                                 <th style="text-align: left; width: 25%;">实例目录</th>
-                                <th style="text-align: right; width: 15%;">操作</th>
+                                <th style="text-align: right; width: 30%;">操作</th>
                             </tr>
                         </thead>
                         <tbody id="pg-instance-list">
@@ -302,7 +302,7 @@ function showConfig(name) {
             type: 1,
             title: '实例 [' + name + '] 配置详情 (docker-compose.yml)',
             area: ['700px', '750px'],
-            closeBtn: 2,
+            closeBtn: 1,
             shadeClose: true,
             content: '<div style="padding: 15px;"><pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; height: 650px; overflow-y: auto; font-family: Consolas, monospace;">' + content + '</pre></div>'
         });
@@ -336,7 +336,7 @@ function uninstallInstance(name, path) {
         type: 1,
         title: '卸载 PostgreSQL 实例',
         area: '400px',
-        closeBtn: 2,
+        closeBtn: 1,
         shadeClose: true,
         content: '<div style="padding: 20px;">' +
             '<p style="color: red; font-weight: bold;">注意：此操作将停止并移除容器 <code>pg-'+name+'</code>，以及清理所有的定时备份任务！</p>' +
