@@ -741,13 +741,14 @@ function checkPgImage() {
             var idx = layer.open({
                 type: 1,
                 title: false,
-                closeBtn: 0,
+                closeBtn: 2,
                 shade: [0.8, '#000'],
                 area: '400px',
                 content: '<div style="padding: 30px; text-align: center; border-radius: 8px;">' +
                             '<h3 style="margin-top:0; color:#333; font-weight:bold;">环境缺失</h3>' +
                             '<p style="color:#666; margin: 20px 0; font-size:14px; line-height:1.6;">系统检测到尚未下载核心依赖镜像 <br><b style="color:#20a53a; font-size:16px;">postgres:18.4-bookworm</b><br>请前往 Docker 管理器进行下载。</p>' +
                             '<button class="btn btn-success" style="width:100%; height:40px; font-size:15px;" onclick="gotoDockerPull(\'' + idx + '\')">前往获取镜像</button>' +
+                            '<div style="margin-top: 15px; font-size: 12px; color: #e6522c; text-align: center;">提示：若已在消息盒子建立拉取任务，请耐心等待下载完成，随后重新打开本插件即可。</div>' +
                          '</div>',
                 success: function(layero) {
                     $('.bt-w-main').css('filter', 'blur(3px)');
