@@ -1,5 +1,6 @@
 {
 	"title": "phpMyAdmin",
+	"sort": 98,
 	"tip": "soft",
 	"name": "phpmyadmin",
 	"type": "运行环境",

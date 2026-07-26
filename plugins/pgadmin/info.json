@@ -1,5 +1,6 @@
 {
 	"title":"pgadmin",
+	"sort": 95,
 	"tip":"soft",
 	"name":"pgadmin",
 	"type":"运行环境",

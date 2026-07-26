@@ -19,7 +19,7 @@
             }
         }
     ],
-    "sort": 100,
+    "sort": 99,
     "ps": "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。",
     "name": "data_query",
     "title": "数据管理",

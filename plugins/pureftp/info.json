@@ -1,5 +1,6 @@
 {
 	"title":"PureFtpd",
+	"sort": 90,
 	"tip":"soft",
 	"name":"pureftp",
 	"ps":"一款免费FTP服务器软件",

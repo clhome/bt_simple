@@ -1,5 +1,5 @@
 {
-    "sort": 100,
+    "sort": 80,
     "ps": "一个高性能的KV数据库",
     "name": "redis",
     "title": "Redis",
