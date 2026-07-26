@@ -1398,8 +1398,8 @@ function dockerDir() {
                 <tbody id="docker_dir_list"></tbody>\
             </table>\
         </div>\
-        <div style="margin-top: 15px;">\
-            <h4>迁移 Docker 目录</h4>\
+        <div style="margin: 15px 0;">\
+            <h4 style="margin-bottom: 12px; font-weight: normal; color: #333;">一键迁移 Docker 目录</h4>\
             <div class="form-inline">\
                 <input type="text" id="new_docker_dir" class="bt-input-text mr5" placeholder="请输入新的Docker目录路径，如 /www/docker" style="width:300px;">\
                 <button onclick="dockerMigrate()" class="btn btn-success btn-sm" type="button">开始迁移</button>\
