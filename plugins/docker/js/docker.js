@@ -1453,16 +1453,31 @@ function dockerMigrate() {
         layer.msg('请输入新路径', { icon: 2 });
         return;
     }
-    safeMessage('迁移 Docker 目录', '迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要迁移到 ' + new_path + ' 吗？', function() {
-        var loadT = layer.msg('正在迁移数据，这可能需要很长时间，请勿刷新页面...', { icon: 16, time: 0, shade: 0.3 });
-        dPost('migrate_docker_dir', '', { new_path: new_path }, function(rdata) {
-            layer.close(loadT);
-            var rdata = JSON.parse(rdata.data);
-            showMsg(rdata.msg, function() {
-                if (rdata.status) {
-                    dockerDirRender();
-                }
-            }, { icon: rdata.status ? 1 : 2, time: 3000 });
+    
+    var checkT = layer.msg('正在校验目标分区可用空间，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+    dPost('check_docker_migrate_space', '', { new_path: new_path }, function(rdata) {
+        layer.close(checkT);
+        var rdata = JSON.parse(rdata.data);
+        if (!rdata.status) {
+            layer.msg(rdata.msg, { icon: 2, time: 5000 });
+            return;
+        }
+        
+        var req = rdata.data.required;
+        var avail = rdata.data.available;
+        var msg = '当前Docker占用总空间为 <b>' + req + '</b>，目标目录可用空间为 <b>' + avail + '</b>。<br><br>迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到 ' + new_path + ' 吗？';
+        
+        safeMessage('确认迁移 Docker 目录', msg, function() {
+            var loadT = layer.msg('正在迁移数据，这可能需要很长时间，请勿刷新页面...', { icon: 16, time: 0, shade: 0.3 });
+            dPost('migrate_docker_dir', '', { new_path: new_path }, function(rdata2) {
+                layer.close(loadT);
+                var rdata2 = JSON.parse(rdata2.data);
+                showMsg(rdata2.msg, function() {
+                    if (rdata2.status) {
+                        dockerDirRender();
+                    }
+                }, { icon: rdata2.status ? 1 : 2, time: 3000 });
+            });
         });
     });
 }

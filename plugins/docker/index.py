@@ -970,6 +970,62 @@ def getDockerDirInfo():
         return yf.returnJson(False, str(e))
 
 
+def checkDockerMigrateSpace():
+    args = getArgs()
+    data = checkArgs(args, ['new_path'])
+    if not data[0]:
+        return data[1]
+
+    new_path = args['new_path'].strip()
+    if not new_path:
+        return yf.returnJson(False, '新路径不能为空')
+
+    try:
+        cmd_root = "docker info --format '{{.DockerRootDir}}'"
+        out, err = yf.execShell(cmd_root)
+        docker_root = out.strip() if out else "/var/lib/docker"
+
+        if docker_root == new_path:
+            return yf.returnJson(False, '新路径不能与当前路径相同')
+
+        if not os.path.exists(new_path):
+            try:
+                os.makedirs(new_path)
+            except Exception as e:
+                return yf.returnJson(False, '无法创建新路径，请检查权限或路径格式: ' + str(e))
+
+        cmd_du = 'du -sk %s' % shlex.quote(docker_root)
+        out_du, err_du = yf.execShell(cmd_du)
+        required_kb = 0
+        if out_du:
+            try:
+                required_kb = int(out_du.strip().split()[0])
+            except:
+                pass
+
+        cmd_df = 'df -P -k %s' % shlex.quote(new_path)
+        out_df, err_df = yf.execShell(cmd_df)
+        if out_df and required_kb > 0:
+            try:
+                lines = out_df.strip().split('\n')
+                if len(lines) >= 2:
+                    parts = lines[-1].split()
+                    available_kb = int(parts[3])
+                    req_size = yf.toSize(required_kb * 1024)
+                    avail_size = yf.toSize(available_kb * 1024)
+                    
+                    if required_kb > available_kb * 0.95:
+                        return yf.returnJson(False, '目标分区空间不足！预估需要: %s，目标可用: %s' % (req_size, avail_size))
+                    
+                    return yf.returnJson(True, 'ok', {'required': req_size, 'available': avail_size})
+            except:
+                pass
+        
+        return yf.returnJson(True, 'ok', {'required': '未知', 'available': '未知'})
+    except Exception as e:
+        return yf.returnJson(False, str(e))
+
+
 def migrateDockerDir():
     args = getArgs()
     data = checkArgs(args, ['new_path'])
@@ -992,12 +1048,41 @@ def migrateDockerDir():
         if not os.path.exists(new_path):
             os.makedirs(new_path)
 
+        # 检查剩余空间
+        cmd_du = 'du -sk %s' % shlex.quote(docker_root)
+        out_du, err_du = yf.execShell(cmd_du)
+        required_kb = 0
+        if out_du:
+            try:
+                required_kb = int(out_du.strip().split()[0])
+            except:
+                pass
+
+        cmd_df = 'df -P -k %s' % shlex.quote(new_path)
+        out_df, err_df = yf.execShell(cmd_df)
+        if out_df and required_kb > 0:
+            try:
+                lines = out_df.strip().split('\n')
+                if len(lines) >= 2:
+                    parts = lines[-1].split()
+                    available_kb = int(parts[3])
+                    # 预留 5% 缓冲空间，防止把目标分区写满
+                    if required_kb > available_kb * 0.95:
+                        req_size = yf.toSize(required_kb * 1024)
+                        avail_size = yf.toSize(available_kb * 1024)
+                        return yf.returnJson(False, '目标分区空间不足！预估需要: %s，目标可用: %s' % (req_size, avail_size))
+            except:
+                pass
+
         # 停止docker
         yf.execShell('systemctl stop docker')
+        yf.execShell('systemctl stop docker.socket')
 
         # 同步数据
-        sync_cmd = 'rsync -aP %s/ %s/' % (shlex.quote(docker_root), shlex.quote(new_path))
-        yf.execShell(sync_cmd)
+        sync_cmd = 'rsync -a %s/ %s/' % (shlex.quote(docker_root), shlex.quote(new_path))
+        out, err = yf.execShell(sync_cmd)
+        if err and err.strip():
+            raise Exception("数据同步失败: " + err.strip())
 
         # 修改daemon.json
         daemon_file = get_daemon_json_path()
@@ -1020,12 +1105,14 @@ def migrateDockerDir():
         # 启动docker
         if not yf.isAppleSystem() and os.name != 'nt':
             yf.execShell('systemctl daemon-reload')
+            yf.execShell('systemctl start docker.socket')
             yf.execShell('systemctl start docker')
         
         return yf.returnJson(True, '迁移成功！')
     except Exception as e:
         # 尝试恢复
         if not yf.isAppleSystem() and os.name != 'nt':
+            yf.execShell('systemctl start docker.socket')
             yf.execShell('systemctl start docker')
         return yf.returnJson(False, '迁移失败: ' + str(e))
 
@@ -1106,5 +1193,7 @@ if __name__ == "__main__":
         print(getDockerDirInfo())
     elif func == 'migrate_docker_dir':
         print(migrateDockerDir())
+    elif func == 'check_docker_migrate_space':
+        print(checkDockerMigrateSpace())
     else:
         print('error')
