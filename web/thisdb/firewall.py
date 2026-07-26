@@ -23,7 +23,7 @@ except:
 
 __FIELD = 'id,port,protocol,status,type,ps,add_time,update_time'
 
-def getFirewallList(page=1, size=10, search_port='', search_ps='', stype='port'):
+def getFirewallList(page=1, size=10, search_port='', search_ps='', stype='port', sort_dir=''):
     start = (int(page) - 1) * (int(size))
     limit = str(start) + ',' + str(size)
 
@@ -60,7 +60,12 @@ def getFirewallList(page=1, size=10, search_port='', search_ps='', stype='port')
     if where:
         m = m.where(where, tuple(params))
 
-    firewall_list = m.limit(limit).order('id desc').select()
+    if sort_dir in ['asc', 'desc']:
+        order_str = "CAST(SUBSTR(port, 1, INSTR(port || ':', ':') - 1) AS INTEGER) " + sort_dir
+    else:
+        order_str = "id desc"
+
+    firewall_list = m.limit(limit).order(order_str).select()
     
     # 再次使用带条件的对象获取总数
     count_obj = yf.M('firewall')

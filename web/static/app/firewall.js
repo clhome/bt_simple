@@ -1,4 +1,28 @@
 var currentType = 'port';
+var currentSortDir = ''; // '', 'asc', 'desc'
+
+function togglePortSort() {
+    if (currentSortDir === '') {
+        currentSortDir = 'asc';
+    } else if (currentSortDir === 'asc') {
+        currentSortDir = 'desc';
+    } else {
+        currentSortDir = '';
+    }
+    
+    var icon = $('#port_sort_icon');
+    icon.removeClass('glyphicon-sort glyphicon-sort-by-attributes glyphicon-sort-by-attributes-alt');
+    if (currentSortDir === 'asc') {
+        icon.addClass('glyphicon-sort-by-attributes').css('color', '#333');
+    } else if (currentSortDir === 'desc') {
+        icon.addClass('glyphicon-sort-by-attributes-alt').css('color', '#333');
+    } else {
+        icon.addClass('glyphicon-sort').css('color', '#ccc');
+    }
+    
+    showAccept(1);
+}
+
 function switchTab(type, obj) {
     currentType = type;
     $(".tab-nav-view span").removeClass("active");
@@ -381,7 +405,12 @@ function showAccept(page) {
 	var stype = currentType == 'port' ? 'port' : ''; // stype will be set by the active selection if not 'port'
 
 	var loadT = layer.load();
-	$.post('/firewall/get_list','limit=10&p=' + page+"&search_port="+search_port+"&search_ps="+search_ps+"&stype="+currentType, function(data) {
+	var postData = 'limit=10&p=' + page + "&search_port=" + search_port + "&search_ps=" + search_ps + "&stype=" + currentType;
+	if (currentType === 'port' && typeof currentSortDir !== 'undefined' && currentSortDir !== '') {
+	    postData += "&sort_dir=" + currentSortDir;
+	}
+	
+	$.post('/firewall/get_list', postData, function(data) {
 		layer.close(loadT);
 		var body = '';
 		for (var i = 0; i < data.data.length; i++) {

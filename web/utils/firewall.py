@@ -232,8 +232,8 @@ class Firewall(object):
             pass
         return None
 
-    def getList(self, page=1, size=10, search_port='', search_ps='', stype='port'):
-        info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps, stype=stype)
+    def getList(self, page=1, size=10, search_port='', search_ps='', stype='port', sort_dir=''):
+        info = thisdb.getFirewallList(page=page, size=size, search_port=search_port, search_ps=search_ps, stype=stype, sort_dir=sort_dir)
         
         for i in range(len(info['list'])):
             if info['list'][i].get('type', 'port') == 'port' or stype == 'port':

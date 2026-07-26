@@ -341,7 +341,7 @@
                   <tr>
                     <th width="50">ID</th>
                     <th id="th_protocol" width="80">协议</th>
-                    <th id="th_port" width="200">端口</th>
+                    <th id="th_port" width="200" style="cursor: pointer;" onclick="togglePortSort()">端口 <span id="port_sort_icon" class="glyphicon glyphicon-sort" style="color: #ccc; font-size: 12px; margin-left: 2px;"></span></th>
                     <th id="th_port_status" width="160">
                         进程名称
                         <span class="glyphicon glyphicon-info-sign" style="color: #999; margin-left: 3px; font-weight: normal; cursor: pointer;" title="出于系统性能考虑，放行端口范围时（如 999:1100）将不会扫描并显示具体进程名称。"></span>

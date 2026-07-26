@@ -37,7 +37,8 @@ def get_list():
     search_port = request.form.get('search_port', '').strip()
     search_ps = request.form.get('search_ps', '').strip()
     stype = request.form.get('stype', 'port').strip()
-    return YfFirewall.instance().getList(p, limit, search_port, search_ps, stype)
+    sort_dir = request.form.get('sort_dir', '').strip()
+    return YfFirewall.instance().getList(p, limit, search_port, search_ps, stype, sort_dir)
 
 # 获取客户端IP
 @blueprint.route('/get_client_ip', endpoint='get_client_ip', methods=['POST'])
