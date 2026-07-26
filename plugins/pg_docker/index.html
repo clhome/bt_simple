@@ -279,7 +279,7 @@ function loadList() {
                     '</td>' +
                     '<td><span style="color: #999; font-size: 12px;">' + item.path + '</span></td>' +
                     '<td style="text-align: right;">' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px;"></i>备份管理</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>备份管理</a>' +
                         '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>详细配置</a>' +
                         '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">卸载实例</a>' +
                     '</td>' +

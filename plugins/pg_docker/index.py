@@ -101,6 +101,9 @@ def get_list():
             if res[0].strip() != '':
                 is_running = True
             
+            cron_file = f"/etc/cron.d/pg_backup_{inst_name}"
+            auto_backup_enabled = os.path.exists(cron_file)
+
             instances.append({
                 "name": inst_name,
                 "path": instance_path,
@@ -109,7 +112,8 @@ def get_list():
                 "dbname": dbname,
                 "dbuser": dbuser,
                 "dbpass": dbpass,
-                "status": is_running
+                "status": is_running,
+                "auto_backup": auto_backup_enabled
             })
         else:
             # 目录或文件不存在，说明已失效，清理掉
