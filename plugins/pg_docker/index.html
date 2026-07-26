@@ -447,6 +447,27 @@ function doUninstall(name, path) {
         }
     });
 }
+function toggleAutoBackup(name, enable) {
+    var actionName = enable ? '开启' : '关闭';
+    layer.confirm('确定要'+actionName+'实例 ['+name+'] 的自动备份计划任务吗？', {
+        title: '确认'+actionName,
+        btn: ['确定', '取消']
+    }, function() {
+        var loadT = layer.msg('正在'+actionName+'自动备份...', { icon: 16, time: 0, shade: 0.3 });
+        pgPost('toggle_auto_backup', { instance_name: name, enable: enable }, function(resp) {
+            layer.close(loadT);
+            var resData = resp;
+            if (typeof resp.data === 'string') {
+                try { resData = JSON.parse(resp.data); } catch(e){}
+            }
+            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2 });
+            if (resData.status || resp.status) {
+                layer.closeAll('page');
+                setTimeout(function(){ showBackups(name); }, 300);
+            }
+        });
+    });
+}
 
 function copyToClipboard(text, itemName) {
     var textarea = document.createElement("textarea");
@@ -503,10 +524,22 @@ function showBackups(name) {
             return h;
         };
 
+        var autoBackupHtml = '';
+        if (bk.auto_backup_enabled) {
+            autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+name+'\', false)">' +
+                '<i class="glyphicon glyphicon-ok-sign" style="color: #20a53a; margin-right: 5px;"></i>' +
+                '<span style="color: #666; font-size: 13px;">自动备份运行中</span></span>';
+        } else {
+            autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+name+'\', true)">' +
+                '<i class="glyphicon glyphicon-remove-sign" style="color: red; margin-right: 5px;"></i>' +
+                '<span style="color: #666; font-size: 13px;">自动备份未启动</span></span>';
+        }
+
         var html = '<div style="padding: 15px;">' +
             '<div class="mb15">' +
                 '<h4 style="display:inline-block; margin-right:15px;">日备份 (近7天)</h4>' +
                 '<button class="btn btn-success btn-xs" onclick="doManualBackup(\''+name+'\')"><i class="glyphicon glyphicon-floppy-save"></i> 一键备份当前数据</button>' +
+                autoBackupHtml +
             '</div>' +
             '<div class="divtable">' +
                 '<table class="table table-hover" width="100%">' +

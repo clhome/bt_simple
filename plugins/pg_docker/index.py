@@ -193,11 +193,42 @@ def get_backups(args):
         lst.sort(key=lambda x: x["timestamp"], reverse=True)
         return lst
 
+    cron_file = f"/etc/cron.d/pg_backup_{inst_name}"
+    auto_backup_enabled = os.path.exists(cron_file)
+    
     result = {
         "daily": scan_dir(daily_dir),
-        "weekly": scan_dir(weekly_dir)
+        "weekly": scan_dir(weekly_dir),
+        "auto_backup_enabled": auto_backup_enabled
     }
     return yf.returnJson(True, "ok", result)
+
+def toggle_auto_backup(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    enable = data.get('enable', False)
+    
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+        
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    script_path = os.path.join(instance_path, "scripts", "backup.sh")
+    log_path = os.path.join(instance_path, "logs", "backup.log")
+    cron_file = f"/etc/cron.d/pg_backup_{inst_name}"
+    
+    if enable:
+        cron_content = f"0 2 * * * root /bin/bash {script_path} >> {log_path} 2>&1\n"
+        yf.writeFile(cron_file, cron_content)
+        return yf.returnJson(True, "自动备份计划已开启")
+    else:
+        if os.path.exists(cron_file):
+            os.remove(cron_file)
+        return yf.returnJson(True, "自动备份计划已关闭")
 
 def create_backup(args):
     try:
@@ -633,12 +664,14 @@ if __name__ == "__main__":
         print(toggle_status(args))
     elif func == 'get_backups':
         print(get_backups(args))
-    elif func == 'create_backup':
-        print(create_backup(args))
-    elif func == 'restore_backup':
-        print(restore_backup(args))
+    elif func == 'toggle_auto_backup':
+        print(toggle_auto_backup(args))
+    elif func == 'manual_backup':
+        print(manual_backup(args))
     elif func == 'delete_backup':
         print(delete_backup(args))
+    elif func == 'restore_backup':
+        print(restore_backup(args))
     elif func == 'toggle_external_port':
         print(toggle_external_port(args))
     else:
