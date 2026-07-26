@@ -159,9 +159,11 @@ def toggle_status(args):
         
     if action == 'start':
         yf.execShell(f"cd {instance_path} && docker compose start")
+        write_log(inst_name, "start", "启动实例容器成功")
         return yf.returnJson(True, "实例已成功启动")
     else:
         yf.execShell(f"cd {instance_path} && docker compose stop")
+        write_log(inst_name, "stop", "停止实例容器成功")
         return yf.returnJson(True, "实例已成功停止")
 
 def get_backups(args):
@@ -178,6 +180,7 @@ def get_backups(args):
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     daily_dir = os.path.join(instance_path, "backups", "daily")
     weekly_dir = os.path.join(instance_path, "backups", "weekly")
+    manual_dir = os.path.join(instance_path, "backups", "manual")
     
     def scan_dir(path):
         lst = []
@@ -203,6 +206,7 @@ def get_backups(args):
     result = {
         "daily": scan_dir(daily_dir),
         "weekly": scan_dir(weekly_dir),
+        "manual": scan_dir(manual_dir),
         "auto_backup_enabled": auto_backup_enabled
     }
     return yf.returnJson(True, "ok", result)
@@ -226,12 +230,15 @@ def toggle_auto_backup(args):
     cron_file = f"/etc/cron.d/pg_backup_{inst_name}"
     
     if enable:
-        cron_content = f"0 2 * * * root /bin/bash {script_path} >> {log_path} 2>&1\n"
-        yf.writeFile(cron_file, cron_content)
+        cron_content = f"0 2 * * * root /bin/bash {script_path} >> {getServerDir()}/plugin.log 2>&1\n"
+        with open(cron_file, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(cron_content)
+        write_log(inst_name, "cron", "自动备份计划已开启")
         return yf.returnJson(True, "自动备份计划已开启")
     else:
         if os.path.exists(cron_file):
             os.remove(cron_file)
+        write_log(inst_name, "cron", "自动备份计划已关闭")
         return yf.returnJson(True, "自动备份计划已关闭")
 
 def create_backup(args):
@@ -251,10 +258,14 @@ def create_backup(args):
     if not os.path.exists(script_path):
         return yf.returnJson(False, "备份脚本不存在，可能实例已损坏")
         
-    # Execute backup script
-    output = yf.execShell(f"/bin/bash {script_path}")
+    # Execute backup script with manual arg
+    output = yf.execShell(f"/bin/bash {script_path} manual")
+    # record output to log
+    full_output = (output[0] + "\n" + output[1]).strip()
+    write_log(inst_name, "manual_backup", full_output)
+    
     if "备份失败" in output[0] or "备份失败" in output[1]:
-        return yf.returnJson(False, f"备份失败！输出: {output[0]} {output[1]}")
+        return yf.returnJson(False, f"备份失败！输出: {output[0][:100]} {output[1][:100]}")
     
     return yf.returnJson(True, "一键备份成功！")
 
@@ -287,13 +298,16 @@ def restore_backup(args):
         target_cmd = 'pg_restore -U ${DB_USER} -d ${DB_NAME} "$RESTORE_FILE"'
         if target_cmd in script_content:
             script_content = script_content.replace(target_cmd, 'pg_restore -U ${DB_USER} -d ${DB_NAME} < "$RESTORE_FILE"')
-            with open(script_path, 'w', encoding='utf-8') as f:
+            with open(script_path, 'w', encoding='utf-8', newline='\n') as f:
                 f.write(script_content)
     except:
         pass
         
     # Execute restore script in background or wait for it.
     output = yf.execShell(f"/bin/bash {script_path} {file_path}")
+    full_output = (output[0] + "\n" + output[1]).strip()
+    write_log(inst_name, "restore", full_output)
+    
     if "数据还原完成" in output[0] or "数据还原完成" in output[1]:
         return yf.returnJson(True, "数据已成功还原！")
     else:
@@ -317,6 +331,7 @@ def delete_backup(args):
         
     try:
         os.remove(file_path)
+        write_log(inst_name, "delete_backup", f"删除了备份文件: {file_path}")
         return yf.returnJson(True, "备份删除成功！")
     except Exception as e:
         return yf.returnJson(False, f"删除失败: {str(e)}")
@@ -413,11 +428,11 @@ def create_instance(args):
         work_mem_mb = 8
         maintenance_work_mem_mb = 256
 
-    # 1. 创建目录
     yf.execShell(f"mkdir -p {inst_dir}/conf")
     yf.execShell(f"mkdir -p {inst_dir}/data")
     yf.execShell(f"mkdir -p {inst_dir}/backups/daily")
     yf.execShell(f"mkdir -p {inst_dir}/backups/weekly")
+    yf.execShell(f"mkdir -p {inst_dir}/backups/manual")
     yf.execShell(f"mkdir -p {inst_dir}/scripts")
     yf.execShell(f"mkdir -p {inst_dir}/logs")
     
@@ -533,20 +548,28 @@ DB_NAME="{db_name}"
 BACKUP_DIR="{inst_dir}/backups"
 DAILY_RETENTION={daily_retention}
 WEEKLY_RETENTION={weekly_retention}
+BACKUP_TYPE=${{1:-auto}}
 
 DATE=$(date +%Y%m%d_%H%M%S)
 DAILY_DIR="${{BACKUP_DIR}}/daily"
 WEEKLY_DIR="${{BACKUP_DIR}}/weekly"
+MANUAL_DIR="${{BACKUP_DIR}}/manual"
 FILENAME="${{DB_NAME}}_${{DATE}}.dump"
-BACKUP_PATH="${{DAILY_DIR}}/${{FILENAME}}"
+
+if [ "$BACKUP_TYPE" == "manual" ]; then
+    BACKUP_PATH="${{MANUAL_DIR}}/${{FILENAME}}"
+    mkdir -p "$MANUAL_DIR"
+else
+    BACKUP_PATH="${{DAILY_DIR}}/${{FILENAME}}"
+    mkdir -p "$DAILY_DIR" "$WEEKLY_DIR"
+fi
 
 if [ "$(docker inspect -f '{{{{.State.Running}}}}' ${{CONTAINER_NAME}} 2>/dev/null)" != "true" ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 容器未运行，跳过备份."
     exit 0
 fi
 
-mkdir -p "$DAILY_DIR" "$WEEKLY_DIR"
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] 开始数据库备份: ${{DB_NAME}}..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 开始数据库备份: ${{DB_NAME}} (${{BACKUP_TYPE}})..."
 
 docker exec -i ${{CONTAINER_NAME}} pg_dump -U ${{DB_USER}} -d ${{DB_NAME}} -Fc > "${{BACKUP_PATH}}"
 
@@ -558,16 +581,22 @@ else
     exit 1
 fi
 
+if [ "$BACKUP_TYPE" == "manual" ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 手动备份完成，跳过自动清理."
+    exit 0
+fi
+
 if [ $(date +%u) -eq 7 ]; then
     cp "${{BACKUP_PATH}}" "${{WEEKLY_DIR}}/${{FILENAME}}"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] 已同步保存至每周备份目录."
 fi
 
-find "${{DAILY_DIR}}" -type f -name "*.dump" -mtime +${{DAILY_RETENTION}} -exec rm -f {{}} \\;
-find "${{WEEKLY_DIR}}" -type f -name "*.dump" -mtime +${{WEEKLY_RETENTION}} -exec rm -f {{}} \\;
+ls -t "${{DAILY_DIR}}"/*.dump 2>/dev/null | tail -n +$((${{DAILY_RETENTION}} + 1)) | xargs -r rm -f
+ls -t "${{WEEKLY_DIR}}"/*.dump 2>/dev/null | tail -n +$((${{WEEKLY_RETENTION}} + 1)) | xargs -r rm -f
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 历史备份清理完毕."
 """
-    yf.writeFile(f"{inst_dir}/scripts/backup.sh", backup_sh)
+    with open(f"{inst_dir}/scripts/backup.sh", 'w', encoding='utf-8', newline='\n') as f:
+        f.write(backup_sh)
     yf.execShell(f"chmod +x {inst_dir}/scripts/backup.sh")
 
     # 5. 生成恢复脚本
@@ -595,12 +624,14 @@ CREATE SCHEMA public AUTHORIZATION ${{DB_USER}};
 docker exec -i ${{CONTAINER_NAME}} pg_restore -U ${{DB_USER}} -d ${{DB_NAME}} < "$RESTORE_FILE"
 echo "✅ 数据还原完成！"
 """
-    yf.writeFile(f"{inst_dir}/scripts/restore.sh", restore_sh)
+    with open(f"{inst_dir}/scripts/restore.sh", 'w', encoding='utf-8', newline='\n') as f:
+        f.write(restore_sh)
     yf.execShell(f"chmod +x {inst_dir}/scripts/restore.sh")
 
     # 6. 设置独立计划任务
     cron_content = f"0 2 * * * root /bin/bash {inst_dir}/scripts/backup.sh >> {inst_dir}/logs/backup.log 2>&1\n"
-    yf.writeFile(f"/etc/cron.d/pg_backup_{inst_name}", cron_content)
+    with open(f"/etc/cron.d/pg_backup_{inst_name}", 'w', encoding='utf-8', newline='\n') as f:
+        f.write(cron_content)
 
     # 7. 启动容器
     yf.execShell(f"cd {inst_dir} && docker compose up -d")
@@ -609,6 +640,8 @@ echo "✅ 数据还原完成！"
     instances_data = load_instances()
     instances_data[inst_name] = base_dir
     save_instances(instances_data)
+    
+    write_log(inst_name, "create", "实例部署成功！容器已启动。")
 
     return yf.returnJson(True, "实例部署成功！容器正在启动中...")
 
@@ -647,9 +680,58 @@ def uninstall_instance(args):
     if inst_name in instances_data:
         del instances_data[inst_name]
         save_instances(instances_data)
+        
+    write_log(inst_name, "uninstall", f"实例已被卸载。保留数据: {keep_data}")
 
     return yf.returnJson(True, "实例已成功卸载！")
 
+def write_log(inst_name, action, msg):
+    log_file = os.path.join(getServerDir(), 'plugin.log')
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    try:
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(f"[{time_str}] [{inst_name}] [{action}] {msg}\n")
+    except:
+        pass
+
+def get_logs(args):
+    log_file = os.path.join(getServerDir(), 'plugin.log')
+    if not os.path.exists(log_file):
+        return yf.returnJson(True, "ok", "")
+    
+    seven_days_ago = time.time() - 7 * 24 * 3600
+    new_lines = []
+    try:
+        with open(log_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+        for line in lines:
+            m = re.match(r'^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]', line)
+            if m:
+                try:
+                    log_time = time.mktime(time.strptime(m.group(1), "%Y-%m-%d %H:%M:%S"))
+                    if log_time > seven_days_ago:
+                        new_lines.append(line)
+                except:
+                    new_lines.append(line)
+            else:
+                new_lines.append(line)
+                
+        if len(new_lines) < len(lines):
+            with open(log_file, 'w', encoding='utf-8') as f:
+                f.writelines(new_lines)
+    except:
+        pass
+        
+    return yf.returnJson(True, "ok", "".join(new_lines))
+
+def clear_logs(args):
+    log_file = os.path.join(getServerDir(), 'plugin.log')
+    try:
+        with open(log_file, 'w', encoding='utf-8') as f:
+            f.write("")
+        return yf.returnJson(True, "日志已清空")
+    except Exception as e:
+        return yf.returnJson(False, f"清空日志失败: {str(e)}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -675,13 +757,17 @@ if __name__ == "__main__":
         print(get_backups(args))
     elif func == 'toggle_auto_backup':
         print(toggle_auto_backup(args))
-    elif func == 'manual_backup':
-        print(manual_backup(args))
+    elif func == 'create_backup':
+        print(create_backup(args))
     elif func == 'delete_backup':
         print(delete_backup(args))
     elif func == 'restore_backup':
         print(restore_backup(args))
     elif func == 'toggle_external_port':
         print(toggle_external_port(args))
+    elif func == 'get_logs':
+        print(get_logs(args))
+    elif func == 'clear_logs':
+        print(clear_logs(args))
     else:
         print('error')

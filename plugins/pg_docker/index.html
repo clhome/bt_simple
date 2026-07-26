@@ -31,6 +31,7 @@
 		<div class="bt-w-menu">
 			<p class="bgw" onclick="switchTab('list');">实例列表</p>
 			<p onclick="switchTab('deploy');">部署新实例</p>
+			<p onclick="switchTab('logs');">日志</p>
 			<p onclick="switchTab('readme');">使用说明</p>
 		</div>
 		<div class="bt-w-con pd15">
@@ -136,15 +137,15 @@
                         </div>
                     </div>
                     <div class="line">
-                        <span class="tname">日备份保留天数</span>
+                        <span class="tname">日备份保留份数</span>
                         <div class="info-r">
-                            <input type="number" class="bt-input-text mr5" name="daily_retention" value="7" style="width: 250px;">
+                            <input type="number" class="bt-input-text mr5" name="daily_retention" value="5" style="width: 250px;">
                         </div>
                     </div>
                     <div class="line">
-                        <span class="tname">周保留备份天数</span>
+                        <span class="tname">周备份保留份数</span>
                         <div class="info-r">
-                            <input type="number" class="bt-input-text mr5" name="weekly_retention" value="30" style="width: 250px;">
+                            <input type="number" class="bt-input-text mr5" name="weekly_retention" value="3" style="width: 250px;">
                         </div>
                     </div>
                     
@@ -193,6 +194,17 @@
                 </div>
             </div>
             
+            <div class="plugin-con" id="con-logs" style="display: none; height: 100%;">
+                <div style="display: flex; flex-direction: column; height: 100%;">
+                    <div style="flex: 1; margin-bottom: 15px;">
+                        <textarea id="plugin-log-content" readonly style="width: 100%; height: 100%; background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; border: none; resize: none;"></textarea>
+                    </div>
+                    <div style="text-align: right;">
+                        <button class="btn btn-default btn-sm" onclick="loadPluginLogs()">刷新日志</button>
+                        <button class="btn btn-danger btn-sm ml10" onclick="clearPluginLogs()">一键清除</button>
+                    </div>
+                </div>
+            </div>
 		</div>
         <div style="position: absolute; bottom: 15px; right: 30px; color: #c0c4cc; font-size: 12px; font-weight: 500; letter-spacing: 1px; pointer-events: none; z-index: 100;">衢州御风科技有限公司出品</div>
 	</div>
@@ -220,18 +232,20 @@ function pgPost(method, args, callback) {
 
 function switchTab(tab) {
     $('.bt-w-menu p').removeClass('bgw');
+    var tabIdx = {'list': 0, 'deploy': 1, 'logs': 2, 'readme': 3};
+    $('.bt-w-menu p:eq('+tabIdx[tab]+')').addClass('bgw');
     $('.plugin-con').hide();
     
     if (tab === 'list') {
-        $('.bt-w-menu p:eq(0)').addClass('bgw');
         $('#con-list').show();
         loadList();
-    } else if (tab === 'readme') {
-        $('.bt-w-menu p:eq(2)').addClass('bgw');
-        $('#con-readme').show();
-    } else {
-        $('.bt-w-menu p:eq(1)').addClass('bgw');
+    } else if (tab === 'deploy') {
         $('#con-deploy').show();
+    } else if (tab === 'logs') {
+        $('#con-logs').show();
+        loadPluginLogs();
+    } else if (tab === 'readme') {
+        $('#con-readme').show();
     }
 }
 
@@ -287,6 +301,34 @@ function loadList() {
             }
         }
         $('#pg-instance-list').html(html);
+    });
+}
+
+function loadPluginLogs() {
+    pgPost('get_logs', {}, function(resp) {
+        if (!resp.status) {
+            layer.msg(resp.msg, {icon: 2});
+            return;
+        }
+        var data = resp.data;
+        if (typeof data === 'string') {
+            try { data = JSON.parse(data); } catch(e) {}
+        }
+        var logContent = (data && data.data !== undefined) ? data.data : data;
+        
+        $('#plugin-log-content').val(logContent);
+        var textarea = document.getElementById('plugin-log-content');
+        textarea.scrollTop = textarea.scrollHeight;
+    });
+}
+
+function clearPluginLogs() {
+    layer.confirm('确定要清除日志吗？', {icon: 3, title: '清除日志'}, function(index) {
+        pgPost('clear_logs', {}, function(resp) {
+            layer.msg(resp.msg, {icon: resp.status ? 1 : 2});
+            if (resp.status) loadPluginLogs();
+        });
+        layer.close(index);
     });
 }
 
@@ -553,6 +595,13 @@ function showBackups(name) {
                 '<table class="table table-hover" width="100%">' +
                     '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th style="text-align:right;">操作</th></tr></thead>' +
                     '<tbody>' + renderTable(bk.weekly) + '</tbody>' +
+                '</table>' +
+            '</div>' +
+            '<h4 style="margin-top:20px;">手动备份 (长效保留)</h4>' +
+            '<div class="divtable mt10">' +
+                '<table class="table table-hover" width="100%">' +
+                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th style="text-align:right;">操作</th></tr></thead>' +
+                    '<tbody>' + renderTable(bk.manual) + '</tbody>' +
                 '</table>' +
             '</div>' +
         '</div>';
