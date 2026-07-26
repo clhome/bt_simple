@@ -516,6 +516,7 @@ function showBackups(name) {
                     '<td>'+it.size+'</td>' +
                     '<td>'+it.time+'</td>' +
                     '<td style="text-align:right;">' +
+                        '<a href="/files/download?filename='+encodeURIComponent(it.path)+'" target="_blank" class="btlink" style="color:#1890ff; margin-right: 15px;">下载</a>' +
                         '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+name+'\', \''+it.path+'\')">删除</a>' +
                         '<a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="doRestore(\''+name+'\', \''+it.path+'\')">还原</a>' +
                     '</td>' +

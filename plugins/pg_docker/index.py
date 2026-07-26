@@ -182,11 +182,11 @@ def get_backups(args):
                 if f.endswith('.dump'):
                     fp = os.path.join(path, f)
                     stat = os.stat(fp)
-                    size_mb = round(stat.st_size / (1024 * 1024), 2)
+                    size_mb = stat.st_size / (1024 * 1024)
                     lst.append({
                         "name": f,
                         "path": fp,
-                        "size": f"{size_mb} MB",
+                        "size": f"{size_mb:.2f} MB",
                         "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stat.st_mtime)),
                         "timestamp": stat.st_mtime
                     })
