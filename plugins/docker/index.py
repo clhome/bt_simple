@@ -939,6 +939,97 @@ def repoList():
     return yf.returnJson(True, 'ok', repostory_info)
 
 
+def getDockerDirInfo():
+    try:
+        # Get Docker Root Dir
+        cmd_root = "docker info --format '{{.DockerRootDir}}'"
+        out, err = yf.execShell(cmd_root)
+        docker_root = out.strip() if out else "/var/lib/docker"
+
+        # Size of images
+        cmd_df = "docker system df --format '{{.Type}}|{{.Size}}'"
+        out_df, err_df = yf.execShell(cmd_df)
+        image_size = '0B'
+        container_size = '0B'
+        if out_df:
+            for line in out_df.strip().split('\n'):
+                parts = line.split('|')
+                if len(parts) >= 2:
+                    if parts[0] == 'Images':
+                        image_size = parts[1]
+                    elif parts[0] == 'Containers':
+                        container_size = parts[1]
+        
+        data = {
+            'docker_root': docker_root,
+            'image_size': image_size,
+            'container_size': container_size,
+        }
+        return yf.returnJson(True, 'ok', data)
+    except Exception as e:
+        return yf.returnJson(False, str(e))
+
+
+def migrateDockerDir():
+    args = getArgs()
+    data = checkArgs(args, ['new_path'])
+    if not data[0]:
+        return data[1]
+
+    new_path = args['new_path'].strip()
+    if not new_path:
+        return yf.returnJson(False, '新路径不能为空')
+
+    try:
+        # 获取当前根目录
+        cmd_root = "docker info --format '{{.DockerRootDir}}'"
+        out, err = yf.execShell(cmd_root)
+        docker_root = out.strip() if out else "/var/lib/docker"
+
+        if docker_root == new_path:
+            return yf.returnJson(False, '新路径不能与当前路径相同')
+
+        if not os.path.exists(new_path):
+            os.makedirs(new_path)
+
+        # 停止docker
+        yf.execShell('systemctl stop docker')
+
+        # 同步数据
+        sync_cmd = 'rsync -aP %s/ %s/' % (shlex.quote(docker_root), shlex.quote(new_path))
+        yf.execShell(sync_cmd)
+
+        # 修改daemon.json
+        daemon_file = get_daemon_json_path()
+        daemon_dir = os.path.dirname(daemon_file)
+        if not os.path.exists(daemon_dir):
+            os.makedirs(daemon_dir)
+
+        data = {}
+        if os.path.exists(daemon_file):
+            try:
+                content = yf.readFile(daemon_file)
+                if content:
+                    data = json.loads(content)
+            except:
+                pass
+
+        data['data-root'] = new_path
+        yf.writeFile(daemon_file, json.dumps(data, indent=4))
+
+        # 启动docker
+        if not yf.isAppleSystem() and os.name != 'nt':
+            yf.execShell('systemctl daemon-reload')
+            yf.execShell('systemctl start docker')
+        
+        return yf.returnJson(True, '迁移成功！')
+    except Exception as e:
+        # 尝试恢复
+        if not yf.isAppleSystem() and os.name != 'nt':
+            yf.execShell('systemctl start docker')
+        return yf.returnJson(False, '迁移失败: ' + str(e))
+
+
 if __name__ == "__main__":
     func = sys.argv[1]
     if func == 'status':
@@ -1011,5 +1102,9 @@ if __name__ == "__main__":
         print(set_accelerator())
     elif func == 'repo_list':
         print(repoList())
+    elif func == 'get_docker_dir_info':
+        print(getDockerDirInfo())
+    elif func == 'migrate_docker_dir':
+        print(migrateDockerDir())
     else:
         print('error')

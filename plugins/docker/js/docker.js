@@ -1389,3 +1389,80 @@ function conDetails(id) {
         btn: ['关闭']
     });
 }
+
+function dockerDir() {
+    var con = '<div class="safe bgw">\
+        <div class="divtable mtb10">\
+            <table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">\
+                <thead><tr><th>项目</th><th>当前目录</th><th>大小</th><th>操作</th></tr></thead>\
+                <tbody id="docker_dir_list"></tbody>\
+            </table>\
+        </div>\
+        <div style="margin-top: 15px;">\
+            <h4>迁移 Docker 目录</h4>\
+            <div class="form-inline">\
+                <input type="text" id="new_docker_dir" class="bt-input-text mr5" placeholder="请输入新的Docker目录路径，如 /www/docker" style="width:300px;">\
+                <button onclick="dockerMigrate()" class="btn btn-success btn-sm" type="button">开始迁移</button>\
+            </div>\
+            <ul class="help-info-text c7 mtb15">\
+                <li>迁移过程需要停止Docker服务，可能会导致容器短暂不可用。</li>\
+                <li>请确保新路径所在的分区有足够的可用空间。</li>\
+                <li>迁移成功后，原目录不会被自动删除，请确认服务正常后再手动清理原目录。</li>\
+            </ul>\
+        </div>\
+    </div>';
+    $(".soft-man-con").html(con);
+    dockerDirRender();
+}
+
+function dockerDirRender() {
+    var loadT = layer.msg('正在获取数据...', { icon: 16, time: 0, shade: 0.3 });
+    dPost('get_docker_dir_info', '', {}, function(rdata) {
+        layer.close(loadT);
+        var rdata = JSON.parse(rdata.data);
+        if (rdata.status) {
+            var d = rdata.data;
+            var tbody = '<tr>\
+                <td>Docker根目录</td>\
+                <td>' + d.docker_root + '</td>\
+                <td>总览</td>\
+                <td>-</td>\
+            </tr>\
+            <tr>\
+                <td>容器存储目录</td>\
+                <td>' + d.docker_root + '/containers</td>\
+                <td>' + d.container_size + '</td>\
+                <td>-</td>\
+            </tr>\
+            <tr>\
+                <td>镜像存储目录</td>\
+                <td>' + d.docker_root + '/image</td>\
+                <td>' + d.image_size + '</td>\
+                <td>-</td>\
+            </tr>';
+            $("#docker_dir_list").html(tbody);
+        } else {
+            layer.msg(rdata.msg, { icon: 2 });
+        }
+    });
+}
+
+function dockerMigrate() {
+    var new_path = $("#new_docker_dir").val();
+    if (!new_path) {
+        layer.msg('请输入新路径', { icon: 2 });
+        return;
+    }
+    safeMessage('迁移 Docker 目录', '迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要迁移到 ' + new_path + ' 吗？', function() {
+        var loadT = layer.msg('正在迁移数据，这可能需要很长时间，请勿刷新页面...', { icon: 16, time: 0, shade: 0.3 });
+        dPost('migrate_docker_dir', '', { new_path: new_path }, function(rdata) {
+            layer.close(loadT);
+            var rdata = JSON.parse(rdata.data);
+            showMsg(rdata.msg, function() {
+                if (rdata.status) {
+                    dockerDirRender();
+                }
+            }, { icon: rdata.status ? 1 : 2, time: 3000 });
+        });
+    });
+}
