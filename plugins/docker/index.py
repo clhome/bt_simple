@@ -1078,10 +1078,18 @@ def migrateDockerDir():
         yf.execShell('systemctl stop docker')
         yf.execShell('systemctl stop docker.socket')
 
+        # 检查并安装 rsync
+        check_rsync = yf.execShell('which rsync')
+        if not check_rsync[0].strip():
+            yf.execShell('yum install -y rsync || apt-get install -y rsync')
+
         # 同步数据
         sync_cmd = 'rsync -a %s/ %s/' % (shlex.quote(docker_root), shlex.quote(new_path))
         out, err = yf.execShell(sync_cmd)
         if err and err.strip():
+            # 有时可能只是无害的警告，或者rsync未找到
+            if "未找到命令" in err or "command not found" in err:
+                raise Exception("数据同步失败: 系统缺少 rsync，并且自动安装失败，请手动执行 yum install rsync 或 apt-get install rsync")
             raise Exception("数据同步失败: " + err.strip())
 
         # 修改daemon.json

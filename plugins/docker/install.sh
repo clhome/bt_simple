@@ -18,6 +18,16 @@ Install_Docker()
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/source
 
+	# 0. 安装基础依赖工具 rsync（用于保障 Docker 目录安全迁移功能）
+	if ! which rsync &> /dev/null; then
+		echo '正在补充安装基础依赖工具 rsync...'
+		if [ -f /usr/bin/yum ]; then
+			yum install -y rsync
+		elif [ -f /usr/bin/apt-get ]; then
+			apt-get update -y && apt-get install -y rsync
+		fi
+	fi
+
 	# 1. 智能检测系统是否已存在 Docker 引擎（防止覆盖破坏原本正在运行的第三方容器引擎）
 	if which docker &> /dev/null; then
 		echo '系统已检测到已安装 Docker 引擎，跳过底层引擎安装，直接进行面板对接配置...'
