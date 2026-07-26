@@ -191,6 +191,10 @@
                         <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-globe" style="margin-right: 6px;"></i>动态网络边界控制 (外网访问)</h4>
                         <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">实例列表中映射端口旁的 <strong style="color:red;">“外”</strong> 字复选框，用于动态管理数据库的网络暴露范围。勾选（红色）代表允许外部网络直连访问（监听 <code>0.0.0.0</code>）；取消勾选（灰色）代表严格限制仅允许服务器本地访问（监听 <code>127.0.0.1</code>）。每次点击切换，面板都会在后台为您自动修改 Docker 配置并瞬间重启容器，保障边界安全的同时免去手敲命令的烦恼。</p>
                     </div>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-floppy-save" style="margin-right: 6px;"></i>独立手动备份 (长效保留)</h4>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">除了自动执行的每日与每周备份外，您还可以在“备份管理”面板中随时点击“一键备份当前数据”。手动生成的备份文件将独立存放在 <code>manual</code> 目录中，系统自动清理历史任务时会跳过此目录，确保关键节点的数据快照能够持久、安全地保存，只有您手动删除才会失效。</p>
+                    </div>
                 </div>
             </div>
             
@@ -199,7 +203,7 @@
                     <div style="flex: 1; margin-bottom: 15px;">
                         <textarea id="plugin-log-content" readonly style="width: 100%; height: 100%; background: #1e1e1e; color: #00ff00; font-family: monospace; padding: 10px; border: none; resize: none;"></textarea>
                     </div>
-                    <div style="text-align: right;">
+                    <div style="text-align: left;">
                         <button class="btn btn-default btn-sm" onclick="loadPluginLogs()">刷新日志</button>
                         <button class="btn btn-danger btn-sm ml10" onclick="clearPluginLogs()">一键清除</button>
                     </div>
@@ -548,15 +552,21 @@ function showBackups(name) {
         }
         var bk = typeof data === 'object' ? (data.data || data) : data;
         
-        var renderTable = function(list) {
-            if (!list || list.length === 0) return '<tr><td colspan="4" style="text-align:center;color:#999;padding:15px;">暂无备份记录</td></tr>';
+        var renderTable = function(list, isManual) {
+            if (!list || list.length === 0) return '<tr><td colspan="'+(isManual?5:4)+'" style="text-align:center;color:#999;padding:15px;">暂无备份记录</td></tr>';
             var h = '';
             for (var i=0; i<list.length; i++) {
                 var it = list[i];
+                var remarkHtml = '';
+                if (isManual) {
+                    var safeRemark = (it.remark || '').replace(/"/g, '&quot;');
+                    remarkHtml = '<td><input type="text" class="bt-input-text" style="width: 140px; height: 26px; line-height: 26px;" value="'+safeRemark+'" placeholder="点击输入备注" onblur="saveBackupRemark(\''+name+'\', \''+it.name+'\', this.value)"></td>';
+                }
                 h += '<tr>' +
                     '<td>'+it.name+'</td>' +
                     '<td>'+it.size+'</td>' +
                     '<td>'+it.time+'</td>' +
+                    remarkHtml +
                     '<td style="text-align:right;">' +
                         '<a href="/files/download?filename='+encodeURIComponent(it.path)+'" target="_blank" class="btlink" style="color:#1890ff; margin-right: 15px;">下载</a>' +
                         '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+name+'\', \''+it.path+'\')">删除</a>' +
@@ -600,8 +610,8 @@ function showBackups(name) {
             '<h4 style="margin-top:20px;">手动备份 (长效保留)</h4>' +
             '<div class="divtable mt10">' +
                 '<table class="table table-hover" width="100%">' +
-                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th style="text-align:right;">操作</th></tr></thead>' +
-                    '<tbody>' + renderTable(bk.manual) + '</tbody>' +
+                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th>备注</th><th style="text-align:right;">操作</th></tr></thead>' +
+                    '<tbody>' + renderTable(bk.manual, true) + '</tbody>' +
                 '</table>' +
             '</div>' +
         '</div>';
@@ -675,6 +685,14 @@ function doDeleteBackup(name, path) {
                 setTimeout(function(){ showBackups(name); }, 800);
             }
         });
+    });
+}
+
+function saveBackupRemark(instName, filename, remark) {
+    pgPost('save_backup_remark', { instance_name: instName, filename: filename, remark: remark }, function(resp) {
+        if (!resp.status) {
+            layer.msg(resp.msg, {icon: 2});
+        }
     });
 }
 

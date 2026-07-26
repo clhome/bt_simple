@@ -181,8 +181,16 @@ def get_backups(args):
     daily_dir = os.path.join(instance_path, "backups", "daily")
     weekly_dir = os.path.join(instance_path, "backups", "weekly")
     manual_dir = os.path.join(instance_path, "backups", "manual")
+    remarks_file = os.path.join(instance_path, "backups", "remarks.json")
     
-    def scan_dir(path):
+    remarks_data = {}
+    if os.path.exists(remarks_file):
+        try:
+            remarks_data = json.loads(yf.readFile(remarks_file))
+        except:
+            pass
+    
+    def scan_dir(path, is_manual=False):
         lst = []
         if os.path.exists(path):
             for f in os.listdir(path):
@@ -190,13 +198,16 @@ def get_backups(args):
                     fp = os.path.join(path, f)
                     stat = os.stat(fp)
                     size_mb = stat.st_size / (1024 * 1024)
-                    lst.append({
+                    item = {
                         "name": f,
                         "path": fp,
                         "size": f"{size_mb:.2f} MB",
                         "time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stat.st_mtime)),
                         "timestamp": stat.st_mtime
-                    })
+                    }
+                    if is_manual:
+                        item["remark"] = remarks_data.get(f, "")
+                    lst.append(item)
         lst.sort(key=lambda x: x["timestamp"], reverse=True)
         return lst
 
@@ -206,7 +217,7 @@ def get_backups(args):
     result = {
         "daily": scan_dir(daily_dir),
         "weekly": scan_dir(weekly_dir),
-        "manual": scan_dir(manual_dir),
+        "manual": scan_dir(manual_dir, True),
         "auto_backup_enabled": auto_backup_enabled
     }
     return yf.returnJson(True, "ok", result)
@@ -331,10 +342,54 @@ def delete_backup(args):
         
     try:
         os.remove(file_path)
+        # 删除成功后，顺便清理 remarks.json 中的记录
+        remarks_file = os.path.join(instances_data[inst_name], inst_name, "backups", "remarks.json")
+        if os.path.exists(remarks_file):
+            try:
+                remarks_data = json.loads(yf.readFile(remarks_file))
+                filename = os.path.basename(file_path)
+                if filename in remarks_data:
+                    del remarks_data[filename]
+                    yf.writeFile(remarks_file, json.dumps(remarks_data))
+            except:
+                pass
+                
         write_log(inst_name, "delete_backup", f"删除了备份文件: {file_path}")
         return yf.returnJson(True, "备份删除成功！")
     except Exception as e:
         return yf.returnJson(False, f"删除失败: {str(e)}")
+
+def save_backup_remark(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    filename = data.get('filename', '').strip()
+    remark = data.get('remark', '').strip()
+    
+    if not filename:
+        return yf.returnJson(False, "文件名不能为空")
+        
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+        
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    remarks_file = os.path.join(instance_path, "backups", "remarks.json")
+    
+    remarks_data = {}
+    if os.path.exists(remarks_file):
+        try:
+            remarks_data = json.loads(yf.readFile(remarks_file))
+        except:
+            pass
+            
+    remarks_data[filename] = remark
+    yf.writeFile(remarks_file, json.dumps(remarks_data))
+    
+    return yf.returnJson(True, "备注保存成功")
 
 def toggle_external_port(args):
     try:
@@ -769,5 +824,7 @@ if __name__ == "__main__":
         print(get_logs(args))
     elif func == 'clear_logs':
         print(clear_logs(args))
+    elif func == 'save_backup_remark':
+        print(save_backup_remark(args))
     else:
         print('error')
