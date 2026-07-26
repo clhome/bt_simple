@@ -540,6 +540,11 @@ WEEKLY_DIR="${{BACKUP_DIR}}/weekly"
 FILENAME="${{DB_NAME}}_${{DATE}}.dump"
 BACKUP_PATH="${{DAILY_DIR}}/${{FILENAME}}"
 
+if [ "$(docker inspect -f '{{{{.State.Running}}}}' ${{CONTAINER_NAME}} 2>/dev/null)" != "true" ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] 容器未运行，跳过备份."
+    exit 0
+fi
+
 mkdir -p "$DAILY_DIR" "$WEEKLY_DIR"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 开始数据库备份: ${{DB_NAME}}..."
 
