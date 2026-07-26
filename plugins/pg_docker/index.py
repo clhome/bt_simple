@@ -788,6 +788,13 @@ def clear_logs(args):
     except Exception as e:
         return yf.returnJson(False, f"清空日志失败: {str(e)}")
 
+def check_pg_image(args):
+    cmd = "docker images -q postgres:18.4-bookworm"
+    res = yf.execShell(cmd)
+    if res[0].strip():
+        return yf.returnJson(True, "ok")
+    return yf.returnJson(False, "not found")
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("error")
@@ -826,5 +833,7 @@ if __name__ == "__main__":
         print(clear_logs(args))
     elif func == 'save_backup_remark':
         print(save_backup_remark(args))
+    elif func == 'check_pg_image':
+        print(check_pg_image(args))
     else:
         print('error')

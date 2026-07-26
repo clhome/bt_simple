@@ -722,6 +722,66 @@ $("input[name='inst_name']").on('input', function() {
     $("input[name='db_name']").val(val);
 });
 
+function checkPgImage() {
+    pgPost('check_pg_image', {}, function(resp) {
+        var isExists = true;
+        if (!resp.status) {
+            isExists = false;
+        } else {
+            var data = resp.data;
+            if (typeof data === 'string') {
+                try { data = JSON.parse(data); } catch(e) {}
+            }
+            if (data && data.status === false) {
+                isExists = false;
+            }
+        }
+
+        if (!isExists) {
+            var idx = layer.open({
+                type: 1,
+                title: false,
+                closeBtn: 0,
+                shade: [0.8, '#000'],
+                area: '400px',
+                content: '<div style="padding: 30px; text-align: center; border-radius: 8px;">' +
+                            '<h3 style="margin-top:0; color:#333; font-weight:bold;">环境缺失</h3>' +
+                            '<p style="color:#666; margin: 20px 0; font-size:14px; line-height:1.6;">系统检测到尚未下载核心依赖镜像 <br><b style="color:#20a53a; font-size:16px;">postgres:18.4-bookworm</b><br>请前往 Docker 管理器进行下载。</p>' +
+                            '<button class="btn btn-success" style="width:100%; height:40px; font-size:15px;" onclick="gotoDockerPull(\'' + idx + '\')">前往获取镜像</button>' +
+                         '</div>',
+                success: function(layero) {
+                    $('.bt-w-main').css('filter', 'blur(3px)');
+                },
+                end: function() {
+                    $('.bt-w-main').css('filter', 'none');
+                }
+            });
+        }
+    });
+}
+
+window.gotoDockerPull = function(idx) {
+    layer.close(idx);
+    layer.closeAll('page');
+    setTimeout(function() {
+        softMain('docker', 'docker', '');
+        setTimeout(function() {
+            if (typeof dockerImageList === 'function') {
+                dockerImageList();
+                setTimeout(function() {
+                    if (typeof dockerPullImagesFileTemplate === 'function') {
+                        dockerPullImagesFileTemplate();
+                        setTimeout(function() {
+                            $('[name="official_pull_name"]').val('postgres:18.4-bookworm');
+                        }, 400);
+                    }
+                }, 400);
+            }
+        }, 500);
+    }, 200);
+};
+
 // 初始化
 loadList();
+checkPgImage();
 </script>
