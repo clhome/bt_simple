@@ -1407,8 +1407,12 @@ function dockerDir() {
             <ul class="help-info-text c7 mtb15">\
                 <li>迁移过程需要停止Docker服务，可能会导致容器短暂不可用。</li>\
                 <li>请确保新路径所在的分区有足够的可用空间。</li>\
-                <li>迁移成功后，原目录不会被自动删除，请确认服务正常后再手动清理原目录。</li>\
+                <li style="color: red;"><span class="glyphicon glyphicon-exclamation-sign" style="margin-right: 5px;"></span>迁移成功后，原目录不会被自动删除，请确认服务正常后再手动清理原目录。</li>\
             </ul>\
+            <div style="margin-top: 10px; font-size: 13px; color: #666;">\
+                <span class="glyphicon glyphicon-info-sign" style="margin-right: 5px;"></span>\
+                Docker 默认安装路径为 <a href="javascript:openPath(\'/var/lib/docker/\');" class="btlink">/var/lib/docker/</a>\
+            </div>\
         </div>\
     </div>';
     $(".soft-man-con").html(con);
