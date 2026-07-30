@@ -330,7 +330,7 @@ function loadPluginLogs() {
 function clearPluginLogs() {
     layer.confirm('确定要清除日志吗？', {icon: 3, title: '清除日志'}, function(index) {
         pgPost('clear_logs', {}, function(resp) {
-            layer.msg(resp.msg, {icon: resp.status ? 1 : 2});
+            layer.msg(resp.msg, {icon: resData.status ? 1 : 2});
             if (resp.status) loadPluginLogs();
         });
         layer.close(index);
@@ -370,9 +370,8 @@ function deployInstance() {
         if(typeof resp.data === 'string') {
             try { resData = JSON.parse(resp.data); } catch(e){}
         }
-        
-        layer.msg(resData.msg || resp.msg, { icon: resp.status ? 1 : 2, time: 3000 });
-        if (resp.status) {
+        layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2, time: 3000 });
+        if (resData.status) {
             // 清空表单
             $('input[name="inst_name"]').val('');
             switchTab('list');
@@ -424,8 +423,8 @@ function toggleExternal(name, checked, e) {
             if (typeof resp.data === 'string') {
                 try { resData = JSON.parse(resp.data); } catch(err){}
             }
-            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 3000 });
-            if (resData.status || resp.status) {
+            layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2, time: 3000 });
+            if (resData.status) {
                 loadList();
             }
         });
@@ -498,8 +497,8 @@ function doModifyConfig(name, dbuser, oldPort) {
             if (typeof resp.data === 'string') {
                 try { resData = JSON.parse(resp.data); } catch(err){}
             }
-            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 3000 });
-            if (resData.status || resp.status) {
+            layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2, time: 3000 });
+            if (resData.status) {
                 layer.closeAll('page');
                 loadList();
             }
@@ -521,8 +520,8 @@ function toggleStatus(name, action) {
                 try { resData = JSON.parse(resp.data); } catch(e){}
             }
             
-            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2 });
-            if (resData.status || resp.status) {
+            layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2 });
+            if (resData.status) {
                 loadList();
             }
         });
@@ -563,7 +562,7 @@ function doUninstall(name, path) {
         if(typeof resp.data === 'string') {
             try { resData = JSON.parse(resp.data); } catch(e){}
         }
-        layer.msg(resData.msg || resp.msg, { icon: resp.status ? 1 : 2 });
+        layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2 });
         if (resp.status) {
             loadList();
         }
@@ -582,8 +581,8 @@ function toggleAutoBackup(name, enable) {
             if (typeof resp.data === 'string') {
                 try { resData = JSON.parse(resp.data); } catch(e){}
             }
-            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2 });
-            if (resData.status || resp.status) {
+            layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2 });
+            if (resData.status) {
                 layer.closeAll('page');
                 setTimeout(function(){ showBackups(name); }, 300);
             }
@@ -713,8 +712,8 @@ function doManualBackup(name) {
             if (typeof resp.data === 'string') {
                 try { resData = JSON.parse(resp.data); } catch(e){}
             }
-            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 3000 });
-            if (resData.status || resp.status) {
+            layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2, time: 3000 });
+            if (resData.status) {
                 layer.closeAll('page');
                 setTimeout(function(){ showBackups(name); }, 1000);
             }
@@ -736,7 +735,7 @@ function doRestore(name, path) {
             if (typeof resp.data === 'string') {
                 try { resData = JSON.parse(resp.data); } catch(e){}
             }
-            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 5000 });
+            layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2, time: 5000 });
         });
     });
 }
@@ -755,8 +754,8 @@ function doDeleteBackup(name, path) {
             if (typeof resp.data === 'string') {
                 try { resData = JSON.parse(resp.data); } catch(e){}
             }
-            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 2000 });
-            if (resData.status || resp.status) {
+            layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2, time: 2000 });
+            if (resData.status) {
                 layer.closeAll('page');
                 setTimeout(function(){ showBackups(name); }, 800);
             }

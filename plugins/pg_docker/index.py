@@ -479,6 +479,18 @@ def modify_config(args):
     pm = re.search(r'ports:\s*\n\s*-\s*"(?:127\.0\.0\.1:)?(\d+):5432"', content)
     if pm:
         old_ports = pm.group(0)
+        old_port = pm.group(1)
+        
+        # 检查新端口是否被占用 (如果端口变了)
+        if str(new_port) != str(old_port):
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex(('127.0.0.1', int(new_port)))
+            sock.close()
+            if result == 0:
+                return yf.returnJson(False, f"修改失败：宿主机端口 {new_port} 已被占用，请更换其他端口！")
+                
         is_ext = '127.0.0.1' not in old_ports
         if is_ext:
             new_ports = f'ports:\n      - "{new_port}:5432"'
@@ -518,6 +530,16 @@ def create_instance(args):
     db_pass = data.get('db_pass', '123456')
     db_name = data.get('db_name', 'mydb')
     port = data.get('port', '5432')
+    
+    if port:
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(('127.0.0.1', int(port)))
+        sock.close()
+        if result == 0:
+            return yf.returnJson(False, f"部署失败：宿主机端口 {port} 已被占用，请更换其他端口！")
+
     disk_type = data.get('disk_type', 'ssd') # ssd, hdd_single, hdd_raid
     scenario = data.get('scenario', 'general') # general, high_concurrency, high_throughput
     mem_limit = data.get('mem_limit', '')
