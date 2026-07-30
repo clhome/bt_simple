@@ -462,7 +462,7 @@ function changePathCallback(default_dir, callback) {
 			</div>\
 			<div class='path-con'>\
 				<div class='path-con-left'>\
-					<dl><dt id='changecomlist' onclick='backMyComputer()'>计算机</dt></dl>\
+					<dl><dt id='changecomlist' onclick='backMyComputer()'>服务器</dt></dl>\
 				</div>\
 				<div class='path-con-right'>\
 					<ul class='default' id='computerDefautl'></ul>\
@@ -525,7 +525,7 @@ function changePath(d) {
 				<div class='place' id='PathPlace'>当前路径：<span></span></div>\
 			</div>\
 			<div class='path-con'>\
-				<div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>计算机</dt></dl></div>\
+				<div class='path-con-left'><dl><dt id='changecomlist' onclick='backMyComputer()'>服务器</dt></dl></div>\
 				<div class='path-con-right'>\
 					<ul class='default' id='computerDefautl'></ul>\
 					<div class='file-list divtable'>\

@@ -4,7 +4,7 @@
 .py-version-card h3 { margin: 0 0 10px 0; font-size: 18px; color: #333; }
 .py-version-card p { margin: 0 0 10px 0; font-size: 13px; color: #666; }
 .py-version-card .bt-btn { float: right; margin-top: -30px; }
-.py-list-container { max-height: 480px; overflow-y: auto; padding-right: 10px; }
+.py-list-container { max-height: 540px; overflow-y: auto; padding-right: 10px; }
 .py-list-container::-webkit-scrollbar { width: 6px; }
 .py-list-container::-webkit-scrollbar-thumb { background: #e2e2e2; border-radius: 4px; }
 </style>
@@ -24,7 +24,8 @@
     </div>
 </div>
 <script type="text/javascript">
-resetPluginWinHeight(550);
+if(typeof resetPluginWinWidth === 'function'){ resetPluginWinWidth(750); }
+resetPluginWinHeight(620);
 
 var py_yf = {
     plugin_name: 'python_yf',
@@ -44,7 +45,13 @@ var py_yf = {
             if(typeof(res) === 'string') {
                 try { res = JSON.parse(res); } catch(e) {}
             }
-            if(callback) callback(res);
+            
+            var script_res = res;
+            if(res && res.status === true && typeof(res.data) === 'string') {
+                try { script_res = JSON.parse(res.data); } catch(e) {}
+            }
+            
+            if(callback) callback(script_res);
         });
     },
     
@@ -74,11 +81,41 @@ var py_yf = {
         } else {
             for(var i=0; i<list.length; i++) {
                 var item = list[i];
+                var btn_html = '<div style="float:right; margin-top: -2px;">';
+                btn_html += '<button class="btn btn-success btn-sm" onclick="py_yf.create_venv_dialog(\'' + item.name + '\')">创建虚拟环境</button>';
+                // 仅允许卸载 uv 目录下的 Python，保护系统自带环境
+                if(item.path.indexOf('/uv/python') !== -1 || item.path.indexOf('.local/share/uv') !== -1) {
+                    if(item.venvs && item.venvs.length > 0) {
+                        btn_html += '<button class="btn btn-default btn-sm" style="margin-left:10px;" disabled title="存在关联的虚拟环境，为了安全禁止卸载">卸载</button>';
+                    } else {
+                        btn_html += '<button class="btn btn-danger btn-sm" style="margin-left:10px;" onclick="py_yf.uninstall(\'' + item.name + '\')">卸载</button>';
+                    }
+                } else {
+                    btn_html += '<button class="btn btn-default btn-sm" style="margin-left:10px;" disabled title="系统自带或其他外部环境，为防止系统崩溃，禁止卸载">系统环境</button>';
+                }
+                btn_html += '</div>';
+                
+                var venv_info = '';
+                if(item.venvs && item.venvs.length > 0) {
+                    venv_info += '<div style="margin-top:10px; padding-top:10px; border-top:1px dashed #eee;">';
+                    venv_info += '<p style="font-size:12px; color:#20a53a; font-weight:bold; margin-bottom:5px;">已创建虚拟环境 (' + item.venvs.length + ')</p>';
+                    for(var j=0; j<item.venvs.length; j++) {
+                        var v_path = item.venvs[j];
+                        var copy_cmd = "cd " + v_path + " && source bin/activate";
+                        venv_info += '<div style="font-size:12px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">' +
+                                     '<div><span class="glyphicon glyphicon-link" style="color:#aaa;margin-right:5px;font-size:11px;"></span>' + 
+                                     '<a href="javascript:;" onclick="openPath(\'' + v_path + '\')" class="btlink" style="background:#f9f9f9;padding:2px 5px;border-radius:4px;" title="打开目录">' + v_path + '</a></div>' +
+                                     '<a href="javascript:;" onclick="copyPass(\'' + copy_cmd + '\')" style="color:#d9534f; cursor:pointer;" title="复制应用虚拟环境的命令">应用环境命令</a>' +
+                                     '</div>';
+                    }
+                    venv_info += '</div>';
+                }
+                
                 html += '<div class="py-version-card">' +
-                        '<h3>' + item.version + '</h3>' +
-                        '<p>标识: ' + item.name + '</p>' +
-                        '<p>路径: <span style="background:#f5f5f5;padding:2px 5px;border-radius:4px;user-select:all;">' + item.path + '</span></p>' +
-                        '<button class="btn btn-danger btn-sm bt-btn" onclick="py_yf.uninstall(\'' + item.name + '\')">卸载</button>' +
+                        btn_html +
+                        '<h3>' + item.version + ' <span style="font-size:13px; color:#666; font-weight:normal; margin-left:10px;">(标识: ' + item.name + ')</span></h3>' +
+                        '<p style="margin-top:8px;">路径: <span style="background:#f5f5f5;padding:2px 5px;border-radius:4px;user-select:all;">' + item.path + '</span></p>' +
+                        venv_info + 
                         '</div>';
             }
         }
@@ -87,17 +124,34 @@ var py_yf = {
     
     show_available: function() {
         if(!this.cache_data) return;
+        var list = this.cache_data.all_versions || this.cache_data.available;
         var html = '';
-        var list = this.cache_data.available;
-        if(list.length === 0) {
-            html = '<div style="text-align:center; padding:50px 0; color:#999;">无可用版本，请检查网络或 uv 环境</div>';
+        if(!list || list.length === 0) {
+            html = '<div style="text-align:center; padding:50px 0; color:#999;">无可用版本</div>';
         } else {
             for(var i=0; i<list.length; i++) {
                 var item = list[i];
-                html += '<div class="py-version-card">' +
-                        '<h3>' + item.version + '</h3>' +
-                        '<p>标识: ' + item.name + '</p>' +
-                        '<button class="btn btn-success btn-sm bt-btn" onclick="py_yf.install(\'' + item.name + '\')">一键安装</button>' +
+                var is_installed = (item.path && item.path !== '');
+                
+                var btn_html = '<div style="float:right; margin-top: -2px;">';
+                if(is_installed) {
+                    if(item.path.indexOf('/uv/python') !== -1 || item.path.indexOf('.local/share/uv') !== -1) {
+                        if(item.venvs && item.venvs.length > 0) {
+                            btn_html += '<button class="btn btn-default btn-sm" disabled title="存在关联的虚拟环境，为了安全禁止卸载">卸载</button>';
+                        } else {
+                            btn_html += '<button class="btn btn-danger btn-sm" onclick="py_yf.uninstall(\'' + item.name + '\')">卸载</button>';
+                        }
+                    } else {
+                        btn_html += '<button class="btn btn-default btn-sm" disabled title="系统环境">已安装</button>';
+                    }
+                } else {
+                    btn_html += '<button class="btn btn-success btn-sm" onclick="py_yf.install(\'' + item.name + '\')">一键安装</button>';
+                }
+                btn_html += '</div>';
+                
+                html += '<div class="py-version-card" style="padding:15px;">' +
+                        btn_html +
+                        '<h3 style="margin:0;">' + item.version + ' <span style="font-size:13px; color:#666; font-weight:normal; margin-left:10px;">(标识: ' + item.name + ')</span></h3>' +
                         '</div>';
             }
         }
@@ -127,6 +181,40 @@ var py_yf = {
                     _this.get_list();
                 }
             });
+        });
+    },
+    
+    create_venv_dialog: function(version_name) {
+        var _this = this;
+        var html = '<div class="pd15"><div class="bt-form">' +
+            '<div class="line">' +
+            '<span class="tname">环境路径</span>' +
+            '<div class="info-r">' +
+            '<input id="venv_path_input" class="bt-input-text mr5" type="text" style="width:300px" placeholder="请选择或输入虚拟环境的绝对路径" />' +
+            '<span class="glyphicon glyphicon-folder-open cursor" onclick="changePath(\'venv_path_input\')"></span>' +
+            '<p class="info" style="margin-top:10px; color:#666;">例如: /www/wwwroot/my_project/venv</p>' +
+            '</div></div></div></div>';
+        
+        layer.open({
+            type: 1,
+            title: '创建 [' + version_name + '] 的虚拟环境',
+            area: '500px',
+            content: html,
+            btn: ['创建', '取消'],
+            yes: function(index) {
+                var path = $('#venv_path_input').val();
+                if(!path) { layer.msg('请输入虚拟环境路径', {icon:2}); return; }
+                
+                var loadT = layer.msg('正在创建虚拟环境,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+                _this.request('create_venv', {version: version_name, path: path}, function(res){
+                    layer.close(loadT);
+                    layer.msg(res.msg, {icon: res.status?1:2});
+                    if(res.status) {
+                        layer.close(index);
+                        _this.get_list();
+                    }
+                });
+            }
         });
     }
 };
