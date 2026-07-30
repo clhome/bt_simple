@@ -15,5 +15,9 @@
     "home": "https://www.yftec.top",
     "type": 2,
     "pid": "2",
-    "display_status": false
+    "display_status": false,
+    "size": [
+        1000,
+        650
+    ]
 }
