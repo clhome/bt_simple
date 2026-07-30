@@ -297,9 +297,10 @@ function loadList() {
                     '</td>' +
                     '<td><span style="color: #999; font-size: 12px;">' + item.path + '</span></td>' +
                     '<td style="text-align: right;">' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>备份管理</a>' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>详细配置</a>' +
-                        '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">卸载实例</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>备份</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>明细</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showModifyConfig(\''+item.name+'\', \''+item.port+'\', \''+item.dbuser+'\')"><i class="glyphicon glyphicon-edit" style="margin-right: 3px;"></i>修改</a>' +
+                        '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">卸载</a>' +
                     '</td>' +
                 '</tr>';
             }
@@ -425,6 +426,81 @@ function toggleExternal(name, checked, e) {
             }
             layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 3000 });
             if (resData.status || resp.status) {
+                loadList();
+            }
+        });
+    });
+}
+
+function showModifyConfig(name, port, dbuser) {
+    layer.open({
+        type: 1,
+        title: '修改实例 [' + name + '] 配置',
+        area: '450px',
+        closeBtn: 1,
+        shadeClose: true,
+        content: '<div class="bt-form pd20 pb70">' +
+            '<div class="line">' +
+                '<span class="tname">当前用户名</span>' +
+                '<div class="info-r">' +
+                    '<input type="text" class="bt-input-text mr5" value="' + dbuser + '" readonly style="width: 250px; background-color: #f5f5f5; color: #666;">' +
+                '</div>' +
+            '</div>' +
+            '<div class="line">' +
+                '<span class="tname">新数据库密码</span>' +
+                '<div class="info-r" style="display: flex; align-items: center;">' +
+                    '<input type="text" class="bt-input-text mr5" id="mod_dbpass" placeholder="留空则不修改密码" style="width: 250px;">' +
+                    '<span class="glyphicon glyphicon-random cursor" onclick="generateRandomPassword(\'#mod_dbpass\')" title="随机生成密码" style="color: #20a53a; font-size: 16px; margin-left: 5px;"></span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="line">' +
+                '<span class="tname">宿主机端口</span>' +
+                '<div class="info-r">' +
+                    '<input type="number" class="bt-input-text mr5" id="mod_port" value="' + port + '" placeholder="请输入新的映射端口" style="width: 250px;">' +
+                    '<div class="c9" style="margin-top: 5px; line-height: 20px;">确保不与服务器已用端口冲突</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="bt-form-submit-btn">' +
+                '<button type="button" class="btn btn-sm btn-danger" onclick="layer.closeAll()">取消</button>' +
+                '<button type="button" class="btn btn-sm btn-success" onclick="doModifyConfig(\'' + name + '\', \'' + dbuser + '\', \'' + port + '\')">提交保存</button>' +
+            '</div>' +
+        '</div>'
+    });
+}
+
+function doModifyConfig(name, dbuser, oldPort) {
+    var newPass = $('#mod_dbpass').val();
+    var newPort = $('#mod_port').val();
+    
+    if (!newPass && newPort == oldPort) {
+        layer.msg('没有任何修改', { icon: 0 });
+        return;
+    }
+    if (!newPort) {
+        layer.msg('宿主机端口不能为空', { icon: 2 });
+        return;
+    }
+
+    layer.confirm('确定要提交修改吗？<br><br><span style="color:#e6522c;">修改端口会自动重启容器。</span>', {
+        title: '修改配置确认',
+        icon: 3
+    }, function(index) {
+        layer.close(index);
+        var loadT = layer.msg('正在应用新配置，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+        pgPost('modify_config', { 
+            instance_name: name,
+            db_user: dbuser,
+            new_pass: newPass,
+            new_port: newPort
+        }, function(resp) {
+            layer.close(loadT);
+            var resData = resp;
+            if (typeof resp.data === 'string') {
+                try { resData = JSON.parse(resp.data); } catch(err){}
+            }
+            layer.msg(resData.msg || resp.msg, { icon: (resData.status || resp.status) ? 1 : 2, time: 3000 });
+            if (resData.status || resp.status) {
+                layer.closeAll('page');
                 loadList();
             }
         });
@@ -697,14 +773,18 @@ function saveBackupRemark(instName, filename, remark) {
 }
 
 // 随机生成 8-12 位乱序密码
-function generateRandomPassword() {
+function generateRandomPassword(target_selector) {
     var length = Math.floor(Math.random() * 5) + 8; // 8 - 12
     var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#_-";
     var retVal = "";
     for (var i = 0, n = charset.length; i < length; ++i) {
         retVal += charset.charAt(Math.floor(Math.random() * n));
     }
-    $("input[name='db_pass']").val(retVal);
+    if (target_selector) {
+        $(target_selector).val(retVal);
+    } else {
+        $("input[name='db_pass']").val(retVal);
+    }
 }
 
 // 自动拉宽所在的 layui-layer 弹窗以适配表单宽度

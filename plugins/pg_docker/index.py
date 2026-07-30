@@ -430,6 +430,72 @@ def toggle_external_port(args):
     
     return yf.returnJson(True, "配置已更新，容器已重启生效")
 
+def modify_config(args):
+    try:
+        data = json.loads(args)
+    except:
+        return yf.returnJson(False, "参数解析失败")
+        
+    inst_name = data.get('instance_name', '').strip()
+    db_user = data.get('db_user', '').strip()
+    new_pass = data.get('new_pass', '').strip()
+    new_port = data.get('new_port', '').strip()
+    
+    if not inst_name or not new_port:
+        return yf.returnJson(False, "参数不完整")
+        
+    instances_data = load_instances()
+    if inst_name not in instances_data:
+        return yf.returnJson(False, "找不到该实例")
+        
+    instance_path = os.path.join(instances_data[inst_name], inst_name)
+    compose_file = os.path.join(instance_path, "docker-compose.yml")
+    if not os.path.exists(compose_file):
+        return yf.returnJson(False, "配置文件不存在")
+        
+    content = yf.readFile(compose_file)
+    
+    # 1. 尝试修改密码（如果提供）
+    if new_pass:
+        # 修改 docker-compose 中的环境变量
+        old_pass_match = re.search(r'POSTGRES_PASSWORD:\s*"?(.*?)"?\n', content)
+        if old_pass_match:
+            old_pass_line = old_pass_match.group(0)
+            new_pass_line = f'POSTGRES_PASSWORD: "{new_pass}"\n'
+            content = content.replace(old_pass_line, new_pass_line)
+        
+        # 在容器内执行修改（需保证容器运行中）
+        check_cmd = f"docker inspect -f '{{{{.State.Running}}}}' pg-{inst_name} 2>/dev/null"
+        res = yf.execShell(check_cmd)
+        if res[0].strip() == "true":
+            # 容器运行中，执行修改
+            sql = f"ALTER USER {db_user} WITH PASSWORD '{new_pass}';"
+            exec_cmd = f"docker exec pg-{inst_name} psql -U {db_user} -c \"{sql}\""
+            yf.execShell(exec_cmd)
+        else:
+            return yf.returnJson(False, "实例未运行，无法修改密码。请先启动实例。")
+
+    # 2. 修改端口
+    pm = re.search(r'ports:\s*\n\s*-\s*"(?:127\.0\.0\.1:)?(\d+):5432"', content)
+    if pm:
+        old_ports = pm.group(0)
+        is_ext = '127.0.0.1' not in old_ports
+        if is_ext:
+            new_ports = f'ports:\n      - "{new_port}:5432"'
+        else:
+            new_ports = f'ports:\n      - "127.0.0.1:{new_port}:5432"'
+        content = content.replace(old_ports, new_ports)
+    else:
+        return yf.returnJson(False, "无法解析原端口配置")
+        
+    yf.writeFile(compose_file, content)
+    
+    # 3. 重启容器
+    yf.execShell(f"cd {instance_path} && docker compose down && docker compose up -d")
+    
+    write_log(inst_name, "modify", "已成功修改配置并重启容器")
+    return yf.returnJson(True, "配置修改成功，容器已重启")
+
 def create_instance(args):
     try:
         data = json.loads(args)
@@ -835,5 +901,7 @@ if __name__ == "__main__":
         print(save_backup_remark(args))
     elif func == 'check_pg_image':
         print(check_pg_image(args))
+    elif func == 'modify_config':
+        print(modify_config(args))
     else:
         print('error')
