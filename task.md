@@ -132,3 +132,4 @@
 - `[x]` 104. 优化 `plugins/pg_docker/index.html`：在实例列表操作列新增“修改配置”按钮，实现弹出 Layer 修改密码与宿主机端口的 UI 交互，并在成功后自动刷新列表。
 - `[x]` 105. 优化 `plugins/pg_docker/index.py`：新增 `modify_config` 接口，支持通过 `docker exec psql` 安全修改容器内数据库密码，并同步修改 `docker-compose.yml` 中的环境变量和 `ports` 并通过 `docker compose up -d` 自动重启生效。
 - `[x]` 106. 优化 `plugins/pg_docker/index.py`：在 `modify_config` 和 `create_instance` 中引入基于原生 `socket` 的宿主机端口占用检测，防止因端口冲突导致的容器启动失败。
+- `[x]` 107. 优化 `plugins/pg_docker`：通过 `docker stats` 获取每个实例容器的 CPU 和内存资源占用，并在前端实例列表中追加徽章显示。

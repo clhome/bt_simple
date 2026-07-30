@@ -53,6 +53,40 @@ def get_list():
     instances_data = load_instances()
     instances = []
     
+    # 提前获取全局 docker 资源消耗统计
+    stats_map = {}
+    try:
+        res = yf.execShell('docker stats --no-stream --format "{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}"')
+        if res[0]:
+            for line in res[0].strip().split('\n'):
+                parts = line.split('|')
+                if len(parts) >= 3:
+                    cname = parts[0].strip()
+                    cpu_raw = parts[1].replace('%','').strip()
+                    mem_raw = parts[2].split('/')[0].strip()
+                    
+                    try:
+                        cpu_val = int(round(float(cpu_raw)))
+                    except:
+                        cpu_val = 0
+                        
+                    mem_val = 0
+                    try:
+                        if 'GiB' in mem_raw:
+                            mem_val = int(round(float(mem_raw.replace('GiB','')) * 1024))
+                        elif 'MiB' in mem_raw or 'MB' in mem_raw:
+                            mem_val = int(round(float(mem_raw.replace('MiB','').replace('MB',''))))
+                        elif 'kiB' in mem_raw or 'kB' in mem_raw:
+                            mem_val = int(round(float(mem_raw.replace('kiB','').replace('kB','')) / 1024))
+                        else:
+                            mem_val = 0
+                    except:
+                        pass
+                        
+                    stats_map[cname] = {"cpu": cpu_val, "mem": mem_val}
+    except:
+        pass
+    
     # 兼容处理：扫描默认目录，把之前未记录的也加进来
     base_dir_default = "/docker_data"
     if os.path.exists(base_dir_default):
@@ -103,6 +137,8 @@ def get_list():
             
             cron_file = f"/etc/cron.d/pg_backup_{inst_name}"
             auto_backup_enabled = os.path.exists(cron_file)
+            
+            c_stats = stats_map.get(f"pg-{inst_name}", {"cpu": 0, "mem": 0})
 
             instances.append({
                 "name": inst_name,
@@ -113,7 +149,9 @@ def get_list():
                 "dbuser": dbuser,
                 "dbpass": dbpass,
                 "status": is_running,
-                "auto_backup": auto_backup_enabled
+                "auto_backup": auto_backup_enabled,
+                "cpu": c_stats["cpu"],
+                "mem": c_stats["mem"]
             })
         else:
             # 目录或文件不存在，说明已失效，清理掉
