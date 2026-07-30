@@ -133,3 +133,8 @@
 - `[x]` 105. 优化 `plugins/pg_docker/index.py`：新增 `modify_config` 接口，支持通过 `docker exec psql` 安全修改容器内数据库密码，并同步修改 `docker-compose.yml` 中的环境变量和 `ports` 并通过 `docker compose up -d` 自动重启生效。
 - `[x]` 106. 优化 `plugins/pg_docker/index.py`：在 `modify_config` 和 `create_instance` 中引入基于原生 `socket` 的宿主机端口占用检测，防止因端口冲突导致的容器启动失败。
 - `[x]` 107. 优化 `plugins/pg_docker`：通过 `docker stats` 获取每个实例容器的 CPU 和内存资源占用，并在前端实例列表中追加徽章显示。
+
+- `[x]` 108. 开发 `plugins/python_yf` 插件：创建基础目录、配置 `info.json` 元数据和 `install.sh` 安装卸载脚本，引入 `uv` 一键安装支持。
+- `[x]` 109. 开发 `plugins/python_yf` 后端：编写 `index.py`，实现解析 `uv python list` 输出获取可用与已安装版本的方法，及触发安装/卸载后台任务。
+- `[x]` 110. 开发 `plugins/python_yf` 前端：基于现有的卡片化设计规范编写 `index.html`，实现两个 Tab 分别展示可用版本和已安装版本并对接对应的操作接口。
+- `[x]` 111. 开发联调与验证：在面板中进行实际安装、下载版本、卸载版本等功能的端到端测试，确保对面板主环境 0 影响。
