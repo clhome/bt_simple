@@ -97,6 +97,8 @@
 
 ## 🆕 最新更新
 
+- **插件发布**：全新推出「御风Python多版本管理器 1.0」，基于先进的 `uv` 构建的极速、无侵入 Python 版本与虚拟环境管理工具。支持一键安装多版本 Python，环境全隔离零污染；首创“企业级虚拟环境”自动化构建机制，一键生成 `.venv` 并提取项目名作为终端标识 (Prompt)；搭载防误删保护机制，彻底告别环境错乱灾难。
+  ![python](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/python.webp)
 - **插件发布**：全新推出「PostgreSQL 容器化管理插件 1.0」，支持一键部署基于 Docker 的 PostgreSQL 隔离实例，支持动态修改内外网访问边界（0.0.0.0/127.0.0.1 瞬间重构切换）；内置全自动化灾备体系，每日/每周定时无锁热备，支持手动还原指定备份。
   ![pg_docker](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/pg_docker.webp)
 - **插件更新**：完成「御风系统优化插件 1.0」，并优化其显示效果。
