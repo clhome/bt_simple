@@ -105,7 +105,8 @@ var py_yf = {
                         venv_info += '<div style="font-size:12px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">' +
                                      '<div><span class="glyphicon glyphicon-link" style="color:#aaa;margin-right:5px;font-size:11px;"></span>' + 
                                      '<a href="javascript:;" onclick="openPath(\'' + v_path + '\')" class="btlink" style="background:#f9f9f9;padding:2px 5px;border-radius:4px;" title="打开目录">' + v_path + '</a></div>' +
-                                     '<a href="javascript:;" onclick="copyPass(\'' + copy_cmd + '\')" style="color:#d9534f; cursor:pointer;" title="复制应用虚拟环境的命令">应用环境命令</a>' +
+                                     '<div><a href="javascript:;" onclick="copyPass(\'' + copy_cmd + '\')" style="color:#20a53a; margin-right:10px; cursor:pointer;" title="复制应用虚拟环境的命令">应用环境命令</a>' +
+                                     '<a href="javascript:;" onclick="py_yf.remove_venv(\'' + item.name + '\', \'' + v_path + '\')" style="color:#d9534f; cursor:pointer;" title="删除该虚拟环境">删除</a></div>' +
                                      '</div>';
                     }
                     venv_info += '</div>';
@@ -184,15 +185,30 @@ var py_yf = {
         });
     },
     
+    remove_venv: function(version_name, path) {
+        var _this = this;
+        layer.confirm('确定要删除虚拟环境目录 [' + path + '] 吗？此操作将不可恢复！', {title: '删除虚拟环境', icon:3}, function(index){
+            layer.close(index);
+            var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            _this.request('remove_venv', {version: version_name, path: path}, function(res){
+                layer.close(loadT);
+                layer.msg(res.msg, {icon: res.status ? 1 : 2, time: 3000});
+                if(res.status) {
+                    _this.get_list();
+                }
+            });
+        });
+    },
+    
     create_venv_dialog: function(version_name) {
         var _this = this;
         var html = '<div class="pd15"><div class="bt-form">' +
             '<div class="line">' +
             '<span class="tname">环境路径</span>' +
             '<div class="info-r">' +
-            '<input id="venv_path_input" class="bt-input-text mr5" type="text" style="width:300px" placeholder="请选择或输入虚拟环境的绝对路径" />' +
+            '<input id="venv_path_input" class="bt-input-text mr5" type="text" style="width:300px" placeholder="请选择或输入您的项目根目录" />' +
             '<span class="glyphicon glyphicon-folder-open cursor" onclick="changePath(\'venv_path_input\')"></span>' +
-            '<p class="info" style="margin-top:10px; color:#666;">例如: /www/wwwroot/my_project/venv</p>' +
+            '<p class="info" style="margin-top:10px; color:#666;">例如: /www/wwwroot/my_project (系统将自动在此目录下创建 .venv 文件夹)</p>' +
             '</div></div></div></div>';
         
         layer.open({

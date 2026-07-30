@@ -5,7 +5,7 @@
 	"name":"python_yf",
 	"type":"运行环境",
 	"ps":"基于 uv 的极速现代化 Python 多版本管理器",
-	"versions":["1.0"],
+	"versions": "1.0",
 	"shell":"install.sh",
 	"checks":"server/python_yf",
 	"path": "server/python_yf",

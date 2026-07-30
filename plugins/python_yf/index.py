@@ -136,11 +136,18 @@ def uninstall_python():
 def create_venv():
     args = getArgs()
     version = args.get('version', '')
-    path = args.get('path', '')
-    if not version or not path:
+    base_path = args.get('path', '')
+    if not version or not base_path:
         return yf.returnJson(False, '参数错误，必须提供版本和路径')
         
-    exec_str = f"{UV_BIN} venv {path} --python {version}"
+    path = os.path.join(base_path, '.venv')
+    
+    # 企业级解决方案：提取项目名作为虚拟环境的 prompt 前缀，避免终端全是 (.venv)
+    project_name = os.path.basename(base_path.rstrip('/\\'))
+    if not project_name:
+        project_name = "venv"
+        
+    exec_str = f"{UV_BIN} venv {path} --python {version} --prompt {project_name}"
     stdout, stderr = yf.execShell(exec_str)
     
     output = stdout + " " + stderr
@@ -156,6 +163,25 @@ def create_venv():
     else:
         return yf.returnJson(False, f'创建失败: {output}')
 
+def remove_venv():
+    args = getArgs()
+    version = args.get('version', '')
+    path = args.get('path', '')
+    if not version or not path:
+        return yf.returnJson(False, '参数错误')
+        
+    venvs = get_venvs()
+    if version in venvs and path in venvs[version]:
+        venvs[version].remove(path)
+        save_venvs(venvs)
+        
+        # 安全删除：只有在确认是虚拟环境目录（比如包含 bin/python 或 pyvenv.cfg）才允许删除
+        if os.path.exists(os.path.join(path, 'bin', 'python')) or os.path.exists(os.path.join(path, 'pyvenv.cfg')):
+            yf.execShell(f"rm -rf {path}")
+            
+        return yf.returnJson(True, '删除成功')
+    return yf.returnJson(False, '未找到该虚拟环境记录')
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("error")
@@ -170,5 +196,7 @@ if __name__ == "__main__":
         print(uninstall_python())
     elif func == 'create_venv':
         print(create_venv())
+    elif func == 'remove_venv':
+        print(remove_venv())
     else:
         print('error')
