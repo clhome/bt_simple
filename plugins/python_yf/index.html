@@ -101,7 +101,10 @@ var py_yf = {
                     venv_info += '<p style="font-size:12px; color:#20a53a; font-weight:bold; margin-bottom:5px;">已创建虚拟环境 (' + item.venvs.length + ')</p>';
                     for(var j=0; j<item.venvs.length; j++) {
                         var v_path = item.venvs[j];
-                        var copy_cmd = "cd " + v_path + " && source bin/activate";
+                        var v_path_parts = v_path.split('/');
+                        var v_name = v_path_parts.pop();
+                        var p_path = v_path_parts.join('/') || '/';
+                        var copy_cmd = "cd " + p_path + " && source " + v_name + "/bin/activate";
                         venv_info += '<div style="font-size:12px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">' +
                                      '<div><span class="glyphicon glyphicon-link" style="color:#aaa;margin-right:5px;font-size:11px;"></span>' + 
                                      '<a href="javascript:;" onclick="openPath(\'' + v_path + '\')" class="btlink" style="background:#f9f9f9;padding:2px 5px;border-radius:4px;" title="打开目录">' + v_path + '</a></div>' +
