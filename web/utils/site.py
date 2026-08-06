@@ -1744,11 +1744,33 @@ location  {from} {\n\
 
         conf_proxy = "{}/{}.conf".format(self.getProxyPath(site_name), proxy_id)
         conf_bk = "{}/{}.conf.txt".format(self.getProxyPath(site_name), proxy_id)
+        
+        # Read old config if it exists
+        old_config = ""
+        old_is_txt = False
+        if os.path.exists(conf_proxy):
+            old_config = yf.readFile(conf_proxy)
+        elif os.path.exists(conf_bk):
+            old_config = yf.readFile(conf_bk)
+            old_is_txt = True
+            
         yf.writeFile(conf_proxy, tpl)
+        if os.path.exists(conf_bk):
+            os.remove(conf_bk)
 
         rule_test = yf.checkWebConfig()
         if rule_test != True:
-            os.remove(conf_proxy)
+            # Restore old config
+            if old_config != "":
+                if old_is_txt:
+                    yf.writeFile(conf_bk, old_config)
+                    if os.path.exists(conf_proxy):
+                        os.remove(conf_proxy)
+                else:
+                    yf.writeFile(conf_proxy, old_config)
+            else:
+                if os.path.exists(conf_proxy):
+                    os.remove(conf_proxy)
             return yf.returnData(False, "OpenResty配置测试不通过, 请重试: {}".format(rule_test))
 
         if proxy_action == "add":
@@ -1814,6 +1836,26 @@ location  {from} {\n\
                 os.rename(conf_file, conf_txt)
             except:
                 pass
+
+        rule_test = yf.checkWebConfig()
+        if rule_test != True:
+            # Revert the rename
+            if status == '1':
+                try: os.rename(conf_file, conf_txt)
+                except: pass
+            else:
+                try: os.rename(conf_txt, conf_file)
+                except: pass
+            return yf.returnData(False, "OpenResty配置测试不通过: {}".format(rule_test))
+
+        proxy_site_path = self.getProxyDataPath(site_name)
+        data_content = yf.readFile(proxy_site_path) if os.path.exists(proxy_site_path) else ""
+        data = json.loads(data_content) if data_content != "" else []
+        for x in range(len(data)):
+            if data[x]["id"] == proxy_id:
+                data[x]["open_proxy"] = "on" if status == '1' else "off"
+                break
+        yf.writeFile(proxy_site_path, json.dumps(data))
 
         yf.restartWeb()
         return yf.returnData(True, "OK")
@@ -1936,7 +1978,7 @@ location  {from} {\n\
             return yf.returnData(False, "OpenResty 配置测试不通过, 请重试: {}".format(rule_test))
 
         yf.removeBackFile(proxy_file)
-        self.operateRedirectConf(site_name, 'start')
+        self.operateProxyConf(site_name, 'start')
         yf.restartWeb()
         return yf.returnData(True, "ok")
 
