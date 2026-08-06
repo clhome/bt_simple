@@ -1969,7 +1969,7 @@ function toProxy(siteName, type, obj) {
 		$.post('/site/set_proxy_status', {siteName: siteName,'status':status,'id':obj}, function(rdata) {
 			layer.close(loading);
 			if (!rdata.status){
-				layer.msg(res.msg, {time: 3000,icon: 2});
+				layer.msg(rdata.msg, {time: 3000,icon: 2});
 				return;
 			}
 

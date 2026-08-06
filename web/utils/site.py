@@ -1594,6 +1594,40 @@ class sites(object):
 
         yf.writeFile(vhost_file, content)
 
+    # 自动检查并修复 proxy_cache_path 配置
+    def checkAndAddProxyCachePath(self):
+        nginx_conf_file = yf.getServerDir() + '/openresty/nginx/conf/nginx.conf'
+        if not os.path.exists(nginx_conf_file):
+            return
+        
+        content = yf.readFile(nginx_conf_file)
+        if not content:
+            return
+            
+        # 1. 物理目录准备
+        cache_dir = yf.getServerDir() + '/openresty/nginx/yf_cache_dir'
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir, exist_ok=True)
+            if not yf.isAppleSystem() and os.name != 'nt':
+                try:
+                    yf.execShell(f"chown -R www:www {cache_dir}")
+                except:
+                    pass
+                    
+        # 2. 清理 nginx.conf 中所有旧的或错误的 yf_cache 定义（包括之前错误注入的）
+        # 匹配所有形如 proxy_cache_path ... keys_zone=yf_cache:... ; 的行
+        content = re.sub(r'^[ \t]*proxy_cache_path[^;]+keys_zone=yf_cache:[^;]+;\n?', '', content, flags=re.MULTILINE)
+        
+        # 匹配所有使用了 yf_cache_dir 的行（防止之前替换留下的重复路径）
+        content = re.sub(r'^[ \t]*proxy_cache_path[ \t]+[^\s]*yf_cache_dir[^;]+;\n?', '', content, flags=re.MULTILINE)
+
+        # 3. 在 http { 下方（以 include mime.types 为锚点）插入唯一的、正确的配置
+        add_str = f"\n\tproxy_cache_path {cache_dir} levels=1:2 keys_zone=yf_cache:512m inactive=1d max_size=10g;\n"
+        if re.search(r'include\s+mime\.types;', content):
+            content = re.sub(r'(include\s+mime\.types;)', add_str + r'\t\1', content, count=1)
+            yf.writeFile(nginx_conf_file, content)
+            yf.restartWeb()
+
     # 设置 网站 反向代理列表
     def setProxy(self, site_name, site_from, to, host, name, open_proxy, open_cors, open_http3,open_cache, cache_time, proxy_id):
         from urllib.parse import urlparse
@@ -1620,6 +1654,9 @@ class sites(object):
                     return yf.returnData(False, "名称重复!!")
                 if item["from"] == site_from:
                     return yf.returnData(False, "代理目录已存在!!")
+
+        if open_cache == 'on':
+            self.checkAndAddProxyCachePath()
 
         tpl = "#PROXY-START\n\
 location  {from} {\n\
@@ -1758,8 +1795,17 @@ location  {from} {\n\
         if os.path.exists(conf_bk):
             os.remove(conf_bk)
 
+        # 在校验之前，必须确保 vhost 已经包含了 include 指令，否则校验不到新添加的文件！
+        was_stopped = False
+        vhost_content = yf.readFile(self.getHostConf(site_name))
+        if vhost_content and vhost_content.find('#PROXY-END') == -1:
+            was_stopped = True
+            self.operateProxyConf(site_name, 'start')
+
         rule_test = yf.checkWebConfig()
         if rule_test != True:
+            if was_stopped:
+                self.operateProxyConf(site_name, 'stop')
             # Restore old config
             if old_config != "":
                 if old_is_txt:
