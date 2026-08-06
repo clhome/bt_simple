@@ -2428,6 +2428,11 @@ location  {from} {\n\
         # 开启重定向
         self.openRedirectByOpen(site_name)
 
+        # 重新获取路径，因为如果是首次申请，acme.sh 可能会生成 _ecc 目录
+        src_path = yf.getAcmeDomainDir(domains[0])
+        src_cert = src_path + '/fullchain.cer'
+        src_key = src_path + '/' + domains[0] + '.key'
+
         msg = '签发失败,您尝试申请证书的失败次数已达上限!<p>1、检查域名是否绑定到对应站点</p>\
             <p>2、检查域名是否正确解析到本服务器,或解析还未完全生效</p>\
             <p>3、如果您的站点设置了反向代理,或使用了CDN,请先将其关闭</p>\
@@ -2557,6 +2562,11 @@ export PATH
             result = yf.execShell(cmd)
             # print(result)
 
+            # 重新获取路径，因为如果是首次申请，acme.sh 可能会生成 _ecc 目录
+            src_path = yf.getAcmeDomainDir(d)
+            src_cert = src_path + '/fullchain.cer'
+            src_key = src_path + '/' + d + '.key'
+
             if not os.path.exists(src_cert) or (old_mtime > 0 and os.path.getmtime(src_cert) == old_mtime):
                 info = self.findAcmeHandDnsNotice(top_domain)
                 if len(info) != 0:
@@ -2645,6 +2655,11 @@ export PATH
             result = yf.execShell(cmd)
             # print(result)
             
+            # 重新获取路径，因为如果是首次申请，acme.sh 可能会生成 _ecc 目录
+            src_path = yf.getAcmeDomainDir(d)
+            src_cert = src_path + '/fullchain.cer'
+            src_key = src_path + '/' + d + '.key'
+
             msg = '签发失败,您尝试申请证书的失败次数已达上限!\
                 <p>1、检查域名是否正确解析到本服务器,或解析还未完全生效</p>\
                 <p>2、如果以上检查都确认没有问题，请尝试更换DNS服务商</p>'
