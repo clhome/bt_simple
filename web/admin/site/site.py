@@ -91,6 +91,18 @@ def list():
         else:
             site['daily_traffic'] = 0
 
+        # 4. 检查是否配置了反向代理
+        proxy_data_path = YfSites.instance().getProxyDataPath(site_name)
+        site['has_proxy'] = False
+        if os.path.exists(proxy_data_path):
+            try:
+                data_content = yf.readFile(proxy_data_path)
+                data = json.loads(data_content) if data_content else []
+                if len(data) > 0:
+                    site['has_proxy'] = True
+            except Exception:
+                pass
+
     if is_ssl_sort:
         info['list'].sort(key=lambda x: x['ssl_days'], reverse=ssl_sort_desc)
         # 确保已停止（status='0'）的网站在最后

@@ -58,6 +58,7 @@ function getWeb(page, type_id, search) {
 		var body = '';
 		$("#webBody").html(body);
 		var list = data.data;
+		window.site_list_cache = list;
 		for (var i = 0; i < list.length; i++) {
 			//当前站点状态
 			var trClass = '';
@@ -1047,6 +1048,15 @@ function setIndexList(id){
 
 /* 站点修改 */
 function webEdit(id,website,endTime,addtime,defaultTab){
+	var hasProxy = false;
+	if (window.site_list_cache) {
+		for (var i = 0; i < window.site_list_cache.length; i++) {
+			if (window.site_list_cache[i].id == id) {
+				hasProxy = window.site_list_cache[i].has_proxy;
+				break;
+			}
+		}
+	}
 	// 暂时关闭 - 子目录绑定
 	// <p onclick='dirBinding("+id+")'>子目录绑定</p>\
 	layer.open({
@@ -1067,7 +1077,7 @@ function webEdit(id,website,endTime,addtime,defaultTab){
 				<p onclick=\"setSSL("+id+",'"+website+"')\">SSL</p>\
 				<p onclick=\"phpVersion('"+website+"')\">PHP版本</p>\
 				<p onclick=\"to301('"+website+"')\">重定向</p>\
-				<p onclick=\"toProxy('"+website+"')\">反向代理</p>\
+				<p onclick=\"toProxy('"+website+"')\">反向代理"+(hasProxy?"<span style='color:red; font-size:12px; margin-left:3px'>●</span>":"")+"</p>\
 				<p id='site_"+id+"' onclick=\"security('"+id+"','"+website+"')\">防盗链</p>\
 				<p id='site_"+id+"' onclick=\"getSiteLogs('"+website+"')\">响应日志</p>\
 				<p id='site_"+id+"' onclick=\"getSiteErrorLogs('"+website+"')\">错误日志</p>\
