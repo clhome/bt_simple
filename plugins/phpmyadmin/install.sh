@@ -24,26 +24,31 @@ Install_phpmyadmin()
 	
 	VER=5.2.3
 	FDIR=phpMyAdmin-${VER}-all-languages
-	FILE=phpMyAdmin-${VER}-all-languages.tar.gz
-	URL="https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE"
-	URL_BACKUP="https://repo.huaweicloud.com/phpmyadmin/phpMyAdmin/${VER}/$FILE"
-	
-	yf_download $serverPath/source/phpmyadmin/$FILE $URL
+	FILE=phpMyAdmin-${VER}-all-languages.tar.xz
+	FILEPATH=$serverPath/source/phpmyadmin/$FILE
 
-	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
-		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE
+	# 优先从项目 GitHub Release 下载（自带国内代理加速）
+	GH_URL="https://github.com/clhome/bt_simple/releases/download/init/$FILE"
+	github_download $FILEPATH $GH_URL
+
+	# 回退：尝试官方源
+	if [ ! -f $FILEPATH ] || ! xz -t $FILEPATH 2>/dev/null; then
+		rm -f $FILEPATH 2>/dev/null
+		echo "GitHub 源下载失败，尝试官方源..."
+		OFFICIAL_URL="https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE"
+		curl -k -L --connect-timeout 15 --max-time 120 -o $FILEPATH $OFFICIAL_URL
 	fi
-	
-	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
-		echo "主站下载或解压失败，尝试使用华为云备用节点..."
-		rm -f $serverPath/source/phpmyadmin/$FILE
-		yf_download $serverPath/source/phpmyadmin/$FILE $URL_BACKUP
-		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE
+
+	# 解压
+	if [ -f $FILEPATH ] && xz -t $FILEPATH 2>/dev/null; then
+		if [ ! -d $serverPath/source/phpmyadmin/$FDIR ]; then
+			cd $serverPath/source/phpmyadmin && tar xJvf $FILE
+		fi
 	fi
-	
-	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
-		echo "解压失败或下载的文件无效"
-		rm -f $serverPath/source/phpmyadmin/$FILE
+
+	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ]; then
+		echo "下载失败或文件损坏，请检查网络连通性"
+		rm -f $FILEPATH 2>/dev/null
 		exit 1
 	fi
 	
