@@ -1215,8 +1215,12 @@ class plugin(object):
         package = self.__plugin_dir + '/' + name
         if not os.path.exists(package):
             return (False, "插件不存在!")
-        if not package in sys.path:
-            sys.path.append(package)
+        if package in sys.path:
+            sys.path.remove(package)
+        sys.path.insert(0, package)
+        
+        if script in sys.modules:
+            del sys.modules[script]
 
         cmd = "__import__('" + script + "')." + func + '(' + args + ')'
         if yf.isDebugMode():
