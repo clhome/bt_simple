@@ -254,6 +254,18 @@ Install_openresty()
 	# --with-debug
 	# 用于调式
 
+	# 修复 OpenSSL 3.x 编译兼容问题：
+	# OpenResty 生成的 objs/Makefile 会对 OpenSSL 源码执行 "gmake clean"，
+	# 但 OpenSSL 3.x 的 clean 目标会删除 util/perl/OpenSSL/fallback.pm，
+	# 导致后续 ./config 因找不到该 Perl 模块而失败。
+	# 解决方案：将 Makefile 中针对 OpenSSL 的 "gmake clean" 替换为无操作(true)。
+	OBJS_MAKEFILE="${openrestyDir}/openresty-${VERSION}/build/nginx-*/objs/Makefile"
+	for _mf in ${OBJS_MAKEFILE}; do
+		if [ -f "$_mf" ]; then
+			sed -i 's/\&\& if \[ -f Makefile \]; then $(MAKE) clean; fi \\/\&\& if [ -f Makefile ]; then true; fi \\/g' "$_mf"
+		fi
+	done
+
 	# 避免正在运行的二进制导致 Text file busy 无法覆盖
 	if [ -f $serverPath/openresty/nginx/sbin/nginx ];then
 		mv -f $serverPath/openresty/nginx/sbin/nginx $serverPath/openresty/nginx/sbin/nginx.bak
