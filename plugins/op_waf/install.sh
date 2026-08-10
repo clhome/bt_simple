@@ -35,6 +35,16 @@ fi
 Install_App(){
 	
 	echo '正在安装脚本文件...'
+
+	# 安装系统底层依赖(用于lsqlite3编译)
+	if [ "${sys_os}" != "Darwin" ];then
+		if [ -f /etc/redhat-release ]; then
+			yum install -y sqlite-devel
+		elif [ -f /etc/debian_version ]; then
+			apt-get install -y libsqlite3-dev
+		fi
+	fi
+
 	mkdir -p $serverPath/source/op_waf
 	mkdir -p $serverPath/op_waf
 
