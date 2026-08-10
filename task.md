@@ -141,3 +141,6 @@
 - `[x]` 112. 优化 `plugins/python_yf/index.py`：引入 `venvs.json`，在 `get_python_list` 中返回虚拟环境的创建记录，并新增 `create_venv` 接口。
 - `[x]` 113. 优化 `plugins/python_yf/index.html`：在前端“已安装版本”中添加“创建虚拟环境”按钮及弹窗，并展示该版本下的虚拟环境数量记录。
 - `[x]` 114. 开发联调与测试虚拟环境的创建和 UI 展示。
+
+- [x] 115. 优化 plugins/php/install.sh 中 Composer 安装逻辑：导出临时环境变量并优先从国内镜像直连下载压缩包，并增加文件生成校验保护防止出现系统级报错。
+- [x] 116. 优化 plugins/php-apt/install.sh 中 Composer 安装逻辑（同 115）。

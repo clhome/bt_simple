@@ -119,30 +119,44 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php-apt/${type} ];then
 	echo "install PHP-APT[${type}] extend end"
 
 	if [ ! -f /usr/local/bin/composer ];then
+		echo "Installing Composer..."
 		cd /tmp
-		curl -sS https://getcomposer.org/installer | /usr/bin/php${apt_ver}
-		mv composer.phar /usr/local/bin/composer
+		export COMPOSER_HOME=/root/.config/composer
 		
-		# 智能测速选择 Composer 镜像源
-		echo "Testing Composer mirror speeds..."
-		aliyun_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.aliyun.com/composer/ || echo "999")
-		tencent_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.cloud.tencent.com/composer/ || echo "999")
-		packagist_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://packagist.org/ || echo "999")
-		
-		fastest=$(awk -v a="$aliyun_time" -v t="$tencent_time" -v p="$packagist_time" 'BEGIN{
-			if(a < t && a < p && a < 2) print "aliyun";
-			else if(t < a && t < p && t < 2) print "tencent";
-			else print "official";
-		}')
-		
-		if [ "$fastest" == "aliyun" ]; then
-			echo "Aliyun mirror is the fastest. Setting Aliyun mirror..."
-			/usr/local/bin/composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
-		elif [ "$fastest" == "tencent" ]; then
-			echo "Tencent mirror is the fastest. Setting Tencent mirror..."
-			/usr/local/bin/composer config -g repo.packagist composer https://mirrors.cloud.tencent.com/composer/
+		# 尝试从国内镜像直接下载已打包好的 composer.phar 提高成功率
+		curl -sSLo composer.phar https://mirrors.aliyun.com/composer/composer.phar
+		if [ ! -f "composer.phar" ] || [ ! -s "composer.phar" ]; then
+			# 退避回官方源直接下载
+			curl -sSLo composer.phar https://getcomposer.org/download/latest-stable/composer.phar
+		fi
+
+		if [ -f "composer.phar" ] && [ -s "composer.phar" ]; then
+			mv composer.phar /usr/local/bin/composer
+			chmod +x /usr/local/bin/composer
+			
+			# 智能测速选择 Composer 镜像源
+			echo "Testing Composer mirror speeds..."
+			aliyun_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.aliyun.com/composer/ || echo "999")
+			tencent_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://mirrors.cloud.tencent.com/composer/ || echo "999")
+			packagist_time=$(curl -m 2 -s -w "%{time_total}" -o /dev/null https://packagist.org/ || echo "999")
+			
+			fastest=$(awk -v a="$aliyun_time" -v t="$tencent_time" -v p="$packagist_time" 'BEGIN{
+				if(a < t && a < p && a < 2) print "aliyun";
+				else if(t < a && t < p && t < 2) print "tencent";
+				else print "official";
+			}')
+			
+			if [ "$fastest" == "aliyun" ]; then
+				echo "Aliyun mirror is the fastest. Setting Aliyun mirror..."
+				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
+			elif [ "$fastest" == "tencent" ]; then
+				echo "Tencent mirror is the fastest. Setting Tencent mirror..."
+				/usr/local/bin/composer config -g repo.packagist composer https://mirrors.cloud.tencent.com/composer/
+			else
+				echo "Official mirror is fast enough or domestic mirrors failed. Using default."
+			fi
 		else
-			echo "Official mirror is fast enough or domestic mirrors failed. Using default."
+			echo "Warning: Composer download failed. You may need to install it manually."
 		fi
 	fi
 
