@@ -54,21 +54,29 @@ Install_Docker()
 
 	# 3. 安装 Python SDK 支持库（注入国内清华加速源以防大陆网络超时卡死）
 	echo '正在安装面板配套的 Python 管理库依赖...'
-	LOCAL_ADDR=$(get_local_addr)
-	if [ "$LOCAL_ADDR" == "cn" ];then
-		# 大陆环境采用清华源极速安装
-		if [ -f ${rootPath}/bin/pip3 ];then
-			${rootPath}/bin/pip3 install docker pytz -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
+	install_python_deps() {
+		local pip_cmd=$1
+		local LOCAL_ADDR=$(get_local_addr)
+		if [ "$LOCAL_ADDR" == "cn" ]; then
+			# 依次尝试清华源、阿里云源和官方源
+			$pip_cmd install docker pytz -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
+			if [ $? -ne 0 ]; then
+				echo "清华源安装失败，尝试使用阿里云源..."
+				$pip_cmd install docker pytz -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+				if [ $? -ne 0 ]; then
+					echo "阿里云源安装失败，尝试使用官方源..."
+					$pip_cmd install docker pytz
+				fi
+			fi
 		else
-			pip3 install docker pytz -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn
+			$pip_cmd install docker pytz
 		fi
+	}
+
+	if [ -f ${rootPath}/bin/pip3 ];then
+		install_python_deps "${rootPath}/bin/pip3"
 	else
-		# 海外环境采用官方常规源安装
-		if [ -f ${rootPath}/bin/pip3 ];then
-			${rootPath}/bin/pip3 install docker pytz
-		else
-			pip3 install docker pytz
-		fi
+		install_python_deps "pip3"
 	fi
 	
 	# 4. 写入面板安装状态和版本标识并启动面板配套后台服务

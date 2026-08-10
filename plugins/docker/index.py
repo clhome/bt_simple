@@ -18,7 +18,7 @@ import core.yf as yf
 try:
     import docker
 except Exception as e:
-    pass
+    docker = None
 
 
 
@@ -28,6 +28,8 @@ if yf.isAppleSystem():
 
 
 def getDClient():
+    if docker is None:
+        raise Exception("Python模块[docker]未安装，请在终端执行 'pip3 install docker pytz' 进行安装，或重新安装本插件！")
     try:
         client = docker.from_env()
     except Exception as e:
