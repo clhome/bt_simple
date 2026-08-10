@@ -36,11 +36,11 @@ if [ ! -d ${SERVER_ROOT}/openssl10 ];then
     ./config --openssldir=${SERVER_ROOT}/openssl10 zlib-dynamic shared
     make -j${cpuCore:-1} && make install
 
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/www/server/lib/openssl10/lib
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${SERVER_ROOT}/openssl10/lib
     if [ -d /etc/ld.so.conf.d ];then
-        echo "/www/server/lib/openssl10/lib" > /etc/ld.so.conf.d/openssl10.conf
+        echo "${SERVER_ROOT}/openssl10/lib" > /etc/ld.so.conf.d/openssl10.conf
     elif [ -f /etc/ld.so.conf ]; then
-        echo "/www/server/lib/openssl10/lib" >> /etc/ld.so.conf
+        echo "${SERVER_ROOT}/openssl10/lib" >> /etc/ld.so.conf
     fi
 
     ldconfig
@@ -49,4 +49,8 @@ if [ ! -d ${SERVER_ROOT}/openssl10 ];then
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/openssl-${opensslVersion}
 fi
 
-
+if [ ! -d ${SERVER_ROOT}/openssl10/lib64 ] && [ -d ${SERVER_ROOT}/openssl10/lib ]; then
+    ln -sf ${SERVER_ROOT}/openssl10/lib ${SERVER_ROOT}/openssl10/lib64
+elif [ ! -d ${SERVER_ROOT}/openssl10/lib ] && [ -d ${SERVER_ROOT}/openssl10/lib64 ]; then
+    ln -sf ${SERVER_ROOT}/openssl10/lib64 ${SERVER_ROOT}/openssl10/lib
+fi

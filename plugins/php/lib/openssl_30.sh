@@ -49,3 +49,8 @@ if [ ! -d ${SERVER_ROOT}/openssl30 ];then
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/openssl-${opensslVersion}
 fi
 
+if [ ! -d ${SERVER_ROOT}/openssl30/lib64 ] && [ -d ${SERVER_ROOT}/openssl30/lib ]; then
+    ln -sf ${SERVER_ROOT}/openssl30/lib ${SERVER_ROOT}/openssl30/lib64
+elif [ ! -d ${SERVER_ROOT}/openssl30/lib ] && [ -d ${SERVER_ROOT}/openssl30/lib64 ]; then
+    ln -sf ${SERVER_ROOT}/openssl30/lib64 ${SERVER_ROOT}/openssl30/lib
+fi

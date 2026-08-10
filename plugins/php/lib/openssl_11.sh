@@ -34,16 +34,22 @@ if [ ! -d ${SERVER_ROOT}/openssl11 ];then
     ./config --prefix=${SERVER_ROOT}/openssl11 zlib-dynamic shared
     make -j${cpuCore:-1} && make install
 
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/www/server/lib/openssl11/lib
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${SERVER_ROOT}/openssl11/lib
     if [ -d /etc/ld.so.conf.d ];then
-        echo "/www/server/lib/openssl11/lib" > /etc/ld.so.conf.d/openssl11.conf
+        echo "${SERVER_ROOT}/openssl11/lib" > /etc/ld.so.conf.d/openssl11.conf
     elif [ -f /etc/ld.so.conf ]; then
-        echo "/www/server/lib/openssl11/lib" >> /etc/ld.so.conf
+        echo "${SERVER_ROOT}/openssl11/lib" >> /etc/ld.so.conf
     fi
 
     ldconfig
     # ldconfig -p  | grep openssl
 
     cd $SOURCE_ROOT && rm -rf $SOURCE_ROOT/openssl-${opensslVersion}
+fi
+
+if [ ! -d ${SERVER_ROOT}/openssl11/lib64 ] && [ -d ${SERVER_ROOT}/openssl11/lib ]; then
+    ln -sf ${SERVER_ROOT}/openssl11/lib ${SERVER_ROOT}/openssl11/lib64
+elif [ ! -d ${SERVER_ROOT}/openssl11/lib ] && [ -d ${SERVER_ROOT}/openssl11/lib64 ]; then
+    ln -sf ${SERVER_ROOT}/openssl11/lib64 ${SERVER_ROOT}/openssl11/lib
 fi
 
