@@ -49,8 +49,13 @@ Install_App(){
 	mkdir -p $serverPath/op_waf
 
 	# luarocks
-	if [ ! -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz ];then
-		wget -nv --no-check-certificate -O $serverPath/source/op_waf/luarocks-3.5.0.tar.gz http://luarocks.org/releases/luarocks-3.5.0.tar.gz
+	if [ ! -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz ] || ! tar -tf $serverPath/source/op_waf/luarocks-3.5.0.tar.gz &>/dev/null;then
+		rm -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz
+		wget -nv --timeout=15 --tries=3 --no-check-certificate -O $serverPath/source/op_waf/luarocks-3.5.0.tar.gz https://luarocks.org/releases/luarocks-3.5.0.tar.gz
+		if [ ! -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz ] || ! tar -tf $serverPath/source/op_waf/luarocks-3.5.0.tar.gz &>/dev/null;then
+			rm -f $serverPath/source/op_waf/luarocks-3.5.0.tar.gz
+			github_download $serverPath/source/op_waf/luarocks-3.5.0.tar.gz https://github.com/luarocks/luarocks/archive/refs/tags/v3.5.0.tar.gz
+		fi
 	fi
 	
 	# which luarocks
