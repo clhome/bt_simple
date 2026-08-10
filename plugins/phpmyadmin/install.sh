@@ -26,10 +26,18 @@ Install_phpmyadmin()
 	FDIR=phpMyAdmin-${VER}-all-languages
 	FILE=phpMyAdmin-${VER}-all-languages.tar.gz
 	URL="https://files.phpmyadmin.net/phpMyAdmin/${VER}/$FILE"
+	URL_BACKUP="https://repo.huaweicloud.com/phpmyadmin/phpMyAdmin/${VER}/$FILE"
 	
 	yf_download $serverPath/source/phpmyadmin/$FILE $URL
 
 	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
+		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE
+	fi
+	
+	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
+		echo "主站下载或解压失败，尝试使用华为云备用节点..."
+		rm -f $serverPath/source/phpmyadmin/$FILE
+		yf_download $serverPath/source/phpmyadmin/$FILE $URL_BACKUP
 		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE
 	fi
 	
