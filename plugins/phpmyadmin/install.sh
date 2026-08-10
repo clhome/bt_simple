@@ -33,6 +33,12 @@ Install_phpmyadmin()
 		cd $serverPath/source/phpmyadmin  && tar zxvf $FILE
 	fi
 	
+	if [ ! -d $serverPath/source/phpmyadmin/$FDIR ];then
+		echo "解压失败或下载的文件无效"
+		rm -f $serverPath/source/phpmyadmin/$FILE
+		exit 1
+	fi
+	
 	mkdir -p ${serverPath}/phpmyadmin
 	cp -r $serverPath/source/phpmyadmin/$FDIR $serverPath/phpmyadmin/
 	cd $serverPath/phpmyadmin/ && mv $FDIR phpmyadmin
