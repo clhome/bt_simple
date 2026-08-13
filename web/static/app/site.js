@@ -3148,6 +3148,7 @@ function rewrite(siteName){
 				'drupal': 'drupal (Drupal)',
 				'ecshop': 'ecshop (ECShop)',
 				'emlog': 'emlog (Emlog)',
+				'fastapi-web': 'fastapi-web (FastAPI)',
 				'laravel5': 'laravel5 (Laravel)',
 				'mvc': 'mvc (通用 MVC 伪静态)',
 				'phpcms': 'phpcms (PHPCMS)',
@@ -3292,6 +3293,12 @@ function setRewriteTel(act){
 				layer.close(loadT);
 				layer.close(index);
 				layer.msg(rdata.msg, {icon:rdata.status?1:5});
+				if(rdata.status){
+					if($("#myRewrite option[value='"+name+"']").length == 0){
+						$("#myRewrite").append("<option value='"+name+"'>"+name+"</option>");
+					}
+					$("#myRewrite").val(name);
+				}
 			},'json');
 			return;
 		}
