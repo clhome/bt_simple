@@ -1,1 +1,4 @@
-[[1,"^/(phpmyadmin)","MySQL[phpMyAdmin]", 0]]
+[
+    [1, "^/(phpmyadmin)", "MySQL[phpMyAdmin]", 0],
+    [1, "^/login/oauth/authorize", "OAuth认证白名单", 0]
+]
