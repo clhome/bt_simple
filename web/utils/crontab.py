@@ -58,6 +58,13 @@ class crontab(object):
         dbdata['url_address'] = yf.getDefault(data, 'url_address', '')
         dbdata['attr'] = yf.getDefault(data, 'attr', '')
         dbdata['day_type'] = yf.getDefault(data, 'day_type', '0')
+        
+        dbdata['min_start_en'] = yf.getDefault(data, 'min_start_en', '0')
+        dbdata['min_start_h'] = yf.getDefault(data, 'min_start_h', '0')
+        dbdata['min_start_m'] = yf.getDefault(data, 'min_start_m', '0')
+        dbdata['min_end_en'] = yf.getDefault(data, 'min_end_en', '0')
+        dbdata['min_end_h'] = yf.getDefault(data, 'min_end_h', '23')
+        dbdata['min_end_m'] = yf.getDefault(data, 'min_end_m', '59')
 
         if not self.removeForCrond(info['echo']):
             return yf.returnData(False, '无法写入文件，是否开启了系统加固功能!')
@@ -183,6 +190,13 @@ class crontab(object):
         add_dbdata['url_address'] = yf.getDefault(data, 'url_address', '')
         add_dbdata['attr'] = yf.getDefault(data, 'attr', '')
         add_dbdata['day_type'] = yf.getDefault(data, 'day_type', '0')
+        
+        add_dbdata['min_start_en'] = yf.getDefault(data, 'min_start_en', '0')
+        add_dbdata['min_start_h'] = yf.getDefault(data, 'min_start_h', '0')
+        add_dbdata['min_start_m'] = yf.getDefault(data, 'min_start_m', '0')
+        add_dbdata['min_end_en'] = yf.getDefault(data, 'min_end_en', '0')
+        add_dbdata['min_end_h'] = yf.getDefault(data, 'min_end_h', '23')
+        add_dbdata['min_end_m'] = yf.getDefault(data, 'min_end_m', '59')
 
         try:
             tid = thisdb.addCrontab(add_dbdata)
@@ -245,6 +259,13 @@ class crontab(object):
             elif t['type'] == "minute-n":
                 t['type'] = yf.getInfo('每{1}分钟', (str(t['where1']),))
                 t['cycle'] = yf.getInfo('每隔{1}分钟执行', (str(t['where1']),))
+                if str(t.get('min_start_en', '0')) == '1' or str(t.get('min_end_en', '0')) == '1':
+                    limit_str = []
+                    if str(t.get('min_start_en', '0')) == '1':
+                        limit_str.append("从%02d:%02d起" % (int(t.get('min_start_h', 0)), int(t.get('min_start_m', 0))))
+                    if str(t.get('min_end_en', '0')) == '1':
+                        limit_str.append("至%02d:%02d止" % (int(t.get('min_end_h', 23)), int(t.get('min_end_m', 59))))
+                    t['cycle'] += " (限制: %s)" % " ".join(limit_str)
             elif t['type'] == "week":
                 t['type'] = '每周'
                 if not t['where1']:
@@ -483,6 +504,36 @@ export LANG=en_US.UTF-8
 fi''' % (yf.getPanelDir(),)
 
             head = head + start_head + source_bin_activate + "\n"
+            
+            # 分钟N执行时段限制
+            if 'type' in param and param['type'] == 'minute-n':
+                time_check = '''
+# 执行时段限制判定
+CURRENT_HM=$(date +"%H%M")
+'''
+                if str(param.get('min_start_en', '0')) == '1':
+                    start_hm = "%02d%02d" % (int(param.get('min_start_h', 0)), int(param.get('min_start_m', 0)))
+                    time_check += '''
+MIN_START_HM="%s"
+if [ "$CURRENT_HM" -lt "$MIN_START_HM" ]; then
+    echo "----------------------------------------------------------------------------"
+    echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 跳过执行：未到允许的开始时间($MIN_START_HM)"
+    echo "----------------------------------------------------------------------------"
+    exit 0
+fi
+''' % (start_hm,)
+                if str(param.get('min_end_en', '0')) == '1':
+                    end_hm = "%02d%02d" % (int(param.get('min_end_h', 23)), int(param.get('min_end_m', 59)))
+                    time_check += '''
+MIN_END_HM="%s"
+if [ "$CURRENT_HM" -gt "$MIN_END_HM" ]; then
+    echo "----------------------------------------------------------------------------"
+    echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 跳过执行：已过允许的结束时间($MIN_END_HM)"
+    echo "----------------------------------------------------------------------------"
+    exit 0
+fi
+''' % (end_hm,)
+                head = head + time_check
 
             if 'day_type' in param and (str(param['day_type']) != '0'):
                 day_type = str(param['day_type'])

@@ -13,7 +13,7 @@ import os
 
 import core.yf as yf
 
-__field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,last_run_time,add_time,update_time'
+__field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_to,stype,sname,sbody,url_address,attr,day_type,min_start_en,min_start_h,min_start_m,min_end_en,min_end_h,min_end_m,last_run_time,add_time,update_time'
 
 # 尝试增加 last_run_time 字段 (迁移逻辑)
 try:
@@ -26,6 +26,13 @@ try:
     yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN day_type INTEGER DEFAULT 0")
 except:
     pass
+
+# 尝试增加 min_start/end 相关字段 (迁移逻辑)
+for col, ctype in [("min_start_en", "INTEGER DEFAULT 0"), ("min_start_h", "INTEGER DEFAULT 0"), ("min_start_m", "INTEGER DEFAULT 0"), ("min_end_en", "INTEGER DEFAULT 0"), ("min_end_h", "INTEGER DEFAULT 23"), ("min_end_m", "INTEGER DEFAULT 59")]:
+    try:
+        yf.M('crontab').execute(f"ALTER TABLE crontab ADD COLUMN {col} {ctype}")
+    except:
+        pass
 
 def addCrontab(data):
     now_time = yf.formatDate()

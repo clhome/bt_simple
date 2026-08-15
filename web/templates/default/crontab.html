@@ -122,8 +122,6 @@
 							<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">
 								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day">每天</a></li>
 								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day-n">N天</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="hour">每小时</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="hour-n">N小时</a></li>
 								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="minute-n">N分钟</a></li>
 								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="week">每星期</a></li>
 								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="month">每月</a></li>
@@ -183,6 +181,12 @@ static/upload
 					<input type="number" name="minute" value="" />
 					<input type="text" name="week" value="" />
 					<input type="text" name="stype" value="" />
+					<input type="hidden" name="min_start_en" value="0" />
+					<input type="hidden" name="min_start_h" value="0" />
+					<input type="hidden" name="min_start_m" value="0" />
+					<input type="hidden" name="min_end_en" value="0" />
+					<input type="hidden" name="min_end_h" value="23" />
+					<input type="hidden" name="min_end_m" value="59" />
 					<textarea name='sbody'></textarea>
 					<input id="sfile" type="file" name="sfile" value="" />
 					<input type="text" name="sname" value="" />

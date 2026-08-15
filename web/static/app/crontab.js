@@ -263,9 +263,6 @@ function planAdd(){
 		case 'day-n':
 			is1=31;
 			break;
-		case 'hour-n':
-			is1=23;
-			break;
 		case 'minute-n':
 			is1=59;
 			break;
@@ -372,6 +369,16 @@ function planAdd(){
 	if (time_type == 'minute-n'){
 		var where1 = $("#ptime input[name='where1']").val();
 		$("#cronConfig input[name='where1']").val(where1);
+		
+		var min_start_en = $("#ptime input[name='min_start_en']").prop("checked") ? 1 : 0;
+		$("#cronConfig input[name='min_start_en']").val(min_start_en);
+		$("#cronConfig input[name='min_start_h']").val($("#ptime input[name='min_start_h']").val() || 0);
+		$("#cronConfig input[name='min_start_m']").val($("#ptime input[name='min_start_m']").val() || 0);
+		
+		var min_end_en = $("#ptime input[name='min_end_en']").prop("checked") ? 1 : 0;
+		$("#cronConfig input[name='min_end_en']").val(min_end_en);
+		$("#cronConfig input[name='min_end_h']").val($("#ptime input[name='min_end_h']").val() || 23);
+		$("#cronConfig input[name='min_end_m']").val($("#ptime input[name='min_end_m']").val() || 59);
 	}
 
 	if (time_type == 'day-n'){
@@ -431,18 +438,9 @@ function initDropdownMenu(){
 				toHour();
 				toMinute();
 				break;
-			case 'hour':
-				closeOpt();
-				toMinute();
-				break;
-			case 'hour-n':
-				closeOpt();
-				toWhere1('小时');
-				toMinute();
-				break;
 			case 'minute-n':
 				closeOpt();
-				toWhere1('分钟');
+				toMinuteN();
 				break;
 			case 'week':
 				closeOpt();
@@ -725,9 +723,15 @@ function editTaskInfo(id){
 				url_address: rdata.url_address,
 				attr:rdata.attr,
                 day_type: rdata.day_type,
+				min_start_en: rdata.min_start_en || 0,
+				min_start_h: rdata.min_start_h || 0,
+				min_start_m: rdata.min_start_m || 0,
+				min_end_en: rdata.min_end_en || 0,
+				min_end_h: rdata.min_end_h || 23,
+				min_end_m: rdata.min_end_m || 59
 			},
 			sTypeArray:[['toShell','Shell脚本'],['site','备份网站'],['database','备份数据库'],['logs','日志切割'],['path','备份目录'],['rememory','释放内存'],['toUrl','访问URL']],
-			cycleArray:[['day','每天'],['day-n','N天'],['hour','每小时'],['hour-n','N小时'],['minute-n','N分钟'],['week','每星期'],['month','每月']],
+			cycleArray:[['day','每天'],['day-n','N天'],['minute-n','N分钟'],['week','每星期'],['month','每月']],
 			weekArray:[[1,'周一'],[2,'周二'],[3,'周三'],[4,'周四'],[5,'周五'],[6,'周六'],[7,'周日']],
 			sNameArray:[],
 			backupsArray:[],
@@ -833,6 +837,17 @@ function editTaskInfo(id){
 							<div class="plan_hms pull-left mr20 bt-input-text where1_input" style="display:'+ (obj.from.type == "day-n" || obj.from.type == 'month' ?'block;':'none') +'"><span><input type="number" name="where1" class="where1_create" value="'+obj.from.where1 +'" maxlength="2" max="23" min="0"></span> <span class="name">日</span> </div>\
 							<div class="plan_hms pull-left mr20 bt-input-text hour_input" style="display:'+ (obj.from.type == "day" || obj.from.type == 'day-n' || obj.from.type == 'hour-n' || obj.from.type == 'week' || obj.from.type == 'month'?'block;':'none') +'"><span><input type="number" name="hour" class="hour_create" value="'+ ( obj.from.type == 'hour-n' ? obj.from.where1 : obj.from.hour ) +'" maxlength="2" max="23" min="0"></span> <span class="name">时</span> </div>\
 							<div class="plan_hms pull-left mr20 bt-input-text minute_input"><span><input type="number" name="minute" class="minute_create" value="'+ (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute)+'" maxlength="2" max="59" min="0"></span> <span class="name">分</span> </div>\
+						</div>\
+					</div>\
+					<div class="clearfix plan ptb10 minute_n_time_range_create" style="display:'+ (obj.from.type == "minute-n" ?'block;':'none') +'">\
+						<span class="typename c4 pull-left f14 text-right mr20">执行时间</span>\
+						<div class="pull-left" style="line-height:34px">\
+							<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_start_en_create" value="1" '+(obj.from.min_start_en == 1 ? 'checked' : '')+' style="vertical-align:middle;margin-top:-2px;"> 开始时间</label>\
+							<input type="number" name="min_start_h_create" value="'+obj.from.min_start_h+'" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+							<input type="number" name="min_start_m_create" value="'+obj.from.min_start_m+'" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px; margin-right: 15px;">\
+							<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en_create" value="1" '+(obj.from.min_end_en == 1 ? 'checked' : '')+' style="vertical-align:middle;margin-top:-2px;"> 结束时间</label>\
+							<input type="number" name="min_end_h_create" value="'+obj.from.min_end_h+'" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+							<input type="number" name="min_end_m_create" value="'+obj.from.min_end_m+'" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px;">\
 						</div>\
 					</div>\
                     <div class="clearfix plan ptb10">\
@@ -961,6 +976,7 @@ function editTaskInfo(id){
 								$('.where1_input').hide();
 								$('.hour_input').show().find('input').val('1');
 								$('.minute_input').show().find('input').val('30');
+								$('.minute_n_time_range_create').hide();
 								obj.from.week = '';
 								obj.from.type = '';
 								obj.from.hour = 1;
@@ -971,36 +987,17 @@ function editTaskInfo(id){
 								$('.where1_input').show().find('input').val('1');
 								$('.hour_input').show().find('input').val('1');
 								$('.minute_input').show().find('input').val('30');
+								$('.minute_n_time_range_create').hide();
 								obj.from.week = '';
 								obj.from.where1 = 1;
 								obj.from.hour = 1;
 								obj.from.minute = 30;
-							break;
-							case 'hour':
-								$('.week_btn').hide();
-								$('.where1_input').hide();
-								$('.hour_input').hide();
-								$('.minute_input').show().find('input').val('30');
-								obj.from.week = '';
-								obj.from.where1 = '';
-								obj.from.hour = '';
-								obj.from.minute = 30;
-							break;
-							case 'hour-n':
-								$('.week_btn').hide();
-								$('.where1_input').hide();
-								$('.hour_input').show().find('input').val('1');
-								$('.minute_input').show().find('input').val('30');
-								obj.from.week = '';
-								obj.from.where1 = '';
-								obj.from.hour = 1;
-								obj.from.minute = 30;
-							break;
 							case 'minute-n':
 								$('.week_btn').hide();
 								$('.where1_input').hide();
 								$('.hour_input').hide();
 								$('.minute_input').show();
+								$('.minute_n_time_range_create').show();
 								obj.from.week = '';
 								obj.from.where1 = '';
 								obj.from.hour = '';
@@ -1012,6 +1009,7 @@ function editTaskInfo(id){
 								$('.where1_input').hide();
 								$('.hour_input').show();
 								$('.minute_input').show();
+								$('.minute_n_time_range_create').hide();
 								obj.from.week = 1;
 								obj.from.where1 = '';
 								obj.from.hour = 1;
@@ -1022,6 +1020,7 @@ function editTaskInfo(id){
 								$('.where1_input').show();
 								$('.hour_input').show();
 								$('.minute_input').show();
+								$('.minute_n_time_range_create').hide();
 								obj.from.week = '';
 								obj.from.where1 = 1;
 								obj.from.hour = 1;
@@ -1041,12 +1040,17 @@ function editTaskInfo(id){
 						obj.from.backup_to = $(this).attr('value');
 					});
 					$('.plan-submits').off().on('click', function(){
-						if(obj.from.type == 'hour-n'){
-							obj.from.where1 = obj.from.hour;
-							obj.from.hour = '';
-						} else if(obj.from.type == 'minute-n') {
+						if(obj.from.type == 'minute-n') {
 							obj.from.where1 = obj.from.minute;
 							obj.from.minute = '';
+							
+							obj.from.min_start_en = $("input[name='min_start_en_create']").prop('checked') ? 1 : 0;
+							obj.from.min_start_h = $("input[name='min_start_h_create']").val() || 0;
+							obj.from.min_start_m = $("input[name='min_start_m_create']").val() || 0;
+							
+							obj.from.min_end_en = $("input[name='min_end_en_create']").prop('checked') ? 1 : 0;
+							obj.from.min_end_h = $("input[name='min_end_h_create']").val() || 23;
+							obj.from.min_end_m = $("input[name='min_end_m_create']").val() || 59;
 						} else if(obj.from.type == 'week') {
 							obj.from.where1 = obj.from.week;
 						}
@@ -1115,6 +1119,24 @@ function toWhere1(ix){
 	</div>';
 	$("#ptime").append(mBody);
 }
+
+//N分钟特别带上下限
+function toMinuteN(){
+	var mBody ='<div class="plan_hms pull-left mr20 bt-input-text">\
+		<span><input type="number" name="where1" value="30" maxlength="2" max="59" min="0"></span>\
+		<span class="name">分钟</span>\
+	</div>\
+	<div class="plan_hms pull-left mr20">\
+		<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_start_en" value="1" style="vertical-align:middle;margin-top:-2px;"> 开始时间</label>\
+		<input type="number" name="min_start_h" value="0" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+		<input type="number" name="min_start_m" value="0" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px; margin-right: 15px;">\
+		<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en" value="1" style="vertical-align:middle;margin-top:-2px;"> 结束时间</label>\
+		<input type="number" name="min_end_h" value="23" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+		<input type="number" name="min_end_m" value="59" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px;">\
+	</div>';
+	$("#ptime").append(mBody);
+}
+
 //小时
 function toHour(){
 	var mBody = '<div class="plan_hms pull-left mr20 bt-input-text">\
@@ -1331,3 +1353,16 @@ function syncServerTasks() {
         }, 'json');
     });
 }
+
+// 自动对时间输入框进行补零优化
+$(document).on('blur', 'input[type="number"][name*="minute"], input[type="number"][name*="hour"], input[type="number"][name*="min_start"], input[type="number"][name*="min_end"]', function() {
+    var val = $(this).val();
+    if (val !== '' && !isNaN(val)) {
+        var num = parseInt(val, 10);
+        if (num >= 0 && num < 10) {
+            $(this).val('0' + num);
+        } else if (num >= 10) {
+            $(this).val(num);
+        }
+    }
+});
