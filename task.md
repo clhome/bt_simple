@@ -161,3 +161,6 @@
 - [x] 分析拦截原因：Git Credential Manager 在进行 OAuth 认证时，URL 参数 edirect_uri 包含 http://127.0.0.1，触发了 rgs.json 中的 SSRF（服务器端请求伪造）防御规则。
 - [x] 提出修复方案：建议将 OAuth 认证路径加入白名单，或直接针对 Git 站点关闭 GET 参数过滤。
 
+### 解答用户关于计划任务日志中“空格变冒号”的疑问
+- [x] 分析日志输出格式与 Bash `cd` 报错机制
+- [x] 结论解答：并非空格被替换为冒号，而是 Bash 的标准错误输出格式 `cd: <目录>: No such file or directory`。实际原因是目标路径不存在。

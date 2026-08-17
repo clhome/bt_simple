@@ -47,7 +47,7 @@ def _run_cmd(cmd):
         res = subprocess.run(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
         return {"status": res.returncode == 0, "data": res.stdout.strip(), "error": res.stderr.strip()}
     except Exception as e:
-        return {"status": False, "msg": str(e), "data": ""}
+        return {"status": False, "error": str(e), "data": ""}
 
 def _sync_daemon_reload(service_id):
     """检测外部修改并自动同步"""
