@@ -170,4 +170,8 @@
 - [x] 2. 更新 `plugins/openresty/conf/nginx.conf` 默认配置模板，将 `gzip_proxied any;` 与 `gzip_static on;` 纳入新安装默认配置
 - [x] 3. 增强 `plugins/openresty/index.py` 中的 `confSelfHeal` 和 `setCfg`，支持自动自愈升级已有配置并在开启 gzip 时补全优化指令
 - [x] 4. 编写自动化测试脚本并在 `test/` 目录下进行针对性测试验证
+- [x] 5. 将 `plugins/openresty/conf/nginx.conf` 模板中的 `brotli` 默认改为 `on`，实现安装完成时默认自动开启 Brotli 与 Gzip 双压缩
+- [x] 6. 更新 `plugins/openresty/index.py` 中的 `getCfg` 默认值及 `confReplace` 安全兼容逻辑
+- [x] 7. 运行自动化测试用例验证新装与自愈流程
+
 

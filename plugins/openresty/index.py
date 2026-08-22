@@ -385,13 +385,11 @@ def confReplace():
     content = content.replace('{$OS_USER}', user)
     content = content.replace('{$OS_USER_GROUP}', user_group)
 
-    # ng_conf_md5 = ''
-    # ng_conf_md5_file = getServerDir() + '/nginx_conf.md5'
-    # if not os.path.exists(ng_conf_md5_file):
-    #     ng_conf_md5 = yf.md5(content)
-    #     yf.writeFile(ng_conf_md5_file, ng_conf_md5)
-    # else:
-    #     ng_conf_md5 = yf.writeFile(ng_conf_md5_file).strip()
+    # 模块支持自适应安全检测：若当前二进制未编译 brotli 或 zstd 模块，自动安全降级为 off，防启动崩溃
+    if not checkModuleSupport('brotli'):
+        content = re.sub(r'brotli\s+on\s*;', 'brotli off;', content)
+    if not checkModuleSupport('zstd'):
+        content = re.sub(r'zstd\s+on\s*;', 'zstd off;', content)
 
     # 主配置文件
     nconf = getServerDir() + '/nginx/conf/nginx.conf'
@@ -760,7 +758,7 @@ def getCfg():
         {"name": "worker_connections", "ps": "最大并发链接数", 'type': 2, 'default': '51200'},
         {"name": "keepalive_timeout", "ps": "连接超时时间", 'type': 2, 'default': '60'},
         {"name": "zstd", "ps": "是否开启zstd压缩传输" + ("" if has_zstd else "(当前OpenResty未编译此模块，不支持)"), 'type': 1, 'default': 'off'},
-        {"name": "brotli", "ps": "是否开启brotli压缩传输" + ("" if has_brotli else "(当前OpenResty未编译此模块，不支持)"), 'type': 1, 'default': 'off'},
+        {"name": "brotli", "ps": "是否开启brotli压缩传输" + ("" if has_brotli else "(当前OpenResty未编译此模块，不支持)"), 'type': 1, 'default': 'on'},
         {"name": "gzip", "ps": "是否开启gzip压缩传输", 'type': 1, 'default': 'on'},
         {"name": "gzip_min_length", "ps": "最小压缩文件", 'type': 2, 'default': '1k'},
         {"name": "gzip_comp_level", "ps": "压缩率", 'type': 2, 'default': '6'},
