@@ -122,6 +122,30 @@ def getConf():
     return path
 
 
+def healGzipConf(content):
+    need_write = False
+    # 1. 升级/补齐 gzip_proxied any;
+    proxied_pattern = r'gzip_proxied\s+[^;\n\r]+;'
+    if re.search(proxied_pattern, content):
+        if not re.search(r'gzip_proxied\s+any\s*;', content):
+            content = re.sub(proxied_pattern, 'gzip_proxied   any;', content)
+            need_write = True
+    elif re.search(r'\bgzip\s+(on|off)\s*;', content):
+        content = re.sub(r'(\bgzip\s+(?:on|off)\s*;)', r'\1\n    gzip_proxied   any;', content, count=1)
+        need_write = True
+
+    # 2. 补齐 gzip_static on;
+    if not re.search(r'\bgzip_static\s+(on|off|always)\s*;', content):
+        if re.search(r'gzip_proxied\s+any\s*;', content):
+            content = re.sub(r'(gzip_proxied\s+any\s*;)', r'\1\n    gzip_static    on;', content, count=1)
+            need_write = True
+        elif re.search(r'\bgzip\s+(on|off)\s*;', content):
+            content = re.sub(r'(\bgzip\s+(?:on|off)\s*;)', r'\1\n    gzip_static    on;', content, count=1)
+            need_write = True
+
+    return content, need_write
+
+
 def confSelfHeal():
     try:
         conf_file = getConf()
@@ -133,6 +157,11 @@ def confSelfHeal():
             pattern = r'(error_log\s+[^;;\n\r]+?)\b(cri|crit)\b\s*;?'
             if re.search(pattern, content):
                 content = re.sub(pattern, r'\1error;', content)
+                need_write = True
+
+            # 智能升级与补齐 Gzip 代理传输及预压缩静态文件优化配置
+            content, gzip_healed = healGzipConf(content)
+            if gzip_healed:
                 need_write = True
                 
             if need_write:
@@ -862,6 +891,9 @@ def setCfg():
             else:
                 # 其他参数（如 zstd, brotli, gzip等）写入 http 块中
                 content = re.sub(r'(http\s*\{)', r'\1\n    %s %s;' % (k, v), content, 1)
+
+    # 智能检查与优化 Gzip 代理响应和静态预压缩配置
+    content, _ = healGzipConf(content)
 
     yf.writeFile(cfg, content)
     isError = yf.checkWebConfig()

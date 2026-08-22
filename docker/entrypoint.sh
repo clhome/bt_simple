@@ -23,7 +23,7 @@ if [ ! -f "/www/server/yufeng_panel/data/panel_initialized.flag" ]; then
     bin/python tools.py panel ${PANEL_PASS}
     
     echo "=========================================================="
-    echo "  Mdserver-Web (bt_simple) Docker Initialized!"
+    echo "  yufeng_panel (bt_simple) Docker Initialized!"
     echo "  Username: ${PANEL_USER}"
     echo "  Password: ${PANEL_PASS}"
     echo "  Notice: You can change them later in the panel."

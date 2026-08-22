@@ -164,3 +164,10 @@
 ### 解答用户关于计划任务日志中“空格变冒号”的疑问
 - [x] 分析日志输出格式与 Bash `cd` 报错机制
 - [x] 结论解答：并非空格被替换为冒号，而是 Bash 的标准错误输出格式 `cd: <目录>: No such file or directory`。实际原因是目标路径不存在。
+
+### OpenResty Gzip 传输优化与通用性支持
+- [x] 1. 分析 OpenResty Gzip 优化配置的通用性、原理及针对反向代理/预压缩文件生效的关键机制
+- [x] 2. 更新 `plugins/openresty/conf/nginx.conf` 默认配置模板，将 `gzip_proxied any;` 与 `gzip_static on;` 纳入新安装默认配置
+- [x] 3. 增强 `plugins/openresty/index.py` 中的 `confSelfHeal` 和 `setCfg`，支持自动自愈升级已有配置并在开启 gzip 时补全优化指令
+- [x] 4. 编写自动化测试脚本并在 `test/` 目录下进行针对性测试验证
+
