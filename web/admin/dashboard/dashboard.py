@@ -145,16 +145,17 @@ def get_ip_location():
 @panel_login_required
 def get_recent_logins():
     import re
+    import time
     curr_ip = yf.getClientIp()
     try:
         limit = int(request.values.get('limit', 2))
-    except:
+    except Exception:
         limit = 2
     if limit > 50: limit = 50
 
     try:
         page = int(request.values.get('p', 1))
-    except:
+    except Exception:
         page = 1
     if page < 1: page = 1
 
@@ -177,11 +178,16 @@ def get_recent_logins():
 
     sql_where = " and ".join(where_clauses)
     
-    total_count = yf.M('logs').where(sql_where, tuple(params)).count()
-    start = (page - 1) * limit
-    limit_str = f"{start},{limit}"
-
-    raw_logs = yf.M('logs').field('id,type,log,uid,add_time').where(sql_where, tuple(params)).order('id desc').limit(limit_str).select()
+    total_count = 0
+    raw_logs = []
+    try:
+        total_count = yf.M('logs').where(sql_where, tuple(params)).count()
+        start = (page - 1) * limit
+        limit_str = f"{start},{limit}"
+        raw_logs = yf.M('logs').field('id,type,log,uid,add_time').where(sql_where, tuple(params)).order('id desc').limit(limit_str).select()
+    except Exception as ex:
+        print("get_recent_logins db error:", ex)
+        raw_logs = []
     
     result_list = []
     if isinstance(raw_logs, list):
@@ -234,9 +240,20 @@ def get_recent_logins():
             else:
                 details = 'Web密码登录'
                 
+            # 计算 Unix 时间戳（秒）
+            log_timestamp = 0
+            if time_str:
+                try:
+                    t_struct = time.strptime(time_str[:19], '%Y-%m-%d %H:%M:%S')
+                    log_timestamp = int(time.mktime(t_struct))
+                except Exception:
+                    pass
+            if not log_timestamp:
+                log_timestamp = int(time.time())
+
             ip_type = parse_ip_type(ip)
             is_local = (ip_type != '公网接入')
-            
+
             result_list.append({
                 'id': item.get('id'),
                 'method': method,
@@ -248,6 +265,7 @@ def get_recent_logins():
                 'status': status,
                 'status_text': status_text,
                 'log_time': time_str,
+                'timestamp': log_timestamp,
                 'details': details
             })
         
@@ -258,6 +276,14 @@ def get_recent_logins():
         last_ip = user_info.get('login_ip') or curr_ip
         ip_type = parse_ip_type(last_ip)
         is_local = (ip_type != '公网接入')
+        
+        now_ts = int(time.time())
+        try:
+            t_struct = time.strptime(last_time[:19], '%Y-%m-%d %H:%M:%S')
+            now_ts = int(time.mktime(t_struct))
+        except Exception:
+            pass
+
         result_list.append({
             'id': 1,
             'method': 'Web',
@@ -269,16 +295,22 @@ def get_recent_logins():
             'status': 'success',
             'status_text': '成功',
             'log_time': last_time,
+            'timestamp': now_ts,
             'details': '当前活跃会话'
         })
         total_count = 1
         
-    page_html = yf.getPage({
-        'count': total_count,
-        'tojs': tojs,
-        'p': page,
-        'row': limit
-    })
+    page_html = ''
+    try:
+        page_html = yf.getPage({
+            'count': total_count,
+            'tojs': tojs,
+            'p': page,
+            'row': limit
+        })
+    except Exception as ex:
+        print("getPage error:", ex)
+        page_html = ''
 
     return yf.returnData(True, 'ok', {
         'current_ip': curr_ip,

@@ -2495,11 +2495,35 @@ function fetchAndRenderIpLocations(ipsToFetch) {
     }
 }
 
+// 客户端本地时区时间转换格式化 (根据用户浏览器所在时区动态格式化 YYYY-MM-DD HH:mm:ss)
+function formatClientLocalTime(timestamp, fallbackStr) {
+    if (!timestamp) return fallbackStr || '-';
+    try {
+        var ts = parseInt(timestamp, 10);
+        if (isNaN(ts) || ts <= 0) return fallbackStr || '-';
+        if (ts < 10000000000) ts = ts * 1000;
+        
+        var date = new Date(ts);
+        if (isNaN(date.getTime())) return fallbackStr || '-';
+        
+        var y = date.getFullYear();
+        var m = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
+        var d = (date.getDate() < 10 ? '0' : '') + date.getDate();
+        var h = (date.getHours() < 10 ? '0' : '') + date.getHours();
+        var min = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+        var s = (date.getSeconds() < 10 ? '0' : '') + date.getSeconds();
+        
+        return y + '-' + m + '-' + d + ' ' + h + ':' + min + ':' + s;
+    } catch (e) {
+        return fallbackStr || '-';
+    }
+}
+
 // 获取并渲染首页右下角最近 2 次登录记录 (极致紧凑，防止产生滚动条)
 function getRecentLogins() {
     $.post('/get_recent_logins', { limit: 2 }, function(rdata) {
         if (!rdata || !rdata.status) {
-            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 10px 0; font-size: 11px;">暂无登录记录</div>');
+            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
             return;
         }
         var data = rdata.data || {};
@@ -2508,7 +2532,7 @@ function getRecentLogins() {
         }
         var list = data.list || [];
         if (list.length === 0) {
-            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 10px 0; font-size: 11px;">暂无登录记录</div>');
+            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
             return;
         }
 
@@ -2553,12 +2577,15 @@ function getRecentLogins() {
                 }
             }
 
+            var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
+            var timeTitle = '客户端时间: ' + localDisplayTime + (item.log_time ? '\n服务器时间: ' + item.log_time : '');
+
             html += '<tr>';
             html += '<td>' + statusBadge + '</td>';
             html += '<td>' + methodBadge + '</td>';
             html += '<td><span class="login-ip-code">' + (item.ip || '-') + '</span>' + currentMark + '</td>';
             html += '<td>' + locationHtml + '</td>';
-            html += '<td style="text-align: right;" class="c9 f11" title="' + item.log_time + '">' + (item.log_time || '-') + '</td>';
+            html += '<td style="text-align: right;" class="c9 f11" title="' + timeTitle + '">' + localDisplayTime + '</td>';
             html += '</tr>';
         }
         html += '</tbody></table>';
@@ -2570,7 +2597,7 @@ function getRecentLogins() {
             fetchAndRenderIpLocations(ipsToQuery);
         }
     }, 'json').fail(function() {
-        $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 10px 0; font-size: 11px;">获取失败，请稍后重试</div>');
+        $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">获取失败，请稍后重试</div>');
     });
 }
 
@@ -2695,13 +2722,16 @@ function getAllLoginLogs(page) {
                 }
             }
 
+            var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
+            var timeTitle = '客户端时间: ' + localDisplayTime + (item.log_time ? '\n服务器时间: ' + item.log_time : '');
+
             tbodyHtml += '<tr>';
             tbodyHtml += '<td>' + statusBadge + '</td>';
             tbodyHtml += '<td>' + methodBadge + '</td>';
             tbodyHtml += '<td><span class="login-ip-code">' + (item.ip || '-') + '</span>' + currentMark + '</td>';
             tbodyHtml += '<td>' + locationHtml + '</td>';
             tbodyHtml += '<td><span class="f12 c6" title="' + (item.details || '-') + '">' + (item.details || '-') + '</span></td>';
-            tbodyHtml += '<td style="text-align: right;" class="c9 f12">' + (item.log_time || '-') + '</td>';
+            tbodyHtml += '<td style="text-align: right;" class="c9 f12" title="' + timeTitle + '">' + localDisplayTime + '</td>';
             tbodyHtml += '</tr>';
         }
 
