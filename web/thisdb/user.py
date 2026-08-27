@@ -102,9 +102,12 @@ def getUserByRoot() -> None:
     '''
     return getUserById(1)
 
-def updateUserLoginTime():
+def updateUserLoginTime(login_ip = ''):
     now_time = yf.formatDate()
-    yf.M('users').field(__field).where('id=?', (1,)).update({'login_time':now_time})
+    update_data = {'login_time': now_time}
+    if login_ip:
+        update_data['login_ip'] = login_ip
+    yf.M('users').field(__field).where('id=?', (1,)).update(update_data)
     return True
 
 def setUserByName(name, new_name):

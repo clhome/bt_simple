@@ -187,6 +187,31 @@
                     </div>
                     
                 </div>
+
+                <div class="bgw radius4 recent-logins-box" style="margin-top: 10px; overflow: hidden;">
+                    <div class="title c6 f16 clearfix" style="display: flex; align-items: center; justify-content: space-between; height: 30px; line-height: 30px; padding: 0 10px; border-bottom: 1px solid var(--border-color, #edf2f7);">
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary, #10b981); display: inline-block; vertical-align: middle;">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            <span style="font-weight: 600; font-size: 12px; vertical-align: middle;">最近登录</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-left: auto;">
+                            <div id="recentLoginCurrentIpBadge" class="login-ip-badge" title="当前连接客户端IP">
+                                <span class="pulse-dot"></span>
+                                <span>当前IP: <span id="recentLoginCurrentIp" style="font-family: 'JetBrains Mono', Consolas, monospace;">...</span></span>
+                            </div>
+                            <a class="btlink" href="javascript:showAllLoginLogs();" style="font-size: 11px; font-weight: normal; color: #8a99a8; text-decoration: none; cursor: pointer;" onmouseover="this.style.color='var(--primary, #10b981)'" onmouseout="this.style.color='#8a99a8'" title="查看全部登录记录并支持筛选与分页">更多日志 &rarr;</a>
+                        </div>
+                    </div>
+                    <div class="recent-logins-con" style="padding: 0 10px 2px 10px;">
+                        <div id="recentLoginsTableBody">
+                            <div class="text-center c9" style="padding: 8px 0; font-size: 11px;">
+                                <img src="/static/img/ings.gif" style="vertical-align: middle; margin-right: 4px; width: 12px; height: 12px;"> 正在获取登录记录...
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -213,13 +238,18 @@ function startLoadStatus() {
         getInfo();
     }, 150);
 
-    // B. 重型并发概览统计数据及一键推荐，错峰延迟 600ms 启动，彻底防并发阻塞
+    // B. 最近登录审计信息，错峰延迟 350ms 启动，极速呈现
+    setTimeout(function() {
+        getRecentLogins();
+    }, 350);
+
+    // C. 重型并发概览统计数据及一键推荐，错峰延迟 600ms 启动，彻底防并发阻塞
     setTimeout(function() {
         pluginInit();
         loadKeyDataCount();
     }, 600);
 
-    // C. 磁盘高 I/O 挂载分区信息，错峰延迟 800ms 启动
+    // D. 磁盘高 I/O 挂载分区信息，错峰延迟 800ms 启动
     setTimeout(function() {
         getDiskInfo();
     }, 800);

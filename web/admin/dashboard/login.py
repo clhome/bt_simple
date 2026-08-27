@@ -205,7 +205,9 @@ def verifyLogin():
             session['username'] = info['name']
             session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
 
-            thisdb.updateUserLoginTime()
+            client_ip = yf.getClientIp()
+            thisdb.updateUserLoginTime(client_ip)
+            yf.writeLog('用户登录', '用户[{1}]通过二次验证登录成功, 登录IP:{2}', (info['name'], client_ip))
             return yf.returnData(1, '二次验证成功!')
     return yf.returnData(-1, '二次验证失败!')
 
@@ -282,5 +284,6 @@ def do_login():
     session['username'] = info['name']
     session['overdue'] = int(time.time()) + 7 * 24 * 60 * 60
     
-    thisdb.updateUserLoginTime()
+    thisdb.updateUserLoginTime(client_ip)
+    yf.writeLog('用户登录', '用户[{1}]登录成功, 登录IP:{2}', (info['name'], client_ip))
     return yf.returnData(1, '登录成功,正在跳转...')

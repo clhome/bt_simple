@@ -2442,3 +2442,277 @@ function parseSpeedLog(logText) {
     }
     return data;
 }
+
+// 获取 IP 归属地缓存（localStorage，有效期 30 天）
+function getIpLocationFromCache(ip) {
+    if (!ip) return null;
+    try {
+        var cacheStr = localStorage.getItem('bt_ip_loc_cache');
+        if (cacheStr) {
+            var cache = JSON.parse(cacheStr);
+            var item = cache[ip];
+            if (item && item.loc && (Date.now() - (item.t || 0) < 30 * 86400000)) {
+                return item.loc;
+            }
+        }
+    } catch (e) {}
+    return null;
+}
+
+// 保存 IP 归属地到 localStorage
+function saveIpLocationToCache(ip, loc) {
+    if (!ip || !loc) return;
+    try {
+        var cache = {};
+        var cacheStr = localStorage.getItem('bt_ip_loc_cache');
+        if (cacheStr) {
+            cache = JSON.parse(cacheStr);
+        }
+        cache[ip] = { loc: loc, t: Date.now() };
+        localStorage.setItem('bt_ip_loc_cache', JSON.stringify(cache));
+    } catch (e) {}
+}
+
+// 异步按需拉取公网 IP 归属地并更新缓存与视图
+function fetchAndRenderIpLocations(ipsToFetch) {
+    if (!ipsToFetch || ipsToFetch.length === 0) return;
+    var uniqueIps = Array.from(new Set(ipsToFetch));
+    for (var i = 0; i < uniqueIps.length; i++) {
+        (function(targetIp) {
+            $.post('/get_ip_location', { ip: targetIp }, function(res) {
+                if (res && res.status && res.data && res.data.location) {
+                    var loc = res.data.location;
+                    saveIpLocationToCache(targetIp, loc);
+                    // 局部更新视图中所有该 IP 的位置占位符
+                    var $targets = $('[data-ip-loc="' + targetIp + '"]');
+                    $targets.text(loc).attr('title', loc).removeClass('ip-loc-pending').addClass('ip-loc-text');
+                }
+            }, 'json').fail(function() {
+                var $targets = $('[data-ip-loc="' + targetIp + '"]');
+                $targets.text('公网接入').removeClass('ip-loc-pending');
+            });
+        })(uniqueIps[i]);
+    }
+}
+
+// 获取并渲染首页右下角最近 2 次登录记录 (极致紧凑，防止产生滚动条)
+function getRecentLogins() {
+    $.post('/get_recent_logins', { limit: 2 }, function(rdata) {
+        if (!rdata || !rdata.status) {
+            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 10px 0; font-size: 11px;">暂无登录记录</div>');
+            return;
+        }
+        var data = rdata.data || {};
+        if (data.current_ip) {
+            $('#recentLoginCurrentIp').text(data.current_ip);
+        }
+        var list = data.list || [];
+        if (list.length === 0) {
+            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 10px 0; font-size: 11px;">暂无登录记录</div>');
+            return;
+        }
+
+        var html = '<table class="table recent-logins-table">';
+        html += '<thead><tr>';
+        html += '<th style="width: 55px;">状态</th>';
+        html += '<th style="width: 55px;">方式</th>';
+        html += '<th>登录IP</th>';
+        html += '<th style="width: 110px;">归属地</th>';
+        html += '<th style="text-align: right; width: 130px;">登录时间</th>';
+        html += '</tr></thead><tbody>';
+
+        var ipsToQuery = [];
+
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            var isSuccess = (item.status === 'success');
+            var statusBadge = isSuccess 
+                ? '<span class="login-tag login-tag-success"><span class="tag-dot"></span>成功</span>'
+                : '<span class="login-tag login-tag-fail"><span class="tag-dot"></span>失败</span>';
+            
+            var methodBadge = (item.method === 'SSH')
+                ? '<span class="login-method-badge method-ssh" title="' + (item.details || 'SSH终端登录') + '">SSH</span>'
+                : '<span class="login-method-badge method-web" title="' + (item.details || 'Web登录') + '">Web</span>';
+
+            var currentMark = item.is_current 
+                ? '<span class="login-curr-tag">本次</span>' 
+                : '';
+
+            // 归属地计算与本地缓存
+            var locationHtml = '';
+            if (item.is_local) {
+                var locText = item.location || item.ip_type || '局域网';
+                locationHtml = '<span class="f11 c9" title="' + locText + '">' + locText + '</span>';
+            } else {
+                var cachedLoc = getIpLocationFromCache(item.ip);
+                if (cachedLoc) {
+                    locationHtml = '<span class="f11 c6 ip-loc-text" data-ip-loc="' + item.ip + '" title="' + cachedLoc + '">' + cachedLoc + '</span>';
+                } else {
+                    locationHtml = '<span class="f11 c9 ip-loc-pending" data-ip-loc="' + item.ip + '">查询中...</span>';
+                    ipsToQuery.push(item.ip);
+                }
+            }
+
+            html += '<tr>';
+            html += '<td>' + statusBadge + '</td>';
+            html += '<td>' + methodBadge + '</td>';
+            html += '<td><span class="login-ip-code">' + (item.ip || '-') + '</span>' + currentMark + '</td>';
+            html += '<td>' + locationHtml + '</td>';
+            html += '<td style="text-align: right;" class="c9 f11" title="' + item.log_time + '">' + (item.log_time || '-') + '</td>';
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+
+        $('#recentLoginsTableBody').html(html);
+
+        // 异步查询未缓存的公网 IP 归属地
+        if (ipsToQuery.length > 0) {
+            fetchAndRenderIpLocations(ipsToQuery);
+        }
+    }, 'json').fail(function() {
+        $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 10px 0; font-size: 11px;">获取失败，请稍后重试</div>');
+    });
+}
+
+// 弹窗展示全部登录记录 (支持分页与多维筛选)
+function showAllLoginLogs() {
+    var modalHtml = '<div class="pd15 all-login-logs-modal" style="padding: 15px 20px;">\
+        <div class="tootls_group" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">\
+            <div style="display: flex; align-items: center; gap: 8px;">\
+                <span class="f12 c6">状态筛选:</span>\
+                <select id="loginLogStatusFilter" class="bt-input-text" style="height: 28px; font-size: 12px; padding: 2px 8px; border-radius: 3px;">\
+                    <option value="all">全部状态</option>\
+                    <option value="success">成功</option>\
+                    <option value="fail">失败</option>\
+                </select>\
+                <span class="f12 c6" style="margin-left: 8px;">方式筛选:</span>\
+                <select id="loginLogMethodFilter" class="bt-input-text" style="height: 28px; font-size: 12px; padding: 2px 8px; border-radius: 3px;">\
+                    <option value="all">全部方式</option>\
+                    <option value="web">Web</option>\
+                    <option value="ssh">SSH</option>\
+                </select>\
+            </div>\
+            <div>\
+                <button type="button" class="btn btn-default btn-sm" onclick="getAllLoginLogs(1);" title="刷新日志列表">\
+                    <span class="glyphicon glyphicon-refresh" style="margin-right: 4px; font-size: 11px;"></span>刷新\
+                </button>\
+            </div>\
+        </div>\
+        <div class="divtable" style="max-height: 380px; min-height: 330px; overflow-y: auto;">\
+            <table class="table table-hover" id="allLoginLogsTable" style="margin-bottom: 0;">\
+                <thead>\
+                    <tr>\
+                        <th style="width: 65px;">状态</th>\
+                        <th style="width: 65px;">方式</th>\
+                        <th style="width: 140px;">登录IP</th>\
+                        <th style="width: 120px;">归属地</th>\
+                        <th>详情</th>\
+                        <th style="text-align: right; width: 140px;">登录时间</th>\
+                    </tr>\
+                </thead>\
+                <tbody id="allLoginLogsList">\
+                    <tr><td colspan="6" class="text-center c9" style="padding: 35px 0;"><img src="/static/img/ings.gif" style="margin-right: 4px;"> 正在获取日志...</td></tr>\
+                </tbody>\
+            </table>\
+        </div>\
+        <div id="allLoginLogsPage" class="page" style="margin-top: 12px; text-align: right;"></div>\
+    </div>';
+
+    layer.open({
+        type: 1,
+        title: '登录记录审计',
+        area: ['780px', '530px'],
+        closeBtn: 1,
+        shadeClose: false,
+        content: modalHtml,
+        success: function() {
+            $('#loginLogStatusFilter, #loginLogMethodFilter').on('change', function() {
+                getAllLoginLogs(1);
+            });
+            getAllLoginLogs(1);
+        }
+    });
+}
+
+// 分页拉取登录记录
+function getAllLoginLogs(page) {
+    var p = page || 1;
+    var status = $('#loginLogStatusFilter').val() || 'all';
+    var method = $('#loginLogMethodFilter').val() || 'all';
+
+    $('#allLoginLogsList').html('<tr><td colspan="6" class="text-center c9" style="padding: 30px 0;"><img src="/static/img/ings.gif" style="margin-right: 4px;"> 正在加载数据...</td></tr>');
+
+    $.post('/get_recent_logins', {
+        p: p,
+        limit: 10,
+        status: status,
+        method: method,
+        tojs: 'getAllLoginLogs'
+    }, function(rdata) {
+        if (!rdata || !rdata.status) {
+            $('#allLoginLogsList').html('<tr><td colspan="6" class="text-center c9" style="padding: 25px 0;">暂无登录记录</td></tr>');
+            $('#allLoginLogsPage').html('');
+            return;
+        }
+
+        var data = rdata.data || {};
+        var list = data.list || [];
+        if (list.length === 0) {
+            $('#allLoginLogsList').html('<tr><td colspan="6" class="text-center c9" style="padding: 25px 0;">未找到符合条件的登录记录</td></tr>');
+            $('#allLoginLogsPage').html('');
+            return;
+        }
+
+        var tbodyHtml = '';
+        var ipsToQuery = [];
+
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            var isSuccess = (item.status === 'success');
+            var statusBadge = isSuccess 
+                ? '<span class="login-tag login-tag-success"><span class="tag-dot"></span>成功</span>'
+                : '<span class="login-tag login-tag-fail"><span class="tag-dot"></span>失败</span>';
+            
+            var methodBadge = (item.method === 'SSH')
+                ? '<span class="login-method-badge method-ssh">SSH</span>'
+                : '<span class="login-method-badge method-web">Web</span>';
+
+            var currentMark = item.is_current 
+                ? '<span class="login-curr-tag">本次</span>' 
+                : '';
+
+            var locationHtml = '';
+            if (item.is_local) {
+                var locText = item.location || item.ip_type || '局域网';
+                locationHtml = '<span class="f12 c9" title="' + locText + '">' + locText + '</span>';
+            } else {
+                var cachedLoc = getIpLocationFromCache(item.ip);
+                if (cachedLoc) {
+                    locationHtml = '<span class="f12 c6 ip-loc-text" data-ip-loc="' + item.ip + '" title="' + cachedLoc + '">' + cachedLoc + '</span>';
+                } else {
+                    locationHtml = '<span class="f12 c9 ip-loc-pending" data-ip-loc="' + item.ip + '">查询中...</span>';
+                    ipsToQuery.push(item.ip);
+                }
+            }
+
+            tbodyHtml += '<tr>';
+            tbodyHtml += '<td>' + statusBadge + '</td>';
+            tbodyHtml += '<td>' + methodBadge + '</td>';
+            tbodyHtml += '<td><span class="login-ip-code">' + (item.ip || '-') + '</span>' + currentMark + '</td>';
+            tbodyHtml += '<td>' + locationHtml + '</td>';
+            tbodyHtml += '<td><span class="f12 c6" title="' + (item.details || '-') + '">' + (item.details || '-') + '</span></td>';
+            tbodyHtml += '<td style="text-align: right;" class="c9 f12">' + (item.log_time || '-') + '</td>';
+            tbodyHtml += '</tr>';
+        }
+
+        $('#allLoginLogsList').html(tbodyHtml);
+        $('#allLoginLogsPage').html(data.page || '');
+
+        if (ipsToQuery.length > 0) {
+            fetchAndRenderIpLocations(ipsToQuery);
+        }
+    }, 'json').fail(function() {
+        $('#allLoginLogsList').html('<tr><td colspan="6" class="text-center c9" style="padding: 25px 0;">获取失败，请稍后重试</td></tr>');
+        $('#allLoginLogsPage').html('');
+    });
+}

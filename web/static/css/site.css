@@ -1226,14 +1226,13 @@ html .menu .menu_exit:hover {
 }
 
 .site_type span{
-    display: inline-block;
+    float: left;
     height: 30px;
     line-height: 30px;
     padding: 0 10px;
     font-family: "Arial";
     font-size: 13px;
     color: #666;
-    float: left;
     border: 1px solid #ececec;
     border-right: none;
     /* border: 1px solid #ececec; */
@@ -1264,14 +1263,13 @@ html .menu .menu_exit:hover {
 
 .page span,
 .page a {
-    display: inline-block;
+    float: left;
     height: 28px;
     line-height: 28px;
     padding: 0 10px;
     font-family: "Arial";
     font-size: 13px;
     color: #666;
-    float: left;
     border: 1px solid #ececec;
     border-right: none;
 }
@@ -1456,20 +1454,38 @@ html .menu .menu_exit:hover {
 
 @-webkit-keyframes shineGreen {
     from {
-        -webkit-box-shadow: 0 0 10px #999
+        -webkit-box-shadow: 0 0 10px #999;
+        box-shadow: 0 0 10px #999;
     }
     50% {
-        -webkit-box-shadow: 0 0 15px #20a53a
+        -webkit-box-shadow: 0 0 15px #20a53a;
+        box-shadow: 0 0 15px #20a53a;
     }
     to {
-        -webkit-box-shadow: 0 0 10px #999
+        -webkit-box-shadow: 0 0 10px #999;
+        box-shadow: 0 0 10px #999;
+    }
+}
+
+@keyframes shineGreen {
+    from {
+        box-shadow: 0 0 10px #999;
+    }
+    50% {
+        box-shadow: 0 0 15px #20a53a;
+    }
+    to {
+        box-shadow: 0 0 10px #999;
     }
 }
 
 .shine_green {
     -webkit-animation-name: shineGreen;
     -webkit-animation-duration: 3s;
-    -webkit-animation-iteration-count: infinite
+    -webkit-animation-iteration-count: infinite;
+    animation-name: shineGreen;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
 }
 
 .mem-release {
@@ -1931,8 +1947,9 @@ html .menu .menu_exit:hover {
 }
 
 .searcTime {
-    position: relative:z-index:999;
-    margin-top: 11px
+    position: relative;
+    z-index: 999;
+    margin-top: 11px;
 }
 
 .searcTime .tit {
@@ -1959,7 +1976,6 @@ html .menu .menu_exit:hover {
 }
 
 .searcTime .ss {
-    display: inline-block;
     position: relative;
     float: left;
     line-height: 16px;
@@ -3135,12 +3151,11 @@ html .menu .menu_exit:hover {
 .list-list .ico {
     background-position: center center;
     background-repeat: no-repeat;
-    display: inline-block;
     height: 30px;
     margin-right: 10px;
     width: 33px;
     z-index: 1;
-    float: left
+    float: left;
 }
 
 .fileList .ico {
@@ -4524,7 +4539,6 @@ html .menu .menu_exit:hover {
     display: block;
     margin-bottom: -1px;
     text-align: center;
-    vertical-align: middle;
     border: 1px solid #ddd;
     box-sizing: border-box;
     margin-left: -1px;
@@ -4902,9 +4916,6 @@ html .menu .menu_exit:hover {
     padding-top: 20px;
     color: #20a53a;
     font-size: 16px;
-}
-
-.personalDetails .userList .addweChat:hover {
 }
 
 .personalDetails .userList .item {
@@ -5721,7 +5732,7 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 
 /* 强制对齐左边“软件”卡片和右边“流量/磁盘IO”卡片的高度，使其像素级绝对一致，告别错落感 */
 .main-content .pr8 > .bgw,
-.main-content .pl7 > .bgw {
+.main-content .pl7 > .bgw:not(.recent-logins-box) {
     height: 350px !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
@@ -5873,3 +5884,200 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .table { margin-bottom: 0; }
 .table > thead > tr > th { border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
 .table > tbody > tr > td { border-top: 1px solid var(--border-color); vertical-align: middle; }
+
+/* 最近登录卡片极致紧凑精致化设计 (高度独立控制，自适应2行内容，彻底消除滚动条) */
+.recent-logins-box,
+.main-content .pl7 > .bgw.recent-logins-box {
+    height: auto !important;
+    max-height: 125px !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    margin-top: 10px !important;
+    overflow: hidden !important;
+    border-radius: var(--radius-sm, 4px) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.04) !important;
+    transition: box-shadow var(--transition-normal, 0.3s ease), border-color var(--transition-normal, 0.3s ease) !important;
+}
+.recent-logins-box:hover,
+.main-content .pl7 > .bgw.recent-logins-box:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05) !important;
+    border-color: rgba(16, 185, 129, 0.15) !important;
+}
+.recent-logins-box .title {
+    height: 30px !important;
+    line-height: 30px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    border-bottom: 1px solid #edf2f7 !important;
+}
+.login-ip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    height: 20px;
+    line-height: 18px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.22);
+    color: #10b981;
+    font-size: 10px;
+    font-weight: 500;
+    cursor: default;
+    transition: all 0.2s ease;
+}
+.login-ip-badge:hover {
+    background: rgba(16, 185, 129, 0.14);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+.login-ip-badge .pulse-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #10b981;
+    box-shadow: 0 0 5px #10b981;
+    display: inline-block;
+}
+.recent-logins-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+.recent-logins-table thead th {
+    font-size: 11px !important;
+    color: #8a99a8 !important;
+    font-weight: 500 !important;
+    border-top: none !important;
+    border-bottom: 1px solid #edf2f7 !important;
+    padding: 4px 6px !important;
+    background: transparent !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    line-height: 1.2 !important;
+}
+.recent-logins-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+.recent-logins-table tbody tr:hover {
+    background-color: rgba(16, 185, 129, 0.035) !important;
+}
+.recent-logins-table tbody td {
+    vertical-align: middle !important;
+    border-top: 1px solid #f3f6f9 !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+}
+.login-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 13px;
+}
+.login-tag .tag-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: currentColor;
+    display: inline-block;
+}
+.login-tag-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.login-tag-fail {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.login-method-badge {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 13px;
+    text-align: center;
+}
+.login-method-badge.method-web {
+    background: rgba(59, 130, 246, 0.09);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+}
+.login-method-badge.method-ssh {
+    background: rgba(139, 92, 246, 0.09);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.22);
+}
+.login-ip-code {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-weight: 600;
+    font-size: 11px;
+    color: #2d3748;
+}
+.login-curr-tag {
+    display: inline-block;
+    padding: 0 3px;
+    height: 14px;
+    line-height: 12px;
+    font-size: 9px;
+    border-radius: 2px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    font-weight: 600;
+    vertical-align: middle;
+    margin-left: 3px;
+}
+.ip-loc-text {
+    color: #4b5563;
+    white-space: nowrap;
+    max-width: 120px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+.ip-loc-pending {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 10px;
+}
+
+/* 登录日志审计弹窗样式 */
+.all-login-logs-modal select.bt-input-text {
+    border: 1px solid #dcdfe6;
+    background-color: #fff;
+    color: #606266;
+    outline: none;
+    transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+.all-login-logs-modal select.bt-input-text:focus {
+    border-color: var(--primary, #10b981);
+}
+.all-login-logs-modal table thead th {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 8px 10px !important;
+}
+.all-login-logs-modal table tbody td {
+    padding: 7px 10px !important;
+    font-size: 12px !important;
+    border-top: 1px solid #f1f5f9 !important;
+    vertical-align: middle !important;
+}
+.all-login-logs-modal .page a, .all-login-logs-modal .page span {
+    padding: 2px 8px;
+    font-size: 11px;
+}
+
+
