@@ -25,7 +25,7 @@
 
 - **轻量高效**：相比于传统面板，BtSimple 占用资源极低，非常适合小内存 VPS。
 
-![首页](https://raw.githubusercontent.com/clhome/bt_simple/master/文档/御风面板说明书/说明书.assets/index.webp)
+![首页](https://raw.githubusercontent.com/clhome/bt_simple/master/%E6%96%87%E6%A1%A3/%E5%BE%A1%E9%A3%8E%E9%9D%A2%E6%9D%BF%E8%AF%B4%E6%98%8E%E4%B9%A6/%E8%AF%B4%E6%98%8E%E4%B9%A6.assets/index.webp)
 
 - **安全加固**：
   - **100% 独立解耦与后门物理清洗**：全局清除了已发现的所有后门及网络依赖，实现了完全自主、去中心化的纯净自运维架构。
