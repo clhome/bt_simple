@@ -79,88 +79,88 @@
 	<div class="container-fluid" style="padding-bottom:54px">
 		<div class="pos-box bgw mtb15">
 			<div class="position f14 c9 pull-left">
-				<a class="plr10 c4" href="/">首页</a>/<span class="plr10 c4">计划任务</span>
+				<a class="plr10 c4" href="/" data-i18n="menu.home">{{ t('menu.home', '首页') }}</a>/<span class="plr10 c4" data-i18n="menu.crontab">{{ t('menu.crontab', '计划任务') }}</span>
 			</div>
 		</div>
 		<div id="add_task_form_box" style="display: none;">
 			<div class="setbox bgw mtb15" style="margin: 0; border: none; box-shadow: none;">
 				<div class="setting-con ptb20">
 					<div class="clearfix plan">
-						<span class="typename c4 pull-left f14 text-right mr20">任务类型</span>
+						<span class="typename c4 pull-left f14 text-right mr20" data-i18n="crontab.task_type">{{ t('crontab.task_type', '任务类型') }}</span>
 						<div class="dropdown planjs pull-left mr20">
 							<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown" style="width:auto">
-								<b val="toShell">Shell脚本</b>
+								<b val="toShell" data-i18n="crontab.shell_script">{{ t('crontab.shell_script', 'Shell脚本') }}</b>
 								<span class="caret"></span>
 							</button>
 							<ul class="dropdown-menu" role="menu" aria-labelledby="excode">
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toShell">Shell脚本</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="site">备份网站</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="database">备份数据库</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toShell" data-i18n="crontab.shell_script">{{ t('crontab.shell_script', 'Shell脚本') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="site" data-i18n="crontab.backup_site">{{ t('crontab.backup_site', '备份网站') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="database" data-i18n="crontab.backup_database">{{ t('crontab.backup_database', '备份数据库') }}</a></li>
 								{% for db in data['hook_database'] %}
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="database_{{db['name']}}">备份数据库【{{db['title']}}】</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="database_{{db['name']}}">{{ t('crontab.backup_database', '备份数据库') }}【{{db['title']}}】</a></li>
 								{% endfor %}
 
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="path">备份目录</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="logs">日志切割</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="rememory">释放内存</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toUrl">访问URL</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="path" data-i18n="crontab.backup_path">{{ t('crontab.backup_path', '备份目录') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="logs" data-i18n="crontab.log_cut">{{ t('crontab.log_cut', '日志切割') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="rememory" data-i18n="crontab.rememory">{{ t('crontab.rememory', '释放内存') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="toUrl" data-i18n="crontab.to_url">{{ t('crontab.to_url', '访问URL') }}</a></li>
 							</ul>
 						</div>
-						<span class="planSign"><i>*</i>任务类型包含：Shell脚本、备份网站、备份数据库、备份目录、日志切割、释放内存、访问URL</span>
+						<span class="planSign"><i>*</i><span data-i18n="crontab.type_tip">{{ t('crontab.type_tip', '任务类型包含：Shell脚本、备份网站、备份数据库、备份目录、日志切割、释放内存、访问URL') }}</span></span>
 					</div>
 					<div class="clearfix plan">
-						<span class="typename c4 pull-left f14 text-right mr20">任务名称</span>
+						<span class="typename c4 pull-left f14 text-right mr20" data-i18n="crontab.task_name">{{ t('crontab.task_name', '任务名称') }}</span>
 						<div class="planname pull-left"><input type="text" name="name" class="bt-input-text"></div>
 					</div>
 					<div class="clearfix plan">
-						<span class="typename c4 pull-left f14 text-right mr20">执行周期</span>
+						<span class="typename c4 pull-left f14 text-right mr20" data-i18n="crontab.exec_cycle">{{ t('crontab.exec_cycle', '执行周期') }}</span>
 						<div class="dropdown plancycle pull-left mr20">
 							<button class="btn btn-default dropdown-toggle" type="button" id="cycle" data-toggle="dropdown" style="width:94px">
-								<b val="week">每星期</b>
+								<b val="week" data-i18n="crontab.every_week">{{ t('crontab.every_week', '每星期') }}</b>
 								<span class="caret"></span>
 							</button>
 							<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day">每天</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day-n">N天</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="minute-n">N分钟</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="week">每星期</a></li>
-								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="month">每月</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day" data-i18n="crontab.everyday">{{ t('crontab.everyday', '每天') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="day-n" data-i18n="crontab.n_day">{{ t('crontab.n_day', 'N天') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="minute-n" data-i18n="crontab.n_minute">{{ t('crontab.n_minute', 'N分钟') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="week" data-i18n="crontab.every_week">{{ t('crontab.every_week', '每星期') }}</a></li>
+								<li><a role="menuitem" tabindex="-1" href="javascript:;" value="month" data-i18n="crontab.every_month">{{ t('crontab.every_month', '每月') }}</a></li>
 							</ul>
 						</div>
 						<div id="ptime" class="pull-left">
 							<div class="dropdown planweek pull-left mr20">
 								<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown">
-									<b val="1">周一</b>
+									<b val="1" data-i18n="crontab.monday">{{ t('crontab.monday', '周一') }}</b>
 									<span class="caret"></span>
 								</button>
 								<ul class="dropdown-menu" role="menu" aria-labelledby="week">
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="1">周一</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="2">周二</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="3">周三</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="4">周四</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="5">周五</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="6">周六</a></li>
-									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="0">周日</a></li>
+									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="1" data-i18n="crontab.monday">{{ t('crontab.monday', '周一') }}</a></li>
+									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="2" data-i18n="crontab.tuesday">{{ t('crontab.tuesday', '周二') }}</a></li>
+									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="3" data-i18n="crontab.wednesday">{{ t('crontab.wednesday', '周三') }}</a></li>
+									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="4" data-i18n="crontab.thursday">{{ t('crontab.thursday', '周四') }}</a></li>
+									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="5" data-i18n="crontab.friday">{{ t('crontab.friday', '周五') }}</a></li>
+									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="6" data-i18n="crontab.saturday">{{ t('crontab.saturday', '周六') }}</a></li>
+									<li><a role="menuitem" tabindex="-1" href="javascript:;" value="0" data-i18n="crontab.sunday">{{ t('crontab.sunday', '周日') }}</a></li>
 								</ul>
 							</div>
 							<div class="plan_hms pull-left mr20 bt-input-text">
 								<span><input type="number" name="hour" value="1" maxlength="2" max="23" min="0"></span>
-								<span class="name">小时</span>
+								<span class="name" data-i18n="public.hours">{{ t('public.hours', '小时') }}</span>
 							</div>
 							<div class="plan_hms pull-left mr20 bt-input-text">
 								<span><input type="number" name="minute" value="30" maxlength="2" max="59" min="0"></span>
-								<span class="name">分钟</span>
+								<span class="name" data-i18n="public.minutes">{{ t('public.minutes', '分钟') }}</span>
 							</div>
 						</div>
 					</div>
 					<div class="clearfix plan">
-						<span class="typename controls c4 pull-left f14 text-right mr20">脚本内容</span>
+						<span class="typename controls c4 pull-left f14 text-right mr20" data-i18n="crontab.script_content">{{ t('crontab.script_content', '脚本内容') }}</span>
 						<div id="implement" style="line-height:34px">
 							<textarea class="txtsjs bt-input-text" name="sbody"></textarea>
 						</div>
 					</div>
 					<div class="clearfix plan" id="tag_exclude_dir" style="display:none;">
-						<span class="typename exclude_dir c4 pull-left f14 text-right mr20">排除目录</span>
+						<span class="typename exclude_dir c4 pull-left f14 text-right mr20" data-i18n="crontab.exclude_dir">{{ t('crontab.exclude_dir', '排除目录') }}</span>
 						<div id="exclude_dir" style="line-height:34px">
 							<textarea class="txtsjs bt-input-text" name="exclude_dir" placeholder="每行一条规则,目录不能以/结尾，示例:
 .git
@@ -169,8 +169,8 @@ static/upload
 						</div>
 					</div>
 					<ul class="help-info-text c7 ptb15 mlr20">
-						<li>当添加完备份任务，应该手动运行一次，并检查备份包是否完整</li>
-						<li>磁盘容量不够、数据库密码错误、网络不稳定等原因，可能导致数据备份不完整</li>
+						<li data-i18n="crontab.tip1">{{ t('crontab.tip1', '当添加完备份任务，应该手动运行一次，并检查备份包是否完整') }}</li>
+						<li data-i18n="crontab.tip2">{{ t('crontab.tip2', '磁盘容量不够、数据库密码错误、网络不稳定等原因，可能导致数据备份不完整') }}</li>
 					</ul>
 				</div>
 				<form id="cronConfig" action="/crontab/add" enctype="multipart/form-data" method="post" style="display: none;">
@@ -201,22 +201,22 @@ static/upload
 
 		<div class="setbox bgw mtb15">
 			<div class="title c6 plr15">
-				<h3 class="f16">任务列表</h3>
+				<h3 class="f16" data-i18n="crontab.task_list">{{ t('crontab.task_list', '任务列表') }}</h3>
 				<span id="allDelete" style="float: right;display: none;">
-					<button onclick="allDeleteCron();" class="btn btn-default btn-sm">删除选中</button>
+					<button onclick="allDeleteCron();" class="btn btn-default btn-sm" data-i18n="public.delete_selected">{{ t('public.delete_selected', '删除选中') }}</button>
 				</span>
 			</div>
 			<div class="setting-con divtable pd15">
 				<div class="bt-button-group mb15" style="display: flex; justify-content: space-between; align-items: center;">
 					<div>
-						<button class="btn btn-success btn-sm" onclick="showAddTask();">添加任务</button>
-						<button class="btn btn-default btn-sm" onclick="importTasks();">导入</button>
-						<button class="btn btn-default btn-sm" onclick="exportTasks();">导出</button>
-						<button class="btn btn-default btn-sm" onclick="syncServerTasks();">从服务器同步</button>
+						<button class="btn btn-success btn-sm" onclick="showAddTask();" data-i18n="crontab.add_task">{{ t('crontab.add_task', '添加任务') }}</button>
+						<button class="btn btn-default btn-sm" onclick="importTasks();" data-i18n="public.import">{{ t('public.import', '导入') }}</button>
+						<button class="btn btn-default btn-sm" onclick="exportTasks();" data-i18n="public.export">{{ t('public.export', '导出') }}</button>
+						<button class="btn btn-default btn-sm" onclick="syncServerTasks();" data-i18n="crontab.sync_server">{{ t('crontab.sync_server', '从服务器同步') }}</button>
 					</div>
 					<div class="search-box">
-						<input type="text" id="search_task" class="bt-input-text mr5" placeholder="搜索任务名称..." style="width: 200px;">
-						<button class="btn btn-default btn-sm" onclick="getCronData(1);">搜索</button>
+						<input type="text" id="search_task" class="bt-input-text mr5" data-i18n-attr="placeholder" data-i18n="crontab.search_task_placeholder" placeholder="{{ t('crontab.search_task_placeholder', '搜索任务名称...') }}" style="width: 200px;">
+						<button class="btn btn-default btn-sm" onclick="getCronData(1);" data-i18n="public.search">{{ t('public.search', '搜索') }}</button>
 					</div>
 					<input type="file" id="import_file" style="display:none" onchange="processImport(this)" accept=".json">
 				</div>
@@ -224,35 +224,35 @@ static/upload
 					<thead>
 						<tr>
 							<th width='30px'><input onclick="checkSelect();" type="checkbox" id="setBox"></th>
-							<th class="cursor" onclick="getCronSort('name')">任务名称 
+							<th class="cursor" onclick="getCronSort('name')"><span data-i18n="crontab.task_name">{{ t('crontab.task_name', '任务名称') }}</span> 
 								<span class="sort-icons">
 									<i class="glyphicon glyphicon-triangle-top"></i>
 									<i class="glyphicon glyphicon-triangle-bottom"></i>
 								</span>
 							</th>
-							<th class="cursor" onclick="getCronSort('status')">状态 
+							<th class="cursor" onclick="getCronSort('status')"><span data-i18n="public.status">{{ t('public.status', '状态') }}</span> 
 								<span class="sort-icons">
 									<i class="glyphicon glyphicon-triangle-top"></i>
 									<i class="glyphicon glyphicon-triangle-bottom"></i>
 								</span>
 							</th>
-							<th class="cursor" onclick="getCronSort('type')">周期 
+							<th class="cursor" onclick="getCronSort('type')"><span data-i18n="crontab.cycle">{{ t('crontab.cycle', '周期') }}</span> 
 								<span class="sort-icons">
 									<i class="glyphicon glyphicon-triangle-top"></i>
 									<i class="glyphicon glyphicon-triangle-bottom"></i>
 								</span>
 							</th>
-							<th>执行时机</th>
-							<th>保存数量</th>
-							<th>备份到</th>
-							<th>日期限制</th>
-							<th class="cursor" onclick="getCronSort('last_run_time')">上次执行时间 
+							<th data-i18n="crontab.exec_time">{{ t('crontab.exec_time', '执行时机') }}</th>
+							<th data-i18n="crontab.save_count">{{ t('crontab.save_count', '保存数量') }}</th>
+							<th data-i18n="crontab.backup_to">{{ t('crontab.backup_to', '备份到') }}</th>
+							<th data-i18n="crontab.day_limit">{{ t('crontab.day_limit', '日期限制') }}</th>
+							<th class="cursor" onclick="getCronSort('last_run_time')"><span data-i18n="crontab.last_exec_time">{{ t('crontab.last_exec_time', '上次执行时间') }}</span> 
 								<span class="sort-icons">
 									<i class="glyphicon glyphicon-triangle-top"></i>
 									<i class="glyphicon glyphicon-triangle-bottom"></i>
 								</span>
 							</th>
-							<th width="190">操作</th>
+							<th width="190" data-i18n="public.action">{{ t('public.action', '操作') }}</th>
 						</tr>
 					</thead>
 					<tbody id="cronbody"></tbody>

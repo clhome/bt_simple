@@ -88,8 +88,8 @@
 	<div class="container-fluid" style="padding-bottom: 50px;">
 		<div id="cutTab" class="pos-box bgw mtb15" style="height:45px">
 			<div class="tab-list">
-				<div class="tabs-item active" data-name="panelLogs">面板日志</div>
-				<div class="tabs-item" data-name="logAudit">日志审计</div>
+				<div class="tabs-item active" data-name="panelLogs" data-i18n="logs.panel_logs">{{ t('logs.panel_logs', '面板日志') }}</div>
+				<div class="tabs-item" data-name="logAudit" data-i18n="logs.log_audit">{{ t('logs.log_audit', '日志审计') }}</div>
 			</div>
 		</div>
 
@@ -101,21 +101,21 @@
 				<div id="operationLog" style="position: relative;">
 					<div class="tootls_group tootls_top">
 						<div class="pull-left">
-							<button type="button" title="刷新日志" class="refresh btn btn-success btn-sm mr5">
-								<span>刷新日志</span>
+							<button type="button" data-i18n-attr="title" data-i18n="logs.refresh_logs" title="{{ t('logs.refresh_logs', '刷新日志') }}" class="refresh btn btn-success btn-sm mr5">
+								<span data-i18n="logs.refresh_logs">{{ t('logs.refresh_logs', '刷新日志') }}</span>
 							</button>
-							<button type="button" title="清空日志" class="clear btn btn-default btn-sm mr5">
-								<span>清空日志</span>
+							<button type="button" data-i18n-attr="title" data-i18n="logs.clear_logs" title="{{ t('logs.clear_logs', '清空日志') }}" class="clear btn btn-default btn-sm mr5">
+								<span data-i18n="logs.clear_logs">{{ t('logs.clear_logs', '清空日志') }}</span>
 							</button>
 						</div>
 					</div>
 					<div class="divtable mtb10">
 						<table class="table table-hover">
 							<thead style="position: relative;z-index: 1;"><tr>
-								<th><span>编号</span></th>
-								<th><span>操作类型</span></th>
-								<th><span>详情</span></th>
-								<th><span>操作时间</span></th>
+								<th><span data-i18n="logs.log_id">{{ t('logs.log_id', '编号') }}</span></th>
+								<th><span data-i18n="logs.op_type">{{ t('logs.op_type', '操作类型') }}</span></th>
+								<th><span data-i18n="logs.details">{{ t('logs.details', '详情') }}</span></th>
+								<th><span data-i18n="logs.op_time">{{ t('logs.op_time', '操作时间') }}</span></th>
 							</tr></thead>
 							<tbody></tbody>
 						</table>
@@ -141,11 +141,11 @@
 						<div id="logAuditTable" class="bt_table" style="display: block;">
 							<div class="tootls_group tootls_top">
 								<div class="pull-left">
-									<button type="button" title="刷新列表" class="btn btn-success btn-sm mr5"><span>刷新列表</span></button>
+									<button type="button" data-i18n-attr="title" data-i18n="public.refresh_list" title="{{ t('public.refresh_list', '刷新列表') }}" class="btn btn-success btn-sm mr5"><span data-i18n="public.refresh_list">{{ t('public.refresh_list', '刷新列表') }}</span></button>
 								</div>
 								<div class="pull-right">
 									<div class="logs_search" style="position: relative;">
-										<input name='source' type="text" class="search_input" placeholder="请输入来源/端口/角色/事件" >
+										<input name='source' type="text" class="search_input" data-i18n-attr="placeholder" data-i18n="logs.audit_search_placeholder" placeholder="{{ t('logs.audit_search_placeholder', '请输入来源/端口/角色/事件') }}" >
 										<span class="glyphicon glyphicon-search" aria-hidden="true"></span>
 									</div>
 								</div>
@@ -154,18 +154,13 @@
 								<table class="table table-hover">
 									<thead style="position: relative;z-index: 1;">
 										<tr>
-											<th><span data-index="0"><span>用户</span></span></th>
-											<th><span data-index="1"><span>来源</span></span></th>
-											<th><span data-index="2"><span>端口</span></span></th>
-											<th><span data-index="3"><span>时间</span></span></th>
+											<th><span data-index="0"><span data-i18n="logs.audit_user">{{ t('logs.audit_user', '用户') }}</span></span></th>
+											<th><span data-index="1"><span data-i18n="logs.audit_source">{{ t('logs.audit_source', '来源') }}</span></span></th>
+											<th><span data-index="2"><span data-i18n="logs.audit_port">{{ t('logs.audit_port', '端口') }}</span></span></th>
+											<th><span data-index="3"><span data-i18n="public.time">{{ t('public.time', '时间') }}</span></span></th>
 										</tr>
 									</thead>
 									<tbody>
-										<!-- <tr><td><span>root</span></td>
-											<td><span>117.139.193.29</span></td>
-											<td><span>pts/0</span></td>
-											<td><span>2023-08-25 13:27 still logged in</span></td>
-										</tr> -->
 									</tbody>
 								</table>
 							</div>

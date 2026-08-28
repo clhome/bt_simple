@@ -179,15 +179,15 @@
 <div class="main-content">
 	<div class="container-fluid" style="padding-bottom:54px">
 		<div class="pos-box bgw mtb15" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: 4px;">
-			<div class="position f14 c9 pull-left"><a class="plr10 c4" href="/">首页</a>/<span class="plr10 c4">面板设置</span></div>
+			<div class="position f14 c9 pull-left"><a class="plr10 c4" href="/" data-i18n="menu.home">{{ t('menu.home', '首页') }}</a>/<span class="plr10 c4" data-i18n="menu.setting">{{ t('menu.setting', '面板设置') }}</span></div>
 		</div>
 
         <!-- 顶部快速开关 -->
         <div class="quick-settings">
-            <span class="glyphicon glyphicon-flash" style="color:#f39c12; font-size: 16px;"></span> <strong style="margin-right: 15px;">快速开关:</strong>
+            <span class="glyphicon glyphicon-flash" style="color:#f39c12; font-size: 16px;"></span> <strong style="margin-right: 15px;" data-i18n="config.quick_switches">{{ t('config.quick_switches', '快速开关:') }}</strong>
             
             <div class="quick-setting-item">
-                <em>关闭面板</em>
+                <em data-i18n="config.close_panel">{{ t('config.close_panel', '关闭面板') }}</em>
                 <div class="ssh-item">
                     <input class="btswitch btswitch-ios" id="closePl" type="checkbox" {%if data['admin_close']=='yes' %}checked{%endif%}>
                     <label class="btswitch-btn" for="closePl" onclick="closePanel()"></label>
@@ -195,31 +195,31 @@
             </div>
 
             <div class="quick-setting-item">
-                <em>开发模式</em>
+                <em data-i18n="config.dev_mode">{{ t('config.dev_mode', '开发模式') }}</em>
                 <div class="ssh-item">
                     <input class="btswitch btswitch-ios" id="debugMode" type="checkbox" {%if data['debug']=='open'%}checked{%endif%}>
                     <label class="btswitch-btn" for="debugMode" onclick="debugMode()"></label>
                 </div>
             </div>
 
-            <div class="quick-setting-item" title="开启后允许使用ipv6访问面板">
-                <em>监听IPv6</em>
+            <div class="quick-setting-item" data-i18n-attr="title" data-i18n="config.listen_ipv6_tips" title="{{ t('config.listen_ipv6_tips', '开启后允许使用ipv6访问面板') }}">
+                <em data-i18n="config.listen_ipv6">{{ t('config.listen_ipv6', '监听IPv6') }}</em>
                 <div class='ssh-item'>
                     <input class='btswitch btswitch-ios' id='panelIPv6' type='checkbox' {{data['ipv6']}}>
                     <label class='btswitch-btn' for='panelIPv6' onclick="setIPv6()"></label>
                 </div>
             </div>
             
-            <div class="quick-setting-item" title="当主机速度非常慢才建议开启，会导致面板打开速度不可控">
-                <em>使用CDN</em>
+            <div class="quick-setting-item" data-i18n-attr="title" data-i18n="config.use_cdn_tips" title="{{ t('config.use_cdn_tips', '当主机速度非常慢才建议开启，会导致面板打开速度不可控') }}">
+                <em data-i18n="config.use_cdn">{{ t('config.use_cdn', '使用CDN') }}</em>
                 <div class='ssh-item'>
                     <input class='btswitch btswitch-ios' id='panelCDN' type='checkbox' {% if data['use_cdn'] == 'yes' %}checked{% endif %}>
                     <label class='btswitch-btn' for='panelCDN' onclick="setCDN()"></label>
                 </div>
             </div>
 
-            <div class="quick-setting-item" title="开启后首页将尝试获取英伟达GPU信息">
-                <em>英伟达GPU首页检测</em>
+            <div class="quick-setting-item" data-i18n-attr="title" data-i18n="config.gpu_detect_tips" title="{{ t('config.gpu_detect_tips', '开启后首页将尝试获取英伟达GPU信息') }}">
+                <em data-i18n="config.gpu_detect">{{ t('config.gpu_detect', '英伟达GPU首页检测') }}</em>
                 <div class='ssh-item'>
                     <input class='btswitch btswitch-ios' id='gpuDetect' type='checkbox' {% if data['gpu_detect'] == 'yes' %}checked{% endif %}>
                     <label class='btswitch-btn' for='gpuDetect' onclick="setGpuDetect()"></label>
@@ -232,10 +232,10 @@
             <!-- 左侧导航 -->
             <div class="settings-nav">
                 <ul>
-                    <li class="active" data-tab="tab-basic"><span class="glyphicon glyphicon-cog"></span>基础配置</li>
-                    <li data-tab="tab-security"><span class="glyphicon glyphicon-lock"></span>安全与认证</li>
-                    <li data-tab="tab-data"><span class="glyphicon glyphicon-folder-open"></span>数据迁移</li>
-                    <li data-tab="tab-notice"><span class="glyphicon glyphicon-bell"></span>通知设置</li>
+                    <li class="active" data-tab="tab-basic"><span class="glyphicon glyphicon-cog"></span><span data-i18n="config.tab_basic">{{ t('config.tab_basic', '基础配置') }}</span></li>
+                    <li data-tab="tab-security"><span class="glyphicon glyphicon-lock"></span><span data-i18n="config.tab_security">{{ t('config.tab_security', '安全与认证') }}</span></li>
+                    <li data-tab="tab-data"><span class="glyphicon glyphicon-folder-open"></span><span data-i18n="config.tab_data">{{ t('config.tab_data', '数据迁移') }}</span></li>
+                    <li data-tab="tab-notice"><span class="glyphicon glyphicon-bell"></span><span data-i18n="config.tab_notice">{{ t('config.tab_notice', '通知设置') }}</span></li>
                 </ul>
             </div>
 
@@ -243,207 +243,220 @@
             <div class="settings-content">
                 <!-- 基础配置 -->
                 <div id="tab-basic" class="settings-tab-pane active">
-                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">基础配置</h3>
+                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;" data-i18n="config.tab_basic">{{ t('config.tab_basic', '基础配置') }}</h3>
 
                     <form id="set_config">
                         <div class="setting-item">
-                            <span class="set-tit">别名</span>
+                            <span class="set-tit" data-i18n="config.panel_language">{{ t('config.panel_language', '面板语言') }}</span>
+                            <div class="set-input-group">
+                                <select class="bt-input-text" id="panelLanguageSelect" style="width: 240px; height: 34px;">
+                                    {% for lang in supported_languages %}
+                                    <option value="{{ lang.code }}" {% if current_lang == lang.code %}selected{% endif %}>{{ lang.name }} ({{ lang.nativeName }})</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" class="btn btn-success btn-sm" onclick="savePanelLanguage()" data-i18n="public.save">{{ t('public.save', '保存') }}</button>
+                            </div>
+                            <span class="set-info" data-i18n="config.panel_language_tips">{{ t('config.panel_language_tips', '支持根据浏览器自动识别或手动固定语言') }}</span>
+                        </div>
+
+                        <div class="setting-item">
+                            <span class="set-tit" data-i18n="config.alias">{{ t('config.alias', '别名') }}</span>
                             <div class="set-input-group">
                                 <input id="webname" name="webname" class="inputtxt bt-input-text" type="text" value="{{data['title']}}">
-                                <button type="button" class="btn btn-success btn-sm btn_webname" disabled>保存</button>
+                                <button type="button" class="btn btn-success btn-sm btn_webname" disabled data-i18n="public.save">{{ t('public.save', '保存') }}</button>
                             </div>
-                            <span class="set-info">面板名称</span>
+                            <span class="set-info" data-i18n="config.panel_name">{{ t('config.panel_name', '面板名称') }}</span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit" title="服务器IP">服务器IP</span>
+                            <span class="set-tit" data-i18n="config.server_ip" data-i18n-attr="title" title="{{ t('config.server_ip', '服务器IP') }}">{{ t('config.server_ip', '服务器IP') }}</span>
                             <div class="set-input-group">
                                 <input name="host_ip" class="inputtxt bt-input-text" type="text" value="{{data['ip']}}">
-                                <button type="button" class="btn btn-success btn-sm btn_host_ip" disabled>保存</button>
+                                <button type="button" class="btn btn-success btn-sm btn_host_ip" disabled data-i18n="public.save">{{ t('public.save', '保存') }}</button>
                             </div>
-                            <span class="set-info">默认为外网IP,若您在本地虚拟机测试,请填写虚拟机内网IP!</span>
+                            <span class="set-info" data-i18n="config.server_ip_tips">{{ t('config.server_ip_tips', '默认为外网IP,若您在本地虚拟机测试,请填写虚拟机内网IP!') }}</span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit">面板端口</span>
+                            <span class="set-tit" data-i18n="config.panel_port">{{ t('config.panel_port', '面板端口') }}</span>
                             <div class="set-input-group">
                                 <input data-port="{{data['port']}}" id="banport" name="port" class="inputtxt bt-input-text" type="number" value="{{data['port']}}" maxlength="5">
-                                <button type="button" class="btn btn-success btn-sm btn_port" disabled>保存</button>
+                                <button type="button" class="btn btn-success btn-sm btn_port" disabled data-i18n="public.save">{{ t('public.save', '保存') }}</button>
                             </div>
-                            <span class="set-info">建议端口范围7200 - 65535</span>
+                            <span class="set-info" data-i18n="config.panel_port_tips">{{ t('config.panel_port_tips', '建议端口范围7200 - 65535') }}</span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit" title="服务器时间">服务器时间</span>
+                            <span class="set-tit" data-i18n="config.server_time" data-i18n-attr="title" title="{{ t('config.server_time', '服务器时间') }}">{{ t('config.server_time', '服务器时间') }}</span>
                             <div class="set-input-group">
                                 <input id="systemdate" name="systemdate" class="inputtxt bt-input-text disable" type="text" value="{{data['systemdate']}}">
-                                <button type="button" class="btn btn-success btn-sm" onclick="setTimezone()">设置</button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="setTimezone()" data-i18n="public.set">{{ t('public.set', '设置') }}</button>
                             </div>
-                            <span class="set-info">设置/同步当前服务器时间</span>
+                            <span class="set-info" data-i18n="config.server_time_tips">{{ t('config.server_time_tips', '设置/同步当前服务器时间') }}</span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit" title="面板用户">面板账号</span>
+                            <span class="set-tit" data-i18n="config.panel_user" data-i18n-attr="title" title="{{ t('config.panel_user', '面板账号') }}">{{ t('config.panel_user', '面板账号') }}</span>
                             <div class="set-input-group">
                                 <input name="username_" class="inputtxt bt-input-text disable" type="text" value="{{data['username']}}" disabled>
-                                <button type="button" class="btn btn-success btn-sm" onclick="setUserName()">设置</button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="setUserName()" data-i18n="public.set">{{ t('public.set', '设置') }}</button>
                             </div>
-                            <span class="set-info">设置面板账号</span>
+                            <span class="set-info" data-i18n="config.panel_user_tips">{{ t('config.panel_user_tips', '设置面板账号') }}</span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit" title="面板密码">面板密码</span>
+                            <span class="set-tit" data-i18n="config.panel_pass" data-i18n-attr="title" title="{{ t('config.panel_pass', '面板密码') }}">{{ t('config.panel_pass', '面板密码') }}</span>
                             <div class="set-input-group">
                                 <input name="password_" class="inputtxt bt-input-text disable" type="text" value="******" disabled>
-                                <button type="button" class="btn btn-success btn-sm" onclick="setPassword()">设置</button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="setPassword()" data-i18n="public.set">{{ t('public.set', '设置') }}</button>
                             </div>
-                            <span class="set-info" style="color: #e67e22;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 4px;"></span>为了提高安全，请您定期更新随机密码</span>
+                            <span class="set-info" style="color: #e67e22;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 4px;"></span><span data-i18n="config.panel_pass_tips">{{ t('config.panel_pass_tips', '为了提高安全，请您定期更新随机密码') }}</span></span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit" title="默认建站目录">默认建站目录</span>
+                            <span class="set-tit" data-i18n="config.default_site_path" data-i18n-attr="title" title="{{ t('config.default_site_path', '默认建站目录') }}">{{ t('config.default_site_path', '默认建站目录') }}</span>
                             <div class="set-input-group">
                                 <input name="sites_path" class="inputtxt bt-input-text" type="text" value="{{data['site_path']}}">
-                                <button type="button" class="btn btn-success btn-sm btn_sites_path" disabled>保存</button>
+                                <button type="button" class="btn btn-success btn-sm btn_sites_path" disabled data-i18n="public.save">{{ t('public.save', '保存') }}</button>
                             </div>
-                            <span class="set-info">新创建的站点，默认将保存到该目录的下级目录!</span>
+                            <span class="set-info" data-i18n="config.default_site_path_tips">{{ t('config.default_site_path_tips', '新创建的站点，默认将保存到该目录的下级目录!') }}</span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit" title="默认备份目录">默认备份目录</span>
+                            <span class="set-tit" data-i18n="config.default_backup_path" data-i18n-attr="title" title="{{ t('config.default_backup_path', '默认备份目录') }}">{{ t('config.default_backup_path', '默认备份目录') }}</span>
                             <div class="set-input-group">
                                 <input name="backup_path" class="inputtxt bt-input-text" type="text" value="{{data['backup_path']}}">
-                                <button type="button" class="btn btn-success btn-sm btn_backup_path" disabled>保存</button>
+                                <button type="button" class="btn btn-success btn-sm btn_backup_path" disabled data-i18n="public.save">{{ t('public.save', '保存') }}</button>
                             </div>
-                            <span class="set-info">网站和数据库的备份目录!</span>
+                            <span class="set-info" data-i18n="config.default_backup_path_tips">{{ t('config.default_backup_path_tips', '网站和数据库的备份目录!') }}</span>
                         </div>
 
                         <div class="setting-item">
-                            <span class="set-tit" title="菜单控制">菜单控制</span>
+                            <span class="set-tit" data-i18n="config.menu_control" data-i18n-attr="title" title="{{ t('config.menu_control', '菜单控制') }}">{{ t('config.menu_control', '菜单控制') }}</span>
                             <div class="set-input-group">
-                                <button type="button" class="btn btn-success btn-sm" onclick="setMenuConfig()">设置</button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="setMenuConfig()" data-i18n="public.set">{{ t('public.set', '设置') }}</button>
                             </div>
-                            <span class="set-info">拖拽排序或隐藏主界面的左侧菜单</span>
+                            <span class="set-info" data-i18n="config.menu_control_tips">{{ t('config.menu_control_tips', '拖拽排序或隐藏主界面的左侧菜单') }}</span>
                         </div>
                     </form>
                 </div>
 
                 <!-- 安全与认证 -->
                 <div id="tab-security" class="settings-tab-pane">
-                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">安全与认证</h3>
+                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;" data-i18n="config.tab_security">{{ t('config.tab_security', '安全与认证') }}</h3>
                     
                     <div class="setting-item">
-                        <span class="set-tit">安全入口</span>
+                        <span class="set-tit" data-i18n="config.admin_path">{{ t('config.admin_path', '安全入口') }}</span>
                         <div class="set-input-group">
                             <input id="admin_path" name="admin_path" class="inputtxt bt-input-text disable" type="text" value="{{data['admin_path']}}">
-                            <button type="button" class="btn btn-success btn-sm" onclick="modifyAuthPath()">设置</button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="modifyAuthPath()" data-i18n="public.set">{{ t('public.set', '设置') }}</button>
                         </div>
-                        <span class="set-info">面板管理入口,设置后只能通过指定安全入口登录面板,如: /abc</span>
+                        <span class="set-info" data-i18n="config.admin_path_tips">{{ t('config.admin_path_tips', '面板管理入口,设置后只能通过指定安全入口登录面板,如: /abc') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="绑定域名">绑定域名</span>
+                        <span class="set-tit" data-i18n="config.bind_domain" data-i18n-attr="title" title="{{ t('config.bind_domain', '绑定域名') }}">{{ t('config.bind_domain', '绑定域名') }}</span>
                         <div class="set-input-group">
                             <input name="bind_domain" class="inputtxt bt-input-text" type="text" value="{{data['panel_domain']}}">
-                            <button type="button" class="btn btn-success btn-sm btn_bind_domain" disabled>保存</button>
+                            <button type="button" class="btn btn-success btn-sm btn_bind_domain" disabled data-i18n="public.save">{{ t('public.save', '保存') }}</button>
                         </div>
-                        <span class="set-info">为面板绑定一个访问域名，<b style="color: red;">注意：一旦绑定域名，只能通过域名访问面板</b></span>
+                        <span class="set-info" data-i18n="config.bind_domain_tips">{{ t('config.bind_domain_tips', '为面板绑定一个访问域名，注意：一旦绑定域名，只能通过域名访问面板') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="面板SSL">面板SSL</span>
+                        <span class="set-tit" data-i18n="config.panel_ssl" data-i18n-attr="title" title="{{ t('config.panel_ssl', '面板SSL') }}">{{ t('config.panel_ssl', '面板SSL') }}</span>
                         <div class="set-input-group">
                             <div class="ssh-item" style="margin-top: 3px;">
                                 <input id="cfg_ssl" name="bind_ssl" class="btswitch btswitch-ios" type="checkbox" {% if data['panel_ssl']['open'] %}checked{% endif %}>
                                 <label class="btswitch-btn" for="cfg_ssl"></label>
                             </div>
-                            <button type="button" class="btn btn-default btn-sm panel_api_btn" onclick="getPanelSSL();">面板SSL配置</button>
+                            <button type="button" class="btn btn-default btn-sm panel_api_btn" onclick="getPanelSSL();" data-i18n="config.panel_ssl_config">{{ t('config.panel_ssl_config', '面板SSL配置') }}</button>
                         </div>
-                        <span class="set-info">为面板设置https协议访问，提升面板访问<b style="color: red;">安全性</b></span>
+                        <span class="set-info" data-i18n="config.panel_ssl_tips">{{ t('config.panel_ssl_tips', '为面板设置https协议访问，提升面板访问安全性') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="BasicAuth认证">BasicAuth认证</span>
+                        <span class="set-tit" data-i18n="config.basic_auth" data-i18n-attr="title" title="{{ t('config.basic_auth', 'BasicAuth认证') }}">{{ t('config.basic_auth', 'BasicAuth认证') }}</span>
                         <div class="set-input-group">
                             <div class="ssh-item" style="margin-top: 3px;">
                                 <input class="btswitch btswitch-ios" id="cfg_basic_auth" type="checkbox" {% if data['basic_auth']['open'] %}checked{% endif %}/>
                                 <label class="btswitch-btn" for="cfg_basic_auth" onclick="setBasicAuth()"></label>
                             </div>
                         </div>
-                        <span class="set-info">为面板增加一道基于BasicAuth的认证服务，有效防止面板被扫描</span>
+                        <span class="set-info" data-i18n="config.basic_auth_tips">{{ t('config.basic_auth_tips', '为面板增加一道基于BasicAuth的认证服务，有效防止面板被扫描') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="API接口">API接口</span>
+                        <span class="set-tit" data-i18n="config.api_interface" data-i18n-attr="title" title="{{ t('config.api_interface', 'API接口') }}">{{ t('config.api_interface', 'API接口') }}</span>
                         <div class="set-input-group">
                             <div class="ssh-item" style="margin-top: 3px;">
                                 <input class="btswitch btswitch-ios" id="cfg_panel_api" type="checkbox" {% if data['panel_api']['open'] %}checked{% endif %}/>
                                 <label class="btswitch-btn" for="cfg_panel_api" onclick="setPanelApi()"></label>
                             </div>
-                            <button type="button" class="btn btn-default btn-sm" onclick="appPage();">APP应用管理</button>
+                            <button type="button" class="btn btn-default btn-sm" onclick="appPage();" data-i18n="config.app_manage">{{ t('config.app_manage', 'APP应用管理') }}</button>
                         </div>
-                        <span class="set-info">提供面板API接口访问的支持</span>
+                        <span class="set-info" data-i18n="config.api_interface_tips">{{ t('config.api_interface_tips', '提供面板API接口访问的支持') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="未认证响应状态">未认证响应状态</span>
+                        <span class="set-tit" data-i18n="config.unauthorized_status" data-i18n-attr="title" title="{{ t('config.unauthorized_status', '未认证响应状态') }}">{{ t('config.unauthorized_status', '未认证响应状态') }}</span>
                         <div class="set-input-group">
                             <input name="status_code" class="inputtxt bt-input-text disable" type="text" value="{{data['unauthorized_status']['text']}}" disabled>
-                            <button type="button" class="btn btn-success btn-sm" data-code="{{data['unauthorized_status']['code']}}" onclick="setStatusCode(this)">设置</button>
+                            <button type="button" class="btn btn-success btn-sm" data-code="{{data['unauthorized_status']['code']}}" onclick="setStatusCode(this)" data-i18n="public.set">{{ t('public.set', '设置') }}</button>
                         </div>
-                        <span class="set-info">用于在未登录且未正确输入安全入口时的响应，可用于隐藏面板特征</span>
+                        <span class="set-info" data-i18n="config.unauthorized_status_tips">{{ t('config.unauthorized_status_tips', '用于在未登录且未正确输入安全入口时的响应，可用于隐藏面板特征') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="临时访问授权">临时访问授权</span>
+                        <span class="set-tit" data-i18n="config.temp_access" data-i18n-attr="title" title="{{ t('config.temp_access', '临时访问授权') }}">{{ t('config.temp_access', '临时访问授权') }}</span>
                         <div class="set-input-group">
-                            <button type="button" class="btn btn-success btn-sm" onclick="setTempAccess()">临时访问授权管理</button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="setTempAccess()" data-i18n="config.temp_access_manage">{{ t('config.temp_access_manage', '临时访问授权管理') }}</button>
                         </div>
-                        <span class="set-info">为非管理员临时提供面板访问权限</span>
+                        <span class="set-info" data-i18n="config.temp_access_tips">{{ t('config.temp_access_tips', '为非管理员临时提供面板访问权限') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="二步验证">二步验证</span>
+                        <span class="set-tit" data-i18n="config.two_step_auth" data-i18n-attr="title" title="{{ t('config.two_step_auth', '二步验证') }}">{{ t('config.two_step_auth', '二步验证') }}</span>
                         <div class="set-input-group">
                             <div class="ssh-item" style="margin-top: 3px;">
                                 <input class="btswitch btswitch-ios" id="cfg_panel_auth" type="checkbox" {% if data['two_step_verification']['open'] %}checked{% endif %}/>
                                 <label class="btswitch-btn" for="cfg_panel_auth" onclick="setAuthSecretApi()"></label>
                             </div>
-                            <button type="button" class="btn btn-default btn-sm" onclick="setAuthBind();">绑定设置</button>
+                            <button type="button" class="btn btn-default btn-sm" onclick="setAuthBind();" data-i18n="config.bind_settings">{{ t('config.bind_settings', '绑定设置') }}</button>
                         </div>
-                        <span class="set-info">二步验证，加强安全登录,手机下载Authenticator（Microsoft出品），扫码即可记录账户</span>
+                        <span class="set-info" data-i18n="config.two_step_auth_tips">{{ t('config.two_step_auth_tips', '二步验证，加强安全登录,手机下载Authenticator（Microsoft出品），扫码即可记录账户') }}</span>
                     </div>
                 </div>
 
                 <!-- 数据迁移 -->
                 <div id="tab-data" class="settings-tab-pane">
-                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">数据迁移</h3>
+                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;" data-i18n="config.tab_data">{{ t('config.tab_data', '数据迁移') }}</h3>
 
                     <!-- 危险操作区 -->
                     <div class="danger-zone">
                         <div class="setting-item" style="border-bottom: 1px dashed #f5c6cb;">
-                            <span class="set-tit" title="数据库迁移">数据库迁移</span>
+                            <span class="set-tit" data-i18n="config.db_migration" data-i18n-attr="title" title="{{ t('config.db_migration', '数据库迁移') }}">{{ t('config.db_migration', '数据库迁移') }}</span>
                             <div class="set-input-group">
-                                <button type="button" class="btn btn-default btn-sm danger-btn" onclick="migrateDatabase()">从备份数据库还原至御风面板</button>
+                                <button type="button" class="btn btn-default btn-sm danger-btn" onclick="migrateDatabase()" data-i18n="config.restore_db_btn">{{ t('config.restore_db_btn', '从备份数据库还原至御风面板') }}</button>
                             </div>
-                            <span class="set-info">将备份数据库还原至面板，<b style="color:red;">会导致现有面板数据被覆盖，请谨慎操作！</b></span>
+                            <span class="set-info" data-i18n="config.restore_db_tips">{{ t('config.restore_db_tips', '将备份数据库还原至面板，会导致现有面板数据被覆盖，请谨慎操作！') }}</span>
                         </div>
                         
                         <div class="setting-item" style="border-bottom: none;">
-                            <span class="set-tit" title="网站列表迁移" style="color: #fc6d26;">网站列表迁移</span>
+                            <span class="set-tit" data-i18n="config.sites_migration" data-i18n-attr="title" title="{{ t('config.sites_migration', '网站列表迁移') }}" style="color: #fc6d26;">{{ t('config.sites_migration', '网站列表迁移') }}</span>
                             <div class="set-input-group">
-                                <button type="button" class="btn btn-default btn-sm warning-btn" onclick="migrateSites()">从备份数据库导入网站列表</button>
+                                <button type="button" class="btn btn-default btn-sm warning-btn" onclick="migrateSites()" data-i18n="config.import_sites_btn">{{ t('config.import_sites_btn', '从备份数据库导入网站列表') }}</button>
                             </div>
-                            <span class="set-info">从旧面板数据库恢复网站列表到当前面板</span>
+                            <span class="set-info" data-i18n="config.import_sites_tips">{{ t('config.import_sites_tips', '从旧面板数据库恢复网站列表到当前面板') }}</span>
                         </div>
                     </div>
                     
                     <div class="setting-item" style="margin-top: 20px;">
-                        <span class="set-tit" title="宝塔面板备份">宝塔面板备份</span>
+                        <span class="set-tit" data-i18n="config.bt_backup" data-i18n-attr="title" title="{{ t('config.bt_backup', '宝塔面板备份') }}">{{ t('config.bt_backup', '宝塔面板备份') }}</span>
                         <div class="set-input-group" style="width: auto; min-width: 400px; padding-top: 4px;">
                             <table class="table table-hover" style="margin-bottom: 0; background: transparent; border: none;">
                                 <tbody id="bt_backup_list">
-                                    <tr><td>正在加载...</td></tr>
+                                    <tr><td data-i18n="public.loading">{{ t('public.loading', '正在加载...') }}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -452,28 +465,28 @@
 
                 <!-- 通知设置 -->
                 <div id="tab-notice" class="settings-tab-pane">
-                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;">通知设置</h3>
+                    <h3 class="f16" style="margin-top:0; margin-bottom: 20px; color:#333; border-bottom: 1px solid #eee; padding-bottom: 10px;" data-i18n="config.tab_notice">{{ t('config.tab_notice', '通知设置') }}</h3>
                     
                     <div class="setting-item">
-                        <span class="set-tit" title="邮件通知">邮件通知</span>
+                        <span class="set-tit" data-i18n="config.email_notice" data-i18n-attr="title" title="{{ t('config.email_notice', '邮件通知') }}">{{ t('config.email_notice', '邮件通知') }}</span>
                         <div class="set-input-group">
                             <div class="ssh-item" style="margin-top: 3px;">
                                 <input id="cfg_email" name="cfg_email" onclick="setNotifyEmail(this)" class="btswitch btswitch-ios" type="checkbox" {% if data['notify_email']['open'] %}checked{% endif %}>
                                 <label class="btswitch-btn" for="cfg_email"></label>
                             </div>
-                            <button type="button" class="btn btn-default btn-sm panel_api_btn" onclick="getEmailCfg();">邮件配置</button>
+                            <button type="button" class="btn btn-default btn-sm panel_api_btn" onclick="getEmailCfg();" data-i18n="config.email_config">{{ t('config.email_config', '邮件配置') }}</button>
                         </div>
-                        <span class="set-info">邮件通知</span>
+                        <span class="set-info" data-i18n="config.email_notice">{{ t('config.email_notice', '邮件通知') }}</span>
                     </div>
 
                     <div class="setting-item">
-                        <span class="set-tit" title="首页提醒">首页提醒</span>
+                        <span class="set-tit" data-i18n="config.home_notice" data-i18n-attr="title" title="{{ t('config.home_notice', '首页提醒') }}">{{ t('config.home_notice', '首页提醒') }}</span>
                         <div class="set-input-group">
                             <input name="home_notice" class="inputtxt bt-input-text" type="text" value="{{data['home_notice']}}" maxlength="50" style="width: 350px;">
                             <span id="home_notice_count" style="color: #c25c3f; font-size: 12px; font-weight: bold;">0/50</span>
-                            <button type="button" class="btn btn-success btn-sm btn_home_notice" onclick="setHomeNotice(this)">保存</button>
+                            <button type="button" class="btn btn-success btn-sm btn_home_notice" onclick="setHomeNotice(this)" data-i18n="public.save">{{ t('public.save', '保存') }}</button>
                         </div>
-                        <span class="set-info">在首页顶部展示提醒信息，最长50字</span>
+                        <span class="set-info" data-i18n="config.home_notice_tips">{{ t('config.home_notice_tips', '在首页顶部展示提醒信息，最长50字') }}</span>
                     </div>
                 </div>
 
@@ -483,7 +496,7 @@
 </div>
 
 <div id="menu_config_layer" style="display:none; padding: 15px;">
-	<p style="color:#666; margin-bottom: 15px;">您可以拖拽调整主菜单的顺序，或使用开关控制菜单的显示/隐藏状态。</p>
+	<p style="color:#666; margin-bottom: 15px;" data-i18n="config.menu_drag_tips">{{ t('config.menu_drag_tips', '您可以拖拽调整主菜单的顺序，或使用开关控制菜单的显示/隐藏状态。') }}</p>
 	<ul id="menu_config_list" style="padding: 0;">
 		{% for item in data['menu_list'] %}
 		<li data-id="{{ item.id }}" data-name="{{ item.name }}" data-class="{{ item.class }}" data-url="{{ item.url }}" style="padding: 10px; border: 1px solid #ddd; margin-bottom: 5px; background: #fff; cursor: move; list-style: none; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; width: 100%; box-sizing: border-box;">
@@ -499,7 +512,7 @@
 		{% endfor %}
 	</ul>
 	<div style="text-align: center; margin-top: 15px;">
-		<button type="button" class="btn btn-success btn-sm" onclick="saveMenuConfig()">保存菜单配置</button>
+		<button type="button" class="btn btn-success btn-sm" onclick="saveMenuConfig()" data-i18n="config.save_menu_config">{{ t('config.save_menu_config', '保存菜单配置') }}</button>
 	</div>
 </div>
 

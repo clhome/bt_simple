@@ -1,0 +1,11343 @@
+# -*- coding: utf-8 -*-
+"""
+御风面板 (bt_simple) 完整多语言词库映射总表
+"""
+
+FULL_I18N_DICTIONARY = {
+    "menu": {
+        "home": {
+            "zh-CN": "首页",
+            "zh-TW": "首頁",
+            "en": "Dashboard",
+            "fr": "Tableau de bord",
+            "de": "Dashboard",
+            "it": "Dashboard"
+        },
+        "site": {
+            "zh-CN": "网站",
+            "zh-TW": "網站",
+            "en": "Websites",
+            "fr": "Sites Web",
+            "de": "Websites",
+            "it": "Siti Web"
+        },
+        "ftp": {
+            "zh-CN": "FTP",
+            "zh-TW": "FTP",
+            "en": "FTP",
+            "fr": "FTP",
+            "de": "FTP",
+            "it": "FTP"
+        },
+        "database": {
+            "zh-CN": "数据库",
+            "zh-TW": "資料庫",
+            "en": "Databases",
+            "fr": "Bases de données",
+            "de": "Datenbanken",
+            "it": "Database"
+        },
+        "monitor": {
+            "zh-CN": "监控",
+            "zh-TW": "監控",
+            "en": "Monitoring",
+            "fr": "Surveillance",
+            "de": "Überwachung",
+            "it": "Monitoraggio"
+        },
+        "firewall": {
+            "zh-CN": "安全",
+            "zh-TW": "安全",
+            "en": "Security",
+            "fr": "Sécurité",
+            "de": "Sicherheit",
+            "it": "Sicurezza"
+        },
+        "files": {
+            "zh-CN": "文件",
+            "zh-TW": "檔案",
+            "en": "Files",
+            "fr": "Fichiers",
+            "de": "Dateien",
+            "it": "File"
+        },
+        "crontab": {
+            "zh-CN": "计划任务",
+            "zh-TW": "計劃任務",
+            "en": "Cron Tasks",
+            "fr": "Tâches Cron",
+            "de": "Cron-Aufgaben",
+            "it": "Attività Cron"
+        },
+        "soft": {
+            "zh-CN": "软件管理",
+            "zh-TW": "軟體管理",
+            "en": "Software",
+            "fr": "Logiciels",
+            "de": "Software",
+            "it": "Software"
+        },
+        "setting": {
+            "zh-CN": "面板设置",
+            "zh-TW": "面板設定",
+            "en": "Settings",
+            "fr": "Paramètres",
+            "de": "Einstellungen",
+            "it": "Impostazioni"
+        },
+        "logs": {
+            "zh-CN": "操作日志",
+            "zh-TW": "操作日誌",
+            "en": "Logs",
+            "fr": "Journaux",
+            "de": "Protokolle",
+            "it": "Registri"
+        },
+        "logout": {
+            "zh-CN": "退出",
+            "zh-TW": "退出",
+            "en": "Logout",
+            "fr": "Déconnexion",
+            "de": "Abmelden",
+            "it": "Disconnetti"
+        },
+        "help": {
+            "zh-CN": "问题求助|产品建议请上论坛",
+            "zh-TW": "問題求助|產品建議請上論壇",
+            "en": "Help & Support Forum",
+            "fr": "Aide et forum de support",
+            "de": "Hilfe und Support-Forum",
+            "it": "Aiuto e forum di supporto"
+        }
+    },
+    "index": {
+        "auto_str_1": {
+            "zh-CN": "\" data=\"Inode信息<br>总数：",
+            "zh-TW": "\" data=\"Inode信息<br>总数：",
+            "en": "\" data=\"Inode信息<br>总数：",
+            "fr": "\" data=\"Inode信息<br>总数：",
+            "de": "\" data=\"Inode信息<br>总数：",
+            "it": "\" data=\"Inode信息<br>总数："
+        },
+        "auto_str_2": {
+            "zh-CN": "<br>已使用：",
+            "zh-TW": "<br>已使用：",
+            "en": "<br>已使用：",
+            "fr": "<br>已使用：",
+            "de": "<br>已使用：",
+            "it": "<br>已使用："
+        },
+        "auto_str_3": {
+            "zh-CN": "<br>可用：",
+            "zh-TW": "<br>可用：",
+            "en": "<br>可用：",
+            "fr": "<br>可用：",
+            "de": "<br>可用：",
+            "it": "<br>可用："
+        },
+        "auto_str_4": {
+            "zh-CN": "<br>Inode使用率：",
+            "zh-TW": "<br>Inode使用率：",
+            "en": "<br>Inode使用率：",
+            "fr": "<br>Inode使用率：",
+            "de": "<br>Inode使用率：",
+            "it": "<br>Inode使用率："
+        },
+        "auto_str_5": {
+            "zh-CN": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\"></span>分区[",
+            "zh-TW": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\"></span>分区[",
+            "en": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\"></span>分区[",
+            "fr": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\"></span>分区[",
+            "de": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\"></span>分区[",
+            "it": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\"></span>分区["
+        },
+        "auto_str_6": {
+            "zh-CN": "%，当使用率满100%时将无法在此分区创建文件，请及时清理!<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "zh-TW": "%，当使用率满100%时将无法在此分区创建文件，请及时清理!<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "en": "%，当使用率满100%时将无法在此分区创建文件，请及时清理!<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "fr": "%，当使用率满100%时将无法在此分区创建文件，请及时清理!<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "de": "%，当使用率满100%时将无法在此分区创建文件，请及时清理!<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "it": "%，当使用率满100%时将无法在此分区创建文件，请及时清理!<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>"
+        },
+        "auto_str_7": {
+            "zh-CN": "<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "zh-TW": "<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "en": "<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "fr": "<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "de": "<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>",
+            "it": "<a class=\"btlink\" href=\"javascript:ClearSystem();\">[清理垃圾]</a></p>"
+        },
+        "auto_str_8": {
+            "zh-CN": "正在清理系统垃圾 <img src=\"/static/img/ing.gif\">",
+            "zh-TW": "正在清理系统垃圾 <img src=\"/static/img/ing.gif\">",
+            "en": "正在清理系统垃圾 <img src=\"/static/img/ing.gif\">",
+            "fr": "正在清理系统垃圾 <img src=\"/static/img/ing.gif\">",
+            "de": "正在清理系统垃圾 <img src=\"/static/img/ing.gif\">",
+            "it": "正在清理系统垃圾 <img src=\"/static/img/ing.gif\">"
+        },
+        "auto_str_9": {
+            "zh-CN": "清理完成,共清理[",
+            "zh-TW": "清理完成,共清理[",
+            "en": "清理完成,共清理[",
+            "fr": "清理完成,共清理[",
+            "de": "清理完成,共清理[",
+            "it": "清理完成,共清理["
+        },
+        "auto_str_10": {
+            "zh-CN": "]个文件,释放[",
+            "zh-TW": "]个文件,释放[",
+            "en": "]个文件,释放[",
+            "fr": "]个文件,释放[",
+            "de": "]个文件,释放[",
+            "it": "]个文件,释放["
+        },
+        "auto_str_11": {
+            "zh-CN": "]磁盘空间!",
+            "zh-TW": "]磁盘空间!",
+            "en": "]磁盘空间!",
+            "fr": "]磁盘空间!",
+            "de": "]磁盘空间!",
+            "it": "]磁盘空间!"
+        },
+        "auto_str_12": {
+            "zh-CN": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\">当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！</span></p>",
+            "zh-TW": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\">当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！</span></p>",
+            "en": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\">当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！</span></p>",
+            "fr": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\">当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！</span></p>",
+            "de": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\">当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！</span></p>",
+            "it": "<p><span class=\"glyphicon glyphicon-alert\" style=\"color: #ff4040; margin-right: 10px;\">当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！</span></p>"
+        },
+        "auto_str_13": {
+            "zh-CN": " 核心",
+            "zh-TW": " 核心",
+            "en": " 核心",
+            "fr": " 核心",
+            "de": " 核心",
+            "it": " 核心"
+        },
+        "auto_str_14": {
+            "zh-CN": "型号: ",
+            "zh-TW": "型号: ",
+            "en": "型号: ",
+            "fr": "型号: ",
+            "de": "型号: ",
+            "it": "型号: "
+        },
+        "auto_str_15": {
+            "zh-CN": "<br>显卡温度: ",
+            "zh-TW": "<br>显卡温度: ",
+            "en": "<br>显卡温度: ",
+            "fr": "<br>显卡温度: ",
+            "de": "<br>显卡温度: ",
+            "it": "<br>显卡温度: "
+        },
+        "auto_str_16": {
+            "zh-CN": "°C<br>显存使用率: ",
+            "zh-TW": "°C<br>显存使用率: ",
+            "en": "°C<br>显存使用率: ",
+            "fr": "°C<br>显存使用率: ",
+            "de": "°C<br>显存使用率: ",
+            "it": "°C<br>显存使用率: "
+        },
+        "auto_str_17": {
+            "zh-CN": "接口流量实时",
+            "zh-TW": "接口流量实时",
+            "en": "接口流量实时",
+            "fr": "接口流量实时",
+            "de": "接口流量实时",
+            "it": "接口流量实时"
+        },
+        "auto_str_18": {
+            "zh-CN": "宋体",
+            "zh-TW": "宋体",
+            "en": "宋体",
+            "fr": "宋体",
+            "de": "宋体",
+            "it": "宋体"
+        },
+        "auto_str_19": {
+            "zh-CN": "单位 ",
+            "zh-TW": "单位 ",
+            "en": "单位 ",
+            "fr": "单位 ",
+            "de": "单位 ",
+            "it": "单位 "
+        },
+        "auto_str_20": {
+            "zh-CN": "上行",
+            "zh-TW": "上行",
+            "en": "上行",
+            "fr": "上行",
+            "de": "上行",
+            "it": "上行"
+        },
+        "auto_str_21": {
+            "zh-CN": "下行",
+            "zh-TW": "下行",
+            "en": "下行",
+            "fr": "下行",
+            "de": "下行",
+            "it": "下行"
+        },
+        "auto_str_22": {
+            "zh-CN": "单位 ",
+            "zh-TW": "单位 ",
+            "en": "单位 ",
+            "fr": "单位 ",
+            "de": "单位 ",
+            "it": "单位 "
+        },
+        "auto_str_23": {
+            "zh-CN": "<a class=\"btlink\" href=\"javascript:updateMsg();\">更新</a>",
+            "zh-TW": "<a class=\"btlink\" href=\"javascript:updateMsg();\">更新</a>",
+            "en": "<a class=\"btlink\" href=\"javascript:updateMsg();\">更新</a>",
+            "fr": "<a class=\"btlink\" href=\"javascript:updateMsg();\">更新</a>",
+            "de": "<a class=\"btlink\" href=\"javascript:updateMsg();\">更新</a>",
+            "it": "<a class=\"btlink\" href=\"javascript:updateMsg();\">更新</a>"
+        },
+        "auto_str_24": {
+            "zh-CN": "更新<i style=\"display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;\">.</i>",
+            "zh-TW": "更新<i style=\"display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;\">.</i>",
+            "en": "更新<i style=\"display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;\">.</i>",
+            "fr": "更新<i style=\"display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;\">.</i>",
+            "de": "更新<i style=\"display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;\">.</i>",
+            "it": "更新<i style=\"display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;\">.</i>"
+        },
+        "auto_str_25": {
+            "zh-CN": "正在获取更新信息，请稍候...",
+            "zh-TW": "正在获取更新信息，请稍候...",
+            "en": "正在获取更新信息，请稍候...",
+            "fr": "正在获取更新信息，请稍候...",
+            "de": "正在获取更新信息，请稍候...",
+            "it": "正在获取更新信息，请稍候..."
+        },
+        "auto_str_26": {
+            "zh-CN": "<span style=\"background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">测试版本</span>",
+            "zh-TW": "<span style=\"background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">测试版本</span>",
+            "en": "<span style=\"background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">测试版本</span>",
+            "fr": "<span style=\"background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">测试版本</span>",
+            "de": "<span style=\"background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">测试版本</span>",
+            "it": "<span style=\"background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">测试版本</span>"
+        },
+        "auto_str_27": {
+            "zh-CN": "<span style=\"background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">正式版本</span>",
+            "zh-TW": "<span style=\"background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">正式版本</span>",
+            "en": "<span style=\"background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">正式版本</span>",
+            "fr": "<span style=\"background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">正式版本</span>",
+            "de": "<span style=\"background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">正式版本</span>",
+            "it": "<span style=\"background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;\">正式版本</span>"
+        },
+        "auto_str_28": {
+            "zh-CN": "<span style=\"font-size: 14px; font-weight: bold; color: #333;\">版本更新 [",
+            "zh-TW": "<span style=\"font-size: 14px; font-weight: bold; color: #333;\">版本更新 [",
+            "en": "<span style=\"font-size: 14px; font-weight: bold; color: #333;\">版本更新 [",
+            "fr": "<span style=\"font-size: 14px; font-weight: bold; color: #333;\">版本更新 [",
+            "de": "<span style=\"font-size: 14px; font-weight: bold; color: #333;\">版本更新 [",
+            "it": "<span style=\"font-size: 14px; font-weight: bold; color: #333;\">版本更新 ["
+        },
+        "auto_str_29": {
+            "zh-CN": "获取更新数据失败，请检查网络后重试！",
+            "zh-TW": "获取更新数据失败，请检查网络后重试！",
+            "en": "获取更新数据失败，请检查网络后重试！",
+            "fr": "获取更新数据失败，请检查网络后重试！",
+            "de": "获取更新数据失败，请检查网络后重试！",
+            "it": "获取更新数据失败，请检查网络后重试！"
+        },
+        "auto_str_30": {
+            "zh-CN": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">1. 下载并解压更新包<span id=\"download-tip-bracket\" style=\"color: #20a53a; font-size: 11px; margin-left: 5px;\">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id=\"download-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "zh-TW": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">1. 下载并解压更新包<span id=\"download-tip-bracket\" style=\"color: #20a53a; font-size: 11px; margin-left: 5px;\">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id=\"download-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "en": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">1. 下载并解压更新包<span id=\"download-tip-bracket\" style=\"color: #20a53a; font-size: 11px; margin-left: 5px;\">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id=\"download-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "fr": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">1. 下载并解压更新包<span id=\"download-tip-bracket\" style=\"color: #20a53a; font-size: 11px; margin-left: 5px;\">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id=\"download-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "de": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">1. 下载并解压更新包<span id=\"download-tip-bracket\" style=\"color: #20a53a; font-size: 11px; margin-left: 5px;\">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id=\"download-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "it": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">1. 下载并解压更新包<span id=\"download-tip-bracket\" style=\"color: #20a53a; font-size: 11px; margin-left: 5px;\">（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）</span></span><span id=\"download-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>"
+        },
+        "auto_str_31": {
+            "zh-CN": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">2. 备份系统核心文件</span><span id=\"backup-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "zh-TW": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">2. 备份系统核心文件</span><span id=\"backup-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "en": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">2. 备份系统核心文件</span><span id=\"backup-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "fr": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">2. 备份系统核心文件</span><span id=\"backup-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "de": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">2. 备份系统核心文件</span><span id=\"backup-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "it": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">2. 备份系统核心文件</span><span id=\"backup-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>"
+        },
+        "auto_str_32": {
+            "zh-CN": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">3. 安装更新并重启服务</span><span id=\"install-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "zh-TW": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">3. 安装更新并重启服务</span><span id=\"install-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "en": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">3. 安装更新并重启服务</span><span id=\"install-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "fr": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">3. 安装更新并重启服务</span><span id=\"install-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "de": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">3. 安装更新并重启服务</span><span id=\"install-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>",
+            "it": "        <div style=\"display:flex; justify-content: space-between; margin-bottom: 6px;\"><span class=\"f12\" style=\"color:#555; font-weight:500;\">3. 安装更新并重启服务</span><span id=\"install-percent\" class=\"f12\" style=\"color:#20a53a; font-weight:600;\">0%</span></div>"
+        },
+        "auto_str_33": {
+            "zh-CN": "<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" style=\"border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;\" onclick=\"layer.closeAll()\">取消</button>",
+            "zh-TW": "<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" style=\"border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;\" onclick=\"layer.closeAll()\">取消</button>",
+            "en": "<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" style=\"border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;\" onclick=\"layer.closeAll()\">取消</button>",
+            "fr": "<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" style=\"border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;\" onclick=\"layer.closeAll()\">取消</button>",
+            "de": "<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" style=\"border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;\" onclick=\"layer.closeAll()\">取消</button>",
+            "it": "<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" style=\"border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;\" onclick=\"layer.closeAll()\">取消</button>"
+        },
+        "auto_str_34": {
+            "zh-CN": "')\" >开始执行</button>",
+            "zh-TW": "')\" >开始执行</button>",
+            "en": "')\" >开始执行</button>",
+            "fr": "')\" >开始执行</button>",
+            "de": "')\" >开始执行</button>",
+            "it": "')\" >开始执行</button>"
+        },
+        "auto_str_35": {
+            "zh-CN": "<button type=\"button\" id=\"hard-refresh-btn\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;\" onclick=\"location.href=location.pathname+'?t='+new Date().getTime()\" >强制刷新</button>",
+            "zh-TW": "<button type=\"button\" id=\"hard-refresh-btn\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;\" onclick=\"location.href=location.pathname+'?t='+new Date().getTime()\" >强制刷新</button>",
+            "en": "<button type=\"button\" id=\"hard-refresh-btn\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;\" onclick=\"location.href=location.pathname+'?t='+new Date().getTime()\" >强制刷新</button>",
+            "fr": "<button type=\"button\" id=\"hard-refresh-btn\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;\" onclick=\"location.href=location.pathname+'?t='+new Date().getTime()\" >强制刷新</button>",
+            "de": "<button type=\"button\" id=\"hard-refresh-btn\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;\" onclick=\"location.href=location.pathname+'?t='+new Date().getTime()\" >强制刷新</button>",
+            "it": "<button type=\"button\" id=\"hard-refresh-btn\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;\" onclick=\"location.href=location.pathname+'?t='+new Date().getTime()\" >强制刷新</button>"
+        },
+        "auto_str_36": {
+            "zh-CN": "（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）",
+            "zh-TW": "（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）",
+            "en": "（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）",
+            "fr": "（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）",
+            "de": "（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）",
+            "it": "（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）"
+        },
+        "auto_str_37": {
+            "zh-CN": "正在处理...",
+            "zh-TW": "正在处理...",
+            "en": "正在处理...",
+            "fr": "正在处理...",
+            "de": "正在处理...",
+            "it": "正在处理..."
+        },
+        "auto_str_38": {
+            "zh-CN": "操作成功完成！请点击强制刷新。",
+            "zh-TW": "操作成功完成！请点击强制刷新。",
+            "en": "操作成功完成！请点击强制刷新。",
+            "fr": "操作成功完成！请点击强制刷新。",
+            "de": "操作成功完成！请点击强制刷新。",
+            "it": "操作成功完成！请点击强制刷新。"
+        },
+        "auto_str_39": {
+            "zh-CN": "服务正在重启中，请等待... <span id=\"restart-countdown\">",
+            "zh-TW": "服务正在重启中，请等待... <span id=\"restart-countdown\">",
+            "en": "服务正在重启中，请等待... <span id=\"restart-countdown\">",
+            "fr": "服务正在重启中，请等待... <span id=\"restart-countdown\">",
+            "de": "服务正在重启中，请等待... <span id=\"restart-countdown\">",
+            "it": "服务正在重启中，请等待... <span id=\"restart-countdown\">"
+        },
+        "auto_str_40": {
+            "zh-CN": "</span> 秒",
+            "zh-TW": "</span> 秒",
+            "en": "</span> 秒",
+            "fr": "</span> 秒",
+            "de": "</span> 秒",
+            "it": "</span> 秒"
+        },
+        "auto_str_41": {
+            "zh-CN": "处理中...",
+            "zh-TW": "处理中...",
+            "en": "处理中...",
+            "fr": "处理中...",
+            "de": "处理中...",
+            "it": "处理中..."
+        },
+        "auto_str_42": {
+            "zh-CN": "获取中...",
+            "zh-TW": "获取中...",
+            "en": "获取中...",
+            "fr": "获取中...",
+            "de": "获取中...",
+            "it": "获取中..."
+        },
+        "auto_str_43": {
+            "zh-CN": "（当前下载节点：",
+            "zh-TW": "（当前下载节点：",
+            "en": "（当前下载节点：",
+            "fr": "（当前下载节点：",
+            "de": "（当前下载节点：",
+            "it": "（当前下载节点："
+        },
+        "auto_str_44": {
+            "zh-CN": "，当前下载速度为0.00 mbps）",
+            "zh-TW": "，当前下载速度为0.00 mbps）",
+            "en": "，当前下载速度为0.00 mbps）",
+            "fr": "，当前下载速度为0.00 mbps）",
+            "de": "，当前下载速度为0.00 mbps）",
+            "it": "，当前下载速度为0.00 mbps）"
+        },
+        "auto_str_45": {
+            "zh-CN": "（当前下载节点：",
+            "zh-TW": "（当前下载节点：",
+            "en": "（当前下载节点：",
+            "fr": "（当前下载节点：",
+            "de": "（当前下载节点：",
+            "it": "（当前下载节点："
+        },
+        "auto_str_46": {
+            "zh-CN": "，当前下载速度为",
+            "zh-TW": "，当前下载速度为",
+            "en": "，当前下载速度为",
+            "fr": "，当前下载速度为",
+            "de": "，当前下载速度为",
+            "it": "，当前下载速度为"
+        },
+        "auto_str_47": {
+            "zh-CN": "超时",
+            "zh-TW": "超时",
+            "en": "超时",
+            "fr": "超时",
+            "de": "超时",
+            "it": "超时"
+        },
+        "auto_str_48": {
+            "zh-CN": "您当前的网络状态欠佳，请稍后再试",
+            "zh-TW": "您当前的网络状态欠佳，请稍后再试",
+            "en": "您当前的网络状态欠佳，请稍后再试",
+            "fr": "您当前的网络状态欠佳，请稍后再试",
+            "de": "您当前的网络状态欠佳，请稍后再试",
+            "it": "您当前的网络状态欠佳，请稍后再试"
+        },
+        "auto_str_49": {
+            "zh-CN": "下载超时",
+            "zh-TW": "下载超时",
+            "en": "下载超时",
+            "fr": "下载超时",
+            "de": "下载超时",
+            "it": "下载超时"
+        },
+        "auto_str_50": {
+            "zh-CN": "已完成",
+            "zh-TW": "已完成",
+            "en": "已完成",
+            "fr": "已完成",
+            "de": "已完成",
+            "it": "已完成"
+        },
+        "auto_str_51": {
+            "zh-CN": "失败",
+            "zh-TW": "失败",
+            "en": "失败",
+            "fr": "失败",
+            "de": "失败",
+            "it": "失败"
+        },
+        "auto_str_52": {
+            "zh-CN": "重试",
+            "zh-TW": "重试",
+            "en": "重试",
+            "fr": "重试",
+            "de": "重试",
+            "it": "重试"
+        },
+        "auto_str_53": {
+            "zh-CN": "已完成",
+            "zh-TW": "已完成",
+            "en": "已完成",
+            "fr": "已完成",
+            "de": "已完成",
+            "it": "已完成"
+        },
+        "auto_str_54": {
+            "zh-CN": "连接失败",
+            "zh-TW": "连接失败",
+            "en": "连接失败",
+            "fr": "连接失败",
+            "de": "连接失败",
+            "it": "连接失败"
+        },
+        "auto_str_55": {
+            "zh-CN": "与服务器连接断开，请检查网络。",
+            "zh-TW": "与服务器连接断开，请检查网络。",
+            "en": "与服务器连接断开，请检查网络。",
+            "fr": "与服务器连接断开，请检查网络。",
+            "de": "与服务器连接断开，请检查网络。",
+            "it": "与服务器连接断开，请检查网络。"
+        },
+        "auto_str_56": {
+            "zh-CN": "<div class=\"rebt-con\">                <div class=\"rebt-li\"><a data-id=\"server\" class=\"btn-reboot-server\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-off\" style=\"margin-right: 5px;\"></span>重启服务器</a></div>                <div class=\"rebt-li\"><a data-id=\"panel\" class=\"btn-reboot-panel\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>重启面板</a></div>                <div class=\"rebt-li\"><a data-id=\"repair\" class=\"btn-reboot-repair\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-wrench\" style=\"margin-right: 5px;\"></span>修复服务器</a></div>                <div style=\"color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;\">注意：修复服务器会覆盖安装bt_simple面板</div>            </div>",
+            "zh-TW": "<div class=\"rebt-con\">                <div class=\"rebt-li\"><a data-id=\"server\" class=\"btn-reboot-server\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-off\" style=\"margin-right: 5px;\"></span>重启服务器</a></div>                <div class=\"rebt-li\"><a data-id=\"panel\" class=\"btn-reboot-panel\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>重启面板</a></div>                <div class=\"rebt-li\"><a data-id=\"repair\" class=\"btn-reboot-repair\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-wrench\" style=\"margin-right: 5px;\"></span>修复服务器</a></div>                <div style=\"color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;\">注意：修复服务器会覆盖安装bt_simple面板</div>            </div>",
+            "en": "<div class=\"rebt-con\">                <div class=\"rebt-li\"><a data-id=\"server\" class=\"btn-reboot-server\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-off\" style=\"margin-right: 5px;\"></span>重启服务器</a></div>                <div class=\"rebt-li\"><a data-id=\"panel\" class=\"btn-reboot-panel\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>重启面板</a></div>                <div class=\"rebt-li\"><a data-id=\"repair\" class=\"btn-reboot-repair\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-wrench\" style=\"margin-right: 5px;\"></span>修复服务器</a></div>                <div style=\"color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;\">注意：修复服务器会覆盖安装bt_simple面板</div>            </div>",
+            "fr": "<div class=\"rebt-con\">                <div class=\"rebt-li\"><a data-id=\"server\" class=\"btn-reboot-server\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-off\" style=\"margin-right: 5px;\"></span>重启服务器</a></div>                <div class=\"rebt-li\"><a data-id=\"panel\" class=\"btn-reboot-panel\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>重启面板</a></div>                <div class=\"rebt-li\"><a data-id=\"repair\" class=\"btn-reboot-repair\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-wrench\" style=\"margin-right: 5px;\"></span>修复服务器</a></div>                <div style=\"color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;\">注意：修复服务器会覆盖安装bt_simple面板</div>            </div>",
+            "de": "<div class=\"rebt-con\">                <div class=\"rebt-li\"><a data-id=\"server\" class=\"btn-reboot-server\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-off\" style=\"margin-right: 5px;\"></span>重启服务器</a></div>                <div class=\"rebt-li\"><a data-id=\"panel\" class=\"btn-reboot-panel\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>重启面板</a></div>                <div class=\"rebt-li\"><a data-id=\"repair\" class=\"btn-reboot-repair\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-wrench\" style=\"margin-right: 5px;\"></span>修复服务器</a></div>                <div style=\"color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;\">注意：修复服务器会覆盖安装bt_simple面板</div>            </div>",
+            "it": "<div class=\"rebt-con\">                <div class=\"rebt-li\"><a data-id=\"server\" class=\"btn-reboot-server\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-off\" style=\"margin-right: 5px;\"></span>重启服务器</a></div>                <div class=\"rebt-li\"><a data-id=\"panel\" class=\"btn-reboot-panel\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>重启面板</a></div>                <div class=\"rebt-li\"><a data-id=\"repair\" class=\"btn-reboot-repair\" href=\"javascript:;\"><span class=\"glyphicon glyphicon-wrench\" style=\"margin-right: 5px;\"></span>修复服务器</a></div>                <div style=\"color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;\">注意：修复服务器会覆盖安装bt_simple面板</div>            </div>"
+        },
+        "auto_str_57": {
+            "zh-CN": "即将重启面板服务，继续吗？",
+            "zh-TW": "即将重启面板服务，继续吗？",
+            "en": "即将重启面板服务，继续吗？",
+            "fr": "即将重启面板服务，继续吗？",
+            "de": "即将重启面板服务，继续吗？",
+            "it": "即将重启面板服务，继续吗？"
+        },
+        "auto_str_58": {
+            "zh-CN": "重启面板服务",
+            "zh-TW": "重启面板服务",
+            "en": "重启面板服务",
+            "fr": "重启面板服务",
+            "de": "重启面板服务",
+            "it": "重启面板服务"
+        },
+        "auto_str_59": {
+            "zh-CN": "面板正在重启中，请等待... <span id=\"restart-countdown\">",
+            "zh-TW": "面板正在重启中，请等待... <span id=\"restart-countdown\">",
+            "en": "面板正在重启中，请等待... <span id=\"restart-countdown\">",
+            "fr": "面板正在重启中，请等待... <span id=\"restart-countdown\">",
+            "de": "面板正在重启中，请等待... <span id=\"restart-countdown\">",
+            "it": "面板正在重启中，请等待... <span id=\"restart-countdown\">"
+        },
+        "auto_str_60": {
+            "zh-CN": "</span> 秒",
+            "zh-TW": "</span> 秒",
+            "en": "</span> 秒",
+            "fr": "</span> 秒",
+            "de": "</span> 秒",
+            "it": "</span> 秒"
+        },
+        "auto_str_61": {
+            "zh-CN": "确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。",
+            "zh-TW": "确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。",
+            "en": "确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。",
+            "fr": "确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。",
+            "de": "确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。",
+            "it": "确定要修复服务器吗？这将会重新覆盖安装当前版本的面板文件。"
+        },
+        "auto_str_62": {
+            "zh-CN": "修复服务器",
+            "zh-TW": "修复服务器",
+            "en": "修复服务器",
+            "fr": "修复服务器",
+            "de": "修复服务器",
+            "it": "修复服务器"
+        },
+        "auto_str_63": {
+            "zh-CN": "<span class=\"badge badge-inverse\">系统修复 [",
+            "zh-TW": "<span class=\"badge badge-inverse\">系统修复 [",
+            "en": "<span class=\"badge badge-inverse\">系统修复 [",
+            "fr": "<span class=\"badge badge-inverse\">系统修复 [",
+            "de": "<span class=\"badge badge-inverse\">系统修复 [",
+            "it": "<span class=\"badge badge-inverse\">系统修复 ["
+        },
+        "auto_str_64": {
+            "zh-CN": "正在准备修复系统核心文件...",
+            "zh-TW": "正在准备修复系统核心文件...",
+            "en": "正在准备修复系统核心文件...",
+            "fr": "正在准备修复系统核心文件...",
+            "de": "正在准备修复系统核心文件...",
+            "it": "正在准备修复系统核心文件..."
+        },
+        "auto_str_65": {
+            "zh-CN": "安全重启服务器",
+            "zh-TW": "安全重启服务器",
+            "en": "安全重启服务器",
+            "fr": "安全重启服务器",
+            "de": "安全重启服务器",
+            "it": "安全重启服务器"
+        },
+        "auto_str_66": {
+            "zh-CN": "<div class='bt-form bt-window-restart'>                            <div class='pd15'>                            <p style='color:red; margin-bottom:10px; font-size:15px;'>注意，若您的服务器是一个容器，请取消。</p>                            <div class='SafeRestart' style='line-height:26px'>                                <p>安全重启有利于保障文件安全，将执行以下操作：</p>                                <p>1.停止Web服务</p>                                <p>2.停止MySQL服务</p>                                <p>3.开始重启服务器</p>                                <p>4.等待服务器启动</p>                            </div>                            </div>                            <div class='bt-form-submit-btn'>                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>取消</button>                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >确定</button>                            </div>                        </div>",
+            "zh-TW": "<div class='bt-form bt-window-restart'>                            <div class='pd15'>                            <p style='color:red; margin-bottom:10px; font-size:15px;'>注意，若您的服务器是一个容器，请取消。</p>                            <div class='SafeRestart' style='line-height:26px'>                                <p>安全重启有利于保障文件安全，将执行以下操作：</p>                                <p>1.停止Web服务</p>                                <p>2.停止MySQL服务</p>                                <p>3.开始重启服务器</p>                                <p>4.等待服务器启动</p>                            </div>                            </div>                            <div class='bt-form-submit-btn'>                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>取消</button>                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >确定</button>                            </div>                        </div>",
+            "en": "<div class='bt-form bt-window-restart'>                            <div class='pd15'>                            <p style='color:red; margin-bottom:10px; font-size:15px;'>注意，若您的服务器是一个容器，请取消。</p>                            <div class='SafeRestart' style='line-height:26px'>                                <p>安全重启有利于保障文件安全，将执行以下操作：</p>                                <p>1.停止Web服务</p>                                <p>2.停止MySQL服务</p>                                <p>3.开始重启服务器</p>                                <p>4.等待服务器启动</p>                            </div>                            </div>                            <div class='bt-form-submit-btn'>                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>取消</button>                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >确定</button>                            </div>                        </div>",
+            "fr": "<div class='bt-form bt-window-restart'>                            <div class='pd15'>                            <p style='color:red; margin-bottom:10px; font-size:15px;'>注意，若您的服务器是一个容器，请取消。</p>                            <div class='SafeRestart' style='line-height:26px'>                                <p>安全重启有利于保障文件安全，将执行以下操作：</p>                                <p>1.停止Web服务</p>                                <p>2.停止MySQL服务</p>                                <p>3.开始重启服务器</p>                                <p>4.等待服务器启动</p>                            </div>                            </div>                            <div class='bt-form-submit-btn'>                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>取消</button>                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >确定</button>                            </div>                        </div>",
+            "de": "<div class='bt-form bt-window-restart'>                            <div class='pd15'>                            <p style='color:red; margin-bottom:10px; font-size:15px;'>注意，若您的服务器是一个容器，请取消。</p>                            <div class='SafeRestart' style='line-height:26px'>                                <p>安全重启有利于保障文件安全，将执行以下操作：</p>                                <p>1.停止Web服务</p>                                <p>2.停止MySQL服务</p>                                <p>3.开始重启服务器</p>                                <p>4.等待服务器启动</p>                            </div>                            </div>                            <div class='bt-form-submit-btn'>                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>取消</button>                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >确定</button>                            </div>                        </div>",
+            "it": "<div class='bt-form bt-window-restart'>                            <div class='pd15'>                            <p style='color:red; margin-bottom:10px; font-size:15px;'>注意，若您的服务器是一个容器，请取消。</p>                            <div class='SafeRestart' style='line-height:26px'>                                <p>安全重启有利于保障文件安全，将执行以下操作：</p>                                <p>1.停止Web服务</p>                                <p>2.停止MySQL服务</p>                                <p>3.开始重启服务器</p>                                <p>4.等待服务器启动</p>                            </div>                            </div>                            <div class='bt-form-submit-btn'>                                <button type='button' class='btn btn-danger btn-sm btn-reboot'>取消</button>                                <button type='button' class='btn btn-success btn-sm WSafeRestart' >确定</button>                            </div>                        </div>"
+        },
+        "auto_str_67": {
+            "zh-CN": "<p>正在停止Web服务</p>",
+            "zh-TW": "<p>正在停止Web服务</p>",
+            "en": "<p>正在停止Web服务</p>",
+            "fr": "<p>正在停止Web服务</p>",
+            "de": "<p>正在停止Web服务</p>",
+            "it": "<p>正在停止Web服务</p>"
+        },
+        "auto_str_68": {
+            "zh-CN": "<p>正在停止MySQL服务...</p>",
+            "zh-TW": "<p>正在停止MySQL服务...</p>",
+            "en": "<p>正在停止MySQL服务...</p>",
+            "fr": "<p>正在停止MySQL服务...</p>",
+            "de": "<p>正在停止MySQL服务...</p>",
+            "it": "<p>正在停止MySQL服务...</p>"
+        },
+        "auto_str_69": {
+            "zh-CN": "<p>开始重启服务器...</p>",
+            "zh-TW": "<p>开始重启服务器...</p>",
+            "en": "<p>开始重启服务器...</p>",
+            "fr": "<p>开始重启服务器...</p>",
+            "de": "<p>开始重启服务器...</p>",
+            "it": "<p>开始重启服务器...</p>"
+        },
+        "auto_str_70": {
+            "zh-CN": "<p>等待服务器启动...</p>",
+            "zh-TW": "<p>等待服务器启动...</p>",
+            "en": "<p>等待服务器启动...</p>",
+            "fr": "<p>等待服务器启动...</p>",
+            "de": "<p>等待服务器启动...</p>",
+            "it": "<p>等待服务器启动...</p>"
+        },
+        "auto_str_71": {
+            "zh-CN": "<p>服务器重启成功!...</p>",
+            "zh-TW": "<p>服务器重启成功!...</p>",
+            "en": "<p>服务器重启成功!...</p>",
+            "fr": "<p>服务器重启成功!...</p>",
+            "de": "<p>服务器重启成功!...</p>",
+            "it": "<p>服务器重启成功!...</p>"
+        },
+        "auto_str_72": {
+            "zh-CN": "因未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "zh-TW": "因未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "en": "因未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "fr": "因未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "de": "因未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "it": "因未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。"
+        },
+        "auto_str_73": {
+            "zh-CN": "因未修改SSH默认22端口，且未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "zh-TW": "因未修改SSH默认22端口，且未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "en": "因未修改SSH默认22端口，且未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "fr": "因未修改SSH默认22端口，且未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "de": "因未修改SSH默认22端口，且未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。",
+            "it": "因未修改SSH默认22端口，且未使用安全隔离登录，所有IP都可以尝试连接，存在较高风险，请立即处理。"
+        },
+        "auto_str_74": {
+            "zh-CN": "安全提醒(如你想放弃任何安全提醒通知，请删除宝塔安全登录插件)",
+            "zh-TW": "安全提醒(如你想放弃任何安全提醒通知，请删除宝塔安全登录插件)",
+            "en": "安全提醒(如你想放弃任何安全提醒通知，请删除宝塔安全登录插件)",
+            "fr": "安全提醒(如你想放弃任何安全提醒通知，请删除宝塔安全登录插件)",
+            "de": "安全提醒(如你想放弃任何安全提醒通知，请删除宝塔安全登录插件)",
+            "it": "安全提醒(如你想放弃任何安全提醒通知，请删除宝塔安全登录插件)"
+        },
+        "auto_str_75": {
+            "zh-CN": "<div class=\"pd20\">                <table class=\"f14 showDanger\">                    <tbody>                    <tr><td class=\"text-right\" width=\"150\">风险类型：</td><td class=\"f16\" style=\"color:red\">暴力破解 <a href=\"https://www.bt.cn/bbs/thread-9562-1-1.html\" class=\"btlink f14\" style=\"margin-left:10px\" target=\"_blank\">说明</a></td></tr>                    <tr><td class=\"text-right\">累计遭遇攻击总数：</td><td class=\"f16\" style=\"color:red\">",
+            "zh-TW": "<div class=\"pd20\">                <table class=\"f14 showDanger\">                    <tbody>                    <tr><td class=\"text-right\" width=\"150\">风险类型：</td><td class=\"f16\" style=\"color:red\">暴力破解 <a href=\"https://www.bt.cn/bbs/thread-9562-1-1.html\" class=\"btlink f14\" style=\"margin-left:10px\" target=\"_blank\">说明</a></td></tr>                    <tr><td class=\"text-right\">累计遭遇攻击总数：</td><td class=\"f16\" style=\"color:red\">",
+            "en": "<div class=\"pd20\">                <table class=\"f14 showDanger\">                    <tbody>                    <tr><td class=\"text-right\" width=\"150\">风险类型：</td><td class=\"f16\" style=\"color:red\">暴力破解 <a href=\"https://www.bt.cn/bbs/thread-9562-1-1.html\" class=\"btlink f14\" style=\"margin-left:10px\" target=\"_blank\">说明</a></td></tr>                    <tr><td class=\"text-right\">累计遭遇攻击总数：</td><td class=\"f16\" style=\"color:red\">",
+            "fr": "<div class=\"pd20\">                <table class=\"f14 showDanger\">                    <tbody>                    <tr><td class=\"text-right\" width=\"150\">风险类型：</td><td class=\"f16\" style=\"color:red\">暴力破解 <a href=\"https://www.bt.cn/bbs/thread-9562-1-1.html\" class=\"btlink f14\" style=\"margin-left:10px\" target=\"_blank\">说明</a></td></tr>                    <tr><td class=\"text-right\">累计遭遇攻击总数：</td><td class=\"f16\" style=\"color:red\">",
+            "de": "<div class=\"pd20\">                <table class=\"f14 showDanger\">                    <tbody>                    <tr><td class=\"text-right\" width=\"150\">风险类型：</td><td class=\"f16\" style=\"color:red\">暴力破解 <a href=\"https://www.bt.cn/bbs/thread-9562-1-1.html\" class=\"btlink f14\" style=\"margin-left:10px\" target=\"_blank\">说明</a></td></tr>                    <tr><td class=\"text-right\">累计遭遇攻击总数：</td><td class=\"f16\" style=\"color:red\">",
+            "it": "<div class=\"pd20\">                <table class=\"f14 showDanger\">                    <tbody>                    <tr><td class=\"text-right\" width=\"150\">风险类型：</td><td class=\"f16\" style=\"color:red\">暴力破解 <a href=\"https://www.bt.cn/bbs/thread-9562-1-1.html\" class=\"btlink f14\" style=\"margin-left:10px\" target=\"_blank\">说明</a></td></tr>                    <tr><td class=\"text-right\">累计遭遇攻击总数：</td><td class=\"f16\" style=\"color:red\">"
+        },
+        "auto_str_76": {
+            "zh-CN": " <a href=\"javascript:showDangerIP();\" class=\"btlink f14\" style=\"margin-left:10px\">详细</a><span class=\"c9 f12\" style=\"margin-left:10px\">（数据直接来源本服务器日志）</span></td></tr>                    <tr><td class=\"text-right\">风险等级：</td><td class=\"f16\" style=\"color:red\">较高风险</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">风险描述：</td><td style=\"line-height:20px\">",
+            "zh-TW": " <a href=\"javascript:showDangerIP();\" class=\"btlink f14\" style=\"margin-left:10px\">详细</a><span class=\"c9 f12\" style=\"margin-left:10px\">（数据直接来源本服务器日志）</span></td></tr>                    <tr><td class=\"text-right\">风险等级：</td><td class=\"f16\" style=\"color:red\">较高风险</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">风险描述：</td><td style=\"line-height:20px\">",
+            "en": " <a href=\"javascript:showDangerIP();\" class=\"btlink f14\" style=\"margin-left:10px\">详细</a><span class=\"c9 f12\" style=\"margin-left:10px\">（数据直接来源本服务器日志）</span></td></tr>                    <tr><td class=\"text-right\">风险等级：</td><td class=\"f16\" style=\"color:red\">较高风险</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">风险描述：</td><td style=\"line-height:20px\">",
+            "fr": " <a href=\"javascript:showDangerIP();\" class=\"btlink f14\" style=\"margin-left:10px\">详细</a><span class=\"c9 f12\" style=\"margin-left:10px\">（数据直接来源本服务器日志）</span></td></tr>                    <tr><td class=\"text-right\">风险等级：</td><td class=\"f16\" style=\"color:red\">较高风险</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">风险描述：</td><td style=\"line-height:20px\">",
+            "de": " <a href=\"javascript:showDangerIP();\" class=\"btlink f14\" style=\"margin-left:10px\">详细</a><span class=\"c9 f12\" style=\"margin-left:10px\">（数据直接来源本服务器日志）</span></td></tr>                    <tr><td class=\"text-right\">风险等级：</td><td class=\"f16\" style=\"color:red\">较高风险</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">风险描述：</td><td style=\"line-height:20px\">",
+            "it": " <a href=\"javascript:showDangerIP();\" class=\"btlink f14\" style=\"margin-left:10px\">详细</a><span class=\"c9 f12\" style=\"margin-left:10px\">（数据直接来源本服务器日志）</span></td></tr>                    <tr><td class=\"text-right\">风险等级：</td><td class=\"f16\" style=\"color:red\">较高风险</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">风险描述：</td><td style=\"line-height:20px\">"
+        },
+        "auto_str_77": {
+            "zh-CN": "</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">可参考解决方案：</td><td><p style=\"margin-bottom:8px\">方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。</p><p>方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。</p></td></tr>                    </tbody>                </table>            </div>",
+            "zh-TW": "</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">可参考解决方案：</td><td><p style=\"margin-bottom:8px\">方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。</p><p>方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。</p></td></tr>                    </tbody>                </table>            </div>",
+            "en": "</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">可参考解决方案：</td><td><p style=\"margin-bottom:8px\">方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。</p><p>方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。</p></td></tr>                    </tbody>                </table>            </div>",
+            "fr": "</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">可参考解决方案：</td><td><p style=\"margin-bottom:8px\">方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。</p><p>方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。</p></td></tr>                    </tbody>                </table>            </div>",
+            "de": "</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">可参考解决方案：</td><td><p style=\"margin-bottom:8px\">方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。</p><p>方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。</p></td></tr>                    </tbody>                </table>            </div>",
+            "it": "</td></tr>                    <tr><td class=\"text-right\" style=\"vertical-align:top\">可参考解决方案：</td><td><p style=\"margin-bottom:8px\">方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。</p><p>方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。</p></td></tr>                    </tbody>                </table>            </div>"
+        },
+        "auto_str_78": {
+            "zh-CN": "推荐安装",
+            "zh-TW": "推荐安装",
+            "en": "推荐安装",
+            "fr": "推荐安装",
+            "de": "推荐安装",
+            "it": "推荐安装"
+        },
+        "auto_str_79": {
+            "zh-CN": "        <div class='rec-install'>            <div class='important-title'>                <p><span class='glyphicon glyphicon-info-sign' style='color: #10b981; margin-right: 8px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#10b981'>软件管理</a>按需选择。</p>                <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>不再显示推荐</button> -->            </div>            <div class='rec-box'>                <h3 style='text-align: center'>经典LNMP</h3>                <div class='rec-box-con'>                    <ul class='rec-list'>",
+            "zh-TW": "        <div class='rec-install'>            <div class='important-title'>                <p><span class='glyphicon glyphicon-info-sign' style='color: #10b981; margin-right: 8px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#10b981'>软件管理</a>按需选择。</p>                <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>不再显示推荐</button> -->            </div>            <div class='rec-box'>                <h3 style='text-align: center'>经典LNMP</h3>                <div class='rec-box-con'>                    <ul class='rec-list'>",
+            "en": "        <div class='rec-install'>            <div class='important-title'>                <p><span class='glyphicon glyphicon-info-sign' style='color: #10b981; margin-right: 8px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#10b981'>软件管理</a>按需选择。</p>                <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>不再显示推荐</button> -->            </div>            <div class='rec-box'>                <h3 style='text-align: center'>经典LNMP</h3>                <div class='rec-box-con'>                    <ul class='rec-list'>",
+            "fr": "        <div class='rec-install'>            <div class='important-title'>                <p><span class='glyphicon glyphicon-info-sign' style='color: #10b981; margin-right: 8px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#10b981'>软件管理</a>按需选择。</p>                <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>不再显示推荐</button> -->            </div>            <div class='rec-box'>                <h3 style='text-align: center'>经典LNMP</h3>                <div class='rec-box-con'>                    <ul class='rec-list'>",
+            "de": "        <div class='rec-install'>            <div class='important-title'>                <p><span class='glyphicon glyphicon-info-sign' style='color: #10b981; margin-right: 8px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#10b981'>软件管理</a>按需选择。</p>                <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>不再显示推荐</button> -->            </div>            <div class='rec-box'>                <h3 style='text-align: center'>经典LNMP</h3>                <div class='rec-box-con'>                    <ul class='rec-list'>",
+            "it": "        <div class='rec-install'>            <div class='important-title'>                <p><span class='glyphicon glyphicon-info-sign' style='color: #10b981; margin-right: 8px;'></span>推荐以下一键套件，或在<a href='javascript:jump()' style='color:#10b981'>软件管理</a>按需选择。</p>                <!-- <button style='margin-top: 8px;height: 30px;' type='button' class='btn btn-sm btn-default no-show-rec-btn'>不再显示推荐</button> -->            </div>            <div class='rec-box'>                <h3 style='text-align: center'>经典LNMP</h3>                <div class='rec-box-con'>                    <ul class='rec-list'>"
+        },
+        "auto_str_80": {
+            "zh-CN": "</ul>                    <div class='onekey'>一键安装</div>                </div>            </div>        </div>",
+            "zh-TW": "</ul>                    <div class='onekey'>一键安装</div>                </div>            </div>        </div>",
+            "en": "</ul>                    <div class='onekey'>一键安装</div>                </div>            </div>        </div>",
+            "fr": "</ul>                    <div class='onekey'>一键安装</div>                </div>            </div>        </div>",
+            "de": "</ul>                    <div class='onekey'>一键安装</div>                </div>            </div>        </div>",
+            "it": "</ul>                    <div class='onekey'>一键安装</div>                </div>            </div>        </div>"
+        },
+        "auto_str_81": {
+            "zh-CN": "是否不再显示推荐安装套件?",
+            "zh-TW": "是否不再显示推荐安装套件?",
+            "en": "是否不再显示推荐安装套件?",
+            "fr": "是否不再显示推荐安装套件?",
+            "de": "是否不再显示推荐安装套件?",
+            "it": "是否不再显示推荐安装套件?"
+        },
+        "auto_str_82": {
+            "zh-CN": "确定",
+            "zh-TW": "确定",
+            "en": "确定",
+            "fr": "确定",
+            "de": "确定",
+            "it": "确定"
+        },
+        "auto_str_83": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "取消",
+            "fr": "取消",
+            "de": "取消",
+            "it": "取消"
+        },
+        "auto_str_84": {
+            "zh-CN": "不再显示推荐?",
+            "zh-TW": "不再显示推荐?",
+            "en": "不再显示推荐?",
+            "fr": "不再显示推荐?",
+            "de": "不再显示推荐?",
+            "it": "不再显示推荐?"
+        },
+        "auto_str_85": {
+            "zh-CN": "御风OP防火墙",
+            "zh-TW": "御风OP防火墙",
+            "en": "御风OP防火墙",
+            "fr": "御风OP防火墙",
+            "de": "御风OP防火墙",
+            "it": "御风OP防火墙"
+        },
+        "auto_str_86": {
+            "zh-CN": "御风F2B底层防火墙",
+            "zh-TW": "御风F2B底层防火墙",
+            "en": "御风F2B底层防火墙",
+            "fr": "御风F2B底层防火墙",
+            "de": "御风F2B底层防火墙",
+            "it": "御风F2B底层防火墙"
+        },
+        "auto_str_87": {
+            "zh-CN": "内存释放",
+            "zh-TW": "内存释放",
+            "en": "内存释放",
+            "fr": "内存释放",
+            "de": "内存释放",
+            "it": "内存释放"
+        },
+        "auto_str_88": {
+            "zh-CN": "单位 ",
+            "zh-TW": "单位 ",
+            "en": "单位 ",
+            "fr": "单位 ",
+            "de": "单位 ",
+            "it": "单位 "
+        },
+        "auto_str_89": {
+            "zh-CN": "宋体",
+            "zh-TW": "宋体",
+            "en": "宋体",
+            "fr": "宋体",
+            "de": "宋体",
+            "it": "宋体"
+        },
+        "auto_str_90": {
+            "zh-CN": "时间：",
+            "zh-TW": "时间：",
+            "en": "时间：",
+            "fr": "时间：",
+            "de": "时间：",
+            "it": "时间："
+        },
+        "auto_str_91": {
+            "zh-CN": "单位 ",
+            "zh-TW": "单位 ",
+            "en": "单位 ",
+            "fr": "单位 ",
+            "de": "单位 ",
+            "it": "单位 "
+        },
+        "auto_str_92": {
+            "zh-CN": "上行",
+            "zh-TW": "上行",
+            "en": "上行",
+            "fr": "上行",
+            "de": "上行",
+            "it": "上行"
+        },
+        "auto_str_93": {
+            "zh-CN": "下行",
+            "zh-TW": "下行",
+            "en": "下行",
+            "fr": "下行",
+            "de": "下行",
+            "it": "下行"
+        },
+        "auto_str_94": {
+            "zh-CN": "\">全部</option>",
+            "zh-TW": "\">全部</option>",
+            "en": "\">全部</option>",
+            "fr": "\">全部</option>",
+            "de": "\">全部</option>",
+            "it": "\">全部</option>"
+        },
+        "auto_str_95": {
+            "zh-CN": "时间：",
+            "zh-TW": "时间：",
+            "en": "时间：",
+            "fr": "时间：",
+            "de": "时间：",
+            "it": "时间："
+        },
+        "auto_str_96": {
+            "zh-CN": "读取字节数",
+            "zh-TW": "读取字节数",
+            "en": "读取字节数",
+            "fr": "读取字节数",
+            "de": "读取字节数",
+            "it": "读取字节数"
+        },
+        "auto_str_97": {
+            "zh-CN": "读取次数 ",
+            "zh-TW": "读取次数 ",
+            "en": "读取次数 ",
+            "fr": "读取次数 ",
+            "de": "读取次数 ",
+            "it": "读取次数 "
+        },
+        "auto_str_98": {
+            "zh-CN": "合并读取次数",
+            "zh-TW": "合并读取次数",
+            "en": "合并读取次数",
+            "fr": "合并读取次数",
+            "de": "合并读取次数",
+            "it": "合并读取次数"
+        },
+        "auto_str_99": {
+            "zh-CN": "读取延迟",
+            "zh-TW": "读取延迟",
+            "en": "读取延迟",
+            "fr": "读取延迟",
+            "de": "读取延迟",
+            "it": "读取延迟"
+        },
+        "auto_str_100": {
+            "zh-CN": "写入字节数",
+            "zh-TW": "写入字节数",
+            "en": "写入字节数",
+            "fr": "写入字节数",
+            "de": "写入字节数",
+            "it": "写入字节数"
+        },
+        "auto_str_101": {
+            "zh-CN": "写入次数",
+            "zh-TW": "写入次数",
+            "en": "写入次数",
+            "fr": "写入次数",
+            "de": "写入次数",
+            "it": "写入次数"
+        },
+        "auto_str_102": {
+            "zh-CN": "合并写入次数",
+            "zh-TW": "合并写入次数",
+            "en": "合并写入次数",
+            "fr": "合并写入次数",
+            "de": "合并写入次数",
+            "it": "合并写入次数"
+        },
+        "auto_str_103": {
+            "zh-CN": "写入延迟",
+            "zh-TW": "写入延迟",
+            "en": "写入延迟",
+            "fr": "写入延迟",
+            "de": "写入延迟",
+            "it": "写入延迟"
+        },
+        "auto_str_104": {
+            "zh-CN": " 次/秒",
+            "zh-TW": " 次/秒",
+            "en": " 次/秒",
+            "fr": " 次/秒",
+            "de": " 次/秒",
+            "it": " 次/秒"
+        },
+        "auto_str_105": {
+            "zh-CN": "单位 ",
+            "zh-TW": "单位 ",
+            "en": "单位 ",
+            "fr": "单位 ",
+            "de": "单位 ",
+            "it": "单位 "
+        },
+        "auto_str_106": {
+            "zh-CN": "读取",
+            "zh-TW": "读取",
+            "en": "读取",
+            "fr": "读取",
+            "de": "读取",
+            "it": "读取"
+        },
+        "auto_str_107": {
+            "zh-CN": "写入",
+            "zh-TW": "写入",
+            "en": "写入",
+            "fr": "写入",
+            "de": "写入",
+            "it": "写入"
+        },
+        "auto_str_108": {
+            "zh-CN": "宋体",
+            "zh-TW": "宋体",
+            "en": "宋体",
+            "fr": "宋体",
+            "de": "宋体",
+            "it": "宋体"
+        },
+        "auto_str_109": {
+            "zh-CN": "读取",
+            "zh-TW": "读取",
+            "en": "读取",
+            "fr": "读取",
+            "de": "读取",
+            "it": "读取"
+        },
+        "auto_str_110": {
+            "zh-CN": "写入",
+            "zh-TW": "写入",
+            "en": "写入",
+            "fr": "写入",
+            "de": "写入",
+            "it": "写入"
+        },
+        "auto_str_111": {
+            "zh-CN": "单位 ",
+            "zh-TW": "单位 ",
+            "en": "单位 ",
+            "fr": "单位 ",
+            "de": "单位 ",
+            "it": "单位 "
+        },
+        "auto_str_112": {
+            "zh-CN": "读取",
+            "zh-TW": "读取",
+            "en": "读取",
+            "fr": "读取",
+            "de": "读取",
+            "it": "读取"
+        },
+        "auto_str_113": {
+            "zh-CN": "写入",
+            "zh-TW": "写入",
+            "en": "写入",
+            "fr": "写入",
+            "de": "写入",
+            "it": "写入"
+        },
+        "auto_str_114": {
+            "zh-CN": "\">全部</option>",
+            "zh-TW": "\">全部</option>",
+            "en": "\">全部</option>",
+            "fr": "\">全部</option>",
+            "de": "\">全部</option>",
+            "it": "\">全部</option>"
+        },
+        "auto_str_115": {
+            "zh-CN": "数据包:",
+            "zh-TW": "数据包:",
+            "en": "数据包:",
+            "fr": "数据包:",
+            "de": "数据包:",
+            "it": "数据包:"
+        },
+        "auto_str_116": {
+            "zh-CN": "数据包:",
+            "zh-TW": "数据包:",
+            "en": "数据包:",
+            "fr": "数据包:",
+            "de": "数据包:",
+            "it": "数据包:"
+        },
+        "auto_str_117": {
+            "zh-CN": " 次",
+            "zh-TW": " 次",
+            "en": " 次",
+            "fr": " 次",
+            "de": " 次",
+            "it": " 次"
+        },
+        "auto_str_118": {
+            "zh-CN": "正在获取系统详细信息...",
+            "zh-TW": "正在获取系统详细信息...",
+            "en": "正在获取系统详细信息...",
+            "fr": "正在获取系统详细信息...",
+            "de": "正在获取系统详细信息...",
+            "it": "正在获取系统详细信息..."
+        },
+        "auto_str_119": {
+            "zh-CN": "获取系统信息失败: ",
+            "zh-TW": "获取系统信息失败: ",
+            "en": "获取系统信息失败: ",
+            "fr": "获取系统信息失败: ",
+            "de": "获取系统信息失败: ",
+            "it": "获取系统信息失败: "
+        },
+        "auto_str_120": {
+            "zh-CN": "AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。",
+            "zh-TW": "AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。",
+            "en": "AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。",
+            "fr": "AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。",
+            "de": "AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。",
+            "it": "AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。"
+        },
+        "auto_str_121": {
+            "zh-CN": "VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。",
+            "zh-TW": "VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。",
+            "en": "VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。",
+            "fr": "VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。",
+            "de": "VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。",
+            "it": "VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。"
+        },
+        "auto_str_122": {
+            "zh-CN": "AVX2：决定了服务器基础的向量运算和浮点运算性能。",
+            "zh-TW": "AVX2：决定了服务器基础的向量运算和浮点运算性能。",
+            "en": "AVX2：决定了服务器基础的向量运算和浮点运算性能。",
+            "fr": "AVX2：决定了服务器基础的向量运算和浮点运算性能。",
+            "de": "AVX2：决定了服务器基础的向量运算和浮点运算性能。",
+            "it": "AVX2：决定了服务器基础的向量运算和浮点运算性能。"
+        },
+        "auto_str_123": {
+            "zh-CN": "AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。",
+            "zh-TW": "AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。",
+            "en": "AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。",
+            "fr": "AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。",
+            "de": "AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。",
+            "it": "AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。"
+        },
+        "auto_str_124": {
+            "zh-CN": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[支持] ",
+            "zh-TW": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[支持] ",
+            "en": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[支持] ",
+            "fr": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[支持] ",
+            "de": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[支持] ",
+            "it": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[支持] "
+        },
+        "auto_str_125": {
+            "zh-CN": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[不支持] ",
+            "zh-TW": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[不支持] ",
+            "en": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[不支持] ",
+            "fr": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[不支持] ",
+            "de": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[不支持] ",
+            "it": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[不支持] "
+        },
+        "auto_str_126": {
+            "zh-CN": "未知",
+            "zh-TW": "未知",
+            "en": "未知",
+            "fr": "未知",
+            "de": "未知",
+            "it": "未知"
+        },
+        "auto_str_127": {
+            "zh-CN": "BBR：由 Google 开发，能最大化利用带宽，降低延迟。",
+            "zh-TW": "BBR：由 Google 开发，能最大化利用带宽，降低延迟。",
+            "en": "BBR：由 Google 开发，能最大化利用带宽，降低延迟。",
+            "fr": "BBR：由 Google 开发，能最大化利用带宽，降低延迟。",
+            "de": "BBR：由 Google 开发，能最大化利用带宽，降低延迟。",
+            "it": "BBR：由 Google 开发，能最大化利用带宽，降低延迟。"
+        },
+        "auto_str_128": {
+            "zh-CN": "Cubic：Linux 默认算法，适合高带宽、低延迟环境。",
+            "zh-TW": "Cubic：Linux 默认算法，适合高带宽、低延迟环境。",
+            "en": "Cubic：Linux 默认算法，适合高带宽、低延迟环境。",
+            "fr": "Cubic：Linux 默认算法，适合高带宽、低延迟环境。",
+            "de": "Cubic：Linux 默认算法，适合高带宽、低延迟环境。",
+            "it": "Cubic：Linux 默认算法，适合高带宽、低延迟环境。"
+        },
+        "auto_str_129": {
+            "zh-CN": "Reno：传统的拥塞算法，对丢包较敏感。",
+            "zh-TW": "Reno：传统的拥塞算法，对丢包较敏感。",
+            "en": "Reno：传统的拥塞算法，对丢包较敏感。",
+            "fr": "Reno：传统的拥塞算法，对丢包较敏感。",
+            "de": "Reno：传统的拥塞算法，对丢包较敏感。",
+            "it": "Reno：传统的拥塞算法，对丢包较敏感。"
+        },
+        "auto_str_130": {
+            "zh-CN": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效] ",
+            "zh-TW": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效] ",
+            "en": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效] ",
+            "fr": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效] ",
+            "de": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效] ",
+            "it": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效] "
+        },
+        "auto_str_131": {
+            "zh-CN": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[未生效] ",
+            "zh-TW": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[未生效] ",
+            "en": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[未生效] ",
+            "fr": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[未生效] ",
+            "de": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[未生效] ",
+            "it": "<span style=\"color:#ccc; margin-right:6px; \" title=\"[未生效] "
+        },
+        "auto_str_132": {
+            "zh-CN": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效]\">",
+            "zh-TW": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效]\">",
+            "en": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效]\">",
+            "fr": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效]\">",
+            "de": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效]\">",
+            "it": "<span style=\"color:#20a53a; font-weight:bold; margin-right:6px; \" title=\"[当前生效]\">"
+        },
+        "auto_str_133": {
+            "zh-CN": "<h4><i class=\"glyphicon glyphicon-modal-window\" style=\"color:#20a53a; margin-right:8px;\"></i>操作系统</h4>",
+            "zh-TW": "<h4><i class=\"glyphicon glyphicon-modal-window\" style=\"color:#20a53a; margin-right:8px;\"></i>操作系统</h4>",
+            "en": "<h4><i class=\"glyphicon glyphicon-modal-window\" style=\"color:#20a53a; margin-right:8px;\"></i>操作系统</h4>",
+            "fr": "<h4><i class=\"glyphicon glyphicon-modal-window\" style=\"color:#20a53a; margin-right:8px;\"></i>操作系统</h4>",
+            "de": "<h4><i class=\"glyphicon glyphicon-modal-window\" style=\"color:#20a53a; margin-right:8px;\"></i>操作系统</h4>",
+            "it": "<h4><i class=\"glyphicon glyphicon-modal-window\" style=\"color:#20a53a; margin-right:8px;\"></i>操作系统</h4>"
+        },
+        "auto_str_134": {
+            "zh-CN": "<tr title=\"操作系统具体的发行版及版本号\"><td style=\"width:70px;\">发行版本</td><td>",
+            "zh-TW": "<tr title=\"操作系统具体的发行版及版本号\"><td style=\"width:70px;\">发行版本</td><td>",
+            "en": "<tr title=\"操作系统具体的发行版及版本号\"><td style=\"width:70px;\">发行版本</td><td>",
+            "fr": "<tr title=\"操作系统具体的发行版及版本号\"><td style=\"width:70px;\">发行版本</td><td>",
+            "de": "<tr title=\"操作系统具体的发行版及版本号\"><td style=\"width:70px;\">发行版本</td><td>",
+            "it": "<tr title=\"操作系统具体的发行版及版本号\"><td style=\"width:70px;\">发行版本</td><td>"
+        },
+        "auto_str_135": {
+            "zh-CN": "<tr title=\"系统核心程序版本，影响底层功能和驱动支持\"><td>内核版本</td><td>",
+            "zh-TW": "<tr title=\"系统核心程序版本，影响底层功能和驱动支持\"><td>内核版本</td><td>",
+            "en": "<tr title=\"系统核心程序版本，影响底层功能和驱动支持\"><td>内核版本</td><td>",
+            "fr": "<tr title=\"系统核心程序版本，影响底层功能和驱动支持\"><td>内核版本</td><td>",
+            "de": "<tr title=\"系统核心程序版本，影响底层功能和驱动支持\"><td>内核版本</td><td>",
+            "it": "<tr title=\"系统核心程序版本，影响底层功能和驱动支持\"><td>内核版本</td><td>"
+        },
+        "auto_str_136": {
+            "zh-CN": "<tr title=\"CPU和操作系统的位数架构，通常为x86_64或aarch64\"><td>系统架构</td><td>",
+            "zh-TW": "<tr title=\"CPU和操作系统的位数架构，通常为x86_64或aarch64\"><td>系统架构</td><td>",
+            "en": "<tr title=\"CPU和操作系统的位数架构，通常为x86_64或aarch64\"><td>系统架构</td><td>",
+            "fr": "<tr title=\"CPU和操作系统的位数架构，通常为x86_64或aarch64\"><td>系统架构</td><td>",
+            "de": "<tr title=\"CPU和操作系统的位数架构，通常为x86_64或aarch64\"><td>系统架构</td><td>",
+            "it": "<tr title=\"CPU和操作系统的位数架构，通常为x86_64或aarch64\"><td>系统架构</td><td>"
+        },
+        "auto_str_137": {
+            "zh-CN": "<tr title=\"当前系统运行的物理机或虚拟机环境平台\"><td>底层环境</td><td>",
+            "zh-TW": "<tr title=\"当前系统运行的物理机或虚拟机环境平台\"><td>底层环境</td><td>",
+            "en": "<tr title=\"当前系统运行的物理机或虚拟机环境平台\"><td>底层环境</td><td>",
+            "fr": "<tr title=\"当前系统运行的物理机或虚拟机环境平台\"><td>底层环境</td><td>",
+            "de": "<tr title=\"当前系统运行的物理机或虚拟机环境平台\"><td>底层环境</td><td>",
+            "it": "<tr title=\"当前系统运行的物理机或虚拟机环境平台\"><td>底层环境</td><td>"
+        },
+        "auto_str_138": {
+            "zh-CN": "<h4><i class=\"glyphicon glyphicon-tasks\" style=\"color:#20a53a; margin-right:8px;\"></i>处理器</h4>",
+            "zh-TW": "<h4><i class=\"glyphicon glyphicon-tasks\" style=\"color:#20a53a; margin-right:8px;\"></i>处理器</h4>",
+            "en": "<h4><i class=\"glyphicon glyphicon-tasks\" style=\"color:#20a53a; margin-right:8px;\"></i>处理器</h4>",
+            "fr": "<h4><i class=\"glyphicon glyphicon-tasks\" style=\"color:#20a53a; margin-right:8px;\"></i>处理器</h4>",
+            "de": "<h4><i class=\"glyphicon glyphicon-tasks\" style=\"color:#20a53a; margin-right:8px;\"></i>处理器</h4>",
+            "it": "<h4><i class=\"glyphicon glyphicon-tasks\" style=\"color:#20a53a; margin-right:8px;\"></i>处理器</h4>"
+        },
+        "auto_str_139": {
+            "zh-CN": "<tr title=\"处理器具体的品牌和型号名称\"><td style=\"width:70px;\">硬件型号</td><td>",
+            "zh-TW": "<tr title=\"处理器具体的品牌和型号名称\"><td style=\"width:70px;\">硬件型号</td><td>",
+            "en": "<tr title=\"处理器具体的品牌和型号名称\"><td style=\"width:70px;\">硬件型号</td><td>",
+            "fr": "<tr title=\"处理器具体的品牌和型号名称\"><td style=\"width:70px;\">硬件型号</td><td>",
+            "de": "<tr title=\"处理器具体的品牌和型号名称\"><td style=\"width:70px;\">硬件型号</td><td>",
+            "it": "<tr title=\"处理器具体的品牌和型号名称\"><td style=\"width:70px;\">硬件型号</td><td>"
+        },
+        "auto_str_140": {
+            "zh-CN": "<tr title=\"处理器的物理核心数与逻辑线程总数\"><td>核心线程</td><td>",
+            "zh-TW": "<tr title=\"处理器的物理核心数与逻辑线程总数\"><td>核心线程</td><td>",
+            "en": "<tr title=\"处理器的物理核心数与逻辑线程总数\"><td>核心线程</td><td>",
+            "fr": "<tr title=\"处理器的物理核心数与逻辑线程总数\"><td>核心线程</td><td>",
+            "de": "<tr title=\"处理器的物理核心数与逻辑线程总数\"><td>核心线程</td><td>",
+            "it": "<tr title=\"处理器的物理核心数与逻辑线程总数\"><td>核心线程</td><td>"
+        },
+        "auto_str_141": {
+            "zh-CN": " 核 / ",
+            "zh-TW": " 核 / ",
+            "en": " 核 / ",
+            "fr": " 核 / ",
+            "de": " 核 / ",
+            "it": " 核 / "
+        },
+        "auto_str_142": {
+            "zh-CN": " 线程</td></tr>",
+            "zh-TW": " 线程</td></tr>",
+            "en": " 线程</td></tr>",
+            "fr": " 线程</td></tr>",
+            "de": " 线程</td></tr>",
+            "it": " 线程</td></tr>"
+        },
+        "auto_str_143": {
+            "zh-CN": "<tr title=\"处理器当前运行的基础时钟频率\"><td>基础频率</td><td>",
+            "zh-TW": "<tr title=\"处理器当前运行的基础时钟频率\"><td>基础频率</td><td>",
+            "en": "<tr title=\"处理器当前运行的基础时钟频率\"><td>基础频率</td><td>",
+            "fr": "<tr title=\"处理器当前运行的基础时钟频率\"><td>基础频率</td><td>",
+            "de": "<tr title=\"处理器当前运行的基础时钟频率\"><td>基础频率</td><td>",
+            "it": "<tr title=\"处理器当前运行的基础时钟频率\"><td>基础频率</td><td>"
+        },
+        "auto_str_144": {
+            "zh-CN": "<tr title=\"处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能\"><td>指令集</td><td>",
+            "zh-TW": "<tr title=\"处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能\"><td>指令集</td><td>",
+            "en": "<tr title=\"处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能\"><td>指令集</td><td>",
+            "fr": "<tr title=\"处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能\"><td>指令集</td><td>",
+            "de": "<tr title=\"处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能\"><td>指令集</td><td>",
+            "it": "<tr title=\"处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能\"><td>指令集</td><td>"
+        },
+        "auto_str_145": {
+            "zh-CN": "<h4><i class=\"glyphicon glyphicon-globe\" style=\"color:#20a53a; margin-right:8px;\"></i>网络与状态</h4>",
+            "zh-TW": "<h4><i class=\"glyphicon glyphicon-globe\" style=\"color:#20a53a; margin-right:8px;\"></i>网络与状态</h4>",
+            "en": "<h4><i class=\"glyphicon glyphicon-globe\" style=\"color:#20a53a; margin-right:8px;\"></i>网络与状态</h4>",
+            "fr": "<h4><i class=\"glyphicon glyphicon-globe\" style=\"color:#20a53a; margin-right:8px;\"></i>网络与状态</h4>",
+            "de": "<h4><i class=\"glyphicon glyphicon-globe\" style=\"color:#20a53a; margin-right:8px;\"></i>网络与状态</h4>",
+            "it": "<h4><i class=\"glyphicon glyphicon-globe\" style=\"color:#20a53a; margin-right:8px;\"></i>网络与状态</h4>"
+        },
+        "auto_str_146": {
+            "zh-CN": "<tr title=\"服务器对外的公网或内网IP地址\"><td style=\"width:70px;\">IPv4/v6</td><td style=\"word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;\">",
+            "zh-TW": "<tr title=\"服务器对外的公网或内网IP地址\"><td style=\"width:70px;\">IPv4/v6</td><td style=\"word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;\">",
+            "en": "<tr title=\"服务器对外的公网或内网IP地址\"><td style=\"width:70px;\">IPv4/v6</td><td style=\"word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;\">",
+            "fr": "<tr title=\"服务器对外的公网或内网IP地址\"><td style=\"width:70px;\">IPv4/v6</td><td style=\"word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;\">",
+            "de": "<tr title=\"服务器对外的公网或内网IP地址\"><td style=\"width:70px;\">IPv4/v6</td><td style=\"word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;\">",
+            "it": "<tr title=\"服务器对外的公网或内网IP地址\"><td style=\"width:70px;\">IPv4/v6</td><td style=\"word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;\">"
+        },
+        "auto_str_147": {
+            "zh-CN": "<tr title=\"服务器所在机房的网络运营商及地理位置\"><td>网络节点</td><td>",
+            "zh-TW": "<tr title=\"服务器所在机房的网络运营商及地理位置\"><td>网络节点</td><td>",
+            "en": "<tr title=\"服务器所在机房的网络运营商及地理位置\"><td>网络节点</td><td>",
+            "fr": "<tr title=\"服务器所在机房的网络运营商及地理位置\"><td>网络节点</td><td>",
+            "de": "<tr title=\"服务器所在机房的网络运营商及地理位置\"><td>网络节点</td><td>",
+            "it": "<tr title=\"服务器所在机房的网络运营商及地理位置\"><td>网络节点</td><td>"
+        },
+        "auto_str_148": {
+            "zh-CN": "<tr title=\"决定网络传输速度和稳定性的 TCP 拥塞控制策略\"><td>拥塞算法</td><td>",
+            "zh-TW": "<tr title=\"决定网络传输速度和稳定性的 TCP 拥塞控制策略\"><td>拥塞算法</td><td>",
+            "en": "<tr title=\"决定网络传输速度和稳定性的 TCP 拥塞控制策略\"><td>拥塞算法</td><td>",
+            "fr": "<tr title=\"决定网络传输速度和稳定性的 TCP 拥塞控制策略\"><td>拥塞算法</td><td>",
+            "de": "<tr title=\"决定网络传输速度和稳定性的 TCP 拥塞控制策略\"><td>拥塞算法</td><td>",
+            "it": "<tr title=\"决定网络传输速度和稳定性的 TCP 拥塞控制策略\"><td>拥塞算法</td><td>"
+        },
+        "auto_str_149": {
+            "zh-CN": "<tr title=\"系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度\"><td>负载平均</td><td>",
+            "zh-TW": "<tr title=\"系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度\"><td>负载平均</td><td>",
+            "en": "<tr title=\"系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度\"><td>负载平均</td><td>",
+            "fr": "<tr title=\"系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度\"><td>负载平均</td><td>",
+            "de": "<tr title=\"系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度\"><td>负载平均</td><td>",
+            "it": "<tr title=\"系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度\"><td>负载平均</td><td>"
+        },
+        "auto_str_150": {
+            "zh-CN": "<h4><i class=\"glyphicon glyphicon-hdd\" style=\"color:#20a53a; margin-right:8px;\"></i>物理内存 & Swap</h4>",
+            "zh-TW": "<h4><i class=\"glyphicon glyphicon-hdd\" style=\"color:#20a53a; margin-right:8px;\"></i>物理内存 & Swap</h4>",
+            "en": "<h4><i class=\"glyphicon glyphicon-hdd\" style=\"color:#20a53a; margin-right:8px;\"></i>物理内存 & Swap</h4>",
+            "fr": "<h4><i class=\"glyphicon glyphicon-hdd\" style=\"color:#20a53a; margin-right:8px;\"></i>物理内存 & Swap</h4>",
+            "de": "<h4><i class=\"glyphicon glyphicon-hdd\" style=\"color:#20a53a; margin-right:8px;\"></i>物理内存 & Swap</h4>",
+            "it": "<h4><i class=\"glyphicon glyphicon-hdd\" style=\"color:#20a53a; margin-right:8px;\"></i>物理内存 & Swap</h4>"
+        },
+        "auto_str_151": {
+            "zh-CN": "<tr title=\"服务器安装的实际物理内存容量及当前使用率\"><td style=\"width:70px;\">物理内存</td><td>",
+            "zh-TW": "<tr title=\"服务器安装的实际物理内存容量及当前使用率\"><td style=\"width:70px;\">物理内存</td><td>",
+            "en": "<tr title=\"服务器安装的实际物理内存容量及当前使用率\"><td style=\"width:70px;\">物理内存</td><td>",
+            "fr": "<tr title=\"服务器安装的实际物理内存容量及当前使用率\"><td style=\"width:70px;\">物理内存</td><td>",
+            "de": "<tr title=\"服务器安装的实际物理内存容量及当前使用率\"><td style=\"width:70px;\">物理内存</td><td>",
+            "it": "<tr title=\"服务器安装的实际物理内存容量及当前使用率\"><td style=\"width:70px;\">物理内存</td><td>"
+        },
+        "auto_str_152": {
+            "zh-CN": "<tr title=\"当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)\"><td>交换分区</td><td>",
+            "zh-TW": "<tr title=\"当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)\"><td>交换分区</td><td>",
+            "en": "<tr title=\"当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)\"><td>交换分区</td><td>",
+            "fr": "<tr title=\"当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)\"><td>交换分区</td><td>",
+            "de": "<tr title=\"当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)\"><td>交换分区</td><td>",
+            "it": "<tr title=\"当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)\"><td>交换分区</td><td>"
+        },
+        "auto_str_153": {
+            "zh-CN": "<h4><i class=\"glyphicon glyphicon-floppy-disk\" style=\"color:#20a53a; margin-right:8px;\"></i>磁盘容量</h4>",
+            "zh-TW": "<h4><i class=\"glyphicon glyphicon-floppy-disk\" style=\"color:#20a53a; margin-right:8px;\"></i>磁盘容量</h4>",
+            "en": "<h4><i class=\"glyphicon glyphicon-floppy-disk\" style=\"color:#20a53a; margin-right:8px;\"></i>磁盘容量</h4>",
+            "fr": "<h4><i class=\"glyphicon glyphicon-floppy-disk\" style=\"color:#20a53a; margin-right:8px;\"></i>磁盘容量</h4>",
+            "de": "<h4><i class=\"glyphicon glyphicon-floppy-disk\" style=\"color:#20a53a; margin-right:8px;\"></i>磁盘容量</h4>",
+            "it": "<h4><i class=\"glyphicon glyphicon-floppy-disk\" style=\"color:#20a53a; margin-right:8px;\"></i>磁盘容量</h4>"
+        },
+        "auto_str_154": {
+            "zh-CN": "<tr title=\"系统根目录所在磁盘的总容量与已用空间\"><td>根目录</td><td>",
+            "zh-TW": "<tr title=\"系统根目录所在磁盘的总容量与已用空间\"><td>根目录</td><td>",
+            "en": "<tr title=\"系统根目录所在磁盘的总容量与已用空间\"><td>根目录</td><td>",
+            "fr": "<tr title=\"系统根目录所在磁盘的总容量与已用空间\"><td>根目录</td><td>",
+            "de": "<tr title=\"系统根目录所在磁盘的总容量与已用空间\"><td>根目录</td><td>",
+            "it": "<tr title=\"系统根目录所在磁盘的总容量与已用空间\"><td>根目录</td><td>"
+        },
+        "auto_str_155": {
+            "zh-CN": "<tr title=\"磁盘当前尚未被占用、可供存储的剩余物理空间\"><td>剩余可用</td><td>",
+            "zh-TW": "<tr title=\"磁盘当前尚未被占用、可供存储的剩余物理空间\"><td>剩余可用</td><td>",
+            "en": "<tr title=\"磁盘当前尚未被占用、可供存储的剩余物理空间\"><td>剩余可用</td><td>",
+            "fr": "<tr title=\"磁盘当前尚未被占用、可供存储的剩余物理空间\"><td>剩余可用</td><td>",
+            "de": "<tr title=\"磁盘当前尚未被占用、可供存储的剩余物理空间\"><td>剩余可用</td><td>",
+            "it": "<tr title=\"磁盘当前尚未被占用、可供存储的剩余物理空间\"><td>剩余可用</td><td>"
+        },
+        "auto_str_156": {
+            "zh-CN": "系统详情",
+            "zh-TW": "系统详情",
+            "en": "系统详情",
+            "fr": "系统详情",
+            "de": "系统详情",
+            "it": "系统详情"
+        },
+        "auto_str_157": {
+            "zh-CN": "测试中...",
+            "zh-TW": "测试中...",
+            "en": "测试中...",
+            "fr": "测试中...",
+            "de": "测试中...",
+            "it": "测试中..."
+        },
+        "auto_str_158": {
+            "zh-CN": "等待中...",
+            "zh-TW": "等待中...",
+            "en": "等待中...",
+            "fr": "等待中...",
+            "de": "等待中...",
+            "it": "等待中..."
+        },
+        "auto_str_159": {
+            "zh-CN": "排队中",
+            "zh-TW": "排队中",
+            "en": "排队中",
+            "fr": "排队中",
+            "de": "排队中",
+            "it": "排队中"
+        },
+        "auto_str_160": {
+            "zh-CN": "正在初始化测速环境...",
+            "zh-TW": "正在初始化测速环境...",
+            "en": "正在初始化测速环境...",
+            "fr": "正在初始化测速环境...",
+            "de": "正在初始化测速环境...",
+            "it": "正在初始化测速环境..."
+        },
+        "auto_str_161": {
+            "zh-CN": "        <!-- 系统配置 -->",
+            "zh-TW": "        <!-- 系统配置 -->",
+            "en": "        <!-- 系统配置 -->",
+            "fr": "        <!-- 系统配置 -->",
+            "de": "        <!-- 系统配置 -->",
+            "it": "        <!-- 系统配置 -->"
+        },
+        "auto_str_162": {
+            "zh-CN": "                    <span class=\"glyphicon glyphicon-info-sign\" style=\"color: #20a53a; font-size:14px;\"></span> 系统基本信息",
+            "zh-TW": "                    <span class=\"glyphicon glyphicon-info-sign\" style=\"color: #20a53a; font-size:14px;\"></span> 系统基本信息",
+            "en": "                    <span class=\"glyphicon glyphicon-info-sign\" style=\"color: #20a53a; font-size:14px;\"></span> 系统基本信息",
+            "fr": "                    <span class=\"glyphicon glyphicon-info-sign\" style=\"color: #20a53a; font-size:14px;\"></span> 系统基本信息",
+            "de": "                    <span class=\"glyphicon glyphicon-info-sign\" style=\"color: #20a53a; font-size:14px;\"></span> 系统基本信息",
+            "it": "                    <span class=\"glyphicon glyphicon-info-sign\" style=\"color: #20a53a; font-size:14px;\"></span> 系统基本信息"
+        },
+        "auto_str_163": {
+            "zh-CN": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>环境准备中...",
+            "zh-TW": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>环境准备中...",
+            "en": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>环境准备中...",
+            "fr": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>环境准备中...",
+            "de": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>环境准备中...",
+            "it": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>环境准备中..."
+        },
+        "auto_str_164": {
+            "zh-CN": "                    <tr style=\"border:none;\"><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">系统版本</td><td id=\"sp-os\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "zh-TW": "                    <tr style=\"border:none;\"><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">系统版本</td><td id=\"sp-os\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "en": "                    <tr style=\"border:none;\"><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">系统版本</td><td id=\"sp-os\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "fr": "                    <tr style=\"border:none;\"><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">系统版本</td><td id=\"sp-os\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "de": "                    <tr style=\"border:none;\"><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">系统版本</td><td id=\"sp-os\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "it": "                    <tr style=\"border:none;\"><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">系统版本</td><td id=\"sp-os\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>"
+        },
+        "auto_str_165": {
+            "zh-CN": "                        <td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;\">CPU型号</td>",
+            "zh-TW": "                        <td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;\">CPU型号</td>",
+            "en": "                        <td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;\">CPU型号</td>",
+            "fr": "                        <td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;\">CPU型号</td>",
+            "de": "                        <td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;\">CPU型号</td>",
+            "it": "                        <td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;\">CPU型号</td>"
+        },
+        "auto_str_166": {
+            "zh-CN": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">物理内存</td><td id=\"sp-mem\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;\">-</td></tr>",
+            "zh-TW": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">物理内存</td><td id=\"sp-mem\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;\">-</td></tr>",
+            "en": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">物理内存</td><td id=\"sp-mem\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;\">-</td></tr>",
+            "fr": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">物理内存</td><td id=\"sp-mem\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;\">-</td></tr>",
+            "de": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">物理内存</td><td id=\"sp-mem\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;\">-</td></tr>",
+            "it": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">物理内存</td><td id=\"sp-mem\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;\">-</td></tr>"
+        },
+        "auto_str_167": {
+            "zh-CN": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">硬盘大小</td><td id=\"sp-disk\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "zh-TW": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">硬盘大小</td><td id=\"sp-disk\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "en": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">硬盘大小</td><td id=\"sp-disk\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "fr": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">硬盘大小</td><td id=\"sp-disk\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "de": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">硬盘大小</td><td id=\"sp-disk\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>",
+            "it": "                    <tr><td style=\"color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;\">硬盘大小</td><td id=\"sp-disk\" style=\"font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;\">-</td></tr>"
+        },
+        "auto_str_168": {
+            "zh-CN": "        <!-- 磁盘IO -->",
+            "zh-TW": "        <!-- 磁盘IO -->",
+            "en": "        <!-- 磁盘IO -->",
+            "fr": "        <!-- 磁盘IO -->",
+            "de": "        <!-- 磁盘IO -->",
+            "it": "        <!-- 磁盘IO -->"
+        },
+        "auto_str_169": {
+            "zh-CN": "                    <span class=\"glyphicon glyphicon-hdd\" style=\"color: #20a53a; font-size:14px;\"></span> 磁盘 I/O 读写性能",
+            "zh-TW": "                    <span class=\"glyphicon glyphicon-hdd\" style=\"color: #20a53a; font-size:14px;\"></span> 磁盘 I/O 读写性能",
+            "en": "                    <span class=\"glyphicon glyphicon-hdd\" style=\"color: #20a53a; font-size:14px;\"></span> 磁盘 I/O 读写性能",
+            "fr": "                    <span class=\"glyphicon glyphicon-hdd\" style=\"color: #20a53a; font-size:14px;\"></span> 磁盘 I/O 读写性能",
+            "de": "                    <span class=\"glyphicon glyphicon-hdd\" style=\"color: #20a53a; font-size:14px;\"></span> 磁盘 I/O 读写性能",
+            "it": "                    <span class=\"glyphicon glyphicon-hdd\" style=\"color: #20a53a; font-size:14px;\"></span> 磁盘 I/O 读写性能"
+        },
+        "auto_str_170": {
+            "zh-CN": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>等待测速信号...",
+            "zh-TW": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>等待测速信号...",
+            "en": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>等待测速信号...",
+            "fr": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>等待测速信号...",
+            "de": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>等待测速信号...",
+            "it": "                    <span class=\"glyphicon glyphicon-refresh\" style=\"animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;\"></span>等待测速信号..."
+        },
+        "auto_str_171": {
+            "zh-CN": "                            <span style=\"color:#64748b;\">磁盘写入速度</span>",
+            "zh-TW": "                            <span style=\"color:#64748b;\">磁盘写入速度</span>",
+            "en": "                            <span style=\"color:#64748b;\">磁盘写入速度</span>",
+            "fr": "                            <span style=\"color:#64748b;\">磁盘写入速度</span>",
+            "de": "                            <span style=\"color:#64748b;\">磁盘写入速度</span>",
+            "it": "                            <span style=\"color:#64748b;\">磁盘写入速度</span>"
+        },
+        "auto_str_172": {
+            "zh-CN": "                            <span id=\"sp-write-val\" style=\"font-weight:600; color:#20a53a;\">测试中...</span>",
+            "zh-TW": "                            <span id=\"sp-write-val\" style=\"font-weight:600; color:#20a53a;\">测试中...</span>",
+            "en": "                            <span id=\"sp-write-val\" style=\"font-weight:600; color:#20a53a;\">测试中...</span>",
+            "fr": "                            <span id=\"sp-write-val\" style=\"font-weight:600; color:#20a53a;\">测试中...</span>",
+            "de": "                            <span id=\"sp-write-val\" style=\"font-weight:600; color:#20a53a;\">测试中...</span>",
+            "it": "                            <span id=\"sp-write-val\" style=\"font-weight:600; color:#20a53a;\">测试中...</span>"
+        },
+        "auto_str_173": {
+            "zh-CN": "                            <span style=\"color:#64748b;\">磁盘读取速度</span>",
+            "zh-TW": "                            <span style=\"color:#64748b;\">磁盘读取速度</span>",
+            "en": "                            <span style=\"color:#64748b;\">磁盘读取速度</span>",
+            "fr": "                            <span style=\"color:#64748b;\">磁盘读取速度</span>",
+            "de": "                            <span style=\"color:#64748b;\">磁盘读取速度</span>",
+            "it": "                            <span style=\"color:#64748b;\">磁盘读取速度</span>"
+        },
+        "auto_str_174": {
+            "zh-CN": "                            <span id=\"sp-read-val\" style=\"font-weight:600; color:#94a3b8;\">等待中...</span>",
+            "zh-TW": "                            <span id=\"sp-read-val\" style=\"font-weight:600; color:#94a3b8;\">等待中...</span>",
+            "en": "                            <span id=\"sp-read-val\" style=\"font-weight:600; color:#94a3b8;\">等待中...</span>",
+            "fr": "                            <span id=\"sp-read-val\" style=\"font-weight:600; color:#94a3b8;\">等待中...</span>",
+            "de": "                            <span id=\"sp-read-val\" style=\"font-weight:600; color:#94a3b8;\">等待中...</span>",
+            "it": "                            <span id=\"sp-read-val\" style=\"font-weight:600; color:#94a3b8;\">等待中...</span>"
+        },
+        "auto_str_175": {
+            "zh-CN": "    <!-- 下载速度 -->",
+            "zh-TW": "    <!-- 下载速度 -->",
+            "en": "    <!-- 下载速度 -->",
+            "fr": "    <!-- 下载速度 -->",
+            "de": "    <!-- 下载速度 -->",
+            "it": "    <!-- 下载速度 -->"
+        },
+        "auto_str_176": {
+            "zh-CN": "                <span class=\"glyphicon glyphicon-globe\" style=\"color: #20a53a; font-size:14px;\"></span> 多区域节点下载测速",
+            "zh-TW": "                <span class=\"glyphicon glyphicon-globe\" style=\"color: #20a53a; font-size:14px;\"></span> 多区域节点下载测速",
+            "en": "                <span class=\"glyphicon glyphicon-globe\" style=\"color: #20a53a; font-size:14px;\"></span> 多区域节点下载测速",
+            "fr": "                <span class=\"glyphicon glyphicon-globe\" style=\"color: #20a53a; font-size:14px;\"></span> 多区域节点下载测速",
+            "de": "                <span class=\"glyphicon glyphicon-globe\" style=\"color: #20a53a; font-size:14px;\"></span> 多区域节点下载测速",
+            "it": "                <span class=\"glyphicon glyphicon-globe\" style=\"color: #20a53a; font-size:14px;\"></span> 多区域节点下载测速"
+        },
+        "auto_str_177": {
+            "zh-CN": "            <span style=\"font-size: 11px; color: #94a3b8; font-weight: normal;\">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>",
+            "zh-TW": "            <span style=\"font-size: 11px; color: #94a3b8; font-weight: normal;\">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>",
+            "en": "            <span style=\"font-size: 11px; color: #94a3b8; font-weight: normal;\">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>",
+            "fr": "            <span style=\"font-size: 11px; color: #94a3b8; font-weight: normal;\">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>",
+            "de": "            <span style=\"font-size: 11px; color: #94a3b8; font-weight: normal;\">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>",
+            "it": "            <span style=\"font-size: 11px; color: #94a3b8; font-weight: normal;\">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>"
+        },
+        "auto_str_178": {
+            "zh-CN": "            <div class=\"node-row\" data-node=\"阿里云杭州镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "zh-TW": "            <div class=\"node-row\" data-node=\"阿里云杭州镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "en": "            <div class=\"node-row\" data-node=\"阿里云杭州镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "fr": "            <div class=\"node-row\" data-node=\"阿里云杭州镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "de": "            <div class=\"node-row\" data-node=\"阿里云杭州镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "it": "            <div class=\"node-row\" data-node=\"阿里云杭州镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">"
+        },
+        "auto_str_179": {
+            "zh-CN": "                    <span>阿里云杭州镜像源</span>",
+            "zh-TW": "                    <span>阿里云杭州镜像源</span>",
+            "en": "                    <span>阿里云杭州镜像源</span>",
+            "fr": "                    <span>阿里云杭州镜像源</span>",
+            "de": "                    <span>阿里云杭州镜像源</span>",
+            "it": "                    <span>阿里云杭州镜像源</span>"
+        },
+        "auto_str_180": {
+            "zh-CN": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "zh-TW": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "en": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "fr": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "de": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "it": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>"
+        },
+        "auto_str_181": {
+            "zh-CN": "            <div class=\"node-row\" data-node=\"腾讯云南京镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "zh-TW": "            <div class=\"node-row\" data-node=\"腾讯云南京镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "en": "            <div class=\"node-row\" data-node=\"腾讯云南京镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "fr": "            <div class=\"node-row\" data-node=\"腾讯云南京镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "de": "            <div class=\"node-row\" data-node=\"腾讯云南京镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "it": "            <div class=\"node-row\" data-node=\"腾讯云南京镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">"
+        },
+        "auto_str_182": {
+            "zh-CN": "                    <span>腾讯云南京镜像源</span>",
+            "zh-TW": "                    <span>腾讯云南京镜像源</span>",
+            "en": "                    <span>腾讯云南京镜像源</span>",
+            "fr": "                    <span>腾讯云南京镜像源</span>",
+            "de": "                    <span>腾讯云南京镜像源</span>",
+            "it": "                    <span>腾讯云南京镜像源</span>"
+        },
+        "auto_str_183": {
+            "zh-CN": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "zh-TW": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "en": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "fr": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "de": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "it": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>"
+        },
+        "auto_str_184": {
+            "zh-CN": "            <div class=\"node-row\" data-node=\"华为云深圳镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "zh-TW": "            <div class=\"node-row\" data-node=\"华为云深圳镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "en": "            <div class=\"node-row\" data-node=\"华为云深圳镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "fr": "            <div class=\"node-row\" data-node=\"华为云深圳镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "de": "            <div class=\"node-row\" data-node=\"华为云深圳镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "it": "            <div class=\"node-row\" data-node=\"华为云深圳镜像源\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">"
+        },
+        "auto_str_185": {
+            "zh-CN": "                    <span>华为云深圳镜像源</span>",
+            "zh-TW": "                    <span>华为云深圳镜像源</span>",
+            "en": "                    <span>华为云深圳镜像源</span>",
+            "fr": "                    <span>华为云深圳镜像源</span>",
+            "de": "                    <span>华为云深圳镜像源</span>",
+            "it": "                    <span>华为云深圳镜像源</span>"
+        },
+        "auto_str_186": {
+            "zh-CN": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "zh-TW": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "en": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "fr": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "de": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "it": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>"
+        },
+        "auto_str_187": {
+            "zh-CN": "            <!-- 境内外分割线 -->",
+            "zh-TW": "            <!-- 境内外分割线 -->",
+            "en": "            <!-- 境内外分割线 -->",
+            "fr": "            <!-- 境内外分割线 -->",
+            "de": "            <!-- 境内外分割线 -->",
+            "it": "            <!-- 境内外分割线 -->"
+        },
+        "auto_str_188": {
+            "zh-CN": "                <span style=\"background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;\">境外测试节点 (US / UK / DE / JP)</span>",
+            "zh-TW": "                <span style=\"background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;\">境外测试节点 (US / UK / DE / JP)</span>",
+            "en": "                <span style=\"background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;\">境外测试节点 (US / UK / DE / JP)</span>",
+            "fr": "                <span style=\"background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;\">境外测试节点 (US / UK / DE / JP)</span>",
+            "de": "                <span style=\"background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;\">境外测试节点 (US / UK / DE / JP)</span>",
+            "it": "                <span style=\"background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;\">境外测试节点 (US / UK / DE / JP)</span>"
+        },
+        "auto_str_189": {
+            "zh-CN": "            <div class=\"node-row\" data-node=\"美国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "zh-TW": "            <div class=\"node-row\" data-node=\"美国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "en": "            <div class=\"node-row\" data-node=\"美国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "fr": "            <div class=\"node-row\" data-node=\"美国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "de": "            <div class=\"node-row\" data-node=\"美国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "it": "            <div class=\"node-row\" data-node=\"美国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">"
+        },
+        "auto_str_190": {
+            "zh-CN": "                    <span>美国官方节点</span>",
+            "zh-TW": "                    <span>美国官方节点</span>",
+            "en": "                    <span>美国官方节点</span>",
+            "fr": "                    <span>美国官方节点</span>",
+            "de": "                    <span>美国官方节点</span>",
+            "it": "                    <span>美国官方节点</span>"
+        },
+        "auto_str_191": {
+            "zh-CN": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "zh-TW": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "en": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "fr": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "de": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "it": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>"
+        },
+        "auto_str_192": {
+            "zh-CN": "            <div class=\"node-row\" data-node=\"英国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "zh-TW": "            <div class=\"node-row\" data-node=\"英国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "en": "            <div class=\"node-row\" data-node=\"英国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "fr": "            <div class=\"node-row\" data-node=\"英国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "de": "            <div class=\"node-row\" data-node=\"英国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "it": "            <div class=\"node-row\" data-node=\"英国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">"
+        },
+        "auto_str_193": {
+            "zh-CN": "                    <span>英国官方节点</span>",
+            "zh-TW": "                    <span>英国官方节点</span>",
+            "en": "                    <span>英国官方节点</span>",
+            "fr": "                    <span>英国官方节点</span>",
+            "de": "                    <span>英国官方节点</span>",
+            "it": "                    <span>英国官方节点</span>"
+        },
+        "auto_str_194": {
+            "zh-CN": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "zh-TW": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "en": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "fr": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "de": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "it": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>"
+        },
+        "auto_str_195": {
+            "zh-CN": "            <div class=\"node-row\" data-node=\"德国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "zh-TW": "            <div class=\"node-row\" data-node=\"德国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "en": "            <div class=\"node-row\" data-node=\"德国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "fr": "            <div class=\"node-row\" data-node=\"德国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "de": "            <div class=\"node-row\" data-node=\"德国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "it": "            <div class=\"node-row\" data-node=\"德国官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">"
+        },
+        "auto_str_196": {
+            "zh-CN": "                    <span>德国官方节点</span>",
+            "zh-TW": "                    <span>德国官方节点</span>",
+            "en": "                    <span>德国官方节点</span>",
+            "fr": "                    <span>德国官方节点</span>",
+            "de": "                    <span>德国官方节点</span>",
+            "it": "                    <span>德国官方节点</span>"
+        },
+        "auto_str_197": {
+            "zh-CN": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "zh-TW": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "en": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "fr": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "de": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "it": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>"
+        },
+        "auto_str_198": {
+            "zh-CN": "            <div class=\"node-row\" data-node=\"日本官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "zh-TW": "            <div class=\"node-row\" data-node=\"日本官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "en": "            <div class=\"node-row\" data-node=\"日本官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "fr": "            <div class=\"node-row\" data-node=\"日本官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "de": "            <div class=\"node-row\" data-node=\"日本官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">",
+            "it": "            <div class=\"node-row\" data-node=\"日本官方节点\" style=\"display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;\">"
+        },
+        "auto_str_199": {
+            "zh-CN": "                    <span>日本官方节点</span>",
+            "zh-TW": "                    <span>日本官方节点</span>",
+            "en": "                    <span>日本官方节点</span>",
+            "fr": "                    <span>日本官方节点</span>",
+            "de": "                    <span>日本官方节点</span>",
+            "it": "                    <span>日本官方节点</span>"
+        },
+        "auto_str_200": {
+            "zh-CN": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "zh-TW": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "en": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "fr": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "de": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>",
+            "it": "                <div class=\"node-speed\" style=\"font-size: 12px; font-weight: 600; color:#64748b;\">排队中</div>"
+        },
+        "auto_str_201": {
+            "zh-CN": "    <!-- 底部控制栏与出品信息 -->",
+            "zh-TW": "    <!-- 底部控制栏与出品信息 -->",
+            "en": "    <!-- 底部控制栏与出品信息 -->",
+            "fr": "    <!-- 底部控制栏与出品信息 -->",
+            "de": "    <!-- 底部控制栏与出品信息 -->",
+            "it": "    <!-- 底部控制栏与出品信息 -->"
+        },
+        "auto_str_202": {
+            "zh-CN": "                <span class=\"glyphicon glyphicon-repeat\" style=\"font-size: 10px; margin-right: 4px;\"></span>再次测试",
+            "zh-TW": "                <span class=\"glyphicon glyphicon-repeat\" style=\"font-size: 10px; margin-right: 4px;\"></span>再次测试",
+            "en": "                <span class=\"glyphicon glyphicon-repeat\" style=\"font-size: 10px; margin-right: 4px;\"></span>再次测试",
+            "fr": "                <span class=\"glyphicon glyphicon-repeat\" style=\"font-size: 10px; margin-right: 4px;\"></span>再次测试",
+            "de": "                <span class=\"glyphicon glyphicon-repeat\" style=\"font-size: 10px; margin-right: 4px;\"></span>再次测试",
+            "it": "                <span class=\"glyphicon glyphicon-repeat\" style=\"font-size: 10px; margin-right: 4px;\"></span>再次测试"
+        },
+        "auto_str_203": {
+            "zh-CN": "            <span>衢州御风科技有限公司出品</span>",
+            "zh-TW": "            <span>衢州御风科技有限公司出品</span>",
+            "en": "            <span>衢州御风科技有限公司出品</span>",
+            "fr": "            <span>衢州御风科技有限公司出品</span>",
+            "de": "            <span>衢州御风科技有限公司出品</span>",
+            "it": "            <span>衢州御风科技有限公司出品</span>"
+        },
+        "auto_str_204": {
+            "zh-CN": "<span style=\"display: inline-flex; align-items: center; gap: 6px;\"><svg viewBox=\"0 0 64 64\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle;\"><path d=\"M16 22 h32 v30 h-32 z\" /><path d=\"M26 22 L28 8 h8 L38 22\" /><path d=\"M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16\" stroke-width=\"3.5\" /><path d=\"M24 52 v6 h16 v-6\" /></svg>服务器性能与带宽测速</span>",
+            "zh-TW": "<span style=\"display: inline-flex; align-items: center; gap: 6px;\"><svg viewBox=\"0 0 64 64\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle;\"><path d=\"M16 22 h32 v30 h-32 z\" /><path d=\"M26 22 L28 8 h8 L38 22\" /><path d=\"M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16\" stroke-width=\"3.5\" /><path d=\"M24 52 v6 h16 v-6\" /></svg>服务器性能与带宽测速</span>",
+            "en": "<span style=\"display: inline-flex; align-items: center; gap: 6px;\"><svg viewBox=\"0 0 64 64\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle;\"><path d=\"M16 22 h32 v30 h-32 z\" /><path d=\"M26 22 L28 8 h8 L38 22\" /><path d=\"M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16\" stroke-width=\"3.5\" /><path d=\"M24 52 v6 h16 v-6\" /></svg>服务器性能与带宽测速</span>",
+            "fr": "<span style=\"display: inline-flex; align-items: center; gap: 6px;\"><svg viewBox=\"0 0 64 64\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle;\"><path d=\"M16 22 h32 v30 h-32 z\" /><path d=\"M26 22 L28 8 h8 L38 22\" /><path d=\"M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16\" stroke-width=\"3.5\" /><path d=\"M24 52 v6 h16 v-6\" /></svg>服务器性能与带宽测速</span>",
+            "de": "<span style=\"display: inline-flex; align-items: center; gap: 6px;\"><svg viewBox=\"0 0 64 64\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle;\"><path d=\"M16 22 h32 v30 h-32 z\" /><path d=\"M26 22 L28 8 h8 L38 22\" /><path d=\"M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16\" stroke-width=\"3.5\" /><path d=\"M24 52 v6 h16 v-6\" /></svg>服务器性能与带宽测速</span>",
+            "it": "<span style=\"display: inline-flex; align-items: center; gap: 6px;\"><svg viewBox=\"0 0 64 64\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align: middle;\"><path d=\"M16 22 h32 v30 h-32 z\" /><path d=\"M26 22 L28 8 h8 L38 22\" /><path d=\"M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16\" stroke-width=\"3.5\" /><path d=\"M24 52 v6 h16 v-6\" /></svg>服务器性能与带宽测速</span>"
+        },
+        "auto_str_205": {
+            "zh-CN": "主频 ",
+            "zh-TW": "主频 ",
+            "en": "主频 ",
+            "fr": "主频 ",
+            "de": "主频 ",
+            "it": "主频 "
+        },
+        "auto_str_206": {
+            "zh-CN": " | 核心数 ",
+            "zh-TW": " | 核心数 ",
+            "en": " | 核心数 ",
+            "fr": " | 核心数 ",
+            "de": " | 核心数 ",
+            "it": " | 核心数 "
+        },
+        "auto_str_207": {
+            "zh-CN": "超时/失败",
+            "zh-TW": "超时/失败",
+            "en": "超时/失败",
+            "fr": "超时/失败",
+            "de": "超时/失败",
+            "it": "超时/失败"
+        },
+        "auto_str_208": {
+            "zh-CN": "已跳过",
+            "zh-TW": "已跳过",
+            "en": "已跳过",
+            "fr": "已跳过",
+            "de": "已跳过",
+            "it": "已跳过"
+        },
+        "auto_str_209": {
+            "zh-CN": "主频 ",
+            "zh-TW": "主频 ",
+            "en": "主频 ",
+            "fr": "主频 ",
+            "de": "主频 ",
+            "it": "主频 "
+        },
+        "auto_str_210": {
+            "zh-CN": " | 核心数 ",
+            "zh-TW": " | 核心数 ",
+            "en": " | 核心数 ",
+            "fr": " | 核心数 ",
+            "de": " | 核心数 ",
+            "it": " | 核心数 "
+        },
+        "auto_str_211": {
+            "zh-CN": "测试中...",
+            "zh-TW": "测试中...",
+            "en": "测试中...",
+            "fr": "测试中...",
+            "de": "测试中...",
+            "it": "测试中..."
+        },
+        "auto_str_212": {
+            "zh-CN": "超时/失败",
+            "zh-TW": "超时/失败",
+            "en": "超时/失败",
+            "fr": "超时/失败",
+            "de": "超时/失败",
+            "it": "超时/失败"
+        },
+        "auto_str_213": {
+            "zh-CN": "测速完毕",
+            "zh-TW": "测速完毕",
+            "en": "测速完毕",
+            "fr": "测速完毕",
+            "de": "测速完毕",
+            "it": "测速完毕"
+        },
+        "auto_str_214": {
+            "zh-CN": "结束时间:",
+            "zh-TW": "结束时间:",
+            "en": "结束时间:",
+            "fr": "结束时间:",
+            "de": "结束时间:",
+            "it": "结束时间:"
+        },
+        "auto_str_215": {
+            "zh-CN": "排队中",
+            "zh-TW": "排队中",
+            "en": "排队中",
+            "fr": "排队中",
+            "de": "排队中",
+            "it": "排队中"
+        },
+        "auto_str_216": {
+            "zh-CN": "等待中",
+            "zh-TW": "等待中",
+            "en": "等待中",
+            "fr": "等待中",
+            "de": "等待中",
+            "it": "等待中"
+        },
+        "auto_str_217": {
+            "zh-CN": "已跳过",
+            "zh-TW": "已跳过",
+            "en": "已跳过",
+            "fr": "已跳过",
+            "de": "已跳过",
+            "it": "已跳过"
+        },
+        "auto_str_218": {
+            "zh-CN": "已跳过",
+            "zh-TW": "已跳过",
+            "en": "已跳过",
+            "fr": "已跳过",
+            "de": "已跳过",
+            "it": "已跳过"
+        },
+        "auto_str_219": {
+            "zh-CN": "CPU 型号:",
+            "zh-TW": "CPU 型号:",
+            "en": "CPU 型号:",
+            "fr": "CPU 型号:",
+            "de": "CPU 型号:",
+            "it": "CPU 型号:"
+        },
+        "auto_str_220": {
+            "zh-CN": "CPU 型号:",
+            "zh-TW": "CPU 型号:",
+            "en": "CPU 型号:",
+            "fr": "CPU 型号:",
+            "de": "CPU 型号:",
+            "it": "CPU 型号:"
+        },
+        "auto_str_221": {
+            "zh-CN": "物理内存:",
+            "zh-TW": "物理内存:",
+            "en": "物理内存:",
+            "fr": "物理内存:",
+            "de": "物理内存:",
+            "it": "物理内存:"
+        },
+        "auto_str_222": {
+            "zh-CN": "物理内存:",
+            "zh-TW": "物理内存:",
+            "en": "物理内存:",
+            "fr": "物理内存:",
+            "de": "物理内存:",
+            "it": "物理内存:"
+        },
+        "auto_str_223": {
+            "zh-CN": "硬盘分区:",
+            "zh-TW": "硬盘分区:",
+            "en": "硬盘分区:",
+            "fr": "硬盘分区:",
+            "de": "硬盘分区:",
+            "it": "硬盘分区:"
+        },
+        "auto_str_224": {
+            "zh-CN": "硬盘分区:",
+            "zh-TW": "硬盘分区:",
+            "en": "硬盘分区:",
+            "fr": "硬盘分区:",
+            "de": "硬盘分区:",
+            "it": "硬盘分区:"
+        },
+        "auto_str_225": {
+            "zh-CN": "操作系统:",
+            "zh-TW": "操作系统:",
+            "en": "操作系统:",
+            "fr": "操作系统:",
+            "de": "操作系统:",
+            "it": "操作系统:"
+        },
+        "auto_str_226": {
+            "zh-CN": "操作系统:",
+            "zh-TW": "操作系统:",
+            "en": "操作系统:",
+            "fr": "操作系统:",
+            "de": "操作系统:",
+            "it": "操作系统:"
+        },
+        "auto_str_227": {
+            "zh-CN": "磁盘写入速度:",
+            "zh-TW": "磁盘写入速度:",
+            "en": "磁盘写入速度:",
+            "fr": "磁盘写入速度:",
+            "de": "磁盘写入速度:",
+            "it": "磁盘写入速度:"
+        },
+        "auto_str_228": {
+            "zh-CN": "磁盘写入速度:",
+            "zh-TW": "磁盘写入速度:",
+            "en": "磁盘写入速度:",
+            "fr": "磁盘写入速度:",
+            "de": "磁盘写入速度:",
+            "it": "磁盘写入速度:"
+        },
+        "auto_str_229": {
+            "zh-CN": "磁盘读取速度:",
+            "zh-TW": "磁盘读取速度:",
+            "en": "磁盘读取速度:",
+            "fr": "磁盘读取速度:",
+            "de": "磁盘读取速度:",
+            "it": "磁盘读取速度:"
+        },
+        "auto_str_230": {
+            "zh-CN": "磁盘读取速度:",
+            "zh-TW": "磁盘读取速度:",
+            "en": "磁盘读取速度:",
+            "fr": "磁盘读取速度:",
+            "de": "磁盘读取速度:",
+            "it": "磁盘读取速度:"
+        },
+        "auto_str_231": {
+            "zh-CN": "-> 节点:",
+            "zh-TW": "-> 节点:",
+            "en": "-> 节点:",
+            "fr": "-> 节点:",
+            "de": "-> 节点:",
+            "it": "-> 节点:"
+        },
+        "auto_str_232": {
+            "zh-CN": "-&gt; 节点:",
+            "zh-TW": "-&gt; 节点:",
+            "en": "-&gt; 节点:",
+            "fr": "-&gt; 节点:",
+            "de": "-&gt; 节点:",
+            "it": "-&gt; 节点:"
+        },
+        "auto_str_233": {
+            "zh-CN": "-> 节点:",
+            "zh-TW": "-> 节点:",
+            "en": "-> 节点:",
+            "fr": "-> 节点:",
+            "de": "-> 节点:",
+            "it": "-> 节点:"
+        },
+        "auto_str_234": {
+            "zh-CN": "-&gt; 节点:",
+            "zh-TW": "-&gt; 节点:",
+            "en": "-&gt; 节点:",
+            "fr": "-&gt; 节点:",
+            "de": "-&gt; 节点:",
+            "it": "-&gt; 节点:"
+        },
+        "auto_str_235": {
+            "zh-CN": "下载中...",
+            "zh-TW": "下载中...",
+            "en": "下载中...",
+            "fr": "下载中...",
+            "de": "下载中...",
+            "it": "下载中..."
+        },
+        "auto_str_236": {
+            "zh-CN": "正在测试",
+            "zh-TW": "正在测试",
+            "en": "正在测试",
+            "fr": "正在测试",
+            "de": "正在测试",
+            "it": "正在测试"
+        },
+        "auto_str_237": {
+            "zh-CN": "测试中",
+            "zh-TW": "测试中",
+            "en": "测试中",
+            "fr": "测试中",
+            "de": "测试中",
+            "it": "测试中"
+        },
+        "auto_str_238": {
+            "zh-CN": "下载中...",
+            "zh-TW": "下载中...",
+            "en": "下载中...",
+            "fr": "下载中...",
+            "de": "下载中...",
+            "it": "下载中..."
+        },
+        "auto_str_239": {
+            "zh-CN": "连接超时",
+            "zh-TW": "连接超时",
+            "en": "连接超时",
+            "fr": "连接超时",
+            "de": "连接超时",
+            "it": "连接超时"
+        },
+        "auto_str_240": {
+            "zh-CN": "失败",
+            "zh-TW": "失败",
+            "en": "失败",
+            "fr": "失败",
+            "de": "失败",
+            "it": "失败"
+        },
+        "auto_str_241": {
+            "zh-CN": "超时/失败",
+            "zh-TW": "超时/失败",
+            "en": "超时/失败",
+            "fr": "超时/失败",
+            "de": "超时/失败",
+            "it": "超时/失败"
+        },
+        "auto_str_242": {
+            "zh-CN": "未知归属地",
+            "zh-TW": "未知归属地",
+            "en": "未知归属地",
+            "fr": "未知归属地",
+            "de": "未知归属地",
+            "it": "未知归属地"
+        },
+        "auto_str_243": {
+            "zh-CN": "未知",
+            "zh-TW": "未知",
+            "en": "未知",
+            "fr": "未知",
+            "de": "未知",
+            "it": "未知"
+        },
+        "auto_str_244": {
+            "zh-CN": "海外/未知",
+            "zh-TW": "海外/未知",
+            "en": "海外/未知",
+            "fr": "海外/未知",
+            "de": "海外/未知",
+            "it": "海外/未知"
+        },
+        "auto_str_245": {
+            "zh-CN": "未知归属地",
+            "zh-TW": "未知归属地",
+            "en": "未知归属地",
+            "fr": "未知归属地",
+            "de": "未知归属地",
+            "it": "未知归属地"
+        },
+        "auto_str_246": {
+            "zh-CN": "未知",
+            "zh-TW": "未知",
+            "en": "未知",
+            "fr": "未知",
+            "de": "未知",
+            "it": "未知"
+        },
+        "auto_str_247": {
+            "zh-CN": "海外/未知",
+            "zh-TW": "海外/未知",
+            "en": "海外/未知",
+            "fr": "海外/未知",
+            "de": "海外/未知",
+            "it": "海外/未知"
+        },
+        "auto_str_248": {
+            "zh-CN": "公网接入",
+            "zh-TW": "公网接入",
+            "en": "公网接入",
+            "fr": "公网接入",
+            "de": "公网接入",
+            "it": "公网接入"
+        },
+        "auto_str_249": {
+            "zh-CN": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "zh-TW": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "en": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "fr": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "de": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "it": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>"
+        },
+        "auto_str_250": {
+            "zh-CN": "<th style=\"width: 55px;\">状态</th>",
+            "zh-TW": "<th style=\"width: 55px;\">状态</th>",
+            "en": "<th style=\"width: 55px;\">状态</th>",
+            "fr": "<th style=\"width: 55px;\">状态</th>",
+            "de": "<th style=\"width: 55px;\">状态</th>",
+            "it": "<th style=\"width: 55px;\">状态</th>"
+        },
+        "auto_str_251": {
+            "zh-CN": "<th style=\"width: 55px;\">方式</th>",
+            "zh-TW": "<th style=\"width: 55px;\">方式</th>",
+            "en": "<th style=\"width: 55px;\">方式</th>",
+            "fr": "<th style=\"width: 55px;\">方式</th>",
+            "de": "<th style=\"width: 55px;\">方式</th>",
+            "it": "<th style=\"width: 55px;\">方式</th>"
+        },
+        "auto_str_252": {
+            "zh-CN": "<th>登录IP</th>",
+            "zh-TW": "<th>登录IP</th>",
+            "en": "<th>登录IP</th>",
+            "fr": "<th>登录IP</th>",
+            "de": "<th>登录IP</th>",
+            "it": "<th>登录IP</th>"
+        },
+        "auto_str_253": {
+            "zh-CN": "<th style=\"width: 110px;\">归属地</th>",
+            "zh-TW": "<th style=\"width: 110px;\">归属地</th>",
+            "en": "<th style=\"width: 110px;\">归属地</th>",
+            "fr": "<th style=\"width: 110px;\">归属地</th>",
+            "de": "<th style=\"width: 110px;\">归属地</th>",
+            "it": "<th style=\"width: 110px;\">归属地</th>"
+        },
+        "auto_str_254": {
+            "zh-CN": "<th style=\"text-align: right; width: 130px;\">登录时间</th>",
+            "zh-TW": "<th style=\"text-align: right; width: 130px;\">登录时间</th>",
+            "en": "<th style=\"text-align: right; width: 130px;\">登录时间</th>",
+            "fr": "<th style=\"text-align: right; width: 130px;\">登录时间</th>",
+            "de": "<th style=\"text-align: right; width: 130px;\">登录时间</th>",
+            "it": "<th style=\"text-align: right; width: 130px;\">登录时间</th>"
+        },
+        "auto_str_255": {
+            "zh-CN": "<span class=\"login-tag login-tag-success\"><span class=\"tag-dot\"></span>成功</span>",
+            "zh-TW": "<span class=\"login-tag login-tag-success\"><span class=\"tag-dot\"></span>成功</span>",
+            "en": "<span class=\"login-tag login-tag-success\"><span class=\"tag-dot\"></span>成功</span>",
+            "fr": "<span class=\"login-tag login-tag-success\"><span class=\"tag-dot\"></span>成功</span>",
+            "de": "<span class=\"login-tag login-tag-success\"><span class=\"tag-dot\"></span>成功</span>",
+            "it": "<span class=\"login-tag login-tag-success\"><span class=\"tag-dot\"></span>成功</span>"
+        },
+        "auto_str_256": {
+            "zh-CN": "<span class=\"login-tag login-tag-fail\"><span class=\"tag-dot\"></span>失败</span>",
+            "zh-TW": "<span class=\"login-tag login-tag-fail\"><span class=\"tag-dot\"></span>失败</span>",
+            "en": "<span class=\"login-tag login-tag-fail\"><span class=\"tag-dot\"></span>失败</span>",
+            "fr": "<span class=\"login-tag login-tag-fail\"><span class=\"tag-dot\"></span>失败</span>",
+            "de": "<span class=\"login-tag login-tag-fail\"><span class=\"tag-dot\"></span>失败</span>",
+            "it": "<span class=\"login-tag login-tag-fail\"><span class=\"tag-dot\"></span>失败</span>"
+        },
+        "auto_str_257": {
+            "zh-CN": "<span class=\"login-curr-tag\">本次</span>",
+            "zh-TW": "<span class=\"login-curr-tag\">本次</span>",
+            "en": "<span class=\"login-curr-tag\">本次</span>",
+            "fr": "<span class=\"login-curr-tag\">本次</span>",
+            "de": "<span class=\"login-curr-tag\">本次</span>",
+            "it": "<span class=\"login-curr-tag\">本次</span>"
+        },
+        "auto_str_258": {
+            "zh-CN": "\">查询中...</span>",
+            "zh-TW": "\">查询中...</span>",
+            "en": "\">查询中...</span>",
+            "fr": "\">查询中...</span>",
+            "de": "\">查询中...</span>",
+            "it": "\">查询中...</span>"
+        },
+        "auto_str_259": {
+            "zh-CN": "客户端时间: ",
+            "zh-TW": "客户端时间: ",
+            "en": "客户端时间: ",
+            "fr": "客户端时间: ",
+            "de": "客户端时间: ",
+            "it": "客户端时间: "
+        },
+        "auto_str_260": {
+            "zh-CN": "\n服务器时间: ",
+            "zh-TW": "\n服务器时间: ",
+            "en": "\n服务器时间: ",
+            "fr": "\n服务器时间: ",
+            "de": "\n服务器时间: ",
+            "it": "\n服务器时间: "
+        },
+        "auto_str_261": {
+            "zh-CN": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "zh-TW": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "en": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "fr": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "de": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>",
+            "it": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">暂无登录记录</div>"
+        },
+        "auto_str_262": {
+            "zh-CN": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">获取失败，请稍后重试</div>",
+            "zh-TW": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">获取失败，请稍后重试</div>",
+            "en": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">获取失败，请稍后重试</div>",
+            "fr": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">获取失败，请稍后重试</div>",
+            "de": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">获取失败，请稍后重试</div>",
+            "it": "<div class=\"text-center c9\" style=\"padding: 8px 0; font-size: 11px;\">获取失败，请稍后重试</div>"
+        },
+        "auto_str_263": {
+            "zh-CN": "状态筛选:",
+            "zh-TW": "状态筛选:",
+            "en": "状态筛选:",
+            "fr": "状态筛选:",
+            "de": "状态筛选:",
+            "it": "状态筛选:"
+        },
+        "auto_str_264": {
+            "zh-CN": "全部状态",
+            "zh-TW": "全部状态",
+            "en": "全部状态",
+            "fr": "全部状态",
+            "de": "全部状态",
+            "it": "全部状态"
+        },
+        "auto_str_265": {
+            "zh-CN": "成功",
+            "zh-TW": "成功",
+            "en": "成功",
+            "fr": "成功",
+            "de": "成功",
+            "it": "成功"
+        },
+        "auto_str_266": {
+            "zh-CN": "失败",
+            "zh-TW": "失败",
+            "en": "失败",
+            "fr": "失败",
+            "de": "失败",
+            "it": "失败"
+        },
+        "auto_str_267": {
+            "zh-CN": "方式筛选:",
+            "zh-TW": "方式筛选:",
+            "en": "方式筛选:",
+            "fr": "方式筛选:",
+            "de": "方式筛选:",
+            "it": "方式筛选:"
+        },
+        "auto_str_268": {
+            "zh-CN": "全部方式",
+            "zh-TW": "全部方式",
+            "en": "全部方式",
+            "fr": "全部方式",
+            "de": "全部方式",
+            "it": "全部方式"
+        },
+        "auto_str_269": {
+            "zh-CN": "刷新日志",
+            "zh-TW": "刷新日志",
+            "en": "刷新日志",
+            "fr": "刷新日志",
+            "de": "刷新日志",
+            "it": "刷新日志"
+        },
+        "auto_str_270": {
+            "zh-CN": "刷新",
+            "zh-TW": "刷新",
+            "en": "刷新",
+            "fr": "刷新",
+            "de": "刷新",
+            "it": "刷新"
+        },
+        "auto_str_271": {
+            "zh-CN": "状态",
+            "zh-TW": "状态",
+            "en": "状态",
+            "fr": "状态",
+            "de": "状态",
+            "it": "状态"
+        },
+        "auto_str_272": {
+            "zh-CN": "方式",
+            "zh-TW": "方式",
+            "en": "方式",
+            "fr": "方式",
+            "de": "方式",
+            "it": "方式"
+        },
+        "auto_str_273": {
+            "zh-CN": "登录IP",
+            "zh-TW": "登录IP",
+            "en": "登录IP",
+            "fr": "登录IP",
+            "de": "登录IP",
+            "it": "登录IP"
+        },
+        "auto_str_274": {
+            "zh-CN": "归属地",
+            "zh-TW": "归属地",
+            "en": "归属地",
+            "fr": "归属地",
+            "de": "归属地",
+            "it": "归属地"
+        },
+        "auto_str_275": {
+            "zh-CN": "详情",
+            "zh-TW": "详情",
+            "en": "详情",
+            "fr": "详情",
+            "de": "详情",
+            "it": "详情"
+        },
+        "auto_str_276": {
+            "zh-CN": "登录时间",
+            "zh-TW": "登录时间",
+            "en": "登录时间",
+            "fr": "登录时间",
+            "de": "登录时间",
+            "it": "登录时间"
+        },
+        "auto_str_277": {
+            "zh-CN": "正在获取日志...",
+            "zh-TW": "正在获取日志...",
+            "en": "正在获取日志...",
+            "fr": "正在获取日志...",
+            "de": "正在获取日志...",
+            "it": "正在获取日志..."
+        },
+        "auto_str_278": {
+            "zh-CN": "登录记录审计",
+            "zh-TW": "登录记录审计",
+            "en": "登录记录审计",
+            "fr": "登录记录审计",
+            "de": "登录记录审计",
+            "it": "登录记录审计"
+        },
+        "auto_str_279": {
+            "zh-CN": "正在加载...",
+            "zh-TW": "正在加载...",
+            "en": "正在加载...",
+            "fr": "正在加载...",
+            "de": "正在加载...",
+            "it": "正在加载..."
+        },
+        "auto_str_280": {
+            "zh-CN": "暂无登录记录",
+            "zh-TW": "暂无登录记录",
+            "en": "暂无登录记录",
+            "fr": "暂无登录记录",
+            "de": "暂无登录记录",
+            "it": "暂无登录记录"
+        },
+        "auto_str_281": {
+            "zh-CN": "未找到符合条件的登录记录",
+            "zh-TW": "未找到符合条件的登录记录",
+            "en": "未找到符合条件的登录记录",
+            "fr": "未找到符合条件的登录记录",
+            "de": "未找到符合条件的登录记录",
+            "it": "未找到符合条件的登录记录"
+        },
+        "auto_str_282": {
+            "zh-CN": "成功",
+            "zh-TW": "成功",
+            "en": "成功",
+            "fr": "成功",
+            "de": "成功",
+            "it": "成功"
+        },
+        "auto_str_283": {
+            "zh-CN": "失败",
+            "zh-TW": "失败",
+            "en": "失败",
+            "fr": "失败",
+            "de": "失败",
+            "it": "失败"
+        },
+        "auto_str_284": {
+            "zh-CN": "本次",
+            "zh-TW": "本次",
+            "en": "本次",
+            "fr": "本次",
+            "de": "本次",
+            "it": "本次"
+        },
+        "auto_str_285": {
+            "zh-CN": "局域网",
+            "zh-TW": "局域网",
+            "en": "局域网",
+            "fr": "局域网",
+            "de": "局域网",
+            "it": "局域网"
+        },
+        "auto_str_286": {
+            "zh-CN": "查询中...",
+            "zh-TW": "查询中...",
+            "en": "查询中...",
+            "fr": "查询中...",
+            "de": "查询中...",
+            "it": "查询中..."
+        },
+        "auto_str_287": {
+            "zh-CN": "客户端时间: ",
+            "zh-TW": "客户端时间: ",
+            "en": "客户端时间: ",
+            "fr": "客户端时间: ",
+            "de": "客户端时间: ",
+            "it": "客户端时间: "
+        },
+        "auto_str_288": {
+            "zh-CN": "服务器时间: ",
+            "zh-TW": "服务器时间: ",
+            "en": "服务器时间: ",
+            "fr": "服务器时间: ",
+            "de": "服务器时间: ",
+            "it": "服务器时间: "
+        },
+        "auto_str_289": {
+            "zh-CN": "获取失败，请稍后重试",
+            "zh-TW": "获取失败，请稍后重试",
+            "en": "获取失败，请稍后重试",
+            "fr": "获取失败，请稍后重试",
+            "de": "获取失败，请稍后重试",
+            "it": "获取失败，请稍后重试"
+        },
+        "server_performance": {
+            "zh-CN": "服务器性能",
+            "zh-TW": "伺服器效能",
+            "en": "Server Performance",
+            "fr": "Performances du serveur",
+            "de": "Serverleistung",
+            "it": "Prestazioni del server"
+        },
+        "speed_test_title": {
+            "zh-CN": "测速",
+            "zh-TW": "測速",
+            "en": "Speed Test",
+            "fr": "Test de vitesse",
+            "de": "Geschwindigkeitstest",
+            "it": "Test di velocità"
+        },
+        "system_label": {
+            "zh-CN": "系统:",
+            "zh-TW": "系統:",
+            "en": "System:",
+            "fr": "Système :",
+            "de": "System:",
+            "it": "Sistema:"
+        },
+        "view_system_details_title": {
+            "zh-CN": "查看系统详细属性",
+            "zh-TW": "查看系統詳細屬性",
+            "en": "View Detailed System Info",
+            "fr": "Voir les détails du système",
+            "de": "Systemdetails anzeigen",
+            "it": "Visualizza dettagli del sistema"
+        },
+        "status": {
+            "zh-CN": "状态",
+            "zh-TW": "狀態",
+            "en": "Status",
+            "fr": "Statut",
+            "de": "Status",
+            "it": "Stato"
+        },
+        "update": {
+            "zh-CN": "更新",
+            "zh-TW": "更新",
+            "en": "Update",
+            "fr": "Mettre à jour",
+            "de": "Aktualisieren",
+            "it": "Aggiorna"
+        },
+        "reboot_repair": {
+            "zh-CN": "重启/修复",
+            "zh-TW": "重啟/修復",
+            "en": "Reboot / Repair",
+            "fr": "Redémarrer / Réparer",
+            "de": "Neustart / Reparieren",
+            "it": "Riavvia / Ripara"
+        },
+        "load_status": {
+            "zh-CN": "负载状态",
+            "zh-TW": "負載狀態",
+            "en": "Load Status",
+            "fr": "État de la charge",
+            "de": "Laststatus",
+            "it": "Stato del carico"
+        },
+        "load_fluent": {
+            "zh-CN": "运行流畅",
+            "zh-TW": "運行流暢",
+            "en": "Smooth",
+            "fr": "Fluide",
+            "de": "Flüssig",
+            "it": "Fluido"
+        },
+        "load_smooth": {
+            "zh-CN": "运行流畅",
+            "zh-TW": "運行流暢",
+            "en": "Smooth",
+            "fr": "Fluide",
+            "de": "Flüssig",
+            "it": "Fluido"
+        },
+        "load_normal": {
+            "zh-CN": "运行正常",
+            "zh-TW": "運行正常",
+            "en": "Normal",
+            "fr": "Normal",
+            "de": "Normal",
+            "it": "Normale"
+        },
+        "load_slow": {
+            "zh-CN": "运行缓慢",
+            "zh-TW": "運行緩慢",
+            "en": "Slow",
+            "fr": "Lent",
+            "de": "Langsam",
+            "it": "Lento"
+        },
+        "load_block": {
+            "zh-CN": "运行堵塞",
+            "zh-TW": "運行堵塞",
+            "en": "Congested",
+            "fr": "Surchargé",
+            "de": "Überlastet",
+            "it": "Congestionato"
+        },
+        "load_1min": {
+            "zh-CN": "最近1分钟平均负载：",
+            "zh-TW": "最近1分鐘平均負載：",
+            "en": "1-min Average Load: ",
+            "fr": "Charge moyenne 1 min : ",
+            "de": "Durchschnittslast 1 Min: ",
+            "it": "Carico medio 1 min: "
+        },
+        "load_5min": {
+            "zh-CN": "最近5分钟平均负载：",
+            "zh-TW": "最近5分鐘平均負載：",
+            "en": "5-min Average Load: ",
+            "fr": "Charge moyenne 5 min : ",
+            "de": "Durchschnittslast 5 Min: ",
+            "it": "Carico medio 5 min: "
+        },
+        "load_15min": {
+            "zh-CN": "最近15分钟平均负载：",
+            "zh-TW": "最近15分鐘平均負載：",
+            "en": "15-min Average Load: ",
+            "fr": "Charge moyenne 15 min : ",
+            "de": "Durchschnittslast 15 Min: ",
+            "it": "Carico medio 15 min: "
+        },
+        "cpu_usage": {
+            "zh-CN": "CPU使用率",
+            "zh-TW": "CPU使用率",
+            "en": "CPU Usage",
+            "fr": "Utilisation du CPU",
+            "de": "CPU-Auslastung",
+            "it": "Utilizzo CPU"
+        },
+        "cpu_physical": {
+            "zh-CN": "个物理CPU，",
+            "zh-TW": "個物理CPU，",
+            "en": " Physical CPU(s), ",
+            "fr": " processeur(s) physique(s), ",
+            "de": " physische CPU(s), ",
+            "it": " CPU fisica/e, "
+        },
+        "cpu_core": {
+            "zh-CN": "个物理核心，",
+            "zh-TW": "個物理核心，",
+            "en": " Core(s), ",
+            "fr": " cœur(s) physique(s), ",
+            "de": " Kerne, ",
+            "it": " core fisici, "
+        },
+        "cpu_logical": {
+            "zh-CN": "个逻辑核心</br>",
+            "zh-TW": "個邏輯核心</br>",
+            "en": " Logical Core(s)</br>",
+            "fr": " cœur(s) logique(s)</br>",
+            "de": " logische Kerne</br>",
+            "it": " core logici</br>"
+        },
+        "mem_usage": {
+            "zh-CN": "内存使用率",
+            "zh-TW": "記憶體使用率",
+            "en": "Memory Usage",
+            "fr": "Utilisation de la mémoire",
+            "de": "Speicherauslastung",
+            "it": "Utilizzo memoria"
+        },
+        "gpu_usage": {
+            "zh-CN": "GPU使用率",
+            "zh-TW": "GPU使用率",
+            "en": "GPU Usage",
+            "fr": "Utilisation du GPU",
+            "de": "GPU-Auslastung",
+            "it": "Utilizzo GPU"
+        },
+        "overview": {
+            "zh-CN": "概览",
+            "zh-TW": "概覽",
+            "en": "Overview",
+            "fr": "Aperçu",
+            "de": "Übersicht",
+            "it": "Panoramica"
+        },
+        "sites": {
+            "zh-CN": "网站",
+            "zh-TW": "網站",
+            "en": "Websites",
+            "fr": "Sites Web",
+            "de": "Websites",
+            "it": "Siti Web"
+        },
+        "software": {
+            "zh-CN": "软件",
+            "zh-TW": "軟體",
+            "en": "Software",
+            "fr": "Logiciels",
+            "de": "Software",
+            "it": "Software"
+        },
+        "traffic": {
+            "zh-CN": "流量",
+            "zh-TW": "流量",
+            "en": "Traffic",
+            "fr": "Trafic",
+            "de": "Netzwerk",
+            "it": "Traffico"
+        },
+        "disk_io": {
+            "zh-CN": "磁盘IO",
+            "zh-TW": "磁碟IO",
+            "en": "Disk I/O",
+            "fr": "E/S Disque",
+            "de": "Festplatten-I/O",
+            "it": "I/O Disco"
+        },
+        "net_up": {
+            "zh-CN": "上行",
+            "zh-TW": "上行",
+            "en": "Upload",
+            "fr": "Envoi",
+            "de": "Upload",
+            "it": "Upload"
+        },
+        "net_down": {
+            "zh-CN": "下行",
+            "zh-TW": "下行",
+            "en": "Download",
+            "fr": "Réception",
+            "de": "Download",
+            "it": "Download"
+        },
+        "net_total_sent": {
+            "zh-CN": "总发",
+            "zh-TW": "總發",
+            "en": "Total Sent",
+            "fr": "Total envoyé",
+            "de": "Gesendet",
+            "it": "Totale inviato"
+        },
+        "net_total_recv": {
+            "zh-CN": "总收",
+            "zh-TW": "總收",
+            "en": "Total Recv",
+            "fr": "Total reçu",
+            "de": "Empfangen",
+            "it": "Totale ricevuto"
+        },
+        "io_read": {
+            "zh-CN": "读取",
+            "zh-TW": "讀取",
+            "en": "Read",
+            "fr": "Lecture",
+            "de": "Lesen",
+            "it": "Lettura"
+        },
+        "io_write": {
+            "zh-CN": "写入",
+            "zh-TW": "寫入",
+            "en": "Write",
+            "fr": "Écriture",
+            "de": "Schreiben",
+            "it": "Scrittura"
+        },
+        "io_iops": {
+            "zh-CN": "每秒读写",
+            "zh-TW": "每秒讀寫",
+            "en": "IOPS",
+            "fr": "IOPS",
+            "de": "IOPS",
+            "it": "IOPS"
+        },
+        "io_latency": {
+            "zh-CN": "读写IO延迟",
+            "zh-TW": "讀寫IO延遲",
+            "en": "I/O Latency",
+            "fr": "Latence E/S",
+            "de": "I/O-Latenz",
+            "it": "Latenza I/O"
+        },
+        "recent_logins": {
+            "zh-CN": "登录记录",
+            "zh-TW": "登入記錄",
+            "en": "Recent Logins",
+            "fr": "Connexions récentes",
+            "de": "Letzte Anmeldungen",
+            "it": "Accessi recenti"
+        },
+        "curr_ip_prefix": {
+            "zh-CN": "当前IP:",
+            "zh-TW": "當前IP:",
+            "en": "Current IP:",
+            "fr": "IP actuelle :",
+            "de": "Aktuelle IP:",
+            "it": "IP corrente:"
+        },
+        "curr_client_ip": {
+            "zh-CN": "当前连接客户端IP",
+            "zh-TW": "當前連接客戶端IP",
+            "en": "Current Connected Client IP",
+            "fr": "IP du client connecté",
+            "de": "Aktuelle Client-IP",
+            "it": "IP client connesso"
+        },
+        "getting_login_logs": {
+            "zh-CN": "正在获取登录记录...",
+            "zh-TW": "正在獲取登入記錄...",
+            "en": "Loading login history...",
+            "fr": "Chargement de l'historique...",
+            "de": "Anmeldeverlauf wird geladen...",
+            "it": "Caricamento cronologia accessi..."
+        },
+        "more_logs": {
+            "zh-CN": "日志 »",
+            "zh-TW": "日誌 »",
+            "en": "Logs »",
+            "fr": "Journaux »",
+            "de": "Protokolle »",
+            "it": "Registri »"
+        },
+        "more_logs_tips": {
+            "zh-CN": "查看全部登录记录（支持筛选与分页）",
+            "zh-TW": "查看全部登入記錄（支援篩選與分頁）",
+            "en": "View all login logs (supports filters and paging)",
+            "fr": "Voir tous les journaux de connexion",
+            "de": "Alle Anmeldeprotokolle anzeigen",
+            "it": "Visualizza tutti i registri di accesso"
+        },
+        "about": {
+            "zh-CN": "关于",
+            "zh-TW": "關於",
+            "en": "About",
+            "fr": "À propos",
+            "de": "Über",
+            "it": "Informazioni"
+        },
+        "login_audit_title": {
+            "zh-CN": "登录记录审计",
+            "zh-TW": "登入記錄審計",
+            "en": "Login History Audit",
+            "fr": "Audit des connexions",
+            "de": "Anmeldeprotokoll-Audit",
+            "it": "Audit cronologia accessi"
+        },
+        "status_filter": {
+            "zh-CN": "状态筛选:",
+            "zh-TW": "狀態篩選:",
+            "en": "Status Filter:",
+            "fr": "Filtrer par statut :",
+            "de": "Statusfilter:",
+            "it": "Filtro stato:"
+        },
+        "all_status": {
+            "zh-CN": "全部状态",
+            "zh-TW": "全部狀態",
+            "en": "All Statuses",
+            "fr": "Tous les statuts",
+            "de": "Alle Status",
+            "it": "Tutti gli stati"
+        },
+        "success": {
+            "zh-CN": "成功",
+            "zh-TW": "成功",
+            "en": "Success",
+            "fr": "Succès",
+            "de": "Erfolg",
+            "it": "Riuscito"
+        },
+        "fail": {
+            "zh-CN": "失败",
+            "zh-TW": "失敗",
+            "en": "Failed",
+            "fr": "Échec",
+            "de": "Fehlgeschlagen",
+            "it": "Fallito"
+        },
+        "method_filter": {
+            "zh-CN": "方式筛选:",
+            "zh-TW": "方式篩選:",
+            "en": "Method Filter:",
+            "fr": "Filtrer par méthode :",
+            "de": "Methodenfilter:",
+            "it": "Filtro metodo:"
+        },
+        "all_methods": {
+            "zh-CN": "全部方式",
+            "zh-TW": "全部方式",
+            "en": "All Methods",
+            "fr": "Toutes les méthodes",
+            "de": "Alle Methoden",
+            "it": "Tutti i metodi"
+        },
+        "method": {
+            "zh-CN": "方式",
+            "zh-TW": "方式",
+            "en": "Method",
+            "fr": "Méthode",
+            "de": "Methode",
+            "it": "Metodo"
+        },
+        "login_ip": {
+            "zh-CN": "登录IP",
+            "zh-TW": "登入IP",
+            "en": "Login IP",
+            "fr": "IP de connexion",
+            "de": "Anmelde-IP",
+            "it": "IP di accesso"
+        },
+        "location": {
+            "zh-CN": "归属地",
+            "zh-TW": "歸屬地",
+            "en": "Location",
+            "fr": "Emplacement",
+            "de": "Standort",
+            "it": "Posizione"
+        },
+        "login_time": {
+            "zh-CN": "登录时间",
+            "zh-TW": "登入時間",
+            "en": "Login Time",
+            "fr": "Heure de connexion",
+            "de": "Anmeldezeit",
+            "it": "Ora di accesso"
+        },
+        "loading_logs": {
+            "zh-CN": "正在获取日志...",
+            "zh-TW": "正在獲取日誌...",
+            "en": "Fetching logs...",
+            "fr": "Récupération des journaux...",
+            "de": "Protokolle werden abgerufen...",
+            "it": "Recupero registri in corso..."
+        },
+        "no_login_logs": {
+            "zh-CN": "暂无登录记录",
+            "zh-TW": "暫無登入記錄",
+            "en": "No login history found",
+            "fr": "Aucun historique de connexion",
+            "de": "Kein Anmeldeverlauf gefunden",
+            "it": "Nessuna cronologia accessi trovata"
+        },
+        "no_matching_logs": {
+            "zh-CN": "未找到符合条件的登录记录",
+            "zh-TW": "未找到符合條件的登入記錄",
+            "en": "No matching login records found",
+            "fr": "Aucun enregistrement correspondant",
+            "de": "Keine passenden Datensätze gefunden",
+            "it": "Nessun record corrispondente trovato"
+        },
+        "current_session": {
+            "zh-CN": "本次",
+            "zh-TW": "本次",
+            "en": "Current",
+            "fr": "Actuelle",
+            "de": "Aktuell",
+            "it": "Attuale"
+        },
+        "lan_network": {
+            "zh-CN": "局域网",
+            "zh-TW": "區域網路",
+            "en": "LAN",
+            "fr": "Réseau local (LAN)",
+            "de": "Lokales Netzwerk (LAN)",
+            "it": "Rete locale (LAN)"
+        },
+        "querying": {
+            "zh-CN": "查询中...",
+            "zh-TW": "查詢中...",
+            "en": "Querying...",
+            "fr": "Recherche...",
+            "de": "Wird abgefragt...",
+            "it": "Ricerca in corso..."
+        },
+        "client_time": {
+            "zh-CN": "客户端时间: ",
+            "zh-TW": "客戶端時間: ",
+            "en": "Client Time: ",
+            "fr": "Heure client : ",
+            "de": "Client-Zeit: ",
+            "it": "Ora client: "
+        },
+        "server_time": {
+            "zh-CN": "服务器时间: ",
+            "zh-TW": "伺服器時間: ",
+            "en": "Server Time: ",
+            "fr": "Heure serveur : ",
+            "de": "Server-Zeit: ",
+            "it": "Ora server: "
+        }
+    },
+    "site": {
+        "search_placeholder": {
+            "zh-CN": "网站搜索",
+            "zh-TW": "網站搜尋",
+            "en": "Search websites...",
+            "fr": "Rechercher des sites...",
+            "de": "Websites suchen...",
+            "it": "Cerca siti web..."
+        },
+        "category_label": {
+            "zh-CN": "网站分类:",
+            "zh-TW": "網站分類:",
+            "en": "Category:",
+            "fr": "Catégorie :",
+            "de": "Kategorie:",
+            "it": "Categoria:"
+        },
+        "class_manage": {
+            "zh-CN": "分类管理",
+            "zh-TW": "分類管理",
+            "en": "Category Management",
+            "fr": "Gestion des catégories",
+            "de": "Kategorienverwaltung",
+            "it": "Gestione categorie"
+        },
+        "create_tip": {
+            "zh-CN": "使用御风Linux面板创建站点时会自动创建权限配置，统一使用www用户。",
+            "zh-TW": "使用御風Linux面板建立站點時會自動建立權限配置，統一使用www使用者。",
+            "en": "Permissions are automatically configured for websites under the www user.",
+            "fr": "Les permissions sont configurées automatiquement sous l'utilisateur www.",
+            "de": "Berechtigungen werden automatisch für den Benutzer www konfiguriert.",
+            "it": "I permessi vengono configurati automaticamente per l'utente www."
+        },
+        "add_site": {
+            "zh-CN": "添加站点",
+            "zh-TW": "新增站點",
+            "en": "Add Website",
+            "fr": "Ajouter un site",
+            "de": "Website hinzufügen",
+            "it": "Aggiungi sito"
+        },
+        "edit_default_page": {
+            "zh-CN": "修改默认页",
+            "zh-TW": "修改預設頁",
+            "en": "Default Page",
+            "fr": "Page par défaut",
+            "de": "Standardseite",
+            "it": "Pagina predefinita"
+        },
+        "default_site": {
+            "zh-CN": "默认站点",
+            "zh-TW": "預設站點",
+            "en": "Default Site",
+            "fr": "Site par défaut",
+            "de": "Standard-Website",
+            "it": "Sito predefinito"
+        },
+        "php_cli_version": {
+            "zh-CN": "PHP命令行版本",
+            "zh-TW": "PHP命令列版本",
+            "en": "PHP CLI Version",
+            "fr": "Version PHP CLI",
+            "de": "PHP-CLI-Version",
+            "it": "Versione PHP CLI"
+        },
+        "domain": {
+            "zh-CN": "域名",
+            "zh-TW": "網域名稱",
+            "en": "Domain",
+            "fr": "Domaine",
+            "de": "Domain",
+            "it": "Dominio"
+        },
+        "status": {
+            "zh-CN": "网站状态",
+            "zh-TW": "網站狀態",
+            "en": "Status",
+            "fr": "Statut",
+            "de": "Status",
+            "it": "Stato"
+        },
+        "backup": {
+            "zh-CN": "备份",
+            "zh-TW": "備份",
+            "en": "Backup",
+            "fr": "Sauvegarde",
+            "de": "Sicherung",
+            "it": "Backup"
+        },
+        "path": {
+            "zh-CN": "网站目录",
+            "zh-TW": "網站目錄",
+            "en": "Root Path",
+            "fr": "Répertoire racine",
+            "de": "Stammverzeichnis",
+            "it": "Percorso radice"
+        },
+        "expire_date": {
+            "zh-CN": "到期日期",
+            "zh-TW": "到期日期",
+            "en": "Expiration Date",
+            "fr": "Date d'expiration",
+            "de": "Ablaufdatum",
+            "it": "Data di scadenza"
+        },
+        "ssl_cert": {
+            "zh-CN": "SSL证书",
+            "zh-TW": "SSL憑證",
+            "en": "SSL Certificate",
+            "fr": "Certificat SSL",
+            "de": "SSL-Zertifikat",
+            "it": "Certificato SSL"
+        },
+        "day_traffic": {
+            "zh-CN": "今日流量",
+            "zh-TW": "今日流量",
+            "en": "Today's Traffic",
+            "fr": "Trafic du jour",
+            "de": "Heutiger Datenverkehr",
+            "it": "Traffico odierno"
+        },
+        "add_time": {
+            "zh-CN": "创建时间",
+            "zh-TW": "建立時間",
+            "en": "Created Time",
+            "fr": "Date de création",
+            "de": "Erstellungszeit",
+            "it": "Data di creazione"
+        },
+        "ps": {
+            "zh-CN": "备注",
+            "zh-TW": "備註",
+            "en": "Note",
+            "fr": "Remarque",
+            "de": "Notiz",
+            "it": "Nota"
+        },
+        "site_auto_str_1": {
+            "zh-CN": "正在运行",
+            "zh-TW": "正在运行",
+            "en": "正在运行",
+            "fr": "正在运行",
+            "de": "正在运行",
+            "it": "正在运行"
+        },
+        "site_auto_str_2": {
+            "zh-CN": "<a href='javascript:;' title='停用这个站点' onclick=\"webStop(",
+            "zh-TW": "<a href='javascript:;' title='停用这个站点' onclick=\"webStop(",
+            "en": "<a href='javascript:;' title='停用这个站点' onclick=\"webStop(",
+            "fr": "<a href='javascript:;' title='停用这个站点' onclick=\"webStop(",
+            "de": "<a href='javascript:;' title='停用这个站点' onclick=\"webStop(",
+            "it": "<a href='javascript:;' title='停用这个站点' onclick=\"webStop("
+        },
+        "site_auto_str_3": {
+            "zh-CN": "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>运行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>",
+            "zh-TW": "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>运行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>",
+            "en": "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>运行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>",
+            "fr": "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>运行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>",
+            "de": "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>运行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>",
+            "it": "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>运行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>"
+        },
+        "site_auto_str_4": {
+            "zh-CN": "<a href='javascript:;' title='启用这个站点' onclick=\"webStart(",
+            "zh-TW": "<a href='javascript:;' title='启用这个站点' onclick=\"webStart(",
+            "en": "<a href='javascript:;' title='启用这个站点' onclick=\"webStart(",
+            "fr": "<a href='javascript:;' title='启用这个站点' onclick=\"webStart(",
+            "de": "<a href='javascript:;' title='启用这个站点' onclick=\"webStart(",
+            "it": "<a href='javascript:;' title='启用这个站点' onclick=\"webStart("
+        },
+        "site_auto_str_5": {
+            "zh-CN": "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>",
+            "zh-TW": "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>",
+            "en": "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>",
+            "fr": "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>",
+            "de": "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>",
+            "it": "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>"
+        },
+        "site_auto_str_6": {
+            "zh-CN": ")\">有备份</a>",
+            "zh-TW": ")\">有备份</a>",
+            "en": ")\">有备份</a>",
+            "fr": ")\">有备份</a>",
+            "de": ")\">有备份</a>",
+            "it": ")\">有备份</a>"
+        },
+        "site_auto_str_7": {
+            "zh-CN": ")\">无备份</a>",
+            "zh-TW": ")\">无备份</a>",
+            "en": ")\">无备份</a>",
+            "fr": ")\">无备份</a>",
+            "de": ")\">无备份</a>",
+            "it": ")\">无备份</a>"
+        },
+        "site_auto_str_8": {
+            "zh-CN": "永久",
+            "zh-TW": "永久",
+            "en": "永久",
+            "fr": "永久",
+            "de": "永久",
+            "it": "永久"
+        },
+        "site_auto_str_9": {
+            "zh-CN": "静态",
+            "zh-TW": "静态",
+            "en": "静态",
+            "fr": "静态",
+            "de": "静态",
+            "it": "静态"
+        },
+        "site_auto_str_10": {
+            "zh-CN": "', 'ssl')\" style='color:#bbb'>未部署</a>",
+            "zh-TW": "', 'ssl')\" style='color:#bbb'>未部署</a>",
+            "en": "', 'ssl')\" style='color:#bbb'>未部署</a>",
+            "fr": "', 'ssl')\" style='color:#bbb'>未部署</a>",
+            "de": "', 'ssl')\" style='color:#bbb'>未部署</a>",
+            "it": "', 'ssl')\" style='color:#bbb'>未部署</a>"
+        },
+        "site_auto_str_11": {
+            "zh-CN": "', 'ssl')\" style='color:red'>剩余",
+            "zh-TW": "', 'ssl')\" style='color:red'>剩余",
+            "en": "', 'ssl')\" style='color:red'>剩余",
+            "fr": "', 'ssl')\" style='color:red'>剩余",
+            "de": "', 'ssl')\" style='color:red'>剩余",
+            "it": "', 'ssl')\" style='color:red'>剩余"
+        },
+        "site_auto_str_12": {
+            "zh-CN": "天</a>",
+            "zh-TW": "天</a>",
+            "en": "天</a>",
+            "fr": "天</a>",
+            "de": "天</a>",
+            "it": "天</a>"
+        },
+        "site_auto_str_13": {
+            "zh-CN": "', 'ssl')\" style='color:#20a53a'>剩余",
+            "zh-TW": "', 'ssl')\" style='color:#20a53a'>剩余",
+            "en": "', 'ssl')\" style='color:#20a53a'>剩余",
+            "fr": "', 'ssl')\" style='color:#20a53a'>剩余",
+            "de": "', 'ssl')\" style='color:#20a53a'>剩余",
+            "it": "', 'ssl')\" style='color:#20a53a'>剩余"
+        },
+        "site_auto_str_14": {
+            "zh-CN": "天</a>",
+            "zh-TW": "天</a>",
+            "en": "天</a>",
+            "fr": "天</a>",
+            "de": "天</a>",
+            "it": "天</a>"
+        },
+        "site_auto_str_15": {
+            "zh-CN": "</td>\t\t\t\t\t<td><a class='btlink' title='打开目录",
+            "zh-TW": "</td>\t\t\t\t\t<td><a class='btlink' title='打开目录",
+            "en": "</td>\t\t\t\t\t<td><a class='btlink' title='打开目录",
+            "fr": "</td>\t\t\t\t\t<td><a class='btlink' title='打开目录",
+            "de": "</td>\t\t\t\t\t<td><a class='btlink' title='打开目录",
+            "it": "</td>\t\t\t\t\t<td><a class='btlink' title='打开目录"
+        },
+        "site_auto_str_16": {
+            "zh-CN": "', 'config')\">设置</a>                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('",
+            "zh-TW": "', 'config')\">设置</a>                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('",
+            "en": "', 'config')\">设置</a>                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('",
+            "fr": "', 'config')\">设置</a>                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('",
+            "de": "', 'config')\">设置</a>                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('",
+            "it": "', 'config')\">设置</a>                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('"
+        },
+        "site_auto_str_17": {
+            "zh-CN": "')\" title='删除站点'>删除</a>\t\t\t\t\t</td></tr>",
+            "zh-TW": "')\" title='删除站点'>删除</a>\t\t\t\t\t</td></tr>",
+            "en": "')\" title='删除站点'>删除</a>\t\t\t\t\t</td></tr>",
+            "fr": "')\" title='删除站点'>删除</a>\t\t\t\t\t</td></tr>",
+            "de": "')\" title='删除站点'>删除</a>\t\t\t\t\t</td></tr>",
+            "it": "')\" title='删除站点'>删除</a>\t\t\t\t\t</td></tr>"
+        },
+        "site_auto_str_18": {
+            "zh-CN": "永久",
+            "zh-TW": "永久",
+            "en": "永久",
+            "fr": "永久",
+            "de": "永久",
+            "it": "永久"
+        },
+        "site_auto_str_19": {
+            "zh-CN": "正在保存...",
+            "zh-TW": "正在保存...",
+            "en": "正在保存...",
+            "fr": "正在保存...",
+            "de": "正在保存...",
+            "it": "正在保存..."
+        },
+        "site_auto_str_20": {
+            "zh-CN": "<tr><td colspan='9' style='text-align: center;'>当前没有站点数据</td></tr>",
+            "zh-TW": "<tr><td colspan='9' style='text-align: center;'>当前没有站点数据</td></tr>",
+            "en": "<tr><td colspan='9' style='text-align: center;'>当前没有站点数据</td></tr>",
+            "fr": "<tr><td colspan='9' style='text-align: center;'>当前没有站点数据</td></tr>",
+            "de": "<tr><td colspan='9' style='text-align: center;'>当前没有站点数据</td></tr>",
+            "it": "<tr><td colspan='9' style='text-align: center;'>当前没有站点数据</td></tr>"
+        },
+        "site_auto_str_21": {
+            "zh-CN": "' placeholder='备注信息' onblur='getBakPost(\"sites\")' />",
+            "zh-TW": "' placeholder='备注信息' onblur='getBakPost(\"sites\")' />",
+            "en": "' placeholder='备注信息' onblur='getBakPost(\"sites\")' />",
+            "fr": "' placeholder='备注信息' onblur='getBakPost(\"sites\")' />",
+            "de": "' placeholder='备注信息' onblur='getBakPost(\"sites\")' />",
+            "it": "' placeholder='备注信息' onblur='getBakPost(\"sites\")' />"
+        },
+        "site_auto_str_22": {
+            "zh-CN": "空",
+            "zh-TW": "空",
+            "en": "空",
+            "fr": "空",
+            "de": "空",
+            "it": "空"
+        },
+        "site_auto_str_23": {
+            "zh-CN": "修改成功!",
+            "zh-TW": "修改成功!",
+            "en": "修改成功!",
+            "fr": "修改成功!",
+            "de": "修改成功!",
+            "it": "修改成功!"
+        },
+        "site_auto_str_24": {
+            "zh-CN": "修改失败!",
+            "zh-TW": "修改失败!",
+            "en": "修改失败!",
+            "fr": "修改失败!",
+            "de": "修改失败!",
+            "it": "修改失败!"
+        },
+        "site_auto_str_25": {
+            "zh-CN": "正在检查是否开启OpenResty服务!",
+            "zh-TW": "正在检查是否开启OpenResty服务!",
+            "en": "正在检查是否开启OpenResty服务!",
+            "fr": "正在检查是否开启OpenResty服务!",
+            "de": "正在检查是否开启OpenResty服务!",
+            "it": "正在检查是否开启OpenResty服务!"
+        },
+        "site_auto_str_26": {
+            "zh-CN": "成功创建站点",
+            "zh-TW": "成功创建站点",
+            "en": "成功创建站点",
+            "fr": "成功创建站点",
+            "de": "成功创建站点",
+            "it": "成功创建站点"
+        },
+        "site_auto_str_27": {
+            "zh-CN": "添加网站",
+            "zh-TW": "添加网站",
+            "en": "添加网站",
+            "fr": "添加网站",
+            "de": "添加网站",
+            "it": "添加网站"
+        },
+        "site_auto_str_28": {
+            "zh-CN": "</span>                    <div class='info-r c4'>\t\t\t\t\t\t<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px'></textarea>\t\t\t\t\t</div>\t\t\t\t</div>                <div class='line'>                <span class='tname'>备注</span>                <div class='info-r c4'>                \t<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='网站备注' style='width:458px' />                </div>                </div>                <div class='line'>                <span class='tname'>根目录</span>                <div class='info-r c4'>                \t<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='",
+            "zh-TW": "</span>                    <div class='info-r c4'>\t\t\t\t\t\t<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px'></textarea>\t\t\t\t\t</div>\t\t\t\t</div>                <div class='line'>                <span class='tname'>备注</span>                <div class='info-r c4'>                \t<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='网站备注' style='width:458px' />                </div>                </div>                <div class='line'>                <span class='tname'>根目录</span>                <div class='info-r c4'>                \t<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='",
+            "en": "</span>                    <div class='info-r c4'>\t\t\t\t\t\t<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px'></textarea>\t\t\t\t\t</div>\t\t\t\t</div>                <div class='line'>                <span class='tname'>备注</span>                <div class='info-r c4'>                \t<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='网站备注' style='width:458px' />                </div>                </div>                <div class='line'>                <span class='tname'>根目录</span>                <div class='info-r c4'>                \t<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='",
+            "fr": "</span>                    <div class='info-r c4'>\t\t\t\t\t\t<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px'></textarea>\t\t\t\t\t</div>\t\t\t\t</div>                <div class='line'>                <span class='tname'>备注</span>                <div class='info-r c4'>                \t<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='网站备注' style='width:458px' />                </div>                </div>                <div class='line'>                <span class='tname'>根目录</span>                <div class='info-r c4'>                \t<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='",
+            "de": "</span>                    <div class='info-r c4'>\t\t\t\t\t\t<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px'></textarea>\t\t\t\t\t</div>\t\t\t\t</div>                <div class='line'>                <span class='tname'>备注</span>                <div class='info-r c4'>                \t<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='网站备注' style='width:458px' />                </div>                </div>                <div class='line'>                <span class='tname'>根目录</span>                <div class='info-r c4'>                \t<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='",
+            "it": "</span>                    <div class='info-r c4'>\t\t\t\t\t\t<textarea id='mainDomain' class='bt-input-text' name='webname' style='width:458px;height:100px;line-height:22px'></textarea>\t\t\t\t\t</div>\t\t\t\t</div>                <div class='line'>                <span class='tname'>备注</span>                <div class='info-r c4'>                \t<input id='Wbeizhu' class='bt-input-text' type='text' name='ps' placeholder='网站备注' style='width:458px' />                </div>                </div>                <div class='line'>                <span class='tname'>根目录</span>                <div class='info-r c4'>                \t<input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"
+        },
+        "site_auto_str_29": {
+            "zh-CN": "                <div class='bt-form-submit-btn'>\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">提交</button>\t\t\t\t</div>            </form>",
+            "zh-TW": "                <div class='bt-form-submit-btn'>\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">提交</button>\t\t\t\t</div>            </form>",
+            "en": "                <div class='bt-form-submit-btn'>\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">提交</button>\t\t\t\t</div>            </form>",
+            "fr": "                <div class='bt-form-submit-btn'>\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">提交</button>\t\t\t\t</div>            </form>",
+            "de": "                <div class='bt-form-submit-btn'>\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">提交</button>\t\t\t\t</div>            </form>",
+            "it": "                <div class='bt-form-submit-btn'>\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t<button type='button' class='btn btn-success btn-sm btn-title' onclick=\"webAdd(1)\">提交</button>\t\t\t\t</div>            </form>"
+        },
+        "site_auto_str_30": {
+            "zh-CN": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "zh-TW": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "en": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "fr": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "de": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "it": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!"
+        },
+        "site_auto_str_31": {
+            "zh-CN": "不能超出20个字符!",
+            "zh-TW": "不能超出20个字符!",
+            "en": "不能超出20个字符!",
+            "fr": "不能超出20个字符!",
+            "de": "不能超出20个字符!",
+            "it": "不能超出20个字符!"
+        },
+        "site_auto_str_32": {
+            "zh-CN": " /><label class='mr20' for='userini' style='font-weight:normal'>防跨站攻击(open_basedir)</label>\t\t\t\t\t\t<input type='checkbox' name='logs' id='logs'",
+            "zh-TW": " /><label class='mr20' for='userini' style='font-weight:normal'>防跨站攻击(open_basedir)</label>\t\t\t\t\t\t<input type='checkbox' name='logs' id='logs'",
+            "en": " /><label class='mr20' for='userini' style='font-weight:normal'>防跨站攻击(open_basedir)</label>\t\t\t\t\t\t<input type='checkbox' name='logs' id='logs'",
+            "fr": " /><label class='mr20' for='userini' style='font-weight:normal'>防跨站攻击(open_basedir)</label>\t\t\t\t\t\t<input type='checkbox' name='logs' id='logs'",
+            "de": " /><label class='mr20' for='userini' style='font-weight:normal'>防跨站攻击(open_basedir)</label>\t\t\t\t\t\t<input type='checkbox' name='logs' id='logs'",
+            "it": " /><label class='mr20' for='userini' style='font-weight:normal'>防跨站攻击(open_basedir)</label>\t\t\t\t\t\t<input type='checkbox' name='logs' id='logs'"
+        },
+        "site_auto_str_33": {
+            "zh-CN": " /><label for='logs' style='font-weight:normal'>写访问日志</label>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mt10'>\t\t\t\t\t\t<span class='mr5'>网站目录</span>\t\t\t\t\t\t<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='网站根目录' value='",
+            "zh-TW": " /><label for='logs' style='font-weight:normal'>写访问日志</label>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mt10'>\t\t\t\t\t\t<span class='mr5'>网站目录</span>\t\t\t\t\t\t<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='网站根目录' value='",
+            "en": " /><label for='logs' style='font-weight:normal'>写访问日志</label>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mt10'>\t\t\t\t\t\t<span class='mr5'>网站目录</span>\t\t\t\t\t\t<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='网站根目录' value='",
+            "fr": " /><label for='logs' style='font-weight:normal'>写访问日志</label>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mt10'>\t\t\t\t\t\t<span class='mr5'>网站目录</span>\t\t\t\t\t\t<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='网站根目录' value='",
+            "de": " /><label for='logs' style='font-weight:normal'>写访问日志</label>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mt10'>\t\t\t\t\t\t<span class='mr5'>网站目录</span>\t\t\t\t\t\t<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='网站根目录' value='",
+            "it": " /><label for='logs' style='font-weight:normal'>写访问日志</label>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mt10'>\t\t\t\t\t\t<span class='mr5'>网站目录</span>\t\t\t\t\t\t<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='网站根目录' value='"
+        },
+        "site_auto_str_34": {
+            "zh-CN": ")'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mtb15'>\t\t\t\t\t\t<span class='mr5'>运行目录</span>\t\t\t\t\t\t<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>",
+            "zh-TW": ")'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mtb15'>\t\t\t\t\t\t<span class='mr5'>运行目录</span>\t\t\t\t\t\t<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>",
+            "en": ")'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mtb15'>\t\t\t\t\t\t<span class='mr5'>运行目录</span>\t\t\t\t\t\t<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>",
+            "fr": ")'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mtb15'>\t\t\t\t\t\t<span class='mr5'>运行目录</span>\t\t\t\t\t\t<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>",
+            "de": ")'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mtb15'>\t\t\t\t\t\t<span class='mr5'>运行目录</span>\t\t\t\t\t\t<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>",
+            "it": ")'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<div class='line mtb15'>\t\t\t\t\t\t<span class='mr5'>运行目录</span>\t\t\t\t\t\t<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>"
+        },
+        "site_auto_str_35": {
+            "zh-CN": ")' style='margin-top: -1px;'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel</li>\t\t\t\t\t\t<li>选择您的运行目录，点保存即可</li>\t\t\t\t\t</ul>",
+            "zh-TW": ")' style='margin-top: -1px;'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel</li>\t\t\t\t\t\t<li>选择您的运行目录，点保存即可</li>\t\t\t\t\t</ul>",
+            "en": ")' style='margin-top: -1px;'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel</li>\t\t\t\t\t\t<li>选择您的运行目录，点保存即可</li>\t\t\t\t\t</ul>",
+            "fr": ")' style='margin-top: -1px;'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel</li>\t\t\t\t\t\t<li>选择您的运行目录，点保存即可</li>\t\t\t\t\t</ul>",
+            "de": ")' style='margin-top: -1px;'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel</li>\t\t\t\t\t\t<li>选择您的运行目录，点保存即可</li>\t\t\t\t\t</ul>",
+            "it": ")' style='margin-top: -1px;'>保存</button>\t\t\t\t\t</div>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel</li>\t\t\t\t\t\t<li>选择您的运行目录，点保存即可</li>\t\t\t\t\t</ul>"
+        },
+        "site_auto_str_36": {
+            "zh-CN": "<span class=\"tit\">密码访问</span>",
+            "zh-TW": "<span class=\"tit\">密码访问</span>",
+            "en": "<span class=\"tit\">密码访问</span>",
+            "fr": "<span class=\"tit\">密码访问</span>",
+            "de": "<span class=\"tit\">密码访问</span>",
+            "it": "<span class=\"tit\">密码访问</span>"
+        },
+        "site_auto_str_37": {
+            "zh-CN": "<p><span>授权账号</span><input id=\"username_get\" class=\"bt-input-text\" name=\"username_get\" value=\"\" type=\"text\" placeholder=\"不修改请留空\"></p>",
+            "zh-TW": "<p><span>授权账号</span><input id=\"username_get\" class=\"bt-input-text\" name=\"username_get\" value=\"\" type=\"text\" placeholder=\"不修改请留空\"></p>",
+            "en": "<p><span>授权账号</span><input id=\"username_get\" class=\"bt-input-text\" name=\"username_get\" value=\"\" type=\"text\" placeholder=\"不修改请留空\"></p>",
+            "fr": "<p><span>授权账号</span><input id=\"username_get\" class=\"bt-input-text\" name=\"username_get\" value=\"\" type=\"text\" placeholder=\"不修改请留空\"></p>",
+            "de": "<p><span>授权账号</span><input id=\"username_get\" class=\"bt-input-text\" name=\"username_get\" value=\"\" type=\"text\" placeholder=\"不修改请留空\"></p>",
+            "it": "<p><span>授权账号</span><input id=\"username_get\" class=\"bt-input-text\" name=\"username_get\" value=\"\" type=\"text\" placeholder=\"不修改请留空\"></p>"
+        },
+        "site_auto_str_38": {
+            "zh-CN": "<p><span>访问密码</span><input id=\"password_get_1\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "zh-TW": "<p><span>访问密码</span><input id=\"password_get_1\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "en": "<p><span>访问密码</span><input id=\"password_get_1\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "fr": "<p><span>访问密码</span><input id=\"password_get_1\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "de": "<p><span>访问密码</span><input id=\"password_get_1\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "it": "<p><span>访问密码</span><input id=\"password_get_1\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>"
+        },
+        "site_auto_str_39": {
+            "zh-CN": "<p><span>重复密码</span><input id=\"password_get_2\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "zh-TW": "<p><span>重复密码</span><input id=\"password_get_2\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "en": "<p><span>重复密码</span><input id=\"password_get_2\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "fr": "<p><span>重复密码</span><input id=\"password_get_2\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "de": "<p><span>重复密码</span><input id=\"password_get_2\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>",
+            "it": "<p><span>重复密码</span><input id=\"password_get_2\" class=\"bt-input-text\" name=\"password_get_1\" value=\"\" type=\"password\" placeholder=\"不修改请留空\"></p>"
+        },
+        "site_auto_str_40": {
+            "zh-CN": ")\">保存</button></p>",
+            "zh-TW": ")\">保存</button></p>",
+            "en": ")\">保存</button></p>",
+            "fr": ")\">保存</button></p>",
+            "de": ")\">保存</button></p>",
+            "it": ")\">保存</button></p>"
+        },
+        "site_auto_str_41": {
+            "zh-CN": "<p style=\"color:red;\">注意：设置防跨站需要重启PHP才能生效!</p>",
+            "zh-TW": "<p style=\"color:red;\">注意：设置防跨站需要重启PHP才能生效!</p>",
+            "en": "<p style=\"color:red;\">注意：设置防跨站需要重启PHP才能生效!</p>",
+            "fr": "<p style=\"color:red;\">注意：设置防跨站需要重启PHP才能生效!</p>",
+            "de": "<p style=\"color:red;\">注意：设置防跨站需要重启PHP才能生效!</p>",
+            "it": "<p style=\"color:red;\">注意：设置防跨站需要重启PHP才能生效!</p>"
+        },
+        "site_auto_str_42": {
+            "zh-CN": "正在设置中...",
+            "zh-TW": "正在设置中...",
+            "en": "正在设置中...",
+            "fr": "正在设置中...",
+            "de": "正在设置中...",
+            "it": "正在设置中..."
+        },
+        "site_auto_str_43": {
+            "zh-CN": "两次输入的密码不一致!",
+            "zh-TW": "两次输入的密码不一致!",
+            "en": "两次输入的密码不一致!",
+            "fr": "两次输入的密码不一致!",
+            "de": "两次输入的密码不一致!",
+            "it": "两次输入的密码不一致!"
+        },
+        "site_auto_str_44": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,请稍候...",
+            "en": "正在处理,请稍候...",
+            "fr": "正在处理,请稍候...",
+            "de": "正在处理,请稍候...",
+            "it": "正在处理,请稍候..."
+        },
+        "site_auto_str_45": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,请稍候...",
+            "en": "正在处理,请稍候...",
+            "fr": "正在处理,请稍候...",
+            "de": "正在处理,请稍候...",
+            "it": "正在处理,请稍候..."
+        },
+        "site_auto_str_46": {
+            "zh-CN": ")'>保存</button>\t\t\t</div>\t\t</div>",
+            "zh-TW": ")'>保存</button>\t\t\t</div>\t\t</div>",
+            "en": ")'>保存</button>\t\t\t</div>\t\t</div>",
+            "fr": ")'>保存</button>\t\t\t</div>\t\t</div>",
+            "de": ")'>保存</button>\t\t\t</div>\t\t</div>",
+            "it": ")'>保存</button>\t\t\t</div>\t\t</div>"
+        },
+        "site_auto_str_47": {
+            "zh-CN": "</button>\t\t\t\t</div>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>默认文档，每行一个，优先级由上至下。</li>\t\t\t\t</ul>\t\t\t\t</div></div>",
+            "zh-TW": "</button>\t\t\t\t</div>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>默认文档，每行一个，优先级由上至下。</li>\t\t\t\t</ul>\t\t\t\t</div></div>",
+            "en": "</button>\t\t\t\t</div>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>默认文档，每行一个，优先级由上至下。</li>\t\t\t\t</ul>\t\t\t\t</div></div>",
+            "fr": "</button>\t\t\t\t</div>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>默认文档，每行一个，优先级由上至下。</li>\t\t\t\t</ul>\t\t\t\t</div></div>",
+            "de": "</button>\t\t\t\t</div>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>默认文档，每行一个，优先级由上至下。</li>\t\t\t\t</ul>\t\t\t\t</div></div>",
+            "it": "</button>\t\t\t\t</div>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>默认文档，每行一个，优先级由上至下。</li>\t\t\t\t</ul>\t\t\t\t</div></div>"
+        },
+        "site_auto_str_48": {
+            "zh-CN": "站点停用后将无法访问，您真的要停用这个站点吗？",
+            "zh-TW": "站点停用后将无法访问，您真的要停用这个站点吗？",
+            "en": "站点停用后将无法访问，您真的要停用这个站点吗？",
+            "fr": "站点停用后将无法访问，您真的要停用这个站点吗？",
+            "de": "站点停用后将无法访问，您真的要停用这个站点吗？",
+            "it": "站点停用后将无法访问，您真的要停用这个站点吗？"
+        },
+        "site_auto_str_49": {
+            "zh-CN": "即将启动站点，您真的要启用这个站点吗？",
+            "zh-TW": "即将启动站点，您真的要启用这个站点吗？",
+            "en": "即将启动站点，您真的要启用这个站点吗？",
+            "fr": "即将启动站点，您真的要启用这个站点吗？",
+            "de": "即将启动站点，您真的要启用这个站点吗？",
+            "it": "即将启动站点，您真的要启用这个站点吗？"
+        },
+        "site_auto_str_50": {
+            "zh-CN": "<div class='options'>\t    \t<label><input type='checkbox' id='delpath' name='path'><span>根目录</span></label>\t    \t</div>",
+            "zh-TW": "<div class='options'>\t    \t<label><input type='checkbox' id='delpath' name='path'><span>根目录</span></label>\t    \t</div>",
+            "en": "<div class='options'>\t    \t<label><input type='checkbox' id='delpath' name='path'><span>根目录</span></label>\t    \t</div>",
+            "fr": "<div class='options'>\t    \t<label><input type='checkbox' id='delpath' name='path'><span>根目录</span></label>\t    \t</div>",
+            "de": "<div class='options'>\t    \t<label><input type='checkbox' id='delpath' name='path'><span>根目录</span></label>\t    \t</div>",
+            "it": "<div class='options'>\t    \t<label><input type='checkbox' id='delpath' name='path'><span>根目录</span></label>\t    \t</div>"
+        },
+        "site_auto_str_51": {
+            "zh-CN": "是否要删除同名根目录",
+            "zh-TW": "是否要删除同名根目录",
+            "en": "是否要删除同名根目录",
+            "fr": "是否要删除同名根目录",
+            "de": "是否要删除同名根目录",
+            "it": "是否要删除同名根目录"
+        },
+        "site_auto_str_52": {
+            "zh-CN": "删除站点",
+            "zh-TW": "删除站点",
+            "en": "删除站点",
+            "fr": "删除站点",
+            "de": "删除站点",
+            "it": "删除站点"
+        },
+        "site_auto_str_53": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,请稍候...",
+            "en": "正在处理,请稍候...",
+            "fr": "正在处理,请稍候...",
+            "de": "正在处理,请稍候...",
+            "it": "正在处理,请稍候..."
+        },
+        "site_auto_str_54": {
+            "zh-CN": "',1)\">添加</button>\t\t\t\t\t\t\t<div class='divtable mtb15' style='height:420px;overflow:auto'>\t\t\t\t\t\t\t\t<table class='table table-hover' width='100%'>\t\t\t\t\t\t\t\t<thead><tr><th>",
+            "zh-TW": "',1)\">添加</button>\t\t\t\t\t\t\t<div class='divtable mtb15' style='height:420px;overflow:auto'>\t\t\t\t\t\t\t\t<table class='table table-hover' width='100%'>\t\t\t\t\t\t\t\t<thead><tr><th>",
+            "en": "',1)\">添加</button>\t\t\t\t\t\t\t<div class='divtable mtb15' style='height:420px;overflow:auto'>\t\t\t\t\t\t\t\t<table class='table table-hover' width='100%'>\t\t\t\t\t\t\t\t<thead><tr><th>",
+            "fr": "',1)\">添加</button>\t\t\t\t\t\t\t<div class='divtable mtb15' style='height:420px;overflow:auto'>\t\t\t\t\t\t\t\t<table class='table table-hover' width='100%'>\t\t\t\t\t\t\t\t<thead><tr><th>",
+            "de": "',1)\">添加</button>\t\t\t\t\t\t\t<div class='divtable mtb15' style='height:420px;overflow:auto'>\t\t\t\t\t\t\t\t<table class='table table-hover' width='100%'>\t\t\t\t\t\t\t\t<thead><tr><th>",
+            "it": "',1)\">添加</button>\t\t\t\t\t\t\t<div class='divtable mtb15' style='height:420px;overflow:auto'>\t\t\t\t\t\t\t\t<table class='table table-hover' width='100%'>\t\t\t\t\t\t\t\t<thead><tr><th>"
+        },
+        "site_auto_str_55": {
+            "zh-CN": "</th><th width='70px'>端口</th><th width='50px' class='text-center'>操作</th></tr></thead>\t\t\t\t\t\t\t\t<tbody id='checkDomain'>",
+            "zh-TW": "</th><th width='70px'>端口</th><th width='50px' class='text-center'>操作</th></tr></thead>\t\t\t\t\t\t\t\t<tbody id='checkDomain'>",
+            "en": "</th><th width='70px'>端口</th><th width='50px' class='text-center'>操作</th></tr></thead>\t\t\t\t\t\t\t\t<tbody id='checkDomain'>",
+            "fr": "</th><th width='70px'>端口</th><th width='50px' class='text-center'>操作</th></tr></thead>\t\t\t\t\t\t\t\t<tbody id='checkDomain'>",
+            "de": "</th><th width='70px'>端口</th><th width='50px' class='text-center'>操作</th></tr></thead>\t\t\t\t\t\t\t\t<tbody id='checkDomain'>",
+            "it": "</th><th width='70px'>端口</th><th width='50px' class='text-center'>操作</th></tr></thead>\t\t\t\t\t\t\t\t<tbody id='checkDomain'>"
+        },
+        "site_auto_str_56": {
+            "zh-CN": "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "zh-TW": "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "en": "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "fr": "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "de": "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "it": "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>"
+        },
+        "site_auto_str_57": {
+            "zh-CN": "您真的要从站点中删除这个域名吗？",
+            "zh-TW": "您真的要从站点中删除这个域名吗？",
+            "en": "您真的要从站点中删除这个域名吗？",
+            "fr": "您真的要从站点中删除这个域名吗？",
+            "de": "您真的要从站点中删除这个域名吗？",
+            "it": "您真的要从站点中删除这个域名吗？"
+        },
+        "site_auto_str_58": {
+            "zh-CN": "正在备份,请稍候...",
+            "zh-TW": "正在备份,请稍候...",
+            "en": "正在备份,请稍候...",
+            "fr": "正在备份,请稍候...",
+            "de": "正在备份,请稍候...",
+            "it": "正在备份,请稍候..."
+        },
+        "site_auto_str_59": {
+            "zh-CN": "真的要删除备份包吗?",
+            "zh-TW": "真的要删除备份包吗?",
+            "en": "真的要删除备份包吗?",
+            "fr": "真的要删除备份包吗?",
+            "de": "真的要删除备份包吗?",
+            "it": "真的要删除备份包吗?"
+        },
+        "site_auto_str_60": {
+            "zh-CN": "删除备份文件!",
+            "zh-TW": "删除备份文件!",
+            "en": "删除备份文件!",
+            "fr": "删除备份文件!",
+            "de": "删除备份文件!",
+            "it": "删除备份文件!"
+        },
+        "site_auto_str_61": {
+            "zh-CN": "正在删除,请稍候...",
+            "zh-TW": "正在删除,请稍候...",
+            "en": "正在删除,请稍候...",
+            "fr": "正在删除,请稍候...",
+            "de": "正在删除,请稍候...",
+            "it": "正在删除,请稍候..."
+        },
+        "site_auto_str_62": {
+            "zh-CN": "' target='_blank'>下载</a> | ",
+            "zh-TW": "' target='_blank'>下载</a> | ",
+            "en": "' target='_blank'>下载</a> | ",
+            "fr": "' target='_blank'>下载</a> | ",
+            "de": "' target='_blank'>下载</a> | ",
+            "it": "' target='_blank'>下载</a> | "
+        },
+        "site_auto_str_63": {
+            "zh-CN": ")\">删除</a></td>\t\t\t\t</tr>",
+            "zh-TW": ")\">删除</a></td>\t\t\t\t</tr>",
+            "en": ")\">删除</a></td>\t\t\t\t</tr>",
+            "fr": ")\">删除</a></td>\t\t\t\t</tr>",
+            "de": ")\">删除</a></td>\t\t\t\t</tr>",
+            "it": ")\">删除</a></td>\t\t\t\t</tr>"
+        },
+        "site_auto_str_64": {
+            "zh-CN": "<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t<thead><tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr></thead>\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "zh-TW": "<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t<thead><tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr></thead>\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "en": "<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t<thead><tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr></thead>\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "fr": "<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t<thead><tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr></thead>\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "de": "<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t<thead><tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr></thead>\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "it": "<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t<thead><tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr></thead>\t\t\t\t<tbody id='webBackupBody' class='list-list'>"
+        },
+        "site_auto_str_65": {
+            "zh-CN": "打包备份",
+            "zh-TW": "打包备份",
+            "en": "打包备份",
+            "fr": "打包备份",
+            "de": "打包备份",
+            "it": "打包备份"
+        },
+        "site_auto_str_66": {
+            "zh-CN": "')\">打包备份</button>\t\t\t\t<div class='divtable mtb15' style='margin-bottom:0'>\t\t\t\t\t<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t\t<tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "zh-TW": "')\">打包备份</button>\t\t\t\t<div class='divtable mtb15' style='margin-bottom:0'>\t\t\t\t\t<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t\t<tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "en": "')\">打包备份</button>\t\t\t\t<div class='divtable mtb15' style='margin-bottom:0'>\t\t\t\t\t<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t\t<tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "fr": "')\">打包备份</button>\t\t\t\t<div class='divtable mtb15' style='margin-bottom:0'>\t\t\t\t\t<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t\t<tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "de": "')\">打包备份</button>\t\t\t\t<div class='divtable mtb15' style='margin-bottom:0'>\t\t\t\t\t<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t\t<tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
+            "it": "')\">打包备份</button>\t\t\t\t<div class='divtable mtb15' style='margin-bottom:0'>\t\t\t\t\t<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t\t<tr><th>文件名称</th><th>文件大小</th><th>打包时间</th><th width='140px' class='text-right'>操作</th></tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody id='webBackupBody' class='list-list'>"
+        },
+        "site_auto_str_67": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,请稍候...",
+            "en": "正在处理,请稍候...",
+            "fr": "正在处理,请稍候...",
+            "de": "正在处理,请稍候...",
+            "it": "正在处理,请稍候..."
+        },
+        "site_auto_str_68": {
+            "zh-CN": "<option value=\"off\">未设置默认站点</option>",
+            "zh-TW": "<option value=\"off\">未设置默认站点</option>",
+            "en": "<option value=\"off\">未设置默认站点</option>",
+            "fr": "<option value=\"off\">未设置默认站点</option>",
+            "de": "<option value=\"off\">未设置默认站点</option>",
+            "it": "<option value=\"off\">未设置默认站点</option>"
+        },
+        "site_auto_str_69": {
+            "zh-CN": "设置默认站点",
+            "zh-TW": "设置默认站点",
+            "en": "设置默认站点",
+            "fr": "设置默认站点",
+            "de": "设置默认站点",
+            "it": "设置默认站点"
+        },
+        "site_auto_str_70": {
+            "zh-CN": "<div class=\"bt-form ptb15 pb70\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">默认站点</span>\t\t\t\t\t\t\t<select id=\"default_site\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "zh-TW": "<div class=\"bt-form ptb15 pb70\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">默认站点</span>\t\t\t\t\t\t\t<select id=\"default_site\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "en": "<div class=\"bt-form ptb15 pb70\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">默认站点</span>\t\t\t\t\t\t\t<select id=\"default_site\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "fr": "<div class=\"bt-form ptb15 pb70\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">默认站点</span>\t\t\t\t\t\t\t<select id=\"default_site\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "de": "<div class=\"bt-form ptb15 pb70\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">默认站点</span>\t\t\t\t\t\t\t<select id=\"default_site\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "it": "<div class=\"bt-form ptb15 pb70\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">默认站点</span>\t\t\t\t\t\t\t<select id=\"default_site\" class=\"bt-input-text\" style=\"width: 300px;\">"
+        },
+        "site_auto_str_71": {
+            "zh-CN": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>设置默认站点后,所有未绑定的域名和IP都被定向到默认站点</li>\t\t\t\t\t\t    <li>可有效防止恶意解析</li>\t\t\t\t\t    </ul>\t\t\t\t\t\t<div class=\"bt-form-submit-btn\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">取消</button>\t\t\t\t\t\t\t<button class=\"btn btn-success btn-sm btn-title\" onclick=\"setDefaultSite()\">确定</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "zh-TW": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>设置默认站点后,所有未绑定的域名和IP都被定向到默认站点</li>\t\t\t\t\t\t    <li>可有效防止恶意解析</li>\t\t\t\t\t    </ul>\t\t\t\t\t\t<div class=\"bt-form-submit-btn\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">取消</button>\t\t\t\t\t\t\t<button class=\"btn btn-success btn-sm btn-title\" onclick=\"setDefaultSite()\">确定</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "en": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>设置默认站点后,所有未绑定的域名和IP都被定向到默认站点</li>\t\t\t\t\t\t    <li>可有效防止恶意解析</li>\t\t\t\t\t    </ul>\t\t\t\t\t\t<div class=\"bt-form-submit-btn\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">取消</button>\t\t\t\t\t\t\t<button class=\"btn btn-success btn-sm btn-title\" onclick=\"setDefaultSite()\">确定</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "fr": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>设置默认站点后,所有未绑定的域名和IP都被定向到默认站点</li>\t\t\t\t\t\t    <li>可有效防止恶意解析</li>\t\t\t\t\t    </ul>\t\t\t\t\t\t<div class=\"bt-form-submit-btn\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">取消</button>\t\t\t\t\t\t\t<button class=\"btn btn-success btn-sm btn-title\" onclick=\"setDefaultSite()\">确定</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "de": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>设置默认站点后,所有未绑定的域名和IP都被定向到默认站点</li>\t\t\t\t\t\t    <li>可有效防止恶意解析</li>\t\t\t\t\t    </ul>\t\t\t\t\t\t<div class=\"bt-form-submit-btn\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">取消</button>\t\t\t\t\t\t\t<button class=\"btn btn-success btn-sm btn-title\" onclick=\"setDefaultSite()\">确定</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "it": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>设置默认站点后,所有未绑定的域名和IP都被定向到默认站点</li>\t\t\t\t\t\t    <li>可有效防止恶意解析</li>\t\t\t\t\t    </ul>\t\t\t\t\t\t<div class=\"bt-form-submit-btn\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">取消</button>\t\t\t\t\t\t\t<button class=\"btn btn-success btn-sm btn-title\" onclick=\"setDefaultSite()\">确定</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>"
+        },
+        "site_auto_str_72": {
+            "zh-CN": "设置PHP-CLI(命令行)版本",
+            "zh-TW": "设置PHP-CLI(命令行)版本",
+            "en": "设置PHP-CLI(命令行)版本",
+            "fr": "设置PHP-CLI(命令行)版本",
+            "de": "设置PHP-CLI(命令行)版本",
+            "it": "设置PHP-CLI(命令行)版本"
+        },
+        "site_auto_str_73": {
+            "zh-CN": "确定",
+            "zh-TW": "确定",
+            "en": "确定",
+            "fr": "确定",
+            "de": "确定",
+            "it": "确定"
+        },
+        "site_auto_str_74": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "取消",
+            "fr": "取消",
+            "de": "取消",
+            "it": "取消"
+        },
+        "site_auto_str_75": {
+            "zh-CN": "<div class=\"bt-form ptb15\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">PHP-CLI版本</span>\t\t\t\t\t\t\t<select id=\"default_ver\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "zh-TW": "<div class=\"bt-form ptb15\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">PHP-CLI版本</span>\t\t\t\t\t\t\t<select id=\"default_ver\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "en": "<div class=\"bt-form ptb15\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">PHP-CLI版本</span>\t\t\t\t\t\t\t<select id=\"default_ver\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "fr": "<div class=\"bt-form ptb15\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">PHP-CLI版本</span>\t\t\t\t\t\t\t<select id=\"default_ver\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "de": "<div class=\"bt-form ptb15\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">PHP-CLI版本</span>\t\t\t\t\t\t\t<select id=\"default_ver\" class=\"bt-input-text\" style=\"width: 300px;\">",
+            "it": "<div class=\"bt-form ptb15\">\t\t\t\t\t\t<p class=\"line\">\t\t\t\t\t\t\t<span class=\"tname text-right\">PHP-CLI版本</span>\t\t\t\t\t\t\t<select id=\"default_ver\" class=\"bt-input-text\" style=\"width: 300px;\">"
+        },
+        "site_auto_str_76": {
+            "zh-CN": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>此处可设置命令行运行php时使用的PHP版本</li>\t\t\t\t\t\t    <li>安装新的PHP版本后此处需要重新设置</li>\t\t\t\t\t    </ul>\t\t\t\t\t</div>",
+            "zh-TW": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>此处可设置命令行运行php时使用的PHP版本</li>\t\t\t\t\t\t    <li>安装新的PHP版本后此处需要重新设置</li>\t\t\t\t\t    </ul>\t\t\t\t\t</div>",
+            "en": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>此处可设置命令行运行php时使用的PHP版本</li>\t\t\t\t\t\t    <li>安装新的PHP版本后此处需要重新设置</li>\t\t\t\t\t    </ul>\t\t\t\t\t</div>",
+            "fr": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>此处可设置命令行运行php时使用的PHP版本</li>\t\t\t\t\t\t    <li>安装新的PHP版本后此处需要重新设置</li>\t\t\t\t\t    </ul>\t\t\t\t\t</div>",
+            "de": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>此处可设置命令行运行php时使用的PHP版本</li>\t\t\t\t\t\t    <li>安装新的PHP版本后此处需要重新设置</li>\t\t\t\t\t    </ul>\t\t\t\t\t</div>",
+            "it": "</select>\t\t\t\t\t\t</p>\t\t\t\t\t\t<ul class=\"help-info-text c6 plr20\">\t\t\t\t\t\t    <li>此处可设置命令行运行php时使用的PHP版本</li>\t\t\t\t\t\t    <li>安装新的PHP版本后此处需要重新设置</li>\t\t\t\t\t    </ul>\t\t\t\t\t</div>"
+        },
+        "site_auto_str_77": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,请稍候...",
+            "en": "正在处理,请稍候...",
+            "fr": "正在处理,请稍候...",
+            "de": "正在处理,请稍候...",
+            "it": "正在处理,请稍候..."
+        },
+        "site_auto_str_78": {
+            "zh-CN": "站点修改[",
+            "zh-TW": "站点修改[",
+            "en": "站点修改[",
+            "fr": "站点修改[",
+            "de": "站点修改[",
+            "it": "站点修改["
+        },
+        "site_auto_str_79": {
+            "zh-CN": "]  --  添加时间[",
+            "zh-TW": "]  --  添加时间[",
+            "en": "]  --  添加时间[",
+            "fr": "]  --  添加时间[",
+            "de": "]  --  添加时间[",
+            "it": "]  --  添加时间["
+        },
+        "site_auto_str_80": {
+            "zh-CN": "')\">域名管理</p>\t\t\t\t<p onclick='dirBinding(",
+            "zh-TW": "')\">域名管理</p>\t\t\t\t<p onclick='dirBinding(",
+            "en": "')\">域名管理</p>\t\t\t\t<p onclick='dirBinding(",
+            "fr": "')\">域名管理</p>\t\t\t\t<p onclick='dirBinding(",
+            "de": "')\">域名管理</p>\t\t\t\t<p onclick='dirBinding(",
+            "it": "')\">域名管理</p>\t\t\t\t<p onclick='dirBinding("
+        },
+        "site_auto_str_81": {
+            "zh-CN": ")'>子目录绑定</p>\t\t\t\t<p onclick='webPathEdit(",
+            "zh-TW": ")'>子目录绑定</p>\t\t\t\t<p onclick='webPathEdit(",
+            "en": ")'>子目录绑定</p>\t\t\t\t<p onclick='webPathEdit(",
+            "fr": ")'>子目录绑定</p>\t\t\t\t<p onclick='webPathEdit(",
+            "de": ")'>子目录绑定</p>\t\t\t\t<p onclick='webPathEdit(",
+            "it": ")'>子目录绑定</p>\t\t\t\t<p onclick='webPathEdit("
+        },
+        "site_auto_str_82": {
+            "zh-CN": ")'>网站目录</p>\t\t\t\t<p onclick='limitNet(",
+            "zh-TW": ")'>网站目录</p>\t\t\t\t<p onclick='limitNet(",
+            "en": ")'>网站目录</p>\t\t\t\t<p onclick='limitNet(",
+            "fr": ")'>网站目录</p>\t\t\t\t<p onclick='limitNet(",
+            "de": ")'>网站目录</p>\t\t\t\t<p onclick='limitNet(",
+            "it": ")'>网站目录</p>\t\t\t\t<p onclick='limitNet("
+        },
+        "site_auto_str_83": {
+            "zh-CN": ")'>流量限制</p>\t\t\t\t<p onclick=\"rewrite('",
+            "zh-TW": ")'>流量限制</p>\t\t\t\t<p onclick=\"rewrite('",
+            "en": ")'>流量限制</p>\t\t\t\t<p onclick=\"rewrite('",
+            "fr": ")'>流量限制</p>\t\t\t\t<p onclick=\"rewrite('",
+            "de": ")'>流量限制</p>\t\t\t\t<p onclick=\"rewrite('",
+            "it": ")'>流量限制</p>\t\t\t\t<p onclick=\"rewrite('"
+        },
+        "site_auto_str_84": {
+            "zh-CN": "')\">伪静态</p>\t\t\t\t<p onclick='setIndexEdit(",
+            "zh-TW": "')\">伪静态</p>\t\t\t\t<p onclick='setIndexEdit(",
+            "en": "')\">伪静态</p>\t\t\t\t<p onclick='setIndexEdit(",
+            "fr": "')\">伪静态</p>\t\t\t\t<p onclick='setIndexEdit(",
+            "de": "')\">伪静态</p>\t\t\t\t<p onclick='setIndexEdit(",
+            "it": "')\">伪静态</p>\t\t\t\t<p onclick='setIndexEdit("
+        },
+        "site_auto_str_85": {
+            "zh-CN": ")'>默认文档</p>\t\t\t\t<p onclick=\"configFile('",
+            "zh-TW": ")'>默认文档</p>\t\t\t\t<p onclick=\"configFile('",
+            "en": ")'>默认文档</p>\t\t\t\t<p onclick=\"configFile('",
+            "fr": ")'>默认文档</p>\t\t\t\t<p onclick=\"configFile('",
+            "de": ")'>默认文档</p>\t\t\t\t<p onclick=\"configFile('",
+            "it": ")'>默认文档</p>\t\t\t\t<p onclick=\"configFile('"
+        },
+        "site_auto_str_86": {
+            "zh-CN": "')\">配置文件</p>\t\t\t\t<p onclick=\"setSSL(",
+            "zh-TW": "')\">配置文件</p>\t\t\t\t<p onclick=\"setSSL(",
+            "en": "')\">配置文件</p>\t\t\t\t<p onclick=\"setSSL(",
+            "fr": "')\">配置文件</p>\t\t\t\t<p onclick=\"setSSL(",
+            "de": "')\">配置文件</p>\t\t\t\t<p onclick=\"setSSL(",
+            "it": "')\">配置文件</p>\t\t\t\t<p onclick=\"setSSL("
+        },
+        "site_auto_str_87": {
+            "zh-CN": "')\">PHP版本</p>\t\t\t\t<p onclick=\"to301('",
+            "zh-TW": "')\">PHP版本</p>\t\t\t\t<p onclick=\"to301('",
+            "en": "')\">PHP版本</p>\t\t\t\t<p onclick=\"to301('",
+            "fr": "')\">PHP版本</p>\t\t\t\t<p onclick=\"to301('",
+            "de": "')\">PHP版本</p>\t\t\t\t<p onclick=\"to301('",
+            "it": "')\">PHP版本</p>\t\t\t\t<p onclick=\"to301('"
+        },
+        "site_auto_str_88": {
+            "zh-CN": "')\">重定向</p>\t\t\t\t<p onclick=\"toProxy('",
+            "zh-TW": "')\">重定向</p>\t\t\t\t<p onclick=\"toProxy('",
+            "en": "')\">重定向</p>\t\t\t\t<p onclick=\"toProxy('",
+            "fr": "')\">重定向</p>\t\t\t\t<p onclick=\"toProxy('",
+            "de": "')\">重定向</p>\t\t\t\t<p onclick=\"toProxy('",
+            "it": "')\">重定向</p>\t\t\t\t<p onclick=\"toProxy('"
+        },
+        "site_auto_str_89": {
+            "zh-CN": "')\">反向代理",
+            "zh-TW": "')\">反向代理",
+            "en": "')\">反向代理",
+            "fr": "')\">反向代理",
+            "de": "')\">反向代理",
+            "it": "')\">反向代理"
+        },
+        "site_auto_str_90": {
+            "zh-CN": "')\">防盗链</p>\t\t\t\t<p id='site_",
+            "zh-TW": "')\">防盗链</p>\t\t\t\t<p id='site_",
+            "en": "')\">防盗链</p>\t\t\t\t<p id='site_",
+            "fr": "')\">防盗链</p>\t\t\t\t<p id='site_",
+            "de": "')\">防盗链</p>\t\t\t\t<p id='site_",
+            "it": "')\">防盗链</p>\t\t\t\t<p id='site_"
+        },
+        "site_auto_str_91": {
+            "zh-CN": "')\">响应日志</p>\t\t\t\t<p id='site_",
+            "zh-TW": "')\">响应日志</p>\t\t\t\t<p id='site_",
+            "en": "')\">响应日志</p>\t\t\t\t<p id='site_",
+            "fr": "')\">响应日志</p>\t\t\t\t<p id='site_",
+            "de": "')\">响应日志</p>\t\t\t\t<p id='site_",
+            "it": "')\">响应日志</p>\t\t\t\t<p id='site_"
+        },
+        "site_auto_str_92": {
+            "zh-CN": "')\">错误日志</p>\t\t\t</div>\t\t\t<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\t\t</div>",
+            "zh-TW": "')\">错误日志</p>\t\t\t</div>\t\t\t<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\t\t</div>",
+            "en": "')\">错误日志</p>\t\t\t</div>\t\t\t<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\t\t</div>",
+            "fr": "')\">错误日志</p>\t\t\t</div>\t\t\t<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\t\t</div>",
+            "de": "')\">错误日志</p>\t\t\t</div>\t\t\t<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\t\t</div>",
+            "it": "')\">错误日志</p>\t\t\t</div>\t\t\t<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\t\t</div>"
+        },
+        "site_auto_str_93": {
+            "zh-CN": "<div class='placeholder'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "zh-TW": "<div class='placeholder'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "en": "<div class='placeholder'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "fr": "<div class='placeholder'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "de": "<div class='placeholder'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>",
+            "it": "<div class='placeholder'>每行填写一个域名，默认为80端口<br>泛解析添加方法 *.domain.com<br>如另加端口格式为 www.domain.com:88</div>"
+        },
+        "site_auto_str_94": {
+            "zh-CN": ".bt-w-menu p:contains('配置文件')",
+            "zh-TW": ".bt-w-menu p:contains('配置文件')",
+            "en": ".bt-w-menu p:contains('配置文件')",
+            "fr": ".bt-w-menu p:contains('配置文件')",
+            "de": ".bt-w-menu p:contains('配置文件')",
+            "it": ".bt-w-menu p:contains('配置文件')"
+        },
+        "site_auto_str_95": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,请稍候...",
+            "en": "正在处理,请稍候...",
+            "fr": "正在处理,请稍候...",
+            "de": "正在处理,请稍候...",
+            "it": "正在处理,请稍候..."
+        },
+        "site_auto_str_96": {
+            "zh-CN": "当前没有日志.",
+            "zh-TW": "当前没有日志.",
+            "en": "当前没有日志.",
+            "fr": "当前没有日志.",
+            "de": "当前没有日志.",
+            "it": "当前没有日志."
+        },
+        "site_auto_str_97": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,请稍候...",
+            "en": "正在处理,请稍候...",
+            "fr": "正在处理,请稍候...",
+            "de": "正在处理,请稍候...",
+            "it": "正在处理,请稍候..."
+        },
+        "site_auto_str_98": {
+            "zh-CN": "当前没有日志.",
+            "zh-TW": "当前没有日志.",
+            "en": "当前没有日志.",
+            "fr": "当前没有日志.",
+            "de": "当前没有日志.",
+            "it": "当前没有日志."
+        },
+        "site_auto_str_99": {
+            "zh-CN": "正在提交任务...",
+            "zh-TW": "正在提交任务...",
+            "en": "正在提交任务...",
+            "fr": "正在提交任务...",
+            "de": "正在提交任务...",
+            "it": "正在提交任务..."
+        },
+        "site_auto_str_100": {
+            "zh-CN": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">URL后缀</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_fix\" value=\"",
+            "zh-TW": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">URL后缀</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_fix\" value=\"",
+            "en": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">URL后缀</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_fix\" value=\"",
+            "fr": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">URL后缀</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_fix\" value=\"",
+            "de": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">URL后缀</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_fix\" value=\"",
+            "it": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">URL后缀</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_fix\" value=\""
+        },
+        "site_auto_str_101": {
+            "zh-CN": "\" placeholder=\"多个请用逗号隔开,例：png,jpeg,jpg,gif,zip\" ",
+            "zh-TW": "\" placeholder=\"多个请用逗号隔开,例：png,jpeg,jpg,gif,zip\" ",
+            "en": "\" placeholder=\"多个请用逗号隔开,例：png,jpeg,jpg,gif,zip\" ",
+            "fr": "\" placeholder=\"多个请用逗号隔开,例：png,jpeg,jpg,gif,zip\" ",
+            "de": "\" placeholder=\"多个请用逗号隔开,例：png,jpeg,jpg,gif,zip\" ",
+            "it": "\" placeholder=\"多个请用逗号隔开,例：png,jpeg,jpg,gif,zip\" "
+        },
+        "site_auto_str_102": {
+            "zh-CN": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">许可域名</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_domains\" value=\"",
+            "zh-TW": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">许可域名</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_domains\" value=\"",
+            "en": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">许可域名</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_domains\" value=\"",
+            "fr": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">许可域名</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_domains\" value=\"",
+            "de": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">许可域名</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_domains\" value=\"",
+            "it": "<p style=\"margin-bottom:8px\"><span style=\"display: inline-block; width: 60px;\">许可域名</span><input class=\"bt-input-text\" type=\"text\" name=\"sec_domains\" value=\""
+        },
+        "site_auto_str_103": {
+            "zh-CN": "\" placeholder=\"支持通配符,多个域名请用逗号隔开,例：*.test.com,test.com\" ",
+            "zh-TW": "\" placeholder=\"支持通配符,多个域名请用逗号隔开,例：*.test.com,test.com\" ",
+            "en": "\" placeholder=\"支持通配符,多个域名请用逗号隔开,例：*.test.com,test.com\" ",
+            "fr": "\" placeholder=\"支持通配符,多个域名请用逗号隔开,例：*.test.com,test.com\" ",
+            "de": "\" placeholder=\"支持通配符,多个域名请用逗号隔开,例：*.test.com,test.com\" ",
+            "it": "\" placeholder=\"支持通配符,多个域名请用逗号隔开,例：*.test.com,test.com\" "
+        },
+        "site_auto_str_104": {
+            "zh-CN": ">启用防盗链</label></div>",
+            "zh-TW": ">启用防盗链</label></div>",
+            "en": ">启用防盗链</label></div>",
+            "fr": ">启用防盗链</label></div>",
+            "de": ">启用防盗链</label></div>",
+            "it": ">启用防盗链</label></div>"
+        },
+        "site_auto_str_105": {
+            "zh-CN": ">允许空HTTP_REFERER请求</label></div>",
+            "zh-TW": ">允许空HTTP_REFERER请求</label></div>",
+            "en": ">允许空HTTP_REFERER请求</label></div>",
+            "fr": ">允许空HTTP_REFERER请求</label></div>",
+            "de": ">允许空HTTP_REFERER请求</label></div>",
+            "it": ">允许空HTTP_REFERER请求</label></div>"
+        },
+        "site_auto_str_106": {
+            "zh-CN": "<li>默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求</li>",
+            "zh-TW": "<li>默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求</li>",
+            "en": "<li>默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求</li>",
+            "fr": "<li>默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求</li>",
+            "de": "<li>默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求</li>",
+            "it": "<li>默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求</li>"
+        },
+        "site_auto_str_107": {
+            "zh-CN": "<li>多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js</li>",
+            "zh-TW": "<li>多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js</li>",
+            "en": "<li>多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js</li>",
+            "fr": "<li>多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js</li>",
+            "de": "<li>多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js</li>",
+            "it": "<li>多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js</li>"
+        },
+        "site_auto_str_108": {
+            "zh-CN": "<li>当触发防盗链时,将直接返回404状态</li>",
+            "zh-TW": "<li>当触发防盗链时,将直接返回404状态</li>",
+            "en": "<li>当触发防盗链时,将直接返回404状态</li>",
+            "fr": "<li>当触发防盗链时,将直接返回404状态</li>",
+            "de": "<li>当触发防盗链时,将直接返回404状态</li>",
+            "it": "<li>当触发防盗链时,将直接返回404状态</li>"
+        },
+        "site_auto_str_109": {
+            "zh-CN": ");'>伪静态</a> | <a class='btlink' href='javascript:delDirBind(",
+            "zh-TW": ");'>伪静态</a> | <a class='btlink' href='javascript:delDirBind(",
+            "en": ");'>伪静态</a> | <a class='btlink' href='javascript:delDirBind(",
+            "fr": ");'>伪静态</a> | <a class='btlink' href='javascript:delDirBind(",
+            "de": ");'>伪静态</a> | <a class='btlink' href='javascript:delDirBind(",
+            "it": ");'>伪静态</a> | <a class='btlink' href='javascript:delDirBind("
+        },
+        "site_auto_str_110": {
+            "zh-CN": ");'>删除</a></td></tr>",
+            "zh-TW": ");'>删除</a></td></tr>",
+            "en": ");'>删除</a></td></tr>",
+            "fr": ");'>删除</a></td></tr>",
+            "de": ");'>删除</a></td></tr>",
+            "it": ");'>删除</a></td></tr>"
+        },
+        "site_auto_str_111": {
+            "zh-CN": "域名：<input class='bt-input-text mr20' type='text' name='domain' />",
+            "zh-TW": "域名：<input class='bt-input-text mr20' type='text' name='domain' />",
+            "en": "域名：<input class='bt-input-text mr20' type='text' name='domain' />",
+            "fr": "域名：<input class='bt-input-text mr20' type='text' name='domain' />",
+            "de": "域名：<input class='bt-input-text mr20' type='text' name='domain' />",
+            "it": "域名：<input class='bt-input-text mr20' type='text' name='domain' />"
+        },
+        "site_auto_str_112": {
+            "zh-CN": "子目录：<select class='bt-input-text mr20' name='dirName'>",
+            "zh-TW": "子目录：<select class='bt-input-text mr20' name='dirName'>",
+            "en": "子目录：<select class='bt-input-text mr20' name='dirName'>",
+            "fr": "子目录：<select class='bt-input-text mr20' name='dirName'>",
+            "de": "子目录：<select class='bt-input-text mr20' name='dirName'>",
+            "it": "子目录：<select class='bt-input-text mr20' name='dirName'>"
+        },
+        "site_auto_str_113": {
+            "zh-CN": ")'>添加</button>",
+            "zh-TW": ")'>添加</button>",
+            "en": ")'>添加</button>",
+            "fr": ")'>添加</button>",
+            "de": ")'>添加</button>",
+            "it": ")'>添加</button>"
+        },
+        "site_auto_str_114": {
+            "zh-CN": "<thead><tr><th>域名</th><th width='70'>端口</th><th width='100'>子目录</th><th width='100' class='text-right'>操作</th></tr></thead>",
+            "zh-TW": "<thead><tr><th>域名</th><th width='70'>端口</th><th width='100'>子目录</th><th width='100' class='text-right'>操作</th></tr></thead>",
+            "en": "<thead><tr><th>域名</th><th width='70'>端口</th><th width='100'>子目录</th><th width='100' class='text-right'>操作</th></tr></thead>",
+            "fr": "<thead><tr><th>域名</th><th width='70'>端口</th><th width='100'>子目录</th><th width='100' class='text-right'>操作</th></tr></thead>",
+            "de": "<thead><tr><th>域名</th><th width='70'>端口</th><th width='100'>子目录</th><th width='100' class='text-right'>操作</th></tr></thead>",
+            "it": "<thead><tr><th>域名</th><th width='70'>端口</th><th width='100'>子目录</th><th width='100' class='text-right'>操作</th></tr></thead>"
+        },
+        "site_auto_str_115": {
+            "zh-CN": "你真的要为这个子目录创建独立的伪静态规则吗？",
+            "zh-TW": "你真的要为这个子目录创建独立的伪静态规则吗？",
+            "en": "你真的要为这个子目录创建独立的伪静态规则吗？",
+            "fr": "你真的要为这个子目录创建独立的伪静态规则吗？",
+            "de": "你真的要为这个子目录创建独立的伪静态规则吗？",
+            "it": "你真的要为这个子目录创建独立的伪静态规则吗？"
+        },
+        "site_auto_str_116": {
+            "zh-CN": "</textarea>\t\t\t\t</div>\t\t\t\t<button id='setRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t</ul>\t\t\t</div>",
+            "zh-TW": "</textarea>\t\t\t\t</div>\t\t\t\t<button id='setRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t</ul>\t\t\t</div>",
+            "en": "</textarea>\t\t\t\t</div>\t\t\t\t<button id='setRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t</ul>\t\t\t</div>",
+            "fr": "</textarea>\t\t\t\t</div>\t\t\t\t<button id='setRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t</ul>\t\t\t</div>",
+            "de": "</textarea>\t\t\t\t</div>\t\t\t\t<button id='setRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t</ul>\t\t\t</div>",
+            "it": "</textarea>\t\t\t\t</div>\t\t\t\t<button id='setRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t</ul>\t\t\t</div>"
+        },
+        "site_auto_str_117": {
+            "zh-CN": "配置伪静态规则",
+            "zh-TW": "配置伪静态规则",
+            "en": "配置伪静态规则",
+            "fr": "配置伪静态规则",
+            "de": "配置伪静态规则",
+            "it": "配置伪静态规则"
+        },
+        "site_auto_str_118": {
+            "zh-CN": "创建重定向",
+            "zh-TW": "创建重定向",
+            "en": "创建重定向",
+            "fr": "创建重定向",
+            "de": "创建重定向",
+            "it": "创建重定向"
+        },
+        "site_auto_str_119": {
+            "zh-CN": "修改重定向[",
+            "zh-TW": "修改重定向[",
+            "en": "修改重定向[",
+            "fr": "修改重定向[",
+            "de": "修改重定向[",
+            "it": "修改重定向["
+        },
+        "site_auto_str_120": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "提交",
+            "fr": "提交",
+            "de": "提交",
+            "it": "提交"
+        },
+        "site_auto_str_121": {
+            "zh-CN": "关闭",
+            "zh-TW": "关闭",
+            "en": "关闭",
+            "fr": "关闭",
+            "de": "关闭",
+            "it": "关闭"
+        },
+        "site_auto_str_122": {
+            "zh-CN": "<form id='form_redirect' class='divtable pd20'>\t\t\t<div class='line' style='overflow:hidden;height: 40px;'>\t\t\t\t<div style='display: inline-block;'>\t\t\t\t\t<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>保留URI参数</span>\t\t\t\t\t<input class='btswitch btswitch-ios' id='keep_path' type='checkbox' name='keep_path' ",
+            "zh-TW": "<form id='form_redirect' class='divtable pd20'>\t\t\t<div class='line' style='overflow:hidden;height: 40px;'>\t\t\t\t<div style='display: inline-block;'>\t\t\t\t\t<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>保留URI参数</span>\t\t\t\t\t<input class='btswitch btswitch-ios' id='keep_path' type='checkbox' name='keep_path' ",
+            "en": "<form id='form_redirect' class='divtable pd20'>\t\t\t<div class='line' style='overflow:hidden;height: 40px;'>\t\t\t\t<div style='display: inline-block;'>\t\t\t\t\t<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>保留URI参数</span>\t\t\t\t\t<input class='btswitch btswitch-ios' id='keep_path' type='checkbox' name='keep_path' ",
+            "fr": "<form id='form_redirect' class='divtable pd20'>\t\t\t<div class='line' style='overflow:hidden;height: 40px;'>\t\t\t\t<div style='display: inline-block;'>\t\t\t\t\t<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>保留URI参数</span>\t\t\t\t\t<input class='btswitch btswitch-ios' id='keep_path' type='checkbox' name='keep_path' ",
+            "de": "<form id='form_redirect' class='divtable pd20'>\t\t\t<div class='line' style='overflow:hidden;height: 40px;'>\t\t\t\t<div style='display: inline-block;'>\t\t\t\t\t<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>保留URI参数</span>\t\t\t\t\t<input class='btswitch btswitch-ios' id='keep_path' type='checkbox' name='keep_path' ",
+            "it": "<form id='form_redirect' class='divtable pd20'>\t\t\t<div class='line' style='overflow:hidden;height: 40px;'>\t\t\t\t<div style='display: inline-block;'>\t\t\t\t\t<span class='tname' style='margin-left:10px;position: relative;top: -5px;'>保留URI参数</span>\t\t\t\t\t<input class='btswitch btswitch-ios' id='keep_path' type='checkbox' name='keep_path' "
+        },
+        "site_auto_str_123": {
+            "zh-CN": " />\t\t\t\t\t<label class='btswitch-btn' for='keep_path' style='float:left'></label>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line' style='clear:both;'><span class='tname'>重定向类型</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<select class='bt-input-text mr5' name='type' style='width:100px'>\t\t\t\t\t\t<option value='domain' ",
+            "zh-TW": " />\t\t\t\t\t<label class='btswitch-btn' for='keep_path' style='float:left'></label>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line' style='clear:both;'><span class='tname'>重定向类型</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<select class='bt-input-text mr5' name='type' style='width:100px'>\t\t\t\t\t\t<option value='domain' ",
+            "en": " />\t\t\t\t\t<label class='btswitch-btn' for='keep_path' style='float:left'></label>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line' style='clear:both;'><span class='tname'>重定向类型</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<select class='bt-input-text mr5' name='type' style='width:100px'>\t\t\t\t\t\t<option value='domain' ",
+            "fr": " />\t\t\t\t\t<label class='btswitch-btn' for='keep_path' style='float:left'></label>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line' style='clear:both;'><span class='tname'>重定向类型</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<select class='bt-input-text mr5' name='type' style='width:100px'>\t\t\t\t\t\t<option value='domain' ",
+            "de": " />\t\t\t\t\t<label class='btswitch-btn' for='keep_path' style='float:left'></label>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line' style='clear:both;'><span class='tname'>重定向类型</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<select class='bt-input-text mr5' name='type' style='width:100px'>\t\t\t\t\t\t<option value='domain' ",
+            "it": " />\t\t\t\t\t<label class='btswitch-btn' for='keep_path' style='float:left'></label>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line' style='clear:both;'><span class='tname'>重定向类型</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<select class='bt-input-text mr5' name='type' style='width:100px'>\t\t\t\t\t\t<option value='domain' "
+        },
+        "site_auto_str_124": {
+            "zh-CN": ">域名</option>\t\t\t\t\t\t<option value='path'  ",
+            "zh-TW": ">域名</option>\t\t\t\t\t\t<option value='path'  ",
+            "en": ">域名</option>\t\t\t\t\t\t<option value='path'  ",
+            "fr": ">域名</option>\t\t\t\t\t\t<option value='path'  ",
+            "de": ">域名</option>\t\t\t\t\t\t<option value='path'  ",
+            "it": ">域名</option>\t\t\t\t\t\t<option value='path'  "
+        },
+        "site_auto_str_125": {
+            "zh-CN": ">路径</option>\t\t\t\t\t</select>\t\t\t\t\t<span class='mlr15'>重定向方式</span>\t\t\t\t\t<select class='bt-input-text ml10' name='r_type' style='width:100px'>\t\t\t\t\t\t<option value='301' ",
+            "zh-TW": ">路径</option>\t\t\t\t\t</select>\t\t\t\t\t<span class='mlr15'>重定向方式</span>\t\t\t\t\t<select class='bt-input-text ml10' name='r_type' style='width:100px'>\t\t\t\t\t\t<option value='301' ",
+            "en": ">路径</option>\t\t\t\t\t</select>\t\t\t\t\t<span class='mlr15'>重定向方式</span>\t\t\t\t\t<select class='bt-input-text ml10' name='r_type' style='width:100px'>\t\t\t\t\t\t<option value='301' ",
+            "fr": ">路径</option>\t\t\t\t\t</select>\t\t\t\t\t<span class='mlr15'>重定向方式</span>\t\t\t\t\t<select class='bt-input-text ml10' name='r_type' style='width:100px'>\t\t\t\t\t\t<option value='301' ",
+            "de": ">路径</option>\t\t\t\t\t</select>\t\t\t\t\t<span class='mlr15'>重定向方式</span>\t\t\t\t\t<select class='bt-input-text ml10' name='r_type' style='width:100px'>\t\t\t\t\t\t<option value='301' ",
+            "it": ">路径</option>\t\t\t\t\t</select>\t\t\t\t\t<span class='mlr15'>重定向方式</span>\t\t\t\t\t<select class='bt-input-text ml10' name='r_type' style='width:100px'>\t\t\t\t\t\t<option value='301' "
+        },
+        "site_auto_str_126": {
+            "zh-CN": ">302</option>\t\t\t\t\t</select>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line redirectdomain'>\t\t\t\t<span class='tname'>重定向源</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input  name='from' placeholder='域名或路径' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='",
+            "zh-TW": ">302</option>\t\t\t\t\t</select>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line redirectdomain'>\t\t\t\t<span class='tname'>重定向源</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input  name='from' placeholder='域名或路径' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='",
+            "en": ">302</option>\t\t\t\t\t</select>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line redirectdomain'>\t\t\t\t<span class='tname'>重定向源</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input  name='from' placeholder='域名或路径' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='",
+            "fr": ">302</option>\t\t\t\t\t</select>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line redirectdomain'>\t\t\t\t<span class='tname'>重定向源</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input  name='from' placeholder='域名或路径' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='",
+            "de": ">302</option>\t\t\t\t\t</select>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line redirectdomain'>\t\t\t\t<span class='tname'>重定向源</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input  name='from' placeholder='域名或路径' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='",
+            "it": ">302</option>\t\t\t\t\t</select>\t\t\t\t</div>\t\t\t</div>\t\t\t<div class='line redirectdomain'>\t\t\t\t<span class='tname'>重定向源</span>\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input  name='from' placeholder='域名或路径' class='bt-input-text mr5' type='text' style='width:200px;float: left;margin-right:0px' value='"
+        },
+        "site_auto_str_127": {
+            "zh-CN": "'>\t\t\t\t\t<span class='tname' style='width:90px'>目标URL</span>\t\t\t\t\t<input name='to' class='bt-input-text mr5' type='text' style='width:200px' value='",
+            "zh-TW": "'>\t\t\t\t\t<span class='tname' style='width:90px'>目标URL</span>\t\t\t\t\t<input name='to' class='bt-input-text mr5' type='text' style='width:200px' value='",
+            "en": "'>\t\t\t\t\t<span class='tname' style='width:90px'>目标URL</span>\t\t\t\t\t<input name='to' class='bt-input-text mr5' type='text' style='width:200px' value='",
+            "fr": "'>\t\t\t\t\t<span class='tname' style='width:90px'>目标URL</span>\t\t\t\t\t<input name='to' class='bt-input-text mr5' type='text' style='width:200px' value='",
+            "de": "'>\t\t\t\t\t<span class='tname' style='width:90px'>目标URL</span>\t\t\t\t\t<input name='to' class='bt-input-text mr5' type='text' style='width:200px' value='",
+            "it": "'>\t\t\t\t\t<span class='tname' style='width:90px'>目标URL</span>\t\t\t\t\t<input name='to' class='bt-input-text mr5' type='text' style='width:200px' value='"
+        },
+        "site_auto_str_128": {
+            "zh-CN": "删除成功",
+            "zh-TW": "删除成功",
+            "en": "删除成功",
+            "fr": "删除成功",
+            "de": "删除成功",
+            "it": "删除成功"
+        },
+        "site_auto_str_129": {
+            "zh-CN": "</textarea>\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t<li>此处为重定向配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t\t</ul>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "zh-TW": "</textarea>\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t<li>此处为重定向配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t\t</ul>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "en": "</textarea>\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t<li>此处为重定向配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t\t</ul>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "fr": "</textarea>\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t<li>此处为重定向配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t\t</ul>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "de": "</textarea>\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t<li>此处为重定向配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t\t</ul>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "it": "</textarea>\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t<li>此处为重定向配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t\t</ul>\t\t\t\t\t</div>\t\t\t\t</div>"
+        },
+        "site_auto_str_130": {
+            "zh-CN": "编辑配置文件",
+            "zh-TW": "编辑配置文件",
+            "en": "编辑配置文件",
+            "fr": "编辑配置文件",
+            "de": "编辑配置文件",
+            "it": "编辑配置文件"
+        },
+        "site_auto_str_131": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "提交",
+            "fr": "提交",
+            "de": "提交",
+            "it": "提交"
+        },
+        "site_auto_str_132": {
+            "zh-CN": "关闭",
+            "zh-TW": "关闭",
+            "en": "关闭",
+            "fr": "关闭",
+            "de": "关闭",
+            "it": "关闭"
+        },
+        "site_auto_str_133": {
+            "zh-CN": "保存成功",
+            "zh-TW": "保存成功",
+            "en": "保存成功",
+            "fr": "保存成功",
+            "de": "保存成功",
+            "it": "保存成功"
+        },
+        "site_auto_str_134": {
+            "zh-CN": "请求错误!!",
+            "zh-TW": "请求错误!!",
+            "en": "请求错误!!",
+            "fr": "请求错误!!",
+            "de": "请求错误!!",
+            "it": "请求错误!!"
+        },
+        "site_auto_str_135": {
+            "zh-CN": "<div id=\"redirect_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加重定向\" class=\"btn btn-success btn-sm mr5\" onclick=\"to301('",
+            "zh-TW": "<div id=\"redirect_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加重定向\" class=\"btn btn-success btn-sm mr5\" onclick=\"to301('",
+            "en": "<div id=\"redirect_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加重定向\" class=\"btn btn-success btn-sm mr5\" onclick=\"to301('",
+            "fr": "<div id=\"redirect_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加重定向\" class=\"btn btn-success btn-sm mr5\" onclick=\"to301('",
+            "de": "<div id=\"redirect_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加重定向\" class=\"btn btn-success btn-sm mr5\" onclick=\"to301('",
+            "it": "<div id=\"redirect_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加重定向\" class=\"btn btn-success btn-sm mr5\" onclick=\"to301('"
+        },
+        "site_auto_str_136": {
+            "zh-CN": "',1)\" >\t\t\t<span>添加重定向</span>\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th><span data-index=\"1\"><span>重定向类型</span></span></th>\t\t\t\t\t\t<th><span data-index=\"2\"><span>重定向方式</span></span></th>\t\t\t\t\t\t<th><span data-index=\"3\"><span>保留URL参数</span></span></th>\t\t\t\t\t\t<th><span data-index=\"4\"><span>状态</span></span></th>\t\t\t\t\t\t<th><span data-index=\"5\"><span>操作</span></span></th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\">\t\t\t\t</tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "zh-TW": "',1)\" >\t\t\t<span>添加重定向</span>\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th><span data-index=\"1\"><span>重定向类型</span></span></th>\t\t\t\t\t\t<th><span data-index=\"2\"><span>重定向方式</span></span></th>\t\t\t\t\t\t<th><span data-index=\"3\"><span>保留URL参数</span></span></th>\t\t\t\t\t\t<th><span data-index=\"4\"><span>状态</span></span></th>\t\t\t\t\t\t<th><span data-index=\"5\"><span>操作</span></span></th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\">\t\t\t\t</tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "en": "',1)\" >\t\t\t<span>添加重定向</span>\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th><span data-index=\"1\"><span>重定向类型</span></span></th>\t\t\t\t\t\t<th><span data-index=\"2\"><span>重定向方式</span></span></th>\t\t\t\t\t\t<th><span data-index=\"3\"><span>保留URL参数</span></span></th>\t\t\t\t\t\t<th><span data-index=\"4\"><span>状态</span></span></th>\t\t\t\t\t\t<th><span data-index=\"5\"><span>操作</span></span></th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\">\t\t\t\t</tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "fr": "',1)\" >\t\t\t<span>添加重定向</span>\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th><span data-index=\"1\"><span>重定向类型</span></span></th>\t\t\t\t\t\t<th><span data-index=\"2\"><span>重定向方式</span></span></th>\t\t\t\t\t\t<th><span data-index=\"3\"><span>保留URL参数</span></span></th>\t\t\t\t\t\t<th><span data-index=\"4\"><span>状态</span></span></th>\t\t\t\t\t\t<th><span data-index=\"5\"><span>操作</span></span></th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\">\t\t\t\t</tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "de": "',1)\" >\t\t\t<span>添加重定向</span>\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th><span data-index=\"1\"><span>重定向类型</span></span></th>\t\t\t\t\t\t<th><span data-index=\"2\"><span>重定向方式</span></span></th>\t\t\t\t\t\t<th><span data-index=\"3\"><span>保留URL参数</span></span></th>\t\t\t\t\t\t<th><span data-index=\"4\"><span>状态</span></span></th>\t\t\t\t\t\t<th><span data-index=\"5\"><span>操作</span></span></th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\">\t\t\t\t</tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "it": "',1)\" >\t\t\t<span>添加重定向</span>\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th><span data-index=\"1\"><span>重定向类型</span></span></th>\t\t\t\t\t\t<th><span data-index=\"2\"><span>重定向方式</span></span></th>\t\t\t\t\t\t<th><span data-index=\"3\"><span>保留URL参数</span></span></th>\t\t\t\t\t\t<th><span data-index=\"4\"><span>状态</span></span></th>\t\t\t\t\t\t<th><span data-index=\"5\"><span>操作</span></span></th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\">\t\t\t\t</tbody>\t\t\t</table>\t\t</div>\t</div>"
+        },
+        "site_auto_str_137": {
+            "zh-CN": "临时重定向",
+            "zh-TW": "临时重定向",
+            "en": "临时重定向",
+            "fr": "临时重定向",
+            "de": "临时重定向",
+            "it": "临时重定向"
+        },
+        "site_auto_str_138": {
+            "zh-CN": "永久重定向",
+            "zh-TW": "永久重定向",
+            "en": "永久重定向",
+            "fr": "永久重定向",
+            "de": "永久重定向",
+            "it": "永久重定向"
+        },
+        "site_auto_str_139": {
+            "zh-CN": "不保留",
+            "zh-TW": "不保留",
+            "en": "不保留",
+            "fr": "不保留",
+            "de": "不保留",
+            "it": "不保留"
+        },
+        "site_auto_str_140": {
+            "zh-CN": "保留",
+            "zh-TW": "保留",
+            "en": "保留",
+            "fr": "保留",
+            "de": "保留",
+            "it": "保留"
+        },
+        "site_auto_str_141": {
+            "zh-CN": "')\"  class=\"btlink\">详细</span> | \t\t\t\t\t\t<span data-index=\"5\" onclick=\"to301('",
+            "zh-TW": "')\"  class=\"btlink\">详细</span> | \t\t\t\t\t\t<span data-index=\"5\" onclick=\"to301('",
+            "en": "')\"  class=\"btlink\">详细</span> | \t\t\t\t\t\t<span data-index=\"5\" onclick=\"to301('",
+            "fr": "')\"  class=\"btlink\">详细</span> | \t\t\t\t\t\t<span data-index=\"5\" onclick=\"to301('",
+            "de": "')\"  class=\"btlink\">详细</span> | \t\t\t\t\t\t<span data-index=\"5\" onclick=\"to301('",
+            "it": "')\"  class=\"btlink\">详细</span> | \t\t\t\t\t\t<span data-index=\"5\" onclick=\"to301('"
+        },
+        "site_auto_str_142": {
+            "zh-CN": "')\" class=\"btlink\">删除</span>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "zh-TW": "')\" class=\"btlink\">删除</span>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "en": "')\" class=\"btlink\">删除</span>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "fr": "')\" class=\"btlink\">删除</span>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "de": "')\" class=\"btlink\">删除</span>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "it": "')\" class=\"btlink\">删除</span>\t\t\t\t\t</td>\t\t\t\t</tr>"
+        },
+        "site_auto_str_143": {
+            "zh-CN": "设置成功",
+            "zh-TW": "设置成功",
+            "en": "设置成功",
+            "fr": "设置成功",
+            "de": "设置成功",
+            "it": "设置成功"
+        },
+        "site_auto_str_144": {
+            "zh-CN": "创建反向代理",
+            "zh-TW": "创建反向代理",
+            "en": "创建反向代理",
+            "fr": "创建反向代理",
+            "de": "创建反向代理",
+            "it": "创建反向代理"
+        },
+        "site_auto_str_145": {
+            "zh-CN": "编辑反向代理",
+            "zh-TW": "编辑反向代理",
+            "en": "编辑反向代理",
+            "fr": "编辑反向代理",
+            "de": "编辑反向代理",
+            "it": "编辑反向代理"
+        },
+        "site_auto_str_146": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "提交",
+            "fr": "提交",
+            "de": "提交",
+            "it": "提交"
+        },
+        "site_auto_str_147": {
+            "zh-CN": "关闭",
+            "zh-TW": "关闭",
+            "en": "关闭",
+            "fr": "关闭",
+            "de": "关闭",
+            "it": "关闭"
+        },
+        "site_auto_str_148": {
+            "zh-CN": "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname' style='line-height:20px;'>开启代理</span>\t\t\t\t\t<div class='info-r ml0 mt5'>\t\t\t\t\t\t<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\t\t\t\t\t\t<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否缓存</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否跨域</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cors'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cors' for='open_cors' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否H3</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_http3'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_http3' for='open_http3' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>名称</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='name' value='index' placeholder='请输入名称' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line' style='display:none' id='cache_time'>\t\t\t\t\t<span class='tname'>缓存时间</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='cache_time' value='1' class='bt-input-text mr5' type='number' style='width:200px''>分钟\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>代理目录</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>目标URL</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='proxy_url' class='bt-input-text mr5' type='text' value='http://127.0.0.1' style='width:150px;float: left;margin-right:5px'>\t\t\t\t\t<span style='float: left; margin-right: 5px; line-height: 30px; font-weight: bold;'>:</span>\t\t\t\t\t<input name='proxy_port' class='bt-input-text mr5' type='number' placeholder='端口' style='width:65px;float: left;margin-right:15px'>\t\t\t\t\t<input name='to' type='hidden' value='http://127.0.0.1'>\t\t\t\t\t<span class='tname' style='width:90px'>发送域名</span>\t\t\t\t\t<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:100px'>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<input name='id' value='' type='hidden'>\t\t\t\t<div class='help-info-text c7'>\t\t\t\t\t<ul class='help-info-text c7'>\t\t\t\t\t<li>代理目录：访问这个目录时将会把目标URL的内容返回并显示</li>\t\t\t\t\t<li>目标URL：可以填写你需要代理的站点，目标URL必须为可正常访问的URL，否则将返回错误</li>\t\t\t\t\t<li>发送域名：将域名添加到请求头传递到代理服务器，默认为目标URL域名，若设置不当可能导致代理无法正常运行</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t\t</form>",
+            "zh-TW": "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname' style='line-height:20px;'>开启代理</span>\t\t\t\t\t<div class='info-r ml0 mt5'>\t\t\t\t\t\t<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\t\t\t\t\t\t<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否缓存</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否跨域</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cors'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cors' for='open_cors' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否H3</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_http3'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_http3' for='open_http3' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>名称</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='name' value='index' placeholder='请输入名称' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line' style='display:none' id='cache_time'>\t\t\t\t\t<span class='tname'>缓存时间</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='cache_time' value='1' class='bt-input-text mr5' type='number' style='width:200px''>分钟\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>代理目录</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>目标URL</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='proxy_url' class='bt-input-text mr5' type='text' value='http://127.0.0.1' style='width:150px;float: left;margin-right:5px'>\t\t\t\t\t<span style='float: left; margin-right: 5px; line-height: 30px; font-weight: bold;'>:</span>\t\t\t\t\t<input name='proxy_port' class='bt-input-text mr5' type='number' placeholder='端口' style='width:65px;float: left;margin-right:15px'>\t\t\t\t\t<input name='to' type='hidden' value='http://127.0.0.1'>\t\t\t\t\t<span class='tname' style='width:90px'>发送域名</span>\t\t\t\t\t<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:100px'>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<input name='id' value='' type='hidden'>\t\t\t\t<div class='help-info-text c7'>\t\t\t\t\t<ul class='help-info-text c7'>\t\t\t\t\t<li>代理目录：访问这个目录时将会把目标URL的内容返回并显示</li>\t\t\t\t\t<li>目标URL：可以填写你需要代理的站点，目标URL必须为可正常访问的URL，否则将返回错误</li>\t\t\t\t\t<li>发送域名：将域名添加到请求头传递到代理服务器，默认为目标URL域名，若设置不当可能导致代理无法正常运行</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t\t</form>",
+            "en": "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname' style='line-height:20px;'>开启代理</span>\t\t\t\t\t<div class='info-r ml0 mt5'>\t\t\t\t\t\t<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\t\t\t\t\t\t<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否缓存</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否跨域</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cors'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cors' for='open_cors' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否H3</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_http3'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_http3' for='open_http3' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>名称</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='name' value='index' placeholder='请输入名称' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line' style='display:none' id='cache_time'>\t\t\t\t\t<span class='tname'>缓存时间</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='cache_time' value='1' class='bt-input-text mr5' type='number' style='width:200px''>分钟\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>代理目录</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>目标URL</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='proxy_url' class='bt-input-text mr5' type='text' value='http://127.0.0.1' style='width:150px;float: left;margin-right:5px'>\t\t\t\t\t<span style='float: left; margin-right: 5px; line-height: 30px; font-weight: bold;'>:</span>\t\t\t\t\t<input name='proxy_port' class='bt-input-text mr5' type='number' placeholder='端口' style='width:65px;float: left;margin-right:15px'>\t\t\t\t\t<input name='to' type='hidden' value='http://127.0.0.1'>\t\t\t\t\t<span class='tname' style='width:90px'>发送域名</span>\t\t\t\t\t<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:100px'>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<input name='id' value='' type='hidden'>\t\t\t\t<div class='help-info-text c7'>\t\t\t\t\t<ul class='help-info-text c7'>\t\t\t\t\t<li>代理目录：访问这个目录时将会把目标URL的内容返回并显示</li>\t\t\t\t\t<li>目标URL：可以填写你需要代理的站点，目标URL必须为可正常访问的URL，否则将返回错误</li>\t\t\t\t\t<li>发送域名：将域名添加到请求头传递到代理服务器，默认为目标URL域名，若设置不当可能导致代理无法正常运行</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t\t</form>",
+            "fr": "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname' style='line-height:20px;'>开启代理</span>\t\t\t\t\t<div class='info-r ml0 mt5'>\t\t\t\t\t\t<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\t\t\t\t\t\t<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否缓存</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否跨域</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cors'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cors' for='open_cors' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否H3</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_http3'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_http3' for='open_http3' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>名称</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='name' value='index' placeholder='请输入名称' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line' style='display:none' id='cache_time'>\t\t\t\t\t<span class='tname'>缓存时间</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='cache_time' value='1' class='bt-input-text mr5' type='number' style='width:200px''>分钟\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>代理目录</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>目标URL</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='proxy_url' class='bt-input-text mr5' type='text' value='http://127.0.0.1' style='width:150px;float: left;margin-right:5px'>\t\t\t\t\t<span style='float: left; margin-right: 5px; line-height: 30px; font-weight: bold;'>:</span>\t\t\t\t\t<input name='proxy_port' class='bt-input-text mr5' type='number' placeholder='端口' style='width:65px;float: left;margin-right:15px'>\t\t\t\t\t<input name='to' type='hidden' value='http://127.0.0.1'>\t\t\t\t\t<span class='tname' style='width:90px'>发送域名</span>\t\t\t\t\t<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:100px'>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<input name='id' value='' type='hidden'>\t\t\t\t<div class='help-info-text c7'>\t\t\t\t\t<ul class='help-info-text c7'>\t\t\t\t\t<li>代理目录：访问这个目录时将会把目标URL的内容返回并显示</li>\t\t\t\t\t<li>目标URL：可以填写你需要代理的站点，目标URL必须为可正常访问的URL，否则将返回错误</li>\t\t\t\t\t<li>发送域名：将域名添加到请求头传递到代理服务器，默认为目标URL域名，若设置不当可能导致代理无法正常运行</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t\t</form>",
+            "de": "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname' style='line-height:20px;'>开启代理</span>\t\t\t\t\t<div class='info-r ml0 mt5'>\t\t\t\t\t\t<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\t\t\t\t\t\t<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否缓存</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否跨域</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cors'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cors' for='open_cors' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否H3</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_http3'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_http3' for='open_http3' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>名称</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='name' value='index' placeholder='请输入名称' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line' style='display:none' id='cache_time'>\t\t\t\t\t<span class='tname'>缓存时间</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='cache_time' value='1' class='bt-input-text mr5' type='number' style='width:200px''>分钟\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>代理目录</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>目标URL</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='proxy_url' class='bt-input-text mr5' type='text' value='http://127.0.0.1' style='width:150px;float: left;margin-right:5px'>\t\t\t\t\t<span style='float: left; margin-right: 5px; line-height: 30px; font-weight: bold;'>:</span>\t\t\t\t\t<input name='proxy_port' class='bt-input-text mr5' type='number' placeholder='端口' style='width:65px;float: left;margin-right:15px'>\t\t\t\t\t<input name='to' type='hidden' value='http://127.0.0.1'>\t\t\t\t\t<span class='tname' style='width:90px'>发送域名</span>\t\t\t\t\t<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:100px'>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<input name='id' value='' type='hidden'>\t\t\t\t<div class='help-info-text c7'>\t\t\t\t\t<ul class='help-info-text c7'>\t\t\t\t\t<li>代理目录：访问这个目录时将会把目标URL的内容返回并显示</li>\t\t\t\t\t<li>目标URL：可以填写你需要代理的站点，目标URL必须为可正常访问的URL，否则将返回错误</li>\t\t\t\t\t<li>发送域名：将域名添加到请求头传递到代理服务器，默认为目标URL域名，若设置不当可能导致代理无法正常运行</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t\t</form>",
+            "it": "<form id='form_proxy' class='divtable pd15' style='padding-bottom: 10px'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname' style='line-height:20px;'>开启代理</span>\t\t\t\t\t<div class='info-r ml0 mt5'>\t\t\t\t\t\t<input name='open_proxy' class='btswitch btswitch-ios' type='checkbox' checked>\t\t\t\t\t\t<label id='open_proxy' class='btswitch-btn' for='openProxy' style='float:left'></label>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否缓存</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cache'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cache' for='openCache' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否跨域</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_cors'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_cors' for='open_cors' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t\t<div style='display: inline-block'>\t\t\t\t\t\t\t<span class='tname' style='position: relative;top: -5px;'>是否H3</span>\t\t\t\t\t\t\t<input class='btswitch btswitch-ios' type='checkbox' name='open_http3'>\t\t\t\t\t\t\t<label class='btswitch-btn' id='open_http3' for='open_http3' style='float:left'></label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>名称</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='name' value='index' placeholder='请输入名称' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line' style='display:none' id='cache_time'>\t\t\t\t\t<span class='tname'>缓存时间</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='cache_time' value='1' class='bt-input-text mr5' type='number' style='width:200px''>分钟\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>代理目录</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='from' value='/' placeholder='/' class='bt-input-text mr5' type='text' style='width:200px''>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>目标URL</span>\t\t\t\t\t<div class='info-r ml0'>\t\t\t\t\t<input name='proxy_url' class='bt-input-text mr5' type='text' value='http://127.0.0.1' style='width:150px;float: left;margin-right:5px'>\t\t\t\t\t<span style='float: left; margin-right: 5px; line-height: 30px; font-weight: bold;'>:</span>\t\t\t\t\t<input name='proxy_port' class='bt-input-text mr5' type='number' placeholder='端口' style='width:65px;float: left;margin-right:15px'>\t\t\t\t\t<input name='to' type='hidden' value='http://127.0.0.1'>\t\t\t\t\t<span class='tname' style='width:90px'>发送域名</span>\t\t\t\t\t<input name='host' value='$host' class='bt-input-text mr5' type='text' style='width:100px'>\t\t\t\t\t</div>\t\t\t\t</div>\t\t\t\t<input name='id' value='' type='hidden'>\t\t\t\t<div class='help-info-text c7'>\t\t\t\t\t<ul class='help-info-text c7'>\t\t\t\t\t<li>代理目录：访问这个目录时将会把目标URL的内容返回并显示</li>\t\t\t\t\t<li>目标URL：可以填写你需要代理的站点，目标URL必须为可正常访问的URL，否则将返回错误</li>\t\t\t\t\t<li>发送域名：将域名添加到请求头传递到代理服务器，默认为目标URL域名，若设置不当可能导致代理无法正常运行</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t\t</form>"
+        },
+        "site_auto_str_149": {
+            "zh-CN": "正在",
+            "zh-TW": "正在",
+            "en": "正在",
+            "fr": "正在",
+            "de": "正在",
+            "it": "正在"
+        },
+        "site_auto_str_150": {
+            "zh-CN": "成功!",
+            "zh-TW": "成功!",
+            "en": "成功!",
+            "fr": "成功!",
+            "de": "成功!",
+            "it": "成功!"
+        },
+        "site_auto_str_151": {
+            "zh-CN": "正在删除中...",
+            "zh-TW": "正在删除中...",
+            "en": "正在删除中...",
+            "fr": "正在删除中...",
+            "de": "正在删除中...",
+            "it": "正在删除中..."
+        },
+        "site_auto_str_152": {
+            "zh-CN": "删除成功",
+            "zh-TW": "删除成功",
+            "en": "删除成功",
+            "fr": "删除成功",
+            "de": "删除成功",
+            "it": "删除成功"
+        },
+        "site_auto_str_153": {
+            "zh-CN": "请求错误!!",
+            "zh-TW": "请求错误!!",
+            "en": "请求错误!!",
+            "fr": "请求错误!!",
+            "de": "请求错误!!",
+            "it": "请求错误!!"
+        },
+        "site_auto_str_154": {
+            "zh-CN": "</textarea>\t\t\t\t<div class='info-r'>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>此处为反向代理配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "zh-TW": "</textarea>\t\t\t\t<div class='info-r'>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>此处为反向代理配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "en": "</textarea>\t\t\t\t<div class='info-r'>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>此处为反向代理配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "fr": "</textarea>\t\t\t\t<div class='info-r'>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>此处为反向代理配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "de": "</textarea>\t\t\t\t<div class='info-r'>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>此处为反向代理配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "it": "</textarea>\t\t\t\t<div class='info-r'>\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t<li>此处为反向代理配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>"
+        },
+        "site_auto_str_155": {
+            "zh-CN": "保存成功",
+            "zh-TW": "保存成功",
+            "en": "保存成功",
+            "fr": "保存成功",
+            "de": "保存成功",
+            "it": "保存成功"
+        },
+        "site_auto_str_156": {
+            "zh-CN": "编辑配置文件",
+            "zh-TW": "编辑配置文件",
+            "en": "编辑配置文件",
+            "fr": "编辑配置文件",
+            "de": "编辑配置文件",
+            "it": "编辑配置文件"
+        },
+        "site_auto_str_157": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "提交",
+            "fr": "提交",
+            "de": "提交",
+            "it": "提交"
+        },
+        "site_auto_str_158": {
+            "zh-CN": "关闭",
+            "zh-TW": "关闭",
+            "en": "关闭",
+            "fr": "关闭",
+            "de": "关闭",
+            "it": "关闭"
+        },
+        "site_auto_str_159": {
+            "zh-CN": "设置成功",
+            "zh-TW": "设置成功",
+            "en": "设置成功",
+            "fr": "设置成功",
+            "de": "设置成功",
+            "it": "设置成功"
+        },
+        "site_auto_str_160": {
+            "zh-CN": "正在提交请求...",
+            "zh-TW": "正在提交请求...",
+            "en": "正在提交请求...",
+            "fr": "正在提交请求...",
+            "de": "正在提交请求...",
+            "it": "正在提交请求..."
+        },
+        "site_auto_str_161": {
+            "zh-CN": "设置成功!",
+            "zh-TW": "设置成功!",
+            "en": "设置成功!",
+            "fr": "设置成功!",
+            "de": "设置成功!",
+            "it": "设置成功!"
+        },
+        "site_auto_str_162": {
+            "zh-CN": "<div id=\"proxy_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加反向代理\" class=\"btn btn-success btn-sm mr5\" onclick=\"toProxy('",
+            "zh-TW": "<div id=\"proxy_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加反向代理\" class=\"btn btn-success btn-sm mr5\" onclick=\"toProxy('",
+            "en": "<div id=\"proxy_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加反向代理\" class=\"btn btn-success btn-sm mr5\" onclick=\"toProxy('",
+            "fr": "<div id=\"proxy_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加反向代理\" class=\"btn btn-success btn-sm mr5\" onclick=\"toProxy('",
+            "de": "<div id=\"proxy_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加反向代理\" class=\"btn btn-success btn-sm mr5\" onclick=\"toProxy('",
+            "it": "<div id=\"proxy_list\" class=\"bt_table\">\t\t<div style=\"padding-bottom: 10px\">\t\t\t<button type=\"button\" title=\"添加反向代理\" class=\"btn btn-success btn-sm mr5\" onclick=\"toProxy('"
+        },
+        "site_auto_str_163": {
+            "zh-CN": "',1)\" >\t\t\t\t<span>添加反向代理</span>\t\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th>名称</th>\t\t\t\t\t\t<th>代理目录</th>\t\t\t\t\t\t<th>目标地址</th>\t\t\t\t\t\t<th>缓存</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>操作</th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\"></tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "zh-TW": "',1)\" >\t\t\t\t<span>添加反向代理</span>\t\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th>名称</th>\t\t\t\t\t\t<th>代理目录</th>\t\t\t\t\t\t<th>目标地址</th>\t\t\t\t\t\t<th>缓存</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>操作</th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\"></tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "en": "',1)\" >\t\t\t\t<span>添加反向代理</span>\t\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th>名称</th>\t\t\t\t\t\t<th>代理目录</th>\t\t\t\t\t\t<th>目标地址</th>\t\t\t\t\t\t<th>缓存</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>操作</th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\"></tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "fr": "',1)\" >\t\t\t\t<span>添加反向代理</span>\t\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th>名称</th>\t\t\t\t\t\t<th>代理目录</th>\t\t\t\t\t\t<th>目标地址</th>\t\t\t\t\t\t<th>缓存</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>操作</th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\"></tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "de": "',1)\" >\t\t\t\t<span>添加反向代理</span>\t\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th>名称</th>\t\t\t\t\t\t<th>代理目录</th>\t\t\t\t\t\t<th>目标地址</th>\t\t\t\t\t\t<th>缓存</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>操作</th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\"></tbody>\t\t\t</table>\t\t</div>\t</div>",
+            "it": "',1)\" >\t\t\t\t<span>添加反向代理</span>\t\t\t</button>\t\t</div>\t\t<div class=\"divtable\" style=\"max-height:500px;\">\t\t\t<table class=\"table table-hover\" >\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t<tr>\t\t\t\t\t\t<th>名称</th>\t\t\t\t\t\t<th>代理目录</th>\t\t\t\t\t\t<th>目标地址</th>\t\t\t\t\t\t<th>缓存</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>操作</th>\t\t\t\t\t</tr>\t\t\t\t</thead>\t\t\t\t<tbody id=\"md-301-body\"></tbody>\t\t\t</table>\t\t</div>\t</div>"
+        },
+        "site_auto_str_164": {
+            "zh-CN": "\" class=\"btlink cache off\">未开启</span>",
+            "zh-TW": "\" class=\"btlink cache off\">未开启</span>",
+            "en": "\" class=\"btlink cache off\">未开启</span>",
+            "fr": "\" class=\"btlink cache off\">未开启</span>",
+            "de": "\" class=\"btlink cache off\">未开启</span>",
+            "it": "\" class=\"btlink cache off\">未开启</span>"
+        },
+        "site_auto_str_165": {
+            "zh-CN": "\" class=\"btlink cache on\">已开启</span>",
+            "zh-TW": "\" class=\"btlink cache on\">已开启</span>",
+            "en": "\" class=\"btlink cache on\">已开启</span>",
+            "fr": "\" class=\"btlink cache on\">已开启</span>",
+            "de": "\" class=\"btlink cache on\">已开启</span>",
+            "it": "\" class=\"btlink cache on\">已开启</span>"
+        },
+        "site_auto_str_166": {
+            "zh-CN": "\" class=\"btlink detail\">详细</span> |\t\t\t\t   <span data-index=\"",
+            "zh-TW": "\" class=\"btlink detail\">详细</span> |\t\t\t\t   <span data-index=\"",
+            "en": "\" class=\"btlink detail\">详细</span> |\t\t\t\t   <span data-index=\"",
+            "fr": "\" class=\"btlink detail\">详细</span> |\t\t\t\t   <span data-index=\"",
+            "de": "\" class=\"btlink detail\">详细</span> |\t\t\t\t   <span data-index=\"",
+            "it": "\" class=\"btlink detail\">详细</span> |\t\t\t\t   <span data-index=\""
+        },
+        "site_auto_str_167": {
+            "zh-CN": "\" class=\"btlink edit\">编辑</span> |\t\t\t\t   <span data-index=\"",
+            "zh-TW": "\" class=\"btlink edit\">编辑</span> |\t\t\t\t   <span data-index=\"",
+            "en": "\" class=\"btlink edit\">编辑</span> |\t\t\t\t   <span data-index=\"",
+            "fr": "\" class=\"btlink edit\">编辑</span> |\t\t\t\t   <span data-index=\"",
+            "de": "\" class=\"btlink edit\">编辑</span> |\t\t\t\t   <span data-index=\"",
+            "it": "\" class=\"btlink edit\">编辑</span> |\t\t\t\t   <span data-index=\""
+        },
+        "site_auto_str_168": {
+            "zh-CN": "\" class=\"btlink delete\">删除</span>\t\t\t\t</td>\t\t\t</tr>",
+            "zh-TW": "\" class=\"btlink delete\">删除</span>\t\t\t\t</td>\t\t\t</tr>",
+            "en": "\" class=\"btlink delete\">删除</span>\t\t\t\t</td>\t\t\t</tr>",
+            "fr": "\" class=\"btlink delete\">删除</span>\t\t\t\t</td>\t\t\t</tr>",
+            "de": "\" class=\"btlink delete\">删除</span>\t\t\t\t</td>\t\t\t</tr>",
+            "it": "\" class=\"btlink delete\">删除</span>\t\t\t\t</td>\t\t\t</tr>"
+        },
+        "site_auto_str_169": {
+            "zh-CN": "正在提交任务...",
+            "zh-TW": "正在提交任务...",
+            "en": "正在提交任务...",
+            "fr": "正在提交任务...",
+            "de": "正在提交任务...",
+            "it": "正在提交任务..."
+        },
+        "site_auto_str_170": {
+            "zh-CN": "')\" class=\"btlink\">部署</a> | <a onclick=\"removeSsl('",
+            "zh-TW": "')\" class=\"btlink\">部署</a> | <a onclick=\"removeSsl('",
+            "en": "')\" class=\"btlink\">部署</a> | <a onclick=\"removeSsl('",
+            "fr": "')\" class=\"btlink\">部署</a> | <a onclick=\"removeSsl('",
+            "de": "')\" class=\"btlink\">部署</a> | <a onclick=\"removeSsl('",
+            "it": "')\" class=\"btlink\">部署</a> | <a onclick=\"removeSsl('"
+        },
+        "site_auto_str_171": {
+            "zh-CN": "')\" class=\"btlink\">删除</a></td>\t\t\t</tr>",
+            "zh-TW": "')\" class=\"btlink\">删除</a></td>\t\t\t</tr>",
+            "en": "')\" class=\"btlink\">删除</a></td>\t\t\t</tr>",
+            "fr": "')\" class=\"btlink\">删除</a></td>\t\t\t</tr>",
+            "de": "')\" class=\"btlink\">删除</a></td>\t\t\t</tr>",
+            "it": "')\" class=\"btlink\">删除</a></td>\t\t\t</tr>"
+        },
+        "site_auto_str_172": {
+            "zh-CN": "<div class=\"mtb15\" style=\"line-height:30px\">\t\t<button style=\"margin-bottom: 7px;display:none;\" class=\"btn btn-success btn-sm\">添加</button>\t\t<div class=\"divtable\"><table class=\"table table-hover\"><thead><tr><th>域名</th><th>信任名称</th><th>到期时间</th><th>品牌</th><th class=\"text-right\" width=\"75\">操作</th></tr></thead>\t\t<tbody>",
+            "zh-TW": "<div class=\"mtb15\" style=\"line-height:30px\">\t\t<button style=\"margin-bottom: 7px;display:none;\" class=\"btn btn-success btn-sm\">添加</button>\t\t<div class=\"divtable\"><table class=\"table table-hover\"><thead><tr><th>域名</th><th>信任名称</th><th>到期时间</th><th>品牌</th><th class=\"text-right\" width=\"75\">操作</th></tr></thead>\t\t<tbody>",
+            "en": "<div class=\"mtb15\" style=\"line-height:30px\">\t\t<button style=\"margin-bottom: 7px;display:none;\" class=\"btn btn-success btn-sm\">添加</button>\t\t<div class=\"divtable\"><table class=\"table table-hover\"><thead><tr><th>域名</th><th>信任名称</th><th>到期时间</th><th>品牌</th><th class=\"text-right\" width=\"75\">操作</th></tr></thead>\t\t<tbody>",
+            "fr": "<div class=\"mtb15\" style=\"line-height:30px\">\t\t<button style=\"margin-bottom: 7px;display:none;\" class=\"btn btn-success btn-sm\">添加</button>\t\t<div class=\"divtable\"><table class=\"table table-hover\"><thead><tr><th>域名</th><th>信任名称</th><th>到期时间</th><th>品牌</th><th class=\"text-right\" width=\"75\">操作</th></tr></thead>\t\t<tbody>",
+            "de": "<div class=\"mtb15\" style=\"line-height:30px\">\t\t<button style=\"margin-bottom: 7px;display:none;\" class=\"btn btn-success btn-sm\">添加</button>\t\t<div class=\"divtable\"><table class=\"table table-hover\"><thead><tr><th>域名</th><th>信任名称</th><th>到期时间</th><th>品牌</th><th class=\"text-right\" width=\"75\">操作</th></tr></thead>\t\t<tbody>",
+            "it": "<div class=\"mtb15\" style=\"line-height:30px\">\t\t<button style=\"margin-bottom: 7px;display:none;\" class=\"btn btn-success btn-sm\">添加</button>\t\t<div class=\"divtable\"><table class=\"table table-hover\"><thead><tr><th>域名</th><th>信任名称</th><th>到期时间</th><th>品牌</th><th class=\"text-right\" width=\"75\">操作</th></tr></thead>\t\t<tbody>"
+        },
+        "site_auto_str_173": {
+            "zh-CN": "删除证书",
+            "zh-TW": "删除证书",
+            "en": "删除证书",
+            "fr": "删除证书",
+            "de": "删除证书",
+            "it": "删除证书"
+        },
+        "site_auto_str_174": {
+            "zh-CN": "您真的要从证书夹删除证书吗?",
+            "zh-TW": "您真的要从证书夹删除证书吗?",
+            "en": "您真的要从证书夹删除证书吗?",
+            "fr": "您真的要从证书夹删除证书吗?",
+            "de": "您真的要从证书夹删除证书吗?",
+            "it": "您真的要从证书夹删除证书吗?"
+        },
+        "site_auto_str_175": {
+            "zh-CN": "正在部署证书...",
+            "zh-TW": "正在部署证书...",
+            "en": "正在部署证书...",
+            "fr": "正在部署证书...",
+            "de": "正在部署证书...",
+            "it": "正在部署证书..."
+        },
+        "site_auto_str_176": {
+            "zh-CN": "<div class=\"warning_info mb10\" style=\"display:none;\">\t\t\t\t\t<p>温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。<button class=\"btn btn-success btn-xs ml10 cutTabView\">申请证书</button></p>\t\t\t\t</div>\t\t\t\t<div class=\"tab-nav\" style=\"margin-top: 10px;\">\t\t\t\t\t<span class=\"on\" id=\"now_ssl\" onclick=\"opSSL('now',",
+            "zh-TW": "<div class=\"warning_info mb10\" style=\"display:none;\">\t\t\t\t\t<p>温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。<button class=\"btn btn-success btn-xs ml10 cutTabView\">申请证书</button></p>\t\t\t\t</div>\t\t\t\t<div class=\"tab-nav\" style=\"margin-top: 10px;\">\t\t\t\t\t<span class=\"on\" id=\"now_ssl\" onclick=\"opSSL('now',",
+            "en": "<div class=\"warning_info mb10\" style=\"display:none;\">\t\t\t\t\t<p>温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。<button class=\"btn btn-success btn-xs ml10 cutTabView\">申请证书</button></p>\t\t\t\t</div>\t\t\t\t<div class=\"tab-nav\" style=\"margin-top: 10px;\">\t\t\t\t\t<span class=\"on\" id=\"now_ssl\" onclick=\"opSSL('now',",
+            "fr": "<div class=\"warning_info mb10\" style=\"display:none;\">\t\t\t\t\t<p>温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。<button class=\"btn btn-success btn-xs ml10 cutTabView\">申请证书</button></p>\t\t\t\t</div>\t\t\t\t<div class=\"tab-nav\" style=\"margin-top: 10px;\">\t\t\t\t\t<span class=\"on\" id=\"now_ssl\" onclick=\"opSSL('now',",
+            "de": "<div class=\"warning_info mb10\" style=\"display:none;\">\t\t\t\t\t<p>温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。<button class=\"btn btn-success btn-xs ml10 cutTabView\">申请证书</button></p>\t\t\t\t</div>\t\t\t\t<div class=\"tab-nav\" style=\"margin-top: 10px;\">\t\t\t\t\t<span class=\"on\" id=\"now_ssl\" onclick=\"opSSL('now',",
+            "it": "<div class=\"warning_info mb10\" style=\"display:none;\">\t\t\t\t\t<p>温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。<button class=\"btn btn-success btn-xs ml10 cutTabView\">申请证书</button></p>\t\t\t\t</div>\t\t\t\t<div class=\"tab-nav\" style=\"margin-top: 10px;\">\t\t\t\t\t<span class=\"on\" id=\"now_ssl\" onclick=\"opSSL('now',"
+        },
+        "site_auto_str_177": {
+            "zh-CN": "')\">当前证书 - <i class=\"error\">[未部署SSL]</i></span>\t\t\t\t\t\t\t\t\t\t<span onclick=\"opSSL('acme',",
+            "zh-TW": "')\">当前证书 - <i class=\"error\">[未部署SSL]</i></span>\t\t\t\t\t\t\t\t\t\t<span onclick=\"opSSL('acme',",
+            "en": "')\">当前证书 - <i class=\"error\">[未部署SSL]</i></span>\t\t\t\t\t\t\t\t\t\t<span onclick=\"opSSL('acme',",
+            "fr": "')\">当前证书 - <i class=\"error\">[未部署SSL]</i></span>\t\t\t\t\t\t\t\t\t\t<span onclick=\"opSSL('acme',",
+            "de": "')\">当前证书 - <i class=\"error\">[未部署SSL]</i></span>\t\t\t\t\t\t\t\t\t\t<span onclick=\"opSSL('acme',",
+            "it": "')\">当前证书 - <i class=\"error\">[未部署SSL]</i></span>\t\t\t\t\t\t\t\t\t\t<span onclick=\"opSSL('acme',"
+        },
+        "site_auto_str_178": {
+            "zh-CN": "')\">证书夹</span>",
+            "zh-TW": "')\">证书夹</span>",
+            "en": "')\">证书夹</span>",
+            "fr": "')\">证书夹</span>",
+            "de": "')\">证书夹</span>",
+            "it": "')\">证书夹</span>"
+        },
+        "site_auto_str_179": {
+            "zh-CN": "关闭强制HTTPS后需要清空浏览器缓存才能看到效果,继续吗?",
+            "zh-TW": "关闭强制HTTPS后需要清空浏览器缓存才能看到效果,继续吗?",
+            "en": "关闭强制HTTPS后需要清空浏览器缓存才能看到效果,继续吗?",
+            "fr": "关闭强制HTTPS后需要清空浏览器缓存才能看到效果,继续吗?",
+            "de": "关闭强制HTTPS后需要清空浏览器缓存才能看到效果,继续吗?",
+            "it": "关闭强制HTTPS后需要清空浏览器缓存才能看到效果,继续吗?"
+        },
+        "site_auto_str_180": {
+            "zh-CN": "关闭强制HTTPS",
+            "zh-TW": "关闭强制HTTPS",
+            "en": "关闭强制HTTPS",
+            "fr": "关闭强制HTTPS",
+            "de": "关闭强制HTTPS",
+            "it": "关闭强制HTTPS"
+        },
+        "site_auto_str_181": {
+            "zh-CN": "正在续签...",
+            "zh-TW": "正在续签...",
+            "en": "正在续签...",
+            "fr": "正在续签...",
+            "de": "正在续签...",
+            "it": "正在续签..."
+        },
+        "site_auto_str_182": {
+            "zh-CN": "剩余",
+            "zh-TW": "剩余",
+            "en": "剩余",
+            "fr": "剩余",
+            "de": "剩余",
+            "it": "剩余"
+        },
+        "site_auto_str_183": {
+            "zh-CN": "天",
+            "zh-TW": "天",
+            "en": "天",
+            "fr": "天",
+            "de": "天",
+            "it": "天"
+        },
+        "site_auto_str_184": {
+            "zh-CN": "设置",
+            "zh-TW": "设置",
+            "en": "设置",
+            "fr": "设置",
+            "de": "设置",
+            "it": "设置"
+        },
+        "site_auto_str_185": {
+            "zh-CN": "接口",
+            "zh-TW": "接口",
+            "en": "接口",
+            "fr": "接口",
+            "de": "接口",
+            "it": "接口"
+        },
+        "site_auto_str_186": {
+            "zh-CN": "确定",
+            "zh-TW": "确定",
+            "en": "确定",
+            "fr": "确定",
+            "de": "确定",
+            "it": "确定"
+        },
+        "site_auto_str_187": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "取消",
+            "fr": "取消",
+            "de": "取消",
+            "it": "取消"
+        },
+        "site_auto_str_188": {
+            "zh-CN": "<form class='bt-form pd15'>\t\t\t<div class='line'>\t\t\t    <span class='tname'>DNSAPI类型</span>\t\t\t    <div class='info-r'>\t\t\t        <select class='bt-input-text mr5' name='type_name' style='width:100%;'>\t\t\t            <option name='cf'>",
+            "zh-TW": "<form class='bt-form pd15'>\t\t\t<div class='line'>\t\t\t    <span class='tname'>DNSAPI类型</span>\t\t\t    <div class='info-r'>\t\t\t        <select class='bt-input-text mr5' name='type_name' style='width:100%;'>\t\t\t            <option name='cf'>",
+            "en": "<form class='bt-form pd15'>\t\t\t<div class='line'>\t\t\t    <span class='tname'>DNSAPI类型</span>\t\t\t    <div class='info-r'>\t\t\t        <select class='bt-input-text mr5' name='type_name' style='width:100%;'>\t\t\t            <option name='cf'>",
+            "fr": "<form class='bt-form pd15'>\t\t\t<div class='line'>\t\t\t    <span class='tname'>DNSAPI类型</span>\t\t\t    <div class='info-r'>\t\t\t        <select class='bt-input-text mr5' name='type_name' style='width:100%;'>\t\t\t            <option name='cf'>",
+            "de": "<form class='bt-form pd15'>\t\t\t<div class='line'>\t\t\t    <span class='tname'>DNSAPI类型</span>\t\t\t    <div class='info-r'>\t\t\t        <select class='bt-input-text mr5' name='type_name' style='width:100%;'>\t\t\t            <option name='cf'>",
+            "it": "<form class='bt-form pd15'>\t\t\t<div class='line'>\t\t\t    <span class='tname'>DNSAPI类型</span>\t\t\t    <div class='info-r'>\t\t\t        <select class='bt-input-text mr5' name='type_name' style='width:100%;'>\t\t\t            <option name='cf'>"
+        },
+        "site_auto_str_189": {
+            "zh-CN": "\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<div>\t\t\t\t\t<ul class='help-info-text c7' style='margin-top:0px;'>\t\t\t\t\t\t<li>使用【",
+            "zh-TW": "\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<div>\t\t\t\t\t<ul class='help-info-text c7' style='margin-top:0px;'>\t\t\t\t\t\t<li>使用【",
+            "en": "\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<div>\t\t\t\t\t<ul class='help-info-text c7' style='margin-top:0px;'>\t\t\t\t\t\t<li>使用【",
+            "fr": "\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<div>\t\t\t\t\t<ul class='help-info-text c7' style='margin-top:0px;'>\t\t\t\t\t\t<li>使用【",
+            "de": "\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<div>\t\t\t\t\t<ul class='help-info-text c7' style='margin-top:0px;'>\t\t\t\t\t\t<li>使用【",
+            "it": "\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<div>\t\t\t\t\t<ul class='help-info-text c7' style='margin-top:0px;'>\t\t\t\t\t\t<li>使用【"
+        },
+        "site_auto_str_190": {
+            "zh-CN": "】的API接口自动解析申请SSL</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>\t\t</form>",
+            "zh-TW": "】的API接口自动解析申请SSL</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>\t\t</form>",
+            "en": "】的API接口自动解析申请SSL</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>\t\t</form>",
+            "fr": "】的API接口自动解析申请SSL</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>\t\t</form>",
+            "de": "】的API接口自动解析申请SSL</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>\t\t</form>",
+            "it": "】的API接口自动解析申请SSL</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>\t\t</form>"
+        },
+        "site_auto_str_191": {
+            "zh-CN": "<div class=\"myKeyCon ptb15\">\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t<div class=\"custom_certificate_info\">\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\"></textarea></div>\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\"></textarea></div>\t\t</div>\t\t<div class=\"ssl-btn pull-left mtb15\" style=\"width:100%\">\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"saveSSL('",
+            "zh-TW": "<div class=\"myKeyCon ptb15\">\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t<div class=\"custom_certificate_info\">\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\"></textarea></div>\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\"></textarea></div>\t\t</div>\t\t<div class=\"ssl-btn pull-left mtb15\" style=\"width:100%\">\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"saveSSL('",
+            "en": "<div class=\"myKeyCon ptb15\">\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t<div class=\"custom_certificate_info\">\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\"></textarea></div>\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\"></textarea></div>\t\t</div>\t\t<div class=\"ssl-btn pull-left mtb15\" style=\"width:100%\">\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"saveSSL('",
+            "fr": "<div class=\"myKeyCon ptb15\">\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t<div class=\"custom_certificate_info\">\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\"></textarea></div>\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\"></textarea></div>\t\t</div>\t\t<div class=\"ssl-btn pull-left mtb15\" style=\"width:100%\">\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"saveSSL('",
+            "de": "<div class=\"myKeyCon ptb15\">\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t<div class=\"custom_certificate_info\">\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\"></textarea></div>\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\"></textarea></div>\t\t</div>\t\t<div class=\"ssl-btn pull-left mtb15\" style=\"width:100%\">\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"saveSSL('",
+            "it": "<div class=\"myKeyCon ptb15\">\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t<div class=\"custom_certificate_info\">\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\"></textarea></div>\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\"></textarea></div>\t\t</div>\t\t<div class=\"ssl-btn pull-left mtb15\" style=\"width:100%\">\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"saveSSL('"
+        },
+        "site_auto_str_192": {
+            "zh-CN": "')\">保存</button>\t\t</div>\t</div>\t<ul class=\"help-info-text c7 pull-left\">\t\t<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\t\t<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t</ul>",
+            "zh-TW": "')\">保存</button>\t\t</div>\t</div>\t<ul class=\"help-info-text c7 pull-left\">\t\t<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\t\t<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t</ul>",
+            "en": "')\">保存</button>\t\t</div>\t</div>\t<ul class=\"help-info-text c7 pull-left\">\t\t<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\t\t<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t</ul>",
+            "fr": "')\">保存</button>\t\t</div>\t</div>\t<ul class=\"help-info-text c7 pull-left\">\t\t<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\t\t<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t</ul>",
+            "de": "')\">保存</button>\t\t</div>\t</div>\t<ul class=\"help-info-text c7 pull-left\">\t\t<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\t\t<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t</ul>",
+            "it": "')\">保存</button>\t\t</div>\t</div>\t<ul class=\"help-info-text c7 pull-left\">\t\t<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\t\t<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t</ul>"
+        },
+        "site_auto_str_193": {
+            "zh-CN": "正在提交任务...",
+            "zh-TW": "正在提交任务...",
+            "en": "正在提交任务...",
+            "fr": "正在提交任务...",
+            "de": "正在提交任务...",
+            "it": "正在提交任务..."
+        },
+        "site_auto_str_194": {
+            "zh-CN": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "zh-TW": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "en": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "fr": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "de": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "it": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_195": {
+            "zh-CN": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "zh-TW": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "en": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "fr": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "de": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "it": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_196": {
+            "zh-CN": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "zh-TW": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "en": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "fr": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "de": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "it": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"
+        },
+        "site_auto_str_197": {
+            "zh-CN": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "zh-TW": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "en": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "fr": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "de": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "it": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_198": {
+            "zh-CN": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>强制HTTPS：</span><span class='switch'>\t\t\t\t\t<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('",
+            "zh-TW": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>强制HTTPS：</span><span class='switch'>\t\t\t\t\t<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('",
+            "en": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>强制HTTPS：</span><span class='switch'>\t\t\t\t\t<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('",
+            "fr": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>强制HTTPS：</span><span class='switch'>\t\t\t\t\t<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('",
+            "de": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>强制HTTPS：</span><span class='switch'>\t\t\t\t\t<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('",
+            "it": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>强制HTTPS：</span><span class='switch'>\t\t\t\t\t<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('"
+        },
+        "site_auto_str_199": {
+            "zh-CN": "')\">删除</button>",
+            "zh-TW": "')\">删除</button>",
+            "en": "')\">删除</button>",
+            "fr": "')\">删除</button>",
+            "de": "')\">删除</button>",
+            "it": "')\">删除</button>"
+        },
+        "site_auto_str_200": {
+            "zh-CN": "')\" style='margin-left:3px;'>关闭SSL</button>",
+            "zh-TW": "')\" style='margin-left:3px;'>关闭SSL</button>",
+            "en": "')\" style='margin-left:3px;'>关闭SSL</button>",
+            "fr": "')\" style='margin-left:3px;'>关闭SSL</button>",
+            "de": "')\" style='margin-left:3px;'>关闭SSL</button>",
+            "it": "')\" style='margin-left:3px;'>关闭SSL</button>"
+        },
+        "site_auto_str_201": {
+            "zh-CN": "')\" style='margin-left:3px;'>手动续签</button>",
+            "zh-TW": "')\" style='margin-left:3px;'>手动续签</button>",
+            "en": "')\" style='margin-left:3px;'>手动续签</button>",
+            "fr": "')\" style='margin-left:3px;'>手动续签</button>",
+            "de": "')\" style='margin-left:3px;'>手动续签</button>",
+            "it": "')\" style='margin-left:3px;'>手动续签</button>"
+        },
+        "site_auto_str_202": {
+            "zh-CN": "当前证书 - <i style=\"color:#20a53a;\">[已部署SSL]</i>",
+            "zh-TW": "当前证书 - <i style=\"color:#20a53a;\">[已部署SSL]</i>",
+            "en": "当前证书 - <i style=\"color:#20a53a;\">[已部署SSL]</i>",
+            "fr": "当前证书 - <i style=\"color:#20a53a;\">[已部署SSL]</i>",
+            "de": "当前证书 - <i style=\"color:#20a53a;\">[已部署SSL]</i>",
+            "it": "当前证书 - <i style=\"color:#20a53a;\">[已部署SSL]</i>"
+        },
+        "site_auto_str_203": {
+            "zh-CN": "当前证书 - <i style=\"color:red;\">[未部署SSL]</i>",
+            "zh-TW": "当前证书 - <i style=\"color:red;\">[未部署SSL]</i>",
+            "en": "当前证书 - <i style=\"color:red;\">[未部署SSL]</i>",
+            "fr": "当前证书 - <i style=\"color:red;\">[未部署SSL]</i>",
+            "de": "当前证书 - <i style=\"color:red;\">[未部署SSL]</i>",
+            "it": "当前证书 - <i style=\"color:red;\">[未部署SSL]</i>"
+        },
+        "site_auto_str_204": {
+            "zh-CN": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">证书</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"default\" id=\"ca_default\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_default\" style=\"font-weight:normal\">默认</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"let\" id=\"ca_letsencrypt\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_letsencrypt\" style=\"font-weight:normal\">letsencrypt</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"zerossl\" id=\"ca_zerossl/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_zerossl\" style=\"font-weight:normal\">zerossl</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"buypass\" id=\"ca_buypass/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_buypass\" style=\"font-weight:normal\">buypass</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px; margin-top:8px;\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\" id=\"dns_alias\" style=\"display:none;\">\t\t\t<span class=\"tname text-center\">别名验证</span>\t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"dns_alias\" />\t\t\t<span> (建议别用) <a class=\"btlink\" target=\"_blank\" href=\"https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias\">文档说明</a><span>\t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t\t<ul class=\"help-info-text c7\" id=\"lets_help\">\t\t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li></ul>\t \t</ul>\t</div>",
+            "zh-TW": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">证书</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"default\" id=\"ca_default\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_default\" style=\"font-weight:normal\">默认</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"let\" id=\"ca_letsencrypt\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_letsencrypt\" style=\"font-weight:normal\">letsencrypt</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"zerossl\" id=\"ca_zerossl/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_zerossl\" style=\"font-weight:normal\">zerossl</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"buypass\" id=\"ca_buypass/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_buypass\" style=\"font-weight:normal\">buypass</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px; margin-top:8px;\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\" id=\"dns_alias\" style=\"display:none;\">\t\t\t<span class=\"tname text-center\">别名验证</span>\t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"dns_alias\" />\t\t\t<span> (建议别用) <a class=\"btlink\" target=\"_blank\" href=\"https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias\">文档说明</a><span>\t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t\t<ul class=\"help-info-text c7\" id=\"lets_help\">\t\t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li></ul>\t \t</ul>\t</div>",
+            "en": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">证书</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"default\" id=\"ca_default\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_default\" style=\"font-weight:normal\">默认</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"let\" id=\"ca_letsencrypt\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_letsencrypt\" style=\"font-weight:normal\">letsencrypt</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"zerossl\" id=\"ca_zerossl/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_zerossl\" style=\"font-weight:normal\">zerossl</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"buypass\" id=\"ca_buypass/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_buypass\" style=\"font-weight:normal\">buypass</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px; margin-top:8px;\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\" id=\"dns_alias\" style=\"display:none;\">\t\t\t<span class=\"tname text-center\">别名验证</span>\t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"dns_alias\" />\t\t\t<span> (建议别用) <a class=\"btlink\" target=\"_blank\" href=\"https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias\">文档说明</a><span>\t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t\t<ul class=\"help-info-text c7\" id=\"lets_help\">\t\t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li></ul>\t \t</ul>\t</div>",
+            "fr": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">证书</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"default\" id=\"ca_default\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_default\" style=\"font-weight:normal\">默认</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"let\" id=\"ca_letsencrypt\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_letsencrypt\" style=\"font-weight:normal\">letsencrypt</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"zerossl\" id=\"ca_zerossl/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_zerossl\" style=\"font-weight:normal\">zerossl</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"buypass\" id=\"ca_buypass/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_buypass\" style=\"font-weight:normal\">buypass</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px; margin-top:8px;\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\" id=\"dns_alias\" style=\"display:none;\">\t\t\t<span class=\"tname text-center\">别名验证</span>\t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"dns_alias\" />\t\t\t<span> (建议别用) <a class=\"btlink\" target=\"_blank\" href=\"https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias\">文档说明</a><span>\t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t\t<ul class=\"help-info-text c7\" id=\"lets_help\">\t\t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li></ul>\t \t</ul>\t</div>",
+            "de": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">证书</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"default\" id=\"ca_default\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_default\" style=\"font-weight:normal\">默认</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"let\" id=\"ca_letsencrypt\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_letsencrypt\" style=\"font-weight:normal\">letsencrypt</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"zerossl\" id=\"ca_zerossl/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_zerossl\" style=\"font-weight:normal\">zerossl</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"buypass\" id=\"ca_buypass/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_buypass\" style=\"font-weight:normal\">buypass</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px; margin-top:8px;\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\" id=\"dns_alias\" style=\"display:none;\">\t\t\t<span class=\"tname text-center\">别名验证</span>\t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"dns_alias\" />\t\t\t<span> (建议别用) <a class=\"btlink\" target=\"_blank\" href=\"https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias\">文档说明</a><span>\t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t\t<ul class=\"help-info-text c7\" id=\"lets_help\">\t\t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li></ul>\t \t</ul>\t</div>",
+            "it": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line\">\t\t\t\t<span class=\"tname text-center\">证书</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"default\" id=\"ca_default\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_default\" style=\"font-weight:normal\">默认</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"let\" id=\"ca_letsencrypt\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_letsencrypt\" style=\"font-weight:normal\">letsencrypt</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"zerossl\" id=\"ca_zerossl/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_zerossl\" style=\"font-weight:normal\">zerossl</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_ca\" value=\"buypass\" id=\"ca_buypass/>  \t\t\t\t\t<label class=\"mr20\" for=\"ca_buypass\" style=\"font-weight:normal\">buypass</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px; margin-top:8px;\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\" id=\"dns_alias\" style=\"display:none;\">\t\t\t<span class=\"tname text-center\">别名验证</span>\t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"dns_alias\" />\t\t\t<span> (建议别用) <a class=\"btlink\" target=\"_blank\" href=\"https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias\">文档说明</a><span>\t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t\t<ul class=\"help-info-text c7\" id=\"lets_help\">\t\t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t\t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li></ul>\t \t</ul>\t</div>"
+        },
+        "site_auto_str_205": {
+            "zh-CN": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "zh-TW": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "en": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "fr": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "de": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "it": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">"
+        },
+        "site_auto_str_206": {
+            "zh-CN": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "zh-TW": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "en": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "fr": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "de": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "it": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">"
+        },
+        "site_auto_str_207": {
+            "zh-CN": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('acme',",
+            "zh-TW": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('acme',",
+            "en": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('acme',",
+            "fr": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('acme',",
+            "de": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('acme',",
+            "it": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('acme',"
+        },
+        "site_auto_str_208": {
+            "zh-CN": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成ACME免费证书</li>\t\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "zh-TW": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成ACME免费证书</li>\t\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "en": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成ACME免费证书</li>\t\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "fr": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成ACME免费证书</li>\t\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "de": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成ACME免费证书</li>\t\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "it": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成ACME免费证书</li>\t\t\t\t<li>由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>"
+        },
+        "site_auto_str_209": {
+            "zh-CN": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "zh-TW": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "en": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "fr": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "de": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "it": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_210": {
+            "zh-CN": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "zh-TW": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "en": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "fr": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "de": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "it": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_211": {
+            "zh-CN": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "zh-TW": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "en": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "fr": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "de": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "it": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"
+        },
+        "site_auto_str_212": {
+            "zh-CN": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "zh-TW": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "en": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "fr": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "de": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "it": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_213": {
+            "zh-CN": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"lets_help\">\t  \t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t  \t\t<li>Let's Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签</li>\t  \t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t  \t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t  \t</ul>  \t</div>",
+            "zh-TW": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"lets_help\">\t  \t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t  \t\t<li>Let's Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签</li>\t  \t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t  \t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t  \t</ul>  \t</div>",
+            "en": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"lets_help\">\t  \t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t  \t\t<li>Let's Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签</li>\t  \t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t  \t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t  \t</ul>  \t</div>",
+            "fr": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"lets_help\">\t  \t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t  \t\t<li>Let's Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签</li>\t  \t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t  \t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t  \t</ul>  \t</div>",
+            "de": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"lets_help\">\t  \t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t  \t\t<li>Let's Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签</li>\t  \t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t  \t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t  \t</ul>  \t</div>",
+            "it": "<div class=\"apply_ssl\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"file\" id=\"check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_file\" style=\"font-weight:normal\">文件验证</label></label>  \t\t\t\t\t<input type=\"radio\" name=\"apply_type\" value=\"dns\" id=\"check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"check_dns\" style=\"font-weight:normal\">DNS验证</label></label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"dnspai\" class=\"bt-input-text mr20\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>\t\t\t\t\t<button id=\"dnsapi_set\" class=\"btn btn-default btn-sm btn-title\" style=\"display:none;\">配置</button>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"check_message line\" id=\"wildcard_domain_block\" style=\"display:none;\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"wildcard_domain\" id=\"wildcard_domain\" checked=\"checked\">  \t\t\t\t\t<label class=\"mr20\" for=\"wildcard_domain\" style=\"font-weight:normal\">自动组合泛域名</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"checkDomain\" id=\"checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"checkDomain\" style=\"font-weight:normal\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"admin_email\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\">域名</span>  \t\t\t<ul id=\"ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px\"></ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"lets_help\">\t  \t\t<li>申请之前，请确保域名已解析，如未解析会导致审核失败</li>\t  \t\t<li>Let's Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签</li>\t  \t\t<li>若您的站点使用了CDN或301重定向会导致续签失败</li>\t  \t\t<li>在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点</li>\t  \t</ul>  \t</div>"
+        },
+        "site_auto_str_214": {
+            "zh-CN": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "zh-TW": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "en": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "fr": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "de": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">",
+            "it": "<div class=\"myKeyCon ptb15\">\t\t\t\t<div class=\"ssl_state_info\" style=\"display:none;\"></div>\t\t\t\t<div class=\"custom_certificate_info\">\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\" readonly>密钥(KEY)<br><textarea id=\"key\" class=\"bt-input-text\">"
+        },
+        "site_auto_str_215": {
+            "zh-CN": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "zh-TW": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "en": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "fr": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "de": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">",
+            "it": "</textarea></div>\t\t\t\t\t<div class=\"ssl-con-key pull-left\" readonly>证书(PEM格式)<br><textarea id=\"csr\" class=\"bt-input-text\">"
+        },
+        "site_auto_str_216": {
+            "zh-CN": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"renewSSL('lets',",
+            "zh-TW": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"renewSSL('lets',",
+            "en": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"renewSSL('lets',",
+            "fr": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"renewSSL('lets',",
+            "de": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"renewSSL('lets',",
+            "it": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"renewSSL('lets',"
+        },
+        "site_auto_str_217": {
+            "zh-CN": "')\">续期</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('lets',",
+            "zh-TW": "')\">续期</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('lets',",
+            "en": "')\">续期</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('lets',",
+            "fr": "')\">续期</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('lets',",
+            "de": "')\">续期</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('lets',",
+            "it": "')\">续期</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('lets',"
+        },
+        "site_auto_str_218": {
+            "zh-CN": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成Let's Encrypt免费证书</li>\t\t\t\t<li>由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "zh-TW": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成Let's Encrypt免费证书</li>\t\t\t\t<li>由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "en": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成Let's Encrypt免费证书</li>\t\t\t\t<li>由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "fr": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成Let's Encrypt免费证书</li>\t\t\t\t<li>由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "de": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成Let's Encrypt免费证书</li>\t\t\t\t<li>由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>",
+            "it": "')\">删除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已为您自动生成Let's Encrypt免费证书</li>\t\t\t\t<li>由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签</li>\t\t\t\t<li>如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。</li>\t\t\t</ul>"
+        },
+        "site_auto_str_219": {
+            "zh-CN": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "zh-TW": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "en": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "fr": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "de": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>",
+            "it": "<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>证书分类：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_220": {
+            "zh-CN": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "zh-TW": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "en": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "fr": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "de": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>",
+            "it": "</span></div>\t\t\t\t<div class='state_item'><span>证书品牌：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_221": {
+            "zh-CN": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "zh-TW": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "en": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "fr": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "de": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余",
+            "it": "</span></div>\t\t\t</div>\t\t\t<div class='state_info_flex'>\t\t\t\t<div class='state_item'><span>到期时间：</span><span class='btlink'>剩余"
+        },
+        "site_auto_str_222": {
+            "zh-CN": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "zh-TW": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "en": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "fr": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "de": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>",
+            "it": "天到期</span></div>\t\t\t\t<div class='state_item'><span>认证域名：</span><span class='ellipsis_text'>"
+        },
+        "site_auto_str_223": {
+            "zh-CN": "错误类型",
+            "zh-TW": "错误类型",
+            "en": "错误类型",
+            "fr": "错误类型",
+            "de": "错误类型",
+            "it": "错误类型"
+        },
+        "site_auto_str_224": {
+            "zh-CN": "正在获取证书列表，请稍后..",
+            "zh-TW": "正在获取证书列表，请稍后..",
+            "en": "正在获取证书列表，请稍后..",
+            "fr": "正在获取证书列表，请稍后..",
+            "de": "正在获取证书列表，请稍后..",
+            "it": "正在获取证书列表，请稍后.."
+        },
+        "site_auto_str_225": {
+            "zh-CN": "<p>证书获取失败：</p><hr />",
+            "zh-TW": "<p>证书获取失败：</p><hr />",
+            "en": "<p>证书获取失败：</p><hr />",
+            "fr": "<p>证书获取失败：</p><hr />",
+            "de": "<p>证书获取失败：</p><hr />",
+            "it": "<p>证书获取失败：</p><hr />"
+        },
+        "site_auto_str_226": {
+            "zh-CN": "<p>域名: ",
+            "zh-TW": "<p>域名: ",
+            "en": "<p>域名: ",
+            "fr": "<p>域名: ",
+            "de": "<p>域名: ",
+            "it": "<p>域名: "
+        },
+        "site_auto_str_227": {
+            "zh-CN": "<p>错误类型: ",
+            "zh-TW": "<p>错误类型: ",
+            "en": "<p>错误类型: ",
+            "fr": "<p>错误类型: ",
+            "de": "<p>错误类型: ",
+            "it": "<p>错误类型: "
+        },
+        "site_auto_str_228": {
+            "zh-CN": "<p>详情: ",
+            "zh-TW": "<p>详情: ",
+            "en": "<p>详情: ",
+            "fr": "<p>详情: ",
+            "de": "<p>详情: ",
+            "it": "<p>详情: "
+        },
+        "site_auto_str_229": {
+            "zh-CN": "已关闭SSL,请务必清除浏览器缓存后再访问站点!",
+            "zh-TW": "已关闭SSL,请务必清除浏览器缓存后再访问站点!",
+            "en": "已关闭SSL,请务必清除浏览器缓存后再访问站点!",
+            "fr": "已关闭SSL,请务必清除浏览器缓存后再访问站点!",
+            "de": "已关闭SSL,请务必清除浏览器缓存后再访问站点!",
+            "it": "已关闭SSL,请务必清除浏览器缓存后再访问站点!"
+        },
+        "site_auto_str_230": {
+            "zh-CN": "正在申请...",
+            "zh-TW": "正在申请...",
+            "en": "正在申请...",
+            "fr": "正在申请...",
+            "de": "正在申请...",
+            "it": "正在申请..."
+        },
+        "site_auto_str_231": {
+            "zh-CN": "手动解析TXT记录",
+            "zh-TW": "手动解析TXT记录",
+            "en": "手动解析TXT记录",
+            "fr": "手动解析TXT记录",
+            "de": "手动解析TXT记录",
+            "it": "手动解析TXT记录"
+        },
+        "site_auto_str_232": {
+            "zh-CN": "验证",
+            "zh-TW": "验证",
+            "en": "验证",
+            "fr": "验证",
+            "de": "验证",
+            "it": "验证"
+        },
+        "site_auto_str_233": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "取消",
+            "fr": "取消",
+            "de": "取消",
+            "it": "取消"
+        },
+        "site_auto_str_234": {
+            "zh-CN": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">                <div class=\"tablescroll\">                    <table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">                    <thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>                    <tbody></tbody>                    </table>                </div>            </div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t    <li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\t\t\t    <li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t    <li>若您使用的是阿里云DNS,DnsPod等等作为DNS,可使用DNS接口自动解析</li>\t\t    </ul>\t\t</div>",
+            "zh-TW": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">                <div class=\"tablescroll\">                    <table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">                    <thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>                    <tbody></tbody>                    </table>                </div>            </div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t    <li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\t\t\t    <li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t    <li>若您使用的是阿里云DNS,DnsPod等等作为DNS,可使用DNS接口自动解析</li>\t\t    </ul>\t\t</div>",
+            "en": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">                <div class=\"tablescroll\">                    <table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">                    <thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>                    <tbody></tbody>                    </table>                </div>            </div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t    <li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\t\t\t    <li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t    <li>若您使用的是阿里云DNS,DnsPod等等作为DNS,可使用DNS接口自动解析</li>\t\t    </ul>\t\t</div>",
+            "fr": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">                <div class=\"tablescroll\">                    <table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">                    <thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>                    <tbody></tbody>                    </table>                </div>            </div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t    <li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\t\t\t    <li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t    <li>若您使用的是阿里云DNS,DnsPod等等作为DNS,可使用DNS接口自动解析</li>\t\t    </ul>\t\t</div>",
+            "de": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">                <div class=\"tablescroll\">                    <table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">                    <thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>                    <tbody></tbody>                    </table>                </div>            </div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t    <li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\t\t\t    <li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t    <li>若您使用的是阿里云DNS,DnsPod等等作为DNS,可使用DNS接口自动解析</li>\t\t    </ul>\t\t</div>",
+            "it": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">                <div class=\"tablescroll\">                    <table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">                    <thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>                    <tbody></tbody>                    </table>                </div>            </div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t    <li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\t\t\t    <li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t    <li>若您使用的是阿里云DNS,DnsPod等等作为DNS,可使用DNS接口自动解析</li>\t\t    </ul>\t\t</div>"
+        },
+        "site_auto_str_235": {
+            "zh-CN": "<td>必需</td>",
+            "zh-TW": "<td>必需</td>",
+            "en": "<td>必需</td>",
+            "fr": "<td>必需</td>",
+            "de": "<td>必需</td>",
+            "it": "<td>必需</td>"
+        },
+        "site_auto_str_236": {
+            "zh-CN": "<td>可选</td>",
+            "zh-TW": "<td>可选</td>",
+            "en": "<td>可选</td>",
+            "fr": "<td>可选</td>",
+            "de": "<td>可选</td>",
+            "it": "<td>可选</td>"
+        },
+        "site_auto_str_237": {
+            "zh-CN": "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt ",
+            "zh-TW": "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt ",
+            "en": "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt ",
+            "fr": "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt ",
+            "de": "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt ",
+            "it": "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt "
+        },
+        "site_auto_str_238": {
+            "zh-CN": "正在由ACME申请手动SSL...",
+            "zh-TW": "正在由ACME申请手动SSL...",
+            "en": "正在由ACME申请手动SSL...",
+            "fr": "正在由ACME申请手动SSL...",
+            "de": "正在由ACME申请手动SSL...",
+            "it": "正在由ACME申请手动SSL..."
+        },
+        "site_auto_str_239": {
+            "zh-CN": "正在由ACME申请...",
+            "zh-TW": "正在由ACME申请...",
+            "en": "正在由ACME申请...",
+            "fr": "正在由ACME申请...",
+            "de": "正在由ACME申请...",
+            "it": "正在由ACME申请..."
+        },
+        "site_auto_str_240": {
+            "zh-CN": "手动解析",
+            "zh-TW": "手动解析",
+            "en": "手动解析",
+            "fr": "手动解析",
+            "de": "手动解析",
+            "it": "手动解析"
+        },
+        "site_auto_str_241": {
+            "zh-CN": "<div class='webEdit-box'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname' style='width:100px'>PHP版本</span>\t\t\t\t\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t\t\t\t\t<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>",
+            "zh-TW": "<div class='webEdit-box'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname' style='width:100px'>PHP版本</span>\t\t\t\t\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t\t\t\t\t<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>",
+            "en": "<div class='webEdit-box'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname' style='width:100px'>PHP版本</span>\t\t\t\t\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t\t\t\t\t<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>",
+            "fr": "<div class='webEdit-box'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname' style='width:100px'>PHP版本</span>\t\t\t\t\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t\t\t\t\t<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>",
+            "de": "<div class='webEdit-box'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname' style='width:100px'>PHP版本</span>\t\t\t\t\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t\t\t\t\t<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>",
+            "it": "<div class='webEdit-box'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname' style='width:100px'>PHP版本</span>\t\t\t\t\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t\t\t\t\t<select id='phpVersion' class='bt-input-text mr5' name='phpVersion' style='width:110px'>"
+        },
+        "site_auto_str_242": {
+            "zh-CN": "</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<span id='php_w' style='color:red;margin-left: 32px;'></span>\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t\t<li>请根据您的程序需求选择版本</li>\t\t\t\t\t\t\t\t<li>若非必要,请尽量不要使用PHP5.2,这会降低您的服务器安全性；</li>\t\t\t\t\t\t\t\t<li>PHP7不支持mysql扩展，默认安装mysqli以及mysql-pdo。</li>\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "zh-TW": "</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<span id='php_w' style='color:red;margin-left: 32px;'></span>\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t\t<li>请根据您的程序需求选择版本</li>\t\t\t\t\t\t\t\t<li>若非必要,请尽量不要使用PHP5.2,这会降低您的服务器安全性；</li>\t\t\t\t\t\t\t\t<li>PHP7不支持mysql扩展，默认安装mysqli以及mysql-pdo。</li>\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "en": "</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<span id='php_w' style='color:red;margin-left: 32px;'></span>\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t\t<li>请根据您的程序需求选择版本</li>\t\t\t\t\t\t\t\t<li>若非必要,请尽量不要使用PHP5.2,这会降低您的服务器安全性；</li>\t\t\t\t\t\t\t\t<li>PHP7不支持mysql扩展，默认安装mysqli以及mysql-pdo。</li>\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "fr": "</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<span id='php_w' style='color:red;margin-left: 32px;'></span>\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t\t<li>请根据您的程序需求选择版本</li>\t\t\t\t\t\t\t\t<li>若非必要,请尽量不要使用PHP5.2,这会降低您的服务器安全性；</li>\t\t\t\t\t\t\t\t<li>PHP7不支持mysql扩展，默认安装mysqli以及mysql-pdo。</li>\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "de": "</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<span id='php_w' style='color:red;margin-left: 32px;'></span>\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t\t<li>请根据您的程序需求选择版本</li>\t\t\t\t\t\t\t\t<li>若非必要,请尽量不要使用PHP5.2,这会降低您的服务器安全性；</li>\t\t\t\t\t\t\t\t<li>PHP7不支持mysql扩展，默认安装mysqli以及mysql-pdo。</li>\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "it": "</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<span id='php_w' style='color:red;margin-left: 32px;'></span>\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t\t\t\t<li>请根据您的程序需求选择版本</li>\t\t\t\t\t\t\t\t<li>若非必要,请尽量不要使用PHP5.2,这会降低您的服务器安全性；</li>\t\t\t\t\t\t\t\t<li>PHP7不支持mysql扩展，默认安装mysqli以及mysql-pdo。</li>\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>"
+        },
+        "site_auto_str_243": {
+            "zh-CN": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "zh-TW": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "en": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "fr": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "de": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!",
+            "it": "PHP5.2在您的站点有漏洞时有跨站风险，请尽量使用PHP5.3以上版本!"
+        },
+        "site_auto_str_244": {
+            "zh-CN": "正在保存...",
+            "zh-TW": "正在保存...",
+            "en": "正在保存...",
+            "fr": "正在保存...",
+            "de": "正在保存...",
+            "it": "正在保存..."
+        },
+        "site_auto_str_245": {
+            "zh-CN": "静态",
+            "zh-TW": "静态",
+            "en": "静态",
+            "fr": "静态",
+            "de": "静态",
+            "it": "静态"
+        },
+        "site_auto_str_246": {
+            "zh-CN": "静态",
+            "zh-TW": "静态",
+            "en": "静态",
+            "fr": "静态",
+            "de": "静态",
+            "it": "静态"
+        },
+        "site_auto_str_247": {
+            "zh-CN": "<div class='bt-form pd20' style='padding-bottom: 50px;'>\t\t\t\t\t\t\t<p style='font-size: 14px;'>修改域名【",
+            "zh-TW": "<div class='bt-form pd20' style='padding-bottom: 50px;'>\t\t\t\t\t\t\t<p style='font-size: 14px;'>修改域名【",
+            "en": "<div class='bt-form pd20' style='padding-bottom: 50px;'>\t\t\t\t\t\t\t<p style='font-size: 14px;'>修改域名【",
+            "fr": "<div class='bt-form pd20' style='padding-bottom: 50px;'>\t\t\t\t\t\t\t<p style='font-size: 14px;'>修改域名【",
+            "de": "<div class='bt-form pd20' style='padding-bottom: 50px;'>\t\t\t\t\t\t\t<p style='font-size: 14px;'>修改域名【",
+            "it": "<div class='bt-form pd20' style='padding-bottom: 50px;'>\t\t\t\t\t\t\t<p style='font-size: 14px;'>修改域名【"
+        },
+        "site_auto_str_248": {
+            "zh-CN": "】，目前PHP版本为：",
+            "zh-TW": "】，目前PHP版本为：",
+            "en": "】，目前PHP版本为：",
+            "fr": "】，目前PHP版本为：",
+            "de": "】，目前PHP版本为：",
+            "it": "】，目前PHP版本为："
+        },
+        "site_auto_str_249": {
+            "zh-CN": "</p>\t\t\t\t\t\t\t<p class='line' style='margin-top:15px;'>\t\t\t\t\t\t\t\t<span class='tname' style='width:120px;text-align:left;'>修改 PHP 版本号为：</span>\t\t\t\t\t\t\t\t<select id='newPHPVersion' class='bt-input-text' style='width:150px;'>",
+            "zh-TW": "</p>\t\t\t\t\t\t\t<p class='line' style='margin-top:15px;'>\t\t\t\t\t\t\t\t<span class='tname' style='width:120px;text-align:left;'>修改 PHP 版本号为：</span>\t\t\t\t\t\t\t\t<select id='newPHPVersion' class='bt-input-text' style='width:150px;'>",
+            "en": "</p>\t\t\t\t\t\t\t<p class='line' style='margin-top:15px;'>\t\t\t\t\t\t\t\t<span class='tname' style='width:120px;text-align:left;'>修改 PHP 版本号为：</span>\t\t\t\t\t\t\t\t<select id='newPHPVersion' class='bt-input-text' style='width:150px;'>",
+            "fr": "</p>\t\t\t\t\t\t\t<p class='line' style='margin-top:15px;'>\t\t\t\t\t\t\t\t<span class='tname' style='width:120px;text-align:left;'>修改 PHP 版本号为：</span>\t\t\t\t\t\t\t\t<select id='newPHPVersion' class='bt-input-text' style='width:150px;'>",
+            "de": "</p>\t\t\t\t\t\t\t<p class='line' style='margin-top:15px;'>\t\t\t\t\t\t\t\t<span class='tname' style='width:120px;text-align:left;'>修改 PHP 版本号为：</span>\t\t\t\t\t\t\t\t<select id='newPHPVersion' class='bt-input-text' style='width:150px;'>",
+            "it": "</p>\t\t\t\t\t\t\t<p class='line' style='margin-top:15px;'>\t\t\t\t\t\t\t\t<span class='tname' style='width:120px;text-align:left;'>修改 PHP 版本号为：</span>\t\t\t\t\t\t\t\t<select id='newPHPVersion' class='bt-input-text' style='width:150px;'>"
+        },
+        "site_auto_str_250": {
+            "zh-CN": "</select>\t\t\t\t\t\t\t</p>\t\t\t\t\t\t\t<div class='bt-form-submit-btn'>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('",
+            "zh-TW": "</select>\t\t\t\t\t\t\t</p>\t\t\t\t\t\t\t<div class='bt-form-submit-btn'>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('",
+            "en": "</select>\t\t\t\t\t\t\t</p>\t\t\t\t\t\t\t<div class='bt-form-submit-btn'>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('",
+            "fr": "</select>\t\t\t\t\t\t\t</p>\t\t\t\t\t\t\t<div class='bt-form-submit-btn'>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('",
+            "de": "</select>\t\t\t\t\t\t\t</p>\t\t\t\t\t\t\t<div class='bt-form-submit-btn'>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('",
+            "it": "</select>\t\t\t\t\t\t\t</p>\t\t\t\t\t\t\t<div class='bt-form-submit-btn'>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-danger btn-sm' onclick='layer.closeAll()'>取消</button>\t\t\t\t\t\t\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"submitChangePHPVersion('"
+        },
+        "site_auto_str_251": {
+            "zh-CN": "')\">确定</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "zh-TW": "')\">确定</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "en": "')\">确定</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "fr": "')\">确定</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "de": "')\">确定</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "it": "')\">确定</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>"
+        },
+        "site_auto_str_252": {
+            "zh-CN": "修改 PHP 版本",
+            "zh-TW": "修改 PHP 版本",
+            "en": "修改 PHP 版本",
+            "fr": "修改 PHP 版本",
+            "de": "修改 PHP 版本",
+            "it": "修改 PHP 版本"
+        },
+        "site_auto_str_253": {
+            "zh-CN": "修改域名【",
+            "zh-TW": "修改域名【",
+            "en": "修改域名【",
+            "fr": "修改域名【",
+            "de": "修改域名【",
+            "it": "修改域名【"
+        },
+        "site_auto_str_254": {
+            "zh-CN": "】，目前PHP版本为：",
+            "zh-TW": "】，目前PHP版本为：",
+            "en": "】，目前PHP版本为：",
+            "fr": "】，目前PHP版本为：",
+            "de": "】，目前PHP版本为：",
+            "it": "】，目前PHP版本为："
+        },
+        "site_auto_str_255": {
+            "zh-CN": "<br>确定修改 PHP 版本号为：",
+            "zh-TW": "<br>确定修改 PHP 版本号为：",
+            "en": "<br>确定修改 PHP 版本号为：",
+            "fr": "<br>确定修改 PHP 版本号为：",
+            "de": "<br>确定修改 PHP 版本号为：",
+            "it": "<br>确定修改 PHP 版本号为："
+        },
+        "site_auto_str_256": {
+            "zh-CN": " 吗？",
+            "zh-TW": " 吗？",
+            "en": " 吗？",
+            "fr": " 吗？",
+            "de": " 吗？",
+            "it": " 吗？"
+        },
+        "site_auto_str_257": {
+            "zh-CN": "确认修改PHP版本",
+            "zh-TW": "确认修改PHP版本",
+            "en": "确认修改PHP版本",
+            "fr": "确认修改PHP版本",
+            "de": "确认修改PHP版本",
+            "it": "确认修改PHP版本"
+        },
+        "site_auto_str_258": {
+            "zh-CN": "正在保存...",
+            "zh-TW": "正在保存...",
+            "en": "正在保存...",
+            "fr": "正在保存...",
+            "de": "正在保存...",
+            "it": "正在保存..."
+        },
+        "site_auto_str_259": {
+            "zh-CN": "静态",
+            "zh-TW": "静态",
+            "en": "静态",
+            "fr": "静态",
+            "de": "静态",
+            "it": "静态"
+        },
+        "site_auto_str_260": {
+            "zh-CN": "</textarea>\t\t\t<div class='info-r'>\t\t\t\t<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>此处为站点主配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t</ul>\t\t\t</div>\t\t</div>",
+            "zh-TW": "</textarea>\t\t\t<div class='info-r'>\t\t\t\t<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>此处为站点主配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t</ul>\t\t\t</div>\t\t</div>",
+            "en": "</textarea>\t\t\t<div class='info-r'>\t\t\t\t<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>此处为站点主配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t</ul>\t\t\t</div>\t\t</div>",
+            "fr": "</textarea>\t\t\t<div class='info-r'>\t\t\t\t<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>此处为站点主配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t</ul>\t\t\t</div>\t\t</div>",
+            "de": "</textarea>\t\t\t<div class='info-r'>\t\t\t\t<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>此处为站点主配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t</ul>\t\t\t</div>\t\t</div>",
+            "it": "</textarea>\t\t\t<div class='info-r'>\t\t\t\t<button id='SaveConfigFileBtn' class='btn btn-success btn-sm' style='margin-top:15px;'>保存</button>\t\t\t\t<ul class='help-info-text c7 ptb10'>\t\t\t\t\t<li>此处为站点主配置文件,若您不了解配置规则,请勿随意修改.</li>\t\t\t\t</ul>\t\t\t</div>\t\t</div>"
+        },
+        "site_auto_str_261": {
+            "zh-CN": "保存中...",
+            "zh-TW": "保存中...",
+            "en": "保存中...",
+            "fr": "保存中...",
+            "de": "保存中...",
+            "it": "保存中..."
+        },
+        "site_auto_str_262": {
+            "zh-CN": "EmpireCMS (帝国CMS)",
+            "zh-TW": "EmpireCMS (帝国CMS)",
+            "en": "EmpireCMS (帝国CMS)",
+            "fr": "EmpireCMS (帝国CMS)",
+            "de": "EmpireCMS (帝国CMS)",
+            "it": "EmpireCMS (帝国CMS)"
+        },
+        "site_auto_str_263": {
+            "zh-CN": "dedecms (织梦)",
+            "zh-TW": "dedecms (织梦)",
+            "en": "dedecms (织梦)",
+            "fr": "dedecms (织梦)",
+            "de": "dedecms (织梦)",
+            "it": "dedecms (织梦)"
+        },
+        "site_auto_str_264": {
+            "zh-CN": "mvc (通用 MVC 伪静态)",
+            "zh-TW": "mvc (通用 MVC 伪静态)",
+            "en": "mvc (通用 MVC 伪静态)",
+            "fr": "mvc (通用 MVC 伪静态)",
+            "de": "mvc (通用 MVC 伪静态)",
+            "it": "mvc (通用 MVC 伪静态)"
+        },
+        "site_auto_str_265": {
+            "zh-CN": "seacms (海洋CMS)",
+            "zh-TW": "seacms (海洋CMS)",
+            "en": "seacms (海洋CMS)",
+            "fr": "seacms (海洋CMS)",
+            "de": "seacms (海洋CMS)",
+            "it": "seacms (海洋CMS)"
+        },
+        "site_auto_str_266": {
+            "zh-CN": "wmcms (完美CMS)",
+            "zh-TW": "wmcms (完美CMS)",
+            "en": "wmcms (完美CMS)",
+            "fr": "wmcms (完美CMS)",
+            "de": "wmcms (完美CMS)",
+            "it": "wmcms (完美CMS)"
+        },
+        "site_auto_str_267": {
+            "zh-CN": "</textarea></div>\t\t\t\t\t\t<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t\t\t<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>",
+            "zh-TW": "</textarea></div>\t\t\t\t\t\t<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t\t\t<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>",
+            "en": "</textarea></div>\t\t\t\t\t\t<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t\t\t<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>",
+            "fr": "</textarea></div>\t\t\t\t\t\t<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t\t\t<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>",
+            "de": "</textarea></div>\t\t\t\t\t\t<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t\t\t<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>",
+            "it": "</textarea></div>\t\t\t\t\t\t<button id='SetRewriteBtn' class='btn btn-success btn-sm'>保存</button>\t\t\t\t\t\t<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>另存为模板</button>\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t<li>请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default</li>\t\t\t\t\t\t\t<li>您可以对伪静态规则进行修改，修改完后保存即可。</li>\t\t\t\t\t\t</ul>\t\t\t\t\t\t</div>"
+        },
+        "site_auto_str_268": {
+            "zh-CN": "保存为Rewrite模板",
+            "zh-TW": "保存为Rewrite模板",
+            "en": "保存为Rewrite模板",
+            "fr": "保存为Rewrite模板",
+            "de": "保存为Rewrite模板",
+            "it": "保存为Rewrite模板"
+        },
+        "site_auto_str_269": {
+            "zh-CN": "修改默认页",
+            "zh-TW": "修改默认页",
+            "en": "修改默认页",
+            "fr": "修改默认页",
+            "de": "修改默认页",
+            "it": "修改默认页"
+        },
+        "site_auto_str_270": {
+            "zh-CN": "<div class=\"changeDefault pd20\">\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(1,this)\">默认文档</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(2,this)\">404错误页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(3,this)\">空白页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(4,this)\">默认站点停止页</button>\t\t</div>",
+            "zh-TW": "<div class=\"changeDefault pd20\">\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(1,this)\">默认文档</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(2,this)\">404错误页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(3,this)\">空白页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(4,this)\">默认站点停止页</button>\t\t</div>",
+            "en": "<div class=\"changeDefault pd20\">\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(1,this)\">默认文档</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(2,this)\">404错误页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(3,this)\">空白页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(4,this)\">默认站点停止页</button>\t\t</div>",
+            "fr": "<div class=\"changeDefault pd20\">\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(1,this)\">默认文档</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(2,this)\">404错误页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(3,this)\">空白页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(4,this)\">默认站点停止页</button>\t\t</div>",
+            "de": "<div class=\"changeDefault pd20\">\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(1,this)\">默认文档</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(2,this)\">404错误页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(3,this)\">空白页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(4,this)\">默认站点停止页</button>\t\t</div>",
+            "it": "<div class=\"changeDefault pd20\">\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(1,this)\">默认文档</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(2,this)\">404错误页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(3,this)\">空白页</button>\t\t\t<button class=\"btn btn-default btn-sm mg10\" style=\"width:188px\" onclick=\"changeDefault(4,this)\">默认站点停止页</button>\t\t</div>"
+        },
+        "site_auto_str_271": {
+            "zh-CN": "<option value=\"-1\">全部分类</option>",
+            "zh-TW": "<option value=\"-1\">全部分类</option>",
+            "en": "<option value=\"-1\">全部分类</option>",
+            "fr": "<option value=\"-1\">全部分类</option>",
+            "de": "<option value=\"-1\">全部分类</option>",
+            "it": "<option value=\"-1\">全部分类</option>"
+        },
+        "site_auto_str_272": {
+            "zh-CN": "')\">编辑</a> | <a class=\"btlink del_type\" onclick=\"removeClassType('",
+            "zh-TW": "')\">编辑</a> | <a class=\"btlink del_type\" onclick=\"removeClassType('",
+            "en": "')\">编辑</a> | <a class=\"btlink del_type\" onclick=\"removeClassType('",
+            "fr": "')\">编辑</a> | <a class=\"btlink del_type\" onclick=\"removeClassType('",
+            "de": "')\">编辑</a> | <a class=\"btlink del_type\" onclick=\"removeClassType('",
+            "it": "')\">编辑</a> | <a class=\"btlink del_type\" onclick=\"removeClassType('"
+        },
+        "site_auto_str_273": {
+            "zh-CN": "')\">删除</a>\t\t\t\t</td></tr>",
+            "zh-TW": "')\">删除</a>\t\t\t\t</td></tr>",
+            "en": "')\">删除</a>\t\t\t\t</td></tr>",
+            "fr": "')\">删除</a>\t\t\t\t</td></tr>",
+            "de": "')\">删除</a>\t\t\t\t</td></tr>",
+            "it": "')\">删除</a>\t\t\t\t</td></tr>"
+        },
+        "site_auto_str_274": {
+            "zh-CN": "网站分类管理",
+            "zh-TW": "网站分类管理",
+            "en": "网站分类管理",
+            "fr": "网站分类管理",
+            "de": "网站分类管理",
+            "it": "网站分类管理"
+        },
+        "site_auto_str_275": {
+            "zh-CN": "<div class=\"bt-form edit_site_type\">\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto\">\t\t\t\t\t<div class=\"line \"><div class=\"info-r  ml0\">\t\t\t\t\t\t<input name=\"type_name\" class=\"bt-input-text mr5 type_name\" placeholder=\"请填写分类名称\" type=\"text\" style=\"width:50%\" value=\"\"><button name=\"btn_submit\" class=\"btn btn-success btn-sm mr5 ml5 btn_submit\" onclick=\"addClassType();\">添加</button></div>\t\t\t\t\t</div>\t\t\t\t\t<table id=\"type_table\" class=\"table table-hover\" width=\"100%\">\t\t\t\t\t\t<thead><tr><th>名称</th><th width=\"80px\">操作</th></tr></thead>\t\t\t\t\t\t<tbody>",
+            "zh-TW": "<div class=\"bt-form edit_site_type\">\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto\">\t\t\t\t\t<div class=\"line \"><div class=\"info-r  ml0\">\t\t\t\t\t\t<input name=\"type_name\" class=\"bt-input-text mr5 type_name\" placeholder=\"请填写分类名称\" type=\"text\" style=\"width:50%\" value=\"\"><button name=\"btn_submit\" class=\"btn btn-success btn-sm mr5 ml5 btn_submit\" onclick=\"addClassType();\">添加</button></div>\t\t\t\t\t</div>\t\t\t\t\t<table id=\"type_table\" class=\"table table-hover\" width=\"100%\">\t\t\t\t\t\t<thead><tr><th>名称</th><th width=\"80px\">操作</th></tr></thead>\t\t\t\t\t\t<tbody>",
+            "en": "<div class=\"bt-form edit_site_type\">\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto\">\t\t\t\t\t<div class=\"line \"><div class=\"info-r  ml0\">\t\t\t\t\t\t<input name=\"type_name\" class=\"bt-input-text mr5 type_name\" placeholder=\"请填写分类名称\" type=\"text\" style=\"width:50%\" value=\"\"><button name=\"btn_submit\" class=\"btn btn-success btn-sm mr5 ml5 btn_submit\" onclick=\"addClassType();\">添加</button></div>\t\t\t\t\t</div>\t\t\t\t\t<table id=\"type_table\" class=\"table table-hover\" width=\"100%\">\t\t\t\t\t\t<thead><tr><th>名称</th><th width=\"80px\">操作</th></tr></thead>\t\t\t\t\t\t<tbody>",
+            "fr": "<div class=\"bt-form edit_site_type\">\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto\">\t\t\t\t\t<div class=\"line \"><div class=\"info-r  ml0\">\t\t\t\t\t\t<input name=\"type_name\" class=\"bt-input-text mr5 type_name\" placeholder=\"请填写分类名称\" type=\"text\" style=\"width:50%\" value=\"\"><button name=\"btn_submit\" class=\"btn btn-success btn-sm mr5 ml5 btn_submit\" onclick=\"addClassType();\">添加</button></div>\t\t\t\t\t</div>\t\t\t\t\t<table id=\"type_table\" class=\"table table-hover\" width=\"100%\">\t\t\t\t\t\t<thead><tr><th>名称</th><th width=\"80px\">操作</th></tr></thead>\t\t\t\t\t\t<tbody>",
+            "de": "<div class=\"bt-form edit_site_type\">\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto\">\t\t\t\t\t<div class=\"line \"><div class=\"info-r  ml0\">\t\t\t\t\t\t<input name=\"type_name\" class=\"bt-input-text mr5 type_name\" placeholder=\"请填写分类名称\" type=\"text\" style=\"width:50%\" value=\"\"><button name=\"btn_submit\" class=\"btn btn-success btn-sm mr5 ml5 btn_submit\" onclick=\"addClassType();\">添加</button></div>\t\t\t\t\t</div>\t\t\t\t\t<table id=\"type_table\" class=\"table table-hover\" width=\"100%\">\t\t\t\t\t\t<thead><tr><th>名称</th><th width=\"80px\">操作</th></tr></thead>\t\t\t\t\t\t<tbody>",
+            "it": "<div class=\"bt-form edit_site_type\">\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto\">\t\t\t\t\t<div class=\"line \"><div class=\"info-r  ml0\">\t\t\t\t\t\t<input name=\"type_name\" class=\"bt-input-text mr5 type_name\" placeholder=\"请填写分类名称\" type=\"text\" style=\"width:50%\" value=\"\"><button name=\"btn_submit\" class=\"btn btn-success btn-sm mr5 ml5 btn_submit\" onclick=\"addClassType();\">添加</button></div>\t\t\t\t\t</div>\t\t\t\t\t<table id=\"type_table\" class=\"table table-hover\" width=\"100%\">\t\t\t\t\t\t<thead><tr><th>名称</th><th width=\"80px\">操作</th></tr></thead>\t\t\t\t\t\t<tbody>"
+        },
+        "site_auto_str_276": {
+            "zh-CN": "默认分类不可删除/不可编辑!",
+            "zh-TW": "默认分类不可删除/不可编辑!",
+            "en": "默认分类不可删除/不可编辑!",
+            "fr": "默认分类不可删除/不可编辑!",
+            "de": "默认分类不可删除/不可编辑!",
+            "it": "默认分类不可删除/不可编辑!"
+        },
+        "site_auto_str_277": {
+            "zh-CN": "是否确定删除分类？",
+            "zh-TW": "是否确定删除分类？",
+            "en": "是否确定删除分类？",
+            "fr": "是否确定删除分类？",
+            "de": "是否确定删除分类？",
+            "it": "是否确定删除分类？"
+        },
+        "site_auto_str_278": {
+            "zh-CN": "删除分类【",
+            "zh-TW": "删除分类【",
+            "en": "删除分类【",
+            "fr": "删除分类【",
+            "de": "删除分类【",
+            "it": "删除分类【"
+        },
+        "site_auto_str_279": {
+            "zh-CN": "默认分类不可删除/不可编辑!",
+            "zh-TW": "默认分类不可删除/不可编辑!",
+            "en": "默认分类不可删除/不可编辑!",
+            "fr": "默认分类不可删除/不可编辑!",
+            "de": "默认分类不可删除/不可编辑!",
+            "it": "默认分类不可删除/不可编辑!"
+        },
+        "site_auto_str_280": {
+            "zh-CN": "修改分类管理【",
+            "zh-TW": "修改分类管理【",
+            "en": "修改分类管理【",
+            "fr": "修改分类管理【",
+            "de": "修改分类管理【",
+            "it": "修改分类管理【"
+        },
+        "site_auto_str_281": {
+            "zh-CN": "<form class='bt-form bt-form pd20 pb70' id='mod_pwd'>                    <div class='line'>                        <span class='tname'>分类名称</span>                        <div class='info-r'><input name=\"site_type_mod\" class='bt-input-text mr5' type='text' value='",
+            "zh-TW": "<form class='bt-form bt-form pd20 pb70' id='mod_pwd'>                    <div class='line'>                        <span class='tname'>分类名称</span>                        <div class='info-r'><input name=\"site_type_mod\" class='bt-input-text mr5' type='text' value='",
+            "en": "<form class='bt-form bt-form pd20 pb70' id='mod_pwd'>                    <div class='line'>                        <span class='tname'>分类名称</span>                        <div class='info-r'><input name=\"site_type_mod\" class='bt-input-text mr5' type='text' value='",
+            "fr": "<form class='bt-form bt-form pd20 pb70' id='mod_pwd'>                    <div class='line'>                        <span class='tname'>分类名称</span>                        <div class='info-r'><input name=\"site_type_mod\" class='bt-input-text mr5' type='text' value='",
+            "de": "<form class='bt-form bt-form pd20 pb70' id='mod_pwd'>                    <div class='line'>                        <span class='tname'>分类名称</span>                        <div class='info-r'><input name=\"site_type_mod\" class='bt-input-text mr5' type='text' value='",
+            "it": "<form class='bt-form bt-form pd20 pb70' id='mod_pwd'>                    <div class='line'>                        <span class='tname'>分类名称</span>                        <div class='info-r'><input name=\"site_type_mod\" class='bt-input-text mr5' type='text' value='"
+        },
+        "site_auto_str_282": {
+            "zh-CN": "' /></div>                    </div>                    <div class='bt-form-submit-btn'>                        <button id='site_type_mod' type='button' class='btn btn-success btn-sm btn-title'>提交</button>                    </div>                  </form>",
+            "zh-TW": "' /></div>                    </div>                    <div class='bt-form-submit-btn'>                        <button id='site_type_mod' type='button' class='btn btn-success btn-sm btn-title'>提交</button>                    </div>                  </form>",
+            "en": "' /></div>                    </div>                    <div class='bt-form-submit-btn'>                        <button id='site_type_mod' type='button' class='btn btn-success btn-sm btn-title'>提交</button>                    </div>                  </form>",
+            "fr": "' /></div>                    </div>                    <div class='bt-form-submit-btn'>                        <button id='site_type_mod' type='button' class='btn btn-success btn-sm btn-title'>提交</button>                    </div>                  </form>",
+            "de": "' /></div>                    </div>                    <div class='bt-form-submit-btn'>                        <button id='site_type_mod' type='button' class='btn btn-success btn-sm btn-title'>提交</button>                    </div>                  </form>",
+            "it": "' /></div>                    </div>                    <div class='bt-form-submit-btn'>                        <button id='site_type_mod' type='button' class='btn btn-success btn-sm btn-title'>提交</button>                    </div>                  </form>"
+        },
+        "site_auto_str_283": {
+            "zh-CN": "设置站点分类",
+            "zh-TW": "设置站点分类",
+            "en": "设置站点分类",
+            "fr": "设置站点分类",
+            "de": "设置站点分类",
+            "it": "设置站点分类"
+        },
+        "site_auto_str_284": {
+            "zh-CN": "<div class=\"bt-form edit_site_type\">\t\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto;height:80px;\">\t\t\t\t\t\t<div class=\"line\"><span class=\"tname\">默认站点</span>\t\t\t\t\t\t\t<div class=\"info-r\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"type_id\" style=\"width:200px\">",
+            "zh-TW": "<div class=\"bt-form edit_site_type\">\t\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto;height:80px;\">\t\t\t\t\t\t<div class=\"line\"><span class=\"tname\">默认站点</span>\t\t\t\t\t\t\t<div class=\"info-r\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"type_id\" style=\"width:200px\">",
+            "en": "<div class=\"bt-form edit_site_type\">\t\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto;height:80px;\">\t\t\t\t\t\t<div class=\"line\"><span class=\"tname\">默认站点</span>\t\t\t\t\t\t\t<div class=\"info-r\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"type_id\" style=\"width:200px\">",
+            "fr": "<div class=\"bt-form edit_site_type\">\t\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto;height:80px;\">\t\t\t\t\t\t<div class=\"line\"><span class=\"tname\">默认站点</span>\t\t\t\t\t\t\t<div class=\"info-r\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"type_id\" style=\"width:200px\">",
+            "de": "<div class=\"bt-form edit_site_type\">\t\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto;height:80px;\">\t\t\t\t\t\t<div class=\"line\"><span class=\"tname\">默认站点</span>\t\t\t\t\t\t\t<div class=\"info-r\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"type_id\" style=\"width:200px\">",
+            "it": "<div class=\"bt-form edit_site_type\">\t\t\t\t\t<div class=\"divtable mtb15\" style=\"overflow:auto;height:80px;\">\t\t\t\t\t\t<div class=\"line\"><span class=\"tname\">默认站点</span>\t\t\t\t\t\t\t<div class=\"info-r\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"type_id\" style=\"width:200px\">"
+        },
+        "site_auto_str_285": {
+            "zh-CN": "\t\t\t\t\t\t\t</select>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"bt-form-submit-btn\"><button onclick=\"setSizeClassType();\" type=\"button\" class=\"btn btn-sm btn-success\">提交</button></div>\t\t\t\t</div>",
+            "zh-TW": "\t\t\t\t\t\t\t</select>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"bt-form-submit-btn\"><button onclick=\"setSizeClassType();\" type=\"button\" class=\"btn btn-sm btn-success\">提交</button></div>\t\t\t\t</div>",
+            "en": "\t\t\t\t\t\t\t</select>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"bt-form-submit-btn\"><button onclick=\"setSizeClassType();\" type=\"button\" class=\"btn btn-sm btn-success\">提交</button></div>\t\t\t\t</div>",
+            "fr": "\t\t\t\t\t\t\t</select>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"bt-form-submit-btn\"><button onclick=\"setSizeClassType();\" type=\"button\" class=\"btn btn-sm btn-success\">提交</button></div>\t\t\t\t</div>",
+            "de": "\t\t\t\t\t\t\t</select>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"bt-form-submit-btn\"><button onclick=\"setSizeClassType();\" type=\"button\" class=\"btn btn-sm btn-success\">提交</button></div>\t\t\t\t</div>",
+            "it": "\t\t\t\t\t\t\t</select>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"bt-form-submit-btn\"><button onclick=\"setSizeClassType();\" type=\"button\" class=\"btn btn-sm btn-success\">提交</button></div>\t\t\t\t</div>"
+        },
+        "site_auto_str_286": {
+            "zh-CN": "尝试自动重启PHP[",
+            "zh-TW": "尝试自动重启PHP[",
+            "en": "尝试自动重启PHP[",
+            "fr": "尝试自动重启PHP[",
+            "de": "尝试自动重启PHP[",
+            "it": "尝试自动重启PHP["
+        },
+        "site_auto_str_287": {
+            "zh-CN": "重启成功!",
+            "zh-TW": "重启成功!",
+            "en": "重启成功!",
+            "fr": "重启成功!",
+            "de": "重启成功!",
+            "it": "重启成功!"
+        },
+        "site_auto_str_288": {
+            "zh-CN": "重启失败!",
+            "zh-TW": "重启失败!",
+            "en": "重启失败!",
+            "fr": "重启失败!",
+            "de": "重启失败!",
+            "it": "重启失败!"
+        },
+        "site_auto_str_289": {
+            "zh-CN": "导出成功!",
+            "zh-TW": "导出成功!",
+            "en": "导出成功!",
+            "fr": "导出成功!",
+            "de": "导出成功!",
+            "it": "导出成功!"
+        },
+        "site_auto_str_290": {
+            "zh-CN": "未找到有效的网站配置数据!",
+            "zh-TW": "未找到有效的网站配置数据!",
+            "en": "未找到有效的网站配置数据!",
+            "fr": "未找到有效的网站配置数据!",
+            "de": "未找到有效的网站配置数据!",
+            "it": "未找到有效的网站配置数据!"
+        },
+        "site_auto_str_291": {
+            "zh-CN": "正在检查导入冲突, 请稍候...",
+            "zh-TW": "正在检查导入冲突, 请稍候...",
+            "en": "正在检查导入冲突, 请稍候...",
+            "fr": "正在检查导入冲突, 请稍候...",
+            "de": "正在检查导入冲突, 请稍候...",
+            "it": "正在检查导入冲突, 请稍候..."
+        },
+        "site_auto_str_292": {
+            "zh-CN": "检测到 ",
+            "zh-TW": "检测到 ",
+            "en": "检测到 ",
+            "fr": "检测到 ",
+            "de": "检测到 ",
+            "it": "检测到 "
+        },
+        "site_auto_str_293": {
+            "zh-CN": " 个站点的配置。是否开始执行导入？",
+            "zh-TW": " 个站点的配置。是否开始执行导入？",
+            "en": " 个站点的配置。是否开始执行导入？",
+            "fr": " 个站点的配置。是否开始执行导入？",
+            "de": " 个站点的配置。是否开始执行导入？",
+            "it": " 个站点的配置。是否开始执行导入？"
+        },
+        "site_auto_str_294": {
+            "zh-CN": "导入确认",
+            "zh-TW": "导入确认",
+            "en": "导入确认",
+            "fr": "导入确认",
+            "de": "导入确认",
+            "it": "导入确认"
+        },
+        "site_auto_str_295": {
+            "zh-CN": "确定",
+            "zh-TW": "确定",
+            "en": "确定",
+            "fr": "确定",
+            "de": "确定",
+            "it": "确定"
+        },
+        "site_auto_str_296": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "取消",
+            "fr": "取消",
+            "de": "取消",
+            "it": "取消"
+        },
+        "site_auto_str_297": {
+            "zh-CN": "<p>以下站点存在冲突，请选择是否覆盖更新（覆盖将清除原配置信息重建）：</p>",
+            "zh-TW": "<p>以下站点存在冲突，请选择是否覆盖更新（覆盖将清除原配置信息重建）：</p>",
+            "en": "<p>以下站点存在冲突，请选择是否覆盖更新（覆盖将清除原配置信息重建）：</p>",
+            "fr": "<p>以下站点存在冲突，请选择是否覆盖更新（覆盖将清除原配置信息重建）：</p>",
+            "de": "<p>以下站点存在冲突，请选择是否覆盖更新（覆盖将清除原配置信息重建）：</p>",
+            "it": "<p>以下站点存在冲突，请选择是否覆盖更新（覆盖将清除原配置信息重建）：</p>"
+        },
+        "site_auto_str_298": {
+            "zh-CN": "</b> <span style=\"color:red;font-size:12px;\">(冲突: ",
+            "zh-TW": "</b> <span style=\"color:red;font-size:12px;\">(冲突: ",
+            "en": "</b> <span style=\"color:red;font-size:12px;\">(冲突: ",
+            "fr": "</b> <span style=\"color:red;font-size:12px;\">(冲突: ",
+            "de": "</b> <span style=\"color:red;font-size:12px;\">(冲突: ",
+            "it": "</b> <span style=\"color:red;font-size:12px;\">(冲突: "
+        },
+        "site_auto_str_299": {
+            "zh-CN": "<p>此外有 ",
+            "zh-TW": "<p>此外有 ",
+            "en": "<p>此外有 ",
+            "fr": "<p>此外有 ",
+            "de": "<p>此外有 ",
+            "it": "<p>此外有 "
+        },
+        "site_auto_str_300": {
+            "zh-CN": " 个站点无冲突，将直接导入。</p>",
+            "zh-TW": " 个站点无冲突，将直接导入。</p>",
+            "en": " 个站点无冲突，将直接导入。</p>",
+            "fr": " 个站点无冲突，将直接导入。</p>",
+            "de": " 个站点无冲突，将直接导入。</p>",
+            "it": " 个站点无冲突，将直接导入。</p>"
+        },
+        "site_auto_str_301": {
+            "zh-CN": "导入冲突确认",
+            "zh-TW": "导入冲突确认",
+            "en": "导入冲突确认",
+            "fr": "导入冲突确认",
+            "de": "导入冲突确认",
+            "it": "导入冲突确认"
+        },
+        "site_auto_str_302": {
+            "zh-CN": "确认导入",
+            "zh-TW": "确认导入",
+            "en": "确认导入",
+            "fr": "确认导入",
+            "de": "确认导入",
+            "it": "确认导入"
+        },
+        "site_auto_str_303": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "取消",
+            "fr": "取消",
+            "de": "取消",
+            "it": "取消"
+        },
+        "site_auto_str_304": {
+            "zh-CN": "没有需要导入的站点",
+            "zh-TW": "没有需要导入的站点",
+            "en": "没有需要导入的站点",
+            "fr": "没有需要导入的站点",
+            "de": "没有需要导入的站点",
+            "it": "没有需要导入的站点"
+        },
+        "site_auto_str_305": {
+            "zh-CN": "解析备份文件失败, 请确认文件格式是否正确!",
+            "zh-TW": "解析备份文件失败, 请确认文件格式是否正确!",
+            "en": "解析备份文件失败, 请确认文件格式是否正确!",
+            "fr": "解析备份文件失败, 请确认文件格式是否正确!",
+            "de": "解析备份文件失败, 请确认文件格式是否正确!",
+            "it": "解析备份文件失败, 请确认文件格式是否正确!"
+        },
+        "site_auto_str_306": {
+            "zh-CN": "正在导入站点并配置环境, 请稍候...",
+            "zh-TW": "正在导入站点并配置环境, 请稍候...",
+            "en": "正在导入站点并配置环境, 请稍候...",
+            "fr": "正在导入站点并配置环境, 请稍候...",
+            "de": "正在导入站点并配置环境, 请稍候...",
+            "it": "正在导入站点并配置环境, 请稍候..."
+        },
+        "site_auto_str_307": {
+            "zh-CN": "导入完成!<br>成功恢复: ",
+            "zh-TW": "导入完成!<br>成功恢复: ",
+            "en": "导入完成!<br>成功恢复: ",
+            "fr": "导入完成!<br>成功恢复: ",
+            "de": "导入完成!<br>成功恢复: ",
+            "it": "导入完成!<br>成功恢复: "
+        },
+        "site_auto_str_308": {
+            "zh-CN": " 个站点<br>跳过: ",
+            "zh-TW": " 个站点<br>跳过: ",
+            "en": " 个站点<br>跳过: ",
+            "fr": " 个站点<br>跳过: ",
+            "de": " 个站点<br>跳过: ",
+            "it": " 个站点<br>跳过: "
+        },
+        "site_auto_str_309": {
+            "zh-CN": " 个站点",
+            "zh-TW": " 个站点",
+            "en": " 个站点",
+            "fr": " 个站点",
+            "de": " 个站点",
+            "it": " 个站点"
+        },
+        "site_auto_str_310": {
+            "zh-CN": "导入结果",
+            "zh-TW": "导入结果",
+            "en": "导入结果",
+            "fr": "导入结果",
+            "de": "导入结果",
+            "it": "导入结果"
+        },
+        "site_auto_str_311": {
+            "zh-CN": "解析备份文件失败, 请确认文件格式是否正确!",
+            "zh-TW": "解析備份檔案失敗, 请確認檔案格式是否正確!",
+            "en": "解析BackupFiles失败, 请确认Files格式是否正确!",
+            "fr": "解析SauvegardeFichiers失败, 请确认Fichiers格式是否正确!",
+            "de": "解析SicherungDateien失败, 请确认Dateien格式是否正确!",
+            "it": "解析BackupFile失败, 请确认File格式是否正确!"
+        },
+        "site_auto_str_312": {
+            "zh-CN": "正在导入站点并配置环境, 请稍候...",
+            "zh-TW": "正在導入站點並設定環境, 請稍候...",
+            "en": "正在Import站点并配置环境, 请稍候...",
+            "fr": "正在Importer站点并配置环境, 请稍候...",
+            "de": "正在Importieren站点并配置环境, 请稍候...",
+            "it": "正在Importa站点并配置环境, 请稍候..."
+        },
+        "site_auto_str_313": {
+            "zh-CN": "导入完成!<br>成功恢复: ",
+            "zh-TW": "導入完成!<br>成功恢復: ",
+            "en": "Import完成!<br>成功Restore: ",
+            "fr": "Importer完成!<br>成功Restaurer: ",
+            "de": "Importieren完成!<br>成功Wiederherstellen: ",
+            "it": "Importa完成!<br>成功Ripristina: "
+        },
+        "site_auto_str_314": {
+            "zh-CN": " 个站点<br>跳过: ",
+            "zh-TW": " 個站點<br>跳過: ",
+            "en": " 个站点<br>跳过: ",
+            "fr": " 个站点<br>跳过: ",
+            "de": " 个站点<br>跳过: ",
+            "it": " 个站点<br>跳过: "
+        },
+        "site_auto_str_315": {
+            "zh-CN": " 个站点",
+            "zh-TW": " 個站點",
+            "en": " 个站点",
+            "fr": " 个站点",
+            "de": " 个站点",
+            "it": " 个站点"
+        },
+        "site_auto_str_316": {
+            "zh-CN": "导入结果",
+            "zh-TW": "導入結果",
+            "en": "Import结果",
+            "fr": "Importer结果",
+            "de": "Importieren结果",
+            "it": "Importa结果"
+        }
+    },
+    "files": {
+        "drop_text": {
+            "zh-CN": "松开鼠标以上传文件或文件夹",
+            "zh-TW": "放開滑鼠以上傳檔案或資料夾",
+            "en": "Drop files or folders here to upload",
+            "fr": "Déposez vos fichiers ou dossiers ici pour les téléverser",
+            "de": "Dateien oder Ordner hier ablegen zum Hochladen",
+            "it": "Rilascia file o cartelle qui per caricarli"
+        },
+        "clear_search": {
+            "zh-CN": "清除搜索并刷新列表",
+            "zh-TW": "清除搜尋並重新整理列表",
+            "en": "Clear search and refresh list",
+            "fr": "Effacer la recherche et actualiser",
+            "de": "Suche löschen und Liste aktualisieren",
+            "it": "Cancella ricerca e aggiorna elenco"
+        },
+        "search_placeholder": {
+            "zh-CN": "搜索文件/目录",
+            "zh-TW": "搜尋檔案/目錄",
+            "en": "Search files/folders...",
+            "fr": "Rechercher fichiers/dossiers...",
+            "de": "Dateien/Ordner suchen...",
+            "it": "Cerca file/cartelle..."
+        },
+        "include_sub": {
+            "zh-CN": "包含子目录",
+            "zh-TW": "包含子目錄",
+            "en": "Include subdirectories",
+            "fr": "Inclure les sous-dossiers",
+            "de": "Unterverzeichnisse einbeziehen",
+            "it": "Includi sottocartelle"
+        },
+        "upload": {
+            "zh-CN": "上传",
+            "zh-TW": "上傳",
+            "en": "Upload",
+            "fr": "Téléverser",
+            "de": "Hochladen",
+            "it": "Carica"
+        },
+        "remote_download": {
+            "zh-CN": "远程下载",
+            "zh-TW": "遠端下載",
+            "en": "Remote Download",
+            "fr": "Téléchargement distant",
+            "de": "Remote-Download",
+            "it": "Download remoto"
+        },
+        "quick_path": {
+            "zh-CN": "快捷路径:",
+            "zh-TW": "快捷路徑:",
+            "en": "Quick Path:",
+            "fr": "Accès rapide :",
+            "de": "Schnellzugriff:",
+            "it": "Percorsi rapidi:"
+        },
+        "site_root": {
+            "zh-CN": "网站总目录",
+            "zh-TW": "網站總目錄",
+            "en": "Websites Root",
+            "fr": "Racine des sites",
+            "de": "Websites-Hauptverzeichnis",
+            "it": "Radice siti web"
+        },
+        "backup": {
+            "zh-CN": "备份",
+            "zh-TW": "備份",
+            "en": "Backups",
+            "fr": "Sauvegardes",
+            "de": "Backups",
+            "it": "Backup"
+        },
+        "logs": {
+            "zh-CN": "日志",
+            "zh-TW": "日誌",
+            "en": "Logs",
+            "fr": "Journaux",
+            "de": "Protokolle",
+            "it": "Registri"
+        },
+        "panel_root": {
+            "zh-CN": "御风面板",
+            "zh-TW": "御風面板",
+            "en": "Panel Root",
+            "fr": "Racine du panneau",
+            "de": "Panel-Verzeichnis",
+            "it": "Radice del pannello"
+        },
+        "copy": {
+            "zh-CN": "复制",
+            "zh-TW": "複製",
+            "en": "Copy",
+            "fr": "Copier",
+            "de": "Kopieren",
+            "it": "Copia"
+        },
+        "cut": {
+            "zh-CN": "剪切",
+            "zh-TW": "剪下",
+            "en": "Cut",
+            "fr": "Couper",
+            "de": "Ausschneiden",
+            "it": "Taglia"
+        },
+        "permission": {
+            "zh-CN": "权限",
+            "zh-TW": "權限",
+            "en": "Permissions",
+            "fr": "Permissions",
+            "de": "Berechtigungen",
+            "it": "Permessi"
+        },
+        "compress": {
+            "zh-CN": "压缩",
+            "zh-TW": "壓縮",
+            "en": "Compress",
+            "fr": "Compresser",
+            "de": "Komprimieren",
+            "it": "Comprimi"
+        },
+        "delete": {
+            "zh-CN": "删除",
+            "zh-TW": "刪除",
+            "en": "Delete",
+            "fr": "Supprimer",
+            "de": "Löschen",
+            "it": "Elimina"
+        }
+    },
+    "firewall": {
+        "search_logs": {
+            "zh-CN": "搜索日志",
+            "zh-TW": "搜尋日誌",
+            "en": "Search logs...",
+            "fr": "Rechercher dans les journaux...",
+            "de": "Protokolle durchsuchen...",
+            "it": "Cerca nei registri..."
+        },
+        "ssh_manage": {
+            "zh-CN": "SSH管理",
+            "zh-TW": "SSH管理",
+            "en": "SSH Management",
+            "fr": "Gestion SSH",
+            "de": "SSH-Verwaltung",
+            "it": "Gestione SSH"
+        },
+        "ssh_port": {
+            "zh-CN": "SSH端口:",
+            "zh-TW": "SSH埠號:",
+            "en": "SSH Port:",
+            "fr": "Port SSH :",
+            "de": "SSH-Port:",
+            "it": "Porta SSH:"
+        },
+        "enable_noping": {
+            "zh-CN": "启用禁ping",
+            "zh-TW": "啟用禁ping",
+            "en": "Disable Ping",
+            "fr": "Désactiver le ping",
+            "de": "Ping deaktivieren",
+            "it": "Disabilita Ping"
+        },
+        "enable_firewall": {
+            "zh-CN": "启用防火墙",
+            "zh-TW": "啟用防火牆",
+            "en": "Enable Firewall",
+            "fr": "Activer le pare-feu",
+            "de": "Firewall aktivieren",
+            "it": "Abilita Firewall"
+        },
+        "port_tab": {
+            "zh-CN": "端口防火墙",
+            "zh-TW": "連接埠防火牆",
+            "en": "Port Firewall",
+            "fr": "Pare-feu de ports",
+            "de": "Port-Firewall",
+            "it": "Firewall porte"
+        },
+        "ip_tab": {
+            "zh-CN": "IP防火墙",
+            "zh-TW": "IP防火牆",
+            "en": "IP Firewall",
+            "fr": "Pare-feu IP",
+            "de": "IP-Firewall",
+            "it": "Firewall IP"
+        },
+        "sync_server": {
+            "zh-CN": "从服务器同步",
+            "zh-TW": "從伺服器同步",
+            "en": "Sync from Server",
+            "fr": "Synchroniser depuis le serveur",
+            "de": "Vom Server synchronisieren",
+            "it": "Sincronizza dal server"
+        },
+        "sync_server_tips": {
+            "zh-CN": "从服务器同步防火墙规则",
+            "zh-TW": "從伺服器同步防火牆規則",
+            "en": "Synchronize firewall rules from server",
+            "fr": "Synchroniser les règles depuis le serveur",
+            "de": "Firewall-Regeln vom Server abgleichen",
+            "it": "Sincronizza le regole del firewall dal server"
+        },
+        "add_rule": {
+            "zh-CN": "新增规则：",
+            "zh-TW": "新增規則：",
+            "en": "Add Rule:",
+            "fr": "Ajouter une règle :",
+            "de": "Regel hinzufügen:",
+            "it": "Aggiungi regola:"
+        },
+        "accept_port": {
+            "zh-CN": "放行端口",
+            "zh-TW": "放行連接埠",
+            "en": "Allow Port",
+            "fr": "Autoriser le port",
+            "de": "Port freigeben",
+            "it": "Consenti porta"
+        },
+        "start_port": {
+            "zh-CN": "开始端口",
+            "zh-TW": "開始連接埠",
+            "en": "Start Port",
+            "fr": "Port de début",
+            "de": "Start-Port",
+            "it": "Porta iniziale"
+        },
+        "end_port": {
+            "zh-CN": "结束端口",
+            "zh-TW": "結束連接埠",
+            "en": "End Port",
+            "fr": "Port de fin",
+            "de": "End-Port",
+            "it": "Porta finale"
+        },
+        "single_port_tip": {
+            "zh-CN": "仅输入开始端口即可放行单个端口",
+            "zh-TW": "僅輸入開始連接埠即可放行單個連接埠",
+            "en": "Enter only Start Port to allow a single port",
+            "fr": "Entrez uniquement le port de début pour un seul port",
+            "de": "Nur Start-Port eingeben für einzelnen Port",
+            "it": "Inserisci solo la porta iniziale per una singola porta"
+        },
+        "search_port": {
+            "zh-CN": "端口搜索",
+            "zh-TW": "連接埠搜尋",
+            "en": "Search port...",
+            "fr": "Rechercher port...",
+            "de": "Port suchen...",
+            "it": "Cerca porta..."
+        },
+        "search_ps": {
+            "zh-CN": "备注搜索",
+            "zh-TW": "備註搜尋",
+            "en": "Search note...",
+            "fr": "Rechercher remarque...",
+            "de": "Notiz suchen...",
+            "it": "Cerca nota..."
+        },
+        "add_ip_rule": {
+            "zh-CN": "新增IP规则：",
+            "zh-TW": "新增IP規則：",
+            "en": "Add IP Rule:",
+            "fr": "Ajouter règle IP :",
+            "de": "IP-Regel hinzufügen:",
+            "it": "Aggiungi regola IP:"
+        },
+        "deny": {
+            "zh-CN": "禁止",
+            "zh-TW": "禁止",
+            "en": "Deny",
+            "fr": "Refuser",
+            "de": "Verweigern",
+            "it": "Nega"
+        },
+        "allow": {
+            "zh-CN": "放行",
+            "zh-TW": "放行",
+            "en": "Allow",
+            "fr": "Autoriser",
+            "de": "Erlauben",
+            "it": "Consenti"
+        },
+        "ip_placeholder": {
+            "zh-CN": "IP地址/IP段",
+            "zh-TW": "IP位址/IP段",
+            "en": "IP Address / Subnet",
+            "fr": "Adresse IP / Sous-réseau",
+            "de": "IP-Adresse / Subnetz",
+            "it": "Indirizzo IP / Subnet"
+        },
+        "ip_priority_warn": {
+            "zh-CN": "注意: IP防火墙优先级最高，请谨慎操作！",
+            "zh-TW": "注意: IP防火牆優先級最高，請謹慎操作！",
+            "en": "Note: IP Firewall has the highest priority. Proceed with caution!",
+            "fr": "Attention : Le pare-feu IP a la priorité la plus élevée !",
+            "de": "Achtung: IP-Firewall hat höchste Priorität. Bitte vorsichtig vorgehen!",
+            "it": "Nota: Il firewall IP ha la priorità più alta. Procedere con cautela!"
+        },
+        "search_ip": {
+            "zh-CN": "IP搜索",
+            "zh-TW": "IP搜尋",
+            "en": "Search IP...",
+            "fr": "Rechercher IP...",
+            "de": "IP suchen...",
+            "it": "Cerca IP..."
+        },
+        "protocol": {
+            "zh-CN": "协议",
+            "zh-TW": "協定",
+            "en": "Protocol",
+            "fr": "Protocole",
+            "de": "Protokoll",
+            "it": "Protocollo"
+        },
+        "port": {
+            "zh-CN": "端口",
+            "zh-TW": "連接埠",
+            "en": "Port",
+            "fr": "Port",
+            "de": "Port",
+            "it": "Porta"
+        },
+        "process_name": {
+            "zh-CN": "进程名称",
+            "zh-TW": "進程名稱",
+            "en": "Process Name",
+            "fr": "Nom du processus",
+            "de": "Prozessname",
+            "it": "Nome del processo"
+        },
+        "process_tip": {
+            "zh-CN": "出于系统性能考虑，放行端口范围时（如 999:1100）将不会扫描并显示具体进程名称。",
+            "zh-TW": "出於系統效能考量，放行連接埠範圍時（如 999:1100）將不會掃描並顯示具體進程名稱。",
+            "en": "For performance reasons, process names are not scanned when allowing port ranges.",
+            "fr": "Pour des raisons de performance, les noms des processus ne sont pas scannés pour les plages de ports.",
+            "de": "Aus Leistungsgründen werden Prozessnamen bei Portbereichen nicht gescannt.",
+            "it": "Per motivi di prestazioni, i nomi dei processi non vengono analizzati per intervalli di porte."
+        }
+    },
+    "crontab": {
+        "task_type": {
+            "zh-CN": "任务类型",
+            "zh-TW": "任務類型",
+            "en": "Task Type",
+            "fr": "Type de tâche",
+            "de": "Aufgabentyp",
+            "it": "Tipo di attività"
+        },
+        "shell_script": {
+            "zh-CN": "Shell脚本",
+            "zh-TW": "Shell指令碼",
+            "en": "Shell Script",
+            "fr": "Script Shell",
+            "de": "Shell-Skript",
+            "it": "Script Shell"
+        },
+        "backup_site": {
+            "zh-CN": "备份网站",
+            "zh-TW": "備份網站",
+            "en": "Backup Website",
+            "fr": "Sauvegarder le site",
+            "de": "Website sichern",
+            "it": "Backup sito web"
+        },
+        "backup_database": {
+            "zh-CN": "备份数据库",
+            "zh-TW": "備份資料庫",
+            "en": "Backup Database",
+            "fr": "Sauvegarder la base de données",
+            "de": "Datenbank sichern",
+            "it": "Backup database"
+        },
+        "backup_path": {
+            "zh-CN": "备份目录",
+            "zh-TW": "備份目錄",
+            "en": "Backup Directory",
+            "fr": "Sauvegarder le répertoire",
+            "de": "Verzeichnis sichern",
+            "it": "Backup cartella"
+        },
+        "log_cut": {
+            "zh-CN": "日志切割",
+            "zh-TW": "日誌切割",
+            "en": "Log Rotation",
+            "fr": "Rotation des journaux",
+            "de": "Protokollrotation",
+            "it": "Rotazione registri"
+        },
+        "rememory": {
+            "zh-CN": "释放内存",
+            "zh-TW": "釋放記憶體",
+            "en": "Free Memory",
+            "fr": "Libérer la mémoire",
+            "de": "Speicher freigeben",
+            "it": "Libera memoria"
+        },
+        "to_url": {
+            "zh-CN": "访问URL",
+            "zh-TW": "造訪URL",
+            "en": "HTTP URL Request",
+            "fr": "Requête URL",
+            "de": "URL aufrufen",
+            "it": "Richiesta URL"
+        },
+        "type_tip": {
+            "zh-CN": "任务类型包含：Shell脚本、备份网站、备份数据库、备份目录、日志切割、释放内存、访问URL",
+            "zh-TW": "任務類型包含：Shell指令碼、備份網站、備份資料庫、備份目錄、日誌切割、釋放記憶體、造訪URL",
+            "en": "Task types include: Shell Script, Backup Website, Backup Database, Backup Directory, Log Rotation, Free Memory, HTTP URL Request",
+            "fr": "Types de tâches : Script Shell, Sauvegarde de site, Sauvegarde de BDD, Sauvegarde de dossier, Rotation des logs, Libération mémoire, Requête URL",
+            "de": "Aufgabentypen: Shell-Skript, Website-Sicherung, Datenbank-Sicherung, Verzeichnis-Sicherung, Protokollrotation, Speicher freigeben, URL aufrufen",
+            "it": "Tipi di attività: Script Shell, Backup sito, Backup database, Backup cartella, Rotazione registri, Libera memoria, Richiesta URL"
+        },
+        "task_name": {
+            "zh-CN": "任务名称",
+            "zh-TW": "任務名稱",
+            "en": "Task Name",
+            "fr": "Nom de la tâche",
+            "de": "Aufgabenname",
+            "it": "Nome attività"
+        },
+        "exec_cycle": {
+            "zh-CN": "执行周期",
+            "zh-TW": "執行週期",
+            "en": "Execution Cycle",
+            "fr": "Périodicité",
+            "de": "Ausführungszyklus",
+            "it": "Ciclo di esecuzione"
+        },
+        "every_week": {
+            "zh-CN": "每星期",
+            "zh-TW": "每星期",
+            "en": "Every Week",
+            "fr": "Chaque semaine",
+            "de": "Wöchentlich",
+            "it": "Ogni settimana"
+        },
+        "everyday": {
+            "zh-CN": "每天",
+            "zh-TW": "每天",
+            "en": "Every Day",
+            "fr": "Chaque jour",
+            "de": "Täglich",
+            "it": "Ogni giorno"
+        },
+        "n_day": {
+            "zh-CN": "N天",
+            "zh-TW": "N天",
+            "en": "N Days",
+            "fr": "N jours",
+            "de": "N Tage",
+            "it": "N giorni"
+        },
+        "n_minute": {
+            "zh-CN": "N分钟",
+            "zh-TW": "N分鐘",
+            "en": "N Minutes",
+            "fr": "N minutes",
+            "de": "N Minuten",
+            "it": "N minuti"
+        },
+        "every_month": {
+            "zh-CN": "每月",
+            "zh-TW": "每月",
+            "en": "Every Month",
+            "fr": "Chaque mois",
+            "de": "Monatlich",
+            "it": "Ogni mese"
+        },
+        "monday": {
+            "zh-CN": "周一",
+            "zh-TW": "週一",
+            "en": "Monday",
+            "fr": "Lundi",
+            "de": "Montag",
+            "it": "Lunedì"
+        },
+        "tuesday": {
+            "zh-CN": "周二",
+            "zh-TW": "週二",
+            "en": "Tuesday",
+            "fr": "Mardi",
+            "de": "Dienstag",
+            "it": "Martedì"
+        },
+        "wednesday": {
+            "zh-CN": "周三",
+            "zh-TW": "週三",
+            "en": "Wednesday",
+            "fr": "Mercredi",
+            "de": "Mittwoch",
+            "it": "Mercoledì"
+        },
+        "thursday": {
+            "zh-CN": "周四",
+            "zh-TW": "週四",
+            "en": "Thursday",
+            "fr": "Jeudi",
+            "de": "Donnerstag",
+            "it": "Giovedì"
+        },
+        "friday": {
+            "zh-CN": "周五",
+            "zh-TW": "週五",
+            "en": "Friday",
+            "fr": "Vendredi",
+            "de": "Freitag",
+            "it": "Venerdì"
+        },
+        "saturday": {
+            "zh-CN": "周六",
+            "zh-TW": "週六",
+            "en": "Saturday",
+            "fr": "Samedi",
+            "de": "Samstag",
+            "it": "Sabato"
+        },
+        "sunday": {
+            "zh-CN": "周日",
+            "zh-TW": "週日",
+            "en": "Sunday",
+            "fr": "Dimanche",
+            "de": "Sonntag",
+            "it": "Domenica"
+        },
+        "script_content": {
+            "zh-CN": "脚本内容",
+            "zh-TW": "指令碼內容",
+            "en": "Script Content",
+            "fr": "Contenu du script",
+            "de": "Skriptinhalt",
+            "it": "Contenuto dello script"
+        },
+        "exclude_dir": {
+            "zh-CN": "排除目录",
+            "zh-TW": "排除目錄",
+            "en": "Exclude Directory",
+            "fr": "Exclure le dossier",
+            "de": "Verzeichnis ausschließen",
+            "it": "Escludi cartella"
+        },
+        "tip1": {
+            "zh-CN": "当添加完备份任务，应该手动运行一次，并检查备份包是否完整",
+            "zh-TW": "當新增完備份任務，應該手動運行一次，並檢查備份包是否完整",
+            "en": "After adding a backup task, run it manually once to verify archive integrity.",
+            "fr": "Après avoir ajouté une tâche, exécutez-la une fois pour vérifier l'archive.",
+            "de": "Nach dem Hinzufügen bitte einmal manuell ausführen, um die Integrität zu prüfen.",
+            "it": "Dopo aver aggiunto un'attività di backup, eseguila manualmente una volta per verificare l'integrità."
+        },
+        "tip2": {
+            "zh-CN": "磁盘容量不够、数据库密码错误、网络不稳定等原因，可能导致数据备份不完整",
+            "zh-TW": "磁碟容量不夠、資料庫密碼錯誤、網路不穩定等原因，可能導致資料備份不完整",
+            "en": "Insufficient disk space, wrong DB password, or network instability may cause incomplete backups.",
+            "fr": "Un espace disque insuffisant ou un mot de passe incorrect peut entraîner des sauvegardes incomplètes.",
+            "de": "Unzureichender Speicherplatz oder falsche Passwörter können unvollständige Sicherungen verursachen.",
+            "it": "Spazio su disco insufficiente o password errata possono causare backup incompleti."
+        },
+        "task_list": {
+            "zh-CN": "任务列表",
+            "zh-TW": "任務列表",
+            "en": "Task List",
+            "fr": "Liste des tâches",
+            "de": "Aufgabenliste",
+            "it": "Elenco attività"
+        },
+        "add_task": {
+            "zh-CN": "添加任务",
+            "zh-TW": "新增任務",
+            "en": "Add Task",
+            "fr": "Ajouter une tâche",
+            "de": "Aufgabe hinzufügen",
+            "it": "Aggiungi attività"
+        },
+        "search_task_placeholder": {
+            "zh-CN": "搜索任务名称...",
+            "zh-TW": "搜尋任務名稱...",
+            "en": "Search task name...",
+            "fr": "Rechercher une tâche...",
+            "de": "Aufgabenname suchen...",
+            "it": "Cerca nome attività..."
+        },
+        "cycle": {
+            "zh-CN": "周期",
+            "zh-TW": "週期",
+            "en": "Cycle",
+            "fr": "Cycle",
+            "de": "Zyklus",
+            "it": "Ciclo"
+        },
+        "exec_time": {
+            "zh-CN": "执行时机",
+            "zh-TW": "執行時機",
+            "en": "Execution Time",
+            "fr": "Heure d'exécution",
+            "de": "Ausführungszeit",
+            "it": "Tempo di esecuzione"
+        },
+        "save_count": {
+            "zh-CN": "保存数量",
+            "zh-TW": "保存數量",
+            "en": "Keep Copies",
+            "fr": "Copies conservées",
+            "de": "Kopien behalten",
+            "it": "Copie conservate"
+        },
+        "backup_to": {
+            "zh-CN": "备份到",
+            "zh-TW": "備份到",
+            "en": "Backup To",
+            "fr": "Sauvegarder vers",
+            "de": "Sichern nach",
+            "it": "Backup su"
+        },
+        "day_limit": {
+            "zh-CN": "日期限制",
+            "zh-TW": "日期限制",
+            "en": "Day Restriction",
+            "fr": "Restriction de jours",
+            "de": "Tagesbegrenzung",
+            "it": "Restrizione giorni"
+        },
+        "last_exec_time": {
+            "zh-CN": "上次执行时间",
+            "zh-TW": "上次執行時間",
+            "en": "Last Run Time",
+            "fr": "Dernière exécution",
+            "de": "Letzte Ausführung",
+            "it": "Ultima esecuzione"
+        },
+        "sync_server": {
+            "zh-CN": "从服务器同步",
+            "zh-TW": "從伺服器同步",
+            "en": "Sync from Server",
+            "fr": "Synchroniser depuis le serveur",
+            "de": "Vom Server synchronisieren",
+            "it": "Sincronizza dal server"
+        },
+        "crontab_auto_str_1": {
+            "zh-CN": "正在获取,请稍候...",
+            "zh-TW": "正在獲取,請稍候...",
+            "en": "Fetching, please wait...",
+            "fr": "Récupération, veuillez patienter...",
+            "de": "Wird abgerufen, bitte warten...",
+            "it": "Recupero in corso, attendere..."
+        },
+        "crontab_auto_str_2": {
+            "zh-CN": "暂无数据!",
+            "zh-TW": "暂無數據!",
+            "en": "暂无数据!",
+            "fr": "暂无数据!",
+            "de": "暂无数据!",
+            "it": "暂无数据!"
+        },
+        "crontab_auto_str_3": {
+            "zh-CN": "任务执行日志",
+            "zh-TW": "任务執行記錄檔",
+            "en": "任务ExecuteLogs",
+            "fr": "任务ExécuterJournaux",
+            "de": "任务AusführenProtokolle",
+            "it": "任务EseguiLog"
+        },
+        "crontab_auto_str_4": {
+            "zh-CN": "清空日志",
+            "zh-TW": "清空記錄檔",
+            "en": "ClearLogs",
+            "fr": "ViderJournaux",
+            "de": "LeerenProtokolle",
+            "it": "SvuotaLog"
+        },
+        "crontab_auto_str_5": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "crontab_auto_str_6": {
+            "zh-CN": "<input type=\"checkbox\" id=\"log_refresh_switch\" checked style=\"vertical-align: middle; margin-top: -2px; margin-right: 5px;\">5秒定时刷新",
+            "zh-TW": "<input type=\"checkbox\" id=\"log_refresh_switch\" checked style=\"vertical-align: middle; margin-top: -2px; margin-right: 5px;\">5秒定時重新整理",
+            "en": "<input type=\"checkbox\" id=\"log_refresh_switch\" checked style=\"vertical-align: middle; margin-top: -2px; margin-right: 5px;\">5秒定时Refresh",
+            "fr": "<input type=\"checkbox\" id=\"log_refresh_switch\" checked style=\"vertical-align: middle; margin-top: -2px; margin-right: 5px;\">5秒定时Actualiser",
+            "de": "<input type=\"checkbox\" id=\"log_refresh_switch\" checked style=\"vertical-align: middle; margin-top: -2px; margin-right: 5px;\">5秒定时Aktualisieren",
+            "it": "<input type=\"checkbox\" id=\"log_refresh_switch\" checked style=\"vertical-align: middle; margin-top: -2px; margin-right: 5px;\">5秒定时Aggiorna"
+        },
+        "crontab_auto_str_7": {
+            "zh-CN": "', true)\">执行任务</button>",
+            "zh-TW": "', true)\">執行任务</button>",
+            "en": "', true)\">Execute任务</button>",
+            "fr": "', true)\">Exécuter任务</button>",
+            "de": "', true)\">Ausführen任务</button>",
+            "it": "', true)\">Esegui任务</button>"
+        },
+        "crontab_auto_str_8": {
+            "zh-CN": "<span style=\"margin-left: 20px; color: #666;\">任务名称:</span><span style=\"margin-left: 20px; color: #5cb85c;\">",
+            "zh-TW": "<span style=\"margin-left: 20px; color: #666;\">任务名称:</span><span style=\"margin-left: 20px; color: #5cb85c;\">",
+            "en": "<span style=\"margin-left: 20px; color: #666;\">任务Name:</span><span style=\"margin-left: 20px; color: #5cb85c;\">",
+            "fr": "<span style=\"margin-left: 20px; color: #666;\">任务Nom:</span><span style=\"margin-left: 20px; color: #5cb85c;\">",
+            "de": "<span style=\"margin-left: 20px; color: #666;\">任务Name:</span><span style=\"margin-left: 20px; color: #5cb85c;\">",
+            "it": "<span style=\"margin-left: 20px; color: #666;\">任务Nome:</span><span style=\"margin-left: 20px; color: #5cb85c;\">"
+        },
+        "crontab_auto_str_9": {
+            "zh-CN": "<tr><td colspan='9' style='text-align: center;'>当前没有计划任务</td></tr>",
+            "zh-TW": "<tr><td colspan='9' style='text-align: center;'>当前没有排程任務</td></tr>",
+            "en": "<tr><td colspan='9' style='text-align: center;'>当前没有Cron Tasks</td></tr>",
+            "fr": "<tr><td colspan='9' style='text-align: center;'>当前没有Tâches Cron</td></tr>",
+            "de": "<tr><td colspan='9' style='text-align: center;'>当前没有Cron-Aufgaben</td></tr>",
+            "it": "<tr><td colspan='9' style='text-align: center;'>当前没有Attività Cron</td></tr>"
+        },
+        "crontab_auto_str_10": {
+            "zh-CN": ",0)\" style=\"color:rgb(92, 184, 92);cursor:pointer\" title=\"停用该计划任务\">正常<span class=\"glyphicon glyphicon-play\"></span></span>",
+            "zh-TW": ",0)\" style=\"color:rgb(92, 184, 92);cursor:pointer\" title=\"停用该排程任務\">正常<span class=\"glyphicon glyphicon-play\"></span></span>",
+            "en": ",0)\" style=\"color:rgb(92, 184, 92);cursor:pointer\" title=\"Disable该Cron Tasks\">正常<span class=\"glyphicon glyphicon-play\"></span></span>",
+            "fr": ",0)\" style=\"color:rgb(92, 184, 92);cursor:pointer\" title=\"Désactiver该Tâches Cron\">正常<span class=\"glyphicon glyphicon-play\"></span></span>",
+            "de": ",0)\" style=\"color:rgb(92, 184, 92);cursor:pointer\" title=\"Deaktivieren该Cron-Aufgaben\">正常<span class=\"glyphicon glyphicon-play\"></span></span>",
+            "it": ",0)\" style=\"color:rgb(92, 184, 92);cursor:pointer\" title=\"Disabilita该Attività Cron\">正常<span class=\"glyphicon glyphicon-play\"></span></span>"
+        },
+        "crontab_auto_str_11": {
+            "zh-CN": ",1)\" class=\"btClose\" style=\"color:red;cursor:pointer\" title=\"启用该计划任务\">停用<span style=\"color:rgb(255, 0, 0);\" class=\"glyphicon glyphicon-pause\"></span></span>",
+            "zh-TW": ",1)\" class=\"btClose\" style=\"color:red;cursor:pointer\" title=\"啟用该排程任務\">停用<span style=\"color:rgb(255, 0, 0);\" class=\"glyphicon glyphicon-pause\"></span></span>",
+            "en": ",1)\" class=\"btClose\" style=\"color:red;cursor:pointer\" title=\"Enable该Cron Tasks\">Disable<span style=\"color:rgb(255, 0, 0);\" class=\"glyphicon glyphicon-pause\"></span></span>",
+            "fr": ",1)\" class=\"btClose\" style=\"color:red;cursor:pointer\" title=\"Activer该Tâches Cron\">Désactiver<span style=\"color:rgb(255, 0, 0);\" class=\"glyphicon glyphicon-pause\"></span></span>",
+            "de": ",1)\" class=\"btClose\" style=\"color:red;cursor:pointer\" title=\"Aktivieren该Cron-Aufgaben\">Deaktivieren<span style=\"color:rgb(255, 0, 0);\" class=\"glyphicon glyphicon-pause\"></span></span>",
+            "it": ",1)\" class=\"btClose\" style=\"color:red;cursor:pointer\" title=\"Abilita该Attività Cron\">Disabilita<span style=\"color:rgb(255, 0, 0);\" class=\"glyphicon glyphicon-pause\"></span></span>"
+        },
+        "crontab_auto_str_12": {
+            "zh-CN": "份",
+            "zh-TW": "份",
+            "en": "份",
+            "fr": "份",
+            "de": "份",
+            "it": "份"
+        },
+        "crontab_auto_str_13": {
+            "zh-CN": "本地磁盘",
+            "zh-TW": "本地磁盘",
+            "en": "本地Disk",
+            "fr": "本地Disque",
+            "de": "本地Festplatte",
+            "it": "本地Disco"
+        },
+        "crontab_auto_str_14": {
+            "zh-CN": "无",
+            "zh-TW": "無",
+            "en": "无",
+            "fr": "无",
+            "de": "无",
+            "it": "无"
+        },
+        "crontab_auto_str_15": {
+            "zh-CN": "');\" class='btlink'>执行</a> | \t\t\t\t\t\t<a href=\"javascript:editTaskInfo('",
+            "zh-TW": "');\" class='btlink'>執行</a> | \t\t\t\t\t\t<a href=\"javascript:editTaskInfo('",
+            "en": "');\" class='btlink'>Execute</a> | \t\t\t\t\t\t<a href=\"javascript:editTaskInfo('",
+            "fr": "');\" class='btlink'>Exécuter</a> | \t\t\t\t\t\t<a href=\"javascript:editTaskInfo('",
+            "de": "');\" class='btlink'>Ausführen</a> | \t\t\t\t\t\t<a href=\"javascript:editTaskInfo('",
+            "it": "');\" class='btlink'>Esegui</a> | \t\t\t\t\t\t<a href=\"javascript:editTaskInfo('"
+        },
+        "crontab_auto_str_16": {
+            "zh-CN": "');\" class='btlink'>编辑</a> | \t\t\t\t\t\t<a href=\"javascript:getLogs(",
+            "zh-TW": "');\" class='btlink'>編輯</a> | \t\t\t\t\t\t<a href=\"javascript:getLogs(",
+            "en": "');\" class='btlink'>编辑</a> | \t\t\t\t\t\t<a href=\"javascript:getLogs(",
+            "fr": "');\" class='btlink'>编辑</a> | \t\t\t\t\t\t<a href=\"javascript:getLogs(",
+            "de": "');\" class='btlink'>编辑</a> | \t\t\t\t\t\t<a href=\"javascript:getLogs(",
+            "it": "');\" class='btlink'>编辑</a> | \t\t\t\t\t\t<a href=\"javascript:getLogs("
+        },
+        "crontab_auto_str_17": {
+            "zh-CN": "');\" class='btlink'>日志</a> | \t\t\t\t\t\t<a href=\"javascript:planDel(",
+            "zh-TW": "');\" class='btlink'>記錄檔</a> | \t\t\t\t\t\t<a href=\"javascript:planDel(",
+            "en": "');\" class='btlink'>Logs</a> | \t\t\t\t\t\t<a href=\"javascript:planDel(",
+            "fr": "');\" class='btlink'>Journaux</a> | \t\t\t\t\t\t<a href=\"javascript:planDel(",
+            "de": "');\" class='btlink'>Protokolle</a> | \t\t\t\t\t\t<a href=\"javascript:planDel(",
+            "it": "');\" class='btlink'>Log</a> | \t\t\t\t\t\t<a href=\"javascript:planDel("
+        },
+        "crontab_auto_str_18": {
+            "zh-CN": "');\" class='btlink'>删除</a>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "zh-TW": "');\" class='btlink'>刪除</a>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "en": "');\" class='btlink'>Delete</a>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "fr": "');\" class='btlink'>Supprimer</a>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "de": "');\" class='btlink'>Löschen</a>\t\t\t\t\t</td>\t\t\t\t</tr>",
+            "it": "');\" class='btlink'>Elimina</a>\t\t\t\t\t</td>\t\t\t\t</tr>"
+        },
+        "crontab_auto_str_19": {
+            "zh-CN": "计划任务暂停后将无法继续运行，您真的要停用这个计划任务吗？",
+            "zh-TW": "排程任務暂停後將無法继续运行，您真的要停用這個排程任務吗？",
+            "en": "Cron Tasks暂停后将无法继续运行，您真的要Disable这个Cron Tasks吗？",
+            "fr": "Tâches Cron暂停后将无法继续运行，您真的要Désactiver这个Tâches Cron吗？",
+            "de": "Cron-Aufgaben暂停后将无法继续运行，您真的要Deaktivieren这个Cron-Aufgaben吗？",
+            "it": "Attività Cron暂停后将无法继续运行，您真的要Disabilita这个Attività Cron吗？"
+        },
+        "crontab_auto_str_20": {
+            "zh-CN": "该计划任务已停用，是否要启用这个计划任务",
+            "zh-TW": "该排程任務已停用，是否要啟用這個排程任務",
+            "en": "该Cron Tasks已Disable，是否要Enable这个Cron Tasks",
+            "fr": "该Tâches Cron已Désactiver，是否要Activer这个Tâches Cron",
+            "de": "该Cron-Aufgaben已Deaktivieren，是否要Aktivieren这个Cron-Aufgaben",
+            "it": "该Attività Cron已Disabilita，是否要Abilita这个Attività Cron"
+        },
+        "crontab_auto_str_21": {
+            "zh-CN": "提示",
+            "zh-TW": "提示",
+            "en": "Tip",
+            "fr": "Conseil",
+            "de": "Hinweis",
+            "it": "Suggerimento"
+        },
+        "crontab_auto_str_22": {
+            "zh-CN": "正在设置状态，请稍后...",
+            "zh-TW": "正在設定狀態，请稍後...",
+            "en": "正在设置Status，请稍后...",
+            "fr": "正在设置Statut，请稍后...",
+            "de": "正在设置Status，请稍后...",
+            "it": "正在设置Stato，请稍后..."
+        },
+        "crontab_auto_str_23": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "crontab_auto_str_24": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "crontab_auto_str_25": {
+            "zh-CN": "暂无数据!",
+            "zh-TW": "暂無數據!",
+            "en": "暂无数据!",
+            "fr": "暂无数据!",
+            "de": "暂无数据!",
+            "it": "暂无数据!"
+        },
+        "crontab_auto_str_26": {
+            "zh-CN": "您确定要删除该任务吗?",
+            "zh-TW": "您確定要刪除该任务吗?",
+            "en": "您Confirm要Delete该任务吗?",
+            "fr": "您Confirmer要Supprimer该任务吗?",
+            "de": "您Bestätigen要Löschen该任务吗?",
+            "it": "您Conferma要Elimina该任务吗?"
+        },
+        "crontab_auto_str_27": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "crontab_auto_str_28": {
+            "zh-CN": "任务名称不能为空!",
+            "zh-TW": "任务名称不能為空!",
+            "en": "任务Name不能为空!",
+            "fr": "任务Nom不能为空!",
+            "de": "任务Name不能为空!",
+            "it": "任务Nome不能为空!"
+        },
+        "crontab_auto_str_29": {
+            "zh-CN": "表单不合法,请重新输入!",
+            "zh-TW": "表單不合法,请重新輸入!",
+            "en": "表单不合法,请重新输入!",
+            "fr": "表单不合法,请重新输入!",
+            "de": "表单不合法,请重新输入!",
+            "it": "表单不合法,请重新输入!"
+        },
+        "crontab_auto_str_30": {
+            "zh-CN": "小时值不合法!",
+            "zh-TW": "小時值不合法!",
+            "en": "小时值不合法!",
+            "fr": "小时值不合法!",
+            "de": "小时值不合法!",
+            "it": "小时值不合法!"
+        },
+        "crontab_auto_str_31": {
+            "zh-CN": "分钟值不合法!",
+            "zh-TW": "分鐘值不合法!",
+            "en": "分钟值不合法!",
+            "fr": "分钟值不合法!",
+            "de": "分钟值不合法!",
+            "it": "分钟值不合法!"
+        },
+        "crontab_auto_str_32": {
+            "zh-CN": "不能有负数!",
+            "zh-TW": "不能有負數!",
+            "en": "不能有负数!",
+            "fr": "不能有负数!",
+            "de": "不能有负数!",
+            "it": "不能有负数!"
+        },
+        "crontab_auto_str_33": {
+            "zh-CN": "脚本代码不能为空!",
+            "zh-TW": "脚本代码不能為空!",
+            "en": "脚本代码不能为空!",
+            "fr": "脚本代码不能为空!",
+            "de": "脚本代码不能为空!",
+            "it": "脚本代码不能为空!"
+        },
+        "crontab_auto_str_34": {
+            "zh-CN": "请选择脚本文件!",
+            "zh-TW": "请選擇脚本檔案!",
+            "en": "请选择脚本Files!",
+            "fr": "请选择脚本Fichiers!",
+            "de": "请选择脚本Dateien!",
+            "it": "请选择脚本File!"
+        },
+        "crontab_auto_str_35": {
+            "zh-CN": "URL地址不正确!",
+            "zh-TW": "URL地址不正確!",
+            "en": "URL地址不正确!",
+            "fr": "URL地址不正确!",
+            "de": "URL地址不正确!",
+            "it": "URL地址不正确!"
+        },
+        "crontab_auto_str_36": {
+            "zh-CN": "正在添加,请稍候...!",
+            "zh-TW": "正在新增,請稍候...!",
+            "en": "Adding, please wait...!",
+            "fr": "Ajout en cours, veuillez patienter...!",
+            "de": "Wird hinzugefügt, bitte warten...!",
+            "it": "Aggiunta in corso, attendere...!"
+        },
+        "crontab_auto_str_37": {
+            "zh-CN": "天",
+            "zh-TW": "天",
+            "en": "天",
+            "fr": "天",
+            "de": "天",
+            "it": "天"
+        },
+        "crontab_auto_str_38": {
+            "zh-CN": "日",
+            "zh-TW": "日",
+            "en": "日",
+            "fr": "日",
+            "de": "日",
+            "it": "日"
+        },
+        "crontab_auto_str_39": {
+            "zh-CN": "脚本内容",
+            "zh-TW": "脚本内容",
+            "en": "脚本内容",
+            "fr": "脚本内容",
+            "de": "脚本内容",
+            "it": "脚本内容"
+        },
+        "crontab_auto_str_40": {
+            "zh-CN": "提示",
+            "zh-TW": "提示",
+            "en": "Tip",
+            "fr": "Conseil",
+            "de": "Hinweis",
+            "it": "Suggerimento"
+        },
+        "crontab_auto_str_41": {
+            "zh-CN": "备份网站",
+            "zh-TW": "備份網站",
+            "en": "BackupWebsites",
+            "fr": "SauvegardeSites Web",
+            "de": "SicherungWebsites",
+            "it": "BackupSiti Web"
+        },
+        "crontab_auto_str_42": {
+            "zh-CN": "备份目录",
+            "zh-TW": "備份目錄",
+            "en": "Backup目录",
+            "fr": "Sauvegarde目录",
+            "de": "Sicherung目录",
+            "it": "Backup目录"
+        },
+        "crontab_auto_str_43": {
+            "zh-CN": "备份数据库",
+            "zh-TW": "備份資料庫",
+            "en": "BackupDatabases",
+            "fr": "SauvegardeBases de données",
+            "de": "SicherungDatenbanken",
+            "it": "BackupDatabase"
+        },
+        "crontab_auto_str_44": {
+            "zh-CN": "切割网站",
+            "zh-TW": "切割網站",
+            "en": "切割Websites",
+            "fr": "切割Sites Web",
+            "de": "切割Websites",
+            "it": "切割Siti Web"
+        },
+        "crontab_auto_str_45": {
+            "zh-CN": "URL地址",
+            "zh-TW": "URL地址",
+            "en": "URL地址",
+            "fr": "URL地址",
+            "de": "URL地址",
+            "it": "URL地址"
+        },
+        "crontab_auto_str_46": {
+            "zh-CN": "备份网站",
+            "zh-TW": "備份網站",
+            "en": "BackupWebsites",
+            "fr": "SauvegardeSites Web",
+            "de": "SicherungWebsites",
+            "it": "BackupSiti Web"
+        },
+        "crontab_auto_str_47": {
+            "zh-CN": "备份数据库",
+            "zh-TW": "備份資料庫",
+            "en": "BackupDatabases",
+            "fr": "SauvegardeBases de données",
+            "de": "SicherungDatenbanken",
+            "it": "BackupDatabase"
+        },
+        "crontab_auto_str_48": {
+            "zh-CN": "备份数据库[",
+            "zh-TW": "備份資料庫[",
+            "en": "BackupDatabases[",
+            "fr": "SauvegardeBases de données[",
+            "de": "SicherungDatenbanken[",
+            "it": "BackupDatabase["
+        },
+        "crontab_auto_str_49": {
+            "zh-CN": "切割日志",
+            "zh-TW": "切割記錄檔",
+            "en": "切割Logs",
+            "fr": "切割Journaux",
+            "de": "切割Protokolle",
+            "it": "切割Log"
+        },
+        "crontab_auto_str_50": {
+            "zh-CN": "备份目录",
+            "zh-TW": "備份目錄",
+            "en": "Backup目录",
+            "fr": "Sauvegarde目录",
+            "de": "Sicherung目录",
+            "it": "Backup目录"
+        },
+        "crontab_auto_str_51": {
+            "zh-CN": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "zh-TW": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "en": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "fr": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "de": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "it": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>"
+        },
+        "crontab_auto_str_52": {
+            "zh-CN": "\t\t\t\t\t</div>\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t\t\t<span class=\"name\">份</span>\t\t\t\t\t</div>",
+            "zh-TW": "\t\t\t\t\t</div>\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t\t\t<span class=\"name\">份</span>\t\t\t\t\t</div>",
+            "en": "\t\t\t\t\t</div>\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t\t\t<span class=\"name\">份</span>\t\t\t\t\t</div>",
+            "fr": "\t\t\t\t\t</div>\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t\t\t<span class=\"name\">份</span>\t\t\t\t\t</div>",
+            "de": "\t\t\t\t\t</div>\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t\t\t<span class=\"name\">份</span>\t\t\t\t\t</div>",
+            "it": "\t\t\t\t\t</div>\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t\t\t<span class=\"name\">份</span>\t\t\t\t\t</div>"
+        },
+        "crontab_auto_str_53": {
+            "zh-CN": "备份目录[",
+            "zh-TW": "備份目錄[",
+            "en": "Backup目录[",
+            "fr": "Sauvegarde目录[",
+            "de": "Sicherung目录[",
+            "it": "Backup目录["
+        },
+        "crontab_auto_str_54": {
+            "zh-CN": "备份网站",
+            "zh-TW": "備份網站",
+            "en": "BackupWebsites",
+            "fr": "SauvegardeSites Web",
+            "de": "SicherungWebsites",
+            "it": "BackupSiti Web"
+        },
+        "crontab_auto_str_55": {
+            "zh-CN": "备份数据库",
+            "zh-TW": "備份資料庫",
+            "en": "BackupDatabases",
+            "fr": "SauvegardeBases de données",
+            "de": "SicherungDatenbanken",
+            "it": "BackupDatabase"
+        },
+        "crontab_auto_str_56": {
+            "zh-CN": "备份数据库[",
+            "zh-TW": "備份資料庫[",
+            "en": "BackupDatabases[",
+            "fr": "SauvegardeBases de données[",
+            "de": "SicherungDatenbanken[",
+            "it": "BackupDatabase["
+        },
+        "crontab_auto_str_57": {
+            "zh-CN": "切割日志",
+            "zh-TW": "切割記錄檔",
+            "en": "切割Logs",
+            "fr": "切割Journaux",
+            "de": "切割Protokolle",
+            "it": "切割Log"
+        },
+        "crontab_auto_str_58": {
+            "zh-CN": "备份目录",
+            "zh-TW": "備份目錄",
+            "en": "Backup目录",
+            "fr": "Sauvegarde目录",
+            "de": "Sicherung目录",
+            "it": "Backup目录"
+        },
+        "crontab_auto_str_59": {
+            "zh-CN": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "zh-TW": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "en": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "fr": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "de": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>",
+            "it": "<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"ALL\">所有</a></li>"
+        },
+        "crontab_auto_str_60": {
+            "zh-CN": "\t\t<div class=\"textname pull-left mr20\">备份到</div>\t\t<div class=\"dropdown planBackupTo pull-left mr20\">\t\t  \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t<b val=\"localhost\">服务器磁盘</b><span class=\"caret\"></span>\t\t  \t</button>\t\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode\">\t\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"localhost\">服务器磁盘</a></li>\t\t\t\t",
+            "zh-TW": "\t\t<div class=\"textname pull-left mr20\">備份到</div>\t\t<div class=\"dropdown planBackupTo pull-left mr20\">\t\t  \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t<b val=\"localhost\">伺服器磁盘</b><span class=\"caret\"></span>\t\t  \t</button>\t\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode\">\t\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"localhost\">伺服器磁盘</a></li>\t\t\t\t",
+            "en": "\t\t<div class=\"textname pull-left mr20\">Backup到</div>\t\t<div class=\"dropdown planBackupTo pull-left mr20\">\t\t  \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t<b val=\"localhost\">服务器Disk</b><span class=\"caret\"></span>\t\t  \t</button>\t\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode\">\t\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"localhost\">服务器Disk</a></li>\t\t\t\t",
+            "fr": "\t\t<div class=\"textname pull-left mr20\">Sauvegarde到</div>\t\t<div class=\"dropdown planBackupTo pull-left mr20\">\t\t  \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t<b val=\"localhost\">服务器Disque</b><span class=\"caret\"></span>\t\t  \t</button>\t\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode\">\t\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"localhost\">服务器Disque</a></li>\t\t\t\t",
+            "de": "\t\t<div class=\"textname pull-left mr20\">Sicherung到</div>\t\t<div class=\"dropdown planBackupTo pull-left mr20\">\t\t  \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t<b val=\"localhost\">服务器Festplatte</b><span class=\"caret\"></span>\t\t  \t</button>\t\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode\">\t\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"localhost\">服务器Festplatte</a></li>\t\t\t\t",
+            "it": "\t\t<div class=\"textname pull-left mr20\">Backup到</div>\t\t<div class=\"dropdown planBackupTo pull-left mr20\">\t\t  \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t<b val=\"localhost\">服务器Disco</b><span class=\"caret\"></span>\t\t  \t</button>\t\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode\">\t\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"localhost\">服务器Disco</a></li>\t\t\t\t"
+        },
+        "crontab_auto_str_61": {
+            "zh-CN": "\t\t  \t</ul>\t\t</div>\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t<span class=\"name\">份</span>\t\t</div>",
+            "zh-TW": "\t\t  \t</ul>\t\t</div>\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t<span class=\"name\">份</span>\t\t</div>",
+            "en": "\t\t  \t</ul>\t\t</div>\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t<span class=\"name\">份</span>\t\t</div>",
+            "fr": "\t\t  \t</ul>\t\t</div>\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t<span class=\"name\">份</span>\t\t</div>",
+            "de": "\t\t  \t</ul>\t\t</div>\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t<span class=\"name\">份</span>\t\t</div>",
+            "it": "\t\t  \t</ul>\t\t</div>\t\t<div class=\"textname pull-left mr20\">保留最新</div><div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t<span><input type=\"number\" name=\"save\" id=\"save\" value=\"3\" maxlength=\"4\" max=\"100\" min=\"1\"></span>\t\t\t<span class=\"name\">份</span>\t\t</div>"
+        },
+        "crontab_auto_str_62": {
+            "zh-CN": "备份目录[",
+            "zh-TW": "備份目錄[",
+            "en": "Backup目录[",
+            "fr": "Sauvegarde目录[",
+            "de": "Sicherung目录[",
+            "it": "Backup目录["
+        },
+        "crontab_auto_str_63": {
+            "zh-CN": "正在获取,请稍候...",
+            "zh-TW": "正在獲取,請稍候...",
+            "en": "Fetching, please wait...",
+            "fr": "Récupération, veuillez patienter...",
+            "de": "Wird abgerufen, bitte warten...",
+            "it": "Recupero in corso, attendere..."
+        },
+        "crontab_auto_str_64": {
+            "zh-CN": "Shell脚本",
+            "zh-TW": "Shell脚本",
+            "en": "Shell脚本",
+            "fr": "Shell脚本",
+            "de": "Shell脚本",
+            "it": "Shell脚本"
+        },
+        "crontab_auto_str_65": {
+            "zh-CN": "备份网站",
+            "zh-TW": "備份網站",
+            "en": "BackupWebsites",
+            "fr": "SauvegardeSites Web",
+            "de": "SicherungWebsites",
+            "it": "BackupSiti Web"
+        },
+        "crontab_auto_str_66": {
+            "zh-CN": "备份数据库",
+            "zh-TW": "備份資料庫",
+            "en": "BackupDatabases",
+            "fr": "SauvegardeBases de données",
+            "de": "SicherungDatenbanken",
+            "it": "BackupDatabase"
+        },
+        "crontab_auto_str_67": {
+            "zh-CN": "日志切割",
+            "zh-TW": "記錄檔切割",
+            "en": "Logs切割",
+            "fr": "Journaux切割",
+            "de": "Protokolle切割",
+            "it": "Log切割"
+        },
+        "crontab_auto_str_68": {
+            "zh-CN": "备份目录",
+            "zh-TW": "備份目錄",
+            "en": "Backup目录",
+            "fr": "Sauvegarde目录",
+            "de": "Sicherung目录",
+            "it": "Backup目录"
+        },
+        "crontab_auto_str_69": {
+            "zh-CN": "释放内存",
+            "zh-TW": "釋放記憶體",
+            "en": "释放Memory",
+            "fr": "释放Mémoire",
+            "de": "释放Arbeitsspeicher",
+            "it": "释放Memoria"
+        },
+        "crontab_auto_str_70": {
+            "zh-CN": "访问URL",
+            "zh-TW": "访問URL",
+            "en": "访问URL",
+            "fr": "访问URL",
+            "de": "访问URL",
+            "it": "访问URL"
+        },
+        "crontab_auto_str_71": {
+            "zh-CN": "每天",
+            "zh-TW": "每天",
+            "en": "每天",
+            "fr": "每天",
+            "de": "每天",
+            "it": "每天"
+        },
+        "crontab_auto_str_72": {
+            "zh-CN": "N天",
+            "zh-TW": "N天",
+            "en": "N天",
+            "fr": "N天",
+            "de": "N天",
+            "it": "N天"
+        },
+        "crontab_auto_str_73": {
+            "zh-CN": "N分钟",
+            "zh-TW": "N分鐘",
+            "en": "N分钟",
+            "fr": "N分钟",
+            "de": "N分钟",
+            "it": "N分钟"
+        },
+        "crontab_auto_str_74": {
+            "zh-CN": "每星期",
+            "zh-TW": "每星期",
+            "en": "每星期",
+            "fr": "每星期",
+            "de": "每星期",
+            "it": "每星期"
+        },
+        "crontab_auto_str_75": {
+            "zh-CN": "每月",
+            "zh-TW": "每月",
+            "en": "每月",
+            "fr": "每月",
+            "de": "每月",
+            "it": "每月"
+        },
+        "crontab_auto_str_76": {
+            "zh-CN": "周一",
+            "zh-TW": "週一",
+            "en": "周一",
+            "fr": "周一",
+            "de": "周一",
+            "it": "周一"
+        },
+        "crontab_auto_str_77": {
+            "zh-CN": "周二",
+            "zh-TW": "週二",
+            "en": "周二",
+            "fr": "周二",
+            "de": "周二",
+            "it": "周二"
+        },
+        "crontab_auto_str_78": {
+            "zh-CN": "周三",
+            "zh-TW": "週三",
+            "en": "周三",
+            "fr": "周三",
+            "de": "周三",
+            "it": "周三"
+        },
+        "crontab_auto_str_79": {
+            "zh-CN": "周四",
+            "zh-TW": "週四",
+            "en": "周四",
+            "fr": "周四",
+            "de": "周四",
+            "it": "周四"
+        },
+        "crontab_auto_str_80": {
+            "zh-CN": "周五",
+            "zh-TW": "週五",
+            "en": "周五",
+            "fr": "周五",
+            "de": "周五",
+            "it": "周五"
+        },
+        "crontab_auto_str_81": {
+            "zh-CN": "周六",
+            "zh-TW": "週六",
+            "en": "周六",
+            "fr": "周六",
+            "de": "周六",
+            "it": "周六"
+        },
+        "crontab_auto_str_82": {
+            "zh-CN": "周日",
+            "zh-TW": "週日",
+            "en": "周日",
+            "fr": "周日",
+            "de": "周日",
+            "it": "周日"
+        },
+        "crontab_auto_str_83": {
+            "zh-CN": "备份数据库[",
+            "zh-TW": "備份資料庫[",
+            "en": "BackupDatabases[",
+            "fr": "SauvegardeBases de données[",
+            "de": "SicherungDatenbanken[",
+            "it": "BackupDatabase["
+        },
+        "crontab_auto_str_84": {
+            "zh-CN": "所有",
+            "zh-TW": "所有",
+            "en": "所有",
+            "fr": "所有",
+            "de": "所有",
+            "it": "所有"
+        },
+        "crontab_auto_str_85": {
+            "zh-CN": "服务器磁盘",
+            "zh-TW": "伺服器磁盘",
+            "en": "服务器Disk",
+            "fr": "服务器Disque",
+            "de": "服务器Festplatte",
+            "it": "服务器Disco"
+        },
+        "crontab_auto_str_86": {
+            "zh-CN": "每行一条规则,目录不能以/结尾，示例:\r\n.git \r\nstatic/upload \r\n*.log",
+            "zh-TW": "每行一条規則,目錄不能以/結尾，示例:\r\n.git \r\nstatic/upload \r\n*.log",
+            "en": "每行一条规则,目录不能以/结尾，示例:\r\n.git \r\nstatic/upload \r\n*.log",
+            "fr": "每行一条规则,目录不能以/结尾，示例:\r\n.git \r\nstatic/upload \r\n*.log",
+            "de": "每行一条规则,目录不能以/结尾，示例:\r\n.git \r\nstatic/upload \r\n*.log",
+            "it": "每行一条规则,目录不能以/结尾，示例:\r\n.git \r\nstatic/upload \r\n*.log"
+        },
+        "crontab_auto_str_87": {
+            "zh-CN": "编辑计划任务-[",
+            "zh-TW": "編輯排程任務-[",
+            "en": "编辑Cron Tasks-[",
+            "fr": "编辑Tâches Cron-[",
+            "de": "编辑Cron-Aufgaben-[",
+            "it": "编辑Attività Cron-["
+        },
+        "crontab_auto_str_88": {
+            "zh-CN": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务类型</span>\t\t\t\t\t\t<div class=\"dropdown stype_list pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto\" disabled=\"disabled\">\t\t\t\t\t\t\t\t<b val=\"",
+            "zh-TW": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务類型</span>\t\t\t\t\t\t<div class=\"dropdown stype_list pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto\" disabled=\"disabled\">\t\t\t\t\t\t\t\t<b val=\"",
+            "en": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Type</span>\t\t\t\t\t\t<div class=\"dropdown stype_list pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto\" disabled=\"disabled\">\t\t\t\t\t\t\t\t<b val=\"",
+            "fr": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Type</span>\t\t\t\t\t\t<div class=\"dropdown stype_list pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto\" disabled=\"disabled\">\t\t\t\t\t\t\t\t<b val=\"",
+            "de": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Typ</span>\t\t\t\t\t\t<div class=\"dropdown stype_list pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto\" disabled=\"disabled\">\t\t\t\t\t\t\t\t<b val=\"",
+            "it": "<div class=\"setting-con ptb20\">\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Tipo</span>\t\t\t\t\t\t<div class=\"dropdown stype_list pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode\" data-toggle=\"dropdown\" style=\"width:auto\" disabled=\"disabled\">\t\t\t\t\t\t\t\t<b val=\""
+        },
+        "crontab_auto_str_89": {
+            "zh-CN": "</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务名称</span>\t\t\t\t\t\t<div class=\"planname pull-left\"><input type=\"text\" name=\"name\" class=\"bt-input-text sname_create\" value=\"",
+            "zh-TW": "</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务名称</span>\t\t\t\t\t\t<div class=\"planname pull-left\"><input type=\"text\" name=\"name\" class=\"bt-input-text sname_create\" value=\"",
+            "en": "</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Name</span>\t\t\t\t\t\t<div class=\"planname pull-left\"><input type=\"text\" name=\"name\" class=\"bt-input-text sname_create\" value=\"",
+            "fr": "</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Nom</span>\t\t\t\t\t\t<div class=\"planname pull-left\"><input type=\"text\" name=\"name\" class=\"bt-input-text sname_create\" value=\"",
+            "de": "</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Name</span>\t\t\t\t\t\t<div class=\"planname pull-left\"><input type=\"text\" name=\"name\" class=\"bt-input-text sname_create\" value=\"",
+            "it": "</ul>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">任务Nome</span>\t\t\t\t\t\t<div class=\"planname pull-left\"><input type=\"text\" name=\"name\" class=\"bt-input-text sname_create\" value=\""
+        },
+        "crontab_auto_str_90": {
+            "zh-CN": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">执行周期</span>\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle cycle_btn\" type=\"button\" data-toggle=\"dropdown\" style=\"width:94px\">\t\t\t\t\t\t\t\t<b val=\"",
+            "zh-TW": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">執行週期</span>\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle cycle_btn\" type=\"button\" data-toggle=\"dropdown\" style=\"width:94px\">\t\t\t\t\t\t\t\t<b val=\"",
+            "en": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">Execute周期</span>\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle cycle_btn\" type=\"button\" data-toggle=\"dropdown\" style=\"width:94px\">\t\t\t\t\t\t\t\t<b val=\"",
+            "fr": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">Exécuter周期</span>\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle cycle_btn\" type=\"button\" data-toggle=\"dropdown\" style=\"width:94px\">\t\t\t\t\t\t\t\t<b val=\"",
+            "de": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">Ausführen周期</span>\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle cycle_btn\" type=\"button\" data-toggle=\"dropdown\" style=\"width:94px\">\t\t\t\t\t\t\t\t<b val=\"",
+            "it": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">Esegui周期</span>\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle cycle_btn\" type=\"button\" data-toggle=\"dropdown\" style=\"width:94px\">\t\t\t\t\t\t\t\t<b val=\""
+        },
+        "crontab_auto_str_91": {
+            "zh-CN": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">日</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text hour_input\" style=\"display:",
+            "zh-TW": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">日</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text hour_input\" style=\"display:",
+            "en": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">日</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text hour_input\" style=\"display:",
+            "fr": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">日</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text hour_input\" style=\"display:",
+            "de": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">日</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text hour_input\" style=\"display:",
+            "it": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">日</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text hour_input\" style=\"display:"
+        },
+        "crontab_auto_str_92": {
+            "zh-CN": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">时</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text minute_input\"><span><input type=\"number\" name=\"minute\" class=\"minute_create\" value=\"",
+            "zh-TW": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">時</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text minute_input\"><span><input type=\"number\" name=\"minute\" class=\"minute_create\" value=\"",
+            "en": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">时</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text minute_input\"><span><input type=\"number\" name=\"minute\" class=\"minute_create\" value=\"",
+            "fr": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">时</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text minute_input\"><span><input type=\"number\" name=\"minute\" class=\"minute_create\" value=\"",
+            "de": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">时</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text minute_input\"><span><input type=\"number\" name=\"minute\" class=\"minute_create\" value=\"",
+            "it": "\" maxlength=\"2\" max=\"23\" min=\"0\"></span> <span class=\"name\">时</span> </div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text minute_input\"><span><input type=\"number\" name=\"minute\" class=\"minute_create\" value=\""
+        },
+        "crontab_auto_str_93": {
+            "zh-CN": "\" maxlength=\"2\" max=\"59\" min=\"0\"></span> <span class=\"name\">分</span> </div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10 minute_n_time_range_create\" style=\"display:",
+            "zh-TW": "\" maxlength=\"2\" max=\"59\" min=\"0\"></span> <span class=\"name\">分</span> </div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10 minute_n_time_range_create\" style=\"display:",
+            "en": "\" maxlength=\"2\" max=\"59\" min=\"0\"></span> <span class=\"name\">分</span> </div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10 minute_n_time_range_create\" style=\"display:",
+            "fr": "\" maxlength=\"2\" max=\"59\" min=\"0\"></span> <span class=\"name\">分</span> </div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10 minute_n_time_range_create\" style=\"display:",
+            "de": "\" maxlength=\"2\" max=\"59\" min=\"0\"></span> <span class=\"name\">分</span> </div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10 minute_n_time_range_create\" style=\"display:",
+            "it": "\" maxlength=\"2\" max=\"59\" min=\"0\"></span> <span class=\"name\">分</span> </div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10 minute_n_time_range_create\" style=\"display:"
+        },
+        "crontab_auto_str_94": {
+            "zh-CN": "\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">执行时间</span>\t\t\t\t\t\t<div class=\"pull-left\" style=\"line-height:34px\">\t\t\t\t\t\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en_create\" value=\"1\" ",
+            "zh-TW": "\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">執行時間</span>\t\t\t\t\t\t<div class=\"pull-left\" style=\"line-height:34px\">\t\t\t\t\t\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en_create\" value=\"1\" ",
+            "en": "\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">ExecuteTime</span>\t\t\t\t\t\t<div class=\"pull-left\" style=\"line-height:34px\">\t\t\t\t\t\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en_create\" value=\"1\" ",
+            "fr": "\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">ExécuterHeure</span>\t\t\t\t\t\t<div class=\"pull-left\" style=\"line-height:34px\">\t\t\t\t\t\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en_create\" value=\"1\" ",
+            "de": "\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">AusführenZeit</span>\t\t\t\t\t\t<div class=\"pull-left\" style=\"line-height:34px\">\t\t\t\t\t\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en_create\" value=\"1\" ",
+            "it": "\">\t\t\t\t\t\t<span class=\"typename c4 pull-left f14 text-right mr20\">EseguiOra</span>\t\t\t\t\t\t<div class=\"pull-left\" style=\"line-height:34px\">\t\t\t\t\t\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en_create\" value=\"1\" "
+        },
+        "crontab_auto_str_95": {
+            "zh-CN": " style=\"vertical-align:middle;margin-top:-2px;\"> 开始时间</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_start_h_create\" value=\"",
+            "zh-TW": " style=\"vertical-align:middle;margin-top:-2px;\"> 開始時間</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_start_h_create\" value=\"",
+            "en": " style=\"vertical-align:middle;margin-top:-2px;\"> 开始Time</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_start_h_create\" value=\"",
+            "fr": " style=\"vertical-align:middle;margin-top:-2px;\"> 开始Heure</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_start_h_create\" value=\"",
+            "de": " style=\"vertical-align:middle;margin-top:-2px;\"> 开始Zeit</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_start_h_create\" value=\"",
+            "it": " style=\"vertical-align:middle;margin-top:-2px;\"> 开始Ora</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_start_h_create\" value=\""
+        },
+        "crontab_auto_str_96": {
+            "zh-CN": " style=\"vertical-align:middle;margin-top:-2px;\"> 结束时间</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_end_h_create\" value=\"",
+            "zh-TW": " style=\"vertical-align:middle;margin-top:-2px;\"> 結束時間</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_end_h_create\" value=\"",
+            "en": " style=\"vertical-align:middle;margin-top:-2px;\"> 结束Time</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_end_h_create\" value=\"",
+            "fr": " style=\"vertical-align:middle;margin-top:-2px;\"> 结束Heure</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_end_h_create\" value=\"",
+            "de": " style=\"vertical-align:middle;margin-top:-2px;\"> 结束Zeit</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_end_h_create\" value=\"",
+            "it": " style=\"vertical-align:middle;margin-top:-2px;\"> 结束Ora</label>\t\t\t\t\t\t\t<input type=\"number\" name=\"min_end_h_create\" value=\""
+        },
+        "crontab_auto_str_97": {
+            "zh-CN": "\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t\t\t\t\t\t</div>\t\t\t\t\t</div>                    <div class=\"clearfix plan ptb10\">                        <span class=\"typename c4 pull-left f14 text-right mr20\">日期限制</span>                        <div class=\"pull-left\" style=\"line-height:34px\">                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"0\" ",
+            "zh-TW": "\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t\t\t\t\t\t</div>\t\t\t\t\t</div>                    <div class=\"clearfix plan ptb10\">                        <span class=\"typename c4 pull-left f14 text-right mr20\">日期限製</span>                        <div class=\"pull-left\" style=\"line-height:34px\">                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"0\" ",
+            "en": "\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t\t\t\t\t\t</div>\t\t\t\t\t</div>                    <div class=\"clearfix plan ptb10\">                        <span class=\"typename c4 pull-left f14 text-right mr20\">日期限制</span>                        <div class=\"pull-left\" style=\"line-height:34px\">                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"0\" ",
+            "fr": "\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t\t\t\t\t\t</div>\t\t\t\t\t</div>                    <div class=\"clearfix plan ptb10\">                        <span class=\"typename c4 pull-left f14 text-right mr20\">日期限制</span>                        <div class=\"pull-left\" style=\"line-height:34px\">                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"0\" ",
+            "de": "\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t\t\t\t\t\t</div>\t\t\t\t\t</div>                    <div class=\"clearfix plan ptb10\">                        <span class=\"typename c4 pull-left f14 text-right mr20\">日期限制</span>                        <div class=\"pull-left\" style=\"line-height:34px\">                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"0\" ",
+            "it": "\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t\t\t\t\t\t</div>\t\t\t\t\t</div>                    <div class=\"clearfix plan ptb10\">                        <span class=\"typename c4 pull-left f14 text-right mr20\">日期限制</span>                        <div class=\"pull-left\" style=\"line-height:34px\">                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"0\" "
+        },
+        "crontab_auto_str_98": {
+            "zh-CN": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 无</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"1\" ",
+            "zh-TW": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 無</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"1\" ",
+            "en": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 无</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"1\" ",
+            "fr": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 无</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"1\" ",
+            "de": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 无</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"1\" ",
+            "it": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 无</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"1\" "
+        },
+        "crontab_auto_str_99": {
+            "zh-CN": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 股票开盘日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"2\" ",
+            "zh-TW": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 股票開盘日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"2\" ",
+            "en": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 股票开盘日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"2\" ",
+            "fr": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 股票开盘日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"2\" ",
+            "de": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 股票开盘日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"2\" ",
+            "it": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 股票开盘日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"2\" "
+        },
+        "crontab_auto_str_100": {
+            "zh-CN": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 工作日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"3\" ",
+            "zh-TW": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 工作日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"3\" ",
+            "en": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 工作日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"3\" ",
+            "fr": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 工作日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"3\" ",
+            "de": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 工作日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"3\" ",
+            "it": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 工作日</label>                            <label class=\"mr20\" style=\"font-weight:normal;cursor:pointer\"><input type=\"radio\" name=\"day_type_radio_edit\" value=\"3\" "
+        },
+        "crontab_auto_str_101": {
+            "zh-CN": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 节假日</label>                        </div>                    </div>\t\t\t\t\t<div class=\"clearfix plan ptb10 site_list\" style=\"display:none\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">",
+            "zh-TW": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 節假日</label>                        </div>                    </div>\t\t\t\t\t<div class=\"clearfix plan ptb10 site_list\" style=\"display:none\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">",
+            "en": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 节假日</label>                        </div>                    </div>\t\t\t\t\t<div class=\"clearfix plan ptb10 site_list\" style=\"display:none\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">",
+            "fr": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 节假日</label>                        </div>                    </div>\t\t\t\t\t<div class=\"clearfix plan ptb10 site_list\" style=\"display:none\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">",
+            "de": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 节假日</label>                        </div>                    </div>\t\t\t\t\t<div class=\"clearfix plan ptb10 site_list\" style=\"display:none\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">",
+            "it": " style=\"width:16px;height:16px;vertical-align:middle;margin-top:-2px\"> 节假日</label>                        </div>                    </div>\t\t\t\t\t<div class=\"clearfix plan ptb10 site_list\" style=\"display:none\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">"
+        },
+        "crontab_auto_str_102": {
+            "zh-CN": "\" placeholder=\"备份目录\" style=\"width:208px;height:33px;\" disabled=\"disabled\">\t\t\t\t\t\t</div>\t\t\t\t\t\t",
+            "zh-TW": "\" placeholder=\"備份目錄\" style=\"width:208px;height:33px;\" disabled=\"disabled\">\t\t\t\t\t\t</div>\t\t\t\t\t\t",
+            "en": "\" placeholder=\"Backup目录\" style=\"width:208px;height:33px;\" disabled=\"disabled\">\t\t\t\t\t\t</div>\t\t\t\t\t\t",
+            "fr": "\" placeholder=\"Sauvegarde目录\" style=\"width:208px;height:33px;\" disabled=\"disabled\">\t\t\t\t\t\t</div>\t\t\t\t\t\t",
+            "de": "\" placeholder=\"Sicherung目录\" style=\"width:208px;height:33px;\" disabled=\"disabled\">\t\t\t\t\t\t</div>\t\t\t\t\t\t",
+            "it": "\" placeholder=\"Backup目录\" style=\"width:208px;height:33px;\" disabled=\"disabled\">\t\t\t\t\t\t</div>\t\t\t\t\t\t"
+        },
+        "crontab_auto_str_103": {
+            "zh-CN": "\t\t\t\t\t\t<div class=\"textname pull-left mr20\">备份到</div>\t\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle backup_btn\" type=\"button\"  data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t\t\t\t\t\t<b val=\"",
+            "zh-TW": "\t\t\t\t\t\t<div class=\"textname pull-left mr20\">備份到</div>\t\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle backup_btn\" type=\"button\"  data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t\t\t\t\t\t<b val=\"",
+            "en": "\t\t\t\t\t\t<div class=\"textname pull-left mr20\">Backup到</div>\t\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle backup_btn\" type=\"button\"  data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t\t\t\t\t\t<b val=\"",
+            "fr": "\t\t\t\t\t\t<div class=\"textname pull-left mr20\">Sauvegarde到</div>\t\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle backup_btn\" type=\"button\"  data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t\t\t\t\t\t<b val=\"",
+            "de": "\t\t\t\t\t\t<div class=\"textname pull-left mr20\">Sicherung到</div>\t\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle backup_btn\" type=\"button\"  data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t\t\t\t\t\t<b val=\"",
+            "it": "\t\t\t\t\t\t<div class=\"textname pull-left mr20\">Backup到</div>\t\t\t\t\t\t\t<div class=\"dropdown  pull-left mr20\">\t\t\t\t\t\t\t\t<button class=\"btn btn-default dropdown-toggle backup_btn\" type=\"button\"  data-toggle=\"dropdown\" style=\"width:auto;\">\t\t\t\t\t\t\t\t\t<b val=\""
+        },
+        "crontab_auto_str_104": {
+            "zh-CN": "</ul>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t\t\t\t<span><input type=\"number\" name=\"save\" class=\"save_create\" value=\"",
+            "zh-TW": "</ul>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t\t\t\t<span><input type=\"number\" name=\"save\" class=\"save_create\" value=\"",
+            "en": "</ul>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t\t\t\t<span><input type=\"number\" name=\"save\" class=\"save_create\" value=\"",
+            "fr": "</ul>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t\t\t\t<span><input type=\"number\" name=\"save\" class=\"save_create\" value=\"",
+            "de": "</ul>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t\t\t\t<span><input type=\"number\" name=\"save\" class=\"save_create\" value=\"",
+            "it": "</ul>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"textname pull-left mr20\">保留最新</div>\t\t\t\t\t\t\t<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t\t\t\t\t\t\t<span><input type=\"number\" name=\"save\" class=\"save_create\" value=\""
+        },
+        "crontab_auto_str_105": {
+            "zh-CN": "\" maxlength=\"4\" max=\"100\" min=\"1\"></span><span class=\"name\">份</span>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\"  style=\"display:",
+            "zh-TW": "\" maxlength=\"4\" max=\"100\" min=\"1\"></span><span class=\"name\">份</span>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\"  style=\"display:",
+            "en": "\" maxlength=\"4\" max=\"100\" min=\"1\"></span><span class=\"name\">份</span>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\"  style=\"display:",
+            "fr": "\" maxlength=\"4\" max=\"100\" min=\"1\"></span><span class=\"name\">份</span>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\"  style=\"display:",
+            "de": "\" maxlength=\"4\" max=\"100\" min=\"1\"></span><span class=\"name\">份</span>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\"  style=\"display:",
+            "it": "\" maxlength=\"4\" max=\"100\" min=\"1\"></span><span class=\"name\">份</span>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\"  style=\"display:"
+        },
+        "crontab_auto_str_106": {
+            "zh-CN": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">脚本内容</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text sbody_create\" name=\"sbody\">",
+            "zh-TW": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">脚本内容</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text sbody_create\" name=\"sbody\">",
+            "en": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">脚本内容</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text sbody_create\" name=\"sbody\">",
+            "fr": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">脚本内容</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text sbody_create\" name=\"sbody\">",
+            "de": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">脚本内容</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text sbody_create\" name=\"sbody\">",
+            "it": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">脚本内容</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text sbody_create\" name=\"sbody\">"
+        },
+        "crontab_auto_str_107": {
+            "zh-CN": "\">\t\t\t\t\t\t<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目录</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text attr_create\" name=\"exclude_dir\" placeholder=\"",
+            "zh-TW": "\">\t\t\t\t\t\t<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目錄</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text attr_create\" name=\"exclude_dir\" placeholder=\"",
+            "en": "\">\t\t\t\t\t\t<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目录</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text attr_create\" name=\"exclude_dir\" placeholder=\"",
+            "fr": "\">\t\t\t\t\t\t<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目录</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text attr_create\" name=\"exclude_dir\" placeholder=\"",
+            "de": "\">\t\t\t\t\t\t<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目录</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text attr_create\" name=\"exclude_dir\" placeholder=\"",
+            "it": "\">\t\t\t\t\t\t<span class=\"typename exclude_dir c4 pull-left f14 text-right mr20\">排除目录</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><textarea class=\"txtsjs bt-input-text attr_create\" name=\"exclude_dir\" placeholder=\""
+        },
+        "crontab_auto_str_108": {
+            "zh-CN": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">提示</span>\t\t\t\t\t\t<div style=\"line-height:34px\">释放PHP、MYSQL、PURE-FTPD、OpenResty的内存占用,建议在每天半夜执行!</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\" style=\"display:",
+            "zh-TW": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">提示</span>\t\t\t\t\t\t<div style=\"line-height:34px\">釋放PHP、MYSQL、PURE-FTPD、OpenResty的記憶體佔用,建議在每天半夜執行!</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\" style=\"display:",
+            "en": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">Tip</span>\t\t\t\t\t\t<div style=\"line-height:34px\">释放PHP、MYSQL、PURE-FTPD、OpenResty的Memory占用,建议在每天半夜Execute!</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\" style=\"display:",
+            "fr": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">Conseil</span>\t\t\t\t\t\t<div style=\"line-height:34px\">释放PHP、MYSQL、PURE-FTPD、OpenResty的Mémoire占用,建议在每天半夜Exécuter!</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\" style=\"display:",
+            "de": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">Hinweis</span>\t\t\t\t\t\t<div style=\"line-height:34px\">释放PHP、MYSQL、PURE-FTPD、OpenResty的Arbeitsspeicher占用,建议在每天半夜Ausführen!</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\" style=\"display:",
+            "it": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">Suggerimento</span>\t\t\t\t\t\t<div style=\"line-height:34px\">释放PHP、MYSQL、PURE-FTPD、OpenResty的Memoria占用,建议在每天半夜Esegui!</div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\" style=\"display:"
+        },
+        "crontab_auto_str_109": {
+            "zh-CN": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><input type=\"text\" style=\"width:400px; height:34px\" class=\"bt-input-text url_create\" name=\"url_address\"  placeholder=\"URL地址\" value=\"",
+            "zh-TW": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><input type=\"text\" style=\"width:400px; height:34px\" class=\"bt-input-text url_create\" name=\"url_address\"  placeholder=\"URL地址\" value=\"",
+            "en": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><input type=\"text\" style=\"width:400px; height:34px\" class=\"bt-input-text url_create\" name=\"url_address\"  placeholder=\"URL地址\" value=\"",
+            "fr": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><input type=\"text\" style=\"width:400px; height:34px\" class=\"bt-input-text url_create\" name=\"url_address\"  placeholder=\"URL地址\" value=\"",
+            "de": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><input type=\"text\" style=\"width:400px; height:34px\" class=\"bt-input-text url_create\" name=\"url_address\"  placeholder=\"URL地址\" value=\"",
+            "it": "\">\t\t\t\t\t\t<span class=\"typename controls c4 pull-left f14 text-right mr20\">URL地址</span>\t\t\t\t\t\t<div style=\"line-height:34px\"><input type=\"text\" style=\"width:400px; height:34px\" class=\"bt-input-text url_create\" name=\"url_address\"  placeholder=\"URL地址\" value=\""
+        },
+        "crontab_auto_str_110": {
+            "zh-CN": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<div class=\"bt-submit plan-submits \" style=\"margin-left: 141px;\">保存编辑</div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "zh-TW": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<div class=\"bt-submit plan-submits \" style=\"margin-left: 141px;\">儲存編輯</div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "en": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<div class=\"bt-submit plan-submits \" style=\"margin-left: 141px;\">Save编辑</div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "fr": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<div class=\"bt-submit plan-submits \" style=\"margin-left: 141px;\">Enregistrer编辑</div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "de": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<div class=\"bt-submit plan-submits \" style=\"margin-left: 141px;\">Speichern编辑</div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "it": "\"></div>\t\t\t\t\t</div>\t\t\t\t\t<div class=\"clearfix plan ptb10\">\t\t\t\t\t\t<div class=\"bt-submit plan-submits \" style=\"margin-left: 141px;\">Salva编辑</div>\t\t\t\t\t</div>\t\t\t\t</div>"
+        },
+        "crontab_auto_str_111": {
+            "zh-CN": "备份目录[",
+            "zh-TW": "備份目錄[",
+            "en": "Backup目录[",
+            "fr": "Sauvegarde目录[",
+            "de": "Sicherung目录[",
+            "it": "Backup目录["
+        },
+        "crontab_auto_str_112": {
+            "zh-CN": "正在保存编辑内容，请稍后...",
+            "zh-TW": "正在儲存編輯内容，请稍後...",
+            "en": "正在Save编辑内容，请稍后...",
+            "fr": "正在Enregistrer编辑内容，请稍后...",
+            "de": "正在Speichern编辑内容，请稍后...",
+            "it": "正在Salva编辑内容，请稍后..."
+        },
+        "crontab_auto_str_113": {
+            "zh-CN": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">周一</b> <span class=\"caret\"></span>\t  \t</button>\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode_week\">\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"1\">周一</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"2\">周二</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"3\">周三</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"4\">周四</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"5\">周五</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"6\">周六</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"0\">周日</a></li>\t \t</ul>\t</div>",
+            "zh-TW": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">週一</b> <span class=\"caret\"></span>\t  \t</button>\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode_week\">\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"1\">週一</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"2\">週二</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"3\">週三</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"4\">週四</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"5\">週五</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"6\">週六</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"0\">週日</a></li>\t \t</ul>\t</div>",
+            "en": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">周一</b> <span class=\"caret\"></span>\t  \t</button>\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode_week\">\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"1\">周一</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"2\">周二</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"3\">周三</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"4\">周四</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"5\">周五</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"6\">周六</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"0\">周日</a></li>\t \t</ul>\t</div>",
+            "fr": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">周一</b> <span class=\"caret\"></span>\t  \t</button>\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode_week\">\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"1\">周一</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"2\">周二</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"3\">周三</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"4\">周四</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"5\">周五</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"6\">周六</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"0\">周日</a></li>\t \t</ul>\t</div>",
+            "de": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">周一</b> <span class=\"caret\"></span>\t  \t</button>\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode_week\">\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"1\">周一</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"2\">周二</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"3\">周三</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"4\">周四</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"5\">周五</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"6\">周六</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"0\">周日</a></li>\t \t</ul>\t</div>",
+            "it": "<div class=\"dropdown planweek pull-left mr20\">\t \t<button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"excode_week\" data-toggle=\"dropdown\">\t\t\t<b val=\"1\">周一</b> <span class=\"caret\"></span>\t  \t</button>\t  \t<ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"excode_week\">\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"1\">周一</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"2\">周二</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"3\">周三</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"4\">周四</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"5\">周五</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"6\">周六</a></li>\t\t\t<li><a role=\"menuitem\" tabindex=\"-1\" href=\"javascript:;\" value=\"0\">周日</a></li>\t \t</ul>\t</div>"
+        },
+        "crontab_auto_str_114": {
+            "zh-CN": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"where1\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>\t<div class=\"plan_hms pull-left mr20\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 开始时间</label>\t\t<input type=\"number\" name=\"min_start_h\" value=\"0\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_start_m\" value=\"0\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 15px;\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_end_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 结束时间</label>\t\t<input type=\"number\" name=\"min_end_h\" value=\"23\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_end_m\" value=\"59\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t</div>",
+            "zh-TW": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"where1\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分鐘</span>\t</div>\t<div class=\"plan_hms pull-left mr20\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 開始時間</label>\t\t<input type=\"number\" name=\"min_start_h\" value=\"0\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_start_m\" value=\"0\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 15px;\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_end_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 結束時間</label>\t\t<input type=\"number\" name=\"min_end_h\" value=\"23\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_end_m\" value=\"59\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t</div>",
+            "en": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"where1\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>\t<div class=\"plan_hms pull-left mr20\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 开始Time</label>\t\t<input type=\"number\" name=\"min_start_h\" value=\"0\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_start_m\" value=\"0\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 15px;\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_end_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 结束Time</label>\t\t<input type=\"number\" name=\"min_end_h\" value=\"23\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_end_m\" value=\"59\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t</div>",
+            "fr": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"where1\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>\t<div class=\"plan_hms pull-left mr20\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 开始Heure</label>\t\t<input type=\"number\" name=\"min_start_h\" value=\"0\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_start_m\" value=\"0\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 15px;\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_end_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 结束Heure</label>\t\t<input type=\"number\" name=\"min_end_h\" value=\"23\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_end_m\" value=\"59\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t</div>",
+            "de": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"where1\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>\t<div class=\"plan_hms pull-left mr20\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 开始Zeit</label>\t\t<input type=\"number\" name=\"min_start_h\" value=\"0\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_start_m\" value=\"0\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 15px;\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_end_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 结束Zeit</label>\t\t<input type=\"number\" name=\"min_end_h\" value=\"23\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_end_m\" value=\"59\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t</div>",
+            "it": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"where1\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>\t<div class=\"plan_hms pull-left mr20\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_start_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 开始Ora</label>\t\t<input type=\"number\" name=\"min_start_h\" value=\"0\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_start_m\" value=\"0\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 15px;\">\t\t<label style=\"font-weight:normal;cursor:pointer;margin-right:10px;\"><input type=\"checkbox\" name=\"min_end_en\" value=\"1\" style=\"vertical-align:middle;margin-top:-2px;\"> 结束Ora</label>\t\t<input type=\"number\" name=\"min_end_h\" value=\"23\" maxlength=\"2\" max=\"23\" min=\"0\" class=\"bt-input-text\" style=\"width:50px; margin-right: 5px;\">:\t\t<input type=\"number\" name=\"min_end_m\" value=\"59\" maxlength=\"2\" max=\"59\" min=\"0\" class=\"bt-input-text\" style=\"width:50px;\">\t</div>"
+        },
+        "crontab_auto_str_115": {
+            "zh-CN": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"hour\" value=\"1\" maxlength=\"2\" max=\"23\" min=\"0\"></span>\t\t<span class=\"name\">小时</span>\t</div>",
+            "zh-TW": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"hour\" value=\"1\" maxlength=\"2\" max=\"23\" min=\"0\"></span>\t\t<span class=\"name\">小時</span>\t</div>",
+            "en": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"hour\" value=\"1\" maxlength=\"2\" max=\"23\" min=\"0\"></span>\t\t<span class=\"name\">小时</span>\t</div>",
+            "fr": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"hour\" value=\"1\" maxlength=\"2\" max=\"23\" min=\"0\"></span>\t\t<span class=\"name\">小时</span>\t</div>",
+            "de": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"hour\" value=\"1\" maxlength=\"2\" max=\"23\" min=\"0\"></span>\t\t<span class=\"name\">小时</span>\t</div>",
+            "it": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"hour\" value=\"1\" maxlength=\"2\" max=\"23\" min=\"0\"></span>\t\t<span class=\"name\">小时</span>\t</div>"
+        },
+        "crontab_auto_str_116": {
+            "zh-CN": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"minute\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>",
+            "zh-TW": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"minute\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分鐘</span>\t</div>",
+            "en": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"minute\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>",
+            "fr": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"minute\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>",
+            "de": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"minute\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>",
+            "it": "<div class=\"plan_hms pull-left mr20 bt-input-text\">\t\t<span><input type=\"number\" name=\"minute\" value=\"30\" maxlength=\"2\" max=\"59\" min=\"0\"></span>\t\t<span class=\"name\">分钟</span>\t</div>"
+        },
+        "crontab_auto_str_117": {
+            "zh-CN": "<input type=\"text\" value=\"\" name=\"file\" id=\"viewfile\" onclick=\"fileupload()\" readonly=\"true\">\t\t<button class=\"btn btn-default\" onclick=\"fileupload()\">上次</button>",
+            "zh-TW": "<input type=\"text\" value=\"\" name=\"file\" id=\"viewfile\" onclick=\"fileupload()\" readonly=\"true\">\t\t<button class=\"btn btn-default\" onclick=\"fileupload()\">上次</button>",
+            "en": "<input type=\"text\" value=\"\" name=\"file\" id=\"viewfile\" onclick=\"fileupload()\" readonly=\"true\">\t\t<button class=\"btn btn-default\" onclick=\"fileupload()\">上次</button>",
+            "fr": "<input type=\"text\" value=\"\" name=\"file\" id=\"viewfile\" onclick=\"fileupload()\" readonly=\"true\">\t\t<button class=\"btn btn-default\" onclick=\"fileupload()\">上次</button>",
+            "de": "<input type=\"text\" value=\"\" name=\"file\" id=\"viewfile\" onclick=\"fileupload()\" readonly=\"true\">\t\t<button class=\"btn btn-default\" onclick=\"fileupload()\">上次</button>",
+            "it": "<input type=\"text\" value=\"\" name=\"file\" id=\"viewfile\" onclick=\"fileupload()\" readonly=\"true\">\t\t<button class=\"btn btn-default\" onclick=\"fileupload()\">上次</button>"
+        },
+        "crontab_auto_str_118": {
+            "zh-CN": "释放内存",
+            "zh-TW": "釋放記憶體",
+            "en": "释放Memory",
+            "fr": "释放Mémoire",
+            "de": "释放Arbeitsspeicher",
+            "it": "释放Memoria"
+        },
+        "crontab_auto_str_119": {
+            "zh-CN": "释放PHP、MYSQL、PURE-FTPD、APACHE、NGINX的内存占用,建议在每天半夜执行!",
+            "zh-TW": "釋放PHP、MYSQL、PURE-FTPD、APACHE、NGINX的記憶體佔用,建議在每天半夜執行!",
+            "en": "释放PHP、MYSQL、PURE-FTPD、APACHE、NGINX的Memory占用,建议在每天半夜Execute!",
+            "fr": "释放PHP、MYSQL、PURE-FTPD、APACHE、NGINX的Mémoire占用,建议在每天半夜Exécuter!",
+            "de": "释放PHP、MYSQL、PURE-FTPD、APACHE、NGINX的Arbeitsspeicher占用,建议在每天半夜Ausführen!",
+            "it": "释放PHP、MYSQL、PURE-FTPD、APACHE、NGINX的Memoria占用,建议在每天半夜Esegui!"
+        },
+        "crontab_auto_str_120": {
+            "zh-CN": "添加计划任务",
+            "zh-TW": "新增排程任務",
+            "en": "AddCron Tasks",
+            "fr": "AjouterTâches Cron",
+            "de": "HinzufügenCron-Aufgaben",
+            "it": "AggiungiAttività Cron"
+        },
+        "crontab_auto_str_121": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "Submit",
+            "fr": "Soumettre",
+            "de": "Absenden",
+            "it": "Invia"
+        },
+        "crontab_auto_str_122": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "crontab_auto_str_123": {
+            "zh-CN": "正在准备导出数据...",
+            "zh-TW": "正在準備導出數據...",
+            "en": "正在准备Export数据...",
+            "fr": "正在准备Exporter数据...",
+            "de": "正在准备Exportieren数据...",
+            "it": "正在准备Esporta数据..."
+        },
+        "crontab_auto_str_124": {
+            "zh-CN": "没有可导出的任务",
+            "zh-TW": "没有可導出的任务",
+            "en": "没有可Export的任务",
+            "fr": "没有可Exporter的任务",
+            "de": "没有可Exportieren的任务",
+            "it": "没有可Esporta的任务"
+        },
+        "crontab_auto_str_125": {
+            "zh-CN": "导出成功",
+            "zh-TW": "導出成功",
+            "en": "Export成功",
+            "fr": "Exporter成功",
+            "de": "Exportieren成功",
+            "it": "Esporta成功"
+        },
+        "crontab_auto_str_126": {
+            "zh-CN": "无效的任务列表格式",
+            "zh-TW": "無效的任务列表格式",
+            "en": "无效的任务List格式",
+            "fr": "无效的任务Liste格式",
+            "de": "无效的任务Liste格式",
+            "it": "无效的任务Elenco格式"
+        },
+        "crontab_auto_str_127": {
+            "zh-CN": "确定要导入 ",
+            "zh-TW": "確定要導入 ",
+            "en": "Confirm要Import ",
+            "fr": "Confirmer要Importer ",
+            "de": "Bestätigen要Importieren ",
+            "it": "Conferma要Importa "
+        },
+        "crontab_auto_str_128": {
+            "zh-CN": " 个计划任务吗？",
+            "zh-TW": " 個排程任務吗？",
+            "en": " 个Cron Tasks吗？",
+            "fr": " 个Tâches Cron吗？",
+            "de": " 个Cron-Aufgaben吗？",
+            "it": " 个Attività Cron吗？"
+        },
+        "crontab_auto_str_129": {
+            "zh-CN": "提示",
+            "zh-TW": "提示",
+            "en": "Tip",
+            "fr": "Conseil",
+            "de": "Hinweis",
+            "it": "Suggerimento"
+        },
+        "crontab_auto_str_130": {
+            "zh-CN": "解析 JSON 失败: ",
+            "zh-TW": "解析 JSON 失敗: ",
+            "en": "解析 JSON 失败: ",
+            "fr": "解析 JSON 失败: ",
+            "de": "解析 JSON 失败: ",
+            "it": "解析 JSON 失败: "
+        },
+        "crontab_auto_str_131": {
+            "zh-CN": "导入完成",
+            "zh-TW": "導入完成",
+            "en": "Import完成",
+            "fr": "Importer完成",
+            "de": "Importieren完成",
+            "it": "Importa完成"
+        },
+        "crontab_auto_str_132": {
+            "zh-CN": "正在导入(",
+            "zh-TW": "正在導入(",
+            "en": "正在Import(",
+            "fr": "正在Importer(",
+            "de": "正在Importieren(",
+            "it": "正在Importa("
+        },
+        "crontab_auto_str_133": {
+            "zh-CN": "导入失败: ",
+            "zh-TW": "導入失敗: ",
+            "en": "Import失败: ",
+            "fr": "Importer失败: ",
+            "de": "Importieren失败: ",
+            "it": "Importa失败: "
+        },
+        "crontab_auto_str_134": {
+            "zh-CN": "将导入服务器上存在的系统计划任务，\n 确定要同步吗？",
+            "zh-TW": "將導入伺服器上存在的系統排程任務，\n 確定要同步吗？",
+            "en": "将Import服务器上存在的系统Cron Tasks，\n Confirm要同步吗？",
+            "fr": "将Importer服务器上存在的系统Tâches Cron，\n Confirmer要同步吗？",
+            "de": "将Importieren服务器上存在的系统Cron-Aufgaben，\n Bestätigen要同步吗？",
+            "it": "将Importa服务器上存在的系统Attività Cron，\n Conferma要同步吗？"
+        },
+        "crontab_auto_str_135": {
+            "zh-CN": "提示",
+            "zh-TW": "提示",
+            "en": "Tip",
+            "fr": "Conseil",
+            "de": "Hinweis",
+            "it": "Suggerimento"
+        },
+        "crontab_auto_str_136": {
+            "zh-CN": "正在同步,请稍候...",
+            "zh-TW": "正在同步,請稍候...",
+            "en": "正在同步,请稍候...",
+            "fr": "正在同步,请稍候...",
+            "de": "正在同步,请稍候...",
+            "it": "正在同步,请稍候..."
+        }
+    },
+    "control": {
+        "open_jk": {
+            "zh-CN": "开启监控",
+            "zh-TW": "開啟監控",
+            "en": "Enable Monitoring",
+            "fr": "Activer la surveillance",
+            "de": "Überwachung aktivieren",
+            "it": "Abilita monitoraggio"
+        },
+        "save_days": {
+            "zh-CN": "保存天数：",
+            "zh-TW": "保存天數：",
+            "en": "Retain Days:",
+            "fr": "Jours de rétention :",
+            "de": "Aufbewahrungstage:",
+            "it": "Giorni di conservazione:"
+        },
+        "stat_wan_only": {
+            "zh-CN": "仅统计外网",
+            "zh-TW": "僅統計外網",
+            "en": "WAN Only",
+            "fr": "WAN uniquement",
+            "de": "Nur WAN",
+            "it": "Solo WAN"
+        },
+        "clear_records": {
+            "zh-CN": "清空记录",
+            "zh-TW": "清空記錄",
+            "en": "Clear Records",
+            "fr": "Effacer les données",
+            "de": "Daten löschen",
+            "it": "Cancella record"
+        },
+        "resource_usage": {
+            "zh-CN": "系统资源使用率",
+            "zh-TW": "系統資源使用率",
+            "en": "System Resource Usage",
+            "fr": "Utilisation des ressources système",
+            "de": "Systemressourcen-Nutzung",
+            "it": "Utilizzo risorse di sistema"
+        },
+        "average_load": {
+            "zh-CN": "平均负载 (1/5/15分钟)",
+            "zh-TW": "平均負載 (1/5/15分鐘)",
+            "en": "Average Load (1/5/15 min)",
+            "fr": "Charge moyenne (1/5/15 min)",
+            "de": "Durchschnittslast (1/5/15 Min)",
+            "it": "Carico medio (1/5/15 min)"
+        },
+        "cpu_usage": {
+            "zh-CN": "CPU使用率",
+            "zh-TW": "CPU使用率",
+            "en": "CPU Usage",
+            "fr": "Utilisation du CPU",
+            "de": "CPU-Auslastung",
+            "it": "Utilizzo CPU"
+        },
+        "mem_usage": {
+            "zh-CN": "内存使用率",
+            "zh-TW": "記憶體使用率",
+            "en": "Memory Usage",
+            "fr": "Utilisation de la mémoire",
+            "de": "Speicherauslastung",
+            "it": "Utilizzo memoria"
+        },
+        "disk_io": {
+            "zh-CN": "磁盘 I/O",
+            "zh-TW": "磁碟 I/O",
+            "en": "Disk I/O",
+            "fr": "E/S Disque",
+            "de": "Festplatten-I/O",
+            "it": "I/O Disco"
+        },
+        "net_io": {
+            "zh-CN": "网络 I/O",
+            "zh-TW": "網路 I/O",
+            "en": "Network I/O",
+            "fr": "E/S Réseau",
+            "de": "Netzwerk-I/O",
+            "it": "I/O Rete"
+        },
+        "today": {
+            "zh-CN": "今天",
+            "zh-TW": "今天",
+            "en": "Today",
+            "fr": "Aujourd'hui",
+            "de": "Heute",
+            "it": "Oggi"
+        },
+        "yesterday": {
+            "zh-CN": "昨天",
+            "zh-TW": "昨天",
+            "en": "Yesterday",
+            "fr": "Hier",
+            "de": "Gestern",
+            "it": "Ieri"
+        },
+        "7days": {
+            "zh-CN": "7天",
+            "zh-TW": "7天",
+            "en": "7 Days",
+            "fr": "7 jours",
+            "de": "7 Tage",
+            "it": "7 giorni"
+        },
+        "30days": {
+            "zh-CN": "30天",
+            "zh-TW": "30天",
+            "en": "30 Days",
+            "fr": "30 jours",
+            "de": "30 Tage",
+            "it": "30 giorni"
+        },
+        "custom_range": {
+            "zh-CN": "自定义范围：",
+            "zh-TW": "自定義範圍：",
+            "en": "Custom Range:",
+            "fr": "Plage personnalisée :",
+            "de": "Benutzerdefiniert:",
+            "it": "Intervallo personalizzato:"
+        },
+        "enlarge_chart": {
+            "zh-CN": "放大图表",
+            "zh-TW": "放大圖表",
+            "en": "Enlarge Chart",
+            "fr": "Agrandir le graphique",
+            "de": "Diagramm vergrößern",
+            "it": "Ingrandisci grafico"
+        }
+    },
+    "soft": {
+        "show_third_party": {
+            "zh-CN": "显示第三方插件",
+            "zh-TW": "顯示第三方外掛",
+            "en": "Show 3rd-party Plugins",
+            "fr": "Afficher les plugins tiers",
+            "de": "Drittanbieter-Plugins anzeigen",
+            "it": "Mostra plugin di terze parti"
+        },
+        "clear_cache": {
+            "zh-CN": "清理缓存",
+            "zh-TW": "清理快取",
+            "en": "Clear Cache",
+            "fr": "Vider le cache",
+            "de": "Cache leeren",
+            "it": "Cancella cache"
+        },
+        "soft_name": {
+            "zh-CN": "软件名称",
+            "zh-TW": "軟體名稱",
+            "en": "Software Name",
+            "fr": "Nom du logiciel",
+            "de": "Softwarename",
+            "it": "Nome software"
+        },
+        "description": {
+            "zh-CN": "说明",
+            "zh-TW": "說明",
+            "en": "Description",
+            "fr": "Description",
+            "de": "Beschreibung",
+            "it": "Descrizione"
+        },
+        "official_site": {
+            "zh-CN": "官网",
+            "zh-TW": "官網",
+            "en": "Website",
+            "fr": "Site officiel",
+            "de": "Webseite",
+            "it": "Sito ufficiale"
+        },
+        "release_time": {
+            "zh-CN": "发布时间",
+            "zh-TW": "發布時間",
+            "en": "Release Date",
+            "fr": "Date de sortie",
+            "de": "Veröffentlichungsdatum",
+            "it": "Data di rilascio"
+        },
+        "location": {
+            "zh-CN": "位置",
+            "zh-TW": "位置",
+            "en": "Location",
+            "fr": "Emplacement",
+            "de": "Ort",
+            "it": "Posizione"
+        },
+        "display_home": {
+            "zh-CN": "首页显示",
+            "zh-TW": "首頁顯示",
+            "en": "Display on Home",
+            "fr": "Afficher à l'accueil",
+            "de": "Auf Startseite anzeigen",
+            "it": "Mostra in home"
+        }
+    },
+    "logs": {
+        "panel_logs": {
+            "zh-CN": "面板日志",
+            "zh-TW": "面板日誌",
+            "en": "Panel Logs",
+            "fr": "Journaux du panneau",
+            "de": "Panel-Protokolle",
+            "it": "Registri del pannello"
+        },
+        "log_audit": {
+            "zh-CN": "日志审计",
+            "zh-TW": "日誌審計",
+            "en": "Log Audit",
+            "fr": "Audit des journaux",
+            "de": "Protokollaudit",
+            "it": "Audit dei registri"
+        },
+        "refresh_logs": {
+            "zh-CN": "刷新日志",
+            "zh-TW": "重新整理日誌",
+            "en": "Refresh Logs",
+            "fr": "Actualiser les journaux",
+            "de": "Protokolle aktualisieren",
+            "it": "Aggiorna registri"
+        },
+        "clear_logs": {
+            "zh-CN": "清空日志",
+            "zh-TW": "清空日誌",
+            "en": "Clear Logs",
+            "fr": "Effacer les journaux",
+            "de": "Protokolle leeren",
+            "it": "Cancella registri"
+        },
+        "log_id": {
+            "zh-CN": "编号",
+            "zh-TW": "編號",
+            "en": "ID",
+            "fr": "ID",
+            "de": "Nr.",
+            "it": "ID"
+        },
+        "op_type": {
+            "zh-CN": "操作类型",
+            "zh-TW": "操作類型",
+            "en": "Action Type",
+            "fr": "Type d'action",
+            "de": "Aktionstyp",
+            "it": "Tipo di azione"
+        },
+        "details": {
+            "zh-CN": "详情",
+            "zh-TW": "詳情",
+            "en": "Details",
+            "fr": "Détails",
+            "de": "Details",
+            "it": "Dettagli"
+        },
+        "op_time": {
+            "zh-CN": "操作时间",
+            "zh-TW": "操作時間",
+            "en": "Time",
+            "fr": "Date et heure",
+            "de": "Zeitpunkt",
+            "it": "Data e ora"
+        },
+        "audit_search_placeholder": {
+            "zh-CN": "请输入来源/端口/角色/事件",
+            "zh-TW": "請輸入來源/連接埠/角色/事件",
+            "en": "Search source/port/user/event...",
+            "fr": "Rechercher source/port/rôle/événement...",
+            "de": "Quelle/Port/Rolle/Ereignis suchen...",
+            "it": "Cerca origine/porta/ruolo/evento..."
+        },
+        "audit_user": {
+            "zh-CN": "用户",
+            "zh-TW": "使用者",
+            "en": "User",
+            "fr": "Utilisateur",
+            "de": "Benutzer",
+            "it": "Utente"
+        },
+        "audit_source": {
+            "zh-CN": "来源",
+            "zh-TW": "來源",
+            "en": "Source",
+            "fr": "Source",
+            "de": "Quelle",
+            "it": "Origine"
+        },
+        "audit_port": {
+            "zh-CN": "端口",
+            "zh-TW": "連接埠",
+            "en": "Port",
+            "fr": "Port",
+            "de": "Port",
+            "it": "Porta"
+        }
+    },
+    "config": {
+        "quick_switches": {
+            "zh-CN": "快速开关:",
+            "zh-TW": "快速開關:",
+            "en": "Quick Switches:",
+            "fr": "Commutateurs rapides :",
+            "de": "Schnellschalter:",
+            "it": "Interruttori rapidi:"
+        },
+        "close_panel": {
+            "zh-CN": "关闭面板",
+            "zh-TW": "關閉面板",
+            "en": "Close Panel",
+            "fr": "Fermer le panneau",
+            "de": "Panel schließen",
+            "it": "Chiudi pannello"
+        },
+        "dev_mode": {
+            "zh-CN": "开发模式",
+            "zh-TW": "開發模式",
+            "en": "Debug Mode",
+            "fr": "Mode développement",
+            "de": "Entwicklermodus",
+            "it": "Modalità sviluppatore"
+        },
+        "listen_ipv6": {
+            "zh-CN": "监听IPv6",
+            "zh-TW": "監聽IPv6",
+            "en": "Listen IPv6",
+            "fr": "Écouter IPv6",
+            "de": "IPv6 abhören",
+            "it": "Ascolta IPv6"
+        },
+        "listen_ipv6_tips": {
+            "zh-CN": "开启后允许使用ipv6访问面板",
+            "zh-TW": "開啟後允許使用ipv6造訪面板",
+            "en": "Allow accessing panel over IPv6",
+            "fr": "Permet d'accéder au panneau via IPv6",
+            "de": "Erlaubt den Zugriff auf das Panel über IPv6",
+            "it": "Consente l'accesso al pannello tramite IPv6"
+        },
+        "use_cdn": {
+            "zh-CN": "使用CDN",
+            "zh-TW": "使用CDN",
+            "en": "Use CDN",
+            "fr": "Utiliser un CDN",
+            "de": "CDN verwenden",
+            "it": "Usa CDN"
+        },
+        "use_cdn_tips": {
+            "zh-CN": "当主机速度非常慢才建议开启，会导致面板打开速度不可控",
+            "zh-TW": "當主機速度非常慢才建議開啟，會導致面板開啟速度不可控",
+            "en": "Only recommended if server connection is slow.",
+            "fr": "Recommandé uniquement si la connexion du serveur est lente.",
+            "de": "Nur empfohlen bei langsamer Serververbindung.",
+            "it": "Consigliato solo se la connessione del server è lenta."
+        },
+        "gpu_detect": {
+            "zh-CN": "英伟达GPU首页检测",
+            "zh-TW": "輝達GPU首頁檢測",
+            "en": "NVIDIA GPU Detection",
+            "fr": "Détection GPU NVIDIA",
+            "de": "NVIDIA GPU-Erkennung",
+            "it": "Rilevamento GPU NVIDIA"
+        },
+        "gpu_detect_tips": {
+            "zh-CN": "开启后首页将尝试获取英伟达GPU信息",
+            "zh-TW": "開啟後首頁將嘗試獲取輝達GPU資訊",
+            "en": "Attempt to detect and display NVIDIA GPU stats on dashboard",
+            "fr": "Tente de détecter et afficher les infos GPU NVIDIA sur le tableau de bord",
+            "de": "Erkennt und zeigt NVIDIA-GPU-Informationen auf dem Dashboard an",
+            "it": "Rileva e mostra le informazioni sulla GPU NVIDIA nella dashboard"
+        },
+        "tab_basic": {
+            "zh-CN": "基础配置",
+            "zh-TW": "基礎配置",
+            "en": "Basic Settings",
+            "fr": "Configuration de base",
+            "de": "Grundeinstellungen",
+            "it": "Configurazione di base"
+        },
+        "tab_security": {
+            "zh-CN": "安全与认证",
+            "zh-TW": "安全與認證",
+            "en": "Security & Auth",
+            "fr": "Sécurité et authentification",
+            "de": "Sicherheit & Auth",
+            "it": "Sicurezza e autenticazione"
+        },
+        "tab_data": {
+            "zh-CN": "数据迁移",
+            "zh-TW": "資料遷移",
+            "en": "Data Migration",
+            "fr": "Migration de données",
+            "de": "Datenmigration",
+            "it": "Migrazione dati"
+        },
+        "tab_notice": {
+            "zh-CN": "通知设置",
+            "zh-TW": "通知設定",
+            "en": "Notifications",
+            "fr": "Notifications",
+            "de": "Benachrichtigungen",
+            "it": "Notifiche"
+        },
+        "panel_language": {
+            "zh-CN": "面板语言",
+            "zh-TW": "面板語言",
+            "en": "Panel Language",
+            "fr": "Langue du panneau",
+            "de": "Panel-Sprache",
+            "it": "Lingua del pannello"
+        },
+        "panel_language_tips": {
+            "zh-CN": "支持根据浏览器自动识别或手动固定语言",
+            "zh-TW": "支援根據瀏覽器自動識別或手動固定語言",
+            "en": "Auto-detect by browser language or set manually",
+            "fr": "Détection automatique par navigateur ou choix manuel",
+            "de": "Automatische Erkennung oder manuelle Sprachauswahl",
+            "it": "Rilevamento automatico dal browser o impostazione manuale"
+        },
+        "alias": {
+            "zh-CN": "别名",
+            "zh-TW": "別名",
+            "en": "Panel Alias",
+            "fr": "Alias du panneau",
+            "de": "Panel-Alias",
+            "it": "Alias pannello"
+        },
+        "panel_name": {
+            "zh-CN": "面板名称",
+            "zh-TW": "面板名稱",
+            "en": "Panel Name",
+            "fr": "Nom du panneau",
+            "de": "Panel-Name",
+            "it": "Nome del pannello"
+        },
+        "server_ip": {
+            "zh-CN": "服务器IP",
+            "zh-TW": "伺服器IP",
+            "en": "Server IP",
+            "fr": "IP du serveur",
+            "de": "Server-IP",
+            "it": "IP del server"
+        },
+        "server_ip_tips": {
+            "zh-CN": "默认为外网IP,若您在本地虚拟机测试,请填写虚拟机内网IP!",
+            "zh-TW": "預設為外網IP,若您在本地虛擬機測試,請填寫虛擬機內網IP!",
+            "en": "Default is WAN IP. For local VM testing, enter your LAN IP!",
+            "fr": "Par défaut l'IP publique. Pour les VM locales, entrez l'IP LAN !",
+            "de": "Standard ist WAN-IP. Für lokale VMs bitte LAN-IP eingeben!",
+            "it": "Predefinito è l'IP pubblico. Per test in VM locale, inserire l'IP LAN!"
+        },
+        "panel_port": {
+            "zh-CN": "面板端口",
+            "zh-TW": "面板連接埠",
+            "en": "Panel Port",
+            "fr": "Port du panneau",
+            "de": "Panel-Port",
+            "it": "Porta del pannello"
+        },
+        "panel_port_tips": {
+            "zh-CN": "建议端口范围7200 - 65535",
+            "zh-TW": "建議連接埠範圍7200 - 65535",
+            "en": "Recommended port range: 7200 - 65535",
+            "fr": "Plage de ports recommandée : 7200 - 65535",
+            "de": "Empfohlener Portbereich: 7200 - 65535",
+            "it": "Intervallo porte consigliato: 7200 - 65535"
+        },
+        "server_time": {
+            "zh-CN": "服务器时间",
+            "zh-TW": "伺服器時間",
+            "en": "Server Time",
+            "fr": "Heure du serveur",
+            "de": "Serverzeit",
+            "it": "Ora del server"
+        },
+        "server_time_tips": {
+            "zh-CN": "设置/同步当前服务器时间",
+            "zh-TW": "設定/同步當前伺服器時間",
+            "en": "Configure and sync server time / timezone",
+            "fr": "Régler et synchroniser l'heure du serveur",
+            "de": "Serverzeit und Zeitzone synchronisieren",
+            "it": "Imposta e sincronizza l'ora del server"
+        },
+        "panel_user": {
+            "zh-CN": "面板账号",
+            "zh-TW": "面板帳號",
+            "en": "Panel Username",
+            "fr": "Nom d'utilisateur",
+            "de": "Panel-Benutzername",
+            "it": "Nome utente pannello"
+        },
+        "panel_user_tips": {
+            "zh-CN": "设置面板账号",
+            "zh-TW": "設定面板帳號",
+            "en": "Change admin username",
+            "fr": "Modifier le nom d'utilisateur",
+            "de": "Benutzernamen ändern",
+            "it": "Modifica nome utente"
+        },
+        "panel_pass": {
+            "zh-CN": "面板密码",
+            "zh-TW": "面板密碼",
+            "en": "Panel Password",
+            "fr": "Mot de passe",
+            "de": "Panel-Passwort",
+            "it": "Password pannello"
+        },
+        "panel_pass_tips": {
+            "zh-CN": "为了提高安全，请您定期更新随机密码",
+            "zh-TW": "為了提高安全，請您定期更新隨機密碼",
+            "en": "Update random password regularly to improve security",
+            "fr": "Mettez à jour régulièrement votre mot de passe pour plus de sécurité",
+            "de": "Aktualisieren Sie regelmäßig Passwörter für mehr Sicherheit",
+            "it": "Aggiorna regolarmente la password per migliorare la sicurezza"
+        },
+        "default_site_path": {
+            "zh-CN": "默认建站目录",
+            "zh-TW": "預設建站目錄",
+            "en": "Default Web Root",
+            "fr": "Répertoire par défaut",
+            "de": "Standard-Webverzeichnis",
+            "it": "Percorso web predefinito"
+        },
+        "default_site_path_tips": {
+            "zh-CN": "新创建的站点，默认将保存到该目录的下级目录!",
+            "zh-TW": "新建立的站點，預設將儲存到該目錄的下級目錄!",
+            "en": "New websites will be stored in subdirectories of this path!",
+            "fr": "Les nouveaux sites seront enregistrés dans ce sous-répertoire !",
+            "de": "Neue Websites werden in diesem Verzeichnis gespeichert!",
+            "it": "I nuovi siti verranno salvati nelle sottocartelle di questo percorso!"
+        },
+        "default_backup_path": {
+            "zh-CN": "默认备份目录",
+            "zh-TW": "預設備份目錄",
+            "en": "Default Backup Path",
+            "fr": "Dossier de sauvegarde",
+            "de": "Standard-Backupverzeichnis",
+            "it": "Percorso backup predefinito"
+        },
+        "default_backup_path_tips": {
+            "zh-CN": "网站和数据库的备份目录!",
+            "zh-TW": "網站和資料庫的備份目錄!",
+            "en": "Backup folder for websites and databases!",
+            "fr": "Dossier de sauvegarde pour les sites et BDD !",
+            "de": "Sicherungsverzeichnis für Websites und Datenbanken!",
+            "it": "Cartella di backup per siti web e database!"
+        },
+        "menu_control": {
+            "zh-CN": "菜单控制",
+            "zh-TW": "選單控制",
+            "en": "Menu Management",
+            "fr": "Gestion du menu",
+            "de": "Menüverwaltung",
+            "it": "Gestione menu"
+        },
+        "menu_control_tips": {
+            "zh-CN": "拖拽排序或隐藏主界面的左侧菜单",
+            "zh-TW": "拖曳排序或隱藏主介面的左側選單",
+            "en": "Drag to reorder or show/hide sidebar menu items",
+            "fr": "Glissez pour réorganiser ou masquer les éléments du menu",
+            "de": "Menüeinträge durch Ziehen neu anordnen oder ausblenden",
+            "it": "Trascina per riordinare o mostrare/nascondere le voci di menu"
+        },
+        "menu_drag_tips": {
+            "zh-CN": "您可以拖拽调整主菜单的顺序，或使用开关控制菜单的显示/隐藏状态。",
+            "zh-TW": "您可以拖曳調整主選單的順序，或使用開關控制選單的顯示/隱藏狀態。",
+            "en": "Drag items to reorder the main menu, or toggle switches to show/hide items.",
+            "fr": "Faites glisser pour réorganiser le menu ou utilisez les commutateurs pour afficher/masquer.",
+            "de": "Ziehen Sie Elemente, um das Menü neu zu ordnen, oder blenden Sie Elemente ein/aus.",
+            "it": "Trascina gli elementi per riordinare il menu o usa gli interruttori per mostrare/nascondere."
+        },
+        "save_menu_config": {
+            "zh-CN": "保存菜单配置",
+            "zh-TW": "儲存選單配置",
+            "en": "Save Menu Settings",
+            "fr": "Enregistrer le menu",
+            "de": "Menüeinstellungen speichern",
+            "it": "Salva impostazioni menu"
+        },
+        "admin_path": {
+            "zh-CN": "安全入口",
+            "zh-TW": "安全入口",
+            "en": "Security Entrance",
+            "fr": "Accès sécurisé",
+            "de": "Sicherheits-Eingang",
+            "it": "Accesso di sicurezza"
+        },
+        "admin_path_tips": {
+            "zh-CN": "面板管理入口,设置后只能通过指定安全入口登录面板,如: /abc",
+            "zh-TW": "面板管理入口,設定後只能透過指定安全入口登入面板,如: /abc",
+            "en": "Panel secret URL path. Once set, panel is only accessible through this path, e.g. /abc",
+            "fr": "Chemin secret du panneau. Une fois configuré, l'accès se fait uniquement via ce chemin, ex: /abc",
+            "de": "Geheimer URL-Pfad. Zugriff ist nur über diesen Pfad möglich, z.B. /abc",
+            "it": "Percorso segreto del pannello. Una volta impostato, l'accesso è possibile solo tramite questo percorso, es. /abc"
+        },
+        "bind_domain": {
+            "zh-CN": "绑定域名",
+            "zh-TW": "綁定網域",
+            "en": "Bind Domain",
+            "fr": "Lier un domaine",
+            "de": "Domain binden",
+            "it": "Collega dominio"
+        },
+        "bind_domain_tips": {
+            "zh-CN": "为面板绑定一个访问域名，注意：一旦绑定域名，只能通过域名访问面板",
+            "zh-TW": "為面板綁定一個造訪網域，注意：一旦綁定網域，只能透過網域造訪面板",
+            "en": "Bind a domain to the panel. Once bound, panel can only be accessed via this domain.",
+            "fr": "Liez un domaine. Une fois lié, l'accès se fait uniquement par ce domaine.",
+            "de": "Domain an Panel binden. Nach der Bindung ist der Zugriff nur über diese Domain möglich.",
+            "it": "Associa un dominio al pannello. Una volta associato, l'accesso è consentito solo tramite questo dominio."
+        },
+        "panel_ssl": {
+            "zh-CN": "面板SSL",
+            "zh-TW": "面板SSL",
+            "en": "Panel SSL",
+            "fr": "SSL du panneau",
+            "de": "Panel-SSL",
+            "it": "SSL pannello"
+        },
+        "panel_ssl_config": {
+            "zh-CN": "面板SSL配置",
+            "zh-TW": "面板SSL配置",
+            "en": "Panel SSL Config",
+            "fr": "Configuration SSL",
+            "de": "Panel-SSL konfigurieren",
+            "it": "Configurazione SSL"
+        },
+        "panel_ssl_tips": {
+            "zh-CN": "为面板设置https协议访问，提升面板访问安全性",
+            "zh-TW": "為面板設定https協議造訪，提升面板造訪安全性",
+            "en": "Enable HTTPS access to enhance panel security",
+            "fr": "Activer HTTPS pour sécuriser l'accès au panneau",
+            "de": "HTTPS aktivieren für mehr Panelsicherheit",
+            "it": "Abilita l'accesso HTTPS per migliorare la sicurezza"
+        },
+        "basic_auth": {
+            "zh-CN": "BasicAuth认证",
+            "zh-TW": "BasicAuth認證",
+            "en": "BasicAuth",
+            "fr": "Authentification HTTP",
+            "de": "BasicAuth",
+            "it": "Autenticazione di base"
+        },
+        "basic_auth_tips": {
+            "zh-CN": "为面板增加一道基于BasicAuth的认证服务，有效防止面板被扫描",
+            "zh-TW": "為面板增加一道基於BasicAuth的認證服務，有效防止面板被掃描",
+            "en": "Add an extra HTTP BasicAuth layer to prevent bot scans",
+            "fr": "Ajoute une authentification HTTP pour bloquer les robots",
+            "de": "Zusätzliche HTTP-Authentifizierung gegen Scanner",
+            "it": "Aggiunge un ulteriore livello BasicAuth per prevenire scansioni"
+        },
+        "api_interface": {
+            "zh-CN": "API接口",
+            "zh-TW": "API介面",
+            "en": "API Access",
+            "fr": "Accès API",
+            "de": "API-Schnittstelle",
+            "it": "Accesso API"
+        },
+        "api_interface_tips": {
+            "zh-CN": "提供面板API接口访问的支持",
+            "zh-TW": "提供面板API介面造訪的支援",
+            "en": "Enable and configure panel REST API access",
+            "fr": "Activer et gérer l'accès à l'API REST",
+            "de": "Zugriff auf Panel-REST-API konfigurieren",
+            "it": "Abilita e gestisci l'accesso all'API REST"
+        },
+        "app_manage": {
+            "zh-CN": "APP应用管理",
+            "zh-TW": "APP應用管理",
+            "en": "App Management",
+            "fr": "Gestion des apps",
+            "de": "App-Verwaltung",
+            "it": "Gestione app"
+        },
+        "unauthorized_status": {
+            "zh-CN": "未认证响应状态",
+            "zh-TW": "未認證響應狀態",
+            "en": "Unauthorized Response",
+            "fr": "Statut non autorisé",
+            "de": "Status bei Unbefugten",
+            "it": "Risposta non autorizzata"
+        },
+        "unauthorized_status_tips": {
+            "zh-CN": "用于在未登录且未正确输入安全入口时的响应，可用于隐藏面板特征",
+            "zh-TW": "用於在未登入且未正確輸入安全入口時的響應，可用於隱藏面板特徵",
+            "en": "Custom HTTP status returned on unauthorized access to conceal panel presence",
+            "fr": "Statut HTTP retourné en cas d'accès non autorisé pour masquer le panneau",
+            "de": "Benutzerdefinierter HTTP-Status zum Verbergen des Panels",
+            "it": "Stato HTTP personalizzato per nascondere la presenza del pannello"
+        },
+        "temp_access": {
+            "zh-CN": "临时访问授权",
+            "zh-TW": "臨時造訪授權",
+            "en": "Temporary Access",
+            "fr": "Accès temporaire",
+            "de": "Temporärer Zugriff",
+            "it": "Accesso temporaneo"
+        },
+        "temp_access_manage": {
+            "zh-CN": "临时访问授权管理",
+            "zh-TW": "臨時造訪授權管理",
+            "en": "Manage Temporary Access",
+            "fr": "Gérer l'accès temporaire",
+            "de": "Temporären Zugriff verwalten",
+            "it": "Gestisci accesso temporaneo"
+        },
+        "temp_access_tips": {
+            "zh-CN": "为非管理员临时提供面板访问权限",
+            "zh-TW": "為非管理員臨時提供面板造訪權限",
+            "en": "Generate time-limited access tokens for guest users",
+            "fr": "Générer des accès temporaires pour les invités",
+            "de": "Zeitlich begrenzte Zugriffstoken für Gäste erstellen",
+            "it": "Genera token di accesso a tempo per utenti ospiti"
+        },
+        "two_step_auth": {
+            "zh-CN": "二步验证",
+            "zh-TW": "兩步驟驗證",
+            "en": "Two-Factor Auth (2FA)",
+            "fr": "Double authentification (2FA)",
+            "de": "Zwei-Faktor-Auth (2FA)",
+            "it": "Autenticazione a due fattori (2FA)"
+        },
+        "two_step_auth_tips": {
+            "zh-CN": "二步验证，加强安全登录,手机下载Authenticator（Microsoft出品），扫码即可记录账户",
+            "zh-TW": "兩步驟驗證，加強安全登入,手機下載Authenticator（Microsoft出品），掃碼即可記錄帳戶",
+            "en": "Enhance security with Google / Microsoft Authenticator TOTP codes",
+            "fr": "Renforcez la sécurité avec Google / Microsoft Authenticator",
+            "de": "Erhöhen Sie die Sicherheit mit 2FA (Authenticator App)",
+            "it": "Migliora la sicurezza con codici TOTP di Google/Microsoft Authenticator"
+        },
+        "bind_settings": {
+            "zh-CN": "绑定设置",
+            "zh-TW": "綁定設定",
+            "en": "2FA Settings",
+            "fr": "Paramètres 2FA",
+            "de": "2FA-Einstellungen",
+            "it": "Impostazioni 2FA"
+        },
+        "db_migration": {
+            "zh-CN": "数据库迁移",
+            "zh-TW": "資料庫遷移",
+            "en": "Database Migration",
+            "fr": "Migration BDD",
+            "de": "Datenbank-Migration",
+            "it": "Migrazione database"
+        },
+        "restore_db_btn": {
+            "zh-CN": "从备份数据库还原至御风面板",
+            "zh-TW": "從備份資料庫還原至御風面板",
+            "en": "Restore Panel DB from Backup",
+            "fr": "Restaurer la BDD depuis une sauvegarde",
+            "de": "Panel-Datenbank aus Backup wiederherstellen",
+            "it": "Ripristina database da backup"
+        },
+        "restore_db_tips": {
+            "zh-CN": "将备份数据库还原至面板，会导致现有面板数据被覆盖，请谨慎操作！",
+            "zh-TW": "將備份資料庫還原至面板，會導致現有面板資料被覆蓋，請謹慎操作！",
+            "en": "Restoring panel database will overwrite existing data. Proceed with caution!",
+            "fr": "La restauration écrasera les données actuelles du panneau. Soyez prudent !",
+            "de": "Das Wiederherstellen überschreibt vorhandene Panel-Daten!",
+            "it": "Il ripristino sovrascriverà i dati esistenti del pannello. Procedere con cautela!"
+        },
+        "sites_migration": {
+            "zh-CN": "网站列表迁移",
+            "zh-TW": "網站列表遷移",
+            "en": "Websites Migration",
+            "fr": "Migration des sites",
+            "de": "Websites-Migration",
+            "it": "Migrazione siti web"
+        },
+        "import_sites_btn": {
+            "zh-CN": "从备份数据库导入网站列表",
+            "zh-TW": "從備份資料庫匯入網站列表",
+            "en": "Import Websites from Backup DB",
+            "fr": "Importer les sites depuis la sauvegarde",
+            "de": "Websites aus Backup importieren",
+            "it": "Importa siti web da database di backup"
+        },
+        "import_sites_tips": {
+            "zh-CN": "从旧面板数据库恢复网站列表到当前面板",
+            "zh-TW": "從舊面板資料庫恢復網站列表到當前面板",
+            "en": "Recover website configurations from an old panel database",
+            "fr": "Récupérer la liste des sites depuis une ancienne base",
+            "de": "Websites aus einer alten Panel-Datenbank wiederherstellen",
+            "it": "Recupera le configurazioni dei siti da un vecchio database"
+        },
+        "bt_backup": {
+            "zh-CN": "宝塔面板备份",
+            "zh-TW": "寶塔面板備份",
+            "en": "BT Panel Backups",
+            "fr": "Sauvegardes BT Panel",
+            "de": "BT Panel Backups",
+            "it": "Backup BT Panel"
+        },
+        "email_notice": {
+            "zh-CN": "邮件通知",
+            "zh-TW": "郵件通知",
+            "en": "Email Notifications",
+            "fr": "Notifications par email",
+            "de": "E-Mail-Benachrichtigungen",
+            "it": "Notifiche email"
+        },
+        "email_config": {
+            "zh-CN": "邮件配置",
+            "zh-TW": "郵件配置",
+            "en": "Email Settings",
+            "fr": "Configuration email",
+            "de": "E-Mail-Einstellungen",
+            "it": "Impostazioni email"
+        },
+        "home_notice": {
+            "zh-CN": "首页提醒",
+            "zh-TW": "首頁提醒",
+            "en": "Dashboard Notice",
+            "fr": "Avis sur le tableau de bord",
+            "de": "Dashboard-Hinweis",
+            "it": "Avviso dashboard"
+        },
+        "home_notice_tips": {
+            "zh-CN": "在首页顶部展示提醒信息，最长50字",
+            "zh-TW": "在首頁頂部展示提醒資訊，最長50字",
+            "en": "Display banner announcement on dashboard (max 50 chars)",
+            "fr": "Afficher une annonce en haut de l'accueil (max 50 car.)",
+            "de": "Banner-Hinweis auf Startseite anzeigen (max. 50 Zeichen)",
+            "it": "Mostra un avviso in cima alla dashboard (max 50 car.)"
+        },
+        "config_auto_str_1": {
+            "zh-CN": "域名绑定成功",
+            "zh-TW": "網域名稱绑定成功",
+            "en": "Domain绑定成功",
+            "fr": "Domaine绑定成功",
+            "de": "Domain绑定成功",
+            "it": "Dominio绑定成功"
+        },
+        "config_auto_str_2": {
+            "zh-CN": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t\t\t\t<div style=\"color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-alert\" style=\"margin-right: 8px;\"></span>请务必妥善记录后续面板的访问地址！\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下域名访问（点击地址即可一键复制）：</p>\t\t\t\t\t\t<div id=\"new-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击复制地址\">\t\t\t\t\t\t\t",
+            "zh-TW": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t\t\t\t<div style=\"color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-alert\" style=\"margin-right: 8px;\"></span>请务必妥善記錄後续面板的访問地址！\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">後续您將使用如下網域名稱访問（點击地址即可一鍵復製）：</p>\t\t\t\t\t\t<div id=\"new-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"點击復製地址\">\t\t\t\t\t\t\t",
+            "en": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t\t\t\t<div style=\"color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-alert\" style=\"margin-right: 8px;\"></span>请务必妥善记录后续面板的访问地址！\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Domain访问（点击地址即可一键Copy）：</p>\t\t\t\t\t\t<div id=\"new-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Copy地址\">\t\t\t\t\t\t\t",
+            "fr": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t\t\t\t<div style=\"color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-alert\" style=\"margin-right: 8px;\"></span>请务必妥善记录后续面板的访问地址！\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Domaine访问（点击地址即可一键Copier）：</p>\t\t\t\t\t\t<div id=\"new-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Copier地址\">\t\t\t\t\t\t\t",
+            "de": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t\t\t\t<div style=\"color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-alert\" style=\"margin-right: 8px;\"></span>请务必妥善记录后续面板的访问地址！\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Domain访问（点击地址即可一键Kopieren）：</p>\t\t\t\t\t\t<div id=\"new-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Kopieren地址\">\t\t\t\t\t\t\t",
+            "it": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t\t\t\t<div style=\"color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-alert\" style=\"margin-right: 8px;\"></span>请务必妥善记录后续面板的访问地址！\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Dominio访问（点击地址即可一键Copia）：</p>\t\t\t\t\t\t<div id=\"new-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Copia地址\">\t\t\t\t\t\t\t"
+        },
+        "config_auto_str_3": {
+            "zh-CN": "\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #999; font-size: 12px; margin-bottom: 20px;\">注意：重启面板后，必须使用该新地址才能登录！</p>\t\t\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>确认并重启面板\t\t\t\t\t\t\t</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "zh-TW": "\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #999; font-size: 12px; margin-bottom: 20px;\">注意：重新啟動面板後，必须使用该新地址才能登入！</p>\t\t\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>確認並重新啟動面板\t\t\t\t\t\t\t</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "en": "\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #999; font-size: 12px; margin-bottom: 20px;\">注意：Restart面板后，必须使用该新地址才能Login！</p>\t\t\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>确认并Restart面板\t\t\t\t\t\t\t</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "fr": "\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #999; font-size: 12px; margin-bottom: 20px;\">注意：Redémarrer面板后，必须使用该新地址才能Connexion！</p>\t\t\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>确认并Redémarrer面板\t\t\t\t\t\t\t</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "de": "\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #999; font-size: 12px; margin-bottom: 20px;\">注意：Neustarten面板后，必须使用该新地址才能Anmelden！</p>\t\t\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>确认并Neustarten面板\t\t\t\t\t\t\t</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>",
+            "it": "\t\t\t\t\t\t</div>\t\t\t\t\t\t<p style=\"color: #999; font-size: 12px; margin-bottom: 20px;\">注意：Riavvia面板后，必须使用该新地址才能Accedi！</p>\t\t\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>确认并Riavvia面板\t\t\t\t\t\t\t</button>\t\t\t\t\t\t</div>\t\t\t\t\t</div>"
+        },
+        "config_auto_str_4": {
+            "zh-CN": "面板正在安全重启，倒计时完成后将自动跳转新地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "zh-TW": "面板正在安全重新啟動，倒計時完成後將自動跳转新地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "en": "面板正在SecurityRestart，倒计时完成后将自动跳转新地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "fr": "面板正在SécuritéRedémarrer，倒计时完成后将自动跳转新地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "de": "面板正在SicherheitNeustarten，倒计时完成后将自动跳转新地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "it": "面板正在SicurezzaRiavvia，倒计时完成后将自动跳转新地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">"
+        },
+        "config_auto_str_5": {
+            "zh-CN": "</span> 秒",
+            "zh-TW": "</span> 秒",
+            "en": "</span> 秒",
+            "fr": "</span> 秒",
+            "de": "</span> 秒",
+            "it": "</span> 秒"
+        },
+        "config_auto_str_6": {
+            "zh-CN": "复制成功!",
+            "zh-TW": "復製成功!",
+            "en": "Copy成功!",
+            "fr": "Copier成功!",
+            "de": "Kopieren成功!",
+            "it": "Copia成功!"
+        },
+        "config_auto_str_7": {
+            "zh-CN": "复制成功!",
+            "zh-TW": "復製成功!",
+            "en": "Copy成功!",
+            "fr": "Copier成功!",
+            "de": "Kopieren成功!",
+            "it": "Copia成功!"
+        },
+        "config_auto_str_8": {
+            "zh-CN": "复制失败，请手动选择复制",
+            "zh-TW": "復製失敗，请手動選擇復製",
+            "en": "Copy失败，请手动选择Copy",
+            "fr": "Copier失败，请手动选择Copier",
+            "de": "Kopieren失败，请手动选择Kopieren",
+            "it": "Copia失败，请手动选择Copia"
+        },
+        "config_auto_str_9": {
+            "zh-CN": "复制失败，请手动选择复制",
+            "zh-TW": "復製失敗，请手動選擇復製",
+            "en": "Copy失败，请手动选择Copy",
+            "fr": "Copier失败，请手动选择Copier",
+            "de": "Kopieren失败，请手动选择Kopieren",
+            "it": "Copia失败，请手动选择Copia"
+        },
+        "config_auto_str_10": {
+            "zh-CN": "SSL 证书部署成功",
+            "zh-TW": "SSL 憑證部署成功",
+            "en": "SSL 证书部署成功",
+            "fr": "SSL 证书部署成功",
+            "de": "SSL 证书部署成功",
+            "it": "SSL 证书部署成功"
+        },
+        "config_auto_str_11": {
+            "zh-CN": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t<div style=\"color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t<span class=\"glyphicon glyphicon-ok-sign\" style=\"margin-right: 8px;\"></span>面板 SSL 证书已准备就绪！\t\t\t</div>\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下安全加密协议访问（点击地址即可复制）：</p>\t\t\t<div id=\"ssl-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击复制地址\">\t\t\t\t",
+            "zh-TW": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t<div style=\"color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t<span class=\"glyphicon glyphicon-ok-sign\" style=\"margin-right: 8px;\"></span>面板 SSL 憑證已準備就绪！\t\t\t</div>\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">後续您將使用如下安全加密協議访問（點击地址即可復製）：</p>\t\t\t<div id=\"ssl-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"點击復製地址\">\t\t\t\t",
+            "en": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t<div style=\"color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t<span class=\"glyphicon glyphicon-ok-sign\" style=\"margin-right: 8px;\"></span>面板 SSL 证书已准备就绪！\t\t\t</div>\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Security加密Protocol访问（点击地址即可Copy）：</p>\t\t\t<div id=\"ssl-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Copy地址\">\t\t\t\t",
+            "fr": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t<div style=\"color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t<span class=\"glyphicon glyphicon-ok-sign\" style=\"margin-right: 8px;\"></span>面板 SSL 证书已准备就绪！\t\t\t</div>\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Sécurité加密Protocole访问（点击地址即可Copier）：</p>\t\t\t<div id=\"ssl-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Copier地址\">\t\t\t\t",
+            "de": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t<div style=\"color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t<span class=\"glyphicon glyphicon-ok-sign\" style=\"margin-right: 8px;\"></span>面板 SSL 证书已准备就绪！\t\t\t</div>\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Sicherheit加密Protokoll访问（点击地址即可Kopieren）：</p>\t\t\t<div id=\"ssl-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Kopieren地址\">\t\t\t\t",
+            "it": "<div class=\"bt-form pd20\" style=\"text-align: center;\">\t\t\t<div style=\"color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;\">\t\t\t\t<span class=\"glyphicon glyphicon-ok-sign\" style=\"margin-right: 8px;\"></span>面板 SSL 证书已准备就绪！\t\t\t</div>\t\t\t<p style=\"color: #666; margin-bottom: 12px; font-size: 13px;\">后续您将使用如下Sicurezza加密Protocollo访问（点击地址即可Copia）：</p>\t\t\t<div id=\"ssl-domain-box\" style=\"background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;\" title=\"点击Copia地址\">\t\t\t\t"
+        },
+        "config_auto_str_12": {
+            "zh-CN": "\t\t\t</div>\t\t\t<p style=\"color: #f39c12; font-size: 12px; margin-bottom: 20px;\">提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。</p>\t\t\t<div style=\"text-align: center;\">\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-ssl-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>确定并重启面板\t\t\t\t</button>\t\t\t</div>\t\t</div>",
+            "zh-TW": "\t\t\t</div>\t\t\t<p style=\"color: #f39c12; font-size: 12px; margin-bottom: 20px;\">提醒：部分自签憑證在首次访問時浏覽器会提示风险，點击继续访問即可。</p>\t\t\t<div style=\"text-align: center;\">\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-ssl-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>確定並重新啟動面板\t\t\t\t</button>\t\t\t</div>\t\t</div>",
+            "en": "\t\t\t</div>\t\t\t<p style=\"color: #f39c12; font-size: 12px; margin-bottom: 20px;\">提醒：部分自签证书在首次访问时浏览器会Tip风险，点击继续访问即可。</p>\t\t\t<div style=\"text-align: center;\">\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-ssl-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>Confirm并Restart面板\t\t\t\t</button>\t\t\t</div>\t\t</div>",
+            "fr": "\t\t\t</div>\t\t\t<p style=\"color: #f39c12; font-size: 12px; margin-bottom: 20px;\">提醒：部分自签证书在首次访问时浏览器会Conseil风险，点击继续访问即可。</p>\t\t\t<div style=\"text-align: center;\">\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-ssl-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>Confirmer并Redémarrer面板\t\t\t\t</button>\t\t\t</div>\t\t</div>",
+            "de": "\t\t\t</div>\t\t\t<p style=\"color: #f39c12; font-size: 12px; margin-bottom: 20px;\">提醒：部分自签证书在首次访问时浏览器会Hinweis风险，点击继续访问即可。</p>\t\t\t<div style=\"text-align: center;\">\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-ssl-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>Bestätigen并Neustarten面板\t\t\t\t</button>\t\t\t</div>\t\t</div>",
+            "it": "\t\t\t</div>\t\t\t<p style=\"color: #f39c12; font-size: 12px; margin-bottom: 20px;\">提醒：部分自签证书在首次访问时浏览器会Suggerimento风险，点击继续访问即可。</p>\t\t\t<div style=\"text-align: center;\">\t\t\t\t<button type=\"button\" class=\"btn btn-success\" id=\"btn-ssl-reboot-confirm\" style=\"padding: 6px 20px; border-radius: 4px;\">\t\t\t\t\t<span class=\"glyphicon glyphicon-refresh\" style=\"margin-right: 5px;\"></span>Conferma并Riavvia面板\t\t\t\t</button>\t\t\t</div>\t\t</div>"
+        },
+        "config_auto_str_13": {
+            "zh-CN": "面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "zh-TW": "面板正在重新啟動並開啟 SSL，倒計時完成後將自動跳转加密地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "en": "面板正在Restart并Turn on SSL，倒计时完成后将自动跳转加密地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "fr": "面板正在Redémarrer并Activer SSL，倒计时完成后将自动跳转加密地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "de": "面板正在Neustarten并Einschalten SSL，倒计时完成后将自动跳转加密地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">",
+            "it": "面板正在Riavvia并Attiva SSL，倒计时完成后将自动跳转加密地址... <span id=\"restart-countdown\" style=\"font-weight: bold; color: #20a53a;\">"
+        },
+        "config_auto_str_14": {
+            "zh-CN": "</span> 秒",
+            "zh-TW": "</span> 秒",
+            "en": "</span> 秒",
+            "fr": "</span> 秒",
+            "de": "</span> 秒",
+            "it": "</span> 秒"
+        },
+        "config_auto_str_15": {
+            "zh-CN": "开启SSL证书",
+            "zh-TW": "開啟SSL憑證",
+            "en": "Turn onSSL证书",
+            "fr": "ActiverSSL证书",
+            "de": "EinschaltenSSL证书",
+            "it": "AttivaSSL证书"
+        },
+        "config_auto_str_16": {
+            "zh-CN": "开启SSL证书访问",
+            "zh-TW": "開啟SSL憑證访問",
+            "en": "Turn onSSL证书访问",
+            "fr": "ActiverSSL证书访问",
+            "de": "EinschaltenSSL证书访问",
+            "it": "AttivaSSL证书访问"
+        },
+        "config_auto_str_17": {
+            "zh-CN": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t<h3 style=\"font-size: 20px;color: #333;margin-left: 5px;\">【开启SSL证书】保护面板访问安全</h3>\t\t\t\t</div>\t\t\t\t<ul class=\"help-info-text c7 pd15\" style=\"color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;\">\t\t\t\t\t<li>自签证书访问步骤：</li>\t\t\t\t\t<li>1. 部署SSL证书</li>\t\t\t\t\t<li>2. 浏览器地址栏修改为https://访问</li>\t\t\t\t\t<li>3. 如提醒风险（正常现象）点击【高级】或【详情】</li>\t\t\t\t\t<li>4.【继续访问】或【接收风险并继续】</li>\t\t\t\t</ul>\t\t\t\t<div class=\"pt10\" style=\"margin-top: 20px;\">\t\t\t\t\t<div class=\"line\" style=\"font-size: 14px;\">\t\t\t\t\t\t<span class=\"tname\" style=\"width: 78px;\">类型</span>\t\t\t\t\t\t<div class=\"info-r\" style=\"margin-left: 78px;\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"cert_type\" style=\"width: 440px;\">\t\t\t\t\t\t\t\t<option value=\"0\">自签证书 (推荐，浏览器会提示不安全。可忽略，请放心开启)</option>\t\t\t\t\t\t\t</select>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<ul class=\"help-info-text c7 sslSafeTips\">\t\t\t\t\t\t<li><span>开启后导致面板不能访问，可以点击查看</span></li>\t\t\t\t\t\t<li>自签证书不被浏览器信任，显示不安全是正常现象</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "zh-TW": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t<h3 style=\"font-size: 20px;color: #333;margin-left: 5px;\">【開啟SSL憑證】保護面板访問安全</h3>\t\t\t\t</div>\t\t\t\t<ul class=\"help-info-text c7 pd15\" style=\"color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;\">\t\t\t\t\t<li>自签憑證访問步骤：</li>\t\t\t\t\t<li>1. 部署SSL憑證</li>\t\t\t\t\t<li>2. 浏覽器地址栏修改為https://访問</li>\t\t\t\t\t<li>3. 如提醒风险（正常現象）點击【高級】或【詳情】</li>\t\t\t\t\t<li>4.【继续访問】或【接收风险並继续】</li>\t\t\t\t</ul>\t\t\t\t<div class=\"pt10\" style=\"margin-top: 20px;\">\t\t\t\t\t<div class=\"line\" style=\"font-size: 14px;\">\t\t\t\t\t\t<span class=\"tname\" style=\"width: 78px;\">類型</span>\t\t\t\t\t\t<div class=\"info-r\" style=\"margin-left: 78px;\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"cert_type\" style=\"width: 440px;\">\t\t\t\t\t\t\t\t<option value=\"0\">自签憑證 (推荐，浏覽器会提示不安全。可忽略，请放心開啟)</option>\t\t\t\t\t\t\t</select>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<ul class=\"help-info-text c7 sslSafeTips\">\t\t\t\t\t\t<li><span>開啟後導致面板不能访問，可以點击查看</span></li>\t\t\t\t\t\t<li>自签憑證不被浏覽器信任，顯示不安全是正常現象</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "en": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t<h3 style=\"font-size: 20px;color: #333;margin-left: 5px;\">【Turn onSSL证书】保护面板访问Security</h3>\t\t\t\t</div>\t\t\t\t<ul class=\"help-info-text c7 pd15\" style=\"color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;\">\t\t\t\t\t<li>自签证书访问步骤：</li>\t\t\t\t\t<li>1. 部署SSL证书</li>\t\t\t\t\t<li>2. 浏览器地址栏Modify为https://访问</li>\t\t\t\t\t<li>3. 如提醒风险（正常现象）点击【高级】或【详情】</li>\t\t\t\t\t<li>4.【继续访问】或【接收风险并继续】</li>\t\t\t\t</ul>\t\t\t\t<div class=\"pt10\" style=\"margin-top: 20px;\">\t\t\t\t\t<div class=\"line\" style=\"font-size: 14px;\">\t\t\t\t\t\t<span class=\"tname\" style=\"width: 78px;\">Type</span>\t\t\t\t\t\t<div class=\"info-r\" style=\"margin-left: 78px;\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"cert_type\" style=\"width: 440px;\">\t\t\t\t\t\t\t\t<option value=\"0\">自签证书 (推荐，浏览器会Tip不Security。可忽略，请放心Turn on)</option>\t\t\t\t\t\t\t</select>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<ul class=\"help-info-text c7 sslSafeTips\">\t\t\t\t\t\t<li><span>Turn on后导致面板不能访问，可以点击查看</span></li>\t\t\t\t\t\t<li>自签证书不被浏览器信任，显示不Security是正常现象</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "fr": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t<h3 style=\"font-size: 20px;color: #333;margin-left: 5px;\">【ActiverSSL证书】保护面板访问Sécurité</h3>\t\t\t\t</div>\t\t\t\t<ul class=\"help-info-text c7 pd15\" style=\"color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;\">\t\t\t\t\t<li>自签证书访问步骤：</li>\t\t\t\t\t<li>1. 部署SSL证书</li>\t\t\t\t\t<li>2. 浏览器地址栏Modifier为https://访问</li>\t\t\t\t\t<li>3. 如提醒风险（正常现象）点击【高级】或【详情】</li>\t\t\t\t\t<li>4.【继续访问】或【接收风险并继续】</li>\t\t\t\t</ul>\t\t\t\t<div class=\"pt10\" style=\"margin-top: 20px;\">\t\t\t\t\t<div class=\"line\" style=\"font-size: 14px;\">\t\t\t\t\t\t<span class=\"tname\" style=\"width: 78px;\">Type</span>\t\t\t\t\t\t<div class=\"info-r\" style=\"margin-left: 78px;\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"cert_type\" style=\"width: 440px;\">\t\t\t\t\t\t\t\t<option value=\"0\">自签证书 (推荐，浏览器会Conseil不Sécurité。可忽略，请放心Activer)</option>\t\t\t\t\t\t\t</select>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<ul class=\"help-info-text c7 sslSafeTips\">\t\t\t\t\t\t<li><span>Activer后导致面板不能访问，可以点击查看</span></li>\t\t\t\t\t\t<li>自签证书不被浏览器信任，显示不Sécurité是正常现象</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "de": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t<h3 style=\"font-size: 20px;color: #333;margin-left: 5px;\">【EinschaltenSSL证书】保护面板访问Sicherheit</h3>\t\t\t\t</div>\t\t\t\t<ul class=\"help-info-text c7 pd15\" style=\"color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;\">\t\t\t\t\t<li>自签证书访问步骤：</li>\t\t\t\t\t<li>1. 部署SSL证书</li>\t\t\t\t\t<li>2. 浏览器地址栏Ändern为https://访问</li>\t\t\t\t\t<li>3. 如提醒风险（正常现象）点击【高级】或【详情】</li>\t\t\t\t\t<li>4.【继续访问】或【接收风险并继续】</li>\t\t\t\t</ul>\t\t\t\t<div class=\"pt10\" style=\"margin-top: 20px;\">\t\t\t\t\t<div class=\"line\" style=\"font-size: 14px;\">\t\t\t\t\t\t<span class=\"tname\" style=\"width: 78px;\">Typ</span>\t\t\t\t\t\t<div class=\"info-r\" style=\"margin-left: 78px;\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"cert_type\" style=\"width: 440px;\">\t\t\t\t\t\t\t\t<option value=\"0\">自签证书 (推荐，浏览器会Hinweis不Sicherheit。可忽略，请放心Einschalten)</option>\t\t\t\t\t\t\t</select>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<ul class=\"help-info-text c7 sslSafeTips\">\t\t\t\t\t\t<li><span>Einschalten后导致面板不能访问，可以点击查看</span></li>\t\t\t\t\t\t<li>自签证书不被浏览器信任，显示不Sicherheit是正常现象</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>",
+            "it": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div style=\"text-align: center;\">\t\t\t\t\t<h3 style=\"font-size: 20px;color: #333;margin-left: 5px;\">【AttivaSSL证书】保护面板访问Sicurezza</h3>\t\t\t\t</div>\t\t\t\t<ul class=\"help-info-text c7 pd15\" style=\"color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;\">\t\t\t\t\t<li>自签证书访问步骤：</li>\t\t\t\t\t<li>1. 部署SSL证书</li>\t\t\t\t\t<li>2. 浏览器地址栏Modifica为https://访问</li>\t\t\t\t\t<li>3. 如提醒风险（正常现象）点击【高级】或【详情】</li>\t\t\t\t\t<li>4.【继续访问】或【接收风险并继续】</li>\t\t\t\t</ul>\t\t\t\t<div class=\"pt10\" style=\"margin-top: 20px;\">\t\t\t\t\t<div class=\"line\" style=\"font-size: 14px;\">\t\t\t\t\t\t<span class=\"tname\" style=\"width: 78px;\">Tipo</span>\t\t\t\t\t\t<div class=\"info-r\" style=\"margin-left: 78px;\">\t\t\t\t\t\t\t<select class=\"bt-input-text mr5\" name=\"cert_type\" style=\"width: 440px;\">\t\t\t\t\t\t\t\t<option value=\"0\">自签证书 (推荐，浏览器会Suggerimento不Sicurezza。可忽略，请放心Attiva)</option>\t\t\t\t\t\t\t</select>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<ul class=\"help-info-text c7 sslSafeTips\">\t\t\t\t\t\t<li><span>Attiva后导致面板不能访问，可以点击查看</span></li>\t\t\t\t\t\t<li>自签证书不被浏览器信任，显示不Sicurezza是正常现象</li>\t\t\t\t\t</ul>\t\t\t\t</div>\t\t\t</div>"
+        },
+        "config_auto_str_18": {
+            "zh-CN": "本地自签SSL已启用",
+            "zh-TW": "本地自签SSL已啟用",
+            "en": "本地自签SSL已Enable",
+            "fr": "本地自签SSL已Activer",
+            "de": "本地自签SSL已Aktivieren",
+            "it": "本地自签SSL已Abilita"
+        },
+        "config_auto_str_19": {
+            "zh-CN": "关闭SSL证书",
+            "zh-TW": "關閉SSL憑證",
+            "en": "CloseSSL证书",
+            "fr": "FermerSSL证书",
+            "de": "SchließenSSL证书",
+            "it": "ChiudiSSL证书"
+        },
+        "config_auto_str_20": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_21": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "config_auto_str_22": {
+            "zh-CN": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div class=\"hint_title\" style=\"font-size: 15px;color: #111;text-align:center;\">\t\t\t\t\t<div class=\"hint_con\">关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭</div>\t\t\t\t</div>\t\t\t\t<div class=\"confirm-info-box\" style=\"background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;\">\t\t\t\t\t<div>请手动输入【<span style=\"color: #fc6d26;\">我要关闭</span>】，完成验证</div>\t\t\t\t\t<input onpaste=\"return false;\" id=\"prompt_input_box\" style=\"height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;\" type=\"text\" value=\"\" autocomplete=\"off\">\t\t\t\t</div>\t\t\t</div>",
+            "zh-TW": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div class=\"hint_title\" style=\"font-size: 15px;color: #111;text-align:center;\">\t\t\t\t\t<div class=\"hint_con\">關閉SSL極易被抓包攻击導致帳號密碼泄露，请勿關閉</div>\t\t\t\t</div>\t\t\t\t<div class=\"confirm-info-box\" style=\"background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;\">\t\t\t\t\t<div>请手動輸入【<span style=\"color: #fc6d26;\">我要關閉</span>】，完成驗證</div>\t\t\t\t\t<input onpaste=\"return false;\" id=\"prompt_input_box\" style=\"height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;\" type=\"text\" value=\"\" autocomplete=\"off\">\t\t\t\t</div>\t\t\t</div>",
+            "en": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div class=\"hint_title\" style=\"font-size: 15px;color: #111;text-align:center;\">\t\t\t\t\t<div class=\"hint_con\">CloseSSL极易被抓包攻击导致账号Password泄露，请勿Close</div>\t\t\t\t</div>\t\t\t\t<div class=\"confirm-info-box\" style=\"background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;\">\t\t\t\t\t<div>请手动输入【<span style=\"color: #fc6d26;\">我要Close</span>】，完成验证</div>\t\t\t\t\t<input onpaste=\"return false;\" id=\"prompt_input_box\" style=\"height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;\" type=\"text\" value=\"\" autocomplete=\"off\">\t\t\t\t</div>\t\t\t</div>",
+            "fr": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div class=\"hint_title\" style=\"font-size: 15px;color: #111;text-align:center;\">\t\t\t\t\t<div class=\"hint_con\">FermerSSL极易被抓包攻击导致账号Mot de passe泄露，请勿Fermer</div>\t\t\t\t</div>\t\t\t\t<div class=\"confirm-info-box\" style=\"background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;\">\t\t\t\t\t<div>请手动输入【<span style=\"color: #fc6d26;\">我要Fermer</span>】，完成验证</div>\t\t\t\t\t<input onpaste=\"return false;\" id=\"prompt_input_box\" style=\"height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;\" type=\"text\" value=\"\" autocomplete=\"off\">\t\t\t\t</div>\t\t\t</div>",
+            "de": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div class=\"hint_title\" style=\"font-size: 15px;color: #111;text-align:center;\">\t\t\t\t\t<div class=\"hint_con\">SchließenSSL极易被抓包攻击导致账号Passwort泄露，请勿Schließen</div>\t\t\t\t</div>\t\t\t\t<div class=\"confirm-info-box\" style=\"background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;\">\t\t\t\t\t<div>请手动输入【<span style=\"color: #fc6d26;\">我要Schließen</span>】，完成验证</div>\t\t\t\t\t<input onpaste=\"return false;\" id=\"prompt_input_box\" style=\"height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;\" type=\"text\" value=\"\" autocomplete=\"off\">\t\t\t\t</div>\t\t\t</div>",
+            "it": "<div class=\"bt-form\" style=\"padding: 25px 40px;\">\t\t\t\t<div class=\"hint_title\" style=\"font-size: 15px;color: #111;text-align:center;\">\t\t\t\t\t<div class=\"hint_con\">ChiudiSSL极易被抓包攻击导致账号Password泄露，请勿Chiudi</div>\t\t\t\t</div>\t\t\t\t<div class=\"confirm-info-box\" style=\"background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;\">\t\t\t\t\t<div>请手动输入【<span style=\"color: #fc6d26;\">我要Chiudi</span>】，完成验证</div>\t\t\t\t\t<input onpaste=\"return false;\" id=\"prompt_input_box\" style=\"height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;\" type=\"text\" value=\"\" autocomplete=\"off\">\t\t\t\t</div>\t\t\t</div>"
+        },
+        "config_auto_str_23": {
+            "zh-CN": "我要关闭",
+            "zh-TW": "我要關閉",
+            "en": "我要Close",
+            "fr": "我要Fermer",
+            "de": "我要Schließen",
+            "it": "我要Chiudi"
+        },
+        "config_auto_str_24": {
+            "zh-CN": "关闭SSL失败!",
+            "zh-TW": "關閉SSL失敗!",
+            "en": "CloseSSL失败!",
+            "fr": "FermerSSL失败!",
+            "de": "SchließenSSL失败!",
+            "it": "ChiudiSSL失败!"
+        },
+        "config_auto_str_25": {
+            "zh-CN": "VIP登录",
+            "zh-TW": "VIP登入",
+            "en": "VIPLogin",
+            "fr": "VIPConnexion",
+            "de": "VIPAnmelden",
+            "it": "VIPAccedi"
+        },
+        "config_auto_str_26": {
+            "zh-CN": "登录",
+            "zh-TW": "登入",
+            "en": "Login",
+            "fr": "Connexion",
+            "de": "Anmelden",
+            "it": "Accedi"
+        },
+        "config_auto_str_27": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "config_auto_str_28": {
+            "zh-CN": "<div class='bt-form pd20'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>用户名</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>密码</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t</div>",
+            "zh-TW": "<div class='bt-form pd20'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>使用者名</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>密碼</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t</div>",
+            "en": "<div class='bt-form pd20'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Username</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Password</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t</div>",
+            "fr": "<div class='bt-form pd20'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Nom d'utilisateur</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Mot de passe</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t</div>",
+            "de": "<div class='bt-form pd20'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Benutzername</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Passwort</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t</div>",
+            "it": "<div class='bt-form pd20'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Nome utente</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Password</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='' style='width:85%' autocomplete='off'/></div>\t\t\t\t</div>\t\t\t</div>"
+        },
+        "config_auto_str_29": {
+            "zh-CN": "用户名不能为空!",
+            "zh-TW": "使用者名不能為空!",
+            "en": "Username不能为空!",
+            "fr": "Nom d'utilisateur不能为空!",
+            "de": "Benutzername不能为空!",
+            "it": "Nome utente不能为空!"
+        },
+        "config_auto_str_30": {
+            "zh-CN": "密码不能为空!",
+            "zh-TW": "密碼不能為空!",
+            "en": "Password不能为空!",
+            "fr": "Mot de passe不能为空!",
+            "de": "Passwort不能为空!",
+            "it": "Password不能为空!"
+        },
+        "config_auto_str_31": {
+            "zh-CN": "关闭面板会导致您无法访问面板 ,您真的要关闭Linux面板吗？",
+            "zh-TW": "關閉面板会導致您無法访問面板 ,您真的要關閉Linux面板吗？",
+            "en": "Close面板会导致您无法访问面板 ,您真的要CloseLinux Panel吗？",
+            "fr": "Fermer面板会导致您无法访问面板 ,您真的要FermerPanneau Linux吗？",
+            "de": "Schließen面板会导致您无法访问面板 ,您真的要SchließenLinux Panel吗？",
+            "it": "Chiudi面板会导致您无法访问面板 ,您真的要ChiudiPannello Linux吗？"
+        },
+        "config_auto_str_32": {
+            "zh-CN": "关闭面板",
+            "zh-TW": "關閉面板",
+            "en": "Close面板",
+            "fr": "Fermer面板",
+            "de": "Schließen面板",
+            "it": "Chiudi面板"
+        },
+        "config_auto_str_33": {
+            "zh-CN": "正在发送请求,请稍候...",
+            "zh-TW": "正在發送请求,請稍候...",
+            "en": "正在发送请求,请稍候...",
+            "fr": "正在发送请求,请稍候...",
+            "de": "正在发送请求,请稍候...",
+            "it": "正在发送请求,请稍候..."
+        },
+        "config_auto_str_34": {
+            "zh-CN": "修改安全入口",
+            "zh-TW": "修改安全入口",
+            "en": "ModifySecurity入口",
+            "fr": "ModifierSécurité入口",
+            "de": "ÄndernSicherheit入口",
+            "it": "ModificaSicurezza入口"
+        },
+        "config_auto_str_35": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "Submit",
+            "fr": "Soumettre",
+            "de": "Absenden",
+            "it": "Invia"
+        },
+        "config_auto_str_36": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "config_auto_str_37": {
+            "zh-CN": "随机生成",
+            "zh-TW": "随機生成",
+            "en": "随机生成",
+            "fr": "随机生成",
+            "de": "随机生成",
+            "it": "随机生成"
+        },
+        "config_auto_str_38": {
+            "zh-CN": "<div class=\"bt-form bt-form pd20\">            <div class=\"line \">                <span class=\"tname\">入口地址</span>                <div class=\"info-r\">                    <input name=\"auth_path_set\" class=\"bt-input-text mr5\" type=\"text\" style=\"width: 311px\" value=\"",
+            "zh-TW": "<div class=\"bt-form bt-form pd20\">            <div class=\"line \">                <span class=\"tname\">入口地址</span>                <div class=\"info-r\">                    <input name=\"auth_path_set\" class=\"bt-input-text mr5\" type=\"text\" style=\"width: 311px\" value=\"",
+            "en": "<div class=\"bt-form bt-form pd20\">            <div class=\"line \">                <span class=\"tname\">入口地址</span>                <div class=\"info-r\">                    <input name=\"auth_path_set\" class=\"bt-input-text mr5\" type=\"text\" style=\"width: 311px\" value=\"",
+            "fr": "<div class=\"bt-form bt-form pd20\">            <div class=\"line \">                <span class=\"tname\">入口地址</span>                <div class=\"info-r\">                    <input name=\"auth_path_set\" class=\"bt-input-text mr5\" type=\"text\" style=\"width: 311px\" value=\"",
+            "de": "<div class=\"bt-form bt-form pd20\">            <div class=\"line \">                <span class=\"tname\">入口地址</span>                <div class=\"info-r\">                    <input name=\"auth_path_set\" class=\"bt-input-text mr5\" type=\"text\" style=\"width: 311px\" value=\"",
+            "it": "<div class=\"bt-form bt-form pd20\">            <div class=\"line \">                <span class=\"tname\">入口地址</span>                <div class=\"info-r\">                    <input name=\"auth_path_set\" class=\"bt-input-text mr5\" type=\"text\" style=\"width: 311px\" value=\""
+        },
+        "config_auto_str_39": {
+            "zh-CN": "警告，关闭安全入口等于直接暴露你的后台地址在外网，十分危险, 您真的要这样更改吗？",
+            "zh-TW": "警告，關閉安全入口等于直接暴露你的後台地址在外網，十分危险, 您真的要這样更改吗？",
+            "en": "Warning，CloseSecurity入口等于直接暴露你的后台地址在外网，十分危险, 您真的要这样更改吗？",
+            "fr": "Avertissement，FermerSécurité入口等于直接暴露你的后台地址在外网，十分危险, 您真的要这样更改吗？",
+            "de": "Warnung，SchließenSicherheit入口等于直接暴露你的后台地址在外网，十分危险, 您真的要这样更改吗？",
+            "it": "Avviso，ChiudiSicurezza入口等于直接暴露你的后台地址在外网，十分危险, 您真的要这样更改吗？"
+        },
+        "config_auto_str_40": {
+            "zh-CN": "安全入口修改",
+            "zh-TW": "安全入口修改",
+            "en": "Security入口Modify",
+            "fr": "Sécurité入口Modifier",
+            "de": "Sicherheit入口Ändern",
+            "it": "Sicurezza入口Modifica"
+        },
+        "config_auto_str_41": {
+            "zh-CN": "修改密码",
+            "zh-TW": "修改密碼",
+            "en": "ModifyPassword",
+            "fr": "ModifierMot de passe",
+            "de": "ÄndernPasswort",
+            "it": "ModificaPassword"
+        },
+        "config_auto_str_42": {
+            "zh-CN": "修改",
+            "zh-TW": "修改",
+            "en": "Modify",
+            "fr": "Modifier",
+            "de": "Ändern",
+            "it": "Modifica"
+        },
+        "config_auto_str_43": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "config_auto_str_44": {
+            "zh-CN": "随机",
+            "zh-TW": "随機",
+            "en": "随机",
+            "fr": "随机",
+            "de": "随机",
+            "it": "随机"
+        },
+        "config_auto_str_45": {
+            "zh-CN": "<div class='bt-form'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>密码</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的密码' style='width:70%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>重复</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%' /></div>\t\t\t\t</div>\t\t\t</div>",
+            "zh-TW": "<div class='bt-form'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>密碼</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的密碼' style='width:70%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>重復</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再輸一次' style='width:70%' /></div>\t\t\t\t</div>\t\t\t</div>",
+            "en": "<div class='bt-form'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Password</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Password' style='width:70%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>重复</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%' /></div>\t\t\t\t</div>\t\t\t</div>",
+            "fr": "<div class='bt-form'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Mot de passe</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Mot de passe' style='width:70%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>重复</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%' /></div>\t\t\t\t</div>\t\t\t</div>",
+            "de": "<div class='bt-form'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Passwort</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Passwort' style='width:70%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>重复</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%' /></div>\t\t\t\t</div>\t\t\t</div>",
+            "it": "<div class='bt-form'>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>Password</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Password' style='width:70%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'>\t\t\t\t\t<span class='tname'>重复</span>\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%' /></div>\t\t\t\t</div>\t\t\t</div>"
+        },
+        "config_auto_str_46": {
+            "zh-CN": "面板密码不能少于8位!",
+            "zh-TW": "面板密碼不能少于8位!",
+            "en": "面板Password不能少于8位!",
+            "fr": "面板Mot de passe不能少于8位!",
+            "de": "面板Passwort不能少于8位!",
+            "it": "面板Password不能少于8位!"
+        },
+        "config_auto_str_47": {
+            "zh-CN": "面板密码不能为弱口令",
+            "zh-TW": "面板密碼不能為弱口令",
+            "en": "面板Password不能为弱口令",
+            "fr": "面板Mot de passe不能为弱口令",
+            "de": "面板Passwort不能为弱口令",
+            "it": "面板Password不能为弱口令"
+        },
+        "config_auto_str_48": {
+            "zh-CN": "两次输入的密码不一致",
+            "zh-TW": "两次輸入的密碼不一致",
+            "en": "两次输入的Password不一致",
+            "fr": "两次输入的Mot de passe不一致",
+            "de": "两次输入的Passwort不一致",
+            "it": "两次输入的Password不一致"
+        },
+        "config_auto_str_49": {
+            "zh-CN": "请在修改前记录好您的新密码!",
+            "zh-TW": "请在修改前記錄好您的新密碼!",
+            "en": "请在Modify前记录好您的新Password!",
+            "fr": "请在Modifier前记录好您的新Mot de passe!",
+            "de": "请在Ändern前记录好您的新Passwort!",
+            "it": "请在Modifica前记录好您的新Password!"
+        },
+        "config_auto_str_50": {
+            "zh-CN": "修改面板用户名",
+            "zh-TW": "修改面板使用者名",
+            "en": "Modify面板Username",
+            "fr": "Modifier面板Nom d'utilisateur",
+            "de": "Ändern面板Benutzername",
+            "it": "Modifica面板Nome utente"
+        },
+        "config_auto_str_51": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_52": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "config_auto_str_53": {
+            "zh-CN": "随机",
+            "zh-TW": "随機",
+            "en": "随机",
+            "fr": "随机",
+            "de": "随机",
+            "it": "随机"
+        },
+        "config_auto_str_54": {
+            "zh-CN": "<div class='bt-form pd20'>\t\t\t<div class='line'><span class='tname'>用户名</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的用户名' style='width:70%'/></div>\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>重复</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%'/></div>\t\t\t</div>\t\t</div>",
+            "zh-TW": "<div class='bt-form pd20'>\t\t\t<div class='line'><span class='tname'>使用者名</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的使用者名' style='width:70%'/></div>\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>重復</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再輸一次' style='width:70%'/></div>\t\t\t</div>\t\t</div>",
+            "en": "<div class='bt-form pd20'>\t\t\t<div class='line'><span class='tname'>Username</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Username' style='width:70%'/></div>\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>重复</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%'/></div>\t\t\t</div>\t\t</div>",
+            "fr": "<div class='bt-form pd20'>\t\t\t<div class='line'><span class='tname'>Nom d'utilisateur</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Nom d'utilisateur' style='width:70%'/></div>\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>重复</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%'/></div>\t\t\t</div>\t\t</div>",
+            "de": "<div class='bt-form pd20'>\t\t\t<div class='line'><span class='tname'>Benutzername</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Benutzername' style='width:70%'/></div>\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>重复</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%'/></div>\t\t\t</div>\t\t</div>",
+            "it": "<div class='bt-form pd20'>\t\t\t<div class='line'><span class='tname'>Nome utente</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password1' id='p1' value='' placeholder='新的Nome utente' style='width:70%'/></div>\t\t\t</div>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>重复</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='password2' id='p2' value='' placeholder='再输一次' style='width:70%'/></div>\t\t\t</div>\t\t</div>"
+        },
+        "config_auto_str_55": {
+            "zh-CN": "用户名长度不能少于3位",
+            "zh-TW": "使用者名長度不能少于3位",
+            "en": "Username长度不能少于3位",
+            "fr": "Nom d'utilisateur长度不能少于3位",
+            "de": "Benutzername长度不能少于3位",
+            "it": "Nome utente长度不能少于3位"
+        },
+        "config_auto_str_56": {
+            "zh-CN": "两次输入的用户名不一致",
+            "zh-TW": "两次輸入的使用者名不一致",
+            "en": "两次输入的Username不一致",
+            "fr": "两次输入的Nom d'utilisateur不一致",
+            "de": "两次输入的Benutzername不一致",
+            "it": "两次输入的Nome utente不一致"
+        },
+        "config_auto_str_57": {
+            "zh-CN": "请在修改前记录好您的用户名!",
+            "zh-TW": "请在修改前記錄好您的使用者名!",
+            "en": "请在Modify前记录好您的Username!",
+            "fr": "请在Modifier前记录好您的Nom d'utilisateur!",
+            "de": "请在Ändern前记录好您的Benutzername!",
+            "it": "请在Modifica前记录好您的Nome utente!"
+        },
+        "config_auto_str_58": {
+            "zh-CN": "设置服务器时区",
+            "zh-TW": "設定伺服器時区",
+            "en": "设置服务器时区",
+            "fr": "设置服务器时区",
+            "de": "设置服务器时区",
+            "it": "设置服务器时区"
+        },
+        "config_auto_str_59": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_60": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "config_auto_str_61": {
+            "zh-CN": "同步",
+            "zh-TW": "同步",
+            "en": "同步",
+            "fr": "同步",
+            "de": "同步",
+            "it": "同步"
+        },
+        "config_auto_str_62": {
+            "zh-CN": "<div class='bt-form pd20'>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>时区</span>\t\t\t\t<div class='info-r'>\t\t\t\t\t<select class='bt-input-text mr5' name='timezone' style='width: 250px;'></select>\t\t\t\t</div>\t\t\t</div>\t\t</div>",
+            "zh-TW": "<div class='bt-form pd20'>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>時区</span>\t\t\t\t<div class='info-r'>\t\t\t\t\t<select class='bt-input-text mr5' name='timezone' style='width: 250px;'></select>\t\t\t\t</div>\t\t\t</div>\t\t</div>",
+            "en": "<div class='bt-form pd20'>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>时区</span>\t\t\t\t<div class='info-r'>\t\t\t\t\t<select class='bt-input-text mr5' name='timezone' style='width: 250px;'></select>\t\t\t\t</div>\t\t\t</div>\t\t</div>",
+            "fr": "<div class='bt-form pd20'>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>时区</span>\t\t\t\t<div class='info-r'>\t\t\t\t\t<select class='bt-input-text mr5' name='timezone' style='width: 250px;'></select>\t\t\t\t</div>\t\t\t</div>\t\t</div>",
+            "de": "<div class='bt-form pd20'>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>时区</span>\t\t\t\t<div class='info-r'>\t\t\t\t\t<select class='bt-input-text mr5' name='timezone' style='width: 250px;'></select>\t\t\t\t</div>\t\t\t</div>\t\t</div>",
+            "it": "<div class='bt-form pd20'>\t\t\t<div class='line'>\t\t\t\t<span class='tname'>时区</span>\t\t\t\t<div class='info-r'>\t\t\t\t\t<select class='bt-input-text mr5' name='timezone' style='width: 250px;'></select>\t\t\t\t</div>\t\t\t</div>\t\t</div>"
+        },
+        "config_auto_str_63": {
+            "zh-CN": "正在设置时区...",
+            "zh-TW": "正在設定時区...",
+            "en": "正在设置时区...",
+            "fr": "正在设置时区...",
+            "de": "正在设置时区...",
+            "it": "正在设置时区..."
+        },
+        "config_auto_str_64": {
+            "zh-CN": "正在同步时间...",
+            "zh-TW": "正在同步時間...",
+            "en": "正在同步Time...",
+            "fr": "正在同步Heure...",
+            "de": "正在同步Zeit...",
+            "it": "正在同步Ora..."
+        },
+        "config_auto_str_65": {
+            "zh-CN": "正在配置,请稍候...",
+            "zh-TW": "正在設定,請稍候...",
+            "en": "正在配置,请稍候...",
+            "fr": "正在配置,请稍候...",
+            "de": "正在配置,请稍候...",
+            "it": "正在配置,请稍候..."
+        },
+        "config_auto_str_66": {
+            "zh-CN": "正在配置,请稍候...",
+            "zh-TW": "正在設定,請稍候...",
+            "en": "正在配置,请稍候...",
+            "fr": "正在配置,请稍候...",
+            "de": "正在配置,请稍候...",
+            "it": "正在配置,请稍候..."
+        },
+        "config_auto_str_67": {
+            "zh-CN": "正在检测GPU环境,请稍候...",
+            "zh-TW": "正在检测GPU環境,請稍候...",
+            "en": "正在检测GPU环境,请稍候...",
+            "fr": "正在检测GPU环境,请稍候...",
+            "de": "正在检测GPU环境,请稍候...",
+            "it": "正在检测GPU环境,请稍候..."
+        },
+        "config_auto_str_68": {
+            "zh-CN": "该服务器未检测到英伟达GPU或未安装nvidia-smi命令，无法开启！",
+            "zh-TW": "该伺服器未检测到英伟达GPU或未安裝nvidia-smi命令，無法開啟！",
+            "en": "该服务器未检测到英伟达GPU或未Installnvidia-smi命令，无法Turn on！",
+            "fr": "该服务器未检测到英伟达GPU或未Installernvidia-smi命令，无法Activer！",
+            "de": "该服务器未检测到英伟达GPU或未Installierennvidia-smi命令，无法Einschalten！",
+            "it": "该服务器未检测到英伟达GPU或未Installanvidia-smi命令，无法Attiva！"
+        },
+        "config_auto_str_69": {
+            "zh-CN": "环境检测请求失败，请稍后重试",
+            "zh-TW": "環境检测请求失敗，请稍後重试",
+            "en": "环境检测请求失败，请稍后重试",
+            "fr": "环境检测请求失败，请稍后重试",
+            "de": "环境检测请求失败，请稍后重试",
+            "it": "环境检测请求失败，请稍后重试"
+        },
+        "config_auto_str_70": {
+            "zh-CN": "正在配置,请稍候...",
+            "zh-TW": "正在設定,請稍候...",
+            "en": "正在配置,请稍候...",
+            "fr": "正在配置,请稍候...",
+            "de": "正在配置,请稍候...",
+            "it": "正在配置,请稍候..."
+        },
+        "config_auto_str_71": {
+            "zh-CN": "成功开启GPU首页检测！<br><br><span style=\"color:red\">提示：由于浏览器缓存，若首页未显示GPU状态，<br>需返回首页按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制刷新才能展示GPU状态。</span>",
+            "zh-TW": "成功開啟GPU首頁检测！<br><br><span style=\"color:red\">提示：由于浏覽器缓存，若首頁未顯示GPU狀態，<br>需返回首頁按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强製重新整理才能展示GPU狀態。</span>",
+            "en": "成功Turn onGPUDashboard检测！<br><br><span style=\"color:red\">Tip：由于浏览器缓存，若Dashboard未显示GPUStatus，<br>需BackDashboard按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制Refresh才能展示GPUStatus。</span>",
+            "fr": "成功ActiverGPUTableau de bord检测！<br><br><span style=\"color:red\">Conseil：由于浏览器缓存，若Tableau de bord未显示GPUStatut，<br>需RetourTableau de bord按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制Actualiser才能展示GPUStatut。</span>",
+            "de": "成功EinschaltenGPUDashboard检测！<br><br><span style=\"color:red\">Hinweis：由于浏览器缓存，若Dashboard未显示GPUStatus，<br>需ZurückDashboard按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制Aktualisieren才能展示GPUStatus。</span>",
+            "it": "成功AttivaGPUDashboard检测！<br><br><span style=\"color:red\">Suggerimento：由于浏览器缓存，若Dashboard未显示GPUStato，<br>需IndietroDashboard按 <b>Ctrl+F5</b>（Mac按 <b>Cmd+Shift+R</b>）强制Aggiorna才能展示GPUStato。</span>"
+        },
+        "config_auto_str_72": {
+            "zh-CN": "设置成功",
+            "zh-TW": "設定成功",
+            "en": "Settings saved",
+            "fr": "Paramètres enregistrés",
+            "de": "Einstellungen gespeichert",
+            "it": "Impostazioni salvate"
+        },
+        "config_auto_str_73": {
+            "zh-CN": "强制刷新，返回首页",
+            "zh-TW": "强製重新整理，返回首頁",
+            "en": "强制Refresh，BackDashboard",
+            "fr": "强制Actualiser，RetourTableau de bord",
+            "de": "强制Aktualisieren，ZurückDashboard",
+            "it": "强制Aggiorna，IndietroDashboard"
+        },
+        "config_auto_str_74": {
+            "zh-CN": "留在当前页",
+            "zh-TW": "留在当前頁",
+            "en": "留在当前页",
+            "fr": "留在当前页",
+            "de": "留在当前页",
+            "it": "留在当前页"
+        },
+        "config_auto_str_75": {
+            "zh-CN": "关闭SSL后,必需使用http协议访问面板,继续吗?",
+            "zh-TW": "關閉SSL後,必需使用http協議访問面板,继续吗?",
+            "en": "CloseSSL后,必需使用httpProtocol访问面板,继续吗?",
+            "fr": "FermerSSL后,必需使用httpProtocole访问面板,继续吗?",
+            "de": "SchließenSSL后,必需使用httpProtokoll访问面板,继续吗?",
+            "it": "ChiudiSSL后,必需使用httpProtocollo访问面板,继续吗?"
+        },
+        "config_auto_str_76": {
+            "zh-CN": "<a style=\"font-weight: bolder;font-size: 16px;\">危险！此功能不懂别开启!</a>\t<li style=\"margin-top: 12px;color:red;\">必须要用到且了解此功能才决定自己是否要开启!</li>\t<li>面板SSL是自签证书，不被浏览器信任，显示不安全是正常现象</li>\t<li>开启后导致面板不能访问，可以点击下面链接了解解决方法</li>\t<p style=\"margin-top: 10px;\">\t\t<input type=\"checkbox\" id=\"checkSSL\" /><label style=\"font-weight: 400;margin: 3px 5px 0px;\" for=\"checkSSL\">我已了经解详情,并愿意承担风险</label>\t</p>",
+            "zh-TW": "<a style=\"font-weight: bolder;font-size: 16px;\">危险！此功能不懂别開啟!</a>\t<li style=\"margin-top: 12px;color:red;\">必须要用到且了解此功能才决定自己是否要開啟!</li>\t<li>面板SSL是自签憑證，不被浏覽器信任，顯示不安全是正常現象</li>\t<li>開啟後導致面板不能访問，可以點击下面連結了解解决方法</li>\t<p style=\"margin-top: 10px;\">\t\t<input type=\"checkbox\" id=\"checkSSL\" /><label style=\"font-weight: 400;margin: 3px 5px 0px;\" for=\"checkSSL\">我已了經解詳情,並愿意承担风险</label>\t</p>",
+            "en": "<a style=\"font-weight: bolder;font-size: 16px;\">危险！此功能不懂别Turn on!</a>\t<li style=\"margin-top: 12px;color:red;\">必须要用到且了解此功能才决定自己是否要Turn on!</li>\t<li>面板SSL是自签证书，不被浏览器信任，显示不Security是正常现象</li>\t<li>Turn on后导致面板不能访问，可以点击下面链接了解解决方法</li>\t<p style=\"margin-top: 10px;\">\t\t<input type=\"checkbox\" id=\"checkSSL\" /><label style=\"font-weight: 400;margin: 3px 5px 0px;\" for=\"checkSSL\">我已了经解详情,并愿意承担风险</label>\t</p>",
+            "fr": "<a style=\"font-weight: bolder;font-size: 16px;\">危险！此功能不懂别Activer!</a>\t<li style=\"margin-top: 12px;color:red;\">必须要用到且了解此功能才决定自己是否要Activer!</li>\t<li>面板SSL是自签证书，不被浏览器信任，显示不Sécurité是正常现象</li>\t<li>Activer后导致面板不能访问，可以点击下面链接了解解决方法</li>\t<p style=\"margin-top: 10px;\">\t\t<input type=\"checkbox\" id=\"checkSSL\" /><label style=\"font-weight: 400;margin: 3px 5px 0px;\" for=\"checkSSL\">我已了经解详情,并愿意承担风险</label>\t</p>",
+            "de": "<a style=\"font-weight: bolder;font-size: 16px;\">危险！此功能不懂别Einschalten!</a>\t<li style=\"margin-top: 12px;color:red;\">必须要用到且了解此功能才决定自己是否要Einschalten!</li>\t<li>面板SSL是自签证书，不被浏览器信任，显示不Sicherheit是正常现象</li>\t<li>Einschalten后导致面板不能访问，可以点击下面链接了解解决方法</li>\t<p style=\"margin-top: 10px;\">\t\t<input type=\"checkbox\" id=\"checkSSL\" /><label style=\"font-weight: 400;margin: 3px 5px 0px;\" for=\"checkSSL\">我已了经解详情,并愿意承担风险</label>\t</p>",
+            "it": "<a style=\"font-weight: bolder;font-size: 16px;\">危险！此功能不懂别Attiva!</a>\t<li style=\"margin-top: 12px;color:red;\">必须要用到且了解此功能才决定自己是否要Attiva!</li>\t<li>面板SSL是自签证书，不被浏览器信任，显示不Sicurezza是正常现象</li>\t<li>Attiva后导致面板不能访问，可以点击下面链接了解解决方法</li>\t<p style=\"margin-top: 10px;\">\t\t<input type=\"checkbox\" id=\"checkSSL\" /><label style=\"font-weight: 400;margin: 3px 5px 0px;\" for=\"checkSSL\">我已了经解详情,并愿意承担风险</label>\t</p>"
+        },
+        "config_auto_str_77": {
+            "zh-CN": "设置面板SSL",
+            "zh-TW": "設定面板SSL",
+            "en": "设置面板SSL",
+            "fr": "设置面板SSL",
+            "de": "设置面板SSL",
+            "it": "设置面板SSL"
+        },
+        "config_auto_str_78": {
+            "zh-CN": "正在安装并设置SSL组件,这需要几分钟时间...",
+            "zh-TW": "正在安裝並設定SSL組件,這需要几分鐘時間...",
+            "en": "正在Install并设置SSL组件,这需要几分钟Time...",
+            "fr": "正在Installer并设置SSL组件,这需要几分钟Heure...",
+            "de": "正在Installieren并设置SSL组件,这需要几分钟Zeit...",
+            "it": "正在Installa并设置SSL组件,这需要几分钟Ora..."
+        },
+        "config_auto_str_79": {
+            "zh-CN": "正在获取TgBot信息...",
+            "zh-TW": "正在獲取TgBot信息...",
+            "en": "正在获取TgBot信息...",
+            "fr": "正在获取TgBot信息...",
+            "de": "正在获取TgBot信息...",
+            "it": "正在获取TgBot信息..."
+        },
+        "config_auto_str_80": {
+            "zh-CN": "TgBot配置",
+            "zh-TW": "TgBot設定",
+            "en": "TgBot配置",
+            "fr": "TgBot配置",
+            "de": "TgBot配置",
+            "it": "TgBot配置"
+        },
+        "config_auto_str_81": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_82": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "config_auto_str_83": {
+            "zh-CN": "验证",
+            "zh-TW": "驗證",
+            "en": "验证",
+            "fr": "验证",
+            "de": "验证",
+            "it": "验证"
+        },
+        "config_auto_str_84": {
+            "zh-CN": "app_token不能为空!",
+            "zh-TW": "app_token不能為空!",
+            "en": "app_token不能为空!",
+            "fr": "app_token不能为空!",
+            "de": "app_token不能为空!",
+            "it": "app_token不能为空!"
+        },
+        "config_auto_str_85": {
+            "zh-CN": "chat_id不能为空!",
+            "zh-TW": "chat_id不能為空!",
+            "en": "chat_id不能为空!",
+            "fr": "chat_id不能为空!",
+            "de": "chat_id不能为空!",
+            "it": "chat_id不能为空!"
+        },
+        "config_auto_str_86": {
+            "zh-CN": "app_token不能为空!",
+            "zh-TW": "app_token不能為空!",
+            "en": "app_token不能为空!",
+            "fr": "app_token不能为空!",
+            "de": "app_token不能为空!",
+            "it": "app_token不能为空!"
+        },
+        "config_auto_str_87": {
+            "zh-CN": "chat_id不能为空!",
+            "zh-TW": "chat_id不能為空!",
+            "en": "chat_id不能为空!",
+            "fr": "chat_id不能为空!",
+            "de": "chat_id不能为空!",
+            "it": "chat_id不能为空!"
+        },
+        "config_auto_str_88": {
+            "zh-CN": "正在获取邮件配置信息...",
+            "zh-TW": "正在獲取邮件設定信息...",
+            "en": "正在获取邮件配置信息...",
+            "fr": "正在获取邮件配置信息...",
+            "de": "正在获取邮件配置信息...",
+            "it": "正在获取邮件配置信息..."
+        },
+        "config_auto_str_89": {
+            "zh-CN": "邮件配置",
+            "zh-TW": "邮件設定",
+            "en": "邮件配置",
+            "fr": "邮件配置",
+            "de": "邮件配置",
+            "it": "邮件配置"
+        },
+        "config_auto_str_90": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_91": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "config_auto_str_92": {
+            "zh-CN": "验证",
+            "zh-TW": "驗證",
+            "en": "验证",
+            "fr": "验证",
+            "de": "验证",
+            "it": "验证"
+        },
+        "config_auto_str_93": {
+            "zh-CN": "<div class='bt-form pd20'>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP服务器</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_host' value='",
+            "zh-TW": "<div class='bt-form pd20'>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP伺服器</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_host' value='",
+            "en": "<div class='bt-form pd20'>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP服务器</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_host' value='",
+            "fr": "<div class='bt-form pd20'>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP服务器</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_host' value='",
+            "de": "<div class='bt-form pd20'>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP服务器</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_host' value='",
+            "it": "<div class='bt-form pd20'>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP服务器</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_host' value='"
+        },
+        "config_auto_str_94": {
+            "zh-CN": "' style='width:100%'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP安全</span>\t\t\t\t\t\t<div class='info-r checkbox'>\t\t\t\t\t\t\t<label><input name='smtp_ssl' type='radio' value='' style='margin-right: 4px;' ",
+            "zh-TW": "' style='width:100%'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP安全</span>\t\t\t\t\t\t<div class='info-r checkbox'>\t\t\t\t\t\t\t<label><input name='smtp_ssl' type='radio' value='' style='margin-right: 4px;' ",
+            "en": "' style='width:100%'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPSecurity</span>\t\t\t\t\t\t<div class='info-r checkbox'>\t\t\t\t\t\t\t<label><input name='smtp_ssl' type='radio' value='' style='margin-right: 4px;' ",
+            "fr": "' style='width:100%'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPSécurité</span>\t\t\t\t\t\t<div class='info-r checkbox'>\t\t\t\t\t\t\t<label><input name='smtp_ssl' type='radio' value='' style='margin-right: 4px;' ",
+            "de": "' style='width:100%'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPSicherheit</span>\t\t\t\t\t\t<div class='info-r checkbox'>\t\t\t\t\t\t\t<label><input name='smtp_ssl' type='radio' value='' style='margin-right: 4px;' ",
+            "it": "' style='width:100%'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPSicurezza</span>\t\t\t\t\t\t<div class='info-r checkbox'>\t\t\t\t\t\t\t<label><input name='smtp_ssl' type='radio' value='' style='margin-right: 4px;' "
+        },
+        "config_auto_str_95": {
+            "zh-CN": ">SSL</label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP端口</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_port' value='",
+            "zh-TW": ">SSL</label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTP埠口</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_port' value='",
+            "en": ">SSL</label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPPort</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_port' value='",
+            "fr": ">SSL</label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPPort</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_port' value='",
+            "de": ">SSL</label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPPort</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_port' value='",
+            "it": ">SSL</label>\t\t\t\t\t\t</div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>SMTPPorta</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='smtp_port' value='"
+        },
+        "config_auto_str_96": {
+            "zh-CN": "' style='width:100%' /></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>用户名</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='",
+            "zh-TW": "' style='width:100%' /></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>使用者名</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='",
+            "en": "' style='width:100%' /></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>Username</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='",
+            "fr": "' style='width:100%' /></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>Nom d'utilisateur</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='",
+            "de": "' style='width:100%' /></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>Benutzername</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='",
+            "it": "' style='width:100%' /></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>Nome utente</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='username' value='"
+        },
+        "config_auto_str_97": {
+            "zh-CN": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>授权码</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='",
+            "zh-TW": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>授权码</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='",
+            "en": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>授权码</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='",
+            "fr": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>授权码</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='",
+            "de": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>授权码</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='",
+            "it": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>授权码</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='password' value='"
+        },
+        "config_auto_str_98": {
+            "zh-CN": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>发送地址</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='to_mail_addr' value='",
+            "zh-TW": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>發送地址</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='to_mail_addr' value='",
+            "en": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>发送地址</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='to_mail_addr' value='",
+            "fr": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>发送地址</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='to_mail_addr' value='",
+            "de": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>发送地址</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='to_mail_addr' value='",
+            "it": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>发送地址</span>\t\t\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='to_mail_addr' value='"
+        },
+        "config_auto_str_99": {
+            "zh-CN": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>验证测试</span>\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t<textarea class='bt-input-text' name='mail_test' style='width:100%; height: 80px; line-height: 20px; padding: 5px 8px;'>验证测试</textarea></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "zh-TW": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>驗證测试</span>\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t<textarea class='bt-input-text' name='mail_test' style='width:100%; height: 80px; line-height: 20px; padding: 5px 8px;'>驗證测试</textarea></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "en": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>验证测试</span>\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t<textarea class='bt-input-text' name='mail_test' style='width:100%; height: 80px; line-height: 20px; padding: 5px 8px;'>验证测试</textarea></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "fr": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>验证测试</span>\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t<textarea class='bt-input-text' name='mail_test' style='width:100%; height: 80px; line-height: 20px; padding: 5px 8px;'>验证测试</textarea></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "de": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>验证测试</span>\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t<textarea class='bt-input-text' name='mail_test' style='width:100%; height: 80px; line-height: 20px; padding: 5px 8px;'>验证测试</textarea></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "it": "' style='width:100%' autocomplete='off'/></div>\t\t\t\t\t</div>\t\t\t\t\t<div class='line'>\t\t\t\t\t\t<span class='tname'>验证测试</span>\t\t\t\t\t\t<div class='info-r'>\t\t\t\t\t\t\t<textarea class='bt-input-text' name='mail_test' style='width:100%; height: 80px; line-height: 20px; padding: 5px 8px;'>验证测试</textarea></div>\t\t\t\t\t</div>\t\t\t\t</div>"
+        },
+        "config_auto_str_100": {
+            "zh-CN": "SMTP服务器不能为空!",
+            "zh-TW": "SMTP伺服器不能為空!",
+            "en": "SMTP服务器不能为空!",
+            "fr": "SMTP服务器不能为空!",
+            "de": "SMTP服务器不能为空!",
+            "it": "SMTP服务器不能为空!"
+        },
+        "config_auto_str_101": {
+            "zh-CN": "SMTP端口不能为空!",
+            "zh-TW": "SMTP埠口不能為空!",
+            "en": "SMTPPort不能为空!",
+            "fr": "SMTPPort不能为空!",
+            "de": "SMTPPort不能为空!",
+            "it": "SMTPPorta不能为空!"
+        },
+        "config_auto_str_102": {
+            "zh-CN": "用户名不能为空!",
+            "zh-TW": "使用者名不能為空!",
+            "en": "Username不能为空!",
+            "fr": "Nom d'utilisateur不能为空!",
+            "de": "Benutzername不能为空!",
+            "it": "Nome utente不能为空!"
+        },
+        "config_auto_str_103": {
+            "zh-CN": "授权码不能为空!",
+            "zh-TW": "授权码不能為空!",
+            "en": "授权码不能为空!",
+            "fr": "授权码不能为空!",
+            "de": "授权码不能为空!",
+            "it": "授权码不能为空!"
+        },
+        "config_auto_str_104": {
+            "zh-CN": "发送地址不能为空!",
+            "zh-TW": "發送地址不能為空!",
+            "en": "发送地址不能为空!",
+            "fr": "发送地址不能为空!",
+            "de": "发送地址不能为空!",
+            "it": "发送地址不能为空!"
+        },
+        "config_auto_str_105": {
+            "zh-CN": "SMTP服务器不能为空!",
+            "zh-TW": "SMTP伺服器不能為空!",
+            "en": "SMTP服务器不能为空!",
+            "fr": "SMTP服务器不能为空!",
+            "de": "SMTP服务器不能为空!",
+            "it": "SMTP服务器不能为空!"
+        },
+        "config_auto_str_106": {
+            "zh-CN": "SMTP端口不能为空!",
+            "zh-TW": "SMTP埠口不能為空!",
+            "en": "SMTPPort不能为空!",
+            "fr": "SMTPPort不能为空!",
+            "de": "SMTPPort不能为空!",
+            "it": "SMTPPorta不能为空!"
+        },
+        "config_auto_str_107": {
+            "zh-CN": "用户名不能为空!",
+            "zh-TW": "使用者名不能為空!",
+            "en": "Username不能为空!",
+            "fr": "Nom d'utilisateur不能为空!",
+            "de": "Benutzername不能为空!",
+            "it": "Nome utente不能为空!"
+        },
+        "config_auto_str_108": {
+            "zh-CN": "授权码不能为空!",
+            "zh-TW": "授权码不能為空!",
+            "en": "授权码不能为空!",
+            "fr": "授权码不能为空!",
+            "de": "授权码不能为空!",
+            "it": "授权码不能为空!"
+        },
+        "config_auto_str_109": {
+            "zh-CN": "发送地址不能为空!",
+            "zh-TW": "發送地址不能為空!",
+            "en": "发送地址不能为空!",
+            "fr": "发送地址不能为空!",
+            "de": "发送地址不能为空!",
+            "it": "发送地址不能为空!"
+        },
+        "config_auto_str_110": {
+            "zh-CN": "验证测试不能为空!",
+            "zh-TW": "驗證测试不能為空!",
+            "en": "验证测试不能为空!",
+            "fr": "验证测试不能为空!",
+            "de": "验证测试不能为空!",
+            "it": "验证测试不能为空!"
+        },
+        "config_auto_str_111": {
+            "zh-CN": "<div class=\"apply_ssl\" style=\"padding: 10px 0;\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\" style=\"width:100px;\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"file\" id=\"panel_check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_file\" style=\"font-weight:normal;cursor:pointer;\">文件验证</label>  \t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"dns\" id=\"panel_check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_dns\" style=\"font-weight:normal;cursor:pointer;\">DNS验证</label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"panel_dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;width:100px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"panel_dnspai\" class=\"bt-input-text mr20\" style=\"width:120px;\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"panel_checkDomain\" id=\"panel_checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"panel_checkDomain\" style=\"font-weight:normal;cursor:pointer;\">提前校验域名(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"panel_admin_email\" value=\"",
+            "zh-TW": "<div class=\"apply_ssl\" style=\"padding: 10px 0;\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\" style=\"width:100px;\">驗證方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"file\" id=\"panel_check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_file\" style=\"font-weight:normal;cursor:pointer;\">檔案驗證</label>  \t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"dns\" id=\"panel_check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_dns\" style=\"font-weight:normal;cursor:pointer;\">DNS驗證</label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"panel_dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;width:100px;\">選擇DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"panel_dnspai\" class=\"bt-input-text mr20\" style=\"width:120px;\">\t\t\t\t\t\t<option value=\"none\">手動解析</option>\t\t\t\t\t</select>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"panel_checkDomain\" id=\"panel_checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"panel_checkDomain\" style=\"font-weight:normal;cursor:pointer;\">提前校驗網域名稱(提前發現問題,减少失敗率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"panel_admin_email\" value=\"",
+            "en": "<div class=\"apply_ssl\" style=\"padding: 10px 0;\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\" style=\"width:100px;\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"file\" id=\"panel_check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_file\" style=\"font-weight:normal;cursor:pointer;\">Files验证</label>  \t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"dns\" id=\"panel_check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_dns\" style=\"font-weight:normal;cursor:pointer;\">DNS验证</label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"panel_dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;width:100px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"panel_dnspai\" class=\"bt-input-text mr20\" style=\"width:120px;\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"panel_checkDomain\" id=\"panel_checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"panel_checkDomain\" style=\"font-weight:normal;cursor:pointer;\">提前校验Domain(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"panel_admin_email\" value=\"",
+            "fr": "<div class=\"apply_ssl\" style=\"padding: 10px 0;\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\" style=\"width:100px;\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"file\" id=\"panel_check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_file\" style=\"font-weight:normal;cursor:pointer;\">Fichiers验证</label>  \t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"dns\" id=\"panel_check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_dns\" style=\"font-weight:normal;cursor:pointer;\">DNS验证</label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"panel_dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;width:100px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"panel_dnspai\" class=\"bt-input-text mr20\" style=\"width:120px;\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"panel_checkDomain\" id=\"panel_checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"panel_checkDomain\" style=\"font-weight:normal;cursor:pointer;\">提前校验Domaine(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"panel_admin_email\" value=\"",
+            "de": "<div class=\"apply_ssl\" style=\"padding: 10px 0;\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\" style=\"width:100px;\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"file\" id=\"panel_check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_file\" style=\"font-weight:normal;cursor:pointer;\">Dateien验证</label>  \t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"dns\" id=\"panel_check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_dns\" style=\"font-weight:normal;cursor:pointer;\">DNS验证</label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"panel_dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;width:100px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"panel_dnspai\" class=\"bt-input-text mr20\" style=\"width:120px;\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"panel_checkDomain\" id=\"panel_checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"panel_checkDomain\" style=\"font-weight:normal;cursor:pointer;\">提前校验Domain(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"panel_admin_email\" value=\"",
+            "it": "<div class=\"apply_ssl\" style=\"padding: 10px 0;\">\t\t<div class=\"label-input-group\">\t\t\t<div class=\"line mtb10\">\t\t\t\t<span class=\"tname text-center\" style=\"width:100px;\">验证方式</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"file\" id=\"panel_check_file\" checked=\"checked\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_file\" style=\"font-weight:normal;cursor:pointer;\">File验证</label>  \t\t\t\t\t<input type=\"radio\" name=\"panel_apply_type\" value=\"dns\" id=\"panel_check_dns\"/>  \t\t\t\t\t<label class=\"mr20\" for=\"panel_check_dns\" style=\"font-weight:normal;cursor:pointer;\">DNS验证</label>  \t\t\t\t</div>\t  \t\t</div>\t  \t\t<div class=\"line mtb10\" id=\"panel_dnsapi_option\" style=\"display:none;\">\t\t\t\t<span class=\"tname text-center\" style=\"line-height: 42px;width:100px;\">选择DNS接口</span>\t\t\t\t<div style=\"margin-top:7px;display:inline-block\">\t\t\t\t\t<select name=\"panel_dnspai\" class=\"bt-input-text mr20\" style=\"width:120px;\">\t\t\t\t\t\t<option value=\"none\">手动解析</option>\t\t\t\t\t</select>  \t\t\t\t</div>\t  \t\t</div>  \t\t\t<div class=\"check_message line\">  \t\t\t\t<div style=\"margin-left:100px\">  \t\t\t\t\t<input type=\"checkbox\" name=\"panel_checkDomain\" id=\"panel_checkDomain\" checked=\"\">  \t\t\t\t\t<label class=\"mr20\" for=\"panel_checkDomain\" style=\"font-weight:normal;cursor:pointer;\">提前校验Dominio(提前发现问题,减少失败率)</label>  \t\t\t\t</div>  \t\t\t</div>  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">邮箱</span>  \t\t\t<input class=\"bt-input-text\" style=\"width:240px;\" type=\"text\" name=\"panel_admin_email\" value=\""
+        },
+        "config_auto_str_112": {
+            "zh-CN": "\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">域名</span>  \t\t\t<ul id=\"panel_ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;\">\t\t\t\t<li style=\"line-height:26px\"><input type=\"checkbox\" style=\"margin-right:5px; vertical-align:-2px\" value=\"",
+            "zh-TW": "\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">網域名稱</span>  \t\t\t<ul id=\"panel_ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;\">\t\t\t\t<li style=\"line-height:26px\"><input type=\"checkbox\" style=\"margin-right:5px; vertical-align:-2px\" value=\"",
+            "en": "\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">Domain</span>  \t\t\t<ul id=\"panel_ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;\">\t\t\t\t<li style=\"line-height:26px\"><input type=\"checkbox\" style=\"margin-right:5px; vertical-align:-2px\" value=\"",
+            "fr": "\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">Domaine</span>  \t\t\t<ul id=\"panel_ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;\">\t\t\t\t<li style=\"line-height:26px\"><input type=\"checkbox\" style=\"margin-right:5px; vertical-align:-2px\" value=\"",
+            "de": "\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">Domain</span>  \t\t\t<ul id=\"panel_ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;\">\t\t\t\t<li style=\"line-height:26px\"><input type=\"checkbox\" style=\"margin-right:5px; vertical-align:-2px\" value=\"",
+            "it": "\" />  \t\t</div>  \t\t<div class=\"line mtb10\">  \t\t\t<span class=\"tname text-center\" style=\"width:100px;\">Dominio</span>  \t\t\t<ul id=\"panel_ymlist\" style=\"padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;\">\t\t\t\t<li style=\"line-height:26px\"><input type=\"checkbox\" style=\"margin-right:5px; vertical-align:-2px\" value=\""
+        },
+        "config_auto_str_113": {
+            "zh-CN": "</li>\t\t\t</ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm panel_letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"panel_lets_help\" style=\"margin-top:10px;\">\t  \t\t<li>由 Let's Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t  \t\t<li>申请之前，请确保面板域名已正确解析到本服务器IP。</li>\t  \t\t<li>如果使用文件验证方式，请确保能够通过公网访问到面板服务。</li>\t  \t</ul>  \t</div>",
+            "zh-TW": "</li>\t\t\t</ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm panel_letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"panel_lets_help\" style=\"margin-top:10px;\">\t  \t\t<li>由 Let's Encrypt 免费申请憑證，有效期3個月，預設到期会自動续签。</li>\t  \t\t<li>申请之前，请確保面板網域名稱已正確解析到本伺服器IP。</li>\t  \t\t<li>如果使用檔案驗證方式，请確保能够通過公網访問到面板服务。</li>\t  \t</ul>  \t</div>",
+            "en": "</li>\t\t\t</ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm panel_letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"panel_lets_help\" style=\"margin-top:10px;\">\t  \t\t<li>由 Let's Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t  \t\t<li>申请之前，请确保面板Domain已正确解析到本服务器IP。</li>\t  \t\t<li>如果使用Files验证方式，请确保能够通过公网访问到面板服务。</li>\t  \t</ul>  \t</div>",
+            "fr": "</li>\t\t\t</ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm panel_letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"panel_lets_help\" style=\"margin-top:10px;\">\t  \t\t<li>由 Let's Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t  \t\t<li>申请之前，请确保面板Domaine已正确解析到本服务器IP。</li>\t  \t\t<li>如果使用Fichiers验证方式，请确保能够通过公网访问到面板服务。</li>\t  \t</ul>  \t</div>",
+            "de": "</li>\t\t\t</ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm panel_letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"panel_lets_help\" style=\"margin-top:10px;\">\t  \t\t<li>由 Let's Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t  \t\t<li>申请之前，请确保面板Domain已正确解析到本服务器IP。</li>\t  \t\t<li>如果使用Dateien验证方式，请确保能够通过公网访问到面板服务。</li>\t  \t</ul>  \t</div>",
+            "it": "</li>\t\t\t</ul>  \t\t</div>  \t\t<div class=\"line mtb10\" style=\"margin-left:100px\">  \t\t\t<button class=\"btn btn-success btn-sm panel_letsApply\">申请</button>  \t\t</div>\t  \t<ul class=\"help-info-text c7\" id=\"panel_lets_help\" style=\"margin-top:10px;\">\t  \t\t<li>由 Let's Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t  \t\t<li>申请之前，请确保面板Dominio已正确解析到本服务器IP。</li>\t  \t\t<li>如果使用File验证方式，请确保能够通过公网访问到面板服务。</li>\t  \t</ul>  \t</div>"
+        },
+        "config_auto_str_114": {
+            "zh-CN": "手动解析TXT记录",
+            "zh-TW": "手動解析TXT記錄",
+            "en": "手动解析TXT记录",
+            "fr": "手动解析TXT记录",
+            "de": "手动解析TXT记录",
+            "it": "手动解析TXT记录"
+        },
+        "config_auto_str_115": {
+            "zh-CN": "验证",
+            "zh-TW": "驗證",
+            "en": "验证",
+            "fr": "验证",
+            "de": "验证",
+            "it": "验证"
+        },
+        "config_auto_str_116": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "config_auto_str_117": {
+            "zh-CN": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">\t\t\t\t<div class=\"tablescroll\">\t\t\t\t\t<table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">\t\t\t\t\t<thead><tr><th>解析域名</th><th>记录值</th><th>类型</th><th>必需</th></tr></thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t\t</table>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t\t<li>解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮</li>\t\t\t\t<li>可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t</ul>\t\t</div>",
+            "zh-TW": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下列表做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">\t\t\t\t<div class=\"tablescroll\">\t\t\t\t\t<table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">\t\t\t\t\t<thead><tr><th>解析網域名稱</th><th>記錄值</th><th>類型</th><th>必需</th></tr></thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t\t</table>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t\t<li>解析網域名稱需要一定時間來生效,完成所以上所有解析操作後,请等待1分鐘後再點击【驗證】按钮</li>\t\t\t\t<li>可通過CMD命令來手動驗證網域名稱解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t</ul>\t\t</div>",
+            "en": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下List做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">\t\t\t\t<div class=\"tablescroll\">\t\t\t\t\t<table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">\t\t\t\t\t<thead><tr><th>解析Domain</th><th>记录值</th><th>Type</th><th>必需</th></tr></thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t\t</table>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t\t<li>解析Domain需要一定Time来生效,完成所以上所有解析Action后,请等待1分钟后再点击【验证】按钮</li>\t\t\t\t<li>可通过CMD命令来手动验证Domain解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t</ul>\t\t</div>",
+            "fr": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下Liste做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">\t\t\t\t<div class=\"tablescroll\">\t\t\t\t\t<table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">\t\t\t\t\t<thead><tr><th>解析Domaine</th><th>记录值</th><th>Type</th><th>必需</th></tr></thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t\t</table>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t\t<li>解析Domaine需要一定Heure来生效,完成所以上所有解析Action后,请等待1分钟后再点击【验证】按钮</li>\t\t\t\t<li>可通过CMD命令来手动验证Domaine解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t</ul>\t\t</div>",
+            "de": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下Liste做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">\t\t\t\t<div class=\"tablescroll\">\t\t\t\t\t<table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">\t\t\t\t\t<thead><tr><th>解析Domain</th><th>记录值</th><th>Typ</th><th>必需</th></tr></thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t\t</table>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t\t<li>解析Domain需要一定Zeit来生效,完成所以上所有解析Aktion后,请等待1分钟后再点击【验证】按钮</li>\t\t\t\t<li>可通过CMD命令来手动验证Domain解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t</ul>\t\t</div>",
+            "it": "<div class=\"bt-form\" style=\"padding: 10px 20px;\">\t\t\t<div class=\"line\"><span>请按以下Elenco做TXT解析: </span></div>\t\t\t<div id=\"acme_hand_ssl_notice\" class=\"divtable mtb10\">\t\t\t\t<div class=\"tablescroll\">\t\t\t\t\t<table class=\"table table-hover\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"border: 0 none;\">\t\t\t\t\t<thead><tr><th>解析Dominio</th><th>记录值</th><th>Tipo</th><th>必需</th></tr></thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t\t</table>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul id=\"acme_hand_ssl_notice_help\" class=\"help-info-text c6\">\t\t\t\t<li>解析Dominio需要一定Ora来生效,完成所以上所有解析Azione后,请等待1分钟后再点击【验证】按钮</li>\t\t\t\t<li>可通过CMD命令来手动验证Dominio解析是否生效: nslookup -q=txt _acme-challenge.xx.cn</li>\t\t\t</ul>\t\t</div>"
+        },
+        "config_auto_str_118": {
+            "zh-CN": "必需",
+            "zh-TW": "必需",
+            "en": "必需",
+            "fr": "必需",
+            "de": "必需",
+            "it": "必需"
+        },
+        "config_auto_str_119": {
+            "zh-CN": "可选",
+            "zh-TW": "可選",
+            "en": "可选",
+            "fr": "可选",
+            "de": "可选",
+            "it": "可选"
+        },
+        "config_auto_str_120": {
+            "zh-CN": "可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt ",
+            "zh-TW": "可通過CMD命令來手動驗證網域名稱解析是否生效: nslookup -q=txt ",
+            "en": "可通过CMD命令来手动验证Domain解析是否生效: nslookup -q=txt ",
+            "fr": "可通过CMD命令来手动验证Domaine解析是否生效: nslookup -q=txt ",
+            "de": "可通过CMD命令来手动验证Domain解析是否生效: nslookup -q=txt ",
+            "it": "可通过CMD命令来手动验证Dominio解析是否生效: nslookup -q=txt "
+        },
+        "config_auto_str_121": {
+            "zh-CN": "正在由ACME申请手动SSL...",
+            "zh-TW": "正在由ACME申请手動SSL...",
+            "en": "正在由ACME申请手动SSL...",
+            "fr": "正在由ACME申请手动SSL...",
+            "de": "正在由ACME申请手动SSL...",
+            "it": "正在由ACME申请手动SSL..."
+        },
+        "config_auto_str_122": {
+            "zh-CN": "正在获取证书信息...",
+            "zh-TW": "正在獲取憑證信息...",
+            "en": "正在获取证书信息...",
+            "fr": "正在获取证书信息...",
+            "de": "正在获取证书信息...",
+            "it": "正在获取证书信息..."
+        },
+        "config_auto_str_123": {
+            "zh-CN": ">本地</option>",
+            "zh-TW": ">本地</option>",
+            "en": ">本地</option>",
+            "fr": ">本地</option>",
+            "de": ">本地</option>",
+            "it": ">本地</option>"
+        },
+        "config_auto_str_124": {
+            "zh-CN": ">90天证书</option>",
+            "zh-TW": ">90天憑證</option>",
+            "en": ">90天证书</option>",
+            "fr": ">90天证书</option>",
+            "de": ">90天证书</option>",
+            "it": ">90天证书</option>"
+        },
+        "config_auto_str_125": {
+            "zh-CN": "自定义面板证书",
+            "zh-TW": "自定义面板憑證",
+            "en": "自定义面板证书",
+            "fr": "自定义面板证书",
+            "de": "自定义面板证书",
+            "it": "自定义面板证书"
+        },
+        "config_auto_str_126": {
+            "zh-CN": "自签名/未知",
+            "zh-TW": "自签名/未知",
+            "en": "自签名/未知",
+            "fr": "自签名/未知",
+            "de": "自签名/未知",
+            "it": "自签名/未知"
+        },
+        "config_auto_str_127": {
+            "zh-CN": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "zh-TW": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>憑證分类：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "en": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "fr": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "de": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "it": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>"
+        },
+        "config_auto_str_128": {
+            "zh-CN": "</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "zh-TW": "</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>憑證品牌：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "en": "</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "fr": "</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "de": "</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "it": "</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>"
+        },
+        "config_auto_str_129": {
+            "zh-CN": "</span></div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>到期时间：</span>\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "zh-TW": "</span></div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>到期時間：</span>\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "en": "</span></div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Time：</span>\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "fr": "</span></div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Heure：</span>\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "de": "</span></div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Zeit：</span>\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "it": "</span></div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Ora：</span>\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余"
+        },
+        "config_auto_str_130": {
+            "zh-CN": "天到期</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>认证域名：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "zh-TW": "天到期</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>認證網域名稱：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "en": "天到期</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Domain：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "fr": "天到期</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Domaine：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "de": "天到期</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Domain：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "it": "天到期</span></div>\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Dominio：</span>\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>"
+        },
+        "config_auto_str_131": {
+            "zh-CN": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "zh-TW": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">金鑰(KEY)<br>\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "en": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "fr": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "de": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "it": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">"
+        },
+        "config_auto_str_132": {
+            "zh-CN": "</textarea>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "zh-TW": "</textarea>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">憑證(PEM格式)<br>\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "en": "</textarea>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "fr": "</textarea>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "de": "</textarea>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "it": "</textarea>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">"
+        },
+        "config_auto_str_133": {
+            "zh-CN": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">保存</button>\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">删除</button>",
+            "zh-TW": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">儲存</button>\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">刪除</button>",
+            "en": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">Save</button>\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Delete</button>",
+            "fr": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">Enregistrer</button>\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Supprimer</button>",
+            "de": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">Speichern</button>\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Löschen</button>",
+            "it": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">Salva</button>\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Elimina</button>"
+        },
+        "config_auto_str_134": {
+            "zh-CN": "<li>粘贴您的*.key以及*.pem内容，然后保存即可。</li>\t\t\t\t\t\t\t\t\t<li>如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt</li>",
+            "zh-TW": "<li>粘贴您的*.key以及*.pem内容，然後儲存即可。</li>\t\t\t\t\t\t\t\t\t<li>如果浏覽器提示憑證链不完整,请检查是否正確拼接PEM憑證</li><li>PEM格式憑證 = 網域名稱憑證.crt + 根憑證(root_bundle).crt</li>",
+            "en": "<li>粘贴您的*.key以及*.pem内容，然后Save即可。</li>\t\t\t\t\t\t\t\t\t<li>如果浏览器Tip证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = Domain证书.crt + 根证书(root_bundle).crt</li>",
+            "fr": "<li>粘贴您的*.key以及*.pem内容，然后Enregistrer即可。</li>\t\t\t\t\t\t\t\t\t<li>如果浏览器Conseil证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = Domaine证书.crt + 根证书(root_bundle).crt</li>",
+            "de": "<li>粘贴您的*.key以及*.pem内容，然后Speichern即可。</li>\t\t\t\t\t\t\t\t\t<li>如果浏览器Hinweis证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = Domain证书.crt + 根证书(root_bundle).crt</li>",
+            "it": "<li>粘贴您的*.key以及*.pem内容，然后Salva即可。</li>\t\t\t\t\t\t\t\t\t<li>如果浏览器Suggerimento证书链不完整,请检查是否正确拼接PEM证书</li><li>PEM格式证书 = Dominio证书.crt + 根证书(root_bundle).crt</li>"
+        },
+        "config_auto_str_135": {
+            "zh-CN": "自签名/未知",
+            "zh-TW": "自签名/未知",
+            "en": "自签名/未知",
+            "fr": "自签名/未知",
+            "de": "自签名/未知",
+            "it": "自签名/未知"
+        },
+        "config_auto_str_136": {
+            "zh-CN": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "zh-TW": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>憑證分类：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "en": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "fr": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "de": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>",
+            "it": "<div class='ssl_state_info'><div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书分类：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue_o'>"
+        },
+        "config_auto_str_137": {
+            "zh-CN": "</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "zh-TW": "</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>憑證品牌：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "en": "</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "fr": "</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "de": "</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>",
+            "it": "</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>证书品牌：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_issue'>"
+        },
+        "config_auto_str_138": {
+            "zh-CN": "</span></div>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>到期时间：</span>\t\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "zh-TW": "</span></div>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>到期時間：</span>\t\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "en": "</span></div>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Time：</span>\t\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "fr": "</span></div>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Heure：</span>\t\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "de": "</span></div>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Zeit：</span>\t\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余",
+            "it": "</span></div>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class='state_info_flex'>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>到期Ora：</span>\t\t\t\t\t\t\t\t\t<span class='btlink ssl_endtime'>剩余"
+        },
+        "config_auto_str_139": {
+            "zh-CN": "天到期</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>认证域名：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "zh-TW": "天到期</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>認證網域名稱：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "en": "天到期</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Domain：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "fr": "天到期</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Domaine：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "de": "天到期</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Domain：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>",
+            "it": "天到期</span></div>\t\t\t\t\t\t\t\t\t<div class='state_item'><span>认证Dominio：</span>\t\t\t\t\t\t\t\t\t<span class='ellipsis_text ssl_subject'>"
+        },
+        "config_auto_str_140": {
+            "zh-CN": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "zh-TW": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">金鑰(KEY)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "en": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "fr": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "de": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">",
+            "it": "<div class=\"custom_certificate_info\" style=\"margin-top:10px;\">\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left mr20\">密钥(KEY)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"key\" class=\"bt-input-text\">"
+        },
+        "config_auto_str_141": {
+            "zh-CN": "</textarea>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "zh-TW": "</textarea>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">憑證(PEM格式)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "en": "</textarea>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "fr": "</textarea>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "de": "</textarea>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">",
+            "it": "</textarea>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<div class=\"ssl-con-key pull-left\">证书(PEM格式)<br>\t\t\t\t\t\t\t\t\t<textarea id=\"csr\" class=\"bt-input-text\">"
+        },
+        "config_auto_str_142": {
+            "zh-CN": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">部署</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm panel-renew-ssl\" style=\"margin-right:5px;\">续期</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">删除</button>",
+            "zh-TW": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">部署</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm panel-renew-ssl\" style=\"margin-right:5px;\">续期</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">刪除</button>",
+            "en": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">部署</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm panel-renew-ssl\" style=\"margin-right:5px;\">续期</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Delete</button>",
+            "fr": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">部署</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm panel-renew-ssl\" style=\"margin-right:5px;\">续期</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Supprimer</button>",
+            "de": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">部署</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm panel-renew-ssl\" style=\"margin-right:5px;\">续期</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Löschen</button>",
+            "it": "<button class=\"btn btn-success btn-sm save-panel-ssl\" style=\"margin-right:5px;\">部署</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm panel-renew-ssl\" style=\"margin-right:5px;\">续期</button>\t\t\t\t\t\t\t\t\t\t   <button class=\"btn btn-success btn-sm del-panel-ssl\">Elimina</button>"
+        },
+        "config_auto_str_143": {
+            "zh-CN": "<li>90天免费证书已部署成功并开启面板SSL。</li>\t\t\t\t\t\t\t\t\t\t<li>由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t\t\t\t\t\t\t\t\t\t<li>如需重新申请或更换，点击“续期”即可。</li>",
+            "zh-TW": "<li>90天免费憑證已部署成功並開啟面板SSL。</li>\t\t\t\t\t\t\t\t\t\t<li>由 ACME 免费申请憑證，有效期3個月，預設到期会自動续签。</li>\t\t\t\t\t\t\t\t\t\t<li>如需重新申请或更換，點击“续期”即可。</li>",
+            "en": "<li>90天免费证书已部署成功并Turn on面板SSL。</li>\t\t\t\t\t\t\t\t\t\t<li>由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t\t\t\t\t\t\t\t\t\t<li>如需重新申请或更换，点击“续期”即可。</li>",
+            "fr": "<li>90天免费证书已部署成功并Activer面板SSL。</li>\t\t\t\t\t\t\t\t\t\t<li>由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t\t\t\t\t\t\t\t\t\t<li>如需重新申请或更换，点击“续期”即可。</li>",
+            "de": "<li>90天免费证书已部署成功并Einschalten面板SSL。</li>\t\t\t\t\t\t\t\t\t\t<li>由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t\t\t\t\t\t\t\t\t\t<li>如需重新申请或更换，点击“续期”即可。</li>",
+            "it": "<li>90天免费证书已部署成功并Attiva面板SSL。</li>\t\t\t\t\t\t\t\t\t\t<li>由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。</li>\t\t\t\t\t\t\t\t\t\t<li>如需重新申请或更换，点击“续期”即可。</li>"
+        },
+        "config_auto_str_144": {
+            "zh-CN": "<option value=\"none\">手动解析</option>",
+            "zh-TW": "<option value=\"none\">手動解析</option>",
+            "en": "<option value=\"none\">手动解析</option>",
+            "fr": "<option value=\"none\">手动解析</option>",
+            "de": "<option value=\"none\">手动解析</option>",
+            "it": "<option value=\"none\">手动解析</option>"
+        },
+        "config_auto_str_145": {
+            "zh-CN": "正在由ACME申请...",
+            "zh-TW": "正在由ACME申请...",
+            "en": "正在由ACME申请...",
+            "fr": "正在由ACME申请...",
+            "de": "正在由ACME申请...",
+            "it": "正在由ACME申请..."
+        },
+        "config_auto_str_146": {
+            "zh-CN": "手动解析",
+            "zh-TW": "手動解析",
+            "en": "手动解析",
+            "fr": "手动解析",
+            "de": "手动解析",
+            "it": "手动解析"
+        },
+        "config_auto_str_147": {
+            "zh-CN": "90天免费证书申请成功",
+            "zh-TW": "90天免费憑證申请成功",
+            "en": "90天免费证书申请成功",
+            "fr": "90天免费证书申请成功",
+            "de": "90天免费证书申请成功",
+            "it": "90天免费证书申请成功"
+        },
+        "config_auto_str_148": {
+            "zh-CN": "<option value=\"none\">手动解析</option>",
+            "zh-TW": "<option value=\"none\">手動解析</option>",
+            "en": "<option value=\"none\">手动解析</option>",
+            "fr": "<option value=\"none\">手动解析</option>",
+            "de": "<option value=\"none\">手动解析</option>",
+            "it": "<option value=\"none\">手动解析</option>"
+        },
+        "config_auto_str_149": {
+            "zh-CN": "正在保存证书...",
+            "zh-TW": "正在儲存憑證...",
+            "en": "正在Save证书...",
+            "fr": "正在Enregistrer证书...",
+            "de": "正在Speichern证书...",
+            "it": "正在Salva证书..."
+        },
+        "config_auto_str_150": {
+            "zh-CN": "自定义证书部署成功",
+            "zh-TW": "自定义憑證部署成功",
+            "en": "自定义证书部署成功",
+            "fr": "自定义证书部署成功",
+            "de": "自定义证书部署成功",
+            "it": "自定义证书部署成功"
+        },
+        "config_auto_str_151": {
+            "zh-CN": "确定要删除本地自签SSL吗？",
+            "zh-TW": "確定要刪除本地自签SSL吗？",
+            "en": "Confirm要Delete本地自签SSL吗？",
+            "fr": "Confirmer要Supprimer本地自签SSL吗？",
+            "de": "Bestätigen要Löschen本地自签SSL吗？",
+            "it": "Conferma要Elimina本地自签SSL吗？"
+        },
+        "config_auto_str_152": {
+            "zh-CN": "危险：删除90天免费证书后将关闭面板SSL并自动重启面板，您需要回退到HTTP协议访问！确定吗？",
+            "zh-TW": "危险：刪除90天免费憑證後將關閉面板SSL並自動重新啟動面板，您需要回退到HTTP協議访問！確定吗？",
+            "en": "危险：Delete90天免费证书后将Close面板SSL并自动Restart面板，您需要回退到HTTPProtocol访问！Confirm吗？",
+            "fr": "危险：Supprimer90天免费证书后将Fermer面板SSL并自动Redémarrer面板，您需要回退到HTTPProtocole访问！Confirmer吗？",
+            "de": "危险：Löschen90天免费证书后将Schließen面板SSL并自动Neustarten面板，您需要回退到HTTPProtokoll访问！Bestätigen吗？",
+            "it": "危险：Elimina90天免费证书后将Chiudi面板SSL并自动Riavvia面板，您需要回退到HTTPProtocollo访问！Conferma吗？"
+        },
+        "config_auto_str_153": {
+            "zh-CN": "提示",
+            "zh-TW": "提示",
+            "en": "Tip",
+            "fr": "Conseil",
+            "de": "Hinweis",
+            "it": "Suggerimento"
+        },
+        "config_auto_str_154": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_155": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "config_auto_str_156": {
+            "zh-CN": "正在删除证书并重启面板...",
+            "zh-TW": "正在刪除憑證並重新啟動面板...",
+            "en": "正在Delete证书并Restart面板...",
+            "fr": "正在Supprimer证书并Redémarrer面板...",
+            "de": "正在Löschen证书并Neustarten面板...",
+            "it": "正在Elimina证书并Riavvia面板..."
+        },
+        "config_auto_str_157": {
+            "zh-CN": "临时授权管理",
+            "zh-TW": "临時授权管理",
+            "en": "临时授权管理",
+            "fr": "临时授权管理",
+            "de": "临时授权管理",
+            "it": "临时授权管理"
+        },
+        "config_auto_str_158": {
+            "zh-CN": "<div class='pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm refresh_log'>刷新日志</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t\t<tr><th>操作类型</th><th>操作时间</th><th>日志</th></tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='logs_list'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "zh-TW": "<div class='pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm refresh_log'>重新整理記錄檔</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t\t<tr><th>操作類型</th><th>操作時間</th><th>記錄檔</th></tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='logs_list'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "en": "<div class='pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm refresh_log'>RefreshLogs</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t\t<tr><th>ActionType</th><th>ActionTime</th><th>Logs</th></tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='logs_list'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "fr": "<div class='pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm refresh_log'>ActualiserJournaux</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t\t<tr><th>ActionType</th><th>ActionHeure</th><th>Journaux</th></tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='logs_list'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "de": "<div class='pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm refresh_log'>AktualisierenProtokolle</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t\t<tr><th>AktionTyp</th><th>AktionZeit</th><th>Protokolle</th></tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='logs_list'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "it": "<div class='pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm refresh_log'>AggiornaLog</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t\t<tr><th>AzioneTipo</th><th>AzioneOra</th><th>Log</th></tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='logs_list'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t</div>\t\t\t\t</div>"
+        },
+        "config_auto_str_159": {
+            "zh-CN": "未登陆",
+            "zh-TW": "未登陆",
+            "en": "未登陆",
+            "fr": "未登陆",
+            "de": "未登陆",
+            "it": "未登陆"
+        },
+        "config_auto_str_160": {
+            "zh-CN": "<a style=\"color:green;\">待使用</a>",
+            "zh-TW": "<a style=\"color:green;\">待使用</a>",
+            "en": "<a style=\"color:green;\">待使用</a>",
+            "fr": "<a style=\"color:green;\">待使用</a>",
+            "de": "<a style=\"color:green;\">待使用</a>",
+            "it": "<a style=\"color:green;\">待使用</a>"
+        },
+        "config_auto_str_161": {
+            "zh-CN": "<a style=\"color:brown;\">已使用</a>",
+            "zh-TW": "<a style=\"color:brown;\">已使用</a>",
+            "en": "<a style=\"color:brown;\">已使用</a>",
+            "fr": "<a style=\"color:brown;\">已使用</a>",
+            "de": "<a style=\"color:brown;\">已使用</a>",
+            "it": "<a style=\"color:brown;\">已使用</a>"
+        },
+        "config_auto_str_162": {
+            "zh-CN": "<a>已过期</a>",
+            "zh-TW": "<a>已過期</a>",
+            "en": "<a>已过期</a>",
+            "fr": "<a>已过期</a>",
+            "de": "<a>已过期</a>",
+            "it": "<a>已过期</a>"
+        },
+        "config_auto_str_163": {
+            "zh-CN": "未登陆",
+            "zh-TW": "未登陆",
+            "en": "未登陆",
+            "fr": "未登陆",
+            "de": "未登陆",
+            "it": "未登陆"
+        },
+        "config_auto_str_164": {
+            "zh-CN": "')\">操作日志</a>",
+            "zh-TW": "')\">操作記錄檔</a>",
+            "en": "')\">ActionLogs</a>",
+            "fr": "')\">ActionJournaux</a>",
+            "de": "')\">AktionProtokolle</a>",
+            "it": "')\">AzioneLog</a>"
+        },
+        "config_auto_str_165": {
+            "zh-CN": "')\">删除</a>",
+            "zh-TW": "')\">刪除</a>",
+            "en": "')\">Delete</a>",
+            "fr": "')\">Supprimer</a>",
+            "de": "')\">Löschen</a>",
+            "it": "')\">Elimina</a>"
+        },
+        "config_auto_str_166": {
+            "zh-CN": "设置未认证时的响应状态",
+            "zh-TW": "設定未認證時的响應狀態",
+            "en": "设置未认证时的响应Status",
+            "fr": "设置未认证时的响应Statut",
+            "de": "设置未认证时的响应Status",
+            "it": "设置未认证时的响应Stato"
+        },
+        "config_auto_str_167": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "Submit",
+            "fr": "Soumettre",
+            "de": "Absenden",
+            "it": "Invia"
+        },
+        "config_auto_str_168": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "config_auto_str_169": {
+            "zh-CN": "<div class=\"bt-form bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">相应状态</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"status_code\" style=\"width: 250px;\"></select>                        </div>                    </div>                    <ul class=\"help-info-text c7\"><li style=\"color: red;\">用于未登录且未正确输入安全入口时的响应,用于隐藏面板特征</li></ul>                </div>",
+            "zh-TW": "<div class=\"bt-form bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">相應狀態</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"status_code\" style=\"width: 250px;\"></select>                        </div>                    </div>                    <ul class=\"help-info-text c7\"><li style=\"color: red;\">用于未登入且未正確輸入安全入口時的响應,用于隐藏面板特征</li></ul>                </div>",
+            "en": "<div class=\"bt-form bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">相应Status</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"status_code\" style=\"width: 250px;\"></select>                        </div>                    </div>                    <ul class=\"help-info-text c7\"><li style=\"color: red;\">用于未Login且未正确输入Security入口时的响应,用于隐藏面板特征</li></ul>                </div>",
+            "fr": "<div class=\"bt-form bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">相应Statut</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"status_code\" style=\"width: 250px;\"></select>                        </div>                    </div>                    <ul class=\"help-info-text c7\"><li style=\"color: red;\">用于未Connexion且未正确输入Sécurité入口时的响应,用于隐藏面板特征</li></ul>                </div>",
+            "de": "<div class=\"bt-form bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">相应Status</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"status_code\" style=\"width: 250px;\"></select>                        </div>                    </div>                    <ul class=\"help-info-text c7\"><li style=\"color: red;\">用于未Anmelden且未正确输入Sicherheit入口时的响应,用于隐藏面板特征</li></ul>                </div>",
+            "it": "<div class=\"bt-form bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">相应Stato</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"status_code\" style=\"width: 250px;\"></select>                        </div>                    </div>                    <ul class=\"help-info-text c7\"><li style=\"color: red;\">用于未Accedi且未正确输入Sicurezza入口时的响应,用于隐藏面板特征</li></ul>                </div>"
+        },
+        "config_auto_str_170": {
+            "zh-CN": "默认-安全入口错误提示",
+            "zh-TW": "預設-安全入口錯誤提示",
+            "en": "默认-Security入口错误Tip",
+            "fr": "默认-Sécurité入口错误Conseil",
+            "de": "默认-Sicherheit入口错误Hinweis",
+            "it": "默认-Sicurezza入口错误Suggerimento"
+        },
+        "config_auto_str_171": {
+            "zh-CN": "403-拒绝访问",
+            "zh-TW": "403-拒絕访問",
+            "en": "403-拒绝访问",
+            "fr": "403-拒绝访问",
+            "de": "403-拒绝访问",
+            "it": "403-拒绝访问"
+        },
+        "config_auto_str_172": {
+            "zh-CN": "404-页面不存在",
+            "zh-TW": "404-頁面不存在",
+            "en": "404-页面不存在",
+            "fr": "404-页面不存在",
+            "de": "404-页面不存在",
+            "it": "404-页面不存在"
+        },
+        "config_auto_str_173": {
+            "zh-CN": "416-无效的请求",
+            "zh-TW": "416-無效的请求",
+            "en": "416-无效的请求",
+            "fr": "416-无效的请求",
+            "de": "416-无效的请求",
+            "it": "416-无效的请求"
+        },
+        "config_auto_str_174": {
+            "zh-CN": "408-客户端超时",
+            "zh-TW": "408-用戶端超時",
+            "en": "408-客户端超时",
+            "fr": "408-客户端超时",
+            "de": "408-客户端超时",
+            "it": "408-客户端超时"
+        },
+        "config_auto_str_175": {
+            "zh-CN": "400-客户端请求错误",
+            "zh-TW": "400-用戶端请求錯誤",
+            "en": "400-客户端请求错误",
+            "fr": "400-客户端请求错误",
+            "de": "400-客户端请求错误",
+            "it": "400-客户端请求错误"
+        },
+        "config_auto_str_176": {
+            "zh-CN": "401-未授权访问",
+            "zh-TW": "401-未授权访問",
+            "en": "401-未授权访问",
+            "fr": "401-未授权访问",
+            "de": "401-未授权访问",
+            "it": "401-未授权访问"
+        },
+        "config_auto_str_177": {
+            "zh-CN": "正在设置未认证时的响应状态",
+            "zh-TW": "正在設定未認證時的响應狀態",
+            "en": "正在设置未认证时的响应Status",
+            "fr": "正在设置未认证时的响应Statut",
+            "de": "正在设置未认证时的响应Status",
+            "it": "正在设置未认证时的响应Stato"
+        },
+        "config_auto_str_178": {
+            "zh-CN": "临时授权管理",
+            "zh-TW": "临時授权管理",
+            "en": "临时授权管理",
+            "fr": "临时授权管理",
+            "de": "临时授权管理",
+            "it": "临时授权管理"
+        },
+        "config_auto_str_179": {
+            "zh-CN": "<div class='login_view_table pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm create_temp_login'>临时访问授权</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t<th>登录IP</th>\t\t\t\t\t\t\t\t<th>状态</th><th>登录时间</th>\t\t\t\t\t\t\t\t<th>过期时间</th>\t\t\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='temp_login_view_tbody'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t\t<div class='temp_login_view_page page'></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "zh-TW": "<div class='login_view_table pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm create_temp_login'>临時访問授权</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t<th>登入IP</th>\t\t\t\t\t\t\t\t<th>狀態</th><th>登入時間</th>\t\t\t\t\t\t\t\t<th>過期時間</th>\t\t\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='temp_login_view_tbody'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t\t<div class='temp_login_view_page page'></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "en": "<div class='login_view_table pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm create_temp_login'>临时访问授权</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t<th>LoginIP</th>\t\t\t\t\t\t\t\t<th>Status</th><th>LoginTime</th>\t\t\t\t\t\t\t\t<th>过期Time</th>\t\t\t\t\t\t\t\t<th style='text-align:right;'>Action</th>\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='temp_login_view_tbody'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t\t<div class='temp_login_view_page page'></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "fr": "<div class='login_view_table pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm create_temp_login'>临时访问授权</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t<th>ConnexionIP</th>\t\t\t\t\t\t\t\t<th>Statut</th><th>ConnexionHeure</th>\t\t\t\t\t\t\t\t<th>过期Heure</th>\t\t\t\t\t\t\t\t<th style='text-align:right;'>Action</th>\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='temp_login_view_tbody'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t\t<div class='temp_login_view_page page'></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "de": "<div class='login_view_table pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm create_temp_login'>临时访问授权</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t<th>AnmeldenIP</th>\t\t\t\t\t\t\t\t<th>Status</th><th>AnmeldenZeit</th>\t\t\t\t\t\t\t\t<th>过期Zeit</th>\t\t\t\t\t\t\t\t<th style='text-align:right;'>Aktion</th>\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='temp_login_view_tbody'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t\t<div class='temp_login_view_page page'></div>\t\t\t\t\t</div>\t\t\t\t</div>",
+            "it": "<div class='login_view_table pd20'>\t\t\t\t\t<button class='btn btn-success btn-sm create_temp_login'>临时访问授权</button>\t\t\t\t\t<div class='divtable mt10'>\t\t\t\t\t\t<table class='table table-hover'>\t\t\t\t\t\t\t<thead>\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t<th>AccediIP</th>\t\t\t\t\t\t\t\t<th>Stato</th><th>AccediOra</th>\t\t\t\t\t\t\t\t<th>过期Ora</th>\t\t\t\t\t\t\t\t<th style='text-align:right;'>Azione</th>\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t<tbody id='temp_login_view_tbody'></tbody>\t\t\t\t\t\t</table>\t\t\t\t\t\t<div class='temp_login_view_page page'></div>\t\t\t\t\t</div>\t\t\t\t</div>"
+        },
+        "config_auto_str_180": {
+            "zh-CN": "<span style=\"color:red\">注意1：滥用临时授权可能导致安全风险。</br>注意2：请勿在公共场合发布临时授权连接</span></br>即将创建临时授权连接，继续吗？",
+            "zh-TW": "<span style=\"color:red\">注意1：滥用临時授权可能導致安全风险。</br>注意2：请勿在公共场合發布临時授权連接</span></br>即將建立临時授权連接，继续吗？",
+            "en": "<span style=\"color:red\">注意1：滥用临时授权可能导致Security风险。</br>注意2：请勿在公共场合发布临时授权Connections</span></br>即将创建临时授权Connections，继续吗？",
+            "fr": "<span style=\"color:red\">注意1：滥用临时授权可能导致Sécurité风险。</br>注意2：请勿在公共场合发布临时授权Connexions</span></br>即将创建临时授权Connexions，继续吗？",
+            "de": "<span style=\"color:red\">注意1：滥用临时授权可能导致Sicherheit风险。</br>注意2：请勿在公共场合发布临时授权Verbindungen</span></br>即将创建临时授权Verbindungen，继续吗？",
+            "it": "<span style=\"color:red\">注意1：滥用临时授权可能导致Sicurezza风险。</br>注意2：请勿在公共场合发布临时授权Connessioni</span></br>即将创建临时授权Connessioni，继续吗？"
+        },
+        "config_auto_str_181": {
+            "zh-CN": "风险提示",
+            "zh-TW": "风险提示",
+            "en": "风险Tip",
+            "fr": "风险Conseil",
+            "de": "风险Hinweis",
+            "it": "风险Suggerimento"
+        },
+        "config_auto_str_182": {
+            "zh-CN": "创建临时授权",
+            "zh-TW": "建立临時授权",
+            "en": "创建临时授权",
+            "fr": "创建临时授权",
+            "de": "创建临时授权",
+            "it": "创建临时授权"
+        },
+        "config_auto_str_183": {
+            "zh-CN": "<div class='bt-form create_temp_view pd15'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname'>临时授权地址</span>\t\t\t\t\t\t\t\t\t\t<div>\t\t\t\t\t\t\t\t\t\t\t<textarea id='temp_link' class='bt-input-text mr20' style='margin: 0px;width: 500px;height: 50px;line-height: 19px;'></textarea>\t\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t<div class='line'><button type='submit' class='btn btn-success btn-sm btn-copy-temp-link' data-clipboard-text=''>复制地址</button></div>\t\t\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t\t\t\t<li>临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效</li>\t\t\t\t\t\t\t\t\t\t<li>使用临时授权登录面板后1小时内拥有面板所有权限，请勿在公共场合发布临时授权连接</li>\t\t\t\t\t\t\t\t\t\t<li>授权连接信息仅在此处显示一次，若在使用前忘记，请重新生成</li>\t\t\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t\t\t</div>",
+            "zh-TW": "<div class='bt-form create_temp_view pd15'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname'>临時授权地址</span>\t\t\t\t\t\t\t\t\t\t<div>\t\t\t\t\t\t\t\t\t\t\t<textarea id='temp_link' class='bt-input-text mr20' style='margin: 0px;width: 500px;height: 50px;line-height: 19px;'></textarea>\t\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t<div class='line'><button type='submit' class='btn btn-success btn-sm btn-copy-temp-link' data-clipboard-text=''>復製地址</button></div>\t\t\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t\t\t\t<li>临時授权生成後1小時内使用有效，為一次性授权，使用後立即失效</li>\t\t\t\t\t\t\t\t\t\t<li>使用临時授权登入面板後1小時内拥有面板所有權限，请勿在公共场合發布临時授权連接</li>\t\t\t\t\t\t\t\t\t\t<li>授权連接信息仅在此处顯示一次，若在使用前忘記，请重新生成</li>\t\t\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t\t\t</div>",
+            "en": "<div class='bt-form create_temp_view pd15'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname'>临时授权地址</span>\t\t\t\t\t\t\t\t\t\t<div>\t\t\t\t\t\t\t\t\t\t\t<textarea id='temp_link' class='bt-input-text mr20' style='margin: 0px;width: 500px;height: 50px;line-height: 19px;'></textarea>\t\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t<div class='line'><button type='submit' class='btn btn-success btn-sm btn-copy-temp-link' data-clipboard-text=''>Copy地址</button></div>\t\t\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t\t\t\t<li>临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效</li>\t\t\t\t\t\t\t\t\t\t<li>使用临时授权Login面板后1小时内拥有面板所有Permissions，请勿在公共场合发布临时授权Connections</li>\t\t\t\t\t\t\t\t\t\t<li>授权Connections信息仅在此处显示一次，若在使用前忘记，请重新生成</li>\t\t\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t\t\t</div>",
+            "fr": "<div class='bt-form create_temp_view pd15'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname'>临时授权地址</span>\t\t\t\t\t\t\t\t\t\t<div>\t\t\t\t\t\t\t\t\t\t\t<textarea id='temp_link' class='bt-input-text mr20' style='margin: 0px;width: 500px;height: 50px;line-height: 19px;'></textarea>\t\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t<div class='line'><button type='submit' class='btn btn-success btn-sm btn-copy-temp-link' data-clipboard-text=''>Copier地址</button></div>\t\t\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t\t\t\t<li>临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效</li>\t\t\t\t\t\t\t\t\t\t<li>使用临时授权Connexion面板后1小时内拥有面板所有Permissions，请勿在公共场合发布临时授权Connexions</li>\t\t\t\t\t\t\t\t\t\t<li>授权Connexions信息仅在此处显示一次，若在使用前忘记，请重新生成</li>\t\t\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t\t\t</div>",
+            "de": "<div class='bt-form create_temp_view pd15'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname'>临时授权地址</span>\t\t\t\t\t\t\t\t\t\t<div>\t\t\t\t\t\t\t\t\t\t\t<textarea id='temp_link' class='bt-input-text mr20' style='margin: 0px;width: 500px;height: 50px;line-height: 19px;'></textarea>\t\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t<div class='line'><button type='submit' class='btn btn-success btn-sm btn-copy-temp-link' data-clipboard-text=''>Kopieren地址</button></div>\t\t\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t\t\t\t<li>临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效</li>\t\t\t\t\t\t\t\t\t\t<li>使用临时授权Anmelden面板后1小时内拥有面板所有Berechtigungen，请勿在公共场合发布临时授权Verbindungen</li>\t\t\t\t\t\t\t\t\t\t<li>授权Verbindungen信息仅在此处显示一次，若在使用前忘记，请重新生成</li>\t\t\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t\t\t</div>",
+            "it": "<div class='bt-form create_temp_view pd15'>\t\t\t\t\t\t\t\t\t<div class='line'>\t\t\t\t\t\t\t\t\t\t<span class='tname'>临时授权地址</span>\t\t\t\t\t\t\t\t\t\t<div>\t\t\t\t\t\t\t\t\t\t\t<textarea id='temp_link' class='bt-input-text mr20' style='margin: 0px;width: 500px;height: 50px;line-height: 19px;'></textarea>\t\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t\t<div class='line'><button type='submit' class='btn btn-success btn-sm btn-copy-temp-link' data-clipboard-text=''>Copia地址</button></div>\t\t\t\t\t\t\t\t\t<ul class='help-info-text c7 ptb15'>\t\t\t\t\t\t\t\t\t\t<li>临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效</li>\t\t\t\t\t\t\t\t\t\t<li>使用临时授权Accedi面板后1小时内拥有面板所有Permessi，请勿在公共场合发布临时授权Connessioni</li>\t\t\t\t\t\t\t\t\t\t<li>授权Connessioni信息仅在此处显示一次，若在使用前忘记，请重新生成</li>\t\t\t\t\t\t\t\t\t</ul>\t\t\t\t\t\t\t\t</div>"
+        },
+        "config_auto_str_184": {
+            "zh-CN": "二步验证设置",
+            "zh-TW": "二步驗證設定",
+            "en": "二步验证设置",
+            "fr": "二步验证设置",
+            "de": "二步验证设置",
+            "it": "二步验证设置"
+        },
+        "config_auto_str_185": {
+            "zh-CN": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">绑定密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_secret\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">二维码</span>\t\t\t<div class=\"info-r\"><div class=\"qrcode\"></div></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t</ul>\t</div>",
+            "zh-TW": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">绑定金鑰</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_secret\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">二维码</span>\t\t\t<div class=\"info-r\"><div class=\"qrcode\"></div></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t</ul>\t</div>",
+            "en": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">绑定密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_secret\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">二维码</span>\t\t\t<div class=\"info-r\"><div class=\"qrcode\"></div></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t</ul>\t</div>",
+            "fr": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">绑定密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_secret\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">二维码</span>\t\t\t<div class=\"info-r\"><div class=\"qrcode\"></div></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t</ul>\t</div>",
+            "de": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">绑定密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_secret\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">二维码</span>\t\t\t<div class=\"info-r\"><div class=\"qrcode\"></div></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t</ul>\t</div>",
+            "it": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">绑定密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_secret\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">二维码</span>\t\t\t<div class=\"info-r\"><div class=\"qrcode\"></div></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t</ul>\t</div>"
+        },
+        "config_auto_str_186": {
+            "zh-CN": "您确定要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。</span>",
+            "zh-TW": "您確定要重置当前金鑰吗？<br/><span style=\"color: red; \">重置金鑰後，已關联金鑰產品，將失效，请重新新增新金鑰至產品。</span>",
+            "en": "您Confirm要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Add新密钥至产品。</span>",
+            "fr": "您Confirmer要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Ajouter新密钥至产品。</span>",
+            "de": "您Bestätigen要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Hinzufügen新密钥至产品。</span>",
+            "it": "您Conferma要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Aggiungi新密钥至产品。</span>"
+        },
+        "config_auto_str_187": {
+            "zh-CN": "重置密钥",
+            "zh-TW": "重置金鑰",
+            "en": "重置密钥",
+            "fr": "重置密钥",
+            "de": "重置密钥",
+            "it": "重置密钥"
+        },
+        "config_auto_str_188": {
+            "zh-CN": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。",
+            "zh-TW": "接口金鑰已生成，重置金鑰後，已關联金鑰產品，將失效，请重新新增新金鑰至產品。",
+            "en": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Add新密钥至产品。",
+            "fr": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Ajouter新密钥至产品。",
+            "de": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Hinzufügen新密钥至产品。",
+            "it": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Aggiungi新密钥至产品。"
+        },
+        "config_auto_str_189": {
+            "zh-CN": "开启BasicAuth认证提示",
+            "zh-TW": "開啟BasicAuth認證提示",
+            "en": "Turn onBasicAuth认证Tip",
+            "fr": "ActiverBasicAuth认证Conseil",
+            "de": "EinschaltenBasicAuth认证Hinweis",
+            "it": "AttivaBasicAuth认证Suggerimento"
+        },
+        "config_auto_str_190": {
+            "zh-CN": "<div class=\"bt-form pd20\">\t\t<div class=\"mb15\">\t\t\t<h3 class=\"layer-info-title\">风险操作！此功能不懂请勿开启！</h3>\t\t</div>\t\t<ul class=\"help-info-text c7 explain-describe-list pd15\">\t\t\t<li style=\"color: red;\">必须要用到且了解此功能才决定自己是否要开启!</li>\t\t\t<li>开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码</li>\t\t\t<li>开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码</li>\t\t\t<li>请牢记BasicAuth密码，一但忘记将无法访问面板</li>\t\t\t<li>如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证</li>\t\t</ul>\t\t<div class=\"mt10 plr15 agreement-box\" id=\"checkBasicAuth\">\t\t\t<input class=\"bt-input-text mr5\" name=\"agreement\" type=\"checkbox\" value=\"false\" id=\"agreement_more\">\t\t\t<label for=\"agreement_more\"><span>我已经了解详情,并愿意承担风险</span></label>\t\t</div>\t</div>",
+            "zh-TW": "<div class=\"bt-form pd20\">\t\t<div class=\"mb15\">\t\t\t<h3 class=\"layer-info-title\">风险操作！此功能不懂请勿開啟！</h3>\t\t</div>\t\t<ul class=\"help-info-text c7 explain-describe-list pd15\">\t\t\t<li style=\"color: red;\">必须要用到且了解此功能才决定自己是否要開啟!</li>\t\t\t<li>開啟後，以任何方式访問面板，將先要求輸入BasicAuth使用者名和密碼</li>\t\t\t<li>開啟後，能有效防止面板被扫描發現，但並不能代替面板本身的帐号密碼</li>\t\t\t<li>请牢記BasicAuth密碼，一但忘記將無法访問面板</li>\t\t\t<li>如忘記密碼，可在SSH通過bs命令來關閉BasicAuth驗證</li>\t\t</ul>\t\t<div class=\"mt10 plr15 agreement-box\" id=\"checkBasicAuth\">\t\t\t<input class=\"bt-input-text mr5\" name=\"agreement\" type=\"checkbox\" value=\"false\" id=\"agreement_more\">\t\t\t<label for=\"agreement_more\"><span>我已經了解詳情,並愿意承担风险</span></label>\t\t</div>\t</div>",
+            "en": "<div class=\"bt-form pd20\">\t\t<div class=\"mb15\">\t\t\t<h3 class=\"layer-info-title\">风险Action！此功能不懂请勿Turn on！</h3>\t\t</div>\t\t<ul class=\"help-info-text c7 explain-describe-list pd15\">\t\t\t<li style=\"color: red;\">必须要用到且了解此功能才决定自己是否要Turn on!</li>\t\t\t<li>Turn on后，以任何方式访问面板，将先要求输入BasicAuthUsername和Password</li>\t\t\t<li>Turn on后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Password</li>\t\t\t<li>请牢记BasicAuthPassword，一但忘记将无法访问面板</li>\t\t\t<li>如忘记Password，可在SSH通过bs命令来CloseBasicAuth验证</li>\t\t</ul>\t\t<div class=\"mt10 plr15 agreement-box\" id=\"checkBasicAuth\">\t\t\t<input class=\"bt-input-text mr5\" name=\"agreement\" type=\"checkbox\" value=\"false\" id=\"agreement_more\">\t\t\t<label for=\"agreement_more\"><span>我已经了解详情,并愿意承担风险</span></label>\t\t</div>\t</div>",
+            "fr": "<div class=\"bt-form pd20\">\t\t<div class=\"mb15\">\t\t\t<h3 class=\"layer-info-title\">风险Action！此功能不懂请勿Activer！</h3>\t\t</div>\t\t<ul class=\"help-info-text c7 explain-describe-list pd15\">\t\t\t<li style=\"color: red;\">必须要用到且了解此功能才决定自己是否要Activer!</li>\t\t\t<li>Activer后，以任何方式访问面板，将先要求输入BasicAuthNom d'utilisateur和Mot de passe</li>\t\t\t<li>Activer后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Mot de passe</li>\t\t\t<li>请牢记BasicAuthMot de passe，一但忘记将无法访问面板</li>\t\t\t<li>如忘记Mot de passe，可在SSH通过bs命令来FermerBasicAuth验证</li>\t\t</ul>\t\t<div class=\"mt10 plr15 agreement-box\" id=\"checkBasicAuth\">\t\t\t<input class=\"bt-input-text mr5\" name=\"agreement\" type=\"checkbox\" value=\"false\" id=\"agreement_more\">\t\t\t<label for=\"agreement_more\"><span>我已经了解详情,并愿意承担风险</span></label>\t\t</div>\t</div>",
+            "de": "<div class=\"bt-form pd20\">\t\t<div class=\"mb15\">\t\t\t<h3 class=\"layer-info-title\">风险Aktion！此功能不懂请勿Einschalten！</h3>\t\t</div>\t\t<ul class=\"help-info-text c7 explain-describe-list pd15\">\t\t\t<li style=\"color: red;\">必须要用到且了解此功能才决定自己是否要Einschalten!</li>\t\t\t<li>Einschalten后，以任何方式访问面板，将先要求输入BasicAuthBenutzername和Passwort</li>\t\t\t<li>Einschalten后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Passwort</li>\t\t\t<li>请牢记BasicAuthPasswort，一但忘记将无法访问面板</li>\t\t\t<li>如忘记Passwort，可在SSH通过bs命令来SchließenBasicAuth验证</li>\t\t</ul>\t\t<div class=\"mt10 plr15 agreement-box\" id=\"checkBasicAuth\">\t\t\t<input class=\"bt-input-text mr5\" name=\"agreement\" type=\"checkbox\" value=\"false\" id=\"agreement_more\">\t\t\t<label for=\"agreement_more\"><span>我已经了解详情,并愿意承担风险</span></label>\t\t</div>\t</div>",
+            "it": "<div class=\"bt-form pd20\">\t\t<div class=\"mb15\">\t\t\t<h3 class=\"layer-info-title\">风险Azione！此功能不懂请勿Attiva！</h3>\t\t</div>\t\t<ul class=\"help-info-text c7 explain-describe-list pd15\">\t\t\t<li style=\"color: red;\">必须要用到且了解此功能才决定自己是否要Attiva!</li>\t\t\t<li>Attiva后，以任何方式访问面板，将先要求输入BasicAuthNome utente和Password</li>\t\t\t<li>Attiva后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Password</li>\t\t\t<li>请牢记BasicAuthPassword，一但忘记将无法访问面板</li>\t\t\t<li>如忘记Password，可在SSH通过bs命令来ChiudiBasicAuth验证</li>\t\t</ul>\t\t<div class=\"mt10 plr15 agreement-box\" id=\"checkBasicAuth\">\t\t\t<input class=\"bt-input-text mr5\" name=\"agreement\" type=\"checkbox\" value=\"false\" id=\"agreement_more\">\t\t\t<label for=\"agreement_more\"><span>我已经了解详情,并愿意承担风险</span></label>\t\t</div>\t</div>"
+        },
+        "config_auto_str_191": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_192": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "config_auto_str_193": {
+            "zh-CN": "配置BasicAuth认证",
+            "zh-TW": "設定BasicAuth認證",
+            "en": "配置BasicAuth认证",
+            "fr": "配置BasicAuth认证",
+            "de": "配置BasicAuth认证",
+            "it": "配置BasicAuth认证"
+        },
+        "config_auto_str_194": {
+            "zh-CN": "<div class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">用户名</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_user\" type=\"text\" placeholder=\"请设置用户名\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">密码</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_pwd\" type=\"text\" placeholder=\"请设置密码\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\"></span>\t\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_auth_cfg\">保存配置</button></div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7\">\t\t\t\t<li style=\"color: red;\">注意：请不要在这里使用您的常用密码，这可能导致密码泄漏！</li>\t\t\t\t<li>开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码</li>\t\t\t\t<li>开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码</li>\t\t\t\t<li>请牢记BasicAuth密码，一但忘记将无法访问面板</li><li>如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证</li>\t\t\t</ul>\t\t</div>",
+            "zh-TW": "<div class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">使用者名</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_user\" type=\"text\" placeholder=\"请設定使用者名\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">密碼</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_pwd\" type=\"text\" placeholder=\"请設定密碼\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\"></span>\t\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_auth_cfg\">儲存設定</button></div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7\">\t\t\t\t<li style=\"color: red;\">注意：请不要在這里使用您的常用密碼，這可能導致密碼泄漏！</li>\t\t\t\t<li>開啟後，以任何方式访問面板，將先要求輸入BasicAuth使用者名和密碼</li>\t\t\t\t<li>開啟後，能有效防止面板被扫描發現，但並不能代替面板本身的帐号密碼</li>\t\t\t\t<li>请牢記BasicAuth密碼，一但忘記將無法访問面板</li><li>如忘記密碼，可在SSH通過bs命令來關閉BasicAuth驗證</li>\t\t\t</ul>\t\t</div>",
+            "en": "<div class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Username</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_user\" type=\"text\" placeholder=\"请设置Username\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Password</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_pwd\" type=\"text\" placeholder=\"请设置Password\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\"></span>\t\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_auth_cfg\">Save配置</button></div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7\">\t\t\t\t<li style=\"color: red;\">注意：请不要在这里使用您的常用Password，这可能导致Password泄漏！</li>\t\t\t\t<li>Turn on后，以任何方式访问面板，将先要求输入BasicAuthUsername和Password</li>\t\t\t\t<li>Turn on后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Password</li>\t\t\t\t<li>请牢记BasicAuthPassword，一但忘记将无法访问面板</li><li>如忘记Password，可在SSH通过bs命令来CloseBasicAuth验证</li>\t\t\t</ul>\t\t</div>",
+            "fr": "<div class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Nom d'utilisateur</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_user\" type=\"text\" placeholder=\"请设置Nom d'utilisateur\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Mot de passe</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_pwd\" type=\"text\" placeholder=\"请设置Mot de passe\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\"></span>\t\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_auth_cfg\">Enregistrer配置</button></div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7\">\t\t\t\t<li style=\"color: red;\">注意：请不要在这里使用您的常用Mot de passe，这可能导致Mot de passe泄漏！</li>\t\t\t\t<li>Activer后，以任何方式访问面板，将先要求输入BasicAuthNom d'utilisateur和Mot de passe</li>\t\t\t\t<li>Activer后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Mot de passe</li>\t\t\t\t<li>请牢记BasicAuthMot de passe，一但忘记将无法访问面板</li><li>如忘记Mot de passe，可在SSH通过bs命令来FermerBasicAuth验证</li>\t\t\t</ul>\t\t</div>",
+            "de": "<div class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Benutzername</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_user\" type=\"text\" placeholder=\"请设置Benutzername\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Passwort</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_pwd\" type=\"text\" placeholder=\"请设置Passwort\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\"></span>\t\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_auth_cfg\">Speichern配置</button></div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7\">\t\t\t\t<li style=\"color: red;\">注意：请不要在这里使用您的常用Passwort，这可能导致Passwort泄漏！</li>\t\t\t\t<li>Einschalten后，以任何方式访问面板，将先要求输入BasicAuthBenutzername和Passwort</li>\t\t\t\t<li>Einschalten后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Passwort</li>\t\t\t\t<li>请牢记BasicAuthPasswort，一但忘记将无法访问面板</li><li>如忘记Passwort，可在SSH通过bs命令来SchließenBasicAuth验证</li>\t\t\t</ul>\t\t</div>",
+            "it": "<div class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Nome utente</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_user\" type=\"text\" placeholder=\"请设置Nome utente\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\">Password</span>\t\t\t\t<div class=\"info-r\"><input class=\"bt-input-text mr5\" name=\"basic_pwd\" type=\"text\" placeholder=\"请设置Password\" style=\"width: 280px;\"></div>\t\t\t</div>\t\t\t<div class=\"line\">\t\t\t\t<span class=\"tname\"></span>\t\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_auth_cfg\">Salva配置</button></div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7\">\t\t\t\t<li style=\"color: red;\">注意：请不要在这里使用您的常用Password，这可能导致Password泄漏！</li>\t\t\t\t<li>Attiva后，以任何方式访问面板，将先要求输入BasicAuthNome utente和Password</li>\t\t\t\t<li>Attiva后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号Password</li>\t\t\t\t<li>请牢记BasicAuthPassword，一但忘记将无法访问面板</li><li>如忘记Password，可在SSH通过bs命令来ChiudiBasicAuth验证</li>\t\t\t</ul>\t\t</div>"
+        },
+        "config_auto_str_195": {
+            "zh-CN": "关闭BasicAuth认证后，面板登录将不再验证BasicAuth基础认证，这将会导致面板安全性下降，继续操作！",
+            "zh-TW": "關閉BasicAuth認證後，面板登入將不再驗證BasicAuth基础認證，這將会導致面板安全性下降，继续操作！",
+            "en": "CloseBasicAuth认证后，面板Login将不再验证BasicAuth基础认证，这将会导致面板Security性下降，继续Action！",
+            "fr": "FermerBasicAuth认证后，面板Connexion将不再验证BasicAuth基础认证，这将会导致面板Sécurité性下降，继续Action！",
+            "de": "SchließenBasicAuth认证后，面板Anmelden将不再验证BasicAuth基础认证，这将会导致面板Sicherheit性下降，继续Aktion！",
+            "it": "ChiudiBasicAuth认证后，面板Accedi将不再验证BasicAuth基础认证，这将会导致面板Sicurezza性下降，继续Azione！"
+        },
+        "config_auto_str_196": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "config_auto_str_197": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "config_auto_str_198": {
+            "zh-CN": "是否关闭BasicAuth认证?",
+            "zh-TW": "是否關閉BasicAuth認證?",
+            "en": "是否CloseBasicAuth认证?",
+            "fr": "是否FermerBasicAuth认证?",
+            "de": "是否SchließenBasicAuth认证?",
+            "it": "是否ChiudiBasicAuth认证?"
+        },
+        "config_auto_str_199": {
+            "zh-CN": "配置面板API",
+            "zh-TW": "設定面板API",
+            "en": "配置面板API",
+            "fr": "配置面板API",
+            "de": "配置面板API",
+            "it": "配置面板API"
+        },
+        "config_auto_str_200": {
+            "zh-CN": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">接口密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"token\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_token\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\"></span>\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_api\">保存配置</button></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t\t<li>开启API后，必需在IP白名单列表中的IP才能访问面板API接口</li>\t\t\t<li style=\"color: red;\">请不要在生产环境开启，这可能增加服务器安全风险；</li>\t\t</ul>\t</div>",
+            "zh-TW": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">接口金鑰</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"token\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_token\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名單<br/>(每行1個)</span>\t\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\"></span>\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_api\">儲存設定</button></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t\t<li>開啟API後，必需在IP白名單列表中的IP才能访問面板API接口</li>\t\t\t<li style=\"color: red;\">请不要在生產環境開啟，這可能增加伺服器安全风险；</li>\t\t</ul>\t</div>",
+            "en": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">接口密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"token\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_token\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\"></span>\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_api\">Save配置</button></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t\t<li>Turn onAPI后，必需在IP白名单List中的IP才能访问面板API接口</li>\t\t\t<li style=\"color: red;\">请不要在生产环境Turn on，这可能增加服务器Security风险；</li>\t\t</ul>\t</div>",
+            "fr": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">接口密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"token\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_token\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\"></span>\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_api\">Enregistrer配置</button></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t\t<li>ActiverAPI后，必需在IP白名单Liste中的IP才能访问面板API接口</li>\t\t\t<li style=\"color: red;\">请不要在生产环境Activer，这可能增加服务器Sécurité风险；</li>\t\t</ul>\t</div>",
+            "de": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">接口密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"token\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_token\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\"></span>\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_api\">Speichern配置</button></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t\t<li>EinschaltenAPI后，必需在IP白名单Liste中的IP才能访问面板API接口</li>\t\t\t<li style=\"color: red;\">请不要在生产环境Einschalten，这可能增加服务器Sicherheit风险；</li>\t\t</ul>\t</div>",
+            "it": "<div class=\"bt-form pd20\">\t\t<div class=\"line\">\t\t\t<span class=\"tname\">接口密钥</span>\t\t\t<div class=\"info-r\">\t\t\t\t<input class=\"bt-input-text mr5\" name=\"token\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t\t<button class=\"btn btn-success btn-xs reset_token\" style=\"margin-left: -50px;\">重置</button>\t\t\t</div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t\t</div>\t\t<div class=\"line\">\t\t\t<span class=\"tname\"></span>\t\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_api\">Salva配置</button></div>\t\t</div>\t\t<ul class=\"help-info-text c7\">\t\t\t<li>AttivaAPI后，必需在IP白名单Elenco中的IP才能访问面板API接口</li>\t\t\t<li style=\"color: red;\">请不要在生产环境Attiva，这可能增加服务器Sicurezza风险；</li>\t\t</ul>\t</div>"
+        },
+        "config_auto_str_201": {
+            "zh-CN": "您确定要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。</span>",
+            "zh-TW": "您確定要重置当前金鑰吗？<br/><span style=\"color: red; \">重置金鑰後，已關联金鑰產品，將失效，请重新新增新金鑰至產品。</span>",
+            "en": "您Confirm要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Add新密钥至产品。</span>",
+            "fr": "您Confirmer要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Ajouter新密钥至产品。</span>",
+            "de": "您Bestätigen要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Hinzufügen新密钥至产品。</span>",
+            "it": "您Conferma要重置当前密钥吗？<br/><span style=\"color: red; \">重置密钥后，已关联密钥产品，将失效，请重新Aggiungi新密钥至产品。</span>"
+        },
+        "config_auto_str_202": {
+            "zh-CN": "重置密钥",
+            "zh-TW": "重置金鑰",
+            "en": "重置密钥",
+            "fr": "重置密钥",
+            "de": "重置密钥",
+            "it": "重置密钥"
+        },
+        "config_auto_str_203": {
+            "zh-CN": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。",
+            "zh-TW": "接口金鑰已生成，重置金鑰後，已關联金鑰產品，將失效，请重新新增新金鑰至產品。",
+            "en": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Add新密钥至产品。",
+            "fr": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Ajouter新密钥至产品。",
+            "de": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Hinzufügen新密钥至产品。",
+            "it": "接口密钥已生成，重置密钥后，已关联密钥产品，将失效，请重新Aggiungi新密钥至产品。"
+        },
+        "config_auto_str_204": {
+            "zh-CN": "您确定要删除吗？",
+            "zh-TW": "您確定要刪除吗？",
+            "en": "您Confirm要Delete吗？",
+            "fr": "您Confirmer要Supprimer吗？",
+            "de": "您Bestätigen要Löschen吗？",
+            "it": "您Conferma要Elimina吗？"
+        },
+        "config_auto_str_205": {
+            "zh-CN": "删除应用",
+            "zh-TW": "刪除應用",
+            "en": "Delete应用",
+            "fr": "Supprimer应用",
+            "de": "Löschen应用",
+            "it": "Elimina应用"
+        },
+        "config_auto_str_206": {
+            "zh-CN": ");\">已开启</a></td>",
+            "zh-TW": ");\">已開啟</a></td>",
+            "en": ");\">已Turn on</a></td>",
+            "fr": ");\">已Activer</a></td>",
+            "de": ");\">已Einschalten</a></td>",
+            "it": ");\">已Attiva</a></td>"
+        },
+        "config_auto_str_207": {
+            "zh-CN": ");\">已关闭</a></td>",
+            "zh-TW": ");\">已關閉</a></td>",
+            "en": ");\">已Close</a></td>",
+            "fr": ");\">已Fermer</a></td>",
+            "de": ");\">已Schließen</a></td>",
+            "it": ");\">已Chiudi</a></td>"
+        },
+        "config_auto_str_208": {
+            "zh-CN": "')\" style=\"float:right;\">删除</a>",
+            "zh-TW": "')\" style=\"float:right;\">刪除</a>",
+            "en": "')\" style=\"float:right;\">Delete</a>",
+            "fr": "')\" style=\"float:right;\">Supprimer</a>",
+            "de": "')\" style=\"float:right;\">Löschen</a>",
+            "it": "')\" style=\"float:right;\">Elimina</a>"
+        },
+        "config_auto_str_209": {
+            "zh-CN": "添加应用",
+            "zh-TW": "新增應用",
+            "en": "Add应用",
+            "fr": "Ajouter应用",
+            "de": "Hinzufügen应用",
+            "it": "Aggiungi应用"
+        },
+        "config_auto_str_210": {
+            "zh-CN": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">应用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">应用密钥</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">保存配置</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>开启API后，必需在IP白名单列表中的IP才能访问面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生产环境开启，这可能增加服务器安全风险；</li>\t</ul></div>",
+            "zh-TW": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">應用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">應用金鑰</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名單<br/>(每行1個)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">儲存設定</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>開啟API後，必需在IP白名單列表中的IP才能访問面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生產環境開啟，這可能增加伺服器安全风险；</li>\t</ul></div>",
+            "en": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">应用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">应用密钥</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">Save配置</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>Turn onAPI后，必需在IP白名单List中的IP才能访问面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生产环境Turn on，这可能增加服务器Security风险；</li>\t</ul></div>",
+            "fr": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">应用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">应用密钥</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">Enregistrer配置</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>ActiverAPI后，必需在IP白名单Liste中的IP才能访问面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生产环境Activer，这可能增加服务器Sécurité风险；</li>\t</ul></div>",
+            "de": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">应用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">应用密钥</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">Speichern配置</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>EinschaltenAPI后，必需在IP白名单Liste中的IP才能访问面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生产环境Einschalten，这可能增加服务器Sicherheit风险；</li>\t</ul></div>",
+            "it": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">应用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">应用密钥</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">Salva配置</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>AttivaAPI后，必需在IP白名单Elenco中的IP才能访问面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生产环境Attiva，这可能增加服务器Sicurezza风险；</li>\t</ul></div>"
+        },
+        "config_auto_str_211": {
+            "zh-CN": "APP应用管理",
+            "zh-TW": "APP應用管理",
+            "en": "APP应用管理",
+            "fr": "APP应用管理",
+            "de": "APP应用管理",
+            "it": "APP应用管理"
+        },
+        "config_auto_str_212": {
+            "zh-CN": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>添加</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>添加时间</th>\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+            "zh-TW": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>新增</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>應用ID</th>\t\t\t\t\t\t<th>應用金鑰</th>\t\t\t\t\t\t<th>白名單</th>\t\t\t\t\t\t<th>狀態</th>\t\t\t\t\t\t<th>新增時間</th>\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+            "en": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Add</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Status</th>\t\t\t\t\t\t<th>AddTime</th>\t\t\t\t\t\t<th style='text-align:right;'>Action</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+            "fr": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Ajouter</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Statut</th>\t\t\t\t\t\t<th>AjouterHeure</th>\t\t\t\t\t\t<th style='text-align:right;'>Action</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+            "de": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Hinzufügen</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Status</th>\t\t\t\t\t\t<th>HinzufügenZeit</th>\t\t\t\t\t\t<th style='text-align:right;'>Aktion</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+            "it": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Aggiungi</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Stato</th>\t\t\t\t\t\t<th>AggiungiOra</th>\t\t\t\t\t\t<th style='text-align:right;'>Azione</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>"
+        }
+    },
+    "auth": {
+        "path_error_title": {
+            "zh-CN": "安全入口校验失败 - 御风面板",
+            "zh-TW": "安全入口校驗失敗 - 御風面板",
+            "en": "Security Entrance Failed - Yufeng Panel",
+            "fr": "Échec de l'accès sécurisé - Panneau Yufeng",
+            "de": "Sicherheits-Eingang fehlgeschlagen - Yufeng Panel",
+            "it": "Verifica accesso di sicurezza non riuscita - Pannello Yufeng"
+        },
+        "path_error_header": {
+            "zh-CN": "请使用正确的入口登录面板",
+            "zh-TW": "請使用正確的入口登入面板",
+            "en": "Please Use the Correct Entry URL",
+            "fr": "Veuillez utiliser l'URL d'accès sécurisée",
+            "de": "Bitte verwenden Sie den korrekten Anmelde-Pfad",
+            "it": "Utilizza l'URL di accesso corretta"
+        },
+        "error_reason": {
+            "zh-CN": "错误原因",
+            "zh-TW": "錯誤原因",
+            "en": "Reason",
+            "fr": "Cause de l'erreur",
+            "de": "Ursache",
+            "it": "Motivo dell'errore"
+        },
+        "path_error_desc": {
+            "zh-CN": "当前面板已启用安全入口登录。新装机器会自动随机生成一个安全的登录入口地址，亦可在面板设置中自定义修改。如果您忘记或未记录该入口，可使用下方方法获取。",
+            "zh-TW": "當前面板已啟用安全入口登入。新裝機器會自動隨機生成一個安全的登入入口位址，亦可在面板設定中自定義修改。如果您忘記或未記錄該入口，可使用下方方法獲取。",
+            "en": "This panel requires a secret entrance URL path. If you forgot or did not record it, follow the steps below to retrieve it via SSH.",
+            "fr": "Ce panneau requiert un chemin d'accès sécurisé. Si vous l'avez oublié, suivez la commande ci-dessous via SSH pour le retrouver.",
+            "de": "Dieses Panel erfordert einen geheimen Sicherheitspfad. Falls vergessen, führen Sie den folgenden SSH-Befehl aus.",
+            "it": "Questo pannello richiede un percorso segreto. Se dimenticato, esegui il comando seguente via SSH per recuperarlo."
+        },
+        "solution": {
+            "zh-CN": "解决方法",
+            "zh-TW": "解決方法",
+            "en": "Solution",
+            "fr": "Solution",
+            "de": "Lösung",
+            "it": "Soluzione"
+        },
+        "solution_ssh_desc": {
+            "zh-CN": "请通过 SSH 终端登录服务器，并运行以下命令进行查看：",
+            "zh-TW": "請透過 SSH 終端機登入伺服器，並執行以下指令進行檢視：",
+            "en": "Log in to your server terminal via SSH and run:",
+            "fr": "Connectez-vous à votre serveur via SSH et exécutez :",
+            "de": "Melden Sie sich per SSH auf dem Server an und führen Sie aus:",
+            "it": "Accedi al server via SSH ed esegui:"
+        },
+        "view_default_entry": {
+            "zh-CN": "查看面板默认入口及登录地址",
+            "zh-TW": "檢視面板預設入口及登入位址",
+            "en": "View default entrance and login credentials",
+            "fr": "Afficher l'accès par défaut et les identifiants",
+            "de": "Standard-Eingang und Zugangsdaten anzeigen",
+            "it": "Visualizza l'accesso predefinito e le credenziali"
+        },
+        "company_name": {
+            "zh-CN": "出品方：衢州御风科技有限公司",
+            "zh-TW": "出品方：衢州御風科技有限公司",
+            "en": "Developed by: Quzhou Yufeng Technology Co., Ltd.",
+            "fr": "Développé par : Quzhou Yufeng Technology Co., Ltd.",
+            "de": "Entwickelt von: Quzhou Yufeng Technology Co., Ltd.",
+            "it": "Sviluppato da: Quzhou Yufeng Technology Co., Ltd."
+        },
+        "panel_closed_title": {
+            "zh-CN": "抱歉,管理员已关闭面板",
+            "zh-TW": "抱歉,管理員已關閉面板",
+            "en": "Sorry, Administrator has disabled the panel",
+            "fr": "Désolé, l'administrateur a désactivé le panneau",
+            "de": "Panel wurde durch Administrator deaktiviert",
+            "it": "Spiacenti, l'amministratore ha disabilitato il pannello"
+        },
+        "open_cmd_title": {
+            "zh-CN": "开启命令",
+            "zh-TW": "開啟指令",
+            "en": "Enable Command",
+            "fr": "Commande d'activation",
+            "de": "Aktivierungsbefehl",
+            "it": "Comando di abilitazione"
+        }
+    },
+    "public": {
+        "save": {
+            "zh-CN": "保存",
+            "zh-TW": "儲存",
+            "en": "Save",
+            "fr": "Enregistrer",
+            "de": "Speichern",
+            "it": "Salva"
+        },
+        "submit": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "Submit",
+            "fr": "Soumettre",
+            "de": "Absenden",
+            "it": "Invia"
+        },
+        "set": {
+            "zh-CN": "设置",
+            "zh-TW": "設定",
+            "en": "Settings",
+            "fr": "Configurer",
+            "de": "Einstellungen",
+            "it": "Imposta"
+        },
+        "change": {
+            "zh-CN": "更改",
+            "zh-TW": "更改",
+            "en": "Change",
+            "fr": "Modifier",
+            "de": "Ändern",
+            "it": "Modifica"
+        },
+        "search": {
+            "zh-CN": "搜索",
+            "zh-TW": "搜尋",
+            "en": "Search",
+            "fr": "Rechercher",
+            "de": "Suchen",
+            "it": "Cerca"
+        },
+        "search_placeholder": {
+            "zh-CN": "搜索",
+            "zh-TW": "搜尋",
+            "en": "Search...",
+            "fr": "Rechercher...",
+            "de": "Suchen...",
+            "it": "Cerca..."
+        },
+        "clear_search": {
+            "zh-CN": "清除搜索并刷新列表",
+            "zh-TW": "清除搜尋並重新整理列表",
+            "en": "Clear search and refresh",
+            "fr": "Effacer la recherche",
+            "de": "Suche zurücksetzen",
+            "it": "Cancella ricerca"
+        },
+        "refresh_list": {
+            "zh-CN": "刷新列表",
+            "zh-TW": "重新整理列表",
+            "en": "Refresh List",
+            "fr": "Actualiser la liste",
+            "de": "Liste aktualisieren",
+            "it": "Aggiorna elenco"
+        },
+        "refresh": {
+            "zh-CN": "刷新",
+            "zh-TW": "重新整理",
+            "en": "Refresh",
+            "fr": "Actualiser",
+            "de": "Aktualisieren",
+            "it": "Aggiorna"
+        },
+        "import": {
+            "zh-CN": "导入",
+            "zh-TW": "匯入",
+            "en": "Import",
+            "fr": "Importer",
+            "de": "Importieren",
+            "it": "Importa"
+        },
+        "export": {
+            "zh-CN": "导出",
+            "zh-TW": "匯出",
+            "en": "Export",
+            "fr": "Exporter",
+            "de": "Exportieren",
+            "it": "Esporta"
+        },
+        "delete_selected": {
+            "zh-CN": "删除选中",
+            "zh-TW": "刪除選取",
+            "en": "Delete Selected",
+            "fr": "Supprimer la sélection",
+            "de": "Auswahl löschen",
+            "it": "Elimina selezionati"
+        },
+        "status": {
+            "zh-CN": "状态",
+            "zh-TW": "狀態",
+            "en": "Status",
+            "fr": "Statut",
+            "de": "Status",
+            "it": "Stato"
+        },
+        "ps": {
+            "zh-CN": "备注",
+            "zh-TW": "備註",
+            "en": "Note",
+            "fr": "Remarque",
+            "de": "Notiz",
+            "it": "Nota"
+        },
+        "ps_placeholder": {
+            "zh-CN": "备注/说明",
+            "zh-TW": "備註/說明",
+            "en": "Notes / Description",
+            "fr": "Remarques / Description",
+            "de": "Notizen / Beschreibung",
+            "it": "Note / Descrizione"
+        },
+        "time": {
+            "zh-CN": "时间",
+            "zh-TW": "時間",
+            "en": "Time",
+            "fr": "Date et heure",
+            "de": "Zeit",
+            "it": "Ora"
+        },
+        "action": {
+            "zh-CN": "操作",
+            "zh-TW": "操作",
+            "en": "Actions",
+            "fr": "Actions",
+            "de": "Aktionen",
+            "it": "Azioni"
+        },
+        "copy": {
+            "zh-CN": "复制",
+            "zh-TW": "複製",
+            "en": "Copy",
+            "fr": "Copier",
+            "de": "Kopieren",
+            "it": "Copia"
+        },
+        "copied": {
+            "zh-CN": "已复制",
+            "zh-TW": "已複製",
+            "en": "Copied",
+            "fr": "Copié",
+            "de": "Kopiert",
+            "it": "Copiato"
+        },
+        "copy_fail": {
+            "zh-CN": "复制失败，请手动选择复制",
+            "zh-TW": "複製失敗，請手動選擇複製",
+            "en": "Copy failed. Please copy manually.",
+            "fr": "Échec de copie. Veuillez copier manuellement.",
+            "de": "Kopieren fehlgeschlagen. Bitte manuell kopieren.",
+            "it": "Copia fallita. Copia manualmente."
+        },
+        "all": {
+            "zh-CN": "全部",
+            "zh-TW": "全部",
+            "en": "All",
+            "fr": "Tous",
+            "de": "Alle",
+            "it": "Tutti"
+        },
+        "hours": {
+            "zh-CN": "小时",
+            "zh-TW": "小時",
+            "en": "Hours",
+            "fr": "Heures",
+            "de": "Stunden",
+            "it": "Ore"
+        },
+        "minutes": {
+            "zh-CN": "分钟",
+            "zh-TW": "分鐘",
+            "en": "Minutes",
+            "fr": "Minutes",
+            "de": "Minuten",
+            "it": "Minuti"
+        },
+        "loading": {
+            "zh-CN": "正在加载...",
+            "zh-TW": "正在載入...",
+            "en": "Loading...",
+            "fr": "Chargement...",
+            "de": "Laden...",
+            "it": "Caricamento..."
+        },
+        "getting": {
+            "zh-CN": "获取中: ",
+            "zh-TW": "獲取中: ",
+            "en": "Fetching: ",
+            "fr": "Récupération : ",
+            "de": "Wird abgerufen: ",
+            "it": "Recupero: "
+        },
+        "move_to": {
+            "zh-CN": "移动到",
+            "zh-TW": "移動到",
+            "en": "Move To",
+            "fr": "Déplacer vers",
+            "de": "Verschieben nach",
+            "it": "Sposta in"
+        },
+        "fetch_fail_retry": {
+            "zh-CN": "获取失败，请稍后重试",
+            "zh-TW": "獲取失敗，請稍後重試",
+            "en": "Failed to fetch data, please try again later",
+            "fr": "Échec de récupération, veuillez réessayer plus tard",
+            "de": "Abruf fehlgeschlagen, bitte später erneut versuchen",
+            "it": "Recupero non riuscito, riprova più tardi"
+        },
+        "select_path": {
+            "zh-CN": "选择目录",
+            "zh-TW": "選擇目錄",
+            "en": "Select Directory",
+            "fr": "Sélectionner un dossier",
+            "de": "Verzeichnis auswählen",
+            "it": "Seleziona cartella"
+        },
+        "select": {
+            "zh-CN": "选择",
+            "zh-TW": "選擇",
+            "en": "Select",
+            "fr": "Sélectionner",
+            "de": "Auswählen",
+            "it": "Seleziona"
+        },
+        "back": {
+            "zh-CN": "返回",
+            "zh-TW": "返回",
+            "en": "Back",
+            "fr": "Retour",
+            "de": "Zurück",
+            "it": "Indietro"
+        },
+        "curr_path": {
+            "zh-CN": "当前路径：",
+            "zh-TW": "當前路徑：",
+            "en": "Current Path: ",
+            "fr": "Chemin actuel : ",
+            "de": "Aktueller Pfad: ",
+            "it": "Percorso corrente: "
+        },
+        "server": {
+            "zh-CN": "服务器",
+            "zh-TW": "伺服器",
+            "en": "Server",
+            "fr": "Serveur",
+            "de": "Server",
+            "it": "Server"
+        },
+        "create_folder": {
+            "zh-CN": "新建文件夹",
+            "zh-TW": "新建資料夾",
+            "en": "New Folder",
+            "fr": "Nouveau dossier",
+            "de": "Neuer Ordner",
+            "it": "Nuova cartella"
+        },
+        "close": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "file_name": {
+            "zh-CN": "文件名",
+            "zh-TW": "檔案名稱",
+            "en": "File Name",
+            "fr": "Nom de fichier",
+            "de": "Dateiname",
+            "it": "Nome file"
+        },
+        "owner": {
+            "zh-CN": "所有者",
+            "zh-TW": "所有者",
+            "en": "Owner",
+            "fr": "Propriétaire",
+            "de": "Eigentümer",
+            "it": "Proprietario"
+        },
+        "public_auto_str_1": {
+            "zh-CN": "<tr>\t\t<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\t\t<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm nameOk'>确定</button>\t\t\t&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm nameNOk'>取消</button></td>\t\t</tr>",
+            "zh-TW": "<tr>\t\t<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\t\t<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm nameOk'>確定</button>\t\t\t&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm nameNOk'>取消</button></td>\t\t</tr>",
+            "en": "<tr>\t\t<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\t\t<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm nameOk'>Confirm</button>\t\t\t&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm nameNOk'>Cancel</button></td>\t\t</tr>",
+            "fr": "<tr>\t\t<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\t\t<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm nameOk'>Confirmer</button>\t\t\t&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm nameNOk'>Annuler</button></td>\t\t</tr>",
+            "de": "<tr>\t\t<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\t\t<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm nameOk'>Bestätigen</button>\t\t\t&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm nameNOk'>Abbrechen</button></td>\t\t</tr>",
+            "it": "<tr>\t\t<td colspan='2'><span class='glyphicon glyphicon-folder-open'></span><input id='newFolderName' class='newFolderName' type='text' value=''></td>\t\t<td colspan='3'><button id='nameOk' type='button' class='btn btn-success btn-sm nameOk'>Conferma</button>\t\t\t&nbsp;&nbsp;<button id='nameNOk' type='button' class='btn btn-default btn-sm nameNOk'>Annulla</button></td>\t\t</tr>"
+        },
+        "public_auto_str_2": {
+            "zh-CN": "正在保存,请稍候...",
+            "zh-TW": "正在儲存,請稍候...",
+            "en": "Saving, please wait...",
+            "fr": "Enregistrement, veuillez patienter...",
+            "de": "Wird gespeichert, bitte warten...",
+            "it": "Salvataggio in corso, attendere..."
+        },
+        "public_auto_str_3": {
+            "zh-CN": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> 保存",
+            "zh-TW": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> 儲存",
+            "en": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Save",
+            "fr": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Enregistrer",
+            "de": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Speichern",
+            "it": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Salva"
+        },
+        "public_auto_str_4": {
+            "zh-CN": "<span class=\"glyphicon glyphicon-refresh\"></span> 刷新",
+            "zh-TW": "<span class=\"glyphicon glyphicon-refresh\"></span> 重新整理",
+            "en": "<span class=\"glyphicon glyphicon-refresh\"></span> Refresh",
+            "fr": "<span class=\"glyphicon glyphicon-refresh\"></span> Actualiser",
+            "de": "<span class=\"glyphicon glyphicon-refresh\"></span> Aktualisieren",
+            "it": "<span class=\"glyphicon glyphicon-refresh\"></span> Aggiorna"
+        },
+        "public_auto_str_5": {
+            "zh-CN": "在线编辑[",
+            "zh-TW": "在線編輯[",
+            "en": "在线编辑[",
+            "fr": "在线编辑[",
+            "de": "在线编辑[",
+            "it": "在线编辑["
+        },
+        "public_auto_str_6": {
+            "zh-CN": "<form class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<p style=\"color:red;margin-bottom:10px\">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!\t\t\t\t\t<select class=\"bt-input-text\" name=\"encoding\" style=\"width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;\"><option value=\"utf-8\" selected>utf-8</option></select>\t\t\t\t</p>\t\t\t\t<textarea class=\"mCustomScrollbar bt-input-text\" id=\"textBody\" style=\"width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;\"></textarea>\t\t\t</div>\t\t</form>",
+            "zh-TW": "<form class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<p style=\"color:red;margin-bottom:10px\">提示：Ctrl+F 搜索關鍵字，Ctrl+G 查找下一個，Ctrl+S 儲存，Ctrl+H 查找替換!\t\t\t\t\t<select class=\"bt-input-text\" name=\"encoding\" style=\"width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;\"><option value=\"utf-8\" selected>utf-8</option></select>\t\t\t\t</p>\t\t\t\t<textarea class=\"mCustomScrollbar bt-input-text\" id=\"textBody\" style=\"width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;\"></textarea>\t\t\t</div>\t\t</form>",
+            "en": "<form class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<p style=\"color:red;margin-bottom:10px\">Tip：Ctrl+F Search关键字，Ctrl+G 查找下一个，Ctrl+S Save，Ctrl+H 查找替换!\t\t\t\t\t<select class=\"bt-input-text\" name=\"encoding\" style=\"width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;\"><option value=\"utf-8\" selected>utf-8</option></select>\t\t\t\t</p>\t\t\t\t<textarea class=\"mCustomScrollbar bt-input-text\" id=\"textBody\" style=\"width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;\"></textarea>\t\t\t</div>\t\t</form>",
+            "fr": "<form class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<p style=\"color:red;margin-bottom:10px\">Conseil：Ctrl+F Rechercher关键字，Ctrl+G 查找下一个，Ctrl+S Enregistrer，Ctrl+H 查找替换!\t\t\t\t\t<select class=\"bt-input-text\" name=\"encoding\" style=\"width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;\"><option value=\"utf-8\" selected>utf-8</option></select>\t\t\t\t</p>\t\t\t\t<textarea class=\"mCustomScrollbar bt-input-text\" id=\"textBody\" style=\"width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;\"></textarea>\t\t\t</div>\t\t</form>",
+            "de": "<form class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<p style=\"color:red;margin-bottom:10px\">Hinweis：Ctrl+F Suchen关键字，Ctrl+G 查找下一个，Ctrl+S Speichern，Ctrl+H 查找替换!\t\t\t\t\t<select class=\"bt-input-text\" name=\"encoding\" style=\"width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;\"><option value=\"utf-8\" selected>utf-8</option></select>\t\t\t\t</p>\t\t\t\t<textarea class=\"mCustomScrollbar bt-input-text\" id=\"textBody\" style=\"width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;\"></textarea>\t\t\t</div>\t\t</form>",
+            "it": "<form class=\"bt-form pd20\">\t\t\t<div class=\"line\">\t\t\t\t<p style=\"color:red;margin-bottom:10px\">Suggerimento：Ctrl+F Cerca关键字，Ctrl+G 查找下一个，Ctrl+S Salva，Ctrl+H 查找替换!\t\t\t\t\t<select class=\"bt-input-text\" name=\"encoding\" style=\"width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;\"><option value=\"utf-8\" selected>utf-8</option></select>\t\t\t\t</p>\t\t\t\t<textarea class=\"mCustomScrollbar bt-input-text\" id=\"textBody\" style=\"width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;\"></textarea>\t\t\t</div>\t\t</form>"
+        },
+        "public_auto_str_7": {
+            "zh-CN": "正在读取文件,请稍候...",
+            "zh-TW": "正在讀取檔案,請稍候...",
+            "en": "正在读取Files,请稍候...",
+            "fr": "正在读取Fichiers,请稍候...",
+            "de": "正在读取Dateien,请稍候...",
+            "it": "正在读取File,请稍候..."
+        },
+        "public_auto_str_8": {
+            "zh-CN": "<div class=\"auto-refresh-toggle\" style=\"position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;\">\t\t\t\t\t<div class=\"toggle-track\" style=\"width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;\">\t\t\t\t\t\t<div class=\"toggle-thumb\" style=\"width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;\"></div>\t\t\t\t\t</div>\t\t\t\t\t<span class=\"toggle-text\" style=\"color: #999; font-size: 14px; transition: all 0.3s;\">自动刷新</span>\t\t\t\t</div>",
+            "zh-TW": "<div class=\"auto-refresh-toggle\" style=\"position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;\">\t\t\t\t\t<div class=\"toggle-track\" style=\"width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;\">\t\t\t\t\t\t<div class=\"toggle-thumb\" style=\"width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;\"></div>\t\t\t\t\t</div>\t\t\t\t\t<span class=\"toggle-text\" style=\"color: #999; font-size: 14px; transition: all 0.3s;\">自動重新整理</span>\t\t\t\t</div>",
+            "en": "<div class=\"auto-refresh-toggle\" style=\"position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;\">\t\t\t\t\t<div class=\"toggle-track\" style=\"width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;\">\t\t\t\t\t\t<div class=\"toggle-thumb\" style=\"width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;\"></div>\t\t\t\t\t</div>\t\t\t\t\t<span class=\"toggle-text\" style=\"color: #999; font-size: 14px; transition: all 0.3s;\">自动Refresh</span>\t\t\t\t</div>",
+            "fr": "<div class=\"auto-refresh-toggle\" style=\"position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;\">\t\t\t\t\t<div class=\"toggle-track\" style=\"width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;\">\t\t\t\t\t\t<div class=\"toggle-thumb\" style=\"width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;\"></div>\t\t\t\t\t</div>\t\t\t\t\t<span class=\"toggle-text\" style=\"color: #999; font-size: 14px; transition: all 0.3s;\">自动Actualiser</span>\t\t\t\t</div>",
+            "de": "<div class=\"auto-refresh-toggle\" style=\"position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;\">\t\t\t\t\t<div class=\"toggle-track\" style=\"width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;\">\t\t\t\t\t\t<div class=\"toggle-thumb\" style=\"width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;\"></div>\t\t\t\t\t</div>\t\t\t\t\t<span class=\"toggle-text\" style=\"color: #999; font-size: 14px; transition: all 0.3s;\">自动Aktualisieren</span>\t\t\t\t</div>",
+            "it": "<div class=\"auto-refresh-toggle\" style=\"position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;\">\t\t\t\t\t<div class=\"toggle-track\" style=\"width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;\">\t\t\t\t\t\t<div class=\"toggle-thumb\" style=\"width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;\"></div>\t\t\t\t\t</div>\t\t\t\t\t<span class=\"toggle-text\" style=\"color: #999; font-size: 14px; transition: all 0.3s;\">自动Aggiorna</span>\t\t\t\t</div>"
+        },
+        "public_auto_str_9": {
+            "zh-CN": "检测到文件已被修改，是否保存？",
+            "zh-TW": "检测到檔案已被修改，是否儲存？",
+            "en": "检测到Files已被Modify，是否Save？",
+            "fr": "检测到Fichiers已被Modifier，是否Enregistrer？",
+            "de": "检测到Dateien已被Ändern，是否Speichern？",
+            "it": "检测到File已被Modifica，是否Salva？"
+        },
+        "public_auto_str_10": {
+            "zh-CN": "温馨提示",
+            "zh-TW": "温馨提示",
+            "en": "温馨Tip",
+            "fr": "温馨Conseil",
+            "de": "温馨Hinweis",
+            "it": "温馨Suggerimento"
+        },
+        "public_auto_str_11": {
+            "zh-CN": "<span class=\"glyphicon glyphicon-remove\"></span> 不保存",
+            "zh-TW": "<span class=\"glyphicon glyphicon-remove\"></span> 不儲存",
+            "en": "<span class=\"glyphicon glyphicon-remove\"></span> 不Save",
+            "fr": "<span class=\"glyphicon glyphicon-remove\"></span> 不Enregistrer",
+            "de": "<span class=\"glyphicon glyphicon-remove\"></span> 不Speichern",
+            "it": "<span class=\"glyphicon glyphicon-remove\"></span> 不Salva"
+        },
+        "public_auto_str_12": {
+            "zh-CN": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> 保存",
+            "zh-TW": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> 儲存",
+            "en": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Save",
+            "fr": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Enregistrer",
+            "de": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Speichern",
+            "it": "<span class=\"glyphicon glyphicon-floppy-disk\"></span> Salva"
+        },
+        "public_auto_str_13": {
+            "zh-CN": "正在刷新中,请稍候...",
+            "zh-TW": "正在重新整理中,請稍候...",
+            "en": "正在Refresh中,请稍候...",
+            "fr": "正在Actualiser中,请稍候...",
+            "de": "正在Aktualisieren中,请稍候...",
+            "it": "正在Aggiorna中,请稍候..."
+        },
+        "public_auto_str_14": {
+            "zh-CN": "复制成功",
+            "zh-TW": "復製成功",
+            "en": "Copy成功",
+            "fr": "Copier成功",
+            "de": "Kopieren成功",
+            "it": "Copia成功"
+        },
+        "public_auto_str_15": {
+            "zh-CN": "复制失败，浏览器不兼容!",
+            "zh-TW": "復製失敗，浏覽器不兼容!",
+            "en": "Copy失败，浏览器不兼容!",
+            "fr": "Copier失败，浏览器不兼容!",
+            "de": "Kopieren失败，浏览器不兼容!",
+            "it": "Copia失败，浏览器不兼容!"
+        },
+        "public_auto_str_16": {
+            "zh-CN": "复制成功",
+            "zh-TW": "復製成功",
+            "en": "Copy成功",
+            "fr": "Copier成功",
+            "de": "Kopieren成功",
+            "it": "Copia成功"
+        },
+        "public_auto_str_17": {
+            "zh-CN": "复制失败，浏览器不兼容!",
+            "zh-TW": "復製失敗，浏覽器不兼容!",
+            "en": "Copy失败，浏览器不兼容!",
+            "fr": "Copier失败，浏览器不兼容!",
+            "de": "Kopieren失败，浏览器不兼容!",
+            "it": "Copia失败，浏览器不兼容!"
+        },
+        "public_auto_str_18": {
+            "zh-CN": "复制失败，浏览器不兼容!",
+            "zh-TW": "復製失敗，浏覽器不兼容!",
+            "en": "Copy失败，浏览器不兼容!",
+            "fr": "Copier失败，浏览器不兼容!",
+            "de": "Kopieren失败，浏览器不兼容!",
+            "it": "Copia失败，浏览器不兼容!"
+        },
+        "public_auto_str_19": {
+            "zh-CN": "空,不能复制",
+            "zh-TW": "空,不能復製",
+            "en": "空,不能Copy",
+            "fr": "空,不能Copier",
+            "de": "空,不能Kopieren",
+            "it": "空,不能Copia"
+        },
+        "public_auto_str_20": {
+            "zh-CN": "我需要删除的数据库名称是",
+            "zh-TW": "我需要刪除的資料庫名称是",
+            "en": "我需要Delete的DatabasesName是",
+            "fr": "我需要Supprimer的Bases de donnéesNom是",
+            "de": "我需要Löschen的DatenbankenName是",
+            "it": "我需要Elimina的DatabaseNome是"
+        },
+        "public_auto_str_21": {
+            "zh-CN": "数据库名称输入错误!",
+            "zh-TW": "資料庫名称輸入錯誤!",
+            "en": "DatabasesName输入错误!",
+            "fr": "Bases de donnéesNom输入错误!",
+            "de": "DatenbankenName输入错误!",
+            "it": "DatabaseNome输入错误!"
+        },
+        "public_auto_str_22": {
+            "zh-CN": "请正确输入计算结果!",
+            "zh-TW": "请正確輸入計算結果!",
+            "en": "请正确输入计算结果!",
+            "fr": "请正确输入计算结果!",
+            "de": "请正确输入计算结果!",
+            "it": "请正确输入计算结果!"
+        },
+        "public_auto_str_23": {
+            "zh-CN": "请正确输入计算结果!",
+            "zh-TW": "请正確輸入計算結果!",
+            "en": "请正确输入计算结果!",
+            "fr": "请正确输入计算结果!",
+            "de": "请正确输入计算结果!",
+            "it": "请正确输入计算结果!"
+        },
+        "public_auto_str_24": {
+            "zh-CN": "是否要退出御风面板?",
+            "zh-TW": "是否要登出御风面板?",
+            "en": "是否要LogoutYuFeng Panel?",
+            "fr": "是否要DéconnexionPanneau YuFeng?",
+            "de": "是否要AbmeldenYuFeng Panel?",
+            "it": "是否要DisconnettiPannello YuFeng?"
+        },
+        "public_auto_str_25": {
+            "zh-CN": "正在删除,请稍候...",
+            "zh-TW": "正在刪除,請稍候...",
+            "en": "Deleting, please wait...",
+            "fr": "Suppression en cours, veuillez patienter...",
+            "de": "Wird gelöscht, bitte warten...",
+            "it": "Eliminazione in corso, attendere..."
+        },
+        "public_auto_str_26": {
+            "zh-CN": "关联面板",
+            "zh-TW": "關联面板",
+            "en": "关联面板",
+            "fr": "关联面板",
+            "de": "关联面板",
+            "it": "关联面板"
+        },
+        "public_auto_str_27": {
+            "zh-CN": "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">添加</button>",
+            "zh-TW": "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">新增</button>",
+            "en": "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Add</button>",
+            "fr": "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Ajouter</button>",
+            "de": "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Hinzufügen</button>",
+            "it": "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">Aggiungi</button>"
+        },
+        "public_auto_str_28": {
+            "zh-CN": "修改关联",
+            "zh-TW": "修改關联",
+            "en": "Modify关联",
+            "fr": "Modifier关联",
+            "de": "Ändern关联",
+            "it": "Modifica关联"
+        },
+        "public_auto_str_29": {
+            "zh-CN": "')\">删除</button>\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','",
+            "zh-TW": "')\">刪除</button>\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','",
+            "en": "')\">Delete</button>\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','",
+            "fr": "')\">Supprimer</button>\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','",
+            "de": "')\">Löschen</button>\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','",
+            "it": "')\">Elimina</button>\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','"
+        },
+        "public_auto_str_30": {
+            "zh-CN": "')\" style='margin-left:7px'>修改</button>",
+            "zh-TW": "')\" style='margin-left:7px'>修改</button>",
+            "en": "')\" style='margin-left:7px'>Modify</button>",
+            "fr": "')\" style='margin-left:7px'>Modifier</button>",
+            "de": "')\" style='margin-left:7px'>Ändern</button>",
+            "it": "')\" style='margin-left:7px'>Modifica</button>"
+        },
+        "public_auto_str_31": {
+            "zh-CN": "面板地址格式不正确，示例：<p>http://192.168.0.1:8888</p>",
+            "zh-TW": "面板地址格式不正確，示例：<p>http://192.168.0.1:8888</p>",
+            "en": "面板地址格式不正确，示例：<p>http://192.168.0.1:8888</p>",
+            "fr": "面板地址格式不正确，示例：<p>http://192.168.0.1:8888</p>",
+            "de": "面板地址格式不正确，示例：<p>http://192.168.0.1:8888</p>",
+            "it": "面板地址格式不正确，示例：<p>http://192.168.0.1:8888</p>"
+        },
+        "public_auto_str_32": {
+            "zh-CN": "<div class='bt-form pd20 pb70'>\t\t\t\t<div class='line'><span class='tname'>面板地址</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='",
+            "zh-TW": "<div class='bt-form pd20 pb70'>\t\t\t\t<div class='line'><span class='tname'>面板地址</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='",
+            "en": "<div class='bt-form pd20 pb70'>\t\t\t\t<div class='line'><span class='tname'>面板地址</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='",
+            "fr": "<div class='bt-form pd20 pb70'>\t\t\t\t<div class='line'><span class='tname'>面板地址</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='",
+            "de": "<div class='bt-form pd20 pb70'>\t\t\t\t<div class='line'><span class='tname'>面板地址</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='",
+            "it": "<div class='bt-form pd20 pb70'>\t\t\t\t<div class='line'><span class='tname'>面板地址</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btaddress' id='btaddress' value='"
+        },
+        "public_auto_str_33": {
+            "zh-CN": "' placeholder='面板地址' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>用户名</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='",
+            "zh-TW": "' placeholder='面板地址' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>使用者名</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='",
+            "en": "' placeholder='面板地址' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Username</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='",
+            "fr": "' placeholder='面板地址' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Nom d'utilisateur</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='",
+            "de": "' placeholder='面板地址' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Benutzername</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='",
+            "it": "' placeholder='面板地址' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Nome utente</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='btuser' id='btuser' value='"
+        },
+        "public_auto_str_34": {
+            "zh-CN": "' placeholder='用户名' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>密码</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='",
+            "zh-TW": "' placeholder='使用者名' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>密碼</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='",
+            "en": "' placeholder='Username' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Password</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='",
+            "fr": "' placeholder='Nom d'utilisateur' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Mot de passe</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='",
+            "de": "' placeholder='Benutzername' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Passwort</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='",
+            "it": "' placeholder='Nome utente' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Password</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='password' name='btpassword' id='btpassword' value='"
+        },
+        "public_auto_str_35": {
+            "zh-CN": "' placeholder='密码' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>备注</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='",
+            "zh-TW": "' placeholder='密碼' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>備注</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='",
+            "en": "' placeholder='Password' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Remark</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='",
+            "fr": "' placeholder='Mot de passe' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Remarque</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='",
+            "de": "' placeholder='Passwort' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Bemerkung</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='",
+            "it": "' placeholder='Password' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><span class='tname'>Nota</span>\t\t\t\t<div class='info-r'><input class='bt-input-text' type='text' name='bttitle' id='bttitle' value='"
+        },
+        "public_auto_str_36": {
+            "zh-CN": "' placeholder='备注' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><ul class='help-info-text c7'>\t\t\t\t\t<li>收藏其它服务器面板资料，实现一键登录面板功能</li><li>面板备注不可重复</li>\t\t\t\t\t<li><font style='color:red'>注意，开启广告拦截会导致无法快捷登录。</font></li></ul>\t\t\t\t</div>\t\t\t\t<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">关闭</button> ",
+            "zh-TW": "' placeholder='備注' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><ul class='help-info-text c7'>\t\t\t\t\t<li>收藏其它伺服器面板資料，實現一鍵登入面板功能</li><li>面板備注不可重復</li>\t\t\t\t\t<li><font style='color:red'>注意，開啟广告攔截会導致無法快捷登入。</font></li></ul>\t\t\t\t</div>\t\t\t\t<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">關閉</button> ",
+            "en": "' placeholder='Remark' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><ul class='help-info-text c7'>\t\t\t\t\t<li>收藏其它服务器面板资料，实现一键Login面板功能</li><li>面板Remark不可重复</li>\t\t\t\t\t<li><font style='color:red'>注意，Turn on广告拦截会导致无法快捷Login。</font></li></ul>\t\t\t\t</div>\t\t\t\t<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Close</button> ",
+            "fr": "' placeholder='Remarque' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><ul class='help-info-text c7'>\t\t\t\t\t<li>收藏其它服务器面板资料，实现一键Connexion面板功能</li><li>面板Remarque不可重复</li>\t\t\t\t\t<li><font style='color:red'>注意，Activer广告拦截会导致无法快捷Connexion。</font></li></ul>\t\t\t\t</div>\t\t\t\t<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Fermer</button> ",
+            "de": "' placeholder='Bemerkung' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><ul class='help-info-text c7'>\t\t\t\t\t<li>收藏其它服务器面板资料，实现一键Anmelden面板功能</li><li>面板Bemerkung不可重复</li>\t\t\t\t\t<li><font style='color:red'>注意，Einschalten广告拦截会导致无法快捷Anmelden。</font></li></ul>\t\t\t\t</div>\t\t\t\t<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Schließen</button> ",
+            "it": "' placeholder='Nota' style='width:100%'/></div>\t\t\t\t</div>\t\t\t\t<div class='line'><ul class='help-info-text c7'>\t\t\t\t\t<li>收藏其它服务器面板资料，实现一键Accedi面板功能</li><li>面板Nota不可重复</li>\t\t\t\t\t<li><font style='color:red'>注意，Attiva广告拦截会导致无法快捷Accedi。</font></li></ul>\t\t\t\t</div>\t\t\t\t<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm' onclick=\"layer.closeAll()\">Chiudi</button> "
+        },
+        "public_auto_str_37": {
+            "zh-CN": "<div style=\"height: 520px; position: relative;\"><ul class=\"cmdlist\" style=\"margin: 0; padding: 0; height: 100%; overflow: auto;\"></ul><div style=\"position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;\">若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列</div></div>",
+            "zh-TW": "<div style=\"height: 520px; position: relative;\"><ul class=\"cmdlist\" style=\"margin: 0; padding: 0; height: 100%; overflow: auto;\"></ul><div style=\"position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;\">若任务長時間未執行，请尝试在首頁點【重新啟動面板】來重置任务队列</div></div>",
+            "en": "<div style=\"height: 520px; position: relative;\"><ul class=\"cmdlist\" style=\"margin: 0; padding: 0; height: 100%; overflow: auto;\"></ul><div style=\"position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;\">若任务长Time未Execute，请尝试在Dashboard点【Restart面板】来重置任务队列</div></div>",
+            "fr": "<div style=\"height: 520px; position: relative;\"><ul class=\"cmdlist\" style=\"margin: 0; padding: 0; height: 100%; overflow: auto;\"></ul><div style=\"position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;\">若任务长Heure未Exécuter，请尝试在Tableau de bord点【Redémarrer面板】来重置任务队列</div></div>",
+            "de": "<div style=\"height: 520px; position: relative;\"><ul class=\"cmdlist\" style=\"margin: 0; padding: 0; height: 100%; overflow: auto;\"></ul><div style=\"position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;\">若任务长Zeit未Ausführen，请尝试在Dashboard点【Neustarten面板】来重置任务队列</div></div>",
+            "it": "<div style=\"height: 520px; position: relative;\"><ul class=\"cmdlist\" style=\"margin: 0; padding: 0; height: 100%; overflow: auto;\"></ul><div style=\"position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;\">若任务长Ora未Esegui，请尝试在Dashboard点【Riavvia面板】来重置任务队列</div></div>"
+        },
+        "public_auto_str_38": {
+            "zh-CN": "消息盒子",
+            "zh-TW": "消息盒子",
+            "en": "消息盒子",
+            "fr": "消息盒子",
+            "de": "消息盒子",
+            "it": "消息盒子"
+        },
+        "public_auto_str_39": {
+            "zh-CN": "<div class=\"bt-form\">\t\t\t<div class=\"bt-w-main\" id=\"msg_box\">\t\t\t\t<div class=\"bt-w-menu\">\t\t\t\t\t<p class=\"bgw\" id=\"taskList\" onclick=\"tasklist()\">任务列表(<span class=\"task_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"remind()\">消息列表(<span class=\"msg_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"execLog()\">执行日志</p>\t\t\t\t</div>\t\t\t\t<div class=\"bt-w-con pd15\">\t\t\t\t\t<div class=\"taskcon\"></div>\t\t\t\t</div>\t\t\t</div>\t\t\t<div id=\"msg_box_sys_info\" style=\"margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;\">\t\t\t\t<span>CPU: <span id=\"msg_box_cpu\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>内存: <span id=\"msg_box_mem\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>上行: <span id=\"msg_box_up\" style=\"color:#f7b851\">0 B/s</span></span>\t\t\t\t<span>下行: <span id=\"msg_box_down\" style=\"color:#52a9ff\">0 B/s</span></span>\t\t\t</div>\t\t</div>",
+            "zh-TW": "<div class=\"bt-form\">\t\t\t<div class=\"bt-w-main\" id=\"msg_box\">\t\t\t\t<div class=\"bt-w-menu\">\t\t\t\t\t<p class=\"bgw\" id=\"taskList\" onclick=\"tasklist()\">任务列表(<span class=\"task_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"remind()\">消息列表(<span class=\"msg_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"execLog()\">執行記錄檔</p>\t\t\t\t</div>\t\t\t\t<div class=\"bt-w-con pd15\">\t\t\t\t\t<div class=\"taskcon\"></div>\t\t\t\t</div>\t\t\t</div>\t\t\t<div id=\"msg_box_sys_info\" style=\"margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;\">\t\t\t\t<span>CPU: <span id=\"msg_box_cpu\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>記憶體: <span id=\"msg_box_mem\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>上行: <span id=\"msg_box_up\" style=\"color:#f7b851\">0 B/s</span></span>\t\t\t\t<span>下行: <span id=\"msg_box_down\" style=\"color:#52a9ff\">0 B/s</span></span>\t\t\t</div>\t\t</div>",
+            "en": "<div class=\"bt-form\">\t\t\t<div class=\"bt-w-main\" id=\"msg_box\">\t\t\t\t<div class=\"bt-w-menu\">\t\t\t\t\t<p class=\"bgw\" id=\"taskList\" onclick=\"tasklist()\">任务List(<span class=\"task_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"remind()\">消息List(<span class=\"msg_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"execLog()\">ExecuteLogs</p>\t\t\t\t</div>\t\t\t\t<div class=\"bt-w-con pd15\">\t\t\t\t\t<div class=\"taskcon\"></div>\t\t\t\t</div>\t\t\t</div>\t\t\t<div id=\"msg_box_sys_info\" style=\"margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;\">\t\t\t\t<span>CPU: <span id=\"msg_box_cpu\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Memory: <span id=\"msg_box_mem\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Upload: <span id=\"msg_box_up\" style=\"color:#f7b851\">0 B/s</span></span>\t\t\t\t<span>Download: <span id=\"msg_box_down\" style=\"color:#52a9ff\">0 B/s</span></span>\t\t\t</div>\t\t</div>",
+            "fr": "<div class=\"bt-form\">\t\t\t<div class=\"bt-w-main\" id=\"msg_box\">\t\t\t\t<div class=\"bt-w-menu\">\t\t\t\t\t<p class=\"bgw\" id=\"taskList\" onclick=\"tasklist()\">任务Liste(<span class=\"task_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"remind()\">消息Liste(<span class=\"msg_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"execLog()\">ExécuterJournaux</p>\t\t\t\t</div>\t\t\t\t<div class=\"bt-w-con pd15\">\t\t\t\t\t<div class=\"taskcon\"></div>\t\t\t\t</div>\t\t\t</div>\t\t\t<div id=\"msg_box_sys_info\" style=\"margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;\">\t\t\t\t<span>CPU: <span id=\"msg_box_cpu\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Mémoire: <span id=\"msg_box_mem\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Montant: <span id=\"msg_box_up\" style=\"color:#f7b851\">0 B/s</span></span>\t\t\t\t<span>Descendant: <span id=\"msg_box_down\" style=\"color:#52a9ff\">0 B/s</span></span>\t\t\t</div>\t\t</div>",
+            "de": "<div class=\"bt-form\">\t\t\t<div class=\"bt-w-main\" id=\"msg_box\">\t\t\t\t<div class=\"bt-w-menu\">\t\t\t\t\t<p class=\"bgw\" id=\"taskList\" onclick=\"tasklist()\">任务Liste(<span class=\"task_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"remind()\">消息Liste(<span class=\"msg_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"execLog()\">AusführenProtokolle</p>\t\t\t\t</div>\t\t\t\t<div class=\"bt-w-con pd15\">\t\t\t\t\t<div class=\"taskcon\"></div>\t\t\t\t</div>\t\t\t</div>\t\t\t<div id=\"msg_box_sys_info\" style=\"margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;\">\t\t\t\t<span>CPU: <span id=\"msg_box_cpu\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Arbeitsspeicher: <span id=\"msg_box_mem\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Upload: <span id=\"msg_box_up\" style=\"color:#f7b851\">0 B/s</span></span>\t\t\t\t<span>Download: <span id=\"msg_box_down\" style=\"color:#52a9ff\">0 B/s</span></span>\t\t\t</div>\t\t</div>",
+            "it": "<div class=\"bt-form\">\t\t\t<div class=\"bt-w-main\" id=\"msg_box\">\t\t\t\t<div class=\"bt-w-menu\">\t\t\t\t\t<p class=\"bgw\" id=\"taskList\" onclick=\"tasklist()\">任务Elenco(<span class=\"task_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"remind()\">消息Elenco(<span class=\"msg_count\">0</span>)</p>\t\t\t\t\t<p onclick=\"execLog()\">EseguiLog</p>\t\t\t\t</div>\t\t\t\t<div class=\"bt-w-con pd15\">\t\t\t\t\t<div class=\"taskcon\"></div>\t\t\t\t</div>\t\t\t</div>\t\t\t<div id=\"msg_box_sys_info\" style=\"margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;\">\t\t\t\t<span>CPU: <span id=\"msg_box_cpu\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Memoria: <span id=\"msg_box_mem\" style=\"color:#20a53a\">0%</span></span>\t\t\t\t<span>Upload: <span id=\"msg_box_up\" style=\"color:#f7b851\">0 B/s</span></span>\t\t\t\t<span>Download: <span id=\"msg_box_down\" style=\"color:#52a9ff\">0 B/s</span></span>\t\t\t</div>\t\t</div>"
+        },
+        "public_auto_str_40": {
+            "zh-CN": "正在获取日志...",
+            "zh-TW": "正在獲取記錄檔...",
+            "en": "正在获取Logs...",
+            "fr": "正在获取Journaux...",
+            "de": "正在获取Protokolle...",
+            "it": "正在获取Log..."
+        },
+        "public_auto_str_41": {
+            "zh-CN": " - 执行日志",
+            "zh-TW": " - 執行記錄檔",
+            "en": " - ExecuteLogs",
+            "fr": " - ExécuterJournaux",
+            "de": " - AusführenProtokolle",
+            "it": " - EseguiLog"
+        },
+        "public_auto_str_42": {
+            "zh-CN": "已经完成",
+            "zh-TW": "已經完成",
+            "en": "已经完成",
+            "fr": "已经完成",
+            "de": "已经完成",
+            "it": "已经完成"
+        },
+        "public_auto_str_43": {
+            "zh-CN": "完成",
+            "zh-TW": "完成",
+            "en": "完成",
+            "fr": "完成",
+            "de": "完成",
+            "it": "完成"
+        },
+        "public_auto_str_44": {
+            "zh-CN": "耗时[",
+            "zh-TW": "耗時[",
+            "en": "耗时[",
+            "fr": "耗时[",
+            "de": "耗时[",
+            "it": "耗时["
+        },
+        "public_auto_str_45": {
+            "zh-CN": "正在处理",
+            "zh-TW": "正在处理",
+            "en": "正在处理",
+            "fr": "正在处理",
+            "de": "正在处理",
+            "it": "正在处理"
+        },
+        "public_auto_str_46": {
+            "zh-CN": "等待中..",
+            "zh-TW": "等待中..",
+            "en": "等待中..",
+            "fr": "等待中..",
+            "de": "等待中..",
+            "it": "等待中.."
+        },
+        "public_auto_str_47": {
+            "zh-CN": "安装中",
+            "zh-TW": "安裝中",
+            "en": "Install中",
+            "fr": "Installer中",
+            "de": "Installieren中",
+            "it": "Installa中"
+        },
+        "public_auto_str_48": {
+            "zh-CN": "任务列表",
+            "zh-TW": "任务列表",
+            "en": "任务List",
+            "fr": "任务Liste",
+            "de": "任务Liste",
+            "it": "任务Elenco"
+        },
+        "public_auto_str_49": {
+            "zh-CN": "任务列表",
+            "zh-TW": "任务列表",
+            "en": "任务List",
+            "fr": "任务Liste",
+            "de": "任务Liste",
+            "it": "任务Elenco"
+        },
+        "public_auto_str_50": {
+            "zh-CN": "当前没有任务!",
+            "zh-TW": "当前没有任务!",
+            "en": "当前没有任务!",
+            "fr": "当前没有任务!",
+            "de": "当前没有任务!",
+            "it": "当前没有任务!"
+        },
+        "public_auto_str_51": {
+            "zh-CN": "扫描",
+            "zh-TW": "扫描",
+            "en": "扫描",
+            "fr": "扫描",
+            "de": "扫描",
+            "it": "扫描"
+        },
+        "public_auto_str_52": {
+            "zh-CN": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在扫描<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "zh-TW": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在扫描<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "en": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在扫描<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "fr": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在扫描<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "de": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在扫描<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "it": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在扫描<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask("
+        },
+        "public_auto_str_53": {
+            "zh-CN": ")\">关闭</a></span>\t\t\t\t\t\t\t\t<span class='opencmd'></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "zh-TW": ")\">關閉</a></span>\t\t\t\t\t\t\t\t<span class='opencmd'></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "en": ")\">Close</a></span>\t\t\t\t\t\t\t\t<span class='opencmd'></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "fr": ")\">Fermer</a></span>\t\t\t\t\t\t\t\t<span class='opencmd'></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "de": ")\">Schließen</a></span>\t\t\t\t\t\t\t\t<span class='opencmd'></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "it": ")\">Chiudi</a></span>\t\t\t\t\t\t\t\t<span class='opencmd'></span>\t\t\t\t\t\t\t\t<div class='cmd'>"
+        },
+        "public_auto_str_54": {
+            "zh-CN": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在安装<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "zh-TW": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在安裝<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "en": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在Install<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "fr": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在Installer<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "de": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在Installieren<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "it": "</span>\t\t\t\t\t\t\t\t<span class='state'>正在Installa<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask("
+        },
+        "public_auto_str_55": {
+            "zh-CN": ")\">关闭</a></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "zh-TW": ")\">關閉</a></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "en": ")\">Close</a></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "fr": ")\">Fermer</a></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "de": ")\">Schließen</a></span>\t\t\t\t\t\t\t\t<div class='cmd'>",
+            "it": ")\">Chiudi</a></span>\t\t\t\t\t\t\t\t<div class='cmd'>"
+        },
+        "public_auto_str_56": {
+            "zh-CN": "%</span>\t\t\t\t\t\t\t\t<span class='state'>下载中<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "zh-TW": "%</span>\t\t\t\t\t\t\t\t<span class='state'>下載中<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "en": "%</span>\t\t\t\t\t\t\t\t<span class='state'>Download中<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "fr": "%</span>\t\t\t\t\t\t\t\t<span class='state'>Télécharger中<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "de": "%</span>\t\t\t\t\t\t\t\t<span class='state'>Herunterladen中<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(",
+            "it": "%</span>\t\t\t\t\t\t\t\t<span class='state'>Scarica中<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask("
+        },
+        "public_auto_str_57": {
+            "zh-CN": "</span><span class='state'>等待 | <a style='color:green' href=\"javascript:removeTask(",
+            "zh-TW": "</span><span class='state'>等待 | <a style='color:green' href=\"javascript:removeTask(",
+            "en": "</span><span class='state'>等待 | <a style='color:green' href=\"javascript:removeTask(",
+            "fr": "</span><span class='state'>等待 | <a style='color:green' href=\"javascript:removeTask(",
+            "de": "</span><span class='state'>等待 | <a style='color:green' href=\"javascript:removeTask(",
+            "it": "</span><span class='state'>等待 | <a style='color:green' href=\"javascript:removeTask("
+        },
+        "public_auto_str_58": {
+            "zh-CN": ")\">删除</a></span></li>",
+            "zh-TW": ")\">刪除</a></span></li>",
+            "en": ")\">Delete</a></span></li>",
+            "fr": ")\">Supprimer</a></span></li>",
+            "de": ")\">Löschen</a></span></li>",
+            "it": ")\">Elimina</a></span></li>"
+        },
+        "public_auto_str_59": {
+            "zh-CN": "您的登陆状态已过期，请重新登陆!",
+            "zh-TW": "您的登陆狀態已過期，请重新登陆!",
+            "en": "您的登陆Status已过期，请重新登陆!",
+            "fr": "您的登陆Statut已过期，请重新登陆!",
+            "de": "您的登陆Status已过期，请重新登陆!",
+            "it": "您的登陆Stato已过期，请重新登陆!"
+        },
+        "public_auto_str_60": {
+            "zh-CN": "会话已过期",
+            "zh-TW": "会話已過期",
+            "en": "会话已过期",
+            "fr": "会话已过期",
+            "de": "会话已过期",
+            "it": "会话已过期"
+        },
+        "public_auto_str_61": {
+            "zh-CN": "正在加载终端组件...",
+            "zh-TW": "正在加載終端機組件...",
+            "en": "正在加载Terminal组件...",
+            "fr": "正在加载Terminal组件...",
+            "de": "正在加载Terminal组件...",
+            "it": "正在加载Terminale组件..."
+        },
+        "public_auto_str_62": {
+            "zh-CN": "终端组件加载失败，请刷新页面重试",
+            "zh-TW": "終端機組件加載失敗，请重新整理頁面重试",
+            "en": "Terminal组件加载失败，请Refresh页面重试",
+            "fr": "Terminal组件加载失败，请Actualiser页面重试",
+            "de": "Terminal组件加载失败，请Aktualisieren页面重试",
+            "it": "Terminale组件加载失败，请Aggiorna页面重试"
+        },
+        "public_auto_str_63": {
+            "zh-CN": "[错误]",
+            "zh-TW": "[錯誤]",
+            "en": "[错误]",
+            "fr": "[错误]",
+            "de": "[错误]",
+            "it": "[错误]"
+        },
+        "public_auto_str_64": {
+            "zh-CN": "[系统]",
+            "zh-TW": "[系統]",
+            "en": "[系统]",
+            "fr": "[系统]",
+            "de": "[系统]",
+            "it": "[系统]"
+        },
+        "public_auto_str_65": {
+            "zh-CN": "[建议]",
+            "zh-TW": "[建議]",
+            "en": "[建议]",
+            "fr": "[建议]",
+            "de": "[建议]",
+            "it": "[建议]"
+        },
+        "public_auto_str_66": {
+            "zh-CN": "\r\n登出\r\n",
+            "zh-TW": "\r\n登出\r\n",
+            "en": "\r\n登出\r\n",
+            "fr": "\r\n登出\r\n",
+            "de": "\r\n登出\r\n",
+            "it": "\r\n登出\r\n"
+        },
+        "public_auto_str_67": {
+            "zh-CN": "登出\r\n",
+            "zh-TW": "登出\r\n",
+            "en": "登出\r\n",
+            "fr": "登出\r\n",
+            "de": "登出\r\n",
+            "it": "登出\r\n"
+        },
+        "public_auto_str_68": {
+            "zh-CN": "本地终端",
+            "zh-TW": "本地終端機",
+            "en": "本地Terminal",
+            "fr": "本地Terminal",
+            "de": "本地Terminal",
+            "it": "本地Terminale"
+        },
+        "public_auto_str_69": {
+            "zh-CN": "已自动复制选中内容！",
+            "zh-TW": "已自動復製選中内容！",
+            "en": "已自动Copy选中内容！",
+            "fr": "已自动Copier选中内容！",
+            "de": "已自动Kopieren选中内容！",
+            "it": "已自动Copia选中内容！"
+        },
+        "public_auto_str_70": {
+            "zh-CN": "自动复制失败，浏览器不兼容",
+            "zh-TW": "自動復製失敗，浏覽器不兼容",
+            "en": "自动Copy失败，浏览器不兼容",
+            "fr": "自动Copier失败，浏览器不兼容",
+            "de": "自动Kopieren失败，浏览器不兼容",
+            "it": "自动Copia失败，浏览器不兼容"
+        },
+        "public_auto_str_71": {
+            "zh-CN": "                        <div id=\"term-paste-bubble\" style=\"position: absolute; z-index: 29891015; padding: 6px 10px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);\">                            <input type=\"text\" id=\"term-paste-input\" placeholder=\"快捷粘贴：请在此处 Ctrl+V 并回车发送\" style=\"width: 250px; background: transparent; border: none; outline: none; color: #fff; font-size: 13px; font-family: Consolas, monospace;\" autocomplete=\"off\" />                        </div>",
+            "zh-TW": "                        <div id=\"term-paste-bubble\" style=\"position: absolute; z-index: 29891015; padding: 6px 10px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);\">                            <input type=\"text\" id=\"term-paste-input\" placeholder=\"快捷粘贴：请在此处 Ctrl+V 並回车發送\" style=\"width: 250px; background: transparent; border: none; outline: none; color: #fff; font-size: 13px; font-family: Consolas, monospace;\" autocomplete=\"off\" />                        </div>",
+            "en": "                        <div id=\"term-paste-bubble\" style=\"position: absolute; z-index: 29891015; padding: 6px 10px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);\">                            <input type=\"text\" id=\"term-paste-input\" placeholder=\"快捷粘贴：请在此处 Ctrl+V 并回车发送\" style=\"width: 250px; background: transparent; border: none; outline: none; color: #fff; font-size: 13px; font-family: Consolas, monospace;\" autocomplete=\"off\" />                        </div>",
+            "fr": "                        <div id=\"term-paste-bubble\" style=\"position: absolute; z-index: 29891015; padding: 6px 10px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);\">                            <input type=\"text\" id=\"term-paste-input\" placeholder=\"快捷粘贴：请在此处 Ctrl+V 并回车发送\" style=\"width: 250px; background: transparent; border: none; outline: none; color: #fff; font-size: 13px; font-family: Consolas, monospace;\" autocomplete=\"off\" />                        </div>",
+            "de": "                        <div id=\"term-paste-bubble\" style=\"position: absolute; z-index: 29891015; padding: 6px 10px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);\">                            <input type=\"text\" id=\"term-paste-input\" placeholder=\"快捷粘贴：请在此处 Ctrl+V 并回车发送\" style=\"width: 250px; background: transparent; border: none; outline: none; color: #fff; font-size: 13px; font-family: Consolas, monospace;\" autocomplete=\"off\" />                        </div>",
+            "it": "                        <div id=\"term-paste-bubble\" style=\"position: absolute; z-index: 29891015; padding: 6px 10px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);\">                            <input type=\"text\" id=\"term-paste-input\" placeholder=\"快捷粘贴：请在此处 Ctrl+V 并回车发送\" style=\"width: 250px; background: transparent; border: none; outline: none; color: #fff; font-size: 13px; font-family: Consolas, monospace;\" autocomplete=\"off\" />                        </div>"
+        },
+        "public_auto_str_72": {
+            "zh-CN": "粘贴失败，请在浏览器地址栏左侧允许该网页的“剪贴板”权限，或直接使用 Ctrl+V 粘贴！",
+            "zh-TW": "粘贴失敗，请在浏覽器地址栏左侧允許该網頁的“剪贴板”權限，或直接使用 Ctrl+V 粘贴！",
+            "en": "粘贴失败，请在浏览器地址栏左侧允许该网页的“剪贴板”Permissions，或直接使用 Ctrl+V 粘贴！",
+            "fr": "粘贴失败，请在浏览器地址栏左侧允许该网页的“剪贴板”Permissions，或直接使用 Ctrl+V 粘贴！",
+            "de": "粘贴失败，请在浏览器地址栏左侧允许该网页的“剪贴板”Berechtigungen，或直接使用 Ctrl+V 粘贴！",
+            "it": "粘贴失败，请在浏览器地址栏左侧允许该网页的“剪贴板”Permessi，或直接使用 Ctrl+V 粘贴！"
+        },
+        "public_auto_str_73": {
+            "zh-CN": "您的浏览器安全设置不支持脚本读取剪贴板，请直接使用 Ctrl+V 粘贴！",
+            "zh-TW": "您的浏覽器安全設定不支持脚本讀取剪贴板，请直接使用 Ctrl+V 粘贴！",
+            "en": "您的浏览器Security设置不支持脚本读取剪贴板，请直接使用 Ctrl+V 粘贴！",
+            "fr": "您的浏览器Sécurité设置不支持脚本读取剪贴板，请直接使用 Ctrl+V 粘贴！",
+            "de": "您的浏览器Sicherheit设置不支持脚本读取剪贴板，请直接使用 Ctrl+V 粘贴！",
+            "it": "您的浏览器Sicurezza设置不支持脚本读取剪贴板，请直接使用 Ctrl+V 粘贴！"
+        },
+        "public_auto_str_74": {
+            "zh-CN": "缺少指定文件!",
+            "zh-TW": "缺少指定檔案!",
+            "en": "缺少指定Files!",
+            "fr": "缺少指定Fichiers!",
+            "de": "缺少指定Dateien!",
+            "it": "缺少指定File!"
+        },
+        "public_auto_str_75": {
+            "zh-CN": "正在获取...",
+            "zh-TW": "正在獲取...",
+            "en": "正在获取...",
+            "fr": "正在获取...",
+            "de": "正在获取...",
+            "it": "正在获取..."
+        },
+        "public_auto_str_76": {
+            "zh-CN": "<p class=\"status\">当前状态：<span>",
+            "zh-TW": "<p class=\"status\">当前狀態：<span>",
+            "en": "<p class=\"status\">当前Status：<span>",
+            "fr": "<p class=\"status\">当前Statut：<span>",
+            "de": "<p class=\"status\">当前Status：<span>",
+            "it": "<p class=\"status\">当前Stato：<span>"
+        },
+        "public_auto_str_77": {
+            "zh-CN": "开启",
+            "zh-TW": "開啟",
+            "en": "Turn on",
+            "fr": "Activer",
+            "de": "Einschalten",
+            "it": "Attiva"
+        },
+        "public_auto_str_78": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "public_auto_str_79": {
+            "zh-CN": "停止",
+            "zh-TW": "停止",
+            "en": "Stop",
+            "fr": "Arrêter",
+            "de": "Stoppen",
+            "it": "Arresta"
+        },
+        "public_auto_str_80": {
+            "zh-CN": "启动",
+            "zh-TW": "启動",
+            "en": "Start",
+            "fr": "Démarrer",
+            "de": "Starten",
+            "it": "Avvia"
+        },
+        "public_auto_str_81": {
+            "zh-CN": "')\">重启</button>            <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('",
+            "zh-TW": "')\">重新啟動</button>            <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('",
+            "en": "')\">Restart</button>            <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('",
+            "fr": "')\">Redémarrer</button>            <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('",
+            "de": "')\">Neustarten</button>            <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('",
+            "it": "')\">Riavvia</button>            <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"
+        },
+        "public_auto_str_82": {
+            "zh-CN": "')\">重载配置</button>        </div>",
+            "zh-TW": "')\">重新載入設定</button>        </div>",
+            "en": "')\">Reload配置</button>        </div>",
+            "fr": "')\">Recharger配置</button>        </div>",
+            "de": "')\">Neu laden配置</button>        </div>",
+            "it": "')\">Ricarica配置</button>        </div>"
+        },
+        "public_auto_str_83": {
+            "zh-CN": "<div class=\"service-notice\" style=\"margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">            <div style=\"margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;\"><span class=\"glyphicon glyphicon-info-sign\" style=\"margin-right: 5px; color: #20a53a;\"></span>操作指引</div>            <div style=\"margin-bottom: 4px;\"><b style=\"color:#333;\">重载配置 (Reload)</b>：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现<b style=\"color:#20a53a;\">业务零中断</b>，推荐日常修改配置后使用。</div>            <div><b style=\"color:#333;\">重启服务 (Restart)</b>：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。</div>        </div>",
+            "zh-TW": "<div class=\"service-notice\" style=\"margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">            <div style=\"margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;\"><span class=\"glyphicon glyphicon-info-sign\" style=\"margin-right: 5px; color: #20a53a;\"></span>操作指引</div>            <div style=\"margin-bottom: 4px;\"><b style=\"color:#333;\">重新載入設定 (Reload)</b>：平滑加載最新設定。處理程序重新讀取設定而不断開現有連接，實現<b style=\"color:#20a53a;\">业务零中断</b>，推荐日常修改設定後使用。</div>            <div><b style=\"color:#333;\">重新啟動服务 (Restart)</b>：强製終止並重新啟動所有處理程序。会導致进行中的请求（如订單提交、檔案上傳）瞬間中断並抛出 502 錯誤，仅在極少數异常恢復時使用。</div>        </div>",
+            "en": "<div class=\"service-notice\" style=\"margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">            <div style=\"margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;\"><span class=\"glyphicon glyphicon-info-sign\" style=\"margin-right: 5px; color: #20a53a;\"></span>Action指引</div>            <div style=\"margin-bottom: 4px;\"><b style=\"color:#333;\">Reload配置 (Reload)</b>：平滑加载最新配置。Process重新读取配置而不断开现有Connections，实现<b style=\"color:#20a53a;\">业务零中断</b>，推荐日常Modify配置后使用。</div>            <div><b style=\"color:#333;\">Restart服务 (Restart)</b>：强制终止并Restart所有Process。会导致进行中的请求（如订单Submit、FilesUpload）瞬间中断并抛出 502 错误，仅在极少数异常Restore时使用。</div>        </div>",
+            "fr": "<div class=\"service-notice\" style=\"margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">            <div style=\"margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;\"><span class=\"glyphicon glyphicon-info-sign\" style=\"margin-right: 5px; color: #20a53a;\"></span>Action指引</div>            <div style=\"margin-bottom: 4px;\"><b style=\"color:#333;\">Recharger配置 (Reload)</b>：平滑加载最新配置。Processus重新读取配置而不断开现有Connexions，实现<b style=\"color:#20a53a;\">业务零中断</b>，推荐日常Modifier配置后使用。</div>            <div><b style=\"color:#333;\">Redémarrer服务 (Restart)</b>：强制终止并Redémarrer所有Processus。会导致进行中的请求（如订单Soumettre、FichiersTéléverser）瞬间中断并抛出 502 错误，仅在极少数异常Restaurer时使用。</div>        </div>",
+            "de": "<div class=\"service-notice\" style=\"margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">            <div style=\"margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;\"><span class=\"glyphicon glyphicon-info-sign\" style=\"margin-right: 5px; color: #20a53a;\"></span>Aktion指引</div>            <div style=\"margin-bottom: 4px;\"><b style=\"color:#333;\">Neu laden配置 (Reload)</b>：平滑加载最新配置。Prozess重新读取配置而不断开现有Verbindungen，实现<b style=\"color:#20a53a;\">业务零中断</b>，推荐日常Ändern配置后使用。</div>            <div><b style=\"color:#333;\">Neustarten服务 (Restart)</b>：强制终止并Neustarten所有Prozess。会导致进行中的请求（如订单Absenden、DateienHochladen）瞬间中断并抛出 502 错误，仅在极少数异常Wiederherstellen时使用。</div>        </div>",
+            "it": "<div class=\"service-notice\" style=\"margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">            <div style=\"margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;\"><span class=\"glyphicon glyphicon-info-sign\" style=\"margin-right: 5px; color: #20a53a;\"></span>Azione指引</div>            <div style=\"margin-bottom: 4px;\"><b style=\"color:#333;\">Ricarica配置 (Reload)</b>：平滑加载最新配置。Processo重新读取配置而不断开现有Connessioni，实现<b style=\"color:#20a53a;\">业务零中断</b>，推荐日常Modifica配置后使用。</div>            <div><b style=\"color:#333;\">Riavvia服务 (Restart)</b>：强制终止并Riavvia所有Processo。会导致进行中的请求（如订单Invia、FileCarica）瞬间中断并抛出 502 错误，仅在极少数异常Ripristina时使用。</div>        </div>"
+        },
+        "public_auto_str_84": {
+            "zh-CN": "')\">kill所有php进程</button>            <div class=\"service-notice\" style=\"margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">                <div><b style=\"color:#d9534f;\">注意</b>：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，<b style=\"color:red;\">执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。</b></div>            </div>        </div>",
+            "zh-TW": "')\">kill所有php處理程序</button>            <div class=\"service-notice\" style=\"margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">                <div><b style=\"color:#d9534f;\">注意</b>：强製杀掉伺服器上所有的 PHP-FPM 處理程序（包括其他正常运行的 PHP 版本）。這会中断所有 PHP 網站的访問。此功能主要用于解决面板 PHP 启動時報“埠口已被佔用”、“Socket冲突”等异常問題，<b style=\"color:red;\">執行後需要手動回到各個 PHP 版本中重新點击【启動】服务。</b></div>            </div>        </div>",
+            "en": "')\">kill所有phpProcess</button>            <div class=\"service-notice\" style=\"margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">                <div><b style=\"color:#d9534f;\">注意</b>：强制杀掉服务器上所有的 PHP-FPM Process（包括其他正常运行的 PHP Version）。这会中断所有 PHP Websites的访问。此功能主要用于解决面板 PHP Start时报“Port已被占用”、“Socket冲突”等异常问题，<b style=\"color:red;\">Execute后需要手动回到各个 PHP Version中重新点击【Start】服务。</b></div>            </div>        </div>",
+            "fr": "')\">kill所有phpProcessus</button>            <div class=\"service-notice\" style=\"margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">                <div><b style=\"color:#d9534f;\">注意</b>：强制杀掉服务器上所有的 PHP-FPM Processus（包括其他正常运行的 PHP Version）。这会中断所有 PHP Sites Web的访问。此功能主要用于解决面板 PHP Démarrer时报“Port已被占用”、“Socket冲突”等异常问题，<b style=\"color:red;\">Exécuter后需要手动回到各个 PHP Version中重新点击【Démarrer】服务。</b></div>            </div>        </div>",
+            "de": "')\">kill所有phpProzess</button>            <div class=\"service-notice\" style=\"margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">                <div><b style=\"color:#d9534f;\">注意</b>：强制杀掉服务器上所有的 PHP-FPM Prozess（包括其他正常运行的 PHP Version）。这会中断所有 PHP Websites的访问。此功能主要用于解决面板 PHP Starten时报“Port已被占用”、“Socket冲突”等异常问题，<b style=\"color:red;\">Ausführen后需要手动回到各个 PHP Version中重新点击【Starten】服务。</b></div>            </div>        </div>",
+            "it": "')\">kill所有phpProcesso</button>            <div class=\"service-notice\" style=\"margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">                <div><b style=\"color:#d9534f;\">注意</b>：强制杀掉服务器上所有的 PHP-FPM Processo（包括其他正常运行的 PHP Versione）。这会中断所有 PHP Siti Web的访问。此功能主要用于解决面板 PHP Avvia时报“Porta已被占用”、“Socket冲突”等异常问题，<b style=\"color:red;\">Esegui后需要手动回到各个 PHP Versione中重新点击【Avvia】服务。</b></div>            </div>        </div>"
+        },
+        "public_auto_str_85": {
+            "zh-CN": "停止",
+            "zh-TW": "停止",
+            "en": "Stop",
+            "fr": "Arrêter",
+            "de": "Stoppen",
+            "it": "Arresta"
+        },
+        "public_auto_str_86": {
+            "zh-CN": "启动",
+            "zh-TW": "启動",
+            "en": "Start",
+            "fr": "Démarrer",
+            "de": "Starten",
+            "it": "Avvia"
+        },
+        "public_auto_str_87": {
+            "zh-CN": "重启",
+            "zh-TW": "重新啟動",
+            "en": "Restart",
+            "fr": "Redémarrer",
+            "de": "Neustarten",
+            "it": "Riavvia"
+        },
+        "public_auto_str_88": {
+            "zh-CN": "重载",
+            "zh-TW": "重新載入",
+            "en": "Reload",
+            "fr": "Recharger",
+            "de": "Neu laden",
+            "it": "Ricarica"
+        },
+        "public_auto_str_89": {
+            "zh-CN": "强制停止(kill)",
+            "zh-TW": "强製停止(kill)",
+            "en": "强制Stop(kill)",
+            "fr": "强制Arrêter(kill)",
+            "de": "强制Stoppen(kill)",
+            "it": "强制Arresta(kill)"
+        },
+        "public_auto_str_90": {
+            "zh-CN": "您真的要{1}{2}{3}服务吗？",
+            "zh-TW": "您真的要{1}{2}{3}服务吗？",
+            "en": "您真的要{1}{2}{3}服务吗？",
+            "fr": "您真的要{1}{2}{3}服务吗？",
+            "de": "您真的要{1}{2}{3}服务吗？",
+            "it": "您真的要{1}{2}{3}服务吗？"
+        },
+        "public_auto_str_91": {
+            "zh-CN": "正在{1}{2}{3}服务,请稍候...",
+            "zh-TW": "正在{1}{2}{3}服务,請稍候...",
+            "en": "正在{1}{2}{3}服务,请稍候...",
+            "fr": "正在{1}{2}{3}服务,请稍候...",
+            "de": "正在{1}{2}{3}服务,请稍候...",
+            "it": "正在{1}{2}{3}服务,请稍候..."
+        },
+        "public_auto_str_92": {
+            "zh-CN": "{1}{2}服务已{3}",
+            "zh-TW": "{1}{2}服务已{3}",
+            "en": "{1}{2}服务已{3}",
+            "fr": "{1}{2}服务已{3}",
+            "de": "{1}{2}服务已{3}",
+            "it": "{1}{2}服务已{3}"
+        },
+        "public_auto_str_93": {
+            "zh-CN": "{1}{2}服务{3}失败!",
+            "zh-TW": "{1}{2}服务{3}失敗!",
+            "en": "{1}{2}服务{3}失败!",
+            "fr": "{1}{2}服务{3}失败!",
+            "de": "{1}{2}服务{3}失败!",
+            "it": "{1}{2}服务{3}失败!"
+        },
+        "public_auto_str_94": {
+            "zh-CN": "操作异常!",
+            "zh-TW": "操作异常!",
+            "en": "Action异常!",
+            "fr": "Action异常!",
+            "de": "Aktion异常!",
+            "it": "Azione异常!"
+        },
+        "public_auto_str_95": {
+            "zh-CN": "<p style=\"color: #666; margin-bottom: 7px\">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!</p>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">保存</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "zh-TW": "<p style=\"color: #666; margin-bottom: 7px\">提示：Ctrl+F 搜索關鍵字，Ctrl+G 查找下一個，Ctrl+S 儲存，Ctrl+H 查找替換!</p>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">儲存</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处為",
+            "en": "<p style=\"color: #666; margin-bottom: 7px\">Tip：Ctrl+F Search关键字，Ctrl+G 查找下一个，Ctrl+S Save，Ctrl+H 查找替换!</p>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Save</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "fr": "<p style=\"color: #666; margin-bottom: 7px\">Conseil：Ctrl+F Rechercher关键字，Ctrl+G 查找下一个，Ctrl+S Enregistrer，Ctrl+H 查找替换!</p>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Enregistrer</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "de": "<p style=\"color: #666; margin-bottom: 7px\">Hinweis：Ctrl+F Suchen关键字，Ctrl+G 查找下一个，Ctrl+S Speichern，Ctrl+H 查找替换!</p>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Speichern</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "it": "<p style=\"color: #666; margin-bottom: 7px\">Suggerimento：Ctrl+F Cerca关键字，Ctrl+G 查找下一个，Ctrl+S Salva，Ctrl+H 查找替换!</p>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Salva</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为"
+        },
+        "public_auto_str_96": {
+            "zh-CN": "主配置文件,若您不了解配置规则,请勿随意修改。</li>                </ul>",
+            "zh-TW": "主設定檔案,若您不了解設定規則,请勿随意修改。</li>                </ul>",
+            "en": "主配置Files,若您不了解配置规则,请勿随意Modify。</li>                </ul>",
+            "fr": "主配置Fichiers,若您不了解配置规则,请勿随意Modifier。</li>                </ul>",
+            "de": "主配置Dateien,若您不了解配置规则,请勿随意Ändern。</li>                </ul>",
+            "it": "主配置File,若您不了解配置规则,请勿随意Modifica。</li>                </ul>"
+        },
+        "public_auto_str_97": {
+            "zh-CN": "配置文件路径获取中...",
+            "zh-TW": "設定檔案路径獲取中...",
+            "en": "配置Files路径获取中...",
+            "fr": "配置Fichiers路径获取中...",
+            "de": "配置Dateien路径获取中...",
+            "it": "配置File路径获取中..."
+        },
+        "public_auto_str_98": {
+            "zh-CN": "文件内容获取中...",
+            "zh-TW": "檔案内容獲取中...",
+            "en": "Files内容获取中...",
+            "fr": "Fichiers内容获取中...",
+            "de": "Dateien内容获取中...",
+            "it": "File内容获取中..."
+        },
+        "public_auto_str_99": {
+            "zh-CN": "<p style=\"color: #666; margin-bottom: 7px\">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"><option value=\"0\">请选择</option></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">保存</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为【",
+            "zh-TW": "<p style=\"color: #666; margin-bottom: 7px\">提示：Ctrl+F 搜索關鍵字，Ctrl+G 查找下一個，Ctrl+S 儲存，Ctrl+H 查找替換!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"><option value=\"0\">请選擇</option></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">儲存</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处為【",
+            "en": "<p style=\"color: #666; margin-bottom: 7px\">Tip：Ctrl+F Search关键字，Ctrl+G 查找下一个，Ctrl+S Save，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"><option value=\"0\">请选择</option></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Save</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为【",
+            "fr": "<p style=\"color: #666; margin-bottom: 7px\">Conseil：Ctrl+F Rechercher关键字，Ctrl+G 查找下一个，Ctrl+S Enregistrer，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"><option value=\"0\">请选择</option></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Enregistrer</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为【",
+            "de": "<p style=\"color: #666; margin-bottom: 7px\">Hinweis：Ctrl+F Suchen关键字，Ctrl+G 查找下一个，Ctrl+S Speichern，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"><option value=\"0\">请选择</option></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Speichern</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为【",
+            "it": "<p style=\"color: #666; margin-bottom: 7px\">Suggerimento：Ctrl+F Cerca关键字，Ctrl+G 查找下一个，Ctrl+S Salva，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"><option value=\"0\">请选择</option></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Salva</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为【"
+        },
+        "public_auto_str_100": {
+            "zh-CN": "】主配置文件,若您不了解配置规则,请勿随意修改。</li>                </ul>",
+            "zh-TW": "】主設定檔案,若您不了解設定規則,请勿随意修改。</li>                </ul>",
+            "en": "】主配置Files,若您不了解配置规则,请勿随意Modify。</li>                </ul>",
+            "fr": "】主配置Fichiers,若您不了解配置规则,请勿随意Modifier。</li>                </ul>",
+            "de": "】主配置Dateien,若您不了解配置规则,请勿随意Ändern。</li>                </ul>",
+            "it": "】主配置File,若您不了解配置规则,请勿随意Modifica。</li>                </ul>"
+        },
+        "public_auto_str_101": {
+            "zh-CN": "配置模版获取中...",
+            "zh-TW": "設定模版獲取中...",
+            "en": "配置模版获取中...",
+            "fr": "配置模版获取中...",
+            "de": "配置模版获取中...",
+            "it": "配置模版获取中..."
+        },
+        "public_auto_str_102": {
+            "zh-CN": "配置文件路径获取中...",
+            "zh-TW": "設定檔案路径獲取中...",
+            "en": "配置Files路径获取中...",
+            "fr": "配置Fichiers路径获取中...",
+            "de": "配置Dateien路径获取中...",
+            "it": "配置File路径获取中..."
+        },
+        "public_auto_str_103": {
+            "zh-CN": "文件内容获取中...",
+            "zh-TW": "檔案内容獲取中...",
+            "en": "Files内容获取中...",
+            "fr": "Fichiers内容获取中...",
+            "de": "Dateien内容获取中...",
+            "it": "File内容获取中..."
+        },
+        "public_auto_str_104": {
+            "zh-CN": "<p style=\"color: #666; margin-bottom: 7px\">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">保存</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "zh-TW": "<p style=\"color: #666; margin-bottom: 7px\">提示：Ctrl+F 搜索關鍵字，Ctrl+G 查找下一個，Ctrl+S 儲存，Ctrl+H 查找替換!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">儲存</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处為",
+            "en": "<p style=\"color: #666; margin-bottom: 7px\">Tip：Ctrl+F Search关键字，Ctrl+G 查找下一个，Ctrl+S Save，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Save</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "fr": "<p style=\"color: #666; margin-bottom: 7px\">Conseil：Ctrl+F Rechercher关键字，Ctrl+G 查找下一个，Ctrl+S Enregistrer，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Enregistrer</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "de": "<p style=\"color: #666; margin-bottom: 7px\">Hinweis：Ctrl+F Suchen关键字，Ctrl+G 查找下一个，Ctrl+S Speichern，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Speichern</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为",
+            "it": "<p style=\"color: #666; margin-bottom: 7px\">Suggerimento：Ctrl+F Cerca关键字，Ctrl+G 查找下一个，Ctrl+S Salva，Ctrl+H 查找替换!</p>    \t\t\t<select id=\"config_tpl\" class=\"bt-input-text mr20\" style=\"width:30%;margin-bottom: 3px;\"></select>    \t\t\t<textarea class=\"bt-input-text\" style=\"height: 320px; line-height:18px;\" id=\"textBody\"></textarea>                <button id=\"onlineEditFileBtn\" class=\"btn btn-success btn-sm\" style=\"margin-top:10px;\">Salva</button>                <ul class=\"help-info-text c7 ptb15\">                    <li>此处为"
+        },
+        "public_auto_str_105": {
+            "zh-CN": "主配置文件,若您不了解配置规则,请勿随意修改。</li>                </ul>",
+            "zh-TW": "主設定檔案,若您不了解設定規則,请勿随意修改。</li>                </ul>",
+            "en": "主配置Files,若您不了解配置规则,请勿随意Modify。</li>                </ul>",
+            "fr": "主配置Fichiers,若您不了解配置规则,请勿随意Modifier。</li>                </ul>",
+            "de": "主配置Dateien,若您不了解配置规则,请勿随意Ändern。</li>                </ul>",
+            "it": "主配置File,若您不了解配置规则,请勿随意Modifica。</li>                </ul>"
+        },
+        "public_auto_str_106": {
+            "zh-CN": "配置模版获取中...",
+            "zh-TW": "設定模版獲取中...",
+            "en": "配置模版获取中...",
+            "fr": "配置模版获取中...",
+            "de": "配置模版获取中...",
+            "it": "配置模版获取中..."
+        },
+        "public_auto_str_107": {
+            "zh-CN": "保存中...",
+            "zh-TW": "儲存中...",
+            "en": "Save中...",
+            "fr": "Enregistrer中...",
+            "de": "Speichern中...",
+            "it": "Salva中..."
+        },
+        "public_auto_str_108": {
+            "zh-CN": "正在获取...",
+            "zh-TW": "正在獲取...",
+            "en": "正在获取...",
+            "fr": "正在获取...",
+            "de": "正在获取...",
+            "it": "正在获取..."
+        },
+        "public_auto_str_109": {
+            "zh-CN": "<p class=\"status\">当前状态：<span>",
+            "zh-TW": "<p class=\"status\">当前狀態：<span>",
+            "en": "<p class=\"status\">当前Status：<span>",
+            "fr": "<p class=\"status\">当前Statut：<span>",
+            "de": "<p class=\"status\">当前Status：<span>",
+            "it": "<p class=\"status\">当前Stato：<span>"
+        },
+        "public_auto_str_110": {
+            "zh-CN": "已加载",
+            "zh-TW": "已加載",
+            "en": "已加载",
+            "fr": "已加载",
+            "de": "已加载",
+            "it": "已加载"
+        },
+        "public_auto_str_111": {
+            "zh-CN": "未加载",
+            "zh-TW": "未加載",
+            "en": "未加载",
+            "fr": "未加载",
+            "de": "未加载",
+            "it": "未加载"
+        },
+        "public_auto_str_112": {
+            "zh-CN": "卸载",
+            "zh-TW": "卸載",
+            "en": "Uninstall",
+            "fr": "Désinstaller",
+            "de": "Deinstallieren",
+            "it": "Disinstalla"
+        },
+        "public_auto_str_113": {
+            "zh-CN": "加载",
+            "zh-TW": "加載",
+            "en": "加载",
+            "fr": "加载",
+            "de": "加载",
+            "it": "加载"
+        },
+        "public_auto_str_114": {
+            "zh-CN": "加载",
+            "zh-TW": "加載",
+            "en": "加载",
+            "fr": "加载",
+            "de": "加载",
+            "it": "加载"
+        },
+        "public_auto_str_115": {
+            "zh-CN": "卸载",
+            "zh-TW": "卸載",
+            "en": "Uninstall",
+            "fr": "Désinstaller",
+            "de": "Deinstallieren",
+            "it": "Disinstalla"
+        },
+        "public_auto_str_116": {
+            "zh-CN": "您真的要{1}{2}{3}服务吗？",
+            "zh-TW": "您真的要{1}{2}{3}服务吗？",
+            "en": "您真的要{1}{2}{3}服务吗？",
+            "fr": "您真的要{1}{2}{3}服务吗？",
+            "de": "您真的要{1}{2}{3}服务吗？",
+            "it": "您真的要{1}{2}{3}服务吗？"
+        },
+        "public_auto_str_117": {
+            "zh-CN": "正在{1}{2}{3}服务,请稍候...",
+            "zh-TW": "正在{1}{2}{3}服务,請稍候...",
+            "en": "正在{1}{2}{3}服务,请稍候...",
+            "fr": "正在{1}{2}{3}服务,请稍候...",
+            "de": "正在{1}{2}{3}服务,请稍候...",
+            "it": "正在{1}{2}{3}服务,请稍候..."
+        },
+        "public_auto_str_118": {
+            "zh-CN": "{1}{3}服务已{2}",
+            "zh-TW": "{1}{3}服务已{2}",
+            "en": "{1}{3}服务已{2}",
+            "fr": "{1}{3}服务已{2}",
+            "de": "{1}{3}服务已{2}",
+            "it": "{1}{3}服务已{2}"
+        },
+        "public_auto_str_119": {
+            "zh-CN": "{1}{3}服务{2}失败!",
+            "zh-TW": "{1}{3}服务{2}失敗!",
+            "en": "{1}{3}服务{2}失败!",
+            "fr": "{1}{3}服务{2}失败!",
+            "de": "{1}{3}服务{2}失败!",
+            "it": "{1}{3}服务{2}失败!"
+        },
+        "public_auto_str_120": {
+            "zh-CN": "系统异常!",
+            "zh-TW": "系統异常!",
+            "en": "系统异常!",
+            "fr": "系统异常!",
+            "de": "系统异常!",
+            "it": "系统异常!"
+        },
+        "public_auto_str_121": {
+            "zh-CN": "日志路径获取中...",
+            "zh-TW": "記錄檔路径獲取中...",
+            "en": "Logs路径获取中...",
+            "fr": "Journaux路径获取中...",
+            "de": "Protokolle路径获取中...",
+            "it": "Log路径获取中..."
+        },
+        "public_auto_str_122": {
+            "zh-CN": "文件内容获取中...",
+            "zh-TW": "檔案内容獲取中...",
+            "en": "Files内容获取中...",
+            "fr": "Fichiers内容获取中...",
+            "de": "Dateien内容获取中...",
+            "it": "File内容获取中..."
+        },
+        "public_auto_str_123": {
+            "zh-CN": "当前没有日志!",
+            "zh-TW": "当前没有記錄檔!",
+            "en": "当前没有Logs!",
+            "fr": "当前没有Journaux!",
+            "de": "当前没有Protokolle!",
+            "it": "当前没有Log!"
+        },
+        "public_auto_str_124": {
+            "zh-CN": "当前没有日志!",
+            "zh-TW": "当前没有記錄檔!",
+            "en": "当前没有Logs!",
+            "fr": "当前没有Journaux!",
+            "de": "当前没有Protokolle!",
+            "it": "当前没有Log!"
+        },
+        "public_auto_str_125": {
+            "zh-CN": "日志",
+            "zh-TW": "記錄檔",
+            "en": "Logs",
+            "fr": "Journaux",
+            "de": "Protokolle",
+            "it": "Log"
+        },
+        "public_auto_str_126": {
+            "zh-CN": "日志",
+            "zh-TW": "記錄檔",
+            "en": "Logs",
+            "fr": "Journaux",
+            "de": "Protokolle",
+            "it": "Log"
+        },
+        "public_auto_str_127": {
+            "zh-CN": "当前没有日志!",
+            "zh-TW": "当前没有記錄檔!",
+            "en": "当前没有Logs!",
+            "fr": "当前没有Journaux!",
+            "de": "当前没有Protokolle!",
+            "it": "当前没有Log!"
+        },
+        "public_auto_str_128": {
+            "zh-CN": "正在获取说明...",
+            "zh-TW": "正在獲取说明...",
+            "en": "正在获取Description...",
+            "fr": "正在获取Description...",
+            "de": "正在获取Beschreibung...",
+            "it": "正在获取Descrizione..."
+        },
+        "public_auto_str_129": {
+            "zh-CN": "<h2 style=\"margin-top: 5px;\">御风面板（BtSimple）</h2>",
+            "zh-TW": "<h2 style=\"margin-top: 5px;\">御风面板（BtSimple）</h2>",
+            "en": "<h2 style=\"margin-top: 5px;\">YuFeng Panel（BtSimple）</h2>",
+            "fr": "<h2 style=\"margin-top: 5px;\">Panneau YuFeng（BtSimple）</h2>",
+            "de": "<h2 style=\"margin-top: 5px;\">YuFeng Panel（BtSimple）</h2>",
+            "it": "<h2 style=\"margin-top: 5px;\">Pannello YuFeng（BtSimple）</h2>"
+        },
+        "public_auto_str_130": {
+            "zh-CN": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
+            "zh-TW": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
+            "en": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
+            "fr": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
+            "de": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
+            "it": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>"
+        },
+        "public_auto_str_131": {
+            "zh-CN": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
+            "zh-TW": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
+            "en": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
+            "fr": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
+            "de": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
+            "it": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>"
+        },
+        "public_auto_str_132": {
+            "zh-CN": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
+            "zh-TW": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在獲取面板佔用資源...</span>",
+            "en": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
+            "fr": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
+            "de": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
+            "it": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>"
+        },
+        "public_auto_str_133": {
+            "zh-CN": "<span style=\"color:#666; margin-right: 15px;\">御风面板当前占用服务器资源：</span>",
+            "zh-TW": "<span style=\"color:#666; margin-right: 15px;\">御风面板当前佔用伺服器資源：</span>",
+            "en": "<span style=\"color:#666; margin-right: 15px;\">YuFeng Panel当前占用服务器资源：</span>",
+            "fr": "<span style=\"color:#666; margin-right: 15px;\">Panneau YuFeng当前占用服务器资源：</span>",
+            "de": "<span style=\"color:#666; margin-right: 15px;\">YuFeng Panel当前占用服务器资源：</span>",
+            "it": "<span style=\"color:#666; margin-right: 15px;\">Pannello YuFeng当前占用服务器资源：</span>"
+        },
+        "public_auto_str_134": {
+            "zh-CN": "<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>内存 <b style=\"color:#20a53a; font-family: 'Inter', sans-serif;\">",
+            "zh-TW": "<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>記憶體 <b style=\"color:#20a53a; font-family: 'Inter', sans-serif;\">",
+            "en": "<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>Memory <b style=\"color:#20a53a; font-family: 'Inter', sans-serif;\">",
+            "fr": "<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>Mémoire <b style=\"color:#20a53a; font-family: 'Inter', sans-serif;\">",
+            "de": "<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>Arbeitsspeicher <b style=\"color:#20a53a; font-family: 'Inter', sans-serif;\">",
+            "it": "<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>Memoria <b style=\"color:#20a53a; font-family: 'Inter', sans-serif;\">"
+        },
+        "public_auto_str_135": {
+            "zh-CN": "<span style=\"color: red;\">获取资源失败</span>",
+            "zh-TW": "<span style=\"color: red;\">獲取資源失敗</span>",
+            "en": "<span style=\"color: red;\">获取资源失败</span>",
+            "fr": "<span style=\"color: red;\">获取资源失败</span>",
+            "de": "<span style=\"color: red;\">获取资源失败</span>",
+            "it": "<span style=\"color: red;\">获取资源失败</span>"
+        },
+        "public_auto_str_136": {
+            "zh-CN": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "zh-TW": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "en": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "fr": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "de": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "it": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>"
+        },
+        "public_auto_str_137": {
+            "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一個'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "en": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>"
+        },
+        "public_auto_str_138": {
+            "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一個'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "en": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>"
+        },
+        "public_auto_str_139": {
+            "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-search-close' style='padding: 4px 8px; margin-left: 5px;' title='关闭'><i class='glyphicon glyphicon-remove'></i></button>",
+            "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-search-close' style='padding: 4px 8px; margin-left: 5px;' title='關閉'><i class='glyphicon glyphicon-remove'></i></button>",
+            "en": "<button type='button' class='btn btn-default btn-sm cm-search-close' style='padding: 4px 8px; margin-left: 5px;' title='Close'><i class='glyphicon glyphicon-remove'></i></button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-search-close' style='padding: 4px 8px; margin-left: 5px;' title='Fermer'><i class='glyphicon glyphicon-remove'></i></button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-search-close' style='padding: 4px 8px; margin-left: 5px;' title='Schließen'><i class='glyphicon glyphicon-remove'></i></button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-search-close' style='padding: 4px 8px; margin-left: 5px;' title='Chiudi'><i class='glyphicon glyphicon-remove'></i></button>"
+        },
+        "public_auto_str_140": {
+            "zh-CN": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "zh-TW": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替換為...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "en": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "fr": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "de": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "it": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>"
+        },
+        "public_auto_str_141": {
+            "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
+            "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替換当前'>替換</button>",
+            "en": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>"
+        },
+        "public_auto_str_142": {
+            "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换全部'>全部</button>",
+            "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替換全部'>全部</button>",
+            "en": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换All'>All</button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换Tout'>Tout</button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换Alle'>Alle</button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换Tutto'>Tutto</button>"
+        },
+        "public_auto_str_143": {
+            "zh-CN": "未找到匹配项",
+            "zh-TW": "未找到匹配項",
+            "en": "未找到匹配项",
+            "fr": "未找到匹配项",
+            "de": "未找到匹配项",
+            "it": "未找到匹配项"
+        }
+    }
+}

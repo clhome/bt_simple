@@ -581,14 +581,26 @@ def toSize(size, middle='') -> str:
     return str(round(size, 2)) + middle + u
 
 def returnData(status, msg, data=None):
+    try:
+        from core.i18n import t as _t
+        translated_msg = _t(msg) if isinstance(msg, str) else msg
+    except Exception:
+        translated_msg = msg
+
     if data is None:
-        return {'status': status, 'msg': msg}
-    return {'status': status, 'msg': msg, 'data': data}
+        return {'status': status, 'msg': translated_msg}
+    return {'status': status, 'msg': translated_msg, 'data': data}
 
 def returnJson(status, msg, data=None):
+    try:
+        from core.i18n import t as _t
+        translated_msg = _t(msg) if isinstance(msg, str) else msg
+    except Exception:
+        translated_msg = msg
+
     if data is None:
-        return getJson({'status': status, 'msg': msg})
-    return getJson({'status': status, 'msg': msg, 'data': data})
+        return getJson({'status': status, 'msg': translated_msg})
+    return getJson({'status': status, 'msg': translated_msg, 'data': data})
 
 def readFile(filename):
     # 读文件内容
@@ -1073,14 +1085,20 @@ def getCpuType():
     return cpuType
 
 
-_LANG_CACHE = {'mtime': 0, 'lang': 'Simplified_Chinese'}
+_LANG_CACHE = {'mtime': 0, 'lang': 'zh-CN'}
 
 def getLanguage():
+    try:
+        from core.i18n import get_current_lang
+        return get_current_lang()
+    except Exception:
+        pass
+
     global _LANG_CACHE
     panel_dir = getPanelDir()
     path = panel_dir+'/data/language.pl'
     if not os.path.exists(path):
-        return 'Simplified_Chinese'
+        return 'zh-CN'
     try:
         mtime = os.path.getmtime(path)
         if mtime == _LANG_CACHE['mtime']:
@@ -1091,13 +1109,14 @@ def getLanguage():
         _LANG_CACHE['lang'] = lang
         return lang
     except Exception:
-        return 'Simplified_Chinese'
+        return 'zh-CN'
 
 
 def getStaticJson(name="public"):
-    file = 'static/language/' + getLanguage() + '/' + name + '.json'
+    lang = getLanguage()
+    file = 'static/language/' + lang + '/' + name + '.json'
     if not os.path.exists(file):
-        file = 'route/static/language/' + getLanguage() + '/' + name + '.json'
+        file = 'static/language/zh-CN/' + name + '.json'
     return file
 
 
@@ -1105,16 +1124,28 @@ import functools
 
 @functools.lru_cache(maxsize=128)
 def _getCachedStaticJson(name, lang):
+    try:
+        from core.i18n import get_cached_json
+        return get_cached_json(name, lang)
+    except Exception:
+        pass
     file = 'static/language/' + lang + '/' + name + '.json'
     if not os.path.exists(file):
-        file = 'route/static/language/' + lang + '/' + name + '.json'
+        file = 'static/language/zh-CN/' + name + '.json'
     try:
         return json.loads(readFile(file))
     except:
         return {}
 
 def returnMsg(status, msg, args=()):
-    # 取通用字典返回
+    try:
+        from core.i18n import t as _t
+        translated = _t(msg, *args)
+        return {'status': status, 'msg': translated, 'data': args}
+    except Exception:
+        pass
+
+    # 回退原字典逻辑
     lang = getLanguage()
     logMessage = _getCachedStaticJson('public', lang)
     keys = logMessage.keys()
@@ -1123,7 +1154,7 @@ def returnMsg(status, msg, args=()):
         msg = logMessage[msg]
         for i in range(len(args)):
             rep = '{' + str(i + 1) + '}'
-            msg = msg.replace(rep, args[i])
+            msg = msg.replace(rep, str(args[i]))
     return {'status': status, 'msg': msg, 'data': args}
     
 def getInfo(msg, args=()):

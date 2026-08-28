@@ -1,4 +1,26 @@
 [
-	{"name":"Simplified_Chinese","title":"简体中文"},
-	{"name":"English","title":"English"}
+  {
+    "name": "zh-CN",
+    "title": "简体中文"
+  },
+  {
+    "name": "zh-TW",
+    "title": "繁體中文"
+  },
+  {
+    "name": "en",
+    "title": "English"
+  },
+  {
+    "name": "fr",
+    "title": "Français"
+  },
+  {
+    "name": "de",
+    "title": "Deutsch"
+  },
+  {
+    "name": "it",
+    "title": "Italiano"
+  }
 ]

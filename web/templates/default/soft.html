@@ -6,12 +6,12 @@
 		<div class="container-fluid" style="padding-bottom:54px">
 			<div class="pos-box bgw mtb15">
 				<div class="position f14 c9 pull-left">
-					<a class="plr10 c4" href="/">首页</a>/<span class="plr10 c4">软件管理</span>
+					<a class="plr10 c4" href="/" data-i18n="menu.home">{{ t('menu.home', '首页') }}</a>/<span class="plr10 c4" data-i18n="menu.soft">{{ t('menu.soft', '软件管理') }}</span>
 				</div>
 				<div class="search pull-right" style="width: 350px;">
 					<form target="_self" onsubmit='getSList(1);return false;'>
-						<button id="resetSearchBtn" type="button" class="btn btn-default btn-sm pull-left" style="display: none; margin-top: 10px; margin-right: 5px; height: 30px; line-height: 20px; padding: 4px 10px;" onclick="$('#SearchValue').val(''); $('#resetSearchBtn').hide(); getSList(1);" title="清除搜索并刷新列表">x</button>
-						<input type="text" id="SearchValue" class="ser-text pull-left" placeholder="搜索" autocomplete="false" oninput="if(this.value){$('#resetSearchBtn').show()}else{$('#resetSearchBtn').hide()}" />
+						<button id="resetSearchBtn" type="button" class="btn btn-default btn-sm pull-left" style="display: none; margin-top: 10px; margin-right: 5px; height: 30px; line-height: 20px; padding: 4px 10px;" onclick="$('#SearchValue').val(''); $('#resetSearchBtn').hide(); getSList(1);" data-i18n-attr="title" data-i18n="public.clear_search" title="{{ t('public.clear_search', '清除搜索并刷新列表') }}">x</button>
+						<input type="text" id="SearchValue" class="ser-text pull-left" data-i18n-attr="placeholder" data-i18n="public.search_placeholder" placeholder="{{ t('public.search_placeholder', '搜索') }}" autocomplete="false" oninput="if(this.value){$('#resetSearchBtn').show()}else{$('#resetSearchBtn').hide()}" />
 						<button type="button" class="ser-sub pull-left" style="margin-top: 10px;" onclick='getSList(1)'></button>
 					</form>
 				</div>
@@ -23,15 +23,15 @@
 						<div class="menu-sub softtype"></div>
 
 						<input type="file" style="display:none;" accept=".zip,.tar.gz" id="update_zip" multiple="multiple">
-						<button class="btn btn-default btn-sm" onclick="refreshPluginList()" title="刷新列表" style="position:absolute;top:12px;right:45px">刷新列表</button>
+						<button class="btn btn-default btn-sm" onclick="refreshPluginList()" data-i18n-attr="title" data-i18n="public.refresh_list" title="{{ t('public.refresh_list', '刷新列表') }}" style="position:absolute;top:12px;right:45px"><span data-i18n="public.refresh_list">{{ t('public.refresh_list', '刷新列表') }}</span></button>
 						<div class="plugin-settings-dropdown" style="position:absolute;top:17px;right:15px; z-index: 100;">
-							<i class="glyphicon glyphicon-cog" style="color: #666; font-size: 16px; cursor: pointer;" title="设置" onclick="$('#third_party_setting_box').toggle(200); event.stopPropagation();"></i>
+							<i class="glyphicon glyphicon-cog" style="color: #666; font-size: 16px; cursor: pointer;" data-i18n-attr="title" data-i18n="public.set" title="{{ t('public.set', '设置') }}" onclick="$('#third_party_setting_box').toggle(200); event.stopPropagation();"></i>
 							<div id="third_party_setting_box" style="display: none; position: absolute; right: 0; top: 25px; background: #fff; border: 1px solid #ddd; padding: 10px 15px; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); white-space: nowrap;">
 								<label style="cursor:pointer; font-weight: normal; color: #444; margin: 0; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 8px;">
-									<input type="checkbox" id="show_third_party_chk" style="margin: 0;" onclick="toggleThirdParty(this.checked)"> 显示第三方插件
+									<input type="checkbox" id="show_third_party_chk" style="margin: 0;" onclick="toggleThirdParty(this.checked)"> <span data-i18n="soft.show_third_party">{{ t('soft.show_third_party', '显示第三方插件') }}</span>
 								</label>
 								<div style="cursor:pointer; font-weight: normal; color: #d9534f; margin: 0; display: flex; align-items: center; gap: 5px;" onclick="clearPluginCache()">
-									<i class="glyphicon glyphicon-trash"></i> 清理缓存
+									<i class="glyphicon glyphicon-trash"></i> <span data-i18n="soft.clear_cache">{{ t('soft.clear_cache', '清理缓存') }}</span>
 								</div>
 							</div>
 						</div>
@@ -39,14 +39,14 @@
 						<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">
 							<thead>
 								<tr>
-									<th width="205">软件名称</th>
-									<th>说明</th>
-									<th width="120">官网</th>
-									<th width="100">发布时间</th>
-									<th width="40">位置</th>
-									<th width="40">状态</th>
-									<th width="64">首页显示</th>
-									<th style="text-align: right;" width="120">操作</th>
+									<th width="205" data-i18n="soft.soft_name">{{ t('soft.soft_name', '软件名称') }}</th>
+									<th data-i18n="soft.description">{{ t('soft.description', '说明') }}</th>
+									<th width="120" data-i18n="soft.official_site">{{ t('soft.official_site', '官网') }}</th>
+									<th width="100" data-i18n="soft.release_time">{{ t('soft.release_time', '发布时间') }}</th>
+									<th width="40" data-i18n="soft.location">{{ t('soft.location', '位置') }}</th>
+									<th width="40" data-i18n="public.status">{{ t('public.status', '状态') }}</th>
+									<th width="64" data-i18n="soft.display_home">{{ t('soft.display_home', '首页显示') }}</th>
+									<th style="text-align: right;" width="120" data-i18n="public.action">{{ t('public.action', '操作') }}</th>
 								</tr>
 							</thead>
 							<tbody id="softList"></tbody>

@@ -51,9 +51,7 @@
   <div class="container-fluid" style="padding-bottom: 50px">
     <div class="pos-box bgw mtb15">
       <div class="position f14 c9 pull-left">
-        <a class="plr10 c4" href="/">首页</a>/<span class="plr10 c4"
-          >系统安全</span
-        >
+        <a class="plr10 c4" href="/" data-i18n="menu.home">{{ t('menu.home', '首页') }}</a>/<span class="plr10 c4" data-i18n="menu.firewall">{{ t('menu.firewall', '系统安全') }}</span>
       </div>
       <div class="search pull-right">
         <form
@@ -64,7 +62,9 @@
             type="text"
             id="SearchValue"
             class="ser-text pull-left"
-            placeholder="搜索日志"
+            data-i18n-attr="placeholder"
+            data-i18n="firewall.search_logs"
+            placeholder="{{ t('firewall.search_logs', '搜索日志') }}"
           />
           <button
             type="button"
@@ -82,9 +82,7 @@
       >
         <form>
           <div class="ss-text pull-left">
-            <a class="btlink" style="line-height: 32px" onclick="sshMgr()"
-              >SSH管理</a
-            >
+            <a class="btlink" style="line-height: 32px" onclick="sshMgr()" data-i18n="firewall.ssh_manage">{{ t('firewall.ssh_manage', 'SSH管理') }}</a>
           </div>
         </form>
       </div>
@@ -93,7 +91,7 @@
         style="border-right: 1px solid #ccc; padding-right: 20px"
       >
         <div class="ss-text pull-left mr5">
-          <em>SSH端口:</em>
+          <em data-i18n="firewall.ssh_port">{{ t('firewall.ssh_port', 'SSH端口:') }}</em>
           <input type="text" class="bt-input-text" id="mstscPort" value="" />
         </div>
         <div class="ss-text pull-left">
@@ -102,8 +100,9 @@
             onclick="mstsc($('#mstscPort').prop('value'))"
             class="btn btn-default btn-sm"
             type="button"
+            data-i18n="public.change"
           >
-            更改
+            {{ t('public.change', '更改') }}
           </button>
         </div>
       </div>
@@ -112,7 +111,7 @@
         style="border-right: 1px solid #ccc; padding-right: 20px"
       >
         <div class="ss-text pull-left">
-          <em>启用禁ping</em>
+          <em data-i18n="firewall.enable_noping">{{ t('firewall.enable_noping', '启用禁ping') }}</em>
           <div class="ssh-item" id="is_ping">
             <input
               class="btswitch btswitch-ios"
@@ -128,7 +127,7 @@
         style="border-right: 1px solid #ccc; padding-right: 20px"
       >
         <div class="ss-text pull-left">
-          <em>启用防火墙</em>
+          <em data-i18n="firewall.enable_firewall">{{ t('firewall.enable_firewall', '启用防火墙') }}</em>
           <div class="ssh-item" id="firewall_status_container">
             <input
               class="btswitch btswitch-ios"
@@ -163,18 +162,19 @@
               "
             >
               <div class="tab-nav-inner">
-                <span class="active" onclick="switchTab('port', this)"
-                  >端口防火墙</span
-                >
-                <span onclick="switchTab('ip', this)">IP防火墙</span>
+                <span class="active" onclick="switchTab('port', this)" data-i18n="firewall.port_tab">{{ t('firewall.port_tab', '端口防火墙') }}</span>
+                <span onclick="switchTab('ip', this)" data-i18n="firewall.ip_tab">{{ t('firewall.ip_tab', 'IP防火墙') }}</span>
               </div>
               <div class="tab-sync-btn" style="padding-right: 15px">
                 <button
                   class="btn btn-default btn-xs"
                   onclick="syncServer()"
-                  title="从服务器同步防火墙规则"
+                  data-i18n-attr="title"
+                  data-i18n="firewall.sync_server_tips"
+                  title="{{ t('firewall.sync_server_tips', '从服务器同步防火墙规则') }}"
+                  data-i18n="firewall.sync_server"
                 >
-                  从服务器同步
+                  {{ t('firewall.sync_server', '从服务器同步') }}
                 </button>
               </div>
             </div>
@@ -184,16 +184,14 @@
             <!-- 端口防火墙区域 -->
             <div id="port_firewall_view">
               <div class="firewall-port-box">
-                <span class="mr5" style="color: #ff0000; font-weight: bold"
-                  >新增规则：</span
-                >
+                <span class="mr5" style="color: #ff0000; font-weight: bold" data-i18n="firewall.add_rule">{{ t('firewall.add_rule', '新增规则：') }}</span>
                 <select
                   id="firewalldType"
                   class="bt-input-text c5 mr5"
                   name="type"
                   style="width: 80px"
                 >
-                  <option value="port">放行端口</option>
+                  <option value="port" data-i18n="firewall.accept_port">{{ t('firewall.accept_port', '放行端口') }}</option>
                   <!-- <option value="address">屏蔽</option> -->
                 </select>
 
@@ -203,7 +201,9 @@
                     class="bt-input-text mr5"
                     style="width: 80px"
                     id="AcceptPortStart"
-                    placeholder="开始端口"
+                    data-i18n-attr="placeholder"
+                    data-i18n="firewall.start_port"
+                    placeholder="{{ t('firewall.start_port', '开始端口') }}"
                   />
                   <span class="mr5">-</span>
                   <input
@@ -211,7 +211,9 @@
                     class="bt-input-text mr5"
                     style="width: 80px"
                     id="AcceptPortEnd"
-                    placeholder="结束端口"
+                    data-i18n-attr="placeholder"
+                    data-i18n="firewall.end_port"
+                    placeholder="{{ t('firewall.end_port', '结束端口') }}"
                   />
                 </div>
 
@@ -219,7 +221,9 @@
                   type="text"
                   class="bt-input-text mr5"
                   id="Ps"
-                  placeholder="备注/说明"
+                  data-i18n-attr="placeholder"
+                  data-i18n="public.ps_placeholder"
+                  placeholder="{{ t('public.ps_placeholder', '备注/说明') }}"
                 />
                 <select
                   class="bt-input-text c5 mr5"
@@ -235,12 +239,11 @@
                   onclick="addAcceptPort()"
                   class="btn btn-default btn-sm va0"
                   type="button"
+                  data-i18n="public.submit"
                 >
-                  提交
+                  {{ t('public.submit', '提交') }}
                 </button>
-                <span id="f-ps" class="c9" style="margin-left: 10px"
-                  >仅输入开始端口即可放行单个端口</span
-                >
+                <span id="f-ps" class="c9" style="margin-left: 10px" data-i18n="firewall.single_port_tip">{{ t('firewall.single_port_tip', '仅输入开始端口即可放行单个端口') }}</span>
 
                 <div class="pull-right">
                   <input
@@ -248,20 +251,25 @@
                     class="bt-input-text mr5"
                     style="width: 100px"
                     id="SearchPort"
-                    placeholder="端口搜索"
+                    data-i18n-attr="placeholder"
+                    data-i18n="firewall.search_port"
+                    placeholder="{{ t('firewall.search_port', '端口搜索') }}"
                   />
                   <input
                     type="text"
                     class="bt-input-text mr5"
                     style="width: 100px"
                     id="SearchPs"
-                    placeholder="备注搜索"
+                    data-i18n-attr="placeholder"
+                    data-i18n="firewall.search_ps"
+                    placeholder="{{ t('firewall.search_ps', '备注搜索') }}"
                   />
                   <button
                     class="btn btn-default btn-sm"
                     onclick="showAccept(1)"
+                    data-i18n="public.search"
                   >
-                    搜索
+                    {{ t('public.search', '搜索') }}
                   </button>
                 </div>
               </div>
@@ -270,41 +278,45 @@
             <!-- IP防火墙区域 -->
             <div id="ip_firewall_view" style="display: none">
               <div class="firewall-port-box">
-                <span class="mr5" style="color: #ff0000; font-weight: bold"
-                  >新增IP规则：</span
-                >
+                <span class="mr5" style="color: #ff0000; font-weight: bold" data-i18n="firewall.add_ip_rule">{{ t('firewall.add_ip_rule', '新增IP规则：') }}</span>
                 <select
                   id="ipFirewallAction"
                   class="bt-input-text c5 mr5"
                   style="width: 80px"
                 >
-                  <option value="address_deny">禁止</option>
-                  <option value="address_allow">放行</option>
+                  <option value="address_deny" data-i18n="firewall.deny">{{ t('firewall.deny', '禁止') }}</option>
+                  <option value="address_allow" data-i18n="firewall.allow">{{ t('firewall.allow', '放行') }}</option>
                 </select>
                 <input
                   type="text"
                   class="bt-input-text mr5"
                   style="width: 200px"
                   id="IpAddress"
-                  placeholder="IP地址/IP段"
+                  data-i18n-attr="placeholder"
+                  data-i18n="firewall.ip_placeholder"
+                  placeholder="{{ t('firewall.ip_placeholder', 'IP地址/IP段') }}"
                 />
                 <input
                   type="text"
                   class="bt-input-text mr5"
                   id="IpPs"
-                  placeholder="备注/说明"
+                  data-i18n-attr="placeholder"
+                  data-i18n="public.ps_placeholder"
+                  placeholder="{{ t('public.ps_placeholder', '备注/说明') }}"
                 />
                 <button
                   onclick="addIpFirewall()"
                   class="btn btn-default btn-sm va0"
                   type="button"
+                  data-i18n="public.submit"
                 >
-                  提交
+                  {{ t('public.submit', '提交') }}
                 </button>
                 <span
                   class="c9"
                   style="margin-left: 10px; color: #ff0000 !important"
-                  >注意: IP防火墙优先级最高，请谨慎操作！</span
+                  data-i18n="firewall.ip_priority_warn"
+                  >{{ t('firewall.ip_priority_warn', '注意: IP防火墙优先级最高，请谨慎操作！') }}</span
                 >
 
                 <div class="pull-right">
@@ -313,20 +325,25 @@
                     class="bt-input-text mr5"
                     style="width: 100px"
                     id="SearchIp"
-                    placeholder="IP搜索"
+                    data-i18n-attr="placeholder"
+                    data-i18n="firewall.search_ip"
+                    placeholder="{{ t('firewall.search_ip', 'IP搜索') }}"
                   />
                   <input
                     type="text"
                     class="bt-input-text mr5"
                     style="width: 100px"
                     id="SearchIpPs"
-                    placeholder="备注搜索"
+                    data-i18n-attr="placeholder"
+                    data-i18n="firewall.search_ps"
+                    placeholder="{{ t('firewall.search_ps', '备注搜索') }}"
                   />
                   <button
                     class="btn btn-default btn-sm"
                     onclick="showAccept(1)"
+                    data-i18n="public.search"
                   >
-                    搜索
+                    {{ t('public.search', '搜索') }}
                   </button>
                 </div>
               </div>
@@ -340,16 +357,16 @@
                 <thead>
                   <tr>
                     <th width="50">ID</th>
-                    <th id="th_protocol" width="80">协议</th>
-                    <th id="th_port" width="200" style="cursor: pointer;" onclick="togglePortSort()">端口 <span id="port_sort_icon" class="glyphicon glyphicon-sort" style="color: #ccc; font-size: 12px; margin-left: 2px;"></span></th>
+                    <th id="th_protocol" width="80" data-i18n="firewall.protocol">{{ t('firewall.protocol', '协议') }}</th>
+                    <th id="th_port" width="200" style="cursor: pointer;" onclick="togglePortSort()"><span data-i18n="firewall.port">{{ t('firewall.port', '端口') }}</span> <span id="port_sort_icon" class="glyphicon glyphicon-sort" style="color: #ccc; font-size: 12px; margin-left: 2px;"></span></th>
                     <th id="th_port_status" width="160">
-                        进程名称
-                        <span class="glyphicon glyphicon-info-sign" style="color: #999; margin-left: 3px; font-weight: normal; cursor: pointer;" title="出于系统性能考虑，放行端口范围时（如 999:1100）将不会扫描并显示具体进程名称。"></span>
+                        <span data-i18n="firewall.process_name">{{ t('firewall.process_name', '进程名称') }}</span>
+                        <span class="glyphicon glyphicon-info-sign" style="color: #999; margin-left: 3px; font-weight: normal; cursor: pointer;" data-i18n-attr="title" data-i18n="firewall.process_tip" title="{{ t('firewall.process_tip', '出于系统性能考虑，放行端口范围时（如 999:1100）将不会扫描并显示具体进程名称。') }}"></span>
                     </th>
-                    <th width="100">状态</th>
-                    <th>备注</th>
-                    <th width="180">时间</th>
-                    <th width="80" class="text-right">操作</th>
+                    <th width="100" data-i18n="public.status">{{ t('public.status', '状态') }}</th>
+                    <th data-i18n="public.ps">{{ t('public.ps', '备注') }}</th>
+                    <th width="180" data-i18n="public.time">{{ t('public.time', '时间') }}</th>
+                    <th width="80" class="text-right" data-i18n="public.action">{{ t('public.action', '操作') }}</th>
                   </tr>
                 </thead>
                 <tbody id="firewall_body"></tbody>

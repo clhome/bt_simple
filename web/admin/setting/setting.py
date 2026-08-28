@@ -509,3 +509,32 @@ def set_home_notice():
     if home_notice != src_home_notice:
         thisdb.setOption('home_notice', home_notice)
     return yf.returnData(True, '首页提醒保存成功!')
+
+# 获取支持语言列表及当前语言
+@blueprint.route('/get_languages', endpoint='get_languages', methods=['GET', 'POST'])
+def get_languages():
+    from core.i18n import SUPPORTED_LANGUAGES, get_current_lang
+    return yf.returnData(True, 'ok', {
+        'languages': SUPPORTED_LANGUAGES,
+        'current': get_current_lang()
+    })
+
+# 设置语言偏好
+@blueprint.route('/set_language', endpoint='set_language', methods=['POST'])
+def set_language():
+    from flask import jsonify, make_response
+    from core.i18n import SUPPORTED_CODES, normalize_lang, DEFAULT_LANG
+
+    lang = request.form.get('lang', '')
+    norm_lang = normalize_lang(lang)
+    if not norm_lang or norm_lang not in SUPPORTED_CODES:
+        norm_lang = DEFAULT_LANG
+
+    panel_dir = yf.getPanelDir()
+    lang_file = os.path.join(panel_dir, 'data/language.pl')
+    yf.writeFile(lang_file, norm_lang)
+
+    res_data = yf.returnData(True, '设置成功', {'lang': norm_lang})
+    response = make_response(jsonify(res_data))
+    response.set_cookie('yf_lang', norm_lang, max_age=365*86400, path='/', samesite='Lax')
+    return response

@@ -6,24 +6,24 @@
 		<div class="container-fluid" style="padding-bottom: 50px;">
 			<div class="pos-box bgw mtb15" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; min-height: 50px;">
 				<div class="position f14 c9">
-					<a class="plr10 c4" href="/">首页</a>/<span class="plr10 c4">系统监控</span>
+					<a class="plr10 c4" href="/" data-i18n="menu.home">{{ t('menu.home', '首页') }}</a>/<span class="plr10 c4" data-i18n="menu.monitor">{{ t('menu.monitor', '系统监控') }}</span>
 				</div>
 				<div class="safe" style="display: flex; align-items: center; gap: 20px; font-size: 14px; color: #999;">
 					<div style="display: flex; align-items: center; gap: 10px;">
-						<span>开启监控</span>
+						<span data-i18n="control.open_jk">{{ t('control.open_jk', '开启监控') }}</span>
 						<div class='ssh-item' id="openJK" style="margin: 0;"></div>
 					</div>
 					<div style="display: flex; align-items: center; gap: 10px;">
-						<span>保存天数：</span>
+						<span data-i18n="control.save_days">{{ t('control.save_days', '保存天数：') }}</span>
 						<input class="bt-input-text" id="save_day" value="" type="number" style="width: 70px; height: 30px; font-size: 14px; margin: 0;">
-						<button class="btn btn-default btn-sm" type="button" onclick="setControl('save_day',true);" style="height: 30px;">更改</button>
+						<button class="btn btn-default btn-sm" type="button" onclick="setControl('save_day',true);" style="height: 30px;" data-i18n="public.change">{{ t('public.change', '更改') }}</button>
 					</div>
 					<div style="display: flex; align-items: center; gap: 10px; padding-left: 20px; border-left: 1px solid #eee;">
-						<span>仅统计外网</span>
+						<span data-i18n="control.stat_wan_only">{{ t('control.stat_wan_only', '仅统计外网') }}</span>
 						<div class='ssh-item' id="statAll" style="margin: 0;"></div>
 					</div>
 					<div style="padding-left: 10px;">
-						<button class="btn btn-default btn-sm" type="button" onclick="closeControl()" style="height: 30px;">清空记录</button>
+						<button class="btn btn-default btn-sm" type="button" onclick="closeControl()" style="height: 30px;" data-i18n="control.clear_records">{{ t('control.clear_records', '清空记录') }}</button>
 					</div>
 				</div>
 			</div>
@@ -54,20 +54,20 @@
 				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3>系统资源使用率</h3>
+							<h3 data-i18n="control.resource_usage">{{ t('control.resource_usage', '系统资源使用率') }}</h3>
 							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'getload')">今天</span>
-								<span class="gt" onclick="Wday(1,'getload')">昨天</span>
-								<span class="gt" onclick="Wday(7,'getload')">7天</span>
-								<span class="gt" onclick="Wday(30,'getload')">30天</span>
+								<span class="gt on" onclick="Wday(0,'getload')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+								<span class="gt" onclick="Wday(1,'getload')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
+								<span class="gt" onclick="Wday(7,'getload')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
+								<span class="gt" onclick="Wday(30,'getload')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
 								<div class="ss">
 									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
 									<div class="time">
-										<span class="bt">自定义范围：<br><input id="loadbtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn loadbtn">提交</div>
+										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="loadbtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn loadbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_resource_view', '系统资源使用率')" title="放大图表"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_resource_view', '系统资源使用率')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="getload_resource_view" class="monitor-chart"></div>
@@ -77,13 +77,13 @@
 				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3>平均负载 (1/5/15分钟)</h3>
+							<h3 data-i18n="control.average_load">{{ t('control.average_load', '平均负载 (1/5/15分钟)') }}</h3>
 							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'getload')">今天</span>
-								<span class="gt" onclick="Wday(1,'getload')">昨天</span>
-								<span class="gt" onclick="Wday(7,'getload')">7天</span>
-								<span class="gt" onclick="Wday(30,'getload')">30天</span>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_average_view', '平均负载')" title="放大图表"></span>
+								<span class="gt on" onclick="Wday(0,'getload')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+								<span class="gt" onclick="Wday(1,'getload')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
+								<span class="gt" onclick="Wday(7,'getload')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
+								<span class="gt" onclick="Wday(30,'getload')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_average_view', '平均负载')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="getload_average_view" class="monitor-chart"></div>
@@ -93,20 +93,20 @@
 				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3>CPU使用率</h3>
+							<h3 data-i18n="control.cpu_usage">{{ t('control.cpu_usage', 'CPU使用率') }}</h3>
 							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'cpu')">今天</span>
-								<span class="gt" onclick="Wday(1,'cpu')">昨天</span>
-								<span class="gt" onclick="Wday(7,'cpu')">7天</span>
-								<span class="gt" onclick="Wday(30,'cpu')">30天</span>
+								<span class="gt on" onclick="Wday(0,'cpu')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+								<span class="gt" onclick="Wday(1,'cpu')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
+								<span class="gt" onclick="Wday(7,'cpu')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
+								<span class="gt" onclick="Wday(30,'cpu')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
 								<div class="ss">
 									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
 									<div class="time">
-										<span class="bt">自定义范围：<br><input id="cpubtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn cpubtn">提交</div>
+										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="cpubtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn cpubtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('cupview', 'CPU使用率')" title="放大图表"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('cupview', 'CPU使用率')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="cupview" class="monitor-chart"></div>
@@ -116,20 +116,20 @@
 				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3>内存使用率</h3>
+							<h3 data-i18n="control.mem_usage">{{ t('control.mem_usage', '内存使用率') }}</h3>
 							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'mem')">今天</span>
-								<span class="gt" onclick="Wday(1,'mem')">昨天</span>
-								<span class="gt" onclick="Wday(7,'mem')">7天</span>
-								<span class="gt" onclick="Wday(30,'mem')">30天</span>
+								<span class="gt on" onclick="Wday(0,'mem')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+								<span class="gt" onclick="Wday(1,'mem')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
+								<span class="gt" onclick="Wday(7,'mem')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
+								<span class="gt" onclick="Wday(30,'mem')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
 								<div class="ss">
 									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
 									<div class="time">
-										<span class="bt">自定义范围：<br><input id="membtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn membtn">提交</div>
+										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="membtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn membtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('memview', '内存使用率')" title="放大图表"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('memview', '内存使用率')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="memview" class="monitor-chart"></div>
@@ -139,20 +139,20 @@
 				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3>磁盘 I/O</h3>
+							<h3 data-i18n="control.disk_io">{{ t('control.disk_io', '磁盘 I/O') }}</h3>
 							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'disk')">今天</span>
-								<span class="gt" onclick="Wday(1,'disk')">昨天</span>
-								<span class="gt" onclick="Wday(7,'disk')">7天</span>
-								<span class="gt" onclick="Wday(30,'disk')">30天</span>
+								<span class="gt on" onclick="Wday(0,'disk')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+								<span class="gt" onclick="Wday(1,'disk')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
+								<span class="gt" onclick="Wday(7,'disk')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
+								<span class="gt" onclick="Wday(30,'disk')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
 								<div class="ss">
 									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
 									<div class="time">
-										<span class="bt">自定义范围：<br><input id="diskbtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn diskbtn">提交</div>
+										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="diskbtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn diskbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('diskview', '磁盘 I/O')" title="放大图表"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('diskview', '磁盘 I/O')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="diskview" class="monitor-chart"></div>
@@ -162,20 +162,20 @@
 				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3>网络 I/O</h3>
+							<h3 data-i18n="control.net_io">{{ t('control.net_io', '网络 I/O') }}</h3>
 							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'network')">今天</span>
-								<span class="gt" onclick="Wday(1,'network')">昨天</span>
-								<span class="gt" onclick="Wday(7,'network')">7天</span>
-								<span class="gt" onclick="Wday(30,'network')">30天</span>
+								<span class="gt on" onclick="Wday(0,'network')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+								<span class="gt" onclick="Wday(1,'network')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
+								<span class="gt" onclick="Wday(7,'network')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
+								<span class="gt" onclick="Wday(30,'network')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
 								<div class="ss">
 									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
 									<div class="time">
-										<span class="bt">自定义范围：<br><input id="networkbtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn networkbtn">提交</div>
+										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="networkbtn_rtime" class="rtime" type="text" value=""></span>
+										<div class="sbtn networkbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('network', '网络 I/O')" title="放大图表"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('network', '网络 I/O')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="network" class="monitor-chart"></div>
@@ -183,7 +183,8 @@
 				</div>
 			</div>
 		</div>
-	</div>{% if data['use_cdn'] == 'yes' %}
+	</div>
+</div>{% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js"></script>
 <script>window.echarts || document.write('<script src="/static/js/echarts.min.js"><\/script>')</script>
 {% else %}

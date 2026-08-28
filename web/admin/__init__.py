@@ -166,6 +166,13 @@ def getRequestCheckOption(key, is_json=False, default=None):
 def requestCheck():
     request.start_time = time.time()
 
+    # 动态初始化当前请求语言环境
+    try:
+        from core.i18n import get_current_lang
+        g.lang = get_current_lang()
+    except Exception:
+        g.lang = 'zh-CN'
+
     # 检测 Pjax 片段请求（前端发送 X-PJAX: true 时，只需返回内容片段）
     g.is_pjax = request.headers.get('X-PJAX', '') == 'true'
 
@@ -229,11 +236,6 @@ def requestCheck():
                 if orig_netloc != host:
                     return Response('Forbidden', status=403)
 
-    # domain_check = yf.checkDomainPanel()
-    # if domain_check:
-    #     return domain_check
-            
-
 
 @app.after_request
 def requestAfter(response):
@@ -270,7 +272,22 @@ def inject_global_variables():
         'title' : '御风面板',
         'ip' : data.get('ip', '127.0.0.1')
     }
-    return dict(config=g_config, data=data)
+
+    try:
+        from core.i18n import t as _t, SUPPORTED_LANGUAGES, get_current_lang
+        cur_lang = getattr(g, 'lang', None) or get_current_lang()
+    except Exception:
+        _t = lambda k, *args: k
+        cur_lang = 'zh-CN'
+        SUPPORTED_LANGUAGES = []
+
+    return dict(
+        config=g_config,
+        data=data,
+        current_lang=cur_lang,
+        t=_t,
+        supported_languages=SUPPORTED_LANGUAGES
+    )
 
 # webssh
 # socketio = SocketIO(manage_session=False, async_mode='threading',

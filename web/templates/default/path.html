@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安全入口校验失败 - 御风面板</title>
+    <title>{{ t('auth.path_error_title', '安全入口校验失败 - 御风面板') }}</title>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -98,83 +98,82 @@
         }
 
         .title {
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: var(--text-primary);
-            letter-spacing: -0.025em;
         }
 
         .section {
             margin-bottom: 24px;
         }
 
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
         .section-title {
-            font-size: 0.9rem;
+            font-size: 0.875rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            font-weight: 700;
-            margin-bottom: 10px;
             color: var(--text-secondary);
+            margin-bottom: 8px;
         }
 
         .section-desc {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--text-secondary);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .command-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background-color: var(--code-bg);
             border: 1px solid var(--code-border);
-            border-radius: 10px;
-            padding: 14px 18px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s;
-        }
-
-        .command-item:hover {
-            border-color: var(--text-secondary);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
         }
 
         .command-details {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            overflow: hidden;
+            padding-right: 12px;
         }
 
         .command-description {
             font-size: 0.8rem;
             color: var(--text-secondary);
+            margin-bottom: 4px;
         }
 
         .command-string {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 0.95rem;
             color: var(--code-text);
+            font-weight: 600;
+            user-select: all;
         }
 
         .btn-copy {
-            background-color: transparent;
+            background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            color: var(--text-secondary);
+            color: var(--text-primary);
             padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 500;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             flex-shrink: 0;
         }
 
         .btn-copy:hover {
-            background-color: var(--text-primary);
-            color: var(--card-bg);
-            border-color: var(--text-primary);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
         }
 
         .btn-copy.copied {
@@ -212,30 +211,30 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
             </div>
-            <h1 class="title">请使用正确的入口登录面板</h1>
+            <h1 class="title">{{ t('auth.path_error_header', '请使用正确的入口登录面板') }}</h1>
         </div>
 
         <div class="section">
-            <div class="section-title">错误原因</div>
-            <p class="section-desc">当前面板已启用安全入口登录。新装机器会自动随机生成一个安全的登录入口地址，亦可在面板设置中自定义修改。如果您忘记或未记录该入口，可使用下方方法获取。</p>
+            <div class="section-title">{{ t('auth.error_reason', '错误原因') }}</div>
+            <p class="section-desc">{{ t('auth.path_error_desc', '当前面板已启用安全入口登录。新装机器会自动随机生成一个安全的登录入口地址，亦可在面板设置中自定义修改。如果您忘记或未记录该入口，可使用下方方法获取。') }}</p>
         </div>
 
         <div class="section">
-            <div class="section-title">解决方法</div>
-            <p class="section-desc">请通过 SSH 终端登录服务器，并运行以下命令进行查看：</p>
+            <div class="section-title">{{ t('auth.solution', '解决方法') }}</div>
+            <p class="section-desc">{{ t('auth.solution_ssh_desc', '请通过 SSH 终端登录服务器，并运行以下命令进行查看：') }}</p>
 
             <div class="command-item">
                 <div class="command-details">
-                    <span class="command-description">查看面板默认入口及登录地址</span>
+                    <span class="command-description">{{ t('auth.view_default_entry', '查看面板默认入口及登录地址') }}</span>
                     <span class="command-string" id="cmd1">bs default</span>
                 </div>
-                <button class="btn-copy" onclick="copyText('cmd1', this)">复制</button>
+                <button class="btn-copy" onclick="copyText('cmd1', this)">{{ t('public.copy', '复制') }}</button>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        出品方：衢州御风科技有限公司
+        {{ t('auth.company_name', '出品方：衢州御风科技有限公司') }}
     </div>
 
     <script>
@@ -254,7 +253,7 @@
                     document.execCommand('copy');
                     setCopiedState(btn);
                 } catch (err) {
-                    alert('复制失败，请手动选择复制');
+                    alert('{{ t("public.copy_fail", "复制失败，请手动选择复制") }}');
                 }
                 document.body.removeChild(textarea);
             });
@@ -262,7 +261,7 @@
 
         function setCopiedState(btn) {
             var originalText = btn.innerText;
-            btn.innerText = '已复制';
+            btn.innerText = '{{ t("public.copied", "已复制") }}';
             btn.classList.add('copied');
             setTimeout(function() {
                 btn.innerText = originalText;

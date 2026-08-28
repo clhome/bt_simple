@@ -207,4 +207,24 @@
 - [x] 28. 优化蜜罐路径检测效率（`init.lua`），提升高频常规访问下的过滤吞吐。
 - [x] 29. 编写端到端自动化测试脚本，全面验证 Lua 语法、安全规则拦截率、防 CC 频控、日志记录与稳定性。
 
+### 御风面板多国语言版本（i18n）全套国际化升级（6 种语言）
+- [x] 30. 创建 `lang.json` 与更新 `list.json`，定义 6 种支持语言（zh-CN, zh-TW, en, fr, de, it）元数据与名称映射。
+- [x] 31. 提取并规范化主语言包（`zh-CN/`），制作并校验 `zh-TW/`（繁体中文）、`en/`（英文）、`fr/`（法文）、`de/`（德文）、`it/`（意大利文）全套多语言词库（含 `lan.js`、`public.json`、`template.json`、`log.json`）。
+- [x] 32. 删除 `Simplified_Chinese/` 冗余目录，全面统一使用 `zh-CN`。
+- [x] 33. 开发前端 i18n 核心模块 `web/static/app/i18n.js`，实现浏览器语言自动探测、Cookie/localStorage/URL 优先级解析、响应式语言切换与 `lan` 兼容代理。
+- [x] 34. 开发后端 i18n 模块 `web/core/i18n.py` 与改造 `web/core/yf.py`，实现 `Accept-Language` 请求头智能解析、多语言 JSON 字典加载与 `returnMsg`/`returnData` 动态国际化支持。
+- [x] 35. 改造 `web/admin/__init__.py`，注册 i18n 请求前置钩子及 Jinja2 全局变量注入（`t`, `current_lang`, `supported_languages`）。
+- [x] 36. 改造 `web/admin/setting/setting.py`，增加 `/setting/set_language` 与 `/setting/get_languages` API 接口。
+- [x] 37. 改造 `web/templates/default/layout.html` 与 `web/templates/default/login.html`，实现按当前语言动态引入 `lan.js`，并在顶部导航栏和登录页添加多语言快速切换器。
+- [x] 38. 改造 `web/templates/default/setting.html` 与 `web/static/app/config.js`，在面板设置中增加“面板语言”选项。
+- [x] 39. 编写全套自动化测试脚本 `test/test_i18n.py`，全面验证 6 语言字典完整性、键值对齐、浏览器语言探测与接口多语言返回。
 
+### 前端 HTML 与 JS 文本全量国际化迁移（第二阶段 - 深度修补）
+- [x] 40. 【HTML】全量双轨国际化（首页与概览、网站管理、文件与安全、监控、计划任务、软件等 HTML模板）。
+- [x] 41. 【JS - 批次一】深度提取与重构 `web/static/app/index.js` 的中文硬编码，包括垃圾清理、测速及弹窗。
+- [x] 42. 【JS - 批次一】深度提取与重构 `web/static/app/site.js` 的中文硬编码，包括网站设置各类复杂弹窗与防盗链向导。
+- [x] 43. 【JS - 批次二】深度提取与重构 `web/static/app/public.js`、`web/static/app/config.js` 与 `web/static/app/crontab.js`。
+- [ ] 44. 【JS - 批次三】深度提取与重构 `web/static/app/files.js` 与 `web/static/app/firewall.js`。
+- [ ] 45. 【JS - 批次四】深度提取与重构 `web/static/app/control.js`、`web/static/app/soft.js`、`web/static/app/logs.js`、`web/static/app/upload.js`。
+- [x] 46. 随批次同步扩充 `scripts/tools/phrases_full.py` 字典，并持续运行 `build_all_languages.py` 同步多语言包。
+- [x] 47. 运行 `test/test_i18n.py` 及全自动化本地代码校验确保零异常。
