@@ -1180,7 +1180,14 @@
     "config_auto_str_209": "Add应用",
     "config_auto_str_210": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">应用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">应用密钥</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">Save配置</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>Turn onAPI后，必需在IP白名单List中的IP才能访问面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生产环境Turn on，这可能增加服务器Security风险；</li>\t</ul></div>",
     "config_auto_str_211": "APP应用管理",
-    "config_auto_str_212": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Add</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Status</th>\t\t\t\t\t\t<th>AddTime</th>\t\t\t\t\t\t<th style='text-align:right;'>Action</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>"
+    "config_auto_str_212": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Add</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Status</th>\t\t\t\t\t\t<th>AddTime</th>\t\t\t\t\t\t<th style='text-align:right;'>Action</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+    "unauth_default": "默认-Security入口错误Tip",
+    "unauth_400": "400-客户端请求错误",
+    "unauth_401": "401-未授权访问",
+    "unauth_403": "403-拒绝访问",
+    "unauth_404": "404-页面不存在",
+    "unauth_408": "408-客户端超时",
+    "unauth_416": "416-无效的请求"
   },
   "close": {
     "TITLE": "面板已Close",
@@ -1937,7 +1944,16 @@
     "setting": "Settings",
     "logs": "Logs",
     "logout": "Logout",
-    "help": "Help & Support Forum"
+    "help": "Help & Support Forum",
+    "memuA": "Dashboard",
+    "memuAsite": "Websites",
+    "memuAfiles": "Files",
+    "memuAfirewall": "Security",
+    "memuAcrontab": "Cron Tasks",
+    "memuAmonitor": "Monitoring",
+    "memuAlogs": "Logs",
+    "memuAsoft": "Software",
+    "memuAsetting": "Settings"
   },
   "logs": {
     "panel_logs": "Panel Logs",
@@ -2250,7 +2266,8 @@
     "log_empty": "Logs为空",
     "action_success": "Operation successful!",
     "connect_success": "Connections成功.",
-    "connected": "已Connections"
+    "connected": "已Connections",
+    "brand_title": "YuFeng Panel"
   },
   "dashboard": {
     "py_msg_411a4b": "ip不能为空",
@@ -2324,7 +2341,8 @@
     "py_msg_5d5712": "Connections正在进行中，请稍后...",
     "py_msg_26793c": "目标服务器主动拒绝Connections",
     "py_msg_96a6e8": "SSHProtocol握手超时，与目标服务器之间的Network质量太糟糕",
-    "py_msg_c11397": "错误的Connections地址"
+    "py_msg_c11397": "错误的Connections地址",
+    "session_lost": "会话丢失，请重新登陆面板!\r\n"
   },
   "plugin": {
     "py_msg_72dee7": "请不要重复Add!",

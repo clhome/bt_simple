@@ -53,23 +53,28 @@ def getUnauthStatus(
     code = str(code)
     data = {}
     data['code'] = code
+    try:
+        from core.i18n import t as _t
+    except Exception:
+        _t = lambda k, default: default
+
     if code == '0':
-        data['text'] = "默认-安全入口错误提示"
+        data['text'] = _t("config.unauth_default", "默认-安全入口错误提示")
     elif code == '400':
-        data['text'] = "400-客户端请求错误"
+        data['text'] = _t("config.unauth_400", "400-客户端请求错误")
     elif code == '401':
-        data['text'] = "401-未授权访问"
+        data['text'] = _t("config.unauth_401", "401-未授权访问")
     elif code == '403':
-        data['text'] = "403-拒绝访问"
+        data['text'] = _t("config.unauth_403", "403-拒绝访问")
     elif code == '404':
-        data['text'] = "404-页面不存在"
+        data['text'] = _t("config.unauth_404", "404-页面不存在")
     elif code == '408':
-        data['text'] = "408-客户端超时"
+        data['text'] = _t("config.unauth_408", "408-客户端超时")
     elif code == '416':
-        data['text'] = "416-无效的请求"
+        data['text'] = _t("config.unauth_416", "416-无效的请求")
     else:
         data['code'] = '0'
-        data['text'] = "默认-安全入口错误提示"
+        data['text'] = _t("config.unauth_default", "默认-安全入口错误提示")
     return data
 
 

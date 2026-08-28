@@ -108,6 +108,78 @@ FULL_I18N_DICTIONARY = {
             "fr": "Aide et forum de support",
             "de": "Hilfe und Support-Forum",
             "it": "Aiuto e forum di supporto"
+        },
+        "memuA": {
+            "zh-CN": "首页",
+            "zh-TW": "首頁",
+            "en": "Dashboard",
+            "fr": "Tableau de bord",
+            "de": "Dashboard",
+            "it": "Dashboard"
+        },
+        "memuAsite": {
+            "zh-CN": "网站",
+            "zh-TW": "網站",
+            "en": "Websites",
+            "fr": "Sites Web",
+            "de": "Websites",
+            "it": "Siti Web"
+        },
+        "memuAfiles": {
+            "zh-CN": "文件",
+            "zh-TW": "檔案",
+            "en": "Files",
+            "fr": "Fichiers",
+            "de": "Dateien",
+            "it": "File"
+        },
+        "memuAfirewall": {
+            "zh-CN": "安全",
+            "zh-TW": "安全",
+            "en": "Security",
+            "fr": "Sécurité",
+            "de": "Sicherheit",
+            "it": "Sicurezza"
+        },
+        "memuAcrontab": {
+            "zh-CN": "计划任务",
+            "zh-TW": "排程任務",
+            "en": "Cron Tasks",
+            "fr": "Tâches Cron",
+            "de": "Cron-Aufgaben",
+            "it": "Attività Cron"
+        },
+        "memuAmonitor": {
+            "zh-CN": "监控",
+            "zh-TW": "監控",
+            "en": "Monitoring",
+            "fr": "Surveillance",
+            "de": "Überwachung",
+            "it": "Monitoraggio"
+        },
+        "memuAlogs": {
+            "zh-CN": "日志",
+            "zh-TW": "記錄檔",
+            "en": "Logs",
+            "fr": "Journaux",
+            "de": "Protokolle",
+            "it": "Log"
+        },
+        "memuAsoft": {
+            "zh-CN": "软件管理",
+            "zh-TW": "軟體管理",
+            "en": "Software",
+            "fr": "Logiciels",
+            "de": "Software",
+            "it": "Software"
+        },
+        "memuAsetting": {
+            "zh-CN": "面板设置",
+            "zh-TW": "面板設定",
+            "en": "Settings",
+            "fr": "Paramètres",
+            "de": "Einstellungen",
+            "it": "Impostazioni"
         }
     },
     "index": {
@@ -13430,6 +13502,62 @@ FULL_I18N_DICTIONARY = {
             "fr": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Ajouter</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Statut</th>\t\t\t\t\t\t<th>AjouterHeure</th>\t\t\t\t\t\t<th style='text-align:right;'>Action</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
             "de": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Hinzufügen</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Status</th>\t\t\t\t\t\t<th>HinzufügenZeit</th>\t\t\t\t\t\t<th style='text-align:right;'>Aktion</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
             "it": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>Aggiungi</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>Stato</th>\t\t\t\t\t\t<th>AggiungiOra</th>\t\t\t\t\t\t<th style='text-align:right;'>Azione</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>"
+        },
+        "unauth_default": {
+            "zh-CN": "默认-安全入口错误提示",
+            "zh-TW": "預設-安全入口錯誤提示",
+            "en": "默认-Security入口错误Tip",
+            "fr": "默认-Sécurité入口错误Conseil",
+            "de": "默认-Sicherheit入口错误Hinweis",
+            "it": "默认-Sicurezza入口错误Suggerimento"
+        },
+        "unauth_400": {
+            "zh-CN": "400-客户端请求错误",
+            "zh-TW": "400-用戶端请求錯誤",
+            "en": "400-客户端请求错误",
+            "fr": "400-客户端请求错误",
+            "de": "400-客户端请求错误",
+            "it": "400-客户端请求错误"
+        },
+        "unauth_401": {
+            "zh-CN": "401-未授权访问",
+            "zh-TW": "401-未授权访問",
+            "en": "401-未授权访问",
+            "fr": "401-未授权访问",
+            "de": "401-未授权访问",
+            "it": "401-未授权访问"
+        },
+        "unauth_403": {
+            "zh-CN": "403-拒绝访问",
+            "zh-TW": "403-拒絕访問",
+            "en": "403-拒绝访问",
+            "fr": "403-拒绝访问",
+            "de": "403-拒绝访问",
+            "it": "403-拒绝访问"
+        },
+        "unauth_404": {
+            "zh-CN": "404-页面不存在",
+            "zh-TW": "404-頁面不存在",
+            "en": "404-页面不存在",
+            "fr": "404-页面不存在",
+            "de": "404-页面不存在",
+            "it": "404-页面不存在"
+        },
+        "unauth_408": {
+            "zh-CN": "408-客户端超时",
+            "zh-TW": "408-用戶端超時",
+            "en": "408-客户端超时",
+            "fr": "408-客户端超时",
+            "de": "408-客户端超时",
+            "it": "408-客户端超时"
+        },
+        "unauth_416": {
+            "zh-CN": "416-无效的请求",
+            "zh-TW": "416-無效的请求",
+            "en": "416-无效的请求",
+            "fr": "416-无效的请求",
+            "de": "416-无效的请求",
+            "it": "416-无效的请求"
         }
     },
     "auth": {
@@ -15688,6 +15816,14 @@ FULL_I18N_DICTIONARY = {
             "fr": "已Connexions",
             "de": "已Verbindungen",
             "it": "已Connessioni"
+        },
+        "brand_title": {
+            "zh-CN": "御风面板",
+            "zh-TW": "御风面板",
+            "en": "YuFeng Panel",
+            "fr": "Panneau YuFeng",
+            "de": "YuFeng Panel",
+            "it": "Pannello YuFeng"
         }
     },
     "dashboard": {
@@ -16238,6 +16374,14 @@ FULL_I18N_DICTIONARY = {
             "fr": "错误的Connexions地址",
             "de": "错误的Verbindungen地址",
             "it": "错误的Connessioni地址"
+        },
+        "session_lost": {
+            "zh-CN": "会话丢失，请重新登陆面板!\r\n",
+            "zh-TW": "会話丟失，请重新登陆面板!\r\n",
+            "en": "会话丢失，请重新登陆面板!\r\n",
+            "fr": "会话丢失，请重新登陆面板!\r\n",
+            "de": "会话丢失，请重新登陆面板!\r\n",
+            "it": "会话丢失，请重新登陆面板!\r\n"
         }
     },
     "plugin": {

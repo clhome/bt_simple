@@ -267,12 +267,6 @@ def inject_global_variables():
         app_ver = app_ver + str(time.time())
 
     data = utils_config.getGlobalVar()
-    g_config = {
-        'version': app_ver,
-        'title' : '御风面板',
-        'ip' : data.get('ip', '127.0.0.1')
-    }
-
     try:
         from core.i18n import t as _t, SUPPORTED_LANGUAGES, get_current_lang
         cur_lang = getattr(g, 'lang', None) or get_current_lang()
@@ -280,6 +274,12 @@ def inject_global_variables():
         _t = lambda k, *args: k
         cur_lang = 'zh-CN'
         SUPPORTED_LANGUAGES = []
+
+    g_config = {
+        'version': app_ver,
+        'title' : _t('common.brand_title', '御风面板'),
+        'ip' : data.get('ip', '127.0.0.1')
+    }
 
     return dict(
         config=g_config,
@@ -302,7 +302,8 @@ socketio.init_app(app)
 @socketio.on('webssh_websocketio')
 def webssh_websocketio(data):
     if not isLogined():
-        emit('server_response', {'data': '会话丢失，请重新登陆面板!\r\n'})
+        from core.i18n import t as _t
+        emit('server_response', {'data': _t('ssh.session_lost', '会话丢失，请重新登陆面板!\r\n')})
         return
     import utils.ssh.ssh_terminal as ssh_terminal
     shell_client = ssh_terminal.ssh_terminal.instance()
@@ -313,7 +314,8 @@ def webssh_websocketio(data):
 @socketio.on('webssh')
 def webssh(data):
     if not isLogined():
-        emit('server_response', {'data': '会话丢失，请重新登陆面板!\r\n'})
+        from core.i18n import t as _t
+        emit('server_response', {'data': _t('ssh.session_lost', '会话丢失，请重新登陆面板!\r\n')})
         return None
 
     import utils.ssh.ssh_local as ssh_local

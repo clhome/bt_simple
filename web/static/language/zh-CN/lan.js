@@ -753,7 +753,14 @@ var lan = {
 		"config_auto_str_209":"添加应用",
 		"config_auto_str_210":"<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">应用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">应用密钥</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名单<br/>(每行1个)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">保存配置</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>开启API后，必需在IP白名单列表中的IP才能访问面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生产环境开启，这可能增加服务器安全风险；</li>\t</ul></div>",
 		"config_auto_str_211":"APP应用管理",
-		"config_auto_str_212":"<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>添加</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>添加时间</th>\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>"
+		"config_auto_str_212":"<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>添加</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>应用ID</th>\t\t\t\t\t\t<th>应用密钥</th>\t\t\t\t\t\t<th>白名单</th>\t\t\t\t\t\t<th>状态</th>\t\t\t\t\t\t<th>添加时间</th>\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+		"unauth_default":"默认-安全入口错误提示",
+		"unauth_400":"400-客户端请求错误",
+		"unauth_401":"401-未授权访问",
+		"unauth_403":"403-拒绝访问",
+		"unauth_404":"404-页面不存在",
+		"unauth_408":"408-客户端超时",
+		"unauth_416":"416-无效的请求"
 	},
 
 	"control":{
@@ -1890,12 +1897,12 @@ var lan = {
 		"to301_help_1":"选择[整站]时请不要将目标URL设为同一站点下的域名.",
 		"to301_help_2":"取消301重定向后，需清空浏览器缓存才能看到生效结果.",
 		"bt_ssl":"SSL",
-		"lets_ssl":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费证书",
+		"lets_ssl":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费证书",
 		"other":"其它",
 		"other_ssl":"其他证书",
 		"use_other_ssl":"使用其他证书",
 		"ssl_help_1":"本站点未设置SSL，如需设置SSL，请选择切换类目申请开启SSL<br><p style='color:red;'>关闭SSL以后,请务必清除浏览器缓存再访问站点</p>",
-		"ssl_help_2":"已为您自动生成Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费证书；",
+		"ssl_help_2":"已为您自动生成Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费证书；",
 		"ssl_help_3":"如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。",
 		"ssl_key":"密钥(KEY)",
 		"ssl_crt":"证书(PEM格式)",
@@ -1914,7 +1921,7 @@ var lan = {
 		"bt_ssl_help_5":"申请之前，请确保域名已解析，如未解析会导致审核失败",
 		"bt_ssl_help_6":"SSL申请的是免费版TrustAsia DV SSL CA - G5证书，仅支持单个域名申请",
 		"bt_ssl_help_7":"有效期1年，不支持续签，到期后需要重新申请",
-		"bt_ssl_help_8":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签",
+		"bt_ssl_help_8":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签",
 		"bt_ssl_help_9":"若您的站点使用了CDN或301重定向会导致续签失败",
 		"bt_ssl_help_10":"粘贴您的*.key以及*.pem内容，然后保存即可。",
 		"phone_input":"请输入手机号码",
@@ -2621,7 +2628,16 @@ var lan = {
 		"setting":"面板设置",
 		"logs":"操作日志",
 		"logout":"退出",
-		"help":"问题求助|产品建议请上论坛"
+		"help":"问题求助|产品建议请上论坛",
+		"memuA":"首页",
+		"memuAsite":"网站",
+		"memuAfiles":"文件",
+		"memuAfirewall":"安全",
+		"memuAcrontab":"计划任务",
+		"memuAmonitor":"监控",
+		"memuAlogs":"日志",
+		"memuAsoft":"软件管理",
+		"memuAsetting":"面板设置"
 	},
 
 	"logs":{
@@ -2749,7 +2765,8 @@ var lan = {
 		"log_empty":"日志为空",
 		"action_success":"操作成功!",
 		"connect_success":"连接成功.",
-		"connected":"已连接"
+		"connected":"已连接",
+		"brand_title":"御风面板"
 	},
 
 	"dashboard":{
@@ -2826,7 +2843,8 @@ var lan = {
 		"py_msg_5d5712":"连接正在进行中，请稍后...",
 		"py_msg_26793c":"目标服务器主动拒绝连接",
 		"py_msg_96a6e8":"SSH协议握手超时，与目标服务器之间的网络质量太糟糕",
-		"py_msg_c11397":"错误的连接地址"
+		"py_msg_c11397":"错误的连接地址",
+		"session_lost":"会话丢失，请重新登陆面板!\r\n"
 	},
 
 	"plugin":{

@@ -753,7 +753,14 @@ var lan = {
 		"config_auto_str_209":"新增應用",
 		"config_auto_str_210":"<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">應用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">應用金鑰</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名單<br/>(每行1個)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">儲存設定</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>開啟API後，必需在IP白名單列表中的IP才能访問面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生產環境開啟，這可能增加伺服器安全风险；</li>\t</ul></div>",
 		"config_auto_str_211":"APP應用管理",
-		"config_auto_str_212":"<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>新增</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>應用ID</th>\t\t\t\t\t\t<th>應用金鑰</th>\t\t\t\t\t\t<th>白名單</th>\t\t\t\t\t\t<th>狀態</th>\t\t\t\t\t\t<th>新增時間</th>\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>"
+		"config_auto_str_212":"<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>新增</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>應用ID</th>\t\t\t\t\t\t<th>應用金鑰</th>\t\t\t\t\t\t<th>白名單</th>\t\t\t\t\t\t<th>狀態</th>\t\t\t\t\t\t<th>新增時間</th>\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
+		"unauth_default":"預設-安全入口錯誤提示",
+		"unauth_400":"400-用戶端请求錯誤",
+		"unauth_401":"401-未授权访問",
+		"unauth_403":"403-拒絕访問",
+		"unauth_404":"404-頁面不存在",
+		"unauth_408":"408-用戶端超時",
+		"unauth_416":"416-無效的请求"
 	},
 
 	"control":{
@@ -1890,12 +1897,12 @@ var lan = {
 		"to301_help_1":"選擇[整站]時请不要將目標URL設為同一站點下的網域名稱.",
 		"to301_help_2":"取消301重定向後，需清空浏覽器缓存才能看到生效結果.",
 		"bt_ssl":"SSL",
-		"lets_ssl":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费憑證",
+		"lets_ssl":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费憑證",
 		"other":"其它",
 		"other_ssl":"其他憑證",
 		"use_other_ssl":"使用其他憑證",
 		"ssl_help_1":"本站點未設定SSL，如需設定SSL，请選擇切換类目申请開啟SSL<br><p style='color:red;'>關閉SSL以後,请务必清除浏覽器缓存再访問站點</p>",
-		"ssl_help_2":"已為您自動生成Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费憑證；",
+		"ssl_help_2":"已為您自動生成Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费憑證；",
 		"ssl_help_3":"如需使用其他SSL,请切換其他憑證後粘贴您的KEY以及PEM内容，然後儲存即可。",
 		"ssl_key":"金鑰(KEY)",
 		"ssl_crt":"憑證(PEM格式)",
@@ -1914,7 +1921,7 @@ var lan = {
 		"bt_ssl_help_5":"申请之前，请確保網域名稱已解析，如未解析会導致审核失敗",
 		"bt_ssl_help_6":"SSL申请的是免费版TrustAsia DV SSL CA - G5憑證，仅支持單個網域名稱申请",
 		"bt_ssl_help_7":"有效期1年，不支持续签，到期後需要重新申请",
-		"bt_ssl_help_8":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费憑證，有效期3個月，支持多網域名稱。預設会自動续签",
+		"bt_ssl_help_8":"Let\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s Encrypt免费憑證，有效期3個月，支持多網域名稱。預設会自動续签",
 		"bt_ssl_help_9":"若您的站點使用了CDN或301重定向会導致续签失敗",
 		"bt_ssl_help_10":"粘贴您的*.key以及*.pem内容，然後儲存即可。",
 		"phone_input":"请輸入手機号码",
@@ -2621,7 +2628,16 @@ var lan = {
 		"setting":"面板設定",
 		"logs":"操作日誌",
 		"logout":"退出",
-		"help":"問題求助|產品建議請上論壇"
+		"help":"問題求助|產品建議請上論壇",
+		"memuA":"首頁",
+		"memuAsite":"網站",
+		"memuAfiles":"檔案",
+		"memuAfirewall":"安全",
+		"memuAcrontab":"排程任務",
+		"memuAmonitor":"監控",
+		"memuAlogs":"記錄檔",
+		"memuAsoft":"軟體管理",
+		"memuAsetting":"面板設定"
 	},
 
 	"logs":{
@@ -2749,7 +2765,8 @@ var lan = {
 		"log_empty":"記錄檔為空",
 		"action_success":"操作成功!",
 		"connect_success":"連接成功.",
-		"connected":"已連接"
+		"connected":"已連接",
+		"brand_title":"御风面板"
 	},
 
 	"dashboard":{
@@ -2826,7 +2843,8 @@ var lan = {
 		"py_msg_5d5712":"連接正在进行中，请稍後...",
 		"py_msg_26793c":"目標伺服器主動拒絕連接",
 		"py_msg_96a6e8":"SSH協議握手超時，與目標伺服器之間的網路质量太糟糕",
-		"py_msg_c11397":"錯誤的連接地址"
+		"py_msg_c11397":"錯誤的連接地址",
+		"session_lost":"会話丟失，请重新登陆面板!\r\n"
 	},
 
 	"plugin":{
