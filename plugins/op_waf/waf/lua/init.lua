@@ -446,8 +446,8 @@ local function waf_cc()
     local ua = tostring(params['user_agent'] or '')
     local cookie = tostring(params['cookie'] or '')
 
-    local token = C:hmac_sha256(secret, ip .. '_' .. request_uri .. '_' .. ua .. '_' .. cookie)
-    local subnet_token = C:hmac_sha256(secret, subnet .. '_' .. request_uri .. '_' .. ua .. '_' .. cookie)
+    local token = ngx.md5(secret .. "_" .. ip .. "_" .. request_uri .. "_" .. ua .. "_" .. cookie)
+    local subnet_token = ngx.md5(secret .. "_" .. subnet .. "_" .. request_uri .. "_" .. ua .. "_" .. cookie)
 
     local count = ngx.shared.waf_limit:get(token)
     local subnet_count = ngx.shared.waf_limit:get(subnet_token)
@@ -537,7 +537,7 @@ local function waf_cc_increase()
     local ip = params['ip']
     local uri = params['uri']
     local secret = config['secret'] or "opwaf_default_secret"
-    local cache_token = C:hmac_sha256(secret, ip .. '_' .. server_name)
+    local cache_token = ngx.md5(secret .. "_" .. ip .. "_" .. server_name)
 
     --判断是否已经通过验证
     if ngx.shared.waf_limit:get(cache_token) then return false end
@@ -635,25 +635,15 @@ end
 local function waf_honeypot()
     if not config['honeypot'] or not config['honeypot']['open'] then return false end
     local paths = config['honeypot']['paths']
-    if not paths then return false end
+    if not paths or #paths == 0 then return false end
 
-    local uri = string.gsub(params['uri'] or "", "//+", "/")
+    local uri = params['uri'] or ""
+    if string.find(uri, "//", 1, true) then
+        uri = string.gsub(uri, "//+", "/")
+    end
 
     for _, path in ipairs(paths) do
-        local is_match = false
-        if string.sub(path, -1) == '/' then
-            -- 目录包含匹配 (例如 '/.git/' 会匹配 '/.git/config' 和 '/backend/.git/')
-            if string.find(uri, path, 1, true) then
-                is_match = true
-            end
-        else
-            -- 文件包含匹配 (例如 '/.env' 匹配 '/.env' 和 '/backend/.env')
-            if string.find(uri, path, 1, true) then
-                is_match = true
-            end
-        end
-        
-        if is_match then
+        if string.find(uri, path, 1, true) then
             C:add_reputation_penalty(params['ip'], 100, "触碰蜜罐路径: " .. path)
             ngx.exit(config['honeypot']['status'])
             return true

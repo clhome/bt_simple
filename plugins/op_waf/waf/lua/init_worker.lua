@@ -58,10 +58,12 @@ end
 
 if ngx.worker.id() == 0 then
 
-    ngx.timer.every(6, waf_timer_every_get_cpu)
+    ngx.timer.every(15, waf_timer_every_get_cpu)
     -- 异步执行
-    ngx.timer.every(3, waf_timer_stats_total_log)
-    ngx.timer.every(10, waf_clean_expire_data)
+    ngx.timer.every(30, waf_timer_stats_total_log)
+    ngx.timer.every(3600, waf_clean_expire_data)
+    -- 启动时延迟 5 秒执行一次初始过期数据清理
+    ngx.timer.at(5, waf_clean_expire_data)
 
     WAF_C:cron()
 end

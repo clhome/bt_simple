@@ -182,11 +182,14 @@ function _M.cron(self)
     local timer_every_import_data = function(premature)
         local ok, err = pcall(function()
             local llen, _ = ngx.shared.waf_limit:llen('waf_limit_logs')
-            if llen == 0 then
+            if not llen or llen == 0 then
                 return true
             end
 
             local db = self:initDB()
+            if not db then
+                return false
+            end
 
             db:exec([[BEGIN TRANSACTION]])
 
@@ -195,38 +198,43 @@ function _M.cron(self)
 
             if not stmt2 then
                 self:D("waf timer db:prepare fail!:"..tostring(stmt2))
+                if db:isopen() then db:close() end
                 return false
             end
 
-            for i=1,llen do
+            local max_batch = math.min(llen, 200)
+            for i=1, max_batch do
                 local data, _ = ngx.shared.waf_limit:lpop('waf_limit_logs')
-                -- self:D("waf_limit_logs:"..data)
                 if not data then
                     break
                 end
 
-                local info = json.decode(data)
-        
-                stmt2:bind_names{
-                    time=info["time"],
-                    ip=info["ip"],
-                    domain=info["server_name"],
-                    server_name=info["server_name"],
-                    method=info["method"],
-                    status_code=info["status_code"],
-                    user_agent=info["user_agent"],
-                    uri=info["request_uri"],
-                    rule_name=info['rule_name'],
-                    reason=info['reason']
-                }
+                local ok_decode, info = pcall(json.decode, data)
+                if ok_decode and info then
+                    stmt2:bind_names{
+                        time=info["time"],
+                        ip=info["ip"],
+                        domain=info["server_name"],
+                        server_name=info["server_name"],
+                        method=info["method"],
+                        status_code=info["status_code"],
+                        user_agent=info["user_agent"],
+                        uri=info["request_uri"],
+                        rule_name=info['rule_name'],
+                        reason=info['reason']
+                    }
 
-                local res, err = stmt2:step()
-                if tostring(res) == "5" then
-                    self:D("waf the step database connection is busy, so it will be stored later.")
-                    return false
+                    local res, err = stmt2:step()
+                    if tostring(res) == "5" then
+                        self:D("waf the step database connection is busy, so it will be stored later.")
+                        ngx.shared.waf_limit:lpush('waf_limit_logs', data)
+                        break
+                    end
+                    stmt2:reset() 
                 end
-                stmt2:reset() 
             end
+
+            if stmt2 then stmt2:finalize() end
 
             local res, err = db:execute([[COMMIT]])
             if db and db:isopen() then
@@ -238,7 +246,7 @@ function _M.cron(self)
             ngx.log(ngx.ERR, "timer_every_import_data pcall fail: ", tostring(err))
         end
     end
-    ngx.timer.every(0.5, timer_every_import_data)
+    ngx.timer.every(3, timer_every_import_data)
 end
 
 function _M.initDB(self)
@@ -250,6 +258,7 @@ function _M.initDB(self)
         return nil
     end
 
+    db:busy_timeout(3000)
     db:exec([[PRAGMA synchronous = 0]])
     db:exec([[PRAGMA cache_size = 8000]])
     db:exec([[PRAGMA page_size = 32768]])
@@ -260,12 +269,16 @@ end
 
 function _M.clean_log(self)
     local db = self:initDB()
+    if not db then return false end
     local now_date = os.date("*t")
     local save_day = 90
     local save_date_timestamp = os.time{year=now_date.year,
         month=now_date.month, day=now_date.day-save_day, hour=0}
-    -- delete expire data
-    db:exec("DELETE FROM web_logs WHERE time<"..tostring(save_date_timestamp))
+    -- delete expire data from logs table
+    db:exec("DELETE FROM logs WHERE time<"..tostring(save_date_timestamp))
+    if db and db:isopen() then
+        db:close()
+    end
 end
 
 function _M.log(self, args, rule_name, reason)
@@ -1020,28 +1033,38 @@ end
 function _M.get_cpu_stat(self)
     local cpu_total = 0
     local fp = io.open('/proc/stat','r')
+    if not fp then return 0, 0, 0 end
     local cpu_line = fp:read()
     fp:close()
+    if not cpu_line then return 0, 0, 0 end
 
     local list = ngx_re.split(cpu_line," ")
     table.remove(list,1)
     table.remove(list,1)
 
-    local idie = list[4]
+    local idie = tonumber(list[4]) or 0
     for i,v in pairs(list)
     do
-        cpu_total = cpu_total + v
+        cpu_total = cpu_total + (tonumber(v) or 0)
     end
 
-    local use_percent = tonumber(100-(idie/cpu_total)*100)
+    local use_percent = 0
+    if cpu_total > 0 then
+        use_percent = tonumber(100-(idie/cpu_total)*100)
+    end
     return cpu_total,idie,use_percent
 end
 
 function _M.get_cpu_percent(self)
     local cpu_total,idie,use_percent = self:get_cpu_stat()
-    ngx.sleep(2)
+    if cpu_total == 0 then return 0 end
+    ngx.sleep(1)
     local cpu_total2,idie2,use_percent2 = self:get_cpu_stat()
-    local cpu_usage_percent = tonumber(100-(((idie2-idie)/(cpu_total2-cpu_total))*100))
+    local delta_total = cpu_total2 - cpu_total
+    if delta_total <= 0 then return 0 end
+    local cpu_usage_percent = tonumber(100-(((idie2-idie)/delta_total)*100))
+    if cpu_usage_percent < 0 then cpu_usage_percent = 0 end
+    if cpu_usage_percent > 100 then cpu_usage_percent = 100 end
     return cpu_usage_percent
 end
 
