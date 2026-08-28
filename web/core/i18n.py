@@ -76,14 +76,13 @@ def parse_accept_language(accept_header):
         parts = piece.strip().split(";")
         code = parts[0].strip()
         q = 1.0
-        if len(parts) > 1:
-            for p in parts[1:]:
-                p = p.strip()
-                if p.startswith("q="):
-                    try:
-                        q = float(p[2:])
-                    except ValueError:
-                        pass
+        for p in parts[1:]:
+            p = p.strip()
+            if p.startswith("q="):
+                try:
+                    q = float(p[2:])
+                except ValueError:
+                    pass
         items.append((code, q))
         
     items.sort(key=lambda x: x[1], reverse=True)
@@ -98,7 +97,7 @@ def get_current_lang():
     # 1. 尝试从 Flask 上下文 g 中读取
     try:
         from flask import g, request
-        if hasattr(g, 'lang') and g.lang:
+        if getattr(g, 'lang', None):
             return g.lang
             
         # 2. 检查 URL query 参数
@@ -118,7 +117,8 @@ def get_current_lang():
             accept_lang = parse_accept_language(request.headers.get('Accept-Language', ''))
             if accept_lang:
                 return accept_lang
-    except Exception:
+    except (RuntimeError, ImportError):
+        # 非请求上下文或 flask 未安装时安全忽略
         pass
 
     # 5. 检查本地配置文件 data/language.pl
@@ -152,6 +152,35 @@ def get_cached_json(name, lang):
         pass
     return {}
 
+def _lookup_message(key, lang):
+    # 1. 查找 public.json
+    pub = get_cached_json("public", lang)
+    if key in pub:
+        return pub[key]
+        
+    # 2. 查找 server.json
+    srv = get_cached_json("server", lang)
+    if key in srv:
+        return srv[key]
+        
+    # 3. 点号分割子模块查找
+    if "." in key:
+        sec, sub_key = key.split(".", 1)
+        sec_dict = get_cached_json(sec, lang)
+        if sub_key in sec_dict:
+            return sec_dict[sub_key]
+            
+        tmpl = get_cached_json("template", lang)
+        if sec in tmpl and isinstance(tmpl[sec], dict) and sub_key in tmpl[sec]:
+            return tmpl[sec][sub_key]
+        if key in tmpl:
+            return tmpl[key]
+    else:
+        tmpl = get_cached_json("template", lang)
+        if key in tmpl and isinstance(tmpl[key], str):
+            return tmpl[key]
+    return None
+
 def t(key, *args, lang=None):
     """
     后端翻译主函数
@@ -162,39 +191,9 @@ def t(key, *args, lang=None):
         
     target_lang = normalize_lang(lang) or get_current_lang()
     
-    def _find_in_lang(l):
-        # 1. 查找 public.json
-        pub = get_cached_json("public", l)
-        if key in pub:
-            return pub[key]
-            
-        # 2. 查找 server.json
-        srv = get_cached_json("server", l)
-        if key in srv:
-            return srv[key]
-            
-        # 3. 点号分割子模块查找
-        if "." in key:
-            parts = key.split(".", 1)
-            sec, sub_key = parts[0], parts[1]
-            sec_dict = get_cached_json(sec, l)
-            if sub_key in sec_dict:
-                return sec_dict[sub_key]
-                
-            tmpl = get_cached_json("template", l)
-            if sec in tmpl and isinstance(tmpl[sec], dict) and sub_key in tmpl[sec]:
-                return tmpl[sec][sub_key]
-            if key in tmpl:
-                return tmpl[key]
-        else:
-            tmpl = get_cached_json("template", l)
-            if key in tmpl and isinstance(tmpl[key], str):
-                return tmpl[key]
-        return None
-
-    msg = _find_in_lang(target_lang)
+    msg = _lookup_message(key, target_lang)
     if msg is None and target_lang != DEFAULT_LANG:
-        msg = _find_in_lang(DEFAULT_LANG)
+        msg = _lookup_message(key, DEFAULT_LANG)
         
     if msg is None:
         msg = key
@@ -203,11 +202,12 @@ def t(key, *args, lang=None):
     if args:
         if '%s' in msg and msg.count('%s') == len(args):
             try:
-                msg = msg % args
-            except Exception:
+                return msg % args
+            except TypeError:
                 pass
+                
         for idx, arg in enumerate(args):
-            msg = msg.replace("{" + str(idx + 1) + "}", str(arg))
-            msg = msg.replace("{" + str(idx) + "}", str(arg))
+            str_arg = str(arg)
+            msg = msg.replace("{" + str(idx + 1) + "}", str_arg).replace("{" + str(idx) + "}", str_arg)
             
     return msg

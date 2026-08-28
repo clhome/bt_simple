@@ -153,10 +153,18 @@
 
         if (typeof val === 'string') {
             if (args && Array.isArray(args)) {
+                // 优化参数替换性能，采用字典映射替代循环内建正则，同时兼容原有的 {0} 和 {1} 容错重叠机制
+                var argMap = {};
                 for (var j = 0; j < args.length; j++) {
-                    val = val.replace(new RegExp('\\{' + (j + 1) + '\\}', 'g'), args[j] + '');
-                    val = val.replace(new RegExp('\\{' + j + '\\}', 'g'), args[j] + '');
+                    argMap[j] = args[j];
+                    if (argMap[j + 1] === undefined) {
+                        argMap[j + 1] = args[j];
+                    }
                 }
+                val = val.replace(/\{(\d+)\}/g, function(match, num) {
+                    var arg = argMap[parseInt(num, 10)];
+                    return arg !== undefined ? arg : match;
+                });
             }
             return val;
         }
@@ -206,6 +214,9 @@
         var elements = root.querySelectorAll('[data-i18n]');
         for (var i = 0; i < elements.length; i++) {
             var el = elements[i];
+            if (el.getAttribute('data-i18n-lang') === _currentLang) {
+                continue; // 避免对已用当前语言翻译过的节点进行重复翻译
+            }
             var key = el.getAttribute('data-i18n');
             var attr = el.getAttribute('data-i18n-attr');
             var translated = t(key);
@@ -217,6 +228,7 @@
                 } else {
                     el.textContent = translated;
                 }
+                el.setAttribute('data-i18n-lang', _currentLang);
             }
         }
     }
