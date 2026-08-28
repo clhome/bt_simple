@@ -579,8 +579,7 @@ def initDreplace():
     path = getServerDir()
     if not os.path.exists(path + '/waf/lua'):
         sdir = getPluginDir() + '/waf'
-        cmd = 'cp -rf ' + sdir + ' ' + path
-        yf.execShell(cmd)
+        yf.safeExecShell(["cp", "-rf", sdir, path])
 
     logs_path = path + '/logs'
     if not os.path.exists(logs_path):
@@ -588,7 +587,7 @@ def initDreplace():
 
     debug_log = path + '/debug.log'
     if not os.path.exists(debug_log):
-        yf.execShell('echo "" > ' + debug_log)
+        yf.writeFile(debug_log, '')
 
     config = path + '/waf/config.json'
     content = yf.readFile(config)
@@ -610,7 +609,7 @@ def initDreplace():
     pSqliteDb()
 
     if not yf.isAppleSystem():
-        yf.execShell("chown -R www:www " + path)
+        yf.safeExecShell(["chown", "-R", "www:www", path])
     return path
 
 

@@ -155,6 +155,18 @@
   - `[x]` 优化并确定插件统一 i18n 的核心辅助函数 `createPluginTranslator`，减少重复代码
   - `[x]` 新增前端统一请求封装 `YfPlugin.createApi()`，统一 loading、错误处理与参数格式化
   - `[x]` 新增后端防注入安全执行函数 `yf.safeExecShell()`
+
+### 插件 i18n 与安全升级改造（第一阶段试点）
+- `[x]` `op_waf` (功能复杂度最高)
+  - `[x]` 更新 info.json 规范化 type
+  - `[x]` 提取及生成 lang/zh-CN.json 与 lang/en.json
+  - `[x]` 前端 js/op_waf.js 接入 YfPlugin.createApi，替换硬编码中文为 pt()
+  - `[x]` 前端 index.html 增加 data-i18n 属性
+  - `[x]` 后端 index.py 使用 yf.safeExecShell 杜绝注入，规范 yf.returnJson 消息
+  - `[x]` 完成升级与测试
+- `[/]` `mysql` (使用频率最高)
+- `[ ]` `openresty` (底层基石)
+
 - `[x]` 撤销全局 url_white.json 对 .git 的放行，避免其他正常站点的源码泄露风险。
 - `[x]` 确认 WAF 中影响 Git 的分类为 **GET**（URL规则限制 .git）和 **POST**（拦截 push 时的二进制 packfile）。
 - `[x]` 建议用户在面板中对特定站点（git.yangmaok.*）进行独立配置。

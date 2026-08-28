@@ -1,35 +1,9 @@
-
-function owPost(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'op_waf', func:method, args:JSON.stringify(args)}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-function owPostN(method, args, callback){
-    $.post('/plugins/run', {name:'op_waf', func:method, args:JSON.stringify(args)}, function(data) {
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
+var api = YfPlugin.createApi('op_waf');
+var pt = YfI18n.createPluginTranslator('op_waf');
 
 
 function getRuleByName(rule_name, callback){
-    owPost('get_rule', {rule_name:rule_name}, function(data){
+    api.post('get_rule', {rule_name:rule_name}, function(data){
         callback(data);
     });
 }
@@ -67,7 +41,7 @@ function setRequestCode(ruleName, statusCode){
 
 function setState(ruleName){
     var statusCode = $('#statusCode').val();
-    owPost('set_obj_status', {obj:ruleName,statusCode:statusCode},function(data){
+    api.post('set_obj_status', {obj:ruleName,statusCode:statusCode},function(data){
         var rdata = JSON.parse(data.data);
         if (rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -79,7 +53,7 @@ function setState(ruleName){
 }
 
 function setObjOpen(ruleName){
-    owPost('set_obj_open', {obj:ruleName},function(data){
+    api.post('set_obj_open', {obj:ruleName},function(data){
         var rdata = JSON.parse(data.data);
         if (rdata.status){
 
@@ -116,7 +90,7 @@ function saveCcRule(siteName,is_open_global, type) {
     var act = 'set_cc_conf';
     if (siteName != 'undefined') act = 'set_site_cc_conf';
 
-    owPost(act, pdata, function(data){
+    api.post(act, pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         setTimeout(function(){
@@ -294,7 +268,7 @@ function setSafeVerify(auto, cpu, time, mode,siteName) {
                     time: $("input[name='time']").val(),
                 }
                 var act = 'set_safe_verify';
-                owPost(act, pdata, function(data){
+                api.post(act, pdata, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg, function() {
                        layer.close(svlayer);
@@ -321,7 +295,7 @@ function saveRetry(siteName,type) {
 
     var act = 'set_retry';
     if (siteName != undefined) act = 'set_site_retry';
-    owPost(act, pdata, function(data){
+    api.post(act, pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         layer.close(create_layer);
@@ -336,7 +310,7 @@ function addRule(ruleName) {
         'ruleName': ruleName
     }
 
-    owPost('add_rule', pdata, function(data){
+    api.post('add_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -368,7 +342,7 @@ function modifyRuleSave(index, ruleName) {
         rulePs: $("input[name='rule_ps_" + index + "']").val()
     }
 
-    owPost('modify_rule', pdata, function(data){
+    api.post('modify_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
 
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -386,7 +360,7 @@ function removeRule(ruleName, index) {
         'ruleName': ruleName
     }
     safeMessage('删除规则', '您真的要删除这条过滤规则吗？', function () {
-        owPost('remove_rule', pdata, function(data){
+        api.post('remove_rule', pdata, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             if (rdata.status) {
@@ -404,7 +378,7 @@ function setRuleState(ruleName, index) {
         'ruleName': ruleName
     }
     
-    owPost('set_rule_state', pdata, function(data){
+    api.post('set_rule_state', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -479,7 +453,7 @@ function setObjConf(ruleName, type) {
 
 // CDN增强检测
 function cdnEnhancedRule() {
-    owPost('waf_conf', {}, function(data){
+    api.post('waf_conf', {}, function(data){
         var tmp = JSON.parse(data.data);
         var trusted_proxies = tmp.trusted_proxy || [];
         var tbody = '';
@@ -524,7 +498,7 @@ function cdnEnhancedRule() {
 function addTrustedProxy() {
     var pdata = { ip: $("input[name='trusted_proxy_ip']").val() };
     if (!pdata.ip) { layer.msg("IP不能为空"); return; }
-    owPost('add_trusted_proxy', pdata, function(data){
+    api.post('add_trusted_proxy', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
@@ -532,7 +506,7 @@ function addTrustedProxy() {
 }
 
 function removeTrustedProxy(index) {
-    owPost('remove_trusted_proxy', { index: index }, function(data){
+    api.post('remove_trusted_proxy', { index: index }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if(rdata.status){ layer.close(create_l); cdnEnhancedRule(); }
@@ -585,7 +559,7 @@ function saveScanRule() {
         cookie: $("textarea[name='scan_cookie']").val(),
         args: $("textarea[name='scan_args']").val()
     }
-    owPost('save_scan_rule', pdata,function(data){
+    api.post('save_scan_rule', pdata,function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         layer.close(create_l);
@@ -605,7 +579,7 @@ function addIpWhite() {
         return;
     }
 
-    owPost('add_ip_white', pdata, function(data){
+    api.post('add_ip_white', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -618,7 +592,7 @@ function addIpWhite() {
 
 //从IP白名单删除IP段
 function removeIpWhite(index) {
-    owPost('remove_ip_white', { index: index }, function(data){
+    api.post('remove_ip_white', { index: index }, function(data){
         var rdata = JSON.parse(data.data);
         if (rdata.status) {
             setTimeout(function(){
@@ -692,7 +666,7 @@ function outputLayer(rdata, name, type) {
 function outputData(name, callback) {
     var loadT = layer.msg('正在导出数据..', { icon: 16, time: 0 });
 
-    owPost('output_data', { sname: name } , function(data){
+    api.post('output_data', { sname: name } , function(data){
         var tmp = JSON.parse(data.data);
         var rdata = JSON.parse(tmp.data);
         if (callback) callback(rdata,res);
@@ -702,7 +676,7 @@ function outputData(name, callback) {
 
 //导入数据
 function importData(name, pdata, callback) {
-    owPost('import_data', { sname: name, pdata: pdata } , function(data){
+    api.post('import_data', { sname: name, pdata: pdata } , function(data){
         var rdata = JSON.parse(data.data);   
         if (callback) callback();
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -873,7 +847,7 @@ function getIpv6Address(callback){
 // 添加ipv6请求
 function addIpv6Req(ip,callback){
     var ip = ip.replace(/:/g, '_');
-    owPost('set_ipv6_black', {addr:ip}, function(data){
+    api.post('set_ipv6_black', {addr:ip}, function(data){
         var rdata = JSON.parse(data.data);
         if(callback) callback(rdata);
     });
@@ -882,7 +856,7 @@ function addIpv6Req(ip,callback){
 // 添加ipv6请求
 function removeIpv6Black(ip,callback){
     var ip = ip.replace(/:/g, '_');
-    owPost('del_ipv6_black', {addr:ip}, function(data){
+    api.post('del_ipv6_black', {addr:ip}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg,{icon:rdata.status?1:2});
         $('.tab_list .tab_block:eq(1)').click();
@@ -903,7 +877,7 @@ function addIpBlack() {
         return;
     }
 
-    owPost('add_ip_black', pdata, function(data){
+    api.post('add_ip_black', pdata, function(data){
         var rdata = JSON.parse(data.data);
         if (rdata.status) {
             ipBlack(1);
@@ -938,7 +912,7 @@ function addIpBlackArgs(ip) {
         return;
     }
 
-    owPost('add_ip_black', pdata, function(data){
+    api.post('add_ip_black', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -947,7 +921,7 @@ function addIpBlackArgs(ip) {
 
 //从IP黑名单删除IP段
 function removeIpBlack(index) {
-    owPost('remove_ip_black', { index: index }, function (data) {
+    api.post('remove_ip_black', { index: index }, function (data) {
         var rdata = JSON.parse(data.data);
         if (rdata.status) {
             ipBlack(1);
@@ -1061,7 +1035,7 @@ function ipBlack(type) {
 
 function wafScreen(){
 
-    owPost('waf_srceen', {}, function(data){
+    api.post('waf_srceen', {}, function(data){
         var rdata = JSON.parse(data.data);
 
         var end_time = Date.now();
@@ -1162,7 +1136,7 @@ function wafGloablRefresh(time){
 }
 
 function wafGloabl(){
-    owPost('waf_conf', {}, function(data){
+    api.post('waf_conf', {}, function(data){
         var rdata = JSON.parse(data.data);
 
         var con = '<div class="divtable">\
@@ -1317,7 +1291,7 @@ function addSiteRule(siteName, ruleName) {
         return;
     }
 
-    owPost('add_site_rule', pdata, function(data){
+    api.post('add_site_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -1336,7 +1310,7 @@ function removeSiteRule(siteName, ruleName, index) {
         ruleName: ruleName
     }
 
-    owPost('remove_site_rule', pdata, function(data){
+    api.post('remove_site_rule', pdata, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -1415,7 +1389,7 @@ function siteRuleAdmin(siteName, ruleName, type) {
         tableFixed("siteRuleAdmin");
     }
 
-    owPost('get_site_rule', { siteName: siteName, ruleName: ruleName }, function(data){
+    api.post('get_site_rule', { siteName: siteName, ruleName: ruleName }, function(data){
         var tmp = JSON.parse(data.data);
         var rdata = JSON.parse(tmp.data);
         var tbody = ''
@@ -1462,7 +1436,7 @@ function cdnHeader(siteName, type) {
         tableFixed("cdnHeader");
     }
 
-    owPost('get_site_config_byname', { siteName: siteName }, function(data){
+    api.post('get_site_config_byname', { siteName: siteName }, function(data){
         var tmp = JSON.parse(data.data);
         var t1 = tmp.data;
         var rdata = t1['cdn_header'];
@@ -1490,7 +1464,7 @@ function addCdnHeader(siteName) {
         return;
     }
 
-    owPost('add_site_cdn_header', pdata, function(data){
+    api.post('add_site_cdn_header', pdata, function(data){
         var rdata = JSON.parse(data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -1503,7 +1477,7 @@ function addCdnHeader(siteName) {
 
  //删除CDN-Header
 function removeCdnHeader(siteName, cdn_header_key) {
-    owPost('remove_site_cdn_header', { siteName: siteName, cdn_header: cdn_header_key }, function(data){
+    api.post('remove_site_cdn_header', { siteName: siteName, cdn_header: cdn_header_key }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         if (rdata.status) {
@@ -1517,7 +1491,7 @@ function removeCdnHeader(siteName, cdn_header_key) {
 //设置网站防御功能
 function setSiteObjState(siteName, obj) {
     // var loadT = layer.msg('正在处理，请稍候..', { icon: 16, time: 0 });
-    owPost('set_site_obj_open', { siteName: siteName, obj: obj } , function(data){
+    api.post('set_site_obj_open', { siteName: siteName, obj: obj } , function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         setTimeout(function(){
@@ -1599,7 +1573,7 @@ function siteWafConfig(siteName, type) {
         });
     }
 
-    owPost('get_site_config_byname', { siteName: siteName }, function(data){
+    api.post('get_site_config_byname', { siteName: siteName }, function(data){
         var tmp = JSON.parse(data.data);
         var rdata = tmp.data;
         nginx_config = rdata;
@@ -1747,7 +1721,7 @@ function siteWafConfig(siteName, type) {
 
 
 function wafSite(){
-    owPost('get_site_config', {}, function(data){
+    api.post('get_site_config', {}, function(data){
         var tmp = JSON.parse(data.data);
         var rdata = JSON.parse(tmp.data);
         var tbody = '';
@@ -1818,7 +1792,7 @@ function wafAreaLimitRender(){
         });
         return str.toString();
     }
-    owPost('get_area_limit', {}, function(rdata) {
+    api.post('get_area_limit', {}, function(rdata) {
         var rdata = JSON.parse(rdata.data);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
@@ -1859,7 +1833,7 @@ function wafAreaLimitRender(){
 
             var type = rlist[data_id]['types'];
 
-            owPost('del_area_limit', {
+            api.post('del_area_limit', {
                 site:site.toString(),
                 region:region.toString(),
                 types:type,
@@ -1876,7 +1850,7 @@ function wafAreaLimitRender(){
 }
 
 function wafAreaLimitSwitch(){
-    owPostN('waf_conf', {}, function(data){
+    api.postSilent('waf_conf', {}, function(data){
         var rdata = JSON.parse(data.data);
         if (rdata['area_limit']){
             $('#area_limit_switch').prop('checked', true);
@@ -1893,7 +1867,7 @@ function setWafAreaLimitSwitch(){
     if (!area_limit_switch){
         area_limit = 'on';
     }
-    owPostN('area_limit_switch', {'area_limit': area_limit}, function(data){
+    api.postSilent('area_limit_switch', {'area_limit': area_limit}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -1964,7 +1938,7 @@ function wafAreaLimit(){
                     data: [],
                 });
 
-                owPostN('get_default_site','', function(rdata){
+                api.postSilent('get_default_site','', function(rdata){
                     var rdata = JSON.parse(rdata.data);
                     var rlist = rdata.data.list;
 
@@ -1988,7 +1962,7 @@ function wafAreaLimit(){
                     filterable: true,
                     data: [],
                 });
-                owPostN('get_country','', function(rdata){
+                api.postSilent('get_country','', function(rdata){
                     var rdata = JSON.parse(rdata.data);
                     var rlist = rdata.data;
 
@@ -2027,7 +2001,7 @@ function wafAreaLimit(){
                     .replace('中国澳门', '澳门')
                     .replace('中国台湾', '台湾');
 
-                owPost('add_area_limit',{
+                api.post('add_area_limit',{
                     site:site,
                     types:reg_type,
                     region:region,
@@ -2062,7 +2036,7 @@ function wafLogRequest(page){
     args['query_date'] = query_date;
     args['tojs'] = 'wafLogRequest';
 
-    owPost('get_logs_list', args, function(rdata){
+    api.post('get_logs_list', args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
@@ -2183,7 +2157,7 @@ function wafLogs(site){
         args['tojs'] = 'wafLogRequest';
 
         var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-        owPost('get_logs_list', args, function(rdata){
+        api.post('get_logs_list', args, function(rdata){
             layer.close(loadT);
             var rdata = JSON.parse(rdata.data);
             var data = rdata.data.data;
@@ -2212,7 +2186,7 @@ function wafLogs(site){
     });
 
     $("#UncoverAll").on('click', function(){
-        owPost('clean_drop_ip',{},function(data){
+        api.post('clean_drop_ip',{},function(data){
             var rdata = JSON.parse(data.data);
             var ndata = JSON.parse(rdata.data);
             if (ndata.status == 0){
@@ -2225,7 +2199,7 @@ function wafLogs(site){
 
     //测试demo
     $("#testRun").on('click', function(){
-        owPost('test_run',{},function(data){
+        api.post('test_run',{},function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){
                 wafLogRequest(1);
@@ -2274,7 +2248,7 @@ function wafLogs(site){
         wafLogRequest(1);
     });
 
-    owPostN('get_default_site',{},function(rdata){
+    api.postSilent('get_default_site',{},function(rdata){
         $('select[name="site"]').html('');
 
         var rdata = JSON.parse(rdata.data);
@@ -2346,7 +2320,7 @@ function wafDropIpList() {
 
     $('.soft-man-con').html(html);
 
-    owPost('getDropIpList', {}, function(res_raw) {
+    api.post('getDropIpList', {}, function(res_raw) {
         var res = JSON.parse(res_raw.data);
         if (!res.status) {
             $('#drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center; color:red;">获取失败: ' + res.msg + '</td></tr>');
@@ -2398,7 +2372,7 @@ function wafDropIpList() {
             for (var i = 0; i < pendingIps.length; i += chunkSize) {
                 var chunk = pendingIps.slice(i, i + chunkSize);
                 (function(ips) {
-                    owPost('getIpLocationBatch', {ips: JSON.stringify(ips)}, function(loc_res_raw) {
+                    api.post('getIpLocationBatch', {ips: JSON.stringify(ips)}, function(loc_res_raw) {
                         var loc_res = JSON.parse(loc_res_raw.data);
                         if (loc_res.status && loc_res.data) {
                             var batchData = loc_res.data;
@@ -2440,7 +2414,7 @@ function releaseDropIp(ip) {
     layer.confirm('确定要释放并清空该 IP (' + ip + ') 的所有惩罚记录吗？', {title: '释放 IP', icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg('正在释放...', {icon: 16, time: 0, shade: 0.3});
-        owPost('removeDropIp', {ip: ip}, function(res_raw) {
+        api.post('removeDropIp', {ip: ip}, function(res_raw) {
             layer.close(loadT);
             var res = JSON.parse(res_raw.data);
             layer.msg(res.msg, {icon: res.status ? 1 : 2});
@@ -2453,7 +2427,7 @@ function releaseDropIp(ip) {
 
 function showDropIpLogs(ip) {
     var loadT = layer.msg('正在获取日志...', {icon: 16, time: 0, shade: 0.3});
-    owPost('getDropIpLogs', {ip: ip}, function(res_raw) {
+    api.post('getDropIpLogs', {ip: ip}, function(res_raw) {
         layer.close(loadT);
         var res = JSON.parse(res_raw.data);
         if (!res.status) {
@@ -2502,7 +2476,7 @@ function showDropIpLogs(ip) {
 }
 
 function setHoneypotDialog() {
-    owPost('waf_conf', {}, function(data){
+    api.post('waf_conf', {}, function(data){
         var rdata = JSON.parse(data.data);
         var paths = [];
         if (rdata.honeypot && rdata.honeypot.paths && rdata.honeypot.paths.length > 0) {
@@ -2548,7 +2522,7 @@ function saveHoneypotPaths() {
     }
     
     var loadT = layer.msg('正在保存配置...', {icon: 16, time: 0, shade: 0.3});
-    owPost('setHoneypotPaths', {paths: JSON.stringify(paths)}, function(res_raw) {
+    api.post('setHoneypotPaths', {paths: JSON.stringify(paths)}, function(res_raw) {
         layer.close(loadT);
         var res = JSON.parse(res_raw.data);
         layer.msg(res.msg, {icon: res.status ? 1 : 2});

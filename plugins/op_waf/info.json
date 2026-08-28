@@ -15,7 +15,7 @@
 	"title": "御风OP防火墙",
 	"tip":"soft",
 	"name":"op_waf",
-	"type":"其他插件",
+	"type":"security",
 	"ps":"企业级 Web 安全防护引擎，提供高性能、零侵入的应用层威胁拦截与全面渗透防御。",
 	"install_pre_inspection":true,
 	"shell":"install.sh",
