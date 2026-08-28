@@ -1,0 +1,1 @@
+from deep_translator import GoogleTranslator; print(GoogleTranslator(source='zh-CN', target='de', proxies={'http': 'socks5://127.0.0.1:10808', 'https': 'socks5://127.0.0.1:10808'}).translate_batch(['你好', '计划任务']))

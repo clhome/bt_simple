@@ -1,0 +1,18 @@
+{
+    ")\">主页</button>": ")\">Accueil</bouton>",
+    ")没有!": "<li style=\"color:#999;\">Aucun mappage de port</li>",
+    "PG登录密码": "Mot de passe de connexion PG",
+    "PG登录用户名": "Nom d'utilisateur de connexion PG",
+    "pgAdmin默认端口": "pgAdmin默认端口",
+    "pgadmin": "pgadmin",
+    "pgadmin访问端口": "port d'accès pgadmin",
+    "全能Postgres数据库Web管理工具": "Outil de gestion Web de base de données Postgres tout-en-un",
+    "安全设置": "Paramètres de sécurité",
+    "密码": "mot de passe",
+    "服务": "Servir",
+    "端口范围不合法!": "La plage de ports est illégale !",
+    "认证用户名": "Nom d'utilisateur d'authentification",
+    "访问日志": "journal d'accès",
+    "重写模版": "Remplacer le modèle",
+    "错误日志": "journal des erreurs"
+}

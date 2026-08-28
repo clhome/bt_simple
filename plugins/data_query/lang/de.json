@@ -1,0 +1,18 @@
+{
+    "' +\n               '                操作说明' +\n               '": "' +\n ' Bedienungsanleitung' +\n '",
+    ")没有!": ") Nein!",
+    "“数据管理”": "„Datenverwaltung“",
+    "中会显示并激活": "Wird in der Mitte angezeigt und aktiviert",
+    "使用指引": "Gebrauchsanweisung",
+    "刷新后，在面板": "Nach dem Aktualisieren im Bedienfeld",
+    "左侧导航栏": "Navigationsleiste auf der linken Seite",
+    "强制刷新当前浏览器页面。": "Die aktuelle Seite im Browser wird zwangsweise aktualisiert.",
+    "打开管理页": "Verwaltungsseite öffnen",
+    "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。": "Einfache Datenverwaltung (memcached, redis, mongodb). Hinweis: Bitte drücken Sie nach der Installation Strg+F5, um die Seite neu zu laden, und führen Sie die gewünschten Aktionen im Menü „Datenverwaltung“ auf der linken Seite aus.",
+    "数据管理": "Datenverwaltung",
+    "无需运行后台守护进程": "Es ist nicht erforderlich, einen Daemon im Hintergrund auszuführen",
+    "本插件为数据检索管理工具，": "Dieses Plugin ist ein Tool zur Verwaltung der Datenabfrage,",
+    "点击该菜单，即可开始对 Redis、Memcached、MongoDB 等数据库进行数据检索与管理。": "Klicken Sie auf dieses Menü, um mit der Datenabfrage und -verwaltung in Datenbanken wie Redis, Memcached, MongoDB usw. zu beginnen.",
+    "菜单。": "Menü.",
+    "请按键盘快捷键": "Bitte drücken Sie die Tastenkombination"
+}

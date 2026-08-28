@@ -1,0 +1,18 @@
+{
+    "' +\n               '                操作说明' +\n               '": "' +\n               'Mode d'emploi' +\n               '",
+    ")没有!": "<li style=\"color:#999;\">Aucun mappage de port</li>",
+    "“数据管理”": "\"Gestion des données\"",
+    "中会显示并激活": "sera affiché et activé dans",
+    "使用指引": "Mode d'emploi",
+    "刷新后，在面板": "Après rafraîchissement, dans le panneau",
+    "左侧导航栏": "Barre de navigation gauche",
+    "强制刷新当前浏览器页面。": "强制刷新当前浏览器页面。",
+    "打开管理页": "打开管理页",
+    "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。": "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。",
+    "数据管理": "Gestion des données",
+    "无需运行后台守护进程": "无需运行后台守护进程",
+    "本插件为数据检索管理工具，": "本插件为数据检索管理工具，",
+    "点击该菜单，即可开始对 Redis、Memcached、MongoDB 等数据库进行数据检索与管理。": "Cliquez sur ce menu pour démarrer la récupération des données et la gestion de Redis, Memcached, MongoDB et d'autres bases de données.",
+    "菜单。": "菜单。",
+    "请按键盘快捷键": "<button class=\"btn btn-success btn-xs btn-bin va0\">Ouvrir</button>"
+}

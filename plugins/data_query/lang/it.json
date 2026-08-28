@@ -1,0 +1,18 @@
+{
+    "' +\n               '                操作说明' +\n               '": "' +\n ' Istruzioni per l'uso' +\n '",
+    ")没有!": ") No!",
+    "“数据管理”": "\"Gestione dei dati\"",
+    "中会显示并激活": "Verrà visualizzato e attivato",
+    "使用指引": "Istruzioni per l'uso",
+    "刷新后，在面板": "Dopo l'aggiornamento, nel pannello",
+    "左侧导航栏": "Barra di navigazione a sinistra",
+    "强制刷新当前浏览器页面。": "Aggiorna automaticamente la pagina corrente del browser.",
+    "打开管理页": "Apri la pagina di gestione",
+    "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。": "Gestione semplificata dei dati (memcached, redis, mongodb). Nota: dopo l'installazione, premere Ctrl+F5 per aggiornare la pagina e eseguire le operazioni nella sezione “Gestione dati” nella barra dei menu a sinistra.",
+    "数据管理": "Gestione dei dati",
+    "无需运行后台守护进程": "Non è necessario eseguire un processo di servizio in background",
+    "本插件为数据检索管理工具，": "Questo plugin è uno strumento per la gestione e il recupero dei dati,",
+    "点击该菜单，即可开始对 Redis、Memcached、MongoDB 等数据库进行数据检索与管理。": "Clicca su questo menu per iniziare a recuperare e gestire i dati in database come Redis, Memcached, MongoDB e altri.",
+    "菜单。": "Menu.",
+    "请按键盘快捷键": "Premere il tasto di scelta rapida"
+}

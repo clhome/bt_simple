@@ -1,0 +1,21 @@
+{
+    ")没有!": ") Nein!",
+    "PHP版本": "PHP-Version",
+    "phpMyAdmin": "phpMyAdmin",
+    "phpMyAdmin默认端口": "Standardport von phpMyAdmin",
+    "phpmyadmin访问端口": "Zugriffsport für phpMyAdmin",
+    "主页": "Startseite",
+    "安全设置": "Sicherheitseinstellungen",
+    "密码": "Passwort",
+    "必须先安装一个php版本!": "Zunächst muss eine PHP-Version installiert werden!",
+    "服务": "Dienstleistungen",
+    "端口范围不合法!": "Der Portbereich ist ungültig!",
+    "著名Web端MySQL管理工具": "Bekannte MySQL-Verwaltungstools für den Webbereich",
+    "认证用户名": "Benutzername für die Authentifizierung",
+    "设置失败!": "Die Einrichtung ist fehlgeschlagen!",
+    "设置成功!": "Die Einrichtung war erfolgreich!",
+    "访问日志": "Zugriffsprotokoll",
+    "配置": "Konfiguration",
+    "重写模版": "Vorlage neu schreiben",
+    "错误日志": "Fehlerprotokoll"
+}

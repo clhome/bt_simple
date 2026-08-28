@@ -1,0 +1,21 @@
+{
+    ")没有!": ") No!",
+    "PHP版本": "Versione PHP",
+    "phpMyAdmin": "phpMyAdmin",
+    "phpMyAdmin默认端口": "Porta predefinita di phpMyAdmin",
+    "phpmyadmin访问端口": "Porta di accesso a phpMyAdmin",
+    "主页": "Home",
+    "安全设置": "Impostazioni di sicurezza",
+    "密码": "Password",
+    "必须先安装一个php版本!": "È necessario installare prima una versione di PHP!",
+    "服务": "Servizi",
+    "端口范围不合法!": "Intervallo di porte non valido!",
+    "著名Web端MySQL管理工具": "Famoso strumento di gestione MySQL per il Web",
+    "认证用户名": "Nome utente autenticato",
+    "设置失败!": "Impostazione non riuscita!",
+    "设置成功!": "Configurazione completata con successo!",
+    "访问日志": "Registro delle visite",
+    "配置": "Configurazione",
+    "重写模版": "Riscrivere il modello",
+    "错误日志": "Registro degli errori"
+}

@@ -1,0 +1,21 @@
+{
+    ")没有!": "<li style=\"color:#999;\">Aucun mappage de port</li>",
+    "PHP版本": "Version PHP",
+    "phpMyAdmin": "phpMonAdmin",
+    "phpMyAdmin默认端口": "Port par défaut de phpMyAdmin",
+    "phpmyadmin访问端口": "port d'accès phpmyadmin",
+    "主页": "主页",
+    "安全设置": "Paramètres de sécurité",
+    "密码": "mot de passe",
+    "必须先安装一个php版本!": "Une version php doit être installée au préalable !",
+    "服务": "Servir",
+    "端口范围不合法!": "La plage de ports est illégale !",
+    "著名Web端MySQL管理工具": "Célèbre outil de gestion MySQL côté Web",
+    "认证用户名": "Nom d'utilisateur d'authentification",
+    "设置失败!": "设置失败!",
+    "设置成功!": "设置成功!",
+    "访问日志": "journal d'accès",
+    "配置": "Configuration",
+    "重写模版": "Remplacer le modèle",
+    "错误日志": "journal des erreurs"
+}

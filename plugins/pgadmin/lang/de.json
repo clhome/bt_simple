@@ -1,0 +1,18 @@
+{
+    ")\">主页</button>": ")\">Startseite</button>",
+    ")没有!": ") Nein!",
+    "PG登录密码": "PG-Anmeldekennwort",
+    "PG登录用户名": "PG-Anmeldename",
+    "pgAdmin默认端口": "Standardport von pgAdmin",
+    "pgadmin": "pgadmin",
+    "pgadmin访问端口": "pgAdmin-Zugriffsport",
+    "全能Postgres数据库Web管理工具": "All-in-One-Webverwaltungstool für Postgres-Datenbanken",
+    "安全设置": "Sicherheitseinstellungen",
+    "密码": "Passwort",
+    "服务": "Dienstleistungen",
+    "端口范围不合法!": "Der Portbereich ist ungültig!",
+    "认证用户名": "Benutzername für die Authentifizierung",
+    "访问日志": "Zugriffsprotokoll",
+    "重写模版": "Vorlage neu schreiben",
+    "错误日志": "Fehlerprotokoll"
+}
