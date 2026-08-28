@@ -75,7 +75,7 @@ function uploadStart(d) {
         f = h.length;
       if (this.filesalllength + f > this.MaxUpNum) {
         f = this.MaxUpNum - this.filesalllength;
-        layer.msg(lan.get('update_num', [this.MaxUpNum]), {
+        layer.msg(t('update_num', [this.MaxUpNum]), {
           icon: 5
         });
       }
@@ -85,22 +85,22 @@ function uploadStart(d) {
         g = Object.prototype.toString.call(g) === "[object Array]" ? g[g.length - 1] : "";
         if (d) {
           if (g != "sql" && g != "zip" && g != "gz" && g != "tgz") {
-            layer.msg(lan.upload.file_type_err, {
+            layer.msg(t('upload.file_type_err'), {
               icon: 5
             });
             return;
           }
         }
         if (!e) {
-          this.up_box.insertAdjacentHTML("beforeEnd", "<li>" + e.name + "<em style='color: red;'>" + lan.upload.file_err + "</em></li>");
+          this.up_box.insertAdjacentHTML("beforeEnd", "<li>" + e.name + "<em style='color: red;'>" + t('upload.file_err') + "</em></li>");
         } else {
           if (this.uptype.length > 0 && this.uptype.indexOf(g.toLowerCase()) === -1) {
-            this.up_box.insertAdjacentHTML("beforeEnd", "<li>" + e.name + "<em style='color: red;'>" + lan.upload.file_type_err + "</em></li>");
+            this.up_box.insertAdjacentHTML("beforeEnd", "<li>" + e.name + "<em style='color: red;'>" + t('upload.file_type_err') + "</em></li>");
           } else {
             if (e.size <= 0) {
-              this.up_box.insertAdjacentHTML("beforeEnd", "<li>" + e.name + "<em style='color: red;'>" + lan.upload.file_err_empty + "</em></li>");
+              this.up_box.insertAdjacentHTML("beforeEnd", "<li>" + e.name + "<em style='color: red;'>" + t('upload.file_err_empty') + "</em></li>");
             } else {
-              this.up_box.insertAdjacentHTML("beforeEnd", "<li><span class='filename'>" + e.name + "</span><span class='filesize'>" + toSize(e.size) + "</span><em>" + lan.upload.up_sleep + "</em></li>");
+              this.up_box.insertAdjacentHTML("beforeEnd", "<li><span class='filename'>" + e.name + "</span><span class='filesize'>" + toSize(e.size) + "</span><em>" + t('upload.up_sleep') + "</em></li>");
               this.FilesArray.push([e, (this.filesalllength - 1 < 0 ? 0 : this.filesalllength) + j]);
             }
           }
@@ -111,7 +111,7 @@ function uploadStart(d) {
     },
     read: function () {
       if (this.filesalllength == 0) {
-        layer.msg(lan.upload.select_file, {
+        layer.msg(t('upload.select_file'), {
           icon: 5
         });
         return;
@@ -146,12 +146,12 @@ function uploadStart(d) {
         this.opt.disabled = true;
         this.up.disabled = true;
         this.file_input.disabled = true;
-        layer.msg(lan.upload.ie_err, {
+        layer.msg(t('upload.ie_err'), {
           icon: 5
         });
       }
       if (i.length > 1) {
-        $("#totalProgress").html("<p>" + lan.upload.up_the + this.num + "/" + i.length + "</p><progress value='" + this.num + "' max='" + i.length + "' ></progress>");
+        $("#totalProgress").html("<p>" + t('upload.up_the') + this.num + "/" + i.length + "</p><progress value='" + this.num + "' max='" + i.length + "' ></progress>");
         $(".cancel").css("visibility", "hidden");
       }
       this.send(g, i, f, h);
@@ -180,17 +180,17 @@ function uploadStart(d) {
         progress: function (j) {
           h.FileProgress = Math.floor(j.loaded / j.total * 100) + "%";
           if (h.FileProgress == "100%") {
-            h.FileProgress = lan && lan.upload && lan.upload.upload_auto_str_1 || "";
+            h.FileProgress = lan && lan.upload && t('upload.upload_auto_str_1') || "";
           }
-          h.SetTxt(i[e][1], (lan && lan.upload && lan.upload.upload_auto_str_2 || "") + h.FileProgress, "#005100");
+          h.SetTxt(i[e][1], (lan && lan.upload && t('upload.upload_auto_str_2') || "") + h.FileProgress, "#005100");
         },
         success: function (j) {
           h.str.serverdata = false;
-          h.SetTxt(i[e][1], lan && lan.upload && lan.upload.upload_auto_str_3 || "", "#005100");
+          h.SetTxt(i[e][1], lan && lan.upload && t('upload.upload_auto_str_3') || "", "#005100");
           h.ready(i, e + 1, g);
           h.num++;
           if (i.length > 1) {
-            var k = h.num == i.length ? lan && lan.upload && lan.upload.upload_auto_str_4 || "" : lan && lan.upload && lan.upload.upload_auto_str_5 || "";
+            var k = h.num == i.length ? lan && lan.upload && t('upload.upload_auto_str_4') || "" : lan && lan.upload && t('upload.upload_auto_str_5') || "";
             $("#totalProgress").html("<p>" + k + h.num + "/" + i.length + "</p><progress value='" + h.num + "' max='" + i.length + "' ></progress>");
           }
           if (h.num == i.length) {
@@ -206,7 +206,7 @@ function uploadStart(d) {
           }
         },
         error: function (j) {
-          h.SetTxt(i[e][1], lan.upload.up_err, "red");
+          h.SetTxt(i[e][1], t('upload.up_err'), "red");
           h.str.serverdata = false;
           h.ready(i, e + 1, g);
         },
@@ -234,7 +234,7 @@ function uploadStart(d) {
     c.opt.disabled = true;
     c.up.disabled = true;
     c.file_input.disabled = true;
-    layer.msg(lan && lan.upload && lan.upload.upload_auto_str_6 || "", {
+    layer.msg(lan && lan.upload && t('upload.upload_auto_str_6') || "", {
       icon: 5
     });
   }

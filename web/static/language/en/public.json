@@ -484,5 +484,8 @@
   "public_auto_str_140": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
   "public_auto_str_141": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
   "public_auto_str_142": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换All'>All</button>",
-  "public_auto_str_143": "未找到匹配项"
+  "public_auto_str_143": "未找到匹配项",
+  "site.py_msg_config_error": "ERROR: Configuration file error detected, please fix it before proceeding<br><br><a style=\"color:red;\">{0}</a>",
+  "site.py_msg_error_output": "ERROR: <br><a style=\"color:red;\">{0}</a>",
+  "firewall.py_msg_special_port": "({0}) Special ports cannot be set!"
 }

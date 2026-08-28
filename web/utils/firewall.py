@@ -415,7 +415,7 @@ class Firewall(object):
 
         ports = ['21', '25', '80', '443', '888']
         if port in ports:
-            return yf.returnData(False, '(' + port + ')' + '特殊端口不可设置!')
+            return yf.returnData(False, 'firewall.py_msg_special_port', None, port)
 
         file = '/etc/ssh/sshd_config'
         conf = yf.readFile(file)

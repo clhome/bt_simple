@@ -29,13 +29,13 @@ function switchTab(type, obj) {
     $("#ip_firewall_view").hide();
     $("#th_protocol").show();
     $("#th_port_status").show();
-    $("#th_port").text(lan && lan.firewall && lan.firewall.firewall_auto_str_1 || "");
+    $("#th_port").text(lan && lan.firewall && t('firewall.firewall_auto_str_1') || "");
   } else {
     $("#port_firewall_view").hide();
     $("#ip_firewall_view").show();
     $("#th_protocol").hide();
     $("#th_port_status").hide();
-    $("#th_port").text(lan && lan.firewall && lan.firewall.firewall_auto_str_2 || "");
+    $("#th_port").text(lan && lan.firewall && t('firewall.firewall_auto_str_2') || "");
   }
   showAccept(1);
 }
@@ -45,7 +45,7 @@ $(function () {
 
   // start 
   $.post('/firewall/get_www_path', function (data) {
-    var html = '<a class="btlink" href="javascript:openPath(\'' + data['path'] + (lan && lan.firewall && lan.firewall.firewall_auto_str_3 || "");
+    var html = '<a class="btlink" href="javascript:openPath(\'' + data['path'] + (lan && lan.firewall && t('firewall.firewall_auto_str_3') || "");
     $('#firewall_weblog').html(html);
     $.post('/files/get_dir_size', 'path=' + data['path'], function (rdata) {
       $("#logSize").html(rdata.msg);
@@ -56,15 +56,15 @@ $(function () {
 function closeLogs() {
   $.post('/files/close_logs', '', function (rdata) {
     $("#logSize").html(rdata.msg);
-    layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_4 || "", {
+    layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_4') || "", {
       icon: 1
     });
   }, 'json');
 }
 $("#firewalldType").on('change', function () {
   var type = $(this).val();
-  var t = lan && lan.firewall && lan.firewall.firewall_auto_str_5 || "";
-  var m = lan && lan.firewall && lan.firewall.firewall_auto_str_6 || "";
+  var t = lan && lan.firewall && t('firewall.firewall_auto_str_5') || "";
+  var m = lan && lan.firewall && t('firewall.firewall_auto_str_6') || "";
   $("#port_input_group").show();
   $("#AcceptAddress").hide();
   $("#toAccept").html(t);
@@ -81,10 +81,10 @@ function sshMgr() {
     var pass_prohibit_status = !rdata.pass_prohibit_status ? 'checked' : '';
     var pubkey_prohibit_status = !rdata.pubkey_prohibit_status ? 'checked' : '';
     var root_prohibit_status = !rdata.root_prohibit_status ? 'checked' : '';
-    var con = (lan && lan.firewall && lan.firewall.firewall_auto_str_7 || "") + ssh_status + (lan && lan.firewall && lan.firewall.firewall_auto_str_8 || "") + root_prohibit_status + (lan && lan.firewall && lan.firewall.firewall_auto_str_9 || "") + pass_prohibit_status + (lan && lan.firewall && lan.firewall.firewall_auto_str_10 || "") + pubkey_prohibit_status + (lan && lan.firewall && lan.firewall.firewall_auto_str_11 || "");
+    var con = (lan && lan.firewall && t('firewall.firewall_auto_str_7') || "") + ssh_status + (lan && lan.firewall && t('firewall.firewall_auto_str_8') || "") + root_prohibit_status + (lan && lan.firewall && t('firewall.firewall_auto_str_9') || "") + pass_prohibit_status + (lan && lan.firewall && t('firewall.firewall_auto_str_10') || "") + pubkey_prohibit_status + (lan && lan.firewall && t('firewall.firewall_auto_str_11') || "");
     layer.open({
       type: 1,
-      title: lan && lan.firewall && lan.firewall.firewall_auto_str_12 || "",
+      title: lan && lan.firewall && t('firewall.firewall_auto_str_12') || "",
       area: ['420px', 'auto'],
       closeBtn: 1,
       shadeClose: false,
@@ -125,8 +125,8 @@ function getSshInfo() {
  */
 
 function mstsc(port) {
-  layer.confirm(lan && lan.firewall && lan.firewall.firewall_auto_str_13 || "", {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_14 || ""
+  layer.confirm(lan && lan.firewall && t('firewall.firewall_auto_str_13') || "", {
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_14') || ""
   }, function (index) {
     var data = "port=" + port;
     var loadT = layer.load({
@@ -148,9 +148,9 @@ function mstsc(port) {
  * @param {Int} state 0.禁ping 1.可ping
  */
 function ping(status) {
-  var msg = status == 1 ? lan && lan.firewall && lan.firewall.firewall_auto_str_15 || "" : lan && lan.firewall && lan.firewall.firewall_auto_str_16 || "";
+  var msg = status == 1 ? lan && lan.firewall && t('firewall.firewall_auto_str_15') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_16') || "";
   layer.confirm(msg, {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_17 || "",
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_17') || "",
     closeBtn: 2,
     cancel: function () {
       if (status == 1) {
@@ -160,7 +160,7 @@ function ping(status) {
       }
     }
   }, function () {
-    layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_18 || "", {
+    layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_18') || "", {
       icon: 16,
       time: 20000
     });
@@ -172,7 +172,7 @@ function ping(status) {
             icon: 1
           });
         } else {
-          layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_19 || "", {
+          layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_19') || "", {
             icon: 1
           });
         }
@@ -180,7 +180,7 @@ function ping(status) {
           window.location.reload();
         }, 3000);
       } else {
-        layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_20 || "", {
+        layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_20') || "", {
           icon: 2
         });
       }
@@ -199,9 +199,9 @@ function ping(status) {
  * @param {Int} state 0,开启 1.禁用
  */
 function firewall(status) {
-  var msg = status == 1 ? lan && lan.firewall && lan.firewall.firewall_auto_str_21 || "" : lan && lan.firewall && lan.firewall.firewall_auto_str_22 || "";
+  var msg = status == 1 ? lan && lan.firewall && t('firewall.firewall_auto_str_21') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_22') || "";
   layer.confirm(msg, {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_23 || "",
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_23') || "",
     closeBtn: 2,
     cancel: function () {
       if (status == 1) {
@@ -211,7 +211,7 @@ function firewall(status) {
       }
     }
   }, function () {
-    layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_24 || "", {
+    layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_24') || "", {
       icon: 16,
       time: 20000
     });
@@ -225,7 +225,7 @@ function firewall(status) {
           window.location.reload();
         }, 3000);
       } else {
-        layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_25 || "", {
+        layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_25') || "", {
           icon: 2
         });
       }
@@ -245,9 +245,9 @@ function firewall(status) {
  */
 function setMstscStatus() {
   status = $("#sshswitch").prop("checked") == true ? 1 : 0;
-  var msg = status == 1 ? lan && lan.firewall && lan.firewall.firewall_auto_str_26 || "" : lan && lan.firewall && lan.firewall.firewall_auto_str_27 || "";
+  var msg = status == 1 ? lan && lan.firewall && t('firewall.firewall_auto_str_26') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_27') || "";
   layer.confirm(msg, {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_28 || "",
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_28') || "",
     closeBtn: 2,
     cancel: function () {
       if (status == 0) {
@@ -258,7 +258,7 @@ function setMstscStatus() {
     }
   }, function (index) {
     if (index > 0) {
-      layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_29 || "", {
+      layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_29') || "", {
         icon: 16,
         time: 20000
       });
@@ -284,9 +284,9 @@ function setMstscStatus() {
 function setSshRootStatus() {
   var checked = $("#root_status").prop("checked");
   var status = checked ? 0 : 1;
-  var msg = checked ? lan && lan.firewall && lan.firewall.firewall_auto_str_30 || "" : lan && lan.firewall && lan.firewall.firewall_auto_str_31 || "";
+  var msg = checked ? lan && lan.firewall && t('firewall.firewall_auto_str_30') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_31') || "";
   layer.confirm(msg, {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_32 || "",
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_32') || "",
     closeBtn: 2,
     cancel: function () {
       if (checked) {
@@ -297,7 +297,7 @@ function setSshRootStatus() {
     }
   }, function (index) {
     if (index > 0) {
-      layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_33 || "", {
+      layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_33') || "", {
         icon: 16,
         time: 20000
       });
@@ -323,9 +323,9 @@ function setSshRootStatus() {
 function setSshPassStatus() {
   var checked = $("#pass_status").prop("checked");
   var status = checked ? 0 : 1;
-  var msg = checked ? lan && lan.firewall && lan.firewall.firewall_auto_str_34 || "" : lan && lan.firewall && lan.firewall.firewall_auto_str_35 || "";
+  var msg = checked ? lan && lan.firewall && t('firewall.firewall_auto_str_34') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_35') || "";
   layer.confirm(msg, {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_36 || "",
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_36') || "",
     closeBtn: 2,
     cancel: function () {
       if (checked) {
@@ -336,7 +336,7 @@ function setSshPassStatus() {
     }
   }, function (index) {
     if (index > 0) {
-      layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_37 || "", {
+      layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_37') || "", {
         icon: 16,
         time: 20000
       });
@@ -362,9 +362,9 @@ function setSshPassStatus() {
 function setSshPubkeyStatus() {
   var checked = $("#pubkey_status").prop("checked");
   var status = checked ? 0 : 1;
-  var msg = checked ? lan && lan.firewall && lan.firewall.firewall_auto_str_38 || "" : lan && lan.firewall && lan.firewall.firewall_auto_str_39 || "";
+  var msg = checked ? lan && lan.firewall && t('firewall.firewall_auto_str_38') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_39') || "";
   layer.confirm(msg, {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_40 || "",
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_40') || "",
     closeBtn: 2,
     cancel: function () {
       if (checked) {
@@ -375,7 +375,7 @@ function setSshPubkeyStatus() {
     }
   }, function (index) {
     if (index > 0) {
-      layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_41 || "", {
+      layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_41') || "", {
         icon: 16,
         time: 20000
       });
@@ -426,9 +426,9 @@ function showAccept(page) {
       var protocol_td = currentType == 'port' ? "<td>" + data.data[i].protocol + "</td>" : "";
       var port_display = data.data[i].port;
       if (currentType == 'port') {
-        port_display = data.data[i].port.indexOf('.') == -1 ? data.data[i].port : (lan && lan.firewall && lan.firewall.firewall_auto_str_42 || "") + data.data[i].port + ']';
+        port_display = data.data[i].port.indexOf('.') == -1 ? data.data[i].port : (lan && lan.firewall && t('firewall.firewall_auto_str_42') || "") + data.data[i].port + ']';
       } else {
-        var type_text = data.data[i].type == 'address_allow' ? lan && lan.firewall && lan.firewall.firewall_auto_str_43 || "" : lan && lan.firewall && lan.firewall.firewall_auto_str_44 || "";
+        var type_text = data.data[i].type == 'address_allow' ? lan && lan.firewall && t('firewall.firewall_auto_str_43') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_44') || "";
         port_display = type_text + ':[' + data.data[i].port + ']';
       }
       var port_status_td = "";
@@ -449,11 +449,11 @@ function showAccept(page) {
 				<td>" + status + "</td>\
 				<td>" + data.data[i].ps + "</td>\
 				<td>" + data.data[i].add_time + "</td>\
-				<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + data.data[i].id + ",'" + data.data[i].port + "','" + data.data[i].protocol + (lan && lan.firewall && lan.firewall.firewall_auto_str_45 || "");
+				<td class='text-right'><a href='javascript:;' class='btlink' onclick=\"delAcceptPort(" + data.data[i].id + ",'" + data.data[i].port + "','" + data.data[i].protocol + (lan && lan.firewall && t('firewall.firewall_auto_str_45') || "");
     }
     if (data.data.length == 0) {
       var colspan = currentType == 'port' ? 8 : 6;
-      body = '<tr><td colspan="' + colspan + (lan && lan.firewall && lan.firewall.firewall_auto_str_46 || "");
+      body = '<tr><td colspan="' + colspan + (lan && lan.firewall && t('firewall.firewall_auto_str_46') || "");
     }
     $("#firewall_body").html(body);
     $("#firewall_page").html(data.page);
@@ -471,19 +471,19 @@ function addAcceptPort() {
     var startPort = $("#AcceptPortStart").val();
     var endPort = $("#AcceptPortEnd").val();
     if (isNaN(startPort) || startPort < 1 || startPort > 65535) {
-      layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_47 || "", {
+      layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_47') || "", {
         icon: 5
       });
       return;
     }
     if (isNaN(endPort) || endPort < 1 || endPort > 65535) {
-      layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_48 || "", {
+      layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_48') || "", {
         icon: 5
       });
       return;
     }
     if (parseInt(endPort) < parseInt(startPort)) {
-      layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_49 || "", {
+      layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_49') || "", {
         icon: 5
       });
       return;
@@ -496,13 +496,13 @@ function addAcceptPort() {
     action = "add_accept_port";
   }
   if (ps.length < 1) {
-    layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_50 || "", {
+    layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_50') || "", {
       icon: 2
     });
     $("#Ps").trigger('focus');
     return;
   }
-  var loadT = layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_51 || "", {
+  var loadT = layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_51') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -530,19 +530,19 @@ function addIpFirewall() {
   var ip = $("#IpAddress").val();
   var ps = $("#IpPs").val();
   if (ip == "") {
-    layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_52 || "", {
+    layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_52') || "", {
       icon: 2
     });
     return;
   }
   if (ps == "") {
-    layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_53 || "", {
+    layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_53') || "", {
       icon: 2
     });
     return;
   }
   var doAdd = function () {
-    var loadT = layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_54 || "", {
+    var loadT = layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_54') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -564,10 +564,10 @@ function addIpFirewall() {
     }, 'json');
   };
   if (stype == 'address_allow') {
-    layer.confirm(lan && lan.firewall && lan.firewall.firewall_auto_str_55 || "", {
-      title: lan && lan.firewall && lan.firewall.firewall_auto_str_56 || "",
+    layer.confirm(lan && lan.firewall && t('firewall.firewall_auto_str_55') || "", {
+      title: lan && lan.firewall && t('firewall.firewall_auto_str_56') || "",
       icon: 0,
-      btn: [lan && lan.firewall && lan.firewall.firewall_auto_str_57 || "", lan && lan.firewall && lan.firewall.firewall_auto_str_58 || ""]
+      btn: [lan && lan.firewall && t('firewall.firewall_auto_str_57') || "", lan && lan.firewall && t('firewall.firewall_auto_str_58') || ""]
     }, function () {
       doAdd();
     });
@@ -575,13 +575,13 @@ function addIpFirewall() {
     $.post('/firewall/get_client_ip', '', function (rdata) {
       var clientIp = rdata.ip;
       if (ip == clientIp) {
-        layer.msg((lan && lan.firewall && lan.firewall.firewall_auto_str_59 || "") + clientIp + (lan && lan.firewall && lan.firewall.firewall_auto_str_60 || ""), {
+        layer.msg((lan && lan.firewall && t('firewall.firewall_auto_str_59') || "") + clientIp + (lan && lan.firewall && t('firewall.firewall_auto_str_60') || ""), {
           icon: 2,
           time: 5000
         });
       } else {
-        layer.confirm((lan && lan.firewall && lan.firewall.firewall_auto_str_61 || "") + ip + (lan && lan.firewall && lan.firewall.firewall_auto_str_62 || ""), {
-          title: lan && lan.firewall && lan.firewall.firewall_auto_str_63 || "",
+        layer.confirm((lan && lan.firewall && t('firewall.firewall_auto_str_61') || "") + ip + (lan && lan.firewall && t('firewall.firewall_auto_str_62') || ""), {
+          title: lan && lan.firewall && t('firewall.firewall_auto_str_63') || "",
           icon: 0
         }, function () {
           doAdd();
@@ -601,11 +601,11 @@ function delAcceptPort(id, port, protocol) {
   } else {
     action = "del_accept_port";
   }
-  layer.confirm(lan.get('confirm_del', [port]), {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_64 || "",
+  layer.confirm(t('confirm_del', [port]), {
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_64') || "",
     closeBtn: 2
   }, function (index) {
-    var loadT = layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_65 || "", {
+    var loadT = layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_65') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -620,7 +620,7 @@ function delAcceptPort(id, port, protocol) {
   });
 }
 function setFirewallStatus(id, port, protocol, status) {
-  var loadT = layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_66 || "", {
+  var loadT = layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_66') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -634,7 +634,7 @@ function setFirewallStatus(id, port, protocol, status) {
   }, 'json');
 }
 function syncServer() {
-  var loadT = layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_67 || "", {
+  var loadT = layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_67') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -653,20 +653,20 @@ function syncServer() {
     }
   }, 'json').fail(function () {
     layer.close(loadT);
-    layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_68 || "", {
+    layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_68') || "", {
       icon: 2
     });
   });
 }
 function showPortProcessInfo(ps_json, port) {
   var ps = JSON.parse(decodeURIComponent(ps_json));
-  var con = (lan && lan.firewall && lan.firewall.firewall_auto_str_69 || "") + ps.name + (lan && lan.firewall && lan.firewall.firewall_auto_str_70 || "") + ps.pid + (lan && lan.firewall && lan.firewall.firewall_auto_str_71 || "") + ps.cmdline + '</td></tr>\
+  var con = (lan && lan.firewall && t('firewall.firewall_auto_str_69') || "") + ps.name + (lan && lan.firewall && t('firewall.firewall_auto_str_70') || "") + ps.pid + (lan && lan.firewall && t('firewall.firewall_auto_str_71') || "") + ps.cmdline + '</td></tr>\
             </tbody>\
         </table>\
     </div>';
   layer.open({
     type: 1,
-    title: port + (lan && lan.firewall && lan.firewall.firewall_auto_str_72 || ""),
+    title: port + (lan && lan.firewall && t('firewall.firewall_auto_str_72') || ""),
     area: ['500px', '300px'],
     closeBtn: 1,
     shadeClose: false,
@@ -685,11 +685,11 @@ function downloadRootKey() {
   }, 'json');
 }
 function resetRootKey() {
-  layer.confirm(lan && lan.firewall && lan.firewall.firewall_auto_str_73 || "", {
-    title: lan && lan.firewall && lan.firewall.firewall_auto_str_74 || "",
+  layer.confirm(lan && lan.firewall && t('firewall.firewall_auto_str_73') || "", {
+    title: lan && lan.firewall && t('firewall.firewall_auto_str_74') || "",
     icon: 3
   }, function (index) {
-    var loadT = layer.msg(lan && lan.firewall && lan.firewall.firewall_auto_str_75 || "", {
+    var loadT = layer.msg(lan && lan.firewall && t('firewall.firewall_auto_str_75') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']

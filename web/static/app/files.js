@@ -28,8 +28,8 @@ function recycleBin(type) {
                         <td>' + toSize(rdata.dirs[i].size) + '</td>\
                         <td>' + getLocalTime(rdata.dirs[i].time) + '</td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_re + '</a>\
-                             | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_del + '</a>\
+                            <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_re') + '</a>\
+                             | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_del') + '</a>\
                         </td>\
                     </tr>';
         }
@@ -45,8 +45,8 @@ function recycleBin(type) {
                             <td>-</td>\
                             <td>' + getLocalTime(rdata.files[i].time) + '</td>\
                             <td style="text-align: right;">\
-                                <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_re + '</a>\
-                                 | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_del + '</a>\
+                                <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_re') + '</a>\
+                                 | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_del') + '</a>\
                             </td>\
                         </tr>';
             continue;
@@ -61,8 +61,8 @@ function recycleBin(type) {
                                 <td>' + toSize(rdata.files[i].size) + '</td>\
                                 <td>' + getLocalTime(rdata.files[i].time) + '</td>\
                                 <td style="text-align: right;">\
-                                    <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_re + '</a>\
-                                     | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_del + '</a>\
+                                    <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_re') + '</a>\
+                                     | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_del') + '</a>\
                                 </td>\
                             </tr>';
         }
@@ -81,8 +81,8 @@ function recycleBin(type) {
                         <td>' + toSize(rdata.dirs[i].size) + '</td>\
                         <td>' + getLocalTime(rdata.dirs[i].time) + '</td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_re + '</a>\
-                             | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_del + '</a>\
+                            <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_re') + '</a>\
+                             | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.dirs[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_del') + '</a>\
                         </td>\
                     </tr>';
         }
@@ -102,8 +102,8 @@ function recycleBin(type) {
                         <td>' + toSize(rdata.files[i].size) + '</td>\
                         <td>' + getLocalTime(rdata.files[i].time) + '</td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_re + '</a>\
-                             | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_del + '</a>\
+                            <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_re') + '</a>\
+                             | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_del') + '</a>\
                         </td>\
                     </tr>';
         }
@@ -123,8 +123,8 @@ function recycleBin(type) {
                             <td>' + toSize(rdata.files[i].size) + '</td>\
                             <td>' + getLocalTime(rdata.files[i].time) + '</td>\
                             <td style="text-align: right;">\
-                                <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_re + '</a>\
-                                 | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_del + '</a>\
+                                <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_re') + '</a>\
+                                 | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_del') + '</a>\
                             </td>\
                         </tr>';
           }
@@ -146,8 +146,8 @@ function recycleBin(type) {
                                 <td>' + toSize(rdata.files[i].size) + '</td>\
                                 <td>' + getLocalTime(rdata.files[i].time) + '</td>\
                                 <td style="text-align: right;">\
-                                    <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_re + '</a>\
-                                     | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + lan.files.recycle_bin_del + '</a>\
+                                    <a class="btlink" href="javascript:;" onclick="reRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_re') + '</a>\
+                                     | <a class="btlink" href="javascript:;" onclick="delRecycleBin(\'' + rdata.files[i].rname.replace(/'/, "\\'") + '\',this)">' + t('files.recycle_bin_del') + '</a>\
                                 </td>\
                             </tr>';
           }
@@ -155,7 +155,7 @@ function recycleBin(type) {
         $("#RecycleBody").html(body);
         return;
     }
-    var tablehtml = (lan && lan.files && lan.files.files_auto_str_1 || "") + (rdata.status ? 'checked' : '') + (lan && lan.files && lan.files.files_auto_str_2 || "") + body + '</tbody>\
+    var tablehtml = (lan && lan.files && t('files.files_auto_str_1') || "") + (rdata.status ? 'checked' : '') + (lan && lan.files && t('files.files_auto_str_2') || "") + body + '</tbody>\
             </table></div></div></div>';
     if (type == 'open') {
       layer.open({
@@ -163,7 +163,7 @@ function recycleBin(type) {
         shift: 5,
         closeBtn: 1,
         area: ['80%', '606px'],
-        title: lan.files.recycle_bin_title,
+        title: t('files.recycle_bin_title'),
         content: tablehtml
       });
       if (window.location.href.indexOf("database") != -1) {
@@ -200,12 +200,12 @@ function reisImage(fileName) {
 
 //从回收站恢复文件
 function reRecycleBin(path, obj) {
-  layer.confirm(lan.files.recycle_bin_re_msg, {
-    title: lan.files.recycle_bin_re_title,
+  layer.confirm(t('files.recycle_bin_re_msg'), {
+    title: t('files.recycle_bin_re_title'),
     closeBtn: 2,
     icon: 3
   }, function () {
-    var loadT = layer.msg(lan.files.recycle_bin_re_the, {
+    var loadT = layer.msg(t('files.recycle_bin_re_the'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -222,12 +222,12 @@ function reRecycleBin(path, obj) {
 
 //从回收站删除
 function delRecycleBin(path, obj) {
-  layer.confirm(lan.files.recycle_bin_del_msg, {
-    title: lan.files.recycle_bin_del_title,
+  layer.confirm(t('files.recycle_bin_del_msg'), {
+    title: t('files.recycle_bin_del_title'),
     closeBtn: 2,
     icon: 3
   }, function () {
-    var loadT = layer.msg(lan.files.recycle_bin_del_the, {
+    var loadT = layer.msg(t('files.recycle_bin_del_the'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -244,12 +244,12 @@ function delRecycleBin(path, obj) {
 
 //清空回收站
 function closeRecycleBin() {
-  layer.confirm(lan && lan.files && lan.files.files_auto_str_3 || "", {
-    title: lan && lan.files && lan.files.files_auto_str_4 || "",
+  layer.confirm(lan && lan.files && t('files.files_auto_str_3') || "", {
+    title: lan && lan.files && t('files.files_auto_str_4') || "",
     closeBtn: 2,
     icon: 3
   }, function () {
-    var loadT = layer.msg(lan && lan.files && lan.files.files_auto_str_5 || "", {
+    var loadT = layer.msg(lan && lan.files && t('files.files_auto_str_5') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -269,7 +269,7 @@ function closeRecycleBin() {
 
 //回收站开关
 function setRecycleBin(db) {
-  var loadT = layer.msg(lan && lan.files && lan.files.files_auto_str_6 || "", {
+  var loadT = layer.msg(lan && lan.files && t('files.files_auto_str_6') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -303,7 +303,7 @@ function openFilename(obj) {
     layer.open({
       type: 1,
       closeBtn: 1,
-      title: lan && lan.files && lan.files.files_auto_str_7 || "",
+      title: lan && lan.files && t('files.files_auto_str_7') || "",
       area: ['600px', '500px'],
       maxmin: true,
       shadeClose: true,
@@ -364,7 +364,7 @@ function makeFilePage(showRow, page = '') {
 
   //分页
   $("#filePage").html(page);
-  $("#filePage div").append((lan && lan.files && lan.files.files_auto_str_8 || "") + rowOption + (lan && lan.files && lan.files.files_auto_str_9 || ""));
+  $("#filePage div").append((lan && lan.files && t('files.files_auto_str_8') || "") + rowOption + (lan && lan.files && t('files.files_auto_str_9') || ""));
   $("#filePage .Pcount").css("left", "16px");
 }
 
@@ -487,16 +487,16 @@ function getFiles(Path) {
                     <td><input type='checkbox' name='id' value='" + fmp[0] + "'></td>\
                     <td class='column-name'><span class='cursor' onclick=\"getFiles('" + rdata.path + "/" + fmp[0] + "')\">\
                     <span class='ico ico-folder'></span><a class='text' title='" + fmp[0] + fmp[5] + "'>" + cnametext + "</a></span></td>\
-                    <td style='text-align: center;'><a class='btlink calculate-size-btn' onclick=\"calculateDirSize(event, this, '" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_10 || "") + getMatchTime(fmp[2]) + "</td>\
+                    <td style='text-align: center;'><a class='btlink calculate-size-btn' onclick=\"calculateDirSize(event, this, '" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_10') || "") + getMatchTime(fmp[2]) + "</td>\
                     <td style='text-align: center;'>" + fmp[3] + "</td>\
                     <td style='text-align: center;'>" + fmp[4] + "</td>\
                     <td class='editmenu' style='text-align: left;'><span>\
-                        <a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_11 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_12 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_13 || "") + fmp[0] + (lan && lan.files && lan.files.files_auto_str_14 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_15 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_16 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_17 || "");
+                        <a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_11') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_12') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_13') || "") + fmp[0] + (lan && lan.files && t('files.files_auto_str_14') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_15') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_16') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_17') || "");
       } else {
         //图标展示
         $("#set_icon").addClass("active");
         $("#set_list").removeClass("active");
-        body += "<div class='file folderBox menufolder' data-path='" + rdata.path + "/" + fmp[0] + "' filetype='dir' title='" + lan.files.file_name + "：" + fmp[0] + "&#13;" + lan.files.file_size + "：" + toSize(fmp[1]) + "&#13;" + lan.files.file_etime + "：" + getLocalTime(fmp[2]) + "&#13;" + lan.files.file_auth + "：" + fmp[3] + "&#13;" + lan.files.file_own + "：" + fmp[4] + "'>\
+        body += "<div class='file folderBox menufolder' data-path='" + rdata.path + "/" + fmp[0] + "' filetype='dir' title='" + t('files.file_name') + "：" + fmp[0] + "&#13;" + t('files.file_size') + "：" + toSize(fmp[1]) + "&#13;" + t('files.file_etime') + "：" + getLocalTime(fmp[2]) + "&#13;" + t('files.file_auth') + "：" + fmp[3] + "&#13;" + t('files.file_own') + "：" + fmp[4] + "'>\
                         <input type='checkbox' name='id' value='" + fmp[0] + "'>\
                         <div class='ico ico-folder' ondblclick=\"getFiles('" + rdata.path + "/" + fmp[0] + "')\"></div>\
                         <div class='titleBox' onclick=\"getFiles('" + rdata.path + "/" + fmp[0] + "')\">\
@@ -523,17 +523,17 @@ function getFiles(Path) {
       }
       var displayCompress = 1;
       if (isCompressFile(fmp[0])) {
-        bodyZip = "<a class='btlink' href='javascript:;' onclick=\"unCompressFile('" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_18 || "");
+        bodyZip = "<a class='btlink' href='javascript:;' onclick=\"unCompressFile('" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_18') || "");
       } else {
-        bodyZip = "<a class='btlink' href='javascript:;' onclick=\"zip('" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_19 || "");
+        bodyZip = "<a class='btlink' href='javascript:;' onclick=\"zip('" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_19') || "");
       }
       if (isText(fmp[0])) {
-        bodyZip += "<a class='btlink' href='javascript:;' onclick=\"onlineEditFile(0,'" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_20 || "");
+        bodyZip += "<a class='btlink' href='javascript:;' onclick=\"onlineEditFile(0,'" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_20') || "");
       }
       if (isImage(fmp[0])) {
-        download = "<a class='btlink' href='javascript:;' onclick=\"getImage('" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_21 || "");
+        download = "<a class='btlink' href='javascript:;' onclick=\"getImage('" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_21') || "");
       } else {
-        download = "<a class='btlink' href='javascript:;' onclick=\"getFileBytes('" + rdata.path + "/" + fmp[0] + "'," + fmp[1] + (lan && lan.files && lan.files.files_auto_str_22 || "");
+        download = "<a class='btlink' href='javascript:;' onclick=\"getFileBytes('" + rdata.path + "/" + fmp[0] + "'," + fmp[1] + (lan && lan.files && t('files.files_auto_str_22') || "");
       }
       totalSize += parseInt(fmp[1]);
       if (getCookie("rank") == "a") {
@@ -545,9 +545,9 @@ function getFiles(Path) {
                     <td style='text-align: center;'>" + fmp[3] + "</td>\
                     <td style='text-align: center;'>" + fmp[4] + "</td>\
                     <td class='editmenu' style='text-align: left;'>\
-                    <span><a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_23 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_24 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_25 || "") + fmp[0] + (lan && lan.files && lan.files.files_auto_str_26 || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_27 || "") + bodyZip + download + "<a class='btlink' href='javascript:;' onclick=\"deleteFile('" + rdata.path + "/" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_28 || "");
+                    <span><a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_23') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_24') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_25') || "") + fmp[0] + (lan && lan.files && t('files.files_auto_str_26') || "") + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_27') || "") + bodyZip + download + "<a class='btlink' href='javascript:;' onclick=\"deleteFile('" + rdata.path + "/" + fmp[0] + (lan && lan.files && t('files.files_auto_str_28') || "");
       } else {
-        body += "<div class='file folderBox menufile' data-path='" + rdata.path + "/" + fmp[0] + "' filetype='" + fmp[0] + (lan && lan.files && lan.files.files_auto_str_29 || "") + fmp[0] + (lan && lan.files && lan.files.files_auto_str_30 || "") + toSize(fmp[1]) + (lan && lan.files && lan.files.files_auto_str_31 || "") + getLocalTime(fmp[2]) + (lan && lan.files && lan.files.files_auto_str_32 || "") + fmp[3] + (lan && lan.files && lan.files.files_auto_str_33 || "") + fmp[4] + "' >\
+        body += "<div class='file folderBox menufile' data-path='" + rdata.path + "/" + fmp[0] + "' filetype='" + fmp[0] + (lan && lan.files && t('files.files_auto_str_29') || "") + fmp[0] + (lan && lan.files && t('files.files_auto_str_30') || "") + toSize(fmp[1]) + (lan && lan.files && t('files.files_auto_str_31') || "") + getLocalTime(fmp[2]) + (lan && lan.files && t('files.files_auto_str_32') || "") + fmp[3] + (lan && lan.files && t('files.files_auto_str_33') || "") + fmp[4] + "' >\
                     <input type='checkbox' name='id' value='" + fmp[0] + "' />\
                     <div data-path='" + rdata.path + "/" + fmp[0] + "' filetype='" + fmp[0] + "' class='ico ico-" + getExtName(fmp[0]) + "' ondblclick='javascript;openFilename(this);'></div>\
                     <div class='titleBox'>\
@@ -556,7 +556,7 @@ function getFiles(Path) {
                 </div>";
       }
     }
-    var dirInfo = (lan && lan.files && lan.files.files_auto_str_34 || "").replace('{1}', rdata.dir.length + '').replace('{2}', rdata.files.length + '') + '<font id="pathSize">' + toSize(totalSize) + (lan && lan.files && lan.files.files_auto_str_35 || "");
+    var dirInfo = (lan && lan.files && t('files.files_auto_str_34') || "").replace('{1}', rdata.dir.length + '').replace('{2}', rdata.files.length + '') + '<font id="pathSize">' + toSize(totalSize) + (lan && lan.files && t('files.files_auto_str_35') || "");
     $("#dir_info").html(dirInfo);
     if (getCookie('rank') == 'a') {
       // console.log(post['order']);
@@ -584,7 +584,7 @@ function getFiles(Path) {
       } else {
         fname_icon = '<span class="glyphicon glyphicon-option-horizontal" style="top:3px;margin-left:5px;color:#bbb">';
       }
-      var tablehtml = (lan && lan.files && lan.files.files_auto_str_36 || "") + fname_icon + (lan && lan.files && lan.files.files_auto_str_37 || "") + size_icon + (lan && lan.files && lan.files.files_auto_str_38 || "") + mtime_icon + (lan && lan.files && lan.files.files_auto_str_39 || "") + body + '</tbody>\
+      var tablehtml = (lan && lan.files && t('files.files_auto_str_36') || "") + fname_icon + (lan && lan.files && t('files.files_auto_str_37') || "") + size_icon + (lan && lan.files && t('files.files_auto_str_38') || "") + mtime_icon + (lan && lan.files && t('files.files_auto_str_39') || "") + body + '</tbody>\
             </table>';
       $("#fileCon").removeClass("fileList").html(tablehtml);
       $("#tipTools").width($("#fileCon").width());
@@ -593,25 +593,25 @@ function getFiles(Path) {
       $("#tipTools").width($("#fileCon").width());
     }
     $("#DirPathPlace input").val(rdata.path);
-    var BarTools = (lan && lan.files && lan.files.files_auto_str_40 || "") + Path + (lan && lan.files && lan.files.files_auto_str_41 || "") + Path + (lan && lan.files && lan.files.files_auto_str_42 || "");
+    var BarTools = (lan && lan.files && t('files.files_auto_str_40') || "") + Path + (lan && lan.files && t('files.files_auto_str_41') || "") + Path + (lan && lan.files && t('files.files_auto_str_42') || "");
     if (rdata.path != '/') {
-      BarTools += lan && lan.files && lan.files.files_auto_str_43 || "";
+      BarTools += lan && lan.files && t('files.files_auto_str_43') || "";
     }
     setCookie('open_dir_path', rdata.path);
-    BarTools += ' <button onclick="javascript:getFiles(\'' + rdata.path + (lan && lan.files && lan.files.files_auto_str_44 || "") + rdata.path + (lan && lan.files && lan.files.files_auto_str_45 || "");
+    BarTools += ' <button onclick="javascript:getFiles(\'' + rdata.path + (lan && lan.files && t('files.files_auto_str_44') || "") + rdata.path + (lan && lan.files && t('files.files_auto_str_45') || "");
     var copyName = getCookie('copyFileName');
     var cutName = getCookie('cutFileName');
     var isPaste = copyName == 'null' ? cutName : copyName;
     // console.log('isPaste:',isPaste);
     //---
     if (isPaste != 'null' && isPaste != undefined) {
-      BarTools += ' <button onclick="javascript:pasteFile(\'' + getFileName(isPaste) + (lan && lan.files && lan.files.files_auto_str_46 || "");
+      BarTools += ' <button onclick="javascript:pasteFile(\'' + getFileName(isPaste) + (lan && lan.files && t('files.files_auto_str_46') || "");
     }
     $("#Batch").html('');
     var batchTools = '';
     var isBatch = getCookie('BatchSelected');
     if (isBatch == 1 || isBatch == '1') {
-      batchTools += lan && lan.files && lan.files.files_auto_str_47 || "";
+      batchTools += lan && lan.files && t('files.files_auto_str_47') || "";
     }
     $("#Batch").html(batchTools);
     $("#setBox").prop("checked", false);
@@ -744,7 +744,7 @@ function showSeclect() {
   var count = totalFile();
   var batchTools = '';
   if (count > 1) {
-    batchTools = lan && lan.files && lan.files.files_auto_str_48 || "";
+    batchTools = lan && lan.files && t('files.files_auto_str_48') || "";
   } else {
     //setCookie('BatchSelected', null);
   }
@@ -774,7 +774,7 @@ function showSeclect() {
         size_text = parseFloat(gb.toFixed(2)) + "G";
       }
     }
-    $("#selectSize").html((lan && lan.files && lan.files.files_auto_str_49 || "") + size_text).show();
+    $("#selectSize").html((lan && lan.files && t('files.files_auto_str_49') || "") + size_text).show();
   } else {
     $("#selectSize").hide();
   }
@@ -831,7 +831,7 @@ function batch(type, access) {
   }
   data += "&data=" + encodeURIComponent(JSON.stringify(datas));
   if (type == 3 && access == undefined) {
-    setChmod(0, lan.files.all);
+    setChmod(0, t('files.all'));
     return;
   }
   if (type < 3) setCookie('BatchSelected', '1');
@@ -858,7 +858,7 @@ function batch(type, access) {
     zip(names);
     return;
   }
-  myloadT = layer.msg(lan && lan.files && lan.files.files_auto_str_50 || "", {
+  myloadT = layer.msg(lan && lan.files && t('files.files_auto_str_50') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -890,9 +890,9 @@ function batchPaste() {
       for (var i = 0; i < result.length; i++) {
         tbody += '<tr><td>' + result[i].filename + '</td><td>' + toSize(result[i].size) + '</td><td>' + getLocalTime(result[i].mtime) + '</td></tr>';
       }
-      var mbody = (lan && lan.files && lan.files.files_auto_str_51 || "") + tbody + '</tbody>\
+      var mbody = (lan && lan.files && t('files.files_auto_str_51') || "") + tbody + '</tbody>\
                         </table></div>';
-      safeMessage(lan && lan.files && lan.files.files_auto_str_52 || "", mbody, function () {
+      safeMessage(lan && lan.files && t('files.files_auto_str_52') || "", mbody, function () {
         batchPasteTo(data, path);
       });
       $(".layui-layer-page").css("width", "500px");
@@ -902,7 +902,7 @@ function batchPaste() {
   }, 'json');
 }
 function batchPasteTo(data, path) {
-  myloadT = layer.msg(lan && lan.files && lan.files.files_auto_str_53 || "", {
+  myloadT = layer.msg(lan && lan.files && t('files.files_auto_str_53') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -962,9 +962,9 @@ function getDisk() {
     var rdata = rdata.data;
     for (var i = 0; i < rdata.length; i++) {
       LBody += "<span onclick=\"getFiles('" + rdata[i].path + "')\" style=\"cursor:pointer;margin-right:10px;\">\
-                <span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path == '/' ? lan.files.path_root : rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
+                <span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path == '/' ? t('files.path_root') : rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
     }
-    var trash = lan && lan.files && lan.files.files_auto_str_54 || "";
+    var trash = lan && lan.files && t('files.files_auto_str_54') || "";
     $("#comlist").html(LBody + trash);
     isDiskWidth();
   }, 'json');
@@ -997,7 +997,7 @@ function backDir() {
 function createFile(type, path) {
   if (type == 1) {
     var fileName = $("#newFileName").val();
-    layer.msg(lan.public.the, {
+    layer.msg(t('public.the'), {
       icon: 16,
       time: 10000
     });
@@ -1018,8 +1018,8 @@ function createFile(type, path) {
     shift: 5,
     closeBtn: 1,
     area: '320px',
-    title: lan && lan.files && lan.files.files_auto_str_55 || "",
-    content: (lan && lan.files && lan.files.files_auto_str_56 || "") + path + (lan && lan.files && lan.files.files_auto_str_57 || ""),
+    title: lan && lan.files && t('files.files_auto_str_55') || "",
+    content: (lan && lan.files && t('files.files_auto_str_56') || "") + path + (lan && lan.files && t('files.files_auto_str_57') || ""),
     success: function () {
       $("#newFileName").trigger('focus').on('keyup', function (e) {
         if (e.keyCode == 13) $("#createFileBtn").click();
@@ -1031,7 +1031,7 @@ function createFile(type, path) {
 function createDir(type, path) {
   if (type == 1) {
     var dirName = $("#newDirName").val();
-    layer.msg(lan && lan.files && lan.files.files_auto_str_58 || "", {
+    layer.msg(lan && lan.files && t('files.files_auto_str_58') || "", {
       icon: 16,
       time: 10000
     });
@@ -1049,8 +1049,8 @@ function createDir(type, path) {
     shift: 5,
     closeBtn: 1,
     area: '320px',
-    title: lan && lan.files && lan.files.files_auto_str_59 || "",
-    content: (lan && lan.files && lan.files.files_auto_str_60 || "") + path + (lan && lan.files && lan.files.files_auto_str_61 || ""),
+    title: lan && lan.files && t('files.files_auto_str_59') || "",
+    content: (lan && lan.files && t('files.files_auto_str_60') || "") + path + (lan && lan.files && t('files.files_auto_str_61') || ""),
     success: function () {
       $("#newDirName").trigger('focus').on('keyup', function (e) {
         if (e.keyCode == 13) {
@@ -1063,12 +1063,12 @@ function createDir(type, path) {
 
 //删除文件
 function deleteFile(fileName) {
-  layer.confirm(lan.get('recycle_bin_confirm', [fileName]), {
-    title: lan && lan.files && lan.files.files_auto_str_62 || "",
+  layer.confirm(t('recycle_bin_confirm', [fileName]), {
+    title: lan && lan.files && t('files.files_auto_str_62') || "",
     closeBtn: 2,
     icon: 3
   }, function () {
-    layer.msg(lan && lan.files && lan.files.files_auto_str_63 || "", {
+    layer.msg(lan && lan.files && t('files.files_auto_str_63') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1085,12 +1085,12 @@ function deleteFile(fileName) {
 
 //删除目录
 function deleteDir(dirName) {
-  layer.confirm(lan.get('recycle_bin_confirm_dir', [dirName]), {
-    title: lan && lan.files && lan.files.files_auto_str_64 || "",
+  layer.confirm(t('recycle_bin_confirm_dir', [dirName]), {
+    title: lan && lan.files && t('files.files_auto_str_64') || "",
     closeBtn: 2,
     icon: 3
   }, function () {
-    layer.msg(lan && lan.files && lan.files.files_auto_str_65 || "", {
+    layer.msg(lan && lan.files && t('files.files_auto_str_65') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1106,12 +1106,12 @@ function deleteDir(dirName) {
 }
 //批量删除文件
 function allDeleteFileSub(data, path) {
-  layer.confirm(lan && lan.files && lan.files.files_auto_str_66 || "", {
-    title: lan && lan.files && lan.files.files_auto_str_67 || "",
+  layer.confirm(lan && lan.files && t('files.files_auto_str_66') || "", {
+    title: lan && lan.files && t('files.files_auto_str_67') || "",
     closeBtn: 2,
     icon: 3
   }, function () {
-    layer.msg(lan && lan.files && lan.files.files_auto_str_68 || "", {
+    layer.msg(lan && lan.files && t('files.files_auto_str_68') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1145,13 +1145,13 @@ function downloadFile(action) {
     var fpath = $("#dpath").val();
     fname = encodeURIComponent($("#dfilename").val());
     if (fUrl == "") {
-      layer.msg(lan && lan.files && lan.files.files_auto_str_69 || "", {
+      layer.msg(lan && lan.files && t('files.files_auto_str_69') || "", {
         icon: 2
       });
       return;
     }
     layer.closeAll();
-    layer.msg(lan.files.down_task, {
+    layer.msg(t('files.down_task'), {
       time: 0,
       icon: 16,
       shade: [0.3, '#000']
@@ -1172,9 +1172,9 @@ function downloadFile(action) {
     shift: 5,
     closeBtn: 1,
     area: '500px',
-    btn: [lan && lan.files && lan.files.files_auto_str_70 || "", lan && lan.files && lan.files.files_auto_str_71 || ""],
-    title: lan.files.down_title,
-    content: (lan && lan.files && lan.files.files_auto_str_72 || "") + path + (lan && lan.files && lan.files.files_auto_str_73 || ""),
+    btn: [lan && lan.files && t('files.files_auto_str_70') || "", lan && lan.files && t('files.files_auto_str_71') || ""],
+    title: t('files.down_title'),
+    content: (lan && lan.files && t('files.files_auto_str_72') || "") + path + (lan && lan.files && t('files.files_auto_str_73') || ""),
     success: function () {
       $("#mUrl").on('keyup', function () {
         durl = $(this).val();
@@ -1194,7 +1194,7 @@ function reName(type, fileName) {
     var path = $("#DirPathPlace input").val();
     var newFileName = encodeURIComponent(path + '/' + $("#newFileName").val());
     var oldFileName = encodeURIComponent(path + '/' + fileName);
-    layer.msg(lan.public.the, {
+    layer.msg(t('public.the'), {
       icon: 16,
       time: 10000
     });
@@ -1212,11 +1212,11 @@ function reName(type, fileName) {
     shift: 5,
     closeBtn: 1,
     area: '320px',
-    title: lan && lan.files && lan.files.files_auto_str_74 || "",
-    btn: [lan && lan.files && lan.files.files_auto_str_75 || "", lan && lan.files && lan.files.files_auto_str_76 || ""],
+    title: lan && lan.files && t('files.files_auto_str_74') || "",
+    btn: [lan && lan.files && t('files.files_auto_str_75') || "", lan && lan.files && t('files.files_auto_str_76') || ""],
     content: '<div class="bt-form pd20">\
                     <div class="line">\
-                    <input type="text" class="bt-input-text" name="Name" id="newFileName" value="' + fileName + (lan && lan.files && lan.files.files_auto_str_77 || ""),
+                    <input type="text" class="bt-input-text" name="Name" id="newFileName" value="' + fileName + (lan && lan.files && t('files.files_auto_str_77') || ""),
     success: function () {
       $("#newFileName").trigger('focus').on('keyup', function (e) {
         if (e.keyCode == 13) $(".layui-layer-btn0").click();
@@ -1232,7 +1232,7 @@ function cutFile(fileName) {
   var path = $("#DirPathPlace input").val();
   setCookie('cutFileName', fileName);
   setCookie('copyFileName', null);
-  layer.msg(lan && lan.files && lan.files.files_auto_str_78 || "", {
+  layer.msg(lan && lan.files && t('files.files_auto_str_78') || "", {
     icon: 1,
     time: 1000
   });
@@ -1248,7 +1248,7 @@ function copyFilenameText(text) {
   textarea.select();
   document.execCommand("Copy");
   document.body.removeChild(textarea);
-  layer.msg(lan && lan.files && lan.files.files_auto_str_79 || "", {
+  layer.msg(lan && lan.files && t('files.files_auto_str_79') || "", {
     icon: 1
   });
 }
@@ -1257,7 +1257,7 @@ function copyFile(fileName) {
   var path = $("#DirPathPlace input").val();
   setCookie('copyFileName', fileName);
   setCookie('cutFileName', null);
-  layer.msg(lan && lan.files && lan.files.files_auto_str_80 || "", {
+  layer.msg(lan && lan.files && t('files.files_auto_str_80') || "", {
     icon: 1,
     time: 1000
   });
@@ -1282,9 +1282,9 @@ function pasteFile(fileName) {
       for (var i = 0; i < result.length; i++) {
         tbody += '<tr><td>' + result[i].filename + '</td><td>' + toSize(result[i].size) + '</td><td>' + getMatchTime(result[i].mtime) + '</td></tr>';
       }
-      var mbody = (lan && lan.files && lan.files.files_auto_str_81 || "") + tbody + '</tbody>\
+      var mbody = (lan && lan.files && t('files.files_auto_str_81') || "") + tbody + '</tbody>\
                         </table></div>';
-      safeMessage(lan && lan.files && lan.files.files_auto_str_82 || "", mbody, function () {
+      safeMessage(lan && lan.files && t('files.files_auto_str_82') || "", mbody, function () {
         pasteTo(path, copyName, cutName, fileName);
       });
     } else {
@@ -1294,7 +1294,7 @@ function pasteFile(fileName) {
 }
 function pasteTo(path, copyName, cutName, fileName) {
   if (copyName != 'null' && copyName != undefined) {
-    layer.msg(lan.files.copy_the, {
+    layer.msg(t('files.copy_the'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1316,7 +1316,7 @@ function pasteTo(path, copyName, cutName, fileName) {
     return;
   }
   if (cutName != 'null' && cutName != undefined) {
-    layer.msg(lan.files.mv_the, {
+    layer.msg(t('files.mv_the'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1340,7 +1340,7 @@ function zip(dirName, submits) {
     var path = $("#path").val();
     var ztype = $('select[name="z_type"]').val();
     var dfile = $("#dfile").val();
-    layer.msg(lan && lan.files && lan.files.files_auto_str_83 || "", {
+    layer.msg(lan && lan.files && t('files.files_auto_str_83') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1348,7 +1348,7 @@ function zip(dirName, submits) {
     $.post('/files/zip', 'sfile=' + sfile + '&dfile=' + dfile + '&type=' + ztype + '&path=' + encodeURIComponent(path), function (rdata) {
       layer.closeAll();
       if (rdata == null || rdata == undefined) {
-        layer.msg(lan && lan.files && lan.files.files_auto_str_84 || "", {
+        layer.msg(lan && lan.files && t('files.files_auto_str_84') || "", {
           icon: 1
         });
         getFiles($("#DirPathPlace input").val());
@@ -1384,11 +1384,11 @@ function zip(dirName, submits) {
     shift: 5,
     closeBtn: 1,
     area: '650px',
-    title: (lan && lan.files && lan.files.files_auto_str_85 || "") + fileName + ']',
-    btn: [lan && lan.files && lan.files.files_auto_str_86 || "", lan && lan.files && lan.files.files_auto_str_87 || ""],
-    content: '<div class="bt-form pd20">' + '<div class="line noborder">' + (lan && lan.files && lan.files.files_auto_str_88 || "")
+    title: (lan && lan.files && t('files.files_auto_str_85') || "") + fileName + ']',
+    btn: [lan && lan.files && t('files.files_auto_str_86') || "", lan && lan.files && t('files.files_auto_str_87') || ""],
+    content: '<div class="bt-form pd20">' + '<div class="line noborder">' + (lan && lan.files && t('files.files_auto_str_88') || "")
     //
-    + '<div class="line noborder">' + '<input type="text" id="sfile" value="' + sfile + '" style="display:none" />' + '<input type="text" id="path" value="' + pathName + '" style="display:none" />' + (lan && lan.files && lan.files.files_auto_str_89 || "") + defaultDfile + (lan && lan.files && lan.files.files_auto_str_90 || "") + '</div>' + '</div>',
+    + '<div class="line noborder">' + '<input type="text" id="sfile" value="' + sfile + '" style="display:none" />' + '<input type="text" id="path" value="' + pathName + '" style="display:none" />' + (lan && lan.files && t('files.files_auto_str_89') || "") + defaultDfile + (lan && lan.files && t('files.files_auto_str_90') || "") + '</div>' + '</div>',
     success: function () {
       $('#change_dir').on('click', function () {
         changePathCallback('dfile', function (val) {
@@ -1436,7 +1436,7 @@ function unZip(fileName, type) {
     var sfile = encodeURIComponent($("#sfile").val());
     var dfile = encodeURIComponent($("#dfile").val());
     var coding = $("select[name='coding']").val();
-    var tip = layer.msg(lan.files.unzip_the, {
+    var tip = layer.msg(t('files.unzip_the'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1455,8 +1455,8 @@ function unZip(fileName, type) {
   var umpass = '';
   if (type == 'zip') {
     umpass = '<div class="line">\
-            <span class="tname">' + lan.files.zip_pass_title + '</span>\
-            <input type="text" class="bt-input-text" id="unpass" value="" placeholder="' + lan.files.zip_pass_msg + '" style="width:330px" />\
+            <span class="tname">' + t('files.zip_pass_title') + '</span>\
+            <input type="text" class="bt-input-text" id="unpass" value="" placeholder="' + t('files.zip_pass_msg') + '" style="width:330px" />\
         </div>';
   }
   layer.open({
@@ -1464,8 +1464,8 @@ function unZip(fileName, type) {
     shift: 5,
     closeBtn: 1,
     area: '490px',
-    title: lan && lan.files && lan.files.files_auto_str_91 || "",
-    content: '<div class="bt-form pd20 pb70">' + '<div class="line unzipdiv">' + '<span class="tname">' + lan.files.unzip_name + '</span><input type="text" class="bt-input-text" id="sfile" value="' + fileName + '" placeholder="' + lan.files.unzip_name_title + '" style="width:330px" /></div>' + '<div class="line"><span class="tname">' + lan.files.unzip_to + '</span><input type="text" class="bt-input-text" id="dfile" value="' + path + '" placeholder="' + lan.files.unzip_to + '" style="width:330px" /></div>' + umpass + '<div class="line"><span class="tname">' + lan.files.unzip_coding + '</span><select class="bt-input-text" name="coding">' + '<option value="UTF-8">UTF-8</option>' + '<option value="gb18030">GBK</option>' + '</select>' + '</div>' + '<div class="bt-form-submit-btn">' + '<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">' + lan.public.close + '</button>' + '<button type="button" id="ReNameBtn" class="btn btn-success btn-sm btn-title" onclick="unZip(\'' + fileName + '\',\'' + type + '\')">' + lan.files.file_menu_unzip + '</button>' + '</div>' + '</div>'
+    title: lan && lan.files && t('files.files_auto_str_91') || "",
+    content: '<div class="bt-form pd20 pb70">' + '<div class="line unzipdiv">' + '<span class="tname">' + t('files.unzip_name') + '</span><input type="text" class="bt-input-text" id="sfile" value="' + fileName + '" placeholder="' + t('files.unzip_name_title') + '" style="width:330px" /></div>' + '<div class="line"><span class="tname">' + t('files.unzip_to') + '</span><input type="text" class="bt-input-text" id="dfile" value="' + path + '" placeholder="' + t('files.unzip_to') + '" style="width:330px" /></div>' + umpass + '<div class="line"><span class="tname">' + t('files.unzip_coding') + '</span><select class="bt-input-text" name="coding">' + '<option value="UTF-8">UTF-8</option>' + '<option value="gb18030">GBK</option>' + '</select>' + '</div>' + '<div class="bt-form-submit-btn">' + '<button type="button" class="btn btn-danger btn-sm btn-title" onclick="layer.closeAll()">' + t('public.close') + '</button>' + '<button type="button" id="ReNameBtn" class="btn btn-success btn-sm btn-title" onclick="unZip(\'' + fileName + '\',\'' + type + '\')">' + t('files.file_menu_unzip') + '</button>' + '</div>' + '</div>'
   });
 }
 function isCompressFile(fileName) {
@@ -1486,7 +1486,7 @@ function unCompressFile(fileName, type = 0) {
     var sfile = encodeURIComponent($("#sfile").val());
     var dfile = encodeURIComponent($("#dfile").val());
     var coding = $("select[name='coding']").val();
-    var tip = layer.msg(lan && lan.files && lan.files.files_auto_str_92 || "", {
+    var tip = layer.msg(lan && lan.files && t('files.files_auto_str_92') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1512,8 +1512,8 @@ function unCompressFile(fileName, type = 0) {
     shift: 5,
     closeBtn: 1,
     area: '490px',
-    title: lan && lan.files && lan.files.files_auto_str_93 || "",
-    content: (lan && lan.files && lan.files.files_auto_str_94 || "") + fileName + (lan && lan.files && lan.files.files_auto_str_95 || "") + path + (lan && lan.files && lan.files.files_auto_str_96 || "") + fileName + (lan && lan.files && lan.files.files_auto_str_97 || "")
+    title: lan && lan.files && t('files.files_auto_str_93') || "",
+    content: (lan && lan.files && t('files.files_auto_str_94') || "") + fileName + (lan && lan.files && t('files.files_auto_str_95') || "") + path + (lan && lan.files && t('files.files_auto_str_96') || "") + fileName + (lan && lan.files && t('files.files_auto_str_97') || "")
   });
 }
 
@@ -1556,7 +1556,7 @@ function getImage(fileName) {
     type: 1,
     offset: '150px',
     closeBtn: 1,
-    title: lan && lan.files && lan.files.files_auto_str_98 || "",
+    title: lan && lan.files && t('files.files_auto_str_98') || "",
     area: '400px',
     shadeClose: true,
     content: '<div class="showpicdiv"><img style="max-width:400px;" src="' + imgUrl + '"></div>'
@@ -1580,7 +1580,7 @@ function setChmod(action, fileName) {
     var chmod = $("#access").val();
     var chown = $("#chown").val();
     var data = 'filename=' + encodeURIComponent(fileName) + '&user=' + chown + '&access=' + chmod;
-    var loadT = layer.msg(lan && lan.files && lan.files.files_auto_str_99 || "", {
+    var loadT = layer.msg(lan && lan.files && t('files.files_auto_str_99') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1596,7 +1596,7 @@ function setChmod(action, fileName) {
     }, 'json');
     return;
   }
-  var toExec = fileName == lan.files.all ? 'batch(3,1)' : 'setChmod(1,\'' + fileName + '\')';
+  var toExec = fileName == t('files.all') ? 'batch(3,1)' : 'setChmod(1,\'' + fileName + '\')';
   $.post('/files/file_access', 'filename=' + encodeURIComponent(fileName), function (rdata) {
     // console.log(rdata);
     var sys_users = rdata.sys_users;
@@ -1617,10 +1617,10 @@ function setChmod(action, fileName) {
     layer.open({
       type: 1,
       closeBtn: 1,
-      title: (lan && lan.files && lan.files.files_auto_str_100 || "") + fileName + ']',
+      title: (lan && lan.files && t('files.files_auto_str_100') || "") + fileName + ']',
       area: '400px',
       shadeClose: false,
-      content: (lan && lan.files && lan.files.files_auto_str_101 || "") + rdata.chmod + (lan && lan.files && lan.files.files_auto_str_102 || "") + own_html + (lan && lan.files && lan.files.files_auto_str_103 || "") + toExec + (lan && lan.files && lan.files.files_auto_str_104 || "")
+      content: (lan && lan.files && t('files.files_auto_str_101') || "") + rdata.chmod + (lan && lan.files && t('files.files_auto_str_102') || "") + own_html + (lan && lan.files && t('files.files_auto_str_103') || "") + toExec + (lan && lan.files && t('files.files_auto_str_104') || "")
     });
     onAccess();
     $("#access").on('keyup', function () {
@@ -1692,27 +1692,27 @@ function rightMenuClick(type, path, name) {
   var displayZip = isZip(type);
   var options = {
     items: [{
-      text: lan && lan.files && lan.files.files_auto_str_105 || "",
+      text: lan && lan.files && t('files.files_auto_str_105') || "",
       onclick: function () {
         copyFile(path);
       }
     }, {
-      text: lan && lan.files && lan.files.files_auto_str_106 || "",
+      text: lan && lan.files && t('files.files_auto_str_106') || "",
       onclick: function () {
         cutFile(path);
       }
     }, {
-      text: lan && lan.files && lan.files.files_auto_str_107 || "",
+      text: lan && lan.files && t('files.files_auto_str_107') || "",
       onclick: function () {
         reName(0, name);
       }
     }, {
-      text: lan.files.file_menu_auth,
+      text: t('files.file_menu_auth'),
       onclick: function () {
         setChmod(0, path);
       }
     }, {
-      text: lan.files.file_menu_zip,
+      text: t('files.file_menu_zip'),
       onclick: function () {
         zip(path);
       }
@@ -1720,77 +1720,77 @@ function rightMenuClick(type, path, name) {
   };
   if (type == "dir") {
     options.items.push({
-      text: lan.files.file_menu_del,
+      text: t('files.file_menu_del'),
       onclick: function () {
         deleteDir(path);
       }
     });
   } else if (isText(type)) {
     options.items.push({
-      text: lan.files.file_menu_edit,
+      text: t('files.file_menu_edit'),
       onclick: function () {
         onlineEditFile(0, path);
       }
     }, {
-      text: lan.files.file_menu_down,
+      text: t('files.file_menu_down'),
       onclick: function () {
         getFileBytes(path);
       }
     }, {
-      text: lan.files.file_menu_del,
+      text: t('files.file_menu_del'),
       onclick: function () {
         deleteFile(path);
       }
     });
   } else if (displayZip != -1) {
     options.items.push({
-      text: lan.files.file_menu_unzip,
+      text: t('files.file_menu_unzip'),
       onclick: function () {
         unZip(path, displayZip);
       }
     }, {
-      text: lan.files.file_menu_down,
+      text: t('files.file_menu_down'),
       onclick: function () {
         getFileBytes(path);
       }
     }, {
-      text: lan.files.file_menu_del,
+      text: t('files.file_menu_del'),
       onclick: function () {
         deleteFile(path);
       }
     });
   } else if (isImage(type)) {
     options.items.push({
-      text: lan.files.file_menu_img,
+      text: t('files.file_menu_img'),
       onclick: function () {
         getImage(path);
       }
     }, {
-      text: lan.files.file_menu_down,
+      text: t('files.file_menu_down'),
       onclick: function () {
         getFileBytes(path);
       }
     }, {
-      text: lan.files.file_menu_del,
+      text: t('files.file_menu_del'),
       onclick: function () {
         deleteFile(path);
       }
     });
   } else {
     options.items.push({
-      text: lan.files.file_menu_down,
+      text: t('files.file_menu_down'),
       onclick: function () {
         getFileBytes(path);
       }
     }, {
-      text: lan.files.file_menu_del,
+      text: t('files.file_menu_del'),
       onclick: function () {
         deleteFile(path);
       }
     });
   }
   options.items.push({
-    text: lan && lan.files && lan.files.files_auto_str_108 || "",
+    text: lan && lan.files && t('files.files_auto_str_108') || "",
     onclick: function () {
       forcePpageRefresh();
     }
@@ -1812,7 +1812,7 @@ function rightMenuClickAll(e) {
 //取目录大小
 function getPathSize() {
   var path = encodeURIComponent($("#DirPathPlace input").val());
-  layer.msg(lan && lan.files && lan.files.files_auto_str_109 || "", {
+  layer.msg(lan && lan.files && t('files.files_auto_str_109') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1838,12 +1838,12 @@ function pathPlaceBtn(path) {
   var html = '';
   var title = '';
   if (path == '/') {
-    html = '<li><a title="/">' + lan.files.path_root + '</a></li>';
+    html = '<li><a title="/">' + t('files.path_root') + '</a></li>';
   } else {
     var dst_path = path.split("/");
     for (var i = 0; i < dst_path.length; i++) {
       title += dst_path[i] + '/';
-      dst_path[0] = lan.files.path_root;
+      dst_path[0] = t('files.path_root');
       html += '<li><a title="' + title + '">' + dst_path[i] + '</a></li>';
     }
   }
@@ -1977,7 +1977,7 @@ function addFilesToPending(newFiles) {
  */
 function handleDroppedItems(items) {
   var filesToUpload = [];
-  var loadingIndex = layer.msg(lan && lan.files && lan.files.files_auto_str_110 || "", {
+  var loadingIndex = layer.msg(lan && lan.files && t('files.files_auto_str_110') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1995,7 +1995,7 @@ function handleDroppedItems(items) {
       addFilesToPending(filesToUpload);
       showConfirmUpload();
     } else if (pendingUploadFiles.length === 0) {
-      layer.msg(lan && lan.files && lan.files.files_auto_str_111 || "", {
+      layer.msg(lan && lan.files && t('files.files_auto_str_111') || "", {
         icon: 5
       });
     }
@@ -2050,7 +2050,7 @@ function showConfirmUpload(existMap) {
     for (var i = 0; i < files.length; i++) {
       relativePaths.push(files[i].fullPath);
     }
-    var loadingIndex = layer.msg(lan && lan.files && lan.files.files_auto_str_112 || "", {
+    var loadingIndex = layer.msg(lan && lan.files && t('files.files_auto_str_112') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -2128,35 +2128,35 @@ function showConfirmUpload(existMap) {
           sizeHtml = toSize(sizeBytes) + ' <= ' + toSize(files[i].size);
         }
       }
-      var overwriteHtml = isOverwrite ? lan && lan.files && lan.files.files_auto_str_113 || "" : '';
+      var overwriteHtml = isOverwrite ? lan && lan.files && t('files.files_auto_str_113') || "" : '';
       fileListHtml += '<li>\
                 <span class="filename" title="' + fileName + '">' + fileName + '</span>\
                 <span class="filesize">' + sizeHtml + '</span>\
                 ' + overwriteHtml + '\
-                <a class="del_up_file" href="javascript:;" onclick="removeFileFromUpload(' + i + (lan && lan.files && lan.files.files_auto_str_114 || "");
+                <a class="del_up_file" href="javascript:;" onclick="removeFileFromUpload(' + i + (lan && lan.files && t('files.files_auto_str_114') || "");
     }
   }
   if (files.length === 0) {
-    fileListHtml = lan && lan.files && lan.files.files_auto_str_115 || "";
+    fileListHtml = lan && lan.files && t('files.files_auto_str_115') || "";
   } else if (files.length > maxDisplay) {
-    fileListHtml += (lan && lan.files && lan.files.files_auto_str_116 || "") + (files.length - maxDisplay) + (lan && lan.files && lan.files.files_auto_str_117 || "");
+    fileListHtml += (lan && lan.files && t('files.files_auto_str_116') || "") + (files.length - maxDisplay) + (lan && lan.files && t('files.files_auto_str_117') || "");
   }
   layer.close(window.confirmLayerIndex);
   window.confirmLayerIndex = layer.open({
     type: 1,
     closeBtn: 1,
-    title: (lan && lan.files && lan.files.files_auto_str_118 || "") + files.length + (lan && lan.files && lan.files.files_auto_str_119 || ""),
+    title: (lan && lan.files && t('files.files_auto_str_118') || "") + files.length + (lan && lan.files && t('files.files_auto_str_119') || ""),
     area: '600px',
     shadeClose: false,
     cancel: function () {
       pendingUploadFiles = [];
     },
-    content: (lan && lan.files && lan.files.files_auto_str_120 || "") + path + '</code></div>\
-                <ul id="confirm_up_box" class="up_box">' + fileListHtml + (lan && lan.files && lan.files.files_auto_str_121 || "") + toSize(totalSize) + (lan && lan.files && lan.files.files_auto_str_122 || ""),
+    content: (lan && lan.files && t('files.files_auto_str_120') || "") + path + '</code></div>\
+                <ul id="confirm_up_box" class="up_box">' + fileListHtml + (lan && lan.files && t('files.files_auto_str_121') || "") + toSize(totalSize) + (lan && lan.files && t('files.files_auto_str_122') || ""),
     success: function (layero, index) {
       layero.find('#confirmUpBtn').on('click', function () {
         if (pendingUploadFiles.length === 0) {
-          layer.msg(lan && lan.files && lan.files.files_auto_str_123 || "", {
+          layer.msg(lan && lan.files && t('files.files_auto_str_123') || "", {
             icon: 0
           });
           return;
@@ -2173,7 +2173,7 @@ function showConfirmUpload(existMap) {
  * 显示添加更多文件的菜单
  */
 function showAddMoreMenu(obj) {
-  var tips = layer.tips(lan && lan.files && lan.files.files_auto_str_124 || "", obj, {
+  var tips = layer.tips(lan && lan.files && t('files.files_auto_str_124') || "", obj, {
     tips: [1, '#fff'],
     time: 0,
     shade: 0.1,
@@ -2212,10 +2212,10 @@ function executeUpload(files, basePath) {
   layer.open({
     type: 1,
     closeBtn: 0,
-    title: lan && lan.files && lan.files.files_auto_str_125 || "",
+    title: lan && lan.files && t('files.files_auto_str_125') || "",
     area: '500px',
     shadeClose: false,
-    content: lan && lan.files && lan.files.files_auto_str_126 || ""
+    content: lan && lan.files && t('files.files_auto_str_126') || ""
   });
   var up_box = document.getElementById("up_box");
   var totalProgress = document.getElementById("totalProgress");
@@ -2224,7 +2224,7 @@ function executeUpload(files, basePath) {
   $('#stopUp').show().on('click', function () {
     isStop = true;
     ajax.stop = true;
-    layer.msg(lan && lan.files && lan.files.files_auto_str_127 || "");
+    layer.msg(lan && lan.files && t('files.files_auto_str_127') || "");
     setTimeout(function () {
       layer.closeAll();
       getFiles(getCookie("open_dir_path"));
@@ -2233,7 +2233,7 @@ function executeUpload(files, basePath) {
   function uploadNext(index) {
     if (isStop) return;
     if (index >= files.length) {
-      layer.msg(lan && lan.files && lan.files.files_auto_str_128 || "", {
+      layer.msg(lan && lan.files && t('files.files_auto_str_128') || "", {
         icon: 1
       });
       setTimeout(function () {
@@ -2248,14 +2248,14 @@ function executeUpload(files, basePath) {
     var subDir = parts.join('/');
     var targetPath = basePath + (subDir ? subDir + "/" : "");
     var li = document.createElement("li");
-    li.innerHTML = "<span class='filename'>" + file.fullPath + "</span><span class='filesize'>" + toSize(file.size) + (lan && lan.files && lan.files.files_auto_str_129 || "");
+    li.innerHTML = "<span class='filename'>" + file.fullPath + "</span><span class='filesize'>" + toSize(file.size) + (lan && lan.files && t('files.files_auto_str_129') || "");
     up_box.appendChild(li);
     up_box.scrollTop = up_box.scrollHeight;
     var em = li.getElementsByTagName("em")[0];
     var formData = new FormData();
     formData.append("zunfile", file);
     var url = "/files/upload_file?path=" + encodeURIComponent(targetPath);
-    totalProgress.innerHTML = (lan && lan.files && lan.files.files_auto_str_130 || "") + (index + 1) + "/" + files.length + "</p><progress value='" + (index + 1) + "' max='" + files.length + "'></progress>";
+    totalProgress.innerHTML = (lan && lan.files && t('files.files_auto_str_130') || "") + (index + 1) + "/" + files.length + "</p><progress value='" + (index + 1) + "' max='" + files.length + "'></progress>";
     ajax.carry({
       url: url,
       data: formData,
@@ -2263,16 +2263,16 @@ function executeUpload(files, basePath) {
       async: true,
       progress: function (e) {
         var progress = Math.floor(e.loaded / e.total * 100) + "%";
-        em.innerHTML = (lan && lan.files && lan.files.files_auto_str_131 || "") + progress;
+        em.innerHTML = (lan && lan.files && t('files.files_auto_str_131') || "") + progress;
         em.style.color = "#005100";
       },
       success: function (res) {
-        em.innerHTML = lan && lan.files && lan.files.files_auto_str_132 || "";
+        em.innerHTML = lan && lan.files && t('files.files_auto_str_132') || "";
         em.style.color = "#005100";
         uploadNext(index + 1);
       },
       error: function (err) {
-        em.innerHTML = lan && lan.files && lan.files.files_auto_str_133 || "";
+        em.innerHTML = lan && lan.files && t('files.files_auto_str_133') || "";
         em.style.color = "red";
         uploadNext(index + 1);
       }
@@ -2288,7 +2288,7 @@ function initFileTabs() {
   var tabs = loadFileTabs();
   if (tabs.length === 0) {
     var currentPath = getCookie('open_dir_path') || '/www/wwwroot';
-    var name = currentPath.replace(/\/$/, '').split('/').pop() || lan && lan.files && lan.files.files_auto_str_134 || "";
+    var name = currentPath.replace(/\/$/, '').split('/').pop() || lan && lan.files && t('files.files_auto_str_134') || "";
     tabs.push({
       name: name,
       path: currentPath,
@@ -2335,7 +2335,7 @@ function renderFileTabs() {
                     <span class="close-tab glyphicon glyphicon-remove" onclick="removeFileTab(event, ' + i + ')"></span>\
                 </div>';
   }
-  html += lan && lan.files && lan.files.files_auto_str_135 || "";
+  html += lan && lan.files && t('files.files_auto_str_135') || "";
   $('#file-tabs').html(html);
 }
 
@@ -2349,7 +2349,7 @@ function updateActiveTabPath(path) {
     if (tabs[i].active) {
       if (tabs[i].path !== path) {
         tabs[i].path = path;
-        tabs[i].name = path.replace(/\/$/, '').split('/').pop() || lan && lan.files && lan.files.files_auto_str_136 || "";
+        tabs[i].name = path.replace(/\/$/, '').split('/').pop() || lan && lan.files && t('files.files_auto_str_136') || "";
         changed = true;
       }
       break;
@@ -2383,7 +2383,7 @@ function addNewFileTab() {
     tabs[i].active = false;
   }
   var path = getCookie('open_dir_path') || '/www/wwwroot';
-  var name = path.replace(/\/$/, '').split('/').pop() || lan && lan.files && lan.files.files_auto_str_137 || "";
+  var name = path.replace(/\/$/, '').split('/').pop() || lan && lan.files && t('files.files_auto_str_137') || "";
   tabs.push({
     name: name,
     path: path,
@@ -2428,7 +2428,7 @@ function calculateDirSize(event, obj, path) {
   }
 
   // 显示优雅的 loading 动效
-  $(obj).html(lan && lan.files && lan.files.files_auto_str_138 || "");
+  $(obj).html(lan && lan.files && t('files.files_auto_str_138') || "");
   // 移除点击事件，防止重复点击
   $(obj).attr("onclick", "");
   $.post('/files/get_dir_size', {
@@ -2449,16 +2449,16 @@ function calculateDirSize(event, obj, path) {
       $(obj).parent().html(sizeStr);
     } else {
       // 失败时还原
-      $(obj).html(lan && lan.files && lan.files.files_auto_str_139 || "");
+      $(obj).html(lan && lan.files && t('files.files_auto_str_139') || "");
       $(obj).attr("onclick", "calculateDirSize(event, this, '" + path.replace(/'/g, "\\'") + "')");
       layer.msg(rdata.msg, {
         icon: 5
       });
     }
   }, 'json').fail(function () {
-    $(obj).html(lan && lan.files && lan.files.files_auto_str_140 || "");
+    $(obj).html(lan && lan.files && t('files.files_auto_str_140') || "");
     $(obj).attr("onclick", "calculateDirSize(event, this, '" + path.replace(/'/g, "\\'") + "')");
-    layer.msg(lan && lan.files && lan.files.files_auto_str_141 || "", {
+    layer.msg(lan && lan.files && t('files.files_auto_str_141') || "", {
       icon: 5
     });
   });

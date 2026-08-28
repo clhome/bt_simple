@@ -8,7 +8,7 @@ function getLogs(id, task_name) {
   }
   var reqTimer = null;
   var reqCount = 0;
-  var tips = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_1 || "", {
+  var tips = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_1') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -32,7 +32,7 @@ function getLogs(id, task_name) {
       }
       ;
       if (rdata.msg == '') {
-        rdata.msg = lan && lan.crontab && lan.crontab.crontab_auto_str_2 || "";
+        rdata.msg = lan && lan.crontab && t('crontab.crontab_auto_str_2') || "";
       }
       $("#crontab_log").html(rdata.msg);
       //滚动到最低
@@ -43,17 +43,17 @@ function getLogs(id, task_name) {
   }
   layer.open({
     type: 1,
-    title: lan && lan.crontab && lan.crontab.crontab_auto_str_3 || "",
+    title: lan && lan.crontab && t('crontab.crontab_auto_str_3') || "",
     area: ['60%', '660px'],
     shadeClose: false,
-    btn: [lan && lan.crontab && lan.crontab.crontab_auto_str_4 || "", lan && lan.crontab && lan.crontab.crontab_auto_str_5 || ""],
+    btn: [lan && lan.crontab && t('crontab.crontab_auto_str_4') || "", lan && lan.crontab && t('crontab.crontab_auto_str_5') || ""],
     closeBtn: 1,
     end: function () {
       if (reqTimer) {
         clearInterval(reqTimer);
       }
     },
-    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;">' + (lan && lan.crontab && lan.crontab.crontab_auto_str_6 || "") + '</label>' + '<button class="btn btn-default btn-sm" onclick="startTask(' + id + ', \'' + (task_name || '').replace(/'/g, "\\'") + (lan && lan.crontab && lan.crontab.crontab_auto_str_7 || "") + (task_name ? (lan && lan.crontab && lan.crontab.crontab_auto_str_8 || "") + task_name + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
+    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;">' + (lan && lan.crontab && t('crontab.crontab_auto_str_6') || "") + '</label>' + '<button class="btn btn-default btn-sm" onclick="startTask(' + id + ', \'' + (task_name || '').replace(/'/g, "\\'") + (lan && lan.crontab && t('crontab.crontab_auto_str_7') || "") + (task_name ? (lan && lan.crontab && t('crontab.crontab_auto_str_8') || "") + task_name + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
     success: function (layero, index) {
       requestLogs(index);
       reqTimer = setInterval(function () {
@@ -87,7 +87,7 @@ function getBackupName(hook_data, name) {
 }
 function getCronData(page) {
   var search = $('#search_task').val() || '';
-  var load = layer.msg(lan.public.the, {
+  var load = layer.msg(t('public.the'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -97,18 +97,18 @@ function getCronData(page) {
     setSortUI();
     var cbody = "";
     if (rdata.data.length == 0) {
-      cbody = lan && lan.crontab && lan.crontab.crontab_auto_str_9 || "";
+      cbody = lan && lan.crontab && t('crontab.crontab_auto_str_9') || "";
     } else {
       for (var i = 0; i < rdata.data.length; i++) {
         //状态
-        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + (lan && lan.crontab && lan.crontab.crontab_auto_str_10 || "") : '<span onclick="setTaskStatus(' + rdata.data[i].id + (lan && lan.crontab && lan.crontab.crontab_auto_str_11 || "");
+        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + (lan && lan.crontab && t('crontab.crontab_auto_str_10') || "") : '<span onclick="setTaskStatus(' + rdata.data[i].id + (lan && lan.crontab && t('crontab.crontab_auto_str_11') || "");
         var cron_save = '--';
         if (rdata.data[i]['save'] != '') {
-          cron_save = rdata.data[i]['save'] + (lan && lan.crontab && lan.crontab.crontab_auto_str_12 || "");
+          cron_save = rdata.data[i]['save'] + (lan && lan.crontab && t('crontab.crontab_auto_str_12') || "");
         }
         var cron_backupto = '-';
         if (rdata.data[i]['stype'] == 'site' || rdata.data[i]['stype'] == 'path' || rdata.data[i]['stype'] == 'database' || rdata.data[i]['stype'].indexOf('database_') > -1) {
-          cron_backupto = lan && lan.crontab && lan.crontab.crontab_auto_str_13 || "";
+          cron_backupto = lan && lan.crontab && t('crontab.crontab_auto_str_13') || "";
           if (rdata.data[i]['backup_to'] != 'localhost') {
             cron_backupto = getBackupName(rdata['backup_hook'], rdata.data[i]['backup_to']);
           }
@@ -120,10 +120,10 @@ function getCronData(page) {
 					<td>" + rdata.data[i].cycle + "</td>\
 					<td>" + cron_save + "</td>\
 					<td>" + cron_backupto + "</td>\
-					<td>" + (rdata.data[i].day_type_h == (lan && lan.crontab && lan.crontab.crontab_auto_str_14 || "") ? '' : rdata.data[i].day_type_h) + "</td>\
+					<td>" + (rdata.data[i].day_type_h == (lan && lan.crontab && t('crontab.crontab_auto_str_14') || "") ? '' : rdata.data[i].day_type_h) + "</td>\
 					<td>" + rdata.data[i].last_run_time + "</td>\
 					<td>\
-						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_15 || "") + rdata.data[i].id + (lan && lan.crontab && lan.crontab.crontab_auto_str_16 || "") + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_17 || "") + rdata.data[i].id + " ,'" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_18 || "");
+						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && t('crontab.crontab_auto_str_15') || "") + rdata.data[i].id + (lan && lan.crontab && t('crontab.crontab_auto_str_16') || "") + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && t('crontab.crontab_auto_str_17') || "") + rdata.data[i].id + " ,'" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && t('crontab.crontab_auto_str_18') || "");
       }
     }
     $('#cronbody').html(cbody);
@@ -133,13 +133,13 @@ function getCronData(page) {
 
 // 设置计划任务状态
 function setTaskStatus(id, status) {
-  var confirm = layer.confirm(status == '0' ? lan && lan.crontab && lan.crontab.crontab_auto_str_19 || "" : lan && lan.crontab && lan.crontab.crontab_auto_str_20 || "", {
-    title: lan && lan.crontab && lan.crontab.crontab_auto_str_21 || "",
+  var confirm = layer.confirm(status == '0' ? lan && lan.crontab && t('crontab.crontab_auto_str_19') || "" : lan && lan.crontab && t('crontab.crontab_auto_str_20') || "", {
+    title: lan && lan.crontab && t('crontab.crontab_auto_str_21') || "",
     icon: 3,
     closeBtn: 1
   }, function (index) {
     if (index > 0) {
-      var loadT = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_22 || "", {
+      var loadT = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_22') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -171,7 +171,7 @@ function startTask(id, task_name, is_log_open) {
     is_log_open = task_name;
     task_name = '';
   }
-  var loadT = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_23 || "", {
+  var loadT = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_23') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -201,7 +201,7 @@ function startTask(id, task_name, is_log_open) {
 
 //清空日志
 function closeLogs(id, is_refresh) {
-  var loadT = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_24 || "", {
+  var loadT = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_24') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -210,7 +210,7 @@ function closeLogs(id, is_refresh) {
   $.post('/crontab/del_logs', data, function (rdata) {
     layer.close(loadT);
     if (rdata.status && is_refresh) {
-      $("#crontab_log").html(lan && lan.crontab && lan.crontab.crontab_auto_str_25 || "");
+      $("#crontab_log").html(lan && lan.crontab && t('crontab.crontab_auto_str_25') || "");
     }
     showMsg(rdata.msg, function () {
       // layer.closeAll();
@@ -223,8 +223,8 @@ function closeLogs(id, is_refresh) {
 
 //删除
 function planDel(id, name) {
-  safeMessage(lan.get('del', [name]), lan && lan.crontab && lan.crontab.crontab_auto_str_26 || "", function () {
-    var load = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_27 || "", {
+  safeMessage(t('del', [name]), lan && lan.crontab && t('crontab.crontab_auto_str_26') || "", function () {
+    var load = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_27') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -256,7 +256,7 @@ function planAdd() {
   var name = $(".planname input[name='name']").val();
   if (name == '') {
     $(".planname input[name='name']").trigger('focus');
-    layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_28 || "", {
+    layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_28') || "", {
       icon: 2
     });
     return;
@@ -281,7 +281,7 @@ function planAdd() {
   $("#cronConfig input[name='where1']").val(where1);
   if (where1 > is1 || where1 < is2) {
     $("#ptime input[name='where1']").trigger('focus');
-    layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_29 || "", {
+    layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_29') || "", {
       icon: 2
     });
     return;
@@ -289,7 +289,7 @@ function planAdd() {
   var hour = $("#ptime input[name='hour']").val();
   if (hour > 23 || hour < 0) {
     $("#ptime input[name='hour']").trigger('focus');
-    layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_30 || "", {
+    layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_30') || "", {
       icon: 2
     });
     return;
@@ -298,7 +298,7 @@ function planAdd() {
   var minute = $("#ptime input[name='minute']").val();
   if (minute > 59 || minute < 0) {
     $("#ptime input[name='minute']").trigger('focus');
-    layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_31 || "", {
+    layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_31') || "", {
       icon: 2
     });
     return;
@@ -306,7 +306,7 @@ function planAdd() {
   $("#cronConfig input[name='minute']").val(minute);
   var save = $("#save").val();
   if (save < 0) {
-    layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_32 || "", {
+    layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_32') || "", {
       icon: 2
     });
     return;
@@ -318,7 +318,7 @@ function planAdd() {
   if (cron_type == 'toShell') {
     if (sBody == '') {
       $("#implement textarea[name='sbody']").trigger('focus');
-      layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_33 || "", {
+      layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_33') || "", {
         icon: 2
       });
       return;
@@ -326,7 +326,7 @@ function planAdd() {
   }
   if (cron_type == 'toFile') {
     if ($("#viewfile").val() == '') {
-      layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_34 || "", {
+      layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_34') || "", {
         icon: 2
       });
       return;
@@ -335,7 +335,7 @@ function planAdd() {
   var url_address = $("#url_address").val();
   if (cron_type == 'toUrl') {
     if (!isURL(url_address)) {
-      layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_35 || "", {
+      layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_35') || "", {
         icon: 2
       });
       $("implement textarea[name='url_address']").trigger('focus');
@@ -402,7 +402,7 @@ function planAdd() {
     var where1 = $("#ptime input[name='where1']").val();
     $("#cronConfig input[name='where1']").val(where1);
   }
-  layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_36 || "", {
+  layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_36') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -440,7 +440,7 @@ function initDropdownMenu() {
         break;
       case 'day-n':
         closeOpt();
-        toWhere1(lan && lan.crontab && lan.crontab.crontab_auto_str_37 || "");
+        toWhere1(lan && lan.crontab && t('crontab.crontab_auto_str_37') || "");
         toHour();
         toMinute();
         break;
@@ -456,7 +456,7 @@ function initDropdownMenu() {
         break;
       case 'month':
         closeOpt();
-        toWhere1(lan && lan.crontab && lan.crontab.crontab_auto_str_38 || "");
+        toWhere1(lan && lan.crontab && t('crontab.crontab_auto_str_38') || "");
         toHour();
         toMinute();
         break;
@@ -465,21 +465,21 @@ function initDropdownMenu() {
         break;
       case 'toShell':
         toShell();
-        $(".controls").html(lan && lan.crontab && lan.crontab.crontab_auto_str_39 || "");
+        $(".controls").html(lan && lan.crontab && t('crontab.crontab_auto_str_39') || "");
         break;
       case 'rememory':
         rememory();
-        $(".controls").html(lan && lan.crontab && lan.crontab.crontab_auto_str_40 || "");
+        $(".controls").html(lan && lan.crontab && t('crontab.crontab_auto_str_40') || "");
         break;
       case 'site':
         toBackup('sites');
         $('#tag_exclude_dir').show();
-        $(".controls").html(lan && lan.crontab && lan.crontab.crontab_auto_str_41 || "");
+        $(".controls").html(lan && lan.crontab && t('crontab.crontab_auto_str_41') || "");
         break;
       case 'path':
         $('#tag_exclude_dir').show();
         toBackup('path');
-        $(".controls").html(lan && lan.crontab && lan.crontab.crontab_auto_str_42 || "");
+        $(".controls").html(lan && lan.crontab && t('crontab.crontab_auto_str_42') || "");
         break;
       case 'database_mariadb':
       case 'database_mongodb':
@@ -488,15 +488,15 @@ function initDropdownMenu() {
       case 'database_mysql-yum':
       case 'database':
         toBackup(type);
-        $(".controls").html(lan && lan.crontab && lan.crontab.crontab_auto_str_43 || "");
+        $(".controls").html(lan && lan.crontab && t('crontab.crontab_auto_str_43') || "");
         break;
       case 'logs':
         toLogsHtml('logs');
-        $(".controls").html(lan && lan.crontab && lan.crontab.crontab_auto_str_44 || "");
+        $(".controls").html(lan && lan.crontab && t('crontab.crontab_auto_str_44') || "");
         break;
       case 'toUrl':
         toUrl();
-        $(".controls").html(lan && lan.crontab && lan.crontab.crontab_auto_str_45 || "");
+        $(".controls").html(lan && lan.crontab && t('crontab.crontab_auto_str_45') || "");
         break;
     }
   });
@@ -507,7 +507,7 @@ function toLogsHtml(type) {
   var sMsg = "";
   switch (type) {
     case 'sites':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_46 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_46') || "";
       sType = "sites";
       break;
     case 'database_mariadb':
@@ -516,20 +516,20 @@ function toLogsHtml(type) {
     case 'database_mysql-apt':
     case 'database_mysql-yum':
     case 'database':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_47 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_47') || "";
       suffix = type.replace('database', '');
       if (suffix != '') {
         suffix = suffix.replace('_', '');
-        sMsg = (lan && lan.crontab && lan.crontab.crontab_auto_str_48 || "") + suffix + ']';
+        sMsg = (lan && lan.crontab && t('crontab.crontab_auto_str_48') || "") + suffix + ']';
       }
       sType = type;
       break;
     case 'logs':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_49 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_49') || "";
       sType = "logs";
       break;
     case 'path':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_50 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_50') || "";
       sType = "path";
       break;
   }
@@ -541,7 +541,7 @@ function toLogsHtml(type) {
     });
     var sOpt = "";
     if (rdata.data.length == 0) {
-      layer.msg(lan.public.list_empty, {
+      layer.msg(t('public.list_empty'), {
         icon: 2
       });
       return;
@@ -553,7 +553,7 @@ function toLogsHtml(type) {
       sOpt += '<li><a role="menuitem" tabindex="-1" href="javascript:;" value="' + rdata.data[i].name + '">' + rdata.data[i].name + '[' + rdata.data[i].ps + ']</a></li>';
     }
     if (sType != 'path') {
-      sOpt = (lan && lan.crontab && lan.crontab.crontab_auto_str_51 || "") + sOpt;
+      sOpt = (lan && lan.crontab && t('crontab.crontab_auto_str_51') || "") + sOpt;
     }
     var orderOpt = '';
     for (var i = 0; i < rdata.orderOpt.length; i++) {
@@ -569,12 +569,12 @@ function toLogsHtml(type) {
 					  </button>\
 					  <ul class="dropdown-menu" role="menu" aria-labelledby="backdata">' + sOpt + '</ul>\
 					</div>\
-					' + changeDir + (lan && lan.crontab && lan.crontab.crontab_auto_str_52 || "");
+					' + changeDir + (lan && lan.crontab && t('crontab.crontab_auto_str_52') || "");
     $("#implement").html(sBody);
     getselectname();
     $('.changePathDir').on('click', function () {
       changePathCallback($('#sname').val(), function (select_dir) {
-        $(".planname input[name='name']").val((lan && lan.crontab && lan.crontab.crontab_auto_str_53 || "") + select_dir + ']');
+        $(".planname input[name='name']").val((lan && lan.crontab && t('crontab.crontab_auto_str_53') || "") + select_dir + ']');
         $('#implement .sname b').attr('val', select_dir).text(select_dir);
       });
     });
@@ -591,7 +591,7 @@ function toBackup(type) {
   var sMsg = "";
   switch (type) {
     case 'sites':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_54 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_54') || "";
       sType = "sites";
       break;
     case 'database_mariadb':
@@ -600,20 +600,20 @@ function toBackup(type) {
     case 'database_mysql-apt':
     case 'database_mysql-yum':
     case 'database':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_55 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_55') || "";
       suffix = type.replace('database', '');
       if (suffix != '') {
         suffix = suffix.replace('_', '');
-        sMsg = (lan && lan.crontab && lan.crontab.crontab_auto_str_56 || "") + suffix + ']';
+        sMsg = (lan && lan.crontab && t('crontab.crontab_auto_str_56') || "") + suffix + ']';
       }
       sType = type;
       break;
     case 'logs':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_57 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_57') || "";
       sType = "logs";
       break;
     case 'path':
-      sMsg = lan && lan.crontab && lan.crontab.crontab_auto_str_58 || "";
+      sMsg = lan && lan.crontab && t('crontab.crontab_auto_str_58') || "";
       sType = "path";
       break;
   }
@@ -625,7 +625,7 @@ function toBackup(type) {
     });
     var sOpt = "";
     if (rdata.data.length == 0) {
-      layer.msg(lan.public.list_empty, {
+      layer.msg(t('public.list_empty'), {
         icon: 2
       });
       return;
@@ -637,7 +637,7 @@ function toBackup(type) {
       sOpt += '<li><a role="menuitem" tabindex="-1" href="javascript:;" value="' + rdata.data[i].name + '">' + rdata.data[i].name + '[' + rdata.data[i].ps + ']</a></li>';
     }
     if (sType != 'path') {
-      sOpt = (lan && lan.crontab && lan.crontab.crontab_auto_str_59 || "") + sOpt;
+      sOpt = (lan && lan.crontab && t('crontab.crontab_auto_str_59') || "") + sOpt;
     }
     var orderOpt = '';
     for (var i = 0; i < rdata.orderOpt.length; i++) {
@@ -653,12 +653,12 @@ function toBackup(type) {
 		  	</button>\
 		 	<ul class="dropdown-menu" role="menu" aria-labelledby="backdata">' + sOpt + '</ul>\
 		</div>\
-		' + changeDir + (lan && lan.crontab && lan.crontab.crontab_auto_str_60 || "") + orderOpt + (lan && lan.crontab && lan.crontab.crontab_auto_str_61 || "");
+		' + changeDir + (lan && lan.crontab && t('crontab.crontab_auto_str_60') || "") + orderOpt + (lan && lan.crontab && t('crontab.crontab_auto_str_61') || "");
     $("#implement").html(sBody);
     getselectname();
     $('.changePathDir').on('click', function () {
       changePathCallback($('#sname').val(), function (select_dir) {
-        $(".planname input[name='name']").val((lan && lan.crontab && lan.crontab.crontab_auto_str_62 || "") + select_dir + ']');
+        $(".planname input[name='name']").val((lan && lan.crontab && t('crontab.crontab_auto_str_62') || "") + select_dir + ']');
         $('#implement .sname b').attr('val', select_dir).text(select_dir);
       });
     });
@@ -672,7 +672,7 @@ function toBackup(type) {
 
 // 编辑计划任务
 function editTaskInfo(id) {
-  layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_63 || "", {
+  layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_63') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -716,15 +716,15 @@ function editTaskInfo(id) {
         min_end_h: rdata.min_end_h || 23,
         min_end_m: rdata.min_end_m || 59
       },
-      sTypeArray: [['toShell', lan && lan.crontab && lan.crontab.crontab_auto_str_64 || ""], ['site', lan && lan.crontab && lan.crontab.crontab_auto_str_65 || ""], ['database', lan && lan.crontab && lan.crontab.crontab_auto_str_66 || ""], ['logs', lan && lan.crontab && lan.crontab.crontab_auto_str_67 || ""], ['path', lan && lan.crontab && lan.crontab.crontab_auto_str_68 || ""], ['rememory', lan && lan.crontab && lan.crontab.crontab_auto_str_69 || ""], ['toUrl', lan && lan.crontab && lan.crontab.crontab_auto_str_70 || ""]],
-      cycleArray: [['day', lan && lan.crontab && lan.crontab.crontab_auto_str_71 || ""], ['day-n', lan && lan.crontab && lan.crontab.crontab_auto_str_72 || ""], ['minute-n', lan && lan.crontab && lan.crontab.crontab_auto_str_73 || ""], ['week', lan && lan.crontab && lan.crontab.crontab_auto_str_74 || ""], ['month', lan && lan.crontab && lan.crontab.crontab_auto_str_75 || ""]],
-      weekArray: [[1, lan && lan.crontab && lan.crontab.crontab_auto_str_76 || ""], [2, lan && lan.crontab && lan.crontab.crontab_auto_str_77 || ""], [3, lan && lan.crontab && lan.crontab.crontab_auto_str_78 || ""], [4, lan && lan.crontab && lan.crontab.crontab_auto_str_79 || ""], [5, lan && lan.crontab && lan.crontab.crontab_auto_str_80 || ""], [6, lan && lan.crontab && lan.crontab.crontab_auto_str_81 || ""], [7, lan && lan.crontab && lan.crontab.crontab_auto_str_82 || ""]],
+      sTypeArray: [['toShell', lan && lan.crontab && t('crontab.crontab_auto_str_64') || ""], ['site', lan && lan.crontab && t('crontab.crontab_auto_str_65') || ""], ['database', lan && lan.crontab && t('crontab.crontab_auto_str_66') || ""], ['logs', lan && lan.crontab && t('crontab.crontab_auto_str_67') || ""], ['path', lan && lan.crontab && t('crontab.crontab_auto_str_68') || ""], ['rememory', lan && lan.crontab && t('crontab.crontab_auto_str_69') || ""], ['toUrl', lan && lan.crontab && t('crontab.crontab_auto_str_70') || ""]],
+      cycleArray: [['day', lan && lan.crontab && t('crontab.crontab_auto_str_71') || ""], ['day-n', lan && lan.crontab && t('crontab.crontab_auto_str_72') || ""], ['minute-n', lan && lan.crontab && t('crontab.crontab_auto_str_73') || ""], ['week', lan && lan.crontab && t('crontab.crontab_auto_str_74') || ""], ['month', lan && lan.crontab && t('crontab.crontab_auto_str_75') || ""]],
+      weekArray: [[1, lan && lan.crontab && t('crontab.crontab_auto_str_76') || ""], [2, lan && lan.crontab && t('crontab.crontab_auto_str_77') || ""], [3, lan && lan.crontab && t('crontab.crontab_auto_str_78') || ""], [4, lan && lan.crontab && t('crontab.crontab_auto_str_79') || ""], [5, lan && lan.crontab && t('crontab.crontab_auto_str_80') || ""], [6, lan && lan.crontab && t('crontab.crontab_auto_str_81') || ""], [7, lan && lan.crontab && t('crontab.crontab_auto_str_82') || ""]],
       sNameArray: [],
       backupsArray: [],
       create: function (callback) {
         if (obj.from['stype'].indexOf('database_') > -1) {
           name = obj.from['stype'].replace('database_', '');
-          sTypeName = (lan && lan.crontab && lan.crontab.crontab_auto_str_83 || "") + name + ']';
+          sTypeName = (lan && lan.crontab && t('crontab.crontab_auto_str_83') || "") + name + ']';
           sTypeDom += '<li><a role="menuitem"  href="javascript:;" value="' + obj.from['stype'] + '">' + sTypeName + '</a></li>';
         } else {
           for (var i = 0; i < obj['sTypeArray'].length; i++) {
@@ -750,11 +750,11 @@ function editTaskInfo(id) {
             obj.sNameArray = rdata.data;
             obj.sNameArray.unshift({
               name: 'ALL',
-              ps: lan && lan.crontab && lan.crontab.crontab_auto_str_84 || ""
+              ps: lan && lan.crontab && t('crontab.crontab_auto_str_84') || ""
             });
             obj.backupsArray = rdata.orderOpt;
             obj.backupsArray.unshift({
-              title: lan && lan.crontab && lan.crontab.crontab_auto_str_85 || "",
+              title: lan && lan.crontab && t('crontab.crontab_auto_str_85') || "",
               name: 'localhost'
             });
             for (var i = 0; i < obj['sNameArray'].length; i++) {
@@ -781,18 +781,18 @@ function editTaskInfo(id) {
       if (obj.from.stype == 'path') {
         changeDir = '<span class="glyphicon glyphicon-folder-open cursor mr20 changePathDir" style="float:left;line-height: 30px;"></span>';
       }
-      var exclude_dirs_placeholder = lan && lan.crontab && lan.crontab.crontab_auto_str_86 || "";
+      var exclude_dirs_placeholder = lan && lan.crontab && t('crontab.crontab_auto_str_86') || "";
       layer.open({
         type: 1,
-        title: (lan && lan.crontab && lan.crontab.crontab_auto_str_87 || "") + rdata.name + ']',
+        title: (lan && lan.crontab && t('crontab.crontab_auto_str_87') || "") + rdata.name + ']',
         area: ['900px', '640px'],
         skin: 'layer-create-content',
         shadeClose: false,
         closeBtn: 1,
-        content: (lan && lan.crontab && lan.crontab.crontab_auto_str_88 || "") + obj.from.type + '">' + sTypeName + '</b>\
+        content: (lan && lan.crontab && t('crontab.crontab_auto_str_88') || "") + obj.from.type + '">' + sTypeName + '</b>\
 								<span class="caret"></span>\
 							</button>\
-							<ul class="dropdown-menu" role="menu" aria-labelledby="sType">' + sTypeDom + (lan && lan.crontab && lan.crontab.crontab_auto_str_89 || "") + obj.from.name + (lan && lan.crontab && lan.crontab.crontab_auto_str_90 || "") + obj.from.stype + '">' + cycleName + '</b>\
+							<ul class="dropdown-menu" role="menu" aria-labelledby="sType">' + sTypeDom + (lan && lan.crontab && t('crontab.crontab_auto_str_89') || "") + obj.from.name + (lan && lan.crontab && t('crontab.crontab_auto_str_90') || "") + obj.from.stype + '">' + cycleName + '</b>\
 								<span class="caret"></span>\
 							</button>\
 							<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">' + cycleDom + '</ul>\
@@ -805,10 +805,10 @@ function editTaskInfo(id) {
 								</button>\
 								<ul class="dropdown-menu" role="menu" aria-labelledby="week">' + weekDom + '</ul>\
 							</div>\
-							<div class="plan_hms pull-left mr20 bt-input-text where1_input" style="display:' + (obj.from.type == "day-n" || obj.from.type == 'month' ? 'block;' : 'none') + '"><span><input type="number" name="where1" class="where1_create" value="' + obj.from.where1 + (lan && lan.crontab && lan.crontab.crontab_auto_str_91 || "") + (obj.from.type == "day" || obj.from.type == 'day-n' || obj.from.type == 'hour-n' || obj.from.type == 'week' || obj.from.type == 'month' ? 'block;' : 'none') + '"><span><input type="number" name="hour" class="hour_create" value="' + (obj.from.type == 'hour-n' ? obj.from.where1 : obj.from.hour) + (lan && lan.crontab && lan.crontab.crontab_auto_str_92 || "") + (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute) + (lan && lan.crontab && lan.crontab.crontab_auto_str_93 || "") + (obj.from.type == "minute-n" ? 'block;' : 'none') + (lan && lan.crontab && lan.crontab.crontab_auto_str_94 || "") + (obj.from.min_start_en == 1 ? 'checked' : '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_95 || "") + obj.from.min_start_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+							<div class="plan_hms pull-left mr20 bt-input-text where1_input" style="display:' + (obj.from.type == "day-n" || obj.from.type == 'month' ? 'block;' : 'none') + '"><span><input type="number" name="where1" class="where1_create" value="' + obj.from.where1 + (lan && lan.crontab && t('crontab.crontab_auto_str_91') || "") + (obj.from.type == "day" || obj.from.type == 'day-n' || obj.from.type == 'hour-n' || obj.from.type == 'week' || obj.from.type == 'month' ? 'block;' : 'none') + '"><span><input type="number" name="hour" class="hour_create" value="' + (obj.from.type == 'hour-n' ? obj.from.where1 : obj.from.hour) + (lan && lan.crontab && t('crontab.crontab_auto_str_92') || "") + (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute) + (lan && lan.crontab && t('crontab.crontab_auto_str_93') || "") + (obj.from.type == "minute-n" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_94') || "") + (obj.from.min_start_en == 1 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_95') || "") + obj.from.min_start_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
 							<input type="number" name="min_start_m_create" value="' + obj.from.min_start_m + '" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px; margin-right: 15px;">\
-							<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en_create" value="1" ' + (obj.from.min_end_en == 1 ? 'checked' : '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_96 || "") + obj.from.min_end_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
-							<input type="number" name="min_end_m_create" value="' + obj.from.min_end_m + (lan && lan.crontab && lan.crontab.crontab_auto_str_97 || "") + (obj.from.day_type == 0 ? 'checked' : '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_98 || "") + (obj.from.day_type == 1 ? 'checked' : '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_99 || "") + (obj.from.day_type == 2 ? 'checked' : '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_100 || "") + (obj.from.day_type == 3 ? 'checked' : '') + (lan && lan.crontab && lan.crontab.crontab_auto_str_101 || "") + sTypeName + '</span>\
+							<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en_create" value="1" ' + (obj.from.min_end_en == 1 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_96') || "") + obj.from.min_end_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+							<input type="number" name="min_end_m_create" value="' + obj.from.min_end_m + (lan && lan.crontab && t('crontab.crontab_auto_str_97') || "") + (obj.from.day_type == 0 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_98') || "") + (obj.from.day_type == 1 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_99') || "") + (obj.from.day_type == 2 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_100') || "") + (obj.from.day_type == 3 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_101') || "") + sTypeName + '</span>\
 						<div style="line-height:34px"><div class="dropdown pull-left mr20 sName_btn" style="display:' + (obj.from.sType != "path" ? 'block;' : 'none') + '">\
 							<button class="btn btn-default dropdown-toggle sname" type="button"  data-toggle="dropdown" style="width:auto" disabled="disabled">\
 								<b id="sName" val="' + obj.from.sname + '">' + obj.from.sname + '</b>\
@@ -817,18 +817,18 @@ function editTaskInfo(id) {
 							<ul class="dropdown-menu" role="menu" aria-labelledby="sName">' + sNameDom + '</ul>\
 						</div>\
 						<div class="info-r" style="float: left;margin-right: 25px;display:' + (obj.from.sType == "path" ? 'block;' : 'none') + '">\
-							<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="' + obj.from.sName + (lan && lan.crontab && lan.crontab.crontab_auto_str_102 || "") + changeDir + (lan && lan.crontab && lan.crontab.crontab_auto_str_103 || "") + obj.from.backup_to + '">' + backupsName + '</b>\
+							<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="' + obj.from.sName + (lan && lan.crontab && t('crontab.crontab_auto_str_102') || "") + changeDir + (lan && lan.crontab && t('crontab.crontab_auto_str_103') || "") + obj.from.backup_to + '">' + backupsName + '</b>\
 									<span class="caret"></span>\
 								</button>\
-								<ul class="dropdown-menu" role="menu" aria-labelledby="backupTo">' + backupsDom + (lan && lan.crontab && lan.crontab.crontab_auto_str_104 || "") + obj.from.save + (lan && lan.crontab && lan.crontab.crontab_auto_str_105 || "") + (obj.from.stype == "toShell" ? 'block;' : 'none') + (lan && lan.crontab && lan.crontab.crontab_auto_str_106 || "") + obj.from.sbody + '</textarea></div>\
+								<ul class="dropdown-menu" role="menu" aria-labelledby="backupTo">' + backupsDom + (lan && lan.crontab && t('crontab.crontab_auto_str_104') || "") + obj.from.save + (lan && lan.crontab && t('crontab.crontab_auto_str_105') || "") + (obj.from.stype == "toShell" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_106') || "") + obj.from.sbody + '</textarea></div>\
 					</div>\
-					<div class="clearfix plan ptb10"  style="display:' + (obj.from.stype == "path" || obj.from.stype == "site" ? 'block;' : 'none') + (lan && lan.crontab && lan.crontab.crontab_auto_str_107 || "") + exclude_dirs_placeholder + '">' + obj.from.attr + '</textarea></div>\
+					<div class="clearfix plan ptb10"  style="display:' + (obj.from.stype == "path" || obj.from.stype == "site" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_107') || "") + exclude_dirs_placeholder + '">' + obj.from.attr + '</textarea></div>\
 					</div>\
-					<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "rememory" ? 'block;' : 'none') + (lan && lan.crontab && lan.crontab.crontab_auto_str_108 || "") + (obj.from.stype == "toUrl" ? 'block;' : 'none') + (lan && lan.crontab && lan.crontab.crontab_auto_str_109 || "") + obj.from.url_address + (lan && lan.crontab && lan.crontab.crontab_auto_str_110 || ""),
+					<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "rememory" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_108') || "") + (obj.from.stype == "toUrl" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_109') || "") + obj.from.url_address + (lan && lan.crontab && t('crontab.crontab_auto_str_110') || ""),
         success: function () {
           $('.changePathDir').on('click', function () {
             changePathCallback($('#sName').val(), function (select_dir) {
-              $('input[name="name"]').val((lan && lan.crontab && lan.crontab.crontab_auto_str_111 || "") + select_dir + ']');
+              $('input[name="name"]').val((lan && lan.crontab && t('crontab.crontab_auto_str_111') || "") + select_dir + ']');
               $('.sName_btn .sname b').attr('val', select_dir).text(select_dir);
               obj.from.sname = select_dir;
             });
@@ -955,7 +955,7 @@ function editTaskInfo(id) {
             } else if (obj.from.type == 'week') {
               obj.from.where1 = obj.from.week;
             }
-            var loadT = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_112 || "", {
+            var loadT = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_112') || "", {
               icon: 16,
               time: 0,
               shade: [0.3, '#000']
@@ -999,7 +999,7 @@ function closeOpt() {
 }
 //星期
 function toWeek() {
-  var mBody = lan && lan.crontab && lan.crontab.crontab_auto_str_113 || "";
+  var mBody = lan && lan.crontab && t('crontab.crontab_auto_str_113') || "";
   $("#ptime").html(mBody);
   getselectname();
 }
@@ -1014,25 +1014,25 @@ function toWhere1(ix) {
 
 //N分钟特别带上下限
 function toMinuteN() {
-  var mBody = lan && lan.crontab && lan.crontab.crontab_auto_str_114 || "";
+  var mBody = lan && lan.crontab && t('crontab.crontab_auto_str_114') || "";
   $("#ptime").append(mBody);
 }
 
 //小时
 function toHour() {
-  var mBody = lan && lan.crontab && lan.crontab.crontab_auto_str_115 || "";
+  var mBody = lan && lan.crontab && t('crontab.crontab_auto_str_115') || "";
   $("#ptime").append(mBody);
 }
 
 //分钟
 function toMinute() {
-  var mBody = lan && lan.crontab && lan.crontab.crontab_auto_str_116 || "";
+  var mBody = lan && lan.crontab && t('crontab.crontab_auto_str_116') || "";
   $("#ptime").append(mBody);
 }
 
 //从文件
 function toFile() {
-  var tBody = lan && lan.crontab && lan.crontab.crontab_auto_str_117 || "";
+  var tBody = lan && lan.crontab && t('crontab.crontab_auto_str_117') || "";
   $("#implement").html(tBody);
   $(".planname input[name='name']").removeAttr('readonly style').val("");
 }
@@ -1046,7 +1046,7 @@ function toShell() {
 
 //从脚本
 function toUrl() {
-  var tBody = "<input type='text' style='width:400px; height:34px' class='bt-input-text' name='url_address' id='url_address' placeholder='" + lan.crontab.url_address + "' value='http://' />";
+  var tBody = "<input type='text' style='width:400px; height:34px' class='bt-input-text' name='url_address' id='url_address' placeholder='" + t('crontab.url_address') + "' value='http://' />";
   $("#implement").html(tBody);
   $(".planname input[name='name']").removeAttr('readonly style').val("");
 }
@@ -1054,8 +1054,8 @@ function toUrl() {
 //释放内存
 function rememory() {
   $(".planname input[name='name']").removeAttr('readonly style').val("");
-  $(".planname input[name='name']").val(lan && lan.crontab && lan.crontab.crontab_auto_str_118 || "");
-  $("#implement").html(lan && lan.crontab && lan.crontab.crontab_auto_str_119 || "");
+  $(".planname input[name='name']").val(lan && lan.crontab && t('crontab.crontab_auto_str_118') || "");
+  $("#implement").html(lan && lan.crontab && t('crontab.crontab_auto_str_119') || "");
   return;
 }
 //上传
@@ -1070,13 +1070,13 @@ function fileupload() {
 function showAddTask() {
   var index = layer.open({
     type: 1,
-    title: lan && lan.crontab && lan.crontab.crontab_auto_str_120 || "",
+    title: lan && lan.crontab && t('crontab.crontab_auto_str_120') || "",
     area: ['900px', '650px'],
     skin: 'layer-create-content',
     shadeClose: false,
     closeBtn: 1,
     content: $('#add_task_form_box'),
-    btn: [lan && lan.crontab && lan.crontab.crontab_auto_str_121 || "", lan && lan.crontab && lan.crontab.crontab_auto_str_122 || ""],
+    btn: [lan && lan.crontab && t('crontab.crontab_auto_str_121') || "", lan && lan.crontab && t('crontab.crontab_auto_str_122') || ""],
     success: function (layero, index) {
       $('#add_task_form_box').show();
       // 重置一下状态
@@ -1108,7 +1108,7 @@ function getCronSort(name) {
 
 // 导出计划任务
 function exportTasks() {
-  var load = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_123 || "", {
+  var load = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_123') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1116,7 +1116,7 @@ function exportTasks() {
   $.post("/crontab/list?p=1&limit=1000", '', function (rdata) {
     layer.close(load);
     if (!rdata.data || rdata.data.length == 0) {
-      layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_124 || "", {
+      layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_124') || "", {
         icon: 2
       });
       return;
@@ -1152,7 +1152,7 @@ function exportTasks() {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
     window.URL.revokeObjectURL(url);
-    layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_125 || "", {
+    layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_125') || "", {
       icon: 1
     });
   }, 'json');
@@ -1173,20 +1173,20 @@ function processImport(obj) {
     try {
       var tasks = JSON.parse(contents);
       if (!Array.isArray(tasks)) {
-        layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_126 || "", {
+        layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_126') || "", {
           icon: 2
         });
         return;
       }
-      layer.confirm((lan && lan.crontab && lan.crontab.crontab_auto_str_127 || "") + tasks.length + (lan && lan.crontab && lan.crontab.crontab_auto_str_128 || ""), {
+      layer.confirm((lan && lan.crontab && t('crontab.crontab_auto_str_127') || "") + tasks.length + (lan && lan.crontab && t('crontab.crontab_auto_str_128') || ""), {
         icon: 3,
-        title: lan && lan.crontab && lan.crontab.crontab_auto_str_129 || ""
+        title: lan && lan.crontab && t('crontab.crontab_auto_str_129') || ""
       }, function (index) {
         layer.close(index);
         importTaskSequential(tasks, 0);
       });
     } catch (err) {
-      layer.msg((lan && lan.crontab && lan.crontab.crontab_auto_str_130 || "") + err, {
+      layer.msg((lan && lan.crontab && t('crontab.crontab_auto_str_130') || "") + err, {
         icon: 2
       });
     }
@@ -1198,14 +1198,14 @@ function processImport(obj) {
 // 顺序导入任务以避免并发冲突
 function importTaskSequential(tasks, index) {
   if (index >= tasks.length) {
-    layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_131 || "", {
+    layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_131') || "", {
       icon: 1
     });
     getCronData(1);
     return;
   }
   var task = tasks[index];
-  var load = layer.msg((lan && lan.crontab && lan.crontab.crontab_auto_str_132 || "") + (index + 1) + '/' + tasks.length + '): ' + task.name, {
+  var load = layer.msg((lan && lan.crontab && t('crontab.crontab_auto_str_132') || "") + (index + 1) + '/' + tasks.length + '): ' + task.name, {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1216,7 +1216,7 @@ function importTaskSequential(tasks, index) {
   $.post('/crontab/add', task, function (rdata) {
     layer.close(load);
     if (!rdata.status) {
-      console.log((lan && lan.crontab && lan.crontab.crontab_auto_str_133 || "") + task.name + ' - ' + rdata.msg);
+      console.log((lan && lan.crontab && t('crontab.crontab_auto_str_133') || "") + task.name + ' - ' + rdata.msg);
     }
     importTaskSequential(tasks, index + 1);
   }, 'json').fail(function () {
@@ -1227,12 +1227,12 @@ function importTaskSequential(tasks, index) {
 
 // 从服务器同步计划任务
 function syncServerTasks() {
-  layer.confirm(lan && lan.crontab && lan.crontab.crontab_auto_str_134 || "", {
+  layer.confirm(lan && lan.crontab && t('crontab.crontab_auto_str_134') || "", {
     icon: 3,
-    title: lan && lan.crontab && lan.crontab.crontab_auto_str_135 || ""
+    title: lan && lan.crontab && t('crontab.crontab_auto_str_135') || ""
   }, function (index) {
     layer.close(index);
-    var load = layer.msg(lan && lan.crontab && lan.crontab.crontab_auto_str_136 || "", {
+    var load = layer.msg(lan && lan.crontab && t('crontab.crontab_auto_str_136') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']

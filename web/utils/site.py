@@ -164,8 +164,7 @@ class sites(object):
             isError = yf.checkWebConfig()
             if isError != True:
                 yf.restoreFile(path)
-                msg = 'ERROR: 检测到配置文件有错误,请先排除后再操作<br><br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
-                return yf.returnData(False, msg)
+                return yf.returnData(False, 'site.py_msg_config_error', None, isError.replace("\n", '<br>'))
             yf.restartWeb()
             yf.removeBackFile(path)
         return rdata
@@ -373,8 +372,7 @@ class sites(object):
     def addDomain(self, site_id, site_name, domain):
         isError = yf.checkWebConfig()
         if isError != True:
-            msg = 'ERROR: 检测到配置文件有错误,请先排除后再操作<br><br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
-            return yf.returnData(False, msg)
+            return yf.returnData(False, 'site.py_msg_config_error', None, isError.replace("\n", '<br>'))
 
         domains = domain.split(',')
         for d in domains:
@@ -586,8 +584,7 @@ class sites(object):
             yf.restoreFile(keypath)
             yf.restoreFile(csrpath)
 
-            msg = 'ERROR: <br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
-            return yf.returnData(False, msg)
+            return yf.returnData(False, 'site.py_msg_error_output', None, isError.replace("\n", '<br>'))
 
         yf.writeLog('网站管理', '证书已保存!')
         yf.restartWeb()
@@ -720,8 +717,7 @@ class sites(object):
         isError = yf.checkWebConfig()
         if(type(isError) == str):
             yf.restoreFile(path)
-            msg = 'ERROR: <br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
-            return yf.returnJson(False, msg)
+            return yf.returnJson(False, 'site.py_msg_error_output', None, isError.replace("\n", '<br>'))
         yf.restartWeb()
         return yf.returnData(True, 'common.set_success')
 
@@ -961,8 +957,7 @@ class sites(object):
         isError = yf.checkWebConfig()
         if isError != True:
             yf.restoreFile(filename)
-            msg = 'ERROR: <br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
-            return yf.returnData(False, msg)
+            return yf.returnData(False, 'site.py_msg_error_output', None, isError.replace("\n", '<br>'))
 
         thisdb.addBinding(site_id,domain,port,dir_name)
         msg = yf.getInfo('网站[{1}]子目录[{2}]绑定到[{3}]',(info['name'], dir_name, domain))

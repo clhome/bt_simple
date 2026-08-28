@@ -37,7 +37,7 @@ $('#panelLogs .clear').on('click', function () {
   delLogs(1);
 });
 function getAuditLogsFiles() {
-  var loadT = layer.msg(lan && lan.logs && lan.logs.logs_auto_str_1 || "", {
+  var loadT = layer.msg(lan && lan.logs && t('logs.logs_auto_str_1') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -64,7 +64,7 @@ function getAuditLogsFiles() {
   }, 'json');
 }
 function getAuditFile(log_name) {
-  var loadT = layer.msg(lan && lan.logs && lan.logs.logs_auto_str_2 || "", {
+  var loadT = layer.msg(lan && lan.logs && t('logs.logs_auto_str_2') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -77,7 +77,7 @@ function getAuditFile(log_name) {
     try {
       if (typeof data == 'object') {
         var plist = data.data;
-        var pre_html = lan && lan.logs && lan.logs.logs_auto_str_3 || "";
+        var pre_html = lan && lan.logs && t('logs.logs_auto_str_3') || "";
 
         // var pre_html = '<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">\
         //         <thead><tr><th>时间</th><th>角色</th><th>事件</th></tr></thead>\
@@ -141,11 +141,11 @@ function getLogs(page, search) {
   }, 'json');
 }
 function delLogs() {
-  layer.confirm(lan && lan.logs && lan.logs.logs_auto_str_4 || "", {
-    title: lan && lan.logs && lan.logs.logs_auto_str_5 || "",
+  layer.confirm(lan && lan.logs && t('logs.logs_auto_str_4') || "", {
+    title: lan && lan.logs && t('logs.logs_auto_str_5') || "",
     closeBtn: 2
   }, function () {
-    var loadT = layer.msg(lan && lan.logs && lan.logs.logs_auto_str_6 || "", {
+    var loadT = layer.msg(lan && lan.logs && t('logs.logs_auto_str_6') || "", {
       icon: 16
     });
     $.post('/logs/del_panel_logs', '', function (rdata) {

@@ -12,7 +12,7 @@ function resetPluginWinHeight(height) {
 //软件管理窗口
 function softMain(name, title, version) {
   var _title = title.replace('-' + version, '');
-  var loadT = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_1 || "", {
+  var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_1') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -22,7 +22,7 @@ function softMain(name, title, version) {
     layer.open({
       type: 1,
       area: '640px',
-      title: _title + '【' + version + (lan && lan.soft && lan.soft.soft_auto_str_2 || ""),
+      title: _title + '【' + version + (lan && lan.soft && t('soft.soft_auto_str_2') || ""),
       closeBtn: 1,
       shift: 0,
       content: rdata
@@ -40,11 +40,11 @@ function toggleThirdParty(isChecked) {
   getSList(1);
 }
 function clearPluginCache() {
-  layer.confirm(lan && lan.soft && lan.soft.soft_auto_str_3 || "", {
-    title: lan && lan.soft && lan.soft.soft_auto_str_4 || "",
+  layer.confirm(lan && lan.soft && t('soft.soft_auto_str_3') || "", {
+    title: lan && lan.soft && t('soft.soft_auto_str_4') || "",
     icon: 3
   }, function (index) {
-    var loadT = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_5 || "", {
+    var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_5') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -62,7 +62,7 @@ function clearPluginCache() {
 //取软件列表
 function getSList(isdisplay) {
   if (isdisplay !== true) {
-    var loadT = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_6 || "", {
+    var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_6') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -137,7 +137,7 @@ function getSList(isdisplay) {
       if (version_info != '') {
         version_info = version_info.substring(0, version_info.length - 1);
       }
-      var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + (lan && lan.soft && lan.soft.soft_auto_str_7 || "");
+      var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + (lan && lan.soft && t('soft.soft_auto_str_7') || "");
       if (plugin.setup == true) {
         var mupdate = '';
         var latest_version = '';
@@ -170,11 +170,11 @@ function getSList(isdisplay) {
               }
             }
             if (needUpdate) {
-              mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + (lan && lan.soft && lan.soft.soft_auto_str_8 || "");
+              mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + (lan && lan.soft && t('soft.soft_auto_str_8') || "");
             }
           }
         }
-        handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + (lan && lan.soft && lan.soft.soft_auto_str_9 || "") + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection + (lan && lan.soft && lan.soft.soft_auto_str_10 || "");
+        handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + (lan && lan.soft && t('soft.soft_auto_str_9') || "") + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection + (lan && lan.soft && t('soft.soft_auto_str_10') || "");
         titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
         if (plugin.coexist) {
@@ -197,24 +197,24 @@ function getSList(isdisplay) {
         }
       }
       if (plugin.task == '-2') {
-        handle = lan && lan.soft && lan.soft.soft_auto_str_11 || "";
+        handle = lan && lan.soft && t('soft.soft_auto_str_11') || "";
       } else if (plugin.task == '-1') {
-        handle = lan && lan.soft && lan.soft.soft_auto_str_12 || "";
+        handle = lan && lan.soft && t('soft.soft_auto_str_12') || "";
       } else if (plugin.task == '0') {
-        handle = lan && lan.soft && lan.soft.soft_auto_str_13 || "";
+        handle = lan && lan.soft && t('soft.soft_auto_str_13') || "";
       }
       var plugin_title = plugin.title;
       if (plugin.setup && !plugin.coexist) {
         plugin_title = plugin.title + ' ' + plugin.setup_version;
       }
       if (plugin.display_level == 1) {
-        plugin_title += lan && lan.soft && lan.soft.soft_auto_str_14 || "";
+        plugin_title += lan && lan.soft && t('soft.soft_auto_str_14') || "";
       }
       icon_link = "/plugins/file?name=" + plugin.name + "&f=ico.png";
       if (plugin.icon != '') {
         icon_link = "/plugins/file?name=" + plugin.name + "&f=" + plugin.icon;
       }
-      sBody += '<tr>' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + plugin.ps + '</td>' + '<td>' + (plugin.home ? '<a class="btlink" href="' + plugin.home + (lan && lan.soft && lan.soft.soft_auto_str_15 || "") : '-') + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td>' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
+      sBody += '<tr>' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + plugin.ps + '</td>' + '<td>' + (plugin.home ? '<a class="btlink" href="' + plugin.home + (lan && lan.soft && t('soft.soft_auto_str_15') || "") : '-') + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td>' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
     }
     sBody += pBody;
     $("#softList").html(sBody);
@@ -246,7 +246,7 @@ function getSList(isdisplay) {
   }, 'json');
 }
 function installPreInspection(name, ver, callback) {
-  var loading = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_16 || "", {
+  var loading = layer.msg(lan && lan.soft && t('soft.soft_auto_str_16') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -273,7 +273,7 @@ function installPreInspection(name, ver, callback) {
   }, 'json');
 }
 function runInstall(data) {
-  var loadT = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_17 || "", {
+  var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_17') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -307,12 +307,12 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
     var layerArea = customHtml ? '540px' : '380px';
     layer.open({
       type: 1,
-      title: (lan && lan.soft && lan.soft.soft_auto_str_18 || "") + titlename,
+      title: (lan && lan.soft && t('soft.soft_auto_str_18') || "") + titlename,
       area: layerArea,
       closeBtn: 1,
       shadeClose: true,
-      btn: [lan && lan.soft && lan.soft.soft_auto_str_19 || "", lan && lan.soft && lan.soft.soft_auto_str_20 || ""],
-      content: (lan && lan.soft && lan.soft.soft_auto_str_21 || "") + option + "</div>" + customHtml + "\
+      btn: [lan && lan.soft && t('soft.soft_auto_str_19') || "", lan && lan.soft && t('soft.soft_auto_str_20') || ""],
+      content: (lan && lan.soft && t('soft.soft_auto_str_21') || "") + option + "</div>" + customHtml + "\
             </div>",
       success: function () {
         $('.fangshi input').on('click', function () {
@@ -349,12 +349,12 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
   }).fail(function () {
     layer.open({
       type: 1,
-      title: (lan && lan.soft && lan.soft.soft_auto_str_22 || "") + titlename,
+      title: (lan && lan.soft && t('soft.soft_auto_str_22') || "") + titlename,
       area: '380px',
       closeBtn: 1,
       shadeClose: true,
-      btn: [lan && lan.soft && lan.soft.soft_auto_str_23 || "", lan && lan.soft && lan.soft.soft_auto_str_24 || ""],
-      content: (lan && lan.soft && lan.soft.soft_auto_str_25 || "") + option + "</div>\
+      btn: [lan && lan.soft && t('soft.soft_auto_str_23') || "", lan && lan.soft && t('soft.soft_auto_str_24') || ""],
+      content: (lan && lan.soft && t('soft.soft_auto_str_25') || "") + option + "</div>\
             </div>",
       success: function () {
         $('.fangshi input').on('click', function () {
@@ -390,26 +390,26 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 
 // 强制删除插件
 function forceUninstallPlugin(name, version) {
-  var contentHtml = (lan && lan.soft && lan.soft.soft_auto_str_26 || "") + name + (lan && lan.soft && lan.soft.soft_auto_str_27 || "") + name + (lan && lan.soft && lan.soft.soft_auto_str_28 || "");
+  var contentHtml = (lan && lan.soft && t('soft.soft_auto_str_26') || "") + name + (lan && lan.soft && t('soft.soft_auto_str_27') || "") + name + (lan && lan.soft && t('soft.soft_auto_str_28') || "");
   layer.open({
     type: 1,
-    title: lan && lan.soft && lan.soft.soft_auto_str_29 || "",
+    title: lan && lan.soft && t('soft.soft_auto_str_29') || "",
     area: '420px',
     closeBtn: 1,
     shadeClose: false,
-    btn: [lan && lan.soft && lan.soft.soft_auto_str_30 || "", lan && lan.soft && lan.soft.soft_auto_str_31 || ""],
+    btn: [lan && lan.soft && t('soft.soft_auto_str_30') || "", lan && lan.soft && t('soft.soft_auto_str_31') || ""],
     content: contentHtml,
     yes: function (index, layero) {
       var confirmName = String($("#force_uninstall_confirm_name").val()).trim();
       if (confirmName !== name) {
-        layer.msg(lan && lan.soft && lan.soft.soft_auto_str_32 || "", {
+        layer.msg(lan && lan.soft && t('soft.soft_auto_str_32') || "", {
           icon: 2
         });
         return false;
       }
       var isBackup = $("#force_uninstall_backup_chk").prop("checked") ? 1 : 0;
       layer.close(index);
-      var forceLoad = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_33 || "", {
+      var forceLoad = layer.msg(lan && lan.soft && t('soft.soft_auto_str_33') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -432,7 +432,7 @@ function forceUninstallPlugin(name, version) {
 
 //卸载软件
 function uninstallPreInspection(name, title, ver, callback) {
-  var loading = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_34 || "", {
+  var loading = layer.msg(lan && lan.soft && t('soft.soft_auto_str_34') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -449,21 +449,21 @@ function uninstallPreInspection(name, title, ver, callback) {
           callback();
         }
       } else {
-        layer.confirm(rdata.data + (lan && lan.soft && lan.soft.soft_auto_str_35 || ""), {
-          title: lan && lan.soft && lan.soft.soft_auto_str_36 || "",
+        layer.confirm(rdata.data + (lan && lan.soft && t('soft.soft_auto_str_35') || ""), {
+          title: lan && lan.soft && t('soft.soft_auto_str_36') || "",
           icon: 2,
           closeBtn: 1,
-          btn: [lan && lan.soft && lan.soft.soft_auto_str_37 || "", lan && lan.soft && lan.soft.soft_auto_str_38 || ""]
+          btn: [lan && lan.soft && t('soft.soft_auto_str_37') || "", lan && lan.soft && t('soft.soft_auto_str_38') || ""]
         }, function () {
           forceUninstallPlugin(name, ver);
         });
       }
     } else {
-      layer.confirm(rdata.data + (lan && lan.soft && lan.soft.soft_auto_str_39 || ""), {
-        title: lan && lan.soft && lan.soft.soft_auto_str_40 || "",
+      layer.confirm(rdata.data + (lan && lan.soft && t('soft.soft_auto_str_39') || ""), {
+        title: lan && lan.soft && t('soft.soft_auto_str_40') || "",
         icon: 2,
         closeBtn: 1,
-        btn: [lan && lan.soft && lan.soft.soft_auto_str_41 || "", lan && lan.soft && lan.soft.soft_auto_str_42 || ""]
+        btn: [lan && lan.soft && t('soft.soft_auto_str_41') || "", lan && lan.soft && t('soft.soft_auto_str_42') || ""]
       }, function () {
         forceUninstallPlugin(name, ver);
       });
@@ -472,20 +472,20 @@ function uninstallPreInspection(name, title, ver, callback) {
 }
 function runUninstallVersion(name, title, version) {
   var title = title.replace("-" + version, "");
-  var contentHtml = (lan && lan.soft && lan.soft.soft_auto_str_43 || "") + title + "-" + version + (lan && lan.soft && lan.soft.soft_auto_str_44 || "");
+  var contentHtml = (lan && lan.soft && t('soft.soft_auto_str_43') || "") + title + "-" + version + (lan && lan.soft && t('soft.soft_auto_str_44') || "");
   layer.open({
     type: 1,
-    title: lan && lan.soft && lan.soft.soft_auto_str_45 || "",
+    title: lan && lan.soft && t('soft.soft_auto_str_45') || "",
     area: '400px',
     closeBtn: 1,
     shadeClose: false,
-    btn: [lan && lan.soft && lan.soft.soft_auto_str_46 || "", lan && lan.soft && lan.soft.soft_auto_str_47 || ""],
+    btn: [lan && lan.soft && t('soft.soft_auto_str_46') || "", lan && lan.soft && t('soft.soft_auto_str_47') || ""],
     content: contentHtml,
     yes: function (index, layero) {
       var isBackup = $("#normal_uninstall_backup_chk").prop("checked") ? 1 : 0;
       layer.close(index);
       var data = 'name=' + name + '&version=' + version + '&backup=' + isBackup;
-      var loadT = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_48 || "", {
+      var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_48') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -498,11 +498,11 @@ function runUninstallVersion(name, title, version) {
             icon: 1
           });
         } else {
-          layer.confirm(rdata.msg + (lan && lan.soft && lan.soft.soft_auto_str_49 || ""), {
-            title: lan && lan.soft && lan.soft.soft_auto_str_50 || "",
+          layer.confirm(rdata.msg + (lan && lan.soft && t('soft.soft_auto_str_49') || ""), {
+            title: lan && lan.soft && t('soft.soft_auto_str_50') || "",
             icon: 2,
             closeBtn: 1,
-            btn: [lan && lan.soft && lan.soft.soft_auto_str_51 || "", lan && lan.soft && lan.soft.soft_auto_str_52 || ""]
+            btn: [lan && lan.soft && t('soft.soft_auto_str_51') || "", lan && lan.soft && t('soft.soft_auto_str_52') || ""]
           }, function () {
             forceUninstallPlugin(name, version);
           });
@@ -658,7 +658,7 @@ function indexSoft(onFirstRender) {
     $("input[name=list1SortOrder]").val(ssort);
     $.post("/plugins/index_sort", 'ssort=' + ssort, function (rdata) {
       if (!rdata.status) {
-        showMsg((lan && lan.soft && lan.soft.soft_auto_str_53 || "") + rdata.msg, function () {
+        showMsg((lan && lan.soft && t('soft.soft_auto_str_53') || "") + rdata.msg, function () {
           indexListHtml();
         }, {
           icon: 16,
@@ -701,22 +701,22 @@ function importPlugin(file) {
       var loadT = layer.open({
         type: 1,
         area: "500px",
-        title: lan && lan.soft && lan.soft.soft_auto_str_54 || "",
+        title: lan && lan.soft && t('soft.soft_auto_str_54') || "",
         closeBtn: 1,
         shift: 5,
         shadeClose: false,
-        content: (lan && lan.soft && lan.soft.soft_auto_str_55 || "") + data.title + (lan && lan.soft && lan.soft.soft_auto_str_56 || "") + data.versions + (lan && lan.soft && lan.soft.soft_auto_str_57 || "") + data.ps + (lan && lan.soft && lan.soft.soft_auto_str_58 || "") + toSize(data.size) + (lan && lan.soft && lan.soft.soft_auto_str_59 || "") + data.author + (lan && lan.soft && lan.soft.soft_auto_str_60 || "") + data.home + '" target="_blank">' + data.home + (lan && lan.soft && lan.soft.soft_auto_str_61 || "") + data.name + '\',\'' + data.tmp_path + (lan && lan.soft && lan.soft.soft_auto_str_62 || "")
+        content: (lan && lan.soft && t('soft.soft_auto_str_55') || "") + data.title + (lan && lan.soft && t('soft.soft_auto_str_56') || "") + data.versions + (lan && lan.soft && t('soft.soft_auto_str_57') || "") + data.ps + (lan && lan.soft && t('soft.soft_auto_str_58') || "") + toSize(data.size) + (lan && lan.soft && t('soft.soft_auto_str_59') || "") + data.author + (lan && lan.soft && t('soft.soft_auto_str_60') || "") + data.home + '" target="_blank">' + data.home + (lan && lan.soft && t('soft.soft_auto_str_61') || "") + data.name + '\',\'' + data.tmp_path + (lan && lan.soft && t('soft.soft_auto_str_62') || "")
       });
     },
     error: function (responseStr) {
-      layer.msg((lan && lan.soft && lan.soft.soft_auto_str_63 || "") + responseStr, {
+      layer.msg((lan && lan.soft && t('soft.soft_auto_str_63') || "") + responseStr, {
         icon: 2
       });
     }
   });
 }
 function importPluginInstall(plugin_name, tmp_path) {
-  layer.msg(lan && lan.soft && lan.soft.soft_auto_str_64 || "", {
+  layer.msg(lan && lan.soft && t('soft.soft_auto_str_64') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -737,7 +737,7 @@ function importPluginInstall(plugin_name, tmp_path) {
   }, 'json');
 }
 function softUpdate(name, ver, current_ver) {
-  layer.confirm((lan && lan.soft && lan.soft.soft_auto_str_65 || "") + name + (lan && lan.soft && lan.soft.soft_auto_str_66 || "") + current_ver + (lan && lan.soft && lan.soft.soft_auto_str_67 || "") + ver + (lan && lan.soft && lan.soft.soft_auto_str_68 || ""), {
+  layer.confirm((lan && lan.soft && t('soft.soft_auto_str_65') || "") + name + (lan && lan.soft && t('soft.soft_auto_str_66') || "") + current_ver + (lan && lan.soft && t('soft.soft_auto_str_67') || "") + ver + (lan && lan.soft && t('soft.soft_auto_str_68') || ""), {
     icon: 3,
     closeBtn: 1
   }, function () {
@@ -746,7 +746,7 @@ function softUpdate(name, ver, current_ver) {
   });
 }
 function refreshPluginList() {
-  var loading = layer.msg(lan && lan.soft && lan.soft.soft_auto_str_69 || "", {
+  var loading = layer.msg(lan && lan.soft && t('soft.soft_auto_str_69') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -754,7 +754,7 @@ function refreshPluginList() {
   $.post('/plugins/clear_cache', {}, function (rdata) {
     layer.close(loading);
     getSList(true);
-    layer.msg(lan && lan.soft && lan.soft.soft_auto_str_70 || "", {
+    layer.msg(lan && lan.soft && t('soft.soft_auto_str_70') || "", {
       icon: 1,
       time: 1000
     });

@@ -17,16 +17,16 @@ function getLoad(data) {
   if (Occupy > 100) Occupy = 100;
   if (Occupy <= 30) {
     LoadColor = '#20a53a';
-    AverageText = lan && lan.index && lan.index.auto_str_1 || "";
+    AverageText = lan && lan.index && t('index.auto_str_1') || "";
   } else if (Occupy <= 70) {
     LoadColor = '#6ea520';
-    AverageText = lan && lan.index && lan.index.auto_str_2 || "";
+    AverageText = lan && lan.index && t('index.auto_str_2') || "";
   } else if (Occupy <= 90) {
     LoadColor = '#ff9900';
-    AverageText = lan && lan.index && lan.index.auto_str_3 || "";
+    AverageText = lan && lan.index && t('index.auto_str_3') || "";
   } else {
     LoadColor = '#dd2f00';
-    AverageText = lan && lan.index && lan.index.auto_str_4 || "";
+    AverageText = lan && lan.index && t('index.auto_str_4') || "";
   }
   index.find('.circle').css("background", LoadColor);
   index.find('.mask').css({
@@ -46,7 +46,7 @@ $('#LoadList .mask').on('mouseenter', function () {
   one = getCookie('one');
   five = getCookie('five');
   fifteen = getCookie('fifteen');
-  var text = (lan && lan.index && lan.index.auto_str_5 || "") + one + (lan && lan.index && lan.index.auto_str_6 || "") + five + (lan && lan.index && lan.index.auto_str_7 || "") + fifteen + '';
+  var text = (lan && lan.index && t('index.auto_str_5') || "") + one + (lan && lan.index && t('index.auto_str_6') || "") + five + (lan && lan.index && t('index.auto_str_7') || "") + fifteen + '';
   layer.tips(text, that, {
     time: 0,
     tips: [1, '#999']
@@ -71,7 +71,7 @@ function showCpuTips(rdata) {
         }
       }
     }
-    layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + (lan && lan.index && lan.index.auto_str_8 || "") + rdata.cpu[4] + (lan && lan.index && lan.index.auto_str_9 || "") + rdata.cpu[1] + (lan && lan.index && lan.index.auto_str_10 || "") + cpuText, this, {
+    layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + (lan && lan.index && t('index.auto_str_8') || "") + rdata.cpu[4] + (lan && lan.index && t('index.auto_str_9') || "") + rdata.cpu[1] + (lan && lan.index && t('index.auto_str_10') || "") + cpuText, this, {
       time: 0,
       tips: [1, '#999']
     });
@@ -90,7 +90,7 @@ function reMemory() {
     $(".mem-release").find('.mask').css({
       'color': '#20a53a',
       'font-size': '14px'
-    }).html('<span style="display:none">1</span>' + lan.index.memre_ok_0 + ' <img src="/static/img/ings.gif">');
+    }).html('<span style="display:none">1</span>' + t('index.memre_ok_0') + ' <img src="/static/img/ings.gif">');
     $.post('/system/rememory', '', function (rdata) {
       var percent = getPercent(rdata.memRealUsed, rdata.memTotal);
       var memText = Math.round(rdata.memRealUsed) + "/" + Math.round(rdata.memTotal) + " (MB)";
@@ -98,7 +98,7 @@ function reMemory() {
       $(".mem-release").find('.mask').css({
         'color': '#20a53a',
         'font-size': '14px'
-      }).html("<span style='display:none'>" + percent + "</span>" + lan.index.memre_ok);
+      }).html("<span style='display:none'>" + percent + "</span>" + t('index.memre_ok'));
       setCookie("mem-before", memText);
       var memNull = Math.round(getCookie("memRealUsed") - rdata.memRealUsed);
       setTimeout(function () {
@@ -108,12 +108,12 @@ function reMemory() {
             'font-size': '14px',
             'line-height': '22px',
             'padding-top': '22px'
-          }).html("<span style='display:none'>" + percent + "</span>" + lan.index.memre_ok_1 + "<br>" + memNull + "MB");
+          }).html("<span style='display:none'>" + percent + "</span>" + t('index.memre_ok_1') + "<br>" + memNull + "MB");
         } else {
           $(".mem-release").find('.mask').css({
             'color': '#20a53a',
             'font-size': '14px'
-          }).html("<span style='display:none'>" + percent + "</span>" + lan.index.memre_ok_2);
+          }).html("<span style='display:none'>" + percent + "</span>" + t('index.memre_ok_2'));
         }
         $(".mem-release").removeClass("mem-action");
         $("#memory").text(memText);
@@ -144,17 +144,17 @@ function getDiskInfo() {
       //判断inode信息是否存在
       var inodes = '';
       if (typeof rdata[i]['inodes'] !== 'undefined') {
-        inodes = '<div class="mask" style="color:' + LoadColor + (lan && lan.index && lan.index.auto_str_11 || "") + rdata[i].inodes[0] + (lan && lan.index && lan.index.auto_str_12 || "") + rdata[i].inodes[1] + (lan && lan.index && lan.index.auto_str_13 || "") + rdata[i].inodes[2] + (lan && lan.index && lan.index.auto_str_14 || "") + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
+        inodes = '<div class="mask" style="color:' + LoadColor + (lan && lan.index && t('index.auto_str_11') || "") + rdata[i].inodes[0] + (lan && lan.index && t('index.auto_str_12') || "") + rdata[i].inodes[1] + (lan && lan.index && t('index.auto_str_13') || "") + rdata[i].inodes[2] + (lan && lan.index && t('index.auto_str_14') || "") + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
         var ipre = parseInt(rdata[i].inodes[3].replace('%', ''));
         if (ipre > 95) {
           $("#messageError").show();
-          $("#messageError").append((lan && lan.index && lan.index.auto_str_15 || "") + rdata[i].path + (lan && lan.index && lan.index.auto_str_16 || "") + ipre + (lan && lan.index && lan.index.auto_str_17 || ""));
+          $("#messageError").append((lan && lan.index && t('index.auto_str_15') || "") + rdata[i].path + (lan && lan.index && t('index.auto_str_16') || "") + ipre + (lan && lan.index && t('index.auto_str_17') || ""));
         }
       }
       if (rdata[i].path == '/' || rdata[i].path == '/www') {
         if (rdata[i].size[2].indexOf('M') != -1) {
           $("#messageError").show();
-          $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + lan.get('diskinfo_span_1', [rdata[i].path]) + (lan && lan.index && lan.index.auto_str_18 || ""));
+          $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span> ' + t('diskinfo_span_1', [rdata[i].path]) + (lan && lan.index && t('index.auto_str_18') || ""));
         }
       }
       dBody = '<li class="col-xs-6 col-sm-3 col-md-3 col-lg-2 mtb20 circle-box text-center diskbox">' + '<h3 class="c5 f15">' + rdata[i].path + '</h3>' + '<div class="circle" style="background:' + LoadColor + '">' + '<div class="pie_left">' + '<div class="left"></div>' + '</div>' + '<div class="pie_right">' + '<div class="right"></div>' + '</div>' + inodes + '</div>' + '<h4 class="c5 f15">' + rdata[i].size[1] + '/' + rdata[i].size[0] + '</h4>' + '</li>';
@@ -166,14 +166,14 @@ function getDiskInfo() {
 
 //清理垃圾
 function clearSystem() {
-  var loadT = layer.msg(lan && lan.index && lan.index.auto_str_19 || "", {
+  var loadT = layer.msg(lan && lan.index && t('index.auto_str_19') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, "#000"]
   });
   $.get('/system?action=ClearSystem', function (rdata) {
     layer.close(loadT);
-    layer.msg((lan && lan.index && lan.index.auto_str_20 || "") + rdata[0] + (lan && lan.index && lan.index.auto_str_21 || "") + toSize(rdata[1]) + (lan && lan.index && lan.index.auto_str_22 || ""), {
+    layer.msg((lan && lan.index && t('index.auto_str_20') || "") + rdata[0] + (lan && lan.index && t('index.auto_str_21') || "") + toSize(rdata[1]) + (lan && lan.index && t('index.auto_str_22') || ""), {
       icon: 1
     });
   });
@@ -193,7 +193,7 @@ function setMemImg(info) {
   var memFree = info.memTotal - info.memRealUsed;
   if (memFree / (1024 * 1024) < 64) {
     $("#messageError").show();
-    $("#messageError").append(lan && lan.index && lan.index.auto_str_23 || "");
+    $("#messageError").append(lan && lan.index && t('index.auto_str_23') || "");
   }
 }
 function setSystemInfo(system_str) {
@@ -228,13 +228,13 @@ function getInfo() {
     setSystemInfo(info.system);
     localStorage.setItem('cached_system_info', info.system);
     $("#running").html(info.time);
-    $("#core").html(info.cpuNum + (lan && lan.index && lan.index.auto_str_24 || ""));
+    $("#core").html(info.cpuNum + (lan && lan.index && t('index.auto_str_24') || ""));
     $("#state").html(parseFloat(info.cpuRealUsed).toFixed(1));
     setcolor(info.cpuRealUsed, "#state", 30, 70, 90);
 
     // if (info.isuser > 0) {
     //     $("#messageError").show();
-    //     $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>' + lan.index.user_warning + '<span class="c7 mr5" title="此安全问题不可忽略，请尽快处理" style="cursor:no-drop"> [不可忽略]</span><a class="btlink" href="javascript:setUserName();"> [立即修改]</a></p>')
+    //     $("#messageError").append('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>' + t('index.user_warning') + '<span class="c7 mr5" title="此安全问题不可忽略，请尽快处理" style="cursor:no-drop"> [不可忽略]</span><a class="btlink" href="javascript:setUserName();"> [立即修改]</a></p>')
     // }
     setImg();
   }, 'json');
@@ -254,7 +254,7 @@ function getGpuInfo() {
       setcolor(gpuUse, "#gpu_state", 30, 70, 90);
       var memText = info.mem_used + 'M / ' + info.mem_total + 'M';
       $("#gpu_mem").html(memText);
-      var tips = (lan && lan.index && lan.index.auto_str_25 || "") + info.name + (lan && lan.index && lan.index.auto_str_26 || "") + (info.temperature || '-') + (lan && lan.index && lan.index.auto_str_27 || "") + memUse + "%";
+      var tips = (lan && lan.index && t('index.auto_str_25') || "") + info.name + (lan && lan.index && t('index.auto_str_26') || "") + (info.temperature || '-') + (lan && lan.index && t('index.auto_str_27') || "") + memUse + "%";
       $('#gpuChart .mask').off('mouseenter').on('mouseenter', function () {
         layer.tips(tips, this, {
           time: 0,
@@ -290,14 +290,14 @@ function getNet() {
   var up, down;
   $.get("/system/network?t=" + new Date().getTime(), function (net) {
     console.log(net);
-    $("#InterfaceSpeed").html(lan.index.interfacespeed + "： 1.0Gbps");
+    $("#InterfaceSpeed").html(t('index.interfacespeed') + "： 1.0Gbps");
     $("#upSpeed").html(toSize(net.up));
     $("#downSpeed").html(toSize(net.down));
     $("#downAll").html(toSize(net.downTotal));
-    $("#downAll").attr('title', lan.index.package + ':' + net.downPackets);
+    $("#downAll").attr('title', t('index.package') + ':' + net.downPackets);
     $("#upAll").html(toSize(net.upTotal));
-    $("#upAll").attr('title', lan.index.package + ':' + net.upPackets);
-    $("#core").html(net.cpu[1] + " " + lan.index.cpu_core);
+    $("#upAll").attr('title', t('index.package') + ':' + net.upPackets);
+    $("#core").html(net.cpu[1] + " " + t('index.cpu_core'));
     $("#state").html(parseFloat(net.cpu[0]).toFixed(1));
     setcolor(net.cpu[0], "#state", 30, 70, 90);
     setCookie("upNet", net.up);
@@ -383,12 +383,12 @@ function netImg() {
   // 指定图表的配置项和数据
   var option = {
     title: {
-      text: lan && lan.index && lan.index.auto_str_28 || "",
+      text: lan && lan.index && t('index.auto_str_28') || "",
       left: 'center',
       textStyle: {
         color: '#888888',
         fontStyle: 'normal',
-        fontFamily: lan && lan.index && lan.index.auto_str_29 || "",
+        fontFamily: lan && lan.index && t('index.auto_str_29') || "",
         fontSize: 16
       }
     },
@@ -396,7 +396,7 @@ function netImg() {
       trigger: 'axis'
     },
     legend: {
-      data: [lan.index.net_up, lan.index.net_down],
+      data: [t('index.net_up'), t('index.net_down')],
       bottom: '2%'
     },
     xAxis: {
@@ -410,7 +410,7 @@ function netImg() {
       }
     },
     yAxis: {
-      name: (lan && lan.index && lan.index.auto_str_30 || "") + default_unit,
+      name: (lan && lan.index && t('index.auto_str_30') || "") + default_unit,
       splitLine: {
         lineStyle: {
           color: "#eee"
@@ -423,7 +423,7 @@ function netImg() {
       }
     },
     series: [{
-      name: lan && lan.index && lan.index.auto_str_31 || "",
+      name: lan && lan.index && t('index.auto_str_31') || "",
       type: 'line',
       data: yData,
       smooth: true,
@@ -452,7 +452,7 @@ function netImg() {
         }
       }
     }, {
-      name: lan && lan.index && lan.index.auto_str_32 || "",
+      name: lan && lan.index && t('index.auto_str_32') || "",
       type: 'line',
       data: zData,
       smooth: true,
@@ -487,7 +487,7 @@ function netImg() {
     addData(true);
     echartsNetImg.setOption({
       yAxis: {
-        name: (lan && lan.index && lan.index.auto_str_33 || "") + default_unit,
+        name: (lan && lan.index && t('index.auto_str_33') || "") + default_unit,
         splitLine: {
           lineStyle: {
             color: "#eee"
@@ -503,10 +503,10 @@ function netImg() {
         data: xData
       },
       series: [{
-        name: lan.index.net_up,
+        name: t('index.net_up'),
         data: yData
       }, {
-        name: lan.index.net_down,
+        name: t('index.net_down'),
         data: zData
       }]
     });
@@ -558,8 +558,8 @@ setTimeout(function () {
   $.get('/system/update_server?type=check', function (rdata) {
     if (rdata.status == false) return;
     if (rdata.data != undefined) {
-      $("#toUpdate").html(lan && lan.index && lan.index.auto_str_34 || "");
-      $('#toUpdate a').html(lan && lan.index && lan.index.auto_str_35 || "");
+      $("#toUpdate").html(lan && lan.index && t('index.auto_str_34') || "");
+      $('#toUpdate a').html(lan && lan.index && t('index.auto_str_35') || "");
       $('#toUpdate a').css("position", "relative");
       return;
     }
@@ -568,7 +568,7 @@ setTimeout(function () {
 
 //检查更新
 function checkUpdate() {
-  var loadT = layer.msg(lan.index.update_get, {
+  var loadT = layer.msg(t('index.update_get'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -581,10 +581,10 @@ function checkUpdate() {
     }
     if (rdata.status === false) {
       layer.confirm(rdata.msg, {
-        title: lan.index.update_check,
+        title: t('index.update_check'),
         icon: 1,
         closeBtn: 1,
-        btn: [lan.public.know, lan.public.close]
+        btn: [t('public.know'), t('public.close')]
       });
       return;
     }
@@ -595,7 +595,7 @@ function checkUpdate() {
   }, 'json');
 }
 function updateMsg() {
-  var loadT = layer.msg(lan && lan.index && lan.index.auto_str_36 || "", {
+  var loadT = layer.msg(lan && lan.index && t('index.auto_str_36') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -608,8 +608,8 @@ function updateMsg() {
     }
     var v = rdata.data.version;
     var isTest = v.split('.').length > 3;
-    var tagHtml = isTest ? lan && lan.index && lan.index.auto_str_37 || "" : lan && lan.index && lan.index.auto_str_38 || "";
-    var titleHtml = '<div style="display: flex; align-items: center; height: 100%;">' + tagHtml + (lan && lan.index && lan.index.auto_str_39 || "") + v + ']</span></div>';
+    var tagHtml = isTest ? lan && lan.index && t('index.auto_str_37') || "" : lan && lan.index && t('index.auto_str_38') || "";
+    var titleHtml = '<div style="display: flex; align-items: center; height: 100%;">' + tagHtml + (lan && lan.index && t('index.auto_str_39') || "") + v + ']</span></div>';
     var parseContent = function () {
       try {
         return marked.parse(rdata.data.content);
@@ -633,7 +633,7 @@ function updateMsg() {
     }
   }, 'json').fail(function () {
     layer.close(loadT);
-    layer.msg(lan && lan.index && lan.index.auto_str_40 || "", {
+    layer.msg(lan && lan.index && t('index.auto_str_40') || "", {
       icon: 2
     });
   });
@@ -645,15 +645,15 @@ function showUpdateUI(version, title, content, speedName) {
     area: '650px',
     shadeClose: false,
     closeBtn: 1,
-    content: '<style>' + '  .update-markdown-wrapper .markdown-body ul, .update-markdown-wrapper .markdown-body ol {' + '      padding-left: 1.2em !important;' + '      margin-bottom: 12px;' + '  }' + '  .update-markdown-wrapper .markdown-body li {' + '      margin-top: 6px;' + '  }' + '  .update-markdown-wrapper .markdown-body p {' + '      margin-bottom: 12px;' + '  }' + '  .update-markdown-wrapper .markdown-body h3, .update-markdown-wrapper .markdown-body h4 {' + '      margin-top: 16px;' + '      margin-bottom: 12px;' + '  }' + '</style>' + '<div class="setchmod bt-form pd20 pb70 update-markdown-wrapper" style="background: #fcfcfc;">' + (content ? '<div class="markdown-body" style="padding: 15px 20px; line-height: 1.6; max-height: 400px; overflow-y: auto; margin-bottom: 20px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0,0,0,0.03);">' + content + '</div>' : '') + '<div class="update-progress-group" style="padding: 15px 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);">' + '    <div style="margin-bottom: 12px;">' + (lan && lan.index && lan.index.auto_str_41 || "") + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>' + '    </div>' + '    <div style="margin-bottom: 12px;">' + (lan && lan.index && lan.index.auto_str_42 || "") + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="backup-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>' + '    </div>' + '    <div style="margin-bottom: 4px;">' + (lan && lan.index && lan.index.auto_str_43 || "") + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="install-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>' + '    </div>' + '</div>' + '<div class="bt-form-submit-btn" style="margin-top: 20px;">' + (lan && lan.index && lan.index.auto_str_44 || "") + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" style="border-radius:6px; padding: 6px 18px; margin-left: 10px; font-weight: 500; background-color: #20a53a; border-color: #20a53a; transition: all 0.2s;" onclick="executeSteps(\'' + version + (lan && lan.index && lan.index.auto_str_45 || "") + (lan && lan.index && lan.index.auto_str_46 || "") + '</div>' + '</div>',
+    content: '<style>' + '  .update-markdown-wrapper .markdown-body ul, .update-markdown-wrapper .markdown-body ol {' + '      padding-left: 1.2em !important;' + '      margin-bottom: 12px;' + '  }' + '  .update-markdown-wrapper .markdown-body li {' + '      margin-top: 6px;' + '  }' + '  .update-markdown-wrapper .markdown-body p {' + '      margin-bottom: 12px;' + '  }' + '  .update-markdown-wrapper .markdown-body h3, .update-markdown-wrapper .markdown-body h4 {' + '      margin-top: 16px;' + '      margin-bottom: 12px;' + '  }' + '</style>' + '<div class="setchmod bt-form pd20 pb70 update-markdown-wrapper" style="background: #fcfcfc;">' + (content ? '<div class="markdown-body" style="padding: 15px 20px; line-height: 1.6; max-height: 400px; overflow-y: auto; margin-bottom: 20px; background: rgba(255, 255, 255, 0.8); border-radius: 8px; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0,0,0,0.03);">' + content + '</div>' : '') + '<div class="update-progress-group" style="padding: 15px 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);">' + '    <div style="margin-bottom: 12px;">' + (lan && lan.index && t('index.auto_str_41') || "") + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="download-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>' + '    </div>' + '    <div style="margin-bottom: 12px;">' + (lan && lan.index && t('index.auto_str_42') || "") + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="backup-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>' + '    </div>' + '    <div style="margin-bottom: 4px;">' + (lan && lan.index && t('index.auto_str_43') || "") + '        <div style="height: 6px; background: #f0f2f5; border-radius: 6px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"><div id="install-bar" class="bt-progress-bar" style="width: 0%; height: 100%; position: relative; background: linear-gradient(90deg, #42d392, #20a53a); border-radius: 6px; transition: width 0.4s ease, background 0.4s ease;"></div></div>' + '    </div>' + '</div>' + '<div class="bt-form-submit-btn" style="margin-top: 20px;">' + (lan && lan.index && t('index.auto_str_44') || "") + '<button type="button" id="start-update-btn" class="btn btn-success btn-sm btn-title" style="border-radius:6px; padding: 6px 18px; margin-left: 10px; font-weight: 500; background-color: #20a53a; border-color: #20a53a; transition: all 0.2s;" onclick="executeSteps(\'' + version + (lan && lan.index && t('index.auto_str_45') || "") + (lan && lan.index && t('index.auto_str_46') || "") + '</div>' + '</div>',
     success: function () {
       var bracket = $("#download-tip-bracket");
-      bracket.text(lan && lan.index && lan.index.auto_str_47 || "");
+      bracket.text(lan && lan.index && t('index.auto_str_47') || "");
     }
   });
 }
 function executeSteps(version) {
-  $("#start-update-btn").attr("disabled", true).addClass("disabled").text(lan && lan.index && lan.index.auto_str_48 || "");
+  $("#start-update-btn").attr("disabled", true).addClass("disabled").text(lan && lan.index && t('index.auto_str_48') || "");
   $(".layui-layer-close").hide(); // 过程中禁止手动关闭
 
   updateStep('download', version, '#download-bar', '#download-percent', function () {
@@ -662,7 +662,7 @@ function executeSteps(version) {
         $("#start-update-btn").hide();
         $("#hard-refresh-btn").show().removeClass("btn-default").addClass("btn-success");
         $(".layui-layer-close").show();
-        layer.msg(lan && lan.index && lan.index.auto_str_49 || "", {
+        layer.msg(lan && lan.index && t('index.auto_str_49') || "", {
           icon: 1,
           time: 5000
         });
@@ -672,7 +672,7 @@ function executeSteps(version) {
 }
 function hardRefreshWithCountdown() {
   var count = 10;
-  var msgBox = layer.msg((lan && lan.index && lan.index.auto_str_50 || "") + count + (lan && lan.index && lan.index.auto_str_51 || ""), {
+  var msgBox = layer.msg((lan && lan.index && t('index.auto_str_50') || "") + count + (lan && lan.index && t('index.auto_str_51') || ""), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -689,7 +689,7 @@ function hardRefreshWithCountdown() {
   }, 1000);
 }
 function updateStep(step, version, barId, textId, callback) {
-  $(textId).text(lan && lan.index && lan.index.auto_str_52 || "");
+  $(textId).text(lan && lan.index && t('index.auto_str_52') || "");
   var intervalId = null;
   if (step == 'download') {
     $(barId).css("width", "0%");
@@ -697,8 +697,8 @@ function updateStep(step, version, barId, textId, callback) {
     var tenMinutes = 10 * 60 * 1000;
     var twentyMinutes = 20 * 60 * 1000;
     var bracket = $("#download-tip-bracket");
-    var nodeName = lan && lan.index && lan.index.auto_str_53 || "";
-    bracket.text((lan && lan.index && lan.index.auto_str_54 || "") + nodeName + (lan && lan.index && lan.index.auto_str_55 || ""));
+    var nodeName = lan && lan.index && t('index.auto_str_53') || "";
+    bracket.text((lan && lan.index && t('index.auto_str_54') || "") + nodeName + (lan && lan.index && t('index.auto_str_55') || ""));
     setTimeout(function () {
       $.get('/system/update_server?type=info', function (rdata) {
         if (rdata && rdata.data && rdata.data.speed_name) {
@@ -720,16 +720,16 @@ function updateStep(step, version, barId, textId, callback) {
       $.get('/system/network', function (netData) {
         if (netData && netData.network && netData.network.ALL && netData.network.ALL.down) {
           var speed = (netData.network.ALL.down / 1048576).toFixed(2);
-          bracket.text((lan && lan.index && lan.index.auto_str_56 || "") + nodeName + (lan && lan.index && lan.index.auto_str_57 || "") + speed + " mbps）");
+          bracket.text((lan && lan.index && t('index.auto_str_56') || "") + nodeName + (lan && lan.index && t('index.auto_str_57') || "") + speed + " mbps）");
         }
       }, 'json');
       if (elapsed >= twentyMinutes) {
         clearInterval(intervalId);
-        $(textId).text(lan && lan.index && lan.index.auto_str_58 || "").css("color", "#ff4d4f");
+        $(textId).text(lan && lan.index && t('index.auto_str_58') || "").css("color", "#ff4d4f");
         $(barId).css("background", "#ff4d4f");
-        layer.alert(lan && lan.index && lan.index.auto_str_59 || "", {
+        layer.alert(lan && lan.index && t('index.auto_str_59') || "", {
           icon: 2,
-          title: lan && lan.index && lan.index.auto_str_60 || ""
+          title: lan && lan.index && t('index.auto_str_60') || ""
         }, function (index) {
           layer.close(index);
           location.reload();
@@ -752,27 +752,27 @@ function updateStep(step, version, barId, textId, callback) {
     if (intervalId) clearInterval(intervalId);
     if (rdata.status) {
       $(barId).css("width", "100%");
-      $(textId).text(lan && lan.index && lan.index.auto_str_61 || "").css("color", "#20a53a");
+      $(textId).text(lan && lan.index && t('index.auto_str_61') || "").css("color", "#20a53a");
       if (callback) callback();
     } else {
-      $(textId).text(lan && lan.index && lan.index.auto_str_62 || "").css("color", "#ff4d4f");
+      $(textId).text(lan && lan.index && t('index.auto_str_62') || "").css("color", "#ff4d4f");
       $(barId).css("background", "#ff4d4f");
       layer.msg(rdata.msg, {
         icon: 2
       });
-      $("#start-update-btn").attr("disabled", false).removeClass("disabled").text(lan && lan.index && lan.index.auto_str_63 || "");
+      $("#start-update-btn").attr("disabled", false).removeClass("disabled").text(lan && lan.index && t('index.auto_str_63') || "");
       $(".layui-layer-close").show();
     }
   }, 'json').fail(function () {
     if (intervalId) clearInterval(intervalId);
     if (step == 'install') {
       $(barId).css("width", "100%");
-      $(textId).text(lan && lan.index && lan.index.auto_str_64 || "").css("color", "#20a53a");
+      $(textId).text(lan && lan.index && t('index.auto_str_64') || "").css("color", "#20a53a");
       if (callback) callback();
     } else {
-      $(textId).text(lan && lan.index && lan.index.auto_str_65 || "").css("color", "#ff4d4f");
+      $(textId).text(lan && lan.index && t('index.auto_str_65') || "").css("color", "#ff4d4f");
       $(barId).css("background", "#ff4d4f");
-      layer.msg(lan && lan.index && lan.index.auto_str_66 || "", {
+      layer.msg(lan && lan.index && t('index.auto_str_66') || "", {
         icon: 2
       });
       $(".layui-layer-close").show();
@@ -802,18 +802,18 @@ function pluginIndexService(pname, pfunc, callback) {
 function reBoot() {
   layer.open({
     type: 1,
-    title: lan && lan.index && lan.index.auto_str_67 || "",
+    title: lan && lan.index && t('index.auto_str_67') || "",
     area: ['350px', '250px'],
     closeBtn: 1,
     shadeClose: false,
-    content: lan && lan.index && lan.index.auto_str_68 || ""
+    content: lan && lan.index && t('index.auto_str_68') || ""
   });
   $('.rebt-con a').on('click', function () {
     var type = $(this).attr('data-id');
     switch (type) {
       case 'panel':
-        layer.confirm(lan && lan.index && lan.index.auto_str_69 || "", {
-          title: lan && lan.index && lan.index.auto_str_70 || "",
+        layer.confirm(lan && lan.index && t('index.auto_str_69') || "", {
+          title: lan && lan.index && t('index.auto_str_70') || "",
           closeBtn: 1,
           icon: 3
         }, function () {
@@ -821,7 +821,7 @@ function reBoot() {
           $.post('/system/restart', '', function (rdata) {
             layer.close(loadT);
             var count = 10;
-            var msgBox = layer.msg((lan && lan.index && lan.index.auto_str_71 || "") + count + (lan && lan.index && lan.index.auto_str_72 || ""), {
+            var msgBox = layer.msg((lan && lan.index && t('index.auto_str_71') || "") + count + (lan && lan.index && t('index.auto_str_72') || ""), {
               icon: 16,
               time: 0,
               shade: [0.3, '#000']
@@ -840,23 +840,23 @@ function reBoot() {
         });
         break;
       case 'repair':
-        layer.confirm(lan && lan.index && lan.index.auto_str_73 || "", {
-          title: lan && lan.index && lan.index.auto_str_74 || "",
+        layer.confirm(lan && lan.index && t('index.auto_str_73') || "", {
+          title: lan && lan.index && t('index.auto_str_74') || "",
           closeBtn: 1,
           icon: 3
         }, function () {
           var version = $("#version").text();
-          showUpdateUI(version, (lan && lan.index && lan.index.auto_str_75 || "") + version + ']</span>', lan && lan.index && lan.index.auto_str_76 || "");
+          showUpdateUI(version, (lan && lan.index && t('index.auto_str_75') || "") + version + ']</span>', lan && lan.index && t('index.auto_str_76') || "");
         });
         break;
       case 'server':
         var rebootbox = layer.open({
           type: 1,
-          title: lan && lan.index && lan.index.auto_str_77 || "",
+          title: lan && lan.index && t('index.auto_str_77') || "",
           area: ['500px', '280px'],
           closeBtn: 1,
           shadeClose: false,
-          content: lan && lan.index && lan.index.auto_str_78 || ""
+          content: lan && lan.index && t('index.auto_str_78') || ""
         });
         setTimeout(function () {
           $(".btn-reboot").on('click', function () {
@@ -865,21 +865,21 @@ function reBoot() {
           $(".WSafeRestart").on('click', function () {
             var body = '<div class="SafeRestartCode pd15" style="line-height:26px"></div>';
             $(".bt-window-restart").html(body);
-            $(".SafeRestartCode").append(lan && lan.index && lan.index.auto_str_79 || "");
+            $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_79') || "");
             pluginIndexService('openresty', 'stop', function (r1) {
               $(".SafeRestartCode p").addClass('c9');
-              $(".SafeRestartCode").append(lan && lan.index && lan.index.auto_str_80 || "");
+              $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_80') || "");
               pluginIndexService('mysql', 'stop', function (r2) {
                 $(".SafeRestartCode p").addClass('c9');
-                $(".SafeRestartCode").append(lan && lan.index && lan.index.auto_str_81 || "");
+                $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_81') || "");
                 $.post('/system/restart_server', '', function (rdata) {
                   $(".SafeRestartCode p").addClass('c9');
-                  $(".SafeRestartCode").append(lan && lan.index && lan.index.auto_str_82 || "");
+                  $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_82') || "");
                   var sEver = setInterval(function () {
                     $.get("/system/system_total", function (info) {
                       clearInterval(sEver);
                       $(".SafeRestartCode p").addClass('c9');
-                      $(".SafeRestartCode").append(lan && lan.index && lan.index.auto_str_83 || "");
+                      $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_83') || "");
                       setTimeout(function () {
                         layer.closeAll();
                       }, 3000);
@@ -897,24 +897,24 @@ function reBoot() {
 
 //修复面板
 function repPanel() {
-  layer.confirm(lan.index.rep_panel_msg, {
-    title: lan.index.rep_panel_title,
+  layer.confirm(t('index.rep_panel_msg'), {
+    title: t('index.rep_panel_title'),
     closeBtn: 1,
     icon: 3
   }, function () {
-    var loadT = layer.msg(lan.index.rep_panel_the, {
+    var loadT = layer.msg(t('index.rep_panel_the'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
     });
     $.get('/system?action=RepPanel', function (rdata) {
       layer.close(loadT);
-      layer.msg(lan.index.rep_panel_ok, {
+      layer.msg(t('index.rep_panel_ok'), {
         icon: 1
       });
     }).fail(function () {
       layer.close(loadT);
-      layer.msg(lan.index.rep_panel_ok, {
+      layer.msg(t('index.rep_panel_ok'), {
         icon: 1
       });
     });
@@ -945,7 +945,7 @@ function getWarning() {
 
 //按钮调用
 function warningTo(to_url, def) {
-  var loadT = layer.msg(lan.public.the_get, {
+  var loadT = layer.msg(t('public.the_get'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -967,17 +967,17 @@ function setSafeHide() {
 
 //查看报告
 function showDanger(num, port) {
-  var atxt = lan && lan.index && lan.index.auto_str_84 || "";
+  var atxt = lan && lan.index && t('index.auto_str_84') || "";
   if (port == "22") {
-    atxt = lan && lan.index && lan.index.auto_str_85 || "";
+    atxt = lan && lan.index && t('index.auto_str_85') || "";
   }
   layer.open({
     type: 1,
     area: ['720px', '410px'],
-    title: lan && lan.index && lan.index.auto_str_86 || "",
+    title: lan && lan.index && t('index.auto_str_86') || "",
     closeBtn: 1,
     shift: 5,
-    content: (lan && lan.index && lan.index.auto_str_87 || "") + num + (lan && lan.index && lan.index.auto_str_88 || "") + atxt + (lan && lan.index && lan.index.auto_str_89 || "")
+    content: (lan && lan.index && t('index.auto_str_87') || "") + num + (lan && lan.index && t('index.auto_str_88') || "") + atxt + (lan && lan.index && t('index.auto_str_89') || "")
   });
   $(".showDanger td").css("padding", "8px");
 }
@@ -1014,12 +1014,12 @@ function pluginInit() {
     }
     layer.open({
       type: 1,
-      title: lan && lan.index && lan.index.auto_str_90 || "",
+      title: lan && lan.index && t('index.auto_str_90') || "",
       area: ["380px", "auto"],
       skin: 'layui-layer-modern',
       closeBtn: 1,
       shadeClose: false,
-      content: (lan && lan.index && lan.index.auto_str_91 || "") + plugin_list + (lan && lan.index && lan.index.auto_str_92 || ""),
+      content: (lan && lan.index && t('index.auto_str_91') || "") + plugin_list + (lan && lan.index && t('index.auto_str_92') || ""),
       success: function (l, index) {
         $('.rec-box-con .onekey').on('click', function () {
           var _this = $(this);
@@ -1055,9 +1055,9 @@ function pluginInit() {
         });
       },
       cancel: function () {
-        layer.confirm(lan && lan.index && lan.index.auto_str_93 || "", {
-          btn: [lan && lan.index && lan.index.auto_str_94 || "", lan && lan.index && lan.index.auto_str_95 || ""],
-          title: lan && lan.index && lan.index.auto_str_96 || ""
+        layer.confirm(lan && lan.index && t('index.auto_str_93') || "", {
+          btn: [lan && lan.index && t('index.auto_str_94') || "", lan && lan.index && t('index.auto_str_95') || ""],
+          title: lan && lan.index && t('index.auto_str_96') || ""
         }, function () {
           $.post('/files/create_dir', 'path=/www/server/php', function (rdata) {
             layer.closeAll();
@@ -1095,7 +1095,7 @@ function loadKeyDataCount() {
       if (!rdata || !rdata['status']) continue;
       var show_name = pname;
       if (pname == 'op_waf') {
-        show_name = lan && lan.index && lan.index.auto_str_97 || "";
+        show_name = lan && lan.index && t('index.auto_str_97') || "";
       } else if (pname == 'mysql') {
         show_name = 'MySQL';
       } else if (pname == 'gogs') {
@@ -1103,7 +1103,7 @@ function loadKeyDataCount() {
       } else if (pname == 'gitea') {
         show_name = 'Gitea';
       } else if (pname == 'fail2ban') {
-        show_name = lan && lan.index && lan.index.auto_str_98 || "";
+        show_name = lan && lan.index && t('index.auto_str_98') || "";
       }
       var onclick_str = 'softMain(\'' + pname + '\',\'' + show_name + '\',\'' + rdata['data']['ver'] + '\')';
       if (pname == 'mysql') {
@@ -1135,7 +1135,7 @@ $(function () {
         "top": "0",
         opacity: 1
       });
-      $("#memory").text(lan && lan.index && lan.index.auto_str_99 || "");
+      $("#memory").text(lan && lan.index && t('index.auto_str_99') || "");
     }
   }).on('mouseleave', function () {
     $(this).removeClass("shine_green");
@@ -1269,7 +1269,7 @@ var index = {
     render: function () {
       index.net.table.setOption({
         yAxis: {
-          name: (lan && lan.index && lan.index.auto_str_100 || "") + index.net.default_unit,
+          name: (lan && lan.index && t('index.auto_str_100') || "") + index.net.default_unit,
           splitLine: {
             lineStyle: {
               color: "#eee"
@@ -1285,10 +1285,10 @@ var index = {
           data: index.net.data.xData
         },
         series: [{
-          name: lan.index.net_up,
+          name: t('index.net_up'),
           data: index.net.data.yData
         }, {
-          name: lan.index.net_down,
+          name: t('index.net_down'),
           data: index.net.data.zData
         }]
       });
@@ -1301,7 +1301,7 @@ var index = {
           textStyle: {
             color: '#888888',
             fontStyle: 'normal',
-            fontFamily: lan && lan.index && lan.index.auto_str_101 || "",
+            fontFamily: lan && lan.index && t('index.auto_str_101') || "",
             fontSize: 16
           }
         },
@@ -1309,7 +1309,7 @@ var index = {
           trigger: 'axis',
           formatter: function (config) {
             var _config = config,
-              _tips = (lan && lan.index && lan.index.auto_str_102 || "") + _config[0].axisValue + "<br />";
+              _tips = (lan && lan.index && t('index.auto_str_102') || "") + _config[0].axisValue + "<br />";
             for (var i = 0; i < config.length; i++) {
               if (typeof config[i].data == "undefined") {
                 return false;
@@ -1320,7 +1320,7 @@ var index = {
           }
         },
         legend: {
-          data: [lan.index.net_up, lan.index.net_down],
+          data: [t('index.net_up'), t('index.net_down')],
           bottom: '2%'
         },
         xAxis: {
@@ -1334,7 +1334,7 @@ var index = {
           }
         },
         yAxis: {
-          name: (lan && lan.index && lan.index.auto_str_103 || "") + index.net.default_unit,
+          name: (lan && lan.index && t('index.auto_str_103') || "") + index.net.default_unit,
           splitLine: {
             lineStyle: {
               color: "#eee"
@@ -1347,7 +1347,7 @@ var index = {
           }
         },
         series: [{
-          name: lan && lan.index && lan.index.auto_str_104 || "",
+          name: lan && lan.index && t('index.auto_str_104') || "",
           type: 'line',
           data: index.net.data.yData,
           smooth: true,
@@ -1376,7 +1376,7 @@ var index = {
             }
           }
         }, {
-          name: lan && lan.index && lan.index.auto_str_105 || "",
+          name: lan && lan.index && t('index.auto_str_105') || "",
           type: 'line',
           data: index.net.data.zData,
           smooth: true,
@@ -1444,7 +1444,7 @@ var index = {
         var network_io_key = getCookie('network_io_key');
         for (var name in network) {
           if (name == 'ALL') {
-            option += '<option value="' + name + (lan && lan.index && lan.index.auto_str_106 || "");
+            option += '<option value="' + name + (lan && lan.index && t('index.auto_str_106') || "");
           } else if (network_io_key == name) {
             option += '<option value="' + name + '" selected>' + name + '</option>';
           } else {
@@ -1487,16 +1487,16 @@ var index = {
           trigger: 'axis',
           formatter: function (config) {
             var _config = config,
-              _tips = (lan && lan.index && lan.index.auto_str_107 || "") + _config[0].axisValue + "<br />",
+              _tips = (lan && lan.index && t('index.auto_str_107') || "") + _config[0].axisValue + "<br />",
               options = {
-                read_bytes: lan && lan.index && lan.index.auto_str_108 || "",
-                read_count: lan && lan.index && lan.index.auto_str_109 || "",
-                read_merged_count: lan && lan.index && lan.index.auto_str_110 || "",
-                read_time: lan && lan.index && lan.index.auto_str_111 || "",
-                write_bytes: lan && lan.index && lan.index.auto_str_112 || "",
-                write_count: lan && lan.index && lan.index.auto_str_113 || "",
-                write_merged_count: lan && lan.index && lan.index.auto_str_114 || "",
-                write_time: lan && lan.index && lan.index.auto_str_115 || ""
+                read_bytes: lan && lan.index && t('index.auto_str_108') || "",
+                read_count: lan && lan.index && t('index.auto_str_109') || "",
+                read_merged_count: lan && lan.index && t('index.auto_str_110') || "",
+                read_time: lan && lan.index && t('index.auto_str_111') || "",
+                write_bytes: lan && lan.index && t('index.auto_str_112') || "",
+                write_count: lan && lan.index && t('index.auto_str_113') || "",
+                write_merged_count: lan && lan.index && t('index.auto_str_114') || "",
+                write_time: lan && lan.index && t('index.auto_str_115') || ""
               },
               data = index.iostat.data.tipsData[config[0].dataIndex],
               list = ['read_count', 'write_count', 'read_merged_count', 'write_merged_count', 'read_time', 'write_time'];
@@ -1508,14 +1508,14 @@ var index = {
             }
             $.each(list, function (index, item) {
               if (typeof data[item] != 'undefined') {
-                _tips += '<span style="display: inline-block;width: 10px;height: 10px;"></span>&nbsp;&nbsp;<span style="' + (item.indexOf('time') > -1 ? 'color:' + (data[item] > 100 && data[item] < 1000 ? '#ff9900' : data[item] >= 1000 ? 'red' : '#20a53a') : '') + '">' + options[item] + '：' + data[item] + (item.indexOf('time') > -1 ? ' ms' : lan && lan.index && lan.index.auto_str_116 || "") + '</span><br />';
+                _tips += '<span style="display: inline-block;width: 10px;height: 10px;"></span>&nbsp;&nbsp;<span style="' + (item.indexOf('time') > -1 ? 'color:' + (data[item] > 100 && data[item] < 1000 ? '#ff9900' : data[item] >= 1000 ? 'red' : '#20a53a') : '') + '">' + options[item] + '：' + data[item] + (item.indexOf('time') > -1 ? ' ms' : lan && lan.index && t('index.auto_str_116') || "") + '</span><br />';
               }
             });
             return _tips;
           }
         },
         yAxis: {
-          name: (lan && lan.index && lan.index.auto_str_117 || "") + index.iostat.default_unit,
+          name: (lan && lan.index && t('index.auto_str_117') || "") + index.iostat.default_unit,
           splitLine: {
             lineStyle: {
               color: "#eee"
@@ -1531,10 +1531,10 @@ var index = {
           data: index.iostat.data.xData
         },
         series: [{
-          name: lan && lan.index && lan.index.auto_str_118 || "",
+          name: lan && lan.index && t('index.auto_str_118') || "",
           data: index.iostat.data.yData
         }, {
-          name: lan && lan.index && lan.index.auto_str_119 || "",
+          name: lan && lan.index && t('index.auto_str_119') || "",
           data: index.iostat.data.zData
         }]
       });
@@ -1547,7 +1547,7 @@ var index = {
           textStyle: {
             color: '#888888',
             fontStyle: 'normal',
-            fontFamily: lan && lan.index && lan.index.auto_str_120 || "",
+            fontFamily: lan && lan.index && t('index.auto_str_120') || "",
             fontSize: 16
           }
         },
@@ -1555,7 +1555,7 @@ var index = {
           trigger: 'axis'
         },
         legend: {
-          data: [lan && lan.index && lan.index.auto_str_121 || "", lan && lan.index && lan.index.auto_str_122 || ""],
+          data: [lan && lan.index && t('index.auto_str_121') || "", lan && lan.index && t('index.auto_str_122') || ""],
           bottom: '2%'
         },
         xAxis: {
@@ -1569,7 +1569,7 @@ var index = {
           }
         },
         yAxis: {
-          name: (lan && lan.index && lan.index.auto_str_123 || "") + index.iostat.default_unit,
+          name: (lan && lan.index && t('index.auto_str_123') || "") + index.iostat.default_unit,
           splitLine: {
             lineStyle: {
               color: "#eee"
@@ -1582,7 +1582,7 @@ var index = {
           }
         },
         series: [{
-          name: lan && lan.index && lan.index.auto_str_124 || "",
+          name: lan && lan.index && t('index.auto_str_124') || "",
           type: 'line',
           data: index.iostat.data.yData,
           smooth: true,
@@ -1604,7 +1604,7 @@ var index = {
             }
           }
         }, {
-          name: lan && lan.index && lan.index.auto_str_125 || "",
+          name: lan && lan.index && t('index.auto_str_125') || "",
           type: 'line',
           data: index.iostat.data.zData,
           smooth: true,
@@ -1637,7 +1637,7 @@ var index = {
         var disk_io_key = getCookie('disk_io_key');
         for (var name in iostat) {
           if (name == 'ALL') {
-            option += '<option value="' + name + (lan && lan.index && lan.index.auto_str_126 || "");
+            option += '<option value="' + name + (lan && lan.index && t('index.auto_str_126') || "");
           } else if (disk_io_key == name) {
             option += '<option value="' + name + '" selected>' + name + '</option>';
           } else {
@@ -1679,9 +1679,9 @@ var index = {
       $("#upSpeed").html(toSize(network_select.up));
       $("#downSpeed").html(toSize(network_select.down));
       $("#downAll").html(toSize(network_select.downTotal));
-      $("#downAll").attr('title', (lan && lan.index && lan.index.auto_str_127 || "") + network_select.downPackets);
+      $("#downAll").attr('title', (lan && lan.index && t('index.auto_str_127') || "") + network_select.downPackets);
       $("#upAll").html(toSize(network_select.upTotal));
-      $("#upAll").attr('title', (lan && lan.index && lan.index.auto_str_128 || "") + network_select.upPackets);
+      $("#upAll").attr('title', (lan && lan.index && t('index.auto_str_128') || "") + network_select.upPackets);
 
       //磁盘IO
       var disk_io_key = getCookie('disk_io_key');
@@ -1695,9 +1695,9 @@ var index = {
       index.iostat.renderSelect(net);
       $("#readBytes").html(toSize(iostat_select.read_bytes));
       $("#writeBytes").html(toSize(iostat_select.write_bytes));
-      $("#diskIops").html(iostat_select.read_count + ":" + iostat_select.write_count + (lan && lan.index && lan.index.auto_str_129 || ""));
+      $("#diskIops").html(iostat_select.read_count + ":" + iostat_select.write_count + (lan && lan.index && t('index.auto_str_129') || ""));
       $("#diskTime").html(iostat_select.read_time + ":" + iostat_select.write_time + " ms");
-      $("#core").html(net.cpu[1] + " " + lan.index.cpu_core);
+      $("#core").html(net.cpu[1] + " " + t('index.cpu_core'));
       $("#state").html(net.cpu[0]);
       setcolor(net.cpu[0], "#state", 30, 70, 90);
       //负载
@@ -1725,7 +1725,7 @@ var index = {
   }
 };
 function showSystemDetails() {
-  var loadT = layer.msg(lan && lan.index && lan.index.auto_str_130 || "", {
+  var loadT = layer.msg(lan && lan.index && t('index.auto_str_130') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -1733,7 +1733,7 @@ function showSystemDetails() {
   $.get('/system/get_system_details', function (res) {
     layer.close(loadT);
     if (!res.status) {
-      layer.msg((lan && lan.index && lan.index.auto_str_131 || "") + res.msg, {
+      layer.msg((lan && lan.index && t('index.auto_str_131') || "") + res.msg, {
         icon: 2
       });
       return;
@@ -1753,30 +1753,30 @@ function showSystemDetails() {
         'AVX512': false
       };
       var getDesc = function (k) {
-        if (k === 'AES') return lan && lan.index && lan.index.auto_str_132 || "";
-        if (k === 'VMX') return lan && lan.index && lan.index.auto_str_133 || "";
-        if (k === 'AVX2') return lan && lan.index && lan.index.auto_str_134 || "";
-        if (k === 'AVX512') return lan && lan.index && lan.index.auto_str_135 || "";
+        if (k === 'AES') return lan && lan.index && t('index.auto_str_132') || "";
+        if (k === 'VMX') return lan && lan.index && t('index.auto_str_133') || "";
+        if (k === 'AVX2') return lan && lan.index && t('index.auto_str_134') || "";
+        if (k === 'AVX512') return lan && lan.index && t('index.auto_str_135') || "";
         return k;
       };
       var html = '';
       for (var key in flags) {
         var desc = getDesc(key);
         if (flags[key]) {
-          html += (lan && lan.index && lan.index.auto_str_136 || "") + desc + '">' + key + '</span>';
+          html += (lan && lan.index && t('index.auto_str_136') || "") + desc + '">' + key + '</span>';
         } else {
-          html += (lan && lan.index && lan.index.auto_str_137 || "") + desc + '">' + key + '</span>';
+          html += (lan && lan.index && t('index.auto_str_137') || "") + desc + '">' + key + '</span>';
         }
       }
       return html;
     };
     var renderTcpCc = function (activeCc) {
-      if (!activeCc || activeCc === (lan && lan.index && lan.index.auto_str_138 || "") || activeCc === "X") return "-";
+      if (!activeCc || activeCc === (lan && lan.index && t('index.auto_str_138') || "") || activeCc === "X") return "-";
       var algorithms = ['BBR', 'Cubic', 'Reno'];
       var getDesc = function (a) {
-        if (a === 'BBR') return lan && lan.index && lan.index.auto_str_139 || "";
-        if (a === 'Cubic') return lan && lan.index && lan.index.auto_str_140 || "";
-        if (a === 'Reno') return lan && lan.index && lan.index.auto_str_141 || "";
+        if (a === 'BBR') return lan && lan.index && t('index.auto_str_139') || "";
+        if (a === 'Cubic') return lan && lan.index && t('index.auto_str_140') || "";
+        if (a === 'Reno') return lan && lan.index && t('index.auto_str_141') || "";
         return a;
       };
       var html = '';
@@ -1786,31 +1786,31 @@ function showSystemDetails() {
         var algo = algorithms[i];
         var desc = getDesc(algo);
         if (algo.toLowerCase() === activeLower) {
-          html += (lan && lan.index && lan.index.auto_str_142 || "") + desc + '">' + algo + '</span>';
+          html += (lan && lan.index && t('index.auto_str_142') || "") + desc + '">' + algo + '</span>';
           found = true;
         } else {
-          html += (lan && lan.index && lan.index.auto_str_143 || "") + desc + '">' + algo + '</span>';
+          html += (lan && lan.index && t('index.auto_str_143') || "") + desc + '">' + algo + '</span>';
         }
       }
       if (!found) {
-        html += (lan && lan.index && lan.index.auto_str_144 || "") + activeCc + '</span>';
+        html += (lan && lan.index && t('index.auto_str_144') || "") + activeCc + '</span>';
       }
       return html;
     };
     var html = css + '<div style="padding: 15px 20px; overflow:hidden;">' + '<div class="row">' +
     // 操作系统
-    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && lan.index.auto_str_145 || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && lan.index.auto_str_146 || "") + data.os.system + '</td></tr>' + (lan && lan.index && lan.index.auto_str_147 || "") + data.os.kernel + '</td></tr>' + (lan && lan.index && lan.index.auto_str_148 || "") + data.os.arch + '</td></tr>' + (lan && lan.index && lan.index.auto_str_149 || "") + data.os.virtualization + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_145') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_146') || "") + data.os.system + '</td></tr>' + (lan && lan.index && t('index.auto_str_147') || "") + data.os.kernel + '</td></tr>' + (lan && lan.index && t('index.auto_str_148') || "") + data.os.arch + '</td></tr>' + (lan && lan.index && t('index.auto_str_149') || "") + data.os.virtualization + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // CPU
-    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && lan.index.auto_str_150 || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && lan.index.auto_str_151 || "") + data.cpu.model + '</td></tr>' + (lan && lan.index && lan.index.auto_str_152 || "") + data.cpu.cores + (lan && lan.index && lan.index.auto_str_153 || "") + data.cpu.threads + (lan && lan.index && lan.index.auto_str_154 || "") + (lan && lan.index && lan.index.auto_str_155 || "") + data.cpu.freq + '</td></tr>' + (lan && lan.index && lan.index.auto_str_156 || "") + renderFlags(data.cpu.flags) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_150') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_151') || "") + data.cpu.model + '</td></tr>' + (lan && lan.index && t('index.auto_str_152') || "") + data.cpu.cores + (lan && lan.index && t('index.auto_str_153') || "") + data.cpu.threads + (lan && lan.index && t('index.auto_str_154') || "") + (lan && lan.index && t('index.auto_str_155') || "") + data.cpu.freq + '</td></tr>' + (lan && lan.index && t('index.auto_str_156') || "") + renderFlags(data.cpu.flags) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // 网络与状态
-    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && lan.index.auto_str_157 || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && lan.index.auto_str_158 || "") + (data.network.ipv4 === "X" ? "-" : data.network.ipv4) + '<br>' + (data.network.ipv6 === "X" ? "-" : data.network.ipv6.split("%")[0]) + '</td></tr>' + (lan && lan.index && lan.index.auto_str_159 || "") + data.network.isp + ' (' + data.network.location + ')</td></tr>' + (lan && lan.index && lan.index.auto_str_160 || "") + renderTcpCc(data.network.tcp_cc) + '</td></tr>' + (lan && lan.index && lan.index.auto_str_161 || "") + data.status.load + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_157') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_158') || "") + (data.network.ipv4 === "X" ? "-" : data.network.ipv4) + '<br>' + (data.network.ipv6 === "X" ? "-" : data.network.ipv6.split("%")[0]) + '</td></tr>' + (lan && lan.index && t('index.auto_str_159') || "") + data.network.isp + ' (' + data.network.location + ')</td></tr>' + (lan && lan.index && t('index.auto_str_160') || "") + renderTcpCc(data.network.tcp_cc) + '</td></tr>' + (lan && lan.index && t('index.auto_str_161') || "") + data.status.load + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // 内存
-    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + (lan && lan.index && lan.index.auto_str_162 || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && lan.index.auto_str_163 || "") + data.memory.used + ' / ' + data.memory.total + ' (' + data.memory.percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.memory.percent) + '</td></tr>' + (lan && lan.index && lan.index.auto_str_164 || "") + data.memory.swap_used + ' / ' + data.memory.swap_total + ' (' + data.memory.swap_percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;">' + renderProgress(data.memory.swap_percent) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_162') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_163') || "") + data.memory.used + ' / ' + data.memory.total + ' (' + data.memory.percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.memory.percent) + '</td></tr>' + (lan && lan.index && t('index.auto_str_164') || "") + data.memory.swap_used + ' / ' + data.memory.swap_total + ' (' + data.memory.swap_percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;">' + renderProgress(data.memory.swap_percent) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // 磁盘
-    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + (lan && lan.index && lan.index.auto_str_165 || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && lan.index.auto_str_166 || "") + data.disk.used + ' / ' + data.disk.total + '</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.disk.percent) + '</td></tr>' + (lan && lan.index && lan.index.auto_str_167 || "") + data.disk.free + ' (' + (100 - data.disk.percent).toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;"><div style="height:6px; margin:5px 0;"></div></td></tr>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
+    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_165') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_166') || "") + data.disk.used + ' / ' + data.disk.total + '</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.disk.percent) + '</td></tr>' + (lan && lan.index && t('index.auto_str_167') || "") + data.disk.free + ' (' + (100 - data.disk.percent).toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;"><div style="height:6px; margin:5px 0;"></div></td></tr>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
     layer.open({
       type: 1,
-      title: lan && lan.index && lan.index.auto_str_168 || "",
+      title: lan && lan.index && t('index.auto_str_168') || "",
       area: ['900px', '500px'],
       // 增加高度，彻底消除滚动条
       shadeClose: true,
@@ -1859,9 +1859,9 @@ function triggerSpeedReTest() {
   // 重置磁盘IO卡片
   $("#sp-io-container").hide();
   $("#sp-io-loader").show();
-  $("#sp-write-val").text(lan && lan.index && lan.index.auto_str_169 || "");
+  $("#sp-write-val").text(lan && lan.index && t('index.auto_str_169') || "");
   $("#sp-write-bar").css('width', '0%');
-  $("#sp-read-val").text(lan && lan.index && lan.index.auto_str_170 || "").css('color', '#94a3b8');
+  $("#sp-read-val").text(lan && lan.index && t('index.auto_str_170') || "").css('color', '#94a3b8');
   $("#sp-read-bar").css('width', '0%');
 
   // 重置云节点状态
@@ -1874,14 +1874,14 @@ function triggerSpeedReTest() {
       'animation': '',
       'color': '#94a3b8'
     });
-    $(this).find('.node-speed').text(lan && lan.index && lan.index.auto_str_171 || "").css('color', '#64748b');
+    $(this).find('.node-speed').text(lan && lan.index && t('index.auto_str_171') || "").css('color', '#64748b');
   });
   startRealNewTest();
 }
 
 // 发起后台测速并开启轮询
 function startRealNewTest() {
-  var loadT = layer.msg(lan && lan.index && lan.index.auto_str_172 || "", {
+  var loadT = layer.msg(lan && lan.index && t('index.auto_str_172') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1901,11 +1901,11 @@ function startRealNewTest() {
 
 // 渲染测速弹窗公共方法
 function renderSpeedTestModal(historyData) {
-  var elegantHtml = '<div class="elegant-speed-container" style="padding: 20px; background: #fafafa; font-family: -apple-system,BlinkMacSystemFont,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif; color: #333; height: 100%; overflow-y: auto;">' + '    <div class="row" style="margin-left: -10px; margin-right: -10px;">' + (lan && lan.index && lan.index.auto_str_173 || "") + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && lan.index.auto_str_174 || "") + '                </div>' + '                <div id="sp-sys-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + (lan && lan.index && lan.index.auto_str_175 || "") + '                </div>' + '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' + (lan && lan.index && lan.index.auto_str_176 || "") + '                    <tr>' + (lan && lan.index && lan.index.auto_str_177 || "") + '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' + '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' + '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' + '                        </td>' + '                    </tr>' + (lan && lan.index && lan.index.auto_str_178 || "") + (lan && lan.index && lan.index.auto_str_179 || "") + '                </table>' + '            </div>' + '        </div>' + (lan && lan.index && lan.index.auto_str_180 || "") + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && lan.index.auto_str_181 || "") + '                </div>' + '                <div id="sp-io-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + (lan && lan.index && lan.index.auto_str_182 || "") + '                </div>' + '                <div id="sp-io-container" style="display: none; padding-top: 8px;">' + '                    <div style="margin-bottom: 15px;">' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + (lan && lan.index && lan.index.auto_str_183 || "") + (lan && lan.index && lan.index.auto_str_184 || "") + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-write-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #42d392, #20a53a); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                    <div>' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + (lan && lan.index && lan.index.auto_str_185 || "") + (lan && lan.index && lan.index.auto_str_186 || "") + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-read-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                </div>' + '            </div>' + '        </div>' + '    </div>' + (lan && lan.index && lan.index.auto_str_187 || "") + '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' + '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' + '            <div style="display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && lan.index.auto_str_188 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_189 || "") + '        </div>' + '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' + (lan && lan.index && lan.index.auto_str_190 || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && lan.index.auto_str_191 || "") + '                </div>' + (lan && lan.index && lan.index.auto_str_192 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_193 || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && lan.index.auto_str_194 || "") + '                </div>' + (lan && lan.index && lan.index.auto_str_195 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_196 || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && lan.index.auto_str_197 || "") + '                </div>' + (lan && lan.index && lan.index.auto_str_198 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_199 || "") + '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' + (lan && lan.index && lan.index.auto_str_200 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_201 || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && lan.index.auto_str_202 || "") + '                </div>' + (lan && lan.index && lan.index.auto_str_203 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_204 || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && lan.index.auto_str_205 || "") + '                </div>' + (lan && lan.index && lan.index.auto_str_206 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_207 || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && lan.index.auto_str_208 || "") + '                </div>' + (lan && lan.index && lan.index.auto_str_209 || "") + '            </div>' + (lan && lan.index && lan.index.auto_str_210 || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && lan.index.auto_str_211 || "") + '                </div>' + (lan && lan.index && lan.index.auto_str_212 || "") + '            </div>' + '        </div>' + '    </div>' + '    <pre id="speed_log_lst" style="display:none;"></pre>' + (lan && lan.index && lan.index.auto_str_213 || "") + '    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' + '        <div>' + '            <button id="btn-re-test" class="btn btn-default btn-xs" style="display: none; padding: 4px 12px; font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; transition: all 0.2s ease; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="triggerSpeedReTest()">' + (lan && lan.index && lan.index.auto_str_214 || "") + '            </button>' + '        </div>' + '        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; font-weight: 500;">' + '            <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' + (lan && lan.index && lan.index.auto_str_215 || "") + '        </div>' + '    </div>' + '    <style>' + '        @keyframes spin {' + '            0% { transform: rotate(0deg); }' + '            100% { transform: rotate(360deg); }' + '        }' + '    </style>' + '</div>';
+  var elegantHtml = '<div class="elegant-speed-container" style="padding: 20px; background: #fafafa; font-family: -apple-system,BlinkMacSystemFont,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif; color: #333; height: 100%; overflow-y: auto;">' + '    <div class="row" style="margin-left: -10px; margin-right: -10px;">' + (lan && lan.index && t('index.auto_str_173') || "") + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && t('index.auto_str_174') || "") + '                </div>' + '                <div id="sp-sys-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + (lan && lan.index && t('index.auto_str_175') || "") + '                </div>' + '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' + (lan && lan.index && t('index.auto_str_176') || "") + '                    <tr>' + (lan && lan.index && t('index.auto_str_177') || "") + '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' + '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' + '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' + '                        </td>' + '                    </tr>' + (lan && lan.index && t('index.auto_str_178') || "") + (lan && lan.index && t('index.auto_str_179') || "") + '                </table>' + '            </div>' + '        </div>' + (lan && lan.index && t('index.auto_str_180') || "") + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && t('index.auto_str_181') || "") + '                </div>' + '                <div id="sp-io-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + (lan && lan.index && t('index.auto_str_182') || "") + '                </div>' + '                <div id="sp-io-container" style="display: none; padding-top: 8px;">' + '                    <div style="margin-bottom: 15px;">' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + (lan && lan.index && t('index.auto_str_183') || "") + (lan && lan.index && t('index.auto_str_184') || "") + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-write-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #42d392, #20a53a); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                    <div>' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + (lan && lan.index && t('index.auto_str_185') || "") + (lan && lan.index && t('index.auto_str_186') || "") + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-read-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                </div>' + '            </div>' + '        </div>' + '    </div>' + (lan && lan.index && t('index.auto_str_187') || "") + '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' + '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' + '            <div style="display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && t('index.auto_str_188') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_189') || "") + '        </div>' + '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' + (lan && lan.index && t('index.auto_str_190') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_191') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_192') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_193') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_194') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_195') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_196') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_197') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_198') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_199') || "") + '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' + (lan && lan.index && t('index.auto_str_200') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_201') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_202') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_203') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_204') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_205') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_206') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_207') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_208') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_209') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_210') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_211') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_212') || "") + '            </div>' + '        </div>' + '    </div>' + '    <pre id="speed_log_lst" style="display:none;"></pre>' + (lan && lan.index && t('index.auto_str_213') || "") + '    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' + '        <div>' + '            <button id="btn-re-test" class="btn btn-default btn-xs" style="display: none; padding: 4px 12px; font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; transition: all 0.2s ease; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="triggerSpeedReTest()">' + (lan && lan.index && t('index.auto_str_214') || "") + '            </button>' + '        </div>' + '        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; font-weight: 500;">' + '            <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' + (lan && lan.index && t('index.auto_str_215') || "") + '        </div>' + '    </div>' + '    <style>' + '        @keyframes spin {' + '            0% { transform: rotate(0deg); }' + '            100% { transform: rotate(360deg); }' + '        }' + '    </style>' + '</div>';
 
   // 打开弹出层
   layer.open({
-    title: lan && lan.index && lan.index.auto_str_216 || "",
+    title: lan && lan.index && t('index.auto_str_216') || "",
     type: 1,
     closeBtn: 1,
     shade: 0.3,
@@ -1934,7 +1934,7 @@ function renderSpeedTestModal(historyData) {
             var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
             var detailParts = cleanDetail.split(' ');
             if (detailParts.length >= 2) {
-              cpuDetail = (lan && lan.index && lan.index.auto_str_217 || "") + detailParts[0] + (lan && lan.index && lan.index.auto_str_218 || "") + detailParts[1];
+              cpuDetail = (lan && lan.index && t('index.auto_str_217') || "") + detailParts[0] + (lan && lan.index && t('index.auto_str_218') || "") + detailParts[1];
             } else {
               cpuDetail = cleanDetail;
             }
@@ -1986,13 +1986,13 @@ function renderSpeedTestModal(historyData) {
                   'animation': '',
                   'color': '#ef4444'
                 });
-                $row.find('.node-speed').text(lan && lan.index && lan.index.auto_str_219 || "").css('color', '#ef4444');
+                $row.find('.node-speed').text(lan && lan.index && t('index.auto_str_219') || "").css('color', '#ef4444');
                 $row.css({
                   'background': 'rgba(239,68,68,0.03)',
                   'border-color': 'rgba(239,68,68,0.15)'
                 });
               } else if (node.status === 'skipped') {
-                $row.find('.node-speed').text(lan && lan.index && lan.index.auto_str_220 || "").css('color', '#94a3b8');
+                $row.find('.node-speed').text(lan && lan.index && t('index.auto_str_220') || "").css('color', '#94a3b8');
                 $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ban-circle').css({
                   'animation': '',
                   'color': '#94a3b8'
@@ -2049,7 +2049,7 @@ function runLogPolling(log_path) {
               var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
               var detailParts = cleanDetail.split(' ');
               if (detailParts.length >= 2) {
-                cpuDetail = (lan && lan.index && lan.index.auto_str_221 || "") + detailParts[0] + (lan && lan.index && lan.index.auto_str_222 || "") + detailParts[1];
+                cpuDetail = (lan && lan.index && t('index.auto_str_221') || "") + detailParts[0] + (lan && lan.index && t('index.auto_str_222') || "") + detailParts[1];
               } else {
                 cpuDetail = cleanDetail;
               }
@@ -2080,7 +2080,7 @@ function runLogPolling(log_path) {
           if (data.read_speed.indexOf('GB/s') > -1) rPercent = 100;
           $("#sp-read-bar").css('width', rPercent + '%');
         } else if (data.write_speed) {
-          $("#sp-read-val").text(lan && lan.index && lan.index.auto_str_223 || "").css('color', '#94a3b8');
+          $("#sp-read-val").text(lan && lan.index && t('index.auto_str_223') || "").css('color', '#94a3b8');
         }
 
         // 节点状态渲染
@@ -2113,7 +2113,7 @@ function runLogPolling(log_path) {
                 'animation': '',
                 'color': '#ef4444'
               });
-              $row.find('.node-speed').text(lan && lan.index && lan.index.auto_str_224 || "").css('color', '#ef4444');
+              $row.find('.node-speed').text(lan && lan.index && t('index.auto_str_224') || "").css('color', '#ef4444');
               $row.css({
                 'background': 'rgba(239,68,68,0.03)',
                 'border-color': 'rgba(239,68,68,0.15)'
@@ -2123,17 +2123,17 @@ function runLogPolling(log_path) {
         });
 
         // 判断结束
-        if (res.data.indexOf(lan && lan.index && lan.index.auto_str_225 || "") > -1 || res.data.indexOf(lan && lan.index && lan.index.auto_str_226 || "") > -1) {
+        if (res.data.indexOf(lan && lan.index && t('index.auto_str_225') || "") > -1 || res.data.indexOf(lan && lan.index && t('index.auto_str_226') || "") > -1) {
           clearInterval(speedTimer);
           $('.node-row').each(function () {
             var nodeName = $(this).attr('data-node');
             var txt = $(this).find('.node-speed').text();
-            if (txt === (lan && lan.index && lan.index.auto_str_227 || "") || txt === (lan && lan.index && lan.index.auto_str_228 || "")) {
-              $(this).find('.node-speed').text(lan && lan.index && lan.index.auto_str_229 || "").css('color', '#94a3b8');
+            if (txt === (lan && lan.index && t('index.auto_str_227') || "") || txt === (lan && lan.index && t('index.auto_str_228') || "")) {
+              $(this).find('.node-speed').text(lan && lan.index && t('index.auto_str_229') || "").css('color', '#94a3b8');
               $(this).find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ban-circle').css('color', '#94a3b8');
               data.nodes[nodeName] = {
                 status: 'skipped',
-                speed: lan && lan.index && lan.index.auto_str_230 || ""
+                speed: lan && lan.index && t('index.auto_str_230') || ""
               };
             }
           });
@@ -2161,33 +2161,33 @@ function parseSpeedLog(logText) {
   var lines = logText.split('\n');
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
-    if (line.indexOf(lan && lan.index && lan.index.auto_str_231 || "") > -1) {
-      data.cpu = line.replace(lan && lan.index && lan.index.auto_str_232 || "", '').trim();
-    } else if (line.indexOf(lan && lan.index && lan.index.auto_str_233 || "") > -1) {
-      data.mem = line.replace(lan && lan.index && lan.index.auto_str_234 || "", '').trim();
-    } else if (line.indexOf(lan && lan.index && lan.index.auto_str_235 || "") > -1) {
-      data.disk = line.replace(lan && lan.index && lan.index.auto_str_236 || "", '').trim();
-    } else if (line.indexOf(lan && lan.index && lan.index.auto_str_237 || "") > -1) {
-      data.os = line.replace(lan && lan.index && lan.index.auto_str_238 || "", '').trim();
-    } else if (line.indexOf(lan && lan.index && lan.index.auto_str_239 || "") > -1) {
-      data.write_speed = line.replace(lan && lan.index && lan.index.auto_str_240 || "", '').trim();
-    } else if (line.indexOf(lan && lan.index && lan.index.auto_str_241 || "") > -1) {
-      data.read_speed = line.replace(lan && lan.index && lan.index.auto_str_242 || "", '').trim();
-    } else if (line.indexOf(lan && lan.index && lan.index.auto_str_243 || "") > -1 || line.indexOf(lan && lan.index && lan.index.auto_str_244 || "") > -1) {
-      var nodePart = line.replace(lan && lan.index && lan.index.auto_str_245 || "", '').replace(lan && lan.index && lan.index.auto_str_246 || "", '').trim();
+    if (line.indexOf(lan && lan.index && t('index.auto_str_231') || "") > -1) {
+      data.cpu = line.replace(lan && lan.index && t('index.auto_str_232') || "", '').trim();
+    } else if (line.indexOf(lan && lan.index && t('index.auto_str_233') || "") > -1) {
+      data.mem = line.replace(lan && lan.index && t('index.auto_str_234') || "", '').trim();
+    } else if (line.indexOf(lan && lan.index && t('index.auto_str_235') || "") > -1) {
+      data.disk = line.replace(lan && lan.index && t('index.auto_str_236') || "", '').trim();
+    } else if (line.indexOf(lan && lan.index && t('index.auto_str_237') || "") > -1) {
+      data.os = line.replace(lan && lan.index && t('index.auto_str_238') || "", '').trim();
+    } else if (line.indexOf(lan && lan.index && t('index.auto_str_239') || "") > -1) {
+      data.write_speed = line.replace(lan && lan.index && t('index.auto_str_240') || "", '').trim();
+    } else if (line.indexOf(lan && lan.index && t('index.auto_str_241') || "") > -1) {
+      data.read_speed = line.replace(lan && lan.index && t('index.auto_str_242') || "", '').trim();
+    } else if (line.indexOf(lan && lan.index && t('index.auto_str_243') || "") > -1 || line.indexOf(lan && lan.index && t('index.auto_str_244') || "") > -1) {
+      var nodePart = line.replace(lan && lan.index && t('index.auto_str_245') || "", '').replace(lan && lan.index && t('index.auto_str_246') || "", '').trim();
       var parts = nodePart.split('...');
       if (parts.length >= 1) {
         var nodeName = parts[0].trim();
         var nodeStatus = 'running';
-        var nodeSpeed = lan && lan.index && lan.index.auto_str_247 || "";
+        var nodeSpeed = lan && lan.index && t('index.auto_str_247') || "";
         if (parts.length >= 2 && parts[1].trim() !== '') {
           var val = parts[1].trim();
-          if (val.indexOf(lan && lan.index && lan.index.auto_str_248 || "") > -1 || val.indexOf(lan && lan.index && lan.index.auto_str_249 || "") > -1) {
+          if (val.indexOf(lan && lan.index && t('index.auto_str_248') || "") > -1 || val.indexOf(lan && lan.index && t('index.auto_str_249') || "") > -1) {
             nodeStatus = 'running';
-            nodeSpeed = lan && lan.index && lan.index.auto_str_250 || "";
-          } else if (val.indexOf(lan && lan.index && lan.index.auto_str_251 || "") > -1 || val.indexOf(lan && lan.index && lan.index.auto_str_252 || "") > -1) {
+            nodeSpeed = lan && lan.index && t('index.auto_str_250') || "";
+          } else if (val.indexOf(lan && lan.index && t('index.auto_str_251') || "") > -1 || val.indexOf(lan && lan.index && t('index.auto_str_252') || "") > -1) {
             nodeStatus = 'failed';
-            nodeSpeed = lan && lan.index && lan.index.auto_str_253 || "";
+            nodeSpeed = lan && lan.index && t('index.auto_str_253') || "";
           } else {
             nodeStatus = 'finished';
             nodeSpeed = val;
@@ -2213,7 +2213,7 @@ function getIpLocationFromCache(ip) {
       var item = cache[ip];
       if (item && item.loc && Date.now() - (item.t || 0) < 30 * 86400000) {
         // 若历史缓存为“未知归属地”或“未知”，视为失效并重新向后端拉取
-        if (item.loc === (lan && lan.index && lan.index.auto_str_254 || "") || item.loc === (lan && lan.index && lan.index.auto_str_255 || "") || item.loc === (lan && lan.index && lan.index.auto_str_256 || "")) {
+        if (item.loc === (lan && lan.index && t('index.auto_str_254') || "") || item.loc === (lan && lan.index && t('index.auto_str_255') || "") || item.loc === (lan && lan.index && t('index.auto_str_256') || "")) {
           return null;
         }
         return item.loc;
@@ -2227,7 +2227,7 @@ function getIpLocationFromCache(ip) {
 function saveIpLocationToCache(ip, loc) {
   if (!ip || !loc) return;
   // 若解析为未知归属地，不写入长期缓存，留待下一次重试自愈
-  if (loc === (lan && lan.index && lan.index.auto_str_257 || "") || loc === (lan && lan.index && lan.index.auto_str_258 || "") || loc === (lan && lan.index && lan.index.auto_str_259 || "")) return;
+  if (loc === (lan && lan.index && t('index.auto_str_257') || "") || loc === (lan && lan.index && t('index.auto_str_258') || "") || loc === (lan && lan.index && t('index.auto_str_259') || "")) return;
   try {
     var cache = {};
     var cacheStr = localStorage.getItem('bt_ip_loc_cache');
@@ -2260,7 +2260,7 @@ function fetchAndRenderIpLocations(ipsToFetch) {
         }
       }, 'json').fail(function () {
         var $targets = $('[data-ip-loc="' + targetIp + '"]');
-        $targets.text(lan && lan.index && lan.index.auto_str_260 || "").removeClass('ip-loc-pending');
+        $targets.text(lan && lan.index && t('index.auto_str_260') || "").removeClass('ip-loc-pending');
       });
     })(uniqueIps[i]);
   }
@@ -2295,24 +2295,24 @@ function renderRecentLoginsTable(data) {
   }
   var list = data.list || [];
   if (list.length === 0) {
-    $('#recentLoginsTableBody').html(lan && lan.index && lan.index.auto_str_261 || "");
+    $('#recentLoginsTableBody').html(lan && lan.index && t('index.auto_str_261') || "");
     return;
   }
   var html = '<table class="table recent-logins-table">';
   html += '<thead><tr>';
-  html += lan && lan.index && lan.index.auto_str_262 || "";
-  html += lan && lan.index && lan.index.auto_str_263 || "";
-  html += lan && lan.index && lan.index.auto_str_264 || "";
-  html += lan && lan.index && lan.index.auto_str_265 || "";
-  html += lan && lan.index && lan.index.auto_str_266 || "";
+  html += lan && lan.index && t('index.auto_str_262') || "";
+  html += lan && lan.index && t('index.auto_str_263') || "";
+  html += lan && lan.index && t('index.auto_str_264') || "";
+  html += lan && lan.index && t('index.auto_str_265') || "";
+  html += lan && lan.index && t('index.auto_str_266') || "";
   html += '</tr></thead><tbody>';
   var ipsToQuery = [];
   for (var i = 0; i < list.length; i++) {
     var item = list[i];
     var isSuccess = item.status === 'success';
-    var statusBadge = isSuccess ? lan && lan.index && lan.index.auto_str_267 || "" : lan && lan.index && lan.index.auto_str_268 || "";
-    var methodBadge = item.method === 'SSH' ? '<span class="login-method-badge method-ssh" title="' + (item.details || lan && lan.index && lan.index.auto_str_269 || "") + '">SSH</span>' : '<span class="login-method-badge method-web" title="' + (item.details || lan && lan.index && lan.index.auto_str_270 || "") + '">Web</span>';
-    var currentMark = item.is_current ? lan && lan.index && lan.index.auto_str_271 || "" : '';
+    var statusBadge = isSuccess ? lan && lan.index && t('index.auto_str_267') || "" : lan && lan.index && t('index.auto_str_268') || "";
+    var methodBadge = item.method === 'SSH' ? '<span class="login-method-badge method-ssh" title="' + (item.details || lan && lan.index && t('index.auto_str_269') || "") + '">SSH</span>' : '<span class="login-method-badge method-web" title="' + (item.details || lan && lan.index && t('index.auto_str_270') || "") + '">Web</span>';
+    var currentMark = item.is_current ? lan && lan.index && t('index.auto_str_271') || "" : '';
 
     // 归属地计算与本地缓存
     var locationHtml = '';
@@ -2324,12 +2324,12 @@ function renderRecentLoginsTable(data) {
       if (cachedLoc) {
         locationHtml = '<span class="f11 c6 ip-loc-text" data-ip-loc="' + item.ip + '" title="' + cachedLoc + '">' + cachedLoc + '</span>';
       } else {
-        locationHtml = '<span class="f11 c9 ip-loc-pending" data-ip-loc="' + item.ip + (lan && lan.index && lan.index.auto_str_272 || "");
+        locationHtml = '<span class="f11 c9 ip-loc-pending" data-ip-loc="' + item.ip + (lan && lan.index && t('index.auto_str_272') || "");
         ipsToQuery.push(item.ip);
       }
     }
     var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
-    var timeTitle = (lan && lan.index && lan.index.auto_str_273 || "") + localDisplayTime + (item.log_time ? (lan && lan.index && lan.index.auto_str_274 || "") + item.log_time : '');
+    var timeTitle = (lan && lan.index && t('index.auto_str_273') || "") + localDisplayTime + (item.log_time ? (lan && lan.index && t('index.auto_str_274') || "") + item.log_time : '');
     html += '<tr>';
     html += '<td>' + statusBadge + '</td>';
     html += '<td>' + methodBadge + '</td>';
@@ -2382,7 +2382,7 @@ function getRecentLogins(forceRefresh) {
   }, function (rdata) {
     if (!rdata || !rdata.status) {
       if (!cachedData) {
-        $('#recentLoginsTableBody').html(lan && lan.index && lan.index.auto_str_275 || "");
+        $('#recentLoginsTableBody').html(lan && lan.index && t('index.auto_str_275') || "");
       }
       return;
     }
@@ -2396,17 +2396,17 @@ function getRecentLogins(forceRefresh) {
     renderRecentLoginsTable(data);
   }, 'json').fail(function () {
     if (!cachedData) {
-      $('#recentLoginsTableBody').html(lan && lan.index && lan.index.auto_str_276 || "");
+      $('#recentLoginsTableBody').html(lan && lan.index && t('index.auto_str_276') || "");
     }
   });
 }
 
 // 弹窗展示全部登录记录 (支持分页与多维筛选)
 function showAllLoginLogs() {
-  var modalHtml = lan && lan.index && lan.index.auto_str_277 || "";
+  var modalHtml = lan && lan.index && t('index.auto_str_277') || "";
   layer.open({
     type: 1,
-    title: lan && lan.index && lan.index.auto_str_278 || "",
+    title: lan && lan.index && t('index.auto_str_278') || "",
     area: ['780px', '530px'],
     closeBtn: 1,
     shadeClose: false,
@@ -2425,7 +2425,7 @@ function getAllLoginLogs(page) {
   var p = page || 1;
   var status = $('#loginLogStatusFilter').val() || 'all';
   var method = $('#loginLogMethodFilter').val() || 'all';
-  $('#allLoginLogsList').html(lan && lan.index && lan.index.auto_str_279 || "");
+  $('#allLoginLogsList').html(lan && lan.index && t('index.auto_str_279') || "");
   $.post('/get_recent_logins', {
     p: p,
     limit: 10,
@@ -2434,14 +2434,14 @@ function getAllLoginLogs(page) {
     tojs: 'getAllLoginLogs'
   }, function (rdata) {
     if (!rdata || !rdata.status) {
-      $('#allLoginLogsList').html(lan && lan.index && lan.index.auto_str_280 || "");
+      $('#allLoginLogsList').html(lan && lan.index && t('index.auto_str_280') || "");
       $('#allLoginLogsPage').html('');
       return;
     }
     var data = rdata.data || {};
     var list = data.list || [];
     if (list.length === 0) {
-      $('#allLoginLogsList').html(lan && lan.index && lan.index.auto_str_281 || "");
+      $('#allLoginLogsList').html(lan && lan.index && t('index.auto_str_281') || "");
       $('#allLoginLogsPage').html('');
       return;
     }
@@ -2450,9 +2450,9 @@ function getAllLoginLogs(page) {
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
       var isSuccess = item.status === 'success';
-      var statusBadge = isSuccess ? lan && lan.index && lan.index.auto_str_282 || "" : lan && lan.index && lan.index.auto_str_283 || "";
+      var statusBadge = isSuccess ? lan && lan.index && t('index.auto_str_282') || "" : lan && lan.index && t('index.auto_str_283') || "";
       var methodBadge = item.method === 'SSH' ? '<span class="login-method-badge method-ssh">SSH</span>' : '<span class="login-method-badge method-web">Web</span>';
-      var currentMark = item.is_current ? lan && lan.index && lan.index.auto_str_284 || "" : '';
+      var currentMark = item.is_current ? lan && lan.index && t('index.auto_str_284') || "" : '';
       var locationHtml = '';
       if (item.is_local) {
         var locText = item.location || item.ip_type || '局域网';
@@ -2462,12 +2462,12 @@ function getAllLoginLogs(page) {
         if (cachedLoc) {
           locationHtml = '<span class="f12 c6 ip-loc-text" data-ip-loc="' + item.ip + '" title="' + cachedLoc + '">' + cachedLoc + '</span>';
         } else {
-          locationHtml = '<span class="f12 c9 ip-loc-pending" data-ip-loc="' + item.ip + (lan && lan.index && lan.index.auto_str_285 || "");
+          locationHtml = '<span class="f12 c9 ip-loc-pending" data-ip-loc="' + item.ip + (lan && lan.index && t('index.auto_str_285') || "");
           ipsToQuery.push(item.ip);
         }
       }
       var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
-      var timeTitle = (lan && lan.index && lan.index.auto_str_286 || "") + localDisplayTime + (item.log_time ? (lan && lan.index && lan.index.auto_str_287 || "") + item.log_time : '');
+      var timeTitle = (lan && lan.index && t('index.auto_str_286') || "") + localDisplayTime + (item.log_time ? (lan && lan.index && t('index.auto_str_287') || "") + item.log_time : '');
       tbodyHtml += '<tr>';
       tbodyHtml += '<td>' + statusBadge + '</td>';
       tbodyHtml += '<td>' + methodBadge + '</td>';
@@ -2483,7 +2483,7 @@ function getAllLoginLogs(page) {
       fetchAndRenderIpLocations(ipsToQuery);
     }
   }, 'json').fail(function () {
-    $('#allLoginLogsList').html(lan && lan.index && lan.index.auto_str_288 || "");
+    $('#allLoginLogsList').html(lan && lan.index && t('index.auto_str_288') || "");
     $('#allLoginLogsPage').html('');
   });
 }

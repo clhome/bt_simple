@@ -56,21 +56,21 @@ function getWeb(page, type_id, search) {
     for (var i = 0; i < list.length; i++) {
       //当前站点状态
       var trClass = '';
-      if (list[i].status == (lan && lan.site && lan.site.site_auto_str_1 || "") || list[i].status == '1') {
-        var status = (lan && lan.site && lan.site.site_auto_str_2 || "") + list[i].id + ",'" + list[i].name + (lan && lan.site && lan.site.site_auto_str_3 || "");
+      if (list[i].status == (lan && lan.site && t('site.site_auto_str_1') || "") || list[i].status == '1') {
+        var status = (lan && lan.site && t('site.site_auto_str_2') || "") + list[i].id + ",'" + list[i].name + (lan && lan.site && t('site.site_auto_str_3') || "");
       } else {
-        var status = (lan && lan.site && lan.site.site_auto_str_4 || "") + list[i].id + ",'" + list[i].name + (lan && lan.site && lan.site.site_auto_str_5 || "");
+        var status = (lan && lan.site && t('site.site_auto_str_4') || "") + list[i].id + ",'" + list[i].name + (lan && lan.site && t('site.site_auto_str_5') || "");
         trClass = ' class="danger-row"';
       }
 
       //是否有备份
       if (list[i].backup_count > 0) {
-        var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + (lan && lan.site && lan.site.site_auto_str_6 || "");
+        var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + (lan && lan.site && t('site.site_auto_str_6') || "");
       } else {
-        var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + (lan && lan.site && lan.site.site_auto_str_7 || "");
+        var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + (lan && lan.site && t('site.site_auto_str_7') || "");
       }
       //是否设置有效期
-      var web_end_time = list[i].edate == "0000-00-00" ? lan && lan.site && lan.site.site_auto_str_8 || "" : list[i].edate;
+      var web_end_time = list[i].edate == "0000-00-00" ? lan && lan.site && t('site.site_auto_str_8') || "" : list[i].edate;
       //表格主体
       var shortwebname = list[i].name;
       var shortpath = list[i].path;
@@ -81,15 +81,15 @@ function getWeb(page, type_id, search) {
         shortpath = list[i].path.substring(0, 30) + "...";
       }
       var idname = list[i].name.replace(/\./g, '_');
-      var php_show_text = list[i].php_version == '00' ? lan && lan.site && lan.site.site_auto_str_9 || "" : list[i].php_version.length == 2 ? list[i].php_version.substring(0, 1) + '.' + list[i].php_version.substring(1) : list[i].php_version;
+      var php_show_text = list[i].php_version == '00' ? lan && lan.site && t('site.site_auto_str_9') || "" : list[i].php_version.length == 2 ? list[i].php_version.substring(0, 1) + '.' + list[i].php_version.substring(1) : list[i].php_version;
       var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + list[i].name + "', '" + list[i].php_version + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
-      var ssl_text = list[i].ssl_days == -1 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && lan.site.site_auto_str_10 || "") : list[i].ssl_days < 10 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && lan.site.site_auto_str_11 || "") + list[i].ssl_days + (lan && lan.site && lan.site.site_auto_str_12 || "") : "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && lan.site.site_auto_str_13 || "") + list[i].ssl_days + (lan && lan.site && lan.site.site_auto_str_14 || "");
+      var ssl_text = list[i].ssl_days == -1 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && t('site.site_auto_str_10') || "") : list[i].ssl_days < 10 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && t('site.site_auto_str_11') || "") + list[i].ssl_days + (lan && lan.site && t('site.site_auto_str_12') || "") : "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && t('site.site_auto_str_13') || "") + list[i].ssl_days + (lan && lan.site && t('site.site_auto_str_14') || "");
       var daily_traffic = toSize(list[i].daily_traffic);
       var add_time_str = list[i].add_time && list[i].add_time.length >= 10 ? list[i].add_time.substring(0, 10) : list[i].add_time;
       body = "<tr" + trClass + "><td><input type='checkbox' name='id' title='" + list[i].name + "' onclick='checkSelect();' value='" + list[i].id + "'></td>\
 					<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "')\" title='" + list[i].name + "'>" + shortwebname + "</td>\
 					<td>" + status + "</td>\
-					<td>" + backup + (lan && lan.site && lan.site.site_auto_str_15 || "") + list[i].path + "' href=\"javascript:openPath('" + data.data[i].path + "');\">" + shortpath + "</a></td>\
+					<td>" + backup + (lan && lan.site && t('site.site_auto_str_15') || "") + list[i].path + "' href=\"javascript:openPath('" + data.data[i].path + "');\">" + shortpath + "</a></td>\
 					<td>" + add_time_str + "</td>\
 					<td>" + daily_traffic + "</td>\
 					<td>" + php_text + "</td>\
@@ -97,7 +97,7 @@ function getWeb(page, type_id, search) {
 					<td><a class='btlink setTimes' id='site_" + list[i].id + "' data-ids='" + list[i].id + "'>" + web_end_time + "</a></td>\
 					<td><a class='btlinkbed' href='javascript:;' data-id='" + list[i].id + "'>" + list[i].ps + "</a></td>\
 					<td style='text-align:right; color:#bbb'>\
-					<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && lan.site.site_auto_str_16 || "") + list[i].id + "','" + list[i].name + (lan && lan.site && lan.site.site_auto_str_17 || "");
+					<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (lan && lan.site && t('site.site_auto_str_16') || "") + list[i].id + "','" + list[i].name + (lan && lan.site && t('site.site_auto_str_17') || "");
       $("#webBody").append(body);
     }
 
@@ -117,10 +117,10 @@ function getWeb(page, type_id, search) {
           btns: ['perpetual', 'confirm'],
           theme: '#20a53a',
           done: function (dates) {
-            if (_this.html() == (lan && lan.site && lan.site.site_auto_str_18 || "")) {
+            if (_this.html() == (lan && lan.site && t('site.site_auto_str_18') || "")) {
               dates = '0000-00-00';
             }
-            var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_19 || "", {
+            var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_19') || "", {
               icon: 16,
               time: 0,
               shade: [0.3, "#000"]
@@ -138,7 +138,7 @@ function getWeb(page, type_id, search) {
       }
     });
     if (body.length < 10) {
-      body = lan && lan.site && lan.site.site_auto_str_20 || "";
+      body = lan && lan.site && t('site.site_auto_str_20') || "";
       $("#webBody").html(body);
     }
     //输出数据列表
@@ -156,7 +156,7 @@ function getWeb(page, type_id, search) {
       if (databak == null) {
         databak = '';
       }
-      $(this).hide().after("<input class='baktext' type='text' data-id='" + dataid + "' data-page='" + page + "' name='bak' value='" + databak + (lan && lan.site && lan.site.site_auto_str_21 || ""));
+      $(this).hide().after("<input class='baktext' type='text' data-id='" + dataid + "' data-page='" + page + "' name='bak' value='" + databak + (lan && lan.site && t('site.site_auto_str_21') || ""));
       $(".baktext").trigger('focus');
     });
     readerTableChecked();
@@ -168,7 +168,7 @@ function getBakPost(b) {
   var page = $(".baktext").attr("data-page");
   var a = $(".baktext").val();
   if (a == "") {
-    a = lan && lan.site && lan.site.site_auto_str_22 || "";
+    a = lan && lan.site && t('site.site_auto_str_22') || "";
   }
   setWebPs(b, id, a, page);
   $("a[data-id='" + id + "']").html(a);
@@ -184,12 +184,12 @@ function setWebPs(b, id, ps, page) {
     if (data['status']) {
       getWeb(page);
       layer.closeAll();
-      layer.msg(lan && lan.site && lan.site.site_auto_str_23 || "", {
+      layer.msg(lan && lan.site && t('site.site_auto_str_23') || "", {
         icon: 1
       });
     } else {
       layer.closeAll();
-      layer.msg(lan && lan.site && lan.site.site_auto_str_24 || "", {
+      layer.msg(lan && lan.site && t('site.site_auto_str_24') || "", {
         icon: 2
       });
     }
@@ -198,7 +198,7 @@ function setWebPs(b, id, ps, page) {
 
 //创建站点前,检查服务是否开启
 function webAdd(type) {
-  loading = layer.msg(lan && lan.site && lan.site.site_auto_str_25 || "", {
+  loading = layer.msg(lan && lan.site && t('site.site_auto_str_25') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, "#000"]
@@ -227,7 +227,7 @@ function webAddPage(type) {
     var webport = [];
     var checkDomain = domain[0].split('.');
     if (checkDomain.length < 1) {
-      layer.msg(lan.site.domain_err_txt, {
+      layer.msg(t('site.domain_err_txt'), {
         icon: 2
       });
       return;
@@ -241,7 +241,7 @@ function webAddPage(type) {
     }
     domainlist = domainlist.substring(0, domainlist.length - 1); //子域名json
     domain = '{"domain":"' + domain[0] + '","domainlist":[' + domainlist + '],"count":' + domain.length + '}'; //拼接json
-    var loadT = layer.msg(lan.public.the_get, {
+    var loadT = layer.msg(t('public.the_get'), {
       icon: 16,
       time: 0,
       shade: [0.3, "#000"]
@@ -251,7 +251,7 @@ function webAddPage(type) {
       if (ret.status == true) {
         getWeb(1);
         layer.closeAll();
-        layer.msg(lan && lan.site && lan.site.site_auto_str_26 || "", {
+        layer.msg(lan && lan.site && t('site.site_auto_str_26') || "", {
           icon: 1
         });
       } else {
@@ -266,7 +266,7 @@ function webAddPage(type) {
   $.post('/site/get_php_version', function (data) {
     var rdata = data.data;
     var defaultPath = $("#defaultPath").html();
-    var php_version = "<div class='line'><span class='tname'>" + lan.site.php_ver + "</span><select class='bt-input-text' name='version' id='c_k3' style='width:100px'>";
+    var php_version = "<div class='line'><span class='tname'>" + t('site.php_ver') + "</span><select class='bt-input-text' name='version' id='c_k3' style='width:100px'>";
     for (var i = rdata.length - 1; i >= 0; i--) {
       php_version += "<option value='" + rdata[i].version + "'>" + rdata[i].name + "</option>";
     }
@@ -276,20 +276,20 @@ function webAddPage(type) {
         type: 1,
         skin: 'demo-class',
         area: '640px',
-        title: lan && lan.site && lan.site.site_auto_str_27 || "",
+        title: lan && lan.site && t('site.site_auto_str_27') || "",
         closeBtn: 1,
         shift: 0,
         shadeClose: false,
         content: "<form class='bt-form pd20 pb70' id='addweb'>\
 				<div class='line'>\
-                    <span class='tname'>" + lan.site.domain + (lan && lan.site && lan.site.site_auto_str_28 || "") + www['dir'] + "/' placeholder='" + www['dir'] + "' style='width:458px' />\
+                    <span class='tname'>" + t('site.domain') + (lan && lan.site && t('site.site_auto_str_28') || "") + www['dir'] + "/' placeholder='" + www['dir'] + "' style='width:458px' />\
                 	<span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
                 </div>\
                 </div>\
-				" + php_version + (lan && lan.site && lan.site.site_auto_str_29 || "")
+				" + php_version + (lan && lan.site && t('site.site_auto_str_29') || "")
       });
       $(function () {
-        var placeholder = "<div class='placeholder c9' style='top:10px;left:10px'>" + lan.site.domain_help + "</div>";
+        var placeholder = "<div class='placeholder c9' style='top:10px;left:10px'>" + t('site.domain_help') + "</div>";
         $('#mainDomain').after(placeholder);
         $(".placeholder").on('click', function () {
           $(this).hide();
@@ -307,7 +307,7 @@ function webAddPage(type) {
         //验证PHP版本
         $("select[name='version']").on('change', function () {
           if ($(this).val() == '52') {
-            var msgerr = lan && lan.site && lan.site.site_auto_str_30 || "";
+            var msgerr = lan && lan.site && t('site.site_auto_str_30') || "";
             $('#php_w').text(msgerr);
           } else {
             $('#php_w').text('');
@@ -339,7 +339,7 @@ function webAddPage(type) {
           if (len > 20) {
             str = str.substring(0, 20);
             $(this).val(str);
-            layer.msg(lan && lan.site && lan.site.site_auto_str_31 || "", {
+            layer.msg(lan && lan.site && t('site.site_auto_str_31') || "", {
               icon: 0
             });
           }
@@ -372,24 +372,24 @@ function webPathEdit(id) {
     }
     var content = "<div class='webedit-box soft-man-con'>\
 					<div class='label-input-group ptb10'>\
-						<input type='checkbox' name='userini' id='userini'" + user_ini_checked + (lan && lan.site && lan.site.site_auto_str_32 || "") + logs_checked + (lan && lan.site && lan.site.site_auto_str_33 || "") + site_path + "' name='webdir' id='inputPath'>\
+						<input type='checkbox' name='userini' id='userini'" + user_ini_checked + (lan && lan.site && t('site.site_auto_str_32') || "") + logs_checked + (lan && lan.site && t('site.site_auto_str_33') || "") + site_path + "' name='webdir' id='inputPath'>\
 						<span onclick='changePath(&quot;inputPath&quot;)' class='glyphicon glyphicon-folder-open cursor mr20'></span>\
-						<button class='btn btn-success btn-sm' onclick='setSitePath(" + id + (lan && lan.site && lan.site.site_auto_str_34 || "") + opt + "</select>\
-						<button class='btn btn-success btn-sm' onclick='setSiteRunPath(" + id + (lan && lan.site && lan.site.site_auto_str_35 || "") + '<div class="user_pw_tit" style="margin-top: -8px;padding-top: 11px;">' + (lan && lan.site && lan.site.site_auto_str_36 || "") + '<span class="btswitch-p"><input ' + (data.pass ? 'checked' : '') + ' class="btswitch btswitch-ios" id="pathSafe" type="checkbox">' + '<label class="btswitch-btn phpmyadmin-btn" for="pathSafe" onclick="pathSafe(' + id + ')"></label>' + '</span>' + '</div>' + '<div class="user_pw" style="margin-top: 10px;display:' + (data.pass ? 'block;' : 'none;') + '">' + (lan && lan.site && lan.site.site_auto_str_37 || "") + (lan && lan.site && lan.site.site_auto_str_38 || "") + (lan && lan.site && lan.site.site_auto_str_39 || "") + '<p><button class="btn btn-success btn-sm" onclick="setPathSafe(' + id + (lan && lan.site && lan.site.site_auto_str_40 || "") + '</div>' + '</div>';
+						<button class='btn btn-success btn-sm' onclick='setSitePath(" + id + (lan && lan.site && t('site.site_auto_str_34') || "") + opt + "</select>\
+						<button class='btn btn-success btn-sm' onclick='setSiteRunPath(" + id + (lan && lan.site && t('site.site_auto_str_35') || "") + '<div class="user_pw_tit" style="margin-top: -8px;padding-top: 11px;">' + (lan && lan.site && t('site.site_auto_str_36') || "") + '<span class="btswitch-p"><input ' + (data.pass ? 'checked' : '') + ' class="btswitch btswitch-ios" id="pathSafe" type="checkbox">' + '<label class="btswitch-btn phpmyadmin-btn" for="pathSafe" onclick="pathSafe(' + id + ')"></label>' + '</span>' + '</div>' + '<div class="user_pw" style="margin-top: 10px;display:' + (data.pass ? 'block;' : 'none;') + '">' + (lan && lan.site && t('site.site_auto_str_37') || "") + (lan && lan.site && t('site.site_auto_str_38') || "") + (lan && lan.site && t('site.site_auto_str_39') || "") + '<p><button class="btn btn-success btn-sm" onclick="setPathSafe(' + id + (lan && lan.site && t('site.site_auto_str_40') || "") + '</div>' + '</div>';
     $("#webedit-con").html(content);
     $("#userini").on('change', function () {
       $.post('/site/set_dir_user_ini', {
         'path': site_path,
         'run_path': run_path
       }, function (userini) {
-        layer.msg(data.msg + (lan && lan.site && lan.site.site_auto_str_41 || ""), {
+        layer.msg(data.msg + (lan && lan.site && t('site.site_auto_str_41') || ""), {
           icon: data.status ? 1 : 2
         });
         tryRestartPHP(site_name);
       }, 'json');
     });
     $("#logs").on('change', function () {
-      var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_42 || "", {
+      var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_42') || "", {
         icon: 16,
         time: 10000,
         shade: [0.3, '#000']
@@ -410,7 +410,7 @@ function pathSafe(id) {
   if (!isPass) {
     $(".user_pw").show();
   } else {
-    var loadT = layer.msg(lan.public.the, {
+    var loadT = layer.msg(t('public.the'), {
       icon: 16,
       time: 10000,
       shade: [0.3, '#000']
@@ -433,12 +433,12 @@ function setPathSafe(id) {
   var pass1 = $("#password_get_1").val();
   var pass2 = $("#password_get_2").val();
   if (pass1 != pass2) {
-    layer.msg(lan && lan.site && lan.site.site_auto_str_43 || "", {
+    layer.msg(lan && lan.site && t('site.site_auto_str_43') || "", {
       icon: 2
     });
     return;
   }
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_44 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_44') || "", {
     icon: 16,
     time: 10000,
     shade: [0.3, '#000']
@@ -458,7 +458,7 @@ function setPathSafe(id) {
 //提交运行目录
 function setSiteRunPath(id) {
   var NewPath = $("#runPath").val();
-  var loadT = layer.msg(lan.public.the, {
+  var loadT = layer.msg(t('public.the'), {
     icon: 16,
     time: 10000,
     shade: [0.3, '#000']
@@ -474,7 +474,7 @@ function setSiteRunPath(id) {
 //提交网站目录
 function setSitePath(id) {
   var NewPath = $("#inputPath").val();
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_45 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_45') || "", {
     icon: 16,
     time: 10000,
     shade: [0.3, '#000']
@@ -492,10 +492,10 @@ function webBakEdit(id) {
   $.post("/data?action=getKey','table=sites&key=ps&id=" + id, function (rdata) {
     var webBakHtml = "<div class='webEdit-box padding-10'>\
 			<div class='line'>\
-			<label><span>" + lan.site.note_ph + "</span></label>\
+			<label><span>" + t('site.note_ph') + "</span></label>\
 			<div class='info-r'>\
 			<textarea name='beizhu' id='webbeizhu' col='5' style='width:96%'>" + rdata + "</textarea>\
-			<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs(" + id + (lan && lan.site && lan.site.site_auto_str_46 || "");
+			<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs(" + id + (lan && lan.site && t('site.site_auto_str_46') || "");
     $("#webedit-con").html(webBakHtml);
   });
 }
@@ -508,7 +508,7 @@ function setIndexEdit(id) {
     var setIndexHtml = "<div id='SetIndex'><div class='SetIndex'>\
 				<div class='line'>\
 						<textarea class='bt-input-text' id='Dindex' name='files' style='height: 180px; width:50%; line-height:20px'>" + rdata + "</textarea>\
-						<button type='button' class='btn btn-success btn-sm pull-right' onclick='setIndexList(" + id + ")' style='margin: 70px 130px 0px 0px;'>" + lan.public.save + (lan && lan.site && lan.site.site_auto_str_47 || "");
+						<button type='button' class='btn btn-success btn-sm pull-right' onclick='setIndexList(" + id + ")' style='margin: 70px 130px 0px 0px;'>" + t('public.save') + (lan && lan.site && t('site.site_auto_str_47') || "");
     $("#webedit-con").html(setIndexHtml);
   }, 'json');
 }
@@ -519,7 +519,7 @@ function setIndexEdit(id) {
  * @param {String} wname 网站名称
  */
 function webStop(wid, wname) {
-  layer.confirm(lan && lan.site && lan.site.site_auto_str_48 || "", {
+  layer.confirm(lan && lan.site && t('site.site_auto_str_48') || "", {
     icon: 3,
     closeBtn: 2
   }, function (index) {
@@ -542,7 +542,7 @@ function webStop(wid, wname) {
  * @param {String} wname 网站名称
  */
 function webStart(wid, wname) {
-  layer.confirm(lan && lan.site && lan.site.site_auto_str_49 || "", {
+  layer.confirm(lan && lan.site && t('site.site_auto_str_49') || "", {
     icon: 3,
     closeBtn: 2
   }, function (index) {
@@ -565,14 +565,14 @@ function webStart(wid, wname) {
  * @param {String} wname 网站名称
  */
 function webDelete(wid, wname) {
-  var thtml = lan && lan.site && lan.site.site_auto_str_50 || "";
-  var info = lan && lan.site && lan.site.site_auto_str_51 || "";
-  safeMessage((lan && lan.site && lan.site.site_auto_str_52 || "") + "【" + wname + "】", info, function () {
+  var thtml = lan && lan.site && t('site.site_auto_str_50') || "";
+  var info = lan && lan.site && t('site.site_auto_str_51') || "";
+  safeMessage((lan && lan.site && t('site.site_auto_str_52') || "") + "【" + wname + "】", info, function () {
     var path = '';
     if ($("#delpath").is(":checked")) {
       path = '&path=1';
     }
-    var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_53 || "", {
+    var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_53') || "", {
       icon: 16,
       time: 10000,
       shade: [0.3, '#000']
@@ -599,9 +599,9 @@ function allDeleteSite() {
     dataList.push(tmp);
   }
   var thtml = "<div class='options'>\
-	    	<label style=\"width:100%;\"><input type='checkbox' id='delpath' name='path'><span>" + lan.site.all_del_info + "</span></label>\
+	    	<label style=\"width:100%;\"><input type='checkbox' id='delpath' name='path'><span>" + t('site.all_del_info') + "</span></label>\
 	    	</div>";
-  safeMessage(lan.site.all_del_site, "<a style='color:red;'>" + lan.get('del_all_site', [dataList.length]) + "</a>", function () {
+  safeMessage(t('site.all_del_site'), "<a style='color:red;'>" + t('del_all_site', [dataList.length]) + "</a>", function () {
     layer.closeAll();
     var path = '';
     if ($("#delpath").is(":checked")) {
@@ -614,14 +614,14 @@ function allDeleteSite() {
 //模拟同步开始批量删除
 function syncDeleteSite(dataList, successCount, errorMsg, path) {
   if (dataList.length < 1) {
-    showMsg(lan.get('del_all_site_ok', [successCount]), function () {
+    showMsg(t('del_all_site_ok', [successCount]), function () {
       // location.reload();
     }, {
       icon: 1
     });
     return;
   }
-  var loadT = layer.msg(lan.get('del_all_task_the', [dataList[0].name]), {
+  var loadT = layer.msg(t('del_all_task_the', [dataList[0].name]), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -633,7 +633,7 @@ function syncDeleteSite(dataList, successCount, errorMsg, path) {
       $("input[title='" + dataList[0].name + "']").parents("tr").remove();
     } else {
       if (!errorMsg) {
-        errorMsg = '<br><p>' + lan.site.del_err + ':</p>';
+        errorMsg = '<br><p>' + t('site.del_err') + ':</p>';
       }
       errorMsg += '<li>' + dataList[0].name + ' -> ' + rdata.msg + '</li>';
     }
@@ -654,14 +654,14 @@ function domainEdit(id, name, msg, status) {
     var echoHtml = "";
     for (var i = 0; i < domain.length; i++) {
       echoHtml += "<tr>\
-				<td><a title='" + lan.site.click_access + "' target='_blank' href='http://" + domain[i].name + (domain[i].port == '80' ? '' : ':' + domain[i].port) + "' class='btlinkbed'>" + domain[i].name + "</a></td>\
+				<td><a title='" + t('site.click_access') + "' target='_blank' href='http://" + domain[i].name + (domain[i].port == '80' ? '' : ':' + domain[i].port) + "' class='btlinkbed'>" + domain[i].name + "</a></td>\
 				<td><a class='btlinkbed'>" + domain[i].port + "</a></td>\
 				<td class='text-center'><a class='table-btn-del' href='javascript:;' onclick=\"delDomain(" + id + ",'" + name + "','" + domain[i].name + "','" + domain[i].port + "',1)\"><span class='glyphicon glyphicon-trash'></span></a></td>\
 				</tr>";
     }
     var bodyHtml = "<textarea id='newdomain' class='bt-input-text' style='height: 100px; width: 340px;padding:5px 10px;line-height:20px'></textarea>\
 								<input type='hidden' id='newport' value='80' />\
-								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + (lan && lan.site && lan.site.site_auto_str_54 || "") + lan.site.domain + (lan && lan.site && lan.site.site_auto_str_55 || "") + echoHtml + "</tbody>\
+								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + (lan && lan.site && t('site.site_auto_str_54') || "") + t('site.domain') + (lan && lan.site && t('site.site_auto_str_55') || "") + echoHtml + "</tbody>\
 								</table>\
 							</div>";
     $("#webedit-con").html(bodyHtml);
@@ -670,7 +670,7 @@ function domainEdit(id, name, msg, status) {
         icon: status ? 1 : 5
       });
     }
-    var placeholder = lan && lan.site && lan.site.site_auto_str_56 || "";
+    var placeholder = lan && lan.site && t('site.site_auto_str_56') || "";
     $('#newdomain').after(placeholder);
     $(".placeholder").on('click', function () {
       $(this).hide();
@@ -722,7 +722,7 @@ function domainAdd(id, webname, type) {
     domainlist += Domain[i] + ',';
   }
   if (domainlist.length < 3) {
-    layer.msg(lan.site.domain_empty, {
+    layer.msg(t('site.domain_empty'), {
       icon: 5
     });
     return;
@@ -746,14 +746,14 @@ function domainAdd(id, webname, type) {
 function delDomain(wid, wname, domain, port, type) {
   var num = $("#checkDomain").find("tr").length;
   if (num == 1) {
-    layer.msg(lan.site.domain_last_cannot);
+    layer.msg(t('site.domain_last_cannot'));
   }
-  layer.confirm(lan.site.domain_del_confirm, {
+  layer.confirm(t('site.domain_del_confirm'), {
     icon: 3,
     closeBtn: 2
   }, function (index) {
     var data = "id=" + wid + "&site_name=" + wname + "&domain=" + domain + "&port=" + port;
-    var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_57 || "", {
+    var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_57') || "", {
       time: 0,
       icon: 16
     });
@@ -796,7 +796,7 @@ function isDomain(domain) {
  * @param {String} name	主域名
  */
 function webBackup(id, name) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_58 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_58') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -817,12 +817,12 @@ function webBackup(id, name) {
  * @param {String} name	主域名
  */
 function webBackupDelete(id, pid) {
-  layer.confirm(lan && lan.site && lan.site.site_auto_str_59 || "", {
-    title: lan && lan.site && lan.site.site_auto_str_60 || "",
+  layer.confirm(lan && lan.site && t('site.site_auto_str_59') || "", {
+    title: lan && lan.site && t('site.site_auto_str_60') || "",
     icon: 3,
     closeBtn: 2
   }, function (index) {
-    var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_61 || "", {
+    var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_61') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -846,16 +846,16 @@ function getBackup(id, name, page) {
       if (frdata.data[i].type == '1') {
         continue;
       }
-      var ftpdown = "<a class='btlink' href='/files/download?filename=" + frdata.data[i].filename + "&name=" + frdata.data[i].name + (lan && lan.site && lan.site.site_auto_str_62 || "");
+      var ftpdown = "<a class='btlink' href='/files/download?filename=" + frdata.data[i].filename + "&name=" + frdata.data[i].name + (lan && lan.site && t('site.site_auto_str_62') || "");
       body += "<tr><td><span class='glyphicon glyphicon-file'></span>" + frdata.data[i].name + "</td>\
 					<td>" + toSize(frdata.data[i].size) + "</td>\
 					<td>" + frdata.data[i].add_time + "</td>\
-					<td class='text-right' style='color:#ccc'>" + ftpdown + "<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('" + frdata.data[i].id + "'," + id + (lan && lan.site && lan.site.site_auto_str_63 || "");
+					<td class='text-right' style='color:#ccc'>" + ftpdown + "<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('" + frdata.data[i].id + "'," + id + (lan && lan.site && t('site.site_auto_str_63') || "");
     }
     var ftpdown = '';
     frdata.page = frdata.page.replace(/'/g, '"').replace(/getBackup\(/g, "getBackup(" + id + ",0,");
     if (name == 0) {
-      var sBody = (lan && lan.site && lan.site.site_auto_str_64 || "") + body + "</tbody>\
+      var sBody = (lan && lan.site && t('site.site_auto_str_64') || "") + body + "</tbody>\
 			</table>";
       $("#webBackupList").html(sBody);
       $(".page").html(frdata.page);
@@ -866,12 +866,12 @@ function getBackup(id, name, page) {
       type: 1,
       skin: 'demo-class',
       area: '700px',
-      title: lan && lan.site && lan.site.site_auto_str_65 || "",
+      title: lan && lan.site && t('site.site_auto_str_65') || "",
       closeBtn: 1,
       shift: 0,
       shadeClose: false,
       content: "<div class='bt-form ptb15 mlr15' id='webBackup'>\
-				<button class='btn btn-default btn-sm' style='margin-right:10px' type='button' onclick=\"webBackup('" + frdata['site']['id'] + "','" + frdata['site']['name'] + (lan && lan.site && lan.site.site_auto_str_66 || "") + body + "</tbody>\
+				<button class='btn btn-default btn-sm' style='margin-right:10px' type='button' onclick=\"webBackup('" + frdata['site']['id'] + "','" + frdata['site']['name'] + (lan && lan.site && t('site.site_auto_str_66') || "") + body + "</tbody>\
 					</table>\
 					<div class='page'>" + frdata.page + "</div>\
 				</div>\
@@ -904,18 +904,18 @@ function goSet(num) {
 
 //设置默认文档
 function setIndex(id) {
-  var quanju = id == undefined ? lan.site.public_set : lan.site.local_site;
+  var quanju = id == undefined ? t('site.public_set') : t('site.local_site');
   var data = id == undefined ? "" : "id=" + id;
   $.post('/site?action=GetIndex', data, function (rdata) {
     rdata = rdata.replace(new RegExp(/(,)/g), "\n");
     layer.open({
       type: 1,
       area: '500px',
-      title: lan.site.setindex,
+      title: t('site.setindex'),
       closeBtn: 1,
       shift: 5,
       shadeClose: true,
-      content: "<form class='bt-form' id='SetIndex'><div class='SetIndex'>" + "<div class='line'>" + "	<span class='tname' style='padding-right:2px'>" + lan.site.default_doc + "</span>" + "	<div class='info-r'>" + "		<textarea id='Dindex' name='files' style='line-height:20px'>" + rdata + "</textarea>" + "		<p>" + quanju + lan.site.default_doc_help + "</p>" + "	</div>" + "</div>" + "<div class='bt-form-submit-btn'>" + "	<button type='button' id='web_end_time' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>" + lan.public.cancel + "</button>" + "    <button type='button' class='btn btn-success btn-sm btn-title' onclick='setIndexList(" + id + ")'>" + lan.public.ok + "</button>" + "</div>" + "</div></form>"
+      content: "<form class='bt-form' id='SetIndex'><div class='SetIndex'>" + "<div class='line'>" + "	<span class='tname' style='padding-right:2px'>" + t('site.default_doc') + "</span>" + "	<div class='info-r'>" + "		<textarea id='Dindex' name='files' style='line-height:20px'>" + rdata + "</textarea>" + "		<p>" + quanju + t('site.default_doc_help') + "</p>" + "	</div>" + "</div>" + "<div class='bt-form-submit-btn'>" + "	<button type='button' id='web_end_time' class='btn btn-danger btn-sm btn-title' onclick='layer.closeAll()'>" + t('public.cancel') + "</button>" + "    <button type='button' class='btn btn-success btn-sm btn-title' onclick='setIndexList(" + id + ")'>" + t('public.ok') + "</button>" + "</div>" + "</div></form>"
     });
   });
 }
@@ -923,7 +923,7 @@ function setIndex(id) {
 //设置默认站点
 function setDefaultSite() {
   var name = $("#default_site").val();
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_67 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_67') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -939,7 +939,7 @@ function setDefaultSite() {
 //默认站点
 function getDefaultSite() {
   $.post('/site/get_default_site', '', function (rdata) {
-    var opt = lan && lan.site && lan.site.site_auto_str_68 || "";
+    var opt = lan && lan.site && t('site.site_auto_str_68') || "";
     var selected = '';
     for (var i = 0; i < rdata.sites.length; i++) {
       selected = '';
@@ -949,11 +949,11 @@ function getDefaultSite() {
     layer.open({
       type: 1,
       area: '530px',
-      title: lan && lan.site && lan.site.site_auto_str_69 || "",
+      title: lan && lan.site && t('site.site_auto_str_69') || "",
       closeBtn: 1,
       shift: 5,
       shadeClose: true,
-      content: (lan && lan.site && lan.site.site_auto_str_70 || "") + opt + (lan && lan.site && lan.site.site_auto_str_71 || "")
+      content: (lan && lan.site && t('site.site_auto_str_70') || "") + opt + (lan && lan.site && t('site.site_auto_str_71') || "")
     });
   }, 'json');
 }
@@ -981,15 +981,15 @@ function setPHPVer() {
     var phpver_layer = layer.open({
       type: 1,
       area: '530px',
-      title: lan && lan.site && lan.site.site_auto_str_72 || "",
+      title: lan && lan.site && t('site.site_auto_str_72') || "",
       closeBtn: 1,
       shift: 5,
       shadeClose: true,
-      btn: [lan && lan.site && lan.site.site_auto_str_73 || "", lan && lan.site && lan.site.site_auto_str_74 || ""],
-      content: (lan && lan.site && lan.site.site_auto_str_75 || "") + opt + (lan && lan.site && lan.site.site_auto_str_76 || ""),
+      btn: [lan && lan.site && t('site.site_auto_str_73') || "", lan && lan.site && t('site.site_auto_str_74') || ""],
+      content: (lan && lan.site && t('site.site_auto_str_75') || "") + opt + (lan && lan.site && t('site.site_auto_str_76') || ""),
       yes: function (layero, index) {
         var version = $("#default_ver").val();
-        var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_77 || "", {
+        var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_77') || "", {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']
@@ -1041,17 +1041,17 @@ function webEdit(id, website, endTime, addtime, defaultTab) {
   layer.open({
     type: 1,
     area: ['950px', '780px'],
-    title: (lan && lan.site && lan.site.site_auto_str_78 || "") + website + (lan && lan.site && lan.site.site_auto_str_79 || "") + addtime + ']',
+    title: (lan && lan.site && t('site.site_auto_str_78') || "") + website + (lan && lan.site && t('site.site_auto_str_79') || "") + addtime + ']',
     closeBtn: 1,
     shift: 0,
     content: "<div class='bt-form'>\
 			<div class='bt-w-menu pull-left'>\
-				<p class='bgw' onclick=\"domainEdit(" + id + ",'" + website + (lan && lan.site && lan.site.site_auto_str_80 || "") + id + (lan && lan.site && lan.site.site_auto_str_81 || "") + id + (lan && lan.site && lan.site.site_auto_str_82 || "") + id + (lan && lan.site && lan.site.site_auto_str_83 || "") + website + (lan && lan.site && lan.site.site_auto_str_84 || "") + id + (lan && lan.site && lan.site.site_auto_str_85 || "") + website + (lan && lan.site && lan.site.site_auto_str_86 || "") + id + ",'" + website + "')\">SSL</p>\
-				<p onclick=\"phpVersion('" + website + (lan && lan.site && lan.site.site_auto_str_87 || "") + website + (lan && lan.site && lan.site.site_auto_str_88 || "") + website + (lan && lan.site && lan.site.site_auto_str_89 || "") + (hasProxy ? "<span style='color:red; font-size:12px; margin-left:3px'>●</span>" : "") + "</p>\
-				<p id='site_" + id + "' onclick=\"security('" + id + "','" + website + (lan && lan.site && lan.site.site_auto_str_90 || "") + id + "' onclick=\"getSiteLogs('" + website + (lan && lan.site && lan.site.site_auto_str_91 || "") + id + "' onclick=\"getSiteErrorLogs('" + website + (lan && lan.site && lan.site.site_auto_str_92 || ""),
+				<p class='bgw' onclick=\"domainEdit(" + id + ",'" + website + (lan && lan.site && t('site.site_auto_str_80') || "") + id + (lan && lan.site && t('site.site_auto_str_81') || "") + id + (lan && lan.site && t('site.site_auto_str_82') || "") + id + (lan && lan.site && t('site.site_auto_str_83') || "") + website + (lan && lan.site && t('site.site_auto_str_84') || "") + id + (lan && lan.site && t('site.site_auto_str_85') || "") + website + (lan && lan.site && t('site.site_auto_str_86') || "") + id + ",'" + website + "')\">SSL</p>\
+				<p onclick=\"phpVersion('" + website + (lan && lan.site && t('site.site_auto_str_87') || "") + website + (lan && lan.site && t('site.site_auto_str_88') || "") + website + (lan && lan.site && t('site.site_auto_str_89') || "") + (hasProxy ? "<span style='color:red; font-size:12px; margin-left:3px'>●</span>" : "") + "</p>\
+				<p id='site_" + id + "' onclick=\"security('" + id + "','" + website + (lan && lan.site && t('site.site_auto_str_90') || "") + id + "' onclick=\"getSiteLogs('" + website + (lan && lan.site && t('site.site_auto_str_91') || "") + id + "' onclick=\"getSiteErrorLogs('" + website + (lan && lan.site && t('site.site_auto_str_92') || ""),
     success: function () {
       //域名输入提示
-      var placeholder = lan && lan.site && lan.site.site_auto_str_93 || "";
+      var placeholder = lan && lan.site && t('site.site_auto_str_93') || "";
       $('#newdomain').after(placeholder);
       $(".placeholder").on('click', function () {
         $(this).hide();
@@ -1075,7 +1075,7 @@ function webEdit(id, website, endTime, addtime, defaultTab) {
         sslTab.addClass("bgw").siblings().removeClass("bgw");
         setSSL(id, website);
       } else if (defaultTab === 'config') {
-        var configTab = $(lan && lan.site && lan.site.site_auto_str_94 || "");
+        var configTab = $(lan && lan.site && t('site.site_auto_str_94') || "");
         configTab.addClass("bgw").siblings().removeClass("bgw");
         configFile(website);
       } else {
@@ -1087,7 +1087,7 @@ function webEdit(id, website, endTime, addtime, defaultTab) {
 
 //取网站日志pluginLogs
 function getSiteLogs(siteName) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_95 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_95') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1099,7 +1099,7 @@ function getSiteLogs(siteName) {
     if (logs.status !== true) {
       logs.msg = '';
     }
-    if (logs.msg == '') logs.msg = lan && lan.site && lan.site.site_auto_str_96 || "";
+    if (logs.msg == '') logs.msg = lan && lan.site && t('site.site_auto_str_96') || "";
     var h = parseInt($('.bt-w-menu').css('height')) - 35;
     var con = '<textarea wrap="off" style="white-space:pre;margin: 0px;width: 800px;height: ' + h + 'px;background-color: #333;color:#fff; padding:0 5px;" id="site_log">' + logs.msg + '</textarea>';
     $("#webedit-con").html(con);
@@ -1110,7 +1110,7 @@ function getSiteLogs(siteName) {
 
 //取网站错误日志
 function getSiteErrorLogs(siteName) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_97 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_97') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1122,7 +1122,7 @@ function getSiteErrorLogs(siteName) {
     if (logs.status !== true) {
       logs.msg = '';
     }
-    if (logs.msg == '') logs.msg = lan && lan.site && lan.site.site_auto_str_98 || "";
+    if (logs.msg == '') logs.msg = lan && lan.site && t('site.site_auto_str_98') || "";
     var h = parseInt($('.bt-w-menu').css('height')) - 35;
     var con = '<textarea wrap="off" style="white-space:pre;margin:0px;width:800px;height:' + h + 'px;background-color: #333;color:#fff; padding:0 5px;" id="error_log">' + logs.msg + '</textarea>';
     $("#webedit-con").html(con);
@@ -1133,7 +1133,7 @@ function getSiteErrorLogs(siteName) {
 
 //防盗链
 function security(id, name) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_99 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_99') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1143,7 +1143,7 @@ function security(id, name) {
     name: name
   }, function (rdata) {
     layer.close(loadT);
-    var mbody = '<div>' + (lan && lan.site && lan.site.site_auto_str_100 || "") + rdata.fix + '" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;' + (rdata.status ? 'background-color: #eee;' : '') + (lan && lan.site && lan.site.site_auto_str_101 || "") + (rdata.status ? 'readonly' : '') + '></p>' + (lan && lan.site && lan.site.site_auto_str_102 || "") + rdata.domains + '" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;' + (rdata.status ? 'background-color: #eee;' : '') + (lan && lan.site && lan.site.site_auto_str_103 || "") + (rdata.status ? 'readonly' : '') + '></p>' + '<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_status" onclick="setSecurity(\'' + name + '\',' + id + ')" ' + (rdata.status ? 'checked' : '') + (lan && lan.site && lan.site.site_auto_str_104 || "") + '<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_none_status" onclick="setSecurity(\'' + name + '\',' + id + ')" ' + (rdata.none ? 'checked' : '') + (lan && lan.site && lan.site.site_auto_str_105 || "") + '<ul class="help-info-text c7 ptb10">' + (lan && lan.site && lan.site.site_auto_str_106 || "") + (lan && lan.site && lan.site.site_auto_str_107 || "") + (lan && lan.site && lan.site.site_auto_str_108 || "") + '</ul>' + '</div>';
+    var mbody = '<div>' + (lan && lan.site && t('site.site_auto_str_100') || "") + rdata.fix + '" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;' + (rdata.status ? 'background-color: #eee;' : '') + (lan && lan.site && t('site.site_auto_str_101') || "") + (rdata.status ? 'readonly' : '') + '></p>' + (lan && lan.site && t('site.site_auto_str_102') || "") + rdata.domains + '" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;' + (rdata.status ? 'background-color: #eee;' : '') + (lan && lan.site && t('site.site_auto_str_103') || "") + (rdata.status ? 'readonly' : '') + '></p>' + '<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_status" onclick="setSecurity(\'' + name + '\',' + id + ')" ' + (rdata.status ? 'checked' : '') + (lan && lan.site && t('site.site_auto_str_104') || "") + '<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_none_status" onclick="setSecurity(\'' + name + '\',' + id + ')" ' + (rdata.none ? 'checked' : '') + (lan && lan.site && t('site.site_auto_str_105') || "") + '<ul class="help-info-text c7 ptb10">' + (lan && lan.site && t('site.site_auto_str_106') || "") + (lan && lan.site && t('site.site_auto_str_107') || "") + (lan && lan.site && t('site.site_auto_str_108') || "") + '</ul>' + '</div>';
     $("#webedit-con").html(mbody);
   }, 'json');
 }
@@ -1159,7 +1159,7 @@ function setSecurity(name, id, none) {
       name: name,
       id: id
     };
-    var loadT = layer.msg(lan.site.the_msg, {
+    var loadT = layer.msg(t('site.the_msg'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1185,8 +1185,8 @@ function limitNet(id) {
       rdata.perip = 25;
       rdata.limit_rate = 512;
     }
-    var limitList = "<option value='1' " + (rdata.perserver == 0 || rdata.perserver == 300 ? 'selected' : '') + ">" + lan.site.limit_net_1 + "</option>" + "<option value='2' " + (rdata.perserver == 200 ? 'selected' : '') + ">" + lan.site.limit_net_2 + "</option>" + "<option value='3' " + (rdata.perserver == 50 ? 'selected' : '') + ">" + lan.site.limit_net_3 + "</option>" + "<option value='4' " + (rdata.perserver == 500 ? 'selected' : '') + ">" + lan.site.limit_net_4 + "</option>" + "<option value='5'  " + (rdata.perserver == 400 ? 'selected' : '') + ">" + lan.site.limit_net_5 + "</option>" + "<option value='6' " + (rdata.perserver == 60 ? 'selected' : '') + ">" + lan.site.limit_net_6 + "</option>" + "<option value='7' " + (rdata.perserver == 150 ? 'selected' : '') + ">" + lan.site.limit_net_7 + "</option>";
-    var body = "<div class='dirBinding flow c4'>" + '<p class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="status" ' + status_selected + ' onclick="saveLimitNet(' + id + ')" style="width:15px;height:15px;margin-right:5px" />' + lan.site.limit_net_8 + '</label></p>' + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + lan.site.limit_net_9 + "：</span><select class='bt-input-text mr20' name='limit' style='width:90px'>" + limitList + "</select></p>" + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + lan.site.limit_net_10 + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='perserver' value='" + rdata.perserver + "' /></p>" + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + lan.site.limit_net_12 + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='perip' value='" + rdata.perip + "' /></p>" + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + lan.site.limit_net_14 + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='limit_rate' value='" + rdata.limit_rate + "' /></p>" + "<button class='btn btn-success btn-sm mt10' onclick='saveLimitNet(" + id + ",1)'>" + lan.public.save + "</button>" + "</div>" + "<ul class='help-info-text c7 mtb15'><li>" + lan.site.limit_net_11 + "</li><li>" + lan.site.limit_net_13 + "</li><li>" + lan.site.limit_net_15 + "</li></ul>";
+    var limitList = "<option value='1' " + (rdata.perserver == 0 || rdata.perserver == 300 ? 'selected' : '') + ">" + t('site.limit_net_1') + "</option>" + "<option value='2' " + (rdata.perserver == 200 ? 'selected' : '') + ">" + t('site.limit_net_2') + "</option>" + "<option value='3' " + (rdata.perserver == 50 ? 'selected' : '') + ">" + t('site.limit_net_3') + "</option>" + "<option value='4' " + (rdata.perserver == 500 ? 'selected' : '') + ">" + t('site.limit_net_4') + "</option>" + "<option value='5'  " + (rdata.perserver == 400 ? 'selected' : '') + ">" + t('site.limit_net_5') + "</option>" + "<option value='6' " + (rdata.perserver == 60 ? 'selected' : '') + ">" + t('site.limit_net_6') + "</option>" + "<option value='7' " + (rdata.perserver == 150 ? 'selected' : '') + ">" + t('site.limit_net_7') + "</option>";
+    var body = "<div class='dirBinding flow c4'>" + '<p class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="status" ' + status_selected + ' onclick="saveLimitNet(' + id + ')" style="width:15px;height:15px;margin-right:5px" />' + t('site.limit_net_8') + '</label></p>' + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + t('site.limit_net_9') + "：</span><select class='bt-input-text mr20' name='limit' style='width:90px'>" + limitList + "</select></p>" + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + t('site.limit_net_10') + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='perserver' value='" + rdata.perserver + "' /></p>" + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + t('site.limit_net_12') + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='perip' value='" + rdata.perip + "' /></p>" + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + t('site.limit_net_14') + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='limit_rate' value='" + rdata.limit_rate + "' /></p>" + "<button class='btn btn-success btn-sm mt10' onclick='saveLimitNet(" + id + ",1)'>" + t('public.save') + "</button>" + "</div>" + "<ul class='help-info-text c7 mtb15'><li>" + t('site.limit_net_11') + "</li><li>" + t('site.limit_net_13') + "</li><li>" + t('site.limit_net_15') + "</li></ul>";
     $("#webedit-con").html(body);
     $("select[name='limit']").on('change', function () {
       var type = $(this).val();
@@ -1242,7 +1242,7 @@ function saveLimitNet(id, type) {
   var isChecked = $("input[name='status']").attr('checked');
   if (isChecked == undefined || type == 1) {
     var data = 'id=' + id + '&perserver=' + $("input[name='perserver']").val() + '&perip=' + $("input[name='perip']").val() + '&limit_rate=' + $("input[name='limit_rate']").val();
-    var loadT = layer.msg(lan.public.config, {
+    var loadT = layer.msg(t('public.config'), {
       icon: 16,
       time: 10000
     });
@@ -1254,7 +1254,7 @@ function saveLimitNet(id, type) {
       });
     }, 'json');
   } else {
-    var loadT = layer.msg(lan.public.config, {
+    var loadT = layer.msg(t('public.config'), {
       icon: 16,
       time: 10000
     });
@@ -1278,13 +1278,13 @@ function dirBinding(id) {
     var rdata = data['data'];
     var echoHtml = '';
     for (var i = 0; i < rdata.binding.length; i++) {
-      echoHtml += "<tr><td>" + rdata.binding[i].domain + "</td><td>" + rdata.binding[i].port + "</td><td>" + rdata.binding[i].path + "</td><td class='text-right'><a class='btlink' href='javascript:setDirRewrite(" + rdata.binding[i].id + (lan && lan.site && lan.site.site_auto_str_109 || "") + rdata.binding[i].id + "," + id + (lan && lan.site && lan.site.site_auto_str_110 || "");
+      echoHtml += "<tr><td>" + rdata.binding[i].domain + "</td><td>" + rdata.binding[i].port + "</td><td>" + rdata.binding[i].path + "</td><td class='text-right'><a class='btlink' href='javascript:setDirRewrite(" + rdata.binding[i].id + (lan && lan.site && t('site.site_auto_str_109') || "") + rdata.binding[i].id + "," + id + (lan && lan.site && t('site.site_auto_str_110') || "");
     }
     var dirList = '';
     for (var n = 0; n < rdata.dirs.length; n++) {
       dirList += "<option value='" + rdata.dirs[n] + "'>" + rdata.dirs[n] + "</option>";
     }
-    var body = "<div class='dirBinding c5'>" + (lan && lan.site && lan.site.site_auto_str_111 || "") + (lan && lan.site && lan.site.site_auto_str_112 || "") + dirList + "</select>" + "<button class='btn btn-success btn-sm' onclick='addDirBinding(" + id + (lan && lan.site && lan.site.site_auto_str_113 || "") + "</div>" + "<div class='divtable mtb15' style='height:540px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" + (lan && lan.site && lan.site.site_auto_str_114 || "") + "<tbody id='checkDomain'>" + echoHtml + "</tbody>" + "</table></div>";
+    var body = "<div class='dirBinding c5'>" + (lan && lan.site && t('site.site_auto_str_111') || "") + (lan && lan.site && t('site.site_auto_str_112') || "") + dirList + "</select>" + "<button class='btn btn-success btn-sm' onclick='addDirBinding(" + id + (lan && lan.site && t('site.site_auto_str_113') || "") + "</div>" + "<div class='divtable mtb15' style='height:540px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" + (lan && lan.site && t('site.site_auto_str_114') || "") + "<tbody id='checkDomain'>" + echoHtml + "</tbody>" + "</table></div>";
     $("#webedit-con").html(body);
   }, 'json');
 }
@@ -1293,7 +1293,7 @@ function dirBinding(id) {
 function setDirRewrite(id) {
   $.post('/site/get_dir_bind_rewrite', 'id=' + id, function (rdata) {
     if (!rdata.status) {
-      var confirmObj = layer.confirm(lan && lan.site && lan.site.site_auto_str_115 || "", {
+      var confirmObj = layer.confirm(lan && lan.site && t('site.site_auto_str_115') || "", {
         icon: 3,
         closeBtn: 2
       }, function () {
@@ -1317,11 +1317,11 @@ function showRewrite(rdata) {
   var webBakHtml = "<div class='c5 plr15'>\
 				<div class='line'>\
 					<select class='bt-input-text mr20' id='myRewrite' name='rewrite' style='width:30%;'>" + rList + "</select>\
-					<textarea class='bt-input-text mtb15' style='height: 260px; width: 470px; line-height:18px;padding:5px;' id='rewriteBody'>" + rdata.data + (lan && lan.site && lan.site.site_auto_str_116 || "");
+					<textarea class='bt-input-text mtb15' style='height: 260px; width: 470px; line-height:18px;padding:5px;' id='rewriteBody'>" + rdata.data + (lan && lan.site && t('site.site_auto_str_116') || "");
   layer.open({
     type: 1,
     area: '500px',
-    title: lan && lan.site && lan.site.site_auto_str_117 || "",
+    title: lan && lan.site && t('site.site_auto_str_117') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: true,
@@ -1346,7 +1346,7 @@ function addDirBinding(id) {
   var domain = $("input[name='domain']").val();
   var dir_name = $("select[name='dirName']").val();
   if (domain == '' || dir_name == '' || dir_name == null) {
-    layer.msg(lan.site.d_s_empty, {
+    layer.msg(t('site.d_s_empty'), {
       icon: 2
     });
     return;
@@ -1362,7 +1362,7 @@ function addDirBinding(id) {
 
 //删除子目录绑定
 function delDirBind(id, siteId) {
-  layer.confirm(lan.site.s_bin_del, {
+  layer.confirm(t('site.s_bin_del'), {
     icon: 3,
     closeBtn: 2
   }, function () {
@@ -1388,17 +1388,17 @@ function to301(siteName, type, obj) {
       type: 'path'
     };
     var keep_path_ht = obj.keep_path == 1 ? 'checked="checked"' : '';
-    var redirect_title = type == 1 ? lan && lan.site && lan.site.site_auto_str_118 || "" : (lan && lan.site && lan.site.site_auto_str_119 || "") + obj.redirectname + ']';
+    var redirect_title = type == 1 ? lan && lan.site && t('site.site_auto_str_118') || "" : (lan && lan.site && t('site.site_auto_str_119') || "") + obj.redirectname + ']';
     layer.open({
       type: 1,
       area: ['650px', '270px'],
       title: redirect_title,
       closeBtn: 1,
       shift: 5,
-      btn: [lan && lan.site && lan.site.site_auto_str_120 || "", lan && lan.site && lan.site.site_auto_str_121 || ""],
+      btn: [lan && lan.site && t('site.site_auto_str_120') || "", lan && lan.site && t('site.site_auto_str_121') || ""],
       shadeClose: false,
-      content: (lan && lan.site && lan.site.site_auto_str_122 || "") + keep_path_ht + (lan && lan.site && lan.site.site_auto_str_123 || "") + (obj.type == 'domain' ? 'selected ="selected"' : "") + (lan && lan.site && lan.site.site_auto_str_124 || "") + (obj.type == 'path' ? 'selected ="selected"' : "") + (lan && lan.site && lan.site.site_auto_str_125 || "") + (obj.r_type == '301' ? 'selected ="selected"' : "") + " >301</option>\
-						<option value='302' " + (obj.r_type == '302' ? 'selected ="selected"' : "") + (lan && lan.site && lan.site.site_auto_str_126 || "") + obj.from + (lan && lan.site && lan.site.site_auto_str_127 || "") + obj.to + "'>\
+      content: (lan && lan.site && t('site.site_auto_str_122') || "") + keep_path_ht + (lan && lan.site && t('site.site_auto_str_123') || "") + (obj.type == 'domain' ? 'selected ="selected"' : "") + (lan && lan.site && t('site.site_auto_str_124') || "") + (obj.type == 'path' ? 'selected ="selected"' : "") + (lan && lan.site && t('site.site_auto_str_125') || "") + (obj.r_type == '301' ? 'selected ="selected"' : "") + " >301</option>\
+						<option value='302' " + (obj.r_type == '302' ? 'selected ="selected"' : "") + (lan && lan.site && t('site.site_auto_str_126') || "") + obj.from + (lan && lan.site && t('site.site_auto_str_127') || "") + obj.to + "'>\
 				</div>\
 			</div>\
 			</form>",
@@ -1436,7 +1436,7 @@ function to301(siteName, type, obj) {
       id: obj
     }, function (res) {
       if (res.status == true) {
-        layer.msg(lan && lan.site && lan.site.site_auto_str_128 || "", {
+        layer.msg(lan && lan.site && t('site.site_auto_str_128') || "", {
           time: 1000,
           icon: 1
         });
@@ -1460,15 +1460,15 @@ function to301(siteName, type, obj) {
       layer.close(laoding);
       if (res.status == true) {
         var mBody = "<div class='webEdit-box' style='padding: 20px'>\
-				<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configRedirectBody'>" + res.data.result + (lan && lan.site && lan.site.site_auto_str_129 || "");
+				<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configRedirectBody'>" + res.data.result + (lan && lan.site && t('site.site_auto_str_129') || "");
         var editor;
         var index = layer.open({
           type: 1,
-          title: lan && lan.site && lan.site.site_auto_str_130 || "",
+          title: lan && lan.site && t('site.site_auto_str_130') || "",
           closeBtn: 1,
           shadeClose: true,
           area: ['500px', '500px'],
-          btn: [lan && lan.site && lan.site.site_auto_str_131 || "", lan && lan.site && lan.site.site_auto_str_132 || ""],
+          btn: [lan && lan.site && t('site.site_auto_str_131') || "", lan && lan.site && t('site.site_auto_str_132') || ""],
           content: mBody,
           success: function () {
             editor = CodeMirror.fromTextArea(document.getElementById("configRedirectBody"), {
@@ -1505,7 +1505,7 @@ function to301(siteName, type, obj) {
             $.post('/site/save_redirect_conf', data, function (res) {
               layer.close(load);
               if (res.status == true) {
-                layer.msg(lan && lan.site && lan.site.site_auto_str_133 || "", {
+                layer.msg(lan && lan.site && t('site.site_auto_str_133') || "", {
                   icon: 1
                 });
                 layer.close(index);
@@ -1520,7 +1520,7 @@ function to301(siteName, type, obj) {
           }
         });
       } else {
-        layer.msg(lan && lan.site && lan.site.site_auto_str_134 || "", {
+        layer.msg(lan && lan.site && t('site.site_auto_str_134') || "", {
           time: 3000,
           icon: 2
         });
@@ -1528,9 +1528,9 @@ function to301(siteName, type, obj) {
     });
     return;
   }
-  var body = (lan && lan.site && lan.site.site_auto_str_135 || "") + siteName + (lan && lan.site && lan.site.site_auto_str_136 || "");
+  var body = (lan && lan.site && t('site.site_auto_str_135') || "") + siteName + (lan && lan.site && t('site.site_auto_str_136') || "");
   $("#webedit-con").html(body);
-  var loadT = layer.msg(lan.site.the_msg, {
+  var loadT = layer.msg(t('site.the_msg'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1541,8 +1541,8 @@ function to301(siteName, type, obj) {
     if (res.status) {
       var data = res.data.result;
       data.forEach(function (item) {
-        var lan_r_type = item.r_type == 0 ? lan && lan.site && lan.site.site_auto_str_137 || "" : lan && lan.site && lan.site.site_auto_str_138 || "";
-        var keep_path = item.keep_path == 0 ? lan && lan.site && lan.site.site_auto_str_139 || "" : lan && lan.site && lan.site.site_auto_str_140 || "";
+        var lan_r_type = item.r_type == 0 ? lan && lan.site && t('site.site_auto_str_137') || "" : lan && lan.site && t('site.site_auto_str_138') || "";
+        var keep_path = item.keep_path == 0 ? lan && lan.site && t('site.site_auto_str_139') || "" : lan && lan.site && t('site.site_auto_str_140') || "";
         var switchProxy = '<span onclick="toRedirect(\'' + siteName + '\',\'' + item.id + '\',10)" style="color:rgb(92, 184, 92);" class="btlink glyphicon glyphicon-play"></span>';
         if (!item['status']) {
           switchProxy = '<span onclick="toRedirect(\'' + siteName + '\',\'' + item.id + '\',11)" style="color:rgb(255, 0, 0);" class="btlink glyphicon glyphicon-pause"></span>';
@@ -1553,7 +1553,7 @@ function to301(siteName, type, obj) {
 					<td><span data-index="3"><span>' + keep_path + '</span></span></td>\
 					<td><span data-index="4"><span>' + switchProxy + '</span></span></td>\
 					<td>\
-						<span data-index="5" onclick="to301(\'' + siteName + '\', 3, \'' + item.id + (lan && lan.site && lan.site.site_auto_str_141 || "") + siteName + '\', 2, \'' + item.id + (lan && lan.site && lan.site.site_auto_str_142 || "");
+						<span data-index="5" onclick="to301(\'' + siteName + '\', 3, \'' + item.id + (lan && lan.site && t('site.site_auto_str_141') || "") + siteName + '\', 2, \'' + item.id + (lan && lan.site && t('site.site_auto_str_142') || "");
         $("#md-301-body").append(tmp);
       });
     } else {
@@ -1567,7 +1567,7 @@ function toRedirect(siteName, redirect_id, type) {
   if (type == 10 || type == 11) {
     //[11]启动 或 停止[10]
     var status = type == 10 ? '0' : '1';
-    var loading = layer.msg(lan.site.the_msg, {
+    var loading = layer.msg(t('site.the_msg'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1586,7 +1586,7 @@ function toRedirect(siteName, redirect_id, type) {
         });
         return;
       }
-      showMsg(lan && lan.site && lan.site.site_auto_str_143 || "", function () {
+      showMsg(lan && lan.site && t('site.site_auto_str_143') || "", function () {
         to301(siteName);
       }, {
         icon: 1,
@@ -1601,9 +1601,9 @@ function toRedirect(siteName, redirect_id, type) {
 function toProxy(siteName, type, obj) {
   // 设置 页面展示
   if (type == 1) {
-    var proxy_title = lan && lan.site && lan.site.site_auto_str_144 || "";
+    var proxy_title = lan && lan.site && t('site.site_auto_str_144') || "";
     if (typeof obj != 'undefined') {
-      proxy_title = lan && lan.site && lan.site.site_auto_str_145 || "";
+      proxy_title = lan && lan.site && t('site.site_auto_str_145') || "";
     }
     layer.open({
       type: 1,
@@ -1612,8 +1612,8 @@ function toProxy(siteName, type, obj) {
       closeBtn: 1,
       shift: 5,
       shadeClose: false,
-      btn: [lan && lan.site && lan.site.site_auto_str_146 || "", lan && lan.site && lan.site.site_auto_str_147 || ""],
-      content: lan && lan.site && lan.site.site_auto_str_148 || "",
+      btn: [lan && lan.site && t('site.site_auto_str_146') || "", lan && lan.site && t('site.site_auto_str_147') || ""],
+      content: lan && lan.site && t('site.site_auto_str_148') || "",
       success: function () {
         if (typeof obj != 'undefined') {
           console.log(obj);
@@ -1724,7 +1724,7 @@ function toProxy(siteName, type, obj) {
         data.push(t);
 
         // console.log(data);
-        var loading = layer.msg((lan && lan.site && lan.site.site_auto_str_149 || "") + proxy_title + '...', {
+        var loading = layer.msg((lan && lan.site && t('site.site_auto_str_149') || "") + proxy_title + '...', {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']
@@ -1738,7 +1738,7 @@ function toProxy(siteName, type, obj) {
             });
             return;
           }
-          showMsg(proxy_title + (lan && lan.site && lan.site.site_auto_str_150 || ""), function () {
+          showMsg(proxy_title + (lan && lan.site && t('site.site_auto_str_150') || ""), function () {
             layer.close(index);
             toProxy(siteName);
           }, {
@@ -1750,7 +1750,7 @@ function toProxy(siteName, type, obj) {
     });
   }
   if (type == 2) {
-    var loading = layer.msg(lan && lan.site && lan.site.site_auto_str_151 || "", {
+    var loading = layer.msg(lan && lan.site && t('site.site_auto_str_151') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1761,7 +1761,7 @@ function toProxy(siteName, type, obj) {
     }, function (res) {
       layer.close(loading);
       if (res.status == true) {
-        showMsg(lan && lan.site && lan.site.site_auto_str_152 || "", function () {
+        showMsg(lan && lan.site && t('site.site_auto_str_152') || "", function () {
           toProxy(siteName);
         }, {
           time: 1000,
@@ -1785,14 +1785,14 @@ function toProxy(siteName, type, obj) {
     $.post('/site/get_proxy_conf', data, function (res) {
       layer.close(laoding);
       if (!res.status) {
-        layer.msg(lan && lan.site && lan.site.site_auto_str_153 || "", {
+        layer.msg(lan && lan.site && t('site.site_auto_str_153') || "", {
           time: 3000,
           icon: 2
         });
         return;
       }
       var mBody = "<div class='webEdit-box' style='padding: 20px'>\
-			<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configProxyBody'>" + res.data.result + (lan && lan.site && lan.site.site_auto_str_154 || "");
+			<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configProxyBody'>" + res.data.result + (lan && lan.site && t('site.site_auto_str_154') || "");
       var editor;
       function saveDataFunc() {
         $("#configProxyBody").empty().text(editor.getValue());
@@ -1805,7 +1805,7 @@ function toProxy(siteName, type, obj) {
         $.post('/site/save_proxy_conf', data, function (res) {
           layer.close(load);
           if (res.status == true) {
-            layer.msg(lan && lan.site && lan.site.site_auto_str_155 || "", {
+            layer.msg(lan && lan.site && t('site.site_auto_str_155') || "", {
               icon: 1
             });
             layer.close(index);
@@ -1819,11 +1819,11 @@ function toProxy(siteName, type, obj) {
       }
       var index = layer.open({
         type: 1,
-        title: lan && lan.site && lan.site.site_auto_str_156 || "",
+        title: lan && lan.site && t('site.site_auto_str_156') || "",
         closeBtn: 1,
         shadeClose: true,
         area: ['700px', '700px'],
-        btn: [lan && lan.site && lan.site.site_auto_str_157 || "", lan && lan.site && lan.site.site_auto_str_158 || ""],
+        btn: [lan && lan.site && t('site.site_auto_str_157') || "", lan && lan.site && t('site.site_auto_str_158') || ""],
         content: mBody,
         success: function () {
           editor = CodeMirror.fromTextArea(document.getElementById("configProxyBody"), {
@@ -1866,7 +1866,7 @@ function toProxy(siteName, type, obj) {
   if (type == 10 || type == 11) {
     //[11]启动 或 停止[10]
     status = type == 10 ? '0' : '1';
-    var loading = layer.msg(lan.site.the_msg, {
+    var loading = layer.msg(t('site.the_msg'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1884,7 +1884,7 @@ function toProxy(siteName, type, obj) {
         });
         return;
       }
-      showMsg(lan && lan.site && lan.site.site_auto_str_159 || "", function () {
+      showMsg(lan && lan.site && t('site.site_auto_str_159') || "", function () {
         toProxy(siteName);
       }, {
         icon: 1,
@@ -1898,7 +1898,7 @@ function toProxy(siteName, type, obj) {
     var status = type == 20 ? 'on' : '';
     obj['open_cache'] = status;
     obj['siteName'] = siteName;
-    var loading = layer.msg(lan && lan.site && lan.site.site_auto_str_160 || "", {
+    var loading = layer.msg(lan && lan.site && t('site.site_auto_str_160') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -1912,7 +1912,7 @@ function toProxy(siteName, type, obj) {
         });
         return;
       }
-      showMsg(lan && lan.site && lan.site.site_auto_str_161 || "", function () {
+      showMsg(lan && lan.site && t('site.site_auto_str_161') || "", function () {
         toProxy(siteName);
       }, {
         icon: 1,
@@ -1921,9 +1921,9 @@ function toProxy(siteName, type, obj) {
     }, 'json');
     return;
   }
-  var body = (lan && lan.site && lan.site.site_auto_str_162 || "") + siteName + (lan && lan.site && lan.site.site_auto_str_163 || "");
+  var body = (lan && lan.site && t('site.site_auto_str_162') || "") + siteName + (lan && lan.site && t('site.site_auto_str_163') || "");
   $("#webedit-con").html(body);
-  var loading = layer.msg(lan.site.the_msg, {
+  var loading = layer.msg(t('site.the_msg'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1945,9 +1945,9 @@ function toProxy(siteName, type, obj) {
       if (!item['status']) {
         switchProxy = '<span onclick="toProxy(\'' + siteName + '\', 11, \'' + item.id + '\')" style="color:rgb(255, 0, 0);" class="btlink glyphicon glyphicon-pause"></span>';
       }
-      var openCache = '<span  data-index="' + i + (lan && lan.site && lan.site.site_auto_str_164 || "");
+      var openCache = '<span  data-index="' + i + (lan && lan.site && t('site.site_auto_str_164') || "");
       if (item['open_cache'] == 'on') {
-        openCache = '<span  data-index="' + i + (lan && lan.site && lan.site.site_auto_str_165 || "");
+        openCache = '<span  data-index="' + i + (lan && lan.site && t('site.site_auto_str_165') || "");
       }
       let tmp = '<tr>\
 				<td>' + item.name + '</td>\
@@ -1956,7 +1956,7 @@ function toProxy(siteName, type, obj) {
 				<td>' + openCache + '</td>\
 				<td>' + switchProxy + '</td>\
 				<td>\
-				   <span data-index="' + i + (lan && lan.site && lan.site.site_auto_str_166 || "") + i + (lan && lan.site && lan.site.site_auto_str_167 || "") + i + (lan && lan.site && lan.site.site_auto_str_168 || "");
+				   <span data-index="' + i + (lan && lan.site && t('site.site_auto_str_166') || "") + i + (lan && lan.site && t('site.site_auto_str_167') || "") + i + (lan && lan.site && t('site.site_auto_str_168') || "");
       $("#md-301-body").append(tmp);
     }
     $('#md-301-body .detail').on('click', function () {
@@ -1985,7 +1985,7 @@ function toProxy(siteName, type, obj) {
 
 //证书夹
 function sslAdmin(siteName) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_169 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_169') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2000,9 +2000,9 @@ function sslAdmin(siteName) {
 				<td>' + rdata[i].dns.join('<br>') + '</td>\
 				<td>' + rdata[i].notAfter + '</td>\
 				<td>' + rdata[i].issuer.split(' ')[0] + '</td>\
-				<td style="text-align: right;"><a onclick="setCertSsl(\'' + rdata[i].subject + '\',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_170 || "") + rdata[i].subject + (lan && lan.site && lan.site.site_auto_str_171 || "");
+				<td style="text-align: right;"><a onclick="setCertSsl(\'' + rdata[i].subject + '\',\'' + siteName + (lan && lan.site && t('site.site_auto_str_170') || "") + rdata[i].subject + (lan && lan.site && t('site.site_auto_str_171') || "");
     }
-    var txt = (lan && lan.site && lan.site.site_auto_str_172 || "") + tbody + '</tbody>\
+    var txt = (lan && lan.site && t('site.site_auto_str_172') || "") + tbody + '</tbody>\
 		</table></div></div>';
     $(".tab-con").html(txt);
   }, 'json');
@@ -2010,8 +2010,8 @@ function sslAdmin(siteName) {
 
 //删除证书
 function removeSsl(certName) {
-  safeMessage(lan && lan.site && lan.site.site_auto_str_173 || "", lan && lan.site && lan.site.site_auto_str_174 || "", function () {
-    var loadT = layer.msg(lan.site.the_msg, {
+  safeMessage(lan && lan.site && t('site.site_auto_str_173') || "", lan && lan.site && t('site.site_auto_str_174') || "", function () {
+    var loadT = layer.msg(t('site.the_msg'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -2030,7 +2030,7 @@ function removeSsl(certName) {
 
 //从证书夹部署
 function setCertSsl(certName, siteName) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_175 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_175') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2052,8 +2052,8 @@ function setCertSsl(certName, siteName) {
 function setSSL(id, siteName) {
   // <span onclick="opSSL(\'lets\','+id+',\''+siteName+'\')">Let\'s Encrypt</span>
   // 暂时关闭 Let 申请模式
-  var sslHtml = (lan && lan.site && lan.site.site_auto_str_176 || "") + id + ',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_177 || "") + id + ',\'' + siteName + '\')">ACME</span>\
-					<span id="ssl_admin" onclick="sslAdmin(\'' + siteName + (lan && lan.site && lan.site.site_auto_str_178 || "") + '<div class="ss-text pull-right mr30" style="position: relative;top:-4px">\
+  var sslHtml = (lan && lan.site && t('site.site_auto_str_176') || "") + id + ',\'' + siteName + (lan && lan.site && t('site.site_auto_str_177') || "") + id + ',\'' + siteName + '\')">ACME</span>\
+					<span id="ssl_admin" onclick="sslAdmin(\'' + siteName + (lan && lan.site && t('site.site_auto_str_178') || "") + '<div class="ss-text pull-right mr30" style="position: relative;top:-4px">\
 	                </div></div>' + '<div class="tab-con" style="padding: 0px;"></div>';
   $("#webedit-con").html(sslHtml);
   $(".tab-nav span").on('click', function () {
@@ -2069,9 +2069,9 @@ function setSSL(id, siteName) {
 function httpToHttps(siteName) {
   var isHttps = $("#toHttps").prop('checked');
   if (isHttps) {
-    layer.confirm(lan && lan.site && lan.site.site_auto_str_179 || "", {
+    layer.confirm(lan && lan.site && t('site.site_auto_str_179') || "", {
       icon: 3,
-      title: lan && lan.site && lan.site.site_auto_str_180 || ""
+      title: lan && lan.site && t('site.site_auto_str_180') || ""
     }, function () {
       $.post('/site/close_to_https', 'siteName=' + siteName, function (rdata) {
         layer.msg(rdata.msg, {
@@ -2110,7 +2110,7 @@ function deploySSL(type, id, siteName) {
   }, 'json');
 }
 function renewSSL(type, id, siteName) {
-  showSpeedWindow(lan && lan.site && lan.site.site_auto_str_181 || "", 'site.get_acme_logs', function (layers, index) {
+  showSpeedWindow(lan && lan.site && t('site.site_auto_str_181') || "", 'site.get_acme_logs', function (layers, index) {
     $.post('/site/renew_ssl', 'site_name=' + siteName + '&ssl_type=' + type, function (rdata) {
       showMsg(rdata.msg, function () {
         if (rdata.status) {
@@ -2119,7 +2119,7 @@ function renewSSL(type, id, siteName) {
             var ssl_days = rdata.data;
             var a_tag = $("#ssl_state_" + siteName.replace(/\./g, '_')).find('a');
             if (a_tag.length > 0) {
-              a_tag.text((lan && lan.site && lan.site.site_auto_str_182 || "") + ssl_days + (lan && lan.site && lan.site.site_auto_str_183 || ""));
+              a_tag.text((lan && lan.site && t('site.site_auto_str_182') || "") + ssl_days + (lan && lan.site && t('site.site_auto_str_183') || ""));
               if (ssl_days < 10) {
                 a_tag.css('color', 'red');
               } else {
@@ -2147,17 +2147,17 @@ function renderDnsapiHtml(data) {
   layer.open({
     type: 1,
     area: '500px',
-    title: (lan && lan.site && lan.site.site_auto_str_184 || "") + data['title'] + (lan && lan.site && lan.site.site_auto_str_185 || ""),
+    title: (lan && lan.site && t('site.site_auto_str_184') || "") + data['title'] + (lan && lan.site && t('site.site_auto_str_185') || ""),
     closeBtn: 1,
     shift: 5,
     shadeClose: true,
-    btn: [lan && lan.site && lan.site.site_auto_str_186 || "", lan && lan.site && lan.site.site_auto_str_187 || ""],
-    content: (lan && lan.site && lan.site.site_auto_str_188 || "") + data['name'] + "</option>\
+    btn: [lan && lan.site && t('site.site_auto_str_186') || "", lan && lan.site && t('site.site_auto_str_187') || ""],
+    content: (lan && lan.site && t('site.site_auto_str_188') || "") + data['name'] + "</option>\
 			        </select>\
 			    </div>\
 			</div>\
 			<div class='line' id='dnsapi_option'>\
-			    " + fields_html + (lan && lan.site && lan.site.site_auto_str_189 || "") + data['title'] + (lan && lan.site && lan.site.site_auto_str_190 || ""),
+			    " + fields_html + (lan && lan.site && t('site.site_auto_str_189') || "") + data['title'] + (lan && lan.site && t('site.site_auto_str_190') || ""),
     success: function () {
       $('[data-toggle="tooltip"]').tooltip();
     },
@@ -2210,11 +2210,11 @@ function renderDnsapi() {
   }, 'json');
 }
 function opSSLNow(type, id, siteName, callback) {
-  var now = (lan && lan.site && lan.site.site_auto_str_191 || "") + siteName + (lan && lan.site && lan.site.site_auto_str_192 || "");
+  var now = (lan && lan.site && t('site.site_auto_str_191') || "") + siteName + (lan && lan.site && t('site.site_auto_str_192') || "");
   $(".tab-con").html(now);
   var key = '';
   var csr = '';
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_193 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_193') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2223,10 +2223,10 @@ function opSSLNow(type, id, siteName, callback) {
     layer.close(loadT);
     var rdata = data['data'];
     if (rdata['cert_data']) {
-      var issuer_o = rdata['cert_data']['issuer_o'] || lan && lan.site && lan.site.site_auto_str_194 || "";
-      var issuer = rdata['cert_data']['issuer'] || lan && lan.site && lan.site.site_auto_str_195 || "";
+      var issuer_o = rdata['cert_data']['issuer_o'] || lan && lan.site && t('site.site_auto_str_194') || "";
+      var issuer = rdata['cert_data']['issuer'] || lan && lan.site && t('site.site_auto_str_195') || "";
       var domains = rdata['cert_data']['dns'].join("、");
-      var cert_data = (lan && lan.site && lan.site.site_auto_str_196 || "") + issuer_o + (lan && lan.site && lan.site.site_auto_str_197 || "") + issuer + (lan && lan.site && lan.site.site_auto_str_198 || "") + rdata['cert_data']['endtime'] + (lan && lan.site && lan.site.site_auto_str_199 || "") + domains + (lan && lan.site && lan.site.site_auto_str_200 || "") + siteName + "')\">\
+      var cert_data = (lan && lan.site && t('site.site_auto_str_196') || "") + issuer_o + (lan && lan.site && t('site.site_auto_str_197') || "") + issuer + (lan && lan.site && t('site.site_auto_str_198') || "") + rdata['cert_data']['endtime'] + (lan && lan.site && t('site.site_auto_str_199') || "") + domains + (lan && lan.site && t('site.site_auto_str_200') || "") + siteName + "')\">\
 				</span></div>\
 			</div>";
       $(".ssl_state_info").html(cert_data);
@@ -2235,7 +2235,7 @@ function opSSLNow(type, id, siteName, callback) {
     if (rdata.key == false) {
       rdata.key = '';
     } else {
-      $(".ssl-btn").append('<button style=\'margin-left:3px;\' class="btn btn-success btn-sm" onclick="deleteSSL(\'now\',' + id + ',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_201 || ""));
+      $(".ssl-btn").append('<button style=\'margin-left:3px;\' class="btn btn-success btn-sm" onclick="deleteSSL(\'now\',' + id + ',\'' + siteName + (lan && lan.site && t('site.site_auto_str_201') || ""));
     }
     if (rdata.csr == false) {
       rdata.csr = '';
@@ -2245,12 +2245,12 @@ function opSSLNow(type, id, siteName, callback) {
     $("#toHttps").attr('checked', rdata.httpTohttps);
     if (rdata.status) {
       $('.warning_info').css('display', 'none');
-      $(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"ocSSL('close_ssl_conf','" + siteName + (lan && lan.site && lan.site.site_auto_str_202 || ""));
-      $(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"renewSSL('acme'," + id + ",'" + siteName + (lan && lan.site && lan.site.site_auto_str_203 || ""));
-      $('#now_ssl').html(lan && lan.site && lan.site.site_auto_str_204 || "");
+      $(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"ocSSL('close_ssl_conf','" + siteName + (lan && lan.site && t('site.site_auto_str_202') || ""));
+      $(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"renewSSL('acme'," + id + ",'" + siteName + (lan && lan.site && t('site.site_auto_str_203') || ""));
+      $('#now_ssl').html(lan && lan.site && t('site.site_auto_str_204') || "");
     } else {
       $('.warning_info').css('display', 'block');
-      $('#now_ssl').html(lan && lan.site && lan.site.site_auto_str_205 || "");
+      $('#now_ssl').html(lan && lan.site && t('site.site_auto_str_205') || "");
     }
     if (typeof callback != 'undefined') {
       callback(rdata);
@@ -2258,7 +2258,7 @@ function opSSLNow(type, id, siteName, callback) {
   }, 'json');
 }
 function opSSLAcme(type, id, siteName, callback) {
-  var acme = lan && lan.site && lan.site.site_auto_str_206 || "";
+  var acme = lan && lan.site && t('site.site_auto_str_206') || "";
   $(".tab-con").html(acme);
   $('input[name="apply_type"]').on('change', function () {
     var val = $(this).val();
@@ -2320,16 +2320,16 @@ function opSSLAcme(type, id, siteName, callback) {
       }, 'json');
       return;
     }
-    var acme = (lan && lan.site && lan.site.site_auto_str_207 || "") + rdata.key + (lan && lan.site && lan.site.site_auto_str_208 || "") + rdata.csr + '</textarea></div>\
+    var acme = (lan && lan.site && t('site.site_auto_str_207') || "") + rdata.key + (lan && lan.site && t('site.site_auto_str_208') || "") + rdata.csr + '</textarea></div>\
 				</div>\
 				<div class="ssl-btn pull-left mtb15" style="width:100%">\
-					<button class="btn btn-success btn-sm" onclick="deploySSL(\'acme\',' + id + ',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_209 || "") + id + ',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_210 || "");
+					<button class="btn btn-success btn-sm" onclick="deploySSL(\'acme\',' + id + ',\'' + siteName + (lan && lan.site && t('site.site_auto_str_209') || "") + id + ',\'' + siteName + (lan && lan.site && t('site.site_auto_str_210') || "");
     $(".tab-con").html(acme);
     if (rdata['cert_data']) {
-      var issuer_o = rdata['cert_data']['issuer_o'] || lan && lan.site && lan.site.site_auto_str_211 || "";
-      var issuer = rdata['cert_data']['issuer'] || lan && lan.site && lan.site.site_auto_str_212 || "";
+      var issuer_o = rdata['cert_data']['issuer_o'] || lan && lan.site && t('site.site_auto_str_211') || "";
+      var issuer = rdata['cert_data']['issuer'] || lan && lan.site && t('site.site_auto_str_212') || "";
       var domains = rdata['cert_data']['dns'].join("、");
-      var cert_data = (lan && lan.site && lan.site.site_auto_str_213 || "") + issuer_o + (lan && lan.site && lan.site.site_auto_str_214 || "") + issuer + (lan && lan.site && lan.site.site_auto_str_215 || "") + rdata['cert_data']['endtime'] + (lan && lan.site && lan.site.site_auto_str_216 || "") + domains + "</span></div>\
+      var cert_data = (lan && lan.site && t('site.site_auto_str_213') || "") + issuer_o + (lan && lan.site && t('site.site_auto_str_214') || "") + issuer + (lan && lan.site && t('site.site_auto_str_215') || "") + rdata['cert_data']['endtime'] + (lan && lan.site && t('site.site_auto_str_216') || "") + domains + "</span></div>\
 			</div>";
       $(".ssl_state_info").html(cert_data);
       $(".ssl_state_info").css('display', 'block');
@@ -2337,7 +2337,7 @@ function opSSLAcme(type, id, siteName, callback) {
   }, 'json');
 }
 function opSSLLet(type, id, siteName, callback) {
-  var lets = lan && lan.site && lan.site.site_auto_str_217 || "";
+  var lets = lan && lan.site && t('site.site_auto_str_217') || "";
   $(".tab-con").html(lets);
   $('input[name="apply_type"]').on('change', function () {
     var val = $(this).val();
@@ -2394,16 +2394,16 @@ function opSSLLet(type, id, siteName, callback) {
       }, 'json');
       return;
     }
-    var lets = (lan && lan.site && lan.site.site_auto_str_218 || "") + rdata.key + (lan && lan.site && lan.site.site_auto_str_219 || "") + rdata.csr + '</textarea></div>\
+    var lets = (lan && lan.site && t('site.site_auto_str_218') || "") + rdata.key + (lan && lan.site && t('site.site_auto_str_219') || "") + rdata.csr + '</textarea></div>\
 				</div>\
 				<div class="ssl-btn pull-left mtb15" style="width:100%">\
-					<button class="btn btn-success btn-sm" onclick="deploySSL(\'lets\',' + id + ',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_220 || "") + id + ',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_221 || "") + id + ',\'' + siteName + (lan && lan.site && lan.site.site_auto_str_222 || "");
+					<button class="btn btn-success btn-sm" onclick="deploySSL(\'lets\',' + id + ',\'' + siteName + (lan && lan.site && t('site.site_auto_str_220') || "") + id + ',\'' + siteName + (lan && lan.site && t('site.site_auto_str_221') || "") + id + ',\'' + siteName + (lan && lan.site && t('site.site_auto_str_222') || "");
     $(".tab-con").html(lets);
     if (rdata['cert_data']) {
-      var issuer_o = rdata['cert_data']['issuer_o'] || lan && lan.site && lan.site.site_auto_str_223 || "";
-      var issuer = rdata['cert_data']['issuer'] || lan && lan.site && lan.site.site_auto_str_224 || "";
+      var issuer_o = rdata['cert_data']['issuer_o'] || lan && lan.site && t('site.site_auto_str_223') || "";
+      var issuer = rdata['cert_data']['issuer'] || lan && lan.site && t('site.site_auto_str_224') || "";
       var domains = rdata['cert_data']['dns'].join("、");
-      var cert_data = (lan && lan.site && lan.site.site_auto_str_225 || "") + issuer_o + (lan && lan.site && lan.site.site_auto_str_226 || "") + issuer + (lan && lan.site && lan.site.site_auto_str_227 || "") + rdata['cert_data']['endtime'] + (lan && lan.site && lan.site.site_auto_str_228 || "") + domains + "</span></div>\
+      var cert_data = (lan && lan.site && t('site.site_auto_str_225') || "") + issuer_o + (lan && lan.site && t('site.site_auto_str_226') || "") + issuer + (lan && lan.site && t('site.site_auto_str_227') || "") + rdata['cert_data']['endtime'] + (lan && lan.site && t('site.site_auto_str_228') || "") + domains + "</span></div>\
 			</div>";
       $(".ssl_state_info").html(cert_data);
       $(".ssl_state_info").css('display', 'block');
@@ -2424,7 +2424,7 @@ function opSSL(type, id, siteName, callback) {
       opSSLNow(type, id, siteName, callback);
       break;
     default:
-      layer.msg(lan && lan.site && lan.site.site_auto_str_229 || "", {
+      layer.msg(lan && lan.site && t('site.site_auto_str_229') || "", {
         icon: 5
       });
       break;
@@ -2433,7 +2433,7 @@ function opSSL(type, id, siteName, callback) {
 
 //开启与关闭SSL
 function ocSSL(action, siteName) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_230 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_230') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2448,9 +2448,9 @@ function ocSSL(action, siteName) {
         setSSL(siteName);
         return;
       }
-      data = lan && lan.site && lan.site.site_auto_str_231 || "";
+      data = lan && lan.site && t('site.site_auto_str_231') || "";
       for (var i = 0; i < rdata.out.length; i++) {
-        data += (lan && lan.site && lan.site.site_auto_str_232 || "") + rdata.out[i].Domain + "</p>" + (lan && lan.site && lan.site.site_auto_str_233 || "") + rdata.out[i].Type + "</p>" + (lan && lan.site && lan.site.site_auto_str_234 || "") + rdata.out[i].Detail + "</p>" + "<hr />";
+        data += (lan && lan.site && t('site.site_auto_str_232') || "") + rdata.out[i].Domain + "</p>" + (lan && lan.site && t('site.site_auto_str_233') || "") + rdata.out[i].Type + "</p>" + (lan && lan.site && t('site.site_auto_str_234') || "") + rdata.out[i].Detail + "</p>" + "<hr />";
       }
       layer.msg(data, {
         icon: 2,
@@ -2464,7 +2464,7 @@ function ocSSL(action, siteName) {
       icon: rdata.status ? 1 : 2
     });
     if (action == 'close_ssl_conf') {
-      layer.msg(lan && lan.site && lan.site.site_auto_str_235 || "", {
+      layer.msg(lan && lan.site && t('site.site_auto_str_235') || "", {
         icon: 1,
         time: 5000
       });
@@ -2475,7 +2475,7 @@ function ocSSL(action, siteName) {
 
 //生成SSL
 function newSSL(siteName, id, domains) {
-  showSpeedWindow(lan && lan.site && lan.site.site_auto_str_236 || "", 'site.get_let_logs', function (layers, index) {
+  showSpeedWindow(lan && lan.site && t('site.site_auto_str_236') || "", 'site.get_let_logs', function (layers, index) {
     var pdata = {};
     pdata['siteName'] = siteName;
     pdata['domains'] = domains;
@@ -2510,12 +2510,12 @@ function newAcmeHandApplyNotice(siteName, id, domains, data) {
   layer.open({
     type: 1,
     area: '700px',
-    title: lan && lan.site && lan.site.site_auto_str_237 || "",
+    title: lan && lan.site && t('site.site_auto_str_237') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: true,
-    btn: [lan && lan.site && lan.site.site_auto_str_238 || "", lan && lan.site && lan.site.site_auto_str_239 || ""],
-    content: lan && lan.site && lan.site.site_auto_str_240 || "",
+    btn: [lan && lan.site && t('site.site_auto_str_238') || "", lan && lan.site && t('site.site_auto_str_239') || ""],
+    content: lan && lan.site && t('site.site_auto_str_240') || "",
     success: function () {
       var list = '';
       for (var i = 0; i < data.length; i++) {
@@ -2524,21 +2524,21 @@ function newAcmeHandApplyNotice(siteName, id, domains, data) {
         list += '<td>' + data[i]['val'] + '</td>';
         list += '<td>' + data[i]['type'] + '</td>';
         if (data[i]['must']) {
-          list += lan && lan.site && lan.site.site_auto_str_241 || "";
+          list += lan && lan.site && t('site.site_auto_str_241') || "";
         } else {
-          list += lan && lan.site && lan.site.site_auto_str_242 || "";
+          list += lan && lan.site && t('site.site_auto_str_242') || "";
         }
         list += '</tr>';
       }
       $('#acme_hand_ssl_notice tbody').html(list);
       if (data.length > 0) {
-        var help_txt = (lan && lan.site && lan.site.site_auto_str_243 || "") + data[0]['domain'];
+        var help_txt = (lan && lan.site && t('site.site_auto_str_243') || "") + data[0]['domain'];
         $('#acme_hand_ssl_notice_help li:eq(1)').text(help_txt);
       }
     },
     yes: function (layero, index) {
       layer.close(layero);
-      showSpeedWindow(lan && lan.site && lan.site.site_auto_str_244 || "", 'site.get_acme_logs', function (layers, index) {
+      showSpeedWindow(lan && lan.site && t('site.site_auto_str_244') || "", 'site.get_acme_logs', function (layers, index) {
         var pdata = {};
         pdata['siteName'] = siteName;
         pdata['domains'] = domains;
@@ -2573,7 +2573,7 @@ function newAcmeHandApplyNotice(siteName, id, domains, data) {
   });
 }
 function newAcmeSSL(siteName, id, domains) {
-  showSpeedWindow(lan && lan.site && lan.site.site_auto_str_245 || "", 'site.get_acme_logs', function (layers, index) {
+  showSpeedWindow(lan && lan.site && t('site.site_auto_str_245') || "", 'site.get_acme_logs', function (layers, index) {
     var pdata = {};
     pdata['siteName'] = siteName;
     pdata['domains'] = domains;
@@ -2596,7 +2596,7 @@ function newAcmeSSL(siteName, id, domains) {
       showMsg(rdata.msg, function () {
         if (rdata.status) {
           layer.close(index);
-          if (rdata.msg == (lan && lan.site && lan.site.site_auto_str_246 || "")) {
+          if (rdata.msg == (lan && lan.site && t('site.site_auto_str_246') || "")) {
             newAcmeHandApplyNotice(siteName, id, domains, rdata.data);
           } else {
             $(".tab-nav span:first-child").click();
@@ -2612,7 +2612,7 @@ function newAcmeSSL(siteName, id, domains) {
 //保存SSL
 function saveSSL(siteName) {
   var data = 'type=1&siteName=' + siteName + '&key=' + encodeURIComponent($("#key").val()) + '&csr=' + encodeURIComponent($("#csr").val());
-  var loadT = layer.msg(lan.site.saving_txt, {
+  var loadT = layer.msg(t('site.saving_txt'), {
     icon: 16,
     time: 20000,
     shade: [0.3, '#000']
@@ -2624,7 +2624,7 @@ function saveSSL(siteName) {
         icon: 1
       });
       $(".ssl-btn").find(".btn-default").remove();
-      $(".ssl-btn").append("<button class='btn btn-default btn-sm' onclick=\"ocSSL('close_ssl_conf','" + siteName + "')\" style='margin-left:10px'>" + lan.site.ssl_close + "</button>");
+      $(".ssl-btn").append("<button class='btn btn-default btn-sm' onclick=\"ocSSL('close_ssl_conf','" + siteName + "')\" style='margin-left:10px'>" + t('site.ssl_close') + "</button>");
     } else {
       layer.msg(rdata.msg, {
         icon: 2,
@@ -2648,19 +2648,19 @@ function phpVersion(siteName) {
     }
     $.post('/site/get_php_version', function (data) {
       var rdata = data.data;
-      var versionSelect = lan && lan.site && lan.site.site_auto_str_247 || "";
+      var versionSelect = lan && lan.site && t('site.site_auto_str_247') || "";
       var optionSelect = '';
       for (var i = 0; i < rdata.length; i++) {
         optionSelect = version.phpversion == rdata[i].version ? 'selected' : '';
         versionSelect += "<option value='" + rdata[i].version + "' " + optionSelect + ">" + rdata[i].name + "</option>";
       }
       versionSelect += "</select>\
-							<button class='btn btn-success btn-sm' onclick=\"setPHPVersion('" + siteName + "')\">" + lan.site.switch + (lan && lan.site && lan.site.site_auto_str_248 || "");
+							<button class='btn btn-success btn-sm' onclick=\"setPHPVersion('" + siteName + "')\">" + t('site.switch') + (lan && lan.site && t('site.site_auto_str_248') || "");
       $("#webedit-con").html(versionSelect);
       //验证PHP版本
       $("select[name='phpVersion']").on('change', function () {
         if ($(this).val() == '52') {
-          var msgerr = lan && lan.site && lan.site.site_auto_str_249 || "";
+          var msgerr = lan && lan.site && t('site.site_auto_str_249') || "";
           $('#php_w').text(msgerr);
         } else {
           $('#php_w').text('');
@@ -2673,7 +2673,7 @@ function phpVersion(siteName) {
 //设置PHP版本
 function setPHPVersion(siteName) {
   var data = 'version=' + $("#phpVersion").val() + '&siteName=' + siteName;
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_250 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_250') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2685,7 +2685,7 @@ function setPHPVersion(siteName) {
     });
     if (rdata.status) {
       var php_version = $("#phpVersion").val();
-      var php_show_text = php_version == '00' ? lan && lan.site && lan.site.site_auto_str_251 || "" : php_version.length == 2 ? php_version.substring(0, 1) + '.' + php_version.substring(1) : php_version;
+      var php_show_text = php_version == '00' ? lan && lan.site && t('site.site_auto_str_251') || "" : php_version.length == 2 ? php_version.substring(0, 1) + '.' + php_version.substring(1) : php_version;
       var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + siteName + "', '" + php_version + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
       $("input[name='id'][title='" + siteName + "']").closest("tr").find("td").eq(7).html(php_text);
     }
@@ -2694,7 +2694,7 @@ function setPHPVersion(siteName) {
 
 //直接在列表页修改PHP版本
 function changePHPVersion(id, siteName, currentVersion) {
-  var currentVersionText = currentVersion == '00' ? lan && lan.site && lan.site.site_auto_str_252 || "" : currentVersion.length == 2 ? currentVersion.substring(0, 1) + '.' + currentVersion.substring(1) : currentVersion;
+  var currentVersionText = currentVersion == '00' ? lan && lan.site && t('site.site_auto_str_252') || "" : currentVersion.length == 2 ? currentVersion.substring(0, 1) + '.' + currentVersion.substring(1) : currentVersion;
   $.post('/site/get_php_version', function (data) {
     var rdata = data.data;
     var optionsHtml = '';
@@ -2702,12 +2702,12 @@ function changePHPVersion(id, siteName, currentVersion) {
       var isSelected = currentVersion == rdata[i].version ? 'selected' : '';
       optionsHtml += "<option value='" + rdata[i].version + "' " + isSelected + ">" + rdata[i].name + "</option>";
     }
-    var bodyContent = (lan && lan.site && lan.site.site_auto_str_253 || "") + siteName + (lan && lan.site && lan.site.site_auto_str_254 || "") + currentVersionText + (lan && lan.site && lan.site.site_auto_str_255 || "") + optionsHtml + (lan && lan.site && lan.site.site_auto_str_256 || "") + siteName + "', '" + currentVersionText + (lan && lan.site && lan.site.site_auto_str_257 || "");
+    var bodyContent = (lan && lan.site && t('site.site_auto_str_253') || "") + siteName + (lan && lan.site && t('site.site_auto_str_254') || "") + currentVersionText + (lan && lan.site && t('site.site_auto_str_255') || "") + optionsHtml + (lan && lan.site && t('site.site_auto_str_256') || "") + siteName + "', '" + currentVersionText + (lan && lan.site && t('site.site_auto_str_257') || "");
     layer.open({
       type: 1,
       skin: 'demo-class',
       area: '480px',
-      title: lan && lan.site && lan.site.site_auto_str_258 || "",
+      title: lan && lan.site && t('site.site_auto_str_258') || "",
       closeBtn: 1,
       shift: 0,
       shadeClose: false,
@@ -2720,14 +2720,14 @@ function changePHPVersion(id, siteName, currentVersion) {
 function submitChangePHPVersion(siteName, currentVersionText) {
   var newVersion = $("#newPHPVersion").val();
   var newVersionText = $("#newPHPVersion option:selected").text();
-  var confirmMsg = (lan && lan.site && lan.site.site_auto_str_259 || "") + siteName + (lan && lan.site && lan.site.site_auto_str_260 || "") + currentVersionText + (lan && lan.site && lan.site.site_auto_str_261 || "") + newVersionText + (lan && lan.site && lan.site.site_auto_str_262 || "");
+  var confirmMsg = (lan && lan.site && t('site.site_auto_str_259') || "") + siteName + (lan && lan.site && t('site.site_auto_str_260') || "") + currentVersionText + (lan && lan.site && t('site.site_auto_str_261') || "") + newVersionText + (lan && lan.site && t('site.site_auto_str_262') || "");
   layer.confirm(confirmMsg, {
     icon: 3,
-    title: lan && lan.site && lan.site.site_auto_str_263 || "",
+    title: lan && lan.site && t('site.site_auto_str_263') || "",
     closeBtn: 2
   }, function (index) {
     layer.close(index);
-    var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_264 || "", {
+    var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_264') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -2740,7 +2740,7 @@ function submitChangePHPVersion(siteName, currentVersionText) {
       });
       if (rdata.status) {
         layer.closeAll();
-        var php_show_text = newVersion == '00' ? lan && lan.site && lan.site.site_auto_str_265 || "" : newVersion.length == 2 ? newVersion.substring(0, 1) + '.' + newVersion.substring(1) : newVersion;
+        var php_show_text = newVersion == '00' ? lan && lan.site && t('site.site_auto_str_265') || "" : newVersion.length == 2 ? newVersion.substring(0, 1) + '.' + newVersion.substring(1) : newVersion;
         var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + siteName + "', '" + newVersion + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
         $("input[name='id'][title='" + siteName + "']").closest("tr").find("td").eq(7).html(php_text);
       }
@@ -2755,7 +2755,7 @@ function configFile(webSite) {
   }, function (info) {
     $.post('/files/get_body', 'path=' + info['host'], function (rdata) {
       var mBody = "<div class='webEdit-box padding-10'>\
-		<textarea style='height: 320px; width: 740px; margin-left: 20px;line-height:18px' id='configBody'>" + rdata.data.data + (lan && lan.site && lan.site.site_auto_str_266 || "");
+		<textarea style='height: 320px; width: 740px; margin-left: 20px;line-height:18px' id='configBody'>" + rdata.data.data + (lan && lan.site && t('site.site_auto_str_266') || "");
       $("#webedit-con").html(mBody);
       var editor = CodeMirror.fromTextArea(document.getElementById("configBody"), {
         extraKeys: {
@@ -2803,7 +2803,7 @@ function configFile(webSite) {
 //保存配置文件
 function saveConfigFile(webSite, encoding, path) {
   var data = 'encoding=' + encoding + '&data=' + encodeURIComponent($("#configBody").val()) + '&path=' + path;
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_267 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_267') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2836,8 +2836,8 @@ function rewrite(siteName) {
         var centent = fileBody['data']['data'];
         var rList = '';
         var rewriteNames = {
-          'EmpireCMS': lan && lan.site && lan.site.site_auto_str_268 || "",
-          'dedecms': lan && lan.site && lan.site.site_auto_str_269 || "",
+          'EmpireCMS': lan && lan.site && t('site.site_auto_str_268') || "",
+          'dedecms': lan && lan.site && t('site.site_auto_str_269') || "",
           'discuzx': 'discuzx (Discuz!)',
           'discuzx2': 'discuzx2 (Discuz!)',
           'discuzx3': 'discuzx3 (Discuz!)',
@@ -2846,16 +2846,16 @@ function rewrite(siteName) {
           'emlog': 'emlog (Emlog)',
           'fastapi-web': 'fastapi-web (FastAPI)',
           'laravel5': 'laravel5 (Laravel)',
-          'mvc': lan && lan.site && lan.site.site_auto_str_270 || "",
+          'mvc': lan && lan.site && t('site.site_auto_str_270') || "",
           'phpcms': 'phpcms (PHPCMS)',
           'phpwind': 'phpwind (PHPWind)',
           'sablog': 'sablog (SaBlog-X)',
-          'seacms': lan && lan.site && lan.site.site_auto_str_271 || "",
+          'seacms': lan && lan.site && t('site.site_auto_str_271') || "",
           'shopex': 'shopex (ShopEx)',
           'thinkphp': 'thinkphp (ThinkPHP)',
           'typecho': 'typecho (Typecho)',
           'whmcs': 'whmcs (WHMCS)',
-          'wmcms': lan && lan.site && lan.site.site_auto_str_272 || "",
+          'wmcms': lan && lan.site && t('site.site_auto_str_272') || "",
           'wordpress': 'wordpress (WordPress)',
           'zblog': 'zblog (Z-Blog)'
         };
@@ -2871,7 +2871,7 @@ function rewrite(siteName) {
         var webBakHtml = "<div class='bt-form'>\
 						<div class='line'>\
 						<select id='myRewrite' class='bt-input-text mr20' name='rewrite' style='width:30%;'>" + rList + "</select>\
-						<textarea class='bt-input-text' style='height: 260px; width: 740px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>" + centent + (lan && lan.site && lan.site.site_auto_str_273 || "");
+						<textarea class='bt-input-text' style='height: 260px; width: 740px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>" + centent + (lan && lan.site && t('site.site_auto_str_273') || "");
         $("#webedit-con").html(webBakHtml);
         var editor = CodeMirror.fromTextArea(document.getElementById("rewriteBody"), {
           extraKeys: {
@@ -2946,7 +2946,7 @@ function rewrite(siteName) {
 //设置伪静态
 function setRewrite(filename, data) {
   var data = 'data=' + data + '&path=' + filename + '&encoding=utf-8';
-  var loadT = layer.msg(lan.site.saving_txt, {
+  var loadT = layer.msg(t('site.saving_txt'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2977,11 +2977,11 @@ function setRewriteTel(act) {
     closeBtn: 1,
     area: '320px',
     //宽高
-    title: lan && lan.site && lan.site.site_auto_str_274 || "",
-    btn: [lan.public.ok, lan.public.cancel],
+    title: lan && lan.site && t('site.site_auto_str_274') || "",
+    btn: [t('public.ok'), t('public.cancel')],
     content: '<div class="bt-form pd20">\
 					<div class="line">\
-						<input type="text" class="bt-input-text" name="rewriteName" id="rewriteName" value="" placeholder="' + lan.site.template_name + '" style="width:100%" />\
+						<input type="text" class="bt-input-text" name="rewriteName" id="rewriteName" value="" placeholder="' + t('site.template_name') + '" style="width:100%" />\
 					</div>\
 				</div>',
     success: function (index) {
@@ -2992,13 +2992,13 @@ function setRewriteTel(act) {
     yes: function (index) {
       name = $("#rewriteName").val();
       if (name == '') {
-        layer.msg(lan.site.template_empty, {
+        layer.msg(t('site.template_empty'), {
           icon: 5
         });
         return;
       }
       var data = 'data=' + encodeURIComponent($("#rewriteBody").val()) + '&name=' + name;
-      var loadT = layer.msg(lan.site.saving_txt, {
+      var loadT = layer.msg(t('site.saving_txt'), {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -3026,10 +3026,10 @@ function siteDefaultPage() {
   layer.open({
     type: 1,
     area: '460px',
-    title: lan && lan.site && lan.site.site_auto_str_275 || "",
+    title: lan && lan.site && t('site.site_auto_str_275') || "",
     closeBtn: 1,
     shift: 0,
-    content: lan && lan.site && lan.site.site_auto_str_276 || ""
+    content: lan && lan.site && t('site.site_auto_str_276') || ""
   });
 }
 function changeDefault(type, obj) {
@@ -3049,7 +3049,7 @@ function getClassType() {
   $.post('/site/get_site_types', function (rdata) {
     var rdata = rdata.data;
     $(select).html('');
-    $(select).append(lan && lan.site && lan.site.site_auto_str_277 || "");
+    $(select).append(lan && lan.site && t('site.site_auto_str_277') || "");
     for (var i = 0; i < rdata.length; i++) {
       $(select).append('<option value="' + rdata[i]['id'] + '">' + rdata[i]['name'] + '</option>');
     }
@@ -3066,15 +3066,15 @@ function setClassType() {
     var list = '';
     for (var i = 0; i < rdata.length; i++) {
       list += '<tr><td>' + rdata[i]['name'] + '</td>\
-				<td><a class="btlink edit_type" onclick="editClassType(\'' + rdata[i]['id'] + '\',\'' + rdata[i]['name'] + (lan && lan.site && lan.site.site_auto_str_278 || "") + rdata[i]['id'] + '\',\'' + rdata[i]['name'] + (lan && lan.site && lan.site.site_auto_str_279 || "");
+				<td><a class="btlink edit_type" onclick="editClassType(\'' + rdata[i]['id'] + '\',\'' + rdata[i]['name'] + (lan && lan.site && t('site.site_auto_str_278') || "") + rdata[i]['id'] + '\',\'' + rdata[i]['name'] + (lan && lan.site && t('site.site_auto_str_279') || "");
     }
     layer.open({
       type: 1,
       area: '350px',
-      title: lan && lan.site && lan.site.site_auto_str_280 || "",
+      title: lan && lan.site && t('site.site_auto_str_280') || "",
       closeBtn: 1,
       shift: 0,
-      content: (lan && lan.site && lan.site.site_auto_str_281 || "") + list + '</tbody>\
+      content: (lan && lan.site && t('site.site_auto_str_281') || "") + list + '</tbody>\
 					</table>\
 				</div>\
 			</div>'
@@ -3097,13 +3097,13 @@ function addClassType() {
 }
 function removeClassType(id, name) {
   if (id == 0) {
-    layer.msg(lan && lan.site && lan.site.site_auto_str_282 || "", {
+    layer.msg(lan && lan.site && t('site.site_auto_str_282') || "", {
       icon: 2
     });
     return;
   }
-  layer.confirm(lan && lan.site && lan.site.site_auto_str_283 || "", {
-    title: (lan && lan.site && lan.site.site_auto_str_284 || "") + name + '】'
+  layer.confirm(lan && lan.site && t('site.site_auto_str_283') || "", {
+    title: (lan && lan.site && t('site.site_auto_str_284') || "") + name + '】'
   }, function () {
     $.post('/site/remove_site_type', 'id=' + id, function (rdata) {
       showMsg(rdata.msg, function () {
@@ -3120,7 +3120,7 @@ function removeClassType(id, name) {
 }
 function editClassType(id, name) {
   if (id == 0) {
-    layer.msg(lan && lan.site && lan.site.site_auto_str_285 || "", {
+    layer.msg(lan && lan.site && t('site.site_auto_str_285') || "", {
       icon: 2
     });
     return;
@@ -3128,10 +3128,10 @@ function editClassType(id, name) {
   layer.open({
     type: 1,
     area: '350px',
-    title: (lan && lan.site && lan.site.site_auto_str_286 || "") + name + '】',
+    title: (lan && lan.site && t('site.site_auto_str_286') || "") + name + '】',
     closeBtn: 1,
     shift: 0,
-    content: (lan && lan.site && lan.site.site_auto_str_287 || "") + name + (lan && lan.site && lan.site.site_auto_str_288 || "")
+    content: (lan && lan.site && t('site.site_auto_str_287') || "") + name + (lan && lan.site && t('site.site_auto_str_288') || "")
   });
   $('#site_type_mod').off().on('click', function () {
     var _name = $('input[name=site_type_mod]').val();
@@ -3157,10 +3157,10 @@ function moveClassTYpe() {
     layer.open({
       type: 1,
       area: '350px',
-      title: lan && lan.site && lan.site.site_auto_str_289 || "",
+      title: lan && lan.site && t('site.site_auto_str_289') || "",
       closeBtn: 1,
       shift: 0,
-      content: (lan && lan.site && lan.site.site_auto_str_290 || "") + option + (lan && lan.site && lan.site.site_auto_str_291 || "")
+      content: (lan && lan.site && t('site.site_auto_str_290') || "") + option + (lan && lan.site && t('site.site_auto_str_291') || "")
     });
   }, 'json');
 }
@@ -3207,14 +3207,14 @@ function tryRestartPHP(siteName) {
       func: 'restart'
     };
     reqData['version'] = phpversion;
-    var loadT = layer.msg((lan && lan.site && lan.site.site_auto_str_292 || "") + phpversion + ']...', {
+    var loadT = layer.msg((lan && lan.site && t('site.site_auto_str_292') || "") + phpversion + ']...', {
       icon: 16,
       time: 0,
       shade: 0.3
     });
     $.post('/plugins/run', reqData, function (data) {
       layer.close(loadT);
-      layer.msg('PHP[' + phpversion + ']' + (data.status ? lan && lan.site && lan.site.site_auto_str_293 || "" : lan && lan.site && lan.site.site_auto_str_294 || ""), {
+      layer.msg('PHP[' + phpversion + ']' + (data.status ? lan && lan.site && t('site.site_auto_str_293') || "" : lan && lan.site && t('site.site_auto_str_294') || ""), {
         icon: data.status ? 1 : 2,
         time: 3000,
         shade: [0.3, '#000']
@@ -3243,7 +3243,7 @@ function exportAllSites() {
       downloadAnchor.click();
       downloadAnchor.remove();
       URL.revokeObjectURL(url);
-      layer.msg(lan && lan.site && lan.site.site_auto_str_295 || "", {
+      layer.msg(lan && lan.site && t('site.site_auto_str_295') || "", {
         icon: 1
       });
     } else {
@@ -3268,12 +3268,12 @@ $(function () {
       try {
         var importData = JSON.parse(evt.target.result);
         if (!importData.sites || importData.sites.length === 0) {
-          layer.msg(lan && lan.site && lan.site.site_auto_str_296 || "", {
+          layer.msg(lan && lan.site && t('site.site_auto_str_296') || "", {
             icon: 2
           });
           return;
         }
-        var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_297 || "", {
+        var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_297') || "", {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']
@@ -3292,10 +3292,10 @@ $(function () {
           var normal = checkData.data.normal || [];
           if (conflicts.length === 0) {
             // 没有冲突，直接导入
-            layer.confirm((lan && lan.site && lan.site.site_auto_str_298 || "") + normal.length + (lan && lan.site && lan.site.site_auto_str_299 || ""), {
-              title: lan && lan.site && lan.site.site_auto_str_300 || "",
+            layer.confirm((lan && lan.site && t('site.site_auto_str_298') || "") + normal.length + (lan && lan.site && t('site.site_auto_str_299') || ""), {
+              title: lan && lan.site && t('site.site_auto_str_300') || "",
               icon: 3,
-              btn: [lan && lan.site && lan.site.site_auto_str_301 || "", lan && lan.site && lan.site.site_auto_str_302 || ""]
+              btn: [lan && lan.site && t('site.site_auto_str_301') || "", lan && lan.site && t('site.site_auto_str_302') || ""]
             }, function (index) {
               layer.close(index);
               doImportAllSites(importData);
@@ -3303,25 +3303,25 @@ $(function () {
           } else {
             // 有冲突，弹出选择框
             var html = '<div style="padding:20px;">';
-            html += lan && lan.site && lan.site.site_auto_str_303 || "";
+            html += lan && lan.site && t('site.site_auto_str_303') || "";
             html += '<div style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #ddd; padding: 10px;">';
             for (var i = 0; i < conflicts.length; i++) {
               var c = conflicts[i];
               html += '<div style="margin-bottom: 8px;">';
-              html += '<label><input type="checkbox" class="conflict-checkbox" data-site="' + c.name + '" /> <b>' + c.name + (lan && lan.site && lan.site.site_auto_str_304 || "") + c.reasons + ')</span></label>';
+              html += '<label><input type="checkbox" class="conflict-checkbox" data-site="' + c.name + '" /> <b>' + c.name + (lan && lan.site && t('site.site_auto_str_304') || "") + c.reasons + ')</span></label>';
               html += '</div>';
             }
             html += '</div>';
             if (normal.length > 0) {
-              html += (lan && lan.site && lan.site.site_auto_str_305 || "") + normal.length + (lan && lan.site && lan.site.site_auto_str_306 || "");
+              html += (lan && lan.site && t('site.site_auto_str_305') || "") + normal.length + (lan && lan.site && t('site.site_auto_str_306') || "");
             }
             html += '</div>';
             layer.open({
               type: 1,
-              title: lan && lan.site && lan.site.site_auto_str_307 || "",
+              title: lan && lan.site && t('site.site_auto_str_307') || "",
               area: '500px',
               content: html,
-              btn: [lan && lan.site && lan.site.site_auto_str_308 || "", lan && lan.site && lan.site.site_auto_str_309 || ""],
+              btn: [lan && lan.site && t('site.site_auto_str_308') || "", lan && lan.site && t('site.site_auto_str_309') || ""],
               yes: function (index, layero) {
                 var overwriteSites = [];
                 layero.find('.conflict-checkbox:checked').each(function () {
@@ -3347,7 +3347,7 @@ $(function () {
                 }
                 layer.close(index);
                 if (finalSites.length === 0) {
-                  layer.msg(lan && lan.site && lan.site.site_auto_str_310 || "", {
+                  layer.msg(lan && lan.site && t('site.site_auto_str_310') || "", {
                     icon: 0
                   });
                   return;
@@ -3359,7 +3359,7 @@ $(function () {
           }
         }, 'json');
       } catch (err) {
-        layer.msg(lan && lan.site && lan.site.site_auto_str_311 || "", {
+        layer.msg(lan && lan.site && t('site.site_auto_str_311') || "", {
           icon: 2
         });
       }
@@ -3368,7 +3368,7 @@ $(function () {
   });
 });
 function doImportAllSites(importData) {
-  var loadT = layer.msg(lan && lan.site && lan.site.site_auto_str_312 || "", {
+  var loadT = layer.msg(lan && lan.site && t('site.site_auto_str_312') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -3379,8 +3379,8 @@ function doImportAllSites(importData) {
     layer.close(loadT);
     if (rdata.status) {
       var res = rdata.data;
-      layer.alert((lan && lan.site && lan.site.site_auto_str_313 || "") + res.success + (lan && lan.site && lan.site.site_auto_str_314 || "") + res.skip + (lan && lan.site && lan.site.site_auto_str_315 || ""), {
-        title: lan && lan.site && lan.site.site_auto_str_316 || "",
+      layer.alert((lan && lan.site && t('site.site_auto_str_313') || "") + res.success + (lan && lan.site && t('site.site_auto_str_314') || "") + res.skip + (lan && lan.site && t('site.site_auto_str_315') || ""), {
+        title: lan && lan.site && t('site.site_auto_str_316') || "",
         icon: 1
       }, function (index) {
         layer.close(index);

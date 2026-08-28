@@ -99,11 +99,11 @@ $('input[name="bind_domain"]').on('change', function () {
         // 弹出一个精美弹窗，提示用户保存域名并确认重启
         layer.open({
           type: 1,
-          title: lan && lan.config && lan.config.config_auto_str_1 || "",
+          title: lan && lan.config && t('config.config_auto_str_1') || "",
           area: ['520px', '280px'],
           closeBtn: 1,
           shadeClose: false,
-          content: (lan && lan.config && lan.config.config_auto_str_2 || "") + new_url + (lan && lan.config && lan.config.config_auto_str_3 || ""),
+          content: (lan && lan.config && t('config.config_auto_str_2') || "") + new_url + (lan && lan.config && t('config.config_auto_str_3') || ""),
           success: function (layero, index) {
             // 鼠标悬停变色效果
             $('#new-domain-box').on('mouseenter', function () {
@@ -124,7 +124,7 @@ $('input[name="bind_domain"]').on('change', function () {
               $.post('/system/restart', '', function () {
                 layer.close(loadT);
                 var count = 10;
-                var msgBox = layer.msg((lan && lan.config && lan.config.config_auto_str_4 || "") + count + (lan && lan.config && lan.config.config_auto_str_5 || ""), {
+                var msgBox = layer.msg((lan && lan.config && t('config.config_auto_str_4') || "") + count + (lan && lan.config && t('config.config_auto_str_5') || ""), {
                   icon: 16,
                   time: 0,
                   shade: [0.3, '#000']
@@ -156,7 +156,7 @@ $('input[name="bind_domain"]').on('change', function () {
 function copyTextToClipboard(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function () {
-      layer.msg(lan && lan.config && lan.config.config_auto_str_6 || "", {
+      layer.msg(lan && lan.config && t('config.config_auto_str_6') || "", {
         icon: 1,
         time: 1000
       });
@@ -186,17 +186,17 @@ function fallbackCopyText(text) {
   try {
     var successful = document.execCommand('copy');
     if (successful) {
-      layer.msg(lan && lan.config && lan.config.config_auto_str_7 || "", {
+      layer.msg(lan && lan.config && t('config.config_auto_str_7') || "", {
         icon: 1,
         time: 1000
       });
     } else {
-      layer.msg(lan && lan.config && lan.config.config_auto_str_8 || "", {
+      layer.msg(lan && lan.config && t('config.config_auto_str_8') || "", {
         icon: 2
       });
     }
   } catch (err) {
-    layer.msg(lan && lan.config && lan.config.config_auto_str_9 || "", {
+    layer.msg(lan && lan.config && t('config.config_auto_str_9') || "", {
       icon: 2
     });
   }
@@ -205,7 +205,7 @@ function fallbackCopyText(text) {
 
 // SSL 申请/配置成功后的弹窗，支持点击一键复制，点击确定重启面板后进行 10 秒倒计时跳转 https 地址
 function showSSLSuccessWindow(new_url, title) {
-  title = title || lan && lan.config && lan.config.config_auto_str_10 || "";
+  title = title || lan && lan.config && t('config.config_auto_str_10') || "";
   // 自动修复 127.0.0.1 和 0.0.0.0 为当前主机的实际域名/IP，以确保在任何环境下均可平顺访问
   if (new_url.indexOf('127.0.0.1') != -1 || new_url.indexOf('0.0.0.0') != -1) {
     new_url = new_url.replace(/127\.0\.0\.1|0\.0\.0\.0/, window.location.hostname);
@@ -216,7 +216,7 @@ function showSSLSuccessWindow(new_url, title) {
     area: ['520px', '280px'],
     closeBtn: 1,
     shadeClose: false,
-    content: (lan && lan.config && lan.config.config_auto_str_11 || "") + new_url + (lan && lan.config && lan.config.config_auto_str_12 || ""),
+    content: (lan && lan.config && t('config.config_auto_str_11') || "") + new_url + (lan && lan.config && t('config.config_auto_str_12') || ""),
     success: function (layero, index) {
       // 鼠标悬停变色效果
       $('#ssl-domain-box').on('mouseenter', function () {
@@ -237,7 +237,7 @@ function showSSLSuccessWindow(new_url, title) {
         $.post('/system/restart', '', function () {
           layer.close(loadT);
           var count = 10;
-          var msgBox = layer.msg((lan && lan.config && lan.config.config_auto_str_13 || "") + count + (lan && lan.config && lan.config.config_auto_str_14 || ""), {
+          var msgBox = layer.msg((lan && lan.config && t('config.config_auto_str_13') || "") + count + (lan && lan.config && t('config.config_auto_str_14') || ""), {
             icon: 16,
             time: 0,
             shade: [0.3, '#000']
@@ -267,19 +267,19 @@ $('input[name="bind_ssl"]').on('click', function () {
     layer.open({
       type: 1,
       closeBtn: 1,
-      title: lan && lan.config && lan.config.config_auto_str_15 || "",
+      title: lan && lan.config && t('config.config_auto_str_15') || "",
       area: ['600px', '440px'],
-      btn: [lan && lan.config && lan.config.config_auto_str_16 || ""],
+      btn: [lan && lan.config && t('config.config_auto_str_16') || ""],
       maxmin: false,
       shadeClose: true,
-      content: lan && lan.config && lan.config.config_auto_str_17 || "",
+      content: lan && lan.config && t('config.config_auto_str_17') || "",
       yes: function () {
         var cert_type = $('select[name=cert_type]').val();
         $.post('/setting/set_panel_local_ssl', {
           'cert_type': cert_type
         }, function (rdata) {
           if (rdata.status) {
-            showSSLSuccessWindow(rdata.data, lan && lan.config && lan.config.config_auto_str_18 || "");
+            showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.config_auto_str_18') || "");
           } else {
             layer.msg(rdata.msg, {
               icon: 2
@@ -293,15 +293,15 @@ $('input[name="bind_ssl"]').on('click', function () {
     layer.open({
       type: 1,
       closeBtn: 1,
-      title: lan && lan.config && lan.config.config_auto_str_19 || "",
+      title: lan && lan.config && t('config.config_auto_str_19') || "",
       area: ['480px', '280px'],
-      btn: [lan && lan.config && lan.config.config_auto_str_20 || "", lan && lan.config && lan.config.config_auto_str_21 || ""],
+      btn: [lan && lan.config && t('config.config_auto_str_20') || "", lan && lan.config && t('config.config_auto_str_21') || ""],
       shadeClose: true,
-      content: lan && lan.config && lan.config.config_auto_str_22 || "",
+      content: lan && lan.config && t('config.config_auto_str_22') || "",
       yes: function (index) {
         var val = $('#prompt_input_box').val();
-        if (val != (lan && lan.config && lan.config.config_auto_str_23 || "")) {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_24 || "");
+        if (val != (lan && lan.config && t('config.config_auto_str_23') || "")) {
+          layer.msg(lan && lan.config && t('config.config_auto_str_24') || "");
           return;
         }
         $.post('/setting/close_panel_ssl', {}, function (rdata) {
@@ -326,24 +326,24 @@ function setVipInfo() {
   layer.open({
     type: 1,
     area: "400px",
-    title: lan && lan.config && lan.config.config_auto_str_25 || "",
+    title: lan && lan.config && t('config.config_auto_str_25') || "",
     closeBtn: 1,
     shift: 5,
-    btn: [lan && lan.config && lan.config.config_auto_str_26 || "", lan && lan.config && lan.config.config_auto_str_27 || ""],
+    btn: [lan && lan.config && t('config.config_auto_str_26') || "", lan && lan.config && t('config.config_auto_str_27') || ""],
     shadeClose: false,
-    content: lan && lan.config && lan.config.config_auto_str_28 || "",
+    content: lan && lan.config && t('config.config_auto_str_28') || "",
     yes: function (index) {
       var pdata = {};
       pdata['username'] = $('input[name="username"]').val();
       pdata['password'] = $('input[name="password"]').val();
       if (pdata['username'] == '') {
-        layer.msg(lan && lan.config && lan.config.config_auto_str_29 || "", {
+        layer.msg(lan && lan.config && t('config.config_auto_str_29') || "", {
           icon: 2
         });
         return false;
       }
       if (pdata['password'] == '') {
-        layer.msg(lan && lan.config && lan.config.config_auto_str_30 || "", {
+        layer.msg(lan && lan.config && t('config.config_auto_str_30') || "", {
           icon: 2
         });
         return false;
@@ -367,8 +367,8 @@ function setVipInfo() {
 
 //关闭面板
 function closePanel() {
-  layer.confirm(lan && lan.config && lan.config.config_auto_str_31 || "", {
-    title: lan && lan.config && lan.config.config_auto_str_32 || "",
+  layer.confirm(lan && lan.config && t('config.config_auto_str_31') || "", {
+    title: lan && lan.config && t('config.config_auto_str_32') || "",
     closeBtn: 2,
     icon: 13,
     cancel: function () {
@@ -390,7 +390,7 @@ function closePanel() {
 
 //开发模式
 function debugMode() {
-  var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_33 || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_33') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -409,25 +409,25 @@ function modifyAuthPath() {
   layer.open({
     type: 1,
     area: "500px",
-    title: lan && lan.config && lan.config.config_auto_str_34 || "",
+    title: lan && lan.config && t('config.config_auto_str_34') || "",
     closeBtn: 1,
     shift: 5,
-    btn: [lan && lan.config && lan.config.config_auto_str_35 || "", lan && lan.config && lan.config.config_auto_str_36 || "", lan && lan.config && lan.config.config_auto_str_37 || ""],
+    btn: [lan && lan.config && t('config.config_auto_str_35') || "", lan && lan.config && t('config.config_auto_str_36') || "", lan && lan.config && t('config.config_auto_str_37') || ""],
     shadeClose: false,
-    content: (lan && lan.config && lan.config.config_auto_str_38 || "") + auth_path + '">\
+    content: (lan && lan.config && t('config.config_auto_str_38') || "") + auth_path + '">\
                 </div>\
             </div>\
         </div>',
     yes: function (index) {
       var auth_path = $("input[name='auth_path_set']").val();
       if (auth_path == '/' || auth_path == '') {
-        layer.confirm(lan && lan.config && lan.config.config_auto_str_39 || "", {
-          title: lan && lan.config && lan.config.config_auto_str_40 || "",
+        layer.confirm(lan && lan.config && t('config.config_auto_str_39') || "", {
+          title: lan && lan.config && t('config.config_auto_str_40') || "",
           closeBtn: 1,
           icon: 13,
           cancel: function () {}
         }, function () {
-          var loadT = layer.msg(lan.config.config_save, {
+          var loadT = layer.msg(t('config.config_save'), {
             icon: 16,
             time: 0,
             shade: [0.3, '#000']
@@ -446,7 +446,7 @@ function modifyAuthPath() {
         });
         return;
       } else {
-        var loadT = layer.msg(lan.config.config_save, {
+        var loadT = layer.msg(t('config.config_save'), {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']
@@ -475,17 +475,17 @@ function setPassword() {
   layer.open({
     type: 1,
     area: ["350px", 'auto'],
-    title: lan && lan.config && lan.config.config_auto_str_41 || "",
+    title: lan && lan.config && t('config.config_auto_str_41') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    btn: [lan && lan.config && lan.config.config_auto_str_42 || "", lan && lan.config && lan.config.config_auto_str_43 || "", lan && lan.config && lan.config.config_auto_str_44 || ""],
-    content: lan && lan.config && lan.config.config_auto_str_45 || "",
+    btn: [lan && lan.config && t('config.config_auto_str_42') || "", lan && lan.config && t('config.config_auto_str_43') || "", lan && lan.config && t('config.config_auto_str_44') || ""],
+    content: lan && lan.config && t('config.config_auto_str_45') || "",
     yes: function () {
       var p1 = $("#p1").val();
       var p2 = $("#p2").val();
       if (p1 == "" || p1.length < 8) {
-        layer.msg(lan && lan.config && lan.config.config_auto_str_46 || "", {
+        layer.msg(lan && lan.config && t('config.config_auto_str_46') || "", {
           icon: 2
         });
         return;
@@ -507,13 +507,13 @@ function setPassword() {
         }
       }
       if (isError != "") {
-        layer.msg((lan && lan.config && lan.config.config_auto_str_47 || "") + isError, {
+        layer.msg((lan && lan.config && t('config.config_auto_str_47') || "") + isError, {
           icon: 5
         });
         return;
       }
       if (p1 != p2) {
-        layer.msg(lan && lan.config && lan.config.config_auto_str_48 || "", {
+        layer.msg(lan && lan.config && t('config.config_auto_str_48') || "", {
           icon: 2
         });
         return;
@@ -536,7 +536,7 @@ function setPassword() {
       var pwd = randomStrPwd(12);
       $("#p1").val(pwd);
       $("#p2").val(pwd);
-      layer.msg(lan && lan.config && lan.config.config_auto_str_49 || "", {
+      layer.msg(lan && lan.config && t('config.config_auto_str_49') || "", {
         time: 2000
       });
       return false;
@@ -547,23 +547,23 @@ function setUserName() {
   layer.open({
     type: 1,
     area: ["350px", 'auto'],
-    title: lan && lan.config && lan.config.config_auto_str_50 || "",
+    title: lan && lan.config && t('config.config_auto_str_50') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    btn: [lan && lan.config && lan.config.config_auto_str_51 || "", lan && lan.config && lan.config.config_auto_str_52 || "", lan && lan.config && lan.config.config_auto_str_53 || ""],
-    content: lan && lan.config && lan.config.config_auto_str_54 || "",
+    btn: [lan && lan.config && t('config.config_auto_str_51') || "", lan && lan.config && t('config.config_auto_str_52') || "", lan && lan.config && t('config.config_auto_str_53') || ""],
+    content: lan && lan.config && t('config.config_auto_str_54') || "",
     yes: function () {
       p1 = $("#p1").val();
       p2 = $("#p2").val();
       if (p1 == "" || p1.length < 3) {
-        layer.msg(lan && lan.config && lan.config.config_auto_str_55 || "", {
+        layer.msg(lan && lan.config && t('config.config_auto_str_55') || "", {
           icon: 2
         });
         return;
       }
       if (p1 != p2) {
-        layer.msg(lan && lan.config && lan.config.config_auto_str_56 || "", {
+        layer.msg(lan && lan.config && t('config.config_auto_str_56') || "", {
           icon: 2
         });
         return;
@@ -587,7 +587,7 @@ function setUserName() {
       var pwd = randomStrPwd(12);
       $("#p1").val(pwd);
       $("#p2").val(pwd);
-      layer.msg(lan && lan.config && lan.config.config_auto_str_57 || "", {
+      layer.msg(lan && lan.config && t('config.config_auto_str_57') || "", {
         time: 2000
       });
       return false;
@@ -598,12 +598,12 @@ function setTimezone() {
   layer.open({
     type: 1,
     area: ["400px", "200px"],
-    title: lan && lan.config && lan.config.config_auto_str_58 || "",
+    title: lan && lan.config && t('config.config_auto_str_58') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    btn: [lan && lan.config && lan.config.config_auto_str_59 || "", lan && lan.config && lan.config.config_auto_str_60 || "", lan && lan.config && lan.config.config_auto_str_61 || ""],
-    content: lan && lan.config && lan.config.config_auto_str_62 || "",
+    btn: [lan && lan.config && t('config.config_auto_str_59') || "", lan && lan.config && t('config.config_auto_str_60') || "", lan && lan.config && t('config.config_auto_str_61') || ""],
+    content: lan && lan.config && t('config.config_auto_str_62') || "",
     success: function () {
       var tbody = '';
       $.post('/setting/get_timezone_list', {}, function (data) {
@@ -619,7 +619,7 @@ function setTimezone() {
       }, 'json');
     },
     yes: function (index) {
-      var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_63 || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_63') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -638,7 +638,7 @@ function setTimezone() {
       }, 'json');
     },
     btn3: function () {
-      var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_64 || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_64') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -656,7 +656,7 @@ function setTimezone() {
   });
 }
 function setIPv6() {
-  var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_65 || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_65') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -672,7 +672,7 @@ function setIPv6() {
   }, 'json');
 }
 function setCDN() {
-  var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_66 || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_66') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -692,7 +692,7 @@ function setGpuDetect() {
   setTimeout(function () {
     var isChecked = $("#gpuDetect").prop("checked");
     if (isChecked) {
-      var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_67 || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_67') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -702,7 +702,7 @@ function setGpuDetect() {
         if (!res.status || !res.data || res.data.length === 0) {
           // 未检测到显卡，回退开关状态
           $("#gpuDetect").prop("checked", false);
-          layer.msg(lan && lan.config && lan.config.config_auto_str_68 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_68') || "", {
             icon: 2,
             time: 3000
           });
@@ -713,7 +713,7 @@ function setGpuDetect() {
       }, 'json').fail(function () {
         layer.close(loadT);
         $("#gpuDetect").prop("checked", false);
-        layer.msg(lan && lan.config && lan.config.config_auto_str_69 || "", {
+        layer.msg(lan && lan.config && t('config.config_auto_str_69') || "", {
           icon: 2
         });
       });
@@ -723,7 +723,7 @@ function setGpuDetect() {
   }, 10);
 }
 function doSetGpuDetect(isEnable) {
-  var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_70 || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_70') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -731,10 +731,10 @@ function doSetGpuDetect(isEnable) {
   $.post('/setting/set_gpu_detect', {}, function (rdata) {
     layer.close(loadT);
     if (rdata.status && isEnable) {
-      layer.confirm(lan && lan.config && lan.config.config_auto_str_71 || "", {
-        title: lan && lan.config && lan.config.config_auto_str_72 || "",
+      layer.confirm(lan && lan.config && t('config.config_auto_str_71') || "", {
+        title: lan && lan.config && t('config.config_auto_str_72') || "",
         icon: 1,
-        btn: [lan && lan.config && lan.config.config_auto_str_73 || "", lan && lan.config && lan.config.config_auto_str_74 || ""]
+        btn: [lan && lan.config && t('config.config_auto_str_73') || "", lan && lan.config && t('config.config_auto_str_74') || ""]
       }, function () {
         window.location.href = '/';
       }, function () {
@@ -754,9 +754,9 @@ function doSetGpuDetect(isEnable) {
 //设置面板SSL
 function setPanelSSL() {
   var status = $("#sshswitch").prop("checked") == true ? 1 : 0;
-  var msg = $("#panelSSL").attr('checked') ? lan && lan.config && lan.config.config_auto_str_75 || "" : lan && lan.config && lan.config.config_auto_str_76 || "";
+  var msg = $("#panelSSL").attr('checked') ? lan && lan.config && t('config.config_auto_str_75') || "" : lan && lan.config && t('config.config_auto_str_76') || "";
   layer.confirm(msg, {
-    title: lan && lan.config && lan.config.config_auto_str_77 || "",
+    title: lan && lan.config && t('config.config_auto_str_77') || "",
     closeBtn: 1,
     icon: 3,
     area: '550px',
@@ -766,13 +766,13 @@ function setPanelSSL() {
   }, function () {
     if (window.location.protocol.indexOf('https') == -1) {
       if (!$("#checkSSL").prop('checked')) {
-        layer.msg(lan.config.ssl_ps, {
+        layer.msg(t('config.ssl_ps'), {
           icon: 2
         });
         return false;
       }
     }
-    var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_78 || "", {
+    var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_78') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -825,7 +825,7 @@ function setNotifyEmail(obj) {
   }, 'json');
 }
 function getTgbot() {
-  var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_79 || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_79') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -843,10 +843,10 @@ function getTgbot() {
     layer.open({
       type: 1,
       area: "500px",
-      title: lan && lan.config && lan.config.config_auto_str_80 || "",
+      title: lan && lan.config && t('config.config_auto_str_80') || "",
       closeBtn: 1,
       shift: 5,
-      btn: [lan && lan.config && lan.config.config_auto_str_81 || "", lan && lan.config && lan.config.config_auto_str_82 || "", lan && lan.config && lan.config.config_auto_str_83 || ""],
+      btn: [lan && lan.config && t('config.config_auto_str_81') || "", lan && lan.config && t('config.config_auto_str_82') || "", lan && lan.config && t('config.config_auto_str_83') || ""],
       shadeClose: false,
       content: "<div class='bt-form pd20'>\
 					<div class='line'>\
@@ -863,13 +863,13 @@ function getTgbot() {
         pdata['app_token'] = $('input[name="app_token"]').val();
         pdata['chat_id'] = $('input[name="chat_id"]').val();
         if (pdata['app_token'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_84 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_84') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['chat_id'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_85 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_85') || "", {
             icon: 2
           });
           return false;
@@ -892,13 +892,13 @@ function getTgbot() {
         pdata['app_token'] = $('input[name="app_token"]').val();
         pdata['chat_id'] = $('input[name="chat_id"]').val();
         if (pdata['app_token'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_86 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_86') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['chat_id'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_87 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_87') || "", {
             icon: 2
           });
           return false;
@@ -921,7 +921,7 @@ function getTgbot() {
   });
 }
 function getEmailCfg() {
-  var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_88 || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_88') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -952,13 +952,13 @@ function getEmailCfg() {
     layer.open({
       type: 1,
       area: "500px",
-      title: lan && lan.config && lan.config.config_auto_str_89 || "",
+      title: lan && lan.config && t('config.config_auto_str_89') || "",
       closeBtn: 1,
       shift: 5,
-      btn: [lan && lan.config && lan.config.config_auto_str_90 || "", lan && lan.config && lan.config.config_auto_str_91 || "", lan && lan.config && lan.config.config_auto_str_92 || ""],
+      btn: [lan && lan.config && t('config.config_auto_str_90') || "", lan && lan.config && t('config.config_auto_str_91') || "", lan && lan.config && t('config.config_auto_str_92') || ""],
       shadeClose: false,
-      content: (lan && lan.config && lan.config.config_auto_str_93 || "") + smtp_host + (lan && lan.config && lan.config.config_auto_str_94 || "") + smtp_ssl_no + ">None</label>\
-							<label><input name='smtp_ssl' type='radio' value='ssl' style='margin-right: 4px;' " + smtp_ssl_yes + (lan && lan.config && lan.config.config_auto_str_95 || "") + smtp_port + (lan && lan.config && lan.config.config_auto_str_96 || "") + username + (lan && lan.config && lan.config.config_auto_str_97 || "") + password + (lan && lan.config && lan.config.config_auto_str_98 || "") + to_mail_addr + (lan && lan.config && lan.config.config_auto_str_99 || ""),
+      content: (lan && lan.config && t('config.config_auto_str_93') || "") + smtp_host + (lan && lan.config && t('config.config_auto_str_94') || "") + smtp_ssl_no + ">None</label>\
+							<label><input name='smtp_ssl' type='radio' value='ssl' style='margin-right: 4px;' " + smtp_ssl_yes + (lan && lan.config && t('config.config_auto_str_95') || "") + smtp_port + (lan && lan.config && t('config.config_auto_str_96') || "") + username + (lan && lan.config && t('config.config_auto_str_97') || "") + password + (lan && lan.config && t('config.config_auto_str_98') || "") + to_mail_addr + (lan && lan.config && t('config.config_auto_str_99') || ""),
       yes: function (index) {
         var pdata = {};
         pdata['smtp_host'] = $('input[name="smtp_host"]').val();
@@ -968,31 +968,31 @@ function getEmailCfg() {
         pdata['password'] = $('input[name="password"]').val();
         pdata['to_mail_addr'] = $('input[name="to_mail_addr"]').val();
         if (pdata['smtp_host'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_100 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_100') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['smtp_port'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_101 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_101') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['username'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_102 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_102') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['password'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_103 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_103') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['to_mail_addr'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_104 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_104') || "", {
             icon: 2
           });
           return false;
@@ -1020,37 +1020,37 @@ function getEmailCfg() {
         pdata['to_mail_addr'] = $('input[name="to_mail_addr"]').val();
         pdata['mail_test'] = $('textarea[name="mail_test"]').val();
         if (pdata['smtp_host'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_105 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_105') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['smtp_port'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_106 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_106') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['username'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_107 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_107') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['password'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_108 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_108') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['to_mail_addr'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_109 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_109') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['mail_test'] == '') {
-          layer.msg(lan && lan.config && lan.config.config_auto_str_110 || "", {
+          layer.msg(lan && lan.config && t('config.config_auto_str_110') || "", {
             icon: 2
           });
           return false;
@@ -1073,19 +1073,19 @@ function getEmailCfg() {
   }, 'json');
 }
 function renderPanelSSLApply(panel_domain, ssl_email) {
-  var lets = (lan && lan.config && lan.config.config_auto_str_111 || "") + ssl_email + (lan && lan.config && lan.config.config_auto_str_112 || "") + panel_domain + '" checked="checked" disabled="disabled">' + panel_domain + (lan && lan.config && lan.config.config_auto_str_113 || "");
+  var lets = (lan && lan.config && t('config.config_auto_str_111') || "") + ssl_email + (lan && lan.config && t('config.config_auto_str_112') || "") + panel_domain + '" checked="checked" disabled="disabled">' + panel_domain + (lan && lan.config && t('config.config_auto_str_113') || "");
   return lets;
 }
 function newAcmeHandApplyNoticeForPanel(panel_domain, data) {
   layer.open({
     type: 1,
     area: '700px',
-    title: lan && lan.config && lan.config.config_auto_str_114 || "",
+    title: lan && lan.config && t('config.config_auto_str_114') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: true,
-    btn: [lan && lan.config && lan.config.config_auto_str_115 || "", lan && lan.config && lan.config.config_auto_str_116 || ""],
-    content: lan && lan.config && lan.config.config_auto_str_117 || "",
+    btn: [lan && lan.config && t('config.config_auto_str_115') || "", lan && lan.config && t('config.config_auto_str_116') || ""],
+    content: lan && lan.config && t('config.config_auto_str_117') || "",
     success: function () {
       var list = '';
       for (var i = 0; i < data.length; i++) {
@@ -1093,18 +1093,18 @@ function newAcmeHandApplyNoticeForPanel(panel_domain, data) {
         list += '<td>' + data[i]['domain'] + '</td>';
         list += '<td>' + data[i]['val'] + '</td>';
         list += '<td>' + data[i]['type'] + '</td>';
-        list += '<td>' + (data[i]['must'] ? lan && lan.config && lan.config.config_auto_str_118 || "" : lan && lan.config && lan.config.config_auto_str_119 || "") + '</td>';
+        list += '<td>' + (data[i]['must'] ? lan && lan.config && t('config.config_auto_str_118') || "" : lan && lan.config && t('config.config_auto_str_119') || "") + '</td>';
         list += '</tr>';
       }
       $('#acme_hand_ssl_notice tbody').html(list);
       if (data.length > 0) {
-        var help_txt = (lan && lan.config && lan.config.config_auto_str_120 || "") + data[0]['domain'];
+        var help_txt = (lan && lan.config && t('config.config_auto_str_120') || "") + data[0]['domain'];
         $('#acme_hand_ssl_notice_help li:eq(1)').text(help_txt);
       }
     },
     yes: function (layero, index) {
       layer.close(layero);
-      showSpeedWindow(lan && lan.config && lan.config.config_auto_str_121 || "", 'site.get_acme_logs', function (layers, index) {
+      showSpeedWindow(lan && lan.config && t('config.config_auto_str_121') || "", 'site.get_acme_logs', function (layers, index) {
         var pdata = {};
         pdata['domains'] = JSON.stringify([panel_domain]);
         pdata['email'] = $("input[name='panel_admin_email']").val();
@@ -1134,7 +1134,7 @@ function newAcmeHandApplyNoticeForPanel(panel_domain, data) {
   });
 }
 function getPanelSSL() {
-  var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_122 || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_122') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1144,9 +1144,9 @@ function getPanelSSL() {
     var choose = cert_all['choose'];
     var choose_local = choose == 'local' ? 'selected="selected"' : '';
     var choose_nginx = choose == 'nginx' ? 'selected="selected"' : '';
-    var select_options = '<option value="local" ' + choose_local + (lan && lan.config && lan.config.config_auto_str_123 || "");
+    var select_options = '<option value="local" ' + choose_local + (lan && lan.config && t('config.config_auto_str_123') || "");
     if (cert_all['panel_domain']) {
-      select_options += '<option value="nginx" ' + choose_nginx + (lan && lan.config && lan.config.config_auto_str_124 || "");
+      select_options += '<option value="nginx" ' + choose_nginx + (lan && lan.config && t('config.config_auto_str_124') || "");
     }
     var certBody = '<div class="tab-con" style="padding: 0 15px;">\
 			<div id="panel_ssl_content"></div>\
@@ -1162,7 +1162,7 @@ function getPanelSSL() {
     layer.open({
       type: 1,
       area: "600px",
-      title: lan && lan.config && lan.config.config_auto_str_125 || "",
+      title: lan && lan.config && t('config.config_auto_str_125') || "",
       closeBtn: 1,
       shift: 5,
       shadeClose: false,
@@ -1173,34 +1173,34 @@ function getPanelSSL() {
             var cert = cert_all['local'];
             var cert_data = '';
             if (cert['info'] && cert['info']['issuer']) {
-              var issuer_o = cert['info']['issuer_o'] || lan && lan.config && lan.config.config_auto_str_126 || "";
-              cert_data = (lan && lan.config && lan.config.config_auto_str_127 || "") + issuer_o + (lan && lan.config && lan.config.config_auto_str_128 || "") + cert['info']['issuer'] + (lan && lan.config && lan.config.config_auto_str_129 || "") + cert['info']['endtime'] + (lan && lan.config && lan.config.config_auto_str_130 || "") + cert['info']['subject'] + "</span></div>\
+              var issuer_o = cert['info']['issuer_o'] || lan && lan.config && t('config.config_auto_str_126') || "";
+              cert_data = (lan && lan.config && t('config.config_auto_str_127') || "") + issuer_o + (lan && lan.config && t('config.config_auto_str_128') || "") + cert['info']['issuer'] + (lan && lan.config && t('config.config_auto_str_129') || "") + cert['info']['endtime'] + (lan && lan.config && t('config.config_auto_str_130') || "") + cert['info']['subject'] + "</span></div>\
 							</div></div>";
             }
-            var html = cert_data + (lan && lan.config && lan.config.config_auto_str_131 || "") + (cert.privateKey || '') + (lan && lan.config && lan.config.config_auto_str_132 || "") + (cert.certPem || '') + '</textarea>\
+            var html = cert_data + (lan && lan.config && t('config.config_auto_str_131') || "") + (cert.privateKey || '') + (lan && lan.config && t('config.config_auto_str_132') || "") + (cert.certPem || '') + '</textarea>\
 							</div>\
 						</div>';
             $('#panel_ssl_content').html(html);
-            var buttons = lan && lan.config && lan.config.config_auto_str_133 || "";
+            var buttons = lan && lan.config && t('config.config_auto_str_133') || "";
             $('#panel_ssl_buttons').html(buttons);
-            var help = lan && lan.config && lan.config.config_auto_str_134 || "";
+            var help = lan && lan.config && t('config.config_auto_str_134') || "";
             $('#panel_ssl_help').html(help);
           } else if (selected_choose == 'nginx') {
             if (cert_all['nginx'] && cert_all['nginx']['certPem']) {
               var cert = cert_all['nginx'];
               var cert_data = '';
               if (cert['info'] && cert['info']['issuer']) {
-                var issuer_o = cert['info']['issuer_o'] || lan && lan.config && lan.config.config_auto_str_135 || "";
-                cert_data = (lan && lan.config && lan.config.config_auto_str_136 || "") + issuer_o + (lan && lan.config && lan.config.config_auto_str_137 || "") + cert['info']['issuer'] + (lan && lan.config && lan.config.config_auto_str_138 || "") + cert['info']['endtime'] + (lan && lan.config && lan.config.config_auto_str_139 || "") + cert['info']['subject'] + "</span></div>\
+                var issuer_o = cert['info']['issuer_o'] || lan && lan.config && t('config.config_auto_str_135') || "";
+                cert_data = (lan && lan.config && t('config.config_auto_str_136') || "") + issuer_o + (lan && lan.config && t('config.config_auto_str_137') || "") + cert['info']['issuer'] + (lan && lan.config && t('config.config_auto_str_138') || "") + cert['info']['endtime'] + (lan && lan.config && t('config.config_auto_str_139') || "") + cert['info']['subject'] + "</span></div>\
 								</div></div>";
               }
-              var html = cert_data + (lan && lan.config && lan.config.config_auto_str_140 || "") + (cert.privateKey || '') + (lan && lan.config && lan.config.config_auto_str_141 || "") + (cert.certPem || '') + '</textarea>\
+              var html = cert_data + (lan && lan.config && t('config.config_auto_str_140') || "") + (cert.privateKey || '') + (lan && lan.config && t('config.config_auto_str_141') || "") + (cert.certPem || '') + '</textarea>\
 								</div>\
 							</div>';
               $('#panel_ssl_content').html(html);
-              var buttons = lan && lan.config && lan.config.config_auto_str_142 || "";
+              var buttons = lan && lan.config && t('config.config_auto_str_142') || "";
               $('#panel_ssl_buttons').html(buttons);
-              var help = lan && lan.config && lan.config.config_auto_str_143 || "";
+              var help = lan && lan.config && t('config.config_auto_str_143') || "";
               $('#panel_ssl_help').html(help);
             } else {
               // 渲染申请界面
@@ -1210,7 +1210,7 @@ function getPanelSSL() {
 
               // 获取 DNS API
               $.post('/site/get_dnsapi', {}, function (rdata) {
-                var opt = lan && lan.config && lan.config.config_auto_str_144 || "";
+                var opt = lan && lan.config && t('config.config_auto_str_144') || "";
                 for (var i = 0; i < rdata.length; i++) {
                   opt += '<option value="' + rdata[i]['name'] + '">' + rdata[i]['title'] + '</option>';
                 }
@@ -1251,14 +1251,14 @@ function getPanelSSL() {
           if (apply_type == 'dns') {
             pdata['dnspai'] = $('select[name="panel_dnspai"] option:selected').val();
           }
-          showSpeedWindow(lan && lan.config && lan.config.config_auto_str_145 || "", 'site.get_acme_logs', function (layers, index) {
+          showSpeedWindow(lan && lan.config && t('config.config_auto_str_145') || "", 'site.get_acme_logs', function (layers, index) {
             $.post('/setting/apply_panel_acme_ssl', pdata, function (rdata) {
               if (rdata.status) {
                 layer.close(index);
-                if (rdata.msg == (lan && lan.config && lan.config.config_auto_str_146 || "")) {
+                if (rdata.msg == (lan && lan.config && t('config.config_auto_str_146') || "")) {
                   newAcmeHandApplyNoticeForPanel(cert_all['panel_domain'], rdata.data);
                 } else {
-                  showSSLSuccessWindow(rdata.data, lan && lan.config && lan.config.config_auto_str_147 || "");
+                  showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.config_auto_str_147') || "");
                 }
               } else {
                 layer.close(index);
@@ -1277,7 +1277,7 @@ function getPanelSSL() {
           $('#panel_ssl_buttons').html('');
           $('#panel_ssl_help').html('');
           $.post('/site/get_dnsapi', {}, function (rdata) {
-            var opt = lan && lan.config && lan.config.config_auto_str_148 || "";
+            var opt = lan && lan.config && t('config.config_auto_str_148') || "";
             for (var i = 0; i < rdata.length; i++) {
               opt += '<option value="' + rdata[i]['name'] + '">' + rdata[i]['title'] + '</option>';
             }
@@ -1292,7 +1292,7 @@ function getPanelSSL() {
             certPem: $("#csr").val(),
             choose: $('select[name="choose"]').val()
           };
-          var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_149 || "", {
+          var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_149') || "", {
             icon: 16,
             time: 0,
             shade: [0.3, '#000']
@@ -1301,7 +1301,7 @@ function getPanelSSL() {
             layer.close(loadT);
             if (rdata.status) {
               layer.closeAll();
-              showSSLSuccessWindow(rdata.data, lan && lan.config && lan.config.config_auto_str_150 || "");
+              showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.config_auto_str_150') || "");
             } else {
               layer.msg(rdata.msg, {
                 icon: 2
@@ -1313,17 +1313,17 @@ function getPanelSSL() {
         // 删除证书
         $(layero).on('click', '.del-panel-ssl', function () {
           var current_choose = $('select[name="choose"]').val();
-          var confirm_msg = current_choose == 'local' ? lan && lan.config && lan.config.config_auto_str_151 || "" : lan && lan.config && lan.config.config_auto_str_152 || "";
+          var confirm_msg = current_choose == 'local' ? lan && lan.config && t('config.config_auto_str_151') || "" : lan && lan.config && t('config.config_auto_str_152') || "";
           layer.confirm(confirm_msg, {
-            title: lan && lan.config && lan.config.config_auto_str_153 || "",
+            title: lan && lan.config && t('config.config_auto_str_153') || "",
             shade: 0.001,
-            btn: [lan && lan.config && lan.config.config_auto_str_154 || "", lan && lan.config && lan.config.config_auto_str_155 || ""]
+            btn: [lan && lan.config && t('config.config_auto_str_154') || "", lan && lan.config && t('config.config_auto_str_155') || ""]
           }, function (index) {
             layer.close(index);
             var data = {
               choose: current_choose
             };
-            var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_156 || "", {
+            var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_156') || "", {
               icon: 16,
               time: 0,
               shade: [0.3, '#000']
@@ -1373,11 +1373,11 @@ function getTempAccessLogsReq(id) {
 function getTempAccessLogs(id) {
   layer.open({
     area: ['700px', '250px'],
-    title: lan && lan.config && lan.config.config_auto_str_157 || "",
+    title: lan && lan.config && t('config.config_auto_str_157') || "",
     closeBtn: 1,
     shift: 0,
     type: 1,
-    content: lan && lan.config && lan.config.config_auto_str_158 || "",
+    content: lan && lan.config && t('config.config_auto_str_158') || "",
     success: function () {
       getTempAccessLogsReq(id);
       $('.refresh_log').on('click', function () {
@@ -1405,27 +1405,27 @@ function setTempAccessReq(page) {
     var tbody = '';
     for (var i = 0; i < rdata.data.length; i++) {
       tbody += '<tr>';
-      tbody += '<td>' + (rdata.data[i]['login_addr'] || lan && lan.config && lan.config.config_auto_str_159 || "") + '</td>';
+      tbody += '<td>' + (rdata.data[i]['login_addr'] || lan && lan.config && t('config.config_auto_str_159') || "") + '</td>';
       tbody += '<td>';
       switch (parseInt(rdata.data[i]['state'])) {
         case 0:
-          tbody += lan && lan.config && lan.config.config_auto_str_160 || "";
+          tbody += lan && lan.config && t('config.config_auto_str_160') || "";
           break;
         case 1:
-          tbody += lan && lan.config && lan.config.config_auto_str_161 || "";
+          tbody += lan && lan.config && t('config.config_auto_str_161') || "";
           break;
         case -1:
-          tbody += lan && lan.config && lan.config.config_auto_str_162 || "";
+          tbody += lan && lan.config && t('config.config_auto_str_162') || "";
           break;
       }
       tbody += '</td>';
-      tbody += '<td>' + (getLocalTime(rdata.data[i]['login_time']) || lan && lan.config && lan.config.config_auto_str_163 || "") + '</td>';
+      tbody += '<td>' + (getLocalTime(rdata.data[i]['login_time']) || lan && lan.config && t('config.config_auto_str_163') || "") + '</td>';
       tbody += '<td>' + getLocalTime(rdata.data[i]['expire']) + '</td>';
       tbody += '<td>';
       if (rdata.data[i]['state'] == '1') {
-        tbody += '<a class="btlink" onclick="getTempAccessLogs(\'' + rdata.data[i]['id'] + (lan && lan.config && lan.config.config_auto_str_164 || "");
+        tbody += '<a class="btlink" onclick="getTempAccessLogs(\'' + rdata.data[i]['id'] + (lan && lan.config && t('config.config_auto_str_164') || "");
       } else {
-        tbody += '<a class="btlink" onclick="removeTempAccess(\'' + rdata.data[i]['id'] + (lan && lan.config && lan.config.config_auto_str_165 || "");
+        tbody += '<a class="btlink" onclick="removeTempAccess(\'' + rdata.data[i]['id'] + (lan && lan.config && t('config.config_auto_str_165') || "");
       }
       tbody += '</td>';
       tbody += '</tr>';
@@ -1439,34 +1439,34 @@ function setStatusCode(o) {
   layer.open({
     type: 1,
     area: ['420px', '220px'],
-    title: lan && lan.config && lan.config.config_auto_str_166 || "",
+    title: lan && lan.config && t('config.config_auto_str_166') || "",
     closeBtn: 1,
     shift: 5,
-    btn: [lan && lan.config && lan.config.config_auto_str_167 || "", lan && lan.config && lan.config.config_auto_str_168 || ""],
+    btn: [lan && lan.config && t('config.config_auto_str_167') || "", lan && lan.config && t('config.config_auto_str_168') || ""],
     shadeClose: false,
-    content: lan && lan.config && lan.config.config_auto_str_169 || "",
+    content: lan && lan.config && t('config.config_auto_str_169') || "",
     success: function () {
       var msg_list = [{
         'code': '0',
-        'msg': lan && lan.config && lan.config.config_auto_str_170 || ""
+        'msg': lan && lan.config && t('config.config_auto_str_170') || ""
       }, {
         'code': '403',
-        'msg': lan && lan.config && lan.config.config_auto_str_171 || ""
+        'msg': lan && lan.config && t('config.config_auto_str_171') || ""
       }, {
         'code': '404',
-        'msg': lan && lan.config && lan.config.config_auto_str_172 || ""
+        'msg': lan && lan.config && t('config.config_auto_str_172') || ""
       }, {
         'code': '416',
-        'msg': lan && lan.config && lan.config.config_auto_str_173 || ""
+        'msg': lan && lan.config && t('config.config_auto_str_173') || ""
       }, {
         'code': '408',
-        'msg': lan && lan.config && lan.config.config_auto_str_174 || ""
+        'msg': lan && lan.config && t('config.config_auto_str_174') || ""
       }, {
         'code': '400',
-        'msg': lan && lan.config && lan.config.config_auto_str_175 || ""
+        'msg': lan && lan.config && t('config.config_auto_str_175') || ""
       }, {
         'code': '401',
-        'msg': lan && lan.config && lan.config.config_auto_str_176 || ""
+        'msg': lan && lan.config && t('config.config_auto_str_176') || ""
       }];
       var tbody = '';
       for (i in msg_list) {
@@ -1479,7 +1479,7 @@ function setStatusCode(o) {
       $('select[name="status_code"]').append(tbody);
     },
     yes: function (index) {
-      var loadT = layer.msg(lan && lan.config && lan.config.config_auto_str_177 || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_177') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -1502,16 +1502,16 @@ function setStatusCode(o) {
 function setTempAccess() {
   layer.open({
     area: ['700px', '380px'],
-    title: lan && lan.config && lan.config.config_auto_str_178 || "",
+    title: lan && lan.config && t('config.config_auto_str_178') || "",
     closeBtn: 1,
     shift: 0,
     type: 1,
-    content: lan && lan.config && lan.config.config_auto_str_179 || "",
+    content: lan && lan.config && t('config.config_auto_str_179') || "",
     success: function () {
       setTempAccessReq();
       $('.create_temp_login').on('click', function () {
-        layer.confirm(lan && lan.config && lan.config.config_auto_str_180 || "", {
-          title: lan && lan.config && lan.config.config_auto_str_181 || "",
+        layer.confirm(lan && lan.config && t('config.config_auto_str_180') || "", {
+          title: lan && lan.config && t('config.config_auto_str_181') || "",
           closeBtn: 1,
           icon: 13
         }, function (create_temp_login_layer) {
@@ -1520,10 +1520,10 @@ function setTempAccess() {
             setTempAccessReq();
             layer.open({
               area: '570px',
-              title: lan && lan.config && lan.config.config_auto_str_182 || "",
+              title: lan && lan.config && t('config.config_auto_str_182') || "",
               shift: 0,
               type: 1,
-              content: lan && lan.config && lan.config.config_auto_str_183 || "",
+              content: lan && lan.config && t('config.config_auto_str_183') || "",
               success: function () {
                 var temp_link = "".concat(location.origin, "/login?tmp_token=").concat(rdata.token);
                 $('#temp_link').val(temp_link);
@@ -1546,11 +1546,11 @@ function setAuthBind() {
     console.log(rdata);
     var tip = layer.open({
       area: ['500px', '355px'],
-      title: lan && lan.config && lan.config.config_auto_str_184 || "",
+      title: lan && lan.config && t('config.config_auto_str_184') || "",
       closeBtn: 1,
       shift: 0,
       type: 1,
-      content: lan && lan.config && lan.config.config_auto_str_185 || "",
+      content: lan && lan.config && t('config.config_auto_str_185') || "",
       success: function (layero, index) {
         $('input[name="secret"]').val(rdata.data['secret']);
         var renderQRCode = function () {
@@ -1564,8 +1564,8 @@ function setAuthBind() {
           loadScript(staticUrl('/static/js/jquery-qrcode-0.18.0.min.js')).then(renderQRCode);
         }
         $('.reset_secret').on('click', function () {
-          layer.confirm(lan && lan.config && lan.config.config_auto_str_186 || "", {
-            title: lan && lan.config && lan.config.config_auto_str_187 || "",
+          layer.confirm(lan && lan.config && t('config.config_auto_str_186') || "", {
+            title: lan && lan.config && t('config.config_auto_str_187') || "",
             closeBtn: 2,
             icon: 13,
             cancel: function () {}
@@ -1573,7 +1573,7 @@ function setAuthBind() {
             $.post('/setting/get_auth_secret', {
               'reset': "1"
             }, function (rdata) {
-              showMsg(lan && lan.config && lan.config.config_auto_str_188 || "", function () {
+              showMsg(lan && lan.config && t('config.config_auto_str_188') || "", function () {
                 $('input[name="secret"]').val(rdata.data['secret']);
                 $('.qrcode').html('');
                 if ($.fn.qrcode) {
@@ -1614,12 +1614,12 @@ function setAuthSecretApi() {
 function setBasicAuthTip(callback) {
   var tip = layer.open({
     area: ['500px', '385px'],
-    title: lan && lan.config && lan.config.config_auto_str_189 || "",
+    title: lan && lan.config && t('config.config_auto_str_189') || "",
     closeBtn: 0,
     shift: 0,
     type: 1,
-    content: lan && lan.config && lan.config.config_auto_str_190 || "",
-    btn: [lan && lan.config && lan.config.config_auto_str_191 || "", lan && lan.config && lan.config.config_auto_str_192 || ""],
+    content: lan && lan.config && t('config.config_auto_str_190') || "",
+    btn: [lan && lan.config && t('config.config_auto_str_191') || "", lan && lan.config && t('config.config_auto_str_192') || ""],
     yes: function (l, index) {
       is_agree = $('#agreement_more').prop("checked");
       if (is_agree) {
@@ -1639,11 +1639,11 @@ function setBasicAuth() {
     setBasicAuthTip(function () {
       var tip = layer.open({
         area: ['500px', '385px'],
-        title: lan && lan.config && lan.config.config_auto_str_193 || "",
+        title: lan && lan.config && t('config.config_auto_str_193') || "",
         closeBtn: 1,
         shift: 0,
         type: 1,
-        content: lan && lan.config && lan.config.config_auto_str_194 || "",
+        content: lan && lan.config && t('config.config_auto_str_194') || "",
         success: function () {
           $('.save_auth_cfg').on('click', function () {
             var basic_user = $('input[name="basic_user"]').val();
@@ -1666,9 +1666,9 @@ function setBasicAuth() {
       });
     });
   } else {
-    layer.confirm(lan && lan.config && lan.config.config_auto_str_195 || "", {
-      btn: [lan && lan.config && lan.config.config_auto_str_196 || "", lan && lan.config && lan.config.config_auto_str_197 || ""],
-      title: lan && lan.config && lan.config.config_auto_str_198 || "",
+    layer.confirm(lan && lan.config && t('config.config_auto_str_195') || "", {
+      btn: [lan && lan.config && t('config.config_auto_str_196') || "", lan && lan.config && t('config.config_auto_str_197') || ""],
+      title: lan && lan.config && t('config.config_auto_str_198') || "",
       icon: 13
     }, function (index) {
       var basic_user = '';
@@ -1692,17 +1692,17 @@ function showPanelApi() {
   $.post('/setting/get_panel_token', '', function (rdata) {
     var tip = layer.open({
       area: ['500px', '355px'],
-      title: lan && lan.config && lan.config.config_auto_str_199 || "",
+      title: lan && lan.config && t('config.config_auto_str_199') || "",
       closeBtn: 1,
       shift: 0,
       type: 1,
-      content: lan && lan.config && lan.config.config_auto_str_200 || "",
+      content: lan && lan.config && t('config.config_auto_str_200') || "",
       success: function (layero, index) {
         $('input[name="token"]').val(rdata.data.token);
         $('textarea[name="api_limit_addr"]').val(rdata.data.limit_addr);
         $('.reset_token').on('click', function () {
-          layer.confirm(lan && lan.config && lan.config.config_auto_str_201 || "", {
-            title: lan && lan.config && lan.config.config_auto_str_202 || "",
+          layer.confirm(lan && lan.config && t('config.config_auto_str_201') || "", {
+            title: lan && lan.config && t('config.config_auto_str_202') || "",
             closeBtn: 2,
             icon: 13,
             cancel: function () {}
@@ -1710,7 +1710,7 @@ function showPanelApi() {
             $.post('/config/set_panel_token', {
               'op_type': "1"
             }, function (rdata) {
-              showMsg(lan && lan.config && lan.config.config_auto_str_203 || "", function () {
+              showMsg(lan && lan.config && t('config.config_auto_str_203') || "", function () {
                 $('input[name="token"]').val(rdata.data);
               }, {
                 icon: 1
@@ -1746,8 +1746,8 @@ function setPanelApi() {
   }, 'json');
 }
 function deleteApp(id) {
-  layer.confirm(lan && lan.config && lan.config.config_auto_str_204 || "", {
-    title: lan && lan.config && lan.config.config_auto_str_205 || "",
+  layer.confirm(lan && lan.config && t('config.config_auto_str_204') || "", {
+    title: lan && lan.config && t('config.config_auto_str_205') || "",
     closeBtn: 2,
     icon: 13,
     cancel: function () {}
@@ -1792,13 +1792,13 @@ function getAppList(page) {
       tbody += '<td>' + row['app_secret'] + '</td>';
       tbody += '<td>' + row['white_list'] + '</td>';
       if (row['status'] == 1) {
-        tbody += '<td><a class="btlink" onclick="toggleAppstatus(' + row['id'] + (lan && lan.config && lan.config.config_auto_str_206 || "");
+        tbody += '<td><a class="btlink" onclick="toggleAppstatus(' + row['id'] + (lan && lan.config && t('config.config_auto_str_206') || "");
       } else {
-        tbody += '<td><a style="color:red;" onclick="toggleAppstatus(' + row['id'] + (lan && lan.config && lan.config.config_auto_str_207 || "");
+        tbody += '<td><a style="color:red;" onclick="toggleAppstatus(' + row['id'] + (lan && lan.config && t('config.config_auto_str_207') || "");
       }
       tbody += '<td>' + row['add_time'] + '</td>';
       tbody += '<td>';
-      tbody += '<a class="btlink" onclick="deleteApp(\'' + row['id'] + (lan && lan.config && lan.config.config_auto_str_208 || "");
+      tbody += '<a class="btlink" onclick="deleteApp(\'' + row['id'] + (lan && lan.config && t('config.config_auto_str_208') || "");
       tbody += '</td>';
       tbody += '</tr>';
     }
@@ -1809,10 +1809,10 @@ function getAppList(page) {
 function addApp() {
   layer.open({
     area: '570px',
-    title: lan && lan.config && lan.config.config_auto_str_209 || "",
+    title: lan && lan.config && t('config.config_auto_str_209') || "",
     shift: 0,
     type: 1,
-    content: lan && lan.config && lan.config.config_auto_str_210 || "",
+    content: lan && lan.config && t('config.config_auto_str_210') || "",
     success: function (obj, cur_layer) {
       $('input[name="app_id"]').val(getRandomString(10));
       $('input[name="app_secret"]').val(getRandomString(20));
@@ -1847,11 +1847,11 @@ function addApp() {
 function appPage() {
   layer.open({
     area: ['900px', '380px'],
-    title: lan && lan.config && lan.config.config_auto_str_211 || "",
+    title: lan && lan.config && t('config.config_auto_str_211') || "",
     closeBtn: 1,
     shift: 0,
     type: 1,
-    content: lan && lan.config && lan.config.config_auto_str_212 || "",
+    content: lan && lan.config && t('config.config_auto_str_212') || "",
     success: function () {
       getAppList();
       $('.app_add').on('click', function () {
@@ -1862,7 +1862,7 @@ function appPage() {
 }
 function savePanelLanguage() {
   var lang = $("#panelLanguageSelect").val();
-  var loadT = layer.msg(window.lan && lan.public && lan.public.the || "正在保存...", {
+  var loadT = layer.msg(window.lan && lan.public && t('public.the') || "正在保存...", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1872,7 +1872,7 @@ function savePanelLanguage() {
   }, function (rdata) {
     layer.close(loadT);
     if (rdata.status) {
-      layer.msg(window.lan && lan.public && lan.public.config_ok || "设置成功!", {
+      layer.msg(window.lan && lan.public && t('public.config_ok') || "设置成功!", {
         icon: 1
       });
       setTimeout(function () {
