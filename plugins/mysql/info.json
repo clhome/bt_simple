@@ -3,7 +3,7 @@
 	"title": "MySQL",
 	"tip": "soft",
 	"name": "mysql",
-	"type": "运行环境",
+	"type": "database",
 	"ps": "一种关系数据库管理系统!",
 	"coexist": false,
 	"install_pre_inspection": true,

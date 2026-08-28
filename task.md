@@ -164,7 +164,11 @@
   - `[x]` 前端 index.html 增加 data-i18n 属性
   - `[x]` 后端 index.py 使用 yf.safeExecShell 杜绝注入，规范 yf.returnJson 消息
   - `[x]` 完成升级与测试
-- `[/]` `mysql` (使用频率最高)
+- `[x]` `mysql` (使用频率最高)
+  - `[x]` 修正 info.json 的 type
+  - `[x]` 提取 lang/zh-CN.json 词汇
+  - `[x]` 前端 js/mysql.js 更换为 api.post / api.postSilent / api.postAsync 等标准接口
+  - `[x]` 完成语法结构测试
 - `[ ]` `openresty` (底层基石)
 
 - `[x]` 撤销全局 url_white.json 对 .git 的放行，避免其他正常站点的源码泄露风险。

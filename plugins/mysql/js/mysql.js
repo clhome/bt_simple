@@ -1,122 +1,5 @@
-
-function myPost(method,args,callback, title){
-
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
-
-    var loadT = layer.msg(_title, { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'mysql', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-function myPostN(method,args,callback, title){
-
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
-    $.post('/plugins/run', {name:'mysql', func:method, args:_args}, function(data) {
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-async function myAsyncPost(method,args){
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    var res = await syncPost('/plugins/run', {name:'mysql', func:method, args:_args}); 
-    layer.close(loadT);
-    return res;
-}
-
-
-function myPostCallbak(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-
-    var req_data = {};
-    req_data['name'] = 'mysql';
-    req_data['func'] = method;
-    req_data['script']='index_mysql';
-    args['version'] = version;
-
- 
-    if (typeof(args) == 'string' && args == ''){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/callback', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-function myPostCallbakN(method, version, args,callback){
-
-    var req_data = {};
-    req_data['name'] = 'mysql';
-    req_data['func'] = method;
-    req_data['script']='index_mysql';
-    args['version'] = version;
-
- 
-    if (typeof(args) == 'string' && args == ''){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/callback', req_data, function(data) {
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
+var api = YfPlugin.createApi('mysql');
+var pt = YfI18n.createPluginTranslator('mysql');
 
 function vaildPhpmyadmin(url,username,password){
     // console.log("Authorization: Basic " + btoa(username + ":" + password));
@@ -138,7 +21,7 @@ function vaildPhpmyadmin(url,username,password){
 }
 
 function runInfo(){
-    myPost('run_info','',function(data){
+    api.post('run_info','',function(data){
 
         var rdata = JSON.parse(data.data);
         if (typeof(rdata['status']) != 'undefined'){
@@ -179,7 +62,7 @@ function runInfo(){
 
 
 function myDbPos(){
-    myPost('my_db_pos','',function(data){
+    api.post('my_db_pos','',function(data){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
             <input id="datadir" name="datadir" class="bt-input-text mr5 port" type="text" style="width:330px" value="'+data.data+'">\
@@ -190,7 +73,7 @@ function myDbPos(){
 
         $('#btn_change_path').on('click', function(){
             var datadir = $("input[name='datadir']").val();
-            myPost('set_db_pos','datadir='+datadir,function(data){
+            api.post('set_db_pos','datadir='+datadir,function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg,{icon:rdata.status ? 1 : 5,time:2000,shade: [0.3, '#000']});
             });
@@ -199,7 +82,7 @@ function myDbPos(){
 }
 
 function myPort(){
-    myPost('my_port','',function(data){
+    api.post('my_port','',function(data){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
             <input name="port" class="bt-input-text mr5 port" type="number" style="width:100px" value="'+data.data+'">\
@@ -209,7 +92,7 @@ function myPort(){
 
         $('#btn_change_port').on('click', function(){
             var port = $("input[name='port']").val();
-            myPost('set_my_port','port='+port,function(data){
+            api.post('set_my_port','port='+port,function(data){
                 var rdata = JSON.parse(data.data);
                 if (rdata.status){
                     layer.msg('修改成功!',{icon:1,time:2000,shade: [0.3, '#000']});
@@ -231,7 +114,7 @@ function myPerfOpt() {
     } catch(e) {}
 
     //获取MySQL配置
-    myPost('db_status','',function(data){
+    api.post('db_status','',function(data){
         var rdata = JSON.parse(data.data);
         if ( typeof(rdata.status) != 'undefined' && !rdata.status){
             layer.msg(rdata.msg, {icon:2});
@@ -354,7 +237,7 @@ function setMySQLConf() {
             max_connections: parseInt($("input[name='max_connections']").val())
         };
 
-        myPost('set_db_status', data, function(data){
+        api.post('set_db_status', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 reBootMySqld();
@@ -536,7 +419,7 @@ function comMySqlMem() {
 }
 
 function syncGetDatabase(){
-    myPost('sync_get_databases', null, function(data){
+    api.post('sync_get_databases', null, function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
             dbList();
@@ -550,7 +433,7 @@ function syncToDatabase(type){
         if (!isNaN($(this).val())) data.push($(this).val());
     });
     var postData = 'type='+type+'&ids='+JSON.stringify(data); 
-    myPost('sync_to_databases', postData, function(data){
+    api.post('sync_to_databases', postData, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         showMsg(rdata.msg,function(){
@@ -562,7 +445,7 @@ function syncToDatabase(type){
 function setRootPwd(type, pwd){
     if (type==1){
         var password = $("#MyPassword").val();
-        myPost('set_root_pwd', {password:password}, function(data){
+        api.post('set_root_pwd', {password:password}, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
@@ -589,7 +472,7 @@ function setRootPwd(type, pwd){
                   </form>",
         yes:function(layerIndex){
             var password = $("#MyPassword").val();
-            myPost('set_root_pwd', {password:password}, function(data){
+            api.post('set_root_pwd', {password:password}, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(layerIndex);
@@ -608,7 +491,7 @@ function setRootPwd(type, pwd){
             }, function(index, layero){
                 layer.close(index);
                 var password = $("#MyPassword").val();
-                myPost('set_root_pwd', {password:password,force:'1'}, function(data){
+                api.post('set_root_pwd', {password:password,force:'1'}, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(layerIndex);
@@ -624,7 +507,7 @@ function setRootPwd(type, pwd){
             }, function(index, layero){
                 layer.close(index);
                 var password = $("#MyPassword").val();
-                myPost('set_root_pwd', {password:password,force:'2'}, function(data){
+                api.post('set_root_pwd', {password:password,force:'2'}, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(layerIndex);
@@ -669,7 +552,7 @@ function checkSelect(){
 }
 
 function setDbRw(id,username,val){
-    myPost('set_db_rw',{id:id,username:username,rw:val}, function(data){
+    api.post('set_db_rw',{id:id,username:username,rw:val}, function(data){
         var rdata = JSON.parse(data.data);
         // layer.msg(rdata.msg,{icon:rdata.status ? 1 : 5,shade: [0.3, '#000']});
         showMsg(rdata.msg, function(){
@@ -680,7 +563,7 @@ function setDbRw(id,username,val){
 }
 
 function setDbAccess(username){
-    myPost('get_db_access','username='+username, function(data){
+    api.post('get_db_access','username='+username, function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
@@ -744,7 +627,7 @@ function setDbAccess(username){
                     }
                 }
                 dataObj['username'] = username;
-                myPost('set_db_access', dataObj, function(data){
+                api.post('set_db_access', dataObj, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(index);
@@ -758,7 +641,7 @@ function setDbAccess(username){
 }
 
 function fixDbAccess(username){
-    myPost('fix_db_access', '', function(rdata){
+    api.post('fix_db_access', '', function(rdata){
         var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg,function(){
             dbList();
@@ -794,7 +677,7 @@ function setDbPass(id, username, password){
             data['name'] = $('input[name=name]').val();
             data['password'] = $('#MyPassword').val();
             data['id'] = $('input[name=id]').val();
-            myPost('set_user_pwd', data, function(data){
+            api.post('set_user_pwd', data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(index);
@@ -866,7 +749,7 @@ function addDatabase(type){
             if(!dataObj['address']){
                 dataObj['address'] = dataObj['dataAccess'];
             }
-            myPost('add_db', dataObj, function(data){
+            api.post('add_db', dataObj, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
@@ -882,7 +765,7 @@ function addDatabase(type){
 function delDb(id, name){
     safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
-        myPost('del_db', data, function(data){
+        api.post('del_db', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
@@ -904,7 +787,7 @@ function delDbBatch(){
     safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
-            var data  = await myAsyncPost('del_db', arr[idx]);
+            var data  = await api.postAsync('del_db', arr[idx]);
             var rdata = JSON.parse(data.data);
             if (!rdata.status){
                 layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
@@ -930,7 +813,7 @@ function setDbPs(id, name, obj) {
         var ps = _input.val();
         _span.text(ps).show();
         var data = {name:name,id:id,ps:ps};
-        myPost('set_db_ps', data, function(data){
+        api.post('set_db_ps', data, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
@@ -996,7 +879,7 @@ function delBackup(filename, name, path){
     if(typeof(path) == "undefined"){
         path = "";
     }
-    myPost('delete_db_backup',{filename:filename,path:path},function(){
+    api.post('delete_db_backup',{filename:filename,path:path},function(){
         layer.msg('执行成功!');
         setTimeout(function(){
             setBackupReq(name);
@@ -1010,7 +893,7 @@ function downloadBackup(file){
 
 function importBackup(file,name){
     safeMessage('导入数据库','当前操作会覆盖['+name+']数据库，是否继续？',function(){
-        myPost('import_db_backup',{file:file,name:name}, function(data){
+        api.post('import_db_backup',{file:file,name:name}, function(data){
             // console.log(data);
             layer.msg('执行成功!');
         });
@@ -1018,7 +901,7 @@ function importBackup(file,name){
 }
 
 function importBackupProgress(file,name){
-    myPost('import_db_backup_progress',{file:file,name:name}, function(data){
+    api.post('import_db_backup_progress',{file:file,name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
             title: "手动导入命令CMD【显示进度】",
@@ -1045,14 +928,14 @@ function importBackupProgress(file,name){
 
 function importDbExternal(file,name){
     safeMessage('导入数据库','当前操作会覆盖['+name+']数据库，是否继续？',function(){
-        myPost('import_db_external',{file:file,name:name}, function(data){
+        api.post('import_db_external',{file:file,name:name}, function(data){
             layer.msg('执行成功!');
         });
     });
 }
 
 function importDbExternalProgress(file,name){
-    myPost('import_db_external_progress',{file:file,name:name}, function(data){
+    api.post('import_db_external_progress',{file:file,name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
             title: "手动导入命令CMD【显示进度】",
@@ -1117,7 +1000,7 @@ function setLocalImport(db_name){
     }
 
     function getList(){
-        myPost('get_db_backup_import_list',{}, function(data){
+        api.post('get_db_backup_import_list',{}, function(data){
             var rdata = JSON.parse(data.data);
 
             var file_list = rdata.data.list;
@@ -1146,7 +1029,7 @@ function setLocalImport(db_name){
             $("#import_db_file_list .del").on('click',function(){
                 var index = $(this).attr('index');
                 var filename = file_list[index]["name"];
-                myPost('delete_db_backup',{filename:filename,path:upload_dir},function(){
+                api.post('delete_db_backup',{filename:filename,path:upload_dir},function(){
                     showMsg('执行成功!', function(){
                         getList();
                     },{icon:1},2000);
@@ -1233,7 +1116,7 @@ function setBackup(db_name){
         </div>',
         success:function(index){
             $('#btn_backup').on('click', function(){
-                myPost('set_db_backup',{name:db_name}, function(data){
+                api.post('set_db_backup',{name:db_name}, function(data){
                     showMsg('执行成功!', function(){
                         setBackupReq(db_name);
                     }, {icon:1}, 2000);
@@ -1251,7 +1134,7 @@ function setBackup(db_name){
 
 
 function setBackupReq(db_name, obj){
-     myPost('get_db_backup_list', {name:db_name}, function(data){
+     api.post('get_db_backup_list', {name:db_name}, function(data){
         var rdata = JSON.parse(data.data);
         rdata.data.sort(function(a, b) {
             return (a.time < b.time) ? 1 : -1;
@@ -1298,7 +1181,7 @@ function dbList(page, search){
     if(typeof(search) != 'undefined'){
         _data['search'] = search;
     }
-    myPost('get_db_list', _data, function(data){
+    api.post('get_db_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         var list = '';
         for(i in rdata.data){
@@ -1408,7 +1291,7 @@ function myBinRollingLogs(_name, func, _args, line){
     var reqTimer = null;
 
     function requestLogs(func,file,line){
-        myPostCallbakN(func,'',{'file':file,"line":line}, function(rdata){
+        api.postCallbackSilent(func,'',{'file':file,"line":line}, function(rdata){
             var data = rdata.data.data;
             var cmd = rdata.data.cmd;
             if(data == '') {
@@ -1469,7 +1352,7 @@ function myBinLogsRender(page){
     _data['page'] = page;
     _data['page_size'] = 10;
     _data['tojs'] = 'myBinLogsRender';
-    myPost('binlog_list', _data, function(data){
+    api.post('binlog_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var list = '';
@@ -1541,7 +1424,7 @@ function myBinLogs(){
 
 function myLogs(){
     
-    myPost('bin_log', {status:1}, function(data){
+    api.post('bin_log', {status:1}, function(data){
         var rdata = JSON.parse(data.data);
 
         var line_status = ""
@@ -1562,7 +1445,7 @@ function myLogs(){
 
         //设置二进制日志
         $(".btn-bin").on('click', function () {
-            myPost('bin_log', 'close=change', function(data){
+            api.post('bin_log', 'close=change', function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
                 setTimeout(function(){myLogs();}, 2000);
@@ -1570,7 +1453,7 @@ function myLogs(){
         });
 
         $(".clean-btn-bin").on('click', function () {
-            myPost('clean_bin_log', '', function(data){
+            api.post('clean_bin_log', '', function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
                 setTimeout(function(){myLogs();}, 2000);
@@ -1579,14 +1462,14 @@ function myLogs(){
 
          //清空日志
         $(".btn-clear").on('click', function () {
-            myPost('error_log', 'close=1', function(data){
+            api.post('error_log', 'close=1', function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
                 setTimeout(function(){myLogs();}, 2000);
             });
         })
 
-        myPost('error_log', 'p=1', function(data){
+        api.post('error_log', 'p=1', function(data){
             var rdata = JSON.parse(data.data);
             var error_body = '';
             if (rdata.status){
@@ -1623,7 +1506,7 @@ function repCheckeds(tables) {
 function repDatabase(db_name, tables) {
     dbs = repCheckeds(tables);
     
-    myPost('repair_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
+    api.post('repair_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
@@ -1634,7 +1517,7 @@ function repDatabase(db_name, tables) {
 function optDatabase(db_name, tables) {
     dbs = repCheckeds(tables);
     
-    myPost('opt_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
+    api.post('opt_table', { db_name: db_name, tables: JSON.stringify(dbs) }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
@@ -1643,7 +1526,7 @@ function optDatabase(db_name, tables) {
 
 function toDatabaseType(db_name, tables, type){
     dbs = repCheckeds(tables);
-    myPost('alter_table', { db_name: db_name, tables: JSON.stringify(dbs),table_type: type }, function(data){
+    api.post('alter_table', { db_name: db_name, tables: JSON.stringify(dbs),table_type: type }, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         repTools(db_name, true);
@@ -1673,7 +1556,7 @@ function selectedTools(my_obj, db_name) {
 }
 
 function repTools(db_name, res){
-    myPost('get_db_info', {name:db_name}, function(data){
+    api.post('get_db_info', {name:db_name}, function(data){
         var rdata = JSON.parse(data.data);
         var types = { InnoDB: "MyISAM", MyISAM: "InnoDB" };
         var tbody = '';
@@ -1744,7 +1627,7 @@ function repTools(db_name, res){
 
 
 function setDbMaster(name){
-    myPost('set_db_master', {name:name}, function(data){
+    api.post('set_db_master', {name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
         setTimeout(function(){
@@ -1755,7 +1638,7 @@ function setDbMaster(name){
 
 
 function setDbSlave(name){
-    myPost('set_db_slave', {name:name}, function(data){
+    api.post('set_db_slave', {name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
         setTimeout(function(){
@@ -1806,7 +1689,7 @@ function addMasterRepSlaveUser(){
                 dataObj['address'] = dataObj['dataAccess'];
             }
 
-            myPost('add_master_rep_slave_user', dataObj, function(data){
+            api.post('add_master_rep_slave_user', dataObj, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(index);
@@ -1847,7 +1730,7 @@ function updateMasterRepSlaveUser(username, password){
         var data = $("#update_master").serialize();
         data = decodeURIComponent(data);
         var dataObj = toArrayObject(data);
-        myPost('update_master_rep_slave_user', data, function(data){
+        api.post('update_master_rep_slave_user', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 if (rdata.status){
@@ -1860,7 +1743,7 @@ function updateMasterRepSlaveUser(username, password){
 }
 
 function getMasterRepSlaveUserCmd(username, db=''){
-    myPost('get_master_rep_slave_user_cmd', {username:username,db:db}, function(data){
+    api.post('get_master_rep_slave_user_cmd', {username:username,db:db}, function(data){
         var rdata = JSON.parse(data.data);
 
         if (!rdata['status']){
@@ -1885,7 +1768,7 @@ function getMasterRepSlaveUserCmd(username, db=''){
 }
 
 function delMasterRepSlaveUser(username){
-    myPost('del_master_rep_slave_user', {username:username}, function(data){
+    api.post('del_master_rep_slave_user', {username:username}, function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg, function(){
             getMasterRepSlaveList();
@@ -1895,7 +1778,7 @@ function delMasterRepSlaveUser(username){
 
 
 function setDbMasterAccess(username){
-    myPost('get_db_access','username='+username, function(data){
+    api.post('get_db_access','username='+username, function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
@@ -1959,7 +1842,7 @@ function setDbMasterAccess(username){
                     }
                 }
                 dataObj['username'] = username;
-                myPost('set_dbmaster_access', dataObj, function(data){
+                api.post('set_dbmaster_access', dataObj, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(index);
@@ -1973,7 +1856,7 @@ function setDbMasterAccess(username){
 
 
 function resetMaster(){
-    myPost('reset_master', '', function(data){
+    api.post('reset_master', '', function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
         },{icon: rdata.status ? 1 : 2});   
@@ -1988,7 +1871,7 @@ function getMasterRepSlaveList(){
     
     _data['page'] = page;
     _data['page_size'] = 10;
-    myPost('get_master_rep_slave_list', _data, function(data){
+    api.post('get_master_rep_slave_list', _data, function(data){
         // console.log(data);
         var rdata = [];
         try {
@@ -2044,7 +1927,7 @@ function getMasterRepSlaveListPage(){
 
 
 function deleteSlave(sign){
-    myPost('delete_slave', {sign:sign}, function(data){
+    api.post('delete_slave', {sign:sign}, function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata['msg'], function(){
             masterOrSlaveConf();
@@ -2056,7 +1939,7 @@ function deleteSlave(sign){
 function getFullSyncStatus(db){
     var timeId = null;
 
-    myPost('get_slave_list', {page:1,page_size:100}, function(data){
+    api.post('get_slave_list', {page:1,page_size:100}, function(data){
         var rdata = JSON.parse(data.data);
         var rsource = rdata.data;
 
@@ -2120,7 +2003,7 @@ function getFullSyncStatus(db){
                 });
 
                 $('#full_sync_cmd').on('click', function(){
-                    myPostN('full_sync_cmd', {'db':db,'sign':''}, function(rdata){
+                    api.postSilent('full_sync_cmd', {'db':db,'sign':''}, function(rdata){
                         var rdata = JSON.parse(rdata.data);
                         layer.open({
                             title: "手动执行命令CMD",
@@ -2149,7 +2032,7 @@ function getFullSyncStatus(db){
 
     function fullSync(db,sign,begin){
        
-        myPostN('full_sync', {db:db,sign:sign,begin:begin}, function(data){
+        api.postSilent('full_sync', {db:db,sign:sign,begin:begin}, function(data){
             var rdata = JSON.parse(data.data);
             $('#full_msg').text(rdata['msg']);
             $('.progress-bar').css('width',rdata['progress']+'%');
@@ -2169,7 +2052,7 @@ function dataSyncVerify(db){
     var reqTimer = null;
 
     function requestLogs(layerIndex){
-        myPostN('sync_database_repair_log', {db:db, sign:'',op:'get'}, function(rdata){
+        api.postSilent('sync_database_repair_log', {db:db, sign:'',op:'get'}, function(rdata){
             var rdata = JSON.parse(rdata.data);
 
             if(!rdata.status) {
@@ -2204,7 +2087,7 @@ function dataSyncVerify(db){
             }
         },
         yes:function(index,layer_index){
-            myPostN('sync_database_repair_log', {db:db, sign:'',op:'do'}, function(data){});
+            api.postSilent('sync_database_repair_log', {db:db, sign:'',op:'do'}, function(data){});
             layer.msg("执行成功");
 
             requestLogs(layer_index);
@@ -2215,7 +2098,7 @@ function dataSyncVerify(db){
         success:function(){
         },
         btn3: function(){
-            myPostN('sync_database_repair_log', {db:db, sign:'',op:'cmd'}, function(rdata){
+            api.postSilent('sync_database_repair_log', {db:db, sign:'',op:'cmd'}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
                 layer.open({
                 title: "手动执行命令CMD",
@@ -2245,7 +2128,7 @@ function dataSyncVerify(db){
 
 function addSlaveSSH(ip=''){
 
-    myPost('get_slave_ssh_by_ip', {ip:ip}, function(rdata){
+    api.post('get_slave_ssh_by_ip', {ip:ip}, function(rdata){
         
         var rdata = JSON.parse(rdata.data);
 
@@ -2289,7 +2172,7 @@ function addSlaveSSH(ip=''){
                 var id_rsa = $('textarea[name="id_rsa"]').val();
 
                 var data = {ip:ip,port:port,id_rsa:id_rsa,db_user:db_user};
-                myPost('add_slave_ssh', data, function(data){
+                api.post('add_slave_ssh', data, function(data){
                     layer.close(index);
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
@@ -2305,7 +2188,7 @@ function addSlaveSSH(ip=''){
 
 
 function delSlaveSSH(ip){
-    myPost('del_slave_ssh', {ip:ip}, function(rdata){
+    api.post('del_slave_ssh', {ip:ip}, function(rdata){
         var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg,function(){
             if (rdata.status){
@@ -2317,7 +2200,7 @@ function delSlaveSSH(ip){
 
 
 function delSlaveSyncUser(ip){
-    myPost('del_slave_sync_user', {ip:ip}, function(rdata){
+    api.post('del_slave_sync_user', {ip:ip}, function(rdata){
         var rdata = JSON.parse(rdata.data);
         showMsg(rdata.msg,function(){
             if (rdata.status){
@@ -2332,7 +2215,7 @@ function getSlaveSSHPage(page=1){
     _data['page'] = page;
     _data['page_size'] = 5;
     _data['tojs'] ='getSlaveSSHPage';
-    myPost('get_slave_ssh_list', _data, function(data){
+    api.post('get_slave_ssh_list', _data, function(data){
         var layerId = null;
         var rdata = [];
         try {
@@ -2376,7 +2259,7 @@ function getSlaveSSHPage(page=1){
 
 function addSlaveSyncUser(ip=''){
 
-    myPost('get_slave_sync_user_by_ip', {ip:ip}, function(rdata){
+    api.post('get_slave_sync_user_by_ip', {ip:ip}, function(rdata){
         
         var rdata = JSON.parse(rdata.data);
 
@@ -2473,7 +2356,7 @@ function addSlaveSyncUser(ip=''){
                 var mode = $('select[name="mode"]').val();
 
                 var data = {ip:ip,port:port,cmd:cmd,user:user,pass:pass,mode:mode};
-                myPost('add_slave_sync_user', data, function(ret_data){
+                api.post('add_slave_sync_user', data, function(ret_data){
                     layer.close(index);
                     var rdata = JSON.parse(ret_data.data);
                     showMsg(rdata.msg,function(){
@@ -2492,7 +2375,7 @@ function getSlaveSyncUserPage(page=1){
     _data['page'] = page;
     _data['page_size'] = 5;
     _data['tojs'] ='getSlaveSyncUserPage';
-    myPost('get_slave_sync_user_list', _data, function(data){
+    api.post('get_slave_sync_user_list', _data, function(data){
         var layerId = null;
         var rdata = [];
         try {
@@ -2533,7 +2416,7 @@ function getSlaveSyncUserPage(page=1){
 
 function getSlaveCfg(){
 
-    myPost('get_slave_sync_mode', '', function(data){
+    api.post('get_slave_sync_mode', '', function(data){
         var rdata = JSON.parse(data.data);
         var mode_none = 'success';
         var mode_ssh = 'danger';
@@ -2588,7 +2471,7 @@ function getSlaveCfg(){
                         mode = 'sync-user';
                     }
 
-                    myPost('set_slave_sync_mode', {mode:mode}, function(data){
+                    api.post('set_slave_sync_mode', {mode:mode}, function(data){
                         var rdata = JSON.parse(data.data);
                         showMsg(rdata.msg,function(){
                             $('.slave-db-mode').remove('btn-success').addClass('btn-danger');
@@ -2652,7 +2535,7 @@ function getSlaveSSHList(page=1){
 }
 
 function handlerRun(){
-    myPostN('get_slave_sync_cmd', {}, function(data){
+    api.postSilent('get_slave_sync_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         var cmd = rdata['data'];
         var loadOpen = layer.open({
@@ -2674,7 +2557,7 @@ function handlerRun(){
 }
 
 function initSlaveStatus(){
-    myPost('init_slave_status', '', function(data){
+    api.post('init_slave_status', '', function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
             if (rdata.status){
@@ -2695,7 +2578,7 @@ function masterOrSlaveConf(version=''){
         _data['page'] = page;
         _data['page_size'] = 10;
 
-        myPost('get_masterdb_list', _data, function(data){
+        api.post('get_masterdb_list', _data, function(data){
             var rdata = JSON.parse(data.data);
             var list = '';
             for(i in rdata.data){
@@ -2741,7 +2624,7 @@ function masterOrSlaveConf(version=''){
         _data['page_size'] = 10;
         var mdb_ver = $('.plugin_version').attr('version');
 
-        myPost('get_slave_list', _data, function(data){
+        api.post('get_slave_list', _data, function(data){
             var rdata = JSON.parse(data.data);
             var list = '';
 
@@ -2907,7 +2790,7 @@ function masterOrSlaveConf(version=''){
                         }
                     },
                     btn3:function(){
-                        myPost('try_slave_sync_bugfix', {}, function(data){
+                        api.post('try_slave_sync_bugfix', {}, function(data){
                             var rdata = JSON.parse(data.data);
                             showMsg(rdata.msg, function(){
                                 masterOrSlaveConf();
@@ -2927,7 +2810,7 @@ function masterOrSlaveConf(version=''){
         
         _data['page'] = page;
         _data['page_size'] = 10;
-        myPost('get_masterdb_list', _data, function(data){
+        api.post('get_masterdb_list', _data, function(data){
             var rdata = JSON.parse(data.data);
             var list = '';
             for(i in rdata.data){
@@ -2965,7 +2848,7 @@ function masterOrSlaveConf(version=''){
 
 
     function getMasterStatus(){
-        myPost('get_master_status', '', function(rdata){
+        api.post('get_master_status', '', function(rdata){
             var rdata = JSON.parse(rdata.data);
             // console.log('mode:',rdata.data);
             if ( typeof(rdata.status) != 'undefined' && !rdata.status && rdata.data == 'pwd'){
@@ -3007,7 +2890,7 @@ function masterOrSlaveConf(version=''){
 
             //设置主服务器配置
             $(".btn-master").on('click', function () {
-                myPost('set_master_status', 'close=change', function(data){
+                api.post('set_master_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
                     setTimeout(function(){
@@ -3017,7 +2900,7 @@ function masterOrSlaveConf(version=''){
             });
 
             $(".btn-slave").on('click', function () {
-                myPost('set_slave_status', 'close=change', function(data){
+                api.post('set_slave_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
                     setTimeout(function(){
@@ -3053,7 +2936,7 @@ function masterOrSlaveConf(version=''){
                     },
                     change:function(index,mode,reload){
                         console.log(index,mode,reload);
-                        myPost('set_dbrun_mode',{'mode':mode,'reload':reload},function(data){
+                        api.post('set_dbrun_mode',{'mode':mode,'reload':reload},function(data){
                             layer.close(index);
                             var rdata = JSON.parse(data.data);
                             showMsg(rdata.msg ,function(){
@@ -3079,7 +2962,7 @@ function masterOrSlaveConf(version=''){
 
 function mySqlServiceWrapper(version) {
     pluginService('mysql', version);
-    myPost('check_anomaly_backup', '', function(data){
+    api.post('check_anomaly_backup', '', function(data){
         var rdata = JSON.parse(data.data);
         if(rdata.status && rdata.data.length > 0) {
             var checkInterval = setInterval(function(){
