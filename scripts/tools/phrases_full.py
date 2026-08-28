@@ -5706,6 +5706,1134 @@ FULL_I18N_DICTIONARY = {
             "fr": "Supprimer",
             "de": "Löschen",
             "it": "Elimina"
+        },
+        "files_auto_str_1": {
+            "zh-CN": "<div class=\"re-head\">                <div style=\"margin-left: 3px;\" class=\"ss-text\">                        <em>文件回收站</em>                        <div class=\"ssh-item\">                                <input class=\"btswitch btswitch-ios\" id=\"setRecycleBin\" type=\"checkbox\" ",
+            "zh-TW": "<div class=\"re-head\">                <div style=\"margin-left: 3px;\" class=\"ss-text\">                        <em>檔案資源回收筒</em>                        <div class=\"ssh-item\">                                <input class=\"btswitch btswitch-ios\" id=\"setRecycleBin\" type=\"checkbox\" ",
+            "en": "<div class=\"re-head\">                <div style=\"margin-left: 3px;\" class=\"ss-text\">                        <em>FilesRecycle Bin</em>                        <div class=\"ssh-item\">                                <input class=\"btswitch btswitch-ios\" id=\"setRecycleBin\" type=\"checkbox\" ",
+            "fr": "<div class=\"re-head\">                <div style=\"margin-left: 3px;\" class=\"ss-text\">                        <em>FichiersCorbeille</em>                        <div class=\"ssh-item\">                                <input class=\"btswitch btswitch-ios\" id=\"setRecycleBin\" type=\"checkbox\" ",
+            "de": "<div class=\"re-head\">                <div style=\"margin-left: 3px;\" class=\"ss-text\">                        <em>DateienPapierkorb</em>                        <div class=\"ssh-item\">                                <input class=\"btswitch btswitch-ios\" id=\"setRecycleBin\" type=\"checkbox\" ",
+            "it": "<div class=\"re-head\">                <div style=\"margin-left: 3px;\" class=\"ss-text\">                        <em>FileCestino</em>                        <div class=\"ssh-item\">                                <input class=\"btswitch btswitch-ios\" id=\"setRecycleBin\" type=\"checkbox\" "
+        },
+        "files_auto_str_2": {
+            "zh-CN": ">                                <label class=\"btswitch-btn\" for=\"setRecycleBin\" onclick=\"setRecycleBin()\"></label>                        </div>                </div>                <span style=\"line-height: 32px; margin-left: 30px;\">注意：关闭回收站，删除的文件无法恢复！</span>                <button style=\"float: right\" class=\"btn btn-default btn-sm\" onclick=\"closeRecycleBin();\">清空回收站</button>                </div>                <div class=\"re-con\">                    <div class=\"re-con-menu\">                        <p class=\"on\" onclick=\"recycleBin(1)\">全部</p>                        <p onclick=\"recycleBin(2)\">文件夹</p>                        <p onclick=\"recycleBin(3)\">文件</p>                        <p onclick=\"recycleBin(4)\">图片</p>                        <p onclick=\"recycleBin(5)\">文档</p>                    </div>                    <div class=\"re-con-con\">                    <div style=\"margin: 15px;\" class=\"divtable\">                    <table width=\"100%\" class=\"table table-hover\">                        <thead>                            <tr>                                <th>文件名</th><th>原位置</th>                                <th>大小</th><th width=\"150\">删除时间</th>                                <th style=\"text-align: right;\" width=\"110\">操作</th>                            </tr>                        </thead>                    <tbody id=\"RecycleBody\" class=\"list-list\">",
+            "zh-TW": ">                                <label class=\"btswitch-btn\" for=\"setRecycleBin\" onclick=\"setRecycleBin()\"></label>                        </div>                </div>                <span style=\"line-height: 32px; margin-left: 30px;\">注意：關閉資源回收筒，刪除的檔案無法恢復！</span>                <button style=\"float: right\" class=\"btn btn-default btn-sm\" onclick=\"closeRecycleBin();\">清空資源回收筒</button>                </div>                <div class=\"re-con\">                    <div class=\"re-con-menu\">                        <p class=\"on\" onclick=\"recycleBin(1)\">全部</p>                        <p onclick=\"recycleBin(2)\">檔案夹</p>                        <p onclick=\"recycleBin(3)\">檔案</p>                        <p onclick=\"recycleBin(4)\">图片</p>                        <p onclick=\"recycleBin(5)\">文档</p>                    </div>                    <div class=\"re-con-con\">                    <div style=\"margin: 15px;\" class=\"divtable\">                    <table width=\"100%\" class=\"table table-hover\">                        <thead>                            <tr>                                <th>檔案名</th><th>原位置</th>                                <th>大小</th><th width=\"150\">刪除時間</th>                                <th style=\"text-align: right;\" width=\"110\">操作</th>                            </tr>                        </thead>                    <tbody id=\"RecycleBody\" class=\"list-list\">",
+            "en": ">                                <label class=\"btswitch-btn\" for=\"setRecycleBin\" onclick=\"setRecycleBin()\"></label>                        </div>                </div>                <span style=\"line-height: 32px; margin-left: 30px;\">注意：CloseRecycle Bin，Delete的Files无法Restore！</span>                <button style=\"float: right\" class=\"btn btn-default btn-sm\" onclick=\"closeRecycleBin();\">ClearRecycle Bin</button>                </div>                <div class=\"re-con\">                    <div class=\"re-con-menu\">                        <p class=\"on\" onclick=\"recycleBin(1)\">All</p>                        <p onclick=\"recycleBin(2)\">Files夹</p>                        <p onclick=\"recycleBin(3)\">Files</p>                        <p onclick=\"recycleBin(4)\">图片</p>                        <p onclick=\"recycleBin(5)\">文档</p>                    </div>                    <div class=\"re-con-con\">                    <div style=\"margin: 15px;\" class=\"divtable\">                    <table width=\"100%\" class=\"table table-hover\">                        <thead>                            <tr>                                <th>Files名</th><th>原位置</th>                                <th>Size</th><th width=\"150\">DeleteTime</th>                                <th style=\"text-align: right;\" width=\"110\">Action</th>                            </tr>                        </thead>                    <tbody id=\"RecycleBody\" class=\"list-list\">",
+            "fr": ">                                <label class=\"btswitch-btn\" for=\"setRecycleBin\" onclick=\"setRecycleBin()\"></label>                        </div>                </div>                <span style=\"line-height: 32px; margin-left: 30px;\">注意：FermerCorbeille，Supprimer的Fichiers无法Restaurer！</span>                <button style=\"float: right\" class=\"btn btn-default btn-sm\" onclick=\"closeRecycleBin();\">ViderCorbeille</button>                </div>                <div class=\"re-con\">                    <div class=\"re-con-menu\">                        <p class=\"on\" onclick=\"recycleBin(1)\">Tout</p>                        <p onclick=\"recycleBin(2)\">Fichiers夹</p>                        <p onclick=\"recycleBin(3)\">Fichiers</p>                        <p onclick=\"recycleBin(4)\">图片</p>                        <p onclick=\"recycleBin(5)\">文档</p>                    </div>                    <div class=\"re-con-con\">                    <div style=\"margin: 15px;\" class=\"divtable\">                    <table width=\"100%\" class=\"table table-hover\">                        <thead>                            <tr>                                <th>Fichiers名</th><th>原位置</th>                                <th>Taille</th><th width=\"150\">SupprimerHeure</th>                                <th style=\"text-align: right;\" width=\"110\">Action</th>                            </tr>                        </thead>                    <tbody id=\"RecycleBody\" class=\"list-list\">",
+            "de": ">                                <label class=\"btswitch-btn\" for=\"setRecycleBin\" onclick=\"setRecycleBin()\"></label>                        </div>                </div>                <span style=\"line-height: 32px; margin-left: 30px;\">注意：SchließenPapierkorb，Löschen的Dateien无法Wiederherstellen！</span>                <button style=\"float: right\" class=\"btn btn-default btn-sm\" onclick=\"closeRecycleBin();\">LeerenPapierkorb</button>                </div>                <div class=\"re-con\">                    <div class=\"re-con-menu\">                        <p class=\"on\" onclick=\"recycleBin(1)\">Alle</p>                        <p onclick=\"recycleBin(2)\">Dateien夹</p>                        <p onclick=\"recycleBin(3)\">Dateien</p>                        <p onclick=\"recycleBin(4)\">图片</p>                        <p onclick=\"recycleBin(5)\">文档</p>                    </div>                    <div class=\"re-con-con\">                    <div style=\"margin: 15px;\" class=\"divtable\">                    <table width=\"100%\" class=\"table table-hover\">                        <thead>                            <tr>                                <th>Dateien名</th><th>原位置</th>                                <th>Größe</th><th width=\"150\">LöschenZeit</th>                                <th style=\"text-align: right;\" width=\"110\">Aktion</th>                            </tr>                        </thead>                    <tbody id=\"RecycleBody\" class=\"list-list\">",
+            "it": ">                                <label class=\"btswitch-btn\" for=\"setRecycleBin\" onclick=\"setRecycleBin()\"></label>                        </div>                </div>                <span style=\"line-height: 32px; margin-left: 30px;\">注意：ChiudiCestino，Elimina的File无法Ripristina！</span>                <button style=\"float: right\" class=\"btn btn-default btn-sm\" onclick=\"closeRecycleBin();\">SvuotaCestino</button>                </div>                <div class=\"re-con\">                    <div class=\"re-con-menu\">                        <p class=\"on\" onclick=\"recycleBin(1)\">Tutto</p>                        <p onclick=\"recycleBin(2)\">File夹</p>                        <p onclick=\"recycleBin(3)\">File</p>                        <p onclick=\"recycleBin(4)\">图片</p>                        <p onclick=\"recycleBin(5)\">文档</p>                    </div>                    <div class=\"re-con-con\">                    <div style=\"margin: 15px;\" class=\"divtable\">                    <table width=\"100%\" class=\"table table-hover\">                        <thead>                            <tr>                                <th>File名</th><th>原位置</th>                                <th>Dimensione</th><th width=\"150\">EliminaOra</th>                                <th style=\"text-align: right;\" width=\"110\">Azione</th>                            </tr>                        </thead>                    <tbody id=\"RecycleBody\" class=\"list-list\">"
+        },
+        "files_auto_str_3": {
+            "zh-CN": "清空回收站操作会永久删除回收站中的文件，继续吗？",
+            "zh-TW": "清空資源回收筒操作会永久刪除資源回收筒中的檔案，继续吗？",
+            "en": "ClearRecycle BinAction会永久DeleteRecycle Bin中的Files，继续吗？",
+            "fr": "ViderCorbeilleAction会永久SupprimerCorbeille中的Fichiers，继续吗？",
+            "de": "LeerenPapierkorbAktion会永久LöschenPapierkorb中的Dateien，继续吗？",
+            "it": "SvuotaCestinoAzione会永久EliminaCestino中的File，继续吗？"
+        },
+        "files_auto_str_4": {
+            "zh-CN": "清空回收站",
+            "zh-TW": "清空資源回收筒",
+            "en": "ClearRecycle Bin",
+            "fr": "ViderCorbeille",
+            "de": "LeerenPapierkorb",
+            "it": "SvuotaCestino"
+        },
+        "files_auto_str_5": {
+            "zh-CN": "<div class='myspeed'>正在删除,请稍候...</div>",
+            "zh-TW": "<div class='myspeed'>正在刪除,請稍候...</div>",
+            "en": "<div class='myspeed'>Deleting, please wait...</div>",
+            "fr": "<div class='myspeed'>Suppression en cours, veuillez patienter...</div>",
+            "de": "<div class='myspeed'>Wird gelöscht, bitte warten...</div>",
+            "it": "<div class='myspeed'>Eliminazione in corso, attendere...</div>"
+        },
+        "files_auto_str_6": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "files_auto_str_7": {
+            "zh-CN": "SVG预览",
+            "zh-TW": "SVG预覽",
+            "en": "SVG预览",
+            "fr": "SVG预览",
+            "de": "SVG预览",
+            "it": "SVG预览"
+        },
+        "files_auto_str_8": {
+            "zh-CN": "<span class='Pcount-item'>每页<select name='file_page' style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid;' class='showRow'>",
+            "zh-TW": "<span class='Pcount-item'>每頁<select name='file_page' style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid;' class='showRow'>",
+            "en": "<span class='Pcount-item'>每页<select name='file_page' style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid;' class='showRow'>",
+            "fr": "<span class='Pcount-item'>每页<select name='file_page' style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid;' class='showRow'>",
+            "de": "<span class='Pcount-item'>每页<select name='file_page' style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid;' class='showRow'>",
+            "it": "<span class='Pcount-item'>每页<select name='file_page' style='margin-left: 3px;margin-right: 3px;border:#ddd 1px solid;' class='showRow'>"
+        },
+        "files_auto_str_9": {
+            "zh-CN": "</select>条</span>",
+            "zh-TW": "</select>条</span>",
+            "en": "</select>条</span>",
+            "fr": "</select>条</span>",
+            "de": "</select>条</span>",
+            "it": "</select>条</span>"
+        },
+        "files_auto_str_10": {
+            "zh-CN": "')\">计算</a></td>                    <td style='text-align: center;'>",
+            "zh-TW": "')\">計算</a></td>                    <td style='text-align: center;'>",
+            "en": "')\">计算</a></td>                    <td style='text-align: center;'>",
+            "fr": "')\">计算</a></td>                    <td style='text-align: center;'>",
+            "de": "')\">计算</a></td>                    <td style='text-align: center;'>",
+            "it": "')\">计算</a></td>                    <td style='text-align: center;'>"
+        },
+        "files_auto_str_11": {
+            "zh-CN": "')\">复制路径</a> |                         <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "zh-TW": "')\">復製路径</a> |                         <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "en": "')\">Copy路径</a> |                         <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "fr": "')\">Copier路径</a> |                         <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "de": "')\">Kopieren路径</a> |                         <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "it": "')\">Copia路径</a> |                         <a class='btlink' href='javascript:;' onclick=\"copyFile('"
+        },
+        "files_auto_str_12": {
+            "zh-CN": "')\">复制</a> |                         <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "zh-TW": "')\">復製</a> |                         <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "en": "')\">Copy</a> |                         <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "fr": "')\">Copier</a> |                         <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "de": "')\">Kopieren</a> |                         <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "it": "')\">Copia</a> |                         <a class='btlink' href='javascript:;' onclick=\"cutFile('"
+        },
+        "files_auto_str_13": {
+            "zh-CN": "')\">剪切</a> |                         <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "zh-TW": "')\">剪切</a> |                         <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "en": "')\">Cut</a> |                         <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "fr": "')\">Couper</a> |                         <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "de": "')\">Ausschneiden</a> |                         <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "it": "')\">Taglia</a> |                         <a class='btlink' href='javascript:;' onclick=\"reName(0,'"
+        },
+        "files_auto_str_14": {
+            "zh-CN": "');\">重命名</a> |                         <a class='btlink' href='javascript:;' onclick=\"setChmod(0,'",
+            "zh-TW": "');\">重命名</a> |                         <a class='btlink' href='javascript:;' onclick=\"setChmod(0,'",
+            "en": "');\">Rename</a> |                         <a class='btlink' href='javascript:;' onclick=\"setChmod(0,'",
+            "fr": "');\">Renommer</a> |                         <a class='btlink' href='javascript:;' onclick=\"setChmod(0,'",
+            "de": "');\">Umbenennen</a> |                         <a class='btlink' href='javascript:;' onclick=\"setChmod(0,'",
+            "it": "');\">Rinomina</a> |                         <a class='btlink' href='javascript:;' onclick=\"setChmod(0,'"
+        },
+        "files_auto_str_15": {
+            "zh-CN": "');\">权限</a> |                         <a class='btlink' href='javascript:;' onclick=\"zip('",
+            "zh-TW": "');\">權限</a> |                         <a class='btlink' href='javascript:;' onclick=\"zip('",
+            "en": "');\">Permissions</a> |                         <a class='btlink' href='javascript:;' onclick=\"zip('",
+            "fr": "');\">Permissions</a> |                         <a class='btlink' href='javascript:;' onclick=\"zip('",
+            "de": "');\">Berechtigungen</a> |                         <a class='btlink' href='javascript:;' onclick=\"zip('",
+            "it": "');\">Permessi</a> |                         <a class='btlink' href='javascript:;' onclick=\"zip('"
+        },
+        "files_auto_str_16": {
+            "zh-CN": "');\">压缩</a> |                         <a class='btlink' href='javascript:;' onclick=\"deleteDir('",
+            "zh-TW": "');\">壓縮</a> |                         <a class='btlink' href='javascript:;' onclick=\"deleteDir('",
+            "en": "');\">Compress</a> |                         <a class='btlink' href='javascript:;' onclick=\"deleteDir('",
+            "fr": "');\">Compresser</a> |                         <a class='btlink' href='javascript:;' onclick=\"deleteDir('",
+            "de": "');\">Komprimieren</a> |                         <a class='btlink' href='javascript:;' onclick=\"deleteDir('",
+            "it": "');\">Comprimi</a> |                         <a class='btlink' href='javascript:;' onclick=\"deleteDir('"
+        },
+        "files_auto_str_17": {
+            "zh-CN": "')\">删除</a></span>                    </td>                </tr>",
+            "zh-TW": "')\">刪除</a></span>                    </td>                </tr>",
+            "en": "')\">Delete</a></span>                    </td>                </tr>",
+            "fr": "')\">Supprimer</a></span>                    </td>                </tr>",
+            "de": "')\">Löschen</a></span>                    </td>                </tr>",
+            "it": "')\">Elimina</a></span>                    </td>                </tr>"
+        },
+        "files_auto_str_18": {
+            "zh-CN": "')\">解压</a> | ",
+            "zh-TW": "')\">解壓</a> | ",
+            "en": "')\">Extract</a> | ",
+            "fr": "')\">Extraire</a> | ",
+            "de": "')\">Entpacken</a> | ",
+            "it": "')\">Estrai</a> | "
+        },
+        "files_auto_str_19": {
+            "zh-CN": "');\">压缩</a> | ",
+            "zh-TW": "');\">壓縮</a> | ",
+            "en": "');\">Compress</a> | ",
+            "fr": "');\">Compresser</a> | ",
+            "de": "');\">Komprimieren</a> | ",
+            "it": "');\">Comprimi</a> | "
+        },
+        "files_auto_str_20": {
+            "zh-CN": "')\">编辑</a> | ",
+            "zh-TW": "')\">編輯</a> | ",
+            "en": "')\">编辑</a> | ",
+            "fr": "')\">编辑</a> | ",
+            "de": "')\">编辑</a> | ",
+            "it": "')\">编辑</a> | "
+        },
+        "files_auto_str_21": {
+            "zh-CN": "')\">预览</a> | ",
+            "zh-TW": "')\">预覽</a> | ",
+            "en": "')\">预览</a> | ",
+            "fr": "')\">预览</a> | ",
+            "de": "')\">预览</a> | ",
+            "it": "')\">预览</a> | "
+        },
+        "files_auto_str_22": {
+            "zh-CN": ")\">下载</a> | ",
+            "zh-TW": ")\">下載</a> | ",
+            "en": ")\">Download</a> | ",
+            "fr": ")\">Télécharger</a> | ",
+            "de": ")\">Herunterladen</a> | ",
+            "it": ")\">Scarica</a> | "
+        },
+        "files_auto_str_23": {
+            "zh-CN": "')\">复制路径</a> |                     <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "zh-TW": "')\">復製路径</a> |                     <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "en": "')\">Copy路径</a> |                     <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "fr": "')\">Copier路径</a> |                     <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "de": "')\">Kopieren路径</a> |                     <a class='btlink' href='javascript:;' onclick=\"copyFile('",
+            "it": "')\">Copia路径</a> |                     <a class='btlink' href='javascript:;' onclick=\"copyFile('"
+        },
+        "files_auto_str_24": {
+            "zh-CN": "')\">复制</a> |                     <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "zh-TW": "')\">復製</a> |                     <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "en": "')\">Copy</a> |                     <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "fr": "')\">Copier</a> |                     <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "de": "')\">Kopieren</a> |                     <a class='btlink' href='javascript:;' onclick=\"cutFile('",
+            "it": "')\">Copia</a> |                     <a class='btlink' href='javascript:;' onclick=\"cutFile('"
+        },
+        "files_auto_str_25": {
+            "zh-CN": "')\">剪切</a> |                     <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "zh-TW": "')\">剪切</a> |                     <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "en": "')\">Cut</a> |                     <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "fr": "')\">Couper</a> |                     <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "de": "')\">Ausschneiden</a> |                     <a class='btlink' href='javascript:;' onclick=\"reName(0,'",
+            "it": "')\">Taglia</a> |                     <a class='btlink' href='javascript:;' onclick=\"reName(0,'"
+        },
+        "files_auto_str_26": {
+            "zh-CN": "')\">重命名</a> |                     <a class='btlink' href=\"javascript:setChmod(0,'",
+            "zh-TW": "')\">重命名</a> |                     <a class='btlink' href=\"javascript:setChmod(0,'",
+            "en": "')\">Rename</a> |                     <a class='btlink' href=\"javascript:setChmod(0,'",
+            "fr": "')\">Renommer</a> |                     <a class='btlink' href=\"javascript:setChmod(0,'",
+            "de": "')\">Umbenennen</a> |                     <a class='btlink' href=\"javascript:setChmod(0,'",
+            "it": "')\">Rinomina</a> |                     <a class='btlink' href=\"javascript:setChmod(0,'"
+        },
+        "files_auto_str_27": {
+            "zh-CN": "');\">权限</a> | ",
+            "zh-TW": "');\">權限</a> | ",
+            "en": "');\">Permissions</a> | ",
+            "fr": "');\">Permissions</a> | ",
+            "de": "');\">Berechtigungen</a> | ",
+            "it": "');\">Permessi</a> | "
+        },
+        "files_auto_str_28": {
+            "zh-CN": "')\">删除</a>                    </span></td>                </tr>",
+            "zh-TW": "')\">刪除</a>                    </span></td>                </tr>",
+            "en": "')\">Delete</a>                    </span></td>                </tr>",
+            "fr": "')\">Supprimer</a>                    </span></td>                </tr>",
+            "de": "')\">Löschen</a>                    </span></td>                </tr>",
+            "it": "')\">Elimina</a>                    </span></td>                </tr>"
+        },
+        "files_auto_str_29": {
+            "zh-CN": "' title='文件名：",
+            "zh-TW": "' title='檔案名：",
+            "en": "' title='Files名：",
+            "fr": "' title='Fichiers名：",
+            "de": "' title='Dateien名：",
+            "it": "' title='File名："
+        },
+        "files_auto_str_30": {
+            "zh-CN": "&#13;大小：",
+            "zh-TW": "&#13;大小：",
+            "en": "&#13;Size：",
+            "fr": "&#13;Taille：",
+            "de": "&#13;Größe：",
+            "it": "&#13;Dimensione："
+        },
+        "files_auto_str_31": {
+            "zh-CN": "&#13;修改时间：",
+            "zh-TW": "&#13;修改時間：",
+            "en": "&#13;ModifyTime：",
+            "fr": "&#13;ModifierHeure：",
+            "de": "&#13;ÄndernZeit：",
+            "it": "&#13;ModificaOra："
+        },
+        "files_auto_str_32": {
+            "zh-CN": "&#13;权限：",
+            "zh-TW": "&#13;權限：",
+            "en": "&#13;Permissions：",
+            "fr": "&#13;Permissions：",
+            "de": "&#13;Berechtigungen：",
+            "it": "&#13;Permessi："
+        },
+        "files_auto_str_33": {
+            "zh-CN": "&#13;所有者：",
+            "zh-TW": "&#13;所有者：",
+            "en": "&#13;Owner：",
+            "fr": "&#13;Propriétaire：",
+            "de": "&#13;Eigentümer：",
+            "it": "&#13;Proprietario："
+        },
+        "files_auto_str_34": {
+            "zh-CN": "(共{1}个目录与{2}个文件,大小:",
+            "zh-TW": "(共{1}個目錄與{2}個檔案,大小:",
+            "en": "(共{1}个目录与{2}个Files,Size:",
+            "fr": "(共{1}个目录与{2}个Fichiers,Taille:",
+            "de": "(共{1}个目录与{2}个Dateien,Größe:",
+            "it": "(共{1}个目录与{2}个File,Dimensione:"
+        },
+        "files_auto_str_35": {
+            "zh-CN": "<a class=\"btlink ml5\" onClick=\"getPathSize()\">获取</a></font>)",
+            "zh-TW": "<a class=\"btlink ml5\" onClick=\"getPathSize()\">獲取</a></font>)",
+            "en": "<a class=\"btlink ml5\" onClick=\"getPathSize()\">获取</a></font>)",
+            "fr": "<a class=\"btlink ml5\" onClick=\"getPathSize()\">获取</a></font>)",
+            "de": "<a class=\"btlink ml5\" onClick=\"getPathSize()\">获取</a></font>)",
+            "it": "<a class=\"btlink ml5\" onClick=\"getPathSize()\">获取</a></font>)"
+        },
+        "files_auto_str_36": {
+            "zh-CN": "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"table table-hover\">                <thead>                    <tr>                        <th width=\"30\"><label><input type=\"checkbox\" id=\"setBox\" placeholder=\"\"></label></th>                        <th onclick=\"listFileOrder('fname',this)\" style=\"cursor: pointer;\">文件名",
+            "zh-TW": "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"table table-hover\">                <thead>                    <tr>                        <th width=\"30\"><label><input type=\"checkbox\" id=\"setBox\" placeholder=\"\"></label></th>                        <th onclick=\"listFileOrder('fname',this)\" style=\"cursor: pointer;\">檔案名",
+            "en": "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"table table-hover\">                <thead>                    <tr>                        <th width=\"30\"><label><input type=\"checkbox\" id=\"setBox\" placeholder=\"\"></label></th>                        <th onclick=\"listFileOrder('fname',this)\" style=\"cursor: pointer;\">Files名",
+            "fr": "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"table table-hover\">                <thead>                    <tr>                        <th width=\"30\"><label><input type=\"checkbox\" id=\"setBox\" placeholder=\"\"></label></th>                        <th onclick=\"listFileOrder('fname',this)\" style=\"cursor: pointer;\">Fichiers名",
+            "de": "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"table table-hover\">                <thead>                    <tr>                        <th width=\"30\"><label><input type=\"checkbox\" id=\"setBox\" placeholder=\"\"></label></th>                        <th onclick=\"listFileOrder('fname',this)\" style=\"cursor: pointer;\">Dateien名",
+            "it": "<table width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"table table-hover\">                <thead>                    <tr>                        <th width=\"30\"><label><input type=\"checkbox\" id=\"setBox\" placeholder=\"\"></label></th>                        <th onclick=\"listFileOrder('fname',this)\" style=\"cursor: pointer;\">File名"
+        },
+        "files_auto_str_37": {
+            "zh-CN": "</th>                        <th onclick=\"listFileOrder('size',this)\" style=\"cursor: pointer; text-align: center;\">大小",
+            "zh-TW": "</th>                        <th onclick=\"listFileOrder('size',this)\" style=\"cursor: pointer; text-align: center;\">大小",
+            "en": "</th>                        <th onclick=\"listFileOrder('size',this)\" style=\"cursor: pointer; text-align: center;\">Size",
+            "fr": "</th>                        <th onclick=\"listFileOrder('size',this)\" style=\"cursor: pointer; text-align: center;\">Taille",
+            "de": "</th>                        <th onclick=\"listFileOrder('size',this)\" style=\"cursor: pointer; text-align: center;\">Größe",
+            "it": "</th>                        <th onclick=\"listFileOrder('size',this)\" style=\"cursor: pointer; text-align: center;\">Dimensione"
+        },
+        "files_auto_str_38": {
+            "zh-CN": "</th>                        <th onclick=\"listFileOrder('mtime',this)\" style=\"cursor: pointer; text-align: center;\" width=\"150\">修改时间",
+            "zh-TW": "</th>                        <th onclick=\"listFileOrder('mtime',this)\" style=\"cursor: pointer; text-align: center;\" width=\"150\">修改時間",
+            "en": "</th>                        <th onclick=\"listFileOrder('mtime',this)\" style=\"cursor: pointer; text-align: center;\" width=\"150\">ModifyTime",
+            "fr": "</th>                        <th onclick=\"listFileOrder('mtime',this)\" style=\"cursor: pointer; text-align: center;\" width=\"150\">ModifierHeure",
+            "de": "</th>                        <th onclick=\"listFileOrder('mtime',this)\" style=\"cursor: pointer; text-align: center;\" width=\"150\">ÄndernZeit",
+            "it": "</th>                        <th onclick=\"listFileOrder('mtime',this)\" style=\"cursor: pointer; text-align: center;\" width=\"150\">ModificaOra"
+        },
+        "files_auto_str_39": {
+            "zh-CN": "</th>                        <th style=\"text-align: center;\">权限</th>                        <th style=\"text-align: center;\">所有者</th>                        <th style=\"text-align: center;\" width=\"360\">操作</th>                    </tr>                </thead>                <tbody id=\"filesBody\" class=\"list-list\">",
+            "zh-TW": "</th>                        <th style=\"text-align: center;\">權限</th>                        <th style=\"text-align: center;\">所有者</th>                        <th style=\"text-align: center;\" width=\"360\">操作</th>                    </tr>                </thead>                <tbody id=\"filesBody\" class=\"list-list\">",
+            "en": "</th>                        <th style=\"text-align: center;\">Permissions</th>                        <th style=\"text-align: center;\">Owner</th>                        <th style=\"text-align: center;\" width=\"360\">Action</th>                    </tr>                </thead>                <tbody id=\"filesBody\" class=\"list-list\">",
+            "fr": "</th>                        <th style=\"text-align: center;\">Permissions</th>                        <th style=\"text-align: center;\">Propriétaire</th>                        <th style=\"text-align: center;\" width=\"360\">Action</th>                    </tr>                </thead>                <tbody id=\"filesBody\" class=\"list-list\">",
+            "de": "</th>                        <th style=\"text-align: center;\">Berechtigungen</th>                        <th style=\"text-align: center;\">Eigentümer</th>                        <th style=\"text-align: center;\" width=\"360\">Aktion</th>                    </tr>                </thead>                <tbody id=\"filesBody\" class=\"list-list\">",
+            "it": "</th>                        <th style=\"text-align: center;\">Permessi</th>                        <th style=\"text-align: center;\">Proprietario</th>                        <th style=\"text-align: center;\" width=\"360\">Azione</th>                    </tr>                </thead>                <tbody id=\"filesBody\" class=\"list-list\">"
+        },
+        "files_auto_str_40": {
+            "zh-CN": "<div class=\"btn-group\">            <button class=\"btn btn-default btn-sm dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">                新建<span class=\"caret\"></span>            </button>            <ul class=\"dropdown-menu\">                <li><a href=\"javascript:createDir(0,'",
+            "zh-TW": "<div class=\"btn-group\">            <button class=\"btn btn-default btn-sm dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">                新建<span class=\"caret\"></span>            </button>            <ul class=\"dropdown-menu\">                <li><a href=\"javascript:createDir(0,'",
+            "en": "<div class=\"btn-group\">            <button class=\"btn btn-default btn-sm dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">                新建<span class=\"caret\"></span>            </button>            <ul class=\"dropdown-menu\">                <li><a href=\"javascript:createDir(0,'",
+            "fr": "<div class=\"btn-group\">            <button class=\"btn btn-default btn-sm dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">                新建<span class=\"caret\"></span>            </button>            <ul class=\"dropdown-menu\">                <li><a href=\"javascript:createDir(0,'",
+            "de": "<div class=\"btn-group\">            <button class=\"btn btn-default btn-sm dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">                新建<span class=\"caret\"></span>            </button>            <ul class=\"dropdown-menu\">                <li><a href=\"javascript:createDir(0,'",
+            "it": "<div class=\"btn-group\">            <button class=\"btn btn-default btn-sm dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">                新建<span class=\"caret\"></span>            </button>            <ul class=\"dropdown-menu\">                <li><a href=\"javascript:createDir(0,'"
+        },
+        "files_auto_str_41": {
+            "zh-CN": "');\"><span class=\"glyphicon glyphicon-folder-open\"></span> 新建目录</a></li>                <li><a href=\"javascript:createFile(0,'",
+            "zh-TW": "');\"><span class=\"glyphicon glyphicon-folder-open\"></span> 新建目錄</a></li>                <li><a href=\"javascript:createFile(0,'",
+            "en": "');\"><span class=\"glyphicon glyphicon-folder-open\"></span> 新建目录</a></li>                <li><a href=\"javascript:createFile(0,'",
+            "fr": "');\"><span class=\"glyphicon glyphicon-folder-open\"></span> 新建目录</a></li>                <li><a href=\"javascript:createFile(0,'",
+            "de": "');\"><span class=\"glyphicon glyphicon-folder-open\"></span> 新建目录</a></li>                <li><a href=\"javascript:createFile(0,'",
+            "it": "');\"><span class=\"glyphicon glyphicon-folder-open\"></span> 新建目录</a></li>                <li><a href=\"javascript:createFile(0,'"
+        },
+        "files_auto_str_42": {
+            "zh-CN": "');\"><span class=\"glyphicon glyphicon-file\"></span> 新建空白文件</a></li>            </ul>        </div>",
+            "zh-TW": "');\"><span class=\"glyphicon glyphicon-file\"></span> 新建空白檔案</a></li>            </ul>        </div>",
+            "en": "');\"><span class=\"glyphicon glyphicon-file\"></span> 新建空白Files</a></li>            </ul>        </div>",
+            "fr": "');\"><span class=\"glyphicon glyphicon-file\"></span> 新建空白Fichiers</a></li>            </ul>        </div>",
+            "de": "');\"><span class=\"glyphicon glyphicon-file\"></span> 新建空白Dateien</a></li>            </ul>        </div>",
+            "it": "');\"><span class=\"glyphicon glyphicon-file\"></span> 新建空白File</a></li>            </ul>        </div>"
+        },
+        "files_auto_str_43": {
+            "zh-CN": " <button onclick=\"javascript:backDir();\" class=\"btn btn-default btn-sm glyphicon glyphicon-arrow-left\" title=\"返回上一级\"></button>",
+            "zh-TW": " <button onclick=\"javascript:backDir();\" class=\"btn btn-default btn-sm glyphicon glyphicon-arrow-left\" title=\"返回上一級\"></button>",
+            "en": " <button onclick=\"javascript:backDir();\" class=\"btn btn-default btn-sm glyphicon glyphicon-arrow-left\" title=\"Back上一级\"></button>",
+            "fr": " <button onclick=\"javascript:backDir();\" class=\"btn btn-default btn-sm glyphicon glyphicon-arrow-left\" title=\"Retour上一级\"></button>",
+            "de": " <button onclick=\"javascript:backDir();\" class=\"btn btn-default btn-sm glyphicon glyphicon-arrow-left\" title=\"Zurück上一级\"></button>",
+            "it": " <button onclick=\"javascript:backDir();\" class=\"btn btn-default btn-sm glyphicon glyphicon-arrow-left\" title=\"Indietro上一级\"></button>"
+        },
+        "files_auto_str_44": {
+            "zh-CN": "');\" class=\"btn btn-default btn-sm glyphicon glyphicon-refresh\" title=\"刷新\"></button>            <button onclick=\"webShell('",
+            "zh-TW": "');\" class=\"btn btn-default btn-sm glyphicon glyphicon-refresh\" title=\"重新整理\"></button>            <button onclick=\"webShell('",
+            "en": "');\" class=\"btn btn-default btn-sm glyphicon glyphicon-refresh\" title=\"Refresh\"></button>            <button onclick=\"webShell('",
+            "fr": "');\" class=\"btn btn-default btn-sm glyphicon glyphicon-refresh\" title=\"Actualiser\"></button>            <button onclick=\"webShell('",
+            "de": "');\" class=\"btn btn-default btn-sm glyphicon glyphicon-refresh\" title=\"Aktualisieren\"></button>            <button onclick=\"webShell('",
+            "it": "');\" class=\"btn btn-default btn-sm glyphicon glyphicon-refresh\" title=\"Aggiorna\"></button>            <button onclick=\"webShell('"
+        },
+        "files_auto_str_45": {
+            "zh-CN": "')\" title=\"终端\" type=\"button\" class=\"btn btn-default btn-sm\"><em class=\"ico-cmd\"></em></button>",
+            "zh-TW": "')\" title=\"終端機\" type=\"button\" class=\"btn btn-default btn-sm\"><em class=\"ico-cmd\"></em></button>",
+            "en": "')\" title=\"Terminal\" type=\"button\" class=\"btn btn-default btn-sm\"><em class=\"ico-cmd\"></em></button>",
+            "fr": "')\" title=\"Terminal\" type=\"button\" class=\"btn btn-default btn-sm\"><em class=\"ico-cmd\"></em></button>",
+            "de": "')\" title=\"Terminal\" type=\"button\" class=\"btn btn-default btn-sm\"><em class=\"ico-cmd\"></em></button>",
+            "it": "')\" title=\"Terminale\" type=\"button\" class=\"btn btn-default btn-sm\"><em class=\"ico-cmd\"></em></button>"
+        },
+        "files_auto_str_46": {
+            "zh-CN": "');\" class=\"btn btn-Warning btn-sm\">粘贴</button>",
+            "zh-TW": "');\" class=\"btn btn-Warning btn-sm\">粘贴</button>",
+            "en": "');\" class=\"btn btn-Warning btn-sm\">粘贴</button>",
+            "fr": "');\" class=\"btn btn-Warning btn-sm\">粘贴</button>",
+            "de": "');\" class=\"btn btn-Warning btn-sm\">粘贴</button>",
+            "it": "');\" class=\"btn btn-Warning btn-sm\">粘贴</button>"
+        },
+        "files_auto_str_47": {
+            "zh-CN": " <button onclick=\"javascript:batchPaste();\" class=\"btn btn-default btn-sm\">粘贴所有</button>",
+            "zh-TW": " <button onclick=\"javascript:batchPaste();\" class=\"btn btn-default btn-sm\">粘贴所有</button>",
+            "en": " <button onclick=\"javascript:batchPaste();\" class=\"btn btn-default btn-sm\">粘贴所有</button>",
+            "fr": " <button onclick=\"javascript:batchPaste();\" class=\"btn btn-default btn-sm\">粘贴所有</button>",
+            "de": " <button onclick=\"javascript:batchPaste();\" class=\"btn btn-default btn-sm\">粘贴所有</button>",
+            "it": " <button onclick=\"javascript:batchPaste();\" class=\"btn btn-default btn-sm\">粘贴所有</button>"
+        },
+        "files_auto_str_48": {
+            "zh-CN": "<button onclick=\"javascript:batch(1);\" class=\"btn btn-default btn-sm\">复制</button>          <button onclick=\"javascript:batch(2);\" class=\"btn btn-default btn-sm\">剪切</button>          <button onclick=\"javascript:batch(3);\" class=\"btn btn-default btn-sm\">权限</button>          <button onclick=\"javascript:batch(5);\" class=\"btn btn-default btn-sm\">压缩</button>          <button onclick=\"javascript:batch(4);\" class=\"btn btn-default btn-sm\">删除</button>",
+            "zh-TW": "<button onclick=\"javascript:batch(1);\" class=\"btn btn-default btn-sm\">復製</button>          <button onclick=\"javascript:batch(2);\" class=\"btn btn-default btn-sm\">剪切</button>          <button onclick=\"javascript:batch(3);\" class=\"btn btn-default btn-sm\">權限</button>          <button onclick=\"javascript:batch(5);\" class=\"btn btn-default btn-sm\">壓縮</button>          <button onclick=\"javascript:batch(4);\" class=\"btn btn-default btn-sm\">刪除</button>",
+            "en": "<button onclick=\"javascript:batch(1);\" class=\"btn btn-default btn-sm\">Copy</button>          <button onclick=\"javascript:batch(2);\" class=\"btn btn-default btn-sm\">Cut</button>          <button onclick=\"javascript:batch(3);\" class=\"btn btn-default btn-sm\">Permissions</button>          <button onclick=\"javascript:batch(5);\" class=\"btn btn-default btn-sm\">Compress</button>          <button onclick=\"javascript:batch(4);\" class=\"btn btn-default btn-sm\">Delete</button>",
+            "fr": "<button onclick=\"javascript:batch(1);\" class=\"btn btn-default btn-sm\">Copier</button>          <button onclick=\"javascript:batch(2);\" class=\"btn btn-default btn-sm\">Couper</button>          <button onclick=\"javascript:batch(3);\" class=\"btn btn-default btn-sm\">Permissions</button>          <button onclick=\"javascript:batch(5);\" class=\"btn btn-default btn-sm\">Compresser</button>          <button onclick=\"javascript:batch(4);\" class=\"btn btn-default btn-sm\">Supprimer</button>",
+            "de": "<button onclick=\"javascript:batch(1);\" class=\"btn btn-default btn-sm\">Kopieren</button>          <button onclick=\"javascript:batch(2);\" class=\"btn btn-default btn-sm\">Ausschneiden</button>          <button onclick=\"javascript:batch(3);\" class=\"btn btn-default btn-sm\">Berechtigungen</button>          <button onclick=\"javascript:batch(5);\" class=\"btn btn-default btn-sm\">Komprimieren</button>          <button onclick=\"javascript:batch(4);\" class=\"btn btn-default btn-sm\">Löschen</button>",
+            "it": "<button onclick=\"javascript:batch(1);\" class=\"btn btn-default btn-sm\">Copia</button>          <button onclick=\"javascript:batch(2);\" class=\"btn btn-default btn-sm\">Taglia</button>          <button onclick=\"javascript:batch(3);\" class=\"btn btn-default btn-sm\">Permessi</button>          <button onclick=\"javascript:batch(5);\" class=\"btn btn-default btn-sm\">Comprimi</button>          <button onclick=\"javascript:batch(4);\" class=\"btn btn-default btn-sm\">Elimina</button>"
+        },
+        "files_auto_str_49": {
+            "zh-CN": "选中文件: ",
+            "zh-TW": "選中檔案: ",
+            "en": "选中Files: ",
+            "fr": "选中Fichiers: ",
+            "de": "选中Dateien: ",
+            "it": "选中File: "
+        },
+        "files_auto_str_50": {
+            "zh-CN": "<div class='myspeed'>正在处理,请稍候...</div>",
+            "zh-TW": "<div class='myspeed'>正在处理,請稍候...</div>",
+            "en": "<div class='myspeed'>Processing, please wait...</div>",
+            "fr": "<div class='myspeed'>Traitement en cours, veuillez patienter...</div>",
+            "de": "<div class='myspeed'>Wird verarbeitet, bitte warten...</div>",
+            "it": "<div class='myspeed'>Elaborazione in corso, attendere...</div>"
+        },
+        "files_auto_str_51": {
+            "zh-CN": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>文件名</th><th>大小</th><th>最后修改时间</th></thead>                        <tbody>",
+            "zh-TW": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>檔案名</th><th>大小</th><th>最後修改時間</th></thead>                        <tbody>",
+            "en": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>Files名</th><th>Size</th><th>最后ModifyTime</th></thead>                        <tbody>",
+            "fr": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>Fichiers名</th><th>Taille</th><th>最后ModifierHeure</th></thead>                        <tbody>",
+            "de": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>Dateien名</th><th>Größe</th><th>最后ÄndernZeit</th></thead>                        <tbody>",
+            "it": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>File名</th><th>Dimensione</th><th>最后ModificaOra</th></thead>                        <tbody>"
+        },
+        "files_auto_str_52": {
+            "zh-CN": "即将覆盖以下文件",
+            "zh-TW": "即將覆蓋以下檔案",
+            "en": "即将覆盖以下Files",
+            "fr": "即将覆盖以下Fichiers",
+            "de": "即将覆盖以下Dateien",
+            "it": "即将覆盖以下File"
+        },
+        "files_auto_str_53": {
+            "zh-CN": "<div class='myspeed'>正在处理,请稍候...</div>",
+            "zh-TW": "<div class='myspeed'>正在处理,請稍候...</div>",
+            "en": "<div class='myspeed'>Processing, please wait...</div>",
+            "fr": "<div class='myspeed'>Traitement en cours, veuillez patienter...</div>",
+            "de": "<div class='myspeed'>Wird verarbeitet, bitte warten...</div>",
+            "it": "<div class='myspeed'>Elaborazione in corso, attendere...</div>"
+        },
+        "files_auto_str_54": {
+            "zh-CN": "<span id=\"recycle_bin\" onclick=\"recycleBin('open')\" title=\"回收站\" style=\"position: absolute; border-color: #ccc; right: 77px;\">            <span class=\"glyphicon glyphicon-trash\"></span>&nbsp;回收站</span>",
+            "zh-TW": "<span id=\"recycle_bin\" onclick=\"recycleBin('open')\" title=\"資源回收筒\" style=\"position: absolute; border-color: #ccc; right: 77px;\">            <span class=\"glyphicon glyphicon-trash\"></span>&nbsp;資源回收筒</span>",
+            "en": "<span id=\"recycle_bin\" onclick=\"recycleBin('open')\" title=\"Recycle Bin\" style=\"position: absolute; border-color: #ccc; right: 77px;\">            <span class=\"glyphicon glyphicon-trash\"></span>&nbsp;Recycle Bin</span>",
+            "fr": "<span id=\"recycle_bin\" onclick=\"recycleBin('open')\" title=\"Corbeille\" style=\"position: absolute; border-color: #ccc; right: 77px;\">            <span class=\"glyphicon glyphicon-trash\"></span>&nbsp;Corbeille</span>",
+            "de": "<span id=\"recycle_bin\" onclick=\"recycleBin('open')\" title=\"Papierkorb\" style=\"position: absolute; border-color: #ccc; right: 77px;\">            <span class=\"glyphicon glyphicon-trash\"></span>&nbsp;Papierkorb</span>",
+            "it": "<span id=\"recycle_bin\" onclick=\"recycleBin('open')\" title=\"Cestino\" style=\"position: absolute; border-color: #ccc; right: 77px;\">            <span class=\"glyphicon glyphicon-trash\"></span>&nbsp;Cestino</span>"
+        },
+        "files_auto_str_55": {
+            "zh-CN": "新建空白文件",
+            "zh-TW": "新建空白檔案",
+            "en": "新建空白Files",
+            "fr": "新建空白Fichiers",
+            "de": "新建空白Dateien",
+            "it": "新建空白File"
+        },
+        "files_auto_str_56": {
+            "zh-CN": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newFileName\" value=\"\" placeholder=\"文件名\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm\" onclick=\"layer.closeAll()\">关闭</button>                    <button id=\"createFileBtn\" type=\"button\" class=\"btn btn-success btn-sm\" onclick=\"createFile(1,'",
+            "zh-TW": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newFileName\" value=\"\" placeholder=\"檔案名\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm\" onclick=\"layer.closeAll()\">關閉</button>                    <button id=\"createFileBtn\" type=\"button\" class=\"btn btn-success btn-sm\" onclick=\"createFile(1,'",
+            "en": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newFileName\" value=\"\" placeholder=\"Files名\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm\" onclick=\"layer.closeAll()\">Close</button>                    <button id=\"createFileBtn\" type=\"button\" class=\"btn btn-success btn-sm\" onclick=\"createFile(1,'",
+            "fr": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newFileName\" value=\"\" placeholder=\"Fichiers名\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm\" onclick=\"layer.closeAll()\">Fermer</button>                    <button id=\"createFileBtn\" type=\"button\" class=\"btn btn-success btn-sm\" onclick=\"createFile(1,'",
+            "de": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newFileName\" value=\"\" placeholder=\"Dateien名\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm\" onclick=\"layer.closeAll()\">Schließen</button>                    <button id=\"createFileBtn\" type=\"button\" class=\"btn btn-success btn-sm\" onclick=\"createFile(1,'",
+            "it": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newFileName\" value=\"\" placeholder=\"File名\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm\" onclick=\"layer.closeAll()\">Chiudi</button>                    <button id=\"createFileBtn\" type=\"button\" class=\"btn btn-success btn-sm\" onclick=\"createFile(1,'"
+        },
+        "files_auto_str_57": {
+            "zh-CN": "')\">新建</button>                    </div>                </div>",
+            "zh-TW": "')\">新建</button>                    </div>                </div>",
+            "en": "')\">新建</button>                    </div>                </div>",
+            "fr": "')\">新建</button>                    </div>                </div>",
+            "de": "')\">新建</button>                    </div>                </div>",
+            "it": "')\">新建</button>                    </div>                </div>"
+        },
+        "files_auto_str_58": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "files_auto_str_59": {
+            "zh-CN": "新建目录",
+            "zh-TW": "新建目錄",
+            "en": "新建目录",
+            "fr": "新建目录",
+            "de": "新建目录",
+            "it": "新建目录"
+        },
+        "files_auto_str_60": {
+            "zh-CN": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newDirName\" value=\"\" placeholder=\"目录名称\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">关闭</button>                    <button type=\"button\" id=\"createDirBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"createDir(1,'",
+            "zh-TW": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newDirName\" value=\"\" placeholder=\"目錄名称\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">關閉</button>                    <button type=\"button\" id=\"createDirBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"createDir(1,'",
+            "en": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newDirName\" value=\"\" placeholder=\"目录Name\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Close</button>                    <button type=\"button\" id=\"createDirBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"createDir(1,'",
+            "fr": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newDirName\" value=\"\" placeholder=\"目录Nom\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Fermer</button>                    <button type=\"button\" id=\"createDirBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"createDir(1,'",
+            "de": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newDirName\" value=\"\" placeholder=\"目录Name\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Schließen</button>                    <button type=\"button\" id=\"createDirBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"createDir(1,'",
+            "it": "<div class=\"bt-form pd20 pb70\">                    <div class=\"line\">                    <input type=\"text\" class=\"bt-input-text\" name=\"Name\" id=\"newDirName\" value=\"\" placeholder=\"目录Nome\" style=\"width:100%\" />                    </div>                    <div class=\"bt-form-submit-btn\">                    <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Chiudi</button>                    <button type=\"button\" id=\"createDirBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"createDir(1,'"
+        },
+        "files_auto_str_61": {
+            "zh-CN": "')\">新建</button>                    </div>                </div>",
+            "zh-TW": "')\">新建</button>                    </div>                </div>",
+            "en": "')\">新建</button>                    </div>                </div>",
+            "fr": "')\">新建</button>                    </div>                </div>",
+            "de": "')\">新建</button>                    </div>                </div>",
+            "it": "')\">新建</button>                    </div>                </div>"
+        },
+        "files_auto_str_62": {
+            "zh-CN": "删除文件",
+            "zh-TW": "刪除檔案",
+            "en": "DeleteFiles",
+            "fr": "SupprimerFichiers",
+            "de": "LöschenDateien",
+            "it": "EliminaFile"
+        },
+        "files_auto_str_63": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "files_auto_str_64": {
+            "zh-CN": "删除目录",
+            "zh-TW": "刪除目錄",
+            "en": "Delete目录",
+            "fr": "Supprimer目录",
+            "de": "Löschen目录",
+            "it": "Elimina目录"
+        },
+        "files_auto_str_65": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "files_auto_str_66": {
+            "zh-CN": "您确实要把这些文件放入回收站吗?",
+            "zh-TW": "您確實要把這些檔案放入資源回收筒吗?",
+            "en": "您确实要把这些Files放入Recycle Bin吗?",
+            "fr": "您确实要把这些Fichiers放入Corbeille吗?",
+            "de": "您确实要把这些Dateien放入Papierkorb吗?",
+            "it": "您确实要把这些File放入Cestino吗?"
+        },
+        "files_auto_str_67": {
+            "zh-CN": "批量删除文件",
+            "zh-TW": "批量刪除檔案",
+            "en": "批量DeleteFiles",
+            "fr": "批量SupprimerFichiers",
+            "de": "批量LöschenDateien",
+            "it": "批量EliminaFile"
+        },
+        "files_auto_str_68": {
+            "zh-CN": "<div class='myspeed'>正在处理,请稍候...</div>",
+            "zh-TW": "<div class='myspeed'>正在处理,請稍候...</div>",
+            "en": "<div class='myspeed'>Processing, please wait...</div>",
+            "fr": "<div class='myspeed'>Traitement en cours, veuillez patienter...</div>",
+            "de": "<div class='myspeed'>Wird verarbeitet, bitte warten...</div>",
+            "it": "<div class='myspeed'>Elaborazione in corso, attendere...</div>"
+        },
+        "files_auto_str_69": {
+            "zh-CN": "URL地址不能为空!",
+            "zh-TW": "URL地址不能為空!",
+            "en": "URL地址不能为空!",
+            "fr": "URL地址不能为空!",
+            "de": "URL地址不能为空!",
+            "it": "URL地址不能为空!"
+        },
+        "files_auto_str_70": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "files_auto_str_71": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "files_auto_str_72": {
+            "zh-CN": "<form class=\"bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">URL地址:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"url\" id=\"mUrl\" placeholder=\"URL地址\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname \">下载到:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"path\" id=\"dpath\" value=\"",
+            "zh-TW": "<form class=\"bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">URL地址:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"url\" id=\"mUrl\" placeholder=\"URL地址\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname \">下載到:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"path\" id=\"dpath\" value=\"",
+            "en": "<form class=\"bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">URL地址:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"url\" id=\"mUrl\" placeholder=\"URL地址\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname \">Download到:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"path\" id=\"dpath\" value=\"",
+            "fr": "<form class=\"bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">URL地址:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"url\" id=\"mUrl\" placeholder=\"URL地址\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname \">Télécharger到:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"path\" id=\"dpath\" value=\"",
+            "de": "<form class=\"bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">URL地址:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"url\" id=\"mUrl\" placeholder=\"URL地址\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname \">Herunterladen到:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"path\" id=\"dpath\" value=\"",
+            "it": "<form class=\"bt-form pd20\">                    <div class=\"line\">                        <span class=\"tname\">URL地址:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"url\" id=\"mUrl\" placeholder=\"URL地址\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname \">Scarica到:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"path\" id=\"dpath\" value=\""
+        },
+        "files_auto_str_73": {
+            "zh-CN": "\" placeholder=\"下载到\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname\">文件名:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"filename\" id=\"dfilename\" value=\"\" placeholder=\"文件名\" style=\"width:330px\" />                    </div>                </form>",
+            "zh-TW": "\" placeholder=\"下載到\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname\">檔案名:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"filename\" id=\"dfilename\" value=\"\" placeholder=\"檔案名\" style=\"width:330px\" />                    </div>                </form>",
+            "en": "\" placeholder=\"Download到\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname\">Files名:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"filename\" id=\"dfilename\" value=\"\" placeholder=\"Files名\" style=\"width:330px\" />                    </div>                </form>",
+            "fr": "\" placeholder=\"Télécharger到\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname\">Fichiers名:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"filename\" id=\"dfilename\" value=\"\" placeholder=\"Fichiers名\" style=\"width:330px\" />                    </div>                </form>",
+            "de": "\" placeholder=\"Herunterladen到\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname\">Dateien名:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"filename\" id=\"dfilename\" value=\"\" placeholder=\"Dateien名\" style=\"width:330px\" />                    </div>                </form>",
+            "it": "\" placeholder=\"Scarica到\" style=\"width:330px\" />                    </div>                    <div class=\"line\">                        <span class=\"tname\">File名:</span>                        <input type=\"text\" class=\"bt-input-text\" name=\"filename\" id=\"dfilename\" value=\"\" placeholder=\"File名\" style=\"width:330px\" />                    </div>                </form>"
+        },
+        "files_auto_str_74": {
+            "zh-CN": "重命名",
+            "zh-TW": "重命名",
+            "en": "Rename",
+            "fr": "Renommer",
+            "de": "Umbenennen",
+            "it": "Rinomina"
+        },
+        "files_auto_str_75": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "files_auto_str_76": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "files_auto_str_77": {
+            "zh-CN": "\" placeholder=\"文件名\" style=\"width:100%\" />                    </div>                </div>",
+            "zh-TW": "\" placeholder=\"檔案名\" style=\"width:100%\" />                    </div>                </div>",
+            "en": "\" placeholder=\"Files名\" style=\"width:100%\" />                    </div>                </div>",
+            "fr": "\" placeholder=\"Fichiers名\" style=\"width:100%\" />                    </div>                </div>",
+            "de": "\" placeholder=\"Dateien名\" style=\"width:100%\" />                    </div>                </div>",
+            "it": "\" placeholder=\"File名\" style=\"width:100%\" />                    </div>                </div>"
+        },
+        "files_auto_str_78": {
+            "zh-CN": "已剪切",
+            "zh-TW": "已剪切",
+            "en": "已Cut",
+            "fr": "已Couper",
+            "de": "已Ausschneiden",
+            "it": "已Taglia"
+        },
+        "files_auto_str_79": {
+            "zh-CN": "已复制路径",
+            "zh-TW": "已復製路径",
+            "en": "已Copy路径",
+            "fr": "已Copier路径",
+            "de": "已Kopieren路径",
+            "it": "已Copia路径"
+        },
+        "files_auto_str_80": {
+            "zh-CN": "已复制",
+            "zh-TW": "已復製",
+            "en": "已Copy",
+            "fr": "已Copier",
+            "de": "已Kopieren",
+            "it": "已Copia"
+        },
+        "files_auto_str_81": {
+            "zh-CN": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>文件名</th><th>大小</th><th>最后修改时间</th></thead>                        <tbody>",
+            "zh-TW": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>檔案名</th><th>大小</th><th>最後修改時間</th></thead>                        <tbody>",
+            "en": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>Files名</th><th>Size</th><th>最后ModifyTime</th></thead>                        <tbody>",
+            "fr": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>Fichiers名</th><th>Taille</th><th>最后ModifierHeure</th></thead>                        <tbody>",
+            "de": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>Dateien名</th><th>Größe</th><th>最后ÄndernZeit</th></thead>                        <tbody>",
+            "it": "<div class=\"divtable\"><table class=\"table table-hover\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"><thead><th>File名</th><th>Dimensione</th><th>最后ModificaOra</th></thead>                        <tbody>"
+        },
+        "files_auto_str_82": {
+            "zh-CN": "即将覆盖以下文件",
+            "zh-TW": "即將覆蓋以下檔案",
+            "en": "即将覆盖以下Files",
+            "fr": "即将覆盖以下Fichiers",
+            "de": "即将覆盖以下Dateien",
+            "it": "即将覆盖以下File"
+        },
+        "files_auto_str_83": {
+            "zh-CN": "正在压缩,请稍候...",
+            "zh-TW": "正在壓縮,請稍候...",
+            "en": "正在Compress,请稍候...",
+            "fr": "正在Compresser,请稍候...",
+            "de": "正在Komprimieren,请稍候...",
+            "it": "正在Comprimi,请稍候..."
+        },
+        "files_auto_str_84": {
+            "zh-CN": "服务器正在后台压缩文件,请稍候刷新文件列表查看进度!",
+            "zh-TW": "伺服器正在後台壓縮檔案,請稍候重新整理檔案列表查看进度!",
+            "en": "服务器正在后台CompressFiles,请稍候RefreshFilesList查看进度!",
+            "fr": "服务器正在后台CompresserFichiers,请稍候ActualiserFichiersListe查看进度!",
+            "de": "服务器正在后台KomprimierenDateien,请稍候AktualisierenDateienListe查看进度!",
+            "it": "服务器正在后台ComprimiFile,请稍候AggiornaFileElenco查看进度!"
+        },
+        "files_auto_str_85": {
+            "zh-CN": "压缩文件[",
+            "zh-TW": "壓縮檔案[",
+            "en": "CompressFiles[",
+            "fr": "CompresserFichiers[",
+            "de": "KomprimierenDateien[",
+            "it": "ComprimiFile["
+        },
+        "files_auto_str_86": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "files_auto_str_87": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "files_auto_str_88": {
+            "zh-CN": "<span class=\"tname\">压缩类型</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"z_type\" style=\"width:458px;\">                            <option value=\"tar_gz\" selected>tar.gz (推荐)</option>                            <option value=\"zip\">zip (通用格式)</option>                            <option value=\"rar\">rar (WinRAR对中文兼容较好)</option>                            <option value=\"7z\">7z (压缩率极高的压缩格式)</option>                            <option value=\"xz\">xz (压缩率极高的压缩格式)</option>                            <option value=\"bz2\">bz2 (压缩率极高的压缩格式)</option>                            </select>                        </div>                    </div>",
+            "zh-TW": "<span class=\"tname\">壓縮類型</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"z_type\" style=\"width:458px;\">                            <option value=\"tar_gz\" selected>tar.gz (推荐)</option>                            <option value=\"zip\">zip (通用格式)</option>                            <option value=\"rar\">rar (WinRAR對中文兼容较好)</option>                            <option value=\"7z\">7z (壓縮率極高的壓縮格式)</option>                            <option value=\"xz\">xz (壓縮率極高的壓縮格式)</option>                            <option value=\"bz2\">bz2 (壓縮率極高的壓縮格式)</option>                            </select>                        </div>                    </div>",
+            "en": "<span class=\"tname\">CompressType</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"z_type\" style=\"width:458px;\">                            <option value=\"tar_gz\" selected>tar.gz (推荐)</option>                            <option value=\"zip\">zip (通用格式)</option>                            <option value=\"rar\">rar (WinRAR对中文兼容较好)</option>                            <option value=\"7z\">7z (Compress率极高的Compress格式)</option>                            <option value=\"xz\">xz (Compress率极高的Compress格式)</option>                            <option value=\"bz2\">bz2 (Compress率极高的Compress格式)</option>                            </select>                        </div>                    </div>",
+            "fr": "<span class=\"tname\">CompresserType</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"z_type\" style=\"width:458px;\">                            <option value=\"tar_gz\" selected>tar.gz (推荐)</option>                            <option value=\"zip\">zip (通用格式)</option>                            <option value=\"rar\">rar (WinRAR对中文兼容较好)</option>                            <option value=\"7z\">7z (Compresser率极高的Compresser格式)</option>                            <option value=\"xz\">xz (Compresser率极高的Compresser格式)</option>                            <option value=\"bz2\">bz2 (Compresser率极高的Compresser格式)</option>                            </select>                        </div>                    </div>",
+            "de": "<span class=\"tname\">KomprimierenTyp</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"z_type\" style=\"width:458px;\">                            <option value=\"tar_gz\" selected>tar.gz (推荐)</option>                            <option value=\"zip\">zip (通用格式)</option>                            <option value=\"rar\">rar (WinRAR对中文兼容较好)</option>                            <option value=\"7z\">7z (Komprimieren率极高的Komprimieren格式)</option>                            <option value=\"xz\">xz (Komprimieren率极高的Komprimieren格式)</option>                            <option value=\"bz2\">bz2 (Komprimieren率极高的Komprimieren格式)</option>                            </select>                        </div>                    </div>",
+            "it": "<span class=\"tname\">ComprimiTipo</span>                        <div class=\"info-r\">                            <select class=\"bt-input-text mr5\" name=\"z_type\" style=\"width:458px;\">                            <option value=\"tar_gz\" selected>tar.gz (推荐)</option>                            <option value=\"zip\">zip (通用格式)</option>                            <option value=\"rar\">rar (WinRAR对中文兼容较好)</option>                            <option value=\"7z\">7z (Comprimi率极高的Comprimi格式)</option>                            <option value=\"xz\">xz (Comprimi率极高的Comprimi格式)</option>                            <option value=\"bz2\">bz2 (Comprimi率极高的Comprimi格式)</option>                            </select>                        </div>                    </div>"
+        },
+        "files_auto_str_89": {
+            "zh-CN": "<span class=\"tname\">压缩路径</span>                    <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "zh-TW": "<span class=\"tname\">壓縮路径</span>                    <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "en": "<span class=\"tname\">Compress路径</span>                    <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "fr": "<span class=\"tname\">Compresser路径</span>                    <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "de": "<span class=\"tname\">Komprimieren路径</span>                    <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "it": "<span class=\"tname\">Comprimi路径</span>                    <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\""
+        },
+        "files_auto_str_90": {
+            "zh-CN": "\" placeholder=\"压缩到\" style=\"width: 75%; display: inline-block; margin: 0px 10px 0px 0px;\" />                    <span  id=\"change_dir\" class=\"glyphicon glyphicon-folder-open cursor\"></span>",
+            "zh-TW": "\" placeholder=\"壓縮到\" style=\"width: 75%; display: inline-block; margin: 0px 10px 0px 0px;\" />                    <span  id=\"change_dir\" class=\"glyphicon glyphicon-folder-open cursor\"></span>",
+            "en": "\" placeholder=\"Compress到\" style=\"width: 75%; display: inline-block; margin: 0px 10px 0px 0px;\" />                    <span  id=\"change_dir\" class=\"glyphicon glyphicon-folder-open cursor\"></span>",
+            "fr": "\" placeholder=\"Compresser到\" style=\"width: 75%; display: inline-block; margin: 0px 10px 0px 0px;\" />                    <span  id=\"change_dir\" class=\"glyphicon glyphicon-folder-open cursor\"></span>",
+            "de": "\" placeholder=\"Komprimieren到\" style=\"width: 75%; display: inline-block; margin: 0px 10px 0px 0px;\" />                    <span  id=\"change_dir\" class=\"glyphicon glyphicon-folder-open cursor\"></span>",
+            "it": "\" placeholder=\"Comprimi到\" style=\"width: 75%; display: inline-block; margin: 0px 10px 0px 0px;\" />                    <span  id=\"change_dir\" class=\"glyphicon glyphicon-folder-open cursor\"></span>"
+        },
+        "files_auto_str_91": {
+            "zh-CN": "解压文件",
+            "zh-TW": "解壓檔案",
+            "en": "ExtractFiles",
+            "fr": "ExtraireFichiers",
+            "de": "EntpackenDateien",
+            "it": "EstraiFile"
+        },
+        "files_auto_str_92": {
+            "zh-CN": "正在解压,请稍候...",
+            "zh-TW": "正在解壓,請稍候...",
+            "en": "正在Extract,请稍候...",
+            "fr": "正在Extraire,请稍候...",
+            "de": "正在Entpacken,请稍候...",
+            "it": "正在Estrai,请稍候..."
+        },
+        "files_auto_str_93": {
+            "zh-CN": "解压文件",
+            "zh-TW": "解壓檔案",
+            "en": "ExtractFiles",
+            "fr": "ExtraireFichiers",
+            "de": "EntpackenDateien",
+            "it": "EstraiFile"
+        },
+        "files_auto_str_94": {
+            "zh-CN": "<div class=\"bt-form pd20 pb70\">            <div class=\"line unzipdiv\">                <span class=\"tname\">文件名</span>                <input type=\"text\" class=\"bt-input-text\" id=\"sfile\" value=\"",
+            "zh-TW": "<div class=\"bt-form pd20 pb70\">            <div class=\"line unzipdiv\">                <span class=\"tname\">檔案名</span>                <input type=\"text\" class=\"bt-input-text\" id=\"sfile\" value=\"",
+            "en": "<div class=\"bt-form pd20 pb70\">            <div class=\"line unzipdiv\">                <span class=\"tname\">Files名</span>                <input type=\"text\" class=\"bt-input-text\" id=\"sfile\" value=\"",
+            "fr": "<div class=\"bt-form pd20 pb70\">            <div class=\"line unzipdiv\">                <span class=\"tname\">Fichiers名</span>                <input type=\"text\" class=\"bt-input-text\" id=\"sfile\" value=\"",
+            "de": "<div class=\"bt-form pd20 pb70\">            <div class=\"line unzipdiv\">                <span class=\"tname\">Dateien名</span>                <input type=\"text\" class=\"bt-input-text\" id=\"sfile\" value=\"",
+            "it": "<div class=\"bt-form pd20 pb70\">            <div class=\"line unzipdiv\">                <span class=\"tname\">File名</span>                <input type=\"text\" class=\"bt-input-text\" id=\"sfile\" value=\""
+        },
+        "files_auto_str_95": {
+            "zh-CN": "\" placeholder=\"压缩文件名\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">解压到</span>                <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "zh-TW": "\" placeholder=\"壓縮檔案名\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">解壓到</span>                <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "en": "\" placeholder=\"CompressFiles名\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">Extract到</span>                <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "fr": "\" placeholder=\"CompresserFichiers名\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">Extraire到</span>                <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "de": "\" placeholder=\"KomprimierenDateien名\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">Entpacken到</span>                <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\"",
+            "it": "\" placeholder=\"ComprimiFile名\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">Estrai到</span>                <input type=\"text\" class=\"bt-input-text\" id=\"dfile\" value=\""
+        },
+        "files_auto_str_96": {
+            "zh-CN": "\" placeholder=\"解压到\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">编码</span>                <select class=\"bt-input-text\" name=\"coding\">                    <option value=\"UTF-8\">UTF-8</option>                    <option value=\"gb18030\">GBK</option>                </select>            </div>            <div class=\"bt-form-submit-btn\">                <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">关闭</button>                <button type=\"button\" id=\"ReNameBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"unCompressFile('",
+            "zh-TW": "\" placeholder=\"解壓到\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">编码</span>                <select class=\"bt-input-text\" name=\"coding\">                    <option value=\"UTF-8\">UTF-8</option>                    <option value=\"gb18030\">GBK</option>                </select>            </div>            <div class=\"bt-form-submit-btn\">                <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">關閉</button>                <button type=\"button\" id=\"ReNameBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"unCompressFile('",
+            "en": "\" placeholder=\"Extract到\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">编码</span>                <select class=\"bt-input-text\" name=\"coding\">                    <option value=\"UTF-8\">UTF-8</option>                    <option value=\"gb18030\">GBK</option>                </select>            </div>            <div class=\"bt-form-submit-btn\">                <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Close</button>                <button type=\"button\" id=\"ReNameBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"unCompressFile('",
+            "fr": "\" placeholder=\"Extraire到\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">编码</span>                <select class=\"bt-input-text\" name=\"coding\">                    <option value=\"UTF-8\">UTF-8</option>                    <option value=\"gb18030\">GBK</option>                </select>            </div>            <div class=\"bt-form-submit-btn\">                <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Fermer</button>                <button type=\"button\" id=\"ReNameBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"unCompressFile('",
+            "de": "\" placeholder=\"Entpacken到\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">编码</span>                <select class=\"bt-input-text\" name=\"coding\">                    <option value=\"UTF-8\">UTF-8</option>                    <option value=\"gb18030\">GBK</option>                </select>            </div>            <div class=\"bt-form-submit-btn\">                <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Schließen</button>                <button type=\"button\" id=\"ReNameBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"unCompressFile('",
+            "it": "\" placeholder=\"Estrai到\" style=\"width:330px\" />            </div>            <div class=\"line\">                <span class=\"tname\">编码</span>                <select class=\"bt-input-text\" name=\"coding\">                    <option value=\"UTF-8\">UTF-8</option>                    <option value=\"gb18030\">GBK</option>                </select>            </div>            <div class=\"bt-form-submit-btn\">                <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Chiudi</button>                <button type=\"button\" id=\"ReNameBtn\" class=\"btn btn-success btn-sm btn-title\" onclick=\"unCompressFile('"
+        },
+        "files_auto_str_97": {
+            "zh-CN": "','3')\">解压</button>            </div>        </div>",
+            "zh-TW": "','3')\">解壓</button>            </div>        </div>",
+            "en": "','3')\">Extract</button>            </div>        </div>",
+            "fr": "','3')\">Extraire</button>            </div>        </div>",
+            "de": "','3')\">Entpacken</button>            </div>        </div>",
+            "it": "','3')\">Estrai</button>            </div>        </div>"
+        },
+        "files_auto_str_98": {
+            "zh-CN": "图片预览",
+            "zh-TW": "图片预覽",
+            "en": "图片预览",
+            "fr": "图片预览",
+            "de": "图片预览",
+            "it": "图片预览"
+        },
+        "files_auto_str_99": {
+            "zh-CN": "正在设置...",
+            "zh-TW": "正在設定...",
+            "en": "正在设置...",
+            "fr": "正在设置...",
+            "de": "正在设置...",
+            "it": "正在设置..."
+        },
+        "files_auto_str_100": {
+            "zh-CN": "设置权限[",
+            "zh-TW": "設定權限[",
+            "en": "设置Permissions[",
+            "fr": "设置Permissions[",
+            "de": "设置Berechtigungen[",
+            "it": "设置Permessi["
+        },
+        "files_auto_str_101": {
+            "zh-CN": "<div class=\"setchmod bt-form ptb15 pb70\">                        <fieldset>                            <legend>所有者</legend>                            <p><input type=\"checkbox\" id=\"owner_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"owner_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"owner_x\" />执行</p>                        </fieldset>                        <fieldset>                            <legend>用户组</legend>                            <p><input type=\"checkbox\" id=\"group_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"group_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"group_x\" />执行</p>                        </fieldset>                        <fieldset>                            <legend>公共</legend>                            <p><input type=\"checkbox\" id=\"public_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"public_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"public_x\" />执行</p>                        </fieldset>                        <div class=\"setchmodnum\"><input class=\"bt-input-text\" type=\"text\" id=\"access\" maxlength=\"3\" value=\"",
+            "zh-TW": "<div class=\"setchmod bt-form ptb15 pb70\">                        <fieldset>                            <legend>所有者</legend>                            <p><input type=\"checkbox\" id=\"owner_r\" />讀取</p>                            <p><input type=\"checkbox\" id=\"owner_w\" />寫入</p>                            <p><input type=\"checkbox\" id=\"owner_x\" />執行</p>                        </fieldset>                        <fieldset>                            <legend>使用者組</legend>                            <p><input type=\"checkbox\" id=\"group_r\" />讀取</p>                            <p><input type=\"checkbox\" id=\"group_w\" />寫入</p>                            <p><input type=\"checkbox\" id=\"group_x\" />執行</p>                        </fieldset>                        <fieldset>                            <legend>公共</legend>                            <p><input type=\"checkbox\" id=\"public_r\" />讀取</p>                            <p><input type=\"checkbox\" id=\"public_w\" />寫入</p>                            <p><input type=\"checkbox\" id=\"public_x\" />執行</p>                        </fieldset>                        <div class=\"setchmodnum\"><input class=\"bt-input-text\" type=\"text\" id=\"access\" maxlength=\"3\" value=\"",
+            "en": "<div class=\"setchmod bt-form ptb15 pb70\">                        <fieldset>                            <legend>Owner</legend>                            <p><input type=\"checkbox\" id=\"owner_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"owner_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"owner_x\" />Execute</p>                        </fieldset>                        <fieldset>                            <legend>用户组</legend>                            <p><input type=\"checkbox\" id=\"group_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"group_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"group_x\" />Execute</p>                        </fieldset>                        <fieldset>                            <legend>公共</legend>                            <p><input type=\"checkbox\" id=\"public_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"public_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"public_x\" />Execute</p>                        </fieldset>                        <div class=\"setchmodnum\"><input class=\"bt-input-text\" type=\"text\" id=\"access\" maxlength=\"3\" value=\"",
+            "fr": "<div class=\"setchmod bt-form ptb15 pb70\">                        <fieldset>                            <legend>Propriétaire</legend>                            <p><input type=\"checkbox\" id=\"owner_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"owner_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"owner_x\" />Exécuter</p>                        </fieldset>                        <fieldset>                            <legend>用户组</legend>                            <p><input type=\"checkbox\" id=\"group_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"group_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"group_x\" />Exécuter</p>                        </fieldset>                        <fieldset>                            <legend>公共</legend>                            <p><input type=\"checkbox\" id=\"public_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"public_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"public_x\" />Exécuter</p>                        </fieldset>                        <div class=\"setchmodnum\"><input class=\"bt-input-text\" type=\"text\" id=\"access\" maxlength=\"3\" value=\"",
+            "de": "<div class=\"setchmod bt-form ptb15 pb70\">                        <fieldset>                            <legend>Eigentümer</legend>                            <p><input type=\"checkbox\" id=\"owner_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"owner_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"owner_x\" />Ausführen</p>                        </fieldset>                        <fieldset>                            <legend>用户组</legend>                            <p><input type=\"checkbox\" id=\"group_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"group_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"group_x\" />Ausführen</p>                        </fieldset>                        <fieldset>                            <legend>公共</legend>                            <p><input type=\"checkbox\" id=\"public_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"public_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"public_x\" />Ausführen</p>                        </fieldset>                        <div class=\"setchmodnum\"><input class=\"bt-input-text\" type=\"text\" id=\"access\" maxlength=\"3\" value=\"",
+            "it": "<div class=\"setchmod bt-form ptb15 pb70\">                        <fieldset>                            <legend>Proprietario</legend>                            <p><input type=\"checkbox\" id=\"owner_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"owner_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"owner_x\" />Esegui</p>                        </fieldset>                        <fieldset>                            <legend>用户组</legend>                            <p><input type=\"checkbox\" id=\"group_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"group_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"group_x\" />Esegui</p>                        </fieldset>                        <fieldset>                            <legend>公共</legend>                            <p><input type=\"checkbox\" id=\"public_r\" />读取</p>                            <p><input type=\"checkbox\" id=\"public_w\" />写入</p>                            <p><input type=\"checkbox\" id=\"public_x\" />Esegui</p>                        </fieldset>                        <div class=\"setchmodnum\"><input class=\"bt-input-text\" type=\"text\" id=\"access\" maxlength=\"3\" value=\""
+        },
+        "files_auto_str_102": {
+            "zh-CN": "\">权限，                        <span>所有者                        <select id=\"chown\" class=\"bt-input-text\" style=\"width:100px;\">                            ",
+            "zh-TW": "\">權限，                        <span>所有者                        <select id=\"chown\" class=\"bt-input-text\" style=\"width:100px;\">                            ",
+            "en": "\">Permissions，                        <span>Owner                        <select id=\"chown\" class=\"bt-input-text\" style=\"width:100px;\">                            ",
+            "fr": "\">Permissions，                        <span>Propriétaire                        <select id=\"chown\" class=\"bt-input-text\" style=\"width:100px;\">                            ",
+            "de": "\">Berechtigungen，                        <span>Eigentümer                        <select id=\"chown\" class=\"bt-input-text\" style=\"width:100px;\">                            ",
+            "it": "\">Permessi，                        <span>Proprietario                        <select id=\"chown\" class=\"bt-input-text\" style=\"width:100px;\">                            "
+        },
+        "files_auto_str_103": {
+            "zh-CN": "                        </select></span></div>                        <div class=\"bt-form-submit-btn\">                            <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">关闭</button>                            <button type=\"button\" class=\"btn btn-success btn-sm btn-title\" onclick=\"",
+            "zh-TW": "                        </select></span></div>                        <div class=\"bt-form-submit-btn\">                            <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">關閉</button>                            <button type=\"button\" class=\"btn btn-success btn-sm btn-title\" onclick=\"",
+            "en": "                        </select></span></div>                        <div class=\"bt-form-submit-btn\">                            <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Close</button>                            <button type=\"button\" class=\"btn btn-success btn-sm btn-title\" onclick=\"",
+            "fr": "                        </select></span></div>                        <div class=\"bt-form-submit-btn\">                            <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Fermer</button>                            <button type=\"button\" class=\"btn btn-success btn-sm btn-title\" onclick=\"",
+            "de": "                        </select></span></div>                        <div class=\"bt-form-submit-btn\">                            <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Schließen</button>                            <button type=\"button\" class=\"btn btn-success btn-sm btn-title\" onclick=\"",
+            "it": "                        </select></span></div>                        <div class=\"bt-form-submit-btn\">                            <button type=\"button\" class=\"btn btn-danger btn-sm btn-title\" onclick=\"layer.closeAll()\">Chiudi</button>                            <button type=\"button\" class=\"btn btn-success btn-sm btn-title\" onclick=\""
+        },
+        "files_auto_str_104": {
+            "zh-CN": "\" >确定</button>                        </div>                    </div>",
+            "zh-TW": "\" >確定</button>                        </div>                    </div>",
+            "en": "\" >Confirm</button>                        </div>                    </div>",
+            "fr": "\" >Confirmer</button>                        </div>                    </div>",
+            "de": "\" >Bestätigen</button>                        </div>                    </div>",
+            "it": "\" >Conferma</button>                        </div>                    </div>"
+        },
+        "files_auto_str_105": {
+            "zh-CN": "复制",
+            "zh-TW": "復製",
+            "en": "Copy",
+            "fr": "Copier",
+            "de": "Kopieren",
+            "it": "Copia"
+        },
+        "files_auto_str_106": {
+            "zh-CN": "剪切",
+            "zh-TW": "剪切",
+            "en": "Cut",
+            "fr": "Couper",
+            "de": "Ausschneiden",
+            "it": "Taglia"
+        },
+        "files_auto_str_107": {
+            "zh-CN": "重命名",
+            "zh-TW": "重命名",
+            "en": "Rename",
+            "fr": "Renommer",
+            "de": "Umbenennen",
+            "it": "Rinomina"
+        },
+        "files_auto_str_108": {
+            "zh-CN": "强制刷新页面",
+            "zh-TW": "强製重新整理頁面",
+            "en": "强制Refresh页面",
+            "fr": "强制Actualiser页面",
+            "de": "强制Aktualisieren页面",
+            "it": "强制Aggiorna页面"
+        },
+        "files_auto_str_109": {
+            "zh-CN": "正在计算，请稍候...",
+            "zh-TW": "正在計算，請稍候...",
+            "en": "正在计算，请稍候...",
+            "fr": "正在计算，请稍候...",
+            "de": "正在计算，请稍候...",
+            "it": "正在计算，请稍候..."
+        },
+        "files_auto_str_110": {
+            "zh-CN": "正在解析文件结构...",
+            "zh-TW": "正在解析檔案結構...",
+            "en": "正在解析Files结构...",
+            "fr": "正在解析Fichiers结构...",
+            "de": "正在解析Dateien结构...",
+            "it": "正在解析File结构..."
+        },
+        "files_auto_str_111": {
+            "zh-CN": "未发现可上传的文件",
+            "zh-TW": "未發現可上傳的檔案",
+            "en": "未发现可Upload的Files",
+            "fr": "未发现可Téléverser的Fichiers",
+            "de": "未发现可Hochladen的Dateien",
+            "it": "未发现可Carica的File"
+        },
+        "files_auto_str_112": {
+            "zh-CN": "正在检测文件覆盖状态...",
+            "zh-TW": "正在检测檔案覆蓋狀態...",
+            "en": "正在检测Files覆盖Status...",
+            "fr": "正在检测Fichiers覆盖Statut...",
+            "de": "正在检测Dateien覆盖Status...",
+            "it": "正在检测File覆盖Stato..."
+        },
+        "files_auto_str_113": {
+            "zh-CN": "<span class=\"overwrite-warn\" style=\"color:#5cb85c;margin-left:10px;\">(会覆盖)</span>",
+            "zh-TW": "<span class=\"overwrite-warn\" style=\"color:#5cb85c;margin-left:10px;\">(会覆蓋)</span>",
+            "en": "<span class=\"overwrite-warn\" style=\"color:#5cb85c;margin-left:10px;\">(会覆盖)</span>",
+            "fr": "<span class=\"overwrite-warn\" style=\"color:#5cb85c;margin-left:10px;\">(会覆盖)</span>",
+            "de": "<span class=\"overwrite-warn\" style=\"color:#5cb85c;margin-left:10px;\">(会覆盖)</span>",
+            "it": "<span class=\"overwrite-warn\" style=\"color:#5cb85c;margin-left:10px;\">(会覆盖)</span>"
+        },
+        "files_auto_str_114": {
+            "zh-CN": ")\">移除</a>            </li>",
+            "zh-TW": ")\">移除</a>            </li>",
+            "en": ")\">移除</a>            </li>",
+            "fr": ")\">移除</a>            </li>",
+            "de": ")\">移除</a>            </li>",
+            "it": ")\">移除</a>            </li>"
+        },
+        "files_auto_str_115": {
+            "zh-CN": "<div style=\"text-align:center; padding: 50px 0; color: #999;\">            <div class=\"glyphicon glyphicon-cloud-upload\" style=\"font-size: 40px; margin-bottom: 15px; opacity: 0.2;\"></div>            <p>暂无待上传项目</p>            <p style=\"font-size:12px;\">请拖拽文件到此处或点击左下角添加</p>        </div>",
+            "zh-TW": "<div style=\"text-align:center; padding: 50px 0; color: #999;\">            <div class=\"glyphicon glyphicon-cloud-upload\" style=\"font-size: 40px; margin-bottom: 15px; opacity: 0.2;\"></div>            <p>暂無待上傳項目</p>            <p style=\"font-size:12px;\">请拖拽檔案到此处或點击左下角新增</p>        </div>",
+            "en": "<div style=\"text-align:center; padding: 50px 0; color: #999;\">            <div class=\"glyphicon glyphicon-cloud-upload\" style=\"font-size: 40px; margin-bottom: 15px; opacity: 0.2;\"></div>            <p>暂无待Upload项目</p>            <p style=\"font-size:12px;\">请拖拽Files到此处或点击左下角Add</p>        </div>",
+            "fr": "<div style=\"text-align:center; padding: 50px 0; color: #999;\">            <div class=\"glyphicon glyphicon-cloud-upload\" style=\"font-size: 40px; margin-bottom: 15px; opacity: 0.2;\"></div>            <p>暂无待Téléverser项目</p>            <p style=\"font-size:12px;\">请拖拽Fichiers到此处或点击左下角Ajouter</p>        </div>",
+            "de": "<div style=\"text-align:center; padding: 50px 0; color: #999;\">            <div class=\"glyphicon glyphicon-cloud-upload\" style=\"font-size: 40px; margin-bottom: 15px; opacity: 0.2;\"></div>            <p>暂无待Hochladen项目</p>            <p style=\"font-size:12px;\">请拖拽Dateien到此处或点击左下角Hinzufügen</p>        </div>",
+            "it": "<div style=\"text-align:center; padding: 50px 0; color: #999;\">            <div class=\"glyphicon glyphicon-cloud-upload\" style=\"font-size: 40px; margin-bottom: 15px; opacity: 0.2;\"></div>            <p>暂无待Carica项目</p>            <p style=\"font-size:12px;\">请拖拽File到此处或点击左下角Aggiungi</p>        </div>"
+        },
+        "files_auto_str_116": {
+            "zh-CN": "<li><em style=\"color: #999;\">... 还有 ",
+            "zh-TW": "<li><em style=\"color: #999;\">... 还有 ",
+            "en": "<li><em style=\"color: #999;\">... 还有 ",
+            "fr": "<li><em style=\"color: #999;\">... 还有 ",
+            "de": "<li><em style=\"color: #999;\">... 还有 ",
+            "it": "<li><em style=\"color: #999;\">... 还有 "
+        },
+        "files_auto_str_117": {
+            "zh-CN": " 个项目</em></li>",
+            "zh-TW": " 個項目</em></li>",
+            "en": " 个项目</em></li>",
+            "fr": " 个项目</em></li>",
+            "de": " 个项目</em></li>",
+            "it": " 个项目</em></li>"
+        },
+        "files_auto_str_118": {
+            "zh-CN": "确认上传 (",
+            "zh-TW": "確認上傳 (",
+            "en": "确认Upload (",
+            "fr": "确认Téléverser (",
+            "de": "确认Hochladen (",
+            "it": "确认Carica ("
+        },
+        "files_auto_str_119": {
+            "zh-CN": " 个项目)",
+            "zh-TW": " 個項目)",
+            "en": " 个项目)",
+            "fr": " 个项目)",
+            "de": " 个项目)",
+            "it": " 个项目)"
+        },
+        "files_auto_str_120": {
+            "zh-CN": "<div class=\"fileUploadDiv confirmUpload\">                <style>                    .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }                    .confirmUpload .up_box li:hover { background-color: #C6F5C9 !important; cursor: pointer; }                </style>                <div class=\"upload-target\">上传到目录: <code>",
+            "zh-TW": "<div class=\"fileUploadDiv confirmUpload\">                <style>                    .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }                    .confirmUpload .up_box li:hover { background-color: #C6F5C9 !important; cursor: pointer; }                </style>                <div class=\"upload-target\">上傳到目錄: <code>",
+            "en": "<div class=\"fileUploadDiv confirmUpload\">                <style>                    .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }                    .confirmUpload .up_box li:hover { background-color: #C6F5C9 !important; cursor: pointer; }                </style>                <div class=\"upload-target\">Upload到目录: <code>",
+            "fr": "<div class=\"fileUploadDiv confirmUpload\">                <style>                    .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }                    .confirmUpload .up_box li:hover { background-color: #C6F5C9 !important; cursor: pointer; }                </style>                <div class=\"upload-target\">Téléverser到目录: <code>",
+            "de": "<div class=\"fileUploadDiv confirmUpload\">                <style>                    .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }                    .confirmUpload .up_box li:hover { background-color: #C6F5C9 !important; cursor: pointer; }                </style>                <div class=\"upload-target\">Hochladen到目录: <code>",
+            "it": "<div class=\"fileUploadDiv confirmUpload\">                <style>                    .confirmUpload .up_box li { padding: 8px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.1s; }                    .confirmUpload .up_box li:hover { background-color: #C6F5C9 !important; cursor: pointer; }                </style>                <div class=\"upload-target\">Carica到目录: <code>"
+        },
+        "files_auto_str_121": {
+            "zh-CN": "</ul>                <div class=\"upload-footer\">                    <div class=\"footer-left\">                        <span class=\"total-info\">总大小: ",
+            "zh-TW": "</ul>                <div class=\"upload-footer\">                    <div class=\"footer-left\">                        <span class=\"total-info\">總大小: ",
+            "en": "</ul>                <div class=\"upload-footer\">                    <div class=\"footer-left\">                        <span class=\"total-info\">总Size: ",
+            "fr": "</ul>                <div class=\"upload-footer\">                    <div class=\"footer-left\">                        <span class=\"total-info\">总Taille: ",
+            "de": "</ul>                <div class=\"upload-footer\">                    <div class=\"footer-left\">                        <span class=\"total-info\">总Größe: ",
+            "it": "</ul>                <div class=\"upload-footer\">                    <div class=\"footer-left\">                        <span class=\"total-info\">总Dimensione: "
+        },
+        "files_auto_str_122": {
+            "zh-CN": "</span>                        <button type=\"button\" class=\"btn btn-default btn-xs ml10\" onclick=\"showAddMoreMenu(this)\" style=\"color:#20a53a;border-color:#20a53a;padding: 2px 8px;\">添加项目 <span class=\"caret\"></span></button>                    </div>                    <div class=\"footer-right\">                        <button type=\"button\" class=\"btn btn-default btn-sm\" onClick=\"pendingUploadFiles=[];layer.closeAll()\">取消</button>                        <button type=\"button\" id=\"confirmUpBtn\" class=\"btn btn-success btn-sm ml10\">开始上传</button>                    </div>                </div>            </div>",
+            "zh-TW": "</span>                        <button type=\"button\" class=\"btn btn-default btn-xs ml10\" onclick=\"showAddMoreMenu(this)\" style=\"color:#20a53a;border-color:#20a53a;padding: 2px 8px;\">新增項目 <span class=\"caret\"></span></button>                    </div>                    <div class=\"footer-right\">                        <button type=\"button\" class=\"btn btn-default btn-sm\" onClick=\"pendingUploadFiles=[];layer.closeAll()\">取消</button>                        <button type=\"button\" id=\"confirmUpBtn\" class=\"btn btn-success btn-sm ml10\">開始上傳</button>                    </div>                </div>            </div>",
+            "en": "</span>                        <button type=\"button\" class=\"btn btn-default btn-xs ml10\" onclick=\"showAddMoreMenu(this)\" style=\"color:#20a53a;border-color:#20a53a;padding: 2px 8px;\">Add项目 <span class=\"caret\"></span></button>                    </div>                    <div class=\"footer-right\">                        <button type=\"button\" class=\"btn btn-default btn-sm\" onClick=\"pendingUploadFiles=[];layer.closeAll()\">Cancel</button>                        <button type=\"button\" id=\"confirmUpBtn\" class=\"btn btn-success btn-sm ml10\">开始Upload</button>                    </div>                </div>            </div>",
+            "fr": "</span>                        <button type=\"button\" class=\"btn btn-default btn-xs ml10\" onclick=\"showAddMoreMenu(this)\" style=\"color:#20a53a;border-color:#20a53a;padding: 2px 8px;\">Ajouter项目 <span class=\"caret\"></span></button>                    </div>                    <div class=\"footer-right\">                        <button type=\"button\" class=\"btn btn-default btn-sm\" onClick=\"pendingUploadFiles=[];layer.closeAll()\">Annuler</button>                        <button type=\"button\" id=\"confirmUpBtn\" class=\"btn btn-success btn-sm ml10\">开始Téléverser</button>                    </div>                </div>            </div>",
+            "de": "</span>                        <button type=\"button\" class=\"btn btn-default btn-xs ml10\" onclick=\"showAddMoreMenu(this)\" style=\"color:#20a53a;border-color:#20a53a;padding: 2px 8px;\">Hinzufügen项目 <span class=\"caret\"></span></button>                    </div>                    <div class=\"footer-right\">                        <button type=\"button\" class=\"btn btn-default btn-sm\" onClick=\"pendingUploadFiles=[];layer.closeAll()\">Abbrechen</button>                        <button type=\"button\" id=\"confirmUpBtn\" class=\"btn btn-success btn-sm ml10\">开始Hochladen</button>                    </div>                </div>            </div>",
+            "it": "</span>                        <button type=\"button\" class=\"btn btn-default btn-xs ml10\" onclick=\"showAddMoreMenu(this)\" style=\"color:#20a53a;border-color:#20a53a;padding: 2px 8px;\">Aggiungi项目 <span class=\"caret\"></span></button>                    </div>                    <div class=\"footer-right\">                        <button type=\"button\" class=\"btn btn-default btn-sm\" onClick=\"pendingUploadFiles=[];layer.closeAll()\">Annulla</button>                        <button type=\"button\" id=\"confirmUpBtn\" class=\"btn btn-success btn-sm ml10\">开始Carica</button>                    </div>                </div>            </div>"
+        },
+        "files_auto_str_123": {
+            "zh-CN": "请先添加要上传的项目",
+            "zh-TW": "请先新增要上傳的項目",
+            "en": "请先Add要Upload的项目",
+            "fr": "请先Ajouter要Téléverser的项目",
+            "de": "请先Hinzufügen要Hochladen的项目",
+            "it": "请先Aggiungi要Carica的项目"
+        },
+        "files_auto_str_124": {
+            "zh-CN": "<div class=\"add-more-menu\">        <a href=\"javascript:;\" onclick=\"$('#manual_upload_files').click(); layer.closeAll('tips')\">添加文件</a>        <a href=\"javascript:;\" onclick=\"$('#manual_upload_dir').click(); layer.closeAll('tips')\">添加文件夹</a>    </div>",
+            "zh-TW": "<div class=\"add-more-menu\">        <a href=\"javascript:;\" onclick=\"$('#manual_upload_files').click(); layer.closeAll('tips')\">新增檔案</a>        <a href=\"javascript:;\" onclick=\"$('#manual_upload_dir').click(); layer.closeAll('tips')\">新增檔案夹</a>    </div>",
+            "en": "<div class=\"add-more-menu\">        <a href=\"javascript:;\" onclick=\"$('#manual_upload_files').click(); layer.closeAll('tips')\">AddFiles</a>        <a href=\"javascript:;\" onclick=\"$('#manual_upload_dir').click(); layer.closeAll('tips')\">AddFiles夹</a>    </div>",
+            "fr": "<div class=\"add-more-menu\">        <a href=\"javascript:;\" onclick=\"$('#manual_upload_files').click(); layer.closeAll('tips')\">AjouterFichiers</a>        <a href=\"javascript:;\" onclick=\"$('#manual_upload_dir').click(); layer.closeAll('tips')\">AjouterFichiers夹</a>    </div>",
+            "de": "<div class=\"add-more-menu\">        <a href=\"javascript:;\" onclick=\"$('#manual_upload_files').click(); layer.closeAll('tips')\">HinzufügenDateien</a>        <a href=\"javascript:;\" onclick=\"$('#manual_upload_dir').click(); layer.closeAll('tips')\">HinzufügenDateien夹</a>    </div>",
+            "it": "<div class=\"add-more-menu\">        <a href=\"javascript:;\" onclick=\"$('#manual_upload_files').click(); layer.closeAll('tips')\">AggiungiFile</a>        <a href=\"javascript:;\" onclick=\"$('#manual_upload_dir').click(); layer.closeAll('tips')\">AggiungiFile夹</a>    </div>"
+        },
+        "files_auto_str_125": {
+            "zh-CN": "正在上传...",
+            "zh-TW": "正在上傳...",
+            "en": "正在Upload...",
+            "fr": "正在Téléverser...",
+            "de": "正在Hochladen...",
+            "it": "正在Carica..."
+        },
+        "files_auto_str_126": {
+            "zh-CN": "<div class=\"fileUploadDiv\">                <div id=\"totalProgress\"></div>                <ul id=\"up_box\"></ul>                <div style=\"text-align:center; margin-top:10px;\"><button class=\"btn btn-default btn-sm\" id=\"stopUp\" style=\"display:none\">停止</button></div>            </div>",
+            "zh-TW": "<div class=\"fileUploadDiv\">                <div id=\"totalProgress\"></div>                <ul id=\"up_box\"></ul>                <div style=\"text-align:center; margin-top:10px;\"><button class=\"btn btn-default btn-sm\" id=\"stopUp\" style=\"display:none\">停止</button></div>            </div>",
+            "en": "<div class=\"fileUploadDiv\">                <div id=\"totalProgress\"></div>                <ul id=\"up_box\"></ul>                <div style=\"text-align:center; margin-top:10px;\"><button class=\"btn btn-default btn-sm\" id=\"stopUp\" style=\"display:none\">Stop</button></div>            </div>",
+            "fr": "<div class=\"fileUploadDiv\">                <div id=\"totalProgress\"></div>                <ul id=\"up_box\"></ul>                <div style=\"text-align:center; margin-top:10px;\"><button class=\"btn btn-default btn-sm\" id=\"stopUp\" style=\"display:none\">Arrêter</button></div>            </div>",
+            "de": "<div class=\"fileUploadDiv\">                <div id=\"totalProgress\"></div>                <ul id=\"up_box\"></ul>                <div style=\"text-align:center; margin-top:10px;\"><button class=\"btn btn-default btn-sm\" id=\"stopUp\" style=\"display:none\">Stoppen</button></div>            </div>",
+            "it": "<div class=\"fileUploadDiv\">                <div id=\"totalProgress\"></div>                <ul id=\"up_box\"></ul>                <div style=\"text-align:center; margin-top:10px;\"><button class=\"btn btn-default btn-sm\" id=\"stopUp\" style=\"display:none\">Arresta</button></div>            </div>"
+        },
+        "files_auto_str_127": {
+            "zh-CN": "已停止上传",
+            "zh-TW": "已停止上傳",
+            "en": "已StopUpload",
+            "fr": "已ArrêterTéléverser",
+            "de": "已StoppenHochladen",
+            "it": "已ArrestaCarica"
+        },
+        "files_auto_str_128": {
+            "zh-CN": "全部上传完成",
+            "zh-TW": "全部上傳完成",
+            "en": "AllUpload完成",
+            "fr": "ToutTéléverser完成",
+            "de": "AlleHochladen完成",
+            "it": "TuttoCarica完成"
+        },
+        "files_auto_str_129": {
+            "zh-CN": "</span><em>等待上传...</em>",
+            "zh-TW": "</span><em>等待上傳...</em>",
+            "en": "</span><em>等待Upload...</em>",
+            "fr": "</span><em>等待Téléverser...</em>",
+            "de": "</span><em>等待Hochladen...</em>",
+            "it": "</span><em>等待Carica...</em>"
+        },
+        "files_auto_str_130": {
+            "zh-CN": "<p>上传进度: ",
+            "zh-TW": "<p>上傳进度: ",
+            "en": "<p>Upload进度: ",
+            "fr": "<p>Téléverser进度: ",
+            "de": "<p>Hochladen进度: ",
+            "it": "<p>Carica进度: "
+        },
+        "files_auto_str_131": {
+            "zh-CN": "上传中: ",
+            "zh-TW": "上傳中: ",
+            "en": "Upload中: ",
+            "fr": "Téléverser中: ",
+            "de": "Hochladen中: ",
+            "it": "Carica中: "
+        },
+        "files_auto_str_132": {
+            "zh-CN": "已成功",
+            "zh-TW": "已成功",
+            "en": "已成功",
+            "fr": "已成功",
+            "de": "已成功",
+            "it": "已成功"
+        },
+        "files_auto_str_133": {
+            "zh-CN": "上传失败",
+            "zh-TW": "上傳失敗",
+            "en": "Upload失败",
+            "fr": "Téléverser失败",
+            "de": "Hochladen失败",
+            "it": "Carica失败"
+        },
+        "files_auto_str_134": {
+            "zh-CN": "根目录",
+            "zh-TW": "根目錄",
+            "en": "Root Directory",
+            "fr": "Répertoire racine",
+            "de": "Stammverzeichnis",
+            "it": "Directory principale"
+        },
+        "files_auto_str_135": {
+            "zh-CN": "<button class=\"add-tab-btn\" onclick=\"addNewFileTab()\" title=\"新建标签页\">+</button>",
+            "zh-TW": "<button class=\"add-tab-btn\" onclick=\"addNewFileTab()\" title=\"新建標签頁\">+</button>",
+            "en": "<button class=\"add-tab-btn\" onclick=\"addNewFileTab()\" title=\"新建标签页\">+</button>",
+            "fr": "<button class=\"add-tab-btn\" onclick=\"addNewFileTab()\" title=\"新建标签页\">+</button>",
+            "de": "<button class=\"add-tab-btn\" onclick=\"addNewFileTab()\" title=\"新建标签页\">+</button>",
+            "it": "<button class=\"add-tab-btn\" onclick=\"addNewFileTab()\" title=\"新建标签页\">+</button>"
+        },
+        "files_auto_str_136": {
+            "zh-CN": "根目录",
+            "zh-TW": "根目錄",
+            "en": "Root Directory",
+            "fr": "Répertoire racine",
+            "de": "Stammverzeichnis",
+            "it": "Directory principale"
+        },
+        "files_auto_str_137": {
+            "zh-CN": "根目录",
+            "zh-TW": "根目錄",
+            "en": "Root Directory",
+            "fr": "Répertoire racine",
+            "de": "Stammverzeichnis",
+            "it": "Directory principale"
+        },
+        "files_auto_str_138": {
+            "zh-CN": "<img src='/static/img/loading.gif' style='width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;' />计算中...",
+            "zh-TW": "<img src='/static/img/loading.gif' style='width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;' />計算中...",
+            "en": "<img src='/static/img/loading.gif' style='width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;' />计算中...",
+            "fr": "<img src='/static/img/loading.gif' style='width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;' />计算中...",
+            "de": "<img src='/static/img/loading.gif' style='width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;' />计算中...",
+            "it": "<img src='/static/img/loading.gif' style='width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;' />计算中..."
+        },
+        "files_auto_str_139": {
+            "zh-CN": "计算",
+            "zh-TW": "計算",
+            "en": "计算",
+            "fr": "计算",
+            "de": "计算",
+            "it": "计算"
+        },
+        "files_auto_str_140": {
+            "zh-CN": "计算",
+            "zh-TW": "計算",
+            "en": "计算",
+            "fr": "计算",
+            "de": "计算",
+            "it": "计算"
+        },
+        "files_auto_str_141": {
+            "zh-CN": "获取目录大小失败",
+            "zh-TW": "獲取目錄大小失敗",
+            "en": "获取目录Size失败",
+            "fr": "获取目录Taille失败",
+            "de": "获取目录Größe失败",
+            "it": "获取目录Dimensione失败"
         }
     },
     "firewall": {
@@ -5916,6 +7044,606 @@ FULL_I18N_DICTIONARY = {
             "fr": "Pour des raisons de performance, les noms des processus ne sont pas scannés pour les plages de ports.",
             "de": "Aus Leistungsgründen werden Prozessnamen bei Portbereichen nicht gescannt.",
             "it": "Per motivi di prestazioni, i nomi dei processi non vengono analizzati per intervalli di porte."
+        },
+        "firewall_auto_str_1": {
+            "zh-CN": "端口/IP",
+            "zh-TW": "埠口/IP",
+            "en": "Port/IP",
+            "fr": "Port/IP",
+            "de": "Port/IP",
+            "it": "Porta/IP"
+        },
+        "firewall_auto_str_2": {
+            "zh-CN": "IP地址/段",
+            "zh-TW": "IP地址/段",
+            "en": "IP地址/段",
+            "fr": "IP地址/段",
+            "de": "IP地址/段",
+            "it": "IP地址/段"
+        },
+        "firewall_auto_str_3": {
+            "zh-CN": "');\">日志目录</a>\t\t\t\t<em id=\"logSize\">0KB</em>\t\t\t\t<button class=\"btn btn-default btn-sm\" onclick=\"closeLogs();\">清空</button>",
+            "zh-TW": "');\">記錄檔目錄</a>\t\t\t\t<em id=\"logSize\">0KB</em>\t\t\t\t<button class=\"btn btn-default btn-sm\" onclick=\"closeLogs();\">清空</button>",
+            "en": "');\">Logs目录</a>\t\t\t\t<em id=\"logSize\">0KB</em>\t\t\t\t<button class=\"btn btn-default btn-sm\" onclick=\"closeLogs();\">Clear</button>",
+            "fr": "');\">Journaux目录</a>\t\t\t\t<em id=\"logSize\">0KB</em>\t\t\t\t<button class=\"btn btn-default btn-sm\" onclick=\"closeLogs();\">Vider</button>",
+            "de": "');\">Protokolle目录</a>\t\t\t\t<em id=\"logSize\">0KB</em>\t\t\t\t<button class=\"btn btn-default btn-sm\" onclick=\"closeLogs();\">Leeren</button>",
+            "it": "');\">Log目录</a>\t\t\t\t<em id=\"logSize\">0KB</em>\t\t\t\t<button class=\"btn btn-default btn-sm\" onclick=\"closeLogs();\">Svuota</button>"
+        },
+        "firewall_auto_str_4": {
+            "zh-CN": "已清理!",
+            "zh-TW": "已清理!",
+            "en": "已清理!",
+            "fr": "已清理!",
+            "de": "已清理!",
+            "it": "已清理!"
+        },
+        "firewall_auto_str_5": {
+            "zh-CN": "放行",
+            "zh-TW": "放行",
+            "en": "Allow",
+            "fr": "Autoriser",
+            "de": "Zulassen",
+            "it": "Consenti"
+        },
+        "firewall_auto_str_6": {
+            "zh-CN": "说明: 仅输入开始端口即可放行单个端口",
+            "zh-TW": "说明: 仅輸入開始埠口即可放行單個埠口",
+            "en": "Description: 仅输入开始Port即可Allow单个Port",
+            "fr": "Description: 仅输入开始Port即可Autoriser单个Port",
+            "de": "Beschreibung: 仅输入开始Port即可Zulassen单个Port",
+            "it": "Descrizione: 仅输入开始Porta即可Consenti单个Porta"
+        },
+        "firewall_auto_str_7": {
+            "zh-CN": "<div class=\"pd15\" style=\"padding: 20px;\">            <div style=\"display: flex; flex-direction: column; gap: 15px;\">                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">启动SSH</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"sshswitch\" type=\"checkbox\" ",
+            "zh-TW": "<div class=\"pd15\" style=\"padding: 20px;\">            <div style=\"display: flex; flex-direction: column; gap: 15px;\">                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">启動SSH</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"sshswitch\" type=\"checkbox\" ",
+            "en": "<div class=\"pd15\" style=\"padding: 20px;\">            <div style=\"display: flex; flex-direction: column; gap: 15px;\">                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">StartSSH</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"sshswitch\" type=\"checkbox\" ",
+            "fr": "<div class=\"pd15\" style=\"padding: 20px;\">            <div style=\"display: flex; flex-direction: column; gap: 15px;\">                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">DémarrerSSH</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"sshswitch\" type=\"checkbox\" ",
+            "de": "<div class=\"pd15\" style=\"padding: 20px;\">            <div style=\"display: flex; flex-direction: column; gap: 15px;\">                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">StartenSSH</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"sshswitch\" type=\"checkbox\" ",
+            "it": "<div class=\"pd15\" style=\"padding: 20px;\">            <div style=\"display: flex; flex-direction: column; gap: 15px;\">                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">AvviaSSH</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"sshswitch\" type=\"checkbox\" "
+        },
+        "firewall_auto_str_8": {
+            "zh-CN": ">                        <label class=\"btswitch-btn\" for=\"sshswitch\" onclick='setMstscStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许root登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"root_status\" type=\"checkbox\" ",
+            "zh-TW": ">                        <label class=\"btswitch-btn\" for=\"sshswitch\" onclick='setMstscStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允許root登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"root_status\" type=\"checkbox\" ",
+            "en": ">                        <label class=\"btswitch-btn\" for=\"sshswitch\" onclick='setMstscStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许root登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"root_status\" type=\"checkbox\" ",
+            "fr": ">                        <label class=\"btswitch-btn\" for=\"sshswitch\" onclick='setMstscStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许root登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"root_status\" type=\"checkbox\" ",
+            "de": ">                        <label class=\"btswitch-btn\" for=\"sshswitch\" onclick='setMstscStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许root登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"root_status\" type=\"checkbox\" ",
+            "it": ">                        <label class=\"btswitch-btn\" for=\"sshswitch\" onclick='setMstscStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许root登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"root_status\" type=\"checkbox\" "
+        },
+        "firewall_auto_str_9": {
+            "zh-CN": ">                        <label class=\"btswitch-btn\" for=\"root_status\" onclick='setSshRootStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许密码登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pass_status\" type=\"checkbox\" ",
+            "zh-TW": ">                        <label class=\"btswitch-btn\" for=\"root_status\" onclick='setSshRootStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允許密碼登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pass_status\" type=\"checkbox\" ",
+            "en": ">                        <label class=\"btswitch-btn\" for=\"root_status\" onclick='setSshRootStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许Password登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pass_status\" type=\"checkbox\" ",
+            "fr": ">                        <label class=\"btswitch-btn\" for=\"root_status\" onclick='setSshRootStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许Mot de passe登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pass_status\" type=\"checkbox\" ",
+            "de": ">                        <label class=\"btswitch-btn\" for=\"root_status\" onclick='setSshRootStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许Passwort登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pass_status\" type=\"checkbox\" ",
+            "it": ">                        <label class=\"btswitch-btn\" for=\"root_status\" onclick='setSshRootStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许Password登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pass_status\" type=\"checkbox\" "
+        },
+        "firewall_auto_str_10": {
+            "zh-CN": ">                        <label class=\"btswitch-btn\" for=\"pass_status\" onclick='setSshPassStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许密钥登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pubkey_status\" type=\"checkbox\" ",
+            "zh-TW": ">                        <label class=\"btswitch-btn\" for=\"pass_status\" onclick='setSshPassStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允許金鑰登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pubkey_status\" type=\"checkbox\" ",
+            "en": ">                        <label class=\"btswitch-btn\" for=\"pass_status\" onclick='setSshPassStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许密钥登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pubkey_status\" type=\"checkbox\" ",
+            "fr": ">                        <label class=\"btswitch-btn\" for=\"pass_status\" onclick='setSshPassStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许密钥登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pubkey_status\" type=\"checkbox\" ",
+            "de": ">                        <label class=\"btswitch-btn\" for=\"pass_status\" onclick='setSshPassStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许密钥登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pubkey_status\" type=\"checkbox\" ",
+            "it": ">                        <label class=\"btswitch-btn\" for=\"pass_status\" onclick='setSshPassStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">允许密钥登陆</span>                    <div class=\"ssh-item\" style=\"margin-left:0\">                        <input class=\"btswitch btswitch-ios\" id=\"pubkey_status\" type=\"checkbox\" "
+        },
+        "firewall_auto_str_11": {
+            "zh-CN": ">                        <label class=\"btswitch-btn\" for=\"pubkey_status\" onclick='setSshPubkeyStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-top: 5px;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">Root密钥</span>                    <div class=\"ssh-item\" style=\"margin-left:0; display: flex; gap: 10px;\">                        <button class=\"btn btn-default btn-sm\" onclick=\"downloadRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">下载密钥</button>                        <button class=\"btn btn-default btn-sm\" onclick=\"resetRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">重置/生成密钥</button>                    </div>                </div>            </div>        </div>",
+            "zh-TW": ">                        <label class=\"btswitch-btn\" for=\"pubkey_status\" onclick='setSshPubkeyStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-top: 5px;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">Root金鑰</span>                    <div class=\"ssh-item\" style=\"margin-left:0; display: flex; gap: 10px;\">                        <button class=\"btn btn-default btn-sm\" onclick=\"downloadRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">下載金鑰</button>                        <button class=\"btn btn-default btn-sm\" onclick=\"resetRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">重置/生成金鑰</button>                    </div>                </div>            </div>        </div>",
+            "en": ">                        <label class=\"btswitch-btn\" for=\"pubkey_status\" onclick='setSshPubkeyStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-top: 5px;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">Root密钥</span>                    <div class=\"ssh-item\" style=\"margin-left:0; display: flex; gap: 10px;\">                        <button class=\"btn btn-default btn-sm\" onclick=\"downloadRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">Download密钥</button>                        <button class=\"btn btn-default btn-sm\" onclick=\"resetRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">重置/生成密钥</button>                    </div>                </div>            </div>        </div>",
+            "fr": ">                        <label class=\"btswitch-btn\" for=\"pubkey_status\" onclick='setSshPubkeyStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-top: 5px;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">Root密钥</span>                    <div class=\"ssh-item\" style=\"margin-left:0; display: flex; gap: 10px;\">                        <button class=\"btn btn-default btn-sm\" onclick=\"downloadRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">Télécharger密钥</button>                        <button class=\"btn btn-default btn-sm\" onclick=\"resetRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">重置/生成密钥</button>                    </div>                </div>            </div>        </div>",
+            "de": ">                        <label class=\"btswitch-btn\" for=\"pubkey_status\" onclick='setSshPubkeyStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-top: 5px;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">Root密钥</span>                    <div class=\"ssh-item\" style=\"margin-left:0; display: flex; gap: 10px;\">                        <button class=\"btn btn-default btn-sm\" onclick=\"downloadRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">Herunterladen密钥</button>                        <button class=\"btn btn-default btn-sm\" onclick=\"resetRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">重置/生成密钥</button>                    </div>                </div>            </div>        </div>",
+            "it": ">                        <label class=\"btswitch-btn\" for=\"pubkey_status\" onclick='setSshPubkeyStatus()'></label>                    </div>                </div>                <div style=\"display: flex; justify-content: space-between; align-items: center; padding-top: 5px;\">                    <span style=\"font-size: 14px; font-weight: 500; color: #333;\">Root密钥</span>                    <div class=\"ssh-item\" style=\"margin-left:0; display: flex; gap: 10px;\">                        <button class=\"btn btn-default btn-sm\" onclick=\"downloadRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">Scarica密钥</button>                        <button class=\"btn btn-default btn-sm\" onclick=\"resetRootKey()\" style=\"border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;\">重置/生成密钥</button>                    </div>                </div>            </div>        </div>"
+        },
+        "firewall_auto_str_12": {
+            "zh-CN": "SSH管理",
+            "zh-TW": "SSH管理",
+            "en": "SSH管理",
+            "fr": "SSH管理",
+            "de": "SSH管理",
+            "it": "SSH管理"
+        },
+        "firewall_auto_str_13": {
+            "zh-CN": "更改远程端口时，将会注消所有已登录帐户，您真的要更改远程端口吗？",
+            "zh-TW": "更改远程埠口時，將会注消所有已登入帐户，您真的要更改远程埠口吗？",
+            "en": "更改远程Port时，将会注消所有已Login帐户，您真的要更改远程Port吗？",
+            "fr": "更改远程Port时，将会注消所有已Connexion帐户，您真的要更改远程Port吗？",
+            "de": "更改远程Port时，将会注消所有已Anmelden帐户，您真的要更改远程Port吗？",
+            "it": "更改远程Porta时，将会注消所有已Accedi帐户，您真的要更改远程Porta吗？"
+        },
+        "firewall_auto_str_14": {
+            "zh-CN": "远程端口",
+            "zh-TW": "远程埠口",
+            "en": "远程Port",
+            "fr": "远程Port",
+            "de": "远程Port",
+            "it": "远程Porta"
+        },
+        "firewall_auto_str_15": {
+            "zh-CN": "禁PING后不影响服务器正常使用，但无法ping通服务器，您真的要禁PING吗？",
+            "zh-TW": "禁PING後不影响伺服器正常使用，但無法ping通伺服器，您真的要禁PING吗？",
+            "en": "禁PING后不影响服务器正常使用，但无法ping通服务器，您真的要禁PING吗？",
+            "fr": "禁PING后不影响服务器正常使用，但无法ping通服务器，您真的要禁PING吗？",
+            "de": "禁PING后不影响服务器正常使用，但无法ping通服务器，您真的要禁PING吗？",
+            "it": "禁PING后不影响服务器正常使用，但无法ping通服务器，您真的要禁PING吗？"
+        },
+        "firewall_auto_str_16": {
+            "zh-CN": "解除禁PING状态可能会被黑客发现您的服务器，您真的要解禁吗？",
+            "zh-TW": "解除禁PING狀態可能会被黑客發現您的伺服器，您真的要解禁吗？",
+            "en": "解除禁PINGStatus可能会被黑客发现您的服务器，您真的要解禁吗？",
+            "fr": "解除禁PINGStatut可能会被黑客发现您的服务器，您真的要解禁吗？",
+            "de": "解除禁PINGStatus可能会被黑客发现您的服务器，您真的要解禁吗？",
+            "it": "解除禁PINGStato可能会被黑客发现您的服务器，您真的要解禁吗？"
+        },
+        "firewall_auto_str_17": {
+            "zh-CN": "是否禁ping",
+            "zh-TW": "是否禁ping",
+            "en": "是否禁ping",
+            "fr": "是否禁ping",
+            "de": "是否禁ping",
+            "it": "是否禁ping"
+        },
+        "firewall_auto_str_18": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "firewall_auto_str_19": {
+            "zh-CN": "已解除禁PING",
+            "zh-TW": "已解除禁PING",
+            "en": "已解除禁PING",
+            "fr": "已解除禁PING",
+            "de": "已解除禁PING",
+            "it": "已解除禁PING"
+        },
+        "firewall_auto_str_20": {
+            "zh-CN": "连接服务器失败",
+            "zh-TW": "連接伺服器失敗",
+            "en": "Connections服务器失败",
+            "fr": "Connexions服务器失败",
+            "de": "Verbindungen服务器失败",
+            "it": "Connessioni服务器失败"
+        },
+        "firewall_auto_str_21": {
+            "zh-CN": "禁用防火墙会增加服务器不安全性，您真的要禁用防火墙吗？",
+            "zh-TW": "禁用防火牆会增加伺服器不安全性，您真的要禁用防火牆吗？",
+            "en": "禁用防火墙会增加服务器不Security性，您真的要禁用防火墙吗？",
+            "fr": "禁用防火墙会增加服务器不Sécurité性，您真的要禁用防火墙吗？",
+            "de": "禁用防火墙会增加服务器不Sicherheit性，您真的要禁用防火墙吗？",
+            "it": "禁用防火墙会增加服务器不Sicurezza性，您真的要禁用防火墙吗？"
+        },
+        "firewall_auto_str_22": {
+            "zh-CN": "开启防火墙,增加服务器安全!",
+            "zh-TW": "開啟防火牆,增加伺服器安全!",
+            "en": "Turn on防火墙,增加服务器Security!",
+            "fr": "Activer防火墙,增加服务器Sécurité!",
+            "de": "Einschalten防火墙,增加服务器Sicherheit!",
+            "it": "Attiva防火墙,增加服务器Sicurezza!"
+        },
+        "firewall_auto_str_23": {
+            "zh-CN": "是否开启防火墙!",
+            "zh-TW": "是否開啟防火牆!",
+            "en": "是否Turn on防火墙!",
+            "fr": "是否Activer防火墙!",
+            "de": "是否Einschalten防火墙!",
+            "it": "是否Attiva防火墙!"
+        },
+        "firewall_auto_str_24": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "firewall_auto_str_25": {
+            "zh-CN": "连接服务器失败",
+            "zh-TW": "連接伺服器失敗",
+            "en": "Connections服务器失败",
+            "fr": "Connexions服务器失败",
+            "de": "Verbindungen服务器失败",
+            "it": "Connessioni服务器失败"
+        },
+        "firewall_auto_str_26": {
+            "zh-CN": "停用SSH服务的同时也将注销所有已登录用户,继续吗？",
+            "zh-TW": "停用SSH服务的同時也將注销所有已登入使用者,继续吗？",
+            "en": "DisableSSH服务的同时也将注销所有已Login用户,继续吗？",
+            "fr": "DésactiverSSH服务的同时也将注销所有已Connexion用户,继续吗？",
+            "de": "DeaktivierenSSH服务的同时也将注销所有已Anmelden用户,继续吗？",
+            "it": "DisabilitaSSH服务的同时也将注销所有已Accedi用户,继续吗？"
+        },
+        "firewall_auto_str_27": {
+            "zh-CN": "确定启用SSH服务吗？",
+            "zh-TW": "確定啟用SSH服务吗？",
+            "en": "ConfirmEnableSSH服务吗？",
+            "fr": "ConfirmerActiverSSH服务吗？",
+            "de": "BestätigenAktivierenSSH服务吗？",
+            "it": "ConfermaAbilitaSSH服务吗？"
+        },
+        "firewall_auto_str_28": {
+            "zh-CN": "警告",
+            "zh-TW": "警告",
+            "en": "Warning",
+            "fr": "Avertissement",
+            "de": "Warnung",
+            "it": "Avviso"
+        },
+        "firewall_auto_str_29": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "firewall_auto_str_30": {
+            "zh-CN": "确定允许root登陆吗？",
+            "zh-TW": "確定允許root登陆吗？",
+            "en": "Confirm允许root登陆吗？",
+            "fr": "Confirmer允许root登陆吗？",
+            "de": "Bestätigen允许root登陆吗？",
+            "it": "Conferma允许root登陆吗？"
+        },
+        "firewall_auto_str_31": {
+            "zh-CN": "确定禁止root登陆吗？",
+            "zh-TW": "確定禁止root登陆吗？",
+            "en": "Confirm禁止root登陆吗？",
+            "fr": "Confirmer禁止root登陆吗？",
+            "de": "Bestätigen禁止root登陆吗？",
+            "it": "Conferma禁止root登陆吗？"
+        },
+        "firewall_auto_str_32": {
+            "zh-CN": "警告",
+            "zh-TW": "警告",
+            "en": "Warning",
+            "fr": "Avertissement",
+            "de": "Warnung",
+            "it": "Avviso"
+        },
+        "firewall_auto_str_33": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "firewall_auto_str_34": {
+            "zh-CN": "确定允许密码登陆吗？",
+            "zh-TW": "確定允許密碼登陆吗？",
+            "en": "Confirm允许Password登陆吗？",
+            "fr": "Confirmer允许Mot de passe登陆吗？",
+            "de": "Bestätigen允许Passwort登陆吗？",
+            "it": "Conferma允许Password登陆吗？"
+        },
+        "firewall_auto_str_35": {
+            "zh-CN": "确定禁止密码登陆吗？",
+            "zh-TW": "確定禁止密碼登陆吗？",
+            "en": "Confirm禁止Password登陆吗？",
+            "fr": "Confirmer禁止Mot de passe登陆吗？",
+            "de": "Bestätigen禁止Passwort登陆吗？",
+            "it": "Conferma禁止Password登陆吗？"
+        },
+        "firewall_auto_str_36": {
+            "zh-CN": "警告",
+            "zh-TW": "警告",
+            "en": "Warning",
+            "fr": "Avertissement",
+            "de": "Warnung",
+            "it": "Avviso"
+        },
+        "firewall_auto_str_37": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "firewall_auto_str_38": {
+            "zh-CN": "确定允许密钥登陆吗？",
+            "zh-TW": "確定允許金鑰登陆吗？",
+            "en": "Confirm允许密钥登陆吗？",
+            "fr": "Confirmer允许密钥登陆吗？",
+            "de": "Bestätigen允许密钥登陆吗？",
+            "it": "Conferma允许密钥登陆吗？"
+        },
+        "firewall_auto_str_39": {
+            "zh-CN": "确定禁止密钥登陆吗？",
+            "zh-TW": "確定禁止金鑰登陆吗？",
+            "en": "Confirm禁止密钥登陆吗？",
+            "fr": "Confirmer禁止密钥登陆吗？",
+            "de": "Bestätigen禁止密钥登陆吗？",
+            "it": "Conferma禁止密钥登陆吗？"
+        },
+        "firewall_auto_str_40": {
+            "zh-CN": "警告",
+            "zh-TW": "警告",
+            "en": "Warning",
+            "fr": "Avertissement",
+            "de": "Warnung",
+            "it": "Avviso"
+        },
+        "firewall_auto_str_41": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "firewall_auto_str_42": {
+            "zh-CN": "屏蔽IP:[",
+            "zh-TW": "屏蔽IP:[",
+            "en": "BlockIP:[",
+            "fr": "BloquerIP:[",
+            "de": "BlockierenIP:[",
+            "it": "BloccaIP:["
+        },
+        "firewall_auto_str_43": {
+            "zh-CN": "<span style=\"color:#20a53a;\">放行IP</span>",
+            "zh-TW": "<span style=\"color:#20a53a;\">放行IP</span>",
+            "en": "<span style=\"color:#20a53a;\">AllowIP</span>",
+            "fr": "<span style=\"color:#20a53a;\">AutoriserIP</span>",
+            "de": "<span style=\"color:#20a53a;\">ZulassenIP</span>",
+            "it": "<span style=\"color:#20a53a;\">ConsentiIP</span>"
+        },
+        "firewall_auto_str_44": {
+            "zh-CN": "<span style=\"color:red;\">禁止IP</span>",
+            "zh-TW": "<span style=\"color:red;\">禁止IP</span>",
+            "en": "<span style=\"color:red;\">禁止IP</span>",
+            "fr": "<span style=\"color:red;\">禁止IP</span>",
+            "de": "<span style=\"color:red;\">禁止IP</span>",
+            "it": "<span style=\"color:red;\">禁止IP</span>"
+        },
+        "firewall_auto_str_45": {
+            "zh-CN": "')\">删除</a></td>\t\t\t</tr>",
+            "zh-TW": "')\">刪除</a></td>\t\t\t</tr>",
+            "en": "')\">Delete</a></td>\t\t\t</tr>",
+            "fr": "')\">Supprimer</a></td>\t\t\t</tr>",
+            "de": "')\">Löschen</a></td>\t\t\t</tr>",
+            "it": "')\">Elimina</a></td>\t\t\t</tr>"
+        },
+        "firewall_auto_str_46": {
+            "zh-CN": "\" style=\"text-align: center;\">当前没有数据</td></tr>",
+            "zh-TW": "\" style=\"text-align: center;\">当前没有數據</td></tr>",
+            "en": "\" style=\"text-align: center;\">当前没有数据</td></tr>",
+            "fr": "\" style=\"text-align: center;\">当前没有数据</td></tr>",
+            "de": "\" style=\"text-align: center;\">当前没有数据</td></tr>",
+            "it": "\" style=\"text-align: center;\">当前没有数据</td></tr>"
+        },
+        "firewall_auto_str_47": {
+            "zh-CN": "开始端口范围不合法!",
+            "zh-TW": "開始埠口範圍不合法!",
+            "en": "开始Port范围不合法!",
+            "fr": "开始Port范围不合法!",
+            "de": "开始Port范围不合法!",
+            "it": "开始Porta范围不合法!"
+        },
+        "firewall_auto_str_48": {
+            "zh-CN": "结束端口范围不合法!",
+            "zh-TW": "結束埠口範圍不合法!",
+            "en": "结束Port范围不合法!",
+            "fr": "结束Port范围不合法!",
+            "de": "结束Port范围不合法!",
+            "it": "结束Porta范围不合法!"
+        },
+        "firewall_auto_str_49": {
+            "zh-CN": "结束端口不能小于开始端口!",
+            "zh-TW": "結束埠口不能小于開始埠口!",
+            "en": "结束Port不能小于开始Port!",
+            "fr": "结束Port不能小于开始Port!",
+            "de": "结束Port不能小于开始Port!",
+            "it": "结束Porta不能小于开始Porta!"
+        },
+        "firewall_auto_str_50": {
+            "zh-CN": "备注/说明 不能为空!",
+            "zh-TW": "備注/说明 不能為空!",
+            "en": "Remark/Description 不能为空!",
+            "fr": "Remarque/Description 不能为空!",
+            "de": "Bemerkung/Beschreibung 不能为空!",
+            "it": "Nota/Descrizione 不能为空!"
+        },
+        "firewall_auto_str_51": {
+            "zh-CN": "正在添加,请稍候...",
+            "zh-TW": "正在新增,請稍候...",
+            "en": "Adding, please wait...",
+            "fr": "Ajout en cours, veuillez patienter...",
+            "de": "Wird hinzugefügt, bitte warten...",
+            "it": "Aggiunta in corso, attendere..."
+        },
+        "firewall_auto_str_52": {
+            "zh-CN": "请输入IP地址",
+            "zh-TW": "请輸入IP地址",
+            "en": "请输入IP地址",
+            "fr": "请输入IP地址",
+            "de": "请输入IP地址",
+            "it": "请输入IP地址"
+        },
+        "firewall_auto_str_53": {
+            "zh-CN": "请输入备注",
+            "zh-TW": "请輸入備注",
+            "en": "请输入Remark",
+            "fr": "请输入Remarque",
+            "de": "请输入Bemerkung",
+            "it": "请输入Nota"
+        },
+        "firewall_auto_str_54": {
+            "zh-CN": "正在添加,请稍候...",
+            "zh-TW": "正在新增,請稍候...",
+            "en": "Adding, please wait...",
+            "fr": "Ajout en cours, veuillez patienter...",
+            "de": "Wird hinzugefügt, bitte warten...",
+            "it": "Aggiunta in corso, attendere..."
+        },
+        "firewall_auto_str_55": {
+            "zh-CN": "<span style=\"color:red;font-weight:bold;\">警告：放行该IP将允许其访问服务器所有端口，存在安全风险！</span><br>仅建议用于临时测试，用完请及时关闭。确定继续吗？",
+            "zh-TW": "<span style=\"color:red;font-weight:bold;\">警告：放行该IP將允許其访問伺服器所有埠口，存在安全风险！</span><br>仅建議用于临時测试，用完请及時關閉。確定继续吗？",
+            "en": "<span style=\"color:red;font-weight:bold;\">Warning：Allow该IP将允许其访问服务器所有Port，存在Security风险！</span><br>仅建议用于临时测试，用完请及时Close。Confirm继续吗？",
+            "fr": "<span style=\"color:red;font-weight:bold;\">Avertissement：Autoriser该IP将允许其访问服务器所有Port，存在Sécurité风险！</span><br>仅建议用于临时测试，用完请及时Fermer。Confirmer继续吗？",
+            "de": "<span style=\"color:red;font-weight:bold;\">Warnung：Zulassen该IP将允许其访问服务器所有Port，存在Sicherheit风险！</span><br>仅建议用于临时测试，用完请及时Schließen。Bestätigen继续吗？",
+            "it": "<span style=\"color:red;font-weight:bold;\">Avviso：Consenti该IP将允许其访问服务器所有Porta，存在Sicurezza风险！</span><br>仅建议用于临时测试，用完请及时Chiudi。Conferma继续吗？"
+        },
+        "firewall_auto_str_56": {
+            "zh-CN": "高风险操作提示",
+            "zh-TW": "高风险操作提示",
+            "en": "高风险ActionTip",
+            "fr": "高风险ActionConseil",
+            "de": "高风险AktionHinweis",
+            "it": "高风险AzioneSuggerimento"
+        },
+        "firewall_auto_str_57": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+        },
+        "firewall_auto_str_58": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "firewall_auto_str_59": {
+            "zh-CN": "当前客户端IP为：",
+            "zh-TW": "当前用戶端IP為：",
+            "en": "当前客户端IP为：",
+            "fr": "当前客户端IP为：",
+            "de": "当前客户端IP为：",
+            "it": "当前客户端IP为："
+        },
+        "firewall_auto_str_60": {
+            "zh-CN": "<br><span style=\"color:red;\">禁止将其设为黑名单，否则您将无法访问面板！</span>",
+            "zh-TW": "<br><span style=\"color:red;\">禁止將其設為黑名單，否則您將無法访問面板！</span>",
+            "en": "<br><span style=\"color:red;\">禁止将其设为黑名单，否则您将无法访问面板！</span>",
+            "fr": "<br><span style=\"color:red;\">禁止将其设为黑名单，否则您将无法访问面板！</span>",
+            "de": "<br><span style=\"color:red;\">禁止将其设为黑名单，否则您将无法访问面板！</span>",
+            "it": "<br><span style=\"color:red;\">禁止将其设为黑名单，否则您将无法访问面板！</span>"
+        },
+        "firewall_auto_str_61": {
+            "zh-CN": "确定要将IP [",
+            "zh-TW": "確定要將IP [",
+            "en": "Confirm要将IP [",
+            "fr": "Confirmer要将IP [",
+            "de": "Bestätigen要将IP [",
+            "it": "Conferma要将IP ["
+        },
+        "firewall_auto_str_62": {
+            "zh-CN": "] 加入黑名单吗？该IP将无法访问本服务器任何端口。",
+            "zh-TW": "] 加入黑名單吗？该IP將無法访問本伺服器任何埠口。",
+            "en": "] 加入黑名单吗？该IP将无法访问本服务器任何Port。",
+            "fr": "] 加入黑名单吗？该IP将无法访问本服务器任何Port。",
+            "de": "] 加入黑名单吗？该IP将无法访问本服务器任何Port。",
+            "it": "] 加入黑名单吗？该IP将无法访问本服务器任何Porta。"
+        },
+        "firewall_auto_str_63": {
+            "zh-CN": "黑名单确认",
+            "zh-TW": "黑名單確認",
+            "en": "黑名单确认",
+            "fr": "黑名单确认",
+            "de": "黑名单确认",
+            "it": "黑名单确认"
+        },
+        "firewall_auto_str_64": {
+            "zh-CN": "删除防火墙规则",
+            "zh-TW": "刪除防火牆規則",
+            "en": "Delete防火墙规则",
+            "fr": "Supprimer防火墙规则",
+            "de": "Löschen防火墙规则",
+            "it": "Elimina防火墙规则"
+        },
+        "firewall_auto_str_65": {
+            "zh-CN": "正在删除,请稍候...",
+            "zh-TW": "正在刪除,請稍候...",
+            "en": "Deleting, please wait...",
+            "fr": "Suppression en cours, veuillez patienter...",
+            "de": "Wird gelöscht, bitte warten...",
+            "it": "Eliminazione in corso, attendere..."
+        },
+        "firewall_auto_str_66": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "firewall_auto_str_67": {
+            "zh-CN": "正在同步服务器防火墙规则, 请稍候...",
+            "zh-TW": "正在同步伺服器防火牆規則, 請稍候...",
+            "en": "正在同步服务器防火墙规则, 请稍候...",
+            "fr": "正在同步服务器防火墙规则, 请稍候...",
+            "de": "正在同步服务器防火墙规则, 请稍候...",
+            "it": "正在同步服务器防火墙规则, 请稍候..."
+        },
+        "firewall_auto_str_68": {
+            "zh-CN": "同步请求失败，请检查网络连接或服务器状态。",
+            "zh-TW": "同步请求失敗，请检查網路連接或伺服器狀態。",
+            "en": "同步请求失败，请检查NetworkConnections或服务器Status。",
+            "fr": "同步请求失败，请检查RéseauConnexions或服务器Statut。",
+            "de": "同步请求失败，请检查NetzwerkVerbindungen或服务器Status。",
+            "it": "同步请求失败，请检查ReteConnessioni或服务器Stato。"
+        },
+        "firewall_auto_str_69": {
+            "zh-CN": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">进程名</td><td>",
+            "zh-TW": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">處理程序名</td><td>",
+            "en": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">Process名</td><td>",
+            "fr": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">Processus名</td><td>",
+            "de": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">Prozess名</td><td>",
+            "it": "<div style=\"padding: 20px;\">        <table class=\"table table-bordered table-hover\" style=\"table-layout: fixed; word-wrap: break-word;\">            <tbody>                <tr><td width=\"100\" style=\"background-color: #f9f9f9; font-weight: bold;\">Processo名</td><td>"
+        },
+        "firewall_auto_str_70": {
+            "zh-CN": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">进程pid</td><td>",
+            "zh-TW": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">處理程序pid</td><td>",
+            "en": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Processpid</td><td>",
+            "fr": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Processuspid</td><td>",
+            "de": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Prozesspid</td><td>",
+            "it": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Processopid</td><td>"
+        },
+        "firewall_auto_str_71": {
+            "zh-CN": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">启动命令</td><td>",
+            "zh-TW": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">启動命令</td><td>",
+            "en": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Start命令</td><td>",
+            "fr": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Démarrer命令</td><td>",
+            "de": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Starten命令</td><td>",
+            "it": "</td></tr>                <tr><td style=\"background-color: #f9f9f9; font-weight: bold;\">Avvia命令</td><td>"
+        },
+        "firewall_auto_str_72": {
+            "zh-CN": "-端口使用进程详情",
+            "zh-TW": "-埠口使用處理程序詳情",
+            "en": "-Port使用Process详情",
+            "fr": "-Port使用Processus详情",
+            "de": "-Port使用Prozess详情",
+            "it": "-Porta使用Processo详情"
+        },
+        "firewall_auto_str_73": {
+            "zh-CN": "重置后旧的私钥将无法再用于免密登录此服务器（如果已开启密钥登录），是否确认重新生成 Root 密钥？",
+            "zh-TW": "重置後旧的私鑰將無法再用于免密登入此伺服器（如果已開啟金鑰登入），是否確認重新生成 Root 金鑰？",
+            "en": "重置后旧的私钥将无法再用于免密Login此服务器（如果已Turn on密钥Login），是否确认重新生成 Root 密钥？",
+            "fr": "重置后旧的私钥将无法再用于免密Connexion此服务器（如果已Activer密钥Connexion），是否确认重新生成 Root 密钥？",
+            "de": "重置后旧的私钥将无法再用于免密Anmelden此服务器（如果已Einschalten密钥Anmelden），是否确认重新生成 Root 密钥？",
+            "it": "重置后旧的私钥将无法再用于免密Accedi此服务器（如果已Attiva密钥Accedi），是否确认重新生成 Root 密钥？"
+        },
+        "firewall_auto_str_74": {
+            "zh-CN": "重置 Root 密钥",
+            "zh-TW": "重置 Root 金鑰",
+            "en": "重置 Root 密钥",
+            "fr": "重置 Root 密钥",
+            "de": "重置 Root 密钥",
+            "it": "重置 Root 密钥"
+        },
+        "firewall_auto_str_75": {
+            "zh-CN": "正在重新生成密钥对并授权，请稍候...",
+            "zh-TW": "正在重新生成金鑰對並授权，請稍候...",
+            "en": "正在重新生成密钥对并授权，请稍候...",
+            "fr": "正在重新生成密钥对并授权，请稍候...",
+            "de": "正在重新生成密钥对并授权，请稍候...",
+            "it": "正在重新生成密钥对并授权，请稍候..."
         }
     },
     "crontab": {
@@ -7432,6 +9160,278 @@ FULL_I18N_DICTIONARY = {
             "fr": "Agrandir le graphique",
             "de": "Diagramm vergrößern",
             "it": "Ingrandisci grafico"
+        },
+        "control_auto_str_1": {
+            "zh-CN": "图表尚未加载完毕",
+            "zh-TW": "图表尚未加載完毕",
+            "en": "图表尚未加载完毕",
+            "fr": "图表尚未加载完毕",
+            "de": "图表尚未加载完毕",
+            "it": "图表尚未加载完毕"
+        },
+        "control_auto_str_2": {
+            "zh-CN": " (放大)",
+            "zh-TW": " (放大)",
+            "en": " (放大)",
+            "fr": " (放大)",
+            "de": " (放大)",
+            "it": " (放大)"
+        },
+        "control_auto_str_3": {
+            "zh-CN": "正在读取,请稍候...",
+            "zh-TW": "正在讀取,請稍候...",
+            "en": "Reading, please wait...",
+            "fr": "Lecture en cours, veuillez patienter...",
+            "de": "Wird gelesen, bitte warten...",
+            "it": "Lettura in corso, attendere..."
+        },
+        "control_auto_str_4": {
+            "zh-CN": "保存天数不合法!",
+            "zh-TW": "儲存天數不合法!",
+            "en": "Save天数不合法!",
+            "fr": "Enregistrer天数不合法!",
+            "de": "Speichern天数不合法!",
+            "it": "Salva天数不合法!"
+        },
+        "control_auto_str_5": {
+            "zh-CN": "保存天数不合法!",
+            "zh-TW": "儲存天數不合法!",
+            "en": "Save天数不合法!",
+            "fr": "Enregistrer天数不合法!",
+            "de": "Speichern天数不合法!",
+            "it": "Salva天数不合法!"
+        },
+        "control_auto_str_6": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "control_auto_str_7": {
+            "zh-CN": "您真的清空所有监控记录吗？",
+            "zh-TW": "您真的清空所有監控記錄吗？",
+            "en": "您真的Clear所有Monitoring记录吗？",
+            "fr": "您真的Vider所有Surveillance记录吗？",
+            "de": "您真的Leeren所有Überwachung记录吗？",
+            "it": "您真的Svuota所有Monitoraggio记录吗？"
+        },
+        "control_auto_str_8": {
+            "zh-CN": "清空记录",
+            "zh-TW": "清空記錄",
+            "en": "Clear记录",
+            "fr": "Vider记录",
+            "de": "Leeren记录",
+            "it": "Svuota记录"
+        },
+        "control_auto_str_9": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "control_auto_str_10": {
+            "zh-CN": "时间：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "zh-TW": "時間：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "en": "Time：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "fr": "Heure：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "de": "Zeit：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "it": "Ora：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s"
+        },
+        "control_auto_str_11": {
+            "zh-CN": "读取字节数",
+            "zh-TW": "讀取位元組數",
+            "en": "读取字节数",
+            "fr": "读取字节数",
+            "de": "读取字节数",
+            "it": "读取字节数"
+        },
+        "control_auto_str_12": {
+            "zh-CN": "写入字节数",
+            "zh-TW": "寫入位元組數",
+            "en": "写入字节数",
+            "fr": "写入字节数",
+            "de": "写入字节数",
+            "it": "写入字节数"
+        },
+        "control_auto_str_13": {
+            "zh-CN": "单位:KB/s",
+            "zh-TW": "單位:KB/s",
+            "en": "单位:KB/s",
+            "fr": "单位:KB/s",
+            "de": "单位:KB/s",
+            "it": "单位:KB/s"
+        },
+        "control_auto_str_14": {
+            "zh-CN": "读取字节数",
+            "zh-TW": "讀取位元組數",
+            "en": "读取字节数",
+            "fr": "读取字节数",
+            "de": "读取字节数",
+            "it": "读取字节数"
+        },
+        "control_auto_str_15": {
+            "zh-CN": "写入字节数",
+            "zh-TW": "寫入位元組數",
+            "en": "写入字节数",
+            "fr": "写入字节数",
+            "de": "写入字节数",
+            "it": "写入字节数"
+        },
+        "control_auto_str_16": {
+            "zh-CN": "时间：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "zh-TW": "時間：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "en": "Time：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "fr": "Heure：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "de": "Zeit：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s",
+            "it": "Ora：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s"
+        },
+        "control_auto_str_17": {
+            "zh-CN": "单位:KB/s",
+            "zh-TW": "單位:KB/s",
+            "en": "单位:KB/s",
+            "fr": "单位:KB/s",
+            "de": "单位:KB/s",
+            "it": "单位:KB/s"
+        },
+        "control_auto_str_18": {
+            "zh-CN": "系统资源使用率",
+            "zh-TW": "系統資源使用率",
+            "en": "系统资源使用率",
+            "fr": "系统资源使用率",
+            "de": "系统资源使用率",
+            "it": "系统资源使用率"
+        },
+        "control_auto_str_19": {
+            "zh-CN": "1分钟",
+            "zh-TW": "1分鐘",
+            "en": "1分钟",
+            "fr": "1分钟",
+            "de": "1分钟",
+            "it": "1分钟"
+        },
+        "control_auto_str_20": {
+            "zh-CN": "5分钟",
+            "zh-TW": "5分鐘",
+            "en": "5分钟",
+            "fr": "5分钟",
+            "de": "5分钟",
+            "it": "5分钟"
+        },
+        "control_auto_str_21": {
+            "zh-CN": "15分钟",
+            "zh-TW": "15分鐘",
+            "en": "15分钟",
+            "fr": "15分钟",
+            "de": "15分钟",
+            "it": "15分钟"
+        },
+        "control_auto_str_22": {
+            "zh-CN": "系统资源使用率",
+            "zh-TW": "系統資源使用率",
+            "en": "系统资源使用率",
+            "fr": "系统资源使用率",
+            "de": "系统资源使用率",
+            "it": "系统资源使用率"
+        },
+        "control_auto_str_23": {
+            "zh-CN": "1分钟",
+            "zh-TW": "1分鐘",
+            "en": "1分钟",
+            "fr": "1分钟",
+            "de": "1分钟",
+            "it": "1分钟"
+        },
+        "control_auto_str_24": {
+            "zh-CN": "5分钟",
+            "zh-TW": "5分鐘",
+            "en": "5分钟",
+            "fr": "5分钟",
+            "de": "5分钟",
+            "it": "5分钟"
+        },
+        "control_auto_str_25": {
+            "zh-CN": "15分钟",
+            "zh-TW": "15分鐘",
+            "en": "15分钟",
+            "fr": "15分钟",
+            "de": "15分钟",
+            "it": "15分钟"
+        },
+        "control_auto_str_26": {
+            "zh-CN": "资源使用率%",
+            "zh-TW": "資源使用率%",
+            "en": "资源使用率%",
+            "fr": "资源使用率%",
+            "de": "资源使用率%",
+            "it": "资源使用率%"
+        },
+        "control_auto_str_27": {
+            "zh-CN": "资源使用率%",
+            "zh-TW": "資源使用率%",
+            "en": "资源使用率%",
+            "fr": "资源使用率%",
+            "de": "资源使用率%",
+            "it": "资源使用率%"
+        },
+        "control_auto_str_28": {
+            "zh-CN": "1分钟",
+            "zh-TW": "1分鐘",
+            "en": "1分钟",
+            "fr": "1分钟",
+            "de": "1分钟",
+            "it": "1分钟"
+        },
+        "control_auto_str_29": {
+            "zh-CN": "5分钟",
+            "zh-TW": "5分鐘",
+            "en": "5分钟",
+            "fr": "5分钟",
+            "de": "5分钟",
+            "it": "5分钟"
+        },
+        "control_auto_str_30": {
+            "zh-CN": "15分钟",
+            "zh-TW": "15分鐘",
+            "en": "15分钟",
+            "fr": "15分钟",
+            "de": "15分钟",
+            "it": "15分钟"
+        },
+        "control_auto_str_31": {
+            "zh-CN": "负载详情",
+            "zh-TW": "負載詳情",
+            "en": "负载详情",
+            "fr": "负载详情",
+            "de": "负载详情",
+            "it": "负载详情"
+        },
+        "control_auto_str_32": {
+            "zh-CN": "1分钟",
+            "zh-TW": "1分鐘",
+            "en": "1分钟",
+            "fr": "1分钟",
+            "de": "1分钟",
+            "it": "1分钟"
+        },
+        "control_auto_str_33": {
+            "zh-CN": "5分钟",
+            "zh-TW": "5分鐘",
+            "en": "5分钟",
+            "fr": "5分钟",
+            "de": "5分钟",
+            "it": "5分钟"
+        },
+        "control_auto_str_34": {
+            "zh-CN": "15分钟",
+            "zh-TW": "15分鐘",
+            "en": "15分钟",
+            "fr": "15分钟",
+            "de": "15分钟",
+            "it": "15分钟"
         }
     },
     "soft": {
@@ -7498,6 +9498,566 @@ FULL_I18N_DICTIONARY = {
             "fr": "Afficher à l'accueil",
             "de": "Auf Startseite anzeigen",
             "it": "Mostra in home"
+        },
+        "soft_auto_str_1": {
+            "zh-CN": "正在处理,请稍后...",
+            "zh-TW": "正在处理,请稍後...",
+            "en": "正在处理,请稍后...",
+            "fr": "正在处理,请稍后...",
+            "de": "正在处理,请稍后...",
+            "it": "正在处理,请稍后..."
+        },
+        "soft_auto_str_2": {
+            "zh-CN": "】管理",
+            "zh-TW": "】管理",
+            "en": "】管理",
+            "fr": "】管理",
+            "de": "】管理",
+            "it": "】管理"
+        },
+        "soft_auto_str_3": {
+            "zh-CN": "此操作将清空 /www/server/source/ 下所有的下载包缓存文件。<br>清理后再次安装软件将重新从网络下载安装包，确认清理吗？",
+            "zh-TW": "此操作將清空 /www/server/source/ 下所有的下載包缓存檔案。<br>清理後再次安裝軟體將重新從網路下載安裝包，確認清理吗？",
+            "en": "此Action将Clear /www/server/source/ 下所有的Download包缓存Files。<br>清理后再次Install软件将重新从NetworkDownloadInstall包，确认清理吗？",
+            "fr": "此Action将Vider /www/server/source/ 下所有的Télécharger包缓存Fichiers。<br>清理后再次Installer软件将重新从RéseauTéléchargerInstaller包，确认清理吗？",
+            "de": "此Aktion将Leeren /www/server/source/ 下所有的Herunterladen包缓存Dateien。<br>清理后再次Installieren软件将重新从NetzwerkHerunterladenInstallieren包，确认清理吗？",
+            "it": "此Azione将Svuota /www/server/source/ 下所有的Scarica包缓存File。<br>清理后再次Installa软件将重新从ReteScaricaInstalla包，确认清理吗？"
+        },
+        "soft_auto_str_4": {
+            "zh-CN": "清理安装缓存",
+            "zh-TW": "清理安裝缓存",
+            "en": "清理Install缓存",
+            "fr": "清理Installer缓存",
+            "de": "清理Installieren缓存",
+            "it": "清理Installa缓存"
+        },
+        "soft_auto_str_5": {
+            "zh-CN": "正在清理，请稍后...",
+            "zh-TW": "正在清理，请稍後...",
+            "en": "正在清理，请稍后...",
+            "fr": "正在清理，请稍后...",
+            "de": "正在清理，请稍后...",
+            "it": "正在清理，请稍后..."
+        },
+        "soft_auto_str_6": {
+            "zh-CN": "正在获取列表...",
+            "zh-TW": "正在獲取列表...",
+            "en": "正在获取List...",
+            "fr": "正在获取Liste...",
+            "de": "正在获取Liste...",
+            "it": "正在获取Elenco..."
+        },
+        "soft_auto_str_7": {
+            "zh-CN": ")\">安装</a>",
+            "zh-TW": ")\">安裝</a>",
+            "en": ")\">Install</a>",
+            "fr": ")\">Installer</a>",
+            "de": ")\">Installieren</a>",
+            "it": ")\">Installa</a>"
+        },
+        "soft_auto_str_8": {
+            "zh-CN": "')\">更新</a> | ",
+            "zh-TW": "')\">更新</a> | ",
+            "en": "')\">更新</a> | ",
+            "fr": "')\">更新</a> | ",
+            "de": "')\">更新</a> | ",
+            "it": "')\">更新</a> | "
+        },
+        "soft_auto_str_9": {
+            "zh-CN": "')\">设置</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
+            "zh-TW": "')\">設定</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
+            "en": "')\">设置</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
+            "fr": "')\">设置</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
+            "de": "')\">设置</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
+            "it": "')\">设置</a> | <a class=\"btlink\" onclick=\"uninstallVersion('"
+        },
+        "soft_auto_str_10": {
+            "zh-CN": ")\">卸载</a>",
+            "zh-TW": ")\">卸載</a>",
+            "en": ")\">Uninstall</a>",
+            "fr": ")\">Désinstaller</a>",
+            "de": ")\">Deinstallieren</a>",
+            "it": ")\">Disinstalla</a>"
+        },
+        "soft_auto_str_11": {
+            "zh-CN": "<a style=\"color:green;\" href=\"javascript:task();\">正在卸载...</a>",
+            "zh-TW": "<a style=\"color:green;\" href=\"javascript:task();\">正在卸載...</a>",
+            "en": "<a style=\"color:green;\" href=\"javascript:task();\">正在Uninstall...</a>",
+            "fr": "<a style=\"color:green;\" href=\"javascript:task();\">正在Désinstaller...</a>",
+            "de": "<a style=\"color:green;\" href=\"javascript:task();\">正在Deinstallieren...</a>",
+            "it": "<a style=\"color:green;\" href=\"javascript:task();\">正在Disinstalla...</a>"
+        },
+        "soft_auto_str_12": {
+            "zh-CN": "<a style=\"color:green;\" href=\"javascript:task();\">正在安装...</a>",
+            "zh-TW": "<a style=\"color:green;\" href=\"javascript:task();\">正在安裝...</a>",
+            "en": "<a style=\"color:green;\" href=\"javascript:task();\">正在Install...</a>",
+            "fr": "<a style=\"color:green;\" href=\"javascript:task();\">正在Installer...</a>",
+            "de": "<a style=\"color:green;\" href=\"javascript:task();\">正在Installieren...</a>",
+            "it": "<a style=\"color:green;\" href=\"javascript:task();\">正在Installa...</a>"
+        },
+        "soft_auto_str_13": {
+            "zh-CN": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>",
+            "zh-TW": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>",
+            "en": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>",
+            "fr": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>",
+            "de": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>",
+            "it": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>"
+        },
+        "soft_auto_str_14": {
+            "zh-CN": " <span style=\"color: #f39c12; font-size: 12px;\">(第三方)</span>",
+            "zh-TW": " <span style=\"color: #f39c12; font-size: 12px;\">(第三方)</span>",
+            "en": " <span style=\"color: #f39c12; font-size: 12px;\">(第三方)</span>",
+            "fr": " <span style=\"color: #f39c12; font-size: 12px;\">(第三方)</span>",
+            "de": " <span style=\"color: #f39c12; font-size: 12px;\">(第三方)</span>",
+            "it": " <span style=\"color: #f39c12; font-size: 12px;\">(第三方)</span>"
+        },
+        "soft_auto_str_15": {
+            "zh-CN": "\" target=\"_blank\">官网</a>",
+            "zh-TW": "\" target=\"_blank\">官網</a>",
+            "en": "\" target=\"_blank\">官网</a>",
+            "fr": "\" target=\"_blank\">官网</a>",
+            "de": "\" target=\"_blank\">官网</a>",
+            "it": "\" target=\"_blank\">官网</a>"
+        },
+        "soft_auto_str_16": {
+            "zh-CN": "正在检查安装环境...",
+            "zh-TW": "正在检查安裝環境...",
+            "en": "正在检查Install环境...",
+            "fr": "正在检查Installer环境...",
+            "de": "正在检查Installieren环境...",
+            "it": "正在检查Installa环境..."
+        },
+        "soft_auto_str_17": {
+            "zh-CN": "正在添加到安装器...",
+            "zh-TW": "正在新增到安裝器...",
+            "en": "正在Add到Install器...",
+            "fr": "正在Ajouter到Installer器...",
+            "de": "正在Hinzufügen到Installieren器...",
+            "it": "正在Aggiungi到Installa器..."
+        },
+        "soft_auto_str_18": {
+            "zh-CN": "安装",
+            "zh-TW": "安裝",
+            "en": "Install",
+            "fr": "Installer",
+            "de": "Installieren",
+            "it": "Installa"
+        },
+        "soft_auto_str_19": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "Submit",
+            "fr": "Soumettre",
+            "de": "Absenden",
+            "it": "Invia"
+        },
+        "soft_auto_str_20": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "soft_auto_str_21": {
+            "zh-CN": "<div class='bt-form pd20 c6'>                <div class='version line'>安装版本：",
+            "zh-TW": "<div class='bt-form pd20 c6'>                <div class='version line'>安裝版本：",
+            "en": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallVersion：",
+            "fr": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallerVersion：",
+            "de": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallierenVersion：",
+            "it": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallaVersione："
+        },
+        "soft_auto_str_22": {
+            "zh-CN": "安装",
+            "zh-TW": "安裝",
+            "en": "Install",
+            "fr": "Installer",
+            "de": "Installieren",
+            "it": "Installa"
+        },
+        "soft_auto_str_23": {
+            "zh-CN": "提交",
+            "zh-TW": "提交",
+            "en": "Submit",
+            "fr": "Soumettre",
+            "de": "Absenden",
+            "it": "Invia"
+        },
+        "soft_auto_str_24": {
+            "zh-CN": "关闭",
+            "zh-TW": "關閉",
+            "en": "Close",
+            "fr": "Fermer",
+            "de": "Schließen",
+            "it": "Chiudi"
+        },
+        "soft_auto_str_25": {
+            "zh-CN": "<div class='bt-form pd20 c6'>                <div class='version line'>安装版本：",
+            "zh-TW": "<div class='bt-form pd20 c6'>                <div class='version line'>安裝版本：",
+            "en": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallVersion：",
+            "fr": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallerVersion：",
+            "de": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallierenVersion：",
+            "it": "<div class='bt-form pd20 c6'>                <div class='version line'>InstallaVersione："
+        },
+        "soft_auto_str_26": {
+            "zh-CN": "<div class='bt-form pd20 c6'>        <div style='color: red; font-weight: bold; margin-bottom: 15px; line-height: 20px;'>            ⚠️ 警告：此操作将物理清除该插件的代码、相关配置以及位于 /www/server/",
+            "zh-TW": "<div class='bt-form pd20 c6'>        <div style='color: red; font-weight: bold; margin-bottom: 15px; line-height: 20px;'>            ⚠️ 警告：此操作將物理清除该外掛程式的代码、相關設定以及位于 /www/server/",
+            "en": "<div class='bt-form pd20 c6'>        <div style='color: red; font-weight: bold; margin-bottom: 15px; line-height: 20px;'>            ⚠️ Warning：此Action将物理清除该插件的代码、相关配置以及位于 /www/server/",
+            "fr": "<div class='bt-form pd20 c6'>        <div style='color: red; font-weight: bold; margin-bottom: 15px; line-height: 20px;'>            ⚠️ Avertissement：此Action将物理清除该插件的代码、相关配置以及位于 /www/server/",
+            "de": "<div class='bt-form pd20 c6'>        <div style='color: red; font-weight: bold; margin-bottom: 15px; line-height: 20px;'>            ⚠️ Warnung：此Aktion将物理清除该插件的代码、相关配置以及位于 /www/server/",
+            "it": "<div class='bt-form pd20 c6'>        <div style='color: red; font-weight: bold; margin-bottom: 15px; line-height: 20px;'>            ⚠️ Avviso：此Azione将物理清除该插件的代码、相关配置以及位于 /www/server/"
+        },
+        "soft_auto_str_27": {
+            "zh-CN": " 的所有运行文件与数据库数据（请务必提前做好备份，一经删除绝不可恢复）！        </div>        <div class='line' style='margin-bottom: 15px;'>            <span>请输入插件名 <b>",
+            "zh-TW": " 的所有运行檔案與資料庫數據（请务必提前做好備份，一經刪除絕不可恢復）！        </div>        <div class='line' style='margin-bottom: 15px;'>            <span>请輸入外掛程式名 <b>",
+            "en": " 的所有运行Files与Databases数据（请务必提前做好Backup，一经Delete绝不可Restore）！        </div>        <div class='line' style='margin-bottom: 15px;'>            <span>请输入插件名 <b>",
+            "fr": " 的所有运行Fichiers与Bases de données数据（请务必提前做好Sauvegarde，一经Supprimer绝不可Restaurer）！        </div>        <div class='line' style='margin-bottom: 15px;'>            <span>请输入插件名 <b>",
+            "de": " 的所有运行Dateien与Datenbanken数据（请务必提前做好Sicherung，一经Löschen绝不可Wiederherstellen）！        </div>        <div class='line' style='margin-bottom: 15px;'>            <span>请输入插件名 <b>",
+            "it": " 的所有运行File与Database数据（请务必提前做好Backup，一经Elimina绝不可Ripristina）！        </div>        <div class='line' style='margin-bottom: 15px;'>            <span>请输入插件名 <b>"
+        },
+        "soft_auto_str_28": {
+            "zh-CN": "</b> 以确认：</span>            <input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 100%; margin-top: 10px;' placeholder='请输入插件名' />        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; color: #d9534f; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                删除前打包备份到 /www/backup            </label>        </div>    </div>",
+            "zh-TW": "</b> 以確認：</span>            <input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 100%; margin-top: 10px;' placeholder='请輸入外掛程式名' />        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; color: #d9534f; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                刪除前打包備份到 /www/backup            </label>        </div>    </div>",
+            "en": "</b> 以确认：</span>            <input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 100%; margin-top: 10px;' placeholder='请输入插件名' />        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; color: #d9534f; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Delete前打包Backup到 /www/backup            </label>        </div>    </div>",
+            "fr": "</b> 以确认：</span>            <input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 100%; margin-top: 10px;' placeholder='请输入插件名' />        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; color: #d9534f; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Supprimer前打包Sauvegarde到 /www/backup            </label>        </div>    </div>",
+            "de": "</b> 以确认：</span>            <input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 100%; margin-top: 10px;' placeholder='请输入插件名' />        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; color: #d9534f; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Löschen前打包Sicherung到 /www/backup            </label>        </div>    </div>",
+            "it": "</b> 以确认：</span>            <input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 100%; margin-top: 10px;' placeholder='请输入插件名' />        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; color: #d9534f; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='force_uninstall_backup_chk' checked='checked' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Elimina前打包Backup到 /www/backup            </label>        </div>    </div>"
+        },
+        "soft_auto_str_29": {
+            "zh-CN": "强制删除确认 (高危操作)",
+            "zh-TW": "强製刪除確認 (高危操作)",
+            "en": "强制Delete确认 (高危Action)",
+            "fr": "强制Supprimer确认 (高危Action)",
+            "de": "强制Löschen确认 (高危Aktion)",
+            "it": "强制Elimina确认 (高危Azione)"
+        },
+        "soft_auto_str_30": {
+            "zh-CN": "强制删除",
+            "zh-TW": "强製刪除",
+            "en": "强制Delete",
+            "fr": "强制Supprimer",
+            "de": "强制Löschen",
+            "it": "强制Elimina"
+        },
+        "soft_auto_str_31": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "soft_auto_str_32": {
+            "zh-CN": "输入的插件名称不匹配，操作已取消！",
+            "zh-TW": "輸入的外掛程式名称不匹配，操作已取消！",
+            "en": "输入的插件Name不匹配，Action已Cancel！",
+            "fr": "输入的插件Nom不匹配，Action已Annuler！",
+            "de": "输入的插件Name不匹配，Aktion已Abbrechen！",
+            "it": "输入的插件Nome不匹配，Azione已Annulla！"
+        },
+        "soft_auto_str_33": {
+            "zh-CN": "正在强制删除,请稍候...",
+            "zh-TW": "正在强製刪除,請稍候...",
+            "en": "正在强制Delete,请稍候...",
+            "fr": "正在强制Supprimer,请稍候...",
+            "de": "正在强制Löschen,请稍候...",
+            "it": "正在强制Elimina,请稍候..."
+        },
+        "soft_auto_str_34": {
+            "zh-CN": "正在检查卸载环境...",
+            "zh-TW": "正在检查卸載環境...",
+            "en": "正在检查Uninstall环境...",
+            "fr": "正在检查Désinstaller环境...",
+            "de": "正在检查Deinstallieren环境...",
+            "it": "正在检查Disinstalla环境..."
+        },
+        "soft_auto_str_35": {
+            "zh-CN": "<br><span style=\"color: red;\">卸载环境检查失败，是否要强制删除该插件？</span>",
+            "zh-TW": "<br><span style=\"color: red;\">卸載環境检查失敗，是否要强製刪除该外掛程式？</span>",
+            "en": "<br><span style=\"color: red;\">Uninstall环境检查失败，是否要强制Delete该插件？</span>",
+            "fr": "<br><span style=\"color: red;\">Désinstaller环境检查失败，是否要强制Supprimer该插件？</span>",
+            "de": "<br><span style=\"color: red;\">Deinstallieren环境检查失败，是否要强制Löschen该插件？</span>",
+            "it": "<br><span style=\"color: red;\">Disinstalla环境检查失败，是否要强制Elimina该插件？</span>"
+        },
+        "soft_auto_str_36": {
+            "zh-CN": "卸载失败提示",
+            "zh-TW": "卸載失敗提示",
+            "en": "Uninstall失败Tip",
+            "fr": "Désinstaller失败Conseil",
+            "de": "Deinstallieren失败Hinweis",
+            "it": "Disinstalla失败Suggerimento"
+        },
+        "soft_auto_str_37": {
+            "zh-CN": "强制删除",
+            "zh-TW": "强製刪除",
+            "en": "强制Delete",
+            "fr": "强制Supprimer",
+            "de": "强制Löschen",
+            "it": "强制Elimina"
+        },
+        "soft_auto_str_38": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "soft_auto_str_39": {
+            "zh-CN": "<br><span style=\"color: red;\">卸载环境检查失败，是否要强制删除该插件？</span>",
+            "zh-TW": "<br><span style=\"color: red;\">卸載環境检查失敗，是否要强製刪除该外掛程式？</span>",
+            "en": "<br><span style=\"color: red;\">Uninstall环境检查失败，是否要强制Delete该插件？</span>",
+            "fr": "<br><span style=\"color: red;\">Désinstaller环境检查失败，是否要强制Supprimer该插件？</span>",
+            "de": "<br><span style=\"color: red;\">Deinstallieren环境检查失败，是否要强制Löschen该插件？</span>",
+            "it": "<br><span style=\"color: red;\">Disinstalla环境检查失败，是否要强制Elimina该插件？</span>"
+        },
+        "soft_auto_str_40": {
+            "zh-CN": "卸载失败提示",
+            "zh-TW": "卸載失敗提示",
+            "en": "Uninstall失败Tip",
+            "fr": "Désinstaller失败Conseil",
+            "de": "Deinstallieren失败Hinweis",
+            "it": "Disinstalla失败Suggerimento"
+        },
+        "soft_auto_str_41": {
+            "zh-CN": "强制删除",
+            "zh-TW": "强製刪除",
+            "en": "强制Delete",
+            "fr": "强制Supprimer",
+            "de": "强制Löschen",
+            "it": "强制Elimina"
+        },
+        "soft_auto_str_42": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "soft_auto_str_43": {
+            "zh-CN": "<div class='bt-form pd20 c6'>        <div class='line' style='margin-bottom: 15px;'>            <span style='font-size:14px;'>您真的要卸载【",
+            "zh-TW": "<div class='bt-form pd20 c6'>        <div class='line' style='margin-bottom: 15px;'>            <span style='font-size:14px;'>您真的要卸載【",
+            "en": "<div class='bt-form pd20 c6'>        <div class='line' style='margin-bottom: 15px;'>            <span style='font-size:14px;'>您真的要Uninstall【",
+            "fr": "<div class='bt-form pd20 c6'>        <div class='line' style='margin-bottom: 15px;'>            <span style='font-size:14px;'>您真的要Désinstaller【",
+            "de": "<div class='bt-form pd20 c6'>        <div class='line' style='margin-bottom: 15px;'>            <span style='font-size:14px;'>您真的要Deinstallieren【",
+            "it": "<div class='bt-form pd20 c6'>        <div class='line' style='margin-bottom: 15px;'>            <span style='font-size:14px;'>您真的要Disinstalla【"
+        },
+        "soft_auto_str_44": {
+            "zh-CN": "】吗？</span>        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                卸载前将数据打包备份到 /www/backup (.tar.gz)            </label>        </div>    </div>",
+            "zh-TW": "】吗？</span>        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                卸載前將數據打包備份到 /www/backup (.tar.gz)            </label>        </div>    </div>",
+            "en": "】吗？</span>        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Uninstall前将数据打包Backup到 /www/backup (.tar.gz)            </label>        </div>    </div>",
+            "fr": "】吗？</span>        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Désinstaller前将数据打包Sauvegarde到 /www/backup (.tar.gz)            </label>        </div>    </div>",
+            "de": "】吗？</span>        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Deinstallieren前将数据打包Sicherung到 /www/backup (.tar.gz)            </label>        </div>    </div>",
+            "it": "】吗？</span>        </div>        <div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>            <label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>                <input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />                Disinstalla前将数据打包Backup到 /www/backup (.tar.gz)            </label>        </div>    </div>"
+        },
+        "soft_auto_str_45": {
+            "zh-CN": "卸载软件确认",
+            "zh-TW": "卸載軟體確認",
+            "en": "Uninstall软件确认",
+            "fr": "Désinstaller软件确认",
+            "de": "Deinstallieren软件确认",
+            "it": "Disinstalla软件确认"
+        },
+        "soft_auto_str_46": {
+            "zh-CN": "确认卸载",
+            "zh-TW": "確認卸載",
+            "en": "确认Uninstall",
+            "fr": "确认Désinstaller",
+            "de": "确认Deinstallieren",
+            "it": "确认Disinstalla"
+        },
+        "soft_auto_str_47": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "soft_auto_str_48": {
+            "zh-CN": "正在处理,请稍候...",
+            "zh-TW": "正在处理,請稍候...",
+            "en": "Processing, please wait...",
+            "fr": "Traitement en cours, veuillez patienter...",
+            "de": "Wird verarbeitet, bitte warten...",
+            "it": "Elaborazione in corso, attendere..."
+        },
+        "soft_auto_str_49": {
+            "zh-CN": "<br><span style=\"color: red;\">插件卸载失败，是否要强制删除该插件？</span>",
+            "zh-TW": "<br><span style=\"color: red;\">外掛程式卸載失敗，是否要强製刪除该外掛程式？</span>",
+            "en": "<br><span style=\"color: red;\">插件Uninstall失败，是否要强制Delete该插件？</span>",
+            "fr": "<br><span style=\"color: red;\">插件Désinstaller失败，是否要强制Supprimer该插件？</span>",
+            "de": "<br><span style=\"color: red;\">插件Deinstallieren失败，是否要强制Löschen该插件？</span>",
+            "it": "<br><span style=\"color: red;\">插件Disinstalla失败，是否要强制Elimina该插件？</span>"
+        },
+        "soft_auto_str_50": {
+            "zh-CN": "卸载失败提示",
+            "zh-TW": "卸載失敗提示",
+            "en": "Uninstall失败Tip",
+            "fr": "Désinstaller失败Conseil",
+            "de": "Deinstallieren失败Hinweis",
+            "it": "Disinstalla失败Suggerimento"
+        },
+        "soft_auto_str_51": {
+            "zh-CN": "强制删除",
+            "zh-TW": "强製刪除",
+            "en": "强制Delete",
+            "fr": "强制Supprimer",
+            "de": "强制Löschen",
+            "it": "强制Elimina"
+        },
+        "soft_auto_str_52": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+        },
+        "soft_auto_str_53": {
+            "zh-CN": "设置失败:",
+            "zh-TW": "設定失敗:",
+            "en": "Failed to save settings:",
+            "fr": "Échec de l'enregistrement des paramètres:",
+            "de": "Speichern fehlgeschlagen:",
+            "it": "Impossibile salvare le impostazioni:"
+        },
+        "soft_auto_str_54": {
+            "zh-CN": "安装第三方插件包",
+            "zh-TW": "安裝第三方外掛程式包",
+            "en": "Install第三方插件包",
+            "fr": "Installer第三方插件包",
+            "de": "Installieren第三方插件包",
+            "it": "Installa第三方插件包"
+        },
+        "soft_auto_str_55": {
+            "zh-CN": "<style>                    .install_three_plugin{padding:25px;padding-bottom:70px}                    .plugin_user_info p { font-size: 14px;}                    .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;}                    .btn-content{text-align: center;margin-top: 25px;}                </style>                <div class=\"bt-form c7  install_three_plugin pb70\">                    <div class=\"plugin_user_info\">                        <p><b>名称：</b>",
+            "zh-TW": "<style>                    .install_three_plugin{padding:25px;padding-bottom:70px}                    .plugin_user_info p { font-size: 14px;}                    .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;}                    .btn-content{text-align: center;margin-top: 25px;}                </style>                <div class=\"bt-form c7  install_three_plugin pb70\">                    <div class=\"plugin_user_info\">                        <p><b>名称：</b>",
+            "en": "<style>                    .install_three_plugin{padding:25px;padding-bottom:70px}                    .plugin_user_info p { font-size: 14px;}                    .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;}                    .btn-content{text-align: center;margin-top: 25px;}                </style>                <div class=\"bt-form c7  install_three_plugin pb70\">                    <div class=\"plugin_user_info\">                        <p><b>Name：</b>",
+            "fr": "<style>                    .install_three_plugin{padding:25px;padding-bottom:70px}                    .plugin_user_info p { font-size: 14px;}                    .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;}                    .btn-content{text-align: center;margin-top: 25px;}                </style>                <div class=\"bt-form c7  install_three_plugin pb70\">                    <div class=\"plugin_user_info\">                        <p><b>Nom：</b>",
+            "de": "<style>                    .install_three_plugin{padding:25px;padding-bottom:70px}                    .plugin_user_info p { font-size: 14px;}                    .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;}                    .btn-content{text-align: center;margin-top: 25px;}                </style>                <div class=\"bt-form c7  install_three_plugin pb70\">                    <div class=\"plugin_user_info\">                        <p><b>Name：</b>",
+            "it": "<style>                    .install_three_plugin{padding:25px;padding-bottom:70px}                    .plugin_user_info p { font-size: 14px;}                    .plugin_user_info {padding: 15px 30px;line-height: 26px;background: #f5f6fa;border-radius: 5px;border: 1px solid #efefef;}                    .btn-content{text-align: center;margin-top: 25px;}                </style>                <div class=\"bt-form c7  install_three_plugin pb70\">                    <div class=\"plugin_user_info\">                        <p><b>Nome：</b>"
+        },
+        "soft_auto_str_56": {
+            "zh-CN": "</p>                        <p><b>版本：</b>",
+            "zh-TW": "</p>                        <p><b>版本：</b>",
+            "en": "</p>                        <p><b>Version：</b>",
+            "fr": "</p>                        <p><b>Version：</b>",
+            "de": "</p>                        <p><b>Version：</b>",
+            "it": "</p>                        <p><b>Versione：</b>"
+        },
+        "soft_auto_str_57": {
+            "zh-CN": "</p>                        <p><b>描述：</b>",
+            "zh-TW": "</p>                        <p><b>描述：</b>",
+            "en": "</p>                        <p><b>描述：</b>",
+            "fr": "</p>                        <p><b>描述：</b>",
+            "de": "</p>                        <p><b>描述：</b>",
+            "it": "</p>                        <p><b>描述：</b>"
+        },
+        "soft_auto_str_58": {
+            "zh-CN": "</p>                        <p><b>大小：</b>",
+            "zh-TW": "</p>                        <p><b>大小：</b>",
+            "en": "</p>                        <p><b>Size：</b>",
+            "fr": "</p>                        <p><b>Taille：</b>",
+            "de": "</p>                        <p><b>Größe：</b>",
+            "it": "</p>                        <p><b>Dimensione：</b>"
+        },
+        "soft_auto_str_59": {
+            "zh-CN": "</p>                        <p><b>作者：</b>",
+            "zh-TW": "</p>                        <p><b>作者：</b>",
+            "en": "</p>                        <p><b>作者：</b>",
+            "fr": "</p>                        <p><b>作者：</b>",
+            "de": "</p>                        <p><b>作者：</b>",
+            "it": "</p>                        <p><b>作者：</b>"
+        },
+        "soft_auto_str_60": {
+            "zh-CN": "</p>                        <p><b>来源：</b><a class=\"btlink\" href=\"",
+            "zh-TW": "</p>                        <p><b>來源：</b><a class=\"btlink\" href=\"",
+            "en": "</p>                        <p><b>来源：</b><a class=\"btlink\" href=\"",
+            "fr": "</p>                        <p><b>来源：</b><a class=\"btlink\" href=\"",
+            "de": "</p>                        <p><b>来源：</b><a class=\"btlink\" href=\"",
+            "it": "</p>                        <p><b>来源：</b><a class=\"btlink\" href=\""
+        },
+        "soft_auto_str_61": {
+            "zh-CN": "</a></p>                    </div>                    <ul class=\"help-info-text c7\">                        <li style=\"color:red;\">此为第三方开发的插件，无法验证其可靠性!</li>                        <li>安装过程可能需要几分钟时间，请耐心等候!</li>                        <li>如果已存在此插件，将被替换!</li>                    </ul>                    <div class=\"bt-form-submit-btn\"><button type=\"button\" class=\"btn btn-sm btn-danger mr5\" onclick=\"layer.closeAll()\">取消</button><button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('",
+            "zh-TW": "</a></p>                    </div>                    <ul class=\"help-info-text c7\">                        <li style=\"color:red;\">此為第三方開發的外掛程式，無法驗證其可靠性!</li>                        <li>安裝過程可能需要几分鐘時間，请耐心等候!</li>                        <li>如果已存在此外掛程式，將被替換!</li>                    </ul>                    <div class=\"bt-form-submit-btn\"><button type=\"button\" class=\"btn btn-sm btn-danger mr5\" onclick=\"layer.closeAll()\">取消</button><button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('",
+            "en": "</a></p>                    </div>                    <ul class=\"help-info-text c7\">                        <li style=\"color:red;\">此为第三方开发的插件，无法验证其可靠性!</li>                        <li>Install过程可能需要几分钟Time，请耐心等候!</li>                        <li>如果已存在此插件，将被替换!</li>                    </ul>                    <div class=\"bt-form-submit-btn\"><button type=\"button\" class=\"btn btn-sm btn-danger mr5\" onclick=\"layer.closeAll()\">Cancel</button><button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('",
+            "fr": "</a></p>                    </div>                    <ul class=\"help-info-text c7\">                        <li style=\"color:red;\">此为第三方开发的插件，无法验证其可靠性!</li>                        <li>Installer过程可能需要几分钟Heure，请耐心等候!</li>                        <li>如果已存在此插件，将被替换!</li>                    </ul>                    <div class=\"bt-form-submit-btn\"><button type=\"button\" class=\"btn btn-sm btn-danger mr5\" onclick=\"layer.closeAll()\">Annuler</button><button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('",
+            "de": "</a></p>                    </div>                    <ul class=\"help-info-text c7\">                        <li style=\"color:red;\">此为第三方开发的插件，无法验证其可靠性!</li>                        <li>Installieren过程可能需要几分钟Zeit，请耐心等候!</li>                        <li>如果已存在此插件，将被替换!</li>                    </ul>                    <div class=\"bt-form-submit-btn\"><button type=\"button\" class=\"btn btn-sm btn-danger mr5\" onclick=\"layer.closeAll()\">Abbrechen</button><button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('",
+            "it": "</a></p>                    </div>                    <ul class=\"help-info-text c7\">                        <li style=\"color:red;\">此为第三方开发的插件，无法验证其可靠性!</li>                        <li>Installa过程可能需要几分钟Ora，请耐心等候!</li>                        <li>如果已存在此插件，将被替换!</li>                    </ul>                    <div class=\"bt-form-submit-btn\"><button type=\"button\" class=\"btn btn-sm btn-danger mr5\" onclick=\"layer.closeAll()\">Annulla</button><button type=\"button\" class=\"btn btn-sm btn-success\" onclick=\"importPluginInstall('"
+        },
+        "soft_auto_str_62": {
+            "zh-CN": "')\">确定安装</button></div>                </div>",
+            "zh-TW": "')\">確定安裝</button></div>                </div>",
+            "en": "')\">ConfirmInstall</button></div>                </div>",
+            "fr": "')\">ConfirmerInstaller</button></div>                </div>",
+            "de": "')\">BestätigenInstallieren</button></div>                </div>",
+            "it": "')\">ConfermaInstalla</button></div>                </div>"
+        },
+        "soft_auto_str_63": {
+            "zh-CN": "上传失败2!:",
+            "zh-TW": "上傳失敗2!:",
+            "en": "Upload失败2!:",
+            "fr": "Téléverser失败2!:",
+            "de": "Hochladen失败2!:",
+            "it": "Carica失败2!:"
+        },
+        "soft_auto_str_64": {
+            "zh-CN": "正在安装,这可能需要几分钟时间...",
+            "zh-TW": "正在安裝,這可能需要几分鐘時間...",
+            "en": "正在Install,这可能需要几分钟Time...",
+            "fr": "正在Installer,这可能需要几分钟Heure...",
+            "de": "正在Installieren,这可能需要几分钟Zeit...",
+            "it": "正在Installa,这可能需要几分钟Ora..."
+        },
+        "soft_auto_str_65": {
+            "zh-CN": "您确定要将【",
+            "zh-TW": "您確定要將【",
+            "en": "您Confirm要将【",
+            "fr": "您Confirmer要将【",
+            "de": "您Bestätigen要将【",
+            "it": "您Conferma要将【"
+        },
+        "soft_auto_str_66": {
+            "zh-CN": "】从 ",
+            "zh-TW": "】從 ",
+            "en": "】从 ",
+            "fr": "】从 ",
+            "de": "】从 ",
+            "it": "】从 "
+        },
+        "soft_auto_str_67": {
+            "zh-CN": " 升级到 ",
+            "zh-TW": " 升級到 ",
+            "en": " 升级到 ",
+            "fr": " 升级到 ",
+            "de": " 升级到 ",
+            "it": " 升级到 "
+        },
+        "soft_auto_str_68": {
+            "zh-CN": " 吗？",
+            "zh-TW": " 吗？",
+            "en": " 吗？",
+            "fr": " 吗？",
+            "de": " 吗？",
+            "it": " 吗？"
+        },
+        "soft_auto_str_69": {
+            "zh-CN": "正在清理缓存并刷新列表...",
+            "zh-TW": "正在清理缓存並重新整理列表...",
+            "en": "正在清理缓存并RefreshList...",
+            "fr": "正在清理缓存并ActualiserListe...",
+            "de": "正在清理缓存并AktualisierenListe...",
+            "it": "正在清理缓存并AggiornaElenco..."
+        },
+        "soft_auto_str_70": {
+            "zh-CN": "刷新成功",
+            "zh-TW": "重新整理成功",
+            "en": "Refresh成功",
+            "fr": "Actualiser成功",
+            "de": "Aktualisieren成功",
+            "it": "Aggiorna成功"
         }
     },
     "logs": {
@@ -7596,6 +10156,54 @@ FULL_I18N_DICTIONARY = {
             "fr": "Port",
             "de": "Port",
             "it": "Porta"
+        },
+        "logs_auto_str_1": {
+            "zh-CN": "正在获取日志审计列表...",
+            "zh-TW": "正在獲取記錄檔审計列表...",
+            "en": "正在获取Logs审计List...",
+            "fr": "正在获取Journaux审计Liste...",
+            "de": "正在获取Protokolle审计Liste...",
+            "it": "正在获取Log审计Elenco..."
+        },
+        "logs_auto_str_2": {
+            "zh-CN": "正在获取日志审计内容...",
+            "zh-TW": "正在獲取記錄檔审計内容...",
+            "en": "正在获取Logs审计内容...",
+            "fr": "正在获取Journaux审计内容...",
+            "de": "正在获取Protokolle审计内容...",
+            "it": "正在获取Log审计内容..."
+        },
+        "logs_auto_str_3": {
+            "zh-CN": "<div id=\"logAuditTable\" style=\"position: relative;display: block;\">\t\t\t\t\t\t\t<div class=\"tootls_group tootls_top\">\t\t\t\t\t\t\t\t<div class=\"pull-left\">\t\t\t\t\t\t\t\t\t<button type=\"button\" title=\"刷新列表\" class=\"refresh btn btn-success btn-sm mr5\"><span>刷新列表</span></button>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<!-- <div class=\"pull-right\">\t\t\t\t\t\t\t\t\t<div class=\"logs_search\" style=\"position: relative;\">\t\t\t\t\t\t\t\t\t\t<input type=\"text\" class=\"search_input\" style=\"\" placeholder=\"请输入来源/端口/角色/事件\">\t\t\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\"></span>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t</div> --> \t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"divtable mtb10\" style=\"max-height: 83px;\">\t\t\t\t\t\t\t\t<table class=\"table table-hover\">\t\t\t\t\t\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"0\"><span>用户</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"1\"><span>来源</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"2\"><span>端口</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"3\"><span>时间</span></span></th>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t\t\t<tbody>\t\t\t\t\t\t\t\t\t\t<tr><td><span>root</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>117.139.193.29</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>pts/0</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>2023-08-25 13:27 still logged in</span></td>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</tbody>\t\t\t\t\t\t\t\t</table>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"tootls_group tootls_bottom\">\t\t\t\t\t\t\t\t<div class=\"pull-left\"></div>\t\t\t\t\t\t\t\t<div class=\"pull-right\">\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "zh-TW": "<div id=\"logAuditTable\" style=\"position: relative;display: block;\">\t\t\t\t\t\t\t<div class=\"tootls_group tootls_top\">\t\t\t\t\t\t\t\t<div class=\"pull-left\">\t\t\t\t\t\t\t\t\t<button type=\"button\" title=\"重新整理列表\" class=\"refresh btn btn-success btn-sm mr5\"><span>重新整理列表</span></button>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<!-- <div class=\"pull-right\">\t\t\t\t\t\t\t\t\t<div class=\"logs_search\" style=\"position: relative;\">\t\t\t\t\t\t\t\t\t\t<input type=\"text\" class=\"search_input\" style=\"\" placeholder=\"请輸入來源/埠口/角色/事件\">\t\t\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\"></span>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t</div> --> \t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"divtable mtb10\" style=\"max-height: 83px;\">\t\t\t\t\t\t\t\t<table class=\"table table-hover\">\t\t\t\t\t\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"0\"><span>使用者</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"1\"><span>來源</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"2\"><span>埠口</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"3\"><span>時間</span></span></th>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t\t\t<tbody>\t\t\t\t\t\t\t\t\t\t<tr><td><span>root</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>117.139.193.29</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>pts/0</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>2023-08-25 13:27 still logged in</span></td>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</tbody>\t\t\t\t\t\t\t\t</table>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"tootls_group tootls_bottom\">\t\t\t\t\t\t\t\t<div class=\"pull-left\"></div>\t\t\t\t\t\t\t\t<div class=\"pull-right\">\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "en": "<div id=\"logAuditTable\" style=\"position: relative;display: block;\">\t\t\t\t\t\t\t<div class=\"tootls_group tootls_top\">\t\t\t\t\t\t\t\t<div class=\"pull-left\">\t\t\t\t\t\t\t\t\t<button type=\"button\" title=\"RefreshList\" class=\"refresh btn btn-success btn-sm mr5\"><span>RefreshList</span></button>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<!-- <div class=\"pull-right\">\t\t\t\t\t\t\t\t\t<div class=\"logs_search\" style=\"position: relative;\">\t\t\t\t\t\t\t\t\t\t<input type=\"text\" class=\"search_input\" style=\"\" placeholder=\"请输入来源/Port/角色/事件\">\t\t\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\"></span>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t</div> --> \t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"divtable mtb10\" style=\"max-height: 83px;\">\t\t\t\t\t\t\t\t<table class=\"table table-hover\">\t\t\t\t\t\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"0\"><span>用户</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"1\"><span>来源</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"2\"><span>Port</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"3\"><span>Time</span></span></th>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t\t\t<tbody>\t\t\t\t\t\t\t\t\t\t<tr><td><span>root</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>117.139.193.29</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>pts/0</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>2023-08-25 13:27 still logged in</span></td>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</tbody>\t\t\t\t\t\t\t\t</table>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"tootls_group tootls_bottom\">\t\t\t\t\t\t\t\t<div class=\"pull-left\"></div>\t\t\t\t\t\t\t\t<div class=\"pull-right\">\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "fr": "<div id=\"logAuditTable\" style=\"position: relative;display: block;\">\t\t\t\t\t\t\t<div class=\"tootls_group tootls_top\">\t\t\t\t\t\t\t\t<div class=\"pull-left\">\t\t\t\t\t\t\t\t\t<button type=\"button\" title=\"ActualiserListe\" class=\"refresh btn btn-success btn-sm mr5\"><span>ActualiserListe</span></button>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<!-- <div class=\"pull-right\">\t\t\t\t\t\t\t\t\t<div class=\"logs_search\" style=\"position: relative;\">\t\t\t\t\t\t\t\t\t\t<input type=\"text\" class=\"search_input\" style=\"\" placeholder=\"请输入来源/Port/角色/事件\">\t\t\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\"></span>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t</div> --> \t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"divtable mtb10\" style=\"max-height: 83px;\">\t\t\t\t\t\t\t\t<table class=\"table table-hover\">\t\t\t\t\t\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"0\"><span>用户</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"1\"><span>来源</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"2\"><span>Port</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"3\"><span>Heure</span></span></th>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t\t\t<tbody>\t\t\t\t\t\t\t\t\t\t<tr><td><span>root</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>117.139.193.29</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>pts/0</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>2023-08-25 13:27 still logged in</span></td>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</tbody>\t\t\t\t\t\t\t\t</table>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"tootls_group tootls_bottom\">\t\t\t\t\t\t\t\t<div class=\"pull-left\"></div>\t\t\t\t\t\t\t\t<div class=\"pull-right\">\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "de": "<div id=\"logAuditTable\" style=\"position: relative;display: block;\">\t\t\t\t\t\t\t<div class=\"tootls_group tootls_top\">\t\t\t\t\t\t\t\t<div class=\"pull-left\">\t\t\t\t\t\t\t\t\t<button type=\"button\" title=\"AktualisierenListe\" class=\"refresh btn btn-success btn-sm mr5\"><span>AktualisierenListe</span></button>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<!-- <div class=\"pull-right\">\t\t\t\t\t\t\t\t\t<div class=\"logs_search\" style=\"position: relative;\">\t\t\t\t\t\t\t\t\t\t<input type=\"text\" class=\"search_input\" style=\"\" placeholder=\"请输入来源/Port/角色/事件\">\t\t\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\"></span>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t</div> --> \t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"divtable mtb10\" style=\"max-height: 83px;\">\t\t\t\t\t\t\t\t<table class=\"table table-hover\">\t\t\t\t\t\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"0\"><span>用户</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"1\"><span>来源</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"2\"><span>Port</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"3\"><span>Zeit</span></span></th>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t\t\t<tbody>\t\t\t\t\t\t\t\t\t\t<tr><td><span>root</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>117.139.193.29</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>pts/0</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>2023-08-25 13:27 still logged in</span></td>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</tbody>\t\t\t\t\t\t\t\t</table>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"tootls_group tootls_bottom\">\t\t\t\t\t\t\t\t<div class=\"pull-left\"></div>\t\t\t\t\t\t\t\t<div class=\"pull-right\">\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
+            "it": "<div id=\"logAuditTable\" style=\"position: relative;display: block;\">\t\t\t\t\t\t\t<div class=\"tootls_group tootls_top\">\t\t\t\t\t\t\t\t<div class=\"pull-left\">\t\t\t\t\t\t\t\t\t<button type=\"button\" title=\"AggiornaElenco\" class=\"refresh btn btn-success btn-sm mr5\"><span>AggiornaElenco</span></button>\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t<!-- <div class=\"pull-right\">\t\t\t\t\t\t\t\t\t<div class=\"logs_search\" style=\"position: relative;\">\t\t\t\t\t\t\t\t\t\t<input type=\"text\" class=\"search_input\" style=\"\" placeholder=\"请输入来源/Porta/角色/事件\">\t\t\t\t\t\t\t\t\t\t<span class=\"glyphicon glyphicon-search\" aria-hidden=\"true\"></span>\t\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t\t</div> --> \t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"divtable mtb10\" style=\"max-height: 83px;\">\t\t\t\t\t\t\t\t<table class=\"table table-hover\">\t\t\t\t\t\t\t\t\t<thead style=\"position: relative;z-index: 1;\">\t\t\t\t\t\t\t\t\t\t<tr>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"0\"><span>用户</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"1\"><span>来源</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"2\"><span>Porta</span></span></th>\t\t\t\t\t\t\t\t\t\t\t<th><span data-index=\"3\"><span>Ora</span></span></th>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</thead>\t\t\t\t\t\t\t\t\t<tbody>\t\t\t\t\t\t\t\t\t\t<tr><td><span>root</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>117.139.193.29</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>pts/0</span></td>\t\t\t\t\t\t\t\t\t\t\t<td><span>2023-08-25 13:27 still logged in</span></td>\t\t\t\t\t\t\t\t\t\t</tr>\t\t\t\t\t\t\t\t\t</tbody>\t\t\t\t\t\t\t\t</table>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t<div class=\"tootls_group tootls_bottom\">\t\t\t\t\t\t\t\t<div class=\"pull-left\"></div>\t\t\t\t\t\t\t\t<div class=\"pull-right\">\t\t\t\t\t\t\t\t</div>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>"
+        },
+        "logs_auto_str_4": {
+            "zh-CN": "即将清空面板日志，继续吗？",
+            "zh-TW": "即將清空面板記錄檔，继续吗？",
+            "en": "即将Clear面板Logs，继续吗？",
+            "fr": "即将Vider面板Journaux，继续吗？",
+            "de": "即将Leeren面板Protokolle，继续吗？",
+            "it": "即将Svuota面板Log，继续吗？"
+        },
+        "logs_auto_str_5": {
+            "zh-CN": "清空日志",
+            "zh-TW": "清空記錄檔",
+            "en": "ClearLogs",
+            "fr": "ViderJournaux",
+            "de": "LeerenProtokolle",
+            "it": "SvuotaLog"
+        },
+        "logs_auto_str_6": {
+            "zh-CN": "正在清理,请稍候...",
+            "zh-TW": "正在清理,請稍候...",
+            "en": "正在清理,请稍候...",
+            "fr": "正在清理,请稍候...",
+            "de": "正在清理,请稍候...",
+            "it": "正在清理,请稍候..."
         }
     },
     "config": {
@@ -11338,6 +13946,56 @@ FULL_I18N_DICTIONARY = {
             "fr": "未找到匹配项",
             "de": "未找到匹配项",
             "it": "未找到匹配项"
+        }
+    },
+    "upload": {
+        "upload_auto_str_1": {
+            "zh-CN": "正在保存..",
+            "zh-TW": "正在儲存..",
+            "en": "正在Save..",
+            "fr": "正在Enregistrer..",
+            "de": "正在Speichern..",
+            "it": "正在Salva.."
+        },
+        "upload_auto_str_2": {
+            "zh-CN": "上传进度:",
+            "zh-TW": "上傳进度:",
+            "en": "Upload进度:",
+            "fr": "Téléverser进度:",
+            "de": "Hochladen进度:",
+            "it": "Carica进度:"
+        },
+        "upload_auto_str_3": {
+            "zh-CN": "已上传成功",
+            "zh-TW": "已上傳成功",
+            "en": "已Upload成功",
+            "fr": "已Téléverser成功",
+            "de": "已Hochladen成功",
+            "it": "已Carica成功"
+        },
+        "upload_auto_str_4": {
+            "zh-CN": "上传完成",
+            "zh-TW": "上傳完成",
+            "en": "Upload完成",
+            "fr": "Téléverser完成",
+            "de": "Hochladen完成",
+            "it": "Carica完成"
+        },
+        "upload_auto_str_5": {
+            "zh-CN": "已上传",
+            "zh-TW": "已上傳",
+            "en": "已Upload",
+            "fr": "已Téléverser",
+            "de": "已Hochladen",
+            "it": "已Carica"
+        },
+        "upload_auto_str_6": {
+            "zh-CN": "抱歉,IE 6/7/8 不支持请更换浏览器再上传",
+            "zh-TW": "抱歉,IE 6/7/8 不支持请更換浏覽器再上傳",
+            "en": "抱歉,IE 6/7/8 不支持请更换浏览器再Upload",
+            "fr": "抱歉,IE 6/7/8 不支持请更换浏览器再Téléverser",
+            "de": "抱歉,IE 6/7/8 不支持请更换浏览器再Hochladen",
+            "it": "抱歉,IE 6/7/8 不支持请更换浏览器再Carica"
         }
     }
 }

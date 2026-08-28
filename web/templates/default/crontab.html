@@ -162,10 +162,7 @@
 					<div class="clearfix plan" id="tag_exclude_dir" style="display:none;">
 						<span class="typename exclude_dir c4 pull-left f14 text-right mr20" data-i18n="crontab.exclude_dir">{{ t('crontab.exclude_dir', '排除目录') }}</span>
 						<div id="exclude_dir" style="line-height:34px">
-							<textarea class="txtsjs bt-input-text" name="exclude_dir" placeholder="每行一条规则,目录不能以/结尾，示例:
-.git
-static/upload
-*.log"></textarea>
+							<textarea class="txtsjs bt-input-text" name="exclude_dir" data-i18n-attr="placeholder" data-i18n="crontab.exclude_dir_placeholder" placeholder="{{ t('crontab.exclude_dir_placeholder', '每行一条规则,目录不能以/结尾，示例:\n.git\nstatic/upload\n*.log') }}"></textarea>
 						</div>
 					</div>
 					<ul class="help-info-text c7 ptb15 mlr20">
@@ -292,13 +289,19 @@ $('#search_task').on('keydown', function(e) {
 
 // 动态插入日期类型单选组
 (function() {
+    var strDayLimit = (lan && lan.crontab && lan.crontab.day_limit) || '{{ t("crontab.day_limit", "日期限制") }}';
+    var strNone = (lan && lan.crontab && lan.crontab.day_none) || '{{ t("crontab.day_none", "无") }}';
+    var strStock = (lan && lan.crontab && lan.crontab.day_stock) || '{{ t("crontab.day_stock", "股票开盘日") }}';
+    var strWorkday = (lan && lan.crontab && lan.crontab.day_workday) || '{{ t("crontab.day_workday", "工作日") }}';
+    var strHoliday = (lan && lan.crontab && lan.crontab.day_holiday) || '{{ t("crontab.day_holiday", "节假日") }}';
+
     var workdayHtml = '<div class="clearfix plan">\
-        <span class="typename c4 pull-left f14 text-right mr20">日期限制</span>\
+        <span class="typename c4 pull-left f14 text-right mr20">' + strDayLimit + '</span>\
         <div class="pull-left" style="line-height:34px">\
-            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="0" checked style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 无</label>\
-            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="1" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 股票开盘日</label>\
-            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="2" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 工作日</label>\
-            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="3" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> 节假日</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="0" checked style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + strNone + '</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="1" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + strStock + '</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="2" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + strWorkday + '</label>\
+            <label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio" value="3" style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + strHoliday + '</label>\
         </div>\
     </div>';
     $('.plancycle').parent().after(workdayHtml);

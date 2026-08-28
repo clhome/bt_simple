@@ -543,7 +543,7 @@ $(document).ready(function() {
 function setMenuConfig() {
 	layer.open({
 		type: 1,
-		title: '左侧菜单管理',
+		title: (lan && lan.config && lan.config.menu_manage_title) || '{{ t("config.menu_manage_title", "左侧菜单管理") }}',
 		area: ['450px', '650px'],
 		content: $('#menu_config_layer'),
 		success: function() {
@@ -560,7 +560,7 @@ function setMenuConfig() {
 				
 				// 拖动时变成绿色，松开恢复
 				$("#menu_config_list").off('mousedown', 'li').on('mousedown', 'li', function() {
-					$(this).css('background-color', '#dff0d8'); // 浅绿色
+					$(this).css('background-color', '#dff0d8');
 				}).off('mouseup', 'li').on('mouseup', 'li', function() {
 					$(this).css('background-color', '#fff');
 				});
@@ -585,7 +585,7 @@ function saveMenuConfig() {
 		});
 	});
 	
-	var loadT = layer.msg('正在保存配置...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+	var loadT = layer.msg((lan && lan.config && lan.config.config_save) || '{{ t("config.config_save", "正在保存配置...") }}', { icon: 16, time: 0, shade: [0.3, '#000'] });
 	$.post('/setting/save_menu_config', { menu_data: JSON.stringify(menus) }, function(rdata) {
 		layer.close(loadT);
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -598,18 +598,27 @@ function saveMenuConfig() {
 }
 
 function migrateDatabase() {
-	var loadT = layer.msg('正在检测备份数据...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+	var loadT = layer.msg((lan && lan.config && lan.config.checking_backup) || '{{ t("config.checking_backup", "正在检测备份数据...") }}', { icon: 16, time: 0, shade: [0.3, '#000'] });
 	$.post('/setting/check_migrate_backup', {}, function(res) {
 		layer.close(loadT);
 		
 		if (!res.mysql) {
-			layer.msg("未检测到宝塔面板的 MySQL 备份数据！", {icon: 2});
+			layer.msg((lan && lan.config && lan.config.no_mysql_backup) || '{{ t("config.no_mysql_backup", "未检测到宝塔面板的 MySQL 备份数据！") }}', {icon: 2});
 			return;
 		}
 
-		var checkbox_html = '<label style="margin-right: 15px; cursor: pointer;"><input type="checkbox" id="cb_migrate_mysql" value="1" checked style="vertical-align: middle; margin-top: -2px;"> 恢复 MySQL 核心环境</label><br/>';
+		var strRestoreMysql = (lan && lan.config && lan.config.restore_mysql_core) || '{{ t("config.restore_mysql_core", "恢复 MySQL 核心环境") }}';
+		var strSelectDb = (lan && lan.config && lan.config.select_restore_db) || '{{ t("config.select_restore_db", "选择要还原的数据库 (默认全选):") }}';
+		var strDangerTitle = (lan && lan.config && lan.config.danger_db_migration) || '{{ t("config.danger_db_migration", "危险操作：数据库迁移") }}';
+		var strBtnConfirm = (lan && lan.config && lan.config.btn_confirm_restore) || '{{ t("config.btn_confirm_restore", "确定还原") }}';
+		var strBtnCancel = (lan && lan.public && lan.public.cancel) || '{{ t("public.cancel", "取消") }}';
+		var strClearNotice = (lan && lan.config && lan.config.clear_db_notice) || '{{ t("config.clear_db_notice", "此操作将清空现有对应数据库并从备份还原！") }}';
+		var strInputPrompt = (lan && lan.config && lan.config.input_restore_verify) || '{{ t("config.input_restore_verify", "请手动输入【我要还原】，完成验证") }}';
+		var strKeyword = (lan && lan.config && lan.config.verify_keyword) || '{{ t("config.verify_keyword", "我要还原") }}';
+
+		var checkbox_html = '<label style="margin-right: 15px; cursor: pointer;"><input type="checkbox" id="cb_migrate_mysql" value="1" checked style="vertical-align: middle; margin-top: -2px;"> ' + strRestoreMysql + '</label><br/>';
 		if (res.databases && res.databases.length > 0) {
-			checkbox_html += '<div style="margin-top: 10px; font-weight: bold; text-align: left; padding-left: 40px;">选择要还原的数据库 (默认全选):</div>';
+			checkbox_html += '<div style="margin-top: 10px; font-weight: bold; text-align: left; padding-left: 40px;">' + strSelectDb + '</div>';
 			checkbox_html += '<div id="migrate_dbs_list" style="max-height: 100px; overflow-y: auto; text-align: left; padding-left: 40px;">';
 			for(var i=0; i<res.databases.length; i++){
 				checkbox_html += '<label style="margin-right: 15px; cursor: pointer; display: inline-block; width: 150px;"><input type="checkbox" name="cb_migrate_db" value="'+res.databases[i]+'" checked style="vertical-align: middle; margin-top: -2px;"> ' + res.databases[i] + '</label>';
@@ -621,32 +630,32 @@ function migrateDatabase() {
 		layer.open({
 			type:1,
 			closeBtn: 1,
-			title:"危险操作：数据库迁移",
+			title: strDangerTitle,
 			area: ['520px','420px'],
-			btn: ["确定还原","取消"],
+			btn: [strBtnConfirm, strBtnCancel],
 			shadeClose: true,
 			content: '<div class="bt-form" style="padding: 25px 40px;">\
 				<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">\
-					<div class="hint_con">此操作将<b style="color:red;">清空现有对应数据库</b>并从备份还原！</div>\
+					<div class="hint_con">' + strClearNotice + '</div>\
 				</div>\
 				<div style="margin-top: 15px; text-align: center;">\
 					' + checkbox_html + '\
 				</div>\
 				<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 15px;">\
-					<div>请手动输入【<span style="color: #fc6d26;">我要还原</span>】，完成验证</div>\
+					<div>' + strInputPrompt + '</div>\
 					<input onpaste="return false;" id="prompt_input_box_migrate" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">\
 				</div>\
 			</div>',
 			yes: function(index){
 				var val = $('#prompt_input_box_migrate').val();
-				if (val != '我要还原'){
-					layer.msg("验证失败，已取消还原!", {icon: 2});
+				if (val != strKeyword && val != '我要还原'){
+					layer.msg((lan && lan.config && lan.config.verify_failed_cancel) || '{{ t("config.verify_failed_cancel", "验证失败，已取消还原!") }}', {icon: 2});
 					return;
 				}
 				var mysql_checked = $('#cb_migrate_mysql').is(':checked') ? '1' : '0';
 
 				if (mysql_checked == '0') {
-					layer.msg("请勾选要恢复的 MySQL 核心环境!", {icon: 2});
+					layer.msg((lan && lan.config && lan.config.please_check_mysql) || '{{ t("config.please_check_mysql", "请勾选要恢复的 MySQL 核心环境!") }}', {icon: 2});
 					return;
 				}
 				
@@ -664,16 +673,16 @@ function migrateDatabase() {
 					if (rdata.status) {
 						var logIndex = layer.open({
 							type: 1,
-							title: '迁移执行进度',
+							title: (lan && lan.config && lan.config.migrate_progress_title) || '{{ t("config.migrate_progress_title", "迁移执行进度") }}',
 							area: ['650px', '400px'],
 							closeBtn: 0,
 							shadeClose: false,
-							btn: ['完成'],
+							btn: [(lan && lan.public && lan.public.complete) || '{{ t("public.complete", "完成") }}'],
 							yes: function(idx) {
 								layer.close(idx);
 								window.location.reload();
 							},
-							content: '<div style="padding: 15px;"><pre id="migrate_log_view" style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 260px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">正在初始化任务...</pre></div>',
+							content: '<div style="padding: 15px;"><pre id="migrate_log_view" style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 260px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">' + ((lan && lan.config && lan.config.init_task) || '正在初始化任务...') + '</pre></div>',
 							success: function(layero, idx) {
 								var btn = layero.find('.layui-layer-btn0');
 								btn.hide();
@@ -685,7 +694,7 @@ function migrateDatabase() {
 											$logView.text(logRes.msg);
 											$logView.scrollTop($logView[0].scrollHeight);
 											
-											if(logRes.msg.indexOf('🎉 宝塔软件数据迁移完毕') !== -1 || logRes.msg.indexOf('❌ 致命错误') !== -1 || logRes.msg.indexOf('操作已取消') !== -1 || logRes.msg.indexOf('未进行任何数据迁移动作') !== -1) {
+											if(logRes.msg.indexOf('🎉') !== -1 || logRes.msg.indexOf('❌') !== -1 || logRes.msg.indexOf('已取消') !== -1 || logRes.msg.indexOf('未进行') !== -1) {
 												clearInterval(timer);
 												btn.show();
 											}
@@ -698,7 +707,7 @@ function migrateDatabase() {
 						layer.msg(rdata.msg, {icon: 2, time: 3000});
 					}
 				},'json').fail(function() {
-					layer.msg("请求成功但连接断开，面板可能正在重启，请稍后刷新页面。", {icon: 1, time: 5000});
+					layer.msg((lan && lan.config && lan.config.restarting_notice) || '{{ t("config.restarting_notice", "请求成功但连接断开，面板可能正在重启，请稍后刷新页面。") }}', {icon: 1, time: 5000});
 					setTimeout(function(){
 						window.location.reload();
 					}, 5000);
@@ -707,19 +716,27 @@ function migrateDatabase() {
 		});
 	}, 'json').fail(function() {
 		layer.close(loadT);
-		layer.msg("检测备份数据失败！", {icon: 2});
+		layer.msg((lan && lan.config && lan.config.check_backup_fail) || '{{ t("config.check_backup_fail", "检测备份数据失败！") }}', {icon: 2});
 	});
 }
 
 function migrateSites() {
-	var loadT = layer.msg('正在检测站点备份数据...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+	var loadT = layer.msg((lan && lan.config && lan.config.checking_site_backup) || '{{ t("config.checking_site_backup", "正在检测站点备份数据...") }}', { icon: 16, time: 0, shade: [0.3, '#000'] });
 	$.post('/setting/check_migrate_sites', {}, function(res) {
 		layer.close(loadT);
 		
+		var strDetectedSites = (lan && lan.config && lan.config.detected_site_dbs) || '{{ t("config.detected_site_dbs", "自动检测到以下宝塔站点数据库备份：") }}';
+		var strCustomPath = (lan && lan.config && lan.config.custom_abs_path) || '{{ t("config.custom_abs_path", "手动输入绝对路径") }}';
+		var strNotDetected = (lan && lan.config && lan.config.not_detected_site_db) || '{{ t("config.not_detected_site_db", "未自动检测到宝塔面板站点数据库（site.db）。") }}';
+		var strInputAbsPath = (lan && lan.config && lan.config.input_site_db_path) || '{{ t("config.input_site_db_path", "请输入宝塔 site.db 的绝对路径：") }}';
+		var strImportSitesTitle = (lan && lan.config && lan.config.import_sites_title) || '{{ t("config.import_sites_title", "导入网站列表") }}';
+		var strBtnConfirmImport = (lan && lan.config && lan.config.btn_confirm_import) || '{{ t("config.btn_confirm_import", "确定导入") }}';
+		var strBtnCancel = (lan && lan.public && lan.public.cancel) || '{{ t("public.cancel", "取消") }}';
+
 		var select_html = '';
 		if (res.paths && res.paths.length > 0) {
 			select_html += '<div style="margin-bottom: 15px; text-align: left;">';
-			select_html += '<div style="font-weight: bold; margin-bottom: 8px;">自动检测到以下宝塔站点数据库备份：</div>';
+			select_html += '<div style="font-weight: bold; margin-bottom: 8px;">' + strDetectedSites + '</div>';
 			for (var i = 0; i < res.paths.length; i++) {
 				var checked = (i === 0) ? 'checked' : '';
 				select_html += '<label style="display: block; cursor: pointer; margin-bottom: 8px; font-weight: normal; word-break: break-all;">';
@@ -728,25 +745,25 @@ function migrateSites() {
 				select_html += '</label>';
 			}
 			select_html += '<label style="display: block; cursor: pointer; margin-bottom: 8px; font-weight: normal;">';
-			select_html += '<input type="radio" name="migrate_site_db_path" value="custom" style="vertical-align: middle; margin-top: -3px; margin-right: 5px;"> 手动输入绝对路径';
+			select_html += '<input type="radio" name="migrate_site_db_path" value="custom" style="vertical-align: middle; margin-top: -3px; margin-right: 5px;"> ' + strCustomPath;
 			select_html += '</label>';
 			select_html += '</div>';
 		} else {
-			select_html += '<div style="margin-bottom: 15px; text-align: left; color: #666;">未自动检测到宝塔面板站点数据库（site.db）。</div>';
+			select_html += '<div style="margin-bottom: 15px; text-align: left; color: #666;">' + strNotDetected + '</div>';
 		}
 		
 		var custom_input_style = (res.paths && res.paths.length > 0) ? 'display: none;' : '';
 		select_html += '<div id="custom_db_path_div" style="' + custom_input_style + ' text-align: left;">';
-		select_html += '<div style="font-weight: bold; margin-bottom: 8px;">请输入宝塔 site.db 的绝对路径：</div>';
-		select_html += '<input id="custom_site_db_path" class="bt-input-text" style="width: 100%; height: 35px; line-height: 35px;" type="text" placeholder="例如: /www/backup/site.db">';
+		select_html += '<div style="font-weight: bold; margin-bottom: 8px;">' + strInputAbsPath + '</div>';
+		select_html += '<input id="custom_site_db_path" class="bt-input-text" style="width: 100%; height: 35px; line-height: 35px;" type="text" placeholder="/www/backup/site.db">';
 		select_html += '</div>';
 
 		layer.open({
 			type: 1,
 			closeBtn: 1,
-			title: "导入网站列表",
+			title: strImportSitesTitle,
 			area: ['520px', '360px'],
-			btn: ["确定导入", "取消"],
+			btn: [strBtnConfirmImport, strBtnCancel],
 			shadeClose: true,
 			content: '<div class="bt-form" style="padding: 25px 40px;">' + select_html + '</div>',
 			success: function(layero, index) {
@@ -773,27 +790,27 @@ function migrateSites() {
 				}
 
 				if (!final_path) {
-					layer.msg("请输入或选择 site.db 的绝对路径！", {icon: 2});
+					layer.msg((lan && lan.config && lan.config.please_input_path) || '{{ t("config.please_input_path", "请输入或选择 site.db 的绝对路径！") }}', {icon: 2});
 					return;
 				}
 
-				var startLoad = layer.msg('正在启动导入任务...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+				var startLoad = layer.msg((lan && lan.config && lan.config.starting_import_task) || '{{ t("config.starting_import_task", "正在启动导入任务...") }}', { icon: 16, time: 0, shade: [0.3, '#000'] });
 				$.post('/setting/migrate_sites', { db_path: final_path }, function(rdata) {
 					layer.close(startLoad);
 					layer.close(index);
 					if (rdata.status) {
 						var logIndex = layer.open({
 							type: 1,
-							title: '网站列表导入进度',
+							title: (lan && lan.config && lan.config.import_sites_progress_title) || '{{ t("config.import_sites_progress_title", "网站列表导入进度") }}',
 							area: ['650px', '400px'],
 							closeBtn: 0,
 							shadeClose: false,
-							btn: ['完成'],
+							btn: [(lan && lan.public && lan.public.complete) || '{{ t("public.complete", "完成") }}'],
 							yes: function(idx) {
 								layer.close(idx);
 								window.location.reload();
 							},
-							content: '<div style="padding: 15px;"><pre id="migrate_sites_log_view" style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 260px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">正在初始化任务...</pre></div>',
+							content: '<div style="padding: 15px;"><pre id="migrate_sites_log_view" style="background: #333; color: #fff; border: none; padding: 15px; border-radius: 4px; height: 260px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">' + ((lan && lan.config && lan.config.init_task) || '正在初始化任务...') + '</pre></div>',
 							success: function(layero, idx) {
 								var btn = layero.find('.layui-layer-btn0');
 								btn.hide();
@@ -805,7 +822,7 @@ function migrateSites() {
 											$logView.text(logRes.msg);
 											$logView.scrollTop($logView[0].scrollHeight);
 											
-											if (logRes.msg.indexOf('[STATS] 导入统计') !== -1 || logRes.msg.indexOf('[ERROR] 错误') !== -1) {
+											if (logRes.msg.indexOf('[STATS]') !== -1 || logRes.msg.indexOf('[ERROR]') !== -1) {
 												clearInterval(timer);
 												btn.show();
 											}
@@ -819,19 +836,19 @@ function migrateSites() {
 					}
 				}, 'json').fail(function() {
 					layer.close(startLoad);
-					layer.msg("请求失败，请稍后重试。", {icon: 2});
+					layer.msg((lan && lan.public && lan.public.retry_later) || '{{ t("public.retry_later", "请求失败，请稍后重试。") }}', {icon: 2});
 				});
 			}
 		});
 	}, 'json').fail(function() {
 		layer.close(loadT);
-		layer.msg("检测站点备份数据失败！", {icon: 2});
+		layer.msg((lan && lan.config && lan.config.check_site_backup_fail) || '{{ t("config.check_site_backup_fail", "检测站点备份数据失败！") }}', {icon: 2});
 	});
 }
 
 function setHomeNotice(obj) {
     var home_notice = $("input[name='home_notice']").val();
-    var loadT = layer.msg('正在保存...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg((lan && lan.public && lan.public.the_save) || '{{ t("public.the_save", "正在保存...") }}', { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post('/setting/set_home_notice', { home_notice: home_notice }, function(rdata) {
         layer.close(loadT);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -856,11 +873,11 @@ function loadBtBackups() {
         var tbody = $('#bt_backup_list');
         tbody.empty();
         if(!rdata.status) {
-            tbody.append('<tr><td>' + (rdata.msg || '加载失败') + '</td></tr>');
+            tbody.append('<tr><td>' + (rdata.msg || (lan && lan.public && lan.public.load_fail) || '{{ t("public.load_fail", "加载失败") }}') + '</td></tr>');
             return;
         }
         if(!rdata.data || rdata.data.length == 0) {
-            tbody.append('<tr><td>无备份数据</td></tr>');
+            tbody.append('<tr><td>' + ((lan && lan.config && lan.config.no_backup_data) || '{{ t("config.no_backup_data", "无备份数据") }}') + '</td></tr>');
             return;
         }
         for(var i=0; i<rdata.data.length; i++) {
@@ -868,57 +885,57 @@ function loadBtBackups() {
             var icon = item.type == 'dir' ? 'glyphicon-folder-open' : 'glyphicon-file';
             var color = item.type == 'dir' ? '#edca5c' : '#999';
             var tr = $('<tr></tr>');
-            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="glyphicon '+icon+'" style="color:'+color+'; margin-right:8px;"></span><a href="javascript:;" class="btlink" title="在文件管理中打开" onclick="openPath(\''+item.path+'\')">'+item.path+'</a> <span style="color:#888; font-size:12px; margin-left:10px;">('+item.desc+')</span></td>');
+            tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px;"><span class="glyphicon '+icon+'" style="color:'+color+'; margin-right:8px;"></span><a href="javascript:;" class="btlink" title="' + ((lan && lan.config && lan.config.open_in_files) || '在文件管理中打开') + '" onclick="openPath(\''+item.path+'\')">'+item.path+'</a> <span style="color:#888; font-size:12px; margin-left:10px;">('+item.desc+')</span></td>');
             tr.append('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;">'+item.size+'</td>');
             
             var tdBtn = $('<td style="border-top:none; border-bottom:1px solid #eee; padding-bottom:8px; text-align:right;"></td>');
             if($('#debugMode').prop('checked')) {
                 if(item.type == 'dir') {
-                    tdBtn.append('<a href="javascript:;" class="btlink" onclick="compressBtBackup(\''+item.path+'\')" style="margin-right:10px;">压缩</a>');
+                    tdBtn.append('<a href="javascript:;" class="btlink" onclick="compressBtBackup(\''+item.path+'\')" style="margin-right:10px;">' + ((lan && lan.config && lan.config.compress) || '{{ t("config.compress", "压缩") }}') + '</a>');
                 }
             }
             
-            var warningHtml = item.warning ? '<span style="color:#aaa; font-size:12px; margin-left:10px;">(删除后：'+item.warning+')</span>' : '';
-            tdBtn.append('<a href="javascript:;" class="btlink" style="color:red;" onclick="deleteBtBackup(\''+item.path+'\', \''+(item.warning || '')+'\')">删除</a>' + warningHtml);
+            var warningHtml = item.warning ? '<span style="color:#aaa; font-size:12px; margin-left:10px;">(' + ((lan && lan.config && lan.config.after_delete) || '删除后：') + item.warning + ')</span>' : '';
+            tdBtn.append('<a href="javascript:;" class="btlink" style="color:red;" onclick="deleteBtBackup(\''+item.path+'\', \''+(item.warning || '')+'\')">' + ((lan && lan.public && lan.public.delete) || '{{ t("public.delete", "删除") }}') + '</a>' + warningHtml);
             
             tr.append(tdBtn);
             tbody.append(tr);
         }
     }).fail(function(xhr, status, error) {
-        $('#bt_backup_list').html('<tr><td style="color:red;">请求失败: ' + (error || status || '可能未重启面板') + '</td></tr>');
+        $('#bt_backup_list').html('<tr><td style="color:red;">' + (error || status || ((lan && lan.config && lan.config.may_not_restarted) || '可能未重启面板')) + '</td></tr>');
     });
 }
 
 function compressBtBackup(path) {
-    layer.msg('正在压缩，请稍候...', {icon: 16, time: 0, shade: 0.3});
+    layer.msg((lan && lan.config && lan.config.compressing) || '{{ t("config.compressing", "正在压缩，请稍候...") }}', {icon: 16, time: 0, shade: 0.3});
     $.post('/setting/compress_bt_backup', {path: path}, function(rdata) {
         layer.closeAll();
         if (typeof rdata === 'string') { try { rdata = JSON.parse(rdata); } catch(e) {} }
-        layer.msg(rdata.msg || (rdata.status ? '操作成功' : '操作失败'), {icon: rdata.status ? 1 : 2});
+        layer.msg(rdata.msg || (rdata.status ? ((lan && lan.public && lan.public.success) || '操作成功') : ((lan && lan.public && lan.public.error) || '操作失败')), {icon: rdata.status ? 1 : 2});
         if(rdata.status) {
             loadBtBackups();
         }
     }).fail(function() {
         layer.closeAll();
-        layer.msg('请求后端失败，请确认面板是否已重启。', {icon: 2});
+        layer.msg((lan && lan.config && lan.config.request_backend_fail) || '{{ t("config.request_backend_fail", "请求后端失败，请确认面板是否已重启。") }}', {icon: 2});
     });
 }
 
 function deleteBtBackup(path, warning) {
-    var warningStr = warning ? '<br><span style="color:#999; font-size:12px; margin-top:5px; display:inline-block;">(删除后：'+warning+')</span>' : '';
-    layer.confirm('确定要删除【宝塔备份】吗？<br><span style="color:red;">'+path+'</span>' + warningStr, {title: '删除确认', icon: 3}, function(index) {
+    var warningStr = warning ? '<br><span style="color:#999; font-size:12px; margin-top:5px; display:inline-block;">(' + ((lan && lan.config && lan.config.after_delete) || '删除后：') + warning + ')</span>' : '';
+    layer.confirm(((lan && lan.config && lan.config.confirm_delete_backup) || '确定要删除【宝塔备份】吗？') + '<br><span style="color:red;">'+path+'</span>' + warningStr, {title: (lan && lan.public && lan.public.del_title) || '删除确认', icon: 3}, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在删除，请稍候...', {icon: 16, time: 0, shade: 0.3});
+        var loadT = layer.msg((lan && lan.public && lan.public.the_del) || '正在删除，请稍候...', {icon: 16, time: 0, shade: 0.3});
         $.post('/setting/delete_bt_backup', {path: path}, function(rdata) {
             layer.close(loadT);
             if (typeof rdata === 'string') { try { rdata = JSON.parse(rdata); } catch(e) {} }
-            layer.msg(rdata.msg || (rdata.status ? '操作成功' : '操作失败'), {icon: rdata.status ? 1 : 2});
+            layer.msg(rdata.msg || (rdata.status ? ((lan && lan.public && lan.public.success) || '操作成功') : ((lan && lan.public && lan.public.error) || '操作失败')), {icon: rdata.status ? 1 : 2});
             if(rdata.status) {
                 loadBtBackups();
             }
         }).fail(function() {
             layer.close(loadT);
-            layer.msg('请求后端失败，请确认面板是否已重启。', {icon: 2});
+            layer.msg((lan && lan.config && lan.config.request_backend_fail) || '{{ t("config.request_backend_fail", "请求后端失败，请确认面板是否已重启。") }}', {icon: 2});
         });
     });
 }

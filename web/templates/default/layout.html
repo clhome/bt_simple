@@ -214,11 +214,13 @@
 {% if not g.is_pjax %}
         <div class="footer bgw">
           <span>
-            御风面板 &copy;2026
+            <span data-i18n="common.brand_panel">{{ t('common.brand_panel', '御风面板') }}</span> &copy;2026
             <a
               class="btlink"
               target="_blank"
-              title="源码"
+              data-i18n-attr="title"
+              data-i18n="public.source_code"
+              title="{{ t('public.source_code', '源码') }}"
               href="//github.com/clhome/bt_simple"
               style="margin-left: 5px"
               ><svg
@@ -236,20 +238,13 @@
                 ></path></svg
             ></a>
             <span style="margin-left: 5px">/</span>
-            <!-- <a
-              class="btlink"
-              target="_blank"
-              style="margin-left: 5px"
-              href="//github.com/clhome/bt_simple/wiki"
-              >WIKI</a
-            ><span style="margin-left: 5px">/</span> -->
-
             <a
               class="btlink"
               target="_blank"
               href="https://www.yftec.top"
               style="margin-left: 5px"
-              >御风科技</a
+              data-i18n="public.brand_company"
+              >{{ t('public.brand_company', '御风科技') }}</a
             >
             <span style="margin-left: 5px">/</span>
             <a
@@ -257,7 +252,8 @@
               target="_blank"
               href="https://ip.yftec.top"
               style="margin-left: 5px"
-              >IP隐私安全检测</a
+              data-i18n="public.ip_privacy_check"
+              >{{ t('public.ip_privacy_check', 'IP隐私安全检测') }}</a
             >
             <span style="margin-left: 5px">/</span>
             <a
@@ -265,11 +261,12 @@
               target="_blank"
               href="https://tools.yftec.top"
               style="margin-left: 5px"
-              >御风工具箱</a
+              data-i18n="public.tools_box"
+              >{{ t('public.tools_box', '御风工具箱') }}</a
             >
           </span>
           <div style="position: absolute; right: 20px; top: 0; font-size: 13px; color: #777; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 100%; display: flex; align-items: center; z-index: 10;">
-            <span style="font-weight: 500; letter-spacing: 0.5px;">衢州御风科技有限公司出品</span>
+            <span style="font-weight: 500; letter-spacing: 0.5px;" data-i18n="public.company_signature">{{ t('public.company_signature', '衢州御风科技有限公司出品') }}</span>
             <span style="margin: 0 10px; color: #ddd;">|</span>
             <a href="mailto:admin@yftec.top" style="color: #777; text-decoration: none; transition: all 0.3s ease;" onmouseover="this.style.color='#20a53a'" onmouseout="this.style.color='#777'">
               <span class="glyphicon glyphicon-envelope" style="font-size: 12px; margin-right: 4px; top: 1px;"></span>admin@yftec.top

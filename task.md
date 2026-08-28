@@ -224,7 +224,7 @@
 - [x] 41. 【JS - 批次一】深度提取与重构 `web/static/app/index.js` 的中文硬编码，包括垃圾清理、测速及弹窗。
 - [x] 42. 【JS - 批次一】深度提取与重构 `web/static/app/site.js` 的中文硬编码，包括网站设置各类复杂弹窗与防盗链向导。
 - [x] 43. 【JS - 批次二】深度提取与重构 `web/static/app/public.js`、`web/static/app/config.js` 与 `web/static/app/crontab.js`。
-- [ ] 44. 【JS - 批次三】深度提取与重构 `web/static/app/files.js` 与 `web/static/app/firewall.js`。
-- [ ] 45. 【JS - 批次四】深度提取与重构 `web/static/app/control.js`、`web/static/app/soft.js`、`web/static/app/logs.js`、`web/static/app/upload.js`。
+- [x] 44. 【JS - 批次三】深度提取与重构 `web/static/app/files.js` 与 `web/static/app/firewall.js`。
+- [x] 45. 【JS - 批次四】深度提取与重构 `web/static/app/control.js`、`web/static/app/soft.js`、`web/static/app/logs.js`、`web/static/app/upload.js`。
 - [x] 46. 随批次同步扩充 `scripts/tools/phrases_full.py` 字典，并持续运行 `build_all_languages.py` 同步多语言包。
 - [x] 47. 运行 `test/test_i18n.py` 及全自动化本地代码校验确保零异常。
