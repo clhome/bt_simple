@@ -2525,85 +2525,131 @@ function formatClientLocalTime(timestamp, fallbackStr) {
     }
 }
 
-// 获取并渲染首页右下角最近 2 次登录记录 (极致紧凑，防止产生滚动条)
-function getRecentLogins() {
+// 渲染首页右下角最近登录微表格
+function renderRecentLoginsTable(data) {
+    if (!data) return;
+    if (data.current_ip) {
+        $('#recentLoginCurrentIp').text(data.current_ip);
+    }
+    var list = data.list || [];
+    if (list.length === 0) {
+        $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
+        return;
+    }
+
+    var html = '<table class="table recent-logins-table">';
+    html += '<thead><tr>';
+    html += '<th style="width: 55px;">状态</th>';
+    html += '<th style="width: 55px;">方式</th>';
+    html += '<th>登录IP</th>';
+    html += '<th style="width: 110px;">归属地</th>';
+    html += '<th style="text-align: right; width: 130px;">登录时间</th>';
+    html += '</tr></thead><tbody>';
+
+    var ipsToQuery = [];
+
+    for (var i = 0; i < list.length; i++) {
+        var item = list[i];
+        var isSuccess = (item.status === 'success');
+        var statusBadge = isSuccess 
+            ? '<span class="login-tag login-tag-success"><span class="tag-dot"></span>成功</span>'
+            : '<span class="login-tag login-tag-fail"><span class="tag-dot"></span>失败</span>';
+        
+        var methodBadge = (item.method === 'SSH')
+            ? '<span class="login-method-badge method-ssh" title="' + (item.details || 'SSH终端登录') + '">SSH</span>'
+            : '<span class="login-method-badge method-web" title="' + (item.details || 'Web登录') + '">Web</span>';
+
+        var currentMark = item.is_current 
+            ? '<span class="login-curr-tag">本次</span>' 
+            : '';
+
+        // 归属地计算与本地缓存
+        var locationHtml = '';
+        if (item.is_local) {
+            var locText = item.location || item.ip_type || '局域网';
+            locationHtml = '<span class="f11 c9" title="' + locText + '">' + locText + '</span>';
+        } else {
+            var cachedLoc = getIpLocationFromCache(item.ip);
+            if (cachedLoc) {
+                locationHtml = '<span class="f11 c6 ip-loc-text" data-ip-loc="' + item.ip + '" title="' + cachedLoc + '">' + cachedLoc + '</span>';
+            } else {
+                locationHtml = '<span class="f11 c9 ip-loc-pending" data-ip-loc="' + item.ip + '">查询中...</span>';
+                ipsToQuery.push(item.ip);
+            }
+        }
+
+        var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
+        var timeTitle = '客户端时间: ' + localDisplayTime + (item.log_time ? '\n服务器时间: ' + item.log_time : '');
+
+        html += '<tr>';
+        html += '<td>' + statusBadge + '</td>';
+        html += '<td>' + methodBadge + '</td>';
+        html += '<td><span class="login-ip-code">' + (item.ip || '-') + '</span>' + currentMark + '</td>';
+        html += '<td>' + locationHtml + '</td>';
+        html += '<td style="text-align: right;" class="c9 f11" title="' + timeTitle + '">' + localDisplayTime + '</td>';
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+
+    $('#recentLoginsTableBody').html(html);
+
+    // 异步查询未缓存的公网 IP 归属地
+    if (ipsToQuery.length > 0) {
+        fetchAndRenderIpLocations(ipsToQuery);
+    }
+}
+
+// 获取并渲染首页右下角最近 2 次登录记录 (SWR 会话缓存机制：切菜单秒开 + 60s 智能冷却)
+function getRecentLogins(forceRefresh) {
+    var CACHE_KEY = 'bt_recent_logins_cache';
+    var TTL = 60 * 1000; // 60秒智能冷却
+    var cachedData = null;
+    var lastTime = 0;
+
+    try {
+        var raw = sessionStorage.getItem(CACHE_KEY);
+        if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.data) {
+                cachedData = parsed.data;
+                lastTime = parsed.t || 0;
+            }
+        }
+    } catch (e) {}
+
+    // 1. 若有会话缓存，第一时间 0ms 瞬间渲染（切换菜单时实现 0 延迟秒开，无闪烁）
+    if (cachedData) {
+        renderRecentLoginsTable(cachedData);
+    }
+
+    // 2. 检查是否处于冷却期内（且非强制刷新）
+    var now = Date.now();
+    if (!forceRefresh && cachedData && (now - lastTime < TTL)) {
+        // 在 60 秒有效期内直接复用缓存，不再向后端发送请求
+        return;
+    }
+
+    // 3. 超过冷却期或无缓存时，发起网络请求
     $.post('/get_recent_logins', { limit: 2 }, function(rdata) {
         if (!rdata || !rdata.status) {
-            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
+            if (!cachedData) {
+                $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
+            }
             return;
         }
         var data = rdata.data || {};
-        if (data.current_ip) {
-            $('#recentLoginCurrentIp').text(data.current_ip);
-        }
-        var list = data.list || [];
-        if (list.length === 0) {
-            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
-            return;
-        }
+        try {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+                data: data,
+                t: Date.now()
+            }));
+        } catch (e) {}
 
-        var html = '<table class="table recent-logins-table">';
-        html += '<thead><tr>';
-        html += '<th style="width: 55px;">状态</th>';
-        html += '<th style="width: 55px;">方式</th>';
-        html += '<th>登录IP</th>';
-        html += '<th style="width: 110px;">归属地</th>';
-        html += '<th style="text-align: right; width: 130px;">登录时间</th>';
-        html += '</tr></thead><tbody>';
-
-        var ipsToQuery = [];
-
-        for (var i = 0; i < list.length; i++) {
-            var item = list[i];
-            var isSuccess = (item.status === 'success');
-            var statusBadge = isSuccess 
-                ? '<span class="login-tag login-tag-success"><span class="tag-dot"></span>成功</span>'
-                : '<span class="login-tag login-tag-fail"><span class="tag-dot"></span>失败</span>';
-            
-            var methodBadge = (item.method === 'SSH')
-                ? '<span class="login-method-badge method-ssh" title="' + (item.details || 'SSH终端登录') + '">SSH</span>'
-                : '<span class="login-method-badge method-web" title="' + (item.details || 'Web登录') + '">Web</span>';
-
-            var currentMark = item.is_current 
-                ? '<span class="login-curr-tag">本次</span>' 
-                : '';
-
-            // 归属地计算与本地缓存
-            var locationHtml = '';
-            if (item.is_local) {
-                var locText = item.location || item.ip_type || '局域网';
-                locationHtml = '<span class="f11 c9" title="' + locText + '">' + locText + '</span>';
-            } else {
-                var cachedLoc = getIpLocationFromCache(item.ip);
-                if (cachedLoc) {
-                    locationHtml = '<span class="f11 c6 ip-loc-text" data-ip-loc="' + item.ip + '" title="' + cachedLoc + '">' + cachedLoc + '</span>';
-                } else {
-                    locationHtml = '<span class="f11 c9 ip-loc-pending" data-ip-loc="' + item.ip + '">查询中...</span>';
-                    ipsToQuery.push(item.ip);
-                }
-            }
-
-            var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
-            var timeTitle = '客户端时间: ' + localDisplayTime + (item.log_time ? '\n服务器时间: ' + item.log_time : '');
-
-            html += '<tr>';
-            html += '<td>' + statusBadge + '</td>';
-            html += '<td>' + methodBadge + '</td>';
-            html += '<td><span class="login-ip-code">' + (item.ip || '-') + '</span>' + currentMark + '</td>';
-            html += '<td>' + locationHtml + '</td>';
-            html += '<td style="text-align: right;" class="c9 f11" title="' + timeTitle + '">' + localDisplayTime + '</td>';
-            html += '</tr>';
-        }
-        html += '</tbody></table>';
-
-        $('#recentLoginsTableBody').html(html);
-
-        // 异步查询未缓存的公网 IP 归属地
-        if (ipsToQuery.length > 0) {
-            fetchAndRenderIpLocations(ipsToQuery);
-        }
+        renderRecentLoginsTable(data);
     }, 'json').fail(function() {
-        $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">获取失败，请稍后重试</div>');
+        if (!cachedData) {
+            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">获取失败，请稍后重试</div>');
+        }
     });
 }
 

@@ -185,6 +185,7 @@
 <script type="text/javascript">
 $(function(){
 	wreset();
+	try { sessionStorage.removeItem('bt_recent_logins_cache'); } catch(e) {}
 })
 
 window.onresize=function(){
@@ -262,6 +263,7 @@ $('#login-button').on('click', function(){
 			 		}
 
 			 		layer.close(index);
+			 		try { sessionStorage.removeItem('bt_recent_logins_cache'); } catch(e) {}
 			 		window.location.href = '/';	
 			 	},'json');
 			  	
@@ -270,6 +272,7 @@ $('#login-button').on('click', function(){
 		}
 		
 		layer.msg(rdata.msg,{icon:16,time:0,shade: [0.3, '#000']});
+		try { sessionStorage.removeItem('bt_recent_logins_cache'); } catch(e) {}
 		window.location.href = '/';	
 	},'json');
 });

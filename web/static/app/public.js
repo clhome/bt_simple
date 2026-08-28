@@ -1282,6 +1282,7 @@ $(function() {
 
 $("#signout").on('click', function() {
 	layer.confirm('是否要退出御风面板?', {icon:3,closeBtn: 1}, function() {
+		try { sessionStorage.removeItem('bt_recent_logins_cache'); } catch(e) {}
 		$.post("/do_signout", {}, function(rdata) {
 			layer.msg(rdata.msg, {icon: 1, time: 1000}, function() {
 				window.location.href = "/logout_success";
