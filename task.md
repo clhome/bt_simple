@@ -142,23 +142,25 @@
 - `[x]` 113. 优化 `plugins/python_yf/index.html`：在前端“已安装版本”中添加“创建虚拟环境”按钮及弹窗，并展示该版本下的虚拟环境数量记录。
 - `[x]` 114. 开发联调与测试虚拟环境的创建和 UI 展示。
 
-- [x] 115. 优化 plugins/php/install.sh 中 Composer 安装逻辑：导出临时环境变量并优先从国内镜像直连下载压缩包，并增加文件生成校验保护防止出现系统级报错。
-- [x] 116. 优化 plugins/php-apt/install.sh 中 Composer 安装逻辑（同 115）。
-- [x] 117. 优化文件管理页面 (files.js)：调换“新建目录”与“新建空白文件”的位置，使“新建目录”排在首位。
+- `[x]` 115. 优化 plugins/php/install.sh 中 Composer 安装逻辑：导出临时环境变量并优先从国内镜像直连下载压缩包，并增加文件生成校验保护防止出现系统级报错。
+- `[x]` 116. 优化 plugins/php-apt/install.sh 中 Composer 安装逻辑（同 115）。
+- `[x]` 117. 优化文件管理页面 (files.js)：调换“新建目录”与“新建空白文件”的位置，使“新建目录”排在首位。
 
 ### 解决 Gitea Docker 被 op_waf 防火墙拦截的问题
-- [x] 分析拦截原因：url.json 规则拦截 .git 以及 POST 内容检测
-- [x] 修改 plugins\op_waf\waf\rule\url_white.json 增加 \.git 白名单
-
-
-### 修正 Git 防护策略
-- [x] 撤销全局 url_white.json 对 .git 的放行，避免其他正常站点的源码泄露风险。
-- [x] 确认 WAF 中影响 Git 的分类为 **GET**（URL规则限制 .git）和 **POST**（拦截 push 时的二进制 packfile）。
-- [x] 建议用户在面板中对特定站点（git.yangmaok.*）进行独立配置。
+- `[x]` 分析拦截原因：url.json 规则拦截 .git 以及 POST 内容检测
+  - `[x]` `#577` - add_host中需要验证网站目录是否包含了".." 等越权路径名
+- `[x]` 开发统一的《插件统一开发规范》
+  - `[x]` 定义多语言 i18n 规范和迁移策略
+  - `[x]` 定义安全、稳定、性能要求
+  - `[x]` 优化并确定插件统一 i18n 的核心辅助函数 `createPluginTranslator`，减少重复代码
+  - `[x]` 新增前端统一请求封装 `YfPlugin.createApi()`，统一 loading、错误处理与参数格式化
+  - `[x]` 新增后端防注入安全执行函数 `yf.safeExecShell()`
+- `[x]` 撤销全局 url_white.json 对 .git 的放行，避免其他正常站点的源码泄露风险。
+- `[x]` 确认 WAF 中影响 Git 的分类为 **GET**（URL规则限制 .git）和 **POST**（拦截 push 时的二进制 packfile）。
+- `[x]` 建议用户在面板中对特定站点（git.yangmaok.*）进行独立配置。
 
 
 ### 解决 Git OAuth 登录被拦截的问题
-- [x] 分析拦截原因：Git Credential Manager 在进行 OAuth 认证时，URL 参数 edirect_uri 包含 http://127.0.0.1，触发了 rgs.json 中的 SSRF（服务器端请求伪造）防御规则。
 - [x] 提出修复方案：建议将 OAuth 认证路径加入白名单，或直接针对 Git 站点关闭 GET 参数过滤。
 
 ### 解答用户关于计划任务日志中“空格变冒号”的疑问

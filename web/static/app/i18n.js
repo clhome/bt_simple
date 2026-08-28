@@ -233,6 +233,57 @@
         }
     }
 
+    var _pluginDicts = {};
+
+    /**
+     * 创建插件专属的 i18n 翻译函数
+     * @param {string} pluginName 插件名
+     * @returns {function} pt(key, ...args) 函数
+     */
+    function createPluginTranslator(pluginName) {
+        if (!_pluginDicts[pluginName]) {
+            var lang = _currentLang || 'zh-CN';
+            // 同步请求当前语言包
+            window.$.ajax({
+                url: '/plugins/file?name=' + pluginName + '&f=lang/' + lang + '.json',
+                dataType: 'json',
+                async: false,
+                success: function(data) {
+                    _pluginDicts[pluginName] = data || {};
+                },
+                error: function() {
+                    // 失败则回退到中文
+                    if (lang !== 'zh-CN') {
+                        window.$.ajax({
+                            url: '/plugins/file?name=' + pluginName + '&f=lang/zh-CN.json',
+                            dataType: 'json',
+                            async: false,
+                            success: function(data) {
+                                _pluginDicts[pluginName] = data || {};
+                            },
+                            error: function() {
+                                _pluginDicts[pluginName] = {};
+                            }
+                        });
+                    } else {
+                        _pluginDicts[pluginName] = {};
+                    }
+                }
+            });
+        }
+
+        return function(key) {
+            var dict = _pluginDicts[pluginName];
+            var msg = (dict && dict[key]) ? dict[key] : key;
+            if (arguments.length > 1) {
+                for (var i = 1; i < arguments.length; i++) {
+                    msg = msg.replace('{' + i + '}', arguments[i]);
+                }
+            }
+            return msg;
+        };
+    }
+
     // 暴露全局 API
     var YfI18n = {
         detect: detectLanguage,
@@ -241,6 +292,7 @@
         getSupportedCodes: function() { return SUPPORTED_CODES.slice(); },
         setLanguage: setLanguage,
         translateDOM: translateDOM,
+        createPluginTranslator: createPluginTranslator,
         t: t
     };
 

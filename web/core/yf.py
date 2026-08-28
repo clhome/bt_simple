@@ -29,6 +29,47 @@ import re
 
 from random import Random
 
+def safeExecShell(cmd_list, cwd=None, timeout=30):
+    """
+    安全的命令执行（规避命令注入）
+    :param cmd_list: 命令列表，如 ['ls', '-l', '/']
+    :param cwd: 工作目录
+    :param timeout: 超时时间
+    :return: (stdout, stderr) 都是 string 类型
+    """
+    try:
+        if not isinstance(cmd_list, list):
+            raise Exception("safeExecShell require a list of command arguments")
+        
+        # 不使用 shell=True，直接调用
+        sub = subprocess.Popen(cmd_list, cwd=cwd, stdin=subprocess.PIPE,
+                               shell=False, bufsize=4096, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            data = sub.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            sub.kill()
+            data = sub.communicate()
+            raise Exception("Timeout：%s" % str(cmd_list))
+            
+        success = data[0]
+        error = data[1]
+        
+        if isinstance(success, bytes):
+            try:
+                success = success.decode('utf-8')
+            except Exception as e:
+                success = str(e)
+                
+        if isinstance(error, bytes):
+            try:
+                error = error.decode('utf-8')
+            except Exception as e:
+                error = str(e)
+                
+        return success, error
+    except Exception as e:
+        return "", str(e)
+
 def execShell(cmdstring, cwd=None, timeout=None, shell=True):
 
     if shell:
