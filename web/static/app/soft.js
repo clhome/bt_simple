@@ -118,6 +118,15 @@ function getSList(isdisplay) {
     $(".task").text(rdata.data[rdata.length - 1]);
     for (var i = 0; i < rdata.data.length; i++) {
       var plugin = rdata.data[i];
+      
+      // 拦截 info.json 的中文字段，将其替换为语言包中的多语言字符串
+      if (window.YfPlugin && YfPlugin.getPluginInfo) {
+          var i18nInfo = YfPlugin.getPluginInfo(plugin.name);
+          if (i18nInfo) {
+              if (i18nInfo.title && i18nInfo.title !== "plugin_title") plugin.title = i18nInfo.title;
+              if (i18nInfo.ps && i18nInfo.ps !== "plugin_ps") plugin.ps = i18nInfo.ps;
+          }
+      }
       var len = plugin.versions.length;
       var version_info = '';
       var version = '';

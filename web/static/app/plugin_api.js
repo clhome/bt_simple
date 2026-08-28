@@ -64,7 +64,10 @@
 
             window.$.post(url, req_data, function(data) {
                 if (!silent && loadT) layer.close(loadT);
-                
+                if (data.msg) {
+                    data.msg = pt(data.msg);
+                }
+
                 if (!data.status) {
                     layer.msg(data.msg, { icon: 0, time: 2000, shade: [0.3, '#000'] });
                     return;
