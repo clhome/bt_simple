@@ -90,11 +90,54 @@ def admin_safe_path(path):
 def parse_ip_type(ip):
     if not ip or ip in ('127.0.0.1', 'localhost', '::1'):
         return '本地回环'
-    if ip.startswith('192.168.') or ip.startswith('10.') or ip.startswith('172.16.') or ip.startswith('172.17.') or ip.startswith('172.18.') or ip.startswith('172.19.') or ip.startswith('172.20.') or ip.startswith('172.31.'):
+    if ip.startswith('192.168.') or ip.startswith('10.') or ip.startswith('172.16.') or ip.startswith('172.17.') or ip.startswith('172.18.') or ip.startswith('172.19.') or ip.startswith('172.20.') or ip.startswith('172.21.') or ip.startswith('172.22.') or ip.startswith('172.23.') or ip.startswith('172.24.') or ip.startswith('172.25.') or ip.startswith('172.26.') or ip.startswith('172.27.') or ip.startswith('172.28.') or ip.startswith('172.29.') or ip.startswith('172.30.') or ip.startswith('172.31.'):
         return '局域网内网'
     return '公网接入'
 
+def get_location_from_ip_api(ip):
+    """
+    优先方案：参考 op_waf 防火墙，使用 ip-api.com 接口解析归属地
+    全球与国内云服务器均具备极高可用性与响应速度
+    """
+    try:
+        import urllib.request
+        import json
+        url = 'http://ip-api.com/json/' + ip + '?lang=zh-CN'
+        req = urllib.request.Request(url)
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+        with urllib.request.urlopen(req, timeout=4) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            if res_data.get('status') == 'success':
+                country = res_data.get('country', '').strip()
+                region_name = res_data.get('regionName', '').strip()
+                city = res_data.get('city', '').strip()
+                
+                if country == '中国':
+                    parts = []
+                    if region_name:
+                        parts.append(region_name)
+                    if city and city != region_name:
+                        parts.append(city)
+                    loc = ' '.join(parts).strip()
+                    return loc if loc else '中国'
+                else:
+                    parts = []
+                    if country:
+                        parts.append(country)
+                    if region_name and region_name != country:
+                        parts.append(region_name)
+                    if city and city != region_name:
+                        parts.append(city)
+                    loc = ' '.join(parts).strip()
+                    return loc if loc else (country or '海外')
+    except Exception:
+        pass
+    return None
+
 def get_location_from_pconline(ip):
+    """
+    后备方案：当 ip-api 异常时回退到 pconline 接口
+    """
     try:
         import urllib.request
         import json
@@ -110,14 +153,14 @@ def get_location_from_pconline(ip):
                     text = content.decode('gb18030')
                 except Exception:
                     text = content.decode('utf-8', errors='ignore')
-            data = json.loads(text)
+            data = json.loads(text.strip())
             if data and 'addr' in data:
                 pro = data.get('pro', '').replace('省', '')
                 city = data.get('city', '').replace('市', '')
                 addr = data.get('addr', '')
                 proCode = data.get('proCode', '')
                 if proCode == '999999' or (not pro and not city):
-                    return addr if addr else "海外/未知"
+                    return addr if addr else "海外"
                 
                 loc = f"{pro} {city}".strip()
                 if not loc:
@@ -125,6 +168,19 @@ def get_location_from_pconline(ip):
                 return loc
     except Exception:
         pass
+    return None
+
+def get_ip_location_str(ip):
+    # 1. 优先方案：参考 op_waf 使用 ip-api.com
+    loc = get_location_from_ip_api(ip)
+    if loc:
+        return loc
+    
+    # 2. 后备方案：使用 pconline 接口
+    loc = get_location_from_pconline(ip)
+    if loc:
+        return loc
+    
     return "未知归属地"
 
 @blueprint.route('/get_ip_location', endpoint='get_ip_location', methods=['GET', 'POST'])
@@ -138,7 +194,7 @@ def get_ip_location():
     if ip_type != '公网接入':
         return yf.returnData(True, 'ok', {'ip': ip, 'location': ip_type, 'is_local': True})
     
-    loc = get_location_from_pconline(ip)
+    loc = get_ip_location_str(ip)
     return yf.returnData(True, 'ok', {'ip': ip, 'location': loc, 'is_local': False})
 
 @blueprint.route('/get_recent_logins', endpoint='get_recent_logins', methods=['GET', 'POST'])

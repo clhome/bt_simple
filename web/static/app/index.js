@@ -2443,7 +2443,7 @@ function parseSpeedLog(logText) {
     return data;
 }
 
-// 获取 IP 归属地缓存（localStorage，有效期 30 天）
+// 获取 IP 归属地缓存（localStorage，有效期 30 天，且自动过滤未知脏缓存）
 function getIpLocationFromCache(ip) {
     if (!ip) return null;
     try {
@@ -2452,6 +2452,10 @@ function getIpLocationFromCache(ip) {
             var cache = JSON.parse(cacheStr);
             var item = cache[ip];
             if (item && item.loc && (Date.now() - (item.t || 0) < 30 * 86400000)) {
+                // 若历史缓存为“未知归属地”或“未知”，视为失效并重新向后端拉取
+                if (item.loc === '未知归属地' || item.loc === '未知' || item.loc === '海外/未知') {
+                    return null;
+                }
                 return item.loc;
             }
         }
@@ -2462,6 +2466,8 @@ function getIpLocationFromCache(ip) {
 // 保存 IP 归属地到 localStorage
 function saveIpLocationToCache(ip, loc) {
     if (!ip || !loc) return;
+    // 若解析为未知归属地，不写入长期缓存，留待下一次重试自愈
+    if (loc === '未知归属地' || loc === '未知' || loc === '海外/未知') return;
     try {
         var cache = {};
         var cacheStr = localStorage.getItem('bt_ip_loc_cache');
