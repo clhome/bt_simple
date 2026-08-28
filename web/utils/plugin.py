@@ -218,7 +218,7 @@ class plugin(object):
             os.mkdir(yf.getServerDir() + '/php')
             # 任务执行相关
             yf.triggerTask()
-            return yf.returnData(True, '添加成功')
+            return yf.returnData(True, 'common.add_success')
         except Exception as e:
             return yf.returnData(False, yf.getTracebackInfo())
 
@@ -233,23 +233,23 @@ class plugin(object):
         indexList = thisdb.getOptionByJson('display_index',default=[])
 
         if vname in indexList:
-            return yf.returnData(False, '请不要重复添加!')
+            return yf.returnData(False, 'plugin.py_msg_72dee7')
         if len(indexList) > 12:
-            return yf.returnData(False, '首页最多只能显示12个软件!')
+            return yf.returnData(False, 'plugin.py_msg_78cf3e')
 
         indexList.append(vname)
 
         thisdb.setOption('display_index', json.dumps(indexList))
-        return yf.returnData(True, '添加成功!')
+        return yf.returnData(True, 'common.add_success')
 
     def removeIndex(self, name, version):
         vname = name + '-' + version
         indexList = thisdb.getOptionByJson('display_index', default=[])
         if not vname in indexList:
-            return yf.returnData(True, '删除成功!!')
+            return yf.returnData(True, 'plugin.py_msg_fc8c87')
         indexList.remove(vname)
         thisdb.setOption('display_index', json.dumps(indexList))
-        return yf.returnData(True, '删除成功!')
+        return yf.returnData(True, 'common.del_success')
 
     def hookInstallOption(self, hook_name, info):
         hn_name = 'hook_'+hook_name
@@ -315,10 +315,10 @@ class plugin(object):
         upgrade = None
     ):
         if name.strip() == '':
-            return yf.returnData(False, '缺少插件名称!', ())
+            return yf.returnData(False, 'plugin.py_msg_5e6038', ())
 
         if version.strip() == '':
-            return yf.returnData(False, '缺少版本信息!', ())
+            return yf.returnData(False, 'plugin.py_msg_988b58', ())
 
         msg_head = '安装'
         if upgrade is not None and upgrade is True:
@@ -327,7 +327,7 @@ class plugin(object):
 
         info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
         if not os.path.exists(info_file):
-            return yf.returnData(False, "配置文件不存在!", ())
+            return yf.returnData(False, 'plugin.py_msg_dacbd7', ())
 
         info_data = json.loads(yf.readFile(info_file))
 
@@ -343,12 +343,12 @@ class plugin(object):
         yf.triggerTask()
         # 调式日志
         yf.debugLog(exec_bash)
-        return yf.returnData(True, '已将安装任务添加到队列!')
+        return yf.returnData(True, 'plugin.py_msg_c3ed11')
 
     # 卸载插件
     def uninstall(self, name, version, force=False, backup=False):
         if name.strip() == '':
-            return yf.returnData(False, "缺少插件名称!", ())
+            return yf.returnData(False, 'plugin.py_msg_5e6038', ())
 
         # 解析真实安装目录以支持备份功能
         real_install_path = None
@@ -428,14 +428,14 @@ class plugin(object):
                 pass
 
             self.__plugin_list_static_cache = None
-            return yf.returnData(True, '强制删除成功!')
+            return yf.returnData(True, 'plugin.py_msg_c956b1')
 
         if version.strip() == '':
-            return yf.returnData(False, "缺少版本信息!", ())
+            return yf.returnData(False, 'plugin.py_msg_988b58', ())
 
         info_file = self.__plugin_dir + '/' + name + '/' + 'info.json'
         if not os.path.exists(info_file):
-            return yf.returnData(False, "配置文件不存在!", ())
+            return yf.returnData(False, 'plugin.py_msg_dacbd7', ())
 
         info_data = json.loads(yf.readFile(info_file))
 
@@ -449,7 +449,7 @@ class plugin(object):
         self.removeIndex(name, version)
         yf.debugLog(exec_bash, data)
         self.__plugin_list_static_cache = None
-        return yf.returnData(True, '卸载执行成功!')
+        return yf.returnData(True, 'plugin.py_msg_dcd822')
 
     # 插件搜索匹配
     def searchKey(self, info,
@@ -1084,7 +1084,7 @@ class plugin(object):
 
         tmp_file = tmp_path + '/plugin_tmp.zip'
         if request_zip.filename[-4:] != '.zip':
-            return yf.returnData(False, '仅支持zip文件!')
+            return yf.returnData(False, 'plugin.py_msg_7ed95c')
 
         request_zip.save(tmp_file)
         yf.execShell('cd ' + tmp_path + ' && unzip ' + tmp_file)
@@ -1124,16 +1124,16 @@ class plugin(object):
                     pass
         except:
             yf.removeDir(tmp_path)
-            return yf.returnData(False, '在压缩包中没有找到插件信息,请检查插件包!')
+            return yf.returnData(False, 'plugin.py_msg_311637')
         protectPlist = ('openresty', 'mysql', 'php', 'redis', 'memcached'
                         'mongodb', 'swap', 'gogs', 'pureftp')
         if data['name'] in protectPlist:
-            return yf.returnData(False, '[' + data['name'] + '],重要插件不可修改!')
+            return yf.returnData(False, 'plugin.py_msg_7e5f20')
         return data
 
     def inputZipApi(self, plugin_name,tmp_path):
         if not os.path.exists(tmp_path):
-            return yf.returnData(False, '临时文件不存在,请重新上传!')
+            return yf.returnData(False, 'plugin.py_msg_2ca3e3')
         plugin_path = yf.getPluginDir() + '/' + plugin_name
         if not os.path.exists(plugin_path):
             print(yf.makeDirs(plugin_path))
@@ -1143,9 +1143,9 @@ class plugin(object):
         if p_info:
             self.__plugin_list_static_cache = None
             yf.writeLog('软件管理', '安装第三方插件[%s]' %json.loads(p_info)['title'])
-            return yf.returnData(True, '安装成功!')
+            return yf.returnData(True, 'plugin.py_msg_f1e512')
         yf.removeDir(plugin_path)
-        return yf.returnData(False, '安装失败!')
+        return yf.returnData(False, 'plugin.py_msg_99993a')
 
     # [start|stop]操作,删除缓存!
     def runByCache(self, name, func, version):

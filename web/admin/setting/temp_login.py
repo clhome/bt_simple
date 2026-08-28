@@ -45,7 +45,7 @@ def get_temp_login():
 @panel_login_required
 def set_temp_login():
     # if 'tmp_login_expire' in session:
-    #     return yf.returnData(False, '没有权限')
+    #     return yf.returnData(False, 'setting.py_msg_2bbd2b')
     
 
     thisdb.clearTempLogin()
@@ -60,7 +60,7 @@ def set_temp_login():
     if r > 0:
         yf.writeLog('面板设置', '生成临时连接,过期时间:{}'.format(yf.formatDate(times=expire)))
         return {'status': True, 'msg': "临时连接已生成", 'token': token, 'expire': expire}
-    return yf.returnData(False, '连接生成失败')
+    return yf.returnData(False, 'setting.py_msg_3b04f4')
 
 @blueprint.route('/remove_temp_login', endpoint='remove_temp_login', methods=['POST'])
 @panel_login_required
@@ -69,15 +69,15 @@ def remove_temp_login():
     r = thisdb.deleteTempLoginById(tl_id)
     if r > 0:
         yf.writeLog('面板设置', '删除临时登录连接')
-        return yf.returnData(True, '删除成功')
-    return yf.returnData(False, '删除失败')
+        return yf.returnData(True, 'common.del_success')
+    return yf.returnData(False, 'common.del_failed')
 
 
 @blueprint.route('/get_temp_login_logs', endpoint='get_temp_login_logs', methods=['POST'])
 @panel_login_required
 def get_temp_login_logs():
     if 'tmp_login_expire' in session:
-        return yf.returnData(False, '没有权限')
+        return yf.returnData(False, 'setting.py_msg_2bbd2b')
     return yf.returnData(False, 'ok', [])
         
 

@@ -37,11 +37,11 @@ def get_timezone_list():
 @panel_login_required
 def sync_date():
     if yf.isAppleSystem():
-        return yf.returnData(True, '开发系统不必同步时间!')
+        return yf.returnData(True, 'setting.py_msg_05608e')
     data = yf.execShell('ntpdate -s time.nist.gov')
     if data[0] == '':
-        return yf.returnData(True, '同步成功!')
-    return yf.returnData(False, '同步失败:' + data[0])
+        return yf.returnData(True, 'setting.py_msg_10a198')
+    return yf.returnData(False, 'admin.py_msg_c642d5', None, data[0])
 
 @blueprint.route('/set_timezone', endpoint='set_timezone', methods=['POST'])
 @panel_login_required
@@ -50,7 +50,7 @@ def set_timezone():
     timezone = request.form.get('timezone', '').strip()
     cmd = 'timedatectl set-timezone "'+timezone+'"'
     yf.execShell(cmd)
-    return yf.returnData(True, '设置成功!')
+    return yf.returnData(True, 'common.set_success')
         
 
         

@@ -33,9 +33,9 @@ yf_async = yf_async
 @yf_async
 def restartServer():
     if not yf.isRestart():
-        return yf.returnData(False, '请等待所有安装任务完成再执行!')
+        return yf.returnData(False, 'system.py_msg_0322b3')
     yf.execShell("sync && init 6 &")
-    return yf.returnData(True, '命令发送成功!')
+    return yf.returnData(True, 'system.py_msg_77e397')
 
 def getPid(self, pname):
     try:

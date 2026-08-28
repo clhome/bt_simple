@@ -54,7 +54,7 @@ def set_notify_email():
     notify_email['cfg'] = crypt_data
 
     thisdb.setOption('notify_email', json.dumps(notify_email), type='notify')
-    return yf.returnData(True,'设置成功')
+    return yf.returnData(True, 'common.set_success')
 
 
 # 设置邮件测试
@@ -67,8 +67,8 @@ def set_notify_email_test():
     data = json.loads(tag_data)
     test_pass = yf.emailNotifyTest(data)
     if test_pass == True:
-        return yf.returnData(True, '验证成功')
-    return yf.returnData(False, '验证失败:'+test_pass)
+        return yf.returnData(True, 'setting.py_msg_45001d')
+    return yf.returnData(False, 'admin.py_msg_557e74', None, test_pass)
 
 # 切换邮件开关
 @blueprint.route('/set_notify_email_enable', endpoint='set_notify_email_enable', methods=['POST'])

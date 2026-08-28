@@ -105,7 +105,7 @@ def file_access():
 @panel_login_required
 def set_file_access():
     if yf.isAppleSystem():
-        return yf.returnData(True, '开发机不设置!')
+        return yf.returnData(True, 'files.py_msg_e4fa1d')
 
     filename = request.form.get('filename', '')
     user = request.form.get('user', '')
@@ -145,13 +145,13 @@ def get_file_last_body():
     line = request.form.get('line', '100')
 
     if not os.path.exists(path):
-        return yf.returnData(False, '文件不存在', (path,))
+        return yf.returnData(False, 'files.py_msg_d9523e', (path,))
 
     try:
         data = yf.getLastLine(path, int(line))
         return yf.returnData(True, 'OK', data)
     except Exception as ex:
-        return yf.returnData(False, '无法正确读取文件!' + str(ex))
+        return yf.returnData(False, 'admin.py_msg_bda424', None, str(ex))
 
 
 # 获取文件列表
@@ -239,7 +239,7 @@ def upload_file():
 
     msg = yf.getInfo('上传文件[{1}] 到 [{2}]成功!', (filename, path))
     yf.writeLog('文件管理', msg)
-    return yf.returnData(True, '上传成功!')
+    return yf.returnData(True, 'files.py_msg_34da7e')
 
 
 # 上传文件
@@ -336,7 +336,7 @@ def download_file():
     thisdb.addTaskByDownload(name=title, cmd=execstr)
     # self.setFileAccept(path + '/' + filename)
     yf.triggerTask()
-    return yf.returnData(True, '已将下载任务添加到队列!')
+    return yf.returnData(True, 'files.py_msg_b4c393')
 
 # 日志清空
 @blueprint.route('/close_logs', endpoint='close_logs', methods=['POST'])

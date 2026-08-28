@@ -47,10 +47,10 @@ def add_site_type():
 def remove_site_type():
     site_type_id = request.form.get('id', '')
     if yf.M('site_types').where('id=?', (site_type_id,)).count() == 0:
-        return yf.returnData(False, "指定分类不存在!")
+        return yf.returnData(False, 'site.py_msg_15fa79')
     yf.M('site_types').where('id=?', (site_type_id,)).delete()
     yf.M("sites").where("type_id=?", (site_type_id,)).save("type_id", (0,))
-    return yf.returnData(True, "分类已删除!")
+    return yf.returnData(True, 'site.py_msg_6d5524')
 
 # 修改网站分类
 @blueprint.route('/modify_site_type_name', endpoint='modify_site_type_name',methods=['POST'])
@@ -59,13 +59,13 @@ def modify_site_type_name():
     name = request.form.get('name', '').strip()
     site_type_id = request.form.get('id', '')
     if not name:
-        return yf.returnData(False, "分类名称不能为空")
+        return yf.returnData(False, 'site.py_msg_8f02db')
     if len(name) > 18:
-        return yf.returnData(False, "分类名称长度不能超过6个汉字或18位字母")
+        return yf.returnData(False, 'site.py_msg_0168e1')
     if yf.M('site_types').where('id=?', (site_type_id,)).count() == 0:
-        return yf.returnData(False, "指定分类不存在!")
+        return yf.returnData(False, 'site.py_msg_15fa79')
     yf.M('site_types').where('id=?', (site_type_id,)).setField('name', name)
-    return yf.returnData(True, "修改成功!")
+    return yf.returnData(True, 'common.edit_success')
 
 # 设置网站分类
 @blueprint.route('/set_site_type', endpoint='set_site_type',methods=['POST'])
@@ -77,7 +77,7 @@ def set_site_type():
     site_ids = json.loads(site_ids)
     for site_id in site_ids:
         yf.M('sites').where('id=?', (site_id,)).setField('type_id', site_type_id)
-    return yf.returnData(True, "设置成功!")
+    return yf.returnData(True, 'common.set_success')
 
 
 

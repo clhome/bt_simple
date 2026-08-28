@@ -49,11 +49,11 @@ def get_exec_log():
 def get_task_log_by_id():
     task_id = request.form.get('id', '')
     if task_id == '':
-        return yf.returnData(False, '任务ID不能为空!')
+        return yf.returnData(False, 'task.py_msg_db6ce6')
     import os
     task_log_file = yf.getPanelDir() + '/tmp/panelTask_{}.log'.format(task_id)
     if not os.path.exists(task_log_file):
-        return yf.returnData(False, '暂无日志记录。')
+        return yf.returnData(False, 'task.py_msg_ecca58')
     return yf.returnData(True, yf.readFile(task_log_file))
 
 
@@ -62,11 +62,11 @@ def get_task_log_by_id():
 def get_task_speed():
     count = thisdb.getTaskUnexecutedCount()
     if count == 0:
-        return yf.returnData(False, '当前没有任务队列在执行-2!')
+        return yf.returnData(False, 'task.py_msg_3bc537')
     
     row = thisdb.getTaskFirstByRun()
     if row is None:
-        return yf.returnData(False, '当前没有任务队列在执行-3!')
+        return yf.returnData(False, 'task.py_msg_320fa8')
 
     task_logfile = yf.getPanelTaskExecLog()
 
@@ -84,7 +84,7 @@ def get_task_speed():
             except Exception as e:
                 if i == 2:
                     thisdb.setTaskStatus(row['id'],0)
-                    return yf.returnData(False, '当前没有任务队列在执行-4:' + str(e))
+                    return yf.returnData(False, 'admin.py_msg_ce742b', None, str(e))
             time.sleep(0.5)
     else:
         data['msg'] = yf.getLastLine(task_logfile, 10)
@@ -99,7 +99,7 @@ def get_task_speed():
 def remove_task():
     task_id = request.form.get('id', '')
     if task_id == '':
-        return yf.returnData(False, '任务ID不能为空!')
+        return yf.returnData(False, 'task.py_msg_db6ce6')
     return YfTasks.removeTask(task_id)
 
 

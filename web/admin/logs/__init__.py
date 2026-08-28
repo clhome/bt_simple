@@ -48,7 +48,7 @@ def get_log_list():
 def del_panel_logs():
     thisdb.clearLog()
     yf.writeLog('面板设置', '面板操作日志已清空!')
-    return yf.returnData(True, '面板操作日志已清空!')
+    return yf.returnData(True, 'logs.py_msg_8d2a5b')
 
 # 系统审计日志列表
 @blueprint.route('/get_audit_logs_files', endpoint='get_audit_logs_files', methods=['POST'])

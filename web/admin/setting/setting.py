@@ -42,7 +42,7 @@ def set_webname():
     src_webname = thisdb.getOption('title')
     if webname != src_webname:
         thisdb.setOption('title', webname)
-    return yf.returnData(True, '面板别名保存成功!')
+    return yf.returnData(True, 'setting.py_msg_ca5110')
 
 # 设置服务器IP
 @blueprint.route('/set_ip', endpoint='set_ip', methods=['POST'])
@@ -52,7 +52,7 @@ def set_ip():
     src_host_ip = thisdb.getOption('server_ip')
     if host_ip != src_host_ip:
         thisdb.setOption('server_ip', host_ip)
-    return yf.returnData(True, 'IP保存成功!')
+    return yf.returnData(True, 'setting.py_msg_9adea2')
 
 # 默认备份目录
 @blueprint.route('/set_backup_dir', endpoint='set_backup_dir', methods=['POST'])
@@ -62,7 +62,7 @@ def set_backup_dir():
     src_backup_path = thisdb.getOption('backup_path')
     if backup_path != src_backup_path:
         thisdb.setOption('backup_path', backup_path)
-    return yf.returnData(True, '修改默认备份目录成功!')
+    return yf.returnData(True, 'setting.py_msg_b179f2')
 
 # 默认站点目录
 @blueprint.route('/set_www_dir', endpoint='set_www_dir', methods=['POST'])
@@ -72,7 +72,7 @@ def set_www_dir():
     src_sites_path = thisdb.getOption('site_path')
     if sites_path != src_sites_path:
         thisdb.setOption('site_path', sites_path)
-    return yf.returnData(True, '修改默认建站目录成功!')
+    return yf.returnData(True, 'setting.py_msg_d75d39')
 
 
 # 设置安全入口
@@ -94,16 +94,16 @@ def set_admin_path():
 
     if admin_path != '/':
         if len(admin_path) < 6:
-            return yf.returnData(False, '安全入口地址长度不能小于6位!')
+            return yf.returnData(False, 'setting.py_msg_eeb5dc')
         if admin_path in admin_path_sensitive:
-            return yf.returnData(False, '该入口已被面板占用,请使用其它入口!')
+            return yf.returnData(False, 'setting.py_msg_829da6')
         if not re.match(r"^/[\w]+$", admin_path):
-            return yf.returnData(False, '入口地址格式不正确,示例: /yf_rand')
+            return yf.returnData(False, 'setting.py_msg_16eb02')
     
     src_admin_path = thisdb.getOption('admin_path')
     if admin_path != src_admin_path:
         thisdb.setOption('admin_path', admin_path[1:])
-    return yf.returnData(True, '修改成功!')
+    return yf.returnData(True, 'common.edit_success')
 
 
 
@@ -125,10 +125,10 @@ def set_basic_auth():
     if basic_open == 'false':
         thisdb.setOption('basic_auth', json.dumps({'open':False}))
         yf.writeLog('面板设置', '设置BasicAuth状态为: %s' % is_open)
-        return yf.returnData(True, '删除BasicAuth成功!')
+        return yf.returnData(True, 'setting.py_msg_096c84')
 
     if basic_user == '' or basic_pwd == '':
-        return yf.returnData(False, '用户和密码不能为空!')
+        return yf.returnData(False, 'setting.py_msg_6fea4c')
 
     salt = yf.getRandomString(6)
     data = {}
@@ -139,7 +139,7 @@ def set_basic_auth():
 
     thisdb.setOption('basic_auth', json.dumps(data))
     yf.writeLog('面板设置', '设置BasicAuth状态为: %s' % is_open)
-    return yf.returnData(True, '设置成功!')
+    return yf.returnData(True, 'common.set_success')
 
 
 # 设置面板未登录状态
@@ -151,14 +151,14 @@ def set_status_code():
         status_code = int(status_code)
         if status_code != 0:
             if status_code < 100 or status_code > 999:
-                return yf.returnData(False, '状态码范围错误!!')
+                return yf.returnData(False, 'setting.py_msg_9716ed')
     else:
-        return yf.returnData(False, '状态码范围错误!')
+        return yf.returnData(False, 'setting.py_msg_a68173')
 
     info = utils_config.getUnauthStatus(code=str(status_code))
     thisdb.setOption('unauthorized_status', str(status_code))
     yf.writeLog('面板设置', '将未授权响应状态码设置为:{0}:{1}'.format(status_code,info['text']))
-    return yf.returnData(True, '设置成功!')
+    return yf.returnData(True, 'common.set_success')
 
 # 设置面板调式模式
 @blueprint.route('/open_debug', endpoint='open_debug', methods=['POST'])
@@ -167,9 +167,9 @@ def open_debug():
     debug = thisdb.getOption('debug',default='close')
     if debug == 'open':
         thisdb.setOption('debug','close')
-        return yf.returnData(True, '开发模式关闭!')
+        return yf.returnData(True, 'setting.py_msg_2f9e9a')
     thisdb.setOption('debug','open')
-    return yf.returnData(True, '开发模式开启!')
+    return yf.returnData(True, 'setting.py_msg_e82416')
 
 
 # 设置面板开关
@@ -179,9 +179,9 @@ def close_panel():
     admin_close = thisdb.getOption('admin_close',default='no')
     if admin_close == 'no':
         thisdb.setOption('admin_close','yes')
-        return yf.returnData(True, '关闭面板成功!')
+        return yf.returnData(True, 'setting.py_msg_77f082')
     thisdb.setOption('admin_close','no')
-    return yf.returnData(True, '开启面板成功!')
+    return yf.returnData(True, 'setting.py_msg_a55770')
 
 # 设置IPV6状态
 @blueprint.route('/set_ipv6_status', endpoint='set_ipv6_status', methods=['POST'])
@@ -192,12 +192,11 @@ def set_ipv6_status():
     if os.path.exists(ipv6_file):
         os.remove(ipv6_file)
         yf.writeLog('面板设置', '关闭面板IPv6兼容!')
-        yf.returnData('面板设置', '关闭面板IPv6兼容!')
     else:
         yf.writeFile(ipv6_file, 'True')
         yf.writeLog('面板设置', '开启面板IPv6兼容!')
     yf.restartPanel()
-    return yf.returnData(True, '设置成功!')
+    return yf.returnData(True, 'common.set_success')
 
 # 设置CDN状态
 @blueprint.route('/set_cdn_status', endpoint='set_cdn_status', methods=['POST'])
@@ -207,10 +206,10 @@ def set_cdn_status():
     if use_cdn == 'no':
         thisdb.setOption('use_cdn', 'yes')
         yf.writeLog('面板设置', '开启CDN加速!')
-        return yf.returnData(True, '开启CDN加速成功!')
+        return yf.returnData(True, 'setting.py_msg_a2a860')
     thisdb.setOption('use_cdn', 'no')
     yf.writeLog('面板设置', '关闭CDN加速!')
-    return yf.returnData(True, '关闭CDN加速成功!')
+    return yf.returnData(True, 'setting.py_msg_befc80')
 
 # 设置GPU检测状态
 @blueprint.route('/set_gpu_detect', endpoint='set_gpu_detect', methods=['POST'])
@@ -221,11 +220,11 @@ def set_gpu_detect():
         thisdb.setOption('gpu_detect', 'yes')
         utils_config._global_var_cache_time = 0
         yf.writeLog('面板设置', '开启英伟达GPU首页检测!')
-        return yf.returnData(True, '开启英伟达GPU首页检测成功!')
+        return yf.returnData(True, 'setting.py_msg_9cfee3')
     thisdb.setOption('gpu_detect', 'no')
     utils_config._global_var_cache_time = 0
     yf.writeLog('面板设置', '关闭英伟达GPU首页检测!')
-    return yf.returnData(True, '关闭英伟达GPU首页检测成功!')
+    return yf.returnData(True, 'setting.py_msg_d0a336')
 
 # 设置面板用户
 @blueprint.route('/set_name', endpoint='set_name', methods=['POST'])
@@ -234,12 +233,12 @@ def set_name():
     name1 = request.form.get('name1', '')
     name2 = request.form.get('name2', '')
     if name1 != name2:
-        return yf.returnData(False, '两次输入的用户名不一致，请重新输入!')
+        return yf.returnData(False, 'setting.py_msg_91b70d')
     if len(name1) < 3:
-        return yf.returnData(False, '用户名长度不能少于3位')
+        return yf.returnData(False, 'setting.py_msg_24ce37')
     thisdb.setUserByName(session['username'], name1)
     session['username'] = name1
-    return yf.returnData(True, '用户修改成功!')
+    return yf.returnData(True, 'setting.py_msg_410e38')
 
 # 设置面板密码
 @blueprint.route('/set_password', endpoint='set_password', methods=['POST'])
@@ -248,12 +247,12 @@ def set_password():
     password1 = request.form.get('password1', '')
     password2 = request.form.get('password2', '')
     if password1 != password2:
-        return yf.returnData(False, '两次输入的密码不一致，请重新输入!')
+        return yf.returnData(False, 'setting.py_msg_fa9023')
     if len(password1) < 5:
-        return yf.returnData(False, '用户密码不能小于5位!')
+        return yf.returnData(False, 'setting.py_msg_d8c2ca')
 
     thisdb.setUserPwdByName(session['username'], password1)
-    return yf.returnData(True, '密码修改成功!')
+    return yf.returnData(True, 'setting.py_msg_4c7f7a')
 
 # 设置面板端口
 @blueprint.route('/set_port', endpoint='set_port', methods=['POST'])
@@ -266,7 +265,7 @@ def set_port():
         sysCfgDir = yf.systemdCfgDir()
         if os.path.exists(sysCfgDir + "/firewalld.service"):
             if not YfFirewall.instance().getFwStatus():
-                return yf.returnData(False, 'firewalld必须先启动!')
+                return yf.returnData(False, 'setting.py_msg_61e312')
 
         yf.setHostPort(port)
         msg = yf.getInfo('放行端口[{1}]成功', (port,))
@@ -275,7 +274,7 @@ def set_port():
         YfFirewall.instance().addAcceptPort(port, 'PANEL端口-配置修改', 'port')
         yf.restartPanel()
 
-    return yf.returnData(True, '端口保存成功!')
+    return yf.returnData(True, 'setting.py_msg_922e9d')
 
 # 保存菜单配置
 @blueprint.route('/save_menu_config', endpoint='save_menu_config', methods=['POST'])
@@ -284,11 +283,11 @@ def save_menu_config():
     try:
         menu_data = request.form.get('menu_data', '')
         if not menu_data:
-            return yf.returnData(False, '菜单数据不能为空!')
+            return yf.returnData(False, 'setting.py_msg_d697e5')
         
         menus = json.loads(menu_data)
         if not isinstance(menus, list):
-            return yf.returnData(False, '菜单数据格式错误!')
+            return yf.returnData(False, 'setting.py_msg_e6c1aa')
             
         panel_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         menu_file = panel_dir + '/data/menu.json'
@@ -298,9 +297,9 @@ def save_menu_config():
         utils_config._menu_cache = menus
         utils_config._global_var_cache_time = 0
         
-        return yf.returnData(True, '菜单配置保存成功!')
+        return yf.returnData(True, 'setting.py_msg_a087ab')
     except Exception as e:
-        return yf.returnData(False, '保存失败: ' + str(e))
+        return yf.returnData(False, 'admin.py_msg_2cf3ac', None, str(e))
 
 # 检测数据库备份状态
 @blueprint.route('/check_migrate_backup', endpoint='check_migrate_backup', methods=['POST'])
@@ -349,9 +348,9 @@ def migrate_restore():
         os.system(cmd)
         
         yf.writeLog('面板设置', '执行数据库迁移恢复: ' + cmd)
-        return yf.returnData(True, "迁移已启动")
+        return yf.returnData(True, 'setting.py_msg_f04eaf')
     except Exception as e:
-        return yf.returnData(False, "迁移启动失败：" + str(e))
+        return yf.returnData(False, 'admin.py_msg_fedd95', None, str(e))
 
 @blueprint.route('/get_migrate_log', endpoint='get_migrate_log', methods=['POST'])
 @panel_login_required
@@ -359,7 +358,7 @@ def get_migrate_log():
     import os
     log_file = "/tmp/migrate_restore.log"
     if not os.path.exists(log_file):
-        return yf.returnData(False, "日志文件不存在或尚未生成")
+        return yf.returnData(False, 'setting.py_msg_bf59b6')
     content = yf.readFile(log_file)
     return yf.returnData(True, content)
 
@@ -383,7 +382,7 @@ def migrate_sites():
     try:
         db_path = request.form.get('db_path', '').strip()
         if not db_path:
-            return yf.returnData(False, "数据库路径不能为空")
+            return yf.returnData(False, 'setting.py_msg_ceaa07')
             
         import sys
         import os
@@ -395,9 +394,9 @@ def migrate_sites():
         os.system(cmd)
         
         yf.writeLog('面板设置', '执行宝塔站点导入: ' + cmd)
-        return yf.returnData(True, "站点导入已启动")
+        return yf.returnData(True, 'setting.py_msg_be3f67')
     except Exception as e:
-        return yf.returnData(False, "站点导入启动失败：" + str(e))
+        return yf.returnData(False, 'admin.py_msg_7314ec', None, str(e))
 
 # 获取网站列表迁移日志
 @blueprint.route('/get_migrate_sites_log', endpoint='get_migrate_sites_log', methods=['POST'])
@@ -406,7 +405,7 @@ def get_migrate_sites_log():
     import os
     log_file = "/tmp/migrate_sites.log"
     if not os.path.exists(log_file):
-        return yf.returnData(False, "日志文件不存在或尚未生成")
+        return yf.returnData(False, 'setting.py_msg_bf59b6')
     content = yf.readFile(log_file)
     return yf.returnData(True, content)
 
@@ -463,18 +462,18 @@ def get_bt_backups():
 def compress_bt_backup():
     path = request.form.get('path', '')
     if not path or not path.startswith('/www/server/'):
-        return yf.returnData(False, '参数错误或无权限')
+        return yf.returnData(False, 'setting.py_msg_e05503')
     
     import os
     if not os.path.exists(path) or not os.path.isdir(path):
-        return yf.returnData(False, '目录不存在')
+        return yf.returnData(False, 'setting.py_msg_2ccda7')
         
     parent_dir = os.path.dirname(path)
     base_name = os.path.basename(path)
     cmd = "cd {} && zip -r {}.zip {}".format(parent_dir, base_name, base_name)
     yf.execShell(cmd)
     
-    return yf.returnData(True, '压缩成功，文件保存在同级目录下')
+    return yf.returnData(True, 'setting.py_msg_55a0e5')
 
 # 删除宝塔备份
 @blueprint.route('/delete_bt_backup', endpoint='delete_bt_backup', methods=['POST'])
@@ -482,20 +481,20 @@ def compress_bt_backup():
 def delete_bt_backup():
     path = request.form.get('path', '')
     if not path or not path.startswith('/www/server/'):
-        return yf.returnData(False, '参数错误或无权限')
+        return yf.returnData(False, 'setting.py_msg_e05503')
     
     import os, shutil
     if not os.path.exists(path):
-        return yf.returnData(False, '文件/目录不存在')
+        return yf.returnData(False, 'setting.py_msg_ed9f63')
         
     try:
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:
             os.remove(path)
-        return yf.returnData(True, '删除成功')
+        return yf.returnData(True, 'common.del_success')
     except Exception as e:
-        return yf.returnData(False, '删除失败: ' + str(e))
+        return yf.returnData(False, 'admin.py_msg_ead17e', None, str(e))
 
 # 设置首页提醒
 @blueprint.route('/set_home_notice', endpoint='set_home_notice', methods=['POST'])
@@ -503,12 +502,12 @@ def delete_bt_backup():
 def set_home_notice():
     home_notice = request.form.get('home_notice', '')
     if len(home_notice) > 50:
-        return yf.returnData(False, '首页提醒最长不能超过50个字!')
+        return yf.returnData(False, 'setting.py_msg_c97b19')
     
     src_home_notice = thisdb.getOption('home_notice')
     if home_notice != src_home_notice:
         thisdb.setOption('home_notice', home_notice)
-    return yf.returnData(True, '首页提醒保存成功!')
+    return yf.returnData(True, 'setting.py_msg_a3bec2')
 
 # 获取支持语言列表及当前语言
 @blueprint.route('/get_languages', endpoint='get_languages', methods=['GET', 'POST'])
@@ -534,7 +533,7 @@ def set_language():
     lang_file = os.path.join(panel_dir, 'data/language.pl')
     yf.writeFile(lang_file, norm_lang)
 
-    res_data = yf.returnData(True, '设置成功', {'lang': norm_lang})
+    res_data = yf.returnData(True, 'common.set_success', {'lang': norm_lang})
     response = make_response(jsonify(res_data))
     response.set_cookie('yf_lang', norm_lang, max_age=365*86400, path='/', samesite='Lax')
     return response

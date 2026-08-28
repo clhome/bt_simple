@@ -34,11 +34,11 @@ def set_panel_api():
     if not panel_api['open']:
         panel_api['open'] = True
         thisdb.setOption('panel_api', json.dumps(panel_api))
-        return yf.returnData(True, '开启API成功!')
+        return yf.returnData(True, 'setting.py_msg_02d321')
     else:
         panel_api['open'] = False
         thisdb.setOption('panel_api', json.dumps(panel_api))
-        return yf.returnData(True, '关闭API成功!')
+        return yf.returnData(True, 'setting.py_msg_4b4d08')
 
 
 # 获取APP列表
@@ -64,12 +64,12 @@ def add_app():
     app_secret = request.form.get('app_secret', '1').strip()
     limit_addr = request.form.get('limit_addr', '').strip()
     if limit_addr == '':
-        return yf.returnData(False, 'IP限制不能为空!')
+        return yf.returnData(False, 'setting.py_msg_d061ab')
 
     rid = thisdb.addApp(app_id,app_secret,limit_addr)
     if rid > 0:
-        return yf.returnData(True, '添加成功!')
-    return yf.returnData(False, '添加失败!')
+        return yf.returnData(True, 'common.add_success')
+    return yf.returnData(False, 'common.add_failed')
 
 # 添加APP列表
 @blueprint.route('/toggle_app_status', endpoint='toggle_app_status', methods=['POST'])
@@ -78,8 +78,8 @@ def toggle_app_status():
     aid = request.form.get('id', '').strip()
     rid = thisdb.toggleAppStatus(aid)
     if rid > 0:
-        return yf.returnData(True, '切换成功!')
-    return yf.returnData(False, '切换失败!')
+        return yf.returnData(True, 'setting.py_msg_ad1353')
+    return yf.returnData(False, 'setting.py_msg_a16d8d')
 
 
 # 获取APP列表
@@ -89,5 +89,5 @@ def delete_app():
     aid = request.form.get('id', '').strip()
     rid = thisdb.deleteAppById(aid)
     if rid > 0:
-        return yf.returnData(True, '删除成功!')
-    return yf.returnData(False, '删除失败!')
+        return yf.returnData(True, 'common.del_success')
+    return yf.returnData(False, 'common.del_failed')

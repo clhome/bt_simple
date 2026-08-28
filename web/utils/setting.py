@@ -39,7 +39,7 @@ class setting(object):
     # 保存面板证书
     def savePanelSsl(self, choose, cert_pem, private_key):
         if not yf.inArray(['local','nginx'], choose):
-            return yf.returnData(True, '保存错误面板SSL类型!')
+            return yf.returnData(True, 'setting.py_msg_313da4')
 
         pdir = yf.getPanelDir()
         keyPath = pdir+'/ssl/'+choose+'/private.pem'
@@ -47,12 +47,12 @@ class setting(object):
         check_cert_pl = '/tmp/cert.pl'
 
         if not os.path.exists(keyPath):
-            return yf.returnData(False, '【'+choose+'】SSL类型不存在,先申请!')
+            return yf.returnData(False, 'setting.py_msg_7a09f6')
 
         if(private_key.find('KEY') == -1):
-            return yf.returnData(False, '秘钥错误，请检查!')
+            return yf.returnData(False, 'setting.py_msg_4b5c24')
         if(cert_pem.find('CERTIFICATE') == -1):
-            return yf.returnData(False, '证书错误，请检查!')
+            return yf.returnData(False, 'setting.py_msg_9b03c1')
 
         yf.writeFile(check_cert_pl, cert_pem)
         if private_key:
@@ -61,7 +61,7 @@ class setting(object):
             yf.writeFile(certPath, cert_pem)
         if not yf.checkCert(check_cert_pl):
             os.remove(check_cert_pl)
-            return yf.returnData(False, '证书错误,请检查!')
+            return yf.returnData(False, 'setting.py_msg_479b78')
         os.remove(check_cert_pl)
         
         # 自定义贴证书部署成功后，更新数据库中 panel_ssl 状态并组装 https 地址返回前端
@@ -80,7 +80,7 @@ class setting(object):
             domain = yf.getLocalIp()
             
         to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
-        return yf.returnData(True, '证书已保存!', to_panel_url)
+        return yf.returnData(True, 'site.cert_saved', to_panel_url)
 
     def getPanelSsl(self):
         rdata = {}
@@ -137,7 +137,7 @@ class setting(object):
             ip = '127.0.0.1'
 
         if not yf.inArray(['local','nginx'], choose):
-            return yf.returnData(True, '删除错误面板SSL类型!')
+            return yf.returnData(True, 'setting.py_msg_d31815')
 
         port = yf.getPanelPort()
         to_panel_url = 'http://'+ip+":"+port+'/setting/index'
@@ -147,9 +147,9 @@ class setting(object):
             if os.path.exists(dst_path):
                 yf.removeDir(dst_path)
                 yf.restartPanel()
-                return yf.returnData(True, '删除本地面板SSL成功!',to_panel_url)
+                return yf.returnData(True, 'setting.py_msg_1caae8',to_panel_url)
             else:
-                return yf.returnData(True, '已经删除本地面板SSL!',to_panel_url)
+                return yf.returnData(True, 'setting.py_msg_065b6e',to_panel_url)
 
         if choose == 'nginx':
             bind_domain = thisdb.getOption('panel_domain', default='')
@@ -169,8 +169,8 @@ class setting(object):
             thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
             
             yf.restartPanel()
-            return yf.returnData(True, '已删除面板90天证书并重启面板，请使用HTTP协议访问！', to_panel_url)
-        return  yf.returnData(False, '未知类型!')
+            return yf.returnData(True, 'setting.py_msg_7f4ead', to_panel_url)
+        return  yf.returnData(False, 'setting.py_msg_1f041f')
 
     def createPanelAcme(self, domains, force, renew, apply_type, dnspai, email, dns_alias):
         import json
@@ -178,7 +178,7 @@ class setting(object):
         
         domains = json.loads(domains)
         if len(domains) < 1:
-            return yf.returnData(False, '请选择域名')
+            return yf.returnData(False, 'setting.py_msg_9e0c0d')
         
         if email.strip() != '':
             thisdb.setOption('ssl_email', email)
@@ -194,7 +194,7 @@ class setting(object):
             except:
                 pass
         if not os.path.exists(acme_dir):
-            return yf.returnData(False, '尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>')
+            return yf.returnData(False, 'setting.py_msg_448940')
 
         # 确保全局默认 CA 设置为 letsencrypt，避免使用不稳定的 ZeroSSL
         yf.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
@@ -209,7 +209,7 @@ class setting(object):
             # 自动创建 80 端口的纯静态站点
             res_add = YfSites.instance().add(site_json, "80", "<span style='color:red'>（面板SSL专用配置站点，勿删）</span>", site_path, "00")
             if not res_add['status']:
-                return yf.returnData(False, '桥接站点创建失败: ' + res_add['msg'])
+                return yf.returnData(False, 'utils.py_msg_b5d34b', None, res_add['msg'])
 
         # 2. 桥接调用官方完全成熟的 YfSites 证书签发机制，不仅稳定性100%，还一并彻底解决了ACME自动续签的问题
         if apply_type == 'file':
@@ -219,7 +219,7 @@ class setting(object):
             # 调用 YfSites 的 createAcmeDns 进行DNS接口签发
             res_acme = YfSites.instance().createAcme(main_domain, json.dumps([main_domain]), force, renew, 'dns', 'let', dnspai, email, 'false', dns_alias)
         else:
-            return yf.returnData(False, '不支持的验证类型')
+            return yf.returnData(False, 'setting.py_msg_159a25')
 
         if not res_acme['status']:
             return res_acme
@@ -252,7 +252,7 @@ class setting(object):
             admin_path = '/' + admin_path
         
         to_panel_url = 'https://' + main_domain + ":" + str(port) + admin_path
-        return yf.returnData(True, '证书已成功申请并部署！', to_panel_url)
+        return yf.returnData(True, 'setting.py_msg_dacd39', to_panel_url)
 
     # 面板本地SSL设置
     def setPanelLocalSsl(self, cert_type):
@@ -281,7 +281,7 @@ class setting(object):
             domain = yf.getLocalIp()
             
         to_panel_url = 'https://' + domain + ":" + str(port) + admin_path
-        return yf.returnData(True, '设置成功', to_panel_url)
+        return yf.returnData(True, 'common.set_success', to_panel_url)
 
     def closePanelSsl(self):
         panel_ssl_data = thisdb.getOptionByJson('panel_ssl', default={'open':False})
@@ -291,14 +291,14 @@ class setting(object):
 
         thisdb.setOption('panel_ssl', json.dumps(panel_ssl_data))
         yf.restartPanel()
-        return yf.returnData(True, '设置成功')
+        return yf.returnData(True, 'common.set_success')
 
 
     # 申请面板let证书
     # def applyPanelAcmeSsl(self):
     #     bind_domain = self.__file['bind_domain']
     #     if not os.path.exists(bind_domain):
-    #         return yf.returnJson(False, '先要绑定域名!')
+    #         return yf.returnJson(False, 'setting.py_msg_bee194')
 
     #     # 生成nginx配置
     #     domain = yf.readFile(bind_domain)
@@ -307,11 +307,11 @@ class setting(object):
     #     if not os.path.exists(dst_panel_path):
     #         reg = r"^([\w\-\*]{1,100}\.){1,4}(\w{1,10}|\w{1,10}\.\w{1,10})$"
     #         if not re.match(reg, domain):
-    #             return yf.returnJson(False, '主域名格式不正确')
+    #             return yf.returnJson(False, 'setting.py_msg_b04ec3')
 
     #         op_dir = yf.getServerDir() + "/openresty"
     #         if not os.path.exists(op_dir):
-    #             return yf.returnJson(False, '依赖OpenResty,先安装启动它!')
+    #             return yf.returnJson(False, 'setting.py_msg_ad02a4')
 
     #         content = yf.readFile(panel_tpl)
     #         content = content.replace("{$PORT}", "80")
@@ -369,8 +369,8 @@ class setting(object):
     #     data = self.getPanelSslData()
 
     #     if is_already_apply:
-    #         return yf.returnJson(True, '重复申请!', data)
-    #     return yf.returnJson(True, '申请成功!', data)
+    #         return yf.returnJson(True, 'setting.py_msg_c0d3ce', data)
+    #     return yf.returnJson(True, 'setting.py_msg_5097f5', data)
 
     def setPanelDomain(self, domain):
         port = yf.getPanelPort()
@@ -385,7 +385,7 @@ class setting(object):
             to_panel_url = 'http://'+ip+":"+str(port)+'/setting/index'
             thisdb.setOption('panel_domain', '')
             yf.restartPanel()
-            return yf.returnData(True, '清空域名成功!', to_panel_url)
+            return yf.returnData(True, 'setting.py_msg_1c7c23', to_panel_url)
 
         thisdb.setOption('panel_domain', domain)
         
@@ -402,6 +402,6 @@ class setting(object):
         to_panel_url = scheme + '://' + domain + ":" + str(port) + admin_path
         
         # 绑定域名成功，保存但不在此重启，由前端弹出提示并触发确认重启
-        return yf.returnData(True, '设置域名成功!', to_panel_url)
+        return yf.returnData(True, 'setting.py_msg_6d1701', to_panel_url)
 
 

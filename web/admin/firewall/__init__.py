@@ -100,7 +100,7 @@ def del_accept_port():
 @panel_login_required
 def set_fw():
     if yf.isAppleSystem():
-        return yf.returnData(True, '开发机不能设置!')
+        return yf.returnData(True, 'firewall.py_msg_cd2498')
     status = request.form.get('status', '1')
     return YfFirewall.instance().setFw(status)
 
@@ -108,7 +108,7 @@ def set_fw():
 @panel_login_required
 def set_ssh_status():
     if yf.isAppleSystem():
-        return yf.returnData(True, '开发机不能设置!')
+        return yf.returnData(True, 'firewall.py_msg_cd2498')
     status = request.form.get('status', '1')
     return YfFirewall.instance().setSshStatus(status)
 
@@ -116,7 +116,7 @@ def set_ssh_status():
 @panel_login_required
 def set_ssh_root_status():
     if yf.isAppleSystem():
-        return yf.returnData(True, '开发机不能设置!')
+        return yf.returnData(True, 'firewall.py_msg_cd2498')
     status = request.form.get('status', '1')
     return YfFirewall.instance().setSshRootStatus(status)
 
@@ -124,7 +124,7 @@ def set_ssh_root_status():
 @panel_login_required
 def set_ssh_pass_status():
     if yf.isAppleSystem():
-        return yf.returnData(True, '开发机不能设置!')
+        return yf.returnData(True, 'firewall.py_msg_cd2498')
     status = request.form.get('status', '1')
     return YfFirewall.instance().setSshPassStatus(status)
 
@@ -132,7 +132,7 @@ def set_ssh_pass_status():
 @panel_login_required
 def set_ssh_pubkey_status():
     if yf.isAppleSystem():
-        return yf.returnData(True, '开发机不能设置!')
+        return yf.returnData(True, 'firewall.py_msg_cd2498')
     status = request.form.get('status', '1')
     return YfFirewall.instance().setSshPubkeyStatus(status)
 

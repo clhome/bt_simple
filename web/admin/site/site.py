@@ -266,12 +266,12 @@ def check_web_status():
     创建站点检查web服务
     '''
     if not yf.isInstalledWeb():
-        return yf.returnJson(False, '请安装并启动OpenResty服务!')
+        return yf.returnJson(False, 'site.py_msg_82e49e')
 
     # 这个快点
     pid = yf.getServerDir() + '/openresty/nginx/logs/nginx.pid'
     if not os.path.exists(pid):
-        return yf.returnData(False, '请启动OpenResty服务!')
+        return yf.returnData(False, 'site.py_msg_6c4558')
     return yf.returnData(True, 'OK')
 
 # 获取PHP版本
@@ -511,9 +511,9 @@ def export_all():
                 'redirect': redirect_data,
                 'ssl': ssl_data
             })
-        return yf.returnData(True, "导出成功", {'sites': exported_sites})
+        return yf.returnData(True, 'site.py_msg_105c8a', {'sites': exported_sites})
     except Exception as e:
-        return yf.returnData(False, "导出失败: " + str(e))
+        return yf.returnData(False, 'admin.py_msg_4ea8be', None, str(e))
 
 
 # 检查导入冲突
@@ -523,15 +523,15 @@ def check_import_conflicts():
     try:
         data_str = request.form.get('data', '')
         if not data_str:
-            return yf.returnData(False, "导入数据不能为空")
+            return yf.returnData(False, 'site.py_msg_799c9d')
         try:
             import_data = json.loads(data_str)
         except Exception as e:
-            return yf.returnData(False, "解析导入数据失败: " + str(e))
+            return yf.returnData(False, 'admin.py_msg_4adbdf', None, str(e))
             
         sites_list = import_data.get('sites', [])
         if not sites_list:
-            return yf.returnData(False, "未检测到有效的站点配置")
+            return yf.returnData(False, 'site.py_msg_8e6371')
             
         conflicts = []
         normal = []
@@ -579,7 +579,7 @@ def check_import_conflicts():
                     'name': site_name
                 })
                 
-        return yf.returnData(True, "检查完成", {'conflicts': conflicts, 'normal': normal})
+        return yf.returnData(True, 'site.py_msg_6d24e6', {'conflicts': conflicts, 'normal': normal})
     except Exception as e:
         import traceback
         return yf.returnData(False, "500 Error: " + str(traceback.format_exc()))
@@ -591,15 +591,15 @@ def check_import_conflicts():
 def import_all():
     data_str = request.form.get('data', '')
     if not data_str:
-        return yf.returnData(False, "导入数据不能为空")
+        return yf.returnData(False, 'site.py_msg_799c9d')
     try:
         import_data = json.loads(data_str)
     except Exception as e:
-        return yf.returnData(False, "解析导入数据失败: " + str(e))
+        return yf.returnData(False, 'admin.py_msg_4adbdf', None, str(e))
         
     sites_list = import_data.get('sites', [])
     if not sites_list:
-        return yf.returnData(False, "未检测到有效的站点配置")
+        return yf.returnData(False, 'site.py_msg_8e6371')
         
     success_count = 0
     skip_count = 0
@@ -736,7 +736,7 @@ def import_all():
     if success_count > 0:
         yf.restartWeb()
         
-    return yf.returnData(True, "导入处理完成", {'success': success_count, 'skip': skip_count})
+    return yf.returnData(True, 'site.py_msg_adda77', {'success': success_count, 'skip': skip_count})
 
 
 

@@ -35,7 +35,7 @@ class crontab(object):
 
     def modifyCrond(self,cron_id,data):
         if len(data['name']) < 1:
-            return yf.returnData(False, '任务名称不能为空!')
+            return yf.returnData(False, 'crontab.py_msg_db5b0f')
 
         is_check_pass, msg = self.cronCheck(data)
         if not is_check_pass:
@@ -67,7 +67,7 @@ class crontab(object):
         dbdata['min_end_m'] = yf.getDefault(data, 'min_end_m', '59')
 
         if not self.removeForCrond(info['echo']):
-            return yf.returnData(False, '无法写入文件，是否开启了系统加固功能!')
+            return yf.returnData(False, 'crontab.py_msg_9b5111')
 
         thisdb.setCrontabData(cron_id, dbdata)
         self.syncToCrond(cron_id)
@@ -154,7 +154,7 @@ class crontab(object):
         os.system('chmod +x ' + cmd_file)
         os.system('nohup ' + cmd_file + ' >> ' + cmd_file + '.log 2>&1 &')
         thisdb.setCrontabData(cron_id, {'last_run_time': yf.formatDate()})
-        return yf.returnData(True, '计划任务【%s】已执行!' % data['name'])
+        return yf.returnData(True, 'crontab.py_msg_13a0ef', None, data['name'])
 
 
     # 获取指定任务数据
@@ -207,12 +207,12 @@ class crontab(object):
                     self.syncToCrond(tid)
             return tid
         except Exception as e:
-            return yf.returnData(False, '数据库写入失败: ' + str(e))
+            return yf.returnData(False, 'utils.py_msg_788ddb', None, str(e))
 
     def delete(self, tid):
         data = thisdb.getCrond(tid)
         if not self.removeForCrond(data['echo']):
-            return yf.returnData(False, '无法写入文件，是否开启了系统加固功能!')
+            return yf.returnData(False, 'crontab.py_msg_9b5111')
 
         cron_path = yf.getServerDir() + '/cron'
         cron_file = cron_path + '/' + data['echo']
@@ -235,9 +235,9 @@ class crontab(object):
             log_file = yf.getServerDir() + '/cron/' + data['echo'] + '.log'
             if os.path.exists(log_file):
                 os.remove(log_file)
-            return yf.returnData(True, '任务日志已清空!')
+            return yf.returnData(True, 'crontab.py_msg_5d335f')
         except:
-            return yf.returnData(False, '任务日志清空失败!')
+            return yf.returnData(False, 'crontab.py_msg_96779b')
 
     def getCrontabHuman(self, data):
         rdata = []
@@ -668,7 +668,7 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
         if not content:
             content = ''
         # if not content:
-        #     return yf.returnData(False, '计划任务配置文件不存在?') 
+        #     return yf.returnData(False, 'crontab.py_msg_5ca948') 
         content += str(bash_script) + "\n"
         if yf.writeFile(file, content):
             if not os.path.exists(file):
@@ -676,7 +676,7 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
             else:
                 yf.execShell("chmod 600 '" + file +"' && chown root.crontab " + file)
             return yf.returnData(True, 'ok')
-        return yf.returnData(False, '文件写入失败,是否开启系统加固功能!')
+        return yf.returnData(False, 'crontab.py_msg_77c6a9')
 
     # 重载配置
     def crondReload(self):

@@ -188,7 +188,7 @@ def get_ip_location_str(ip):
 def get_ip_location():
     ip = request.values.get('ip', '').strip()
     if not ip:
-        return yf.returnData(False, 'ip不能为空')
+        return yf.returnData(False, 'dashboard.py_msg_411a4b')
     
     ip_type = parse_ip_type(ip)
     if ip_type != '公网接入':
@@ -394,7 +394,7 @@ def webhook():
 
     wh_install_path = yf.getServerDir() + '/webhook'
     if not os.path.exists(wh_install_path):
-        return yf.returnData(False, '请先安装WebHook插件!')
+        return yf.returnData(False, 'dashboard.py_msg_f77dfe')
 
     package = yf.getPanelDir() + "/plugins/webhook"
     if not package in sys.path:

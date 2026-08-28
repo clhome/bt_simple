@@ -30,7 +30,7 @@ from .site import blueprint
 def get_cli_php_version():
     php_dir = yf.getServerDir() + '/php'
     if not os.path.exists(php_dir):
-        return yf.returnData(False, '未安装PHP,无法设置')
+        return yf.returnData(False, 'site.py_msg_bf8cfe')
 
     php_bin = '/usr/bin/php'
     data = YfSites.instance().getPhpVersion()
@@ -38,7 +38,7 @@ def get_cli_php_version():
     php_versions = php_versions[1:]
 
     if len(php_versions) < 1:
-        return yf.returnData(False, '未安装PHP,无法设置')
+        return yf.returnData(False, 'site.py_msg_bf8cfe')
 
     if os.path.exists(php_bin) and os.path.islink(php_bin):
         link_re = os.readlink(php_bin)
@@ -52,7 +52,7 @@ def get_cli_php_version():
 @panel_login_required
 def set_cli_php_version():
     if yf.isAppleSystem():
-        return yf.returnData(False, "开发机不可设置!")
+        return yf.returnData(False, 'site.py_msg_496396')
     version = request.form.get('version', '')
     return YfSites.instance().setCliPhpVersion(version)
 

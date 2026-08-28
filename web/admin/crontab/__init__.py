@@ -264,17 +264,17 @@ def add():
 
     info = thisdb.getCronByName(request_data['name'])
     if info is not None:
-        return yf.returnData(False, '任务名称重复')
+        return yf.returnData(False, 'crontab.py_msg_2c1843')
 
     try:
         data = YfCrontab.instance().add(request_data)
         if isinstance(data, dict):
             return data
         if data > 0:
-            return yf.returnData(True, '添加成功')
-        return yf.returnData(False, '添加失败')
+            return yf.returnData(True, 'common.add_success')
+        return yf.returnData(False, 'common.add_failed')
     except Exception as e:
-        return yf.returnData(False, '添加异常: ' + str(e))
+        return yf.returnData(False, 'admin.py_msg_a71a3c', None, str(e))
 
 # 同步系统级和面板内置计划任务
 @blueprint.route('/sync_sys_cron', endpoint='sync_sys_cron', methods=['POST'])
@@ -284,8 +284,8 @@ def sync_sys_cron():
         from admin.setup.init_cron import sync_all_tasks
         count = sync_all_tasks()
         if count > 0:
-            return yf.returnData(True, '成功检测并同步了 {} 个任务'.format(count))
+            return yf.returnData(True, 'crontab.py_msg_9d44d8', None, count)
         else:
-            return yf.returnData(True, '当前任务列表已是最新，无缺失任务需要同步')
+            return yf.returnData(True, 'crontab.py_msg_f47dfc')
     except Exception as e:
-        return yf.returnData(False, '同步异常: ' + str(e))
+        return yf.returnData(False, 'admin.py_msg_11ca8c', None, str(e))

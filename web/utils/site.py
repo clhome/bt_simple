@@ -244,7 +244,7 @@ class sites(object):
     def add(self, site_info, port, ps, path, version):
         site_root_dir = yf.getWwwDir()
         if site_root_dir == path.rstrip('/'):
-            return yf.returnData(False, '不要以网站根目录创建站点!')
+            return yf.returnData(False, 'site.py_msg_a01391')
 
         site_info = json.loads(site_info)
 
@@ -254,11 +254,11 @@ class sites(object):
         self.phpVersion = version
 
         if thisdb.isSitesExist(self.siteName):
-            return yf.returnData(False, '您添加的站点[%s]已存在!' % self.siteName)
+            return yf.returnData(False, 'site.py_msg_005e3b', None, self.siteName)
 
         site_id = thisdb.addSites(self.siteName, self.sitePath, ps)
         if site_id < 1:
-            return yf.returnData(False, '添加失败!') 
+            return yf.returnData(False, 'common.add_failed') 
 
         self.createRootDir(self.sitePath)
         self.nginxAddConf()
@@ -281,7 +281,7 @@ class sites(object):
         yf.restartWeb()
 
         self.runHook('site_cb', 'add')
-        return yf.returnData(True, '添加成功')
+        return yf.returnData(True, 'common.add_success')
 
     def stop(self, site_id):
         site_info = thisdb.getSitesById(site_id)
@@ -321,7 +321,7 @@ class sites(object):
         msg = yf.getInfo('网站[{1}]已被停用!', (site_info['name'],))
         yf.writeLog('网站管理', msg)
         yf.restartWeb()
-        return yf.returnData(True, '站点已停用!')
+        return yf.returnData(True, 'site.py_msg_d1d7e1')
 
     def start(self, site_id):
         site_info = thisdb.getSitesById(site_id)
@@ -339,7 +339,7 @@ class sites(object):
         msg = yf.getInfo('网站[{1}]已被启用!', (site_info['name'],))
         yf.writeLog('网站管理', msg)
         yf.restartWeb()
-        return yf.returnData(True, '站点已启用!')
+        return yf.returnData(True, 'site.py_msg_d4219e')
 
     def nginxAddDomainFilter(self, site_id, site_name, domain, port):
         self.nginxAddDomain(site_name, domain, port)
@@ -387,14 +387,14 @@ class sites(object):
                 port = d[1]
 
             if not yf.checkPort(port):
-                return yf.returnData(False, '端口范围不合法!')
+                return yf.returnData(False, 'site.py_msg_68e754')
 
             reg = r"^([\w\-\*]{1,100}\.){1,4}([\w\-]{1,24}|[\w\-]{1,24}\.[\w\-]{1,24})$"
             if not re.match(reg, name):
-                return yf.returnData(False, '域名格式不正确!')
+                return yf.returnData(False, 'site.py_msg_dbd9b9')
 
             if thisdb.checkSitesDomainIsExist(name, port):
-                return yf.returnData(False, '您添加的域名[{}:{}],已使用。请仔细检查!'.format(name, port))
+                return yf.returnData(False, 'utils.py_msg_a3f9da', None, name, port)
 
             self.nginxAddDomainFilter(site_id, site_name, name, port)
 
@@ -404,12 +404,12 @@ class sites(object):
 
         yf.restartWeb()
         self.runHook('site_cb', 'add')
-        return yf.returnData(True, '域名添加成功!')
+        return yf.returnData(True, 'site.py_msg_f17e3d')
 
     def delDomain(self, site_id, site_name, domain, port):
         domain_nums = thisdb.getDomainCountBySiteId(site_id)
         if domain_nums == 1:
-            return yf.returnData(False, '最后一个域名不能删除!')
+            return yf.returnData(False, 'site.py_msg_9bb5ba')
 
         info = yf.M('domain').field('id,name').where("pid=? AND name=? AND port=?",(site_id, domain, port)).find()
 
@@ -437,7 +437,7 @@ class sites(object):
         msg = yf.getInfo('网站[{1}]删除域名[{2}:{3}]成功!', (site_name, domain, port))
         yf.writeLog('网站管理', msg)
         yf.restartWeb()
-        return yf.returnData(True, '站点删除成功!')
+        return yf.returnData(True, 'site.py_msg_3f4958')
 
     def deleteALlLogs(self, webname):
         assLogPath = yf.getLogsDir() + '/' + webname + '.log'
@@ -506,7 +506,7 @@ class sites(object):
         yf.restartWeb()
 
         self.runHook('site_cb', 'delete')
-        return yf.returnData(True, '站点【%s】删除成功!' % webname)
+        return yf.returnData(True, 'site.py_msg_ebadba', None, webname)
 
     def nginxAddConf(self):
 
@@ -548,7 +548,7 @@ class sites(object):
         info = thisdb.getSitesById(site_id)
         thisdb.setSitesData(site_id, edate=end_date)
         yf.writeLog('网站管理', '设置成功,站点【{1}】到期【{2}】后将自动停止!', (info['name'], end_date,))
-        return yf.returnData(True, '设置成功,站点到期后将自动停止!')
+        return yf.returnData(True, 'site.py_msg_40c79f')
 
     def setSsl(self, site_name, key, csr):
         path = self.sslDir + '/' + site_name
@@ -559,15 +559,15 @@ class sites(object):
         keypath = path + "/privkey.pem"    # 密钥文件路径
 
         if(key.find('KEY') == -1):
-            return yf.returnJson(False, '秘钥错误，请检查!')
+            return yf.returnJson(False, 'site.py_msg_4b5c24')
         if(csr.find('CERTIFICATE') == -1):
-            return yf.returnJson(False, '证书错误，请检查!')
+            return yf.returnJson(False, 'site.py_msg_9b03c1')
 
         tmp_cert = '/tmp/cert.pl'
         yf.writeFile(tmp_cert, csr)
         if not yf.checkCert(tmp_cert):
             os.remove(tmp_cert)
-            return yf.returnData(False, '证书错误,请粘贴正确的PEM格式证书!')
+            return yf.returnData(False, 'site.py_msg_23f0ba')
         os.remove(tmp_cert)
         
         yf.backFile(keypath)
@@ -591,14 +591,14 @@ class sites(object):
 
         yf.writeLog('网站管理', '证书已保存!')
         yf.restartWeb()
-        return yf.returnData(True, '证书已保存!')
+        return yf.returnData(True, 'site.cert_saved')
 
     # ssl相关方法 start
     def setSslConf(self, site_name):
         file = self.getHostConf(site_name)
         conf = yf.readFile(file)
         if not conf:
-            return yf.returnData(False, '站点[%s]配置异常!'.format(site_name))
+            return yf.returnData(False, 'utils.py_msg_802376', None, site_name)
 
         version = yf.getOpVer()
         keyPath = self.sslDir + '/' + site_name + '/privkey.pem'
@@ -626,7 +626,7 @@ class sites(object):
     %s
     error_page 497  https://$host$request_uri;""" % (certPath, keyPath, http3Header)
         if(conf.find('ssl_certificate') != -1):
-            return yf.returnData(True, 'SSL开启成功!')
+            return yf.returnData(True, 'site.ssl_enabled')
 
         conf = conf.replace('#error_page 404/404.html;', sslStr)
 
@@ -656,20 +656,21 @@ class sites(object):
         isError = yf.checkWebConfig()
         if not isError:
             yf.restoreFile(file)
-            return yf.returnData(False, '证书错误: <br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
+            err_html = '<a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
+            return yf.returnData(False, 'site.cert_err_detail', None, err_html)
     
         self.saveCert(site_name, keyPath, certPath)
         msg = yf.getInfo('网站[{1}]开启SSL成功!', (site_name,))
         yf.writeLog('网站管理', msg)
 
         yf.restartWeb()
-        return yf.returnData(True, 'SSL开启成功!')
+        return yf.returnData(True, 'site.ssl_enabled')
 
     # 设置网站备注
     def setPs(self, site_id, ps):
         if thisdb.setSitesData(site_id, ps=ps):
-            return yf.returnData(True, '修改成功!')
-        return yf.returnData(False, '修改失败!')
+            return yf.returnData(True, 'common.edit_success')
+        return yf.returnData(False, 'common.edit_failed')
 
     # 获取默认站点
     def getDefaultSite(self):
@@ -687,14 +688,14 @@ class sites(object):
     def getLogs(self, siteName):
         logPath = yf.getLogsDir() + '/' + siteName + '.log'
         if not os.path.exists(logPath):
-            return yf.returnData(False, '日志为空')
+            return yf.returnData(False, 'common.log_empty')
         return yf.returnData(True, yf.getLastLine(logPath, 100))
 
     # 获取错误日志内容
     def getErrorLogs(self, siteName):
         logPath = yf.getLogsDir() + '/' + siteName + '.error.log'
         if not os.path.exists(logPath):
-            return yf.returnData(False, '日志为空')
+            return yf.returnData(False, 'common.log_empty')
         return yf.returnData(True, yf.getLastLine(logPath, 100))
 
     def getNgxRewriteDir(self):
@@ -707,7 +708,7 @@ class sites(object):
     def getRewriteTpl(self, name):
         path = self.getNgxRewriteDir() +'/'+ name + ".conf"
         if not os.path.exists(path):
-            return yf.returnData(False, '模版不存在!')
+            return yf.returnData(False, 'site.template_not_exists')
         return yf.returnData(True, 'OK', path)
 
     def setRewrite(self,path,data,encoding):
@@ -722,20 +723,20 @@ class sites(object):
             msg = 'ERROR: <br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>'
             return yf.returnJson(False, msg)
         yf.restartWeb()
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def setRewriteTpl(self,name,data):
         path = self.getNgxRewriteDir() +'/'+ name + ".conf"
         if os.path.exists(path):
-            return yf.returnData(False, '模版已经存在!')
+            return yf.returnData(False, 'site.template_exists')
 
         if data == "":
-            return yf.returnData(False, '模版内容不能为空!')
+            return yf.returnData(False, 'site.template_empty')
         ok = yf.writeFile(path, data)
         if not ok:
-            return yf.returnData(False, '模版保持失败!')
+            return yf.returnData(False, 'site.py_msg_531fa9')
 
-        return yf.returnData(True, '设置模板成功!')
+        return yf.returnData(True, 'site.py_msg_d962ec')
 
     def getRewriteList(self):
         rewriteList = {}
@@ -862,21 +863,21 @@ class sites(object):
         if os.path.exists(filename):
             content = yf.readFile(filename)
             if content and '/www/server/php' in content:
-                return yf.returnData(True, '已打开防跨站设置!')
+                return yf.returnData(True, 'site.py_msg_bf9941')
             else:
                 yf.execShell("which chattr && chattr -i " + filename)
 
         yf.writeFile(filename, new_content)
         yf.execShell("which chattr && chattr +i " + filename)
-        return yf.returnData(True, '已打开防跨站设置!')
+        return yf.returnData(True, 'site.py_msg_bf9941')
 
     def setDirUserIni(self, site_path, run_path):
         filename = site_path + '/.user.ini'
         if os.path.exists(filename):
             self.delUserInI(site_path)
-            return yf.returnData(True, '已清除防跨站设置!')
+            return yf.returnData(True, 'site.py_msg_e9b359')
         self.addDirUserIni(site_path, run_path)
-        return yf.returnData(True, '已打开防跨站设置!')
+        return yf.returnData(True, 'site.py_msg_bf9941')
 
 
     def getDirBinding(self, site_id):
@@ -918,20 +919,20 @@ class sites(object):
         if len(domain_split) > 1:
             port = domain_split[1]
         if dir_name == '':
-            yf.returnData(False, '目录不能为空!')
+            yf.returnData(False, 'file.dir_empty')
 
         reg = r"^([\w\-\*]{1,100}\.){1,4}(\w{1,10}|\w{1,10}\.\w{1,10})$"
         if not re.match(reg, domain):
-            return yf.returnData(False, '主域名格式不正确!')
+            return yf.returnData(False, 'site.py_msg_8e31f6')
 
         info = thisdb.getSitesById(site_id)
         webdir = info['path'] + '/' + dir_name
 
         if thisdb.getBindingCountByDomain(domain):
-            return yf.returnData(False, '您添加的域名在子目录已存在!')
+            return yf.returnData(False, 'site.py_msg_076c04')
 
         if thisdb.getDomainCountByName(domain) > 0:
-            return yf.returnData(False, '您添加的域名已存在!')
+            return yf.returnData(False, 'site.py_msg_e491d4')
 
         filename = self.getHostConf(info['name'])
         conf = yf.readFile(filename)
@@ -968,7 +969,7 @@ class sites(object):
         yf.writeLog('网站管理', msg)
         yf.restartWeb()
         yf.removeBackFile(filename)
-        return yf.returnData(True, '添加成功!')
+        return yf.returnData(True, 'common.add_success')
 
     # 取子目录Rewrite
     def getDirBindingRewrite(self, binding_id, add):
@@ -1023,7 +1024,7 @@ class sites(object):
         yf.restartWeb()
 
         thisdb.deleteBindingById(binding_id)
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'common.del_success')
 
 
     def logsOpen(self, site_id):
@@ -1041,20 +1042,20 @@ class sites(object):
             yf.writeFile(filename, conf)
 
         yf.restartWeb()
-        return yf.returnData(True, '操作成功!')
+        return yf.returnData(True, 'common.action_success')
 
     def setSitePath(self, site_id, path):
         path = self.getPath(path)
         if path == "" or site_id == '0':
-            return yf.returnData(False,  "目录不能为空!")
+            return yf.returnData(False, 'file.dir_empty')
 
         import utils.file as file
         if not file.checkDir(path):
-            return yf.returnData(False,  "不能以系统关键目录作为站点目录")
+            return yf.returnData(False, 'site.py_msg_7c7b97')
 
         info = thisdb.getSitesById(site_id)
         if info['path'] == path:
-            return yf.returnData(False,  "与原路径一致，无需修改!")
+            return yf.returnData(False, 'site.py_msg_68d301')
         host_conf = self.getHostConf(info['name'])
         content = yf.readFile(host_conf)
         if content:
@@ -1065,7 +1066,7 @@ class sites(object):
         msg = yf.getInfo('修改网站[{1}]物理路径成功!', (info['name'],))
         yf.writeLog('网站管理', msg)
         yf.restartWeb()
-        return yf.returnData(True,  "设置成功!")
+        return yf.returnData(True, 'common.set_success')
 
     # 设置当前站点运行目录
     def setSiteRunPath(self, site_id, run_path):
@@ -1084,12 +1085,12 @@ class sites(object):
             yf.writeFile(site_host, content)
 
         yf.restartWeb()
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     # 设置目录加密
     def setHasPwd(self, site_id, username, password):
         if len(username.strip()) == 0 or len(password.strip()) == 0:
-            return yf.returnData(False, '用户名或密码不能为空!')
+            return yf.returnData(False, 'site.py_msg_dd93d9')
 
         info = thisdb.getSitesById(site_id)
         siteName = info['name']
@@ -1119,7 +1120,7 @@ class sites(object):
         msg = yf.getInfo('设置网站[{1}]为需要密码认证!', (siteName,))
         yf.writeLog("网站管理", msg)
         yf.restartWeb()
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     # 取消目录加密
     def closeHasPwd(self, site_id):
@@ -1135,7 +1136,7 @@ class sites(object):
         msg = yf.getInfo('清除网站[{1}]的密码认证!', (siteName,))
         yf.writeLog("网站管理", msg)
         yf.restartWeb()
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def getSecurity(self, site_id):
         info = thisdb.getSitesById(site_id)
@@ -1180,7 +1181,7 @@ class sites(object):
         info = thisdb.getSitesById(site_id)
         name = info['name']
         if len(fix) < 2:
-            return yf.returnData(False, 'URL后缀不能为空!')
+            return yf.returnData(False, 'site.py_msg_334625')
 
         file = self.getHostConf(name)
         if os.path.exists(file):
@@ -1215,7 +1216,7 @@ class sites(object):
                 yf.writeLog('网站管理', '站点[' + name + ']已开启防盗链!')
             yf.writeFile(file, conf)
         yf.restartWeb()
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def getSitePhpVersion(self, siteName):
         conf = yf.readFile(self.getHostConf(siteName))
@@ -1235,10 +1236,10 @@ class sites(object):
         file = self.getHostConf(site_name)
         conf = yf.readFile(file)
         if not conf:
-            return yf.returnData(False, '站点[{}]配置异常!'.format(site_name))
+            return yf.returnData(False, 'utils.py_msg_56f152', None, site_name)
 
         if conf.find('ssl_certificate') == -1:
-            return yf.returnData(False, '当前未开启SSL')
+            return yf.returnData(False, 'site.py_msg_657ea7')
         to = "#error_page 404/404.html;\n\
     #HTTP_TO_HTTPS_START\n\
     set $isRedcert 1;\n\
@@ -1256,13 +1257,13 @@ class sites(object):
         yf.writeFile(file, conf)
 
         yf.restartWeb()
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def closeToHttps(self, site_name):
         file = self.getHostConf(site_name)
         conf = yf.readFile(file)
         if not conf:
-            return yf.returnData(False, '站点[{}]配置异常!'.format(site_name))
+            return yf.returnData(False, 'utils.py_msg_56f152', None, site_name)
         rep = r"\n\s*#HTTP_TO_HTTPS_START(.|\n){1,300}#HTTP_TO_HTTPS_END"
         conf = re.sub(rep, '', conf)
         rep = r"\s+if.+server_port.+\n.+\n\s+\s*}"
@@ -1270,7 +1271,7 @@ class sites(object):
         yf.writeFile(file, conf)
 
         yf.restartWeb()
-        return yf.returnData(True, '关闭HTTPS跳转成功!')
+        return yf.returnData(True, 'site.py_msg_88af13')
 
     def getIndex(self, site_id):
         info = thisdb.getSitesById(site_id)
@@ -1282,13 +1283,13 @@ class sites(object):
 
     def setIndex(self, site_id, index):
         if index.find('.') == -1:
-            return yf.returnData(False,  '默认文档格式不正确，例：index.html')
+            return yf.returnData(False, 'site.py_msg_ac9a59')
 
         index = index.replace(' ', '')
         index = index.replace(',,', ',')
 
         if len(index) < 3:
-            return yf.returnData(False,  '默认文档不能为空!')
+            return yf.returnData(False, 'site.py_msg_b36bbf')
 
         info = thisdb.getSitesById(site_id)
         siteName = info['name']
@@ -1301,7 +1302,7 @@ class sites(object):
             yf.writeFile(file, conf)
 
         yf.writeLog('网站管理', '站点[{1}]设置{2}成功', (siteName, index_l))
-        return yf.returnData(True,  '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def getLimitNet(self, site_id):
         info = thisdb.getSitesById(site_id)
@@ -1361,7 +1362,7 @@ class sites(object):
         yf.writeFile(filename, conf)
         yf.restartWeb()
         yf.writeLog('网站管理', '网站[{1}]流量限制已开启!', (siteName,))
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
         
     def closeLimitNet(self, site_id):
         info = thisdb.getSitesById(site_id)
@@ -1383,7 +1384,7 @@ class sites(object):
         yf.writeFile(filename, conf)
         yf.restartWeb()
         yf.writeLog('网站管理', '网站[{1}]流量限制已关闭!', (siteName,))
-        return yf.returnData(True, '已关闭流量限制!')
+        return yf.returnData(True, 'site.py_msg_70d8da')
 
 
     # 获取重定向配置
@@ -1407,7 +1408,7 @@ class sites(object):
 
     def setRedirectStatus(self, site_name, redirect_id, status):
         if status == '' or site_name == '' or redirect_id == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         conf_file = "{}/{}/{}.conf".format(self.redirectPath, site_name, redirect_id)
         conf_txt = "{}/{}/{}.conf.txt".format(self.redirectPath, site_name, redirect_id)
@@ -1450,7 +1451,7 @@ class sites(object):
     # get redirect status
     def setRedirect(self, site_name, site_from, to, type, r_type, keep_path):
         if site_name == '' or site_from == '' or to == '' or type == '' or r_type == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         redirect_file = self.getRedirectDataPath(site_name)
         content = yf.readFile(redirect_file) if os.path.exists(redirect_file) else ""
@@ -1470,7 +1471,7 @@ class sites(object):
                     found = True
                     break
             if found == False:
-                return yf.returnData(False, "域名不存在!")
+                return yf.returnData(False, 'site.py_msg_66c149')
 
         file_content = ""
         # path
@@ -1497,11 +1498,11 @@ class sites(object):
         # 防止规则重复
         for item in data:
             if item["r_from"] == site_from:
-                return yf.returnData(False, "重复的规则!")
+                return yf.returnData(False, 'site.py_msg_c57849')
 
         rep = r"http(s)?\:\/\/([a-zA-Z0-9][-a-zA-Z0-9]{0,62}\.)+([a-zA-Z0-9][a-zA-Z0-9]{0,62})+.?"
         if not re.match(rep, to):
-            return yf.returnData(False, "错误的目标地址")
+            return yf.returnData(False, 'site.py_msg_708dcd')
 
         # write data json file
         data.append({"r_from": site_from, "type": _type_code, "r_type": _type_code,"r_to": to, 'keep_path': _keep_path, 'id': _id})
@@ -1510,23 +1511,23 @@ class sites(object):
 
         self.operateRedirectConf(site_name, 'start')
         yf.restartWeb()
-        return yf.returnData(True, "设置成功")
+        return yf.returnData(True, 'common.set_success')
 
     def getRedirectConf(self, site_name, redirect_id):
         if redirect_id == '' or site_name == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         path = self.getRedirectPath(site_name)
         conf = "{}/{}.conf".format(path, redirect_id)
         data = yf.readFile(conf)
         if data == False:
-            return yf.returnData(False, "获取失败!")
+            return yf.returnData(False, 'site.py_msg_0c62e8')
         return yf.returnData(True, "ok", {"result": data})
 
         # 删除指定重定向
     def delRedirect(self,siteName, rid):
         if rid == '' or siteName == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         try:
             data_path = self.getRedirectDataPath(siteName)
@@ -1549,8 +1550,8 @@ class sites(object):
                 except:
                     pass
         except Exception as e:
-            return yf.returnData(False, "删除失败:"+str(e))
-        return yf.returnData(True, "删除成功!")
+            return yf.returnData(False, 'utils.py_msg_90d0f2', None, str(e))
+        return yf.returnData(True, 'common.del_success')
 
     # 读取 网站 反向代理列表
     def getProxyList(self, site_name):
@@ -1632,11 +1633,11 @@ class sites(object):
     def setProxy(self, site_name, site_from, to, host, name, open_proxy, open_cors, open_http3,open_cache, cache_time, proxy_id):
         from urllib.parse import urlparse
         if  site_name == "" or site_from == "" or to == "" or host == "" or name == "":
-            return yf.returnData(False, "必填项不能为空")
+            return yf.returnData(False, 'site.py_msg_d2a11d')
 
         rep = r"http(s)?\:\/\/([a-zA-Z0-9][-a-zA-Z0-9]{0,62}\.)+([a-zA-Z0-9][a-zA-Z0-9]{0,62})+.?"
         if not re.match(rep, to):
-            return yf.returnData(False, "错误的目标地址!")
+            return yf.returnData(False, 'site.py_msg_2d613e')
 
         proxy_site_path = self.getProxyDataPath(site_name)
         data_content = yf.readFile(proxy_site_path) if os.path.exists(proxy_site_path) else ""
@@ -1651,9 +1652,9 @@ class sites(object):
         if proxy_action == "add":
             for item in data:
                 if item["name"] == name:
-                    return yf.returnData(False, "名称重复!!")
+                    return yf.returnData(False, 'site.py_msg_a287a7')
                 if item["from"] == site_from:
-                    return yf.returnData(False, "代理目录已存在!!")
+                    return yf.returnData(False, 'site.py_msg_9b1108')
 
         if open_cache == 'on':
             self.checkAndAddProxyCachePath()
@@ -1817,16 +1818,16 @@ location  {from} {\n\
             else:
                 if os.path.exists(conf_proxy):
                     os.remove(conf_proxy)
-            return yf.returnData(False, "OpenResty配置测试不通过, 请重试: {}".format(rule_test))
+            return yf.returnData(False, 'utils.py_msg_0f08e9', None, rule_test)
 
         if proxy_action == "add":
             # 添加代理
             proxy_id = yf.md5("{}".format(name))
             for item in data:
                 if item["name"] == name:
-                    return yf.returnData(False, "名称重复!")
+                    return yf.returnData(False, 'site.py_msg_29f373')
                 if item["from"] == site_from:
-                    return yf.returnData(False, "代理目录已存在!")
+                    return yf.returnData(False, 'site.py_msg_e02609')
             data.append({
                 "name": name,
                 "from": site_from,
@@ -1847,7 +1848,7 @@ location  {from} {\n\
                     dindex = x
                     break
             if dindex < 0:
-                return yf.returnData(False, "异常请求")
+                return yf.returnData(False, 'site.py_msg_3b1e7a')
             data[dindex]['from'] = site_from
             data[dindex]['to'] = to
             data[dindex]['host'] = host
@@ -1867,7 +1868,7 @@ location  {from} {\n\
 
     def setProxyStatus(self, site_name, proxy_id, status):
         if status == '' or site_name == '' or proxy_id == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         conf_file = "{}/{}/{}.conf".format(self.proxyPath, site_name, proxy_id)
         conf_txt = "{}/{}/{}.conf.txt".format(self.proxyPath, site_name, proxy_id)
@@ -1892,7 +1893,7 @@ location  {from} {\n\
             else:
                 try: os.rename(conf_txt, conf_file)
                 except: pass
-            return yf.returnData(False, "OpenResty配置测试不通过: {}".format(rule_test))
+            return yf.returnData(False, 'utils.py_msg_8dc310', None, rule_test)
 
         proxy_site_path = self.getProxyDataPath(site_name)
         data_content = yf.readFile(proxy_site_path) if os.path.exists(proxy_site_path) else ""
@@ -1978,17 +1979,17 @@ location  {from} {\n\
 
     def saveRedirectConf(self, site_name, redirect_id, config):
         if redirect_id == '' or site_name == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         _old_config = yf.readFile("{}/{}/{}.conf".format(self.redirectPath, site_name, redirect_id))
         if _old_config == False:
-            return yf.returnData(False, "非法操作")
+            return yf.returnData(False, 'site.py_msg_af1106')
 
         yf.writeFile("{}/{}/{}.conf".format(self.redirectPath, site_name, redirect_id), config)
         rule_test = yf.checkWebConfig()
         if rule_test != True:
             yf.writeFile("{}/{}/{}.conf".format(self.redirectPath,site_name, redirect_id), _old_config)
-            return yf.returnData(False, "OpenResty 配置测试不通过, 请重试: {}".format(rule_test))
+            return yf.returnData(False, 'utils.py_msg_bba80d', None, rule_test)
 
         self.operateRedirectConf(site_name, 'start')
         yf.restartWeb()
@@ -1997,14 +1998,14 @@ location  {from} {\n\
 
     def getProxyConf(self, site_name, proxy_id):
         if proxy_id == '' or site_name == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         conf_file = "{}/{}/{}.conf".format(self.proxyPath, site_name, proxy_id)
         if not os.path.exists(conf_file):
             conf_file = "{}/{}/{}.conf.txt".format(self.proxyPath, site_name, proxy_id)
 
         if not os.path.exists(conf_file):
-            return yf.returnData(False, "获取失败!")
+            return yf.returnData(False, 'site.py_msg_0c62e8')
 
         data = yf.readFile(conf_file)
         return yf.returnData(True, "ok", {"result": data})
@@ -2012,7 +2013,7 @@ location  {from} {\n\
     def saveProxyConf(self, site_name, proxy_id, config):
         
         if proxy_id == '' or site_name == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         proxy_file = "{}/{}/{}.conf".format(self.proxyPath, site_name, proxy_id)
         yf.backFile(proxy_file)
@@ -2021,7 +2022,7 @@ location  {from} {\n\
         if rule_test != True:
             yf.restoreFile(proxy_file)
             yf.removeBackFile(proxy_file)
-            return yf.returnData(False, "OpenResty 配置测试不通过, 请重试: {}".format(rule_test))
+            return yf.returnData(False, 'utils.py_msg_bba80d', None, rule_test)
 
         yf.removeBackFile(proxy_file)
         self.operateProxyConf(site_name, 'start')
@@ -2030,7 +2031,7 @@ location  {from} {\n\
 
     def delProxy(self, site_name, proxy_id):
         if proxy_id == '' or site_name == '':
-            return yf.returnData(False, "必填项不能为空!")
+            return yf.returnData(False, 'site.py_msg_5a2b21')
 
         try:
             data_path = self.getProxyDataPath(site_name)
@@ -2050,10 +2051,10 @@ location  {from} {\n\
             cmd = "rm -rf {}/{}.conf*".format(self.getProxyPath(site_name), proxy_id)
             yf.execShell(cmd)
         except:
-            return yf.returnData(False, "删除反代失败!")
+            return yf.returnData(False, 'site.py_msg_4adab3')
 
         yf.restartWeb()
-        return yf.returnData(True, "删除反代成功!")
+        return yf.returnData(True, 'site.py_msg_c54ec6')
 
     # 是否跳转到https
     def isToHttps(self, site_name):
@@ -2119,16 +2120,16 @@ location  {from} {\n\
         try:
             certInfo = yf.getCertName(certPath)
             if not certInfo:
-                return yf.returnData(False, '证书解析失败!')
+                return yf.returnData(False, 'site.py_msg_27dc73')
             vpath = self.sslDir + '/' + site_name
             if not os.path.exists(vpath):
                 os.system('mkdir -p ' + vpath)
             yf.writeFile(vpath + '/privkey.pem', yf.readFile(keyPath))
             yf.writeFile(vpath + '/fullchain.pem', yf.readFile(certPath))
             yf.writeFile(vpath + '/info.json', json.dumps(certInfo))
-            return yf.returnData(True, '证书保存成功!')
+            return yf.returnData(True, 'site.py_msg_8cd5e1')
         except Exception as e:
-            return yf.returnData(False, '证书保存失败!')
+            return yf.returnData(False, 'site.py_msg_0d6f7e')
 
     def getCertList(self):
         try:
@@ -2227,7 +2228,7 @@ location  {from} {\n\
 
         thisdb.setOption('default_site', name)
         yf.restartWeb()
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def setCliPhpVersion(self, version):
         php_bin = '/usr/bin/php'
@@ -2241,7 +2242,7 @@ location  {from} {\n\
         php_pear = '/usr/bin/pear'
         php_pear_src = "/www/server/php/%s/bin/pear" % version
         if not os.path.exists(php_bin_src):
-            return yf.returnData(False, '指定PHP版本未安装!')
+            return yf.returnData(False, 'site.py_msg_b8a2ef')
 
         is_chattr = yf.execShell('lsattr /usr|grep /usr/bin')[0].find('-i-')
         if is_chattr != -1:
@@ -2255,24 +2256,24 @@ location  {from} {\n\
         if is_chattr != -1:
             yf.execShell('chattr +i /usr/bin')
         yf.writeLog('面板设置', '设置PHP-CLI版本为: %s' % version)
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def addSiteTypes(name):
         if not name:
-            return yf.returnData(False, "分类名称不能为空")
+            return yf.returnData(False, 'site.py_msg_8f02db')
         if len(name) > 18:
-            return yf.returnData(False, "分类名称长度不能超过6个汉字或18位字母")
+            return yf.returnData(False, 'site.py_msg_0168e1')
 
         all_count = thisdb.getSiteTypesCount()
         if all_count >= 10:
-            return yf.returnData(False, '最多添加10个分类!')
+            return yf.returnData(False, 'site.py_msg_bd5677')
 
         name_count = thisdb.getSiteTypesCountByName(name)
         if name_count > 0:
-            return yf.returnData(False, "指定分类名称已存在!")
+            return yf.returnData(False, 'site.py_msg_e716af')
 
         thisdb.addSiteTypes(name)
-        return yf.returnData(True, '添加成功!')
+        return yf.returnData(True, 'common.add_success')
 
     def getDnsapi(self):
         dnsapi_data = thisdb.getOptionByJson('dnsapi', default={})
@@ -2336,7 +2337,7 @@ location  {from} {\n\
         dnsapi_data = thisdb.getOptionByJson('dnsapi', default={})
         dnsapi_data[type] = json.loads(data)
         thisdb.setOption('dnsapi',json.dumps(dnsapi_data))
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def acmeLogFile(self):
         return yf.getPanelDir() + '/logs/acme.log'
@@ -2404,7 +2405,7 @@ location  {from} {\n\
         msg = yf.getInfo('网站[{1}]关闭SSL成功!', (site_name,))
         yf.writeLog('网站管理', msg)
         yf.restartWeb()
-        return yf.returnData(True, 'SSL已关闭!')
+        return yf.returnData(True, 'site.py_msg_a28e94')
 
     def deleteSsl(self,site_name,ssl_type):
         path = self.sslDir + '/' + site_name
@@ -2419,31 +2420,31 @@ location  {from} {\n\
 
         if ssl_type == 'now':
             if status:
-                return yf.returnData(False, '使用中,先关闭再删除')
+                return yf.returnData(False, 'site.py_msg_b8ab87')
             if os.path.exists(path):
                 yf.removeDir(path)
             else:
-                return yf.returnData(False, '还未申请!')
+                return yf.returnData(False, 'site.py_msg_881e41')
         elif ssl_type == 'lets':
             ssl_lets_dir = self.sslLetsDir + '/' + site_name
             csr_lets_path = ssl_lets_dir + '/fullchain.pem'  # 生成证书路径
             if yf.md5(yf.readFile(csr_lets_path)) == yf.md5(yf.readFile(csr_path)):
-                return yf.returnData(False, '使用中,先关闭再删除')
+                return yf.returnData(False, 'site.py_msg_b8ab87')
             yf.removeDir(ssl_lets_dir)
         elif ssl_type == 'acme':
             ssl_acme_dir = yf.getAcmeDomainDir(site_name)
             csr_acme_path = ssl_acme_dir + '/fullchain.cer'  # 生成证书路径
             if yf.md5(yf.readFile(csr_acme_path)) == yf.md5(yf.readFile(csr_path)):
-                return yf.returnData(False, '使用中,先关闭再删除')
+                return yf.returnData(False, 'site.py_msg_b8ab87')
             yf.removeDir(ssl_acme_dir)
 
         yf.restartWeb()
-        return yf.returnData(True, '删除成功')
+        return yf.returnData(True, 'common.del_success')
 
     def createAcmeFile(self, site_name, apply_ca, domains, email, force, renew):
         site_conf = self.getHostConf(site_name)
         if not os.path.exists(site_conf):
-            return yf.returnData(False, '配置异常!')
+            return yf.returnData(False, 'site.py_msg_2e9b6f')
 
         # 关闭反向代理
         self.closeProxyAll(site_name)
@@ -2453,7 +2454,7 @@ location  {from} {\n\
         site_info = thisdb.getSitesByName(site_name)
         path = self.getSitePath(site_name)
         if path == '':
-            return yf.returnData(False, '【'+site_name+'】配置文件,异常!')
+            return yf.returnData(False, 'site.py_msg_1996a1')
 
         src_path = site_info['path']
         acme_dir = yf.getAcmeDir()
@@ -2481,12 +2482,12 @@ location  {from} {\n\
             if yf.checkIp(d):
                 continue
             if d.find('*.') != -1:
-                return yf.returnData(False, '泛域名不能使用【文件验证】的方式申请证书!')
+                return yf.returnData(False, 'site.py_msg_07c2dd')
             cmd += ' -w ' + path
             cmd += ' -d ' + d
             domain_nums += 1
         if domain_nums == 0:
-            return yf.returnData(False, '请选择域名(不包括IP地址与泛域名)!')
+            return yf.returnData(False, 'site.py_msg_02824b')
 
         self.writeAcmeLog('开始ACME申请...')
         log_file = self.acmeLogFile()
@@ -2558,7 +2559,7 @@ location  {from} {\n\
         result['key'] = yf.readFile(src_key)
 
         yf.restartWeb()
-        return yf.returnData(True, '证书已更新!', result)
+        return yf.returnData(True, 'site.py_msg_ee600b', result)
 
     def getDnsapiExportVar(self, data):
         def_var = ''
@@ -2658,7 +2659,7 @@ export PATH
             if not os.path.exists(src_cert) or (old_mtime > 0 and os.path.getmtime(src_cert) == old_mtime):
                 info = self.findAcmeHandDnsNotice(top_domain)
                 if len(info) != 0:
-                    return yf.returnData(True, '手动解析', info)
+                    return yf.returnData(True, 'site.py_msg_5f3c9f', info)
 
             # acme源建立软链接(目标)
             dst_path = self.sslDir + '/' + site_name
@@ -2680,7 +2681,7 @@ export PATH
             result['key'] = yf.readFile(src_key)
 
         yf.restartWeb()
-        return yf.returnData(True, '证书已更新!', result)
+        return yf.returnData(True, 'site.py_msg_ee600b', result)
 
     def createAcmeDns(self, site_name, apply_ca, domains, email, dnspai, wildcard_domain, force, renew, dns_alias):
         dnsapi_option = thisdb.getOptionByJson('dnsapi', default={})
@@ -2693,7 +2694,7 @@ export PATH
             return self.createAcmeDnsTypeNone(site_name, apply_ca, domains, email, dnspai, wildcard_domain, force, renew, dns_alias)
 
         if not dnspai in dnsapi_option:
-            return yf.returnData(False, '['+dnspai+']未设置!')
+            return yf.returnData(False, 'site.py_msg_c0c683')
 
         dnsapi_data = dnsapi_option[dnspai]
         for k in dnsapi_data:
@@ -2784,12 +2785,12 @@ export PATH
             result['key'] = yf.readFile(src_key)
 
         yf.restartWeb()
-        return yf.returnData(True, '证书已更新!', result)
+        return yf.returnData(True, 'site.py_msg_ee600b', result)
 
     def createAcme(self, site_name, domains, force, renew, apply_type, apply_ca, dnspai, email, wildcard_domain, dns_alias):
         domains = json.loads(domains)
         if len(domains) < 1:
-            return yf.returnData(False, '请选择域名')
+            return yf.returnData(False, 'site.py_msg_9e0c0d')
         if email.strip() != '':
             thisdb.setOption('ssl_email', email)
 
@@ -2804,7 +2805,7 @@ export PATH
             except:
                 pass
         if not os.path.exists(acme_dir):
-            return yf.returnData(False, '尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>')
+            return yf.returnData(False, 'site.py_msg_448940')
 
         # 确保全局默认 CA 设置为 letsencrypt，避免使用不稳定的 ZeroSSL
         yf.execShell(acme_dir + "/acme.sh --set-default-ca --server letsencrypt")
@@ -2812,18 +2813,18 @@ export PATH
         # 避免频繁执行
         checkAcmeRun = yf.execShell('ps -ef|grep acme.sh |grep -v grep')
         if checkAcmeRun[0] != '':
-            return yf.returnData(False, '正在申请或更新SSL中...')
+            return yf.returnData(False, 'site.py_msg_79c0cc')
 
         if apply_type == 'file':
             return self.createAcmeFile(site_name, apply_ca, domains, email,force,renew)
         elif apply_type == 'dns':
             return self.createAcmeDns(site_name, apply_ca,domains, email, dnspai, wildcard_domain,force, renew, dns_alias)
-        return yf.returnData(False, '异常请求')
+        return yf.returnData(False, 'site.py_msg_3b1e7a')
 
     def createLet(self, site_name, domains, force, renew, apply_type, dnspai, email, wildcard_domain):
         domains = json.loads(domains)
         if len(domains) < 1:
-            return yf.returnData(False, '请选择域名')
+            return yf.returnData(False, 'site.py_msg_9e0c0d')
         if email.strip() != '':
             thisdb.setOption('ssl_email', email)
 
@@ -2832,7 +2833,7 @@ export PATH
         if os.path.exists(host_conf_file):
             siteConf = yf.readFile(host_conf_file)
             if siteConf.find('301-END') != -1:
-                return yf.returnJson(False, '检测到您的站点做了301重定向设置，请先关闭重定向!')
+                return yf.returnJson(False, 'site.py_msg_a150ae')
 
             # 检测存在反向代理
             data_path = self.getProxyDataPath(site_name)
@@ -2846,7 +2847,7 @@ export PATH
                     proxy_dir = "{}/{}".format(self.proxyPath, site_name)
                     proxy_dir_file = proxy_dir + '/' + proxy['id'] + '.conf'
                     if os.path.exists(proxy_dir_file):
-                        return yf.returnJson(False, '检测到您的站点做了反向代理设置，请先关闭反向代理!')
+                        return yf.returnJson(False, 'site.py_msg_0b6cb4')
 
             # fix binddir domain ssl apply question
             yf.backFile(host_conf_file)
@@ -2904,7 +2905,7 @@ export PATH
         try:
             path = self.sslDir + '/' + site_name.strip()
             if not os.path.exists(path):
-                return yf.returnData(False, '证书不存在!')
+                return yf.returnData(False, 'site.py_msg_63400f')
 
             result = self.setSslConf(site_name)
             if not result['status']:
@@ -2912,19 +2913,19 @@ export PATH
 
             yf.restartWeb()
             yf.writeLog('网站管理', '证书已部署!')
-            return yf.returnData(True, '证书已部署!')
+            return yf.returnData(True, 'site.py_msg_80bc62')
         except Exception as ex:
-            return yf.returnData(False, '设置错误:' + str(ex))
+            return yf.returnData(False, 'utils.py_msg_6ab613', None, str(ex))
 
     def removeCert(self, cert_name):
         try:
             path = self.sslDir + '/' + cert_name
             if not os.path.exists(path):
-                return yf.returnData(False, '证书已不存在!')
+                return yf.returnData(False, 'site.py_msg_6a6606')
             os.system("rm -rf " + path)
-            return yf.returnData(True, '证书已删除!')
+            return yf.returnData(True, 'site.py_msg_1e0d6d')
         except Exception as ex:
-            return yf.returnData(False, '证书删除失败:'+str(ex))
+            return yf.returnData(False, 'utils.py_msg_b82765', None, str(ex))
 
     def getBackup(self,site_id,page=1,size=10):
         site_info = thisdb.getSitesById(site_id)
@@ -2956,7 +2957,7 @@ export PATH
 
         msg = yf.getInfo('备份网站[{1}]成功!', (site_info['name'],))
         yf.writeLog('网站管理', msg)
-        return yf.returnData(True, '备份成功!')
+        return yf.returnData(True, 'site.py_msg_06cf1a')
 
     def delBackup(self,backup_id):
         info = thisdb.getBackupById(backup_id)
@@ -2966,7 +2967,7 @@ export PATH
         yf.writeLog('网站管理', msg)
 
         thisdb.deleteBackupById(backup_id)
-        return yf.returnData(True, '站点删除成功!')
+        return yf.returnData(True, 'site.py_msg_3f4958')
 
 
     def getPhpVersion(self):

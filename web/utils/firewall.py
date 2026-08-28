@@ -128,7 +128,7 @@ class Firewall(object):
             self.syncUfw()
         elif self.__isIptables:
             self.syncIptables()
-        return yf.returnData(True, '同步完成!')
+        return yf.returnData(True, 'firewall.py_msg_669d82')
 
     def syncFirewalld(self):
         # 同步端口
@@ -395,7 +395,7 @@ class Firewall(object):
 
     def setPing(self, status):
         if yf.isAppleSystem():
-            return yf.returnData(True, '开发机不能操作!')
+            return yf.returnData(True, 'firewall.py_msg_10c024')
 
         filename = '/etc/sysctl.conf'
         conf = yf.readFile(filename)
@@ -407,11 +407,11 @@ class Firewall(object):
 
         yf.writeFile(filename, conf)
         yf.execShell('sysctl -p')
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def setSshPort(self, port):
         if int(port) < 22 or int(port) > 65535:
-            return yf.returnData(False, '端口范围必需在22-65535之间!')
+            return yf.returnData(False, 'firewall.py_msg_3e6103')
 
         ports = ['21', '25', '80', '443', '888']
         if port in ports:
@@ -428,13 +428,13 @@ class Firewall(object):
         self.reload()
 
         if not self.reloadSshd():
-            return yf.returnData(False, '重启sshd失败,尝试手动重启:service ssh restart!')
-        return yf.returnData(True, '修改成功!')
+            return yf.returnData(False, 'firewall.py_msg_2bd5de')
+        return yf.returnData(True, 'common.edit_success')
 
     def setFw(self, status):
         if self.__isIptables:
             self.setFwIptables(status)
-            return yf.returnData(True, '设置成功!')
+            return yf.returnData(True, 'common.set_success')
 
         if status == '1':
             if self.__isUfw:
@@ -452,7 +452,7 @@ class Firewall(object):
                 yf.execShell('systemctl enable firewalld.service')
             else:
                 pass
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
 
     def addAcceptPortCmd(self, port, protocol ='tcp', stype='port'):
         port = yf.shlexQuote(port)
@@ -514,18 +514,18 @@ class Firewall(object):
     ):
         if not self.getFwStatus():
             self.setFw(0)
-            return yf.returnData(False, '防火墙启动时,才能添加规则!')
+            return yf.returnData(False, 'firewall.py_msg_fcf41c')
 
         if stype == 'port':
             rep = r"^\d{1,5}(:\d{1,5})?$"
             if not re.search(rep, port):
-                return yf.returnData(False, '端口范围不正确!')
+                return yf.returnData(False, 'firewall.py_msg_8951b2')
         else:
             if port.strip() == "":
-                return yf.returnData(False, 'IP地址不正确!')
+                return yf.returnData(False, 'firewall.py_msg_417204')
 
         if thisdb.getFirewallCountByPort(port, stype=stype) > 0:
-            return yf.returnData(False, '您要添加的规则已存在，无需重复添加!')
+            return yf.returnData(False, 'firewall.py_msg_142c3f')
 
         thisdb.addFirewall(port, ps=ps, protocol=protocol, stype=stype)
         self.addAcceptPortCmd(port, protocol=protocol, stype=stype)
@@ -542,7 +542,7 @@ class Firewall(object):
         ps = 'PANEL端口'
 
         if thisdb.getFirewallCountByPort(port) > 0:
-            return yf.returnData(False, '您要放行的端口已存在，无需重复放行!')
+            return yf.returnData(False, 'firewall.py_msg_79a611')
 
         thisdb.addFirewall(port, ps=ps,protocol=protocol)
         self.addAcceptPortCmd(port, protocol=protocol)
@@ -563,7 +563,7 @@ class Firewall(object):
             pass
         else:
             if(port.isdigit() and int(port) == int(panel_port)):
-                return yf.returnData(False, '失败，不能删除当前面板端口!')
+                return yf.returnData(False, 'firewall.py_msg_bf69d6')
 
         info = yf.M('firewall').where("id=?", (firewall_id,)).field('type').find()
         stype = 'port'
@@ -572,9 +572,9 @@ class Firewall(object):
         try:
             self.delAcceptPortCmd(port, protocol, stype=stype)
             yf.M('firewall').where("id=?", (firewall_id,)).delete()
-            return yf.returnData(True, '删除成功!')
+            return yf.returnData(True, 'common.del_success')
         except Exception as e:
-            return yf.returnData(False, '删除失败!:' + str(e))
+            return yf.returnData(False, 'utils.py_msg_c91bbc', None, str(e))
 
     def delAcceptPortCmd(self, port,
         protocol ='tcp', stype='port'
@@ -685,7 +685,7 @@ class Firewall(object):
 
         file = '/etc/ssh/sshd_config'
         if not os.path.exists(file):
-            return yf.returnJson(False, '无法设置!')
+            return yf.returnJson(False, 'firewall.py_msg_7a86ee')
 
         conf = yf.readFile(file)
 
@@ -720,7 +720,7 @@ class Firewall(object):
 
         file = '/etc/ssh/sshd_config'
         if not os.path.exists(file):
-            return yf.returnJson(False, '无法设置!')
+            return yf.returnJson(False, 'firewall.py_msg_7a86ee')
 
         conf = yf.readFile(file)
 
@@ -751,7 +751,7 @@ class Firewall(object):
 
         file = '/etc/ssh/sshd_config'
         if not os.path.exists(file):
-            return yf.returnJson(False, '无法设置!')
+            return yf.returnJson(False, 'firewall.py_msg_7a86ee')
 
         content = yf.readFile(file)
 
@@ -786,11 +786,11 @@ class Firewall(object):
         yf.execShell('cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys')
         yf.execShell('chmod 600 /root/.ssh/authorized_keys')
         
-        return yf.returnJson(True, '重置成功！请及时下载保存新私钥，并谨慎保管！')
+        return yf.returnJson(True, 'firewall.py_msg_e3ea63')
 
     def setStatus(self, id, port, protocol, status):
         if not self.getFwStatus():
-            return yf.returnData(False, '防火墙启动时,才能操作!')
+            return yf.returnData(False, 'firewall.py_msg_7e10e3')
 
         info = yf.M('firewall').where("id=?", (id,)).field('type').find()
         stype = 'port'
@@ -812,7 +812,7 @@ class Firewall(object):
         key_file = '/root/.ssh/id_ed25519'
         if os.path.exists(key_file):
             return yf.returnJson(True, 'OK')
-        return yf.returnJson(False, '未找到密钥文件，请先生成')
+        return yf.returnJson(False, 'firewall.py_msg_0597c6')
 
     def resetRootSshKey(self):
         if not os.path.exists('/root/.ssh'):
@@ -820,5 +820,5 @@ class Firewall(object):
         yf.execShell("rm -f /root/.ssh/id_ed25519*")
         yf.execShell("ssh-keygen -t ed25519 -N '' -f /root/.ssh/id_ed25519 -q")
         if os.path.exists('/root/.ssh/id_ed25519'):
-            return yf.returnJson(True, '重置/生成密钥成功')
-        return yf.returnJson(False, '生成密钥失败')
+            return yf.returnJson(True, 'firewall.py_msg_962795')
+        return yf.returnJson(False, 'firewall.py_msg_cd9f26')

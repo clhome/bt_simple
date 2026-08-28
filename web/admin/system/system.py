@@ -126,16 +126,16 @@ def get_network_io():
 @panel_login_required
 def restart():
     yf.restartPanel()
-    return yf.returnData(True, '面板已重启!')
+    return yf.returnData(True, 'system.py_msg_7dc7d8')
 
 # 重启面板
 @blueprint.route('/restart_server', endpoint='restart_server', methods=['POST'])
 @panel_login_required
 def restart_server():
     if yf.isAppleSystem():
-        return yf.returnData(False, "开发环境不可重起!")
+        return yf.returnData(False, 'system.py_msg_529504')
     sys.restartServer()
-    return yf.returnData(True, '正在重启服务器!')
+    return yf.returnData(True, 'system.py_msg_b52eca')
 
 # 设置
 @blueprint.route('/set_control', endpoint='set_control', methods=['POST'])
@@ -149,35 +149,35 @@ def set_control():
     if stype == '0':
         _day = int(day)
         if _day < 1:
-            return yf.returnData(False, "保存天数异常!")
+            return yf.returnData(False, 'system.py_msg_ddb6e3')
         thisdb.setOption('monitor_day', day, type='monitor')
         thisdb.setOption('monitor_status', 'close', type='monitor')
-        return yf.returnData(True, "关闭监控成功!")
+        return yf.returnData(True, 'system.py_msg_68486f')
     elif stype == '1':
         _day = int(day)
         if _day < 1:
-            return yf.returnData(False, "保存天数异常!")
+            return yf.returnData(False, 'system.py_msg_ddb6e3')
 
         thisdb.setOption('monitor_day', day, type='monitor')
         thisdb.setOption('monitor_status', 'open', type='monitor')
-        return yf.returnData(True, "开启监控成功!")
+        return yf.returnData(True, 'system.py_msg_029959')
     elif stype == 'save_day':
         _day = int(day)
         if _day < 1:
-            return yf.returnData(False, "保存天数异常!")
+            return yf.returnData(False, 'system.py_msg_ddb6e3')
         thisdb.setOption('monitor_day', day, type='monitor')
-        return yf.returnData(True, "修改保存天数成功!")
+        return yf.returnData(True, 'system.py_msg_dc0177')
     elif stype == '2':
         thisdb.setOption('monitor_only_netio', 'close', type='monitor')
-        return yf.returnData(True, "关闭仅统计外网成功!")
+        return yf.returnData(True, 'system.py_msg_6c542d')
     elif stype == '3':
         thisdb.setOption('monitor_only_netio', 'open', type='monitor')
-        return yf.returnData(True, "开启仅统计外网成功!")
+        return yf.returnData(True, 'system.py_msg_80a4f1')
     elif stype == 'del':
         if not yf.isRestart():
-            return yf.returnData(False, '请等待所有安装任务完成再执行')
+            return yf.returnData(False, 'system.py_msg_3bd322')
         monitor.instance().clearDbFile()
-        return yf.returnData(True, "清空监控记录成功!")
+        return yf.returnData(True, 'system.py_msg_563ff5')
     else:
         monitor_status = thisdb.getOption('monitor_status', default='open', type='monitor')
         monitor_day = thisdb.getOption('monitor_day', default='30', type='monitor')
@@ -195,7 +195,7 @@ def set_control():
 
         return yf.getJson(data)
 
-    return yf.returnData(False, "异常!")
+    return yf.returnData(False, 'system.py_msg_8042ad')
     
 # 获取版本发布说明
 @blueprint.route('/get_release_info', endpoint='get_release_info', methods=['GET'])
@@ -208,7 +208,7 @@ def get_release_info():
     if os.path.exists(release_file):
         content = yf.readFile(release_file)
         return yf.returnData(True, 'ok', content)
-    return yf.returnData(False, '未找到发行说明')
+    return yf.returnData(False, 'system.py_msg_d56c7a')
 
 # 获取面板自身占用的系统资源
 @blueprint.route('/get_panel_resources', endpoint='get_panel_resources', methods=['GET'])
@@ -341,5 +341,5 @@ def speed_test():
         )
         return yf.returnData(True, 'OK', log_path)
     except Exception as e:
-        return yf.returnData(False, '启动测速失败: ' + str(e))
+        return yf.returnData(False, 'admin.py_msg_a96e77', None, str(e))
 

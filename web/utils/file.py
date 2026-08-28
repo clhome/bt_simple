@@ -21,13 +21,13 @@ import thisdb
 
 def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files):
     if not yf.fileNameCheck(name):
-        return yf.returnData(False, '文件名中不能包含特殊字符!')
+        return yf.returnData(False, 'file.py_msg_4472a5')
 
     if path == '/':
-        return yf.returnData(False, '不能直接上传文件到系统根目录!')
+        return yf.returnData(False, 'file.py_msg_4d44b7')
 
     if name.find('./') != -1 or path.find('./') != -1:
-        return yf.returnData(False, '错误的参数')
+        return yf.returnData(False, 'file.py_msg_302ba9')
 
     if not os.path.exists(path):
         os.makedirs(path, 493)
@@ -78,14 +78,14 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
 
     msg = yf.getInfo('上传文件[{1}] 到 [{2}]成功!', (new_name, path))
     yf.writeLog('文件管理', msg)
-    return yf.returnData(True, '上传成功!', f_size)
+    return yf.returnData(True, 'file.py_msg_34da7e', f_size)
 
 
 def mvFile(sfile, dfile):
     if not checkFileName(dfile):
-        return yf.returnData(False, '文件名中不能包含特殊字符!')
+        return yf.returnData(False, 'file.py_msg_4472a5')
     if not os.path.exists(sfile):
-        return yf.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, 'file.py_msg_e0fb06')
 
     if not checkDir(sfile):
         return yf.returnData(False, 'FILE_DANGER')
@@ -100,16 +100,16 @@ def mvFile(sfile, dfile):
         shutil.move(sfile, dfile)
         msg = yf.getInfo('移动或重名命文件[{1}]到[{2}]成功!', (sfile, dfile,))
         yf.writeLog('文件管理', msg)
-        return yf.returnData(True, '移动或重名命文件成功!')
+        return yf.returnData(True, 'file.py_msg_fbe5a8')
     except Exception as e:
-        return yf.returnData(False, '移动或重名命文件失败!'+str(e))
+        return yf.returnData(False, 'utils.py_msg_5647ea', None, str(e))
 
 def unzip(sfile, dfile, stype, path):
     if dfile == '' or dfile == '/':
-        return yf.returnData(False, '不能在根目录解压!')
+        return yf.returnData(False, 'file.py_msg_960516')
 
     if not os.path.exists(sfile):
-        return yf.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, 'file.py_msg_e0fb06')
 
     try:
         tmps = yf.getPanelDir() + '/logs/panel_exec.log'
@@ -127,16 +127,16 @@ def unzip(sfile, dfile, stype, path):
             if dfile.startswith("/www/wwwroot"):
                 setFileAccept(dfile)
         yf.writeLog("文件管理", '文件[{1}]解压[{2}]成功!', (sfile, dfile))
-        return yf.returnData(True, '文件解压成功!')
+        return yf.returnData(True, 'file.py_msg_f0f920')
     except:
-        return yf.returnData(False, '文件解压失败!')
+        return yf.returnData(False, 'file.py_msg_f43013')
 
 def uncompress(sfile, dfile, path):
     if dfile == '' or dfile == '/':
-        return yf.returnData(False, '不能在根目录解压!')
+        return yf.returnData(False, 'file.py_msg_960516')
 
     if not os.path.exists(sfile):
-        return yf.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, 'file.py_msg_e0fb06')
 
     filename = os.path.basename(sfile)
     extension = os.path.splitext(filename)[-1]
@@ -149,12 +149,12 @@ def uncompress(sfile, dfile, path):
         extension = suffix_gz
 
     if not extension in ['tar.gz', 'gz', 'zip', 'rar', '7z', 'xz','bz2']:
-        return yf.returnData(False, '现在仅支持gz,zip,rar,7z,xz,bz2格式解压!')
+        return yf.returnData(False, 'file.py_msg_067d29')
 
     if extension == 'rar' and not yf.checkBinExist('rar'):
-        return yf.returnData(False, 'rar解压命令不存在，请安装!')
+        return yf.returnData(False, 'file.py_msg_366e5e')
     if extension == '7z' and not yf.checkBinExist('7z'):
-        return yf.returnData(False, '7z解压命令不存在，请安装!')
+        return yf.returnData(False, 'file.py_msg_a8d259')
 
 
     cmd = "cd " + path + " "
@@ -186,9 +186,9 @@ def uncompress(sfile, dfile, path):
             if dfile.startswith("/www/wwwroot"):
                 setFileAccept(dfile)
         yf.writeLog("文件管理", '文件[{1}]解压[{2}]成功!', (sfile, dfile,))
-        return yf.returnData(True, '文件解压成功!')
+        return yf.returnData(True, 'file.py_msg_f0f920')
     except Exception as e:
-        return yf.returnData(False, '文件解压失败!:' + str(e))
+        return yf.returnData(False, 'utils.py_msg_0443ac', None, str(e))
 
 def setBatchData(path, stype, access, user, data):
     from admin import session
@@ -200,7 +200,7 @@ def setBatchData(path, stype, access, user, data):
             'user': user,
             'data': data
         }
-        return yf.returnData(True, '标记成功,请在目标目录点击粘贴所有按钮!')
+        return yf.returnData(True, 'file.py_msg_00c89e')
     elif stype == '3':
         for key in json.loads(data):
             try:
@@ -222,7 +222,7 @@ def setBatchData(path, stype, access, user, data):
             except:
                 continue
         yf.writeLog('文件管理', '批量设置权限成功!')
-        return yf.returnData(True, '批量设置权限成功!')
+        return yf.returnData(True, 'file.py_msg_fcc159')
     else:
         recycle_bin = thisdb.getOption('recycle_bin')
         is_recycle = False
@@ -243,7 +243,7 @@ def setBatchData(path, stype, access, user, data):
                 yf.writeSpeed(key, i, l)
                 if os.path.isdir(filename):
                     if not checkDir(filename):
-                        return yf.returnData(False, '请不要花样作死!')
+                        return yf.returnData(False, 'file.py_msg_27af9b')
                     if is_recycle:
                         if not mvRecycleBin(topath):
                             failed_files.append(filename)
@@ -274,12 +274,12 @@ def setBatchData(path, stype, access, user, data):
             return yf.returnData(False, msg)
             
         yf.writeLog('文件管理', '批量删除成功!')
-        return yf.returnData(True, '批量删除成功！')
+        return yf.returnData(True, 'file.py_msg_856956')
 
 def batchPaste(path, stype):
     from admin import session
     if not checkDir(path):
-        return yf.returnData(False, '请不要花样作死!')
+        return yf.returnData(False, 'file.py_msg_27af9b')
     i = 0
     myfiles = json.loads(session['selected']['data'])
     l = len(myfiles)
@@ -332,13 +332,13 @@ def zip(sfile, dfile, stype, path):
             yf.execShell("cd '" + path + "' && zip '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
         elif stype == '7z':
             if not yf.checkBinExist('7z'):
-                return yf.returnData(False, '7z压缩命令不存在，请安装!')
+                return yf.returnData(False, 'file.py_msg_c2cd54')
             yf.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
         elif stype == 'tar_gz':
             yf.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
         elif stype == 'xz':
             # if not yf.checkBinExist('xz'):
-            #     return yf.returnData(False, 'xz压缩命令不存在，请安装!')
+            #     return yf.returnData(False, 'file.py_msg_12b8f4')
             # dfile = dfile.strip(".xz")
             # cmd = "cd '" + path + "' && tar -cvf '" + dfile + ".tar' " + sfile + " && xz -z '" + dfile + ".tar' > " + tmps + " 2>&1 &"
             cmd = "cd '" + path + "' && tar -cJf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1"
@@ -346,12 +346,12 @@ def zip(sfile, dfile, stype, path):
             yf.execShell(cmd)
         elif stype == 'rar':
             if not yf.checkBinExist('rar'):
-                return yf.returnData(False, 'rar压缩命令不存在，请安装!')
+                return yf.returnData(False, 'file.py_msg_4ba9f0')
             yf.execShell("cd '" + path + "' && rar a '" + dfile + "' '" + sfile + "' > " + tmps + " 2>&1")
         elif stype == 'bz2':
             yf.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
         else:
-            return yf.returnData(False, '未知压缩格式')
+            return yf.returnData(False, 'file.py_msg_05b0c9')
         yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfile, dfile))
     else:
         sfiles = ''
@@ -359,7 +359,7 @@ def zip(sfile, dfile, stype, path):
             if not sfile:
                 continue
             if not os.path.exists(sfile):
-                return yf.returnData(False, '指定文件不存在!')
+                return yf.returnData(False, 'file.py_msg_e0fb06')
             
             sfiles += " '" + sfile.replace(path+'/','') + "'"
 
@@ -367,22 +367,22 @@ def zip(sfile, dfile, stype, path):
             yf.execShell("cd '" + path + "' && zip '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
         elif stype == '7z':
             if not yf.checkBinExist('7z'):
-                return yf.returnData(False, '7z压缩命令不存在，请安装!')
+                return yf.returnData(False, 'file.py_msg_c2cd54')
             yf.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
         elif stype == 'tar_gz':
             yf.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
         elif stype == 'rar':
             if not yf.checkBinExist('rar'):
-                return yf.returnData(False, 'rar压缩命令不存在，请安装!')
+                return yf.returnData(False, 'file.py_msg_4ba9f0')
             yf.execShell("cd '" + path + "' && rar a '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
         elif stype == 'bz2':
             yf.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
         else:
-            return yf.returnData(False, '未知压缩格式')
+            return yf.returnData(False, 'file.py_msg_05b0c9')
 
         yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfiles, dfile))
     setFileAccept(dfile)
-    return yf.returnData(True, '文件压缩成功!')
+    return yf.returnData(True, 'file.py_msg_cbecda')
 
 def getAccess(filename):
     data = {}
@@ -397,10 +397,10 @@ def getAccess(filename):
 
 def copyDir(src_file, dst_file):
     if not os.path.exists(src_file):
-        return yf.returnData(False, '指定目录不存在!')
+        return yf.returnData(False, 'file.py_msg_639dba')
 
     if os.path.exists(dst_file):
-        return yf.returnData(False, '指定目录已存在!')
+        return yf.returnData(False, 'file.py_msg_db3560')
 
     try:
         shutil.copytree(src_file, dst_file)
@@ -408,16 +408,16 @@ def copyDir(src_file, dst_file):
         os.chown(dst_file, stat.st_uid, stat.st_gid)
         msg = yf.getInfo('复制目录[{1}]到[{2}]成功!', (src_file, dst_file))
         yf.writeLog('文件管理', msg)
-        return yf.returnData(True, '目录复制成功!')
+        return yf.returnData(True, 'file.py_msg_9b0c62')
     except:
-        return yf.returnData(False, '目录复制失败!')
+        return yf.returnData(False, 'file.py_msg_175fe9')
 
 def copyFile(src_file, dst_file):
     if src_file == dst_file:
-        return yf.returnJson(False, '源与目的一致!')
+        return yf.returnJson(False, 'file.py_msg_58a046')
 
     if not os.path.exists(src_file):
-        return yf.returnJson(False, '指定文件不存在!')
+        return yf.returnJson(False, 'file.py_msg_e0fb06')
 
     if os.path.isdir(src_file):
         return copyDir(src_file, dst_file)
@@ -428,9 +428,9 @@ def copyFile(src_file, dst_file):
         yf.writeLog('文件管理', msg)
         stat = os.stat(src_file)
         os.chown(dst_file, stat.st_uid, stat.st_gid)
-        return yf.returnData(True, '文件复制成功!')
+        return yf.returnData(True, 'file.py_msg_e79b89')
     except:
-        return yf.returnData(False, '文件复制失败!')
+        return yf.returnData(False, 'file.py_msg_72a3a6')
 
 def setFileAccept(filename):
     auth = 'www:www'
@@ -443,9 +443,9 @@ def setFileAccept(filename):
 def createFile(file_path):
     try:
         if not checkFileName(file_path):
-            return yf.returnData(False, '文件名中不能包含特殊字符!')
+            return yf.returnData(False, 'file.py_msg_4472a5')
         if os.path.exists(file_path):
-            return yf.returnData(False, '指定文件已存在!')
+            return yf.returnData(False, 'file.py_msg_2311cd')
         _path = os.path.dirname(file_path)
         if not os.path.exists(_path):
             os.makedirs(_path)
@@ -453,24 +453,24 @@ def createFile(file_path):
         setFileAccept(file_path)
         msg = yf.getInfo('创建文件[{1}]成功!', (file_path,))
         yf.writeLog('文件管理', msg)
-        return yf.returnData(True, '文件创建成功!')
+        return yf.returnData(True, 'file.py_msg_673293')
     except Exception as e:
-        return yf.returnData(True, '文件创建失败:'+str(e))
+        return yf.returnData(True, 'utils.py_msg_f22f69', None, str(e))
 
 def createDir(path):
     try:
         if not checkFileName(path):
-            return yf.returnData(False, '目录名中不能包含特殊字符!')
+            return yf.returnData(False, 'file.py_msg_e89037')
         if os.path.exists(path):
-            return yf.returnData(False, '指定目录已存在!')
+            return yf.returnData(False, 'file.py_msg_db3560')
         os.makedirs(path)
         setFileAccept(path)
         msg = yf.getInfo('创建目录[{1}]成功!', (path,))
         yf.writeLog('文件管理', msg)
-        return yf.returnData(True, '目录创建成功!')
+        return yf.returnData(True, 'file.py_msg_f50f32')
     except Exception as e:
         print(e)
-        return yf.returnData(False, '目录创建失败!')
+        return yf.returnData(False, 'file.py_msg_7c6668')
 
 # 检查敏感目录
 def checkDir(path):
@@ -506,13 +506,13 @@ def checkDir(path):
 
 def getFileBody(path):
     if not os.path.exists(path):
-        return yf.returnData(False, '文件不存在', (path,))
+        return yf.returnData(False, 'file.py_msg_d9523e', (path,))
 
     if os.path.getsize(path) > 2097152:
-        return yf.returnData(False, '不能在线编辑大于2MB的文件!')
+        return yf.returnData(False, 'file.py_msg_b50947')
 
     if os.path.isdir(path):
-        return yf.returnData(False, '这不是一个文件!')
+        return yf.returnData(False, 'file.py_msg_92c109')
 
     fp = open(path, 'rb')
     data = {}
@@ -529,14 +529,14 @@ def getFileBody(path):
                 break
             except Exception as ex:
                 if el == 'BIG5':
-                    return yf.returnData(False, '文件编码不被兼容，无法正确读取文件!' + str(ex))
+                    return yf.returnData(False, 'utils.py_msg_f48da9', None, str(ex))
     else:
-        return yf.returnData(False, '文件未正常打开!')
+        return yf.returnData(False, 'file.py_msg_aaad51')
     return yf.returnData(True, 'OK', data)
 
 def saveBody(path, data, encoding):
     if not os.path.exists(path):
-        return yf.returnData(False, '文件不存在')
+        return yf.returnData(False, 'file.py_msg_d9523e')
     try:
         if encoding == 'ascii':
             encoding = 'utf-8'
@@ -549,9 +549,9 @@ def saveBody(path, data, encoding):
         if path.find("web_conf") > 0:
             yf.restartWeb()
         yf.writeLog('文件管理', '文件[{1}]保存成功', (path,))
-        return yf.returnData(True, '文件保存成功')
+        return yf.returnData(True, 'file.py_msg_24c6ab')
     except Exception as ex:
-        return yf.returnData(False, '文件保存错误:' + str(ex))
+        return yf.returnData(False, 'utils.py_msg_35752c', None, str(ex))
 
 
 def sortFileList(path, ftype = 'mtime', sort = 'desc'):
@@ -774,10 +774,10 @@ def setFileAccess(filename,user,access):
     sall = '-R'
     try:
         if not checkDir(filename):
-            return yf.returnData(False, '请不要花样作死')
+            return yf.returnData(False, 'file.py_msg_e28c2c')
 
         if not os.path.exists(filename):
-            return yf.returnData(False, '指定文件不存在!')
+            return yf.returnData(False, 'file.py_msg_e0fb06')
 
         # 使用原生 Python 操作替换 os.system
         mode = int(access, 8)
@@ -793,9 +793,9 @@ def setFileAccess(filename,user,access):
 
         msg = yf.getInfo('设置[{1}]权限为[{2}]所有者为[{3}]', (filename, access, user,))
         yf.writeLog('文件管理', msg)
-        return yf.returnData(True, '设置成功!')
+        return yf.returnData(True, 'common.set_success')
     except Exception as e:
-        return yf.returnData(False, '设置失败!'+str(e))
+        return yf.returnData(False, 'utils.py_msg_faaec9', None, str(e))
 
 def getSysUserList():
     pwd_file = '/etc/passwd'
@@ -849,7 +849,7 @@ def getOccupyingProcess(path):
 
 def fileDelete(path):
     if not os.path.exists(path):
-        return yf.returnData(False, '指定文件不存在!')
+        return yf.returnData(False, 'file.py_msg_e0fb06')
 
     # 解除可能存在的文件防篡改锁定 (chattr +i)
     cmd = "which chattr && chattr -i '%s' 2>/dev/null" % (path,)
@@ -859,7 +859,7 @@ def fileDelete(path):
         recycle_bin = thisdb.getOption('recycle_bin')
         if recycle_bin == 'open':
             if mvRecycleBin(path):
-                return yf.returnData(True, '已将文件移动到回收站!')
+                return yf.returnData(True, 'file.py_msg_6cae10')
             occ = getOccupyingProcess(path)
             msg = '移动到回收站失败!'
             if occ:
@@ -875,7 +875,7 @@ def fileDelete(path):
             return yf.returnData(False, msg)
             
         yf.writeLog('文件管理', yf.getInfo('删除文件[{1}]成功!', (path,)))
-        return yf.returnData(True, '删除文件成功!')
+        return yf.returnData(True, 'file.py_msg_373ef8')
     except Exception as e:
         occ = getOccupyingProcess(path)
         msg = '删除文件失败!'
@@ -885,7 +885,7 @@ def fileDelete(path):
 
 def dirDelete(path):
     if not os.path.exists(path):
-        return yf.returnData(False, '指定目录不存在!')
+        return yf.returnData(False, 'file.py_msg_639dba')
 
     # 解除可能存在的文件防篡改锁定 (例如建站生成的 .user.ini 会带有 chattr +i 属性)
     cmd = "which chattr && chattr -R -i '%s' 2>/dev/null" % (path,)
@@ -895,7 +895,7 @@ def dirDelete(path):
         recycle_bin = thisdb.getOption('recycle_bin')
         if recycle_bin == 'open':
             if mvRecycleBin(path):
-                return yf.returnData(True, '已将文件移动到回收站!')
+                return yf.returnData(True, 'file.py_msg_6cae10')
             occ = getOccupyingProcess(path)
             msg = '移动到回收站失败!'
             if occ:
@@ -910,7 +910,7 @@ def dirDelete(path):
             return yf.returnData(False, msg)
             
         yf.writeLog('文件管理', '删除{1}成功！', (path,))
-        return yf.returnData(True, '删除文件成功!')
+        return yf.returnData(True, 'file.py_msg_373ef8')
     except:
         occ = getOccupyingProcess(path)
         msg = '删除目录失败!'
@@ -924,11 +924,11 @@ def toggleRecycleBin():
     if recycle_bin == 'open':
         thisdb.setOption('recycle_bin','close')
         yf.writeLog('文件管理', '已关闭回收站功能!')
-        return yf.returnData(True, '已关闭回收站功能!')
+        return yf.returnData(True, 'file.py_msg_e7e158')
     else:
         thisdb.setOption('recycle_bin','open')
         yf.writeLog('文件管理', '已开启回收站功能!')
-        return yf.returnData(True, '已开启回收站功能!')
+        return yf.returnData(True, 'file.py_msg_92f782')
 
 def getRecycleBin():
     rb_dir = yf.getRecycleBinDir()
@@ -1005,11 +1005,11 @@ def reRecycleBin(path):
         shutil.move(rb_dir + '/' + path, dst_file)
         msg = yf.getInfo('移动文件[{1}]到回收站成功!', (dst_file,))
         yf.writeLog('文件管理', msg)
-        return yf.returnData(True, '恢复成功!')
+        return yf.returnData(True, 'file.py_msg_f85ba7')
     except Exception as e:
         msg = yf.getInfo('从回收站恢复[{1}]失败!', (dst_file,))
         yf.writeLog('文件管理', msg)
-        return yf.returnData(False, '恢复失败!')
+        return yf.returnData(False, 'file.py_msg_6d3445')
 
 
 def closeRecycleBin():
@@ -1028,7 +1028,7 @@ def closeRecycleBin():
             os.remove(path)
     yf.writeSpeed(None, 0, 0)
     yf.writeLog('文件管理', '已清空回收站!')
-    return yf.returnJson(True, '已清空回收站!')
+    return yf.returnJson(True, 'file.py_msg_d88584')
 
 
 # 设置文件和目录权限

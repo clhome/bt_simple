@@ -5576,6 +5576,742 @@ FULL_I18N_DICTIONARY = {
             "fr": "Importer结果",
             "de": "Importieren结果",
             "it": "Importa结果"
+        },
+        "py_msg_005e3b": {
+            "zh-CN": "您添加的站点[{1}]已存在!",
+            "zh-TW": "您新增的站點[{1}]已存在!",
+            "en": "您Add的站点[{1}]已存在!",
+            "fr": "您Ajouter的站点[{1}]已存在!",
+            "de": "您Hinzufügen的站点[{1}]已存在!",
+            "it": "您Aggiungi的站点[{1}]已存在!"
+        },
+        "py_msg_ebadba": {
+            "zh-CN": "站点【{1}】删除成功!",
+            "zh-TW": "站點【{1}】刪除成功!",
+            "en": "站点【{1}】Deleted successfully!",
+            "fr": "站点【{1}】Supprimé avec succès!",
+            "de": "站点【{1}】Erfolgreich gelöscht!",
+            "it": "站点【{1}】Eliminato con successo!"
+        },
+        "py_msg_a01391": {
+            "zh-CN": "不要以网站根目录创建站点!",
+            "zh-TW": "不要以網站根目錄建立站點!",
+            "en": "不要以WebsitesRoot Directory创建站点!",
+            "fr": "不要以Sites WebRépertoire racine创建站点!",
+            "de": "不要以WebsitesStammverzeichnis创建站点!",
+            "it": "不要以Siti WebDirectory principale创建站点!"
+        },
+        "py_msg_d1d7e1": {
+            "zh-CN": "站点已停用!",
+            "zh-TW": "站點已停用!",
+            "en": "站点已Disable!",
+            "fr": "站点已Désactiver!",
+            "de": "站点已Deaktivieren!",
+            "it": "站点已Disabilita!"
+        },
+        "py_msg_d4219e": {
+            "zh-CN": "站点已启用!",
+            "zh-TW": "站點已啟用!",
+            "en": "站点已Enable!",
+            "fr": "站点已Activer!",
+            "de": "站点已Aktivieren!",
+            "it": "站点已Abilita!"
+        },
+        "py_msg_68e754": {
+            "zh-CN": "端口范围不合法!",
+            "zh-TW": "埠口範圍不合法!",
+            "en": "Port范围不合法!",
+            "fr": "Port范围不合法!",
+            "de": "Port范围不合法!",
+            "it": "Porta范围不合法!"
+        },
+        "py_msg_dbd9b9": {
+            "zh-CN": "域名格式不正确!",
+            "zh-TW": "網域名稱格式不正確!",
+            "en": "Domain格式不正确!",
+            "fr": "Domaine格式不正确!",
+            "de": "Domain格式不正确!",
+            "it": "Dominio格式不正确!"
+        },
+        "py_msg_f17e3d": {
+            "zh-CN": "域名添加成功!",
+            "zh-TW": "網域名稱新增成功!",
+            "en": "DomainAdded successfully!",
+            "fr": "DomaineAjouté avec succès!",
+            "de": "DomainErfolgreich hinzugefügt!",
+            "it": "DominioAggiunto con successo!"
+        },
+        "py_msg_9bb5ba": {
+            "zh-CN": "最后一个域名不能删除!",
+            "zh-TW": "最後一個網域名稱不能刪除!",
+            "en": "最后一个Domain不能Delete!",
+            "fr": "最后一个Domaine不能Supprimer!",
+            "de": "最后一个Domain不能Löschen!",
+            "it": "最后一个Dominio不能Elimina!"
+        },
+        "py_msg_3f4958": {
+            "zh-CN": "站点删除成功!",
+            "zh-TW": "站點刪除成功!",
+            "en": "站点Deleted successfully!",
+            "fr": "站点Supprimé avec succès!",
+            "de": "站点Erfolgreich gelöscht!",
+            "it": "站点Eliminato con successo!"
+        },
+        "py_msg_40c79f": {
+            "zh-CN": "设置成功,站点到期后将自动停止!",
+            "zh-TW": "設定成功,站點到期後將自動停止!",
+            "en": "Settings saved,站点到期后将自动Stop!",
+            "fr": "Paramètres enregistrés,站点到期后将自动Arrêter!",
+            "de": "Einstellungen gespeichert,站点到期后将自动Stoppen!",
+            "it": "Impostazioni salvate,站点到期后将自动Arresta!"
+        },
+        "py_msg_4b5c24": {
+            "zh-CN": "秘钥错误，请检查!",
+            "zh-TW": "秘鑰錯誤，请检查!",
+            "en": "秘钥错误，请检查!",
+            "fr": "秘钥错误，请检查!",
+            "de": "秘钥错误，请检查!",
+            "it": "秘钥错误，请检查!"
+        },
+        "py_msg_9b03c1": {
+            "zh-CN": "证书错误，请检查!",
+            "zh-TW": "憑證錯誤，请检查!",
+            "en": "证书错误，请检查!",
+            "fr": "证书错误，请检查!",
+            "de": "证书错误，请检查!",
+            "it": "证书错误，请检查!"
+        },
+        "py_msg_23f0ba": {
+            "zh-CN": "证书错误,请粘贴正确的PEM格式证书!",
+            "zh-TW": "憑證錯誤,请粘贴正確的PEM格式憑證!",
+            "en": "证书错误,请粘贴正确的PEM格式证书!",
+            "fr": "证书错误,请粘贴正确的PEM格式证书!",
+            "de": "证书错误,请粘贴正确的PEM格式证书!",
+            "it": "证书错误,请粘贴正确的PEM格式证书!"
+        },
+        "cert_saved": {
+            "zh-CN": "证书已保存!",
+            "zh-TW": "憑證已儲存!",
+            "en": "证书已Save!",
+            "fr": "证书已Enregistrer!",
+            "de": "证书已Speichern!",
+            "it": "证书已Salva!"
+        },
+        "ssl_enabled": {
+            "zh-CN": "SSL开启成功!",
+            "zh-TW": "SSL開啟成功!",
+            "en": "SSLTurn on成功!",
+            "fr": "SSLActiver成功!",
+            "de": "SSLEinschalten成功!",
+            "it": "SSLAttiva成功!"
+        },
+        "py_msg_10a3a6": {
+            "zh-CN": "证书错误: <br><a style=\"color:red;\">' + isError.replace(\"\\n\", '<br>",
+            "zh-TW": "憑證錯誤: <br><a style=\"color:red;\">' + isError.replace(\"\\n\", '<br>",
+            "en": "证书错误: <br><a style=\"color:red;\">' + isError.replace(\"\\n\", '<br>",
+            "fr": "证书错误: <br><a style=\"color:red;\">' + isError.replace(\"\\n\", '<br>",
+            "de": "证书错误: <br><a style=\"color:red;\">' + isError.replace(\"\\n\", '<br>",
+            "it": "证书错误: <br><a style=\"color:red;\">' + isError.replace(\"\\n\", '<br>"
+        },
+        "template_not_exists": {
+            "zh-CN": "模版不存在!",
+            "zh-TW": "模版不存在!",
+            "en": "模版不存在!",
+            "fr": "模版不存在!",
+            "de": "模版不存在!",
+            "it": "模版不存在!"
+        },
+        "template_exists": {
+            "zh-CN": "模版已经存在!",
+            "zh-TW": "模版已經存在!",
+            "en": "模版已经存在!",
+            "fr": "模版已经存在!",
+            "de": "模版已经存在!",
+            "it": "模版已经存在!"
+        },
+        "template_empty": {
+            "zh-CN": "模版内容不能为空!",
+            "zh-TW": "模版内容不能為空!",
+            "en": "模版内容不能为空!",
+            "fr": "模版内容不能为空!",
+            "de": "模版内容不能为空!",
+            "it": "模版内容不能为空!"
+        },
+        "py_msg_531fa9": {
+            "zh-CN": "模版保持失败!",
+            "zh-TW": "模版保持失敗!",
+            "en": "模版保持失败!",
+            "fr": "模版保持失败!",
+            "de": "模版保持失败!",
+            "it": "模版保持失败!"
+        },
+        "py_msg_d962ec": {
+            "zh-CN": "设置模板成功!",
+            "zh-TW": "設定模板成功!",
+            "en": "设置模板成功!",
+            "fr": "设置模板成功!",
+            "de": "设置模板成功!",
+            "it": "设置模板成功!"
+        },
+        "py_msg_bf9941": {
+            "zh-CN": "已打开防跨站设置!",
+            "zh-TW": "已打開防跨站設定!",
+            "en": "已打开防跨站设置!",
+            "fr": "已打开防跨站设置!",
+            "de": "已打开防跨站设置!",
+            "it": "已打开防跨站设置!"
+        },
+        "py_msg_e9b359": {
+            "zh-CN": "已清除防跨站设置!",
+            "zh-TW": "已清除防跨站設定!",
+            "en": "已清除防跨站设置!",
+            "fr": "已清除防跨站设置!",
+            "de": "已清除防跨站设置!",
+            "it": "已清除防跨站设置!"
+        },
+        "py_msg_8e31f6": {
+            "zh-CN": "主域名格式不正确!",
+            "zh-TW": "主網域名稱格式不正確!",
+            "en": "主Domain格式不正确!",
+            "fr": "主Domaine格式不正确!",
+            "de": "主Domain格式不正确!",
+            "it": "主Dominio格式不正确!"
+        },
+        "py_msg_076c04": {
+            "zh-CN": "您添加的域名在子目录已存在!",
+            "zh-TW": "您新增的網域名稱在子目錄已存在!",
+            "en": "您Add的Domain在子目录已存在!",
+            "fr": "您Ajouter的Domaine在子目录已存在!",
+            "de": "您Hinzufügen的Domain在子目录已存在!",
+            "it": "您Aggiungi的Dominio在子目录已存在!"
+        },
+        "py_msg_e491d4": {
+            "zh-CN": "您添加的域名已存在!",
+            "zh-TW": "您新增的網域名稱已存在!",
+            "en": "您Add的Domain已存在!",
+            "fr": "您Ajouter的Domaine已存在!",
+            "de": "您Hinzufügen的Domain已存在!",
+            "it": "您Aggiungi的Dominio已存在!"
+        },
+        "py_msg_7c7b97": {
+            "zh-CN": "不能以系统关键目录作为站点目录",
+            "zh-TW": "不能以系統關鍵目錄作為站點目錄",
+            "en": "不能以系统关键目录作为站点目录",
+            "fr": "不能以系统关键目录作为站点目录",
+            "de": "不能以系统关键目录作为站点目录",
+            "it": "不能以系统关键目录作为站点目录"
+        },
+        "py_msg_68d301": {
+            "zh-CN": "与原路径一致，无需修改!",
+            "zh-TW": "與原路径一致，無需修改!",
+            "en": "与原路径一致，无需Modify!",
+            "fr": "与原路径一致，无需Modifier!",
+            "de": "与原路径一致，无需Ändern!",
+            "it": "与原路径一致，无需Modifica!"
+        },
+        "py_msg_dd93d9": {
+            "zh-CN": "用户名或密码不能为空!",
+            "zh-TW": "使用者名或密碼不能為空!",
+            "en": "Username或Password不能为空!",
+            "fr": "Nom d'utilisateur或Mot de passe不能为空!",
+            "de": "Benutzername或Passwort不能为空!",
+            "it": "Nome utente或Password不能为空!"
+        },
+        "py_msg_334625": {
+            "zh-CN": "URL后缀不能为空!",
+            "zh-TW": "URL後缀不能為空!",
+            "en": "URL后缀不能为空!",
+            "fr": "URL后缀不能为空!",
+            "de": "URL后缀不能为空!",
+            "it": "URL后缀不能为空!"
+        },
+        "py_msg_657ea7": {
+            "zh-CN": "当前未开启SSL",
+            "zh-TW": "当前未開啟SSL",
+            "en": "当前未Turn onSSL",
+            "fr": "当前未ActiverSSL",
+            "de": "当前未EinschaltenSSL",
+            "it": "当前未AttivaSSL"
+        },
+        "py_msg_88af13": {
+            "zh-CN": "关闭HTTPS跳转成功!",
+            "zh-TW": "關閉HTTPS跳转成功!",
+            "en": "CloseHTTPS跳转成功!",
+            "fr": "FermerHTTPS跳转成功!",
+            "de": "SchließenHTTPS跳转成功!",
+            "it": "ChiudiHTTPS跳转成功!"
+        },
+        "py_msg_ac9a59": {
+            "zh-CN": "默认文档格式不正确，例：index.html",
+            "zh-TW": "預設文档格式不正確，例：index.html",
+            "en": "默认文档格式不正确，例：index.html",
+            "fr": "默认文档格式不正确，例：index.html",
+            "de": "默认文档格式不正确，例：index.html",
+            "it": "默认文档格式不正确，例：index.html"
+        },
+        "py_msg_b36bbf": {
+            "zh-CN": "默认文档不能为空!",
+            "zh-TW": "預設文档不能為空!",
+            "en": "默认文档不能为空!",
+            "fr": "默认文档不能为空!",
+            "de": "默认文档不能为空!",
+            "it": "默认文档不能为空!"
+        },
+        "py_msg_70d8da": {
+            "zh-CN": "已关闭流量限制!",
+            "zh-TW": "已關閉流量限製!",
+            "en": "已Close流量限制!",
+            "fr": "已Fermer流量限制!",
+            "de": "已Schließen流量限制!",
+            "it": "已Chiudi流量限制!"
+        },
+        "py_msg_5a2b21": {
+            "zh-CN": "必填项不能为空!",
+            "zh-TW": "必填項不能為空!",
+            "en": "必填项不能为空!",
+            "fr": "必填项不能为空!",
+            "de": "必填项不能为空!",
+            "it": "必填项不能为空!"
+        },
+        "py_msg_66c149": {
+            "zh-CN": "域名不存在!",
+            "zh-TW": "網域名稱不存在!",
+            "en": "Domain不存在!",
+            "fr": "Domaine不存在!",
+            "de": "Domain不存在!",
+            "it": "Dominio不存在!"
+        },
+        "py_msg_c57849": {
+            "zh-CN": "重复的规则!",
+            "zh-TW": "重復的規則!",
+            "en": "重复的规则!",
+            "fr": "重复的规则!",
+            "de": "重复的规则!",
+            "it": "重复的规则!"
+        },
+        "py_msg_708dcd": {
+            "zh-CN": "错误的目标地址",
+            "zh-TW": "錯誤的目標地址",
+            "en": "错误的目标地址",
+            "fr": "错误的目标地址",
+            "de": "错误的目标地址",
+            "it": "错误的目标地址"
+        },
+        "py_msg_0c62e8": {
+            "zh-CN": "获取失败!",
+            "zh-TW": "獲取失敗!",
+            "en": "获取失败!",
+            "fr": "获取失败!",
+            "de": "获取失败!",
+            "it": "获取失败!"
+        },
+        "py_msg_d2a11d": {
+            "zh-CN": "必填项不能为空",
+            "zh-TW": "必填項不能為空",
+            "en": "必填项不能为空",
+            "fr": "必填项不能为空",
+            "de": "必填项不能为空",
+            "it": "必填项不能为空"
+        },
+        "py_msg_2d613e": {
+            "zh-CN": "错误的目标地址!",
+            "zh-TW": "錯誤的目標地址!",
+            "en": "错误的目标地址!",
+            "fr": "错误的目标地址!",
+            "de": "错误的目标地址!",
+            "it": "错误的目标地址!"
+        },
+        "py_msg_a287a7": {
+            "zh-CN": "名称重复!!",
+            "zh-TW": "名称重復!!",
+            "en": "Name重复!!",
+            "fr": "Nom重复!!",
+            "de": "Name重复!!",
+            "it": "Nome重复!!"
+        },
+        "py_msg_9b1108": {
+            "zh-CN": "代理目录已存在!!",
+            "zh-TW": "代理目錄已存在!!",
+            "en": "代理目录已存在!!",
+            "fr": "代理目录已存在!!",
+            "de": "代理目录已存在!!",
+            "it": "代理目录已存在!!"
+        },
+        "py_msg_29f373": {
+            "zh-CN": "名称重复!",
+            "zh-TW": "名称重復!",
+            "en": "Name重复!",
+            "fr": "Nom重复!",
+            "de": "Name重复!",
+            "it": "Nome重复!"
+        },
+        "py_msg_e02609": {
+            "zh-CN": "代理目录已存在!",
+            "zh-TW": "代理目錄已存在!",
+            "en": "代理目录已存在!",
+            "fr": "代理目录已存在!",
+            "de": "代理目录已存在!",
+            "it": "代理目录已存在!"
+        },
+        "py_msg_3b1e7a": {
+            "zh-CN": "异常请求",
+            "zh-TW": "异常请求",
+            "en": "异常请求",
+            "fr": "异常请求",
+            "de": "异常请求",
+            "it": "异常请求"
+        },
+        "py_msg_af1106": {
+            "zh-CN": "非法操作",
+            "zh-TW": "非法操作",
+            "en": "非法Action",
+            "fr": "非法Action",
+            "de": "非法Aktion",
+            "it": "非法Azione"
+        },
+        "py_msg_4adab3": {
+            "zh-CN": "删除反代失败!",
+            "zh-TW": "刪除反代失敗!",
+            "en": "Delete反代失败!",
+            "fr": "Supprimer反代失败!",
+            "de": "Löschen反代失败!",
+            "it": "Elimina反代失败!"
+        },
+        "py_msg_c54ec6": {
+            "zh-CN": "删除反代成功!",
+            "zh-TW": "刪除反代成功!",
+            "en": "Delete反代成功!",
+            "fr": "Supprimer反代成功!",
+            "de": "Löschen反代成功!",
+            "it": "Elimina反代成功!"
+        },
+        "py_msg_27dc73": {
+            "zh-CN": "证书解析失败!",
+            "zh-TW": "憑證解析失敗!",
+            "en": "证书解析失败!",
+            "fr": "证书解析失败!",
+            "de": "证书解析失败!",
+            "it": "证书解析失败!"
+        },
+        "py_msg_8cd5e1": {
+            "zh-CN": "证书保存成功!",
+            "zh-TW": "憑證儲存成功!",
+            "en": "证书Saved successfully!",
+            "fr": "证书Enregistré avec succès!",
+            "de": "证书Erfolgreich gespeichert!",
+            "it": "证书Salvato con successo!"
+        },
+        "py_msg_0d6f7e": {
+            "zh-CN": "证书保存失败!",
+            "zh-TW": "憑證儲存失敗!",
+            "en": "证书Failed to save!",
+            "fr": "证书Échec de l'enregistrement!",
+            "de": "证书Speichern fehlgeschlagen!",
+            "it": "证书Impossibile salvare!"
+        },
+        "py_msg_b8a2ef": {
+            "zh-CN": "指定PHP版本未安装!",
+            "zh-TW": "指定PHP版本未安裝!",
+            "en": "指定PHPVersion未Install!",
+            "fr": "指定PHPVersion未Installer!",
+            "de": "指定PHPVersion未Installieren!",
+            "it": "指定PHPVersione未Installa!"
+        },
+        "py_msg_8f02db": {
+            "zh-CN": "分类名称不能为空",
+            "zh-TW": "分类名称不能為空",
+            "en": "分类Name不能为空",
+            "fr": "分类Nom不能为空",
+            "de": "分类Name不能为空",
+            "it": "分类Nome不能为空"
+        },
+        "py_msg_0168e1": {
+            "zh-CN": "分类名称长度不能超过6个汉字或18位字母",
+            "zh-TW": "分类名称長度不能超過6個汉字或18位字母",
+            "en": "分类Name长度不能超过6个汉字或18位字母",
+            "fr": "分类Nom长度不能超过6个汉字或18位字母",
+            "de": "分类Name长度不能超过6个汉字或18位字母",
+            "it": "分类Nome长度不能超过6个汉字或18位字母"
+        },
+        "py_msg_bd5677": {
+            "zh-CN": "最多添加10个分类!",
+            "zh-TW": "最多新增10個分类!",
+            "en": "最多Add10个分类!",
+            "fr": "最多Ajouter10个分类!",
+            "de": "最多Hinzufügen10个分类!",
+            "it": "最多Aggiungi10个分类!"
+        },
+        "py_msg_e716af": {
+            "zh-CN": "指定分类名称已存在!",
+            "zh-TW": "指定分类名称已存在!",
+            "en": "指定分类Name已存在!",
+            "fr": "指定分类Nom已存在!",
+            "de": "指定分类Name已存在!",
+            "it": "指定分类Nome已存在!"
+        },
+        "py_msg_a28e94": {
+            "zh-CN": "SSL已关闭!",
+            "zh-TW": "SSL已關閉!",
+            "en": "SSL已Close!",
+            "fr": "SSL已Fermer!",
+            "de": "SSL已Schließen!",
+            "it": "SSL已Chiudi!"
+        },
+        "py_msg_b8ab87": {
+            "zh-CN": "使用中,先关闭再删除",
+            "zh-TW": "使用中,先關閉再刪除",
+            "en": "使用中,先Close再Delete",
+            "fr": "使用中,先Fermer再Supprimer",
+            "de": "使用中,先Schließen再Löschen",
+            "it": "使用中,先Chiudi再Elimina"
+        },
+        "py_msg_881e41": {
+            "zh-CN": "还未申请!",
+            "zh-TW": "还未申请!",
+            "en": "还未申请!",
+            "fr": "还未申请!",
+            "de": "还未申请!",
+            "it": "还未申请!"
+        },
+        "py_msg_2e9b6f": {
+            "zh-CN": "配置异常!",
+            "zh-TW": "設定异常!",
+            "en": "配置异常!",
+            "fr": "配置异常!",
+            "de": "配置异常!",
+            "it": "配置异常!"
+        },
+        "py_msg_1996a1": {
+            "zh-CN": "【'+site_name+'】配置文件,异常!",
+            "zh-TW": "【'+site_name+'】設定檔案,异常!",
+            "en": "【'+site_name+'】配置Files,异常!",
+            "fr": "【'+site_name+'】配置Fichiers,异常!",
+            "de": "【'+site_name+'】配置Dateien,异常!",
+            "it": "【'+site_name+'】配置File,异常!"
+        },
+        "py_msg_07c2dd": {
+            "zh-CN": "泛域名不能使用【文件验证】的方式申请证书!",
+            "zh-TW": "泛網域名稱不能使用【檔案驗證】的方式申请憑證!",
+            "en": "泛Domain不能使用【Files验证】的方式申请证书!",
+            "fr": "泛Domaine不能使用【Fichiers验证】的方式申请证书!",
+            "de": "泛Domain不能使用【Dateien验证】的方式申请证书!",
+            "it": "泛Dominio不能使用【File验证】的方式申请证书!"
+        },
+        "py_msg_02824b": {
+            "zh-CN": "请选择域名(不包括IP地址与泛域名)!",
+            "zh-TW": "请選擇網域名稱(不包括IP地址與泛網域名稱)!",
+            "en": "请选择Domain(不包括IP地址与泛Domain)!",
+            "fr": "请选择Domaine(不包括IP地址与泛Domaine)!",
+            "de": "请选择Domain(不包括IP地址与泛Domain)!",
+            "it": "请选择Dominio(不包括IP地址与泛Dominio)!"
+        },
+        "py_msg_ee600b": {
+            "zh-CN": "证书已更新!",
+            "zh-TW": "憑證已更新!",
+            "en": "证书已更新!",
+            "fr": "证书已更新!",
+            "de": "证书已更新!",
+            "it": "证书已更新!"
+        },
+        "py_msg_5f3c9f": {
+            "zh-CN": "手动解析",
+            "zh-TW": "手動解析",
+            "en": "手动解析",
+            "fr": "手动解析",
+            "de": "手动解析",
+            "it": "手动解析"
+        },
+        "py_msg_c0c683": {
+            "zh-CN": "['+dnspai+']未设置!",
+            "zh-TW": "['+dnspai+']未設定!",
+            "en": "['+dnspai+']未设置!",
+            "fr": "['+dnspai+']未设置!",
+            "de": "['+dnspai+']未设置!",
+            "it": "['+dnspai+']未设置!"
+        },
+        "py_msg_9e0c0d": {
+            "zh-CN": "请选择域名",
+            "zh-TW": "请選擇網域名稱",
+            "en": "请选择Domain",
+            "fr": "请选择Domaine",
+            "de": "请选择Domain",
+            "it": "请选择Dominio"
+        },
+        "py_msg_448940": {
+            "zh-CN": "尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>",
+            "zh-TW": "尝试自動安裝ACME失敗,请通過以下命令尝试手動安裝<p>安裝命令: curl https://get.acme.sh | sh</p>",
+            "en": "尝试自动InstallACME失败,请通过以下命令尝试手动Install<p>Install命令: curl https://get.acme.sh | sh</p>",
+            "fr": "尝试自动InstallerACME失败,请通过以下命令尝试手动Installer<p>Installer命令: curl https://get.acme.sh | sh</p>",
+            "de": "尝试自动InstallierenACME失败,请通过以下命令尝试手动Installieren<p>Installieren命令: curl https://get.acme.sh | sh</p>",
+            "it": "尝试自动InstallaACME失败,请通过以下命令尝试手动Installa<p>Installa命令: curl https://get.acme.sh | sh</p>"
+        },
+        "py_msg_79c0cc": {
+            "zh-CN": "正在申请或更新SSL中...",
+            "zh-TW": "正在申请或更新SSL中...",
+            "en": "正在申请或更新SSL中...",
+            "fr": "正在申请或更新SSL中...",
+            "de": "正在申请或更新SSL中...",
+            "it": "正在申请或更新SSL中..."
+        },
+        "py_msg_a150ae": {
+            "zh-CN": "检测到您的站点做了301重定向设置，请先关闭重定向!",
+            "zh-TW": "检测到您的站點做了301重定向設定，请先關閉重定向!",
+            "en": "检测到您的站点做了301重定向设置，请先Close重定向!",
+            "fr": "检测到您的站点做了301重定向设置，请先Fermer重定向!",
+            "de": "检测到您的站点做了301重定向设置，请先Schließen重定向!",
+            "it": "检测到您的站点做了301重定向设置，请先Chiudi重定向!"
+        },
+        "py_msg_0b6cb4": {
+            "zh-CN": "检测到您的站点做了反向代理设置，请先关闭反向代理!",
+            "zh-TW": "检测到您的站點做了反向代理設定，请先關閉反向代理!",
+            "en": "检测到您的站点做了反向代理设置，请先Close反向代理!",
+            "fr": "检测到您的站点做了反向代理设置，请先Fermer反向代理!",
+            "de": "检测到您的站点做了反向代理设置，请先Schließen反向代理!",
+            "it": "检测到您的站点做了反向代理设置，请先Chiudi反向代理!"
+        },
+        "py_msg_63400f": {
+            "zh-CN": "证书不存在!",
+            "zh-TW": "憑證不存在!",
+            "en": "证书不存在!",
+            "fr": "证书不存在!",
+            "de": "证书不存在!",
+            "it": "证书不存在!"
+        },
+        "py_msg_80bc62": {
+            "zh-CN": "证书已部署!",
+            "zh-TW": "憑證已部署!",
+            "en": "证书已部署!",
+            "fr": "证书已部署!",
+            "de": "证书已部署!",
+            "it": "证书已部署!"
+        },
+        "py_msg_6a6606": {
+            "zh-CN": "证书已不存在!",
+            "zh-TW": "憑證已不存在!",
+            "en": "证书已不存在!",
+            "fr": "证书已不存在!",
+            "de": "证书已不存在!",
+            "it": "证书已不存在!"
+        },
+        "py_msg_1e0d6d": {
+            "zh-CN": "证书已删除!",
+            "zh-TW": "憑證已刪除!",
+            "en": "证书已Delete!",
+            "fr": "证书已Supprimer!",
+            "de": "证书已Löschen!",
+            "it": "证书已Elimina!"
+        },
+        "py_msg_06cf1a": {
+            "zh-CN": "备份成功!",
+            "zh-TW": "備份成功!",
+            "en": "Backup成功!",
+            "fr": "Sauvegarde成功!",
+            "de": "Sicherung成功!",
+            "it": "Backup成功!"
+        },
+        "py_msg_bf8cfe": {
+            "zh-CN": "未安装PHP,无法设置",
+            "zh-TW": "未安裝PHP,無法設定",
+            "en": "未InstallPHP,无法设置",
+            "fr": "未InstallerPHP,无法设置",
+            "de": "未InstallierenPHP,无法设置",
+            "it": "未InstallaPHP,无法设置"
+        },
+        "py_msg_496396": {
+            "zh-CN": "开发机不可设置!",
+            "zh-TW": "開發機不可設定!",
+            "en": "开发机不可设置!",
+            "fr": "开发机不可设置!",
+            "de": "开发机不可设置!",
+            "it": "开发机不可设置!"
+        },
+        "py_msg_82e49e": {
+            "zh-CN": "请安装并启动OpenResty服务!",
+            "zh-TW": "请安裝並启動OpenResty服务!",
+            "en": "请Install并StartOpenResty服务!",
+            "fr": "请Installer并DémarrerOpenResty服务!",
+            "de": "请Installieren并StartenOpenResty服务!",
+            "it": "请Installa并AvviaOpenResty服务!"
+        },
+        "py_msg_6c4558": {
+            "zh-CN": "请启动OpenResty服务!",
+            "zh-TW": "请启動OpenResty服务!",
+            "en": "请StartOpenResty服务!",
+            "fr": "请DémarrerOpenResty服务!",
+            "de": "请StartenOpenResty服务!",
+            "it": "请AvviaOpenResty服务!"
+        },
+        "py_msg_105c8a": {
+            "zh-CN": "导出成功",
+            "zh-TW": "導出成功",
+            "en": "Export成功",
+            "fr": "Exporter成功",
+            "de": "Exportieren成功",
+            "it": "Esporta成功"
+        },
+        "py_msg_799c9d": {
+            "zh-CN": "导入数据不能为空",
+            "zh-TW": "導入數據不能為空",
+            "en": "Import数据不能为空",
+            "fr": "Importer数据不能为空",
+            "de": "Importieren数据不能为空",
+            "it": "Importa数据不能为空"
+        },
+        "py_msg_8e6371": {
+            "zh-CN": "未检测到有效的站点配置",
+            "zh-TW": "未检测到有效的站點設定",
+            "en": "未检测到有效的站点配置",
+            "fr": "未检测到有效的站点配置",
+            "de": "未检测到有效的站点配置",
+            "it": "未检测到有效的站点配置"
+        },
+        "py_msg_6d24e6": {
+            "zh-CN": "检查完成",
+            "zh-TW": "检查完成",
+            "en": "检查完成",
+            "fr": "检查完成",
+            "de": "检查完成",
+            "it": "检查完成"
+        },
+        "py_msg_adda77": {
+            "zh-CN": "导入处理完成",
+            "zh-TW": "導入处理完成",
+            "en": "Import处理完成",
+            "fr": "Importer处理完成",
+            "de": "Importieren处理完成",
+            "it": "Importa处理完成"
+        },
+        "py_msg_15fa79": {
+            "zh-CN": "指定分类不存在!",
+            "zh-TW": "指定分类不存在!",
+            "en": "指定分类不存在!",
+            "fr": "指定分类不存在!",
+            "de": "指定分类不存在!",
+            "it": "指定分类不存在!"
+        },
+        "py_msg_6d5524": {
+            "zh-CN": "分类已删除!",
+            "zh-TW": "分类已刪除!",
+            "en": "分类已Delete!",
+            "fr": "分类已Supprimer!",
+            "de": "分类已Löschen!",
+            "it": "分类已Elimina!"
+        },
+        "py_msg_2b7ff5": {
+            "zh-CN": "续签失败，详细信息请查看日志！",
+            "zh-TW": "续签失敗，詳細信息请查看記錄檔！",
+            "en": "续签失败，详细信息请查看Logs！",
+            "fr": "续签失败，详细信息请查看Journaux！",
+            "de": "续签失败，详细信息请查看Protokolle！",
+            "it": "续签失败，详细信息请查看Log！"
+        },
+        "py_msg_a36237": {
+            "zh-CN": "证书续签成功！",
+            "zh-TW": "憑證续签成功！",
+            "en": "证书续签成功！",
+            "fr": "证书续签成功！",
+            "de": "证书续签成功！",
+            "it": "证书续签成功！"
         }
     },
     "files": {
@@ -6834,6 +7570,38 @@ FULL_I18N_DICTIONARY = {
             "fr": "获取目录Taille失败",
             "de": "获取目录Größe失败",
             "it": "获取目录Dimensione失败"
+        },
+        "py_msg_e4fa1d": {
+            "zh-CN": "开发机不设置!",
+            "zh-TW": "開發機不設定!",
+            "en": "开发机不设置!",
+            "fr": "开发机不设置!",
+            "de": "开发机不设置!",
+            "it": "开发机不设置!"
+        },
+        "py_msg_d9523e": {
+            "zh-CN": "文件不存在",
+            "zh-TW": "檔案不存在",
+            "en": "Files不存在",
+            "fr": "Fichiers不存在",
+            "de": "Dateien不存在",
+            "it": "File不存在"
+        },
+        "py_msg_34da7e": {
+            "zh-CN": "上传成功!",
+            "zh-TW": "上傳成功!",
+            "en": "Upload成功!",
+            "fr": "Téléverser成功!",
+            "de": "Hochladen成功!",
+            "it": "Carica成功!"
+        },
+        "py_msg_b4c393": {
+            "zh-CN": "已将下载任务添加到队列!",
+            "zh-TW": "已將下載任务新增到队列!",
+            "en": "已将Download任务Add到队列!",
+            "fr": "已将Télécharger任务Ajouter到队列!",
+            "de": "已将Herunterladen任务Hinzufügen到队列!",
+            "it": "已将Scarica任务Aggiungi到队列!"
         }
     },
     "firewall": {
@@ -7644,6 +8412,142 @@ FULL_I18N_DICTIONARY = {
             "fr": "正在重新生成密钥对并授权，请稍候...",
             "de": "正在重新生成密钥对并授权，请稍候...",
             "it": "正在重新生成密钥对并授权，请稍候..."
+        },
+        "py_msg_669d82": {
+            "zh-CN": "同步完成!",
+            "zh-TW": "同步完成!",
+            "en": "同步完成!",
+            "fr": "同步完成!",
+            "de": "同步完成!",
+            "it": "同步完成!"
+        },
+        "py_msg_10c024": {
+            "zh-CN": "开发机不能操作!",
+            "zh-TW": "開發機不能操作!",
+            "en": "开发机不能Action!",
+            "fr": "开发机不能Action!",
+            "de": "开发机不能Aktion!",
+            "it": "开发机不能Azione!"
+        },
+        "py_msg_3e6103": {
+            "zh-CN": "端口范围必需在22-65535之间!",
+            "zh-TW": "埠口範圍必需在22-65535之間!",
+            "en": "Port范围必需在22-65535之间!",
+            "fr": "Port范围必需在22-65535之间!",
+            "de": "Port范围必需在22-65535之间!",
+            "it": "Porta范围必需在22-65535之间!"
+        },
+        "py_msg_2bd5de": {
+            "zh-CN": "重启sshd失败,尝试手动重启:service ssh restart!",
+            "zh-TW": "重新啟動sshd失敗,尝试手動重新啟動:service ssh restart!",
+            "en": "Restartsshd失败,尝试手动Restart:service ssh restart!",
+            "fr": "Redémarrersshd失败,尝试手动Redémarrer:service ssh restart!",
+            "de": "Neustartensshd失败,尝试手动Neustarten:service ssh restart!",
+            "it": "Riavviasshd失败,尝试手动Riavvia:service ssh restart!"
+        },
+        "py_msg_fcf41c": {
+            "zh-CN": "防火墙启动时,才能添加规则!",
+            "zh-TW": "防火牆启動時,才能新增規則!",
+            "en": "防火墙Start时,才能Add规则!",
+            "fr": "防火墙Démarrer时,才能Ajouter规则!",
+            "de": "防火墙Starten时,才能Hinzufügen规则!",
+            "it": "防火墙Avvia时,才能Aggiungi规则!"
+        },
+        "py_msg_8951b2": {
+            "zh-CN": "端口范围不正确!",
+            "zh-TW": "埠口範圍不正確!",
+            "en": "Port范围不正确!",
+            "fr": "Port范围不正确!",
+            "de": "Port范围不正确!",
+            "it": "Porta范围不正确!"
+        },
+        "py_msg_417204": {
+            "zh-CN": "IP地址不正确!",
+            "zh-TW": "IP地址不正確!",
+            "en": "IP地址不正确!",
+            "fr": "IP地址不正确!",
+            "de": "IP地址不正确!",
+            "it": "IP地址不正确!"
+        },
+        "py_msg_142c3f": {
+            "zh-CN": "您要添加的规则已存在，无需重复添加!",
+            "zh-TW": "您要新增的規則已存在，無需重復新增!",
+            "en": "您要Add的规则已存在，无需重复Add!",
+            "fr": "您要Ajouter的规则已存在，无需重复Ajouter!",
+            "de": "您要Hinzufügen的规则已存在，无需重复Hinzufügen!",
+            "it": "您要Aggiungi的规则已存在，无需重复Aggiungi!"
+        },
+        "py_msg_79a611": {
+            "zh-CN": "您要放行的端口已存在，无需重复放行!",
+            "zh-TW": "您要放行的埠口已存在，無需重復放行!",
+            "en": "您要Allow的Port已存在，无需重复Allow!",
+            "fr": "您要Autoriser的Port已存在，无需重复Autoriser!",
+            "de": "您要Zulassen的Port已存在，无需重复Zulassen!",
+            "it": "您要Consenti的Porta已存在，无需重复Consenti!"
+        },
+        "py_msg_bf69d6": {
+            "zh-CN": "失败，不能删除当前面板端口!",
+            "zh-TW": "失敗，不能刪除当前面板埠口!",
+            "en": "失败，不能Delete当前面板Port!",
+            "fr": "失败，不能Supprimer当前面板Port!",
+            "de": "失败，不能Löschen当前面板Port!",
+            "it": "失败，不能Elimina当前面板Porta!"
+        },
+        "py_msg_7a86ee": {
+            "zh-CN": "无法设置!",
+            "zh-TW": "無法設定!",
+            "en": "无法设置!",
+            "fr": "无法设置!",
+            "de": "无法设置!",
+            "it": "无法设置!"
+        },
+        "py_msg_e3ea63": {
+            "zh-CN": "重置成功！请及时下载保存新私钥，并谨慎保管！",
+            "zh-TW": "重置成功！请及時下載儲存新私鑰，並谨慎保管！",
+            "en": "重置成功！请及时DownloadSave新私钥，并谨慎保管！",
+            "fr": "重置成功！请及时TéléchargerEnregistrer新私钥，并谨慎保管！",
+            "de": "重置成功！请及时HerunterladenSpeichern新私钥，并谨慎保管！",
+            "it": "重置成功！请及时ScaricaSalva新私钥，并谨慎保管！"
+        },
+        "py_msg_7e10e3": {
+            "zh-CN": "防火墙启动时,才能操作!",
+            "zh-TW": "防火牆启動時,才能操作!",
+            "en": "防火墙Start时,才能Action!",
+            "fr": "防火墙Démarrer时,才能Action!",
+            "de": "防火墙Starten时,才能Aktion!",
+            "it": "防火墙Avvia时,才能Azione!"
+        },
+        "py_msg_0597c6": {
+            "zh-CN": "未找到密钥文件，请先生成",
+            "zh-TW": "未找到金鑰檔案，请先生成",
+            "en": "未找到密钥Files，请先生成",
+            "fr": "未找到密钥Fichiers，请先生成",
+            "de": "未找到密钥Dateien，请先生成",
+            "it": "未找到密钥File，请先生成"
+        },
+        "py_msg_962795": {
+            "zh-CN": "重置/生成密钥成功",
+            "zh-TW": "重置/生成金鑰成功",
+            "en": "重置/生成密钥成功",
+            "fr": "重置/生成密钥成功",
+            "de": "重置/生成密钥成功",
+            "it": "重置/生成密钥成功"
+        },
+        "py_msg_cd9f26": {
+            "zh-CN": "生成密钥失败",
+            "zh-TW": "生成金鑰失敗",
+            "en": "生成密钥失败",
+            "fr": "生成密钥失败",
+            "de": "生成密钥失败",
+            "it": "生成密钥失败"
+        },
+        "py_msg_cd2498": {
+            "zh-CN": "开发机不能设置!",
+            "zh-TW": "開發機不能設定!",
+            "en": "开发机不能设置!",
+            "fr": "开发机不能设置!",
+            "de": "开发机不能设置!",
+            "it": "开发机不能设置!"
         }
     },
     "crontab": {
@@ -9030,6 +9934,86 @@ FULL_I18N_DICTIONARY = {
             "fr": "正在同步,请稍候...",
             "de": "正在同步,请稍候...",
             "it": "正在同步,请稍候..."
+        },
+        "py_msg_13a0ef": {
+            "zh-CN": "计划任务【{1}】已执行!",
+            "zh-TW": "排程任務【{1}】已執行!",
+            "en": "Cron Tasks【{1}】已Execute!",
+            "fr": "Tâches Cron【{1}】已Exécuter!",
+            "de": "Cron-Aufgaben【{1}】已Ausführen!",
+            "it": "Attività Cron【{1}】已Esegui!"
+        },
+        "py_msg_db5b0f": {
+            "zh-CN": "任务名称不能为空!",
+            "zh-TW": "任务名称不能為空!",
+            "en": "任务Name不能为空!",
+            "fr": "任务Nom不能为空!",
+            "de": "任务Name不能为空!",
+            "it": "任务Nome不能为空!"
+        },
+        "py_msg_9b5111": {
+            "zh-CN": "无法写入文件，是否开启了系统加固功能!",
+            "zh-TW": "無法寫入檔案，是否開啟了系統加固功能!",
+            "en": "无法写入Files，是否Turn on了系统加固功能!",
+            "fr": "无法写入Fichiers，是否Activer了系统加固功能!",
+            "de": "无法写入Dateien，是否Einschalten了系统加固功能!",
+            "it": "无法写入File，是否Attiva了系统加固功能!"
+        },
+        "py_msg_5d335f": {
+            "zh-CN": "任务日志已清空!",
+            "zh-TW": "任务記錄檔已清空!",
+            "en": "任务Logs已Clear!",
+            "fr": "任务Journaux已Vider!",
+            "de": "任务Protokolle已Leeren!",
+            "it": "任务Log已Svuota!"
+        },
+        "py_msg_96779b": {
+            "zh-CN": "任务日志清空失败!",
+            "zh-TW": "任务記錄檔清空失敗!",
+            "en": "任务LogsClear失败!",
+            "fr": "任务JournauxVider失败!",
+            "de": "任务ProtokolleLeeren失败!",
+            "it": "任务LogSvuota失败!"
+        },
+        "py_msg_5ca948": {
+            "zh-CN": "计划任务配置文件不存在?",
+            "zh-TW": "排程任務設定檔案不存在?",
+            "en": "Cron Tasks配置Files不存在?",
+            "fr": "Tâches Cron配置Fichiers不存在?",
+            "de": "Cron-Aufgaben配置Dateien不存在?",
+            "it": "Attività Cron配置File不存在?"
+        },
+        "py_msg_77c6a9": {
+            "zh-CN": "文件写入失败,是否开启系统加固功能!",
+            "zh-TW": "檔案寫入失敗,是否開啟系統加固功能!",
+            "en": "Files写入失败,是否Turn on系统加固功能!",
+            "fr": "Fichiers写入失败,是否Activer系统加固功能!",
+            "de": "Dateien写入失败,是否Einschalten系统加固功能!",
+            "it": "File写入失败,是否Attiva系统加固功能!"
+        },
+        "py_msg_9d44d8": {
+            "zh-CN": "成功检测并同步了 {1} 个任务",
+            "zh-TW": "成功检测並同步了 {1} 個任务",
+            "en": "成功检测并同步了 {1} 个任务",
+            "fr": "成功检测并同步了 {1} 个任务",
+            "de": "成功检测并同步了 {1} 个任务",
+            "it": "成功检测并同步了 {1} 个任务"
+        },
+        "py_msg_2c1843": {
+            "zh-CN": "任务名称重复",
+            "zh-TW": "任务名称重復",
+            "en": "任务Name重复",
+            "fr": "任务Nom重复",
+            "de": "任务Name重复",
+            "it": "任务Nome重复"
+        },
+        "py_msg_f47dfc": {
+            "zh-CN": "当前任务列表已是最新，无缺失任务需要同步",
+            "zh-TW": "当前任务列表已是最新，無缺失任务需要同步",
+            "en": "当前任务List已是最新，无缺失任务需要同步",
+            "fr": "当前任务Liste已是最新，无缺失任务需要同步",
+            "de": "当前任务Liste已是最新，无缺失任务需要同步",
+            "it": "当前任务Elenco已是最新，无缺失任务需要同步"
         }
     },
     "control": {
@@ -10204,6 +11188,22 @@ FULL_I18N_DICTIONARY = {
             "fr": "正在清理,请稍候...",
             "de": "正在清理,请稍候...",
             "it": "正在清理,请稍候..."
+        },
+        "py_msg_c90f98": {
+            "zh-CN": "日志文件不存在!",
+            "zh-TW": "記錄檔檔案不存在!",
+            "en": "LogsFiles不存在!",
+            "fr": "JournauxFichiers不存在!",
+            "de": "ProtokolleDateien不存在!",
+            "it": "LogFile不存在!"
+        },
+        "py_msg_8d2a5b": {
+            "zh-CN": "面板操作日志已清空!",
+            "zh-TW": "面板操作記錄檔已清空!",
+            "en": "面板ActionLogs已Clear!",
+            "fr": "面板ActionJournaux已Vider!",
+            "de": "面板AktionProtokolle已Leeren!",
+            "it": "面板AzioneLog已Svuota!"
         }
     },
     "config": {
@@ -13996,6 +14996,1930 @@ FULL_I18N_DICTIONARY = {
             "fr": "抱歉,IE 6/7/8 不支持请更换浏览器再Téléverser",
             "de": "抱歉,IE 6/7/8 不支持请更换浏览器再Hochladen",
             "it": "抱歉,IE 6/7/8 不支持请更换浏览器再Carica"
+        }
+    },
+    "setting": {
+        "py_msg_02d321": {
+            "zh-CN": "开启API成功!",
+            "zh-TW": "開啟API成功!",
+            "en": "Turn onAPI成功!",
+            "fr": "ActiverAPI成功!",
+            "de": "EinschaltenAPI成功!",
+            "it": "AttivaAPI成功!"
+        },
+        "py_msg_4b4d08": {
+            "zh-CN": "关闭API成功!",
+            "zh-TW": "關閉API成功!",
+            "en": "CloseAPI成功!",
+            "fr": "FermerAPI成功!",
+            "de": "SchließenAPI成功!",
+            "it": "ChiudiAPI成功!"
+        },
+        "py_msg_d061ab": {
+            "zh-CN": "IP限制不能为空!",
+            "zh-TW": "IP限製不能為空!",
+            "en": "IP限制不能为空!",
+            "fr": "IP限制不能为空!",
+            "de": "IP限制不能为空!",
+            "it": "IP限制不能为空!"
+        },
+        "py_msg_ad1353": {
+            "zh-CN": "切换成功!",
+            "zh-TW": "切換成功!",
+            "en": "切换成功!",
+            "fr": "切换成功!",
+            "de": "切换成功!",
+            "it": "切换成功!"
+        },
+        "py_msg_a16d8d": {
+            "zh-CN": "切换失败!",
+            "zh-TW": "切換失敗!",
+            "en": "切换失败!",
+            "fr": "切换失败!",
+            "de": "切换失败!",
+            "it": "切换失败!"
+        },
+        "py_msg_45001d": {
+            "zh-CN": "验证成功",
+            "zh-TW": "驗證成功",
+            "en": "验证成功",
+            "fr": "验证成功",
+            "de": "验证成功",
+            "it": "验证成功"
+        },
+        "py_msg_e23be1": {
+            "zh-CN": "备注或面板地址重复!",
+            "zh-TW": "備注或面板地址重復!",
+            "en": "Remark或面板地址重复!",
+            "fr": "Remarque或面板地址重复!",
+            "de": "Bemerkung或面板地址重复!",
+            "it": "Nota或面板地址重复!"
+        },
+        "py_msg_785f90": {
+            "zh-CN": "指定面板资料不存在!",
+            "zh-TW": "指定面板資料不存在!",
+            "en": "指定面板资料不存在!",
+            "fr": "指定面板资料不存在!",
+            "de": "指定面板资料不存在!",
+            "it": "指定面板资料不存在!"
+        },
+        "py_msg_4d5ac8": {
+            "zh-CN": "关闭成功!",
+            "zh-TW": "關閉成功!",
+            "en": "Close成功!",
+            "fr": "Fermer成功!",
+            "de": "Schließen成功!",
+            "it": "Chiudi成功!"
+        },
+        "py_msg_8e0047": {
+            "zh-CN": "开启成功!",
+            "zh-TW": "開啟成功!",
+            "en": "Turn on成功!",
+            "fr": "Activer成功!",
+            "de": "Einschalten成功!",
+            "it": "Attiva成功!"
+        },
+        "py_msg_ca5110": {
+            "zh-CN": "面板别名保存成功!",
+            "zh-TW": "面板别名儲存成功!",
+            "en": "面板别名Saved successfully!",
+            "fr": "面板别名Enregistré avec succès!",
+            "de": "面板别名Erfolgreich gespeichert!",
+            "it": "面板别名Salvato con successo!"
+        },
+        "py_msg_9adea2": {
+            "zh-CN": "IP保存成功!",
+            "zh-TW": "IP儲存成功!",
+            "en": "IPSaved successfully!",
+            "fr": "IPEnregistré avec succès!",
+            "de": "IPErfolgreich gespeichert!",
+            "it": "IPSalvato con successo!"
+        },
+        "py_msg_b179f2": {
+            "zh-CN": "修改默认备份目录成功!",
+            "zh-TW": "修改預設備份目錄成功!",
+            "en": "Modify默认Backup目录成功!",
+            "fr": "Modifier默认Sauvegarde目录成功!",
+            "de": "Ändern默认Sicherung目录成功!",
+            "it": "Modifica默认Backup目录成功!"
+        },
+        "py_msg_d75d39": {
+            "zh-CN": "修改默认建站目录成功!",
+            "zh-TW": "修改預設建站目錄成功!",
+            "en": "Modify默认建站目录成功!",
+            "fr": "Modifier默认建站目录成功!",
+            "de": "Ändern默认建站目录成功!",
+            "it": "Modifica默认建站目录成功!"
+        },
+        "py_msg_eeb5dc": {
+            "zh-CN": "安全入口地址长度不能小于6位!",
+            "zh-TW": "安全入口地址長度不能小于6位!",
+            "en": "Security入口地址长度不能小于6位!",
+            "fr": "Sécurité入口地址长度不能小于6位!",
+            "de": "Sicherheit入口地址长度不能小于6位!",
+            "it": "Sicurezza入口地址长度不能小于6位!"
+        },
+        "py_msg_829da6": {
+            "zh-CN": "该入口已被面板占用,请使用其它入口!",
+            "zh-TW": "该入口已被面板佔用,请使用其它入口!",
+            "en": "该入口已被面板占用,请使用其它入口!",
+            "fr": "该入口已被面板占用,请使用其它入口!",
+            "de": "该入口已被面板占用,请使用其它入口!",
+            "it": "该入口已被面板占用,请使用其它入口!"
+        },
+        "py_msg_16eb02": {
+            "zh-CN": "入口地址格式不正确,示例: /yf_rand",
+            "zh-TW": "入口地址格式不正確,示例: /yf_rand",
+            "en": "入口地址格式不正确,示例: /yf_rand",
+            "fr": "入口地址格式不正确,示例: /yf_rand",
+            "de": "入口地址格式不正确,示例: /yf_rand",
+            "it": "入口地址格式不正确,示例: /yf_rand"
+        },
+        "py_msg_096c84": {
+            "zh-CN": "删除BasicAuth成功!",
+            "zh-TW": "刪除BasicAuth成功!",
+            "en": "DeleteBasicAuth成功!",
+            "fr": "SupprimerBasicAuth成功!",
+            "de": "LöschenBasicAuth成功!",
+            "it": "EliminaBasicAuth成功!"
+        },
+        "py_msg_6fea4c": {
+            "zh-CN": "用户和密码不能为空!",
+            "zh-TW": "使用者和密碼不能為空!",
+            "en": "用户和Password不能为空!",
+            "fr": "用户和Mot de passe不能为空!",
+            "de": "用户和Passwort不能为空!",
+            "it": "用户和Password不能为空!"
+        },
+        "py_msg_9716ed": {
+            "zh-CN": "状态码范围错误!!",
+            "zh-TW": "狀態码範圍錯誤!!",
+            "en": "Status码范围错误!!",
+            "fr": "Statut码范围错误!!",
+            "de": "Status码范围错误!!",
+            "it": "Stato码范围错误!!"
+        },
+        "py_msg_a68173": {
+            "zh-CN": "状态码范围错误!",
+            "zh-TW": "狀態码範圍錯誤!",
+            "en": "Status码范围错误!",
+            "fr": "Statut码范围错误!",
+            "de": "Status码范围错误!",
+            "it": "Stato码范围错误!"
+        },
+        "py_msg_2f9e9a": {
+            "zh-CN": "开发模式关闭!",
+            "zh-TW": "開發模式關閉!",
+            "en": "开发模式Close!",
+            "fr": "开发模式Fermer!",
+            "de": "开发模式Schließen!",
+            "it": "开发模式Chiudi!"
+        },
+        "py_msg_e82416": {
+            "zh-CN": "开发模式开启!",
+            "zh-TW": "開發模式開啟!",
+            "en": "开发模式Turn on!",
+            "fr": "开发模式Activer!",
+            "de": "开发模式Einschalten!",
+            "it": "开发模式Attiva!"
+        },
+        "py_msg_77f082": {
+            "zh-CN": "关闭面板成功!",
+            "zh-TW": "關閉面板成功!",
+            "en": "Close面板成功!",
+            "fr": "Fermer面板成功!",
+            "de": "Schließen面板成功!",
+            "it": "Chiudi面板成功!"
+        },
+        "py_msg_a55770": {
+            "zh-CN": "开启面板成功!",
+            "zh-TW": "開啟面板成功!",
+            "en": "Turn on面板成功!",
+            "fr": "Activer面板成功!",
+            "de": "Einschalten面板成功!",
+            "it": "Attiva面板成功!"
+        },
+        "py_msg_a2a860": {
+            "zh-CN": "开启CDN加速成功!",
+            "zh-TW": "開啟CDN加速成功!",
+            "en": "Turn onCDN加速成功!",
+            "fr": "ActiverCDN加速成功!",
+            "de": "EinschaltenCDN加速成功!",
+            "it": "AttivaCDN加速成功!"
+        },
+        "py_msg_befc80": {
+            "zh-CN": "关闭CDN加速成功!",
+            "zh-TW": "關閉CDN加速成功!",
+            "en": "CloseCDN加速成功!",
+            "fr": "FermerCDN加速成功!",
+            "de": "SchließenCDN加速成功!",
+            "it": "ChiudiCDN加速成功!"
+        },
+        "py_msg_9cfee3": {
+            "zh-CN": "开启英伟达GPU首页检测成功!",
+            "zh-TW": "開啟英伟达GPU首頁检测成功!",
+            "en": "Turn on英伟达GPUDashboard检测成功!",
+            "fr": "Activer英伟达GPUTableau de bord检测成功!",
+            "de": "Einschalten英伟达GPUDashboard检测成功!",
+            "it": "Attiva英伟达GPUDashboard检测成功!"
+        },
+        "py_msg_d0a336": {
+            "zh-CN": "关闭英伟达GPU首页检测成功!",
+            "zh-TW": "關閉英伟达GPU首頁检测成功!",
+            "en": "Close英伟达GPUDashboard检测成功!",
+            "fr": "Fermer英伟达GPUTableau de bord检测成功!",
+            "de": "Schließen英伟达GPUDashboard检测成功!",
+            "it": "Chiudi英伟达GPUDashboard检测成功!"
+        },
+        "py_msg_91b70d": {
+            "zh-CN": "两次输入的用户名不一致，请重新输入!",
+            "zh-TW": "两次輸入的使用者名不一致，请重新輸入!",
+            "en": "两次输入的Username不一致，请重新输入!",
+            "fr": "两次输入的Nom d'utilisateur不一致，请重新输入!",
+            "de": "两次输入的Benutzername不一致，请重新输入!",
+            "it": "两次输入的Nome utente不一致，请重新输入!"
+        },
+        "py_msg_24ce37": {
+            "zh-CN": "用户名长度不能少于3位",
+            "zh-TW": "使用者名長度不能少于3位",
+            "en": "Username长度不能少于3位",
+            "fr": "Nom d'utilisateur长度不能少于3位",
+            "de": "Benutzername长度不能少于3位",
+            "it": "Nome utente长度不能少于3位"
+        },
+        "py_msg_410e38": {
+            "zh-CN": "用户修改成功!",
+            "zh-TW": "使用者修改成功!",
+            "en": "用户Modified successfully!",
+            "fr": "用户Modifié avec succès!",
+            "de": "用户Erfolgreich geändert!",
+            "it": "用户Modificato con successo!"
+        },
+        "py_msg_fa9023": {
+            "zh-CN": "两次输入的密码不一致，请重新输入!",
+            "zh-TW": "两次輸入的密碼不一致，请重新輸入!",
+            "en": "两次输入的Password不一致，请重新输入!",
+            "fr": "两次输入的Mot de passe不一致，请重新输入!",
+            "de": "两次输入的Passwort不一致，请重新输入!",
+            "it": "两次输入的Password不一致，请重新输入!"
+        },
+        "py_msg_d8c2ca": {
+            "zh-CN": "用户密码不能小于5位!",
+            "zh-TW": "使用者密碼不能小于5位!",
+            "en": "用户Password不能小于5位!",
+            "fr": "用户Mot de passe不能小于5位!",
+            "de": "用户Passwort不能小于5位!",
+            "it": "用户Password不能小于5位!"
+        },
+        "py_msg_4c7f7a": {
+            "zh-CN": "密码修改成功!",
+            "zh-TW": "密碼修改成功!",
+            "en": "PasswordModified successfully!",
+            "fr": "Mot de passeModifié avec succès!",
+            "de": "PasswortErfolgreich geändert!",
+            "it": "PasswordModificato con successo!"
+        },
+        "py_msg_61e312": {
+            "zh-CN": "firewalld必须先启动!",
+            "zh-TW": "firewalld必须先启動!",
+            "en": "firewalld必须先Start!",
+            "fr": "firewalld必须先Démarrer!",
+            "de": "firewalld必须先Starten!",
+            "it": "firewalld必须先Avvia!"
+        },
+        "py_msg_922e9d": {
+            "zh-CN": "端口保存成功!",
+            "zh-TW": "埠口儲存成功!",
+            "en": "PortSaved successfully!",
+            "fr": "PortEnregistré avec succès!",
+            "de": "PortErfolgreich gespeichert!",
+            "it": "PortaSalvato con successo!"
+        },
+        "py_msg_d697e5": {
+            "zh-CN": "菜单数据不能为空!",
+            "zh-TW": "菜單數據不能為空!",
+            "en": "菜单数据不能为空!",
+            "fr": "菜单数据不能为空!",
+            "de": "菜单数据不能为空!",
+            "it": "菜单数据不能为空!"
+        },
+        "py_msg_e6c1aa": {
+            "zh-CN": "菜单数据格式错误!",
+            "zh-TW": "菜單數據格式錯誤!",
+            "en": "菜单数据格式错误!",
+            "fr": "菜单数据格式错误!",
+            "de": "菜单数据格式错误!",
+            "it": "菜单数据格式错误!"
+        },
+        "py_msg_a087ab": {
+            "zh-CN": "菜单配置保存成功!",
+            "zh-TW": "菜單設定儲存成功!",
+            "en": "菜单配置Saved successfully!",
+            "fr": "菜单配置Enregistré avec succès!",
+            "de": "菜单配置Erfolgreich gespeichert!",
+            "it": "菜单配置Salvato con successo!"
+        },
+        "py_msg_f04eaf": {
+            "zh-CN": "迁移已启动",
+            "zh-TW": "遷移已启動",
+            "en": "迁移已Start",
+            "fr": "迁移已Démarrer",
+            "de": "迁移已Starten",
+            "it": "迁移已Avvia"
+        },
+        "py_msg_bf59b6": {
+            "zh-CN": "日志文件不存在或尚未生成",
+            "zh-TW": "記錄檔檔案不存在或尚未生成",
+            "en": "LogsFiles不存在或尚未生成",
+            "fr": "JournauxFichiers不存在或尚未生成",
+            "de": "ProtokolleDateien不存在或尚未生成",
+            "it": "LogFile不存在或尚未生成"
+        },
+        "py_msg_ceaa07": {
+            "zh-CN": "数据库路径不能为空",
+            "zh-TW": "資料庫路径不能為空",
+            "en": "Databases路径不能为空",
+            "fr": "Bases de données路径不能为空",
+            "de": "Datenbanken路径不能为空",
+            "it": "Database路径不能为空"
+        },
+        "py_msg_be3f67": {
+            "zh-CN": "站点导入已启动",
+            "zh-TW": "站點導入已启動",
+            "en": "站点Import已Start",
+            "fr": "站点Importer已Démarrer",
+            "de": "站点Importieren已Starten",
+            "it": "站点Importa已Avvia"
+        },
+        "py_msg_e05503": {
+            "zh-CN": "参数错误或无权限",
+            "zh-TW": "参數錯誤或無權限",
+            "en": "参数错误或无Permissions",
+            "fr": "参数错误或无Permissions",
+            "de": "参数错误或无Berechtigungen",
+            "it": "参数错误或无Permessi"
+        },
+        "py_msg_2ccda7": {
+            "zh-CN": "目录不存在",
+            "zh-TW": "目錄不存在",
+            "en": "目录不存在",
+            "fr": "目录不存在",
+            "de": "目录不存在",
+            "it": "目录不存在"
+        },
+        "py_msg_55a0e5": {
+            "zh-CN": "压缩成功，文件保存在同级目录下",
+            "zh-TW": "壓縮成功，檔案儲存在同級目錄下",
+            "en": "Compress成功，FilesSave在同级目录下",
+            "fr": "Compresser成功，FichiersEnregistrer在同级目录下",
+            "de": "Komprimieren成功，DateienSpeichern在同级目录下",
+            "it": "Comprimi成功，FileSalva在同级目录下"
+        },
+        "py_msg_ed9f63": {
+            "zh-CN": "文件/目录不存在",
+            "zh-TW": "檔案/目錄不存在",
+            "en": "Files/目录不存在",
+            "fr": "Fichiers/目录不存在",
+            "de": "Dateien/目录不存在",
+            "it": "File/目录不存在"
+        },
+        "py_msg_c97b19": {
+            "zh-CN": "首页提醒最长不能超过50个字!",
+            "zh-TW": "首頁提醒最長不能超過50個字!",
+            "en": "Dashboard提醒最长不能超过50个字!",
+            "fr": "Tableau de bord提醒最长不能超过50个字!",
+            "de": "Dashboard提醒最长不能超过50个字!",
+            "it": "Dashboard提醒最长不能超过50个字!"
+        },
+        "py_msg_a3bec2": {
+            "zh-CN": "首页提醒保存成功!",
+            "zh-TW": "首頁提醒儲存成功!",
+            "en": "Dashboard提醒Saved successfully!",
+            "fr": "Tableau de bord提醒Enregistré avec succès!",
+            "de": "Dashboard提醒Erfolgreich gespeichert!",
+            "it": "Dashboard提醒Salvato con successo!"
+        },
+        "py_msg_2bbd2b": {
+            "zh-CN": "没有权限",
+            "zh-TW": "没有權限",
+            "en": "没有Permissions",
+            "fr": "没有Permissions",
+            "de": "没有Berechtigungen",
+            "it": "没有Permessi"
+        },
+        "py_msg_3b04f4": {
+            "zh-CN": "连接生成失败",
+            "zh-TW": "連接生成失敗",
+            "en": "Connections生成失败",
+            "fr": "Connexions生成失败",
+            "de": "Verbindungen生成失败",
+            "it": "Connessioni生成失败"
+        },
+        "py_msg_05608e": {
+            "zh-CN": "开发系统不必同步时间!",
+            "zh-TW": "開發系統不必同步時間!",
+            "en": "开发系统不必同步Time!",
+            "fr": "开发系统不必同步Heure!",
+            "de": "开发系统不必同步Zeit!",
+            "it": "开发系统不必同步Ora!"
+        },
+        "py_msg_10a198": {
+            "zh-CN": "同步成功!",
+            "zh-TW": "同步成功!",
+            "en": "同步成功!",
+            "fr": "同步成功!",
+            "de": "同步成功!",
+            "it": "同步成功!"
+        },
+        "py_msg_313da4": {
+            "zh-CN": "保存错误面板SSL类型!",
+            "zh-TW": "儲存錯誤面板SSL類型!",
+            "en": "Save错误面板SSLType!",
+            "fr": "Enregistrer错误面板SSLType!",
+            "de": "Speichern错误面板SSLTyp!",
+            "it": "Salva错误面板SSLTipo!"
+        },
+        "py_msg_7a09f6": {
+            "zh-CN": "【'+choose+'】SSL类型不存在,先申请!",
+            "zh-TW": "【'+choose+'】SSL類型不存在,先申请!",
+            "en": "【'+choose+'】SSLType不存在,先申请!",
+            "fr": "【'+choose+'】SSLType不存在,先申请!",
+            "de": "【'+choose+'】SSLTyp不存在,先申请!",
+            "it": "【'+choose+'】SSLTipo不存在,先申请!"
+        },
+        "py_msg_4b5c24": {
+            "zh-CN": "秘钥错误，请检查!",
+            "zh-TW": "秘鑰錯誤，请检查!",
+            "en": "秘钥错误，请检查!",
+            "fr": "秘钥错误，请检查!",
+            "de": "秘钥错误，请检查!",
+            "it": "秘钥错误，请检查!"
+        },
+        "py_msg_9b03c1": {
+            "zh-CN": "证书错误，请检查!",
+            "zh-TW": "憑證錯誤，请检查!",
+            "en": "证书错误，请检查!",
+            "fr": "证书错误，请检查!",
+            "de": "证书错误，请检查!",
+            "it": "证书错误，请检查!"
+        },
+        "py_msg_479b78": {
+            "zh-CN": "证书错误,请检查!",
+            "zh-TW": "憑證錯誤,请检查!",
+            "en": "证书错误,请检查!",
+            "fr": "证书错误,请检查!",
+            "de": "证书错误,请检查!",
+            "it": "证书错误,请检查!"
+        },
+        "py_msg_d31815": {
+            "zh-CN": "删除错误面板SSL类型!",
+            "zh-TW": "刪除錯誤面板SSL類型!",
+            "en": "Delete错误面板SSLType!",
+            "fr": "Supprimer错误面板SSLType!",
+            "de": "Löschen错误面板SSLTyp!",
+            "it": "Elimina错误面板SSLTipo!"
+        },
+        "py_msg_1caae8": {
+            "zh-CN": "删除本地面板SSL成功!",
+            "zh-TW": "刪除本地面板SSL成功!",
+            "en": "Delete本地面板SSL成功!",
+            "fr": "Supprimer本地面板SSL成功!",
+            "de": "Löschen本地面板SSL成功!",
+            "it": "Elimina本地面板SSL成功!"
+        },
+        "py_msg_065b6e": {
+            "zh-CN": "已经删除本地面板SSL!",
+            "zh-TW": "已經刪除本地面板SSL!",
+            "en": "已经Delete本地面板SSL!",
+            "fr": "已经Supprimer本地面板SSL!",
+            "de": "已经Löschen本地面板SSL!",
+            "it": "已经Elimina本地面板SSL!"
+        },
+        "py_msg_7f4ead": {
+            "zh-CN": "已删除面板90天证书并重启面板，请使用HTTP协议访问！",
+            "zh-TW": "已刪除面板90天憑證並重新啟動面板，请使用HTTP協議访問！",
+            "en": "已Delete面板90天证书并Restart面板，请使用HTTPProtocol访问！",
+            "fr": "已Supprimer面板90天证书并Redémarrer面板，请使用HTTPProtocole访问！",
+            "de": "已Löschen面板90天证书并Neustarten面板，请使用HTTPProtokoll访问！",
+            "it": "已Elimina面板90天证书并Riavvia面板，请使用HTTPProtocollo访问！"
+        },
+        "py_msg_1f041f": {
+            "zh-CN": "未知类型!",
+            "zh-TW": "未知類型!",
+            "en": "未知Type!",
+            "fr": "未知Type!",
+            "de": "未知Typ!",
+            "it": "未知Tipo!"
+        },
+        "py_msg_9e0c0d": {
+            "zh-CN": "请选择域名",
+            "zh-TW": "请選擇網域名稱",
+            "en": "请选择Domain",
+            "fr": "请选择Domaine",
+            "de": "请选择Domain",
+            "it": "请选择Dominio"
+        },
+        "py_msg_448940": {
+            "zh-CN": "尝试自动安装ACME失败,请通过以下命令尝试手动安装<p>安装命令: curl https://get.acme.sh | sh</p>",
+            "zh-TW": "尝试自動安裝ACME失敗,请通過以下命令尝试手動安裝<p>安裝命令: curl https://get.acme.sh | sh</p>",
+            "en": "尝试自动InstallACME失败,请通过以下命令尝试手动Install<p>Install命令: curl https://get.acme.sh | sh</p>",
+            "fr": "尝试自动InstallerACME失败,请通过以下命令尝试手动Installer<p>Installer命令: curl https://get.acme.sh | sh</p>",
+            "de": "尝试自动InstallierenACME失败,请通过以下命令尝试手动Installieren<p>Installieren命令: curl https://get.acme.sh | sh</p>",
+            "it": "尝试自动InstallaACME失败,请通过以下命令尝试手动Installa<p>Installa命令: curl https://get.acme.sh | sh</p>"
+        },
+        "py_msg_159a25": {
+            "zh-CN": "不支持的验证类型",
+            "zh-TW": "不支持的驗證類型",
+            "en": "不支持的验证Type",
+            "fr": "不支持的验证Type",
+            "de": "不支持的验证Typ",
+            "it": "不支持的验证Tipo"
+        },
+        "py_msg_dacd39": {
+            "zh-CN": "证书已成功申请并部署！",
+            "zh-TW": "憑證已成功申请並部署！",
+            "en": "证书已成功申请并部署！",
+            "fr": "证书已成功申请并部署！",
+            "de": "证书已成功申请并部署！",
+            "it": "证书已成功申请并部署！"
+        },
+        "py_msg_bee194": {
+            "zh-CN": "先要绑定域名!",
+            "zh-TW": "先要绑定網域名稱!",
+            "en": "先要绑定Domain!",
+            "fr": "先要绑定Domaine!",
+            "de": "先要绑定Domain!",
+            "it": "先要绑定Dominio!"
+        },
+        "py_msg_b04ec3": {
+            "zh-CN": "主域名格式不正确",
+            "zh-TW": "主網域名稱格式不正確",
+            "en": "主Domain格式不正确",
+            "fr": "主Domaine格式不正确",
+            "de": "主Domain格式不正确",
+            "it": "主Dominio格式不正确"
+        },
+        "py_msg_ad02a4": {
+            "zh-CN": "依赖OpenResty,先安装启动它!",
+            "zh-TW": "依赖OpenResty,先安裝启動它!",
+            "en": "依赖OpenResty,先InstallStart它!",
+            "fr": "依赖OpenResty,先InstallerDémarrer它!",
+            "de": "依赖OpenResty,先InstallierenStarten它!",
+            "it": "依赖OpenResty,先InstallaAvvia它!"
+        },
+        "py_msg_c0d3ce": {
+            "zh-CN": "重复申请!",
+            "zh-TW": "重復申请!",
+            "en": "重复申请!",
+            "fr": "重复申请!",
+            "de": "重复申请!",
+            "it": "重复申请!"
+        },
+        "py_msg_5097f5": {
+            "zh-CN": "申请成功!",
+            "zh-TW": "申请成功!",
+            "en": "申请成功!",
+            "fr": "申请成功!",
+            "de": "申请成功!",
+            "it": "申请成功!"
+        },
+        "py_msg_1c7c23": {
+            "zh-CN": "清空域名成功!",
+            "zh-TW": "清空網域名稱成功!",
+            "en": "ClearDomain成功!",
+            "fr": "ViderDomaine成功!",
+            "de": "LeerenDomain成功!",
+            "it": "SvuotaDominio成功!"
+        },
+        "py_msg_6d1701": {
+            "zh-CN": "设置域名成功!",
+            "zh-TW": "設定網域名稱成功!",
+            "en": "设置Domain成功!",
+            "fr": "设置Domaine成功!",
+            "de": "设置Domain成功!",
+            "it": "设置Dominio成功!"
+        }
+    },
+    "common": {
+        "add_success": {
+            "zh-CN": "添加成功!",
+            "zh-TW": "新增成功!",
+            "en": "Added successfully!",
+            "fr": "Ajouté avec succès!",
+            "de": "Erfolgreich hinzugefügt!",
+            "it": "Aggiunto con successo!"
+        },
+        "add_failed": {
+            "zh-CN": "添加失败!",
+            "zh-TW": "新增失敗!",
+            "en": "Failed to add!",
+            "fr": "Échec de l'ajout!",
+            "de": "Hinzufügen fehlgeschlagen!",
+            "it": "Impossibile aggiungere!"
+        },
+        "del_success": {
+            "zh-CN": "删除成功",
+            "zh-TW": "刪除成功",
+            "en": "Deleted successfully",
+            "fr": "Supprimé avec succès",
+            "de": "Erfolgreich gelöscht",
+            "it": "Eliminato con successo"
+        },
+        "del_failed": {
+            "zh-CN": "删除失败",
+            "zh-TW": "刪除失敗",
+            "en": "Failed to delete",
+            "fr": "Échec de la suppression",
+            "de": "Löschen fehlgeschlagen",
+            "it": "Impossibile eliminare"
+        },
+        "set_success": {
+            "zh-CN": "设置成功!",
+            "zh-TW": "設定成功!",
+            "en": "Settings saved!",
+            "fr": "Paramètres enregistrés!",
+            "de": "Einstellungen gespeichert!",
+            "it": "Impostazioni salvate!"
+        },
+        "edit_success": {
+            "zh-CN": "修改成功!",
+            "zh-TW": "修改成功!",
+            "en": "Modified successfully!",
+            "fr": "Modifié avec succès!",
+            "de": "Erfolgreich geändert!",
+            "it": "Modificato con successo!"
+        },
+        "edit_failed": {
+            "zh-CN": "修改失败!",
+            "zh-TW": "修改失敗!",
+            "en": "Failed to modify!",
+            "fr": "Échec de la modification!",
+            "de": "Ändern fehlgeschlagen!",
+            "it": "Impossibile modificare!"
+        },
+        "log_empty": {
+            "zh-CN": "日志为空",
+            "zh-TW": "記錄檔為空",
+            "en": "Logs为空",
+            "fr": "Journaux为空",
+            "de": "Protokolle为空",
+            "it": "Log为空"
+        },
+        "action_success": {
+            "zh-CN": "操作成功!",
+            "zh-TW": "操作成功!",
+            "en": "Operation successful!",
+            "fr": "Opération réussie!",
+            "de": "Vorgang erfolgreich!",
+            "it": "Operazione riuscita!"
+        },
+        "connect_success": {
+            "zh-CN": "连接成功.",
+            "zh-TW": "連接成功.",
+            "en": "Connections成功.",
+            "fr": "Connexions成功.",
+            "de": "Verbindungen成功.",
+            "it": "Connessioni成功."
+        },
+        "connected": {
+            "zh-CN": "已连接",
+            "zh-TW": "已連接",
+            "en": "已Connections",
+            "fr": "已Connexions",
+            "de": "已Verbindungen",
+            "it": "已Connessioni"
+        }
+    },
+    "dashboard": {
+        "py_msg_411a4b": {
+            "zh-CN": "ip不能为空",
+            "zh-TW": "ip不能為空",
+            "en": "ip不能为空",
+            "fr": "ip不能为空",
+            "de": "ip不能为空",
+            "it": "ip不能为空"
+        },
+        "py_msg_f77dfe": {
+            "zh-CN": "请先安装WebHook插件!",
+            "zh-TW": "请先安裝WebHook外掛程式!",
+            "en": "请先InstallWebHook插件!",
+            "fr": "请先InstallerWebHook插件!",
+            "de": "请先InstallierenWebHook插件!",
+            "it": "请先InstallaWebHook插件!"
+        },
+        "py_msg_8fb1ac": {
+            "zh-CN": "已安全退出",
+            "zh-TW": "已安全登出",
+            "en": "已SecurityLogout",
+            "fr": "已SécuritéDéconnexion",
+            "de": "已SicherheitAbmelden",
+            "it": "已SicurezzaDisconnetti"
+        },
+        "py_msg_0b5961": {
+            "zh-CN": "已登录",
+            "zh-TW": "已登入",
+            "en": "已Login",
+            "fr": "已Connexion",
+            "de": "已Anmelden",
+            "it": "已Accedi"
+        },
+        "py_msg_63e85d": {
+            "zh-CN": "未登录",
+            "zh-TW": "未登入",
+            "en": "未Login",
+            "fr": "未Connexion",
+            "de": "未Anmelden",
+            "it": "未Accedi"
+        },
+        "py_msg_ba7c40": {
+            "zh-CN": "二次验证成功!",
+            "zh-TW": "二次驗證成功!",
+            "en": "二次验证成功!",
+            "fr": "二次验证成功!",
+            "de": "二次验证成功!",
+            "it": "二次验证成功!"
+        },
+        "py_msg_fefb49": {
+            "zh-CN": "面板已经关闭!",
+            "zh-TW": "面板已經關閉!",
+            "en": "面板已经Close!",
+            "fr": "面板已经Fermer!",
+            "de": "面板已经Schließen!",
+            "it": "面板已经Chiudi!"
+        },
+        "py_msg_40ded2": {
+            "zh-CN": "该IP已被临时封禁，请1小时后重试!",
+            "zh-TW": "该IP已被临時封禁，请1小時後重试!",
+            "en": "该IP已被临时封禁，请1小时后重试!",
+            "fr": "该IP已被临时封禁，请1小时后重试!",
+            "de": "该IP已被临时封禁，请1小时后重试!",
+            "it": "该IP已被临时封禁，请1小时后重试!"
+        },
+        "py_msg_b5cdb3": {
+            "zh-CN": "连续错误次数过多，该IP已被封禁1小时!",
+            "zh-TW": "連续錯誤次數過多，该IP已被封禁1小時!",
+            "en": "连续错误次数过多，该IP已被封禁1小时!",
+            "fr": "连续错误次数过多，该IP已被封禁1小时!",
+            "de": "连续错误次数过多，该IP已被封禁1小时!",
+            "it": "连续错误次数过多，该IP已被封禁1小时!"
+        },
+        "py_msg_ec6cfd": {
+            "zh-CN": "需要两步验证!",
+            "zh-TW": "需要两步驗證!",
+            "en": "需要两步验证!",
+            "fr": "需要两步验证!",
+            "de": "需要两步验证!",
+            "it": "需要两步验证!"
+        },
+        "py_msg_c7a8de": {
+            "zh-CN": "登录成功,正在跳转...",
+            "zh-TW": "登入成功,正在跳转...",
+            "en": "Login成功,正在跳转...",
+            "fr": "Connexion成功,正在跳转...",
+            "de": "Anmelden成功,正在跳转...",
+            "it": "Accedi成功,正在跳转..."
+        }
+    },
+    "file": {
+        "dir_empty": {
+            "zh-CN": "目录不能为空!",
+            "zh-TW": "目錄不能為空!",
+            "en": "目录不能为空!",
+            "fr": "目录不能为空!",
+            "de": "目录不能为空!",
+            "it": "目录不能为空!"
+        },
+        "py_msg_4472a5": {
+            "zh-CN": "文件名中不能包含特殊字符!",
+            "zh-TW": "檔案名中不能包含特殊字符!",
+            "en": "Files名中不能包含特殊字符!",
+            "fr": "Fichiers名中不能包含特殊字符!",
+            "de": "Dateien名中不能包含特殊字符!",
+            "it": "File名中不能包含特殊字符!"
+        },
+        "py_msg_4d44b7": {
+            "zh-CN": "不能直接上传文件到系统根目录!",
+            "zh-TW": "不能直接上傳檔案到系統根目錄!",
+            "en": "不能直接UploadFiles到系统Root Directory!",
+            "fr": "不能直接TéléverserFichiers到系统Répertoire racine!",
+            "de": "不能直接HochladenDateien到系统Stammverzeichnis!",
+            "it": "不能直接CaricaFile到系统Directory principale!"
+        },
+        "py_msg_302ba9": {
+            "zh-CN": "错误的参数",
+            "zh-TW": "錯誤的参數",
+            "en": "错误的参数",
+            "fr": "错误的参数",
+            "de": "错误的参数",
+            "it": "错误的参数"
+        },
+        "py_msg_34da7e": {
+            "zh-CN": "上传成功!",
+            "zh-TW": "上傳成功!",
+            "en": "Upload成功!",
+            "fr": "Téléverser成功!",
+            "de": "Hochladen成功!",
+            "it": "Carica成功!"
+        },
+        "py_msg_e0fb06": {
+            "zh-CN": "指定文件不存在!",
+            "zh-TW": "指定檔案不存在!",
+            "en": "指定Files不存在!",
+            "fr": "指定Fichiers不存在!",
+            "de": "指定Dateien不存在!",
+            "it": "指定File不存在!"
+        },
+        "py_msg_fbe5a8": {
+            "zh-CN": "移动或重名命文件成功!",
+            "zh-TW": "移動或重名命檔案成功!",
+            "en": "移动或重名命Files成功!",
+            "fr": "移动或重名命Fichiers成功!",
+            "de": "移动或重名命Dateien成功!",
+            "it": "移动或重名命File成功!"
+        },
+        "py_msg_960516": {
+            "zh-CN": "不能在根目录解压!",
+            "zh-TW": "不能在根目錄解壓!",
+            "en": "不能在Root DirectoryExtract!",
+            "fr": "不能在Répertoire racineExtraire!",
+            "de": "不能在StammverzeichnisEntpacken!",
+            "it": "不能在Directory principaleEstrai!"
+        },
+        "py_msg_f0f920": {
+            "zh-CN": "文件解压成功!",
+            "zh-TW": "檔案解壓成功!",
+            "en": "FilesExtract成功!",
+            "fr": "FichiersExtraire成功!",
+            "de": "DateienEntpacken成功!",
+            "it": "FileEstrai成功!"
+        },
+        "py_msg_f43013": {
+            "zh-CN": "文件解压失败!",
+            "zh-TW": "檔案解壓失敗!",
+            "en": "FilesExtract失败!",
+            "fr": "FichiersExtraire失败!",
+            "de": "DateienEntpacken失败!",
+            "it": "FileEstrai失败!"
+        },
+        "py_msg_067d29": {
+            "zh-CN": "现在仅支持gz,zip,rar,7z,xz,bz2格式解压!",
+            "zh-TW": "現在仅支持gz,zip,rar,7z,xz,bz2格式解壓!",
+            "en": "现在仅支持gz,zip,rar,7z,xz,bz2格式Extract!",
+            "fr": "现在仅支持gz,zip,rar,7z,xz,bz2格式Extraire!",
+            "de": "现在仅支持gz,zip,rar,7z,xz,bz2格式Entpacken!",
+            "it": "现在仅支持gz,zip,rar,7z,xz,bz2格式Estrai!"
+        },
+        "py_msg_366e5e": {
+            "zh-CN": "rar解压命令不存在，请安装!",
+            "zh-TW": "rar解壓命令不存在，请安裝!",
+            "en": "rarExtract命令不存在，请Install!",
+            "fr": "rarExtraire命令不存在，请Installer!",
+            "de": "rarEntpacken命令不存在，请Installieren!",
+            "it": "rarEstrai命令不存在，请Installa!"
+        },
+        "py_msg_a8d259": {
+            "zh-CN": "7z解压命令不存在，请安装!",
+            "zh-TW": "7z解壓命令不存在，请安裝!",
+            "en": "7zExtract命令不存在，请Install!",
+            "fr": "7zExtraire命令不存在，请Installer!",
+            "de": "7zEntpacken命令不存在，请Installieren!",
+            "it": "7zEstrai命令不存在，请Installa!"
+        },
+        "py_msg_00c89e": {
+            "zh-CN": "标记成功,请在目标目录点击粘贴所有按钮!",
+            "zh-TW": "標記成功,请在目標目錄點击粘贴所有按钮!",
+            "en": "标记成功,请在目标目录点击粘贴所有按钮!",
+            "fr": "标记成功,请在目标目录点击粘贴所有按钮!",
+            "de": "标记成功,请在目标目录点击粘贴所有按钮!",
+            "it": "标记成功,请在目标目录点击粘贴所有按钮!"
+        },
+        "py_msg_fcc159": {
+            "zh-CN": "批量设置权限成功!",
+            "zh-TW": "批量設定權限成功!",
+            "en": "批量设置Permissions成功!",
+            "fr": "批量设置Permissions成功!",
+            "de": "批量设置Berechtigungen成功!",
+            "it": "批量设置Permessi成功!"
+        },
+        "py_msg_27af9b": {
+            "zh-CN": "请不要花样作死!",
+            "zh-TW": "请不要花样作死!",
+            "en": "请不要花样作死!",
+            "fr": "请不要花样作死!",
+            "de": "请不要花样作死!",
+            "it": "请不要花样作死!"
+        },
+        "py_msg_856956": {
+            "zh-CN": "批量删除成功！",
+            "zh-TW": "批量刪除成功！",
+            "en": "批量Deleted successfully！",
+            "fr": "批量Supprimé avec succès！",
+            "de": "批量Erfolgreich gelöscht！",
+            "it": "批量Eliminato con successo！"
+        },
+        "py_msg_c2cd54": {
+            "zh-CN": "7z压缩命令不存在，请安装!",
+            "zh-TW": "7z壓縮命令不存在，请安裝!",
+            "en": "7zCompress命令不存在，请Install!",
+            "fr": "7zCompresser命令不存在，请Installer!",
+            "de": "7zKomprimieren命令不存在，请Installieren!",
+            "it": "7zComprimi命令不存在，请Installa!"
+        },
+        "py_msg_12b8f4": {
+            "zh-CN": "xz压缩命令不存在，请安装!",
+            "zh-TW": "xz壓縮命令不存在，请安裝!",
+            "en": "xzCompress命令不存在，请Install!",
+            "fr": "xzCompresser命令不存在，请Installer!",
+            "de": "xzKomprimieren命令不存在，请Installieren!",
+            "it": "xzComprimi命令不存在，请Installa!"
+        },
+        "py_msg_4ba9f0": {
+            "zh-CN": "rar压缩命令不存在，请安装!",
+            "zh-TW": "rar壓縮命令不存在，请安裝!",
+            "en": "rarCompress命令不存在，请Install!",
+            "fr": "rarCompresser命令不存在，请Installer!",
+            "de": "rarKomprimieren命令不存在，请Installieren!",
+            "it": "rarComprimi命令不存在，请Installa!"
+        },
+        "py_msg_05b0c9": {
+            "zh-CN": "未知压缩格式",
+            "zh-TW": "未知壓縮格式",
+            "en": "未知Compress格式",
+            "fr": "未知Compresser格式",
+            "de": "未知Komprimieren格式",
+            "it": "未知Comprimi格式"
+        },
+        "py_msg_cbecda": {
+            "zh-CN": "文件压缩成功!",
+            "zh-TW": "檔案壓縮成功!",
+            "en": "FilesCompress成功!",
+            "fr": "FichiersCompresser成功!",
+            "de": "DateienKomprimieren成功!",
+            "it": "FileComprimi成功!"
+        },
+        "py_msg_639dba": {
+            "zh-CN": "指定目录不存在!",
+            "zh-TW": "指定目錄不存在!",
+            "en": "指定目录不存在!",
+            "fr": "指定目录不存在!",
+            "de": "指定目录不存在!",
+            "it": "指定目录不存在!"
+        },
+        "py_msg_db3560": {
+            "zh-CN": "指定目录已存在!",
+            "zh-TW": "指定目錄已存在!",
+            "en": "指定目录已存在!",
+            "fr": "指定目录已存在!",
+            "de": "指定目录已存在!",
+            "it": "指定目录已存在!"
+        },
+        "py_msg_9b0c62": {
+            "zh-CN": "目录复制成功!",
+            "zh-TW": "目錄復製成功!",
+            "en": "目录Copy成功!",
+            "fr": "目录Copier成功!",
+            "de": "目录Kopieren成功!",
+            "it": "目录Copia成功!"
+        },
+        "py_msg_175fe9": {
+            "zh-CN": "目录复制失败!",
+            "zh-TW": "目錄復製失敗!",
+            "en": "目录Copy失败!",
+            "fr": "目录Copier失败!",
+            "de": "目录Kopieren失败!",
+            "it": "目录Copia失败!"
+        },
+        "py_msg_58a046": {
+            "zh-CN": "源与目的一致!",
+            "zh-TW": "源與目的一致!",
+            "en": "源与目的一致!",
+            "fr": "源与目的一致!",
+            "de": "源与目的一致!",
+            "it": "源与目的一致!"
+        },
+        "py_msg_e79b89": {
+            "zh-CN": "文件复制成功!",
+            "zh-TW": "檔案復製成功!",
+            "en": "FilesCopy成功!",
+            "fr": "FichiersCopier成功!",
+            "de": "DateienKopieren成功!",
+            "it": "FileCopia成功!"
+        },
+        "py_msg_72a3a6": {
+            "zh-CN": "文件复制失败!",
+            "zh-TW": "檔案復製失敗!",
+            "en": "FilesCopy失败!",
+            "fr": "FichiersCopier失败!",
+            "de": "DateienKopieren失败!",
+            "it": "FileCopia失败!"
+        },
+        "py_msg_2311cd": {
+            "zh-CN": "指定文件已存在!",
+            "zh-TW": "指定檔案已存在!",
+            "en": "指定Files已存在!",
+            "fr": "指定Fichiers已存在!",
+            "de": "指定Dateien已存在!",
+            "it": "指定File已存在!"
+        },
+        "py_msg_673293": {
+            "zh-CN": "文件创建成功!",
+            "zh-TW": "檔案建立成功!",
+            "en": "Files创建成功!",
+            "fr": "Fichiers创建成功!",
+            "de": "Dateien创建成功!",
+            "it": "File创建成功!"
+        },
+        "py_msg_e89037": {
+            "zh-CN": "目录名中不能包含特殊字符!",
+            "zh-TW": "目錄名中不能包含特殊字符!",
+            "en": "目录名中不能包含特殊字符!",
+            "fr": "目录名中不能包含特殊字符!",
+            "de": "目录名中不能包含特殊字符!",
+            "it": "目录名中不能包含特殊字符!"
+        },
+        "py_msg_f50f32": {
+            "zh-CN": "目录创建成功!",
+            "zh-TW": "目錄建立成功!",
+            "en": "目录创建成功!",
+            "fr": "目录创建成功!",
+            "de": "目录创建成功!",
+            "it": "目录创建成功!"
+        },
+        "py_msg_7c6668": {
+            "zh-CN": "目录创建失败!",
+            "zh-TW": "目錄建立失敗!",
+            "en": "目录创建失败!",
+            "fr": "目录创建失败!",
+            "de": "目录创建失败!",
+            "it": "目录创建失败!"
+        },
+        "py_msg_d9523e": {
+            "zh-CN": "文件不存在",
+            "zh-TW": "檔案不存在",
+            "en": "Files不存在",
+            "fr": "Fichiers不存在",
+            "de": "Dateien不存在",
+            "it": "File不存在"
+        },
+        "py_msg_b50947": {
+            "zh-CN": "不能在线编辑大于2MB的文件!",
+            "zh-TW": "不能在線編輯大于2MB的檔案!",
+            "en": "不能在线编辑大于2MB的Files!",
+            "fr": "不能在线编辑大于2MB的Fichiers!",
+            "de": "不能在线编辑大于2MB的Dateien!",
+            "it": "不能在线编辑大于2MB的File!"
+        },
+        "py_msg_92c109": {
+            "zh-CN": "这不是一个文件!",
+            "zh-TW": "這不是一個檔案!",
+            "en": "这不是一个Files!",
+            "fr": "这不是一个Fichiers!",
+            "de": "这不是一个Dateien!",
+            "it": "这不是一个File!"
+        },
+        "py_msg_aaad51": {
+            "zh-CN": "文件未正常打开!",
+            "zh-TW": "檔案未正常打開!",
+            "en": "Files未正常打开!",
+            "fr": "Fichiers未正常打开!",
+            "de": "Dateien未正常打开!",
+            "it": "File未正常打开!"
+        },
+        "py_msg_24c6ab": {
+            "zh-CN": "文件保存成功",
+            "zh-TW": "檔案儲存成功",
+            "en": "FilesSaved successfully",
+            "fr": "FichiersEnregistré avec succès",
+            "de": "DateienErfolgreich gespeichert",
+            "it": "FileSalvato con successo"
+        },
+        "py_msg_e28c2c": {
+            "zh-CN": "请不要花样作死",
+            "zh-TW": "请不要花样作死",
+            "en": "请不要花样作死",
+            "fr": "请不要花样作死",
+            "de": "请不要花样作死",
+            "it": "请不要花样作死"
+        },
+        "py_msg_6cae10": {
+            "zh-CN": "已将文件移动到回收站!",
+            "zh-TW": "已將檔案移動到資源回收筒!",
+            "en": "已将Files移动到Recycle Bin!",
+            "fr": "已将Fichiers移动到Corbeille!",
+            "de": "已将Dateien移动到Papierkorb!",
+            "it": "已将File移动到Cestino!"
+        },
+        "py_msg_373ef8": {
+            "zh-CN": "删除文件成功!",
+            "zh-TW": "刪除檔案成功!",
+            "en": "DeleteFiles成功!",
+            "fr": "SupprimerFichiers成功!",
+            "de": "LöschenDateien成功!",
+            "it": "EliminaFile成功!"
+        },
+        "py_msg_e7e158": {
+            "zh-CN": "已关闭回收站功能!",
+            "zh-TW": "已關閉資源回收筒功能!",
+            "en": "已CloseRecycle Bin功能!",
+            "fr": "已FermerCorbeille功能!",
+            "de": "已SchließenPapierkorb功能!",
+            "it": "已ChiudiCestino功能!"
+        },
+        "py_msg_92f782": {
+            "zh-CN": "已开启回收站功能!",
+            "zh-TW": "已開啟資源回收筒功能!",
+            "en": "已Turn onRecycle Bin功能!",
+            "fr": "已ActiverCorbeille功能!",
+            "de": "已EinschaltenPapierkorb功能!",
+            "it": "已AttivaCestino功能!"
+        },
+        "py_msg_f85ba7": {
+            "zh-CN": "恢复成功!",
+            "zh-TW": "恢復成功!",
+            "en": "Restore成功!",
+            "fr": "Restaurer成功!",
+            "de": "Wiederherstellen成功!",
+            "it": "Ripristina成功!"
+        },
+        "py_msg_6d3445": {
+            "zh-CN": "恢复失败!",
+            "zh-TW": "恢復失敗!",
+            "en": "Restore失败!",
+            "fr": "Restaurer失败!",
+            "de": "Wiederherstellen失败!",
+            "it": "Ripristina失败!"
+        },
+        "py_msg_d88584": {
+            "zh-CN": "已清空回收站!",
+            "zh-TW": "已清空資源回收筒!",
+            "en": "已ClearRecycle Bin!",
+            "fr": "已ViderCorbeille!",
+            "de": "已LeerenPapierkorb!",
+            "it": "已SvuotaCestino!"
+        }
+    },
+    "ssh": {
+        "py_msg_56a52c": {
+            "zh-CN": "认证超时,请按回车重试!{1}",
+            "zh-TW": "認證超時,请按回车重试!{1}",
+            "en": "认证超时,请按回车重试!{1}",
+            "fr": "认证超时,请按回车重试!{1}",
+            "de": "认证超时,请按回车重试!{1}",
+            "it": "认证超时,请按回车重试!{1}"
+        },
+        "py_msg_fd6cab": {
+            "zh-CN": "未知错误: {1}",
+            "zh-TW": "未知錯誤: {1}",
+            "en": "未知错误: {1}",
+            "fr": "未知错误: {1}",
+            "de": "未知错误: {1}",
+            "it": "未知错误: {1}"
+        },
+        "py_msg_e4dda7": {
+            "zh-CN": "连接目标服务器失败, {1}:{2}",
+            "zh-TW": "連接目標伺服器失敗, {1}:{2}",
+            "en": "Connections目标服务器失败, {1}:{2}",
+            "fr": "Connexions目标服务器失败, {1}:{2}",
+            "de": "Verbindungen目标服务器失败, {1}:{2}",
+            "it": "Connessioni目标服务器失败, {1}:{2}"
+        },
+        "py_msg_cab13e": {
+            "zh-CN": "密码或私钥不能都为空: {1}:{2}",
+            "zh-TW": "密碼或私鑰不能都為空: {1}:{2}",
+            "en": "Password或私钥不能都为空: {1}:{2}",
+            "fr": "Mot de passe或私钥不能都为空: {1}:{2}",
+            "de": "Passwort或私钥不能都为空: {1}:{2}",
+            "it": "Password或私钥不能都为空: {1}:{2}"
+        },
+        "py_msg_7b0ed6": {
+            "zh-CN": "帐号或密码错误: {1}",
+            "zh-TW": "帐号或密碼錯誤: {1}",
+            "en": "帐号或Password错误: {1}",
+            "fr": "帐号或Mot de passe错误: {1}",
+            "de": "帐号或Passwort错误: {1}",
+            "it": "帐号或Password错误: {1}"
+        },
+        "py_msg_ba72de": {
+            "zh-CN": "不支持的身份验证类型: {1}",
+            "zh-TW": "不支持的身份驗證類型: {1}",
+            "en": "不支持的身份验证Type: {1}",
+            "fr": "不支持的身份验证Type: {1}",
+            "de": "不支持的身份验证Typ: {1}",
+            "it": "不支持的身份验证Tipo: {1}"
+        },
+        "py_msg_5d5712": {
+            "zh-CN": "连接正在进行中，请稍后...",
+            "zh-TW": "連接正在进行中，请稍後...",
+            "en": "Connections正在进行中，请稍后...",
+            "fr": "Connexions正在进行中，请稍后...",
+            "de": "Verbindungen正在进行中，请稍后...",
+            "it": "Connessioni正在进行中，请稍后..."
+        },
+        "py_msg_26793c": {
+            "zh-CN": "目标服务器主动拒绝连接",
+            "zh-TW": "目標伺服器主動拒絕連接",
+            "en": "目标服务器主动拒绝Connections",
+            "fr": "目标服务器主动拒绝Connexions",
+            "de": "目标服务器主动拒绝Verbindungen",
+            "it": "目标服务器主动拒绝Connessioni"
+        },
+        "py_msg_96a6e8": {
+            "zh-CN": "SSH协议握手超时，与目标服务器之间的网络质量太糟糕",
+            "zh-TW": "SSH協議握手超時，與目標伺服器之間的網路质量太糟糕",
+            "en": "SSHProtocol握手超时，与目标服务器之间的Network质量太糟糕",
+            "fr": "SSHProtocole握手超时，与目标服务器之间的Réseau质量太糟糕",
+            "de": "SSHProtokoll握手超时，与目标服务器之间的Netzwerk质量太糟糕",
+            "it": "SSHProtocollo握手超时，与目标服务器之间的Rete质量太糟糕"
+        },
+        "py_msg_c11397": {
+            "zh-CN": "错误的连接地址",
+            "zh-TW": "錯誤的連接地址",
+            "en": "错误的Connections地址",
+            "fr": "错误的Connexions地址",
+            "de": "错误的Verbindungen地址",
+            "it": "错误的Connessioni地址"
+        }
+    },
+    "plugin": {
+        "py_msg_72dee7": {
+            "zh-CN": "请不要重复添加!",
+            "zh-TW": "请不要重復新增!",
+            "en": "请不要重复Add!",
+            "fr": "请不要重复Ajouter!",
+            "de": "请不要重复Hinzufügen!",
+            "it": "请不要重复Aggiungi!"
+        },
+        "py_msg_78cf3e": {
+            "zh-CN": "首页最多只能显示12个软件!",
+            "zh-TW": "首頁最多只能顯示12個軟體!",
+            "en": "Dashboard最多只能显示12个软件!",
+            "fr": "Tableau de bord最多只能显示12个软件!",
+            "de": "Dashboard最多只能显示12个软件!",
+            "it": "Dashboard最多只能显示12个软件!"
+        },
+        "py_msg_fc8c87": {
+            "zh-CN": "删除成功!!",
+            "zh-TW": "刪除成功!!",
+            "en": "Deleted successfully!!",
+            "fr": "Supprimé avec succès!!",
+            "de": "Erfolgreich gelöscht!!",
+            "it": "Eliminato con successo!!"
+        },
+        "py_msg_5e6038": {
+            "zh-CN": "缺少插件名称!",
+            "zh-TW": "缺少外掛程式名称!",
+            "en": "缺少插件Name!",
+            "fr": "缺少插件Nom!",
+            "de": "缺少插件Name!",
+            "it": "缺少插件Nome!"
+        },
+        "py_msg_988b58": {
+            "zh-CN": "缺少版本信息!",
+            "zh-TW": "缺少版本信息!",
+            "en": "缺少Version信息!",
+            "fr": "缺少Version信息!",
+            "de": "缺少Version信息!",
+            "it": "缺少Versione信息!"
+        },
+        "py_msg_dacbd7": {
+            "zh-CN": "配置文件不存在!",
+            "zh-TW": "設定檔案不存在!",
+            "en": "配置Files不存在!",
+            "fr": "配置Fichiers不存在!",
+            "de": "配置Dateien不存在!",
+            "it": "配置File不存在!"
+        },
+        "py_msg_c3ed11": {
+            "zh-CN": "已将安装任务添加到队列!",
+            "zh-TW": "已將安裝任务新增到队列!",
+            "en": "已将Install任务Add到队列!",
+            "fr": "已将Installer任务Ajouter到队列!",
+            "de": "已将Installieren任务Hinzufügen到队列!",
+            "it": "已将Installa任务Aggiungi到队列!"
+        },
+        "py_msg_c956b1": {
+            "zh-CN": "强制删除成功!",
+            "zh-TW": "强製刪除成功!",
+            "en": "强制Deleted successfully!",
+            "fr": "强制Supprimé avec succès!",
+            "de": "强制Erfolgreich gelöscht!",
+            "it": "强制Eliminato con successo!"
+        },
+        "py_msg_dcd822": {
+            "zh-CN": "卸载执行成功!",
+            "zh-TW": "卸載執行成功!",
+            "en": "UninstallExecute成功!",
+            "fr": "DésinstallerExécuter成功!",
+            "de": "DeinstallierenAusführen成功!",
+            "it": "DisinstallaEsegui成功!"
+        },
+        "py_msg_7ed95c": {
+            "zh-CN": "仅支持zip文件!",
+            "zh-TW": "仅支持zip檔案!",
+            "en": "仅支持zipFiles!",
+            "fr": "仅支持zipFichiers!",
+            "de": "仅支持zipDateien!",
+            "it": "仅支持zipFile!"
+        },
+        "py_msg_311637": {
+            "zh-CN": "在压缩包中没有找到插件信息,请检查插件包!",
+            "zh-TW": "在壓縮包中没有找到外掛程式信息,请检查外掛程式包!",
+            "en": "在Compress包中没有找到插件信息,请检查插件包!",
+            "fr": "在Compresser包中没有找到插件信息,请检查插件包!",
+            "de": "在Komprimieren包中没有找到插件信息,请检查插件包!",
+            "it": "在Comprimi包中没有找到插件信息,请检查插件包!"
+        },
+        "py_msg_7e5f20": {
+            "zh-CN": "[' + data['name'] + '],重要插件不可修改!",
+            "zh-TW": "[' + data['name'] + '],重要外掛程式不可修改!",
+            "en": "[' + data['name'] + '],重要插件不可Modify!",
+            "fr": "[' + data['name'] + '],重要插件不可Modifier!",
+            "de": "[' + data['name'] + '],重要插件不可Ändern!",
+            "it": "[' + data['name'] + '],重要插件不可Modifica!"
+        },
+        "py_msg_2ca3e3": {
+            "zh-CN": "临时文件不存在,请重新上传!",
+            "zh-TW": "临時檔案不存在,请重新上傳!",
+            "en": "临时Files不存在,请重新Upload!",
+            "fr": "临时Fichiers不存在,请重新Téléverser!",
+            "de": "临时Dateien不存在,请重新Hochladen!",
+            "it": "临时File不存在,请重新Carica!"
+        },
+        "py_msg_f1e512": {
+            "zh-CN": "安装成功!",
+            "zh-TW": "安裝成功!",
+            "en": "Install成功!",
+            "fr": "Installer成功!",
+            "de": "Installieren成功!",
+            "it": "Installa成功!"
+        },
+        "py_msg_99993a": {
+            "zh-CN": "安装失败!",
+            "zh-TW": "安裝失敗!",
+            "en": "Install失败!",
+            "fr": "Installer失败!",
+            "de": "Installieren失败!",
+            "it": "Installa失败!"
+        },
+        "py_msg_15c2e0": {
+            "zh-CN": "缓存已清除",
+            "zh-TW": "缓存已清除",
+            "en": "缓存已清除",
+            "fr": "缓存已清除",
+            "de": "缓存已清除",
+            "it": "缓存已清除"
+        }
+    },
+    "system": {
+        "py_msg_0322b3": {
+            "zh-CN": "请等待所有安装任务完成再执行!",
+            "zh-TW": "请等待所有安裝任务完成再執行!",
+            "en": "请等待所有Install任务完成再Execute!",
+            "fr": "请等待所有Installer任务完成再Exécuter!",
+            "de": "请等待所有Installieren任务完成再Ausführen!",
+            "it": "请等待所有Installa任务完成再Esegui!"
+        },
+        "py_msg_77e397": {
+            "zh-CN": "命令发送成功!",
+            "zh-TW": "命令發送成功!",
+            "en": "命令发送成功!",
+            "fr": "命令发送成功!",
+            "de": "命令发送成功!",
+            "it": "命令发送成功!"
+        },
+        "py_msg_e01968": {
+            "zh-CN": "服务器数据或网络有问题!",
+            "zh-TW": "伺服器數據或網路有問題!",
+            "en": "服务器数据或Network有问题!",
+            "fr": "服务器数据或Réseau有问题!",
+            "de": "服务器数据或Netzwerk有问题!",
+            "it": "服务器数据或Rete有问题!"
+        },
+        "py_msg_972d4e": {
+            "zh-CN": "有新版本!",
+            "zh-TW": "有新版本!",
+            "en": "有新Version!",
+            "fr": "有新Version!",
+            "de": "有新Version!",
+            "it": "有新Versione!"
+        },
+        "py_msg_857da3": {
+            "zh-CN": "有测试版本!",
+            "zh-TW": "有测试版本!",
+            "en": "有测试Version!",
+            "fr": "有测试Version!",
+            "de": "有测试Version!",
+            "it": "有测试Versione!"
+        },
+        "py_msg_19420b": {
+            "zh-CN": "已经是最新,无需更新!",
+            "zh-TW": "已經是最新,無需更新!",
+            "en": "已经是最新,无需更新!",
+            "fr": "已经是最新,无需更新!",
+            "de": "已经是最新,无需更新!",
+            "it": "已经是最新,无需更新!"
+        },
+        "py_msg_efa59f": {
+            "zh-CN": "更新信息!",
+            "zh-TW": "更新信息!",
+            "en": "更新信息!",
+            "fr": "更新信息!",
+            "de": "更新信息!",
+            "it": "更新信息!"
+        },
+        "py_msg_988b58": {
+            "zh-CN": "缺少版本信息!",
+            "zh-TW": "缺少版本信息!",
+            "en": "缺少Version信息!",
+            "fr": "缺少Version信息!",
+            "de": "缺少Version信息!",
+            "it": "缺少Versione信息!"
+        },
+        "py_msg_eb2036": {
+            "zh-CN": "下载到的文件异常（小于1MB）或所有节点均下载失败，可能是网络原因或代理失效!",
+            "zh-TW": "下載到的檔案异常（小于1MB）或所有節點均下載失敗，可能是網路原因或代理失效!",
+            "en": "Download到的Files异常（小于1MB）或所有节点均Download失败，可能是Network原因或代理失效!",
+            "fr": "Télécharger到的Fichiers异常（小于1MB）或所有节点均Télécharger失败，可能是Réseau原因或代理失效!",
+            "de": "Herunterladen到的Dateien异常（小于1MB）或所有节点均Herunterladen失败，可能是Netzwerk原因或代理失效!",
+            "it": "Scarica到的File异常（小于1MB）或所有节点均Scarica失败，可能是Rete原因或代理失效!"
+        },
+        "py_msg_f00995": {
+            "zh-CN": "下载并解压成功!",
+            "zh-TW": "下載並解壓成功!",
+            "en": "Download并Extract成功!",
+            "fr": "Télécharger并Extraire成功!",
+            "de": "Herunterladen并Entpacken成功!",
+            "it": "Scarica并Estrai成功!"
+        },
+        "py_msg_ac67c4": {
+            "zh-CN": "更新源码包未找到，请先执行下载!",
+            "zh-TW": "更新源码包未找到，请先執行下載!",
+            "en": "更新源码包未找到，请先ExecuteDownload!",
+            "fr": "更新源码包未找到，请先ExécuterTélécharger!",
+            "de": "更新源码包未找到，请先AusführenHerunterladen!",
+            "it": "更新源码包未找到，请先EseguiScarica!"
+        },
+        "py_msg_f9fd8e": {
+            "zh-CN": "安装更新成功!",
+            "zh-TW": "安裝更新成功!",
+            "en": "InstallUpdated successfully!",
+            "fr": "InstallerMis à jour avec succès!",
+            "de": "InstallierenErfolgreich aktualisiert!",
+            "it": "InstallaAggiornato con successo!"
+        },
+        "py_msg_5b8e2d": {
+            "zh-CN": "未知操作!",
+            "zh-TW": "未知操作!",
+            "en": "未知Action!",
+            "fr": "未知Action!",
+            "de": "未知Aktion!",
+            "it": "未知Azione!"
+        },
+        "py_msg_7dc7d8": {
+            "zh-CN": "面板已重启!",
+            "zh-TW": "面板已重新啟動!",
+            "en": "面板已Restart!",
+            "fr": "面板已Redémarrer!",
+            "de": "面板已Neustarten!",
+            "it": "面板已Riavvia!"
+        },
+        "py_msg_529504": {
+            "zh-CN": "开发环境不可重起!",
+            "zh-TW": "開發環境不可重起!",
+            "en": "开发环境不可重起!",
+            "fr": "开发环境不可重起!",
+            "de": "开发环境不可重起!",
+            "it": "开发环境不可重起!"
+        },
+        "py_msg_b52eca": {
+            "zh-CN": "正在重启服务器!",
+            "zh-TW": "正在重新啟動伺服器!",
+            "en": "正在Restart服务器!",
+            "fr": "正在Redémarrer服务器!",
+            "de": "正在Neustarten服务器!",
+            "it": "正在Riavvia服务器!"
+        },
+        "py_msg_ddb6e3": {
+            "zh-CN": "保存天数异常!",
+            "zh-TW": "儲存天數异常!",
+            "en": "Save天数异常!",
+            "fr": "Enregistrer天数异常!",
+            "de": "Speichern天数异常!",
+            "it": "Salva天数异常!"
+        },
+        "py_msg_68486f": {
+            "zh-CN": "关闭监控成功!",
+            "zh-TW": "關閉監控成功!",
+            "en": "CloseMonitoring成功!",
+            "fr": "FermerSurveillance成功!",
+            "de": "SchließenÜberwachung成功!",
+            "it": "ChiudiMonitoraggio成功!"
+        },
+        "py_msg_029959": {
+            "zh-CN": "开启监控成功!",
+            "zh-TW": "開啟監控成功!",
+            "en": "Turn onMonitoring成功!",
+            "fr": "ActiverSurveillance成功!",
+            "de": "EinschaltenÜberwachung成功!",
+            "it": "AttivaMonitoraggio成功!"
+        },
+        "py_msg_dc0177": {
+            "zh-CN": "修改保存天数成功!",
+            "zh-TW": "修改儲存天數成功!",
+            "en": "ModifySave天数成功!",
+            "fr": "ModifierEnregistrer天数成功!",
+            "de": "ÄndernSpeichern天数成功!",
+            "it": "ModificaSalva天数成功!"
+        },
+        "py_msg_6c542d": {
+            "zh-CN": "关闭仅统计外网成功!",
+            "zh-TW": "關閉仅統計外網成功!",
+            "en": "Close仅统计外网成功!",
+            "fr": "Fermer仅统计外网成功!",
+            "de": "Schließen仅统计外网成功!",
+            "it": "Chiudi仅统计外网成功!"
+        },
+        "py_msg_80a4f1": {
+            "zh-CN": "开启仅统计外网成功!",
+            "zh-TW": "開啟仅統計外網成功!",
+            "en": "Turn on仅统计外网成功!",
+            "fr": "Activer仅统计外网成功!",
+            "de": "Einschalten仅统计外网成功!",
+            "it": "Attiva仅统计外网成功!"
+        },
+        "py_msg_3bd322": {
+            "zh-CN": "请等待所有安装任务完成再执行",
+            "zh-TW": "请等待所有安裝任务完成再執行",
+            "en": "请等待所有Install任务完成再Execute",
+            "fr": "请等待所有Installer任务完成再Exécuter",
+            "de": "请等待所有Installieren任务完成再Ausführen",
+            "it": "请等待所有Installa任务完成再Esegui"
+        },
+        "py_msg_563ff5": {
+            "zh-CN": "清空监控记录成功!",
+            "zh-TW": "清空監控記錄成功!",
+            "en": "ClearMonitoring记录成功!",
+            "fr": "ViderSurveillance记录成功!",
+            "de": "LeerenÜberwachung记录成功!",
+            "it": "SvuotaMonitoraggio记录成功!"
+        },
+        "py_msg_8042ad": {
+            "zh-CN": "异常!",
+            "zh-TW": "异常!",
+            "en": "异常!",
+            "fr": "异常!",
+            "de": "异常!",
+            "it": "异常!"
+        },
+        "py_msg_d56c7a": {
+            "zh-CN": "未找到发行说明",
+            "zh-TW": "未找到發行说明",
+            "en": "未找到发行Description",
+            "fr": "未找到发行Description",
+            "de": "未找到发行Beschreibung",
+            "it": "未找到发行Descrizione"
+        }
+    },
+    "task": {
+        "py_msg_454577": {
+            "zh-CN": "任务已删除!",
+            "zh-TW": "任务已刪除!",
+            "en": "任务已Delete!",
+            "fr": "任务已Supprimer!",
+            "de": "任务已Löschen!",
+            "it": "任务已Elimina!"
+        },
+        "py_msg_db6ce6": {
+            "zh-CN": "任务ID不能为空!",
+            "zh-TW": "任务ID不能為空!",
+            "en": "任务ID不能为空!",
+            "fr": "任务ID不能为空!",
+            "de": "任务ID不能为空!",
+            "it": "任务ID不能为空!"
+        },
+        "py_msg_ecca58": {
+            "zh-CN": "暂无日志记录。",
+            "zh-TW": "暂無記錄檔記錄。",
+            "en": "暂无Logs记录。",
+            "fr": "暂无Journaux记录。",
+            "de": "暂无Protokolle记录。",
+            "it": "暂无Log记录。"
+        },
+        "py_msg_3bc537": {
+            "zh-CN": "当前没有任务队列在执行-2!",
+            "zh-TW": "当前没有任务队列在執行-2!",
+            "en": "当前没有任务队列在Execute-2!",
+            "fr": "当前没有任务队列在Exécuter-2!",
+            "de": "当前没有任务队列在Ausführen-2!",
+            "it": "当前没有任务队列在Esegui-2!"
+        },
+        "py_msg_320fa8": {
+            "zh-CN": "当前没有任务队列在执行-3!",
+            "zh-TW": "当前没有任务队列在執行-3!",
+            "en": "当前没有任务队列在Execute-3!",
+            "fr": "当前没有任务队列在Exécuter-3!",
+            "de": "当前没有任务队列在Ausführen-3!",
+            "it": "当前没有任务队列在Esegui-3!"
+        }
+    },
+    "admin": {
+        "py_msg_a71a3c": {
+            "zh-CN": "添加异常: {1}",
+            "zh-TW": "新增异常: {1}",
+            "en": "Add异常: {1}",
+            "fr": "Ajouter异常: {1}",
+            "de": "Hinzufügen异常: {1}",
+            "it": "Aggiungi异常: {1}"
+        },
+        "py_msg_11ca8c": {
+            "zh-CN": "同步异常: {1}",
+            "zh-TW": "同步异常: {1}",
+            "en": "同步异常: {1}",
+            "fr": "同步异常: {1}",
+            "de": "同步异常: {1}",
+            "it": "同步异常: {1}"
+        },
+        "py_msg_405192": {
+            "zh-CN": "密码错误?",
+            "zh-TW": "密碼錯誤?",
+            "en": "Password错误?",
+            "fr": "Mot de passe错误?",
+            "de": "Passwort错误?",
+            "it": "Password错误?"
+        },
+        "py_msg_0d0d9e": {
+            "zh-CN": "二次验证失败!",
+            "zh-TW": "二次驗證失敗!",
+            "en": "二次验证失败!",
+            "fr": "二次验证失败!",
+            "de": "二次验证失败!",
+            "it": "二次验证失败!"
+        },
+        "py_msg_bda424": {
+            "zh-CN": "无法正确读取文件!{1}",
+            "zh-TW": "無法正確讀取檔案!{1}",
+            "en": "无法正确读取Files!{1}",
+            "fr": "无法正确读取Fichiers!{1}",
+            "de": "无法正确读取Dateien!{1}",
+            "it": "无法正确读取File!{1}"
+        },
+        "py_msg_557e74": {
+            "zh-CN": "验证失败:{1}",
+            "zh-TW": "驗證失敗:{1}",
+            "en": "验证失败:{1}",
+            "fr": "验证失败:{1}",
+            "de": "验证失败:{1}",
+            "it": "验证失败:{1}"
+        },
+        "py_msg_2cf3ac": {
+            "zh-CN": "保存失败: {1}",
+            "zh-TW": "儲存失敗: {1}",
+            "en": "Failed to save: {1}",
+            "fr": "Échec de l'enregistrement: {1}",
+            "de": "Speichern fehlgeschlagen: {1}",
+            "it": "Impossibile salvare: {1}"
+        },
+        "py_msg_fedd95": {
+            "zh-CN": "迁移启动失败：{1}",
+            "zh-TW": "遷移启動失敗：{1}",
+            "en": "迁移Start失败：{1}",
+            "fr": "迁移Démarrer失败：{1}",
+            "de": "迁移Starten失败：{1}",
+            "it": "迁移Avvia失败：{1}"
+        },
+        "py_msg_7314ec": {
+            "zh-CN": "站点导入启动失败：{1}",
+            "zh-TW": "站點導入启動失敗：{1}",
+            "en": "站点ImportStart失败：{1}",
+            "fr": "站点ImporterDémarrer失败：{1}",
+            "de": "站点ImportierenStarten失败：{1}",
+            "it": "站点ImportaAvvia失败：{1}"
+        },
+        "py_msg_ead17e": {
+            "zh-CN": "删除失败: {1}",
+            "zh-TW": "刪除失敗: {1}",
+            "en": "Failed to delete: {1}",
+            "fr": "Échec de la suppression: {1}",
+            "de": "Löschen fehlgeschlagen: {1}",
+            "it": "Impossibile eliminare: {1}"
+        },
+        "py_msg_e2db77": {
+            "zh-CN": "关闭面板IPv6兼容!",
+            "zh-TW": "關閉面板IPv6兼容!",
+            "en": "Close面板IPv6兼容!",
+            "fr": "Fermer面板IPv6兼容!",
+            "de": "Schließen面板IPv6兼容!",
+            "it": "Chiudi面板IPv6兼容!"
+        },
+        "py_msg_c642d5": {
+            "zh-CN": "同步失败:{1}",
+            "zh-TW": "同步失敗:{1}",
+            "en": "同步失败:{1}",
+            "fr": "同步失败:{1}",
+            "de": "同步失败:{1}",
+            "it": "同步失败:{1}"
+        },
+        "py_msg_4ea8be": {
+            "zh-CN": "导出失败: {1}",
+            "zh-TW": "導出失敗: {1}",
+            "en": "Export失败: {1}",
+            "fr": "Exporter失败: {1}",
+            "de": "Exportieren失败: {1}",
+            "it": "Esporta失败: {1}"
+        },
+        "py_msg_4adbdf": {
+            "zh-CN": "解析导入数据失败: {1}",
+            "zh-TW": "解析導入數據失敗: {1}",
+            "en": "解析Import数据失败: {1}",
+            "fr": "解析Importer数据失败: {1}",
+            "de": "解析Importieren数据失败: {1}",
+            "it": "解析Importa数据失败: {1}"
+        },
+        "py_msg_a96e77": {
+            "zh-CN": "启动测速失败: {1}",
+            "zh-TW": "启動测速失敗: {1}",
+            "en": "Start测速失败: {1}",
+            "fr": "Démarrer测速失败: {1}",
+            "de": "Starten测速失败: {1}",
+            "it": "Avvia测速失败: {1}"
+        },
+        "py_msg_ce742b": {
+            "zh-CN": "当前没有任务队列在执行-4:{1}",
+            "zh-TW": "当前没有任务队列在執行-4:{1}",
+            "en": "当前没有任务队列在Execute-4:{1}",
+            "fr": "当前没有任务队列在Exécuter-4:{1}",
+            "de": "当前没有任务队列在Ausführen-4:{1}",
+            "it": "当前没有任务队列在Esegui-4:{1}"
+        }
+    },
+    "utils": {
+        "py_msg_788ddb": {
+            "zh-CN": "数据库写入失败: {1}",
+            "zh-TW": "資料庫寫入失敗: {1}",
+            "en": "Databases写入失败: {1}",
+            "fr": "Bases de données写入失败: {1}",
+            "de": "Datenbanken写入失败: {1}",
+            "it": "Database写入失败: {1}"
+        },
+        "py_msg_5647ea": {
+            "zh-CN": "移动或重名命文件失败!{1}",
+            "zh-TW": "移動或重名命檔案失敗!{1}",
+            "en": "移动或重名命Files失败!{1}",
+            "fr": "移动或重名命Fichiers失败!{1}",
+            "de": "移动或重名命Dateien失败!{1}",
+            "it": "移动或重名命File失败!{1}"
+        },
+        "py_msg_0443ac": {
+            "zh-CN": "文件解压失败!:{1}",
+            "zh-TW": "檔案解壓失敗!:{1}",
+            "en": "FilesExtract失败!:{1}",
+            "fr": "FichiersExtraire失败!:{1}",
+            "de": "DateienEntpacken失败!:{1}",
+            "it": "FileEstrai失败!:{1}"
+        },
+        "py_msg_f22f69": {
+            "zh-CN": "文件创建失败:{1}",
+            "zh-TW": "檔案建立失敗:{1}",
+            "en": "Files创建失败:{1}",
+            "fr": "Fichiers创建失败:{1}",
+            "de": "Dateien创建失败:{1}",
+            "it": "File创建失败:{1}"
+        },
+        "py_msg_f48da9": {
+            "zh-CN": "文件编码不被兼容，无法正确读取文件!{1}",
+            "zh-TW": "檔案编码不被兼容，無法正確讀取檔案!{1}",
+            "en": "Files编码不被兼容，无法正确读取Files!{1}",
+            "fr": "Fichiers编码不被兼容，无法正确读取Fichiers!{1}",
+            "de": "Dateien编码不被兼容，无法正确读取Dateien!{1}",
+            "it": "File编码不被兼容，无法正确读取File!{1}"
+        },
+        "py_msg_35752c": {
+            "zh-CN": "文件保存错误:{1}",
+            "zh-TW": "檔案儲存錯誤:{1}",
+            "en": "FilesSave错误:{1}",
+            "fr": "FichiersEnregistrer错误:{1}",
+            "de": "DateienSpeichern错误:{1}",
+            "it": "FileSalva错误:{1}"
+        },
+        "py_msg_faaec9": {
+            "zh-CN": "设置失败!{1}",
+            "zh-TW": "設定失敗!{1}",
+            "en": "Failed to save settings!{1}",
+            "fr": "Échec de l'enregistrement des paramètres!{1}",
+            "de": "Speichern fehlgeschlagen!{1}",
+            "it": "Impossibile salvare le impostazioni!{1}"
+        },
+        "py_msg_c91bbc": {
+            "zh-CN": "删除失败!:{1}",
+            "zh-TW": "刪除失敗!:{1}",
+            "en": "Failed to delete!:{1}",
+            "fr": "Échec de la suppression!:{1}",
+            "de": "Löschen fehlgeschlagen!:{1}",
+            "it": "Impossibile eliminare!:{1}"
+        },
+        "py_msg_b5d34b": {
+            "zh-CN": "桥接站点创建失败: {1}",
+            "zh-TW": "桥接站點建立失敗: {1}",
+            "en": "桥接站点创建失败: {1}",
+            "fr": "桥接站点创建失败: {1}",
+            "de": "桥接站点创建失败: {1}",
+            "it": "桥接站点创建失败: {1}"
+        },
+        "py_msg_a3f9da": {
+            "zh-CN": "您添加的域名[{1}:{2}],已使用。请仔细检查!",
+            "zh-TW": "您新增的網域名稱[{1}:{2}],已使用。请仔細检查!",
+            "en": "您Add的Domain[{1}:{2}],已使用。请仔细检查!",
+            "fr": "您Ajouter的Domaine[{1}:{2}],已使用。请仔细检查!",
+            "de": "您Hinzufügen的Domain[{1}:{2}],已使用。请仔细检查!",
+            "it": "您Aggiungi的Dominio[{1}:{2}],已使用。请仔细检查!"
+        },
+        "py_msg_802376": {
+            "zh-CN": "站点[%s]配置异常!",
+            "zh-TW": "站點[%s]設定异常!",
+            "en": "站点[%s]配置异常!",
+            "fr": "站点[%s]配置异常!",
+            "de": "站点[%s]配置异常!",
+            "it": "站点[%s]配置异常!"
+        },
+        "py_msg_56f152": {
+            "zh-CN": "站点[{1}]配置异常!",
+            "zh-TW": "站點[{1}]設定异常!",
+            "en": "站点[{1}]配置异常!",
+            "fr": "站点[{1}]配置异常!",
+            "de": "站点[{1}]配置异常!",
+            "it": "站点[{1}]配置异常!"
+        },
+        "py_msg_0f08e9": {
+            "zh-CN": "OpenResty配置测试不通过, 请重试: {1}",
+            "zh-TW": "OpenResty設定测试不通過, 请重试: {1}",
+            "en": "OpenResty配置测试不通过, 请重试: {1}",
+            "fr": "OpenResty配置测试不通过, 请重试: {1}",
+            "de": "OpenResty配置测试不通过, 请重试: {1}",
+            "it": "OpenResty配置测试不通过, 请重试: {1}"
+        },
+        "py_msg_8dc310": {
+            "zh-CN": "OpenResty配置测试不通过: {1}",
+            "zh-TW": "OpenResty設定测试不通過: {1}",
+            "en": "OpenResty配置测试不通过: {1}",
+            "fr": "OpenResty配置测试不通过: {1}",
+            "de": "OpenResty配置测试不通过: {1}",
+            "it": "OpenResty配置测试不通过: {1}"
+        },
+        "py_msg_bba80d": {
+            "zh-CN": "OpenResty 配置测试不通过, 请重试: {1}",
+            "zh-TW": "OpenResty 設定测试不通過, 请重试: {1}",
+            "en": "OpenResty 配置测试不通过, 请重试: {1}",
+            "fr": "OpenResty 配置测试不通过, 请重试: {1}",
+            "de": "OpenResty 配置测试不通过, 请重试: {1}",
+            "it": "OpenResty 配置测试不通过, 请重试: {1}"
+        },
+        "py_msg_90d0f2": {
+            "zh-CN": "删除失败:{1}",
+            "zh-TW": "刪除失敗:{1}",
+            "en": "Failed to delete:{1}",
+            "fr": "Échec de la suppression:{1}",
+            "de": "Löschen fehlgeschlagen:{1}",
+            "it": "Impossibile eliminare:{1}"
+        },
+        "py_msg_6ab613": {
+            "zh-CN": "设置错误:{1}",
+            "zh-TW": "設定錯誤:{1}",
+            "en": "设置错误:{1}",
+            "fr": "设置错误:{1}",
+            "de": "设置错误:{1}",
+            "it": "设置错误:{1}"
+        },
+        "py_msg_b82765": {
+            "zh-CN": "证书删除失败:{1}",
+            "zh-TW": "憑證刪除失敗:{1}",
+            "en": "证书Failed to delete:{1}",
+            "fr": "证书Échec de la suppression:{1}",
+            "de": "证书Löschen fehlgeschlagen:{1}",
+            "it": "证书Impossibile eliminare:{1}"
+        },
+        "py_msg_c9db32": {
+            "zh-CN": "协议头响应超时，与目标服务器之间的网络质量太糟糕：{1}",
+            "zh-TW": "協議头响應超時，與目標伺服器之間的網路质量太糟糕：{1}",
+            "en": "Protocol头响应超时，与目标服务器之间的Network质量太糟糕：{1}",
+            "fr": "Protocole头响应超时，与目标服务器之间的Réseau质量太糟糕：{1}",
+            "de": "Protokoll头响应超时，与目标服务器之间的Netzwerk质量太糟糕：{1}",
+            "it": "Protocollo头响应超时，与目标服务器之间的Rete质量太糟糕：{1}"
+        },
+        "py_msg_b0ede7": {
+            "zh-CN": "内部错误: {1}",
+            "zh-TW": "内部錯誤: {1}",
+            "en": "内部错误: {1}",
+            "fr": "内部错误: {1}",
+            "de": "内部错误: {1}",
+            "it": "内部错误: {1}"
+        },
+        "py_msg_35a520": {
+            "zh-CN": "操作失败: {1}",
+            "zh-TW": "操作失敗: {1}",
+            "en": "Operation failed: {1}",
+            "fr": "Opération échouée: {1}",
+            "de": "Vorgang fehlgeschlagen: {1}",
+            "it": "Operazione non riuscita: {1}"
         }
     }
 }

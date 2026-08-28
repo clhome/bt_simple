@@ -157,11 +157,11 @@ def updateServer(stype, version='', step='all'):
     # 更新服务
     try:
         if not yf.isRestart():
-            return yf.returnData(False, '请等待所有安装任务完成再执行!')
+            return yf.returnData(False, 'system.py_msg_0322b3')
 
         version_new_info = getServerInfo()
         if version_new_info is None:
-            return yf.returnData(False, '服务器数据或网络有问题!')
+            return yf.returnData(False, 'system.py_msg_e01968')
 
         version_now = config.APP_VERSION
         # 使用 tag_name 替代 name，确保版本号和 tag 一致
@@ -169,11 +169,11 @@ def updateServer(stype, version='', step='all'):
         if stype == 'check':
             diff = versionDiff(version_now, new_ver)
             if diff == 'new':
-                return yf.returnData(True, '有新版本!', new_ver)
+                return yf.returnData(True, 'system.py_msg_972d4e', new_ver)
             elif diff == 'test':
-                return yf.returnData(True, '有测试版本!', new_ver)
+                return yf.returnData(True, 'system.py_msg_857da3', new_ver)
             else:
-                return yf.returnData(False, '已经是最新,无需更新!')
+                return yf.returnData(False, 'system.py_msg_19420b')
 
         if stype == 'info':
             diff = versionDiff(version_now, new_ver)
@@ -181,11 +181,11 @@ def updateServer(stype, version='', step='all'):
             data['version'] = new_ver
             data['content'] = version_new_info['body']
             data['speed_name'] = yf.getGithubProxyName()
-            return yf.returnData(True, '更新信息!', data)
+            return yf.returnData(True, 'system.py_msg_efa59f', data)
 
         if stype == 'update':
             if version == '':
-                return yf.returnData(False, '缺少版本信息!')
+                return yf.returnData(False, 'system.py_msg_988b58')
 
             toPath = yf.getPanelDir() + '/temp'
             panel_dir = yf.getPanelDir()
@@ -204,12 +204,12 @@ def updateServer(stype, version='', step='all'):
                 download_status = yf.githubDownload(originalUrl, dist_yf, timeout=20, min_size=1048576)
                 
                 if not download_status or not os.path.exists(dist_yf):
-                    return yf.returnData(False, '下载到的文件异常（小于1MB）或所有节点均下载失败，可能是网络原因或代理失效!')
+                    return yf.returnData(False, 'system.py_msg_eb2036')
 
                 # 解压
                 os.system('unzip -o ' + dist_yf + ' -d ' + toPath)
                 if step == 'download':
-                    return yf.returnData(True, '下载并解压成功!')
+                    return yf.returnData(True, 'system.py_msg_f00995')
 
             # 2. 备份阶段
             if step == 'backup':
@@ -235,7 +235,7 @@ def updateServer(stype, version='', step='all'):
                     if dirs:
                         src_path = dirs[0]
                     else:
-                        return yf.returnData(False, '更新源码包未找到，请先执行下载!')
+                        return yf.returnData(False, 'system.py_msg_ac67c4')
 
                 # 执行代码覆盖
                 yf.execShell('cp -rf ' + src_path + '/* ' + panel_dir)
@@ -273,11 +273,11 @@ fi
 '''
                 os.system(update_env)
                 yf.restartPanel()
-                return yf.returnData(True, '安装更新成功!')
+                return yf.returnData(True, 'system.py_msg_f9fd8e')
 
-        return yf.returnData(False, '未知操作!')
+        return yf.returnData(False, 'system.py_msg_5b8e2d')
     except Exception as ex:
-        return yf.returnData(False, "操作失败: " + str(ex))
+        return yf.returnData(False, 'utils.py_msg_35a520', None, str(ex))
 
 
 

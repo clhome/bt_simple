@@ -211,7 +211,7 @@ def input_zip():
 @panel_login_required
 def clear_cache():
     YfPlugin.instance().clearCache()
-    return yf.returnData(True, '缓存已清除')
+    return yf.returnData(True, 'plugin.py_msg_15c2e0')
 
 
 # 插件设置页

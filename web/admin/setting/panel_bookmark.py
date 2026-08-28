@@ -40,12 +40,12 @@ def add_panel_info():
     # 校验是还是重复
     isAdd = yf.M('panel').where('title=? OR url=?', (title, url)).count()
     if isAdd:
-        return yf.returnData(False, '备注或面板地址重复!')
+        return yf.returnData(False, 'setting.py_msg_e23be1')
     isRe = yf.M('panel').add('title,url,username,password,click,add_time',
             (title, url, username, password, 0, int(time.time())))
     if isRe:
-        return yf.returnData(True, '添加成功!')
-    return yf.returnData(False, '添加失败!')
+        return yf.returnData(True, 'common.add_success')
+    return yf.returnData(False, 'common.add_failed')
 
 # 取面板书签列表
 @blueprint.route('/get_panel_list', endpoint='get_panel_list', methods=['GET','POST'])
@@ -62,9 +62,9 @@ def del_panel_info():
     panel_id = request.form.get('id', '')
     isExists = yf.M('panel').where('id=?', (panel_id,)).count()
     if not isExists:
-        return yf.returnData(False, '指定面板资料不存在!')
+        return yf.returnData(False, 'setting.py_msg_785f90')
     yf.M('panel').where('id=?', (panel_id,)).delete()
-    return yf.returnData(True, '删除成功!')
+    return yf.returnData(True, 'common.del_success')
 
 
 # 设置面板域名
@@ -79,11 +79,11 @@ def set_panel_info():
     # 校验是还是重复
     isSave = yf.M('panel').where('(title=? OR url=?) AND id!=?', (title, url, panel_id)).count()
     if isSave:
-        return yf.returnData(False, '备注或面板地址重复!')
+        return yf.returnData(False, 'setting.py_msg_e23be1')
 
     # 更新到数据库
     isRe = yf.M('panel').where('id=?', (panel_id,)).save('title,url,username,password', (title, url, username, password))
     if isRe:
-        return yf.returnData(True, '修改成功!')
-    return yf.returnData(False, '修改失败!')
+        return yf.returnData(True, 'common.edit_success')
+    return yf.returnData(False, 'common.edit_failed')
 

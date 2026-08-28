@@ -79,8 +79,8 @@ class ssh_terminal(object):
             return
         yf.writeFile(self.__debug_file, msg, 'a+')
 
-    def returnMsg(self, status, msg):
-        return {'status': status, 'msg': msg}
+    def returnMsg(self, status, msg, *args):
+        return yf.returnData(status, msg, None, *args)
 
     def restartSsh(self, act='reload'):
         '''
@@ -180,7 +180,7 @@ class ssh_terminal(object):
 
     def connectLocalSsh(self, sid):
         if self.__lock :
-            return self.returnMsg(False, '连接正在进行中，请稍后...')
+            return self.returnMsg(False, 'ssh.py_msg_5d5712')
         self.__lock = True
 
         try:
@@ -218,22 +218,22 @@ class ssh_terminal(object):
                 self.__ps.close()
                 e = str(last_err)
                 if e.find('websocket error!') != -1:
-                    return self.returnMsg(True, '连接成功')
+                    return self.returnMsg(True, 'common.connect_success')
                 if e.find('Authentication timeout') != -1:
                     self.debug("认证超时{}".format(e))
-                    return self.returnMsg(False, '认证超时,请按回车重试!{}'.format(e))
+                    return self.returnMsg(False, 'ssh.py_msg_56a52c', e)
                 if e.find('Connection reset by peer') != -1:
                     self.debug('目标服务器主动拒绝连接')
-                    return self.returnMsg(False, '目标服务器主动拒绝连接')
+                    return self.returnMsg(False, 'ssh.py_msg_26793c')
                 if e.find('Error reading SSH protocol banner') != -1:
                     self.debug('协议头响应超时')
-                    return self.returnMsg(False, '协议头响应超时，与目标服务器之间的网络质量太糟糕：' + e)
+                    return self.returnMsg(False, 'utils.py_msg_c9db32', e)
                 if not e:
                     self.debug('SSH协议握手超时')
-                    return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
+                    return self.returnMsg(False, 'ssh.py_msg_96a6e8')
                 err = yf.getTracebackInfo()
                 self.debug(err)
-                return self.returnMsg(False, "未知错误: {}".format(err))
+                return self.returnMsg(False, 'ssh.py_msg_fd6cab', err)
 
             self.debug('local-ssh:认证成功，正在构建会话通道')
             ssh = self.__ps.invoke_shell(
@@ -244,17 +244,17 @@ class ssh_terminal(object):
                 self.__host, self.__port))
             self.debug('local-ssh:通道已构建')
 
-            return self.returnMsg(True, '连接成功!')
+            return self.returnMsg(True, 'common.connect_success')
         finally:
             self.__lock = False
 
     def connectBySocket(self, sid):
         if self.__lock :
-            return self.returnMsg(False, '连接正在进行中，请稍后...')
+            return self.returnMsg(False, 'ssh.py_msg_5d5712')
         self.__lock = True
         try:
             if not self.__host:
-                return self.returnMsg(False, '错误的连接地址')
+                return self.returnMsg(False, 'ssh.py_msg_c11397')
             if not self.__user:
                 self.__user = 'root'
             if not self.__port:
@@ -277,7 +277,7 @@ class ssh_terminal(object):
                     if num == 5:
                         self.setSshdConfig(True)
                         self.debug('重试连接失败,{}'.format(e))
-                        return self.returnMsg(False, '连接目标服务器失败, {}:{}'.format(self.__host, self.__port))
+                        return self.returnMsg(False, 'ssh.py_msg_e4dda7', self.__host, self.__port)
                     else:
                         time.sleep(0.2)
 
@@ -286,7 +286,7 @@ class ssh_terminal(object):
                 self.__tp.start_client()
                 self.__tp.banner_timeout = 60
                 if not self.__pass and not self.__pkey:
-                    return self.returnMsg(False, '密码或私钥不能都为空: {}:{}'.format(self.__host, self.__port))
+                    return self.returnMsg(False, 'ssh.py_msg_cab13e', self.__host, self.__port)
 
                 if self.__pkey != '' and self.__type != '0':
                     self.debug('正在认证私钥')
@@ -325,27 +325,27 @@ class ssh_terminal(object):
                 e = str(e)
                 if e.find('Authentication timeout') != -1:
                     self.debug("认证超时{}".format(e))
-                    return self.returnMsg(False, '认证超时,请按回车重试!{}'.format(e))
+                    return self.returnMsg(False, 'ssh.py_msg_56a52c', e)
                 if e.find('Authentication failed') != -1:
                     self.debug('认证失败{}'.format(e))
-                    return self.returnMsg(False, '帐号或密码错误: {}'.format(e + "," + self.__user + "@" + self.__host + ":" + str(self.__port)))
+                    return self.returnMsg(False, 'ssh.py_msg_7b0ed6', e + "," + self.__user + "@" + self.__host + ":" + str(self.__port))
                 if e.find('Bad authentication type; allowed types') != -1:
                     self.debug('认证失败{}'.format(e))
                     if self.__host in ['127.0.0.1', 'localhost'] and self.__pass == 'none':
-                        return self.returnMsg(False, '帐号或密码错误: {}'.format("Authentication failed ," + self.__user + "@" + self.__host + ":" + str(self.__port)))
-                    return self.returnMsg(False, '不支持的身份验证类型: {}'.format(e))
+                        return self.returnMsg(False, 'ssh.py_msg_7b0ed6', "Authentication failed ," + self.__user + "@" + self.__host + ":" + str(self.__port))
+                    return self.returnMsg(False, 'ssh.py_msg_ba72de', e)
                 if e.find('Connection reset by peer') != -1:
                     self.debug('目标服务器主动拒绝连接')
-                    return self.returnMsg(False, '目标服务器主动拒绝连接')
+                    return self.returnMsg(False, 'ssh.py_msg_26793c')
                 if e.find('Error reading SSH protocol banner') != -1:
                     self.debug('协议头响应超时')
-                    return self.returnMsg(False, '协议头响应超时，与目标服务器之间的网络质量太糟糕：' + e)
+                    return self.returnMsg(False, 'utils.py_msg_c9db32', e)
                 if not e:
                     self.debug('SSH协议握手超时')
-                    return self.returnMsg(False, "SSH协议握手超时，与目标服务器之间的网络质量太糟糕")
+                    return self.returnMsg(False, 'ssh.py_msg_96a6e8')
                 err = yf.getTracebackInfo()
                 self.debug(err)
-                return self.returnMsg(False, "未知错误: {}".format(err))
+                return self.returnMsg(False, 'ssh.py_msg_fd6cab', err)
 
             self.debug('认证成功，正在构建会话通道')
 
@@ -362,7 +362,7 @@ class ssh_terminal(object):
         finally:
             self.__lock = False
 
-        return self.returnMsg(True, '连接成功.')
+        return self.returnMsg(True, 'common.connect_success')
 
     def getSshInfo(self, file):
         rdata = yf.readFile(file)
@@ -399,7 +399,7 @@ class ssh_terminal(object):
         except Exception as ex:
             import traceback
             err_msg = traceback.format_exc()
-            return self.returnMsg(False, "内部错误: " + str(ex) + "\n" + err_msg)
+            return self.returnMsg(False, 'utils.py_msg_b0ede7', str(ex) + "\n" + err_msg)
         return result
 
     def send(self):
@@ -493,7 +493,7 @@ class ssh_terminal(object):
         if sid in self.__ssh_list:
             if 'resize' in info:
                 self.resize(sid, info)
-            result = self.returnMsg(True, '已连接')
+            result = self.returnMsg(True, 'common.connected')
             if result['status']:
                 if type(info) == str:
                     time.sleep(0.1)

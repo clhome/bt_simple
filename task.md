@@ -228,3 +228,14 @@
 - [x] 45. 【JS - 批次四】深度提取与重构 `web/static/app/control.js`、`web/static/app/soft.js`、`web/static/app/logs.js`、`web/static/app/upload.js`。
 - [x] 46. 随批次同步扩充 `scripts/tools/phrases_full.py` 字典，并持续运行 `build_all_languages.py` 同步多语言包。
 - [x] 47. 运行 `test/test_i18n.py` 及全自动化本地代码校验确保零异常。
+
+### 后端 Python 消息全量国际化迁移（第三阶段）
+- [x] 48. 【核心基础设施】增强 `web/core/yf.py` 与 `web/core/i18n.py`，支持 `returnData`、`returnMsg`、`returnJson` 传递动态格式化参数。
+- [x] 49. 【后端 - 批次一】设置与仪表盘模块国际化（`web/admin/setting/*.py`, `web/admin/dashboard/*.py`）。
+- [x] 50. 【后端 - 批次二】网站管理模块国际化（`web/utils/site.py`, `web/admin/site/*.py`）。
+- [x] 51. 【后端 - 批次三】文件系统、防火墙与 SSH 模块国际化（`web/utils/file.py`, `web/utils/firewall.py`, `web/utils/ssh/*.py`, `web/admin/files/*.py`, `web/admin/firewall/*.py`）。
+- [x] 52. 【后端 - 批次四】计划任务、插件、系统管理与日志审计国际化（`web/utils/crontab.py`, `web/utils/plugin.py`, `web/utils/system/*.py`, `web/admin/system/*.py`, `web/admin/crontab/*.py`, `web/admin/task/*.py`, `web/admin/logs/*.py`）。
+- [x] 53. 【词典与构建】自动化工具提取新增后端 key 并同步更新 `phrases_full.py`，重新生成 6 语言包。
+- [x] 54. 【测试与验证】运行 `test/test_i18n.py` 单元测试与 Python 语法检查，确保后端 API 返回 100% 正常。
+
+

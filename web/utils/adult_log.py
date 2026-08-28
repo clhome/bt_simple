@@ -276,7 +276,7 @@ def getAuditLogsName(log_name):
     log_dir = '/var/log'
     log_file = log_dir + '/' + log_name
     if not os.path.exists(log_file):
-        return yf.returnData(False, '日志文件不存在!')
+        return yf.returnData(False, 'logs.py_msg_c90f98')
     result = yf.getLastLine(log_file, 100)
     try:
         log_list = parseAuditFile(log_name, result)

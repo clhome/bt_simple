@@ -117,7 +117,7 @@ def do_signout():
     session.clear()
     session['login'] = False
     session['overdue'] = 0
-    return yf.returnData(True, '已安全退出')
+    return yf.returnData(True, 'dashboard.py_msg_8fb1ac')
 
 @blueprint.route('/logout_success', endpoint='logout_success')
 def logout_success():
@@ -173,8 +173,8 @@ def code():
 @blueprint.route('/check_login',methods=['GET','POST'])
 def check_login():
     if isLogined():
-        return yf.returnData(True,'已登录')
-    return yf.returnData(False,'未登录')
+        return yf.returnData(True, 'dashboard.py_msg_0b5961')
+    return yf.returnData(False, 'dashboard.py_msg_63e85d')
 
 @blueprint.route("/verify_login", methods=['POST'])
 def verifyLogin():
@@ -193,7 +193,7 @@ def verifyLogin():
             is_correct = True
 
     if not is_correct:
-        return yf.returnJson(-1, "密码错误?")
+        return yf.returnJson(-1, 'admin.py_msg_405192')
 
     auth = request.form.get('auth', '').strip()    
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
@@ -208,20 +208,20 @@ def verifyLogin():
             client_ip = yf.getClientIp()
             thisdb.updateUserLoginTime(client_ip)
             yf.writeLog('用户登录', '用户[{1}]通过二次验证登录成功, 登录IP:{2}', (info['name'], client_ip))
-            return yf.returnData(1, '二次验证成功!')
-    return yf.returnData(-1, '二次验证失败!')
+            return yf.returnData(1, 'dashboard.py_msg_ba7c40')
+    return yf.returnData(-1, 'admin.py_msg_0d0d9e')
 
 # 执行登录操作
 @blueprint.route('/do_login', endpoint='do_login', methods=['POST'])
 def do_login():
     admin_close = thisdb.getOption('admin_close')
     if admin_close == 'yes':
-        return yf.returnData(False, '面板已经关闭!')
+        return yf.returnData(False, 'dashboard.py_msg_fefb49')
 
     client_ip = yf.getClientIp()
     ban_key = 'ban_' + client_ip
     if cache.get(ban_key):
-        return yf.returnData(False, '该IP已被临时封禁，请1小时后重试!')
+        return yf.returnData(False, 'dashboard.py_msg_40ded2')
 
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '').strip()
@@ -241,7 +241,7 @@ def do_login():
 
             if login_cache_limit >= login_cache_count:
                 cache.set(ban_key, True, timeout=3600)  # 封禁1小时
-                return yf.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
+                return yf.returnData(False, 'dashboard.py_msg_b5cdb3')
 
             cache.set(login_limit_key, login_cache_limit, timeout=10000)
             login_err_msg = yf.getInfo("验证码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit)))
@@ -268,7 +268,7 @@ def do_login():
 
         if login_cache_limit >= login_cache_count:
             cache.set(ban_key, True, timeout=3600)  # 封禁1小时
-            return yf.returnData(False, '连续错误次数过多，该IP已被封禁1小时!')
+            return yf.returnData(False, 'dashboard.py_msg_b5cdb3')
 
         cache.set(login_limit_key, login_cache_limit, timeout=10000)
         yf.writeLog('用户登录', msg)
@@ -278,7 +278,7 @@ def do_login():
     # 二步验证密钥
     two_step_verification = thisdb.getOptionByJson('two_step_verification', default={'open':False})
     if two_step_verification['open']:
-        return yf.returnData(2, '需要两步验证!')
+        return yf.returnData(2, 'dashboard.py_msg_ec6cfd')
 
     session['login'] = True
     session['username'] = info['name']
@@ -286,4 +286,4 @@ def do_login():
     
     thisdb.updateUserLoginTime(client_ip)
     yf.writeLog('用户登录', '用户[{1}]登录成功, 登录IP:{2}', (info['name'], client_ip))
-    return yf.returnData(1, '登录成功,正在跳转...')
+    return yf.returnData(1, 'dashboard.py_msg_c7a8de')

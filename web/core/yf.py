@@ -580,10 +580,13 @@ def toSize(size, middle='') -> str:
         s = u
     return str(round(size, 2)) + middle + u
 
-def returnData(status, msg, data=None):
+def returnData(status, msg, data=None, *args):
     try:
         from core.i18n import t as _t
-        translated_msg = _t(msg) if isinstance(msg, str) else msg
+        if isinstance(msg, str):
+            translated_msg = _t(msg, *args)
+        else:
+            translated_msg = msg
     except Exception:
         translated_msg = msg
 
@@ -591,10 +594,13 @@ def returnData(status, msg, data=None):
         return {'status': status, 'msg': translated_msg}
     return {'status': status, 'msg': translated_msg, 'data': data}
 
-def returnJson(status, msg, data=None):
+def returnJson(status, msg, data=None, *args):
     try:
         from core.i18n import t as _t
-        translated_msg = _t(msg) if isinstance(msg, str) else msg
+        if isinstance(msg, str):
+            translated_msg = _t(msg, *args)
+        else:
+            translated_msg = msg
     except Exception:
         translated_msg = msg
 

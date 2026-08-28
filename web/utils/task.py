@@ -70,4 +70,4 @@ def removeTask(task_id):
         except:
             pass
             
-    return yf.returnData(True, '任务已删除!')
+    return yf.returnData(True, 'task.py_msg_454577')

@@ -51,7 +51,7 @@ def set_notify_tgbot():
     notify_tgbot['cfg'] = crypt_data
 
     thisdb.setOption('notify_tgbot', json.dumps(notify_tgbot), type='notify')
-    return yf.returnData(True,'设置成功')
+    return yf.returnData(True, 'common.set_success')
 
 
 # 设置邮件测试
@@ -63,8 +63,8 @@ def set_notify_tgbot_test():
     tmp = json.loads(tag_data)
     test_pass = yf.tgbotNotifyTest(tmp['app_token'], tmp['chat_id'])
     if test_pass == True:
-        return yf.returnData(True, '验证成功')
-    return yf.returnData(False, '验证失败:'+test_pass)
+        return yf.returnData(True, 'setting.py_msg_45001d')
+    return yf.returnData(False, 'admin.py_msg_557e74', None, test_pass)
 
 # 切换邮件开关
 @blueprint.route('/set_notify_tgbot_enable', endpoint='set_notify_tgbot_enable', methods=['POST'])

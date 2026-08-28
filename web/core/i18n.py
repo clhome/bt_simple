@@ -155,45 +155,57 @@ def get_cached_json(name, lang):
 def t(key, *args, lang=None):
     """
     后端翻译主函数
-    支持点号键查找及参数格式化
+    支持点号键查找、多词典回退及参数格式化（%s、{0}、{1}等）
     """
     if not key or not isinstance(key, str):
         return ""
         
     target_lang = normalize_lang(lang) or get_current_lang()
     
-    # 优先从 public.json 中查找
-    public_dict = get_cached_json("public", target_lang)
-    msg = None
-    
-    if key in public_dict:
-        msg = public_dict[key]
-    else:
-        # 支持点号分割如 "index.memre", "login.N1"
+    def _find_in_lang(l):
+        # 1. 查找 public.json
+        pub = get_cached_json("public", l)
+        if key in pub:
+            return pub[key]
+            
+        # 2. 查找 server.json
+        srv = get_cached_json("server", l)
+        if key in srv:
+            return srv[key]
+            
+        # 3. 点号分割子模块查找
         if "." in key:
             parts = key.split(".", 1)
-            sec = parts[0]
-            sub_key = parts[1]
-            sec_dict = get_cached_json(sec, target_lang)
+            sec, sub_key = parts[0], parts[1]
+            sec_dict = get_cached_json(sec, l)
             if sub_key in sec_dict:
-                msg = sec_dict[sub_key]
-            else:
-                tmpl_dict = get_cached_json("template", target_lang)
-                if sec in tmpl_dict and isinstance(tmpl_dict[sec], dict) and sub_key in tmpl_dict[sec]:
-                    msg = tmpl_dict[sec][sub_key]
-                    
-    if msg is None:
-        # 尝试回退默认语言
-        if target_lang != DEFAULT_LANG:
-            default_dict = get_cached_json("public", DEFAULT_LANG)
-            if key in default_dict:
-                msg = default_dict[key]
+                return sec_dict[sub_key]
                 
+            tmpl = get_cached_json("template", l)
+            if sec in tmpl and isinstance(tmpl[sec], dict) and sub_key in tmpl[sec]:
+                return tmpl[sec][sub_key]
+            if key in tmpl:
+                return tmpl[key]
+        else:
+            tmpl = get_cached_json("template", l)
+            if key in tmpl and isinstance(tmpl[key], str):
+                return tmpl[key]
+        return None
+
+    msg = _find_in_lang(target_lang)
+    if msg is None and target_lang != DEFAULT_LANG:
+        msg = _find_in_lang(DEFAULT_LANG)
+        
     if msg is None:
         msg = key
 
-    # 参数替换: {1}, {2}, ... 及 {0}, {1}, ...
+    # 参数替换: {1}, {2}, ... 及 {0}, {1}, ... 与 %s 支持
     if args:
+        if '%s' in msg and msg.count('%s') == len(args):
+            try:
+                msg = msg % args
+            except Exception:
+                pass
         for idx, arg in enumerate(args):
             msg = msg.replace("{" + str(idx + 1) + "}", str(arg))
             msg = msg.replace("{" + str(idx) + "}", str(arg))

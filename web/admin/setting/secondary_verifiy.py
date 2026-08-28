@@ -50,7 +50,7 @@ def get_auth_secret():
     rdata = {}
     rdata['secret'] = secret
     rdata['url'] = url
-    return yf.returnData(True, '设置成功!', rdata)
+    return yf.returnData(True, 'common.set_success', rdata)
 
 
 # 设置二次验证，加强安全登录
@@ -61,11 +61,11 @@ def set_auth_secret():
     if two_step_verification['open']:
         two_step_verification['open'] = False
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
-        return yf.returnData(True, '关闭成功!', 0)
+        return yf.returnData(True, 'setting.py_msg_4d5ac8', 0)
     else:
         two_step_verification['open'] = True
         thisdb.setOption('two_step_verification', json.dumps(two_step_verification))
-        return yf.returnData(True, '开启成功!', 1)
+        return yf.returnData(True, 'setting.py_msg_8e0047', 1)
 
 
         

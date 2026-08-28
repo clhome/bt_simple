@@ -180,7 +180,7 @@ def renew_ssl():
             pass
             
     if not is_success:
-        return yf.returnData(False, '续签失败，详细信息请查看日志！')
+        return yf.returnData(False, 'site.py_msg_2b7ff5')
         
     # 软链接新证书并重启服务
     dst_path = YfSites.instance().sslDir + '/' + site_name
@@ -206,7 +206,7 @@ def renew_ssl():
         if cert_data:
             ssl_days = cert_data.get('endtime', -1)
             
-    return yf.returnData(True, '证书续签成功！', ssl_days)
+    return yf.returnData(True, 'site.py_msg_a36237', ssl_days)
 
 
 
