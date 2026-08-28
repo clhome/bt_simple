@@ -1,10 +1,12 @@
+var api = YfPlugin.createApi('fail2ban');
+var pt = YfI18n.createPluginTranslator('fail2ban');
 function getVersion(){
     return $('.plugin_version').attr('version');
 }
 
 function f2bHome() {
     var loadT = layer.msg('正在获取数据...', { icon: 16, time: 0, shade: 0.3 });
-    f2bPost('get_home_stats', '', {}, function(data){
+    api.post('get_home_stats', '', {}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
         var stats = rdata.data;
@@ -79,7 +81,7 @@ function f2bService() {
             clearInterval(waitTimer);
             if ($('.soft-man-con').find('#f2b_intro_panel').length === 0) {
                 // Fetch the config info to see if strict mode is enabled
-                f2bPost('get_anti_info', '', {}, function(data) {
+                api.post('get_anti_info', '', {}, function(data) {
                     var rdata = {};
                     try {
                         rdata = JSON.parse(data.data);
@@ -103,7 +105,7 @@ function f2bService() {
                     // Listen to changes on the checkbox
                     $('#f2b_strict_mode').off('change').on('change', function() {
                         var isChecked = $(this).prop('checked');
-                        f2bPost('set_strict_mode', '', { strict: isChecked }, function(res) {
+                        api.post('set_strict_mode', '', { strict: isChecked }, function(res) {
                             var r = JSON.parse(res.data);
                             layer.msg(r.msg, { icon: r.status ? 1 : 2 });
                         });
@@ -128,33 +130,7 @@ function f2bService() {
     setTimeout(function() { clearInterval(waitTimer); }, 5000);
 }
 
-function f2bPost(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
 
-    var req_data = {};
-    req_data['name'] = 'fail2ban';
-    req_data['func'] = method;
-    req_data['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 function f2bPostCallbak(method, version, args, callback){
     var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
@@ -184,7 +160,7 @@ function f2bPostCallbak(method, version, args, callback){
 }
 
 function f2bBanIpSave(black_ip){
-    f2bPost('ban_ip_release', '', {}, function(data){
+    api.post('ban_ip_release', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -200,7 +176,7 @@ function f2bLogs(){
     
     function refreshLog() {
         var loadT = layer.msg('正在获取日志...', { icon: 16, time: 0, shade: 0.3 });
-        f2bPost('get_last_log', '', {}, function(data){
+        api.post('get_last_log', '', {}, function(data){
             layer.close(loadT);
             var rdata = JSON.parse(data.data);
             $("#f2bLogBody").text(rdata.data);
@@ -212,7 +188,7 @@ function f2bLogs(){
     
     $("#f2bClearLogBtn").on('click', function(){
         layer.confirm('确定要清空 fail2ban 的运行日志吗？', {title: '清空日志'}, function(index) {
-            f2bPost('clear_log', '', {}, function(data){
+            api.post('clear_log', '', {}, function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 if (rdata.status) {
@@ -253,7 +229,7 @@ function f2bBanIp() {
 
     $('.soft-man-con').html(html);
 
-    f2bPost('get_active_bans', '', {}, function(data){
+    api.post('get_active_bans', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         if(!rdata.status) {
             $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center; color:red;">' + rdata.msg + '</td></tr>');
@@ -330,7 +306,7 @@ function f2bBanIp() {
             for (var i = 0; i < pendingIps.length; i += chunkSize) {
                 var chunk = pendingIps.slice(i, i + chunkSize);
                 (function(ips) {
-                    f2bPost('getIpLocationBatch', '', {ips: JSON.stringify(ips)}, function(data) {
+                    api.post('getIpLocationBatch', '', {ips: JSON.stringify(ips)}, function(data) {
                         var loc_res = JSON.parse(data.data);
                         if (loc_res.status && loc_res.data) {
                             var batchData = loc_res.data;
@@ -371,7 +347,7 @@ function f2bRemoveDropIp(ip, jail) {
         layer.close(index);
         var loadT = layer.msg('正在解封...', {icon: 16, time: 0, shade: 0.3});
         
-        f2bPost('unban_active_ip', '', {'ip': ip, 'jail': jail}, function(sdata){
+        api.post('unban_active_ip', '', {'ip': ip, 'jail': jail}, function(sdata){
             layer.close(loadT);
             var srdata = JSON.parse(sdata.data);
             if (srdata.status) {
@@ -391,7 +367,7 @@ function f2bAddDropIp() {
         return;
     }
     var loadT = layer.msg('正在添加...', {icon: 16, time: 0, shade: 0.3});
-    f2bPost('get_black_list', '', {}, function(data){
+    api.post('get_black_list', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         var ipListStr = rdata.data;
         var ipList = ipListStr ? ipListStr.split('\n').filter(function(x) { return x.trim() !== ''; }) : [];
@@ -404,7 +380,7 @@ function f2bAddDropIp() {
             return;
         }
         
-        f2bPost('set_black_ip', '', {'black_ip': JSON.stringify(ipList)}, function(sdata){
+        api.post('set_black_ip', '', {'black_ip': JSON.stringify(ipList)}, function(sdata){
             layer.close(loadT);
             var srdata = JSON.parse(sdata.data);
             layer.msg(srdata.msg, {icon: srdata.status ? 1 : 2});
@@ -420,7 +396,7 @@ function f2bAddDropIp() {
 // 系统防护
 function f2bServerAnti() {
     var loadT = layer.msg('正在获取配置...', { icon: 16, time: 0, shade: 0.3 });
-    f2bPost('get_anti_info', '', {}, function(data){
+    api.post('get_anti_info', '', {}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
         var serverRules = (rdata.data && rdata.data.server) ? rdata.data.server : [];
@@ -506,7 +482,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
                 bantime: $('input[name="bantime"]').val(),
                 act: $('select[name="act"]').val()
             };
-            f2bPost('set_anti', '', postData, function(data){
+            api.post('set_anti', '', postData, function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 if(rdata.status) {
@@ -520,7 +496,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
 
 function f2bDelAnti(mode) {
     layer.confirm('确定要删除并停用该防护规则吗？', {title: '停用规则'}, function(index) {
-        f2bPost('del_anti', '', {mode: mode, type: 'edit'}, function(data){
+        api.post('del_anti', '', {mode: mode, type: 'edit'}, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
             if(rdata.status) {
@@ -534,7 +510,7 @@ function f2bDelAnti(mode) {
 // 网站防护
 function f2bSiteAnti() {
     var loadT = layer.msg('正在拉取防护状态...', { icon: 16, time: 0, shade: 0.3 });
-    f2bPost('get_anti_info', '', {}, function(data){
+    api.post('get_anti_info', '', {}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
         var siteRules = (rdata.data && rdata.data.site) ? rdata.data.site : [];
@@ -623,7 +599,7 @@ function f2bLogRequest(page){
     args['query_date'] = query_date;
     args['tojs'] = 'f2bLogRequest';
 
-    f2bPost('get_logs_list', '', args, function(rdata){
+    api.post('get_logs_list', '', args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
@@ -665,7 +641,7 @@ function f2bLogRequest(page){
 
 function f2bIpDetails(ip) {
     var loadT = layer.msg('正在获取详情...', { icon: 16, time: 0, shade: 0.3 });
-    f2bPost('get_ip_logs', '', {ip: ip}, function(data){
+    api.post('get_ip_logs', '', {ip: ip}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
         if(!rdata.status) {
@@ -789,7 +765,7 @@ function f2bSiteHistory(){
         args['tojs'] = 'f2bLogRequest';
 
         var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-        f2bPost('get_logs_list', '', args, function(rdata){
+        api.post('get_logs_list', '', args, function(rdata){
             layer.close(loadT);
             var rdata = JSON.parse(rdata.data);
             var data = rdata.data.data;

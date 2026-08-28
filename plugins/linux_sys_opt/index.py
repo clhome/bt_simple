@@ -143,7 +143,7 @@ WantedBy=basic.target
         yf.execShell("systemctl daemon-reload")
         yf.execShell("systemctl enable --now disable-thp.service")
         
-    return yf.returnJson(True, "全平台内核优化配置已成功生效！")
+    return yf.returnJson(True, "k_102505ee")
 
 if __name__ == "__main__":
     func = sys.argv[1]

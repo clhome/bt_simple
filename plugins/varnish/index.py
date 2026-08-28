@@ -75,7 +75,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -140,7 +140,7 @@ def readConfigTpl():
     
     # 确保文件处于 tpl_dir 内部并且以 .vcl 结尾
     if not target_file.startswith(tpl_dir + os.sep) or not target_file.endswith('.vcl'):
-        return yf.returnJson(False, '越权访问拦截：仅允许读取模板目录下的VCL配置文件！')
+        return yf.returnJson(False, 'k_77be08d3')
 
     content = yf.readFile(target_file)
     content = contentReplace(content)

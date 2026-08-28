@@ -104,7 +104,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -702,7 +702,7 @@ def getNgxStatusPort():
 def runInfo():
     op_status = status()
     if op_status == 'stop':
-        return yf.returnJson(False, "未启动!")
+        return yf.returnJson(False, "k_073fb4ba")
 
     port = getNgxStatusPort()
     # 取Openresty负载状态
@@ -734,7 +734,7 @@ def runInfo():
             data['Waiting'] = tmp[15]
             return yf.getJson(data)
         except Exception as e:
-            return yf.returnJson(False, "oprenresty异常!")
+            return yf.returnJson(False, "k_a629d580")
         
     except Exception as e:
         return yf.returnJson(False, "oprenresty not started!")
@@ -861,10 +861,10 @@ def setCfg():
 
         if k == "worker_processes" or k == "gzip" or k == "zstd" or k == "brotli":
             if not re.search(r"auto|on|off|\d+", v):
-                return yf.returnJson(False, '参数值错误')
+                return yf.returnJson(False, 'k_2768dc36')
         else:
             if not re.search(r"\d+", v):
-                return yf.returnJson(False, '参数值错误,请输入数字整数')
+                return yf.returnJson(False, 'k_e078faa9')
 
         if k == "worker_processes" :
             k_wca = "worker_cpu_affinity"
@@ -900,24 +900,24 @@ def setCfg():
         return yf.returnJson(False, 'ERROR: 配置出错<br><a style="color:red;">' + isError.replace("\n", '<br>') + '</a>')
 
     yf.restartWeb()
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 
 def cronAddCheck():
     try:
         import tool_task
         tool_task.createBgTask()
-        return yf.returnJson(True, '添加检查任务成功')
+        return yf.returnJson(True, 'k_a1d0b7a5')
     except Exception as e:
-        return yf.returnJson(False, '添加检查任务失败:'+str(e))
+        return yf.returnJson(False, 'k_8eefa296'+str(e))
 
 def cronDelCheck():
     try:
         import tool_task
         tool_task.removeBgTask()
-        return yf.returnJson(True, '删除检查任务成功')
+        return yf.returnJson(True, 'k_f3de1589')
     except Exception as e:
-        return yf.returnJson(False, '删除检查任务失败:'+str(e))
+        return yf.returnJson(False, 'k_c1c79286'+str(e))
 
 def cronCheck():
     return 'ok'

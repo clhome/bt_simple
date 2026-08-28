@@ -1,31 +1,7 @@
+var api = YfPlugin.createApi('gitea');
+var pt = YfI18n.createPluginTranslator('gitea');
 
-function gogsPost(method,args,callback, title){
 
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
-
-    var loadT = layer.msg(_title, { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'gitea', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 function giteaService(){
     pluginService('gitea');
@@ -34,7 +10,7 @@ function giteaService(){
     var timer = setInterval(function(){
         if ($(".soft-man-con .sfm-opt").length > 0) {
             clearInterval(timer);
-            gogsPost('get_access_url', {}, function(data){
+            api.post('get_access_url', {}, function(data){
                 var rdata = JSON.parse(data.data);
                 if(rdata.status){
                     var html = '<div style="margin-top:20px; padding:15px; border:1px solid #ddd; border-radius:4px; width:450px;">\
@@ -51,7 +27,7 @@ function giteaService(){
 }
 
 function gogsSetConfig(){
-    gogsPost('get_gogs_conf', '', function(data){
+    api.post('get_gogs_conf', '', function(data){
         var rrdata = JSON.parse(data.data);
         if (!rrdata.status){
             layer.msg(rrdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -119,7 +95,7 @@ function submitGogsConf() {
         SHOW_FOOTER_TEMPLATE_LOAD_TIME: $("select[name='SHOW_FOOTER_TEMPLATE_LOAD_TIME']").val() || 'false',
     };
 
-    gogsPost('submit_gogs_conf', data, function(ret_data){
+    api.post('submit_gogs_conf', data, function(ret_data){
         var rdata = JSON.parse(ret_data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         gogsSetConfig();
@@ -128,7 +104,7 @@ function submitGogsConf() {
 
 function gogsEdit(){
 
-    gogsPost('gogs_edit_tpl',{} , function(data){
+    api.post('gogs_edit_tpl',{} , function(data){
         // console.log(data);
         var rdata = JSON.parse(data.data);
         var edit = '<p class="status">通用的手动编辑:</p>';
@@ -155,7 +131,7 @@ function giteaUserList(page, search) {
         _data['search'] = search;
     }
 
-    gogsPost('user_list', _data, function(data){
+    api.post('user_list', _data, function(data){
 
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
@@ -222,12 +198,12 @@ function userProjectList(user, search){
                     </div>\
                 </div>",
         success:function(){
-            userProjectListPost(user,search);
+            api.post(user,search);
         }
     });
 }
 
-function userProjectListPost(user, search){
+function api.post(user, search){
     var req = {};
     if (!isNaN(user)){
         req['page'] = user;
@@ -244,7 +220,7 @@ function userProjectListPost(user, search){
         req['search'] = search;
     }
     
-    gogsPost('user_project_list', req, function(data){
+    api.post('user_project_list', req, function(data){
         var rdata = [];
         try {
             rdata = JSON.parse(data.data);
@@ -316,7 +292,7 @@ function projectScript(user, name,has_hook){
 }
 
 function projectScriptEdit(user,name,index){
-    gogsPost('project_script_edit', {'user':user,'name':name}, function(data){
+    api.post('project_script_edit', {'user':user,'name':name}, function(data){
         var rdata = JSON.parse(data.data);
         if (rdata['status']){
             onlineEditFile(0, rdata['data']['path']);
@@ -327,7 +303,7 @@ function projectScriptEdit(user,name,index){
 }
 
 function projectScriptLoad(user,name,index){
-    gogsPost('project_script_load', {'user':user,'name':name}, function(data){
+    api.post('project_script_load', {'user':user,'name':name}, function(data){
         if (data.data != 'ok'){
             layer.msg(data.data,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
@@ -335,13 +311,13 @@ function projectScriptLoad(user,name,index){
 
         showMsg('加载成功!',function(){
             layer.close(index);
-            userProjectListPost(1);
+            api.post(1);
         },{icon:1,time:2000,shade: [0.3, '#000']},2000);
     });
 }
 
 function projectScriptUnload(user,name,index){
-    gogsPost('project_script_unload', {'user':user,'name':name}, function(data){
+    api.post('project_script_unload', {'user':user,'name':name}, function(data){
         if (data.data != 'ok'){
             layer.msg(data.data,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
@@ -349,13 +325,13 @@ function projectScriptUnload(user,name,index){
 
         showMsg('卸载成功!',function(){
             layer.close(index);
-            userProjectListPost(1);
+            api.post(1);
         },{icon:1,time:2000,shade: [0.3, '#000']},2000);
     });
 } 
 
 function projectScriptDebug(user,name,index){
-    gogsPost('project_script_debug', {'user':user,'name':name}, function(data){
+    api.post('project_script_debug', {'user':user,'name':name}, function(data){
         var rdata = JSON.parse(data.data);
         if (rdata['status']){
             onlineEditFile(0, rdata['path']);
@@ -378,7 +354,7 @@ function gogsRepoListPage(page, search){
         _data['search'] = search;
     }
 
-    gogsPost('repo_list', _data, function(data){
+    api.post('repo_list', _data, function(data){
 
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
@@ -428,7 +404,7 @@ function gogsRepoListPage(page, search){
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
 
-            gogsPost('project_script_load', {'user':user,'name':name}, function(data){
+            api.post('project_script_load', {'user':user,'name':name}, function(data){
                 if (data.data != 'ok'){
                     layer.msg(data.data,{icon:0,time:2000,shade: [0.3, '#000']});
                     return;
@@ -445,7 +421,7 @@ function gogsRepoListPage(page, search){
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
 
-            gogsPost('project_script_unload', {'user':user,'name':name}, function(data){
+            api.post('project_script_unload', {'user':user,'name':name}, function(data){
                 if (data.data != 'ok'){
                     layer.msg(data.data,{icon:0,time:2000,shade: [0.3, '#000']});
                     return;
@@ -463,7 +439,7 @@ function gogsRepoListPage(page, search){
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
 
-            gogsPost('project_script_edit', {'user':user,'name':name}, function(data){
+            api.post('project_script_edit', {'user':user,'name':name}, function(data){
                 var rdata = JSON.parse(data.data);
                 if (rdata['status']){
                     onlineEditFile(0, rdata['data']['path']);
@@ -479,7 +455,7 @@ function gogsRepoListPage(page, search){
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
 
-            gogsPost('project_script_debug', {'user':user,'name':name}, function(data){
+            api.post('project_script_debug', {'user':user,'name':name}, function(data){
                 var rdata = JSON.parse(data.data);
                 if (rdata['status']){
                     onlineEditFile(0, rdata['path']);
@@ -495,7 +471,7 @@ function gogsRepoListPage(page, search){
             var user = ulist[i]["name"];
             var name = ulist[i]["repo"];
 
-            gogsPost('project_script_run', {'user':user,'name':name}, function(data){
+            api.post('project_script_run', {'user':user,'name':name}, function(data){
                 var data = JSON.parse(data.data);
                 layer.msg(data.msg,{icon:data.status?1:2,time:2000,shade: [0.3, '#000']});
             });
@@ -531,7 +507,7 @@ function giteaRepoList() {
 }
 
 function projectScriptSelfRender(user, name){
-    gogsPost('project_script_self', {'user':user,'name':name}, function(data){
+    api.post('project_script_self', {'user':user,'name':name}, function(data){
         var rdata = JSON.parse(data.data);
 
         var data = rdata['data']['data'];
@@ -574,7 +550,7 @@ function projectScriptSelfRender(user, name){
             if (data[i]["is_hidden"]){
                 status = '0';
             }
-            gogsPost('project_script_self_status', {'user':user,'name':name,'file':file, status:status}, function(data){
+            api.post('project_script_self_status', {'user':user,'name':name,'file':file, status:status}, function(data){
                 var data = JSON.parse(data.data);
                 showMsg(data.msg ,function(){
                     projectScriptSelfRender(user, name);
@@ -585,7 +561,7 @@ function projectScriptSelfRender(user, name){
         $('#gogs_self_table .del').on('click', function(){
             var i = $(this).data('index');
             var file = data[i]["name"];
-            gogsPost('project_script_self_del', {'user':user,'name':name,'file':file}, function(data){
+            api.post('project_script_self_del', {'user':user,'name':name,'file':file}, function(data){
                 var data = JSON.parse(data.data);
                 showMsg(data.msg ,function(){
                     projectScriptSelfRender(user, name);
@@ -602,7 +578,7 @@ function projectScriptSelfRender(user, name){
         $('#gogs_self_table .logs').on('click', function(){
             var i = $(this).data('index');
             var file = data[i]["name"];
-            gogsPost('project_script_self_logs', {'user':user,'name':name,'file':file}, function(data){
+            api.post('project_script_self_logs', {'user':user,'name':name,'file':file}, function(data){
                 var rdata = JSON.parse(data.data);
                 // console.log(rdata);
                 if (rdata['status']){
@@ -620,7 +596,7 @@ function projectScriptSelfRender(user, name){
                 layer.msg("已经禁用,不能执行!",{icon:2,time:2000,shade: [0.3, '#000']});
                 return;
             }
-            gogsPost('project_script_self_run', {'user':user,'name':name,'file':file}, function(data){
+            api.post('project_script_self_run', {'user':user,'name':name,'file':file}, function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg,{icon:data.status?1:2,time:2000,shade: [0.3, '#000']});      
             });
@@ -659,7 +635,7 @@ function projectScriptSelfRender(user, name){
                     var n_file = $("#newFileName").val();
                     var o_file = file;
 
-                    gogsPost('project_script_self_rename', {'user':user,'name':name,'o_file':o_file,'n_file':n_file}, function(data){
+                    api.post('project_script_self_rename', {'user':user,'name':name,'o_file':o_file,'n_file':n_file}, function(data){
                         var data = JSON.parse(data.data);
                         showMsg(data.msg ,function(){
                             $(".layui-layer-btn1").click();
@@ -677,7 +653,7 @@ function projectScriptSelfRender(user, name){
 //新建文件
 function createScriptFile(type, user, name, file) {
     if (type == 1) {
-        gogsPost('project_script_self_create', {'user':user,'name':name,'file': file }, function(data){
+        api.post('project_script_self_create', {'user':user,'name':name,'file': file }, function(data){
             var rdata = JSON.parse(data.data);
             if(!rdata['status']){
                 layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
@@ -751,7 +727,7 @@ function projectScriptSelf(user, name){
                 if (!enable){
                     enable_option = '1';
                 }
-                gogsPost('project_script_self_enable', {'user':user,'name':name,'enable':enable_option}, function(data){
+                api.post('project_script_self_enable', {'user':user,'name':name,'enable':enable_option}, function(data){
                     var data = JSON.parse(data.data);
                     showMsg(data.msg ,function(){
                         projectScriptSelfRender(user, name);
@@ -764,7 +740,7 @@ function projectScriptSelf(user, name){
 }
 
 function getRsaPublic(){
-    gogsPost('get_rsa_public', {}, function(data){
+    api.post('get_rsa_public', {}, function(data){
         var rdata = JSON.parse(data.data);
         var con = '<div class="tab-con">\
             <div class="myKeyCon ptb15" style="padding: 10px 15px;">\

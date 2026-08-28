@@ -15,6 +15,6 @@
     "date": "2026-05-28",
     "home": "https://docker.io",
     "doc1": "https://docker-py.readthedocs.io/",
-    "type": 0,
+    "type": "tool",
     "pid": "4"
 }

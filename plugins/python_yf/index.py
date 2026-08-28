@@ -49,7 +49,7 @@ def save_venvs(data):
 
 def get_python_list():
     if not os.path.exists(UV_BIN):
-        return yf.returnJson(False, 'uv 核心组件未安装，请在插件列表重装本插件')
+        return yf.returnJson(False, 'k_972b9edc')
     
     exec_str = f"{UV_BIN} python list"
     stdout, stderr = yf.execShell(exec_str)
@@ -105,7 +105,7 @@ def install_python():
     args = getArgs()
     version = args.get('version', '')
     if not version:
-        return yf.returnJson(False, '请指定要安装的版本')
+        return yf.returnJson(False, 'k_46915b9d')
         
     exec_str = f"{UV_BIN} python install {version}"
     stdout, stderr = yf.execShell(exec_str)
@@ -113,13 +113,13 @@ def install_python():
     output = stdout + " " + stderr
     if "error" in output.lower() and "success" not in output.lower():
         return yf.returnJson(False, f'安装失败: {output}')
-    return yf.returnJson(True, '安装成功')
+    return yf.returnJson(True, 'k_811f543f')
 
 def uninstall_python():
     args = getArgs()
     version = args.get('version', '')
     if not version:
-        return yf.returnJson(False, '请指定要卸载的版本')
+        return yf.returnJson(False, 'k_5790c25e')
         
     venvs = get_venvs().get(version, [])
     if len(venvs) > 0:
@@ -131,14 +131,14 @@ def uninstall_python():
     output = stdout + " " + stderr
     if "error" in output.lower() and "success" not in output.lower():
         return yf.returnJson(False, f'卸载失败: {output}')
-    return yf.returnJson(True, '卸载完成')
+    return yf.returnJson(True, 'k_58d1feea')
 
 def create_venv():
     args = getArgs()
     version = args.get('version', '')
     base_path = args.get('path', '')
     if not version or not base_path:
-        return yf.returnJson(False, '参数错误，必须提供版本和路径')
+        return yf.returnJson(False, 'k_e5d8a888')
         
     path = os.path.join(base_path, '.venv')
     
@@ -159,7 +159,7 @@ def create_venv():
         if path not in venvs[version]:
             venvs[version].append(path)
             save_venvs(venvs)
-        return yf.returnJson(True, '虚拟环境创建成功')
+        return yf.returnJson(True, 'k_74ea2cf5')
     else:
         return yf.returnJson(False, f'创建失败: {output}')
 
@@ -168,7 +168,7 @@ def remove_venv():
     version = args.get('version', '')
     path = args.get('path', '')
     if not version or not path:
-        return yf.returnJson(False, '参数错误')
+        return yf.returnJson(False, 'k_bff0e837')
         
     venvs = get_venvs()
     if version in venvs and path in venvs[version]:
@@ -179,8 +179,8 @@ def remove_venv():
         if os.path.exists(os.path.join(path, 'bin', 'python')) or os.path.exists(os.path.join(path, 'pyvenv.cfg')):
             yf.execShell(f"rm -rf {path}")
             
-        return yf.returnJson(True, '删除成功')
-    return yf.returnJson(False, '未找到该虚拟环境记录')
+        return yf.returnJson(True, 'k_0007d170')
+    return yf.returnJson(False, 'k_dc240c16')
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

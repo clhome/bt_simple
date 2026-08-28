@@ -83,7 +83,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -321,11 +321,11 @@ def confDlistTraceLog():
 
     name = args['name']
     if not checkSafeName(name):
-        return yf.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, 'k_7fafaa0f')
 
     confd_dir = getServerDir() + '/conf.d/' + name
     if not checkSafeFile(confd_dir):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     content = yf.readFile(confd_dir)
     rep = r'stdout_logfile\s*=\s*(.*)'
@@ -341,11 +341,11 @@ def confDlistErrorLog():
 
     name = args['name']
     if not checkSafeName(name):
-        return yf.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, 'k_7fafaa0f')
 
     confd_dir = getServerDir() + '/conf.d/' + name
     if not checkSafeFile(confd_dir):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     content = yf.readFile(confd_dir)
     rep = r'stderr_logfile\s*=\s*(.*)'
@@ -404,7 +404,7 @@ def addJob():
 
     program = args['name']
     if not checkSafeName(program):
-        return yf.returnJson(False, '进程名称不合法！仅支持英文字母、数字、下划线、中划线和点。')
+        return yf.returnJson(False, 'k_663fa98c')
 
     command = args['command']
     path = args['path']
@@ -431,11 +431,11 @@ def addJob():
 
     dstFile = getSubConfDir() + "/" + program + '.ini'
     if not checkSafeFile(dstFile):
-        return yf.returnJson(False, '非法的目标配置文件路径！')
+        return yf.returnJson(False, 'k_f2d3717e')
 
     yf.writeFile(dstFile, w_body)
 
-    return yf.returnJson(True, '增加守护进程成功!')
+    return yf.returnJson(True, 'k_5b83ad7a')
 
 
 def startJob():
@@ -446,7 +446,7 @@ def startJob():
 
     name = args['name']
     if not checkSafeName(name):
-        return yf.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, 'k_7fafaa0f')
 
     supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
 
@@ -472,7 +472,7 @@ def restartJob():
 
     name = args['name']
     if not checkSafeName(name):
-        return yf.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, 'k_7fafaa0f')
 
     supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
 
@@ -485,8 +485,8 @@ def restartJob():
     data = yf.execShell(cmd)
 
     if data[1] != '':
-        return yf.returnJson(False,  '[' + name + ']重启失败!')
-    return yf.returnJson(True,  '[' + name + ']重启成功!')
+        return yf.returnJson(False, 'k_79a9614c')
+    return yf.returnJson(True, 'k_803fd525')
 
 
 def delJob():
@@ -496,7 +496,7 @@ def delJob():
         return data[1]
     name = args['name']
     if not checkSafeName(name):
-        return yf.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, 'k_7fafaa0f')
 
     supCtl = getSupervisorctlBin() + ' -c ' + getServerDir() + "/supervisor.conf"
     log_dir = getServerDir() + '/log/'
@@ -517,11 +517,11 @@ def delJob():
         os.remove(program)
         result = yf.execShell(
             "{0} update".format(supCtl))
-        return yf.returnJson(True, '删除守护进程成功!')
+        return yf.returnJson(True, 'k_825ed3ca')
     else:
         result = yf.execShell(
             "{0} update".format(supCtl))
-        return yf.returnJson(False, '该守护进程不存在!')
+        return yf.returnJson(False, 'k_474c7a40')
 
 
 def updateJob():
@@ -534,11 +534,11 @@ def updateJob():
     priority = args['priority']
     name = args['name']
     if not checkSafeName(name):
-        return yf.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, 'k_7fafaa0f')
 
     programFile = getServerDir() + "/conf.d/" + name + ".ini"
     if not checkSafeFile(programFile):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     mess = {}
     infos = []
@@ -571,7 +571,7 @@ def updateJob():
 
     yf.writeFile(programFile, w_body)
 
-    return yf.returnJson(True, '修改守护进程成功!')
+    return yf.returnJson(True, 'k_545b035b')
 
 
 def getJobInfo():
@@ -581,14 +581,14 @@ def getJobInfo():
         return data[1]
     name = args['name']
     if not checkSafeName(name):
-        return yf.returnJson(False, '进程名称不合法！')
+        return yf.returnJson(False, 'k_7fafaa0f')
 
     mess = {}
     infos = []
     info = {}
     program = getServerDir() + "/conf.d/" + name + ".ini"
     if not checkSafeFile(program):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     with open(program, "r") as fr:
         infos = fr.readlines()
@@ -625,7 +625,7 @@ def readConfigTpl():
 
     filepath = args['file']
     if not checkSafeFile(filepath):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     content = yf.readFile(filepath)
     return yf.returnJson(True, 'ok', content)
@@ -639,7 +639,7 @@ def readConfigLogTpl():
     file_log = args['file']
     line_log = args['line']
     if not checkSafeFile(file_log):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     with open(file_log, "r") as fr:
         infos = fr.readlines()
@@ -663,7 +663,7 @@ def readConfigLogErrorTpl():
     file_log = args['file']
     line_log = args['line']
     if not checkSafeFile(file_log):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     with open(file_log, "r") as fr:
         infos = fr.readlines()
@@ -686,7 +686,7 @@ def supClearLog():
         return data[1]
     file_log = args['file']
     if not checkSafeFile(file_log):
-        return yf.returnJson(False, '非法的配置文件路径！')
+        return yf.returnJson(False, 'k_46ce8c98')
 
     with open(file_log, "r") as fr:
         infos = fr.readlines()
@@ -707,7 +707,7 @@ def supClearLog():
         if stderr_logfile and os.path.exists(stderr_logfile):
             with open(stderr_logfile, 'w') as f:
                 f.write('')
-        return yf.returnJson(True, '清空成功')
+        return yf.returnJson(True, 'k_2685dc70')
     except Exception as e:
         return yf.returnJson(False, '清空失败: ' + str(e))
 

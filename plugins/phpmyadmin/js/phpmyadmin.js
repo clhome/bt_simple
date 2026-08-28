@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('phpmyadmin');
+var pt = YfI18n.createPluginTranslator('phpmyadmin');
 function str2Obj(str){
     var data = {};
     kv = str.split('&');
@@ -8,78 +10,14 @@ function str2Obj(str){
     return data;
 }
 
-function pmaPost(method,args,callback){
-
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'phpmyadmin', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 
-async function pmaAsyncPost(method,args){
 
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-    return await syncPost('/plugins/run', {name:'phpmyadmin', func:method, args:_args}); 
-}
-
-function homePage(){
-    pmaPost('get_home_page', '', function(data){
-        var rdata = JSON.parse(data.data);
-        if (!rdata.status){
-            layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-        var con = '<button class="btn btn-default btn-sm" onclick="window.open(\'' + rdata.data + '\')">主页</button>';
-        $(".soft-man-con").html(con);
-    });
-}
-
-//phpmyadmin切换php版本
-async function phpVer(version) {
-
-    var _version = await pmaAsyncPost('get_set_php_ver','')
-    if (_version['data'] != ''){
-        version = _version['data'];
-    }
-
-    $.post('/site/get_php_version', function(data) {
-        var rdata = data['data'];
-        // console.log(rdata);
-        var body = "<div class='ver line'><span class='tname'>PHP版本</span><select id='phpver' class='bt-input-text mr20' name='phpVersion' style='width:110px'>";
-        var optionSelect = '';
-        for (var i = 0; i < rdata.length; i++) {
-            optionSelect = rdata[i].version == version ? 'selected' : '';
-            body += "<option value='" + rdata[i].version + "' " + optionSelect + ">" + rdata[i].name + "</option>"
-        }
-        body += '</select><button class="btn btn-success btn-sm" onclick="phpVerChange(\'phpversion\',\'get\')">保存</button></div>';
-        $(".soft-man-con").html(body);
-    },'json');
-}
+async 
 
 function phpVerChange(type, msg) {
     var phpver = $("#phpver").val();
-    pmaPost('set_php_ver', 'phpver='+phpver, function(data){
+    api.post('set_php_ver', 'phpver='+phpver, function(data){
         if ( data.data == 'ok' ){
             layer.msg('设置成功!',{icon:1,time:2000,shade: [0.3, '#000']});
         } else {
@@ -91,7 +29,7 @@ function phpVerChange(type, msg) {
 
 //phpmyadmin安全设置
 function safeConf() {
-    pmaPost('get_pma_option', {}, function(rdata){
+    api.post('get_pma_option', {}, function(rdata){
         var rdata = JSON.parse(rdata.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
@@ -138,7 +76,7 @@ function safeConf() {
 
 function setPmaChoose(){
     var choose = $("#access_choose").val();
-    pmaPost('set_pma_choose',{'choose':choose}, function(data){
+    api.post('set_pma_choose',{'choose':choose}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -146,7 +84,7 @@ function setPmaChoose(){
 
 function setPmaUsername(){
     var username = $("input[name=username]").val();
-    pmaPost('set_pma_username',{'username':username}, function(data){
+    api.post('set_pma_username',{'username':username}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -154,7 +92,7 @@ function setPmaUsername(){
 
 function setPmaPassword(){
     var password = $("input[name=password]").val();
-    pmaPost('set_pma_password',{'password':password}, function(data){
+    api.post('set_pma_password',{'password':password}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -162,7 +100,7 @@ function setPmaPassword(){
 
 function setPmaPath(){
     var path = $("input[name=path]").val();
-    pmaPost('set_pma_path',{'path':path}, function(data){
+    api.post('set_pma_path',{'path':path}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -177,7 +115,7 @@ function setPamPort() {
     }
     var data = 'port=' + pmport;
     
-    pmaPost('set_pma_port',data, function(data){
+    api.post('set_pma_port',data, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -186,7 +124,7 @@ function setPamPort() {
 function pmaService() {
     pluginService('phpmyadmin');
     setTimeout(function() {
-        pmaPost('get_pma_access_info', '', function(rdata) {
+        api.post('get_pma_access_info', '', function(rdata) {
             var data = JSON.parse(rdata.data);
             if (!data.status) {
                 return;

@@ -51,7 +51,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -80,7 +80,7 @@ def getHomePage():
         url = 'http://' + auth + '@' + ip + ':' + port + '/'
         return yf.returnJson(True, 'OK', url)
     except Exception as e:
-        return yf.returnJson(False, '插件未启动!')
+        return yf.returnJson(False, 'k_c3567d85')
 
 
 
@@ -310,7 +310,7 @@ def getPgPort():
         return yf.returnJson(True, 'OK', port)
     except Exception as e:
         # print(e)
-        return yf.returnJson(False, '插件未启动!')
+        return yf.returnJson(False, 'k_c3567d85')
 
 
 def setPgPort():
@@ -321,11 +321,11 @@ def setPgPort():
 
     port = args['port']
     if port == '80':
-        return yf.returnJson(False, '80端不能使用!')
+        return yf.returnJson(False, 'k_f87ed051')
 
     file = getConf()
     if not os.path.exists(file):
-        return yf.returnJson(False, '插件未启动!')
+        return yf.returnJson(False, 'k_c3567d85')
     content = yf.readFile(file)
     rep = r'listen\s*(.*);'
     content = re.sub(rep, "listen " + port + ';', content)
@@ -333,7 +333,7 @@ def setPgPort():
 
     setCfg("port", port)
     yf.restartWeb()
-    return yf.returnJson(True, '修改成功!')
+    return yf.returnJson(True, 'k_9844f9b3')
 
 
 def setPgUsername():
@@ -352,7 +352,7 @@ def setPgUsername():
     yf.writeFile(pma_path, pass_cmd)
 
     yf.restartWeb()
-    return yf.returnJson(True, '修改成功!')
+    return yf.returnJson(True, 'k_9844f9b3')
 
 
 def setPgPassword():
@@ -371,7 +371,7 @@ def setPgPassword():
     yf.writeFile(pma_path, pass_cmd)
 
     yf.restartWeb()
-    return yf.returnJson(True, '修改成功!')
+    return yf.returnJson(True, 'k_9844f9b3')
 
 
 def accessLog():
@@ -412,7 +412,7 @@ def getPgAccessInfo():
         data['web_pg_password'] = cfg.get('web_pg_password', '')
         return yf.returnJson(True, 'ok', data)
     except Exception as e:
-        return yf.returnJson(False, '插件未启动!')
+        return yf.returnJson(False, 'k_c3567d85')
 
 if __name__ == "__main__":
     func = sys.argv[1]

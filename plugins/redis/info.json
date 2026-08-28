@@ -25,6 +25,6 @@
     "author": "redis & yufeng tech",
     "date": "2017-04-01",
     "home": "https://redis.io",
-    "type": 0,
+    "type": "database",
     "pid": "2"
 }

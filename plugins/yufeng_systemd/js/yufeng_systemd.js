@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('yufeng_systemd');
+var pt = YfI18n.createPluginTranslator('yufeng_systemd');
 // 全局 JS 错误捕获，方便诊断无反应的异常
 window.onerror = function(message, source, lineno, colno, error) {
     var err_msg = "JS 异常: " + message + "\n文件: " + source + "\n行号: " + lineno + ":" + colno;

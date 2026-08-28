@@ -1,57 +1,9 @@
-function apaPost(method, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-
-    var req_data = {};
-    req_data['name'] = 'acme_pandominassl_apply';
-    req_data['func'] = method;
-    req_data['version'] = $('.plugin_version').attr('version');
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
+var api = YfPlugin.createApi('acme_pandominassl_apply');
+var pt = YfI18n.createPluginTranslator('acme_pandominassl_apply');
 
 
-function apaPostN(method, args,callback){
 
-    var req_data = {};
-    req_data['name'] = 'acme_pandominassl_apply';
-    req_data['func'] = method;
-    req_data['version'] = $('.plugin_version').attr('version');
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
 
-    $.post('/plugins/run', req_data, function(data) {
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 function apaPostCallbak(method, version, args,callback){
     var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
@@ -98,7 +50,7 @@ function apaReadme(){
 function emailDel(id, name){
     safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
-        apaPost('email_del', data, function(data){
+        api.post('email_del', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 emailList();
@@ -136,7 +88,7 @@ function emailAdd(type){
             var data = $("#email_add").serialize();
             data = decodeURIComponent(data);
             // data = toArrayObject(data);
-            apaPost('email_add', data, function(data){
+            api.post('email_add', data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
@@ -162,7 +114,7 @@ function emailList(page, search){
         _data['search'] = search;
     }
 
-    apaPost('email_list', _data, function(data){
+    api.post('email_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         var list = '';
         for(i in rdata.data){
@@ -206,7 +158,7 @@ function emailList(page, search){
 function dnsapiDel(id, name){
     safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
-        apaPost('dnsapi_del', data, function(data){
+        api.post('dnsapi_del', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dnsapiList();
@@ -403,7 +355,7 @@ function dnsapiAdd(row){
                 }
             }
             data['val'] = val;
-            apaPost('dnsapi_add', data, function(data){
+            api.post('dnsapi_add', data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
@@ -429,7 +381,7 @@ function dnsapiList(page, search){
         _data['search'] = search;
     }
 
-    apaPost('dnsapi_list', _data, function(data){
+    api.post('dnsapi_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         var list = '';
         for(i in rdata.data){
@@ -485,7 +437,7 @@ function dnsapiList(page, search){
 function domainDel(id, name){
     safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
-        apaPost('domain_del', data, function(data){
+        api.post('domain_del', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 domainList();
@@ -496,7 +448,7 @@ function domainDel(id, name){
 
 function domainStatusToggle(id){
     var data='id='+id;
-    apaPost('domain_status_toggle', data, function(data){
+    api.post('domain_status_toggle', data, function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
             domainList();
@@ -506,7 +458,7 @@ function domainStatusToggle(id){
 
 function domainIdCmd(id){
     var data='id='+id;
-    apaPost('get_run_hook_id_cmd', data, function(data){
+    api.post('get_run_hook_id_cmd', data, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         layer.open({
@@ -532,7 +484,7 @@ function domainIdCmd(id){
 }
 
 function domainHookCmd(){
-    apaPost('run_hook_cmd', {}, function(data){
+    api.post('run_hook_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
             title: "手动同步全部命令",
@@ -557,7 +509,7 @@ function domainHookCmd(){
 }
 
 function syncCfCmd(){
-    apaPost('run_sync_cf_cmd', {}, function(data){
+    api.post('run_sync_cf_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
             title: "手动同步CloudFlare全部域名命令",
@@ -582,7 +534,7 @@ function syncCfCmd(){
 }
 
 function syncDnsPodCmd(){
-    apaPost('run_sync_dnspod_cmd', {}, function(data){
+    api.post('run_sync_dnspod_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
             title: "手动同步DnsPod全部域名命令",
@@ -659,7 +611,7 @@ function domainAdd(row){
             // });
 
             var dnsapi_id_html = "<option value='0'>无设置</option>";
-            apaPostN('dnsapi_list_all', {}, function(data){
+            api.postSilent('dnsapi_list_all', {}, function(data){
                 var rdata = JSON.parse(data.data);
                 for (var i = 0; i < rdata.length; i++) {
                     if (option_dnsapi_id == rdata[i]['id']){
@@ -687,7 +639,7 @@ function domainAdd(row){
         yes:function(index) {
             var data = $("#domain_add").serialize();
             data = decodeURIComponent(data);
-            apaPost('domain_add', data, function(data){
+            api.post('domain_add', data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
@@ -712,7 +664,7 @@ function domainList(page, search){
         _data['search'] = search;
     }
 
-    apaPost('domain_list', _data, function(data){
+    api.post('domain_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         var list = '';

@@ -1,105 +1,11 @@
-function mgPost(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-
-    var req_data = {};
-    req_data['name'] = 'mongodb';
-    req_data['func'] = method;
-    req_data['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
+var api = YfPlugin.createApi('mongodb');
+var pt = YfI18n.createPluginTranslator('mongodb');
 
 
-function mgPostN(method, version, args,callback){
-
-    var req_data = {};
-    req_data['name'] = 'mongodb';
-    req_data['func'] = method;
-    req_data['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-async function mgAsyncPost(method,args){
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    var res = await syncPost('/plugins/run', {name:'mongodb', func:method, args:_args}); 
-    layer.close(loadT);
-    return res;
-}
 
 
-function mongoStatus() {
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'mongodb', func:'run_info'}, function(data) {
-    	layer.close(loadT);
-    	if (!data.status){
-    		layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-    		return;
-    	}
 
-    	var rdata = JSON.parse(data.data);
-        var con = '<div class="divtable">\
-						<table class="table table-hover table-bordered" style="width: 660px;">\
-						<thead><th>字段</th><th>当前值</th><th>说明</th></thead>\
-						<tbody>\
-							<tr><th>host</th><td>' + rdata.host + '</td><td>服务器</td></tr>\
-							<tr><th>version</th><td>' + rdata.version + '</td><td>版本</td></tr>\
-							<tr><th>db_path</th><td>' + rdata.db_path + '</td><td>数据路径</td></tr>\
-							<tr><th>uptime</th><td>' + rdata.uptime + '</td><td>已运行秒</td></tr>\
-							<tr><th>connections</th><td>' + rdata.connections + '</td><td>当前链接数</td></tr>\
-							<tr><th>collections</th><td>' + rdata.collections + '</td><td>文档数</td></tr>\
-							<tr><th>insert</th><td>' + rdata.pf['insert'] + '</td><td>插入命令数</td></tr>\
-							<tr><th>query</th><td>' + rdata.pf['query'] + '</td><td>查询命令数</td></tr>\
-							<tr><th>update</th><td>' + rdata.pf['update'] + '</td><td>更新命令数</td></tr>\
-							<tr><th>delete</th><td>' + rdata.pf['delete'] + '</td><td>删除命令数</td></tr>\
-							<tr><th>getmore</th><td>' + rdata.pf['getmore'] + '</td><td>getmore命令数</td></tr>\
-							<tr><th>command</th><td>' + rdata.pf['command'] + '</td><td>执行命令数</td></tr>\
-						<tbody>\
-				</table></div>';
-
-        $(".soft-man-con").html(con);
-    },'json');
-}
+async 
 
 
 function mongoDocStatus() {
@@ -251,7 +157,7 @@ function mongoReplCfgReplSetName(){
             	layer.msg("副本名称不能为空");
             	return;
             }
-            mgPost('repl_set_name', '',data, function(data){
+            api.post('repl_set_name', '',data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata['status']){
@@ -334,7 +240,7 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
             data['votes'] = $('input[name=votes]').val();
             data['arbiterOnly'] = $('select[name=arbiterOnly]').val();
             data['idx'] = idx;
-            mgPost('repl_set_node', '',data, function(data){
+            api.post('repl_set_node', '',data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                 	if (rdata['status']){
@@ -348,7 +254,7 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
 }
 
 function mongoReplCfgDelNode(host){
-	mgPost('del_repl_node', '', {"node":host}, function(data){
+	api.post('del_repl_node', '', {"node":host}, function(data){
 		var rdata = JSON.parse(data.data);
 		// console.log(rdata['status']);
         showMsg(rdata.msg,function(){
@@ -360,7 +266,7 @@ function mongoReplCfgDelNode(host){
 }
 
 function mongoReplCfgInit(){
-	mgPostN('get_repl_config', '', '', function(data){
+	api.postSilent('get_repl_config', '', '', function(data){
 		var rdata = JSON.parse(data.data);
 		$('#repl_name').html("同步副本："+rdata.data['name']);
 
@@ -416,7 +322,7 @@ function mongoReplCfg(){
         	mongoReplCfgInit();
         },
         yes:function(){
-        	mgPost('repl_init', '', '', function(data){
+        	api.post('repl_init', '', '', function(data){
         		var rdata = JSON.parse(data.data);
 				showMsg(rdata.msg,function(){
 					mongoReplStatus();
@@ -433,7 +339,7 @@ function mongoReplCfg(){
             return false;
         },
         btn5:function(){
-        	mgPost('repl_close', '', '', function(data){
+        	api.post('repl_close', '', '', function(data){
         		var rdata = JSON.parse(data.data);
 				showMsg(rdata.msg,function(){
 					if (rdata['status']){
@@ -448,7 +354,7 @@ function mongoReplCfg(){
 
 //配置修改
 function mongoSetConfig() {
-    mgPost('get_config', '','',function(data){
+    api.post('get_config', '','',function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata['status']){
         	layer.msg(rdata['msg']);
@@ -479,7 +385,7 @@ function mongoSetConfig() {
 }
 
 function mongoConfigAuth(){
-	mgPost('set_config_auth', '','',function(rdata){
+	api.post('set_config_auth', '','',function(rdata){
 		var rdata = JSON.parse(rdata.data);
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -493,7 +399,7 @@ function mongoConfigSave(){
 	data['log'] = $('input[name="log"]').val();
 	data['pid_file_path'] = $('input[name="pid_file_path"]').val();
 
-	mgPost('set_config', '',data,function(rdata){
+	api.post('set_config', '',data,function(rdata){
 		// console.log(rdata);
 		var rdata = JSON.parse(rdata.data);
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -513,7 +419,7 @@ function dbList(page, search){
     _data['page'] = page;
     _data['page_size'] = 10;
    	// console.log(_data);
-    mgPost('get_db_list', '',_data, function(data){
+    api.post('get_db_list', '',_data, function(data){
     	// console.log(data);
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
@@ -637,7 +543,7 @@ function addDatabase(type){
             if(!dataObj['address']){
                 dataObj['address'] = dataObj['dataAccess'];
             }
-            mgPost('add_db', '',dataObj, function(data){
+            api.post('add_db', '',dataObj, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
@@ -653,7 +559,7 @@ function addDatabase(type){
 function setRootPwd(type, pwd){
     if (type==1){
         var password = $("#MyPassword").val();
-        mgPost('set_root_pwd', '',{password:password}, function(data){
+        api.post('set_root_pwd', '',{password:password}, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
@@ -680,7 +586,7 @@ function setRootPwd(type, pwd){
                   </form>",
         yes:function(layerIndex){
             var password = $("#MyPassword").val();
-            mgPost('set_root_pwd', '',{password:password}, function(data){
+            api.post('set_root_pwd', '',{password:password}, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(layerIndex);
@@ -699,7 +605,7 @@ function setRootPwd(type, pwd){
             }, function(index, layero){
                 layer.close(index);
                 var password = $("#MyPassword").val();
-                mgPost('set_root_pwd', '',{password:password,force:'1'}, function(data){
+                api.post('set_root_pwd', '',{password:password,force:'1'}, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(layerIndex);
@@ -713,7 +619,7 @@ function setRootPwd(type, pwd){
 }
 
 function syncGetDatabase(){
-    mgPost('sync_get_databases', '', '', function(data){
+    api.post('sync_get_databases', '', '', function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
             dbList();
@@ -745,7 +651,7 @@ function setDbPs(id, name, obj) {
         var ps = _input.val();
         _span.text(ps).show();
         var data = {name:name,id:id,ps:ps};
-        mgPost('set_db_ps', '',data, function(data){
+        api.post('set_db_ps', '',data, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
@@ -760,7 +666,7 @@ function setDbPs(id, name, obj) {
 function delDb(id, name){
     safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
-        mgPost('del_db', '', data, function(data){
+        api.post('del_db', '', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
@@ -772,7 +678,7 @@ function delDb(id, name){
 function delDbTable( name, table_name){
     safeMessage('删除['+name+']','您真的要删除['+table_name+']吗？',function(){
         var data='name='+name+'&table_name='+table_name;
-        mgPost('del_db_table', '', data, function(data){
+        api.post('del_db_table', '', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 repTools(name);
@@ -794,7 +700,7 @@ function delDbBatch(){
     safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
-            var data  = await mgAsyncPost('del_db', arr[idx]);
+            var data  = await api.post('del_db', arr[idx]);
             var rdata = JSON.parse(data.data);
             if (!rdata.status){
                 layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
@@ -837,7 +743,7 @@ function setDbPass(id, username, password){
             data['name'] = $('input[name=name]').val();
             data['password'] = $('#MyPassword').val();
             data['id'] = $('input[name=id]').val();
-            mgPost('set_user_pwd', '',data, function(data){
+            api.post('set_user_pwd', '',data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(index);
@@ -850,7 +756,7 @@ function setDbPass(id, username, password){
 
 function repTools(db_name, res){
 	
-    mgPost('get_db_info', '', {name:db_name}, function(data){
+    api.post('get_db_info', '', {name:db_name}, function(data){
         var rdata = JSON.parse(data.data);
         var rdata = rdata.data;
 
@@ -915,7 +821,7 @@ function repTools(db_name, res){
 
 		        	safeMessage('删除['+name+']','您真的要删除['+table_name+']吗？',function(){
 				        var data='name='+name+'&table_name='+table_name;
-				        mgPost('del_db_table', '', data, function(data){
+				        api.post('del_db_table', '', data, function(data){
 				            var rdata = JSON.parse(data.data);
 				            showMsg(rdata.msg,function(){
 				            	layer.close(layer_index);
@@ -937,7 +843,7 @@ function syncToDatabase(type){
         if (!isNaN($(this).val())) data.push($(this).val());
     });
     var postData = 'type='+type+'&ids='+JSON.stringify(data); 
-    mgPost('sync_to_databases', '',postData, function(data){
+    api.post('sync_to_databases', '',postData, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         showMsg(rdata.msg,function(){
@@ -947,7 +853,7 @@ function syncToDatabase(type){
 }
 
 function setDbAccess(username,name){
-    mgPost('get_db_access','','username='+username, function(data){
+    api.post('get_db_access','','username='+username, function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
@@ -1017,7 +923,7 @@ function setDbAccess(username,name){
                 var dataObj = toArrayObject(data);
                 dataObj['username'] = username;
                 dataObj['name'] = name;
-                mgPost('set_db_access', '',dataObj, function(data){
+                api.post('set_db_access', '',dataObj, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(index);
@@ -1061,7 +967,7 @@ function setBackup(db_name){
         </div>',
         success:function(index){
             $('#btn_backup').on('click', function(){
-                mgPost('set_db_backup', '',{name:db_name}, function(data){
+                api.post('set_db_backup', '',{name:db_name}, function(data){
                     showMsg('执行成功!', function(){
                         setBackupReq(db_name);
                     }, {icon:1}, 2000);
@@ -1078,7 +984,7 @@ function setBackup(db_name){
 }
 
 function setBackupReq(db_name, obj){
-     mgPost('get_db_backup_list', '', {name:db_name}, function(data){
+     api.post('get_db_backup_list', '', {name:db_name}, function(data){
         var rdata = JSON.parse(data.data);
         var tbody = '';
         for (var i = 0; i < rdata.data.length; i++) {
@@ -1101,7 +1007,7 @@ function delBackup(filename, name, path){
     if(typeof(path) == "undefined"){
         path = "";
     }
-    mgPost('delete_db_backup','',{filename:filename,path:path},function(){
+    api.post('delete_db_backup','',{filename:filename,path:path},function(){
         layer.msg('执行成功!');
         setTimeout(function(){
             setBackupReq(name);
@@ -1114,7 +1020,7 @@ function downloadBackup(file){
 }
 
 function importBackup(file,name){
-    mgPost('import_db_backup','',{file:file,name:name}, function(data){
+    api.post('import_db_backup','',{file:file,name:name}, function(data){
         layer.msg('执行成功!');
     });
 }
@@ -1160,7 +1066,7 @@ function setLocalImport(db_name){
     }
 
     function getList(){
-        mgPost('get_db_backup_import_list','',{}, function(data){
+        api.post('get_db_backup_import_list','',{}, function(data){
             var rdata = JSON.parse(data.data);
 
             var file_list = rdata.data.list;
@@ -1185,7 +1091,7 @@ function setLocalImport(db_name){
             $("#import_db_file_list .del").on('click',function(){
                 var index = $(this).attr('index');
                 var filename = file_list[index]["name"];
-                mgPost('delete_db_backup','',{filename:filename,path:upload_dir},function(){
+                api.post('delete_db_backup','',{filename:filename,path:upload_dir},function(){
                     showMsg('执行成功!', function(){
                         getList();
                     },{icon:1},2000);
@@ -1238,7 +1144,7 @@ function setLocalImport(db_name){
 }
 
 function importDbExternal(file,name){
-    mgPost('import_db_external','',{file:file,name:name}, function(data){
+    api.post('import_db_external','',{file:file,name:name}, function(data){
         layer.msg('执行成功!');
     });
 }
@@ -1252,14 +1158,14 @@ function otherFunc(){
 }
 
 function cronAddCheck(){
-    mgPost('cron_add_check', '', {}, function(data){
+    api.post('cron_add_check', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
 
 function cronDelCheck(){
-    mgPost('cron_del_check', '', {}, function(data){
+    api.post('cron_del_check', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });

@@ -63,7 +63,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -401,7 +401,7 @@ def addRec():
 
     args_name = args['name']
     if not checkNameSafe(args_name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
 
     args_pwd = args['pwd']
     args_path = args['path']
@@ -440,12 +440,12 @@ def addRec():
     hosts_allow = args.get('hosts_allow', '').strip()
     if hosts_allow:
         if not re.match(r'^[0-9a-zA-Z\.\,\/\s\*]+$', hosts_allow):
-            return yf.returnJson(False, 'IP白名单格式错误！')
+            return yf.returnJson(False, 'k_0132e348')
         con += "\n" + 'hosts allow = ' + hosts_allow
 
     content = content.strip() + "\n" + con
     yf.writeFile(path, content)
-    return yf.returnJson(True, '添加成功')
+    return yf.returnJson(True, 'k_3fdaeadf')
 
 
 def getRec():
@@ -456,7 +456,7 @@ def getRec():
 
     name = args['name']
     if name != "" and not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
 
     if name == "":
         tmp = {}
@@ -519,11 +519,11 @@ def delRec():
         return data[1]
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
     ok = delRecBy(name)
     if ok:
-        return yf.returnJson(True, '删除成功!')
-    return yf.returnJson(False, '删除失败!')
+        return yf.returnJson(True, 'k_fc9bddbc')
+    return yf.returnJson(False, 'k_9cf7a356')
 
 
 def cmdRecSecretKey():
@@ -536,7 +536,7 @@ def cmdRecSecretKey():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
     info = getRecListDataBy(name)
 
     secrets_file = info['secrets file']
@@ -559,7 +559,7 @@ def cmdRecCmd():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
     info = getRecListDataBy(name)
     ip = yf.getLocalIp()
 
@@ -694,7 +694,7 @@ def lsyncdListFindName(slist, name):
 def lsyncdList():
     data = getDefaultConf()
     send = data['send']
-    return yf.returnJson(True, "设置成功!", send)
+    return yf.returnJson(True, "k_956e02d7", send)
 
 
 def lsyncdGet():
@@ -706,7 +706,7 @@ def lsyncdGet():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
 
     data = getDefaultConf()
 
@@ -747,7 +747,7 @@ def lsyncdDelete():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
 
     data = getDefaultConf()
     slist = data['send']["list"]
@@ -826,7 +826,7 @@ def lsyncdAdd():
             info['password'] = m['B']
             info['port'] = m['C']
         except Exception as e:
-            return yf.returnJson(False, "接收密钥格式错误!")
+            return yf.returnJson(False, "k_cc100d68")
     else:
         data = checkArgs(args, ['sname', 'password'])
         if not data[0]:
@@ -837,7 +837,7 @@ def lsyncdAdd():
         info['port'] = args['port']
 
     if not checkNameSafe(info['name']):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线和中划线！')
+        return yf.returnJson(False, 'k_509c7149')
 
     try:
         port_num = int(info['port'])
@@ -845,7 +845,7 @@ def lsyncdAdd():
             raise ValueError
         info['port'] = port_num
     except Exception:
-        return yf.returnJson(False, "端口格式不合法！")
+        return yf.returnJson(False, "k_0e43275d")
 
     rsync = {
         'bwlimit': bwlimit,
@@ -881,7 +881,7 @@ def lsyncdAdd():
 
     setDefaultConf(data)
     makeLsyncdConf(data)
-    return yf.returnJson(True, "设置成功!")
+    return yf.returnJson(True, "k_956e02d7")
 
 
 def lsyncdRun():
@@ -892,14 +892,14 @@ def lsyncdRun():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, 'k_322dc2e8')
 
     send_dir = getServerDir() + "/send"
     app_dir = send_dir + "/" + name
 
     cmd = "bash " + app_dir + "/cmd >> " + app_dir + "/run.log" + " 2>&1 &"
     yf.execShell(cmd)
-    return yf.returnJson(True, "执行成功!")
+    return yf.returnJson(True, "k_74d3deb6")
 
 
 def lsyncdConfLog():
@@ -915,7 +915,7 @@ def lsyncdLog():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, 'k_322dc2e8')
 
     send_dir = getServerDir() + "/send"
     app_dir = send_dir + "/" + name
@@ -930,7 +930,7 @@ def lsyncdGetExclude():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, 'k_322dc2e8')
 
     data = getDefaultConf()
     slist = data['send']["list"]
@@ -948,7 +948,7 @@ def lsyncdRemoveExclude():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, 'k_322dc2e8')
 
     exclude = args['exclude']
 
@@ -981,7 +981,7 @@ def lsyncdAddExclude():
 
     name = args['name']
     if not checkNameSafe(name):
-        return yf.returnJson(False, '名称只能包含字母、数字、下划线 and 中划线！')
+        return yf.returnJson(False, 'k_322dc2e8')
 
     exclude = args['exclude']
 

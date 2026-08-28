@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('postgresql');
+var pt = YfI18n.createPluginTranslator('postgresql');
 function str2Obj(str){
     var data = {};
     kv = str.split('&');
@@ -19,70 +21,14 @@ function randomStr(b) {
     return d
 }
 
-function myPost(method,args,callback, title){
 
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
 
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
 
-    var loadT = layer.msg(_title, { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'postgresql', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
 
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
-function myPostN(method,args,callback, title){
-
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
-    $.post('/plugins/run', {name:'postgresql', func:method, args:_args}, function(data) {
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-async function myAsyncPost(method,args){
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    var res = await syncPost('/plugins/run', {name:'mysql', func:method, args:_args}); 
-    layer.close(loadT);
-    return res;
-}
 
 function runInfo(){
-    myPost('run_info','',function(data){
+    api.post('run_info','',function(data){
 
         var rdata = JSON.parse(data.data);
         if (typeof(rdata['status']) != 'undefined'){
@@ -117,7 +63,7 @@ function runInfo(){
 
 
 function pgPort(){
-    myPost('pg_port','',function(data){
+    api.post('pg_port','',function(data){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
             <input name="port" class="bt-input-text mr5 port" type="text" style="width:100px" value="'+data.data+'">\
@@ -127,7 +73,7 @@ function pgPort(){
 
         $('#btn_change_port').on('click', function(){
             var port = $("input[name='port']").val();
-            myPost('set_pg_port','port='+port,function(data){
+            api.post('set_pg_port','port='+port,function(data){
                 var rdata = JSON.parse(data.data);
                 if (rdata.status){
                     layer.msg('修改成功!',{icon:1,time:2000,shade: [0.3, '#000']});
@@ -143,7 +89,7 @@ function pgPort(){
 //数据库配置状态
 function pgPerfOpt() {
     //获取MySQL配置
-    myPost('db_status','',function(data){
+    api.post('db_status','',function(data){
         var rdata = JSON.parse(data.data);
         var html_p = '';
         for (i in rdata){
@@ -170,7 +116,7 @@ function pgPerfOpt() {
                 data[$(this).attr('name')] = $(this).val() + ($(this).attr('unit') || '');
             })
             // console.log(data);
-            myPost('set_db_status', data, function(data){
+            api.post('set_db_status', data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                 },{ icon: rdata.status ? 1 : 2 });
@@ -190,7 +136,7 @@ function setPgConf() {
 }
 
 function syncGetDatabase(){
-    myPost('sync_get_databases', null, function(data){
+    api.post('sync_get_databases', null, function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg,function(){
             dbList();
@@ -204,7 +150,7 @@ function syncToDatabase(type){
         if (!isNaN($(this).val())) data.push($(this).val());
     });
     var postData = 'type='+type+'&ids='+JSON.stringify(data); 
-    myPost('sync_to_databases', postData, function(data){
+    api.post('sync_to_databases', postData, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         showMsg(rdata.msg,function(){
@@ -216,7 +162,7 @@ function syncToDatabase(type){
 function setRootPwd(type, pwd){
     if (type==1){
         var data = $("#mod_pwd").serialize();
-        myPost('set_root_pwd', data, function(data){
+        api.post('set_root_pwd', data, function(data){
             var rdata = JSON.parse(data.data);
             // console.log(rdata);
             showMsg(rdata.msg,function(){
@@ -279,7 +225,7 @@ function checkSelect(){
 }
 
 function setDbRw(id,username,val){
-    myPost('set_db_rw',{id:id,username:username,rw:val}, function(data){
+    api.post('set_db_rw',{id:id,username:username,rw:val}, function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata.msg, function(){
             dbList();
@@ -288,7 +234,7 @@ function setDbRw(id,username,val){
 }
 
 function setDbAccess(name){
-    myPost('get_db_access','name='+name, function(data){
+    api.post('get_db_access','name='+name, function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,shade: [0.3, '#000']});
@@ -389,12 +335,12 @@ function setDbAccess(name){
 
                 $('#btn_onekey_grant').on('click', function(){
                     var loadT = layer.msg('正在一键赋权...', { icon: 16, time: 0, shade: 0.3 });
-                    myPost('set_db_privileges', {name: name}, function(grantData){
+                    api.post('set_db_privileges', {name: name}, function(grantData){
                         layer.close(loadT);
                         var grantRdata = JSON.parse(grantData.data);
                         if (grantRdata.status) {
                             layer.msg('一键赋权成功！', {icon: 1, time: 2000});
-                            myPost('get_db_access', 'name='+name, function(refreshData){
+                            api.post('get_db_access', 'name='+name, function(refreshData){
                                 var refreshRdata = JSON.parse(refreshData.data);
                                 renderPrivileges(refreshRdata);
                             });
@@ -419,7 +365,7 @@ function setDbAccess(name){
                     }
                 }
                 dataObj['name'] = name;
-                myPost('set_db_access', dataObj, function(data){
+                api.post('set_db_access', dataObj, function(data){
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
                         layer.close(index);
@@ -455,7 +401,7 @@ function setDbPass(id, username, password){
                   </form>",
         yes:function(index){
             var data = $("#mod_pwd").serialize();
-            myPost('set_user_pwd', data, function(data){
+            api.post('set_user_pwd', data, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(index);
@@ -479,7 +425,7 @@ function addDatabase(type,layer_index){
         if ($('[name="dataAccess"]').val() == 'ip'){
             dataObj['listen_ip'] = ip_segment;
         }
-        myPost('add_db', dataObj, function(data){
+        api.post('add_db', dataObj, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 layer.close(layer_index);
@@ -551,7 +497,7 @@ function addDatabase(type,layer_index){
 function delDb(id, name){
     safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name
-        myPost('del_db', data, function(data){
+        api.post('del_db', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 dbList();
@@ -574,7 +520,7 @@ function delDbBatch(){
     safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
-            var data  = await myAsyncPost('del_db', arr[idx]);
+            var data  = await api.postAsync('del_db', arr[idx]);
             var rdata = JSON.parse(data.data);
             if (!rdata.status){
                 layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
@@ -600,7 +546,7 @@ function setDbPs(id, name, obj) {
         var ps = _input.val();
         _span.text(ps).show();
         var data = {name:name,id:id,ps:ps};
-        myPost('set_db_ps', data, function(data){
+        api.post('set_db_ps', data, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
         });
@@ -613,7 +559,7 @@ function setDbPs(id, name, obj) {
 }
 
 function delBackup(filename,name){
-    myPost('delete_db_backup',{filename:filename},function(){
+    api.post('delete_db_backup',{filename:filename},function(){
         layer.msg('执行成功!');
         setTimeout(function(){
             $('.layui-layer-close2').click();
@@ -627,7 +573,7 @@ function downloadBackup(file){
 }
 
 function importBackup(file,name){
-    myPost('import_db_backup',{file:file,name:name}, function(data){
+    api.post('import_db_backup',{file:file,name:name}, function(data){
         // console.log(data);
         layer.msg('执行成功!');
     });
@@ -670,7 +616,7 @@ function uploadDbFiles(upload_dir, callback){
 }
 
 function setBackup(db_name,obj){
-     myPost('pg_back_list', {name:db_name}, function(data){
+     api.post('pg_back_list', {name:db_name}, function(data){
 
         var rdata = JSON.parse(data.data);
         console.log(rdata);
@@ -730,7 +676,7 @@ function setBackup(db_name,obj){
         });
 
         $('#btn_backup').on('click', function(){
-            myPost('pg_back',{name:db_name}, function(data){
+            api.post('pg_back',{name:db_name}, function(data){
                 layer.msg('执行成功!');
 
                 setTimeout(function(){
@@ -741,7 +687,7 @@ function setBackup(db_name,obj){
         });
 
         $('#btn_sync_backup').on('click', function(){
-            myPost('pg_back_list', {name:db_name, sync: 1}, function(syncData){
+            api.post('pg_back_list', {name:db_name, sync: 1}, function(syncData){
                 var syncRdata = JSON.parse(syncData.data);
                 var syncList = syncRdata.list || [];
                 $('.gztr').html(getTbodyHtml(syncList));
@@ -751,7 +697,7 @@ function setBackup(db_name,obj){
 
         $('#btn_upload_backup').on('click', function(){
             uploadDbFiles(upload_dir, function(){
-                myPost('pg_back_list', {name:db_name}, function(refreshData){
+                api.post('pg_back_list', {name:db_name}, function(refreshData){
                     var refreshRdata = JSON.parse(refreshData.data);
                     var refreshList = refreshRdata.list || [];
                     $('.gztr').html(getTbodyHtml(refreshList));
@@ -773,7 +719,7 @@ function dbList(page, search){
     if(typeof(search) != 'undefined'){
         _data['search'] = search;
     }
-    myPost('get_db_list', _data, function(data){
+    api.post('get_db_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         var list = '';
         for(i in rdata.data){
@@ -866,7 +812,7 @@ function dbList(page, search){
 
 
 function setDbMaster(name){
-    myPost('set_db_master', {name:name}, function(data){
+    api.post('set_db_master', {name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
         setTimeout(function(){
@@ -877,7 +823,7 @@ function setDbMaster(name){
 
 
 function setDbSlave(name){
-    myPost('set_db_slave', {name:name}, function(data){
+    api.post('set_db_slave', {name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
         setTimeout(function(){
@@ -941,7 +887,7 @@ function addMasterRepSlaveUser(){
                 dataObj['address'] = dataObj['dataAccess'];
             }
 
-            myPost('add_master_rep_slave_user', dataObj, function(data){
+            api.post('add_master_rep_slave_user', dataObj, function(data){
                 var rdata = JSON.parse(data.data);
                 showMsg(rdata.msg,function(){
                     layer.close(index);
@@ -982,7 +928,7 @@ function updateMasterRepSlaveUser(username){
         var data = $("#update_master").serialize();
         data = decodeURIComponent(data);
         var dataObj = str2Obj(data);
-        myPost('update_master_rep_slave_user', data, function(data){
+        api.post('update_master_rep_slave_user', data, function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg,function(){
                 if (rdata.status){
@@ -995,7 +941,7 @@ function updateMasterRepSlaveUser(username){
 }
 
 function getMasterRepSlaveUserCmd(username, db=''){
-    myPost('get_master_rep_slave_user_cmd', {username:username,db:db}, function(data){
+    api.post('get_master_rep_slave_user_cmd', {username:username,db:db}, function(data){
         var rdata = JSON.parse(data.data);
 
         if (!rdata['status']){
@@ -1026,7 +972,7 @@ function getMasterRepSlaveUserCmd(username, db=''){
 }
 
 function delMasterRepSlaveUser(username){
-    myPost('del_master_rep_slave_user', {username:username}, function(data){
+    api.post('del_master_rep_slave_user', {username:username}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg);
 
@@ -1046,7 +992,7 @@ function getMasterRepSlaveList(){
     
     _data['page'] = page;
     _data['page_size'] = 10;
-    myPost('get_master_rep_slave_list', _data, function(data){
+    api.post('get_master_rep_slave_list', _data, function(data){
         // console.log(data);
         var rdata = [];
         try {
@@ -1099,7 +1045,7 @@ function getMasterRepSlaveListPage(){
 
 
 function deleteSlave(){
-    myPost('delete_slave', {}, function(data){
+    api.post('delete_slave', {}, function(data){
         var rdata = JSON.parse(data.data);
         showMsg(rdata['msg'], function(){
             masterOrSlaveConf();
@@ -1132,7 +1078,7 @@ function getFullSyncStatus(db){
 
     function fullSync(db,begin){
        
-        myPostN('full_sync', {db:db,begin:begin}, function(data){
+        api.postSilent('full_sync', {db:db,begin:begin}, function(data){
             var rdata = JSON.parse(data.data);
             $('#full_msg').text(rdata['msg']);
             $('.progress-bar').css('width',rdata['progress']+'%');
@@ -1162,7 +1108,7 @@ function getFullSyncStatus(db){
 
 function addSlaveSSH(ip=''){
 
-    myPost('get_slave_ssh_by_ip', {ip:ip}, function(rdata){
+    api.post('get_slave_ssh_by_ip', {ip:ip}, function(rdata){
         
         var rdata = JSON.parse(rdata.data);
 
@@ -1205,7 +1151,7 @@ function addSlaveSSH(ip=''){
                 var id_rsa = $('textarea[name="id_rsa"]').val();
 
                 var data = {ip:ip,port:port,id_rsa:id_rsa,db_user:db_user};
-                myPost('add_slave_ssh', data, function(data){
+                api.post('add_slave_ssh', data, function(data){
                     layer.close(index);
                     var rdata = JSON.parse(data.data);
                     showMsg(rdata.msg,function(){
@@ -1221,7 +1167,7 @@ function addSlaveSSH(ip=''){
 
 
 function delSlaveSSH(ip){
-    myPost('del_slave_ssh', {ip:ip}, function(rdata){
+    api.post('del_slave_ssh', {ip:ip}, function(rdata){
         var rdata = JSON.parse(rdata.data);
         layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
         getSlaveSSHPage();
@@ -1233,7 +1179,7 @@ function getSlaveSSHPage(page=1){
     _data['page'] = page;
     _data['page_size'] = 5;
     _data['tojs'] ='getSlaveSSHPage';
-    myPost('get_slave_ssh_list', _data, function(data){
+    api.post('get_slave_ssh_list', _data, function(data){
         var layerId = null;
         var rdata = [];
         try {
@@ -1298,7 +1244,7 @@ function getSlaveSSHList(page=1){
 }
 
 function handlerRun(){
-    myPostN('get_slave_sync_cmd', {}, function(data){
+    api.postSilent('get_slave_sync_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         var cmd = rdata['data'];
         var loadOpen = layer.open({
@@ -1320,7 +1266,7 @@ function handlerRun(){
 }
 
 function slaveSyncCmd(){
-    myPost('slave_sync_cmd', {}, function(data){
+    api.post('slave_sync_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
 
         if (!rdata['status']){
@@ -1360,7 +1306,7 @@ function masterOrSlaveConf(version=''){
         _data['page'] = page;
         _data['page_size'] = 10;
 
-        myPost('get_slave_list', _data, function(data){
+        api.post('get_slave_list', _data, function(data){
             var rdata = JSON.parse(data.data);
             var list = '';
             for(i in rdata.data){
@@ -1412,7 +1358,7 @@ function masterOrSlaveConf(version=''){
     }
 
     function getMasterStatus(){
-        myPost('get_master_status', '', function(data){
+        api.post('get_master_status', '', function(data){
             var rdata = JSON.parse(data.data);
             // console.log('mode:',rdata.data);
             var rdata = rdata.data;
@@ -1445,7 +1391,7 @@ function masterOrSlaveConf(version=''){
 
             //设置主服务器配置
             $(".btn-master").on('click', function () {
-                myPost('set_master_status', 'close=change', function(data){
+                api.post('set_master_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
                     setTimeout(function(){
@@ -1455,7 +1401,7 @@ function masterOrSlaveConf(version=''){
             });
 
             $(".btn-slave").on('click', function () {
-                myPost('set_slave_status', 'close=change', function(data){
+                api.post('set_slave_status', 'close=change', function(data){
                     var rdata = JSON.parse(data.data);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 5 });
                     setTimeout(function(){

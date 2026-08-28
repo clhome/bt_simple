@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('ollama');
+var pt = YfI18n.createPluginTranslator('ollama');
 var ollama = {
     plugin_name: 'ollama',
     pull_timer: null,

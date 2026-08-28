@@ -164,16 +164,16 @@ def get_config(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
     
     inst_name = data.get('instance_name', '').strip()
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
     
     compose_file = os.path.join(instances_data[inst_name], inst_name, "docker-compose.yml")
     if not os.path.exists(compose_file):
-        return yf.returnJson(False, "配置文件不存在")
+        return yf.returnJson(False, "k_09dd110e")
         
     content = yf.readFile(compose_file)
     return yf.returnJson(True, "ok", content)
@@ -182,38 +182,38 @@ def toggle_status(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
     
     inst_name = data.get('instance_name', '').strip()
     action = data.get('action', 'start') # 'start' or 'stop'
     
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
     
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     if not os.path.exists(instance_path):
-        return yf.returnJson(False, "实例目录不存在")
+        return yf.returnJson(False, "k_6895b7ff")
         
     if action == 'start':
         yf.execShell(f"cd {instance_path} && docker compose start")
         write_log(inst_name, "start", "启动实例容器成功")
-        return yf.returnJson(True, "实例已成功启动")
+        return yf.returnJson(True, "k_1436f39b")
     else:
         yf.execShell(f"cd {instance_path} && docker compose stop")
         write_log(inst_name, "stop", "停止实例容器成功")
-        return yf.returnJson(True, "实例已成功停止")
+        return yf.returnJson(True, "k_a524f127")
 
 def get_backups(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
         
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     daily_dir = os.path.join(instance_path, "backups", "daily")
@@ -264,14 +264,14 @@ def toggle_auto_backup(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     enable = data.get('enable', False)
     
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
         
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     script_path = os.path.join(instance_path, "scripts", "backup.sh")
@@ -283,29 +283,29 @@ def toggle_auto_backup(args):
         with open(cron_file, 'w', encoding='utf-8', newline='\n') as f:
             f.write(cron_content)
         write_log(inst_name, "cron", "自动备份计划已开启")
-        return yf.returnJson(True, "自动备份计划已开启")
+        return yf.returnJson(True, "k_bc4a815a")
     else:
         if os.path.exists(cron_file):
             os.remove(cron_file)
         write_log(inst_name, "cron", "自动备份计划已关闭")
-        return yf.returnJson(True, "自动备份计划已关闭")
+        return yf.returnJson(True, "k_98ff2351")
 
 def create_backup(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
         
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     script_path = os.path.join(instance_path, "scripts", "backup.sh")
     
     if not os.path.exists(script_path):
-        return yf.returnJson(False, "备份脚本不存在，可能实例已损坏")
+        return yf.returnJson(False, "k_5611f60b")
         
     # Execute backup script with manual arg
     output = yf.execShell(f"/bin/bash {script_path} manual")
@@ -316,29 +316,29 @@ def create_backup(args):
     if "备份失败" in output[0] or "备份失败" in output[1]:
         return yf.returnJson(False, f"备份失败！输出: {output[0][:100]} {output[1][:100]}")
     
-    return yf.returnJson(True, "一键备份成功！")
+    return yf.returnJson(True, "k_dd39e57a")
 
 def restore_backup(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     file_path = data.get('file_path', '').strip()
     
     if not file_path or not os.path.exists(file_path):
-        return yf.returnJson(False, "备份文件不存在或参数错误")
+        return yf.returnJson(False, "k_1a1f45c5")
         
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
         
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     script_path = os.path.join(instance_path, "scripts", "restore.sh")
     
     if not os.path.exists(script_path):
-        return yf.returnJson(False, "恢复脚本不存在，可能实例已损坏")
+        return yf.returnJson(False, "k_b79fd355")
         
     # 热修复老实例的 restore.sh，使其通过管道读取文件，避免容器内外路径不一致
     try:
@@ -358,7 +358,7 @@ def restore_backup(args):
     write_log(inst_name, "restore", full_output)
     
     if "数据还原完成" in output[0] or "数据还原完成" in output[1]:
-        return yf.returnJson(True, "数据已成功还原！")
+        return yf.returnJson(True, "k_ed9c5b13")
     else:
         return yf.returnJson(False, f"还原可能失败，请检查日志！输出: {output[0][:200]}")
 
@@ -366,17 +366,17 @@ def delete_backup(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     file_path = data.get('file_path', '').strip()
     
     if not file_path or not os.path.exists(file_path):
-        return yf.returnJson(False, "文件不存在或参数错误")
+        return yf.returnJson(False, "k_c82b0bdf")
         
     # Ensure it's inside the backup dir for safety
     if "/backups/" not in file_path:
-        return yf.returnJson(False, "非法的路径")
+        return yf.returnJson(False, "k_4af87f8d")
         
     try:
         os.remove(file_path)
@@ -393,7 +393,7 @@ def delete_backup(args):
                 pass
                 
         write_log(inst_name, "delete_backup", f"删除了备份文件: {file_path}")
-        return yf.returnJson(True, "备份删除成功！")
+        return yf.returnJson(True, "k_bacd44aa")
     except Exception as e:
         return yf.returnJson(False, f"删除失败: {str(e)}")
 
@@ -401,18 +401,18 @@ def save_backup_remark(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     filename = data.get('filename', '').strip()
     remark = data.get('remark', '').strip()
     
     if not filename:
-        return yf.returnJson(False, "文件名不能为空")
+        return yf.returnJson(False, "k_f185973c")
         
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
         
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     remarks_file = os.path.join(instance_path, "backups", "remarks.json")
@@ -427,31 +427,31 @@ def save_backup_remark(args):
     remarks_data[filename] = remark
     yf.writeFile(remarks_file, json.dumps(remarks_data))
     
-    return yf.returnJson(True, "备注保存成功")
+    return yf.returnJson(True, "k_cbcf2ef8")
 
 def toggle_external_port(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     is_ext = data.get('is_external', False)
     
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
         
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     compose_file = os.path.join(instance_path, "docker-compose.yml")
     if not os.path.exists(compose_file):
-        return yf.returnJson(False, "配置文件不存在")
+        return yf.returnJson(False, "k_09dd110e")
         
     content = yf.readFile(compose_file)
     
     pm = re.search(r'ports:\s*\n\s*-\s*"(?:127\.0\.0\.1:)?(\d+):5432"', content)
     if not pm:
-        return yf.returnJson(False, "无法解析端口配置")
+        return yf.returnJson(False, "k_8065948f")
         
     port = pm.group(1)
     old_ports = pm.group(0)
@@ -466,13 +466,13 @@ def toggle_external_port(args):
     
     yf.execShell(f"cd {instance_path} && docker compose down && docker compose up -d")
     
-    return yf.returnJson(True, "配置已更新，容器已重启生效")
+    return yf.returnJson(True, "k_7289ec35")
 
 def modify_config(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
         
     inst_name = data.get('instance_name', '').strip()
     db_user = data.get('db_user', '').strip()
@@ -480,16 +480,16 @@ def modify_config(args):
     new_port = data.get('new_port', '').strip()
     
     if not inst_name or not new_port:
-        return yf.returnJson(False, "参数不完整")
+        return yf.returnJson(False, "k_040c2fcc")
         
     instances_data = load_instances()
     if inst_name not in instances_data:
-        return yf.returnJson(False, "找不到该实例")
+        return yf.returnJson(False, "k_77ce2d5b")
         
     instance_path = os.path.join(instances_data[inst_name], inst_name)
     compose_file = os.path.join(instance_path, "docker-compose.yml")
     if not os.path.exists(compose_file):
-        return yf.returnJson(False, "配置文件不存在")
+        return yf.returnJson(False, "k_09dd110e")
         
     content = yf.readFile(compose_file)
     
@@ -511,7 +511,7 @@ def modify_config(args):
             exec_cmd = f"docker exec pg-{inst_name} psql -U {db_user} -c \"{sql}\""
             yf.execShell(exec_cmd)
         else:
-            return yf.returnJson(False, "实例未运行，无法修改密码。请先启动实例。")
+            return yf.returnJson(False, "k_a328fd9e")
 
     # 2. 修改端口
     pm = re.search(r'ports:\s*\n\s*-\s*"(?:127\.0\.0\.1:)?(\d+):5432"', content)
@@ -536,7 +536,7 @@ def modify_config(args):
             new_ports = f'ports:\n      - "127.0.0.1:{new_port}:5432"'
         content = content.replace(old_ports, new_ports)
     else:
-        return yf.returnJson(False, "无法解析原端口配置")
+        return yf.returnJson(False, "k_d9691de8")
         
     yf.writeFile(compose_file, content)
     
@@ -544,17 +544,17 @@ def modify_config(args):
     yf.execShell(f"cd {instance_path} && docker compose down && docker compose up -d")
     
     write_log(inst_name, "modify", "已成功修改配置并重启容器")
-    return yf.returnJson(True, "配置修改成功，容器已重启")
+    return yf.returnJson(True, "k_2e868e7b")
 
 def create_instance(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
 
     inst_name = data.get('instance_name', '').strip()
     if not inst_name or not re.match(r'^[a-zA-Z0-9_]+$', inst_name):
-        return yf.returnJson(False, "实例名称不能为空且只能包含字母、数字和下划线")
+        return yf.returnJson(False, "k_7c728aa2")
 
     base_dir = data.get('base_dir', '/docker_data').strip()
     if not base_dir:
@@ -824,20 +824,20 @@ echo "✅ 数据还原完成！"
     
     write_log(inst_name, "create", "实例部署成功！容器已启动。")
 
-    return yf.returnJson(True, "实例部署成功！容器正在启动中...")
+    return yf.returnJson(True, "k_65593dd9")
 
 def uninstall_instance(args):
     try:
         data = json.loads(args)
     except:
-        return yf.returnJson(False, "参数解析失败")
+        return yf.returnJson(False, "k_5288096d")
     
     inst_name = data.get('instance_name', '').strip()
     keep_data = data.get('keep_data', True)
     base_dir = data.get('base_dir', '/docker_data').strip()
 
     if not inst_name:
-        return yf.returnJson(False, "实例名称不能为空")
+        return yf.returnJson(False, "k_1fd1c926")
     
     inst_dir = os.path.join(base_dir, inst_name)
     
@@ -864,7 +864,7 @@ def uninstall_instance(args):
         
     write_log(inst_name, "uninstall", f"实例已被卸载。保留数据: {keep_data}")
 
-    return yf.returnJson(True, "实例已成功卸载！")
+    return yf.returnJson(True, "k_441f5b86")
 
 def write_log(inst_name, action, msg):
     log_file = os.path.join(getServerDir(), 'plugin.log')
@@ -910,7 +910,7 @@ def clear_logs(args):
     try:
         with open(log_file, 'w', encoding='utf-8') as f:
             f.write("")
-        return yf.returnJson(True, "日志已清空")
+        return yf.returnJson(True, "k_24f14b50")
     except Exception as e:
         return yf.returnJson(False, f"清空日志失败: {str(e)}")
 

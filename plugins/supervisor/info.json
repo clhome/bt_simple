@@ -14,6 +14,6 @@
     "author": "python",
     "date": "2026-05-28",
     "home": "https://pypi.org/project/supervisor/",
-    "type": 0,
+    "type": "tool",
     "pid": "4"
 }

@@ -78,7 +78,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -243,7 +243,7 @@ def dnsapiAdd():
     sid = args['id'].strip()
 
     if name == '':
-        return yf.returnJson(False, '名称不能为空!')
+        return yf.returnJson(False, 'k_f402b08f')
 
     if sid != '0' : #修改操作
         conn.where("id=?", (sid,)).update({
@@ -252,7 +252,7 @@ def dnsapiAdd():
             'val':val,
             'remark':remark,
         })
-        return yf.returnJson(True, '修改成功!')
+        return yf.returnJson(True, 'k_9844f9b3')
 
     if conn.where("name=?", (name,)).count():
         return yf.returnJson(False, name+'已存在!')
@@ -260,7 +260,7 @@ def dnsapiAdd():
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     err = conn.add('name,type,val,remark,addtime', (name, stype, val,remark, addTime))
     # print(err)
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 def dnsapiDel():
     args = getArgs()
@@ -273,9 +273,9 @@ def dnsapiDel():
         sid = args['id']
         name = args['name']
         conn.where("id=?", (sid,)).delete()
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
     except Exception as ex:
-        return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, 'k_9cf7a356' + str(ex))
 
 def dnsapiList():
     args = getArgs()
@@ -363,13 +363,13 @@ def emailAdd():
     remark = args['remark'].strip()
 
     if addr == '':
-        return yf.returnJson(False, '邮件地址不能为空!')
+        return yf.returnJson(False, 'k_1bf3ad16')
 
     conn = pSqliteDb('email')
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     conn.add('addr,remark,addtime', (addr, remark, addTime))
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 def emailDel():
     args = getArgs()
@@ -382,9 +382,9 @@ def emailDel():
         sid = args['id']
         name = args['name']
         conn.where("id=?", (sid,)).delete()
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
     except Exception as ex:
-        return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, 'k_9cf7a356' + str(ex))
 
 def domainAdd():
     args = getArgs()
@@ -399,9 +399,9 @@ def domainAdd():
     dnsapi_id = args['dnsapi_id'].strip()
 
     if domain == '':
-        return yf.returnJson(False, '域名不能为空!')
+        return yf.returnJson(False, 'k_dd3209e0')
     if email == '':
-        return yf.returnJson(False, '邮件不能为空!')
+        return yf.returnJson(False, 'k_eb189b59')
 
     conn = pSqliteDb('domain')
 
@@ -412,7 +412,7 @@ def domainAdd():
             'email':email,
             'remark':remark,
         })
-        return yf.returnJson(True, '修改成功!')
+        return yf.returnJson(True, 'k_9844f9b3')
 
     if conn.where("domain=?", (domain,)).count():
         return yf.returnJson(False, domain+'已存在!')
@@ -421,7 +421,7 @@ def domainAdd():
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     conn.add('domain,dnsapi_id,email,remark,addtime', (domain, dnsapi_id,email,remark, addTime))
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 def domainDel():
     args = getArgs()
@@ -434,9 +434,9 @@ def domainDel():
         sid = args['id']
         name = args['name']
         conn.where("id=?", (sid,)).delete()
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
     except Exception as ex:
-        return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, 'k_9cf7a356' + str(ex))
 
 def domainStatusToggle():
     args = getArgs()
@@ -458,7 +458,7 @@ def domainStatusToggle():
     conn.where("id=?", (args['id'],)).update({
         'status':fstatus,
     })
-    return yf.returnJson(True, '切换成功!')
+    return yf.returnJson(True, 'k_ad135320')
 
 def domainList():
     args = getArgs()

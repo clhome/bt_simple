@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('rsyncd');
+var pt = YfI18n.createPluginTranslator('rsyncd');
 //base64.js
 function base64_encode(str) {
     var base64EncodeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

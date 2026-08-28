@@ -90,7 +90,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -197,7 +197,7 @@ def conListData():
     except Exception as e:
         err_msg = str(e)
         if 'Connection' in err_msg or 'connect' in err_msg.lower() or 'refused' in err_msg.lower():
-            return yf.returnJson(False, '未开启Docker')
+            return yf.returnJson(False, 'k_11073d76')
         return yf.returnJson(False, '获取容器列表失败: ' + err_msg)
     return yf.returnJson(True, 'ok', clist)
 
@@ -221,9 +221,9 @@ def dockerRemoveCon():
         except:
             pass
         conFind.remove(force=True)
-        return yf.returnJson(True, '成功删除!')
+        return yf.returnJson(True, 'k_8b994057')
     except docker.errors.APIError as ex:
-        return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, 'k_9cf7a356' + str(ex))
 
 
 def dockerLogCon():
@@ -262,9 +262,9 @@ def dockerRunCon():
         if not conFind:
             return yf.returnJson(False, 'The specified container does not exist!')
         conFind.start()
-        return yf.returnJson(True, '启动成功!')
+        return yf.returnJson(True, 'k_de7bce09')
     except docker.errors.APIError as ex:
-        return yf.returnJson(False, '启动失败!' + str(ex))
+        return yf.returnJson(False, 'k_7f1276ee' + str(ex))
 
 
 def dockerStopCon():
@@ -281,9 +281,9 @@ def dockerStopCon():
         if not conFind:
             return yf.returnJson(False, 'The specified container does not exist!')
         conFind.stop()
-        return yf.returnJson(True, '停止成功!')
+        return yf.returnJson(True, 'k_7700418b')
     except docker.errors.APIError as ex:
-        return yf.returnJson(False, '停止失败!' + str(ex))
+        return yf.returnJson(False, 'k_df93e12b' + str(ex))
 
 
 def dockerExec():
@@ -297,7 +297,7 @@ def dockerExec():
 
     debug_path = 'data/debug.pl'
     if os.path.exists(debug_path):
-        return yf.returnJson(False, '开发模式不能进入!')
+        return yf.returnJson(False, 'k_b66a4368')
 
     c = getDClient()
     try:
@@ -305,7 +305,7 @@ def dockerExec():
         cmd = 'docker container exec -it %s /bin/sh' % Hostname
         return yf.returnJson(True, cmd)
     except docker.errors.APIError as ex:
-        return yf.returnJson(False, '连接失败!')
+        return yf.returnJson(False, 'k_0c81a04b')
 
 
 def imageList():
@@ -389,7 +389,7 @@ def docker_pull_with_mirror():
     # 唤醒后台队列
     yf.triggerTask()
 
-    return yf.returnJson(True, '已将拉取任务加入消息盒子队列，请在任务列表中查看实时进度！')
+    return yf.returnJson(True, 'k_45524a10')
 
 
 def dockerPull():
@@ -409,9 +409,9 @@ def dockerPull():
     try:
         ret = c.images.pull(images)
         if ret:
-            return yf.returnJson(True, '拉取成功！')
+            return yf.returnJson(True, 'k_0482aea1')
         else:
-            return yf.returnJson(False, '拉取失败，请检查镜像名称或是否需要登录docker进行下载')
+            return yf.returnJson(False, 'k_48d4c971')
     except Exception as e:
         ret = yf.execShell('docker image pull %s' % shlex.quote(images))
         stderr_out = ret[1].strip() if len(ret) > 1 else ret[-1].strip()
@@ -419,7 +419,7 @@ def dockerPull():
             err_msg = stderr_out if stderr_out else str(e)
             return yf.returnJson(False, '拉取失败: ' + err_msg)
         else:
-            return yf.returnJson(True, '拉取成功！')
+            return yf.returnJson(True, 'k_0482aea1')
 
 
 def dockerPlulPath(path):
@@ -431,7 +431,7 @@ def dockerPlulPath(path):
     if 'Error' in stderr_out or 'error' in stderr_out or 'invalid' in stderr_out or 'not found' in stderr_out or 'denied' in stderr_out:
         return yf.returnJson(False, '拉取失败: ' + stderr_out)
     else:
-        return yf.returnJson(True, '拉取成功！')
+        return yf.returnJson(True, 'k_0482aea1')
 
 
 def dockerPullReg():
@@ -467,7 +467,7 @@ def dockerPullPrivateNew():
 
     my_repo = repoList()
     if not my_repo:
-        return yf.returnJson(False, '未登录任何私人存储库，请登录然后拉取')
+        return yf.returnJson(False, 'k_061ab1ba')
     return dockerPlulPath(path)
 
 
@@ -477,7 +477,7 @@ def imageListData():
     except Exception as e:
         err_msg = str(e)
         if 'Connection' in err_msg or 'connect' in err_msg.lower() or 'refused' in err_msg.lower():
-            return yf.returnJson(False, '未开启Docker')
+            return yf.returnJson(False, 'k_11073d76')
         return yf.returnJson(False, '获取镜像列表失败: ' + err_msg)
     return yf.returnJson(True, 'ok', ilist)
 
@@ -494,13 +494,13 @@ def dockerRemoveImage():
     c = getDClient()
     try:
         c.images.remove(repoTags)
-        return yf.returnJson(True, '成功删除')
+        return yf.returnJson(True, 'k_ad6ffbf7')
     except:
         try:
             c.images.remove(imageId)
-            return yf.returnJson(True, '成功删除!')
+            return yf.returnJson(True, 'k_8b994057')
         except docker.errors.APIError as ex:
-            return yf.returnJson(False, '删除失败, 当前镜像正在使用!')
+            return yf.returnJson(False, 'k_d1ce6c11')
 
 
 def getImageListFunc(dbname=''):
@@ -563,7 +563,7 @@ def dockerImagePickSave():
             str(time.strftime('%Y%m%d_%H%M%S', time.localtime())) + '.tar.gz'
         yf.execShell('docker image save %s | gzip > %s' %
                      (shlex.quote(images), shlex.quote(file_name)))
-        return yf.returnJson(True, '导出镜像 {} 成功!'.format(file_name))
+        return yf.returnJson(True, 'k_10190968'.format(file_name))
     except docker.errors.APIError as ex:
         return yf.returnJson(False, '操作失败: ' + str(ex))
 
@@ -577,14 +577,14 @@ def dockerImagePickLoad():
     try:
         file_path = args['file']
         if not os.path.exists(file_path):
-            return yf.returnJson(False, '文件不存在')
+            return yf.returnJson(False, 'k_d9523e34')
         if file_path.endswith('.tar'):
             yf.execShell('docker image load < %s' % shlex.quote(file_path))
         elif file_path.endswith('.tar.gz'):
             yf.execShell('gunzip -c %s | docker image load' % shlex.quote(file_path))
         else:
-            return yf.returnJson(False, '不支持改文件类型!')
-        return yf.returnJson(True, '导入镜像文件成功!')
+            return yf.returnJson(False, 'k_d4a25866')
+        return yf.returnJson(True, 'k_06608d94')
     except docker.errors.APIError as ex:
         return yf.returnJson(False, '操作失败: ' + str(ex))
 
@@ -639,7 +639,7 @@ def dockerAddIP():
     }
     iplist.append(ipInfo)
     yf.writeFile(ipConf, json.dumps(iplist))
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 
 def dockerDelIP():
@@ -652,7 +652,7 @@ def dockerDelIP():
     path = getServerDir()
     ipConf = path + '/iplist.json'
     if not os.path.exists(ipConf):
-        return yf.returnJson(False, '指定的IP不存在。！')
+        return yf.returnJson(False, 'k_be536c40')
     iplist = json.loads(yf.readFile(ipConf))
     newList = []
     for ipInfo in iplist:
@@ -660,7 +660,7 @@ def dockerDelIP():
             continue
         newList.append(ipInfo)
     yf.writeFile(ipConf, json.dumps(newList))
-    return yf.returnJson(True, '成功删除!')
+    return yf.returnJson(True, 'k_8b994057')
 
 
 def getDockerCreateInfo():
@@ -765,11 +765,11 @@ def dockerCreateCon():
         )
         if conObject:
             __release_port(ports)
-            return yf.returnJson(True, '创建成功!')
+            return yf.returnJson(True, 'k_8c718510')
 
-        return yf.returnJson(False, '创建失败!')
+        return yf.returnJson(False, 'k_295b18d5')
     except docker.errors.APIError as ex:
-        return yf.returnJson(False, '创建失败!' + str(ex))
+        return yf.returnJson(False, 'k_295b18d5' + str(ex))
 
 
 def dockerLogin():
@@ -809,8 +809,8 @@ def dockerLogin():
             ret['registry'] = "docker.io"
         user_info.append(ret)
         yf.writeFile(user_file, json.dumps(user_info))
-        return yf.returnJson(True, '成功登录!')
-    return yf.returnJson(False, '登录失败!')
+        return yf.returnJson(True, 'k_ce24d510')
+    return yf.returnJson(False, 'k_2de0ed62')
 
 
 # 删除用户信息
@@ -843,9 +843,9 @@ def dockerLogout():
         ret2 = re.findall(ret, login_test[-1])
         delete_user_info(registry)
         if len(ret2) == 0:
-            return yf.returnJson(True, '退出成功')
+            return yf.returnJson(True, 'k_8150f908')
         else:
-            return yf.returnJson(True, '退出失败')
+            return yf.returnJson(True, 'k_e31ebb65')
 
 
 
@@ -886,9 +886,9 @@ def set_accelerator():
         else:
             mirrors = json.loads(mirrors_str)
             if not isinstance(mirrors, list):
-                return yf.returnJson(False, '参数格式错误，期望 JSON 数组')
+                return yf.returnJson(False, 'k_00192007')
     except:
-        return yf.returnJson(False, '参数解析失败，非有效的 JSON 数组')
+        return yf.returnJson(False, 'k_287463c2')
 
     daemon_file = get_daemon_json_path()
     daemon_dir = os.path.dirname(daemon_file)
@@ -918,7 +918,7 @@ def set_accelerator():
         if not yf.isAppleSystem() and os.name != 'nt':
             yf.execShell('systemctl daemon-reload')
             yf.execShell('systemctl restart docker')
-        return yf.returnJson(True, '加速器配置已保存并重启 Docker 服务使之生效！')
+        return yf.returnJson(True, 'k_6d1c8423')
     except Exception as e:
         return yf.returnJson(False, '配置保存失败: ' + str(e))
 
@@ -980,7 +980,7 @@ def checkDockerMigrateSpace():
 
     new_path = args['new_path'].strip()
     if not new_path:
-        return yf.returnJson(False, '新路径不能为空')
+        return yf.returnJson(False, 'k_822c6eaf')
 
     try:
         cmd_root = "docker info --format '{{.DockerRootDir}}'"
@@ -988,7 +988,7 @@ def checkDockerMigrateSpace():
         docker_root = out.strip() if out else "/var/lib/docker"
 
         if docker_root == new_path:
-            return yf.returnJson(False, '新路径不能与当前路径相同')
+            return yf.returnJson(False, 'k_050e7e12')
 
         if not os.path.exists(new_path):
             try:
@@ -1017,13 +1017,13 @@ def checkDockerMigrateSpace():
                     avail_size = yf.toSize(available_kb * 1024)
                     
                     if required_kb > available_kb * 0.95:
-                        return yf.returnJson(False, '目标分区空间不足！预估需要: %s，目标可用: %s' % (req_size, avail_size))
+                        return yf.returnJson(False, 'k_9cbf5716' % (req_size, avail_size))
                     
                     return yf.returnJson(True, 'ok', {'required': req_size, 'available': avail_size})
             except:
                 pass
         
-        return yf.returnJson(True, 'ok', {'required': '未知', 'available': '未知'})
+        return yf.returnJson(True, 'k_e20176f1', 'available': '未知'})
     except Exception as e:
         return yf.returnJson(False, str(e))
 
@@ -1036,7 +1036,7 @@ def migrateDockerDir():
 
     new_path = args['new_path'].strip()
     if not new_path:
-        return yf.returnJson(False, '新路径不能为空')
+        return yf.returnJson(False, 'k_822c6eaf')
 
     try:
         # 获取当前根目录
@@ -1045,7 +1045,7 @@ def migrateDockerDir():
         docker_root = out.strip() if out else "/var/lib/docker"
 
         if docker_root == new_path:
-            return yf.returnJson(False, '新路径不能与当前路径相同')
+            return yf.returnJson(False, 'k_050e7e12')
 
         if not os.path.exists(new_path):
             os.makedirs(new_path)
@@ -1072,7 +1072,7 @@ def migrateDockerDir():
                     if required_kb > available_kb * 0.95:
                         req_size = yf.toSize(required_kb * 1024)
                         avail_size = yf.toSize(available_kb * 1024)
-                        return yf.returnJson(False, '目标分区空间不足！预估需要: %s，目标可用: %s' % (req_size, avail_size))
+                        return yf.returnJson(False, 'k_9cbf5716' % (req_size, avail_size))
             except:
                 pass
 
@@ -1118,7 +1118,7 @@ def migrateDockerDir():
             yf.execShell('systemctl start docker.socket')
             yf.execShell('systemctl start docker')
         
-        return yf.returnJson(True, '迁移成功！')
+        return yf.returnJson(True, 'k_dc18e951')
     except Exception as e:
         # 尝试恢复
         if not yf.isAppleSystem() and os.name != 'nt':

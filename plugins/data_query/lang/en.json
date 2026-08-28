@@ -1,0 +1,23 @@
+{
+    "k_0b36a80b": "菜单。",
+    "k_73cefb32": "刷新后，在面板",
+    "k_c58e71fa": "<button class=\"btn btn-success btn-xs\" onclick=\"location.href=\\'/plugins/menu?tag=data_query\\'; layer.closeAll();\" style=\"padding: 2px 8px; font-size: 11px; font-weight: normal; border-radius: 3px;\">打开管理页</button>",
+    "k_49dea693": "' +\n               '                操作说明' +\n               '",
+    "k_f4104dc6": "参数:(",
+    "k_936a3206": "<li style=\"margin-bottom: 6px;\">刷新后，在面板<b>左侧导航栏</b>中会显示并激活 <b style=\"color: #333;\">“数据管理”</b> 菜单。</li>",
+    "k_967de40a": "<li style=\"margin-bottom: 6px;\">本插件为数据检索管理工具，<b>无需运行后台守护进程</b>。</li>",
+    "k_43daf011": "中会显示并激活",
+    "k_08ab2302": "操作说明",
+    "k_9aa81e0a": "使用指引",
+    "k_3b3f3769": "强制刷新当前浏览器页面。",
+    "k_e96bcc28": "打开管理页",
+    "k_91119c3c": "点击该菜单，即可开始对 Redis、Memcached、MongoDB 等数据库进行数据检索与管理。",
+    "k_c44855e8": "请按键盘快捷键",
+    "k_22790f6e": "左侧导航栏",
+    "k_6eae49ff": "本插件为数据检索管理工具，",
+    "k_47f0cdb6": "无需运行后台守护进程",
+    "k_56fda2fe": "“数据管理”",
+    "k_48551575": "<li>点击该菜单，即可开始对 Redis、Memcached、MongoDB 等数据库进行数据检索与管理。</li>",
+    "k_56c74397": "<li style=\"margin-bottom: 6px;\">请按键盘快捷键 <code style=\"background-color: #f9f2f4; color: #c7254e; padding: 2px 4px; border-radius: 3px; font-family: inherit; font-size: 90%;\">Ctrl + F5</code> 强制刷新当前浏览器页面。</li>",
+    "k_a3b46fc4": ")没有!"
+}

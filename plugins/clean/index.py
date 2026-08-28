@@ -252,7 +252,7 @@ def cleanRun():
     log_file = getServerDir()+'/clean.log'
     cmd = 'cd '+yf.getPanelDir()+' && python3 '+plugin_dir+'/index.py clean > '+log_file
     os.system(cmd)
-    return yf.returnJson(True, '执行成功!')
+    return yf.returnJson(True, 'k_74d3deb6')
 
 def cleanLog():
     conf = getConf()

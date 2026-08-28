@@ -60,7 +60,7 @@ class App:
     def checkArgs(self, data, ck=[]):
         for i in range(len(ck)):
             if not ck[i] in data:
-                return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+                return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
         return (True, yf.returnJson(True, 'ok'))
 
     def getPluginName(self):
@@ -178,7 +178,7 @@ class App:
         res = yf.execShell(cmd)
         # 如果连接被拒绝，提示需要启动服务
         if res[1] != '' and 'connection refused' in res[1].lower():
-            return yf.returnJson(False, '无法连接到 Ollama 服务，请确保服务已正常启动！')
+            return yf.returnJson(False, 'k_03b69250')
         
         lines = res[0].strip().split('\n')
         models = []
@@ -199,7 +199,7 @@ class App:
         cmd = "ollama ps"
         res = yf.execShell(cmd)
         if res[1] != '' and 'connection refused' in res[1].lower():
-            return yf.returnJson(False, '无法连接到 Ollama 服务！')
+            return yf.returnJson(False, 'k_ff6faa3a')
             
         lines = res[0].strip().split('\n')
         models = []
@@ -220,11 +220,11 @@ class App:
         args = self.getArgs()
         model_name = args.get('model_name', '').strip()
         if not model_name:
-            return yf.returnJson(False, '模型名称不能为空！')
+            return yf.returnJson(False, 'k_3b24a184')
 
         # 对模型名称进行强校验防御命令行注入
         if not re.match(r'^[a-zA-Z0-9.:\-_/]+$', model_name):
-            return yf.returnJson(False, '模型名称包含非法字符！')
+            return yf.returnJson(False, 'k_0747dbf9')
 
         log_file = self.getServerDir() + '/pull.log'
         pulling_file = self.getServerDir() + '/pulling_name.pl'
@@ -234,7 +234,7 @@ class App:
         # 后台异步启动拉取进程并保存日志
         cmd = "nohup ollama pull {} > {} 2>&1 &".format(model_name, log_file)
         yf.execShell(cmd)
-        return yf.returnJson(True, '模型拉取任务已在后台成功启动！')
+        return yf.returnJson(True, 'k_02c88c6d')
 
     def get_pull_log(self):
         log_file = self.getServerDir() + '/pull.log'
@@ -245,7 +245,7 @@ class App:
             model_name = yf.readFile(pulling_file).strip()
 
         if not os.path.exists(log_file):
-            return yf.returnJson(True, '等待任务初始化...', {'status': 'running', 'log': '正在初始化拉取任务...\n', 'model': model_name})
+            return yf.returnJson(True, 'k_30a8ccd4', {'status': 'running', 'log': '正在初始化拉取任务...\n', 'model': model_name})
 
         content = yf.readFile(log_file)
         # 将 \r 换行处理以防多进度堆叠，只向前端返回最后20行
@@ -277,16 +277,16 @@ class App:
         args = self.getArgs()
         model_name = args.get('model_name', '').strip()
         if not model_name:
-            return yf.returnJson(False, '模型名称不能为空！')
+            return yf.returnJson(False, 'k_3b24a184')
 
         if not re.match(r'^[a-zA-Z0-9.:\-_/]+$', model_name):
-            return yf.returnJson(False, '非法的模型名称！')
+            return yf.returnJson(False, 'k_ebebb553')
 
         cmd = "ollama rm {}".format(model_name)
         res = yf.execShell(cmd)
         if res[1] == '':
-            return yf.returnJson(True, '模型删除成功！')
-        return yf.returnJson(False, '删除失败：{}'.format(res[1]))
+            return yf.returnJson(True, 'k_f4db36ed')
+        return yf.returnJson(False, 'k_f27c048d'.format(res[1]))
 
     def get_service_file(self):
         paths = [
@@ -334,17 +334,17 @@ class App:
         port_open = args.get('port_open', '') # 'true' / 'false'
 
         if not host:
-            return yf.returnJson(False, '监听 Host 不能为空！')
+            return yf.returnJson(False, 'k_089db685')
 
         if not re.match(r'^[0-9a-zA-Z.:\-_]+$', host):
-            return yf.returnJson(False, 'Host 包含非法字符！')
+            return yf.returnJson(False, 'k_4daf4b9d')
 
         if models_path and not re.match(r'^[0-9a-zA-Z.:\-_/]+$', models_path):
-            return yf.returnJson(False, '存储路径包含非法字符！')
+            return yf.returnJson(False, 'k_25b78dd6')
 
         service_file = self.get_service_file()
         if not service_file:
-            return yf.returnJson(False, '找不到 Ollama 服务文件，无法修改配置！')
+            return yf.returnJson(False, 'k_0d0b8b43')
 
         content = yf.readFile(service_file)
         lines = content.split('\n')
@@ -361,7 +361,7 @@ class App:
                 break
 
         if service_idx == -1:
-            return yf.returnJson(False, 'Systemd 文件格式损坏！')
+            return yf.returnJson(False, 'k_bc02b379')
 
         new_lines.insert(service_idx + 1, 'Environment="OLLAMA_HOST={}"'.format(host))
         if models_path:
@@ -379,7 +379,7 @@ class App:
             yf.execShell('firewall-cmd --reload')
 
         yf.execShell('systemctl restart ollama')
-        return yf.returnJson(True, '配置更新成功，服务已重启生效！')
+        return yf.returnJson(True, 'k_58590326')
 
     def get_service_logs(self):
         # 获取服务最新 100 行日志
@@ -415,7 +415,7 @@ if __name__ == "__main__":
     
     # 强正则校验白名单，彻底阻断 eval/系统注入可能
     if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', func):
-        print(yf.returnJson(False, '函数参数不合法！'))
+        print(yf.returnJson(False, 'k_4af198d4'))
         sys.exit(0)
         
     classApp = App()

@@ -21,6 +21,6 @@
     "author": "mongodb",
     "date": "2021-11-23",
     "home": "https://www.mongodb.com/docs/v4.4/installation/",
-    "type": 0,
+    "type": "database",
     "pid": "2"
 }

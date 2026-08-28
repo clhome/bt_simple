@@ -1,37 +1,13 @@
-function rsPost(method,args,callback, title){
+var api = YfPlugin.createApi('rsyncd');
+var pt = YfI18n.createPluginTranslator('rsyncd');
 
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
-
-    var loadT = layer.msg(_title, { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'rsyncd', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 ///////////////// ----------------- 发送配置 ---------------- //////////////
 
 function createSendTask(name = ''){
     var args = {};
     args["name"] = name;
-    rsPost('lsyncd_get', args, function(rdata){
+    api.post('lsyncd_get', args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var data = rdata.data;
         console.log(data);
@@ -333,7 +309,7 @@ function createSendTask(name = ''){
                 args['minute'] = $('input[name="minute"]').val();
                 args['minute-n'] = $('input[name="minute-n"]').val();
 
-                rsPost('lsyncd_add', args, function(rdata){
+                api.post('lsyncd_add', args, function(rdata){
                     var rdata = JSON.parse(rdata.data);
                     layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
 
@@ -355,7 +331,7 @@ function lsyncdDelete(name){
     safeMessage('删除['+name+']', '您真的要删除【'+name+'】吗？', function(){
         var args = {};
         args['name'] = name;
-        rsPost('lsyncd_delete', args, function(rdata){
+        api.post('lsyncd_delete', args, function(rdata){
             var rdata = JSON.parse(rdata.data);
             layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
             setTimeout(function(){lsyncdSend();},2000);
@@ -367,7 +343,7 @@ function lsyncdDelete(name){
 function lsyncdRun(name){
     var args = {};
     args["name"] = name;
-    rsPost('lsyncd_run', args, function(rdata){
+    api.post('lsyncd_run', args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
     });
@@ -413,7 +389,7 @@ function lsyncdExclude(name){
 
     function getIncludeExclude(mName){
         loadT = layer.msg('正在获取数据...',{icon:16,time:0,shade: [0.3, '#000']});
-        rsPost('lsyncd_get_exclude',{"name":mName}, function(rdata) {
+        api.post('lsyncd_get_exclude',{"name":mName}, function(rdata) {
             layer.close(loadT);
 
             var rdata = JSON.parse(rdata.data);
@@ -431,7 +407,7 @@ function lsyncdExclude(name){
 
     function addArgs(name,exclude){
         loadT = layer.msg('正在添加...',{icon:16,time:0,shade: [0.3, '#000']});
-        rsPost('lsyncd_add_exclude', {name:name,exclude:exclude}, function(res){
+        api.post('lsyncd_add_exclude', {name:name,exclude:exclude}, function(res){
             layer.close(loadT);
 
             console.log('addArgs:',res);
@@ -468,7 +444,7 @@ function lsyncdExclude(name){
     $('.lsyncd_exclude').on('click', '.delList', function(event) {
         loadT = layer.msg('正在删除...',{icon:16,time:0,shade: [0.3, '#000']});
         var val = $(this).parent().prev().text();
-        rsPost('lsyncd_remove_exclude',{"name":name,exclude:val}, function(rdata) {
+        api.post('lsyncd_remove_exclude',{"name":name,exclude:val}, function(rdata) {
             layer.close(loadT);
 
             console.log(rdata)
@@ -489,7 +465,7 @@ function lsyncdConfLog(){
 }
 
 function lsyncdSend(){
-    rsPost('lsyncd_list', '', function(data){
+    api.post('lsyncd_list', '', function(data){
         var rdata = JSON.parse(data.data);
         console.log(rdata);
         if (!rdata.status){
@@ -560,7 +536,7 @@ function lsyncdSend(){
 
 ///////////////// ----------------- 接收配置 ---------------- //////////////
 function rsyncdConf(){
-    rsPost('conf', {}, function(rdata){
+    api.post('conf', {}, function(rdata){
         rpath = rdata['data'];
         if (rdata['status']){
             onlineEditFile(0, rpath);
@@ -576,7 +552,7 @@ function rsyncdLog(){
 
 
 function rsyncdReceive(){
-	rsPost('rec_list', '', function(data){
+	api.post('rec_list', '', function(data){
 		var rdata = JSON.parse(data.data);
 		if (!rdata.status){
 			layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
@@ -624,7 +600,7 @@ function rsyncdReceive(){
 
 
 function addReceive(name = ""){
-    rsPost('get_rec',{"name":name},function(rdata) {
+    api.post('get_rec',{"name":name},function(rdata) {
         var rdata = JSON.parse(rdata.data);
         var data = rdata.data;
 
@@ -674,7 +650,7 @@ function addReceive(name = ""){
                 args['path'] = $('#inputPath').val();
                 args['ps'] = $('#ps').val();
                 var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-                rsPost('add_rec', args, function(data){
+                api.post('add_rec', args, function(data){
                     var rdata = JSON.parse(data.data);
                     if (rdata['status']){
                         layer.close(loadOpen);
@@ -694,7 +670,7 @@ function delReceive(name){
 	safeMessage('删除['+name+']', '您真的要删除【'+name+'】吗？', function(){
 		var _data = {};
 		_data['name'] = name;
-		rsPost('del_rec', _data, function(data){
+		api.post('del_rec', _data, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
             setTimeout(function(){rsyncdReceive();},2000);
@@ -705,7 +681,7 @@ function delReceive(name){
 function cmdRecSecretKey(name){
 	var _data = {};
 	_data['name'] = name;
-	rsPost('cmd_rec_secret_key', _data, function(data){
+	api.post('cmd_rec_secret_key', _data, function(data){
         var rdata = JSON.parse(data.data);
 	    layer.open({
 	        type: 1,
@@ -719,7 +695,7 @@ function cmdRecSecretKey(name){
 function cmdRecCmd(name){
     var _data = {};
     _data['name'] = name;
-    rsPost('cmd_rec_cmd', _data, function(data){
+    api.post('cmd_rec_cmd', _data, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
             type: 1,

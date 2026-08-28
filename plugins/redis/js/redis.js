@@ -1,30 +1,6 @@
-function redisPost(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+var api = YfPlugin.createApi('redis');
+var pt = YfI18n.createPluginTranslator('redis');
 
-    var req_data = {};
-    req_data['name'] = 'redis';
-    req_data['func'] = method;
-    req_data['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 function redisPostCallbak(method, version, args,callback){
     var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
@@ -56,7 +32,7 @@ function redisPostCallbak(method, version, args,callback){
 //redis状态  start
 function redisStatus(version) {
 
-    redisPost('run_info',version, {},function(data){
+    api.post('run_info',version, {},function(data){
         var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
@@ -90,7 +66,7 @@ function redisStatus(version) {
 }
 
 function replStatus(version){
-    redisPost('info_replication', version, {},function(data){
+    api.post('info_replication', version, {},function(data){
         var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
@@ -147,7 +123,7 @@ function replStatus(version){
 }
 
 function clusterStatus(version){
-    redisPost('cluster_info', version, {},function(data){
+    api.post('cluster_info', version, {},function(data){
         var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
@@ -198,7 +174,7 @@ function clusterStatus(version){
 }
 
 function clusterNodes(version){
-    redisPost('cluster_nodes', version, {},function(data){
+    api.post('cluster_nodes', version, {},function(data){
         var rdata = JSON.parse(data.data);
 
         if ('status' in rdata && !rdata.status){
@@ -229,7 +205,7 @@ function clusterNodes(version){
 
 //配置修改
 function getRedisConfig(version) {
-    redisPost('get_redis_conf', version,'',function(data){
+    api.post('get_redis_conf', version,'',function(data){
         // console.log(data);
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
@@ -315,7 +291,7 @@ function submitConf(version) {
         maxmemory: maxmemory,
     };
 
-    redisPost('submit_redis_conf', version, data, function(ret_data){
+    api.post('submit_redis_conf', version, data, function(ret_data){
         var rdata = JSON.parse(ret_data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -324,7 +300,7 @@ function submitConf(version) {
 
 function redisReadme(){
     // 动态获取 Redis 路径，彻底消除硬编码，提升极佳的自适应交互体验
-    redisPost('conf', '', {}, function(data){
+    api.post('conf', '', {}, function(data){
         var conf_path = data.data;
         var redis_bin_dir = conf_path.substring(0, conf_path.lastIndexOf('/')) + '/bin';
         

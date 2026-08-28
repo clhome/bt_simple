@@ -1,31 +1,7 @@
+var api = YfPlugin.createApi('supervisor');
+var pt = YfI18n.createPluginTranslator('supervisor');
 
-function myPost(method,args,callback, title){
 
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(str2Obj(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
-
-    var loadT = layer.msg(_title, { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'supervisor', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 
 
@@ -41,7 +17,7 @@ function supList(page, search){
         _data['search'] = search;
     }
 
-    myPost('get_sup_list', _data, function(data){
+    api.post('get_sup_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata.data);
         var list = '';
@@ -120,7 +96,7 @@ function supList(page, search){
 
 
 function startOrStop(name,status){
-	myPost('start_job',{'name':name,'status':status}, function(data){
+	api.post('start_job',{'name':name,'status':status}, function(data){
 		var rdata = JSON.parse(data.data);
 		showMsg(rdata.msg, function(){
 			supList(1,10);
@@ -129,7 +105,7 @@ function startOrStop(name,status){
 }
 
 function restartJob(name,status){
-	myPost('restart_job',{'name':name,'status':status}, function(data){
+	api.post('restart_job',{'name':name,'status':status}, function(data){
 		var rdata = JSON.parse(data.data);
 		layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		setTimeout(function(){
@@ -139,7 +115,7 @@ function restartJob(name,status){
 }
 
 function updateJob(name){
-	myPost('get_job_info',{'name':name},function(data){
+	api.post('get_job_info',{'name':name},function(data){
 		var rdata = JSON.parse(data.data);
 		// console.log(rdata);
 		var defaultPath = $("#defaultPath").html();
@@ -209,7 +185,7 @@ function updateJob(name){
 		            return false;
 			　　}
 
-				myPost("update_job", opval, function(data){
+				api.post("update_job", opval, function(data){
 					rdata = JSON.parse(data.data);
 					layer.msg(rdata.msg,{icon:rdata.status?1:2});
 					rdata.status ? layer.close(index):'';
@@ -228,7 +204,7 @@ function delJob(name) {
     	///////////////////////////////////////
         var data = {'name':  name};
         var loadT = layer.msg('正在处理,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
-        myPost('del_job', data, function(rdata){
+        api.post('del_job', data, function(rdata){
         	layer.close(loadT)
 
         	rdata = JSON.parse(rdata.data);
@@ -241,7 +217,7 @@ function delJob(name) {
 
 //添加站点
 function supAdd() {
-	myPost('get_user_list',{},async function(data){
+	api.post('get_user_list',{},async function(data){
 		var rdata = JSON.parse(data.data);
 		// console.log(rdata);
 
@@ -251,7 +227,7 @@ function supAdd() {
             ulist += "<option value='"+rdata[i]+"'>"+rdata[i]+"</option>";
         }
 
-        var www = await syncPost('/site/get_root_dir');
+        var www = await api.post('/site/get_root_dir');
 		ulist += "</select><span id='php_w' style='color:red;margin-left: 10px;width:270px;'></span></div>";
 		layer.open({
 			type: 1,
@@ -327,7 +303,7 @@ function supAdd() {
 		            return false;
 			　　}
 
-				myPost("add_job", opval, function(data){
+				api.post("add_job", opval, function(data){
 					rdata = JSON.parse(data.data);
 					layer.msg(rdata.msg,{icon:rdata.status?1:2});
 					rdata.status ? layer.close(index):'';
@@ -493,7 +469,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
 
     function clearLog(file){
     	$('#sup_clear_log').on('click', function(){
-    		myPost('sup_clear_log', {'file':file}, function (data) {
+    		api.post('sup_clear_log', {'file':file}, function (data) {
     			var rdata = JSON.parse(data.data);
     			layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
     		});
@@ -579,7 +555,7 @@ function confdList(page, search){
         _data['search'] = search;
     }
 
-    myPost('confd_list', _data, function(data){
+    api.post('confd_list', _data, function(data){
         var rdata = JSON.parse(data.data);
         // console.log(rdata.data);
         var list = '';

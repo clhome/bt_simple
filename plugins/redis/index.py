@@ -86,7 +86,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
@@ -110,10 +110,10 @@ def readConfigTpl():
     allowed_dir = os.path.abspath(getPluginDir() + '/tpl')
     if not target_file.startswith(allowed_dir + os.sep) and not target_file.startswith(allowed_dir + '/'):
         if target_file != allowed_dir:
-            return yf.returnJson(False, '越界访问被拒绝！')
+            return yf.returnJson(False, 'k_b337c961')
 
     if not os.path.exists(target_file):
-        return yf.returnJson(False, '模板文件不存在')
+        return yf.returnJson(False, 'k_90618a9f')
 
     content = yf.readFile(target_file)
     content = contentReplace(content)
@@ -308,7 +308,7 @@ def getRedisCmd():
 def runInfo():
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     
     cmd = getRedisCmd()
@@ -347,7 +347,7 @@ def infoReplication():
     # 复制信息
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     cmd = getRedisCmd()
     cmd = cmd + 'info replication'
@@ -411,7 +411,7 @@ def clusterInfo():
     # https://redis.io/commands/cluster-info/
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     cmd = getRedisCmd()
     cmd = cmd + 'cluster info'
@@ -450,7 +450,7 @@ def clusterInfo():
 def clusterNodes():
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     cmd = getRedisCmd()
     cmd = cmd + 'cluster nodes'
@@ -572,18 +572,18 @@ def submitRedisConf():
             # 1. 纯数字项过滤
             if g in ['port', 'timeout', 'maxclients', 'databases', 'maxmemory']:
                 if not re.match(r'^\d+$', val_str):
-                    return yf.returnJson(False, '参数 [' + g + '] 必须为纯数字！')
+                    return yf.returnJson(False, 'k_00735852' + g + '] 必须为纯数字！')
             
             # 2. 绑定 IP 与主从同步过滤
             elif g in ['bind', 'slaveof']:
                 if val_str != '' and not re.match(r'^[0-9a-zA-Z_.:\s,-]+$', val_str):
-                    return yf.returnJson(False, '参数 [' + g + '] 格式不合法！')
+                    return yf.returnJson(False, 'k_00735852' + g + '] 格式不合法！')
             
             # 3. 密码及凭据强抗注入过滤
             elif g in ['requirepass', 'masterauth']:
                 # 必须杜绝一切换行符及特殊转义，仅限安全字符
                 if val_str != '' and not re.match(r'^[a-zA-Z0-9_.~!@#$%^&*()_+=-]+$', val_str):
-                    return yf.returnJson(False, '密码参数 [' + g + '] 含有非法字符！')
+                    return yf.returnJson(False, 'k_ee1f68a4' + g + '] 含有非法字符！')
 
     for g in gets:
         if g in args:
@@ -613,7 +613,7 @@ def submitRedisConf():
 
     yf.writeFile(conf, content)
     reload()
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 if __name__ == "__main__":
     func = sys.argv[1]

@@ -3,7 +3,7 @@
     "title": "PHP",
     "tip": "soft",
     "name": "php",
-    "type": "运行环境",
+    "type": "server",
     "ps": "PHP编译安装! 注意: PHP 5.3~7.4 等老旧版本已全面停止安全维护，强烈建议生产环境中部署 PHP 8.x 稳定版！",
     "versions": [
         "52",

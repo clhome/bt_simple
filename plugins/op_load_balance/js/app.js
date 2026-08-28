@@ -1,61 +1,8 @@
-function ooPost(method,args,callback){
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
+var api = YfPlugin.createApi('op_load_balance');
+var pt = YfI18n.createPluginTranslator('op_load_balance');
 
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'op_load_balance', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
 
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-async function ooAsyncPost(method,args){
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-    return await syncPost('/plugins/run', {name:'op_load_balance', func:method, args:_args}); 
-}
-
-function ooPostCallbak(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-
-    var req_data = {};
-    req_data['name'] = 'op_load_balance';
-    req_data['func'] = method;
-    args['version'] = '1.0';
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/callback', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
+async 
 
 function addNode(){
     layer.open({
@@ -133,7 +80,7 @@ function addNode(){
             var max_fails = $('input[name="max_fails"]').val();
             var fail_timeout = $('input[name="fail_timeout"]').val();
 
-            ooPost('check_url', {ip:ip,port:port,path:path},function(rdata){             
+            api.post('check_url', {ip:ip,port:port,path:path},function(rdata){             
                 var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     if (rdata.status){
@@ -487,7 +434,7 @@ function editBalance(data, row){
 }
 
 function loadBalanceListRender(){
-    ooPost('load_balance_list', {}, function(rdata){
+    api.post('load_balance_list', {}, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var alist = rdata.data;
 
@@ -518,7 +465,7 @@ function loadBalanceListRender(){
 
         $('#nodeTable .health_status').on('click', function(){
             var row = $(this).data('row');
-            ooPost('get_health_status', {row:row}, function(rdata){
+            api.post('get_health_status', {row:row}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
 
                 var tval = '';
@@ -565,7 +512,7 @@ function loadBalanceListRender(){
 
         $('#nodeTable .delete').on('click', function(){
             var row = $(this).data('row');
-            ooPost('load_balance_delete', {row:row}, function(rdata){
+            api.post('load_balance_delete', {row:row}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
                 showMsg(rdata.msg, function(){
                     loadBalanceListRender();

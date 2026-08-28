@@ -81,7 +81,7 @@ def safe_file_name(filename):
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -512,7 +512,7 @@ def submitGogsConf():
             conf = re.sub(rep, val, conf)
     yf.writeFile(filename, conf)
     restart()
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 
 def gogsEditTpl():
@@ -531,7 +531,7 @@ def userList():
     conf = getDbConfValue()
     gtype = getGiteaDbType(conf)
     if gtype != 'mysql':
-        return yf.returnJson(False, "仅支持mysql数据操作!")
+        return yf.returnJson(False, "k_a759cb24")
 
     import math
     args = getArgs()
@@ -591,7 +591,7 @@ def repoList():
     conf = getDbConfValue()
     gtype = getGiteaDbType(conf)
     if gtype != 'mysql':
-        return yf.returnJson(False, "仅支持mysql数据操作!")
+        return yf.returnJson(False, "k_a759cb24")
 
     import math
     args = getArgs()
@@ -676,7 +676,7 @@ def userProjectList():
     search = ''
 
     if not 'name' in args:
-        return yf.returnJson(False, '缺少参数name')
+        return yf.returnJson(False, 'k_aa1d9749')
     if 'page' in args:
         page = int(args['page'])
 
@@ -820,7 +820,7 @@ def projectScriptRun():
     commit_sh = path + '/custom_hooks/commit'
     commit_log = path + '/custom_hooks/sh.log'
     if not os.path.exists(commit_sh):
-        return yf.returnJson(False, '脚本文件不存在!')
+        return yf.returnJson(False, 'k_2894e0bf')
 
     repo_dir = yf.getServerDir()+'/git/'+ args['name']
 
@@ -830,7 +830,7 @@ def projectScriptRun():
     except Exception as e:
         pass
     subprocess.Popen(['chown', '-R', 'www:www', repo_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, bufsize=4096)
-    return yf.returnJson(True, '脚本文件执行成功,观察日志!')
+    return yf.returnJson(True, 'k_af3175a8')
 
 
 def projectScriptSelf():
@@ -895,7 +895,7 @@ def projectScriptSelf_Create():
     name = safe_search_value(args['name']) + '.git'
     file = safe_file_name(args['file'])
     if not file:
-        return yf.returnJson(False, '非法的文件名!')
+        return yf.returnJson(False, 'k_dcf993c4')
 
     if not file.endswith('.sh'):
         file = file + '.sh'
@@ -908,13 +908,13 @@ def projectScriptSelf_Create():
 
     abs_file = self_path + '/' + file
     if os.path.exists(abs_file):
-        return yf.returnJson(False, '脚本已经存在!')
+        return yf.returnJson(False, 'k_c304ed09')
 
     yf.writeFile(abs_file, "#!/bin/bash\necho `date +'%Y-%m-%d %H:%M:%S'`\n")
     yf.execShell('chown -R www:www ' + abs_file)
     rdata = {}
     rdata['abs_file'] = abs_file
-    return yf.returnJson(True, '创建文件成功!', rdata)
+    return yf.returnJson(True, 'k_7090ed26', rdata)
 
 
 def projectScriptSelf_Del():
@@ -927,7 +927,7 @@ def projectScriptSelf_Del():
     name = safe_search_value(args['name']) + '.git'
     file = safe_file_name(args['file'])
     if not file:
-        return yf.returnJson(False, '非法的文件名!')
+        return yf.returnJson(False, 'k_dcf993c4')
 
     custom_hooks = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks'
@@ -935,7 +935,7 @@ def projectScriptSelf_Del():
 
     abs_file = self_path + '/' + file
     if not os.path.exists(abs_file):
-        return yf.returnJson(False, '脚本已经删除!')
+        return yf.returnJson(False, 'k_ba02dbf6')
 
     os.remove(abs_file)
 
@@ -944,7 +944,7 @@ def projectScriptSelf_Del():
     if os.path.exists(log_file):
         os.remove(log_file)
 
-    return yf.returnJson(True, '脚本删除成功!')
+    return yf.returnJson(True, 'k_063745a4')
 
 
 def projectScriptSelf_Logs():
@@ -957,7 +957,7 @@ def projectScriptSelf_Logs():
     name = safe_search_value(args['name']) + '.git'
     file = safe_file_name(args['file'])
     if not file:
-        return yf.returnJson(False, '非法的文件名!')
+        return yf.returnJson(False, 'k_dcf993c4')
 
     self_path = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks/self_logs'
@@ -971,7 +971,7 @@ def projectScriptSelf_Logs():
         rdata['path'] = logs_file
         return yf.returnJson(True, 'ok', rdata)
 
-    return yf.returnJson(False, '日志不存在!')
+    return yf.returnJson(False, 'k_a8087d74')
 
 
 def projectScriptSelf_Run():
@@ -984,7 +984,7 @@ def projectScriptSelf_Run():
     name = safe_search_value(args['name']) + '.git'
     file = safe_file_name(args['file'])
     if not file:
-        return yf.returnJson(False, '非法的文件名!')
+        return yf.returnJson(False, 'k_dcf993c4')
 
     custom_hooks = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks'
@@ -993,12 +993,12 @@ def projectScriptSelf_Run():
 
     # 二重防御：物理上检查脚本是否存在，阻断恶意命令注入
     if not os.path.exists(self_path):
-        return yf.returnJson(False, '脚本文件不存在!')
+        return yf.returnJson(False, 'k_2894e0bf')
 
     shell = "sh -x " + self_path + " 2>" + self_logs_path + ' &'
     yf.execShell(shell)
     yf.execShell("chown -R www:www " + self_logs_path)
-    return yf.returnJson(True, '执行成功!')
+    return yf.returnJson(True, 'k_74d3deb6')
 
 
 def projectScriptSelf_Rename():
@@ -1012,7 +1012,7 @@ def projectScriptSelf_Rename():
     o_file = safe_file_name(args['o_file'])
     n_file = safe_file_name(args['n_file'])
     if not o_file or not n_file:
-        return yf.returnJson(False, '非法的文件名!')
+        return yf.returnJson(False, 'k_dcf993c4')
 
     if not o_file.endswith('.sh'):
         o_file = o_file + '.sh'
@@ -1028,7 +1028,7 @@ def projectScriptSelf_Rename():
 
     o_file_abs = self_path + '/' + o_file
     if not os.path.exists(o_file_abs):
-        return yf.returnJson(False, '原文件已经不存在了!')
+        return yf.returnJson(False, 'k_2e5131f4')
 
     n_file_abs = self_path + '/' + n_file
     os.rename(o_file_abs, n_file_abs)
@@ -1038,7 +1038,7 @@ def projectScriptSelf_Rename():
     if os.path.exists(log_file):
         os.remove(log_file)
 
-    return yf.returnJson(True, '重命名成功!')
+    return yf.returnJson(True, 'k_2ec4c999')
 
 
 def projectScriptSelf_Enable():
@@ -1074,7 +1074,7 @@ def projectScriptSelf_Enable():
         commit_content += "\n\n" + "bash " + self_file + " " + note
         yf.writeFile(commit_path, commit_content)
 
-        return yf.returnJson(True, '开启成功!')
+        return yf.returnJson(True, 'k_8e0047a3')
     else:
         commit_content = yf.readFile(commit_path)
         rep = ".*" + note
@@ -1083,7 +1083,7 @@ def projectScriptSelf_Enable():
         yf.writeFile(commit_path, commit_content)
         if os.path.exists(self_file):
             os.remove(self_file)
-        return yf.returnJson(True, '关闭成功!')
+        return yf.returnJson(True, 'k_4d5ac803')
 
 
 def projectScriptSelf_Status():
@@ -1097,7 +1097,7 @@ def projectScriptSelf_Status():
     file = safe_file_name(args['file'])
     status = args['status']
     if not file:
-        return yf.returnJson(False, '非法的文件名!')
+        return yf.returnJson(False, 'k_dcf993c4')
 
     custom_hooks = getRootPath() + '/' + user + '/' + \
         name + '/custom_hooks'
@@ -1116,15 +1116,15 @@ def projectScriptSelf_Status():
         file_text_abs = self_path + '/' + file + '.txt'
         if os.path.exists(file_abs):
             os.rename(file_abs, file_text_abs)
-            return yf.returnJson(True, '开始禁用成功!')
+            return yf.returnJson(True, 'k_8a687da9')
     else:
         file_abs = self_path + '/' + file.replace('.txt', '')
         file_text_abs = self_path + '/' + file
         if os.path.exists(file_text_abs):
             os.rename(file_text_abs, file_abs)
-            return yf.returnJson(True, '开始使用成功!')
+            return yf.returnJson(True, 'k_2d26a63e')
 
-    return yf.returnJson(False, '禁用失败!')
+    return yf.returnJson(False, 'k_55ec2bfd')
 
 
 def getRsaPublic():

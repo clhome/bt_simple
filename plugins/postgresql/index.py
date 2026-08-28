@@ -135,7 +135,7 @@ def getBackupDir():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -530,13 +530,13 @@ def setPgPort():
     content = re.sub(rep, 'port = ' + port + '\n', content)
     yf.writeFile(file, content)
     restart()
-    return yf.returnJson(True, '编辑成功!')
+    return yf.returnJson(True, 'k_9253578d')
 
 
 def runInfo():
 
     if status(version) == 'stop':
-        return yf.returnJson(False, 'PG未启动', [])
+        return yf.returnJson(False, 'k_6d9eee27', [])
 
     db = pgDb()
     data_dir = getServerDir() + "/data"
@@ -617,7 +617,7 @@ def pgDbStatus():
     
     pg_conf = "{}/postgresql.conf".format(data_directory)
     if not os.path.exists(pg_conf):
-        return yf.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
+        return yf.returnJson(False, 'k_11f976df')
 
     with open(pg_conf) as f:
         for i in f:
@@ -755,7 +755,7 @@ def pgSetDbStatus():
         sedConf(k, v)
 
     restart()
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 
 def setUserPwd(version=''):
@@ -769,9 +769,9 @@ def setUserPwd(version=''):
     uid = args['id']
 
     if not checkSafeName(username):
-        return yf.returnJson(False, '用户名不合法，不能包含特殊字符！')
+        return yf.returnJson(False, 'k_c18f0270')
     if not checkSafePassword(newpwd):
-        return yf.returnJson(False, '密码格式不合法！')
+        return yf.returnJson(False, 'k_17fcdc46')
 
     try:
         pdb = pgDb()
@@ -782,9 +782,9 @@ def setUserPwd(version=''):
             "alter user {} with password '{}'".format(username, newpwd))
 
         psdb.where("id=?", (uid,)).setField('password', newpwd)
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('k_f122be69', (name,)))
     except Exception as ex:
-        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
+        return yf.returnJson(False, yf.getInfo('k_39122a44', (name, str(ex),)))
 
 
 def getPgVersion():
@@ -857,7 +857,7 @@ def setDbBackup():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
@@ -891,14 +891,14 @@ def setDbBackup():
             yf.execShell("chown root:root " + file_path)
 
     if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-        return yf.returnJson(True, '备份成功!')
+        return yf.returnJson(True, 'k_06cf1a1c')
     else:
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
             except:
                 pass
-        return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
+        return yf.returnJson(False, 'k_c237b309')
 
 def rootPwd():
     return pSqliteDb('config').where('id=?', (1,)).getField('pg_root')
@@ -912,7 +912,7 @@ def getDbBackupList():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     is_sync = False
     if 'sync' in args and args['sync'] == '1':
@@ -1023,7 +1023,7 @@ def syncGetDatabases():
         if psdb.add('name,username,password,accept,ps,addtime', (vdb_name, vdb_name, '', host, ps, addTime)):
             n += 1
 
-    msg = yf.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
+    msg = yf.getInfo('k_a204e790', (str(n),))
     return yf.returnJson(True, msg)
 
 
@@ -1047,19 +1047,19 @@ def addDb():
         listen_ip = args['listen_ip'].strip()
 
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不能带有特殊符号!')
+        return yf.returnJson(False, 'k_021153e2')
 
     if not checkSafeName(dbuser):
-        return yf.returnJson(False, '数据库用户名称不能带有特殊符号!')
+        return yf.returnJson(False, 'k_47498f65')
 
     if password and not checkSafePassword(password):
-        return yf.returnJson(False, '密码格式不合法！')
+        return yf.returnJson(False, 'k_17fcdc46')
 
     if listen_ip and not checkSafeAccess(listen_ip):
-        return yf.returnJson(False, '监听权限段不合法！')
+        return yf.returnJson(False, 'k_3d51b0cc')
 
     if not re.match(r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}/\d+", listen_ip):
-        return yf.returnJson(False, "你输入的权限不合法，添加失败！")
+        return yf.returnJson(False, "k_d3fcb68e")
 
     # 修改监听所有地址
     if listen_ip not in ["127.0.0.1/32", "localhost", "127.0.0.1"]:
@@ -1067,9 +1067,9 @@ def addDb():
 
     checks = ['root', 'mysql', 'test', 'sys', 'postgres', 'postgresql']
     if dbuser in checks or len(dbuser) < 1:
-        return yf.returnJson(False, '数据库用户名不合法!')
+        return yf.returnJson(False, 'k_e31c7e32')
     if dbname in checks or len(dbname) < 1:
-        return yf.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, 'k_ae1f3b7b')
 
     if len(password) < 1:
         password = yf.md5(time.time())[0:8]
@@ -1078,7 +1078,7 @@ def addDb():
     psdb = pSqliteDb('databases')
 
     if psdb.where("name=? or username=?", (dbname, dbuser)).count():
-        return yf.returnJson(False, '数据库或用户已存在!')
+        return yf.returnJson(False, 'k_1b3c02ae')
 
     sql = "select pg_terminate_backend(pid) from pg_stat_activity where DATNAME = 'template1';"
     pdb.execute(sql)
@@ -1102,7 +1102,7 @@ def addDb():
              (0, dbname, dbuser, password, listen_ip, dbname, addTime))
 
     restart()
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 
 def delDb():
@@ -1115,7 +1115,7 @@ def delDb():
     name = args['name']
 
     if not checkSafeName(name):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     pdb = pgDb()
     psdb = pSqliteDb('databases')
@@ -1124,7 +1124,7 @@ def delDb():
     # print(username, len(username))
     if len(username) > 0:
         if not checkSafeName(username):
-            return yf.returnJson(False, '用户名不合法！')
+            return yf.returnJson(False, 'k_95039660')
         r = pdb.execute("drop user " + str(username))
         # print(r)
 
@@ -1142,7 +1142,7 @@ def delDb():
     yf.writeFile(pg_hba, new_config)
 
     psdb.where("id=?", (did,)).delete()
-    return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(True, 'k_fc9bddbc')
 
 
 def setDbRw(version=''):
@@ -1156,14 +1156,14 @@ def setDbRw(version=''):
     rw = args['rw']
 
     if not checkSafeName(username):
-        return yf.returnJson(False, '用户名不合法！')
+        return yf.returnJson(False, 'k_95039660')
 
     pdb = pgDb()
     psdb = pSqliteDb('databases')
     dbname = psdb.where("id=?", (uid,)).getField('name')
 
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     sql = "REVOKE ALL ON database " + dbname + " FROM " + username
     pdb.query(sql)
@@ -1177,7 +1177,7 @@ def setDbRw(version=''):
 
     r = pdb.execute(sql)
     psdb.where("id=?", (uid,)).setField('rw', rw)
-    return yf.returnJson(True, '切换成功!')
+    return yf.returnJson(True, 'k_ad135320')
 
 
 def pgBack():
@@ -1189,7 +1189,7 @@ def pgBack():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     cur_time = time.strftime('%Y%m%d_%H%M%S')
     version = getPgVersion()
@@ -1224,14 +1224,14 @@ def pgBack():
             yf.execShell("chown root:root " + file_path)
 
     if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-        return yf.returnJson(True, '备份成功!')
+        return yf.returnJson(True, 'k_06cf1a1c')
     else:
         if os.path.exists(file_path):
             try:
                 os.remove(file_path)
             except:
                 pass
-        return yf.returnJson(False, '备份失败! 备份文件未能成功生成，请检查数据库服务和权限。')
+        return yf.returnJson(False, 'k_c237b309')
 
 
 def pgBackList():
@@ -1242,7 +1242,7 @@ def pgBackList():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     is_sync = False
     if 'sync' in args and args['sync'] == '1':
@@ -1282,7 +1282,7 @@ def getDbAccess():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('username,accept').find()
@@ -1340,12 +1340,12 @@ def setDbPrivileges():
 
     dbname = args['name']
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
 
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('username').find()
     if not db_info:
-        return yf.returnJson(False, '数据库不存在!')
+        return yf.returnJson(False, 'k_a1b2c2db')
 
     dbuser = db_info['username']
 
@@ -1367,7 +1367,7 @@ def setDbPrivileges():
     except Exception as e:
         return yf.returnJson(False, '一键赋权失败: ' + str(e))
 
-    return yf.returnJson(True, '一键赋权成功!')
+    return yf.returnJson(True, 'k_5ea97488')
 
 
 def setDbAccess():
@@ -1380,14 +1380,14 @@ def setDbAccess():
     access = args['access']
 
     if not checkSafeName(dbname):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
     if not checkSafeAccess(access):
-        return yf.returnJson(False, '访问IP/网络格式不合法！')
+        return yf.returnJson(False, 'k_2437cac2')
 
     psdb = pSqliteDb('databases')
     db_info = psdb.where('name=?', (dbname,)).field('id,username,accept').find()
     if not db_info:
-        return yf.returnJson(False, '数据库不存在!')
+        return yf.returnJson(False, 'k_a1b2c2db')
 
     dbuser = db_info['username']
 
@@ -1410,7 +1410,7 @@ def setDbAccess():
 
     # 3. 重启生效
     restart()
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 
 
@@ -1424,14 +1424,14 @@ def importDbBackup():
     name = args['name']
 
     if not checkSafeName(name):
-        return yf.returnJson(False, '数据库名称不合法！')
+        return yf.returnJson(False, 'k_65aeeceb')
     if not checkSafeFilename(file):
-        return yf.returnJson(False, '备份文件名不合法！')
+        return yf.returnJson(False, 'k_893423d1')
 
     bk_path_upload = getBackupDir()
     file_path = os.path.join(bk_path_upload, file)
     if not os.path.exists(file_path):
-        return yf.returnJson(False, '备份文件不存在!')
+        return yf.returnJson(False, 'k_94668169')
 
     # 让 postgres 有权限读取备份文件
     if not yf.isAppleSystem() and os.name != 'nt':
@@ -1447,7 +1447,7 @@ def importDbBackup():
         cmd = 'gunzip -c ' + file_path + ' | ' + psql_bin + ' -p ' + port + ' -d ' + name
         execShellPg(cmd)
 
-    return yf.returnJson(True, '导入成功!')
+    return yf.returnJson(True, 'k_29d54d15')
 
 
 def deleteDbBackup():
@@ -1458,7 +1458,7 @@ def deleteDbBackup():
 
     filename = args['filename']
     if not checkSafeFilename(filename):
-        return yf.returnJson(False, '备份文件名不合法！')
+        return yf.returnJson(False, 'k_893423d1')
 
     bk_path_upload = getBackupDir()
     os.remove(bk_path_upload + '/' + filename)
@@ -1475,11 +1475,11 @@ def getMasterStatus(version=''):
     pg_conf = getServerDir() + "/data/postgresql.conf"
     
     if not os.path.exists(pg_conf):
-        return yf.returnJson(False, 'postgresql配置文件不存在，请先启动或初始化服务!')
+        return yf.returnJson(False, 'k_11f976df')
 
     pg_content = yf.readFile(pg_conf)
     if type(pg_content) == bool or not pg_content:
-        return yf.returnJson(False, '读取postgresql配置失败!')
+        return yf.returnJson(False, 'k_2289c870')
 
     if pg_content.find('#archive_mode') > -1:
         data['status'] = False
@@ -1491,7 +1491,7 @@ def getMasterStatus(version=''):
     else:
         data['slave_status'] = True
 
-    return yf.returnJson(True, '设置成功', data)
+    return yf.returnJson(True, 'k_f6088e4a', data)
 
 
 def setMasterStatus(version=''):
@@ -1513,7 +1513,7 @@ def setMasterStatus(version=''):
 
     yf.writeFile(pg_conf, data)
     restart(version)
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 
 def setSlaveStatus(version):
@@ -1543,7 +1543,7 @@ def setSlaveStatus(version):
     yf.writeFile(pg_conf, data)
 
     restart(version)
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 
 def getSlaveList(version=''):
@@ -1577,7 +1577,7 @@ def getSlaveSSHByIp(version=''):
 
     ip = args['ip']
     if not checkSafeAccess(ip):
-        return yf.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'k_a73e93c2')
 
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     data = conn.field('ip,port,db_user,id_rsa').where("ip=?", (ip,)).select()
@@ -1625,7 +1625,7 @@ def addSlaveSSH(version=''):
         return yf.returnJson(True, 'ok')
 
     if not checkSafeAccess(ip):
-        return yf.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'k_a73e93c2')
 
     data = checkArgs(args, ['port', 'id_rsa'])
     if not data[0]:
@@ -1635,7 +1635,7 @@ def addSlaveSSH(version=''):
     port = args['port']
     
     if not str(port).isdigit():
-        return yf.returnJson(False, '端口必须是数字！')
+        return yf.returnJson(False, 'k_97130e65')
 
     user = 'root'
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
@@ -1649,7 +1649,7 @@ def addSlaveSSH(version=''):
         conn.add('ip,port,user,id_rsa,ps,addtime',
                  (ip, port, user, id_rsa, '', addTime))
 
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 
 def delSlaveSSH(version=''):
@@ -1660,7 +1660,7 @@ def delSlaveSSH(version=''):
 
     ip = args['ip']
     if not checkSafeAccess(ip):
-        return yf.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'k_a73e93c2')
 
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
     conn.where("ip=?", (ip,)).delete()
@@ -1675,7 +1675,7 @@ def updateSlaveSSH(version=''):
 
     ip = args['ip']
     if not checkSafeAccess(ip):
-        return yf.returnJson(False, 'IP格式不合法！')
+        return yf.returnJson(False, 'k_a73e93c2')
 
     id_rsa = args['id_rsa']
     conn = pSqliteDb('slave_id_rsa', 'pgsql_slave')
@@ -1722,28 +1722,28 @@ def addMasterRepSlaveUser(version=''):
     password = args['password'].strip()
 
     if not checkSafeName(username):
-        return yf.returnJson(False, '用户名不能带有特殊符号!')
+        return yf.returnJson(False, 'k_664818c3')
     if not checkSafePassword(password):
-        return yf.returnJson(False, '密码格式不合法!')
+        return yf.returnJson(False, 'k_41a7de83')
     if not checkSafeAccess(address):
-        return yf.returnJson(False, '地址/IP段格式不合法!')
+        return yf.returnJson(False, 'k_ec97c710')
 
     if len(password) < 1:
         password = yf.md5(time.time())[0:8]
 
     if not re.match(r"^[\w\.-]+$", username):
-        return yf.returnJson(False, '用户名不能带有特殊符号!')
+        return yf.returnJson(False, 'k_664818c3')
     checks = ['root', 'mysql', 'test', 'sys', 'panel_logs']
     if username in checks or len(username) < 1:
-        return yf.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, 'k_9400bbff')
     if password in checks or len(password) < 1:
-        return yf.returnJson(False, '密码不合法!')
+        return yf.returnJson(False, 'k_ef79b569')
 
     pdb = pgDb()
     psdb = pSqliteDb('master_replication_user')
 
     if psdb.where("username=?", (username)).count() > 0:
-        return yf.returnJson(False, '用户已存在!')
+        return yf.returnJson(False, 'k_f0db3e62')
 
     sql = "CREATE ROLE " + username + " login replication password '" + password.replace("'", "''") + "'"
     pdb.execute(sql)
@@ -1759,7 +1759,7 @@ def addMasterRepSlaveUser(version=''):
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('username,password,accept,ps,addtime',
              (username, password, address, '', addTime))
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 
 def delMasterRepSlaveUser(version=''):
@@ -1770,7 +1770,7 @@ def delMasterRepSlaveUser(version=''):
 
     name = args['username']
     if not checkSafeName(name):
-        return yf.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, 'k_9400bbff')
 
     pdb = pgDb()
     psdb = pSqliteDb('master_replication_user')
@@ -1784,7 +1784,7 @@ def delMasterRepSlaveUser(version=''):
     yf.writeFile(pg_hba, new_config)
 
     psdb.where("username=?", (args['username'],)).delete()
-    return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(True, 'k_fc9bddbc')
 
 
 def getMasterRepSlaveUserCmd(version=''):
@@ -1797,9 +1797,9 @@ def getMasterRepSlaveUserCmd(version=''):
     db = args['db']
     
     if username != '' and not checkSafeName(username):
-        return yf.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, 'k_9400bbff')
     if db != '' and not checkSafeName(db):
-        return yf.returnJson(False, '数据库名不合法!')
+        return yf.returnJson(False, 'k_1ddcf77b')
 
     psdb = pSqliteDb('master_replication_user')
     mdir = getServerDir()
@@ -1813,7 +1813,7 @@ def getMasterRepSlaveUserCmd(version=''):
             "username=?", (username,)).order('id desc').select()
 
     if len(clist) == 0:
-        return yf.returnJson(False, '请添加同步账户!')
+        return yf.returnJson(False, 'k_de256538')
 
     cmd = 'echo "' + clist[0]['password'].replace('"', '\\"') + '" | ' + mdir + '/bin/pg_basebackup -Fp --progress -D ' + mdir + \
         '/postgresql/data -h ' + localIp + ' -p ' + port + \

@@ -72,7 +72,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
@@ -251,7 +251,7 @@ def getRedisCmd():
 def runInfo():
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     
     cmd = getRedisCmd()
@@ -287,7 +287,7 @@ def infoReplication():
     # 复制信息
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     cmd = getRedisCmd()
     cmd = cmd + 'info replication'
@@ -351,7 +351,7 @@ def clusterInfo():
     # https://redis.io/commands/cluster-info/
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     cmd = getRedisCmd()
     cmd = cmd + 'cluster info'
@@ -390,7 +390,7 @@ def clusterInfo():
 def clusterNodes():
     s = status()
     if s == 'stop':
-        return yf.returnJson(False, '未启动')
+        return yf.returnJson(False, 'k_f4baf7c6')
 
     cmd = getRedisCmd()
     cmd = cmd + 'cluster nodes'
@@ -526,7 +526,7 @@ def submitRedisConf():
                 content = re.sub(rep, val, content)
     yf.writeFile(conf, content)
     reload()
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 if __name__ == "__main__":
     func = sys.argv[1]

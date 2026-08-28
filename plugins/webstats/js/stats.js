@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('webstats');
+var pt = YfI18n.createPluginTranslator('webstats');
 function str2Obj(str){
     var data = {};
     kv = str.split('&');
@@ -8,70 +10,11 @@ function str2Obj(str){
     return data;
 }
 
-function wsOriginPost(method, version, args, callback){
-
-    var req_data = {};
-    req_data['name'] = 'webstats';
-    req_data['func'] = method;
-    req_data['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(str2Obj(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 
 
-function wsPost(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    wsOriginPost(method, version, args,function(data){
-        layer.close(loadT);
-        callback(data);
-    });
-}
 
 
-
-function wsPostCallbak(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-
-    var req_data = {};
-    req_data['name'] = 'webstats';
-    req_data['script']='webstats_index';
-    req_data['func'] = method;
-    args['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(str2Obj(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/callback', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 
 function toSecond(val){
@@ -186,7 +129,7 @@ function wsOverviewRequest(page){
     // console.log($('.indicators-container input:checked').parent().find('span').text());
     // console.log(select_option);
 
-    wsPost('get_overview_list', '' ,args, function(rdata){
+    api.post('get_overview_list', '' ,args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
@@ -389,7 +332,7 @@ function wsOverviewRequest(page){
 
                 var second = $('#check_realtime_second').val();
 
-                wsOriginPost("get_logs_realtime_info",'',{"site":args["site"], "type":select_option,'second':second} , function(rdata){    
+                api.post("get_logs_realtime_info",'',{"site":args["site"], "type":select_option,'second':second} , function(rdata){    
                     
                     var rdata = JSON.parse(rdata.data);
 
@@ -633,7 +576,7 @@ $('.indicators-container input[type=radio]').on('click', function(){
     wsOverviewRequest(1);
 });
 
-wsPost('get_default_site','',{},function(rdata){
+api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
     var rdata = JSON.parse(rdata.data);
@@ -671,7 +614,7 @@ function wsSitesListRequest(page){
     args['query_date'] = query_date;
    
 
-    wsPost('get_site_list', '' ,args, function(rdata){
+    api.post('get_site_list', '' ,args, function(rdata){
 
         var rdata = JSON.parse(rdata.data);
         var data = rdata.data;
@@ -761,7 +704,7 @@ function wsSitesListRequest(page){
             var index = $(this).attr('data-id');
 
             var domain = data[index]["site"];
-            wsPost('get_site_conf', '' ,{"site":domain}, function(rdata){
+            api.post('get_site_conf', '' ,{"site":domain}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
                 var rdata = rdata.data;
                 console.log(rdata);
@@ -905,7 +848,7 @@ function wsSitesListRequest(page){
                                 args['exclude_ip'] = setting_cdn;
                             }
 
-                            wsPost('set_site_conf','', args, function(rdata){
+                            api.post('set_site_conf','', args, function(rdata){
                                 var rdata = JSON.parse(rdata.data);
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
@@ -924,7 +867,7 @@ function wsSitesListRequest(page){
                                 }
                             }
                             args['exclude_url'] = list;
-                            wsPost('set_site_conf','', args, function(rdata){
+                            api.post('set_site_conf','', args, function(rdata){
                                 var rdata = JSON.parse(rdata.data);
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
@@ -935,7 +878,7 @@ function wsSitesListRequest(page){
                             var record_get_403_args = $('input[name="record_get_403_args"]').prop('checked');
                             args["record_post_args"] = record_post_args;
                             args['record_get_403_args'] = record_get_403_args;
-                            wsPost('set_site_conf','', args, function(rdata){
+                            api.post('set_site_conf','', args, function(rdata){
                                 var rdata = JSON.parse(rdata.data);
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
@@ -1069,7 +1012,7 @@ function wsSpiderStatLogRequest(page){
     args['query_date'] = query_date;
 
     args['tojs'] = 'wsSpiderStatLogRequest';
-    wsPost('get_spider_stat_list', '' ,args, function(rdata){
+    api.post('get_spider_stat_list', '' ,args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
@@ -1343,7 +1286,7 @@ $('select[name="status_code"]').on('change', function(){
     wsSpiderStatLogRequest(1);
 });
 
-wsPost('get_default_site','',{},function(rdata){
+api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
     var rdata = JSON.parse(rdata.data);
@@ -1387,7 +1330,7 @@ function wsClientStatLogRequest(page){
     args['query_date'] = query_date;
 
     args['tojs'] = 'wsClientStatLogRequest';
-    wsPost('get_client_stat_list', '' ,args, function(rdata){
+    api.post('get_client_stat_list', '' ,args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
@@ -1736,7 +1679,7 @@ $('select[name="status_code"]').on('change', function(){
     wsClientStatLogRequest(1);
 });
 
-wsPost('get_default_site','',{},function(rdata){
+api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
     var rdata = JSON.parse(rdata.data);
@@ -1772,7 +1715,7 @@ function wsIpStatLogRequest(page){
     args['query_date'] = query_date;
 
     args['tojs'] = 'wsIpStatLogRequest';
-    wsPost('get_ip_stat_list', '' ,args, function(rdata){
+    api.post('get_ip_stat_list', '' ,args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data;
@@ -1854,7 +1797,7 @@ $('#search_time button').on('click', function(){
     wsIpStatLogRequest(1);
 });
 
-wsPost('get_default_site','',{},function(rdata){
+api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
     var rdata = JSON.parse(rdata.data);
@@ -1889,7 +1832,7 @@ function wsUriStatLogRequest(page){
     args['query_date'] = query_date;
 
     args['tojs'] = 'wsUriStatLogRequest';
-    wsPost('get_uri_stat_list', '' ,args, function(rdata){
+    api.post('get_uri_stat_list', '' ,args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data;
@@ -1969,7 +1912,7 @@ $('#search_time button').on('click', function(){
     wsUriStatLogRequest(1);
 });
 
-wsPost('get_default_site','',{},function(rdata){
+api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
     var rdata = JSON.parse(rdata.data);
@@ -2016,7 +1959,7 @@ function wsTableErrorLogRequest(page){
     args['query_date'] = query_date;
 
     args['tojs'] = 'wsTableErrorLogRequest';
-    wsPost('get_logs_error_list', '' ,args, function(rdata){
+    api.post('get_logs_error_list', '' ,args, function(rdata){
         var rdata = JSON.parse(rdata.data);
         var list = '';
         var data = rdata.data.data;
@@ -2175,7 +2118,7 @@ $('select[name="status_code"]').on('change', function(){
     wsTableErrorLogRequest(1);
 });
 
-wsPost('get_default_site','',{},function(rdata){
+api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
     var rdata = JSON.parse(rdata.data);
@@ -2256,7 +2199,7 @@ function wsTableLogRequest(page){
     }
 
     $('#logs_search').attr('req','start');
-    wsPost('get_logs_list', '' ,args, function(rdata){
+    api.post('get_logs_list', '' ,args, function(rdata){
     // wsPostCallbak('get_logs_list', '' ,args, function(rdata){
         $('#logs_search').attr('req','end');
         var rdata = JSON.parse(rdata.data);
@@ -2576,7 +2519,7 @@ $('#logs_search').on('click', function(){
     wsTableLogRequest(1);
 });
 
-wsPost('get_default_site','',{},function(rdata){
+api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
     var rdata = JSON.parse(rdata.data);

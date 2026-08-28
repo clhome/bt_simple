@@ -1,28 +1,11 @@
-
-function ftpPost(method,args,callback){
-	var _args = null; 
-	if (typeof(args) == 'string'){
-		_args = JSON.stringify(toArrayObject(args));
-	} else {
-		_args = JSON.stringify(args);
-	}
-
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'pureftp', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
+var api = YfPlugin.createApi('pureftp');
+var pt = YfI18n.createPluginTranslator('pureftp');
 
 
-async function ftpAsyncPost(method,args){
-	return await syncPost('/plugins/run',
+
+
+async function api.post(method,args){
+	return await api.post('/plugins/run',
 		{name:'pureftp', func:method, args:JSON.stringify(args)}
 	);
 }
@@ -48,7 +31,7 @@ function ftpList(page, search){
         _data['search'] = search;
     }
 
-    ftpPost('get_ftp_list', _data, function(data){
+    api.post('get_ftp_list', _data, function(data){
 
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
@@ -105,7 +88,7 @@ function ftpList(page, search){
  */
 async function addFtp() {
 
-	var data = await ftpAsyncPost('get_www_dir');
+	var data = await api.post('get_www_dir');
 	var defaultPath = data.data;
 	var indexFtp = layer.open({
 		type: 1,
@@ -137,7 +120,7 @@ async function addFtp() {
 		yes:function(index,layero){
 			var loadT = layer.load({shade: true,shadeClose: false});
 			var data = $("#ftpAdd").serialize();
-			ftpPost('add_ftp', data, function(rdata){
+			api.post('add_ftp', data, function(rdata){
 				layer.close(loadT);
 				layer.close(indexFtp);
 				if (rdata.data == 'ok'){
@@ -171,7 +154,7 @@ function ftpDelete(id,ftp_username){
 		layer.msg(lan.public.the_del,{icon:16,time:0,shade: [0.3, '#000']});
 		var data='&id='+id+'&username='+ftp_username;
 
-		ftpPost('del_ftp', data, function(data){
+		api.post('del_ftp', data, function(data){
 			layer.msg('删除成功!', {icon: 1});
 			ftpList();
 		})
@@ -203,7 +186,7 @@ function modFtpPort(type, port){
 	$('#ftp_port_submit').on('click', function(){
 		var port = $('#ftpPort').val();
 		data = 'port='+port
-		ftpPost('mod_ftp_port', data,function(data){
+		api.post('mod_ftp_port', data,function(data){
 			ftpList();
 			if (data.data == 'ok'){
 				layer.msg('修改成功!', {icon: 1});
@@ -248,7 +231,7 @@ function ftpModPwd(id,name,password){
 	$('#ftp_mod_submit').on('click', function(){
 		pwd = $('#MyPassword').val();
 		data='id='+id+'&name='+name+'&password='+pwd
-		ftpPost('mod_ftp', data,function(data){
+		api.post('mod_ftp', data,function(data){
 			ftpList();
 			if (data.data == 'ok'){
 				layer.msg('修改成功!', {icon: 1});
@@ -272,7 +255,7 @@ function ftpStop(id, username) {
 		if (index > 0) {
 			var loadT = layer.load({shade: true,shadeClose: false});
 			var data='id=' + id + '&username=' + username + '&status=0';
-			ftpPost('stop_ftp', data, function(data){
+			api.post('stop_ftp', data, function(data){
 				layer.close(loadT);
 				if (data.data == 'ok'){
 					showMsg('启动成功!', function(){
@@ -295,7 +278,7 @@ function ftpStop(id, username) {
 function ftpStart(id, username) {
 	var loadT = layer.load({shade: true,shadeClose: false});
 	var data='id=' + id + '&username=' + username + '&status=1';
-	ftpPost('start_ftp', data, function(data){
+	api.post('start_ftp', data, function(data){
 		layer.close(loadT);
 		if (data.data == 'ok'){
 			showMsg('启动成功!', function(){

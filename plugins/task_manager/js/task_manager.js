@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('task_manager');
+var pt = YfI18n.createPluginTranslator('task_manager');
   
 function tmPostCallback(method, args, callback, version='1.0'){
     var req_data = {};

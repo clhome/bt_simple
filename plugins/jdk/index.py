@@ -155,30 +155,30 @@ class jdk_main:
         """添加自定义JDK"""
         path = args.get("path", "").strip()
         if not path.endswith('/bin/java'):
-            return yf.returnJson(False, '路径必须指向 java 可执行文件，例如 /opt/jdk/bin/java')
+            return yf.returnJson(False, 'k_8130fc6a')
         if not os.path.exists(path):
-            return yf.returnJson(False, 'JDK路径不存在')
+            return yf.returnJson(False, 'k_1f844e32')
             
         ret = yf.execShell(path + ' -version')
         if ret[1].find('version') == -1 and ret[0].find('version') == -1:
-            return yf.returnJson(False, 'JDK验证失败，可能不是合法的Java可执行文件')
+            return yf.returnJson(False, 'k_8a3ba46b')
 
         config = json.loads(yf.readFile(self._config_file))
         if "custom" not in config:
             config["custom"] = []
         if path in config["custom"]:
-            return yf.returnJson(False, '该JDK路径已存在记录中')
+            return yf.returnJson(False, 'k_95c401c9')
             
         config["custom"].append(path)
         yf.writeFile(self._config_file, json.dumps(config))
-        return yf.returnJson(True, '添加自定义JDK成功！')
+        return yf.returnJson(True, 'k_6778a06e')
 
     def install_jdk(self, args):
         """发起后台下载并解压"""
         version = args.get("version", "")
         url = args.get("download_url", "")
         if not version or not url:
-            return yf.returnJson(False, '参数错误')
+            return yf.returnJson(False, 'k_bff0e837')
             
         # 下载前预检URL，如果404则自动刷新提取最新版本
         import urllib.request
@@ -199,7 +199,7 @@ class jdk_main:
         dest_dir = self._java_dir + '/' + version
         java_bin = dest_dir + '/bin/java'
         if os.path.exists(java_bin):
-            return yf.returnJson(False, '该版本已安装')
+            return yf.returnJson(False, 'k_3d4679ad')
         
         # 如果存在空目录（上次安装失败残留），先清理
         if os.path.exists(dest_dir):
@@ -234,7 +234,7 @@ echo 'JDK {version} 安装完成'
         title = f'安装JDK-{version}'
         thisdb.addTask(name=title, cmd=cmd, status=0)
         yf.triggerTask()
-        return yf.returnJson(True, '已投递后台安装任务，请稍后查看状态！')
+        return yf.returnJson(True, 'k_2978f285')
 
     def uninstall_jdk(self, args):
         """卸载/移除JDK"""
@@ -247,7 +247,7 @@ echo 'JDK {version} 安装完成'
             # 校验是否被使用
             out, err = yf.execShell(f"lsof +D {os.path.dirname(os.path.dirname(path))}")
             if out:
-                return yf.returnJson(False, '当前目录有进程正在使用，禁止卸载以防系统崩溃！')
+                return yf.returnJson(False, 'k_a15274b0')
             yf.execShell(f"rm -rf {os.path.dirname(os.path.dirname(path))}")
         elif jdk_type == '用户自定义':
             if path in config.get("custom", []):
@@ -259,13 +259,13 @@ echo 'JDK {version} 安装完成'
             yf.execShell("rm -f /etc/profile.d/java.sh && source /etc/profile")
             
         yf.writeFile(self._config_file, json.dumps(config))
-        return yf.returnJson(True, '清理完成')
+        return yf.returnJson(True, 'k_de0801f9')
 
     def set_default_jdk(self, args):
         """设置系统级默认全局JAVA_HOME"""
         path = args.get("path", "")
         if not os.path.exists(path):
-            return yf.returnJson(False, '目标可执行文件不存在')
+            return yf.returnJson(False, 'k_a5d10c9a')
             
         java_home = os.path.dirname(os.path.dirname(path))
         env_content = f"""export JAVA_HOME={java_home}
@@ -283,7 +283,7 @@ export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
         config["default"] = path
         yf.writeFile(self._config_file, json.dumps(config))
         
-        return yf.returnJson(True, '设置成功，全局环境变量已写入 /etc/profile.d/java.sh，在新的终端中即刻生效。')
+        return yf.returnJson(True, 'k_6e00a0c0')
 
 
 def getArgs():

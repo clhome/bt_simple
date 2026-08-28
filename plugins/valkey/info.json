@@ -17,6 +17,6 @@
     "ver": "1.1",
     "date": "2026-05-29",
     "home": "https://valkey.io/download/",
-    "type": 0,
+    "type": "database",
     "pid": "2"
 }

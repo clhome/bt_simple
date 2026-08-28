@@ -12,6 +12,6 @@
     "author": "task_manager",
     "date": "2026-05-29",
     "home": "task_manager",
-    "type": 0,
+    "type": "tool",
     "pid": "4"
 }

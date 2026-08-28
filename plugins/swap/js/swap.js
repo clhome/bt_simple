@@ -1,36 +1,12 @@
+var api = YfPlugin.createApi('swap');
+var pt = YfI18n.createPluginTranslator('swap');
 
 
-function swapPost(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
 
-    var req_data = {};
-    req_data['name'] = 'swap';
-    req_data['func'] = method;
-    req_data['version'] = version;
- 
-    if (typeof(args) == 'string'){
-        req_data['args'] = JSON.stringify(toArrayObject(args));
-    } else {
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            //错误展示10S
-            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 
 function swapStatus() {
-    swapPost('swap_status', '', {}, function(data){
+    api.post('swap_status', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         var size = parseInt(rdata.data['size']) || 0;           // 插件专属 Swap (MB)
         var system_total = parseInt(rdata.data['system_total']) || 0; // 系统实际总 Swap (MB)

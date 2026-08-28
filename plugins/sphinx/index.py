@@ -81,7 +81,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -287,7 +287,7 @@ def queryLog():
 def runStatus():
     s = status()
     if s != 'start':
-        return yf.returnJson(False, '没有启动程序')
+        return yf.returnJson(False, 'k_0d386fac')
 
     sys.path.append(getPluginDir() + "/class")
     import sphinxapi
@@ -374,7 +374,7 @@ def makeDbToSphinx():
     is_cover = args['is_cover']
 
     if is_cover != 'yes':
-        return yf.returnJson(False,'暂时仅支持覆盖!')
+        return yf.returnJson(False, 'k_b500cbcb')
 
     sph_file = getConf()
 
@@ -387,7 +387,7 @@ def makeDbToSphinx():
         sph_make.setVersion(version)
 
     if not sph_make.checkDbName(db):
-        return yf.returnJson(False,'保留数据库名称,不可用!')
+        return yf.returnJson(False, 'k_21728297')
     is_delta_bool = False
     if is_delta == 'yes':
         is_delta_bool = True
@@ -396,9 +396,9 @@ def makeDbToSphinx():
         content = sph_make.makeSqlToSphinx(db, tables, is_delta_bool)
         yf.writeFile(sph_file,content)
         mkdirAll()
-        return yf.returnJson(True,'设置成功!')
+        return yf.returnJson(True, 'k_956e02d7')
 
-    return yf.returnJson(True,'测试中')
+    return yf.returnJson(True, 'k_f85549cd')
 
 
 # 全量更新

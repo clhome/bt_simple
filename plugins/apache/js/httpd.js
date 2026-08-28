@@ -1,17 +1,6 @@
-function httpPost(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'apache', func:method, args:JSON.stringify(args)}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
+var api = YfPlugin.createApi('apache');
+var pt = YfI18n.createPluginTranslator('apache');
 
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 function httpPluginService(_name, version){
     var data = {name:_name, func:'status'}
@@ -21,7 +10,7 @@ function httpPluginService(_name, version){
         version = '';
     }
 
-    httpPost('status', data, function(data){
+    api.post('status', data, function(data){
         if (data.data == 'start'){
             orPluginSetService(_name, true, version);
         } else {
@@ -59,7 +48,7 @@ function orPluginOpService(a, b, v,request_callback) {
         case "reload":d = '重载';break;
     }
     layer.confirm( msgTpl('您真的要{1}{2}{3}服务吗？', [d,a,v]), {icon:3,closeBtn: 2}, function() {
-        httpPost('get_os',{},function(data){
+        api.post('get_os',{},function(data){
             var rdata = JSON.parse(data.data);
             if (!rdata['auth']){
                 layer.prompt({title: '检查到权限不足,需要输入密码!', formType: 1},function(pwd, index){
@@ -183,7 +172,7 @@ function stopHttpdStatusAutoRefresh() {
 
 
 function setOpCfg(){
-    httpPost('get_cfg', {}, function(data){
+    api.post('get_cfg', {}, function(data){
         var rdata = JSON.parse(data.data);
         var rdata = rdata.data;
         // console.log(rdata);
@@ -236,7 +225,7 @@ function submitConf() {
     });
 
     // console.log(data);
-    httpPost('set_cfg', data, function(rdata){
+    api.post('set_cfg', data, function(rdata){
         var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -252,14 +241,14 @@ function otherFunc(){
 }
 
 function cronAddCheck(){
-    httpPost('cron_add_check', {}, function(data){
+    api.post('cron_add_check', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
 
 function cronDelCheck(){
-    httpPost('cron_del_check', {}, function(data){
+    api.post('cron_del_check', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });

@@ -136,7 +136,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 def configTpl():
@@ -162,7 +162,7 @@ def readConfigTpl():
     # 强制只获取纯文件名，完全阻断越权目录穿越及非法路径读取
     filename = os.path.basename(raw_file)
     if not filename.endswith('.conf'):
-        return yf.returnJson(False, '只允许读取.conf配置文件')
+        return yf.returnJson(False, 'k_8d9382b8')
 
     # 路径合法性沙箱校验，强行限制只能读取 /etc/fail2ban 目录下的配置文件
     target_dir = os.path.abspath(f2bEtcDir())
@@ -170,10 +170,10 @@ def readConfigTpl():
     
     # 双重安全防护线：绝对路径必须在目标目录内，且不能越权向上穿越
     if not path.startswith(target_dir + os.sep) and not path.startswith(target_dir + '/'):
-        return yf.returnJson(False, '越权路径读取被拒绝')
+        return yf.returnJson(False, 'k_a9615598')
 
     if not os.path.exists(path):
-        return yf.returnJson(False, '配置文件不存在')
+        return yf.returnJson(False, 'k_09dd110e')
 
     content = yf.readFile(path)
     content = contentReplace(content)
@@ -426,7 +426,7 @@ def setBlackIp():
                 _delete_db_ban(ip, d)
 
         yf.writeFile(getBlackFile(), json.dumps([]))
-        return yf.returnJson(True, "禁止IP成功")
+        return yf.returnJson(True, "k_a0d89400")
 
     add_ip_list = [new_ip for new_ip in new_ip_list if new_ip not in ip_list]
     del_ip_list = [del_ip for del_ip in ip_list if del_ip not in new_ip_list]
@@ -436,7 +436,7 @@ def setBlackIp():
     # 检查IP格式
     for ip in add_ip_list:
         if not re.search(rep_ip, ip) and not re.search(rep_ipv6, ip):
-            return yf.returnJson(False, "IP格式错误 {}".format(ip))
+            return yf.returnJson(False, "k_1a4c58f7".format(ip))
 
     # 添加新IP到黑名单
     for d in data:
@@ -453,7 +453,7 @@ def setBlackIp():
     ip_list = [ip for ip in new_ip_list if re.search(rep_ip, ip) or re.search(rep_ipv6, ip)]
 
     yf.writeFile(getBlackFile(), json.dumps(ip_list))
-    return yf.returnJson(True, "添加黑名单成功")
+    return yf.returnJson(True, "k_6b05fad4")
 
 def get_active_bans():
     import sqlite3
@@ -540,7 +540,7 @@ def unban_active_ip():
     jail = args.get('jail', '')
     
     if not ip:
-        return yf.returnJson(False, 'IP不能为空')
+        return yf.returnJson(False, 'k_f6c73adf')
         
     if jail:
         yf.execShell('fail2ban-client -vvv set {jail} unbanip {ip}'.format(jail=jail, ip=ip))
@@ -555,7 +555,7 @@ def unban_active_ip():
         ip_list.remove(ip)
         yf.writeFile(getBlackFile(), json.dumps(ip_list))
         
-    return yf.returnJson(True, '解除封禁成功')
+    return yf.returnJson(True, 'k_4fbdfb92')
 
 def runInfo():
     # 获取 Jail 状态与封禁详情
@@ -840,7 +840,7 @@ class fail2ban_main:
         
         # Reload fail2ban via existing method or systemctl
         yf.execShell('systemctl reload fail2ban')
-        return yf.returnJson(True, '设置成功!')
+        return yf.returnJson(True, 'k_956e02d7')
 
     def del_anti(self, args):
         args = self.parse_inner_args(args)
@@ -863,7 +863,7 @@ class fail2ban_main:
         self.sync_jail_local(conf)
         
         yf.execShell('systemctl reload fail2ban')
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
 
     def set_strict_mode(self, args):
         args = self.parse_inner_args(args)
@@ -878,7 +878,7 @@ class fail2ban_main:
         self.sync_jail_local(conf)
         
         yf.execShell('systemctl reload fail2ban')
-        return yf.returnJson(True, '设置成功!')
+        return yf.returnJson(True, 'k_956e02d7')
 
     def get_status(self, args):
         return yf.returnJson(True, 'ok')
@@ -906,7 +906,7 @@ class fail2ban_main:
     def clear_log(self, args):
         log_file = runLog()
         yf.execShell('echo "" > ' + log_file)
-        return yf.returnJson(True, '清空日志成功!')
+        return yf.returnJson(True, 'k_cc8c3527')
 
     def getIpLocationBatch(self, args):
         args = self.parse_inner_args(args)
@@ -956,7 +956,7 @@ class fail2ban_main:
                     return yf.returnJson(True, 'ok!', json.loads(result))
                 except Exception as e:
                     if attempt == max_retries - 1:
-                        return yf.returnJson(False, '获取归属地失败', [])
+                        return yf.returnJson(False, 'k_fbd2378a', [])
                     time.sleep(0.5)
         except Exception as e:
             return yf.returnJson(False, str(e), [])

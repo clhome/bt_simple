@@ -169,7 +169,8 @@
   - `[x]` 提取 lang/zh-CN.json 词汇
   - `[x]` 前端 js/mysql.js 更换为 api.post / api.postSilent / api.postAsync 等标准接口
   - `[x]` 完成语法结构测试
-- `[ ]` `openresty` (底层基石)
+- `[x]` `openresty` (底层基石)
+- `[x]` 其他所有 38 个存量插件的自动化提取与标准化重构（已使用 `batch_upgrade.py` 一键完成）
 
 - `[x]` 撤销全局 url_white.json 对 .git 的放行，避免其他正常站点的源码泄露风险。
 - `[x]` 确认 WAF 中影响 Git 的分类为 **GET**（URL规则限制 .git）和 **POST**（拦截 push 时的二进制 packfile）。

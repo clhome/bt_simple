@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('varnish');
+var pt = YfI18n.createPluginTranslator('varnish');
 
 
 function pRead(){

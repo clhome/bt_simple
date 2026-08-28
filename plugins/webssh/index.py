@@ -64,7 +64,7 @@ class App():
     def checkArgs(self, data, ck=[]):
         for i in range(len(ck)):
             if not ck[i] in data:
-                return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+                return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
         return (True, yf.returnJson(True, 'ok'))
 
     def status(self):
@@ -99,7 +99,7 @@ class App():
         }
         self.saveCmd(t)
 
-        return yf.returnJson(True, '添加成功!')
+        return yf.returnJson(True, 'k_dd4520d6')
 
     def del_cmd(self):
         args = self.getArgs()
@@ -116,8 +116,8 @@ class App():
             if data_tmp[x]['title'] == title:
                 del(data_tmp[x])
                 yf.writeFile(self.__cmd_path, json.dumps(data_tmp))
-                return yf.returnJson(True, '删除成功')
-        return yf.returnJson(False, '删除无效')
+                return yf.returnJson(True, 'k_0007d170')
+        return yf.returnJson(False, 'k_ed19ab94')
 
     def get_cmd_list(self):
         rdata = yf.readFile(self.__cmd_path)
@@ -158,10 +158,10 @@ class App():
                 if 'pkey_passwd' in info_tmp:
                     host_info['pkey_passwd'] = info_tmp['pkey_passwd']
             except Exception as e:
-                return yf.returnJson(False, '错误:' + str(e))
+                return yf.returnJson(False, 'k_c4390da8' + str(e))
 
             return yf.returnJson(True, 'ok!', host_info)
-        return yf.returnJson(False, '不存在此配置')
+        return yf.returnJson(False, 'k_430fd83a')
 
     def get_server_list(self):
         host_list = []
@@ -202,7 +202,7 @@ class App():
         host = args['host']
         info_file = self.__host_dir + '/' + host
         yf.removeDir(info_file)
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
 
     def add_server(self):
         args = self.getArgs()
@@ -231,7 +231,7 @@ class App():
 
         enstr = yf.enDoubleCrypt('mdserver-web', json.dumps(info))
         yf.writeFile(dst_host_dir + '/info.json', enstr)
-        return yf.returnJson(True, '添加成功!')
+        return yf.returnJson(True, 'k_dd4520d6')
 
 if __name__ == "__main__":
     func = sys.argv[1]

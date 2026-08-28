@@ -1,3 +1,5 @@
+var api = YfPlugin.createApi('sphinx');
+var pt = YfI18n.createPluginTranslator('sphinx');
 function spPostMin(method, args, callback){
 
     var req_data = {};
@@ -20,33 +22,10 @@ function spPostMin(method, args, callback){
     },'json'); 
 }
 
-function myPost(method, args, callback, title){
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-
-    var _title = '正在获取...';
-    if (typeof(title) != 'undefined'){
-        _title = title;
-    }
-
-    $.post('/plugins/run', {name:'mysql', func:method, args:_args}, function(data) {
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
 
 
-function spPost(method, args, callback){
+
+function api.post(method, args, callback){
     var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
     spPostMin(method,args,function(data){
         layer.close(loadT);
@@ -126,7 +105,7 @@ function autoMakeConf(){
                 data: [],
             });
 
-            myPost('get_db_list', {"page":1,"page_size":20}, function(data){
+            api.post('get_db_list', {"page":1,"page_size":20}, function(data){
                 var rdata = JSON.parse(data.data);
                 var dblist = rdata.data;
 
@@ -154,7 +133,7 @@ function autoMakeConf(){
             args['is_cover'] = $('select[name="is_cover"]').val();
             args['tables'] = xm_db_list.getValue('value').join(',');
             // console.log(args);
-            spPost('db_to_sphinx', args, function(rdata){
+            api.post('db_to_sphinx', args, function(rdata){
                 var rdata = JSON.parse(rdata.data);
                 // console.log(rdata);
                 showMsg(rdata.msg,function(){
@@ -188,14 +167,14 @@ function autoMakeConf(){
     }
 
     function getDbInfo(db_name, callback){
-        myPost('get_db_info', {name:db_name}, function(data){
+        api.post('get_db_info', {name:db_name}, function(data){
             callback(data);
         });
     }
 }
 
 function rebuildIndex(){
-    spPost('rebuild', '', function(data){
+    api.post('rebuild', '', function(data){
         if (data.data == 'ok'){
             layer.msg('重建成功!',{icon:1,time:2000,shade: [0.3, '#000']});
         } else {
@@ -240,7 +219,7 @@ function secToTime(s) {
 
 
 function runStatus(){
-    spPost('run_status', '', function(data){
+    api.post('run_status', '', function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata['status']){
             layer.msg(rdata['msg'],{icon:2,time:2000,shade: [0.3, '#000']});
@@ -274,7 +253,7 @@ function runStatus(){
 }
 
 function readme(){
-    spPost('sphinx_cmd', '', function(data){
+    api.post('sphinx_cmd', '', function(data){
 
         var rdata = JSON.parse(data.data);
         if (!rdata['status']){

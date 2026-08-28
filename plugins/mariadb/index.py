@@ -68,7 +68,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -301,7 +301,7 @@ def binLog():
         yf.execShell('rm -f ' + path + '/mysql-bin.*')
 
     
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 def binLogList():
     args = getArgs()
@@ -355,7 +355,7 @@ def cleanBinLog():
     db = pMysqlDb()
     cleanTime = time.strftime('%Y-%m-%d %H:%i:%s', time.localtime())
     db.execute("PURGE MASTER LOGS BEFORE '" + cleanTime + "';")
-    return yf.returnJson(True, '清理BINLOG成功!')
+    return yf.returnJson(True, 'k_7596b942')
 
 
 def getErrorLog():
@@ -370,10 +370,10 @@ def getErrorLog():
             break
     # print filename
     if not os.path.exists(filename):
-        return yf.returnJson(False, '指定文件不存在!')
+        return yf.returnJson(False, 'k_e0fb0609')
     if 'close' in args:
         yf.writeFile(filename, '')
-        return yf.returnJson(False, '日志已清空')
+        return yf.returnJson(False, 'k_24f14b50')
     info = yf.getLastLine(filename, 18)
     return yf.returnJson(True, 'OK', info)
 
@@ -564,7 +564,7 @@ def setMyDbPos():
     s_datadir = getMyDbPos()
     t_datadir = args['datadir']
     if t_datadir == s_datadir:
-        return yf.returnJson(False, '与当前存储目录相同，无法迁移文件!')
+        return yf.returnJson(False, 'k_c9bde71c')
 
     if not os.path.exists(t_datadir):
         yf.makeDirs(t_datadir)
@@ -589,12 +589,12 @@ def setMyDbPos():
         'ps aux|grep mysqld| grep -v grep|grep -v python')
     if len(result[0]) > 10:
         yf.writeFile('data/datadir.pl', t_datadir)
-        return yf.returnJson(True, '存储目录迁移成功!')
+        return yf.returnJson(True, 'k_0832d42d')
     else:
         yf.execShell('pkill -9 mysqld')
         yf.writeFile(myfile, yf.readFile(path + '/etc/my_backup.cnf'))
         start()
-        return yf.returnJson(False, '文件迁移失败!')
+        return yf.returnJson(False, 'k_5c3fa168')
 
 
 def getMyPort():
@@ -618,13 +618,13 @@ def setMyPort():
     content = re.sub(rep, 'port = ' + port + '\n', content)
     yf.writeFile(file, content)
     restart()
-    return yf.returnJson(True, '编辑成功!')
+    return yf.returnJson(True, 'k_9253578d')
 
 # python3 plugins/mariadb/index.py run_info  {}
 def runInfo(version):
 
     if status(version) == 'stop':
-        return yf.returnJson(False, 'MySQL未启动', [])
+        return yf.returnJson(False, 'k_f22ffb4f', [])
 
     db = pMysqlDb()
     data = db.query('show global status')
@@ -699,7 +699,7 @@ def setDbStatus():
             content = content.replace('[mysqld]\n', '[mysqld]\n' + c)
         n += 1
     yf.writeFile(conFile, content)
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 
 def isSqlError(mysqlMsg):
@@ -708,21 +708,21 @@ def isSqlError(mysqlMsg):
     if "MySQLdb" in mysqlMsg:
         return yf.returnJson(False, 'MySQLdb组件缺失! <br>进入SSH命令行输入: pip install mysql-python | pip install mysqlclient==2.0.3')
     if "2002," in mysqlMsg:
-        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, 'k_956a7f48')
     if "2003," in mysqlMsg:
         return yf.returnJson(False, "Can't connect to MySQL server on '127.0.0.1' (61)")
     if "using password:" in mysqlMsg:
-        return yf.returnJson(False, '数据库密码错误,在管理列表-点击【修复】!')
+        return yf.returnJson(False, 'k_0c18ba34')
     if "1045," in mysqlMsg:
-        return yf.returnJson(False, '连接错误!')
+        return yf.returnJson(False, 'k_da2c77ba')
     if "SQL syntax" in mysqlMsg:
-        return yf.returnJson(False, 'SQL语法错误!')
+        return yf.returnJson(False, 'k_9d030b28')
     if "Connection refused" in mysqlMsg:
-        return yf.returnJson(False, '数据库连接失败,请检查数据库服务是否启动!')
+        return yf.returnJson(False, 'k_956a7f48')
     if "1133," in mysqlMsg:
-        return yf.returnJson(False, '数据库用户不存在!')
+        return yf.returnJson(False, 'k_054cc29d')
     if "1007," in mysqlMsg:
-        return yf.returnJson(False, '数据库已经存在!')
+        return yf.returnJson(False, 'k_1157bf3a')
     return None
 
 
@@ -791,7 +791,7 @@ def setDbBackup():
 
     name = args['name']
     if not re.match(r"^[\w\.-]+$", name):
-        return yf.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, 'k_ae1f3b7b')
 
     scDir = getPluginDir() + '/scripts/backup.py'
     import subprocess
@@ -811,9 +811,9 @@ def importDbBackup():
     name = args['name']
 
     if not re.match(r"^[\w\.-]+$", name):
-        return yf.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, 'k_ae1f3b7b')
     if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz)?$", file):
-        return yf.returnJson(False, '文件名不合法!')
+        return yf.returnJson(False, 'k_74602462')
 
     file_path = getBackupDir() + '/' + file
     file_path_sql = getBackupDir() + '/' + file.replace('.gz', '')
@@ -860,21 +860,21 @@ def importDbExternal():
     name = args['name']
 
     if not re.match(r"^[\w\.-]+$", name):
-        return yf.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, 'k_ae1f3b7b')
     if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz|zip)?$", file):
-        return yf.returnJson(False, '文件名不合法!')
+        return yf.returnJson(False, 'k_74602462')
 
     import_dir = yf.getBackupDir() + '/import/'
 
     file_path = import_dir + file
     if not os.path.exists(file_path):
-        return yf.returnJson(False, '文件突然消失?')
+        return yf.returnJson(False, 'k_3dc5e176')
 
     exts = ['sql', 'gz', 'zip']
     tmp = file.split('.')
     ext = tmp[len(tmp) - 1]
     if ext not in exts:
-        return yf.returnJson(False, '导入数据库格式不对!')
+        return yf.returnJson(False, 'k_df9bc174')
 
     tmpFile = file.split('/')[-1]
     tmpFile = tmpFile.replace('.sql.' + ext, '.sql')
@@ -913,7 +913,7 @@ def importDbExternal():
         import_sql = import_dir + file
 
     if import_sql == "" or not os.path.exists(import_sql):
-        return yf.returnJson(False, '未找到SQL文件')
+        return yf.returnJson(False, 'k_02ee1e96')
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
@@ -963,20 +963,20 @@ def importDbExternalProgressBar():
     name = args['name']
 
     if not re.match(r"^[\w\.-]+$", name):
-        return yf.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, 'k_ae1f3b7b')
     if '..' in file or not re.match(r"^[\w\.\s-]+\.?(gz|zip)?$", file):
-        return yf.returnJson(False, '文件名不合法!')
+        return yf.returnJson(False, 'k_74602462')
 
     import_dir = yf.getFatherDir() + '/backup/import/'
 
     file_path = import_dir + file
     if not os.path.exists(file_path):
-        return yf.returnJson(False, '文件突然消失?')
+        return yf.returnJson(False, 'k_3dc5e176')
 
     exts = ['sql', 'gz', 'zip']
     ext = yf.getFileSuffix(file)
     if ext not in exts:
-        return yf.returnJson(False, '导入数据库格式不对!')
+        return yf.returnJson(False, 'k_df9bc174')
 
     tmpFile = file.split('/')[-1]
     tmpFile = tmpFile.replace('.sql.' + ext, '.sql')
@@ -1015,7 +1015,7 @@ def importDbExternalProgressBar():
         import_sql = import_dir + file
 
     if import_sql == "" or not os.path.exists(import_sql):
-        return yf.returnJson(False, '未找到SQL文件')
+        return yf.returnJson(False, 'k_02ee1e96')
 
     pwd = pSqliteDb('config').where('id=?', (1,)).getField('mysql_root')
     sock = getSocketFile()
@@ -1206,7 +1206,7 @@ def syncGetDatabases():
         if psdb.add('name,username,password,accept,ps,addtime', (vdb_name, vdb_name, '', host, ps, addTime)):
             n += 1
 
-    msg = yf.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
+    msg = yf.getInfo('k_a204e790', (str(n),))
     return yf.returnJson(True, msg)
 
 
@@ -1261,7 +1261,7 @@ def syncToDatabases():
             result = toDbBase(find)
             if result == 1:
                 n += 1
-    msg = yf.getInfo('本次共同步了{1}个数据库!', (str(n),))
+    msg = yf.getInfo('k_7273ebe2', (str(n),))
     return yf.returnJson(True, msg)
 
 
@@ -1285,7 +1285,7 @@ def setRootPwd(version=''):
         if isError != None:
             if force == 1:
                 pSqliteDb('config').where('id=?', (1,)).save('mysql_root', (password,))
-                return yf.returnJson(True, '【强制修改】数据库root密码修改成功(不意为成功连接数据)!')
+                return yf.returnJson(True, 'k_054c32c8')
             return isError
 
         cmd = "ALTER USER 'root'@'localhost' IDENTIFIED BY '" + password + "';"
@@ -1300,9 +1300,9 @@ def setRootPwd(version=''):
         if force == 1:
             msg = ',无须强制!'
 
-        return yf.returnJson(True, '数据库root密码修改成功!' + msg)
+        return yf.returnJson(True, 'k_089a7d81' + msg)
     except Exception as ex:
-        return yf.returnJson(False, '修改错误:' + str(ex))
+        return yf.returnJson(False, 'k_df1bbb0e' + str(ex))
 
 
 def setUserPwd(version=''):
@@ -1338,9 +1338,9 @@ def setUserPwd(version=''):
 
         orm = pMysqlDb()
         orm.execute("flush privileges")
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (data['name'],)))
+        return yf.returnJson(True, yf.getInfo('k_f122be69', (data['name'],)))
     except Exception as ex:
-        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (data['name'], str(ex),)))
+        return yf.returnJson(False, yf.getInfo('k_39122a44', (data['name'], str(ex),)))
 
 
 def setDbPs():
@@ -1355,9 +1355,9 @@ def setDbPs():
     try:
         psdb = pSqliteDb('databases')
         psdb.where("id=?", (sid,)).setField('ps', ps)
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('k_8232663e', (name,)))
     except Exception as e:
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注失败!', (name,)))
+        return yf.returnJson(True, yf.getInfo('k_b668e50e', (name,)))
 
 
 def addDb():
@@ -1381,12 +1381,12 @@ def addDb():
 
     reg = r"^[\w\.-]+$"
     if not re.match(reg, args['name']):
-        return yf.returnJson(False, '数据库名称不能带有特殊符号!')
+        return yf.returnJson(False, 'k_021153e2')
     checks = ['root', 'mysql', 'test', 'sys', 'panel_logs']
     if dbuser in checks or len(dbuser) < 1:
-        return yf.returnJson(False, '数据库用户名不合法!')
+        return yf.returnJson(False, 'k_e31c7e32')
     if dbname in checks or len(dbname) < 1:
-        return yf.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, 'k_ae1f3b7b')
 
     if len(password) < 1:
         password = yf.md5(time.time())[0:8]
@@ -1403,7 +1403,7 @@ def addDb():
     psdb = pSqliteDb('databases')
 
     if psdb.where("name=? or username=?", (dbname, dbuser)).count():
-        return yf.returnJson(False, '数据库已存在!')
+        return yf.returnJson(False, 'k_2b5a42bc')
 
     result = pdb.execute("create database `" + dbname +
                          "` DEFAULT CHARACTER SET " + codeing + " COLLATE " + codeStr)
@@ -1421,7 +1421,7 @@ def addDb():
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('pid,name,username,password,accept,ps,addtime',
              (0, dbname, dbuser, password, address, ps, addTime))
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 
 def delDb():
@@ -1451,9 +1451,9 @@ def delDb():
 
         # 删除SQLITE
         psdb.where("id=?", (id,)).delete()
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
     except Exception as ex:
-        return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, 'k_9cf7a356' + str(ex))
 
 
 def getDbAccess():
@@ -1507,7 +1507,7 @@ def setDbAccess():
     __createUser(dbname, name, password, access)
 
     psdb.where('username=?', (name,)).save('accept,rw', (access, 'rw',))
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 def openSkipGrantTables():
     mycnf = getConf()
@@ -1546,7 +1546,7 @@ def fixDbAccess(version):
     pdb = pMysqlDb()
     mdb_ddir = getDataDir()
     if not os.path.exists(mdb_ddir):
-        return yf.returnJson(False, '数据目录不存在,尝试重启重建!')
+        return yf.returnJson(False, 'k_895e04f4')
 
     try:
         psdb = pSqliteDb('databases')
@@ -1563,10 +1563,10 @@ def fixDbAccess(version):
             appCMD(version, 'stop')
             closeSkipGrantTables()
             appCMD(version, 'start')
-            return yf.returnJson(True, '修复成功!')
-        return yf.returnJson(True, '正常无需修复!')
+            return yf.returnJson(True, 'k_eb772cc6')
+        return yf.returnJson(True, 'k_46e69d9a')
     except Exception as e:
-        return yf.returnJson(False, '修复失败请重试!')
+        return yf.returnJson(False, 'k_ae91f4f4')
 
 
 def setDbRw(version=''):
@@ -1607,7 +1607,7 @@ def setDbRw(version=''):
     pdb.execute("flush privileges")
     r = psdb.where("id=?", (uid,)).setField('rw', rw)
     # print(r)
-    return yf.returnJson(True, '切换成功!')
+    return yf.returnJson(True, 'k_ad135320')
 
 
 def getDbInfo():
@@ -1685,8 +1685,8 @@ def repairTable():
     if len(ret) > 0:
         for i in ret:
             pdb.execute('REPAIR TABLE `%s`.`%s`' % (db_name, i))
-        return yf.returnJson(True, "修复完成!")
-    return yf.returnJson(False, "修复失败!")
+        return yf.returnJson(True, "k_a311325d")
+    return yf.returnJson(False, "k_76eea36d")
 
 
 def optTable():
@@ -1709,8 +1709,8 @@ def optTable():
     if len(ret) > 0:
         for i in ret:
             pdb.execute('OPTIMIZE TABLE `%s`.`%s`' % (db_name, i))
-        return yf.returnJson(True, "优化成功!")
-    return yf.returnJson(False, "优化失败或者已经优化过了!")
+        return yf.returnJson(True, "k_5577a843")
+    return yf.returnJson(False, "k_fb98fc0a")
 
 
 def alterTable():
@@ -1736,8 +1736,8 @@ def alterTable():
         for i in ret:
             pdb.execute('alter table `%s`.`%s` ENGINE=`%s`' %
                         (db_name, i, table_type))
-        return yf.returnJson(True, "更改成功!")
-    return yf.returnJson(False, "更改失败!")
+        return yf.returnJson(True, "k_e8ebef61")
+    return yf.returnJson(False, "k_baea8779")
 
 
 def getTotalStatistics():
@@ -1777,7 +1777,7 @@ def getDbrunMode(version=''):
 
 def setDbrunMode(version=''):
     if version == '5.5':
-        return yf.returnJson(False, "不支持切换")
+        return yf.returnJson(False, "k_0fcb43d9")
 
     args = getArgs()
     data = checkArgs(args, ['mode', 'reload'])
@@ -1788,7 +1788,7 @@ def setDbrunMode(version=''):
     dbreload = args['reload']
 
     if not mode in ['classic', 'gtid']:
-        return yf.returnJson(False, "mode的值无效:" + mode)
+        return yf.returnJson(False, "k_4950c749" + mode)
 
     origin_mode = recognizeDbMode()
     path = getConf()
@@ -1822,7 +1822,7 @@ def setDbrunMode(version=''):
     if dbreload == "yes":
         restart(version)
 
-    return yf.returnJson(True, "切换成功!")
+    return yf.returnJson(True, "k_ad135320")
 
 
 def findBinlogDoDb():
@@ -1865,7 +1865,7 @@ def setDbMasterAccess():
 
     pdb.execute("flush privileges")
     psdb.where('username=?', (username,)).save('accept', (access,))
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 def resetMaster(version=''):
     pdb = pMysqlDb()
@@ -1873,7 +1873,7 @@ def resetMaster(version=''):
     isError = isSqlError(r)
     if isError != None:
         return isError
-    return yf.returnJson(True, '重置成功!')
+    return yf.returnJson(True, 'k_a01aa6c3')
 
 def getMasterDbList(version=''):
     args = getArgs()
@@ -1954,7 +1954,7 @@ def setDbMaster(version):
 
     restart(version)
     time.sleep(4)
-    return yf.returnJson(True, '设置成功', [args, dodb])
+    return yf.returnJson(True, 'k_f6088e4a', [args, dodb])
 
 
 def setDbSlave(version):
@@ -1983,13 +1983,13 @@ def setDbSlave(version):
 
     restart(version)
     time.sleep(4)
-    return yf.returnJson(True, '设置成功', [args, dodb])
+    return yf.returnJson(True, 'k_f6088e4a', [args, dodb])
 
 
 def getMasterStatus(version=''):
     try:
         if status(version) == 'stop':
-            return yf.returnJson(False, 'MySQL未启动,或正在启动中...!', [])
+            return yf.returnJson(False, 'k_1602b581', [])
 
         conf = getConf()
         content = yf.readFile(conf)
@@ -2012,9 +2012,9 @@ def getMasterStatus(version=''):
             if v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes':
                 data['slave_status'] = True
 
-        return yf.returnJson(master_status, '设置成功', data)
+        return yf.returnJson(master_status, 'k_f6088e4a', data)
     except Exception as e:
-        return yf.returnJson(False, "数据库密码错误,在管理列表-点击【修复】!", 'pwd')
+        return yf.returnJson(False, "k_0c18ba34", 'pwd')
 
 
 def setMasterStatus(version=''):
@@ -2023,7 +2023,7 @@ def setMasterStatus(version=''):
     con = yf.readFile(conf)
 
     if con.find('#log-bin') != -1:
-        return yf.returnJson(False, '必须开启二进制日志')
+        return yf.returnJson(False, 'k_8a3c2f32')
 
     sign = 'mdserver_ms_open'
 
@@ -2041,7 +2041,7 @@ def setMasterStatus(version=''):
         yf.writeFile(conf, con)
 
     restart(version)
-    return yf.returnJson(True, '设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 
 def getMasterRepSlaveList(version=''):
@@ -2100,12 +2100,12 @@ def addMasterRepSlaveUser(version=''):
 
     reg = r"^[\w-]+$"
     if not re.match(reg, username):
-        return yf.returnJson(False, '用户名不能带有特殊符号!')
+        return yf.returnJson(False, 'k_664818c3')
     checks = ['root', 'mysql', 'test', 'sys', 'panel_logs']
     if username in checks or len(username) < 1:
-        return yf.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, 'k_9400bbff')
     if password in checks or len(password) < 1:
-        return yf.returnJson(False, '密码不合法!')
+        return yf.returnJson(False, 'k_ef79b569')
 
     if len(password) < 1:
         password = yf.md5(time.time())[0:8]
@@ -2114,7 +2114,7 @@ def addMasterRepSlaveUser(version=''):
     psdb = pSqliteDb('master_replication_user')
 
     if psdb.where("username=?", (username,)).count() > 0:
-        return yf.returnJson(False, '用户已存在!')
+        return yf.returnJson(False, 'k_f0db3e62')
 
     sql_create = "CREATE USER IF NOT EXISTS '" + username + "'@'%' IDENTIFIED BY '" + password + "';"
     pdb.execute(sql_create)
@@ -2135,7 +2135,7 @@ def addMasterRepSlaveUser(version=''):
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     psdb.add('username,password,accept,ps,addtime',
              (username, password, '%', '', addTime))
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 
 def getMasterRepSlaveUserCmdSsh(version):
@@ -2151,7 +2151,7 @@ def getMasterRepSlaveUserCmdSsh(version):
     if username == '':
         count = psdb.count()
         if count == 0:
-            return yf.returnJson(False, '请添加同步账户!')
+            return yf.returnJson(False, 'k_de256538')
 
         clist = psdb.field(f).limit('1').order('id desc').select()
     else:
@@ -2159,7 +2159,7 @@ def getMasterRepSlaveUserCmdSsh(version):
             '1').order('id desc').select()
 
     if len(clist) == 0:
-        return yf.returnJson(False, '错误同步账户!')
+        return yf.returnJson(False, 'k_5ef997c6')
 
     ip = yf.getLocalIp()
     port = getMyPort()
@@ -2167,7 +2167,7 @@ def getMasterRepSlaveUserCmdSsh(version):
 
     mstatus = db.query('show master status')
     if len(mstatus) == 0:
-        return yf.returnJson(False, '未开启!')
+        return yf.returnJson(False, 'k_499b934e')
 
     mode = recognizeDbMode()
 
@@ -2209,7 +2209,7 @@ def getMasterRepSlaveUserCmd(version):
     if username == '':
         count = psdb.count()
         if count == 0:
-            return yf.returnJson(False, '请添加同步账户!')
+            return yf.returnJson(False, 'k_de256538')
 
         clist = psdb.field(f).limit('1').order('id desc').select()
     else:
@@ -2217,7 +2217,7 @@ def getMasterRepSlaveUserCmd(version):
             '1').order('id desc').select()
 
     if len(clist) == 0:
-        return yf.returnJson(False, '错误同步账户!')
+        return yf.returnJson(False, 'k_5ef997c6')
 
     ip = yf.getLocalIp()
     port = getMyPort()
@@ -2225,7 +2225,7 @@ def getMasterRepSlaveUserCmd(version):
 
     mstatus = db.query('show master status')
     if len(mstatus) == 0:
-        return yf.returnJson(False, '未开启!')
+        return yf.returnJson(False, 'k_499b934e')
 
     mode = recognizeDbMode()
 
@@ -2280,7 +2280,7 @@ def delMasterRepSlaveUser(version=''):
 
     psdb.where("username=?", (args['username'],)).delete()
 
-    return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(True, 'k_fc9bddbc')
 
 
 def updateMasterRepSlaveUser(version=''):
@@ -2292,7 +2292,7 @@ def updateMasterRepSlaveUser(version=''):
     username = args['username']
     password = args['password']
     if not re.match(r"^[\w\.-]+$", username):
-        return yf.returnJson(False, '用户名不合法!')
+        return yf.returnJson(False, 'k_9400bbff')
 
     pdb = pMysqlDb()
     psdb = pSqliteDb('master_replication_user')
@@ -2308,7 +2308,7 @@ def updateMasterRepSlaveUser(version=''):
     psdb.where("username=?", (username,)).save(
         'password', password)
 
-    return yf.returnJson(True, '更新成功!')
+    return yf.returnJson(True, 'k_a3869d5b')
 
 
 def getSlaveSSHList(version=''):
@@ -2385,7 +2385,7 @@ def addSlaveSyncUser(version=''):
         conn.add('ip,port,user,cmd,user,pass,mode,addtime',
                  (ip, port, user, cmd, user, apass, mode, addTime))
 
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 
 def delSlaveSyncUser(version=''):
@@ -2398,7 +2398,7 @@ def delSlaveSyncUser(version=''):
 
     conn = pSqliteDb('slave_sync_user')
     conn.where("ip=?", (ip,)).delete()
-    return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(True, 'k_fc9bddbc')
 
 
 def getSlaveSyncUserList(version=''):
@@ -2453,7 +2453,7 @@ def setSlaveSyncMode(version):
         os.remove(sync_mode)
     else:
         yf.writeFile(sync_mode, mode)
-    return yf.returnJson(True, '设置成功', mode)
+    return yf.returnJson(True, 'k_f6088e4a', mode)
 
 
 def getSlaveSSHByIp(version=''):
@@ -2500,7 +2500,7 @@ def addSlaveSSH(version=''):
         conn.add('ip,port,user,id_rsa,db_user,ps,addtime',
                  (ip, port, user, id_rsa, db_user, '', addTime))
 
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 
 def delSlaveSSH(version=''):
@@ -2541,20 +2541,20 @@ def getSlaveList(version=''):
 
 def trySlaveSyncBugfix(version=''):
     if status(version) == 'stop':
-        return yf.returnJson(False, 'MySQL未启动', [])
+        return yf.returnJson(False, 'k_f22ffb4f', [])
 
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
-        return yf.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, 'k_6f9deb44')
 
     mode = yf.readFile(mode_file)
     if mode != 'sync-user':
-        return yf.returnJson(False, '仅支持【同步账户】模式')
+        return yf.returnJson(False, 'k_cdef9baa')
 
     conn = pSqliteDb('slave_sync_user')
     slave_sync_data = conn.field('ip,port,user,pass,mode,cmd').select()
     if len(slave_sync_data) < 1:
-        return yf.returnJson(False, '需要先添加【同步用户】配置!')
+        return yf.returnJson(False, 'k_429f4444')
 
     # print(slave_sync_data)
     # 本地从库
@@ -2590,7 +2590,7 @@ def trySlaveSyncBugfix(version=''):
     # print(sql)
     sdb.query(sql)
     sdb.query('start all slaves')
-    return yf.returnJson(True, '修复成功!')
+    return yf.returnJson(True, 'k_eb772cc6')
 
 def getSlaveSyncCmd(version=''):
     root = yf.getPanelDir()
@@ -2602,7 +2602,7 @@ def getSlaveSyncCmd(version=''):
 def initSlaveStatus(version=''):
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
-        return yf.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, 'k_6f9deb44')
 
     mode = yf.readFile(mode_file)
     if mode == 'ssh':
@@ -2637,13 +2637,13 @@ def initSlaveStatusSyncUser(version=''):
 
     slave_data = conn.field('id,ip,port,user,pass,mode,cmd').select()
     if len(slave_data) < 1:
-        return yf.returnJson(False, '需要先添加同步用户配置!')
+        return yf.returnJson(False, 'k_6b53f35e')
 
     pdb = pMysqlDb()
     if len(slave_data) == 1:
         dlist = pdb.query('show slave status')
         if len(dlist) > 0:
-            return yf.returnJson(False, '已经初始化好了zz...')
+            return yf.returnJson(False, 'k_7c8939f3')
 
     msg = ''
 
@@ -2694,7 +2694,7 @@ def initSlaveStatusSSH(version=''):
     ssh_list = conn.field('ip,port,id_rsa,db_user').select()
 
     if len(ssh_list) < 1:
-        return yf.returnJson(False, '需要先配置【[主]SSH配置】!')
+        return yf.returnJson(False, 'k_1ffd28fe')
 
     import paramiko
     paramiko.util.log_to_file('paramiko.log')
@@ -2720,16 +2720,16 @@ def initSlaveStatusSSH(version=''):
             result = stdout.read()
             result = result.decode('utf-8')
             if result.strip() == "":
-                return yf.returnJson(False, '[主][' + ip + ']:获取同步命令失败!')
+                return yf.returnJson(False, 'k_3d3a8c8a' + ip + ']:获取同步命令失败!')
             cmd_data = json.loads(result)
             time.sleep(1)
             ssh.close()
             if not cmd_data['status']:
-                return yf.returnJson(False, '[主][' + ip + ']:' + cmd_data['msg'])
+                return yf.returnJson(False, 'k_3d3a8c8a' + ip + ']:' + cmd_data['msg'])
 
             local_mode = recognizeDbMode()
             if local_mode != cmd_data['data']['mode']:
-                return yf.returnJson(False, '[主][' + ip + ']【{}】从【{}】,运行模式不一致!'.format(cmd_data['data']['mode'], local_mode))
+                return yf.returnJson(False, 'k_3d3a8c8a' + ip + ']【{}】从【{}】,运行模式不一致!'.format(cmd_data['data']['mode'], local_mode))
 
             u = cmd_data['data']['info']
             ps = u['username'] + "|" + u['password']
@@ -2754,15 +2754,15 @@ def initSlaveStatusSSH(version=''):
             if os.path.exists(SSH_PRIVATE_KEY):
                 os.system("rm -rf " + SSH_PRIVATE_KEY)
         except Exception as e:
-            return yf.returnJson(False, '[主][' + ip + ']:SSH认证配置连接失败!' + str(e))
+            return yf.returnJson(False, 'k_3d3a8c8a' + ip + ']:SSH认证配置连接失败!' + str(e))
 
-    return yf.returnJson(True, '初始化成功!')
+    return yf.returnJson(True, 'k_323bc001')
 
 
 def setSlaveStatus(version=''):
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
-        return yf.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, 'k_6f9deb44')
 
     pdb = pMysqlDb()
     dlist = pdb.query('show slave status')
@@ -2770,7 +2770,7 @@ def setSlaveStatus(version=''):
         dlist = pdb.query('show all slaves status')
 
     if len(dlist) == 0:
-        return yf.returnJson(False, '需要手动添加同步账户或者执行初始化!')
+        return yf.returnJson(False, 'k_ad9f7286')
 
     for v in dlist:
         connection_name = ''
@@ -2784,7 +2784,7 @@ def setSlaveStatus(version=''):
         else:
             pdb.query("start {}".format(cmd))
 
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 
 def deleteSlave(version=''):
@@ -2797,7 +2797,7 @@ def deleteSlave(version=''):
     else:
         db.query('stop slave')
         db.query('reset slave all')
-    return yf.returnJson(True, '删除成功!')
+    return yf.returnJson(True, 'k_fc9bddbc')
 
 
 def dumpMysqlData(version=''):
@@ -2870,9 +2870,9 @@ def syncDatabaseRepairLog(version=''):
     op = args['op']
 
     if not re.match(r"^[\w\.-]+$", sync_args_db):
-        return yf.returnJson(False, '数据库名称不合法!')
+        return yf.returnJson(False, 'k_ae1f3b7b')
     if not re.match(r"^[\w\.-]+$", sync_args_sign):
-        return yf.returnJson(False, '签名不合法!')
+        return yf.returnJson(False, 'k_cc2f2173')
 
     tmp_log = syncDatabaseRepairTempFile()
     json_args = json.dumps({"db": sync_args_db, "sign": sync_args_sign})
@@ -2898,7 +2898,7 @@ def syncDatabaseRepairLog(version=''):
         except Exception as e:
             return yf.returnJson(False, '启动修复失败: ' + str(e))
 
-    return yf.returnJson(False, '无效请求!')
+    return yf.returnJson(False, 'k_364fd452')
 
 
 def syncDatabaseRepair(version=''):
@@ -3197,7 +3197,7 @@ def fullSyncCmd():
 def doFullSync(version=''):
     mode_file = getSyncModeFile()
     if not os.path.exists(mode_file):
-        return yf.returnJson(False, '需要先设置同步配置')
+        return yf.returnJson(False, 'k_6f9deb44')
 
     mode = yf.readFile(mode_file)
     if mode == 'ssh':

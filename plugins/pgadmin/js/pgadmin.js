@@ -1,4 +1,9 @@
-function pgPost(method,args,callback){
+var api = YfPlugin.createApi('pgadmin');
+var pt = YfI18n.createPluginTranslator('pgadmin');
+
+
+
+async function api.post(method,args){
 
     var _args = null; 
     if (typeof(args) == 'string'){
@@ -6,35 +11,11 @@ function pgPost(method,args,callback){
     } else {
         _args = JSON.stringify(args);
     }
-
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    $.post('/plugins/run', {name:'pgadmin', func:method, args:_args}, function(data) {
-        layer.close(loadT);
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-
-async function pgAsyncPost(method,args){
-
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-    return await syncPost('/plugins/run', {name:'pgadmin', func:method, args:_args}); 
+    return await api.post('/plugins/run', {name:'pgadmin', func:method, args:_args}); 
 }
 
 function homePage(){
-    pgPost('get_home_page', '', function(data){
+    api.post('get_home_page', '', function(data){
         var rdata = JSON.parse(data.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
@@ -48,7 +29,7 @@ function homePage(){
 
 //phpmyadmin安全设置
 function safeConf() {
-    pgPost('get_pg_option', {}, function(rdata){
+    api.post('get_pg_option', {}, function(rdata){
         var rdata = JSON.parse(rdata.data);
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
@@ -89,7 +70,7 @@ function safeConf() {
 
 function setPgUsername(){
     var username = $("input[name=username]").val();
-    pgPost('set_pg_username',{'username':username}, function(data){
+    api.post('set_pg_username',{'username':username}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -97,7 +78,7 @@ function setPgUsername(){
 
 function setPgPassword(){
     var password = $("input[name=password]").val();
-    pgPost('set_pg_password',{'password':password}, function(data){
+    api.post('set_pg_password',{'password':password}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -112,7 +93,7 @@ function setPgPort() {
     }
     var data = 'port=' + pmport;
     
-    pgPost('set_pg_port',data, function(data){
+    api.post('set_pg_port',data, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
@@ -121,7 +102,7 @@ function setPgPort() {
 function pgService() {
     pluginService('pgadmin');
     setTimeout(function() {
-        pgPost('get_pg_access_info', '', function(rdata) {
+        api.post('get_pg_access_info', '', function(rdata) {
             var data = JSON.parse(rdata.data);
             if (!data.status) {
                 return;

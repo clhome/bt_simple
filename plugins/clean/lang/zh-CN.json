@@ -1,0 +1,19 @@
+{
+    "k_6be52fe8": "配置修改",
+    "k_f5485fee": "正在获取...",
+    "k_8db4ce2d": "<li>启动后,加入到计划任务每隔7天[0:15]执行。</li>",
+    "k_47d68cd0": "服务",
+    "k_37191bc4": "如果是目录,会寻找【.log】后缀的文件清空。",
+    "k_74d3deb6": "执行成功!",
+    "k_578abbe6": "添加/删除清除日志，可在`配置修改`中添加/删除。",
+    "k_ccb93b06": "<li>【*】代表要删除。</li>",
+    "k_76f2a312": "<li>如果是目录,会寻找【.log】后缀的文件清空。</li>",
+    "k_55fb0402": "常用功能",
+    "k_be9d2272": "启动后,加入到计划任务每隔7天[0:15]执行。",
+    "k_f411d0f1": "说明",
+    "k_41543edc": "【*】代表要删除。",
+    "k_284a98fa": "运行日志",
+    "k_f2474024": "手动执行",
+    "k_77ca9041": "<li>添加/删除清除日志，可在`配置修改`中添加/删除。</li>",
+    "k_ac6e5370": "pluginService('clean');\n\nfunction cleanPost(method, version, args, callback){\n    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });\n\n    var req_data = {};\n    req_data['name'] = 'clean';\n    req_data['func'] = method;\n    req_data['version'] = version;\n \n    if (typeof(args) == 'string'){\n        req_data['args'] = JSON.stringify(toArrayObject(args));\n    } else {\n        req_data['args'] = JSON.stringify(args);\n    }\n\n    $.post('/plugins/run', req_data, function(data) {\n        layer.close(loadT);\n        if (!data.status){\n            layer.msg(data.msg,{icon:0,time:2000,shade: [10, '#000']});\n            return;\n        }\n\n        if(typeof(callback) == 'function'){\n            callback(data);\n        }\n    },'json'); \n}\n\nfunction cleanRun(){\n\tcleanPost('clean_run', '', {}, function(rdata){\n\t\t// var rdata = JSON.parse(rdata.data);\n        // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });\n\t});\n\n\tlayer.msg(\"执行成功!\", { icon: 1});\n}\n\nfunction commonFunc(){\n\n    con = '"
+}

@@ -158,7 +158,7 @@ def check_safe_name(val):
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 def status():
@@ -338,7 +338,7 @@ def restart():
 def getConfig():
     t = status()
     if t == 'stop':
-        return yf.returnJson(False,'未启动!')
+        return yf.returnJson(False, 'k_073fb4ba')
     d = getConfigData()
     return yf.returnJson(True,'ok',d)
 
@@ -357,7 +357,7 @@ def saveConfig():
     d['processManagement']['pidFilePath'] = args['pid_file_path']
     setConfig(d)
     restart()
-    return yf.returnJson(True,'设置成功')
+    return yf.returnJson(True, 'k_f6088e4a')
 
 def initMgRoot(password='',force=0):
     if force == 1:
@@ -453,13 +453,13 @@ def setConfigAuth():
         del d['security']['keyFile']
         setConfig(d)
         restart()
-        return yf.returnJson(True,'关闭成功')
+        return yf.returnJson(True, 'k_8a3140f9')
     else:
         d['security']['authorization'] = 'enabled'
         d['security']['keyFile'] = getServerDir()+'/mongodb.key'
         setConfig(d)
         restart()
-        return yf.returnJson(True,'开启成功')
+        return yf.returnJson(True, 'k_5f3160e8')
 
 def runInfo():
     '''
@@ -618,7 +618,7 @@ def getDbList():
 def addDb():
     t = status()
     if t == 'stop':
-        return yf.returnJson(False,'未启动!')
+        return yf.returnJson(False, 'k_073fb4ba')
 
     client = mongdbClient()
     db = client.admin
@@ -630,15 +630,15 @@ def addDb():
 
     data_name = args['name'].strip()
     if not data_name:
-        return yf.returnJson(False, "数据库名不能为空！")
+        return yf.returnJson(False, "k_570dfa86")
 
     username = args['db_user'].strip()
     if not check_safe_name(data_name) or not check_safe_name(username):
-        return yf.returnJson(False, "安全拦截：数据库名与用户名仅允许英文字母、数字和下划线与中划线！")
+        return yf.returnJson(False, "k_12b512e1")
 
     nameArr = ['admin', 'config', 'local']
     if data_name in nameArr:
-        return yf.returnJson(False, "数据库名是保留名称!")
+        return yf.returnJson(False, "k_516c4c5b")
 
     addTime = time.strftime('%Y-%m-%d %X', time.localtime())
     username = ''
@@ -666,7 +666,7 @@ def addDb():
 
     # 添加入SQLITE
     pSqliteDb('databases').add('name,username,password,accept,ps,addtime', (data_name, username, password, '127.0.0.1', ps, addTime))
-    return yf.returnJson(True, '添加成功')
+    return yf.returnJson(True, 'k_3fdaeadf')
 
 
 def delDb():
@@ -681,7 +681,7 @@ def delDb():
     
     name = args['name'].strip()
     if not check_safe_name(name):
-        return yf.returnJson(False, "安全拦截：非法数据库名！")
+        return yf.returnJson(False, "k_8ae6a112")
 
     try:
         sid = args['id']
@@ -699,9 +699,9 @@ def delDb():
 
         # 删除SQLITE
         sqlite_db.where("id=?", (sid,)).delete()
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
     except Exception as ex:
-        return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, 'k_9cf7a356' + str(ex))
 
 
 def delDbTable():
@@ -720,9 +720,9 @@ def delDbTable():
     try:
         cur_db = client[name]
         cur_db[table_name].drop()
-        return yf.returnJson(True, '删除成功!')
+        return yf.returnJson(True, 'k_fc9bddbc')
     except Exception as ex:
-        return yf.returnJson(False, '删除失败!' + str(ex))
+        return yf.returnJson(False, 'k_9cf7a356' + str(ex))
 
 def setRootPwd(version=''):
     args = getArgs()
@@ -737,15 +737,15 @@ def setRootPwd(version=''):
 
     password = args['password']
     if password == '******':
-        return yf.returnJson(True, '数据库root密码未发生变更')
+        return yf.returnJson(True, 'k_60b34612')
     try:
         msg = ''
         if force == 1:
             msg = ',无须强制!'
         initMgRoot(password, force)
-        return yf.returnJson(True, '数据库root密码修改成功!'+msg)
+        return yf.returnJson(True, 'k_089a7d81'+msg)
     except Exception as ex:
-        return yf.returnJson(False, '修改错误:' + str(ex))
+        return yf.returnJson(False, 'k_df1bbb0e' + str(ex))
 
 def setUserPwd(version=''):
 
@@ -771,9 +771,9 @@ def setUserPwd(version=''):
             db.command("createUser", username, pwd=newpassword, roles=user_roles)
 
         sqlite_db.where("id=?", (uid,)).setField('password', newpassword)
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]密码成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('k_f122be69', (name,)))
     except Exception as ex:
-        return yf.returnJson(False, yf.getInfo('修改数据库[{1}]密码失败[{2}]!', (name, str(ex),)))
+        return yf.returnJson(False, yf.getInfo('k_39122a44', (name, str(ex),)))
 
 
 def syncGetDatabases():
@@ -802,7 +802,7 @@ def syncGetDatabases():
         if sqlite_db.add('name,username,password,accept,ps,addtime', (vdb_name, vdb_name, '', host, ps, addTime)):
             n += 1
 
-    msg = yf.getInfo('本次共从服务器获取了{1}个数据库!', (str(n),))
+    msg = yf.getInfo('k_a204e790', (str(n),))
     return yf.returnJson(True, msg)
 
 def setDbPs():
@@ -817,9 +817,9 @@ def setDbPs():
     try:
         psdb = pSqliteDb('databases')
         psdb.where("id=?", (sid,)).setField('ps', ps)
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注成功!', (name,)))
+        return yf.returnJson(True, yf.getInfo('k_8232663e', (name,)))
     except Exception as e:
-        return yf.returnJson(True, yf.getInfo('修改数据库[{1}]备注失败!', (name,)))
+        return yf.returnJson(True, yf.getInfo('k_b668e50e', (name,)))
 
 
 def getDbInfo():
@@ -900,7 +900,7 @@ def syncToDatabases():
             result = toDbBase(find)
             if result == 1:
                 n += 1
-    msg = yf.getInfo('本次共同步了{1}个数据库!', (str(n),))
+    msg = yf.getInfo('k_7273ebe2', (str(n),))
     return yf.returnJson(True, msg)
 
 
@@ -1037,7 +1037,7 @@ def setDbAccess():
         db.command('dropUser',username)
         db.command("createUser", username, pwd=mg_pass, roles=user_roles)
 
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 def getReplConfigData():
     import json
@@ -1078,7 +1078,7 @@ def replSetName():
     setConfig(d)
     restart()
 
-    return yf.returnJson(True, '设置成功!')
+    return yf.returnJson(True, 'k_956e02d7')
 
 def replSetNode():
     args = getArgs()
@@ -1097,7 +1097,7 @@ def replSetNode():
 
     priority = int(priority)
     if priority<0 or priority>100:
-        return yf.returnJson(False, 'priority应该在[0-100]之间!')
+        return yf.returnJson(False, 'k_23c67c51')
 
     arbiterOnly = 0
     if 'arbiterOnly' in  args:
@@ -1119,7 +1119,7 @@ def replSetNode():
                 nodes[i]['arbiterOnly'] = arbiterOnly
         c['nodes'] = nodes
         setReplConfigData(c)
-        return yf.returnJson(True, '编辑成功!')
+        return yf.returnJson(True, 'k_9253578d')
 
     is_have = False
     for x in nodes:
@@ -1138,7 +1138,7 @@ def replSetNode():
     nodes.append(t)
     c['nodes'] = nodes
     setReplConfigData(c)
-    return yf.returnJson(True, '添加成功!')
+    return yf.returnJson(True, 'k_dd4520d6')
 
 
 def delReplNode():
@@ -1159,7 +1159,7 @@ def delReplNode():
     c['nodes'] = filter_nodes
     setReplConfigData(c)
 
-    return yf.returnJson(True, '删除节点'+args['node']+'成功!')
+    return yf.returnJson(True, 'k_91a6d3a7'+args['node']+'成功!')
 
 
 def replInit():
@@ -1169,7 +1169,7 @@ def replInit():
     nodes = c['nodes']
 
     if name == '':
-        return yf.returnJson(False, '副本名不能为空!')
+        return yf.returnJson(False, 'k_ea8b8fbf')
 
     # d = getConfigData()
     # d['replication']['replSetName'] = name
@@ -1177,7 +1177,7 @@ def replInit():
     # restart()
 
     if len(nodes) == 0:
-        return yf.returnJson(False, '节点不能为空!')
+        return yf.returnJson(False, 'k_0fede54a')
 
     cfg_node = []
 
@@ -1200,7 +1200,7 @@ def replInit():
         cfg_node.append(t)
 
     # print(cfg_node)
-    # return yf.returnJson(False, '设置副本成功!')
+    # return yf.returnJson(False, 'k_ab94937c')
 
     config = {
         '_id': name,
@@ -1219,10 +1219,10 @@ def replInit():
             except Exception as re_err:
                 return yf.returnJson(False, str(re_err))
             
-            return yf.returnJson(True, '重置副本同步成功!')
+            return yf.returnJson(True, 'k_d9e78f3e')
         return yf.returnJson(False, str(e))
 
-    return yf.returnJson(True, '设置副本初始化成功!')
+    return yf.returnJson(True, 'k_bafb730e')
 
 def replClose():
 
@@ -1239,7 +1239,7 @@ def replClose():
     except Exception as e:
         return yf.returnJson(False, str(e))
     
-    return yf.returnJson(True, '关闭副本同步成功!')
+    return yf.returnJson(True, 'k_b6450a82')
 
 def getDbBackupListFunc(dbname=''):
     bkDir = yf.getBackupDir() + '/database'
@@ -1336,7 +1336,7 @@ def setDbBackup():
 
     name = args['name'].strip()
     if not check_safe_name(name):
-        return yf.returnJson(False, "安全拦截：非法数据库名！")
+        return yf.returnJson(False, "k_8ae6a112")
 
     scDir = getPluginDir() + '/scripts/backup.py'
     import subprocess
@@ -1374,7 +1374,7 @@ def importDbExternal():
 
     # 安全检查：禁止数据库名带特殊字符，限制文件名只能在安全前缀下且没有穿越符
     if not check_safe_name(name) or '..' in file or '/' in file or '\\' in file:
-        return yf.returnJson(False, '安全拦截：非法数据库名或导入文件名！')
+        return yf.returnJson(False, 'k_22fc397c')
 
     import_dir = yf.getBackupDir() + '/mongodb_import/'
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
@@ -1382,12 +1382,12 @@ def importDbExternal():
 
     file_path = import_dir + file
     if not os.path.exists(file_path):
-        return yf.returnJson(False, '文件突然消失?')
+        return yf.returnJson(False, 'k_3dc5e176')
 
     exts = ['gz', 'tgz', 'zip']
     ext = yf.getFileSuffix(file)
     if ext not in exts:
-        return yf.returnJson(False, '导入数据库格式不对!')
+        return yf.returnJson(False, 'k_df9bc174')
 
     auth = getConfAuth()
     mg_root = pSqliteDb('config').where('id=?', (1,)).getField('mg_root')
@@ -1445,7 +1445,7 @@ def importDbBackup():
 
     # 安全检查
     if not check_safe_name(name) or '..' in file or '/' in file or '\\' in file:
-        return yf.returnJson(False, '安全拦截：非法数据库名或备份文件名！')
+        return yf.returnJson(False, 'k_24d29f02')
 
     port = getConfPort()
 
@@ -1616,17 +1616,17 @@ def cronAddCheck():
     try:
         import tool_task
         tool_task.createBgTask()
-        return yf.returnJson(True, '添加检查任务成功')
+        return yf.returnJson(True, 'k_a1d0b7a5')
     except Exception as e:
-        return yf.returnJson(False, '添加检查任务失败:'+str(e))
+        return yf.returnJson(False, 'k_8eefa296'+str(e))
 
 def cronDelCheck():
     try:
         import tool_task
         tool_task.removeBgTask()
-        return yf.returnJson(True, '删除检查任务成功')
+        return yf.returnJson(True, 'k_f3de1589')
     except Exception as e:
-        return yf.returnJson(False, '删除检查任务失败:'+str(e))
+        return yf.returnJson(False, 'k_c1c79286'+str(e))
 
 
 def installPreInspectionDebainCheck(sysId,version):

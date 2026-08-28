@@ -64,7 +64,7 @@ def getArgs():
 def checkArgs(data, ck=[]):
     for i in range(len(ck)):
         if not ck[i] in data:
-            return (False, yf.returnJson(False, '参数:(' + ck[i] + ')没有!'))
+            return (False, yf.returnJson(False, 'k_f4104dc6' + ck[i] + ')没有!'))
     return (True, yf.returnJson(True, 'ok'))
 
 
@@ -289,10 +289,10 @@ def add_load_balance(args):
     domain = tmp['domain']
 
     if not is_valid_domain(domain):
-        return yf.returnJson(False, '域名格式不合法')
+        return yf.returnJson(False, 'k_fc3f34cd')
 
     if not is_valid_upstream(args['upstream_name']):
-        return yf.returnJson(False, '负载名称格式不合法')
+        return yf.returnJson(False, 'k_eedabb87')
 
     try:
         nodes = args['node_list']
@@ -300,9 +300,9 @@ def add_load_balance(args):
             nodes = json.loads(nodes)
         for x in nodes:
             if not is_valid_domain(x['ip']):
-                return yf.returnJson(False, '节点IP/主机名不合法')
+                return yf.returnJson(False, 'k_d1a3ef66')
             if not re.match(r'^[0-9]+$', str(x['port'])):
-                return yf.returnJson(False, '节点端口不合法')
+                return yf.returnJson(False, 'k_d037a93b')
     except Exception as e:
         pass
 
@@ -327,7 +327,7 @@ def add_load_balance(args):
 
     makeLoadBalanceAllCfg(cfg_len)
     yf.restartWeb()
-    return yf.returnJson(True, '添加成功', data)
+    return yf.returnJson(True, 'k_3fdaeadf', data)
 
 
 def edit_load_balance(args):
@@ -348,7 +348,7 @@ def edit_load_balance(args):
 
     makeLoadBalanceAllCfg(row)
     yf.restartWeb()
-    return yf.returnJson(True, '修改成功', data)
+    return yf.returnJson(True, 'k_69be6717', data)
 
 
 def loadBalanceList():
@@ -375,7 +375,7 @@ def loadBalanceDelete():
     if type(sid) == list:
         del(cfg[row])
         writeConf(cfg)
-        return yf.returnJson(False, '已经删除了!')
+        return yf.returnJson(False, 'k_90ae3646')
 
     status = sobj.delete(sid, data['domain'], 1)
     status_data = json.loads(status)
@@ -429,8 +429,8 @@ def checkUrl():
         url = 'http://' + str(ip) + ':' + str(port) + str(path.strip())
     ret = http_get(url)
     if not ret:
-        return yf.returnJson(False, '访问节点[%s]失败' % url)
-    return yf.returnJson(True, '访问节点[%s]成功' % url)
+        return yf.returnJson(False, 'k_2f490ad7' % url)
+    return yf.returnJson(True, 'k_5a7b1f58' % url)
 
 
 def getHealthStatus():
