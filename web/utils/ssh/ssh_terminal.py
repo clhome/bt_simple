@@ -88,11 +88,11 @@ class ssh_terminal(object):
         '''
         version = yf.readFile('/etc/redhat-release')
         if not os.path.exists('/etc/redhat-release'):
-            yf.execShell('service ssh ' + act)
+            yf.safeExecShell(['service', 'ssh', act])
         elif version.find(' 7.') != -1 or version.find(' 8.') != -1:
-            yf.execShell("systemctl " + act + " sshd.service")
+            yf.safeExecShell(["systemctl", act, "sshd.service"])
         else:
-            yf.execShell("/etc/init.d/sshd " + act)
+            yf.safeExecShell(["/etc/init.d/sshd", act])
 
     def isRunning(self, rep=False):
         try:

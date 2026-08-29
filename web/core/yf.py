@@ -652,9 +652,8 @@ def returnJson(status, msg, data=None, *args):
 def readFile(filename):
     # 读文件内容
     try:
-        fp = open(filename, 'r', encoding='utf-8')
-        fBody = fp.read()
-        fp.close()
+        with open(filename, 'r', encoding='utf-8') as fp:
+            fBody = fp.read()
         return fBody
     except Exception as e:
         # print('readFile:',str(e))
@@ -694,9 +693,8 @@ def writeFile(filename, content, mode='w+'):
         parent_dir = os.path.dirname(filename)
         if parent_dir and not os.path.exists(parent_dir):
             os.makedirs(parent_dir, exist_ok=True)
-        fp = open(filename, mode, encoding='utf-8')
-        fp.write(content)
-        fp.close()
+        with open(filename, mode, encoding='utf-8') as fp:
+            fp.write(content)
         return True
     except Exception as e:
         writeFileLog(getTracebackInfo())

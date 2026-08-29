@@ -36,7 +36,7 @@ def removeTaskRecursion(pid):
         return 'ok'
 
     removeTaskRecursion(sub_pid[0].strip())
-    yf.execShell('kill -9 ' + sub_pid[0].strip())
+    yf.safeExecShell(['kill', '-9', sub_pid[0].strip()])
     return sub_pid[0].strip()
 
 # 删除任务
@@ -51,7 +51,7 @@ def removeTask(task_id):
             task_list = task_pid[0].strip().split("\n")
             for i in range(len(task_list)):
                 removeTaskRecursion(task_list[i])
-                t = yf.execShell('kill -9 ' + task_list[i])
+                t = yf.safeExecShell(['kill', '-9', task_list[i]])
                 print(t)
             yf.triggerTask()
             yf.restartTask()
