@@ -37,7 +37,7 @@ $('#panelLogs .clear').on('click', function () {
   delLogs(1);
 });
 function getAuditLogsFiles() {
-  var loadT = layer.msg(lan && lan.logs && t('logs.logs_auto_str_1') || "", {
+  var loadT = layer.msg(lan && lan.logs && t('logs.retrieving_the_log_audit') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -64,7 +64,7 @@ function getAuditLogsFiles() {
   }, 'json');
 }
 function getAuditFile(log_name) {
-  var loadT = layer.msg(lan && lan.logs && t('logs.logs_auto_str_2') || "", {
+  var loadT = layer.msg(lan && lan.logs && t('logs.retrieving_log_audit_data') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -166,11 +166,11 @@ function getLogs(page, search) {
   }, 'json');
 }
 function delLogs() {
-  layer.confirm(lan && lan.logs && t('logs.logs_auto_str_4') || "", {
-    title: lan && lan.logs && t('logs.logs_auto_str_5') || "",
+  layer.confirm(lan && lan.logs && t('logs.the_panel_logs_are') || "", {
+    title: lan && lan.logs && t('logs.clear_logs_1') || "",
     closeBtn: 2
   }, function () {
-    var loadT = layer.msg(lan && lan.logs && t('logs.logs_auto_str_6') || "", {
+    var loadT = layer.msg(lan && lan.logs && t('logs.clearing_data_please_wait') || "", {
       icon: 16
     });
     $.post('/logs/del_panel_logs', '', function (rdata) {

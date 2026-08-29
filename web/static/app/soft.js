@@ -12,7 +12,7 @@ function resetPluginWinHeight(height) {
 //软件管理窗口
 function softMain(name, title, version) {
   var _title = title.replace('-' + version, '');
-  var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_1') || "", {
+  var loadT = layer.msg(lan && lan.soft && t('soft.processing_please_wait') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -22,7 +22,7 @@ function softMain(name, title, version) {
     layer.open({
       type: 1,
       area: '640px',
-      title: _title + '【' + version + (lan && lan.soft && t('soft.soft_auto_str_2') || ""),
+      title: _title + '【' + version + (lan && lan.soft && t('soft.management') || ""),
       closeBtn: 1,
       shift: 0,
       content: rdata
@@ -40,11 +40,11 @@ function toggleThirdParty(isChecked) {
   getSList(1);
 }
 function clearPluginCache() {
-  layer.confirm(lan && lan.soft && t('soft.soft_auto_str_3') || "", {
-    title: lan && lan.soft && t('soft.soft_auto_str_4') || "",
+  layer.confirm(lan && lan.soft && t('soft.this_action_will_clear') || "", {
+    title: lan && lan.soft && t('soft.clear_the_installation_cache') || "",
     icon: 3
   }, function (index) {
-    var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_5') || "", {
+    var loadT = layer.msg(lan && lan.soft && t('soft.clearing_data_please_wait') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -62,7 +62,7 @@ function clearPluginCache() {
 //取软件列表
 function getSList(isdisplay) {
   if (isdisplay !== true) {
-    var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_6') || "", {
+    var loadT = layer.msg(lan && lan.soft && t('soft.retrieving_the_list') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -183,7 +183,7 @@ function getSList(isdisplay) {
             }
           }
         }
-        handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + (lan && lan.soft && t('soft.soft_auto_str_9') || "") + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection + (lan && lan.soft && t('soft.soft_auto_str_10') || "");
+        handle = mupdate + '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + (lan && lan.soft && t('soft.settings_btlink_uninstallversion') || "") + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection + (lan && lan.soft && t('soft.uninstall') || "");
         titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
         if (plugin.coexist) {
@@ -217,13 +217,13 @@ function getSList(isdisplay) {
         plugin_title = plugin.title + ' ' + plugin.setup_version;
       }
       if (plugin.display_level == 1) {
-        plugin_title += lan && lan.soft && t('soft.soft_auto_str_14') || "";
+        plugin_title += lan && lan.soft && t('soft.size_third_party') || "";
       }
       icon_link = "/plugins/file?name=" + plugin.name + "&f=ico.png";
       if (plugin.icon != '') {
         icon_link = "/plugins/file?name=" + plugin.name + "&f=" + plugin.icon;
       }
-      sBody += '<tr>' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + plugin.ps + '</td>' + '<td>' + (plugin.home ? '<a class="btlink" href="' + plugin.home + (lan && lan.soft && t('soft.soft_auto_str_15') || "") : '-') + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td>' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
+      sBody += '<tr>' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + plugin.ps + '</td>' + '<td>' + (plugin.home ? '<a class="btlink" href="' + plugin.home + (lan && lan.soft && t('soft.target_blank_official_website') || "") : '-') + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td>' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
     }
     sBody += pBody;
     $("#softList").html(sBody);
@@ -255,7 +255,7 @@ function getSList(isdisplay) {
   }, 'json');
 }
 function installPreInspection(name, ver, callback) {
-  var loading = layer.msg(lan && lan.soft && t('soft.soft_auto_str_16') || "", {
+  var loading = layer.msg(lan && lan.soft && t('soft.checking_the_installation_environment') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -282,7 +282,7 @@ function installPreInspection(name, ver, callback) {
   }, 'json');
 }
 function runInstall(data) {
-  var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_17') || "", {
+  var loadT = layer.msg(lan && lan.soft && t('soft.adding_to_the_installer') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -316,11 +316,11 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
     var layerArea = customHtml ? '540px' : '380px';
     layer.open({
       type: 1,
-      title: (lan && lan.soft && t('soft.soft_auto_str_18') || "") + titlename,
+      title: (lan && lan.soft && t('soft.installation') || "") + titlename,
       area: layerArea,
       closeBtn: 1,
       shadeClose: true,
-      btn: [lan && lan.soft && t('soft.soft_auto_str_19') || "", lan && lan.soft && t('soft.soft_auto_str_20') || ""],
+      btn: [lan && lan.soft && t('soft.submit') || "", lan && lan.soft && t('soft.close') || ""],
       content: "<div class='bt-form pd20 c6'><div class='version line'>" + (lan && lan.soft && lan.soft.install_version || '安装版本：') + option + "</div>" + customHtml + "\
             </div>",
       success: function () {
@@ -358,11 +358,11 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
   }).fail(function () {
     layer.open({
       type: 1,
-      title: (lan && lan.soft && t('soft.soft_auto_str_22') || "") + titlename,
+      title: (lan && lan.soft && t('soft.installation_1') || "") + titlename,
       area: '380px',
       closeBtn: 1,
       shadeClose: true,
-      btn: [lan && lan.soft && t('soft.soft_auto_str_23') || "", lan && lan.soft && t('soft.soft_auto_str_24') || ""],
+      btn: [lan && lan.soft && t('soft.submit_1') || "", lan && lan.soft && t('soft.close_1') || ""],
       content: "<div class='bt-form pd20 c6'><div class='version line'>" + (lan && lan.soft && lan.soft.install_version || '安装版本：') + option + "</div>\
             </div>",
       success: function () {
@@ -399,26 +399,26 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 
 // 强制删除插件
 function forceUninstallPlugin(name, version) {
-  var contentHtml = "<div class='bt-form pd20 c6'><div style='color: red; font-weight: bold; font-size: 14px; margin-bottom: 10px;'>" + (lan && lan.soft && lan.soft.uninstall_warning1 || '卸载后，将删除面板所有关于【') + name + (lan && lan.soft && lan.soft.uninstall_warning2 || '】的所有运行文件与数据库数据（请务必提前做好备份，一经删除绝不可恢复）！</div><div class=\'line\' style=\'margin-bottom: 0px;\'><span style=\'display: block; margin-bottom: 10px;\'>请输入 <b>') + name + (lan && lan.soft && lan.soft.uninstall_warning3 || '</b> 以确认：</span><input type=\'text\' id=\'force_uninstall_confirm_name\' class=\'bt-input-text\' style=\'width: 200px;\' placeholder=\'请输入插件名称\' /></div></div>';"
+  var contentHtml = "<div class='bt-form pd20 c6'><div style='color: red; font-weight: bold; font-size: 14px; margin-bottom: 10px;'>" + t('soft.uninstall_warning1') + name + t('soft.uninstall_warning2') + "</div><div class='line' style='margin-bottom: 0px;'><span style='display: block; margin-bottom: 10px;'>" + t('soft.uninstall_warning3') + " <b>" + name + "</b> " + t('soft.uninstall_warning4') + "</span><input type='text' id='force_uninstall_confirm_name' class='bt-input-text' style='width: 200px;' placeholder='" + t('soft.please_input') + "' /></div></div>";
   layer.open({
     type: 1,
-    title: lan && lan.soft && t('soft.soft_auto_str_29') || "",
+    title: lan && lan.soft && t('soft.confirm_forced_deletion_high') || "",
     area: '420px',
     closeBtn: 1,
     shadeClose: false,
-    btn: [lan && lan.soft && t('soft.soft_auto_str_30') || "", lan && lan.soft && t('soft.soft_auto_str_31') || ""],
+    btn: [lan && lan.soft && t('soft.forced_deletion') || "", lan && lan.soft && t('soft.cancel') || ""],
     content: contentHtml,
     yes: function (index, layero) {
       var confirmName = String($("#force_uninstall_confirm_name").val()).trim();
       if (confirmName !== name) {
-        layer.msg(lan && lan.soft && t('soft.soft_auto_str_32') || "", {
+        layer.msg(lan && lan.soft && t('soft.the_plugin_name_you') || "", {
           icon: 2
         });
         return false;
       }
       var isBackup = $("#force_uninstall_backup_chk").prop("checked") ? 1 : 0;
       layer.close(index);
-      var forceLoad = layer.msg(lan && lan.soft && t('soft.soft_auto_str_33') || "", {
+      var forceLoad = layer.msg(lan && lan.soft && t('soft.forced_deletion_in_progress') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -441,7 +441,7 @@ function forceUninstallPlugin(name, version) {
 
 //卸载软件
 function uninstallPreInspection(name, title, ver, callback) {
-  var loading = layer.msg(lan && lan.soft && t('soft.soft_auto_str_34') || "", {
+  var loading = layer.msg(lan && lan.soft && t('soft.checking_the_uninstallation_environment') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -459,20 +459,20 @@ function uninstallPreInspection(name, title, ver, callback) {
         }
       } else {
         layer.confirm(rdata.data + '<br><span style="color: red;">' + (lan && lan.soft && lan.soft.uninstall_fail_confirm || '卸载环境检查失败，是否要强制删除该插件？') + '</span>', {
-          title: lan && lan.soft && t('soft.soft_auto_str_36') || "",
+          title: lan && lan.soft && t('soft.uninstall_failure_message') || "",
           icon: 2,
           closeBtn: 1,
-          btn: [lan && lan.soft && t('soft.soft_auto_str_37') || "", lan && lan.soft && t('soft.soft_auto_str_38') || ""]
+          btn: [lan && lan.soft && t('soft.forced_deletion_1') || "", lan && lan.soft && t('soft.cancel_1') || ""]
         }, function () {
           forceUninstallPlugin(name, ver);
         });
       }
     } else {
       layer.confirm(rdata.data + '<br><span style="color: red;">' + (lan && lan.soft && lan.soft.uninstall_fail_confirm || '卸载环境检查失败，是否要强制删除该插件？') + '</span>', {
-        title: lan && lan.soft && t('soft.soft_auto_str_40') || "",
+        title: lan && lan.soft && t('soft.uninstall_failure_message_1') || "",
         icon: 2,
         closeBtn: 1,
-        btn: [lan && lan.soft && t('soft.soft_auto_str_41') || "", lan && lan.soft && t('soft.soft_auto_str_42') || ""]
+        btn: [lan && lan.soft && t('soft.forced_deletion_2') || "", lan && lan.soft && t('soft.cancel_2') || ""]
       }, function () {
         forceUninstallPlugin(name, ver);
       });
@@ -481,20 +481,20 @@ function uninstallPreInspection(name, title, ver, callback) {
 }
 function runUninstallVersion(name, title, version) {
   var title = title.replace("-" + version, "");
-  var contentHtml = (lan && lan.soft && t('soft.soft_auto_str_43') || "") + title + "-" + version + (lan && lan.soft && t('soft.soft_auto_str_44') || "");
+  var contentHtml = (lan && lan.soft && t('soft.bt_form_pd_line') || "") + title + "-" + version + (lan && lan.soft && t('soft.top_flex_align_items') || "");
   layer.open({
     type: 1,
-    title: lan && lan.soft && t('soft.soft_auto_str_45') || "",
+    title: lan && lan.soft && t('soft.software_uninstallation_confirmation') || "",
     area: '400px',
     closeBtn: 1,
     shadeClose: false,
-    btn: [lan && lan.soft && t('soft.soft_auto_str_46') || "", lan && lan.soft && t('soft.soft_auto_str_47') || ""],
+    btn: [lan && lan.soft && t('soft.confirm_uninstall') || "", lan && lan.soft && t('soft.cancel_3') || ""],
     content: contentHtml,
     yes: function (index, layero) {
       var isBackup = $("#normal_uninstall_backup_chk").prop("checked") ? 1 : 0;
       layer.close(index);
       var data = 'name=' + name + '&version=' + version + '&backup=' + isBackup;
-      var loadT = layer.msg(lan && lan.soft && t('soft.soft_auto_str_48') || "", {
+      var loadT = layer.msg(lan && lan.soft && t('soft.processing_please_wait_1') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -507,11 +507,11 @@ function runUninstallVersion(name, title, version) {
             icon: 1
           });
         } else {
-          layer.confirm(rdata.msg + (lan && lan.soft && t('soft.soft_auto_str_49') || ""), {
-            title: lan && lan.soft && t('soft.soft_auto_str_50') || "",
+          layer.confirm(rdata.msg + (lan && lan.soft && t('soft.red_the_red_plugin') || ""), {
+            title: lan && lan.soft && t('soft.uninstall_failure_message_2') || "",
             icon: 2,
             closeBtn: 1,
-            btn: [lan && lan.soft && t('soft.soft_auto_str_51') || "", lan && lan.soft && t('soft.soft_auto_str_52') || ""]
+            btn: [lan && lan.soft && t('soft.forced_deletion_3') || "", lan && lan.soft && t('soft.cancel_4') || ""]
           }, function () {
             forceUninstallPlugin(name, version);
           });
@@ -667,7 +667,7 @@ function indexSoft(onFirstRender) {
     $("input[name=list1SortOrder]").val(ssort);
     $.post("/plugins/index_sort", 'ssort=' + ssort, function (rdata) {
       if (!rdata.status) {
-        showMsg((lan && lan.soft && t('soft.soft_auto_str_53') || "") + rdata.msg, function () {
+        showMsg((lan && lan.soft && t('soft.setup_failed') || "") + rdata.msg, function () {
           indexListHtml();
         }, {
           icon: 16,
@@ -710,7 +710,7 @@ function importPlugin(file) {
       var loadT = layer.open({
         type: 1,
         area: "500px",
-        title: lan && lan.soft && t('soft.soft_auto_str_54') || "",
+        title: lan && lan.soft && t('soft.install_third_party_plugin') || "",
         closeBtn: 1,
         shift: 5,
         shadeClose: false,
@@ -731,14 +731,14 @@ function importPlugin(file) {
       });
     },
     error: function (responseStr) {
-      layer.msg((lan && lan.soft && t('soft.soft_auto_str_63') || "") + responseStr, {
+      layer.msg((lan && lan.soft && t('soft.upload_failed') || "") + responseStr, {
         icon: 2
       });
     }
   });
 }
 function importPluginInstall(plugin_name, tmp_path) {
-  layer.msg(lan && lan.soft && t('soft.soft_auto_str_64') || "", {
+  layer.msg(lan && lan.soft && t('soft.installing_this_may_take') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -759,7 +759,7 @@ function importPluginInstall(plugin_name, tmp_path) {
   }, 'json');
 }
 function softUpdate(name, ver, current_ver) {
-  layer.confirm((lan && lan.soft && t('soft.soft_auto_str_65') || "") + name + (lan && lan.soft && t('soft.soft_auto_str_66') || "") + current_ver + (lan && lan.soft && t('soft.soft_auto_str_67') || "") + ver + (lan && lan.soft && t('soft.soft_auto_str_68') || ""), {
+  layer.confirm((lan && lan.soft && t('soft.are_you_sure_you') || "") + name + (lan && lan.soft && t('soft.from') || "") + current_ver + (lan && lan.soft && t('soft.upgrade_to') || "") + ver + (lan && lan.soft && t('soft.msg_1') || ""), {
     icon: 3,
     closeBtn: 1
   }, function () {
@@ -768,7 +768,7 @@ function softUpdate(name, ver, current_ver) {
   });
 }
 function refreshPluginList() {
-  var loading = layer.msg(lan && lan.soft && t('soft.soft_auto_str_69') || "", {
+  var loading = layer.msg(lan && lan.soft && t('soft.clearing_the_cache_and') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -776,7 +776,7 @@ function refreshPluginList() {
   $.post('/plugins/clear_cache', {}, function (rdata) {
     layer.close(loading);
     getSList(true);
-    layer.msg(lan && lan.soft && t('soft.soft_auto_str_70') || "", {
+    layer.msg(lan && lan.soft && t('soft.refresh_successful') || "", {
       icon: 1,
       time: 1000
     });

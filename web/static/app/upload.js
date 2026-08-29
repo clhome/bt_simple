@@ -180,17 +180,17 @@ function uploadStart(d) {
         progress: function (j) {
           h.FileProgress = Math.floor(j.loaded / j.total * 100) + "%";
           if (h.FileProgress == "100%") {
-            h.FileProgress = lan && lan.upload && t('upload.upload_auto_str_1') || "";
+            h.FileProgress = lan && lan.upload && t('upload.saving') || "";
           }
-          h.SetTxt(i[e][1], (lan && lan.upload && t('upload.upload_auto_str_2') || "") + h.FileProgress, "#005100");
+          h.SetTxt(i[e][1], (lan && lan.upload && t('upload.upload_progress') || "") + h.FileProgress, "#005100");
         },
         success: function (j) {
           h.str.serverdata = false;
-          h.SetTxt(i[e][1], lan && lan.upload && t('upload.upload_auto_str_3') || "", "#005100");
+          h.SetTxt(i[e][1], lan && lan.upload && t('upload.upload_successful') || "", "#005100");
           h.ready(i, e + 1, g);
           h.num++;
           if (i.length > 1) {
-            var k = h.num == i.length ? lan && lan.upload && t('upload.upload_auto_str_4') || "" : lan && lan.upload && t('upload.upload_auto_str_5') || "";
+            var k = h.num == i.length ? lan && lan.upload && t('upload.upload_complete') || "" : lan && lan.upload && t('upload.uploaded') || "";
             $("#totalProgress").html("<p>" + k + h.num + "/" + i.length + "</p><progress value='" + h.num + "' max='" + i.length + "' ></progress>");
           }
           if (h.num == i.length) {
@@ -234,7 +234,7 @@ function uploadStart(d) {
     c.opt.disabled = true;
     c.up.disabled = true;
     c.file_input.disabled = true;
-    layer.msg(lan && lan.upload && t('upload.upload_auto_str_6') || "", {
+    layer.msg(lan && lan.upload && t('upload.sorry_ie_is_not') || "", {
       icon: 5
     });
   }

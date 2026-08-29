@@ -619,7 +619,7 @@ function getDiskList(b) {
   }, 'json');
 }
 function createFolder() {
-  var a = '<tr>		<td colspan=\'2\'><span class=\'glyphicon glyphicon-folder-open\'></span><input id=\'newFolderName\' class=\'newFolderName\' type=\'text\' value=\'\'></td>		<td colspan=\'3\'><button id=\'nameOk\' type=\'button\' class=\'btn btn-success btn-sm nameOk\'>' + ('<tr>		<td colspan=\'2\'><span class=\'glyphicon glyphicon-folder-open\'></span><input id=\'newFolderName\' class=\'newFolderName\' type=\'text\' value=\'\'></td>		<td colspan=\'3\'><button id=\'nameOk\' type=\'button\' class=\'btn btn-success btn-sm nameOk\'>' + (lan && lan.public && t('public.public_auto_str_1') || '确定') + '</button>			&nbsp;&nbsp;<button id=\'nameNOk\' type=\'button\' class=\'btn btn-default btn-sm nameNOk\'>' + (lan && lan.public && t('public.public_auto_str_1_1') || '取消') + '</button></td>		</tr>' || '确定') + '</button>			&nbsp;&nbsp;<button id=\'nameNOk\' type=\'button\' class=\'btn btn-default btn-sm nameNOk\'>' + (lan && lan.public && t('public.public_auto_str_1_1') || '取消') + '</button></td>		</tr>';
+  var a = '<tr>		<td colspan=\'2\'><span class=\'glyphicon glyphicon-folder-open\'></span><input id=\'newFolderName\' class=\'newFolderName\' type=\'text\' value=\'\'></td>		<td colspan=\'3\'><button id=\'nameOk\' type=\'button\' class=\'btn btn-success btn-sm nameOk\'>' + ('<tr>		<td colspan=\'2\'><span class=\'glyphicon glyphicon-folder-open\'></span><input id=\'newFolderName\' class=\'newFolderName\' type=\'text\' value=\'\'></td>		<td colspan=\'3\'><button id=\'nameOk\' type=\'button\' class=\'btn btn-success btn-sm nameOk\'>' + (lan && lan.public && t('public.confirm') || '确定') + '</button>			&nbsp;&nbsp;<button id=\'nameNOk\' type=\'button\' class=\'btn btn-default btn-sm nameNOk\'>' + (lan && lan.public && t('public.cancel') || '取消') + '</button></td>		</tr>' || '确定') + '</button>			&nbsp;&nbsp;<button id=\'nameNOk\' type=\'button\' class=\'btn btn-default btn-sm nameNOk\'>' + (lan && lan.public && t('public.cancel') || '取消') + '</button></td>		</tr>';
   if ($("#tbody tr").length == 0) {
     $("#tbody").append(a);
   } else {
@@ -748,7 +748,7 @@ function onlineEditFile(k, f, callback) {
     var l = $("#PathPlace input").val();
     var h = encodeURIComponent($("#textBody").val());
     var a = $("select[name=encoding]").val();
-    var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_2') || "", {
+    var loadT = layer.msg(lan && lan.public && t('public.saving_please_wait') || "", {
       icon: 16,
       time: 0
     });
@@ -884,14 +884,14 @@ function onlineEditFile(k, f, callback) {
     shift: 5,
     closeBtn: 1,
     area: ["90%", "90%"],
-    btn: ['<span class="glyphicon glyphicon-floppy-disk"></span> ' + ('<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.public_auto_str_3') || '保存') || '保存'), '<span class="glyphicon glyphicon-refresh"></span> ' + ('<span class="glyphicon glyphicon-refresh"></span> ' + (lan && lan.public && t('public.public_auto_str_4') || '刷新') || '刷新')],
-    title: (lan && lan.public && t('public.public_auto_str_5') || "") + f + "]",
+    btn: ['<span class="glyphicon glyphicon-floppy-disk"></span> ' + ('<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_1') || '保存') || '保存'), '<span class="glyphicon glyphicon-refresh"></span> ' + ('<span class="glyphicon glyphicon-refresh"></span> ' + (lan && lan.public && t('public.refresh_1') || '刷新') || '刷新')],
+    title: (lan && lan.public && t('public.edit_online') || "") + f + "]",
     shade: 0.0000001,
-    content: '<form class="bt-form pd20">			<div class="line">				<p style="color:red;margin-bottom:10px">' + ('<form class="bt-form pd20">			<div class="line">				<p style="color:red;margin-bottom:10px">' + (lan && lan.public && t('public.public_auto_str_6') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '					<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>				</p>				<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>			</div>		</form>' || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '					<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>				</p>				<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>			</div>		</form>',
+    content: '<form class="bt-form pd20">			<div class="line">				<p style="color:red;margin-bottom:10px">' + ('<form class="bt-form pd20">			<div class="line">				<p style="color:red;margin-bottom:10px">' + (lan && lan.public && t('public.tip_use_ctrl_to') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '					<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>				</p>				<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>			</div>		</form>' || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '					<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>				</p>				<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>			</div>		</form>',
     success: function (layero) {
       $(layero).hide();
       var layer_id = $(layero).attr('id').replace("layui-layer", "");
-      var loading = layer.msg(lan && lan.public && t('public.public_auto_str_7') || "", {
+      var loading = layer.msg(lan && lan.public && t('public.loading_the_file_please') || "", {
         icon: 16,
         time: 0
       });
@@ -938,7 +938,7 @@ function onlineEditFile(k, f, callback) {
         });
 
         // 自动刷新滑块
-        var toggleHtml = '<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>					</div>					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + ('<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>					</div>					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + (lan && lan.public && t('public.public_auto_str_8') || '自动刷新') + '</span>				</div>' || '自动刷新') + '</span>				</div>';
+        var toggleHtml = '<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>					</div>					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + ('<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>					</div>					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + (lan && lan.public && t('public.auto_refresh') || '自动刷新') + '</span>				</div>' || '自动刷新') + '</span>				</div>';
         layero.append(toggleHtml);
         layero.find('.auto-refresh-toggle').on('click', function () {
           var $track = $(this).find('.toggle-track');
@@ -1008,10 +1008,10 @@ function onlineEditFile(k, f, callback) {
     },
     cancel: function (index, layero) {
       if (!code_mirror.isClean()) {
-        layer.confirm(lan && lan.public && t('public.public_auto_str_9') || "", {
-          title: lan && lan.public && t('public.public_auto_str_10') || "",
+        layer.confirm(lan && lan.public && t('public.the_file_has_been') || "", {
+          title: lan && lan.public && t('public.friendly_reminder') || "",
           icon: 0,
-          btn: ['<span class="glyphicon glyphicon-remove"></span> ' + ('<span class="glyphicon glyphicon-remove"></span> ' + (lan && lan.public && t('public.public_auto_str_11') || '不保存') || '不保存'), '<span class="glyphicon glyphicon-floppy-disk"></span> ' + ('<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.public_auto_str_12') || '保存') || '保存')],
+          btn: ['<span class="glyphicon glyphicon-remove"></span> ' + ('<span class="glyphicon glyphicon-remove"></span> ' + (lan && lan.public && t('public.do_not_save') || '不保存') || '不保存'), '<span class="glyphicon glyphicon-floppy-disk"></span> ' + ('<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_2') || '保存') || '保存')],
           success: function (confirmLayero) {
             var outerSaveColor = layero.find('.layui-layer-btn0').css('background-color') || '#20a53a';
             var outerSaveBorder = layero.find('.layui-layer-btn0').css('border-color') || '#20a53a';
@@ -1052,7 +1052,7 @@ function onlineEditFile(k, f, callback) {
       layero.find('.layui-layer-btn0 .cm-dirty-mark').remove();
     },
     btn2: function () {
-      var loading_refresh = layer.msg(lan && lan.public && t('public.public_auto_str_13') || "", {
+      var loading_refresh = layer.msg(lan && lan.public && t('public.refreshing_please_wait') || "", {
         icon: 16,
         time: 0
       });
@@ -1082,12 +1082,12 @@ function divcenter() {
 function copyText(value) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(value).then(function () {
-      layer.msg(lan && lan.public && t('public.public_auto_str_14') || "", {
+      layer.msg(lan && lan.public && t('public.copied_successfully') || "", {
         icon: 1,
         time: 2000
       });
     }).catch(function () {
-      layer.msg(lan && lan.public && t('public.public_auto_str_15') || "", {
+      layer.msg(lan && lan.public && t('public.copy_failed_browser_is') || "", {
         icon: 2,
         time: 2000
       });
@@ -1104,18 +1104,18 @@ function copyText(value) {
     try {
       var successful = document.execCommand('copy');
       if (successful) {
-        layer.msg(lan && lan.public && t('public.public_auto_str_16') || "", {
+        layer.msg(lan && lan.public && t('public.copied_successfully_1') || "", {
           icon: 1,
           time: 2000
         });
       } else {
-        layer.msg(lan && lan.public && t('public.public_auto_str_17') || "", {
+        layer.msg(lan && lan.public && t('public.copy_failed_browser_is_1') || "", {
           icon: 2,
           time: 2000
         });
       }
     } catch (err) {
-      layer.msg(lan && lan.public && t('public.public_auto_str_18') || "", {
+      layer.msg(lan && lan.public && t('public.copy_failed_browser_is_2') || "", {
         icon: 2,
         time: 2000
       });
@@ -1125,7 +1125,7 @@ function copyText(value) {
 }
 function copyPass(value) {
   if (value == '') {
-    layer.msg(lan && lan.public && t('public.public_auto_str_19') || "", {
+    layer.msg(lan && lan.public && t('public.blank_cannot_be_copied') || "", {
       icon: 2,
       time: 2000
     });
@@ -1148,8 +1148,8 @@ function safeMessage(j, h, g, f, checkName) {
   sumtext = d + " + " + c;
   setCookie("vcodesum", e);
   var checkHtml = "";
-  var dbNameMsg = lan.bt && t('bt.db_name_msg') ? t('bt.db_name_msg') : lan && lan.public && t('public.public_auto_str_20') || "";
-  var dbNameErr = lan.bt && t('bt.db_name_err') ? t('bt.db_name_err') : lan && lan.public && t('public.public_auto_str_21') || "";
+  var dbNameMsg = lan.bt && t('bt.db_name_msg') ? t('bt.db_name_msg') : lan && lan.public && t('public.the_name_of_the') || "";
+  var dbNameErr = lan.bt && t('bt.db_name_err') ? t('bt.db_name_err') : lan && lan.public && t('public.incorrect_database_name_entered') || "";
   if (checkName) {
     checkHtml = "<div style='margin-top: 15px; font-size: 14px; color: #d9534f; font-weight: bold; text-align: left;'>" + dbNameMsg + " <input type='text' id='dbNameResult' value='' style='width: 120px; height: 28px; line-height: 28px; border: 1.5px solid #d9534f; border-radius: 8px; padding: 0 8px; color: #444; outline: none; margin-left: 5px; display: inline-block;'></div>";
   }
@@ -1185,11 +1185,11 @@ function safeMessage(j, h, g, f, checkName) {
   $("#toSubmit").on('click', function () {
     var a = $("#vcodeResult").val().replace(/ /g, "");
     if (a == undefined || a == "") {
-      layer.msg(lan && lan.public && t('public.public_auto_str_22') || "");
+      layer.msg(lan && lan.public && t('public.please_enter_the_correct') || "");
       return;
     }
     if (a != getCookie("vcodesum")) {
-      layer.msg(lan && lan.public && t('public.public_auto_str_23') || "");
+      layer.msg(lan && lan.public && t('public.please_enter_the_correct_1') || "");
       return;
     }
     if (checkName) {
@@ -1256,7 +1256,7 @@ $(function () {
   });
 });
 $("#signout").on('click', function () {
-  layer.confirm(lan && lan.public && t('public.public_auto_str_24') || "", {
+  layer.confirm(lan && lan.public && t('public.do_you_want_to') || "", {
     icon: 3,
     closeBtn: 1
   }, function () {
@@ -1281,7 +1281,7 @@ function task() {
   messageBox();
 }
 function removeTask(b) {
-  var a = layer.msg(lan && lan.public && t('public.public_auto_str_25') || "", {
+  var a = layer.msg(lan && lan.public && t('public.deleting_please_wait') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, "#000"]
@@ -1516,12 +1516,12 @@ getPanelList();
 
 //添加面板快捷登录
 function bindPanel(a, type, ip, btid, url, user, pw) {
-  var titleName = lan && lan.public && t('public.public_auto_str_26') || "";
+  var titleName = lan && lan.public && t('public.related_panels') || "";
   if (type == "b") {
-    btn = '<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'b\')">' + ('<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'b\')">' + (lan && lan.public && t('public.public_auto_str_27') || '添加') + '</button>' || '添加') + '</button>';
+    btn = '<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'b\')">' + ('<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'b\')">' + (lan && lan.public && t('public.add') || '添加') + '</button>' || '添加') + '</button>';
   } else {
-    titleName = (lan && lan.public && t('public.public_auto_str_28') || "") + ip;
-    btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('" + btid + ((((lan && lan.public && t('public.public_auto_str_29') || '\')">删除') + '</button>		<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'c\',\'' || '\')">删除') || '\')">删除') + '</button>		<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'c\',\'') + ip + "','" + btid + ((((lan && lan.public && t('public.public_auto_str_30') || '\')" style=\'margin-left:7px\'>修改') + '</button>' || '\')" style=\'margin-left:7px\'>修改') || '\')" style=\'margin-left:7px\'>修改') + '</button>');
+    titleName = (lan && lan.public && t('public.edit_association') || "") + ip;
+    btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('" + btid + (((((lan && lan.public && t('public.delete_1') || '\')">删除') || '\')">删除') + '</button>		<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'c\',\'' || '\')">删除') || '\')">删除') + '</button>		<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'c\',\'') + ip + "','" + btid + (((((lan && lan.public && t('public.msg_1') || '\')" style=\'margin-left:7px\'>修改') || '\')" style=\'margin-left:7px\'>修改') + '</button>' || '\')" style=\'margin-left:7px\'>修改') || '\')" style=\'margin-left:7px\'>修改') + '</button>');
   }
   if (url == undefined) url = "http://";
   if (user == undefined) user = "";
@@ -1531,7 +1531,7 @@ function bindPanel(a, type, ip, btid, url, user, pw) {
     var gurl = "/setting/add_panel_info";
     var btaddress = $("#btaddress").val();
     if (!btaddress.match(/^(http|https)+:\/\/([\w-]+\.)+[\w-]+:\d+/)) {
-      layer.msg(((lan && lan.public && t('public.public_auto_str_31') || '面板地址格式不正确，示例：') + '<p>http://192.168.0.1:8888</p>' || '面板地址格式不正确，示例：') + '<p>http://192.168.0.1:8888</p>', {
+      layer.msg(((lan && lan.public && t('public.the_panel_address_format') || '面板地址格式不正确，示例：') + '<p>http://192.168.0.1:8888</p>' || '面板地址格式不正确，示例：') + '<p>http://192.168.0.1:8888</p>', {
         icon: 5,
         time: 5000
       });
@@ -1573,7 +1573,7 @@ function bindPanel(a, type, ip, btid, url, user, pw) {
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    content: ('<div class=\'bt-form pd20 pb70\'>				<div class=\'line\'><span class=\'tname\'>' + ('<div class=\'bt-form pd20 pb70\'>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.public_auto_str_32') || '面板地址') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btaddress\' id=\'btaddress\' value=\'' || '面板地址') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btaddress\' id=\'btaddress\' value=\'') + url + ((((lan && lan.public && t('public.public_auto_str_33') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.public_auto_str_33_1') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btuser\' id=\'btuser\' value=\'' || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.public_auto_str_33_1') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btuser\' id=\'btuser\' value=\'') + user + ((((lan && lan.public && t('public.public_auto_str_34') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.public_auto_str_34_1') || '密码') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'btpassword\' id=\'btpassword\' value=\'' || '\' placeholder=\'用户名\' style=\'width:100%\'/>') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.public_auto_str_34_1') || '密码') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'btpassword\' id=\'btpassword\' value=\'') + pw + ((((lan && lan.public && t('public.public_auto_str_35') || '\' placeholder=\'密码\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.public_auto_str_35_1') || '备注') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'bttitle\' id=\'bttitle\' value=\'' || '\' placeholder=\'密码\' style=\'width:100%\'/>') || '\' placeholder=\'密码\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.public_auto_str_35_1') || '备注') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'bttitle\' id=\'bttitle\' value=\'') + ip + ((((lan && lan.public && t('public.public_auto_str_36') || '\' placeholder=\'备注\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><ul class=\'help-info-text c7\'>					<li>' + (lan && lan.public && t('public.public_auto_str_36_1') || '收藏其它服务器面板资料，实现一键登录面板功能') + '</li><li>' + (lan && lan.public && t('public.public_auto_str_36_2') || '面板备注不可重复') + '</li>					<li><font style=\'color:red\'>' + (lan && lan.public && t('public.public_auto_str_36_3') || '注意，开启广告拦截会导致无法快捷登录。') + '</font></li></ul>				</div>				<div class=\'bt-form-submit-btn\'><button type=\'button\' class=\'btn btn-danger btn-sm\' onclick="layer.closeAll()">' + (lan && lan.public && t('public.public_auto_str_36_4') || '关闭') + '</button> ' || '\' placeholder=\'备注\' style=\'width:100%\'/>') || '\' placeholder=\'备注\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><ul class=\'help-info-text c7\'>					<li>' + (lan && lan.public && t('public.public_auto_str_36_1') || '收藏其它服务器面板资料，实现一键登录面板功能') + '</li><li>' + (lan && lan.public && t('public.public_auto_str_36_2') || '面板备注不可重复') + '</li>					<li><font style=\'color:red\'>' + (lan && lan.public && t('public.public_auto_str_36_3') || '注意，开启广告拦截会导致无法快捷登录。') + '</font></li></ul>				</div>				<div class=\'bt-form-submit-btn\'><button type=\'button\' class=\'btn btn-danger btn-sm\' onclick="layer.closeAll()">' + (lan && lan.public && t('public.public_auto_str_36_4') || '关闭') + '</button> ') + btn + "</div>\
+    content: ('<div class=\'bt-form pd20 pb70\'>				<div class=\'line\'><span class=\'tname\'>' + ('<div class=\'bt-form pd20 pb70\'>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.panel_address') || '面板地址') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btaddress\' id=\'btaddress\' value=\'' || '面板地址') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btaddress\' id=\'btaddress\' value=\'') + url + (((((lan && lan.public && t('public.msg_2') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.username') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btuser\' id=\'btuser\' value=\'' || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.username') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btuser\' id=\'btuser\' value=\'') + user + (((((lan && lan.public && t('public.msg_3') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.password') || '密码') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'btpassword\' id=\'btpassword\' value=\'' || '\' placeholder=\'用户名\' style=\'width:100%\'/>') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.password') || '密码') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'btpassword\' id=\'btpassword\' value=\'') + pw + (((((lan && lan.public && t('public.msg_4') || '\' placeholder=\'密码\' style=\'width:100%\'/>') || '\' placeholder=\'密码\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.notes') || '备注') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'bttitle\' id=\'bttitle\' value=\'' || '\' placeholder=\'密码\' style=\'width:100%\'/>') || '\' placeholder=\'密码\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.notes') || '备注') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'bttitle\' id=\'bttitle\' value=\'') + ip + (((((lan && lan.public && t('public.msg_5') || '\' placeholder=\'备注\' style=\'width:100%\'/>') || '\' placeholder=\'备注\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><ul class=\'help-info-text c7\'>					<li>' + (lan && lan.public && t('public.save_information_about_other') || '收藏其它服务器面板资料，实现一键登录面板功能') + '</li><li>' + (lan && lan.public && t('public.panel_notes_must_be') || '面板备注不可重复') + '</li>					<li><font style=\'color:red\'>' + (lan && lan.public && t('public.please_note_that_enabling') || '注意，开启广告拦截会导致无法快捷登录。') + '</font></li></ul>				</div>				<div class=\'bt-form-submit-btn\'><button type=\'button\' class=\'btn btn-danger btn-sm\' onclick="layer.closeAll()">' + (lan && lan.public && t('public.close_4') || '关闭') + '</button> ' || '\' placeholder=\'备注\' style=\'width:100%\'/>') || '\' placeholder=\'备注\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><ul class=\'help-info-text c7\'>					<li>' + (lan && lan.public && t('public.save_information_about_other') || '收藏其它服务器面板资料，实现一键登录面板功能') + '</li><li>' + (lan && lan.public && t('public.panel_notes_must_be') || '面板备注不可重复') + '</li>					<li><font style=\'color:red\'>' + (lan && lan.public && t('public.please_note_that_enabling') || '注意，开启广告拦截会导致无法快捷登录。') + '</font></li></ul>				</div>				<div class=\'bt-form-submit-btn\'><button type=\'button\' class=\'btn btn-danger btn-sm\' onclick="layer.closeAll()">' + (lan && lan.public && t('public.close_4') || '关闭') + '</button> ') + btn + "</div>\
 			</div>",
     success: function () {
       $("#btaddress").on("input", function () {
@@ -1641,7 +1641,7 @@ function getSpeed(sele) {
   }, 'json');
 }
 function tasklist() {
-  var con = '<div style="height: 520px; position: relative;"><ul class="cmdlist" style="margin: 0; padding: 0; height: 100%; overflow: auto;"></ul><div style="position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;">' + ('<div style="height: 520px; position: relative;"><ul class="cmdlist" style="margin: 0; padding: 0; height: 100%; overflow: auto;"></ul><div style="position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;">' + (lan && lan.public && t('public.public_auto_str_37') || '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列') + '</div></div>' || '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列') + '</div></div>';
+  var con = '<div style="height: 520px; position: relative;"><ul class="cmdlist" style="margin: 0; padding: 0; height: 100%; overflow: auto;"></ul><div style="position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;">' + ('<div style="height: 520px; position: relative;"><ul class="cmdlist" style="margin: 0; padding: 0; height: 100%; overflow: auto;"></ul><div style="position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;">' + (lan && lan.public && t('public.if_task_has_not') || '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列') + '</div></div>' || '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列') + '</div></div>';
   $("#msg_box .taskcon").html(con);
   $.post("/task/list", "tojs=getTaskList&table=tasks&limit=10&p=1", function (g) {
     $('#msg_box .msg_count').html(g.count);
@@ -1655,11 +1655,11 @@ function tasklist() {
 function messageBox() {
   layer.open({
     type: 1,
-    title: lan && lan.public && t('public.public_auto_str_38') || "",
+    title: lan && lan.public && t('public.message_box') || "",
     area: "670px",
     closeBtn: 1,
     shadeClose: false,
-    content: '<div class="bt-form">			<div class="bt-w-main" id="msg_box">				<div class="bt-w-menu">					<p class="bgw" id="taskList" onclick="tasklist()">' + ('<div class="bt-form">			<div class="bt-w-main" id="msg_box">				<div class="bt-w-menu">					<p class="bgw" id="taskList" onclick="tasklist()">' + (lan && lan.public && t('public.public_auto_str_39') || '任务列表(') + '<span class="task_count">0</span>)</p>					<p onclick="remind()">' + (lan && lan.public && t('public.public_auto_str_39_1') || '消息列表(') + '<span class="msg_count">0</span>)</p>					<p onclick="execLog()">' + (lan && lan.public && t('public.public_auto_str_39_2') || '执行日志') + '</p>				</div>				<div class="bt-w-con pd15">					<div class="taskcon"></div>				</div>			</div>			<div id="msg_box_sys_info" style="margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;">				<span>CPU: <span id="msg_box_cpu" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.public_auto_str_39_3') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.public_auto_str_39_4') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851">0 B/s</span></span>				<span>' + (lan && lan.public && t('public.public_auto_str_39_5') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff">0 B/s</span></span>			</div>		</div>' || '任务列表(') + '<span class="task_count">0</span>)</p>					<p onclick="remind()">' + (lan && lan.public && t('public.public_auto_str_39_1') || '消息列表(') + '<span class="msg_count">0</span>)</p>					<p onclick="execLog()">' + (lan && lan.public && t('public.public_auto_str_39_2') || '执行日志') + '</p>				</div>				<div class="bt-w-con pd15">					<div class="taskcon"></div>				</div>			</div>			<div id="msg_box_sys_info" style="margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;">				<span>CPU: <span id="msg_box_cpu" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.public_auto_str_39_3') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.public_auto_str_39_4') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851">0 B/s</span></span>				<span>' + (lan && lan.public && t('public.public_auto_str_39_5') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff">0 B/s</span></span>			</div>		</div>',
+    content: '<div class="bt-form">			<div class="bt-w-main" id="msg_box">				<div class="bt-w-menu">					<p class="bgw" id="taskList" onclick="tasklist()">' + ('<div class="bt-form">			<div class="bt-w-main" id="msg_box">				<div class="bt-w-menu">					<p class="bgw" id="taskList" onclick="tasklist()">' + (lan && lan.public && t('public.task_list') || '任务列表(') + '<span class="task_count">0</span>)</p>					<p onclick="remind()">' + (lan && lan.public && t('public.message_list') || '消息列表(') + '<span class="msg_count">0</span>)</p>					<p onclick="execLog()">' + (lan && lan.public && t('public.execution_log_1') || '执行日志') + '</p>				</div>				<div class="bt-w-con pd15">					<div class="taskcon"></div>				</div>			</div>			<div id="msg_box_sys_info" style="margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;">				<span>CPU: <span id="msg_box_cpu" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.memory_1') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.uplink') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851">0 B/s</span></span>				<span>' + (lan && lan.public && t('public.downstream') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff">0 B/s</span></span>			</div>		</div>' || '任务列表(') + '<span class="task_count">0</span>)</p>					<p onclick="remind()">' + (lan && lan.public && t('public.message_list') || '消息列表(') + '<span class="msg_count">0</span>)</p>					<p onclick="execLog()">' + (lan && lan.public && t('public.execution_log_1') || '执行日志') + '</p>				</div>				<div class="bt-w-con pd15">					<div class="taskcon"></div>				</div>			</div>			<div id="msg_box_sys_info" style="margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;">				<span>CPU: <span id="msg_box_cpu" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.memory_1') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.uplink') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851">0 B/s</span></span>				<span>' + (lan && lan.public && t('public.downstream') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff">0 B/s</span></span>			</div>		</div>',
     success: function () {
       $(".bt-w-menu p").on('click', function () {
         $(this).addClass("bgw").siblings().removeClass("bgw");
@@ -1707,7 +1707,7 @@ function execLog() {
 
 //查看指定任务的日志
 function showTaskLog(id, name) {
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_40') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.retrieving_logs') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -1724,7 +1724,7 @@ function showTaskLog(id, name) {
     }
     layer.open({
       type: 1,
-      title: name + (lan && lan.public && t('public.public_auto_str_41') || ""),
+      title: name + (lan && lan.public && t('public.execution_log') || ""),
       area: ['670px', '500px'],
       shadeClose: false,
       closeBtn: 1,
@@ -1765,16 +1765,16 @@ function remind(a) {
     var f = false;
     for (var d = 0; d < g.data.length; d++) {
       var status = g.data[d].status;
-      var status_text = lan && lan.public && t('public.public_auto_str_42') || "";
+      var status_text = lan && lan.public && t('public.completed') || "";
       var cos_text = '';
       if (status == '1') {
-        status_text = lan && lan.public && t('public.public_auto_str_43') || "";
-        cos_text = (lan && lan.public && t('public.public_auto_str_44') || "") + getSFM(g.data[d].end - g.data[d].start) + ']';
+        status_text = lan && lan.public && t('public.done') || "";
+        cos_text = (lan && lan.public && t('public.time_taken') || "") + getSFM(g.data[d].end - g.data[d].start) + ']';
       } else if (status == '0') {
-        status_text = lan && lan.public && t('public.public_auto_str_45') || "";
-        cos_text = lan && lan.public && t('public.public_auto_str_46') || "";
+        status_text = lan && lan.public && t('public.processing_1') || "";
+        cos_text = lan && lan.public && t('public.waiting_1') || "";
       } else if (status == '-1') {
-        status_text = lan && lan.public && t('public.public_auto_str_47') || "";
+        status_text = lan && lan.public && t('public.installing_1') || "";
         cos_text = '..';
       }
       e += '<tr>\
@@ -1820,7 +1820,7 @@ function remind(a) {
 }
 function getReloads() {
   var mm = $("#msg_box .bt-w-menu .bgw").html();
-  if (mm == undefined || mm.indexOf(lan && lan.public && t('public.public_auto_str_48') || "") == -1) {
+  if (mm == undefined || mm.indexOf(lan && lan.public && t('public.task_list_1') || "") == -1) {
     clearInterval(speed);
     speed = null;
     return;
@@ -1830,7 +1830,7 @@ function getReloads() {
   }
   function renderRunTask() {
     var mm = $("#msg_box .bt-w-menu .bgw").html();
-    if (mm == undefined || mm.indexOf(lan && lan.public && t('public.public_auto_str_49') || "") == -1) {
+    if (mm == undefined || mm.indexOf(lan && lan.public && t('public.task_list_2') || "") == -1) {
       clearInterval(speed);
       speed = null;
       a = 0;
@@ -1839,7 +1839,7 @@ function getReloads() {
     $.post('/task/get_task_speed', '', function (h) {
       if (h.task == undefined) {
         $(".task_count").text(0);
-        $(".cmdlist").html(lan && lan.public && t('public.public_auto_str_50') || "");
+        $(".cmdlist").html(lan && lan.public && t('public.there_are_currently_no') || "");
         return;
       }
       var b = '';
@@ -1852,24 +1852,24 @@ function getReloads() {
             for (var e = 0; e < f.length; e++) {
               c += f[e] + "<br>";
             }
-            if (h.task[g].name.indexOf(lan && lan.public && t('public.public_auto_str_51') || "") != -1) {
+            if (h.task[g].name.indexOf(lan && lan.public && t('public.scan') || "") != -1) {
               b = "<li>\
-								<span class='titlename'>" + h.task[g].name + ('</span>								<span class=\'state\'>' + ('</span>								<span class=\'state\'>' + (lan && lan.public && t('public.public_auto_str_52') || '正在扫描') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '正在扫描') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + ((((lan && lan.public && t('public.public_auto_str_53') || ')">关闭') + '</a></span>								<span class=\'opencmd\'></span>								<div class=\'cmd\'>' || ')">关闭') || ')">关闭') + '</a></span>								<span class=\'opencmd\'></span>								<div class=\'cmd\'>') + c + "</div>\
+								<span class='titlename'>" + h.task[g].name + ('</span>								<span class=\'state\'>' + ('</span>								<span class=\'state\'>' + (lan && lan.public && t('public.scanning') || '正在扫描') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '正在扫描') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + (((((lan && lan.public && t('public.close_1') || ')">关闭') || ')">关闭') + '</a></span>								<span class=\'opencmd\'></span>								<div class=\'cmd\'>' || ')">关闭') || ')">关闭') + '</a></span>								<span class=\'opencmd\'></span>								<div class=\'cmd\'>') + c + "</div>\
 							</li>";
             } else {
               b = "<li>\
-								<span class='titlename'>" + h.task[g].name + ('</span>								<span class=\'state\'>' + ('</span>								<span class=\'state\'>' + (lan && lan.public && t('public.public_auto_str_54') || '正在安装') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '正在安装') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + ((((lan && lan.public && t('public.public_auto_str_55') || ')">关闭') + '</a></span>								<div class=\'cmd\'>' || ')">关闭') || ')">关闭') + '</a></span>								<div class=\'cmd\'>') + c + "</div>\
+								<span class='titlename'>" + h.task[g].name + ('</span>								<span class=\'state\'>' + ('</span>								<span class=\'state\'>' + (lan && lan.public && t('public.installing_2') || '正在安装') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '正在安装') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + (((((lan && lan.public && t('public.close_2') || ')">关闭') || ')">关闭') + '</a></span>								<div class=\'cmd\'>' || ')">关闭') || ')">关闭') + '</a></span>								<div class=\'cmd\'>') + c + "</div>\
 							</li>";
             }
           } else {
             b = "<li>\
 								<div class='line-progress' style='width:" + h.msg.pre + "%'></div>\
 								<span class='titlename'>" + h.task[g].name + "<a style='margin-left:130px;'>" + (toSize(h.msg.used) + "/" + toSize(h.msg.total)) + "</a></span>\
-								<span class='com-progress'>" + h.msg.pre + ('%</span>								<span class=\'state\'>' + ('%</span>								<span class=\'state\'>' + (lan && lan.public && t('public.public_auto_str_56') || '下载中') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '下载中') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + ")\">" + t('public.close') + "</a></span>\
+								<span class='com-progress'>" + h.msg.pre + ('%</span>								<span class=\'state\'>' + ('%</span>								<span class=\'state\'>' + (lan && lan.public && t('public.downloading') || '下载中') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '下载中') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + ")\">" + t('public.close') + "</a></span>\
 							</li>";
           }
         } else {
-          d += "<li><span class='titlename'>" + h.task[g].name + ('</span><span class=\'state\'>' + (('</span><span class=\'state\'>' + (lan && lan.public && t('public.public_auto_str_57') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(')) + h.task[g].id + ((((lan && lan.public && t('public.public_auto_str_58') || ')">删除') + '</a></span></li>' || ')">删除') || ')">删除') + '</a></span></li>');
+          d += "<li><span class='titlename'>" + h.task[g].name + ('</span><span class=\'state\'>' + (('</span><span class=\'state\'>' + ((lan && lan.public && t('public.green_removetask') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(')) + h.task[g].id + (((((lan && lan.public && t('public.delete_2') || ')">删除') || ')">删除') + '</a></span></li>' || ')">删除') || ')">删除') + '</a></span></li>');
         }
       }
       $("#task").text(h.count);
@@ -1941,8 +1941,8 @@ function check_login() {
 
 //登陆跳转
 function to_login() {
-  layer.confirm(lan && lan.public && t('public.public_auto_str_59') || "", {
-    title: lan && lan.public && t('public.public_auto_str_60') || "",
+  layer.confirm(lan && lan.public && t('public.your_session_has_expired') || "", {
+    title: lan && lan.public && t('public.the_session_has_expired') || "",
     icon: 2,
     closeBtn: 1,
     shift: 5
@@ -1994,7 +1994,7 @@ function loadImage() {
 }
 var socket, gterm;
 function webShell(dir) {
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_61') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.loading_terminal_components') || "", {
     icon: 16,
     time: 0,
     shade: [0.1, '#000']
@@ -2004,7 +2004,7 @@ function webShell(dir) {
     _webShellInit(dir);
   }).catch(function (err) {
     layer.close(loadT);
-    layer.msg(lan && lan.public && t('public.public_auto_str_62') || "", {
+    layer.msg(lan && lan.public && t('public.the_terminal_component_failed') || "", {
       icon: 2
     });
     console.error(err);
@@ -2038,14 +2038,14 @@ function _webShellInit(dir) {
       var raw = (data.data || '').trim();
       // 精准过滤掉我们后端输出的 [SSH]、[错误] 等一系列安全认证和连接调试日志前缀
       // 只有当 Linux Shell 界面拉起输出非调试字符（如系统欢迎语或提示符）时，才执行 cd 并标记已响应
-      if (raw && !raw.startsWith('[SSH]') && !raw.startsWith(lan && lan.public && t('public.public_auto_str_63') || "") && !raw.startsWith(lan && lan.public && t('public.public_auto_str_64') || "") && !raw.startsWith(lan && lan.public && t('public.public_auto_str_65') || "")) {
+      if (raw && !raw.startsWith('[SSH]') && !raw.startsWith(lan && lan.public && t('public.error') || "") && !raw.startsWith(lan && lan.public && t('public.system') || "") && !raw.startsWith(lan && lan.public && t('public.suggestion') || "")) {
         isFirstResponse = false;
         setTimeout(function () {
           socket.emit('webssh', 'cd "' + dir + '"\r');
         }, 150);
       }
     }
-    if (data.data == (lan && lan.public && t('public.public_auto_str_66') || "") || data.data == (lan && lan.public && t('public.public_auto_str_67') || "") || data.data == '\r\nlogout\r\n' || data.data == 'logout\r\n') {
+    if (data.data == (lan && lan.public && t('public.log_out') || "") || data.data == (lan && lan.public && t('public.log_out_1') || "") || data.data == '\r\nlogout\r\n' || data.data == 'logout\r\n') {
       setTimeout(function () {
         layer.closeAll();
         term.destroy();
@@ -2108,7 +2108,7 @@ function _webShellInit(dir) {
   }
   var term_box = layer.open({
     type: 1,
-    title: lan && lan.public && t('public.public_auto_str_68') || "",
+    title: lan && lan.public && t('public.local_terminal') || "",
     area: ['900px', '550px'],
     closeBtn: 1,
     shadeClose: false,
@@ -2175,12 +2175,12 @@ function _webShellInit(dir) {
             tempTextarea.select();
             try {
               document.execCommand("copy");
-              layer.msg(lan && lan.public && t('public.public_auto_str_69') || "", {
+              layer.msg(lan && lan.public && t('public.the_selected_content_has') || "", {
                 icon: 1,
                 time: 1000
               });
             } catch (err) {
-              layer.msg(lan && lan.public && t('public.public_auto_str_70') || "", {
+              layer.msg(lan && lan.public && t('public.automatic_copying_failed_browser') || "", {
                 icon: 2
               });
             }
@@ -2320,7 +2320,7 @@ function shell_paste_clipboard() {
         gterm.focus();
       }
     }).catch(function (err) {
-      layer.msg(lan && lan.public && t('public.public_auto_str_72') || "", {
+      layer.msg(lan && lan.public && t('public.pasting_failed_please_allow') || "", {
         icon: 2
       });
       if (gterm) {
@@ -2328,7 +2328,7 @@ function shell_paste_clipboard() {
       }
     });
   } else {
-    layer.msg(lan && lan.public && t('public.public_auto_str_73') || "", {
+    layer.msg(lan && lan.public && t('public.your_browser_security_settings') || "", {
       icon: 2
     });
     if (gterm) {
@@ -2380,7 +2380,7 @@ function showSpeedWindow(msg, speed_log_func_name, callback) {
             showSpeed(rdata.data);
           }, 1000);
         } else {
-          layer.msg(lan && lan.public && t('public.public_auto_str_74') || "");
+          layer.msg(lan && lan.public && t('public.the_specified_file_is') || "");
         }
       }, 'json');
       if (callback) {
@@ -2583,7 +2583,7 @@ function pluginService(_name, version, _suffix_name = '') {
   } else {
     version = '';
   }
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_75') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.loading_1') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -2616,13 +2616,13 @@ function pluginSetService(_name, status, version, _suffix_name = '') {
     reload_name = 'reload_' + _suffix_name;
     status_ss = status_ss + '_' + _suffix_name;
   }
-  var serviceCon = ('<p class="status">' + ('<p class="status">' + (lan && lan.public && t('public.public_auto_str_76') || '当前状态：') + '<span>' || '当前状态：') + '<span>') + (status ? lan && lan.public && t('public.public_auto_str_77') || "" : lan && lan.public && t('public.public_auto_str_78') || "") + '</span><span style="color: ' + (status ? '#20a53a;' : 'red;') + ' margin-left: 3px;" class="glyphicon ' + (status ? 'glyphicon glyphicon-play' : 'glyphicon-pause') + '"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + status_ss + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + (status ? lan && lan.public && t('public.public_auto_str_79') || "" : lan && lan.public && t('public.public_auto_str_80') || "") + '</button>\
-            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + restart_name + '\',\'' + version + '\',\'' + _suffix_name + ((((lan && lan.public && t('public.public_auto_str_81') || '\')">重启') + '</button>            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' || '\')">重启') || '\')">重启') + '</button>            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'') + _name + '\',\'' + reload_name + '\',\'' + version + '\',\'' + _suffix_name + ((((lan && lan.public && t('public.public_auto_str_82') || '\')">重载配置') + '</button>        </div>' || '\')">重载配置') || '\')">重载配置') + '</button>        </div>');
+  var serviceCon = ('<p class="status">' + ('<p class="status">' + (lan && lan.public && t('public.current_status') || '当前状态：') + '<span>' || '当前状态：') + '<span>') + (status ? lan && lan.public && t('public.open') || "" : lan && lan.public && t('public.close_3') || "") + '</span><span style="color: ' + (status ? '#20a53a;' : 'red;') + ' margin-left: 3px;" class="glyphicon ' + (status ? 'glyphicon glyphicon-play' : 'glyphicon-pause') + '"></span></p><div class="sfm-opt">\
+            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + status_ss + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + (status ? lan && lan.public && t('public.stop') || "" : lan && lan.public && t('public.start') || "") + '</button>\
+            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + restart_name + '\',\'' + version + '\',\'' + _suffix_name + (((((lan && lan.public && t('public.restart_1') || '\')">重启') || '\')">重启') + '</button>            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' || '\')">重启') || '\')">重启') + '</button>            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'') + _name + '\',\'' + reload_name + '\',\'' + version + '\',\'' + _suffix_name + (((((lan && lan.public && t('public.reload_configuration') || '\')">重载配置') || '\')">重载配置') + '</button>        </div>' || '\')">重载配置') || '\')">重载配置') + '</button>        </div>');
   if (_name.indexOf('php') !== -1) {
-    serviceCon += '<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">            <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>' + ('<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">            <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>' + (lan && lan.public && t('public.public_auto_str_83') || '操作指引') + '</div>            <div style="margin-bottom: 4px;"><b style="color:#333;">' + (lan && lan.public && t('public.public_auto_str_83_1') || '重载配置 (Reload)') + '</b>' + (lan && lan.public && t('public.public_auto_str_83_2') || '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + (lan && lan.public && t('public.public_auto_str_83_3') || '业务零中断') + '</b>' + (lan && lan.public && t('public.public_auto_str_83_4') || '，推荐日常修改配置后使用。') + '</div>            <div><b style="color:#333;">' + (lan && lan.public && t('public.public_auto_str_83_5') || '重启服务 (Restart)') + '</b>' + (lan && lan.public && t('public.public_auto_str_83_6') || '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>        </div>' || '操作指引') + '</div>            <div style="margin-bottom: 4px;"><b style="color:#333;">' + (lan && lan.public && t('public.public_auto_str_83_1') || '重载配置 (Reload)') + '</b>' + (lan && lan.public && t('public.public_auto_str_83_2') || '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + (lan && lan.public && t('public.public_auto_str_83_3') || '业务零中断') + '</b>' + (lan && lan.public && t('public.public_auto_str_83_4') || '，推荐日常修改配置后使用。') + '</div>            <div><b style="color:#333;">' + (lan && lan.public && t('public.public_auto_str_83_5') || '重启服务 (Restart)') + '</b>' + (lan && lan.public && t('public.public_auto_str_83_6') || '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>        </div>';
+    serviceCon += '<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">            <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>' + ('<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">            <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>' + (lan && lan.public && t('public.operating_instructions') || '操作指引') + '</div>            <div style="margin-bottom: 4px;"><b style="color:#333;">' + (lan && lan.public && t('public.reload_configuration_reload') || '重载配置 (Reload)') + '</b>' + (lan && lan.public && t('public.smoothly_loads_the_latest') || '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + (lan && lan.public && t('public.zero_business_disruption') || '业务零中断') + '</b>' + (lan && lan.public && t('public.recommended_for_use_after') || '，推荐日常修改配置后使用。') + '</div>            <div><b style="color:#333;">' + (lan && lan.public && t('public.restart_the_service_restart') || '重启服务 (Restart)') + '</b>' + (lan && lan.public && t('public.forcibly_terminates_and_restarts') || '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>        </div>' || '操作指引') + '</div>            <div style="margin-bottom: 4px;"><b style="color:#333;">' + (lan && lan.public && t('public.reload_configuration_reload') || '重载配置 (Reload)') + '</b>' + (lan && lan.public && t('public.smoothly_loads_the_latest') || '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + (lan && lan.public && t('public.zero_business_disruption') || '业务零中断') + '</b>' + (lan && lan.public && t('public.recommended_for_use_after') || '，推荐日常修改配置后使用。') + '</div>            <div><b style="color:#333;">' + (lan && lan.public && t('public.restart_the_service_restart') || '重启服务 (Restart)') + '</b>' + (lan && lan.public && t('public.forcibly_terminates_and_restarts') || '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>        </div>';
     serviceCon += '<div style="margin-top: 20px;">\
-            <button class="btn btn-danger btn-sm" onclick="pluginOpService(\'' + _name + '\',\'kill_all_php\',\'' + version + '\',\'' + _suffix_name + ((((lan && lan.public && t('public.public_auto_str_84') || '\')">kill所有php进程') + '</button>            <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">                <div><b style="color:#d9534f;">' + (lan && lan.public && t('public.public_auto_str_84_1') || '注意') + '</b>' + (lan && lan.public && t('public.public_auto_str_84_2') || '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + (lan && lan.public && t('public.public_auto_str_84_3') || '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>            </div>        </div>' || '\')">kill所有php进程') || '\')">kill所有php进程') + '</button>            <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">                <div><b style="color:#d9534f;">' + (lan && lan.public && t('public.public_auto_str_84_1') || '注意') + '</b>' + (lan && lan.public && t('public.public_auto_str_84_2') || '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + (lan && lan.public && t('public.public_auto_str_84_3') || '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>            </div>        </div>');
+            <button class="btn btn-danger btn-sm" onclick="pluginOpService(\'' + _name + '\',\'kill_all_php\',\'' + version + '\',\'' + _suffix_name + (((((lan && lan.public && t('public.kill_all_php_processes') || '\')">kill所有php进程') || '\')">kill所有php进程') + '</button>            <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">                <div><b style="color:#d9534f;">' + (lan && lan.public && t('public.note') || '注意') + '</b>' + (lan && lan.public && t('public.forcefully_terminate_all_php') || '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + (lan && lan.public && t('public.after_execution_you_ll') || '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>            </div>        </div>' || '\')">kill所有php进程') || '\')">kill所有php进程') + '</button>            <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">                <div><b style="color:#d9534f;">' + (lan && lan.public && t('public.note') || '注意') + '</b>' + (lan && lan.public && t('public.forcefully_terminate_all_php') || '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + (lan && lan.public && t('public.after_execution_you_ll') || '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>            </div>        </div>');
   }
   $(".soft-man-con").html(serviceCon);
 }
@@ -2635,41 +2635,41 @@ function pluginOpService(a, b, v, _suffix_name = '') {
   b = b.split('_')[0];
   switch (b) {
     case "stop":
-      d = lan && lan.public && t('public.public_auto_str_85') || "";
+      d = lan && lan.public && t('public.stop_1') || "";
       break;
     case "start":
-      d = lan && lan.public && t('public.public_auto_str_86') || "";
+      d = lan && lan.public && t('public.start_1') || "";
       break;
     case "restart":
-      d = lan && lan.public && t('public.public_auto_str_87') || "";
+      d = lan && lan.public && t('public.restart_2') || "";
       break;
     case "reload":
-      d = lan && lan.public && t('public.public_auto_str_88') || "";
+      d = lan && lan.public && t('public.overload') || "";
       break;
     case "kill":
-      d = lan && lan.public && t('public.public_auto_str_89') || "";
+      d = lan && lan.public && t('public.force_stop_kill') || "";
       break;
   }
   _ver = v;
   if (v != '') {
     _ver = '【' + v + '】';
   }
-  layer.confirm(msgTpl(lan && lan.public && t('public.public_auto_str_90') || "", [d, a, _ver]), {
+  layer.confirm(msgTpl(lan && lan.public && t('public.are_you_sure_you') || "", [d, a, _ver]), {
     area: ['400px', 'auto'],
     icon: 3,
     closeBtn: 1
   }, function () {
-    var e = layer.msg(msgTpl(lan && lan.public && t('public.public_auto_str_91') || "", [d, a, _ver]), {
+    var e = layer.msg(msgTpl(lan && lan.public && t('public.serving_please_wait_moment') || "", [d, a, _ver]), {
       area: ['400px', 'auto'],
       icon: 16,
       time: 0
     });
     $.post("/plugins/run", c, function (g) {
       layer.close(e);
-      var f = g.data == 'ok' ? msgTpl(lan && lan.public && t('public.public_auto_str_92') || "", [a, _ver, d], {
+      var f = g.data == 'ok' ? msgTpl(lan && lan.public && t('public.service_has') || "", [a, _ver, d], {
         area: ['400px', 'auto'],
         time: 0
-      }) : msgTpl(lan && lan.public && t('public.public_auto_str_93') || "", [a, _ver, d], {
+      }) : msgTpl(lan && lan.public && t('public.service_failed') || "", [a, _ver, d], {
         area: ['400px', 'auto'],
         time: 0
       });
@@ -2706,7 +2706,7 @@ function pluginOpService(a, b, v, _suffix_name = '') {
       }, 2000);
     }, 'json').fail(function () {
       layer.close(e);
-      layer.msg(lan && lan.public && t('public.public_auto_str_94') || "", {
+      layer.msg(lan && lan.public && t('public.operation_error') || "", {
         icon: 1
       });
     });
@@ -2722,8 +2722,8 @@ function pluginConfig(_name, version, func) {
   if (typeof func != 'undefined') {
     func_name = func;
   }
-  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.public_auto_str_95') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.public_auto_str_95_1') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.public_auto_str_95_2') || '此处为') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.public_auto_str_95_1') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.public_auto_str_95_2') || '此处为')) + _name + version + (((lan && lan.public && t('public.public_auto_str_96') || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_97') || "", {
+  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.tip_use_ctrl_to_1') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_4') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_1') || '此处为') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_4') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_1') || '此处为')) + _name + version + (((lan && lan.public && t('public.main_configuration_file_if') || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
+  var loadT = layer.msg(lan && lan.public && t('public.retrieving_profile_path') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2747,7 +2747,7 @@ function pluginConfig(_name, version, func) {
       }
     } catch (err) {/*console.log(err);*/}
     $(".soft-man-con").html(con);
-    var loadT2 = layer.msg(lan && lan.public && t('public.public_auto_str_98') || "", {
+    var loadT2 = layer.msg(lan && lan.public && t('public.retrieving_file_content') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -2818,7 +2818,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
   if (typeof read_config_tpl_func != 'undefined') {
     _read_config_tpl_func = read_config_tpl_func;
   }
-  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.public_auto_str_99') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + (lan && lan.public && t('public.public_auto_str_99_1') || '请选择') + '</option></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.public_auto_str_99_2') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.public_auto_str_99_3') || '此处为【') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + (lan && lan.public && t('public.public_auto_str_99_1') || '请选择') + '</option></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.public_auto_str_99_2') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.public_auto_str_99_3') || '此处为【')) + _name + version + (((lan && lan.public && t('public.public_auto_str_100') || '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
+  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.tip_use_ctrl_to_2') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + (lan && lan.public && t('public.please') || '请选择') + '</option></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_5') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_2') || '此处为【') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + (lan && lan.public && t('public.please') || '请选择') + '</option></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_5') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_2') || '此处为【')) + _name + version + (((lan && lan.public && t('public.main_configuration_file_if_1') || '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
   $(".soft-man-con").html(con);
   function getFileName(file) {
     var list = file.split('/');
@@ -2843,7 +2843,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     $('#config_tpl').on('change', function () {
       var selected = $(this).val();
       if (selected != '0') {
-        var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_101') || "", {
+        var loadT = layer.msg(lan && lan.public && t('public.retrieving_configuration_template') || "", {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']
@@ -2901,7 +2901,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
       }
     });
   }, 'json');
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_102') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.retrieving_profile_path_1') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2912,7 +2912,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     version: version
   }, function (data) {
     layer.close(loadT);
-    var loadT2 = layer.msg(lan && lan.public && t('public.public_auto_str_103') || "", {
+    var loadT2 = layer.msg(lan && lan.public && t('public.retrieving_file_content_1') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -2971,7 +2971,7 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
   if (typeof read_config_tpl_func != 'undefined') {
     _read_config_tpl_func = read_config_tpl_func;
   }
-  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.public_auto_str_104') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.public_auto_str_104_1') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.public_auto_str_104_2') || '此处为') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.public_auto_str_104_1') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.public_auto_str_104_2') || '此处为')) + _name + version + (((lan && lan.public && t('public.public_auto_str_105') || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
+  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.tip_use_ctrl_to_3') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_3') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is') || '此处为') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_3') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is') || '此处为')) + _name + version + (((lan && lan.public && t('public.main_configuration_file_if_2') || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
   $(".soft-man-con").html(con);
   function getFileName(file) {
     var list = file.split('/');
@@ -3041,7 +3041,7 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
     $('#config_tpl').on('change', function () {
       var selected = $(this).val();
       fileName = selected;
-      var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_106') || "", {
+      var loadT = layer.msg(lan && lan.public && t('public.retrieving_configuration_template_1') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -3100,7 +3100,7 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
 function pluginConfigSave(fileName, callback) {
   var data = encodeURIComponent($("#textBody").val());
   var encoding = 'utf-8';
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_107') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.saving') || "", {
     icon: 16,
     time: 0
   });
@@ -3123,7 +3123,7 @@ function pluginInitD(_name, _version, _suffix_name = '') {
   if (_suffix_name != '') {
     default_name = 'initd_status_' + _suffix_name;
   }
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_108') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.loading_2') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -3162,8 +3162,8 @@ function pluginSetInitD(_name, _version, status, _suffix_name = '') {
   if (_suffix_name != '') {
     default_name = default_name + '_' + _suffix_name;
   }
-  var serviceCon = ('<p class="status">' + ('<p class="status">' + (lan && lan.public && t('public.public_auto_str_109') || '当前状态：') + '<span>' || '当前状态：') + '<span>') + (status ? lan && lan.public && t('public.public_auto_str_110') || "" : lan && lan.public && t('public.public_auto_str_111') || "") + '</span><span style="color: ' + (status ? '#20a53a;' : 'red;') + ' margin-left: 3px;" class="glyphicon ' + (status ? 'glyphicon glyphicon-play' : 'glyphicon-pause') + '"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="pluginOpInitD(\'' + _name + '\',\'' + _version + '\',\'' + default_name + '\',\'' + _suffix_name + '\')">' + (status ? lan && lan.public && t('public.public_auto_str_112') || "" : lan && lan.public && t('public.public_auto_str_113') || "") + '</button>\
+  var serviceCon = ('<p class="status">' + ('<p class="status">' + (lan && lan.public && t('public.current_status_1') || '当前状态：') + '<span>' || '当前状态：') + '<span>') + (status ? lan && lan.public && t('public.loaded') || "" : lan && lan.public && t('public.not_loaded') || "") + '</span><span style="color: ' + (status ? '#20a53a;' : 'red;') + ' margin-left: 3px;" class="glyphicon ' + (status ? 'glyphicon glyphicon-play' : 'glyphicon-pause') + '"></span></p><div class="sfm-opt">\
+            <button class="btn btn-default btn-sm" onclick="pluginOpInitD(\'' + _name + '\',\'' + _version + '\',\'' + default_name + '\',\'' + _suffix_name + '\')">' + (status ? lan && lan.public && t('public.uninstall') || "" : lan && lan.public && t('public.loading_3') || "") + '</button>\
         </div>';
   $(".soft-man-con").html(serviceCon);
 }
@@ -3173,27 +3173,27 @@ function pluginOpInitD(a, _version, b, _suffix_name = '') {
   b = b.split('_' + _suffix_name)[0];
   switch (b) {
     case "initd_install":
-      d = lan && lan.public && t('public.public_auto_str_114') || "";
+      d = lan && lan.public && t('public.loading_4') || "";
       break;
     case "initd_uninstall":
-      d = lan && lan.public && t('public.public_auto_str_115') || "";
+      d = lan && lan.public && t('public.uninstall_1') || "";
       break;
   }
   _ver = _version;
   if (_version != '') {
     _ver = '【' + _version + '】';
   }
-  layer.confirm(msgTpl(lan && lan.public && t('public.public_auto_str_116') || "", [d, a, _ver]), {
+  layer.confirm(msgTpl(lan && lan.public && t('public.are_you_sure_you_1') || "", [d, a, _ver]), {
     icon: 3,
     closeBtn: 1
   }, function () {
-    var e = layer.msg(msgTpl(lan && lan.public && t('public.public_auto_str_117') || "", [d, a, _ver]), {
+    var e = layer.msg(msgTpl(lan && lan.public && t('public.serving_please_wait_moment_1') || "", [d, a, _ver]), {
       icon: 16,
       time: 0
     });
     $.post("/plugins/run", c, function (g) {
       layer.close(e);
-      var f = g.data == 'ok' ? msgTpl(lan && lan.public && t('public.public_auto_str_118') || "", [a, d, _ver]) : msgTpl(lan && lan.public && t('public.public_auto_str_119') || "", [a, d, _ver]);
+      var f = g.data == 'ok' ? msgTpl(lan && lan.public && t('public.service_has_1') || "", [a, d, _ver]) : msgTpl(lan && lan.public && t('public.service_failed_1') || "", [a, d, _ver]);
       layer.msg(f, {
         icon: g.data == 'ok' ? 1 : 2
       });
@@ -3212,7 +3212,7 @@ function pluginOpInitD(a, _version, b, _suffix_name = '') {
       }
     }, 'json').fail(function () {
       layer.close(e);
-      layer.msg(lan && lan.public && t('public.public_auto_str_120') || "", {
+      layer.msg(lan && lan.public && t('public.system_error') || "", {
         icon: 0
       });
     });
@@ -3231,7 +3231,7 @@ function pluginLogs(_name, version, func, line) {
   if (typeof line != 'undefined') {
     file_line = line;
   }
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_121') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.retrieving_log_path') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -3253,7 +3253,7 @@ function pluginLogs(_name, version, func, line) {
         return;
       }
     } catch (err) {/*console.log(err);*/}
-    var loadT2 = layer.msg(lan && lan.public && t('public.public_auto_str_122') || "", {
+    var loadT2 = layer.msg(lan && lan.public && t('public.retrieving_file_content_2') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -3270,7 +3270,7 @@ function pluginLogs(_name, version, func, line) {
         return;
       }
       if (rdata.data == '') {
-        rdata.data = lan && lan.public && t('public.public_auto_str_123') || "";
+        rdata.data = lan && lan.public && t('public.there_are_currently_no_1') || "";
       }
       var h = parseInt($('.bt-w-menu').css('height')) - 40;
       var ebody = '<textarea readonly="" style="margin: 0px;height: ' + h + 'px;width: 100%;background-color: #333;color:#fff; padding:0 5px" id="info_log">' + rdata.data + '</textarea>';
@@ -3299,7 +3299,7 @@ function pluginRollingLogs(_name, version, func, _args, line) {
         return;
       }
       if (rdata.data == '') {
-        rdata.data = lan && lan.public && t('public.public_auto_str_124') || "";
+        rdata.data = lan && lan.public && t('public.there_are_currently_no_2') || "";
       }
       var ebody = '<textarea readonly="readonly" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px" id="roll_info_log">' + rdata.data + '</textarea>';
       $("#plugins_rolling_logs").html(ebody);
@@ -3309,7 +3309,7 @@ function pluginRollingLogs(_name, version, func, _args, line) {
   }
   layer.open({
     type: 1,
-    title: _name + (lan && lan.public && t('public.public_auto_str_125') || ""),
+    title: _name + (lan && lan.public && t('public.log') || ""),
     area: '640px',
     end: function () {
       if (reqTimer) {
@@ -3349,7 +3349,7 @@ function pluginStandAloneLogs(_name, version, func, _args, line) {
   }
   layer.open({
     type: 1,
-    title: _name + (lan && lan.public && t('public.public_auto_str_126') || ""),
+    title: _name + (lan && lan.public && t('public.log_1') || ""),
     area: '640px',
     content: '<div class="change-default pd20" id="plugins_stand_alone_logs">\
         	<textarea readonly="readonly" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px"></textarea>\
@@ -3367,7 +3367,7 @@ function pluginStandAloneLogs(_name, version, func, _args, line) {
         return;
       }
       if (rdata.data == '') {
-        rdata.data = lan && lan.public && t('public.public_auto_str_127') || "";
+        rdata.data = lan && lan.public && t('public.there_are_currently_no_3') || "";
       }
       var ebody = '<textarea readonly="" style="margin: 0px;width: 100%;height: 360px;background-color: #333;color:#fff; padding:0 5px">' + rdata.data + '</textarea>';
       $("#plugins_stand_alone_logs").html(ebody);
@@ -3388,7 +3388,7 @@ $(window).on('resize', function () {
   autoHeight();
 });
 function aboutPanel() {
-  var loadT = layer.msg(lan && lan.public && t('public.public_auto_str_128') || "", {
+  var loadT = layer.msg(lan && lan.public && t('public.loading_instructions') || "", {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -3418,16 +3418,16 @@ function aboutPanel() {
         closeBtn: 0,
         area: ['850px', '812px'],
         shadeClose: true,
-        content: '<div class=\"about-container\" style=\"position: relative; padding-top: 0px;\">' + '<div class=\"about-close\" style=\"position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;\" onmouseover=\"this.style.color=\'#333\'\" onmouseout=\"this.style.color=\'#999\'\" onclick=\"layer.closeAll(\'page\')\">×</div>' + '<div class=\"about-header\" style=\"padding-top: 5px;\">' + '<img src=\"/static/img/logo.webp\" style=\"width: 160px; margin-bottom: 5px;\">' + ('<h2 style="margin-top: 5px;">' + ('<h2 style="margin-top: 5px;">' + (lan && lan.public && t('public.public_auto_str_129') || '御风面板（BtSimple）') + '</h2>' || '御风面板（BtSimple）') + '</h2>') + ('<p><a href="https://www.yftec.top" target="_blank" class="btlink" style="font-weight: bold;">' + ('<p><a href="https://www.yftec.top" target="_blank" class="btlink" style="font-weight: bold;">' + (lan && lan.public && t('public.public_auto_str_130') || '衢州御风科技有限公司') + '</a> ' + (lan && lan.public && t('public.public_auto_str_130_1') || '荣誉出品') + '</p>' || '衢州御风科技有限公司') + '</a> ' + (lan && lan.public && t('public.public_auto_str_130_1') || '荣誉出品') + '</p>') + '<div id=\"panel_resource_info\" style=\"margin-top: 15px; height: 30px; line-height: 30px; margin-bottom: 10px;\"></div>' + '</div>' + '<div class=\"about-content markdown-body\" style=\"padding-top: 0;\">' + htmlContent + '</div>' + '<div class=\"about-footer\">' + ('<p>&copy; 2026 <a href="https://www.yftec.top" target="_blank" class="btlink">' + ('<p>&copy; 2026 <a href="https://www.yftec.top" target="_blank" class="btlink">' + (lan && lan.public && t('public.public_auto_str_131') || '衢州御风科技 (YFTEC)') + '</a> ' + (lan && lan.public && t('public.public_auto_str_131_1') || '版权所有 | admin@yftec.top') + '</p>' || '衢州御风科技 (YFTEC)') + '</a> ' + (lan && lan.public && t('public.public_auto_str_131_1') || '版权所有 | admin@yftec.top') + '</p>') + '</div>' + '</div>',
+        content: '<div class=\"about-container\" style=\"position: relative; padding-top: 0px;\">' + '<div class=\"about-close\" style=\"position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;\" onmouseover=\"this.style.color=\'#333\'\" onmouseout=\"this.style.color=\'#999\'\" onclick=\"layer.closeAll(\'page\')\">×</div>' + '<div class=\"about-header\" style=\"padding-top: 5px;\">' + '<img src=\"/static/img/logo.webp\" style=\"width: 160px; margin-bottom: 5px;\">' + ('<h2 style="margin-top: 5px;">' + ('<h2 style="margin-top: 5px;">' + (lan && lan.public && t('public.yufeng_panel_btsimple') || '御风面板（BtSimple）') + '</h2>' || '御风面板（BtSimple）') + '</h2>') + ('<p><a href="https://www.yftec.top" target="_blank" class="btlink" style="font-weight: bold;">' + ('<p><a href="https://www.yftec.top" target="_blank" class="btlink" style="font-weight: bold;">' + (lan && lan.public && t('public.quzhou_yufeng_technology_co') || '衢州御风科技有限公司') + '</a> ' + (lan && lan.public && t('public.proudly_presented_by') || '荣誉出品') + '</p>' || '衢州御风科技有限公司') + '</a> ' + (lan && lan.public && t('public.proudly_presented_by') || '荣誉出品') + '</p>') + '<div id=\"panel_resource_info\" style=\"margin-top: 15px; height: 30px; line-height: 30px; margin-bottom: 10px;\"></div>' + '</div>' + '<div class=\"about-content markdown-body\" style=\"padding-top: 0;\">' + htmlContent + '</div>' + '<div class=\"about-footer\">' + ('<p>&copy; 2026 <a href="https://www.yftec.top" target="_blank" class="btlink">' + ('<p>&copy; 2026 <a href="https://www.yftec.top" target="_blank" class="btlink">' + (lan && lan.public && t('public.quzhou_yufeng_technology_yftec') || '衢州御风科技 (YFTEC)') + '</a> ' + (lan && lan.public && t('public.all_rights_reserved_admin') || '版权所有 | admin@yftec.top') + '</p>' || '衢州御风科技 (YFTEC)') + '</a> ' + (lan && lan.public && t('public.all_rights_reserved_admin') || '版权所有 | admin@yftec.top') + '</p>') + '</div>' + '</div>',
         success: function () {
           setTimeout(function () {
-            $('#panel_resource_info').html('<span style="font-size: 13px; color: #666;"><img src="/static/img/loading.gif" style="width:14px; vertical-align:middle; margin-right:5px;" onerror="this.style.display=\'none\'">' + ('<span style="font-size: 13px; color: #666;"><img src="/static/img/loading.gif" style="width:14px; vertical-align:middle; margin-right:5px;" onerror="this.style.display=\'none\'">' + (lan && lan.public && t('public.public_auto_str_132') || '正在获取面板占用资源...') + '</span>' || '正在获取面板占用资源...') + '</span>');
+            $('#panel_resource_info').html('<span style="font-size: 13px; color: #666;"><img src="/static/img/loading.gif" style="width:14px; vertical-align:middle; margin-right:5px;" onerror="this.style.display=\'none\'">' + ('<span style="font-size: 13px; color: #666;"><img src="/static/img/loading.gif" style="width:14px; vertical-align:middle; margin-right:5px;" onerror="this.style.display=\'none\'">' + (lan && lan.public && t('public.retrieving_panel_resource_usage') || '正在获取面板占用资源...') + '</span>' || '正在获取面板占用资源...') + '</span>');
             $.get('/system/get_panel_resources', function (res) {
               if (res.status) {
-                var resHtml = '<div style=\"display:inline-block; border-top: 1px solid #eaeaea; border-bottom: 1px solid #eaeaea; padding: 0 15px; font-size: 13px; background-color: #fcfcfc; border-radius: 2px;\">' + ('<span style="color:#666; margin-right: 15px;">' + ('<span style="color:#666; margin-right: 15px;">' + (lan && lan.public && t('public.public_auto_str_133') || '御风面板当前占用服务器资源：') + '</span>' || '御风面板当前占用服务器资源：') + '</span>') + '<span><i class=\"glyphicon glyphicon-tasks\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>CPU <b style=\"color:#20a53a; font-family: \'Inter\', sans-serif;\">' + res.data.cpu + '%</b></span>' + '<span style=\"color:#ddd; margin: 0 15px;\">|</span>' + ('<span><i class="glyphicon glyphicon-hdd" style="margin-right:4px; font-size:12px; color: #888;"></i>' + ('<span><i class="glyphicon glyphicon-hdd" style="margin-right:4px; font-size:12px; color: #888;"></i>' + (lan && lan.public && t('public.public_auto_str_134') || '内存') + ' <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">' || '内存') + ' <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">') + res.data.mem + ' MB</b></span>' + '</div>';
+                var resHtml = '<div style=\"display:inline-block; border-top: 1px solid #eaeaea; border-bottom: 1px solid #eaeaea; padding: 0 15px; font-size: 13px; background-color: #fcfcfc; border-radius: 2px;\">' + ('<span style="color:#666; margin-right: 15px;">' + ('<span style="color:#666; margin-right: 15px;">' + (lan && lan.public && t('public.yufeng_panel_current_server') || '御风面板当前占用服务器资源：') + '</span>' || '御风面板当前占用服务器资源：') + '</span>') + '<span><i class=\"glyphicon glyphicon-tasks\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>CPU <b style=\"color:#20a53a; font-family: \'Inter\', sans-serif;\">' + res.data.cpu + '%</b></span>' + '<span style=\"color:#ddd; margin: 0 15px;\">|</span>' + ('<span><i class="glyphicon glyphicon-hdd" style="margin-right:4px; font-size:12px; color: #888;"></i>' + ('<span><i class="glyphicon glyphicon-hdd" style="margin-right:4px; font-size:12px; color: #888;"></i>' + (lan && lan.public && t('public.memory') || '内存') + ' <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">' || '内存') + ' <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">') + res.data.mem + ' MB</b></span>' + '</div>';
                 $('#panel_resource_info').html(resHtml);
               } else {
-                $('#panel_resource_info').html('<span style="color: red;">' + ('<span style="color: red;">' + (lan && lan.public && t('public.public_auto_str_135') || '获取资源失败') + '</span>' || '获取资源失败') + '</span>');
+                $('#panel_resource_info').html('<span style="color: red;">' + ('<span style="color: red;">' + (lan && lan.public && t('public.failed_to_retrieve_resources') || '获取资源失败') + '</span>' || '获取资源失败') + '</span>');
               }
             }, 'json');
           }, 1000);
@@ -3465,7 +3465,7 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
   var dialog = document.createElement('div');
   dialog.className = 'cm-advanced-search-dialog';
   dialog.style.cssText = 'position: absolute; top: 15px; right: 30px; z-index: 999; background: #fff; padding: 12px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px; font-size: 13px; width: 320px; transition: all 0.2s;';
-  var html = '<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'>' + ('<input type=\'text\' class=\'cm-search-input bt-input-text\' placeholder=\'查找内容...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-prev\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'上一个\'><i class=\'glyphicon glyphicon-chevron-up\'></i></button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-next\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'下一个\'><i class=\'glyphicon glyphicon-chevron-down\'></i></button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-close\' style=\'padding: 4px 8px; margin-left: 5px;\' title=\'关闭\'><i class=\'glyphicon glyphicon-remove\'></i></button>') + '</div>' + '<div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'>' + ('<input type=\'text\' class=\'cm-replace-input bt-input-text\' placeholder=\'替换为...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换当前\'>' + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换当前\'>' + (lan && lan.public && t('public.public_auto_str_141') || '替换') + '</button>' || '替换') + '</button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换全部\'>' + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换全部\'>' + (lan && lan.public && t('public.public_auto_str_142') || '全部') + '</button>' || '全部') + '</button>') + '</div>' + '<div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>';
+  var html = '<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'>' + ('<input type=\'text\' class=\'cm-search-input bt-input-text\' placeholder=\'查找内容...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-prev\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'上一个\'><i class=\'glyphicon glyphicon-chevron-up\'></i></button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-next\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'下一个\'><i class=\'glyphicon glyphicon-chevron-down\'></i></button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-close\' style=\'padding: 4px 8px; margin-left: 5px;\' title=\'关闭\'><i class=\'glyphicon glyphicon-remove\'></i></button>') + '</div>' + '<div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'>' + ('<input type=\'text\' class=\'cm-replace-input bt-input-text\' placeholder=\'替换为...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换当前\'>' + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换当前\'>' + (lan && lan.public && t('public.replace') || '替换') + '</button>' || '替换') + '</button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换全部\'>' + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换全部\'>' + (lan && lan.public && t('public.all_1') || '全部') + '</button>' || '全部') + '</button>') + '</div>' + '<div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>';
   dialog.innerHTML = html;
   wrapper.appendChild(dialog);
   var searchInput = dialog.querySelector('.cm-search-input');
@@ -3540,7 +3540,7 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
     if (total > 0) {
       infoText.innerText = (current || 1) + ' / ' + total;
     } else {
-      infoText.innerText = lan && lan.public && t('public.public_auto_str_143') || "";
+      infoText.innerText = lan && lan.public && t('public.no_matches_found') || "";
     }
   }
   function findNext(reverse) {

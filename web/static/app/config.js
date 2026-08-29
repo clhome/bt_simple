@@ -99,11 +99,11 @@ $('input[name="bind_domain"]').on('change', function () {
         // 弹出一个精美弹窗，提示用户保存域名并确认重启
         layer.open({
           type: 1,
-          title: lan && lan.config && t('config.config_auto_str_1') || "",
+          title: lan && lan.config && t('config.domain_binding_was_successful') || "",
           area: ['520px', '280px'],
           closeBtn: 1,
           shadeClose: false,
-          content: ('<div class="bt-form pd20" style="text-align: center;">						<div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;">							<span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>' + ('<div class="bt-form pd20" style="text-align: center;">						<div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;">							<span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>' + (lan && lan.config && t('config.config_auto_str_2') || '请务必妥善记录后续面板的访问地址！') + '						</div>						<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.config_auto_str_2_1') || '后续您将使用如下域名访问（点击地址即可一键复制）：') + '</p>						<div id="new-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">							' || '请务必妥善记录后续面板的访问地址！') + '						</div>						<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.config_auto_str_2_1') || '后续您将使用如下域名访问（点击地址即可一键复制）：') + '</p>						<div id="new-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">							') + new_url + ('						</div>						<p style="color: #999; font-size: 12px; margin-bottom: 20px;">' + ('						</div>						<p style="color: #999; font-size: 12px; margin-bottom: 20px;">' + (lan && lan.config && t('config.config_auto_str_3') || '注意：重启面板后，必须使用该新地址才能登录！') + '</p>						<div style="text-align: center;">							<button type="button" class="btn btn-success" id="btn-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">								<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.config_auto_str_3_1') || '确认并重启面板') + '							</button>						</div>					</div>' || '注意：重启面板后，必须使用该新地址才能登录！') + '</p>						<div style="text-align: center;">							<button type="button" class="btn btn-success" id="btn-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">								<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.config_auto_str_3_1') || '确认并重启面板') + '							</button>						</div>					</div>'),
+          content: ('<div class="bt-form pd20" style="text-align: center;">						<div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;">							<span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>' + ('<div class="bt-form pd20" style="text-align: center;">						<div style="color: #f39c12; font-size: 15px; font-weight: bold; margin-bottom: 15px;">							<span class="glyphicon glyphicon-alert" style="margin-right: 8px;"></span>' + (lan && lan.config && t('config.be_sure_to_make') || '请务必妥善记录后续面板的访问地址！') + '						</div>						<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the_1') || '后续您将使用如下域名访问（点击地址即可一键复制）：') + '</p>						<div id="new-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">							' || '请务必妥善记录后续面板的访问地址！') + '						</div>						<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the_1') || '后续您将使用如下域名访问（点击地址即可一键复制）：') + '</p>						<div id="new-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">							') + new_url + ('						</div>						<p style="color: #999; font-size: 12px; margin-bottom: 20px;">' + ('						</div>						<p style="color: #999; font-size: 12px; margin-bottom: 20px;">' + (lan && lan.config && t('config.note_after_restarting_the') || '注意：重启面板后，必须使用该新地址才能登录！') + '</p>						<div style="text-align: center;">							<button type="button" class="btn btn-success" id="btn-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">								<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the_1') || '确认并重启面板') + '							</button>						</div>					</div>' || '注意：重启面板后，必须使用该新地址才能登录！') + '</p>						<div style="text-align: center;">							<button type="button" class="btn btn-success" id="btn-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">								<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the_1') || '确认并重启面板') + '							</button>						</div>					</div>'),
           success: function (layero, index) {
             // 鼠标悬停变色效果
             $('#new-domain-box').on('mouseenter', function () {
@@ -124,7 +124,7 @@ $('input[name="bind_domain"]').on('change', function () {
               $.post('/system/restart', '', function () {
                 layer.close(loadT);
                 var count = 10;
-                var msgBox = layer.msg((((lan && lan.config && t('config.config_auto_str_4') || '面板正在安全重启，倒计时完成后将自动跳转新地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">' || '面板正在安全重启，倒计时完成后将自动跳转新地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">') + count + ('</span> ' + ('</span> ' + (lan && lan.config && t('config.config_auto_str_5') || '秒') || '秒')), {
+                var msgBox = layer.msg((((lan && lan.config && t('config.the_dashboard_is_currently') || '面板正在安全重启，倒计时完成后将自动跳转新地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">' || '面板正在安全重启，倒计时完成后将自动跳转新地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">') + count + ('</span> ' + ('</span> ' + (lan && lan.config && t('config.seconds') || '秒') || '秒')), {
                   icon: 16,
                   time: 0,
                   shade: [0.3, '#000']
@@ -156,7 +156,7 @@ $('input[name="bind_domain"]').on('change', function () {
 function copyTextToClipboard(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function () {
-      layer.msg(lan && lan.config && t('config.config_auto_str_6') || "", {
+      layer.msg(lan && lan.config && t('config.copied_successfully') || "", {
         icon: 1,
         time: 1000
       });
@@ -186,17 +186,17 @@ function fallbackCopyText(text) {
   try {
     var successful = document.execCommand('copy');
     if (successful) {
-      layer.msg(lan && lan.config && t('config.config_auto_str_7') || "", {
+      layer.msg(lan && lan.config && t('config.copied_successfully_1') || "", {
         icon: 1,
         time: 1000
       });
     } else {
-      layer.msg(lan && lan.config && t('config.config_auto_str_8') || "", {
+      layer.msg(lan && lan.config && t('config.copy_failed_please_the') || "", {
         icon: 2
       });
     }
   } catch (err) {
-    layer.msg(lan && lan.config && t('config.config_auto_str_9') || "", {
+    layer.msg(lan && lan.config && t('config.copy_failed_please_the_1') || "", {
       icon: 2
     });
   }
@@ -205,7 +205,7 @@ function fallbackCopyText(text) {
 
 // SSL 申请/配置成功后的弹窗，支持点击一键复制，点击确定重启面板后进行 10 秒倒计时跳转 https 地址
 function showSSLSuccessWindow(new_url, title) {
-  title = title || lan && lan.config && t('config.config_auto_str_10') || "";
+  title = title || lan && lan.config && t('config.ssl_certificate_deployment_successful') || "";
   // 自动修复 127.0.0.1 和 0.0.0.0 为当前主机的实际域名/IP，以确保在任何环境下均可平顺访问
   if (new_url.indexOf('127.0.0.1') != -1 || new_url.indexOf('0.0.0.0') != -1) {
     new_url = new_url.replace(/127\.0\.0\.1|0\.0\.0\.0/, window.location.hostname);
@@ -216,7 +216,7 @@ function showSSLSuccessWindow(new_url, title) {
     area: ['520px', '280px'],
     closeBtn: 1,
     shadeClose: false,
-    content: ('<div class="bt-form pd20" style="text-align: center;">			<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;">				<span class="glyphicon glyphicon-ok-sign" style="margin-right: 8px;"></span>' + ('<div class="bt-form pd20" style="text-align: center;">			<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;">				<span class="glyphicon glyphicon-ok-sign" style="margin-right: 8px;"></span>' + (lan && lan.config && t('config.config_auto_str_11') || '面板 SSL 证书已准备就绪！') + '			</div>			<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.config_auto_str_11_1') || '后续您将使用如下安全加密协议访问（点击地址即可复制）：') + '</p>			<div id="ssl-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">				' || '面板 SSL 证书已准备就绪！') + '			</div>			<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.config_auto_str_11_1') || '后续您将使用如下安全加密协议访问（点击地址即可复制）：') + '</p>			<div id="ssl-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">				') + new_url + ('			</div>			<p style="color: #f39c12; font-size: 12px; margin-bottom: 20px;">' + ('			</div>			<p style="color: #f39c12; font-size: 12px; margin-bottom: 20px;">' + (lan && lan.config && t('config.config_auto_str_12') || '提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。') + '</p>			<div style="text-align: center;">				<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">					<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.config_auto_str_12_1') || '确定并重启面板') + '				</button>			</div>		</div>' || '提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。') + '</p>			<div style="text-align: center;">				<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">					<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.config_auto_str_12_1') || '确定并重启面板') + '				</button>			</div>		</div>'),
+    content: ('<div class="bt-form pd20" style="text-align: center;">			<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;">				<span class="glyphicon glyphicon-ok-sign" style="margin-right: 8px;"></span>' + ('<div class="bt-form pd20" style="text-align: center;">			<div style="color: #20a53a; font-size: 15px; font-weight: bold; margin-bottom: 15px;">				<span class="glyphicon glyphicon-ok-sign" style="margin-right: 8px;"></span>' + (lan && lan.config && t('config.the_ssl_certificate_for') || '面板 SSL 证书已准备就绪！') + '			</div>			<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the') || '后续您将使用如下安全加密协议访问（点击地址即可复制）：') + '</p>			<div id="ssl-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">				' || '面板 SSL 证书已准备就绪！') + '			</div>			<p style="color: #666; margin-bottom: 12px; font-size: 13px;">' + (lan && lan.config && t('config.you_will_use_the') || '后续您将使用如下安全加密协议访问（点击地址即可复制）：') + '</p>			<div id="ssl-domain-box" style="background: #f8f9fa; border: 1px dashed #20a53a; color: #20a53a; padding: 12px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-bottom: 10px; word-break: break-all; transition: background 0.2s;" title="点击复制地址">				') + new_url + ('			</div>			<p style="color: #f39c12; font-size: 12px; margin-bottom: 20px;">' + ('			</div>			<p style="color: #f39c12; font-size: 12px; margin-bottom: 20px;">' + (lan && lan.config && t('config.note_for_some_self') || '提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。') + '</p>			<div style="text-align: center;">				<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">					<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the') || '确定并重启面板') + '				</button>			</div>		</div>' || '提醒：部分自签证书在首次访问时浏览器会提示风险，点击继续访问即可。') + '</p>			<div style="text-align: center;">				<button type="button" class="btn btn-success" id="btn-ssl-reboot-confirm" style="padding: 6px 20px; border-radius: 4px;">					<span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.config && t('config.confirm_and_restart_the') || '确定并重启面板') + '				</button>			</div>		</div>'),
     success: function (layero, index) {
       // 鼠标悬停变色效果
       $('#ssl-domain-box').on('mouseenter', function () {
@@ -237,7 +237,7 @@ function showSSLSuccessWindow(new_url, title) {
         $.post('/system/restart', '', function () {
           layer.close(loadT);
           var count = 10;
-          var msgBox = layer.msg((((lan && lan.config && t('config.config_auto_str_13') || '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">' || '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">') + count + ('</span> ' + ('</span> ' + (lan && lan.config && t('config.config_auto_str_14') || '秒') || '秒')), {
+          var msgBox = layer.msg((((lan && lan.config && t('config.the_dashboard_is_restarting') || '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">' || '面板正在重启并开启 SSL，倒计时完成后将自动跳转加密地址...') + ' <span id="restart-countdown" style="font-weight: bold; color: #20a53a;">') + count + ('</span> ' + ('</span> ' + (lan && lan.config && t('config.seconds_1') || '秒') || '秒')), {
             icon: 16,
             time: 0,
             shade: [0.3, '#000']
@@ -267,19 +267,19 @@ $('input[name="bind_ssl"]').on('click', function () {
     layer.open({
       type: 1,
       closeBtn: 1,
-      title: lan && lan.config && t('config.config_auto_str_15') || "",
+      title: lan && lan.config && t('config.enable_ssl_certificate') || "",
       area: ['600px', '440px'],
-      btn: [lan && lan.config && t('config.config_auto_str_16') || ""],
+      btn: [lan && lan.config && t('config.enable_ssl_certificate_access') || ""],
       maxmin: false,
       shadeClose: true,
-      content: '<div class="bt-form" style="padding: 25px 40px;">				<div style="text-align: center;">					<h3 style="font-size: 20px;color: #333;margin-left: 5px;">' + ('<div class="bt-form" style="padding: 25px 40px;">				<div style="text-align: center;">					<h3 style="font-size: 20px;color: #333;margin-left: 5px;">' + (lan && lan.config && t('config.config_auto_str_17') || '【开启SSL证书】保护面板访问安全') + '</h3>				</div>				<ul class="help-info-text c7 pd15" style="color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;">					<li>' + (lan && lan.config && t('config.config_auto_str_17_1') || '自签证书访问步骤：') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_2') || '1. 部署SSL证书') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_3') || '2. 浏览器地址栏修改为https://访问') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_4') || '3. 如提醒风险（正常现象）点击【高级】或【详情】') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_5') || '4.【继续访问】或【接收风险并继续】') + '</li>				</ul>				<div class="pt10" style="margin-top: 20px;">					<div class="line" style="font-size: 14px;">						<span class="tname" style="width: 78px;">' + (lan && lan.config && t('config.config_auto_str_17_6') || '类型') + '</span>						<div class="info-r" style="margin-left: 78px;">							<select class="bt-input-text mr5" name="cert_type" style="width: 440px;">								<option value="0">' + (lan && lan.config && t('config.config_auto_str_17_7') || '自签证书 (推荐，浏览器会提示不安全。可忽略，请放心开启)') + '</option>							</select>						</div>					</div>					<ul class="help-info-text c7 sslSafeTips">						<li><span>' + (lan && lan.config && t('config.config_auto_str_17_8') || '开启后导致面板不能访问，可以点击查看') + '</span></li>						<li>' + (lan && lan.config && t('config.config_auto_str_17_9') || '自签证书不被浏览器信任，显示不安全是正常现象') + '</li>					</ul>				</div>			</div>' || '【开启SSL证书】保护面板访问安全') + '</h3>				</div>				<ul class="help-info-text c7 pd15" style="color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;">					<li>' + (lan && lan.config && t('config.config_auto_str_17_1') || '自签证书访问步骤：') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_2') || '1. 部署SSL证书') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_3') || '2. 浏览器地址栏修改为https://访问') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_4') || '3. 如提醒风险（正常现象）点击【高级】或【详情】') + '</li>					<li>' + (lan && lan.config && t('config.config_auto_str_17_5') || '4.【继续访问】或【接收风险并继续】') + '</li>				</ul>				<div class="pt10" style="margin-top: 20px;">					<div class="line" style="font-size: 14px;">						<span class="tname" style="width: 78px;">' + (lan && lan.config && t('config.config_auto_str_17_6') || '类型') + '</span>						<div class="info-r" style="margin-left: 78px;">							<select class="bt-input-text mr5" name="cert_type" style="width: 440px;">								<option value="0">' + (lan && lan.config && t('config.config_auto_str_17_7') || '自签证书 (推荐，浏览器会提示不安全。可忽略，请放心开启)') + '</option>							</select>						</div>					</div>					<ul class="help-info-text c7 sslSafeTips">						<li><span>' + (lan && lan.config && t('config.config_auto_str_17_8') || '开启后导致面板不能访问，可以点击查看') + '</span></li>						<li>' + (lan && lan.config && t('config.config_auto_str_17_9') || '自签证书不被浏览器信任，显示不安全是正常现象') + '</li>					</ul>				</div>			</div>',
+      content: '<div class="bt-form" style="padding: 25px 40px;">				<div style="text-align: center;">					<h3 style="font-size: 20px;color: #333;margin-left: 5px;">' + ('<div class="bt-form" style="padding: 25px 40px;">				<div style="text-align: center;">					<h3 style="font-size: 20px;color: #333;margin-left: 5px;">' + (lan && lan.config && t('config.enable_ssl_certificate_to') || '【开启SSL证书】保护面板访问安全') + '</h3>				</div>				<ul class="help-info-text c7 pd15" style="color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;">					<li>' + (lan && lan.config && t('config.steps_for_accessing_self') || '自签证书访问步骤：') + '</li>					<li>' + (lan && lan.config && t('config.deploy_an_ssl_certificate') || '1. 部署SSL证书') + '</li>					<li>' + (lan && lan.config && t('config.change_the_address_in') || '2. 浏览器地址栏修改为https://访问') + '</li>					<li>' + (lan && lan.config && t('config.if_risk_warning_appears') || '3. 如提醒风险（正常现象）点击【高级】或【详情】') + '</li>					<li>' + (lan && lan.config && t('config.continue_or_accept_the') || '4.【继续访问】或【接收风险并继续】') + '</li>				</ul>				<div class="pt10" style="margin-top: 20px;">					<div class="line" style="font-size: 14px;">						<span class="tname" style="width: 78px;">' + (lan && lan.config && t('config.msg_2') || '类型') + '</span>						<div class="info-r" style="margin-left: 78px;">							<select class="bt-input-text mr5" name="cert_type" style="width: 440px;">								<option value="0">' + (lan && lan.config && t('config.self_signed_certificate_recommended') || '自签证书 (推荐，浏览器会提示不安全。可忽略，请放心开启)') + '</option>							</select>						</div>					</div>					<ul class="help-info-text c7 sslSafeTips">						<li><span>' + (lan && lan.config && t('config.enabling_this_feature_will') || '开启后导致面板不能访问，可以点击查看') + '</span></li>						<li>' + (lan && lan.config && t('config.self_signed_certificates_are') || '自签证书不被浏览器信任，显示不安全是正常现象') + '</li>					</ul>				</div>			</div>' || '【开启SSL证书】保护面板访问安全') + '</h3>				</div>				<ul class="help-info-text c7 pd15" style="color: #333;font-size: 14px;background: #F5F7FA;margin-top: 24px;padding: 10px 20px 10px 20px;border-radius: 2px;">					<li>' + (lan && lan.config && t('config.steps_for_accessing_self') || '自签证书访问步骤：') + '</li>					<li>' + (lan && lan.config && t('config.deploy_an_ssl_certificate') || '1. 部署SSL证书') + '</li>					<li>' + (lan && lan.config && t('config.change_the_address_in') || '2. 浏览器地址栏修改为https://访问') + '</li>					<li>' + (lan && lan.config && t('config.if_risk_warning_appears') || '3. 如提醒风险（正常现象）点击【高级】或【详情】') + '</li>					<li>' + (lan && lan.config && t('config.continue_or_accept_the') || '4.【继续访问】或【接收风险并继续】') + '</li>				</ul>				<div class="pt10" style="margin-top: 20px;">					<div class="line" style="font-size: 14px;">						<span class="tname" style="width: 78px;">' + (lan && lan.config && t('config.msg_2') || '类型') + '</span>						<div class="info-r" style="margin-left: 78px;">							<select class="bt-input-text mr5" name="cert_type" style="width: 440px;">								<option value="0">' + (lan && lan.config && t('config.self_signed_certificate_recommended') || '自签证书 (推荐，浏览器会提示不安全。可忽略，请放心开启)') + '</option>							</select>						</div>					</div>					<ul class="help-info-text c7 sslSafeTips">						<li><span>' + (lan && lan.config && t('config.enabling_this_feature_will') || '开启后导致面板不能访问，可以点击查看') + '</span></li>						<li>' + (lan && lan.config && t('config.self_signed_certificates_are') || '自签证书不被浏览器信任，显示不安全是正常现象') + '</li>					</ul>				</div>			</div>',
       yes: function () {
         var cert_type = $('select[name=cert_type]').val();
         $.post('/setting/set_panel_local_ssl', {
           'cert_type': cert_type
         }, function (rdata) {
           if (rdata.status) {
-            showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.config_auto_str_18') || "");
+            showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.locally_self_signed_ssl') || "");
           } else {
             layer.msg(rdata.msg, {
               icon: 2
@@ -293,15 +293,15 @@ $('input[name="bind_ssl"]').on('click', function () {
     layer.open({
       type: 1,
       closeBtn: 1,
-      title: lan && lan.config && t('config.config_auto_str_19') || "",
+      title: lan && lan.config && t('config.disable_ssl_certificate') || "",
       area: ['480px', '280px'],
-      btn: [lan && lan.config && t('config.config_auto_str_20') || "", lan && lan.config && t('config.config_auto_str_21') || ""],
+      btn: [lan && lan.config && t('config.confirm') || "", lan && lan.config && t('config.cancel') || ""],
       shadeClose: true,
-      content: '<div class="bt-form" style="padding: 25px 40px;">				<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">					<div class="hint_con">' + ('<div class="bt-form" style="padding: 25px 40px;">				<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">					<div class="hint_con">' + (lan && lan.config && t('config.config_auto_str_22') || '关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭') + '</div>				</div>				<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;">					<div>' + (lan && lan.config && t('config.config_auto_str_22_1') || '请手动输入【') + '<span style="color: #fc6d26;">' + (lan && lan.config && t('config.config_auto_str_22_2') || '我要关闭') + '</span>' + (lan && lan.config && t('config.config_auto_str_22_3') || '】，完成验证') + '</div>					<input onpaste="return false;" id="prompt_input_box" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">				</div>			</div>' || '关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭') + '</div>				</div>				<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;">					<div>' + (lan && lan.config && t('config.config_auto_str_22_1') || '请手动输入【') + '<span style="color: #fc6d26;">' + (lan && lan.config && t('config.config_auto_str_22_2') || '我要关闭') + '</span>' + (lan && lan.config && t('config.config_auto_str_22_3') || '】，完成验证') + '</div>					<input onpaste="return false;" id="prompt_input_box" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">				</div>			</div>',
+      content: '<div class="bt-form" style="padding: 25px 40px;">				<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">					<div class="hint_con">' + ('<div class="bt-form" style="padding: 25px 40px;">				<div class="hint_title" style="font-size: 15px;color: #111;text-align:center;">					<div class="hint_con">' + (lan && lan.config && t('config.turning_off_ssl_makes') || '关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭') + '</div>				</div>				<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;">					<div>' + (lan && lan.config && t('config.please_enter_the_following') || '请手动输入【') + '<span style="color: #fc6d26;">' + (lan && lan.config && t('config.want_to_close_this_1') || '我要关闭') + '</span>' + (lan && lan.config && t('config.verification_complete') || '】，完成验证') + '</div>					<input onpaste="return false;" id="prompt_input_box" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">				</div>			</div>' || '关闭SSL极易被抓包攻击导致账号密码泄露，请勿关闭') + '</div>				</div>				<div class="confirm-info-box" style="background-color: #f0f0f0;clear: both;font-size: 14px;height: 105px;line-height: 26px;padding: 20px 20px;margin-top: 20px;">					<div>' + (lan && lan.config && t('config.please_enter_the_following') || '请手动输入【') + '<span style="color: #fc6d26;">' + (lan && lan.config && t('config.want_to_close_this_1') || '我要关闭') + '</span>' + (lan && lan.config && t('config.verification_complete') || '】，完成验证') + '</div>					<input onpaste="return false;" id="prompt_input_box" style="height: 30px;line-height: 30px;margin-top: 5px;width: 360px;color: #444;outline: none;border: 1px solid #ccc;padding: 0 5px;" type="text" value="" autocomplete="off">				</div>			</div>',
       yes: function (index) {
         var val = $('#prompt_input_box').val();
-        if (val != (lan && lan.config && t('config.config_auto_str_23') || "")) {
-          layer.msg(lan && lan.config && t('config.config_auto_str_24') || "");
+        if (val != (lan && lan.config && t('config.want_to_close_this') || "")) {
+          layer.msg(lan && lan.config && t('config.failed_to_disable_ssl') || "");
           return;
         }
         $.post('/setting/close_panel_ssl', {}, function (rdata) {
@@ -326,24 +326,24 @@ function setVipInfo() {
   layer.open({
     type: 1,
     area: "400px",
-    title: lan && lan.config && t('config.config_auto_str_25') || "",
+    title: lan && lan.config && t('config.vip_login') || "",
     closeBtn: 1,
     shift: 5,
-    btn: [lan && lan.config && t('config.config_auto_str_26') || "", lan && lan.config && t('config.config_auto_str_27') || ""],
+    btn: [lan && lan.config && t('config.log_in') || "", lan && lan.config && t('config.close') || ""],
     shadeClose: false,
-    content: '<div class=\'bt-form pd20\'>				<div class=\'line\'>					<span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_28') || '用户名') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_28_1') || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>			</div>' || '用户名') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_28_1') || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>			</div>',
+    content: '<div class=\'bt-form pd20\'>				<div class=\'line\'>					<span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.username') || '用户名') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.password_2') || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>			</div>' || '用户名') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.password_2') || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'\' style=\'width:85%\' autocomplete=\'off\'/></div>				</div>			</div>',
     yes: function (index) {
       var pdata = {};
       pdata['username'] = $('input[name="username"]').val();
       pdata['password'] = $('input[name="password"]').val();
       if (pdata['username'] == '') {
-        layer.msg(lan && lan.config && t('config.config_auto_str_29') || "", {
+        layer.msg(lan && lan.config && t('config.the_username_cannot_be') || "", {
           icon: 2
         });
         return false;
       }
       if (pdata['password'] == '') {
-        layer.msg(lan && lan.config && t('config.config_auto_str_30') || "", {
+        layer.msg(lan && lan.config && t('config.the_password_cannot_be') || "", {
           icon: 2
         });
         return false;
@@ -367,8 +367,8 @@ function setVipInfo() {
 
 //关闭面板
 function closePanel() {
-  layer.confirm(lan && lan.config && t('config.config_auto_str_31') || "", {
-    title: lan && lan.config && t('config.config_auto_str_32') || "",
+  layer.confirm(lan && lan.config && t('config.closing_the_panel_will') || "", {
+    title: lan && lan.config && t('config.close_the_panel') || "",
     closeBtn: 2,
     icon: 13,
     cancel: function () {
@@ -390,7 +390,7 @@ function closePanel() {
 
 //开发模式
 function debugMode() {
-  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_33') || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.sending_request_please_wait') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -409,20 +409,20 @@ function modifyAuthPath() {
   layer.open({
     type: 1,
     area: "500px",
-    title: lan && lan.config && t('config.config_auto_str_34') || "",
+    title: lan && lan.config && t('config.modify_the_security_entry') || "",
     closeBtn: 1,
     shift: 5,
-    btn: [lan && lan.config && t('config.config_auto_str_35') || "", lan && lan.config && t('config.config_auto_str_36') || "", lan && lan.config && t('config.config_auto_str_37') || ""],
+    btn: [lan && lan.config && t('config.submit') || "", lan && lan.config && t('config.close_1') || "", lan && lan.config && t('config.randomly_generated') || ""],
     shadeClose: false,
-    content: ('<div class="bt-form bt-form pd20">            <div class="line ">                <span class="tname">' + ('<div class="bt-form bt-form pd20">            <div class="line ">                <span class="tname">' + (lan && lan.config && t('config.config_auto_str_38') || '入口地址') + '</span>                <div class="info-r">                    <input name="auth_path_set" class="bt-input-text mr5" type="text" style="width: 311px" value="' || '入口地址') + '</span>                <div class="info-r">                    <input name="auth_path_set" class="bt-input-text mr5" type="text" style="width: 311px" value="') + auth_path + '">\
+    content: ('<div class="bt-form bt-form pd20">            <div class="line ">                <span class="tname">' + ('<div class="bt-form bt-form pd20">            <div class="line ">                <span class="tname">' + (lan && lan.config && t('config.entry_address') || '入口地址') + '</span>                <div class="info-r">                    <input name="auth_path_set" class="bt-input-text mr5" type="text" style="width: 311px" value="' || '入口地址') + '</span>                <div class="info-r">                    <input name="auth_path_set" class="bt-input-text mr5" type="text" style="width: 311px" value="') + auth_path + '">\
                 </div>\
             </div>\
         </div>',
     yes: function (index) {
       var auth_path = $("input[name='auth_path_set']").val();
       if (auth_path == '/' || auth_path == '') {
-        layer.confirm(lan && lan.config && t('config.config_auto_str_39') || "", {
-          title: lan && lan.config && t('config.config_auto_str_40') || "",
+        layer.confirm(lan && lan.config && t('config.warning_closing_the_secure') || "", {
+          title: lan && lan.config && t('config.security_portal_modifications') || "",
           closeBtn: 1,
           icon: 13,
           cancel: function () {}
@@ -475,17 +475,17 @@ function setPassword() {
   layer.open({
     type: 1,
     area: ["350px", 'auto'],
-    title: lan && lan.config && t('config.config_auto_str_41') || "",
+    title: lan && lan.config && t('config.change_password') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    btn: [lan && lan.config && t('config.config_auto_str_42') || "", lan && lan.config && t('config.config_auto_str_43') || "", lan && lan.config && t('config.config_auto_str_44') || ""],
-    content: '<div class=\'bt-form\'>				<div class=\'line\'>					<span class=\'tname\'>' + ('<div class=\'bt-form\'>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_45') || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的密码\' style=\'width:70%\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_45_1') || '重复') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\' /></div>				</div>			</div>' || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的密码\' style=\'width:70%\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_45_1') || '重复') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\' /></div>				</div>			</div>',
+    btn: [lan && lan.config && t('config.edit') || "", lan && lan.config && t('config.close_2') || "", lan && lan.config && t('config.random') || ""],
+    content: '<div class=\'bt-form\'>				<div class=\'line\'>					<span class=\'tname\'>' + ('<div class=\'bt-form\'>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.password') || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的密码\' style=\'width:70%\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.repeat') || '重复') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\' /></div>				</div>			</div>' || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的密码\' style=\'width:70%\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.repeat') || '重复') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\' /></div>				</div>			</div>',
     yes: function () {
       var p1 = $("#p1").val();
       var p2 = $("#p2").val();
       if (p1 == "" || p1.length < 8) {
-        layer.msg(lan && lan.config && t('config.config_auto_str_46') || "", {
+        layer.msg(lan && lan.config && t('config.the_panel_password_must') || "", {
           icon: 2
         });
         return;
@@ -507,13 +507,13 @@ function setPassword() {
         }
       }
       if (isError != "") {
-        layer.msg((lan && lan.config && t('config.config_auto_str_47') || "") + isError, {
+        layer.msg((lan && lan.config && t('config.the_panel_password_cannot') || "") + isError, {
           icon: 5
         });
         return;
       }
       if (p1 != p2) {
-        layer.msg(lan && lan.config && t('config.config_auto_str_48') || "", {
+        layer.msg(lan && lan.config && t('config.the_two_passwords_you') || "", {
           icon: 2
         });
         return;
@@ -536,7 +536,7 @@ function setPassword() {
       var pwd = randomStrPwd(12);
       $("#p1").val(pwd);
       $("#p2").val(pwd);
-      layer.msg(lan && lan.config && t('config.config_auto_str_49') || "", {
+      layer.msg(lan && lan.config && t('config.please_make_note_of') || "", {
         time: 2000
       });
       return false;
@@ -547,23 +547,23 @@ function setUserName() {
   layer.open({
     type: 1,
     area: ["350px", 'auto'],
-    title: lan && lan.config && t('config.config_auto_str_50') || "",
+    title: lan && lan.config && t('config.edit_panel_username') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    btn: [lan && lan.config && t('config.config_auto_str_51') || "", lan && lan.config && t('config.config_auto_str_52') || "", lan && lan.config && t('config.config_auto_str_53') || ""],
-    content: '<div class=\'bt-form pd20\'>			<div class=\'line\'><span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>			<div class=\'line\'><span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_54') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的用户名\' style=\'width:70%\'/></div>			</div>			<div class=\'line\'>				<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_54_1') || '重复') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\'/></div>			</div>		</div>' || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的用户名\' style=\'width:70%\'/></div>			</div>			<div class=\'line\'>				<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_54_1') || '重复') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\'/></div>			</div>		</div>',
+    btn: [lan && lan.config && t('config.confirm_1') || "", lan && lan.config && t('config.cancel_1') || "", lan && lan.config && t('config.random_1') || ""],
+    content: '<div class=\'bt-form pd20\'>			<div class=\'line\'><span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>			<div class=\'line\'><span class=\'tname\'>' + (lan && lan.config && t('config.username_1') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的用户名\' style=\'width:70%\'/></div>			</div>			<div class=\'line\'>				<span class=\'tname\'>' + (lan && lan.config && t('config.repeat_1') || '重复') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\'/></div>			</div>		</div>' || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的用户名\' style=\'width:70%\'/></div>			</div>			<div class=\'line\'>				<span class=\'tname\'>' + (lan && lan.config && t('config.repeat_1') || '重复') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\'/></div>			</div>		</div>',
     yes: function () {
       p1 = $("#p1").val();
       p2 = $("#p2").val();
       if (p1 == "" || p1.length < 3) {
-        layer.msg(lan && lan.config && t('config.config_auto_str_55') || "", {
+        layer.msg(lan && lan.config && t('config.the_username_must_be') || "", {
           icon: 2
         });
         return;
       }
       if (p1 != p2) {
-        layer.msg(lan && lan.config && t('config.config_auto_str_56') || "", {
+        layer.msg(lan && lan.config && t('config.the_usernames_entered_do') || "", {
           icon: 2
         });
         return;
@@ -587,7 +587,7 @@ function setUserName() {
       var pwd = randomStrPwd(12);
       $("#p1").val(pwd);
       $("#p2").val(pwd);
-      layer.msg(lan && lan.config && t('config.config_auto_str_57') || "", {
+      layer.msg(lan && lan.config && t('config.please_make_note_of_1') || "", {
         time: 2000
       });
       return false;
@@ -598,12 +598,12 @@ function setTimezone() {
   layer.open({
     type: 1,
     area: ["400px", "200px"],
-    title: lan && lan.config && t('config.config_auto_str_58') || "",
+    title: lan && lan.config && t('config.set_the_server_time') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    btn: [lan && lan.config && t('config.config_auto_str_59') || "", lan && lan.config && t('config.config_auto_str_60') || "", lan && lan.config && t('config.config_auto_str_61') || ""],
-    content: '<div class=\'bt-form pd20\'>			<div class=\'line\'>				<span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>			<div class=\'line\'>				<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_62') || '时区') + '</span>				<div class=\'info-r\'>					<select class=\'bt-input-text mr5\' name=\'timezone\' style=\'width: 250px;\'></select>				</div>			</div>		</div>' || '时区') + '</span>				<div class=\'info-r\'>					<select class=\'bt-input-text mr5\' name=\'timezone\' style=\'width: 250px;\'></select>				</div>			</div>		</div>',
+    btn: [lan && lan.config && t('config.confirm_2') || "", lan && lan.config && t('config.cancel_2') || "", lan && lan.config && t('config.synchronize') || ""],
+    content: '<div class=\'bt-form pd20\'>			<div class=\'line\'>				<span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>			<div class=\'line\'>				<span class=\'tname\'>' + (lan && lan.config && t('config.time_zone') || '时区') + '</span>				<div class=\'info-r\'>					<select class=\'bt-input-text mr5\' name=\'timezone\' style=\'width: 250px;\'></select>				</div>			</div>		</div>' || '时区') + '</span>				<div class=\'info-r\'>					<select class=\'bt-input-text mr5\' name=\'timezone\' style=\'width: 250px;\'></select>				</div>			</div>		</div>',
     success: function () {
       var tbody = '';
       $.post('/setting/get_timezone_list', {}, function (data) {
@@ -619,7 +619,7 @@ function setTimezone() {
       }, 'json');
     },
     yes: function (index) {
-      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_63') || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.setting_the_time_zone') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -638,7 +638,7 @@ function setTimezone() {
       }, 'json');
     },
     btn3: function () {
-      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_64') || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.synchronizing_time') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -656,7 +656,7 @@ function setTimezone() {
   });
 }
 function setIPv6() {
-  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_65') || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.configuring_please_wait') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -672,7 +672,7 @@ function setIPv6() {
   }, 'json');
 }
 function setCDN() {
-  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_66') || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.configuring_please_wait_1') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -692,7 +692,7 @@ function setGpuDetect() {
   setTimeout(function () {
     var isChecked = $("#gpuDetect").prop("checked");
     if (isChecked) {
-      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_67') || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.detecting_the_gpu_environment') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -702,7 +702,7 @@ function setGpuDetect() {
         if (!res.status || !res.data || res.data.length === 0) {
           // 未检测到显卡，回退开关状态
           $("#gpuDetect").prop("checked", false);
-          layer.msg(lan && lan.config && t('config.config_auto_str_68') || "", {
+          layer.msg(lan && lan.config && t('config.this_server_did_not') || "", {
             icon: 2,
             time: 3000
           });
@@ -713,7 +713,7 @@ function setGpuDetect() {
       }, 'json').fail(function () {
         layer.close(loadT);
         $("#gpuDetect").prop("checked", false);
-        layer.msg(lan && lan.config && t('config.config_auto_str_69') || "", {
+        layer.msg(lan && lan.config && t('config.the_environment_check_request') || "", {
           icon: 2
         });
       });
@@ -723,7 +723,7 @@ function setGpuDetect() {
   }, 10);
 }
 function doSetGpuDetect(isEnable) {
-  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_70') || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.configuring_please_wait_2') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -731,10 +731,10 @@ function doSetGpuDetect(isEnable) {
   $.post('/setting/set_gpu_detect', {}, function (rdata) {
     layer.close(loadT);
     if (rdata.status && isEnable) {
-      layer.confirm(((lan && lan.config && t('config.config_auto_str_71') || '成功开启GPU首页检测！') + '<br><br><span style="color:red">' + (lan && lan.config && t('config.config_auto_str_71_1') || '提示：由于浏览器缓存，若首页未显示GPU状态，') + '<br>' + (lan && lan.config && t('config.config_auto_str_71_2') || '需返回首页按') + ' <b>Ctrl+F5</b>' + (lan && lan.config && t('config.config_auto_str_71_3') || '（Mac按') + ' <b>Cmd+Shift+R</b>' + (lan && lan.config && t('config.config_auto_str_71_4') || '）强制刷新才能展示GPU状态。') + '</span>' || '成功开启GPU首页检测！') + '<br><br><span style="color:red">' + (lan && lan.config && t('config.config_auto_str_71_1') || '提示：由于浏览器缓存，若首页未显示GPU状态，') + '<br>' + (lan && lan.config && t('config.config_auto_str_71_2') || '需返回首页按') + ' <b>Ctrl+F5</b>' + (lan && lan.config && t('config.config_auto_str_71_3') || '（Mac按') + ' <b>Cmd+Shift+R</b>' + (lan && lan.config && t('config.config_auto_str_71_4') || '）强制刷新才能展示GPU状态。') + '</span>', {
-        title: lan && lan.config && t('config.config_auto_str_72') || "",
+      layer.confirm(((lan && lan.config && t('config.gpu_homepage_detection_has') || '成功开启GPU首页检测！') + '<br><br><span style="color:red">' + (lan && lan.config && t('config.note_due_to_browser') || '提示：由于浏览器缓存，若首页未显示GPU状态，') + '<br>' + (lan && lan.config && t('config.to_return_to_the') || '需返回首页按') + ' <b>Ctrl+F5</b>' + (lan && lan.config && t('config.on_mac_press') || '（Mac按') + ' <b>Cmd+Shift+R</b>' + (lan && lan.config && t('config.you_must_force_refresh') || '）强制刷新才能展示GPU状态。') + '</span>' || '成功开启GPU首页检测！') + '<br><br><span style="color:red">' + (lan && lan.config && t('config.note_due_to_browser') || '提示：由于浏览器缓存，若首页未显示GPU状态，') + '<br>' + (lan && lan.config && t('config.to_return_to_the') || '需返回首页按') + ' <b>Ctrl+F5</b>' + (lan && lan.config && t('config.on_mac_press') || '（Mac按') + ' <b>Cmd+Shift+R</b>' + (lan && lan.config && t('config.you_must_force_refresh') || '）强制刷新才能展示GPU状态。') + '</span>', {
+        title: lan && lan.config && t('config.setup_successful') || "",
         icon: 1,
-        btn: [lan && lan.config && t('config.config_auto_str_73') || "", lan && lan.config && t('config.config_auto_str_74') || ""]
+        btn: [lan && lan.config && t('config.force_refresh_return_to') || "", lan && lan.config && t('config.stay_on_this_page') || ""]
       }, function () {
         window.location.href = '/';
       }, function () {
@@ -754,9 +754,9 @@ function doSetGpuDetect(isEnable) {
 //设置面板SSL
 function setPanelSSL() {
   var status = $("#sshswitch").prop("checked") == true ? 1 : 0;
-  var msg = $("#panelSSL").attr('checked') ? lan && lan.config && t('config.config_auto_str_75') || "" : '<a style="font-weight: bolder;font-size: 16px;">' + ('<a style="font-weight: bolder;font-size: 16px;">' + (lan && lan.config && t('config.config_auto_str_76') || '危险！此功能不懂别开启!') + '</a>	<li style="margin-top: 12px;color:red;">' + (lan && lan.config && t('config.config_auto_str_76_1') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>	<li>' + (lan && lan.config && t('config.config_auto_str_76_2') || '面板SSL是自签证书，不被浏览器信任，显示不安全是正常现象') + '</li>	<li>' + (lan && lan.config && t('config.config_auto_str_76_3') || '开启后导致面板不能访问，可以点击下面链接了解解决方法') + '</li>	<p style="margin-top: 10px;">		<input type="checkbox" id="checkSSL" /><label style="font-weight: 400;margin: 3px 5px 0px;" for="checkSSL">' + (lan && lan.config && t('config.config_auto_str_76_4') || '我已了经解详情,并愿意承担风险') + '</label>	</p>' || '危险！此功能不懂别开启!') + '</a>	<li style="margin-top: 12px;color:red;">' + (lan && lan.config && t('config.config_auto_str_76_1') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>	<li>' + (lan && lan.config && t('config.config_auto_str_76_2') || '面板SSL是自签证书，不被浏览器信任，显示不安全是正常现象') + '</li>	<li>' + (lan && lan.config && t('config.config_auto_str_76_3') || '开启后导致面板不能访问，可以点击下面链接了解解决方法') + '</li>	<p style="margin-top: 10px;">		<input type="checkbox" id="checkSSL" /><label style="font-weight: 400;margin: 3px 5px 0px;" for="checkSSL">' + (lan && lan.config && t('config.config_auto_str_76_4') || '我已了经解详情,并愿意承担风险') + '</label>	</p>';
+  var msg = $("#panelSSL").attr('checked') ? lan && lan.config && t('config.after_disabling_ssl_you') || "" : '<a style="font-weight: bolder;font-size: 16px;">' + ('<a style="font-weight: bolder;font-size: 16px;">' + (lan && lan.config && t('config.warning_do_not_enable') || '危险！此功能不懂别开启!') + '</a>	<li style="margin-top: 12px;color:red;">' + (lan && lan.config && t('config.you_must_understand_this_1') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>	<li>' + (lan && lan.config && t('config.the_ssl_certificate_on') || '面板SSL是自签证书，不被浏览器信任，显示不安全是正常现象') + '</li>	<li>' + (lan && lan.config && t('config.if_enabling_this_feature') || '开启后导致面板不能访问，可以点击下面链接了解解决方法') + '</li>	<p style="margin-top: 10px;">		<input type="checkbox" id="checkSSL" /><label style="font-weight: 400;margin: 3px 5px 0px;" for="checkSSL">' + (lan && lan.config && t('config.have_read_and_understood_1') || '我已了经解详情,并愿意承担风险') + '</label>	</p>' || '危险！此功能不懂别开启!') + '</a>	<li style="margin-top: 12px;color:red;">' + (lan && lan.config && t('config.you_must_understand_this_1') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>	<li>' + (lan && lan.config && t('config.the_ssl_certificate_on') || '面板SSL是自签证书，不被浏览器信任，显示不安全是正常现象') + '</li>	<li>' + (lan && lan.config && t('config.if_enabling_this_feature') || '开启后导致面板不能访问，可以点击下面链接了解解决方法') + '</li>	<p style="margin-top: 10px;">		<input type="checkbox" id="checkSSL" /><label style="font-weight: 400;margin: 3px 5px 0px;" for="checkSSL">' + (lan && lan.config && t('config.have_read_and_understood_1') || '我已了经解详情,并愿意承担风险') + '</label>	</p>';
   layer.confirm(msg, {
-    title: lan && lan.config && t('config.config_auto_str_77') || "",
+    title: lan && lan.config && t('config.ssl_settings_panel') || "",
     closeBtn: 1,
     icon: 3,
     area: '550px',
@@ -772,7 +772,7 @@ function setPanelSSL() {
         return false;
       }
     }
-    var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_78') || "", {
+    var loadT = layer.msg(lan && lan.config && t('config.the_ssl_components_are') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -825,7 +825,7 @@ function setNotifyEmail(obj) {
   }, 'json');
 }
 function getTgbot() {
-  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_79') || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.retrieving_tgbot_information') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -843,10 +843,10 @@ function getTgbot() {
     layer.open({
       type: 1,
       area: "500px",
-      title: lan && lan.config && t('config.config_auto_str_80') || "",
+      title: lan && lan.config && t('config.tgbot_configuration') || "",
       closeBtn: 1,
       shift: 5,
-      btn: [lan && lan.config && t('config.config_auto_str_81') || "", lan && lan.config && t('config.config_auto_str_82') || "", lan && lan.config && t('config.config_auto_str_83') || ""],
+      btn: [lan && lan.config && t('config.confirm_3') || "", lan && lan.config && t('config.close_3') || "", lan && lan.config && t('config.verification') || ""],
       shadeClose: false,
       content: "<div class='bt-form pd20'>\
 					<div class='line'>\
@@ -863,13 +863,13 @@ function getTgbot() {
         pdata['app_token'] = $('input[name="app_token"]').val();
         pdata['chat_id'] = $('input[name="chat_id"]').val();
         if (pdata['app_token'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_84') || "", {
+          layer.msg(lan && lan.config && t('config.app_token_cannot_be') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['chat_id'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_85') || "", {
+          layer.msg(lan && lan.config && t('config.chat_cannot_be_empty') || "", {
             icon: 2
           });
           return false;
@@ -892,13 +892,13 @@ function getTgbot() {
         pdata['app_token'] = $('input[name="app_token"]').val();
         pdata['chat_id'] = $('input[name="chat_id"]').val();
         if (pdata['app_token'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_86') || "", {
+          layer.msg(lan && lan.config && t('config.app_token_cannot_be_1') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['chat_id'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_87') || "", {
+          layer.msg(lan && lan.config && t('config.chat_cannot_be_empty_1') || "", {
             icon: 2
           });
           return false;
@@ -921,7 +921,7 @@ function getTgbot() {
   });
 }
 function getEmailCfg() {
-  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_88') || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.retrieving_email_configuration_information') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -952,13 +952,13 @@ function getEmailCfg() {
     layer.open({
       type: 1,
       area: "500px",
-      title: lan && lan.config && t('config.config_auto_str_89') || "",
+      title: lan && lan.config && t('config.email_configuration') || "",
       closeBtn: 1,
       shift: 5,
-      btn: [lan && lan.config && t('config.config_auto_str_90') || "", lan && lan.config && t('config.config_auto_str_91') || "", lan && lan.config && t('config.config_auto_str_92') || ""],
+      btn: [lan && lan.config && t('config.confirm_4') || "", lan && lan.config && t('config.close_4') || "", lan && lan.config && t('config.verification_1') || ""],
       shadeClose: false,
-      content: ('<div class=\'bt-form pd20\'>					<div class=\'line\'>						<span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_93') || 'SMTP服务器') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_host\' value=\'' || 'SMTP服务器') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_host\' value=\'') + smtp_host + ('\' style=\'width:100%\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_94') || 'SMTP安全') + '</span>						<div class=\'info-r checkbox\'>							<label><input name=\'smtp_ssl\' type=\'radio\' value=\'\' style=\'margin-right: 4px;\' ' || 'SMTP安全') + '</span>						<div class=\'info-r checkbox\'>							<label><input name=\'smtp_ssl\' type=\'radio\' value=\'\' style=\'margin-right: 4px;\' ') + smtp_ssl_no + ">None</label>\
-							<label><input name='smtp_ssl' type='radio' value='ssl' style='margin-right: 4px;' " + smtp_ssl_yes + ('>SSL</label>						</div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('>SSL</label>						</div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_95') || 'SMTP端口') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_port\' value=\'' || 'SMTP端口') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_port\' value=\'') + smtp_port + ('\' style=\'width:100%\' /></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' /></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_96') || '用户名') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'' || '用户名') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'') + username + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_97') || '授权码') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'' || '授权码') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'') + password + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_98') || '发送地址') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'to_mail_addr\' value=\'' || '发送地址') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'to_mail_addr\' value=\'') + to_mail_addr + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_99') || '验证测试') + '</span>						<div class=\'info-r\'>							<textarea class=\'bt-input-text\' name=\'mail_test\' style=\'width:100%; height: 80px; line-height: 20px; padding: 5px 8px;\'>' + (lan && lan.config && t('config.config_auto_str_99_1') || '验证测试') + '</textarea></div>					</div>				</div>' || '验证测试') + '</span>						<div class=\'info-r\'>							<textarea class=\'bt-input-text\' name=\'mail_test\' style=\'width:100%; height: 80px; line-height: 20px; padding: 5px 8px;\'>' + (lan && lan.config && t('config.config_auto_str_99_1') || '验证测试') + '</textarea></div>					</div>				</div>'),
+      content: ('<div class=\'bt-form pd20\'>					<div class=\'line\'>						<span class=\'tname\'>' + ('<div class=\'bt-form pd20\'>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.smtp_server') || 'SMTP服务器') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_host\' value=\'' || 'SMTP服务器') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_host\' value=\'') + smtp_host + ('\' style=\'width:100%\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.smtp_security') || 'SMTP安全') + '</span>						<div class=\'info-r checkbox\'>							<label><input name=\'smtp_ssl\' type=\'radio\' value=\'\' style=\'margin-right: 4px;\' ' || 'SMTP安全') + '</span>						<div class=\'info-r checkbox\'>							<label><input name=\'smtp_ssl\' type=\'radio\' value=\'\' style=\'margin-right: 4px;\' ') + smtp_ssl_no + ">None</label>\
+							<label><input name='smtp_ssl' type='radio' value='ssl' style='margin-right: 4px;' " + smtp_ssl_yes + ('>SSL</label>						</div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('>SSL</label>						</div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.smtp_port') || 'SMTP端口') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_port\' value=\'' || 'SMTP端口') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'smtp_port\' value=\'') + smtp_port + ('\' style=\'width:100%\' /></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' /></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.username_2') || '用户名') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'' || '用户名') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'username\' value=\'') + username + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.authorization_code') || '授权码') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'' || '授权码') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'password\' value=\'') + password + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.sender_address') || '发送地址') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'to_mail_addr\' value=\'' || '发送地址') + '</span>						<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'to_mail_addr\' value=\'') + to_mail_addr + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + ('\' style=\'width:100%\' autocomplete=\'off\'/></div>					</div>					<div class=\'line\'>						<span class=\'tname\'>' + (lan && lan.config && t('config.validation_testing') || '验证测试') + '</span>						<div class=\'info-r\'>							<textarea class=\'bt-input-text\' name=\'mail_test\' style=\'width:100%; height: 80px; line-height: 20px; padding: 5px 8px;\'>' + (lan && lan.config && t('config.validation_testing_1') || '验证测试') + '</textarea></div>					</div>				</div>' || '验证测试') + '</span>						<div class=\'info-r\'>							<textarea class=\'bt-input-text\' name=\'mail_test\' style=\'width:100%; height: 80px; line-height: 20px; padding: 5px 8px;\'>' + (lan && lan.config && t('config.validation_testing_1') || '验证测试') + '</textarea></div>					</div>				</div>'),
       yes: function (index) {
         var pdata = {};
         pdata['smtp_host'] = $('input[name="smtp_host"]').val();
@@ -968,31 +968,31 @@ function getEmailCfg() {
         pdata['password'] = $('input[name="password"]').val();
         pdata['to_mail_addr'] = $('input[name="to_mail_addr"]').val();
         if (pdata['smtp_host'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_100') || "", {
+          layer.msg(lan && lan.config && t('config.the_smtp_server_cannot') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['smtp_port'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_101') || "", {
+          layer.msg(lan && lan.config && t('config.the_smtp_port_cannot') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['username'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_102') || "", {
+          layer.msg(lan && lan.config && t('config.the_username_cannot_be_1') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['password'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_103') || "", {
+          layer.msg(lan && lan.config && t('config.the_authorization_code_cannot') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['to_mail_addr'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_104') || "", {
+          layer.msg(lan && lan.config && t('config.the_sender_address_cannot') || "", {
             icon: 2
           });
           return false;
@@ -1020,37 +1020,37 @@ function getEmailCfg() {
         pdata['to_mail_addr'] = $('input[name="to_mail_addr"]').val();
         pdata['mail_test'] = $('textarea[name="mail_test"]').val();
         if (pdata['smtp_host'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_105') || "", {
+          layer.msg(lan && lan.config && t('config.the_smtp_server_cannot_1') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['smtp_port'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_106') || "", {
+          layer.msg(lan && lan.config && t('config.the_smtp_port_cannot_1') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['username'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_107') || "", {
+          layer.msg(lan && lan.config && t('config.the_username_cannot_be_2') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['password'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_108') || "", {
+          layer.msg(lan && lan.config && t('config.the_authorization_code_cannot_1') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['to_mail_addr'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_109') || "", {
+          layer.msg(lan && lan.config && t('config.the_sender_address_cannot_1') || "", {
             icon: 2
           });
           return false;
         }
         if (pdata['mail_test'] == '') {
-          layer.msg(lan && lan.config && t('config.config_auto_str_110') || "", {
+          layer.msg(lan && lan.config && t('config.the_validation_test_cannot') || "", {
             icon: 2
           });
           return false;
@@ -1073,19 +1073,19 @@ function getEmailCfg() {
   }, 'json');
 }
 function renderPanelSSLApply(panel_domain, ssl_email) {
-  var lets = ('<div class="apply_ssl" style="padding: 10px 0;">		<div class="label-input-group">			<div class="line mtb10">				<span class="tname text-center" style="width:100px;">' + ('<div class="apply_ssl" style="padding: 10px 0;">		<div class="label-input-group">			<div class="line mtb10">				<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.config_auto_str_111') || '验证方式') + '</span>				<div style="margin-top:7px;display:inline-block">					<input type="radio" name="panel_apply_type" value="file" id="panel_check_file" checked="checked"/>  					<label class="mr20" for="panel_check_file" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.config_auto_str_111_1') || '文件验证') + '</label>  					<input type="radio" name="panel_apply_type" value="dns" id="panel_check_dns"/>  					<label class="mr20" for="panel_check_dns" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.config_auto_str_111_2') || 'DNS验证') + '</label>  				</div>	  		</div>	  		<div class="line mtb10" id="panel_dnsapi_option" style="display:none;">				<span class="tname text-center" style="line-height: 42px;width:100px;">' + (lan && lan.config && t('config.config_auto_str_111_3') || '选择DNS接口') + '</span>				<div style="margin-top:7px;display:inline-block">					<select name="panel_dnspai" class="bt-input-text mr20" style="width:120px;">						<option value="none">' + (lan && lan.config && t('config.config_auto_str_111_4') || '手动解析') + '</option>					</select>  				</div>	  		</div>  			<div class="check_message line">  				<div style="margin-left:100px">  					<input type="checkbox" name="panel_checkDomain" id="panel_checkDomain" checked="">  					<label class="mr20" for="panel_checkDomain" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.config_auto_str_111_5') || '提前校验域名(提前发现问题,减少失败率)') + '</label>  				</div>  			</div>  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.config_auto_str_111_6') || '邮箱') + '</span>  			<input class="bt-input-text" style="width:240px;" type="text" name="panel_admin_email" value="' || '验证方式') + '</span>				<div style="margin-top:7px;display:inline-block">					<input type="radio" name="panel_apply_type" value="file" id="panel_check_file" checked="checked"/>  					<label class="mr20" for="panel_check_file" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.config_auto_str_111_1') || '文件验证') + '</label>  					<input type="radio" name="panel_apply_type" value="dns" id="panel_check_dns"/>  					<label class="mr20" for="panel_check_dns" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.config_auto_str_111_2') || 'DNS验证') + '</label>  				</div>	  		</div>	  		<div class="line mtb10" id="panel_dnsapi_option" style="display:none;">				<span class="tname text-center" style="line-height: 42px;width:100px;">' + (lan && lan.config && t('config.config_auto_str_111_3') || '选择DNS接口') + '</span>				<div style="margin-top:7px;display:inline-block">					<select name="panel_dnspai" class="bt-input-text mr20" style="width:120px;">						<option value="none">' + (lan && lan.config && t('config.config_auto_str_111_4') || '手动解析') + '</option>					</select>  				</div>	  		</div>  			<div class="check_message line">  				<div style="margin-left:100px">  					<input type="checkbox" name="panel_checkDomain" id="panel_checkDomain" checked="">  					<label class="mr20" for="panel_checkDomain" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.config_auto_str_111_5') || '提前校验域名(提前发现问题,减少失败率)') + '</label>  				</div>  			</div>  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.config_auto_str_111_6') || '邮箱') + '</span>  			<input class="bt-input-text" style="width:240px;" type="text" name="panel_admin_email" value="') + ssl_email + ('" />  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + ('" />  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.config_auto_str_112') || '域名') + '</span>  			<ul id="panel_ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;">				<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="' || '域名') + '</span>  			<ul id="panel_ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;">				<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="') + panel_domain + '" checked="checked" disabled="disabled">' + panel_domain + ('</li>			</ul>  		</div>  		<div class="line mtb10" style="margin-left:100px">  			<button class="btn btn-success btn-sm panel_letsApply">' + ('</li>			</ul>  		</div>  		<div class="line mtb10" style="margin-left:100px">  			<button class="btn btn-success btn-sm panel_letsApply">' + (lan && lan.config && t('config.config_auto_str_113') || '申请') + '</button>  		</div>	  	<ul class="help-info-text c7" id="panel_lets_help" style="margin-top:10px;">	  		<li>' + (lan && lan.config && t('config.config_auto_str_113_1') || '由 Let\'s Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>	  		<li>' + (lan && lan.config && t('config.config_auto_str_113_2') || '申请之前，请确保面板域名已正确解析到本服务器IP。') + '</li>	  		<li>' + (lan && lan.config && t('config.config_auto_str_113_3') || '如果使用文件验证方式，请确保能够通过公网访问到面板服务。') + '</li>	  	</ul>  	</div>' || '申请') + '</button>  		</div>	  	<ul class="help-info-text c7" id="panel_lets_help" style="margin-top:10px;">	  		<li>' + (lan && lan.config && t('config.config_auto_str_113_1') || '由 Let\'s Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>	  		<li>' + (lan && lan.config && t('config.config_auto_str_113_2') || '申请之前，请确保面板域名已正确解析到本服务器IP。') + '</li>	  		<li>' + (lan && lan.config && t('config.config_auto_str_113_3') || '如果使用文件验证方式，请确保能够通过公网访问到面板服务。') + '</li>	  	</ul>  	</div>');
+  var lets = ('<div class="apply_ssl" style="padding: 10px 0;">		<div class="label-input-group">			<div class="line mtb10">				<span class="tname text-center" style="width:100px;">' + ('<div class="apply_ssl" style="padding: 10px 0;">		<div class="label-input-group">			<div class="line mtb10">				<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.authentication_methods') || '验证方式') + '</span>				<div style="margin-top:7px;display:inline-block">					<input type="radio" name="panel_apply_type" value="file" id="panel_check_file" checked="checked"/>  					<label class="mr20" for="panel_check_file" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.file_validation') || '文件验证') + '</label>  					<input type="radio" name="panel_apply_type" value="dns" id="panel_check_dns"/>  					<label class="mr20" for="panel_check_dns" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.dns_verification') || 'DNS验证') + '</label>  				</div>	  		</div>	  		<div class="line mtb10" id="panel_dnsapi_option" style="display:none;">				<span class="tname text-center" style="line-height: 42px;width:100px;">' + (lan && lan.config && t('config.dns_interface') || '选择DNS接口') + '</span>				<div style="margin-top:7px;display:inline-block">					<select name="panel_dnspai" class="bt-input-text mr20" style="width:120px;">						<option value="none">' + (lan && lan.config && t('config.manual_parsing_3') || '手动解析') + '</option>					</select>  				</div>	  		</div>  			<div class="check_message line">  				<div style="margin-left:100px">  					<input type="checkbox" name="panel_checkDomain" id="panel_checkDomain" checked="">  					<label class="mr20" for="panel_checkDomain" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.pre_validate_domain_names') || '提前校验域名(提前发现问题,减少失败率)') + '</label>  				</div>  			</div>  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.email') || '邮箱') + '</span>  			<input class="bt-input-text" style="width:240px;" type="text" name="panel_admin_email" value="' || '验证方式') + '</span>				<div style="margin-top:7px;display:inline-block">					<input type="radio" name="panel_apply_type" value="file" id="panel_check_file" checked="checked"/>  					<label class="mr20" for="panel_check_file" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.file_validation') || '文件验证') + '</label>  					<input type="radio" name="panel_apply_type" value="dns" id="panel_check_dns"/>  					<label class="mr20" for="panel_check_dns" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.dns_verification') || 'DNS验证') + '</label>  				</div>	  		</div>	  		<div class="line mtb10" id="panel_dnsapi_option" style="display:none;">				<span class="tname text-center" style="line-height: 42px;width:100px;">' + (lan && lan.config && t('config.dns_interface') || '选择DNS接口') + '</span>				<div style="margin-top:7px;display:inline-block">					<select name="panel_dnspai" class="bt-input-text mr20" style="width:120px;">						<option value="none">' + (lan && lan.config && t('config.manual_parsing_3') || '手动解析') + '</option>					</select>  				</div>	  		</div>  			<div class="check_message line">  				<div style="margin-left:100px">  					<input type="checkbox" name="panel_checkDomain" id="panel_checkDomain" checked="">  					<label class="mr20" for="panel_checkDomain" style="font-weight:normal;cursor:pointer;">' + (lan && lan.config && t('config.pre_validate_domain_names') || '提前校验域名(提前发现问题,减少失败率)') + '</label>  				</div>  			</div>  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.email') || '邮箱') + '</span>  			<input class="bt-input-text" style="width:240px;" type="text" name="panel_admin_email" value="') + ssl_email + ('" />  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + ('" />  		</div>  		<div class="line mtb10">  			<span class="tname text-center" style="width:100px;">' + (lan && lan.config && t('config.domain_name') || '域名') + '</span>  			<ul id="panel_ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;">				<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="' || '域名') + '</span>  			<ul id="panel_ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px;display:inline-block;margin-bottom:0;">				<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="') + panel_domain + '" checked="checked" disabled="disabled">' + panel_domain + ('</li>			</ul>  		</div>  		<div class="line mtb10" style="margin-left:100px">  			<button class="btn btn-success btn-sm panel_letsApply">' + ('</li>			</ul>  		</div>  		<div class="line mtb10" style="margin-left:100px">  			<button class="btn btn-success btn-sm panel_letsApply">' + (lan && lan.config && t('config.application') || '申请') + '</button>  		</div>	  	<ul class="help-info-text c7" id="panel_lets_help" style="margin-top:10px;">	  		<li>' + (lan && lan.config && t('config.apply_for_free_certificate') || '由 Let\'s Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>	  		<li>' + (lan && lan.config && t('config.before_submitting_your_application') || '申请之前，请确保面板域名已正确解析到本服务器IP。') + '</li>	  		<li>' + (lan && lan.config && t('config.if_you_use_file') || '如果使用文件验证方式，请确保能够通过公网访问到面板服务。') + '</li>	  	</ul>  	</div>' || '申请') + '</button>  		</div>	  	<ul class="help-info-text c7" id="panel_lets_help" style="margin-top:10px;">	  		<li>' + (lan && lan.config && t('config.apply_for_free_certificate') || '由 Let\'s Encrypt 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>	  		<li>' + (lan && lan.config && t('config.before_submitting_your_application') || '申请之前，请确保面板域名已正确解析到本服务器IP。') + '</li>	  		<li>' + (lan && lan.config && t('config.if_you_use_file') || '如果使用文件验证方式，请确保能够通过公网访问到面板服务。') + '</li>	  	</ul>  	</div>');
   return lets;
 }
 function newAcmeHandApplyNoticeForPanel(panel_domain, data) {
   layer.open({
     type: 1,
     area: '700px',
-    title: lan && lan.config && t('config.config_auto_str_114') || "",
+    title: lan && lan.config && t('config.manually_parse_txt_records') || "",
     closeBtn: 1,
     shift: 5,
     shadeClose: true,
-    btn: [lan && lan.config && t('config.config_auto_str_115') || "", lan && lan.config && t('config.config_auto_str_116') || ""],
-    content: '<div class="bt-form" style="padding: 10px 20px;">			<div class="line"><span>' + ('<div class="bt-form" style="padding: 10px 20px;">			<div class="line"><span>' + (lan && lan.config && t('config.config_auto_str_117') || '请按以下列表做TXT解析:') + ' </span></div>			<div id="acme_hand_ssl_notice" class="divtable mtb10">				<div class="tablescroll">					<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">					<thead><tr><th>' + (lan && lan.config && t('config.config_auto_str_117_1') || '解析域名') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_117_2') || '记录值') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_117_3') || '类型') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_117_4') || '必需') + '</th></tr></thead>					<tbody></tbody>					</table>				</div>			</div>			<ul id="acme_hand_ssl_notice_help" class="help-info-text c6">				<li>' + (lan && lan.config && t('config.config_auto_str_117_5') || '解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_117_6') || '可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn') + '</li>			</ul>		</div>' || '请按以下列表做TXT解析:') + ' </span></div>			<div id="acme_hand_ssl_notice" class="divtable mtb10">				<div class="tablescroll">					<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">					<thead><tr><th>' + (lan && lan.config && t('config.config_auto_str_117_1') || '解析域名') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_117_2') || '记录值') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_117_3') || '类型') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_117_4') || '必需') + '</th></tr></thead>					<tbody></tbody>					</table>				</div>			</div>			<ul id="acme_hand_ssl_notice_help" class="help-info-text c6">				<li>' + (lan && lan.config && t('config.config_auto_str_117_5') || '解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_117_6') || '可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn') + '</li>			</ul>		</div>',
+    btn: [lan && lan.config && t('config.verification_2') || "", lan && lan.config && t('config.cancel_3') || ""],
+    content: '<div class="bt-form" style="padding: 10px 20px;">			<div class="line"><span>' + ('<div class="bt-form" style="padding: 10px 20px;">			<div class="line"><span>' + (lan && lan.config && t('config.please_parse_the_txt') || '请按以下列表做TXT解析:') + ' </span></div>			<div id="acme_hand_ssl_notice" class="divtable mtb10">				<div class="tablescroll">					<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">					<thead><tr><th>' + (lan && lan.config && t('config.resolve_domain_name') || '解析域名') + '</th><th>' + (lan && lan.config && t('config.recorded_values') || '记录值') + '</th><th>' + (lan && lan.config && t('config.msg_1') || '类型') + '</th><th>' + (lan && lan.config && t('config.required_1') || '必需') + '</th></tr></thead>					<tbody></tbody>					</table>				</div>			</div>			<ul id="acme_hand_ssl_notice_help" class="help-info-text c6">				<li>' + (lan && lan.config && t('config.it_takes_some_time') || '解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮') + '</li>				<li>' + (lan && lan.config && t('config.you_can_manually_verify_1') || '可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn') + '</li>			</ul>		</div>' || '请按以下列表做TXT解析:') + ' </span></div>			<div id="acme_hand_ssl_notice" class="divtable mtb10">				<div class="tablescroll">					<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">					<thead><tr><th>' + (lan && lan.config && t('config.resolve_domain_name') || '解析域名') + '</th><th>' + (lan && lan.config && t('config.recorded_values') || '记录值') + '</th><th>' + (lan && lan.config && t('config.msg_1') || '类型') + '</th><th>' + (lan && lan.config && t('config.required_1') || '必需') + '</th></tr></thead>					<tbody></tbody>					</table>				</div>			</div>			<ul id="acme_hand_ssl_notice_help" class="help-info-text c6">				<li>' + (lan && lan.config && t('config.it_takes_some_time') || '解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮') + '</li>				<li>' + (lan && lan.config && t('config.you_can_manually_verify_1') || '可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn') + '</li>			</ul>		</div>',
     success: function () {
       var list = '';
       for (var i = 0; i < data.length; i++) {
@@ -1093,18 +1093,18 @@ function newAcmeHandApplyNoticeForPanel(panel_domain, data) {
         list += '<td>' + data[i]['domain'] + '</td>';
         list += '<td>' + data[i]['val'] + '</td>';
         list += '<td>' + data[i]['type'] + '</td>';
-        list += '<td>' + (data[i]['must'] ? lan && lan.config && t('config.config_auto_str_118') || "" : lan && lan.config && t('config.config_auto_str_119') || "") + '</td>';
+        list += '<td>' + (data[i]['must'] ? lan && lan.config && t('config.required') || "" : lan && lan.config && t('config.optional') || "") + '</td>';
         list += '</tr>';
       }
       $('#acme_hand_ssl_notice tbody').html(list);
       if (data.length > 0) {
-        var help_txt = (lan && lan.config && t('config.config_auto_str_120') || "") + data[0]['domain'];
+        var help_txt = (lan && lan.config && t('config.you_can_manually_verify') || "") + data[0]['domain'];
         $('#acme_hand_ssl_notice_help li:eq(1)').text(help_txt);
       }
     },
     yes: function (layero, index) {
       layer.close(layero);
-      showSpeedWindow(lan && lan.config && t('config.config_auto_str_121') || "", 'site.get_acme_logs', function (layers, index) {
+      showSpeedWindow(lan && lan.config && t('config.acme_is_currently_requesting') || "", 'site.get_acme_logs', function (layers, index) {
         var pdata = {};
         pdata['domains'] = JSON.stringify([panel_domain]);
         pdata['email'] = $("input[name='panel_admin_email']").val();
@@ -1134,7 +1134,7 @@ function newAcmeHandApplyNoticeForPanel(panel_domain, data) {
   });
 }
 function getPanelSSL() {
-  var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_122') || "", {
+  var loadT = layer.msg(lan && lan.config && t('config.retrieving_certificate_information') || "", {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1144,9 +1144,9 @@ function getPanelSSL() {
     var choose = cert_all['choose'];
     var choose_local = choose == 'local' ? 'selected="selected"' : '';
     var choose_nginx = choose == 'nginx' ? 'selected="selected"' : '';
-    var select_options = '<option value="local" ' + choose_local + ((((lan && lan.config && t('config.config_auto_str_123') || '>本地') + '</option>' || '>本地') || '>本地') + '</option>');
+var select_options = '<option value="local" ' + choose_local + '>' + (lan && lan.config && t('config.local') || '本地') + '</option>';
     if (cert_all['panel_domain']) {
-      select_options += '<option value="nginx" ' + choose_nginx + ((((lan && lan.config && t('config.config_auto_str_124') || '>90天证书') + '</option>' || '>90天证书') || '>90天证书') + '</option>');
+select_options += '<option value="nginx" ' + choose_nginx + '>' + (lan && lan.config && t('config.certificate_90_days') || '90天证书') + '</option>';
     }
     var certBody = '<div class="tab-con" style="padding: 0 15px;">\
 			<div id="panel_ssl_content"></div>\
@@ -1162,7 +1162,7 @@ function getPanelSSL() {
     layer.open({
       type: 1,
       area: "600px",
-      title: lan && lan.config && t('config.config_auto_str_125') || "",
+      title: lan && lan.config && t('config.custom_panel_certificates') || "",
       closeBtn: 1,
       shift: 5,
       shadeClose: false,
@@ -1173,34 +1173,34 @@ function getPanelSSL() {
             var cert = cert_all['local'];
             var cert_data = '';
             if (cert['info'] && cert['info']['issuer']) {
-              var issuer_o = cert['info']['issuer_o'] || lan && lan.config && t('config.config_auto_str_126') || "";
-              cert_data = ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_127') || '证书分类：') + '</span>								<span class=\'ellipsis_text ssl_issue_o\'>' || '证书分类：') + '</span>								<span class=\'ellipsis_text ssl_issue_o\'>') + issuer_o + ('</span></div>								<div class=\'state_item\'><span>' + ('</span></div>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_128') || '证书品牌：') + '</span>								<span class=\'ellipsis_text ssl_issue\'>' || '证书品牌：') + '</span>								<span class=\'ellipsis_text ssl_issue\'>') + cert['info']['issuer'] + ('</span></div>							</div>							<div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + ('</span></div>							</div>							<div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_129') || '到期时间：') + '</span>								<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.config_auto_str_129_1') || '剩余') || '到期时间：') + '</span>								<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.config_auto_str_129_1') || '剩余')) + cert['info']['endtime'] + (((lan && lan.config && t('config.config_auto_str_130') || '天到期') + '</span></div>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_130_1') || '认证域名：') + '</span>								<span class=\'ellipsis_text ssl_subject\'>' || '天到期') + '</span></div>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_130_1') || '认证域名：') + '</span>								<span class=\'ellipsis_text ssl_subject\'>') + cert['info']['subject'] + "</span></div>\
+              var issuer_o = cert['info']['issuer_o'] || lan && lan.config && t('config.self_signed_unknown') || "";
+              cert_data = ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.certificate_categories') || '证书分类：') + '</span>								<span class=\'ellipsis_text ssl_issue_o\'>' || '证书分类：') + '</span>								<span class=\'ellipsis_text ssl_issue_o\'>') + issuer_o + ('</span></div>								<div class=\'state_item\'><span>' + ('</span></div>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.certificate_brand') || '证书品牌：') + '</span>								<span class=\'ellipsis_text ssl_issue\'>' || '证书品牌：') + '</span>								<span class=\'ellipsis_text ssl_issue\'>') + cert['info']['issuer'] + ('</span></div>							</div>							<div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + ('</span></div>							</div>							<div class=\'state_info_flex\'>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.expiration_date') || '到期时间：') + '</span>								<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.remaining') || '剩余') || '到期时间：') + '</span>								<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.remaining') || '剩余')) + cert['info']['endtime'] + (((lan && lan.config && t('config.due_date') || '天到期') + '</span></div>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.verified_domain') || '认证域名：') + '</span>								<span class=\'ellipsis_text ssl_subject\'>' || '天到期') + '</span></div>								<div class=\'state_item\'><span>' + (lan && lan.config && t('config.verified_domain') || '认证域名：') + '</span>								<span class=\'ellipsis_text ssl_subject\'>') + cert['info']['subject'] + "</span></div>\
 							</div></div>";
             }
-            var html = cert_data + ('<div class="custom_certificate_info" style="margin-top:10px;">							<div class="ssl-con-key pull-left mr20">' + ('<div class="custom_certificate_info" style="margin-top:10px;">							<div class="ssl-con-key pull-left mr20">' + (lan && lan.config && t('config.config_auto_str_131') || '密钥(KEY)') + '<br>								<textarea id="key" class="bt-input-text">' || '密钥(KEY)') + '<br>								<textarea id="key" class="bt-input-text">') + (cert.privateKey || '') + ('</textarea>							</div>							<div class="ssl-con-key pull-left">' + ('</textarea>							</div>							<div class="ssl-con-key pull-left">' + (lan && lan.config && t('config.config_auto_str_132') || '证书(PEM格式)') + '<br>								<textarea id="csr" class="bt-input-text">' || '证书(PEM格式)') + '<br>								<textarea id="csr" class="bt-input-text">') + (cert.certPem || '') + '</textarea>\
+            var html = cert_data + ('<div class="custom_certificate_info" style="margin-top:10px;">							<div class="ssl-con-key pull-left mr20">' + ('<div class="custom_certificate_info" style="margin-top:10px;">							<div class="ssl-con-key pull-left mr20">' + (lan && lan.config && t('config.key_key') || '密钥(KEY)') + '<br>								<textarea id="key" class="bt-input-text">' || '密钥(KEY)') + '<br>								<textarea id="key" class="bt-input-text">') + (cert.privateKey || '') + ('</textarea>							</div>							<div class="ssl-con-key pull-left">' + ('</textarea>							</div>							<div class="ssl-con-key pull-left">' + (lan && lan.config && t('config.certificate_pem_format') || '证书(PEM格式)') + '<br>								<textarea id="csr" class="bt-input-text">' || '证书(PEM格式)') + '<br>								<textarea id="csr" class="bt-input-text">') + (cert.certPem || '') + '</textarea>\
 							</div>\
 						</div>';
             $('#panel_ssl_content').html(html);
-            var buttons = '<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + ('<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.config_auto_str_133') || '保存') + '</button>									   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.config_auto_str_133_1') || '删除') + '</button>' || '保存') + '</button>									   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.config_auto_str_133_1') || '删除') + '</button>';
+            var buttons = '<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + ('<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.save') || '保存') + '</button>									   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.delete_1') || '删除') + '</button>' || '保存') + '</button>									   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.delete_1') || '删除') + '</button>';
             $('#panel_ssl_buttons').html(buttons);
-            var help = '<li>' + ('<li>' + (lan && lan.config && t('config.config_auto_str_134') || '粘贴您的*.key以及*.pem内容，然后保存即可。') + '</li>									<li>' + (lan && lan.config && t('config.config_auto_str_134_1') || '如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书') + '</li><li>' + (lan && lan.config && t('config.config_auto_str_134_2') || 'PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt') + '</li>' || '粘贴您的*.key以及*.pem内容，然后保存即可。') + '</li>									<li>' + (lan && lan.config && t('config.config_auto_str_134_1') || '如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书') + '</li><li>' + (lan && lan.config && t('config.config_auto_str_134_2') || 'PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt') + '</li>';
+var help = '<li>' + (lan && lan.config && t('config.paste_cert') || '粘贴您的*.key以及*.pem内容，然后保存即可。') + '</li><li>' + (lan && lan.config && t('config.check_cert_chain') || '如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书') + '</li><li>' + (lan && lan.config && t('config.cert_format_help') || 'PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt') + '</li>';
             $('#panel_ssl_help').html(help);
           } else if (selected_choose == 'nginx') {
             if (cert_all['nginx'] && cert_all['nginx']['certPem']) {
               var cert = cert_all['nginx'];
               var cert_data = '';
               if (cert['info'] && cert['info']['issuer']) {
-                var issuer_o = cert['info']['issuer_o'] || lan && lan.config && t('config.config_auto_str_135') || "";
-                cert_data = ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_136') || '证书分类：') + '</span>									<span class=\'ellipsis_text ssl_issue_o\'>' || '证书分类：') + '</span>									<span class=\'ellipsis_text ssl_issue_o\'>') + issuer_o + ('</span></div>									<div class=\'state_item\'><span>' + ('</span></div>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_137') || '证书品牌：') + '</span>									<span class=\'ellipsis_text ssl_issue\'>' || '证书品牌：') + '</span>									<span class=\'ellipsis_text ssl_issue\'>') + cert['info']['issuer'] + ('</span></div>								</div>								<div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + ('</span></div>								</div>								<div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_138') || '到期时间：') + '</span>									<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.config_auto_str_138_1') || '剩余') || '到期时间：') + '</span>									<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.config_auto_str_138_1') || '剩余')) + cert['info']['endtime'] + (((lan && lan.config && t('config.config_auto_str_139') || '天到期') + '</span></div>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_139_1') || '认证域名：') + '</span>									<span class=\'ellipsis_text ssl_subject\'>' || '天到期') + '</span></div>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.config_auto_str_139_1') || '认证域名：') + '</span>									<span class=\'ellipsis_text ssl_subject\'>') + cert['info']['subject'] + "</span></div>\
+                var issuer_o = cert['info']['issuer_o'] || lan && lan.config && t('config.self_signed_unknown_1') || "";
+                cert_data = ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + ('<div class=\'ssl_state_info\'><div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.certificate_categories_1') || '证书分类：') + '</span>									<span class=\'ellipsis_text ssl_issue_o\'>' || '证书分类：') + '</span>									<span class=\'ellipsis_text ssl_issue_o\'>') + issuer_o + ('</span></div>									<div class=\'state_item\'><span>' + ('</span></div>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.certificate_brand_1') || '证书品牌：') + '</span>									<span class=\'ellipsis_text ssl_issue\'>' || '证书品牌：') + '</span>									<span class=\'ellipsis_text ssl_issue\'>') + cert['info']['issuer'] + ('</span></div>								</div>								<div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + ('</span></div>								</div>								<div class=\'state_info_flex\'>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.expiration_date_1') || '到期时间：') + '</span>									<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.remaining_1') || '剩余') || '到期时间：') + '</span>									<span class=\'btlink ssl_endtime\'>' + (lan && lan.config && t('config.remaining_1') || '剩余')) + cert['info']['endtime'] + (((lan && lan.config && t('config.due_date_1') || '天到期') + '</span></div>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.verified_domain_1') || '认证域名：') + '</span>									<span class=\'ellipsis_text ssl_subject\'>' || '天到期') + '</span></div>									<div class=\'state_item\'><span>' + (lan && lan.config && t('config.verified_domain_1') || '认证域名：') + '</span>									<span class=\'ellipsis_text ssl_subject\'>') + cert['info']['subject'] + "</span></div>\
 								</div></div>";
               }
-              var html = cert_data + ('<div class="custom_certificate_info" style="margin-top:10px;">								<div class="ssl-con-key pull-left mr20">' + ('<div class="custom_certificate_info" style="margin-top:10px;">								<div class="ssl-con-key pull-left mr20">' + (lan && lan.config && t('config.config_auto_str_140') || '密钥(KEY)') + '<br>									<textarea id="key" class="bt-input-text">' || '密钥(KEY)') + '<br>									<textarea id="key" class="bt-input-text">') + (cert.privateKey || '') + ('</textarea>								</div>								<div class="ssl-con-key pull-left">' + ('</textarea>								</div>								<div class="ssl-con-key pull-left">' + (lan && lan.config && t('config.config_auto_str_141') || '证书(PEM格式)') + '<br>									<textarea id="csr" class="bt-input-text">' || '证书(PEM格式)') + '<br>									<textarea id="csr" class="bt-input-text">') + (cert.certPem || '') + '</textarea>\
+              var html = cert_data + ('<div class="custom_certificate_info" style="margin-top:10px;">								<div class="ssl-con-key pull-left mr20">' + ('<div class="custom_certificate_info" style="margin-top:10px;">								<div class="ssl-con-key pull-left mr20">' + (lan && lan.config && t('config.key_key_1') || '密钥(KEY)') + '<br>									<textarea id="key" class="bt-input-text">' || '密钥(KEY)') + '<br>									<textarea id="key" class="bt-input-text">') + (cert.privateKey || '') + ('</textarea>								</div>								<div class="ssl-con-key pull-left">' + ('</textarea>								</div>								<div class="ssl-con-key pull-left">' + (lan && lan.config && t('config.certificate_pem_format_1') || '证书(PEM格式)') + '<br>									<textarea id="csr" class="bt-input-text">' || '证书(PEM格式)') + '<br>									<textarea id="csr" class="bt-input-text">') + (cert.certPem || '') + '</textarea>\
 								</div>\
 							</div>';
               $('#panel_ssl_content').html(html);
-              var buttons = '<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + ('<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.config_auto_str_142') || '部署') + '</button>										   <button class="btn btn-success btn-sm panel-renew-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.config_auto_str_142_1') || '续期') + '</button>										   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.config_auto_str_142_2') || '删除') + '</button>' || '部署') + '</button>										   <button class="btn btn-success btn-sm panel-renew-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.config_auto_str_142_1') || '续期') + '</button>										   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.config_auto_str_142_2') || '删除') + '</button>';
+              var buttons = '<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + ('<button class="btn btn-success btn-sm save-panel-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.deployment') || '部署') + '</button>										   <button class="btn btn-success btn-sm panel-renew-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.renewal') || '续期') + '</button>										   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.delete_2') || '删除') + '</button>' || '部署') + '</button>										   <button class="btn btn-success btn-sm panel-renew-ssl" style="margin-right:5px;">' + (lan && lan.config && t('config.renewal') || '续期') + '</button>										   <button class="btn btn-success btn-sm del-panel-ssl">' + (lan && lan.config && t('config.delete_2') || '删除') + '</button>';
               $('#panel_ssl_buttons').html(buttons);
-              var help = '<li>' + ('<li>' + (lan && lan.config && t('config.config_auto_str_143') || '90天免费证书已部署成功并开启面板SSL。') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_143_1') || '由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_143_2') || '如需重新申请或更换，点击“续期”即可。') + '</li>' || '90天免费证书已部署成功并开启面板SSL。') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_143_1') || '由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_143_2') || '如需重新申请或更换，点击“续期”即可。') + '</li>';
+              var help = '<li>' + ('<li>' + (lan && lan.config && t('config.the_day_free_certificate') || '90天免费证书已部署成功并开启面板SSL。') + '</li>										<li>' + (lan && lan.config && t('config.apply_for_free_certificate_1') || '由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>										<li>' + (lan && lan.config && t('config.to_reapply_or_make') || '如需重新申请或更换，点击“续期”即可。') + '</li>' || '90天免费证书已部署成功并开启面板SSL。') + '</li>										<li>' + (lan && lan.config && t('config.apply_for_free_certificate_1') || '由 ACME 免费申请证书，有效期3个月，默认到期会自动续签。') + '</li>										<li>' + (lan && lan.config && t('config.to_reapply_or_make') || '如需重新申请或更换，点击“续期”即可。') + '</li>';
               $('#panel_ssl_help').html(help);
             } else {
               // 渲染申请界面
@@ -1210,7 +1210,7 @@ function getPanelSSL() {
 
               // 获取 DNS API
               $.post('/site/get_dnsapi', {}, function (rdata) {
-                var opt = '<option value="none">' + ('<option value="none">' + (lan && lan.config && t('config.config_auto_str_144') || '手动解析') + '</option>' || '手动解析') + '</option>';
+                var opt = '<option value="none">' + ('<option value="none">' + (lan && lan.config && t('config.manual_parsing') || '手动解析') + '</option>' || '手动解析') + '</option>';
                 for (var i = 0; i < rdata.length; i++) {
                   opt += '<option value="' + rdata[i]['name'] + '">' + rdata[i]['title'] + '</option>';
                 }
@@ -1251,14 +1251,14 @@ function getPanelSSL() {
           if (apply_type == 'dns') {
             pdata['dnspai'] = $('select[name="panel_dnspai"] option:selected').val();
           }
-          showSpeedWindow(lan && lan.config && t('config.config_auto_str_145') || "", 'site.get_acme_logs', function (layers, index) {
+          showSpeedWindow(lan && lan.config && t('config.currently_being_applied_for') || "", 'site.get_acme_logs', function (layers, index) {
             $.post('/setting/apply_panel_acme_ssl', pdata, function (rdata) {
               if (rdata.status) {
                 layer.close(index);
-                if (rdata.msg == (lan && lan.config && t('config.config_auto_str_146') || "")) {
+                if (rdata.msg == (lan && lan.config && t('config.manual_parsing_1') || "")) {
                   newAcmeHandApplyNoticeForPanel(cert_all['panel_domain'], rdata.data);
                 } else {
-                  showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.config_auto_str_147') || "");
+                  showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.day_free_certificate_application') || "");
                 }
               } else {
                 layer.close(index);
@@ -1277,7 +1277,7 @@ function getPanelSSL() {
           $('#panel_ssl_buttons').html('');
           $('#panel_ssl_help').html('');
           $.post('/site/get_dnsapi', {}, function (rdata) {
-            var opt = '<option value="none">' + ('<option value="none">' + (lan && lan.config && t('config.config_auto_str_148') || '手动解析') + '</option>' || '手动解析') + '</option>';
+            var opt = '<option value="none">' + ('<option value="none">' + (lan && lan.config && t('config.manual_parsing_2') || '手动解析') + '</option>' || '手动解析') + '</option>';
             for (var i = 0; i < rdata.length; i++) {
               opt += '<option value="' + rdata[i]['name'] + '">' + rdata[i]['title'] + '</option>';
             }
@@ -1292,7 +1292,7 @@ function getPanelSSL() {
             certPem: $("#csr").val(),
             choose: $('select[name="choose"]').val()
           };
-          var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_149') || "", {
+          var loadT = layer.msg(lan && lan.config && t('config.saving_certificate') || "", {
             icon: 16,
             time: 0,
             shade: [0.3, '#000']
@@ -1301,7 +1301,7 @@ function getPanelSSL() {
             layer.close(loadT);
             if (rdata.status) {
               layer.closeAll();
-              showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.config_auto_str_150') || "");
+              showSSLSuccessWindow(rdata.data, lan && lan.config && t('config.custom_certificate_deployment_successful') || "");
             } else {
               layer.msg(rdata.msg, {
                 icon: 2
@@ -1313,17 +1313,17 @@ function getPanelSSL() {
         // 删除证书
         $(layero).on('click', '.del-panel-ssl', function () {
           var current_choose = $('select[name="choose"]').val();
-          var confirm_msg = current_choose == 'local' ? lan && lan.config && t('config.config_auto_str_151') || "" : lan && lan.config && t('config.config_auto_str_152') || "";
+          var confirm_msg = current_choose == 'local' ? lan && lan.config && t('config.are_you_sure_you') || "" : lan && lan.config && t('config.warning_deleting_the_day') || "";
           layer.confirm(confirm_msg, {
-            title: lan && lan.config && t('config.config_auto_str_153') || "",
+            title: lan && lan.config && t('config.note') || "",
             shade: 0.001,
-            btn: [lan && lan.config && t('config.config_auto_str_154') || "", lan && lan.config && t('config.config_auto_str_155') || ""]
+            btn: [lan && lan.config && t('config.confirm_5') || "", lan && lan.config && t('config.cancel_4') || ""]
           }, function (index) {
             layer.close(index);
             var data = {
               choose: current_choose
             };
-            var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_156') || "", {
+            var loadT = layer.msg(lan && lan.config && t('config.deleting_the_certificate_and') || "", {
               icon: 16,
               time: 0,
               shade: [0.3, '#000']
@@ -1373,11 +1373,11 @@ function getTempAccessLogsReq(id) {
 function getTempAccessLogs(id) {
   layer.open({
     area: ['700px', '250px'],
-    title: lan && lan.config && t('config.config_auto_str_157') || "",
+    title: lan && lan.config && t('config.temporary_authorization_management') || "",
     closeBtn: 1,
     shift: 0,
     type: 1,
-    content: '<div class=\'pd20\'>					<button class=\'btn btn-success btn-sm refresh_log\'>' + ('<div class=\'pd20\'>					<button class=\'btn btn-success btn-sm refresh_log\'>' + (lan && lan.config && t('config.config_auto_str_158') || '刷新日志') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>								<tr><th>' + (lan && lan.config && t('config.config_auto_str_158_1') || '操作类型') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_158_2') || '操作时间') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_158_3') || '日志') + '</th></tr>							</thead>							<tbody id=\'logs_list\'></tbody>						</table>					</div>				</div>' || '刷新日志') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>								<tr><th>' + (lan && lan.config && t('config.config_auto_str_158_1') || '操作类型') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_158_2') || '操作时间') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_158_3') || '日志') + '</th></tr>							</thead>							<tbody id=\'logs_list\'></tbody>						</table>					</div>				</div>',
+    content: '<div class=\'pd20\'>					<button class=\'btn btn-success btn-sm refresh_log\'>' + ('<div class=\'pd20\'>					<button class=\'btn btn-success btn-sm refresh_log\'>' + (lan && lan.config && t('config.refresh_log') || '刷新日志') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>								<tr><th>' + (lan && lan.config && t('config.operation') || '操作类型') + '</th><th>' + (lan && lan.config && t('config.operation_time') || '操作时间') + '</th><th>' + (lan && lan.config && t('config.log') || '日志') + '</th></tr>							</thead>							<tbody id=\'logs_list\'></tbody>						</table>					</div>				</div>' || '刷新日志') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>								<tr><th>' + (lan && lan.config && t('config.operation') || '操作类型') + '</th><th>' + (lan && lan.config && t('config.operation_time') || '操作时间') + '</th><th>' + (lan && lan.config && t('config.log') || '日志') + '</th></tr>							</thead>							<tbody id=\'logs_list\'></tbody>						</table>					</div>				</div>',
     success: function () {
       getTempAccessLogsReq(id);
       $('.refresh_log').on('click', function () {
@@ -1405,27 +1405,27 @@ function setTempAccessReq(page) {
     var tbody = '';
     for (var i = 0; i < rdata.data.length; i++) {
       tbody += '<tr>';
-      tbody += '<td>' + (rdata.data[i]['login_addr'] || lan && lan.config && t('config.config_auto_str_159') || "") + '</td>';
+      tbody += '<td>' + (rdata.data[i]['login_addr'] || lan && lan.config && t('config.not_logged_in') || "") + '</td>';
       tbody += '<td>';
       switch (parseInt(rdata.data[i]['state'])) {
         case 0:
-          tbody += '<a style="color:green;">' + ('<a style="color:green;">' + (lan && lan.config && t('config.config_auto_str_160') || '待使用') + '</a>' || '待使用') + '</a>';
+          tbody += '<a style="color:green;">' + ('<a style="color:green;">' + (lan && lan.config && t('config.to_be_used') || '待使用') + '</a>' || '待使用') + '</a>';
           break;
         case 1:
-          tbody += '<a style="color:brown;">' + ('<a style="color:brown;">' + (lan && lan.config && t('config.config_auto_str_161') || '已使用') + '</a>' || '已使用') + '</a>';
+          tbody += '<a style="color:brown;">' + ('<a style="color:brown;">' + (lan && lan.config && t('config.already_used') || '已使用') + '</a>' || '已使用') + '</a>';
           break;
         case -1:
-          tbody += '<a>' + ('<a>' + (lan && lan.config && t('config.config_auto_str_162') || '已过期') + '</a>' || '已过期') + '</a>';
+          tbody += '<a>' + ('<a>' + (lan && lan.config && t('config.expired') || '已过期') + '</a>' || '已过期') + '</a>';
           break;
       }
       tbody += '</td>';
-      tbody += '<td>' + (getLocalTime(rdata.data[i]['login_time']) || lan && lan.config && t('config.config_auto_str_163') || "") + '</td>';
+      tbody += '<td>' + (getLocalTime(rdata.data[i]['login_time']) || lan && lan.config && t('config.not_logged_in_1') || "") + '</td>';
       tbody += '<td>' + getLocalTime(rdata.data[i]['expire']) + '</td>';
       tbody += '<td>';
       if (rdata.data[i]['state'] == '1') {
-        tbody += '<a class="btlink" onclick="getTempAccessLogs(\'' + rdata.data[i]['id'] + ((((lan && lan.config && t('config.config_auto_str_164') || '\')">操作日志') + '</a>' || '\')">操作日志') || '\')">操作日志') + '</a>');
+        tbody += '<a class="btlink" onclick="getTempAccessLogs(\'' + rdata.data[i]['id'] + (((((lan && lan.config && t('config.operation_log') || '\')">操作日志') || '\')">操作日志') + '</a>' || '\')">操作日志') || '\')">操作日志') + '</a>');
       } else {
-        tbody += '<a class="btlink" onclick="removeTempAccess(\'' + rdata.data[i]['id'] + ((((lan && lan.config && t('config.config_auto_str_165') || '\')">删除') + '</a>' || '\')">删除') || '\')">删除') + '</a>');
+        tbody += '<a class="btlink" onclick="removeTempAccess(\'' + rdata.data[i]['id'] + (((((lan && lan.config && t('config.delete') || '\')">删除') || '\')">删除') + '</a>' || '\')">删除') || '\')">删除') + '</a>');
       }
       tbody += '</td>';
       tbody += '</tr>';
@@ -1439,34 +1439,34 @@ function setStatusCode(o) {
   layer.open({
     type: 1,
     area: ['420px', '220px'],
-    title: lan && lan.config && t('config.config_auto_str_166') || "",
+    title: lan && lan.config && t('config.set_the_response_status') || "",
     closeBtn: 1,
     shift: 5,
-    btn: [lan && lan.config && t('config.config_auto_str_167') || "", lan && lan.config && t('config.config_auto_str_168') || ""],
+    btn: [lan && lan.config && t('config.submit_1') || "", lan && lan.config && t('config.close_5') || ""],
     shadeClose: false,
-    content: '<div class="bt-form bt-form pd20">                    <div class="line">                        <span class="tname">' + ('<div class="bt-form bt-form pd20">                    <div class="line">                        <span class="tname">' + (lan && lan.config && t('config.config_auto_str_169') || '相应状态') + '</span>                        <div class="info-r">                            <select class="bt-input-text mr5" name="status_code" style="width: 250px;"></select>                        </div>                    </div>                    <ul class="help-info-text c7"><li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_169_1') || '用于未登录且未正确输入安全入口时的响应,用于隐藏面板特征') + '</li></ul>                </div>' || '相应状态') + '</span>                        <div class="info-r">                            <select class="bt-input-text mr5" name="status_code" style="width: 250px;"></select>                        </div>                    </div>                    <ul class="help-info-text c7"><li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_169_1') || '用于未登录且未正确输入安全入口时的响应,用于隐藏面板特征') + '</li></ul>                </div>',
+    content: '<div class="bt-form bt-form pd20">                    <div class="line">                        <span class="tname">' + ('<div class="bt-form bt-form pd20">                    <div class="line">                        <span class="tname">' + (lan && lan.config && t('config.corresponding_state') || '相应状态') + '</span>                        <div class="info-r">                            <select class="bt-input-text mr5" name="status_code" style="width: 250px;"></select>                        </div>                    </div>                    <ul class="help-info-text c7"><li style="color: red;">' + (lan && lan.config && t('config.response_for_users_who') || '用于未登录且未正确输入安全入口时的响应,用于隐藏面板特征') + '</li></ul>                </div>' || '相应状态') + '</span>                        <div class="info-r">                            <select class="bt-input-text mr5" name="status_code" style="width: 250px;"></select>                        </div>                    </div>                    <ul class="help-info-text c7"><li style="color: red;">' + (lan && lan.config && t('config.response_for_users_who') || '用于未登录且未正确输入安全入口时的响应,用于隐藏面板特征') + '</li></ul>                </div>',
     success: function () {
       var msg_list = [{
         'code': '0',
-        'msg': lan && lan.config && t('config.config_auto_str_170') || ""
+        'msg': lan && lan.config && t('config.default_security_entry_error') || ""
       }, {
         'code': '403',
-        'msg': lan && lan.config && t('config.config_auto_str_171') || ""
+        'msg': lan && lan.config && t('config.access_denied') || ""
       }, {
         'code': '404',
-        'msg': lan && lan.config && t('config.config_auto_str_172') || ""
+        'msg': lan && lan.config && t('config.page_not_found') || ""
       }, {
         'code': '416',
-        'msg': lan && lan.config && t('config.config_auto_str_173') || ""
+        'msg': lan && lan.config && t('config.invalid_request') || ""
       }, {
         'code': '408',
-        'msg': lan && lan.config && t('config.config_auto_str_174') || ""
+        'msg': lan && lan.config && t('config.client_timeout') || ""
       }, {
         'code': '400',
-        'msg': lan && lan.config && t('config.config_auto_str_175') || ""
+        'msg': lan && lan.config && t('config.client_request_error') || ""
       }, {
         'code': '401',
-        'msg': lan && lan.config && t('config.config_auto_str_176') || ""
+        'msg': lan && lan.config && t('config.unauthorized_access') || ""
       }];
       var tbody = '';
       for (i in msg_list) {
@@ -1479,7 +1479,7 @@ function setStatusCode(o) {
       $('select[name="status_code"]').append(tbody);
     },
     yes: function (index) {
-      var loadT = layer.msg(lan && lan.config && t('config.config_auto_str_177') || "", {
+      var loadT = layer.msg(lan && lan.config && t('config.configuring_the_response_status') || "", {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']
@@ -1502,16 +1502,16 @@ function setStatusCode(o) {
 function setTempAccess() {
   layer.open({
     area: ['700px', '380px'],
-    title: lan && lan.config && t('config.config_auto_str_178') || "",
+    title: lan && lan.config && t('config.temporary_authorization_management_1') || "",
     closeBtn: 1,
     shift: 0,
     type: 1,
-    content: '<div class=\'login_view_table pd20\'>					<button class=\'btn btn-success btn-sm create_temp_login\'>' + ('<div class=\'login_view_table pd20\'>					<button class=\'btn btn-success btn-sm create_temp_login\'>' + (lan && lan.config && t('config.config_auto_str_179') || '临时访问授权') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>							<tr>								<th>' + (lan && lan.config && t('config.config_auto_str_179_1') || '登录IP') + '</th>								<th>' + (lan && lan.config && t('config.config_auto_str_179_2') || '状态') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_179_3') || '登录时间') + '</th>								<th>' + (lan && lan.config && t('config.config_auto_str_179_4') || '过期时间') + '</th>								<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.config_auto_str_179_5') || '操作') + '</th>							</tr>							</thead>							<tbody id=\'temp_login_view_tbody\'></tbody>						</table>						<div class=\'temp_login_view_page page\'></div>					</div>				</div>' || '临时访问授权') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>							<tr>								<th>' + (lan && lan.config && t('config.config_auto_str_179_1') || '登录IP') + '</th>								<th>' + (lan && lan.config && t('config.config_auto_str_179_2') || '状态') + '</th><th>' + (lan && lan.config && t('config.config_auto_str_179_3') || '登录时间') + '</th>								<th>' + (lan && lan.config && t('config.config_auto_str_179_4') || '过期时间') + '</th>								<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.config_auto_str_179_5') || '操作') + '</th>							</tr>							</thead>							<tbody id=\'temp_login_view_tbody\'></tbody>						</table>						<div class=\'temp_login_view_page page\'></div>					</div>				</div>',
+    content: '<div class=\'login_view_table pd20\'>					<button class=\'btn btn-success btn-sm create_temp_login\'>' + ('<div class=\'login_view_table pd20\'>					<button class=\'btn btn-success btn-sm create_temp_login\'>' + (lan && lan.config && t('config.temporary_access_authorization') || '临时访问授权') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>							<tr>								<th>' + (lan && lan.config && t('config.login_ip') || '登录IP') + '</th>								<th>' + (lan && lan.config && t('config.status') || '状态') + '</th><th>' + (lan && lan.config && t('config.login_time') || '登录时间') + '</th>								<th>' + (lan && lan.config && t('config.expiration_date_2') || '过期时间') + '</th>								<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.operations') || '操作') + '</th>							</tr>							</thead>							<tbody id=\'temp_login_view_tbody\'></tbody>						</table>						<div class=\'temp_login_view_page page\'></div>					</div>				</div>' || '临时访问授权') + '</button>					<div class=\'divtable mt10\'>						<table class=\'table table-hover\'>							<thead>							<tr>								<th>' + (lan && lan.config && t('config.login_ip') || '登录IP') + '</th>								<th>' + (lan && lan.config && t('config.status') || '状态') + '</th><th>' + (lan && lan.config && t('config.login_time') || '登录时间') + '</th>								<th>' + (lan && lan.config && t('config.expiration_date_2') || '过期时间') + '</th>								<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.operations') || '操作') + '</th>							</tr>							</thead>							<tbody id=\'temp_login_view_tbody\'></tbody>						</table>						<div class=\'temp_login_view_page page\'></div>					</div>				</div>',
     success: function () {
       setTempAccessReq();
       $('.create_temp_login').on('click', function () {
-        layer.confirm('<span style="color:red">' + ('<span style="color:red">' + (lan && lan.config && t('config.config_auto_str_180') || '注意1：滥用临时授权可能导致安全风险。') + '</br>' + (lan && lan.config && t('config.config_auto_str_180_1') || '注意2：请勿在公共场合发布临时授权连接') + '</span></br>' + (lan && lan.config && t('config.config_auto_str_180_2') || '即将创建临时授权连接，继续吗？') || '注意1：滥用临时授权可能导致安全风险。') + '</br>' + (lan && lan.config && t('config.config_auto_str_180_1') || '注意2：请勿在公共场合发布临时授权连接') + '</span></br>' + (lan && lan.config && t('config.config_auto_str_180_2') || '即将创建临时授权连接，继续吗？'), {
-          title: lan && lan.config && t('config.config_auto_str_181') || "",
+        layer.confirm('<span style="color:red">' + ('<span style="color:red">' + (lan && lan.config && t('config.note_misuse_of_temporary') || '注意1：滥用临时授权可能导致安全风险。') + '</br>' + (lan && lan.config && t('config.note_do_not_post') || '注意2：请勿在公共场合发布临时授权连接') + '</span></br>' + (lan && lan.config && t('config.temporary_authorized_connection_is') || '即将创建临时授权连接，继续吗？') || '注意1：滥用临时授权可能导致安全风险。') + '</br>' + (lan && lan.config && t('config.note_do_not_post') || '注意2：请勿在公共场合发布临时授权连接') + '</span></br>' + (lan && lan.config && t('config.temporary_authorized_connection_is') || '即将创建临时授权连接，继续吗？'), {
+          title: lan && lan.config && t('config.risk_disclosure') || "",
           closeBtn: 1,
           icon: 13
         }, function (create_temp_login_layer) {
@@ -1520,10 +1520,10 @@ function setTempAccess() {
             setTempAccessReq();
             layer.open({
               area: '570px',
-              title: lan && lan.config && t('config.config_auto_str_182') || "",
+              title: lan && lan.config && t('config.create_temporary_authorization') || "",
               shift: 0,
               type: 1,
-              content: '<div class=\'bt-form create_temp_view pd15\'>									<div class=\'line\'>										<span class=\'tname\'>' + ('<div class=\'bt-form create_temp_view pd15\'>									<div class=\'line\'>										<span class=\'tname\'>' + (lan && lan.config && t('config.config_auto_str_183') || '临时授权地址') + '</span>										<div>											<textarea id=\'temp_link\' class=\'bt-input-text mr20\' style=\'margin: 0px;width: 500px;height: 50px;line-height: 19px;\'></textarea>										</div>									</div>									<div class=\'line\'><button type=\'submit\' class=\'btn btn-success btn-sm btn-copy-temp-link\' data-clipboard-text=\'\'>' + (lan && lan.config && t('config.config_auto_str_183_1') || '复制地址') + '</button></div>									<ul class=\'help-info-text c7 ptb15\'>										<li>' + (lan && lan.config && t('config.config_auto_str_183_2') || '临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_183_3') || '使用临时授权登录面板后1小时内拥有面板所有权限，请勿在公共场合发布临时授权连接') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_183_4') || '授权连接信息仅在此处显示一次，若在使用前忘记，请重新生成') + '</li>									</ul>								</div>' || '临时授权地址') + '</span>										<div>											<textarea id=\'temp_link\' class=\'bt-input-text mr20\' style=\'margin: 0px;width: 500px;height: 50px;line-height: 19px;\'></textarea>										</div>									</div>									<div class=\'line\'><button type=\'submit\' class=\'btn btn-success btn-sm btn-copy-temp-link\' data-clipboard-text=\'\'>' + (lan && lan.config && t('config.config_auto_str_183_1') || '复制地址') + '</button></div>									<ul class=\'help-info-text c7 ptb15\'>										<li>' + (lan && lan.config && t('config.config_auto_str_183_2') || '临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_183_3') || '使用临时授权登录面板后1小时内拥有面板所有权限，请勿在公共场合发布临时授权连接') + '</li>										<li>' + (lan && lan.config && t('config.config_auto_str_183_4') || '授权连接信息仅在此处显示一次，若在使用前忘记，请重新生成') + '</li>									</ul>								</div>',
+              content: '<div class=\'bt-form create_temp_view pd15\'>									<div class=\'line\'>										<span class=\'tname\'>' + ('<div class=\'bt-form create_temp_view pd15\'>									<div class=\'line\'>										<span class=\'tname\'>' + (lan && lan.config && t('config.temporary_authorization_address') || '临时授权地址') + '</span>										<div>											<textarea id=\'temp_link\' class=\'bt-input-text mr20\' style=\'margin: 0px;width: 500px;height: 50px;line-height: 19px;\'></textarea>										</div>									</div>									<div class=\'line\'><button type=\'submit\' class=\'btn btn-success btn-sm btn-copy-temp-link\' data-clipboard-text=\'\'>' + (lan && lan.config && t('config.copy_the_address') || '复制地址') + '</button></div>									<ul class=\'help-info-text c7 ptb15\'>										<li>' + (lan && lan.config && t('config.temporary_authorization_is_valid') || '临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效') + '</li>										<li>' + (lan && lan.config && t('config.after_logging_in_to') || '使用临时授权登录面板后1小时内拥有面板所有权限，请勿在公共场合发布临时授权连接') + '</li>										<li>' + (lan && lan.config && t('config.the_authorization_connection_information') || '授权连接信息仅在此处显示一次，若在使用前忘记，请重新生成') + '</li>									</ul>								</div>' || '临时授权地址') + '</span>										<div>											<textarea id=\'temp_link\' class=\'bt-input-text mr20\' style=\'margin: 0px;width: 500px;height: 50px;line-height: 19px;\'></textarea>										</div>									</div>									<div class=\'line\'><button type=\'submit\' class=\'btn btn-success btn-sm btn-copy-temp-link\' data-clipboard-text=\'\'>' + (lan && lan.config && t('config.copy_the_address') || '复制地址') + '</button></div>									<ul class=\'help-info-text c7 ptb15\'>										<li>' + (lan && lan.config && t('config.temporary_authorization_is_valid') || '临时授权生成后1小时内使用有效，为一次性授权，使用后立即失效') + '</li>										<li>' + (lan && lan.config && t('config.after_logging_in_to') || '使用临时授权登录面板后1小时内拥有面板所有权限，请勿在公共场合发布临时授权连接') + '</li>										<li>' + (lan && lan.config && t('config.the_authorization_connection_information') || '授权连接信息仅在此处显示一次，若在使用前忘记，请重新生成') + '</li>									</ul>								</div>',
               success: function () {
                 var temp_link = "".concat(location.origin, "/login?tmp_token=").concat(rdata.token);
                 $('#temp_link').val(temp_link);
@@ -1546,11 +1546,11 @@ function setAuthBind() {
     console.log(rdata);
     var tip = layer.open({
       area: ['500px', '355px'],
-      title: lan && lan.config && t('config.config_auto_str_184') || "",
+      title: lan && lan.config && t('config.two_step_verification_setup') || "",
       closeBtn: 1,
       shift: 0,
       type: 1,
-      content: '<div class="bt-form pd20">		<div class="line">			<span class="tname">' + ('<div class="bt-form pd20">		<div class="line">			<span class="tname">' + (lan && lan.config && t('config.config_auto_str_185') || '绑定密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="secret" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_185_1') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.config_auto_str_185_2') || '二维码') + '</span>			<div class="info-r"><div class="qrcode"></div></div>		</div>		<ul class="help-info-text c7">		</ul>	</div>' || '绑定密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="secret" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_185_1') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.config_auto_str_185_2') || '二维码') + '</span>			<div class="info-r"><div class="qrcode"></div></div>		</div>		<ul class="help-info-text c7">		</ul>	</div>',
+      content: '<div class="bt-form pd20">		<div class="line">			<span class="tname">' + ('<div class="bt-form pd20">		<div class="line">			<span class="tname">' + (lan && lan.config && t('config.bind_key') || '绑定密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="secret" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.qr_code') || '二维码') + '</span>			<div class="info-r"><div class="qrcode"></div></div>		</div>		<ul class="help-info-text c7">		</ul>	</div>' || '绑定密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="secret" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.qr_code') || '二维码') + '</span>			<div class="info-r"><div class="qrcode"></div></div>		</div>		<ul class="help-info-text c7">		</ul>	</div>',
       success: function (layero, index) {
         $('input[name="secret"]').val(rdata.data['secret']);
         var renderQRCode = function () {
@@ -1564,8 +1564,8 @@ function setAuthBind() {
           loadScript(staticUrl('/static/js/jquery-qrcode-0.18.0.min.js')).then(renderQRCode);
         }
         $('.reset_secret').on('click', function () {
-          layer.confirm(((lan && lan.config && t('config.config_auto_str_186') || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.config_auto_str_186_1') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>' || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.config_auto_str_186_1') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>', {
-            title: lan && lan.config && t('config.config_auto_str_187') || "",
+          layer.confirm(((lan && lan.config && t('config.are_you_sure_you_1') || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.after_resetting_the_key') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>' || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.after_resetting_the_key') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>', {
+            title: lan && lan.config && t('config.reset_key') || "",
             closeBtn: 2,
             icon: 13,
             cancel: function () {}
@@ -1573,7 +1573,7 @@ function setAuthBind() {
             $.post('/setting/get_auth_secret', {
               'reset': "1"
             }, function (rdata) {
-              showMsg(lan && lan.config && t('config.config_auto_str_188') || "", function () {
+              showMsg(lan && lan.config && t('config.the_api_key_has') || "", function () {
                 $('input[name="secret"]').val(rdata.data['secret']);
                 $('.qrcode').html('');
                 if ($.fn.qrcode) {
@@ -1614,12 +1614,12 @@ function setAuthSecretApi() {
 function setBasicAuthTip(callback) {
   var tip = layer.open({
     area: ['500px', '385px'],
-    title: lan && lan.config && t('config.config_auto_str_189') || "",
+    title: lan && lan.config && t('config.prompt_for_basicauth_authentication') || "",
     closeBtn: 0,
     shift: 0,
     type: 1,
-    content: '<div class="bt-form pd20">		<div class="mb15">			<h3 class="layer-info-title">' + ('<div class="bt-form pd20">		<div class="mb15">			<h3 class="layer-info-title">' + (lan && lan.config && t('config.config_auto_str_190') || '风险操作！此功能不懂请勿开启！') + '</h3>		</div>		<ul class="help-info-text c7 explain-describe-list pd15">			<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_190_1') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_2') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_3') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_4') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_5') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>		</ul>		<div class="mt10 plr15 agreement-box" id="checkBasicAuth">			<input class="bt-input-text mr5" name="agreement" type="checkbox" value="false" id="agreement_more">			<label for="agreement_more"><span>' + (lan && lan.config && t('config.config_auto_str_190_6') || '我已经了解详情,并愿意承担风险') + '</span></label>		</div>	</div>' || '风险操作！此功能不懂请勿开启！') + '</h3>		</div>		<ul class="help-info-text c7 explain-describe-list pd15">			<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_190_1') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_2') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_3') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_4') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li>			<li>' + (lan && lan.config && t('config.config_auto_str_190_5') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>		</ul>		<div class="mt10 plr15 agreement-box" id="checkBasicAuth">			<input class="bt-input-text mr5" name="agreement" type="checkbox" value="false" id="agreement_more">			<label for="agreement_more"><span>' + (lan && lan.config && t('config.config_auto_str_190_6') || '我已经了解详情,并愿意承担风险') + '</span></label>		</div>	</div>',
-    btn: [lan && lan.config && t('config.config_auto_str_191') || "", lan && lan.config && t('config.config_auto_str_192') || ""],
+    content: '<div class="bt-form pd20">		<div class="mb15">			<h3 class="layer-info-title">' + ('<div class="bt-form pd20">		<div class="mb15">			<h3 class="layer-info-title">' + (lan && lan.config && t('config.this_is_risky_operation') || '风险操作！此功能不懂请勿开启！') + '</h3>		</div>		<ul class="help-info-text c7 explain-describe-list pd15">			<li style="color: red;">' + (lan && lan.config && t('config.you_must_understand_this') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>			<li>' + (lan && lan.config && t('config.once_enabled_any_attempt') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>			<li>' + (lan && lan.config && t('config.once_enabled_this_feature') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>			<li>' + (lan && lan.config && t('config.please_make_sure_to') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li>			<li>' + (lan && lan.config && t('config.if_you_forget_your') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>		</ul>		<div class="mt10 plr15 agreement-box" id="checkBasicAuth">			<input class="bt-input-text mr5" name="agreement" type="checkbox" value="false" id="agreement_more">			<label for="agreement_more"><span>' + (lan && lan.config && t('config.have_read_and_understood') || '我已经了解详情,并愿意承担风险') + '</span></label>		</div>	</div>' || '风险操作！此功能不懂请勿开启！') + '</h3>		</div>		<ul class="help-info-text c7 explain-describe-list pd15">			<li style="color: red;">' + (lan && lan.config && t('config.you_must_understand_this') || '必须要用到且了解此功能才决定自己是否要开启!') + '</li>			<li>' + (lan && lan.config && t('config.once_enabled_any_attempt') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>			<li>' + (lan && lan.config && t('config.once_enabled_this_feature') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>			<li>' + (lan && lan.config && t('config.please_make_sure_to') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li>			<li>' + (lan && lan.config && t('config.if_you_forget_your') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>		</ul>		<div class="mt10 plr15 agreement-box" id="checkBasicAuth">			<input class="bt-input-text mr5" name="agreement" type="checkbox" value="false" id="agreement_more">			<label for="agreement_more"><span>' + (lan && lan.config && t('config.have_read_and_understood') || '我已经了解详情,并愿意承担风险') + '</span></label>		</div>	</div>',
+    btn: [lan && lan.config && t('config.confirm_6') || "", lan && lan.config && t('config.cancel_5') || ""],
     yes: function (l, index) {
       is_agree = $('#agreement_more').prop("checked");
       if (is_agree) {
@@ -1639,11 +1639,11 @@ function setBasicAuth() {
     setBasicAuthTip(function () {
       var tip = layer.open({
         area: ['500px', '385px'],
-        title: lan && lan.config && t('config.config_auto_str_193') || "",
+        title: lan && lan.config && t('config.configure_basicauth_authentication') || "",
         closeBtn: 1,
         shift: 0,
         type: 1,
-        content: '<div class="bt-form pd20">			<div class="line">				<span class="tname">' + ('<div class="bt-form pd20">			<div class="line">				<span class="tname">' + (lan && lan.config && t('config.config_auto_str_194') || '用户名') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_user" type="text" placeholder="请设置用户名" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname">' + (lan && lan.config && t('config.config_auto_str_194_1') || '密码') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_pwd" type="text" placeholder="请设置密码" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname"></span>				<div class="info-r"><button class="btn btn-success btn-sm save_auth_cfg">' + (lan && lan.config && t('config.config_auto_str_194_2') || '保存配置') + '</button></div>			</div>			<ul class="help-info-text c7">				<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_194_3') || '注意：请不要在这里使用您的常用密码，这可能导致密码泄漏！') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_194_4') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_194_5') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_194_6') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li><li>' + (lan && lan.config && t('config.config_auto_str_194_7') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>			</ul>		</div>' || '用户名') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_user" type="text" placeholder="请设置用户名" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname">' + (lan && lan.config && t('config.config_auto_str_194_1') || '密码') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_pwd" type="text" placeholder="请设置密码" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname"></span>				<div class="info-r"><button class="btn btn-success btn-sm save_auth_cfg">' + (lan && lan.config && t('config.config_auto_str_194_2') || '保存配置') + '</button></div>			</div>			<ul class="help-info-text c7">				<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_194_3') || '注意：请不要在这里使用您的常用密码，这可能导致密码泄漏！') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_194_4') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_194_5') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>				<li>' + (lan && lan.config && t('config.config_auto_str_194_6') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li><li>' + (lan && lan.config && t('config.config_auto_str_194_7') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>			</ul>		</div>',
+        content: '<div class="bt-form pd20">			<div class="line">				<span class="tname">' + ('<div class="bt-form pd20">			<div class="line">				<span class="tname">' + (lan && lan.config && t('config.username_3') || '用户名') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_user" type="text" placeholder="请设置用户名" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname">' + (lan && lan.config && t('config.password_1') || '密码') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_pwd" type="text" placeholder="请设置密码" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname"></span>				<div class="info-r"><button class="btn btn-success btn-sm save_auth_cfg">' + (lan && lan.config && t('config.save_configuration') || '保存配置') + '</button></div>			</div>			<ul class="help-info-text c7">				<li style="color: red;">' + (lan && lan.config && t('config.note_please_do_not') || '注意：请不要在这里使用您的常用密码，这可能导致密码泄漏！') + '</li>				<li>' + (lan && lan.config && t('config.once_enabled_any_attempt_1') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>				<li>' + (lan && lan.config && t('config.once_enabled_this_feature_1') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>				<li>' + (lan && lan.config && t('config.please_make_sure_to_1') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li><li>' + (lan && lan.config && t('config.if_you_forget_your_1') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>			</ul>		</div>' || '用户名') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_user" type="text" placeholder="请设置用户名" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname">' + (lan && lan.config && t('config.password_1') || '密码') + '</span>				<div class="info-r"><input class="bt-input-text mr5" name="basic_pwd" type="text" placeholder="请设置密码" style="width: 280px;"></div>			</div>			<div class="line">				<span class="tname"></span>				<div class="info-r"><button class="btn btn-success btn-sm save_auth_cfg">' + (lan && lan.config && t('config.save_configuration') || '保存配置') + '</button></div>			</div>			<ul class="help-info-text c7">				<li style="color: red;">' + (lan && lan.config && t('config.note_please_do_not') || '注意：请不要在这里使用您的常用密码，这可能导致密码泄漏！') + '</li>				<li>' + (lan && lan.config && t('config.once_enabled_any_attempt_1') || '开启后，以任何方式访问面板，将先要求输入BasicAuth用户名和密码') + '</li>				<li>' + (lan && lan.config && t('config.once_enabled_this_feature_1') || '开启后，能有效防止面板被扫描发现，但并不能代替面板本身的帐号密码') + '</li>				<li>' + (lan && lan.config && t('config.please_make_sure_to_1') || '请牢记BasicAuth密码，一但忘记将无法访问面板') + '</li><li>' + (lan && lan.config && t('config.if_you_forget_your_1') || '如忘记密码，可在SSH通过bs命令来关闭BasicAuth验证') + '</li>			</ul>		</div>',
         success: function () {
           $('.save_auth_cfg').on('click', function () {
             var basic_user = $('input[name="basic_user"]').val();
@@ -1666,9 +1666,9 @@ function setBasicAuth() {
       });
     });
   } else {
-    layer.confirm(lan && lan.config && t('config.config_auto_str_195') || "", {
-      btn: [lan && lan.config && t('config.config_auto_str_196') || "", lan && lan.config && t('config.config_auto_str_197') || ""],
-      title: lan && lan.config && t('config.config_auto_str_198') || "",
+    layer.confirm(lan && lan.config && t('config.after_disabling_basicauth_authentication') || "", {
+      btn: [lan && lan.config && t('config.confirm_7') || "", lan && lan.config && t('config.cancel_6') || ""],
+      title: lan && lan.config && t('config.should_basicauth_authentication_be') || "",
       icon: 13
     }, function (index) {
       var basic_user = '';
@@ -1692,17 +1692,17 @@ function showPanelApi() {
   $.post('/setting/get_panel_token', '', function (rdata) {
     var tip = layer.open({
       area: ['500px', '355px'],
-      title: lan && lan.config && t('config.config_auto_str_199') || "",
+      title: lan && lan.config && t('config.configuration_panel_api') || "",
       closeBtn: 1,
       shift: 0,
       type: 1,
-      content: '<div class="bt-form pd20">		<div class="line">			<span class="tname">' + ('<div class="bt-form pd20">		<div class="line">			<span class="tname">' + (lan && lan.config && t('config.config_auto_str_200') || '接口密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="token" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_token" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_200_1') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.config_auto_str_200_2') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.config_auto_str_200_3') || '(每行1个)') + '</span>			<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>		</div>		<div class="line">			<span class="tname"></span>			<div class="info-r"><button class="btn btn-success btn-sm save_api">' + (lan && lan.config && t('config.config_auto_str_200_4') || '保存配置') + '</button></div>		</div>		<ul class="help-info-text c7">			<li>' + (lan && lan.config && t('config.config_auto_str_200_5') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>			<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_200_6') || '请不要在生产环境开启，这可能增加服务器安全风险；') + '</li>		</ul>	</div>' || '接口密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="token" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_token" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_200_1') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.config_auto_str_200_2') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.config_auto_str_200_3') || '(每行1个)') + '</span>			<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>		</div>		<div class="line">			<span class="tname"></span>			<div class="info-r"><button class="btn btn-success btn-sm save_api">' + (lan && lan.config && t('config.config_auto_str_200_4') || '保存配置') + '</button></div>		</div>		<ul class="help-info-text c7">			<li>' + (lan && lan.config && t('config.config_auto_str_200_5') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>			<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_200_6') || '请不要在生产环境开启，这可能增加服务器安全风险；') + '</li>		</ul>	</div>',
+      content: '<div class="bt-form pd20">		<div class="line">			<span class="tname">' + ('<div class="bt-form pd20">		<div class="line">			<span class="tname">' + (lan && lan.config && t('config.api_key') || '接口密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="token" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_token" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset_1') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.ip_whitelist') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.one_per_line') || '(每行1个)') + '</span>			<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>		</div>		<div class="line">			<span class="tname"></span>			<div class="info-r"><button class="btn btn-success btn-sm save_api">' + (lan && lan.config && t('config.save_configuration_1') || '保存配置') + '</button></div>		</div>		<ul class="help-info-text c7">			<li>' + (lan && lan.config && t('config.once_the_api_is') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>			<li style="color: red;">' + (lan && lan.config && t('config.please_do_not_enable') || '请不要在生产环境开启，这可能增加服务器安全风险；') + '</li>		</ul>	</div>' || '接口密钥') + '</span>			<div class="info-r">				<input class="bt-input-text mr5" name="token" type="text" style="width: 310px;" disabled>				<button class="btn btn-success btn-xs reset_token" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset_1') || '重置') + '</button>			</div>		</div>		<div class="line">			<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.ip_whitelist') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.one_per_line') || '(每行1个)') + '</span>			<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>		</div>		<div class="line">			<span class="tname"></span>			<div class="info-r"><button class="btn btn-success btn-sm save_api">' + (lan && lan.config && t('config.save_configuration_1') || '保存配置') + '</button></div>		</div>		<ul class="help-info-text c7">			<li>' + (lan && lan.config && t('config.once_the_api_is') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>			<li style="color: red;">' + (lan && lan.config && t('config.please_do_not_enable') || '请不要在生产环境开启，这可能增加服务器安全风险；') + '</li>		</ul>	</div>',
       success: function (layero, index) {
         $('input[name="token"]').val(rdata.data.token);
         $('textarea[name="api_limit_addr"]').val(rdata.data.limit_addr);
         $('.reset_token').on('click', function () {
-          layer.confirm(((lan && lan.config && t('config.config_auto_str_201') || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.config_auto_str_201_1') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>' || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.config_auto_str_201_1') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>', {
-            title: lan && lan.config && t('config.config_auto_str_202') || "",
+          layer.confirm(((lan && lan.config && t('config.are_you_sure_you_2') || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.after_resetting_the_key_1') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>' || '您确定要重置当前密钥吗？') + '<br/><span style="color: red; ">' + (lan && lan.config && t('config.after_resetting_the_key_1') || '重置密钥后，已关联密钥产品，将失效，请重新添加新密钥至产品。') + '</span>', {
+            title: lan && lan.config && t('config.reset_key_1') || "",
             closeBtn: 2,
             icon: 13,
             cancel: function () {}
@@ -1710,7 +1710,7 @@ function showPanelApi() {
             $.post('/config/set_panel_token', {
               'op_type': "1"
             }, function (rdata) {
-              showMsg(lan && lan.config && t('config.config_auto_str_203') || "", function () {
+              showMsg(lan && lan.config && t('config.the_api_key_has_1') || "", function () {
                 $('input[name="token"]').val(rdata.data);
               }, {
                 icon: 1
@@ -1746,8 +1746,8 @@ function setPanelApi() {
   }, 'json');
 }
 function deleteApp(id) {
-  layer.confirm(lan && lan.config && t('config.config_auto_str_204') || "", {
-    title: lan && lan.config && t('config.config_auto_str_205') || "",
+  layer.confirm(lan && lan.config && t('config.are_you_sure_you_3') || "", {
+    title: lan && lan.config && t('config.delete_app') || "",
     closeBtn: 2,
     icon: 13,
     cancel: function () {}
@@ -1792,13 +1792,13 @@ function getAppList(page) {
       tbody += '<td>' + row['app_secret'] + '</td>';
       tbody += '<td>' + row['white_list'] + '</td>';
       if (row['status'] == 1) {
-        tbody += '<td><a class="btlink" onclick="toggleAppstatus(' + row['id'] + ((((lan && lan.config && t('config.config_auto_str_206') || ');">已开启') + '</a></td>' || ');">已开启') || ');">已开启') + '</a></td>');
+tbody += '<td><a class="btlink" onclick="toggleAppstatus(' + row['id'] + ');">' + (lan && lan.public && t('public.enabled') || '已开启') + '</a></td>';
       } else {
-        tbody += '<td><a style="color:red;" onclick="toggleAppstatus(' + row['id'] + ((((lan && lan.config && t('config.config_auto_str_207') || ');">已关闭') + '</a></td>' || ');">已关闭') || ');">已关闭') + '</a></td>');
+tbody += '<td><a style="color:red;" onclick="toggleAppstatus(' + row['id'] + ');">' + (lan && lan.public && t('public.disabled') || '已关闭') + '</a></td>';
       }
       tbody += '<td>' + row['add_time'] + '</td>';
       tbody += '<td>';
-      tbody += '<a class="btlink" onclick="deleteApp(\'' + row['id'] + ((((lan && lan.config && t('config.config_auto_str_208') || '\')" style="float:right;">删除') + '</a>' || '\')" style="float:right;">删除') || '\')" style="float:right;">删除') + '</a>');
+      tbody += '<a class="btlink" onclick="deleteApp(\'' + row['id'] + (((((lan && lan.config && t('config.float') || '\')" style="float:right;">删除') || '\')" style="float:right;">删除') + '</a>' || '\')" style="float:right;">删除') || '\')" style="float:right;">删除') + '</a>');
       tbody += '</td>';
       tbody += '</tr>';
     }
@@ -1809,10 +1809,10 @@ function getAppList(page) {
 function addApp() {
   layer.open({
     area: '570px',
-    title: lan && lan.config && t('config.config_auto_str_209') || "",
+    title: lan && lan.config && t('config.add_an_app') || "",
     shift: 0,
     type: 1,
-    content: '<div class="bt-form pd20">	<div class="line">		<span class="tname">' + ('<div class="bt-form pd20">	<div class="line">		<span class="tname">' + (lan && lan.config && t('config.config_auto_str_210') || '应用ID') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_id" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_id" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_210_1') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname">' + (lan && lan.config && t('config.config_auto_str_210_2') || '应用密钥') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_secret" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_210_3') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.config_auto_str_210_4') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.config_auto_str_210_5') || '(每行1个)') + '</span>		<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>	</div>	<div class="line">		<span class="tname"></span>		<div class="info-r"><button class="btn btn-success btn-sm save_app_data">' + (lan && lan.config && t('config.config_auto_str_210_6') || '保存配置') + '</button></div>	</div>	<ul class="help-info-text c7">		<li>' + (lan && lan.config && t('config.config_auto_str_210_7') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>		<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_210_8') || '请谨慎在生产环境开启，这可能增加服务器安全风险；') + '</li>	</ul></div>' || '应用ID') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_id" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_id" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_210_1') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname">' + (lan && lan.config && t('config.config_auto_str_210_2') || '应用密钥') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_secret" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.config_auto_str_210_3') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.config_auto_str_210_4') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.config_auto_str_210_5') || '(每行1个)') + '</span>		<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>	</div>	<div class="line">		<span class="tname"></span>		<div class="info-r"><button class="btn btn-success btn-sm save_app_data">' + (lan && lan.config && t('config.config_auto_str_210_6') || '保存配置') + '</button></div>	</div>	<ul class="help-info-text c7">		<li>' + (lan && lan.config && t('config.config_auto_str_210_7') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>		<li style="color: red;">' + (lan && lan.config && t('config.config_auto_str_210_8') || '请谨慎在生产环境开启，这可能增加服务器安全风险；') + '</li>	</ul></div>',
+    content: '<div class="bt-form pd20">	<div class="line">		<span class="tname">' + ('<div class="bt-form pd20">	<div class="line">		<span class="tname">' + (lan && lan.config && t('config.app') || '应用ID') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_id" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_id" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset_2') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname">' + (lan && lan.config && t('config.application_key') || '应用密钥') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_secret" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset_3') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.ip_whitelist_1') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.one_per_line_1') || '(每行1个)') + '</span>		<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>	</div>	<div class="line">		<span class="tname"></span>		<div class="info-r"><button class="btn btn-success btn-sm save_app_data">' + (lan && lan.config && t('config.save_configuration_2') || '保存配置') + '</button></div>	</div>	<ul class="help-info-text c7">		<li>' + (lan && lan.config && t('config.once_the_api_is_1') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>		<li style="color: red;">' + (lan && lan.config && t('config.please_exercise_caution_when') || '请谨慎在生产环境开启，这可能增加服务器安全风险；') + '</li>	</ul></div>' || '应用ID') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_id" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_id" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset_2') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname">' + (lan && lan.config && t('config.application_key') || '应用密钥') + '</span>		<div class="info-r">			<input class="bt-input-text mr5" name="app_secret" type="text" style="width: 310px;" disabled>			<button class="btn btn-success btn-xs app_secret" style="margin-left: -50px;">' + (lan && lan.config && t('config.reset_3') || '重置') + '</button>		</div>	</div>	<div class="line">		<span class="tname" style="width: 90px; overflow: initial; height: 20px; line-height: 20px;">' + (lan && lan.config && t('config.ip_whitelist_1') || 'IP白名单') + '<br/>' + (lan && lan.config && t('config.one_per_line_1') || '(每行1个)') + '</span>		<div class="info-r"><textarea class="bt-input-text" name="api_limit_addr" style="width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;"></textarea></div>	</div>	<div class="line">		<span class="tname"></span>		<div class="info-r"><button class="btn btn-success btn-sm save_app_data">' + (lan && lan.config && t('config.save_configuration_2') || '保存配置') + '</button></div>	</div>	<ul class="help-info-text c7">		<li>' + (lan && lan.config && t('config.once_the_api_is_1') || '开启API后，必需在IP白名单列表中的IP才能访问面板API接口') + '</li>		<li style="color: red;">' + (lan && lan.config && t('config.please_exercise_caution_when') || '请谨慎在生产环境开启，这可能增加服务器安全风险；') + '</li>	</ul></div>',
     success: function (obj, cur_layer) {
       $('input[name="app_id"]').val(getRandomString(10));
       $('input[name="app_secret"]').val(getRandomString(20));
@@ -1847,11 +1847,11 @@ function addApp() {
 function appPage() {
   layer.open({
     area: ['900px', '380px'],
-    title: lan && lan.config && t('config.config_auto_str_211') || "",
+    title: lan && lan.config && t('config.app_management') || "",
     closeBtn: 1,
     shift: 0,
     type: 1,
-    content: '<div class=\'login_view_table pd20\'>			<button class=\'btn btn-success btn-sm app_add\'>' + ('<div class=\'login_view_table pd20\'>			<button class=\'btn btn-success btn-sm app_add\'>' + (lan && lan.config && t('config.config_auto_str_212') || '添加') + '</button>			<div class=\'divtable mt10\' id=\'app_list_body\'>				<table class=\'table table-hover\'>					<thead>					<tr>						<th>' + (lan && lan.config && t('config.config_auto_str_212_1') || '应用ID') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_2') || '应用密钥') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_3') || '白名单') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_4') || '状态') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_5') || '添加时间') + '</th>						<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.config_auto_str_212_6') || '操作') + '</th>					</tr>					</thead>					<tbody></tbody>				</table>				<div class=\'page\'></div>			</div>		</div>' || '添加') + '</button>			<div class=\'divtable mt10\' id=\'app_list_body\'>				<table class=\'table table-hover\'>					<thead>					<tr>						<th>' + (lan && lan.config && t('config.config_auto_str_212_1') || '应用ID') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_2') || '应用密钥') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_3') || '白名单') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_4') || '状态') + '</th>						<th>' + (lan && lan.config && t('config.config_auto_str_212_5') || '添加时间') + '</th>						<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.config_auto_str_212_6') || '操作') + '</th>					</tr>					</thead>					<tbody></tbody>				</table>				<div class=\'page\'></div>			</div>		</div>',
+    content: '<div class=\'login_view_table pd20\'>			<button class=\'btn btn-success btn-sm app_add\'>' + ('<div class=\'login_view_table pd20\'>			<button class=\'btn btn-success btn-sm app_add\'>' + (lan && lan.config && t('config.add') || '添加') + '</button>			<div class=\'divtable mt10\' id=\'app_list_body\'>				<table class=\'table table-hover\'>					<thead>					<tr>						<th>' + (lan && lan.config && t('config.app_1') || '应用ID') + '</th>						<th>' + (lan && lan.config && t('config.application_key_1') || '应用密钥') + '</th>						<th>' + (lan && lan.config && t('config.whitelist') || '白名单') + '</th>						<th>' + (lan && lan.config && t('config.status_1') || '状态') + '</th>						<th>' + (lan && lan.config && t('config.date_added') || '添加时间') + '</th>						<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.operations_1') || '操作') + '</th>					</tr>					</thead>					<tbody></tbody>				</table>				<div class=\'page\'></div>			</div>		</div>' || '添加') + '</button>			<div class=\'divtable mt10\' id=\'app_list_body\'>				<table class=\'table table-hover\'>					<thead>					<tr>						<th>' + (lan && lan.config && t('config.app_1') || '应用ID') + '</th>						<th>' + (lan && lan.config && t('config.application_key_1') || '应用密钥') + '</th>						<th>' + (lan && lan.config && t('config.whitelist') || '白名单') + '</th>						<th>' + (lan && lan.config && t('config.status_1') || '状态') + '</th>						<th>' + (lan && lan.config && t('config.date_added') || '添加时间') + '</th>						<th style=\'text-align:right;\'>' + (lan && lan.config && t('config.operations_1') || '操作') + '</th>					</tr>					</thead>					<tbody></tbody>				</table>				<div class=\'page\'></div>			</div>		</div>',
     success: function () {
       getAppList();
       $('.app_add').on('click', function () {

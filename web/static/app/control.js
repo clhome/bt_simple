@@ -14,12 +14,12 @@ $(window).on('resize', function () {
 
 //图表放大功能
 function enlargeChart(chartId, title) {
-  if (!window.chartInstances[chartId]) return layer.msg(lan && lan.control && t('control.control_auto_str_1') || "");
+  if (!window.chartInstances[chartId]) return layer.msg(lan && lan.control && t('control.the_chart_has_not') || "");
   var chart = window.chartInstances[chartId];
   var option = chart.getOption();
   layer.open({
     type: 1,
-    title: title + (lan && lan.control && t('control.control_auto_str_2') || ""),
+    title: title + (lan && lan.control && t('control.enlarge') || ""),
     area: ['80%', '80%'],
     shadeClose: true,
     content: '<div id="enlarge_chart_container" style="width: 100%; height: 100%; padding: 20px;"></div>',
@@ -160,7 +160,7 @@ function getToday() {
 getStatus();
 //取监控状态
 function getStatus() {
-  loadT = layer.msg(lan && lan.control && t('control.control_auto_str_3') || "", {
+  loadT = layer.msg(lan && lan.control && t('control.loading_please_wait') || "", {
     icon: 16,
     time: 0
   });
@@ -186,7 +186,7 @@ function setControl(act, value = false) {
     var type = $("#ctswitch").prop('checked') ? '0' : '1';
     var day = $("#save_day").val();
     if (day < 1) {
-      layer.msg(lan && lan.control && t('control.control_auto_str_4') || "", {
+      layer.msg(lan && lan.control && t('control.the_number_of_days') || "", {
         icon: 2
       });
       return;
@@ -197,13 +197,13 @@ function setControl(act, value = false) {
     var type = 'save_day';
     var day = $("#save_day").val();
     if (day < 1) {
-      layer.msg(lan && lan.control && t('control.control_auto_str_5') || "", {
+      layer.msg(lan && lan.control && t('control.the_number_of_days_1') || "", {
         icon: 2
       });
       return;
     }
   }
-  loadT = layer.msg(lan && lan.control && t('control.control_auto_str_6') || "", {
+  loadT = layer.msg(lan && lan.control && t('control.processing_please_wait') || "", {
     icon: 16,
     time: 0
   });
@@ -218,12 +218,12 @@ function setControl(act, value = false) {
 
 //清理记录
 function closeControl() {
-  layer.confirm(lan && lan.control && t('control.control_auto_str_7') || "", {
-    title: lan && lan.control && t('control.control_auto_str_8') || "",
+  layer.confirm(lan && lan.control && t('control.did_you_really_delete') || "", {
+    title: lan && lan.control && t('control.clear_history') || "",
     icon: 3,
     closeBtn: 1
   }, function () {
-    loadT = layer.msg(lan && lan.control && t('control.control_auto_str_9') || "", {
+    loadT = layer.msg(lan && lan.control && t('control.processing_please_wait_1') || "", {
       icon: 16,
       time: 0
     });
@@ -471,7 +471,7 @@ function disk(b, e) {
         formatter: (lan && lan.public && lan.public.time || '时间') + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
       },
       legend: {
-        data: [lan && lan.control && t('control.control_auto_str_11') || "", lan && lan.control && t('control.control_auto_str_12') || ""]
+        data: [lan && lan.control && t('control.number_of_bytes_read') || "", lan && lan.control && t('control.number_of_bytes_written') || ""]
       },
       xAxis: {
         type: 'category',
@@ -485,7 +485,7 @@ function disk(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.control_auto_str_13') || "",
+        name: lan && lan.control && t('control.unit_kb') || "",
         boundaryGap: [0, '100%'],
         splitLine: {
           lineStyle: {
@@ -518,7 +518,7 @@ function disk(b, e) {
         }
       }],
       series: [{
-        name: lan && lan.control && t('control.control_auto_str_14') || "",
+        name: lan && lan.control && t('control.number_of_bytes_read_1') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -530,7 +530,7 @@ function disk(b, e) {
         },
         data: rData
       }, {
-        name: lan && lan.control && t('control.control_auto_str_15') || "",
+        name: lan && lan.control && t('control.number_of_bytes_written_1') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -596,7 +596,7 @@ function network(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.control_auto_str_17') || "",
+        name: lan && lan.control && t('control.unit_kb_1') || "",
         boundaryGap: [0, '100%'],
         splitLine: {
           lineStyle: {
@@ -684,7 +684,7 @@ function getload_old(b, e) {
       },
       calculable: true,
       legend: {
-        data: [lan && lan.control && t('control.control_auto_str_18') || "", lan && lan.control && t('control.control_auto_str_19') || "", lan && lan.control && t('control.control_auto_str_20') || "", lan && lan.control && t('control.control_auto_str_21') || ""],
+        data: [lan && lan.control && t('control.system_resource_usage') || "", lan && lan.control && t('control.minute') || "", lan && lan.control && t('control.minutes') || "", lan && lan.control && t('control.minutes_1') || ""],
         selectedMode: 'single'
       },
       xAxis: {
@@ -732,7 +732,7 @@ function getload_old(b, e) {
         }
       }],
       series: [{
-        name: lan && lan.control && t('control.control_auto_str_22') || "",
+        name: lan && lan.control && t('control.system_resource_usage_1') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -744,7 +744,7 @@ function getload_old(b, e) {
         },
         data: yData
       }, {
-        name: lan && lan.control && t('control.control_auto_str_23') || "",
+        name: lan && lan.control && t('control.minute_1') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -756,7 +756,7 @@ function getload_old(b, e) {
         },
         data: zData
       }, {
-        name: lan && lan.control && t('control.control_auto_str_24') || "",
+        name: lan && lan.control && t('control.minutes_2') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -768,7 +768,7 @@ function getload_old(b, e) {
         },
         data: aData
       }, {
-        name: lan && lan.control && t('control.control_auto_str_25') || "",
+        name: lan && lan.control && t('control.minutes_3') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -833,7 +833,7 @@ function getload(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.control_auto_str_26') || "",
+        name: lan && lan.control && t('control.resource_utilization') || "",
         splitLine: {
           lineStyle: {
             color: '#ddd'
@@ -867,7 +867,7 @@ function getload(b, e) {
         }
       }],
       series: [{
-        name: lan && lan.control && t('control.control_auto_str_27') || "",
+        name: lan && lan.control && t('control.resource_utilization_1') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -897,7 +897,7 @@ function getload(b, e) {
         }
       },
       legend: {
-        data: [lan && lan.control && t('control.control_auto_str_28') || "", lan && lan.control && t('control.control_auto_str_29') || "", lan && lan.control && t('control.control_auto_str_30') || ""],
+        data: [lan && lan.control && t('control.minute_2') || "", lan && lan.control && t('control.minutes_4') || "", lan && lan.control && t('control.minutes_5') || ""],
         top: 0,
         right: '5%'
       },
@@ -919,7 +919,7 @@ function getload(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.control_auto_str_31') || "",
+        name: lan && lan.control && t('control.load_details') || "",
         splitLine: {
           lineStyle: {
             color: '#ddd'
@@ -951,7 +951,7 @@ function getload(b, e) {
         }
       }],
       series: [{
-        name: lan && lan.control && t('control.control_auto_str_32') || "",
+        name: lan && lan.control && t('control.minute_3') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -963,7 +963,7 @@ function getload(b, e) {
         },
         data: zData
       }, {
-        name: lan && lan.control && t('control.control_auto_str_33') || "",
+        name: lan && lan.control && t('control.minutes_6') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -975,7 +975,7 @@ function getload(b, e) {
         },
         data: aData
       }, {
-        name: lan && lan.control && t('control.control_auto_str_34') || "",
+        name: lan && lan.control && t('control.minutes_7') || "",
         type: 'line',
         smooth: true,
         symbol: 'none',
