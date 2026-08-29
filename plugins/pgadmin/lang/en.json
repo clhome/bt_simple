@@ -1,18 +1,12 @@
 {
-    ")\">主页</button>": ")\">Home</button>",
-    ")没有!": ")No!",
+    ")\">主页": ")\">主页",
+    ")没有!": ")没有!",
     "PG登录密码": "PG登录密码",
     "PG登录用户名": "PG登录用户名",
     "pgAdmin默认端口": "pgAdmin默认端口",
-    "pgadmin": "pgadmin",
     "pgadmin访问端口": "pgadmin访问端口",
-    "全能Postgres数据库Web管理工具": "All-in-one Postgres database web management tool",
-    "安全设置": "Security settings",
+    "全能Postgres数据库Web管理工具": "全能Postgres数据库Web管理工具",
     "密码": "密码",
-    "服务": "服务",
-    "端口范围不合法!": "Port range is illegal!",
-    "认证用户名": "认证用户名",
-    "访问日志": "访问日志",
-    "重写模版": "Override template",
-    "错误日志": "错误日志"
+    "端口范围不合法!": "端口范围不合法!",
+    "认证用户名": "认证用户名"
 }

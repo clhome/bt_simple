@@ -146,7 +146,7 @@ function getSList(isdisplay) {
       if (version_info != '') {
         version_info = version_info.substring(0, version_info.length - 1);
       }
-      var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + (lan && lan.soft && t('soft.soft_auto_str_7') || "");
+      var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + ');">' + (lan && lan.public && lan.public.install || '安装') + '</a>';
       if (plugin.setup == true) {
         var mupdate = '';
         var latest_version = '';
@@ -179,7 +179,7 @@ function getSList(isdisplay) {
               }
             }
             if (needUpdate) {
-              mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + (lan && lan.soft && t('soft.soft_auto_str_8') || "");
+              mupdate = '<a class="btlink" onclick="softUpdate(\'' + plugin.name + '\',\'' + latest_version + '\',\'' + plugin.setup_version + '\');">' + (lan && lan.public && lan.public.update || '更新') + '</a> | ';
             }
           }
         }
@@ -206,11 +206,11 @@ function getSList(isdisplay) {
         }
       }
       if (plugin.task == '-2') {
-        handle = lan && lan.soft && t('soft.soft_auto_str_11') || "";
+        handle = '<a style="color:green;" href="javascript:task();">' + (lan && lan.public && lan.public.uninstalling || '正在卸载...') + '</a>';
       } else if (plugin.task == '-1') {
-        handle = lan && lan.soft && t('soft.soft_auto_str_12') || "";
+        handle = '<a style="color:green;" href="javascript:task();">' + (lan && lan.public && lan.public.installing || '正在安装...') + '</a>';
       } else if (plugin.task == '0') {
-        handle = lan && lan.soft && t('soft.soft_auto_str_13') || "";
+        handle = '<a style="color:#C0C0C0;" href="javascript:task();">' + (lan && lan.public && lan.public.waiting || '等待中...') + '</a>';
       }
       var plugin_title = plugin.title;
       if (plugin.setup && !plugin.coexist) {
@@ -321,7 +321,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
       closeBtn: 1,
       shadeClose: true,
       btn: [lan && lan.soft && t('soft.soft_auto_str_19') || "", lan && lan.soft && t('soft.soft_auto_str_20') || ""],
-      content: (lan && lan.soft && t('soft.soft_auto_str_21') || "") + option + "</div>" + customHtml + "\
+      content: "<div class='bt-form pd20 c6'><div class='version line'>" + (lan && lan.soft && lan.soft.install_version || '安装版本：') + option + "</div>" + customHtml + "\
             </div>",
       success: function () {
         $('.fangshi input').on('click', function () {
@@ -363,7 +363,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
       closeBtn: 1,
       shadeClose: true,
       btn: [lan && lan.soft && t('soft.soft_auto_str_23') || "", lan && lan.soft && t('soft.soft_auto_str_24') || ""],
-      content: (lan && lan.soft && t('soft.soft_auto_str_25') || "") + option + "</div>\
+      content: "<div class='bt-form pd20 c6'><div class='version line'>" + (lan && lan.soft && lan.soft.install_version || '安装版本：') + option + "</div>\
             </div>",
       success: function () {
         $('.fangshi input').on('click', function () {
@@ -399,7 +399,7 @@ function addVersion(name, ver, type, obj, title, install_pre_inspection) {
 
 // 强制删除插件
 function forceUninstallPlugin(name, version) {
-  var contentHtml = (lan && lan.soft && t('soft.soft_auto_str_26') || "") + name + (lan && lan.soft && t('soft.soft_auto_str_27') || "") + name + (lan && lan.soft && t('soft.soft_auto_str_28') || "");
+  var contentHtml = "<div class='bt-form pd20 c6'><div style='color: red; font-weight: bold; font-size: 14px; margin-bottom: 10px;'>" + (lan && lan.soft && lan.soft.uninstall_warning1 || '卸载后，将删除面板所有关于【') + name + (lan && lan.soft && lan.soft.uninstall_warning2 || '】的所有运行文件与数据库数据（请务必提前做好备份，一经删除绝不可恢复）！</div><div class=\'line\' style=\'margin-bottom: 0px;\'><span style=\'display: block; margin-bottom: 10px;\'>请输入 <b>') + name + (lan && lan.soft && lan.soft.uninstall_warning3 || '</b> 以确认：</span><input type=\'text\' id=\'force_uninstall_confirm_name\' class=\'bt-input-text\' style=\'width: 200px;\' placeholder=\'请输入插件名称\' /></div></div>';"
   layer.open({
     type: 1,
     title: lan && lan.soft && t('soft.soft_auto_str_29') || "",
@@ -458,7 +458,7 @@ function uninstallPreInspection(name, title, ver, callback) {
           callback();
         }
       } else {
-        layer.confirm(rdata.data + (lan && lan.soft && t('soft.soft_auto_str_35') || ""), {
+        layer.confirm(rdata.data + '<br><span style="color: red;">' + (lan && lan.soft && lan.soft.uninstall_fail_confirm || '卸载环境检查失败，是否要强制删除该插件？') + '</span>', {
           title: lan && lan.soft && t('soft.soft_auto_str_36') || "",
           icon: 2,
           closeBtn: 1,
@@ -468,7 +468,7 @@ function uninstallPreInspection(name, title, ver, callback) {
         });
       }
     } else {
-      layer.confirm(rdata.data + (lan && lan.soft && t('soft.soft_auto_str_39') || ""), {
+      layer.confirm(rdata.data + '<br><span style="color: red;">' + (lan && lan.soft && lan.soft.uninstall_fail_confirm || '卸载环境检查失败，是否要强制删除该插件？') + '</span>', {
         title: lan && lan.soft && t('soft.soft_auto_str_40') || "",
         icon: 2,
         closeBtn: 1,
@@ -714,7 +714,20 @@ function importPlugin(file) {
         closeBtn: 1,
         shift: 5,
         shadeClose: false,
-        content: (lan && lan.soft && t('soft.soft_auto_str_55') || "") + data.title + (lan && lan.soft && t('soft.soft_auto_str_56') || "") + data.versions + (lan && lan.soft && t('soft.soft_auto_str_57') || "") + data.ps + (lan && lan.soft && t('soft.soft_auto_str_58') || "") + toSize(data.size) + (lan && lan.soft && t('soft.soft_auto_str_59') || "") + data.author + (lan && lan.soft && t('soft.soft_auto_str_60') || "") + data.home + '" target="_blank">' + data.home + (lan && lan.soft && t('soft.soft_auto_str_61') || "") + data.name + '\',\'' + data.tmp_path + (lan && lan.soft && t('soft.soft_auto_str_62') || "")
+        content: '<style>.install_three_plugin{padding:25px;padding-bottom:70px}.install_three_plugin .box{border:1px solid #ccc;padding:15px;line-height:22px;border-radius:2px}.install_three_plugin .box .title{font-size:16px;font-weight:600;margin-bottom:10px}.install_three_plugin .box p{margin-bottom:5px}.install_three_plugin .box p b{color:#666}.install_three_plugin .help-info-text{margin-top:15px;color:red}.install_three_plugin .bt-form-submit-btn{position:absolute;bottom:20px;text-align:center;width:100%;left:0}</style>' +
+                    '<div class="install_three_plugin">' +
+                    '<div class="box">' +
+                    '<div class="title">' + data.title + '</div>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.version || '版本：') + '</b>' + data.versions + '</p>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.desc || '描述：') + '</b>' + data.ps + '</p>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.size || '大小：') + '</b>' + toSize(data.size) + '</p>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.author || '作者：') + '</b>' + data.author + '</p>' +
+                    '<p><b>' + (lan && lan.soft && lan.soft.source || '来源：') + '</b><a class="btlink" href="' + data.home + '" target="_blank">' + data.home + '</a></p>' +
+                    '</div>' +
+                    '<ul class="help-info-text c7"><li>' + (lan && lan.soft && lan.soft.third_warn1 || '第三方插件未经官方安全认证，请自行核实插件安全性；') + '</li><li>' + (lan && lan.soft && lan.soft.third_warn2 || '使用第三方插件可能会影响面板稳定性；') + '</li></ul>' +
+                    '<div class="bt-form-submit-btn"><button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">' + (lan && lan.public && lan.public.cancel || '取消') + '</button>' +
+                    '<button type="button" class="btn btn-success btn-sm" onclick="local_install_plugin(\'' + data.name + '\',\'' + data.tmp_path + '\')">' + (lan && lan.soft && lan.soft.confirm_install || '确定安装') + '</button></div>' +
+                    '</div>'
       });
     },
     error: function (responseStr) {

@@ -1,18 +1,5 @@
 {
-    "' +\n               '                操作说明' +\n               '": "' +\n               '                操作说明' +\n               '",
-    ")没有!": ")No!",
-    "“数据管理”": "\"Data Management\"",
-    "中会显示并激活": "中会显示并激活",
-    "使用指引": "使用指引",
-    "刷新后，在面板": "刷新后，在面板",
-    "左侧导航栏": "左侧导航栏",
-    "强制刷新当前浏览器页面。": "Oman",
-    "打开管理页": "打开管理页",
-    "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。": "Simple data management (memcached, redis, mongodb). Note: After installation, please press Ctrl+F5 to force refresh the page and operate in \"Data Management\" on the left menu bar.",
-    "数据管理": "数据管理",
-    "无需运行后台守护进程": "No need to run background daemons",
-    "本插件为数据检索管理工具，": "This plug-in is a data retrieval management tool.",
-    "点击该菜单，即可开始对 Redis、Memcached、MongoDB 等数据库进行数据检索与管理。": "Click this menu to start data retrieval and management of Redis, Memcached, MongoDB and other databases.",
-    "菜单。": "menu.",
-    "请按键盘快捷键": "Please press the keyboard shortcut"
+    ")没有!": ")没有!",
+    "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。": "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。",
+    "数据管理": "数据管理"
 }

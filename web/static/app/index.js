@@ -17,16 +17,16 @@ function getLoad(data) {
   if (Occupy > 100) Occupy = 100;
   if (Occupy <= 30) {
     LoadColor = '#20a53a';
-    AverageText = lan && lan.index && t('index.auto_str_1') || "";
+    AverageText = ((lan && lan.index && t('index.auto_str_1') || '" data="Inode信息') + '<br>' + (lan && lan.index && t('index.auto_str_1_1') || '总数：') || '" data="Inode信息') + '<br>' + (lan && lan.index && t('index.auto_str_1_1') || '总数：');
   } else if (Occupy <= 70) {
     LoadColor = '#6ea520';
-    AverageText = lan && lan.index && t('index.auto_str_2') || "";
+    AverageText = '<br>' + ('<br>' + (lan && lan.index && t('index.auto_str_2') || '已使用：') || '已使用：');
   } else if (Occupy <= 90) {
     LoadColor = '#ff9900';
-    AverageText = lan && lan.index && t('index.auto_str_3') || "";
+    AverageText = '<br>' + ('<br>' + (lan && lan.index && t('index.auto_str_3') || '可用：') || '可用：');
   } else {
     LoadColor = '#dd2f00';
-    AverageText = lan && lan.index && t('index.auto_str_4') || "";
+    AverageText = '<br>' + ('<br>' + (lan && lan.index && t('index.auto_str_4') || 'Inode使用率：') || 'Inode使用率：');
   }
   index.find('.circle').css("background", LoadColor);
   index.find('.mask').css({
@@ -46,7 +46,7 @@ $('#LoadList .mask').on('mouseenter', function () {
   one = getCookie('one');
   five = getCookie('five');
   fifteen = getCookie('fifteen');
-  var text = (lan && lan.index && t('index.auto_str_5') || "") + one + (lan && lan.index && t('index.auto_str_6') || "") + five + (lan && lan.index && t('index.auto_str_7') || "") + fifteen + '';
+  var text = ('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>' + ('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;"></span>' + (lan && lan.index && t('index.auto_str_5') || '分区[') || '分区[')) + one + (((lan && lan.index && t('index.auto_str_6') || '%，当使用率满100%时将无法在此分区创建文件，请及时清理!') + '<a class="btlink" href="javascript:ClearSystem();">' + (lan && lan.index && t('index.auto_str_6_1') || '[清理垃圾]') + '</a></p>' || '%，当使用率满100%时将无法在此分区创建文件，请及时清理!') + '<a class="btlink" href="javascript:ClearSystem();">' + (lan && lan.index && t('index.auto_str_6_1') || '[清理垃圾]') + '</a></p>') + five + ('<a class="btlink" href="javascript:ClearSystem();">' + ('<a class="btlink" href="javascript:ClearSystem();">' + (lan && lan.index && t('index.auto_str_7') || '[清理垃圾]') + '</a></p>' || '[清理垃圾]') + '</a></p>') + fifteen + '';
   layer.tips(text, that, {
     time: 0,
     tips: [1, '#999']
@@ -71,7 +71,7 @@ function showCpuTips(rdata) {
         }
       }
     }
-    layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + (lan && lan.index && t('index.auto_str_8') || "") + rdata.cpu[4] + (lan && lan.index && t('index.auto_str_9') || "") + rdata.cpu[1] + (lan && lan.index && t('index.auto_str_10') || "") + cpuText, this, {
+    layer.tips(rdata.cpu[3] + "</br>" + rdata.cpu[5] + (((lan && lan.index && t('index.auto_str_8') || '正在清理系统垃圾') + ' <img src="/static/img/ing.gif">' || '正在清理系统垃圾') + ' <img src="/static/img/ing.gif">') + rdata.cpu[4] + (lan && lan.index && t('index.auto_str_9') || "") + rdata.cpu[1] + (lan && lan.index && t('index.auto_str_10') || "") + cpuText, this, {
       time: 0,
       tips: [1, '#999']
     });
@@ -144,11 +144,11 @@ function getDiskInfo() {
       //判断inode信息是否存在
       var inodes = '';
       if (typeof rdata[i]['inodes'] !== 'undefined') {
-        inodes = '<div class="mask" style="color:' + LoadColor + (lan && lan.index && t('index.auto_str_11') || "") + rdata[i].inodes[0] + (lan && lan.index && t('index.auto_str_12') || "") + rdata[i].inodes[1] + (lan && lan.index && t('index.auto_str_13') || "") + rdata[i].inodes[2] + (lan && lan.index && t('index.auto_str_14') || "") + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
+        inodes = '<div class="mask" style="color:' + LoadColor + (lan && lan.index && t('index.auto_str_11') || "") + rdata[i].inodes[0] + ('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;">' + ('<p><span class="glyphicon glyphicon-alert" style="color: #ff4040; margin-right: 10px;">' + (lan && lan.index && t('index.auto_str_12') || '当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！') + '</span></p>' || '当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！') + '</span></p>') + rdata[i].inodes[1] + (lan && lan.index && t('index.auto_str_13') || "") + rdata[i].inodes[2] + (lan && lan.index && t('index.auto_str_14') || "") + rdata[i].inodes[3] + '"><span>' + rdata[i].size[3].replace('%', '') + '</span>%</div>';
         var ipre = parseInt(rdata[i].inodes[3].replace('%', ''));
         if (ipre > 95) {
           $("#messageError").show();
-          $("#messageError").append((lan && lan.index && t('index.auto_str_15') || "") + rdata[i].path + (lan && lan.index && t('index.auto_str_16') || "") + ipre + (lan && lan.index && t('index.auto_str_17') || ""));
+          $("#messageError").append(('<br>' + ('<br>' + (lan && lan.index && t('index.auto_str_15') || '显卡温度:') + ' ' || '显卡温度:') + ' ') + rdata[i].path + ('°C<br>' + ('°C<br>' + (lan && lan.index && t('index.auto_str_16') || '显存使用率:') + ' ' || '显存使用率:') + ' ') + ipre + (lan && lan.index && t('index.auto_str_17') || ""));
         }
       }
       if (rdata[i].path == '/' || rdata[i].path == '/www') {
@@ -193,7 +193,7 @@ function setMemImg(info) {
   var memFree = info.memTotal - info.memRealUsed;
   if (memFree / (1024 * 1024) < 64) {
     $("#messageError").show();
-    $("#messageError").append(lan && lan.index && t('index.auto_str_23') || "");
+    $("#messageError").append('<a class="btlink" href="javascript:updateMsg();">' + ('<a class="btlink" href="javascript:updateMsg();">' + (lan && lan.index && t('index.auto_str_23') || '更新') + '</a>' || '更新') + '</a>');
   }
 }
 function setSystemInfo(system_str) {
@@ -228,7 +228,7 @@ function getInfo() {
     setSystemInfo(info.system);
     localStorage.setItem('cached_system_info', info.system);
     $("#running").html(info.time);
-    $("#core").html(info.cpuNum + (lan && lan.index && t('index.auto_str_24') || ""));
+    $("#core").html(info.cpuNum + (((lan && lan.index && t('index.auto_str_24') || '更新') + '<i style="display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;">.</i>' || '更新') + '<i style="display: inline-block; color: red; font-size: 40px;position: absolute;top: -35px; font-style: normal; right: -8px;">.</i>'));
     $("#state").html(parseFloat(info.cpuRealUsed).toFixed(1));
     setcolor(info.cpuRealUsed, "#state", 30, 70, 90);
 
@@ -254,7 +254,7 @@ function getGpuInfo() {
       setcolor(gpuUse, "#gpu_state", 30, 70, 90);
       var memText = info.mem_used + 'M / ' + info.mem_total + 'M';
       $("#gpu_mem").html(memText);
-      var tips = (lan && lan.index && t('index.auto_str_25') || "") + info.name + (lan && lan.index && t('index.auto_str_26') || "") + (info.temperature || '-') + (lan && lan.index && t('index.auto_str_27') || "") + memUse + "%";
+      var tips = (lan && lan.index && t('index.auto_str_25') || "") + info.name + ('<span style="background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;">' + ('<span style="background-color: #f0ad4e; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;">' + (lan && lan.index && t('index.auto_str_26') || '测试版本') + '</span>' || '测试版本') + '</span>') + (info.temperature || '-') + ('<span style="background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;">' + ('<span style="background-color: #20a53a; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.4; display: inline-block; margin-right: 8px;">' + (lan && lan.index && t('index.auto_str_27') || '正式版本') + '</span>' || '正式版本') + '</span>') + memUse + "%";
       $('#gpuChart .mask').off('mouseenter').on('mouseenter', function () {
         layer.tips(tips, this, {
           time: 0,
@@ -383,7 +383,7 @@ function netImg() {
   // 指定图表的配置项和数据
   var option = {
     title: {
-      text: lan && lan.index && t('index.auto_str_28') || "",
+      text: '<span style="font-size: 14px; font-weight: bold; color: #333;">' + ('<span style="font-size: 14px; font-weight: bold; color: #333;">' + (lan && lan.index && t('index.auto_str_28') || '版本更新 [') || '版本更新 ['),
       left: 'center',
       textStyle: {
         color: '#888888',
@@ -410,7 +410,7 @@ function netImg() {
       }
     },
     yAxis: {
-      name: (lan && lan.index && t('index.auto_str_30') || "") + default_unit,
+      name: ('        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">' + ('        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">' + (lan && lan.index && t('index.auto_str_30') || '1. 下载并解压更新包') + '<span id="download-tip-bracket" style="color: #20a53a; font-size: 11px; margin-left: 5px;">' + (lan && lan.index && t('index.auto_str_30_1') || '（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）') + '</span></span><span id="download-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>' || '1. 下载并解压更新包') + '<span id="download-tip-bracket" style="color: #20a53a; font-size: 11px; margin-left: 5px;">' + (lan && lan.index && t('index.auto_str_30_1') || '（请耐心等待，预计时间5分钟，具体根据您的网络情况而定）') + '</span></span><span id="download-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>') + default_unit,
       splitLine: {
         lineStyle: {
           color: "#eee"
@@ -423,7 +423,7 @@ function netImg() {
       }
     },
     series: [{
-      name: lan && lan.index && t('index.auto_str_31') || "",
+      name: '        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">' + ('        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">' + (lan && lan.index && t('index.auto_str_31') || '2. 备份系统核心文件') + '</span><span id="backup-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>' || '2. 备份系统核心文件') + '</span><span id="backup-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>',
       type: 'line',
       data: yData,
       smooth: true,
@@ -452,7 +452,7 @@ function netImg() {
         }
       }
     }, {
-      name: lan && lan.index && t('index.auto_str_32') || "",
+      name: '        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">' + ('        <div style="display:flex; justify-content: space-between; margin-bottom: 6px;"><span class="f12" style="color:#555; font-weight:500;">' + (lan && lan.index && t('index.auto_str_32') || '3. 安装更新并重启服务') + '</span><span id="install-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>' || '3. 安装更新并重启服务') + '</span><span id="install-percent" class="f12" style="color:#20a53a; font-weight:600;">0%</span></div>',
       type: 'line',
       data: zData,
       smooth: true,
@@ -487,7 +487,7 @@ function netImg() {
     addData(true);
     echartsNetImg.setOption({
       yAxis: {
-        name: (lan && lan.index && t('index.auto_str_33') || "") + default_unit,
+        name: ('<button type="button" class="btn btn-danger btn-sm btn-title" style="border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;" onclick="layer.closeAll()">' + ('<button type="button" class="btn btn-danger btn-sm btn-title" style="border-radius:6px; padding: 6px 18px; font-weight: 500; transition: all 0.2s;" onclick="layer.closeAll()">' + (lan && lan.index && t('index.auto_str_33') || '取消') + '</button>' || '取消') + '</button>') + default_unit,
         splitLine: {
           lineStyle: {
             color: "#eee"
@@ -558,8 +558,8 @@ setTimeout(function () {
   $.get('/system/update_server?type=check', function (rdata) {
     if (rdata.status == false) return;
     if (rdata.data != undefined) {
-      $("#toUpdate").html(lan && lan.index && t('index.auto_str_34') || "");
-      $('#toUpdate a').html(lan && lan.index && t('index.auto_str_35') || "");
+      $("#toUpdate").html((((lan && lan.index && t('index.auto_str_34') || '\')" >开始执行') + '</button>' || '\')" >开始执行') || '\')" >开始执行') + '</button>');
+      $('#toUpdate a').html('<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >' + ('<button type="button" id="hard-refresh-btn" class="btn btn-default btn-sm btn-title" style="display:none; border-radius:6px; padding: 6px 18px; margin-left: 10px;" onclick="location.href=location.pathname+\'?t=\'+new Date().getTime()" >' + (lan && lan.index && t('index.auto_str_35') || '强制刷新') + '</button>' || '强制刷新') + '</button>');
       $('#toUpdate a').css("position", "relative");
       return;
     }
@@ -609,7 +609,7 @@ function updateMsg() {
     var v = rdata.data.version;
     var isTest = v.split('.').length > 3;
     var tagHtml = isTest ? lan && lan.index && t('index.auto_str_37') || "" : lan && lan.index && t('index.auto_str_38') || "";
-    var titleHtml = '<div style="display: flex; align-items: center; height: 100%;">' + tagHtml + (lan && lan.index && t('index.auto_str_39') || "") + v + ']</span></div>';
+    var titleHtml = '<div style="display: flex; align-items: center; height: 100%;">' + tagHtml + (((lan && lan.index && t('index.auto_str_39') || '服务正在重启中，请等待...') + ' <span id="restart-countdown">' || '服务正在重启中，请等待...') + ' <span id="restart-countdown">') + v + ']</span></div>';
     var parseContent = function () {
       try {
         return marked.parse(rdata.data.content);
@@ -633,7 +633,7 @@ function updateMsg() {
     }
   }, 'json').fail(function () {
     layer.close(loadT);
-    layer.msg(lan && lan.index && t('index.auto_str_40') || "", {
+    layer.msg('</span> ' + ('</span> ' + (lan && lan.index && t('index.auto_str_40') || '秒') || '秒'), {
       icon: 2
     });
   });
@@ -720,16 +720,16 @@ function updateStep(step, version, barId, textId, callback) {
       $.get('/system/network', function (netData) {
         if (netData && netData.network && netData.network.ALL && netData.network.ALL.down) {
           var speed = (netData.network.ALL.down / 1048576).toFixed(2);
-          bracket.text((lan && lan.index && t('index.auto_str_56') || "") + nodeName + (lan && lan.index && t('index.auto_str_57') || "") + speed + " mbps）");
+          bracket.text(('<div class="rebt-con">                <div class="rebt-li"><a data-id="server" class="btn-reboot-server" href="javascript:;"><span class="glyphicon glyphicon-off" style="margin-right: 5px;"></span>' + ('<div class="rebt-con">                <div class="rebt-li"><a data-id="server" class="btn-reboot-server" href="javascript:;"><span class="glyphicon glyphicon-off" style="margin-right: 5px;"></span>' + (lan && lan.index && t('index.auto_str_56') || '重启服务器') + '</a></div>                <div class="rebt-li"><a data-id="panel" class="btn-reboot-panel" href="javascript:;"><span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.index && t('index.auto_str_56_1') || '重启面板') + '</a></div>                <div class="rebt-li"><a data-id="repair" class="btn-reboot-repair" href="javascript:;"><span class="glyphicon glyphicon-wrench" style="margin-right: 5px;"></span>' + (lan && lan.index && t('index.auto_str_56_2') || '修复服务器') + '</a></div>                <div style="color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;">' + (lan && lan.index && t('index.auto_str_56_3') || '注意：修复服务器会覆盖安装bt_simple面板') + '</div>            </div>' || '重启服务器') + '</a></div>                <div class="rebt-li"><a data-id="panel" class="btn-reboot-panel" href="javascript:;"><span class="glyphicon glyphicon-refresh" style="margin-right: 5px;"></span>' + (lan && lan.index && t('index.auto_str_56_1') || '重启面板') + '</a></div>                <div class="rebt-li"><a data-id="repair" class="btn-reboot-repair" href="javascript:;"><span class="glyphicon glyphicon-wrench" style="margin-right: 5px;"></span>' + (lan && lan.index && t('index.auto_str_56_2') || '修复服务器') + '</a></div>                <div style="color:red;text-align:center;margin-top:10px;font-weight:bold;clear:both;">' + (lan && lan.index && t('index.auto_str_56_3') || '注意：修复服务器会覆盖安装bt_simple面板') + '</div>            </div>') + nodeName + (lan && lan.index && t('index.auto_str_57') || "") + speed + " mbps）");
         }
       }, 'json');
       if (elapsed >= twentyMinutes) {
         clearInterval(intervalId);
         $(textId).text(lan && lan.index && t('index.auto_str_58') || "").css("color", "#ff4d4f");
         $(barId).css("background", "#ff4d4f");
-        layer.alert(lan && lan.index && t('index.auto_str_59') || "", {
+        layer.alert(((lan && lan.index && t('index.auto_str_59') || '面板正在重启中，请等待...') + ' <span id="restart-countdown">' || '面板正在重启中，请等待...') + ' <span id="restart-countdown">', {
           icon: 2,
-          title: lan && lan.index && t('index.auto_str_60') || ""
+          title: '</span> ' + ('</span> ' + (lan && lan.index && t('index.auto_str_60') || '秒') || '秒')
         }, function (index) {
           layer.close(index);
           location.reload();
@@ -760,7 +760,7 @@ function updateStep(step, version, barId, textId, callback) {
       layer.msg(rdata.msg, {
         icon: 2
       });
-      $("#start-update-btn").attr("disabled", false).removeClass("disabled").text(lan && lan.index && t('index.auto_str_63') || "");
+      $("#start-update-btn").attr("disabled", false).removeClass("disabled").text('<span class="badge badge-inverse">' + ('<span class="badge badge-inverse">' + (lan && lan.index && t('index.auto_str_63') || '系统修复 [') || '系统修复 ['));
       $(".layui-layer-close").show();
     }
   }, 'json').fail(function () {
@@ -772,7 +772,7 @@ function updateStep(step, version, barId, textId, callback) {
     } else {
       $(textId).text(lan && lan.index && t('index.auto_str_65') || "").css("color", "#ff4d4f");
       $(barId).css("background", "#ff4d4f");
-      layer.msg(lan && lan.index && t('index.auto_str_66') || "", {
+      layer.msg('<div class=\'bt-form bt-window-restart\'>                            <div class=\'pd15\'>                            <p style=\'color:red; margin-bottom:10px; font-size:15px;\'>' + ('<div class=\'bt-form bt-window-restart\'>                            <div class=\'pd15\'>                            <p style=\'color:red; margin-bottom:10px; font-size:15px;\'>' + (lan && lan.index && t('index.auto_str_66') || '注意，若您的服务器是一个容器，请取消。') + '</p>                            <div class=\'SafeRestart\' style=\'line-height:26px\'>                                <p>' + (lan && lan.index && t('index.auto_str_66_1') || '安全重启有利于保障文件安全，将执行以下操作：') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_2') || '1.停止Web服务') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_3') || '2.停止MySQL服务') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_4') || '3.开始重启服务器') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_5') || '4.等待服务器启动') + '</p>                            </div>                            </div>                            <div class=\'bt-form-submit-btn\'>                                <button type=\'button\' class=\'btn btn-danger btn-sm btn-reboot\'>' + (lan && lan.index && t('index.auto_str_66_6') || '取消') + '</button>                                <button type=\'button\' class=\'btn btn-success btn-sm WSafeRestart\' >' + (lan && lan.index && t('index.auto_str_66_7') || '确定') + '</button>                            </div>                        </div>' || '注意，若您的服务器是一个容器，请取消。') + '</p>                            <div class=\'SafeRestart\' style=\'line-height:26px\'>                                <p>' + (lan && lan.index && t('index.auto_str_66_1') || '安全重启有利于保障文件安全，将执行以下操作：') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_2') || '1.停止Web服务') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_3') || '2.停止MySQL服务') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_4') || '3.开始重启服务器') + '</p>                                <p>' + (lan && lan.index && t('index.auto_str_66_5') || '4.等待服务器启动') + '</p>                            </div>                            </div>                            <div class=\'bt-form-submit-btn\'>                                <button type=\'button\' class=\'btn btn-danger btn-sm btn-reboot\'>' + (lan && lan.index && t('index.auto_str_66_6') || '取消') + '</button>                                <button type=\'button\' class=\'btn btn-success btn-sm WSafeRestart\' >' + (lan && lan.index && t('index.auto_str_66_7') || '确定') + '</button>                            </div>                        </div>', {
         icon: 2
       });
       $(".layui-layer-close").show();
@@ -802,18 +802,18 @@ function pluginIndexService(pname, pfunc, callback) {
 function reBoot() {
   layer.open({
     type: 1,
-    title: lan && lan.index && t('index.auto_str_67') || "",
+    title: '<p>' + ('<p>' + (lan && lan.index && t('index.auto_str_67') || '正在停止Web服务') + '</p>' || '正在停止Web服务') + '</p>',
     area: ['350px', '250px'],
     closeBtn: 1,
     shadeClose: false,
-    content: lan && lan.index && t('index.auto_str_68') || ""
+    content: '<p>' + ('<p>' + (lan && lan.index && t('index.auto_str_68') || '正在停止MySQL服务...') + '</p>' || '正在停止MySQL服务...') + '</p>'
   });
   $('.rebt-con a').on('click', function () {
     var type = $(this).attr('data-id');
     switch (type) {
       case 'panel':
-        layer.confirm(lan && lan.index && t('index.auto_str_69') || "", {
-          title: lan && lan.index && t('index.auto_str_70') || "",
+        layer.confirm('<p>' + ('<p>' + (lan && lan.index && t('index.auto_str_69') || '开始重启服务器...') + '</p>' || '开始重启服务器...') + '</p>', {
+          title: '<p>' + ('<p>' + (lan && lan.index && t('index.auto_str_70') || '等待服务器启动...') + '</p>' || '等待服务器启动...') + '</p>',
           closeBtn: 1,
           icon: 3
         }, function () {
@@ -821,7 +821,7 @@ function reBoot() {
           $.post('/system/restart', '', function (rdata) {
             layer.close(loadT);
             var count = 10;
-            var msgBox = layer.msg((lan && lan.index && t('index.auto_str_71') || "") + count + (lan && lan.index && t('index.auto_str_72') || ""), {
+            var msgBox = layer.msg(('<p>' + ('<p>' + (lan && lan.index && t('index.auto_str_71') || '服务器重启成功!...') + '</p>' || '服务器重启成功!...') + '</p>') + count + (lan && lan.index && t('index.auto_str_72') || ""), {
               icon: 16,
               time: 0,
               shade: [0.3, '#000']
@@ -846,13 +846,13 @@ function reBoot() {
           icon: 3
         }, function () {
           var version = $("#version").text();
-          showUpdateUI(version, (lan && lan.index && t('index.auto_str_75') || "") + version + ']</span>', lan && lan.index && t('index.auto_str_76') || "");
+          showUpdateUI(version, ('<div class="pd20">                <table class="f14 showDanger">                    <tbody>                    <tr><td class="text-right" width="150">' + ('<div class="pd20">                <table class="f14 showDanger">                    <tbody>                    <tr><td class="text-right" width="150">' + (lan && lan.index && t('index.auto_str_75') || '风险类型：') + '</td><td class="f16" style="color:red">' + (lan && lan.index && t('index.auto_str_75_1') || '暴力破解') + ' <a href="https://www.bt.cn/bbs/thread-9562-1-1.html" class="btlink f14" style="margin-left:10px" target="_blank">' + (lan && lan.index && t('index.auto_str_75_2') || '说明') + '</a></td></tr>                    <tr><td class="text-right">' + (lan && lan.index && t('index.auto_str_75_3') || '累计遭遇攻击总数：') + '</td><td class="f16" style="color:red">' || '风险类型：') + '</td><td class="f16" style="color:red">' + (lan && lan.index && t('index.auto_str_75_1') || '暴力破解') + ' <a href="https://www.bt.cn/bbs/thread-9562-1-1.html" class="btlink f14" style="margin-left:10px" target="_blank">' + (lan && lan.index && t('index.auto_str_75_2') || '说明') + '</a></td></tr>                    <tr><td class="text-right">' + (lan && lan.index && t('index.auto_str_75_3') || '累计遭遇攻击总数：') + '</td><td class="f16" style="color:red">') + version + ']</span>', ' <a href="javascript:showDangerIP();" class="btlink f14" style="margin-left:10px">' + (' <a href="javascript:showDangerIP();" class="btlink f14" style="margin-left:10px">' + (lan && lan.index && t('index.auto_str_76') || '详细') + '</a><span class="c9 f12" style="margin-left:10px">' + (lan && lan.index && t('index.auto_str_76_1') || '（数据直接来源本服务器日志）') + '</span></td></tr>                    <tr><td class="text-right">' + (lan && lan.index && t('index.auto_str_76_2') || '风险等级：') + '</td><td class="f16" style="color:red">' + (lan && lan.index && t('index.auto_str_76_3') || '较高风险') + '</td></tr>                    <tr><td class="text-right" style="vertical-align:top">' + (lan && lan.index && t('index.auto_str_76_4') || '风险描述：') + '</td><td style="line-height:20px">' || '详细') + '</a><span class="c9 f12" style="margin-left:10px">' + (lan && lan.index && t('index.auto_str_76_1') || '（数据直接来源本服务器日志）') + '</span></td></tr>                    <tr><td class="text-right">' + (lan && lan.index && t('index.auto_str_76_2') || '风险等级：') + '</td><td class="f16" style="color:red">' + (lan && lan.index && t('index.auto_str_76_3') || '较高风险') + '</td></tr>                    <tr><td class="text-right" style="vertical-align:top">' + (lan && lan.index && t('index.auto_str_76_4') || '风险描述：') + '</td><td style="line-height:20px">');
         });
         break;
       case 'server':
         var rebootbox = layer.open({
           type: 1,
-          title: lan && lan.index && t('index.auto_str_77') || "",
+          title: '</td></tr>                    <tr><td class="text-right" style="vertical-align:top">' + ('</td></tr>                    <tr><td class="text-right" style="vertical-align:top">' + (lan && lan.index && t('index.auto_str_77') || '可参考解决方案：') + '</td><td><p style="margin-bottom:8px">' + (lan && lan.index && t('index.auto_str_77_1') || '方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。') + '</p><p>' + (lan && lan.index && t('index.auto_str_77_2') || '方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。') + '</p></td></tr>                    </tbody>                </table>            </div>' || '可参考解决方案：') + '</td><td><p style="margin-bottom:8px">' + (lan && lan.index && t('index.auto_str_77_1') || '方案一：修改SSH默认端口，修改SSH验证方式为数字证书，清除近期登陆日志。') + '</p><p>' + (lan && lan.index && t('index.auto_str_77_2') || '方案二：购买宝塔企业运维版，一键部署安全隔离服务，高效且方便。') + '</p></td></tr>                    </tbody>                </table>            </div>',
           area: ['500px', '280px'],
           closeBtn: 1,
           shadeClose: false,
@@ -865,10 +865,10 @@ function reBoot() {
           $(".WSafeRestart").on('click', function () {
             var body = '<div class="SafeRestartCode pd15" style="line-height:26px"></div>';
             $(".bt-window-restart").html(body);
-            $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_79') || "");
+            $(".SafeRestartCode").append('        <div class=\'rec-install\'>            <div class=\'important-title\'>                <p><span class=\'glyphicon glyphicon-info-sign\' style=\'color: #10b981; margin-right: 8px;\'></span>' + ('        <div class=\'rec-install\'>            <div class=\'important-title\'>                <p><span class=\'glyphicon glyphicon-info-sign\' style=\'color: #10b981; margin-right: 8px;\'></span>' + (lan && lan.index && t('index.auto_str_79') || '推荐以下一键套件，或在') + '<a href=\'javascript:jump()\' style=\'color:#10b981\'>' + (lan && lan.index && t('index.auto_str_79_1') || '软件管理') + '</a>' + (lan && lan.index && t('index.auto_str_79_2') || '按需选择。') + '</p>                <!-- <button style=\'margin-top: 8px;height: 30px;\' type=\'button\' class=\'btn btn-sm btn-default no-show-rec-btn\'>' + (lan && lan.index && t('index.auto_str_79_3') || '不再显示推荐') + '</button> -->            </div>            <div class=\'rec-box\'>                <h3 style=\'text-align: center\'>' + (lan && lan.index && t('index.auto_str_79_4') || '经典LNMP') + '</h3>                <div class=\'rec-box-con\'>                    <ul class=\'rec-list\'>' || '推荐以下一键套件，或在') + '<a href=\'javascript:jump()\' style=\'color:#10b981\'>' + (lan && lan.index && t('index.auto_str_79_1') || '软件管理') + '</a>' + (lan && lan.index && t('index.auto_str_79_2') || '按需选择。') + '</p>                <!-- <button style=\'margin-top: 8px;height: 30px;\' type=\'button\' class=\'btn btn-sm btn-default no-show-rec-btn\'>' + (lan && lan.index && t('index.auto_str_79_3') || '不再显示推荐') + '</button> -->            </div>            <div class=\'rec-box\'>                <h3 style=\'text-align: center\'>' + (lan && lan.index && t('index.auto_str_79_4') || '经典LNMP') + '</h3>                <div class=\'rec-box-con\'>                    <ul class=\'rec-list\'>');
             pluginIndexService('openresty', 'stop', function (r1) {
               $(".SafeRestartCode p").addClass('c9');
-              $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_80') || "");
+              $(".SafeRestartCode").append('</ul>                    <div class=\'onekey\'>' + ('</ul>                    <div class=\'onekey\'>' + (lan && lan.index && t('index.auto_str_80') || '一键安装') + '</div>                </div>            </div>        </div>' || '一键安装') + '</div>                </div>            </div>        </div>');
               pluginIndexService('mysql', 'stop', function (r2) {
                 $(".SafeRestartCode p").addClass('c9');
                 $(".SafeRestartCode").append(lan && lan.index && t('index.auto_str_81') || "");
@@ -1056,7 +1056,7 @@ function pluginInit() {
       },
       cancel: function () {
         layer.confirm(lan && lan.index && t('index.auto_str_93') || "", {
-          btn: [lan && lan.index && t('index.auto_str_94') || "", lan && lan.index && t('index.auto_str_95') || ""],
+          btn: [(((lan && lan.index && t('index.auto_str_94') || '">全部') + '</option>' || '">全部') || '">全部') + '</option>', lan && lan.index && t('index.auto_str_95') || ""],
           title: lan && lan.index && t('index.auto_str_96') || ""
         }, function () {
           $.post('/files/create_dir', 'path=/www/server/php', function (rdata) {
@@ -1495,7 +1495,7 @@ var index = {
                 read_time: lan && lan.index && t('index.auto_str_111') || "",
                 write_bytes: lan && lan.index && t('index.auto_str_112') || "",
                 write_count: lan && lan.index && t('index.auto_str_113') || "",
-                write_merged_count: lan && lan.index && t('index.auto_str_114') || "",
+                write_merged_count: (((lan && lan.index && t('index.auto_str_114') || '">全部') + '</option>' || '">全部') || '">全部') + '</option>',
                 write_time: lan && lan.index && t('index.auto_str_115') || ""
               },
               data = index.iostat.data.tipsData[config[0].dataIndex],
@@ -1582,7 +1582,7 @@ var index = {
           }
         },
         series: [{
-          name: lan && lan.index && t('index.auto_str_124') || "",
+          name: (((lan && lan.index && t('index.auto_str_124') || '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[支持]') + ' ' || '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[支持]') || '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[支持]') + ' ',
           type: 'line',
           data: index.iostat.data.yData,
           smooth: true,
@@ -1604,7 +1604,7 @@ var index = {
             }
           }
         }, {
-          name: lan && lan.index && t('index.auto_str_125') || "",
+          name: (((lan && lan.index && t('index.auto_str_125') || '<span style="color:#ccc; margin-right:6px; " title="[不支持]') + ' ' || '<span style="color:#ccc; margin-right:6px; " title="[不支持]') || '<span style="color:#ccc; margin-right:6px; " title="[不支持]') + ' ',
           type: 'line',
           data: index.iostat.data.zData,
           smooth: true,
@@ -1725,7 +1725,7 @@ var index = {
   }
 };
 function showSystemDetails() {
-  var loadT = layer.msg(lan && lan.index && t('index.auto_str_130') || "", {
+  var loadT = layer.msg((((lan && lan.index && t('index.auto_str_130') || '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效]') + ' ' || '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效]') || '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效]') + ' ', {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -1733,7 +1733,7 @@ function showSystemDetails() {
   $.get('/system/get_system_details', function (res) {
     layer.close(loadT);
     if (!res.status) {
-      layer.msg((lan && lan.index && t('index.auto_str_131') || "") + res.msg, {
+      layer.msg(((((lan && lan.index && t('index.auto_str_131') || '<span style="color:#ccc; margin-right:6px; " title="[未生效]') + ' ' || '<span style="color:#ccc; margin-right:6px; " title="[未生效]') || '<span style="color:#ccc; margin-right:6px; " title="[未生效]') + ' ') + res.msg, {
         icon: 2
       });
       return;
@@ -1753,29 +1753,29 @@ function showSystemDetails() {
         'AVX512': false
       };
       var getDesc = function (k) {
-        if (k === 'AES') return lan && lan.index && t('index.auto_str_132') || "";
-        if (k === 'VMX') return lan && lan.index && t('index.auto_str_133') || "";
-        if (k === 'AVX2') return lan && lan.index && t('index.auto_str_134') || "";
-        if (k === 'AVX512') return lan && lan.index && t('index.auto_str_135') || "";
+        if (k === 'AES') return '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效]">';
+        if (k === 'VMX') return '<h4><i class="glyphicon glyphicon-modal-window" style="color:#20a53a; margin-right:8px;"></i>' + ('<h4><i class="glyphicon glyphicon-modal-window" style="color:#20a53a; margin-right:8px;"></i>' + (lan && lan.index && t('index.auto_str_133') || '操作系统') + '</h4>' || '操作系统') + '</h4>';
+        if (k === 'AVX2') return '<tr title="操作系统具体的发行版及版本号"><td style="width:70px;">' + ('<tr title="操作系统具体的发行版及版本号"><td style="width:70px;">' + (lan && lan.index && t('index.auto_str_134') || '发行版本') + '</td><td>' || '发行版本') + '</td><td>';
+        if (k === 'AVX512') return '<tr title="系统核心程序版本，影响底层功能和驱动支持"><td>' + ('<tr title="系统核心程序版本，影响底层功能和驱动支持"><td>' + (lan && lan.index && t('index.auto_str_135') || '内核版本') + '</td><td>' || '内核版本') + '</td><td>';
         return k;
       };
       var html = '';
       for (var key in flags) {
         var desc = getDesc(key);
         if (flags[key]) {
-          html += (lan && lan.index && t('index.auto_str_136') || "") + desc + '">' + key + '</span>';
+          html += ('<tr title="CPU和操作系统的位数架构，通常为x86_64或aarch64"><td>' + ('<tr title="CPU和操作系统的位数架构，通常为x86_64或aarch64"><td>' + (lan && lan.index && t('index.auto_str_136') || '系统架构') + '</td><td>' || '系统架构') + '</td><td>') + desc + '">' + key + '</span>';
         } else {
-          html += (lan && lan.index && t('index.auto_str_137') || "") + desc + '">' + key + '</span>';
+          html += ('<tr title="当前系统运行的物理机或虚拟机环境平台"><td>' + ('<tr title="当前系统运行的物理机或虚拟机环境平台"><td>' + (lan && lan.index && t('index.auto_str_137') || '底层环境') + '</td><td>' || '底层环境') + '</td><td>') + desc + '">' + key + '</span>';
         }
       }
       return html;
     };
     var renderTcpCc = function (activeCc) {
-      if (!activeCc || activeCc === (lan && lan.index && t('index.auto_str_138') || "") || activeCc === "X") return "-";
+      if (!activeCc || activeCc === ('<h4><i class="glyphicon glyphicon-tasks" style="color:#20a53a; margin-right:8px;"></i>' + ('<h4><i class="glyphicon glyphicon-tasks" style="color:#20a53a; margin-right:8px;"></i>' + (lan && lan.index && t('index.auto_str_138') || '处理器') + '</h4>' || '处理器') + '</h4>') || activeCc === "X") return "-";
       var algorithms = ['BBR', 'Cubic', 'Reno'];
       var getDesc = function (a) {
-        if (a === 'BBR') return lan && lan.index && t('index.auto_str_139') || "";
-        if (a === 'Cubic') return lan && lan.index && t('index.auto_str_140') || "";
+        if (a === 'BBR') return '<tr title="处理器具体的品牌和型号名称"><td style="width:70px;">' + ('<tr title="处理器具体的品牌和型号名称"><td style="width:70px;">' + (lan && lan.index && t('index.auto_str_139') || '硬件型号') + '</td><td>' || '硬件型号') + '</td><td>';
+        if (a === 'Cubic') return '<tr title="处理器的物理核心数与逻辑线程总数"><td>' + ('<tr title="处理器的物理核心数与逻辑线程总数"><td>' + (lan && lan.index && t('index.auto_str_140') || '核心线程') + '</td><td>' || '核心线程') + '</td><td>';
         if (a === 'Reno') return lan && lan.index && t('index.auto_str_141') || "";
         return a;
       };
@@ -1786,31 +1786,31 @@ function showSystemDetails() {
         var algo = algorithms[i];
         var desc = getDesc(algo);
         if (algo.toLowerCase() === activeLower) {
-          html += (lan && lan.index && t('index.auto_str_142') || "") + desc + '">' + algo + '</span>';
+          html += (' ' + (' ' + (lan && lan.index && t('index.auto_str_142') || '线程') + '</td></tr>' || '线程') + '</td></tr>') + desc + '">' + algo + '</span>';
           found = true;
         } else {
-          html += (lan && lan.index && t('index.auto_str_143') || "") + desc + '">' + algo + '</span>';
+          html += ('<tr title="处理器当前运行的基础时钟频率"><td>' + ('<tr title="处理器当前运行的基础时钟频率"><td>' + (lan && lan.index && t('index.auto_str_143') || '基础频率') + '</td><td>' || '基础频率') + '</td><td>') + desc + '">' + algo + '</span>';
         }
       }
       if (!found) {
-        html += (lan && lan.index && t('index.auto_str_144') || "") + activeCc + '</span>';
+        html += ('<tr title="处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能"><td>' + ('<tr title="处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能"><td>' + (lan && lan.index && t('index.auto_str_144') || '指令集') + '</td><td>' || '指令集') + '</td><td>') + activeCc + '</span>';
       }
       return html;
     };
     var html = css + '<div style="padding: 15px 20px; overflow:hidden;">' + '<div class="row">' +
     // 操作系统
-    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_145') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_146') || "") + data.os.system + '</td></tr>' + (lan && lan.index && t('index.auto_str_147') || "") + data.os.kernel + '</td></tr>' + (lan && lan.index && t('index.auto_str_148') || "") + data.os.arch + '</td></tr>' + (lan && lan.index && t('index.auto_str_149') || "") + data.os.virtualization + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + ('<h4><i class="glyphicon glyphicon-globe" style="color:#20a53a; margin-right:8px;"></i>' + ('<h4><i class="glyphicon glyphicon-globe" style="color:#20a53a; margin-right:8px;"></i>' + (lan && lan.index && t('index.auto_str_145') || '网络与状态') + '</h4>' || '网络与状态') + '</h4>') + '<table class="table table-condensed" style="margin-bottom:0;">' + ('<tr title="服务器对外的公网或内网IP地址"><td style="width:70px;">IPv4/v6</td><td style="word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;">') + data.os.system + '</td></tr>' + ('<tr title="服务器所在机房的网络运营商及地理位置"><td>' + ('<tr title="服务器所在机房的网络运营商及地理位置"><td>' + (lan && lan.index && t('index.auto_str_147') || '网络节点') + '</td><td>' || '网络节点') + '</td><td>') + data.os.kernel + '</td></tr>' + ('<tr title="决定网络传输速度和稳定性的 TCP 拥塞控制策略"><td>' + ('<tr title="决定网络传输速度和稳定性的 TCP 拥塞控制策略"><td>' + (lan && lan.index && t('index.auto_str_148') || '拥塞算法') + '</td><td>' || '拥塞算法') + '</td><td>') + data.os.arch + '</td></tr>' + ('<tr title="系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度"><td>' + ('<tr title="系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度"><td>' + (lan && lan.index && t('index.auto_str_149') || '负载平均') + '</td><td>' || '负载平均') + '</td><td>') + data.os.virtualization + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // CPU
-    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_150') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_151') || "") + data.cpu.model + '</td></tr>' + (lan && lan.index && t('index.auto_str_152') || "") + data.cpu.cores + (lan && lan.index && t('index.auto_str_153') || "") + data.cpu.threads + (lan && lan.index && t('index.auto_str_154') || "") + (lan && lan.index && t('index.auto_str_155') || "") + data.cpu.freq + '</td></tr>' + (lan && lan.index && t('index.auto_str_156') || "") + renderFlags(data.cpu.flags) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + ('<h4><i class="glyphicon glyphicon-hdd" style="color:#20a53a; margin-right:8px;"></i>' + ('<h4><i class="glyphicon glyphicon-hdd" style="color:#20a53a; margin-right:8px;"></i>' + (lan && lan.index && t('index.auto_str_150') || '物理内存 & Swap') + '</h4>' || '物理内存 & Swap') + '</h4>') + '<table class="table table-condensed" style="margin-bottom:0;">' + ('<tr title="服务器安装的实际物理内存容量及当前使用率"><td style="width:70px;">' + ('<tr title="服务器安装的实际物理内存容量及当前使用率"><td style="width:70px;">' + (lan && lan.index && t('index.auto_str_151') || '物理内存') + '</td><td>' || '物理内存') + '</td><td>') + data.cpu.model + '</td></tr>' + ('<tr title="当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)"><td>' + ('<tr title="当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)"><td>' + (lan && lan.index && t('index.auto_str_152') || '交换分区') + '</td><td>' || '交换分区') + '</td><td>') + data.cpu.cores + ('<h4><i class="glyphicon glyphicon-floppy-disk" style="color:#20a53a; margin-right:8px;"></i>' + ('<h4><i class="glyphicon glyphicon-floppy-disk" style="color:#20a53a; margin-right:8px;"></i>' + (lan && lan.index && t('index.auto_str_153') || '磁盘容量') + '</h4>' || '磁盘容量') + '</h4>') + data.cpu.threads + ('<tr title="系统根目录所在磁盘的总容量与已用空间"><td>' + ('<tr title="系统根目录所在磁盘的总容量与已用空间"><td>' + (lan && lan.index && t('index.auto_str_154') || '根目录') + '</td><td>' || '根目录') + '</td><td>') + ('<tr title="磁盘当前尚未被占用、可供存储的剩余物理空间"><td>' + ('<tr title="磁盘当前尚未被占用、可供存储的剩余物理空间"><td>' + (lan && lan.index && t('index.auto_str_155') || '剩余可用') + '</td><td>' || '剩余可用') + '</td><td>') + data.cpu.freq + '</td></tr>' + (lan && lan.index && t('index.auto_str_156') || "") + renderFlags(data.cpu.flags) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // 网络与状态
-    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_157') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_158') || "") + (data.network.ipv4 === "X" ? "-" : data.network.ipv4) + '<br>' + (data.network.ipv6 === "X" ? "-" : data.network.ipv6.split("%")[0]) + '</td></tr>' + (lan && lan.index && t('index.auto_str_159') || "") + data.network.isp + ' (' + data.network.location + ')</td></tr>' + (lan && lan.index && t('index.auto_str_160') || "") + renderTcpCc(data.network.tcp_cc) + '</td></tr>' + (lan && lan.index && t('index.auto_str_161') || "") + data.status.load + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-4" style="margin-bottom:15px;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_157') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_158') || "") + (data.network.ipv4 === "X" ? "-" : data.network.ipv4) + '<br>' + (data.network.ipv6 === "X" ? "-" : data.network.ipv6.split("%")[0]) + '</td></tr>' + (lan && lan.index && t('index.auto_str_159') || "") + data.network.isp + ' (' + data.network.location + ')</td></tr>' + (lan && lan.index && t('index.auto_str_160') || "") + renderTcpCc(data.network.tcp_cc) + '</td></tr>' + ('        <!-- 系统配置 -->') + data.status.load + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // 内存
-    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_162') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_163') || "") + data.memory.used + ' / ' + data.memory.total + ' (' + data.memory.percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.memory.percent) + '</td></tr>' + (lan && lan.index && t('index.auto_str_164') || "") + data.memory.swap_used + ' / ' + data.memory.swap_total + ' (' + data.memory.swap_percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;">' + renderProgress(data.memory.swap_percent) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
+    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + ('                    <span class="glyphicon glyphicon-info-sign" style="color: #20a53a; font-size:14px;"></span> ' + ('                    <span class="glyphicon glyphicon-info-sign" style="color: #20a53a; font-size:14px;"></span> ' + (lan && lan.index && t('index.auto_str_162') || '系统基本信息') || '系统基本信息')) + '<table class="table table-condensed" style="margin-bottom:0;">' + ('                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>' + ('                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>' + (lan && lan.index && t('index.auto_str_163') || '环境准备中...') || '环境准备中...')) + data.memory.used + ' / ' + data.memory.total + ' (' + data.memory.percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.memory.percent) + '</td></tr>' + ('                    <tr style="border:none;"><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + ('                    <tr style="border:none;"><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + (lan && lan.index && t('index.auto_str_164') || '系统版本') + '</td><td id="sp-os" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' || '系统版本') + '</td><td id="sp-os" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>') + data.memory.swap_used + ' / ' + data.memory.swap_total + ' (' + data.memory.swap_percent.toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;">' + renderProgress(data.memory.swap_percent) + '</td></tr>' + '</table>' + '</div>' + '</div>' +
     // 磁盘
-    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + (lan && lan.index && t('index.auto_str_165') || "") + '<table class="table table-condensed" style="margin-bottom:0;">' + (lan && lan.index && t('index.auto_str_166') || "") + data.disk.used + ' / ' + data.disk.total + '</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.disk.percent) + '</td></tr>' + (lan && lan.index && t('index.auto_str_167') || "") + data.disk.free + ' (' + (100 - data.disk.percent).toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;"><div style="height:6px; margin:5px 0;"></div></td></tr>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
+    '<div class="col-sm-6" style="margin-bottom:0;">' + '<div class="glass-card">' + ('                        <td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;">' + ('                        <td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;">' + (lan && lan.index && t('index.auto_str_165') || 'CPU型号') + '</td>' || 'CPU型号') + '</td>') + '<table class="table table-condensed" style="margin-bottom:0;">' + ('                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + ('                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + (lan && lan.index && t('index.auto_str_166') || '物理内存') + '</td><td id="sp-mem" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;">-</td></tr>' || '物理内存') + '</td><td id="sp-mem" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;">-</td></tr>') + data.disk.used + ' / ' + data.disk.total + '</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.disk.percent) + '</td></tr>' + ('                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + ('                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + (lan && lan.index && t('index.auto_str_167') || '硬盘大小') + '</td><td id="sp-disk" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' || '硬盘大小') + '</td><td id="sp-disk" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>') + data.disk.free + ' (' + (100 - data.disk.percent).toFixed(1) + '%)</td></tr>' + '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;"><div style="height:6px; margin:5px 0;"></div></td></tr>' + '</table>' + '</div>' + '</div>' + '</div>' + '</div>';
     layer.open({
       type: 1,
-      title: lan && lan.index && t('index.auto_str_168') || "",
+      title: '        <!-- 磁盘IO -->',
       area: ['900px', '500px'],
       // 增加高度，彻底消除滚动条
       shadeClose: true,
@@ -1859,9 +1859,9 @@ function triggerSpeedReTest() {
   // 重置磁盘IO卡片
   $("#sp-io-container").hide();
   $("#sp-io-loader").show();
-  $("#sp-write-val").text(lan && lan.index && t('index.auto_str_169') || "");
+  $("#sp-write-val").text('                    <span class="glyphicon glyphicon-hdd" style="color: #20a53a; font-size:14px;"></span> ' + ('                    <span class="glyphicon glyphicon-hdd" style="color: #20a53a; font-size:14px;"></span> ' + (lan && lan.index && t('index.auto_str_169') || '磁盘 I/O 读写性能') || '磁盘 I/O 读写性能'));
   $("#sp-write-bar").css('width', '0%');
-  $("#sp-read-val").text(lan && lan.index && t('index.auto_str_170') || "").css('color', '#94a3b8');
+  $("#sp-read-val").text('                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>' + ('                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>' + (lan && lan.index && t('index.auto_str_170') || '等待测速信号...') || '等待测速信号...')).css('color', '#94a3b8');
   $("#sp-read-bar").css('width', '0%');
 
   // 重置云节点状态
@@ -1874,14 +1874,14 @@ function triggerSpeedReTest() {
       'animation': '',
       'color': '#94a3b8'
     });
-    $(this).find('.node-speed').text(lan && lan.index && t('index.auto_str_171') || "").css('color', '#64748b');
+    $(this).find('.node-speed').text('                            <span style="color:#64748b;">' + ('                            <span style="color:#64748b;">' + (lan && lan.index && t('index.auto_str_171') || '磁盘写入速度') + '</span>' || '磁盘写入速度') + '</span>').css('color', '#64748b');
   });
   startRealNewTest();
 }
 
 // 发起后台测速并开启轮询
 function startRealNewTest() {
-  var loadT = layer.msg(lan && lan.index && t('index.auto_str_172') || "", {
+  var loadT = layer.msg('                            <span id="sp-write-val" style="font-weight:600; color:#20a53a;">' + ('                            <span id="sp-write-val" style="font-weight:600; color:#20a53a;">' + (lan && lan.index && t('index.auto_str_172') || '测试中...') + '</span>' || '测试中...') + '</span>', {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -1901,7 +1901,7 @@ function startRealNewTest() {
 
 // 渲染测速弹窗公共方法
 function renderSpeedTestModal(historyData) {
-  var elegantHtml = '<div class="elegant-speed-container" style="padding: 20px; background: #fafafa; font-family: -apple-system,BlinkMacSystemFont,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif; color: #333; height: 100%; overflow-y: auto;">' + '    <div class="row" style="margin-left: -10px; margin-right: -10px;">' + (lan && lan.index && t('index.auto_str_173') || "") + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && t('index.auto_str_174') || "") + '                </div>' + '                <div id="sp-sys-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + (lan && lan.index && t('index.auto_str_175') || "") + '                </div>' + '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' + (lan && lan.index && t('index.auto_str_176') || "") + '                    <tr>' + (lan && lan.index && t('index.auto_str_177') || "") + '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' + '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' + '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' + '                        </td>' + '                    </tr>' + (lan && lan.index && t('index.auto_str_178') || "") + (lan && lan.index && t('index.auto_str_179') || "") + '                </table>' + '            </div>' + '        </div>' + (lan && lan.index && t('index.auto_str_180') || "") + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && t('index.auto_str_181') || "") + '                </div>' + '                <div id="sp-io-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + (lan && lan.index && t('index.auto_str_182') || "") + '                </div>' + '                <div id="sp-io-container" style="display: none; padding-top: 8px;">' + '                    <div style="margin-bottom: 15px;">' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + (lan && lan.index && t('index.auto_str_183') || "") + (lan && lan.index && t('index.auto_str_184') || "") + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-write-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #42d392, #20a53a); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                    <div>' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + (lan && lan.index && t('index.auto_str_185') || "") + (lan && lan.index && t('index.auto_str_186') || "") + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-read-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                </div>' + '            </div>' + '        </div>' + '    </div>' + (lan && lan.index && t('index.auto_str_187') || "") + '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' + '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' + '            <div style="display: flex; align-items: center; gap: 6px;">' + (lan && lan.index && t('index.auto_str_188') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_189') || "") + '        </div>' + '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' + (lan && lan.index && t('index.auto_str_190') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_191') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_192') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_193') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_194') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_195') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_196') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_197') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_198') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_199') || "") + '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' + (lan && lan.index && t('index.auto_str_200') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_201') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_202') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_203') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_204') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_205') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_206') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_207') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_208') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_209') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_210') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_211') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_212') || "") + '            </div>' + '        </div>' + '    </div>' + '    <pre id="speed_log_lst" style="display:none;"></pre>' + (lan && lan.index && t('index.auto_str_213') || "") + '    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' + '        <div>' + '            <button id="btn-re-test" class="btn btn-default btn-xs" style="display: none; padding: 4px 12px; font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; transition: all 0.2s ease; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="triggerSpeedReTest()">' + (lan && lan.index && t('index.auto_str_214') || "") + '            </button>' + '        </div>' + '        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; font-weight: 500;">' + '            <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' + (lan && lan.index && t('index.auto_str_215') || "") + '        </div>' + '    </div>' + '    <style>' + '        @keyframes spin {' + '            0% { transform: rotate(0deg); }' + '            100% { transform: rotate(360deg); }' + '        }' + '    </style>' + '</div>';
+  var elegantHtml = '<div class="elegant-speed-container" style="padding: 20px; background: #fafafa; font-family: -apple-system,BlinkMacSystemFont,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif; color: #333; height: 100%; overflow-y: auto;">' + '    <div class="row" style="margin-left: -10px; margin-right: -10px;">' + ('                            <span style="color:#64748b;">' + ('                            <span style="color:#64748b;">' + (lan && lan.index && t('index.auto_str_173') || '磁盘读取速度') + '</span>' || '磁盘读取速度') + '</span>') + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + ('                            <span id="sp-read-val" style="font-weight:600; color:#94a3b8;">' + ('                            <span id="sp-read-val" style="font-weight:600; color:#94a3b8;">' + (lan && lan.index && t('index.auto_str_174') || '等待中...') + '</span>' || '等待中...') + '</span>') + '                </div>' + '                <div id="sp-sys-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + ('    <!-- 下载速度 -->') + '                </div>' + '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' + ('                <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> ' + ('                <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> ' + (lan && lan.index && t('index.auto_str_176') || '多区域节点下载测速') || '多区域节点下载测速')) + '                    <tr>' + ('            <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">' + ('            <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">' + (lan && lan.index && t('index.auto_str_177') || '(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)') + '</span>' || '(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)') + '</span>') + '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' + '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' + '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' + '                        </td>' + '                    </tr>' + ('            <div class="node-row" data-node="阿里云杭州镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">') + ('                    <span>' + ('                    <span>' + (lan && lan.index && t('index.auto_str_179') || '阿里云杭州镜像源') + '</span>' || '阿里云杭州镜像源') + '</span>') + '                </table>' + '            </div>' + '        </div>' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + (lan && lan.index && t('index.auto_str_180') || '排队中') + '</div>' || '排队中') + '</div>') + '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' + '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' + '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' + ('            <div class="node-row" data-node="腾讯云南京镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">') + '                </div>' + '                <div id="sp-io-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' + ('                    <span>' + ('                    <span>' + (lan && lan.index && t('index.auto_str_182') || '腾讯云南京镜像源') + '</span>' || '腾讯云南京镜像源') + '</span>') + '                </div>' + '                <div id="sp-io-container" style="display: none; padding-top: 8px;">' + '                    <div style="margin-bottom: 15px;">' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + (lan && lan.index && t('index.auto_str_183') || '排队中') + '</div>' || '排队中') + '</div>') + ('            <div class="node-row" data-node="华为云深圳镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">') + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-write-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #42d392, #20a53a); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                    <div>' + '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' + ('                    <span>' + ('                    <span>' + (lan && lan.index && t('index.auto_str_185') || '华为云深圳镜像源') + '</span>' || '华为云深圳镜像源') + '</span>') + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + (lan && lan.index && t('index.auto_str_186') || '排队中') + '</div>' || '排队中') + '</div>') + '                        </div>' + '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' + '                            <div id="sp-read-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.5s ease;"></div>' + '                        </div>' + '                    </div>' + '                </div>' + '            </div>' + '        </div>' + '    </div>' + ('            <!-- 境内外分割线 -->') + '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' + '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' + '            <div style="display: flex; align-items: center; gap: 6px;">' + ('                <span style="background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;">' + ('                <span style="background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;">' + (lan && lan.index && t('index.auto_str_188') || '境外测试节点 (US / UK / DE / JP)') + '</span>' || '境外测试节点 (US / UK / DE / JP)') + '</span>') + '            </div>' + ('            <div class="node-row" data-node="美国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">') + '        </div>' + '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' + ('                    <span>' + ('                    <span>' + (lan && lan.index && t('index.auto_str_190') || '美国官方节点') + '</span>' || '美国官方节点') + '</span>') + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + (lan && lan.index && t('index.auto_str_191') || '排队中') + '</div>' || '排队中') + '</div>') + '                </div>' + ('            <div class="node-row" data-node="英国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">') + '            </div>' + ('                    <span>' + ('                    <span>' + (lan && lan.index && t('index.auto_str_193') || '英国官方节点') + '</span>' || '英国官方节点') + '</span>') + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + (lan && lan.index && t('index.auto_str_194') || '排队中') + '</div>' || '排队中') + '</div>') + '                </div>' + ('            <div class="node-row" data-node="德国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">') + '            </div>' + ('                    <span>' + ('                    <span>' + (lan && lan.index && t('index.auto_str_196') || '德国官方节点') + '</span>' || '德国官方节点') + '</span>') + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + (lan && lan.index && t('index.auto_str_197') || '排队中') + '</div>' || '排队中') + '</div>') + '                </div>' + ('            <div class="node-row" data-node="日本官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">') + '            </div>' + ('                    <span>' + ('                    <span>' + (lan && lan.index && t('index.auto_str_199') || '日本官方节点') + '</span>' || '日本官方节点') + '</span>') + '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + ('                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + (lan && lan.index && t('index.auto_str_200') || '排队中') + '</div>' || '排队中') + '</div>') + '            </div>' + ('    <!-- 底部控制栏与出品信息 -->') + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + ('                <span class="glyphicon glyphicon-repeat" style="font-size: 10px; margin-right: 4px;"></span>' + ('                <span class="glyphicon glyphicon-repeat" style="font-size: 10px; margin-right: 4px;"></span>' + (lan && lan.index && t('index.auto_str_202') || '再次测试') || '再次测试')) + '                </div>' + ('            <span>' + ('            <span>' + (lan && lan.index && t('index.auto_str_203') || '衢州御风科技有限公司出品') + '</span>' || '衢州御风科技有限公司出品') + '</span>') + '            </div>' + ('<span style="display: inline-flex; align-items: center; gap: 6px;"><svg viewBox="0 0 64 64" width="16" height="16" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M16 22 h32 v30 h-32 z" /><path d="M26 22 L28 8 h8 L38 22" /><path d="M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16" stroke-width="3.5" /><path d="M24 52 v6 h16 v-6" /></svg>' + ('<span style="display: inline-flex; align-items: center; gap: 6px;"><svg viewBox="0 0 64 64" width="16" height="16" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M16 22 h32 v30 h-32 z" /><path d="M26 22 L28 8 h8 L38 22" /><path d="M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16" stroke-width="3.5" /><path d="M24 52 v6 h16 v-6" /></svg>' + (lan && lan.index && t('index.auto_str_204') || '服务器性能与带宽测速') + '</span>' || '服务器性能与带宽测速') + '</span>') + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_205') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_206') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_207') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_208') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_209') || "") + '            </div>' + (lan && lan.index && t('index.auto_str_210') || "") + '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' + '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' + (lan && lan.index && t('index.auto_str_211') || "") + '                </div>' + (lan && lan.index && t('index.auto_str_212') || "") + '            </div>' + '        </div>' + '    </div>' + '    <pre id="speed_log_lst" style="display:none;"></pre>' + (lan && lan.index && t('index.auto_str_213') || "") + '    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' + '        <div>' + '            <button id="btn-re-test" class="btn btn-default btn-xs" style="display: none; padding: 4px 12px; font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; transition: all 0.2s ease; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="triggerSpeedReTest()">' + (lan && lan.index && t('index.auto_str_214') || "") + '            </button>' + '        </div>' + '        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; font-weight: 500;">' + '            <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' + (lan && lan.index && t('index.auto_str_215') || "") + '        </div>' + '    </div>' + '    <style>' + '        @keyframes spin {' + '            0% { transform: rotate(0deg); }' + '            100% { transform: rotate(360deg); }' + '        }' + '    </style>' + '</div>';
 
   // 打开弹出层
   layer.open({
@@ -2161,9 +2161,9 @@ function parseSpeedLog(logText) {
   var lines = logText.split('\n');
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
-    if (line.indexOf(lan && lan.index && t('index.auto_str_231') || "") > -1) {
+    if (line.indexOf((((lan && lan.index && t('index.auto_str_231') || '-> 节点:') || '-> 节点:') || '-> 节点:')) > -1) {
       data.cpu = line.replace(lan && lan.index && t('index.auto_str_232') || "", '').trim();
-    } else if (line.indexOf(lan && lan.index && t('index.auto_str_233') || "") > -1) {
+    } else if (line.indexOf((((lan && lan.index && t('index.auto_str_233') || '-> 节点:') || '-> 节点:') || '-> 节点:')) > -1) {
       data.mem = line.replace(lan && lan.index && t('index.auto_str_234') || "", '').trim();
     } else if (line.indexOf(lan && lan.index && t('index.auto_str_235') || "") > -1) {
       data.disk = line.replace(lan && lan.index && t('index.auto_str_236') || "", '').trim();
@@ -2182,12 +2182,12 @@ function parseSpeedLog(logText) {
         var nodeSpeed = lan && lan.index && t('index.auto_str_247') || "";
         if (parts.length >= 2 && parts[1].trim() !== '') {
           var val = parts[1].trim();
-          if (val.indexOf(lan && lan.index && t('index.auto_str_248') || "") > -1 || val.indexOf(lan && lan.index && t('index.auto_str_249') || "") > -1) {
+          if (val.indexOf(lan && lan.index && t('index.auto_str_248') || "") > -1 || val.indexOf('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + ('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + (lan && lan.index && t('index.auto_str_249') || '暂无登录记录') + '</div>' || '暂无登录记录') + '</div>') > -1) {
             nodeStatus = 'running';
-            nodeSpeed = lan && lan.index && t('index.auto_str_250') || "";
-          } else if (val.indexOf(lan && lan.index && t('index.auto_str_251') || "") > -1 || val.indexOf(lan && lan.index && t('index.auto_str_252') || "") > -1) {
+            nodeSpeed = '<th style="width: 55px;">' + ('<th style="width: 55px;">' + (lan && lan.index && t('index.auto_str_250') || '状态') + '</th>' || '状态') + '</th>';
+          } else if (val.indexOf('<th style="width: 55px;">' + ('<th style="width: 55px;">' + (lan && lan.index && t('index.auto_str_251') || '方式') + '</th>' || '方式') + '</th>') > -1 || val.indexOf('<th>' + ('<th>' + (lan && lan.index && t('index.auto_str_252') || '登录IP') + '</th>' || '登录IP') + '</th>') > -1) {
             nodeStatus = 'failed';
-            nodeSpeed = lan && lan.index && t('index.auto_str_253') || "";
+            nodeSpeed = '<th style="width: 110px;">' + ('<th style="width: 110px;">' + (lan && lan.index && t('index.auto_str_253') || '归属地') + '</th>' || '归属地') + '</th>';
           } else {
             nodeStatus = 'finished';
             nodeSpeed = val;
@@ -2213,7 +2213,7 @@ function getIpLocationFromCache(ip) {
       var item = cache[ip];
       if (item && item.loc && Date.now() - (item.t || 0) < 30 * 86400000) {
         // 若历史缓存为“未知归属地”或“未知”，视为失效并重新向后端拉取
-        if (item.loc === (lan && lan.index && t('index.auto_str_254') || "") || item.loc === (lan && lan.index && t('index.auto_str_255') || "") || item.loc === (lan && lan.index && t('index.auto_str_256') || "")) {
+        if (item.loc === ('<th style="text-align: right; width: 130px;">' + ('<th style="text-align: right; width: 130px;">' + (lan && lan.index && t('index.auto_str_254') || '登录时间') + '</th>' || '登录时间') + '</th>') || item.loc === ('<span class="login-tag login-tag-success"><span class="tag-dot"></span>' + ('<span class="login-tag login-tag-success"><span class="tag-dot"></span>' + (lan && lan.index && t('index.auto_str_255') || '成功') + '</span>' || '成功') + '</span>') || item.loc === ('<span class="login-tag login-tag-fail"><span class="tag-dot"></span>' + ('<span class="login-tag login-tag-fail"><span class="tag-dot"></span>' + (lan && lan.index && t('index.auto_str_256') || '失败') + '</span>' || '失败') + '</span>')) {
           return null;
         }
         return item.loc;
@@ -2227,7 +2227,7 @@ function getIpLocationFromCache(ip) {
 function saveIpLocationToCache(ip, loc) {
   if (!ip || !loc) return;
   // 若解析为未知归属地，不写入长期缓存，留待下一次重试自愈
-  if (loc === (lan && lan.index && t('index.auto_str_257') || "") || loc === (lan && lan.index && t('index.auto_str_258') || "") || loc === (lan && lan.index && t('index.auto_str_259') || "")) return;
+  if (loc === ('<span class="login-curr-tag">' + ('<span class="login-curr-tag">' + (lan && lan.index && t('index.auto_str_257') || '本次') + '</span>' || '本次') + '</span>') || loc === ((((lan && lan.index && t('index.auto_str_258') || '">查询中...') + '</span>' || '">查询中...') || '">查询中...') + '</span>') || loc === (lan && lan.index && t('index.auto_str_259') || "")) return;
   try {
     var cache = {};
     var cacheStr = localStorage.getItem('bt_ip_loc_cache');
@@ -2295,12 +2295,12 @@ function renderRecentLoginsTable(data) {
   }
   var list = data.list || [];
   if (list.length === 0) {
-    $('#recentLoginsTableBody').html(lan && lan.index && t('index.auto_str_261') || "");
+    $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + ('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + (lan && lan.index && t('index.auto_str_261') || '暂无登录记录') + '</div>' || '暂无登录记录') + '</div>');
     return;
   }
   var html = '<table class="table recent-logins-table">';
   html += '<thead><tr>';
-  html += lan && lan.index && t('index.auto_str_262') || "";
+  html += '<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + ('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + (lan && lan.index && t('index.auto_str_262') || '获取失败，请稍后重试') + '</div>' || '获取失败，请稍后重试') + '</div>';
   html += lan && lan.index && t('index.auto_str_263') || "";
   html += lan && lan.index && t('index.auto_str_264') || "";
   html += lan && lan.index && t('index.auto_str_265') || "";

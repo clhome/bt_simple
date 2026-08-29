@@ -45,7 +45,7 @@ $(function () {
 
   // start 
   $.post('/firewall/get_www_path', function (data) {
-    var html = '<a class="btlink" href="javascript:openPath(\'' + data['path'] + (lan && lan.firewall && t('firewall.firewall_auto_str_3') || "");
+    var html = '<a class="btlink" href="javascript:openPath(\'' + data['path'] + '\');">日志目录</a><em id="logSize">0KB</em><button class="btn btn-default btn-sm" onclick="closeLogs();">清空</button>';
     $('#firewall_weblog').html(html);
     $.post('/files/get_dir_size', 'path=' + data['path'], function (rdata) {
       $("#logSize").html(rdata.msg);
@@ -81,7 +81,38 @@ function sshMgr() {
     var pass_prohibit_status = !rdata.pass_prohibit_status ? 'checked' : '';
     var pubkey_prohibit_status = !rdata.pubkey_prohibit_status ? 'checked' : '';
     var root_prohibit_status = !rdata.root_prohibit_status ? 'checked' : '';
-    var con = (lan && lan.firewall && t('firewall.firewall_auto_str_7') || "") + ssh_status + (lan && lan.firewall && t('firewall.firewall_auto_str_8') || "") + root_prohibit_status + (lan && lan.firewall && t('firewall.firewall_auto_str_9') || "") + pass_prohibit_status + (lan && lan.firewall && t('firewall.firewall_auto_str_10') || "") + pubkey_prohibit_status + (lan && lan.firewall && t('firewall.firewall_auto_str_11') || "");
+    var con = '<div class="pd15" style="padding: 20px;">' +
+      '<div style="display: flex; flex-direction: column; gap: 15px;">' +
+      '<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
+      '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.start_ssh || '启动SSH') + '</span>' +
+      '<div class="ssh-item" style="margin-left:0">' +
+      '<input class="btswitch btswitch-ios" id="sshswitch" type="checkbox" ' + ssh_status + '>' +
+      '<label class="btswitch-btn" for="sshswitch" onclick="setMstscStatus()"></label>' +
+      '</div></div>' +
+      '<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
+      '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.allow_root || '允许root登陆') + '</span>' +
+      '<div class="ssh-item" style="margin-left:0">' +
+      '<input class="btswitch btswitch-ios" id="root_status" type="checkbox" ' + root_prohibit_status + '>' +
+      '<label class="btswitch-btn" for="root_status" onclick="setSshRootStatus()"></label>' +
+      '</div></div>' +
+      '<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
+      '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.allow_pass || '允许密码登陆') + '</span>' +
+      '<div class="ssh-item" style="margin-left:0">' +
+      '<input class="btswitch btswitch-ios" id="pass_status" type="checkbox" ' + pass_prohibit_status + '>' +
+      '<label class="btswitch-btn" for="pass_status" onclick="setSshPassStatus()"></label>' +
+      '</div></div>' +
+      '<div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">' +
+      '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.allow_pubkey || '允许密钥登陆') + '</span>' +
+      '<div class="ssh-item" style="margin-left:0">' +
+      '<input class="btswitch btswitch-ios" id="pubkey_status" type="checkbox" ' + pubkey_prohibit_status + '>' +
+      '<label class="btswitch-btn" for="pubkey_status" onclick="setSshPubkeyStatus()"></label>' +
+      '</div></div>' +
+      '<div style="display: flex; justify-content: space-between; align-items: center; padding-top: 5px;">' +
+      '<span style="font-size: 14px; font-weight: 500; color: #333;">' + (lan && lan.firewall && lan.firewall.root_key || 'Root密钥') + '</span>' +
+      '<div class="ssh-item" style="margin-left:0; display: flex; gap: 10px;">' +
+      '<button class="btn btn-default btn-sm" onclick="downloadRootKey()" style="border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;">' + (lan && lan.firewall && lan.firewall.download_key || '下载密钥') + '</button>' +
+      '<button class="btn btn-default btn-sm" onclick="resetRootKey()" style="border-radius: 4px; padding: 5px 12px; font-size: 12px; color: #555;">' + (lan && lan.firewall && lan.firewall.reset_key || '重置/生成密钥') + '</button>' +
+      '</div></div></div></div>';
     layer.open({
       type: 1,
       title: lan && lan.firewall && t('firewall.firewall_auto_str_12') || "",
@@ -428,7 +459,7 @@ function showAccept(page) {
       if (currentType == 'port') {
         port_display = data.data[i].port.indexOf('.') == -1 ? data.data[i].port : (lan && lan.firewall && t('firewall.firewall_auto_str_42') || "") + data.data[i].port + ']';
       } else {
-        var type_text = data.data[i].type == 'address_allow' ? lan && lan.firewall && t('firewall.firewall_auto_str_43') || "" : lan && lan.firewall && t('firewall.firewall_auto_str_44') || "";
+        var type_text = data.data[i].type == 'address_allow' ? '<span style="color:#20a53a;">' + (lan && lan.firewall && lan.firewall.allow_ip || '放行IP') + '</span>' : '<span style="color:red;">' + (lan && lan.firewall && lan.firewall.ban_ip || '禁止IP') + '</span>';
         port_display = type_text + ':[' + data.data[i].port + ']';
       }
       var port_status_td = "";
@@ -564,7 +595,7 @@ function addIpFirewall() {
     }, 'json');
   };
   if (stype == 'address_allow') {
-    layer.confirm(lan && lan.firewall && t('firewall.firewall_auto_str_55') || "", {
+    layer.confirm('<span style="color:red;font-weight:bold;">警告：放行该IP将允许其访问服务器所有端口，存在安全风险！</span><br>仅建议用于临时测试，用完请及时关闭。确定继续吗？', {
       title: lan && lan.firewall && t('firewall.firewall_auto_str_56') || "",
       icon: 0,
       btn: [lan && lan.firewall && t('firewall.firewall_auto_str_57') || "", lan && lan.firewall && t('firewall.firewall_auto_str_58') || ""]
@@ -660,10 +691,13 @@ function syncServer() {
 }
 function showPortProcessInfo(ps_json, port) {
   var ps = JSON.parse(decodeURIComponent(ps_json));
-  var con = (lan && lan.firewall && t('firewall.firewall_auto_str_69') || "") + ps.name + (lan && lan.firewall && t('firewall.firewall_auto_str_70') || "") + ps.pid + (lan && lan.firewall && t('firewall.firewall_auto_str_71') || "") + ps.cmdline + '</td></tr>\
-            </tbody>\
-        </table>\
-    </div>';
+  var con = '<div style="padding: 20px;">' +
+        '<table class="table table-bordered table-hover" style="table-layout: fixed; word-wrap: break-word;">' +
+        '<tbody>' +
+        '<tr><td width="100" style="background-color: #f9f9f9; font-weight: bold;">进程名</td><td>' + ps.name + '</td></tr>' +
+        '<tr><td style="background-color: #f9f9f9; font-weight: bold;">进程pid</td><td>' + ps.pid + '</td></tr>' +
+        '<tr><td style="background-color: #f9f9f9; font-weight: bold;">启动命令</td><td>' + ps.cmdline + '</td></tr>' +
+        '</tbody></table></div>';
   layer.open({
     type: 1,
     title: port + (lan && lan.firewall && t('firewall.firewall_auto_str_72') || ""),

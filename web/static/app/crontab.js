@@ -53,7 +53,7 @@ function getLogs(id, task_name) {
         clearInterval(reqTimer);
       }
     },
-    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;">' + (lan && lan.crontab && t('crontab.crontab_auto_str_6') || "") + '</label>' + '<button class="btn btn-default btn-sm" onclick="startTask(' + id + ', \'' + (task_name || '').replace(/'/g, "\\'") + (lan && lan.crontab && t('crontab.crontab_auto_str_7') || "") + (task_name ? (lan && lan.crontab && t('crontab.crontab_auto_str_8') || "") + task_name + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
+    content: '<div class="setchmod bt-form" style="padding:15px;">' + '<div style="margin-bottom: 10px; height: 30px;">' + '<div class="pull-left" style="line-height: 30px;">' + '<label style="font-weight: normal; cursor: pointer; color: #666; user-select: none; margin-right: 15px;"><input type="checkbox" id="log_refresh_switch" checked style="vertical-align: middle; margin-right: 5px; margin-top: -2px;">' + (lan && lan.crontab && lan.crontab.auto_refresh || '自动刷新') + '</label>' + '<button class="btn btn-default btn-sm" onclick="startTask(' + id + ', \'' + (task_name || '').replace(/'/g, "\\'") + '\', true)">' + (lan && lan.public && lan.public.execute || '执行任务') + '</button>' + (task_name ? '<span style="margin-left: 20px; color: #666;">' + (lan && lan.crontab && lan.crontab.task_name || '任务名称:') + '</span><span style="margin-left: 10px; font-weight: bold;">' + task_name + '</span>' : '') + '</div>' + '</div>' + '<pre id="crontab_log" style="overflow: auto; border: 0px none; line-height:23px;padding: 5px; margin: 0px; white-space: pre-wrap; height: 495px; background-color: rgb(51,51,51);color:#f1f1f1;border-radius:0px;font-family:"></pre>' + '</div>',
     success: function (layero, index) {
       requestLogs(index);
       reqTimer = setInterval(function () {
@@ -101,7 +101,7 @@ function getCronData(page) {
     } else {
       for (var i = 0; i < rdata.data.length; i++) {
         //状态
-        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + (lan && lan.crontab && t('crontab.crontab_auto_str_10') || "") : '<span onclick="setTaskStatus(' + rdata.data[i].id + (lan && lan.crontab && t('crontab.crontab_auto_str_11') || "");
+        var status = rdata.data[i]['status'] == '1' ? '<span class="btOpen" onclick="setTaskStatus(' + rdata.data[i].id + ",0)" style="color:rgb(92, 184, 92);cursor:pointer" title="停用该计划任务">" + (lan && lan.public && lan.public.normal || '正常') + "<span class="glyphicon glyphicon-play"></span></a>" : '<span onclick="setTaskStatus(' + rdata.data[i].id + ",1)" class="btClose" style="color:red;cursor:pointer" title="启用该计划任务">" + (lan && lan.crontab && lan.crontab.stopped || '停用') + "<span style="color:rgb(255, 0, 0);" class="glyphicon glyphicon-pause"></span></a>";
         var cron_save = '--';
         if (rdata.data[i]['save'] != '') {
           cron_save = rdata.data[i]['save'] + (lan && lan.crontab && t('crontab.crontab_auto_str_12') || "");
@@ -123,7 +123,7 @@ function getCronData(page) {
 					<td>" + (rdata.data[i].day_type_h == (lan && lan.crontab && t('crontab.crontab_auto_str_14') || "") ? '' : rdata.data[i].day_type_h) + "</td>\
 					<td>" + rdata.data[i].last_run_time + "</td>\
 					<td>\
-						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && t('crontab.crontab_auto_str_15') || "") + rdata.data[i].id + (lan && lan.crontab && t('crontab.crontab_auto_str_16') || "") + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && t('crontab.crontab_auto_str_17') || "") + rdata.data[i].id + " ,'" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + (lan && lan.crontab && t('crontab.crontab_auto_str_18') || "");
+						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + \');" class=\'btlink\'>' + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:editTaskInfo(\'' + rdata.data[i].id + \');" class=\'btlink\'>' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:getLogs(\'' + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + \');" class=\'btlink\'>' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:planDel(\'' + rdata.data[i].id + " ,'" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + \');" class=\'btlink\'>' + (lan && lan.public && lan.public.del || '删除') + '</a></td></tr>';
       }
     }
     $('#cronbody').html(cbody);
@@ -553,7 +553,7 @@ function toLogsHtml(type) {
       sOpt += '<li><a role="menuitem" tabindex="-1" href="javascript:;" value="' + rdata.data[i].name + '">' + rdata.data[i].name + '[' + rdata.data[i].ps + ']</a></li>';
     }
     if (sType != 'path') {
-      sOpt = (lan && lan.crontab && t('crontab.crontab_auto_str_51') || "") + sOpt;
+      sOpt = "<li><a role='menuitem' tabindex='-1' href='javascript:;' value='ALL'>" + (lan && lan.public && lan.public.all || '所有') + "</a></li>" + sOpt;
     }
     var orderOpt = '';
     for (var i = 0; i < rdata.orderOpt.length; i++) {
@@ -569,7 +569,7 @@ function toLogsHtml(type) {
 					  </button>\
 					  <ul class="dropdown-menu" role="menu" aria-labelledby="backdata">' + sOpt + '</ul>\
 					</div>\
-					' + changeDir + (lan && lan.crontab && t('crontab.crontab_auto_str_52') || "");
+					' + changeDir + "</div><div class='textname pull-left mr20'>" + (lan && lan.crontab && lan.crontab.keep_latest || '保留最新') + "</div><div class='plan_hms pull-left mr20 bt-input-text'><span><input type='number' name='save' id='save' value='";
     $("#implement").html(sBody);
     getselectname();
     $('.changePathDir').on('click', function () {
@@ -637,7 +637,7 @@ function toBackup(type) {
       sOpt += '<li><a role="menuitem" tabindex="-1" href="javascript:;" value="' + rdata.data[i].name + '">' + rdata.data[i].name + '[' + rdata.data[i].ps + ']</a></li>';
     }
     if (sType != 'path') {
-      sOpt = (lan && lan.crontab && t('crontab.crontab_auto_str_59') || "") + sOpt;
+      sOpt = "<li><a role='menuitem' tabindex='-1' href='javascript:;' value='ALL'>" + (lan && lan.public && lan.public.all || '所有') + "</a></li>" + sOpt;
     }
     var orderOpt = '';
     for (var i = 0; i < rdata.orderOpt.length; i++) {
@@ -653,7 +653,7 @@ function toBackup(type) {
 		  	</button>\
 		 	<ul class="dropdown-menu" role="menu" aria-labelledby="backdata">' + sOpt + '</ul>\
 		</div>\
-		' + changeDir + (lan && lan.crontab && t('crontab.crontab_auto_str_60') || "") + orderOpt + (lan && lan.crontab && t('crontab.crontab_auto_str_61') || "");
+		' + changeDir + "<div class='textname pull-left mr20'>" + (lan && lan.crontab && lan.crontab.backup_to || '备份到') + "</div><div class='dropdown planBackupTo pull-left mr20'><button class='btn btn-default dropdown-toggle' type='button' id='excode' data-toggle='dropdown' style='width:auto;'><b val='localhost'>" + (lan && lan.crontab && lan.crontab.disk || '服务器磁盘') + "</b><span class='caret'></span></button><ul class='dropdown-menu' role='menu' aria-labelledby='backupTo'>" + orderOpt + "</ul></div><div class='textname pull-left mr20'>" + (lan && lan.crontab && lan.crontab.keep_latest || '保留最新') + "</div><div class='plan_hms pull-left mr20 bt-input-text'><span><input type='number' name='save' id='save' value='3' maxlength='4' max='100' min='1'></span><span class='name'>" + (lan && lan.crontab && lan.crontab.unit_copy || '份') + "</span></div>";
     $("#implement").html(sBody);
     getselectname();
     $('.changePathDir').on('click', function () {
@@ -789,42 +789,70 @@ function editTaskInfo(id) {
         skin: 'layer-create-content',
         shadeClose: false,
         closeBtn: 1,
-        content: (lan && lan.crontab && t('crontab.crontab_auto_str_88') || "") + obj.from.type + '">' + sTypeName + '</b>\
-								<span class="caret"></span>\
-							</button>\
-							<ul class="dropdown-menu" role="menu" aria-labelledby="sType">' + sTypeDom + (lan && lan.crontab && t('crontab.crontab_auto_str_89') || "") + obj.from.name + (lan && lan.crontab && t('crontab.crontab_auto_str_90') || "") + obj.from.stype + '">' + cycleName + '</b>\
-								<span class="caret"></span>\
-							</button>\
-							<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">' + cycleDom + '</ul>\
-						</div>\
-						<div class="pull-left optional_week">\
-							<div class="dropdown week_btn pull-left mr20" style="display:' + (obj.from.type == "week" ? 'block;' : 'none') + '">\
-								<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" >\
-									<b val="' + obj.from.week + '">' + weekName + '</b> \
-									<span class="caret"></span>\
-								</button>\
-								<ul class="dropdown-menu" role="menu" aria-labelledby="week">' + weekDom + '</ul>\
-							</div>\
-							<div class="plan_hms pull-left mr20 bt-input-text where1_input" style="display:' + (obj.from.type == "day-n" || obj.from.type == 'month' ? 'block;' : 'none') + '"><span><input type="number" name="where1" class="where1_create" value="' + obj.from.where1 + (lan && lan.crontab && t('crontab.crontab_auto_str_91') || "") + (obj.from.type == "day" || obj.from.type == 'day-n' || obj.from.type == 'hour-n' || obj.from.type == 'week' || obj.from.type == 'month' ? 'block;' : 'none') + '"><span><input type="number" name="hour" class="hour_create" value="' + (obj.from.type == 'hour-n' ? obj.from.where1 : obj.from.hour) + (lan && lan.crontab && t('crontab.crontab_auto_str_92') || "") + (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute) + (lan && lan.crontab && t('crontab.crontab_auto_str_93') || "") + (obj.from.type == "minute-n" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_94') || "") + (obj.from.min_start_en == 1 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_95') || "") + obj.from.min_start_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
-							<input type="number" name="min_start_m_create" value="' + obj.from.min_start_m + '" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px; margin-right: 15px;">\
-							<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en_create" value="1" ' + (obj.from.min_end_en == 1 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_96') || "") + obj.from.min_end_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
-							<input type="number" name="min_end_m_create" value="' + obj.from.min_end_m + (lan && lan.crontab && t('crontab.crontab_auto_str_97') || "") + (obj.from.day_type == 0 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_98') || "") + (obj.from.day_type == 1 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_99') || "") + (obj.from.day_type == 2 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_100') || "") + (obj.from.day_type == 3 ? 'checked' : '') + (lan && lan.crontab && t('crontab.crontab_auto_str_101') || "") + sTypeName + '</span>\
-						<div style="line-height:34px"><div class="dropdown pull-left mr20 sName_btn" style="display:' + (obj.from.sType != "path" ? 'block;' : 'none') + '">\
-							<button class="btn btn-default dropdown-toggle sname" type="button"  data-toggle="dropdown" style="width:auto" disabled="disabled">\
-								<b id="sName" val="' + obj.from.sname + '">' + obj.from.sname + '</b>\
-								<span class="caret"></span>\
-							</button>\
-							<ul class="dropdown-menu" role="menu" aria-labelledby="sName">' + sNameDom + '</ul>\
-						</div>\
-						<div class="info-r" style="float: left;margin-right: 25px;display:' + (obj.from.sType == "path" ? 'block;' : 'none') + '">\
-							<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="' + obj.from.sName + (lan && lan.crontab && t('crontab.crontab_auto_str_102') || "") + changeDir + (lan && lan.crontab && t('crontab.crontab_auto_str_103') || "") + obj.from.backup_to + '">' + backupsName + '</b>\
-									<span class="caret"></span>\
-								</button>\
-								<ul class="dropdown-menu" role="menu" aria-labelledby="backupTo">' + backupsDom + (lan && lan.crontab && t('crontab.crontab_auto_str_104') || "") + obj.from.save + (lan && lan.crontab && t('crontab.crontab_auto_str_105') || "") + (obj.from.stype == "toShell" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_106') || "") + obj.from.sbody + '</textarea></div>\
-					</div>\
-					<div class="clearfix plan ptb10"  style="display:' + (obj.from.stype == "path" || obj.from.stype == "site" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_107') || "") + exclude_dirs_placeholder + '">' + obj.from.attr + '</textarea></div>\
-					</div>\
-					<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "rememory" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_108') || "") + (obj.from.stype == "toUrl" ? 'block;' : 'none') + (lan && lan.crontab && t('crontab.crontab_auto_str_109') || "") + obj.from.url_address + (lan && lan.crontab && t('crontab.crontab_auto_str_110') || ""),
+        content: '<div class="setting-con ptb20"><div class="clearfix plan ptb10">' +
+    '<span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.task_type || '任务类型') + '</span>' +
+    '<div class="dropdown stype_list pull-left mr20">' +
+    '<button class="btn btn-default dropdown-toggle" type="button" id="excode" data-toggle="dropdown" style="width:auto" disabled="disabled">' +
+    '<b val="' + obj.from.type + '">' + sTypeName + '</b><span class="caret"></span></button>' +
+    '<ul class="dropdown-menu" role="menu" aria-labelledby="sType">' + sTypeDom + '</ul></div></div>' +
+    '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.task_name || '任务名称') + '</span>' +
+    '<div class="planname pull-left"><input type="text" name="name" class="bt-input-text sname_create" value="' + obj.from.name + '"></div></div>' +
+    '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.execute_cycle || '执行周期') + '</span>' +
+    '<div class="dropdown  pull-left mr20"><button class="btn btn-default dropdown-toggle cycle_btn" type="button" data-toggle="dropdown" style="width:94px">' +
+    '<b val="' + obj.from.stype + '">' + cycleName + '</b><span class="caret"></span></button>' +
+    '<ul class="dropdown-menu" role="menu" aria-labelledby="cycle">' + cycleDom + '</ul></div>' +
+    '<div class="pull-left optional_week"><div class="dropdown week_btn pull-left mr20" style="display:' + (obj.from.type == "week" ? 'block;' : 'none') + '">' +
+    '<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" >' +
+    '<b val="' + obj.from.week + '">' + weekName + '</b><span class="caret"></span></button>' +
+    '<ul class="dropdown-menu" role="menu" aria-labelledby="week">' + weekDom + '</ul></div>' +
+    '<div class="plan_hms pull-left mr20 bt-input-text where1_input" style="display:' + (obj.from.type == "day-n" || obj.from.type == 'month' ? 'block;' : 'none') + '">' +
+    '<span><input type="number" name="where1" class="where1_create" value="' + obj.from.where1 + '" maxlength="2" max="23" min="0"></span> <span class="name">' + (lan && lan.crontab && lan.crontab.day || '日') + '</span> </div>' +
+    '<div class="plan_hms pull-left mr20 bt-input-text hour_input" style="display:' + (obj.from.type == "day" || obj.from.type == 'day-n' || obj.from.type == 'hour-n' || obj.from.type == 'week' || obj.from.type == 'month' ? 'block;' : 'none') + '">' +
+    '<span><input type="number" name="hour" class="hour_create" value="' + (obj.from.type == 'hour-n' ? obj.from.where1 : obj.from.hour) + '" maxlength="2" max="23" min="0"></span> <span class="name">' + (lan && lan.crontab && lan.crontab.hour || '时') + '</span> </div>' +
+    '<div class="plan_hms pull-left mr20 bt-input-text minute_input">' +
+    '<span><input type="number" name="minute" class="minute_create" value="' + (obj.from.type == 'minute-n' ? obj.from.where1 : obj.from.minute) + '" maxlength="2" max="59" min="0"></span> <span class="name">' + (lan && lan.crontab && lan.crontab.minute || '分') + '</span> </div>' +
+    '</div></div>' +
+    '<div class="clearfix plan ptb10 minute_n_time_range_create" style="display:' + (obj.from.type == "minute-n" ? 'block;' : 'none') + '">' +
+    '<span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.execute_time || '执行时间') + '</span>' +
+    '<div class="pull-left" style="line-height:34px">' +
+    '<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_start_en_create" value="1" ' + (obj.from.min_start_en == 1 ? 'checked' : '') + ' style="vertical-align:middle;margin-top:-2px;"> ' + (lan && lan.crontab && lan.crontab.start_time || '开始时间') + '</label>' +
+    '<input type="number" name="min_start_h_create" value="' + obj.from.min_start_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:' +
+    '<input type="number" name="min_start_m_create" value="' + obj.from.min_start_m + '" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px; margin-right: 15px;">' +
+    '<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en_create" value="1" ' + (obj.from.min_end_en == 1 ? 'checked' : '') + ' style="vertical-align:middle;margin-top:-2px;"> ' + (lan && lan.crontab && lan.crontab.end_time || '结束时间') + '</label>' +
+    '<input type="number" name="min_end_h_create" value="' + obj.from.min_end_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:' +
+    '<input type="number" name="min_end_m_create" value="' + obj.from.min_end_m + '" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px;"></div></div>' +
+    '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.date_limit || '日期限制') + '</span>' +
+    '<div class="pull-left" style="line-height:34px">' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="0" ' + (obj.from.day_type == 0 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.no_limit || '无') + '</label>' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="1" ' + (obj.from.day_type == 1 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.stock_day || '股票开盘日') + '</label>' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="2" ' + (obj.from.day_type == 2 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.work_day || '工作日') + '</label>' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="3" ' + (obj.from.day_type == 3 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.holiday || '节假日') + '</label></div></div>' +
+    '<div class="clearfix plan ptb10 site_list" style="display:none"><span class="typename controls c4 pull-left f14 text-right mr20">' + sTypeName + '</span>' +
+    '<div style="line-height:34px"><div class="dropdown pull-left mr20 sName_btn" style="display:' + (obj.from.sType != "path" ? 'block;' : 'none') + '">' +
+    '<button class="btn btn-default dropdown-toggle sname" type="button" data-toggle="dropdown" style="width:auto" disabled="disabled">' +
+    '<b id="sName" val="' + obj.from.sname + '">' + obj.from.sname + '</b><span class="caret"></span></button>' +
+    '<ul class="dropdown-menu" role="menu" aria-labelledby="sName">' + sNameDom + '</ul></div>' +
+    '<div class="info-r" style="float: left;margin-right: 25px;display:' + (obj.from.sType == "path" ? 'block;' : 'none') + '">' +
+    '<input id="inputPath" class="bt-input-text mr5 " type="text" name="path" value="' + obj.from.sName + '" placeholder="备份目录" style="width:208px;height:33px;" disabled="disabled"></div>' + changeDir +
+    '<div class="textname pull-left mr20">' + (lan && lan.crontab && lan.crontab.backup_to || '备份到') + '</div>' +
+    '<div class="dropdown  pull-left mr20"><button class="btn btn-default dropdown-toggle backup_btn" type="button" data-toggle="dropdown" style="width:auto;">' +
+    '<b val="' + obj.from.backup_to + '">' + backupsName + '</b><span class="caret"></span></button>' +
+    '<ul class="dropdown-menu" role="menu" aria-labelledby="backupTo">' + backupsDom + '</ul></div>' +
+    '<div class="textname pull-left mr20">' + (lan && lan.crontab && lan.crontab.keep_latest || '保留最新') + '</div>' +
+    '<div class="plan_hms pull-left mr20 bt-input-text"><span><input type="number" name="save" class="save_create" value="' + obj.from.save + '" maxlength="4" max="100" min="1"></span><span class="name">' + (lan && lan.crontab && lan.crontab.unit_copy || '份') + '</span></div></div></div>' +
+    '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "toShell" ? 'block;' : 'none') + '">' +
+    '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.script_content || '脚本内容') + '</span>' +
+    '<div style="line-height:34px"><textarea class="txtsjs bt-input-text sbody_create" name="sbody">' + obj.from.sbody + '</textarea></div></div>' +
+    '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "path" || obj.from.stype == "site" ? 'block;' : 'none') + '">' +
+    '<span class="typename exclude_dir c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.exclude_dir || '排除目录') + '</span>' +
+    '<div style="line-height:34px"><textarea class="txtsjs bt-input-text attr_create" name="exclude_dir" placeholder="' + exclude_dirs_placeholder + '">' + obj.from.attr + '</textarea></div></div>' +
+    '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "rememory" ? 'block;' : 'none') + '">' +
+    '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.public && lan.public.msg || '提示') + '</span>' +
+    '<div style="line-height:34px">' + (lan && lan.crontab && lan.crontab.release_mem_tips || '释放PHP、MYSQL、PURE-FTPD、OpenResty的内存占用,建议在每天半夜执行!') + '</div></div>' +
+    '<div class="clearfix plan ptb10" style="display:' + (obj.from.stype == "toUrl" ? 'block;' : 'none') + '">' +
+    '<span class="typename controls c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.url_address || 'URL地址') + '</span>' +
+    '<div style="line-height:34px"><input type="text" style="width:400px; height:34px" class="bt-input-text url_create" name="url_address" placeholder="URL地址" value="' + obj.from.url_address + '"></div></div>' +
+    '<div class="clearfix plan ptb10"><div class="bt-submit plan-submits" style="margin-left: 141px;">' + (lan && lan.public && lan.public.save_edit || '保存编辑') + '</div></div></div>',
         success: function () {
           $('.changePathDir').on('click', function () {
             changePathCallback($('#sName').val(), function (select_dir) {

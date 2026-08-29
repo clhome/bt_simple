@@ -77,7 +77,32 @@ function getAuditFile(log_name) {
     try {
       if (typeof data == 'object') {
         var plist = data.data;
-        var pre_html = lan && lan.logs && t('logs.logs_auto_str_3') || "";
+        var pre_html = '<div id="logAuditTable" style="position: relative;display: block;">' +
+          '<div class="tootls_group tootls_top">' +
+          '<div class="pull-left">' +
+          '<button type="button" title="' + (lan && lan.public && lan.public.refresh_list || '刷新列表') + '" class="refresh btn btn-success btn-sm mr5"><span>' + (lan && lan.public && lan.public.refresh_list || '刷新列表') + '</span></button>' +
+          '</div>' +
+          '</div>' +
+          '<div class="divtable mtb10" style="max-height: 83px;">' +
+          '<table class="table table-hover">' +
+          '<thead style="position: relative;z-index: 1;">' +
+          '<tr>' +
+          '<th><span data-index="0"><span>' + (lan && lan.public && lan.public.user || '用户') + '</span></span></th>' +
+          '<th><span data-index="1"><span>' + (lan && lan.public && lan.public.source || '来源') + '</span></span></th>' +
+          '<th><span data-index="2"><span>' + (lan && lan.public && lan.public.port || '端口') + '</span></span></th>' +
+          '<th><span data-index="3"><span>' + (lan && lan.public && lan.public.time || '时间') + '</span></span></th>' +
+          '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+          '<tr><td><span>root</span></td>' +
+          '<td><span>117.139.193.29</span></td>' +
+          '<td><span>pts/0</span></td>' +
+          '<td><span>2023-08-25 13:27 still logged in</span></td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</div>' +
+          '<div class="tootls_group tootls_bottom"><div class="pull-left"></div><div class="pull-right"></div></div></div>';
 
         // var pre_html = '<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">\
         //         <thead><tr><th>时间</th><th>角色</th><th>事件</th></tr></thead>\

@@ -468,7 +468,7 @@ function disk(b, e) {
         axisPointer: {
           type: 'cross'
         },
-        formatter: lan && lan.control && t('control.control_auto_str_10') || ""
+        formatter: (lan && lan.public && lan.public.time || '时间') + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
       },
       legend: {
         data: [lan && lan.control && t('control.control_auto_str_11') || "", lan && lan.control && t('control.control_auto_str_12') || ""]
@@ -579,7 +579,7 @@ function network(b, e) {
         axisPointer: {
           type: 'cross'
         },
-        formatter: lan && lan.control && t('control.control_auto_str_16') || ""
+        formatter: (lan && lan.public && lan.public.time || '时间') + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
       },
       legend: {
         data: [t('index.net_up'), t('index.net_down')]
