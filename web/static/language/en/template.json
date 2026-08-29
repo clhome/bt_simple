@@ -2520,7 +2520,18 @@
         "public_auto_str_99_1": "Please select",
         "public_auto_str_99_2": "Save",
         "public_auto_str_99_3": "This is [",
-        "public_auto_str_1_1": "Cancel"
+        "public_auto_str_1_1": "Cancel",
+        "delete": "Delete",
+        "modify": "Edit",
+        "processing": "In progress",
+        "installing": "Installing...",
+        "waiting": "Waiting",
+        "restart": "Restart",
+        "reload_config": "Reload Configuration",
+        "kill_php": "Kill all PHP processes",
+        "notice": "Note:",
+        "kill_php_desc": "Forcefully terminate all PHP-FPM processes (for all PHP versions) when the control panel or system load is determined to be excessively high due to PHP-based websites; force the release of resources occupied by PHP to resolve exceptions such as deadlocks and socket exhaustion,",
+        "kill_php_desc_red": "After running this, you'll need to manually restart the PHP version,"
     },
     "upload": {
         "upload_auto_str_1": "Saving...",

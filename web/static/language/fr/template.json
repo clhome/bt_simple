@@ -2520,7 +2520,18 @@
         "public_auto_str_99_1": "Veuillez choisir",
         "public_auto_str_99_2": "Enregistrer",
         "public_auto_str_99_3": "Ici se trouve [",
-        "public_auto_str_1_1": "Annuler"
+        "public_auto_str_1_1": "Annuler",
+        "delete": "Supprimer",
+        "modify": "Modifier",
+        "processing": "En cours d'exécution",
+        "installing": "Installation en cours",
+        "waiting": "Attendre",
+        "restart": "Redémarrer",
+        "reload_config": "Rechargement de la configuration",
+        "kill_php": "Tuer tous les processus PHP",
+        "notice": "Remarque :",
+        "kill_php_desc": "Arrêter de manière non forcée tous les processus PHP-FPM (toutes versions de PHP), détecter une charge excessive du panneau de contrôle ou du système causée par un site PHP, libérer de force les ressources occupées par PHP, et résoudre les problèmes exceptionnels tels que les blocages et l'épuisement des sockets,",
+        "kill_php_desc_red": "Une fois l'opération effectuée, il faut redémarrer manuellement la version de PHP,"
     },
     "upload": {
         "upload_auto_str_1": "En cours d'enregistrement...",

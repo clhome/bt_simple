@@ -2520,7 +2520,18 @@
         "public_auto_str_99_1": "Bitte wählen Sie aus",
         "public_auto_str_99_2": "Speichern",
         "public_auto_str_99_3": "Hier steht 【",
-        "public_auto_str_1_1": "Abbrechen"
+        "public_auto_str_1_1": "Abbrechen",
+        "delete": "Löschen",
+        "modify": "Ändern",
+        "processing": "Wird ausgeführt",
+        "installing": "Wird gerade installiert",
+        "waiting": "Warten",
+        "restart": "Neustart",
+        "reload_config": "Konfiguration neu laden",
+        "kill_php": "Alle PHP-Prozesse beenden",
+        "notice": "Hinweis:",
+        "kill_php_desc": "Beendet nicht zwangsläufig alle PHP-FPM-Prozesse (alle PHP-Versionen), sondern ermittelt, ob PHP-Websites eine übermäßige Belastung des Control Panels oder des Systems verursachen, gibt die von PHP belegten Ressourcen zwangsweise frei und behebt Ausnahmesituationen wie Deadlocks oder erschöpfte Sockets,",
+        "kill_php_desc_red": "Nach der Ausführung muss die PHP-Version manuell neu gestartet werden,"
     },
     "upload": {
         "upload_auto_str_1": "Wird gespeichert...",

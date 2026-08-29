@@ -2132,7 +2132,9 @@
         "py_msg_0597c6": "未找到密钥文件，请先生成",
         "py_msg_962795": "重置/生成密钥成功",
         "py_msg_cd9f26": "生成密钥失败",
-        "py_msg_cd2498": "开发机不能设置!"
+        "py_msg_cd2498": "开发机不能设置!",
+        "no_data": "当前没有数据",
+        "ban_warning": "禁止将其设为黑名单，否则您将无法访问面板！"
     },
     "soft": {
         "H1": "首页",
@@ -2520,7 +2522,18 @@
         "public_auto_str_99_1": "请选择",
         "public_auto_str_99_2": "保存",
         "public_auto_str_99_3": "此处为【",
-        "public_auto_str_1_1": "取消"
+        "public_auto_str_1_1": "取消",
+        "delete": "删除",
+        "modify": "修改",
+        "processing": "执行中",
+        "installing": "正在安装",
+        "waiting": "等待",
+        "restart": "重启",
+        "reload_config": "重载配置",
+        "kill_php": "kill所有php进程",
+        "notice": "注意：",
+        "kill_php_desc": "非强制杀掉所有的 PHP-FPM 进程（所有的 PHP 版本），判断由 PHP 网站引发的面板或者系统负载过高，强制释放 PHP 占用，解决死锁、Socket耗尽等异常问题，",
+        "kill_php_desc_red": "执行后需要手动重启下 PHP 版本，"
     },
     "upload": {
         "upload_auto_str_1": "正在保存..",

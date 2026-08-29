@@ -2520,7 +2520,18 @@
         "public_auto_str_99_1": "Selezionare",
         "public_auto_str_99_2": "Salva",
         "public_auto_str_99_3": "Qui si trova [",
-        "public_auto_str_1_1": "Annulla"
+        "public_auto_str_1_1": "Annulla",
+        "delete": "Elimina",
+        "modify": "Modifica",
+        "processing": "In esecuzione",
+        "installing": "Installazione in corso",
+        "waiting": "Attesa",
+        "restart": "Riavvio",
+        "reload_config": "Configurazione per carichi pesanti",
+        "kill_php": "Termina tutti i processi PHP",
+        "notice": "Nota:",
+        "kill_php_desc": "Chiudere in modo non forzato tutti i processi PHP-FPM (di tutte le versioni di PHP); individuare un carico eccessivo del pannello di controllo o del sistema causato da un sito web PHP; liberare forzatamente la memoria occupata da PHP; risolvere problemi anomali quali deadlock ed esaurimento dei socket, ecc.,",
+        "kill_php_desc_red": "Dopo l'esecuzione, è necessario riavviare manualmente la versione di PHP,"
     },
     "upload": {
         "upload_auto_str_1": "Salvataggio in corso...",

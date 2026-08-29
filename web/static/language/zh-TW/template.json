@@ -2520,7 +2520,18 @@
         "public_auto_str_99_1": "請選擇",
         "public_auto_str_99_2": "儲存",
         "public_auto_str_99_3": "此處為【",
-        "public_auto_str_1_1": "取消"
+        "public_auto_str_1_1": "取消",
+        "delete": "刪除",
+        "modify": "修改",
+        "processing": "執行中",
+        "installing": "正在安裝",
+        "waiting": "等待",
+        "restart": "重啟",
+        "reload_config": "過載配置",
+        "kill_php": "kill所有php程序",
+        "notice": "注意：",
+        "kill_php_desc": "非強制殺掉所有的 PHP-FPM 程序（所有的 PHP 版本），判斷由 PHP 網站引發的面板或者系統負載過高，強制釋放 PHP 佔用，解決死鎖、Socket耗盡等異常問題，",
+        "kill_php_desc_red": "執行後需要手動重啟下 PHP 版本，"
     },
     "upload": {
         "upload_auto_str_1": "正在儲存..",
