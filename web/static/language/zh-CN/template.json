@@ -91,7 +91,6 @@
         "querying": "查询中...",
         "client_time": "客户端时间: ",
         "server_time": "服务器时间: ",
-        "data_inode_information": "\" data=\"Inode信息",
         "used": "已使用：",
         "available": "可用：",
         "inode_usage": "Inode使用率：",
@@ -103,7 +102,7 @@
         "files_release": "]个文件,释放[",
         "disk_space": "]磁盘空间!",
         "the_currently_available_physical": "当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！",
-        "core": " 核心",
+        "core": "核心",
         "model": "型号: ",
         "graphics_card_temperature": "显卡温度:",
         "video_memory_usage": "显存使用率:",
@@ -412,7 +411,13 @@
         "currently_active": "当前生效",
         "not_active": "未生效",
         "node": "节点",
-        "this_time": "本次"
+        "this_time": "本次",
+        "inode_info": "Inode信息",
+        "inode_usage_exceed": "当前Inode使用率超过",
+        "mem_warning": "当前可用物理内存小于64M，这可能导致MySQL自动停止，站点502等错误，请尝试释放内存！",
+        "gpu_model": "型号: ",
+        "gpu_temp": "显卡温度: ",
+        "gpu_mem_usage": "显存使用率: "
     },
     "site": {
         "H1": "首页",

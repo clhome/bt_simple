@@ -265,8 +265,11 @@
 - [x] 2. 编写高精度的自然语言提取引擎
 - [x] 3. 自动化改造前端调用 (JS & HTML)
 - [x] 4. 对所有 41 个存量插件进行终极清洗与测试。
-## 第四阶段：全域机器翻译与语言包同步 (进行中)
+## 第五阶段：首页状态图表与国际化显示 Bug 修复 (完成)
 
-- [x] 1. 开发防封锁智能机器翻译引擎 (batch_translate.py)
-- [/] 2. 自动生成并同步 5 语种 (en, fr, de, it, zh-TW) 至所有 41 个存量插件
-- [ ] 3. 结果校验与归档，更新升级日志
+- [x] 1. 深度分析与定位 `web/static/app/index.js` 中负载状态与磁盘 Inode 状态显示的根本原因（自动国际化替换导致的语法与结构污染）。
+- [x] 2. 补齐与同步 6 国语言包（zh-CN, zh-TW, en, fr, de, it）中缺失的首页状态词条（`inode_info`, `total`, `used`, `available`, `inode_usage`, `inode_usage_exceed`, `clean_up_trash`, `partition`, `when_the_usage_reaches`, `mem_warning`, `cpu_logical`）。
+- [x] 3. 重构并修复 `web/static/app/index.js`：彻底纠正 `getLoad`（负载状态）、`getDiskInfo`（磁盘与 Inode 提示）、`showCpuTips`（CPU 提示）、`setMemImg`（内存状态）、`getInfo`（核心数显示）、`getGpuInfo`（GPU 提示）、`netImg`（网络 IO 图表）等模块。
+- [x] 4. 编写全自动回归测试脚本 `test/test_index_status_i18n.py`，验证数据渲染、DOM 结构与 6 种语言下的文案完整性与正确性。
+- [x] 5. 最终验证与清理临时脚本。
+
