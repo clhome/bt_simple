@@ -40,12 +40,12 @@
                     <table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">
                         <thead>
                             <tr>
-                                <th style="text-align: left; width: 23%;">实例名称</th>
+                                <th style="text-align: left; width: 22%;">实例名称</th>
                                 <th style="text-align: left; width: 10%;">运行状态</th>
-                                <th style="text-align: left; width: 10%;">映射端口</th>
+                                <th style="text-align: left; width: 11%;">映射端口</th>
                                 <th style="text-align: left; width: 15%;">数据库名</th>
-                                <th style="text-align: left; width: 20%;">实例目录</th>
-                                <th style="text-align: right; width: 22%;">操作</th>
+                                <th style="text-align: left; width: 18%;">实例目录</th>
+                                <th style="text-align: right; width: 24%; min-width: 210px; white-space: nowrap;">操作</th>
                             </tr>
                         </thead>
                         <tbody id="pg-instance-list">
@@ -303,7 +303,7 @@ function loadList() {
                         '<i class="glyphicon glyphicon-lock btlink" style="margin-left: 8px; color: #888;" title="点击复制密码" onclick="copyToClipboard(\''+item.dbpass+'\', \'密码\')"></i>' +
                     '</td>' +
                     '<td><span style="color: #999; font-size: 12px;">' + item.path + '</span></td>' +
-                    '<td style="text-align: right;">' +
+                    '<td style="text-align: right; white-space: nowrap;">' +
                         '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>备份</a>' +
                         '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>明细</a>' +
                         '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showModifyConfig(\''+item.name+'\', \''+item.port+'\', \''+item.dbuser+'\')"><i class="glyphicon glyphicon-edit" style="margin-right: 3px;"></i>修改</a>' +
@@ -406,10 +406,10 @@ function showConfig(name) {
         layer.open({
             type: 1,
             title: '实例 [' + name + '] 配置详情 (docker-compose.yml)',
-            area: ['700px', '750px'],
+            area: ['750px', '750px'],
             closeBtn: 1,
             shadeClose: true,
-            content: '<div style="padding: 15px;"><pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; height: 650px; overflow-y: auto; font-family: Consolas, monospace;">' + content + '</pre></div>'
+            content: '<div style="padding: 15px; height: 100%; box-sizing: border-box; overflow-y: auto;"><pre style="background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; height: calc(100% - 30px); overflow-y: auto; font-family: Consolas, monospace; margin: 0;">' + content + '</pre></div>'
         });
     });
 }
@@ -645,11 +645,11 @@ function showBackups(name) {
                     remarkHtml = '<td><input type="text" class="bt-input-text" style="width: 140px; height: 26px; line-height: 26px;" value="'+safeRemark+'" placeholder="点击输入备注" onblur="saveBackupRemark(\''+name+'\', \''+it.name+'\', this.value)"></td>';
                 }
                 h += '<tr>' +
-                    '<td>'+it.name+'</td>' +
-                    '<td>'+it.size+'</td>' +
-                    '<td>'+it.time+'</td>' +
+                    '<td style="word-break: break-all;">'+it.name+'</td>' +
+                    '<td style="white-space: nowrap;">'+it.size+'</td>' +
+                    '<td style="white-space: nowrap;">'+it.time+'</td>' +
                     remarkHtml +
-                    '<td style="text-align:right;">' +
+                    '<td style="text-align:right; white-space: nowrap;">' +
                         '<a href="/files/download?filename='+encodeURIComponent(it.path)+'" target="_blank" class="btlink" style="color:#1890ff; margin-right: 15px;">下载</a>' +
                         '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+name+'\', \''+it.path+'\')">删除</a>' +
                         '<a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="doRestore(\''+name+'\', \''+it.path+'\')">还原</a>' +
@@ -670,7 +670,7 @@ function showBackups(name) {
                 '<span style="color: #666; font-size: 13px;">自动备份未启动</span></span>';
         }
 
-        var html = '<div style="padding: 15px;">' +
+        var html = '<div style="padding: 15px 20px; height: 100%; box-sizing: border-box; overflow-y: auto;">' +
             '<div class="mb15">' +
                 '<h4 style="display:inline-block; margin-right:15px;">日备份 (近7天)</h4>' +
                 '<button class="btn btn-success btn-xs" onclick="doManualBackup(\''+name+'\')"><i class="glyphicon glyphicon-floppy-save"></i> 一键备份当前数据</button>' +
@@ -678,21 +678,21 @@ function showBackups(name) {
             '</div>' +
             '<div class="divtable">' +
                 '<table class="table table-hover" width="100%">' +
-                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th style="text-align:right;">操作</th></tr></thead>' +
+                    '<thead><tr><th style="width: 38%;">文件名</th><th style="width: 14%;">大小</th><th style="width: 26%;">备份时间</th><th style="text-align:right; width: 22%; white-space: nowrap;">操作</th></tr></thead>' +
                     '<tbody id="daily-backup-list">' + renderTable(bk.daily) + '</tbody>' +
                 '</table>' +
             '</div>' +
             '<h4 style="margin-top:20px;">周备份 (长效保留)</h4>' +
             '<div class="divtable mt10">' +
                 '<table class="table table-hover" width="100%">' +
-                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th style="text-align:right;">操作</th></tr></thead>' +
+                    '<thead><tr><th style="width: 38%;">文件名</th><th style="width: 14%;">大小</th><th style="width: 26%;">备份时间</th><th style="text-align:right; width: 22%; white-space: nowrap;">操作</th></tr></thead>' +
                     '<tbody>' + renderTable(bk.weekly) + '</tbody>' +
                 '</table>' +
             '</div>' +
             '<h4 style="margin-top:20px;">手动备份 (长效保留)</h4>' +
             '<div class="divtable mt10">' +
                 '<table class="table table-hover" width="100%">' +
-                    '<thead><tr><th>文件名</th><th>大小</th><th>备份时间</th><th>备注</th><th style="text-align:right;">操作</th></tr></thead>' +
+                    '<thead><tr><th style="width: 30%;">文件名</th><th style="width: 12%;">大小</th><th style="width: 22%;">备份时间</th><th style="width: 18%;">备注</th><th style="text-align:right; width: 18%; white-space: nowrap;">操作</th></tr></thead>' +
                     '<tbody>' + renderTable(bk.manual, true) + '</tbody>' +
                 '</table>' +
             '</div>' +
@@ -701,7 +701,7 @@ function showBackups(name) {
         layer.open({
             type: 1,
             title: '实例 [' + name + '] 备份管理',
-            area: ['750px', '600px'],
+            area: ['820px', '600px'],
             closeBtn: 1,
             shadeClose: true,
             content: html
@@ -794,10 +794,11 @@ function generateRandomPassword(target_selector) {
 }
 
 // 自动拉宽所在的 layui-layer 弹窗以适配表单宽度
+var targetWidth = 1100;
 var layuiLayer = $('.bt-form').closest('.layui-layer');
-if(layuiLayer.length > 0 && layuiLayer.width() < 1000) {
-    layuiLayer.css('width', '1000px');
-    var left = ($(window).width() - 1000) / 2;
+if(layuiLayer.length > 0 && layuiLayer.width() < targetWidth) {
+    layuiLayer.css('width', targetWidth + 'px');
+    var left = Math.max(0, ($(window).width() - targetWidth) / 2);
     layuiLayer.css('left', left + 'px');
 }
 
