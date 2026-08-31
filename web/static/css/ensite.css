@@ -4152,3 +4152,108 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     display: flex !important;
     justify-content: space-between !important;
 }
+
+/* 全局统一现代化绿色刷新按钮组件 */
+.btn-refresh-icon,
+.soft-refresh-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    padding: 0 7px !important;
+    border-radius: 6px !important;
+    color: var(--primary, #10b981) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    outline: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    user-select: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.soft-refresh-btn {
+    height: 26px !important;
+    min-width: 26px !important;
+    padding: 0 !important;
+}
+
+/* 带文字的现代化刷新按钮 */
+.yf-refresh-btn,
+.btn-refresh-text {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    height: 30px !important;
+    line-height: 20px !important;
+    padding: 4px 11px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    color: var(--primary, #10b981) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    outline: none !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-sizing: border-box !important;
+    user-select: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Hover 悬浮态 */
+.btn-refresh-icon:hover,
+.soft-refresh-btn:hover,
+.yf-refresh-btn:hover,
+.btn-refresh-text:hover {
+    color: var(--primary-hover, #059669) !important;
+    background: rgba(16, 185, 129, 0.16) !important;
+    border-color: rgba(16, 185, 129, 0.38) !important;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Active 物理按压下沉/下降反馈 */
+.btn-refresh-icon:active,
+.soft-refresh-btn:active,
+.yf-refresh-btn:active,
+.btn-refresh-text:active {
+    transform: translateY(2px) scale(0.93) !important;
+    background: rgba(16, 185, 129, 0.26) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn-refresh-icon svg,
+.btn-refresh-icon .glyphicon,
+.soft-refresh-btn svg,
+.soft-refresh-btn .glyphicon,
+.yf-refresh-btn svg,
+.yf-refresh-btn .glyphicon,
+.btn-refresh-text svg,
+.btn-refresh-text .glyphicon {
+    width: 14px !important;
+    height: 14px !important;
+    color: inherit !important;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+
+/* 旋转动效 */
+.btn-refresh-icon.rotating svg,
+.btn-refresh-icon.rotating .glyphicon,
+.soft-refresh-btn.rotating svg,
+.soft-refresh-btn.rotating .glyphicon,
+.yf-refresh-btn.rotating svg,
+.yf-refresh-btn.rotating .glyphicon,
+.btn-refresh-text.rotating svg,
+.btn-refresh-text.rotating .glyphicon {
+    transform: rotate(360deg) !important;
+}

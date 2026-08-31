@@ -411,3 +411,15 @@
 ## 第二十二阶段：面板插件首页高频 I/O 消除
 
 - [x] 1. 优化 web/utils/plugin.py 的 getIndexList，避免每次首页请求都进行 info.json 的重复磁盘 I/O 解析，改为使用内存级 getStaticPluginList 缓存加速查询。
+
+## 第二十三阶段：首页 UI 细节优化
+
+- [x] 1. 优化 `web/templates/default/index.html`，在软件列表标题右侧增加绿色的刷新小图标，实现点击立即刷新重载面板首页的软件状态。
+- [x] 2. 精细化重构首页软件刷新按钮样式：使用 Flex 容器实现与“软件”标题绝对水平对齐，图标定制为现代主题翠绿风格，支持 Hover 浅绿微光悬浮态与 Active 物理按压下沉（下降）动画反馈，并加入平滑旋转动效。
+
+## 第二十四阶段：全系统通用绿色刷新组件模块化提取与多页面复用
+
+- [x] 1. 抽象并建立全局通用的现代化绿色刷新组件 CSS（`.btn-refresh-icon` 纯图标小按钮、`.yf-refresh-btn` 带文字图标按钮），支持浅绿微光 Hover 态、物理按压下沉（下降）Active 态与平滑 360° 旋转动效。
+- [x] 2. 在全局公共库 `web/static/app/public.js` 中封装通用方法 `yfRefreshBtn(el, callback)` 并注册全页面自动事件委托。
+- [x] 3. 在“网站管理”页面（`web/templates/default/site.html`）接入通用纯图标刷新按钮组件。
+- [x] 4. 在“软件管理”页面（`web/templates/default/soft.html`）接入通用带文字图标刷新按钮组件。

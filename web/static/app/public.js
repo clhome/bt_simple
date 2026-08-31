@@ -3698,3 +3698,52 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
   }
   searchInput.focus();
 }
+
+/**
+ * 御风面板全局统一现代化刷新按钮触发器（支持触觉反馈与平滑旋转动画）
+ * @param {HTMLElement|string} el 触发按钮元素或选择器
+ * @param {Function} [callback] 刷新业务回调，接收 done 回调函数参数
+ */
+function yfRefreshBtn(el, callback) {
+  var $btn = $(el);
+  $btn.addClass('rotating');
+
+  var finished = false;
+  var done = function () {
+    if (!finished) {
+      finished = true;
+      setTimeout(function () {
+        $btn.removeClass('rotating');
+      }, 300);
+    }
+  };
+
+  if (typeof callback === 'function') {
+    try {
+      var res = callback(done);
+      if (res && typeof res.always === 'function') {
+        res.always(done);
+      } else if (res && typeof res.finally === 'function') {
+        res.finally(done);
+      } else {
+        setTimeout(done, 500);
+      }
+    } catch (e) {
+      console.error('yfRefreshBtn error:', e);
+      done();
+    }
+  } else {
+    setTimeout(done, 500);
+  }
+}
+
+// 全局委托绑定：所有带有 .btn-refresh-icon 或 .yf-refresh-btn 类的按钮被点击时自动赋予旋转动画
+$(document).on('click', '.btn-refresh-icon, .yf-refresh-btn, .soft-refresh-btn', function () {
+  var $this = $(this);
+  if (!$this.hasClass('rotating')) {
+    $this.addClass('rotating');
+    setTimeout(function () {
+      $this.removeClass('rotating');
+    }, 500);
+  }
+});

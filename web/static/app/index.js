@@ -2911,3 +2911,29 @@ function getAllLoginLogs(page) {
         $('#allLoginLogsPage').html('');
     });
 }
+
+// 首页软件状态即时刷新（带旋转动画与触觉反馈）
+function refreshIndexSoft(el) {
+    var $btn = $(el || '.soft-refresh-btn');
+    $btn.addClass('rotating');
+    
+    // 清除本地前端缓存以保证拉取最新后端数据
+    try {
+        localStorage.removeItem('index_soft_cache_html');
+    } catch(e) {}
+
+    if (typeof indexSoft === 'function') {
+        indexSoft(function() {
+            setTimeout(function() {
+                $btn.removeClass('rotating');
+            }, 400);
+        });
+        setTimeout(function() {
+            $btn.removeClass('rotating');
+        }, 800);
+    } else {
+        setTimeout(function() {
+            $btn.removeClass('rotating');
+        }, 400);
+    }
+}

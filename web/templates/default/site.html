@@ -33,8 +33,10 @@
 					<button onclick="setClassType();" class="btn btn-default btn-sm btn-title" type="button" data-i18n="site.class_manage">{{ t('site.class_manage', '分类管理') }}</button>
 					<button onclick="setPHPVer();" class="btn btn-default btn-sm btn-title" type="button" data-i18n="site.php_cli_version">{{ t('site.php_cli_version', 'PHP命令行版本') }}</button>
 					<span style="float: right;">
-						<button onclick="getWeb(current_site_page);" class="btn btn-default btn-sm btn-title" type="button" data-i18n-attr="title" data-i18n="public.refresh_list" title="{{ t('public.refresh_list', '刷新列表') }}" style="margin-right: 20px;">
-							<span class="glyphicon glyphicon-refresh"></span>
+						<button onclick="yfRefreshBtn(this, function(){ getWeb(current_site_page); });" class="btn-refresh-icon btn-title" type="button" data-i18n-attr="title" data-i18n="public.refresh_list" title="{{ t('public.refresh_list', '刷新列表') }}" style="margin-right: 15px; vertical-align: middle;">
+							<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+							</svg>
 						</button>
 						<button onclick="exportAllSites();" class="btn btn-default btn-sm btn-title" type="button" style="margin-left: 10px;">
 							<span class="glyphicon glyphicon-export"></span> <span data-i18n="public.export">{{ t('public.export', '导出') }}</span>

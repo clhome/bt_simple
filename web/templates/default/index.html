@@ -134,7 +134,14 @@
         <div class="col-xs-12 col-sm-12 col-md-6 pull-left pd0">
             <div class="pr8">
                 <div class="bgw">
-                    <div class="title c6 f16 plr15" data-i18n="index.software">{{ t('index.software', '软件') }}</div>
+                    <div class="title c6 f16 plr15" style="display: flex; align-items: center; justify-content: space-between; height: 50px; line-height: 50px;">
+                        <span data-i18n="index.software">{{ t('index.software', '软件') }}</span>
+                        <a href="javascript:;" onclick="refreshIndexSoft(this);" class="soft-refresh-btn" data-i18n-attr="title" data-i18n="public.refresh" title="{{ t('public.refresh', '刷新') }}">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                            </svg>
+                        </a>
+                    </div>
                     <div class="setting-con" style="padding:0; height:308px; margin-right: -4px; overflow: hidden;">
                         <div class="container-fluid soft-man">
                             <input name="list1SortOrder" type="hidden" value="" />
