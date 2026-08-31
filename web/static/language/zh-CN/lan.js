@@ -2932,11 +2932,11 @@ var lan = {
 				"ps": "数据简单管理 (Memcached, Redis, MongoDB)，快捷查看与维护键值数据库"
 		},
 		"docker": {
-				"title": "YuFeng Docker管理器",
+				"title": "御风Docker管理器",
 				"ps": "采用多个加速点轮询高速下载镜像，让Docker下载和拉取镜像如飞"
 		},
 		"fail2ban": {
-				"title": "YuFeng F2B防火墙",
+				"title": "御风F2B防火墙",
 				"ps": "防止恶意IP地址暴力破解服务、站点，禁止导致多个身份验证错误的主机"
 		},
 		"gitea": {
@@ -2944,11 +2944,11 @@ var lan = {
 				"ps": "开源社区驱动的轻量级无痛自托管 Git 代码托管平台"
 		},
 		"jdk": {
-				"title": "YuFeng JDK管理器",
+				"title": "御风JDK管理器",
 				"ps": "安装和管理Java JDK环境，支持全局环境变量一键设置与自定义JDK配置"
 		},
 		"linux_sys_opt": {
-				"title": "YuFeng系统优化",
+				"title": "御风系统优化",
 				"ps": "一键化全平台 Linux 内核参数调优与高并发网络性能优化"
 		},
 		"mariadb": {
@@ -2972,7 +2972,7 @@ var lan = {
 				"ps": "基于 OpenResty 的高性能负载均衡与反向代理集群管理"
 		},
 		"op_waf": {
-				"title": "YuFeng OP防火墙",
+				"title": "御风OP防火墙",
 				"ps": "企业级 Web 安全防护引擎，提供高性能、零侵入的应用层威胁拦截与全面渗透防御"
 		},
 		"openresty": {
@@ -2981,7 +2981,7 @@ var lan = {
 		},
 		"pg_docker": {
 				"title": "PostgreSQL 容器化管理",
-				"ps": "YuFeng PostgreSQL 容器化管理插件，一键部署与管理多实例 PostgreSQL Docker 环境，支持按服务器内存动态计算调优参数"
+				"ps": "御风 PostgreSQL 容器化管理插件，一键部署与管理多实例 PostgreSQL Docker 环境，支持按服务器内存动态计算调优参数"
 		},
 		"pgadmin": {
 				"title": "pgAdmin",
@@ -3016,7 +3016,7 @@ var lan = {
 				"ps": "轻量高效、安全合规且经过生产环境验证的 FTP 服务器软件"
 		},
 		"python_yf": {
-				"title": "YuFeng Python多版本管理器",
+				"title": "御风Python多版本管理器",
 				"ps": "基于 uv 的极速现代化 Python 多版本管理器，秒级切换与虚拟环境隔离"
 		},
 		"redis": {
@@ -3037,7 +3037,7 @@ var lan = {
 		},
 		"swap": {
 				"title": "swap",
-				"ps": "YuFeng Linux 虚拟内存配置工具，弹性扩充与释放 Swap 空间"
+				"ps": "御风 Linux 虚拟内存配置工具，弹性扩充与释放 Swap 空间"
 		},
 		"task_manager": {
 				"title": "任务管理器",
@@ -3060,7 +3060,7 @@ var lan = {
 				"ps": "深度解析 Web 访问日志，实时展示 PV/UV 趋势、高频请求、客户端画像及拦截分析"
 		},
 		"yufeng_systemd": {
-				"title": "YuFeng进程守护",
+				"title": "御风进程守护",
 				"ps": "专为 Linux 设计的现代化原生服务管理利器，底层强制绑定 YuFeng 标签隔离，支持故障自愈与进程守护"
 		}
 }
