@@ -507,7 +507,8 @@ var lan = {
 		"node_us_official": "美國官方節點",
 		"node_uk_official": "英國官方節點",
 		"node_de_official": "德國官方節點",
-		"node_jp_official": "日本官方節點"
+		"node_jp_official": "日本官方節點",
+		"disk_size_format": "根分區共 {0}, 已用 {1}, 剩餘 {2}"
 },
 	"site":{
 		"H1": "首頁",
@@ -2612,7 +2613,8 @@ var lan = {
 		"tools_box": "御風工具箱",
 		"company_signature": "衢州御風科技有限公司出品",
 		"yufeng_technology_co": "御風科技有限公司",
-		"source_code": "源碼"
+		"source_code": "源碼",
+		"unknown": "未知"
 },
 	"upload":{
 		"saving": "正在儲存..",

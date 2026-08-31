@@ -507,7 +507,8 @@ var lan = {
 		"node_us_official": "Offizieller USA-Knoten",
 		"node_uk_official": "Offizieller UK-Knoten",
 		"node_de_official": "Offizieller Deutschland-Knoten",
-		"node_jp_official": "Offizieller Japan-Knoten"
+		"node_jp_official": "Offizieller Japan-Knoten",
+		"disk_size_format": "Root {0}, Belegt {1}, Frei {2}"
 },
 	"site":{
 		"H1": "Startseite",
@@ -2629,7 +2630,8 @@ var lan = {
 		"tools_box": "Yufeng-Toolbox",
 		"company_signature": "Präsentiert von Quzhou Yufeng Technology Co., Ltd.",
 		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
-		"source_code": "Quellcode"
+		"source_code": "Quellcode",
+		"unknown": "Unbekannt"
 },
 	"upload":{
 		"saving": "Wird gespeichert...",

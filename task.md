@@ -303,6 +303,27 @@
 - [x] 4. 重新编译 6 种语言包生成合法合规的 `lan.js` 和 `template.json`。
 - [x] 5. 编写自动化回归测试脚本 `test/test_system_details_speedtest_i18n.py` 并运行全量测试套件验证。
 
+## 第十一阶段：测速弹窗「物理内存未知」与「磁盘空间描述」国际化修复 (完成)
+
+- [x] 1. 优化 `scripts/speed.sh` 中内存获取逻辑，从 `/proc/meminfo` 的 `MemTotal` 直接计算 MB / GB，避免因不同系统 Locale 导致 `free -m` 匹配失败返回“未知”。
+- [x] 2. 优化 `web/static/app/index.js`，增加 `formatMemString` 国际化格式化，使“未知”动态渲染为对应语言（如 English: `Unknown`, Français: `Inconnu` 等）。
+- [x] 3. 增加 `formatDiskSizeString` 智能格式化函数，将“根分区共 38G, 已用 11G, 剩余 25G”通过 `index.disk_size_format` 动态翻译为对应语言（如 English: `Root 38G, Used 11G, Free 25G`，Français: `Racine 38G, Utilisé 11G, Libre 25G` 等）。
+- [x] 4. 在 6 国语言包中同步更新 `index.disk_size_format` 与 `public.unknown`，重新编译生成 `lan.js` 与 `template.json`。
+- [x] 5. 编写自动化测试 `test/test_mem_disk_i18n.py` 并通过全量回归测试套件验证。
+
+## 第十二阶段：ESXi 虚拟机及全虚拟化环境物理内存高兼容性识别增强 (完成)
+
+- [x] 1. 分析 ESXi / KVM / 容器 / 极简 Linux 环境下 `free` 命令缺失或输出异常原因。
+- [x] 2. 改造 `scripts/speed.sh`：实现 `/proc/meminfo`、`free` 第二行第二列、`vmstat`、环境变量 `TOTAL_MEM_MB` 四级级联容灾识别，彻底杜绝“未知”。
+- [x] 3. 改造 `web/admin/system/system.py`：在启动测速进程时将 Python `psutil` 精确物理内存通过环境变量 `TOTAL_MEM_MB` 注入子进程。
+- [x] 4. 优化 `web/static/app/index.js`：当历史缓存或日志因旧版原因记录了“未知”时，自动联动当前会话已探明的真实内存数据进行智能自愈展示。
+- [x] 5. 编写自动化测试脚本 `test/test_memory_compatibility.py` 并运行验证。
+
+
+
+
+
+
 
 
 

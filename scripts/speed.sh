@@ -27,11 +27,51 @@ if [ "$cpu_cores" -eq 0 ]; then
 fi
 
 # 内存大小
-mem_total=$(free -m 2>/dev/null | awk '/Mem:/{print $2}')
-if [ -z "$mem_total" ]; then
+mem_total=""
+
+# 1. 优先读取 /proc/meminfo（所有 Linux 虚拟机/ESXi/物理机标准内核文件）
+if [ -r /proc/meminfo ]; then
+    mem_kb=$(grep -i '^MemTotal:' /proc/meminfo 2>/dev/null | awk '{print $2}')
+    if [ -n "$mem_kb" ] && [ "$mem_kb" -gt 0 ] 2>/dev/null; then
+        mem_mb=$((mem_kb / 1024))
+        if [ "$mem_mb" -ge 1024 ]; then
+            mem_gb=$(awk "BEGIN {printf \"%.1f\", $mem_mb/1024}")
+            mem_total="${mem_mb} MB (${mem_gb} GB)"
+        else
+            mem_total="${mem_mb} MB"
+        fi
+    fi
+fi
+
+# 2. 从 Python 面板主进程传入的环境变量中获取
+if [ -z "$mem_total" ] || [ "$mem_total" = "未知" ]; then
+    if [ -n "$TOTAL_MEM_MB" ] && [ "$TOTAL_MEM_MB" -gt 0 ] 2>/dev/null; then
+        if [ "$TOTAL_MEM_MB" -ge 1024 ]; then
+            mem_gb=$(awk "BEGIN {printf \"%.1f\", $TOTAL_MEM_MB/1024}")
+            mem_total="${TOTAL_MEM_MB} MB (${mem_gb} GB)"
+        else
+            mem_total="${TOTAL_MEM_MB} MB"
+        fi
+    fi
+fi
+
+# 3. 尝试使用 free 命令（提取第二行非空数值）
+if [ -z "$mem_total" ] || [ "$mem_total" = "未知" ]; then
+    if command -v free >/dev/null 2>&1; then
+        free_val=$(free -m 2>/dev/null | awk 'NR==2{print $2}')
+        if [ -n "$free_val" ] && [ "$free_val" -gt 0 ] 2>/dev/null; then
+            if [ "$free_val" -ge 1024 ]; then
+                free_gb=$(awk "BEGIN {printf \"%.1f\", $free_val/1024}")
+                mem_total="${free_val} MB (${free_gb} GB)"
+            else
+                mem_total="${free_val} MB"
+            fi
+        fi
+    fi
+fi
+
+if [ -z "$mem_total" ] || [ "$mem_total" = "未知" ]; then
     mem_total="未知"
-else
-    mem_total="${mem_total} MB"
 fi
 
 # 硬盘使用情况
@@ -70,9 +110,9 @@ echo " 正在进行磁盘写入测试 (写入 512MB 数据)..."
 
 # 写入测试
 dd_write_result=$(dd if=/dev/zero of=./speed_test_io_temp bs=1M count=512 conv=fdatasync 2>&1)
-write_speed=$(echo "$dd_write_result" | tail -n 1 | awk -F, '{print $NF}' | sed 's/^[ \t]*//;s/[ \t]*$//')
+write_speed=$(echo "$dd_write_result" | grep -oE '[0-9.]+ [kMGTP]?B/s' | tail -n 1)
 if [ -z "$write_speed" ]; then
-    write_speed=$(echo "$dd_write_result" | tail -n 1 | awk '{print $(NF-1), $NF}')
+    write_speed=$(echo "$dd_write_result" | tail -n 1 | awk -F'[,，]' '{print $NF}' | sed 's/^[ \t]*//;s/[ \t]*$//')
 fi
 echo " 磁盘写入速度: $write_speed"
 
@@ -84,9 +124,9 @@ fi
 echo " 正在进行磁盘读取测试 (读取 512MB 数据)..."
 # 读取测试
 dd_read_result=$(dd if=./speed_test_io_temp of=/dev/null bs=1M count=512 2>&1)
-read_speed=$(echo "$dd_read_result" | tail -n 1 | awk -F, '{print $NF}' | sed 's/^[ \t]*//;s/[ \t]*$//')
+read_speed=$(echo "$dd_read_result" | grep -oE '[0-9.]+ [kMGTP]?B/s' | tail -n 1)
 if [ -z "$read_speed" ]; then
-    read_speed=$(echo "$dd_read_result" | tail -n 1 | awk '{print $(NF-1), $NF}')
+    read_speed=$(echo "$dd_read_result" | tail -n 1 | awk -F'[,，]' '{print $NF}' | sed 's/^[ \t]*//;s/[ \t]*$//')
 fi
 echo " 磁盘读取速度: $read_speed"
 

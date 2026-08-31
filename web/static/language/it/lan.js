@@ -507,7 +507,8 @@ var lan = {
 		"node_us_official": "Nodo ufficiale USA",
 		"node_uk_official": "Nodo ufficiale Regno Unito",
 		"node_de_official": "Nodo ufficiale Germania",
-		"node_jp_official": "Nodo ufficiale Giappone"
+		"node_jp_official": "Nodo ufficiale Giappone",
+		"disk_size_format": "Root {0}, Usato {1}, Libero {2}"
 },
 	"site":{
 		"H1": "Home",
@@ -2629,7 +2630,8 @@ var lan = {
 		"tools_box": "Strumenti Yufeng",
 		"company_signature": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
 		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
-		"source_code": "Codice sorgente"
+		"source_code": "Codice sorgente",
+		"unknown": "Sconosciuto"
 },
 	"upload":{
 		"saving": "Salvataggio in corso...",

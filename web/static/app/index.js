@@ -252,7 +252,7 @@ $(document).ready(function() {
 
 function getInfo() {
     $.get("/system/system_total", function(info) {
-
+        window.server_system_info = info;
         setMemImg(info);
 
         setSystemInfo(info.system);
@@ -1975,6 +1975,55 @@ function showSystemDetails() {
 }
 
 // 辅助节点名称多语言转换
+// 辅助清洗磁盘 IO 速率，仅保留最终的数字与单位 (例如 "205 MB/s", "709 MB/s")
+// 辅助格式化内存文本（支持未知、当前面板全局内存联动及国际化）
+function formatMemString(memStr) {
+    if (!memStr || typeof memStr !== 'string' || memStr.trim() === '' || memStr === '未知' || memStr.toLowerCase() === 'unknown') {
+        if (window.server_system_info && window.server_system_info.memTotal) {
+            var mb = Math.round(window.server_system_info.memTotal / 1024 / 1024);
+            if (mb >= 1024) {
+                return mb + ' MB (' + (mb / 1024).toFixed(1) + ' GB)';
+            }
+            return mb + ' MB';
+        }
+        return t('public.unknown', '未知');
+    }
+    memStr = memStr.trim();
+    return memStr;
+}
+
+// 辅助格式化磁盘空间文本（支持多语言根分区/已用/剩余插值）
+function formatDiskSizeString(diskStr) {
+    if (!diskStr || typeof diskStr !== 'string') return '-';
+    diskStr = diskStr.trim();
+    if (diskStr === '未知' || diskStr.toLowerCase() === 'unknown') {
+        return t('public.unknown', '未知');
+    }
+    var regZh = /(?:根分区共|总共|共|Root)?\s*([0-9.]+[kMGTP]?B?)[,，]\s*(?:已用|使用|Used)?\s*([0-9.]+[kMGTP]?B?)[,，]\s*(?:剩余|可用|Free)?\s*([0-9.]+[kMGTP]?B?)/i;
+    var match = diskStr.match(regZh);
+    if (match) {
+        var total = match[1];
+        var used = match[2];
+        var free = match[3];
+        return t('index.disk_size_format', [total, used, free], '根分区共 ' + total + ', 已用 ' + used + ', 剩余 ' + free);
+    }
+    return diskStr;
+}
+
+function cleanDiskSpeed(rawStr) {
+    if (!rawStr || typeof rawStr !== 'string') return '';
+    rawStr = rawStr.trim();
+    var allMatches = rawStr.match(/(\d+(?:\.\d+)?\s*(?:[KMGTP]?B\/s|[KMGTP]iB\/s|bps|Kbps|Mbps|Gbps))/gi);
+    if (allMatches && allMatches.length > 0) {
+        return allMatches[allMatches.length - 1].trim();
+    }
+    if (rawStr.indexOf(',') > -1 || rawStr.indexOf('，') > -1) {
+        var parts = rawStr.split(/[,，]/);
+        return parts[parts.length - 1].trim();
+    }
+    return rawStr;
+}
+
 function getNodeDisplayName(rawNodeName) {
     if (rawNodeName === '阿里云杭州镜像源') return t('index.node_aliyun_hangzhou', '阿里云杭州镜像源');
     if (rawNodeName === '腾讯云南京镜像源') return t('index.node_tencent_nanjing', '腾讯云南京镜像源');
@@ -2246,25 +2295,27 @@ function renderSpeedTestModal(historyData) {
                     }
                     $("#sp-cpu-model").text(cpuModel).attr('title', cpuRaw);
                 }
-                if (historyData.mem) $("#sp-mem").text(historyData.mem);
-                if (historyData.disk) $("#sp-disk").text(historyData.disk);
+                if (historyData.mem) $("#sp-mem").text(formatMemString(historyData.mem));
+                if (historyData.disk) $("#sp-disk").text(formatDiskSizeString(historyData.disk));
                 
                 // 还原磁盘IO
                 if (historyData.write_speed) {
+                    var cleanedWrite = cleanDiskSpeed(historyData.write_speed);
                     $("#sp-io-loader").hide();
                     $("#sp-io-container").show();
-                    $("#sp-write-val").text(historyData.write_speed);
-                    var wSpeed = parseFloat(historyData.write_speed);
+                    $("#sp-write-val").text(cleanedWrite);
+                    var wSpeed = parseFloat(cleanedWrite);
                     var wPercent = Math.min(100, Math.round((wSpeed / 600) * 100));
-                    if (historyData.write_speed.indexOf('GB/s') > -1) wPercent = 100;
+                    if (cleanedWrite.indexOf('GB/s') > -1) wPercent = 100;
                     $("#sp-write-bar").css('width', wPercent + '%');
                 }
                 
                 if (historyData.read_speed) {
-                    $("#sp-read-val").text(historyData.read_speed).css('color', '#20a53a');
-                    var rSpeed = parseFloat(historyData.read_speed);
+                    var cleanedRead = cleanDiskSpeed(historyData.read_speed);
+                    $("#sp-read-val").text(cleanedRead).css('color', '#20a53a');
+                    var rSpeed = parseFloat(cleanedRead);
                     var rPercent = Math.min(100, Math.round((rSpeed / 800) * 100));
-                    if (historyData.read_speed.indexOf('GB/s') > -1) rPercent = 100;
+                    if (cleanedRead.indexOf('GB/s') > -1) rPercent = 100;
                     $("#sp-read-bar").css('width', rPercent + '%');
                 }
                 
@@ -2362,26 +2413,28 @@ function runLogPolling(log_path) {
                         }
                         $("#sp-cpu-model").text(cpuModel).attr('title', cpuRaw);
                     }
-                    if (data.mem) $("#sp-mem").text(data.mem);
-                    if (data.disk) $("#sp-disk").text(data.disk);
+                    if (data.mem) $("#sp-mem").text(formatMemString(data.mem));
+                    if (data.disk) $("#sp-disk").text(formatDiskSizeString(data.disk));
                 }
                 
                 // 磁盘IO渲染
                 if (data.write_speed) {
+                    var cleanedWrite = cleanDiskSpeed(data.write_speed);
                     $("#sp-io-loader").hide();
                     $("#sp-io-container").show();
-                    $("#sp-write-val").text(data.write_speed);
-                    var wSpeed = parseFloat(data.write_speed);
+                    $("#sp-write-val").text(cleanedWrite);
+                    var wSpeed = parseFloat(cleanedWrite);
                     var wPercent = Math.min(100, Math.round((wSpeed / 600) * 100));
-                    if (data.write_speed.indexOf('GB/s') > -1) wPercent = 100;
+                    if (cleanedWrite.indexOf('GB/s') > -1) wPercent = 100;
                     $("#sp-write-bar").css('width', wPercent + '%');
                 }
                 
                 if (data.read_speed) {
-                    $("#sp-read-val").text(data.read_speed).css('color', '#20a53a');
-                    var rSpeed = parseFloat(data.read_speed);
+                    var cleanedRead = cleanDiskSpeed(data.read_speed);
+                    $("#sp-read-val").text(cleanedRead).css('color', '#20a53a');
+                    var rSpeed = parseFloat(cleanedRead);
                     var rPercent = Math.min(100, Math.round((rSpeed / 800) * 100));
-                    if (data.read_speed.indexOf('GB/s') > -1) rPercent = 100;
+                    if (cleanedRead.indexOf('GB/s') > -1) rPercent = 100;
                     $("#sp-read-bar").css('width', rPercent + '%');
                 } else if (data.write_speed) {
                     $("#sp-read-val").text(t('index.testing', '测试中...')).css('color', '#94a3b8');
@@ -2473,9 +2526,9 @@ function parseSpeedLog(logText) {
         } else if (line.indexOf('操作系统:') > -1) {
             data.os = line.replace('操作系统:', '').trim();
         } else if (line.indexOf('磁盘写入速度:') > -1) {
-            data.write_speed = line.replace('磁盘写入速度:', '').trim();
+            data.write_speed = cleanDiskSpeed(line.replace('磁盘写入速度:', '').trim());
         } else if (line.indexOf('磁盘读取速度:') > -1) {
-            data.read_speed = line.replace('磁盘读取速度:', '').trim();
+            data.read_speed = cleanDiskSpeed(line.replace('磁盘读取速度:', '').trim());
         } else if (line.indexOf('-> 节点:') > -1 || line.indexOf('-&gt; 节点:') > -1) {
             var nodePart = line.replace('-> 节点:', '').replace('-&gt; 节点:', '').trim();
             var parts = nodePart.split('...');

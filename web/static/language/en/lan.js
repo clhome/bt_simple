@@ -507,7 +507,8 @@ var lan = {
 		"node_us_official": "US Official Node",
 		"node_uk_official": "UK Official Node",
 		"node_de_official": "Germany Official Node",
-		"node_jp_official": "Japan Official Node"
+		"node_jp_official": "Japan Official Node",
+		"disk_size_format": "Root {0}, Used {1}, Free {2}"
 },
 	"site":{
 		"H1": "Home",
@@ -2612,7 +2613,8 @@ var lan = {
 		"tools_box": "Yufeng Toolbox",
 		"company_signature": "Produced by Quzhou Yufeng Technology Co., Ltd.",
 		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
-		"source_code": "Source Code"
+		"source_code": "Source Code",
+		"unknown": "Unknown"
 },
 	"upload":{
 		"saving": "Saving...",

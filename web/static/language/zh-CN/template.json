@@ -478,7 +478,8 @@
         "node_us_official": "美国官方节点",
         "node_uk_official": "英国官方节点",
         "node_de_official": "德国官方节点",
-        "node_jp_official": "日本官方节点"
+        "node_jp_official": "日本官方节点",
+        "disk_size_format": "根分区共 {0}, 已用 {1}, 剩余 {2}"
     },
     "site": {
         "H1": "首页",
@@ -2599,7 +2600,8 @@
         "tools_box": "御风工具箱",
         "company_signature": "衢州御风科技有限公司出品",
         "yufeng_technology_co": "御风科技有限公司",
-        "source_code": "源码"
+        "source_code": "源码",
+        "unknown": "未知"
     },
     "upload": {
         "saving": "正在保存..",

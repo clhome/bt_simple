@@ -333,10 +333,21 @@ def speed_test():
             os.chmod(sh_path, 0o755)
         except:
             pass
+            
+        sub_env = os.environ.copy()
+        try:
+            import psutil
+            mem_info = psutil.virtual_memory()
+            total_mb = int(mem_info.total / 1024 / 1024)
+            sub_env['TOTAL_MEM_MB'] = str(total_mb)
+        except:
+            pass
+            
         _speed_test_process = subprocess.Popen(
             ["bash", sh_path],
             stdout=log_file,
             stderr=log_file,
+            env=sub_env,
             preexec_fn=os.setsid if hasattr(os, 'setsid') else None
         )
         return yf.returnData(True, 'OK', log_path)
