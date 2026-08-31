@@ -15,23 +15,42 @@ UV_BIN = os.path.expanduser("~/.local/bin/uv")
 def getArgs():
     args = sys.argv[2:]
     tmp = {}
-    if len(args) == 1 and args[0].startswith('{') and args[0].endswith('}'):
+    if not args:
+        return tmp
+        
+    full_args_str = " ".join(args).strip()
+    if (full_args_str.startswith("'") and full_args_str.endswith("'")) or (full_args_str.startswith('"') and full_args_str.endswith('"')):
+        full_args_str = full_args_str[1:-1].strip()
+
+    try:
+        parsed = json.loads(full_args_str)
+        if isinstance(parsed, dict):
+            return parsed
+    except:
+        pass
+
+    for arg in args:
+        arg = arg.strip()
+        if (arg.startswith("'") and arg.endswith("'")) or (arg.startswith('"') and arg.endswith('"')):
+            arg = arg[1:-1].strip()
+        if not arg:
+            continue
         try:
-            return json.loads(args[0])
+            parsed = json.loads(arg)
+            if isinstance(parsed, dict):
+                return parsed
+        except:
+            continue
+
+    if ":" in full_args_str:
+        try:
+            parts = full_args_str.split(",")
+            for p in parts:
+                if ":" in p:
+                    k, v = p.split(":", 1)
+                    tmp[k.strip().strip("'").strip('"')] = v.strip().strip("'").strip('"')
         except:
             pass
-    
-    args_len = len(args)
-    if args_len == 1:
-        t = args[0].strip('{').strip('}')
-        t = t.split(':')
-        if len(t) >= 2:
-            tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
-    elif args_len > 1:
-        for i in range(len(args)):
-            t = args[i].split(':')
-            if len(t) >= 2:
-                tmp[t[0].strip('"').strip("'")] = t[1].strip('"').strip("'")
     return tmp
 
 VENV_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'venvs.json')
@@ -49,7 +68,7 @@ def save_venvs(data):
 
 def get_python_list():
     if not os.path.exists(UV_BIN):
-        return yf.returnJson(False, 'k_972b9edc')
+        return yf.returnJson(False, 'python_yf.uv_not_found')
     
     exec_str = f"{UV_BIN} python list"
     stdout, stderr = yf.execShell(exec_str)
@@ -105,7 +124,7 @@ def install_python():
     args = getArgs()
     version = args.get('version', '')
     if not version:
-        return yf.returnJson(False, 'k_46915b9d')
+        return yf.returnJson(False, 'python_yf.specify_install_ver')
         
     exec_str = f"{UV_BIN} python install {version}"
     stdout, stderr = yf.execShell(exec_str)
@@ -113,13 +132,13 @@ def install_python():
     output = stdout + " " + stderr
     if "error" in output.lower() and "success" not in output.lower():
         return yf.returnJson(False, f'安装失败: {output}')
-    return yf.returnJson(True, 'k_811f543f')
+    return yf.returnJson(True, 'python_yf.install_task_added')
 
 def uninstall_python():
     args = getArgs()
     version = args.get('version', '')
     if not version:
-        return yf.returnJson(False, 'k_5790c25e')
+        return yf.returnJson(False, 'python_yf.specify_uninstall_ver')
         
     venvs = get_venvs().get(version, [])
     if len(venvs) > 0:
@@ -131,14 +150,14 @@ def uninstall_python():
     output = stdout + " " + stderr
     if "error" in output.lower() and "success" not in output.lower():
         return yf.returnJson(False, f'卸载失败: {output}')
-    return yf.returnJson(True, 'k_58d1feea')
+    return yf.returnJson(True, 'python_yf.uninstall_success')
 
 def create_venv():
     args = getArgs()
     version = args.get('version', '')
     base_path = args.get('path', '')
     if not version or not base_path:
-        return yf.returnJson(False, 'k_e5d8a888')
+        return yf.returnJson(False, 'python_yf.specify_ver_path')
         
     path = os.path.join(base_path, '.venv')
     
@@ -159,7 +178,7 @@ def create_venv():
         if path not in venvs[version]:
             venvs[version].append(path)
             save_venvs(venvs)
-        return yf.returnJson(True, 'k_74ea2cf5')
+        return yf.returnJson(True, 'python_yf.venv_create_success')
     else:
         return yf.returnJson(False, f'创建失败: {output}')
 
@@ -168,7 +187,7 @@ def remove_venv():
     version = args.get('version', '')
     path = args.get('path', '')
     if not version or not path:
-        return yf.returnJson(False, 'k_bff0e837')
+        return yf.returnJson(False, 'python_yf.param_error')
         
     venvs = get_venvs()
     if version in venvs and path in venvs[version]:
@@ -179,8 +198,8 @@ def remove_venv():
         if os.path.exists(os.path.join(path, 'bin', 'python')) or os.path.exists(os.path.join(path, 'pyvenv.cfg')):
             yf.execShell(f"rm -rf {path}")
             
-        return yf.returnJson(True, 'k_0007d170')
-    return yf.returnJson(False, 'k_dc240c16')
+        return yf.returnJson(True, 'python_yf.del_success')
+    return yf.returnJson(False, 'python_yf.venv_not_exists')
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

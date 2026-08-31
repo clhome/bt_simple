@@ -11,8 +11,7 @@
 # JAVA环境管理器
 # ---------------------------------------------------------------------------------
 
-import os, sys, json, time, psutil
-import threading
+import os, sys, json, time
 
 
 # 御风面板路径
@@ -155,30 +154,30 @@ class jdk_main:
         """添加自定义JDK"""
         path = args.get("path", "").strip()
         if not path.endswith('/bin/java'):
-            return yf.returnJson(False, 'k_8130fc6a')
+            return yf.returnJson(False, 'jdk.invalid_path')
         if not os.path.exists(path):
-            return yf.returnJson(False, 'k_1f844e32')
+            return yf.returnJson(False, 'jdk.path_not_exists')
             
         ret = yf.execShell(path + ' -version')
         if ret[1].find('version') == -1 and ret[0].find('version') == -1:
-            return yf.returnJson(False, 'k_8a3ba46b')
+            return yf.returnJson(False, 'jdk.verify_failed')
 
         config = json.loads(yf.readFile(self._config_file))
         if "custom" not in config:
             config["custom"] = []
         if path in config["custom"]:
-            return yf.returnJson(False, 'k_95c401c9')
+            return yf.returnJson(False, 'jdk.already_exists')
             
         config["custom"].append(path)
         yf.writeFile(self._config_file, json.dumps(config))
-        return yf.returnJson(True, 'k_6778a06e')
+        return yf.returnJson(True, 'jdk.add_success')
 
     def install_jdk(self, args):
         """发起后台下载并解压"""
         version = args.get("version", "")
         url = args.get("download_url", "")
         if not version or not url:
-            return yf.returnJson(False, 'k_bff0e837')
+            return yf.returnJson(False, 'jdk.param_error')
             
         # 下载前预检URL，如果404则自动刷新提取最新版本
         import urllib.request
@@ -199,7 +198,7 @@ class jdk_main:
         dest_dir = self._java_dir + '/' + version
         java_bin = dest_dir + '/bin/java'
         if os.path.exists(java_bin):
-            return yf.returnJson(False, 'k_3d4679ad')
+            return yf.returnJson(False, 'jdk.already_installed')
         
         # 如果存在空目录（上次安装失败残留），先清理
         if os.path.exists(dest_dir):
@@ -234,7 +233,7 @@ echo 'JDK {version} 安装完成'
         title = f'安装JDK-{version}'
         thisdb.addTask(name=title, cmd=cmd, status=0)
         yf.triggerTask()
-        return yf.returnJson(True, 'k_2978f285')
+        return yf.returnJson(True, 'jdk.task_added')
 
     def uninstall_jdk(self, args):
         """卸载/移除JDK"""
@@ -247,7 +246,7 @@ echo 'JDK {version} 安装完成'
             # 校验是否被使用
             out, err = yf.execShell(f"lsof +D {os.path.dirname(os.path.dirname(path))}")
             if out:
-                return yf.returnJson(False, 'k_a15274b0')
+                return yf.returnJson(False, 'jdk.in_use_error')
             yf.execShell(f"rm -rf {os.path.dirname(os.path.dirname(path))}")
         elif jdk_type == '用户自定义':
             if path in config.get("custom", []):
@@ -259,13 +258,13 @@ echo 'JDK {version} 安装完成'
             yf.execShell("rm -f /etc/profile.d/java.sh && source /etc/profile")
             
         yf.writeFile(self._config_file, json.dumps(config))
-        return yf.returnJson(True, 'k_de0801f9')
+        return yf.returnJson(True, 'jdk.uninstall_success')
 
     def set_default_jdk(self, args):
         """设置系统级默认全局JAVA_HOME"""
         path = args.get("path", "")
         if not os.path.exists(path):
-            return yf.returnJson(False, 'k_a5d10c9a')
+            return yf.returnJson(False, 'jdk.path_not_exists')
             
         java_home = os.path.dirname(os.path.dirname(path))
         env_content = f"""export JAVA_HOME={java_home}
@@ -283,7 +282,7 @@ export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
         config["default"] = path
         yf.writeFile(self._config_file, json.dumps(config))
         
-        return yf.returnJson(True, 'k_6e00a0c0')
+        return yf.returnJson(True, 'jdk.set_default_success')
 
 
 def getArgs():
@@ -293,7 +292,10 @@ def getArgs():
     if not scan_args:
         return tmp
     
-    args_str = " ".join(scan_args)
+    args_str = " ".join(scan_args).strip()
+    if (args_str.startswith("'") and args_str.endswith("'")) or (args_str.startswith('"') and args_str.endswith('"')):
+        args_str = args_str[1:-1].strip()
+
     # 尝试直接解析整个拼接字符串
     try:
         parsed = json.loads(args_str)
@@ -305,6 +307,8 @@ def getArgs():
     # 逐个元素尝试解析 JSON
     for arg in scan_args:
         arg = arg.strip()
+        if (arg.startswith("'") and arg.endswith("'")) or (arg.startswith('"') and arg.endswith('"')):
+            arg = arg[1:-1].strip()
         if not arg:
             continue
         try:
@@ -313,6 +317,17 @@ def getArgs():
                 return parsed
         except:
             continue
+
+    # 兼容 key:value 格式
+    if ":" in args_str:
+        try:
+            parts = args_str.split(",")
+            for p in parts:
+                if ":" in p:
+                    k, v = p.split(":", 1)
+                    tmp[k.strip().strip("'").strip('"')] = v.strip().strip("'").strip('"')
+        except:
+            pass
     return tmp
 
 if __name__ == "__main__":
@@ -325,3 +340,4 @@ if __name__ == "__main__":
             print(func_obj(args))
         else:
             print('error')
+

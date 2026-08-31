@@ -168,7 +168,35 @@
         'ip_privacy_check': 'IP隐私安全检测',
         'tools_box': '御风工具箱',
         'company_signature': '衢州御风科技有限公司出品',
-        'source_code': '源码'
+        'source_code': '源码',
+        'message_box': '消息盒子',
+        'task_list': '任务列表',
+        'message_list': '消息列表',
+        'execution_log': '执行日志',
+        'execution_log_1': '执行日志',
+        'memory': '内存:',
+        'memory_1': '内存:',
+        'uplink': '上行:',
+        'downstream': '下行:',
+        'task_name': '任务名称',
+        'task_time': '添加时间',
+        'task_tip_read': '标记已读',
+        'task_tip_all': '全部已读',
+        'if_task_has_not': '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列',
+        'there_are_currently_no': '当前没有任务!',
+        'retrieving_logs': '正在获取日志...',
+        'completed': '已完成',
+        'done': '已完成',
+        'time_taken': '耗时[',
+        'processing_1': '处理中',
+        'waiting_1': '等待中',
+        'installing_1': '安装中',
+        'installing_2': '正在安装',
+        'scanning': '正在扫描',
+        'downloading': '下载中',
+        'del': '删除',
+        'close': '关闭',
+        'scan': '扫描'
     };
 
     /**
@@ -247,12 +275,17 @@
             return defaultText;
         }
 
-        // 6. 兜底字典匹配
-        var cleanKey = parts[parts.length - 1].toLowerCase();
-        // 去除尾部无意义的序号后缀，如 file_name_2 -> file_name
-        cleanKey = cleanKey.replace(/_\d+$/, '');
-        if (FALLBACK_MAP[cleanKey]) {
-            return FALLBACK_MAP[cleanKey];
+        // 6. 兜底字典匹配（仅当为中文或繁体中文，或无其他回退时使用）
+        var rawKey = parts[parts.length - 1].toLowerCase();
+        var cleanKey = rawKey.replace(/_\d+$/, '');
+        if (_currentLang === 'zh-CN') {
+            if (FALLBACK_MAP[rawKey]) return FALLBACK_MAP[rawKey];
+            if (FALLBACK_MAP[cleanKey]) return FALLBACK_MAP[cleanKey];
+        }
+
+        // 7. 若仍未匹配，绝不泄露带点号的前缀 key（如 public.xxx, bt.xxx），返回空字符串以支持 || 运算短路
+        if (parts.length > 1) {
+            return '';
         }
 
         return key;

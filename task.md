@@ -496,6 +496,31 @@
 - [x] 3. 优化 `web/static/app/index.js`：在一键安装套件（`init_install`）提交后调用 `getTaskCount()` 同步角标。
 - [x] 4. 编写全自动回归测试脚本 `test/test_task_badge_sync.py` 并运行验证。
 
+## 第三十五阶段：御风JDK管理器安装修复、参数解析鲁棒化与全套6国语言国际化改造 (完成)
 
+- [x] 1. 修复 `plugins/jdk/index.html` 中的传参格式（移除外层单引号）并重构 UI 渲染支持标准多语言 `t('jdk.*')`。
+- [x] 2. 增强 `plugins/jdk/index.py` 与 `plugins/python_yf/index.py` 中的 `getArgs()` 函数，实现自动去除首尾单双引号与多种格式高鲁棒性解析。
+- [x] 3. 清理 `plugins/jdk/index.py` 与 `plugins/python_yf/index.py` 中的历史 `k_` 哈希码，规范替换为语义化多语言 Key。
+- [x] 4. 在 `phrases_full.py` 与 6 国语言包（zh-CN, zh-TW, en, fr, de, it）中录入 `jdk` 与 `python_yf` 模块的全量中英法德意繁翻译，并重新编译生成全套 `lan.js` 与 `template.json`。
+- [x] 5. 编写全自动测试套件 `test/test_jdk_and_hash_fix_i18n.py`，全面验证参数解析、安装流程、各接口返回及 6 国语言翻译覆盖率。
+- [x] 6. 运行全量测试套件进行回归验证，确保 0 报错。
+
+## 第三十六阶段：消息盒子多语言修复、全局前缀泄露根除与全套国际化升级
+
+- [x] 1. 升级 `web/static/app/i18n.js` 前端核心引擎：优化 `t(key, args, defaultText)` 函数的兜底与降级逻辑，支持缺失 key 时优雅降级至默认文本或空字符串，杜绝泄露 `public.` / `bt.` 等模块前缀。
+- [x] 2. 在 `scripts/tools/phrases_full.py` 中录入消息盒子、系统指标、任务状态与通用操作的完整 6 国语言（zh-CN, zh-TW, en, fr, de, it）对照字典。
+- [x] 3. 增强 `scripts/tools/build_all_languages.py`：在 `build_lan_js` 中将 `public` 节点正式作为核心 section 注入到 6 国语言包的 `lan.js`（`window.lan.public`），并重新编译生成全套语言包。
+- [x] 4. 重构 `web/static/app/public.js` 中消息盒子（`messageBox`, `tasklist`, `remind`, `getReloads`, `showTaskLog`）的多语言调用，消除 `bt.*`，规范传参。
+- [x] 5. 编写自动化测试 `test/test_message_box_and_prefix_leak_i18n.py` 验证消息盒子、系统监控与全局前缀无泄露。
+- [x] 6. 运行全量测试套件进行全面回归验证（28 个测试模块，100 个测试项 100% PASS）。
+
+## 第三十七阶段：恢复历史高质量基准翻译、改造多语言编译系统与全量母语精修
+
+- [ ] 1. 从历史基准版本（commit `553a16543`）完整提取 5 种外语（`en`, `fr`, `de`, `it`, `zh-TW`）的高质量纯正母语基准翻译（`public.json`, `template.json`, `log.json`, `lan.js`）。
+- [ ] 2. 彻底重构 `scripts/tools/build_all_languages.py` 与相关构建工具：废除基于单字子串机械替换的错误机制，采用“高质量基准底座 + 精准增量合并”编译模式，确保纯正母语翻译永不被损坏。
+- [ ] 3. 将新增插件模块（`jdk`, `python_yf` 等）与消息盒子等系统级字段作为增量字典，精准 merge 到各语言包中。
+- [ ] 4. 重新构建并格式化全部 6 国语言文件（`lan.js`, `template.json`, `public.json`, `log.json`），全部强制 LF 换行符与 UTF-8 无 BOM。
+- [ ] 5. 编写专项测试用例 `test/test_high_quality_i18n_restore.py`，严格验证 `en/public.json` 等文件恢复纯正英语、无任何中英混合怪胎，且新老词条完整无损。
+- [ ] 6. 运行全仓库回归测试套件，确保 100% PASS。
 
 

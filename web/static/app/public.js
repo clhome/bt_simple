@@ -1148,8 +1148,8 @@ function safeMessage(j, h, g, f, checkName) {
   sumtext = d + " + " + c;
   setCookie("vcodesum", e);
   var checkHtml = "";
-  var dbNameMsg = lan.bt && t('bt.db_name_msg') ? t('bt.db_name_msg') : lan && lan.public && t('public.the_name_of_the') || "";
-  var dbNameErr = lan.bt && t('bt.db_name_err') ? t('bt.db_name_err') : lan && lan.public && t('public.incorrect_database_name_entered') || "";
+  var dbNameMsg = t('public.db_name_msg', '请输入数据库名称确认删除:');
+  var dbNameErr = t('public.db_name_err', '输入的数据库名称不正确!');
   if (checkName) {
     checkHtml = "<div style='margin-top: 15px; font-size: 14px; color: #d9534f; font-weight: bold; text-align: left;'>" + dbNameMsg + " <input type='text' id='dbNameResult' value='' style='width: 120px; height: 28px; line-height: 28px; border: 1.5px solid #d9534f; border-radius: 8px; padding: 0 8px; color: #444; outline: none; margin-left: 5px; display: inline-block;'></div>";
   }
@@ -1160,11 +1160,11 @@ function safeMessage(j, h, g, f, checkName) {
     closeBtn: 1,
     shadeClose: true,
     content: "<div class='bt-form webDelete pd20 pb70'>\
-			<p>" + h + "</p>" + f + "<div class='vcode'>" + t('bt.cal_msg') + "<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div>\
+			<p>" + h + "</p>" + f + "<div class='vcode'>" + t('public.cal_msg', '计算结果：') + "<span class='text'>" + sumtext + "</span>=<input type='number' id='vcodeResult' value=''></div>\
 			" + checkHtml + "\
 			<div class='bt-form-submit-btn'>\
-				<button type='button' class='btn btn-danger btn-sm bt-cancel'>" + t('public.cancel') + "</button>\
-				<button type='button' id='toSubmit' class='btn btn-success btn-sm' >" + t('public.ok') + "</button></div>\
+				<button type='button' class='btn btn-danger btn-sm bt-cancel'>" + t('public.cancel', '取消') + "</button>\
+				<button type='button' id='toSubmit' class='btn btn-success btn-sm' >" + t('public.ok', '确定') + "</button></div>\
 			</div>"
   });
   $("#vcodeResult").trigger('focus').on('keyup', function (a) {
@@ -1294,7 +1294,7 @@ function removeTask(b) {
     });
   }, 'json').fail(function () {
     getTaskCount();
-    layer.msg(t('bt.task_close'), {
+    layer.msg(t('public.task_close', '任务已取消'), {
       icon: 1
     });
   });
@@ -1347,7 +1347,7 @@ function flySlow(a) {
   var d = $("." + a);
   if (d.length === 0 || !d.offset() || !b) {
     layer.closeAll();
-    layer.msg(t('bt.task_add'), {
+    layer.msg(t('public.task_add', '已添加至任务列表'), {
       icon: 1
     });
     getTaskCount();
@@ -1369,7 +1369,7 @@ function flySlow(a) {
       speed: 0.65,
       onEnd: function () {
         layer.closeAll();
-        layer.msg(t('bt.task_add'), {
+        layer.msg(t('public.task_add', '已添加至任务列表'), {
           icon: 1
         });
         getTaskCount();
@@ -1378,7 +1378,7 @@ function flySlow(a) {
     });
   } catch (e) {
     layer.closeAll();
-    layer.msg(t('bt.task_add'), {
+    layer.msg(t('public.task_add', '已添加至任务列表'), {
       icon: 1
     });
     getTaskCount();
@@ -1536,7 +1536,7 @@ function bindPanel(a, type, ip, btid, url, user, pw) {
     var bttitle = $("#bttitle").val();
     var data = "title=" + bttitle + "&url=" + encodeURIComponent(btaddress) + "&username=" + btuser + "&password=" + btpassword;
     if (btaddress == "" || btuser == "" || btpassword == "" || bttitle == "") {
-      layer.msg(t('bt.panel_err_empty'), {
+      layer.msg(t('public.panel_err_empty', '所有字段均不能为空'), {
         icon: 8
       });
       return;
@@ -1652,16 +1652,16 @@ function tasklist() {
 function messageBox() {
   layer.open({
     type: 1,
-    title: window.lan && lan.public && t('public.message_box') || "消息盒子",
+    title: t('public.message_box', '消息盒子'),
     area: ["680px", "600px"],
     closeBtn: 1,
     shadeClose: false,
     content: '<div class="bt-form msg-box-form">\
       <div class="bt-w-main" id="msg_box">\
         <div class="bt-w-menu">\
-          <p class="bgw" id="taskList" onclick="tasklist()">' + (window.lan && lan.public && t('public.task_list') || '任务列表') + '(<span class="task_count">0</span>)</p>\
-          <p id="msgListTab" onclick="remind()">' + (window.lan && lan.public && t('public.message_list') || '消息列表') + '(<span class="msg_count">0</span>)</p>\
-          <p id="execLogTab" onclick="execLog()">' + (window.lan && lan.public && t('public.execution_log_1') || '执行日志') + '</p>\
+          <p class="bgw" id="taskList" onclick="tasklist()">' + t('public.task_list', '任务列表') + '(<span class="task_count">0</span>)</p>\
+          <p id="msgListTab" onclick="remind()">' + t('public.message_list', '消息列表') + '(<span class="msg_count">0</span>)</p>\
+          <p id="execLogTab" onclick="execLog()">' + t('public.execution_log', '执行日志') + '</p>\
         </div>\
         <div class="bt-w-con pd15">\
           <div class="taskcon"></div>\
@@ -1669,9 +1669,9 @@ function messageBox() {
       </div>\
       <div id="msg_box_sys_info">\
         <span>CPU: <span id="msg_box_cpu" style="color:#20a53a; font-weight: 600;">0%</span></span>\
-        <span>' + (window.lan && lan.public && t('public.memory_1') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a; font-weight: 600;">0%</span></span>\
-        <span>' + (window.lan && lan.public && t('public.uplink') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851; font-weight: 600;">0 B/s</span></span>\
-        <span>' + (window.lan && lan.public && t('public.downstream') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff; font-weight: 600;">0 B/s</span></span>\
+        <span>' + t('public.memory_1', '内存:') + ' <span id="msg_box_mem" style="color:#20a53a; font-weight: 600;">0%</span></span>\
+        <span>' + t('public.uplink', '上行:') + ' <span id="msg_box_up" style="color:#f7b851; font-weight: 600;">0 B/s</span></span>\
+        <span>' + t('public.downstream', '下行:') + ' <span id="msg_box_down" style="color:#52a9ff; font-weight: 600;">0 B/s</span></span>\
       </div>\
     </div>',
     success: function () {
@@ -1731,7 +1731,7 @@ function execLog() {
 
 //查看指定任务的日志
 function showTaskLog(id, name) {
-  var loadT = layer.msg(lan && lan.public && t('public.retrieving_logs') || "", {
+  var loadT = layer.msg(t('public.retrieving_logs', '正在获取日志...'), {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -1748,7 +1748,7 @@ function showTaskLog(id, name) {
     }
     layer.open({
       type: 1,
-      title: name + (lan && lan.public && t('public.execution_log') || ""),
+      title: name + t('public.execution_log', '执行日志'),
       area: ['670px', '500px'],
       shadeClose: false,
       closeBtn: 1,
@@ -1793,16 +1793,16 @@ function remind(a) {
     var f = false;
     for (var d = 0; d < g.data.length; d++) {
       var status = g.data[d].status;
-      var status_text = window.lan && lan.public && t('public.completed') || "已完成";
+      var status_text = t('public.completed', '已完成');
       var cos_text = '';
       if (status == '1') {
-        status_text = window.lan && lan.public && t('public.done') || "已完成";
-        cos_text = (window.lan && lan.public && t('public.time_taken') || "耗时[") + getSFM(g.data[d].end - g.data[d].start) + ']';
+        status_text = t('public.done', '已完成');
+        cos_text = t('public.time_taken', '耗时[') + getSFM(g.data[d].end - g.data[d].start) + ']';
       } else if (status == '0') {
-        status_text = window.lan && lan.public && t('public.processing_1') || "处理中";
-        cos_text = window.lan && lan.public && t('public.waiting_1') || "等待中";
+        status_text = t('public.processing_1', '处理中');
+        cos_text = t('public.waiting_1', '等待中');
       } else if (status == '-1') {
-        status_text = window.lan && lan.public && t('public.installing_1') || "安装中";
+        status_text = t('public.installing_1', '安装中');
         cos_text = '..';
       }
       e += '<tr>\
@@ -1820,7 +1820,7 @@ function remind(a) {
 					<thead>\
 						<tr>\
 							<th width="20"><input id="Rs-checkAll" type="checkbox" onclick="RscheckSelect()"></th>\
-							<th>' + t('bt.task_name') + '</th><th class="text-right">' + t('bt.task_time') + '</th>\
+							<th>' + t('public.task_name', '任务名称') + '</th><th class="text-right">' + t('public.task_time', '添加时间') + '</th>\
 						</tr>\
 					</thead>\
 					<tbody id="remind">' + e + '</tbody>\
@@ -1828,9 +1828,9 @@ function remind(a) {
 				</div>\
 				<div class="mtb15" style="height:32px">\
 					<div class="pull-left buttongroup" style="display:none;">\
-						<button class="btn btn-default btn-sm mr5 rs-del" disabled="disabled">' + t('public.del') + '</button>\
-						<button class="btn btn-default btn-sm mr5 rs-read" disabled="disabled">' + t('bt.task_tip_read') + '</button>\
-						<button class="btn btn-default btn-sm">' + t('bt.task_tip_all') + '</button>\
+						<button class="btn btn-default btn-sm mr5 rs-del" disabled="disabled">' + t('public.del', '删除') + '</button>\
+						<button class="btn btn-default btn-sm mr5 rs-read" disabled="disabled">' + t('public.task_tip_read', '标记已读') + '</button>\
+						<button class="btn btn-default btn-sm">' + t('public.task_tip_all', '全部已读') + '</button>\
 					</div>\
 					<div id="taskPage" class="page"></div>\
 				</div>';
@@ -1864,7 +1864,7 @@ function getReloads() {
     $.post('/task/get_task_speed', '', function (h) {
       if (h.task == undefined || h.task.length === 0) {
         $(".task_count").text(0);
-        $(".cmdlist").html('<li style="border:none; text-align:center; padding-top:100px; color:#999;">' + (window.lan && lan.public && t('public.there_are_currently_no') || "当前没有任务!") + '</li>');
+        $(".cmdlist").html('<li style="border:none; text-align:center; padding-top:100px; color:#999;">' + t('public.there_are_currently_no', '当前没有任务!') + '</li>');
         return;
       }
       var b = '';
@@ -1878,17 +1878,17 @@ function getReloads() {
             for (var e = 0; e < f.length; e++) {
               c += f[e] + "<br>";
             }
-            if (h.task[g].name.indexOf(window.lan && lan.public && t('public.scan') || "扫描") != -1) {
+            if (h.task[g].name.indexOf(t('public.scan', '扫描')) != -1) {
               b += "<li>\
 								<span class='titlename'>" + h.task[g].name + "</span>\
-								<span class='state'>" + (window.lan && lan.public && t('public.scanning') || '正在扫描') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.close') || '关闭') + "</a></span>\
+								<span class='state'>" + t('public.scanning', '正在扫描') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.close', '关闭') + "</a></span>\
 								<span class='opencmd'></span>\
 								<div class='cmd'>" + c + "</div>\
 							</li>";
             } else {
               b += "<li>\
 								<span class='titlename'>" + h.task[g].name + "</span>\
-								<span class='state'>" + (window.lan && lan.public && t('public.installing_2') || '正在安装') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.close') || '关闭') + "</a></span>\
+								<span class='state'>" + t('public.installing_2', '正在安装') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.close', '关闭') + "</a></span>\
 								<div class='cmd'>" + c + "</div>\
 							</li>";
             }
@@ -1897,11 +1897,11 @@ function getReloads() {
 								<div class='line-progress' style='width:" + h.msg.pre + "%'></div>\
 								<span class='titlename'>" + h.task[g].name + "<a style='margin-left:130px;'>" + (toSize(h.msg.used) + "/" + toSize(h.msg.total)) + "</a></span>\
 								<span class='com-progress'>" + h.msg.pre + "%</span>\
-								<span class='state'>" + (window.lan && lan.public && t('public.downloading') || '下载中') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.close') || '关闭') + "</a></span>\
+								<span class='state'>" + t('public.downloading', '下载中') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.close', '关闭') + "</a></span>\
 							</li>";
           }
         } else {
-          d += "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>" + (window.lan && lan.public && t('public.waiting') || '等待') + " | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.del') || '删除') + "</a></span></li>";
+          d += "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>" + t('public.waiting', '等待') + " | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ")\">" + t('public.del', '删除') + "</a></span></li>";
         }
       }
       $("#task").text(h.count);
@@ -1918,6 +1918,7 @@ function getReloads() {
   renderRunTask();
   speed = setInterval(function () {
     renderRunTask();
+
   }, 2000);
 }
 

@@ -187,38 +187,98 @@ def translate_dict(data, target_lang):
         return data
 
 # 读取源语言文件
-with open(os.path.join(SRC_DIR, "public.json"), "r", encoding="utf-8") as f:
-    SRC_PUBLIC = json.load(f)
+def clean_dirty_keys(data):
+    """清理遗留的破坏性脏键与 HTML 片段"""
+    if isinstance(data, dict):
+        cleaned = {}
+        for k, v in data.items():
+            if "add-tab-btn" in k or "<select" in k or "<table" in k or k.startswith("files_auto_str_"):
+                continue
+            if isinstance(v, str):
+                if "')\">" in v or "');\">" in v or "')>" in v or "');>" in v or "add-tab-btn" in v:
+                    continue
+                if v.startswith("')") or v.startswith("\\')"):
+                    continue
+            cleaned[k] = clean_dirty_keys(v)
+        return cleaned
+    return data
 
-with open(os.path.join(SRC_DIR, "template.json"), "r", encoding="utf-8") as f:
-    SRC_TEMPLATE = json.load(f)
 
-with open(os.path.join(SRC_DIR, "log.json"), "r", encoding="utf-8") as f:
-    SRC_LOG = json.load(f)
+def load_sources():
+    with open(os.path.join(SRC_DIR, "public.json"), "r", encoding="utf-8") as f:
+        src_pub = clean_dirty_keys(json.load(f))
 
-with open(os.path.join(SRC_DIR, "lan.js"), "r", encoding="utf-8") as f:
-    lan_content = f.read()
+    with open(os.path.join(SRC_DIR, "template.json"), "r", encoding="utf-8") as f:
+        src_tmpl = clean_dirty_keys(json.load(f))
 
-SRC_LAN_GET = {}
-msgs_match = re.search(r'var msgs = (\{[\s\S]*?\n\t*\})', lan_content)
-if msgs_match:
-    for k, v in re.findall(r'"([^"]+)"\s*:\s*"((?:[^"\\]|\\.)*)"', msgs_match.group(1)):
-        SRC_LAN_GET[k] = v.replace('\\"', '"')
+    with open(os.path.join(SRC_DIR, "log.json"), "r", encoding="utf-8") as f:
+        src_log = clean_dirty_keys(json.load(f))
 
-SRC_LAN_SECTIONS = {}
-section_matches = re.findall(r'"([a-zA-Z0-9_]+)"\s*:\s*\{([^}]+)\}', lan_content)
-for sec_name, sec_body in section_matches:
-    if sec_name == "get":
-        continue
-    items = {}
-    for k, v in re.findall(r'"([^"]+)"\s*:\s*"((?:[^"\\]|\\.)*)"', sec_body):
-        items[k] = v.replace('\\"', '"')
-    SRC_LAN_SECTIONS[sec_name] = items
+    with open(os.path.join(SRC_DIR, "lan.js"), "r", encoding="utf-8") as f:
+        lan_content = f.read()
 
-def build_lan_js(target_lang):
+    src_get = {}
+    msgs_match = re.search(r'var msgs = (\{[\s\S]*?\n\t*\})', lan_content)
+    if msgs_match:
+        for k, v in re.findall(r'"([^"]+)"\s*:\s*"((?:[^"\\]|\\.)*)"', msgs_match.group(1)):
+            src_get[k] = v.replace('\\"', '"')
+
+    src_secs = {}
+    section_matches = re.findall(r'"([a-zA-Z0-9_]+)"\s*:\s*\{([^}]+)\}', lan_content)
+    for sec_name, sec_body in section_matches:
+        if sec_name == "get":
+            continue
+        items = {}
+        for k, v in re.findall(r'"([^"]+)"\s*:\s*"((?:[^"\\]|\\.)*)"', sec_body):
+            items[k] = v.replace('\\"', '"')
+        src_secs[sec_name] = items
+
+    return src_pub, src_tmpl, src_log, src_get, src_secs
+
+
+
+def merge_nested_dict(target, source, code):
+    """递归合并多语言字典"""
+    for k, v in source.items():
+        if isinstance(v, dict):
+            # 判断是否是叶子翻译映射
+            if any(c in v for c in ["en", "zh-CN", "zh-TW", "fr", "de", "it"]):
+                if code in v:
+                    target[k] = v[code]
+                elif code == "zh-CN":
+                    target[k] = v.get("zh-CN", "")
+                elif code == "zh-TW":
+                    target[k] = v.get("zh-TW", to_traditional_chinese(v.get("zh-CN", "")))
+                else:
+                    target[k] = v.get(code, v.get("en", ""))
+            else:
+                if k not in target or not isinstance(target[k], dict):
+                    target[k] = {}
+                merge_nested_dict(target[k], v, code)
+        else:
+            target[k] = v
+
+def format_js_obj(obj, indent=2):
+    """递归将 Python 字典格式化为合法的 JS 对象字符串"""
+    if isinstance(obj, dict):
+        if not obj:
+            return "{}"
+        lines = ["{"]
+        items = []
+        for k, v in obj.items():
+            k_str = json.dumps(k, ensure_ascii=False)
+            v_str = format_js_obj(v, indent + 1)
+            items.append("\t" * indent + f"{k_str}: {v_str}")
+        lines.append(",\n".join(items))
+        lines.append("\t" * (indent - 1) + "}")
+        return "\n".join(lines)
+    else:
+        return json.dumps(obj, ensure_ascii=False)
+
+def build_lan_js(target_lang, src_get, src_secs, src_pub=None):
     """为指定语言构建 lan.js 文件字符串"""
     translated_get = {}
-    for k, v in SRC_LAN_GET.items():
+    for k, v in src_get.items():
         if k in LAN_MSGS_FULL and target_lang in LAN_MSGS_FULL[k]:
             translated_get[k] = LAN_MSGS_FULL[k][target_lang]
         else:
@@ -238,15 +298,19 @@ def build_lan_js(target_lang):
     lines.append("\t\treturn msg;")
     lines.append("\t},")
     
-    # 整合已有的 sections 以及 FULL_I18N_DICTIONARY 中的所有 sections
-    all_sec_names = list(SRC_LAN_SECTIONS.keys())
+    all_sec_names = list(src_secs.keys())
+    if "public" not in all_sec_names:
+        all_sec_names.insert(0, "public")
     for s in FULL_I18N_DICTIONARY:
         if s not in all_sec_names:
             all_sec_names.append(s)
             
     sec_blocks = []
     for sec_name in all_sec_names:
-        sec_data = SRC_LAN_SECTIONS.get(sec_name, {})
+        sec_data = src_secs.get(sec_name, {})
+        if sec_name == "public" and not sec_data and src_pub:
+            sec_data = src_pub
+            
         translated_sec = {}
         for k, v in sec_data.items():
             if sec_name == "index" and k in LAN_INDEX and target_lang in LAN_INDEX[k]:
@@ -254,102 +318,35 @@ def build_lan_js(target_lang):
             else:
                 translated_sec[k] = translate_text(v, target_lang)
                 
-        # 融入 FULL_I18N_DICTIONARY
         if sec_name in FULL_I18N_DICTIONARY:
-            for item_k, trans_map in FULL_I18N_DICTIONARY[sec_name].items():
-                if target_lang in trans_map:
-                    translated_sec[item_k] = trans_map[target_lang]
-                elif target_lang == "zh-CN":
-                    translated_sec[item_k] = trans_map.get("zh-CN", "")
-                elif target_lang == "zh-TW":
-                    translated_sec[item_k] = trans_map.get("zh-TW", to_traditional_chinese(trans_map.get("zh-CN", "")))
-                else:
-                    translated_sec[item_k] = trans_map.get(target_lang, trans_map.get("en", ""))
+            merge_nested_dict(translated_sec, FULL_I18N_DICTIONARY[sec_name], target_lang)
                 
-        sec_lines = [f'\t{json.dumps(sec_name, ensure_ascii=False)}:{{']
-        item_lines = []
-        for k, v in translated_sec.items():
-            item_lines.append(f'\t\t{json.dumps(k, ensure_ascii=False)}:{json.dumps(v, ensure_ascii=False)}')
-        sec_lines.append(",\n".join(item_lines))
-        sec_lines.append("\t}")
-        sec_blocks.append("\n".join(sec_lines))
+        sec_str = f'\t{json.dumps(sec_name, ensure_ascii=False)}: ' + format_js_obj(translated_sec, 2)
+        sec_blocks.append(sec_str)
         
     lines.append(",\n\n".join(sec_blocks))
     lines.append("};\n")
     return "\n".join(lines)
 
 def run():
-    print("Starting generation of multi-language bundles...")
-    
-    for lang_info in LANGUAGES:
-        code = lang_info["code"]
-        lang_dir = os.path.join(BASE_LANG_DIR, code)
-        os.makedirs(lang_dir, exist_ok=True)
-        
-        # 1. public.json
-        translated_public = translate_dict(SRC_PUBLIC, code)
-        if "public" in FULL_I18N_DICTIONARY:
-            for k, trans_map in FULL_I18N_DICTIONARY["public"].items():
-                if code in trans_map:
-                    translated_public[k] = trans_map[code]
-        with open(os.path.join(lang_dir, "public.json"), "w", encoding="utf-8") as f:
-            json.dump(translated_public, f, indent=2, ensure_ascii=False)
-            
-        # 2. template.json
-        translated_template = translate_dict(SRC_TEMPLATE, code)
-        if "menu" in translated_template:
-            for k in TEMPLATE_MENU:
-                if code in TEMPLATE_MENU[k]:
-                    translated_template["menu"][k] = TEMPLATE_MENU[k][code]
-        if "login" in translated_template:
-            for k in TEMPLATE_LOGIN:
-                if code in TEMPLATE_LOGIN[k]:
-                    translated_template["login"][k] = TEMPLATE_LOGIN[k][code]
-                    
-        # 融合全量精准多语言字典 (FULL_I18N_DICTIONARY)
-        for sec_name, sec_dict in FULL_I18N_DICTIONARY.items():
-            if sec_name not in translated_template:
-                translated_template[sec_name] = {}
-            for item_k, trans_map in sec_dict.items():
-                if code in trans_map:
-                    translated_template[sec_name][item_k] = trans_map[code]
-                elif code == "zh-CN":
-                    translated_template[sec_name][item_k] = trans_map.get("zh-CN", "")
-                elif code == "zh-TW":
-                    translated_template[sec_name][item_k] = trans_map.get("zh-TW", to_traditional_chinese(trans_map.get("zh-CN", "")))
-                else:
-                    translated_template[sec_name][item_k] = trans_map.get(code, trans_map.get("en", ""))
-                    
-        with open(os.path.join(lang_dir, "template.json"), "w", encoding="utf-8") as f:
-            json.dump(translated_template, f, indent=2, ensure_ascii=False)
-            
-        # 3. log.json
-        translated_log = translate_dict(SRC_LOG, code)
-        with open(os.path.join(lang_dir, "log.json"), "w", encoding="utf-8") as f:
-            json.dump(translated_log, f, indent=2, ensure_ascii=False)
-            
-        # 4. lan.js
-        lan_js_content = build_lan_js(code)
-        with open(os.path.join(lang_dir, "lan.js"), "w", encoding="utf-8") as f:
-            f.write(lan_js_content)
-            
-        print(f"Generated language pack: {code} ({lang_info['name']})")
-        
-    # 6. 生成 lang.json 和 list.json
+    import restore_and_build_high_quality_i18n
+    restore_and_build_high_quality_i18n.FULL_I18N_DICTIONARY = FULL_I18N_DICTIONARY
+    restore_and_build_high_quality_i18n.run_high_quality_build()
+
+    # 生成 lang.json 和 list.json
     lang_metadata = {
         "default": "zh-CN",
         "supported": LANGUAGES
     }
-    with open(os.path.join(BASE_LANG_DIR, "lang.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(BASE_LANG_DIR, "lang.json"), "w", encoding="utf-8", newline='\n') as f:
         json.dump(lang_metadata, f, indent=2, ensure_ascii=False)
         
     list_json_data = [
         {"name": l["code"], "title": l["nativeName"]} for l in LANGUAGES
     ]
-    with open(os.path.join(BASE_LANG_DIR, "list.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(BASE_LANG_DIR, "list.json"), "w", encoding="utf-8", newline='\n') as f:
         json.dump(list_json_data, f, indent=2, ensure_ascii=False)
-        
-    print("All language bundles, lang.json, and list.json successfully generated!")
 
 if __name__ == "__main__":
     run()
+
