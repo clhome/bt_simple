@@ -48,7 +48,94 @@ def getInitDFile():
     return '/etc/init.d/' + getPluginName()
 
 
+def checkEnv():
+    """
+    商业级前置环境自检与自愈：
+    1. 补齐所有必备运行时目录与配置目录
+    2. 为通配符日志创建占位文件，杜绝 glob 找不到文件崩溃 (Have not found any log file)
+    3. 清理崩溃残留的死套接字与 PID 文件
+    4. 规范 /etc/fail2ban/fail2ban.d/default.conf
+    """
+    # 1. 运行时与数据目录
+    dirs = ['/run/fail2ban', '/var/lib/fail2ban', '/var/log', '/www/wwwlogs',
+            f2bEtcDir(), f2bEtcDir() + '/fail2ban.d', f2bEtcDir() + '/jail.d', f2bEtcDir() + '/filter.d']
+    for d in dirs:
+        try:
+            if not os.path.exists(d):
+                os.makedirs(d, mode=0o755, exist_ok=True)
+        except Exception:
+            pass
+
+    # 2. 网站日志通配符保底文件 (防止 /www/wwwlogs/*.log 匹配不到导致 Fatal Error)
+    try:
+        wwwlogs_dir = '/www/wwwlogs'
+        if os.path.exists(wwwlogs_dir):
+            has_log = any(f.endswith('.log') for f in os.listdir(wwwlogs_dir))
+            if not has_log:
+                placeholder = os.path.join(wwwlogs_dir, 'default.log')
+                if not os.path.exists(placeholder):
+                    with open(placeholder, 'w', encoding='utf-8') as fp:
+                        fp.write('# yufeng fail2ban placeholder log\n')
+    except Exception:
+        pass
+
+    # 3. 补齐主日志文件
+    try:
+        log_file = runLog()
+        if not os.path.exists(log_file):
+            with open(log_file, 'a', encoding='utf-8') as fp:
+                pass
+    except Exception:
+        pass
+
+    # 4. 清理残留死套接字与无效 PID 文件 (当服务未实际运行时)
+    try:
+        sock_file = '/run/fail2ban/fail2ban.sock'
+        pid_file = '/run/fail2ban/fail2ban.pid'
+        res = yf.execShell('fail2ban-client ping')
+        if 'pong' not in res[0]:
+            is_active = yf.execShell('systemctl is-active fail2ban')[0].strip()
+            if is_active != 'active':
+                if os.path.exists(sock_file):
+                    os.remove(sock_file)
+                if os.path.exists(pid_file):
+                    os.remove(pid_file)
+    except Exception:
+        pass
+
+    # 5. 确保 default.conf 包含 allowipv6
+    try:
+        def_conf = f2bEtcDir() + '/fail2ban.d/default.conf'
+        if os.path.exists(def_conf):
+            content = yf.readFile(def_conf)
+            if 'allowipv6' not in content:
+                content += "\nallowipv6 = auto\n"
+                yf.writeFile(def_conf, content)
+    except Exception:
+        pass
+
+def getSshLogConfig():
+    """
+    智能检测当前 OS 的 SSH 日志与后端模式：
+    - 返回: (backend, logpath)
+    - 若为 systemd 环境且无 auth.log / secure: ('systemd', None)
+    - 若存在 /var/log/auth.log: ('auto', '/var/log/auth.log')
+    - 若存在 /var/log/secure: ('auto', '/var/log/secure')
+    - 保底回退: ('systemd', None) 或 ('auto', '/var/log/auth.log')
+    """
+    if os.path.exists('/var/log/auth.log'):
+        return ('auto', '/var/log/auth.log')
+    if os.path.exists('/var/log/secure'):
+        return ('auto', '/var/log/secure')
+    
+    # 检查是否在 systemd 系统下 (Debian 12+ / Ubuntu 22.04+ / RHEL 9+ 等)
+    if os.path.exists('/run/systemd/system') or os.path.exists('/lib/systemd/system') or os.path.exists('/usr/lib/systemd/system'):
+        return ('systemd', None)
+        
+    return ('auto', '/var/log/auth.log')
+
 def initConfigFiles():
+    checkEnv()
     # Check etc dir
     etc_dir = f2bEtcDir()
     if not os.path.exists(etc_dir):
@@ -65,6 +152,7 @@ socket = /run/fail2ban/fail2ban.sock
 pidfile = /run/fail2ban/fail2ban.pid
 dbfile = /var/lib/fail2ban/fail2ban.sqlite3
 dbpurgeage = 1d
+allowipv6 = auto
 """
         yf.writeFile(f2b_conf, default_f2b_conf)
 
@@ -231,15 +319,7 @@ def initDreplace():
         os.mkdir(initD_path)
     file_bin = initD_path + '/' + getPluginName()
 
-    # config replace
-    # dst_conf = getConf()
-    # dst_conf_init = getServerDir() + '/init.pl'
-    # if not os.path.exists(dst_conf_init):
-    #     content = yf.readFile(getConfTpl())
-    #     content = contentReplace(content)
-    #     yf.writeFile(dst_conf, content)
-    #     yf.writeFile(dst_conf_init, 'ok')
-
+    checkEnv()
     initConfigFiles()
     initFail2BanD()
     initJailD()
@@ -258,6 +338,7 @@ def initDreplace():
 
 
 def f2bOp(method):
+    checkEnv()
     file = initDreplace()
 
     # 服务启动、重启、重载前，自动触发配置健康检查与同步，静默补齐缺失配置
@@ -281,7 +362,25 @@ def f2bOp(method):
             return 'ok'
         return data[1]
 
+    # Linux (systemd)
     data = yf.execShell('systemctl ' + method + ' ' + getPluginName())
+
+    # 启动/重启后执行真实心跳探测，彻底杜绝“假成功”
+    if method in ['start', 'restart']:
+        time.sleep(0.8)
+        current_st = status()
+        if current_st == 'start':
+            return 'ok'
+
+        # 启动失败，自动反查真实报错信息
+        diag = yf.execShell('journalctl -u fail2ban -n 20 --no-pager')
+        err_msg = diag[0].strip() if diag[0] else data[1]
+        if not err_msg:
+            test_run = yf.execShell('fail2ban-server -xf start')
+            err_msg = test_run[1] or test_run[0]
+
+        return f"fail: 服务启动失败，检测到进程异常退出。\n[诊断日志]\n{err_msg}"
+
     if data[1] == '':
         return 'ok'
     return data[1]
@@ -296,11 +395,8 @@ def stop():
 
 
 def restart():
-    status = f2bOp('restart')
+    return f2bOp('restart')
 
-    log_file = runLog()
-    yf.execShell("echo '' > " + log_file)
-    return status
 
 
 def reload():
@@ -742,8 +838,17 @@ class fail2ban_main:
             return {}
 
     def sync_jail_local(self, conf):
-        content = ""
+        checkEnv()
         strict = conf.get('strict', True)
+        
+        # 智能探测 SSH 日志后端
+        ssh_backend, ssh_logpath = getSshLogConfig()
+
+        # 生成 [DEFAULT] 全局段
+        content = "[DEFAULT]\n"
+        content += f"backend = {ssh_backend}\n"
+        content += "allowipv6 = auto\n\n"
+
         for item in conf.get('server', []):
             if str(item.get('act')).lower() == 'true':
                 mode = item['mode']
@@ -755,27 +860,47 @@ class fail2ban_main:
                 content += f"maxretry = {item.get('maxretry', 5)}\n"
                 content += f"findtime = {item.get('findtime', 300)}\n"
                 content += f"bantime = {item.get('bantime', 86400)}\n"
-                
-                # 为 mysql / redis 等自定义服务配置日志路径并确保 filter 配置文件存在
-                if mode == 'mysql':
+
+                if mode == 'sshd':
+                    if ssh_backend == 'systemd' and not ssh_logpath:
+                        content += "backend = systemd\n"
+                    elif ssh_logpath:
+                        content += f"backend = {ssh_backend}\n"
+                        content += f"logpath = {ssh_logpath}\n"
+                elif mode == 'mysql':
                     content += "logpath = /www/server/data/*.err\n"
+                    # 保底创建 mysql err 目录或文件
+                    try:
+                        mysql_dir = '/www/server/data'
+                        if os.path.exists(mysql_dir) and not any(f.endswith('.err') for f in os.listdir(mysql_dir)):
+                            yf.writeFile(os.path.join(mysql_dir, 'mysql_error.err'), '')
+                    except Exception:
+                        pass
                     filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
                     if not os.path.exists(filter_file):
                         filter_content = "[Definition]\nfailregex = ^.*Access denied for user.*'<HOST>'.*$\nignoreregex = "
                         yf.writeFile(filter_file, filter_content)
                 elif mode == 'redis':
                     content += "logpath = /var/log/redis/*.log\n"
+                    # 保底创建 redis log 目录或文件
+                    try:
+                        redis_dir = '/var/log/redis'
+                        if not os.path.exists(redis_dir):
+                            os.makedirs(redis_dir, mode=0o755, exist_ok=True)
+                        if not any(f.endswith('.log') for f in os.listdir(redis_dir)):
+                            yf.writeFile(os.path.join(redis_dir, 'redis.log'), '')
+                    except Exception:
+                        pass
                     filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
                     if not os.path.exists(filter_file):
                         filter_content = "[Definition]\nfailregex = ^.*-ERR Auth failed.*from <HOST>.*$\nignoreregex = "
                         yf.writeFile(filter_file, filter_content)
-                
+
                 content += "\n"
-                
+
         for item in conf.get('site', []):
             if str(item.get('act')).lower() == 'true':
                 mode = item['mode']
-                
                 content += f"[{mode}]\n"
                 content += "enabled = true\n"
                 content += "backend = auto\n"
@@ -787,8 +912,8 @@ class fail2ban_main:
                 content += f"maxretry = {item.get('maxretry', 5)}\n"
                 content += f"findtime = {item.get('findtime', 300)}\n"
                 content += f"bantime = {item.get('bantime', 86400)}\n\n"
-                
-                # Ensure the filter exists
+
+                # Ensure filter exists
                 filter_file = f"/etc/fail2ban/filter.d/{mode}.conf"
                 if not os.path.exists(filter_file):
                     if mode.endswith('-cc'):
@@ -796,7 +921,7 @@ class fail2ban_main:
                     else:
                         filter_content = "[Definition]\nfailregex = ^<HOST> \\-.*\"(?:GET|POST|HEAD).*\" (400|401|403|404|444|500|502|503)\nignoreregex = "
                     yf.writeFile(filter_file, filter_content)
-                
+
         yf.writeFile(self._jail_local_file, content)
 
     def set_anti(self, args):
@@ -897,11 +1022,25 @@ class fail2ban_main:
 
     def get_last_log(self, args):
         log_file = runLog()
-        if not os.path.exists(log_file):
-            return yf.returnJson(True, 'ok', '')
-        
-        data = yf.execShell('tail -n 200 ' + log_file)
-        return yf.returnJson(True, 'ok', data[0])
+        content = ""
+        if os.path.exists(log_file):
+            try:
+                data = yf.execShell('tail -n 200 ' + log_file)
+                content = data[0].strip()
+            except Exception:
+                pass
+
+        # 若主日志为空或服务处于停止状态，智能聚合 Systemd 诊断日志
+        if not content or status() == 'stop':
+            journal_data = yf.execShell('journalctl -u fail2ban -n 100 --no-pager')
+            if journal_data[0] and journal_data[0].strip():
+                prefix = "=== 提示: 当前显示 Systemd 诊断日志 (Journalctl) ===\n\n"
+                if content:
+                    content = content + "\n\n" + prefix + journal_data[0].strip()
+                else:
+                    content = prefix + journal_data[0].strip()
+
+        return yf.returnJson(True, 'ok', content)
 
     def clear_log(self, args):
         log_file = runLog()

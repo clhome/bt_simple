@@ -170,7 +170,10 @@ function f2bBanIpSave(black_ip){
 function f2bLogs(){
     var con = '<div class="divtable">' +
                 '<textarea class="bt-input-text" style="height: 440px; width: 100%; line-height:22px; padding: 10px; background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace; border: none; border-radius: 4px;" id="f2bLogBody" readonly></textarea>' +
-                '<div style="margin-top:10px;"><button id="f2bClearLogBtn" class="btn btn-default btn-sm">清空日志</button></div>' +
+                '<div style="margin-top:10px; display: flex; justify-content: space-between; align-items: center;">' +
+                    '<button id="f2bClearLogBtn" class="btn btn-default btn-sm">清空日志</button>' +
+                    '<button id="f2bRefreshLogBtn" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-refresh"></i> 刷新日志</button>' +
+                '</div>' +
                '</div>';
     $(".soft-man-con").html(con);
     
@@ -179,13 +182,20 @@ function f2bLogs(){
         api.post('get_last_log', '', {}, function(data){
             layer.close(loadT);
             var rdata = JSON.parse(data.data);
-            $("#f2bLogBody").text(rdata.data);
+            var logContent = rdata.data || '暂无日志数据';
+            $("#f2bLogBody").text(logContent);
             var textarea = document.getElementById('f2bLogBody');
-            textarea.scrollTop = textarea.scrollHeight;
+            if (textarea) {
+                textarea.scrollTop = textarea.scrollHeight;
+            }
         });
     }
     refreshLog();
     
+    $("#f2bRefreshLogBtn").on('click', function(){
+        refreshLog();
+    });
+
     $("#f2bClearLogBtn").on('click', function(){
         layer.confirm('确定要清空 fail2ban 的运行日志吗？', {title: '清空日志'}, function(index) {
             api.post('clear_log', '', {}, function(data){

@@ -479,3 +479,14 @@
 - [x] 2. 编写自动化测试脚本 `test/test_all_plugins_ui.py`，遍历校验 37 个插件的宽高重置调用、侧边栏底纹背景、选中态高亮与内容区滚动配置。
 - [x] 3. 运行自动化测试确保 37 个插件全部 100% 通过。
 - [x] 4. 产出 Walkthrough 文档并清理临时脚本。
+
+## 第三十三阶段：御风F2B防火墙 (fail2ban) 商业级稳定性重构与环境自适应 (完成)
+
+- [x] 1. 编写环境自检与自愈引擎 `checkEnv()`，实现目录自动补齐、`/www/wwwlogs` 占位日志创建、死套接字清理与配置标准规范化。
+- [x] 2. 重构 `sync_jail_local()` 实现全 OS 日志后端（Systemd Journal / Syslog）智能自适应，根除 `Have not found any log file` 崩溃。
+- [x] 3. 重构 `f2bOp()` 进程管理逻辑，引入启动真实心跳探测与 Systemd 崩溃日志自动反查，杜绝“假成功”。
+- [x] 4. 升级 `get_last_log()` 支持文件日志与 Systemd Journal 多源智能聚合展示，消除日志黑屏。
+- [x] 5. 加固 `install.sh` 安装脚本，补充 `rsyslog` 与依赖安装，首次安装自动触发环境自愈。
+- [x] 6. 编写并运行测试用例 `test/test_fail2ban_stability.py` 验证全套自愈与适配逻辑。
+
+

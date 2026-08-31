@@ -18,11 +18,22 @@ Install_App()
 	echo '正在安装脚本文件...'
 	mkdir -p $serverPath/source
 
-	which yum && yum install -y fail2ban
+	# 创建前置运行目录与日志占位文件
+	mkdir -p /run/fail2ban
+	mkdir -p /var/log
+	mkdir -p /var/lib/fail2ban
+	mkdir -p /www/wwwlogs
+	[ ! -f /www/wwwlogs/default.log ] && touch /www/wwwlogs/default.log
+
+	if which yum >/dev/null 2>&1; then
+		yum install -y epel-release || true
+		yum install -y fail2ban python3-systemd rsyslog || yum install -y fail2ban
+	fi
+
 	if which apt >/dev/null 2>&1; then
 		dpkg --configure -a || true
-		apt install -o Dpkg::Options::="--force-confmiss" -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -y fail2ban
-		apt install -o Dpkg::Options::="--force-confmiss" -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" --reinstall -y fail2ban
+		apt install -o Dpkg::Options::="--force-confmiss" -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -y fail2ban python3-systemd
+		apt install -y rsyslog >/dev/null 2>&1 || true
 	fi
 
 	mkdir -p $serverPath/fail2ban
@@ -32,6 +43,7 @@ Install_App()
 	cd ${rootPath} && python3 ${rootPath}/plugins/fail2ban/index.py start
 	cd ${rootPath} && python3 ${rootPath}/plugins/fail2ban/index.py initd_install
 }
+
 
 Uninstall_App()
 {
