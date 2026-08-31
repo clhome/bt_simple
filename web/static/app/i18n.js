@@ -133,15 +133,56 @@
         localStorage.setItem('yf_lang', _currentLang);
     } catch (e) {}
 
+    // 常用键名内置兜底中文字典，确保即使未加载语言包也不会在界面泄露 files. / FILES. 前缀
+    var FALLBACK_MAP = {
+        'file_name': '文件名',
+        'size': '大小',
+        'last_modified': '修改时间',
+        'permissions': '权限',
+        'owner': '所有者',
+        'operations': '操作',
+        'calculate': '计算',
+        'copy_path': '复制路径',
+        'copy': '复制',
+        'cut': '剪切',
+        'rename': '重命名',
+        'compress': '压缩',
+        'unzip': '解压',
+        'edit': '编辑',
+        'preview': '预览',
+        'download': '下载',
+        'delete': '删除',
+        'new': '新建',
+        'create_new_folder': '新建目录',
+        'create_new_blank_file': '新建空白文件',
+        'back_parent': '返回上一级',
+        'per_page': '每页',
+        'item': '条',
+        'get': '获取',
+        'recycle_bin': '文件回收站',
+        'upload': '上传',
+        'remote_download': '远程下载'
+    };
+
     /**
-     * 翻译函数 t(key, args)
-     * 支持模块点号寻址，如 "index.memre", "public.success", "config.close_panel_title"
+     * 翻译函数 t(key, args, defaultText)
+     * 支持模块点号寻址，如 "index.memre", "public.success", "files.file_name"
+     * 自动支持大小写容错（如 FILES.FILE_NAME -> files.file_name）与默认文本回退
      */
-    function t(key, args) {
+    function t(key, args, defaultText) {
         if (!key || typeof key !== 'string') return '';
-        var parts = key.split('.');
+
+        // 如果第二个参数直接传了默认文本字符串，如 t('files.new', '新建')
+        if (typeof args === 'string' && defaultText === undefined) {
+            defaultText = args;
+            args = null;
+        }
+
+        var normalizedKey = key.trim();
+        var parts = normalizedKey.split('.');
         var val = window.lan;
 
+        // 1. 尝试原始路径寻址
         for (var i = 0; i < parts.length; i++) {
             if (val && typeof val === 'object' && parts[i] in val) {
                 val = val[parts[i]];
@@ -151,9 +192,26 @@
             }
         }
 
+        // 2. 若未找到，尝试全小写路径寻址（如 FILES.FILE_NAME -> lan.files.file_name）
+        if (val === null || val === undefined) {
+            var lowerParts = normalizedKey.toLowerCase().split('.');
+            var lowerVal = window.lan;
+            for (var k = 0; k < lowerParts.length; k++) {
+                if (lowerVal && typeof lowerVal === 'object' && lowerParts[k] in lowerVal) {
+                    lowerVal = lowerVal[lowerParts[k]];
+                } else {
+                    lowerVal = null;
+                    break;
+                }
+            }
+            if (lowerVal !== null && lowerVal !== undefined) {
+                val = lowerVal;
+            }
+        }
+
+        // 3. 处理字符串模板与插值参数
         if (typeof val === 'string') {
             if (args && Array.isArray(args)) {
-                // 优化参数替换性能，采用字典映射替代循环内建正则，同时兼容原有的 {0} 和 {1} 容错重叠机制
                 var argMap = {};
                 for (var j = 0; j < args.length; j++) {
                     argMap[j] = args[j];
@@ -169,14 +227,36 @@
             return val;
         }
 
-        // 如果在 lan 中没有找到，尝试直接调用 lan.get
+        // 4. 如果在 lan 中没有找到，尝试调用 lan.get
         if (window.lan && typeof window.lan.get === 'function') {
             var getVal = window.lan.get(key, args || []);
-            if (getVal) return getVal;
+            if (getVal && getVal !== key && getVal !== normalizedKey.toLowerCase()) {
+                return getVal;
+            }
+        }
+
+        // 5. 优先使用传入的默认文本（defaultText）
+        if (defaultText && typeof defaultText === 'string') {
+            return defaultText;
+        }
+
+        // 6. 兜底清洗：若仍未匹配，绝不向用户输出带 FILES. 或 files. 前缀的裸键名
+        var cleanKey = parts[parts.length - 1].toLowerCase();
+        // 去除尾部无意义的序号后缀，如 file_name_2 -> file_name
+        cleanKey = cleanKey.replace(/_\d+$/, '');
+        if (FALLBACK_MAP[cleanKey]) {
+            return FALLBACK_MAP[cleanKey];
+        }
+
+        // 去除 FILES. / files. 前缀后输出
+        if (normalizedKey.indexOf('.') !== -1) {
+            var leaf = normalizedKey.substring(normalizedKey.lastIndexOf('.') + 1);
+            return leaf;
         }
 
         return key;
     }
+
 
     /**
      * 切换语言
