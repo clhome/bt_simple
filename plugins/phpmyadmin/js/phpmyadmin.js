@@ -13,7 +13,40 @@ function str2Obj(str){
 
 
 
-async 
+function homePage() {
+    api.post('get_home_page', '', function(data) {
+        var rdata = JSON.parse(data.data);
+        if (!rdata.status) {
+            layer.msg(rdata.msg, { icon: 0, time: 2000, shade: [0.3, '#000'] });
+            return;
+        }
+        var url = rdata.data;
+        var con = '<div class="line" style="margin-top: 15px;">\
+                    <button class="btn btn-success btn-sm" onclick="window.open(\'' + url + '\')">进入 phpMyAdmin 主页</button>\
+                    <div style="margin-top: 15px; color: #666; font-size: 13px; line-height: 1.8;">\
+                        <p>访问地址：<a href="' + url + '" target="_blank" class="btlink">' + url + '</a></p>\
+                        <p style="color: #999; font-size: 12px;">提示：如出现 401 认证弹窗，请使用【服务】页面中的随机用户名和密码进行认证。</p>\
+                    </div>\
+                </div>';
+        $(".soft-man-con").html(con);
+    });
+}
+
+function phpVer(version) {
+    api.post('get_set_php_ver', '', function(rdata) {
+        var curr_ver = rdata.data || version;
+        $.post('/site/get_php_version', function(data) {
+            var php_list = data.data || [];
+            var body = "<div class='ver line'><span class='tname'>PHP版本</span><select id='phpver' class='bt-input-text mr20' name='phpVersion' style='width:120px'>";
+            for (var i = 0; i < php_list.length; i++) {
+                var isSelected = (php_list[i].version == curr_ver) ? 'selected' : '';
+                body += "<option value='" + php_list[i].version + "' " + isSelected + ">" + php_list[i].name + "</option>";
+            }
+            body += '</select><button class="btn btn-success btn-sm" onclick="phpVerChange(\'phpversion\',\'get\')">保存</button></div>';
+            $(".soft-man-con").html(body);
+        }, 'json');
+    });
+}
 
 function phpVerChange(type, msg) {
     var phpver = $("#phpver").val();
@@ -131,7 +164,11 @@ function pmaService() {
             }
             var info = data.data;
             var html = `
-            <div class="pma-access-info">
+            <div class="service-notice" style="margin-top: 15px; padding: 12px 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="margin-bottom: 4px;"><b style="color:#333;">` + t('public.reload_configuration_reload', '重载配置 (Reload)') + `</b>` + t('public.smoothly_loads_the_latest', '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + `<b style="color:#20a53a;">` + t('public.zero_business_disruption', '业务零中断') + `</b>` + t('public.recommended_for_use_after', '，推荐日常修改配置后使用。') + `</div>
+                <div><b style="color:#333;">` + t('public.restart_the_service_restart', '重启服务 (Restart)') + `</b>` + t('public.forcibly_terminates_and_restarts', '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + `</div>
+            </div>
+            <div class="pma-access-info" style="margin-top: 15px;">
                 <div class="pma-info-header">访问与认证信息</div>
                 <div class="pma-info-body">
                     <div class="pma-info-item">
@@ -156,11 +193,16 @@ function pmaService() {
                     注意：打开网页后输入用户名为 <strong>root</strong>，密码请前往 <strong>MySQL => 管理列表 => root密码</strong> 查看
                 </div>
             </div>
+            <div class="pma-kill-section" style="margin-top: 18px;">
+                <button class="btn btn-danger btn-sm" onclick="pluginOpService('php','kill_all_php','','')">` + t('public.kill_all_php_processes', 'kill所有php进程') + `</button>
+                <div class="service-notice" style="margin-top: 10px; padding: 12px 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div><b style="color:#d9534f;">` + t('public.note', '注意') + `</b>` + t('public.forcefully_terminate_all_php', '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + `<b style="color:red;">` + t('public.after_execution_you_ll', '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + `</b></div>
+                </div>
+            </div>
             `;
             var style = `
             <style>
             .pma-access-info {
-                margin-top: 20px;
                 border: 1px solid #e2e2e2;
                 border-radius: 6px;
                 background-color: #fcfcfc;

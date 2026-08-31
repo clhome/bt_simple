@@ -3,10 +3,15 @@ function resetPluginWinWidth(width) {
   $("div[id^='layui-layer'][class*='layui-layer-page']").width(width);
 }
 
-//重置插件弹出框宽度
+//重置插件弹出框高度
 function resetPluginWinHeight(height) {
-  $("div[id^='layui-layer'][class*='layui-layer-page']").height(height);
+  var $layer = $("div[id^='layui-layer'][class*='layui-layer-page']");
+  $layer.height(height);
+  $layer.find(".layui-layer-content").height(height - 42).css({ 'overflow': 'hidden', 'height': (height - 42) + 'px' });
+  $(".bt-form").height(height - 42);
   $(".bt-form .bt-w-main").height(height - 42);
+  $(".bt-form .bt-w-menu").height(height - 42);
+  $(".bt-form .bt-w-con").height(height - 42);
 }
 
 //软件管理窗口

@@ -352,6 +352,22 @@
 - [x] 4. 在 `site.css`、`ensite.css` 与 `layout.html` 中同步应用并进行全量自动化测试回归。
 - [x] 5. 修复 `ensite.css` 中的 2 处语法错误（冒号写错分号）与 5 处属性/前缀告警，确保 IDE 诊断 0 报错。
 
+## 第十七阶段：修复 phpMyAdmin 插件完整功能与多语言残留符号清理 (完成)
+
+- [x] 1. 修复 `plugins/phpmyadmin/js/phpmyadmin.js` 中孤立的 `async` 语法错误，彻底解决 `ReferenceError: async is not defined`。
+- [x] 2. 补全 `phpmyadmin.js` 中缺失的 `homePage()` 与 `phpVer(version)` 函数定义，彻底解决点击“主页”和“PHP版本”时报 `homePage is not defined`、`phpVer is not defined` 的问题。
+- [x] 3. 全量清理 6 国语言包中历史旧版宝塔残留的 `')">` 等脏符号，彻底恢复“重启”、“重载配置”等按钮文字的纯净展示。
+- [x] 4. 为 phpMyAdmin 定制专属操作指引说明卡片（重载配置与重启服务说明）与访问认证卡片（内网/外网地址、用户名密码），单层结构优雅整洁呈现，彻底杜绝重复嵌套。
+## 第十八阶段：phpMyAdmin 强杀功能补充、弹窗菜单固定与配置输入框重复修复 (完成)
+
+- [x] 1. 在 `phpmyadmin.js` 中，将特殊情况下“kill所有php进程”强杀按钮及红色运维警示卡片补充到【服务】面板“访问与认证信息”卡片下方。
+- [x] 2. 重构 `site.css`、`ensite.css` 与 `soft.js` 中的弹窗布局：设置外层内容容器 `overflow: hidden`，左侧 `.bt-w-menu` 固定不随滚动条漂移，右侧 `.bt-w-con` 独立滚动。
+- [x] 3. 彻底修复 `public.js` 中 `pluginConfig`、`pluginConfigTpl`、`pluginConfigListTpl` 函数因历史字符串拼接错误导致多出一个 `<textarea id="textBody">` 空白输入框的问题。
+- [x] 4. 编写全量自动化测试套件 `test/test_phpmyadmin_plugin_fixes.py`，全量 12 个测试套件 38 个用例 100% 绿灯回归通过。
+
+
+
+
 
 
 

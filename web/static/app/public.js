@@ -2616,13 +2616,33 @@ function pluginSetService(_name, status, version, _suffix_name = '') {
     reload_name = 'reload_' + _suffix_name;
     status_ss = status_ss + '_' + _suffix_name;
   }
-  var serviceCon = ('<p class="status">' + ('<p class="status">' + (lan && lan.public && t('public.current_status') || '当前状态：') + '<span>' || '当前状态：') + '<span>') + (status ? lan && lan.public && t('public.open') || "" : lan && lan.public && t('public.close_3') || "") + '</span><span style="color: ' + (status ? '#20a53a;' : 'red;') + ' margin-left: 3px;" class="glyphicon ' + (status ? 'glyphicon glyphicon-play' : 'glyphicon-pause') + '"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + status_ss + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + (status ? lan && lan.public && t('public.stop') || "" : lan && lan.public && t('public.start') || "") + '</button>\
-            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + restart_name + '\',\'' + version + '\',\'' + _suffix_name + (((((lan && lan.public && t('public.restart_1') || '\')">重启') || '\')">重启') + '</button>            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' || '\')">重启') || '\')">重启') + '</button>            <button class="btn btn-default btn-sm" onclick="pluginOpService(\'') + _name + '\',\'' + reload_name + '\',\'' + version + '\',\'' + _suffix_name + (((((lan && lan.public && t('public.reload_configuration') || '\')">重载配置') || '\')">重载配置') + '</button>        </div>' || '\')">重载配置') || '\')">重载配置') + '</button>        </div>');
-  if (_name.indexOf('php') !== -1) {
-    serviceCon += '<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">            <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>' + ('<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">            <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>' + (lan && lan.public && t('public.operating_instructions') || '操作指引') + '</div>            <div style="margin-bottom: 4px;"><b style="color:#333;">' + (lan && lan.public && t('public.reload_configuration_reload') || '重载配置 (Reload)') + '</b>' + (lan && lan.public && t('public.smoothly_loads_the_latest') || '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + (lan && lan.public && t('public.zero_business_disruption') || '业务零中断') + '</b>' + (lan && lan.public && t('public.recommended_for_use_after') || '，推荐日常修改配置后使用。') + '</div>            <div><b style="color:#333;">' + (lan && lan.public && t('public.restart_the_service_restart') || '重启服务 (Restart)') + '</b>' + (lan && lan.public && t('public.forcibly_terminates_and_restarts') || '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>        </div>' || '操作指引') + '</div>            <div style="margin-bottom: 4px;"><b style="color:#333;">' + (lan && lan.public && t('public.reload_configuration_reload') || '重载配置 (Reload)') + '</b>' + (lan && lan.public && t('public.smoothly_loads_the_latest') || '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + (lan && lan.public && t('public.zero_business_disruption') || '业务零中断') + '</b>' + (lan && lan.public && t('public.recommended_for_use_after') || '，推荐日常修改配置后使用。') + '</div>            <div><b style="color:#333;">' + (lan && lan.public && t('public.restart_the_service_restart') || '重启服务 (Restart)') + '</b>' + (lan && lan.public && t('public.forcibly_terminates_and_restarts') || '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>        </div>';
+  
+  var statusText = status ? t('public.open', '开启') : t('public.close_3', '停止');
+  var statusColor = status ? '#20a53a' : 'red';
+  var statusIcon = status ? 'glyphicon-play' : 'glyphicon-pause';
+  var statusBtnText = status ? t('public.stop', '停止') : t('public.start', '启动');
+
+  var serviceCon = '<p class="status">' + t('public.current_status', '当前状态：') + '<span>' + statusText + '</span><span style="color: ' + statusColor + '; margin-left: 3px;" class="glyphicon ' + statusIcon + '"></span></p>\
+  <div class="sfm-opt">\
+    <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + status_ss + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + statusBtnText + '</button>\
+    <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + restart_name + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + t('public.restart_1', '重启') + '</button>\
+    <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + reload_name + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + t('public.reload_configuration', '重载配置') + '</button>\
+  </div>';
+
+  var isPhpRuntime = (_name === 'php' || _name === 'php-apt' || _name === 'php-yum');
+  if (isPhpRuntime) {
+    serviceCon += '<div class="service-notice" style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #20a53a; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">\
+      <div style="margin-bottom: 6px; font-size: 14px; color: #333; font-weight: 600;"><span class="glyphicon glyphicon-info-sign" style="margin-right: 5px; color: #20a53a;"></span>' + t('public.operating_instructions', '操作指引') + '</div>\
+      <div style="margin-bottom: 4px;"><b style="color:#333;">' + t('public.reload_configuration_reload', '重载配置 (Reload)') + '</b>' + t('public.smoothly_loads_the_latest', '：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现') + '<b style="color:#20a53a;">' + t('public.zero_business_disruption', '业务零中断') + '</b>' + t('public.recommended_for_use_after', '，推荐日常修改配置后使用。') + '</div>\
+      <div><b style="color:#333;">' + t('public.restart_the_service_restart', '重启服务 (Restart)') + '</b>' + t('public.forcibly_terminates_and_restarts', '：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。') + '</div>\
+    </div>';
+
     serviceCon += '<div style="margin-top: 20px;">\
-            <button class="btn btn-danger btn-sm" onclick="pluginOpService(\'' + _name + '\',\'kill_all_php\',\'' + version + '\',\'' + _suffix_name + (((((lan && lan.public && t('public.kill_all_php_processes') || '\')">kill所有php进程') || '\')">kill所有php进程') + '</button>            <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">                <div><b style="color:#d9534f;">' + (lan && lan.public && t('public.note') || '注意') + '</b>' + (lan && lan.public && t('public.forcefully_terminate_all_php') || '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + (lan && lan.public && t('public.after_execution_you_ll') || '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>            </div>        </div>' || '\')">kill所有php进程') || '\')">kill所有php进程') + '</button>            <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">                <div><b style="color:#d9534f;">' + (lan && lan.public && t('public.note') || '注意') + '</b>' + (lan && lan.public && t('public.forcefully_terminate_all_php') || '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + (lan && lan.public && t('public.after_execution_you_ll') || '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>            </div>        </div>');
+      <button class="btn btn-danger btn-sm" onclick="pluginOpService(\'' + _name + '\',\'kill_all_php\',\'' + version + '\',\'' + _suffix_name + '\')">' + t('public.kill_all_php_processes', 'kill所有php进程') + '</button>\
+      <div class="service-notice" style="margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">\
+        <div><b style="color:#d9534f;">' + t('public.note', '注意') + '</b>' + t('public.forcefully_terminate_all_php', '：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，') + '<b style="color:red;">' + t('public.after_execution_you_ll', '执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。') + '</b></div>\
+      </div>\
+    </div>';
   }
   $(".soft-man-con").html(serviceCon);
 }
@@ -2722,8 +2742,13 @@ function pluginConfig(_name, version, func) {
   if (typeof func != 'undefined') {
     func_name = func;
   }
-  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.tip_use_ctrl_to_1') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_4') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_1') || '此处为') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_4') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_1') || '此处为')) + _name + version + (((lan && lan.public && t('public.main_configuration_file_if') || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
-  var loadT = layer.msg(lan && lan.public && t('public.retrieving_profile_path') || "", {
+  var con = '<p style="color: #666; margin-bottom: 7px">' + t('public.tip_use_ctrl_to_1', '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>\
+    <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
+    <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + t('public.save_4', '保存') + '</button>\
+    <ul class="help-info-text c7 ptb15">\
+      <li>' + t('public.this_is_1', '此处为') + ' ' + _name + (version ? ' ' + version : '') + ' ' + t('public.main_configuration_file_if', '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>\
+    </ul>';
+  var loadT = layer.msg(t('public.retrieving_profile_path', '正在获取配置文件路径...'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2747,7 +2772,7 @@ function pluginConfig(_name, version, func) {
       }
     } catch (err) {/*console.log(err);*/}
     $(".soft-man-con").html(con);
-    var loadT2 = layer.msg(lan && lan.public && t('public.retrieving_file_content') || "", {
+    var loadT2 = layer.msg(t('public.retrieving_file_content', '正在获取文件内容...'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -2818,7 +2843,13 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
   if (typeof read_config_tpl_func != 'undefined') {
     _read_config_tpl_func = read_config_tpl_func;
   }
-  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.tip_use_ctrl_to_2') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + (lan && lan.public && t('public.please') || '请选择') + '</option></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_5') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_2') || '此处为【') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + (lan && lan.public && t('public.please') || '请选择') + '</option></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_5') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is_2') || '此处为【')) + _name + version + (((lan && lan.public && t('public.main_configuration_file_if_1') || '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
+  var con = '<p style="color: #666; margin-bottom: 7px">' + t('public.tip_use_ctrl_to_2', '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>\
+    <select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"><option value="0">' + t('public.please', '请选择') + '</option></select>\
+    <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
+    <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + t('public.save_5', '保存') + '</button>\
+    <ul class="help-info-text c7 ptb15">\
+      <li>' + t('public.this_is_2', '此处为【') + _name + (version ? ' ' + version : '') + t('public.main_configuration_file_if_1', '】主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>\
+    </ul>';
   $(".soft-man-con").html(con);
   function getFileName(file) {
     var list = file.split('/');
@@ -2838,12 +2869,12 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
   }, function (data) {
     var rdata = JSON.parse(data.data);
     for (var i = 0; i < rdata.length; i++) {
-      $('#config_tpl').append('<option value="' + rdata[i] + '"">' + getFileName(rdata[i]) + '</option>');
+      $('#config_tpl').append('<option value="' + rdata[i] + '">' + getFileName(rdata[i]) + '</option>');
     }
     $('#config_tpl').on('change', function () {
       var selected = $(this).val();
       if (selected != '0') {
-        var loadT = layer.msg(lan && lan.public && t('public.retrieving_configuration_template') || "", {
+        var loadT = layer.msg(t('public.retrieving_configuration_template', '正在获取配置模版...'), {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']
@@ -2901,7 +2932,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
       }
     });
   }, 'json');
-  var loadT = layer.msg(lan && lan.public && t('public.retrieving_profile_path_1') || "", {
+  var loadT = layer.msg(t('public.retrieving_profile_path_1', '正在获取配置文件路径...'), {
     icon: 16,
     time: 0,
     shade: [0.3, '#000']
@@ -2912,7 +2943,7 @@ function pluginConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_
     version: version
   }, function (data) {
     layer.close(loadT);
-    var loadT2 = layer.msg(lan && lan.public && t('public.retrieving_file_content_1') || "", {
+    var loadT2 = layer.msg(t('public.retrieving_file_content_1', '正在获取文件内容...'), {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -2971,7 +3002,13 @@ function pluginConfigListTpl(_name, version, config_tpl_func, read_config_tpl_fu
   if (typeof read_config_tpl_func != 'undefined') {
     _read_config_tpl_func = read_config_tpl_func;
   }
-  var con = ('<p style="color: #666; margin-bottom: 7px">' + ('<p style="color: #666; margin-bottom: 7px">' + (lan && lan.public && t('public.tip_use_ctrl_to_3') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_3') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is') || '此处为') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>    			<select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"></select>    			<textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + (lan && lan.public && t('public.save_3') || '保存') + '</button>                <ul class="help-info-text c7 ptb15">                    <li>' + (lan && lan.public && t('public.this_is') || '此处为')) + _name + version + (((lan && lan.public && t('public.main_configuration_file_if_2') || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>' || '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>                </ul>');
+  var con = '<p style="color: #666; margin-bottom: 7px">' + t('public.tip_use_ctrl_to_3', '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '</p>\
+    <select id="config_tpl" class="bt-input-text mr20" style="width:30%;margin-bottom: 3px;"></select>\
+    <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
+    <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + t('public.save_3', '保存') + '</button>\
+    <ul class="help-info-text c7 ptb15">\
+      <li>' + t('public.this_is', '此处为') + ' ' + _name + (version ? ' ' + version : '') + ' ' + t('public.main_configuration_file_if_2', '主配置文件,若您不了解配置规则,请勿随意修改。') + '</li>\
+    </ul>';
   $(".soft-man-con").html(con);
   function getFileName(file) {
     var list = file.split('/');
