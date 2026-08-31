@@ -423,3 +423,17 @@
 - [x] 2. 在全局公共库 `web/static/app/public.js` 中封装通用方法 `yfRefreshBtn(el, callback)` 并注册全页面自动事件委托。
 - [x] 3. 在“网站管理”页面（`web/templates/default/site.html`）接入通用纯图标刷新按钮组件。
 - [x] 4. 在“软件管理”页面（`web/templates/default/soft.html`）接入通用带文字图标刷新按钮组件。
+
+## 第二十五阶段：精简面板设置中的语言配置（方案B）
+
+- [x] 1. 修改 `web/templates/default/setting.html`：移除“基础配置”中的“面板语言”配置项及关联 DOM，精简界面。
+- [x] 2. 修改 `web/static/app/config.js`：移除已无调用的 `savePanelLanguage` 函数，保持代码整洁。
+- [x] 3. 运行语法与自动化测试用例，确保功能无影响。
+
+## 第二十六阶段：页面白色底栏高度缩短与左侧折叠菜单齐平优化 (完成)
+
+- [x] 1. 修改 `web/static/css/site.css` 与 `web/static/css/ensite.css` 中的 `.footer`，将高度和行高缩短为 40px，与左侧黑色侧边栏底部的折叠按钮（`.sidebar-collapse`，40px）高度完全齐平。
+- [x] 2. 检查 `web/templates/default/layout.html` 中的底部布局与右侧信息对齐，确保 40px 高度下内容精准垂直居中。
+- [x] 3. 编写自动化测试脚本 `test/test_footer_height.py` 并运行验证。
+
+

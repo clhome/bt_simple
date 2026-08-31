@@ -2587,7 +2587,8 @@ html .menu .menu_exit:hover {
     position: absolute;
     text-align: center;
     width: 100%;
-    line-height: 50px
+    height: 40px;
+    line-height: 40px;
 }
 
 .bingfa {

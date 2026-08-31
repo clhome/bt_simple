@@ -1860,32 +1860,3 @@ function appPage() {
     }
   });
 }
-function savePanelLanguage() {
-  var lang = $("#panelLanguageSelect").val();
-  var loadT = layer.msg(window.lan && lan.public && t('public.the') || "正在保存...", {
-    icon: 16,
-    time: 0,
-    shade: [0.3, '#000']
-  });
-  $.post('/setting/set_language', {
-    lang: lang
-  }, function (rdata) {
-    layer.close(loadT);
-    if (rdata.status) {
-      layer.msg(window.lan && lan.public && t('public.config_ok') || "设置成功!", {
-        icon: 1
-      });
-      setTimeout(function () {
-        if (window.YfI18n) {
-          YfI18n.setLanguage(lang, true);
-        } else {
-          window.location.reload();
-        }
-      }, 500);
-    } else {
-      layer.msg(rdata.msg, {
-        icon: 2
-      });
-    }
-  }, 'json');
-}
