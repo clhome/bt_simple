@@ -273,14 +273,15 @@
 - [x] 4. 编写全自动回归测试脚本 `test/test_index_status_i18n.py`，验证数据渲染、DOM 结构与 6 种语言下的文案完整性与正确性。
 - [x] 5. 最终验证与清理临时脚本。
 
-## 第六阶段：文件管理模块（Files）显示与国际化 Bug 修复 (完成)
 
-- [x] 1. 深入排查 `web/static/app/files.js` 及相关模板中由于历史自动化提取导致的 HTML 标签重复嵌套（`select` 双层嵌套、`table` 表头双层嵌套、单引号未闭合等）问题。
-- [x] 2. 清洗 6 国语言包（`zh-CN`, `zh-TW`, `en`, `fr`, `de`, `it`）中 `files` 命名空间的脏词条（如带 HTML 标签或引号的残缺 key），规范化并补齐标准文件操作词条。
-- [x] 3. 彻底修复 `lan.js` 历史遗留语法截断错误（`Unexpected identifier '个'`），通过 `compile_languages.py` 重新生成 6 种语言 100% 语法的 `lan.js` 与 `template.json`。
-- [x] 4. 以干净基准源码重构 `web/static/app/files.js`，修复文件开头孤立代码及 `pathPlaceBtn` 路径栏导航渲染逻辑，彻底修复 `makeFilePage`、`getFiles`、`recycleBin`、`openFilename`、`BarTools` 等函数。
-- [x] 5. 增强 `web/static/app/i18n.js` 核心翻译引擎，全面支持大小写归一化、默认文本优先回退及前缀自动剥离防御，彻底绝迹裸露 `FILES.` 前缀。
-- [x] 6. 编写并运行 `test/test_files_i18n.py` 与 `test/test_index_status_i18n.py`，全部测试用例通过，`node -c` 语法检查 100% 通过。
+## 第七阶段：系统监控模块（Monitor）500 错误排查与前端国际化修复 (完成)
+
+- [x] 1. 定位并修复 `web/templates/default/monitor.html` 中因双引号转义 `\"` 导致 Jinja2 模板编译抛出 `TemplateSyntaxError: unexpected char '\\'` 引发 500 Internal Server Error 的语法错误。
+- [x] 2. 补齐并规范 6 国语言包中 `control` 命名空间缺失的词条（如 `enlarge_chart`, `the_chart_has_not`, `enlarge`, `loading_please_wait`, `processing_please_wait`, `did_you_really_delete`, `clear_history`, `unit_kb`, `unit_kb_1`, `number_of_bytes_read`, `number_of_bytes_written`, `load_details`, `minute`, `minutes` 等），重新编译生成标准的 `lan.js` 与 `template.json`。
+- [x] 3. 重构并优化 `web/static/app/control.js`：将所有的 `lan && lan.control && t(...)` 调用规范化为 `(window.lan && lan.control && lan.control.key) || t('control.key', '默认值')`，防止未定义变量报错并保证多语言平滑回退。
+- [x] 4. 编写全自动回归测试脚本 `test/test_monitor_i18n.py`，覆盖模板 Jinja2 编译、路由渲染、JS 语法及多语言词条校验。
+- [x] 5. 验证并完成交付。
+
 
 
 

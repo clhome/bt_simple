@@ -67,7 +67,7 @@
 										<div class="sbtn loadbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_resource_view', (lan && lan.control && lan.control.resource_usage) || '{{ t(\"control.resource_usage\", \"系统资源使用率\") }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_resource_view', (window.lan && lan.control && lan.control.resource_usage) || '{{ t('control.resource_usage', '系统资源使用率') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="getload_resource_view" class="monitor-chart"></div>
@@ -83,7 +83,7 @@
 								<span class="gt" onclick="Wday(1,'getload')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
 								<span class="gt" onclick="Wday(7,'getload')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
 								<span class="gt" onclick="Wday(30,'getload')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_average_view', (lan && lan.control && lan.control.average_load) || '{{ t(\"control.average_load\", \"平均负载\") }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_average_view', (window.lan && lan.control && lan.control.average_load) || '{{ t('control.average_load', '平均负载') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="getload_average_view" class="monitor-chart"></div>
@@ -106,7 +106,7 @@
 										<div class="sbtn cpubtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('cupview', (lan && lan.control && lan.control.cpu_usage) || '{{ t(\"control.cpu_usage\", \"CPU使用率\") }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('cupview', (window.lan && lan.control && lan.control.cpu_usage) || '{{ t('control.cpu_usage', 'CPU使用率') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="cupview" class="monitor-chart"></div>
@@ -129,7 +129,7 @@
 										<div class="sbtn membtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('memview', (lan && lan.control && lan.control.mem_usage) || '{{ t(\"control.mem_usage\", \"内存使用率\") }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('memview', (window.lan && lan.control && lan.control.mem_usage) || '{{ t('control.mem_usage', '内存使用率') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="memview" class="monitor-chart"></div>
@@ -152,7 +152,7 @@
 										<div class="sbtn diskbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('diskview', (lan && lan.control && lan.control.disk_io) || '{{ t(\"control.disk_io\", \"磁盘 I/O\") }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('diskview', (window.lan && lan.control && lan.control.disk_io) || '{{ t('control.disk_io', '磁盘 I/O') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="diskview" class="monitor-chart"></div>
@@ -175,7 +175,7 @@
 										<div class="sbtn networkbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
 									</div>
 								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('network', (lan && lan.control && lan.control.net_io) || '{{ t(\"control.net_io\", \"网络 I/O\") }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('network', (window.lan && lan.control && lan.control.net_io) || '{{ t('control.net_io', '网络 I/O') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 							</div>
 						</div>
 						<div id="network" class="monitor-chart"></div>
@@ -184,7 +184,7 @@
 			</div>
 		</div>
 	</div>
-</div>{% if data['use_cdn'] == 'yes' %}
+</div>{% if data and data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js"></script>
 <script>window.echarts || document.write('<script src="/static/js/echarts.min.js"><\/script>')</script>
 {% else %}

@@ -14,12 +14,12 @@ $(window).on('resize', function () {
 
 //图表放大功能
 function enlargeChart(chartId, title) {
-  if (!window.chartInstances[chartId]) return layer.msg(lan && lan.control && t('control.the_chart_has_not') || "");
+  if (!window.chartInstances[chartId]) return layer.msg((window.lan && lan.control && lan.control.the_chart_has_not) || t('control.the_chart_has_not', '图表未加载完成'));
   var chart = window.chartInstances[chartId];
   var option = chart.getOption();
   layer.open({
     type: 1,
-    title: title + (lan && lan.control && t('control.enlarge') || ""),
+    title: title + ((window.lan && lan.control && lan.control.enlarge) || t('control.enlarge', ' - 放大视图')),
     area: ['80%', '80%'],
     shadeClose: true,
     content: '<div id="enlarge_chart_container" style="width: 100%; height: 100%; padding: 20px;"></div>',
@@ -160,7 +160,7 @@ function getToday() {
 getStatus();
 //取监控状态
 function getStatus() {
-  loadT = layer.msg(lan && lan.control && t('control.loading_please_wait') || "", {
+  loadT = layer.msg((window.lan && lan.control && lan.control.loading_please_wait) || t('control.loading_please_wait', '正在加载，请稍候...'), {
     icon: 16,
     time: 0
   });
@@ -186,7 +186,7 @@ function setControl(act, value = false) {
     var type = $("#ctswitch").prop('checked') ? '0' : '1';
     var day = $("#save_day").val();
     if (day < 1) {
-      layer.msg(lan && lan.control && t('control.the_number_of_days') || "", {
+      layer.msg((window.lan && lan.control && lan.control.the_number_of_days) || t('control.the_number_of_days', '天数不能小于1'), {
         icon: 2
       });
       return;
@@ -197,13 +197,13 @@ function setControl(act, value = false) {
     var type = 'save_day';
     var day = $("#save_day").val();
     if (day < 1) {
-      layer.msg(lan && lan.control && t('control.the_number_of_days_1') || "", {
+      layer.msg((window.lan && lan.control && lan.control.the_number_of_days_1) || t('control.the_number_of_days_1', '天数不能小于1'), {
         icon: 2
       });
       return;
     }
   }
-  loadT = layer.msg(lan && lan.control && t('control.processing_please_wait') || "", {
+  loadT = layer.msg((window.lan && lan.control && lan.control.processing_please_wait) || t('control.processing_please_wait', '正在处理，请稍候...'), {
     icon: 16,
     time: 0
   });
@@ -218,12 +218,12 @@ function setControl(act, value = false) {
 
 //清理记录
 function closeControl() {
-  layer.confirm(lan && lan.control && t('control.did_you_really_delete') || "", {
-    title: lan && lan.control && t('control.clear_history') || "",
+  layer.confirm((window.lan && lan.control && lan.control.did_you_really_delete) || t('control.did_you_really_delete', '真的要清空所有监控记录吗？'), {
+    title: (window.lan && lan.control && lan.control.clear_history) || t('control.clear_history', '清空历史记录'),
     icon: 3,
     closeBtn: 1
   }, function () {
-    loadT = layer.msg(lan && lan.control && t('control.processing_please_wait_1') || "", {
+    loadT = layer.msg((window.lan && lan.control && lan.control.processing_please_wait_1) || t('control.processing_please_wait_1', '正在处理，请稍候...'), {
       icon: 16,
       time: 0
     });
@@ -297,7 +297,7 @@ function cpu(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: t('public.pre'),
+        name: (window.lan && lan.public && lan.public.pre) || t('public.pre', '百分比(%)'),
         boundaryGap: [0, '100%'],
         min: 0,
         max: 100,
@@ -387,7 +387,7 @@ function mem(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: t('public.pre'),
+        name: (window.lan && lan.public && lan.public.pre) || t('public.pre', '百分比(%)'),
         boundaryGap: [0, '100%'],
         min: 0,
         max: 100,
@@ -422,7 +422,7 @@ function mem(b, e) {
         }
       }],
       series: [{
-        name: t('index.process_mem'),
+        name: (window.lan && lan.index && lan.index.process_mem) || t('index.process_mem', '内存'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -468,10 +468,10 @@ function disk(b, e) {
         axisPointer: {
           type: 'cross'
         },
-        formatter: (lan && lan.public && lan.public.time || '时间') + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
+        formatter: ((window.lan && lan.public && lan.public.time) || t('public.time', '时间')) + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
       },
       legend: {
-        data: [lan && lan.control && t('control.number_of_bytes_read') || "", lan && lan.control && t('control.number_of_bytes_written') || ""]
+        data: [(window.lan && lan.control && lan.control.number_of_bytes_read) || t('control.number_of_bytes_read', '读取字节数'), (window.lan && lan.control && lan.control.number_of_bytes_written) || t('control.number_of_bytes_written', '写入字节数')]
       },
       xAxis: {
         type: 'category',
@@ -485,7 +485,7 @@ function disk(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.unit_kb') || "",
+        name: (window.lan && lan.control && lan.control.unit_kb) || t('control.unit_kb', '单位(KB)'),
         boundaryGap: [0, '100%'],
         splitLine: {
           lineStyle: {
@@ -518,7 +518,7 @@ function disk(b, e) {
         }
       }],
       series: [{
-        name: lan && lan.control && t('control.number_of_bytes_read_1') || "",
+        name: (window.lan && lan.control && lan.control.number_of_bytes_read_1) || t('control.number_of_bytes_read_1', '读取字节数'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -530,7 +530,7 @@ function disk(b, e) {
         },
         data: rData
       }, {
-        name: lan && lan.control && t('control.number_of_bytes_written_1') || "",
+        name: (window.lan && lan.control && lan.control.number_of_bytes_written_1) || t('control.number_of_bytes_written_1', '写入字节数'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -579,10 +579,10 @@ function network(b, e) {
         axisPointer: {
           type: 'cross'
         },
-        formatter: (lan && lan.public && lan.public.time || '时间') + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
+        formatter: ((window.lan && lan.public && lan.public.time) || t('public.time', '时间')) + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
       },
       legend: {
-        data: [t('index.net_up'), t('index.net_down')]
+        data: [(window.lan && lan.index && lan.index.net_up) || t('index.net_up', '上行'), (window.lan && lan.index && lan.index.net_down) || t('index.net_down', '下行')]
       },
       xAxis: {
         type: 'category',
@@ -596,7 +596,7 @@ function network(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.unit_kb_1') || "",
+        name: (window.lan && lan.control && lan.control.unit_kb_1) || t('control.unit_kb_1', '单位(KB)'),
         boundaryGap: [0, '100%'],
         splitLine: {
           lineStyle: {
@@ -629,7 +629,7 @@ function network(b, e) {
         }
       }],
       series: [{
-        name: t('index.net_up'),
+        name: (window.lan && lan.index && lan.index.net_up) || t('index.net_up', '上行'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -641,7 +641,7 @@ function network(b, e) {
         },
         data: yData
       }, {
-        name: t('index.net_down'),
+        name: (window.lan && lan.index && lan.index.net_down) || t('index.net_down', '下行'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -656,135 +656,6 @@ function network(b, e) {
     };
     myChartNetwork.setOption(option);
     window.chartInstances['network'] = myChartNetwork;
-  }, 'json');
-}
-//负载
-function getload_old(b, e) {
-  $.get('/system/get_load_average?start=' + b + '&end=' + e, function (rdata) {
-    var rdata = data.data;
-    var myChartgetload = echarts.init(document.getElementById('getloadview'));
-    var aData = [];
-    var bData = [];
-    var xData = [];
-    var yData = [];
-    var zData = [];
-    for (var i = 0; i < rdata.length; i++) {
-      xData.push(rdata[i].addtime);
-      yData.push(rdata[i].pro);
-      zData.push(rdata[i].one);
-      aData.push(rdata[i].five);
-      bData.push(rdata[i].fifteen);
-    }
-    option = {
-      grid: {
-        bottom: 70
-      },
-      tooltip: {
-        trigger: 'axis'
-      },
-      calculable: true,
-      legend: {
-        data: [lan && lan.control && t('control.system_resource_usage') || "", lan && lan.control && t('control.minute') || "", lan && lan.control && t('control.minutes') || "", lan && lan.control && t('control.minutes_1') || ""],
-        selectedMode: 'single'
-      },
-      xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: xData,
-        axisLine: {
-          lineStyle: {
-            color: "#666"
-          }
-        }
-      },
-      yAxis: {
-        type: 'value',
-        name: '',
-        boundaryGap: [0, '100%'],
-        splitLine: {
-          lineStyle: {
-            color: "#ddd"
-          }
-        },
-        axisLine: {
-          lineStyle: {
-            color: "#666"
-          }
-        }
-      },
-      dataZoom: [{
-        type: 'inside',
-        start: 0,
-        end: 100,
-        zoomLock: true
-      }, {
-        start: 0,
-        end: 100,
-        bottom: 10,
-        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-        handleSize: '80%',
-        handleStyle: {
-          color: '#fff',
-          shadowBlur: 3,
-          shadowColor: 'rgba(0, 0, 0, 0.6)',
-          shadowOffsetX: 2,
-          shadowOffsetY: 2
-        }
-      }],
-      series: [{
-        name: lan && lan.control && t('control.system_resource_usage_1') || "",
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        sampling: 'average',
-        itemStyle: {
-          normal: {
-            color: 'rgb(255, 140, 0)'
-          }
-        },
-        data: yData
-      }, {
-        name: lan && lan.control && t('control.minute_1') || "",
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        sampling: 'average',
-        itemStyle: {
-          normal: {
-            color: 'rgb(30, 144, 255)'
-          }
-        },
-        data: zData
-      }, {
-        name: lan && lan.control && t('control.minutes_2') || "",
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        sampling: 'average',
-        itemStyle: {
-          normal: {
-            color: 'rgb(0, 178, 45)'
-          }
-        },
-        data: aData
-      }, {
-        name: lan && lan.control && t('control.minutes_3') || "",
-        type: 'line',
-        smooth: true,
-        symbol: 'none',
-        sampling: 'average',
-        itemStyle: {
-          normal: {
-            color: 'rgb(147, 38, 255)'
-          }
-        },
-        data: bData
-      }]
-    };
-    myChartgetload.setOption(option);
-    window.addEventListener("resize", function () {
-      myChartgetload.resize();
-    });
   }, 'json');
 }
 //系统负载
@@ -833,7 +704,7 @@ function getload(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.resource_utilization') || "",
+        name: (window.lan && lan.control && lan.control.resource_utilization) || t('control.resource_utilization', '资源使用率%'),
         splitLine: {
           lineStyle: {
             color: '#ddd'
@@ -867,7 +738,7 @@ function getload(b, e) {
         }
       }],
       series: [{
-        name: lan && lan.control && t('control.resource_utilization_1') || "",
+        name: (window.lan && lan.control && lan.control.resource_utilization_1) || t('control.resource_utilization_1', '资源使用率%'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -897,7 +768,7 @@ function getload(b, e) {
         }
       },
       legend: {
-        data: [lan && lan.control && t('control.minute_2') || "", lan && lan.control && t('control.minutes_4') || "", lan && lan.control && t('control.minutes_5') || ""],
+        data: [(window.lan && lan.control && lan.control.minute_2) || t('control.minute_2', '1分钟'), (window.lan && lan.control && lan.control.minutes_4) || t('control.minutes_4', '5分钟'), (window.lan && lan.control && lan.control.minutes_5) || t('control.minutes_5', '15分钟')],
         top: 0,
         right: '5%'
       },
@@ -919,7 +790,7 @@ function getload(b, e) {
       },
       yAxis: {
         type: 'value',
-        name: lan && lan.control && t('control.load_details') || "",
+        name: (window.lan && lan.control && lan.control.load_details) || t('control.load_details', '负载详情'),
         splitLine: {
           lineStyle: {
             color: '#ddd'
@@ -951,7 +822,7 @@ function getload(b, e) {
         }
       }],
       series: [{
-        name: lan && lan.control && t('control.minute_3') || "",
+        name: (window.lan && lan.control && lan.control.minute_3) || t('control.minute_3', '1分钟'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -963,7 +834,7 @@ function getload(b, e) {
         },
         data: zData
       }, {
-        name: lan && lan.control && t('control.minutes_6') || "",
+        name: (window.lan && lan.control && lan.control.minutes_6) || t('control.minutes_6', '5分钟'),
         type: 'line',
         smooth: true,
         symbol: 'none',
@@ -975,7 +846,7 @@ function getload(b, e) {
         },
         data: aData
       }, {
-        name: lan && lan.control && t('control.minutes_7') || "",
+        name: (window.lan && lan.control && lan.control.minutes_7) || t('control.minutes_7', '15分钟'),
         type: 'line',
         smooth: true,
         symbol: 'none',
