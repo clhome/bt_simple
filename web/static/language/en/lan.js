@@ -2234,10 +2234,9 @@ var lan = {
 		"clear_the_installation_cache": "Clear the installation cache",
 		"clearing_data_please_wait": "Clearing data... Please wait...",
 		"retrieving_the_list": "Retrieving the list...",
-		"install": ")\">Install </a>\"",
+		"install": "Install",
 		"update": "')\">Update </a> | ",
-		"settings_btlink_uninstallversion": "')\">Settings </a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
-		"uninstall": ")\">Uninstall </a>\"",
+		"uninstall": "Uninstall",
 		"green_task_uninstalling": "<a style=\"color:green;\" href=\"javascript:task();\">Uninstalling...</a>",
 		"green_task_installing": "<a style=\"color:green;\" href=\"javascript:task();\">Installing...</a>",
 		"task_waiting": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">Waiting...</a>",
@@ -2297,7 +2296,8 @@ var lan = {
 		"upgrade_to": " Upgrade to ",
 		"msg_1": " Right?",
 		"clearing_the_cache_and": "Clearing the cache and refreshing the list...",
-		"refresh_successful": "Refresh Successful"
+		"refresh_successful": "Refresh Successful",
+		"settings": "Settings"
 },
 	"login":{
 		"N1": "Please enter your account number",
@@ -2325,7 +2325,7 @@ var lan = {
 		"M6": "Safety",
 		"M7": "Documents",
 		"M8": "Scheduled Tasks",
-		"M9": "Software Management",
+		"M9": "Software",
 		"M10": "Panel Settings",
 		"M11": "Exit",
 		"HELP": "For technical support or product suggestions, please visit the forum.",
@@ -2337,7 +2337,7 @@ var lan = {
 		"firewall": "Safety",
 		"files": "Documents",
 		"crontab": "Scheduled Tasks",
-		"soft": "Software Management",
+		"soft": "Software",
 		"setting": "Panel Settings",
 		"logs": "Operation Log",
 		"logout": "Exit",
@@ -2349,7 +2349,7 @@ var lan = {
 		"memuAcrontab": "Scheduled Tasks",
 		"memuAmonitor": "Surveillance",
 		"memuAlogs": "Log",
-		"memuAsoft": "Software Management",
+		"memuAsoft": "Software",
 		"memuAsetting": "Panel Settings"
 },
 	"logs":{
@@ -2614,7 +2614,9 @@ var lan = {
 		"company_signature": "Produced by Quzhou Yufeng Technology Co., Ltd.",
 		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
 		"source_code": "Source Code",
-		"unknown": "Unknown"
+		"unknown": "Unknown",
+		"install": "Install",
+		"update": "Update"
 },
 	"upload":{
 		"saving": "Saving...",

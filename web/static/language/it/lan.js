@@ -2251,10 +2251,9 @@ var lan = {
 		"clear_the_installation_cache": "Svuota la cache di installazione",
 		"clearing_data_please_wait": "In fase di pulizia, attendere prego...",
 		"retrieving_the_list": "Caricamento dell'elenco in corso...",
-		"install": ")\">Installazione</a>",
+		"install": "Installa",
 		"update": "')\">Aggiornamento </a> | ",
-		"settings_btlink_uninstallversion": "')\">Impostazioni </a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
-		"uninstall": ")\">Disinstalla </a>",
+		"uninstall": "Disinstalla",
 		"green_task_uninstalling": "<a style=\"color:green;\" href=\"javascript:task();\">Disinstallazione in corso...</a>",
 		"green_task_installing": "<a style=\"color:green;\" href=\"javascript:task();\">Installazione in corso...</a>",
 		"task_waiting": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">In attesa...</a>",
@@ -2314,7 +2313,8 @@ var lan = {
 		"upgrade_to": " Aggiorna a ",
 		"msg_1": " ?",
 		"clearing_the_cache_and": "Si sta svuotando la cache e aggiornando l'elenco...",
-		"refresh_successful": "Aggiornamento completato con successo"
+		"refresh_successful": "Aggiornamento completato con successo",
+		"settings": "Impostazioni"
 },
 	"login":{
 		"N1": "Inserisci il nome utente",
@@ -2342,7 +2342,7 @@ var lan = {
 		"M6": "Sicurezza",
 		"M7": "Documento",
 		"M8": "Attività pianificate",
-		"M9": "Gestione del software",
+		"M9": "Software",
 		"M10": "Impostazioni del pannello",
 		"M11": "Esci",
 		"HELP": "Richieste di assistenza | Suggerimenti sui prodotti: visitate il forum",
@@ -2354,7 +2354,7 @@ var lan = {
 		"firewall": "Sicurezza",
 		"files": "Documento",
 		"crontab": "Attività pianificate",
-		"soft": "Gestione del software",
+		"soft": "Software",
 		"setting": "Impostazioni del pannello",
 		"logs": "Registro delle operazioni",
 		"logout": "Esci",
@@ -2366,7 +2366,7 @@ var lan = {
 		"memuAcrontab": "Attività pianificate",
 		"memuAmonitor": "Monitoraggio",
 		"memuAlogs": "Registro",
-		"memuAsoft": "Gestione del software",
+		"memuAsoft": "Software",
 		"memuAsetting": "Impostazioni del pannello"
 },
 	"logs":{
@@ -2551,7 +2551,7 @@ var lan = {
 		"current_status_1": "Stato attuale:",
 		"loaded": "Caricato",
 		"not_loaded": "Non caricato",
-		"uninstall": "Disinstallazione",
+		"uninstall": "Disinstalla",
 		"loading_3": "Caricamento in corso",
 		"loading_4": "Caricamento in corso",
 		"uninstall_1": "Disinstallazione",
@@ -2631,7 +2631,9 @@ var lan = {
 		"company_signature": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
 		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
 		"source_code": "Codice sorgente",
-		"unknown": "Sconosciuto"
+		"unknown": "Sconosciuto",
+		"install": "Installa",
+		"update": "Aggiorna"
 },
 	"upload":{
 		"saving": "Salvataggio in corso...",

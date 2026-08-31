@@ -319,6 +319,17 @@
 - [x] 4. 优化 `web/static/app/index.js`：当历史缓存或日志因旧版原因记录了“未知”时，自动联动当前会话已探明的真实内存数据进行智能自愈展示。
 - [x] 5. 编写自动化测试脚本 `test/test_memory_compatibility.py` 并运行验证。
 
+## 第十三阶段：软件管理页面菜单缩写、安装翻译与操作列多语言优化 (完成)
+
+- [x] 1. 统一 6 国语言包中左侧菜单及相关词条（`menu.memuAsoft`、`menu.M9`、`menu.soft`）为精简词（en: `Software`，zh-CN: `软件`，zh-TW: `軟體`，fr: `Logiciels`，de: `Software`，it: `Software`），防止菜单折行。
+- [x] 2. 规范 6 国语言包中 `public.install`、`public.uninstall`、`public.set`、`public.update`、`soft.install` 等核心按钮词条，清除带有引号转义的陈旧 hack 字符串。
+- [x] 3. 重构 `web/static/app/soft.js` 中操作列（`handle`）生成逻辑，消除多余双引号符号 `"` 并使用标准的 `t()` 翻译驱动。
+- [x] 4. 优化 `web/templates/default/soft.html` 表格操作列宽度（拓宽至 `150`），确保多语言下如 `Paramètres | Désinstaller` 或 `Settings | Uninstall` 单行优雅呈现。
+- [x] 5. 重新编译 6 国语言包生成标准 `lan.js` 与 `template.json`。
+- [x] 6. 编写自动化测试 `test/test_soft_i18n.py` 并全量回归验证。
+
+
+
 
 
 

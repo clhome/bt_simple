@@ -2216,10 +2216,9 @@
         "clear_the_installation_cache": "清理安装缓存",
         "clearing_data_please_wait": "正在清理，请稍后...",
         "retrieving_the_list": "正在获取列表...",
-        "install": ")\">安装</a>",
+        "install": "安装",
         "update": "')\">更新</a> | ",
-        "settings_btlink_uninstallversion": "')\">设置</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
-        "uninstall": ")\">卸载</a>",
+        "uninstall": "卸载",
         "green_task_uninstalling": "<a style=\"color:green;\" href=\"javascript:task();\">正在卸载...</a>",
         "green_task_installing": "<a style=\"color:green;\" href=\"javascript:task();\">正在安装...</a>",
         "task_waiting": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>",
@@ -2284,7 +2283,8 @@
         "uninstall_warning2": "】的所有运行文件与数据库数据（请务必提前做好备份，一经删除绝不可恢复）！",
         "uninstall_warning3": "请输入",
         "uninstall_warning4": "以确认：",
-        "please_input": "请输入"
+        "please_input": "请输入",
+        "settings": "设置"
     },
     "login": {
         "N1": "请填写账号",
@@ -2312,7 +2312,7 @@
         "M6": "安全",
         "M7": "文件",
         "M8": "计划任务",
-        "M9": "软件管理",
+        "M9": "软件",
         "M10": "面板设置",
         "M11": "退出",
         "HELP": "问题求助|产品建议请上论坛",
@@ -2324,7 +2324,7 @@
         "firewall": "安全",
         "files": "文件",
         "crontab": "计划任务",
-        "soft": "软件管理",
+        "soft": "软件",
         "setting": "面板设置",
         "logs": "操作日志",
         "logout": "退出",
@@ -2336,7 +2336,7 @@
         "memuAcrontab": "计划任务",
         "memuAmonitor": "监控",
         "memuAlogs": "日志",
-        "memuAsoft": "软件管理",
+        "memuAsoft": "软件",
         "memuAsetting": "面板设置"
     },
     "logs": {
@@ -2601,7 +2601,9 @@
         "company_signature": "衢州御风科技有限公司出品",
         "yufeng_technology_co": "御风科技有限公司",
         "source_code": "源码",
-        "unknown": "未知"
+        "unknown": "未知",
+        "install": "安装",
+        "update": "更新"
     },
     "upload": {
         "saving": "正在保存..",

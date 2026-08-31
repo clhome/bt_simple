@@ -2234,10 +2234,9 @@ var lan = {
 		"clear_the_installation_cache": "清理安裝快取",
 		"clearing_data_please_wait": "正在清理，請稍後...",
 		"retrieving_the_list": "正在獲取列表...",
-		"install": ")\">安裝</a>",
+		"install": "安裝",
 		"update": "')\">更新</a> | ",
-		"settings_btlink_uninstallversion": "')\">設定</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
-		"uninstall": ")\">解除安裝</a>",
+		"uninstall": "解除安裝",
 		"green_task_uninstalling": "<a style=\"color:green;\" href=\"javascript:task();\">正在解除安裝...</a>",
 		"green_task_installing": "<a style=\"color:green;\" href=\"javascript:task();\">正在安裝...</a>",
 		"task_waiting": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">等待中...</a>",
@@ -2297,7 +2296,8 @@ var lan = {
 		"upgrade_to": " 升級到 ",
 		"msg_1": " 嗎？",
 		"clearing_the_cache_and": "正在清理快取並重新整理列表...",
-		"refresh_successful": "重新整理成功"
+		"refresh_successful": "重新整理成功",
+		"settings": "設定"
 },
 	"login":{
 		"N1": "請填寫賬號",
@@ -2325,7 +2325,7 @@ var lan = {
 		"M6": "安全",
 		"M7": "檔案",
 		"M8": "計劃任務",
-		"M9": "軟體管理",
+		"M9": "軟體",
 		"M10": "面板設定",
 		"M11": "退出",
 		"HELP": "問題求助|產品建議請上論壇",
@@ -2337,7 +2337,7 @@ var lan = {
 		"firewall": "安全",
 		"files": "檔案",
 		"crontab": "計劃任務",
-		"soft": "軟體管理",
+		"soft": "軟體",
 		"setting": "面板設定",
 		"logs": "操作日誌",
 		"logout": "退出",
@@ -2349,7 +2349,7 @@ var lan = {
 		"memuAcrontab": "計劃任務",
 		"memuAmonitor": "監控",
 		"memuAlogs": "日誌",
-		"memuAsoft": "軟體管理",
+		"memuAsoft": "軟體",
 		"memuAsetting": "面板設定"
 },
 	"logs":{
@@ -2614,7 +2614,9 @@ var lan = {
 		"company_signature": "衢州御風科技有限公司出品",
 		"yufeng_technology_co": "御風科技有限公司",
 		"source_code": "源碼",
-		"unknown": "未知"
+		"unknown": "未知",
+		"install": "安裝",
+		"update": "更新"
 },
 	"upload":{
 		"saving": "正在儲存..",

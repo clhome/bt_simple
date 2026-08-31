@@ -2251,10 +2251,9 @@ var lan = {
 		"clear_the_installation_cache": "Vider le cache d'installation",
 		"clearing_data_please_wait": "Chargement en cours, veuillez patienter...",
 		"retrieving_the_list": "Récupération de la liste en cours...",
-		"install": ")\">Installation </a>",
+		"install": "Installer",
 		"update": "')\">Mise à jour </a> | ",
-		"settings_btlink_uninstallversion": "')\">Paramètres </a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
-		"uninstall": ")\">Désinstaller </a>\"",
+		"uninstall": "Désinstaller",
 		"green_task_uninstalling": "<a style=\"color:green;\" href=\"javascript:task();\">Désinstallation en cours...</a>",
 		"green_task_installing": "<a style=\"color:green;\" href=\"javascript:task();\">Installation en cours...</a>",
 		"task_waiting": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">En attente...</a>",
@@ -2314,7 +2313,8 @@ var lan = {
 		"upgrade_to": " Passer à ",
 		"msg_1": " n'est-ce pas ?",
 		"clearing_the_cache_and": "Vidéage du cache et actualisation de la liste en cours...",
-		"refresh_successful": "Actualisation réussie"
+		"refresh_successful": "Actualisation réussie",
+		"settings": "Paramètres"
 },
 	"login":{
 		"N1": "Veuillez saisir votre identifiant",
@@ -2342,7 +2342,7 @@ var lan = {
 		"M6": "Sécurité",
 		"M7": "Fichier",
 		"M8": "Tâches planifiées",
-		"M9": "Gestion des logiciels",
+		"M9": "Logiciels",
 		"M10": "Paramètres du panneau",
 		"M11": "Quitter",
 		"HELP": "Aide | Pour toute suggestion concernant nos produits, rendez-vous sur le forum",
@@ -2354,7 +2354,7 @@ var lan = {
 		"firewall": "Sécurité",
 		"files": "Fichier",
 		"crontab": "Tâches planifiées",
-		"soft": "Gestion des logiciels",
+		"soft": "Logiciels",
 		"setting": "Paramètres du panneau",
 		"logs": "Journal des opérations",
 		"logout": "Quitter",
@@ -2366,7 +2366,7 @@ var lan = {
 		"memuAcrontab": "Tâches planifiées",
 		"memuAmonitor": "Surveillance",
 		"memuAlogs": "Journal",
-		"memuAsoft": "Gestion des logiciels",
+		"memuAsoft": "Logiciels",
 		"memuAsetting": "Paramètres du panneau"
 },
 	"logs":{
@@ -2631,7 +2631,9 @@ var lan = {
 		"company_signature": "Produit par Quzhou Yufeng Technology Co., Ltd.",
 		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
 		"source_code": "Code source",
-		"unknown": "Inconnu"
+		"unknown": "Inconnu",
+		"install": "Installer",
+		"update": "Mettre à jour"
 },
 	"upload":{
 		"saving": "En cours d'enregistrement...",

@@ -2251,10 +2251,9 @@ var lan = {
 		"clear_the_installation_cache": "Installationscache leeren",
 		"clearing_data_please_wait": "Wird gerade bereinigt, bitte haben Sie einen Moment Geduld...",
 		"retrieving_the_list": "Liste wird abgerufen...",
-		"install": ")\">Installieren </a>\"",
+		"install": "Installieren",
 		"update": "')\">Aktualisieren </a> | ",
-		"settings_btlink_uninstallversion": "')\">Einstellungen </a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
-		"uninstall": ")\">Deinstallieren </a>",
+		"uninstall": "Deinstallieren",
 		"green_task_uninstalling": "<a style=\"color:green;\" href=\"javascript:task();\">Wird gerade deinstalliert...</a>",
 		"green_task_installing": "<a style=\"color:green;\" href=\"javascript:task();\">Wird installiert...</a>",
 		"task_waiting": "<a style=\"color:#C0C0C0;\" href=\"javascript:task();\">Warten...</a>",
@@ -2314,7 +2313,8 @@ var lan = {
 		"upgrade_to": " Aufrüsten auf ",
 		"msg_1": " Oder?",
 		"clearing_the_cache_and": "Der Cache wird gerade geleert und die Liste aktualisiert...",
-		"refresh_successful": "Aktualisierung erfolgreich"
+		"refresh_successful": "Aktualisierung erfolgreich",
+		"settings": "Einstellungen"
 },
 	"login":{
 		"N1": "Bitte geben Sie Ihre Kontonummer ein.",
@@ -2342,7 +2342,7 @@ var lan = {
 		"M6": "Sicherheit",
 		"M7": "Dokument",
 		"M8": "Geplante Aufgaben",
-		"M9": "Softwareverwaltung",
+		"M9": "Software",
 		"M10": "Einstellungen des Bedienfelds",
 		"M11": "Beenden",
 		"HELP": "Fragen und Hilfe | Produktvorschläge bitte im Forum posten",
@@ -2354,7 +2354,7 @@ var lan = {
 		"firewall": "Sicherheit",
 		"files": "Dokument",
 		"crontab": "Geplante Aufgaben",
-		"soft": "Softwareverwaltung",
+		"soft": "Software",
 		"setting": "Einstellungen des Bedienfelds",
 		"logs": "Betriebsprotokoll",
 		"logout": "Beenden",
@@ -2366,7 +2366,7 @@ var lan = {
 		"memuAcrontab": "Geplante Aufgaben",
 		"memuAmonitor": "Überwachung",
 		"memuAlogs": "Protokoll",
-		"memuAsoft": "Softwareverwaltung",
+		"memuAsoft": "Software",
 		"memuAsetting": "Einstellungen des Bedienfelds"
 },
 	"logs":{
@@ -2631,7 +2631,9 @@ var lan = {
 		"company_signature": "Präsentiert von Quzhou Yufeng Technology Co., Ltd.",
 		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
 		"source_code": "Quellcode",
-		"unknown": "Unbekannt"
+		"unknown": "Unbekannt",
+		"install": "Installieren",
+		"update": "Aktualisieren"
 },
 	"upload":{
 		"saving": "Wird gespeichert...",
