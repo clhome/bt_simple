@@ -198,12 +198,12 @@ function userProjectList(user, search){
                     </div>\
                 </div>",
         success:function(){
-            api.post(user,search);
+            userProjectListPost(user,search);
         }
     });
 }
 
-function api.post(user, search){
+function userProjectListPost(user, search){
     var req = {};
     if (!isNaN(user)){
         req['page'] = user;

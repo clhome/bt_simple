@@ -82,37 +82,70 @@
             });
         }
 
+        function _parseCallArgs(argsArray) {
+            var method = argsArray[0];
+            var version = null;
+            var args = {};
+            var callback = null;
+
+            if (argsArray.length === 2) {
+                if (typeof argsArray[1] === 'function') {
+                    callback = argsArray[1];
+                } else {
+                    args = argsArray[1];
+                }
+            } else if (argsArray.length === 3) {
+                if (typeof argsArray[2] === 'function') {
+                    args = argsArray[1];
+                    callback = argsArray[2];
+                } else {
+                    version = argsArray[1];
+                    args = argsArray[2];
+                }
+            } else if (argsArray.length >= 4) {
+                version = argsArray[1];
+                args = argsArray[2];
+                callback = argsArray[3];
+            }
+            return { method: method, version: version, args: args, callback: callback };
+        }
+
         return {
             /**
              * 标准请求 (带 Loading)
-             * @param {string} method 
-             * @param {object|string} args 
-             * @param {function} callback 
+             * 支持:
+             * - post(method, callback)
+             * - post(method, args, callback)
+             * - post(method, version, args, callback)
              */
-            post: function(method, args, callback) {
-                _basePost('/plugins/run', method, null, args, callback, false);
+            post: function() {
+                var p = _parseCallArgs(arguments);
+                _basePost('/plugins/run', p.method, p.version, p.args, p.callback, false);
             },
             
             /**
              * 静默请求 (无 Loading)
              */
-            postSilent: function(method, args, callback) {
-                _basePost('/plugins/run', method, null, args, callback, true);
+            postSilent: function() {
+                var p = _parseCallArgs(arguments);
+                _basePost('/plugins/run', p.method, p.version, p.args, p.callback, true);
             },
 
             /**
              * Callback 端点请求 (带 Loading)
              */
-            postCallback: function(method, args, callback) {
-                _basePost('/plugins/callback', method, null, args, callback, false);
+            postCallback: function() {
+                var p = _parseCallArgs(arguments);
+                _basePost('/plugins/callback', p.method, p.version, p.args, p.callback, false);
             },
 
             /**
              * Promise 版本 (async/await)
              */
-            postAsync: function(method, args) {
+            postAsync: function() {
+                var p = _parseCallArgs(arguments);
                 return new Promise(function(resolve, reject) {
-                    _basePost('/plugins/run', method, null, args, function(data) {
+                    _basePost('/plugins/run', p.method, p.version, p.args, function(data) {
                         resolve(data);
                     }, false);
                 });

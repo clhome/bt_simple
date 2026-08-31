@@ -2,14 +2,6 @@ var api = YfPlugin.createApi('pureftp');
 var pt = YfI18n.createPluginTranslator('pureftp');
 
 
-
-
-async function api.post(method,args){
-	return await api.post('/plugins/run',
-		{name:'pureftp', func:method, args:JSON.stringify(args)}
-	);
-}
-
 function ftpListFind(){
     var search = $('#ftp_find_user').val();
     if (search==''){

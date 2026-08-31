@@ -2,18 +2,6 @@ var api = YfPlugin.createApi('pgadmin');
 var pt = YfI18n.createPluginTranslator('pgadmin');
 
 
-
-async function api.post(method,args){
-
-    var _args = null; 
-    if (typeof(args) == 'string'){
-        _args = JSON.stringify(toArrayObject(args));
-    } else {
-        _args = JSON.stringify(args);
-    }
-    return await api.post('/plugins/run', {name:'pgadmin', func:method, args:_args}); 
-}
-
 function homePage(){
     api.post('get_home_page', '', function(data){
         var rdata = JSON.parse(data.data);

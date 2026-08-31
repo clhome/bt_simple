@@ -1023,7 +1023,7 @@ def checkDockerMigrateSpace():
             except:
                 pass
         
-        return yf.returnJson(True, 'k_e20176f1', 'available': '未知'})
+        return yf.returnJson(True, 'ok', {'required': '未知', 'available': '未知'})
     except Exception as e:
         return yf.returnJson(False, str(e))
 

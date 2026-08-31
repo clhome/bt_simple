@@ -383,4 +383,22 @@
 - [x] 3. 清洗并更新国际化词典（`phrases_full.py`）及 6 种语言包，彻底清除 `public_auto_str_39` 等冗余脏数据并确保消息盒子词条完整无误。
 - [x] 4. 编写全自动回归测试脚本 `test/test_message_box.py`，全量验证消息盒子 JS 语法、HTML 结构、Tab 切换逻辑及多语言词条。
 
+## 第二十一阶段：修复 Docker 及全量插件前端 JS 语法错误与 API 签名多态兼容 (完成)
+
+- [x] 1. 深度分析 Docker 插件前端报错根因：`function api.post(...)` 非法点号函数声明导致脚本解析失败（SyntaxError），进而导致 `dockerService` 未定义（ReferenceError）。
+- [x] 2. 扫描并修复所有插件中遗留的非法点号函数声明语法错误（`docker.js`、`gitea.js`、`pgadmin.js`、`pureftp/ftp.js`、`sphinx.js`）。
+- [x] 3. 增强 `web/static/app/plugin_api.js` 中 `YfPlugin.createApi` 请求方法，实现对多种参数签名（`(method, callback)`、`(method, args, callback)`、`(method, version, args, callback)`）的智能多态参数归一化处理。
+- [x] 4. 编写全量插件与前端 JS 语法、函数定义及 API 兼容性自动化测试脚本 `test/test_all_plugins_js_syntax.py`。
+- [x] 5. 运行全量测试套件确保 100% 绿灯回归通过。
+
+## 第二十二阶段：排查并修复全仓库 Python 语法错误与 AST 编译校验 (完成)
+
+- [x] 1. 全量扫描整个代码仓库中所有 248 个 Python 源码文件（包括 `plugins/`、`web/`、`scripts/` 等），进行 AST 语法树解析与字节码编译校验。
+- [x] 2. 修复 `plugins/docker/index.py` 中 `checkDockerMigrateSpace` 遗留的字典语法错误（`{'required': '未知', 'available': '未知'}` 结构修复）。
+- [x] 3. 优化 `plugins/mariadb/index_mariadb.py` 正则表达式字符串为 Raw String，消除 Python 3.12+ 的 SyntaxWarning。
+- [x] 4. 编写全量 Python 语法与 AST 结构自动化回归测试 `test/test_all_python_syntax.py`，全量 63 个测试用例 100% 绿灯通过。
+
+
+
+
 

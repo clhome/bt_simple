@@ -1,39 +1,6 @@
 var api = YfPlugin.createApi('sphinx');
 var pt = YfI18n.createPluginTranslator('sphinx');
-function spPostMin(method, args, callback){
 
-    var req_data = {};
-    req_data['name'] = 'sphinx';
-    req_data['func'] = method;
- 
-    if (typeof(args) != 'undefined' && args!=''){
-        req_data['args'] = JSON.stringify(args);
-    }
-
-    $.post('/plugins/run', req_data, function(data) {
-        if (!data.status){
-            layer.msg(data.msg,{icon:0,time:2000,shade: [0.3, '#000']});
-            return;
-        }
-
-        if(typeof(callback) == 'function'){
-            callback(data);
-        }
-    },'json'); 
-}
-
-
-
-
-function api.post(method, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
-    spPostMin(method,args,function(data){
-        layer.close(loadT);
-        if(typeof(callback) == 'function'){
-            callback(data);
-        } 
-    });
-}
 
 function commonFunc(){
     var con = '<button class="btn btn-default btn-sm" onclick="confirmRebuildIndex();">重建索引</button>';
