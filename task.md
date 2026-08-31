@@ -364,6 +364,12 @@
 - [x] 2. 重构 `site.css`、`ensite.css` 与 `soft.js` 中的弹窗布局：设置外层内容容器 `overflow: hidden`，左侧 `.bt-w-menu` 固定不随滚动条漂移，右侧 `.bt-w-con` 独立滚动。
 - [x] 3. 彻底修复 `public.js` 中 `pluginConfig`、`pluginConfigTpl`、`pluginConfigListTpl` 函数因历史字符串拼接错误导致多出一个 `<textarea id="textBody">` 空白输入框的问题。
 - [x] 4. 编写全量自动化测试套件 `test/test_phpmyadmin_plugin_fixes.py`，全量 12 个测试套件 38 个用例 100% 绿灯回归通过。
+- [x] 5. 修复 `plugins/phpmyadmin/index.py` 中因 `path` 配置为空字符串导致访问 URL 出现 `//index.php` 遗漏安全子目录的问题，实现 `getPmaPath()` 自动感知与自愈探测。
+- [x] 6. 深度优化 `plugins/phpmyadmin/index.py` 中 `config.inc.php` 配置文件与启动状态检测：当未设置子目录或直接位于根目录时，精准自愈定位 `/www/server/phpmyadmin/config.inc.php`，彻底解决启动报错“服务启动失败”及配置读取失败的问题。
+- [x] 7. 对齐 master 分支安全机制，在 `getCfg()` 中引入随机保护子目录（`phpmyadmin_xxxxxx`）的主动感知与自动探测自愈机制，确保访问地址包含随机保护字符串并能正常访问网页。
+
+
+
 
 
 

@@ -88,7 +88,7 @@ def getHomePage():
             ip = yf.getLocalIp()
 
         cfg = getCfg()
-        auth = cfg['username']+':'+cfg['password']
+        auth = cfg.get('username', 'admin') + ':' + cfg.get('password', 'admin')
         rand_path = cfg['path']
         url = 'http://' + auth + '@' + ip + ':' + port + '/' + rand_path + '/index.php'
         return yf.returnJson(True, 'OK', url)
@@ -175,35 +175,107 @@ def initCfg():
         data['port'] = '888'
         data['choose'] = 'mysql'
         data['path'] = ''
-        data['username'] = 'admin'
-        data['password'] = 'admin'
+        data['username'] = yf.getRandomString(8)
+        data['password'] = yf.getRandomString(10)
         yf.writeFile(cfg, json.dumps(data))
 
 
 def setCfg(key, val):
     cfg = getServerDir() + "/cfg.json"
-    data = yf.readFile(cfg)
-    data = json.loads(data)
+    data = {}
+    if os.path.exists(cfg):
+        try:
+            data = json.loads(yf.readFile(cfg))
+        except:
+            data = {}
     data[key] = val
     yf.writeFile(cfg, json.dumps(data))
 
 
 def getCfg():
     cfg = getServerDir() + "/cfg.json"
-    data = yf.readFile(cfg)
-    data = json.loads(data)
+    if not os.path.exists(cfg):
+        initCfg()
+    data = {}
+    try:
+        data = json.loads(yf.readFile(cfg))
+    except:
+        initCfg()
+        data = json.loads(yf.readFile(cfg))
+
+    # 确保护盾随机子目录 (path) 存在且有效
+    path = data.get('path', '').strip()
+    server_dir = getServerDir()
+    need_save = False
+
+    # 兼容处理：如果已有的 path 带有 phpmyadmin_ 前缀，则去掉它并重命名物理目录
+    if path.startswith('phpmyadmin_'):
+        new_path = path.replace('phpmyadmin_', '', 1)
+        if os.path.exists(server_dir + "/" + path):
+            try:
+                os.rename(server_dir + "/" + path, server_dir + "/" + new_path)
+            except:
+                yf.execShell("mv " + server_dir + "/" + path + " " + server_dir + "/" + new_path)
+        path = new_path
+        data['path'] = path
+        need_save = True
+
+    # 1. 确保配置中存在合法的 path
+    if not path:
+        path = yf.getRandomString(8).lower()
+        data['path'] = path
+        need_save = True
+
+    # 2. 如果已配置的 path 存在且有效，直接返回
+    if os.path.exists(server_dir + "/" + path):
+        if need_save:
+            try:
+                yf.writeFile(cfg, json.dumps(data))
+            except:
+                pass
+        return data
+
+    # 3. 自动探测 server_dir 下只有一个目录时（因为去掉了前缀不好正则，且该目录下一般只有这一个主程序目录）
+    found_path = ''
+    if os.path.exists(server_dir):
+        # 找除了 tmp 等已知系统目录外的唯一长随机字符串目录
+        for item in os.listdir(server_dir):
+            if item != 'tmp' and item != 'phpmyadmin' and os.path.isdir(os.path.join(server_dir, item)):
+                if len(item) >= 4: # 假设保护目录至少4个字符
+                    found_path = item
+                    break
+        
+        # 4. 如果找到其他物理目录，纠正配置
+        if found_path and found_path != path:
+            data['path'] = found_path
+            path = found_path
+            need_save = True
+        
+        # 5. 如果没找到，但有 phpmyadmin 目录，重命名为当前配置的 path
+        if not found_path and os.path.exists(server_dir + "/phpmyadmin") and os.path.isdir(server_dir + "/phpmyadmin"):
+            dst = server_dir + "/" + path
+            try:
+                os.rename(server_dir + "/phpmyadmin", dst)
+            except:
+                yf.execShell("mv " + server_dir + "/phpmyadmin " + dst)
+
+    if need_save:
+        try:
+            yf.writeFile(cfg, json.dumps(data))
+        except:
+            pass
+
     return data
 
 
 def returnCfg():
-    cfg = getServerDir() + "/cfg.json"
-    data = yf.readFile(cfg)
-    return data
+    return json.dumps(getCfg())
 
 
 def status():
     conf = getConf()
-    conf_inc = getServerDir() + "/" + getCfg()["path"] + '/config.inc.php'
+    pma_path = getCfg().get('path', '')
+    conf_inc = getServerDir() + "/" + pma_path + '/config.inc.php'
     # 两个文件都在，才算启动成功
     if os.path.exists(conf) and os.path.exists(conf_inc):
         return 'start'
@@ -250,14 +322,6 @@ def start():
     initCfg()
     openPort()
 
-    pma_dir = getServerDir() + "/phpmyadmin"
-    if os.path.exists(pma_dir):
-        rand_str = yf.getRandomString(6)
-        rand_str = rand_str.lower()
-        pma_dir_dst = pma_dir + "_" + rand_str
-        yf.execShell("mv " + pma_dir + " " + pma_dir_dst)
-        setCfg('path', 'phpmyadmin_' + rand_str)
-
     file_tpl = getPluginDir() + '/conf/phpmyadmin.conf'
     file_run = getConf()
     if not os.path.exists(file_run):
@@ -266,25 +330,29 @@ def start():
         yf.writeFile(file_run, centent)
 
     pma_path = getServerDir() + '/pma.pass'
+    cfg = getCfg()
     if not os.path.exists(pma_path):
-        username = yf.getRandomString(8)
-        password = yf.getRandomString(10)
+        username = cfg.get('username') or yf.getRandomString(8)
+        password = cfg.get('password') or yf.getRandomString(10)
         pass_cmd = username + ':' + yf.hasPwd(password)
         setCfg('username', username)
         setCfg('password', password)
         yf.writeFile(pma_path, pass_cmd)
 
-    tmp = getServerDir() + "/" + getCfg()["path"] + '/tmp'
-    if not os.path.exists(tmp):
-        os.mkdir(tmp)
-        yf.execShell("chown -R www:www " + tmp)
-
-    conf_run = getServerDir() + "/" + getCfg()["path"] + '/config.inc.php'
-    if not os.path.exists(conf_run):
+    conf_inc = getConfInc()
+    if not os.path.exists(conf_inc):
         conf_tpl = getPluginDir() + '/conf/config.inc.php'
         centent = yf.readFile(conf_tpl)
         centent = contentReplace(centent)
-        yf.writeFile(conf_run, centent)
+        yf.writeFile(conf_inc, centent)
+
+    tmp = os.path.dirname(conf_inc) + '/tmp'
+    if not os.path.exists(tmp):
+        try:
+            os.mkdir(tmp)
+            yf.execShell("chown -R www:www " + tmp)
+        except:
+            pass
 
     log_a = accessLog()
     log_e = errorLog()
@@ -533,8 +601,9 @@ def getPmaAccessInfo():
         
         data['internal_url'] = 'http://' + internal_ip + ':' + port + '/' + rand_path + '/index.php'
         data['external_url'] = 'http://' + external_ip + ':' + port + '/' + rand_path + '/index.php'
-        data['username'] = cfg['username']
-        data['password'] = cfg['password']
+        data['username'] = cfg.get('username', 'admin')
+        data['password'] = cfg.get('password', 'admin')
+        data['path'] = rand_path
         return yf.returnJson(True, 'ok', data)
     except Exception as e:
         return yf.returnJson(False, 'k_c3567d85')

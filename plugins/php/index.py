@@ -1261,6 +1261,9 @@ if __name__ == "__main__":
         exit(0)
 
     if len(sys.argv) < 3:
+        if func == 'kill_all_php':
+            print(killAllPhp(''))
+            exit(0)
         print('missing parameters')
         exit(0)
 
