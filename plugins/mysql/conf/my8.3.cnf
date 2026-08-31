@@ -1,4 +1,4 @@
-﻿[client]
+[client]
 user = root
 #password	= your_password
 port		= 3306

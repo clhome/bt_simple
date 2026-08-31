@@ -38,6 +38,12 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
     import subprocess
     import time
     
+    if shell and isinstance(cmdstring, str):
+        try:
+            cmdstring = yf.sanitizeCmdScripts(cmdstring, cwd=cwd)
+        except:
+            pass
+
     # 启动进程，捕获 stdout 并将 stderr 重定向到 stdout
     sub = subprocess.Popen(cmdstring, cwd=cwd, stdin=subprocess.PIPE,
                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

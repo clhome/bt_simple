@@ -70,7 +70,52 @@ def safeExecShell(cmd_list, cwd=None, timeout=30):
     except Exception as e:
         return "", str(e)
 
+def fixCrlf(file_path):
+    """清洗文件中的 Windows CRLF 换行符与 BOM，保证 Linux 下正常执行"""
+    try:
+        if os.path.isfile(file_path):
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            if b'\r\n' in content or content.startswith(b'\xef\xbb\xbf'):
+                new_content = content.replace(b'\r\n', b'\n')
+                if new_content.startswith(b'\xef\xbb\xbf'):
+                    new_content = new_content[3:]
+                with open(file_path, 'wb') as f:
+                    f.write(new_content)
+                return True
+    except:
+        pass
+    return False
+
+def sanitizeCmdScripts(cmdstring, cwd=None):
+    """自愈检测：分析命令中涉及的脚本文件，若包含 CRLF 自动清洗为 LF"""
+    try:
+        if not isinstance(cmdstring, str):
+            return cmdstring
+        import re
+        matches = re.findall(r'[\w\-\./]+\.(?:sh|py|tpl)', cmdstring)
+        cd_matches = re.findall(r'cd\s+([^\s&;]+)', cmdstring)
+        base_dir = cd_matches[0] if cd_matches else cwd
+
+        panel_dir = getPanelDir() if 'getPanelDir' in globals() else '/www/server/yufeng_panel'
+
+        for match in matches:
+            candidates = [match]
+            if base_dir:
+                candidates.append(os.path.join(base_dir, match))
+            if not match.startswith('/'):
+                candidates.append(os.path.join(panel_dir, match))
+
+            for file_path in candidates:
+                if os.path.isfile(file_path):
+                    fixCrlf(file_path)
+    except:
+        pass
+    return cmdstring
+
 def execShell(cmdstring, cwd=None, timeout=None, shell=True):
+    if shell and isinstance(cmdstring, str):
+        cmdstring = sanitizeCmdScripts(cmdstring, cwd=cwd)
 
     if shell:
         cmdstring_list = cmdstring
@@ -819,18 +864,25 @@ def hasPwd(password):
     '''
     加密密码字符
     '''
-    import bcrypt
-    salt = bcrypt.gensalt()
-    hpw = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hpw.decode('utf-8')
+    try:
+        import bcrypt
+        salt = bcrypt.gensalt()
+        hpw = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hpw.decode('utf-8')
+    except ImportError:
+        import hashlib
+        return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 def checkPwd(password, hashed):
     '''
     验证密码
     '''
-    import bcrypt
     try:
+        import bcrypt
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except ImportError:
+        import hashlib
+        return hashlib.sha256(password.encode('utf-8')).hexdigest() == hashed
     except:
         return False
 

@@ -40,8 +40,14 @@ else
     OSNAME='unknow'
 fi
 
-if [ -d /www/server/yufeng_panel ];then
+curPath=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
+rootPath=$(dirname "$curPath")
+
+if [ -d /www/server/yufeng_panel/data ];then
     echo "$OSNAME" > /www/server/yufeng_panel/data/osname.pl
+fi
+if [ -d "${rootPath}/data" ];then
+    echo "$OSNAME" > "${rootPath}/data/osname.pl"
 fi
 
 if [ "$OSNAME" == "macos" ];then

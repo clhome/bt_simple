@@ -368,6 +368,15 @@
 - [x] 6. 深度优化 `plugins/phpmyadmin/index.py` 中 `config.inc.php` 配置文件与启动状态检测：当未设置子目录或直接位于根目录时，精准自愈定位 `/www/server/phpmyadmin/config.inc.php`，彻底解决启动报错“服务启动失败”及配置读取失败的问题。
 - [x] 7. 对齐 master 分支安全机制，在 `getCfg()` 中引入随机保护子目录（`phpmyadmin_xxxxxx`）的主动感知与自动探测自愈机制，确保访问地址包含随机保护字符串并能正常访问网页。
 
+## 第十九阶段：修复 CRLF 换行符导致的安装脚本语法错误与全量自愈防护 (完成)
+
+- [x] 1. 全量扫描并清洗代码仓库中所有文本文件（Shell、Python、HTML、JS、CSS、Conf、JSON、TPL、MD、Lua等），统一将 CRLF 换行符转换为标准 LF（无 BOM UTF-8）。
+- [x] 2. 完善 `.gitattributes` 配置，严格指定所有源码、脚本与资源文件在 Git 检出与提交时强制使用 `eol=lf`。
+- [x] 3. 增强 `scripts/lib.sh` 与 `scripts/getos.sh` 等公共基础脚本，在执行系统识别前主动做 `\r` 字符过滤与自愈处理，防止意外由 Windows 传输引起的脚本语法异常。
+- [x] 4. 优化 `panel_task.py` 后台任务执行引擎：在执行 Shell 任务时，支持自动检测并自愈目标脚本中的 Windows 回车符（`\r`），彻底杜绝 `$'\r': 未找到命令` 错误。
+- [x] 5. 编写自动化回归测试脚本 `test/test_crlf_and_sh_syntax.py`，全量验证代码库换行符、Bash 脚本语法与自愈机制。
+
+
 
 
 

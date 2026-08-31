@@ -21,9 +21,20 @@ mkdir -p $libPath
 rm -rf ${libPath}/lib.pl
 
 
+# 自动检测并清洗脚本中的 Windows CRLF 换行符
+function fix_crlf() {
+    local target_file=$1
+    if [ -f "$target_file" ]; then
+        if grep -q $'\r' "$target_file" 2>/dev/null; then
+            sed -i 's/\r$//' "$target_file" 2>/dev/null
+        fi
+    fi
+}
+
+fix_crlf "${rootPath}/scripts/getos.sh"
 bash ${rootPath}/scripts/getos.sh
-OSNAME=`cat ${rootPath}/data/osname.pl`
-VERSION_ID=`cat /etc/*-release | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
+OSNAME=`cat ${rootPath}/data/osname.pl 2>/dev/null`
+VERSION_ID=`cat /etc/*-release 2>/dev/null | grep VERSION_ID | awk -F = '{print $2}' | awk -F "\"" '{print $2}'`
 
 # system judge
 if [ "$OSNAME" == "macos" ]; then
@@ -62,6 +73,7 @@ echo "system:${OSNAME}:${VERSION_ID}"
 # 引入统一的 GitHub 下载函数库
 _gh_download_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)/github_download.sh"
 if [ -f "$_gh_download_lib" ]; then
+    fix_crlf "$_gh_download_lib"
     source "$_gh_download_lib"
 fi
 

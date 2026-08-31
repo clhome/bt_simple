@@ -5,6 +5,8 @@
 *.sh text eol=lf
 *.py text eol=lf
 *.tpl text eol=lf
+*.pl text eol=lf
+*.lua text eol=lf
 
 # 前端与配置文件
 *.js text eol=lf
@@ -13,6 +15,23 @@
 *.json text eol=lf
 *.conf text eol=lf
 *.md text eol=lf
+*.txt text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.ini text eol=lf
+*.sql text eol=lf
+
+# 二进制文件
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.tar.gz binary
+*.tar.xz binary
+*.zip binary
+*.so binary
+*.pyc binary
 
 # 发布时排除指定的文件夹
 plugins/待审核/ export-ignore
