@@ -92,6 +92,31 @@ def parse_accept_language(accept_header):
             return norm
     return None
 
+_FILE_LANG_CACHE = None
+_FILE_LANG_CACHE_TIME = 0
+
+def _get_file_lang():
+    global _FILE_LANG_CACHE, _FILE_LANG_CACHE_TIME
+    import time
+    now = time.time()
+    if _FILE_LANG_CACHE and (now - _FILE_LANG_CACHE_TIME < 60):
+        return _FILE_LANG_CACHE
+    try:
+        import core.yf as yf
+        panel_dir = yf.getPanelDir()
+        path = os.path.join(panel_dir, 'data/language.pl')
+        if os.path.exists(path):
+            file_lang = normalize_lang(yf.readFile(path).strip())
+            if file_lang and file_lang in SUPPORTED_CODES:
+                _FILE_LANG_CACHE = file_lang
+                _FILE_LANG_CACHE_TIME = now
+                return file_lang
+    except Exception:
+        pass
+    _FILE_LANG_CACHE = DEFAULT_LANG
+    _FILE_LANG_CACHE_TIME = now
+    return _FILE_LANG_CACHE
+
 def get_current_lang():
     """获取当前请求的语言"""
     # 1. 尝试从 Flask 上下文 g 中读取
@@ -101,40 +126,36 @@ def get_current_lang():
             return g.lang
             
         # 2. 检查 URL query 参数
-        if request and request.args:
+        if request and getattr(request, 'args', None):
             url_lang = normalize_lang(request.args.get('lang', ''))
             if url_lang and url_lang in SUPPORTED_CODES:
+                g.lang = url_lang
                 return url_lang
                 
         # 3. 检查 Cookie yf_lang
-        if request and request.cookies:
+        if request and getattr(request, 'cookies', None):
             cookie_lang = normalize_lang(request.cookies.get('yf_lang', ''))
             if cookie_lang and cookie_lang in SUPPORTED_CODES:
+                g.lang = cookie_lang
                 return cookie_lang
                 
         # 4. 检查 Accept-Language 头
-        if request and request.headers:
+        if request and getattr(request, 'headers', None):
             accept_lang = parse_accept_language(request.headers.get('Accept-Language', ''))
             if accept_lang:
+                g.lang = accept_lang
                 return accept_lang
+                
+        # 如果请求上下文中没有明确指定语言，读取全局配置并缓存到 g 中
+        file_lang = _get_file_lang()
+        g.lang = file_lang
+        return file_lang
     except (RuntimeError, ImportError):
         # 非请求上下文或 flask 未安装时安全忽略
         pass
 
-    # 5. 检查本地配置文件 data/language.pl
-    try:
-        import core.yf as yf
-        panel_dir = yf.getPanelDir()
-        path = os.path.join(panel_dir, 'data/language.pl')
-        if os.path.exists(path):
-            file_lang = normalize_lang(yf.readFile(path).strip())
-            if file_lang and file_lang in SUPPORTED_CODES:
-                return file_lang
-    except Exception:
-        pass
-
-    # 6. 默认回退
-    return DEFAULT_LANG
+    # 5. 非请求上下文，直接返回带缓存的全局配置语言
+    return _get_file_lang()
 
 @functools.lru_cache(maxsize=128)
 def get_cached_json(name, lang):
