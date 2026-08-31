@@ -6080,4 +6080,74 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     font-size: 11px;
 }
 
+/* 侧边栏多语言切换器精美样式 */
+.panel-lang-switcher {
+    margin: 24px 12px 20px 12px;
+    width: 156px;
+    max-width: 156px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
+}
+
+.panel-lang-switcher select.lang-select,
+.panel-lang-switcher select.form-control {
+    height: 42px !important;
+    line-height: 40px !important;
+    width: 100% !important;
+    max-width: 156px !important;
+    box-sizing: border-box !important;
+    border-radius: 10px !important;
+    padding: 0 30px 0 14px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #d6d7d9 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    cursor: pointer !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    outline: none !important;
+    transition: all 0.3s ease !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d6d7d9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 14px 14px !important;
+}
+
+.panel-lang-switcher select.lang-select:hover,
+.panel-lang-switcher select.lang-select:focus,
+.panel-lang-switcher select.form-control:hover,
+.panel-lang-switcher select.form-control:focus {
+    color: #fff !important;
+    background-color: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.panel-lang-switcher select.lang-select option,
+.panel-lang-switcher select.form-control option {
+    background-color: #2b333e !important;
+    color: #fff !important;
+    padding: 8px 10px !important;
+}
+
+body.sidebar-mini .panel-lang-switcher {
+    width: 44px;
+    max-width: 44px;
+    margin: 24px 8px 20px 8px;
+}
+
+body.sidebar-mini .panel-lang-switcher select.lang-select,
+body.sidebar-mini .panel-lang-switcher select.form-control {
+    padding: 0 !important;
+    text-indent: -9999px !important;
+    background-position: center center !important;
+}
+
+
 

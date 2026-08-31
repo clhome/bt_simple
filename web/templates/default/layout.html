@@ -94,10 +94,10 @@
                 <a class="menu_exit" href="javascript:;" id="signout" data-i18n="menu.M11">{{ t('menu.M11', '退出') }}</a>
               </li>
             </ul>
-            <div class="panel-lang-switcher" style="padding: 12px 14px 6px 14px;">
-              <select class="form-control" style="height: 30px; line-height: 30px; width: 100%; border-radius: 15px; padding: 0 10px; font-size: 12px; background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.22); cursor: pointer;" onchange="YfI18n.setLanguage(this.value)">
+            <div class="panel-lang-switcher">
+              <select class="form-control lang-select" onchange="YfI18n.setLanguage(this.value)">
                 {% for lang in supported_languages %}
-                <option value="{{ lang.code }}" {% if current_lang == lang.code %}selected{% endif %} style="color: #333; background: #fff;">🌐 {{ lang.nativeName }}</option>
+                <option value="{{ lang.code }}" {% if current_lang == lang.code %}selected{% endif %}>🌐 {{ lang.nativeName }}</option>
                 {% endfor %}
               </select>
             </div>
