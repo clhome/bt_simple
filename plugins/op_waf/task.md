@@ -110,3 +110,11 @@ op_waf 是基于 OpenResty 和 Lua 编写的 WAF（Web Application Firewall）�
 - `[x]` 任务 5：根据最新用户要求，将 `curl` 开关及统计加回主界面的站点表格配置列表中。
 - `[x]` 任务 6：顺带修复并校准主列表各统计项对应的索引错误与数值不显示的 Bug。
 - `[x]` 任务 7：配合用户需求，重构 `wafLogs` 以接收 `site` 参数实现点击站点日志时的智能选择与跳转菜单自动激活。
+
+### 需求 18：修复服务面板规则统计的 owPost 未定义报错
+- `[x]` 任务 1：修改 `plugins/op_waf/index.html`，将 `renderWafAdditionalContent()` 中的 `owPost` 替换为 `api.postSilent` / `YfPlugin.createApi('op_waf')` 并增加健壮的数据解析。
+- `[x]` 任务 2：编写测试用例验证页面逻辑与接口。
+
+### 需求 19：优化服务面板规则统计卡片单行紧凑布局
+- `[x]` 任务 1：修改 `plugins/op_waf/index.html`，将 5 个规则卡片改为单行（`flex: 1; min-width: 0;`、`gap: 10px`），缩小卡片尺寸、内边距和字号，防止折行。
+- `[x]` 任务 2：更新测试用例并运行测试。

@@ -328,48 +328,49 @@ function renderWafAdditionalContent() {
     `;
 
     var html = explanatoryText + `
-        <div class="waf-rules-dashboard" style="margin-top: 20px; border: 1px solid #ddd; border-radius: 6px; padding: 20px; background-color: #fafafa;">
-            <h4 style="margin-top: 0; margin-bottom: 20px; color: #333; font-size: 16px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 10px;">🛡️ 核心过滤规则统计</h4>
-            <div style="display: flex; flex-wrap: wrap; gap: 15px;">
-                <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-                    <div style="color: #666; font-size: 13px; margin-bottom: 5px;">GET 参数过滤规则</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-args">33</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
-                    <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">args.json</div>
+        <div class="waf-rules-dashboard" style="margin-top: 15px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; background-color: #fafafa;">
+            <h4 style="margin-top: 0; margin-bottom: 12px; color: #333; font-size: 14px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 8px;">🛡️ 核心过滤规则统计</h4>
+            <div style="display: flex; gap: 10px; align-items: stretch;">
+                <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="GET 参数过滤规则">GET 参数过滤规则</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-args">33</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">args.json</div>
                 </div>
-                <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-                    <div style="color: #666; font-size: 13px; margin-bottom: 5px;">POST 参数过滤规则</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-post">29</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
-                    <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">post.json</div>
+                <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="POST 参数过滤规则">POST 参数过滤规则</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-post">29</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">post.json</div>
                 </div>
-                <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-                    <div style="color: #666; font-size: 13px; margin-bottom: 5px;">Cookie 过滤规则</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-cookie">26</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
-                    <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">cookie.json</div>
+                <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Cookie 过滤规则">Cookie 过滤规则</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-cookie">26</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">cookie.json</div>
                 </div>
-                <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-                    <div style="color: #666; font-size: 13px; margin-bottom: 5px;">URL 过滤规则</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-url">14</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
-                    <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">url.json</div>
+                <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="URL 过滤规则">URL 过滤规则</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-url">14</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">url.json</div>
                 </div>
-                <div style="flex: 1; min-width: 160px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #e2e2e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); text-align: center; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'">
-                    <div style="color: #666; font-size: 13px; margin-bottom: 5px;">User-Agent 过滤规则</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #20a53a; margin: 10px 0;"><span id="waf-rule-count-user_agent">13</span> <span style="font-size: 12px; font-weight: normal; color: #999;">条</span></div>
-                    <div style="font-size: 12px; color: #999; background: #f5f5f5; border-radius: 3px; padding: 2px 5px; display: inline-block;">user_agent.json</div>
+                <div style="flex: 1; min-width: 0; background: #fff; padding: 10px 4px; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); text-align: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 8px rgba(0,0,0,0.08)';this.style.borderColor='#cbd5e1'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04)';this.style.borderColor='#e2e8f0'">
+                    <div style="color: #4b5563; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="User-Agent 过滤规则">User-Agent 过滤规则</div>
+                    <div style="font-size: 20px; font-weight: bold; color: #20a53a; margin: 4px 0;"><span id="waf-rule-count-user_agent">13</span> <span style="font-size: 12px; font-weight: normal; color: #9ca3af;">条</span></div>
+                    <div style="font-size: 11px; color: #6b7280; background: #f3f4f6; border-radius: 3px; padding: 1px 6px; display: inline-block; font-family: monospace;">user_agent.json</div>
                 </div>
             </div>
         </div>
     `;
     $('.soft-man-con').append(html);
 
+    var wafApi = (typeof api !== 'undefined' && api && api.postSilent) ? api : ((window.YfPlugin && YfPlugin.createApi) ? YfPlugin.createApi('op_waf') : null);
+    if (!wafApi) return;
+
     var rules = ['args', 'post', 'cookie', 'url', 'user_agent'];
     rules.forEach(function(r) {
-        owPost('get_rule', {rule_name: r}, function(res_raw) {
+        wafApi.postSilent('get_rule', {rule_name: r}, function(res_raw) {
             try {
-                var tmp = JSON.parse(res_raw.data);
-                if(tmp.status) {
-                    var rdata = JSON.parse(tmp.data);
-                    var count = rdata.length;
-                    $('#waf-rule-count-' + r).text(count);
+                var rdata = (typeof res_raw.data === 'string') ? JSON.parse(res_raw.data) : res_raw.data;
+                if (Array.isArray(rdata)) {
+                    $('#waf-rule-count-' + r).text(rdata.length);
                 }
             } catch(e) {}
         });

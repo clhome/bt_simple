@@ -443,6 +443,12 @@
 - [x] 3. 优化备份管理弹窗各子表格（日备份、周备份、手动备份）的表头宽度比例与单元格防折行。
 - [x] 4. 编写自动化测试脚本 `test/test_pg_docker_ui.py` 并运行测试，验证页面结构与样式。
 
+## 第二十八阶段：修复 op_waf 插件服务面板中的 owPost 未定义报错 (完成)
 
+- [x] 1. 修复 `plugins/op_waf/index.html` 中 `renderWafAdditionalContent` 内的废弃 `owPost` 调用，统一替换为 `api.postSilent` / `YfPlugin.createApi('op_waf')` 并增加防御性解析。
+- [x] 2. 编写测试用例验证 `plugins/op_waf/index.html` 语法及接口调用逻辑，并运行测试确保 0 报错。
 
+## 第二十九阶段：优化 op_waf 核心规则统计框体单行布局与紧凑展示 (完成)
 
+- [x] 1. 优化 `plugins/op_waf/index.html` 中 5 个规则卡片的 Flex 布局（`flex: 1; min-width: 0; gap: 10px;`）并缩小内边距与字体，使其在同一行内优雅并列展示。
+- [x] 2. 运行自动化测试验证样式与布局规范。
