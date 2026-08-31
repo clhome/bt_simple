@@ -154,9 +154,41 @@ function setPamPort() {
     });
 }
 
+function pmaOpService(action) {
+    layer.msg(t('public.executing', '正在执行...'), { icon: 16, time: 0, shade: 0.3 });
+    $.post('/plugins/run', { name: 'phpmyadmin', func: action, version: '', args: '' }, function(data) {
+        var msg = data.data == 'ok' ? t('public.operation_successful', '操作成功!') : t('public.operation_failed', '操作失败!');
+        if (data.data == 'ok') {
+            layer.msg(msg, { icon: 1 });
+            setTimeout(function() {
+                pmaService();
+            }, 1000);
+        } else {
+            layer.msg(msg, { icon: 2 });
+        }
+    }, 'json');
+}
+
 function pmaService() {
-    pluginService('phpmyadmin');
-    setTimeout(function() {
+    $.post('/plugins/run', { name: 'phpmyadmin', func: 'status', version: '', args: '' }, function(statusData) {
+        var status = statusData.data;
+        var mStatus = status == 'start' ? '开启 <span style="color:#20a53a" class="glyphicon glyphicon-play"></span>' : '停止 <span style="color:red" class="glyphicon glyphicon-pause"></span>';
+        
+        var opt = '';
+        if (status == 'start') {
+            opt = '<button class="btn btn-default btn-sm" onclick="pmaOpService(\'stop\')">停止</button>' +
+                  '<button class="btn btn-default btn-sm" onclick="pmaOpService(\'restart\')">重启</button>' +
+                  '<button class="btn btn-default btn-sm" onclick="pmaOpService(\'reload\')">重载配置</button>';
+        } else {
+            opt = '<button class="btn btn-default btn-sm" onclick="pmaOpService(\'start\')">启动</button>';
+        }
+
+        var headerHtml = `<div class="sfm-opt">
+                            <div class="sfm-opt-l" style="margin-top: -3px;">当前状态：${mStatus}</div>
+                            <div class="sfm-opt-l mt15">${opt}</div>
+                          </div>`;
+        $(".soft-man-con").html(headerHtml);
+
         api.post('get_pma_access_info', '', function(rdata) {
             var data = JSON.parse(rdata.data);
             if (!data.status) {
@@ -269,5 +301,5 @@ function pmaService() {
                 $(".soft-man-con").append(style + html);
             }
         });
-    }, 500);
+    }, 'json');
 }

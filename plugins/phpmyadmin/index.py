@@ -216,9 +216,12 @@ def getCfg():
                 os.rename(server_dir + "/" + path, server_dir + "/" + new_path)
             except:
                 yf.execShell("mv " + server_dir + "/" + path + " " + server_dir + "/" + new_path)
-        path = new_path
-        data['path'] = path
-        need_save = True
+        
+        # 只有新目录真正存在了（或者老目录不存在了），才算更名成功
+        if os.path.exists(server_dir + "/" + new_path) or not os.path.exists(server_dir + "/" + path):
+            path = new_path
+            data['path'] = path
+            need_save = True
 
     # 1. 确保配置中存在合法的 path
     if not path:
@@ -226,14 +229,39 @@ def getCfg():
         data['path'] = path
         need_save = True
 
-    # 2. 如果已配置的 path 存在且有效，直接返回
+    # 2. 如果已配置的 path 存在
     if os.path.exists(server_dir + "/" + path):
-        if need_save:
-            try:
-                yf.writeFile(cfg, json.dumps(data))
-            except:
-                pass
-        return data
+        # 检查是否有嵌套错误，并修复
+        nested_dir = server_dir + "/" + path + "/phpmyadmin"
+        if os.path.exists(nested_dir) and os.path.exists(nested_dir + "/index.php"):
+            for f in os.listdir(nested_dir):
+                try:
+                    import shutil
+                    shutil.move(nested_dir + "/" + f, server_dir + "/" + path + "/" + f)
+                except:
+                    pass
+            try: os.rmdir(nested_dir)
+            except: pass
+            
+        nested_dir2 = server_dir + "/" + path + "/phpmyadmin_" + path
+        if os.path.exists(nested_dir2) and os.path.exists(nested_dir2 + "/index.php"):
+            for f in os.listdir(nested_dir2):
+                try:
+                    import shutil
+                    shutil.move(nested_dir2 + "/" + f, server_dir + "/" + path + "/" + f)
+                except:
+                    pass
+            try: os.rmdir(nested_dir2)
+            except: pass
+
+        # 验证修复后（或原本）内部是否有 index.php，如果没有，说明这是一个假目录，继续往下走探测，否则直接返回
+        if os.path.exists(server_dir + "/" + path + "/index.php"):
+            if need_save:
+                try:
+                    yf.writeFile(cfg, json.dumps(data))
+                except:
+                    pass
+            return data
 
     # 3. 自动探测 server_dir 下只有一个目录时（因为去掉了前缀不好正则，且该目录下一般只有这一个主程序目录）
     found_path = ''
@@ -241,7 +269,8 @@ def getCfg():
         # 找除了 tmp 等已知系统目录外的唯一长随机字符串目录
         for item in os.listdir(server_dir):
             if item != 'tmp' and item != 'phpmyadmin' and os.path.isdir(os.path.join(server_dir, item)):
-                if len(item) >= 4: # 假设保护目录至少4个字符
+                # 这个目录也必须得有 index.php
+                if len(item) >= 4 and os.path.exists(os.path.join(server_dir, item, "index.php")):
                     found_path = item
                     break
         
@@ -255,9 +284,39 @@ def getCfg():
         if not found_path and os.path.exists(server_dir + "/phpmyadmin") and os.path.isdir(server_dir + "/phpmyadmin"):
             dst = server_dir + "/" + path
             try:
-                os.rename(server_dir + "/phpmyadmin", dst)
+                import shutil
+                if os.path.exists(dst):
+                    # 如果目标目录已存在，把里面的文件挪过去
+                    for f in os.listdir(server_dir + "/phpmyadmin"):
+                        shutil.move(server_dir + "/phpmyadmin/" + f, dst + "/" + f)
+                    os.rmdir(server_dir + "/phpmyadmin")
+                else:
+                    shutil.move(server_dir + "/phpmyadmin", dst)
             except:
-                yf.execShell("mv " + server_dir + "/phpmyadmin " + dst)
+                yf.execShell("mv " + server_dir + "/phpmyadmin/* " + dst + "/ 2>/dev/null || mv " + server_dir + "/phpmyadmin " + dst)
+            
+            # 如果重命名失败，且目标目录还是没生成，强制使用 phpmyadmin 作为路径，避免 404
+            if not os.path.exists(dst):
+                path = "phpmyadmin"
+                data['path'] = path
+                need_save = True
+        
+        # 6. 如果没找到，且主程序文件散落在根目录下（例如 index.php），将其归档到 path
+        if not found_path and not os.path.exists(server_dir + "/phpmyadmin") and os.path.exists(server_dir + "/index.php"):
+            dst = server_dir + "/" + path
+            if not os.path.exists(dst):
+                try:
+                    os.mkdir(dst)
+                except:
+                    pass
+            if os.path.exists(dst):
+                for f in os.listdir(server_dir):
+                    if f not in ['pma.pass', 'version.pl', 'cfg.json', 'tmp', path]:
+                        try:
+                            import shutil
+                            shutil.move(server_dir + "/" + f, dst + "/" + f)
+                        except:
+                            pass
 
     if need_save:
         try:
