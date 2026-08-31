@@ -118,3 +118,8 @@ op_waf 是基于 OpenResty 和 Lua 编写的 WAF（Web Application Firewall）�
 ### 需求 19：优化服务面板规则统计卡片单行紧凑布局
 - `[x]` 任务 1：修改 `plugins/op_waf/index.html`，将 5 个规则卡片改为单行（`flex: 1; min-width: 0;`、`gap: 10px`），缩小卡片尺寸、内边距和字号，防止折行。
 - `[x]` 任务 2：更新测试用例并运行测试。
+
+### 需求 20：优化左侧菜单栏灰色底纹及固定弹窗高度
+- `[x]` 任务 1：在 `plugins/op_waf/index.html` 中引入 `resetPluginWinHeight(620)`，并为 `.bt-w-main`、`.bt-w-con`、`.bt-w-menu` 锁定固定高度与统一纵向滚动。
+- `[x]` 任务 2：在 `plugins/op_waf/index.html` 中优化左侧菜单栏样式（全高灰色底纹 `#f8fafc`，选中项高亮为 `#ffffff` 卡片），并去掉“功能介绍”的 490px 内部滚动。
+- `[x]` 任务 3：更新测试用例并运行验证。

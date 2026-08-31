@@ -238,17 +238,72 @@
     margin-top: 0px;
 }
 
-/* Fix scrolling left menu and footer overlap */
+/* 弹窗整体固定尺寸与布局 */
+.bt-form {
+    height: 100% !important;
+}
 .bt-w-main {
-    height: 600px;
+    height: 578px !important;
+    max-height: 578px !important;
+    display: flex !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
 }
+
+/* 左侧统一灰色底纹与优雅选中项 */
 .bt-w-menu {
-    height: 100%;
+    width: 125px !important;
+    height: 100% !important;
+    flex-shrink: 0 !important;
+    background-color: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    padding: 8px 6px !important;
+    float: none !important;
 }
+
+.bt-w-menu p {
+    height: 38px !important;
+    line-height: 38px !important;
+    padding: 0 14px !important;
+    margin: 3px 0 !important;
+    border-radius: 6px !important;
+    color: #4b5563 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid transparent !important;
+    text-align: left !important;
+    background: transparent !important;
+    display: block !important;
+}
+
+.bt-w-menu p:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+.bt-w-menu p.bgw {
+    background-color: #ffffff !important;
+    color: #20a53a !important;
+    font-weight: bold !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 右侧内容区域固定高度与纵向平滑滚动 */
 .bt-w-con {
-    height: 100%;
-    overflow-y: auto;
-    padding-bottom: 35px !important;
+    flex: 1 !important;
+    height: 100% !important;
+    margin-left: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    padding: 15px 20px 45px 20px !important;
+    background-color: #ffffff !important;
+    float: none !important;
 }
 </style>
 <div class="bt-form">
@@ -299,6 +354,7 @@ $(function() {
     });
 });
 resetPluginWinWidth(1050);
+resetPluginWinHeight(620);
 
 $.getScript( "/plugins/file?name=op_waf&f=js/op_waf.js", function(data, textStatus, jqxhr){
     // console.log(data, textStatus, jqxhr);
@@ -381,9 +437,7 @@ function wafIntro() {
     $('#yufeng-footer').hide(); // Hide footer
     var introHtml = `
     <style>
-        .intro-container { padding: 20px; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; animation: fadeIn 0.4s ease; color: #333; height: 490px; overflow-y: auto; box-sizing: border-box; }
-        .intro-container::-webkit-scrollbar { width: 6px; }
-        .intro-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .intro-container { padding: 5px 0 20px 0; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; animation: fadeIn 0.4s ease; color: #333; box-sizing: border-box; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .intro-header { border-bottom: 2px solid #20a53a; padding-bottom: 10px; margin-bottom: 20px; }
         .intro-header h2 { margin: 0; font-size: 22px; color: #20a53a; font-weight: bold; }
