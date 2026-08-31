@@ -2903,5 +2903,159 @@ var lan = {
 		"protocol_header_response_timed": "Zeitüberschreitung bei der Antwort auf den Protokoll-Header, die Netzwerkqualität zum Zielserver ist zu schlecht: {1}",
 		"internal_error": "Interner Fehler: {1}",
 		"operation_failed": "Vorgang fehlgeschlagen: {1}"
+},
+	"plugins":{
+		"acme_pandominassl_apply": {
+				"title": "ACME Wildcard-SSL",
+				"ps": "Beantragung und Verwaltung kostenloser Let's Encrypt Wildcard-SSL-Zertifikate mit automatischer Verlängerung"
+		},
+		"apache": {
+				"title": "Apache",
+				"ps": "Weit verbreitete, schnelle, zuverlässige und über APIs einfach erweiterbare Webserver-Software"
+		},
+		"caddy": {
+				"title": "Caddy",
+				"ps": "Leistungsstarker Open-Source-Webserver für Unternehmen mit automatischem HTTPS, geschrieben in Go"
+		},
+		"clean": {
+				"title": "Protokollbereinigung",
+				"ps": "Bereinigt temporäre Systemdateien, Panel-Logs und Webseiten-Protokolle, um Speicherplatz freizugeben"
+		},
+		"data_query": {
+				"title": "Datenbank-Manager",
+				"ps": "Leichtes Datenmanagement für Memcached, Redis und MongoDB mit intuitiver Schlüssel-Wert-Ansicht"
+		},
+		"docker": {
+				"title": "YuFeng Docker-Manager",
+				"ps": "Verwendet mehrere Beschleunigungs-Mirrors für blitzschnelles Herunterladen und Pullen von Docker-Images"
+		},
+		"fail2ban": {
+				"title": "YuFeng F2B-Firewall",
+				"ps": "Verhindert Brute-Force-Angriffe auf Dienste und Webseiten und blockiert bösartige IP-Adressen automatisch"
+		},
+		"gitea": {
+				"title": "Gitea",
+				"ps": "Leichtgewichtige, schmerzlose, selbst gehostete Open-Source-Git-Code-Hosting-Plattform"
+		},
+		"jdk": {
+				"title": "YuFeng JDK-Manager",
+				"ps": "Installiert und verwaltet Java-JDK-Umgebungen mit 1-Klick-Konfiguration globaler Umgebungsvariablen"
+		},
+		"linux_sys_opt": {
+				"title": "YuFeng Systemoptimierung",
+				"ps": "1-Klick-Tuning von Linux-Kernel-Parametern und Netzwerkoptimierung für hohe Parallelität"
+		},
+		"mariadb": {
+				"title": "MariaDB",
+				"ps": "Beliebtes Open-Source-Datenbankverwaltungssystem, vollständig kompatibel mit MySQL"
+		},
+		"mongodb": {
+				"title": "MongoDB",
+				"ps": "Hochleistungs-NoSQL-Dokumentendatenbank für verteiltes, skalierbares Speichern"
+		},
+		"mysql": {
+				"title": "MySQL",
+				"ps": "Weltweit bewährtes, stabiles und zuverlässiges Open-Source-Datenbankverwaltungssystem"
+		},
+		"ollama": {
+				"title": "Ollama",
+				"ps": "Lokaler KI-Modell-Runner für Entwickler zum Ausführen von Llama 3, DeepSeek, Qwen und weiteren LLMs"
+		},
+		"op_load_balance": {
+				"title": "OP Lastverteilung",
+				"ps": "Hochleistungs-Lastverteilung und Reverse-Proxy-Cluster-Management auf Basis von OpenResty"
+		},
+		"op_waf": {
+				"title": "YuFeng OP-WAF",
+				"ps": "Web Application Firewall auf Unternehmensniveau mit Zero-Intrusion-Schutz auf Anwendungsebene"
+		},
+		"openresty": {
+				"title": "OpenResty",
+				"ps": "Vollwertige Web-Plattform auf Basis von Nginx und Lua mit geringem Speicherbedarf und hoher Parallelität"
+		},
+		"pg_docker": {
+				"title": "PostgreSQL Containerverwaltung",
+				"ps": "YuFeng PostgreSQL-Containerverwaltung für 1-Klick-Bereitstellung von Multi-Instanz-Docker-Umgebungen mit dynamischem RAM-Tuning"
+		},
+		"pgadmin": {
+				"title": "pgAdmin",
+				"ps": "Moderne Open-Source-Verwaltungs- und Entwicklungsplattform für PostgreSQL mit intuitiver Weboberfläche"
+		},
+		"php": {
+				"title": "PHP",
+				"ps": "PHP-Quellcodekompilierung und Multi-Versions-Koexistenzverwaltung für moderne Webanwendungen"
+		},
+		"php-apt": {
+				"title": "PHP [APT]",
+				"ps": "Schnelle PHP-APT-Paketinstallation für Debian/Ubuntu mit sofortiger Multi-Versions-Bereitstellung"
+		},
+		"php-guard": {
+				"title": "PHP-Wächter",
+				"ps": "Überwacht den PHP-FPM-Status in Echtzeit und startet bei Ausfällen automatisch neu, um 502-Fehler zu verhindern"
+		},
+		"php-yum": {
+				"title": "PHP [YUM]",
+				"ps": "Schnelle PHP-YUM/RPM-Paketinstallation für RHEL/CentOS/Rocky mit zügiger Multi-Versions-Bereitstellung"
+		},
+		"phpmyadmin": {
+				"title": "phpMyAdmin",
+				"ps": "Klassisches webbasiertes Verwaltungstool für visuelle MySQL- und MariaDB-Datenbankadministration"
+		},
+		"postgresql": {
+				"title": "PostgreSQL",
+				"ps": "Fortschrittliches objektrelationales Open-Source-Datenbanksystem für komplexe Arbeitslasten"
+		},
+		"pureftp": {
+				"title": "Pure-Ftpd",
+				"ps": "Leichtgewichtige, hochsichere und produktionserprobte FTP-Server-Software"
+		},
+		"python_yf": {
+				"title": "YuFeng Python Multi-Versionsmanager",
+				"ps": "Blitzschneller moderner Python-Multi-Versionsmanager auf uv-Basis mit virtueller Umgebungsisolierung"
+		},
+		"redis": {
+				"title": "Redis",
+				"ps": "Hochleistungs-In-Memory-Schlüssel-Wert-Datenspeicher, genutzt als Datenbank, Cache und Message-Broker"
+		},
+		"rsyncd": {
+				"title": "rsyncd",
+				"ps": "Robustes Daemon-Tool zur serverübergreifenden Dateisynchronisierung und -sicherung"
+		},
+		"sphinx": {
+				"title": "Sphinx",
+				"ps": "Leistungsstarke SQL-basierte Volltextsuchmaschine mit extrem niedrigen Suchlatenzen"
+		},
+		"supervisor": {
+				"title": "Supervisor Prozessmanager",
+				"ps": "Einfaches und effizientes Prozessverwaltungstool mit Hintergrund-Daemons und automatischem Neustart"
+		},
+		"swap": {
+				"title": "Swap-Konfiguration",
+				"ps": "YuFeng Linux-Swap-Konfigurationstool für flexible Zuweisung und Freigabe von virtuellem Speicher"
+		},
+		"task_manager": {
+				"title": "Task-Manager",
+				"ps": "Echtzeit-Systemprozessverwaltung, Netzwerküberwachung, Autostart-Steuerung und Ressourcenanalyse"
+		},
+		"valkey": {
+				"title": "Valkey",
+				"ps": "Hochleistungs-Key-Value-Datenspeicher, der quelloffene, Community-getriebene Nachfolger von Redis"
+		},
+		"varnish": {
+				"title": "Varnish",
+				"ps": "Hochleistungs-Open-Source-HTTP-Beschleuniger für effizientes Web-Content-Caching"
+		},
+		"webssh": {
+				"title": "WebSSH Terminal",
+				"ps": "Webbasierter, sicherer SSH-Terminal-Client für komfortable Remote-Serveradministration"
+		},
+		"webstats": {
+				"title": "Web-Statistiken",
+				"ps": "Detaillierte Web-Protokollanalyse mit Echtzeit-PV/UV-Trends, Besucherprofilen und Bot-Erkennung"
+		},
+		"yufeng_systemd": {
+				"title": "YuFeng Prozess-Daemon",
+				"ps": "Moderner nativer Systemd-Dienstmanager für Linux mit YuFeng-Tag-Isolation und automatischer Selbstheilung"
+		}
 }
 };

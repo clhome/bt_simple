@@ -2850,5 +2850,159 @@
         "protocol_header_response_timed": "Protocol header response timed out; network quality between the client and the target server is too poor: {1}",
         "internal_error": "Internal error: {1}",
         "operation_failed": "Operation failed: {1}"
+    },
+    "plugins": {
+        "acme_pandominassl_apply": {
+            "title": "ACME Wildcard SSL",
+            "ps": "ACME Wildcard SSL certificate application and management with Let's Encrypt free certificates and auto-renewal"
+        },
+        "apache": {
+            "title": "Apache",
+            "ps": "Widely-used, fast, reliable, and easily extensible Web server software via APIs"
+        },
+        "caddy": {
+            "title": "Caddy",
+            "ps": "Powerful, enterprise-ready, open-source Web server with automatic HTTPS written in Go"
+        },
+        "clean": {
+            "title": "Log Cleaner",
+            "ps": "Cleans temporary system files, panel logs, and website access logs to free up disk space"
+        },
+        "data_query": {
+            "title": "Database Manager",
+            "ps": "Lightweight data management for Memcached, Redis, and MongoDB with intuitive key-value inspection"
+        },
+        "docker": {
+            "title": "YuFeng Docker Manager",
+            "ps": "Uses multiple acceleration mirror nodes for polling high-speed downloads, making Docker image pulling blazing fast"
+        },
+        "fail2ban": {
+            "title": "YuFeng F2B Firewall",
+            "ps": "Prevents brute-force attacks on services and websites, automatically banning malicious IPs with multiple authentication failures"
+        },
+        "gitea": {
+            "title": "Gitea",
+            "ps": "Lightweight, painless, open-source self-hosted Git code hosting platform"
+        },
+        "jdk": {
+            "title": "YuFeng JDK Manager",
+            "ps": "Installs and manages Java JDK environments with one-click global environment variable configuration"
+        },
+        "linux_sys_opt": {
+            "title": "YuFeng System Optimization",
+            "ps": "One-click Linux kernel parameter tuning and high-concurrency network performance optimization"
+        },
+        "mariadb": {
+            "title": "MariaDB",
+            "ps": "Popular open-source relational database management system, highly compatible with MySQL"
+        },
+        "mongodb": {
+            "title": "MongoDB",
+            "ps": "High-performance NoSQL document database supporting distributed scalable data storage"
+        },
+        "mysql": {
+            "title": "MySQL",
+            "ps": "Globally-adopted, stable, and reliable open-source relational database management system"
+        },
+        "ollama": {
+            "title": "Ollama",
+            "ps": "Local AI model runner for developers to get up and running with Llama 3, DeepSeek, Qwen, and more"
+        },
+        "op_load_balance": {
+            "title": "OP Load Balancer",
+            "ps": "High-performance load balancing and reverse proxy cluster management based on OpenResty"
+        },
+        "op_waf": {
+            "title": "YuFeng OP WAF",
+            "ps": "Enterprise-grade Web application security firewall engine with zero-intrusion application-layer protection and penetration defense"
+        },
+        "openresty": {
+            "title": "OpenResty",
+            "ps": "Full-fledged Web platform based on Nginx and Lua with ultra-low memory usage and superior concurrency"
+        },
+        "pg_docker": {
+            "title": "PostgreSQL Container Management",
+            "ps": "YuFeng PostgreSQL container management plugin for one-click deployment and multi-instance management of PostgreSQL Docker with dynamic RAM tuning"
+        },
+        "pgadmin": {
+            "title": "pgAdmin",
+            "ps": "Modern, open-source administration and development platform for PostgreSQL with intuitive Web interface"
+        },
+        "php": {
+            "title": "PHP",
+            "ps": "PHP source compilation and multi-version co-existence management for modern Web applications"
+        },
+        "php-apt": {
+            "title": "PHP [APT]",
+            "ps": "Fast PHP APT package installer for Debian/Ubuntu with instant multi-version deployment"
+        },
+        "php-guard": {
+            "title": "PHP Guardian",
+            "ps": "Monitors PHP-FPM status in real time and automatically reloads on failure to eliminate 502 Bad Gateway errors"
+        },
+        "php-yum": {
+            "title": "PHP [YUM]",
+            "ps": "Fast PHP YUM/RPM package installer for RHEL/CentOS/Rocky with rapid multi-version provisioning"
+        },
+        "phpmyadmin": {
+            "title": "phpMyAdmin",
+            "ps": "Classic web-based administration tool for visual MySQL and MariaDB database management"
+        },
+        "postgresql": {
+            "title": "PostgreSQL",
+            "ps": "Advanced open-source object-relational database system for complex analytical and transactional workloads"
+        },
+        "pureftp": {
+            "title": "Pure-Ftpd",
+            "ps": "Lightweight, highly secure, and production-tested FTP server software"
+        },
+        "python_yf": {
+            "title": "YuFeng Python Multi-Version Manager",
+            "ps": "Ultra-fast modern Python multi-version manager powered by uv with instant virtualenv isolation"
+        },
+        "redis": {
+            "title": "Redis",
+            "ps": "High-performance in-memory key-value data structure store used as a database, cache, and message broker"
+        },
+        "rsyncd": {
+            "title": "rsyncd",
+            "ps": "Robust cross-server file synchronization, mirror, and backup daemon tool"
+        },
+        "sphinx": {
+            "title": "Sphinx",
+            "ps": "High-performance SQL-based full-text search engine delivering sub-millisecond search latency"
+        },
+        "supervisor": {
+            "title": "Supervisor Process Manager",
+            "ps": "Simple and efficient process management tool supporting background daemons, auto-restart, and live logs"
+        },
+        "swap": {
+            "title": "Swap Configuration",
+            "ps": "YuFeng Linux virtual memory configuration tool for elastic Swap space allocation and release"
+        },
+        "task_manager": {
+            "title": "Task Manager",
+            "ps": "Real-time system process manager, network bandwidth monitor, startup item controller, and resource monitor"
+        },
+        "valkey": {
+            "title": "Valkey",
+            "ps": "High-performance in-memory key-value datastore, the community-driven open-source successor to Redis"
+        },
+        "varnish": {
+            "title": "Varnish",
+            "ps": "High-performance open-source HTTP accelerator designed for dynamic and static Web content caching"
+        },
+        "webssh": {
+            "title": "WebSSH Terminal",
+            "ps": "Web-based secure SSH terminal client for convenient remote server administration"
+        },
+        "webstats": {
+            "title": "Website Analytics",
+            "ps": "In-depth Web access log analytics with real-time PV/UV trends, request profiling, and bot insights"
+        },
+        "yufeng_systemd": {
+            "title": "YuFeng Process Daemon",
+            "ps": "Modern native systemd service manager for Linux, strictly isolated by YuFeng tags with auto-healing and daemon monitoring"
+        }
     }
 }

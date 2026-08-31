@@ -146,7 +146,16 @@ function getSList(isdisplay) {
       if (version_info != '') {
         version_info = version_info.substring(0, version_info.length - 1);
       }
-      var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + plugin.title + '\',' + plugin.install_pre_inspection + ');">' + t('public.install', '安装') + '</a>';
+      var raw_title = t('plugins.' + plugin.name + '.title', plugin.title);
+      var raw_ps = t('plugins.' + plugin.name + '.ps', plugin.ps);
+      var display_title = raw_title;
+      if (plugin.coexist) {
+        display_title = raw_title + '-' + plugin.versions;
+      } else if (plugin.setup && plugin.setup_version) {
+        display_title = raw_title + ' ' + plugin.setup_version;
+      }
+
+      var handle = '<a class="btlink" onclick="addVersion(\'' + plugin.name + '\',\'' + version_info + '\',\'' + plugin.tip + '\',this,\'' + display_title + '\',' + plugin.install_pre_inspection + ');">' + t('public.install', '安装') + '</a>';
       if (plugin.setup == true) {
         var mupdate = '';
         var latest_version = '';
@@ -183,10 +192,10 @@ function getSList(isdisplay) {
             }
           }
         }
-        var settingsLink = '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">' + t('public.set', '设置') + '</a>';
-        var uninstallLink = '<a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection + ')">' + t('public.uninstall', '卸载') + '</a>';
+        var settingsLink = '<a class="btlink" onclick="softMain(\'' + plugin.name + '\',\'' + display_title + '\',\'' + plugin.setup_version + '\')">' + t('public.set', '设置') + '</a>';
+        var uninstallLink = '<a class="btlink" onclick="uninstallVersion(\'' + plugin.name + '\',\'' + display_title + '\',\'' + plugin.setup_version + '\',' + plugin.uninstall_pre_inspection + ')">' + t('public.uninstall', '卸载') + '</a>';
         handle = mupdate + settingsLink + ' | ' + uninstallLink;
-        titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
+        titleClick = 'onclick="softMain(\'' + plugin.name + '\',\'' + display_title + '\',\'' + plugin.setup_version + '\')" style="cursor:pointer"';
         softPath = '<span class="glyphicon glyphicon-folder-open" title="' + plugin.path + '" onclick="openPath(\'' + plugin.path + '\')"></span>';
         if (plugin.coexist) {
           indexshow = '<div class="index-item">\
@@ -214,10 +223,8 @@ function getSList(isdisplay) {
       } else if (plugin.task == '0') {
         handle = '<a style="color:#C0C0C0;" href="javascript:task();">' + t('public.waiting', '等待中...') + '</a>';
       }
-      var plugin_title = plugin.title;
-      if (plugin.setup && !plugin.coexist) {
-        plugin_title = plugin.title + ' ' + plugin.setup_version;
-      }
+
+      var plugin_title = display_title;
       if (plugin.display_level == 1) {
         plugin_title += t('soft.size_third_party', ' (第三方插件)');
       }
@@ -226,7 +233,7 @@ function getSList(isdisplay) {
         icon_link = "/plugins/file?name=" + plugin.name + "&f=" + plugin.icon;
       }
       var homeLink = plugin.home ? ('<a class="btlink" href="' + plugin.home + '" target="_blank">' + t('soft.official_site', '官网') + '</a>') : '-';
-      sBody += '<tr>' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + plugin.ps + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td>' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
+      sBody += '<tr>' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + raw_ps + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td>' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
     }
     sBody += pBody;
     $("#softList").html(sBody);
@@ -599,15 +606,16 @@ function indexListHtml(callback) {
       } else {
         state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>';
       }
-      var name = plugin.title + ' ' + plugin.setup_version + '  ';
+      var raw_title = t('plugins.' + plugin.name + '.title', plugin.title);
+      var name = raw_title + ' ' + plugin.setup_version + '  ';
       var data_id = plugin.name + '-' + plugin.setup_version;
       if (plugin.coexist) {
-        name = plugin.title + '  ';
+        name = raw_title + '  ';
         data_id = plugin.name + '-' + plugin.versions;
       }
       con += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2" data-id="' + data_id + '">\
                 <span class="spanmove"></span>\
-                <div onclick="softMain(\'' + plugin.name + '\',\'' + plugin.title + '\',\'' + plugin.setup_version + '\')">\
+                <div onclick="softMain(\'' + plugin.name + '\',\'' + raw_title + '\',\'' + plugin.setup_version + '\')">\
                 <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:48px;"></div>\
                 <div class="sname">' + name + state + '</div>\
                 </div>\

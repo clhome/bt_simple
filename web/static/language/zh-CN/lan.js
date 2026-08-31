@@ -2909,5 +2909,159 @@ var lan = {
 		"protocol_header_response_timed": "协议头响应超时，与目标服务器之间的网络质量太糟糕：{1}",
 		"internal_error": "内部错误: {1}",
 		"operation_failed": "操作失败: {1}"
+},
+	"plugins":{
+		"acme_pandominassl_apply": {
+				"title": "ACME泛域名SSL",
+				"ps": "ACME泛域名SSL申请/管理，提供Let's Encrypt免费泛域名证书申请与自动续签"
+		},
+		"apache": {
+				"title": "Apache",
+				"ps": "世界排名领先，快速、可靠并且可通过简单的API扩充的 Web 服务器软件"
+		},
+		"caddy": {
+				"title": "Caddy",
+				"ps": "一款功能强大、企业级、开源 Web 服务器，具有用 Go 编写的自动 HTTPS"
+		},
+		"clean": {
+				"title": "日志清理",
+				"ps": "清理系统临时文件、面板日志、网站日志等无用文件，释放磁盘空间"
+		},
+		"data_query": {
+				"title": "数据管理",
+				"ps": "数据简单管理 (Memcached, Redis, MongoDB)，快捷查看与维护键值数据库"
+		},
+		"docker": {
+				"title": "YuFeng Docker管理器",
+				"ps": "采用多个加速点轮询高速下载镜像，让Docker下载和拉取镜像如飞"
+		},
+		"fail2ban": {
+				"title": "YuFeng F2B防火墙",
+				"ps": "防止恶意IP地址暴力破解服务、站点，禁止导致多个身份验证错误的主机"
+		},
+		"gitea": {
+				"title": "Gitea",
+				"ps": "开源社区驱动的轻量级无痛自托管 Git 代码托管平台"
+		},
+		"jdk": {
+				"title": "YuFeng JDK管理器",
+				"ps": "安装和管理Java JDK环境，支持全局环境变量一键设置与自定义JDK配置"
+		},
+		"linux_sys_opt": {
+				"title": "YuFeng系统优化",
+				"ps": "一键化全平台 Linux 内核参数调优与高并发网络性能优化"
+		},
+		"mariadb": {
+				"title": "MariaDB",
+				"ps": "流行的开源关系型数据库管理系统，兼容 MySQL 生态"
+		},
+		"mongodb": {
+				"title": "MongoDB",
+				"ps": "高性能 NoSQL 文档数据库，支持分布式海量数据存储与灵活查询"
+		},
+		"mysql": {
+				"title": "MySQL",
+				"ps": "全球广泛使用的开源关系型数据库管理系统，稳定可靠"
+		},
+		"ollama": {
+				"title": "Ollama",
+				"ps": "本地面向开发者和极客的AI大模型运行框架，支持一键拉取运行主流大语言模型"
+		},
+		"op_load_balance": {
+				"title": "OP负载均衡",
+				"ps": "基于 OpenResty 的高性能负载均衡与反向代理集群管理"
+		},
+		"op_waf": {
+				"title": "YuFeng OP防火墙",
+				"ps": "企业级 Web 安全防护引擎，提供高性能、零侵入的应用层威胁拦截与全面渗透防御"
+		},
+		"openresty": {
+				"title": "OpenResty",
+				"ps": "基于 Nginx 与 Lua 的全功能 Web 平台，轻量级，占有内存少，高并发性能强"
+		},
+		"pg_docker": {
+				"title": "PostgreSQL 容器化管理",
+				"ps": "YuFeng PostgreSQL 容器化管理插件，一键部署与管理多实例 PostgreSQL Docker 环境，支持按服务器内存动态计算调优参数"
+		},
+		"pgadmin": {
+				"title": "pgAdmin",
+				"ps": "专为 PostgreSQL 设计的现代化开源管理和开发平台，提供直观的 Web 端交互体验"
+		},
+		"php": {
+				"title": "PHP",
+				"ps": "PHP编译安装与多版本共存管理，支持主流 Web 开发框架"
+		},
+		"php-apt": {
+				"title": "PHP[APT]",
+				"ps": "PHP极速APT包安装（适配 Debian/Ubuntu），秒级部署多版本 PHP 运行环境"
+		},
+		"php-guard": {
+				"title": "PHP守护",
+				"ps": "实时监控 PHP-FPM 运行状态，故障自动重载，杜绝 502 Bad Gateway 错误"
+		},
+		"php-yum": {
+				"title": "PHP[YUM]",
+				"ps": "PHP极速YUM/RPM安装（适配 RHEL/CentOS/Rocky），快速交付多版本环境"
+		},
+		"phpmyadmin": {
+				"title": "phpMyAdmin",
+				"ps": "快速管理 MySQL 和 MariaDB 的经典 Web 端数据库可视化管理工具"
+		},
+		"postgresql": {
+				"title": "PostgreSQL",
+				"ps": "全球先进的开源对象关系型数据库系统，支持复杂的分析型和事务型工作负载"
+		},
+		"pureftp": {
+				"title": "Pure-Ftpd",
+				"ps": "轻量高效、安全合规且经过生产环境验证的 FTP 服务器软件"
+		},
+		"python_yf": {
+				"title": "YuFeng Python多版本管理器",
+				"ps": "基于 uv 的极速现代化 Python 多版本管理器，秒级切换与虚拟环境隔离"
+		},
+		"redis": {
+				"title": "Redis",
+				"ps": "高性能内存中键值数据库，支持持久化、发布订阅、缓存与高速队列"
+		},
+		"rsyncd": {
+				"title": "rsyncd",
+				"ps": "强大的跨服务器数据同步与备份传输守护工具"
+		},
+		"sphinx": {
+				"title": "Sphinx",
+				"ps": "基于 SQL 的高性能开源全文检索引擎，提供毫秒级搜索响应"
+		},
+		"supervisor": {
+				"title": "进程守护管理器",
+				"ps": "简单高效的进程管理工具，支持后台守护、失败自动重启与实时日志查看"
+		},
+		"swap": {
+				"title": "swap",
+				"ps": "YuFeng Linux 虚拟内存配置工具，弹性扩充与释放 Swap 空间"
+		},
+		"task_manager": {
+				"title": "任务管理器",
+				"ps": "实时查看并管理系统运行进程、流量监控、自启动项与资源消耗"
+		},
+		"valkey": {
+				"title": "Valkey",
+				"ps": "高性能键值数据存储系统，Redis 开源继任者，纯粹开源社区维护"
+		},
+		"varnish": {
+				"title": "Varnish",
+				"ps": "高性能开源 HTTP 缓存加速器，显著提升动态与静态网站响应速度"
+		},
+		"webssh": {
+				"title": "WebSSH终端",
+				"ps": "基于 Web 的全功能安全 SSH 终端客户端，支持便捷的服务器远程维护"
+		},
+		"webstats": {
+				"title": "网站统计",
+				"ps": "深度解析 Web 访问日志，实时展示 PV/UV 趋势、高频请求、客户端画像及拦截分析"
+		},
+		"yufeng_systemd": {
+				"title": "YuFeng进程守护",
+				"ps": "专为 Linux 设计的现代化原生服务管理利器，底层强制绑定 YuFeng 标签隔离，支持故障自愈与进程守护"
+		}
 }
 };

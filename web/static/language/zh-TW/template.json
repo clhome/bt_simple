@@ -2850,5 +2850,159 @@
         "protocol_header_response_timed": "協議頭響應超時，與目標伺服器之間的網路質量太糟糕：{1}",
         "internal_error": "內部錯誤: {1}",
         "operation_failed": "操作失敗: {1}"
+    },
+    "plugins": {
+        "acme_pandominassl_apply": {
+            "title": "ACME泛網域SSL",
+            "ps": "ACME泛網域SSL申請/管理，提供Let's Encrypt免費泛網域證書申請與自動續簽"
+        },
+        "apache": {
+            "title": "Apache",
+            "ps": "世界排名領先，快速、可靠並且可透過簡單的API擴充的 Web 伺服器軟體"
+        },
+        "caddy": {
+            "title": "Caddy",
+            "ps": "一款功能強大、企業級、開源 Web 伺服器，具有用 Go 編寫的自動 HTTPS"
+        },
+        "clean": {
+            "title": "記錄清理",
+            "ps": "清理系統臨時檔案、面板記錄、網站記錄等無用檔案，釋放磁碟空間"
+        },
+        "data_query": {
+            "title": "資料管理",
+            "ps": "資料簡單管理 (Memcached, Redis, MongoDB)，快捷檢視與維護鍵值資料庫"
+        },
+        "docker": {
+            "title": "YuFeng Docker管理器",
+            "ps": "採用多個加速點輪詢高速下載映像檔，讓Docker下載和拉取映像檔如飛"
+        },
+        "fail2ban": {
+            "title": "YuFeng F2B防火牆",
+            "ps": "防止惡意IP位址暴力破解服務、站點，禁止導致多個身份驗證錯誤的主機"
+        },
+        "gitea": {
+            "title": "Gitea",
+            "ps": "開源社群驅動的輕量級無痛自託管 Git 程式碼託管平台"
+        },
+        "jdk": {
+            "title": "YuFeng JDK管理器",
+            "ps": "安裝和管理Java JDK環境，支援全域環境變數一鍵設定與自訂JDK設定"
+        },
+        "linux_sys_opt": {
+            "title": "YuFeng系統最佳化",
+            "ps": "一鍵化全平台 Linux 核心參數調優與高並發網路效能最佳化"
+        },
+        "mariadb": {
+            "title": "MariaDB",
+            "ps": "流行的開源關聯式資料庫管理系統，相容 MySQL 生態"
+        },
+        "mongodb": {
+            "title": "MongoDB",
+            "ps": "高效能 NoSQL 文件資料庫，支援分散式海量資料儲存與靈活查詢"
+        },
+        "mysql": {
+            "title": "MySQL",
+            "ps": "全球廣泛使用的開源關聯式資料庫管理系統，穩定可靠"
+        },
+        "ollama": {
+            "title": "Ollama",
+            "ps": "本地面向開發者和極客的AI大模型執行框架，支援一鍵拉取執行主流大語言模型"
+        },
+        "op_load_balance": {
+            "title": "OP負載平衡",
+            "ps": "基於 OpenResty 的高效能負載平衡與反向代理叢集管理"
+        },
+        "op_waf": {
+            "title": "YuFeng OP防火牆",
+            "ps": "企業級 Web 安全防護引擎，提供高效能、零侵入的應用層威脅攔截與全面滲透防禦"
+        },
+        "openresty": {
+            "title": "OpenResty",
+            "ps": "基於 Nginx 與 Lua 的全功能 Web 平台，輕量級，佔有記憶體少，高並發效能強"
+        },
+        "pg_docker": {
+            "title": "PostgreSQL 容器化管理",
+            "ps": "YuFeng PostgreSQL 容器化管理外掛程式，一鍵部署與管理多執行個體 PostgreSQL Docker 環境，支援按伺服器記憶體動態計算調優參數"
+        },
+        "pgadmin": {
+            "title": "pgAdmin",
+            "ps": "專為 PostgreSQL 設計的現代化開源管理和開發平台，提供直觀的 Web 端互動體驗"
+        },
+        "php": {
+            "title": "PHP",
+            "ps": "PHP編譯安裝與多版本共存管理，支援主流 Web 開發框架"
+        },
+        "php-apt": {
+            "title": "PHP[APT]",
+            "ps": "PHP極速APT套件安裝（適配 Debian/Ubuntu），秒級部署多版本 PHP 執行環境"
+        },
+        "php-guard": {
+            "title": "PHP守護",
+            "ps": "即時監控 PHP-FPM 執行狀態，故障自動重載，杜絕 502 Bad Gateway 錯誤"
+        },
+        "php-yum": {
+            "title": "PHP[YUM]",
+            "ps": "PHP極速YUM/RPM安裝（適配 RHEL/CentOS/Rocky），快速交付多版本環境"
+        },
+        "phpmyadmin": {
+            "title": "phpMyAdmin",
+            "ps": "快速管理 MySQL 和 MariaDB 的經典 Web 端資料庫視覺化管理工具"
+        },
+        "postgresql": {
+            "title": "PostgreSQL",
+            "ps": "全球先進的開源物件關聯式資料庫系統，支援複雜的分析型和交易型工作負載"
+        },
+        "pureftp": {
+            "title": "Pure-Ftpd",
+            "ps": "輕量高效、安全合規且經過生產環境驗證的 FTP 伺服器軟體"
+        },
+        "python_yf": {
+            "title": "YuFeng Python多版本管理器",
+            "ps": "基於 uv 的極速現代化 Python 多版本管理器，秒級切換與虛擬環境隔離"
+        },
+        "redis": {
+            "title": "Redis",
+            "ps": "高效能記憶體中鍵值資料庫，支援持久化、發佈訂閱、快取與高速佇列"
+        },
+        "rsyncd": {
+            "title": "rsyncd",
+            "ps": "強大的跨伺服器資料同步與備份傳輸守護工具"
+        },
+        "sphinx": {
+            "title": "Sphinx",
+            "ps": "基於 SQL 的高效能開源全文檢索引擎，提供毫秒級搜尋回應"
+        },
+        "supervisor": {
+            "title": "進程守護管理器",
+            "ps": "簡單高效的進程管理工具，支援背景守護、失敗自動重啟與即時日誌檢視"
+        },
+        "swap": {
+            "title": "swap",
+            "ps": "YuFeng Linux 虛擬記憶體設定工具，彈性擴充與釋放 Swap 空間"
+        },
+        "task_manager": {
+            "title": "工作管理員",
+            "ps": "即時檢視並管理系統執行進程、流量監控、自啟動項與資源消耗"
+        },
+        "valkey": {
+            "title": "Valkey",
+            "ps": "高效能鍵值資料儲存系統，Redis 開源繼任者，純粹開源社群維護"
+        },
+        "varnish": {
+            "title": "Varnish",
+            "ps": "高效能開源 HTTP 快取加速器，顯著提升動態與靜態網站回應速度"
+        },
+        "webssh": {
+            "title": "WebSSH終端",
+            "ps": "基於 Web 的全功能安全 SSH 終端用戶端，支援便捷的伺服器遠端維護"
+        },
+        "webstats": {
+            "title": "網站統計",
+            "ps": "深度解析 Web 存取記錄，即時展示 PV/UV 趨勢、高頻請求、用戶端畫像及攔截分析"
+        },
+        "yufeng_systemd": {
+            "title": "YuFeng進程守護",
+            "ps": "專為 Linux 設計的現代化原生服務管理利器，底層強制綁定 YuFeng 標籤隔離，支援故障自癒與進程守護"
+        }
     }
 }

@@ -328,6 +328,26 @@
 - [x] 5. 重新编译 6 国语言包生成标准 `lan.js` 与 `template.json`。
 - [x] 6. 编写自动化测试 `test/test_soft_i18n.py` 并全量回归验证。
 
+## 第十四阶段：全部插件（Plugins）软件名称与介绍 6 国语言全量多语言适配 (完成)
+
+- [x] 1. 扫描 `plugins/` 目录下全部 38 个有效插件（排除 `待审核` 目录），整理 `title` 与 `ps` 描述。
+- [x] 2. 统一品牌词：所有“御风”统一规范翻译为 **`YuFeng`**。
+- [x] 3. 为 6 种语言（zh-CN, zh-TW, en, fr, de, it）编写并录入全部 38 个插件的 `title` 和 `ps` 多语言词典至 `plugins` 命名空间。
+- [x] 4. 重新编译 6 国语言包生成标准合规的 `lan.js` 与 `template.json`。
+- [x] 5. 重构 `web/static/app/soft.js` 及首页软件展示模块，使用 `t('plugins.' + plugin.name + '.title', plugin.title)` 与 `t('plugins.' + plugin.name + '.ps', plugin.ps)` 实现无缝多语言渲染。
+- [x] 6. 编写全覆盖自动化测试 `test/test_plugins_i18n.py` 并运行全量回归验证。
+
+## 第十五阶段：修复多语言环境下 PHP 等多版本共存插件版本号丢失 Bug (完成)
+
+- [x] 1. 深入分析多版本共存插件（`coexist: true`，如 `php`、`php-apt`、`php-yum`）与单实例插件（`coexist: false`）在多语言标题渲染时的版本拼接逻辑。
+- [x] 2. 修复 `web/static/app/soft.js`：对 `coexist: true` 的插件动态拼接 `'-' + plugin.versions`（如 `PHP-5.6`、`PHP-8.1`），对单实例已安装插件保留 `plugin.setup_version`。
+- [x] 3. 同步修复软件管理操作弹窗（`addVersion`、`softMain`、`uninstallVersion`）与首页快捷卡片（`softIndexList`）中的多语言版本标题传递。
+- [x] 4. 编写自动化测试 `test/test_coexist_versions_i18n.py` 验证各语言下版本号完整呈现。
+
+
+
+
+
 
 
 

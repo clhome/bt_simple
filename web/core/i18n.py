@@ -155,30 +155,40 @@ def get_cached_json(name, lang):
 def _lookup_message(key, lang):
     # 1. 查找 public.json
     pub = get_cached_json("public", lang)
-    if key in pub:
+    if key in pub and isinstance(pub[key], str):
         return pub[key]
         
     # 2. 查找 server.json
     srv = get_cached_json("server", lang)
-    if key in srv:
+    if key in srv and isinstance(srv[key], str):
         return srv[key]
         
-    # 3. 点号分割子模块查找
+    # 3. 多层点号路径在 template.json 中的深度查找
+    tmpl = get_cached_json("template", lang)
+    curr = tmpl
+    parts = key.split(".")
+    found = True
+    for p in parts:
+        if isinstance(curr, dict) and p in curr:
+            curr = curr[p]
+        else:
+            found = False
+            break
+    if found and isinstance(curr, str):
+        return curr
+
+    # 4. 点号分割子模块查找（如 sec.json）
     if "." in key:
         sec, sub_key = key.split(".", 1)
         sec_dict = get_cached_json(sec, lang)
-        if sub_key in sec_dict:
+        if sub_key in sec_dict and isinstance(sec_dict[sub_key], str):
             return sec_dict[sub_key]
-            
-        tmpl = get_cached_json("template", lang)
-        if sec in tmpl and isinstance(tmpl[sec], dict) and sub_key in tmpl[sec]:
-            return tmpl[sec][sub_key]
-        if key in tmpl:
-            return tmpl[key]
-    else:
-        tmpl = get_cached_json("template", lang)
         if key in tmpl and isinstance(tmpl[key], str):
             return tmpl[key]
+    else:
+        if key in tmpl and isinstance(tmpl[key], str):
+            return tmpl[key]
+            
     return None
 
 def t(key, *args, lang=None):
