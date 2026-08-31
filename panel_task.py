@@ -68,6 +68,7 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
         except:
             pass
 
+    last_flush_time = time.time()
     # 实时读取
     while True:
         line_bytes = sub.stdout.readline()
@@ -87,7 +88,6 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
                         log_file_handle.write(time_str + line)
                     else:
                         log_file_handle.write(line)
-                    log_file_handle.flush()
                 except:
                     pass
             if task_log_handle:
@@ -96,12 +96,26 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
                         task_log_handle.write(time_str + line)
                     else:
                         task_log_handle.write(line)
-                    task_log_handle.flush()
                 except:
                     pass
 
+            now = time.time()
+            if now - last_flush_time >= 0.5:
+                if log_file_handle:
+                    try:
+                        log_file_handle.flush()
+                    except:
+                        pass
+                if task_log_handle:
+                    try:
+                        task_log_handle.flush()
+                    except:
+                        pass
+                last_flush_time = now
+
     if log_file_handle:
         try:
+            log_file_handle.flush()
             log_file_handle.close()
         except:
             pass
@@ -148,12 +162,22 @@ def downloadFile(url, filename, task_id=None):
         opener.addheaders = [headers]
         urllib.request.install_opener(opener)
 
+        # 闭包缓存变量
+        downloadHook.last_pre = -1
+        downloadHook.last_time = 0
+
         def downloadHook(count, blockSize, totalSize):
             # 下载文件进度回调
             used = count * blockSize
             pre = int((100.0 * used / totalSize))
-            speed = {'total': totalSize, 'used': used, 'pre': pre}
-            writeLogs(json.dumps(speed), task_id)
+            now = time.time()
+            
+            # 节流机制：进度变化 >= 1% 或 距离上次写入超过 1 秒，才触发写盘
+            if pre != downloadHook.last_pre or (now - downloadHook.last_time >= 1.0):
+                speed = {'total': totalSize, 'used': used, 'pre': pre}
+                writeLogs(json.dumps(speed), task_id)
+                downloadHook.last_pre = pre
+                downloadHook.last_time = now
 
         urllib.request.urlretrieve(url, filename=filename, reporthook=downloadHook)
 
