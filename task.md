@@ -376,31 +376,11 @@
 - [x] 4. 优化 `panel_task.py` 后台任务执行引擎：在执行 Shell 任务时，支持自动检测并自愈目标脚本中的 Windows 回车符（`\r`），彻底杜绝 `$'\r': 未找到命令` 错误。
 - [x] 5. 编写自动化回归测试脚本 `test/test_crlf_and_sh_syntax.py`，全量验证代码库换行符、Bash 脚本语法与自愈机制。
 
+## 第二十阶段：修复消息盒子样式与DOM结构错误 (完成)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- [x] 1. 重构 `web/static/app/public.js`：清洗 `messageBox`、`tasklist`、`execLog`、`remind` 及 `getReloads` 中双重嵌套与错乱的 HTML 字符串，建立标准优雅的 DOM 结构与语义化多语言支持。
+- [x] 2. 优化 `site.css` 与 `ensite.css`：为消息盒子增加专属的纵向 Flex 布局样式（`.msg-box-form`、`#msg_box_sys_info`），保证弹窗固定尺寸（680px*600px）下左侧固定、右侧独立滚动、底部状态栏自适应停靠。
+- [x] 3. 清洗并更新国际化词典（`phrases_full.py`）及 6 种语言包，彻底清除 `public_auto_str_39` 等冗余脏数据并确保消息盒子词条完整无误。
+- [x] 4. 编写全自动回归测试脚本 `test/test_message_box.py`，全量验证消息盒子 JS 语法、HTML 结构、Tab 切换逻辑及多语言词条。
 
 

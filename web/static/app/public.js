@@ -1641,7 +1641,10 @@ function getSpeed(sele) {
   }, 'json');
 }
 function tasklist() {
-  var con = '<div style="height: 520px; position: relative;"><ul class="cmdlist" style="margin: 0; padding: 0; height: 100%; overflow: auto;"></ul><div style="position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;">' + ('<div style="height: 520px; position: relative;"><ul class="cmdlist" style="margin: 0; padding: 0; height: 100%; overflow: auto;"></ul><div style="position: absolute; bottom: -15px; left: 0; right: 0; text-align: center; color: #999; font-size: 12px; line-height: 1;">' + (lan && lan.public && t('public.if_task_has_not') || '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列') + '</div></div>' || '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列') + '</div></div>';
+  var con = '<div style="height: 100%; display: flex; flex-direction: column; position: relative;">\
+    <ul class="cmdlist" style="margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto;"></ul>\
+    <div style="margin-top: 10px; text-align: center; color: #999; font-size: 12px; line-height: 1.4; flex-shrink: 0;">' + (window.lan && lan.public && t('public.if_task_has_not') || '若任务长时间未执行，请尝试在首页点【重启面板】来重置任务队列') + '</div>\
+  </div>';
   $("#msg_box .taskcon").html(con);
   $.post("/task/list", "tojs=getTaskList&table=tasks&limit=10&p=1", function (g) {
     $('#msg_box .msg_count').html(g.count);
@@ -1655,11 +1658,28 @@ function tasklist() {
 function messageBox() {
   layer.open({
     type: 1,
-    title: lan && lan.public && t('public.message_box') || "",
-    area: "670px",
+    title: window.lan && lan.public && t('public.message_box') || "消息盒子",
+    area: ["680px", "600px"],
     closeBtn: 1,
     shadeClose: false,
-    content: '<div class="bt-form">			<div class="bt-w-main" id="msg_box">				<div class="bt-w-menu">					<p class="bgw" id="taskList" onclick="tasklist()">' + ('<div class="bt-form">			<div class="bt-w-main" id="msg_box">				<div class="bt-w-menu">					<p class="bgw" id="taskList" onclick="tasklist()">' + (lan && lan.public && t('public.task_list') || '任务列表(') + '<span class="task_count">0</span>)</p>					<p onclick="remind()">' + (lan && lan.public && t('public.message_list') || '消息列表(') + '<span class="msg_count">0</span>)</p>					<p onclick="execLog()">' + (lan && lan.public && t('public.execution_log_1') || '执行日志') + '</p>				</div>				<div class="bt-w-con pd15">					<div class="taskcon"></div>				</div>			</div>			<div id="msg_box_sys_info" style="margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;">				<span>CPU: <span id="msg_box_cpu" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.memory_1') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.uplink') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851">0 B/s</span></span>				<span>' + (lan && lan.public && t('public.downstream') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff">0 B/s</span></span>			</div>		</div>' || '任务列表(') + '<span class="task_count">0</span>)</p>					<p onclick="remind()">' + (lan && lan.public && t('public.message_list') || '消息列表(') + '<span class="msg_count">0</span>)</p>					<p onclick="execLog()">' + (lan && lan.public && t('public.execution_log_1') || '执行日志') + '</p>				</div>				<div class="bt-w-con pd15">					<div class="taskcon"></div>				</div>			</div>			<div id="msg_box_sys_info" style="margin: 0 15px 15px 15px; border-top: 1px solid #efefef; padding-top: 10px; font-size: 13px; color: #666; display: flex; justify-content: space-between;">				<span>CPU: <span id="msg_box_cpu" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.memory_1') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a">0%</span></span>				<span>' + (lan && lan.public && t('public.uplink') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851">0 B/s</span></span>				<span>' + (lan && lan.public && t('public.downstream') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff">0 B/s</span></span>			</div>		</div>',
+    content: '<div class="bt-form msg-box-form">\
+      <div class="bt-w-main" id="msg_box">\
+        <div class="bt-w-menu">\
+          <p class="bgw" id="taskList" onclick="tasklist()">' + (window.lan && lan.public && t('public.task_list') || '任务列表') + '(<span class="task_count">0</span>)</p>\
+          <p id="msgListTab" onclick="remind()">' + (window.lan && lan.public && t('public.message_list') || '消息列表') + '(<span class="msg_count">0</span>)</p>\
+          <p id="execLogTab" onclick="execLog()">' + (window.lan && lan.public && t('public.execution_log_1') || '执行日志') + '</p>\
+        </div>\
+        <div class="bt-w-con pd15">\
+          <div class="taskcon"></div>\
+        </div>\
+      </div>\
+      <div id="msg_box_sys_info">\
+        <span>CPU: <span id="msg_box_cpu" style="color:#20a53a; font-weight: 600;">0%</span></span>\
+        <span>' + (window.lan && lan.public && t('public.memory_1') || '内存:') + ' <span id="msg_box_mem" style="color:#20a53a; font-weight: 600;">0%</span></span>\
+        <span>' + (window.lan && lan.public && t('public.uplink') || '上行:') + ' <span id="msg_box_up" style="color:#f7b851; font-weight: 600;">0 B/s</span></span>\
+        <span>' + (window.lan && lan.public && t('public.downstream') || '下行:') + ' <span id="msg_box_down" style="color:#52a9ff; font-weight: 600;">0 B/s</span></span>\
+      </div>\
+    </div>',
     success: function () {
       $(".bt-w-menu p").on('click', function () {
         $(this).addClass("bgw").siblings().removeClass("bgw");
@@ -1691,17 +1711,27 @@ function messageBox() {
       if (window.msgBoxSysInfoInterval) {
         clearInterval(window.msgBoxSysInfoInterval);
       }
+      if (speed) {
+        clearInterval(speed);
+        speed = null;
+      }
     }
   });
 }
 
 //取执行日志
 function execLog() {
+  if (speed) {
+    clearInterval(speed);
+    speed = null;
+  }
   $.post('/task/get_exec_log', {}, function (logs) {
-    var lbody = '<textarea readonly="" style="margin: 0px;width: 530px;height: 520px;background-color: #333;color:#fff; padding:0 5px" id="exec_log">' + logs + '</textarea>';
+    var lbody = '<textarea readonly="" style="margin: 0px; width: 100%; box-sizing: border-box; height: 100%; min-height: 460px; background-color: #2b2d30; color: #a9b7c6; padding: 10px; border-radius: 4px; border: 1px solid #3c3f41; font-family: Consolas, Monaco, monospace; font-size: 12px; line-height: 1.5; resize: none; outline: none;" id="exec_log">' + logs + '</textarea>';
     $(".taskcon").html(lbody);
     var ob = document.getElementById('exec_log');
-    ob.scrollTop = ob.scrollHeight;
+    if (ob) {
+      ob.scrollTop = ob.scrollHeight;
+    }
   });
 }
 
@@ -1758,6 +1788,10 @@ function getSFM(seconds, dateFormat = 'H:i:s') {
   return rs;
 }
 function remind(a) {
+  if (speed) {
+    clearInterval(speed);
+    speed = null;
+  }
   a = a == undefined ? 1 : a;
   $(".taskcon").html('');
   $.post("/task/list", "table=tasks&result=2,4,6,8&limit=10&p=" + a, function (g) {
@@ -1765,23 +1799,23 @@ function remind(a) {
     var f = false;
     for (var d = 0; d < g.data.length; d++) {
       var status = g.data[d].status;
-      var status_text = lan && lan.public && t('public.completed') || "";
+      var status_text = window.lan && lan.public && t('public.completed') || "已完成";
       var cos_text = '';
       if (status == '1') {
-        status_text = lan && lan.public && t('public.done') || "";
-        cos_text = (lan && lan.public && t('public.time_taken') || "") + getSFM(g.data[d].end - g.data[d].start) + ']';
+        status_text = window.lan && lan.public && t('public.done') || "已完成";
+        cos_text = (window.lan && lan.public && t('public.time_taken') || "耗时[") + getSFM(g.data[d].end - g.data[d].start) + ']';
       } else if (status == '0') {
-        status_text = lan && lan.public && t('public.processing_1') || "";
-        cos_text = lan && lan.public && t('public.waiting_1') || "";
+        status_text = window.lan && lan.public && t('public.processing_1') || "处理中";
+        cos_text = window.lan && lan.public && t('public.waiting_1') || "等待中";
       } else if (status == '-1') {
-        status_text = lan && lan.public && t('public.installing_1') || "";
+        status_text = window.lan && lan.public && t('public.installing_1') || "安装中";
         cos_text = '..';
       }
       e += '<tr>\
 				<td><input type="checkbox"></td>\
 				<td>\
-					<div class="titlename c3"><a href="javascript:;" class="btlink" onclick="showTaskLog(' + g.data[d].id + ', \'' + g.data[d].name + '\')">' + g.data[d].name + '</a></span>\
-						<span class="rs-status">【' + status_text + '】<span>\
+					<div class="titlename c3"><a href="javascript:;" class="btlink" onclick="showTaskLog(' + g.data[d].id + ', \'' + g.data[d].name + '\')">' + g.data[d].name + '</a>\
+						<span class="rs-status">【' + status_text + '】</span>\
 						<span class="rs-time">' + cos_text + '</span>\
 					</div>\
 				</td>\
@@ -1819,8 +1853,7 @@ function remind(a) {
   }, 'json');
 }
 function getReloads() {
-  var mm = $("#msg_box .bt-w-menu .bgw").html();
-  if (mm == undefined || mm.indexOf(lan && lan.public && t('public.task_list_1') || "") == -1) {
+  if (!$("#taskList").hasClass("bgw")) {
     clearInterval(speed);
     speed = null;
     return;
@@ -1829,57 +1862,62 @@ function getReloads() {
     return;
   }
   function renderRunTask() {
-    var mm = $("#msg_box .bt-w-menu .bgw").html();
-    if (mm == undefined || mm.indexOf(lan && lan.public && t('public.task_list_2') || "") == -1) {
+    if (!$("#taskList").hasClass("bgw")) {
       clearInterval(speed);
       speed = null;
-      a = 0;
       return;
     }
     $.post('/task/get_task_speed', '', function (h) {
-      if (h.task == undefined) {
+      if (h.task == undefined || h.task.length === 0) {
         $(".task_count").text(0);
-        $(".cmdlist").html(lan && lan.public && t('public.there_are_currently_no') || "");
+        $(".cmdlist").html('<li style="border:none; text-align:center; padding-top:100px; color:#999;">' + (window.lan && lan.public && t('public.there_are_currently_no') || "当前没有任务!") + '</li>');
         return;
       }
       var b = '';
       var d = '';
+      var c = '';
       for (var g = 0; g < h.task.length; g++) {
         if (h.task[g].status == "-1") {
           if (h.task[g].type != "download") {
-            var c = "";
-            var f = h.msg.split("\n");
+            c = "";
+            var f = (h.msg || "").split("\n");
             for (var e = 0; e < f.length; e++) {
               c += f[e] + "<br>";
             }
-            if (h.task[g].name.indexOf(lan && lan.public && t('public.scan') || "") != -1) {
-              b = "<li>\
-								<span class='titlename'>" + h.task[g].name + ('</span>								<span class=\'state\'>' + ('</span>								<span class=\'state\'>' + (lan && lan.public && t('public.scanning') || '正在扫描') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '正在扫描') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + (((((lan && lan.public && t('public.close_1') || ')">关闭') || ')">关闭') + '</a></span>								<span class=\'opencmd\'></span>								<div class=\'cmd\'>' || ')">关闭') || ')">关闭') + '</a></span>								<span class=\'opencmd\'></span>								<div class=\'cmd\'>') + c + "</div>\
+            if (h.task[g].name.indexOf(window.lan && lan.public && t('public.scan') || "扫描") != -1) {
+              b += "<li>\
+								<span class='titlename'>" + h.task[g].name + "</span>\
+								<span class='state'>" + (window.lan && lan.public && t('public.scanning') || '正在扫描') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.close') || '关闭') + "</a></span>\
+								<span class='opencmd'></span>\
+								<div class='cmd'>" + c + "</div>\
 							</li>";
             } else {
-              b = "<li>\
-								<span class='titlename'>" + h.task[g].name + ('</span>								<span class=\'state\'>' + ('</span>								<span class=\'state\'>' + (lan && lan.public && t('public.installing_2') || '正在安装') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '正在安装') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + (((((lan && lan.public && t('public.close_2') || ')">关闭') || ')">关闭') + '</a></span>								<div class=\'cmd\'>' || ')">关闭') || ')">关闭') + '</a></span>								<div class=\'cmd\'>') + c + "</div>\
+              b += "<li>\
+								<span class='titlename'>" + h.task[g].name + "</span>\
+								<span class='state'>" + (window.lan && lan.public && t('public.installing_2') || '正在安装') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.close') || '关闭') + "</a></span>\
+								<div class='cmd'>" + c + "</div>\
 							</li>";
             }
           } else {
-            b = "<li>\
+            b += "<li>\
 								<div class='line-progress' style='width:" + h.msg.pre + "%'></div>\
 								<span class='titlename'>" + h.task[g].name + "<a style='margin-left:130px;'>" + (toSize(h.msg.used) + "/" + toSize(h.msg.total)) + "</a></span>\
-								<span class='com-progress'>" + h.msg.pre + ('%</span>								<span class=\'state\'>' + ('%</span>								<span class=\'state\'>' + (lan && lan.public && t('public.downloading') || '下载中') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(' || '下载中') + '<img src=\'/static/img/ing.gif\'> | <a href="javascript:removeTask(') + h.task[g].id + ")\">" + t('public.close') + "</a></span>\
+								<span class='com-progress'>" + h.msg.pre + "%</span>\
+								<span class='state'>" + (window.lan && lan.public && t('public.downloading') || '下载中') + "<img src='/static/img/ing.gif'> | <a href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.close') || '关闭') + "</a></span>\
 							</li>";
           }
         } else {
-          d += "<li><span class='titlename'>" + h.task[g].name + ('</span><span class=\'state\'>' + (('</span><span class=\'state\'>' + ((lan && lan.public && t('public.green_removetask') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(') || '等待 | <a style=\'color:green\' href="javascript:removeTask(')) + h.task[g].id + (((((lan && lan.public && t('public.delete_2') || ')">删除') || ')">删除') + '</a></span></li>' || ')">删除') || ')">删除') + '</a></span></li>');
+          d += "<li><span class='titlename'>" + h.task[g].name + "</span><span class='state'>" + (window.lan && lan.public && t('public.waiting') || '等待') + " | <a style='color:green' href=\"javascript:removeTask(" + h.task[g].id + ")\">" + (window.lan && lan.public && t('public.del') || '删除') + "</a></span></li>";
         }
       }
       $("#task").text(h.count);
       $(".task_count").text(h.count);
       $(".cmdlist").html(b + d);
-      $(".cmd").html(c);
-      try {
-        if ($(".cmd")[0].scrollHeight) $(".cmd").scrollTop($(".cmd")[0].scrollHeight);
-      } catch (e) {
-        return;
+      if (c) {
+        $(".cmd").html(c);
+        try {
+          if ($(".cmd")[0] && $(".cmd")[0].scrollHeight) $(".cmd").scrollTop($(".cmd")[0].scrollHeight);
+        } catch (e) {}
       }
     }, 'json').fail(function () {});
   }

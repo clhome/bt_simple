@@ -4109,3 +4109,46 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     position: relative !important;
     box-sizing: border-box !important;
 }
+
+/* 消息盒子专属布局 */
+.layui-layer-page .msg-box-form {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+.layui-layer-page .msg-box-form #msg_box {
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    overflow: hidden !important;
+}
+
+.layui-layer-page .msg-box-form .bt-w-con {
+    flex: 1 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.layui-layer-page .msg-box-form .taskcon {
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+}
+
+#msg_box_sys_info {
+    flex-shrink: 0 !important;
+    margin: 0 15px 12px 15px !important;
+    border-top: 1px solid #efefef !important;
+    padding-top: 10px !important;
+    font-size: 13px !important;
+    color: #666 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+}
