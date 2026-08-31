@@ -115,6 +115,7 @@ class plugin(object):
     def getIndexList(self, simple=False):
         indexList = thisdb.getOptionByJson('display_index', default=[])
         plist = []
+        static_list = self.getStaticPluginList()
         for i in indexList:
             tmp = i.split('-')
             tmp_len = len(tmp)
@@ -127,24 +128,19 @@ class plugin(object):
                 plugin_name = '-'.join(tmpArr)
                 plugin_ver = tmp[tmp_len - 1]
 
-            read_json_file = self.__plugin_dir + '/' + plugin_name + '/info.json'
-            if os.path.exists(read_json_file):
-                content = yf.readFile(read_json_file)
-                try:
-                    data = json.loads(content)
-                    data = self.makeCoexistList(data)
-                    for index in range(len(data)):
-                        if data[index]['coexist']:
-                            if data[index]['versions'] == plugin_ver or plugin_ver in data[index]['versions']:
-                                data[index]['display'] = True
-                                plist.append(data[index])
-                                continue
-                        else:
-                            data[index]['display'] = True
-                            plist.append(data[index])
-
-                except Exception as e:
-                    print('getIndexList:', yf.getTracebackInfo())
+            for p in static_list:
+                if p.get('name') == plugin_name:
+                    if p.get('coexist'):
+                        if p.get('versions') == plugin_ver or plugin_ver in p.get('versions', ''):
+                            p_copy = p.copy()
+                            p_copy['display'] = True
+                            plist.append(p_copy)
+                            break
+                    else:
+                        p_copy = p.copy()
+                        p_copy['display'] = True
+                        plist.append(p_copy)
+                        break
 
         plist = self.checkStatusMThreadsByCache(plist)
 

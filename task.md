@@ -407,3 +407,7 @@
 
 - [x] 1. 优化 xecShell，实现按时间差进行刷盘 (flush)，防止因高频按行刷盘引发的 I/O 风暴与安装任务阻塞。
 - [x] 2. 优化 downloadFile 中的 downloadHook，引入基于进度差值或时间间隔的节流机制，防止产生每 8KB 数据即进行文件打开/关闭的灾难级性能消耗。
+
+## 第二十二阶段：面板插件首页高频 I/O 消除
+
+- [x] 1. 优化 web/utils/plugin.py 的 getIndexList，避免每次首页请求都进行 info.json 的重复磁盘 I/O 解析，改为使用内存级 getStaticPluginList 缓存加速查询。
