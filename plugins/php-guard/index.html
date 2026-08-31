@@ -1,5 +1,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* 单页弹窗固定高度与滚动管理 */
+.bt-form {
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+.bt-w-con {
+    height: 100% !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+}
+
 /* CSS 变量与现代色彩系统 */
 :root {
     --primary: #10b981;
@@ -358,6 +369,9 @@
 </div>
 
 <script type="text/javascript">
+resetPluginWinWidth(750);
+resetPluginWinHeight(500);
+
 function getStatus() {
     // 渲染网格加载中
     $("#php-grid-list").html('<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);"><div class="loading-spinner"></div> 正在诊断 PHP 各实例存活状态...</div>');

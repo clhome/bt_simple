@@ -1,4 +1,15 @@
 <style>
+/* 单页弹窗固定高度与滚动管理 */
+.bt-form {
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+.bt-w-con {
+    height: 100% !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+}
+
 /*任务管理器*/
 .man-menu-sub {
     background-color: #fff;
@@ -543,8 +554,10 @@
 	</div>
 </div>
 
-
 <script type="text/javascript">
+resetPluginWinWidth(850);
+resetPluginWinHeight(580);
+
 $('.layui-layer-page').css({'width': '1000px'});
 $.getScript( "/plugins/file?name=task_manager&f=js/task_manager.js", function(){
 	console.log("load js ok!");

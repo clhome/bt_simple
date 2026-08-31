@@ -1,3 +1,71 @@
+<style>
+/* 弹窗整体固定尺寸与 Flex 布局 */
+.bt-form {
+    height: 100% !important;
+}
+.bt-w-main {
+    height: 100% !important;
+    display: flex !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* 左侧统一灰色底纹与优雅选中项 */
+.bt-w-menu {
+    width: 125px !important;
+    height: 100% !important;
+    flex-shrink: 0 !important;
+    background-color: #f8fafc !important;
+    border-right: 1px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    padding: 8px 6px !important;
+    float: none !important;
+}
+
+.bt-w-menu p {
+    height: 38px !important;
+    line-height: 38px !important;
+    padding: 0 14px !important;
+    margin: 3px 0 !important;
+    border-radius: 6px !important;
+    color: #4b5563 !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid transparent !important;
+    text-align: left !important;
+    background: transparent !important;
+    display: block !important;
+}
+
+.bt-w-menu p:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+.bt-w-menu p.bgw {
+    background-color: #ffffff !important;
+    color: #20a53a !important;
+    font-weight: bold !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 右侧内容区域固定高度与纵向平滑滚动 */
+.bt-w-con {
+    flex: 1 !important;
+    height: 100% !important;
+    margin-left: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    padding: 15px 20px 45px 20px !important;
+    background-color: #ffffff !important;
+    float: none !important;
+}
+</style>
 <div class="bt-form">
 	<div class="bt-w-main">
 		<div class="bt-w-menu">
@@ -14,6 +82,9 @@
 	</div>
 </div>
 <script type="text/javascript">
+resetPluginWinWidth(1050);
+resetPluginWinHeight(620);
+
 $.getScript( "/plugins/file?name=varnish&f=js/varnish.js",
 function() {
 	pluginService('varnish');

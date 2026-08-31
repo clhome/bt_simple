@@ -1,5 +1,19 @@
+<style>
+/* 单页弹窗固定高度与滚动管理 */
+.bt-form {
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+.bt-w-con {
+    height: 100% !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+}
+</style>
 <script type="text/javascript">
-resetPluginWinWidth(480);
+resetPluginWinWidth(500);
+resetPluginWinHeight(360);
+
 if ($(".term-box #term").text() != 'W') {
     layer.closeAll();
     webShell();
