@@ -1288,10 +1288,12 @@ function removeTask(b) {
   });
   $.post("/task/remove_task", "id=" + b, function (c) {
     layer.close(a);
+    getTaskCount();
     layer.msg(c.msg, {
       icon: c.status ? 1 : 5
     });
   }, 'json').fail(function () {
+    getTaskCount();
     layer.msg(t('bt.task_close'), {
       icon: 1
     });
@@ -1339,56 +1341,48 @@ function installTips() {
   });
 }
 
-// function fly(a) {
-// 	var b = $("#task").offset();
-// 	$("." + a).on('click', function(d) {
-// 		var e = $(this);
-// 		var c = $('<span class="yuandian"></span>');
-// 		c.fly({
-// 			start: {
-// 				left: d.pageX,
-// 				top: d.pageY
-// 			},
-// 			end: {
-// 				left: b.left + 10,
-// 				top: b.top + 10,
-// 				width: 0,
-// 				height: 0
-// 			},
-// 			onEnd: function() {
-// 				layer.closeAll();
-// 				layer.msg(t('bt.task_add'), {icon: 1});
-// 				getTaskCount();
-// 			}
-// 		});
-// 	});
-// };
-
 function flySlow(a) {
-  var b = $("#task").offset();
-  var c = $('<span class="yuandian"></span>');
+  var taskEl = $("#task");
+  var b = taskEl.length ? taskEl.offset() : null;
   var d = $("." + a);
-  c.fly({
-    start: {
-      left: d.offset().left,
-      top: d.offset().top
-    },
-    end: {
-      left: b.left + 10,
-      top: b.top + 10,
-      width: 0,
-      height: 0
-    },
-    speed: 0.65,
-    onEnd: function () {
-      layer.closeAll();
-      layer.msg(t('bt.task_add'), {
-        icon: 1
-      });
-      getTaskCount();
-      $('.yuandian').remove();
-    }
-  });
+  if (d.length === 0 || !d.offset() || !b) {
+    layer.closeAll();
+    layer.msg(t('bt.task_add'), {
+      icon: 1
+    });
+    getTaskCount();
+    return;
+  }
+  try {
+    var c = $('<span class="yuandian"></span>');
+    c.fly({
+      start: {
+        left: d.offset().left,
+        top: d.offset().top
+      },
+      end: {
+        left: b.left + 10,
+        top: b.top + 10,
+        width: 0,
+        height: 0
+      },
+      speed: 0.65,
+      onEnd: function () {
+        layer.closeAll();
+        layer.msg(t('bt.task_add'), {
+          icon: 1
+        });
+        getTaskCount();
+        $('.yuandian').remove();
+      }
+    });
+  } catch (e) {
+    layer.closeAll();
+    layer.msg(t('bt.task_add'), {
+      icon: 1
+    });
+    getTaskCount();
+  }
 }
 ;
 function readerTableChecked() {

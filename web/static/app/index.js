@@ -1137,6 +1137,7 @@ function pluginInit(){
                         showMsg(data.msg, function(){
                             if (data.status){
                                 layer.closeAll();
+                                getTaskCount();
                                 messageBox();
                             } else {
                                 $('.rec-box-con .onekey').removeClass('disabled');

@@ -249,6 +249,9 @@ function getSList(isdisplay) {
     });
     loadImage();
 
+    // 渲染完软件列表后同步左上角任务角标
+    getTaskCount();
+
     // 智能自适应轮询
     var has_active_task = false;
     if (rdata.data) {
@@ -261,7 +264,7 @@ function getSList(isdisplay) {
       }
     }
     if (window.softTimer) clearTimeout(window.softTimer);
-    if (window.document.location.pathname == '/soft/') {
+    if (window.document.location.pathname.indexOf('/soft') === 0) {
       var delay = has_active_task ? 8000 : 30000; // 有任务8秒，无任务30秒
       window.softTimer = setTimeout(function () {
         getSList(true); // 传入 true，避免弹出 loading 遮罩
@@ -308,6 +311,7 @@ function runInstall(data) {
       icon: rdata.status ? 1 : 2
     });
     getSList();
+    getTaskCount();
   }, 'json');
 }
 function addVersion(name, ver, type, obj, title, install_pre_inspection) {
@@ -446,6 +450,7 @@ function forceUninstallPlugin(name, version) {
       }, function (forceRdata) {
         layer.close(forceLoad);
         getSList();
+        getTaskCount();
         layer.msg(forceRdata.msg, {
           icon: forceRdata.status ? 1 : 2
         });
@@ -518,6 +523,7 @@ function runUninstallVersion(name, title, version) {
         layer.close(loadT);
         if (rdata.status) {
           getSList();
+          getTaskCount();
           layer.msg(rdata.msg, {
             icon: 1
           });
@@ -766,6 +772,7 @@ function importPluginInstall(plugin_name, tmp_path) {
     layer.closeAll();
     if (rdata.status) {
       getSList(true);
+      getTaskCount();
     }
     setTimeout(function () {
       layer.msg(rdata.msg, {

@@ -489,4 +489,13 @@
 - [x] 5. 加固 `install.sh` 安装脚本，补充 `rsyslog` 与依赖安装，首次安装自动触发环境自愈。
 - [x] 6. 编写并运行测试用例 `test/test_fail2ban_stability.py` 验证全套自愈与适配逻辑。
 
+## 第三十四阶段：修复安装插件及后台任务变动时左上角任务数字未实时更新的问题 (完成)
+
+- [x] 1. 加固 `web/static/app/public.js`：对 `flySlow` 增加 DOM 存在性校验与异常防御降级，并在 `removeTask` 任务删除成功后主动调用 `getTaskCount()`。
+- [x] 2. 改造 `web/static/app/soft.js`：在 `runInstall`（安装/更新）、`runUninstallVersion`（卸载）、`forceUninstallPlugin`（强删）、`importPluginInstall`（导入安装）以及 `getSList`（获取软件列表）成功后显式调用 `getTaskCount()`，并修复 `/soft` 路径下的自适应轮询条件。
+- [x] 3. 优化 `web/static/app/index.js`：在一键安装套件（`init_install`）提交后调用 `getTaskCount()` 同步角标。
+- [x] 4. 编写全自动回归测试脚本 `test/test_task_badge_sync.py` 并运行验证。
+
+
+
 
