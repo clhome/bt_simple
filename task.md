@@ -295,6 +295,16 @@
 - [x] 3. 运行编译器生成标准合法语法的 6 国 `lan.js` 与 `template.json`。
 - [x] 4. 编写全自动回归测试脚本 `test/test_footer_i18n.py` 并运行完整测试套件验证。
 
+## 第九阶段：首页系统详情与服务器性能/带宽测速全量多语言适配 (完成)
+
+- [x] 1. 整理并同步 6 国语言包（zh-CN, zh-TW, en, fr, de, it）中系统详情（`showSystemDetails`）全量词条（操作系统、发行版、内核、架构、虚拟化、处理器、型号、核心线程、指令集、网络节点、TCP拥塞算法、负载平均、物理内存、Swap、磁盘容量等及其详细 Tooltip 说明）。
+- [x] 2. 整理并同步 6 国语言包中服务器性能与带宽测速（`runSpeedTest` / `renderSpeedTestModal`）全量词条（系统基本信息、磁盘 I/O 读写性能、读写速度、多区域节点下载测速、基准说明、境外节点分割线、再次测试、环境初始化/排队/测试中/超时/已跳过状态等）。
+- [x] 3. 重构 `web/static/app/index.js` 中的 `showSystemDetails`、`renderSpeedTestModal`、`triggerSpeedReTest`、`startRealNewTest` 及 `runLogPolling`，全部采用 `t('index.xxx', '中文默认')` 统一国际化驱动，彻底消除硬编码中文。
+- [x] 4. 重新编译 6 种语言包生成合法合规的 `lan.js` 和 `template.json`。
+- [x] 5. 编写自动化回归测试脚本 `test/test_system_details_speedtest_i18n.py` 并运行全量测试套件验证。
+
+
+
 
 
 

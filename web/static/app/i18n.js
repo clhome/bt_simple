@@ -219,16 +219,16 @@
         // 3. 处理字符串模板与插值参数
         if (typeof val === 'string') {
             if (args && Array.isArray(args)) {
-                var argMap = {};
-                for (var j = 0; j < args.length; j++) {
-                    argMap[j] = args[j];
-                    if (argMap[j + 1] === undefined) {
-                        argMap[j + 1] = args[j];
-                    }
-                }
+                var hasZero = val.indexOf('{0}') > -1;
                 val = val.replace(/\{(\d+)\}/g, function(match, num) {
-                    var arg = argMap[parseInt(num, 10)];
-                    return arg !== undefined ? arg : match;
+                    var n = parseInt(num, 10);
+                    if (hasZero) {
+                        return (n >= 0 && n < args.length) ? args[n] : match;
+                    } else {
+                        if (n >= 1 && n <= args.length) return args[n - 1];
+                        if (n >= 0 && n < args.length) return args[n];
+                    }
+                    return match;
                 });
             }
             return val;

@@ -1805,15 +1805,15 @@ var index = {
 }
 
 function showSystemDetails() {
-    var loadT = layer.msg('正在获取系统详细信息...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(t('public.getting', '正在获取中...'), { icon: 16, time: 0, shade: 0.3 });
     $.get('/system/get_system_details', function(res) {
         layer.close(loadT);
         if (!res.status) {
-            layer.msg('获取系统信息失败: ' + res.msg, { icon: 2 });
+            layer.msg((t('public.error', '获取系统信息失败') + ': ' + res.msg), { icon: 2 });
             return;
         }
         var data = res.data;
-        
+
         var css = '<style>' +
             '.glass-layer { background: rgba(255,255,255,0.65) !important; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; border-radius: 12px !important; will-change: transform, opacity; transform: translateZ(0); }' +
             '.glass-layer .layui-layer-title { background: transparent !important; border-bottom: 1px solid rgba(0,0,0,0.08) !important; font-weight: bold; color: #333; font-size:15px; border-radius: 12px 12px 0 0 !important; }' +
@@ -1836,22 +1836,24 @@ function showSystemDetails() {
                    '</div>';
         };
 
-                var renderFlags = function(flags) {
+        var renderFlags = function(flags) {
             if (!flags) flags = {'AES': false, 'VMX': false, 'AVX2': false, 'AVX512': false};
             var getDesc = function(k) {
-                if (k === 'AES') return 'AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。';
-                if (k === 'VMX') return 'VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。';
-                if (k === 'AVX2') return 'AVX2：决定了服务器基础的向量运算和浮点运算性能。';
-                if (k === 'AVX512') return 'AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。';
+                if (k === 'AES') return t('index.aes_desc', 'AES：决定了 HTTPS、SSH 等加密解密性能是否有硬件加速。');
+                if (k === 'VMX') return t('index.vmx_desc', 'VMX：决定了服务器是否支持硬件级虚拟化（能否开虚拟机）。');
+                if (k === 'AVX2') return t('index.avx2_desc', 'AVX2：决定了服务器基础的向量运算和浮点运算性能。');
+                if (k === 'AVX512') return t('index.avx512_desc', 'AVX512：决定了是否支持最新的高性能科学计算与 AI 推理指令。');
                 return k;
             };
+            var supportedTxt = t('index.supported', '支持');
+            var unsupportedTxt = t('index.unsupported', '不支持');
             var html = '';
             for (var key in flags) {
                 var desc = getDesc(key);
                 if (flags[key]) {
-                    html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[支持] ' + desc + '">' + key + '</span>';
+                    html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[' + supportedTxt + '] ' + desc + '">' + key + '</span>';
                 } else {
-                    html += '<span style="color:#ccc; margin-right:6px; " title="[不支持] ' + desc + '">' + key + '</span>';
+                    html += '<span style="color:#ccc; margin-right:6px; " title="[' + unsupportedTxt + '] ' + desc + '">' + key + '</span>';
                 }
             }
             return html;
@@ -1861,11 +1863,13 @@ function showSystemDetails() {
             if (!activeCc || activeCc === "未知" || activeCc === "X") return "-";
             var algorithms = ['BBR', 'Cubic', 'Reno'];
             var getDesc = function(a) {
-                if (a === 'BBR') return 'BBR：由 Google 开发，能最大化利用带宽，降低延迟。';
-                if (a === 'Cubic') return 'Cubic：Linux 默认算法，适合高带宽、低延迟环境。';
-                if (a === 'Reno') return 'Reno：传统的拥塞算法，对丢包较敏感。';
+                if (a === 'BBR') return t('index.bbr_desc', 'BBR：由 Google 开发，能最大化利用带宽，降低延迟。');
+                if (a === 'Cubic') return t('index.cubic_desc', 'Cubic：Linux 默认算法，适合高带宽、低延迟环境。');
+                if (a === 'Reno') return t('index.reno_desc', 'Reno：传统的拥塞算法，对丢包较敏感。');
                 return a;
             };
+            var activeTxt = t('index.active', '当前生效');
+            var inactiveTxt = t('index.inactive', '未生效');
             var html = '';
             var activeLower = activeCc.toLowerCase();
             var found = false;
@@ -1873,17 +1877,19 @@ function showSystemDetails() {
                 var algo = algorithms[i];
                 var desc = getDesc(algo);
                 if (algo.toLowerCase() === activeLower) {
-                    html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效] ' + desc + '">' + algo + '</span>';
+                    html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[' + activeTxt + '] ' + desc + '">' + algo + '</span>';
                     found = true;
                 } else {
-                    html += '<span style="color:#ccc; margin-right:6px; " title="[未生效] ' + desc + '">' + algo + '</span>';
+                    html += '<span style="color:#ccc; margin-right:6px; " title="[' + inactiveTxt + '] ' + desc + '">' + algo + '</span>';
                 }
             }
             if (!found) {
-                html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[当前生效]">' + activeCc + '</span>';
+                html += '<span style="color:#20a53a; font-weight:bold; margin-right:6px; " title="[' + activeTxt + ']">' + activeCc + '</span>';
             }
             return html;
         };
+
+        var coresThreadsVal = t('index.cores_threads_val', [data.cpu.cores, data.cpu.threads], data.cpu.cores + ' 核 / ' + data.cpu.threads + ' 线程');
 
         var html = css + '<div style="padding: 15px 20px; overflow:hidden;">' +
             '<div class="row">' +
@@ -1891,12 +1897,12 @@ function showSystemDetails() {
             // 操作系统
             '<div class="col-sm-4" style="margin-bottom:15px;">' +
                 '<div class="glass-card">' +
-                    '<h4><i class="glyphicon glyphicon-modal-window" style="color:#20a53a; margin-right:8px;"></i>操作系统</h4>' +
+                    '<h4><i class="glyphicon glyphicon-modal-window" style="color:#20a53a; margin-right:8px;"></i>' + t('index.operating_system', '操作系统') + '</h4>' +
                     '<table class="table table-condensed" style="margin-bottom:0;">' +
-                        '<tr title="操作系统具体的发行版及版本号"><td style="width:70px;">发行版本</td><td>' + data.os.system + '</td></tr>' +
-                        '<tr title="系统核心程序版本，影响底层功能和驱动支持"><td>内核版本</td><td>' + data.os.kernel + '</td></tr>' +
-                        '<tr title="CPU和操作系统的位数架构，通常为x86_64或aarch64"><td>系统架构</td><td>' + data.os.arch + '</td></tr>' +
-                        '<tr title="当前系统运行的物理机或虚拟机环境平台"><td>底层环境</td><td>' + data.os.virtualization + '</td></tr>' +
+                        '<tr title="' + t('index.distro_version_tip', '操作系统具体的发行版及版本号') + '"><td style="width:70px;">' + t('index.distro_version', '发行版本') + '</td><td>' + data.os.system + '</td></tr>' +
+                        '<tr title="' + t('index.kernel_version_tip', '系统核心程序版本，影响底层功能和驱动支持') + '"><td>' + t('index.kernel_version', '内核版本') + '</td><td>' + data.os.kernel + '</td></tr>' +
+                        '<tr title="' + t('index.system_arch_tip', 'CPU和操作系统的位数架构，通常为x86_64或aarch64') + '"><td>' + t('index.system_arch', '系统架构') + '</td><td>' + data.os.arch + '</td></tr>' +
+                        '<tr title="' + t('index.virtualization_tip', '当前系统运行的物理机或虚拟机环境平台') + '"><td>' + t('index.virtualization', '底层环境') + '</td><td>' + data.os.virtualization + '</td></tr>' +
                     '</table>' +
                 '</div>' +
             '</div>' +
@@ -1904,12 +1910,12 @@ function showSystemDetails() {
             // CPU
             '<div class="col-sm-4" style="margin-bottom:15px;">' +
                 '<div class="glass-card">' +
-                    '<h4><i class="glyphicon glyphicon-tasks" style="color:#20a53a; margin-right:8px;"></i>处理器</h4>' +
+                    '<h4><i class="glyphicon glyphicon-tasks" style="color:#20a53a; margin-right:8px;"></i>' + t('index.processor', '处理器') + '</h4>' +
                     '<table class="table table-condensed" style="margin-bottom:0;">' +
-                        '<tr title="处理器具体的品牌和型号名称"><td style="width:70px;">硬件型号</td><td>' + data.cpu.model + '</td></tr>' +
-                        '<tr title="处理器的物理核心数与逻辑线程总数"><td>核心线程</td><td>' + data.cpu.cores + ' 核 / ' + data.cpu.threads + ' 线程</td></tr>' +
-                        '<tr title="处理器当前运行的基础时钟频率"><td>基础频率</td><td>' + data.cpu.freq + '</td></tr>' +
-                        '<tr title="处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能"><td>指令集</td><td>' + renderFlags(data.cpu.flags) + '</td></tr>' +
+                        '<tr title="' + t('index.hardware_model_tip', '处理器具体的品牌和型号名称') + '"><td style="width:70px;">' + t('index.hardware_model', '硬件型号') + '</td><td>' + data.cpu.model + '</td></tr>' +
+                        '<tr title="' + t('index.cores_threads_tip', '处理器的物理核心数与逻辑线程总数') + '"><td>' + t('index.cores_threads', '核心线程') + '</td><td>' + coresThreadsVal + '</td></tr>' +
+                        '<tr title="' + t('index.base_freq_tip', '处理器当前运行的基础时钟频率') + '"><td>' + t('index.base_freq', '基础频率') + '</td><td>' + data.cpu.freq + '</td></tr>' +
+                        '<tr title="' + t('index.instruction_sets_tip', '处理器支持的高级指令集特性，影响加解密、虚拟化及AI运算性能') + '"><td>' + t('index.instruction_sets', '指令集') + '</td><td>' + renderFlags(data.cpu.flags) + '</td></tr>' +
                     '</table>' +
                 '</div>' +
             '</div>' +
@@ -1917,12 +1923,12 @@ function showSystemDetails() {
             // 网络与状态
             '<div class="col-sm-4" style="margin-bottom:15px;">' +
                 '<div class="glass-card">' +
-                    '<h4><i class="glyphicon glyphicon-globe" style="color:#20a53a; margin-right:8px;"></i>网络与状态</h4>' +
+                    '<h4><i class="glyphicon glyphicon-globe" style="color:#20a53a; margin-right:8px;"></i>' + t('index.network_and_status', '网络与状态') + '</h4>' +
                     '<table class="table table-condensed" style="margin-bottom:0;">' +
-                        '<tr title="服务器对外的公网或内网IP地址"><td style="width:70px;">IPv4/v6</td><td style="word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;">' + (data.network.ipv4 === "X" ? "-" : data.network.ipv4) + '<br>' + (data.network.ipv6 === "X" ? "-" : data.network.ipv6.split("%")[0]) + '</td></tr>' +
-                        '<tr title="服务器所在机房的网络运营商及地理位置"><td>网络节点</td><td>' + data.network.isp + ' (' + data.network.location + ')</td></tr>' +
-                        '<tr title="决定网络传输速度和稳定性的 TCP 拥塞控制策略"><td>拥塞算法</td><td>' + renderTcpCc(data.network.tcp_cc) + '</td></tr>' +
-                        '<tr title="系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度"><td>负载平均</td><td>' + data.status.load + '</td></tr>' +
+                        '<tr title="' + t('index.ipv4_v6_tip', '服务器对外的公网或内网IP地址') + '"><td style="width:70px;">' + t('index.ipv4_v6', 'IPv4/v6') + '</td><td style="word-break:break-all; font-size:11.5px; line-height:1.3; padding:2px 0 !important;">' + (data.network.ipv4 === "X" ? "-" : data.network.ipv4) + '<br>' + (data.network.ipv6 === "X" ? "-" : data.network.ipv6.split("%")[0]) + '</td></tr>' +
+                        '<tr title="' + t('index.network_node_tip', '服务器所在机房的网络运营商及地理位置') + '"><td>' + t('index.network_node', '网络节点') + '</td><td>' + data.network.isp + ' (' + data.network.location + ')</td></tr>' +
+                        '<tr title="' + t('index.tcp_cc_tip', '决定网络传输速度和稳定性的 TCP 拥塞控制策略') + '"><td>' + t('index.tcp_cc', '拥塞算法') + '</td><td>' + renderTcpCc(data.network.tcp_cc) + '</td></tr>' +
+                        '<tr title="' + t('index.load_average_tip', '系统近 1 / 5 / 15 分钟内的平均活跃进程数，反映系统繁忙程度') + '"><td>' + t('index.load_average', '负载平均') + '</td><td>' + data.status.load + '</td></tr>' +
                     '</table>' +
                 '</div>' +
             '</div>' +
@@ -1930,11 +1936,11 @@ function showSystemDetails() {
             // 内存
             '<div class="col-sm-6" style="margin-bottom:0;">' +
                 '<div class="glass-card">' +
-                    '<h4><i class="glyphicon glyphicon-hdd" style="color:#20a53a; margin-right:8px;"></i>物理内存 & Swap</h4>' +
+                    '<h4><i class="glyphicon glyphicon-hdd" style="color:#20a53a; margin-right:8px;"></i>' + t('index.memory_and_swap', '物理内存 & Swap') + '</h4>' +
                     '<table class="table table-condensed" style="margin-bottom:0;">' +
-                        '<tr title="服务器安装的实际物理内存容量及当前使用率"><td style="width:70px;">物理内存</td><td>' + data.memory.used + ' / ' + data.memory.total + ' (' + data.memory.percent.toFixed(1) + '%)</td></tr>' +
+                        '<tr title="' + t('index.physical_memory_tip', '服务器安装的实际物理内存容量及当前使用率') + '"><td style="width:70px;">' + t('index.physical_memory', '物理内存') + '</td><td>' + data.memory.used + ' / ' + data.memory.total + ' (' + data.memory.percent.toFixed(1) + '%)</td></tr>' +
                         '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.memory.percent) + '</td></tr>' +
-                        '<tr title="当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)"><td>交换分区</td><td>' + data.memory.swap_used + ' / ' + data.memory.swap_total + ' (' + data.memory.swap_percent.toFixed(1) + '%)</td></tr>' +
+                        '<tr title="' + t('index.swap_space_tip', '当物理内存不足时充当临时内存的磁盘虚拟空间(Swap)') + '"><td>' + t('index.swap_space', '交换分区') + '</td><td>' + data.memory.swap_used + ' / ' + data.memory.swap_total + ' (' + data.memory.swap_percent.toFixed(1) + '%)</td></tr>' +
                         '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;">' + renderProgress(data.memory.swap_percent) + '</td></tr>' +
                     '</table>' +
                 '</div>' +
@@ -1943,11 +1949,11 @@ function showSystemDetails() {
             // 磁盘
             '<div class="col-sm-6" style="margin-bottom:0;">' +
                 '<div class="glass-card">' +
-                    '<h4><i class="glyphicon glyphicon-floppy-disk" style="color:#20a53a; margin-right:8px;"></i>磁盘容量</h4>' +
+                    '<h4><i class="glyphicon glyphicon-floppy-disk" style="color:#20a53a; margin-right:8px;"></i>' + t('index.disk_capacity', '磁盘容量') + '</h4>' +
                     '<table class="table table-condensed" style="margin-bottom:0;">' +
-                        '<tr title="系统根目录所在磁盘的总容量与已用空间"><td>根目录</td><td>' + data.disk.used + ' / ' + data.disk.total + '</td></tr>' +
+                        '<tr title="' + t('index.root_directory_tip', '系统根目录所在磁盘的总容量与已用空间') + '"><td>' + t('index.root_directory', '根目录') + '</td><td>' + data.disk.used + ' / ' + data.disk.total + '</td></tr>' +
                         '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:8px !important;">' + renderProgress(data.disk.percent) + '</td></tr>' +
-                        '<tr title="磁盘当前尚未被占用、可供存储的剩余物理空间"><td>剩余可用</td><td>' + data.disk.free + ' (' + (100 - data.disk.percent).toFixed(1) + '%)</td></tr>' +
+                        '<tr title="' + t('index.free_available_tip', '磁盘当前尚未被占用、可供存储的剩余物理空间') + '"><td>' + t('index.free_available', '剩余可用') + '</td><td>' + data.disk.free + ' (' + (100 - data.disk.percent).toFixed(1) + '%)</td></tr>' +
                         '<tr><td colspan="2" style="padding-top:2px !important; padding-bottom:0 !important;"><div style="height:6px; margin:5px 0;"></div></td></tr>' +
                     '</table>' +
                 '</div>' +
@@ -1958,8 +1964,8 @@ function showSystemDetails() {
 
         layer.open({
             type: 1,
-            title: '系统详情',
-            area: ['900px', '500px'], // 增加高度，彻底消除滚动条
+            title: t('index.system_details', '系统详情'),
+            area: ['900px', '500px'],
             shadeClose: true,
             closeBtn: 1,
             skin: 'glass-layer',
@@ -1968,7 +1974,18 @@ function showSystemDetails() {
     }, 'json');
 }
 
-// 运行服务器测速
+// 辅助节点名称多语言转换
+function getNodeDisplayName(rawNodeName) {
+    if (rawNodeName === '阿里云杭州镜像源') return t('index.node_aliyun_hangzhou', '阿里云杭州镜像源');
+    if (rawNodeName === '腾讯云南京镜像源') return t('index.node_tencent_nanjing', '腾讯云南京镜像源');
+    if (rawNodeName === '华为云深圳镜像源') return t('index.node_huawei_shenzhen', '华为云深圳镜像源');
+    if (rawNodeName === '美国官方节点') return t('index.node_us_official', '美国官方节点');
+    if (rawNodeName === '英国官方节点') return t('index.node_uk_official', '英国官方节点');
+    if (rawNodeName === '德国官方节点') return t('index.node_de_official', '德国官方节点');
+    if (rawNodeName === '日本官方节点') return t('index.node_jp_official', '日本官方节点');
+    return rawNodeName;
+}
+
 // 运行服务器测速
 function runSpeedTest() {
     var cacheDataStr = localStorage.getItem('bt_speed_test_result');
@@ -2006,9 +2023,9 @@ function triggerSpeedReTest() {
     // 重置磁盘IO卡片
     $("#sp-io-container").hide();
     $("#sp-io-loader").show();
-    $("#sp-write-val").text('测试中...');
+    $("#sp-write-val").text(t('index.testing', '测试中...'));
     $("#sp-write-bar").css('width', '0%');
-    $("#sp-read-val").text('等待中...').css('color', '#94a3b8');
+    $("#sp-read-val").text(t('index.waiting', '等待中...')).css('color', '#94a3b8');
     $("#sp-read-bar").css('width', '0%');
     
     // 重置云节点状态
@@ -2021,7 +2038,7 @@ function triggerSpeedReTest() {
             'animation': '',
             'color': '#94a3b8'
         });
-        $(this).find('.node-speed').text('排队中').css('color', '#64748b');
+        $(this).find('.node-speed').text(t('index.queuing', '排队中')).css('color', '#64748b');
     });
     
     startRealNewTest();
@@ -2029,7 +2046,7 @@ function triggerSpeedReTest() {
 
 // 发起后台测速并开启轮询
 function startRealNewTest() {
-    var loadT = layer.msg('正在初始化测速环境...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+    var loadT = layer.msg(t('index.env_initializing', '正在初始化测速环境...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
     $.post('/system/speed_test', {}, function(rdata) {
         layer.close(loadT);
         if (!rdata.status) {
@@ -2050,22 +2067,22 @@ function renderSpeedTestModal(historyData) {
         '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' +
         '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' +
         '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
-        '                    <span class="glyphicon glyphicon-info-sign" style="color: #20a53a; font-size:14px;"></span> 系统基本信息' +
+        '                    <span class="glyphicon glyphicon-info-sign" style="color: #20a53a; font-size:14px;"></span> ' + t('index.sys_basic_info', '系统基本信息') +
         '                </div>' +
         '                <div id="sp-sys-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' +
-        '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>环境准备中...' +
+        '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>' + t('index.env_preparing', '环境准备中...') +
         '                </div>' +
         '                <table id="sp-sys-table" class="table table-condensed" style="font-size: 12px; margin-bottom: 0; display: none; border:none;">' +
-        '                    <tr style="border:none;"><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">系统版本</td><td id="sp-os" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
+        '                    <tr style="border:none;"><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + t('index.sys_version', '系统版本') + '</td><td id="sp-os" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
         '                    <tr>' +
-        '                        <td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;">CPU型号</td>' +
+        '                        <td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap; vertical-align: top;">' + t('index.cpu_model', 'CPU型号') + '</td>' +
         '                        <td id="sp-cpu" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; line-height: 1.4;">' +
         '                            <div id="sp-cpu-model" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</div>' +
         '                            <div id="sp-cpu-detail" style="font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; display: none;">-</div>' +
         '                        </td>' +
         '                    </tr>' +
-        '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">物理内存</td><td id="sp-mem" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;">-</td></tr>' +
-        '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">硬盘大小</td><td id="sp-disk" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
+        '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + t('index.physical_memory', '物理内存') + '</td><td id="sp-mem" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap;">-</td></tr>' +
+        '                    <tr><td style="color:#64748b; width:95px; border-top:none; padding:6px 0; white-space: nowrap;">' + t('index.disk_size', '硬盘大小') + '</td><td id="sp-disk" style="font-weight:500; color:#1e293b; border-top:none; padding:6px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">-</td></tr>' +
         '                </table>' +
         '            </div>' +
         '        </div>' +
@@ -2073,16 +2090,16 @@ function renderSpeedTestModal(historyData) {
         '        <div class="col-xs-6" style="padding-left: 10px; padding-right: 10px;">' +
         '            <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); height: 195px;">' +
         '                <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; gap: 6px;">' +
-        '                    <span class="glyphicon glyphicon-hdd" style="color: #20a53a; font-size:14px;"></span> 磁盘 I/O 读写性能' +
+        '                    <span class="glyphicon glyphicon-hdd" style="color: #20a53a; font-size:14px;"></span> ' + t('index.disk_io_perf', '磁盘 I/O 读写性能') +
         '                </div>' +
         '                <div id="sp-io-loader" style="color: #94a3b8; text-align: center; padding-top: 40px; font-size: 12px;">' +
-        '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>等待测速信号...' +
+        '                    <span class="glyphicon glyphicon-refresh" style="animation: spin 1.2s linear infinite; display: inline-block; margin-right: 6px;"></span>' + t('index.waiting_signal', '等待测速信号...') +
         '                </div>' +
         '                <div id="sp-io-container" style="display: none; padding-top: 8px;">' +
         '                    <div style="margin-bottom: 15px;">' +
         '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' +
-        '                            <span style="color:#64748b;">磁盘写入速度</span>' +
-        '                            <span id="sp-write-val" style="font-weight:600; color:#20a53a;">测试中...</span>' +
+        '                            <span style="color:#64748b;">' + t('index.disk_write_speed', '磁盘写入速度') + '</span>' +
+        '                            <span id="sp-write-val" style="font-weight:600; color:#20a53a;">' + t('index.testing', '测试中...') + '</span>' +
         '                        </div>' +
         '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' +
         '                            <div id="sp-write-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #42d392, #20a53a); transition: width 0.5s ease;"></div>' +
@@ -2090,8 +2107,8 @@ function renderSpeedTestModal(historyData) {
         '                    </div>' +
         '                    <div>' +
         '                        <div style="display:flex; justify-content: space-between; font-size:12px; margin-bottom: 4px;">' +
-        '                            <span style="color:#64748b;">磁盘读取速度</span>' +
-        '                            <span id="sp-read-val" style="font-weight:600; color:#94a3b8;">等待中...</span>' +
+        '                            <span style="color:#64748b;">' + t('index.disk_read_speed', '磁盘读取速度') + '</span>' +
+        '                            <span id="sp-read-val" style="font-weight:600; color:#94a3b8;">' + t('index.waiting', '等待中...') + '</span>' +
         '                        </div>' +
         '                        <div style="height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">' +
         '                            <div id="sp-read-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.5s ease;"></div>' +
@@ -2105,63 +2122,63 @@ function renderSpeedTestModal(historyData) {
         '    <div style="background: #fff; border-radius: 8px; border: 1px solid #eef2f6; padding: 15px; margin-top: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' +
         '        <div style="font-weight: 600; color: #475569; margin-bottom: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between;">' +
         '            <div style="display: flex; align-items: center; gap: 6px;">' +
-        '                <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> 多区域节点下载测速' +
+        '                <span class="glyphicon glyphicon-globe" style="color: #20a53a; font-size:14px;"></span> ' + t('index.multi_region_download', '多区域节点下载测速') +
         '            </div>' +
-        '            <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)</span>' +
+        '            <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">' + t('index.speed_test_benchmark_tip', '(统一下载 15.4MB 的 ls-lR.gz 文件作为测速基准)') + '</span>' +
         '        </div>' +
         '        <div style="display: flex; flex-direction: column; gap: 8px;" id="sp-nodes-list">' +
         '            <div class="node-row" data-node="阿里云杭州镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
         '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
         '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-        '                    <span>阿里云杭州镜像源</span>' +
+        '                    <span>' + getNodeDisplayName('阿里云杭州镜像源') + '</span>' +
         '                </div>' +
-        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + t('index.queuing', '排队中') + '</div>' +
         '            </div>' +
         '            <div class="node-row" data-node="腾讯云南京镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
         '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
         '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-        '                    <span>腾讯云南京镜像源</span>' +
+        '                    <span>' + getNodeDisplayName('腾讯云南京镜像源') + '</span>' +
         '                </div>' +
-        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + t('index.queuing', '排队中') + '</div>' +
         '            </div>' +
         '            <div class="node-row" data-node="华为云深圳镜像源" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
         '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
         '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-        '                    <span>华为云深圳镜像源</span>' +
+        '                    <span>' + getNodeDisplayName('华为云深圳镜像源') + '</span>' +
         '                </div>' +
-        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + t('index.queuing', '排队中') + '</div>' +
         '            </div>' +
         '            <!-- 境内外分割线 -->' +
         '            <div style="margin: 14px 0 10px 0; border-top: 1px dashed #e2e8f0; text-align: center; position: relative; height: 10px;">' +
-        '                <span style="background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;">境外测试节点 (US / UK / DE / JP)</span>' +
+        '                <span style="background: #fff; padding: 0 14px; font-size: 11px; color: #94a3b8; font-weight: 600; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px;">' + t('index.overseas_nodes_divider', '境外测试节点 (US / UK / DE / JP)') + '</span>' +
         '            </div>' +
         '            <div class="node-row" data-node="美国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
         '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
         '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-        '                    <span>美国官方节点</span>' +
+        '                    <span>' + getNodeDisplayName('美国官方节点') + '</span>' +
         '                </div>' +
-        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + t('index.queuing', '排队中') + '</div>' +
         '            </div>' +
         '            <div class="node-row" data-node="英国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
         '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
         '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-        '                    <span>英国官方节点</span>' +
+        '                    <span>' + getNodeDisplayName('英国官方节点') + '</span>' +
         '                </div>' +
-        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + t('index.queuing', '排队中') + '</div>' +
         '            </div>' +
         '            <div class="node-row" data-node="德国官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
         '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
         '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-        '                    <span>德国官方节点</span>' +
+        '                    <span>' + getNodeDisplayName('德国官方节点') + '</span>' +
         '                </div>' +
-        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + t('index.queuing', '排队中') + '</div>' +
         '            </div>' +
         '            <div class="node-row" data-node="日本官方节点" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8fafc; border-radius: 6px; border: 1px solid #f1f5f9; transition: all 0.3s ease;">' +
         '                <div style="display:flex; align-items:center; gap: 8px; font-size: 12px; font-weight: 500; color: #334155;">' +
         '                    <span class="node-icon glyphicon glyphicon-time" style="color:#94a3b8; font-size: 12px;"></span>' +
-        '                    <span>日本官方节点</span>' +
+        '                    <span>' + getNodeDisplayName('日本官方节点') + '</span>' +
         '                </div>' +
-        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">排队中</div>' +
+        '                <div class="node-speed" style="font-size: 12px; font-weight: 600; color:#64748b;">' + t('index.queuing', '排队中') + '</div>' +
         '            </div>' +
         '        </div>' +
         '    </div>' +
@@ -2170,12 +2187,12 @@ function renderSpeedTestModal(historyData) {
         '    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; user-select: none;">' +
         '        <div>' +
         '            <button id="btn-re-test" class="btn btn-default btn-xs" style="display: none; padding: 4px 12px; font-size: 11px; color: #475569; background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; transition: all 0.2s ease; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onclick="triggerSpeedReTest()">' +
-        '                <span class="glyphicon glyphicon-repeat" style="font-size: 10px; margin-right: 4px;"></span>再次测试' +
+        '                <span class="glyphicon glyphicon-repeat" style="font-size: 10px; margin-right: 4px;"></span>' + t('index.re_test', '再次测试') +
         '            </button>' +
         '        </div>' +
         '        <div style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #94a3b8; font-weight: 500;">' +
         '            <span class="glyphicon glyphicon-copyright-mark" style="font-size: 10px;"></span>' +
-        '            <span>衢州御风科技有限公司出品</span>' +
+        '            <span>' + t('public.company_signature', '衢州御风科技有限公司出品') + '</span>' +
         '        </div>' +
         '    </div>' +
         '    <style>' +
@@ -2188,7 +2205,7 @@ function renderSpeedTestModal(historyData) {
 
     // 打开弹出层
     layer.open({
-        title: '<span style="display: inline-flex; align-items: center; gap: 6px;"><svg viewBox="0 0 64 64" width="16" height="16" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M16 22 h32 v30 h-32 z" /><path d="M26 22 L28 8 h8 L38 22" /><path d="M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16" stroke-width="3.5" /><path d="M24 52 v6 h16 v-6" /></svg>服务器性能与带宽测速</span>',
+        title: '<span style="display: inline-flex; align-items: center; gap: 6px;"><svg viewBox="0 0 64 64" width="16" height="16" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M16 22 h32 v30 h-32 z" /><path d="M26 22 L28 8 h8 L38 22" /><path d="M23 36 v16 M29 36 v16 M35 36 v16 M41 36 v16" stroke-width="3.5" /><path d="M24 52 v6 h16 v-6" /></svg>' + t('index.server_performance_and_bandwidth', '服务器性能与带宽测速') + '</span>',
         type: 1,
         closeBtn: 1,
         shade: 0.3,
@@ -2219,7 +2236,7 @@ function renderSpeedTestModal(historyData) {
                         var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
                         var detailParts = cleanDetail.split(' ');
                         if (detailParts.length >= 2) {
-                            cpuDetail = '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1];
+                            cpuDetail = t('index.cpu_freq_cores', [detailParts[0], detailParts[1]], '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1]);
                         } else {
                             cpuDetail = cleanDetail;
                         }
@@ -2272,13 +2289,13 @@ function renderSpeedTestModal(historyData) {
                                     'animation': '',
                                     'color': '#ef4444'
                                 });
-                                $row.find('.node-speed').text('超时/失败').css('color', '#ef4444');
+                                $row.find('.node-speed').text(t('index.timeout_failed', '超时/失败')).css('color', '#ef4444');
                                 $row.css({
                                     'background': 'rgba(239,68,68,0.03)',
                                     'border-color': 'rgba(239,68,68,0.15)'
                                 });
                             } else if (node.status === 'skipped') {
-                                $row.find('.node-speed').text('已跳过').css('color', '#94a3b8');
+                                $row.find('.node-speed').text(t('index.skipped', '已跳过')).css('color', '#94a3b8');
                                 $row.find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ban-circle').css({
                                     'animation': '',
                                     'color': '#94a3b8'
@@ -2335,7 +2352,7 @@ function runLogPolling(log_path) {
                             var cleanDetail = cpuDetail.replace('(', '').replace(')', '');
                             var detailParts = cleanDetail.split(' ');
                             if (detailParts.length >= 2) {
-                                cpuDetail = '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1];
+                                cpuDetail = t('index.cpu_freq_cores', [detailParts[0], detailParts[1]], '主频 ' + detailParts[0] + ' | 核心数 ' + detailParts[1]);
                             } else {
                                 cpuDetail = cleanDetail;
                             }
@@ -2367,7 +2384,7 @@ function runLogPolling(log_path) {
                     if (data.read_speed.indexOf('GB/s') > -1) rPercent = 100;
                     $("#sp-read-bar").css('width', rPercent + '%');
                 } else if (data.write_speed) {
-                    $("#sp-read-val").text('测试中...').css('color', '#94a3b8');
+                    $("#sp-read-val").text(t('index.testing', '测试中...')).css('color', '#94a3b8');
                 }
                 
                 // 节点状态渲染
@@ -2400,7 +2417,7 @@ function runLogPolling(log_path) {
                                 'animation': '',
                                 'color': '#ef4444'
                             });
-                            $row.find('.node-speed').text('超时/失败').css('color', '#ef4444');
+                            $row.find('.node-speed').text(t('index.timeout_failed', '超时/失败')).css('color', '#ef4444');
                             $row.css({
                                 'background': 'rgba(239,68,68,0.03)',
                                 'border-color': 'rgba(239,68,68,0.15)'
@@ -2415,10 +2432,10 @@ function runLogPolling(log_path) {
                     $('.node-row').each(function() {
                         var nodeName = $(this).attr('data-node');
                         var txt = $(this).find('.node-speed').text();
-                        if (txt === '排队中' || txt === '等待中') {
-                            $(this).find('.node-speed').text('已跳过').css('color', '#94a3b8');
+                        if (txt === '排队中' || txt === '等待中' || txt === t('index.queuing', '排队中') || txt === t('index.waiting', '等待中...')) {
+                            $(this).find('.node-speed').text(t('index.skipped', '已跳过')).css('color', '#94a3b8');
                             $(this).find('.node-icon').attr('class', 'node-icon glyphicon glyphicon-ban-circle').css('color', '#94a3b8');
-                            data.nodes[nodeName] = { status: 'skipped', speed: '已跳过' };
+                            data.nodes[nodeName] = { status: 'skipped', speed: t('index.skipped', '已跳过') };
                         }
                     });
                     
@@ -2432,7 +2449,6 @@ function runLogPolling(log_path) {
 }
 
 
-// 辅助解析日志函数
 function parseSpeedLog(logText) {
     var data = {
         cpu: '',

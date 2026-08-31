@@ -208,8 +208,20 @@ def t(key, *args, lang=None):
             except TypeError:
                 pass
                 
-        for idx, arg in enumerate(args):
-            str_arg = str(arg)
-            msg = msg.replace("{" + str(idx + 1) + "}", str_arg).replace("{" + str(idx) + "}", str_arg)
+        import re
+        has_zero = '{0}' in msg
+        def _fmt_sub(m):
+            num = int(m.group(1))
+            if has_zero:
+                if 0 <= num < len(args):
+                    return str(args[num])
+            else:
+                if 1 <= num <= len(args):
+                    return str(args[num - 1])
+                elif 0 <= num < len(args):
+                    return str(args[num])
+            return m.group(0)
+            
+        msg = re.sub(r'\{(\d+)\}', _fmt_sub, msg)
             
     return msg
