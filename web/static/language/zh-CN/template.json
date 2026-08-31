@@ -2532,7 +2532,13 @@
         "kill_php": "kill所有php进程",
         "notice": "注意：",
         "kill_php_desc": "非强制杀掉所有的 PHP-FPM 进程（所有的 PHP 版本），判断由 PHP 网站引发的面板或者系统负载过高，强制释放 PHP 占用，解决死锁、Socket耗尽等异常问题，",
-        "kill_php_desc_red": "执行后需要手动重启下 PHP 版本，"
+        "kill_php_desc_red": "执行后需要手动重启下 PHP 版本，",
+        "brand_company": "御风科技",
+        "ip_privacy_check": "IP隐私安全检测",
+        "tools_box": "御风工具箱",
+        "company_signature": "衢州御风科技有限公司出品",
+        "yufeng_technology_co": "御风科技有限公司",
+        "source_code": "源码"
     },
     "upload": {
         "saving": "正在保存..",
@@ -2631,7 +2637,8 @@
         "action_success": "操作成功!",
         "connect_success": "连接成功.",
         "connected": "已连接",
-        "brand_title": "御风面板"
+        "brand_title": "御风面板",
+        "brand_panel": "御风面板"
     },
     "dashboard": {
         "the_ip_address_cannot": "ip不能为空",

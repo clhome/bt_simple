@@ -282,6 +282,20 @@
 - [x] 4. 编写全自动回归测试脚本 `test/test_monitor_i18n.py`，覆盖模板 Jinja2 编译、路由渲染、JS 语法及多语言词条校验。
 - [x] 5. 验证并完成交付。
 
+## 第八阶段：页面底部（Footer）多语言翻译与品牌规范统一 (完成)
+
+- [x] 1. 完善后端 `web/core/i18n.py` 与前端 `web/static/app/i18n.js` 的默认文本回退与防裸键泄露机制，彻底杜绝未命中词条时界面显示 `brand_panel` / `brand_company` / `tools_box` 等键名。
+- [x] 2. 规范 6 国语言包中品牌与页脚词条（御风统一对齐为 `Yufeng`，御风科技有限公司对齐为 `Yufeng Technology Co., Ltd.`）：
+  - `common.brand_panel`: 御风面板 / 御風面板 / Yufeng Panel / Panneau Yufeng / Yufeng-Panel / Pannello Yufeng
+  - `public.brand_company`: 御风科技 / 御風科技 / Yufeng Technology / Technologie Yufeng / Yufeng-Technologie / Tecnologia Yufeng
+  - `public.ip_privacy_check`: IP隐私安全检测 / IP隱私安全檢測 / IP Privacy & Security Check / Test de confidentialité et sécurité IP / IP-Datenschutz- und Sicherheitsprüfung / Controllo privacy e sicurezza IP
+  - `public.tools_box`: 御风工具箱 / 御風工具箱 / Yufeng Toolbox / Boîte à outils Yufeng / Yufeng-Toolbox / Strumenti Yufeng
+  - `public.company_signature`: 衢州御风科技有限公司出品 / 衢州御風科技有限公司出品 / Produced by Quzhou Yufeng Technology Co., Ltd. / Produit par Quzhou Yufeng Technology Co., Ltd. / Präsentiert von Quzhou Yufeng Technology Co., Ltd. / Prodotto da Quzhou Yufeng Technology Co., Ltd.
+  - `public.source_code`: 源码 / 源碼 / Source Code / Code source / Quellcode / Codice sorgente
+- [x] 3. 运行编译器生成标准合法语法的 6 国 `lan.js` 与 `template.json`。
+- [x] 4. 编写全自动回归测试脚本 `test/test_footer_i18n.py` 并运行完整测试套件验证。
+
+
 
 
 

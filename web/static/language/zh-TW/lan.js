@@ -2545,7 +2545,13 @@ var lan = {
 		"kill_php": "kill所有php程序",
 		"notice": "注意：",
 		"kill_php_desc": "非強制殺掉所有的 PHP-FPM 程序（所有的 PHP 版本），判斷由 PHP 網站引發的面板或者系統負載過高，強制釋放 PHP 佔用，解決死鎖、Socket耗盡等異常問題，",
-		"kill_php_desc_red": "執行後需要手動重啟下 PHP 版本，"
+		"kill_php_desc_red": "執行後需要手動重啟下 PHP 版本，",
+		"brand_company": "御風科技",
+		"ip_privacy_check": "IP隱私安全檢測",
+		"tools_box": "御風工具箱",
+		"company_signature": "衢州御風科技有限公司出品",
+		"yufeng_technology_co": "御風科技有限公司",
+		"source_code": "源碼"
 },
 	"upload":{
 		"saving": "正在儲存..",
@@ -2644,7 +2650,8 @@ var lan = {
 		"action_success": "操作成功!",
 		"connect_success": "連線成功.",
 		"connected": "已連線",
-		"brand_title": "御風面板"
+		"brand_title": "御風面板",
+		"brand_panel": "御風面板"
 },
 	"dashboard":{
 		"the_ip_address_cannot": "ip不能為空",

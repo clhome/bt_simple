@@ -2562,7 +2562,13 @@ var lan = {
 		"kill_php": "Tuer tous les processus PHP",
 		"notice": "Remarque :",
 		"kill_php_desc": "Arrêter de manière non forcée tous les processus PHP-FPM (toutes versions de PHP), détecter une charge excessive du panneau de contrôle ou du système causée par un site PHP, libérer de force les ressources occupées par PHP, et résoudre les problèmes exceptionnels tels que les blocages et l'épuisement des sockets,",
-		"kill_php_desc_red": "Une fois l'opération effectuée, il faut redémarrer manuellement la version de PHP,"
+		"kill_php_desc_red": "Une fois l'opération effectuée, il faut redémarrer manuellement la version de PHP,",
+		"brand_company": "Technologie Yufeng",
+		"ip_privacy_check": "Test de confidentialité et sécurité IP",
+		"tools_box": "Boîte à outils Yufeng",
+		"company_signature": "Produit par Quzhou Yufeng Technology Co., Ltd.",
+		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+		"source_code": "Code source"
 },
 	"upload":{
 		"saving": "En cours d'enregistrement...",
@@ -2661,7 +2667,8 @@ var lan = {
 		"action_success": "Opération réussie !",
 		"connect_success": "Connexion établie.",
 		"connected": "Connecté",
-		"brand_title": "Panneau « Yu Feng »"
+		"brand_title": "Panneau Yufeng",
+		"brand_panel": "Panneau Yufeng"
 },
 	"dashboard":{
 		"the_ip_address_cannot": "L'adresse IP ne doit pas être vide",

@@ -196,6 +196,8 @@ def t(key, *args, lang=None):
         msg = _lookup_message(key, DEFAULT_LANG)
         
     if msg is None:
+        if args and len(args) == 1 and isinstance(args[0], str) and '{' not in key and '%s' not in key and '{1}' not in args[0] and '{0}' not in args[0] and '%s' not in args[0]:
+            return args[0]
         msg = key
 
     # 参数替换: {1}, {2}, ... 及 {0}, {1}, ... 与 %s 支持

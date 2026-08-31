@@ -2545,7 +2545,13 @@ var lan = {
 		"kill_php": "Kill all PHP processes",
 		"notice": "Note:",
 		"kill_php_desc": "Forcefully terminate all PHP-FPM processes (for all PHP versions) when the control panel or system load is determined to be excessively high due to PHP-based websites; force the release of resources occupied by PHP to resolve exceptions such as deadlocks and socket exhaustion,",
-		"kill_php_desc_red": "After running this, you'll need to manually restart the PHP version,"
+		"kill_php_desc_red": "After running this, you'll need to manually restart the PHP version,",
+		"brand_company": "Yufeng Technology",
+		"ip_privacy_check": "IP Privacy & Security Check",
+		"tools_box": "Yufeng Toolbox",
+		"company_signature": "Produced by Quzhou Yufeng Technology Co., Ltd.",
+		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+		"source_code": "Source Code"
 },
 	"upload":{
 		"saving": "Saving...",
@@ -2644,7 +2650,8 @@ var lan = {
 		"action_success": "Operation successful!",
 		"connect_success": "Connection successful.",
 		"connected": "Connected",
-		"brand_title": "Yufeng Panel"
+		"brand_title": "Yufeng Panel",
+		"brand_panel": "Yufeng Panel"
 },
 	"dashboard":{
 		"the_ip_address_cannot": "The IP address cannot be empty.",

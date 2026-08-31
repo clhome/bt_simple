@@ -133,7 +133,7 @@
         localStorage.setItem('yf_lang', _currentLang);
     } catch (e) {}
 
-    // 常用键名内置兜底中文字典，确保即使未加载语言包也不会在界面泄露 files. / FILES. 前缀
+    // 常用键名内置兜底中文字典，确保即使未加载语言包也不会在界面泄露 files. / FILES. 前缀或覆盖品牌名称
     var FALLBACK_MAP = {
         'file_name': '文件名',
         'size': '大小',
@@ -161,7 +161,14 @@
         'get': '获取',
         'recycle_bin': '文件回收站',
         'upload': '上传',
-        'remote_download': '远程下载'
+        'remote_download': '远程下载',
+        'brand_panel': '御风面板',
+        'brand_title': '御风面板',
+        'brand_company': '御风科技',
+        'ip_privacy_check': 'IP隐私安全检测',
+        'tools_box': '御风工具箱',
+        'company_signature': '衢州御风科技有限公司出品',
+        'source_code': '源码'
     };
 
     /**
@@ -240,18 +247,12 @@
             return defaultText;
         }
 
-        // 6. 兜底清洗：若仍未匹配，绝不向用户输出带 FILES. 或 files. 前缀的裸键名
+        // 6. 兜底字典匹配
         var cleanKey = parts[parts.length - 1].toLowerCase();
         // 去除尾部无意义的序号后缀，如 file_name_2 -> file_name
         cleanKey = cleanKey.replace(/_\d+$/, '');
         if (FALLBACK_MAP[cleanKey]) {
             return FALLBACK_MAP[cleanKey];
-        }
-
-        // 去除 FILES. / files. 前缀后输出
-        if (normalizedKey.indexOf('.') !== -1) {
-            var leaf = normalizedKey.substring(normalizedKey.lastIndexOf('.') + 1);
-            return leaf;
         }
 
         return key;

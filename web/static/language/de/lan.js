@@ -2506,7 +2506,7 @@ var lan = {
 		"log_1": "Protokoll",
 		"there_are_currently_no_3": "Derzeit sind keine Protokolle vorhanden!",
 		"loading_instructions": "Anleitung wird abgerufen...",
-		"yufeng_panel_btsimple": "Yufeng-Bedienfeld (BtSimple)",
+		"yufeng_panel_btsimple": "Yufeng-Panel (BtSimple)",
 		"quzhou_yufeng_technology_co": "Quzhou Yufeng Technology Co., Ltd.",
 		"quzhou_yufeng_technology_yftec": "Quzhou Yufeng Technology (YFTEC)",
 		"retrieving_panel_resource_usage": "Die Ressourcenauslastung des Panels wird gerade abgerufen...",
@@ -2562,7 +2562,13 @@ var lan = {
 		"kill_php": "Alle PHP-Prozesse beenden",
 		"notice": "Hinweis:",
 		"kill_php_desc": "Beendet nicht zwangsläufig alle PHP-FPM-Prozesse (alle PHP-Versionen), sondern ermittelt, ob PHP-Websites eine übermäßige Belastung des Control Panels oder des Systems verursachen, gibt die von PHP belegten Ressourcen zwangsweise frei und behebt Ausnahmesituationen wie Deadlocks oder erschöpfte Sockets,",
-		"kill_php_desc_red": "Nach der Ausführung muss die PHP-Version manuell neu gestartet werden,"
+		"kill_php_desc_red": "Nach der Ausführung muss die PHP-Version manuell neu gestartet werden,",
+		"brand_company": "Yufeng-Technologie",
+		"ip_privacy_check": "IP-Datenschutz- und Sicherheitsprüfung",
+		"tools_box": "Yufeng-Toolbox",
+		"company_signature": "Präsentiert von Quzhou Yufeng Technology Co., Ltd.",
+		"yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+		"source_code": "Quellcode"
 },
 	"upload":{
 		"saving": "Wird gespeichert...",
@@ -2661,7 +2667,8 @@ var lan = {
 		"action_success": "Vorgang erfolgreich!",
 		"connect_success": "Die Verbindung wurde erfolgreich hergestellt.",
 		"connected": "Verbunden",
-		"brand_title": "Yufeng-Bedienfeld"
+		"brand_title": "Yufeng-Panel",
+		"brand_panel": "Yufeng-Panel"
 },
 	"dashboard":{
 		"the_ip_address_cannot": "Die IP-Adresse darf nicht leer sein.",

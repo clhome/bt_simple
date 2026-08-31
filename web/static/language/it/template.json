@@ -2526,7 +2526,13 @@
         "kill_php": "Termina tutti i processi PHP",
         "notice": "Nota:",
         "kill_php_desc": "Chiudere in modo non forzato tutti i processi PHP-FPM (di tutte le versioni di PHP); individuare un carico eccessivo del pannello di controllo o del sistema causato da un sito web PHP; liberare forzatamente la memoria occupata da PHP; risolvere problemi anomali quali deadlock ed esaurimento dei socket, ecc.,",
-        "kill_php_desc_red": "Dopo l'esecuzione, è necessario riavviare manualmente la versione di PHP,"
+        "kill_php_desc_red": "Dopo l'esecuzione, è necessario riavviare manualmente la versione di PHP,",
+        "brand_company": "Tecnologia Yufeng",
+        "ip_privacy_check": "Controllo privacy e sicurezza IP",
+        "tools_box": "Strumenti Yufeng",
+        "company_signature": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
+        "yufeng_technology_co": "Yufeng Technology Co., Ltd.",
+        "source_code": "Codice sorgente"
     },
     "upload": {
         "saving": "Salvataggio in corso...",
@@ -2625,7 +2631,8 @@
         "action_success": "Operazione riuscita!",
         "connect_success": "Connessione stabilita.",
         "connected": "Connesso",
-        "brand_title": "Pannello Yufeng"
+        "brand_title": "Pannello Yufeng",
+        "brand_panel": "Pannello Yufeng"
     },
     "dashboard": {
         "the_ip_address_cannot": "L'IP non può essere vuoto",
