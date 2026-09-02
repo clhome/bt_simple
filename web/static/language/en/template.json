@@ -2555,7 +2555,16 @@
         "control_auto_str_31": "Load details",
         "control_auto_str_32": "1 minute",
         "control_auto_str_33": "5 minutes",
-        "control_auto_str_34": "15 minutes"
+        "control_auto_str_34": "15 minutes",
+        "compute_resources": "Computing Resources (CPU & Memory)",
+        "load_saturation": "Load Saturation%",
+        "load_saturation_tips": "Calculated from 1-min load and CPU capacity",
+        "global_time_range": "Time Range",
+        "all_charts": "All Charts",
+        "cpu": "CPU",
+        "mem": "Memory",
+        "load_safe_line": "Safe Baseline",
+        "load_limit_line": "Full Load Alert"
     },
     "crontab": {
         "H1": "Home",

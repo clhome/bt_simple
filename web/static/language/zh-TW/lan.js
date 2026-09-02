@@ -1635,7 +1635,16 @@ var lan = {
 			"load_details": "负载详情",
 			"minute_3": "1分钟",
 			"minutes_6": "5分钟",
-			"minutes_7": "15分钟"
+			"minutes_7": "15分钟",
+			"compute_resources": "計算資源 (CPU & 記憶體)",
+			"load_saturation": "負載飽和度%",
+			"load_saturation_tips": "基於1分鐘負載與CPU核心容量計算",
+			"global_time_range": "時間範圍",
+			"all_charts": "全部圖表",
+			"cpu": "CPU",
+			"mem": "記憶體",
+			"load_safe_line": "安全參考線",
+			"load_limit_line": "滿載警戒線"
 		},
 
 	"crontab": {

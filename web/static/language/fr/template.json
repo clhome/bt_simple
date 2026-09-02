@@ -2555,7 +2555,16 @@
         "control_auto_str_31": "Charger les détails",
         "control_auto_str_32": "1 minute",
         "control_auto_str_33": "5 minutes",
-        "control_auto_str_34": "15 minutes"
+        "control_auto_str_34": "15 minutes",
+        "compute_resources": "Ressources de calcul (CPU & Mémoire)",
+        "load_saturation": "Saturation de la charge%",
+        "load_saturation_tips": "Calculé à partir de la charge sur 1 min et de la capacité du CPU",
+        "global_time_range": "Période",
+        "all_charts": "Tous les graphiques",
+        "cpu": "CPU",
+        "mem": "Mémoire",
+        "load_safe_line": "Ligne de sécurité",
+        "load_limit_line": "Ligne de pleine charge"
     },
     "crontab": {
         "H1": "Page d'accueil",

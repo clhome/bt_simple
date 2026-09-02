@@ -3,182 +3,261 @@
 {% block content %}
 
 <div class="main-content">
-		<div class="container-fluid" style="padding-bottom: 50px;">
-			<div class="pos-box bgw mtb15" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; min-height: 50px;">
-				<div class="position f14 c9">
-					<a class="plr10 c4" href="/" data-i18n="menu.home">{{ t('menu.home', '首页') }}</a>/<span class="plr10 c4" data-i18n="menu.monitor">{{ t('menu.monitor', '系统监控') }}</span>
+		<div class="container-fluid" style="padding-bottom: 20px;">
+			<!-- 顶部统一控制栏：所有元素水平居中对齐 -->
+			<div class="pos-box bgw monitor-topbar">
+				<!-- 左侧：面包屑 -->
+				<div class="monitor-topbar-left">
+					<div class="position f14 c9" style="display: inline-flex; align-items: center;">
+						<a class="plr10 c4" href="/" data-i18n="menu.home">{{ t('menu.home', '首页') }}</a>/<span class="plr10 c4" data-i18n="menu.monitor">{{ t('menu.monitor', '系统监控') }}</span>
+					</div>
 				</div>
-				<div class="safe" style="display: flex; align-items: center; gap: 20px; font-size: 14px; color: #999;">
-					<div style="display: flex; align-items: center; gap: 10px;">
+
+				<!-- 中间：全局时间范围控制器 -->
+				<div class="monitor-topbar-center">
+					<span style="font-size: 13px; color: #666; font-weight: 500;" data-i18n="control.global_time_range">{{ t('control.global_time_range', '时间范围') }}:</span>
+					<div class="searcTime globalSearchTime">
+						<span class="gt on" data-day="0" onclick="setGlobalDay(0)" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+						<span class="gt" data-day="1" onclick="setGlobalDay(1)" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
+						<span class="gt" data-day="7" onclick="setGlobalDay(7)" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
+						<span class="gt" data-day="30" onclick="setGlobalDay(30)" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
+						<div class="ss">
+							<span class="st" title="{{ t('control.custom_range', '自定义范围') }}"><span class="glyphicon glyphicon-calendar"></span></span>
+							<div class="time">
+								<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="global_rtime" class="rtime" type="text" value=""></span>
+								<div class="sbtn globalbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 右侧：监控开关、保存天数、外网统计与清空操作 -->
+				<div class="monitor-topbar-right">
+					<div class="monitor-item-group">
 						<span data-i18n="control.open_jk">{{ t('control.open_jk', '开启监控') }}</span>
-						<div class='ssh-item' id="openJK" style="margin: 0;"></div>
+						<div class='ssh-item' id="openJK"></div>
 					</div>
-					<div style="display: flex; align-items: center; gap: 10px;">
+					<div class="monitor-item-group">
 						<span data-i18n="control.save_days">{{ t('control.save_days', '保存天数：') }}</span>
-						<input class="bt-input-text" id="save_day" value="" type="number" style="width: 70px; height: 30px; font-size: 14px; margin: 0;">
-						<button class="btn btn-default btn-sm" type="button" onclick="setControl('save_day',true);" style="height: 30px;" data-i18n="public.change">{{ t('public.change', '更改') }}</button>
+						<input class="bt-input-text" id="save_day" value="" type="number" style="width: 55px;">
+						<button class="btn btn-default btn-sm" type="button" onclick="setControl('save_day',true);" data-i18n="public.change">{{ t('public.change', '更改') }}</button>
 					</div>
-					<div style="display: flex; align-items: center; gap: 10px; padding-left: 20px; border-left: 1px solid #eee;">
+					<div class="monitor-item-group" style="padding-left: 14px; border-left: 1px solid #eee;">
 						<span data-i18n="control.stat_wan_only">{{ t('control.stat_wan_only', '仅统计外网') }}</span>
-						<div class='ssh-item' id="statAll" style="margin: 0;"></div>
+						<div class='ssh-item' id="statAll"></div>
 					</div>
-					<div style="padding-left: 10px;">
-						<button class="btn btn-default btn-sm" type="button" onclick="closeControl()" style="height: 30px;" data-i18n="control.clear_records">{{ t('control.clear_records', '清空记录') }}</button>
+					<div class="monitor-item-group">
+						<button class="btn btn-default btn-sm" type="button" onclick="closeControl()" data-i18n="control.clear_records">{{ t('control.clear_records', '清空记录') }}</button>
 					</div>
 				</div>
 			</div>
+
 			<style>
-				.monitor-col { padding: 0 5px; margin-bottom: 10px; }
-				.monitor-box { background: #fff; padding-bottom: 0px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: visible; }
-				.monitor-title { padding: 10px 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
-				.monitor-title h3 { margin: 0; font-size: 15px; font-weight: 500; color: #333; }
-				.monitor-chart { width: 100%; height: calc((100vh - 260px) / 2); min-height: 200px; margin: 0 auto; }
-				.enlarge-btn { cursor: pointer; color: #999; transition: all 0.2s; font-size: 14px; margin-left: 10px; }
-				.enlarge-btn:hover { color: #20a53a; transform: scale(1.1); }
-				.searcTime { font-size: 12px; display: flex; align-items: center; gap: 8px; position: relative; }
-				.searcTime .tit { display: none; }
-				.searcTime .gt { padding: 2px 6px; margin: 0; cursor: pointer; color: #666; transition: background 0.2s; }
-				.searcTime .gt:hover { color: #20a53a; }
-				.searcTime .gt.on { background: #20a53a; color: #fff; border-radius: 3px; }
-				.searcTime .ss { position: relative; margin-left: 2px; }
-				.searcTime .st { cursor: pointer; color: #666; transition: color 0.2s; }
-				.searcTime .st:hover { color: #20a53a; }
-				.searcTime .time { display: none; position: absolute; right: 0; top: 25px; z-index: 10; background: #fff; border: 1px solid #e2e2e2; padding: 10px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: max-content; }
-				.searcTime .time .bt { display: block; margin-bottom: 8px; color: #666; }
-				.searcTime .time .rtime { border: 1px solid #ccc; border-radius: 3px; padding: 3px 5px; font-size: 12px; width: 260px; outline: none; }
-				.searcTime .time .sbtn { display: block; background: #20a53a; color: #fff; text-align: center; border-radius: 3px; padding: 5px 0; cursor: pointer; transition: background 0.2s; }
-				.searcTime .time .sbtn:hover { background: #1b8a31; }
+				.monitor-topbar {
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					height: 50px;
+					padding: 0 15px;
+					margin-top: 12px;
+					margin-bottom: 12px;
+					border-radius: 6px;
+					box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+					border: 1px solid #edf2f7;
+					background: #fff;
+				}
+				.monitor-topbar-left, .monitor-topbar-center, .monitor-topbar-right {
+					display: flex;
+					align-items: center;
+					height: 100%;
+				}
+				.monitor-topbar-center {
+					gap: 10px;
+				}
+				.monitor-topbar-right {
+					gap: 16px;
+					color: #666;
+					font-size: 13px;
+				}
+				.monitor-item-group {
+					display: inline-flex;
+					align-items: center;
+					gap: 8px;
+					height: 30px;
+				}
+				.monitor-topbar .bt-input-text {
+					height: 28px;
+					line-height: 28px;
+					margin: 0;
+					padding: 0 6px;
+					border: 1px solid #ccc;
+					border-radius: 3px;
+					box-sizing: border-box;
+					vertical-align: middle;
+					font-size: 13px;
+				}
+				.monitor-topbar .btn {
+					height: 28px;
+					line-height: 26px;
+					padding: 0 10px;
+					margin: 0;
+					vertical-align: middle;
+					box-sizing: border-box;
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					font-size: 12px;
+				}
+				.monitor-topbar .ssh-item {
+					display: inline-flex;
+					align-items: center;
+					margin: 0;
+					height: 24px;
+				}
+				.monitor-topbar .btswitch-btn {
+					margin: 0 !important;
+					vertical-align: middle;
+				}
+				.monitor-topbar .searcTime {
+					display: inline-flex;
+					align-items: center;
+					gap: 3px;
+					height: 28px;
+					position: relative;
+				}
+				.monitor-topbar .searcTime .gt {
+					height: 26px;
+					line-height: 26px;
+					padding: 0 9px;
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					box-sizing: border-box;
+					cursor: pointer;
+					color: #666;
+					border-radius: 3px;
+					transition: all 0.2s;
+					font-size: 12px;
+				}
+				.monitor-topbar .searcTime .gt:hover { color: #20a53a; background: #eaf7ed; }
+				.monitor-topbar .searcTime .gt.on { background: #20a53a; color: #fff; }
+				.monitor-topbar .searcTime .ss { position: relative; margin-left: 2px; }
+				.monitor-topbar .searcTime .st {
+					height: 26px;
+					line-height: 26px;
+					padding: 0 6px;
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					cursor: pointer;
+					color: #666;
+					transition: color 0.2s;
+				}
+				.monitor-topbar .searcTime .st:hover { color: #20a53a; }
+				.monitor-topbar .searcTime .time {
+					display: none;
+					position: absolute;
+					right: 0;
+					top: 32px;
+					z-index: 100;
+					background: #fff;
+					border: 1px solid #e2e2e2;
+					padding: 12px;
+					border-radius: 4px;
+					box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+					width: max-content;
+				}
+				.monitor-topbar .searcTime .time .bt { display: block; margin-bottom: 8px; color: #666; font-size: 12px; }
+				.monitor-topbar .searcTime .time .rtime { border: 1px solid #ccc; border-radius: 3px; padding: 4px 8px; font-size: 12px; width: 280px; outline: none; }
+				.monitor-topbar .searcTime .time .sbtn { display: block; background: #20a53a; color: #fff; text-align: center; border-radius: 3px; padding: 6px 0; cursor: pointer; transition: background 0.2s; margin-top: 8px; font-size: 12px; }
+				.monitor-topbar .searcTime .time .sbtn:hover { background: #1b8a31; }
+
+				.monitor-col { padding: 0 6px; margin-bottom: 10px; }
+				.monitor-box { background: #fff; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: visible; border: 1px solid #edf2f7; }
+				.monitor-title { padding: 8px 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; background: #fafbfc; border-radius: 6px 6px 0 0; }
+				.monitor-title-left { display: flex; align-items: center; gap: 6px; }
+				.monitor-title h3 { margin: 0; font-size: 14px; font-weight: 600; color: #333; line-height: 1.4; }
+				.monitor-title .help-tip { color: #999; cursor: pointer; font-size: 13px; transition: color 0.2s; }
+				.monitor-title .help-tip:hover { color: #20a53a; }
+				.monitor-chart { width: 100%; height: calc((100vh - 290px) / 2); min-height: 200px; margin: 0 auto; }
+				.enlarge-btn { cursor: pointer; color: #999; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; padding: 2px; }
+				.enlarge-btn:hover { color: #20a53a; transform: scale(1.15); }
+				
+				.global-slider-box {
+					padding: 4px 10px;
+					margin-bottom: 0px;
+					background: #fff;
+					border-radius: 6px;
+					box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+					border: 1px solid #edf2f7;
+				}
+				#global_timeline_view {
+					width: 100%;
+					height: 38px;
+				}
 			</style>
-			<div class="control row" style="margin: 0 -5px;">
-				<!-- Box 1: 资源使用率 -->
-				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+
+			<!-- 4 大核心聚合看板 -->
+			<div class="control row" style="margin: 0 -6px;">
+				<!-- Box 1: 计算资源 (CPU & 内存) -->
+				<div class="col-md-6 col-sm-12 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3 data-i18n="control.resource_usage">{{ t('control.resource_usage', '系统资源使用率') }}</h3>
-							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'getload')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
-								<span class="gt" onclick="Wday(1,'getload')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
-								<span class="gt" onclick="Wday(7,'getload')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
-								<span class="gt" onclick="Wday(30,'getload')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
-								<div class="ss">
-									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
-									<div class="time">
-										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="loadbtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn loadbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
-									</div>
-								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_resource_view', (window.lan && lan.control && lan.control.resource_usage) || '{{ t('control.resource_usage', '系统资源使用率') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+							<div class="monitor-title-left">
+								<h3 data-i18n="control.compute_resources">{{ t('control.compute_resources', '计算资源 (CPU & 内存)') }}</h3>
 							</div>
+							<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('compute_view')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 						</div>
-						<div id="getload_resource_view" class="monitor-chart"></div>
+						<div id="compute_view" class="monitor-chart"></div>
 					</div>
 				</div>
-				<!-- Box 2: 平均负载 -->
-				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+
+				<!-- Box 2: 平均负载 (1/5/15分钟) -->
+				<div class="col-md-6 col-sm-12 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3 data-i18n="control.average_load">{{ t('control.average_load', '平均负载 (1/5/15分钟)') }}</h3>
-							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'getload')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
-								<span class="gt" onclick="Wday(1,'getload')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
-								<span class="gt" onclick="Wday(7,'getload')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
-								<span class="gt" onclick="Wday(30,'getload')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_average_view', (window.lan && lan.control && lan.control.average_load) || '{{ t('control.average_load', '平均负载') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+							<div class="monitor-title-left">
+								<h3 data-i18n="control.average_load">{{ t('control.average_load', '平均负载 (1/5/15分钟)') }}</h3>
+								<span class="glyphicon glyphicon-question-sign help-tip" data-i18n-attr="title" data-i18n="control.load_saturation_tips" title="{{ t('control.load_saturation_tips', '基于1分钟负载与CPU核心容量计算') }}"></span>
 							</div>
+							<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('getload_average_view')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 						</div>
 						<div id="getload_average_view" class="monitor-chart"></div>
 					</div>
 				</div>
-				<!-- Box 3: CPU -->
-				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+
+				<!-- Box 3: 磁盘 I/O -->
+				<div class="col-md-6 col-sm-12 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3 data-i18n="control.cpu_usage">{{ t('control.cpu_usage', 'CPU使用率') }}</h3>
-							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'cpu')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
-								<span class="gt" onclick="Wday(1,'cpu')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
-								<span class="gt" onclick="Wday(7,'cpu')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
-								<span class="gt" onclick="Wday(30,'cpu')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
-								<div class="ss">
-									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
-									<div class="time">
-										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="cpubtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn cpubtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
-									</div>
-								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('cupview', (window.lan && lan.control && lan.control.cpu_usage) || '{{ t('control.cpu_usage', 'CPU使用率') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+							<div class="monitor-title-left">
+								<h3 data-i18n="control.disk_io">{{ t('control.disk_io', '磁盘 I/O') }}</h3>
 							</div>
-						</div>
-						<div id="cupview" class="monitor-chart"></div>
-					</div>
-				</div>
-				<!-- Box 4: 内存 -->
-				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
-					<div class="monitor-box">
-						<div class="monitor-title">
-							<h3 data-i18n="control.mem_usage">{{ t('control.mem_usage', '内存使用率') }}</h3>
-							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'mem')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
-								<span class="gt" onclick="Wday(1,'mem')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
-								<span class="gt" onclick="Wday(7,'mem')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
-								<span class="gt" onclick="Wday(30,'mem')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
-								<div class="ss">
-									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
-									<div class="time">
-										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="membtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn membtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
-									</div>
-								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('memview', (window.lan && lan.control && lan.control.mem_usage) || '{{ t('control.mem_usage', '内存使用率') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
-							</div>
-						</div>
-						<div id="memview" class="monitor-chart"></div>
-					</div>
-				</div>
-				<!-- Box 5: 磁盘IO -->
-				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
-					<div class="monitor-box">
-						<div class="monitor-title">
-							<h3 data-i18n="control.disk_io">{{ t('control.disk_io', '磁盘 I/O') }}</h3>
-							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'disk')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
-								<span class="gt" onclick="Wday(1,'disk')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
-								<span class="gt" onclick="Wday(7,'disk')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
-								<span class="gt" onclick="Wday(30,'disk')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
-								<div class="ss">
-									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
-									<div class="time">
-										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="diskbtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn diskbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
-									</div>
-								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('diskview', (window.lan && lan.control && lan.control.disk_io) || '{{ t('control.disk_io', '磁盘 I/O') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
-							</div>
+							<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('diskview')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 						</div>
 						<div id="diskview" class="monitor-chart"></div>
 					</div>
 				</div>
-				<!-- Box 6: 网络IO -->
-				<div class="col-md-4 col-sm-6 col-xs-12 monitor-col">
+
+				<!-- Box 4: 网络 I/O -->
+				<div class="col-md-6 col-sm-12 col-xs-12 monitor-col">
 					<div class="monitor-box">
 						<div class="monitor-title">
-							<h3 data-i18n="control.net_io">{{ t('control.net_io', '网络 I/O') }}</h3>
-							<div class="searcTime">
-								<span class="gt on" onclick="Wday(0,'network')" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
-								<span class="gt" onclick="Wday(1,'network')" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
-								<span class="gt" onclick="Wday(7,'network')" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
-								<span class="gt" onclick="Wday(30,'network')" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
-								<div class="ss">
-									<span class="st"><span class="glyphicon glyphicon-calendar"></span></span>
-									<div class="time">
-										<span class="bt"><span data-i18n="control.custom_range">{{ t('control.custom_range', '自定义范围：') }}</span><br><input id="networkbtn_rtime" class="rtime" type="text" value=""></span>
-										<div class="sbtn networkbtn" data-i18n="public.submit">{{ t('public.submit', '提交') }}</div>
-									</div>
-								</div>
-								<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('network', (window.lan && lan.control && lan.control.net_io) || '{{ t('control.net_io', '网络 I/O') }}')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
+							<div class="monitor-title-left">
+								<h3 data-i18n="control.net_io">{{ t('control.net_io', '网络 I/O') }}</h3>
 							</div>
+							<span class="enlarge-btn glyphicon glyphicon-fullscreen" onclick="enlargeChart('network')" data-i18n-attr="title" data-i18n="control.enlarge_chart" title="{{ t('control.enlarge_chart', '放大图表') }}"></span>
 						</div>
 						<div id="network" class="monitor-chart"></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 底部全局时间轴拖拉条 -->
+			<div class="row" style="margin: 0 -6px;">
+				<div class="col-xs-12" style="padding: 0 6px;">
+					<div class="global-slider-box">
+						<div id="global_timeline_view"></div>
 					</div>
 				</div>
 			</div>

@@ -1635,7 +1635,16 @@ var lan = {
 			"load_details": "Load details",
 			"minute_3": "1 minute",
 			"minutes_6": "5 minutes",
-			"minutes_7": "15 minutes"
+			"minutes_7": "15 minutes",
+			"compute_resources": "Computing Resources (CPU & Memory)",
+			"load_saturation": "Load Saturation%",
+			"load_saturation_tips": "Calculated from 1-min load and CPU capacity",
+			"global_time_range": "Time Range",
+			"all_charts": "All Charts",
+			"cpu": "CPU",
+			"mem": "Memory",
+			"load_safe_line": "Safe Baseline",
+			"load_limit_line": "Full Load Alert"
 		},
 
 	"crontab": {

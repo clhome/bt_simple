@@ -1635,7 +1635,16 @@ var lan = {
 			"load_details": "Charger les détails",
 			"minute_3": "1 minute",
 			"minutes_6": "5 minutes",
-			"minutes_7": "15 minutes"
+			"minutes_7": "15 minutes",
+			"compute_resources": "Ressources de calcul (CPU & Mémoire)",
+			"load_saturation": "Saturation de la charge%",
+			"load_saturation_tips": "Calculé à partir de la charge sur 1 min et de la capacité du CPU",
+			"global_time_range": "Période",
+			"all_charts": "Tous les graphiques",
+			"cpu": "CPU",
+			"mem": "Mémoire",
+			"load_safe_line": "Ligne de sécurité",
+			"load_limit_line": "Ligne de pleine charge"
 		},
 
 	"crontab": {
