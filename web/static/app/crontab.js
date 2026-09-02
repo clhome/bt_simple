@@ -1,6 +1,22 @@
 var num = 0;
 var g_orderby = 'last_run_time';
 var g_order = 'desc';
+
+// 获取日期限制类型的多语言文案
+function getDayTypeText(day_type) {
+  day_type = String(day_type || '0');
+  switch (day_type) {
+    case '1':
+      return (window.lan && lan.crontab && (lan.crontab.day_stock || lan.crontab.stock_day)) || t('crontab.day_stock', '股票开盘日');
+    case '2':
+      return (window.lan && lan.crontab && (lan.crontab.day_workday || lan.crontab.work_day)) || t('crontab.day_workday', '工作日');
+    case '3':
+      return (window.lan && lan.crontab && (lan.crontab.day_holiday || lan.crontab.holiday)) || t('crontab.day_holiday', '节假日');
+    default:
+      return '';
+  }
+}
+
 //查看任务日志
 function getLogs(id, task_name) {
   if (typeof task_name == 'undefined') {
@@ -120,7 +136,7 @@ function getCronData(page) {
 					<td>" + rdata.data[i].cycle + "</td>\
 					<td>" + cron_save + "</td>\
 					<td>" + cron_backupto + "</td>\
-					<td>" + (rdata.data[i].day_type_h == (lan && lan.crontab && t('crontab.msg_1') || "") ? '' : rdata.data[i].day_type_h) + "</td>\
+					<td>" + getDayTypeText(rdata.data[i].day_type) + "</td>\
 					<td>" + rdata.data[i].last_run_time + "</td>\
 					<td>\
 						<a href=\"javascript:startTask(" + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.execute || '执行') + '</a> | <a href="javascript:editTaskInfo(\'' + rdata.data[i].id + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.edit || '编辑') + '</a> | <a href="javascript:getLogs(\'' + rdata.data[i].id + ", '" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.log || '日志') + '</a> | <a href="javascript:planDel(\'' + rdata.data[i].id + " ,'" + rdata.data[i].name.replace('\\', '\\\\').replace("'", "\\'").replace('"', '') + '\');" class=\'btlink\'>' + (lan && lan.public && lan.public.del || '删除') + '</a></td></tr>';
@@ -277,15 +293,20 @@ function planAdd() {
       is1 = 31;
       break;
   }
-  var where1 = $('#excode_week b').attr('val');
-  $("#cronConfig input[name='where1']").val(where1);
-  if (where1 > is1 || where1 < is2) {
-    $("#ptime input[name='where1']").trigger('focus');
-    layer.msg(lan && lan.crontab && t('crontab.the_form_is_invalid') || "", {
-      icon: 2
-    });
-    return;
+  var where1 = '';
+  if (time_type == 'week') {
+    where1 = $(".planweek").find("b").attr("val") || '1';
+  } else if (time_type == 'day-n' || time_type == 'minute-n' || time_type == 'month') {
+    where1 = $("#ptime input[name='where1']").val();
+    if (where1 > is1 || where1 < is2) {
+      $("#ptime input[name='where1']").trigger('focus');
+      layer.msg(lan && lan.crontab && t('crontab.the_form_is_invalid') || "", {
+        icon: 2
+      });
+      return;
+    }
   }
+  $("#cronConfig input[name='where1']").val(where1);
   var hour = $("#ptime input[name='hour']").val();
   if (hour > 23 || hour < 0) {
     $("#ptime input[name='hour']").trigger('focus');
@@ -399,8 +420,9 @@ function planAdd() {
     $("#cronConfig input[name='where1']").val(where1);
   }
   if (time_type == 'week') {
-    var where1 = $("#ptime input[name='where1']").val();
-    $("#cronConfig input[name='where1']").val(where1);
+    var weekVal = $(".planweek").find("b").attr("val") || '1';
+    $("#cronConfig input[name='where1']").val(weekVal);
+    $("#cronConfig input[name='week']").val(weekVal);
   }
   layer.msg(lan && lan.crontab && t('crontab.adding_please_wait_moment') || "", {
     icon: 16,
@@ -440,7 +462,7 @@ function initDropdownMenu() {
         break;
       case 'day-n':
         closeOpt();
-        toWhere1(lan && lan.crontab && t('crontab.sky') || "");
+        toWhere1((window.lan && lan.crontab && lan.crontab.sky) || t('crontab.sky', '天'));
         toHour();
         toMinute();
         break;
@@ -456,7 +478,7 @@ function initDropdownMenu() {
         break;
       case 'month':
         closeOpt();
-        toWhere1(lan && lan.crontab && t('crontab.day') || "");
+        toWhere1((window.lan && lan.crontab && lan.crontab.day) || t('crontab.day', '日'));
         toHour();
         toMinute();
         break;
@@ -821,12 +843,12 @@ function editTaskInfo(id) {
     '<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en_create" value="1" ' + (obj.from.min_end_en == 1 ? 'checked' : '') + ' style="vertical-align:middle;margin-top:-2px;"> ' + (lan && lan.crontab && lan.crontab.end_time || '结束时间') + '</label>' +
     '<input type="number" name="min_end_h_create" value="' + obj.from.min_end_h + '" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:' +
     '<input type="number" name="min_end_m_create" value="' + obj.from.min_end_m + '" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px;"></div></div>' +
-    '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + (lan && lan.crontab && lan.crontab.date_limit || '日期限制') + '</span>' +
+    '<div class="clearfix plan ptb10"><span class="typename c4 pull-left f14 text-right mr20">' + ((window.lan && lan.crontab && (lan.crontab.day_limit || lan.crontab.date_limit)) || t('crontab.day_limit', '日期限制')) + '</span>' +
     '<div class="pull-left" style="line-height:34px">' +
-    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="0" ' + (obj.from.day_type == 0 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.no_limit || '无') + '</label>' +
-    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="1" ' + (obj.from.day_type == 1 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.stock_day || '股票开盘日') + '</label>' +
-    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="2" ' + (obj.from.day_type == 2 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.work_day || '工作日') + '</label>' +
-    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="3" ' + (obj.from.day_type == 3 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + (lan && lan.crontab && lan.crontab.holiday || '节假日') + '</label></div></div>' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="0" ' + (obj.from.day_type == 0 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + ((window.lan && lan.crontab && (lan.crontab.day_none || lan.crontab.no_limit)) || t('crontab.day_none', '无')) + '</label>' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="1" ' + (obj.from.day_type == 1 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + ((window.lan && lan.crontab && (lan.crontab.day_stock || lan.crontab.stock_day)) || t('crontab.day_stock', '股票开盘日')) + '</label>' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="2" ' + (obj.from.day_type == 2 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + ((window.lan && lan.crontab && (lan.crontab.day_workday || lan.crontab.work_day)) || t('crontab.day_workday', '工作日')) + '</label>' +
+    '<label class="mr20" style="font-weight:normal;cursor:pointer"><input type="radio" name="day_type_radio_edit" value="3" ' + (obj.from.day_type == 3 ? 'checked' : '') + ' style="width:16px;height:16px;vertical-align:middle;margin-top:-2px"> ' + ((window.lan && lan.crontab && (lan.crontab.day_holiday || lan.crontab.holiday)) || t('crontab.day_holiday', '节假日')) + '</label></div></div>' +
     '<div class="clearfix plan ptb10 site_list" style="display:none"><span class="typename controls c4 pull-left f14 text-right mr20">' + sTypeName + '</span>' +
     '<div style="line-height:34px"><div class="dropdown pull-left mr20 sName_btn" style="display:' + (obj.from.sType != "path" ? 'block;' : 'none') + '">' +
     '<button class="btn btn-default dropdown-toggle sname" type="button" data-toggle="dropdown" style="width:auto" disabled="disabled">' +
@@ -1027,7 +1049,27 @@ function closeOpt() {
 }
 //星期
 function toWeek() {
-  var mBody = lan && lan.crontab && t('crontab.dropdown_planweek_mr_default') || "";
+  var mon = (window.lan && lan.crontab && lan.crontab.monday) || t('crontab.monday', '周一');
+  var tue = (window.lan && lan.crontab && lan.crontab.tuesday) || t('crontab.tuesday', '周二');
+  var wed = (window.lan && lan.crontab && lan.crontab.wednesday) || t('crontab.wednesday', '周三');
+  var thu = (window.lan && lan.crontab && lan.crontab.thursday) || t('crontab.thursday', '周四');
+  var fri = (window.lan && lan.crontab && lan.crontab.friday) || t('crontab.friday', '周五');
+  var sat = (window.lan && lan.crontab && lan.crontab.saturday) || t('crontab.saturday', '周六');
+  var sun = (window.lan && lan.crontab && lan.crontab.sunday) || t('crontab.sunday', '周日');
+  var mBody = '<div class="dropdown planweek pull-left mr20">\
+	 	<button class="btn btn-default dropdown-toggle" type="button" id="excode_week" data-toggle="dropdown">\
+			<b val="1">' + mon + '</b> <span class="caret"></span>\
+	  	</button>\
+	  	<ul class="dropdown-menu" role="menu" aria-labelledby="excode_week">\
+			<li><a role="menuitem" tabindex="-1" href="javascript:;" value="1">' + mon + '</a></li>\
+			<li><a role="menuitem" tabindex="-1" href="javascript:;" value="2">' + tue + '</a></li>\
+			<li><a role="menuitem" tabindex="-1" href="javascript:;" value="3">' + wed + '</a></li>\
+			<li><a role="menuitem" tabindex="-1" href="javascript:;" value="4">' + thu + '</a></li>\
+			<li><a role="menuitem" tabindex="-1" href="javascript:;" value="5">' + fri + '</a></li>\
+			<li><a role="menuitem" tabindex="-1" href="javascript:;" value="6">' + sat + '</a></li>\
+			<li><a role="menuitem" tabindex="-1" href="javascript:;" value="0">' + sun + '</a></li>\
+	 	</ul>\
+	</div>';
   $("#ptime").html(mBody);
   getselectname();
 }
@@ -1042,25 +1084,49 @@ function toWhere1(ix) {
 
 //N分钟特别带上下限
 function toMinuteN() {
-  var mBody = lan && lan.crontab && t('crontab.plan_hms_mr_bt') || "";
+  var minuteText = (window.lan && lan.public && lan.public.minutes) || t('public.minutes', '分钟');
+  var startTimeText = (window.lan && lan.crontab && lan.crontab.start_time) || t('crontab.start_time', '开始时间');
+  var endTimeText = (window.lan && lan.crontab && lan.crontab.end_time) || t('crontab.end_time', '结束时间');
+  var mBody = '<div class="plan_hms pull-left mr20 bt-input-text">\
+		<span><input type="number" name="where1" value="30" maxlength="2" max="59" min="0"></span>\
+		<span class="name">' + minuteText + '</span>\
+	</div>\
+	<div class="plan_hms pull-left mr20">\
+		<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_start_en" value="1" style="vertical-align:middle;margin-top:-2px;"> ' + startTimeText + '</label>\
+		<input type="number" name="min_start_h" value="0" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+		<input type="number" name="min_start_m" value="0" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px; margin-right: 15px;">\
+		<label style="font-weight:normal;cursor:pointer;margin-right:10px;"><input type="checkbox" name="min_end_en" value="1" style="vertical-align:middle;margin-top:-2px;"> ' + endTimeText + '</label>\
+		<input type="number" name="min_end_h" value="23" maxlength="2" max="23" min="0" class="bt-input-text" style="width:50px; margin-right: 5px;">:\
+		<input type="number" name="min_end_m" value="59" maxlength="2" max="59" min="0" class="bt-input-text" style="width:50px;">\
+	</div>';
   $("#ptime").append(mBody);
 }
 
 //小时
 function toHour() {
-  var mBody = lan && lan.crontab && t('crontab.plan_hms_mr_bt_1') || "";
+  var hourText = (window.lan && lan.public && lan.public.hours) || t('public.hours', '小时');
+  var mBody = '<div class="plan_hms pull-left mr20 bt-input-text">\
+		<span><input type="number" name="hour" value="1" maxlength="2" max="23" min="0"></span>\
+		<span class="name">' + hourText + '</span>\
+	</div>';
   $("#ptime").append(mBody);
 }
 
 //分钟
 function toMinute() {
-  var mBody = lan && lan.crontab && t('crontab.plan_hms_mr_bt_2') || "";
+  var minuteText = (window.lan && lan.public && lan.public.minutes) || t('public.minutes', '分钟');
+  var mBody = '<div class="plan_hms pull-left mr20 bt-input-text">\
+		<span><input type="number" name="minute" value="30" maxlength="2" max="59" min="0"></span>\
+		<span class="name">' + minuteText + '</span>\
+	</div>';
   $("#ptime").append(mBody);
 }
 
 //从文件
 function toFile() {
-  var tBody = lan && lan.crontab && t('crontab.name_file_viewfile_fileupload') || "";
+  var selectText = (window.lan && lan.public && lan.public.select) || t('public.select', '选择');
+  var tBody = '<input type="text" value="" name="file" id="viewfile" onclick="fileupload()" readonly="true">\
+		<button class="btn btn-default" onclick="fileupload()">' + selectText + '</button>';
   $("#implement").html(tBody);
   $(".planname input[name='name']").removeAttr('readonly style').val("");
 }

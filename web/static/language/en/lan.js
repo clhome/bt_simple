@@ -1750,8 +1750,8 @@ var lan = {
 			"please_script_file": "Please select a script file!",
 			"the_url_is_incorrect": "The URL address is incorrect!",
 			"adding_please_wait_moment": "Adding, please wait...!",
-			"sky": "day",
-			"day": "day",
+			"sky": "Days",
+			"day": "Day",
 			"script_content_1": "Script Content",
 			"note_1": "Tip",
 			"back_up_website": "Backup Website",
@@ -1859,8 +1859,20 @@ var lan = {
 			"file_write_failed_is": "File writing failed, should you turn on the system hardening function?",
 			"tasks_were_successfully_detected": "Successfully detected and synced {1} tasks",
 			"duplicate_quest_name": "Duplicate task name",
-			"the_current_task_list": "The current task list is up to date and there are no missing tasks that need to be synchronized."
-		},
+			"the_current_task_list": "The current task list is up to date and there are no missing tasks that need to be synchronized.",
+			"day_none": "None",
+			"day_stock": "Stock Trading Day",
+			"day_workday": "Workday",
+			"day_holiday": "Holiday",
+			"no_limit": "None",
+			"stock_day": "Stock Trading Day",
+			"work_day": "Workday",
+			"holiday": "Holiday",
+			"date_limit": "Day Restriction",
+			"start_time": "Start time",
+			"end_time": "End time",
+			"execute_time": "Execute Time"
+},
 
 	"files": {
 			"BTN1": "Back",

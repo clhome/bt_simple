@@ -1859,8 +1859,20 @@ var lan = {
 			"file_write_failed_is": "文件写入失败,是否开启系统加固功能!",
 			"tasks_were_successfully_detected": "成功检测并同步了 {1} 个任务",
 			"duplicate_quest_name": "任务名称重复",
-			"the_current_task_list": "当前任务列表已是最新，无缺失任务需要同步"
-		},
+			"the_current_task_list": "当前任务列表已是最新，无缺失任务需要同步",
+			"day_none": "无",
+			"day_stock": "股票开盘日",
+			"day_workday": "工作日",
+			"day_holiday": "节假日",
+			"no_limit": "无",
+			"stock_day": "股票开盘日",
+			"work_day": "工作日",
+			"holiday": "节假日",
+			"date_limit": "日期限制",
+			"start_time": "开始时间",
+			"end_time": "结束时间",
+			"execute_time": "执行时间"
+},
 
 	"files": {
 			"BTN1": "后退",

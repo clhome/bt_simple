@@ -62,6 +62,126 @@ FULL_I18N_DICTIONARY = {
             "it": "File"
         },
         "crontab": {
+        "day_limit": {
+            "zh-CN": "日期限制",
+            "zh-TW": "日期限制",
+            "en": "Day Restriction",
+            "fr": "Restriction de jours",
+            "de": "Tagesbegrenzung",
+            "it": "Restrizione giorni"
+},
+        "day_none": {
+            "zh-CN": "无",
+            "zh-TW": "無",
+            "en": "None",
+            "fr": "Aucun",
+            "de": "Keine",
+            "it": "Nessuna"
+},
+        "day_stock": {
+            "zh-CN": "股票开盘日",
+            "zh-TW": "股票開盤日",
+            "en": "Stock Trading Day",
+            "fr": "Jour de bourse",
+            "de": "Börsenhandelstag",
+            "it": "Giorno di borsa"
+},
+        "day_workday": {
+            "zh-CN": "工作日",
+            "zh-TW": "工作日",
+            "en": "Workday",
+            "fr": "Jour ouvrable",
+            "de": "Werktag",
+            "it": "Giorno lavorativo"
+},
+        "day_holiday": {
+            "zh-CN": "节假日",
+            "zh-TW": "節假日",
+            "en": "Holiday",
+            "fr": "Jour férié",
+            "de": "Feiertag",
+            "it": "Giorno festivo"
+},
+        "no_limit": {
+            "zh-CN": "无",
+            "zh-TW": "無",
+            "en": "None",
+            "fr": "Aucun",
+            "de": "Keine",
+            "it": "Nessuna"
+},
+        "stock_day": {
+            "zh-CN": "股票开盘日",
+            "zh-TW": "股票開盤日",
+            "en": "Stock Trading Day",
+            "fr": "Jour de bourse",
+            "de": "Börsenhandelstag",
+            "it": "Giorno di borsa"
+},
+        "work_day": {
+            "zh-CN": "工作日",
+            "zh-TW": "工作日",
+            "en": "Workday",
+            "fr": "Jour ouvrable",
+            "de": "Werktag",
+            "it": "Giorno lavorativo"
+},
+        "holiday": {
+            "zh-CN": "节假日",
+            "zh-TW": "節假日",
+            "en": "Holiday",
+            "fr": "Jour férié",
+            "de": "Feiertag",
+            "it": "Giorno festivo"
+},
+        "date_limit": {
+            "zh-CN": "日期限制",
+            "zh-TW": "日期限制",
+            "en": "Day Restriction",
+            "fr": "Restriction de jours",
+            "de": "Tagesbegrenzung",
+            "it": "Restrizione giorni"
+},
+        "start_time": {
+            "zh-CN": "开始时间",
+            "zh-TW": "開始時間",
+            "en": "Start time",
+            "fr": "Heure de début",
+            "de": "Startzeit",
+            "it": "Ora di inizio"
+},
+        "end_time": {
+            "zh-CN": "结束时间",
+            "zh-TW": "結束時間",
+            "en": "End time",
+            "fr": "Heure de fin",
+            "de": "Endzeit",
+            "it": "Ora di fine"
+},
+        "execute_time": {
+            "zh-CN": "执行时间",
+            "zh-TW": "執行時間",
+            "en": "Execute Time",
+            "fr": "Heure d'exécution",
+            "de": "Ausführungszeit",
+            "it": "Ora di esecuzione"
+},
+        "sky": {
+            "zh-CN": "天",
+            "zh-TW": "天",
+            "en": "Days",
+            "fr": "Jours",
+            "de": "Tage",
+            "it": "Giorni"
+},
+        "day": {
+            "zh-CN": "日",
+            "zh-TW": "日",
+            "en": "Day",
+            "fr": "Jour",
+            "de": "Tag",
+            "it": "Giorno"
+},
             "zh-CN": "计划任务",
             "zh-TW": "計劃任務",
             "en": "Cron Tasks",

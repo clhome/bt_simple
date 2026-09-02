@@ -1750,8 +1750,8 @@ var lan = {
 			"please_script_file": "Seleziona un file di script!",
 			"the_url_is_incorrect": "L'indirizzo URL non è corretto!",
 			"adding_please_wait_moment": "Aggiunta in corso, attendere...!",
-			"sky": "cielo",
-			"day": "giorno",
+			"sky": "Giorni",
+			"day": "Giorno",
 			"script_content_1": "Contenuto dello script",
 			"note_1": "Suggerimento",
 			"back_up_website": "Backup sito web",
@@ -1859,8 +1859,20 @@ var lan = {
 			"file_write_failed_is": "Scrittura del file non riuscita, è necessario attivare la funzione di rafforzamento del sistema?",
 			"tasks_were_successfully_detected": "Attività {1} rilevate e sincronizzate correttamente",
 			"duplicate_quest_name": "Nome attività duplicato",
-			"the_current_task_list": "L'elenco delle attività correnti è aggiornato e non ci sono attività mancanti che devono essere sincronizzate."
-		},
+			"the_current_task_list": "L'elenco delle attività correnti è aggiornato e non ci sono attività mancanti che devono essere sincronizzate.",
+			"day_none": "Nessuna",
+			"day_stock": "Giorno di borsa",
+			"day_workday": "Giorno lavorativo",
+			"day_holiday": "Giorno festivo",
+			"no_limit": "Nessuna",
+			"stock_day": "Giorno di borsa",
+			"work_day": "Giorno lavorativo",
+			"holiday": "Giorno festivo",
+			"date_limit": "Restrizione giorni",
+			"start_time": "Ora di inizio",
+			"end_time": "Ora di fine",
+			"execute_time": "Ora di esecuzione"
+},
 
 	"files": {
 			"BTN1": "Indietro",

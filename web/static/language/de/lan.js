@@ -1750,7 +1750,7 @@ var lan = {
 			"please_script_file": "Bitte wählen Sie eine Skriptdatei aus!",
 			"the_url_is_incorrect": "Die URL-Adresse ist falsch!",
 			"adding_please_wait_moment": "Wird hinzugefügt, bitte warten...!",
-			"sky": "Tag",
+			"sky": "Tage",
 			"day": "Tag",
 			"script_content_1": "Skriptinhalt",
 			"note_1": "Hinweis",
@@ -1859,8 +1859,20 @@ var lan = {
 			"file_write_failed_is": "Das Schreiben der Datei ist fehlgeschlagen. Sollten Sie die Systemhärtungsfunktion aktivieren?",
 			"tasks_were_successfully_detected": "{1} Aufgaben erfolgreich erkannt und synchronisiert",
 			"duplicate_quest_name": "Doppelter Aufgabenname",
-			"the_current_task_list": "Die aktuelle Aufgabenliste ist aktuell und es fehlen keine Aufgaben, die synchronisiert werden müssen."
-		},
+			"the_current_task_list": "Die aktuelle Aufgabenliste ist aktuell und es fehlen keine Aufgaben, die synchronisiert werden müssen.",
+			"day_none": "Keine",
+			"day_stock": "Börsenhandelstag",
+			"day_workday": "Werktag",
+			"day_holiday": "Feiertag",
+			"no_limit": "Keine",
+			"stock_day": "Börsenhandelstag",
+			"work_day": "Werktag",
+			"holiday": "Feiertag",
+			"date_limit": "Tagesbegrenzung",
+			"start_time": "Startzeit",
+			"end_time": "Endzeit",
+			"execute_time": "Ausführungszeit"
+},
 
 	"files": {
 			"BTN1": "Zurück",

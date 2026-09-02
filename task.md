@@ -1,7 +1,8 @@
 # 面板前端UI/UX现代化优化任务
 
 > 项目整体描述：优化御风面板前端界面，使用现代设计规范（卡片化、圆角、弥散阴影等），基于纯CSS和现有jQuery实现，不新增插件。
-> 开发规范描述：KISS原则，优先复用项目中已有的函数和模块。无BOM UTF-8格式，LF换行符。不允许使用>或>>重定向。
+> 开发规范描述：KISS原则，优先复用项目中已有的函数和模块。无BOM UTF-8格式，LF换行符。不允许使用>或>>重定向。所有测试程序与阶段性临时排查/批处理工具统一放置在根目录test文件夹中，保持生产目录整洁。
+
 
 ## Task List
 
@@ -536,4 +537,15 @@
 - [x] 5. 重新生成 6 种语言包，确保全量 UTF-8 无 BOM 与 LF 换行符。
 - [x] 6. 编写全自动回归测试套件 `test/test_all_foreign_languages_complete.py`，全量验证英、法、德、意 0 中文残留、0 格式异常、键对齐率 100%。
 - [x] 7. 运行全仓库回归测试套件确保所有已有功能与测试 100% 绿灯（108 个测试用例全部通过）。
+
+## 第三十九阶段：计划任务弹窗执行周期渲染修复与 Day Restriction 国际化全量补全 (完成)
+
+- [x] 1. 重构 `web/static/app/crontab.js` 中的周期渲染函数（`toWeek`, `toHour`, `toMinute`, `toWhere1`, `toMinuteN`, `toFile`），使用规范闭合的 DOM 结构结合 `t()` 国际化文本，彻底消除未闭合 HTML 片段导致的布局坍塌。
+- [x] 2. 修复 `crontab.js` 中 `planAdd()` 收集周任务（`time_type === 'week'`）参数时的表单提取逻辑，确保 `where1` 和 `week` 参数正确赋值。
+- [x] 3. 在 `scripts/tools/phrases_full.py` 与 6 国语言包（zh-CN, zh-TW, en, fr, de, it）的 `template.json` 与 `lan.js` 中完整录入 `day_limit`、`day_none`、`day_stock`、`day_workday`、`day_holiday` 词条及兼容别名。
+- [x] 4. 优化 `web/templates/default/crontab.html` 中的 Day Restriction 动态插入单选组，添加标准国际化支持。
+- [x] 5. 优化 `web/static/app/crontab.js` 中的编辑任务弹窗（`setCrond`）与列表表格渲染（`getCronData`），实现表格日期限制列的多语言动态转换。
+- [x] 6. 清理 `web/admin/crontab/__init__.py` 中截断导致的重复死代码。
+- [x] 7. 编写全自动测试套件 `test/test_crontab_i18n_fix.py` 并运行全量回归验证确保 100% 通过（全仓库 111 个测试用例全部绿灯）。
+
 

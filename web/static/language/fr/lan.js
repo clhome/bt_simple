@@ -1750,8 +1750,8 @@ var lan = {
 			"please_script_file": "Veuillez sélectionner un fichier de script !",
 			"the_url_is_incorrect": "L'adresse URL est incorrecte !",
 			"adding_please_wait_moment": "Ajout en cours, veuillez patienter...!",
-			"sky": "jour",
-			"day": "jour",
+			"sky": "Jours",
+			"day": "Jour",
 			"script_content_1": "Contenu du script",
 			"note_1": "Conseil",
 			"back_up_website": "Sauvegarder le site",
@@ -1859,8 +1859,20 @@ var lan = {
 			"file_write_failed_is": "L'écriture du fichier a échoué, devez-vous activer la fonction de renforcement du système ?",
 			"tasks_were_successfully_detected": "{1} tâches détectées et synchronisées avec succès",
 			"duplicate_quest_name": "Nom de tâche en double",
-			"the_current_task_list": "La liste des tâches actuelle est à jour et aucune tâche manquante ne doit être synchronisée."
-		},
+			"the_current_task_list": "La liste des tâches actuelle est à jour et aucune tâche manquante ne doit être synchronisée.",
+			"day_none": "Aucun",
+			"day_stock": "Jour de bourse",
+			"day_workday": "Jour ouvrable",
+			"day_holiday": "Jour férié",
+			"no_limit": "Aucun",
+			"stock_day": "Jour de bourse",
+			"work_day": "Jour ouvrable",
+			"holiday": "Jour férié",
+			"date_limit": "Restriction de jours",
+			"start_time": "Heure de début",
+			"end_time": "Heure de fin",
+			"execute_time": "Heure d'exécution"
+},
 
 	"files": {
 			"BTN1": "Dos",
