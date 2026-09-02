@@ -65,74 +65,92 @@
 					box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 					border: 1px solid #edf2f7;
 					background: #fff;
+					box-sizing: border-box;
 				}
 				.monitor-topbar-left, .monitor-topbar-center, .monitor-topbar-right {
-					display: flex;
-					align-items: center;
-					height: 100%;
+					display: inline-flex !important;
+					align-items: center !important;
+					height: 100% !important;
 				}
 				.monitor-topbar-center {
-					gap: 10px;
+					gap: 8px !important;
 				}
 				.monitor-topbar-right {
-					gap: 16px;
+					gap: 16px !important;
 					color: #666;
 					font-size: 13px;
 				}
 				.monitor-item-group {
-					display: inline-flex;
-					align-items: center;
-					gap: 8px;
-					height: 30px;
+					display: inline-flex !important;
+					align-items: center !important;
+					gap: 8px !important;
+					height: 30px !important;
+				}
+				/* 强制重置全局 .ssh-item 引起的 float 和 padding-top 5px 下沉偏差 */
+				.monitor-topbar .ssh-item {
+					float: none !important;
+					padding: 0 !important;
+					margin: 0 !important;
+					display: inline-flex !important;
+					align-items: center !important;
+					justify-content: center !important;
+					height: 24px !important;
+					line-height: 1 !important;
+				}
+				.monitor-topbar .btswitch + .btswitch-btn {
+					margin: 0 !important;
+					display: inline-block !important;
+					vertical-align: middle !important;
+					float: none !important;
+				}
+				.monitor-topbar-center span,
+				.monitor-topbar-right span,
+				.monitor-topbar-left span {
+					display: inline-flex !important;
+					align-items: center !important;
+					line-height: 1 !important;
 				}
 				.monitor-topbar .bt-input-text {
-					height: 28px;
-					line-height: 28px;
-					margin: 0;
-					padding: 0 6px;
+					height: 26px !important;
+					line-height: 26px !important;
+					margin: 0 !important;
+					padding: 0 6px !important;
 					border: 1px solid #ccc;
 					border-radius: 3px;
-					box-sizing: border-box;
-					vertical-align: middle;
-					font-size: 13px;
-				}
-				.monitor-topbar .btn {
-					height: 28px;
-					line-height: 26px;
-					padding: 0 10px;
-					margin: 0;
-					vertical-align: middle;
-					box-sizing: border-box;
-					display: inline-flex;
-					align-items: center;
-					justify-content: center;
+					box-sizing: border-box !important;
+					vertical-align: middle !important;
 					font-size: 12px;
 				}
-				.monitor-topbar .ssh-item {
-					display: inline-flex;
-					align-items: center;
-					margin: 0;
-					height: 24px;
-				}
-				.monitor-topbar .btswitch-btn {
+				.monitor-topbar .btn {
+					height: 26px !important;
+					line-height: 24px !important;
+					padding: 0 10px !important;
 					margin: 0 !important;
-					vertical-align: middle;
+					vertical-align: middle !important;
+					box-sizing: border-box !important;
+					display: inline-flex !important;
+					align-items: center !important;
+					justify-content: center !important;
+					font-size: 12px;
 				}
 				.monitor-topbar .searcTime {
-					display: inline-flex;
-					align-items: center;
-					gap: 3px;
-					height: 28px;
+					display: inline-flex !important;
+					align-items: center !important;
+					gap: 3px !important;
+					height: 26px !important;
+					margin: 0 !important;
+					padding: 0 !important;
 					position: relative;
 				}
 				.monitor-topbar .searcTime .gt {
-					height: 26px;
-					line-height: 26px;
-					padding: 0 9px;
-					display: inline-flex;
-					align-items: center;
-					justify-content: center;
-					box-sizing: border-box;
+					height: 26px !important;
+					line-height: 26px !important;
+					padding: 0 9px !important;
+					margin: 0 !important;
+					display: inline-flex !important;
+					align-items: center !important;
+					justify-content: center !important;
+					box-sizing: border-box !important;
 					cursor: pointer;
 					color: #666;
 					border-radius: 3px;
@@ -141,17 +159,25 @@
 				}
 				.monitor-topbar .searcTime .gt:hover { color: #20a53a; background: #eaf7ed; }
 				.monitor-topbar .searcTime .gt.on { background: #20a53a; color: #fff; }
-				.monitor-topbar .searcTime .ss { position: relative; margin-left: 2px; }
+				.monitor-topbar .searcTime .ss {
+					position: relative;
+					margin-left: 2px;
+					display: inline-flex !important;
+					align-items: center !important;
+					height: 26px !important;
+				}
 				.monitor-topbar .searcTime .st {
-					height: 26px;
-					line-height: 26px;
-					padding: 0 6px;
-					display: inline-flex;
-					align-items: center;
-					justify-content: center;
+					height: 26px !important;
+					line-height: 26px !important;
+					padding: 0 6px !important;
+					margin: 0 !important;
+					display: inline-flex !important;
+					align-items: center !important;
+					justify-content: center !important;
 					cursor: pointer;
 					color: #666;
 					transition: color 0.2s;
+					box-sizing: border-box !important;
 				}
 				.monitor-topbar .searcTime .st:hover { color: #20a53a; }
 				.monitor-topbar .searcTime .time {
