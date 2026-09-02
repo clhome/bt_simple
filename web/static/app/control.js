@@ -837,7 +837,7 @@ $(document).on('mousemove', '.monitor-chart', function (e) {
   var mouseX = e.clientX - rect.left;
   var mouseY = e.clientY - rect.top;
 
-  // 鼠标停下来至少 200ms 后才触发显示
+  // 鼠标停下来至少 20ms 后才触发显示
   hoverDebounceTimer = setTimeout(function () {
     try {
       if (!chart.containPixel({ gridIndex: 0 }, [mouseX, mouseY])) return;
@@ -859,7 +859,7 @@ $(document).on('mousemove', '.monitor-chart', function (e) {
         }
       }
     } catch (err) {}
-  }, 200);
+  }, 20);
 });
 
 $(document).on('mouseleave', '.monitor-chart', function () {
