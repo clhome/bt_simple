@@ -3716,7 +3716,7 @@
         "incorrect_database_name_entered": "資料庫名称輸入錯誤!",
         "please_enter_the_correct": "请正確輸入計算結果!",
         "please_enter_the_correct_1": "请正確輸入計算結果!",
-        "do_you_want_to": "是否要登出御风面板?",
+        "do_you_want_to": "是否要退出御風面板?",
         "deleting_please_wait": "正在刪除,請稍候...",
         "related_panels": "關联面板",
         "add": "新增",
@@ -4040,7 +4040,8 @@
         "cal_msg": "計算結果：",
         "task_close": "任務已取消",
         "task_add": "已添加至任務列表",
-        "panel_err_empty": "所有欄位均不能為空"
+        "panel_err_empty": "所有欄位均不能為空",
+        "info": "資訊"
     },
     "upload": {
         "saving": "正在儲存..",

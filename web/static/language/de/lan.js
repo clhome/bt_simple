@@ -2430,6 +2430,11 @@ var lan = {
 		},
 
 	"public": {
+			"confirm": "Bestätigen",
+			"cancel": "Abbrechen",
+			"close": "Schließen",
+			"info": "Information",
+			"do_you_want_to": "Möchten Sie das Yufeng-Panel verlassen?",
 			"NAME": "Linux-Dashboard",
 			"BRAND": "YF",
 			"PRODUCT": "Linux-Dashboard",

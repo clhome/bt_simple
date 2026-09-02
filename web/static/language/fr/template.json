@@ -3692,7 +3692,7 @@
         "close": "Fermer",
         "file_name": "Nom de fichier",
         "owner": "Propriétaire",
-        "confirm": "D'accord",
+        "confirm": "Confirmer",
         "saving_please_wait": "Enregistrement, veuillez patienter...",
         "save_1": "Enregistrer",
         "refresh_1": "Actualiser",
@@ -3715,7 +3715,7 @@
         "incorrect_database_name_entered": "Nom de la base de données mal saisi !",
         "please_enter_the_correct": "Veuillez saisir correctement les résultats du calcul !",
         "please_enter_the_correct_1": "Veuillez saisir correctement les résultats du calcul !",
-        "do_you_want_to": "Voulez-vous quitter le panneau Yufeng ?",
+        "do_you_want_to": "Voulez-vous quitter le panneau Yufeng ?",
         "deleting_please_wait": "Suppression, veuillez patienter...",
         "related_panels": "Panneau associatif",
         "add": "ajouter",
@@ -4039,7 +4039,8 @@
         "cal_msg": "Résultat du calcul : ",
         "task_close": "Tâche annulée",
         "task_add": "Ajouté à la liste des tâches",
-        "panel_err_empty": "Tous les champs sont obligatoires"
+        "panel_err_empty": "Tous les champs sont obligatoires",
+        "info": "Information"
     },
     "upload": {
         "saving": "Économie..",

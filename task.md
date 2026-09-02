@@ -11,3 +11,7 @@
 - [x] 3. 优化前端软件分类标签渲染（`web/static/app/soft.js`）：通过 `t(i18nKey, fallback)` 动态翻译并注入 `data-i18n` 属性。
 - [x] 4. 优化分页多语言支持（`web/utils/page.py`）：启用 `PAGE` 国际化字典读取，修复分页文本（首页/上一页/共X条数据等）英文适配。
 - [x] 5. 编写并运行自动化测试（`test/test_soft_i18n.py`），验证 6 国语言分类及分页渲染正确性。
+- [x] 6. 补全 6 国语言词库中的公共弹窗词条（`confirm`、`cancel`、`close`、`info`、`do_you_want_to`），并在 `lan.js` 与 `i18n.js` 中确立 `public` 命名空间可用性。
+- [x] 7. 修复 `#signout` 点击事件：使用标准的 `t('public.do_you_want_to')`，彻底修复内容空字符串与滚动条异常。
+- [x] 8. 实现全局 Layer 弹窗多语言自动拦截与适配引擎（`confirm`、`alert`、`prompt`、`open`）：全站弹窗标题和按钮自动接入多语言，修复历史硬编码中文。
+- [x] 9. 编写自动化测试套件（`test/test_layer_dialog_i18n.py`）并回归全量测试，确保 100% 验证通过。

@@ -3692,7 +3692,7 @@
         "close": "Schließen",
         "file_name": "Dateiname",
         "owner": "Eigentümer",
-        "confirm": "Sicher",
+        "confirm": "Bestätigen",
         "saving_please_wait": "Wird gespeichert, bitte warten...",
         "save_1": "Speichern",
         "refresh_1": "Aktualisieren",
@@ -4039,7 +4039,8 @@
         "cal_msg": "Berechnungsergebnis: ",
         "task_close": "Aufgabe abgebrochen",
         "task_add": "Zur Aufgabenliste hinzugefügt",
-        "panel_err_empty": "Alle Felder dürfen nicht leer sein"
+        "panel_err_empty": "Alle Felder dürfen nicht leer sein",
+        "info": "Information"
     },
     "upload": {
         "saving": "Sparen..",

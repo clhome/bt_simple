@@ -196,8 +196,16 @@
         'downloading': '下载中',
         'del': '删除',
         'close': '关闭',
+        'confirm': '确定',
+        'cancel': '取消',
+        'info': '信息',
+        'do_you_want_to': '是否要退出御风面板?',
         'scan': '扫描'
     };
+
+    // 确保 window.lan 及 window.lan.public 命名空间安全存在，避免历史调用短路
+    window.lan = window.lan || {};
+    window.lan.public = window.lan.public || {};
 
     /**
      * 翻译函数 t(key, args, defaultText)

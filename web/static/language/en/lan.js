@@ -2430,6 +2430,11 @@ var lan = {
 		},
 
 	"public": {
+			"confirm": "Confirm",
+			"cancel": "Cancel",
+			"close": "Close",
+			"info": "Info",
+			"do_you_want_to": "Do you want to exit the Yufeng panel?",
 			"NAME": "Linux Control Panel",
 			"BRAND": "YF",
 			"PRODUCT": "Linux Control Panel",

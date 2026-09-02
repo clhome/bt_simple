@@ -2430,6 +2430,11 @@ var lan = {
 		},
 
 	"public": {
+			"confirm": "確定",
+			"cancel": "取消",
+			"close": "關閉",
+			"info": "資訊",
+			"do_you_want_to": "是否要退出御風面板?",
 			"NAME": "Linux面板",
 			"BRAND": "YF",
 			"PRODUCT": "Linux面板",

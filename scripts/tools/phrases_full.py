@@ -12928,6 +12928,38 @@ FULL_I18N_DICTIONARY = {
         }
     },
     "public": {
+        "confirm": {
+            "zh-CN": "确定",
+            "zh-TW": "確定",
+            "en": "Confirm",
+            "fr": "Confirmer",
+            "de": "Bestätigen",
+            "it": "Conferma"
+},
+        "cancel": {
+            "zh-CN": "取消",
+            "zh-TW": "取消",
+            "en": "Cancel",
+            "fr": "Annuler",
+            "de": "Abbrechen",
+            "it": "Annulla"
+},
+        "info": {
+            "zh-CN": "信息",
+            "zh-TW": "資訊",
+            "en": "Info",
+            "fr": "Information",
+            "de": "Information",
+            "it": "Informazioni"
+},
+        "do_you_want_to": {
+            "zh-CN": "是否要退出御风面板?",
+            "zh-TW": "是否要退出御風面板?",
+            "en": "Do you want to exit the Yufeng panel?",
+            "fr": "Voulez-vous quitter le panneau Yufeng ?",
+            "de": "Möchten Sie das Yufeng-Panel verlassen?",
+            "it": "Vuoi uscire dal pannello Yufeng?"
+},
         "save": {
             "zh-CN": "保存",
             "zh-TW": "儲存",

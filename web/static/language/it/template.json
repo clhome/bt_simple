@@ -3692,7 +3692,7 @@
         "close": "Chiudi",
         "file_name": "Nome file",
         "owner": "Proprietario",
-        "confirm": "Sicuro",
+        "confirm": "Conferma",
         "saving_please_wait": "Salvataggio in corso, attendere...",
         "save_1": "Salva",
         "refresh_1": "aggiornare",
@@ -3865,7 +3865,7 @@
         "please": "Seleziona",
         "save_5": "Salva",
         "this_is_2": "Ecco [",
-        "cancel": "Cancellare",
+        "cancel": "Annulla",
         "delete": "Elimina",
         "modify": "Modifica",
         "processing": "In esecuzione",
@@ -4039,7 +4039,8 @@
         "cal_msg": "Risultato del calcolo: ",
         "task_close": "Attività annullata",
         "task_add": "Aggiunto all'elenco delle attività",
-        "panel_err_empty": "Tutti i campi non possono essere vuoti"
+        "panel_err_empty": "Tutti i campi non possono essere vuoti",
+        "info": "Informazioni"
     },
     "upload": {
         "saving": "Risparmio..",

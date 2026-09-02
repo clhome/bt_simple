@@ -1,4 +1,180 @@
 // ============================================
+// 全局 Layer 弹窗多语言无缝增强与防中文硬编码
+// ============================================
+function initLayerI18n() {
+  if (!window.layer || window.layer._i18nEnhanced) return;
+  window.layer._i18nEnhanced = true;
+
+  function getI18nText(key, fallback) {
+    return (typeof window.t === 'function') ? window.t(key, fallback) : fallback;
+  }
+
+  function getConfirmBtn() {
+    return [getI18nText('public.confirm', '确定'), getI18nText('public.cancel', '取消')];
+  }
+
+  function getAlertBtn() {
+    return [getI18nText('public.confirm', '确定')];
+  }
+
+  function getInfoTitle() {
+    return getI18nText('public.info', '信息');
+  }
+
+  function localizeButtons(btnArr) {
+    if (!Array.isArray(btnArr)) return btnArr;
+    return btnArr.map(function (item) {
+      if (typeof item === 'string') {
+        var trimmed = item.trim();
+        if (trimmed === '确定' || trimmed === '确认' || trimmed === '&#x786E;&#x5B9A;') {
+          return getI18nText('public.confirm', '确定');
+        }
+        if (trimmed === '取消' || trimmed === '&#x53D6;&#x6D88;') {
+          return getI18nText('public.cancel', '取消');
+        }
+        if (trimmed === '关闭') {
+          return getI18nText('public.close', '关闭');
+        }
+        if (trimmed === '保存') {
+          return getI18nText('public.save', '保存');
+        }
+        if (trimmed === '提交') {
+          return getI18nText('public.submit', '提交');
+        }
+      }
+      return item;
+    });
+  }
+
+  // 1. 劫持 layer.confirm
+  var origConfirm = window.layer.confirm;
+  window.layer.confirm = function (content, options, yes, cancel) {
+    var isFn = typeof options === 'function';
+    if (isFn) {
+      cancel = yes;
+      yes = options;
+      options = {};
+    } else {
+      options = options || {};
+    }
+
+    if (!options.btn) {
+      options.btn = getConfirmBtn();
+    } else {
+      options.btn = localizeButtons(options.btn);
+    }
+
+    if (!options.title || options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
+      options.title = getInfoTitle();
+    }
+
+    return origConfirm.call(this, content, options, yes, cancel);
+  };
+
+  // 2. 劫持 layer.alert
+  var origAlert = window.layer.alert;
+  window.layer.alert = function (content, options, yes) {
+    var isFn = typeof options === 'function';
+    if (isFn) {
+      yes = options;
+      options = {};
+    } else {
+      options = options || {};
+    }
+
+    if (!options.btn) {
+      options.btn = getAlertBtn();
+    } else {
+      options.btn = localizeButtons(options.btn);
+    }
+
+    if (!options.title || options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
+      options.title = getInfoTitle();
+    }
+
+    return origAlert.call(this, content, options, yes);
+  };
+
+  // 3. 劫持 layer.prompt
+  if (window.layer.prompt) {
+    var origPrompt = window.layer.prompt;
+    window.layer.prompt = function (options, yes) {
+      var isFn = typeof options === 'function';
+      if (isFn) {
+        yes = options;
+        options = {};
+      } else {
+        options = options || {};
+      }
+      if (!options.btn) {
+        options.btn = getConfirmBtn();
+      } else {
+        options.btn = localizeButtons(options.btn);
+      }
+      if (!options.title || options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
+        options.title = getInfoTitle();
+      }
+      return origPrompt.call(this, options, yes);
+    };
+  }
+
+  // 4. 增强 layer.open 中的按钮与标题本地化
+  var origOpen = window.layer.open;
+  window.layer.open = function (options) {
+    options = options || {};
+    if (options.btn) {
+      options.btn = localizeButtons(options.btn);
+    }
+    if (options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
+      options.title = getInfoTitle();
+    }
+
+    var userSuccess = options.success;
+    options.success = function (layero, index) {
+      // DOM 层面兜底检测
+      try {
+        if (layero && layero.find) {
+          var titleEl = layero.find('.layui-layer-title');
+          if (titleEl.length && (titleEl.text().trim() === '信息' || titleEl.text().trim() === '')) {
+            titleEl.text(getInfoTitle());
+          }
+          var btn0 = layero.find('.layui-layer-btn0');
+          if (btn0.length) {
+            var b0Text = btn0.text().trim();
+            if (b0Text === '确定' || b0Text === '确认') {
+              btn0.text(getI18nText('public.confirm', '确定'));
+            }
+          }
+          var btn1 = layero.find('.layui-layer-btn1');
+          if (btn1.length) {
+            var b1Text = btn1.text().trim();
+            if (b1Text === '取消') {
+              btn1.text(getI18nText('public.cancel', '取消'));
+            }
+          }
+        }
+      } catch (e) {}
+      if (typeof userSuccess === 'function') {
+        return userSuccess.apply(this, arguments);
+      }
+    };
+
+    return origOpen.call(this, options);
+  };
+}
+
+// 立即尝试初始化，如果 layer 异步加载则等待 DOM 就绪或再次尝试
+initLayerI18n();
+if (typeof $ === 'function') {
+  $(function () {
+    initLayerI18n();
+    $(document).on('yf:langChanged', function () {
+      initLayerI18n();
+    });
+  });
+}
+
+// ============================================
 // 动态资源加载器（按需加载 JS/CSS，带缓存防重复）
 // ============================================
 var _loadedResources = {};
@@ -1256,8 +1432,15 @@ $(function () {
   });
 });
 $("#signout").on('click', function () {
-  layer.confirm(lan && lan.public && t('public.do_you_want_to') || "", {
+  var confirmMsg = (typeof t === 'function') ? t('public.do_you_want_to', '是否要退出御风面板?') : '是否要退出御风面板?';
+  var infoTitle = (typeof t === 'function') ? t('public.info', '信息') : '信息';
+  var confirmBtn = (typeof t === 'function') ? t('public.confirm', '确定') : '确定';
+  var cancelBtn = (typeof t === 'function') ? t('public.cancel', '取消') : '取消';
+
+  layer.confirm(confirmMsg, {
     icon: 3,
+    title: infoTitle,
+    btn: [confirmBtn, cancelBtn],
     closeBtn: 1
   }, function () {
     try {

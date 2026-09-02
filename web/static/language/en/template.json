@@ -3692,7 +3692,7 @@
         "close": "Close",
         "file_name": "File Name",
         "owner": "Owner",
-        "confirm": "OK",
+        "confirm": "Confirm",
         "saving_please_wait": "Saving, please wait...",
         "save_1": "Save",
         "refresh_1": "Refresh",
@@ -4039,7 +4039,8 @@
         "cal_msg": "Calculate: ",
         "task_close": "Task cancelled",
         "task_add": "Added to task list",
-        "panel_err_empty": "All fields cannot be empty"
+        "panel_err_empty": "All fields cannot be empty",
+        "info": "Info"
     },
     "upload": {
         "saving": "Saving..",

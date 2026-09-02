@@ -4040,7 +4040,8 @@
         "cal_msg": "计算结果：",
         "task_close": "任务已取消",
         "task_add": "已添加至任务列表",
-        "panel_err_empty": "所有字段均不能为空"
+        "panel_err_empty": "所有字段均不能为空",
+        "info": "信息"
     },
     "upload": {
         "saving": "正在保存..",
