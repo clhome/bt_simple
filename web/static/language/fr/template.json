@@ -2564,7 +2564,8 @@
         "cpu": "CPU",
         "mem": "Mémoire",
         "load_safe_line": "Ligne de sécurité",
-        "load_limit_line": "Ligne de pleine charge"
+        "load_limit_line": "Ligne de pleine charge",
+        "hours_24": "24 Heures"
     },
     "crontab": {
         "H1": "Page d'accueil",

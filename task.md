@@ -568,3 +568,25 @@
 - [x] 4. 在页面底部增加整体时间轴拖动滑块组件（`#global_timeline_view`），联动控制所有 4 个图表的同步时间缩放与定位。
 - [x] 5. 更新自动化测试用例 `test/test_monitor_optimization.py` 并运行全量回归验证，确保 100% 通过。
 
+## 第四十二阶段：自定义时间弹窗防遮挡、时间滑块精度（隐藏秒）与左右对称留白优化 (完成)
+
+- [x] 1. 修复自定义时间弹窗被下方图表卡片遮挡的问题：提升顶部控制栏及下拉时间弹窗层级（`position: relative; z-index: 500;` 与 `.time` `z-index: 9999;`），确保弹窗始终浮于所有卡片及 Canvas 之上。
+- [x] 2. 优化底部时间选取条文本精度：配置 `labelFormatter`，格式化隐藏秒级单位，最低显示到分钟格式（如 `09/02 00:00`）。
+- [x] 3. 优化底部时间选取条左右留白对称性：将滑块与各图表的左右留白重构为对称宽度（如 `left: 75, right: 75`），防止右侧文字截断，实现左右边距绝对对称与完整显示。
+- [x] 4. 运行全量自动化测试套件回归验证。
+
+## 第四十三阶段：底部时间选取条两端留白进一步加大优化 (完成)
+
+- [x] 1. 将时间选取条（`#global_timeline_view`）的左右留白由 75px 进一步加大至 105px（`left: 105, right: 105`），为滑块手柄及两端完整的日期时间文字提供充裕的安全边距。
+- [x] 2. 更新测试用例 `test/test_monitor_optimization.py` 并运行自动化测试验证。
+
+## 第四十四阶段：新增“24小时”时间筛选、设为默认监控时间与多语言适配 (完成)
+
+- [x] 1. 扩充 6 国语言词典：在 zh-CN, zh-TW, en, fr, de, it 各语言的 `template.json` 与 `lan.js` 中录入 `control.hours_24`（24小时 / 24小時 / 24 Hours / 24 Heures / 24 Stunden / 24 Ore）。
+- [x] 2. 优化 `web/templates/default/monitor.html`：在“今天”按钮前新增“24小时”按钮，并默认设置为高亮选中态（`class="gt on"`）。
+- [x] 3. 优化 `web/static/app/control.js`：在 `getTimeRangeByDay` 中支持 `'24h'`（当前时间往前推 86400 秒），并将页面初始化默认加载逻辑调整为 `setGlobalDay('24h')`。
+- [x] 4. 更新自动化测试套件 `test/test_monitor_optimization.py` 并运行回归验证。
+
+
+
+

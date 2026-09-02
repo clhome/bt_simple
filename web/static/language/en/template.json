@@ -2564,7 +2564,8 @@
         "cpu": "CPU",
         "mem": "Memory",
         "load_safe_line": "Safe Baseline",
-        "load_limit_line": "Full Load Alert"
+        "load_limit_line": "Full Load Alert",
+        "hours_24": "24 Hours"
     },
     "crontab": {
         "H1": "Home",

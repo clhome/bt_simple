@@ -2564,7 +2564,8 @@
         "cpu": "CPU",
         "mem": "Speicher",
         "load_safe_line": "Sicherheitslinie",
-        "load_limit_line": "Volllastlinie"
+        "load_limit_line": "Volllastlinie",
+        "hours_24": "24 Stunden"
     },
     "crontab": {
         "H1": "Startseite",

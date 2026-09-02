@@ -2564,7 +2564,8 @@
         "cpu": "CPU",
         "mem": "内存",
         "load_safe_line": "安全参考线",
-        "load_limit_line": "满载警戒线"
+        "load_limit_line": "满载警戒线",
+        "hours_24": "24小时"
     },
     "crontab": {
         "H1": "首页",

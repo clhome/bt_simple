@@ -17,7 +17,8 @@
 				<div class="monitor-topbar-center">
 					<span style="font-size: 13px; color: #666; font-weight: 500;" data-i18n="control.global_time_range">{{ t('control.global_time_range', '时间范围') }}:</span>
 					<div class="searcTime globalSearchTime">
-						<span class="gt on" data-day="0" onclick="setGlobalDay(0)" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
+						<span class="gt on" data-day="24h" onclick="setGlobalDay('24h')" data-i18n="control.hours_24">{{ t('control.hours_24', '24小时') }}</span>
+						<span class="gt" data-day="0" onclick="setGlobalDay(0)" data-i18n="control.today">{{ t('control.today', '今天') }}</span>
 						<span class="gt" data-day="1" onclick="setGlobalDay(1)" data-i18n="control.yesterday">{{ t('control.yesterday', '昨天') }}</span>
 						<span class="gt" data-day="7" onclick="setGlobalDay(7)" data-i18n="control.7days">{{ t('control.7days', '7天') }}</span>
 						<span class="gt" data-day="30" onclick="setGlobalDay(30)" data-i18n="control.30days">{{ t('control.30days', '30天') }}</span>
@@ -66,6 +67,8 @@
 					border: 1px solid #edf2f7;
 					background: #fff;
 					box-sizing: border-box;
+					position: relative;
+					z-index: 500;
 				}
 				.monitor-topbar-left, .monitor-topbar-center, .monitor-topbar-right {
 					display: inline-flex !important;
@@ -184,13 +187,13 @@
 					display: none;
 					position: absolute;
 					right: 0;
-					top: 32px;
-					z-index: 100;
+					top: 36px;
+					z-index: 9999 !important;
 					background: #fff;
 					border: 1px solid #e2e2e2;
 					padding: 12px;
 					border-radius: 4px;
-					box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+					box-shadow: 0 6px 24px rgba(0,0,0,0.18);
 					width: max-content;
 				}
 				.monitor-topbar .searcTime .time .bt { display: block; margin-bottom: 8px; color: #666; font-size: 12px; }

@@ -1567,6 +1567,7 @@ var lan = {
 		},
 
 	"control": {
+        "hours_24": "24 Stunden",
 			"H1": "Dashboard",
 			"H2": "Systemüberwachung",
 			"C1": "Überwachung aktivieren",

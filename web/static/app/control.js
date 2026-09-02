@@ -68,7 +68,10 @@ function getToday() {
 function getTimeRangeByDay(day) {
   var now = new Date().getTime() / 1000;
   var b, e;
-  if (day == 0) {
+  if (day === '24h' || day === 24) {
+    b = now - 86400;
+    e = now;
+  } else if (day == 0) {
     b = new Date(getToday() + " 00:00:01").getTime() / 1000;
     e = now;
   } else if (day == 1) {
@@ -117,8 +120,8 @@ function renderGlobalTimeline(xData) {
   var option = {
     grid: {
       top: 0,
-      left: '8%',
-      right: '4%',
+      left: 105,
+      right: 105,
       bottom: 0
     },
     xAxis: {
@@ -139,11 +142,15 @@ function renderGlobalTimeline(xData) {
       end: 100,
       top: 3,
       bottom: 3,
-      left: '8%',
-      right: '4%',
+      left: 105,
+      right: 105,
       borderColor: 'transparent',
       backgroundColor: '#f1f5f9',
       fillerColor: 'rgba(32, 165, 58, 0.18)',
+      labelFormatter: function (value, valueStr) {
+        if (!valueStr) return '';
+        return valueStr.length >= 14 ? valueStr.substring(0, 11) : valueStr;
+      },
       handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
       handleSize: '85%',
       handleStyle: {
@@ -698,8 +705,8 @@ function network(b, e) {
 
 // 页面初始化与交互绑定
 $(function () {
-  // 默认加载今天数据
-  setGlobalDay(0);
+  // 默认加载最近24小时数据
+  setGlobalDay('24h');
 
   // 展开/收起日历弹窗
   $(document).on('click', '.searcTime .st', function (e) {
