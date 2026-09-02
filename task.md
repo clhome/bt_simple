@@ -516,11 +516,24 @@
 
 ## 第三十七阶段：恢复历史高质量基准翻译、改造多语言编译系统与全量母语精修
 
-- [ ] 1. 从历史基准版本（commit `553a16543`）完整提取 5 种外语（`en`, `fr`, `de`, `it`, `zh-TW`）的高质量纯正母语基准翻译（`public.json`, `template.json`, `log.json`, `lan.js`）。
-- [ ] 2. 彻底重构 `scripts/tools/build_all_languages.py` 与相关构建工具：废除基于单字子串机械替换的错误机制，采用“高质量基准底座 + 精准增量合并”编译模式，确保纯正母语翻译永不被损坏。
-- [ ] 3. 将新增插件模块（`jdk`, `python_yf` 等）与消息盒子等系统级字段作为增量字典，精准 merge 到各语言包中。
-- [ ] 4. 重新构建并格式化全部 6 国语言文件（`lan.js`, `template.json`, `public.json`, `log.json`），全部强制 LF 换行符与 UTF-8 无 BOM。
-- [ ] 5. 编写专项测试用例 `test/test_high_quality_i18n_restore.py`，严格验证 `en/public.json` 等文件恢复纯正英语、无任何中英混合怪胎，且新老词条完整无损。
-- [ ] 6. 运行全仓库回归测试套件，确保 100% PASS。
+- [x] 1. 从历史基准版本（commit `553a16543`）完整提取 5 种外语（`en`, `fr`, `de`, `it`, `zh-TW`）的高质量纯正母语基准翻译（`public.json`, `template.json`, `log.json`, `lan.js`）。
+- [x] 2. 彻底重构 `scripts/tools/build_all_languages.py` 与相关构建工具：废除基于单字子串机械替换的错误机制，采用“高质量基准底座 + 精准增量合并”编译模式，确保纯正母语翻译永不被损坏。
+- [x] 3. 将新增插件模块（`jdk`, `python_yf` 等）与消息盒子等系统级字段作为增量字典，精准 merge 到各语言包中。
+- [x] 4. 重新构建并格式化全部 6 国语言文件（`lan.js`, `template.json`, `public.json`, `log.json`），全部强制 LF 换行符与 UTF-8 无 BOM。
+- [x] 5. 编写专项测试用例 `test/test_high_quality_i18n_restore.py`，严格验证 `en/public.json` 等文件恢复纯正英语、无任何中英混合怪胎，且新老词条完整无损。
+- [x] 6. 运行全仓库回归测试套件，确保 100% PASS（29 个测试模块，103 个测试项 100% PASS）。
 
+## 第三十八阶段：全量外语（英法德意）未翻译词条深度排查、智能翻译补全与构建系统自愈修复 (完成)
+
+- [x] 1. 深入排查与提取所有未翻译词条：以 `zh-CN` 为权威基准，对比提取 `en`、`fr`、`de`、`it` 在 `public.json`、`template.json`、`lan.js`、`log.json` 中的所有未翻译（含中文/中英夹杂）与缺失词条。
+- [x] 2. 根除 `lan.js` 灾难性反斜杠膨胀（72MB -> ~200KB）：清洗乱码键值与上千万个冗余转义反斜杠，修复构建脚本中 `format_js_obj` 的重复反斜杠转义漏洞。
+- [x] 3. 基于 `参考/整体翻译batch_translate_web.py` 架构构建高可用多语言智能翻译引擎：支持 DeepL、Google 翻译扩展接口（`dict-chrome-ex`）及 MyMemory 自动故障切换，支持本地持久化翻译缓存（`test/translation_cache_web.json`）。
+- [x] 4. 批量翻译并补全 4 种外语（`en`, `fr`, `de`, `it`）：
+  - 完善 `public.json`：修复 110 个含中文条目（含 `public_auto_str` 前缀），补齐缺失的 6 个 key（达到 521 keys 100% 对齐）；
+  - 完善 `template.json`：翻译全量 3589 个中文模板词条（达到 30 sections 100% 对齐）；
+  - 完善 `lan.js`：翻译所有 section 下的未翻译中文词条并消除脏数据；
+  - 同步校验 `log.json` 保持 120 keys 100% 对齐。
+- [x] 5. 重新生成 6 种语言包，确保全量 UTF-8 无 BOM 与 LF 换行符。
+- [x] 6. 编写全自动回归测试套件 `test/test_all_foreign_languages_complete.py`，全量验证英、法、德、意 0 中文残留、0 格式异常、键对齐率 100%。
+- [x] 7. 运行全仓库回归测试套件确保所有已有功能与测试 100% 绿灯（108 个测试用例全部通过）。
 

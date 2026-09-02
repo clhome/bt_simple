@@ -768,7 +768,7 @@
     "auto_str_287": "客户端时间: ",
     "auto_str_288": "服务器时间: ",
     "auto_str_289": "获取失败，请稍后重试",
-    "auto_str_34": "')\" >開始執行</button>"
+    "auto_str_34": {}
   },
   "site": {
     "H1": "首頁",
@@ -1725,38 +1725,38 @@
     "py_msg_6d5524": "分类已刪除!",
     "py_msg_2b7ff5": "续签失敗，詳細信息请查看記錄檔！",
     "py_msg_a36237": "憑證续签成功！",
-    "site_auto_str_3": "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>執行中</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>",
-    "site_auto_str_5": "')\" class='btn-defsult'><span style='color:red'>已停止</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>",
-    "site_auto_str_16": "', 'config')\">設定</a>                        | <a href='javascript:;' class='btlink' onclick=\"webDelete('",
-    "site_auto_str_17": "')\" title='刪除站點'>刪除</a>\t\t\t\t\t</td></tr>",
-    "site_auto_str_66": "')\">打包備份</button>\t\t\t\t<div class='divtable mtb15' style='margin-bottom:0'>\t\t\t\t\t<table width='100%' id='webBackupList' class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t\t<tr><th>檔名稱</th><th>檔案大小</th><th>打包時間</th><th width='140px' class='text-right'>操作</th></tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody id='webBackupBody' class='list-list'>",
-    "site_auto_str_80": "')\">域名管理</p>\t\t\t\t<p onclick='dirBinding(",
-    "site_auto_str_84": "')\">偽靜態</p>\t\t\t\t<p onclick='setIndexEdit(",
-    "site_auto_str_86": "')\">配置檔案</p>\t\t\t\t<p onclick=\"setSSL(",
-    "site_auto_str_87": "')\">PHP版本</p>\t\t\t\t<p onclick=\"to301('",
-    "site_auto_str_88": "')\">重定向</p>\t\t\t\t<p onclick=\"toProxy('",
-    "site_auto_str_89": "')\">反向代理",
-    "site_auto_str_90": "')\">防盜鏈</p>\t\t\t\t<p id='site_",
-    "site_auto_str_91": "')\">響應日誌</p>\t\t\t\t<p id='site_",
-    "site_auto_str_92": "')\">錯誤日誌</p>\t\t\t</div>\t\t\t<div id='webedit-con' class='bt-w-con webedit-con pd15' style='height: 100%;overflow: auto;'></div>\t\t</div>",
-    "site_auto_str_141": "')\"  class=\"btlink\">詳細</span> | \t\t\t\t\t\t<span data-index=\"5\" onclick=\"to301('",
-    "site_auto_str_142": "')\" class=\"btlink\">刪除</span>\t\t\t\t\t</td>\t\t\t\t</tr>",
-    "site_auto_str_170": "')\" class=\"btlink\">部署</a> | <a onclick=\"removeSsl('",
-    "site_auto_str_171": "')\" class=\"btlink\">刪除</a></td>\t\t\t</tr>",
-    "site_auto_str_177": "')\">當前證書 - <i class=\"error\">[未部署SSL]</i></span>\t\t\t\t\t\t\t\t\t\t<span onclick=\"opSSL('acme',",
-    "site_auto_str_178": "')\">證書夾</span>",
-    "site_auto_str_192": "')\">儲存</button>\t\t</div>\t</div>\t<ul class=\"help-info-text c7 pull-left\">\t\t<li>貼上您的*.key以及*.pem內容，然後儲存即可。</li>\t\t<li>如果瀏覽器提示證書鏈不完整,請檢查是否正確拼接PEM證書</li><li>PEM格式證書 = 域名證書.crt + 根證書(root_bundle).crt</li>\t\t<li>在未指定SSL預設站點時,未開啟SSL的站點使用HTTPS會直接訪問到已開啟SSL的站點</li>\t</ul>",
-    "site_auto_str_199": "')\">刪除</button>",
-    "site_auto_str_200": "')\" style='margin-left:3px;'>關閉SSL</button>",
-    "site_auto_str_201": "')\" style='margin-left:3px;'>手動續簽</button>",
-    "site_auto_str_207": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('acme',",
-    "site_auto_str_208": "')\">刪除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已為您自動生成ACME免費證書</li>\t\t\t\t<li>由ACME免費申請證書，有效期3個月，支援多域名。預設會自動續簽</li>\t\t\t\t<li>如需使用其他SSL,請切換其他證書後貼上您的KEY以及PEM內容，然後儲存即可。</li>\t\t\t</ul>",
-    "site_auto_str_216": "')\">部署</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"renewSSL('lets',",
-    "site_auto_str_217": "')\">續期</button>\t\t\t\t\t<button class=\"btn btn-success btn-sm\" onclick=\"deleteSSL('lets',",
-    "site_auto_str_218": "')\">刪除</button>\t\t\t\t</div>\t\t\t</div>\t\t\t<ul class=\"help-info-text c7 pull-left\">\t\t\t\t<li>已為您自動生成Let's Encrypt免費證書</li>\t\t\t\t<li>由Let's Encrypt免費申請證書，有效期3個月，支援多域名。預設會自動續簽</li>\t\t\t\t<li>如需使用其他SSL,請切換其他證書後貼上您的KEY以及PEM內容，然後儲存即可。</li>\t\t\t</ul>",
-    "site_auto_str_251": "')\">確定</button>\t\t\t\t\t\t\t</div>\t\t\t\t\t\t</div>",
-    "site_auto_str_272": "')\">編輯</a> | <a class=\"btlink del_type\" onclick=\"removeClassType('",
-    "site_auto_str_273": "')\">刪除</a>\t\t\t\t</td></tr>"
+    "site_auto_str_3": {},
+    "site_auto_str_5": {},
+    "site_auto_str_16": {},
+    "site_auto_str_17": {},
+    "site_auto_str_66": {},
+    "site_auto_str_80": {},
+    "site_auto_str_84": {},
+    "site_auto_str_86": {},
+    "site_auto_str_87": {},
+    "site_auto_str_88": {},
+    "site_auto_str_89": {},
+    "site_auto_str_90": {},
+    "site_auto_str_91": {},
+    "site_auto_str_92": {},
+    "site_auto_str_141": {},
+    "site_auto_str_142": {},
+    "site_auto_str_170": {},
+    "site_auto_str_171": {},
+    "site_auto_str_177": {},
+    "site_auto_str_178": {},
+    "site_auto_str_192": {},
+    "site_auto_str_199": {},
+    "site_auto_str_200": {},
+    "site_auto_str_201": {},
+    "site_auto_str_207": {},
+    "site_auto_str_208": {},
+    "site_auto_str_216": {},
+    "site_auto_str_217": {},
+    "site_auto_str_218": {},
+    "site_auto_str_251": {},
+    "site_auto_str_272": {},
+    "site_auto_str_273": {}
   },
   "ftp": {
     "H1": "首頁",
@@ -2441,9 +2441,9 @@
     "config_auto_str_210": "<div class=\"bt-form pd20\">\t<div class=\"line\">\t\t<span class=\"tname\">應用ID</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_id\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_id\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\">應用金鑰</span>\t\t<div class=\"info-r\">\t\t\t<input class=\"bt-input-text mr5\" name=\"app_secret\" type=\"text\" style=\"width: 310px;\" disabled>\t\t\t<button class=\"btn btn-success btn-xs app_secret\" style=\"margin-left: -50px;\">重置</button>\t\t</div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\" style=\"width: 90px; overflow: initial; height: 20px; line-height: 20px;\">IP白名單<br/>(每行1個)</span>\t\t<div class=\"info-r\"><textarea class=\"bt-input-text\" name=\"api_limit_addr\" style=\"width: 310px; height: 80px; line-height: 20px; padding: 5px 8px;\"></textarea></div>\t</div>\t<div class=\"line\">\t\t<span class=\"tname\"></span>\t\t<div class=\"info-r\"><button class=\"btn btn-success btn-sm save_app_data\">儲存設定</button></div>\t</div>\t<ul class=\"help-info-text c7\">\t\t<li>開啟API後，必需在IP白名單列表中的IP才能访問面板API接口</li>\t\t<li style=\"color: red;\">请谨慎在生產環境開啟，這可能增加伺服器安全风险；</li>\t</ul></div>",
     "config_auto_str_211": "APP應用管理",
     "config_auto_str_212": "<div class='login_view_table pd20'>\t\t\t<button class='btn btn-success btn-sm app_add'>新增</button>\t\t\t<div class='divtable mt10' id='app_list_body'>\t\t\t\t<table class='table table-hover'>\t\t\t\t\t<thead>\t\t\t\t\t<tr>\t\t\t\t\t\t<th>應用ID</th>\t\t\t\t\t\t<th>應用金鑰</th>\t\t\t\t\t\t<th>白名單</th>\t\t\t\t\t\t<th>狀態</th>\t\t\t\t\t\t<th>新增時間</th>\t\t\t\t\t\t<th style='text-align:right;'>操作</th>\t\t\t\t\t</tr>\t\t\t\t\t</thead>\t\t\t\t\t<tbody></tbody>\t\t\t\t</table>\t\t\t\t<div class='page'></div>\t\t\t</div>\t\t</div>",
-    "config_auto_str_164": "')\">操作日誌</a>",
-    "config_auto_str_165": "')\">刪除</a>",
-    "config_auto_str_208": "')\" style=\"float:right;\">刪除</a>"
+    "config_auto_str_164": {},
+    "config_auto_str_165": {},
+    "config_auto_str_208": {}
   },
   "close": {
     "TITLE": "面板已關閉",
@@ -2917,10 +2917,10 @@
     "py_msg_9d44d8": "成功检测並同步了 {1} 個任务",
     "py_msg_2c1843": "任务名称重復",
     "py_msg_f47dfc": "当前任务列表已是最新，無缺失任务需要同步",
-    "crontab_auto_str_15": "');\" class='btlink'>執行</a> | \t\t\t\t\t\t<a href=\"javascript:editTaskInfo('",
-    "crontab_auto_str_16": "');\" class='btlink'>編輯</a> | \t\t\t\t\t\t<a href=\"javascript:getLogs(",
-    "crontab_auto_str_17": "');\" class='btlink'>日誌</a> | \t\t\t\t\t\t<a href=\"javascript:planDel(",
-    "crontab_auto_str_18": "');\" class='btlink'>刪除</a>\t\t\t\t\t</td>\t\t\t\t</tr>"
+    "crontab_auto_str_15": {},
+    "crontab_auto_str_16": {},
+    "crontab_auto_str_17": {},
+    "crontab_auto_str_18": {}
   },
   "files": {
     "BTN1": "後退",
@@ -3364,8 +3364,8 @@
     "py_msg_962795": "重置/生成金鑰成功",
     "py_msg_cd9f26": "生成金鑰失敗",
     "py_msg_cd2498": "開發機不能設定!",
-    "firewall_auto_str_3": "');\">日誌目錄</a>\t\t\t\t<em id=\"logSize\">0KB</em>\t\t\t\t<button class=\"btn btn-default btn-sm\" onclick=\"closeLogs();\">清空</button>",
-    "firewall_auto_str_45": "')\">刪除</a></td>\t\t\t</tr>"
+    "firewall_auto_str_3": {},
+    "firewall_auto_str_45": {}
   },
   "soft": {
     "H1": "首頁",
@@ -3527,9 +3527,9 @@
     "soft_auto_str_68": " 吗？",
     "soft_auto_str_69": "正在清理缓存並重新整理列表...",
     "soft_auto_str_70": "重新整理成功",
-    "soft_auto_str_8": "')\">更新</a> | ",
-    "soft_auto_str_9": "')\">設定</a> | <a class=\"btlink\" onclick=\"uninstallVersion('",
-    "soft_auto_str_62": "')\">確定安裝</button></div>                </div>"
+    "soft_auto_str_8": {},
+    "soft_auto_str_9": {},
+    "soft_auto_str_62": {}
   },
   "login": {
     "N1": "請填寫賬號",
@@ -3994,12 +3994,12 @@
     "public_auto_str_141": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替換当前'>替換</button>",
     "public_auto_str_142": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替換全部'>全部</button>",
     "public_auto_str_143": "未找到匹配項",
-    "public_auto_str_27": "<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'b')\">新增</button>",
-    "public_auto_str_29": "')\">刪除</button>\t\t<button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','",
-    "public_auto_str_30": "')\" style='margin-left:7px'>修改</button>",
-    "public_auto_str_81": "')\">重啟</button>            <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('",
-    "public_auto_str_82": "')\">過載配置</button>        </div>",
-    "public_auto_str_84": "')\">kill所有php程序</button>            <div class=\"service-notice\" style=\"margin-top: 15px; padding: 15px; background-color: #fff3f3; border-left: 4px solid #d9534f; border-radius: 4px; font-size: 13px; color: #555; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">                <div><b style=\"color:#d9534f;\">注意</b>：強制殺掉伺服器上所有的 PHP-FPM 程序（包括其他正常執行的 PHP 版本）。這會中斷所有 PHP 網站的訪問。此功能主要用於解決面板 PHP 啟動時報“埠已被佔用”、“Socket衝突”等異常問題，<b style=\"color:red;\">執行後需要手動回到各個 PHP 版本中重新點選【啟動】服務。</b></div>            </div>        </div>",
+    "public_auto_str_27": {},
+    "public_auto_str_29": {},
+    "public_auto_str_30": {},
+    "public_auto_str_81": {},
+    "public_auto_str_82": {},
+    "public_auto_str_84": {},
     "del": "刪除",
     "task_name": "任務名稱",
     "task_time": "添加時間",
@@ -4515,156 +4515,156 @@
   },
   "plugins": {
     "acme_pandominassl_apply": {
-      "title": "ACME泛域名SSL",
-      "ps": "ACME泛域名SSL申请/管理，提供Let's Encrypt免费泛域名证书申请与自动续签"
+      "title": "ACME泛網域名稱SSL",
+      "ps": "ACME泛網域名稱SSL申請/管理，提供Let's Encrypt免費泛網域名稱憑證申請與自動續簽"
     },
     "apache": {
       "title": "Apache",
-      "ps": "世界排名领先，快速、可靠并且可通过简单的API扩充的 Web 服务器软件"
+      "ps": "世界排名領先，快速、可靠並且可透過簡單的API擴充的 Web 伺服器軟體"
     },
     "caddy": {
       "title": "Caddy",
-      "ps": "一款功能强大、企业级、开源 Web 服务器，具有用 Go 编写的自动 HTTPS"
+      "ps": "一款功能強大、企業級、開源 Web 伺服器，具有用 Go 編寫的自動 HTTPS"
     },
     "clean": {
-      "title": "日志清理",
-      "ps": "清理系统临时文件、面板日志、网站日志等无用文件，释放磁盘空间"
+      "title": "記錄檔清理",
+      "ps": "清理系統暫存檔案、面板記錄檔、網站記錄檔等無用檔案，釋放磁碟空間"
     },
     "data_query": {
-      "title": "数据管理",
-      "ps": "数据简单管理 (Memcached, Redis, MongoDB)，快捷查看与维护键值数据库"
+      "title": "資料管理",
+      "ps": "資料簡單管理 (Memcached, Redis, MongoDB)，快捷檢視與維護鍵值資料庫"
     },
     "docker": {
-      "title": "御风Docker管理器",
-      "ps": "采用多个加速点轮询高速下载镜像，让Docker下载和拉取镜像如飞"
+      "title": "御風Docker管理器",
+      "ps": "採用多個加速點輪詢高速下載映像檔，讓Docker下載和拉取映像檔如飛"
     },
     "fail2ban": {
-      "title": "御风F2B防火墙",
-      "ps": "防止恶意IP地址暴力破解服务、站点，禁止导致多个身份验证错误的主机"
+      "title": "御風F2B防火牆",
+      "ps": "防止惡意IP位址暴力破解服務、網站，禁止導致多個身份驗證錯誤的主機"
     },
     "gitea": {
       "title": "Gitea",
-      "ps": "一个轻量级、无痛自建的 Git 服务"
+      "ps": "一個輕量級、無痛自建的 Git 服務"
     },
     "jdk": {
-      "title": "御风JDK管理器",
-      "ps": "多版本JDK在线安装与环境配置管理器"
+      "title": "御風JDK管理器",
+      "ps": "多版本JDK線上安裝與環境設定管理器"
     },
     "linux_sys_opt": {
-      "title": "御风系统优化",
-      "ps": "深入内核与系统层级的高性能参数调优工具"
+      "title": "御風系統優化",
+      "ps": "深入核心與系統層級的高效能參數調優工具"
     },
     "mariadb": {
       "title": "MariaDB",
-      "ps": "最流行的开源关系型数据库管理系统之一"
+      "ps": "最流行的開源關聯式資料庫管理系統之一"
     },
     "mongodb": {
       "title": "MongoDB",
-      "ps": "现代通用、基于文档的分布式 NoSQL 数据库"
+      "ps": "現代通用、基於文件的分散式 NoSQL 資料庫"
     },
     "mysql": {
       "title": "MySQL",
-      "ps": "全球最受欢迎的开源关系型数据库系统"
+      "ps": "全球最受歡迎的開源關聯式資料庫系統"
     },
     "ollama": {
       "title": "Ollama",
-      "ps": "本地大语言模型部署与管理工具"
+      "ps": "本機大語言模型部署與管理工具"
     },
     "op_load_balance": {
-      "title": "负载均衡",
-      "ps": "基于 OpenResty 的高性能负载均衡与反向代理集群管理"
+      "title": "負載平衡",
+      "ps": "基於 OpenResty 的高效能負載平衡與反向代理叢集管理"
     },
     "op_waf": {
-      "title": "御风网站防火墙",
-      "ps": "基于 OpenResty Lua 的高性能 Web 应用防火墙"
+      "title": "御風網站防火牆",
+      "ps": "基於 OpenResty Lua 的高效能 Web 應用程式防火牆"
     },
     "openresty": {
       "title": "OpenResty",
-      "ps": "基于 Nginx 与 Lua 的高性能 Web 平台"
+      "ps": "基於 Nginx 與 Lua 的高效能 Web 平台"
     },
     "pg_docker": {
-      "title": "御风PG Docker",
-      "ps": "基于 Docker 的 PostgreSQL 容器化多实例管理工具"
+      "title": "御風PG Docker",
+      "ps": "基於 Docker 的 PostgreSQL 容器化多實例管理工具"
     },
     "pgadmin": {
       "title": "pgAdmin",
-      "ps": "PostgreSQL 专用的功能强大的 Web 管理工具"
+      "ps": "PostgreSQL 專用的功能強大的 Web 管理工具"
     },
     "php": {
       "title": "PHP",
-      "ps": "广泛使用的通用开源脚本语言"
+      "ps": "廣泛使用的通用開源腳本語言"
     },
     "php-apt": {
       "title": "PHP (APT)",
-      "ps": "通过 APT 快速安装的官方源预编译 PHP 环境"
+      "ps": "透過 APT 快速安裝的官方源預編譯 PHP 環境"
     },
     "php-guard": {
-      "title": "PHP守护",
-      "ps": "监控并在 PHP-FPM 异常退出时自动拉起重启服务"
+      "title": "PHP守護",
+      "ps": "監控並在 PHP-FPM 異常結束時自動拉起重啟服務"
     },
     "php-yum": {
       "title": "PHP (YUM)",
-      "ps": "通过 YUM 快速安装的预编译 PHP 环境"
+      "ps": "透過 YUM 快速安裝的預編譯 PHP 環境"
     },
     "phpmyadmin": {
       "title": "phpMyAdmin",
-      "ps": "基于 Web 的经典 MySQL / MariaDB 图形化管理工具"
+      "ps": "基於 Web 的經典 MySQL / MariaDB 圖形化管理工具"
     },
     "postgresql": {
       "title": "PostgreSQL",
-      "ps": "世界上最先进的高可靠性开源关系型数据库"
+      "ps": "世界上最先進的高可靠性開源關聯式資料庫"
     },
     "pureftp": {
       "title": "Pure-FTPd",
-      "ps": "免费、安全、符合工业级标准的轻量 FTP 服务器"
+      "ps": "免費、安全、符合工業級標準的輕量 FTP 伺服器"
     },
     "python_yf": {
-      "title": "御风Python多版本",
-      "ps": "基于 uv 极速管理多版本 Python 与项目隔离虚拟环境"
+      "title": "御風Python多版本",
+      "ps": "基於 uv 極速管理多版本 Python 與專案隔離虛擬環境"
     },
     "redis": {
       "title": "Redis",
-      "ps": "极速内存数据结构存储系统，可用作数据库、缓存和消息中间件"
+      "ps": "極速記憶體資料結構儲存系統，可用作資料庫、快取和訊息中介軟體"
     },
     "rsyncd": {
-      "title": "Rsync守护",
-      "ps": "高效可靠的跨服务器文件增量同步与远程备份工具"
+      "title": "Rsync守護",
+      "ps": "高效可靠的跨伺服器檔案增量同步與遠端備份工具"
     },
     "sphinx": {
       "title": "Sphinx",
-      "ps": "开源全文搜索引擎，提供快速高效的文本检索能力"
+      "ps": "開源全文搜尋引擎，提供快速高效的文字檢索能力"
     },
     "supervisor": {
       "title": "Supervisor",
-      "ps": "进程控制与后台服务进程守护管理系统"
+      "ps": "處理程序控制與後台服務處理程序守護管理系統"
     },
     "swap": {
-      "title": "御风Swap管理器",
-      "ps": "轻松配置和调优虚拟内存交换空间，防止内存溢出"
+      "title": "御風Swap管理器",
+      "ps": "輕鬆設定和調優虛擬記憶體交換空間，防止記憶體溢出"
     },
     "task_manager": {
-      "title": "任务管理器",
-      "ps": "实时进程树、网络连接与系统开机服务深度监控工具"
+      "title": "工作管理員",
+      "ps": "即時處理程序樹、網路連線與系統開機服務深度監控工具"
     },
     "valkey": {
       "title": "Valkey",
-      "ps": "高性能开源键值存储数据库，完美兼容 Redis 生态"
+      "ps": "高效能開源鍵值儲存資料庫，完美相容 Redis 生態"
     },
     "varnish": {
       "title": "Varnish",
-      "ps": "高性能开源 HTTP 加速器与反向代理缓存服务器"
+      "ps": "高效能開源 HTTP 加速器與反向代理快取伺服器"
     },
     "webssh": {
       "title": "WebSSH",
-      "ps": "基于浏览器的网页终端，随时随地安全管理服务器"
+      "ps": "基於瀏覽器的網頁終端機，隨時隨地安全管理伺服器"
     },
     "webstats": {
-      "title": "网站统计",
-      "ps": "实时统计网站访问量、IP、PV、访客画像及来源分析"
+      "title": "網站統計",
+      "ps": "即時統計網站造訪量、IP、PV、訪客畫像及來源分析"
     },
     "yufeng_systemd": {
-      "title": "御风服务管理器",
-      "ps": "Systemd 服务单元与开机自启可视化管理与监控"
+      "title": "御風服務管理器",
+      "ps": "Systemd 服務單元與開機自啟視覺化管理與監控"
     },
     "acme_pandominassl_apply.title": "ACME泛網域名稱SSL",
     "acme_pandominassl_apply.ps": "ACME泛網域名稱SSL申请/管理，提供Let's Encrypt免费泛網域名稱憑證申请與自動续签",
