@@ -224,6 +224,16 @@
 					width: 100%;
 					height: 38px;
 				}
+
+				/* 悬浮提示框动态阴影：移动中禁用阴影消除GPU负担，静止后平滑浮现 */
+				.monitor-chart-tooltip {
+					box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15) !important;
+					border-radius: 4px !important;
+					transition: box-shadow 0.15s ease-out !important;
+				}
+				.tooltip-moving .monitor-chart-tooltip {
+					box-shadow: none !important;
+				}
 			</style>
 
 			<!-- 4 大核心聚合看板 -->

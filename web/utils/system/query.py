@@ -21,21 +21,7 @@ import core.yf as yf
 
 # --------------------------------------------  数据查询相关 --------------------------------------------
 def get_sampling_condition(table, start, end):
-    # 底层数据库级降采样：极大降低 Python 内存使用和字典拼装开销
-    try:
-        count = yf.M(table).dbPos(yf.getPanelDataDir(), 'system')\
-            .where("addtime>=? AND addtime<=?", (start, end)).count()
-        he = 1
-        if count > 1000:
-            he = 3
-        if count > 10000:
-            he = 15
-        where_str = "addtime>=? AND addtime<=?"
-        if he > 1:
-            where_str += " AND (id % " + str(he) + ") = 0"
-        return where_str
-    except:
-        return "addtime>=? AND addtime<=?"
+    return "addtime>=? AND addtime<=?"
 
 # 格式化addtime列
 def toAddtime(data, tomem=False):

@@ -84,6 +84,39 @@ function getTimeRangeByDay(day) {
   return { b: Math.round(b), e: Math.round(e) };
 }
 
+// 时序数据智能均值降采样算法（Bucket Averaging）
+// 当采样点过多时（如 24 小时 1440 点、7 天 10080 点），按等时间窗口取均值，稳定在约 288 点左右
+function aggregateSeries(rdata, fields, maxPoints) {
+  maxPoints = maxPoints || 288;
+  if (!rdata || rdata.length <= maxPoints) return rdata;
+
+  var step = Math.ceil(rdata.length / maxPoints);
+  var res = [];
+  for (var i = 0; i < rdata.length; i += step) {
+    var chunk = rdata.slice(i, Math.min(i + step, rdata.length));
+    if (chunk.length === 0) continue;
+    var item = {};
+    // 时间取该窗口中段的采样时间
+    item.addtime = chunk[Math.floor(chunk.length / 2)].addtime;
+    for (var f = 0; f < fields.length; f++) {
+      var field = fields[f];
+      var sum = 0;
+      var count = 0;
+      for (var c = 0; c < chunk.length; c++) {
+        var v = parseFloat(chunk[c][field]);
+        if (!isNaN(v)) {
+          sum += v;
+          count++;
+        }
+      }
+      var avg = count > 0 ? (sum / count) : 0;
+      item[field] = (field === 'read_bytes' || field === 'write_bytes') ? avg : Number(avg.toFixed(2));
+    }
+    res.push(item);
+  }
+  return res;
+}
+
 // 全局连接组同步
 function syncMonitorGroup() {
   setTimeout(function () {
@@ -118,6 +151,7 @@ function renderGlobalTimeline(xData) {
   var sliderChart = echarts.init(document.getElementById('global_timeline_view'));
 
   var option = {
+    animationDurationUpdate: 0,
     grid: {
       top: 0,
       left: 105,
@@ -170,63 +204,71 @@ function renderGlobalTimeline(xData) {
   sliderChart.setOption(option);
   window.chartInstances['global_timeline_view'] = sliderChart;
 
-  // 监听全局拖拉条事件，同步缩放所有 4 个核心图表
+  // 监听全局拖拉条事件，同步缩放所有 4 个核心图表（使用 requestAnimationFrame 节流控制在 60fps）
+  var sliderRafId = null;
   sliderChart.off('dataZoom');
   sliderChart.on('dataZoom', function (params) {
     if (isSyncingDataZoom) return;
-    isSyncingDataZoom = true;
-    var start = params.start !== undefined ? params.start : (params.batch && params.batch[0] ? params.batch[0].start : 0);
-    var end = params.end !== undefined ? params.end : (params.batch && params.batch[0] ? params.batch[0].end : 100);
+    if (sliderRafId) cancelAnimationFrame(sliderRafId);
+    sliderRafId = requestAnimationFrame(function () {
+      isSyncingDataZoom = true;
+      var start = params.start !== undefined ? params.start : (params.batch && params.batch[0] ? params.batch[0].start : 0);
+      var end = params.end !== undefined ? params.end : (params.batch && params.batch[0] ? params.batch[0].end : 100);
 
-    var charts = ['compute_view', 'getload_average_view', 'diskview', 'network'];
-    for (var i = 0; i < charts.length; i++) {
-      var chart = window.chartInstances[charts[i]];
-      if (chart) {
-        chart.dispatchAction({
-          type: 'dataZoom',
-          start: start,
-          end: end
-        });
+      var charts = ['compute_view', 'getload_average_view', 'diskview', 'network'];
+      for (var i = 0; i < charts.length; i++) {
+        var chart = window.chartInstances[charts[i]];
+        if (chart) {
+          chart.dispatchAction({
+            type: 'dataZoom',
+            start: start,
+            end: end
+          });
+        }
       }
-    }
-    setTimeout(function () {
-      isSyncingDataZoom = false;
-    }, 50);
+      setTimeout(function () {
+        isSyncingDataZoom = false;
+      }, 30);
+    });
   });
 }
 
 // 为卡片图表绑定内部缩放双向同步到全局滑块
 function bindInsideZoomSync(chartInst) {
+  var insideRafId = null;
   chartInst.off('dataZoom');
   chartInst.on('dataZoom', function (params) {
     if (isSyncingDataZoom) return;
-    isSyncingDataZoom = true;
-    var start = params.start !== undefined ? params.start : (params.batch && params.batch[0] ? params.batch[0].start : 0);
-    var end = params.end !== undefined ? params.end : (params.batch && params.batch[0] ? params.batch[0].end : 100);
+    if (insideRafId) cancelAnimationFrame(insideRafId);
+    insideRafId = requestAnimationFrame(function () {
+      isSyncingDataZoom = true;
+      var start = params.start !== undefined ? params.start : (params.batch && params.batch[0] ? params.batch[0].start : 0);
+      var end = params.end !== undefined ? params.end : (params.batch && params.batch[0] ? params.batch[0].end : 100);
 
-    var slider = window.chartInstances['global_timeline_view'];
-    if (slider) {
-      slider.dispatchAction({
-        type: 'dataZoom',
-        start: start,
-        end: end
-      });
-    }
-
-    var charts = ['compute_view', 'getload_average_view', 'diskview', 'network'];
-    for (var i = 0; i < charts.length; i++) {
-      var otherChart = window.chartInstances[charts[i]];
-      if (otherChart && otherChart !== chartInst) {
-        otherChart.dispatchAction({
+      var slider = window.chartInstances['global_timeline_view'];
+      if (slider) {
+        slider.dispatchAction({
           type: 'dataZoom',
           start: start,
           end: end
         });
       }
-    }
-    setTimeout(function () {
-      isSyncingDataZoom = false;
-    }, 50);
+
+      var charts = ['compute_view', 'getload_average_view', 'diskview', 'network'];
+      for (var i = 0; i < charts.length; i++) {
+        var otherChart = window.chartInstances[charts[i]];
+        if (otherChart && otherChart !== chartInst) {
+          otherChart.dispatchAction({
+            type: 'dataZoom',
+            start: start,
+            end: end
+          });
+        }
+      }
+      setTimeout(function () {
+        isSyncingDataZoom = false;
+      }, 30);
+    });
   });
 }
 
@@ -234,7 +276,9 @@ function bindInsideZoomSync(chartInst) {
 function compute(b, e) {
   $.get('/system/get_cpu_io?start=' + b + '&end=' + e, function (res) {
     if (!document.getElementById('compute_view')) return;
-    var rdata = res.data || [];
+    var rawData = res.data || [];
+    // 智能均值降采样
+    var rdata = aggregateSeries(rawData, ['pro', 'mem']);
     var myChartCompute = echarts.init(document.getElementById('compute_view'));
     myChartCompute.group = 'monitorGroup';
 
@@ -251,8 +295,10 @@ function compute(b, e) {
     var cpuLabel = (window.lan && lan.control && lan.control.cpu) || t('control.cpu', 'CPU');
     var memLabel = (window.lan && lan.control && lan.control.mem) || t('control.mem', '内存');
     var percentLabel = (window.lan && lan.public && lan.public.pre) || t('public.pre', '百分比(%)');
+    var timeLabel = (window.lan && lan.public && lan.public.time) || t('public.time', '时间');
 
     var option = {
+      animationDurationUpdate: 0,
       grid: {
         top: 35,
         left: '8%',
@@ -266,14 +312,21 @@ function compute(b, e) {
       },
       tooltip: {
         trigger: 'axis',
+        triggerOn: 'none', // 移动过程中不显示，由停顿200ms统一触发
+        transitionDuration: 0,
+        className: 'monitor-chart-tooltip',
+        confine: true,
         axisPointer: {
-          type: 'cross'
+          type: 'cross',
+          snap: true,
+          animation: false
         },
         formatter: function (params) {
           if (!params || params.length === 0) return '';
-          var tip = '<b>' + params[0].axisValue + '</b>';
+          var tip = '<b>' + timeLabel + '：' + params[0].axisValue + '</b>';
           for (var i = 0; i < params.length; i++) {
-            tip += '<br />' + params[i].marker + ' ' + params[i].seriesName + ': <b>' + params[i].value + '%</b>';
+            var val = params[i].value !== undefined && params[i].value !== null ? params[i].value : '0';
+            tip += '<br />' + params[i].marker + ' ' + params[i].seriesName + ': <b>' + val + '%</b>';
           }
           return tip;
         }
@@ -282,6 +335,9 @@ function compute(b, e) {
         type: 'category',
         boundaryGap: false,
         data: xData,
+        axisPointer: {
+          snap: true
+        },
         axisLine: {
           lineStyle: {
             color: "#666"
@@ -314,28 +370,28 @@ function compute(b, e) {
         {
           name: cpuLabel,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(0, 153, 238)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: cpuData
         },
         {
           name: memLabel,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(147, 38, 255)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: memData
         }
@@ -355,7 +411,9 @@ function compute(b, e) {
 function getload(b, e) {
   $.get('/system/get_load_average?start=' + b + '&end=' + e, function (res) {
     if (!document.getElementById('getload_average_view')) return;
-    var rdata = res.data || [];
+    var rawData = res.data || [];
+    // 智能均值降采样
+    var rdata = aggregateSeries(rawData, ['one', 'five', 'fifteen']);
     var myChartAverage = echarts.init(document.getElementById('getload_average_view'));
     myChartAverage.group = 'monitorGroup';
 
@@ -375,8 +433,10 @@ function getload(b, e) {
     var label5 = (window.lan && lan.control && lan.control.minutes_4) || t('control.minutes_4', '5分钟');
     var label15 = (window.lan && lan.control && lan.control.minutes_5) || t('control.minutes_5', '15分钟');
     var loadTitle = (window.lan && lan.control && lan.control.load_details) || t('control.load_details', '负载详情');
+    var timeLabel = (window.lan && lan.public && lan.public.time) || t('public.time', '时间');
 
     var option = {
+      animationDurationUpdate: 0,
       grid: {
         top: 35,
         left: '8%',
@@ -390,14 +450,21 @@ function getload(b, e) {
       },
       tooltip: {
         trigger: 'axis',
+        triggerOn: 'none', // 移动过程中不显示，由停顿200ms统一触发
+        transitionDuration: 0,
+        className: 'monitor-chart-tooltip',
+        confine: true,
         axisPointer: {
-          type: 'cross'
+          type: 'cross',
+          snap: true,
+          animation: false
         },
         formatter: function (params) {
           if (!params || params.length === 0) return '';
-          var tip = '<b>' + params[0].axisValue + '</b>';
+          var tip = '<b>' + timeLabel + '：' + params[0].axisValue + '</b>';
           for (var i = 0; i < params.length; i++) {
-            tip += '<br />' + params[i].marker + ' ' + params[i].seriesName + ': <b>' + params[i].value + '</b>';
+            var val = params[i].value !== undefined && params[i].value !== null ? params[i].value : '0.00';
+            tip += '<br />' + params[i].marker + ' ' + params[i].seriesName + ': <b>' + val + '</b>';
           }
           return tip;
         }
@@ -406,6 +473,9 @@ function getload(b, e) {
         type: 'category',
         boundaryGap: false,
         data: xData,
+        axisPointer: {
+          snap: true
+        },
         axisLine: {
           lineStyle: {
             color: "#666"
@@ -435,42 +505,42 @@ function getload(b, e) {
         {
           name: label1,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(30, 144, 255)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: oneData
         },
         {
           name: label5,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(0, 178, 45)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: fiveData
         },
         {
           name: label15,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(147, 38, 255)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: fifteenData
         }
@@ -487,7 +557,9 @@ function getload(b, e) {
 function disk(b, e) {
   $.get('/system/get_disk_io?start=' + b + '&end=' + e, function (res) {
     if (!document.getElementById('diskview')) return;
-    var rdata = res.data || [];
+    var rawData = res.data || [];
+    // 智能均值降采样
+    var rdata = aggregateSeries(rawData, ['read_bytes', 'write_bytes']);
     var myChartDisk = echarts.init(document.getElementById('diskview'));
     myChartDisk.group = 'monitorGroup';
 
@@ -507,6 +579,7 @@ function disk(b, e) {
     var timeLabel = (window.lan && lan.public && lan.public.time) || t('public.time', '时间');
 
     var option = {
+      animationDurationUpdate: 0,
       grid: {
         top: 35,
         left: '8%',
@@ -520,15 +593,32 @@ function disk(b, e) {
       },
       tooltip: {
         trigger: 'axis',
+        triggerOn: 'none', // 移动过程中不显示，由停顿200ms统一触发
+        transitionDuration: 0,
+        className: 'monitor-chart-tooltip',
+        confine: true,
         axisPointer: {
-          type: 'cross'
+          type: 'cross',
+          snap: true,
+          animation: false
         },
-        formatter: timeLabel + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
+        formatter: function (params) {
+          if (!params || params.length === 0) return '';
+          var tip = '<b>' + timeLabel + '：' + params[0].axisValue + '</b>';
+          for (var i = 0; i < params.length; i++) {
+            var val = params[i].value !== undefined && params[i].value !== null ? params[i].value : '0';
+            tip += '<br />' + params[i].marker + ' ' + params[i].seriesName + ': <b>' + val + ' Kb/s</b>';
+          }
+          return tip;
+        }
       },
       xAxis: {
         type: 'category',
         boundaryGap: false,
         data: xData,
+        axisPointer: {
+          snap: true
+        },
         axisLine: {
           lineStyle: {
             color: "#666"
@@ -559,28 +649,28 @@ function disk(b, e) {
         {
           name: readLabel,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(255, 70, 131)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: rData
         },
         {
           name: writeLabel,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgba(46, 165, 186, 0.85)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: wData
         }
@@ -597,7 +687,9 @@ function disk(b, e) {
 function network(b, e) {
   $.get('/system/get_network_io?start=' + b + '&end=' + e, function (res) {
     if (!document.getElementById('network')) return;
-    var rdata = res.data || [];
+    var rawData = res.data || [];
+    // 智能均值降采样
+    var rdata = aggregateSeries(rawData, ['up', 'down']);
     var myChartNetwork = echarts.init(document.getElementById('network'));
     myChartNetwork.group = 'monitorGroup';
 
@@ -617,6 +709,7 @@ function network(b, e) {
     var timeLabel = (window.lan && lan.public && lan.public.time) || t('public.time', '时间');
 
     var option = {
+      animationDurationUpdate: 0,
       grid: {
         top: 35,
         left: '8%',
@@ -630,15 +723,32 @@ function network(b, e) {
       },
       tooltip: {
         trigger: 'axis',
+        triggerOn: 'none', // 移动过程中不显示，由停顿200ms统一触发
+        transitionDuration: 0,
+        className: 'monitor-chart-tooltip',
+        confine: true,
         axisPointer: {
-          type: 'cross'
+          type: 'cross',
+          snap: true,
+          animation: false
         },
-        formatter: timeLabel + '：{b0}<br />{a0}: {c0} Kb/s<br />{a1}: {c1} Kb/s'
+        formatter: function (params) {
+          if (!params || params.length === 0) return '';
+          var tip = '<b>' + timeLabel + '：' + params[0].axisValue + '</b>';
+          for (var i = 0; i < params.length; i++) {
+            var val = params[i].value !== undefined && params[i].value !== null ? params[i].value : '0';
+            tip += '<br />' + params[i].marker + ' ' + params[i].seriesName + ': <b>' + val + ' Kb/s</b>';
+          }
+          return tip;
+        }
       },
       xAxis: {
         type: 'category',
         boundaryGap: false,
         data: xData,
+        axisPointer: {
+          snap: true
+        },
         axisLine: {
           lineStyle: {
             color: "#666"
@@ -669,28 +779,28 @@ function network(b, e) {
         {
           name: upLabel,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(255, 140, 0)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: yData
         },
         {
           name: downLabel,
           type: 'line',
-          smooth: true,
+          smooth: false,
           symbol: 'none',
-          sampling: 'average',
+          sampling: 'lttb',
           itemStyle: {
             color: 'rgb(30, 144, 255)'
           },
           lineStyle: {
-            width: 2
+            width: 1.8
           },
           data: zData
         }
@@ -702,6 +812,65 @@ function network(b, e) {
     bindInsideZoomSync(myChartNetwork);
   }, 'json');
 }
+
+// 统一鼠标悬停控制：移动中不显示 Tooltip（零开销），停顿至少 200ms 时 4 个图表同步显示该时刻详情
+var hoverDebounceTimer = null;
+var activeDataIndex = -1;
+
+$(document).on('mousemove', '.monitor-chart', function (e) {
+  var chartId = $(this).attr('id');
+  var chart = window.chartInstances[chartId];
+  if (!chart) return;
+
+  // 只要鼠标在移动，立即隐藏所有已弹出的 Tooltip
+  if (hoverDebounceTimer) clearTimeout(hoverDebounceTimer);
+  if (activeDataIndex !== -1) {
+    activeDataIndex = -1;
+    var charts = ['compute_view', 'getload_average_view', 'diskview', 'network'];
+    for (var i = 0; i < charts.length; i++) {
+      var c = window.chartInstances[charts[i]];
+      if (c) c.dispatchAction({ type: 'hideTip' });
+    }
+  }
+
+  var rect = this.getBoundingClientRect();
+  var mouseX = e.clientX - rect.left;
+  var mouseY = e.clientY - rect.top;
+
+  // 鼠标停下来至少 200ms 后才触发显示
+  hoverDebounceTimer = setTimeout(function () {
+    try {
+      if (!chart.containPixel({ gridIndex: 0 }, [mouseX, mouseY])) return;
+      var rawIdx = chart.convertFromPixel({ xAxisIndex: 0 }, mouseX);
+      if (rawIdx === undefined || rawIdx === null || isNaN(rawIdx)) return;
+      var dataIndex = Math.round(rawIdx);
+      activeDataIndex = dataIndex;
+
+      // 4 大图表同步弹出该数据索引处的时刻详情
+      var charts = ['compute_view', 'getload_average_view', 'diskview', 'network'];
+      for (var j = 0; j < charts.length; j++) {
+        var targetChart = window.chartInstances[charts[j]];
+        if (targetChart) {
+          targetChart.dispatchAction({
+            type: 'showTip',
+            seriesIndex: 0,
+            dataIndex: dataIndex
+          });
+        }
+      }
+    } catch (err) {}
+  }, 200);
+});
+
+$(document).on('mouseleave', '.monitor-chart', function () {
+  if (hoverDebounceTimer) clearTimeout(hoverDebounceTimer);
+  activeDataIndex = -1;
+  var charts = ['compute_view', 'getload_average_view', 'diskview', 'network'];
+  for (var i = 0; i < charts.length; i++) {
+    var c = window.chartInstances[charts[i]];
+    if (c) c.dispatchAction({ type: 'hideTip' });
+  }
+});
 
 // 页面初始化与交互绑定
 $(function () {

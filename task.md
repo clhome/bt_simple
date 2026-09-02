@@ -582,10 +582,34 @@
 
 ## 第四十四阶段：新增“24小时”时间筛选、设为默认监控时间与多语言适配 (完成)
 
-- [x] 1. 扩充 6 国语言词典：在 zh-CN, zh-TW, en, fr, de, it 各语言的 `template.json` 与 `lan.js` 中录入 `control.hours_24`（24小时 / 24小時 / 24 Hours / 24 Heures / 24 Stunden / 24 Ore）。
+- [x] 1. 扩充 6 国语言词典：在 zh-CN, zh-TW, en, fr, de, it 各语言的 `template.json` 与 `lan.js` 中录入 `control.hours_24`（24小时 / 24小時 / 24 Hours / 24 Heures / 24 操作）。
 - [x] 2. 优化 `web/templates/default/monitor.html`：在“今天”按钮前新增“24小时”按钮，并默认设置为高亮选中态（`class="gt on"`）。
 - [x] 3. 优化 `web/static/app/control.js`：在 `getTimeRangeByDay` 中支持 `'24h'`（当前时间往前推 86400 秒），并将页面初始化默认加载逻辑调整为 `setGlobalDay('24h')`。
 - [x] 4. 更新自动化测试套件 `test/test_monitor_optimization.py` 并运行回归验证。
+
+## 第四十五阶段：监控大屏性能全量优化（LTTB/直连线/帧率节流/移动态阴影）与全点吸附修复 (完成)
+
+- [x] 1. 曲线平滑与降采样优化：全量将 `smooth: true` 调整为 `smooth: false`（消除贝塞尔方程沉重 CPU 计算），将 `sampling` 升级为 `lttb`（最大三角三桶采样算法，降采样 80%+ 同时完美保真峰值）。
+- [x] 2. 补间动画与滑块节流优化：设置 `animationDurationUpdate: 0` 消除滑动时的补间延迟；在时间滑块的 `dataZoom` 同步逻辑中引入 `requestAnimationFrame` 节流，稳定 60fps。
+- [x] 3. 鼠标悬停全时刻数据自动吸附修复：为各图表的 `tooltip.axisPointer` 与 `xAxis.axisPointer` 显式启用 `snap: true`，确保鼠标在绘图区任意位置移动时，十字线均能磁吸附到最近的实际数据点，实时连贯显示具体数值，彻底修复“只有固定点才显示值”的问题。
+- [x] 4. 悬停提示框动态阴影优化（移动中无阴影，停止后显示阴影）：配置 Tooltip 零延迟位置跟随（`transitionDuration: 0`），并通过动态样式在鼠标移动中禁用 `box-shadow` 重绘、静止后渐现阴影。
+- [x] 5. 运行自动化测试套件回归验证，确保 0 报错。
+
+## 第四十六阶段：磁盘/网络 IO 异常占位符彻底根除与多图表时间戳 100% 对齐 (完成)
+
+- [x] 1. 根除磁盘 IO 与网络 IO 的 `{a1}: {c1}` 异常字符：将静态模板字符串替换为动态安全的函数式 `formatter`，循环遍历实际有效 series 并添加彩色标记圆点，彻底杜绝缺失数据时的未解析模板字符。
+- [x] 2. 根除多图表时刻错位导致 Tooltip 丢失问题：移除 `web/utils/system/query.py` 中基于各表非同步自增 `id % he` 的抽样，统一按 `addtime` 全量时间戳对齐，保证 4 张表时间采样点 100% 同步。
+- [x] 3. 增强 Tooltip 容器边界容错（`confine: true`）：在所有图表 Tooltip 中配置 `confine: true`，防止边缘提示框被容器溢出裁剪。
+- [x] 4. 运行全量自动化测试套件回归验证。
+
+## 第四十七阶段：时序数据均值降采样与鼠标静止 200ms 防抖同步触发详情 (完成)
+
+- [x] 1. 实现前端自适应时序均值聚合算法（Bucket Averaging）：当数据点超过 300 点时，按时间窗口将数据聚合为等间距均值点（200~300 点），确保每个点在屏幕上拥有清晰可命中的像素宽度，降低渲染与计算开销，并保证 4 大图表的时间序列严格等长对齐。
+- [x] 2. 实现鼠标移动静默与停顿 200ms 防抖同步触发：配置 `tooltip.triggerOn = 'none'`，在鼠标移动过程中完全静默不计算 Tooltip（极大降低系统负载），当鼠标停留在图表上超过 200ms 时，统一由 `convertFromPixel` 锁定目标 `dataIndex` 并一次性派发给全部 4 个图表同步显示详情。
+- [x] 3. 更新自动化测试套件 `test/test_monitor_optimization.py` 并运行回归验证。
+
+
+
 
 
 
