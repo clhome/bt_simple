@@ -3551,7 +3551,15 @@
         "soft_auto_str_70": "重新整理成功",
         "soft_auto_str_8": {},
         "soft_auto_str_9": {},
-        "soft_auto_str_62": {}
+        "soft_auto_str_62": {},
+        "type_all": "全部",
+        "type_installed": "已安裝",
+        "type_runtime": "運行環境",
+        "type_database": "資料庫",
+        "type_code_mgr": "程式碼管理",
+        "type_system_tools": "系統工具",
+        "type_other_plugins": "其他外掛",
+        "type_php": "PHP"
     },
     "login": {
         "N1": "請填寫賬號",

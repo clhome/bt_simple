@@ -2237,6 +2237,14 @@ var lan = {
 		},
 
 	"soft": {
+			"type_all": "Tutti",
+			"type_installed": "Installato",
+			"type_runtime": "Ambiente di runtime",
+			"type_database": "Database",
+			"type_code_mgr": "Gestione del codice",
+			"type_system_tools": "Strumenti di sistema",
+			"type_other_plugins": "Altri plugin",
+			"type_php": "PHP",
 			"H1": "Dashboard",
 			"H2": "Gestione del software",
 			"TH1": "Nome software",

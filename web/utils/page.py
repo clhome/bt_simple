@@ -43,15 +43,22 @@ class Page():
     __ARGS_TPL = ''
 
     def __init__(self):
-        if False:
-            self.__PREV = tmp['PREV']
-            self.__NEXT = tmp['NEXT']
-            self.__START = tmp['START']
-            self.__END = tmp['END']
-            self.__COUNT_START = tmp['COUNT_START']
-            self.__COUNT_END = tmp['COUNT_END']
-            self.__FO = tmp['FO']
-            self.__LINE = tmp['LINE']
+        try:
+            from core.i18n import get_cached_json, get_current_lang
+            lang = get_current_lang()
+            pub = get_cached_json('public', lang)
+            page_dict = pub.get('PAGE', {}) if isinstance(pub, dict) else {}
+            if page_dict:
+                self.__PREV = page_dict.get('PREV', self.__PREV)
+                self.__NEXT = page_dict.get('NEXT', self.__NEXT)
+                self.__START = page_dict.get('START', self.__START)
+                self.__END = page_dict.get('END', self.__END)
+                self.__COUNT_START = page_dict.get('COUNT_START', self.__COUNT_START)
+                self.__COUNT_END = page_dict.get('COUNT_END', self.__COUNT_END)
+                self.__FO = page_dict.get('FO', self.__FO)
+                self.__LINE = page_dict.get('LINE', self.__LINE)
+        except Exception:
+            pass
 
     def getPageNum(self, num):
         return str(num) + self.__ARGS_TPL

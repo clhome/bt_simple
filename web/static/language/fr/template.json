@@ -3551,7 +3551,15 @@
         "soft_auto_str_70": "Actualisation réussie",
         "soft_auto_str_8": {},
         "soft_auto_str_9": {},
-        "soft_auto_str_62": {}
+        "soft_auto_str_62": {},
+        "type_all": "Tout",
+        "type_installed": "Installé",
+        "type_runtime": "Environnement d'exécution",
+        "type_database": "Base de données",
+        "type_code_mgr": "Gestion de code",
+        "type_system_tools": "Outils système",
+        "type_other_plugins": "Autres plugins",
+        "type_php": "PHP"
     },
     "login": {
         "N1": "Veuillez saisir votre identifiant",

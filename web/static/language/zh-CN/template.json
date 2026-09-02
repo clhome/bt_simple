@@ -3551,7 +3551,15 @@
         "soft_auto_str_70": "刷新成功",
         "soft_auto_str_8": {},
         "soft_auto_str_9": {},
-        "soft_auto_str_62": {}
+        "soft_auto_str_62": {},
+        "type_all": "全部",
+        "type_installed": "已安装",
+        "type_runtime": "运行环境",
+        "type_database": "数据库",
+        "type_code_mgr": "代码管理",
+        "type_system_tools": "系统工具",
+        "type_other_plugins": "其他插件",
+        "type_php": "PHP"
     },
     "login": {
         "N1": "请填写账号",

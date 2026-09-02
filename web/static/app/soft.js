@@ -107,12 +107,25 @@ function getSList(isdisplay) {
     var tBody = '';
     var sBody = '';
     var pBody = '';
+    var typeKeyMap = {
+      '0': 'soft.type_all',
+      '-1': 'soft.type_installed',
+      '1': 'soft.type_runtime',
+      '2': 'soft.type_database',
+      '3': 'soft.type_code_mgr',
+      '4': 'soft.type_system_tools',
+      '5': 'soft.type_other_plugins',
+      '6': 'soft.type_php'
+    };
     for (var i = 0; i < rdata.type.length; i++) {
+      var typeItem = rdata.type[i];
       var c = '';
-      if (istype == rdata.type[i].type) {
+      if (istype == typeItem.type) {
         c = 'class="on"';
       }
-      tBody += '<span typeid="' + rdata.type[i].type + '" ' + c + '>' + rdata.type[i].title + '</span>';
+      var i18nKey = typeItem.key || typeKeyMap[typeItem.type] || ('soft.type_' + typeItem.type);
+      var typeTitle = (typeof t === 'function') ? t(i18nKey, typeItem.title) : typeItem.title;
+      tBody += '<span typeid="' + typeItem.type + '" data-i18n="' + i18nKey + '" ' + c + '>' + typeTitle + '</span>';
     }
     $(".softtype").html(tBody);
     $("#softPage").html(rdata.list);

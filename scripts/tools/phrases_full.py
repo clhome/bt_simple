@@ -190,6 +190,70 @@ FULL_I18N_DICTIONARY = {
             "it": "Attività Cron"
         },
         "soft": {
+        "type_all": {
+            "zh-CN": "全部",
+            "zh-TW": "全部",
+            "en": "All",
+            "fr": "Tout",
+            "de": "Alle",
+            "it": "Tutti"
+},
+        "type_installed": {
+            "zh-CN": "已安装",
+            "zh-TW": "已安裝",
+            "en": "Installed",
+            "fr": "Installé",
+            "de": "Installiert",
+            "it": "Installato"
+},
+        "type_runtime": {
+            "zh-CN": "运行环境",
+            "zh-TW": "運行環境",
+            "en": "Runtime",
+            "fr": "Environnement d'exécution",
+            "de": "Laufzeitumgebung",
+            "it": "Ambiente di runtime"
+},
+        "type_database": {
+            "zh-CN": "数据库",
+            "zh-TW": "資料庫",
+            "en": "Database",
+            "fr": "Base de données",
+            "de": "Datenbank",
+            "it": "Database"
+},
+        "type_code_mgr": {
+            "zh-CN": "代码管理",
+            "zh-TW": "程式碼管理",
+            "en": "Code Management",
+            "fr": "Gestion de code",
+            "de": "Code-Verwaltung",
+            "it": "Gestione del codice"
+},
+        "type_system_tools": {
+            "zh-CN": "系统工具",
+            "zh-TW": "系統工具",
+            "en": "System Tools",
+            "fr": "Outils système",
+            "de": "Systemwerkzeuge",
+            "it": "Strumenti di sistema"
+},
+        "type_other_plugins": {
+            "zh-CN": "其他插件",
+            "zh-TW": "其他外掛",
+            "en": "Other Plugins",
+            "fr": "Autres plugins",
+            "de": "Andere Plugins",
+            "it": "Altri plugin"
+},
+        "type_php": {
+            "zh-CN": "PHP",
+            "zh-TW": "PHP",
+            "en": "PHP",
+            "fr": "PHP",
+            "de": "PHP",
+            "it": "PHP"
+},
             "zh-CN": "软件",
             "zh-TW": "軟體",
             "en": "Software",

@@ -41,41 +41,49 @@ class plugin(object):
     def_plugin_type = [
         {
             "title":"全部",
+            "key":"soft.type_all",
             "type":0,
             "ps":""
         },
         {
             "title":"已安装",
+            "key":"soft.type_installed",
             "type":-1,
             "ps":""
         },
         {
             "title":"运行环境",
+            "key":"soft.type_runtime",
             "type":1,
             "ps":""
         },
         {
             "title":"数据库",
+            "key":"soft.type_database",
             "type":2,
             "ps":""
         },
         # {
         #     "title":"代码管理",
+        #     "key":"soft.type_code_mgr",
         #     "type":3,
         #     "ps":""
         # },
         {
             "title":"系统工具",
+            "key":"soft.type_system_tools",
             "type":4,
             "ps":""
         },
         {
             "title":"其他插件",
+            "key":"soft.type_other_plugins",
             "type":5,
             "ps":""
         },
         {
             "title":"PHP",
+            "key":"soft.type_php",
             "type":6,
             "ps":""
         }
@@ -1065,7 +1073,17 @@ class plugin(object):
         # print(type,keyword,page,size)
         '''
         rdata = {}
-        rdata['type'] = self.def_plugin_type
+        type_list = []
+        for item in self.def_plugin_type:
+            item_copy = item.copy()
+            if 'key' in item_copy:
+                try:
+                    from core.i18n import t as _t
+                    item_copy['title'] = _t(item_copy['key'], item_copy['title'])
+                except Exception:
+                    pass
+            type_list.append(item_copy)
+        rdata['type'] = type_list
     
         data = self.getAllPluginList(type, keyword, page, size, show_third_party)
         rdata['data'] = data[0]

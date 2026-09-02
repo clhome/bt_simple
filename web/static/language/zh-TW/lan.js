@@ -2237,6 +2237,14 @@ var lan = {
 		},
 
 	"soft": {
+			"type_all": "全部",
+			"type_installed": "已安裝",
+			"type_runtime": "運行環境",
+			"type_database": "資料庫",
+			"type_code_mgr": "程式碼管理",
+			"type_system_tools": "系統工具",
+			"type_other_plugins": "其他外掛",
+			"type_php": "PHP",
 			"H1": "首页",
 			"H2": "软件管理",
 			"TH1": "软件名称",

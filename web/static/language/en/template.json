@@ -3551,7 +3551,15 @@
         "soft_auto_str_70": "Refresh successful",
         "soft_auto_str_8": {},
         "soft_auto_str_9": {},
-        "soft_auto_str_62": {}
+        "soft_auto_str_62": {},
+        "type_all": "All",
+        "type_installed": "Installed",
+        "type_runtime": "Runtime",
+        "type_database": "Database",
+        "type_code_mgr": "Code Management",
+        "type_system_tools": "System Tools",
+        "type_other_plugins": "Other Plugins",
+        "type_php": "PHP"
     },
     "login": {
         "N1": "Please enter your account number",
