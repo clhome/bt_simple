@@ -3641,7 +3641,7 @@ $(window).on('resize', function () {
   autoHeight();
 });
 function aboutPanel() {
-  var loadT = layer.msg(lan && lan.public && t('public.loading_instructions') || "", {
+  var loadT = layer.msg(t('public.loading_instructions', '正在获取说明...'), {
     icon: 16,
     time: 0,
     shade: 0.3
@@ -3671,16 +3671,33 @@ function aboutPanel() {
         closeBtn: 0,
         area: ['850px', '812px'],
         shadeClose: true,
-        content: '<div class=\"about-container\" style=\"position: relative; padding-top: 0px;\">' + '<div class=\"about-close\" style=\"position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;\" onmouseover=\"this.style.color=\'#333\'\" onmouseout=\"this.style.color=\'#999\'\" onclick=\"layer.closeAll(\'page\')\">×</div>' + '<div class=\"about-header\" style=\"padding-top: 5px;\">' + '<img src=\"/static/img/logo.webp\" style=\"width: 160px; margin-bottom: 5px;\">' + ('<h2 style="margin-top: 5px;">' + ('<h2 style="margin-top: 5px;">' + (lan && lan.public && t('public.yufeng_panel_btsimple') || '御风面板（BtSimple）') + '</h2>' || '御风面板（BtSimple）') + '</h2>') + ('<p><a href="https://www.yftec.top" target="_blank" class="btlink" style="font-weight: bold;">' + ('<p><a href="https://www.yftec.top" target="_blank" class="btlink" style="font-weight: bold;">' + (lan && lan.public && t('public.quzhou_yufeng_technology_co') || '衢州御风科技有限公司') + '</a> ' + (lan && lan.public && t('public.proudly_presented_by') || '荣誉出品') + '</p>' || '衢州御风科技有限公司') + '</a> ' + (lan && lan.public && t('public.proudly_presented_by') || '荣誉出品') + '</p>') + '<div id=\"panel_resource_info\" style=\"margin-top: 15px; height: 30px; line-height: 30px; margin-bottom: 10px;\"></div>' + '</div>' + '<div class=\"about-content markdown-body\" style=\"padding-top: 0;\">' + htmlContent + '</div>' + '<div class=\"about-footer\">' + ('<p>&copy; 2026 <a href="https://www.yftec.top" target="_blank" class="btlink">' + ('<p>&copy; 2026 <a href="https://www.yftec.top" target="_blank" class="btlink">' + (lan && lan.public && t('public.quzhou_yufeng_technology_yftec') || '衢州御风科技 (YFTEC)') + '</a> ' + (lan && lan.public && t('public.all_rights_reserved_admin') || '版权所有 | admin@yftec.top') + '</p>' || '衢州御风科技 (YFTEC)') + '</a> ' + (lan && lan.public && t('public.all_rights_reserved_admin') || '版权所有 | admin@yftec.top') + '</p>') + '</div>' + '</div>',
+        content: '<div class="about-container" style="position: relative; padding-top: 0px;">' +
+          '<div class="about-close" style="position: absolute; top: 15px; right: 20px; cursor: pointer; color: #999; font-size: 24px; font-weight: normal; transition: color 0.3s; line-height: 1;" onmouseover="this.style.color=\'#333\'" onmouseout="this.style.color=\'#999\'" onclick="layer.closeAll(\'page\')">×</div>' +
+          '<div class="about-header" style="padding-top: 5px;">' +
+          '<img src="/static/img/logo.webp" style="width: 160px; margin-bottom: 5px;">' +
+          '<h2 style="margin-top: 5px;">' + t('public.yufeng_panel_btsimple', '御风面板（BtSimple）') + '</h2>' +
+          '<p><a href="https://www.yftec.top" target="_blank" class="btlink" style="font-weight: bold;">' + t('public.quzhou_yufeng_technology_co', '衢州御风科技有限公司') + '</a> ' + t('public.proudly_presented_by', '荣誉出品') + '</p>' +
+          '<div id="panel_resource_info" style="margin-top: 15px; height: 30px; line-height: 30px; margin-bottom: 10px;"></div>' +
+          '</div>' +
+          '<div class="about-content markdown-body" style="padding-top: 0;">' + htmlContent + '</div>' +
+          '<div class="about-footer">' +
+          '<p>&copy; 2026 <a href="https://www.yftec.top" target="_blank" class="btlink">' + t('public.quzhou_yufeng_technology_yftec', '衢州御风科技 (YFTEC)') + '</a> ' + t('public.all_rights_reserved_admin', '版权所有 | admin@yftec.top') + '</p>' +
+          '</div>' +
+          '</div>',
         success: function () {
           setTimeout(function () {
-            $('#panel_resource_info').html('<span style="font-size: 13px; color: #666;"><img src="/static/img/loading.gif" style="width:14px; vertical-align:middle; margin-right:5px;" onerror="this.style.display=\'none\'">' + ('<span style="font-size: 13px; color: #666;"><img src="/static/img/loading.gif" style="width:14px; vertical-align:middle; margin-right:5px;" onerror="this.style.display=\'none\'">' + (lan && lan.public && t('public.retrieving_panel_resource_usage') || '正在获取面板占用资源...') + '</span>' || '正在获取面板占用资源...') + '</span>');
+            $('#panel_resource_info').html('<span style="font-size: 13px; color: #666;"><img src="/static/img/loading.gif" style="width:14px; vertical-align:middle; margin-right:5px;" onerror="this.style.display=\'none\'">' + t('public.retrieving_panel_resource_usage', '正在获取面板占用资源...') + '</span>');
             $.get('/system/get_panel_resources', function (res) {
               if (res.status) {
-                var resHtml = '<div style=\"display:inline-block; border-top: 1px solid #eaeaea; border-bottom: 1px solid #eaeaea; padding: 0 15px; font-size: 13px; background-color: #fcfcfc; border-radius: 2px;\">' + ('<span style="color:#666; margin-right: 15px;">' + ('<span style="color:#666; margin-right: 15px;">' + (lan && lan.public && t('public.yufeng_panel_current_server') || '御风面板当前占用服务器资源：') + '</span>' || '御风面板当前占用服务器资源：') + '</span>') + '<span><i class=\"glyphicon glyphicon-tasks\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>CPU <b style=\"color:#20a53a; font-family: \'Inter\', sans-serif;\">' + res.data.cpu + '%</b></span>' + '<span style=\"color:#ddd; margin: 0 15px;\">|</span>' + ('<span><i class="glyphicon glyphicon-hdd" style="margin-right:4px; font-size:12px; color: #888;"></i>' + ('<span><i class="glyphicon glyphicon-hdd" style="margin-right:4px; font-size:12px; color: #888;"></i>' + (lan && lan.public && t('public.memory') || '内存') + ' <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">' || '内存') + ' <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">') + res.data.mem + ' MB</b></span>' + '</div>';
+                var resHtml = '<div style="display:inline-block; border-top: 1px solid #eaeaea; border-bottom: 1px solid #eaeaea; padding: 0 15px; font-size: 13px; background-color: #fcfcfc; border-radius: 2px;">' +
+                  '<span style="color:#666; margin-right: 15px;">' + t('public.yufeng_panel_current_server', '御风面板当前占用服务器资源：') + '</span>' +
+                  '<span><i class="glyphicon glyphicon-tasks" style="margin-right:4px; font-size:12px; color: #888;"></i>CPU <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">' + res.data.cpu + '%</b></span>' +
+                  '<span style="color:#ddd; margin: 0 15px;">|</span>' +
+                  '<span><i class="glyphicon glyphicon-hdd" style="margin-right:4px; font-size:12px; color: #888;"></i>' + t('public.memory', '内存') + ' <b style="color:#20a53a; font-family: \'Inter\', sans-serif;">' + res.data.mem + ' MB</b></span>' +
+                  '</div>';
                 $('#panel_resource_info').html(resHtml);
               } else {
-                $('#panel_resource_info').html('<span style="color: red;">' + ('<span style="color: red;">' + (lan && lan.public && t('public.failed_to_retrieve_resources') || '获取资源失败') + '</span>' || '获取资源失败') + '</span>');
+                $('#panel_resource_info').html('<span style="color: red;">' + t('public.failed_to_retrieve_resources', '获取资源失败') + '</span>');
               }
             }, 'json');
           }, 1000);
@@ -3718,8 +3735,20 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
   var dialog = document.createElement('div');
   dialog.className = 'cm-advanced-search-dialog';
   dialog.style.cssText = 'position: absolute; top: 15px; right: 30px; z-index: 999; background: #fff; padding: 12px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px; font-size: 13px; width: 320px; transition: all 0.2s;';
-  var html = '<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'>' + ('<input type=\'text\' class=\'cm-search-input bt-input-text\' placeholder=\'查找内容...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-prev\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'上一个\'><i class=\'glyphicon glyphicon-chevron-up\'></i></button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-next\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'下一个\'><i class=\'glyphicon glyphicon-chevron-down\'></i></button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-search-close\' style=\'padding: 4px 8px; margin-left: 5px;\' title=\'关闭\'><i class=\'glyphicon glyphicon-remove\'></i></button>') + '</div>' + '<div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'>' + ('<input type=\'text\' class=\'cm-replace-input bt-input-text\' placeholder=\'替换为...\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换当前\'>' + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换当前\'>' + (lan && lan.public && t('public.replace') || '替换') + '</button>' || '替换') + '</button>') + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换全部\'>' + ('<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'替换全部\'>' + (lan && lan.public && t('public.all_1') || '全部') + '</button>' || '全部') + '</button>') + '</div>' + '<div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>';
+  var html = '<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'>' +
+    '<input type=\'text\' class=\'cm-search-input bt-input-text\' placeholder=\'' + t('public.search_content', '查找内容...') + '\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>' +
+    '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-prev\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.previous', '上一个') + '\'><i class=\'glyphicon glyphicon-chevron-up\'></i></button>' +
+    '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-next\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.next', '下一个') + '\'><i class=\'glyphicon glyphicon-chevron-down\'></i></button>' +
+    '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-close\' style=\'padding: 4px 8px; margin-left: 5px;\' title=\'' + t('public.close', '关闭') + '\'><i class=\'glyphicon glyphicon-remove\'></i></button>' +
+    '</div>' +
+    '<div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'>' +
+    '<input type=\'text\' class=\'cm-replace-input bt-input-text\' placeholder=\'' + t('public.replace_with', '替换为...') + '\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>' +
+    '<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.replace_current', '替换当前') + '\'>' + t('public.replace', '替换') + '</button>' +
+    '<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.replace_all', '替换全部') + '\'>' + t('public.all_1', '全部') + '</button>' +
+    '</div>' +
+    '<div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>';
   dialog.innerHTML = html;
+
   wrapper.appendChild(dialog);
   var searchInput = dialog.querySelector('.cm-search-input');
   var replaceInput = dialog.querySelector('.cm-replace-input');

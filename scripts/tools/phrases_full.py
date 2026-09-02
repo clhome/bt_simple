@@ -62,126 +62,126 @@ FULL_I18N_DICTIONARY = {
             "it": "File"
         },
         "crontab": {
-        "day_limit": {
-            "zh-CN": "日期限制",
-            "zh-TW": "日期限制",
-            "en": "Day Restriction",
-            "fr": "Restriction de jours",
-            "de": "Tagesbegrenzung",
-            "it": "Restrizione giorni"
-},
-        "day_none": {
-            "zh-CN": "无",
-            "zh-TW": "無",
-            "en": "None",
-            "fr": "Aucun",
-            "de": "Keine",
-            "it": "Nessuna"
-},
-        "day_stock": {
-            "zh-CN": "股票开盘日",
-            "zh-TW": "股票開盤日",
-            "en": "Stock Trading Day",
-            "fr": "Jour de bourse",
-            "de": "Börsenhandelstag",
-            "it": "Giorno di borsa"
-},
-        "day_workday": {
-            "zh-CN": "工作日",
-            "zh-TW": "工作日",
-            "en": "Workday",
-            "fr": "Jour ouvrable",
-            "de": "Werktag",
-            "it": "Giorno lavorativo"
-},
-        "day_holiday": {
-            "zh-CN": "节假日",
-            "zh-TW": "節假日",
-            "en": "Holiday",
-            "fr": "Jour férié",
-            "de": "Feiertag",
-            "it": "Giorno festivo"
-},
-        "no_limit": {
-            "zh-CN": "无",
-            "zh-TW": "無",
-            "en": "None",
-            "fr": "Aucun",
-            "de": "Keine",
-            "it": "Nessuna"
-},
-        "stock_day": {
-            "zh-CN": "股票开盘日",
-            "zh-TW": "股票開盤日",
-            "en": "Stock Trading Day",
-            "fr": "Jour de bourse",
-            "de": "Börsenhandelstag",
-            "it": "Giorno di borsa"
-},
-        "work_day": {
-            "zh-CN": "工作日",
-            "zh-TW": "工作日",
-            "en": "Workday",
-            "fr": "Jour ouvrable",
-            "de": "Werktag",
-            "it": "Giorno lavorativo"
-},
-        "holiday": {
-            "zh-CN": "节假日",
-            "zh-TW": "節假日",
-            "en": "Holiday",
-            "fr": "Jour férié",
-            "de": "Feiertag",
-            "it": "Giorno festivo"
-},
-        "date_limit": {
-            "zh-CN": "日期限制",
-            "zh-TW": "日期限制",
-            "en": "Day Restriction",
-            "fr": "Restriction de jours",
-            "de": "Tagesbegrenzung",
-            "it": "Restrizione giorni"
-},
-        "start_time": {
-            "zh-CN": "开始时间",
-            "zh-TW": "開始時間",
-            "en": "Start time",
-            "fr": "Heure de début",
-            "de": "Startzeit",
-            "it": "Ora di inizio"
-},
-        "end_time": {
-            "zh-CN": "结束时间",
-            "zh-TW": "結束時間",
-            "en": "End time",
-            "fr": "Heure de fin",
-            "de": "Endzeit",
-            "it": "Ora di fine"
-},
-        "execute_time": {
-            "zh-CN": "执行时间",
-            "zh-TW": "執行時間",
-            "en": "Execute Time",
-            "fr": "Heure d'exécution",
-            "de": "Ausführungszeit",
-            "it": "Ora di esecuzione"
-},
-        "sky": {
-            "zh-CN": "天",
-            "zh-TW": "天",
-            "en": "Days",
-            "fr": "Jours",
-            "de": "Tage",
-            "it": "Giorni"
-},
-        "day": {
-            "zh-CN": "日",
-            "zh-TW": "日",
-            "en": "Day",
-            "fr": "Jour",
-            "de": "Tag",
-            "it": "Giorno"
-},
+            "day_limit": {
+                "zh-CN": "日期限制",
+                "zh-TW": "日期限制",
+                "en": "Day Restriction",
+                "fr": "Restriction de jours",
+                "de": "Tagesbegrenzung",
+                "it": "Restrizione giorni"
+            },
+            "day_none": {
+                "zh-CN": "无",
+                "zh-TW": "無",
+                "en": "None",
+                "fr": "Aucun",
+                "de": "Keine",
+                "it": "Nessuna"
+            },
+            "day_stock": {
+                "zh-CN": "股票开盘日",
+                "zh-TW": "股票開盤日",
+                "en": "Stock Trading Day",
+                "fr": "Jour de bourse",
+                "de": "Börsenhandelstag",
+                "it": "Giorno di borsa"
+            },
+            "day_workday": {
+                "zh-CN": "工作日",
+                "zh-TW": "工作日",
+                "en": "Workday",
+                "fr": "Jour ouvrable",
+                "de": "Werktag",
+                "it": "Giorno lavorativo"
+            },
+            "day_holiday": {
+                "zh-CN": "节假日",
+                "zh-TW": "節假日",
+                "en": "Holiday",
+                "fr": "Jour férié",
+                "de": "Feiertag",
+                "it": "Giorno festivo"
+            },
+            "no_limit": {
+                "zh-CN": "无",
+                "zh-TW": "無",
+                "en": "None",
+                "fr": "Aucun",
+                "de": "Keine",
+                "it": "Nessuna"
+            },
+            "stock_day": {
+                "zh-CN": "股票开盘日",
+                "zh-TW": "股票開盤日",
+                "en": "Stock Trading Day",
+                "fr": "Jour de bourse",
+                "de": "Börsenhandelstag",
+                "it": "Giorno di borsa"
+            },
+            "work_day": {
+                "zh-CN": "工作日",
+                "zh-TW": "工作日",
+                "en": "Workday",
+                "fr": "Jour ouvrable",
+                "de": "Werktag",
+                "it": "Giorno lavorativo"
+            },
+            "holiday": {
+                "zh-CN": "节假日",
+                "zh-TW": "節假日",
+                "en": "Holiday",
+                "fr": "Jour férié",
+                "de": "Feiertag",
+                "it": "Giorno festivo"
+            },
+            "date_limit": {
+                "zh-CN": "日期限制",
+                "zh-TW": "日期限制",
+                "en": "Day Restriction",
+                "fr": "Restriction de jours",
+                "de": "Tagesbegrenzung",
+                "it": "Restrizione giorni"
+            },
+            "start_time": {
+                "zh-CN": "开始时间",
+                "zh-TW": "開始時間",
+                "en": "Start time",
+                "fr": "Heure de début",
+                "de": "Startzeit",
+                "it": "Ora di inizio"
+            },
+            "end_time": {
+                "zh-CN": "结束时间",
+                "zh-TW": "結束時間",
+                "en": "End time",
+                "fr": "Heure de fin",
+                "de": "Endzeit",
+                "it": "Ora di fine"
+            },
+            "execute_time": {
+                "zh-CN": "执行时间",
+                "zh-TW": "執行時間",
+                "en": "Execute Time",
+                "fr": "Heure d'exécution",
+                "de": "Ausführungszeit",
+                "it": "Ora di esecuzione"
+            },
+            "sky": {
+                "zh-CN": "天",
+                "zh-TW": "天",
+                "en": "Days",
+                "fr": "Jours",
+                "de": "Tage",
+                "it": "Giorni"
+            },
+            "day": {
+                "zh-CN": "日",
+                "zh-TW": "日",
+                "en": "Day",
+                "fr": "Jour",
+                "de": "Tag",
+                "it": "Giorno"
+            },
             "zh-CN": "计划任务",
             "zh-TW": "計劃任務",
             "en": "Cron Tasks",
@@ -190,70 +190,70 @@ FULL_I18N_DICTIONARY = {
             "it": "Attività Cron"
         },
         "soft": {
-        "type_all": {
-            "zh-CN": "全部",
-            "zh-TW": "全部",
-            "en": "All",
-            "fr": "Tout",
-            "de": "Alle",
-            "it": "Tutti"
-},
-        "type_installed": {
-            "zh-CN": "已安装",
-            "zh-TW": "已安裝",
-            "en": "Installed",
-            "fr": "Installé",
-            "de": "Installiert",
-            "it": "Installato"
-},
-        "type_runtime": {
-            "zh-CN": "运行环境",
-            "zh-TW": "運行環境",
-            "en": "Runtime",
-            "fr": "Environnement d'exécution",
-            "de": "Laufzeitumgebung",
-            "it": "Ambiente di runtime"
-},
-        "type_database": {
-            "zh-CN": "数据库",
-            "zh-TW": "資料庫",
-            "en": "Database",
-            "fr": "Base de données",
-            "de": "Datenbank",
-            "it": "Database"
-},
-        "type_code_mgr": {
-            "zh-CN": "代码管理",
-            "zh-TW": "程式碼管理",
-            "en": "Code Management",
-            "fr": "Gestion de code",
-            "de": "Code-Verwaltung",
-            "it": "Gestione del codice"
-},
-        "type_system_tools": {
-            "zh-CN": "系统工具",
-            "zh-TW": "系統工具",
-            "en": "System Tools",
-            "fr": "Outils système",
-            "de": "Systemwerkzeuge",
-            "it": "Strumenti di sistema"
-},
-        "type_other_plugins": {
-            "zh-CN": "其他插件",
-            "zh-TW": "其他外掛",
-            "en": "Other Plugins",
-            "fr": "Autres plugins",
-            "de": "Andere Plugins",
-            "it": "Altri plugin"
-},
-        "type_php": {
-            "zh-CN": "PHP",
-            "zh-TW": "PHP",
-            "en": "PHP",
-            "fr": "PHP",
-            "de": "PHP",
-            "it": "PHP"
-},
+            "type_all": {
+                "zh-CN": "全部",
+                "zh-TW": "全部",
+                "en": "All",
+                "fr": "Tout",
+                "de": "Alle",
+                "it": "Tutti"
+            },
+            "type_installed": {
+                "zh-CN": "已安装",
+                "zh-TW": "已安裝",
+                "en": "Installed",
+                "fr": "Installé",
+                "de": "Installiert",
+                "it": "Installato"
+            },
+            "type_runtime": {
+                "zh-CN": "运行环境",
+                "zh-TW": "運行環境",
+                "en": "Runtime",
+                "fr": "Environnement d'exécution",
+                "de": "Laufzeitumgebung",
+                "it": "Ambiente di runtime"
+            },
+            "type_database": {
+                "zh-CN": "数据库",
+                "zh-TW": "資料庫",
+                "en": "Database",
+                "fr": "Base de données",
+                "de": "Datenbank",
+                "it": "Database"
+            },
+            "type_code_mgr": {
+                "zh-CN": "代码管理",
+                "zh-TW": "程式碼管理",
+                "en": "Code Management",
+                "fr": "Gestion de code",
+                "de": "Code-Verwaltung",
+                "it": "Gestione del codice"
+            },
+            "type_system_tools": {
+                "zh-CN": "系统工具",
+                "zh-TW": "系統工具",
+                "en": "System Tools",
+                "fr": "Outils système",
+                "de": "Systemwerkzeuge",
+                "it": "Strumenti di sistema"
+            },
+            "type_other_plugins": {
+                "zh-CN": "其他插件",
+                "zh-TW": "其他外掛",
+                "en": "Other Plugins",
+                "fr": "Autres plugins",
+                "de": "Andere Plugins",
+                "it": "Altri plugin"
+            },
+            "type_php": {
+                "zh-CN": "PHP",
+                "zh-TW": "PHP",
+                "en": "PHP",
+                "fr": "PHP",
+                "de": "PHP",
+                "it": "PHP"
+            },
             "zh-CN": "软件",
             "zh-TW": "軟體",
             "en": "Software",
@@ -12935,7 +12935,7 @@ FULL_I18N_DICTIONARY = {
             "fr": "Confirmer",
             "de": "Bestätigen",
             "it": "Conferma"
-},
+        },
         "cancel": {
             "zh-CN": "取消",
             "zh-TW": "取消",
@@ -12943,7 +12943,7 @@ FULL_I18N_DICTIONARY = {
             "fr": "Annuler",
             "de": "Abbrechen",
             "it": "Annulla"
-},
+        },
         "info": {
             "zh-CN": "信息",
             "zh-TW": "資訊",
@@ -12951,7 +12951,7 @@ FULL_I18N_DICTIONARY = {
             "fr": "Information",
             "de": "Information",
             "it": "Informazioni"
-},
+        },
         "do_you_want_to": {
             "zh-CN": "是否要退出御风面板?",
             "zh-TW": "是否要退出御風面板?",
@@ -12959,7 +12959,7 @@ FULL_I18N_DICTIONARY = {
             "fr": "Voulez-vous quitter le panneau Yufeng ?",
             "de": "Möchten Sie das Yufeng-Panel verlassen?",
             "it": "Vuoi uscire dal pannello Yufeng?"
-},
+        },
         "save": {
             "zh-CN": "保存",
             "zh-TW": "儲存",
@@ -14216,59 +14216,59 @@ FULL_I18N_DICTIONARY = {
         },
         "public_auto_str_127": {
             "zh-CN": "当前没有日志!",
-            "zh-TW": "当前没有記錄檔!",
-            "en": "当前没有Logs!",
-            "fr": "当前没有Journaux!",
-            "de": "当前没有Protokolle!",
-            "it": "当前没有Log!"
+            "zh-TW": "目前沒有日誌!",
+            "en": "Currently no logs!",
+            "fr": "Aucun journal pour le moment !",
+            "de": "Derzeit keine Protokolle!",
+            "it": "Nessun registro al momento!"
         },
         "public_auto_str_128": {
             "zh-CN": "正在获取说明...",
-            "zh-TW": "正在獲取说明...",
-            "en": "正在获取Description...",
-            "fr": "正在获取Description...",
-            "de": "正在获取Beschreibung...",
-            "it": "正在获取Descrizione..."
+            "zh-TW": "正在獲取說明...",
+            "en": "Retrieving description...",
+            "fr": "Récupération des instructions...",
+            "de": "Anweisungen werden abgerufen...",
+            "it": "Recupero istruzioni in corso..."
         },
         "public_auto_str_129": {
             "zh-CN": "<h2 style=\"margin-top: 5px;\">御风面板（BtSimple）</h2>",
-            "zh-TW": "<h2 style=\"margin-top: 5px;\">御风面板（BtSimple）</h2>",
-            "en": "<h2 style=\"margin-top: 5px;\">YuFeng Panel（BtSimple）</h2>",
-            "fr": "<h2 style=\"margin-top: 5px;\">Panneau YuFeng（BtSimple）</h2>",
-            "de": "<h2 style=\"margin-top: 5px;\">YuFeng Panel（BtSimple）</h2>",
-            "it": "<h2 style=\"margin-top: 5px;\">Pannello YuFeng（BtSimple）</h2>"
+            "zh-TW": "<h2 style=\"margin-top: 5px;\">御風面板（BtSimple）</h2>",
+            "en": "<h2 style=\"margin-top: 5px;\">YuFeng Panel (BtSimple)</h2>",
+            "fr": "<h2 style=\"margin-top: 5px;\">Panneau YuFeng (BtSimple)</h2>",
+            "de": "<h2 style=\"margin-top: 5px;\">YuFeng-Panel (BtSimple)</h2>",
+            "it": "<h2 style=\"margin-top: 5px;\">Pannello YuFeng (BtSimple)</h2>"
         },
         "public_auto_str_130": {
             "zh-CN": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
-            "zh-TW": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
-            "en": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
-            "fr": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
-            "de": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>",
-            "it": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御风科技有限公司</a> 荣誉出品</p>"
+            "zh-TW": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">衢州御風科技有限公司</a> 榮譽出品</p>",
+            "en": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">Quzhou Yufeng Technology Co., Ltd.</a> Proudly Presented</p>",
+            "fr": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">Quzhou Yufeng Technology Co., Ltd.</a> Fièrement présenté</p>",
+            "de": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">Quzhou Yufeng Technology Co., Ltd.</a> Mit Stolz präsentiert</p>",
+            "it": "<p><a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\" style=\"font-weight: bold;\">Quzhou Yufeng Technology Co., Ltd.</a> Presentato con orgoglio</p>"
         },
         "public_auto_str_131": {
             "zh-CN": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
-            "zh-TW": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
-            "en": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
-            "fr": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
-            "de": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>",
-            "it": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御风科技 (YFTEC)</a> 版权所有 | admin@yftec.top</p>"
+            "zh-TW": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">衢州御風科技 (YFTEC)</a> 版權所有 | admin@yftec.top</p>",
+            "en": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">Quzhou Yufeng Technology (YFTEC)</a> All Rights Reserved | admin@yftec.top</p>",
+            "fr": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">Quzhou Yufeng Technology (YFTEC)</a> Tous droits réservés | admin@yftec.top</p>",
+            "de": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">Quzhou Yufeng Technology (YFTEC)</a> Alle Rechte vorbehalten | admin@yftec.top</p>",
+            "it": "<p>&copy; 2026 <a href=\"https://www.yftec.top\" target=\"_blank\" class=\"btlink\">Quzhou Yufeng Technology (YFTEC)</a> Tutti i diritti riservati | admin@yftec.top</p>"
         },
         "public_auto_str_132": {
             "zh-CN": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
             "zh-TW": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在獲取面板佔用資源...</span>",
-            "en": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
-            "fr": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
-            "de": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>",
-            "it": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">正在获取面板占用资源...</span>"
+            "en": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">Retrieving panel resource usage...</span>",
+            "fr": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">Récupération des ressources du panneau...</span>",
+            "de": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">Panel-Ressourcennutzung wird abgerufen...</span>",
+            "it": "<span style=\"font-size: 13px; color: #666;\"><img src=\"/static/img/loading.gif\" style=\"width:14px; vertical-align:middle; margin-right:5px;\" onerror=\"this.style.display='none'\">Recupero utilizzo risorse del pannello...</span>"
         },
         "public_auto_str_133": {
             "zh-CN": "<span style=\"color:#666; margin-right: 15px;\">御风面板当前占用服务器资源：</span>",
-            "zh-TW": "<span style=\"color:#666; margin-right: 15px;\">御风面板当前佔用伺服器資源：</span>",
-            "en": "<span style=\"color:#666; margin-right: 15px;\">YuFeng Panel当前占用服务器资源：</span>",
-            "fr": "<span style=\"color:#666; margin-right: 15px;\">Panneau YuFeng当前占用服务器资源：</span>",
-            "de": "<span style=\"color:#666; margin-right: 15px;\">YuFeng Panel当前占用服务器资源：</span>",
-            "it": "<span style=\"color:#666; margin-right: 15px;\">Pannello YuFeng当前占用服务器资源：</span>"
+            "zh-TW": "<span style=\"color:#666; margin-right: 15px;\">御風面板當前佔用伺服器資源：</span>",
+            "en": "<span style=\"color:#666; margin-right: 15px;\">YuFeng Panel current server resources:</span>",
+            "fr": "<span style=\"color:#666; margin-right: 15px;\">Ressources serveur actuelles du panneau YuFeng :</span>",
+            "de": "<span style=\"color:#666; margin-right: 15px;\">Aktuelle Serverressourcen des YuFeng-Panels:</span>",
+            "it": "<span style=\"color:#666; margin-right: 15px;\">Risorse del server attuali del pannello YuFeng:</span>"
         },
         "public_auto_str_134": {
             "zh-CN": "<span><i class=\"glyphicon glyphicon-hdd\" style=\"margin-right:4px; font-size:12px; color: #888;\"></i>内存 <b style=\"color:#20a53a; font-family: 'Inter', sans-serif;\">",
@@ -14281,34 +14281,34 @@ FULL_I18N_DICTIONARY = {
         "public_auto_str_135": {
             "zh-CN": "<span style=\"color: red;\">获取资源失败</span>",
             "zh-TW": "<span style=\"color: red;\">獲取資源失敗</span>",
-            "en": "<span style=\"color: red;\">获取资源失败</span>",
-            "fr": "<span style=\"color: red;\">获取资源失败</span>",
-            "de": "<span style=\"color: red;\">获取资源失败</span>",
-            "it": "<span style=\"color: red;\">获取资源失败</span>"
+            "en": "<span style=\"color: red;\">Failed to retrieve resources</span>",
+            "fr": "<span style=\"color: red;\">Échec de la récupération des ressources</span>",
+            "de": "<span style=\"color: red;\">Fehler beim Abrufen der Ressourcen</span>",
+            "it": "<span style=\"color: red;\">Impossibile recuperare le risorse</span>"
         },
         "public_auto_str_136": {
             "zh-CN": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "zh-TW": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "en": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "fr": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "de": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "it": "<input type='text' class='cm-search-input bt-input-text' placeholder='查找内容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>"
+            "zh-TW": "<input type='text' class='cm-search-input bt-input-text' placeholder='尋找內容...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "en": "<input type='text' class='cm-search-input bt-input-text' placeholder='Search content...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "fr": "<input type='text' class='cm-search-input bt-input-text' placeholder='Rechercher du contenu...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "de": "<input type='text' class='cm-search-input bt-input-text' placeholder='Inhalt suchen...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "it": "<input type='text' class='cm-search-input bt-input-text' placeholder='Cerca contenuto...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>"
         },
         "public_auto_str_137": {
             "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
             "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一個'><i class='glyphicon glyphicon-chevron-up'></i></button>",
-            "en": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
-            "fr": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
-            "de": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>",
-            "it": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='上一个'><i class='glyphicon glyphicon-chevron-up'></i></button>"
+            "en": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='Previous'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='Précédent'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='Vorheriger'><i class='glyphicon glyphicon-chevron-up'></i></button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-search-prev' style='padding: 4px 8px; margin-left: 2px;' title='Precedente'><i class='glyphicon glyphicon-chevron-up'></i></button>"
         },
         "public_auto_str_138": {
             "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
             "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一個'><i class='glyphicon glyphicon-chevron-down'></i></button>",
-            "en": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
-            "fr": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
-            "de": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>",
-            "it": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='下一个'><i class='glyphicon glyphicon-chevron-down'></i></button>"
+            "en": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='Next'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='Suivant'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='Nächster'><i class='glyphicon glyphicon-chevron-down'></i></button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-search-next' style='padding: 4px 8px; margin-left: 2px;' title='Successivo'><i class='glyphicon glyphicon-chevron-down'></i></button>"
         },
         "public_auto_str_139": {
             "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-search-close' style='padding: 4px 8px; margin-left: 5px;' title='关闭'><i class='glyphicon glyphicon-remove'></i></button>",
@@ -14321,34 +14321,34 @@ FULL_I18N_DICTIONARY = {
         "public_auto_str_140": {
             "zh-CN": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
             "zh-TW": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替換為...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "en": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "fr": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "de": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
-            "it": "<input type='text' class='cm-replace-input bt-input-text' placeholder='替换为...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>"
+            "en": "<input type='text' class='cm-replace-input bt-input-text' placeholder='Replace with...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "fr": "<input type='text' class='cm-replace-input bt-input-text' placeholder='Remplacer par...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "de": "<input type='text' class='cm-replace-input bt-input-text' placeholder='Ersetzen durch...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>",
+            "it": "<input type='text' class='cm-replace-input bt-input-text' placeholder='Sostituisci con...' style='height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;'>"
         },
         "public_auto_str_141": {
             "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
-            "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替換当前'>替換</button>",
-            "en": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
-            "fr": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
-            "de": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>",
-            "it": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换当前'>替换</button>"
+            "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='替換當前'>替換</button>",
+            "en": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='Replace current'>Replace</button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='Remplacer l’actuel'>Remplacer</button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='Aktuelles ersetzen'>Ersetzen</button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-replace-btn' style='padding: 4px 8px; margin-left: 2px;' title='Sostituisci corrente'>Sostituisci</button>"
         },
         "public_auto_str_142": {
             "zh-CN": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换全部'>全部</button>",
             "zh-TW": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替換全部'>全部</button>",
-            "en": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换All'>All</button>",
-            "fr": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换Tout'>Tout</button>",
-            "de": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换Alle'>Alle</button>",
-            "it": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='替换Tutto'>Tutto</button>"
+            "en": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='Replace all'>All</button>",
+            "fr": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='Tout remplacer'>Tout</button>",
+            "de": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='Alle ersetzen'>Alle</button>",
+            "it": "<button type='button' class='btn btn-default btn-sm cm-replace-all-btn' style='padding: 4px 8px; margin-left: 2px;' title='Sostituisci tutto'>Tutto</button>"
         },
         "public_auto_str_143": {
             "zh-CN": "未找到匹配项",
             "zh-TW": "未找到匹配項",
-            "en": "未找到匹配项",
-            "fr": "未找到匹配项",
-            "de": "未找到匹配项",
-            "it": "未找到匹配项"
+            "en": "No match found",
+            "fr": "Aucune correspondance trouvée",
+            "de": "Keine Übereinstimmung gefunden",
+            "it": "Nessuna corrispondenza trovata"
         },
         "install": {
             "zh-CN": "安装",
@@ -14677,6 +14677,150 @@ FULL_I18N_DICTIONARY = {
             "fr": "Tous les champs sont obligatoires",
             "de": "Alle Felder dürfen nicht leer sein",
             "it": "Tutti i campi non possono essere vuoti"
+        },
+        "yufeng_panel_btsimple": {
+            "zh-CN": "御风面板（BtSimple）",
+            "zh-TW": "御風面板（BtSimple）",
+            "en": "YuFeng Panel (BtSimple)",
+            "fr": "Panneau YuFeng (BtSimple)",
+            "de": "YuFeng-Panel (BtSimple)",
+            "it": "Pannello YuFeng (BtSimple)"
+        },
+        "quzhou_yufeng_technology_co": {
+            "zh-CN": "衢州御风科技有限公司",
+            "zh-TW": "衢州御風科技有限公司",
+            "en": "Quzhou Yufeng Technology Co., Ltd.",
+            "fr": "Quzhou Yufeng Technology Co., Ltd.",
+            "de": "Quzhou Yufeng Technology Co., Ltd.",
+            "it": "Quzhou Yufeng Technology Co., Ltd."
+        },
+        "proudly_presented_by": {
+            "zh-CN": "荣誉出品",
+            "zh-TW": "榮譽出品",
+            "en": "Proudly Presented",
+            "fr": "Fièrement présenté",
+            "de": "Mit Stolz präsentiert",
+            "it": "Presentato con orgoglio"
+        },
+        "retrieving_panel_resource_usage": {
+            "zh-CN": "正在获取面板占用资源...",
+            "zh-TW": "正在獲取面板佔用資源...",
+            "en": "Retrieving panel resource usage...",
+            "fr": "Récupération des ressources du panneau...",
+            "de": "Panel-Ressourcennutzung wird abgerufen...",
+            "it": "Recupero utilizzo risorse del pannello..."
+        },
+        "yufeng_panel_current_server": {
+            "zh-CN": "御风面板当前占用服务器资源：",
+            "zh-TW": "御風面板當前佔用伺服器資源：",
+            "en": "YuFeng Panel current server resources:",
+            "fr": "Ressources serveur actuelles du panneau YuFeng :",
+            "de": "Aktuelle Serverressourcen des YuFeng-Panels:",
+            "it": "Risorse del server attuali del pannello YuFeng:"
+        },
+        "memory": {
+            "zh-CN": "内存",
+            "zh-TW": "記憶體",
+            "en": "Memory",
+            "fr": "Mémoire",
+            "de": "Arbeitsspeicher",
+            "it": "Memoria"
+        },
+        "failed_to_retrieve_resources": {
+            "zh-CN": "获取资源失败",
+            "zh-TW": "獲取資源失敗",
+            "en": "Failed to retrieve resources",
+            "fr": "Échec de la récupération des ressources",
+            "de": "Fehler beim Abrufen der Ressourcen",
+            "it": "Impossibile recuperare le risorse"
+        },
+        "quzhou_yufeng_technology_yftec": {
+            "zh-CN": "衢州御风科技 (YFTEC)",
+            "zh-TW": "衢州御風科技 (YFTEC)",
+            "en": "Quzhou Yufeng Technology (YFTEC)",
+            "fr": "Quzhou Yufeng Technology (YFTEC)",
+            "de": "Quzhou Yufeng Technology (YFTEC)",
+            "it": "Quzhou Yufeng Technology (YFTEC)"
+        },
+        "all_rights_reserved_admin": {
+            "zh-CN": "版权所有 | admin@yftec.top",
+            "zh-TW": "版權所有 | admin@yftec.top",
+            "en": "All Rights Reserved | admin@yftec.top",
+            "fr": "Tous droits réservés | admin@yftec.top",
+            "de": "Alle Rechte vorbehalten | admin@yftec.top",
+            "it": "Tutti i diritti riservati | admin@yftec.top"
+        },
+        "loading_instructions": {
+            "zh-CN": "正在获取说明...",
+            "zh-TW": "正在獲取說明...",
+            "en": "Retrieving description...",
+            "fr": "Récupération des instructions...",
+            "de": "Anweisungen werden abgerufen...",
+            "it": "Recupero istruzioni in corso..."
+        },
+        "search_content": {
+            "zh-CN": "查找内容...",
+            "zh-TW": "尋找內容...",
+            "en": "Search...",
+            "fr": "Rechercher...",
+            "de": "Suchen...",
+            "it": "Cerca..."
+        },
+        "previous": {
+            "zh-CN": "上一个",
+            "zh-TW": "上一個",
+            "en": "Previous",
+            "fr": "Précédent",
+            "de": "Vorheriger",
+            "it": "Precedente"
+        },
+        "next": {
+            "zh-CN": "下一个",
+            "zh-TW": "下一個",
+            "en": "Next",
+            "fr": "Suivant",
+            "de": "Nächster",
+            "it": "Successivo"
+        },
+        "replace_with": {
+            "zh-CN": "替换为...",
+            "zh-TW": "替換為...",
+            "en": "Replace with...",
+            "fr": "Remplacer par...",
+            "de": "Ersetzen durch...",
+            "it": "Sostituisci con..."
+        },
+        "replace_current": {
+            "zh-CN": "替换当前",
+            "zh-TW": "替換當前",
+            "en": "Replace current",
+            "fr": "Remplacer l'actuel",
+            "de": "Aktuelles ersetzen",
+            "it": "Sostituisci corrente"
+        },
+        "replace_all": {
+            "zh-CN": "替换全部",
+            "zh-TW": "替換全部",
+            "en": "Replace all",
+            "fr": "Tout remplacer",
+            "de": "Alle ersetzen",
+            "it": "Sostituisci tutto"
+        },
+        "replace": {
+            "zh-CN": "替换",
+            "zh-TW": "替換",
+            "en": "Replace",
+            "fr": "Remplacer",
+            "de": "Ersetzen",
+            "it": "Sostituisci"
+        },
+        "all_1": {
+            "zh-CN": "全部",
+            "zh-TW": "全部",
+            "en": "All",
+            "fr": "Tout",
+            "de": "Alle",
+            "it": "Tutto"
         }
     },
     "upload": {
