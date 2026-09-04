@@ -2336,7 +2336,10 @@ var lan = {
 			"uninstall_warning3": "Please enter",
 			"uninstall_warning4": "To confirm:",
 			"please_input": "Please enter",
-			"settings": "set up"
+			"settings": "set up",
+			"uninstall_confirm_prefix": "Are you sure you want to uninstall 【",
+			"uninstall_confirm_suffix": "】?",
+			"uninstall_backup_tip": "Pack and back up data to /www/backup (.tar.gz) before uninstalling"
 		},
 
 	"login": {
@@ -2391,7 +2394,7 @@ var lan = {
 			"memuAmonitor": "Monitoring",
 			"memuAlogs": "Logs",
 			"memuAsoft": "Software",
-			"memuAsetting": "Settings"
+			"memuAsetting": "Settings",
 		},
 
 	"logs": {

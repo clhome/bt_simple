@@ -196,7 +196,31 @@ FULL_I18N_DICTIONARY = {
                 "en": "All",
                 "fr": "Tout",
                 "de": "Alle",
-                "it": "Tutti"
+                "it": "Tutti",
+        "uninstall_confirm_prefix": {
+            "zh-CN": "您真的要卸载【",
+            "zh-TW": "您真的要卸載【",
+            "en": "Are you sure you want to uninstall 【",
+            "fr": "Voulez-vous vraiment désinstaller 【",
+            "de": "Möchten Sie wirklich 【",
+            "it": "Vuoi davvero disinstallare 【"
+        },
+        "uninstall_confirm_suffix": {
+            "zh-CN": "】吗？",
+            "zh-TW": "】嗎？",
+            "en": "】?",
+            "fr": "】 ?",
+            "de": "】 deinstallieren?",
+            "it": "】?"
+        },
+        "uninstall_backup_tip": {
+            "zh-CN": "卸载前将数据打包备份到 /www/backup (.tar.gz)",
+            "zh-TW": "卸載前將數據打包備份到 /www/backup (.tar.gz)",
+            "en": "Pack and back up data to /www/backup (.tar.gz) before uninstalling",
+            "fr": "Emballez et sauvegardez les données sur /www/backup (.tar.gz) avant de désinstaller",
+            "de": "Packen und sichern Sie die Daten vor der Deinstallation in /www/backup (.tar.gz)",
+            "it": "Comprimere ed eseguire il backup dei dati su /www/backup (.tar.gz) prima di disinstallare"
+        }
             },
             "type_installed": {
                 "zh-CN": "已安装",

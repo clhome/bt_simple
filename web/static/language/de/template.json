@@ -3559,7 +3559,10 @@
         "type_code_mgr": "Code-Verwaltung",
         "type_system_tools": "Systemwerkzeuge",
         "type_other_plugins": "Andere Plugins",
-        "type_php": "PHP"
+        "type_php": "PHP",
+        "uninstall_confirm_prefix": "Möchten Sie wirklich 【",
+        "uninstall_confirm_suffix": "】 deinstallieren?",
+        "uninstall_backup_tip": "Packen und sichern Sie die Daten vor der Deinstallation in /www/backup (.tar.gz)"
     },
     "login": {
         "N1": "Bitte geben Sie Ihre Kontonummer ein.",

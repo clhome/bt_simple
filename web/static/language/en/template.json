@@ -3559,7 +3559,10 @@
         "type_code_mgr": "Code Management",
         "type_system_tools": "System Tools",
         "type_other_plugins": "Other Plugins",
-        "type_php": "PHP"
+        "type_php": "PHP",
+        "uninstall_confirm_prefix": "Are you sure you want to uninstall 【",
+        "uninstall_confirm_suffix": "】?",
+        "uninstall_backup_tip": "Pack and back up data to /www/backup (.tar.gz) before uninstalling"
     },
     "login": {
         "N1": "Please enter your account number",

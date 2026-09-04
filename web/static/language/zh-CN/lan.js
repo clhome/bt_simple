@@ -2336,7 +2336,10 @@ var lan = {
 			"uninstall_warning3": "请输入",
 			"uninstall_warning4": "以确认：",
 			"please_input": "请输入",
-			"settings": "设置"
+			"settings": "设置",
+			"uninstall_confirm_prefix": "您真的要卸载【",
+			"uninstall_confirm_suffix": "】吗？",
+			"uninstall_backup_tip": "卸载前将数据打包备份到 /www/backup (.tar.gz)"
 		},
 
 	"login": {
@@ -2391,7 +2394,7 @@ var lan = {
 			"memuAmonitor": "监控",
 			"memuAlogs": "日志",
 			"memuAsoft": "软件",
-			"memuAsetting": "面板设置"
+			"memuAsetting": "面板设置",
 		},
 
 	"logs": {

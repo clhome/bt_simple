@@ -513,21 +513,34 @@ function uninstallPreInspection(name, title, ver, callback) {
   }, 'json');
 }
 function runUninstallVersion(name, title, version) {
-  var title = title.replace("-" + version, "");
-  var contentHtml = (lan && lan.soft && t('soft.bt_form_pd_line') || "") + title + "-" + version + (lan && lan.soft && t('soft.top_flex_align_items') || "");
+  var pureTitle = title.replace("-" + version, "");
+  var pluginTitle = pureTitle + "-" + version;
+  var confirmTip = t('soft.uninstall_confirm_prefix', '您真的要卸载【') + pluginTitle + t('soft.uninstall_confirm_suffix', '】吗？');
+  var backupTip = t('soft.uninstall_backup_tip', '卸载前将数据打包备份到 /www/backup (.tar.gz)');
+  var contentHtml = "<div class='bt-form pd20 c6'>" +
+    "<div class='line' style='margin-bottom: 15px;'>" +
+    "<span style='font-size:14px;'>" + confirmTip + "</span>" +
+    "</div>" +
+    "<div style='margin-top: 15px; display: flex; align-items: center; justify-content: flex-start;'>" +
+    "<label style='font-weight: normal; cursor: pointer; display: flex; align-items: center; margin-bottom: 0;'>" +
+    "<input type='checkbox' id='normal_uninstall_backup_chk' style='margin-right: 8px; width: 16px; height: 16px; cursor: pointer;' />" +
+    backupTip +
+    "</label>" +
+    "</div>" +
+    "</div>";
   layer.open({
     type: 1,
-    title: lan && lan.soft && t('soft.software_uninstallation_confirmation') || "",
-    area: '400px',
+    title: t('soft.software_uninstallation_confirmation', '卸载软件确认'),
+    area: '420px',
     closeBtn: 1,
     shadeClose: false,
-    btn: [lan && lan.soft && t('soft.confirm_uninstall') || "", lan && lan.soft && t('soft.cancel_3') || ""],
+    btn: [t('soft.confirm_uninstall', '确认卸载'), t('soft.cancel', '取消')],
     content: contentHtml,
     yes: function (index, layero) {
       var isBackup = $("#normal_uninstall_backup_chk").prop("checked") ? 1 : 0;
       layer.close(index);
       var data = 'name=' + name + '&version=' + version + '&backup=' + isBackup;
-      var loadT = layer.msg(lan && lan.soft && t('soft.processing_please_wait_1') || "", {
+      var loadT = layer.msg(t('soft.processing_please_wait_1', '正在处理,请稍候...'), {
         icon: 16,
         time: 0,
         shade: [0.3, '#000']

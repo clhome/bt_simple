@@ -2336,7 +2336,10 @@ var lan = {
 			"uninstall_warning3": "Veuillez entrer",
 			"uninstall_warning4": "Pour confirmer :",
 			"please_input": "Veuillez entrer",
-			"settings": "paramètres"
+			"settings": "paramètres",
+			"uninstall_confirm_prefix": "Voulez-vous vraiment désinstaller 【",
+			"uninstall_confirm_suffix": "】 ?",
+			"uninstall_backup_tip": "Emballez et sauvegardez les données sur /www/backup (.tar.gz) avant de désinstaller"
 		},
 
 	"login": {
@@ -2391,7 +2394,7 @@ var lan = {
 			"memuAmonitor": "Surveillance",
 			"memuAlogs": "Journaux",
 			"memuAsoft": "Logiciels",
-			"memuAsetting": "Paramètres"
+			"memuAsetting": "Paramètres",
 		},
 
 	"logs": {

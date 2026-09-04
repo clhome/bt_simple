@@ -15,11 +15,17 @@
 - [x] 7. 修复 `#signout` 点击事件：使用标准的 `t('public.do_you_want_to')`，彻底修复内容空字符串与滚动条异常。
 - [x] 8. 实现全局 Layer 弹窗多语言自动拦截与适配引擎（`confirm`、`alert`、`prompt`、`open`）：全站弹窗标题和按钮自动接入多语言，修复历史硬编码中文。
 - [x] 9. 编写自动化测试套件（`test/test_layer_dialog_i18n.py`）并回归全量测试，确保 100% 验证通过。
-- [ ] 10. 清洗并修复 `web/static/app/public.js` 中的关于弹窗渲染逻辑：消除标题、公司、荣誉出品与版权的双层嵌套，彻底删除多余的一行“荣誉出品”，消除内存图标的双重拼接。
-- [ ] 11. 补全并修正 `scripts/tools/phrases_full.py`、`lan.js`、`template.json` 中的关于页面及搜索栏多语言词条（涵盖 zh-CN, zh-TW, en, fr, de, it 6 国语言），彻底解决中英文混合与翻译缺失问题。
-- [ ] 12. 运行构建脚本重新生成全套 6 国语言包（`lan.js`、`public.json` 与 `template.json`），确保语言字典与前端调用完全对齐。
-- [ ] 13. 编写自动化测试套件（`test/test_about_i18n.py`），验证 6 国语言下关于页面翻译正确性、无冗余“荣誉出品”及无多余内存图标。
+- [x] 10. 清洗并修复 `web/static/app/public.js` 中的关于弹窗渲染逻辑：消除标题、公司、荣誉出品与版权的双层嵌套，彻底删除多余的一行“荣誉出品”，消除内存图标的双重拼接。
+- [x] 11. 补全并修正 `scripts/tools/phrases_full.py`、`lan.js`、`template.json` 中的关于页面及搜索栏多语言词条（涵盖 zh-CN, zh-TW, en, fr, de, it 6 国语言），彻底解决中英文混合与翻译缺失问题。
+- [x] 12. 运行构建脚本重新生成全套 6 国语言包（`lan.js`、`public.json` 与 `template.json`），确保语言字典与前端调用完全对齐。
+- [x] 13. 编写自动化测试套件（`test/test_about_i18n.py`），验证 6 国语言下关于页面翻译正确性、无冗余“荣誉出品”及无多余内存图标。
 - [x] 15. 排查并定位英文状态下页面仍显示中文问题：确认 lan.js 结尾缺少逗号导致的 SyntaxError 崩溃以及双重 public 覆盖。
 - [x] 16. 规范化合并 6 国语言 lan.js：将末尾关于弹窗与搜索栏词条正确合并进主 public 字典，彻底删除末尾多余且损坏语法的重复 public 块。
 - [x] 17. 运行 Node.js 真实语法解析校验与自动化测试：确保全部 6 国语言 lan.js 零语法错误，且在英文状态下 t('public.yufeng_panel_current_server') 正常输出英文。
 - [x] 18. 清理临时排查脚本并验收完成度。
+- [x] 19. 重构 `web/static/app/soft.js` 中 `runUninstallVersion` 弹窗结构：规范化完整闭合 HTML，恢复备份复选框 `#normal_uninstall_backup_chk` 与关闭按钮正常右上角定位。
+- [x] 20. 补全并同步 6 国语言词条：在 `lan.js`、`template.json` 和 `phrases_full.py` 的 `soft` 模块录入 `uninstall_confirm_prefix`、`uninstall_confirm_suffix`、`uninstall_backup_tip` 纯文本翻译。
+- [x] 21. 编写自动化测试套件（`test/test_uninstall_modal_i18n.py`），验证 HTML 结构自闭合、复选框有效性与 6 国语言纯正翻译。
+- [x] 22. 运行全量测试套件回归验证，确保 100% 通过并清理临时文件。
+- [x] 23. 彻底修复卸载弹窗内容多国语言国际化：将 6 国语言 `lan.js` 中的词条从误插入位置精准归位至真实 `soft` 模块末尾，解决多语言状态下内容回退显示中文的问题。
+

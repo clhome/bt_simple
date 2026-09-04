@@ -3559,7 +3559,10 @@
         "type_code_mgr": "Gestione del codice",
         "type_system_tools": "Strumenti di sistema",
         "type_other_plugins": "Altri plugin",
-        "type_php": "PHP"
+        "type_php": "PHP",
+        "uninstall_confirm_prefix": "Vuoi davvero disinstallare 【",
+        "uninstall_confirm_suffix": "】?",
+        "uninstall_backup_tip": "Comprimere ed eseguire il backup dei dati su /www/backup (.tar.gz) prima di disinstallare"
     },
     "login": {
         "N1": "Inserisci il nome utente",
