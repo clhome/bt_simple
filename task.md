@@ -19,4 +19,7 @@
 - [ ] 11. 补全并修正 `scripts/tools/phrases_full.py`、`lan.js`、`template.json` 中的关于页面及搜索栏多语言词条（涵盖 zh-CN, zh-TW, en, fr, de, it 6 国语言），彻底解决中英文混合与翻译缺失问题。
 - [ ] 12. 运行构建脚本重新生成全套 6 国语言包（`lan.js`、`public.json` 与 `template.json`），确保语言字典与前端调用完全对齐。
 - [ ] 13. 编写自动化测试套件（`test/test_about_i18n.py`），验证 6 国语言下关于页面翻译正确性、无冗余“荣誉出品”及无多余内存图标。
-- [ ] 14. 清理开发阶段临时脚本，验证项目完成度并收尾。
+- [x] 15. 排查并定位英文状态下页面仍显示中文问题：确认 lan.js 结尾缺少逗号导致的 SyntaxError 崩溃以及双重 public 覆盖。
+- [x] 16. 规范化合并 6 国语言 lan.js：将末尾关于弹窗与搜索栏词条正确合并进主 public 字典，彻底删除末尾多余且损坏语法的重复 public 块。
+- [x] 17. 运行 Node.js 真实语法解析校验与自动化测试：确保全部 6 国语言 lan.js 零语法错误，且在英文状态下 t('public.yufeng_panel_current_server') 正常输出英文。
+- [x] 18. 清理临时排查脚本并验收完成度。
