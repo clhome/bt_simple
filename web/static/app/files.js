@@ -938,7 +938,7 @@ function calcPathWidth() {
     var dirInfoWidth = $dirInfoParent.outerWidth(true) || 240;
     if (dirInfoWidth < 240) dirInfoWidth = 240;
     var leftBtnsWidth = ($("#backBtn").outerWidth(true) || 32) + ($(".refreshBtn").outerWidth(true) || 32);
-    var safeGap = 35;
+    var safeGap = 45;
     var available = contentWidth - rightSearchWidth - dirInfoWidth - leftBtnsWidth - safeGap;
     if (available < 140) available = 140;
     $("#PathPlaceBtn").width(available);
@@ -1115,7 +1115,7 @@ function getDisk() {
             LBody += "<span onclick=\"getFiles('" + rdata[i].path + "')\" style=\"cursor:pointer;margin-right:10px;\">\
                 <span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path=='/'?rootText:rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
         }
-        var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="' + trashText + '" style="position: absolute; border-color: #ccc; right: 77px;">\
+        var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="' + trashText + '" style="position: absolute; border-color: #ccc; right: 87px;">\
             <span class="glyphicon glyphicon-trash"></span>&nbsp;' + trashText + '</span>';
         $("#comlist").html(LBody+trash);
         isDiskWidth();
