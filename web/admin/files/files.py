@@ -286,10 +286,10 @@ def create_dir():
 @panel_login_required
 def get_dir_size():
     path = request.form.get('path', '')
+    if not os.path.exists(path):
+        return yf.returnData(False, '路径不存在')
     size = file.getDirSizeByBash(path)
     return yf.returnData(True, size)
-    # size = file.getDirSize(path)
-    # return yf.returnData(True, yf.toSize(size))
 
 
 # 删除文件

@@ -14,6 +14,8 @@ if sys.stdout.encoding.lower() != 'utf-8':
 
 BASE_LANG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../web/static/language"))
 SRC_DIR = os.path.join(BASE_LANG_DIR, "zh-CN")
+TEST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../test"))
+sys.path.append(TEST_DIR)
 
 from generate_languages import to_traditional_chinese, LANGUAGES
 from phrases_data import CORE_PHRASES

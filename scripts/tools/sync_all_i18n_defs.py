@@ -8,7 +8,9 @@ import sys
 import json
 
 TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "../../test"))
 sys.path.append(TOOLS_DIR)
+sys.path.append(TEST_DIR)
 
 from build_all_languages import clean_dirty_keys, BASE_LANG_DIR, SRC_DIR
 import phrases_full

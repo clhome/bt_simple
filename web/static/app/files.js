@@ -640,9 +640,14 @@ function getFiles(Path) {
         }
         var totalInfoTpl = (window.lan && lan.files && lan.files.total_of_directory_and) || t('files.total_of_directory_and', '目录: {1} 个, 文件: {2} 个, 大小: ');
         var getText = (window.lan && lan.files && lan.files.get) || t('files.get', '获取');
+        var calcBtnHtml = '';
+        if (rdata.dir && rdata.dir.length > 0) {
+            calcBtnHtml = '<a class="btlink ml5" onClick="getPathSize()">' + getText + '</a>';
+        }
         var dirInfo = totalInfoTpl.replace('{1}',rdata.dir.length+'').replace('{2}',rdata.files.length+'')+'<font id="pathSize">'
-            + (toSize(totalSize))+'<a class="btlink ml5" onClick="getPathSize()">' + getText + '</a></font>';
+            + (toSize(totalSize)) + calcBtnHtml + '</font>';
         $("#dir_info").html(dirInfo);
+        calcPathWidth();
         if( getCookie('rank') == 'a' ){
 
             // console.log(post['order']);
@@ -688,11 +693,12 @@ function getFiles(Path) {
                 <tbody id="filesBody" class="list-list">'+body+'</tbody>\
             </table>';
             $("#fileCon").removeClass("fileList").html(tablehtml);
-            $("#tipTools").width($("#fileCon").width());
+            $("#tipTools").width($(".file-box").width());
         } else {
             $("#fileCon").addClass("fileList").html(body);
-            $("#tipTools").width($("#fileCon").width());
+            $("#tipTools").width($(".file-box").width());
         }
+        calcPathWidth();
         $("#DirPathPlace input").val(rdata.path);
         var newLabel = (window.lan && lan.files && lan.files.new) || t('files.new', '新建');
         var createFolderLabel = (window.lan && lan.files && lan.files.create_new_folder) || t('files.create_new_folder', '新建目录');
@@ -816,6 +822,8 @@ function getFiles(Path) {
         pathPlaceBtn(rdata.path);
         if(typeof(updateActiveTabPath) == "function") updateActiveTabPath(rdata.path);
         if(typeof(renderFileTabs) == "function") renderFileTabs();
+        calcPathWidth();
+        setTimeout(calcPathWidth, 50);
     },'json');
     // setTimeout(function(){getCookie('open_dir_path');},200);
 }
@@ -920,20 +928,29 @@ $(window).on('scroll', function () {
         $("#tipTools").css({"position":"absolute","top":"42px","left":"0","box-shadow":"none"});
     }
 });
-$("#tipTools").width($(".file-box").width());
-$("#PathPlaceBtn").width($(".file-box").width()-700);
-$("#DirPathPlace input").width($(".file-box").width()-700);
-if($(window).width()<1160){
-    $("#PathPlaceBtn").width(290);
-}
-window.onresize = function(){
-    $("#tipTools").width($(".file-box").width()-30);
-    $("#PathPlaceBtn").width($(".file-box").width()-700);
-    $("#DirPathPlace input").width($(".file-box").width()-700);
-    if($(window).width()<1160){
-        $("#PathPlaceBtn,#DirPathPlace input").width(290);
-    }
+
+function calcPathWidth() {
+    var containerWidth = $("#tipTools").innerWidth() || $(".file-box").width() || 1000;
+    var contentWidth = containerWidth - 30;
+    var rightSearchWidth = $(".search").outerWidth(true) || 320;
+    if (rightSearchWidth < 300) rightSearchWidth = 300;
+    var $dirInfoParent = $("#dir_info").parent();
+    var dirInfoWidth = $dirInfoParent.outerWidth(true) || 240;
+    if (dirInfoWidth < 240) dirInfoWidth = 240;
+    var leftBtnsWidth = ($("#backBtn").outerWidth(true) || 32) + ($(".refreshBtn").outerWidth(true) || 32);
+    var safeGap = 35;
+    var available = contentWidth - rightSearchWidth - dirInfoWidth - leftBtnsWidth - safeGap;
+    if (available < 140) available = 140;
+    $("#PathPlaceBtn").width(available);
+    $("#DirPathPlace input").width(available);
     pathLeft();
+}
+
+$("#tipTools").width($(".file-box").width());
+calcPathWidth();
+window.onresize = function(){
+    $("#tipTools").width($(".file-box").width());
+    calcPathWidth();
     isDiskWidth();
 }
 
@@ -1092,12 +1109,14 @@ function getDisk() {
 
     $.get('/system/disk_info', function(rdata) {
         var rdata = rdata.data;
+        var rootText = (window.lan && lan.files && (lan.files.path_root || lan.files.root)) || t('files.path_root', '根目录');
+        var trashText = (window.lan && lan.files && (lan.files.recycle_bin || lan.files.recycle_bin_title)) || t('files.recycle_bin', '回收站');
         for (var i = 0; i < rdata.length; i++) {
             LBody += "<span onclick=\"getFiles('" + rdata[i].path + "')\" style=\"cursor:pointer;margin-right:10px;\">\
-                <span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path=='/'?lan.files.path_root:rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
+                <span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path=='/'?rootText:rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
         }
-        var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="回收站" style="position: absolute; border-color: #ccc; right: 77px;">\
-            <span class="glyphicon glyphicon-trash"></span>&nbsp;回收站</span>';
+        var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="' + trashText + '" style="position: absolute; border-color: #ccc; right: 77px;">\
+            <span class="glyphicon glyphicon-trash"></span>&nbsp;' + trashText + '</span>';
         $("#comlist").html(LBody+trash);
         isDiskWidth();
     },'json');

@@ -10,7 +10,10 @@
 # ---------------------------------------------------------------------------------
 
 import os
-import pwd
+try:
+    import pwd
+except ImportError:
+    pwd = None
 import time
 import shutil
 import json
@@ -731,6 +734,13 @@ def checkFileName(filename):
 
 # 获取目录大小
 def getDirSize(filePath, size=0):
+    if not os.path.exists(filePath):
+        return 0
+    if not os.path.isdir(filePath):
+        try:
+            return os.path.getsize(filePath)
+        except Exception:
+            return 0
     for root, dirs, files in os.walk(filePath):
         for f in files:
             try:
@@ -740,10 +750,32 @@ def getDirSize(filePath, size=0):
             # print(f)
     return size
 
-# 获取目录大小(bash)
+# 字节单位格式化(与前端 toSize 保持完全一致)
+def formatFileSize(size):
+    units = ('B', 'KB', 'MB', 'GB', 'TB', 'PB')
+    size = float(size) if size else 0.0
+    for i, u in enumerate(units):
+        if size < 1024:
+            if i == 0:
+                return f"{int(size)} {u}"
+            return f"{size:.2f} {u}"
+        size = size / 1024.0
+    return f"{size:.2f} PB"
+
+# 获取目录大小(bash/实际字节数)
 def getDirSizeByBash(path):
-    tmp = yf.execShell('du -sh ' + path)
-    return tmp[0].split()[0].lower()
+    if not os.path.exists(path):
+        return '0 B'
+    try:
+        tmp = yf.execShell('du -sb ' + path)
+        if tmp and tmp[0] and not tmp[1]:
+            parts = tmp[0].split()
+            if parts and parts[0].isdigit():
+                return formatFileSize(int(parts[0]))
+    except Exception:
+        pass
+    size = getDirSize(path)
+    return formatFileSize(size)
 
 # 计算文件数量
 def getCount(path, search = None):

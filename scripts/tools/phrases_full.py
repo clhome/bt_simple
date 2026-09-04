@@ -190,94 +190,6 @@ FULL_I18N_DICTIONARY = {
             "it": "Attività Cron"
         },
         "soft": {
-            "type_all": {
-                "zh-CN": "全部",
-                "zh-TW": "全部",
-                "en": "All",
-                "fr": "Tout",
-                "de": "Alle",
-                "it": "Tutti",
-        "uninstall_confirm_prefix": {
-            "zh-CN": "您真的要卸载【",
-            "zh-TW": "您真的要卸載【",
-            "en": "Are you sure you want to uninstall 【",
-            "fr": "Voulez-vous vraiment désinstaller 【",
-            "de": "Möchten Sie wirklich 【",
-            "it": "Vuoi davvero disinstallare 【"
-        },
-        "uninstall_confirm_suffix": {
-            "zh-CN": "】吗？",
-            "zh-TW": "】嗎？",
-            "en": "】?",
-            "fr": "】 ?",
-            "de": "】 deinstallieren?",
-            "it": "】?"
-        },
-        "uninstall_backup_tip": {
-            "zh-CN": "卸载前将数据打包备份到 /www/backup (.tar.gz)",
-            "zh-TW": "卸載前將數據打包備份到 /www/backup (.tar.gz)",
-            "en": "Pack and back up data to /www/backup (.tar.gz) before uninstalling",
-            "fr": "Emballez et sauvegardez les données sur /www/backup (.tar.gz) avant de désinstaller",
-            "de": "Packen und sichern Sie die Daten vor der Deinstallation in /www/backup (.tar.gz)",
-            "it": "Comprimere ed eseguire il backup dei dati su /www/backup (.tar.gz) prima di disinstallare"
-        }
-            },
-            "type_installed": {
-                "zh-CN": "已安装",
-                "zh-TW": "已安裝",
-                "en": "Installed",
-                "fr": "Installé",
-                "de": "Installiert",
-                "it": "Installato"
-            },
-            "type_runtime": {
-                "zh-CN": "运行环境",
-                "zh-TW": "運行環境",
-                "en": "Runtime",
-                "fr": "Environnement d'exécution",
-                "de": "Laufzeitumgebung",
-                "it": "Ambiente di runtime"
-            },
-            "type_database": {
-                "zh-CN": "数据库",
-                "zh-TW": "資料庫",
-                "en": "Database",
-                "fr": "Base de données",
-                "de": "Datenbank",
-                "it": "Database"
-            },
-            "type_code_mgr": {
-                "zh-CN": "代码管理",
-                "zh-TW": "程式碼管理",
-                "en": "Code Management",
-                "fr": "Gestion de code",
-                "de": "Code-Verwaltung",
-                "it": "Gestione del codice"
-            },
-            "type_system_tools": {
-                "zh-CN": "系统工具",
-                "zh-TW": "系統工具",
-                "en": "System Tools",
-                "fr": "Outils système",
-                "de": "Systemwerkzeuge",
-                "it": "Strumenti di sistema"
-            },
-            "type_other_plugins": {
-                "zh-CN": "其他插件",
-                "zh-TW": "其他外掛",
-                "en": "Other Plugins",
-                "fr": "Autres plugins",
-                "de": "Andere Plugins",
-                "it": "Altri plugin"
-            },
-            "type_php": {
-                "zh-CN": "PHP",
-                "zh-TW": "PHP",
-                "en": "PHP",
-                "fr": "PHP",
-                "de": "PHP",
-                "it": "PHP"
-            },
             "zh-CN": "软件",
             "zh-TW": "軟體",
             "en": "Software",
@@ -6727,10 +6639,10 @@ FULL_I18N_DICTIONARY = {
         "include_sub": {
             "zh-CN": "包含子目录",
             "zh-TW": "包含子目錄",
-            "en": "Include subdirectories",
-            "fr": "Inclure les sous-dossiers",
-            "de": "Unterverzeichnisse einbeziehen",
-            "it": "Includi sottocartelle"
+            "en": "Subdirs",
+            "fr": "Sous-dossiers",
+            "de": "Unterverz.",
+            "it": "Sottocartelle"
         },
         "upload": {
             "zh-CN": "上传",
@@ -6759,10 +6671,10 @@ FULL_I18N_DICTIONARY = {
         "site_root": {
             "zh-CN": "网站总目录",
             "zh-TW": "網站總目錄",
-            "en": "Websites Root",
-            "fr": "Racine des sites",
-            "de": "Websites-Hauptverzeichnis",
-            "it": "Radice siti web"
+            "en": "Websites",
+            "fr": "Sites",
+            "de": "Websites",
+            "it": "Siti web"
         },
         "backup": {
             "zh-CN": "备份",
@@ -6783,10 +6695,10 @@ FULL_I18N_DICTIONARY = {
         "panel_root": {
             "zh-CN": "御风面板",
             "zh-TW": "御風面板",
-            "en": "Panel Root",
-            "fr": "Racine du panneau",
-            "de": "Panel-Verzeichnis",
-            "it": "Radice del pannello"
+            "en": "Panel",
+            "fr": "Panneau",
+            "de": "Panel",
+            "it": "Pannello"
         },
         "copy": {
             "zh-CN": "复制",
@@ -6879,18 +6791,42 @@ FULL_I18N_DICTIONARY = {
         "total_of_directory_and": {
             "zh-CN": "共 {1} 个目录，{2} 个文件，",
             "zh-TW": "共 {1} 個目錄，{2} 個檔案，",
-            "en": "Total of {1} directories and {2} files, ",
-            "fr": "Total de {1} répertoires et {2} fichiers, ",
-            "de": "Insgesamt {1} Verzeichnisse und {2} Dateien, ",
-            "it": "Totale di {1} cartelle e {2} file, "
+            "en": "Dirs: {1}, Files: {2}, Size: ",
+            "fr": "Rép : {1}, Fich : {2}, Taille : ",
+            "de": "Verz: {1}, Date: {2}, Größe: ",
+            "it": "Dir: {1}, File: {2}, Dim: "
         },
         "get": {
             "zh-CN": "获取",
             "zh-TW": "取得",
-            "en": "Calculate",
-            "fr": "Calculer",
-            "de": "Berechnen",
-            "it": "Calcola"
+            "en": "Calc",
+            "fr": "Calc",
+            "de": "Berech.",
+            "it": "Calc"
+        },
+        "path_root": {
+            "zh-CN": "根目录",
+            "zh-TW": "根目錄",
+            "en": "Root",
+            "fr": "Root",
+            "de": "Root",
+            "it": "Root"
+        },
+        "root": {
+            "zh-CN": "根目录",
+            "zh-TW": "根目錄",
+            "en": "Root",
+            "fr": "Root",
+            "de": "Root",
+            "it": "Root"
+        },
+        "recycle_bin": {
+            "zh-CN": "回收站",
+            "zh-TW": "資源回收筒",
+            "en": "Recycle Bin",
+            "fr": "Corbeille",
+            "de": "Papierkorb",
+            "it": "Cestino"
         },
         "file_name": {
             "zh-CN": "文件名",
@@ -7027,14 +6963,6 @@ FULL_I18N_DICTIONARY = {
             "fr": "Télécharger",
             "de": "Herunterladen",
             "it": "Scarica"
-        },
-        "recycle_bin": {
-            "zh-CN": "回收站",
-            "zh-TW": "資源回收筒",
-            "en": "Recycle Bin",
-            "fr": "Corbeille",
-            "de": "Papierkorb",
-            "it": "Cestino"
         },
         "recycle_bin_re": {
             "zh-CN": "恢复",
