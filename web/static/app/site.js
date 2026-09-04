@@ -54,24 +54,29 @@ function getWeb(page, type_id, search) {
     var list = data.data;
     window.site_list_cache = list;
     for (var i = 0; i < list.length; i++) {
-      //当前站点状态
+      // 当前站点状态
       var trClass = '';
-      if (list[i].status == (lan && lan.site && t('site.running') || "") || list[i].status == '1') {
-        var status = (((lan && lan.site && t('site.disable_this_site_webstop') || '<a href=\'javascript:;\' title=\'停用这个站点\' onclick="webStop(') || '<a href=\'javascript:;\' title=\'停用这个站点\' onclick="webStop(')) + list[i].id + ",'" + list[i].name + ('\')" class=\'btn-defsult\'><span style=\'color:rgb(92, 184, 92)\'>' + (lan && lan.site && t('site.running_1') || '运行中') + '</span><span style=\'color:rgb(92, 184, 92)\' class=\'glyphicon glyphicon-play\'></span></a>');
+      var stopTitle = (lan && lan.site && t('site.stop_this_site')) || '停用这个站点';
+      var runningText = (lan && lan.site && t('site.running_1')) || (lan && lan.site && t('site.running')) || '运行中';
+      var startTitle = (lan && lan.site && t('site.start_this_site')) || '启用这个站点';
+      var stoppedText = (lan && lan.site && t('site.discontinued')) || '已停止';
+
+      var status = '';
+      if (list[i].status == '正在运行' || list[i].status == '1' || list[i].status == (lan && lan.site && t('site.running')) || list[i].status == '运行中') {
+        status = "<a href='javascript:;' title='" + stopTitle + "' onclick=\"webStop(" + list[i].id + ",'" + list[i].name + "')\" class='btn-defsult'><span style='color:rgb(92, 184, 92)'>" + runningText + "</span><span style='color:rgb(92, 184, 92)' class='glyphicon glyphicon-play'></span></a>";
       } else {
-        var status = (((lan && lan.site && t('site.enable_this_site_webstart') || '<a href=\'javascript:;\' title=\'启用这个站点\' onclick="webStart(') || '<a href=\'javascript:;\' title=\'启用这个站点\' onclick="webStart(')) + list[i].id + ",'" + list[i].name + ('\')" class=\'btn-defsult\'><span style=\'color:red\'>' + (lan && lan.site && t('site.discontinued') || '已停止') + '</span><span style=\'color:rgb(255, 0, 0);\' class=\'glyphicon glyphicon-pause\'></span></a>');
+        status = "<a href='javascript:;' title='" + startTitle + "' onclick=\"webStart(" + list[i].id + ",'" + list[i].name + "')\" class='btn-defsult'><span style='color:red'>" + stoppedText + "</span><span style='color:rgb(255, 0, 0);' class='glyphicon glyphicon-pause'></span></a>";
         trClass = ' class="danger-row"';
       }
 
-      //是否有备份
-      if (list[i].backup_count > 0) {
-        var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + (((lan && lan.site && t('site.backed_up') || ')">有备份') || ')">有备份') + '</a>');
-      } else {
-        var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + (((lan && lan.site && t('site.no_backup') || ')">无备份') || ')">无备份') + '</a>');
-      }
-      //是否设置有效期
-      var web_end_time = list[i].edate == "0000-00-00" ? lan && lan.site && t('site.permanent') || "" : list[i].edate;
-      //表格主体
+      // 是否有备份
+      var backupText = list[i].backup_count > 0 ? ((lan && lan.site && t('site.backed_up')) || '有备份') : ((lan && lan.site && t('site.no_backup')) || '无备份');
+      var backup = "<a href='javascript:;' class='btlink' onclick=\"getBackup(" + list[i].id + ")\">" + backupText + "</a>";
+
+      // 是否设置有效期
+      var web_end_time = (list[i].edate == "0000-00-00") ? ((lan && lan.site && t('site.permanent')) || '永久') : list[i].edate;
+
+      // 表格主体
       var shortwebname = list[i].name;
       var shortpath = list[i].path;
       if (list[i].name.length > 30) {
@@ -81,23 +86,52 @@ function getWeb(page, type_id, search) {
         shortpath = list[i].path.substring(0, 30) + "...";
       }
       var idname = list[i].name.replace(/\./g, '_');
-      var php_show_text = list[i].php_version == '00' ? lan && lan.site && t('site.static') || "" : list[i].php_version.length == 2 ? list[i].php_version.substring(0, 1) + '.' + list[i].php_version.substring(1) : list[i].php_version;
+
+      // PHP版本
+      var staticText = (lan && lan.site && t('site.static')) || '静态';
+      var php_show_text = list[i].php_version == '00' ? staticText : (list[i].php_version.length == 2 ? list[i].php_version.substring(0, 1) + '.' + list[i].php_version.substring(1) : list[i].php_version);
       var php_text = "<a class='btlink php_version_click' href='javascript:;' onclick=\"changePHPVersion(0, '" + list[i].name + "', '" + list[i].php_version + "')\" style='color:#20a53a'>" + php_show_text + "</a>";
-      var ssl_text = list[i].ssl_days == -1 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (((lan && lan.site && t('site.ssl_bbb') || '\', \'ssl\')" style=\'color:#bbb\'>未部署') || '\', \'ssl\')" style=\'color:#bbb\'>未部署') + '</a>') : list[i].ssl_days < 10 ? "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (((lan && lan.site && t('site.ssl_red_remaining') || '\', \'ssl\')" style=\'color:red\'>剩余') || '\', \'ssl\')" style=\'color:red\'>剩余')) + list[i].ssl_days + ((lan && lan.site && t('site.sky') || '天') + '</a>') : "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (((lan && lan.site && t('site.ssl_remaining') || '\', \'ssl\')" style=\'color:#20a53a\'>剩余') || '\', \'ssl\')" style=\'color:#20a53a\'>剩余')) + list[i].ssl_days + ((lan && lan.site && t('site.sky_1') || '天') + '</a>');
+
+      // SSL证书
+      var notDeployedText = (lan && lan.site && t('site.ssl_bbb')) || '未部署';
+      var remainingTextRed = (lan && lan.site && t('site.ssl_red_remaining')) || (lan && lan.site && t('site.ssl_remaining')) || '剩余';
+      var remainingTextGreen = (lan && lan.site && t('site.ssl_remaining')) || '剩余';
+      var dayText = (lan && lan.site && t('site.sky')) || (lan && lan.site && t('site.sky_1')) || '天';
+
+      var ssl_text = '';
+      if (list[i].ssl_days == -1) {
+        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:#bbb'>" + notDeployedText + "</a>";
+      } else if (list[i].ssl_days < 10) {
+        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:red'>" + remainingTextRed + list[i].ssl_days + dayText + "</a>";
+      } else {
+        ssl_text = "<a class='btlink' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'ssl')\" style='color:#20a53a'>" + remainingTextGreen + list[i].ssl_days + dayText + "</a>";
+      }
+
       var daily_traffic = toSize(list[i].daily_traffic);
       var add_time_str = list[i].add_time && list[i].add_time.length >= 10 ? list[i].add_time.substring(0, 10) : list[i].add_time;
-      body = "<tr" + trClass + "><td><input type='checkbox' name='id' title='" + list[i].name + "' onclick='checkSelect();' value='" + list[i].id + "'></td>\
-					<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "')\" title='" + list[i].name + "'>" + shortwebname + "</td>\
-					<td>" + status + "</td>\
-					<td>" + backup + ('</td>					<td>' + ((lan && lan.site && t('site.btlink') || '<a class=\'btlink\' title=\'打开目录') || '<a class=\'btlink\' title=\'打开目录')) + list[i].path + "' href=\"javascript:openPath('" + data.data[i].path + "');\">" + shortpath + "</a></td>\
-					<td>" + add_time_str + "</td>\
-					<td>" + daily_traffic + "</td>\
-					<td>" + php_text + "</td>\
-					<td id='ssl_state_" + idname + "'>" + ssl_text + "</td>\
-					<td><a class='btlink setTimes' id='site_" + list[i].id + "' data-ids='" + list[i].id + "'>" + web_end_time + "</a></td>\
-					<td><a class='btlinkbed' href='javascript:;' data-id='" + list[i].id + "'>" + list[i].ps + "</a></td>\
-					<td style='text-align:right; color:#bbb'>\
-					<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + (((lan && lan.site && t('site.config_settings') || '\', \'config\')">设置') || '\', \'config\')">设置') + '</a>                        | <a href=\'javascript:;\' class=\'btlink\' onclick="webDelete(\'') + list[i].id + "','" + list[i].name + (((lan && lan.site && t('site.msg_1') || '\')" title=\'删除站点\'>删除') || '\')" title=\'删除站点\'>删除') + '</a>					</td></tr>');
+      var openDirTitle = (lan && lan.site && t('site.open_dir')) || '打开目录';
+      var settingText = (lan && lan.site && t('site.config_settings')) || '设置';
+      var deleteTitle = (lan && lan.site && t('site.delete_site_title')) || '删除站点';
+      var deleteText = (lan && lan.site && t('site.msg_1')) || '删除';
+      var psText = list[i].ps || '';
+
+      body = "<tr" + trClass + ">" +
+        "<td><input type='checkbox' name='id' title='" + list[i].name + "' onclick='checkSelect();' value='" + list[i].id + "'></td>" +
+        "<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "')\" title='" + list[i].name + "'>" + shortwebname + "</a></td>" +
+        "<td>" + status + "</td>" +
+        "<td>" + backup + "</td>" +
+        "<td><a class='btlink' title='" + openDirTitle + list[i].path + "' href=\"javascript:openPath('" + data.data[i].path + "');\">" + shortpath + "</a></td>" +
+        "<td>" + add_time_str + "</td>" +
+        "<td>" + daily_traffic + "</td>" +
+        "<td>" + php_text + "</td>" +
+        "<td id='ssl_state_" + idname + "'>" + ssl_text + "</td>" +
+        "<td><a class='btlink setTimes' id='site_" + list[i].id + "' data-ids='" + list[i].id + "'>" + web_end_time + "</a></td>" +
+        "<td><a class='btlinkbed' href='javascript:;' data-id='" + list[i].id + "'>" + psText + "</a></td>" +
+        "<td style='text-align:right; color:#bbb'>" +
+          "<a href='javascript:;' class='btlink' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "', 'config')\">" + settingText + "</a>" +
+          " | <a href='javascript:;' class='btlink' onclick=\"webDelete('" + list[i].id + "','" + list[i].name + "')\" title='" + deleteTitle + "'>" + deleteText + "</a>" +
+        "</td>" +
+      "</tr>";
       $("#webBody").append(body);
     }
 
@@ -138,7 +172,7 @@ function getWeb(page, type_id, search) {
       }
     });
     if (body.length < 10) {
-      body = '<tr><td colspan=\'9\' style=\'text-align: center;\'>' + (lan && lan.site && t('site.there_is_currently_no') || '当前没有站点数据') + '</td></tr>';
+      body = '<tr><td colspan="12" style="text-align: center;">' + (lan && lan.site && t('site.there_is_currently_no') || '当前没有站点数据') + '</td></tr>';
       $("#webBody").html(body);
     }
     //输出数据列表
@@ -156,7 +190,7 @@ function getWeb(page, type_id, search) {
       if (databak == null) {
         databak = '';
       }
-      $(this).hide().after("<input class='baktext' type='text' data-id='" + dataid + "' data-page='" + page + "' name='bak' value='" + databak + (((lan && lan.site && t('site.notes_onblur_getbakpost_sites') || '\' placeholder=\'备注信息\' onblur=\'getBakPost("sites")\' />') || '\' placeholder=\'备注信息\' onblur=\'getBakPost("sites")\' />')));
+      $(this).hide().after("<input class='baktext' type='text' data-id='" + dataid + "' data-page='" + page + "' name='bak' value='" + databak + "' placeholder='" + ((lan && lan.site && t('site.notes')) || "备注信息") + "' onblur='getBakPost(\"sites\")' />");
       $(".baktext").trigger('focus');
     });
     readerTableChecked();
@@ -353,58 +387,76 @@ function webAddPage(type) {
 }
 
 //修改网站目录
-function webPathEdit(id) {
-  $.post('/site/get_dir_user_ini', 'id=' + id, function (data) {
-    var data = data['data'];
-    var site_path = data['path'];
-    var site_name = data['name'];
-    var run_path = data['run_path']['run_path'];
-    var user_ini_checked = data.user_ini ? 'checked' : '';
-    var logs_checked = data.logs ? 'checked' : '';
-    var opt = '';
-    var selected = '';
-    for (var i = 0; i < data.run_path.dirs.length; i++) {
-      selected = '';
-      if (data.run_path.dirs[i] == data.run_path.path) {
-        selected = 'selected';
-      }
-      opt += '<option value="' + data.run_path.dirs[i] + '" ' + selected + '>' + data.run_path.dirs[i] + '</option>';
-    }
-    var content = "<div class='webedit-box soft-man-con'>\
+function webPathEdit(id){
+	$.post('/site/get_dir_user_ini','id='+id, function(data){
+		var data = data['data'];
+		var site_path = data['path'];
+		var site_name = data['name'];
+		var run_path = data['run_path']['run_path'];
+		var user_ini_checked = data.user_ini?'checked':'';
+		var logs_checked = data.logs?'checked':'';
+		var opt = '';
+		var selected = '';
+		for(var i=0;i<data.run_path.dirs.length;i++){
+			selected = '';
+			if(data.run_path.dirs[i] == data.run_path.path){ 
+				selected = 'selected';
+			}
+			opt += '<option value="'+ data.run_path.dirs[i] +'" '+selected+'>'+ data.run_path.dirs[i] +'</option>';
+		}
+		var content = "<div class='webedit-box soft-man-con'>\
 					<div class='label-input-group ptb10'>\
-						<input type='checkbox' name='userini' id='userini'" + user_ini_checked + (' /><label class=\'mr20\' for=\'userini\' style=\'font-weight:normal\'>' + (lan && lan.site && t('site.preventing_cross_site_attacks') || '防跨站攻击(open_basedir)') + '</label>						<input type=\'checkbox\' name=\'logs\' id=\'logs\'') + logs_checked + (' /><label for=\'logs\' style=\'font-weight:normal\'>' + (lan && lan.site && t('site.write_an_access_log') || '写访问日志') + '</label>					</div>					<div class=\'line mt10\'>						<span class=\'mr5\'>' + (lan && lan.site && t('site.website_directory_1') || '网站目录') + '</span>						' + ((lan && lan.site && t('site.bt_mr') || '<input class=\'bt-input-text mr5\' type=\'text\' style=\'width:50%\' placeholder=\'网站根目录\' value=\'') || '<input class=\'bt-input-text mr5\' type=\'text\' style=\'width:50%\' placeholder=\'网站根目录\' value=\'')) + site_path + "' name='webdir' id='inputPath'>\
+						<input type='checkbox' name='userini' id='userini'"+user_ini_checked+" /><label class='mr20' for='userini' style='font-weight:normal'>" + ((lan && lan.site && t('site.preventing_cross_site_attacks')) || '防跨站攻击(open_basedir)') + "</label>\
+						<input type='checkbox' name='logs' id='logs'"+logs_checked+" /><label for='logs' style='font-weight:normal'>" + ((lan && lan.site && t('site.write_an_access_log')) || '写访问日志') + "</label>\
+					</div>\
+					<div class='line mt10'>\
+						<span class='mr5'>" + ((lan && lan.site && t('site.website_directory_1')) || '网站目录') + "</span>\
+						<input class='bt-input-text mr5' type='text' style='width:50%' placeholder='" + ((lan && lan.site && t('site.web_root_dir')) || '网站根目录') + "' value='"+site_path+"' name='webdir' id='inputPath'>\
 						<span onclick='changePath(&quot;inputPath&quot;)' class='glyphicon glyphicon-folder-open cursor mr20'></span>\
-						<button class='btn btn-success btn-sm' onclick='setSitePath(" + id + (((lan && lan.site && t('site.save') || ')\'>保存') || ')\'>保存') + '</button>					</div>					<div class=\'line mtb15\'>						<span class=\'mr5\'>' + (lan && lan.site && t('site.runtime_directory') || '运行目录') + '</span>						<select class=\'bt-input-text\' type=\'text\' style=\'width:50%; margin-right:41px\' name=\'runPath\' id=\'runPath\'>') + opt + "</select>\
-						<button class='btn btn-success btn-sm' onclick='setSiteRunPath(" + id + (((lan && lan.site && t('site.top') || ')\' style=\'margin-top: -1px;\'>保存') || ')\' style=\'margin-top: -1px;\'>保存') + '</button>					</div>					<ul class=\'help-info-text c7 ptb10\'>						<li>' + (lan && lan.site && t('site.some_programs_require_subdirectory') || '部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel') + '</li>						<li>' + (lan && lan.site && t('site.your_runtime_directory_then') || '选择您的运行目录，点保存即可') + '</li>					</ul>') + '<div class="user_pw_tit" style="margin-top: -8px;padding-top: 11px;">' + ('<span class="tit">' + (lan && lan.site && t('site.password_access') || '密码访问') + '</span>') + '<span class="btswitch-p"><input ' + (data.pass ? 'checked' : '') + ' class="btswitch btswitch-ios" id="pathSafe" type="checkbox">' + '<label class="btswitch-btn phpmyadmin-btn" for="pathSafe" onclick="pathSafe(' + id + ')"></label>' + '</span>' + '</div>' + '<div class="user_pw" style="margin-top: 10px;display:' + (data.pass ? 'block;' : 'none;') + '">' + ('<p><span>' + (lan && lan.site && t('site.authorized_accounts') || '授权账号') + '</span><input id="username_get" class="bt-input-text" name="username_get" value="" type="text" placeholder="不修改请留空"></p>') + ('<p><span>' + (lan && lan.site && t('site.access_password') || '访问密码') + '</span><input id="password_get_1" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="不修改请留空"></p>') + ('<p><span>' + (lan && lan.site && t('site.re_enter_password') || '重复密码') + '</span><input id="password_get_2" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="不修改请留空"></p>') + '<p><button class="btn btn-success btn-sm" onclick="setPathSafe(' + id + (((lan && lan.site && t('site.save_1') || ')">保存') || ')">保存') + '</button></p>') + '</div>' + '</div>';
-    $("#webedit-con").html(content);
-    $("#userini").on('change', function () {
-      $.post('/site/set_dir_user_ini', {
-        'path': site_path,
-        'run_path': run_path
-      }, function (userini) {
-        layer.msg(data.msg + ('<p style="color:red;">' + (lan && lan.site && t('site.note_you_must_restart') || '注意：设置防跨站需要重启PHP才能生效!') + '</p>'), {
-          icon: data.status ? 1 : 2
-        });
-        tryRestartPHP(site_name);
-      }, 'json');
-    });
-    $("#logs").on('change', function () {
-      var loadT = layer.msg(lan && lan.site && t('site.setting_up') || "", {
-        icon: 16,
-        time: 10000,
-        shade: [0.3, '#000']
-      });
-      $.post('/site/logs_open', 'id=' + id, function (rdata) {
-        layer.close(loadT);
-        layer.msg(rdata.msg, {
-          icon: rdata.status ? 1 : 2
-        });
-      }, 'json');
-    });
-  }, 'json');
+						<button class='btn btn-success btn-sm' onclick='setSitePath("+id+")'>" + ((lan && lan.site && t('site.save')) || '保存') + "</button>\
+					</div>\
+					<div class='line mtb15'>\
+						<span class='mr5'>" + ((lan && lan.site && t('site.runtime_directory')) || '运行目录') + "</span>\
+						<select class='bt-input-text' type='text' style='width:50%; margin-right:41px' name='runPath' id='runPath'>"+opt+"</select>\
+						<button class='btn btn-success btn-sm' onclick='setSiteRunPath("+id+")' style='margin-top: -1px;'>" + ((lan && lan.site && t('site.save')) || '保存') + "</button>\
+					</div>\
+					<ul class='help-info-text c7 ptb10'>\
+						<li>" + ((lan && lan.site && t('site.some_programs_require_subdirectory')) || '部分程序需要指定二级目录作为运行目录，如ThinkPHP5，Laravel') + "</li>\
+						<li>" + ((lan && lan.site && t('site.your_runtime_directory_then')) || '选择您的运行目录，点保存即可') + "</li>\
+					</ul>"
+					+'<div class="user_pw_tit" style="margin-top: -8px;padding-top: 11px;">'
+						+'<span class="tit">' + ((lan && lan.site && t('site.password_access')) || '密码访问') + '</span>'
+						+'<span class="btswitch-p"><input '+(data.pass?'checked':'')+' class="btswitch btswitch-ios" id="pathSafe" type="checkbox">'
+							+'<label class="btswitch-btn phpmyadmin-btn" for="pathSafe" onclick="pathSafe('+id+')"></label>'
+						+'</span>'
+					+'</div>'
+					+'<div class="user_pw" style="margin-top: 10px;display:'+(data.pass?'block;':'none;')+'">'
+						+'<p><span>' + ((lan && lan.site && t('site.authorized_accounts')) || '授权账号') + '</span><input id="username_get" class="bt-input-text" name="username_get" value="" type="text" placeholder="' + ((lan && lan.site && t('site.if_unchanged_leave_blank')) || '不修改请留空') + '"></p>'
+						+'<p><span>' + ((lan && lan.site && t('site.access_password')) || '访问密码') + '</span><input id="password_get_1" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="' + ((lan && lan.site && t('site.if_unchanged_leave_blank')) || '不修改请留空') + '"></p>'
+						+'<p><span>' + ((lan && lan.site && t('site.re_enter_password')) || '重复密码') + '</span><input id="password_get_2" class="bt-input-text" name="password_get_1" value="" type="password" placeholder="' + ((lan && lan.site && t('site.if_unchanged_leave_blank')) || '不修改请留空') + '"></p>'
+						+'<p><button class="btn btn-success btn-sm" onclick="setPathSafe('+id+')">' + ((lan && lan.site && t('site.save_1')) || '保存') + '</button></p>'
+					+'</div>'
+				+'</div>';
+
+		$("#webedit-con").html(content);		
+		$("#userini").on('change', function(){
+			$.post('/site/set_dir_user_ini',{'path':site_path,'run_path':run_path,},function(userini){
+				layer.msg(data.msg+'<p style="color:red;">' + ((lan && lan.site && t('site.note_you_must_restart')) || '注意：设置防跨站需要重启PHP才能生效!') + '</p>',{icon:data.status?1:2});
+				tryRestartPHP(site_name);
+			},'json');
+		});
+		
+		$("#logs").on('change', function(){
+			var loadT = layer.msg((lan && lan.site && t('site.setting_up')) || '正在设置中...', {icon:16,time:10000,shade: [0.3, '#000']});
+			$.post('/site/logs_open','id='+id, function(rdata){
+				layer.close(loadT);
+				layer.msg(rdata.msg,{icon:rdata.status?1:2});
+			},'json');
+		});
+		
+	},'json');
 }
 
-//是否设置访问密码
 function pathSafe(id) {
   var isPass = $('#pathSafe').prop('checked');
   if (!isPass) {
@@ -488,19 +540,20 @@ function setSitePath(id) {
 }
 
 //修改网站备注
-function webBakEdit(id) {
-  $.post("/data?action=getKey','table=sites&key=ps&id=" + id, function (rdata) {
-    var webBakHtml = "<div class='webEdit-box padding-10'>\
+function webBakEdit(id){
+	$.post("/data?action=getKey','table=sites&key=ps&id="+id,function(rdata){
+		var webBakHtml = "<div class='webEdit-box padding-10'>\
 			<div class='line'>\
-			<label><span>" + t('site.note_ph') + "</span></label>\
+			<label><span>" + ((lan && lan.site && t('site.note_ph')) || '备注') + "</span></label>\
 			<div class='info-r'>\
-			<textarea name='beizhu' id='webbeizhu' col='5' style='width:96%'>" + rdata + "</textarea>\
-			<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs(" + id + (((lan && lan.site && t('site.save_2') || ')\'>保存') || ')\'>保存') + '</button>			</div>		</div>');
-    $("#webedit-con").html(webBakHtml);
-  });
+			<textarea name='beizhu' id='webbeizhu' col='5' style='width:96%'>"+rdata+"</textarea>\
+			<br><br><button class='btn btn-success btn-sm' onclick='SetSitePs("+id+")'>" + ((lan && lan.site && t('site.save_2')) || '保存') + "</button>\
+			</div>\
+		</div>";
+		$("#webedit-con").html(webBakHtml);
+	});
 }
 
-//设置默认文档
 function setIndexEdit(id) {
   $.post('/site/get_index', 'id=' + id, function (data) {
     var rdata = data['index'];
@@ -647,56 +700,56 @@ function syncDeleteSite(dataList, successCount, errorMsg, path) {
  * @param {Int} id 网站ID
  */
 function domainEdit(id, name, msg, status) {
-  $.post('/site/get_domain', {
-    pid: id
-  }, function (data) {
-    var domain = data.data;
-    var echoHtml = "";
-    for (var i = 0; i < domain.length; i++) {
-      echoHtml += "<tr>\
-				<td><a title='" + t('site.click_access') + "' target='_blank' href='http://" + domain[i].name + (domain[i].port == '80' ? '' : ':' + domain[i].port) + "' class='btlinkbed'>" + domain[i].name + "</a></td>\
+	$.post('/site/get_domain' ,{pid:id}, function(data) {
+		var domain = data.data;
+
+		var echoHtml = "";
+		for (var i = 0; i < domain.length; i++) {
+			echoHtml += "<tr>\
+				<td><a title='" + ((lan && lan.site && t('site.click_access')) || '点击访问') + "' target='_blank' href='http://" + domain[i].name + (domain[i].port == '80' ? '' : ':' + domain[i].port) + "' class='btlinkbed'>" + domain[i].name + "</a></td>\
 				<td><a class='btlinkbed'>" + domain[i].port + "</a></td>\
 				<td class='text-center'><a class='table-btn-del' href='javascript:;' onclick=\"delDomain(" + id + ",'" + name + "','" + domain[i].name + "','" + domain[i].port + "',1)\"><span class='glyphicon glyphicon-trash'></span></a></td>\
 				</tr>";
-    }
-    var bodyHtml = "<textarea id='newdomain' class='bt-input-text' style='height: 100px; width: 340px;padding:5px 10px;line-height:20px'></textarea>\
+		}
+		var bodyHtml = "<textarea id='newdomain' class='bt-input-text' style='height: 100px; width: 340px;padding:5px 10px;line-height:20px'></textarea>\
 								<input type='hidden' id='newport' value='80' />\
-								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + (((lan && lan.site && t('site.add') || '\',1)">添加') || '\',1)">添加') + '</button>							<div class=\'divtable mtb15\' style=\'height:420px;overflow:auto\'>								<table class=\'table table-hover\' width=\'100%\'>								<thead><tr><th>') + t('site.domain') + ('</th><th width=\'70px\'>' + (lan && lan.site && t('site.port') || '端口') + '</th><th width=\'50px\' class=\'text-center\'>' + (lan && lan.site && t('site.operations_5') || '操作') + '</th></tr></thead>								<tbody id=\'checkDomain\'>') + echoHtml + "</tbody>\
+								<button type='button' class='btn btn-success btn-sm pull-right' style='margin:30px 35px 0 0' onclick=\"domainAdd(" + id + ",'" + name + "',1)\">" + ((lan && lan.site && t('site.add')) || '添加') + "</button>\
+							<div class='divtable mtb15' style='height:420px;overflow:auto'>\
+								<table class='table table-hover' width='100%'>\
+								<thead><tr><th>" + ((lan && lan.site && t('site.domain')) || '域名') + "</th><th width='70px'>" + ((lan && lan.site && t('site.port')) || '端口') + "</th><th width='50px' class='text-center'>" + ((lan && lan.site && t('site.operations_5')) || '操作') + "</th></tr></thead>\
+								<tbody id='checkDomain'>" + echoHtml + "</tbody>\
 								</table>\
 							</div>";
-    $("#webedit-con").html(bodyHtml);
-    if (msg != undefined) {
-      layer.msg(msg, {
-        icon: status ? 1 : 5
-      });
-    }
-    var placeholder = '<div class=\'placeholder c9\' style=\'left:28px;width:330px;top:16px;\'>' + (lan && lan.site && t('site.enter_one_domain_name') || '每行填写一个域名，默认为80端口') + '<br>' + (lan && lan.site && t('site.how_to_add_wildcard') || '泛解析添加方法 *.domain.com') + '<br>' + (lan && lan.site && t('site.if_an_additional_port') || '如另加端口格式为 www.domain.com:88') + '</div>';
-    $('#newdomain').after(placeholder);
-    $(".placeholder").on('click', function () {
-      $(this).hide();
-      $('#newdomain').trigger('focus');
-    });
-    $('#newdomain').on('focus', function () {
-      $(".placeholder").hide();
-    });
-    $('#newdomain').on('blur', function () {
-      if ($(this).val().length == 0) {
-        $(".placeholder").show();
-      }
-    });
-    $("#newdomain").on("input", function () {
-      var str = $(this).val();
-      if (isChineseChar(str)) {
-        $('.btn-zhm').show();
-      } else {
-        $('.btn-zhm').hide();
-      }
-    });
-    //checkDomain();
-  }, 'json');
+		$("#webedit-con").html(bodyHtml);
+		if(msg != undefined){
+			layer.msg(msg,{icon:status?1:5});
+		}
+		var placeholder = "<div class='placeholder c9' style='left:28px;width:330px;top:16px;'>" + ((lan && lan.site && t('site.enter_one_domain_name')) || '每行填写一个域名，默认为80端口') + "<br>" + ((lan && lan.site && t('site.how_to_add_wildcard')) || '泛解析添加方法 *.domain.com') + "<br>" + ((lan && lan.site && t('site.if_an_additional_port')) || '如另加端口格式为 www.domain.com:88') + "</div>";
+		$('#newdomain').after(placeholder);
+		$(".placeholder").on('click', function(){
+			$(this).hide();
+			$('#newdomain').trigger('focus');
+		});
+		$('#newdomain').on('focus', function() {
+		    $(".placeholder").hide();
+		});
+		
+		$('#newdomain').on('blur', function() {
+			if($(this).val().length==0){
+				$(".placeholder").show();
+			}  
+		});
+		$("#newdomain").on("input",function(){
+			var str = $(this).val();
+			if(isChineseChar(str)) {
+				$('.btn-zhm').show();
+			} else{
+				$('.btn-zhm').hide();
+			}
+		});
+	},'json');
 }
 
-//编辑域名/端口
 function cancelSend() {
   $(".changeDomain,.changePort").hide().prev().show();
   $(".changeDomain,.changePort").remove();
@@ -836,49 +889,56 @@ function webBackupDelete(id, pid) {
     }, 'json');
   });
 }
-function getBackup(id, name, page) {
-  if (typeof page == 'undefined') {
-    page = '1';
-  }
-  $.post('/site/get_backup', 'search=' + id + '&limit=5&p=' + page, function (frdata) {
-    var body = '';
-    for (var i = 0; i < frdata.data.length; i++) {
-      if (frdata.data[i].type == '1') {
-        continue;
-      }
-      var ftpdown = "<a class='btlink' href='/files/download?filename=" + frdata.data[i].filename + "&name=" + frdata.data[i].name + (((lan && lan.site && t('site.target_blank_download') || '\' target=\'_blank\'>下载') || '\' target=\'_blank\'>下载') + '</a> | ');
-      body += "<tr><td><span class='glyphicon glyphicon-file'></span>" + frdata.data[i].name + "</td>\
-					<td>" + toSize(frdata.data[i].size) + "</td>\
-					<td>" + frdata.data[i].add_time + "</td>\
-					<td class='text-right' style='color:#ccc'>" + ftpdown + "<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('" + frdata.data[i].id + "'," + id + (((lan && lan.site && t('site.delete') || ')">删除') || ')">删除') + '</a></td>				</tr>');
-    }
-    var ftpdown = '';
-    frdata.page = frdata.page.replace(/'/g, '"').replace(/getBackup\(/g, "getBackup(" + id + ",0,");
-    if (name == 0) {
-      var sBody = ('<table width=\'100%\' id=\'webBackupList\' class=\'table table-hover\'>				<thead><tr><th>' + (lan && lan.site && t('site.file_name') || '文件名称') + '</th><th>' + (lan && lan.site && t('site.file_size') || '文件大小') + '</th><th>' + (lan && lan.site && t('site.packing_time') || '打包时间') + '</th><th width=\'140px\' class=\'text-right\'>' + (lan && lan.site && t('site.operations_6') || '操作') + '</th></tr></thead>				<tbody id=\'webBackupBody\' class=\'list-list\'>') + body + "</tbody>\
+function getBackup(id,name,page){
+	if(page == undefined){
+		page = '1';
+	}
+	$.post('/site/get_backup','search='+id+'&limit=5&p='+page,function(frdata){
+		var body = '';
+		for(var i=0;i<frdata.data.length;i++){
+			if(frdata.data[i].type == '1') {
+				continue;
+			}
+			var ftpdown = "<a class='btlink' href='/files/download?filename="+frdata.data[i].filename+"&name="+frdata.data[i].name+"' target='_blank'>" + ((lan && lan.site && t('site.target_blank_download')) || '下载') + "</a> | ";
+			body += "<tr><td><span class='glyphicon glyphicon-file'></span>"+frdata.data[i].name+"</td>\
+					<td>"+toSize(frdata.data[i].size)+"</td>\
+					<td>"+frdata.data[i].add_time+"</td>\
+					<td class='text-right' style='color:#ccc'>"+ftpdown+"<a class='btlink' href='javascript:;' onclick=\"webBackupDelete('"+frdata.data[i].id+"',"+id+")\">" + ((lan && lan.site && t('site.delete')) || '删除') + "</a></td>\
+				</tr>";
+		}
+		var ftpdown = '';
+		frdata.page = frdata.page.replace(/'/g,'"').replace(/getBackup\(/g,'getBackup('+id+',0,');
+		if(name == 0){
+			var sBody = "<table width='100%' id='webBackupList' class='table table-hover'>\
+				<thead><tr><th>" + ((lan && lan.site && t('site.file_name')) || '文件名称') + "</th><th>" + ((lan && lan.site && t('site.file_size')) || '文件大小') + "</th><th>" + ((lan && lan.site && t('site.packing_time')) || '打包时间') + "</th><th width='140px' class='text-right'>" + ((lan && lan.site && t('site.operations_6')) || '操作') + "</th></tr></thead>\
+				<tbody id='webBackupBody' class='list-list'>"+body+"</tbody>\
 			</table>";
-      $("#webBackupList").html(sBody);
-      $(".page").html(frdata.page);
-      return;
-    }
-    layer.closeAll();
-    layer.open({
-      type: 1,
-      skin: 'demo-class',
-      area: '700px',
-      title: lan && lan.site && t('site.pack_and_back_up') || "",
-      closeBtn: 1,
-      shift: 0,
-      shadeClose: false,
-      content: "<div class='bt-form ptb15 mlr15' id='webBackup'>\
-				<button class='btn btn-default btn-sm' style='margin-right:10px' type='button' onclick=\"webBackup('" + frdata['site']['id'] + "','" + frdata['site']['name'] + (((lan && lan.site && t('site.pack_and_back_up_1') || '\')">打包备份') || '\')">打包备份') + '</button>				<div class=\'divtable mtb15\' style=\'margin-bottom:0\'>					<table width=\'100%\' id=\'webBackupList\' class=\'table table-hover\'>					<thead>						<tr><th>' + (lan && lan.site && t('site.file_name_1') || '文件名称') + '</th><th>' + (lan && lan.site && t('site.file_size_1') || '文件大小') + '</th><th>' + (lan && lan.site && t('site.packing_time_1') || '打包时间') + '</th><th width=\'140px\' class=\'text-right\'>' + (lan && lan.site && t('site.operations_7') || '操作') + '</th></tr>					</thead>					<tbody id=\'webBackupBody\' class=\'list-list\'>') + body + "</tbody>\
-					</table>\
-					<div class='page'>" + frdata.page + "</div>\
-				</div>\
-			</div>"
-    });
-  }, 'json');
+			$("#webBackupList").html(sBody);
+			$(".page").html(frdata.page);
+			return;
+		}
+		layer.closeAll();
+		layer.open({
+			type: 1,
+			skin: 'demo-class',
+			area: '700px',
+			title: ((lan && lan.site && t('site.backup_list')) || '备份列表') + ' &gt;&gt; ' + frdata['site']['name'],
+			closeBtn: 2,
+			shadeClose: true,
+			content: "<div class='bt-form pd15'>\
+						<button class='btn btn-default btn-sm' onclick=\"webBackup('"+frdata['site']['id']+"','"+frdata['site']['name']+"')\">" + ((lan && lan.site && t('site.pack_and_back_up_1')) || '打包备份') + "</button>\
+						<div class='divtable mtb15'>\
+							<table width='100%' id='webBackupList' class='table table-hover'>\
+							<thead><tr><th>" + ((lan && lan.site && t('site.file_name')) || '文件名称') + "</th><th>" + ((lan && lan.site && t('site.file_size')) || '文件大小') + "</th><th>" + ((lan && lan.site && t('site.packing_time')) || '打包时间') + "</th><th width='140px' class='text-right'>" + ((lan && lan.site && t('site.operations_6')) || '操作') + "</th></tr></thead>\
+							<tbody id='webBackupBody' class='list-list'>"+body+"</tbody>\
+							</table>\
+							<div class='page'>"+frdata.page+"</div>\
+						</div>\
+					</div>"
+		});
+	},'json');
 }
+
 function goSet(num) {
   //取选中对象
   var el = document.getElementsByTagName('input');
@@ -1026,66 +1086,44 @@ function setIndexList(id) {
 }
 
 /* 站点修改 */
-function webEdit(id, website, endTime, addtime, defaultTab) {
-  var hasProxy = false;
-  if (window.site_list_cache) {
-    for (var i = 0; i < window.site_list_cache.length; i++) {
-      if (window.site_list_cache[i].id == id) {
-        hasProxy = window.site_list_cache[i].has_proxy;
-        break;
-      }
-    }
-  }
-  // 暂时关闭 - 子目录绑定
-  // <p onclick='dirBinding("+id+")'>子目录绑定</p>\
-  layer.open({
-    type: 1,
-    area: ['950px', '780px'],
-    title: (lan && lan.site && t('site.site_edits') || "") + website + (lan && lan.site && t('site.date_added') || "") + addtime + ']',
-    closeBtn: 1,
-    shift: 0,
-    content: "<div class='bt-form'>\
-			<div class='bt-w-menu pull-left'>\
-				<p class='bgw' onclick=\"domainEdit(" + id + ",'" + website + (((lan && lan.site && t('site.domain_management') || '\')">域名管理') || '\')">域名管理') + '</p>				<p onclick=\'dirBinding(') + id + (((lan && lan.site && t('site.subdirectory_mapping') || ')\'>子目录绑定') || ')\'>子目录绑定') + '</p>				<p onclick=\'webPathEdit(') + id + (((lan && lan.site && t('site.website_directory') || ')\'>网站目录') || ')\'>网站目录') + '</p>				<p onclick=\'limitNet(') + id + (((lan && lan.site && t('site.data_limit') || ')\'>流量限制') || ')\'>流量限制') + '</p>				<p onclick="rewrite(\'') + website + (((lan && lan.site && t('site.pseudo_static') || '\')">伪静态') || '\')">伪静态') + '</p>				<p onclick=\'setIndexEdit(') + id + (((lan && lan.site && t('site.default_document') || ')\'>默认文档') || ')\'>默认文档') + '</p>				<p onclick="configFile(\'') + website + (((lan && lan.site && t('site.configuration_file') || '\')">配置文件') || '\')">配置文件') + '</p>				<p onclick="setSSL(') + id + ",'" + website + "')\">SSL</p>\
-				<p onclick=\"phpVersion('" + website + (((lan && lan.site && t('site.php_version') || '\')">PHP版本') || '\')">PHP版本') + '</p>				<p onclick="to301(\'') + website + (((lan && lan.site && t('site.redirect') || '\')">重定向') || '\')">重定向') + '</p>				<p onclick="toProxy(\'') + website + (((lan && lan.site && t('site.reverse_proxy') || '\')">反向代理') || '\')">反向代理')) + (hasProxy ? "<span style='color:red; font-size:12px; margin-left:3px'>●</span>" : "") + "</p>\
-				<p id='site_" + id + "' onclick=\"security('" + id + "','" + website + (((lan && lan.site && t('site.hotlink_protection') || '\')">防盗链') || '\')">防盗链') + '</p>				<p id=\'site_') + id + "' onclick=\"getSiteLogs('" + website + (((lan && lan.site && t('site.response_log') || '\')">响应日志') || '\')">响应日志') + '</p>				<p id=\'site_') + id + "' onclick=\"getSiteErrorLogs('" + website + (((lan && lan.site && t('site.error_log') || '\')">错误日志') || '\')">错误日志') + '</p>			</div>			<div id=\'webedit-con\' class=\'bt-w-con webedit-con pd15\' style=\'height: 100%;overflow: auto;\'></div>		</div>'),
-    success: function () {
-      //域名输入提示
-      var placeholder = '<div class=\'placeholder\'>' + (lan && lan.site && t('site.enter_one_domain_name_1') || '每行填写一个域名，默认为80端口') + '<br>' + (lan && lan.site && t('site.how_to_add_wildcard_1') || '泛解析添加方法 *.domain.com') + '<br>' + (lan && lan.site && t('site.if_an_additional_port_1') || '如另加端口格式为 www.domain.com:88') + '</div>';
-      $('#newdomain').after(placeholder);
-      $(".placeholder").on('click', function () {
-        $(this).hide();
-        $('#newdomain').trigger('focus');
-      });
-      $('#newdomain').on('focus', function () {
-        $(".placeholder").hide();
-      });
-      $('#newdomain').on('blur', function () {
-        if ($(this).val().length == 0) {
-          $(".placeholder").show();
-        }
-      });
-
-      //切换
-      $(".bt-w-menu p").on('click', function () {
-        $(this).addClass("bgw").siblings().removeClass("bgw");
-      });
-      if (defaultTab === 'ssl') {
-        var sslTab = $(".bt-w-menu p:contains('SSL')");
-        sslTab.addClass("bgw").siblings().removeClass("bgw");
-        setSSL(id, website);
-      } else if (defaultTab === 'config') {
-        var configTab = $(lan && lan.site && t('site.bt_menu_contains_profile') || "");
-        configTab.addClass("bgw").siblings().removeClass("bgw");
-        configFile(website);
-      } else {
-        domainEdit(id, website);
-      }
-    }
-  });
+function webEdit(id,website,endTime,addtime){
+	var webEdit_menu = "<p class='bgw' onclick=\"domainEdit(" + id + ",'" + website + "')\">" + ((lan && lan.site && t('site.domain_management')) || '域名管理') + "</p>\
+						<p onclick=\"dirBinding(" + id + ",'" + website + "')\">" + ((lan && lan.site && t('site.subdirectory_mapping')) || '子目录绑定') + "</p>\
+						<p onclick=\"webPathEdit(" + id + ",'" + website + "')\">" + ((lan && lan.site && t('site.website_directory')) || '网站目录') + "</p>\
+						<p onclick=\"limitNet(" + id + ",'" + website + "')\">" + ((lan && lan.site && t('site.data_limit')) || '流量限制') + "</p>\
+						<p onclick=\"rewrite('" + website + "')\">" + ((lan && lan.site && t('site.pseudo_static')) || '伪静态') + "</p>\
+						<p onclick=\"setIndexEdit(" + id + ",'" + website + "')\">" + ((lan && lan.site && t('site.default_document')) || '默认文档') + "</p>\
+						<p onclick=\"configFile('" + website + "')\">" + ((lan && lan.site && t('site.configuration_file')) || '配置文件') + "</p>\
+						<p onclick=\"setSSL(" + id + ",'" + website + "')\">SSL</p>\
+						<p onclick=\"phpVersion('" + website + "')\">" + ((lan && lan.site && t('site.php_version')) || 'PHP版本') + "</p>\
+						<p onclick=\"to301('" + website + "')\">" + ((lan && lan.site && t('site.redirect')) || '重定向') + "</p>\
+						<p onclick=\"toProxy('" + website + "')\">" + ((lan && lan.site && t('site.reverse_proxy')) || '反向代理') + "</p>\
+						<p id='site_" + id + "' onclick=\"security(" + id + ",'" + website + "')\">" + ((lan && lan.site && t('site.hotlink_protection')) || '防盗链') + "</p>\
+						<p id='site_" + id + "' onclick=\"getSiteLogs('" + website + "')\">" + ((lan && lan.site && t('site.response_log')) || '响应日志') + "</p>\
+						<p id='site_" + id + "' onclick=\"getSiteErrorLogs('" + website + "')\">" + ((lan && lan.site && t('site.error_log')) || '错误日志') + "</p>";
+	$("#webedit-con").html(webEdit_menu);
+	layer.open({
+		type: 1,
+		area: '700px',
+		title: ((lan && lan.site && t('site.site_modification')) || '网站修改') + ' &gt;&gt; ' + website,
+		closeBtn: 2,
+		shift: 5,
+		shadeClose: true,
+		content: "<div class='site-nav'>\
+					<div class='site-menu'>\
+						"+webEdit_menu+"\
+					</div>\
+					<div class='site-content'>\
+						<div id='webedit-con'></div>\
+					</div>\
+				</div>"
+	});
+	$(".site-menu p").on('click', function(){
+		$(this).addClass("bgw").siblings().removeClass("bgw");
+	});
+	domainEdit(id,website);
 }
 
-//取网站日志pluginLogs
 function getSiteLogs(siteName) {
   var loadT = layer.msg(lan && lan.site && t('site.processing_please_wait_5') || "", {
     icon: 16,
@@ -1133,19 +1171,22 @@ function getSiteErrorLogs(siteName) {
 
 //防盗链
 function security(id, name) {
-  var loadT = layer.msg(lan && lan.site && t('site.submitting_task') || "", {
-    icon: 16,
-    time: 0,
-    shade: [0.3, '#000']
-  });
-  $.post('/site/get_security', {
-    id: id,
-    name: name
-  }, function (rdata) {
-    layer.close(loadT);
-    var mbody = '<div>' + ('<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">' + (lan && lan.site && t('site.url_suffix') || 'URL后缀') + '</span><input class="bt-input-text" type="text" name="sec_fix" value="') + rdata.fix + '" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;' + (rdata.status ? 'background-color: #eee;' : '') + (lan && lan.site && t('site.quot_quot_separate_multiple') || "") + (rdata.status ? 'readonly' : '') + '></p>' + ('<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">' + (lan && lan.site && t('site.licensed_domains') || '许可域名') + '</span><input class="bt-input-text" type="text" name="sec_domains" value="') + rdata.domains + '" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;' + (rdata.status ? 'background-color: #eee;' : '') + (lan && lan.site && t('site.wildcards_are_supported_separate') || "") + (rdata.status ? 'readonly' : '') + '></p>' + '<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_status" onclick="setSecurity(\'' + name + '\',' + id + ')" ' + (rdata.status ? 'checked' : '') + (((lan && lan.site && t('site.enable_hotlink_protection') || '>启用防盗链') || '>启用防盗链') + '</label></div>') + '<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_none_status" onclick="setSecurity(\'' + name + '\',' + id + ')" ' + (rdata.none ? 'checked' : '') + (((lan && lan.site && t('site.allow_empty_http_referer') || '>允许空HTTP_REFERER请求') || '>允许空HTTP_REFERER请求') + '</label></div>') + '<ul class="help-info-text c7 ptb10">' + ('<li>' + (lan && lan.site && t('site.by_default_direct_access') || '默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求') + '</li>') + ('<li>' + (lan && lan.site && t('site.separate_multiple_url_extensions') || '多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js') + '</li>') + ('<li>' + (lan && lan.site && t('site.when_the_hotlink_protection') || '当触发防盗链时,将直接返回404状态') + '</li>') + '</ul>' + '</div>';
-    $("#webedit-con").html(mbody);
-  }, 'json');
+	var loadT = layer.msg((lan && lan.site && t('site.submitting_task_2')) || "正在提交任务...", {icon:16,time:0,shade: [0.3, '#000']});
+	$.post('/site/get_security', {id: id, name: name}, function(rdata) {
+		layer.close(loadT);
+		var mbody = '<div>'
+			+'<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">' + ((lan && lan.site && t('site.url_suffix')) || 'URL后缀') + '</span><input class="bt-input-text" type="text" name="sec_fix" value="'+rdata.fix+'" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;'+(rdata.status?'background-color: #eee;':'')+'" placeholder="' + ((lan && lan.site && t('site.quot_quot_separate_multiple')) || '多个用逗号隔开，如：png,jpeg,zip,js') + '" '+(rdata.status?'readonly':'')+'> </p>'
+			+'<p style="margin-bottom:8px"><span style="display: inline-block; width: 60px;">' + ((lan && lan.site && t('site.licensed_domains')) || '许可域名') + '</span><input class="bt-input-text" type="text" name="sec_domains" value="'+rdata.domains+'" style="margin-left: 5px;width: 425px;height: 30px;margin-right:10px;'+(rdata.status?'background-color: #eee;':'')+'" placeholder="' + ((lan && lan.site && t('site.wildcards_are_supported_separate')) || '支持通配符，多个域名用逗号隔开，如：*.bt.cn,bt.cn') + '" '+(rdata.status?'readonly':'')+'> </p>'
+			+'<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_status" onclick="setSecurity(\''+name+'\','+id+')" '+(rdata.status?'checked':'')+'>' + ((lan && lan.site && t('site.enable_hotlink_protection')) || '启用防盗链') + '</label></div>'
+			+'<div class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="sec_none_status" onclick="setSecurity(\''+name+'\','+id+')" '+(rdata.none?'checked':'')+'>' + ((lan && lan.site && t('site.allow_empty_http_referer')) || '允许空HTTP_REFERER请求') + '</label></div>'
+			+'<ul class="help-info-text c7 ptb10">'
+				+'<li>' + ((lan && lan.site && t('site.by_default_direct_access')) || '默认允许资源被直接访问,即不限制HTTP_REFERER为空的请求') + '</li>'
+				+'<li>' + ((lan && lan.site && t('site.separate_multiple_url_extensions')) || '多个URL后缀与域名请使用逗号(,)隔开,如: png,jpeg,zip,js') + '</li>'
+				+'<li>' + ((lan && lan.site && t('site.when_the_hotlink_protection')) || '当触发防盗链时,将直接返回404状态') + '</li>'
+			+'</ul>'
+		+'</div>';
+		$("#webedit-con").html(mbody);
+	}, 'json');
 }
 
 //设置防盗链
@@ -1272,24 +1313,38 @@ function saveLimitNet(id, type) {
 
 //子目录绑定
 function dirBinding(id) {
-  $.post('/site/get_dir_binding', {
-    'id': id
-  }, function (data) {
-    var rdata = data['data'];
-    var echoHtml = '';
-    for (var i = 0; i < rdata.binding.length; i++) {
-      echoHtml += "<tr><td>" + rdata.binding[i].domain + "</td><td>" + rdata.binding[i].port + "</td><td>" + rdata.binding[i].path + "</td><td class='text-right'><a class='btlink' href='javascript:setDirRewrite(" + rdata.binding[i].id + (((lan && lan.site && t('site.pseudo_static_1') || ');\'>伪静态') || ');\'>伪静态') + '</a> | <a class=\'btlink\' href=\'javascript:delDirBind(') + rdata.binding[i].id + "," + id + (((lan && lan.site && t('site.delete_1') || ');\'>删除') || ');\'>删除') + '</a></td></tr>');
-    }
-    var dirList = '';
-    for (var n = 0; n < rdata.dirs.length; n++) {
-      dirList += "<option value='" + rdata.dirs[n] + "'>" + rdata.dirs[n] + "</option>";
-    }
-    var body = "<div class='dirBinding c5'>" + ((lan && lan.site && t('site.domain_name') || '域名：') + '<input class=\'bt-input-text mr20\' type=\'text\' name=\'domain\' />') + ((lan && lan.site && t('site.subdirectories') || '子目录：') + '<select class=\'bt-input-text mr20\' name=\'dirName\'>') + dirList + "</select>" + "<button class='btn btn-success btn-sm' onclick='addDirBinding(" + id + (((lan && lan.site && t('site.add_1') || ')\'>添加') || ')\'>添加') + '</button>') + "</div>" + "<div class='divtable mtb15' style='height:540px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" + ('<thead><tr><th>' + (lan && lan.site && t('site.domain_name_1') || '域名') + '</th><th width=\'70\'>' + (lan && lan.site && t('site.port_1') || '端口') + '</th><th width=\'100\'>' + (lan && lan.site && t('site.subdirectory') || '子目录') + '</th><th width=\'100\' class=\'text-right\'>' + (lan && lan.site && t('site.operations') || '操作') + '</th></tr></thead>') + "<tbody id='checkDomain'>" + echoHtml + "</tbody>" + "</table></div>";
-    $("#webedit-con").html(body);
-  }, 'json');
+	$.post('/site/get_dir_binding', 'id=' + id, function(rdata) {
+		var opt = '';
+		var body = '';
+		for (var i = 0; i < rdata.dirs.length; i++) {
+			opt += '<option value="' + rdata.dirs[i] + '">' + rdata.dirs[i] + '</option>';
+		}
+		for (var i = 0; i < rdata.binding.length; i++) {
+			body += '<tr>\
+				<td>' + rdata.binding[i].domain + '</td>\
+				<td>' + rdata.binding[i].port + '</td>\
+				<td>' + rdata.binding[i].path + '</td>\
+				<td class="text-right"><a class="btlink" href="javascript:setDirRewrite(' + rdata.binding[i].id + ');">' + ((lan && lan.site && t('site.pseudo_static')) || '伪静态') + '</a> | <a class="btlink" href="javascript:delDirBinding(' + rdata.binding[i].id + ',' + id + ');">' + ((lan && lan.site && t('site.delete')) || '删除') + '</a></td>\
+			</tr>';
+		}
+		var content = "<div class='divtable pd15'>\
+			<form id='dirBinding'>\
+				<span class='tname'>" + ((lan && lan.site && t('site.domain_name_1')) || '域名') + "</span>\
+				<input class='bt-input-text mr5' type='text' name='domain' style='width: 35%;' placeholder='" + ((lan && lan.site && t('site.domain_name_2')) || '域名') + "' />\
+				<span class='tname'>" + ((lan && lan.site && t('site.subdirectory')) || '子目录') + "</span>\
+				<select class='bt-input-text mr5' name='dirName' style='width: 25%;'>" + opt + "</select>\
+				<input type='hidden' name='id' value='" + id + "'>\
+				<button class='btn btn-success btn-sm' type='button' onclick='addDirBinding(" + id + ")'>" + ((lan && lan.site && t('site.add_1')) || '添加') + "</button>\
+			</form>\
+			<table class='table table-hover mt15'>\
+				<thead><tr><th>" + ((lan && lan.site && t('site.domain_name_1')) || '域名') + "</th><th width='70px'>" + ((lan && lan.site && t('site.port')) || '端口') + "</th><th width='120px'>" + ((lan && lan.site && t('site.subdirectory')) || '子目录') + "</th><th width='100px' class='text-right'>" + ((lan && lan.site && t('site.operations_7')) || '操作') + "</th></tr></thead>\
+				<tbody id='checkDomain'>" + body + "</tbody>\
+			</table>\
+		</div>";
+		$("#webedit-con").html(content);
+	}, 'json');
 }
 
-//子目录伪静态
 function setDirRewrite(id) {
   $.post('/site/get_dir_bind_rewrite', 'id=' + id, function (rdata) {
     if (!rdata.status) {
@@ -1376,193 +1431,89 @@ function delDirBind(id, siteId) {
 }
 
 //301重定向
-function to301(siteName, type, obj) {
-  // 设置 页面展示
-  if (type == 1) {
-    var obj = {
-      type: 1,
-      keep_path: 1,
-      to: 'http://',
-      from: '',
-      r_type: '',
-      type: 'path'
-    };
-    var keep_path_ht = obj.keep_path == 1 ? 'checked="checked"' : '';
-    var redirect_title = type == 1 ? lan && lan.site && t('site.create_redirect') || "" : (lan && lan.site && t('site.edit_redirect') || "") + obj.redirectname + ']';
-    layer.open({
-      type: 1,
-      area: ['650px', '270px'],
-      title: redirect_title,
-      closeBtn: 1,
-      shift: 5,
-      btn: [lan && lan.site && t('site.submit') || "", lan && lan.site && t('site.close') || ""],
-      shadeClose: false,
-      content: ('<form id=\'form_redirect\' class=\'divtable pd20\'>			<div class=\'line\' style=\'overflow:hidden;height: 40px;\'>				<div style=\'display: inline-block;\'>					<span class=\'tname\' style=\'margin-left:10px;position: relative;top: -5px;\'>' + (lan && lan.site && t('site.preserve_uri_parameters') || '保留URI参数') + '</span>					<input class=\'btswitch btswitch-ios\' id=\'keep_path\' type=\'checkbox\' name=\'keep_path\' ') + keep_path_ht + (' />					<label class=\'btswitch-btn\' for=\'keep_path\' style=\'float:left\'></label>				</div>			</div>			<div class=\'line\' style=\'clear:both;\'><span class=\'tname\'>' + (lan && lan.site && t('site.redirect_types') || '重定向类型') + '</span>				<div class=\'info-r ml0\'>					<select class=\'bt-input-text mr5\' name=\'type\' style=\'width:100px\'>						<option value=\'domain\' ') + (obj.type == 'domain' ? 'selected ="selected"' : "") + (((lan && lan.site && t('site.domain_name_2') || '>域名') || '>域名') + '</option>						<option value=\'path\'  ') + (obj.type == 'path' ? 'selected ="selected"' : "") + (((lan && lan.site && t('site.path_1') || '>路径') || '>路径') + '</option>					</select>					<span class=\'mlr15\'>' + (lan && lan.site && t('site.redirect_methods') || '重定向方式') + '</span>					<select class=\'bt-input-text ml10\' name=\'r_type\' style=\'width:100px\'>						<option value=\'301\' ') + (obj.r_type == '301' ? 'selected ="selected"' : "") + " >301</option>\
-						<option value='302' " + (obj.r_type == '302' ? 'selected ="selected"' : "") + ('>302</option>					</select>				</div>			</div>			<div class=\'line redirectdomain\'>				<span class=\'tname\'>' + (lan && lan.site && t('site.redirect_source') || '重定向源') + '</span>				<div class=\'info-r ml0\'>					' + '<input name=\'from\' placeholder=\'' + t('site.domain_or_path') + '\' class=\'bt-input-text mr5\' type=\'text\' style=\'width:200px;float: left;margin-right:0px\' value=\'') + obj.from + ('\'>					<span class=\'tname\' style=\'width:90px\'>' + (lan && lan.site && t('site.target_url') || '目标URL') + '</span>					<input name=\'to\' class=\'bt-input-text mr5\' type=\'text\' style=\'width:200px\' value=\'') + obj.to + "'>\
-				</div>\
-			</div>\
-			</form>",
-      success: function (index, layero) {},
-      yes: function (index, index1) {
-        var keep_path = $('[name="keep_path"]').prop('checked') ? 1 : 0;
-        var r_type = $('[name="r_type"]').val();
-        var type = $('[name="type"]').val();
-        var from = $('[name="from"]').val();
-        var to = $('[name="to"]').val();
-        var pdata = {
-          siteName: siteName,
-          type: type,
-          r_type: r_type,
-          from: from,
-          to: to,
-          keep_path: keep_path
-        };
-        $.post('/site/set_redirect', pdata, function (data) {
-          if (data.status) {
-            layer.close(index);
-            to301(siteName);
-          } else {
-            layer.msg(data.msg, {
-              icon: 2
-            });
-          }
-        }, 'json');
-      }
-    });
-  }
-  if (type == 2) {
-    $.post('/site/del_redirect', {
-      siteName: siteName,
-      id: obj
-    }, function (res) {
-      if (res.status == true) {
-        layer.msg(lan && lan.site && t('site.deletion_successful') || "", {
-          time: 1000,
-          icon: 1
-        });
-        to301(siteName);
-      } else {
-        layer.msg(res.msg, {
-          time: 1000,
-          icon: 2
-        });
-      }
-    }, 'json');
-    return;
-  }
-  if (type == 3) {
-    var laoding = layer.load();
-    var data = {
-      siteName: siteName,
-      id: obj
-    };
-    $.post('/site/get_redirect_conf', data, function (res) {
-      layer.close(laoding);
-      if (res.status == true) {
-        var mBody = "<div class='webEdit-box' style='padding: 20px'>\
-				<textarea style='height: 320px; width: 445px; margin-left: 20px; line-height:18px' id='configRedirectBody'>" + res.data.result + ('</textarea>					<div class=\'info-r\'>						<ul class=\'help-info-text c7 ptb10\'>							<li>' + (lan && lan.site && t('site.this_is_redirect_configuration') || '此处为重定向配置文件,若您不了解配置规则,请勿随意修改.') + '</li>						</ul>					</div>				</div>');
-        var editor;
-        var index = layer.open({
-          type: 1,
-          title: lan && lan.site && t('site.edit_the_configuration_file') || "",
-          closeBtn: 1,
-          shadeClose: true,
-          area: ['500px', '500px'],
-          btn: [lan && lan.site && t('site.submit_1') || "", lan && lan.site && t('site.close_1') || ""],
-          content: mBody,
-          success: function () {
-            editor = CodeMirror.fromTextArea(document.getElementById("configRedirectBody"), {
-              extraKeys: {
-                "Ctrl-Space": "autocomplete",
-                "Ctrl-/": function (cm) {
-                  cm.toggleComment({
-                    lineComment: "#"
-                  });
-                },
-                "Ctrl-F": "findPersistent",
-                "Ctrl-H": "replace"
-              },
-              lineNumbers: true,
-              matchBrackets: true,
-              mode: "text/x-nginx-conf"
-            });
-            editor.focus();
-            $(".CodeMirror-scroll").css({
-              "height": "300px",
-              "margin": 0,
-              "padding": 0
-            });
-            $("#onlineEditFileBtn").off('click');
-          },
-          yes: function (index, layero) {
-            $("#configRedirectBody").empty().text(editor.getValue());
-            var load = layer.load();
-            var data = {
-              siteName: siteName,
-              id: obj,
-              config: editor.getValue()
-            };
-            $.post('/site/save_redirect_conf', data, function (res) {
-              layer.close(load);
-              if (res.status == true) {
-                layer.msg(lan && lan.site && t('site.saved_successfully') || "", {
-                  icon: 1
-                });
-                layer.close(index);
-              } else {
-                layer.msg(res.msg, {
-                  time: 3000,
-                  icon: 2
-                });
-              }
-            }, 'json');
-            return true;
-          }
-        });
-      } else {
-        layer.msg(lan && lan.site && t('site.request_error') || "", {
-          time: 3000,
-          icon: 2
-        });
-      }
-    });
-    return;
-  }
-  var body = ('<div id="redirect_list" class="bt_table">		<div style="padding-bottom: 10px">			' + '<button type="button" title="' + t('site.add_redirect') + '" class="btn btn-success btn-sm mr5" onclick="to301(\'') + siteName + ('\',1)" >			<span>' + (lan && lan.site && t('site.add_redirect') || '添加重定向') + '</span>		</button>		</div>		<div class="divtable" style="max-height:500px;">			<table class="table table-hover" >				<thead style="position: relative;z-index: 1;">					<tr>						<th><span data-index="1"><span>' + (lan && lan.site && t('site.redirect_types_1') || '重定向类型') + '</span></span></th>						<th><span data-index="2"><span>' + (lan && lan.site && t('site.redirect_methods_1') || '重定向方式') + '</span></span></th>						<th><span data-index="3"><span>' + (lan && lan.site && t('site.preserve_url_parameters') || '保留URL参数') + '</span></span></th>						<th><span data-index="4"><span>' + (lan && lan.site && t('site.status_1') || '状态') + '</span></span></th>						<th><span data-index="5"><span>' + (lan && lan.site && t('site.operations_1') || '操作') + '</span></span></th>					</tr>				</thead>				<tbody id="md-301-body">				</tbody>			</table>		</div>	</div>');
-  $("#webedit-con").html(body);
-  var loadT = layer.msg(t('site.the_msg'), {
-    icon: 16,
-    time: 0,
-    shade: [0.3, '#000']
-  });
-  $.post('/site/get_redirect', 'siteName=' + siteName, function (res) {
-    layer.close(loadT);
-    $("#md-301-loading").remove();
-    if (res.status) {
-      var data = res.data.result;
-      data.forEach(function (item) {
-        var lan_r_type = item.r_type == 0 ? lan && lan.site && t('site.temporary_redirect') || "" : lan && lan.site && t('site.permanent_redirect') || "";
-        var keep_path = item.keep_path == 0 ? lan && lan.site && t('site.do_not_retain') || "" : lan && lan.site && t('site.retain') || "";
-        var switchProxy = '<span onclick="toRedirect(\'' + siteName + '\',\'' + item.id + '\',10)" style="color:rgb(92, 184, 92);" class="btlink glyphicon glyphicon-play"></span>';
-        if (!item['status']) {
-          switchProxy = '<span onclick="toRedirect(\'' + siteName + '\',\'' + item.id + '\',11)" style="color:rgb(255, 0, 0);" class="btlink glyphicon glyphicon-pause"></span>';
-        }
-        let tmp = '<tr>\
-					<td><span data-index="1"><span>' + item.r_from + '</span></span></td>\
-					<td><span data-index="2"><span>' + lan_r_type + '</span></span></td>\
-					<td><span data-index="3"><span>' + keep_path + '</span></span></td>\
+function to301(siteName, type, data) {
+	if (type == 1) {
+		open301(siteName, 0, data);
+		return;
+	}
+	if (type == 2) {
+		del301(siteName, data);
+		return;
+	}
+	if (type == 3) {
+		open301(siteName, 1, data);
+		return;
+	}
+	var body = '<div class="divtable mtb15" style="padding-left: 15px;padding-right: 15px;">\
+		<button class="btn btn-success btn-sm" id="btn-add-301">' + ((lan && lan.site && t('site.btn_add_301')) || '添加重定向') + '</button>\
+		<div class="divtable mtb15">\
+			<table class="table table-hover">\
+				<thead>\
+					<tr>\
+						<th>' + ((lan && lan.site && t('site.th_301_1')) || '重定向类型') + '</th>\
+						<th>' + ((lan && lan.site && t('site.th_301_2')) || '重定向标识') + '</th>\
+						<th>' + ((lan && lan.site && t('site.th_301_3')) || '重定向方式') + '</th>\
+						<th>' + ((lan && lan.site && t('site.th_301_4')) || '保留URI') + '</th>\
+						<th>' + ((lan && lan.site && t('site.th_301_5')) || '目标URL') + '</th>\
+						<th>' + ((lan && lan.site && t('site.th_301_6')) || '状态') + '</th>\
+						<th style="text-align:right;">' + ((lan && lan.site && t('site.th_301_7')) || '操作') + '</th>\
+					</tr>\
+				</thead>\
+				<tbody id="md-301-body">\
+				</tbody>\
+			</table>\
+		</div>\
+	</div>';
+	$("#webedit-con").html(body);
+	var loadT = layer.msg((lan && lan.site && t('site.the_msg')) || '正在获取数据...', {icon: 16, time: 0, shade: [0.3, '#000']});
+	$.post('/site/get_redirect_list', 'siteName=' + siteName, function(data) {
+		layer.close(loadT);
+		var data = data.data;
+		for (var i = 0; i < data.length; i++) {
+			var item = data[i];
+			var fromDomain = '';
+			if (item.type == 1) {
+				fromDomain = ((lan && lan.site && t('site.all_sites')) || '整站');
+			} else {
+				fromDomain = item.domain;
+			}
+			var switchProxy = '';
+			if (item.status == 1) {
+				switchProxy = '<span style="color:#20a53a">' + ((lan && lan.site && t('site.start_301')) || '正在重定向') + '</span>';
+			} else {
+				switchProxy = '<span style="color:red">' + ((lan && lan.site && t('site.stop_301')) || '已停止') + '</span>';
+			}
+			var isPath = '';
+			if (item.rpath == 1) {
+				isPath = '<span>' + ((lan && lan.site && t('site.is_path_1')) || '是') + '</span>';
+			} else {
+				isPath = '<span>' + ((lan && lan.site && t('site.is_path_2')) || '否') + '</span>';
+			}
+			var redirectpath = '';
+			if (item.redirectpath == 301) {
+				redirectpath = '301';
+			} else {
+				redirectpath = '302';
+			}
+			$('#md-301-body').append('<tr>\
+					<td><span data-index="1"><span>' + fromDomain + '</span></span></td>\
+					<td><span data-index="1"><span>' + item.name + '</span></span></td>\
+					<td><span data-index="2"><span>' + redirectpath + '</span></span></td>\
+					<td><span data-index="3"><span>' + isPath + '</span></span></td>\
+					<td><span data-index="4"><span>' + item.tourl + '</span></span></td>\
 					<td><span data-index="4"><span>' + switchProxy + '</span></span></td>\
-					<td>\
-						<span data-index="5" onclick="to301(\'' + siteName + '\', 3, \'' + item.id + (((lan && lan.site && t('site.btlink_1') || '\')"  class="btlink">详细') || '\')"  class="btlink">详细') + '</span> | 						<span data-index="5" onclick="to301(\'') + siteName + '\', 2, \'' + item.id + (((lan && lan.site && t('site.btlink_2') || '\')" class="btlink">删除') || '\')" class="btlink">删除') + '</span>					</td>				</tr>');
-        $("#md-301-body").append(tmp);
-      });
-    } else {
-      layer.msg(res.msg, {
-        icon: 2
-      });
-    }
-  }, 'json');
+					<td style="text-align:right;">\
+						<span data-index="5" onclick="to301(\'' + siteName + '\', 3, \'' + item.id + '\')" class="btlink">' + ((lan && lan.site && t('site.btlink_1')) || '详细') + '</span> | \
+						<span data-index="5" onclick="to301(\'' + siteName + '\', 2, \'' + item.id + '\')" class="btlink">' + ((lan && lan.site && t('site.btlink_2')) || '删除') + '</span>\
+					</td>\
+				</tr>');
+		}
+		$('#btn-add-301').on('click', function() {
+			to301(siteName, 1);
+		});
+	}, 'json');
 }
+
 function toRedirect(siteName, redirect_id, type) {
   if (type == 10 || type == 11) {
     //[11]启动 或 停止[10]
@@ -1984,31 +1935,30 @@ function toProxy(siteName, type, obj) {
 }
 
 //证书夹
-function sslAdmin(siteName) {
-  var loadT = layer.msg(lan && lan.site && t('site.submitting_task_1') || "", {
-    icon: 16,
-    time: 0,
-    shade: [0.3, '#000']
-  });
-  $.get('/site/get_cert_list', function (data) {
-    layer.close(loadT);
-    var rdata = data['data'];
-    var tbody = '';
-    for (var i = 0; i < rdata.length; i++) {
-      tbody += '<tr>\
-				<td>' + rdata[i].subject + '</td>\
-				<td>' + rdata[i].dns.join('<br>') + '</td>\
-				<td>' + rdata[i].notAfter + '</td>\
-				<td>' + rdata[i].issuer.split(' ')[0] + '</td>\
-				<td style="text-align: right;"><a onclick="setCertSsl(\'' + rdata[i].subject + '\',\'' + siteName + (((lan && lan.site && t('site.btlink_3') || '\')" class="btlink">部署') || '\')" class="btlink">部署') + '</a> | <a onclick="removeSsl(\'') + rdata[i].subject + (((lan && lan.site && t('site.btlink_4') || '\')" class="btlink">删除') || '\')" class="btlink">删除') + '</a></td>			</tr>');
-    }
-    var txt = ('<div class="mtb15" style="line-height:30px">		<button style="margin-bottom: 7px;display:none;" class="btn btn-success btn-sm">' + (lan && lan.site && t('site.add_2') || '添加') + '</button>		<div class="divtable"><table class="table table-hover"><thead><tr><th>' + (lan && lan.site && t('site.domain_name_4') || '域名') + '</th><th>' + (lan && lan.site && t('site.trust_name') || '信任名称') + '</th><th>' + (lan && lan.site && t('site.expiration_date_3') || '到期时间') + '</th><th>' + (lan && lan.site && t('site.brand') || '品牌') + '</th><th class="text-right" width="75">' + (lan && lan.site && t('site.operations_3') || '操作') + '</th></tr></thead>		<tbody>') + tbody + '</tbody>\
+function sslAdmin(siteName){
+	var loadT = layer.msg((lan && lan.site && t('site.submitting_task_2')) || '正在提交任务...', {icon:16,time:0,shade: [0.3, '#000']});
+	$.get('/site/get_cert_list',function(data){
+		layer.close(loadT);
+		var rdata = data['data'];
+		var tbody = '';
+		for(var i=0;i<rdata.length;i++){
+			tbody += '<tr>\
+				<td>'+rdata[i].subject+'</td>\
+				<td>'+rdata[i].dns.join('<br>')+'</td>\
+				<td>'+rdata[i].notAfter+'</td>\
+				<td>'+rdata[i].issuer.split(' ')[0]+'</td>\
+				<td style="text-align: right;"><a onclick="setCertSsl(\''+rdata[i].subject+'\',\''+siteName+'\')" class="btlink">' + ((lan && lan.site && t('site.btlink_3')) || '部署') + '</a> | <a onclick="removeSsl(\''+rdata[i].subject+'\')" class="btlink">' + ((lan && lan.site && t('site.btlink_4')) || '删除') + '</a></td>\
+			</tr>'
+		}
+		var txt = '<div class="mtb15" style="line-height:30px">\
+		<button style="margin-bottom: 7px;display:none;" class="btn btn-success btn-sm">' + ((lan && lan.site && t('site.add')) || '添加') + '</button>\
+		<div class="divtable"><table class="table table-hover"><thead><tr><th>' + ((lan && lan.site && t('site.domain')) || '域名') + '</th><th>' + ((lan && lan.site && t('site.trust_name')) || '信任名称') + '</th><th>' + ((lan && lan.site && t('site.expiration_date')) || '到期时间') + '</th><th>' + ((lan && lan.site && t('site.brand')) || '品牌') + '</th><th class="text-right" width="75">' + ((lan && lan.site && t('site.operations_5')) || '操作') + '</th></tr></thead>\
+		<tbody>'+tbody+'</tbody>\
 		</table></div></div>';
-    $(".tab-con").html(txt);
-  }, 'json');
+		$(".tab-con").html(txt);
+	},'json');
 }
 
-//删除证书
 function removeSsl(certName) {
   safeMessage(lan && lan.site && t('site.delete_certificate') || "", lan && lan.site && t('site.are_you_sure_you_2') || "", function () {
     var loadT = layer.msg(t('site.the_msg'), {
@@ -2050,22 +2000,26 @@ function setCertSsl(certName, siteName) {
 
 //ssl
 function setSSL(id, siteName) {
-  // <span onclick="opSSL(\'lets\','+id+',\''+siteName+'\')">Let\'s Encrypt</span>
-  // 暂时关闭 Let 申请模式
-  var sslHtml = ('<div class="warning_info mb10" style="display:none;">					<p>' + (lan && lan.site && t('site.friendly_reminder_this_site') || '温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。') + '<button class="btn btn-success btn-xs ml10 cutTabView">' + (lan && lan.site && t('site.apply_for_certificate') || '申请证书') + '</button></p>				</div>				<div class="tab-nav" style="margin-top: 10px;">					<span class="on" id="now_ssl" onclick="opSSL(\'now\',') + id + ',\'' + siteName + (((lan && lan.site && t('site.current_certificate') || '\')">当前证书 -') || '\')">当前证书 -') + ' <i class="error">' + (lan && lan.site && t('site.ssl_not_deployed') || '[未部署SSL]') + '</i></span>										<span onclick="opSSL(\'acme\',') + id + ',\'' + siteName + '\')">ACME</span>\
-					<span id="ssl_admin" onclick="sslAdmin(\'' + siteName + (((lan && lan.site && t('site.certificate_folder') || '\')">证书夹') || '\')">证书夹') + '</span>') + '<div class="ss-text pull-right mr30" style="position: relative;top:-4px">\
-	                </div></div>' + '<div class="tab-con" style="padding: 0px;"></div>';
-  $("#webedit-con").html(sslHtml);
-  $(".tab-nav span").on('click', function () {
-    $(this).addClass("on").siblings().removeClass("on");
-  });
-  $('.cutTabView').on('click', function () {
-    $('.tab-nav span').eq(1).click();
-  });
-  opSSL('now', id, siteName);
+	var sslHtml = "<div class='warning_info mb10' style='display:none;'>\
+					<p>" + ((lan && lan.site && t('site.friendly_reminder_this_site')) || '温馨提示：当前站点未开启SSL证书访问，站点访问可能存在风险。') + "<button class='btn btn-success btn-xs ml10 cutTabView'>" + ((lan && lan.site && t('site.apply_for_certificate')) || '申请证书') + "</button></p>\
+				</div>\
+				<div class='tab-nav' style='margin-top: 10px;'>\
+					<span class='on' id='now_ssl' onclick=\"opSSL('now'," + id + ",'" + siteName + "')\">" + ((lan && lan.site && t('site.current_certificate')) || '当前证书 -') + " <i class='error'>" + ((lan && lan.site && t('site.ssl_not_deployed')) || '[未部署SSL]') + "</i></span>\
+					<span onclick=\"opSSL('acme'," + id + ",'" + siteName + "')\">ACME</span>\
+					<span id='ssl_admin' onclick=\"sslAdmin('" + siteName + "')\">" + ((lan && lan.site && t('site.certificate_folder')) || '证书夹') + "</span>\
+					<div class='ss-text pull-right mr30' style='position: relative;top:-4px'></div>\
+				</div>\
+				<div class='tab-con' style='padding: 0px;'></div>";
+	$("#webedit-con").html(sslHtml);
+	$(".tab-nav span").on('click', function () {
+		$(this).addClass("on").siblings().removeClass("on");
+	});
+	$('.cutTabView').on('click', function () {
+		$('.tab-nav span').eq(1).click();
+	});
+	opSSL('now', id, siteName);
 }
 
-//设置httpToHttps
 function httpToHttps(siteName) {
   var isHttps = $("#toHttps").prop('checked');
   if (isHttps) {
@@ -2209,209 +2163,370 @@ function renderDnsapi() {
     });
   }, 'json');
 }
-function opSSLNow(type, id, siteName, callback) {
-  var now = ('<div class="myKeyCon ptb15">\t\t\t<div class="ssl_state_info" style="display:none;"></div>\t\t<div class="custom_certificate_info">\t\t\t<div class="ssl-con-key pull-left mr20">' + (lan && lan.site && t('site.key_key') || '密钥(KEY)') + '<br><textarea id="key" class="bt-input-text"></textarea></div>\t\t\t<div class="ssl-con-key pull-left">' + (lan && lan.site && t('site.certificate_pem_format_2') || '证书(PEM格式)') + '<br><textarea id="csr" class="bt-input-text"></textarea></div>\t\t</div>\t\t<div class="ssl-btn pull-left mtb15" style="width:100%">\t\t\t<button class="btn btn-success btn-sm" onclick="saveSSL(\'' + siteName + '\')">' + (lan && lan.public && t('public.save') || '保存') + '</button>\t\t</div>\t</div>\t<ul class="help-info-text c7 pull-left">\t\t<li>' + (lan && lan.site && t('site.paste_the_contents_of') || '粘贴您的*.key以及*.pem内容，然后保存即可。') + '</li>\t\t<li>' + (lan && lan.site && t('site.if_your_browser_prompts') || '如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书') + '</li><li>' + (lan && lan.site && t('site.pem_format_certificate_domain') || 'PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt') + '</li>\t\t<li>' + (lan && lan.site && t('site.if_no_default_ssl') || '在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点') + '</li>\t</ul>');
-  $(".tab-con").html(now);
-  var key = '';
-  var csr = '';
-  var loadT = layer.msg(lan && lan.site && t('site.submitting_task_2') || "", {
-    icon: 16,
-    time: 0,
-    shade: [0.3, '#000']
-  });
-  $.post('/site/get_ssl', 'site_name=' + siteName, function (data) {
-    layer.close(loadT);
-    var rdata = data['data'];
-    if (rdata['cert_data']) {
-      var issuer_o = rdata['cert_data']['issuer_o'] || '<div class=\'state_info_flex\'>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.certificate_categories') || '证书分类：') + '</span><span class=\'ellipsis_text\'>';
-      var issuer = rdata['cert_data']['issuer'] || '</span></div>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.certificate_brand') || '证书品牌：') + '</span><span class=\'ellipsis_text\'>';
-      var domains = rdata['cert_data']['dns'].join("、");
-      var cert_data = ('</span></div>			</div>			<div class=\'state_info_flex\'>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.expiration_date') || '到期时间：') + '</span><span class=\'btlink\'>' + (lan && lan.site && t('site.remaining_1') || '剩余')) + issuer_o + ((lan && lan.site && t('site.due_date') || '天到期') + '</span></div>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.verified_domain') || '认证域名：') + '</span><span class=\'ellipsis_text\'>') + issuer + ('</span></div>			</div>			<div class=\'state_info_flex\'>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.enforce_https') || '强制HTTPS：') + '</span><span class=\'switch\'>					<input class=\'btswitch btswitch-ios\' id=\'toHttps\' type=\'checkbox\'>                    <label class=\'btswitch-btn\' for=\'toHttps\' onclick="httpToHttps(\'') + rdata['cert_data']['endtime'] + (((lan && lan.site && t('site.delete_2') || '\')">删除') || '\')">删除') + '</button>') + domains + (((lan && lan.site && t('site.ssl') || '\')" style=\'margin-left:3px;\'>关闭SSL') || '\')" style=\'margin-left:3px;\'>关闭SSL') + '</button>') + siteName + "')\">\
+function opSSLNow(type, id, siteName, callback){
+	var now = '<div class="myKeyCon ptb15">\
+			<div class="ssl_state_info" style="display:none;"></div>\
+		<div class="custom_certificate_info">\
+			<div class="ssl-con-key pull-left mr20">' + ((lan && lan.site && t('site.key_key')) || '密钥(KEY)') + '<br><textarea id="key" class="bt-input-text"></textarea></div>\
+			<div class="ssl-con-key pull-left">' + ((lan && lan.site && t('site.certificate_pem_format_2')) || '证书(PEM格式)') + '<br><textarea id="csr" class="bt-input-text"></textarea></div>\
+		</div>\
+		<div class="ssl-btn pull-left mtb15" style="width:100%">\
+			<button class="btn btn-success btn-sm" onclick="saveSSL(\''+siteName+'\')">' + ((lan && lan.public && t('public.save')) || '保存') + '</button>\
+		</div>\
+	</div>\
+	<ul class="help-info-text c7 pull-left">\
+		<li>' + ((lan && lan.site && t('site.paste_the_contents_of')) || '粘贴您的*.key以及*.pem内容，然后保存即可。') + '</li>\
+		<li>' + ((lan && lan.site && t('site.if_your_browser_prompts')) || '如果浏览器提示证书链不完整,请检查是否正确拼接PEM证书') + '</li><li>' + ((lan && lan.site && t('site.pem_format_certificate_domain')) || 'PEM格式证书 = 域名证书.crt + 根证书(root_bundle).crt') + '</li>\
+		<li>' + ((lan && lan.site && t('site.if_no_default_ssl')) || '在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点') + '</li>\
+	</ul>';
+
+	$(".tab-con").html(now);
+	var key = '';
+	var csr = '';
+	var loadT = layer.msg((lan && lan.site && t('site.submitting_task_2')) || '正在提交任务...', {icon:16,time:0,shade: [0.3, '#000']});
+	$.post('/site/get_ssl','site_name='+siteName,function(data){
+		layer.close(loadT);
+		var rdata = data['data'];
+
+		if (rdata['cert_data']){
+			var issuer_o = rdata['cert_data']['issuer_o'] || ((lan && lan.site && t('site.self_signed_unknown')) || '自签名/未知');
+			var issuer = rdata['cert_data']['issuer'] || ((lan && lan.site && t('site.unknown')) || '未知');
+			var domains = rdata['cert_data']['dns'].join("、");
+
+			var cert_data = "<div class='state_info_flex'>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.certificate_categories')) || '证书分类：') + "</span><span class='ellipsis_text'>"+issuer_o+"</span></div>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.certificate_brand')) || '证书品牌：') + "</span><span class='ellipsis_text'>"+issuer+"</span></div>\
+			</div>\
+			<div class='state_info_flex'>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.expiration_date')) || '到期时间：') + "</span><span class='btlink'>" + ((lan && lan.site && t('site.remaining_1')) || '剩余') + rdata['cert_data']['endtime'] + ((lan && lan.site && t('site.due_date')) || '天到期') + "</span></div>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.verified_domain')) || '认证域名：') + "</span><span class='ellipsis_text'>"+domains+"</span></div>\
+			</div>\
+			<div class='state_info_flex'>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.enforce_https')) || '强制HTTPS：') + "</span><span class='switch'>\
+					<input class='btswitch btswitch-ios' id='toHttps' type='checkbox'>\
+                    <label class='btswitch-btn' for='toHttps' onclick=\"httpToHttps('" + siteName + "')\"></label>\
 				</span></div>\
 			</div>";
-      $(".ssl_state_info").html(cert_data);
-      $(".ssl_state_info").css('display', 'block');
-    }
-    if (rdata.key == false) {
-      rdata.key = '';
-    } else {
-      $(".ssl-btn").append('<button style=\'margin-left:3px;\' class="btn btn-success btn-sm" onclick="deleteSSL(\'now\',' + id + ',\'' + siteName + (((lan && lan.site && t('site.msg_2') || '\')" style=\'margin-left:3px;\'>手动续签') || '\')" style=\'margin-left:3px;\'>手动续签') + '</button>'));
-    }
-    if (rdata.csr == false) {
-      rdata.csr = '';
-    }
-    $("#key").val(rdata.key);
-    $("#csr").val(rdata.csr);
-    $("#toHttps").attr('checked', rdata.httpTohttps);
-    if (rdata.status) {
-      $('.warning_info').css('display', 'none');
-      $(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"ocSSL('close_ssl_conf','" + siteName + ((lan && lan.site && t('site.current_certificates') || '当前证书 -') + ' <i style="color:#20a53a;">' + (lan && lan.site && t('site.ssl_deployed') || '[已部署SSL]') + '</i>'));
-      $(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"renewSSL('acme'," + id + ",'" + siteName + ((lan && lan.site && t('site.current_certificates_1') || '当前证书 -') + ' <i style="color:red;">' + (lan && lan.site && t('site.ssl_not_deployed_1') || '[未部署SSL]') + '</i>'));
-      $('#now_ssl').html('<div class="apply_ssl">		<div class="label-input-group">			<div class="line">				<span class="tname text-center">' + (lan && lan.site && t('site.authentication_methods') || '验证方式') + '</span>				<div style="margin-top:7px;display:inline-block">					<input type="radio" name="apply_type" value="file" id="check_file" checked="checked"/>  					<label class="mr20" for="check_file" style="font-weight:normal">' + (lan && lan.site && t('site.file_validation') || '文件验证') + '</label></label>  					<input type="radio" name="apply_type" value="dns" id="check_dns"/>  					<label class="mr20" for="check_dns" style="font-weight:normal">' + (lan && lan.site && t('site.dns_verification') || 'DNS验证') + '</label></label>  				</div>	  		</div>	  		<div class="line">				<span class="tname text-center">' + (lan && lan.site && t('site.certificate') || '证书') + '</span>				<div style="margin-top:7px;display:inline-block">					<input type="radio" name="apply_ca" value="default" id="ca_default" checked="checked"/>  					<label class="mr20" for="ca_default" style="font-weight:normal">' + (lan && lan.site && t('site.default') || '默认') + '</label></label>  					<input type="radio" name="apply_ca" value="let" id="ca_letsencrypt"/>  					<label class="mr20" for="ca_letsencrypt" style="font-weight:normal">letsencrypt</label></label>  					<input type="radio" name="apply_ca" value="zerossl" id="ca_zerossl/>  					<label class="mr20" for="ca_zerossl" style="font-weight:normal">zerossl</label></label>  					<input type="radio" name="apply_ca" value="buypass" id="ca_buypass/>  					<label class="mr20" for="ca_buypass" style="font-weight:normal">buypass</label></label>  				</div>	  		</div>	  		<div class="line mtb10" id="dnsapi_option" style="display:none;">				<span class="tname text-center" style="line-height: 42px;">' + (lan && lan.site && t('site.dns_interface') || '选择DNS接口') + '</span>				<div style="margin-top:7px;display:inline-block">					<select name="dnspai" class="bt-input-text mr20">						<option value="none">' + (lan && lan.site && t('site.manual_parsing_2') || '手动解析') + '</option>					</select>					<button id="dnsapi_set" class="btn btn-default btn-sm btn-title" style="display:none;">' + (lan && lan.site && t('site.configuration') || '配置') + '</button>  				</div>	  		</div>  			<div class="check_message line" id="wildcard_domain_block" style="display:none;">  				<div style="margin-left:100px">  					<input type="checkbox" name="wildcard_domain" id="wildcard_domain" checked="checked">  					<label class="mr20" for="wildcard_domain" style="font-weight:normal">' + (lan && lan.site && t('site.automatic_generation_of_wildcard') || '自动组合泛域名') + '</label>  				</div>  			</div>  			<div class="check_message line">  				<div style="margin-left:100px; margin-top:8px;">  					<input type="checkbox" name="checkDomain" id="checkDomain" checked="">  					<label class="mr20" for="checkDomain" style="font-weight:normal">' + (lan && lan.site && t('site.pre_validate_domain_names') || '提前校验域名(提前发现问题,减少失败率)') + '</label>  				</div>  			</div>  		</div>  		<div class="line mtb10">  			<span class="tname text-center">' + (lan && lan.site && t('site.email') || '邮箱') + '</span>  			<input class="bt-input-text" style="width:240px;" type="text" name="admin_email" />  		</div>  		<div class="line mtb10" id="dns_alias" style="display:none;">			<span class="tname text-center">' + (lan && lan.site && t('site.alias_verification') || '别名验证') + '</span>			<input class="bt-input-text" style="width:240px;" type="text" name="dns_alias" />			<span> ' + (lan && lan.site && t('site.not_recommended') || '(建议别用)') + ' <a class="btlink" target="_blank" href="https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias">' + (lan && lan.site && t('site.document_description') || '文档说明') + '</a><span>		</div>  		<div class="line mtb10">  			<span class="tname text-center">' + (lan && lan.site && t('site.domain_name_5') || '域名') + '</span>  			<ul id="ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px"></ul>  		</div>  		<div class="line mtb10" style="margin-left:100px">  			<button class="btn btn-success btn-sm letsApply">' + (lan && lan.site && t('site.application') || '申请') + '</button>  		</div>		<ul class="help-info-text c7" id="lets_help">			<li>' + (lan && lan.site && t('site.before_applying_please_make') || '申请之前，请确保域名已解析，如未解析会导致审核失败') + '</li>			<li>' + (lan && lan.site && t('site.apply_for_free_certificate') || '由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签') + '</li>			<li>' + (lan && lan.site && t('site.if_your_site_uses') || '若您的站点使用了CDN或301重定向会导致续签失败') + '</li>			<li>' + (lan && lan.site && t('site.if_no_default_ssl_1') || '在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点') + '</li></ul>	 	</ul>	</div>');
-    } else {
-      $('.warning_info').css('display', 'block');
-      $('#now_ssl').html('<div class="myKeyCon ptb15">				<div class="ssl_state_info" style="display:none;"></div>				<div class="custom_certificate_info">					<div class="ssl-con-key pull-left mr20" readonly>' + (lan && lan.site && t('site.key_key_1') || '密钥(KEY)') + '<br><textarea id="key" class="bt-input-text">');
-    }
-    if (typeof callback != 'undefined') {
-      callback(rdata);
-    }
-  }, 'json');
-}
-function opSSLAcme(type, id, siteName, callback) {
-  var acme = '</textarea></div>					<div class="ssl-con-key pull-left" readonly>' + (lan && lan.site && t('site.certificate_pem_format') || '证书(PEM格式)') + '<br><textarea id="csr" class="bt-input-text">';
-  $(".tab-con").html(acme);
-  $('input[name="apply_type"]').on('change', function () {
-    var val = $(this).val();
-    if (val == 'file') {
-      $('#dnsapi_option').css('display', 'none');
-      $('#wildcard_domain_block').css('display', 'none');
-      $('#dns_alias').css('display', 'none');
-    } else {
-      $('#dnsapi_option').css('display', 'block');
-      $('#wildcard_domain_block').css('display', 'block');
+			$(".ssl_state_info").html(cert_data);
+			$(".ssl_state_info").css('display','block');
+		}
 
-      // 关闭,咱不开发,没有验证通过
-      $('#dns_alias').css('display', 'block');
-    }
-  });
-  renderDnsapi();
-  $.post('/site/get_ssl', 'site_name=' + siteName + '&ssl_type=acme', function (data) {
-    var rdata = data['data'];
-    if (rdata.csr == false) {
-      $.post('/site/get_site_domains', 'id=' + id, function (rdata) {
-        var data = rdata['data'];
-        var opt = '';
-        for (var i = 0; i < data.domains.length; i++) {
-          var isIP = isValidIP(data.domains[i].name);
-          var x = isContains(data.domains[i].name, '*');
-          if (!isIP && !x) {
-            opt += '<li style="line-height:26px">\
-							<input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="' + data.domains[i].name + '">' + data.domains[i].name + '</li>';
-          }
-        }
-        $("input[name='admin_email']").val(data.email);
-        $("#ymlist").html(opt);
-        $("#ymlist li input").on('click', function (e) {
-          e.stopPropagation();
-        });
-        $("#ymlist li").on('click', function () {
-          var o = $(this).find("input");
-          if (o.prop("checked")) {
-            o.prop("checked", false);
-          } else {
-            o.prop("checked", true);
-          }
-        });
-        $(".letsApply").on('click', function () {
-          var c = $("#ymlist input[type='checkbox']");
-          var str = [];
-          var domains = '';
-          for (var i = 0; i < c.length; i++) {
-            if (c[i].checked) {
-              str.push(c[i].value);
-            }
-          }
-          domains = JSON.stringify(str);
-          newAcmeSSL(siteName, id, domains);
-        });
-        if (typeof callback != 'undefined') {
-          callback(rdata);
-        }
-      }, 'json');
-      return;
-    }
-    var acme = (((lan && lan.site && t('site.deployment') || '\')">部署') || '\')">部署') + '</button>					<button class="btn btn-success btn-sm" onclick="deleteSSL(\'acme\',') + rdata.key + (((lan && lan.site && t('site.delete_3') || '\')">删除') || '\')">删除') + '</button>				</div>			</div>			<ul class="help-info-text c7 pull-left">				<li>' + (lan && lan.site && t('site.free_acme_certificate_has') || '已为您自动生成ACME免费证书') + '</li>				<li>' + (lan && lan.site && t('site.apply_for_free_certificate_1') || '由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签') + '</li>				<li>' + (lan && lan.site && t('site.if_you_need_to') || '如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。') + '</li>			</ul>') + rdata.csr + '</textarea></div>\
-				</div>\
-				<div class="ssl-btn pull-left mtb15" style="width:100%">\
-					<button class="btn btn-success btn-sm" onclick="deploySSL(\'acme\',' + id + ',\'' + siteName + ('<div class=\'state_info_flex\'>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.certificate_categories_1') || '证书分类：') + '</span><span class=\'ellipsis_text\'>') + id + ',\'' + siteName + ('</span></div>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.certificate_brand_1') || '证书品牌：') + '</span><span class=\'ellipsis_text\'>');
-    $(".tab-con").html(acme);
-    if (rdata['cert_data']) {
-      var issuer_o = rdata['cert_data']['issuer_o'] || '</span></div>			</div>			<div class=\'state_info_flex\'>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.expiration_date_1') || '到期时间：') + '</span><span class=\'btlink\'>' + (lan && lan.site && t('site.remaining_2') || '剩余');
-      var issuer = rdata['cert_data']['issuer'] || (lan && lan.site && t('site.due_date_1') || '天到期') + '</span></div>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.verified_domain_1') || '认证域名：') + '</span><span class=\'ellipsis_text\'>';
-      var domains = rdata['cert_data']['dns'].join("、");
-      var cert_data = ('<div class="apply_ssl">		<div class="label-input-group">			<div class="line mtb10">				<span class="tname text-center">' + (lan && lan.site && t('site.authentication_methods_1') || '验证方式') + '</span>				<div style="margin-top:7px;display:inline-block">					<input type="radio" name="apply_type" value="file" id="check_file" checked="checked"/>  					<label class="mr20" for="check_file" style="font-weight:normal">' + (lan && lan.site && t('site.file_validation_1') || '文件验证') + '</label></label>  					<input type="radio" name="apply_type" value="dns" id="check_dns"/>  					<label class="mr20" for="check_dns" style="font-weight:normal">' + (lan && lan.site && t('site.dns_verification_1') || 'DNS验证') + '</label></label>  				</div>	  		</div>	  		<div class="line mtb10" id="dnsapi_option" style="display:none;">				<span class="tname text-center" style="line-height: 42px;">' + (lan && lan.site && t('site.dns_interface_1') || '选择DNS接口') + '</span>				<div style="margin-top:7px;display:inline-block">					<select name="dnspai" class="bt-input-text mr20">						<option value="none">' + (lan && lan.site && t('site.manual_parsing_3') || '手动解析') + '</option>					</select>					<button id="dnsapi_set" class="btn btn-default btn-sm btn-title" style="display:none;">' + (lan && lan.site && t('site.configuration_1') || '配置') + '</button>  				</div>	  		</div>	  		<div class="check_message line" id="wildcard_domain_block" style="display:none;">  				<div style="margin-left:100px">  					<input type="checkbox" name="wildcard_domain" id="wildcard_domain" checked="checked">  					<label class="mr20" for="wildcard_domain" style="font-weight:normal">' + (lan && lan.site && t('site.automatic_generation_of_wildcard_1') || '自动组合泛域名') + '</label>  				</div>  			</div>  			<div class="check_message line">  				<div style="margin-left:100px">  					<input type="checkbox" name="checkDomain" id="checkDomain" checked="">  					<label class="mr20" for="checkDomain" style="font-weight:normal">' + (lan && lan.site && t('site.pre_validate_domain_names_1') || '提前校验域名(提前发现问题,减少失败率)') + '</label>  				</div>  			</div>  		</div>  		<div class="line mtb10">  			<span class="tname text-center">' + (lan && lan.site && t('site.email_1') || '邮箱') + '</span>  			<input class="bt-input-text" style="width:240px;" type="text" name="admin_email" />  		</div>  		<div class="line mtb10">  			<span class="tname text-center">' + (lan && lan.site && t('site.domain_name_6') || '域名') + '</span>  			<ul id="ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px"></ul>  		</div>  		<div class="line mtb10" style="margin-left:100px">  			<button class="btn btn-success btn-sm letsApply">' + (lan && lan.site && t('site.application_1') || '申请') + '</button>  		</div>	  	<ul class="help-info-text c7" id="lets_help">	  		<li>' + (lan && lan.site && t('site.before_applying_please_make_1') || '申请之前，请确保域名已解析，如未解析会导致审核失败') + '</li>	  		<li>' + (lan && lan.site && t('site.let_encrypt_free_certificates') || 'Let\'s Encrypt免费证书，有效期3个月，支持多域名。默认会自动续签') + '</li>	  		<li>' + (lan && lan.site && t('site.if_your_site_uses_1') || '若您的站点使用了CDN或301重定向会导致续签失败') + '</li>	  		<li>' + (lan && lan.site && t('site.if_no_default_ssl_2') || '在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点') + '</li>	  	</ul>  	</div>') + issuer_o + ('<div class="myKeyCon ptb15">				<div class="ssl_state_info" style="display:none;"></div>				<div class="custom_certificate_info">					<div class="ssl-con-key pull-left mr20" readonly>' + (lan && lan.site && t('site.key_key_2') || '密钥(KEY)') + '<br><textarea id="key" class="bt-input-text">') + issuer + ('</textarea></div>					<div class="ssl-con-key pull-left" readonly>' + (lan && lan.site && t('site.certificate_pem_format_1') || '证书(PEM格式)') + '<br><textarea id="csr" class="bt-input-text">') + rdata['cert_data']['endtime'] + (((lan && lan.site && t('site.deployment_1') || '\')">部署') || '\')">部署') + '</button>					<button class="btn btn-success btn-sm" onclick="renewSSL(\'lets\',') + domains + "</span></div>\
-			</div>";
-      $(".ssl_state_info").html(cert_data);
-      $(".ssl_state_info").css('display', 'block');
-    }
-  }, 'json');
-}
-function opSSLLet(type, id, siteName, callback) {
-  var lets = ((lan && lan.site && t('site.renewal') || '\')">续期') || '\')">续期') + '</button>					<button class="btn btn-success btn-sm" onclick="deleteSSL(\'lets\',';
-  $(".tab-con").html(lets);
-  $('input[name="apply_type"]').on('change', function () {
-    var val = $(this).val();
-    if (val == 'file') {
-      $('#dnsapi_option').css('display', 'none');
-      $('#wildcard_domain_block').css('display', 'none');
-    } else {
-      $('#dnsapi_option').css('display', 'block');
-      $('#wildcard_domain_block').css('display', 'block');
-    }
-  });
-  renderDnsapi();
-  $.post('/site/get_ssl', 'site_name=' + siteName + '&ssl_type=lets', function (data) {
-    var rdata = data['data'];
-    if (rdata.csr == false) {
-      $.post('/site/get_site_domains', 'id=' + id, function (rdata) {
-        var data = rdata['data'];
-        var opt = '';
-        for (var i = 0; i < data.domains.length; i++) {
-          var isIP = isValidIP(data.domains[i].name);
-          var x = isContains(data.domains[i].name, '*');
-          if (!isIP && !x) {
-            opt += '<li style="line-height:26px"><input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="' + data.domains[i].name + '">' + data.domains[i].name + '</li>';
-          }
-        }
-        $("input[name='admin_email']").val(data.email);
-        $("#ymlist").html(opt);
-        $("#ymlist li input").on('click', function (e) {
-          e.stopPropagation();
-        });
-        $("#ymlist li").on('click', function () {
-          var o = $(this).find("input");
-          if (o.prop("checked")) {
-            o.prop("checked", false);
-          } else {
-            o.prop("checked", true);
-          }
-        });
-        $(".letsApply").on('click', function () {
-          var c = $("#ymlist input[type='checkbox']");
-          var str = [];
-          var domains = '';
-          for (var i = 0; i < c.length; i++) {
-            if (c[i].checked) {
-              str.push(c[i].value);
-            }
-          }
-          domains = JSON.stringify(str);
-          newSSL(siteName, id, domains);
-        });
-        if (typeof callback != 'undefined') {
-          callback(rdata);
-        }
-      }, 'json');
-      return;
-    }
-    var lets = (((lan && lan.site && t('site.delete_4') || '\')">删除') || '\')">删除') + '</button>				</div>			</div>			<ul class="help-info-text c7 pull-left">				<li>' + (lan && lan.site && t('site.free_let_encrypt_certificate') || '已为您自动生成Let\'s Encrypt免费证书') + '</li>				<li>' + (lan && lan.site && t('site.apply_for_free_certificate_2') || '由Let\'s Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签') + '</li>				<li>' + (lan && lan.site && t('site.if_you_need_to_1') || '如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。') + '</li>			</ul>') + rdata.key + ('<div class=\'state_info_flex\'>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.certificate_categories_2') || '证书分类：') + '</span><span class=\'ellipsis_text\'>') + rdata.csr + '</textarea></div>\
-				</div>\
-				<div class="ssl-btn pull-left mtb15" style="width:100%">\
-					<button class="btn btn-success btn-sm" onclick="deploySSL(\'lets\',' + id + ',\'' + siteName + ('</span></div>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.certificate_brand_2') || '证书品牌：') + '</span><span class=\'ellipsis_text\'>') + id + ',\'' + siteName + ('</span></div>			</div>			<div class=\'state_info_flex\'>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.expiration_date_2') || '到期时间：') + '</span><span class=\'btlink\'>' + (lan && lan.site && t('site.remaining_3') || '剩余')) + id + ',\'' + siteName + ((lan && lan.site && t('site.due_date_2') || '天到期') + '</span></div>				<div class=\'state_item\'><span>' + (lan && lan.site && t('site.verified_domain_2') || '认证域名：') + '</span><span class=\'ellipsis_text\'>');
-    $(".tab-con").html(lets);
-    if (rdata['cert_data']) {
-      var issuer_o = rdata['cert_data']['issuer_o'] || lan && lan.site && t('site.error') || "";
-      var issuer = rdata['cert_data']['issuer'] || lan && lan.site && t('site.retrieving_the_certificate_list') || "";
-      var domains = rdata['cert_data']['dns'].join("、");
-      var cert_data = ('<p>' + (lan && lan.site && t('site.failed_to_obtain_the') || '证书获取失败：') + '</p><hr />') + issuer_o + ('<p>' + (lan && lan.site && t('site.domain_name_3') || '域名:') + ' ') + issuer + ('<p>' + (lan && lan.site && t('site.error_1') || '错误类型:') + ' ') + rdata['cert_data']['endtime'] + ('<p>' + (lan && lan.site && t('site.details') || '详情:') + ' ') + domains + "</span></div>\
-			</div>";
-      $(".ssl_state_info").html(cert_data);
-      $(".ssl_state_info").css('display', 'block');
-    }
-  }, 'json');
+		if(rdata.key == false){
+			rdata.key = '';
+		} else {
+			$(".ssl-btn").append('<button style=\'margin-left:3px;\' class="btn btn-success btn-sm" onclick="deleteSSL(\'now\','+id+',\''+siteName+'\')">' + ((lan && lan.site && t('site.delete_4')) || '删除') + '</button>');
+		}
+
+		if(rdata.csr == false){
+			rdata.csr = '';
+		}
+		$("#key").val(rdata.key);
+		$("#csr").val(rdata.csr);
+
+		$("#toHttps").attr('checked',rdata.httpTohttps);
+		if(rdata.status){
+			$('.warning_info').css('display','none');
+			
+			$(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"ocSSL('close_ssl_conf','"+siteName+"')\" style='margin-left:3px;'>" + ((lan && lan.site && t('site.ssl')) || '关闭SSL') + "</button>");
+			$(".ssl-btn").append("<button class='btn btn-success btn-sm' onclick=\"renewSSL('acme',"+id+",'"+siteName+"')\" style='margin-left:3px;'>" + ((lan && lan.site && t('site.msg_2')) || '手动续签') + "</button>");
+			var curCert = (lan && lan.site && t('site.current_certificate')) || '当前证书 -';
+			var deployedText = (lan && lan.site && t('site.ssl_deployed')) || '[已部署SSL]';
+			$('#now_ssl').html(curCert + ' <i style="color:#20a53a;">' + deployedText + '</i>');
+		} else{
+			$('.warning_info').css('display','block');
+			var curCert = (lan && lan.site && t('site.current_certificate')) || '当前证书 -';
+			var notDeployedText = (lan && lan.site && t('site.ssl_not_deployed')) || '[未部署SSL]';
+			$('#now_ssl').html(curCert + ' <i style="color:red;">' + notDeployedText + '</i>');
+		}
+
+		if (typeof (callback) != 'undefined'){
+			callback(rdata);
+		}
+	},'json');
 }
 
-//SSL
+function opSSLAcme(type, id, siteName, callback){
+	var acme =  '<div class="apply_ssl">\
+		<div class="label-input-group">\
+			<div class="line">\
+				<span class="tname text-center">' + ((lan && lan.site && t('site.authentication_methods')) || '验证方式') + '</span>\
+				<div style="margin-top:7px;display:inline-block">\
+					<input type="radio" name="apply_type" value="file" id="check_file" checked="checked"/>\
+  					<label class="mr20" for="check_file" style="font-weight:normal">' + ((lan && lan.site && t('site.file_validation')) || '文件验证') + '</label>\
+  					<input type="radio" name="apply_type" value="dns" id="check_dns"/>\
+  					<label class="mr20" for="check_dns" style="font-weight:normal">' + ((lan && lan.site && t('site.dns_verification')) || 'DNS验证') + '</label>\
+  				</div>\
+	  		</div>\
+	  		<div class="line">\
+				<span class="tname text-center">' + ((lan && lan.site && t('site.certificate')) || '证书') + '</span>\
+				<div style="margin-top:7px;display:inline-block">\
+					<input type="radio" name="apply_ca" value="default" id="ca_default" checked="checked"/>\
+  					<label class="mr20" for="ca_default" style="font-weight:normal">' + ((lan && lan.site && t('site.default')) || '默认') + '</label>\
+  					<input type="radio" name="apply_ca" value="let" id="ca_letsencrypt"/>\
+  					<label class="mr20" for="ca_letsencrypt" style="font-weight:normal">letsencrypt</label>\
+  					<input type="radio" name="apply_ca" value="zerossl" id="ca_zerossl"/>\
+  					<label class="mr20" for="ca_zerossl" style="font-weight:normal">zerossl</label>\
+  					<input type="radio" name="apply_ca" value="buypass" id="ca_buypass"/>\
+  					<label class="mr20" for="ca_buypass" style="font-weight:normal">buypass</label>\
+  				</div>\
+	  		</div>\
+	  		<div class="line mtb10" id="dnsapi_option" style="display:none;">\
+				<span class="tname text-center" style="line-height: 42px;">' + ((lan && lan.site && t('site.dns_interface')) || '选择DNS接口') + '</span>\
+				<div style="margin-top:7px;display:inline-block">\
+					<select name="dnspai" class="bt-input-text mr20">\
+						<option value="none">' + ((lan && lan.site && t('site.manual_parsing_2')) || '手动解析') + '</option>\
+					</select>\
+					<button id="dnsapi_set" class="btn btn-default btn-sm btn-title" style="display:none;">' + ((lan && lan.site && t('site.configuration')) || '配置') + '</button>\
+  				</div>\
+	  		</div>\
+  			<div class="check_message line" id="wildcard_domain_block" style="display:none;">\
+  				<div style="margin-left:100px">\
+  					<input type="checkbox" name="wildcard_domain" id="wildcard_domain" checked="checked">\
+  					<label class="mr20" for="wildcard_domain" style="font-weight:normal">' + ((lan && lan.site && t('site.automatic_generation_of_wildcard')) || '自动组合泛域名') + '</label>\
+  				</div>\
+  			</div>\
+  			<div class="check_message line">\
+  				<div style="margin-left:100px; margin-top:8px;">\
+  					<input type="checkbox" name="checkDomain" id="checkDomain" checked="">\
+  					<label class="mr20" for="checkDomain" style="font-weight:normal">' + ((lan && lan.site && t('site.pre_validate_domain_names')) || '提前校验域名(提前发现问题,减少失败率)') + '</label>\
+  				</div>\
+  			</div>\
+  		</div>\
+  		<div class="line mtb10">\
+  			<span class="tname text-center">' + ((lan && lan.site && t('site.email')) || '邮箱') + '</span>\
+  			<input class="bt-input-text" style="width:240px;" type="text" name="admin_email" />\
+  		</div>\
+  		<div class="line mtb10" id="dns_alias" style="display:none;">\
+			<span class="tname text-center">' + ((lan && lan.site && t('site.alias_verification')) || '别名验证') + '</span>\
+			<input class="bt-input-text" style="width:240px;" type="text" name="dns_alias" />\
+			<span> ' + ((lan && lan.site && t('site.not_recommended')) || '(建议别用)') + ' <a class="btlink" target="_blank" href="https://github.com/acmesh-official/acme.sh/wiki/DNS-alias-mode#7-challenge-alias-or-domain-alias">' + ((lan && lan.site && t('site.document_description')) || '文档说明') + '</a></span>\
+		</div>\
+  		<div class="line mtb10">\
+  			<span class="tname text-center">' + ((lan && lan.site && t('site.domain_name_5')) || '域名') + '</span>\
+  			<ul id="ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px"></ul>\
+  		</div>\
+  		<div class="line mtb10" style="margin-left:100px">\
+  			<button class="btn btn-success btn-sm letsApply">' + ((lan && lan.site && t('site.application')) || '申请') + '</button>\
+  		</div>\
+		<ul class="help-info-text c7" id="lets_help">\
+			<li>' + ((lan && lan.site && t('site.before_applying_please_make')) || '申请之前，请确保域名已解析，如未解析会导致审核失败') + '</li>\
+			<li>' + ((lan && lan.site && t('site.apply_for_free_certificate')) || '由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签') + '</li>\
+			<li>' + ((lan && lan.site && t('site.if_your_site_uses')) || '若您的站点使用了CDN或301重定向会导致续签失败') + '</li>\
+			<li>' + ((lan && lan.site && t('site.if_no_default_ssl_1')) || '在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点') + '</li></ul>\
+	</div>';
+
+	$(".tab-con").html(acme);
+
+	$('input[name="apply_type"]').on('change', function(){
+		var val = $(this).val();
+		if (val == 'file'){
+			$('#dnsapi_option').css('display','none');
+			$('#wildcard_domain_block').css('display','none');
+			$('#dns_alias').css('display','none');
+		} else {
+			$('#dnsapi_option').css('display','block');
+			$('#wildcard_domain_block').css('display','block');
+			$('#dns_alias').css('display','block');
+		}
+	});
+
+	renderDnsapi();
+
+	$.post('/site/get_ssl','site_name='+siteName+'&ssl_type=acme', function(data){
+		var rdata = data['data'];
+		if(rdata.csr == false){
+			$.post('/site/get_site_domains','id='+id, function(rdata) {
+				var data = rdata['data'];
+				var opt='';
+				for(var i=0;i<data.domains.length;i++){
+					var isIP = isValidIP(data.domains[i].name);
+					var x = isContains(data.domains[i].name, '*');
+					if(!isIP && !x){
+						opt += '<li style="line-height:26px">\
+							<input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="'+data.domains[i].name+'">'+data.domains[i].name
+						+'</li>';
+					}
+				}
+				$("input[name='admin_email']").val(data.email);
+				$("#ymlist").html(opt);
+				$("#ymlist li input").on('click', function(e){
+					e.stopPropagation();
+				});
+				$("#ymlist li").on('click', function(){
+					var o = $(this).find("input");
+					if(o.prop("checked")){
+						o.prop("checked",false);
+					}
+					else{
+						o.prop("checked",true);
+					}
+				});
+				$(".letsApply").on('click', function(){
+					var c = $("#ymlist input[type='checkbox']");
+					var str = [];
+					var domains = '';
+					for(var i=0; i<c.length; i++){
+						if(c[i].checked){
+							str.push(c[i].value);
+						}
+					}
+					domains = JSON.stringify(str);
+					newAcmeSSL(siteName, id, domains);
+				});
+
+				if (typeof (callback) != 'undefined'){
+					callback(rdata);
+				}
+			},'json');
+			return;
+		}
+		var acme = '<div class="myKeyCon ptb15">\
+				<div class="ssl_state_info" style="display:none;"></div>\
+				<div class="custom_certificate_info">\
+					<div class="ssl-con-key pull-left mr20" readonly>' + ((lan && lan.site && t('site.key_key')) || '密钥(KEY)') + '<br><textarea id="key" class="bt-input-text">'+rdata.key+'</textarea></div>\
+					<div class="ssl-con-key pull-left" readonly>' + ((lan && lan.site && t('site.certificate_pem_format_2')) || '证书(PEM格式)') + '<br><textarea id="csr" class="bt-input-text">'+rdata.csr+'</textarea></div>\
+				</div>\
+				<div class="ssl-btn pull-left mtb15" style="width:100%">\
+					<button class="btn btn-success btn-sm" onclick="deploySSL(\'acme\','+id+',\''+siteName+'\')">' + ((lan && lan.site && t('site.btlink_3')) || '部署') + '</button>\
+					<button class="btn btn-success btn-sm" onclick="deleteSSL(\'acme\','+id+',\''+siteName+'\')">' + ((lan && lan.site && t('site.delete_4')) || '删除') + '</button>\
+				</div>\
+			</div>\
+			<ul class="help-info-text c7 pull-left">\
+				<li>' + ((lan && lan.site && t('site.free_acme_certificate')) || '已为您自动生成ACME免费证书') + '</li>\
+				<li>' + ((lan && lan.site && t('site.apply_for_free_certificate')) || '由ACME免费申请证书，有效期3个月，支持多域名。默认会自动续签') + '</li>\
+				<li>' + ((lan && lan.site && t('site.paste_key_pem_other')) || '如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。') + '</li>\
+			</ul>';
+		$(".tab-con").html(acme);
+
+		if (rdata['cert_data']){
+			var issuer_o = rdata['cert_data']['issuer_o'] || ((lan && lan.site && t('site.self_signed_unknown')) || '自签名/未知');
+			var issuer = rdata['cert_data']['issuer'] || ((lan && lan.site && t('site.unknown')) || '未知');
+			var domains = rdata['cert_data']['dns'].join("、");
+
+			var cert_data = "<div class='state_info_flex'>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.certificate_categories')) || '证书分类：') + "</span><span class='ellipsis_text'>"+issuer_o+"</span></div>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.certificate_brand')) || '证书品牌：') + "</span><span class='ellipsis_text'>"+issuer+"</span></div>\
+			</div>\
+			<div class='state_info_flex'>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.expiration_date')) || '到期时间：') + "</span><span class='btlink'>" + ((lan && lan.site && t('site.remaining_1')) || '剩余') + rdata['cert_data']['endtime'] + ((lan && lan.site && t('site.due_date')) || '天到期') + "</span></div>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.verified_domain')) || '认证域名：') + "</span><span class='ellipsis_text'>"+domains+"</span></div>\
+			</div>";
+			$(".ssl_state_info").html(cert_data);
+			$(".ssl_state_info").css('display','block');
+		}
+	},'json');
+}
+
+function opSSLLet(type, id, siteName, callback){
+	var lets = '<div class="apply_ssl">\
+		<div class="label-input-group">\
+	  		<div class="line">\
+	  			<span class="tname text-center">' + ((lan && lan.site && t('site.admin_email')) || '管理员邮箱') + '</span>\
+	  			<input class="bt-input-text" style="width:240px;" type="text" name="admin_email" />\
+	  		</div>\
+	  		<div class="line mtb10">\
+	  			<span class="tname text-center">' + ((lan && lan.site && t('site.domain_name_5')) || '域名') + '</span>\
+	  			<ul id="ymlist" style="padding: 5px 10px;max-height:180px;overflow:auto; width:240px;border:#ccc 1px solid;border-radius:3px"></ul>\
+	  		</div>\
+	  		<div class="line mtb10" style="margin-left:100px">\
+	  			<button class="btn btn-success btn-sm letsApply">' + ((lan && lan.site && t('site.application')) || '申请') + '</button>\
+	  		</div>\
+	  	</div>\
+		<ul class="help-info-text c7" id="lets_help">\
+			<li>' + ((lan && lan.site && t('site.before_applying_please_make')) || '申请之前，请确保域名已解析，如未解析会导致审核失败') + '</li>\
+			<li>' + ((lan && lan.site && t('site.apply_for_free_certificate_2')) || "由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签") + '</li>\
+			<li>' + ((lan && lan.site && t('site.if_your_site_uses')) || '若您的站点使用了CDN或301重定向会导致续签失败') + '</li>\
+			<li>' + ((lan && lan.site && t('site.if_no_default_ssl_1')) || '在未指定SSL默认站点时,未开启SSL的站点使用HTTPS会直接访问到已开启SSL的站点') + '</li>\
+		</ul>\
+	</div>';
+	$(".tab-con").html(lets);
+
+	$.post('/site/get_ssl','site_name='+siteName+'&ssl_type=lets', function(data){
+		var rdata = data['data'];
+		if(rdata.csr == false){
+			$.post('/site/get_site_domains','id='+id, function(rdata) {
+				var data = rdata['data'];
+				var opt='';
+				for(var i=0;i<data.domains.length;i++){
+					var isIP = isValidIP(data.domains[i].name);
+					var x = isContains(data.domains[i].name, '*');
+					if(!isIP && !x){
+						opt += '<li style="line-height:26px">\
+							<input type="checkbox" style="margin-right:5px; vertical-align:-2px" value="'+data.domains[i].name+'">'+data.domains[i].name
+						+'</li>';
+					}
+				}
+				$("input[name='admin_email']").val(data.email);
+				$("#ymlist").html(opt);
+				$("#ymlist li input").on('click', function(e){
+					e.stopPropagation();
+				});
+				$("#ymlist li").on('click', function(){
+					var o = $(this).find("input");
+					if(o.prop("checked")){
+						o.prop("checked",false);
+					}
+					else{
+						o.prop("checked",true);
+					}
+				});
+				$(".letsApply").on('click', function(){
+					var c = $("#ymlist input[type='checkbox']");
+					var str = [];
+					var domains = '';
+					for(var i=0; i<c.length; i++){
+						if(c[i].checked){
+							str.push(c[i].value);
+						}
+					}
+					domains = JSON.stringify(str);
+					newSSL(siteName, id, domains);
+				});
+
+				if (typeof (callback) != 'undefined'){
+					callback(rdata);
+				}
+			},'json');
+			return;
+		}
+		var lets = '<div class="myKeyCon ptb15">\
+				<div class="ssl_state_info" style="display:none;"></div>\
+				<div class="custom_certificate_info">\
+					<div class="ssl-con-key pull-left mr20" readonly>' + ((lan && lan.site && t('site.key_key')) || '密钥(KEY)') + '<br><textarea id="key" class="bt-input-text">'+rdata.key+'</textarea></div>\
+					<div class="ssl-con-key pull-left" readonly>' + ((lan && lan.site && t('site.certificate_pem_format_2')) || '证书(PEM格式)') + '<br><textarea id="csr" class="bt-input-text">'+rdata.csr+'</textarea></div>\
+				</div>\
+				<div class="ssl-btn pull-left mtb15" style="width:100%">\
+					<button class="btn btn-success btn-sm" onclick="deploySSL(\'lets\','+id+',\''+siteName+'\')">' + ((lan && lan.site && t('site.btlink_3')) || '部署') + '</button>\
+					<button class="btn btn-success btn-sm" onclick="renewSSL(\'lets\','+id+',\''+siteName+'\')">' + ((lan && lan.site && t('site.renewal')) || '续签') + '</button>\
+					<button class="btn btn-success btn-sm" onclick="deleteSSL(\'lets\','+id+',\''+siteName+'\')">' + ((lan && lan.site && t('site.delete_4')) || '删除') + '</button>\
+				</div>\
+			</div>\
+			<ul class="help-info-text c7 pull-left">\
+				<li>' + ((lan && lan.site && t('site.free_let_encrypt_certificate')) || "已为您自动生成Let's Encrypt免费证书") + '</li>\
+				<li>' + ((lan && lan.site && t('site.apply_for_free_certificate_2')) || "由Let's Encrypt免费申请证书，有效期3个月，支持多域名。默认会自动续签") + '</li>\
+				<li>' + ((lan && lan.site && t('site.paste_key_pem_other')) || '如需使用其他SSL,请切换其他证书后粘贴您的KEY以及PEM内容，然后保存即可。') + '</li>\
+			</ul>';
+		$(".tab-con").html(lets);
+
+		if (rdata['cert_data']){
+			var issuer_o = rdata['cert_data']['issuer_o'] || ((lan && lan.site && t('site.self_signed_unknown')) || '自签名/未知');
+			var issuer = rdata['cert_data']['issuer'] || ((lan && lan.site && t('site.unknown')) || '未知');
+			var domains = rdata['cert_data']['dns'].join("、");
+
+			var cert_data = "<div class='state_info_flex'>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.certificate_categories')) || '证书分类：') + "</span><span class='ellipsis_text'>"+issuer_o+"</span></div>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.certificate_brand')) || '证书品牌：') + "</span><span class='ellipsis_text'>"+issuer+"</span></div>\
+			</div>\
+			<div class='state_info_flex'>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.expiration_date')) || '到期时间：') + "</span><span class='btlink'>" + ((lan && lan.site && t('site.remaining_1')) || '剩余') + rdata['cert_data']['endtime'] + ((lan && lan.site && t('site.due_date')) || '天到期') + "</span></div>\
+				<div class='state_item'><span>" + ((lan && lan.site && t('site.verified_domain')) || '认证域名：') + "</span><span class='ellipsis_text'>"+domains+"</span></div>\
+			</div>";
+			$(".ssl_state_info").html(cert_data);
+			$(".ssl_state_info").css('display','block');
+		}
+	},'json');
+}
+
 function opSSL(type, id, siteName, callback) {
   switch (type) {
     case 'lets':
@@ -2432,48 +2547,35 @@ function opSSL(type, id, siteName, callback) {
 }
 
 //开启与关闭SSL
-function ocSSL(action, siteName) {
-  var loadT = layer.msg(lan && lan.site && t('site.applying') || "", {
-    icon: 16,
-    time: 0,
-    shade: [0.3, '#000']
-  });
-  $.post("/site/" + action, 'siteName=' + siteName + '&updateOf=1', function (rdata) {
-    layer.close(loadT);
-    if (!rdata.status) {
-      if (!rdata.out) {
-        layer.msg(rdata.msg, {
-          icon: rdata.status ? 1 : 2
-        });
-        setSSL(siteName);
-        return;
-      }
-      data = lan && lan.site && t('site.manually_parse_txt_records') || "";
-      for (var i = 0; i < rdata.out.length; i++) {
-        data += (lan && lan.site && t('site.verification') || "") + rdata.out[i].Domain + "</p>" + (lan && lan.site && t('site.cancel_3') || "") + rdata.out[i].Type + "</p>" + ('<div class="bt-form" style="padding: 10px 20px;">			<div class="line"><span>' + (lan && lan.site && t('site.please_parse_the_txt') || '请按以下列表做TXT解析:') + ' </span></div>			<div id="acme_hand_ssl_notice" class="divtable mtb10">                <div class="tablescroll">                    <table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">                    <thead><tr><th>' + (lan && lan.site && t('site.resolve_domain_name') || '解析域名') + '</th><th>' + (lan && lan.site && t('site.recorded_values') || '记录值') + '</th><th>' + (lan && lan.site && t('site.msg_4') || '类型') + '</th><th>' + (lan && lan.site && t('site.required_1') || '必需') + '</th></tr></thead>                    <tbody></tbody>                    </table>                </div>            </div>			<ul id="acme_hand_ssl_notice_help" class="help-info-text c6">			    <li>' + (lan && lan.site && t('site.it_takes_some_time') || '解析域名需要一定时间来生效,完成所以上所有解析操作后,请等待1分钟后再点击【验证】按钮') + '</li>			    <li>' + (lan && lan.site && t('site.you_can_manually_verify_1') || '可通过CMD命令来手动验证域名解析是否生效: nslookup -q=txt _acme-challenge.xx.cn') + '</li>			    <li>' + (lan && lan.site && t('site.if_you_are_using') || '若您使用的是阿里云DNS,DnsPod等等作为DNS,可使用DNS接口自动解析') + '</li>		    </ul>		</div>') + rdata.out[i].Detail + "</p>" + "<hr />";
-      }
-      layer.msg(data, {
-        icon: 2,
-        time: 0,
-        shade: 0.3,
-        shadeClose: true
-      });
-      return;
-    }
-    layer.msg(rdata.msg, {
-      icon: rdata.status ? 1 : 2
-    });
-    if (action == 'close_ssl_conf') {
-      layer.msg('<td>' + (lan && lan.site && t('site.required') || '必需') + '</td>', {
-        icon: 1,
-        time: 5000
-      });
-    }
-    $(".tab-nav .on").click();
-  }, 'json');
+function ocSSL(action,siteName){
+	var loadT = layer.msg((lan && lan.site && t('site.retrieving_the_certificate_list')) || '正在获取证书列表，请稍后..', {icon:16,time:0,shade: [0.3, '#000']});
+	$.post("/site/"+action,'siteName='+siteName+'&updateOf=1',function(rdata){
+		layer.close(loadT);
+		
+		if(!rdata.status){
+			if(!rdata.out){
+				layer.msg(rdata.msg,{icon:rdata.status?1:2});
+				setSSL(siteName);
+				return;
+			}
+			data = "<p>" + ((lan && lan.site && t('site.failed_to_obtain_the')) || '证书获取失败：') + "</p><hr />";
+			for(var i=0;i<rdata.out.length;i++){
+				data += "<p>" + ((lan && lan.site && t('site.domain_name_3')) || '域名:') + " "+rdata.out[i].Domain+"</p>"
+					  + "<p>" + ((lan && lan.site && t('site.error_1')) || '错误类型:') + " "+rdata.out[i].Type+"</p>"
+					  + "<p>" + ((lan && lan.site && t('site.details')) || '详情:') + " "+rdata.out[i].Detail+"</p>"
+					  + "<hr />";
+			}
+			layer.msg(data,{icon:2,time:0,shade:0.3,shadeClose:true});
+			return;
+		}
+		layer.msg(rdata.msg,{icon:rdata.status?1:2});
+		if(action == 'close_ssl_conf'){
+			layer.msg((lan && lan.site && t('site.closed_ssl_please_be_sure')) || '已关闭SSL,请务必清除浏览器缓存后再访问站点!', {icon:1,time:5000});
+		}
+		$(".tab-nav .on").click();
+	},'json');
 }
 
-//生成SSL
 function newSSL(siteName, id, domains) {
   showSpeedWindow('<td>' + (lan && lan.site && t('site.optional') || '可选') + '</td>', 'site.get_let_logs', function (layers, index) {
     var pdata = {};
@@ -2828,124 +2930,88 @@ function saveConfigFile(webSite, encoding, path) {
 }
 
 //伪静态
-function rewrite(siteName) {
-  $.post("/site/get_rewrite_list", 'siteName=' + siteName, function (rdata) {
-    $.post('/site/get_rewrite_conf', {
-      siteName: siteName
-    }, function (info) {
-      var filename = info['rewrite'];
-      $.post('/files/get_body', 'path=' + filename, function (fileBody) {
-        var centent = fileBody['data']['data'];
-        var rList = '';
-        var rewriteNames = {
-          'EmpireCMS': lan && lan.site && t('site.save_as_rewrite_template') || "",
-          'dedecms': lan && lan.site && t('site.change_the_default_page') || "",
-          'discuzx': 'discuzx (Discuz!)',
-          'discuzx2': 'discuzx2 (Discuz!)',
-          'discuzx3': 'discuzx3 (Discuz!)',
-          'drupal': 'drupal (Drupal)',
-          'ecshop': 'ecshop (ECShop)',
-          'emlog': 'emlog (Emlog)',
-          'fastapi-web': 'fastapi-web (FastAPI)',
-          'laravel5': 'laravel5 (Laravel)',
-          'mvc': '<div class="changeDefault pd20">			<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(1,this)">' + (lan && lan.site && t('site.default_document_1') || '默认文档') + '</button>			<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(2,this)">' + (lan && lan.site && t('site.error_page') || '404错误页') + '</button>			<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(3,this)">' + (lan && lan.site && t('site.blank_page') || '空白页') + '</button>			<button class="btn btn-default btn-sm mg10" style="width:188px" onclick="changeDefault(4,this)">' + (lan && lan.site && t('site.default_site_stop_page') || '默认站点停止页') + '</button>		</div>',
-          'phpcms': 'phpcms (PHPCMS)',
-          'phpwind': 'phpwind (PHPWind)',
-          'sablog': 'sablog (SaBlog-X)',
-          'seacms': '<option value="-1">' + (lan && lan.site && t('site.all_categories') || '全部分类') + '</option>',
-          'shopex': 'shopex (ShopEx)',
-          'thinkphp': 'thinkphp (ThinkPHP)',
-          'typecho': 'typecho (Typecho)',
-          'whmcs': 'whmcs (WHMCS)',
-          'wmcms': ((lan && lan.site && t('site.edit') || '\')">编辑') || '\')">编辑') + '</a> | <a class="btlink del_type" onclick="removeClassType(\'',
-          'wordpress': 'wordpress (WordPress)',
-          'zblog': 'zblog (Z-Blog)'
-        };
-        for (var i = 0; i < rdata.rewrite.length; i++) {
-          var name = rdata.rewrite[i];
-          var displayName = rewriteNames[name] || name;
-          if (i == 0) {
-            rList += "<option value='0'>" + name + "</option>";
-          } else {
-            rList += "<option value='" + name + "'>" + displayName + "</option>";
-          }
-        }
-        var webBakHtml = "<div class='bt-form'>\
+function rewrite(website){
+	$.post('/site/get_rewrite_list','siteName='+website,function(rdata){
+		var rlist = '';
+		for(var i=0;i<rdata.rewrite.length;i++){
+			rlist += "<option value='"+rdata.rewrite[i]+"'>"+rdata.rewrite[i]+"</option>";
+		}
+		var webBakHtml = "<div class='webedit-box soft-man-con'>\
 						<div class='line'>\
-						<select id='myRewrite' class='bt-input-text mr20' name='rewrite' style='width:30%;'>" + rList + "</select>\
-						<textarea class='bt-input-text' style='height: 260px; width: 740px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'>" + centent + (((lan && lan.site && t('site.delete_5') || '\')">删除') || '\')">删除') + '</a>				</td></tr>');
-        $("#webedit-con").html(webBakHtml);
-        var editor = CodeMirror.fromTextArea(document.getElementById("rewriteBody"), {
-          extraKeys: {
-            "Ctrl-Space": "autocomplete",
-            "Ctrl-F": "findPersistent",
-            "Ctrl-H": "replace",
-            "Ctrl-/": function (cm) {
-              cm.toggleComment({
-                lineComment: "#"
-              });
-            },
-            "Ctrl-S": function () {
-              $("#rewriteBody").empty();
-              $("#rewriteBody").text(editor.getValue());
-              setRewrite(filename, encodeURIComponent(editor.getValue()));
-            },
-            "Cmd-S": function () {
-              $("#rewriteBody").empty();
-              $("#rewriteBody").text(editor.getValue());
-              setRewrite(filename, encodeURIComponent(editor.getValue()));
-            }
-          },
-          lineNumbers: true,
-          matchBrackets: true,
-          mode: "text/x-nginx-conf"
-        });
-        editor.setSize("795px", "480px");
-        $(".CodeMirror-scroll").css({
-          "height": "560px",
-          "margin": 0,
-          "padding": 0
-        });
-        $("#SetRewriteBtn").on('click', function () {
-          $("#rewriteBody").empty();
-          $("#rewriteBody").text(editor.getValue());
-          setRewrite(filename, encodeURIComponent(editor.getValue()));
-        });
-        $("#SetRewriteBtnTel").on('click', function () {
-          $("#rewriteBody").empty();
-          $("#rewriteBody").text(editor.getValue());
-          setRewriteTel();
-        });
-        $("#myRewrite").on('change', function () {
-          var rewriteName = $(this).val();
-          if (rewriteName == '0') {
-            rpath = filename;
-            $.post('/files/get_body', 'path=' + rpath, function (fileBody) {
-              $("#rewriteBody").val(fileBody['data']['data']);
-              editor.setValue(fileBody['data']['data']);
-            }, 'json');
-          } else {
-            $.post('/site/get_rewrite_tpl', {
-              tplname: rewriteName
-            }, function (info) {
-              if (!info['status']) {
-                layer.msg(info['msg']);
-                return;
-              }
-              rpath = info['data'];
-              $.post('/files/get_body', 'path=' + rpath, function (fileBody) {
-                $("#rewriteBody").val(fileBody['data']['data']);
-                editor.setValue(fileBody['data']['data']);
-              }, 'json');
-            }, 'json');
-          }
-        });
-      }, 'json');
-    }, 'json');
-  }, 'json');
+						<span class='mr5'>" + ((lan && lan.site && t('site.0_template')) || '0.伪静态模板') + "</span>\
+						<select class='bt-input-text' style='width: 260px; margin-right: 15px;' id='myRewrite' name='rewrite'>"+rlist+"</select>\
+						<textarea class='bt-input-text' style='height: 260px; width: 740px; line-height:18px;margin-top:10px;padding:5px;' id='rewriteBody'></textarea></div>\
+						<button id='SetRewriteBtn' class='btn btn-success btn-sm'>" + ((lan && lan.site && t('site.save_3')) || '保存') + "</button>\
+						<button id='SetRewriteBtnTel' class='btn btn-success btn-sm'>" + ((lan && lan.site && t('site.save_as_template')) || '另存为模板') + "</button>\
+						<ul class='help-info-text c7 ptb15'>\
+							<li>" + ((lan && lan.site && t('site.please_your_application_if')) || '请选择您的应用，若设置伪静态后，网站无法正常访问，请尝试设置回default') + "</li>\
+							<li>" + ((lan && lan.site && t('site.you_can_modify_rewrite')) || '您可以对伪静态规则进行修改，修改完后保存即可。') + "</li>\
+						</ul>\
+						</div>";
+			$("#webedit-con").html(webBakHtml);
+			var editor = CodeMirror.fromTextArea(document.getElementById("rewriteBody"), {
+				extraKeys: {
+					"Ctrl-Space": "autocomplete",
+					"Ctrl-F": "findPersistent",
+					"Ctrl-H": "replace",
+					"Ctrl-/": function(cm) {
+						cm.toggleComment({
+							indent: true,
+							padding: " ",
+							comment: "#"
+						});
+					},
+					"Ctrl-S": function() {
+						$("#rewriteBody").empty();
+						$("#rewriteBody").text(editor.getValue());
+						setRewrite(filename, encodeURIComponent(editor.getValue()));
+					},
+					"Cmd-S": function() {
+						$("#rewriteBody").empty();
+						$("#rewriteBody").text(editor.getValue());
+						setRewrite(filename, encodeURIComponent(editor.getValue()));
+					}
+				},
+				lineNumbers: true,
+				matchBrackets: true,
+				mode: "nginx"
+			});
+			$(".CodeMirror-scroll").css({"height":"300px","margin":0,"padding":0});
+			$("#SetRewriteBtn").on('click', function(){
+				$("#rewriteBody").empty();
+				$("#rewriteBody").text(editor.getValue());
+				setRewrite(filename, encodeURIComponent(editor.getValue()));
+			});
+			$("#SetRewriteBtnTel").on('click', function(){
+				$("#rewriteBody").empty();
+				$("#rewriteBody").text(editor.getValue());
+				setRewriteTel();
+			});
+			$("#myRewrite").on('change', function(){
+				var rewriteName = $(this).val();
+				if(rewriteName == '0.当前'){
+					var rpath = '/www/server/vhost/rewrite/'+website+'.conf';
+					filename = rpath;
+					$.post('/files/get_body','path='+rpath,function(fileBody){
+						$("#rewriteBody").val(fileBody['data']['data']);
+						editor.setValue(fileBody['data']['data']);
+					},'json');
+				}else{
+					$.post('/site/get_rewrite_tpl', {tplname:rewriteName,siteName:website}, function(fileBody){
+						$("#rewriteBody").val(fileBody['data']['data']);
+						editor.setValue(fileBody['data']['data']);
+					},'json');
+				}
+			});
+			var rpath = '/www/server/vhost/rewrite/'+website+'.conf';
+			var filename = rpath;
+			$.post('/files/get_body','path='+rpath,function(fileBody){
+				var centent = fileBody['data']['data'];
+				editor.setValue(centent);
+			},'json');
+	},'json');
 }
 
-//设置伪静态
 function setRewrite(filename, data) {
   var data = 'data=' + data + '&path=' + filename + '&encoding=utf-8';
   var loadT = layer.msg(t('site.saving_txt'), {
