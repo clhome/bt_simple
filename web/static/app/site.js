@@ -78,12 +78,12 @@ function getWeb(page, type_id, search) {
 
       // 表格主体
       var shortwebname = list[i].name;
-      var shortpath = list[i].path;
+      var fullpath = list[i].path;
       if (list[i].name.length > 30) {
         shortwebname = list[i].name.substring(0, 30) + "...";
       }
-      if (list[i].path.length > 30) {
-        shortpath = list[i].path.substring(0, 30) + "...";
+      if (fullpath.length > 100) {
+        fullpath = fullpath.substring(0, 100) + "...";
       }
       var idname = list[i].name.replace(/\./g, '_');
 
@@ -120,7 +120,7 @@ function getWeb(page, type_id, search) {
         "<td><a class='btlink webtips' href='javascript:;' onclick=\"webEdit(" + list[i].id + ",'" + list[i].name + "','" + list[i].edate + "','" + list[i].add_time + "')\" title='" + list[i].name + "'>" + shortwebname + "</a></td>" +
         "<td>" + status + "</td>" +
         "<td>" + backup + "</td>" +
-        "<td><a class='btlink' title='" + openDirTitle + list[i].path + "' href=\"javascript:openPath('" + data.data[i].path + "');\">" + shortpath + "</a></td>" +
+        "<td><a class='btlink' style='display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;' title='" + openDirTitle + list[i].path + "' href=\"javascript:openPath('" + data.data[i].path + "');\">" + fullpath + "</a></td>" +
         "<td>" + add_time_str + "</td>" +
         "<td>" + daily_traffic + "</td>" +
         "<td>" + php_text + "</td>" +

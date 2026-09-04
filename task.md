@@ -45,4 +45,6 @@
 - [x] 38. 排查并修复 `web/static/app/site.js` 中 `getWeb` 函数的 HTML 结构拼接：消除丢失的双引号与闭合标签，将文案与 HTML 结构完全解耦，确保 12 列严格对齐。
 - [x] 39. 全面扫描并修复 `site.js` 中所有因机械式 i18n 替换遗留的语法残损与未闭合标签（覆盖弹窗、设置、删除、备份操作等共 14 个受损函数）。
 - [x] 40. 编写自动化测试套件（`test/test_site_table_i18n.py`），验证数据行 12 列结构完整性、各操作事件闭合性与 6 国语言切换文案。
-- [x] 41. 运行全量测试套件回归验证（144项测试 100% 通过），清理临时文件并验收。
+- [x] 42. 优化 `web/static/app/site.js` 中网站目录（`shortpath`）显示逻辑：移除 30 字符机械截断，充分利用 26% 列宽空间展示完整路径。
+- [x] 43. 为网站目录链接添加 CSS 智能文本防溢出样式（`display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;`），兼顾自适应完整展示与极端超长保护。
+- [x] 44. 更新并运行测试套件（`test/test_site_table_i18n.py` 与 `test/run_all_tests.py`），验证长路径（>30字符）完整渲染与全量回归通过。
