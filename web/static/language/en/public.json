@@ -546,5 +546,6 @@
   "replace_current": "Replace current",
   "replace_all": "Replace all",
   "replace": "Replace",
-  "all_1": "All"
+  "all_1": "All",
+  "pre": "Percentage(%)"
 }

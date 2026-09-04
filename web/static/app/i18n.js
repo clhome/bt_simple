@@ -200,7 +200,8 @@
         'cancel': '取消',
         'info': '信息',
         'do_you_want_to': '是否要退出御风面板?',
-        'scan': '扫描'
+        'scan': '扫描',
+        'pre': '百分比(%)'
     };
 
     // 确保 window.lan 及 window.lan.public 命名空间安全存在，避免历史调用短路

@@ -2761,6 +2761,7 @@ var lan = {
 			"ps": "Notiz",
 			"ps_placeholder": "Notizen / Beschreibung",
 			"time": "Zeit",
+			"pre": "Prozentsatz (%)",
 			"action": "Aktionen",
 			"copy": "Kopieren",
 			"copied": "Kopiert",

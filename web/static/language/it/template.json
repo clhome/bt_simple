@@ -2565,7 +2565,8 @@
         "mem": "Memoria",
         "load_safe_line": "Linea di sicurezza",
         "load_limit_line": "Linea di pieno carico",
-        "hours_24": "24 Ore"
+        "hours_24": "24 Ore",
+        "pre": "Percentuale (%)"
     },
     "crontab": {
         "H1": "Home",

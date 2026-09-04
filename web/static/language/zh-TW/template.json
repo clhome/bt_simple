@@ -2565,7 +2565,8 @@
         "mem": "記憶體",
         "load_safe_line": "安全參考線",
         "load_limit_line": "滿載警戒線",
-        "hours_24": "24小時"
+        "hours_24": "24小時",
+        "pre": "百分比(%)"
     },
     "crontab": {
         "H1": "首頁",

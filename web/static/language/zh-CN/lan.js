@@ -2761,6 +2761,7 @@ var lan = {
 			"ps": "备注",
 			"ps_placeholder": "备注/说明",
 			"time": "时间",
+			"pre": "百分比(%)",
 			"action": "操作",
 			"copy": "复制",
 			"copied": "已复制",

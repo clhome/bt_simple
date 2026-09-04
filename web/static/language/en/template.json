@@ -2565,7 +2565,8 @@
         "mem": "Memory",
         "load_safe_line": "Safe Baseline",
         "load_limit_line": "Full Load Alert",
-        "hours_24": "24 Hours"
+        "hours_24": "24 Hours",
+        "pre": "Percentage(%)"
     },
     "crontab": {
         "H1": "Home",

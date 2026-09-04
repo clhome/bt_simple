@@ -2565,7 +2565,8 @@
         "mem": "Speicher",
         "load_safe_line": "Sicherheitslinie",
         "load_limit_line": "Volllastlinie",
-        "hours_24": "24 Stunden"
+        "hours_24": "24 Stunden",
+        "pre": "Prozentsatz (%)"
     },
     "crontab": {
         "H1": "Startseite",

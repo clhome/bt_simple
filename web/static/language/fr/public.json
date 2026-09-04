@@ -546,5 +546,6 @@
   "replace_current": "Remplacer l'actuel",
   "replace_all": "Tout remplacer",
   "replace": "Remplacer",
-  "all_1": "Tout"
+  "all_1": "Tout",
+  "pre": "Pourcentage (%)"
 }

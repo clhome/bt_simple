@@ -546,5 +546,6 @@
   "replace_current": "Aktuelles ersetzen",
   "replace_all": "Alle ersetzen",
   "replace": "Ersetzen",
-  "all_1": "Alle"
+  "all_1": "Alle",
+  "pre": "Prozentsatz (%)"
 }

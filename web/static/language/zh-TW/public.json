@@ -540,5 +540,6 @@
   "replace_current": "替換當前",
   "replace_all": "替換全部",
   "replace": "替換",
-  "all_1": "全部"
+  "all_1": "全部",
+  "pre": "百分比(%)"
 }

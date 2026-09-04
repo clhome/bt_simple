@@ -294,7 +294,7 @@ function compute(b, e) {
 
     var cpuLabel = (window.lan && lan.control && lan.control.cpu) || t('control.cpu', 'CPU');
     var memLabel = (window.lan && lan.control && lan.control.mem) || t('control.mem', '内存');
-    var percentLabel = (window.lan && lan.public && lan.public.pre) || t('public.pre', '百分比(%)');
+    var percentLabel = (window.lan && lan.public && lan.public.pre) || (window.lan && lan.control && lan.control.pre) || t('public.pre') || t('control.pre', '百分比(%)');
     var timeLabel = (window.lan && lan.public && lan.public.time) || t('public.time', '时间');
 
     var option = {
