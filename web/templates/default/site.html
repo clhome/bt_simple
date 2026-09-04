@@ -9,6 +9,15 @@
 .table > tbody > tr.danger-row:hover > td {
 	background-color: #ffebeb !important;
 }
+/* 网站列表表头与单元格紧凑防折行 */
+#webBodyHeader th {
+	white-space: nowrap !important;
+	vertical-align: middle !important;
+}
+#webBody td {
+	white-space: nowrap;
+	vertical-align: middle;
+}
 </style>
 <div class="main-content pb55">
 			<div class="container-fluid">
@@ -58,18 +67,18 @@
 								<tr>
 									<th width="30"><input type="checkbox" onclick="checkSelect();" id="setBox"></th>
 									<th width="150" onclick="listOrder('name','site',this)" style="cursor: pointer;"><span data-i18n="site.domain">{{ t('site.domain', '域名') }}</span><span class="glyphicon glyphicon-stop" style="margin-left:5px;color:#bbb"></span></th>
-									<th style="cursor: pointer;" width="98" data-i18n="site.status">{{ t('site.status', '网站状态') }}</th>
-									<th width="58" data-i18n="site.backup">{{ t('site.backup', '备份') }}</th>
-									<th width="26%" data-i18n="site.path">{{ t('site.path', '网站目录') }}</th>
-									<th onclick="listOrder('add_time','site',this)" style="cursor: pointer;" width="100">
+									<th style="cursor: pointer;" width="95" data-i18n="site.status">{{ t('site.status', '网站状态') }}</th>
+									<th width="65" data-i18n="site.backup">{{ t('site.backup', '备份') }}</th>
+									<th width="24%" data-i18n="site.path">{{ t('site.path', '网站目录') }}</th>
+									<th onclick="listOrder('add_time','site',this)" style="cursor: pointer;" width="105">
 										<span data-i18n="site.add_time">{{ t('site.add_time', '创建时间') }}</span><span class="glyphicon glyphicon-stop" style="margin-left:5px;color:#bbb"></span>
 									</th>
 									<th width="80" data-i18n="site.day_traffic">{{ t('site.day_traffic', '日流量') }}</th>
-									<th width="80">PHP</th>
-									<th onclick="listOrder('ssl_days','site',this)" style="cursor: pointer;" width="100">
+									<th width="75">PHP</th>
+									<th onclick="listOrder('ssl_days','site',this)" style="cursor: pointer;" width="95">
 										<span data-i18n="site.ssl_cert">{{ t('site.ssl_cert', 'SSL证书') }}</span><span class="glyphicon glyphicon-stop" style="margin-left:5px;color:#bbb"></span>
 									</th>
-									<th onclick="listOrder('edate','site',this)" style="cursor: pointer;" width="86">
+									<th onclick="listOrder('edate','site',this)" style="cursor: pointer;" width="90">
 										<span data-i18n="site.expire_date">{{ t('site.expire_date', '到期日期') }}</span><span class="glyphicon glyphicon-stop" style="margin-left:5px;color:#bbb"></span>
 									</th>
 									<th data-i18n="site.ps">{{ t('site.ps', '备注') }}</th>

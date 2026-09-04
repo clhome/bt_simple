@@ -100,12 +100,20 @@ class Page():
             str(self.__COUNT_PAGE) + "</span>"
 
         # 本页显示开始与结束行
-        pages['7'] = "<span class='Pline'>" + str(self.__FO) + \
+        fo_str = str(self.__FO)
+        line_str = str(self.__LINE)
+        fo_sep = ' ' if fo_str and fo_str[-1].isascii() and fo_str[-1].isalpha() else ''
+        line_sep = ' ' if line_str and line_str[0].isascii() and line_str[0].isalpha() else ''
+        pages['7'] = "<span class='Pline'>" + fo_str + fo_sep + \
             str(self.__START_NUM) + "-" + \
-            str(self.__END_NUM) + str(self.__LINE) + "</span>"
+            str(self.__END_NUM) + line_sep + line_str + "</span>"
         # 行数
-        pages['8'] = "<span class='Pcount'>" + str(self.__COUNT_START) + \
-            str(self.__COUNT_ROW) + str(self.__COUNT_END) + "</span>"
+        count_start = str(self.__COUNT_START)
+        count_end = str(self.__COUNT_END)
+        start_sep = ' ' if count_start and count_start[-1].isascii() and count_start[-1].isalpha() else ''
+        end_sep = ' ' if count_end and count_end[0].isascii() and count_end[0].isalpha() else ''
+        pages['8'] = "<span class='Pcount'>" + count_start + start_sep + \
+            str(self.__COUNT_ROW) + end_sep + count_end + "</span>"
 
         # 构造返回数据
         retuls = '<div>'

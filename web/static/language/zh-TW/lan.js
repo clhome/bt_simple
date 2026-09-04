@@ -495,6 +495,7 @@ var lan = {
 		},
 
 	"site": {
+			"default_category": "默認分類",
 			"H1": "首页",
 			"H2": "网站管理",
 			"SEARCH": "网站搜索",
@@ -799,7 +800,7 @@ var lan = {
 			"save_as_rewrite_template": "保存为Rewrite模板",
 			"change_the_default_page": "修改默认页",
 			"default_document_1": "默认文档",
-			"all_categories": "全部分类",
+			"all_categories": "全部分類",
 			"edit": "编辑",
 			"delete_5": "删除",
 			"website_category_management": "网站分类管理",

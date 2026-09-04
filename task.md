@@ -48,3 +48,10 @@
 - [x] 42. 优化 `web/static/app/site.js` 中网站目录（`shortpath`）显示逻辑：移除 30 字符机械截断，充分利用 26% 列宽空间展示完整路径。
 - [x] 43. 为网站目录链接添加 CSS 智能文本防溢出样式（`display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;`），兼顾自适应完整展示与极端超长保护。
 - [x] 44. 更新并运行测试套件（`test/test_site_table_i18n.py` 与 `test/run_all_tests.py`），验证长路径（>30字符）完整渲染与全量回归通过。
+- [x] 45. 优化网站列表页面排版与列宽防护（`web/templates/default/site.html`）：为 `#webBodyHeader th` 与 `#webBody td` 统一添加 `white-space: nowrap; vertical-align: middle;`，微调关键列宽（备份放宽至 65px、到期放宽至 90px 等），彻底杜绝表头与数据行断行。
+- [x] 46. 启用 6 国语言精炼专业简写（`template.json`、`lan.js`、`phrases_full.py`）：将表头字段（Created、Traffic、SSL、Expires、Path）与数据状态（None/Yes、Settings、None）优化为紧凑标准的专业用语。
+- [x] 47. 修复分类下拉框多语言缺失与选项异常（`web/static/app/site.js`）：修正 `getClassType` 中误用的 `are_you_sure_you_3` 为 `全部分类`，并为 `默认分类` 增加国际化动态翻译。
+- [x] 48. 优化通用分页组件西文空格粘连问题（`web/utils/page.py`）：对西文语种自动智能补全数字两侧空格，解决 `Total2records` 粘连。
+- [x] 49. 编写专项自动化测试套件（`test/test_site_i18n_concise.py`），验证 6 国语言简写文案、CSS nowrap 样式、分类下拉与分页排版。
+- [x] 50. 运行全量自动化回归套件验证，确保 100% 通过并清理临时文件。
+

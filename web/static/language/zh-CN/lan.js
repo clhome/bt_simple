@@ -495,6 +495,7 @@ var lan = {
 		},
 
 	"site": {
+			"default_category": "默认分类",
 			"H1": "首页",
 			"H2": "网站管理",
 			"SEARCH": "网站搜索",

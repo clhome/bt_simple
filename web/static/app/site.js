@@ -3117,9 +3117,15 @@ function getClassType() {
   $.post('/site/get_site_types', function (rdata) {
     var rdata = rdata.data;
     $(select).html('');
-    $(select).append(lan && lan.site && t('site.are_you_sure_you_3') || "");
+    var allCat = (lan && lan.site && t('site.all_categories')) || '全部分类';
+    var defCat = (lan && lan.site && t('site.default_category')) || '默认分类';
+    $(select).append('<option value="-1">' + allCat + '</option>');
     for (var i = 0; i < rdata.length; i++) {
-      $(select).append('<option value="' + rdata[i]['id'] + '">' + rdata[i]['name'] + '</option>');
+      var typeName = rdata[i]['name'];
+      if (rdata[i]['id'] == 0 || typeName === '默认分类') {
+        typeName = defCat;
+      }
+      $(select).append('<option value="' + rdata[i]['id'] + '">' + typeName + '</option>');
     }
     $(select).on('change', function () {
       var select_id = $(this).val();

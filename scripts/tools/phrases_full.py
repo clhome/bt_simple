@@ -3533,34 +3533,34 @@ FULL_I18N_DICTIONARY = {
         "expire_date": {
             "zh-CN": "到期日期",
             "zh-TW": "到期日期",
-            "en": "Expiration Date",
-            "fr": "Date d'expiration",
-            "de": "Ablaufdatum",
-            "it": "Data di scadenza"
+            "en": "Expires",
+            "fr": "Expire",
+            "de": "Ablauf",
+            "it": "Scadenza"
         },
         "ssl_cert": {
             "zh-CN": "SSL证书",
             "zh-TW": "SSL憑證",
-            "en": "SSL Certificate",
-            "fr": "Certificat SSL",
-            "de": "SSL-Zertifikat",
-            "it": "Certificato SSL"
+            "en": "SSL",
+            "fr": "SSL",
+            "de": "SSL",
+            "it": "SSL"
         },
         "day_traffic": {
             "zh-CN": "今日流量",
             "zh-TW": "今日流量",
-            "en": "Today's Traffic",
-            "fr": "Trafic du jour",
-            "de": "Heutiger Datenverkehr",
-            "it": "Traffico odierno"
+            "en": "Traffic",
+            "fr": "Trafic",
+            "de": "Traffic",
+            "it": "Traffico"
         },
         "add_time": {
             "zh-CN": "创建时间",
             "zh-TW": "建立時間",
-            "en": "Created Time",
-            "fr": "Date de création",
-            "de": "Erstellungszeit",
-            "it": "Data di creazione"
+            "en": "Created",
+            "fr": "Créé",
+            "de": "Erstellt",
+            "it": "Creato"
         },
         "ps": {
             "zh-CN": "备注",
