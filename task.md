@@ -59,3 +59,9 @@
 - [x] 60. 重构 `files.js` 表格列宽配置与操作列样式：为大小、权限、所有者设置合理保底列宽，操作列适配弹性空间，并为 `.editmenu` 与 `span` 增加 `white-space: nowrap !important;` 彻底杜绝换行。
 - [x] 61. 编写专项自动化测试套件（`test/test_modal_close_btn_and_files_ops.py`），验证 6 国语言简写、关闭按钮样式与操作列防折行规则。
 - [x] 62. 运行全量自动化测试套件回归验证，确保 100% 通过并清理临时排查脚本。
+- [x] 63. 补全 6 国语言词典（`scripts/tools/phrases_full.py` 与语言包）：新增 `running_prefix`、`ip_type_lan`、`ip_type_loopback`、`ip_type_public` 以及 `login_details_*` 系列词条。
+- [x] 64. 优化系统运行时间多语言支持（`web/utils/system/main.py`、`web/admin/system/system.py` 与 `web/static/app/index.js`）：使用 `core.i18n.t` 消除硬编码“已运行:”，前端与后端双重保障多语言动态格式化。
+- [x] 65. 优化 Recent Logins 与 Logs 弹窗表格渲染（`web/admin/dashboard/dashboard.py` 与 `web/static/app/index.js`）：为归属地与登录详情增加语义化 Key，前端消除硬编码中文表头与标签，弹窗 LOCATION 与 DETAILS 接入多语言格式化。
+- [x] 66. 重新构建 6 国语言包并强制 LF 换行，确保全套语言包语法正确且词条生效。
+- [x] 67. 编写专项自动化测试套件（`test/test_index_i18n_fix.py`），验证 3 处多语言、数据接口语义化 Key、前端无硬编码中文及 6 国语言完整性。
+- [x] 68. 运行自动化测试套件验证，确保 100% 通过并保持开发目录整洁。

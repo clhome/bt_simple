@@ -257,7 +257,13 @@ function getInfo() {
 
         setSystemInfo(info.system);
         localStorage.setItem('cached_system_info', info.system);
-        $("#running").html(info.time);
+        if (info.boot_time) {
+            var prefix = t('index.running_prefix', '已运行: ');
+            var timeStr = t('public.SYS_BOOT_TIME', info.boot_time.days, info.boot_time.hours, info.boot_time.min);
+            $("#running").html(prefix + timeStr);
+        } else {
+            $("#running").html(info.time);
+        }
         var coreText = (window.lan && lan.index && lan.index.core) || t('index.core', '核心');
         $("#core").html(info.cpuNum + ' ' + coreText);
         $("#state").html(parseFloat(info.cpuRealUsed).toFixed(1));
@@ -2609,7 +2615,7 @@ function fetchAndRenderIpLocations(ipsToFetch) {
                 }
             }, 'json').fail(function() {
                 var $targets = $('[data-ip-loc="' + targetIp + '"]');
-                $targets.text('公网接入').removeClass('ip-loc-pending');
+                $targets.text(t('index.ip_type_public', '公网接入')).removeClass('ip-loc-pending');
             });
         })(uniqueIps[i]);
     }
@@ -2639,6 +2645,39 @@ function formatClientLocalTime(timestamp, fallbackStr) {
     }
 }
 
+// 登录记录：网络归属地多语言格式化
+function formatLoginIpType(item) {
+    if (!item) return '-';
+    var key = item.ip_type_key;
+    if (!key) {
+        if (item.ip_type === '本地回环') key = 'loopback';
+        else if (item.ip_type === '局域网内网' || item.ip_type === '局域网') key = 'lan';
+        else if (item.ip_type === '公网接入') key = 'public';
+    }
+    if (key === 'loopback') return t('index.ip_type_loopback', '本地回环');
+    if (key === 'lan') return t('index.ip_type_lan', '局域网内网');
+    if (key === 'public') return t('index.ip_type_public', '公网接入');
+    return item.location || item.ip_type || t('index.lan_network', '局域网');
+}
+
+// 登录记录：详情说明多语言格式化
+function formatLoginDetails(item) {
+    if (!item) return '-';
+    if (item.details_key) {
+        return t('index.' + item.details_key, item.details || '-');
+    }
+    var detailMap = {
+        'Web密码登录': t('index.login_details_web', 'Web密码登录'),
+        'SSH终端登录': t('index.login_details_ssh', 'SSH终端登录'),
+        '2FA二次验证': t('index.login_details_2fa', '2FA二次验证'),
+        '安全入口快捷': t('index.login_details_entrance', '安全入口快捷'),
+        '验证码错误': t('index.login_details_captcha_err', '验证码错误'),
+        '密码错误': t('index.login_details_password_err', '密码错误'),
+        '当前活跃会话': t('index.login_details_active_session', '当前活跃会话')
+    };
+    return (item.details && detailMap[item.details]) ? detailMap[item.details] : (item.details || '-');
+}
+
 // 渲染首页右下角最近登录微表格
 function renderRecentLoginsTable(data) {
     if (!data) return;
@@ -2647,17 +2686,17 @@ function renderRecentLoginsTable(data) {
     }
     var list = data.list || [];
     if (list.length === 0) {
-        $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
+        $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + t('index.no_login_logs', '暂无登录记录') + '</div>');
         return;
     }
 
     var html = '<table class="table recent-logins-table">';
     html += '<thead><tr>';
-    html += '<th style="width: 55px;">状态</th>';
-    html += '<th style="width: 55px;">方式</th>';
-    html += '<th>登录IP</th>';
-    html += '<th style="width: 110px;">归属地</th>';
-    html += '<th style="text-align: right; width: 130px;">登录时间</th>';
+    html += '<th style="width: 55px;">' + t('public.status', '状态') + '</th>';
+    html += '<th style="width: 55px;">' + t('index.method', '方式') + '</th>';
+    html += '<th>' + t('index.login_ip', '登录IP') + '</th>';
+    html += '<th style="width: 110px;">' + t('index.location', '归属地') + '</th>';
+    html += '<th style="text-align: right; width: 130px;">' + t('index.login_time', '登录时间') + '</th>';
     html += '</tr></thead><tbody>';
 
     var ipsToQuery = [];
@@ -2666,34 +2705,35 @@ function renderRecentLoginsTable(data) {
         var item = list[i];
         var isSuccess = (item.status === 'success');
         var statusBadge = isSuccess 
-            ? '<span class="login-tag login-tag-success"><span class="tag-dot"></span>成功</span>'
-            : '<span class="login-tag login-tag-fail"><span class="tag-dot"></span>失败</span>';
+            ? '<span class="login-tag login-tag-success"><span class="tag-dot"></span>' + t('index.success', '成功') + '</span>'
+            : '<span class="login-tag login-tag-fail"><span class="tag-dot"></span>' + t('index.fail', '失败') + '</span>';
         
+        var formattedDetails = formatLoginDetails(item);
         var methodBadge = (item.method === 'SSH')
-            ? '<span class="login-method-badge method-ssh" title="' + (item.details || 'SSH终端登录') + '">SSH</span>'
-            : '<span class="login-method-badge method-web" title="' + (item.details || 'Web登录') + '">Web</span>';
+            ? '<span class="login-method-badge method-ssh" title="' + formattedDetails + '">SSH</span>'
+            : '<span class="login-method-badge method-web" title="' + formattedDetails + '">Web</span>';
 
         var currentMark = item.is_current 
-            ? '<span class="login-curr-tag">本次</span>' 
+            ? '<span class="login-curr-tag">' + t('index.current_session', '本次') + '</span>' 
             : '';
 
         // 归属地计算与本地缓存
         var locationHtml = '';
         if (item.is_local) {
-            var locText = item.location || item.ip_type || '局域网';
+            var locText = formatLoginIpType(item);
             locationHtml = '<span class="f11 c9" title="' + locText + '">' + locText + '</span>';
         } else {
             var cachedLoc = getIpLocationFromCache(item.ip);
             if (cachedLoc) {
                 locationHtml = '<span class="f11 c6 ip-loc-text" data-ip-loc="' + item.ip + '" title="' + cachedLoc + '">' + cachedLoc + '</span>';
             } else {
-                locationHtml = '<span class="f11 c9 ip-loc-pending" data-ip-loc="' + item.ip + '">查询中...</span>';
+                locationHtml = '<span class="f11 c9 ip-loc-pending" data-ip-loc="' + item.ip + '">' + t('index.querying', '查询中...') + '</span>';
                 ipsToQuery.push(item.ip);
             }
         }
 
         var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
-        var timeTitle = '客户端时间: ' + localDisplayTime + (item.log_time ? '\n服务器时间: ' + item.log_time : '');
+        var timeTitle = t('index.client_time', '客户端时间: ') + localDisplayTime + (item.log_time ? '\n' + t('index.server_time', '服务器时间: ') + item.log_time : '');
 
         html += '<tr>';
         html += '<td>' + statusBadge + '</td>';
@@ -2715,7 +2755,8 @@ function renderRecentLoginsTable(data) {
 
 // 获取并渲染首页右下角最近 2 次登录记录 (SWR 会话缓存机制：切菜单秒开 + 60s 智能冷却)
 function getRecentLogins(forceRefresh) {
-    var CACHE_KEY = 'bt_recent_logins_cache';
+    var langSuffix = (window.getCookie && getCookie('yf_lang')) || (window.CONFIG && CONFIG.LANG) || 'default';
+    var CACHE_KEY = 'bt_recent_logins_cache_' + langSuffix;
     var TTL = 60 * 1000; // 60秒智能冷却
     var cachedData = null;
     var lastTime = 0;
@@ -2747,7 +2788,7 @@ function getRecentLogins(forceRefresh) {
     $.post('/get_recent_logins', { limit: 2 }, function(rdata) {
         if (!rdata || !rdata.status) {
             if (!cachedData) {
-                $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">暂无登录记录</div>');
+                $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + t('index.no_login_logs', '暂无登录记录') + '</div>');
             }
             return;
         }
@@ -2762,7 +2803,7 @@ function getRecentLogins(forceRefresh) {
         renderRecentLoginsTable(data);
     }, 'json').fail(function() {
         if (!cachedData) {
-            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">获取失败，请稍后重试</div>');
+            $('#recentLoginsTableBody').html('<div class="text-center c9" style="padding: 8px 0; font-size: 11px;">' + t('public.fetch_fail_retry', '获取失败，请稍后重试') + '</div>');
         }
     });
 }
@@ -2876,7 +2917,7 @@ function getAllLoginLogs(page) {
 
             var locationHtml = '';
             if (item.is_local) {
-                var locText = item.location || item.ip_type || t('index.lan_network', '局域网');
+                var locText = formatLoginIpType(item);
                 locationHtml = '<span class="f12 c9" title="' + locText + '">' + locText + '</span>';
             } else {
                 var cachedLoc = getIpLocationFromCache(item.ip);
@@ -2888,6 +2929,7 @@ function getAllLoginLogs(page) {
                 }
             }
 
+            var formattedDetails = formatLoginDetails(item);
             var localDisplayTime = formatClientLocalTime(item.timestamp, item.log_time);
             var timeTitle = t('index.client_time', '客户端时间: ') + localDisplayTime + (item.log_time ? '\n' + t('index.server_time', '服务器时间: ') + item.log_time : '');
 
@@ -2896,7 +2938,7 @@ function getAllLoginLogs(page) {
             tbodyHtml += '<td>' + methodBadge + '</td>';
             tbodyHtml += '<td><span class="login-ip-code">' + (item.ip || '-') + '</span>' + currentMark + '</td>';
             tbodyHtml += '<td>' + locationHtml + '</td>';
-            tbodyHtml += '<td><span class="f12 c6" title="' + (item.details || '-') + '">' + (item.details || '-') + '</span></td>';
+            tbodyHtml += '<td><span class="f12 c6" title="' + formattedDetails + '">' + formattedDetails + '</span></td>';
             tbodyHtml += '<td style="text-align: right;" class="c9 f12" title="' + timeTitle + '">' + localDisplayTime + '</td>';
             tbodyHtml += '</tr>';
         }

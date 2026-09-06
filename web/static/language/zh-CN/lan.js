@@ -780,7 +780,18 @@ var lan = {
 			"auto_str_286": "查询中...",
 			"auto_str_287": "客户端时间: ",
 			"auto_str_288": "服务器时间: ",
-			"auto_str_289": "获取失败，请稍后重试"
+			"auto_str_289": "获取失败，请稍后重试",
+			"running_prefix": "已运行: ",
+			"ip_type_lan": "局域网内网",
+			"ip_type_loopback": "本地回环",
+			"ip_type_public": "公网接入",
+			"login_details_web": "Web密码登录",
+			"login_details_ssh": "SSH终端登录",
+			"login_details_2fa": "2FA二次验证",
+			"login_details_entrance": "安全入口快捷",
+			"login_details_captcha_err": "验证码错误",
+			"login_details_password_err": "密码错误",
+			"login_details_active_session": "当前活跃会话",
 		},
 
 	"site": {

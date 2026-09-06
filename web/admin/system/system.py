@@ -32,6 +32,8 @@ def system_total():
     data['cpuNum'] = cpu[1]
     data['cpuRealUsed'] = cpu[0]
     data['time'] = sys.getBootTime()
+    days, hours, min_val = sys.getBootTimeDetail()
+    data['boot_time'] = {'days': days, 'hours': hours, 'min': min_val}
     data['system'] = sys.getSystemVersion()
     data['version'] = '0.0.1'
     return yf.getJson(data)

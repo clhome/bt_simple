@@ -87,12 +87,21 @@ def admin_safe_path(path):
     return Response(status=int(unauthorized_status))
 
 # 获取最近登录记录 (支持专业精致微表格展示)
-def parse_ip_type(ip):
+def parse_ip_type_info(ip):
     if not ip or ip in ('127.0.0.1', 'localhost', '::1'):
-        return '本地回环'
+        return 'loopback', '本地回环'
     if ip.startswith('192.168.') or ip.startswith('10.') or ip.startswith('172.16.') or ip.startswith('172.17.') or ip.startswith('172.18.') or ip.startswith('172.19.') or ip.startswith('172.20.') or ip.startswith('172.21.') or ip.startswith('172.22.') or ip.startswith('172.23.') or ip.startswith('172.24.') or ip.startswith('172.25.') or ip.startswith('172.26.') or ip.startswith('172.27.') or ip.startswith('172.28.') or ip.startswith('172.29.') or ip.startswith('172.30.') or ip.startswith('172.31.'):
-        return '局域网内网'
-    return '公网接入'
+        return 'lan', '局域网内网'
+    return 'public', '公网接入'
+
+def parse_ip_type(ip):
+    key, def_text = parse_ip_type_info(ip)
+    from core.i18n import t as _t
+    if key == 'loopback':
+        return _t('index.ip_type_loopback', def_text)
+    elif key == 'lan':
+        return _t('index.ip_type_lan', def_text)
+    return _t('index.ip_type_public', def_text)
 
 def get_location_from_ip_api(ip):
     """
@@ -190,12 +199,17 @@ def get_ip_location():
     if not ip:
         return yf.returnData(False, 'dashboard.py_msg_411a4b')
     
-    ip_type = parse_ip_type(ip)
-    if ip_type != '公网接入':
-        return yf.returnData(True, 'ok', {'ip': ip, 'location': ip_type, 'is_local': True})
+    ip_type_key, ip_type_def = parse_ip_type_info(ip)
+    if ip_type_key != 'public':
+        from core.i18n import t as _t
+        if ip_type_key == 'loopback':
+            ip_type_text = _t('index.ip_type_loopback', ip_type_def)
+        else:
+            ip_type_text = _t('index.ip_type_lan', ip_type_def)
+        return yf.returnData(True, 'ok', {'ip': ip, 'location': ip_type_text, 'ip_type_key': ip_type_key, 'is_local': True})
     
     loc = get_ip_location_str(ip)
-    return yf.returnData(True, 'ok', {'ip': ip, 'location': loc, 'is_local': False})
+    return yf.returnData(True, 'ok', {'ip': ip, 'location': loc, 'ip_type_key': 'public', 'is_local': False})
 
 @blueprint.route('/get_recent_logins', endpoint='get_recent_logins', methods=['GET', 'POST'])
 @panel_login_required
@@ -284,18 +298,27 @@ def get_recent_logins():
                 
             # 详细类型说明
             if method == 'SSH':
-                details = 'SSH终端登录'
+                details_key = 'login_details_ssh'
+                details_def = 'SSH终端登录'
             elif '二次验证' in log_text:
-                details = '2FA二次验证'
+                details_key = 'login_details_2fa'
+                details_def = '2FA二次验证'
             elif '安全入口' in log_text:
-                details = '安全入口快捷'
+                details_key = 'login_details_entrance'
+                details_def = '安全入口快捷'
             elif '验证码错误' in log_text:
-                details = '验证码错误'
+                details_key = 'login_details_captcha_err'
+                details_def = '验证码错误'
             elif '用户名或密码错误' in log_text:
-                details = '密码错误'
+                details_key = 'login_details_password_err'
+                details_def = '密码错误'
             else:
-                details = 'Web密码登录'
+                details_key = 'login_details_web'
+                details_def = 'Web密码登录'
                 
+            from core.i18n import t as _t
+            details = _t(f'index.{details_key}', details_def)
+
             # 计算 Unix 时间戳（秒）
             log_timestamp = 0
             if time_str:
@@ -307,22 +330,30 @@ def get_recent_logins():
             if not log_timestamp:
                 log_timestamp = int(time.time())
 
-            ip_type = parse_ip_type(ip)
-            is_local = (ip_type != '公网接入')
+            ip_type_key, ip_type_def = parse_ip_type_info(ip)
+            if ip_type_key == 'loopback':
+                ip_type_text = _t('index.ip_type_loopback', ip_type_def)
+            elif ip_type_key == 'lan':
+                ip_type_text = _t('index.ip_type_lan', ip_type_def)
+            else:
+                ip_type_text = _t('index.ip_type_public', ip_type_def)
+            is_local = (ip_type_key != 'public')
 
             result_list.append({
                 'id': item.get('id'),
                 'method': method,
                 'ip': ip,
-                'ip_type': ip_type,
+                'ip_type': ip_type_text,
+                'ip_type_key': ip_type_key,
                 'is_local': is_local,
-                'location': ip_type if is_local else '',
+                'location': ip_type_text if is_local else '',
                 'is_current': (ip == curr_ip),
                 'status': status,
                 'status_text': status_text,
                 'log_time': time_str,
                 'timestamp': log_timestamp,
-                'details': details
+                'details': details,
+                'details_key': details_key
             })
         
     # 如果没有任何登录历史且第一页无筛选，兜底展示一条当前用户记录
@@ -330,8 +361,15 @@ def get_recent_logins():
         user_info = thisdb.getUserById(1) or {}
         last_time = user_info.get('login_time') or yf.formatDate()
         last_ip = user_info.get('login_ip') or curr_ip
-        ip_type = parse_ip_type(last_ip)
-        is_local = (ip_type != '公网接入')
+        from core.i18n import t as _t
+        ip_type_key, ip_type_def = parse_ip_type_info(last_ip)
+        if ip_type_key == 'loopback':
+            ip_type_text = _t('index.ip_type_loopback', ip_type_def)
+        elif ip_type_key == 'lan':
+            ip_type_text = _t('index.ip_type_lan', ip_type_def)
+        else:
+            ip_type_text = _t('index.ip_type_public', ip_type_def)
+        is_local = (ip_type_key != 'public')
         
         now_ts = int(time.time())
         try:
@@ -340,19 +378,25 @@ def get_recent_logins():
         except Exception:
             pass
 
+        details_key = 'login_details_active_session'
+        details_def = '当前活跃会话'
+        details_text = _t('index.login_details_active_session', details_def)
+
         result_list.append({
             'id': 1,
             'method': 'Web',
             'ip': last_ip,
-            'ip_type': ip_type,
+            'ip_type': ip_type_text,
+            'ip_type_key': ip_type_key,
             'is_local': is_local,
-            'location': ip_type if is_local else '',
+            'location': ip_type_text if is_local else '',
             'is_current': (last_ip == curr_ip),
             'status': 'success',
             'status_text': '成功',
             'log_time': last_time,
             'timestamp': now_ts,
-            'details': '当前活跃会话'
+            'details': details_text,
+            'details_key': details_key
         })
         total_count = 1
         

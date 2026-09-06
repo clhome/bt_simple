@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-御风面板全量词典定义 (Cleaned & High-Quality Full I18N Dictionary)
+御风面板 (bt_simple) 完整多语言词库映射总表
 """
 
 FULL_I18N_DICTIONARY = {
@@ -3104,6 +3104,94 @@ FULL_I18N_DICTIONARY = {
             "de": "Server-Zeit: ",
             "it": "Ora server: "
         },
+        "running_prefix": {
+            "zh-CN": "已运行: ",
+            "zh-TW": "已運行: ",
+            "en": "Uptime: ",
+            "fr": "En ligne : ",
+            "de": "Laufzeit: ",
+            "it": "In funzione: "
+        },
+        "ip_type_lan": {
+            "zh-CN": "局域网内网",
+            "zh-TW": "區域網路內網",
+            "en": "Local LAN",
+            "fr": "Réseau local",
+            "de": "Lokales Netzwerk",
+            "it": "Rete locale"
+        },
+        "ip_type_loopback": {
+            "zh-CN": "本地回环",
+            "zh-TW": "本機回環",
+            "en": "Loopback",
+            "fr": "Boucle locale",
+            "de": "Loopback",
+            "it": "Loopback"
+        },
+        "ip_type_public": {
+            "zh-CN": "公网接入",
+            "zh-TW": "公網連入",
+            "en": "Public WAN",
+            "fr": "Accès public",
+            "de": "Öffentliches Netz",
+            "it": "Accesso pubblico"
+        },
+        "login_details_web": {
+            "zh-CN": "Web密码登录",
+            "zh-TW": "Web密碼登入",
+            "en": "Web Password Login",
+            "fr": "Connexion Web par mot de passe",
+            "de": "Web-Passwortanmeldung",
+            "it": "Accesso Web con password"
+        },
+        "login_details_ssh": {
+            "zh-CN": "SSH终端登录",
+            "zh-TW": "SSH終端機登入",
+            "en": "SSH Terminal Login",
+            "fr": "Connexion terminal SSH",
+            "de": "SSH-Terminalanmeldung",
+            "it": "Accesso terminale SSH"
+        },
+        "login_details_2fa": {
+            "zh-CN": "2FA二次验证",
+            "zh-TW": "2FA二次驗證",
+            "en": "2FA Verification",
+            "fr": "Validation en 2 étapes (2FA)",
+            "de": "2FA-Zwei-Faktor-Authentifizierung",
+            "it": "Verifica 2FA a due fattori"
+        },
+        "login_details_entrance": {
+            "zh-CN": "安全入口快捷",
+            "zh-TW": "安全入口快捷",
+            "en": "Security Entrance Login",
+            "fr": "Accès sécurisé direct",
+            "de": "Sicherer Schnelleinstieg",
+            "it": "Accesso rapido di sicurezza"
+        },
+        "login_details_captcha_err": {
+            "zh-CN": "验证码错误",
+            "zh-TW": "驗證碼錯誤",
+            "en": "Captcha Error",
+            "fr": "Erreur de captcha",
+            "de": "Captcha-Fehler",
+            "it": "Errore captcha"
+        },
+        "login_details_password_err": {
+            "zh-CN": "密码错误",
+            "zh-TW": "密碼錯誤",
+            "en": "Password Error",
+            "fr": "Erreur de mot de passe",
+            "de": "Passwortfehler",
+            "it": "Errore password"
+        },
+        "login_details_active_session": {
+            "zh-CN": "当前活跃会话",
+            "zh-TW": "目前活躍工作階段",
+            "en": "Current Active Session",
+            "fr": "Session active actuelle",
+            "de": "Aktuelle aktive Sitzung",
+            "it": "Sessione attiva corrente"
+        },
         "system_details": {
             "zh-CN": "系统详细环境",
             "zh-TW": "系統詳情",
@@ -3531,12 +3619,12 @@ FULL_I18N_DICTIONARY = {
             "it": "Percorso"
         },
         "expire_date": {
-            "zh-CN": "到期日期",
-            "zh-TW": "到期日期",
+            "zh-CN": "到期时间",
+            "zh-TW": "到期時間",
             "en": "Expires",
             "fr": "Expire",
-            "de": "Ablauf",
-            "it": "Scadenza"
+            "de": "Läuft ab",
+            "it": "Scade"
         },
         "ssl_cert": {
             "zh-CN": "SSL证书",
@@ -3547,11 +3635,11 @@ FULL_I18N_DICTIONARY = {
             "it": "SSL"
         },
         "day_traffic": {
-            "zh-CN": "今日流量",
-            "zh-TW": "今日流量",
+            "zh-CN": "日流量",
+            "zh-TW": "日流量",
             "en": "Traffic",
             "fr": "Trafic",
-            "de": "Traffic",
+            "de": "Verkehr",
             "it": "Traffico"
         },
         "add_time": {
@@ -6611,36 +6699,44 @@ FULL_I18N_DICTIONARY = {
             "it": "证书续签成功！"
         },
         "no_backup": {
-            "zh-CN": "无备份",
-            "zh-TW": "無備份",
+            "zh-CN": "无",
+            "zh-TW": "無",
             "en": "None",
             "fr": "Aucune",
             "de": "Keine",
             "it": "Nessuno"
         },
         "backed_up": {
-            "zh-CN": "有备份",
-            "zh-TW": "有備份",
+            "zh-CN": "有",
+            "zh-TW": "有",
             "en": "Yes",
             "fr": "Oui",
             "de": "Ja",
             "it": "Sì"
         },
         "all_categories": {
-            "zh-CN": "全部分类",
-            "zh-TW": "全部分類",
+            "zh-CN": "全部",
+            "zh-TW": "全部",
             "en": "All",
-            "fr": "Toutes",
+            "fr": "Tous",
             "de": "Alle",
-            "it": "Tutte"
+            "it": "Tutti"
         },
         "default_category": {
-            "zh-CN": "默认分类",
-            "zh-TW": "預設分類",
+            "zh-CN": "默认",
+            "zh-TW": "預設",
             "en": "Default",
             "fr": "Défaut",
             "de": "Standard",
             "it": "Predefinito"
+        },
+        "config_settings": {
+            "zh-CN": "设置",
+            "zh-TW": "設定",
+            "en": "Settings",
+            "fr": "Paramètres",
+            "de": "Einstellungen",
+            "it": "Impostazioni"
         }
     },
     "files": {
@@ -9509,6 +9605,30 @@ FULL_I18N_DICTIONARY = {
             "fr": "当前任务Liste已是最新，无缺失任务需要同步",
             "de": "当前任务Liste已是最新，无缺失任务需要同步",
             "it": "当前任务Elenco已是最新，无缺失任务需要同步"
+        },
+        "day_none": {
+            "zh-CN": "无",
+            "zh-TW": "無",
+            "en": "None",
+            "fr": "Aucun",
+            "de": "Keine",
+            "it": "Nessuno"
+        },
+        "start_time": {
+            "zh-CN": "开始时间",
+            "zh-TW": "開始時間",
+            "en": "Start time",
+            "fr": "Heure de début",
+            "de": "Startzeit",
+            "it": "Ora di inizio"
+        },
+        "end_time": {
+            "zh-CN": "结束时间",
+            "zh-TW": "結束時間",
+            "en": "End time",
+            "fr": "Heure de fin",
+            "de": "Endzeit",
+            "it": "Ora di fine"
         }
     },
     "control": {
@@ -9927,6 +10047,14 @@ FULL_I18N_DICTIONARY = {
             "fr": "- Agrandir le graphique",
             "de": "- Diagramm vergrößern",
             "it": "- Ingrandisci grafico"
+        },
+        "loading_please_wait": {
+            "zh-CN": "正在加载，请稍候...",
+            "zh-TW": "正在載入，請稍候...",
+            "en": "Loading, please wait...",
+            "fr": "Chargement, veuillez patienter...",
+            "de": "Laden, bitte warten...",
+            "it": "Caricamento in corso..."
         }
     },
     "soft": {
@@ -10562,7 +10690,7 @@ FULL_I18N_DICTIONARY = {
             "zh-TW": "解除安裝前將數據打包備份到/www/backup目錄(.tar.gz)",
             "en": "Pack and back up data to /www/backup (.tar.gz) before uninstalling",
             "fr": "Sauvegarder les données dans /www/backup (.tar.gz) avant la désinstallation",
-            "de": "Vor der Deinstallation Daten in /www/backup (.tar.gz) packen und sichern",
+            "de": "Packen und sichern Sie die Daten vor der Deinstallation in /www/backup (.tar.gz)",
             "it": "Esegui il backup dei dati in /www/backup (.tar.gz) prima della disinstallazione"
         },
         "software_uninstallation_confirmation": {
@@ -15033,7 +15161,7 @@ FULL_I18N_DICTIONARY = {
         "pre": {
             "zh-CN": "百分比(%)",
             "zh-TW": "百分比(%)",
-            "en": "Percentage(%)",
+            "en": "Percentage (%)",
             "fr": "Pourcentage (%)",
             "de": "Prozentsatz (%)",
             "it": "Percentuale (%)"

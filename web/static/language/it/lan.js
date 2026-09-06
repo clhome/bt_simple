@@ -780,7 +780,18 @@ var lan = {
 			"auto_str_286": "查询中...",
 			"auto_str_287": "客户端时间: ",
 			"auto_str_288": "服务器时间: ",
-			"auto_str_289": "获取失败，请稍后重试"
+			"auto_str_289": "获取失败，请稍后重试",
+			"running_prefix": "In funzione: ",
+			"ip_type_lan": "Rete locale",
+			"ip_type_loopback": "Loopback",
+			"ip_type_public": "Accesso pubblico",
+			"login_details_web": "Accesso Web con password",
+			"login_details_ssh": "Accesso terminale SSH",
+			"login_details_2fa": "Verifica 2FA a due fattori",
+			"login_details_entrance": "Accesso rapido di sicurezza",
+			"login_details_captcha_err": "Errore captcha",
+			"login_details_password_err": "Errore password",
+			"login_details_active_session": "Sessione attiva corrente",
 		},
 
 	"site": {

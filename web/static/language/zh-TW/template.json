@@ -768,7 +768,18 @@
         "auto_str_287": "客户端时间: ",
         "auto_str_288": "服务器时间: ",
         "auto_str_289": "获取失败，请稍后重试",
-        "auto_str_34": {}
+        "auto_str_34": {},
+        "running_prefix": "已運行: ",
+        "ip_type_lan": "區域網路內網",
+        "ip_type_loopback": "本機回環",
+        "ip_type_public": "公網連入",
+        "login_details_web": "Web密碼登入",
+        "login_details_ssh": "SSH終端機登入",
+        "login_details_2fa": "2FA二次驗證",
+        "login_details_entrance": "安全入口快捷",
+        "login_details_captcha_err": "驗證碼錯誤",
+        "login_details_password_err": "密碼錯誤",
+        "login_details_active_session": "目前活躍工作階段"
     },
     "site": {
         "H1": "首頁",

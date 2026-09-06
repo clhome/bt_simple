@@ -72,7 +72,8 @@ PUBLIC_ENTRIES = {
     "cal_msg": {"zh-CN": "计算结果：", "zh-TW": "計算結果：", "en": "Calculate: ", "fr": "Résultat du calcul : ", "de": "Berechnungsergebnis: ", "it": "Risultato del calcolo: "},
     "task_close": {"zh-CN": "任务已取消", "zh-TW": "任務已取消", "en": "Task cancelled", "fr": "Tâche annulée", "de": "Aufgabe abgebrochen", "it": "Attività annullata"},
     "task_add": {"zh-CN": "已添加至任务列表", "zh-TW": "已添加至任務列表", "en": "Added to task list", "fr": "Ajouté à la liste des tâches", "de": "Zur Aufgabenliste hinzugefügt", "it": "Aggiunto all'elenco delle attività"},
-    "panel_err_empty": {"zh-CN": "所有字段均不能为空", "zh-TW": "所有欄位均不能為空", "en": "All fields cannot be empty", "fr": "Tous les champs sont obligatoires", "de": "Alle Felder dürfen nicht leer sein", "it": "Tutti i campi non possono essere vuoti"}
+    "panel_err_empty": {"zh-CN": "所有字段均不能为空", "zh-TW": "所有欄位均不能為空", "en": "All fields cannot be empty", "fr": "Tous les champs sont obligatoires", "de": "Alle Felder dürfen nicht leer sein", "it": "Tutti i campi non possono essere vuoti"},
+    "pre": {"zh-CN": "百分比(%)", "zh-TW": "百分比(%)", "en": "Percentage (%)", "fr": "Pourcentage (%)", "de": "Prozentsatz (%)", "it": "Percentuale (%)"}
 }
 
 for k, v in PUBLIC_ENTRIES.items():
@@ -98,6 +99,47 @@ dict_full["index"]["disk_size_format"] = {
     "de": "Root {0}, Belegt {1}, Frei {2}",
     "it": "Root {0}, Usato {1}, Libero {2}"
 }
+
+# 5. site 关键精炼简写字段
+if "site" not in dict_full:
+    dict_full["site"] = {}
+
+SITE_ENTRIES = {
+    "add_time": {"zh-CN": "创建时间", "zh-TW": "建立時間", "en": "Created", "fr": "Créé", "de": "Erstellt", "it": "Creato"},
+    "day_traffic": {"zh-CN": "日流量", "zh-TW": "日流量", "en": "Traffic", "fr": "Trafic", "de": "Verkehr", "it": "Traffico"},
+    "ssl_cert": {"zh-CN": "SSL证书", "zh-TW": "SSL憑證", "en": "SSL", "fr": "SSL", "de": "SSL", "it": "SSL"},
+    "expire_date": {"zh-CN": "到期时间", "zh-TW": "到期時間", "en": "Expires", "fr": "Expire", "de": "Läuft ab", "it": "Scade"},
+    "path": {"zh-CN": "根目录", "zh-TW": "根目錄", "en": "Path", "fr": "Chemin", "de": "Pfad", "it": "Percorso"},
+    "no_backup": {"zh-CN": "无", "zh-TW": "無", "en": "None", "fr": "Aucune", "de": "Keine", "it": "Nessuno"},
+    "backed_up": {"zh-CN": "有", "zh-TW": "有", "en": "Yes", "fr": "Oui", "de": "Ja", "it": "Sì"},
+    "config_settings": {"zh-CN": "设置", "zh-TW": "設定", "en": "Settings", "fr": "Paramètres", "de": "Einstellungen", "it": "Impostazioni"},
+    "all_categories": {"zh-CN": "全部", "zh-TW": "全部", "en": "All", "fr": "Tous", "de": "Alle", "it": "Tutti"},
+    "default_category": {"zh-CN": "默认", "zh-TW": "預設", "en": "Default", "fr": "Défaut", "de": "Standard", "it": "Predefinito"}
+}
+for k, v in SITE_ENTRIES.items():
+    dict_full["site"][k] = v
+
+# 6. crontab 关键精炼字段
+if "crontab" not in dict_full:
+    dict_full["crontab"] = {}
+
+CRONTAB_ENTRIES = {
+    "day_none": {"zh-CN": "无", "zh-TW": "無", "en": "None", "fr": "Aucun", "de": "Keine", "it": "Nessuno"},
+    "start_time": {"zh-CN": "开始时间", "zh-TW": "開始時間", "en": "Start time", "fr": "Heure de début", "de": "Startzeit", "it": "Ora di inizio"},
+    "end_time": {"zh-CN": "结束时间", "zh-TW": "結束時間", "en": "End time", "fr": "Heure de fin", "de": "Endzeit", "it": "Ora di fine"}
+}
+for k, v in CRONTAB_ENTRIES.items():
+    dict_full["crontab"][k] = v
+
+# 7. control 关键字段
+if "control" not in dict_full:
+    dict_full["control"] = {}
+
+CONTROL_ENTRIES = {
+    "loading_please_wait": {"zh-CN": "正在加载，请稍候...", "zh-TW": "正在載入，請稍候...", "en": "Loading, please wait...", "fr": "Chargement, veuillez patienter...", "de": "Laden, bitte warten...", "it": "Caricamento in corso..."}
+}
+for k, v in CONTROL_ENTRIES.items():
+    dict_full["control"][k] = v
 
 # 彻底清洗 dict_full
 cleaned_dict_full = clean_dirty_keys(dict_full)

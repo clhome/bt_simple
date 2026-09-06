@@ -160,8 +160,8 @@ def getSystemVersion():
         arch_ver = yf.execShell("arch")
         return version[0].strip() + " (" + arch_ver[0].strip() + ")"
 
-def getBootTime():
-    # 取系统启动时间
+def getBootTimeDetail():
+    """取系统启动时间详细数值 (days, hours, min)"""
     if os.path.exists('/proc/uptime'):
         uptime = yf.readFile('/proc/uptime')
         run_time = uptime.split()[0]
@@ -170,12 +170,20 @@ def getBootTime():
         run_time = time.time() - start_time
         
     tStr = float(run_time)
-    min = tStr / 60
-    hours = min / 60
-    days = math.floor(hours / 24)
-    hours = math.floor(hours - (days * 24))
-    min = math.floor(min - (days * 60 * 24) - (hours * 60))
-    return yf.getInfo('已运行: {1}天{2}小时{3}分钟', (str(int(days)), str(int(hours)), str(int(min))))
+    min_val = tStr / 60
+    hours_val = min_val / 60
+    days = math.floor(hours_val / 24)
+    hours = math.floor(hours_val - (days * 24))
+    min_val = math.floor(min_val - (days * 60 * 24) - (hours * 60))
+    return int(days), int(hours), int(min_val)
+
+def getBootTime():
+    # 取系统启动时间
+    days, hours, min_val = getBootTimeDetail()
+    from core.i18n import t as _t
+    boot_time_str = _t('public.SYS_BOOT_TIME', str(days), str(hours), str(min_val))
+    running_prefix = _t('index.running_prefix', '已运行: ')
+    return f"{running_prefix}{boot_time_str}"
 
 def getCpuInfo(interval=None):
     # 取CPU信息
