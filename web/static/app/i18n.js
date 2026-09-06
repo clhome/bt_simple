@@ -204,9 +204,30 @@
         'pre': '百分比(%)'
     };
 
-    // 确保 window.lan 及 window.lan.public 命名空间安全存在，避免历史调用短路
+    // 确保 window.lan 及各常用命名空间安全存在，避免历史调用短路
     window.lan = window.lan || {};
     window.lan.public = window.lan.public || {};
+    window.lan.files = window.lan.files || {};
+
+    // 增强 window.lan.get：当内置 msgs 缺失时自动回退至 t() 函数解析
+    var origLanGet = window.lan.get;
+    window.lan.get = function(key, args) {
+        var res = '';
+        if (typeof origLanGet === 'function') {
+            try {
+                res = origLanGet(key, args || []);
+            } catch (e) {}
+        }
+        if (res && typeof res === 'string' && res.trim() !== '') {
+            return res;
+        }
+        var argList = Array.isArray(args) ? args : (args !== undefined ? [args] : []);
+        var fallback = t('files.' + key, argList) || t('public.' + key, argList) || t(key, argList);
+        if (fallback && fallback !== key && fallback !== ('files.' + key) && fallback !== ('public.' + key)) {
+            return fallback;
+        }
+        return res || '';
+    };
 
     /**
      * 翻译函数 t(key, args, defaultText)
@@ -255,15 +276,16 @@
 
         // 3. 处理字符串模板与插值参数
         if (typeof val === 'string') {
-            if (args && Array.isArray(args)) {
+            if (args !== undefined && args !== null) {
+                var argList = Array.isArray(args) ? args : [args];
                 var hasZero = val.indexOf('{0}') > -1;
                 val = val.replace(/\{(\d+)\}/g, function(match, num) {
                     var n = parseInt(num, 10);
                     if (hasZero) {
-                        return (n >= 0 && n < args.length) ? args[n] : match;
+                        return (n >= 0 && n < argList.length) ? argList[n] : match;
                     } else {
-                        if (n >= 1 && n <= args.length) return args[n - 1];
-                        if (n >= 0 && n < args.length) return args[n];
+                        if (n >= 1 && n <= argList.length) return argList[n - 1];
+                        if (n >= 0 && n < argList.length) return argList[n];
                     }
                     return match;
                 });

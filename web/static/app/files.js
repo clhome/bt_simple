@@ -1233,41 +1233,50 @@ function createDir(type, path) {
 
 //删除文件
 function deleteFile(fileName){
-    layer.confirm(lan.get('recycle_bin_confirm',[fileName]),{title:'删除文件',closeBtn:2,icon:3},function(){
-        layer.msg('正在处理,请稍候...',{icon:16,time:0,shade: [0.3, '#000']});
+    var confirmMsg = t('files.recycle_bin_confirm', [fileName], '您确实要把此文件[' + fileName + ']放入回收站吗?');
+    var titleText = t('files.delete_file', '删除文件');
+    var waitMsg = t('files.deleting_please_wait', '正在处理,请稍候...');
+    layer.confirm(confirmMsg, {title: titleText, closeBtn: 2, icon: 3}, function(){
+        layer.msg(waitMsg, {icon: 16, time: 0, shade: [0.3, '#000']});
         $.post('/files/delete', 'path=' + encodeURIComponent(fileName), function(rdata) {
             layer.closeAll();
             layer.msg(rdata.msg, {
                 icon: rdata.status ? 1 : 2,
             });
             getFiles($("#DirPathPlace input").val());
-        },'json');
+        }, 'json');
     });
 }
 
 //删除目录
 function deleteDir(dirName){
-    layer.confirm(lan.get('recycle_bin_confirm_dir',[dirName]),{title:'删除目录',closeBtn:2,icon:3},function(){
-        layer.msg('正在处理,请稍候...',{icon:16,time:0,shade: [0.3, '#000']});
+    var confirmMsg = t('files.recycle_bin_confirm_dir', [dirName], '您确实要把此目录[' + dirName + ']放入回收站吗?');
+    var titleText = t('files.delete_directory', '删除目录');
+    var waitMsg = t('files.deleting_please_wait', '正在处理,请稍候...');
+    layer.confirm(confirmMsg, {title: titleText, closeBtn: 2, icon: 3}, function(){
+        layer.msg(waitMsg, {icon: 16, time: 0, shade: [0.3, '#000']});
         $.post('/files/delete_dir', 'path=' + encodeURIComponent(dirName), function(rdata) {
             layer.closeAll();
             layer.msg(rdata.msg, {
                 icon: rdata.status ? 1 : 2
             });
             getFiles($("#DirPathPlace input").val());
-        },'json');
+        }, 'json');
     });
 }
 //批量删除文件
 function allDeleteFileSub(data,path){
-    layer.confirm('您确实要把这些文件放入回收站吗?',{title:'批量删除文件',closeBtn:2,icon:3},function(){
-        layer.msg("<div class='myspeed'>正在处理,请稍候...</div>",{icon:16,time:0,shade: [0.3, '#000']});
-        setTimeout(function(){getSpeed('.myspeed');},1000);
-        $.post('/files/set_batch_data',data,function(rdata){
+    var confirmMsg = t('files.are_you_sure_you', '您确实要把这些文件放入回收站吗?');
+    var titleText = t('files.batch_delete_files', '批量删除文件');
+    var waitMsg = t('files.deleting_please_wait', '正在处理,请稍候...');
+    layer.confirm(confirmMsg, {title: titleText, closeBtn: 2, icon: 3}, function(){
+        layer.msg("<div class='myspeed'>" + waitMsg + "</div>", {icon: 16, time: 0, shade: [0.3, '#000']});
+        setTimeout(function(){getSpeed('.myspeed');}, 1000);
+        $.post('/files/set_batch_data', data, function(rdata){
             layer.closeAll();
             getFiles(path);
-            layer.msg(rdata.msg,{icon:1});
-        },'json');
+            layer.msg(rdata.msg, {icon: 1});
+        }, 'json');
     });
 }
 
@@ -1921,9 +1930,9 @@ function rightMenuClick(type,path,name){
     // console.log(type,path,name);
     var displayZip = isZip(type);
     var options = {items:[
-        {text: "复制", onclick: function() {copyFile(path)}},
-        {text: "剪切",    onclick: function() {cutFile(path)}},
-        {text: "重命名", onclick: function() {reName(0,name)}},
+        {text: t('files.copy', '复制'), onclick: function() {copyFile(path)}},
+        {text: t('files.cut', '剪切'),    onclick: function() {cutFile(path)}},
+        {text: t('files.rename', '重命名'), onclick: function() {reName(0,name)}},
         {text: lan.files.file_menu_auth, onclick: function() {setChmod(0,path)}},
         {text: lan.files.file_menu_zip, onclick: function() {zip(path)}},
     ]};
@@ -1963,7 +1972,7 @@ function rightMenuClick(type,path,name){
         }});
     }
 
-    options.items.push({text: '强制刷新页面', onclick: function() {
+    options.items.push({text: t('files.force_refresh', '强制刷新页面'), onclick: function() {
         forcePpageRefresh();
     }});
     return options;

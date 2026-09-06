@@ -21,6 +21,27 @@ function initLayerI18n() {
     return getI18nText('public.info', '信息');
   }
 
+  function localizeTitle(title) {
+    if (!title || typeof title !== 'string') return title;
+    var trimmed = title.trim();
+    if (trimmed === '信息' || trimmed === '&#x4FE1;&#x606F;') {
+      return getInfoTitle();
+    }
+    if (trimmed === '删除文件') {
+      return getI18nText('files.delete_file', '删除文件');
+    }
+    if (trimmed === '删除目录') {
+      return getI18nText('files.delete_directory', '删除目录');
+    }
+    if (trimmed === '批量删除文件') {
+      return getI18nText('files.batch_delete_files', '批量删除文件');
+    }
+    if (trimmed === '清空回收站') {
+      return getI18nText('files.empty_the_recycle_bin', '清空回收站');
+    }
+    return title;
+  }
+
   function localizeButtons(btnArr) {
     if (!Array.isArray(btnArr)) return btnArr;
     return btnArr.map(function (item) {
@@ -64,8 +85,10 @@ function initLayerI18n() {
       options.btn = localizeButtons(options.btn);
     }
 
-    if (!options.title || options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
+    if (!options.title) {
       options.title = getInfoTitle();
+    } else {
+      options.title = localizeTitle(options.title);
     }
 
     return origConfirm.call(this, content, options, yes, cancel);
@@ -88,8 +111,10 @@ function initLayerI18n() {
       options.btn = localizeButtons(options.btn);
     }
 
-    if (!options.title || options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
+    if (!options.title) {
       options.title = getInfoTitle();
+    } else {
+      options.title = localizeTitle(options.title);
     }
 
     return origAlert.call(this, content, options, yes);
@@ -111,8 +136,10 @@ function initLayerI18n() {
       } else {
         options.btn = localizeButtons(options.btn);
       }
-      if (!options.title || options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
+      if (!options.title) {
         options.title = getInfoTitle();
+      } else {
+        options.title = localizeTitle(options.title);
       }
       return origPrompt.call(this, options, yes);
     };
@@ -125,8 +152,8 @@ function initLayerI18n() {
     if (options.btn) {
       options.btn = localizeButtons(options.btn);
     }
-    if (options.title === '信息' || options.title === '&#x4FE1;&#x606F;') {
-      options.title = getInfoTitle();
+    if (options.title) {
+      options.title = localizeTitle(options.title);
     }
 
     var userSuccess = options.success;

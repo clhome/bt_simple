@@ -6980,6 +6980,54 @@ FULL_I18N_DICTIONARY = {
             "de": "Endgültig löschen",
             "it": "Elimina definitivamente"
         },
+        "recycle_bin_re_msg": {
+            "zh-CN": "确定要从回收站恢复此项目吗？",
+            "zh-TW": "確定要從資源回收筒恢復此項目嗎？",
+            "en": "Are you sure you want to restore this item from the recycle bin?",
+            "fr": "Voulez-vous vraiment restaurer cet élément de la corbeille ?",
+            "de": "Möchten Sie dieses Element wirklich aus dem Papierkorb wiederherstellen?",
+            "it": "Sei sicuro di voler ripristinare questo elemento dal cestino?"
+        },
+        "recycle_bin_re_title": {
+            "zh-CN": "从回收站恢复",
+            "zh-TW": "從資源回收筒恢復",
+            "en": "Restore from Recycle Bin",
+            "fr": "Restaurer de la corbeille",
+            "de": "Aus dem Papierkorb wiederherstellen",
+            "it": "Ripristina dal cestino"
+        },
+        "recycle_bin_re_the": {
+            "zh-CN": "正在从回收站恢复...",
+            "zh-TW": "正在從資源回收筒恢復...",
+            "en": "Restoring from recycle bin...",
+            "fr": "Restauration à partir de la corbeille...",
+            "de": "Wird aus dem Papierkorb wiederhergestellt...",
+            "it": "Ripristino dal cestino in corso..."
+        },
+        "recycle_bin_del_msg": {
+            "zh-CN": "确定要从回收站彻底删除此项目吗？",
+            "zh-TW": "確定要從資源回收筒徹底刪除此項目嗎？",
+            "en": "Are you sure you want to permanently delete this item from the recycle bin?",
+            "fr": "Voulez-vous vraiment supprimer définitivement cet élément de la corbeille ?",
+            "de": "Möchten Sie dieses Element wirklich endgültig aus dem Papierkorb löschen?",
+            "it": "Sei sicuro di voler eliminare definitivamente questo elemento dal cestino?"
+        },
+        "recycle_bin_del_title": {
+            "zh-CN": "永久删除",
+            "zh-TW": "永久刪除",
+            "en": "Permanently Delete",
+            "fr": "Supprimer définitivement",
+            "de": "Endgültig löschen",
+            "it": "Elimina definitivamente"
+        },
+        "recycle_bin_del_the": {
+            "zh-CN": "正在从回收站彻底删除...",
+            "zh-TW": "正在從資源回收筒徹底刪除...",
+            "en": "Permanently deleting from recycle bin...",
+            "fr": "Suppression définitive de la corbeille...",
+            "de": "Wird endgültig aus dem Papierkorb gelöscht...",
+            "it": "Eliminazione definitiva dal cestino in corso..."
+        },
         "note_once_you_empty": {
             "zh-CN": "注意：清空回收站后文件将无法恢复！",
             "zh-TW": "注意：清空資源回收筒後檔案將無法復原！",
@@ -6995,6 +7043,70 @@ FULL_I18N_DICTIONARY = {
             "fr": "Vider la corbeille",
             "de": "Papierkorb leeren",
             "it": "Svuota cestino"
+        },
+        "recycle_bin_confirm": {
+            "zh-CN": "您确实要把此文件[{1}]放入回收站吗?",
+            "zh-TW": "您確實要把此檔案[{1}]放入資源回收筒嗎?",
+            "en": "Are you sure you want to move file [{1}] to the recycle bin?",
+            "fr": "Voulez-vous vraiment mettre le fichier [{1}] dans la corbeille ?",
+            "de": "Möchten Sie die Datei [{1}] wirklich in den Papierkorb verschieben?",
+            "it": "Sei sicuro di voler spostare il file [{1}] nel cestino?"
+        },
+        "recycle_bin_confirm_dir": {
+            "zh-CN": "您确实要把此目录[{1}]放入回收站吗?",
+            "zh-TW": "您確實要把此目錄[{1}]放入資源回收筒嗎?",
+            "en": "Are you sure you want to move directory [{1}] to the recycle bin?",
+            "fr": "Voulez-vous vraiment mettre le répertoire [{1}] dans la corbeille ?",
+            "de": "Möchten Sie das Verzeichnis [{1}] wirklich in den Papierkorb verschieben?",
+            "it": "Sei sicuro di voler spostare la cartella [{1}] nel cestino?"
+        },
+        "delete_file": {
+            "zh-CN": "删除文件",
+            "zh-TW": "刪除檔案",
+            "en": "Delete File",
+            "fr": "Supprimer le fichier",
+            "de": "Datei löschen",
+            "it": "Elimina file"
+        },
+        "delete_directory": {
+            "zh-CN": "删除目录",
+            "zh-TW": "刪除目錄",
+            "en": "Delete Directory",
+            "fr": "Supprimer le répertoire",
+            "de": "Verzeichnis löschen",
+            "it": "Elimina directory"
+        },
+        "batch_delete_files": {
+            "zh-CN": "批量删除文件",
+            "zh-TW": "批量刪除檔案",
+            "en": "Batch Delete Files",
+            "fr": "Supprimer des fichiers par lots",
+            "de": "Dateien stapelweise löschen",
+            "it": "Elimina file in batch"
+        },
+        "are_you_sure_you": {
+            "zh-CN": "您确实要把这些文件放入回收站吗?",
+            "zh-TW": "您確實要把這些檔案放入資源回收筒嗎?",
+            "en": "Are you sure you want to move these files to the recycle bin?",
+            "fr": "Voulez-vous vraiment mettre ces fichiers dans la corbeille ?",
+            "de": "Möchten Sie diese Dateien wirklich in den Papierkorb verschieben?",
+            "it": "Sei sicuro di voler spostare questi file nel cestino?"
+        },
+        "deleting_please_wait": {
+            "zh-CN": "正在删除,请稍候...",
+            "zh-TW": "正在刪除,請稍候...",
+            "en": "Deleting, please wait...",
+            "fr": "Suppression en cours, veuillez patienter...",
+            "de": "Wird gelöscht, bitte warten...",
+            "it": "Eliminazione in corso, attendere..."
+        },
+        "force_refresh": {
+            "zh-CN": "强制刷新页面",
+            "zh-TW": "強制重新整理頁面",
+            "en": "Force Refresh",
+            "fr": "Actualisation forcée",
+            "de": "Aktualisierung erzwingen",
+            "it": "Aggiornamento forzato"
         }
     },
     "firewall": {

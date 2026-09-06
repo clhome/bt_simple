@@ -61,10 +61,10 @@ LAN_MSGS_FULL = {
         "en": "Failed to {1} {2} service!", "fr": "Échec de l'action {1} pour le service {2} !", "de": "{1} für Dienst {2} fehlgeschlagen!", "it": "Impossibile {1} il servizio {2}!"
     },
     "recycle_bin_confirm": {
-        "en": "Are you sure you want to move file [{1}] to the recycle bin?", "fr": "Voulez-vous vraiment mettre le fichier [{1}] dans la corbeille ?", "de": "Möchten Sie die Datei [{1}] wirklich in den Papierkorb verschieben?", "it": "Sei sicuro di voler spostare il file [{1}] nel cestino?"
+        "zh-CN": "您确实要把此文件[{1}]放入回收站吗?", "zh-TW": "您確實要把此檔案[{1}]放入資源回收筒嗎?", "en": "Are you sure you want to move file [{1}] to the recycle bin?", "fr": "Voulez-vous vraiment mettre le fichier [{1}] dans la corbeille ?", "de": "Möchten Sie die Datei [{1}] wirklich in den Papierkorb verschieben?", "it": "Sei sicuro di voler spostare il file [{1}] nel cestino?"
     },
     "recycle_bin_confirm_dir": {
-        "en": "Are you sure you want to move directory [{1}] to the recycle bin?", "fr": "Voulez-vous vraiment mettre le répertoire [{1}] dans la corbeille ?", "de": "Möchten Sie das Verzeichnis [{1}] wirklich in den Papierkorb verschieben?", "it": "Sei sicuro di voler spostare la cartella [{1}] nel cestino?"
+        "zh-CN": "您确实要把此目录[{1}]放入回收站吗?", "zh-TW": "您確實要把此目錄[{1}]放入資源回收筒嗎?", "en": "Are you sure you want to move directory [{1}] to the recycle bin?", "fr": "Voulez-vous vraiment mettre le répertoire [{1}] dans la corbeille ?", "de": "Möchten Sie das Verzeichnis [{1}] wirklich in den Papierkorb verschieben?", "it": "Sei sicuro di voler spostare la cartella [{1}] nel cestino?"
     },
     "del_all_ftp": {
         "en": "You selected [{1}] FTP accounts. Once deleted, they cannot be recovered. Continue?", "fr": "Vous avez sélectionné [{1}] comptes FTP. Une fois supprimés, ils ne peuvent pas être récupérés. Continuer ?", "de": "Sie haben [{1}] FTP-Konten ausgewählt. Nach dem Löschen können sie nicht wiederhergestellt werden. Fortfahren?", "it": "Hai selezionato [{1}] account FTP. Una volta eliminati, non potranno essere recuperati. Continuare?"
