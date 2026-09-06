@@ -90,6 +90,9 @@ function initLayerI18n() {
     } else {
       options.title = localizeTitle(options.title);
     }
+    if (options.closeBtn === 2) {
+      options.closeBtn = 1;
+    }
 
     return origConfirm.call(this, content, options, yes, cancel);
   };
@@ -116,6 +119,9 @@ function initLayerI18n() {
     } else {
       options.title = localizeTitle(options.title);
     }
+    if (options.closeBtn === 2) {
+      options.closeBtn = 1;
+    }
 
     return origAlert.call(this, content, options, yes);
   };
@@ -141,6 +147,9 @@ function initLayerI18n() {
       } else {
         options.title = localizeTitle(options.title);
       }
+      if (options.closeBtn === 2) {
+        options.closeBtn = 1;
+      }
       return origPrompt.call(this, options, yes);
     };
   }
@@ -154,6 +163,9 @@ function initLayerI18n() {
     }
     if (options.title) {
       options.title = localizeTitle(options.title);
+    }
+    if (options.closeBtn === 2) {
+      options.closeBtn = 1;
     }
 
     var userSuccess = options.success;

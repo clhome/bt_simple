@@ -270,7 +270,7 @@ function closeRecycleBin(){
     var confirmMsg = (window.lan && lan.files && lan.files.emptying_the_recycle_bin) || t('files.emptying_the_recycle_bin', '清空回收站操作会永久删除回收站中的文件，继续吗？');
     var titleText = (window.lan && lan.files && lan.files.empty_the_recycle_bin) || t('files.empty_the_recycle_bin', '清空回收站');
     var delWaitText = (window.lan && lan.files && lan.files.deleting_please_wait) || t('files.deleting_please_wait', '正在删除,请稍候...');
-    layer.confirm(confirmMsg, {title: titleText, closeBtn: 2, icon: 3}, function(){
+    layer.confirm(confirmMsg, {title: titleText, closeBtn: 1, icon: 3}, function(){
         var loadT = layer.msg("<div class='myspeed'>" + delWaitText + "</div>", {icon: 16, time: 0, shade: [0.3, '#000']});
         setTimeout(function(){
             getSpeed('.myspeed');
@@ -546,7 +546,7 @@ function getFiles(Path) {
                     <td style='text-align: center;'>"+getMatchTime(fmp[2])+"</td>\
                     <td style='text-align: center;'>"+fmp[3]+"</td>\
                     <td style='text-align: center;'>"+fmp[4]+"</td>\
-                    <td class='editmenu' style='text-align: left;'><span>\
+                    <td class='editmenu' style='text-align: right; padding-right: 15px;'><span>\
                         <a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path +"/"+ fmp[0] + "')\">" + copyPathText + "</a> | \
                         <a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.path +"/"+ fmp[0] + "')\">" + copyText + "</a> | \
                         <a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.path +"/"+ fmp[0]+ "')\">" + cutText + "</a> | \
@@ -615,7 +615,7 @@ function getFiles(Path) {
                     <td style='text-align: center;'>"+ ((fmp[2].length > 11)?fmp[2]:getMatchTime(fmp[2])) + "</td>\
                     <td style='text-align: center;'>"+fmp[3]+"</td>\
                     <td style='text-align: center;'>"+fmp[4]+"</td>\
-                    <td class='editmenu' style='text-align: left;'>\
+                    <td class='editmenu' style='text-align: right; padding-right: 15px;'>\
                     <span><a class='btlink' href='javascript:;' onclick=\"copyFilenameText('" + rdata.path +"/"+ fmp[0] + "')\">" + copyPathText + "</a> | \
                     <a class='btlink' href='javascript:;' onclick=\"copyFile('" + rdata.path +"/"+ fmp[0] + "')\">" + copyText + "</a> | \
                     <a class='btlink' href='javascript:;' onclick=\"cutFile('" + rdata.path +"/"+ fmp[0] + "')\">" + cutText + "</a> | \
@@ -683,11 +683,11 @@ function getFiles(Path) {
                     <tr>\
                         <th width="30"><label><input type="checkbox" id="setBox" placeholder=""></label></th>\
                         <th onclick="listFileOrder(\'fname\',this)" style="cursor: pointer;">' + fileNameLabel + fname_icon + '</th>\
-                        <th onclick="listFileOrder(\'size\',this)" style="cursor: pointer; text-align: center;">' + fileSizeLabel + size_icon + '</th>\
+                        <th onclick="listFileOrder(\'size\',this)" style="cursor: pointer; text-align: center;" width="90">' + fileSizeLabel + size_icon + '</th>\
                         <th onclick="listFileOrder(\'mtime\',this)" style="cursor: pointer; text-align: center;" width="150">' + fileMtimeLabel + mtime_icon + '</th>\
-                        <th style="text-align: center;">' + filePermLabel + '</th>\
-                        <th style="text-align: center;">' + fileOwnLabel + '</th>\
-                        <th style="text-align: center;" width="360">' + fileActionLabel + '</th>\
+                        <th style="text-align: center;" width="70">' + filePermLabel + '</th>\
+                        <th style="text-align: center;" width="80">' + fileOwnLabel + '</th>\
+                        <th style="text-align: right; padding-right: 15px;" width="380">' + fileActionLabel + '</th>\
                     </tr>\
                 </thead>\
                 <tbody id="filesBody" class="list-list">'+body+'</tbody>\
@@ -1236,7 +1236,7 @@ function deleteFile(fileName){
     var confirmMsg = t('files.recycle_bin_confirm', [fileName], '您确实要把此文件[' + fileName + ']放入回收站吗?');
     var titleText = t('files.delete_file', '删除文件');
     var waitMsg = t('files.deleting_please_wait', '正在处理,请稍候...');
-    layer.confirm(confirmMsg, {title: titleText, closeBtn: 2, icon: 3}, function(){
+    layer.confirm(confirmMsg, {title: titleText, closeBtn: 1, icon: 3}, function(){
         layer.msg(waitMsg, {icon: 16, time: 0, shade: [0.3, '#000']});
         $.post('/files/delete', 'path=' + encodeURIComponent(fileName), function(rdata) {
             layer.closeAll();
@@ -1253,7 +1253,7 @@ function deleteDir(dirName){
     var confirmMsg = t('files.recycle_bin_confirm_dir', [dirName], '您确实要把此目录[' + dirName + ']放入回收站吗?');
     var titleText = t('files.delete_directory', '删除目录');
     var waitMsg = t('files.deleting_please_wait', '正在处理,请稍候...');
-    layer.confirm(confirmMsg, {title: titleText, closeBtn: 2, icon: 3}, function(){
+    layer.confirm(confirmMsg, {title: titleText, closeBtn: 1, icon: 3}, function(){
         layer.msg(waitMsg, {icon: 16, time: 0, shade: [0.3, '#000']});
         $.post('/files/delete_dir', 'path=' + encodeURIComponent(dirName), function(rdata) {
             layer.closeAll();
@@ -1269,7 +1269,7 @@ function allDeleteFileSub(data,path){
     var confirmMsg = t('files.are_you_sure_you', '您确实要把这些文件放入回收站吗?');
     var titleText = t('files.batch_delete_files', '批量删除文件');
     var waitMsg = t('files.deleting_please_wait', '正在处理,请稍候...');
-    layer.confirm(confirmMsg, {title: titleText, closeBtn: 2, icon: 3}, function(){
+    layer.confirm(confirmMsg, {title: titleText, closeBtn: 1, icon: 3}, function(){
         layer.msg("<div class='myspeed'>" + waitMsg + "</div>", {icon: 16, time: 0, shade: [0.3, '#000']});
         setTimeout(function(){getSpeed('.myspeed');}, 1000);
         $.post('/files/set_batch_data', data, function(rdata){

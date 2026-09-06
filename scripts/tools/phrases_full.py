@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-御风面板 (bt_simple) 完整多语言词库映射总表
+御风面板全量词典定义 (Cleaned & High-Quality Full I18N Dictionary)
 """
 
 FULL_I18N_DICTIONARY = {
@@ -3523,12 +3523,12 @@ FULL_I18N_DICTIONARY = {
             "it": "Backup"
         },
         "path": {
-            "zh-CN": "网站目录",
-            "zh-TW": "網站目錄",
-            "en": "Root Path",
-            "fr": "Répertoire racine",
-            "de": "Stammverzeichnis",
-            "it": "Percorso radice"
+            "zh-CN": "根目录",
+            "zh-TW": "根目錄",
+            "en": "Path",
+            "fr": "Chemin",
+            "de": "Pfad",
+            "it": "Percorso"
         },
         "expire_date": {
             "zh-CN": "到期日期",
@@ -6609,6 +6609,38 @@ FULL_I18N_DICTIONARY = {
             "fr": "证书续签成功！",
             "de": "证书续签成功！",
             "it": "证书续签成功！"
+        },
+        "no_backup": {
+            "zh-CN": "无备份",
+            "zh-TW": "無備份",
+            "en": "None",
+            "fr": "Aucune",
+            "de": "Keine",
+            "it": "Nessuno"
+        },
+        "backed_up": {
+            "zh-CN": "有备份",
+            "zh-TW": "有備份",
+            "en": "Yes",
+            "fr": "Oui",
+            "de": "Ja",
+            "it": "Sì"
+        },
+        "all_categories": {
+            "zh-CN": "全部分类",
+            "zh-TW": "全部分類",
+            "en": "All",
+            "fr": "Toutes",
+            "de": "Alle",
+            "it": "Tutte"
+        },
+        "default_category": {
+            "zh-CN": "默认分类",
+            "zh-TW": "預設分類",
+            "en": "Default",
+            "fr": "Défaut",
+            "de": "Standard",
+            "it": "Predefinito"
         }
     },
     "files": {
@@ -6713,7 +6745,7 @@ FULL_I18N_DICTIONARY = {
             "zh-TW": "剪下",
             "en": "Cut",
             "fr": "Couper",
-            "de": "Ausschneiden",
+            "de": "Cut",
             "it": "Taglia"
         },
         "permission": {
@@ -6727,18 +6759,18 @@ FULL_I18N_DICTIONARY = {
         "compress": {
             "zh-CN": "压缩",
             "zh-TW": "壓縮",
-            "en": "Compress",
-            "fr": "Compresser",
-            "de": "Komprimieren",
-            "it": "Comprimi"
+            "en": "Zip",
+            "fr": "Zip",
+            "de": "Zip",
+            "it": "Zip"
         },
         "delete": {
             "zh-CN": "删除",
             "zh-TW": "刪除",
-            "en": "Delete",
-            "fr": "Supprimer",
+            "en": "Del",
+            "fr": "Suppr.",
             "de": "Löschen",
-            "it": "Elimina"
+            "it": "Del"
         },
         "py_msg_e4fa1d": {
             "zh-CN": "开发机不设置!",
@@ -6855,10 +6887,10 @@ FULL_I18N_DICTIONARY = {
         "permissions": {
             "zh-CN": "权限",
             "zh-TW": "權限",
-            "en": "Permissions",
-            "fr": "Permissions",
-            "de": "Berechtigungen",
-            "it": "Permessi"
+            "en": "Perms",
+            "fr": "Perms",
+            "de": "Rechte",
+            "it": "Perms"
         },
         "owner": {
             "zh-CN": "所有者",
@@ -6919,49 +6951,49 @@ FULL_I18N_DICTIONARY = {
         "copy_path": {
             "zh-CN": "复制路径",
             "zh-TW": "複製路徑",
-            "en": "Copy Path",
-            "fr": "Copier le chemin",
-            "de": "Pfad kopieren",
-            "it": "Copia percorso"
+            "en": "Path",
+            "fr": "Chemin",
+            "de": "Pfad",
+            "it": "Percorso"
         },
         "rename": {
             "zh-CN": "重命名",
             "zh-TW": "重新命名",
             "en": "Rename",
             "fr": "Renommer",
-            "de": "Umbenennen",
+            "de": "Rename",
             "it": "Rinomina"
         },
         "unzip": {
             "zh-CN": "解压",
             "zh-TW": "解壓縮",
             "en": "Unzip",
-            "fr": "Décompresser",
-            "de": "Entpacken",
-            "it": "Estrai"
+            "fr": "Unzip",
+            "de": "Unzip",
+            "it": "Unzip"
         },
         "edit": {
             "zh-CN": "编辑",
             "zh-TW": "編輯",
             "en": "Edit",
-            "fr": "Modifier",
-            "de": "Bearbeiten",
+            "fr": "Éditer",
+            "de": "Edit",
             "it": "Modifica"
         },
         "preview": {
             "zh-CN": "预览",
             "zh-TW": "預覽",
-            "en": "Preview",
-            "fr": "Aperçu",
-            "de": "Vorschau",
-            "it": "Anteprima"
+            "en": "View",
+            "fr": "Voir",
+            "de": "View",
+            "it": "Vista"
         },
         "download": {
             "zh-CN": "下载",
             "zh-TW": "下載",
-            "en": "Download",
-            "fr": "Télécharger",
-            "de": "Herunterladen",
+            "en": "Down",
+            "fr": "Téléch.",
+            "de": "Downl.",
             "it": "Scarica"
         },
         "recycle_bin_re": {
@@ -9879,6 +9911,22 @@ FULL_I18N_DICTIONARY = {
             "fr": "15分钟",
             "de": "15分钟",
             "it": "15分钟"
+        },
+        "the_chart_has_not": {
+            "zh-CN": "图表暂无数据!",
+            "zh-TW": "圖表暫無數據!",
+            "en": "No data in chart!",
+            "fr": "Aucune donnée dans le graphique !",
+            "de": "Keine Daten im Diagramm!",
+            "it": "Nessun dato nel grafico!"
+        },
+        "enlarge": {
+            "zh-CN": "- 放大图表",
+            "zh-TW": "- 放大圖表",
+            "en": "- Enlarge Chart",
+            "fr": "- Agrandir le graphique",
+            "de": "- Diagramm vergrößern",
+            "it": "- Ingrandisci grafico"
         }
     },
     "soft": {
@@ -10484,6 +10532,102 @@ FULL_I18N_DICTIONARY = {
             "fr": "Actualiser成功",
             "de": "Aktualisieren成功",
             "it": "Aggiorna成功"
+        },
+        "type_runtime": {
+            "zh-CN": "运行环境",
+            "zh-TW": "運行環境",
+            "en": "Runtime",
+            "fr": "Environnement d'exécution",
+            "de": "Laufzeitumgebung",
+            "it": "Ambiente di runtime"
+        },
+        "uninstall_confirm_prefix": {
+            "zh-CN": "确定要卸载【",
+            "zh-TW": "確定要解除安裝【",
+            "en": "Are you sure you want to uninstall 【",
+            "fr": "Voulez-vous vraiment désinstaller 【",
+            "de": "Möchten Sie wirklich 【",
+            "it": "Sei sicuro di voler disinstallare 【"
+        },
+        "uninstall_confirm_suffix": {
+            "zh-CN": "】吗？",
+            "zh-TW": "】嗎？",
+            "en": "】?",
+            "fr": "】 ?",
+            "de": "】 deinstallieren?",
+            "it": "】?"
+        },
+        "uninstall_backup_tip": {
+            "zh-CN": "卸载前将数据打包备份到/www/backup目录(.tar.gz)",
+            "zh-TW": "解除安裝前將數據打包備份到/www/backup目錄(.tar.gz)",
+            "en": "Pack and back up data to /www/backup (.tar.gz) before uninstalling",
+            "fr": "Sauvegarder les données dans /www/backup (.tar.gz) avant la désinstallation",
+            "de": "Vor der Deinstallation Daten in /www/backup (.tar.gz) packen und sichern",
+            "it": "Esegui il backup dei dati in /www/backup (.tar.gz) prima della disinstallazione"
+        },
+        "software_uninstallation_confirmation": {
+            "zh-CN": "软件卸载确认",
+            "zh-TW": "軟體解除安裝確認",
+            "en": "Software Uninstall Confirmation",
+            "fr": "Confirmation de désinstallation du logiciel",
+            "de": "Bestätigung der Software-Deinstallation",
+            "it": "Conferma disinstallazione software"
+        },
+        "confirm_uninstall": {
+            "zh-CN": "确定卸载",
+            "zh-TW": "確定解除安裝",
+            "en": "Confirm Uninstall",
+            "fr": "Confirmer la désinstallation",
+            "de": "Deinstallation bestätigen",
+            "it": "Conferma disinstallazione"
+        },
+        "type_all": {
+            "zh-CN": "全部",
+            "zh-TW": "全部",
+            "en": "All",
+            "fr": "Tout",
+            "de": "Alle",
+            "it": "Tutti"
+        },
+        "type_installed": {
+            "zh-CN": "已安装",
+            "zh-TW": "已安裝",
+            "en": "Installed",
+            "fr": "Installé",
+            "de": "Installiert",
+            "it": "Installato"
+        },
+        "type_database": {
+            "zh-CN": "数据库",
+            "zh-TW": "資料庫",
+            "en": "Database",
+            "fr": "Base de données",
+            "de": "Datenbank",
+            "it": "Database"
+        },
+        "type_system_tools": {
+            "zh-CN": "系统工具",
+            "zh-TW": "系統工具",
+            "en": "System Tools",
+            "fr": "Outils système",
+            "de": "Systemwerkzeuge",
+            "it": "Strumenti di sistema"
+        },
+        "type_other_plugins": {
+            "zh-CN": "其他插件",
+            "zh-TW": "其他外掛",
+            "en": "Other Plugins",
+            "fr": "Autres plugins",
+            "de": "Andere Plugins",
+            "it": "Altri plugin"
+        },
+        "type_php": {
+            "zh-CN": "PHP",
+            "zh-TW": "PHP",
+            "en": "PHP",
+            "fr": "PHP",
+            "de": "PHP",
+            "it": "PHP"
         }
     },
     "logs": {
@@ -14885,6 +15029,14 @@ FULL_I18N_DICTIONARY = {
             "fr": "Tout",
             "de": "Alle",
             "it": "Tutto"
+        },
+        "pre": {
+            "zh-CN": "百分比(%)",
+            "zh-TW": "百分比(%)",
+            "en": "Percentage(%)",
+            "fr": "Pourcentage (%)",
+            "de": "Prozentsatz (%)",
+            "it": "Percentuale (%)"
         }
     },
     "upload": {

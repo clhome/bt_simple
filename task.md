@@ -53,11 +53,9 @@
 - [x] 47. 修复分类下拉框多语言缺失与选项异常（`web/static/app/site.js`）：修正 `getClassType` 中误用的 `are_you_sure_you_3` 为 `全部分类`，并为 `默认分类` 增加国际化动态翻译。
 - [x] 48. 优化通用分页组件西文空格粘连问题（`web/utils/page.py`）：对西文语种自动智能补全数字两侧空格，解决 `Total2records` 粘连。
 - [x] 49. 编写专项自动化测试套件（`test/test_site_i18n_concise.py`），验证 6 国语言简写文案、CSS nowrap 样式、分类下拉与分页排版。
-- [x] 50. 运行全量自动化回归套件验证，确保 100% 通过并清理临时文件。
-- [ ] 51. 补全 6 国语言词典与映射表：在 `template.json`、`lan.js`（`files` 与 `msgs`）、`phrases_full.py` 和 `phrases_enhanced.py` 中录入 `recycle_bin_confirm` 与 `recycle_bin_confirm_dir` 词条，规范化标题与提示语。
-- [ ] 52. 重构 `web/static/app/files.js` 中删除确认弹窗：为 `deleteFile`、`deleteDir` 与 `allDeleteFileSub` 接入 `t(...)` 动态多语言，修复硬编码中文标题（删除文件/删除目录/批量删除文件）与空内容问题，并优化右键菜单文案。
-- [ ] 53. 增强 `web/static/app/i18n.js` 与 `public.js` 弹性容错与全局拦截：为 `lan.get` 增加安全代理与参数插值兜底，在全局 Layer 弹窗拦截器中补强常见操作标题的自动多语言转换。
-- [ ] 54. 重新构建 6 国语言包并强制 LF 换行，确保全套语言包语法正确且词条生效。
-- [ ] 55. 编写并运行自动化测试套件（`test/test_files_delete_modal_i18n.py`），验证 6 国语言下弹窗标题、内容参数插值与按钮正确性。
-- [ ] 56. 运行全量自动化测试套件（`test/run_all_tests.py`）进行回归验证，确保 100% 通过并清理临时排查脚本。
-
+- [x] 57. 实施弹窗关闭按钮 (X) 双重修复：在 `site.css` 与 `ensite.css` 中重置 `.layui-layer-setwin .layui-layer-close2` 样式（消除 `-28px` 负边距并修复裁剪），并在 `i18n.js` / `public.js` 全局弹窗拦截器中自动归一化 `closeBtn: 2` 为内嵌式 `closeBtn: 1`。
+- [x] 58. 优化多语言词典（`phrases_full.py`、`lan.js`、`template.json`）：将 6 国语言文件操作列词条（`copy_path`、`permissions`、`compress`、`preview`、`download`、`delete` 等）精炼优化为国际通行简写。
+- [x] 59. 重新构建 6 国语言包并强制 LF 换行，确保全套语言包语法正确且简写词条生效。
+- [x] 60. 重构 `files.js` 表格列宽配置与操作列样式：为大小、权限、所有者设置合理保底列宽，操作列适配弹性空间，并为 `.editmenu` 与 `span` 增加 `white-space: nowrap !important;` 彻底杜绝换行。
+- [x] 61. 编写专项自动化测试套件（`test/test_modal_close_btn_and_files_ops.py`），验证 6 国语言简写、关闭按钮样式与操作列防折行规则。
+- [x] 62. 运行全量自动化测试套件回归验证，确保 100% 通过并清理临时排查脚本。

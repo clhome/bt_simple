@@ -221,10 +221,18 @@
         if (res && typeof res === 'string' && res.trim() !== '') {
             return res;
         }
-        var argList = Array.isArray(args) ? args : (args !== undefined ? [args] : []);
-        var fallback = t('files.' + key, argList) || t('public.' + key, argList) || t(key, argList);
-        if (fallback && fallback !== key && fallback !== ('files.' + key) && fallback !== ('public.' + key)) {
-            return fallback;
+        if (window._inLanGet) {
+            return res || '';
+        }
+        window._inLanGet = true;
+        try {
+            var argList = Array.isArray(args) ? args : (args !== undefined ? [args] : []);
+            var fallback = t('files.' + key, argList) || t('public.' + key, argList);
+            if (fallback && fallback !== key && fallback !== ('files.' + key) && fallback !== ('public.' + key)) {
+                return fallback;
+            }
+        } finally {
+            window._inLanGet = false;
         }
         return res || '';
     };
@@ -293,8 +301,8 @@
             return val;
         }
 
-        // 4. 如果在 lan 中没有找到，尝试调用 lan.get
-        if (window.lan && typeof window.lan.get === 'function') {
+        // 4. 如果在 lan 中没有找到，且为单个简单 key，尝试调用 lan.get
+        if (parts.length === 1 && !window._inLanGet && window.lan && typeof window.lan.get === 'function') {
             var getVal = window.lan.get(key, args || []);
             if (getVal && getVal !== key && getVal !== normalizedKey.toLowerCase()) {
                 return getVal;

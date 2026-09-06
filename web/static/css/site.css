@@ -3260,10 +3260,15 @@ html .menu .menu_exit:hover {
     color: #666
 }
 
+.editmenu {
+    text-align: right !important;
+    white-space: nowrap !important;
+}
+
 .editmenu span {
     display: none;
     text-align: right;
-    width: 300px
+    white-space: nowrap !important;
 }
 
 .table tr.hover,
@@ -3277,7 +3282,8 @@ html .menu .menu_exit:hover {
 .table tr.ui-selected .editmenu span,
 .table tr.ui-selecting .editmenu span,
 .table tr:hover .editmenu span {
-    display: inline
+    display: inline-block !important;
+    white-space: nowrap !important;
 }
 
 .ui-selectable-helper {
@@ -5815,6 +5821,47 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
 .layui-layer-btn {
     border-bottom-left-radius: 10px !important;
     border-bottom-right-radius: 10px !important;
+}
+
+/* 彻底修复弹窗右上角关闭按钮(包括 closeBtn:2)位置偏移与被 overflow:hidden 裁剪问题 */
+.layui-layer-setwin {
+    top: 15px !important;
+    right: 15px !important;
+    line-height: initial !important;
+}
+.layui-layer-setwin .layui-layer-close2 {
+    position: relative !important;
+    right: 0 !important;
+    top: 0 !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-left: 0 !important;
+    background-image: none !important;
+    background-position: 0 0 !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+}
+.layui-layer-setwin .layui-layer-close2::before,
+.layui-layer-setwin .layui-layer-close2::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 7px !important;
+    left: 1px !important;
+    width: 14px !important;
+    height: 2px !important;
+    background-color: #94a3b8 !important;
+    border-radius: 1px !important;
+    transition: background-color 0.2s ease, transform 0.2s ease !important;
+}
+.layui-layer-setwin .layui-layer-close2::before {
+    transform: rotate(45deg) !important;
+}
+.layui-layer-setwin .layui-layer-close2::after {
+    transform: rotate(-45deg) !important;
+}
+.layui-layer-setwin .layui-layer-close2:hover::before,
+.layui-layer-setwin .layui-layer-close2:hover::after {
+    background-color: #ef4444 !important;
 }
 
 /* 修复 CodeMirror 搜索框不可见问题并将其移至右上角悬浮防遮挡 */
