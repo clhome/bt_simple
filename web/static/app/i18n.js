@@ -245,10 +245,19 @@
     function t(key, args, defaultText) {
         if (!key || typeof key !== 'string') return '';
 
-        // 如果第二个参数直接传了默认文本字符串，如 t('files.new', '新建')
-        if (typeof args === 'string' && defaultText === undefined) {
+        // 参数归一化：支持 t(key, defaultText)、t(key, argsArray, defaultText) 以及变长参数 t(key, arg1, arg2, arg3...)
+        var argList = null;
+        if (Array.isArray(args)) {
+            argList = args;
+        } else if (arguments.length > 2 && typeof args !== 'string') {
+            // 变长参数调用，如 t(key, 38, 3, 46)
+            argList = Array.prototype.slice.call(arguments, 1);
+            defaultText = undefined;
+        } else if (typeof args === 'string' && defaultText === undefined) {
             defaultText = args;
             args = null;
+        } else if (args !== undefined && args !== null) {
+            argList = [args];
         }
 
         var normalizedKey = key.trim();
@@ -284,8 +293,7 @@
 
         // 3. 处理字符串模板与插值参数
         if (typeof val === 'string') {
-            if (args !== undefined && args !== null) {
-                var argList = Array.isArray(args) ? args : [args];
+            if (argList && argList.length > 0) {
                 var hasZero = val.indexOf('{0}') > -1;
                 val = val.replace(/\{(\d+)\}/g, function(match, num) {
                     var n = parseInt(num, 10);

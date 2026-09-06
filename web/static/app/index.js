@@ -259,7 +259,7 @@ function getInfo() {
         localStorage.setItem('cached_system_info', info.system);
         if (info.boot_time) {
             var prefix = t('index.running_prefix', '已运行: ');
-            var timeStr = t('public.SYS_BOOT_TIME', info.boot_time.days, info.boot_time.hours, info.boot_time.min);
+            var timeStr = t('public.SYS_BOOT_TIME', [info.boot_time.days, info.boot_time.hours, info.boot_time.min]);
             $("#running").html(prefix + timeStr);
         } else {
             $("#running").html(info.time);
