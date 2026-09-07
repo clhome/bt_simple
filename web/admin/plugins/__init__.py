@@ -218,16 +218,62 @@ def clear_cache():
     return yf.returnData(True, 'plugin.py_msg_15c2e0')
 
 
+_PLUGIN_HTML_CACHE = {}
+_PLUGIN_LANG_CACHE = {}
+
 # 插件设置页
 @blueprint.route('/setting', endpoint='setting', methods=['GET'])
 @panel_login_required
 def setting():
     name = request.args.get('name', '')
-    html = yf.getPluginDir() + '/' + name + '/index.html'
-    return yf.readFile(html)
+    if not name:
+        return ''
+
+    plugin_dir = yf.getPluginDir() + '/' + name
+    html_file = plugin_dir + '/index.html'
+    if name in _PLUGIN_HTML_CACHE:
+        html_content = _PLUGIN_HTML_CACHE[name]
+    else:
+        html_content = yf.readFile(html_file)
+        if html_content:
+            _PLUGIN_HTML_CACHE[name] = html_content
+        else:
+            return ''
+
+    # 服务端直出当前语言包字典，免除前端二次网络请求（0ms 阻塞）
+    try:
+        from core.i18n import get_current_lang
+        lang = get_current_lang()
+    except Exception:
+        lang = 'zh-CN'
+
+    lang_cache_key = (name, lang)
+    if lang_cache_key in _PLUGIN_LANG_CACHE:
+        lang_dict = _PLUGIN_LANG_CACHE[lang_cache_key]
+    else:
+        lang_file = plugin_dir + '/lang/' + lang + '.json'
+        lang_dict = {}
+        if os.path.exists(lang_file):
+            try:
+                lang_dict = json.loads(yf.readFile(lang_file))
+            except Exception:
+                pass
+        _PLUGIN_LANG_CACHE[lang_cache_key] = lang_dict
+
+    if lang_dict:
+        inline_script = (
+            f"\n<script>"
+            f"window._pluginDicts=window._pluginDicts||{{}};"
+            f"window._pluginDicts['{name}']={json.dumps(lang_dict, ensure_ascii=False)};"
+            f"try{{localStorage.setItem('yf_plang_{name}_{lang}',JSON.stringify(window._pluginDicts['{name}']));}}catch(e){{}}"
+            f"</script>"
+        )
+        return html_content + inline_script
+
+    return html_content
 
 
-# 插件缓存，过期时间为 10 秒
+# 插件缓存字典
 RUN_CACHE = {}
 
 # 插件统一回调入口API
@@ -240,14 +286,24 @@ def run():
     args = request.form.get('args', '')
     script = request.form.get('script', 'index')
 
-    # 针对获取插件统计信息 get_total_statistics 引入 10 秒轻量级缓存
-    cache_key = (name, func, version, args, script)
     import time
     now = time.time()
-    if func == 'get_total_statistics' and cache_key in RUN_CACHE:
+    cache_key = (name, func, version, args, script)
+
+    # 针对只读 status 查询提供 2 秒轻量防抖缓存，避免重复拉起 Python 子进程；统计信息提供 10 秒缓存
+    is_status_query = func == 'status' or func.startswith('status_')
+    cache_ttl = 10 if func == 'get_total_statistics' else (2 if is_status_query else 0)
+
+    if cache_ttl > 0 and cache_key in RUN_CACHE:
         cache_data, cache_time = RUN_CACHE[cache_key]
-        if now - cache_time < 10:
+        if now - cache_time < cache_ttl:
             return cache_data
+
+    # 写操作立即清除该插件的状态缓存
+    if func in ('start', 'stop', 'restart', 'reload') or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_')):
+        for k in list(RUN_CACHE.keys()):
+            if k[0] == name:
+                del RUN_CACHE[k]
 
     pg = YfPlugin.instance()
     data = pg.run(name, func, version, args, script)
@@ -256,7 +312,7 @@ def run():
     else:
         r = yf.returnData(False, data[1].strip())
 
-    if func == 'get_total_statistics':
+    if cache_ttl > 0:
         RUN_CACHE[cache_key] = (r, now)
 
     return r

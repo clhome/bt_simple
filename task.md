@@ -94,5 +94,23 @@
 - [x] 90. 编写专项性能基准测试与自动化回归测试套件（`test/test_plugin_performance.py`），验证优化前后各链路耗时及多语言渲染 100% 正确性。
 - [x] 91. 全量回归测试验证、清理临时工具并向用户汇报。
 
+## 插件后端打开性能深度优化与 Loading 异常修复
+
+- [x] 92. 修复各插件服务页面 loading 文字空白与右侧上下滚动条箭头异常：
+  - 完善 6 国语言公共字典（`public.json` 与 `lan.js`）中的 `loading_1`、`loading` 词条；
+  - 优化 `public.js` 中的 `pluginService`，传入明确默认文本 `t('public.loading_1', '正在获取服务状态...')`，彻底杜绝空字符串；
+  - 增强 `public.js` 中全局 `initLayerI18n` 拦截器支持 `layer.msg`，遇空内容自动保底注入多语言 Loading，并自动翻译常见中文加载文案；
+  - 在 `site.css` 与 `ensite.css` 中为 `.layui-layer-msg .layui-layer-content` 设置 `overflow: hidden !important;`，彻底杜绝上下滚动条箭头。
+- [x] 93. 实施打开插件后端杀手级优化 —— 服务端直出 HTML 内联注入插件语言包：
+  - 在 `web/admin/plugins/__init__.py` 的 `/setting` 接口中，返回 `index.html` 时直接内联注入当前语言的 `_pluginDicts` 字典；
+  - 前端拿到 HTML 时语言包已 100% 内存就绪，彻底免除前端向后端二次请求语言包的网络耗时（网络请求次数直接归零）。
+- [x] 94. 实施打开插件后端内存级模板与静态文件缓存优化：
+  - 为 `index.html` 与插件静态文件添加 Python 进程级缓存，避免每次打开弹窗都产生磁盘文件读取。
+- [x] 95. 实施打开插件后端状态查询短时防抖缓存：
+  - 在 `web/admin/plugins/__init__.py` 的 `/run` 接口中，针对只读状态查询 `status` 提供 2 秒轻量防抖缓存，避免弹窗初始化与默认菜单点击连续触发两次 Python 进程启动；写操作立即失效缓存。
+- [x] 96. 编写并运行自动化回归测试套件（`test/test_loading_modal_and_backend_opt.py`），验证 loading 弹窗无滚动条无空白，以及后端内联注入与缓存的正确性。
+- [x] 97. 回归验证、清理临时工具并向用户汇报。
+
+
 
 

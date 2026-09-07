@@ -5823,6 +5823,12 @@ body.sidebar-mini .sidebar-collapse .glyphicon { transform: rotate(180deg); }
     border-bottom-right-radius: 10px !important;
 }
 
+/* 彻底消除 layer.msg loading 弹窗右侧由于高度计算误差导致的上下滚动条/箭头异常 */
+.layui-layer-msg .layui-layer-content {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+}
+
 /* 彻底修复弹窗右上角关闭按钮(包括 closeBtn:2)位置偏移与被 overflow:hidden 裁剪问题 */
 .layui-layer-setwin {
     top: 15px !important;

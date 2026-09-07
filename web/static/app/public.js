@@ -200,6 +200,31 @@ function initLayerI18n() {
 
     return origOpen.call(this, options);
   };
+
+  // 5. 增强 layer.msg 国际化与空内容/loading 异常保底
+  var origMsg = window.layer.msg;
+  window.layer.msg = function (content, options, end) {
+    if (typeof options === 'function') {
+      end = options;
+      options = {};
+    } else {
+      options = options || {};
+    }
+
+    // 针对 loading 类型(icon: 16)进行内容安全保底，绝不传空字符串
+    if (!content || (typeof content === 'string' && content.trim() === '')) {
+      if (options.icon === 16) {
+        content = getI18nText('public.loading_1') || getI18nText('public.loading', '正在获取...');
+      }
+    } else if (typeof content === 'string') {
+      var trans = getI18nText(content);
+      if (trans && trans !== content) {
+        content = trans;
+      }
+    }
+
+    return origMsg.call(this, content, options, end);
+  };
 }
 
 // 立即尝试初始化，如果 layer 异步加载则等待 DOM 就绪或再次尝试
@@ -2838,7 +2863,7 @@ function pluginService(_name, version, _suffix_name = '') {
   } else {
     version = '';
   }
-  var loadT = layer.msg(lan && lan.public && t('public.loading_1') || "", {
+  var loadT = layer.msg(t('public.loading_1', '正在获取服务状态...'), {
     icon: 16,
     time: 0,
     shade: 0.3
