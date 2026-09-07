@@ -232,8 +232,12 @@ def do_login():
     login_limit_key = 'login_limit_' + client_ip
     login_cache_limit = cache.get(login_limit_key)
 
-    if 'code' in session:
-        if session['code'] != yf.md5(code):
+    # 验证码安全加固：存在失败记录或已调出验证码时，强制要求提交有效验证码，防绕过与重放攻击
+    need_code = 'code' in session or (login_cache_limit is not None and int(login_cache_limit) > 0)
+    if need_code:
+        expected_code = session.pop('code', None)
+        code_str = str(code).strip().lower()
+        if not expected_code or not code_str or expected_code != yf.md5(code_str):
             if login_cache_limit == None:
                 login_cache_limit = 1
             else:
@@ -244,7 +248,7 @@ def do_login():
                 return yf.returnData(False, 'dashboard.py_msg_b5cdb3')
 
             cache.set(login_limit_key, login_cache_limit, timeout=10000)
-            login_err_msg = yf.getInfo("验证码错误,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit)))
+            login_err_msg = yf.getInfo("验证码错误或已失效,您还可以尝试[{1}]次!", (str(login_cache_count - login_cache_limit)))
             yf.writeLog('用户登录', login_err_msg)
             return yf.returnData(False, login_err_msg)
 

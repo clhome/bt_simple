@@ -807,40 +807,113 @@ class plugin(object):
         return infos
 
     # 检查插件状态
-    def checkStatusThreads(self, info, i):
-        if not info['setup']:
-            return False
-        data = self.run(info['name'], 'status', info['setup_version'])
-        if data[0].strip() == 'start':
-            return True
-        else:
+    # 轻量级核心服务状态快速探测，优先读取PID文件与进程存活，避免无谓fork外部Python进程
+    def checkStatusQuick(self, name, version=''):
+        server_dir = yf.getServerDir()
+
+        # 1. OpenResty / Nginx 快速探测
+        if name in ('openresty', 'openresty-status'):
+            pid_file = os.path.join(server_dir, 'openresty/nginx/logs/nginx.pid')
+            if not os.path.exists(pid_file):
+                pid_file = os.path.join(server_dir, 'openresty/logs/nginx.pid')
+            if os.path.exists(pid_file):
+                try:
+                    pid = yf.readFile(pid_file).strip()
+                    if pid and yf.checkPid(int(pid)):
+                        return True
+                except Exception:
+                    pass
             return False
 
-    # 检查插件状态
-    def checkStatusThreadsByCache(self, info, i):
-        # 初始化db
-        if not info['setup']:
+        # 2. MySQL / MariaDB 快速探测
+        if name in ('mysql', 'mariadb'):
+            pid_file = os.path.join(server_dir, f"{name}/data/{name}.pid")
+            if not os.path.exists(pid_file):
+                import socket
+                hostname = socket.gethostname()
+                pid_file = os.path.join(server_dir, f"{name}/data/{hostname}.pid")
+            if os.path.exists(pid_file):
+                try:
+                    pid = yf.readFile(pid_file).strip()
+                    if pid and yf.checkPid(int(pid)):
+                        return True
+                except Exception:
+                    pass
+            return False
+
+        # 3. Redis 快速探测
+        if name == 'redis':
+            pid_file = os.path.join(server_dir, 'redis/data/redis.pid')
+            if os.path.exists(pid_file):
+                try:
+                    pid = yf.readFile(pid_file).strip()
+                    if pid and yf.checkPid(int(pid)):
+                        return True
+                except Exception:
+                    pass
+            return False
+
+        # 4. Pure-FTPd 快速探测
+        if name == 'pureftp':
+            pid_file = os.path.join(server_dir, 'pureftp/pure-ftpd.pid')
+            if os.path.exists(pid_file):
+                try:
+                    pid = yf.readFile(pid_file).strip()
+                    if pid and yf.checkPid(int(pid)):
+                        return True
+                except Exception:
+                    pass
+            return False
+
+        # 5. PHP (多版本共存) 快速探测
+        if name.startswith('php') or (name == 'php' and version):
+            ver_clean = str(version).replace('.', '')
+            pid_file = os.path.join(server_dir, f"php/{ver_clean}/var/run/php-fpm.pid")
+            if os.path.exists(pid_file):
+                try:
+                    pid = yf.readFile(pid_file).strip()
+                    if pid and yf.checkPid(int(pid)):
+                        return True
+                except Exception:
+                    pass
+            return False
+
+        return None
+
+    # 检查插件真实状态（优先轻量探测，兜底调用插件status）
+    def checkStatusReal(self, info):
+        if not info.get('setup', False):
+            return False
+
+        name = info.get('name', '')
+        setup_ver = info.get('setup_version', '')
+        quick_res = self.checkStatusQuick(name, setup_ver)
+        if quick_res is not None:
+            return quick_res
+
+        data = self.run(name, 'status', setup_ver)
+        return data[0].strip() == 'start'
+
+    # 检查插件状态（兼容旧接口）
+    def checkStatusThreads(self, info, i=0):
+        return self.checkStatusReal(info)
+
+    # 检查插件状态（优先从指定缓存读取）
+    def checkStatusThreadsByCache(self, info, i=0):
+        if not info.get('setup', False):
             return False
 
         plugin_list_status = self.__plugin_status_data
         if plugin_list_status is not None:
             k = info['name']
             if 'coexist' in info and info['coexist']:
-                k = info['title']
-            # print(k)
+                k = info.get('title', info['name'])
             if k in plugin_list_status:
-                if plugin_list_status[k]:
-                    return True
-                else: 
-                    return False
+                return bool(plugin_list_status[k])
 
-        data = self.run(info['name'], 'status', info['setup_version'])
-        if data[0].strip() == 'start':
-            return True
-        else:
-            return False
+        return self.checkStatusReal(info)
 
-    # 多线程检查插件状态[cache] —— 缓存优先 + 后台异步刷新策略
+    # 多线程检查插件状态[cache] —— 缓存优先 + 后台异步受控并发刷新策略
     def checkStatusMThreadsByCache(self, info):
         try:
             cached_data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default=None)
@@ -849,7 +922,7 @@ class plugin(object):
 
             self.__plugin_status_data = cached_data
 
-            # 判断缓存是否可用（已安装的插件在缓存中都有对应条目）
+            # 判断缓存是否完整可用（已安装的插件在缓存中均有对应条目）
             has_full_cache = True
             for item in info:
                 if not item.get('setup', False):
@@ -861,8 +934,10 @@ class plugin(object):
                     has_full_cache = False
                     break
 
+            from concurrent.futures import ThreadPoolExecutor
+
             if has_full_cache:
-                # 缓存完整：直接使用缓存值返回（零阻塞），后台异步刷新
+                # 缓存完整：直接使用缓存值返回（0ms零阻塞）
                 for i in range(len(info)):
                     if not info[i].get('setup', False):
                         info[i]['status'] = False
@@ -872,32 +947,23 @@ class plugin(object):
                         k = info[i].get('title', info[i]['name'])
                     info[i]['status'] = cached_data.get(k, False)
 
-                # 启动后台线程异步刷新缓存（不阻塞当前请求）
+                # 启动后台受控并发线程异步刷新（最大并发为4，使用checkStatusReal穿透旧缓存刷新）
                 import copy
                 info_copy = copy.deepcopy(info)
                 def _async_refresh():
                     try:
-                        db_cache = thisdb.getOptionByJson(self.__plugin_status_cachekey, default=None)
-                        if db_cache is None or type(db_cache) != dict:
-                            db_cache = {}
-                        fresh_data = db_cache.copy()
-
-                        threads = []
-                        ntmp_list = range(len(info_copy))
-                        for i in ntmp_list:
-                            t = pg_thread(self.checkStatusThreadsByCache, (info_copy[i], i))
-                            threads.append(t)
-                        for i in ntmp_list:
-                            threads[i].start()
-                        for i in ntmp_list:
-                            threads[i].join()
-                        for i in ntmp_list:
-                            t = threads[i].getResult()
-                            k = info_copy[i]['name']
-                            if 'coexist' in info_copy[i] and info_copy[i]['coexist']:
-                                k = info_copy[i].get('title', info_copy[i]['name'])
-                            fresh_data[k] = t
+                        fresh_data = {}
+                        installed_items = [item for item in info_copy if item.get('setup', False)]
+                        if installed_items:
+                            with ThreadPoolExecutor(max_workers=4) as executor:
+                                results = list(executor.map(self.checkStatusReal, installed_items))
+                                for item, status_val in zip(installed_items, results):
+                                    k = item['name']
+                                    if 'coexist' in item and item['coexist']:
+                                        k = item.get('title', item['name'])
+                                    fresh_data[k] = status_val
                         thisdb.setOption(self.__plugin_status_cachekey, json.dumps(fresh_data))
+                        self.__plugin_status_data = fresh_data
                     except Exception as e:
                         print('async refresh plugin status error:', str(e))
 
@@ -905,29 +971,37 @@ class plugin(object):
                 refresh_thread.daemon = True
                 refresh_thread.start()
             else:
-                # 冷启动：没有完整缓存，必须同步获取（仅首次）
-                threads = []
-                ntmp_list = range(len(info))
-                for i in ntmp_list:
-                    t = pg_thread(self.checkStatusThreadsByCache, (info[i], i))
-                    threads.append(t)
-                for i in ntmp_list:
-                    threads[i].start()
-                for i in ntmp_list:
-                    threads[i].join()
-                for i in ntmp_list:
-                    t = threads[i].getResult()
+                # 冷启动：受控最大 4 并发线程获取真实状态，杜绝单核机器瞬时高负载
+                installed_items = [item for item in info if item.get('setup', False)]
+                status_map = {}
+                if installed_items:
+                    with ThreadPoolExecutor(max_workers=4) as executor:
+                        results = list(executor.map(self.checkStatusReal, installed_items))
+                        for item, status_val in zip(installed_items, results):
+                            k = item['name']
+                            if 'coexist' in item and item['coexist']:
+                                k = item.get('title', item['name'])
+                            status_map[k] = status_val
+
+                for i in range(len(info)):
+                    if not info[i].get('setup', False):
+                        info[i]['status'] = False
+                        continue
                     k = info[i]['name']
                     if 'coexist' in info[i] and info[i]['coexist']:
                         k = info[i].get('title', info[i]['name'])
-                    self.__plugin_status_data[k] = t
-                    info[i]['status'] = t
-                thisdb.setOption(self.__plugin_status_cachekey, json.dumps(self.__plugin_status_data))
+                    status_val = status_map.get(k, False)
+                    info[i]['status'] = status_val
+                    cached_data[k] = status_val
+
+                self.__plugin_status_data = cached_data
+                thisdb.setOption(self.__plugin_status_cachekey, json.dumps(cached_data))
 
         except Exception as e:
             print(yf.getTracebackInfo())
             print('checkStatusMThreadsByCache:', str(e))
         return info
+
 
     def autoCachePluginStatus(self):
         def _do_cache():

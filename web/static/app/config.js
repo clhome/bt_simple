@@ -472,34 +472,58 @@ function modifyAuthPath() {
   });
 }
 function setPassword() {
+  var oldPwdLabel = lan && lan.config && t('config.old_password') || '原密码';
+  var newPwdLabel = lan && lan.config && t('config.new_password') || '新密码';
+  var repeatLabel = lan && lan.config && t('config.repeat') || '重复';
+
+  var formHtml = '<div class="bt-form pd20" style="padding: 15px 20px;">' +
+    '<div class="line"><span class="tname">' + oldPwdLabel + '</span>' +
+    '<div class="info-r"><input class="bt-input-text" type="password" name="old_password" id="p_old" placeholder="' + oldPwdLabel + '" style="width:75%"/></div></div>' +
+    '<div class="line"><span class="tname">' + newPwdLabel + '</span>' +
+    '<div class="info-r"><input class="bt-input-text" type="password" name="password1" id="p1" placeholder="新的密码 (>=8位，含字母数字)" style="width:75%"/></div></div>' +
+    '<div class="line"><span class="tname">' + repeatLabel + '</span>' +
+    '<div class="info-r"><input class="bt-input-text" type="password" name="password2" id="p2" placeholder="再输一次" style="width:75%"/></div></div>' +
+    '</div>';
+
   layer.open({
     type: 1,
-    area: ["350px", 'auto'],
-    title: lan && lan.config && t('config.change_password') || "",
+    area: ["400px", 'auto'],
+    title: lan && lan.config && t('config.change_password') || "修改面板密码",
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    btn: [lan && lan.config && t('config.edit') || "", lan && lan.config && t('config.close_2') || "", lan && lan.config && t('config.random') || ""],
-    content: '<div class=\'bt-form\'>				<div class=\'line\'>					<span class=\'tname\'>' + ('<div class=\'bt-form\'>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.password') || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的密码\' style=\'width:70%\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.repeat') || '重复') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\' /></div>				</div>			</div>' || '密码') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password1\' id=\'p1\' value=\'\' placeholder=\'新的密码\' style=\'width:70%\'/></div>				</div>				<div class=\'line\'>					<span class=\'tname\'>' + (lan && lan.config && t('config.repeat') || '重复') + '</span>					<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'password2\' id=\'p2\' value=\'\' placeholder=\'再输一次\' style=\'width:70%\' /></div>				</div>			</div>',
+    btn: [lan && lan.config && t('config.edit') || "修改", lan && lan.config && t('config.close_2') || "关闭", lan && lan.config && t('config.random') || "随机"],
+    content: formHtml,
     yes: function () {
+      var pOld = $("#p_old").val();
       var p1 = $("#p1").val();
       var p2 = $("#p2").val();
+
+      if (!pOld) {
+        layer.msg("请输入原密码！", { icon: 2 });
+        return;
+      }
       if (p1 == "" || p1.length < 8) {
-        layer.msg(lan && lan.config && t('config.the_panel_password_must') || "", {
+        layer.msg(lan && lan.config && t('config.the_panel_password_must') || "密码长度至少需要8位！", {
           icon: 2
         });
         return;
       }
 
-      //准备弱口令匹配元素
-      var checks = ['admin888', '123123123', '12345678', '45678910', '87654321', 'asdfghjkl', 'password', 'qwerqwer'];
-      pchecks = 'abcdefghijklmnopqrstuvwxyz1234567890';
-      for (var i = 0; i < pchecks.length; i++) {
-        checks.push(pchecks[i] + pchecks[i] + pchecks[i] + pchecks[i] + pchecks[i] + pchecks[i] + pchecks[i] + pchecks[i]);
+      // 必须包含字母和数字
+      if (!/[A-Za-z]/.test(p1) || !/[0-9]/.test(p1)) {
+        layer.msg("密码必须同时包含英文字母和数字！", { icon: 2 });
+        return;
       }
 
-      //检查弱口令
-      cps = p1.toLowerCase();
+      if (p1 == pOld) {
+        layer.msg("新密码不能与原密码相同！", { icon: 2 });
+        return;
+      }
+
+      // 检查弱口令
+      var checks = ['admin888', '123123123', '12345678', '45678910', '87654321', 'asdfghjkl', 'password', 'qwerqwer'];
+      var cps = p1.toLowerCase();
       var isError = "";
       for (var i = 0; i < checks.length; i++) {
         if (cps == checks[i]) {
@@ -507,22 +531,29 @@ function setPassword() {
         }
       }
       if (isError != "") {
-        layer.msg((lan && lan.config && t('config.the_panel_password_cannot') || "") + isError, {
+        layer.msg((lan && lan.config && t('config.the_panel_password_cannot') || "面板密码不能为常用弱口令：") + isError, {
           icon: 5
         });
         return;
       }
+
       if (p1 != p2) {
-        layer.msg(lan && lan.config && t('config.the_two_passwords_you') || "", {
+        layer.msg(lan && lan.config && t('config.the_two_passwords_you') || "两次输入的密码不一致", {
           icon: 2
         });
         return;
       }
-      $.post("/setting/set_password", "password1=" + encodeURIComponent(p1) + "&password2=" + encodeURIComponent(p2), function (b) {
+
+      var postData = "old_password=" + encodeURIComponent(pOld) + "&password1=" + encodeURIComponent(p1) + "&password2=" + encodeURIComponent(p2);
+      $.post("/setting/set_password", postData, function (b) {
         if (b.status) {
           layer.closeAll();
-          layer.msg(b.msg, {
-            icon: 1
+          layer.msg(b.msg || "密码修改成功，请重新登录！", {
+            icon: 1,
+            time: 2000
+          }, function() {
+            try { sessionStorage.removeItem('bt_recent_logins_cache'); } catch(e) {}
+            window.location.href = '/login?signout=True';
           });
         } else {
           layer.msg(b.msg, {
@@ -533,11 +564,13 @@ function setPassword() {
       return;
     },
     btn3: function () {
-      var pwd = randomStrPwd(12);
+      var pwd = randomStrPwd(14);
       $("#p1").val(pwd);
       $("#p2").val(pwd);
-      layer.msg(lan && lan.config && t('config.please_make_note_of') || "", {
-        time: 2000
+      $("#p1").attr("type", "text");
+      $("#p2").attr("type", "text");
+      layer.msg(lan && lan.config && t('config.please_make_note_of') || "已生成随机强密码，请妥善记录！", {
+        time: 2500
       });
       return false;
     }

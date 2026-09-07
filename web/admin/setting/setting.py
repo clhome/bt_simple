@@ -244,15 +244,53 @@ def set_name():
 @blueprint.route('/set_password', endpoint='set_password', methods=['POST'])
 @panel_login_required
 def set_password():
-    password1 = request.form.get('password1', '')
-    password2 = request.form.get('password2', '')
-    if password1 != password2:
-        return yf.returnData(False, 'setting.py_msg_fa9023')
-    if len(password1) < 5:
-        return yf.returnData(False, 'setting.py_msg_d8c2ca')
+    username = session.get('username', '')
+    if not username:
+        return yf.returnData(False, '登录超时，请重新登录！')
 
-    thisdb.setUserPwdByName(session['username'], password1)
-    return yf.returnData(True, 'setting.py_msg_4c7f7a')
+    old_password = request.form.get('old_password', '').strip()
+    password1 = request.form.get('password1', '').strip()
+    password2 = request.form.get('password2', '').strip()
+
+    user_info = thisdb.getUserByName(username)
+    if not user_info:
+        return yf.returnData(False, '用户不存在！')
+
+    # 原密码校验（支持 bcrypt 及 md5 回退）
+    if not old_password:
+        return yf.returnData(False, '请输入原密码！')
+
+    old_correct = False
+    if user_info.get('password') == yf.md5(old_password):
+        old_correct = True
+    elif yf.checkPwd(old_password, user_info.get('password', '')):
+        old_correct = True
+
+    if not old_correct:
+        return yf.returnData(False, '原密码错误，请重新输入！')
+
+    if password1 != password2:
+        return yf.returnData(False, '两次输入的密码不一致！')
+
+    if len(password1) < 8:
+        return yf.returnData(False, '新密码长度至少需要8位！')
+
+    import re
+    if not re.search(r'[A-Za-z]', password1) or not re.search(r'[0-9]', password1):
+        return yf.returnData(False, '新密码必须同时包含英文字母和数字！')
+
+    if password1 == old_password:
+        return yf.returnData(False, '新密码不能与原密码相同！')
+
+    thisdb.setUserPwdByName(username, password1)
+    yf.writeLog('面板设置', '管理员[{1}]成功修改了面板密码', (username,))
+
+    # 会话注销，强制重新使用新密码登录
+    session.clear()
+    session['login'] = False
+    session['overdue'] = 0
+
+    return yf.returnData(True, '密码修改成功，请使用新密码重新登录！')
 
 # 设置面板端口
 @blueprint.route('/set_port', endpoint='set_port', methods=['POST'])

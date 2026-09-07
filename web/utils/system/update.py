@@ -176,6 +176,46 @@ def rollback_panel(backup_file=None):
     yf.restartPanel()
     return True, f"已成功回滚至快照: {os.path.basename(backup_file)}"
 
+def verify_zip_integrity(zip_path):
+    """验证 zip 文件结构的完整性，检测文件是否损坏或截断"""
+    import zipfile
+    if not os.path.exists(zip_path) or os.path.getsize(zip_path) < 1024:
+        return False, "升级包文件不存在或文件过小"
+    try:
+        if not zipfile.is_zipfile(zip_path):
+            return False, "文件不是有效的 ZIP 格式压缩包"
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            bad_file = zf.testzip()
+            if bad_file is not None:
+                return False, f"ZIP 压缩包损坏，损坏文件: {bad_file}"
+        return True, "ZIP 完整性校验通过"
+    except Exception as e:
+        return False, f"ZIP 校验异常: {str(e)}"
+
+def verify_sha256(file_path, expected_hash):
+    """计算文件的 SHA-256 哈希值并与期望值比对"""
+    import hashlib
+    if not os.path.exists(file_path):
+        return False, "待校验文件不存在"
+    expected_hash = str(expected_hash).strip().lower()
+    if not expected_hash:
+        return True, "未指定期望哈希值，跳过校验"
+    try:
+        sha256 = hashlib.sha256()
+        with open(file_path, 'rb') as f:
+            while True:
+                chunk = f.read(65536)
+                if not chunk:
+                    break
+                sha256.update(chunk)
+        calc_hash = sha256.hexdigest().lower()
+        if calc_hash == expected_hash:
+            return True, f"SHA-256 校验通过 ({calc_hash})"
+        else:
+            return False, f"SHA-256 校验不匹配！期望: {expected_hash}, 实际: {calc_hash}"
+    except Exception as e:
+        return False, f"哈希计算异常: {str(e)}"
+
 def updateServer(stype, version='', step='all'):
     import config
     # 更新服务
@@ -229,6 +269,23 @@ def updateServer(stype, version='', step='all'):
                 
                 if not download_status or not os.path.exists(dist_yf):
                     return yf.returnData(False, 'system.py_msg_eb2036')
+
+                # 升级包结构完整性前置校验（防截断与损坏包）
+                valid_zip, zip_err = verify_zip_integrity(dist_yf)
+                if not valid_zip:
+                    yf.deleteFile(dist_yf)
+                    return yf.returnData(False, f"升级包完整性校验失败: {zip_err}")
+
+                # 供应链防投毒检测：若 Release body 中附带 sha256 校验和声明，严格比对
+                import re
+                release_body = str(version_new_info.get('body', ''))
+                sha256_match = re.search(r'sha256\s*[:=]\s*([a-fA-F0-9]{64})', release_body)
+                if sha256_match:
+                    expected_sha = sha256_match.group(1)
+                    sha_ok, sha_msg = verify_sha256(dist_yf, expected_sha)
+                    if not sha_ok:
+                        yf.deleteFile(dist_yf)
+                        return yf.returnData(False, f"供应链安全拦截：{sha_msg}")
 
                 # 解压
                 os.system('unzip -o ' + dist_yf + ' -d ' + toPath)

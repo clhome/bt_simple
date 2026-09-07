@@ -45,7 +45,7 @@
     <script src="/static/app/i18n.js?v={{config.version}}"></script>
     <script src="/static/app/plugin_api.js?v={{config.version}}"></script>
     <!--[if lte IE 9]>
-      <script src="/static/js/requestAnimationFrame.js"></script>
+      <script src="/static/js/requestAnimationFrame.js?v={{config.version}}"></script>
     <![endif]-->
 
 
@@ -122,33 +122,33 @@
         <!-- jQuery -->
         {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/jquery/3.7.1/jquery.min.js"></script>
-<script>window.jQuery || document.write('<script src="/static/js/jquery-3.7.1.min.js"><\/script>')</script>
+<script>window.jQuery || document.write('<script src="/static/js/jquery-3.7.1.min.js?v={{config.version}}"><\/script>')</script>
 {% else %}
-<script src="/static/js/jquery-3.7.1.min.js"></script>
+<script src="/static/js/jquery-3.7.1.min.js?v={{config.version}}"></script>
 {% endif %}
 
         <!-- jQuery Cookie -->
         {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
-<script>$.cookie || document.write('<script src="/static/js/jquery.cookie-1.4.1.min.js"><\/script>')</script>
+<script>$.cookie || document.write('<script src="/static/js/jquery.cookie-1.4.1.min.js?v={{config.version}}"><\/script>')</script>
 {% else %}
-<script src="/static/js/jquery.cookie-1.4.1.min.js"></script>
+<script src="/static/js/jquery.cookie-1.4.1.min.js?v={{config.version}}"></script>
 {% endif %}
 
         <!-- Bootstrap -->
         {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
-<script>$.fn.modal || document.write('<script src="/static/js/bootstrap.min.js"><\/script>')</script>
+<script>$.fn.modal || document.write('<script src="/static/js/bootstrap.min.js?v={{config.version}}"><\/script>')</script>
 {% else %}
-<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/bootstrap.min.js?v={{config.version}}"></script>
 {% endif %}
 
         <!-- Layer -->
         {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/layer/3.5.1/layer.js"></script>
-<script>window.layer || document.write('<script src="/static/layer/layer.js"><\/script>')</script>
+<script>window.layer || document.write('<script src="/static/layer/layer.js?v={{config.version}}"><\/script>')</script>
 {% else %}
-<script src="/static/layer/layer.js"></script>
+<script src="/static/layer/layer.js?v={{config.version}}"></script>
 {% endif %}
 
 
@@ -159,9 +159,9 @@
         <!-- Clipboard -->
         {% if data['use_cdn'] == 'yes' %}
 <script src="https://cdn.staticfile.org/clipboard.js/2.0.1/clipboard.min.js"></script>
-<script>window.ClipboardJS || document.write('<script src="/static/js/clipboard.min.js"><\/script>')</script>
+<script>window.ClipboardJS || document.write('<script src="/static/js/clipboard.min.js?v={{config.version}}"><\/script>')</script>
 {% else %}
-<script src="/static/js/clipboard.min.js"></script>
+<script src="/static/js/clipboard.min.js?v={{config.version}}"></script>
 {% endif %}
 
 
