@@ -81,28 +81,34 @@ class sites(object):
 
         self.vhostPath = vhost = self.setupPath + '/nginx/vhost'
         if not os.path.exists(vhost):
-            yf.makeDirs(vhost + " && chmod -R 755 " + vhost)
+            yf.makeDirs(vhost)
+            yf.setMode(vhost, '755')
         self.rewritePath = rewrite = self.setupPath + '/nginx/rewrite'
         if not os.path.exists(rewrite):
-            yf.makeDirs(rewrite + " && chmod -R 755 " + rewrite)
+            yf.makeDirs(rewrite)
+            yf.setMode(rewrite, '755')
 
         self.passPath = passwd = self.setupPath + '/nginx/pass'
         if not os.path.exists(passwd):
-            yf.makeDirs(passwd + " && chmod -R 755 " + passwd)
+            yf.makeDirs(passwd)
+            yf.setMode(passwd, '755')
 
         self.redirectPath = redirect = self.setupPath + '/nginx/redirect'
         if not os.path.exists(redirect):
-            yf.makeDirs(redirect +" && chmod -R 755 " + redirect)
+            yf.makeDirs(redirect)
+            yf.setMode(redirect, '755')
 
         self.proxyPath = proxy = self.setupPath + '/nginx/proxy'
         if not os.path.exists(proxy):
-            yf.makeDirs(proxy + " && chmod -R 755 " + proxy)
+            yf.makeDirs(proxy)
+            yf.setMode(proxy, '755')
 
         # ssl conf
         self.sslDir = self.setupPath + '/ssl'
         self.sslLetsDir = self.setupPath + '/letsencrypt'
         if not os.path.exists(self.sslLetsDir):
-            yf.makeDirs(self.sslLetsDir +" && chmod -R 755 " + self.sslLetsDir)
+            yf.makeDirs(self.sslLetsDir)
+            yf.setMode(self.sslLetsDir, '755')
 
 
     def runHook(self, hook_name, func_name):

@@ -131,17 +131,19 @@ def menu():
 @blueprint.route('/file', endpoint='file', methods=['GET'])
 @panel_login_required
 def file():
-    name = request.args.get('name', '')
-    if name.strip() == '':
+    name = request.args.get('name', '').strip()
+    if not name or '/' in name or '\\' in name or '..' in name:
+        return Response('Forbidden', status=403)
+
+    f = request.args.get('f', '').strip()
+    if not f:
         return ''
 
-    f = request.args.get('f', '')
-    if f.strip() == '':
-        return ''
+    plugin_dir = os.path.abspath(yf.getPluginDir() + '/' + name)
 
     if f in ('ico.png', 'ico.svg'):
-        svg_file = yf.getPluginDir() + '/' + name + '/ico.svg'
-        png_file = yf.getPluginDir() + '/' + name + '/ico.png'
+        svg_file = os.path.join(plugin_dir, 'ico.svg')
+        png_file = os.path.join(plugin_dir, 'ico.png')
         if os.path.exists(svg_file):
             file = svg_file
         elif os.path.exists(png_file):
@@ -149,7 +151,11 @@ def file():
         else:
             return ''
     else:
-        file = yf.getPluginDir() + '/' + name + '/' + f
+        target_file = os.path.abspath(os.path.join(plugin_dir, f))
+        # 严格防御路径遍历：文件必须严格位于当前插件目录下
+        if not target_file.startswith(plugin_dir + os.sep) and target_file != plugin_dir:
+            return Response('Forbidden', status=403)
+        file = target_file
         if not os.path.exists(file):
             return ''
 

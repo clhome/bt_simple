@@ -290,12 +290,25 @@ def inject_global_variables():
     )
 
 # webssh
-# socketio = SocketIO(manage_session=False, async_mode='threading',
-#                     logger=False, engineio_logger=False, debug=False,
-#                     ping_interval=25, ping_timeout=120)
+def check_socketio_origin(origin):
+    if not origin:
+        return True
+    try:
+        from urllib.parse import urlparse
+        orig_netloc = urlparse(origin).netloc.split(':')[0]
+        req_host = request.host.split(':')[0] if request else ''
+        if orig_netloc == req_host or orig_netloc in ('127.0.0.1', 'localhost'):
+            return True
+        domain = thisdb.getOption('panel_domain', default='')
+        if domain and orig_netloc == domain:
+            return True
+        return False
+    except Exception:
+        return False
+
 socketio = SocketIO(logger=False,
     engineio_logger=False,
-    cors_allowed_origins="*",  # 允许跨域或同源连接
+    cors_allowed_origins=check_socketio_origin,  # 仅允许同源与可信面板域名，杜绝 CSWSH 跨站劫持
     async_mode='threading')
 socketio.init_app(app)
 

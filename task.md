@@ -158,3 +158,13 @@
 - [x] 114. 补齐 6 国语言包（`plugins/docker/lang/{zh-CN,zh-TW,en,de,fr,it}.json`）中的容器与镜像加载及空状态提示词条。
 - [x] 115. 编写专项自动化测试套件（`test/test_docker_loading_animation.py`），验证 CSS 样式定义、JS 渲染逻辑、防竞态锁及多语言 JSON 语法规范。
 - [x] 116. 运行自动化测试回归验证，确保 100% 通过并清理临时文件。
+
+## 系统加固第一阶段：P0 级高危安全与语法缺陷修复
+
+- [x] 117. 修复插件静态文件读取接口越界漏洞（`web/admin/plugins/__init__.py`）：在 `/file` 增加 `commonpath` 严格白名单与目录逃逸防御（遇到越界直接返回 403）。
+- [x] 118. 彻底废除 `plugin.callback` 中的危险 `eval()`（`web/utils/plugin.py`）：对脚本与方法名实施正则白名单校验，改用标准 Python 反射安全调用 `getattr`。
+- [x] 119. 清洗 `site.py` 中 6 处历史遗留 `makeDirs(... && chmod ...)` 语法缺陷（`web/utils/site.py`）：严格拆分原生目录创建与权限分配，杜绝畸变目录名。
+- [x] 120. 收紧 WebSSH SocketIO 的跨域通配符来源（`web/admin/__init__.py`）：收回 `cors_allowed_origins="*"`，防御跨站 WebSocket 劫持（CSWSH）。
+- [x] 121. 修复全局语言设置越权篡改（`web/admin/setting/setting.py`）：未登录访客切换语言仅下发客户端 Cookie，登录管理员才允许持久化写入 `data/language.pl`。
+- [x] 122. 编写专项自动化测试套件（`test/test_p0_security_fixes.py`），验证路径穿越防御、安全反射、目录创建规范及语言配置隔离。
+- [x] 123. 运行全量测试套件回归验证，确保 100% 通过并保持开发目录整洁。

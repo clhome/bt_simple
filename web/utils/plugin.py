@@ -1257,11 +1257,19 @@ class plugin(object):
         # print os.path.exists(py_cmd)
         return (data[0].strip(), data[1].strip())
 
-    # 映射包调用
+    # 映射包调用（安全反射实现，彻底废除 eval）
     def callback(self, name, func,
         args = '',
         script = 'index',
     ):
+        name = str(name).strip()
+        func = str(func).strip()
+        script = str(script).strip()
+
+        # 安全标识符白名单校验
+        if not re.match(r'^[a-zA-Z0-9_\-]+$', name) or not re.match(r'^[a-zA-Z0-9_]+$', script) or not re.match(r'^[a-zA-Z0-9_]+$', func):
+            return (False, "非法的调用参数!")
+
         package = self.__plugin_dir + '/' + name
         if not os.path.exists(package):
             return (False, "插件不存在!")
@@ -1272,16 +1280,34 @@ class plugin(object):
         if script in sys.modules:
             del sys.modules[script]
 
-        cmd = "__import__('" + script + "')." + func + '(' + args + ')'
         if yf.isDebugMode():
-            print('callback', cmd)
+            print('callback safe reflection:', script, func, args)
 
         data = None
         try:
-            data = eval(cmd)
+            import importlib
+            mod = importlib.import_module(script)
+            if not hasattr(mod, func):
+                return (False, f"方法 {func} 不存在!")
+            target_func = getattr(mod, func)
+
+            if args:
+                try:
+                    parsed_args = json.loads(args)
+                    if isinstance(parsed_args, dict):
+                        data = target_func(**parsed_args)
+                    elif isinstance(parsed_args, (list, tuple)):
+                        data = target_func(*parsed_args)
+                    else:
+                        data = target_func(parsed_args)
+                except Exception:
+                    data = target_func(args)
+            else:
+                data = target_func()
         except Exception as e:
-            print(yf.getTracebackInfo())
-            return (False, yf.getTracebackInfo())        
+            if yf.isDebugMode():
+                print(yf.getTracebackInfo())
+            return (False, str(e))        
         return (True, data)
 
 

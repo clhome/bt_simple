@@ -523,15 +523,19 @@ def get_languages():
 def set_language():
     from flask import jsonify, make_response
     from core.i18n import SUPPORTED_CODES, normalize_lang, DEFAULT_LANG
+    from admin.common import isLogined
 
     lang = request.form.get('lang', '')
     norm_lang = normalize_lang(lang)
     if not norm_lang or norm_lang not in SUPPORTED_CODES:
         norm_lang = DEFAULT_LANG
 
-    panel_dir = yf.getPanelDir()
-    lang_file = os.path.join(panel_dir, 'data/language.pl')
-    yf.writeFile(lang_file, norm_lang)
+    # 安全防护：仅当已登录管理员发起时，才持久化写入服务端全局配置文件
+    # 未登录访客仅设置客户端自身的 Cookie，杜绝任意访客篡改系统全局默认语言
+    if isLogined():
+        panel_dir = yf.getPanelDir()
+        lang_file = os.path.join(panel_dir, 'data/language.pl')
+        yf.writeFile(lang_file, norm_lang)
 
     res_data = yf.returnData(True, 'common.set_success', {'lang': norm_lang})
     response = make_response(jsonify(res_data))
