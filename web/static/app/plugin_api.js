@@ -50,9 +50,13 @@
         function _basePost(url, method, version, args, callback, silent) {
             var loadT = null;
             if (!silent) {
-                var loadingText = pt('loading');
-                if (loadingText === 'loading') loadingText = '正在获取...';
-                loadT = layer.msg(loadingText, { icon: 16, time: 0, shade: 0.3 });
+                // 智能遮罩感知：若当前已有可见的 layer 遮罩或 loading（如上层函数已弹出提示），避免重复叠加
+                var hasActiveShade = window.$ && window.$('.layui-layer-shade:visible, .layui-layer-loading:visible').length > 0;
+                if (!hasActiveShade) {
+                    var loadingText = pt('loading');
+                    if (loadingText === 'loading') loadingText = '正在获取...';
+                    loadT = layer.msg(loadingText, { icon: 16, time: 0, shade: 0.2 });
+                }
             }
 
             var req_data = {

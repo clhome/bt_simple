@@ -395,18 +395,55 @@
     }
 
     var _pluginDicts = {};
+    var PLUGIN_CACHE_PREFIX = 'yf_plang_';
+
+    /**
+     * 从 localStorage 读取插件语言包缓存
+     */
+    function getPluginDictFromStorage(pluginName, lang) {
+        try {
+            var cached = localStorage.getItem(PLUGIN_CACHE_PREFIX + pluginName + '_' + lang);
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    /**
+     * 将插件语言包写入 localStorage 缓存
+     */
+    function setPluginDictToStorage(pluginName, lang, dict) {
+        try {
+            localStorage.setItem(PLUGIN_CACHE_PREFIX + pluginName + '_' + lang, JSON.stringify(dict));
+        } catch (e) {}
+    }
 
     /**
      * 自动翻译插件弹窗 DOM 结构（左侧侧边栏菜单、底部版权署名等）
+     * 采用精确定向选择器，消除全量 DOM 暴力扫描与强制重排
      * @param {HTMLElement|jQuery} container 弹窗容器或 DOM 根节点
      * @param {string} pluginName 插件名
      */
     function translatePluginDOM(container, pluginName) {
         if (!container || !window.$) return;
         var $con = window.$(container);
+
+        // 安全防护：绝不对全局 body 或 html 执行模糊扫描
+        var isGlobalBody = false;
+        if ($con[0] && ($con[0].tagName === 'BODY' || $con[0].tagName === 'HTML')) {
+            isGlobalBody = true;
+        } else if (typeof $con.is === 'function' && ($con.is('body') || $con.is('html'))) {
+            isGlobalBody = true;
+        }
+        if (isGlobalBody) {
+            $con = $con.find('.layui-layer:visible, .bt-w-main:visible');
+            if ($con.length === 0) return;
+        }
+
         var pt = createPluginTranslator(pluginName);
 
-        // 1. 翻译左侧菜单项 .bt-w-menu p
+        // 1. 精准定向翻译左侧菜单项 .bt-w-menu p
         $con.find('.bt-w-menu p').each(function() {
             var $p = window.$(this);
             var orig = $p.attr('data-i18n-orig');
@@ -424,11 +461,15 @@
             }
         });
 
-        // 2. 翻译底部出品署名与品牌版权
-        $con.find('div, span, p').each(function() {
+        // 2. 精确定位底部出品署名与品牌版权（仅在底部固定容器或直接子块中排查，不递归全树）
+        var $footers = $con.find('.plugin-copyright, div[style*="pointer-events"], .bt-form > div:last-child, .bt-w-con > div:last-child');
+        if ($footers.length === 0) {
+            $footers = $con.children('div').add($con.find('.bt-w-con').children('div'));
+        }
+        $footers.each(function() {
             var $el = window.$(this);
             var txt = $el.text().trim();
-            if (txt === '衢州御风科技有限公司 出品' || txt === '衢州御風科技有限公司 出品') {
+            if (txt.indexOf('衢州御风科技有限公司 出品') !== -1 || txt.indexOf('衢州御風科技有限公司 出品') !== -1) {
                 var orig = $el.attr('data-i18n-orig') || '衢州御风科技有限公司 出品';
                 $el.attr('data-i18n-orig', orig);
                 var trans = pt(orig);
@@ -445,54 +486,112 @@
     }
 
     /**
-     * 创建插件专属的 i18n 翻译函数
+     * 异步预加载插件语言包
      * @param {string} pluginName 插件名
-     * @returns {function} pt(key, ...args) 函数
+     * @param {function} callback 完成后的回调
      */
-    function createPluginTranslator(pluginName) {
-        if (!_pluginDicts[pluginName]) {
-            var lang = _currentLang || 'zh-CN';
-            // 同步请求当前语言包
+    function loadPluginLangAsync(pluginName, callback) {
+        var lang = _currentLang || 'zh-CN';
+        if (_pluginDicts[pluginName]) {
+            if (typeof callback === 'function') callback(_pluginDicts[pluginName]);
+            return;
+        }
+
+        var localCached = getPluginDictFromStorage(pluginName, lang);
+        if (localCached) {
+            _pluginDicts[pluginName] = localCached;
+            if (typeof callback === 'function') callback(localCached);
+            return;
+        }
+
+        if (window.$) {
             window.$.ajax({
                 url: '/plugins/file?name=' + pluginName + '&f=lang/' + lang + '.json',
                 dataType: 'json',
-                async: false,
+                async: true,
                 success: function(data) {
-                    _pluginDicts[pluginName] = data || {};
+                    var dict = data || {};
+                    _pluginDicts[pluginName] = dict;
+                    setPluginDictToStorage(pluginName, lang, dict);
+                    if (typeof callback === 'function') callback(dict);
                 },
                 error: function() {
-                    // 失败则回退到中文
                     if (lang !== 'zh-CN') {
                         window.$.ajax({
                             url: '/plugins/file?name=' + pluginName + '&f=lang/zh-CN.json',
                             dataType: 'json',
-                            async: false,
+                            async: true,
                             success: function(data) {
-                                _pluginDicts[pluginName] = data || {};
+                                var dict = data || {};
+                                _pluginDicts[pluginName] = dict;
+                                setPluginDictToStorage(pluginName, lang, dict);
+                                if (typeof callback === 'function') callback(dict);
                             },
                             error: function() {
                                 _pluginDicts[pluginName] = {};
+                                if (typeof callback === 'function') callback({});
                             }
                         });
                     } else {
                         _pluginDicts[pluginName] = {};
+                        if (typeof callback === 'function') callback({});
                     }
                 }
             });
         }
+    }
 
-        // 若当前 DOM 中已挂载该插件的菜单或弹窗，自动执行翻译
-        if (window.$ && _currentLang !== 'zh-CN') {
-            setTimeout(function() {
-                var $menus = window.$('.bt-w-main, .bt-w-menu');
-                if ($menus.length > 0) {
-                    $menus.each(function() {
-                        translatePluginDOM(window.$(this).closest('.layui-layer, .bt-form, body'), pluginName);
-                    });
-                }
-            }, 0);
+    /**
+     * 创建插件专属的 i18n 翻译函数
+     * 支持二级缓存（Memory + localStorage），命中缓存 0ms 直出
+     * @param {string} pluginName 插件名
+     * @returns {function} pt(key, ...args) 函数
+     */
+    function createPluginTranslator(pluginName) {
+        var lang = _currentLang || 'zh-CN';
+
+        if (!_pluginDicts[pluginName]) {
+            // 1. 优先尝试从 localStorage 读取（0ms）
+            var localCached = getPluginDictFromStorage(pluginName, lang);
+            if (localCached) {
+                _pluginDicts[pluginName] = localCached;
+            } else if (window.$) {
+                // 2. 首次未命中缓存时同步保底拉取，并立即持久化至 localStorage
+                window.$.ajax({
+                    url: '/plugins/file?name=' + pluginName + '&f=lang/' + lang + '.json',
+                    dataType: 'json',
+                    async: false,
+                    success: function(data) {
+                        var dict = data || {};
+                        _pluginDicts[pluginName] = dict;
+                        setPluginDictToStorage(pluginName, lang, dict);
+                    },
+                    error: function() {
+                        if (lang !== 'zh-CN') {
+                            window.$.ajax({
+                                url: '/plugins/file?name=' + pluginName + '&f=lang/zh-CN.json',
+                                dataType: 'json',
+                                async: false,
+                                success: function(data) {
+                                    var dict = data || {};
+                                    _pluginDicts[pluginName] = dict;
+                                    setPluginDictToStorage(pluginName, lang, dict);
+                                },
+                                error: function() {
+                                    _pluginDicts[pluginName] = {};
+                                }
+                            });
+                        } else {
+                            _pluginDicts[pluginName] = {};
+                        }
+                    }
+                });
+            } else {
+                _pluginDicts[pluginName] = {};
+            }
         }
 
+        // 返回高性能翻译闭包
         return function(key) {
             var dict = _pluginDicts[pluginName];
             var msg = (dict && dict[key]) ? dict[key] : key;
@@ -515,6 +614,7 @@
         translateDOM: translateDOM,
         translatePluginDOM: translatePluginDOM,
         createPluginTranslator: createPluginTranslator,
+        loadPluginLangAsync: loadPluginLangAsync,
         t: t
     };
 

@@ -185,6 +185,10 @@ def file():
         content = open(file, 'rb').read()
         headers['Content-Type'] = 'image/gif'
         return make_response(Response(content, headers=headers))
+    elif suffix == '.json':
+        content = yf.readFile(file)
+        headers['Content-Type'] = 'application/json; charset="utf-8"'
+        return make_response(Response(content, headers=headers))
     
     content = open(file, 'rb').read()
     return make_response(Response(content, headers=headers))

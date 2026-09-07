@@ -70,8 +70,13 @@ def safeExecShell(cmd_list, cwd=None, timeout=30):
     except Exception as e:
         return "", str(e)
 
+_CRLF_CLEAN_CACHE = set()
+
 def fixCrlf(file_path):
     """清洗文件中的 Windows CRLF 换行符与 BOM，保证 Linux 下正常执行"""
+    global _CRLF_CLEAN_CACHE
+    if file_path in _CRLF_CLEAN_CACHE:
+        return False
     try:
         if os.path.isfile(file_path):
             with open(file_path, 'rb') as f:
@@ -82,18 +87,23 @@ def fixCrlf(file_path):
                     new_content = new_content[3:]
                 with open(file_path, 'wb') as f:
                     f.write(new_content)
+                _CRLF_CLEAN_CACHE.add(file_path)
                 return True
+            else:
+                _CRLF_CLEAN_CACHE.add(file_path)
     except:
         pass
     return False
 
 def sanitizeCmdScripts(cmdstring, cwd=None):
-    """自愈检测：分析命令中涉及的脚本文件，若包含 CRLF 自动清洗为 LF"""
+    """自愈检测：分析命令中涉及的脚本文件，若包含 CRLF 自动清洗为 LF（带内存缓存，避免重复 I/O）"""
     try:
         if not isinstance(cmdstring, str):
             return cmdstring
         import re
         matches = re.findall(r'[\w\-\./]+\.(?:sh|py|tpl)', cmdstring)
+        if not matches:
+            return cmdstring
         cd_matches = re.findall(r'cd\s+([^\s&;]+)', cmdstring)
         base_dir = cd_matches[0] if cd_matches else cwd
 
@@ -107,6 +117,8 @@ def sanitizeCmdScripts(cmdstring, cwd=None):
                 candidates.append(os.path.join(panel_dir, match))
 
             for file_path in candidates:
+                if file_path in _CRLF_CLEAN_CACHE:
+                    continue
                 if os.path.isfile(file_path):
                     fixCrlf(file_path)
     except:

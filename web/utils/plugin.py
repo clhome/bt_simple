@@ -1060,6 +1060,42 @@ class plugin(object):
         page_items = self.checkStatusMThreadsByCache(page_items)
         return (page_items, len(filtered_list))
 
+    def localizePluginItems(self, items):
+        try:
+            from core.i18n import get_current_lang
+            lang = get_current_lang()
+        except Exception:
+            lang = 'zh-CN'
+        if not lang or lang == 'zh-CN':
+            return items
+
+        if not hasattr(self, '_plugin_lang_dict_cache'):
+            self._plugin_lang_dict_cache = {}
+
+        for item in items:
+            name = item.get('name')
+            if not name:
+                continue
+            cache_key = (name, lang)
+            if cache_key not in self._plugin_lang_dict_cache:
+                lang_file = os.path.join(self.__plugin_dir, name, 'lang', f'{lang}.json')
+                ld = {}
+                if os.path.isfile(lang_file):
+                    try:
+                        with open(lang_file, 'r', encoding='utf-8') as f:
+                            ld = json.load(f)
+                    except Exception:
+                        pass
+                self._plugin_lang_dict_cache[cache_key] = ld
+            else:
+                ld = self._plugin_lang_dict_cache[cache_key]
+
+            if ld:
+                if 'plugin_title' in ld and ld['plugin_title']:
+                    item['title'] = ld['plugin_title']
+                if 'plugin_ps' in ld and ld['plugin_ps']:
+                    item['ps'] = ld['plugin_ps']
+        return items
 
     def getList(
         self,
@@ -1086,7 +1122,7 @@ class plugin(object):
         rdata['type'] = type_list
     
         data = self.getAllPluginList(type, keyword, page, size, show_third_party)
-        rdata['data'] = data[0]
+        rdata['data'] = self.localizePluginItems(data[0])
         rdata['list'] = yf.getPage({'count':data[1],'p':page,'tojs':'getSList','row':size})
         return rdata
 
