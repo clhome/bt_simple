@@ -1,3 +1,13 @@
 {
-    "日志清理": "日志清理"
+    "【*】代表要删除。": "【*】 means to delete.",
+    "启动后,加入到计划任务每隔7天[0:15]执行。": "After startup, it will be added to the scheduled task and executed every 7 days [0:15].",
+    "如果是目录,会寻找【.log】后缀的文件清空。": "If it is a directory, it will look for files with the [.log] suffix to clear.",
+    "常用功能": "Common Features",
+    "手动执行": "Manual Run",
+    "日志清理": "Log Cleanup",
+    "服务": "Service",
+    "添加/删除清除日志，可在`配置修改`中添加/删除。": "Add/delete clear logs, which can be added/delete in `Configuration Modification`.",
+    "说明": "Description",
+    "运行日志": "Runtime Logs",
+    "配置修改": "Configuration"
 }

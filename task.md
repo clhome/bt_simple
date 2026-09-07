@@ -71,6 +71,14 @@
 - [x] 69. 恢复工作区被误修改的插件语言文件（`git restore plugins/`），找回历史完整翻译数据。
 - [x] 70. 编写并运行纯净词条并集提取脚本（`test/extract_clean_plugin_keys.py`）：扫描 38 个插件所有现有语言文件，彻底过滤 JS/HTML/CSS 代码污染，合并生成每个插件权威完整的中文词条库（并集）并更新 `zh-CN.json`。
 - [x] 71. 构建全局优质翻译词典（`test/build_global_plugin_dict.py`）：从现有 38 个插件与系统词库中收割所有成熟纯正的外语词条。
-- [ ] 72. 编写批量高质量翻译补全脚本（`test/rebuild_all_plugin_langs.py`）：对 38 个插件 × 5 种外语（zh-TW, en, de, fr, it）的缺失词条进行专业运维标准补全，确保各语言文件 key 100% 对齐且无未翻译中文。
-- [ ] 73. 编写严密的自动化校验测试套件（`test/validate_plugin_lang.py`）：自动验证 JSON 语法、Key 完全一致、无代码污染、无未翻译中文，并完成回归测试。
-- [ ] 74. 验收完成度并清理开发临时排查脚本。
+- [x] 72. 编写批量高质量翻译补全脚本（`test/rebuild_all_plugin_langs.py`）：对 38 个插件 × 5 种外语（zh-TW, en, de, fr, it）的缺失词条进行专业运维标准补全，确保各语言文件 key 100% 对齐且无未翻译中文。
+- [x] 73. 编写严密的自动化校验测试套件（`test/validate_plugin_lang.py`）：自动验证 JSON 语法、Key 完全一致、无代码污染、无未翻译中文，并完成回归测试。
+- [x] 74. 验收完成度并清理开发临时排查脚本。
+
+## 插件多国语言专业化术语精修与全量落地
+
+- [x] 75. 构建服务器与运维专业技术术语库（`test/server_terms_polish.py`）：针对通用高频运维词汇（如服务、日志清理、手动执行、常用功能、配置修改、镜像、容器、仓库等）建立覆盖 5 种语言（zh-TW, en, de, fr, it）的标准专业翻译映射。
+- [x] 76. 执行全量 38 个插件多语言词典专业化精修注入：全面消除 Serve、Commonly used functions、storehouse 等不地道机翻，替换为母语级标准运维词条。
+- [x] 77. 运行全量多语言质量校验套件（`test/validate_plugin_lang.py` 与 `test/test_plugin_i18n_complete.py`）回归测试。
+- [x] 78. 清理阶段性临时排查文件，完成最终交付与验收。
+
