@@ -142,5 +142,13 @@
     "镜像已存在!": "L'immagine esiste già!",
     "默认": "Predefinito",
     "，目标目录可用空间为": ", lo spazio disponibile nella directory di destinazione è",
-    "🌟 核心定位：": "🌟 Posizionamento principale:"
+    "🌟 核心定位：": "🌟 Posizionamento principale:",
+    "正在获取容器列表，请稍候...": "Caricamento elenco container, attendere prego...",
+    "正在获取镜像列表，请稍候...": "Caricamento elenco immagini, attendere prego...",
+    "暂无容器数据": "Nessun dato del container",
+    "暂无镜像数据": "Nessun dato dell'immagine",
+    "获取失败": "Caricamento non riuscito",
+    "点击重试": "Fare clic per riprovare",
+    "正在获取数据，请稍候...": "Caricamento dei dati, attendere prego...",
+    "暂无数据": "Nessun dato"
 }

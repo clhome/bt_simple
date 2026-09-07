@@ -98,6 +98,46 @@
     border: 1px solid #ddd;
     font-size: 12px;
 }
+
+/* Docker 专属平滑旋转 Spinner 与微动画 */
+@keyframes dockerSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes dockerFadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.docker-spinner {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #20a53a;
+    border-radius: 50%;
+    animation: dockerSpin 0.75s linear infinite;
+    box-sizing: border-box;
+}
+.docker-loading-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: dockerFadeIn 0.2s ease-out forwards;
+}
+.docker-loading-text {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+.docker-table-fadein tr {
+    animation: dockerFadeIn 0.25s ease-out forwards;
+}
+.glyphicon-spin {
+    display: inline-block;
+    animation: dockerSpin 0.75s linear infinite;
+}
 </style>
 
 <div class="bt-form">

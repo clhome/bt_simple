@@ -148,3 +148,13 @@
   - 验证公共与定制服务页面完整嵌入开机启动组件；
   - 验证 6 国语言完整性与 Node.js 语法校验。
 - [x] 109. 全量回归测试、清理临时排查工具并验收交付。
+
+## Docker 插件容器与镜像列表 Loading 过场动画优化
+
+- [x] 110. 在 `plugins/docker/index.html` 的 `<style>` 中扩展现代 Loading Spinner 与微动画 CSS（`.docker-spinner`, `.docker-loading-box`, `.docker-loading-text`, `.docker-table-fadein`, `.glyphicon-spin`）。
+- [x] 111. 在 `plugins/docker/js/docker.js` 中封装通用表格 Loading 占位与空状态生成器（`dockerTableLoadingHtml`, `dockerTableEmptyHtml`）。
+- [x] 112. 重构容器列表模块（`dockerConList`, `dockerConListRender`）：独立表格 ID `#docker_con_table`，初始载入与刷新按钮添加 Loading 过场动画、防连击禁用反馈、空状态及请求序列号防竞态保护。
+- [x] 113. 重构镜像列表模块（`dockerImageList`, `dockerImageListRender`）：独立表格 ID `#docker_image_table`，初始载入与刷新按钮添加 Loading 过场动画、防连击禁用反馈、空状态及请求序列号防竞态保护。
+- [x] 114. 补齐 6 国语言包（`plugins/docker/lang/{zh-CN,zh-TW,en,de,fr,it}.json`）中的容器与镜像加载及空状态提示词条。
+- [x] 115. 编写专项自动化测试套件（`test/test_docker_loading_animation.py`），验证 CSS 样式定义、JS 渲染逻辑、防竞态锁及多语言 JSON 语法规范。
+- [x] 116. 运行自动化测试回归验证，确保 100% 通过并清理临时文件。

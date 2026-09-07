@@ -1,6 +1,29 @@
 var api = YfPlugin.createApi('docker');
 var pt = YfI18n.createPluginTranslator('docker');
 
+var _dockerConReqId = 0;
+var _dockerImageReqId = 0;
+
+function dockerTableLoadingHtml(colspan, text) {
+    var msg = text || pt('正在获取数据，请稍候...');
+    return '<tr><td colspan="' + colspan + '" class="text-center" style="padding: 55px 0; color: #64748b;">' +
+        '<div class="docker-loading-box">' +
+            '<div class="docker-spinner"></div>' +
+            '<div class="docker-loading-text">' + msg + '</div>' +
+        '</div>' +
+    '</td></tr>';
+}
+
+function dockerTableEmptyHtml(colspan, text) {
+    var msg = text || pt('暂无数据');
+    return '<tr><td colspan="' + colspan + '" class="text-center" style="padding: 45px 0; color: #94a3b8;">' +
+        '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">' +
+            '<span class="glyphicon glyphicon-folder-open" style="font-size: 26px; color: #cbd5e1; margin-bottom: 8px;"></span>' +
+            '<span style="font-size: 13px;">' + msg + '</span>' +
+        '</div>' +
+    '</td></tr>';
+}
+
 
 function logsCon(id) {
     api.post('docker_con_log', '', { Hostname: id }, function(rdata) {
@@ -90,50 +113,87 @@ function execCon(Hostname) {
     });
 }
 
-function dockerConListRender() {
+function dockerConListRender(isRefresh) {
+    var curReqId = ++_dockerConReqId;
+    var $btn = $('#btn_refresh_con');
+    if (isRefresh || isRefresh === undefined) {
+        if ($btn.length) {
+            $btn.prop('disabled', true).html('<i class="glyphicon glyphicon-refresh glyphicon-spin" style="margin-right: 4px;"></i>' + pt('刷新'));
+        }
+        $('#docker_con_table tbody, #con_list tbody').html(dockerTableLoadingHtml(5, pt('正在获取容器列表，请稍候...')));
+    }
+
     api.post('con_list', '', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
-        console.log(rdata);
-        if (!rdata.status) {
-            layer.msg(rdata.msg, { icon: 2, time: 2000 });
+        if (curReqId !== _dockerConReqId) return;
+        if ($btn.length) {
+            $btn.prop('disabled', false).html(pt('刷新'));
+        }
+
+        var parsed = null;
+        try {
+            parsed = typeof rdata.data === 'string' ? JSON.parse(rdata.data) : rdata.data;
+        } catch(e) {
+            parsed = rdata;
+        }
+
+        var $tableBody = $('#docker_con_table tbody');
+        if (!$tableBody.length) $tableBody = $('#con_list tbody');
+
+        if (!parsed || !parsed.status) {
+            var errMsg = (parsed && parsed.msg) ? parsed.msg : pt('获取失败');
+            layer.msg(errMsg, { icon: 2, time: 2000 });
+            if ($tableBody.length) {
+                $tableBody.html('<tr><td colspan="5" class="text-center" style="padding: 40px 0; color: #ef4444;">' +
+                    '<span class="glyphicon glyphicon-exclamation-sign" style="font-size: 24px; margin-bottom: 8px; display: block;"></span>' +
+                    '<span>' + errMsg + '</span><br>' +
+                    '<button onclick="dockerConListRender(true);" class="btn btn-default btn-xs" style="margin-top: 10px;">' + pt('点击重试') + '</button>' +
+                '</td></tr>');
+            }
             return;
         }
 
-
         var list = '';
-        var rlist = rdata.data;
+        var rlist = parsed.data || [];
         window.docker_con_data = rlist;
+
+        if (rlist.length === 0) {
+            if ($tableBody.length) {
+                $tableBody.html(dockerTableEmptyHtml(5, pt('暂无容器数据')));
+            }
+            return;
+        }
 
         for (var i = 0; i < rlist.length; i++) {
             var docker_status = 'stop';
             var status = '<span class="glyphicon glyphicon-pause" style="color:red;font-size:12px"></span>';
-            if (rlist[i]['State']['Status'] == 'running') {
+            if (rlist[i]['State'] && rlist[i]['State']['Status'] == 'running') {
                 docker_status = 'start';
                 status = '<span class="glyphicon glyphicon-play" style="color:#20a53a;font-size:12px"></span>';
             }
 
             var op = '';
-            op += '<a href="javascript:;" onclick="conDetails(\'' + rlist[i]['Id'] + '\')" class="btlink">详情</a> | ';
-            op += '<a href="javascript:;" onclick="execCon(\'' + rlist[i]['Config']['Hostname'] + '\')" class="btlink">终端</a> | ';
-            op += '<a href="javascript:;" onclick="logsCon(\'' + rlist[i]['Id'] + '\')" class="btlink">日志</a> | ';
-            op += '<a href="javascript:;" onclick="deleteCon(\'' + rlist[i]['Config']['Hostname'] + '\')" class="btlink">删除</a>';
+            op += '<a href="javascript:;" onclick="conDetails(\'' + rlist[i]['Id'] + '\')" class="btlink">' + pt('详情') + '</a> | ';
+            op += '<a href="javascript:;" onclick="execCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')" class="btlink">' + pt('终端') + '</a> | ';
+            op += '<a href="javascript:;" onclick="logsCon(\'' + rlist[i]['Id'] + '\')" class="btlink">' + pt('日志') + '</a> | ';
+            op += '<a href="javascript:;" onclick="deleteCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
-            list += '<td>' + rlist[i]['Name'].substring(1) + '</td>';
-            list += '<td>' + rlist[i]['Config']['Image'] + '</td>';
+            list += '<td>' + (rlist[i]['Name'] ? rlist[i]['Name'].substring(1) : '-') + '</td>';
+            list += '<td>' + (rlist[i]['Config'] ? rlist[i]['Config']['Image'] : '-') + '</td>';
             list += '<td>' + getFormatTime(rlist[i]['Created']) + '</td>';
 
-
             if (docker_status == 'start') {
-                list += '<td style="cursor:pointer;" align="center" onclick="stopCon(\'' + rlist[i]['Config']['Hostname'] + '\')">' + status + '</td>';
+                list += '<td style="cursor:pointer;" align="center" onclick="stopCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')">' + status + '</td>';
             } else {
-                list += '<td style="cursor:pointer;" align="center" onclick="startCon(\'' + rlist[i]['Config']['Hostname'] + '\')">' + status + '</td>';
+                list += '<td style="cursor:pointer;" align="center" onclick="startCon(\'' + (rlist[i]['Config'] ? rlist[i]['Config']['Hostname'] : '') + '\')">' + status + '</td>';
             }
             list += '<td class="text-right">' + op + '</td>';
             list += '</tr>';
         }
 
-        $('#con_list tbody').html(list);
+        if ($tableBody.length) {
+            $tableBody.addClass('docker-table-fadein').html(list);
+        }
     });
 }
 
@@ -418,24 +478,24 @@ function createConTemplate() {
 function dockerConList() {
 
     var con = '<div class="safe bgw">\
-            <button onclick="createConTemplate();" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">创建容器</button>\
-            <button onclick="dockerConListRender();" class="btn btn-default btn-sm pull-right" type="button" style="float: right;">刷新</button>\
+            <button onclick="createConTemplate();" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('创建容器') + '</button>\
+            <button id="btn_refresh_con" onclick="dockerConListRender(true);" class="btn btn-default btn-sm pull-right" type="button" style="float: right;">' + pt('刷新') + '</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
-                    <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
+                    <table id="docker_con_table" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr>\
-                    <th>名称</th>\
-                    <th>镜像</th>\
-                    <th>创建时间</th>\
-                    <th>状态</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
-                    <tbody></tbody></table>\
+                    <th>' + pt('名称') + '</th>\
+                    <th>' + pt('镜像') + '</th>\
+                    <th>' + pt('创建时间') + '</th>\
+                    <th>' + pt('状态') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
+                    <tbody>' + dockerTableLoadingHtml(5, pt('正在获取容器列表，请稍候...')) + '</tbody></table>\
                 </div>\
             </div>\
         </div>';
 
     $(".soft-man-con").html(con);
-    dockerConListRender();
+    dockerConListRender(false);
 }
 
 function deleteImages(tag, id) {
@@ -456,28 +516,65 @@ function pullImages(tag, id) {
     layer.msg('开发中!', { icon: 2 });
 }
 
-function dockerImageListRender() {
+function dockerImageListRender(isRefresh) {
+    var curReqId = ++_dockerImageReqId;
+    var $btn = $('#btn_refresh_image');
+    if (isRefresh || isRefresh === undefined) {
+        if ($btn.length) {
+            $btn.prop('disabled', true).html('<i class="glyphicon glyphicon-refresh glyphicon-spin" style="margin-right: 4px;"></i>' + pt('刷新'));
+        }
+        $('#docker_image_table tbody, #con_list tbody').html(dockerTableLoadingHtml(6, pt('正在获取镜像列表，请稍候...')));
+    }
+
     api.post('image_list', '', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
-        // console.log(rdata);
-        if (!rdata.status) {
-            layer.msg(rdata.msg, { icon: 2, time: 2000 });
+        if (curReqId !== _dockerImageReqId) return;
+        if ($btn.length) {
+            $btn.prop('disabled', false).html(pt('刷新'));
+        }
+
+        var parsed = null;
+        try {
+            parsed = typeof rdata.data === 'string' ? JSON.parse(rdata.data) : rdata.data;
+        } catch(e) {
+            parsed = rdata;
+        }
+
+        var $tableBody = $('#docker_image_table tbody');
+        if (!$tableBody.length) $tableBody = $('#con_list tbody');
+
+        if (!parsed || !parsed.status) {
+            var errMsg = (parsed && parsed.msg) ? parsed.msg : pt('获取失败');
+            layer.msg(errMsg, { icon: 2, time: 2000 });
+            if ($tableBody.length) {
+                $tableBody.html('<tr><td colspan="6" class="text-center" style="padding: 40px 0; color: #ef4444;">' +
+                    '<span class="glyphicon glyphicon-exclamation-sign" style="font-size: 24px; margin-bottom: 8px; display: block;"></span>' +
+                    '<span>' + errMsg + '</span><br>' +
+                    '<button onclick="dockerImageListRender(true);" class="btn btn-default btn-xs" style="margin-top: 10px;">' + pt('点击重试') + '</button>' +
+                '</td></tr>');
+            }
             return;
         }
 
         var list = '';
-        var rlist = rdata.data;
+        var rlist = parsed.data || [];
         window.docker_con_data = rlist;
 
-        for (var i = 0; i < rlist.length; i++) {
+        if (rlist.length === 0) {
+            if ($tableBody.length) {
+                $tableBody.html(dockerTableEmptyHtml(6, pt('暂无镜像数据')));
+            }
+            return;
+        }
 
-            var tag = rlist[i]['RepoTags'].split(":")[1];
+        for (var i = 0; i < rlist.length; i++) {
+            var repoTags = rlist[i]['RepoTags'] || '';
+            var tag = repoTags.indexOf(':') !== -1 ? repoTags.split(':')[1] : '-';
 
             var op = '';
-            op += '<a href="javascript:;" onclick="deleteImages(\'' + rlist[i]['RepoTags'] + '\',\'' + rlist[i]['Id'] + '\')" class="btlink">删除</a>';
+            op += '<a href="javascript:;" onclick="deleteImages(\'' + repoTags + '\',\'' + rlist[i]['Id'] + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
-            list += '<td>' + rlist[i]['RepoTags'] + '</td>';
+            list += '<td>' + repoTags + '</td>';
             list += '<td>' + tag + '</td>';
             list += '<td>' + toSize(rlist[i]['Size']) + '</td>';
             list += '<td>' + (rlist[i]['DiskUsage'] ? rlist[i]['DiskUsage'] : (rlist[i]['VirtualSize'] ? toSize(rlist[i]['VirtualSize']) : toSize(rlist[i]['Size']))) + '</td>';
@@ -486,7 +583,9 @@ function dockerImageListRender() {
             list += '</tr>';
         }
 
-        $('#con_list tbody').html(list);
+        if ($tableBody.length) {
+            $tableBody.addClass('docker-table-fadein').html(list);
+        }
     });
 }
 
@@ -652,19 +751,19 @@ function dockerPullImagesFileTemplate() {
 function dockerImageList() {
 
     var con = '<div class="safe bgw">\
-            <button onclick="dockerPullImagesFileTemplate()" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">获取镜像</button>\
-            <button onclick="dockerImageListRender();" class="btn btn-default btn-sm pull-right" type="button" style="float: right;">刷新</button>\
+            <button onclick="dockerPullImagesFileTemplate()" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('获取镜像') + '</button>\
+            <button id="btn_refresh_image" onclick="dockerImageListRender(true);" class="btn btn-default btn-sm pull-right" type="button" style="float: right;">' + pt('刷新') + '</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
-                    <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
+                    <table id="docker_image_table" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr>\
-                    <th>名称</th>\
-                    <th>版本</th>\
-                    <th>镜像大小</th>\
-                    <th>磁盘占用</th>\
-                    <th>创建时间</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
-                    <tbody></tbody></table>\
+                    <th>' + pt('名称') + '</th>\
+                    <th>' + pt('版本') + '</th>\
+                    <th>' + pt('镜像大小') + '</th>\
+                    <th>' + pt('磁盘占用') + '</th>\
+                    <th>' + pt('创建时间') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
+                    <tbody>' + dockerTableLoadingHtml(6, pt('正在获取镜像列表，请稍候...')) + '</tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
             </div>\
@@ -672,7 +771,7 @@ function dockerImageList() {
 
     $(".soft-man-con").html(con);
 
-    dockerImageListRender();
+    dockerImageListRender(false);
 }
 
 //获取文件数据
