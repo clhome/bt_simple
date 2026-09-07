@@ -87,6 +87,7 @@
     "自启状态": "Stato di avvio automatico",
     "获取且仅获取 YuFeng 标签的服务": "Recupera solo i servizi contrassegnati con il tag YuFeng",
     "获取日志失败: {res['error']}": "Impossibile recuperare il log: {res['error']}",
+    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "请务必保留 [Unit] 和 [Service] 节点。Documentation 标签系统将在后台强制覆盖。": "Assicurarsi di conservare i nodi [Unità] e [Servizio]. Il sistema di tag della documentazione imporrà le sovrascritture dietro le quinte.",
     "请勿使用中文名称": "Si prega di non utilizzare nomi cinesi",
     "请勿在启动命令中使用": "Non utilizzare nel comando di avvio",

@@ -93,6 +93,7 @@
     "绑定 Host 不能为空！": "Il campo \"Host\" non può essere vuoto!",
     "自启动": "Dall'avvio",
     "获取日志失败：": "Impossibile recuperare il log:",
+    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "请求后端接口失败！": "Errore durante la richiesta all'interfaccia backend!",
     "请输入要拉取的模型名称！": "Inserisci il nome del modello che desideri scaricare!",
     "输入如: deepseek-r1:7b": "Inserire, ad esempio: deepseek-r1:7b",

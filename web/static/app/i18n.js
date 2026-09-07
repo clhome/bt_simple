@@ -397,6 +397,54 @@
     var _pluginDicts = {};
 
     /**
+     * 自动翻译插件弹窗 DOM 结构（左侧侧边栏菜单、底部版权署名等）
+     * @param {HTMLElement|jQuery} container 弹窗容器或 DOM 根节点
+     * @param {string} pluginName 插件名
+     */
+    function translatePluginDOM(container, pluginName) {
+        if (!container || !window.$) return;
+        var $con = window.$(container);
+        var pt = createPluginTranslator(pluginName);
+
+        // 1. 翻译左侧菜单项 .bt-w-menu p
+        $con.find('.bt-w-menu p').each(function() {
+            var $p = window.$(this);
+            var orig = $p.attr('data-i18n-orig');
+            if (!orig) {
+                orig = $p.text().trim();
+                if (orig) {
+                    $p.attr('data-i18n-orig', orig);
+                }
+            }
+            if (orig) {
+                var trans = pt(orig);
+                if (trans && trans !== orig) {
+                    $p.text(trans);
+                }
+            }
+        });
+
+        // 2. 翻译底部出品署名与品牌版权
+        $con.find('div, span, p').each(function() {
+            var $el = window.$(this);
+            var txt = $el.text().trim();
+            if (txt === '衢州御风科技有限公司 出品' || txt === '衢州御風科技有限公司 出品') {
+                var orig = $el.attr('data-i18n-orig') || '衢州御风科技有限公司 出品';
+                $el.attr('data-i18n-orig', orig);
+                var trans = pt(orig);
+                if (trans && trans !== orig) {
+                    $el.text(trans);
+                }
+            }
+        });
+
+        // 3. 通用 DOM [data-i18n] 翻译
+        if ($con[0]) {
+            translateDOM($con[0]);
+        }
+    }
+
+    /**
      * 创建插件专属的 i18n 翻译函数
      * @param {string} pluginName 插件名
      * @returns {function} pt(key, ...args) 函数
@@ -433,6 +481,18 @@
             });
         }
 
+        // 若当前 DOM 中已挂载该插件的菜单或弹窗，自动执行翻译
+        if (window.$ && _currentLang !== 'zh-CN') {
+            setTimeout(function() {
+                var $menus = window.$('.bt-w-main, .bt-w-menu');
+                if ($menus.length > 0) {
+                    $menus.each(function() {
+                        translatePluginDOM(window.$(this).closest('.layui-layer, .bt-form, body'), pluginName);
+                    });
+                }
+            }, 0);
+        }
+
         return function(key) {
             var dict = _pluginDicts[pluginName];
             var msg = (dict && dict[key]) ? dict[key] : key;
@@ -453,6 +513,7 @@
         getSupportedCodes: function() { return SUPPORTED_CODES.slice(); },
         setLanguage: setLanguage,
         translateDOM: translateDOM,
+        translatePluginDOM: translatePluginDOM,
         createPluginTranslator: createPluginTranslator,
         t: t
     };

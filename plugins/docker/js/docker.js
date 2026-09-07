@@ -1216,24 +1216,24 @@ function dockerService(version) {
                 var html = '<div class="docker-product-info" style="margin-top: 15px; padding: 15px; background: #fafafa; border-radius: 6px; border: 1px solid #eaeaea; color: #555; font-size: 13px; line-height: 1.8; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">' +
                            '<h3 style="margin: 0 0 5px 0; font-size: 15px; color: #333; font-weight: 500; border-bottom: 1px solid #eee; padding-bottom: 8px; display: flex; align-items: center;">' +
                            '<span style="width: 4px; height: 16px; background: #20a53a; display: inline-block; margin-right: 8px; border-radius: 2px;"></span>' +
-                           '御风Docker管理器 - 产品说明' +
+                           pt('御风Docker管理器 - 产品说明') +
                            '</h3>' +
-                           '<p style="margin: 0 0 10px 0;"><b>🌟 核心定位：</b>本插件致力于提供比原生更加极速、稳定、易用的 Docker 容器与镜像管理体验。</p>' +
+                           '<p style="margin: 0 0 10px 0;"><b>🌟 ' + pt('核心定位：') + '</b>' + pt('本插件致力于提供比原生更加极速、稳定、易用的 Docker 容器与镜像管理体验。') + '</p>' +
                            '<ul style="padding-left: 10px; list-style-type: none; margin: 0 0 5px 0;">' +
                            '<li style="position: relative; padding-left: 15px; margin-bottom: 5px;">' +
                            '<span style="position: absolute; left: 0; top: 8px; width: 5px; height: 5px; background: #20a53a; border-radius: 50%;"></span>' +
-                           '<b>极速拉取：</b>采用多个加速节点智能轮询，彻底解决国内拉取镜像慢、超时的问题。</li>' +
+                           '<b>' + pt('极速拉取：') + '</b>' + pt('采用多个加速节点智能轮询，彻底解决国内拉取镜像慢、超时的问题。') + '</li>' +
                            '<li style="position: relative; padding-left: 15px; margin-bottom: 5px;">' +
                            '<span style="position: absolute; left: 0; top: 8px; width: 5px; height: 5px; background: #20a53a; border-radius: 50%;"></span>' +
-                           '<b>便捷配置：</b>提供直观的端口与目录映射界面，支持智能防错与空校验。</li>' +
+                           '<b>' + pt('便捷配置：') + '</b>' + pt('提供直观的端口与目录映射界面，支持智能防错与空校验。') + '</li>' +
                            '<li style="position: relative; padding-left: 15px; margin-bottom: 5px;">' +
                            '<span style="position: absolute; left: 0; top: 8px; width: 5px; height: 5px; background: #20a53a; border-radius: 50%;"></span>' +
-                           '<b>资源管控：</b>可视化调整 CPU 与内存配额，有效隔离并防止单容器耗尽宿主机资源。</li>' +
+                           '<b>' + pt('资源管控：') + '</b>' + pt('可视化调整 CPU 与内存配额，有效隔离并防止单容器耗尽宿主机资源。') + '</li>' +
                            '<li style="position: relative; padding-left: 15px; margin-bottom: 0;">' +
                            '<span style="position: absolute; left: 0; top: 8px; width: 5px; height: 5px; background: #20a53a; border-radius: 50%;"></span>' +
-                           '<b>批量运维：</b>支持一键导入、导出、删除镜像与容器，告别繁琐的命令行敲击。</li>' +
+                           '<b>' + pt('批量运维：') + '</b>' + pt('支持一键导入、导出、删除镜像与容器，告别繁琐的命令行敲击。') + '</li>' +
                            '</ul>' +
-                           '<p style="color: #999; font-size: 12px; margin: 0; padding-top: 10px; border-top: 1px dashed #eee;">* 提示：如果您在“加速器”面板更改了国内镜像源等守护进程配置，通常需要重启 Docker 服务方可生效。</p>' +
+                           '<p style="color: #999; font-size: 12px; margin: 0; padding-top: 10px; border-top: 1px dashed #eee;">' + pt('* 提示：如果您在“加速器”面板更改了国内镜像源等守护进程配置，通常需要重启 Docker 服务方可生效。') + '</p>' +
                            '</div>';
                 $('.soft-man-con').append(html);
             }

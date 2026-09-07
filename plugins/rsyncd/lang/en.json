@@ -55,6 +55,7 @@
     "确认": "confirm",
     "编辑": "Edit",
     "自启动": "self start",
+    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "警告：您选择了完全同步，将会使本机同步与目标机器指定目录的文件保持一致，": "Warning: If you choose full synchronization, the local synchronization will be consistent with the files in the specified directory of the target machine.",
     "说明": "Description",
     "请确认目录设置是否有误，一但设置错误，可能导致目标机器的目录文件被删除!": "Please confirm whether the directory settings are correct. Once the settings are incorrect, the directory files of the target machine may be deleted!",

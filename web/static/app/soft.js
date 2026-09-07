@@ -30,7 +30,12 @@ function softMain(name, title, version) {
       title: _title + '【' + version + (lan && lan.soft && t('soft.management') || ""),
       closeBtn: 1,
       shift: 0,
-      content: rdata
+      content: rdata,
+      success: function (layero, index) {
+        if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+          window.YfI18n.translatePluginDOM(layero, name);
+        }
+      }
     });
     $(".bt-w-menu p").on('click', function () {
       $(this).addClass("bgw").siblings().removeClass("bgw");

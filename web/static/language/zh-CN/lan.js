@@ -4243,7 +4243,24 @@ var lan = {
 			"confirm": "确定",
 			"cancel": "取消",
 			"info": "信息",
-			"do_you_want_to": "是否要退出御风面板?"
+			"do_you_want_to": "是否要退出御风面板?",
+			"current_status": "当前状态：",
+			"open": "开启",
+			"close_3": "停止",
+			"stop": "停止",
+			"start": "启动",
+			"restart_1": "重启",
+			"reload_configuration": "重载配置",
+			"operating_instructions": "操作指引",
+			"reload_configuration_reload": "重载配置 (Reload)",
+			"smoothly_loads_the_latest": "：平滑加载最新配置。进程重新读取配置而不断开现有连接，实现",
+			"zero_business_disruption": "业务零中断",
+			"recommended_for_use_after": "，推荐日常修改配置后使用。",
+			"restart_the_service_restart": "重启服务 (Restart)",
+			"forcibly_terminates_and_restarts": "：强制终止并重启所有进程。会导致进行中的请求（如订单提交、文件上传）瞬间中断并抛出 502 错误，仅在极少数异常恢复时使用。",
+			"kill_all_php_processes": "kill所有php进程",
+			"forcefully_terminate_all_php": "：强制杀掉服务器上所有的 PHP-FPM 进程（包括其他正常运行的 PHP 版本）。这会中断所有 PHP 网站的访问。此功能主要用于解决面板 PHP 启动时报“端口已被占用”、“Socket冲突”等异常问题，",
+			"after_execution_you_ll": "执行后需要手动回到各个 PHP 版本中重新点击【启动】服务。"
 		},
 
 	"upload": {

@@ -25,6 +25,7 @@
     "环境路径": "Percorso di ambiente",
     "系统环境": "Ambiente di sistema",
     "系统自带或其他外部环境，为防止系统崩溃，禁止卸载": "Sia nell'ambiente di sistema predefinito che in altri ambienti esterni, per evitare il crash del sistema, è vietato disinstallarlo",
+    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "该版本下有关联的虚拟环境({len(venvs)}个)，为了安全禁止卸载": "In questa versione sono presenti ambienti virtuali associati ({len(venvs)}), la cui disinstallazione è vietata per motivi di sicurezza",
     "请选择或输入您的项目根目录": "Seleziona o inserisci la directory principale del tuo progetto",
     "路径:": "Percorso:"

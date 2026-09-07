@@ -23,6 +23,7 @@
     "添加节点": "Ajouter un nœud",
     "编辑负载": "Modifier la charge utile",
     "节点状态": "Statut du nœud",
+    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "请先安装OpenResty": "Veuillez d'abord installer OpenResty",
     "负载名称,可以是英文字母和下划线,不能使用中文": "Le nom de la charge peut être composé de lettres anglaises et de traits de soulignement. Les caractères chinois ne peuvent pas être utilisés.",
     "负载名称不能为空!": "Le nom de la charge utile ne peut pas être vide !",

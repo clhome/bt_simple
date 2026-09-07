@@ -55,6 +55,7 @@
     "确认": "bestätigen",
     "编辑": "Bearbeiten",
     "自启动": "Seit dem Start",
+    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "警告：您选择了完全同步，将会使本机同步与目标机器指定目录的文件保持一致，": "Warnung: Wenn Sie die vollständige Synchronisierung wählen, erfolgt die lokale Synchronisierung mit den Dateien im angegebenen Verzeichnis des Zielcomputers.",
     "说明": "Beschreibung",
     "请确认目录设置是否有误，一但设置错误，可能导致目标机器的目录文件被删除!": "Bitte bestätigen Sie, ob die Verzeichniseinstellungen korrekt sind. Sobald die Einstellungen falsch sind, werden möglicherweise die Verzeichnisdateien des Zielcomputers gelöscht!",

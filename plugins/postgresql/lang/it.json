@@ -97,6 +97,7 @@
     "管理列表": "Elenco di gestione",
     "管理员密码": "Password amministratore",
     "自启动": "Dall'avvio",
+    "衢州御风科技有限公司 出品": "Prodotto da Quzhou Yufeng Technology Co., Ltd.",
     "设置可以同时处于 prepared 状态的事务的最大数目": "Imposta il numero massimo di transazioni che possono trovarsi contemporaneamente nello stato \"prepared\"",
     "设置数据库权限": "Configurazione dei permessi del database",
     "设置每个数据库会话使用的临时缓冲区的最大数目，默认是8MB": "Imposta il numero massimo di buffer temporanei utilizzati da ciascuna sessione del database; il valore predefinito è 8 MB",

@@ -23,6 +23,7 @@
     "添加节点": "Knoten hinzufügen",
     "编辑负载": "Bearbeitungslast",
     "节点状态": "Knotenzustand",
+    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "请先安装OpenResty": "Bitte installieren Sie zunächst OpenResty.",
     "负载名称,可以是英文字母和下划线,不能使用中文": "Name der Last: Darf aus englischen Buchstaben und Unterstrichen bestehen, chinesische Zeichen sind nicht zulässig.",
     "负载名称不能为空!": "Der Name der Last darf nicht leer sein!",

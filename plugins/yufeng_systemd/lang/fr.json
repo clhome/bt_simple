@@ -87,6 +87,7 @@
     "自启状态": "État d'auto-démarrage",
     "获取且仅获取 YuFeng 标签的服务": "Obtenez et obtenez uniquement les services labellisés YuFeng",
     "获取日志失败: {res['error']}": "Échec de l'obtention du journal : {res['error']}",
+    "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "请务必保留 [Unit] 和 [Service] 节点。Documentation 标签系统将在后台强制覆盖。": "Assurez-vous de conserver les nœuds [Unit] et [Service]. Le système de balises de documentation forcera les remplacements en coulisses.",
     "请勿使用中文名称": "Veuillez ne pas utiliser de noms chinois",
     "请勿在启动命令中使用": "Ne pas utiliser dans les commandes de démarrage",

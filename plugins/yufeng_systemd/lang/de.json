@@ -87,6 +87,7 @@
     "自启状态": "Selbststart-Modus",
     "获取且仅获取 YuFeng 标签的服务": "Dienste abrufen, die ausschließlich das YuFeng-Tag enthalten",
     "获取日志失败: {res['error']}": "Fehler beim Abrufen des Protokolls: {res['error']}",
+    "衢州御风科技有限公司 出品": "Produziert von Quzhou Yufeng Technology Co., Ltd.",
     "请务必保留 [Unit] 和 [Service] 节点。Documentation 标签系统将在后台强制覆盖。": "Achten Sie darauf, die Knoten [Einheit] und [Service] beizubehalten. Das Dokumentations-Tag-System erzwingt Überschreibungen im Hintergrund.",
     "请勿使用中文名称": "Bitte verwenden Sie keine chinesischen Namen",
     "请勿在启动命令中使用": "Bitte verwenden Sie dies nicht im Startbefehl",

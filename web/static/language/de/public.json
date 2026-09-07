@@ -541,5 +541,22 @@
   "replace_all": "Alle ersetzen",
   "replace": "Ersetzen",
   "all_1": "Alle",
-  "pre": "百分比(%)"
+  "pre": "Prozentsatz (%)",
+  "current_status": "Aktueller Status: ",
+  "open": "Aktiv",
+  "close_3": "Gestoppt",
+  "stop": "Stoppen",
+  "start": "Starten",
+  "restart_1": "Neustarten",
+  "reload_configuration": "Neu laden",
+  "operating_instructions": "Bedienungshinweise",
+  "reload_configuration_reload": "Konfiguration neu laden (Reload)",
+  "smoothly_loads_the_latest": ": Lädt die neueste Konfiguration nahtlos neu, ohne bestehende Verbindungen zu trennen, und erreicht ",
+  "zero_business_disruption": "keine Ausfallzeit",
+  "recommended_for_use_after": ", empfohlen nach Konfigurationsänderungen.",
+  "restart_the_service_restart": "Dienst neustarten (Restart)",
+  "forcibly_terminates_and_restarts": ": Beendet alle Prozesse und startet sie neu. Laufende Anfragen können abgebrochen werden.",
+  "kill_all_php_processes": "Alle PHP-Prozesse beenden",
+  "forcefully_terminate_all_php": ": Beendet gewaltsam alle PHP-FPM-Prozesse auf dem Server. Dies unterbricht den Zugriff auf alle PHP-Sites.",
+  "after_execution_you_ll": "Nach der Ausführung müssen Sie jede PHP-Version manuell wieder starten."
 }

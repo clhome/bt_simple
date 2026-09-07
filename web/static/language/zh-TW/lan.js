@@ -4225,7 +4225,24 @@ var lan = {
 			"confirm": "確定",
 			"cancel": "取消",
 			"info": "資訊",
-			"do_you_want_to": "是否要退出御風面板?"
+			"do_you_want_to": "是否要退出御風面板?",
+			"current_status": "當前狀態：",
+			"open": "開啟",
+			"close_3": "停止",
+			"stop": "停止",
+			"start": "啟動",
+			"restart_1": "重啟",
+			"reload_configuration": "重載配置",
+			"operating_instructions": "操作指引",
+			"reload_configuration_reload": "重載配置 (Reload)",
+			"smoothly_loads_the_latest": "：平滑載入最新配置。進程重新讀取配置而不斷開現有連線，實現",
+			"zero_business_disruption": "業務零中斷",
+			"recommended_for_use_after": "，推薦日常修改配置後使用。",
+			"restart_the_service_restart": "重啟服務 (Restart)",
+			"forcibly_terminates_and_restarts": "：強制終止並重啟所有進程。會導致進行中的請求瞬間中斷並拋出 502 錯誤，僅在極少數異常恢復時使用。",
+			"kill_all_php_processes": "kill所有php進程",
+			"forcefully_terminate_all_php": "：強制殺掉伺服器上所有的 PHP-FPM 進程（包括其他正常運行的 PHP 版本）。這會中斷所有 PHP 網站的訪問。",
+			"after_execution_you_ll": "執行後需要手動回到各個 PHP 版本中重新點擊【啟動】服務。"
 		},
 
 	"upload": {

@@ -97,6 +97,7 @@
     "管理列表": "Manage list",
     "管理员密码": "Administrator password",
     "自启动": "self start",
+    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "设置可以同时处于 prepared 状态的事务的最大数目": "Sets the maximum number of transactions that can be in prepared state at the same time",
     "设置数据库权限": "Set database permissions",
     "设置每个数据库会话使用的临时缓冲区的最大数目，默认是8MB": "Set the maximum number of temporary buffers used per database session, the default is 8MB",

@@ -30,6 +30,7 @@
     "系统默认": "System Default",
     "自定义JDK": "Custom JDK",
     "获取所有JDK列表 (包括预设在线版本和已安装版本)": "Get a list of all JDKs (including default online versions and installed versions)",
+    "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "设为默认": "Set as Default",
     "设置系统级默认全局JAVA_HOME": "Set system-level default global JAVA_HOME",
     "面板安装": "Panel Installed"
