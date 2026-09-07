@@ -1266,15 +1266,15 @@ function limitNet(id) {
       + "<option value='5'  " + (rdata.perserver == 400 ? 'selected' : '') + ">" + ((lan && lan.site && t('site.limit_net_5')) || '门户') + "</option>"
       + "<option value='6' " + (rdata.perserver == 60 ? 'selected' : '') + ">" + ((lan && lan.site && t('site.limit_net_6')) || '企业站') + "</option>"
       + "<option value='7' " + (rdata.perserver == 150 ? 'selected' : '') + ">" + ((lan && lan.site && t('site.limit_net_7')) || '视频站') + "</option>";
-    var body = "<div class='dirBinding flow c4'>"
-      + '<p class="label-input-group ptb10"><label style="font-weight:normal"><input type="checkbox" name="status" ' + status_selected + ' onclick="saveLimitNet(' + id + ')" style="width:15px;height:15px;margin-right:5px" />' + ((lan && lan.site && t('site.limit_net_8')) || '启用流量限制') + '</label></p>'
-      + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + ((lan && lan.site && t('site.limit_net_9')) || '限制方案') + "：</span><select class='bt-input-text mr20' name='limit' style='width:90px'>" + limitList + "</select></p>"
-      + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + ((lan && lan.site && t('site.limit_net_10')) || '并发限制') + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='perserver' value='" + rdata.perserver + "' /></p>"
-      + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + ((lan && lan.site && t('site.limit_net_12')) || '单IP限制') + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='perip' value='" + rdata.perip + "' /></p>"
-      + "<p class='line' style='padding:10px 0'><span class='span_tit mr5'>" + ((lan && lan.site && t('site.limit_net_14')) || '流量限制') + "：</span><input class='bt-input-text mr20' style='width: 90px;' type='number' name='limit_rate' value='" + rdata.limit_rate + "' /></p>"
-      + "<button class='btn btn-success btn-sm mt10' onclick='saveLimitNet(" + id + ",1)'>" + ((lan && lan.public && t('public.save')) || '保存') + "</button>"
+    var body = "<div class='dirBinding flow bingfa c4 pd15'>"
+      + '<div class="label-input-group" style="margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #eee;"><label style="font-size:14px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;"><input type="checkbox" name="status" ' + status_selected + ' onclick="saveLimitNet(' + id + ')" style="width:16px;height:16px;margin-right:8px;cursor:pointer;" />' + ((lan && lan.site && t('site.limit_net_8')) || '启用流量限制') + '</label></div>'
+      + "<div class='line' style='display:flex;align-items:center;margin-bottom:15px;'><span class='span_tit' style='width:105px;min-width:105px;text-align:right;white-space:nowrap;font-size:13px;color:#333;margin-right:12px;display:inline-block;'>" + ((lan && lan.site && t('site.limit_net_9')) || '限制方案') + "：</span><select class='bt-input-text' name='limit' style='width:140px;height:34px;'>" + limitList + "</select></div>"
+      + "<div class='line' style='display:flex;align-items:center;margin-bottom:15px;'><span class='span_tit' style='width:105px;min-width:105px;text-align:right;white-space:nowrap;font-size:13px;color:#333;margin-right:12px;display:inline-block;'>" + ((lan && lan.site && t('site.limit_net_10')) || '并发限制') + "：</span><input class='bt-input-text' style='width:140px;height:34px;' type='number' name='perserver' value='" + rdata.perserver + "' /></div>"
+      + "<div class='line' style='display:flex;align-items:center;margin-bottom:15px;'><span class='span_tit' style='width:105px;min-width:105px;text-align:right;white-space:nowrap;font-size:13px;color:#333;margin-right:12px;display:inline-block;'>" + ((lan && lan.site && t('site.limit_net_12')) || '单IP限制') + "：</span><input class='bt-input-text' style='width:140px;height:34px;' type='number' name='perip' value='" + rdata.perip + "' /></div>"
+      + "<div class='line' style='display:flex;align-items:center;margin-bottom:15px;'><span class='span_tit' style='width:105px;min-width:105px;text-align:right;white-space:nowrap;font-size:13px;color:#333;margin-right:12px;display:inline-block;'>" + ((lan && lan.site && t('site.limit_net_14')) || '流量限制') + "：</span><input class='bt-input-text' style='width:140px;height:34px;' type='number' name='limit_rate' value='" + rdata.limit_rate + "' /><span style='color:#777;margin-left:8px;font-size:13px;'>KB/s</span></div>"
+      + "<div class='line' style='margin-top:20px;padding-left:117px;'><button class='btn btn-success btn-sm' onclick='saveLimitNet(" + id + ",1)' style='padding:6px 20px;font-size:13px;'>" + ((lan && lan.public && t('public.save')) || '保存') + "</button></div>"
       + "</div>"
-      + "<ul class='help-info-text c7 mtb15'><li>" + ((lan && lan.site && t('site.limit_net_11')) || '限制当前站点最大并发数') + "</li><li>" + ((lan && lan.site && t('site.limit_net_13')) || '限制单IP访问最大并发数') + "</li><li>" + ((lan && lan.site && t('site.limit_net_15')) || '限制每个请求最大流量(单位: KB)') + "</li></ul>";
+      + "<ul class='help-info-text c7' style='margin-top:25px;padding-top:15px;border-top:1px dashed #e5e5e5;'><li>" + ((lan && lan.site && t('site.limit_net_11')) || '限制当前站点最大并发数') + "</li><li>" + ((lan && lan.site && t('site.limit_net_13')) || '限制单IP访问最大并发数') + "</li><li>" + ((lan && lan.site && t('site.limit_net_15')) || '限制每个请求最大流量(单位: KB)') + "</li></ul>";
     $("#webedit-con").html(body);
     $("select[name='limit']").on('change', function () {
       var type = $(this).val();
@@ -1369,27 +1369,37 @@ function dirBinding(id) {
 		for (var i = 0; i < dirs.length; i++) {
 			opt += '<option value="' + dirs[i] + '">' + dirs[i] + '</option>';
 		}
-		for (var i = 0; i < binding.length; i++) {
-			body += '<tr>\
-				<td>' + binding[i].domain + '</td>\
-				<td>' + binding[i].port + '</td>\
-				<td>' + binding[i].path + '</td>\
-				<td class="text-right"><a class="btlink" href="javascript:setDirRewrite(' + binding[i].id + ');">' + ((lan && lan.site && t('site.pseudo_static')) || '伪静态') + '</a> | <a class="btlink" href="javascript:delDirBind(' + binding[i].id + ',' + id + ');">' + ((lan && lan.site && t('site.delete')) || '删除') + '</a></td>\
-			</tr>';
+		if (binding.length === 0) {
+			body = '<tr><td colspan="4" class="text-center" style="color:#999;padding:35px 0;">' + ((lan && lan.site && t('site.there_are_currently_no')) || '当前暂无子目录绑定') + '</td></tr>';
+		} else {
+			for (var i = 0; i < binding.length; i++) {
+				body += '<tr>\
+					<td><span class="btlinkbed">' + binding[i].domain + '</span></td>\
+					<td class="text-center">' + binding[i].port + '</td>\
+					<td>' + binding[i].path + '</td>\
+					<td class="text-right"><a class="btlink" href="javascript:setDirRewrite(' + binding[i].id + ');">' + ((lan && lan.site && t('site.pseudo_static')) || '伪静态') + '</a> | <a class="btlink" href="javascript:delDirBind(' + binding[i].id + ',' + id + ');" style="color:red;">' + ((lan && lan.site && t('site.delete')) || '删除') + '</a></td>\
+				</tr>';
+			}
 		}
 		var content = "<div class='divtable pd15'>\
-			<form id='dirBinding'>\
-				<span class='tname'>" + ((lan && lan.site && t('site.domain_name_1')) || '域名') + "</span>\
-				<input class='bt-input-text mr5' type='text' name='domain' style='width: 35%;' placeholder='" + ((lan && lan.site && t('site.domain_name_2')) || '域名') + "' />\
-				<span class='tname'>" + ((lan && lan.site && t('site.subdirectory')) || '子目录') + "</span>\
-				<select class='bt-input-text mr5' name='dirName' style='width: 25%;'>" + opt + "</select>\
+			<form id='dirBinding' style='display:flex;align-items:center;flex-wrap:wrap;margin-bottom:22px;padding:6px 0;'>\
+				<div style='display:inline-flex;align-items:center;'>\
+					<span style='font-size:13px;color:#333;font-weight:500;white-space:nowrap;margin-right:8px;'>" + ((lan && lan.site && t('site.domain_name_1')) || '域名') + "</span>\
+					<input class='bt-input-text' type='text' name='domain' style='width:230px;' placeholder='" + ((lan && lan.site && t('site.domain_name_2')) || '域名') + "' />\
+				</div>\
+				<div style='display:inline-flex;align-items:center;margin-left:26px;'>\
+					<span style='font-size:13px;color:#333;font-weight:500;white-space:nowrap;margin-right:8px;'>" + ((lan && lan.site && t('site.subdirectory')) || '子目录') + "</span>\
+					<select class='bt-input-text' name='dirName' style='width:190px;'>" + opt + "</select>\
+				</div>\
 				<input type='hidden' name='id' value='" + id + "'>\
-				<button class='btn btn-success btn-sm' type='button' onclick='addDirBinding(" + id + ")'>" + ((lan && lan.site && t('site.add_1')) || '添加') + "</button>\
+				<button class='btn btn-success btn-sm' type='button' onclick='addDirBinding(" + id + ")' style='margin-left:18px;padding:5px 18px;'>" + ((lan && lan.site && t('site.add_1')) || '添加') + "</button>\
 			</form>\
-			<table class='table table-hover mt15'>\
-				<thead><tr><th>" + ((lan && lan.site && t('site.domain_name_1')) || '域名') + "</th><th width='70px'>" + ((lan && lan.site && t('site.port')) || '端口') + "</th><th width='120px'>" + ((lan && lan.site && t('site.subdirectory')) || '子目录') + "</th><th width='100px' class='text-right'>" + ((lan && lan.site && t('site.operations_7')) || '操作') + "</th></tr></thead>\
-				<tbody id='checkDomain'>" + body + "</tbody>\
-			</table>\
+			<div class='divtable' style='max-height:480px;overflow:auto;'>\
+				<table class='table table-hover'>\
+					<thead><tr><th>" + ((lan && lan.site && t('site.domain_name_1')) || '域名') + "</th><th width='90px' class='text-center'>" + ((lan && lan.site && t('site.port')) || '端口') + "</th><th width='150px'>" + ((lan && lan.site && t('site.subdirectory')) || '子目录') + "</th><th width='120px' class='text-right'>" + ((lan && lan.site && t('site.operations_7')) || '操作') + "</th></tr></thead>\
+					<tbody id='checkDomain'>" + body + "</tbody>\
+				</table>\
+			</div>\
 		</div>";
 		$("#webedit-con").html(content);
 	}, 'json');

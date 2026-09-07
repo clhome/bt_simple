@@ -254,6 +254,13 @@
 - [x] 175. 重构对齐 `web/static/app/site.js` 中 `to301` 的完整功能：恢复多重定向列表渲染（`r_from`、`r_type`、`keep_path`）、创建重定向弹窗、删除重定向与 CodeMirror 配置文件在线编辑保存功能。
 - [x] 176. 编写专项回归测试套件（`test/test_limitnet_and_redirect_fix.py`），验证语言包词条、路由端点及前端语法逻辑，执行全量回归。
 
+## 优化网站修改中子目录绑定与流量限制排版及间距样式
+
+- [x] 177. 重构 `web/static/app/site.js` 中 `dirBinding` 表单与表格排版：采用现代弹性盒布局（Flex），扩大各输入控件与标签间距（域名输入框与“子目录”标签间增加独立呼吸空间，彻底消除拥挤紧贴），增强表格空状态提示。
+- [x] 178. 重构 `web/static/app/site.js` 中 `limitNet` 流量限制表单排版并更新 CSS（`web/static/css/site.css`、`web/static/css/ensite.css`）：彻底解决标签因 64px 狭窄宽度导致的折行断行问题，规范标签宽度为 110px、禁止换行、输入框统一对齐、按钮左边距对齐，增强层次分隔。
+- [x] 179. 编写专项回归测试套件（`test/test_webedit_styling_and_layout_opt.py`），验证子目录绑定间距样式、流量限制标签不折行与排版规范，运行全量测试验证无回归。
+
+
 
 
 

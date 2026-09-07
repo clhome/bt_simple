@@ -1508,18 +1508,24 @@ html .menu .menu_exit:hover {
     font-weight: normal
 }
 
-.bingfa .line {
-    margin-bottom: 10px
+.bingfa .line, .flow .line {
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
 }
 
-.bingfa .line .span_tit {
+.bingfa .line .span_tit, .flow .line .span_tit {
     text-align: right;
-    width: 120px;
-    display: inline-block
+    width: 110px;
+    min-width: 110px;
+    display: inline-block;
+    white-space: nowrap !important;
+    font-size: 13px;
+    color: #444;
 }
 
-.bingfa .bt-input-text {
-    width: 100px
+.bingfa .bt-input-text, .flow .bt-input-text {
+    width: 140px;
 }
 
 .ssl-con-key {
