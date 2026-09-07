@@ -247,14 +247,18 @@ def upload_file():
 @panel_login_required
 def upload_segment():
     path = request.form.get('path', '')
-    name = request.form.get('name', '')
+    raw_name = request.form.get('name', '')
+    # 防路径逃逸安全清洗：提取纯文件名
+    name = os.path.basename(raw_name.replace('\\', '/')).strip()
+    if not name:
+        return yf.returnData(False, 'file.py_msg_4472a5')
     size = request.form.get('size')
     start = request.form.get('start')
     dir_mode = request.form.get('dir_mode', '')
     file_mode = request.form.get('file_mode', '')
     b64_data = request.form.get('b64_data', '0')
     upload_files = request.files.getlist("blob")
-    return file.uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
+    return file.uploadSegment(path, name, size, start, dir_mode, file_mode, b64_data, upload_files)
 
 
 # 修改文件名
@@ -325,16 +329,28 @@ def download():
 @blueprint.route('/download_file', endpoint='download_file', methods=['POST'])
 @panel_login_required
 def download_file():
-    url = request.form.get('url', '')
-    path = request.form.get('path', '')
-    filename = request.form.get('filename', '')
-    
-    execstr = url + '|yf|' + path + '/' + filename
-    execstr = execstr.strip()
+    url = request.form.get('url', '').strip()
+    path = request.form.get('path', '').strip()
+    raw_filename = request.form.get('filename', '').strip()
+
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    if parsed.scheme.lower() not in ('http', 'https'):
+        return yf.returnData(False, 'files.py_msg_invalid_protocol')
+
+    filename = os.path.basename(raw_filename.replace('\\', '/')).strip()
+    if not filename or not yf.fileNameCheck(filename):
+        return yf.returnData(False, 'file.py_msg_4472a5')
+
+    abs_path = os.path.abspath(path)
+    target_file = os.path.abspath(os.path.join(abs_path, filename))
+    if not target_file.startswith(abs_path + os.sep) and target_file != os.path.join(abs_path, filename):
+        return yf.returnData(False, 'file.py_msg_302ba9')
+
+    execstr = url + '|yf|' + target_file
 
     title = '下载文件[' + filename + ']'
     thisdb.addTaskByDownload(name=title, cmd=execstr)
-    # self.setFileAccept(path + '/' + filename)
     yf.triggerTask()
     return yf.returnData(True, 'files.py_msg_b4c393')
 

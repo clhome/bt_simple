@@ -1060,6 +1060,12 @@ function showDanger(num, port) {
 }
 
 function pluginInit(){
+    try {
+        if (localStorage.getItem('yf_recommended_shown') === '1') {
+            return false;
+        }
+    } catch(e) {}
+
     $.post('/plugins/init', function(data){
         if (!data.status){
             return false;
@@ -1118,6 +1124,10 @@ function pluginInit(){
             </div>\
         </div>",
             success:function(l,index){
+                try {
+                    localStorage.setItem('yf_recommended_shown', '1');
+                } catch(e) {}
+
                 $('.rec-box-con .onekey').on('click', function(){
                     var _this = $(this);
                     if (_this.hasClass('disabled')) return;
@@ -1140,6 +1150,9 @@ function pluginInit(){
                     }
 
                     $.post('/plugins/init_install', 'list='+JSON.stringify(post_data), function(data){
+                        try {
+                            localStorage.setItem('yf_recommended_shown', '1');
+                        } catch(e) {}
                         showMsg(data.msg, function(){
                             if (data.status){
                                 layer.closeAll();
@@ -1155,7 +1168,14 @@ function pluginInit(){
                 });   
             },
             cancel:function(){
+                try {
+                    localStorage.setItem('yf_recommended_shown', '1');
+                } catch(e) {}
                 layer.confirm('是否不再显示推荐安装套件?', {btn : ['确定', '取消'],title: "不再显示推荐?"}, function() {
+                    try {
+                        localStorage.setItem('yf_recommended_shown', '1');
+                    } catch(e) {}
+                    $.post('/plugins/not_recommend', function(){});
                     $.post('/files/create_dir', 'path=/www/server/php', function(rdata) {
                         layer.closeAll();
                     },'json');

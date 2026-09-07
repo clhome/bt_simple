@@ -26,18 +26,28 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
     if not yf.fileNameCheck(name):
         return yf.returnData(False, 'file.py_msg_4472a5')
 
+    # 防路径逃逸与非法文件名
+    clean_name = os.path.basename(name.replace('\\', '/')).strip()
+    if not clean_name or clean_name != name or '/' in name or '\\' in name or '..' in name:
+        return yf.returnData(False, 'file.py_msg_302ba9')
+
     if path == '/':
         return yf.returnData(False, 'file.py_msg_4d44b7')
 
     if name.find('./') != -1 or path.find('./') != -1:
         return yf.returnData(False, 'file.py_msg_302ba9')
 
-    if not os.path.exists(path):
-        os.makedirs(path, 493)
-        if not dir_mode != '' or not file_mode != '':
-            setMode(path)
+    abs_path = os.path.abspath(path)
+    target_file = os.path.abspath(os.path.join(abs_path, clean_name))
+    if not target_file.startswith(abs_path + os.sep) and target_file != os.path.join(abs_path, clean_name):
+        return yf.returnData(False, 'file.py_msg_302ba9')
 
-    save_path = os.path.join(path, name + '.' + str(int(size)) + '.upload.tmp')
+    if not os.path.exists(abs_path):
+        os.makedirs(abs_path, 493)
+        if not dir_mode != '' or not file_mode != '':
+            setMode(abs_path)
+
+    save_path = os.path.join(abs_path, clean_name + '.' + str(int(size)) + '.upload.tmp')
     d_size = 0
     if os.path.exists(save_path):
         d_size = os.path.getsize(save_path)
@@ -116,15 +126,15 @@ def unzip(sfile, dfile, stype, path):
 
     try:
         tmps = yf.getPanelDir() + '/logs/panel_exec.log'
+        q_path = yf.shlexQuote(path)
+        q_dfile = yf.shlexQuote(dfile)
+        q_tmps = yf.shlexQuote(tmps)
         if stype == 'zip':
-            yf.execShell("cd " + path + " && unzip -o -d '" + dfile +"' '" + sfile + "' > " + tmps + " 2>&1 &")
+            q_sfile = yf.shlexQuote(sfile)
+            yf.execShell("cd " + q_path + " && unzip -o -d " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1 &")
         else:
-            sfiles = ''
-            for sfile in sfile.split(','):
-                if not sfile:
-                    continue
-                sfiles += " '" + sfile + "'"
-            yf.execShell("cd " + path + " && tar -zxvf " + sfiles +" -C " + dfile + " > " + tmps + " 2>&1 &")
+            sfiles = ' '.join(yf.shlexQuote(sf) for sf in sfile.split(',') if sf)
+            yf.execShell("cd " + q_path + " && tar -zxvf " + sfiles + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &")
 
         if os.path.exists(dfile):
             if dfile.startswith("/www/wwwroot"):
@@ -159,30 +169,32 @@ def uncompress(sfile, dfile, path):
     if extension == '7z' and not yf.checkBinExist('7z'):
         return yf.returnData(False, 'file.py_msg_a8d259')
 
-
-    cmd = "cd " + path + " "
+    q_path = yf.shlexQuote(path)
+    q_dfile = yf.shlexQuote(dfile)
+    q_sfile = yf.shlexQuote(sfile)
+    q_tmps = yf.shlexQuote(yf.getPanelDir() + '/logs/panel_exec.log')
+    cmd = "cd " + q_path + " "
     try:
-        tmps = yf.getPanelDir() + '/logs/panel_exec.log'
         if extension == 'zip':
-            cmd += "&& unzip -o -d '" + dfile + "' '" + sfile + "' > " + tmps + " 2>&1 &"
+            cmd += "&& unzip -o -d " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'tar.gz':
-            cmd += "&& tar -zxvf " + sfile + " -C " + dfile + " > " + tmps + " 2>&1 &"
+            cmd += "&& tar -zxvf " + q_sfile + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'gz':
-            cmd += "&& gunzip -k " + sfile + " > " + tmps + " 2>&1 &"
+            cmd += "&& gunzip -k " + q_sfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'rar':
-            cmd += "&& unrar x " + sfile + " " + dfile + " > " + tmps + " 2>&1 &"
+            cmd += "&& unrar x " + q_sfile + " " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == '7z':
-            cmd += "&& 7z x " + sfile + " -r -o" + dfile + " > " + tmps + " 2>&1 &"
+            cmd += "&& 7z x " + q_sfile + " -r -o" + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'xz':
-            cmd += "&& tar -Jxvf " + sfile + " -C " + dfile + " > " + tmps + " 2>&1 &"
+            cmd += "&& tar -Jxvf " + q_sfile + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
         elif extension == 'bz2':
-            cmd += "&& tar -xjvf " + sfile + " -C " + dfile + " > " + tmps + " 2>&1 &"
+            cmd += "&& tar -xjvf " + q_sfile + " -C " + q_dfile + " > " + q_tmps + " 2>&1 &"
             yf.execShell(cmd)
 
         if os.path.exists(dfile):
@@ -330,62 +342,63 @@ def batchPaste(path, stype):
 
 def zip(sfile, dfile, stype, path):
     tmps = yf.getPanelDir() + '/logs/panel_exec.log'
+    q_path = yf.shlexQuote(path)
+    q_dfile = yf.shlexQuote(dfile)
+    q_tmps = yf.shlexQuote(tmps)
     if sfile.find(',') == -1:
+        q_sfile = yf.shlexQuote(sfile)
         if stype == 'zip':
-            yf.execShell("cd '" + path + "' && zip '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && zip " + q_dfile + " -r " + q_sfile + " > " + q_tmps + " 2>&1")
         elif stype == '7z':
             if not yf.checkBinExist('7z'):
                 return yf.returnData(False, 'file.py_msg_c2cd54')
-            yf.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r '" + sfile + "' > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && 7z a " + q_dfile + " -r " + q_sfile + " > " + q_tmps + " 2>&1")
         elif stype == 'tar_gz':
-            yf.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && tar -zcvf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1")
         elif stype == 'xz':
-            # if not yf.checkBinExist('xz'):
-            #     return yf.returnData(False, 'file.py_msg_12b8f4')
-            # dfile = dfile.strip(".xz")
-            # cmd = "cd '" + path + "' && tar -cvf '" + dfile + ".tar' " + sfile + " && xz -z '" + dfile + ".tar' > " + tmps + " 2>&1 &"
-            cmd = "cd '" + path + "' && tar -cJf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1"
-            # print(cmd)
+            cmd = "cd " + q_path + " && tar -cJf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1"
             yf.execShell(cmd)
         elif stype == 'rar':
             if not yf.checkBinExist('rar'):
                 return yf.returnData(False, 'file.py_msg_4ba9f0')
-            yf.execShell("cd '" + path + "' && rar a '" + dfile + "' '" + sfile + "' > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && rar a " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1")
         elif stype == 'bz2':
-            yf.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfile + " > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && tar -cjvf " + q_dfile + " " + q_sfile + " > " + q_tmps + " 2>&1")
         else:
             return yf.returnData(False, 'file.py_msg_05b0c9')
         yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfile, dfile))
     else:
-        sfiles = ''
-        for sfile in sfile.split(','):
-            if not sfile:
+        sfiles = []
+        for sf in sfile.split(','):
+            if not sf:
                 continue
-            if not os.path.exists(sfile):
+            if not os.path.exists(sf):
                 return yf.returnData(False, 'file.py_msg_e0fb06')
-            
-            sfiles += " '" + sfile.replace(path+'/','') + "'"
+            rel = sf.replace(path + '/', '')
+            sfiles.append(yf.shlexQuote(rel))
+        sfiles_str = ' '.join(sfiles)
 
         if stype == 'zip':
-            yf.execShell("cd '" + path + "' && zip '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && zip " + q_dfile + " -r " + sfiles_str + " > " + q_tmps + " 2>&1")
         elif stype == '7z':
             if not yf.checkBinExist('7z'):
                 return yf.returnData(False, 'file.py_msg_c2cd54')
-            yf.execShell("cd '" + path + "' && 7z a '" + dfile + "' -r " + sfiles + " > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && 7z a " + q_dfile + " -r " + sfiles_str + " > " + q_tmps + " 2>&1")
         elif stype == 'tar_gz':
-            yf.execShell("cd '" + path + "' && tar -zcvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && tar -zcvf " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1")
+        elif stype == 'xz':
+            yf.execShell("cd " + q_path + " && tar -cJf " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1")
         elif stype == 'rar':
             if not yf.checkBinExist('rar'):
                 return yf.returnData(False, 'file.py_msg_4ba9f0')
-            yf.execShell("cd '" + path + "' && rar a '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
-        elif stype == 'bz2':
-            yf.execShell("cd '" + path + "' && tar -cjvf '" + dfile + "' " + sfiles + " > " + tmps + " 2>&1")
+            yf.execShell("cd " + q_path + " && rar a " + q_dfile + " " + sfiles_str + " > " + q_tmps + " 2>&1")
         else:
             return yf.returnData(False, 'file.py_msg_05b0c9')
+        yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfile, dfile))
 
-        yf.writeLog("文件管理", '文件[{1}]压缩[{2}]成功!', (sfiles, dfile))
-    setFileAccept(dfile)
-    return yf.returnData(True, 'file.py_msg_cbecda')
+    if os.path.exists(dfile):
+        setFileAccept(dfile)
+    return yf.returnData(True, 'file.py_msg_f0f920')
 
 def getAccess(filename):
     data = {}
@@ -681,36 +694,60 @@ def getDirList(path, page=1, size=10, order = '', search=None):
     dirnames = []
     filenames = []
 
-    count = getCount(path, search)
-    order_split = order.strip().split(' ')
-    if len(order_split) < 2:
-        flist = sortFileList(path, order_split[0], '')
+    try:
+        with os.scandir(path) as it:
+            raw_entries = [e for e in it if e.name not in ('.', '..')]
+    except Exception:
+        raw_entries = []
+
+    if search:
+        search_lower = str(search).lower()
+        entries = [e for e in raw_entries if search_lower in e.name.lower()]
     else:
-        flist = sortFileList(path, order_split[0], order_split[1])
+        entries = raw_entries
+
+    count = len(entries)
+
+    order_split = order.strip().split() if order else []
+    ftype = order_split[0] if len(order_split) > 0 else 'mtime'
+    sort_dir = order_split[1] if len(order_split) > 1 else 'desc'
+    reverse = (sort_dir == 'desc')
+
+    if ftype == 'mtime':
+        def _safe_mtime(e):
+            try:
+                return e.stat().st_mtime
+            except:
+                return 0
+        entries.sort(key=_safe_mtime, reverse=reverse)
+    elif ftype == 'size':
+        def _safe_size(e):
+            try:
+                return e.stat().st_size
+            except:
+                return 0
+        entries.sort(key=_safe_size, reverse=reverse)
+    elif ftype == 'fname':
+        entries.sort(key=lambda e: e.name.lower(), reverse=reverse)
+    else:
+        entries.sort(key=lambda e: e.name.lower(), reverse=reverse)
 
     start = (page - 1) * size
-    end = start + size
-    if end > count:
-        end = count
+    end = min(start + size, count)
+    plist = entries[start:end]
 
-    
-    if search or search != '':
-        nlist = []
-        for f in flist:
-            if f.lower().find(search) == -1:
-                continue
-            nlist.append(f)
-        plist = nlist[start:end]
-    else:
-        plist = flist[start:end]
-    
-    for filename in plist:
-        abs_file = path + '/' + filename
+    for entry in plist:
+        abs_file = entry.path
         if not os.path.exists(abs_file):
             continue
 
         stats = yf.getFileStatsDesc(abs_file, path)
-        if os.path.isdir(abs_file):
+        try:
+            is_dir = entry.is_dir()
+        except:
+            is_dir = os.path.isdir(abs_file)
+
+        if is_dir:
             dirnames.append(stats)
         else:
             filenames.append(stats)

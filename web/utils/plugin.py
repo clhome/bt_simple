@@ -170,6 +170,10 @@ class plugin(object):
         return yf.returnData(True, 'ok', plist)
 
     def init(self):
+        not_rec_file = yf.getPanelDataDir() + '/not_recommend.pl'
+        if os.path.exists(not_rec_file):
+            return yf.returnData(False, 'ok')
+
         plugin_names = {
             'openresty': '1.31.1',
             'php': '80',
@@ -200,8 +204,14 @@ class plugin(object):
 
         return yf.returnData(True, 'ok', pn_list)
 
+    def setNotRecommend(self):
+        not_rec_file = yf.getPanelDataDir() + '/not_recommend.pl'
+        yf.writeFile(not_rec_file, '1')
+        return yf.returnData(True, 'ok')
+
     def initInstall(self, plugin_list):
         try:
+            self.setNotRecommend()
             pn_list = json.loads(plugin_list)
             # 对安装列表进行排序，确保 swap 放置在首位最先安装
             pn_list = sorted(pn_list, key=lambda x: 0 if x.get('name') == 'swap' else 1)

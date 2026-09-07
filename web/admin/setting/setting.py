@@ -372,8 +372,11 @@ def migrate_restore():
         args = []
         if request.form.get('mysql', '') == '1':
             args.append('mysql')
-            dbs = request.form.get('dbs', '*')
+            dbs = request.form.get('dbs', '*').strip()
             if dbs != '*':
+                import re
+                if not re.match(r'^[a-zA-Z0-9_\-]+(,[a-zA-Z0-9_\-]+)*$', dbs):
+                    return yf.returnData(False, 'setting.py_msg_invalid_dbs')
                 args.append('--dbs=' + dbs)
             
         import sys
@@ -382,7 +385,13 @@ def migrate_restore():
         log_file = "/tmp/migrate_restore.log"
         yf.writeFile(log_file, "正在初始化迁移任务...\n")
         
-        cmd = "cd " + panel_dir + " && echo yes | " + sys.executable + " -u " + panel_dir + "/panel_tools.py migrate_restore " + " ".join(args) + " > " + log_file + " 2>&1 &"
+        safe_args = [yf.shlexQuote(a) for a in args]
+        q_panel_dir = yf.shlexQuote(panel_dir)
+        q_py = yf.shlexQuote(sys.executable)
+        q_tool = yf.shlexQuote(os.path.join(panel_dir, 'panel_tools.py'))
+        q_log = yf.shlexQuote(log_file)
+        args_str = (' ' + ' '.join(safe_args)) if safe_args else ''
+        cmd = f"cd {q_panel_dir} && echo yes | {q_py} -u {q_tool} migrate_restore{args_str} > {q_log} 2>&1 &"
         os.system(cmd)
         
         yf.writeLog('面板设置', '执行数据库迁移恢复: ' + cmd)
@@ -421,6 +430,8 @@ def migrate_sites():
         db_path = request.form.get('db_path', '').strip()
         if not db_path:
             return yf.returnData(False, 'setting.py_msg_ceaa07')
+        if not os.path.exists(db_path) or not db_path.endswith('.db'):
+            return yf.returnData(False, 'setting.py_msg_invalid_db_path')
             
         import sys
         import os
@@ -428,7 +439,12 @@ def migrate_sites():
         log_file = "/tmp/migrate_sites.log"
         yf.writeFile(log_file, "正在初始化站点导入任务...\n")
         
-        cmd = "cd " + panel_dir + " && " + sys.executable + " -u " + panel_dir + "/panel_tools.py import_bt_sites " + db_path + " > " + log_file + " 2>&1 &"
+        q_panel_dir = yf.shlexQuote(panel_dir)
+        q_py = yf.shlexQuote(sys.executable)
+        q_tool = yf.shlexQuote(os.path.join(panel_dir, 'panel_tools.py'))
+        q_db = yf.shlexQuote(db_path)
+        q_log = yf.shlexQuote(log_file)
+        cmd = f"cd {q_panel_dir} && {q_py} -u {q_tool} import_bt_sites {q_db} > {q_log} 2>&1 &"
         os.system(cmd)
         
         yf.writeLog('面板设置', '执行宝塔站点导入: ' + cmd)

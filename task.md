@@ -189,3 +189,35 @@
 - [x] 136. 编写专项自动化测试套件（`test/test_p2_deep_optimization.py`），验证验证码防绕过与防重放、密码原密码与复杂度校验、插件探测并发与轻量探测、升级包校验等功能。
 - [x] 137. 运行全量测试套件回归验证，确保 100% 通过并保持开发目录整洁。
 
+## 系统二次深度加固与性能跃升（安全/可靠/性能）
+
+### 第一阶段：P0 级高危安全漏洞加固
+- [x] 138. 修复分片上传接口（`upload_segment`）路径穿越与任意文件覆盖漏洞（`web/admin/files/files.py`、`web/utils/file.py`）：对文件名增加严格过滤与根路径白名单限制。
+- [x] 139. 修复压缩与解压命令裸字符串拼接注入隐患（`web/utils/file.py`）：对 `uncompress`、`unzip`、`zip` 中涉及的 `sfile`、`dfile`、`path` 全面引入 `shlex.quote` 转义。
+- [x] 140. 修复宝塔站点导入与数据库迁移接口的参数命令注入漏洞（`web/admin/setting/setting.py`）：对 `db_path` 与 `dbs` 参数实行合法性校验与安全转义。
+- [x] 141. 编写专项自动化测试套件（`test/test_p0_deep_security.py`），验证分片上传防穿越、压缩解压安全转义与迁移命令注入防御。
+- [x] 142. 运行自动化测试验证，确保 100% 通过并保持开发目录整洁。
+
+### 第二阶段：P1 级核心可靠性与关键性能重构
+- [x] 143. 推行全局 `writeFile` 原子写入机制（`web/core/yf.py`）：采用“临时文件写入 + 刷盘 + `os.replace` 原子替换”，杜绝断电/OOM/磁盘满时的零字节损坏。
+- [x] 144. 重构任务取消机制（`web/utils/task.py`）：引入进程组（Process Group）精准清理孤儿编译子进程，杜绝 `kill -9` 误杀守护进程。
+- [x] 145. 重构 `getDirList` 与 `sortFileList`（`web/utils/file.py`、`web/core/yf.py`）：改用 `os.scandir` 实现大目录秒级加载与单次系统调用。
+- [x] 146. 加固远程下载接口（`panel_task.py`、`web/admin/files/files.py`）：限制 URL 协议为 http/https，拦截 `file://` 等非安全协议，校验目标文件名防越界。
+- [x] 147. 编写专项自动化测试套件（`test/test_p1_deep_reliability_perf.py`），验证原子写入、进程组精准清理、os.scandir 高效遍历与协议校验。
+- [x] 148. 运行自动化测试验证，确保 100% 通过并保持开发目录整洁。
+
+### 第三阶段：P2 级深度调优与工程规范清洗
+- [x] 149. 根目录与数据目录路径锚定物理文件绝对路径（`web/core/db.py`、`web/core/yf.py`）：彻底杜绝 `os.getcwd()` 漂移脱轨。
+- [x] 150. 优化反代环境下真实 IP 识别与防误封（`web/core/yf.py`）：安全识别 X-Forwarded-For 与 X-Real-IP。
+- [x] 151. 优化大文件日志逆序读取（`web/core/yf.py`）：修复 UTF-8 中文边界截断与多余 strip 破坏缩进问题。
+- [x] 152. 清理 `web/utils/site.py` 遗留的外部 `mkdir -p` / `rm -rf` 子进程，替换为 Python 标准库原生实现。
+- [x] 153. 编写专项自动化测试套件（`test/test_p2_deep_refine.py`），验证路径锚定、反代 IP 识别、日志逆序读取与原生文件操作。
+- [x] 154. 全量回归测试验证，确保 100% 通过并清理临时文件。
+
+## 修复推荐安装重复弹出缺陷
+
+- [x] 155. 修复 `web/core/yf.py` 中 `getFatherDir()` 目录层级错误：恢复为物理绝对路径向上两级（`os.path.dirname(os.path.dirname(_PANEL_ROOT_DIR))`），确保 `getServerDir()` 精确指向 `/www/server`，彻底恢复插件目录探测机制。
+- [x] 156. 强化推荐安装弹窗防重弹机制（`web/utils/plugin.py`、`web/static/app/index.js`）：后端增加持久化防重弹标记支持，前端在展示/关闭时增加客户端状态记录，确保推荐安装只在面板初次打开展示一次，杜绝后续重复弹出。
+- [x] 157. 编写专项自动化回归测试（`test/test_recommend_install_bug.py`），验证 `getFatherDir()`、`getServerDir()` 路径计算正确性以及推荐安装仅初次弹出的防重逻辑。
+- [x] 158. 运行全量测试套件回归验证，清理临时文件。
+

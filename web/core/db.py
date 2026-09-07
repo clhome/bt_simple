@@ -24,7 +24,7 @@ _local = threading.local()
 _table_fields_cache = {}
 
 def getPanelDir():
-    return os.path.dirname(os.getcwd())
+    return yf.getPanelDir()
 
 def getTracebackInfo():
     import traceback

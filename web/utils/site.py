@@ -11,6 +11,7 @@
 
 import os
 import sys
+import shutil
 import re
 import json
 import time
@@ -892,9 +893,12 @@ class sites(object):
                 data['dirs'] = []
                 data['binding'] = []
                 return yf.returnData(True, 'OK', data)
-            os.system('mkdir -p ' + path)
-            os.system('chmod 755 ' + path)
-            os.system('chown www:www ' + path)
+            os.makedirs(path, exist_ok=True)
+            try:
+                os.chmod(path, 0o755)
+            except Exception:
+                pass
+            chownR(path, 'www', 'www')
             siteName = info['name']
             yf.writeLog('网站管理', '站点[' + siteName + '],根目录[' + path + ']不存在,已重新创建!')
 
@@ -2123,8 +2127,7 @@ location  {from} {\n\
             if not certInfo:
                 return yf.returnData(False, 'site.py_msg_27dc73')
             vpath = self.sslDir + '/' + site_name
-            if not os.path.exists(vpath):
-                os.system('mkdir -p ' + vpath)
+            os.makedirs(vpath, exist_ok=True)
             yf.writeFile(vpath + '/privkey.pem', yf.readFile(keyPath))
             yf.writeFile(vpath + '/fullchain.pem', yf.readFile(certPath))
             yf.writeFile(vpath + '/info.json', json.dumps(certInfo))
@@ -2135,8 +2138,7 @@ location  {from} {\n\
     def getCertList(self):
         try:
             vpath = self.sslDir
-            if not os.path.exists(vpath):
-                os.system('mkdir -p ' + vpath)
+            os.makedirs(vpath, exist_ok=True)
             data = []
             for d in os.listdir(vpath):
 
@@ -2923,7 +2925,13 @@ export PATH
             path = self.sslDir + '/' + cert_name
             if not os.path.exists(path):
                 return yf.returnData(False, 'site.py_msg_6a6606')
-            os.system("rm -rf " + path)
+            if os.path.isdir(path):
+                shutil.rmtree(path, ignore_errors=True)
+            elif os.path.isfile(path) or os.path.islink(path):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
             return yf.returnData(True, 'site.py_msg_1e0d6d')
         except Exception as ex:
             return yf.returnData(False, 'utils.py_msg_b82765', None, str(ex))

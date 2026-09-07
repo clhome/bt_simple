@@ -37,6 +37,12 @@ def index():
 def init():
     return YfPlugin.instance().init()
 
+# 设置不再提示推荐安装
+@blueprint.route('/not_recommend', endpoint='not_recommend', methods=['POST'])
+@panel_login_required
+def not_recommend():
+    return YfPlugin.instance().setNotRecommend()
+
 # 初始化安装
 @blueprint.route('/init_install', endpoint='init_install', methods=['POST'])
 @panel_login_required

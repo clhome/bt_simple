@@ -45,9 +45,26 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
             pass
 
     # 启动进程，捕获 stdout 并将 stderr 重定向到 stdout
-    sub = subprocess.Popen(cmdstring, cwd=cwd, stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                           shell=shell, bufsize=0)
+    sub_kwargs = {
+        'cwd': cwd,
+        'stdin': subprocess.PIPE,
+        'stdout': subprocess.PIPE,
+        'stderr': subprocess.STDOUT,
+        'shell': shell,
+        'bufsize': 0
+    }
+    if not yf.isAppleSystem() and os.name != 'nt' and hasattr(os, 'setsid'):
+        sub_kwargs['preexec_fn'] = os.setsid
+
+    sub = subprocess.Popen(cmdstring, **sub_kwargs)
+
+    cur_task_pid_file = os.path.join(yf.getPanelDir(), 'tmp', 'panel_task_sub.pid')
+    if task_id:
+        try:
+            with open(cur_task_pid_file, 'w', encoding='utf-8') as pf:
+                pf.write(f"{task_id}:{sub.pid}")
+        except:
+            pass
 
     try:
         log_file_handle = open(g_log_file, 'w', encoding='utf-8')
@@ -125,6 +142,13 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True, task_id=None):
         except:
             pass
 
+    if task_id:
+        try:
+            if os.path.exists(cur_task_pid_file):
+                os.remove(cur_task_pid_file)
+        except:
+            pass
+
     return (str(sub.returncode), '')
 
 
@@ -155,7 +179,19 @@ def downloadFile(url, filename, task_id=None):
     try:
         import urllib
         import socket
+        from urllib.parse import urlparse
+
         socket.setdefaulttimeout(300)
+
+        url = str(url).strip()
+        parsed = urlparse(url)
+        if parsed.scheme.lower() not in ('http', 'https'):
+            writeLogs(f"Security Error: Download protocol '{parsed.scheme}' not allowed.", task_id)
+            return False
+
+        target_dir = os.path.dirname(os.path.abspath(filename))
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
 
         headers = ('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36')
         opener = urllib.request.build_opener()

@@ -209,17 +209,20 @@ def getTracebackInfo():
     import traceback
     return traceback.format_exc()
 
+# 物理绝对路径锚定面板根目录 (以 core 所在的 web 目录的上级目录为基准，杜绝 os.getcwd() 漂移)
+_PANEL_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 def getRunDir():
-    return os.getcwd()
+    return _PANEL_ROOT_DIR
 
 def getRootDir():
-    return os.path.dirname(getRunDir())
+    return _PANEL_ROOT_DIR
 
 def getPanelDir():
-    return getRootDir()
+    return _PANEL_ROOT_DIR
 
 def getFatherDir():
-    return os.path.dirname(os.path.dirname(getPanelDir()))
+    return os.path.dirname(os.path.dirname(_PANEL_ROOT_DIR))
 
 def getPluginDir():
     return getPanelDir() + '/plugins'
@@ -237,6 +240,9 @@ def getPanelTmp():
     return getPanelDir() + '/tmp'
 
 def getServerDir():
+    parent_dir = os.path.dirname(_PANEL_ROOT_DIR)
+    if os.path.basename(parent_dir) == 'server':
+        return parent_dir
     return getFatherDir() + '/server'
 
 def getLogsDir():
@@ -245,7 +251,7 @@ def getLogsDir():
 def getRecycleBinDir():
     rb_dir = getFatherDir() + '/recycle_bin'
     if not os.path.exists(rb_dir):
-        os.system('mkdir -p ' + rb_dir)
+        os.makedirs(rb_dir, exist_ok=True)
     return rb_dir
 
 def getPanelTaskLog():
@@ -597,25 +603,33 @@ def checkCert(certPath='ssl/certificate.pem'):
     return True
 
 def sortFileList(path, ftype = 'mtime', sort = 'desc'):
-    flist = os.listdir(path)
+    try:
+        with os.scandir(path) as it:
+            entries = list(it)
+    except Exception:
+        entries = []
+
+    reverse = (sort == 'desc')
     if ftype == 'mtime':
-        if sort == 'desc':
-            flist = sorted(flist, key=lambda f: os.path.getmtime(os.path.join(path,f)), reverse=True)
-        if sort == 'asc':
-            flist = sorted(flist, key=lambda f: os.path.getmtime(os.path.join(path,f)), reverse=False)
+        def _get_mtime(e):
+            try:
+                return e.stat().st_mtime
+            except Exception:
+                return 0
+        entries.sort(key=_get_mtime, reverse=reverse)
+    elif ftype == 'size':
+        def _get_size(e):
+            try:
+                return e.stat().st_size
+            except Exception:
+                return 0
+        entries.sort(key=_get_size, reverse=reverse)
+    elif ftype == 'fname':
+        entries.sort(key=lambda e: e.name.lower(), reverse=reverse)
+    else:
+        entries.sort(key=lambda e: e.name.lower(), reverse=reverse)
 
-    if ftype == 'size':
-        if sort == 'desc':
-            flist = sorted(flist, key=lambda f: os.path.getsize(os.path.join(path,f)), reverse=True)
-        if sort == 'asc':
-            flist = sorted(flist, key=lambda f: os.path.getsize(os.path.join(path,f)), reverse=False)
-
-    if ftype == 'fname':
-        if sort == 'desc':
-            flist = sorted(flist, key=lambda f: os.path.join(path,f), reverse=True)
-        if sort == 'asc':
-            flist = sorted(flist, key=lambda f: os.path.join(path,f), reverse=False)
-    return flist
+    return [e.name for e in entries]
 
 
 def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '',limit = 3000):
@@ -757,15 +771,36 @@ def readFileEnd(filename, lines=100):
         return False
 
 def writeFile(filename, content, mode='w+'):
-    # 写文件内容
+    # 写文件内容 (覆写模式支持原子落盘，防止断电/OOM/磁盘满导致文件截断为0字节)
     try:
         # 确保父目录存在
         parent_dir = os.path.dirname(filename)
         if parent_dir and not os.path.exists(parent_dir):
             os.makedirs(parent_dir, exist_ok=True)
-        with open(filename, mode, encoding='utf-8') as fp:
-            fp.write(content)
-        return True
+
+        if mode in ('w', 'w+'):
+            temp_file = filename + f".tmp.{os.getpid()}_{int(time.time()*1000)}"
+            try:
+                with open(temp_file, mode, encoding='utf-8') as fp:
+                    fp.write(content)
+                    fp.flush()
+                    try:
+                        os.fsync(fp.fileno())
+                    except:
+                        pass
+                os.replace(temp_file, filename)
+                return True
+            except Exception as write_err:
+                if os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except:
+                        pass
+                raise write_err
+        else:
+            with open(filename, mode, encoding='utf-8') as fp:
+                fp.write(content)
+            return True
     except Exception as e:
         writeFileLog(getTracebackInfo())
         return False
@@ -950,7 +985,39 @@ def getHost(port=False):
 
 def getClientIp():
     from flask import request
-    return request.remote_addr.replace('::ffff:', '')
+    try:
+        remote_ip = (request.remote_addr or '127.0.0.1').replace('::ffff:', '')
+        # 当直接请求来源于本地回环或内网私网反向代理时，安全提取穿透转发头，防误封 127.0.0.1
+        is_proxy_source = False
+        import ipaddress
+        try:
+            ip_obj = ipaddress.ip_address(remote_ip)
+            is_proxy_source = ip_obj.is_loopback or ip_obj.is_private
+        except:
+            if remote_ip in ('127.0.0.1', 'localhost', '::1'):
+                is_proxy_source = True
+
+        if is_proxy_source:
+            forwarded = request.headers.get('X-Forwarded-For', '').strip()
+            if forwarded:
+                candidate = forwarded.split(',')[0].strip().replace('::ffff:', '')
+                try:
+                    ipaddress.ip_address(candidate)
+                    return candidate
+                except:
+                    pass
+
+            real_ip = request.headers.get('X-Real-IP', '').strip().replace('::ffff:', '')
+            if real_ip:
+                try:
+                    ipaddress.ip_address(real_ip)
+                    return real_ip
+                except:
+                    pass
+
+        return remote_ip
+    except Exception:
+        return '127.0.0.1'
 
 def checkDomainPanel():
     import thisdb
@@ -1057,7 +1124,10 @@ def getOsID():
 
 # 获取文件权限描述
 def getFileStatsDesc(filename, path=None):
-    import pwd
+    try:
+        import pwd
+    except ImportError:
+        pwd = None
     if path == '' or filename == '':
         return ';;;;;'
     try:
@@ -1067,7 +1137,10 @@ def getFileStatsDesc(filename, path=None):
         mtime = str(int(stat.st_mtime))
         user = ''
         try:
-            user = str(pwd.getpwuid(stat.st_uid).pw_name)
+            if pwd:
+                user = str(pwd.getpwuid(stat.st_uid).pw_name)
+            else:
+                user = 'www'
         except:
             user = str(stat.st_uid)
             
@@ -1077,8 +1150,14 @@ def getFileStatsDesc(filename, path=None):
             link = ' -> ' + os.readlink(filename)
 
         if path:
-            tmp_path = (path + '/').replace('//', '/')
-            filename = filename.replace(tmp_path, '', 1)
+            norm_filename = filename.replace('\\', '/')
+            norm_path = path.replace('\\', '/')
+            if not norm_path.endswith('/'):
+                norm_path += '/'
+            if norm_filename.startswith(norm_path):
+                filename = norm_filename[len(norm_path):]
+            else:
+                filename = os.path.basename(filename)
 
         return filename + ';' + size + ';' + mtime + ';' + accept + ';' + user + ';' + link
     except Exception as e:
@@ -1287,58 +1366,58 @@ def getInfo(msg, args=()):
     return msg
 
 def getLastLine(path, num, p=1):
-    pyVersion = sys.version_info[0]
     try:
         import html
         if not os.path.exists(path):
             return ""
+        if num <= 0 or p <= 0:
+            return ""
+
+        file_size = os.path.getsize(path)
+        if file_size == 0:
+            return ""
+
         start_line = (p - 1) * num
-        count = start_line + num
-        fp = open(path, 'rb')
-        buf = ""
+        needed_count = start_line + num
 
-        fp.seek(0, 2)
-        if fp.read(1) == "\n":
-            fp.seek(0, 2)
-        data = []
-        b = True
-        n = 0
+        lines = []
+        buf = b""
+        block_size = 8192
 
-        for i in range(count):
-            while True:
-                newline_pos = str.rfind(str(buf), "\n")
-                pos = fp.tell()
-                if newline_pos != -1:
-                    if n >= start_line:
-                        line = buf[newline_pos + 1:]
+        with open(path, 'rb') as fp:
+            pos = file_size
+            while pos > 0 and len(lines) < needed_count:
+                read_size = min(block_size, pos)
+                pos -= read_size
+                fp.seek(pos)
+                chunk = fp.read(read_size)
+                buf = chunk + buf
+
+                while b'\n' in buf:
+                    idx = buf.rfind(b'\n')
+                    line_bytes = buf[idx + 1:]
+                    buf = buf[:idx]
+                    if line_bytes or lines:
                         try:
-                            data.insert(0, html.escape(line))
-                        except Exception as e:
-                            pass
-                    buf = buf[:newline_pos]
-                    n += 1
-                    break
-                else:
-                    if pos == 0:
-                        b = False
-                        break
-                    to_read = min(4096, pos)
-                    fp.seek(-to_read, 1)
-                    t_buf = fp.read(to_read)
-                    if pyVersion == 3:
-                        if type(t_buf) == bytes:
-                            t_buf = t_buf.decode("utf-8", "ignore").strip()
-                    buf = t_buf + buf
-                    fp.seek(-to_read, 1)
-                    if pos - to_read == 0:
-                        buf = "\n" + buf
-            if not b:
-                break
-        fp.close()
+                            line_str = line_bytes.decode('utf-8', errors='replace').rstrip('\r')
+                        except:
+                            line_str = str(line_bytes)
+                        lines.append(html.escape(line_str))
+                        if len(lines) >= needed_count:
+                            break
+
+            if buf and len(lines) < needed_count:
+                try:
+                    line_str = buf.decode('utf-8', errors='replace').rstrip('\r')
+                except:
+                    line_str = str(buf)
+                lines.append(html.escape(line_str))
+
+        paged_lines = lines[start_line:needed_count]
+        paged_lines.reverse()
+        return "\n".join(paged_lines)
     except Exception as e:
         return str(e)
-
-    return "\n".join(data)
 
 # 获取系统温度
 def getSystemDeviceTemperature():
