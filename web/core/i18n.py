@@ -173,7 +173,18 @@ def get_cached_json(name, lang):
         pass
     return {}
 
+def _is_web_request():
+    try:
+        from flask import has_request_context
+        return has_request_context()
+    except Exception:
+        return False
+
 def _lookup_message(key, lang):
+    # 插件私有散列 key (k_xxxx) 仅在前端或插件本地起效，绝不在全局词典中，0ms 快速短路
+    if key.startswith("k_"):
+        return None
+
     # 1. 查找 public.json
     pub = get_cached_json("public", lang)
     if key in pub and isinstance(pub[key], str):
@@ -184,7 +195,17 @@ def _lookup_message(key, lang):
     if key in srv and isinstance(srv[key], str):
         return srv[key]
         
-    # 3. 多层点号路径在 template.json 中的深度查找
+    # 非 Web 请求环境（如插件命令行子进程），绝不加载近 400KB 的巨型 template.json 避免磁盘 I/O 放大
+    if not _is_web_request():
+        if "." in key:
+            sec, sub_key = key.split(".", 1)
+            if sec != "template":
+                sec_dict = get_cached_json(sec, lang)
+                if sub_key in sec_dict and isinstance(sec_dict[sub_key], str):
+                    return sec_dict[sub_key]
+        return None
+
+    # 3. Web 请求上下文：多层点号路径在 template.json 中的深度查找
     tmpl = get_cached_json("template", lang)
     curr = tmpl
     parts = key.split(".")

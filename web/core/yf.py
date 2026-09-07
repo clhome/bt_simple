@@ -100,10 +100,17 @@ def sanitizeCmdScripts(cmdstring, cwd=None):
     try:
         if not isinstance(cmdstring, str):
             return cmdstring
+        if not ('.py' in cmdstring or '.sh' in cmdstring or '.tpl' in cmdstring):
+            return cmdstring
         import re
         matches = re.findall(r'[\w\-\./]+\.(?:sh|py|tpl)', cmdstring)
         if not matches:
             return cmdstring
+
+        # 快速判断：如果所有 match 都已在缓存中，直接穿透
+        if all(m in _CRLF_CLEAN_CACHE for m in matches):
+            return cmdstring
+
         cd_matches = re.findall(r'cd\s+([^\s&;]+)', cmdstring)
         base_dir = cd_matches[0] if cd_matches else cwd
 
@@ -679,12 +686,15 @@ def toSize(size, middle='') -> str:
     return str(round(size, 2)) + middle + u
 
 def returnData(status, msg, data=None, *args):
+    # 空消息或非字符串快速短路，0ms 直出（大幅提升底层数据管道性能）
+    if not msg or not isinstance(msg, str) or not msg.strip():
+        if data is None:
+            return {'status': status, 'msg': msg}
+        return {'status': status, 'msg': msg, 'data': data}
+
     try:
         from core.i18n import t as _t
-        if isinstance(msg, str):
-            translated_msg = _t(msg, *args)
-        else:
-            translated_msg = msg
+        translated_msg = _t(msg, *args)
     except Exception:
         translated_msg = msg
 
@@ -693,12 +703,15 @@ def returnData(status, msg, data=None, *args):
     return {'status': status, 'msg': translated_msg, 'data': data}
 
 def returnJson(status, msg, data=None, *args):
+    # 空消息或非字符串快速短路，0ms 直出
+    if not msg or not isinstance(msg, str) or not msg.strip():
+        if data is None:
+            return getJson({'status': status, 'msg': msg})
+        return getJson({'status': status, 'msg': msg, 'data': data})
+
     try:
         from core.i18n import t as _t
-        if isinstance(msg, str):
-            translated_msg = _t(msg, *args)
-        else:
-            translated_msg = msg
+        translated_msg = _t(msg, *args)
     except Exception:
         translated_msg = msg
 

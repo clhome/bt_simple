@@ -308,9 +308,9 @@ def run():
     pg = YfPlugin.instance()
     data = pg.run(name, func, version, args, script)
     if data[1] == '':
-        r = yf.returnData(True, "OK", data[0].strip())
+        r = {'status': True, 'msg': 'OK', 'data': data[0].strip()}
     else:
-        r = yf.returnData(False, data[1].strip())
+        r = {'status': False, 'msg': data[1].strip()}
 
     if cache_ttl > 0:
         RUN_CACHE[cache_key] = (r, now)

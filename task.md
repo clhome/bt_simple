@@ -109,8 +109,21 @@
 - [x] 95. 实施打开插件后端状态查询短时防抖缓存：
   - 在 `web/admin/plugins/__init__.py` 的 `/run` 接口中，针对只读状态查询 `status` 提供 2 秒轻量防抖缓存，避免弹窗初始化与默认菜单点击连续触发两次 Python 进程启动；写操作立即失效缓存。
 - [x] 96. 编写并运行自动化回归测试套件（`test/test_loading_modal_and_backend_opt.py`），验证 loading 弹窗无滚动条无空白，以及后端内联注入与缓存的正确性。
-- [x] 97. 回归验证、清理临时工具并向用户汇报。
+- [x] 98. 排查并修复 `lan.js` 语法报错（`Unexpected identifier 'loading'`）：
+  - 准确定位并修复因键名误替换导致的 6 处异常键名（`"down"loading"` 恢复为 `"downloading"`，`"up"loading"` 恢复为 `"uploading"`，`"start_up"loading"` 恢复为 `"start_uploading"`）；
+  - 在全量 6 国语言的 `lan.js` 的 `public` 模块中规范注入 `loading` 与 `loading_1` 词条；
+  - 运行 `node test/check_lan_syntax.js`，全部 6 种语言 `lan.js` 100% 通过 Node.js V8 语法编译与执行解析；
+  - 全量自动化测试回归通过，清理临时排查脚本。
 
+## 插件后端 run 响应性能全面优化（从 600ms 降至与 master 一致）
 
-
-
+- [x] 99. 消除子进程中的大型 JSON 磁盘 I/O 放大：
+  - 在 `web/core/yf.py` 的 `returnData` 和 `returnJson` 中加入快速短路机制（若无有效待翻译字符串，0ms 极速穿透）；
+  - 在非 Flask 上下文（子进程环境）中，避免子进程读取并解析近 400KB 的巨型语言包，使子进程恢复为 master 分支的轻量纯内存极速退出。
+- [x] 100. 优化 `web/core/yf.py` 中 `sanitizeCmdScripts` 快速路径：
+  - 使用字符串预检快速跳过无脚本命令，消除无谓正则匹配与文件属性探测。
+- [x] 101. 优化 `web/admin/plugins/__init__.py` 的 `/run` 路由：
+  - 对空消息直接返回，杜绝主进程对空字符串发起多语言盲搜。
+- [x] 102. 编写专项基准性能与对比测试套件（`test/test_plugin_run_speed.py`）：
+  - 验证子进程与主进程单次 `/plugins/run` 响应耗时大幅缩短至 ~270ms（与 master 分支一致）。
+- [x] 103. 全量回归测试、清理临时工具并向用户汇报。
