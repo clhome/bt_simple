@@ -221,3 +221,39 @@
 - [x] 157. 编写专项自动化回归测试（`test/test_recommend_install_bug.py`），验证 `getFatherDir()`、`getServerDir()` 路径计算正确性以及推荐安装仅初次弹出的防重逻辑。
 - [x] 158. 运行全量测试套件回归验证，清理临时文件。
 
+## 修复网站修改弹窗错位与按钮文字污染缺陷
+
+- [x] 159. 修复 `web/static/app/site.js` 中的 `webEdit` 弹窗结构与样式：恢复标准双栏布局 `.bt-w-menu pull-left` 与 `.bt-w-con webedit-con pd15`，恢复窗口标准尺寸 `['950px','780px']`，补全 `defaultTab` 高亮切换与 `success` 初始化。
+- [x] 160. 净化全量 6 国语言包中 `site.add` 词条：将 `web/static/language/*/{lan.js,template.json}` 中被污染的 `',1)">添加` 修正为标准的纯文本（中文“添加”、英文“Add”、繁体“新增”、德文“Hinzufügen”、法文“Ajouter”、意文“Aggiungi”）。
+- [x] 161. 编写专项自动化回归测试（`test/test_webedit_layout_and_add_btn.py`），验证 `site.js` 中 `webEdit` DOM 结构类名与全语种 `site.add` 词条的纯净性。
+- [x] 162. 运行全量测试套件回归验证，清理临时排查文件。
+
+## 修复网站修改子目录绑定报错及各Tab功能深度排查
+
+- [x] 163. 修复 `web/static/app/site.js` 中 `dirBinding` 数据解包缺陷（解包 `data.data` 并增加 `dirs`/`binding` 空保底），修正删除绑定函数名为 `delDirBind`。
+- [x] 164. 重构修复 `web/static/app/site.js` 中 `phpVersion` 与 `setPHPVersion` 的 HTML 残损拼接（补全 `<select id='phpVersion'>`、去除乱码片段、规范化 `layer.msg` 提示文案）。
+- [x] 165. 修复 `web/static/app/site.js` 中 `configFile` 未闭合标签 `</textarea>` 并恢复保存配置按钮 `#SaveConfigFileBtn` 与说明列表。
+- [x] 166. 强化 `site.js` 中 `toProxy`、`to301`、`rewrite`、`webPathEdit` 等关键 Tab 函数的空值防御，彻底杜绝 `reading 'length'` 类崩溃。
+- [x] 167. 编写专项回归测试套件（`test/test_webedit_tabs_integrity.py`）并全量回归验证。
+
+## 对齐历史版本彻底修复伪静态（rewrite）CodeMirror报错
+
+- [x] 168. 对齐 Git 历史版本重构 `web/static/app/site.js` 中的 `rewrite` 伪静态模块：恢复嵌套调用 `/site/get_rewrite_conf` 获取真实配置路径，消除写死路径与 `editor.setValue(undefined)` 导致的 CodeMirror `reading 'split'` 崩溃，修正另存为模板弹窗标题与逻辑。
+- [x] 169. 编写专项自动化回归测试并进行全量回归验证。
+
+## 修复网站修改弹窗（webEdit）右侧大片白屏缺陷（CSS Flex弹性盒脱节）
+
+- [x] 170. 修复 `web/static/app/site.js` 中 `webEdit` 弹窗 HTML 结构：补全 `<div class='bt-w-main'>` 弹性布局容器包裹，使左侧侧边栏 `.bt-w-menu` 与右侧主视图 `#webedit-con.bt-w-con` 纳入 Flex 上下文，彻底解决因 `float: none !important` 导致的纵向掉落、被裁切白屏问题。
+- [x] 171. 在 `web/static/css/site.css` 和 `web/static/css/ensite.css` 中增强兼容兜底：为包含 `.bt-w-menu` 的父级增加 flex 弹性布局兜底，双重保障弹窗左右分栏永不错位。
+- [x] 172. 更新并扩展自动化回归测试（`test/test_webedit_layout_and_add_btn.py`），验证 `bt-w-main` 弹性容器存在与 CSS 规则规范性，运行全量测试验证无回归。
+
+## 修复网站修改中流量限制文字丢失与重定向接口302报错缺陷
+
+- [x] 173. 补全全语种语言包中缺失的 `site.limit_net_1` ~ `15` 词条，并在 `web/static/app/site.js` 的 `limitNet` 函数中加入中文兜底保底，彻底解决复选框与冒号前文字丢失、圆点无内容问题。
+- [x] 174. 修复后端路由与前端接口调用（`web/admin/site/redirect.py`、`web/static/app/site.js`）：后端增加 `/site/get_redirect_list` 路由别名，前端将 `to301` 列表请求修正为 `/site/get_redirect`，彻底解决 302 重定向卡在“正在获取数据...”的死锁。
+- [x] 175. 重构对齐 `web/static/app/site.js` 中 `to301` 的完整功能：恢复多重定向列表渲染（`r_from`、`r_type`、`keep_path`）、创建重定向弹窗、删除重定向与 CodeMirror 配置文件在线编辑保存功能。
+- [x] 176. 编写专项回归测试套件（`test/test_limitnet_and_redirect_fix.py`），验证语言包词条、路由端点及前端语法逻辑，执行全量回归。
+
+
+
+

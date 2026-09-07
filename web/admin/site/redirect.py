@@ -27,6 +27,7 @@ from .site import blueprint
 
 # 获取重定向列表
 @blueprint.route('/get_redirect', endpoint='get_redirect', methods=['POST'])
+@blueprint.route('/get_redirect_list', endpoint='get_redirect_list', methods=['POST'])
 @panel_login_required
 def get_redirect():
     site_name = request.form.get("siteName", '')

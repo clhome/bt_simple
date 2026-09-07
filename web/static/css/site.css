@@ -6255,7 +6255,8 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     overflow: hidden !important;
 }
 
-.layui-layer-page .bt-w-main {
+.layui-layer-page .bt-w-main,
+.layui-layer-page .bt-form:has(> .bt-w-menu) {
     height: 100% !important;
     position: relative !important;
     display: flex !important;
