@@ -127,3 +127,24 @@
 - [x] 102. 编写专项基准性能与对比测试套件（`test/test_plugin_run_speed.py`）：
   - 验证子进程与主进程单次 `/plugins/run` 响应耗时大幅缩短至 ~270ms（与 master 分支一致）。
 - [x] 103. 全量回归测试、清理临时工具并向用户汇报。
+
+## 插件自启动菜单清理与服务页面一体化集成
+
+- [x] 104. 扩充 6 国语言词典（`public.json`、`lan.js` 与 `phrases_full.py`）：录入 `boot_start`、`boot_start_enabled`、`boot_start_disabled`、`setting_boot_start` 等开机启动相关词条，并验证多语言语法无误。
+- [x] 105. 在公共框架中封装开机自启动组件（`web/static/app/public.js`）：
+  - 实现 `pluginInitDSwitchHtml` 统一生成现代规范的开关组件；
+  - 实现 `pluginInitDSwitchRender` 异步获取 `initd_status` 并更新状态；
+  - 实现 `pluginToggleInitD` 支持开关切换、调用 `initd_install` / `initd_uninstall` 并处理响应反馈与异常回滚；
+  - 在公共服务渲染函数 `pluginSetService` 的操作按钮下方自动嵌入该自启动组件。
+- [x] 106. 为自定义服务页面的插件（`apache`, `caddy`, `openresty`, `pureftp`）统一挂载开机自启动组件：
+  - 更新 `plugins/apache/js/httpd.js` 的 `orPluginSetService`；
+  - 更新 `plugins/caddy/js/caddy.js` 的 `orPluginSetService`；
+  - 更新 `plugins/openresty/js/openresty.js` 的 `orPluginSetService`；
+  - 更新 `plugins/pureftp/js/ftp.js` 的 `pureftpService`。
+- [x] 107. 批量清理 22 个插件左侧菜单中的“自启动”菜单项：
+  - 从各插件 `index.html` 中彻底移除 `<p onclick="pluginInitD(...)">自启动</p>`。
+- [x] 108. 编写专项自动化测试套件（`test/test_plugin_initd_integration.py`）：
+  - 验证 22 个插件 `index.html` 无遗留自启动菜单；
+  - 验证公共与定制服务页面完整嵌入开机启动组件；
+  - 验证 6 国语言完整性与 Node.js 语法校验。
+- [x] 109. 全量回归测试、清理临时排查工具并验收交付。

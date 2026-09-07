@@ -13264,6 +13264,38 @@ FULL_I18N_DICTIONARY = {
         }
     },
     "public": {
+        "setting_boot_start": {
+            "zh-CN": "正在设置开机启动...",
+            "zh-TW": "正在設定開機啟動...",
+            "en": "Setting boot start...",
+            "fr": "Configuration du démarrage...",
+            "de": "Autostart wird eingerichtet...",
+            "it": "Impostazione avvio automatico...",
+        },
+        "boot_start_disabled": {
+            "zh-CN": "已关闭",
+            "zh-TW": "已關閉",
+            "en": "Disabled",
+            "fr": "Désactivé",
+            "de": "Deaktiviert",
+            "it": "Disabilitato",
+        },
+        "boot_start_enabled": {
+            "zh-CN": "已开启",
+            "zh-TW": "已開啟",
+            "en": "Enabled",
+            "fr": "Activé",
+            "de": "Aktiviert",
+            "it": "Abilitato",
+        },
+        "boot_start": {
+            "zh-CN": "开机启动",
+            "zh-TW": "開機啟動",
+            "en": "Boot Start",
+            "fr": "Démarrage automatique",
+            "de": "Autostart",
+            "it": "Avvio automatico",
+        },
         "confirm": {
             "zh-CN": "确定",
             "zh-TW": "確定",

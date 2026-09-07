@@ -4244,7 +4244,11 @@ var lan = {
 			"forcibly_terminates_and_restarts": ": Termine de force et redémarre tous les processus. Les requêtes en cours peuvent être interrompues.",
 			"kill_all_php_processes": "Tuer tous les processus PHP",
 			"forcefully_terminate_all_php": ": Tue de force tous les processus PHP-FPM sur le serveur. Cela interrompt l'accès à tous les sites PHP.",
-			"after_execution_you_ll": "Vous devrez redémarrer manuellement chaque version de PHP après l'exécution."
+			"after_execution_you_ll": "Vous devrez redémarrer manuellement chaque version de PHP après l'exécution.",
+			"boot_start": "Démarrage automatique",
+			"boot_start_enabled": "Activé",
+			"boot_start_disabled": "Désactivé",
+			"setting_boot_start": "Configuration du démarrage..."
 		},
 
 	"upload": {

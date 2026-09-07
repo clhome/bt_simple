@@ -4244,7 +4244,11 @@ var lan = {
 			"forcibly_terminates_and_restarts": ": Forcibly terminates and restarts all processes. Active requests may be interrupted with 502 errors.",
 			"kill_all_php_processes": "Kill all PHP processes",
 			"forcefully_terminate_all_php": ": Forcibly kill all PHP-FPM processes on the server. This will interrupt access to all PHP sites.",
-			"after_execution_you_ll": "You will need to manually start each PHP version again after execution."
+			"after_execution_you_ll": "You will need to manually start each PHP version again after execution.",
+			"boot_start": "Boot Start",
+			"boot_start_enabled": "Enabled",
+			"boot_start_disabled": "Disabled",
+			"setting_boot_start": "Setting boot start..."
 		},
 
 	"upload": {

@@ -2885,6 +2885,85 @@ function pluginService(_name, version, _suffix_name = '') {
     }
   }, 'json');
 }
+function pluginInitDSwitchHtml(_name, version, _suffix_name = '') {
+  var switchId = 'plugin_initd_switch_' + _name + (_suffix_name ? '_' + _suffix_name : '');
+  var html = '<div class="plugin-initd-box" style="margin-top: 20px; padding: 10px 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); user-select: none;">\
+    <span style="font-size: 13px; font-weight: 500; color: #334155;">' + t('public.boot_start', '开机启动') + '</span>\
+    <div style="display: inline-flex; align-items: center;">\
+      <input class="btswitch btswitch-ios" id="' + switchId + '" type="checkbox" onchange="pluginToggleInitD(this, \'' + _name + '\',\'' + (version || '') + '\',\'' + _suffix_name + '\')">\
+      <label class="btswitch-btn" for="' + switchId + '" style="margin-bottom: 0; cursor: pointer;"></label>\
+    </div>\
+    <span id="' + switchId + '_status" style="font-size: 12px; color: #64748b;">(' + t('public.loading_1', '正在获取...') + ')</span>\
+  </div>';
+  return html;
+}
+
+function pluginInitDSwitchRender(_name, version, _suffix_name = '') {
+  var switchId = 'plugin_initd_switch_' + _name + (_suffix_name ? '_' + _suffix_name : '');
+  var default_name = 'initd_status';
+  if (_suffix_name != '') {
+    default_name = 'initd_status_' + _suffix_name;
+  }
+  $.post('/plugins/run', {
+    name: _name,
+    func: default_name,
+    version: version || ''
+  }, function (data) {
+    var $switch = $('#' + switchId);
+    var $status = $('#' + switchId + '_status');
+    if (data && data.status && data.data === 'ok') {
+      $switch.prop('checked', true);
+      $status.text('(' + t('public.boot_start_enabled', '已开启') + ')').css('color', '#20a53a');
+    } else {
+      $switch.prop('checked', false);
+      $status.text('(' + t('public.boot_start_disabled', '已关闭') + ')').css('color', '#64748b');
+    }
+  }, 'json').fail(function () {
+    $('#' + switchId + '_status').text('(' + t('public.boot_start_disabled', '已关闭') + ')').css('color', '#64748b');
+  });
+}
+
+function pluginToggleInitD(el, _name, version, _suffix_name = '') {
+  var switchId = 'plugin_initd_switch_' + _name + (_suffix_name ? '_' + _suffix_name : '');
+  var $switch = $(el);
+  var $status = $('#' + switchId + '_status');
+  var isChecked = $switch.prop('checked');
+  
+  var funcName = isChecked ? 'initd_install' : 'initd_uninstall';
+  if (_suffix_name != '') {
+    funcName = funcName + '_' + _suffix_name;
+  }
+  
+  var loadMsg = t('public.setting_boot_start', '正在设置开机启动...');
+  var loadT = layer.msg(loadMsg, { icon: 16, time: 0, shade: 0.3 });
+  
+  $.post('/plugins/run', {
+    name: _name,
+    func: funcName,
+    version: version || ''
+  }, function (res) {
+    layer.close(loadT);
+    if (res && res.data === 'ok') {
+      if (isChecked) {
+        $status.text('(' + t('public.boot_start_enabled', '已开启') + ')').css('color', '#20a53a');
+        layer.msg(t('public.boot_start', '开机启动') + ' ' + t('public.boot_start_enabled', '已开启'), { icon: 1, time: 2000 });
+      } else {
+        $status.text('(' + t('public.boot_start_disabled', '已关闭') + ')').css('color', '#64748b');
+        layer.msg(t('public.boot_start', '开机启动') + ' ' + t('public.boot_start_disabled', '已关闭'), { icon: 1, time: 2000 });
+      }
+    } else {
+      // 失败回滚
+      $switch.prop('checked', !isChecked);
+      var errMsg = (res && res.msg) || (res && res.data) || t('public.system_error', '系统错误');
+      layer.msg(errMsg, { icon: 2, time: 3000 });
+    }
+  }, 'json').fail(function () {
+    layer.close(loadT);
+    $switch.prop('checked', !isChecked);
+    layer.msg(t('public.system_error', '系统错误'), { icon: 0, time: 3000 });
+  });
+}
+
 function pluginSetService(_name, status, version, _suffix_name = '') {
   var default_name = 'status';
   var restart_name = 'restart';
@@ -2907,7 +2986,8 @@ function pluginSetService(_name, status, version, _suffix_name = '') {
     <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + status_ss + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + statusBtnText + '</button>\
     <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + restart_name + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + t('public.restart_1', '重启') + '</button>\
     <button class="btn btn-default btn-sm" onclick="pluginOpService(\'' + _name + '\',\'' + reload_name + '\',\'' + version + '\',\'' + _suffix_name + '\')">' + t('public.reload_configuration', '重载配置') + '</button>\
-  </div>';
+  </div>\
+  ' + pluginInitDSwitchHtml(_name, version, _suffix_name);
 
   var isPhpRuntime = (_name === 'php' || _name === 'php-apt' || _name === 'php-yum');
   if (isPhpRuntime) {
@@ -2925,6 +3005,7 @@ function pluginSetService(_name, status, version, _suffix_name = '') {
     </div>';
   }
   $(".soft-man-con").html(serviceCon);
+  pluginInitDSwitchRender(_name, version, _suffix_name);
 }
 function pluginOpService(a, b, v, _suffix_name = '') {
   var c = "name=" + a + "&func=" + b;

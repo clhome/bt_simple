@@ -300,7 +300,7 @@ function pureftpService() {
                 m_btn = "<button class=\"btn btn-success btn-sm\" onclick=\"pluginOpService('"+_name+"', 'start', '')\">启动</button>";
             }
             
-            var con = "<p class=\"status\">"+m_status+"</p><div class=\"sfm-opt\">"+m_btn+"</div>";
+            var con = "<p class=\"status\">"+m_status+"</p><div class=\"sfm-opt\">"+m_btn+"</div>" + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, '') : '');
 
             var ftpData = {info: {ip: "127.0.0.1", port: "21"}, data: []};
             try {
@@ -441,6 +441,9 @@ function pureftpService() {
             con += fwTip;
 
             $(".soft-man-con").html(con);
+            if (typeof pluginInitDSwitchRender === 'function') {
+                pluginInitDSwitchRender(_name, '');
+            }
         }, "json");
     }, "json");
 }

@@ -27,8 +27,11 @@ function orPluginSetService(_name ,status, version){
             <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\''+(status?'stop':'start')+'\',\''+version+'\')">'+(status?'停止':'启动')+'</button>\
             <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'restart\',\''+version+'\',\'yes\')">重启</button>\
             <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'reload\',\''+version+'\')">还原默认配置</button>\
-        </div>'; 
+        </div>' + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, version) : ''); 
     $(".soft-man-con").html(serviceCon);
+    if (typeof pluginInitDSwitchRender === 'function') {
+        pluginInitDSwitchRender(_name, version);
+    }
 }
 
 

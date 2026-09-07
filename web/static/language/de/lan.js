@@ -4244,7 +4244,11 @@ var lan = {
 			"forcibly_terminates_and_restarts": ": Beendet alle Prozesse und startet sie neu. Laufende Anfragen können abgebrochen werden.",
 			"kill_all_php_processes": "Alle PHP-Prozesse beenden",
 			"forcefully_terminate_all_php": ": Beendet gewaltsam alle PHP-FPM-Prozesse auf dem Server. Dies unterbricht den Zugriff auf alle PHP-Sites.",
-			"after_execution_you_ll": "Nach der Ausführung müssen Sie jede PHP-Version manuell wieder starten."
+			"after_execution_you_ll": "Nach der Ausführung müssen Sie jede PHP-Version manuell wieder starten.",
+			"boot_start": "Autostart",
+			"boot_start_enabled": "Aktiviert",
+			"boot_start_disabled": "Deaktiviert",
+			"setting_boot_start": "Autostart wird eingerichtet..."
 		},
 
 	"upload": {

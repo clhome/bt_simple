@@ -4244,7 +4244,11 @@ var lan = {
 			"forcibly_terminates_and_restarts": "：強制終止並重啟所有進程。會導致進行中的請求瞬間中斷並拋出 502 錯誤，僅在極少數異常恢復時使用。",
 			"kill_all_php_processes": "kill所有php進程",
 			"forcefully_terminate_all_php": "：強制殺掉伺服器上所有的 PHP-FPM 進程（包括其他正常運行的 PHP 版本）。這會中斷所有 PHP 網站的訪問。",
-			"after_execution_you_ll": "執行後需要手動回到各個 PHP 版本中重新點擊【啟動】服務。"
+			"after_execution_you_ll": "執行後需要手動回到各個 PHP 版本中重新點擊【啟動】服務。",
+			"boot_start": "開機啟動",
+			"boot_start_enabled": "已開啟",
+			"boot_start_disabled": "已關閉",
+			"setting_boot_start": "正在設定開機啟動..."
 		},
 
 	"upload": {
