@@ -31,6 +31,7 @@ class monitor:
     _dbfile = yf.getPanelDataDir() + '/system.db'
     _diskinfo = None
     _netinfo = None
+    _last_clean_time = 0
 
     def __init__(self):
         pass
@@ -157,8 +158,8 @@ class monitor:
         monitor_day = self.getMonitorDay()
         
         info = {}
-        # 取当前CPU Io
-        info['used'] = psutil.cpu_percent(interval=1)
+        # 取当前CPU Io（非阻塞计算，彻底消除原先 1.0 秒挂起阻塞）
+        info['used'] = psutil.cpu_percent(interval=None)
         info['used'] = round(info['used'], 2)
         
         info['mem'] = getMemUsed()
@@ -174,19 +175,16 @@ class monitor:
         cpu_mem_data = (info['used'], info['mem'], addtime)
         cmd_objm = yf.M('cpuio').dbPos(yf.getPanelDataDir(),'system')
         cmd_objm.add('pro,mem,addtime', cpu_mem_data)
-        cmd_objm.where("addtime<?", (deltime,)).delete()
 
         # 网络数据入库
         netio_data = (netio['up'] / 5, netio['down'] / 5, netio['upTotal'], netio['downTotal'], netio['downPackets'], netio['upPackets'], addtime)
         network_objm = yf.M('network').dbPos(yf.getPanelDataDir(),'system')
         network_objm.add('up,down,total_up,total_down,down_packets,up_packets,addtime', netio_data)
-        network_objm.where("addtime<?", (deltime,)).delete()
 
         # 磁盘数据入库
         disk_data = (diskio['read_count'], diskio['write_count'], diskio['read_bytes'], diskio['write_bytes'], diskio['read_time'], diskio['write_time'], addtime)
         disk_objm = yf.M('diskio').dbPos(yf.getPanelDataDir(),'system')
         disk_objm.add('read_count,write_count,read_bytes,write_bytes,read_time,write_time,addtime', disk_data)
-        disk_objm.where("addtime<?", (deltime,)).delete()
 
         # 负载数据入库
         load_data = self.getLoadAverage()
@@ -195,7 +193,18 @@ class monitor:
             lpro = 100
         load_objm = yf.M('load_average').dbPos(yf.getPanelDataDir(),'system')
         load_objm.add('pro,one,five,fifteen,addtime', (lpro, load_data['one'], load_data['five'], load_data['fifteen'], addtime))
-        load_objm.where("addtime<?", (deltime,)).delete()
+
+        # 历史监控数据清理（降频批处理：每 3600 秒批量执行一次，避免每 15 秒全表扫描与写入放大）
+        if addtime - self._last_clean_time > 3600:
+            self._last_clean_time = addtime
+            try:
+                cmd_objm.where("addtime<?", (deltime,)).delete()
+                network_objm.where("addtime<?", (deltime,)).delete()
+                disk_objm.where("addtime<?", (deltime,)).delete()
+                load_objm.where("addtime<?", (deltime,)).delete()
+            except Exception as clean_ex:
+                print("clean history monitor error:", str(clean_ex))
+
         return True
 
 

@@ -192,9 +192,10 @@ def downloadFile(url, filename, task_id=None):
                 yf.execShell(['chown', 'www:www', filename], shell=False)
 
         writeLogs(filename + ' download success!', task_id)
+        return True
     except Exception as e:
         writeLogs(str(e), task_id)
-    return True
+        return False
 
 def runPanelTask():
     # 站点过期检查
@@ -213,15 +214,22 @@ def runPanelTask():
                 thisdb.setTaskData(run_task['id'], start=start)
                 thisdb.setTaskStatus(run_task['id'], -1)
 
+                success = False
                 if run_task['type'] == 'download':
                     argv = run_task['cmd'].split('|yf|')
-                    downloadFile(argv[0], argv[1], task_id=run_task['id'])
+                    success = downloadFile(argv[0], argv[1], task_id=run_task['id'])
                 elif run_task['type'] == 'execshell':
-                    execShell(run_task['cmd'], task_id=run_task['id'])
+                    res = execShell(run_task['cmd'], task_id=run_task['id'])
+                    if res and res[0] == '0':
+                        success = True
+                    else:
+                        success = False
+                        writeLogs(f"\n[Error] 任务执行失败，退出代码: {res[0] if res else 'unknown'}", task_id=run_task['id'])
 
                 end = int(time.time())
                 thisdb.setTaskData(run_task['id'], end=end)
-                thisdb.setTaskStatus(run_task['id'], 1)
+                status = 1 if success else 2
+                thisdb.setTaskStatus(run_task['id'], status)
 
             if thisdb.getTaskUnexecutedCount() < 1:
                 os.remove(lock_file)
@@ -449,28 +457,36 @@ class TaskScheduler:
             event.wait(timeout=wait_time)
 
 def run():
-    scheduler = TaskScheduler()
-    
-    scheduler.add_task(systemTask_step, 15)
-    scheduler.add_task(check502Task_step, 10)
-    scheduler.add_task(openrestyRestartAtOnce_step, 3)
-    scheduler.add_task(openrestyAutoRestart_step, 86400)
-    scheduler.add_task(panelPluginStatusCheck_step, 90)
-    scheduler.add_task(restartPanelService_step, 3)
-    scheduler.add_task(startPanelTask_step, 5)
+    # 通道 1：高频轻量看门狗与监控调度器（负责毫秒级高频检测与自愈，绝不执行阻塞长任务）
+    watchdog_scheduler = TaskScheduler()
+    watchdog_scheduler.add_task(systemTask_step, 15)
+    watchdog_scheduler.add_task(check502Task_step, 10)
+    watchdog_scheduler.add_task(openrestyRestartAtOnce_step, 3)
+    watchdog_scheduler.add_task(openrestyAutoRestart_step, 86400)
+    watchdog_scheduler.add_task(panelPluginStatusCheck_step, 90)
+    watchdog_scheduler.add_task(restartPanelService_step, 3)
 
-    def thread_runner():
-        scheduler.run()
-        
-    t = threading.Thread(target=thread_runner)
-    if sys.version_info.major == 3 and sys.version_info.minor >= 10:
-        t.daemon = True
-    else:
-        t.setDaemon(True)
-    t.start()
+    t_watchdog = threading.Thread(target=watchdog_scheduler.run, name="WatchdogSchedulerThread")
+    t_watchdog.daemon = True
+    t_watchdog.start()
+
+    # 通道 2：重型长耗时任务队列执行器（独立线程执行，软件编译安装期间完全不阻塞通道 1 看门狗）
+    def heavy_task_worker():
+        event = threading.Event()
+        while True:
+            try:
+                startPanelTask_step()
+            except Exception as e:
+                print("heavy_task_worker error:", str(e))
+            event.wait(timeout=3.0)
+
+    t_heavy = threading.Thread(target=heavy_task_worker, name="HeavyTaskWorkerThread")
+    t_heavy.daemon = True
+    t_heavy.start()
 
     # 保持主线程运行
     while True:
+        time.sleep(86400)
         time.sleep(86400)
 
 if __name__ == "__main__":

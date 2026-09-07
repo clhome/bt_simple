@@ -152,6 +152,30 @@ def backup_panel():
         return True, f"备份成功: {backup_file}"
     return False, "备份失败"
 
+def rollback_panel(backup_file=None):
+    """回滚面板至指定快照备份或最新快照"""
+    import glob
+    panel_dir = yf.getPanelDir()
+    backup_dir = '/www/backup/panel'
+    
+    if not backup_file:
+        if not os.path.exists(backup_dir):
+            return False, "未找到任何备份目录"
+        archives = sorted(glob.glob(os.path.join(backup_dir, 'bt_simple_*.tar.gz')), reverse=True)
+        if not archives:
+            return False, "未找到任何历史快照备份"
+        backup_file = archives[0]
+        
+    if not os.path.exists(backup_file):
+        return False, f"备份文件不存在: {backup_file}"
+        
+    # 解压快照覆盖回面板目录
+    cmd = f"tar -xzf {backup_file} -C {panel_dir}"
+    yf.execShell(cmd)
+    
+    yf.restartPanel()
+    return True, f"已成功回滚至快照: {os.path.basename(backup_file)}"
+
 def updateServer(stype, version='', step='all'):
     import config
     # 更新服务
@@ -218,6 +242,11 @@ def updateServer(stype, version='', step='all'):
 
             # 3. 安装阶段
             if step == 'install' or step == 'all':
+                # 升级覆盖前强制执行核心快照备份，确保出现异常可立即回滚自愈
+                backup_status, backup_msg = backup_panel()
+                if not backup_status and step == 'all':
+                    print("Update pre-install backup warning:", backup_msg)
+
                 # 兼容带 v 和不带 v 的版本号目录名
                 v_version = version if version.startswith('v') else 'v' + version
                 no_v_version = version[1:] if version.startswith('v') else version
