@@ -696,6 +696,10 @@ function indexListHtml(callback) {
     if (hasCache && cacheHtml === newFullHtml) {
       return;
     }
+    // 拖拽防扰保护：若用户正在按住拖拽卡片，暂缓 DOM 覆盖，交由拖拽完成后的 saveOrder 同步
+    if ($("#indexsoft .dashed-border").length > 0 || $("#indexsoft > div[style*='position: absolute']").length > 0) {
+      return;
+    }
     $("#indexsoft").html(newFullHtml);
     localStorage.setItem('index_soft_cache_html', newFullHtml);
     if (typeof callback == 'function') {
@@ -707,9 +711,15 @@ function indexListHtml(callback) {
 //首页软件列表
 function indexSoft(onFirstRender) {
   indexListHtml(function () {
+    // 彻底解绑旧监听，防范重复初始化导致的多控制器冲突与双虚线框
+    try {
+      $("#indexsoft").trigger("dragsort-uninit");
+      $("#indexsoft").dragsort("destroy");
+    } catch (e) {}
+
     $("#indexsoft").dragsort({
       dragSelector: ".spanmove",
-      dragBetween: true,
+      dragBetween: false,
       dragEnd: saveOrder,
       placeHolderTemplate: "<div class='col-xs-4 col-sm-3 col-md-2 col-lg-2 dashed-border'></div>"
     });
@@ -720,32 +730,48 @@ function indexSoft(onFirstRender) {
       onFirstRender();
     }
   });
+
   function saveOrder() {
     var data = $("#indexsoft > div").map(function () {
       return $(this).attr("data-id");
     }).get();
-    tmp = [];
-    for (i in data) {
-      // console.log(data[i]);
-      if (data[i] != '') {
-        tmp.push(String(data[i]).trim());
+    var tmp = [];
+    for (var i = 0; i < data.length; i++) {
+      var did = data[i];
+      if (did && String(did).trim() !== '') {
+        tmp.push(String(did).trim());
       }
     }
     var ssort = tmp.join("|");
     $("input[name=list1SortOrder]").val(ssort);
+
+    // 严禁在此处同步直接操作 DOM 子节点，以防打断 dragsort 内部 dropItem 归位生命周期导致图标丢失；
+    // 延迟 50ms 写入本地缓存，确保拖拽库彻底恢复原始状态和完成 DOM 归位
+    setTimeout(function () {
+      localStorage.setItem('index_soft_cache_html', $("#indexsoft").html());
+    }, 50);
+
     $.post("/plugins/index_sort", 'ssort=' + ssort, function (rdata) {
       if (!rdata.status) {
-        showMsg((lan && lan.soft && t('soft.setup_failed') || "") + rdata.msg, function () {
+        showMsg((lan && lan.soft && t('soft.setup_failed') || "") + (rdata.msg || ''), function () {
           indexListHtml();
         }, {
           icon: 16,
           time: 0,
           shade: [0.3, '#000']
         });
+      } else {
+        localStorage.setItem('index_soft_cache_html', $("#indexsoft").html());
       }
-    }, 'json');
+    }, 'json').fail(function () {
+      showMsg(t('soft.setup_failed', '保存排序失败'), function () {
+        indexListHtml();
+      }, {
+        icon: 2,
+        time: 2000
+      });
+    });
   }
-  ;
 }
 function importPluginOpen() {
   $("#update_zip").on("change", function () {

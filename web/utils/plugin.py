@@ -265,6 +265,25 @@ class plugin(object):
         thisdb.setOption('display_index', json.dumps(indexList))
         return yf.returnData(True, 'common.del_success')
 
+    def sortIndex(self, ssort):
+        if not ssort:
+            return yf.returnData(False, 'common.param_error')
+        sort_list = [x.strip() for x in ssort.split('|') if x.strip()]
+        if not sort_list:
+            return yf.returnData(False, 'common.param_error')
+
+        old_list = thisdb.getOptionByJson('display_index', default=[])
+        new_list = []
+        for item in sort_list:
+            if item not in new_list:
+                new_list.append(item)
+        for item in old_list:
+            if item not in new_list:
+                new_list.append(item)
+
+        thisdb.setOption('display_index', json.dumps(new_list))
+        return yf.returnData(True, 'common.set_success')
+
     def hookInstallOption(self, hook_name, info):
         hn_name = 'hook_'+hook_name
         src_data = thisdb.getOptionByJson(hn_name,type='hook',default=[])

@@ -89,6 +89,14 @@ def set_index():
         return pg.addIndex(name, version)
     return pg.removeIndex(name, version)
 
+# 首页软件拖动排序
+@blueprint.route('/index_sort', endpoint='index_sort', methods=['POST'])
+@panel_login_required
+def index_sort():
+    ssort = request.form.get('ssort', '')
+    pg = YfPlugin.instance()
+    return pg.sortIndex(ssort)
+
 # 插件安装
 @blueprint.route('/install', endpoint='install', methods=['POST'])
 @panel_login_required

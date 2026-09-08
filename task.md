@@ -472,3 +472,33 @@
   - 验证 CSS 中 `max-width: calc((100% - 42px) / 4)` 与 `flex: 1 1 0%` 规则；
   - 验证 1~4 个模块时宽度严格不超过 25%，5~6 个模块时自适应平分的逻辑一致性。
 - [x] 266. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。
+
+## 首页软件拖拽排序持久化与缓存自动同步修复
+
+- [x] 267. 后端新增 `/plugins/index_sort` 路由与 `sortIndex` 持久化逻辑：
+  - 在 `web/admin/plugins/__init__.py` 中注册 `/index_sort` POST 路由控制器；
+  - 在 `web/utils/plugin.py` 中实现 `sortIndex(self, ssort)` 方法，解析排序序列并持久化保存至数据库 `display_index`；
+  - 完善参数校验、容错处理与防丢失机制，返回统一标准 JSON 响应。
+- [x] 268. 前端优化软件拖拽排序 `saveOrder` 与本地缓存同步逻辑（`web/static/app/soft.js`）：
+  - 拖拽结束时梳理卡片布局（真实卡片在前、空白槽位在后），规整 DOM；
+  - 实施乐观更新，将拖拽后的最新 DOM 结构同步写入 `localStorage`（`index_soft_cache_html`），确保刷新即为最新位置；
+  - 增强 `$.post` 异步请求容错（添加 `.fail` 处理），在接口失败时友好弹窗并回滚恢复。
+- [x] 269. 编写专项自动化测试套件（`test/test_index_soft_sort.py`）：
+  - 验证后端 `/plugins/index_sort` 路由与 `sortIndex` 方法逻辑，测试多种序列输入与持久化结果；
+  - 验证前端 `saveOrder` 乐观缓存写入、DOM 整理及错误处理机制；
+  - 运行 Node.js 校验 `soft.js` 语法与 UTF-8 LF 规范。
+- [x] 270. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。
+
+## 修复首页软件拖动出现两个框体及图标消失 Bug
+
+- [x] 271. 根治前端 dragsort 多重实例与双框体问题（`web/static/app/soft.js`）：
+  - 显式触发 `$("#indexsoft").trigger("dragsort-uninit")`，彻底解绑旧监听，防范重复初始化导致的双控制器冲突；
+  - 强制设置 `dragBetween: false`，杜绝在单容器内克隆生成第二占位框；
+  - 避免在 `saveOrder` 触发时同步暴力操作 DOM 子节点，防止打断 dragsort 内部 `dropItem` 收尾生命周期；
+  - 在 `indexListHtml` 中增加拖拽保护，避免异步请求返回时意外覆盖正在拖拽中的 DOM。
+- [x] 272. 更新专项测试套件（`test/test_index_soft_sort.py`）：
+  - 验证 `dragBetween: false` 与 `dragsort-uninit` 彻底解绑防护；
+  - 验证 Node.js V8 语法检测通过与 UTF-8 LF 规范。
+- [x] 273. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过。
+- [x] 274. 验证清理并向用户汇报交付。
+
