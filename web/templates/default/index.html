@@ -234,6 +234,11 @@
 <script type="text/javascript" src="/static/app/index.js?v={{config.version}}"></script>
 <script type="text/javascript">
 
+// 0. 概览模块 0ms 极速从本地缓存绘制已有卡片，杜绝延迟等待与布局跳动
+if (typeof renderOverviewFromCache === 'function') {
+    renderOverviewFromCache();
+}
+
 // 1. 首页软件展示以最高优先级立即执行（支持 0ms 瞬间秒开）
 indexSoft(startLoadStatus);
 

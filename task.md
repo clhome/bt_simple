@@ -447,3 +447,28 @@
   - 同步更新原型对比文件 `test/index.html` 中方案 B 对应参数。
 - [x] 257. 更新自动化测试套件（`test/test_overview_btn_style.py`），全量验证紧凑尺寸、居中对齐与登录记录可见性保障。
 - [x] 258. 运行全量测试套件回归验证，确保 100% 通过并清理临时文件。
+
+## 首页概览模块本地二级缓存与动态即时响应优化
+
+- [x] 259. 重构概览数据加载与渲染链路（`web/static/app/index.js`）：
+  - 实现 `renderOverviewFromCache()` 函数：页面加载 0ms 瞬间从 `localStorage` 读取概览模块结构并渲染，杜绝白屏与二次跳动；
+  - 重构 `loadKeyDataCount()`：为概览卡片挂载唯一属性 `data-overview-plugin`；
+  - 实现增量 Diff 与精准更新机制：已有模块随时更新数字数值，新出现的概览模块立刻追加渲染，已下线模块自动清理自愈，实时同步回写缓存。
+- [x] 260. 优化模板秒开启动时序（`web/templates/default/index.html`）：
+  - 在页面脚本入口最顶层立即触发 `renderOverviewFromCache()`，与 `indexSoft()` 同步并发瞬间呈现完整首屏。
+- [x] 261. 编写专项自动化测试套件（`test/test_overview_cache_and_dynamic.py`）：
+  - 验证缓存秒开、数据精准更新、新模块即时追加与已卸载模块清理自愈逻辑；
+  - 验证 Node.js 语法无误与 UTF-8 LF 编码规范。
+- [x] 262. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。
+
+## 首页概览模块宽度比例约束（≤25%与多模块自适应平分）优化
+
+- [x] 263. 优化概览卡片最大宽度与弹性比例（`web/static/css/site.css` 与 `web/static/css/ensite.css`）：
+  - 设置概览卡片最大宽度不超过整行 25%：`max-width: calc((100% - 42px) / 4) !important;`；
+  - 维持 `flex: 1 1 0%`：当模块 ≤ 4 个时各占 25% 靠左排列，超过 4 个时自动按实际数量等宽平分整行；
+  - 保持紧凑高度 66px、圆角 14px 及文字水平垂直居中。
+- [x] 264. 同步更新原型对比展示文件（`test/index.html`）中对应宽度比例规则。
+- [x] 265. 编写与更新专项自动化测试套件（`test/test_overview_max_width_adaptive.py`）：
+  - 验证 CSS 中 `max-width: calc((100% - 42px) / 4)` 与 `flex: 1 1 0%` 规则；
+  - 验证 1~4 个模块时宽度严格不超过 25%，5~6 个模块时自适应平分的逻辑一致性。
+- [x] 266. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。

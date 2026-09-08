@@ -4595,7 +4595,7 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
 .system-info .sys-li-box {
     flex: 1 1 0% !important;
     min-width: 0 !important;
-    max-width: none !important;
+    max-width: calc((100% - 42px) / 4) !important; /* 单模块宽度上限不超过25%，超4个自动等宽平分 */
     width: auto !important;
     float: none !important;
     height: 66px !important;

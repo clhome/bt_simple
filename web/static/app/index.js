@@ -1185,7 +1185,33 @@ function pluginInit(){
     },'json');
 }
 
+// 概览模块 0ms 瞬间秒开：从本地 localStorage 缓存优先渲染已有卡片
+function renderOverviewFromCache() {
+    var $overview = $('#index_overview');
+    if (!$overview.length) return;
+    var cached = localStorage.getItem('index_overview_cache');
+    if (!cached) return;
+    try {
+        var list = JSON.parse(cached);
+        if (!Array.isArray(list)) return;
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            if (!item || !item.pname) continue;
+            // 若 DOM 中已经存在该卡片，跳过不重复添加
+            if ($overview.find('[data-overview-plugin="' + item.pname + '"]').length > 0) {
+                continue;
+            }
+            var cardHtml = '<li class="sys-li-box neu-btn-card col-xs-3 col-sm-3 col-md-3 col-lg-3" data-overview-plugin="' + item.pname + '">\
+                    <p class="name c9">' + (item.show_name || item.pname) + '</p>\
+                    <div class="val"><a class="btlink" onclick="' + (item.onclick_str || '') + '">' + (item.count !== undefined ? item.count : '0') + '</a></div>\
+                </li>';
+            $overview.append(cardHtml);
+        }
+    } catch(e) {}
+}
+
 function loadKeyDataCount(){
+    var $overview = $('#index_overview');
     var plist = ['mysql', 'gogs', 'gitea', 'op_waf', 'fail2ban'];
     var post_data = [];
     for (var i = 0; i < plist.length; i++) {
@@ -1193,6 +1219,9 @@ function loadKeyDataCount(){
     }
 
     $.post('/plugins/run_batch', {list: JSON.stringify(post_data)}, function(data) {
+        var fresh_list = [];
+        var active_pnames = {};
+
         for (var i = 0; i < plist.length; i++) {
             var pname = plist[i];
             var rdata_raw = data[pname];
@@ -1221,23 +1250,61 @@ function loadKeyDataCount(){
             } else if (pname == 'fail2ban') {
                 show_name = '御风F2B底层防火墙';
             }
-            var onclick_str = 'softMain(\''+pname+'\',\''+show_name+'\',\''+rdata['data']['ver']+'\')';
+            var count_str = rdata['data'] && rdata['data']['count'] !== undefined ? String(rdata['data']['count']) : '0';
+            var ver_str = rdata['data'] && rdata['data']['ver'] !== undefined ? rdata['data']['ver'] : '';
+            var onclick_str = 'softMain(\''+pname+'\',\''+show_name+'\',\''+ver_str+'\')';
             if (pname == 'mysql') {
                 onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'dbList\'; ' + onclick_str;
             }
             if (pname == 'op_waf') {
                 onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'wafIndex\'; ' + onclick_str;
             }
-            var html = '<li class="sys-li-box neu-btn-card col-xs-3 col-sm-3 col-md-3 col-lg-3">\
-                    <p class="name c9">'+show_name+'</p>\
-                    <div class="val"><a class="btlink" onclick="' + onclick_str + '">'+rdata['data']['count']+'</a></div>\
-                </li>';
-            $('#index_overview').append(html);
+
+            active_pnames[pname] = true;
+            fresh_list.push({
+                pname: pname,
+                show_name: show_name,
+                count: count_str,
+                onclick_str: onclick_str
+            });
+
+            // 检查 DOM 中是否已经有该卡片（来自缓存秒开或前次渲染）
+            var $card = $overview.find('[data-overview-plugin="' + pname + '"]');
+            if ($card.length > 0) {
+                // 1. 已有卡片：平滑更新数字和事件，不触发布局抖动
+                var $valLink = $card.find('.val a');
+                if ($valLink.text() !== count_str) {
+                    $valLink.text(count_str);
+                }
+                $valLink.attr('onclick', onclick_str);
+                $card.find('.name').text(show_name);
+            } else {
+                // 2. 新出现的概览模块：立即动态追加卡片
+                var html = '<li class="sys-li-box neu-btn-card col-xs-3 col-sm-3 col-md-3 col-lg-3" data-overview-plugin="' + pname + '">\
+                        <p class="name c9">' + show_name + '</p>\
+                        <div class="val"><a class="btlink" onclick="' + onclick_str + '">' + count_str + '</a></div>\
+                    </li>';
+                $overview.append(html);
+            }
         }
+
+        // 3. 自愈清理：如果用户卸载/停用了某个插件，将其从 DOM 中移除
+        $overview.find('li[data-overview-plugin]').each(function() {
+            var p = $(this).attr('data-overview-plugin');
+            if (!active_pnames[p]) {
+                $(this).remove();
+            }
+        });
+
+        // 4. 实时持久化回写本地缓存
+        try {
+            localStorage.setItem('index_overview_cache', JSON.stringify(fresh_list));
+        } catch(e) {}
     }, 'json');
 }
 
 $(function() {
+    renderOverviewFromCache();
     $(".mem-release").on('mouseenter', function() {
         $(this).addClass("shine_green");
         if (!($(this).hasClass("mem-action"))) {
