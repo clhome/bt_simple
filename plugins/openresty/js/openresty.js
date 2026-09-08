@@ -20,18 +20,20 @@ function orPluginService(_name, version){
 }
 
 function orPluginSetService(_name ,status, version){
-    var serviceCon ='<p class="status">当前状态：<span>'+(status ? '开启' : '关闭' )+
+    var serviceCon ='<p class="status">' + pt('当前状态：', '当前状态：') + '<span>'+(status ? pt('开启', '开启') : pt('关闭', '关闭') )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
-            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\''+(status?'stop':'start')+'\',\''+version+'\')">'+(status?'停止':'启动')+'</button>\
-            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'restart\',\''+version+'\',\'yes\')">重启</button>\
-            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'reload\',\''+version+'\')">还原默认配置</button>\
-        </div>' + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, version) : ''); 
+            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\''+(status?'stop':'start')+'\',\''+version+'\')">'+(status?pt('停止', '停止'):pt('启动', '启动'))+'</button>\
+            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'restart\',\''+version+'\',\'yes\')">'+pt('重启', '重启')+'</button>\
+            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'reload\',\''+version+'\')">'+pt('还原默认配置', '还原默认配置')+'</button>\
+        </div>' + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, version) : '')
+        + orPluginCronCardHtml(_name); 
     $(".soft-man-con").html(serviceCon);
     if (typeof pluginInitDSwitchRender === 'function') {
         pluginInitDSwitchRender(_name, version);
     }
+    orPluginRefreshCronStatus(_name);
 }
 
 
@@ -246,25 +248,95 @@ function submitConf() {
     });
 }
 
-function otherFunc(){
-    var con = '<p class="conf_p" style="text-align:center;">\
-            <button class="btn btn-default btn-sm" onclick="cronAddCheck()">添加检查任务</button>  \
-            <button class="btn btn-default btn-sm" onclick="cronDelCheck()">删除检查任务</button>\
-        </p>';
-    $(".soft-man-con").html(con);
+function orPluginCronCardHtml(_name) {
+    _name = _name || 'openresty';
+    var html = '<div class="openresty-cron-card" style="margin-top: 18px; padding: 15px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">\
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #edf2f7; padding-bottom: 10px; margin-bottom: 10px;">\
+            <div style="display: flex; align-items: center;">\
+                <span class="glyphicon glyphicon-shield" style="font-size: 15px; color: #20a53a; margin-right: 8px;"></span>\
+                <span style="font-size: 13px; font-weight: 600; color: #1e293b;">' + pt('服务守护（检查任务）', '服务守护（检查任务）') + '</span>\
+            </div>\
+            <span id="openresty_cron_badge" style="display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; transition: all 0.2s ease;">\
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; margin-right: 6px; display: inline-block;"></span>\
+                <span class="badge-text">' + pt('获取中...', '获取中...') + '</span>\
+            </span>\
+        </div>\
+        <div style="font-size: 12px; color: #475569; line-height: 1.6;">\
+            <p style="margin-bottom: 5px;">' + pt('自动每 3 分钟巡检一次 OpenResty 服务状态。当检测到僵尸进程或服务异常宕机时，将自动清理异常残留并拉起服务，实现故障自愈。', '自动每 3 分钟巡检一次 OpenResty 服务状态。当检测到僵尸进程或服务异常宕机时，将自动清理异常残留并拉起服务，实现故障自愈。') + '</p>\
+            <p style="margin-bottom: 0; color: #64748b;"><span class="glyphicon glyphicon-info-sign" style="color: #3b82f6; margin-right: 4px;"></span>' + pt('指引：生产环境推荐开启以保障网站高可用运行；如需停服维护或断点排查时可随时删除检查任务。', '指引：生产环境推荐开启以保障网站高可用运行；如需停服维护或断点排查时可随时删除检查任务。') + '</p>\
+        </div>\
+        <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">\
+            <button id="openresty_cron_add_btn" class="btn btn-success btn-sm" onclick="cronAddCheck()"><span class="glyphicon glyphicon-plus-sign" style="margin-right: 4px;"></span>' + pt('添加检查任务', '添加检查任务') + '</button>\
+            <button id="openresty_cron_del_btn" class="btn btn-default btn-sm" onclick="cronDelCheck()"><span class="glyphicon glyphicon-trash" style="margin-right: 4px;"></span>' + pt('删除检查任务', '删除检查任务') + '</button>\
+        </div>\
+    </div>';
+    return html;
+}
+
+function orPluginRefreshCronStatus(_name) {
+    _name = _name || 'openresty';
+    api.post('cron_status', {}, function(data) {
+        try {
+            var rdata = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+            var isActive = false;
+            if (rdata && rdata.data && rdata.data.is_active) {
+                isActive = true;
+            }
+            var $badge = $('#openresty_cron_badge');
+            var $addBtn = $('#openresty_cron_add_btn');
+            var $delBtn = $('#openresty_cron_del_btn');
+
+            if (isActive) {
+                $badge.html('<span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; margin-right: 6px; display: inline-block;"></span><span class="badge-text">' + pt('已开启', '已开启') + '</span>')
+                      .css({
+                          'background': '#ecfdf5',
+                          'color': '#059669',
+                          'border-color': '#a7f3d0'
+                      });
+                $addBtn.html('<span class="glyphicon glyphicon-refresh" style="margin-right: 4px;"></span>' + pt('重新同步检查任务', '重新同步检查任务'));
+                $delBtn.prop('disabled', false).removeClass('disabled').css('opacity', '1');
+            } else {
+                $badge.html('<span style="width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; margin-right: 6px; display: inline-block;"></span><span class="badge-text">' + pt('未开启', '未开启') + '</span>')
+                      .css({
+                          'background': '#f1f5f9',
+                          'color': '#64748b',
+                          'border-color': '#e2e8f0'
+                      });
+                $addBtn.html('<span class="glyphicon glyphicon-plus-sign" style="margin-right: 4px;"></span>' + pt('添加检查任务', '添加检查任务'));
+                $delBtn.prop('disabled', true).addClass('disabled').css('opacity', '0.6');
+            }
+        } catch (e) {}
+    });
 }
 
 function cronAddCheck(){
+    var loadT = layer.msg(pt('正在添加检查任务...', '正在添加检查任务...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('cron_add_check', {}, function(data){
-        var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        layer.close(loadT);
+        var rdata = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+        var msg = rdata.msg || (rdata.status ? pt('添加检查任务成功', '添加检查任务成功') : pt('添加检查任务失败', '添加检查任务失败'));
+        layer.msg(msg, { icon: rdata.status ? 1 : 2 });
+        orPluginRefreshCronStatus('openresty');
+    }).fail(function(){
+        layer.close(loadT);
+        layer.msg(pt('操作异常!', '操作异常!'), { icon: 2 });
     });
 }
 
 function cronDelCheck(){
-    api.post('cron_del_check', {}, function(data){
-        var rdata = JSON.parse(data.data);
-        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+    layer.confirm(pt('确定要删除 OpenResty 守护检查任务吗？删除后将不再自动监控与拉起服务。', '确定要删除 OpenResty 守护检查任务吗？删除后将不再自动监控与拉起服务。'), {icon: 3, closeBtn: 2, title: pt('删除检查任务', '删除检查任务')}, function(index){
+        layer.close(index);
+        var loadT = layer.msg(pt('正在删除检查任务...', '正在删除检查任务...'), { icon: 16, time: 0, shade: 0.3 });
+        api.post('cron_del_check', {}, function(data){
+            layer.close(loadT);
+            var rdata = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+            var msg = rdata.msg || (rdata.status ? pt('删除检查任务成功', '删除检查任务成功') : pt('删除检查任务失败', '删除检查任务失败'));
+            layer.msg(msg, { icon: rdata.status ? 1 : 2 });
+            orPluginRefreshCronStatus('openresty');
+        }).fail(function(){
+            layer.close(loadT);
+            layer.msg(pt('操作异常!', '操作异常!'), { icon: 2 });
+        });
     });
 }
 

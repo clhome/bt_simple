@@ -387,6 +387,12 @@
   - 校验 `site.css` 和 `ensite.css` 中 32x32 与 80x80 的 Base64 PNG 尺寸与格式正确性；
   - 校验 `files.js` 中 `getExtName` 对 `py`、`json`、`sh` 及其大写后缀的准确解析；
   - 进行无损性与语法一致性校验。
-- [x] 237. 运行自动化测试套件回归验证，全绿通过并清理临时文件。
 
+## OpenResty 守护检查任务迁移与服务页面重构
 
+- [x] 238. 移除 `plugins/openresty/index.html` 左侧菜单栏中的“维护功能”项。
+- [x] 239. 强化后端检查任务接口（`plugins/openresty/tool_task.py` 与 `plugins/openresty/index.py`）：新增 `cron_status` 状态查询函数与接口，加固 `removeBgTask` 精准删除。
+- [x] 240. 重构前端服务页面（`plugins/openresty/js/openresty.js`）：在 `orPluginSetService` 中集成“服务守护自愈（检查任务）”卡片，包含状态徽章（已开启/未开启）、说明与运维指引、操作按钮组及状态实时联动。
+- [x] 241. 增补 6 国语言包（`plugins/openresty/lang/{zh-CN,zh-TW,en,de,fr,it}.json`）中有关守护服务、说明指引、状态提示等词条。
+- [x] 242. 编写专项自动化回归测试套件（`test/test_openresty_service_cron_tab.py`），全量验证菜单结构、前后端逻辑与多语言完整性。
+- [x] 243. 运行自动化测试套件回归验证，确保 100% 通过并清理临时文件。

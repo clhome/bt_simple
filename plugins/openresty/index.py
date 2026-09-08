@@ -907,20 +907,39 @@ def cronAddCheck():
     try:
         import tool_task
         tool_task.createBgTask()
-        return yf.returnJson(True, 'k_a1d0b7a5')
+        return yf.returnJson(True, '添加检查任务成功')
     except Exception as e:
-        return yf.returnJson(False, 'k_8eefa296'+str(e))
+        return yf.returnJson(False, '添加检查任务失败: ' + str(e))
+
 
 def cronDelCheck():
     try:
         import tool_task
         tool_task.removeBgTask()
-        return yf.returnJson(True, 'k_f3de1589')
+        return yf.returnJson(True, '删除检查任务成功')
     except Exception as e:
-        return yf.returnJson(False, 'k_c1c79286'+str(e))
+        return yf.returnJson(False, '删除检查任务失败: ' + str(e))
+
+
+def cronStatus():
+    try:
+        import tool_task
+        is_active, task_id, status = tool_task.checkBgTaskStatus()
+        return yf.returnJson(True, 'ok', {
+            'is_active': is_active,
+            'task_id': task_id,
+            'status': status
+        })
+    except Exception as e:
+        return yf.returnJson(False, str(e), {
+            'is_active': False,
+            'task_id': -1,
+            'status': 0
+        })
+
 
 def cronCheck():
-    return 'ok'
+    return cronStatus()
 
 
 def installPreInspection():
@@ -968,6 +987,8 @@ if __name__ == "__main__":
         print(setCfg())
     elif func == 'check':
         print(cronCheck())
+    elif func == 'cron_status':
+        print(cronStatus())
     elif func == 'cron_add_check':
         print(cronAddCheck())
     elif func == 'cron_del_check':

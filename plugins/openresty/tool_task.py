@@ -50,9 +50,25 @@ def getConfigData():
     }
 
 
+def checkBgTaskStatus():
+    _name = "[OpenResty]检查任务"
+    res = yf.M("crontab").field("id, name, status").where("name=?", (_name,)).find()
+    if res and res.get("id"):
+        return True, res["id"], res.get("status", 1)
+
+    cfg = getConfigData()
+    if "task_id" in cfg and cfg["task_id"] > 0:
+        res = yf.M("crontab").field("id, name, status").where(
+            "id=?", (cfg["task_id"],)).find()
+        if res and res["id"] == cfg["task_id"]:
+            return True, res["id"], res.get("status", 1)
+
+    return False, -1, 0
+
+
 def createBgTask():
     removeBgTask()
-    createBgTaskByName(getPluginName())
+    return createBgTaskByName(getPluginName())
 
 
 def createBgTaskByName(name):
@@ -60,13 +76,15 @@ def createBgTaskByName(name):
     _name = "[OpenResty]检查任务"
     res = yf.M("crontab").field("id, name").where("name=?", (_name,)).find()
     if res:
+        args["task_id"] = res["id"]
+        args["name"] = name
+        yf.writeFile(getTaskConf(), json.dumps(args))
         return True
 
     if "task_id" in args and args["task_id"] > 0:
         res = yf.M("crontab").field("id, name").where(
             "id=?", (args["task_id"],)).find()
         if res and res["id"] == args["task_id"]:
-            print("计划任务已经存在!")
             return True
 
     yf_dir = yf.getPanelDir()
@@ -81,11 +99,11 @@ script_path=%s
 
     params = {
         'name': _name,
-        'type': args['period'],
+        'type': args.get('period', 'minute-n'),
         'week': "",
-        'where1': args['where1'],
-        'hour': args['hour'],
-        'minute': args['minute'],
+        'where1': str(args.get('where1', '3')),
+        'hour': str(args.get('hour', '0')),
+        'minute': str(args.get('minute', '0')),
         'save': "",
         'backup_to': "",
         'stype': "toShell",
@@ -99,20 +117,31 @@ script_path=%s
         args["task_id"] = task_id
         args["name"] = name
         yf.writeFile(getTaskConf(), json.dumps(args))
+        return True
+    return False
 
 
 def removeBgTask():
     cfg = getConfigData()
-    if "task_id" in cfg and cfg["task_id"] > 0:
-        res = yf.M("crontab").field("id, name").where(
-            "id=?", (cfg["task_id"],)).find()
-        if res and res["id"] == cfg["task_id"]:
-            data = YfCrontab.instance().delete(cfg["task_id"])
-            if data["status"]:
-                cfg["task_id"] = -1
-                yf.writeFile(getTaskConf(), json.dumps(cfg))
-                return True
-    return False
+    task_id = -1
+    _name = "[OpenResty]检查任务"
+    res = yf.M("crontab").field("id, name").where("name=?", (_name,)).find()
+    if res and res.get("id"):
+        task_id = res["id"]
+    elif "task_id" in cfg and cfg["task_id"] > 0:
+        task_id = cfg["task_id"]
+
+    success = False
+    if task_id > 0:
+        res = yf.M("crontab").field("id, name").where("id=?", (task_id,)).find()
+        if res and res["id"] == task_id:
+            data = YfCrontab.instance().delete(task_id)
+            if data and data.get("status", False):
+                success = True
+
+    cfg["task_id"] = -1
+    yf.writeFile(getTaskConf(), json.dumps(cfg))
+    return success or True
 
 
 if __name__ == "__main__":
@@ -122,3 +151,5 @@ if __name__ == "__main__":
             removeBgTask()
         elif action == "add":
             createBgTask()
+        elif action == "status":
+            print(checkBgTaskStatus())
