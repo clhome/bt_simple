@@ -3050,6 +3050,7 @@ function refreshIndexSoft(el) {
     // 清除本地前端缓存以保证拉取最新后端数据
     try {
         localStorage.removeItem('index_soft_cache_html');
+        localStorage.removeItem('index_soft_cache_html_v3');
     } catch(e) {}
 
     if (typeof indexSoft === 'function') {

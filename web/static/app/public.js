@@ -3095,6 +3095,7 @@ window.refreshExternalPluginStatus = function(plugin_name, target_status) {
     if ($("#indexsoft").length > 0) {
       try {
         localStorage.removeItem('index_soft_cache_html');
+        localStorage.removeItem('index_soft_cache_html_v3');
       } catch (e) {}
       if (typeof indexListHtml === 'function') {
         indexListHtml();

@@ -502,3 +502,34 @@
 - [x] 273. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过。
 - [x] 274. 验证清理并向用户汇报交付。
 
+## 首页软件名称精简（去除版本号）与字号自适应适配
+
+- [x] 275. 精简软件卡片名称，移除版本号显示（`web/static/app/soft.js`）：
+  - 首页卡片仅展示纯净软件标题 `raw_title`，不再拼接 `plugin.setup_version`，大幅缩减文本视觉长度；
+  - 保持 `data-id` 与 `softMain(...)` 中的版本参数不变，确保排序持久化与软件设置弹窗不受影响。
+- [x] 276. 重构卡片文本排版与动态字号自适应（`web/static/app/soft.js`、`web/static/css/site.css`、`web/static/css/ensite.css`）：
+  - 修改 `.soft-man .sname`：由 `inline-flex` 改为 `block` 搭配 `text-align: center`，彻底根除 Flex 居中溢出导致的两端裁切截断问题；
+  - 移除 `font-size: 12px !important;` 约束，允许根据文本长度弹性缩小字号；
+  - HTML 渲染阶段基于视觉字数预赋最佳字号（支持 12px、11px、10px、9.5px 梯级适配），实现 0ms 秒开无抖动；
+  - 挂载 `autoFitSoftName()` 测量函数，在 DOM 插入与窗口缩放时精准测量 `scrollWidth > clientWidth` 并逐级平滑收缩，确保文本完整容纳在卡片宽度内。
+- [x] 277. 编写与更新专项自动化测试套件（`test/test_soft_title_autofit.py`）：
+  - 验证卡片名称中版本号已去除，`data-id` 仍然保持完整；
+  - 验证 CSS 中已修复 Flex 双向截断问题，且支持字号内联缩放覆盖；
+  - 验证各长度文本的字号自适应匹配逻辑及 Node.js 语法校验。
+- [x] 278. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。
+
+## 首页软件框体尺寸严格统一（所有框体完全一样大）与缓存强制刷新
+
+- [x] 279. CSS 显式固化卡片框体尺寸（`web/static/css/site.css` 与 `web/static/css/ensite.css`）：
+  - 在 `.soft-man [class*="col-"] .soft-card-box` 上设置 `width: 100% !important; height: 100% !important; min-width: 100% !important; max-width: 100% !important;`；
+  - 杜绝 Flex 内容自适应收缩（shrink-to-fit），确保每个卡片框体 100% 填满所在栅格单元，所有框体尺寸绝对严格一致；
+  - 维持空白卡槽 `.no-bg` 和占位框 `.dashed-border` 尺寸一致。
+- [x] 280. 前端升级缓存 Key 并清理过期旧带版本号缓存（`web/static/app/soft.js`、`web/templates/default/index.html`）：
+  - 升级缓存 Key 为 `index_soft_cache_html_v3`，初次加载自动清理旧版本缓存，强制应用无版本号纯净卡片；
+  - 在 `index.html` 中为 `soft.js` 追加缓存失效戳，确保浏览器强制拉取最新逻辑。
+- [x] 281. 编写与更新专项自动化测试套件（`test/test_soft_card_uniform_size.py`）：
+  - 验证 CSS 中包含框体尺寸 100% 锁定规则（`width: 100% !important; height: 100% !important; min-width: 100% !important;`）；
+  - 验证缓存升级 Key 与清理逻辑无误；
+  - 运行 Node.js 校验语法与 UTF-8 LF 格式规范。
+- [x] 282. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。
+

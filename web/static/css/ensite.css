@@ -4428,6 +4428,16 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     text-decoration: none !important;
 }
 
+/* 固化软件卡片框体尺寸：100% 填满栅格，确保所有框体绝对完全一样大 */
+.soft-man [class*="col-"] > div:not(.spanmove),
+.soft-man [class*="col-"] .soft-card-box {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+}
+
 /* Hover 悬浮微升与内凹陷落 */
 .neu-btn-card:hover,
 .soft-man [class*="col-"]:hover > div:not(.spanmove),
@@ -4523,17 +4533,19 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     transform: scale(0.95) !important;
 }
 .soft-man .sname {
-    font-size: 12px !important;
+    font-size: 12px;
     font-weight: 500 !important;
     color: #334155 !important;
     line-height: 16px !important;
-    max-width: 88% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 4px !important;
+    box-sizing: border-box !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: block !important;
+    text-align: center !important;
     margin: 0 auto !important;
 }
 

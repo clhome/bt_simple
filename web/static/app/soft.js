@@ -617,11 +617,19 @@ function toIndexDisplay(name, version, coexist) {
     }
   }, 'json');
 }
+var SOFT_CACHE_KEY = 'index_soft_cache_html_v3';
+
 function indexListHtml(callback) {
-  var cacheHtml = localStorage.getItem('index_soft_cache_html');
+  // 自动清理旧版本带版本号的历史缓存，确保即时呈现纯净软件标题
+  try {
+    localStorage.removeItem('index_soft_cache_html');
+  } catch (e) {}
+
+  var cacheHtml = localStorage.getItem(SOFT_CACHE_KEY);
   var hasCache = false;
   if (cacheHtml) {
     $("#indexsoft").html(cacheHtml);
+    autoFitSoftName();
     hasCache = true;
     if (typeof callback == 'function') {
       callback();
@@ -664,17 +672,29 @@ function indexListHtml(callback) {
         state = '<span class="glyphicon glyphicon-pause"></span>';
       }
       var raw_title = t('plugins.' + plugin.name + '.title', plugin.title);
-      var name = raw_title + ' ' + plugin.setup_version + '  ';
+      // 首页卡片名称不显示版本号，大幅精简文本长度提升美观度
+      var name = raw_title;
       var data_id = plugin.name + '-' + plugin.setup_version;
       if (plugin.coexist) {
-        name = raw_title + '  ';
         data_id = plugin.name + '-' + plugin.versions;
       }
+      // 根据软件标题视觉字数预赋最佳初始字号，杜绝首屏跳动
+      var vlen = 0;
+      for (var k = 0; k < raw_title.length; k++) {
+        vlen += raw_title.charCodeAt(k) > 127 ? 1 : 0.55;
+      }
+      var fontStyle = '';
+      if (vlen > 8.5) {
+        fontStyle = ' style="font-size: 10px;"';
+      } else if (vlen > 6.5) {
+        fontStyle = ' style="font-size: 11px;"';
+      }
+
       con += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2" data-id="' + data_id + '">\
                 <span class="spanmove"></span>\
                 <div class="soft-card-box neu-btn-card" onclick="softMain(\'' + plugin.name + '\',\'' + raw_title + '\',\'' + plugin.setup_version + '\')">\
                 <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:36px;"></div>\
-                <div class="sname">' + name + state + '</div>\
+                <div class="sname"' + fontStyle + ' title="' + raw_title + '">' + name + state + '</div>\
                 </div>\
             </div>';
 
@@ -694,6 +714,7 @@ function indexListHtml(callback) {
 
     // Anti-Flicker 防抖防闪烁比对
     if (hasCache && cacheHtml === newFullHtml) {
+      autoFitSoftName();
       return;
     }
     // 拖拽防扰保护：若用户正在按住拖拽卡片，暂缓 DOM 覆盖，交由拖拽完成后的 saveOrder 同步
@@ -701,16 +722,38 @@ function indexListHtml(callback) {
       return;
     }
     $("#indexsoft").html(newFullHtml);
-    localStorage.setItem('index_soft_cache_html', newFullHtml);
+    localStorage.setItem(SOFT_CACHE_KEY, newFullHtml);
+    autoFitSoftName();
     if (typeof callback == 'function') {
       callback();
     }
   }, 'json');
 }
 
+// 自动测量并缩小长标题字体以完美适配卡片宽度
+function autoFitSoftName() {
+  $("#indexsoft .soft-card-box .sname").each(function () {
+    var el = this;
+    if (el.scrollWidth > el.clientWidth && el.clientWidth > 0) {
+      for (var s = 11.5; s >= 9; s -= 0.5) {
+        el.style.fontSize = s + 'px';
+        if (el.scrollWidth <= el.clientWidth) {
+          break;
+        }
+      }
+    }
+  });
+}
+
+// 监听窗口尺寸变化，动态微调卡片文本字号
+$(window).off('resize.softName').on('resize.softName', function () {
+  autoFitSoftName();
+});
+
 //首页软件列表
 function indexSoft(onFirstRender) {
   indexListHtml(function () {
+    autoFitSoftName();
     // 彻底解绑旧监听，防范重复初始化导致的多控制器冲突与双虚线框
     try {
       $("#indexsoft").trigger("dragsort-uninit");
@@ -748,7 +791,7 @@ function indexSoft(onFirstRender) {
     // 严禁在此处同步直接操作 DOM 子节点，以防打断 dragsort 内部 dropItem 归位生命周期导致图标丢失；
     // 延迟 50ms 写入本地缓存，确保拖拽库彻底恢复原始状态和完成 DOM 归位
     setTimeout(function () {
-      localStorage.setItem('index_soft_cache_html', $("#indexsoft").html());
+      localStorage.setItem(SOFT_CACHE_KEY, $("#indexsoft").html());
     }, 50);
 
     $.post("/plugins/index_sort", 'ssort=' + ssort, function (rdata) {
@@ -761,7 +804,7 @@ function indexSoft(onFirstRender) {
           shade: [0.3, '#000']
         });
       } else {
-        localStorage.setItem('index_soft_cache_html', $("#indexsoft").html());
+        localStorage.setItem(SOFT_CACHE_KEY, $("#indexsoft").html());
       }
     }, 'json').fail(function () {
       showMsg(t('soft.setup_failed', '保存排序失败'), function () {
