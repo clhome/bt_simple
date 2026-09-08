@@ -38,6 +38,11 @@ function softMain(name, title, version) {
         if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
           window.YfI18n.translatePluginDOM(layero, name);
         }
+      },
+      end: function () {
+        if (typeof window.refreshExternalPluginStatus === 'function') {
+          window.refreshExternalPluginStatus(name);
+        }
       }
     });
     $(".bt-w-menu p").on('click', function () {
@@ -74,8 +79,9 @@ function clearPluginCache() {
 
 //取软件列表
 function getSList(isdisplay) {
+  var loadT = null;
   if (isdisplay !== true) {
-    var loadT = layer.msg(lan && lan.soft && t('soft.retrieving_the_list') || "", {
+    loadT = layer.msg(lan && lan.soft && t('soft.retrieving_the_list') || "", {
       icon: 16,
       time: 0,
       shade: [0.3, '#000']
@@ -110,8 +116,11 @@ function getSList(isdisplay) {
     if (chk) chk.checked = isShowThirdParty;
   }, 100);
   var condition = (search + type + page + show_third_party).slice(1);
-  $.get('/plugins/list?' + condition, '', function (rdata) {
-    layer.close(loadT);
+  var reqUrl = '/plugins/list?' + condition + (condition ? '&' : '') + '_t=' + new Date().getTime();
+  $.get(reqUrl, '', function (rdata) {
+    if (loadT) {
+      layer.close(loadT);
+    }
     var tBody = '';
     var sBody = '';
     var pBody = '';
@@ -225,9 +234,21 @@ function getSList(isdisplay) {
                         <label class="btswitch-btn" for="index_' + plugin.name + '" onclick="toIndexDisplay(\'' + plugin.name + '\',\'' + plugin.setup_version + '\')"></label>\
                     </div>';
         }
+        var pluginStatusVal = plugin.status;
+        if (window.__plugin_pending_status && plugin.name) {
+          var pNameKey = String(plugin.name).toLowerCase();
+          if (window.__plugin_pending_status[pNameKey]) {
+            var pItem = window.__plugin_pending_status[pNameKey];
+            if (Date.now() < pItem.expire) {
+              pluginStatusVal = pItem.status;
+            } else {
+              delete window.__plugin_pending_status[pNameKey];
+            }
+          }
+        }
         if (plugin.display_status === false) {
           state = '<span style="color:#999">-</span>';
-        } else if (plugin.status == true) {
+        } else if (pluginStatusVal == true) {
           state = '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>';
         } else {
           state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>';
@@ -250,7 +271,7 @@ function getSList(isdisplay) {
         icon_link = "/plugins/file?name=" + plugin.name + "&f=" + plugin.icon;
       }
       var homeLink = plugin.home ? ('<a class="btlink" href="' + plugin.home + '" target="_blank">' + t('soft.official_site', '官网') + '</a>') : '-';
-      sBody += '<tr>' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + raw_ps + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td>' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
+      sBody += '<tr data-name="' + plugin.name + '">' + '<td><span ' + titleClick + '>' + '<img data-src="' + icon_link + '" src="/static/img/loading.gif">' + plugin_title + '</span></td>' + '<td>' + raw_ps + '</td>' + '<td>' + homeLink + '</td>' + '<td>' + (plugin.date ? plugin.date : '-') + '</td>' + '<td>' + softPath + '</td>' + '<td class="plugin-status-col" data-plugin="' + plugin.name + '">' + state + '</td>' + '<td>' + indexshow + '</td>' + '<td style="text-align: right;">' + handle + '</td>' + '</tr>';
     }
     sBody += pBody;
     $("#softList").html(sBody);

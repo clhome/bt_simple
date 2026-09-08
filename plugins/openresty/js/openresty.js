@@ -69,7 +69,7 @@ function orPluginOpService(a, b, v,request_callback) {
     })
 }
 
-function orPluginOpServiceOp(a,b,c,d,a,v,request_callback){
+function orPluginOpServiceOp(a,b,c,d,_a,v,request_callback){
 
     var request_path = "/plugins/run";
     if (request_callback == 'yes'){
@@ -89,6 +89,12 @@ function orPluginOpServiceOp(a,b,c,d,a,v,request_callback){
             } else if ( b == 'stop' ){
                 orPluginSetService(a, false, v);
             }
+        }
+
+        // 即时联动更新外部状态（0ms乐观对齐 + 异步复查）
+        if (g.data == 'ok' && typeof window.refreshExternalPluginStatus === 'function') {
+            var targetStatus = (b == 'start' || b == 'restart') ? true : (b == 'stop' ? false : null);
+            window.refreshExternalPluginStatus(a, targetStatus);
         }
 
         if( g.status && g.data != 'ok' ) {
@@ -199,6 +205,9 @@ function restoreDefaultOp(c) {
         if (g.data == 'ok') {
             layer.msg('还原默认配置成功！', {icon: 1});
             setOpCfg();
+            if (typeof window.refreshExternalPluginStatus === 'function') {
+                window.refreshExternalPluginStatus('openresty');
+            }
         } else {
             layer.msg('还原默认配置失败！', {icon: 2});
             if( g.status && g.data != 'ok' ) {
@@ -231,6 +240,9 @@ function submitConf() {
         var rdata = JSON.parse(rdata.data);
         // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+        if (rdata.status && typeof window.refreshExternalPluginStatus === 'function') {
+            window.refreshExternalPluginStatus('openresty');
+        }
     });
 }
 

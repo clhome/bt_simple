@@ -818,6 +818,7 @@ class plugin(object):
 
     # 检查插件状态
     # 轻量级核心服务状态快速探测，优先读取PID文件与进程存活，避免无谓fork外部Python进程
+    # 若无法100%确定存活，统一返回 None 由插件官方 status() 兜底判定，确保内外状态绝对一致
     def checkStatusQuick(self, name, version=''):
         server_dir = yf.getServerDir()
 
@@ -833,7 +834,7 @@ class plugin(object):
                         return True
                 except Exception:
                     pass
-            return False
+            return None
 
         # 2. MySQL / MariaDB 快速探测
         if name in ('mysql', 'mariadb'):
@@ -849,7 +850,7 @@ class plugin(object):
                         return True
                 except Exception:
                     pass
-            return False
+            return None
 
         # 3. Redis 快速探测
         if name == 'redis':
@@ -861,7 +862,7 @@ class plugin(object):
                         return True
                 except Exception:
                     pass
-            return False
+            return None
 
         # 4. Pure-FTPd 快速探测
         if name == 'pureftp':
@@ -873,7 +874,7 @@ class plugin(object):
                         return True
                 except Exception:
                     pass
-            return False
+            return None
 
         # 5. PHP (多版本共存) 快速探测
         if name.startswith('php') or (name == 'php' and version):
@@ -886,7 +887,7 @@ class plugin(object):
                         return True
                 except Exception:
                     pass
-            return False
+            return None
 
         return None
 
@@ -901,8 +902,11 @@ class plugin(object):
         if quick_res is not None:
             return quick_res
 
-        data = self.run(name, 'status', setup_ver)
-        return data[0].strip() == 'start'
+        try:
+            data = self.run(name, 'status', setup_ver)
+            return data[0].strip() == 'start'
+        except Exception:
+            return False
 
     # 检查插件状态（兼容旧接口）
     def checkStatusThreads(self, info, i=0):
@@ -1281,33 +1285,81 @@ class plugin(object):
         yf.removeDir(plugin_path)
         return yf.returnData(False, 'plugin.py_msg_99993a')
 
-    # [start|stop]操作,删除缓存!
-    def runByCache(self, name, func, version):
-        ppos = yf.getServerDir()+'/'+name
-        if not os.path.exists(ppos):
-            return
-        data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
-        info = self.getPluginInfo(name)
-        if 'coexist' in info and info['coexist']:
-            name = info['title'] + '-'+ version
-        if name in data:
-            del(data[name])
-            thisdb.setOption(self.__plugin_status_cachekey, json.dumps(data))
+    # [start|stop|restart|reload|restore...]操作, 精确更新与延迟校准
+    def runByCache(self, name, func, version, op_result=True):
+        try:
+            data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
+            if not isinstance(data, dict):
+                data = {}
 
-        if func in ['start', 'restart']:
-            def delay_clear():
+            # 清空内存实例缓存
+            self.__plugin_status_data = None
+
+            name_lower = str(name).lower()
+            func_lower = str(func).lower()
+            keys_to_update = {name, name_lower}
+            info = self.getPluginInfo(name)
+            if isinstance(info, dict):
+                title = info.get('title')
+                if title:
+                    keys_to_update.add(title)
+                    keys_to_update.add(str(title).lower())
+                if version:
+                    keys_to_update.add(f"{name}-{version}")
+                    keys_to_update.add(f"{name_lower}-{version}")
+                    if title:
+                        keys_to_update.add(f"{title}-{version}")
+                        keys_to_update.add(f"{str(title).lower()}-{version}")
+
+            # 解析操作意图目标状态
+            target_status = None
+            if func_lower in ('stop', 'kill') or any(func_lower.startswith(p) for p in ('stop_', 'kill_')):
+                target_status = False
+            elif func_lower in ('start', 'restart', 'reload') or any(func_lower.startswith(p) for p in ('start_', 'restart_', 'reload_', 'restore_')) or 'restore' in func_lower:
+                target_status = True
+
+            if op_result and target_status is not None:
+                # 操作成功：直接写入目标状态至缓存，消除守护进程退出/拉起的物理过渡期颠簸
+                for k in keys_to_update:
+                    data[k] = target_status
+                for existing_k in list(data.keys()):
+                    ek_lower = str(existing_k).lower()
+                    if ek_lower == name_lower or ek_lower.startswith(f"{name_lower}-"):
+                        data[existing_k] = target_status
+            else:
+                # 操作失败或未知状态：清理对应 key，交由真实探测
+                for k in list(data.keys()):
+                    k_lower = str(k).lower()
+                    if k in keys_to_update or k_lower == name_lower or k_lower.startswith(f"{name_lower}-"):
+                        data.pop(k, None)
+
+            thisdb.setOption(self.__plugin_status_cachekey, json.dumps(data))
+            self.__plugin_status_data = data
+
+            # 启动后台受控延迟校验（2秒后进程完全稳定，做真实物理探针复验）
+            def delay_calibrate():
                 import time
-                time.sleep(3.5)
+                time.sleep(2.0)
                 try:
-                    d = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
-                    if name in d:
-                        del(d[name])
-                        thisdb.setOption(self.__plugin_status_cachekey, json.dumps(d))
+                    p_info = self.getPluginInfo(name)
+                    if isinstance(p_info, dict) and p_info.get('setup'):
+                        real_status = self.checkStatusReal(p_info)
+                        curr_data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
+                        if isinstance(curr_data, dict):
+                            for k in keys_to_update:
+                                curr_data[k] = real_status
+                            thisdb.setOption(self.__plugin_status_cachekey, json.dumps(curr_data))
+                            self.__plugin_status_data = curr_data
                 except Exception as e:
-                    print('delay clear status cache error:', str(e))
-            t = threading.Thread(target=delay_clear)
+                    if yf.isDebugMode():
+                        print('delay calibrate status error:', str(e))
+
+            t = threading.Thread(target=delay_calibrate)
             t.daemon = True
             t.start()
+        except Exception as e:
+            if yf.isDebugMode():
+                print(f"runByCache exception: {e}")
 
     # shell/bash方式调用
     def run(self, name, func,
@@ -1315,31 +1367,55 @@ class plugin(object):
         args  = '',
         script  = 'index',
     ):
+        is_state_func = (
+            yf.inArray(['start','stop','restart','reload','uninstall_pre_inspection','install','uninstall'], func)
+            or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_', 'restore_'))
+            or 'restore' in func.lower()
+            or 'reload' in func.lower()
+            or 'restart' in func.lower()
+        )
+        try:
+            if is_state_func:
+                self.runByCache(name, func, version)
+        except Exception as e:
+            if yf.isDebugMode():
+                print(f"runByCache error: {e}")
 
-        if yf.inArray(['start','stop','restart','reload','uninstall_pre_inspection','install','uninstall'], func):
-            self.runByCache(name, func, version)
+        try:
+            path = self.__plugin_dir + '/' + name + '/' + script + '.py'
+            if not os.path.exists(path):
+                path = self.__plugin_dir + '/' + name + '/' + name + '.py'
 
-        path = self.__plugin_dir + '/' + name + '/' + script + '.py'
-        if not os.path.exists(path):
-            path = self.__plugin_dir + '/' + name + '/' + name + '.py'
+            if not os.path.exists(path):
+                return ('', f"插件脚本 {name}/{script}.py 不存在")
 
-        py_cmd = f"python3 {path} {func}"
-        if version != '':
-            py_cmd += f" {shlex.quote(version)}"
-        if args != '':
-            py_cmd += f" {shlex.quote(args)}"
+            py_cmd = f"python3 {path} {func}"
+            if version != '':
+                py_cmd += f" {shlex.quote(str(version))}"
+            if args != '':
+                py_cmd += f" {shlex.quote(str(args))}"
 
-        if not os.path.exists(path):
-            return ('', '')
-        py_cmd = 'cd ' + yf.getPanelDir() + " && "+ py_cmd
-        data = yf.execShell(py_cmd)
+            py_cmd = 'cd ' + yf.getPanelDir() + " && "+ py_cmd
+            data = yf.execShell(py_cmd)
 
-        # print(data)
-        if yf.isDebugMode():
-            print('run:', py_cmd)
-            print(data)
-        # print os.path.exists(py_cmd)
-        return (data[0].strip(), data[1].strip())
+            if yf.isDebugMode():
+                print('run:', py_cmd)
+                print(data)
+            out = data[0].strip() if data and len(data) > 0 and data[0] else ''
+            err = data[1].strip() if data and len(data) > 1 and data[1] else ''
+
+            if is_state_func:
+                try:
+                    op_ok = (out == 'ok' or err == '')
+                    self.runByCache(name, func, version, op_result=op_ok)
+                except Exception:
+                    pass
+
+            return (out, err)
+        except Exception as e:
+            if yf.isDebugMode():
+                print(f"plugin run execution exception: {e}")
+            return ('', str(e))
 
     # 映射包调用（安全反射实现，彻底废除 eval）
     def callback(self, name, func,

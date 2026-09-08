@@ -88,7 +88,7 @@
 resetPluginWinWidth(1050);
 resetPluginWinHeight(620);
 
-$.getScript( "/plugins/file?name=openresty&f=js/openresty.js", function(){
+$.getScript( "/plugins/file?name=openresty&f=js/openresty.js&_t=" + new Date().getTime(), function(){
 	orPluginService('openresty');
 });
 </script>

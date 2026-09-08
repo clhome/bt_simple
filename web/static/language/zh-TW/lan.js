@@ -3694,6 +3694,15 @@ var lan = {
 		},
 
 	"public": {
+			"stop_1": "停止",
+			"start_1": "啟動",
+			"restart_2": "重啟",
+			"overload": "重載",
+			"force_stop_kill": "強制停止(kill)",
+			"are_you_sure_you": "您真的要{1}{2}{3}服務嗎？",
+			"serving_please_wait_moment": "正在{1}{2}{3}服務,請稍候...",
+			"service_has": "{1}{2}服務已{3}",
+			"service_failed": "{1}{2}服務{3}失敗!",
 			"loading": "正在處理...",
 			"loading_1": "正在獲取服務狀態...",
 			"NAME": "Linux面板",

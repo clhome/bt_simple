@@ -3007,64 +3007,198 @@ function pluginSetService(_name, status, version, _suffix_name = '') {
   $(".soft-man-con").html(serviceCon);
   pluginInitDSwitchRender(_name, version, _suffix_name);
 }
+// 全局即时刷新外部插件状态（支持软件管理页与首页概览，0ms 精准DOM乐观更新 + 意图锁保护 + 异步穿透校验）
+window.refreshExternalPluginStatus = function(plugin_name, target_status) {
+  // 1. 0ms 纯 DOM 驱动乐观更新 + 3秒意图锁保护（消除物理耗时与异步网络颠簸）
+  if (plugin_name && typeof target_status === 'boolean') {
+    var pNameLower = String(plugin_name).toLowerCase();
+
+    // 记录本地意图锁（3秒内防止过早到达的网络包颠簸回退）
+    window.__plugin_pending_status = window.__plugin_pending_status || {};
+    window.__plugin_pending_status[pNameLower] = {
+      status: target_status,
+      expire: Date.now() + 3000
+    };
+
+    var iconHtml = target_status === true
+      ? '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>'
+      : '<span style="color:red" class="glyphicon glyphicon-pause"></span>';
+
+    // A. 软件管理列表页面：优先高精度属性选择器定位（0ms 零延迟）
+    if ($("#softList").length > 0) {
+      var $matchedCols = $('tr[data-name="' + pNameLower + '"] td.plugin-status-col, td.plugin-status-col[data-plugin="' + pNameLower + '"]');
+      if ($matchedCols.length > 0) {
+        $matchedCols.html(iconHtml);
+      } else {
+        // 保底行扫描（兼容极少数特殊或未带属性的行）
+        $("#softList tr").each(function () {
+          var $tr = $(this);
+          var rowName = ($tr.attr("data-name") || "").toLowerCase();
+          var firstColHtml = ($tr.find("td:first").html() || "").toLowerCase();
+          if (
+            rowName === pNameLower ||
+            firstColHtml.indexOf("softmain('" + pNameLower + "'") !== -1 ||
+            firstColHtml.indexOf('name=' + pNameLower + '&') !== -1 ||
+            firstColHtml.indexOf('>' + pNameLower) !== -1 ||
+            firstColHtml.indexOf(pNameLower) !== -1
+          ) {
+            $tr.find("td").eq(5).html(iconHtml);
+          }
+        });
+      }
+    }
+
+    // B. 首页概览软件卡片列表
+    if ($("#indexsoft").length > 0) {
+      $("#indexsoft > div").each(function () {
+        var $card = $(this);
+        var dataId = ($card.attr("data-id") || "").toLowerCase();
+        var cardHtml = ($card.html() || "").toLowerCase();
+        if (
+          dataId.indexOf(pNameLower) === 0 ||
+          cardHtml.indexOf("softmain('" + pNameLower + "'") !== -1 ||
+          cardHtml.indexOf('name=' + pNameLower + '&') !== -1 ||
+          cardHtml.indexOf(pNameLower) !== -1
+        ) {
+          var $icon = $card.find(".sname .glyphicon");
+          if ($icon.length > 0) {
+            if (target_status === true) {
+              $icon.removeClass("glyphicon-pause").addClass("glyphicon-play").css("color", "#20a53a");
+            } else {
+              $icon.removeClass("glyphicon-play").addClass("glyphicon-pause").css("color", "red");
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // 2. 异步网络拉取与后端真实状态校准
+  function doNetworkRefresh() {
+    // 软件管理列表页面
+    if (typeof getSList === 'function' && $("#softList").length > 0) {
+      getSList(true);
+    }
+    // 首页概览软件卡片列表
+    if ($("#indexsoft").length > 0) {
+      try {
+        localStorage.removeItem('index_soft_cache_html');
+      } catch (e) {}
+      if (typeof indexListHtml === 'function') {
+        indexListHtml();
+      } else if (typeof indexSoft === 'function') {
+        indexSoft();
+      }
+    }
+  }
+
+  // 立即发起异步网络校准
+  doNetworkRefresh();
+  // 800ms 延时二次校验（适配守护进程平滑拉起）
+  setTimeout(doNetworkRefresh, 800);
+  // 2500ms 延时最终校验
+  setTimeout(doNetworkRefresh, 2500);
+};
+
+// 全局无感网络拦截：当任意插件执行写操作或可能改变状态的操作时，自动触发外部状态刷新
+$(document).ajaxSuccess(function (event, xhr, settings) {
+  if (!settings || !settings.url) {
+    return;
+  }
+  var isTargetUrl = settings.url.indexOf('/plugins/run') !== -1 || settings.url.indexOf('/plugins/callback') !== -1;
+  if (!isTargetUrl) {
+    return;
+  }
+  try {
+    var reqData = settings.data || '';
+    if (typeof reqData === 'object') {
+      reqData = $.param(reqData);
+    }
+    reqData = decodeURIComponent(reqData);
+
+    // 解析出插件名称与操作函数
+    var matchedName = '';
+    var nameMatch = reqData.match(/(?:^|&)name=([^&]+)/);
+    if (nameMatch) {
+      matchedName = nameMatch[1];
+    }
+
+    var targetStatus = null;
+    if (/(?:^|&)(?:func|action)=start/i.test(reqData)) {
+      targetStatus = true;
+    } else if (/(?:^|&)(?:func|action)=stop/i.test(reqData) || /kill/i.test(reqData)) {
+      targetStatus = false;
+    } else if (/(?:^|&)(?:func|action)=(?:restart|reload)/i.test(reqData) || /restore/i.test(reqData)) {
+      targetStatus = true;
+    }
+
+    var stateKeywords = ['start', 'stop', 'restart', 'reload', 'restore', 'kill', 'set_cfg'];
+    var isStateAction = false;
+    for (var i = 0; i < stateKeywords.length; i++) {
+      if (reqData.indexOf(stateKeywords[i]) !== -1) {
+        isStateAction = true;
+        break;
+      }
+    }
+    if (isStateAction && typeof window.refreshExternalPluginStatus === 'function') {
+      window.refreshExternalPluginStatus(matchedName, targetStatus);
+    }
+  } catch (e) {}
+});
+
 function pluginOpService(a, b, v, _suffix_name = '') {
   var c = "name=" + a + "&func=" + b;
   if (v != '') {
     c = c + '&version=' + v;
   }
-  var d = "";
   b = b.split('_')[0];
-  switch (b) {
-    case "stop":
-      d = lan && lan.public && t('public.stop_1') || "";
-      break;
-    case "start":
-      d = lan && lan.public && t('public.start_1') || "";
-      break;
-    case "restart":
-      d = lan && lan.public && t('public.restart_2') || "";
-      break;
-    case "reload":
-      d = lan && lan.public && t('public.overload') || "";
-      break;
-    case "kill":
-      d = lan && lan.public && t('public.force_stop_kill') || "";
-      break;
-  }
+  var opNameMap = {
+    'stop': t('public.stop_1', '停止'),
+    'start': t('public.start_1', '启动'),
+    'restart': t('public.restart_2', '重启'),
+    'reload': t('public.overload', '重载'),
+    'kill': t('public.force_stop_kill', '强制停止(kill)')
+  };
+  var d = opNameMap[b] || (lan && lan.public && t('public.' + b)) || b;
+
   _ver = v;
   if (v != '') {
     _ver = '【' + v + '】';
   }
-  layer.confirm(msgTpl(lan && lan.public && t('public.are_you_sure_you') || "", [d, a, _ver]), {
-    area: ['400px', 'auto'],
+  var confirmTpl = t('public.are_you_sure_you', '您真的要{1}{2}{3}服务吗？');
+  var confirmText = msgTpl(confirmTpl, [d, a, _ver]);
+  var confirmHtml = '<div style="line-height: 24px; font-size: 14px; word-break: break-all; padding: 6px 0;">' + confirmText + '</div>';
+
+  layer.confirm(confirmHtml, {
+    title: t('public.title', '提示'),
+    area: '420px',
     icon: 3,
     closeBtn: 1
   }, function () {
-    var e = layer.msg(msgTpl(lan && lan.public && t('public.serving_please_wait_moment') || "", [d, a, _ver]), {
-      area: ['400px', 'auto'],
+    var waitTpl = t('public.serving_please_wait_moment', '正在{1}{2}{3}服务,请稍候...');
+    var waitMsg = msgTpl(waitTpl, [d, a, _ver]);
+    var e = layer.msg(waitMsg, {
       icon: 16,
-      time: 0
+      time: 0,
+      shade: [0.2, '#000']
     });
     $.post("/plugins/run", c, function (g) {
       layer.close(e);
-      var f = g.data == 'ok' ? msgTpl(lan && lan.public && t('public.service_has') || "", [a, _ver, d], {
-        area: ['400px', 'auto'],
-        time: 0
-      }) : msgTpl(lan && lan.public && t('public.service_failed') || "", [a, _ver, d], {
-        area: ['400px', 'auto'],
-        time: 0
-      });
+      var successTpl = t('public.service_has', '{1}{2}服务已{3}');
+      var failTpl = t('public.service_failed', '{1}{2}服务{3}失败!');
+      var isOk = (g && (g.data == 'ok' || (g.status && (!g.data || g.data == ''))));
+      var f = isOk ? msgTpl(successTpl, [a, _ver, d]) : (g && g.msg ? g.msg : msgTpl(failTpl, [a, _ver, d]));
       layer.msg(f, {
-        icon: g.data == 'ok' ? 1 : 2
+        icon: isOk ? 1 : 2
       });
-      if (b != "reload" && g.data == 'ok') {
+      if (b != "reload" && isOk) {
         if (b == 'start' || b == 'restart') {
           pluginSetService(a, true, v, _suffix_name);
         } else if (b == 'stop') {
           pluginSetService(a, false, v, _suffix_name);
         }
       }
-      if (g.status && g.data != 'ok') {
+      if (g && g.status && g.data && g.data != 'ok') {
         layer.msg(g.data, {
           icon: 2,
           time: 6000,
@@ -3072,23 +3206,15 @@ function pluginOpService(a, b, v, _suffix_name = '') {
           shadeClose: true
         });
       }
-      var checkCount = 0;
-      var checkInterval = setInterval(function () {
-        if (typeof getSList === 'function' && $("#softList").length > 0) {
-          getSList(true);
-        }
-        if (typeof indexListHtml === 'function' && $("#indexsoft").length > 0) {
-          indexListHtml();
-        }
-        checkCount++;
-        if (checkCount >= 5) {
-          clearInterval(checkInterval);
-        }
-      }, 2000);
+      // 0ms 立即执行外部状态乐观更新，并在 600ms、1800ms 进行递进网络复验
+      if (typeof window.refreshExternalPluginStatus === 'function') {
+        var opTargetStatus = (b == 'start' || b == 'restart') ? true : (b == 'stop' ? false : null);
+        window.refreshExternalPluginStatus(a, opTargetStatus);
+      }
     }, 'json').fail(function () {
       layer.close(e);
-      layer.msg(lan && lan.public && t('public.operation_error') || "", {
-        icon: 1
+      layer.msg(t('public.operation_error', '操作异常!'), {
+        icon: 2
       });
     });
   });

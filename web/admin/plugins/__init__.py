@@ -61,7 +61,7 @@ def index_list():
 # 插件列表
 @blueprint.route('/list', endpoint='list', methods=['GET'])
 @panel_login_required
-def list():
+def plugin_list():
     plugins_type = request.args.get('type', '0')
     page = request.args.get('p', '1')
     search = request.args.get('search', '').lower()
@@ -173,14 +173,13 @@ def file():
         'Cache-Control': 'public, max-age=2592000'
     }
 
-    if suffix == '.css':
+    if suffix in ('.css', '.js', '.json'):
         content = yf.readFile(file)
-        headers['Content-Type'] = 'text/css; charset="utf-8"'
-        return make_response(Response(content, headers=headers))
-    elif suffix == '.js':
-        content = yf.readFile(file)
-        headers['Content-Type'] = 'application/javascript; charset="utf-8"'
-        return make_response(Response(content, headers=headers))
+        c_type = 'application/javascript; charset="utf-8"' if suffix == '.js' else ('text/css; charset="utf-8"' if suffix == '.css' else 'application/json; charset="utf-8"')
+        return make_response(Response(content, headers={
+            'Content-Type': c_type,
+            'Cache-Control': 'no-cache, must-revalidate'
+        }))
     elif suffix == '.svg':
         content = open(file, 'rb').read()
         headers['Content-Type'] = 'image/svg+xml; charset="utf-8"'
@@ -292,42 +291,71 @@ RUN_CACHE = {}
 @blueprint.route('/run', endpoint='run', methods=['GET','POST'])
 @panel_login_required
 def run():
-    name = request.form.get('name', '')
-    func = request.form.get('func', '')
-    version = request.form.get('version', '')
-    args = request.form.get('args', '')
-    script = request.form.get('script', 'index')
+    try:
+        name = request.form.get('name', '') or request.args.get('name', '')
+        func = request.form.get('func', '') or request.args.get('func', '')
+        version = request.form.get('version', '') or request.args.get('version', '')
+        args = request.form.get('args', '') or request.args.get('args', '')
+        script = request.form.get('script', 'index') or request.args.get('script', 'index')
 
-    import time
-    now = time.time()
-    cache_key = (name, func, version, args, script)
+        import time
+        now = time.time()
+        cache_key = (name, func, version, args, script)
 
-    # 针对只读 status 查询提供 2 秒轻量防抖缓存，避免重复拉起 Python 子进程；统计信息提供 10 秒缓存
-    is_status_query = func == 'status' or func.startswith('status_')
-    cache_ttl = 10 if func == 'get_total_statistics' else (2 if is_status_query else 0)
+        # 针对只读 status 查询提供 2 秒轻量防抖缓存，避免重复拉起 Python 子进程；统计信息提供 10 秒缓存
+        is_status_query = func == 'status' or func.startswith('status_')
+        cache_ttl = 10 if func == 'get_total_statistics' else (2 if is_status_query else 0)
 
-    if cache_ttl > 0 and cache_key in RUN_CACHE:
-        cache_data, cache_time = RUN_CACHE[cache_key]
-        if now - cache_time < cache_ttl:
-            return cache_data
+        if cache_ttl > 0 and cache_key in RUN_CACHE:
+            cache_data, cache_time = RUN_CACHE[cache_key]
+            if now - cache_time < cache_ttl:
+                return cache_data
 
-    # 写操作立即清除该插件的状态缓存
-    if func in ('start', 'stop', 'restart', 'reload') or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_')):
-        for k in list(RUN_CACHE.keys()):
-            if k[0] == name:
-                del RUN_CACHE[k]
+        # 写操作立即清除该插件的状态缓存与数据库缓存
+        is_state_op = (
+            func in ('start', 'stop', 'restart', 'reload')
+            or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_', 'restore_'))
+            or 'restore' in func.lower()
+            or 'reload' in func.lower()
+            or 'restart' in func.lower()
+        )
+        if is_state_op:
+            for k in [k for k in RUN_CACHE.keys()]:
+                if k[0] == name:
+                    try:
+                        del RUN_CACHE[k]
+                    except KeyError:
+                        pass
+            try:
+                YfPlugin.instance().runByCache(name, func, version)
+            except Exception:
+                pass
 
-    pg = YfPlugin.instance()
-    data = pg.run(name, func, version, args, script)
-    if data[1] == '':
-        r = {'status': True, 'msg': 'OK', 'data': data[0].strip()}
-    else:
-        r = {'status': False, 'msg': data[1].strip()}
+        pg = YfPlugin.instance()
+        data = pg.run(name, func, version, args, script)
+        stdout_res = data[0].strip() if data and len(data) > 0 and data[0] else ''
+        stderr_res = data[1].strip() if data and len(data) > 1 and data[1] else ''
 
-    if cache_ttl > 0:
-        RUN_CACHE[cache_key] = (r, now)
+        if stderr_res == '' or stdout_res == 'ok':
+            r = {'status': True, 'msg': 'OK', 'data': stdout_res if stdout_res else 'ok'}
+        else:
+            r = {'status': False, 'msg': stderr_res, 'data': stdout_res}
 
-    return r
+        if is_state_op:
+            try:
+                op_ok = (r['status'] == True and r.get('data') == 'ok')
+                YfPlugin.instance().runByCache(name, func, version, op_result=op_ok)
+            except Exception:
+                pass
+
+        if cache_ttl > 0:
+            RUN_CACHE[cache_key] = (r, now)
+
+        return r
+    except Exception as e:
+        import traceback
+        yf.writeLog('插件管理', f"插件[{request.form.get('name', '') or request.args.get('name', '')}]执行操作[{request.form.get('func', '') or request.args.get('func', '')}]异常: {str(e)}")
+        return {'status': False, 'msg': f"操作执行异常: {str(e)}", 'data': ''}
 
 
 # 插件统一回调入口API
@@ -339,8 +367,35 @@ def callback():
     args = request.form.get('args', '')
     script = request.form.get('script', 'index')
 
+    is_state_op = (
+        func in ('start', 'stop', 'restart', 'reload')
+        or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_', 'restore_'))
+        or 'restore' in func.lower()
+        or 'reload' in func.lower()
+        or 'restart' in func.lower()
+    )
+    if is_state_op:
+        for k in [k for k in RUN_CACHE.keys()]:
+            if k[0] == name:
+                try:
+                    del RUN_CACHE[k]
+                except KeyError:
+                    pass
+        try:
+            YfPlugin.instance().runByCache(name, func, '')
+        except Exception:
+            pass
+
     pg = YfPlugin.instance()
     data = pg.callback(name, func, args=args, script=script)
+
+    if is_state_op:
+        try:
+            op_ok = bool(data[0])
+            YfPlugin.instance().runByCache(name, func, '', op_result=op_ok)
+        except Exception:
+            pass
+
     if data[0]:
         return yf.returnData(True, "OK", data[1])
     return yf.returnData(False, data[1])

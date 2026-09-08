@@ -260,7 +260,28 @@
 - [x] 178. 重构 `web/static/app/site.js` 中 `limitNet` 流量限制表单排版并更新 CSS（`web/static/css/site.css`、`web/static/css/ensite.css`）：彻底解决标签因 64px 狭窄宽度导致的折行断行问题，规范标签宽度为 110px、禁止换行、输入框统一对齐、按钮左边距对齐，增强层次分隔。
 - [x] 179. 编写专项回归测试套件（`test/test_webedit_styling_and_layout_opt.py`），验证子目录绑定间距样式、流量限制标签不折行与排版规范，运行全量测试验证无回归。
 
+## 排查插件外部与内部状态不一致缺陷（OpenResty外部显示停止/内部显示开启）
+
+- [x] 180. 深入排查并定位外部卡片与内部弹窗状态不一致的根因：确认 `web/core/yf.py` 缺失 `checkPid` 方法引发 `AttributeError` 被静默捕获、`checkStatusQuick` 返回 `False` 阻断兜底降级链路等核心诱因。
+- [x] 181. 在 `web/core/yf.py` 中实现标准且健壮的跨平台进程检测函数 `checkPid(pid)`（支持 Linux `os.kill(pid, 0)`、`errno.EPERM`、`/proc/{pid}` 双重判定，以及 Windows `psutil` 兼容）。
+- [x] 182. 重构 `web/utils/plugin.py` 中的快速探测逻辑（`checkStatusQuick` 与 `checkStatusReal`）：修复调用 `yf.checkPid`，在无法确认存活时返回 `None` 触发官方 `status()` 动态兜底，确保 OpenResty、MySQL、Redis、Pure-FTPd、PHP 内外状态 100% 对齐。
+- [x] 183. 检查并对齐 `plugins/redis/index.py` 中调用 `yf.checkPid` 的逻辑，确保其与 `yf.py` 完美兼容。
+- [x] 184. 编写专项自动化回归测试套件（`test/test_plugin_status_detection.py`），验证 `yf.checkPid` 在存活/失效/异常 PID 下的表现，以及 5 大核心服务在 PID 存在/缺失/非标路径下的状态探测与兜底降级。
+
+## 修复插件服务操作500报错与确认弹窗空白缺失缺陷
+
+- [x] 186. 补全 6 国语言包（`zh-CN`, `zh-TW`, `en`, `de`, `fr`, `it`）中 `public` 命名空间缺失的服务操作词条（`stop_1`, `start_1`, `restart_2`, `overload`, `force_stop_kill`, `are_you_sure_you`, `serving_please_wait_moment`, `service_has`, `service_failed`），确保多语言统一对齐。
+- [x] 187. 优化修复 `web/static/app/public.js` 中 `pluginOpService`：增加中文保底文案（fallback），优化确认弹窗内容排版与防滚动条样式，彻底解决确认框空白及垂直滚动箭头问题。
+- [x] 188. 加固 `web/utils/plugin.py` 中 `runByCache` 与 `run` 方法：对配置数据增加 `dict` 类型安全校验与全局异常兜底，增强执行脚本异常捕获与友好返回。
+- [x] 189. 加固 `web/admin/plugins/__init__.py` 中 `/run` 路由：修复视图函数 `def list():` 遮蔽 Python 内置 `list` 导致的致命 `TypeError`，添加全局 `try...except` 保护与日志记录，对非致命 stderr 输出进行智能判定（若成功输出 `ok` 则判定为成功），保证 API 永远返回标准 JSON 结构，彻底杜绝 500 Internal Server Error。
+- [x] 190. 编写专项自动化回归测试套件（`test/test_plugin_service_ops_and_modal.py`），验证全语种词条完整性、前端确认框回退机制、缓存操作容错与路由安全降级。
+- [x] 191. 运行全量测试套件回归验证，清理开发过程中的临时文件。
 
 
+## 彻底修复服务状态修改后外部状态自动刷新与防颠簸问题
 
+- [x] 195. 彻底清除静态文件浏览器强缓存障碍（`web/admin/plugins/__init__.py`、`plugins/openresty/index.html` 等）：对 `/plugins/file` 路由中的 `.js` 与 `.css` 移除 30 天强缓存，改为 `no-cache, must-revalidate`；在各插件 `index.html` 脚本加载路径中注入动态时间戳。
+- [x] 196. 重构后端状态写操作即时对齐与延迟校准机制（`web/utils/plugin.py`、`web/admin/plugins/__init__.py`）：在执行 `stop`、`start`、`restart` 等状态操作成功后，精确将目标状态写入缓存，杜绝立即并发探测因进程退出/拉起物理耗时而误判（例如 stop 后进程未彻底退出被误判为 True 并回写缓存）；2 秒后启动异步最终物理校验。
+- [x] 197. 前端强化 DOM 属性绑定与乐观状态保护（`web/static/app/soft.js`、`web/static/app/public.js`）：在表格行及状态列明确注入 `data-name` 与 `data-plugin` 属性，`window.refreshExternalPluginStatus` 采用高优先级属性选择器秒级翻转图标，并设立短时间本地状态保护锁防止异步早到包数据颠簸。
+- [x] 198. 编写自动化回归测试套件并运行全量测试验证，清理测试临时文件。
 

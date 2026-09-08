@@ -3694,6 +3694,15 @@ var lan = {
 		},
 
 	"public": {
+			"stop_1": "arrêter",
+			"start_1": "démarrer",
+			"restart_2": "redémarrer",
+			"overload": "recharger",
+			"force_stop_kill": "arrêt forcé (kill)",
+			"are_you_sure_you": "Voulez-vous vraiment {1} le service {2}{3} ?",
+			"serving_please_wait_moment": "{1} du service {2}{3} en cours, veuillez patienter...",
+			"service_has": "Le service {1}{2} a été {3}",
+			"service_failed": "Échec de l'opération {3} pour le service {1}{2} !",
 			"loading": "Chargement...",
 			"loading_1": "Obtention de l'état du service...",
 			"NAME": "Panneau de configuration Linux",

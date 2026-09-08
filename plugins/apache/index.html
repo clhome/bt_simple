@@ -89,7 +89,7 @@ resetPluginWinWidth(1050);
 resetPluginWinHeight(620);
 
 // 
-$.getScript( "/plugins/file?name=apache&f=js/httpd.js", function(){
+$.getScript( "/plugins/file?name=apache&f=js/httpd.js&_t=" + new Date().getTime(), function(){
 	httpPluginService('apache');
 });
 </script>

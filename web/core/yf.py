@@ -2801,3 +2801,46 @@ def echoInfo(msg):
 # 打印相关 END
 # ---------------------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------------------
+# 进程管理与存活检测
+# ---------------------------------------------------------------------------------
+
+def checkPid(pid):
+    """
+    检查指定 PID 进程是否存在并存活
+    :param pid: 进程 PID (int 或 str)
+    :return: bool (True: 存活, False: 不存在或已退出)
+    """
+    try:
+        if not pid:
+            return False
+        pid = int(str(pid).strip())
+        if pid <= 0:
+            return False
+
+        # Windows 开发机环境兼容
+        if sys.platform == 'win32':
+            try:
+                import psutil
+                return psutil.pid_exists(pid)
+            except Exception:
+                return False
+
+        # Linux / POSIX 标准环境
+        # 1. /proc 伪文件系统直接探测（零阻塞，准确直接）
+        proc_path = f"/proc/{pid}"
+        if os.path.exists(proc_path):
+            return True
+
+        # 2. os.kill(pid, 0) 发送空信号探测
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError as err:
+            import errno
+            # errno.EPERM 说明进程存在但属于更高权限用户 (如 root)，依然视为存活
+            return err.errno == errno.EPERM
+    except Exception:
+        return False
+

@@ -69,7 +69,7 @@ function orPluginOpService(a, b, v,request_callback) {
     })
 }
 
-function orPluginOpServiceOp(a,b,c,d,a,v,request_callback){
+function orPluginOpServiceOp(a,b,c,d,_a,v,request_callback){
 
     var request_path = "/plugins/run";
     if (request_callback == 'yes'){
@@ -89,6 +89,12 @@ function orPluginOpServiceOp(a,b,c,d,a,v,request_callback){
             } else if ( b == 'stop' ){
                 orPluginSetService(a, false, v);
             }
+        }
+
+        // 即时联动更新外部状态（0ms乐观对齐 + 异步复查）
+        if (g.data == 'ok' && typeof window.refreshExternalPluginStatus === 'function') {
+            var targetStatus = (b == 'start' || b == 'restart') ? true : (b == 'stop' ? false : null);
+            window.refreshExternalPluginStatus(a, targetStatus);
         }
 
         if( g.status && g.data != 'ok' ) {

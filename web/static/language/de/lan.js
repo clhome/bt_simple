@@ -3694,6 +3694,15 @@ var lan = {
 		},
 
 	"public": {
+			"stop_1": "stoppen",
+			"start_1": "starten",
+			"restart_2": "neu starten",
+			"overload": "neu laden",
+			"force_stop_kill": "erzwingen stoppen (kill)",
+			"are_you_sure_you": "Möchten Sie den Dienst {1}{2}{3} wirklich {1}?",
+			"serving_please_wait_moment": "Dienst {1}{2}{3} wird ausgeführt, bitte warten...",
+			"service_has": "{1}{2}-Dienst wurde {3}",
+			"service_failed": "{1}{2}-Dienst {3} fehlgeschlagen!",
 			"loading": "Laden...",
 			"loading_1": "Dienststatus wird abgerufen...",
 			"NAME": "Linux-Dashboard",

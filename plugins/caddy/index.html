@@ -88,7 +88,7 @@
 resetPluginWinWidth(1050);
 resetPluginWinHeight(620);
 
-$.getScript( "/plugins/file?name=caddy&f=js/caddy.js", function(){
+$.getScript( "/plugins/file?name=caddy&f=js/caddy.js&_t=" + new Date().getTime(), function(){
 	orPluginService('caddy');
 });
 </script>

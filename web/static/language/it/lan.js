@@ -3694,6 +3694,15 @@ var lan = {
 		},
 
 	"public": {
+			"stop_1": "arrestare",
+			"start_1": "avviare",
+			"restart_2": "riavviare",
+			"overload": "ricaricare",
+			"force_stop_kill": "arresto forzato (kill)",
+			"are_you_sure_you": "Vuoi davvero {1} il servizio {2}{3}?",
+			"serving_please_wait_moment": "Operazione di {1} del servizio {2}{3} in corso, attendere...",
+			"service_has": "Il servizio {1}{2} è stato {3}",
+			"service_failed": "Operazione {3} non riuscita per il servizio {1}{2}!",
 			"loading": "Caricamento...",
 			"loading_1": "Recupero dello stato del servizio...",
 			"NAME": "Pannello di controllo Linux",

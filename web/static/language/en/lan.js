@@ -3694,6 +3694,15 @@ var lan = {
 		},
 
 	"public": {
+			"stop_1": "stop",
+			"start_1": "start",
+			"restart_2": "restart",
+			"overload": "reload",
+			"force_stop_kill": "force stop (kill)",
+			"are_you_sure_you": "Do you really want to {1} {2}{3} service?",
+			"serving_please_wait_moment": "Now {1} {2}{3} service, please wait...",
+			"service_has": "{1}{2} service has {3}",
+			"service_failed": "{1}{2} service {3} failed!",
 			"loading": "Loading...",
 			"loading_1": "Getting service status...",
 			"NAME": "Linux Control Panel",
