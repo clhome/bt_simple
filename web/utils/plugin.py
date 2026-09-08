@@ -889,11 +889,77 @@ class plugin(object):
                     pass
             return None
 
+        # 6. Docker 快速探测
+        if name == 'docker':
+            docker_pid = '/var/run/docker.pid'
+            if os.path.exists(docker_pid):
+                try:
+                    pid = yf.readFile(docker_pid).strip()
+                    if pid and yf.checkPid(int(pid)):
+                        return True
+                except Exception:
+                    pass
+            sock_file = '/var/run/docker.sock'
+            if os.path.exists(sock_file):
+                import stat
+                try:
+                    mode = os.stat(sock_file).st_mode
+                    if stat.S_ISSOCK(mode):
+                        return True
+                except Exception:
+                    pass
+            return None
+
+        # 7. OP_WAF 防火墙快速探测
+        if name == 'op_waf':
+            waf_conf = os.path.join(server_dir, 'web_conf/nginx/vhost/opwaf.conf')
+            nginx_conf = os.path.join(server_dir, 'openresty/nginx/conf/nginx.conf')
+            if not os.path.exists(waf_conf) or not os.path.exists(nginx_conf):
+                return False
+            op_status = self.checkStatusQuick('openresty')
+            if op_status is True:
+                return True
+            elif op_status is False:
+                return False
+            return None
+
+        # 8. Fail2ban 防火墙快速探测
+        if name == 'fail2ban':
+            for pid_file in ('/run/fail2ban/fail2ban.pid', '/var/run/fail2ban/fail2ban.pid'):
+                if os.path.exists(pid_file):
+                    try:
+                        pid = yf.readFile(pid_file).strip()
+                        if pid and yf.checkPid(int(pid)):
+                            return True
+                    except Exception:
+                        pass
+            sock_file = '/run/fail2ban/fail2ban.sock'
+            if not os.path.exists(sock_file):
+                return False
+            return None
+
+        # 9. Swap 虚拟内存快速探测
+        if name == 'swap':
+            sfile = os.path.join(server_dir, 'swap', 'swapfile')
+            if not os.path.exists(sfile):
+                return False
+            if os.path.exists('/proc/swaps'):
+                try:
+                    sfile_posix = sfile.replace('\\', '/')
+                    with open('/proc/swaps', 'r') as f:
+                        content = f.read().replace('\\', '/')
+                        if sfile_posix in content or sfile in content or '/swap/swapfile' in content:
+                            return True
+                        return False
+                except Exception:
+                    pass
+            return None
+
         return None
 
     # 检查插件真实状态（优先轻量探测，兜底调用插件status）
     def checkStatusReal(self, info):
-        if not info.get('setup', False):
+        if not info.get('setup', False) or not info.get('display_status', True):
             return False
 
         name = info.get('name', '')
@@ -914,7 +980,7 @@ class plugin(object):
 
     # 检查插件状态（优先从指定缓存读取）
     def checkStatusThreadsByCache(self, info, i=0):
-        if not info.get('setup', False):
+        if not info.get('setup', False) or not info.get('display_status', True):
             return False
 
         plugin_list_status = self.__plugin_status_data
@@ -936,10 +1002,11 @@ class plugin(object):
 
             self.__plugin_status_data = cached_data
 
-            # 判断缓存是否完整可用（已安装的插件在缓存中均有对应条目）
+            # 判断缓存是否完整可用（过滤无需探测状态的插件后，已安装的插件在缓存中均有对应条目）
             has_full_cache = True
             for item in info:
-                if not item.get('setup', False):
+                # 未安装 或 明确配置不需要展示状态指示灯的插件（如纯工具/环境类），不纳入探针队列
+                if not item.get('setup', False) or not item.get('display_status', True):
                     continue
                 k = item['name']
                 if 'coexist' in item and item['coexist']:
@@ -953,7 +1020,7 @@ class plugin(object):
             if has_full_cache:
                 # 缓存完整：直接使用缓存值返回（0ms零阻塞）
                 for i in range(len(info)):
-                    if not info[i].get('setup', False):
+                    if not info[i].get('setup', False) or not info[i].get('display_status', True):
                         info[i]['status'] = False
                         continue
                     k = info[i]['name']
@@ -961,13 +1028,13 @@ class plugin(object):
                         k = info[i].get('title', info[i]['name'])
                     info[i]['status'] = cached_data.get(k, False)
 
-                # 启动后台受控并发线程异步刷新（最大并发为4，使用checkStatusReal穿透旧缓存刷新）
+                # 启动后台受控并发线程异步增量刷新（最大并发为4，使用checkStatusReal穿透旧缓存刷新）
                 import copy
                 info_copy = copy.deepcopy(info)
                 def _async_refresh():
                     try:
                         fresh_data = {}
-                        installed_items = [item for item in info_copy if item.get('setup', False)]
+                        installed_items = [item for item in info_copy if item.get('setup', False) and item.get('display_status', True)]
                         if installed_items:
                             with ThreadPoolExecutor(max_workers=4) as executor:
                                 results = list(executor.map(self.checkStatusReal, installed_items))
@@ -976,8 +1043,14 @@ class plugin(object):
                                     if 'coexist' in item and item['coexist']:
                                         k = item.get('title', item['name'])
                                     fresh_data[k] = status_val
-                        thisdb.setOption(self.__plugin_status_cachekey, json.dumps(fresh_data))
-                        self.__plugin_status_data = fresh_data
+                        
+                        # 增量合并更新缓存，严禁暴力覆盖，杜绝多分类/分页切换时缓存被踩踏抹除
+                        curr_data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
+                        if not isinstance(curr_data, dict):
+                            curr_data = {}
+                        curr_data.update(fresh_data)
+                        thisdb.setOption(self.__plugin_status_cachekey, json.dumps(curr_data))
+                        self.__plugin_status_data = curr_data
                     except Exception as e:
                         print('async refresh plugin status error:', str(e))
 
@@ -986,7 +1059,7 @@ class plugin(object):
                 refresh_thread.start()
             else:
                 # 冷启动：受控最大 4 并发线程获取真实状态，杜绝单核机器瞬时高负载
-                installed_items = [item for item in info if item.get('setup', False)]
+                installed_items = [item for item in info if item.get('setup', False) and item.get('display_status', True)]
                 status_map = {}
                 if installed_items:
                     with ThreadPoolExecutor(max_workers=4) as executor:
@@ -998,7 +1071,7 @@ class plugin(object):
                             status_map[k] = status_val
 
                 for i in range(len(info)):
-                    if not info[i].get('setup', False):
+                    if not info[i].get('setup', False) or not info[i].get('display_status', True):
                         info[i]['status'] = False
                         continue
                     k = info[i]['name']
@@ -1008,8 +1081,13 @@ class plugin(object):
                     info[i]['status'] = status_val
                     cached_data[k] = status_val
 
-                self.__plugin_status_data = cached_data
-                thisdb.setOption(self.__plugin_status_cachekey, json.dumps(cached_data))
+                # 增量合并持久化
+                curr_data = thisdb.getOptionByJson(self.__plugin_status_cachekey, default={})
+                if not isinstance(curr_data, dict):
+                    curr_data = {}
+                curr_data.update(cached_data)
+                self.__plugin_status_data = curr_data
+                thisdb.setOption(self.__plugin_status_cachekey, json.dumps(curr_data))
 
         except Exception as e:
             print(yf.getTracebackInfo())

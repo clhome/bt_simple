@@ -285,3 +285,11 @@
 - [x] 197. 前端强化 DOM 属性绑定与乐观状态保护（`web/static/app/soft.js`、`web/static/app/public.js`）：在表格行及状态列明确注入 `data-name` 与 `data-plugin` 属性，`window.refreshExternalPluginStatus` 采用高优先级属性选择器秒级翻转图标，并设立短时间本地状态保护锁防止异步早到包数据颠簸。
 - [x] 198. 编写自动化回归测试套件并运行全量测试验证，清理测试临时文件。
 
+## 软件菜单分类切换延迟与插件状态探测性能优化
+
+- [x] 199. 修复 `web/utils/plugin.py` 中异步刷新缓存覆写缺陷：改暴力覆盖为增量字典合并（`cached_data.update(fresh_data)`），彻底解决分类切换时全局缓存被冲刷踩踏的问题。
+- [x] 200. 在 `checkStatusMThreadsByCache` 中过滤无需展示状态的插件（`display_status is False`）：直接跳过探测队列并赋默认状态，杜绝工具类插件产生无意义的外部子进程调用。
+- [x] 201. 扩展 `checkStatusQuick` 轻量快速探针：补充 Docker、OP_WAF 防火墙、Fail2Ban 防火墙、Swap 虚拟内存等服务的极速状态检测，使冷启动耗时从百毫秒级降至毫秒级。
+- [x] 202. 编写专项自动化回归测试套件（`test/test_plugin_list_perf_opt.py`），验证缓存增量合并、`display_status` 过滤机制与快速探针准确性。
+- [x] 203. 运行全量自动化测试套件回归验证，确保 100% 通过并清理临时文件。
+
