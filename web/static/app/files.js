@@ -1134,7 +1134,8 @@ function getExtName(fileName){
     'pptx','txt','xlsb','xlsx','7z','cab','iso','rar','zip','gz','bt','file','apk','bookfolder',
     'folder-empty','fromchromefolder','documentfolder','fromphonefolder',
     'mix','musicfolder','picturefolder','videofolder','sefolder','access','mdb','accdb',
-    'fla','flv','doc','docm','dotx','dotm','dot','pdf','ppt','pptm','pot','xls','csv','xlsm','md','MD'];
+    'fla','flv','doc','docm','dotx','dotm','dot','pdf','ppt','pptm','pot','xls','csv','xlsm','md','MD',
+    'py','PY','json','JSON','sh','SH'];
     var extLastName = extArr[extArr.length - 1];
     for(var i=0; i<exts.length; i++){
         if(exts[i]==extLastName){

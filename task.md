@@ -369,3 +369,24 @@
 - [x] 231. 编写专项自动化测试套件（`test/test_md_icon_and_editor_fix.py`），验证图标配置、扩展名识别与编辑弹窗 DOM 纯净性。
 - [x] 232. 运行自动化测试回归验证，确保 100% 通过并清理临时文件。
 
+## 增加 py、json、sh 文件图标显示支持
+
+- [x] 233. 构思与生成 py（Python）、json（JSON 数据）、sh（Shell 脚本）文件专属图标（32x32 列表与 80x80 网格）：
+  - 上方保持与 txt、md 一致的白纸、折角及阴影纹理标准设计风格；
+  - 底部色彩与字符设计：
+    - py：Python 专属深海蓝（#3572A5），居中白色加粗 PY 文本；
+    - json：JSON 专属暖金琥珀色（#E5A00D），居中白色加粗 JSON 文本；
+    - sh：Shell 终端青翠绿（#27AE60），居中白色加粗 SH 文本；
+  - 分别输出标准 32x32 与 80x80 像素 PNG 并转成标准 Base64。
+- [x] 234. 在 `web/static/css/site.css` 与 `web/static/css/ensite.css` 中注入 py、json、sh 图标样式：
+  - 在 `.list-list` 下增加 `.ico-py, .ico-PY`、`.ico-json, .ico-JSON`、`.ico-sh, .ico-SH`；
+  - 在 `.fileList` 下增加 `.ico-py, .ico-PY`、`.ico-json, .ico-JSON`、`.ico-sh, .ico-SH`。
+- [x] 235. 在 `web/static/app/files.js` 中扩充 `getExtName` 白名单：
+  - 在支持的扩展名数组中追加 `'py', 'PY', 'json', 'JSON', 'sh', 'SH'`，支持大小写文件名自动识别。
+- [x] 236. 编写专项自动化测试套件（`test/test_dev_icons.py`）：
+  - 校验 `site.css` 和 `ensite.css` 中 32x32 与 80x80 的 Base64 PNG 尺寸与格式正确性；
+  - 校验 `files.js` 中 `getExtName` 对 `py`、`json`、`sh` 及其大写后缀的准确解析；
+  - 进行无损性与语法一致性校验。
+- [x] 237. 运行自动化测试套件回归验证，全绿通过并清理临时文件。
+
+
