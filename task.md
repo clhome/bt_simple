@@ -435,3 +435,15 @@
   - 内部文本与数值使用 Flex 居中（`justify-content: center; align-items: center`），彻底消除数字超出按钮下边缘问题，实现完美垂直居中。
 - [x] 253. 在 `web/templates/default/index.html` 与 `web/static/app/index.js` 概览渲染中挂载统一模块类名 `.neu-btn-card`。
 - [x] 254. 编写与更新自动化测试套件（`test/test_overview_btn_style.py` 与 `test/test_home_ui_scheme_b.py`），验证模块复用、居中对齐与全量回归。
+
+## 首页概览区域紧凑化与登录记录完整展示优化
+
+- [x] 255. 紧凑化重构概览卡片与按钮高度（`web/static/css/site.css` 与 `web/static/css/ensite.css`）：
+  - 概览按钮高度由 88px 同步缩小为紧凑黄金高度 66px，保持 14px 圆角与双重轻拟态质感；
+  - 内部标题（12px）与数字（20px）保持绝对垂直水平居中，间距紧凑微调，确保呼吸感与防溢出；
+  - 压缩概览大卡片（`.system-info`）外边距与内边距（外边距改为 10px，标题栏高度降为 38px，内容内边距设为 0 15px 10px 15px），整块概览释放约 60px 垂直高度。
+- [x] 256. 优化模板结构与原型演示同步（`web/templates/default/index.html` 与 `test/index.html`）：
+  - 移除模板中概览内容多余的 `mtb20` 冗余间距，使视觉上下紧凑；
+  - 同步更新原型对比文件 `test/index.html` 中方案 B 对应参数。
+- [x] 257. 更新自动化测试套件（`test/test_overview_btn_style.py`），全量验证紧凑尺寸、居中对齐与登录记录可见性保障。
+- [x] 258. 运行全量测试套件回归验证，确保 100% 通过并清理临时文件。

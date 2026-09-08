@@ -4564,16 +4564,28 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     box-shadow: 0 0 4px rgba(239, 68, 68, 0.5) !important;
 }
 
-/* 概览统计卡片布局与文字完全垂直水平双向居中 */
+/* 概览大卡片紧凑化与按钮高度优化（释放纵向空间，让下方登录记录完整显示） */
+.main-content .system-info.bgw,
+.conter-box.system-info {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+}
+.system-info .title {
+    height: 38px !important;
+    line-height: 38px !important;
+    font-size: 15px !important;
+}
 .system-info-con {
-    padding: 0 15px 18px 15px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding: 0 15px 12px 15px !important;
     width: 100% !important;
     box-sizing: border-box !important;
 }
 .system-info-con ul#index_overview {
     display: flex !important;
     flex-wrap: nowrap !important;
-    gap: 16px !important;
+    gap: 14px !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
@@ -4586,9 +4598,9 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     max-width: none !important;
     width: auto !important;
     float: none !important;
-    height: 88px !important;
+    height: 66px !important;
     margin: 0 !important;
-    padding: 10px 12px !important;
+    padding: 6px 10px !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
@@ -4597,13 +4609,13 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
 }
 .system-info .sys-li-box .name,
 .neu-btn-card .name {
-    margin: 0 0 6px 0 !important;
+    margin: 0 0 2px 0 !important;
     padding: 0 !important;
-    font-size: 13px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
     color: #64748b !important;
-    line-height: 18px !important;
-    height: 18px !important;
+    line-height: 16px !important;
+    height: 16px !important;
     text-align: center !important;
     width: 100% !important;
     max-width: 95% !important;
@@ -4615,8 +4627,8 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
 .neu-btn-card .val {
     margin: 0 !important;
     padding: 0 !important;
-    line-height: 28px !important;
-    height: 28px !important;
+    line-height: 24px !important;
+    height: 24px !important;
     text-align: center !important;
     width: 100% !important;
     display: flex !important;
@@ -4626,10 +4638,10 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
 .system-info .sys-li-box .val a,
 .neu-btn-card .val a {
     color: #10b981 !important;
-    font-size: 22px !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
-    line-height: 28px !important;
-    height: 28px !important;
+    line-height: 24px !important;
+    height: 24px !important;
     text-decoration: none !important;
     display: inline-flex !important;
     align-items: center !important;

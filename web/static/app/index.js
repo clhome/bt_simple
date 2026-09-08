@@ -1229,7 +1229,7 @@ function loadKeyDataCount(){
                 onclick_str = 'window.DEFAULT_ACTIVE_TAB = \'wafIndex\'; ' + onclick_str;
             }
             var html = '<li class="sys-li-box neu-btn-card col-xs-3 col-sm-3 col-md-3 col-lg-3">\
-                    <p class="name f15 c9">'+show_name+'</p>\
+                    <p class="name c9">'+show_name+'</p>\
                     <div class="val"><a class="btlink" onclick="' + onclick_str + '">'+rdata['data']['count']+'</a></div>\
                 </li>';
             $('#index_overview').append(html);
