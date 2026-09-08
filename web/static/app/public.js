@@ -1124,10 +1124,17 @@ function onlineEditFile(k, f, callback) {
     shift: 5,
     closeBtn: 1,
     area: ["90%", "90%"],
-    btn: ['<span class="glyphicon glyphicon-floppy-disk"></span> ' + ('<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_1') || '保存') || '保存'), '<span class="glyphicon glyphicon-refresh"></span> ' + ('<span class="glyphicon glyphicon-refresh"></span> ' + (lan && lan.public && t('public.refresh_1') || '刷新') || '刷新')],
-    title: (lan && lan.public && t('public.edit_online') || "") + f + "]",
+    btn: ['<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_1') || '保存'), '<span class="glyphicon glyphicon-refresh"></span> ' + (lan && lan.public && t('public.refresh_1') || '刷新')],
+    title: (lan && lan.public && t('public.edit_online') || '在线编辑') + ' [' + f + ']',
     shade: 0.0000001,
-    content: '<form class="bt-form pd20">			<div class="line">				<p style="color:red;margin-bottom:10px">' + ('<form class="bt-form pd20">			<div class="line">				<p style="color:red;margin-bottom:10px">' + (lan && lan.public && t('public.tip_use_ctrl_to') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '					<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>				</p>				<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>			</div>		</form>' || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '					<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>				</p>				<textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>			</div>		</form>',
+    content: '<form class="bt-form pd20">\
+      <div class="line">\
+        <p style="color:red;margin-bottom:10px">' + (lan && lan.public && t('public.tip_use_ctrl_to') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '\
+          <select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>\
+        </p>\
+        <textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>\
+      </div>\
+    </form>',
     success: function (layero) {
       $(layero).hide();
       var layer_id = $(layero).attr('id').replace("layui-layer", "");
@@ -1178,7 +1185,12 @@ function onlineEditFile(k, f, callback) {
         });
 
         // 自动刷新滑块
-        var toggleHtml = '<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>					</div>					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + ('<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">					<div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">						<div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>					</div>					<span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + (lan && lan.public && t('public.auto_refresh') || '自动刷新') + '</span>				</div>' || '自动刷新') + '</span>				</div>';
+        var toggleHtml = '<div class="auto-refresh-toggle" style="position: absolute; bottom: 12px; left: 15px; display: flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 14px; cursor: pointer; user-select: none; transition: all 0.3s; background: transparent; z-index: 10000;">\
+          <div class="toggle-track" style="width: 36px; height: 18px; border: 1px solid #ccc; border-radius: 10px; position: relative; margin-right: 8px; transition: all 0.3s; background: #fff;">\
+            <div class="toggle-thumb" style="width: 14px; height: 14px; border: 1px solid #ccc; background: #fff; border-radius: 50%; position: absolute; top: 1px; right: 2px; transition: all 0.3s;"></div>\
+          </div>\
+          <span class="toggle-text" style="color: #999; font-size: 14px; transition: all 0.3s;">' + (lan && lan.public && t('public.auto_refresh') || '自动刷新') + '</span>\
+        </div>';
         layero.append(toggleHtml);
         layero.find('.auto-refresh-toggle').on('click', function () {
           var $track = $(this).find('.toggle-track');
@@ -1251,7 +1263,7 @@ function onlineEditFile(k, f, callback) {
         layer.confirm(lan && lan.public && t('public.the_file_has_been') || "", {
           title: lan && lan.public && t('public.friendly_reminder') || "",
           icon: 0,
-          btn: ['<span class="glyphicon glyphicon-remove"></span> ' + ('<span class="glyphicon glyphicon-remove"></span> ' + (lan && lan.public && t('public.do_not_save') || '不保存') || '不保存'), '<span class="glyphicon glyphicon-floppy-disk"></span> ' + ('<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_2') || '保存') || '保存')],
+          btn: ['<span class="glyphicon glyphicon-remove"></span> ' + (lan && lan.public && t('public.do_not_save') || '不保存'), '<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_2') || '保存')],
           success: function (confirmLayero) {
             var outerSaveColor = layero.find('.layui-layer-btn0').css('background-color') || '#20a53a';
             var outerSaveBorder = layero.find('.layui-layer-btn0').css('border-color') || '#20a53a';

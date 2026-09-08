@@ -356,5 +356,16 @@
   - 同步调整 `#Batch` 初始定位与 `showSeclect()` 计算基准为 `right: 216px`（`rightPos >= 216px`），保持粘贴按钮与回收站之间对称维持 >=20px 宽裕间距。
 - [x] 226. 完善自动化回归测试（`test/test_paste_spacing_and_scrollbar.py`），验证三者间距均严格保持在 20px 以上，全绿通过并清理临时文件。
 
+## 文件页面 Markdown 图标支持与文件编辑弹窗双重图标文字重叠修复
 
+- [x] 227. 生成 Markdown 文件图标（32x32 与 80x80）：上方保持与 txt 图标一致的白纸折角样式，底部使用系统标准纯正橙色（#E0732F）及清晰白色文本。
+- [x] 228. 在 `site.css` 与 `ensite.css` 中注入 `.list-list .ico-md` 与 `.fileList .ico-md` 样式规则。
+- [x] 229. 在 `web/static/app/files.js` 中扩充 `getExtName` 扩展名白名单，支持 `md` 与 `MD` 扩展名识别。
+- [x] 230. 修复 `web/static/app/public.js` 中 `onlineEditFile` 的双重嵌套缺陷：
+  - 修复右下角保存与刷新按钮（`btn`），消除双重图标与双重文字；
+  - 修复左下角自动刷新开关（`toggleHtml`），消除双层嵌套滑动开关与文字；
+  - 清理表单内容（`content`）双重 `<form>` 与双重 `<textarea>` 嵌套；
+  - 修复标题（`title`）未闭合残损与未保存退出弹窗按钮的双重图标。
+- [x] 231. 编写专项自动化测试套件（`test/test_md_icon_and_editor_fix.py`），验证图标配置、扩展名识别与编辑弹窗 DOM 纯净性。
+- [x] 232. 运行自动化测试回归验证，确保 100% 通过并清理临时文件。
 
