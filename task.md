@@ -293,3 +293,11 @@
 - [x] 202. 编写专项自动化回归测试套件（`test/test_plugin_list_perf_opt.py`），验证缓存增量合并、`display_status` 过滤机制与快速探针准确性。
 - [x] 203. 运行全量自动化测试套件回归验证，确保 100% 通过并清理临时文件。
 
+## 首页提醒修改即时刷新与全局配置缓存优化
+
+- [x] 204. 在 `web/utils/config.py` 中实现标准全局变量缓存主动失效函数 `clearGlobalVarCache()`，保持原有 30 秒 TTL 缓存机制提升系统性能的同时提供即时刷新机制。
+- [x] 205. 在 `web/admin/setting/setting.py` 中接入即时失效机制：在 `set_home_notice` 保存后立即触发 `clearGlobalVarCache()`，并对齐重构 `set_webname`、`set_ip`、`set_backup_dir`、`set_www_dir`、`set_status_code`、`set_cdn_status`、`set_gpu_detect`、`save_menu_config` 的缓存即时刷新。
+- [x] 206. 编写专项自动化回归测试套件（`test/test_home_notice_cache.py`），验证 30 秒性能读缓存、写时主动失效、`set_home_notice` 修改后即时生效与日常访问命中缓存。
+- [x] 207. 运行自动化测试套件进行全面回归验证，确保 100% 通过并清理临时测试文件。
+
+

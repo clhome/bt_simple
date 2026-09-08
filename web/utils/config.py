@@ -82,6 +82,14 @@ _global_var_cache = None
 _global_var_cache_time = 0
 _GLOBAL_VAR_TTL = 30  # 30秒TTL
 
+def clearGlobalVarCache():
+    '''
+    清除全局变量缓存，使下一次读取立即重新加载数据库最新配置
+    '''
+    global _global_var_cache, _global_var_cache_time
+    _global_var_cache = None
+    _global_var_cache_time = 0
+
 def getGlobalVar():
     '''
     获取全局变量

@@ -42,6 +42,7 @@ def set_webname():
     src_webname = thisdb.getOption('title')
     if webname != src_webname:
         thisdb.setOption('title', webname)
+        utils_config.clearGlobalVarCache()
     return yf.returnData(True, 'setting.py_msg_ca5110')
 
 # 设置服务器IP
@@ -52,6 +53,7 @@ def set_ip():
     src_host_ip = thisdb.getOption('server_ip')
     if host_ip != src_host_ip:
         thisdb.setOption('server_ip', host_ip)
+        utils_config.clearGlobalVarCache()
     return yf.returnData(True, 'setting.py_msg_9adea2')
 
 # 默认备份目录
@@ -62,6 +64,7 @@ def set_backup_dir():
     src_backup_path = thisdb.getOption('backup_path')
     if backup_path != src_backup_path:
         thisdb.setOption('backup_path', backup_path)
+        utils_config.clearGlobalVarCache()
     return yf.returnData(True, 'setting.py_msg_b179f2')
 
 # 默认站点目录
@@ -72,6 +75,7 @@ def set_www_dir():
     src_sites_path = thisdb.getOption('site_path')
     if sites_path != src_sites_path:
         thisdb.setOption('site_path', sites_path)
+        utils_config.clearGlobalVarCache()
     return yf.returnData(True, 'setting.py_msg_d75d39')
 
 
@@ -157,6 +161,7 @@ def set_status_code():
 
     info = utils_config.getUnauthStatus(code=str(status_code))
     thisdb.setOption('unauthorized_status', str(status_code))
+    utils_config.clearGlobalVarCache()
     yf.writeLog('面板设置', '将未授权响应状态码设置为:{0}:{1}'.format(status_code,info['text']))
     return yf.returnData(True, 'common.set_success')
 
@@ -167,8 +172,10 @@ def open_debug():
     debug = thisdb.getOption('debug',default='close')
     if debug == 'open':
         thisdb.setOption('debug','close')
+        utils_config.clearGlobalVarCache()
         return yf.returnData(True, 'setting.py_msg_2f9e9a')
     thisdb.setOption('debug','open')
+    utils_config.clearGlobalVarCache()
     return yf.returnData(True, 'setting.py_msg_e82416')
 
 
@@ -179,8 +186,10 @@ def close_panel():
     admin_close = thisdb.getOption('admin_close',default='no')
     if admin_close == 'no':
         thisdb.setOption('admin_close','yes')
+        utils_config.clearGlobalVarCache()
         return yf.returnData(True, 'setting.py_msg_77f082')
     thisdb.setOption('admin_close','no')
+    utils_config.clearGlobalVarCache()
     return yf.returnData(True, 'setting.py_msg_a55770')
 
 # 设置IPV6状态
@@ -205,9 +214,11 @@ def set_cdn_status():
     use_cdn = thisdb.getOption('use_cdn', default='no')
     if use_cdn == 'no':
         thisdb.setOption('use_cdn', 'yes')
+        utils_config.clearGlobalVarCache()
         yf.writeLog('面板设置', '开启CDN加速!')
         return yf.returnData(True, 'setting.py_msg_a2a860')
     thisdb.setOption('use_cdn', 'no')
+    utils_config.clearGlobalVarCache()
     yf.writeLog('面板设置', '关闭CDN加速!')
     return yf.returnData(True, 'setting.py_msg_befc80')
 
@@ -218,11 +229,11 @@ def set_gpu_detect():
     gpu_detect = thisdb.getOption('gpu_detect', default='no')
     if gpu_detect == 'no':
         thisdb.setOption('gpu_detect', 'yes')
-        utils_config._global_var_cache_time = 0
+        utils_config.clearGlobalVarCache()
         yf.writeLog('面板设置', '开启英伟达GPU首页检测!')
         return yf.returnData(True, 'setting.py_msg_9cfee3')
     thisdb.setOption('gpu_detect', 'no')
-    utils_config._global_var_cache_time = 0
+    utils_config.clearGlobalVarCache()
     yf.writeLog('面板设置', '关闭英伟达GPU首页检测!')
     return yf.returnData(True, 'setting.py_msg_d0a336')
 
@@ -333,7 +344,7 @@ def save_menu_config():
         
         # 更新内存缓存
         utils_config._menu_cache = menus
-        utils_config._global_var_cache_time = 0
+        utils_config.clearGlobalVarCache()
         
         return yf.returnData(True, 'setting.py_msg_a087ab')
     except Exception as e:
@@ -561,6 +572,7 @@ def set_home_notice():
     src_home_notice = thisdb.getOption('home_notice')
     if home_notice != src_home_notice:
         thisdb.setOption('home_notice', home_notice)
+        utils_config.clearGlobalVarCache()
     return yf.returnData(True, 'setting.py_msg_a3bec2')
 
 # 获取支持语言列表及当前语言
