@@ -921,6 +921,55 @@ def check_pg_image(args):
         return yf.returnJson(True, "ok")
     return yf.returnJson(False, "not found")
 
+def getTotalStatistics():
+    if not os.path.exists(getServerDir()):
+        return yf.returnJson(False, "not installed")
+
+    instances_data = load_instances()
+    base_dir_default = "/docker_data"
+    if os.path.exists(base_dir_default):
+        try:
+            for item in os.listdir(base_dir_default):
+                if item not in instances_data:
+                    instances_data[item] = base_dir_default
+        except:
+            pass
+
+    count = 0
+    for inst_name, base_dir in list(instances_data.items()):
+        instance_path = os.path.join(base_dir, inst_name)
+        compose_file = os.path.join(instance_path, "docker-compose.yml")
+        if os.path.isdir(instance_path) and os.path.exists(compose_file):
+            try:
+                content = yf.readFile(compose_file)
+                if 'container_name: pg-' in content or 'container_name: "pg-' in content:
+                    count += 1
+            except:
+                pass
+
+    version = "1.0"
+    vfile = getServerDir() + '/version.pl'
+    if os.path.exists(vfile):
+        try:
+            version = yf.readFile(vfile).strip()
+        except:
+            pass
+    else:
+        try:
+            info_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'info.json')
+            if os.path.exists(info_path):
+                idata = json.loads(yf.readFile(info_path))
+                version = idata.get('versions', '1.0')
+        except:
+            pass
+
+    data = {
+        "status": True,
+        "count": count,
+        "ver": version
+    }
+    return yf.returnJson(True, "ok", data)
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("error")
@@ -963,5 +1012,7 @@ if __name__ == "__main__":
         print(check_pg_image(args))
     elif func == 'modify_config':
         print(modify_config(args))
+    elif func == 'get_total_statistics':
+        print(getTotalStatistics())
     else:
         print('error')

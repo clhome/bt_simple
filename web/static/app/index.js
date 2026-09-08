@@ -1212,7 +1212,7 @@ function renderOverviewFromCache() {
 
 function loadKeyDataCount(){
     var $overview = $('#index_overview');
-    var plist = ['mysql', 'gogs', 'gitea', 'op_waf', 'fail2ban'];
+    var plist = ['mysql', 'gogs', 'gitea', 'op_waf', 'fail2ban', 'pg_docker'];
     var post_data = [];
     for (var i = 0; i < plist.length; i++) {
         post_data.push({name: plist[i], func: 'get_total_statistics'});
@@ -1249,6 +1249,8 @@ function loadKeyDataCount(){
                 show_name = 'Gitea';
             } else if (pname == 'fail2ban') {
                 show_name = '御风F2B底层防火墙';
+            } else if (pname == 'pg_docker') {
+                show_name = 'PostgreSQL (Docker)';
             }
             var count_str = rdata['data'] && rdata['data']['count'] !== undefined ? String(rdata['data']['count']) : '0';
             var ver_str = rdata['data'] && rdata['data']['ver'] !== undefined ? rdata['data']['ver'] : '';

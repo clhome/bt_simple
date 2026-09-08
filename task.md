@@ -533,3 +533,10 @@
   - 运行 Node.js 校验语法与 UTF-8 LF 格式规范。
 - [x] 282. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。
 
+## pg_docker 插件接入首页概览卡片与实例数量统计
+
+- [x] 283. 在 `plugins/pg_docker/index.py` 中实现高效 `getTotalStatistics()` 统计接口，并在分发逻辑中注册 `get_total_statistics` 命令。
+- [x] 284. 在 `web/static/app/index.js` 的 `loadKeyDataCount` 中将 `pg_docker` 加入请求列表，配置卡片显示名称 `PostgreSQL (Docker)` 及 `softMain` 点击事件。
+- [x] 285. 编写专项自动化测试套件（`test/test_pg_docker_overview.py`），验证后端统计数据结构、前端配置逻辑与缓存机制。
+- [x] 286. 运行全量自动化测试套件回归验证，确保 100% 通过并清理临时文件。
+
