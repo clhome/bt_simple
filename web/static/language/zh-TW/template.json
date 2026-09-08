@@ -3021,7 +3021,7 @@
         "new": "新增",
         "create_new_folder": "新增資料夾",
         "create_new_blank_file": "新增空白檔案",
-        "paste_all": "粘贴所有",
+        "paste_all": "貼上所有",
         "copy_3": "復製",
         "selected_files": "選中檔案:",
         "processing_please_wait_1": "正在处理,請稍候...",
@@ -3177,7 +3177,13 @@
         "py_msg_d9523e": "檔案不存在",
         "py_msg_34da7e": "上傳成功!",
         "py_msg_b4c393": "已將下載任务新增到队列!",
-        "force_refresh": "強制重新整理頁面"
+        "force_refresh": "強制重新整理頁面",
+        "paste": "貼上",
+        "overwrite_title": "即將覆蓋以下檔案",
+        "overwrite_tip": "目標目錄已存在以下同名檔案，繼續操作將直接覆蓋現有檔案：",
+        "size_compare": "大小 (現有 ⇐ 覆蓋)",
+        "old_file_size": "現有檔案大小",
+        "new_file_size": "來源覆蓋檔案大小"
     },
     "firewall": {
         "H1": "首頁",

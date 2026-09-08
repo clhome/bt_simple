@@ -693,10 +693,10 @@ function getFiles(Path) {
                 <tbody id="filesBody" class="list-list">'+body+'</tbody>\
             </table>';
             $("#fileCon").removeClass("fileList").html(tablehtml);
-            $("#tipTools").width($(".file-box").width());
+            $("#tipTools").css({"box-sizing": "border-box", "width": "100%", "left": "0", "right": "0"});
         } else {
             $("#fileCon").addClass("fileList").html(body);
-            $("#tipTools").width($(".file-box").width());
+            $("#tipTools").css({"box-sizing": "border-box", "width": "100%", "left": "0", "right": "0"});
         }
         calcPathWidth();
         $("#DirPathPlace input").val(rdata.path);
@@ -704,6 +704,7 @@ function getFiles(Path) {
         var createFolderLabel = (window.lan && lan.files && lan.files.create_new_folder) || t('files.create_new_folder', '新建目录');
         var createFileLabel = (window.lan && lan.files && lan.files.create_new_blank_file) || t('files.create_new_blank_file', '新建空白文件');
         var backLabel = (window.lan && lan.files && lan.files.back_parent) || t('files.back_parent', '返回上一级');
+        var refreshLabel = (window.lan && lan.public && lan.public.refresh) || t('public.refresh', '刷新');
 
         var BarTools = '<div class="btn-group">\
             <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
@@ -718,29 +719,12 @@ function getFiles(Path) {
             BarTools += ' <button onclick="javascript:backDir();" class="btn btn-default btn-sm glyphicon glyphicon-arrow-left" title="' + backLabel + '"></button>';
         }
         setCookie('open_dir_path',rdata.path);
-        BarTools += ' <button onclick="javascript:getFiles(\'' + rdata.path + '\');" class="btn btn-default btn-sm glyphicon glyphicon-refresh" title="刷新"></button>\
+        BarTools += ' <button onclick="javascript:yfRefreshBtn(this, function(){ getFiles(\'' + rdata.path + '\'); });" class="btn btn-default btn-sm glyphicon glyphicon-refresh" title="' + refreshLabel + '"></button>\
             <button onclick="webShell(\'' + rdata.path + '\')" title="终端" type="button" class="btn btn-default btn-sm"><em class="ico-cmd"></em></button>';
-        var copyName = getCookie('copyFileName');
-        var cutName = getCookie('cutFileName');
-        var isPaste = (copyName == 'null') ? cutName : copyName;
-        // console.log('isPaste:',isPaste);
-        //---
-        if (isPaste != 'null' && isPaste != undefined) {
-            BarTools += ' <button onclick="javascript:pasteFile(\'' + (getFileName(isPaste)) + '\');" class="btn btn-Warning btn-sm">粘贴</button>';
-        }
-        
-        $("#Batch").html('');
-        var batchTools = '';
-        var isBatch = getCookie('BatchSelected');
-        if (isBatch == 1 || isBatch == '1') {
-            batchTools += ' <button onclick="javascript:batchPaste();" class="btn btn-default btn-sm">粘贴所有</button>';
-        }
-        $("#Batch").html(batchTools);
 
         $("#setBox").prop("checked", false);
-        showSeclect();
-        
         $("#BarTools").html(BarTools);
+        showSeclect();
         
         $("input[name=id]").off("click").on('click', function(e){
             e.stopPropagation();
@@ -878,16 +862,60 @@ function bindselect(){
 function showSeclect(){
     var count = totalFile();
     var batchTools = '';
-    if(count > 1){
-        batchTools = '<button onclick="javascript:batch(1);" class="btn btn-default btn-sm">复制</button>\
-          <button onclick="javascript:batch(2);" class="btn btn-default btn-sm">剪切</button>\
-          <button onclick="javascript:batch(3);" class="btn btn-default btn-sm">权限</button>\
-          <button onclick="javascript:batch(5);" class="btn btn-default btn-sm">压缩</button>\
-          <button onclick="javascript:batch(4);" class="btn btn-default btn-sm">删除</button>';
-    }else{
-        //setCookie('BatchSelected', null);
+    var $batch = $("#Batch");
+
+    // 动态定位：拉开与回收站的距离（>=20px），杜绝粘连
+    var $trash = $("#recycle_bin");
+    var rightPos = 216; // 默认保底间隙位置 (107 + 88 + 21)
+    if ($trash.length && $trash.is(':visible')) {
+        var $parent = $batch.offsetParent();
+        var parentW = ($parent && $parent.length) ? $parent.width() : 0;
+        var trashPos = $trash.position();
+        if (parentW > 0 && trashPos && typeof trashPos.left === 'number') {
+            // 回收站左边框距离包含块右边缘的像素距离
+            var trashLeftFromRight = parentW - trashPos.left;
+            var gap = 20; // 宽裕明显的呼吸间距
+            rightPos = Math.max(216, trashLeftFromRight + gap);
+        } else {
+            var trashRight = parseInt($trash.css('right')) || 107;
+            var trashMarginRight = parseInt($trash.css('margin-right')) || 0;
+            var trashWidth = $trash.outerWidth() || 88;
+            var gap = 20;
+            rightPos = Math.max(216, trashRight + trashMarginRight + trashWidth + gap);
+        }
     }
-    $("#Batch").html(batchTools);
+    $batch.css('right', rightPos + 'px');
+
+    if(count > 1){
+        var copyText = (window.lan && lan.files && lan.files.copy) || t('files.copy', '复制');
+        var cutText = (window.lan && lan.files && lan.files.cut) || t('files.cut', '剪切');
+        var permText = (window.lan && lan.files && lan.files.permission) || t('files.permission', '权限');
+        var zipText = (window.lan && lan.files && lan.files.compress) || t('files.compress', '压缩');
+        var delText = (window.lan && lan.files && lan.files.delete) || t('files.delete', '删除');
+        batchTools = '<button onclick="javascript:batch(1);" class="btn btn-default btn-sm">' + copyText + '</button>\
+          <button onclick="javascript:batch(2);" class="btn btn-default btn-sm">' + cutText + '</button>\
+          <button onclick="javascript:batch(3);" class="btn btn-default btn-sm">' + permText + '</button>\
+          <button onclick="javascript:batch(5);" class="btn btn-default btn-sm">' + zipText + '</button>\
+          <button onclick="javascript:batch(4);" class="btn btn-default btn-sm">' + delText + '</button>';
+    } else {
+        // 未勾选或单选时，判断是否有待粘贴项目（单文件或批量）
+        var copyName = getCookie('copyFileName');
+        var cutName = getCookie('cutFileName');
+        var isSinglePaste = (copyName && copyName !== 'null') ? copyName : ((cutName && cutName !== 'null') ? cutName : null);
+        var isBatch = getCookie('BatchSelected');
+        var batchType = getCookie('BatchPaste');
+        var hasBatchPaste = (isBatch == 1 || isBatch == '1') && (batchType == 1 || batchType == '1' || batchType == 2 || batchType == '2');
+
+        if (isSinglePaste) {
+            var pasteLabel = (window.lan && lan.files && lan.files.paste) || t('files.paste', '粘贴');
+            var fn = getFileName(isSinglePaste).replace(/'/g, "\\'");
+            batchTools = '<button id="btnPasteFile" onclick="javascript:pasteFile(\'' + fn + '\');" class="btn btn-success btn-sm" style="display:inline-flex;align-items:center;height:30px;"><span class="glyphicon glyphicon-paste" style="margin-right:4px;"></span>' + pasteLabel + '</button>';
+        } else if (hasBatchPaste) {
+            var pasteAllLabel = (window.lan && lan.files && (lan.files.paste_all || lan.files.paste)) || t('files.paste_all', '粘贴所有');
+            batchTools = '<button id="btnBatchPaste" onclick="javascript:batchPaste();" class="btn btn-success btn-sm" style="display:inline-flex;align-items:center;height:30px;"><span class="glyphicon glyphicon-paste" style="margin-right:4px;"></span>' + pasteAllLabel + '</button>';
+        }
+    }
+    $batch.html(batchTools);
 
     // 计算已选中文件大小
     var total_size = 0;
@@ -923,9 +951,25 @@ function showSeclect(){
 //滚动条事件
 $(window).on('scroll', function () {
     if($(window).scrollTop() > 16){
-        $("#tipTools").css({"position":"fixed","top":"0","left":"195px","box-shadow":"0 1px 10px 3px #ccc"});
+        var boxW = $(".file-box").width();
+        $("#tipTools").css({
+            "position":"fixed",
+            "top":"0",
+            "left":"195px",
+            "width": boxW + "px",
+            "box-sizing": "border-box",
+            "box-shadow":"0 1px 10px 3px #ccc"
+        });
     }else{
-        $("#tipTools").css({"position":"absolute","top":"42px","left":"0","box-shadow":"none"});
+        $("#tipTools").css({
+            "position":"absolute",
+            "top":"42px",
+            "left":"0",
+            "right":"0",
+            "width":"100%",
+            "box-sizing": "border-box",
+            "box-shadow":"none"
+        });
     }
 });
 
@@ -946,12 +990,13 @@ function calcPathWidth() {
     pathLeft();
 }
 
-$("#tipTools").width($(".file-box").width());
+$("#tipTools").css({"box-sizing": "border-box", "width": "100%", "left": "0", "right": "0"});
 calcPathWidth();
 window.onresize = function(){
-    $("#tipTools").width($(".file-box").width());
+    $("#tipTools").css({"box-sizing": "border-box", "width": "100%", "left": "0", "right": "0"});
     calcPathWidth();
     isDiskWidth();
+    showSeclect();
 }
 
 //批量操作
@@ -977,8 +1022,12 @@ function batch(type,access){
         return;
     }
     
-    if(type < 3) setCookie('BatchSelected', '1');
-    setCookie('BatchPaste',type);
+    if(type < 3) {
+        setCookie('BatchSelected', '1');
+        setCookie('BatchPaste',type);
+        setCookie('copyFileName', null);
+        setCookie('cutFileName', null);
+    }
     
     if(access == 1){
         var access = $("#access").val();
@@ -1018,22 +1067,24 @@ function batch(type,access){
 function batchPaste(){
     var path = $("#DirPathPlace input").val();
     var type = getCookie('BatchPaste');
+    if(!type || type === 'null') return;
     var data = 'type='+type+'&path='+path;
 
+    // 立即消费批量剪贴板并隐藏粘贴按钮，确保一次批量复制或剪切仅能粘贴一次
+    setCookie('BatchSelected', null);
+    setCookie('BatchPaste', null);
+    showSeclect();
+
     $.post('/files/check_exists_files',{dfile:path},function(rdata){
-        var result = rdata['data'];
+        var result = (rdata && rdata.data) ? rdata.data : (Array.isArray(rdata) ? rdata : []);
         if(result.length > 0){
-            var tbody = '';
-            for(var i=0;i<result.length;i++){
-                tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getLocalTime(result[i].mtime)+'</td></tr>';
-            }
-            var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>文件名</th><th>大小</th><th>最后修改时间</th></thead>\
-                        <tbody>'+tbody+'</tbody>\
-                        </table></div>';
-            safeMessage('即将覆盖以下文件',mbody,function(){
+            var mbody = renderFileOverwriteHtml(result);
+            safeMessage(t('files.overwrite_title', '即将覆盖以下文件'), mbody, function(){
                 batchPasteTo(data,path);
             });
-            $(".layui-layer-page").css("width","500px");
+            var modalWidth = Math.min(540, $(window).width() * 0.95);
+            var modalLeft = ($(window).width() - modalWidth) / 2;
+            $(".layui-layer-page").css({"width": modalWidth + "px", "left": modalLeft + "px"});
         }else{
             batchPasteTo(data,path);
         }
@@ -1046,6 +1097,7 @@ function batchPasteTo(data,path){
     $.post('/files/batch_paste',data,function(rdata){
         layer.close(myloadT);
         setCookie('BatchSelected', null);
+        setCookie('BatchPaste', null);
         getFiles(path);
         layer.msg(rdata.msg,{icon:1});
     },'json');
@@ -1115,10 +1167,11 @@ function getDisk() {
             LBody += "<span onclick=\"getFiles('" + rdata[i].path + "')\" style=\"cursor:pointer;margin-right:10px;\">\
                 <span class='glyphicon glyphicon-hdd'></span>&nbsp;" + (rdata[i].path=='/'?rootText:rdata[i].path) + "(" + rdata[i].size[2] + ")</span>";
         }
-        var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="' + trashText + '" style="position: absolute; border-color: #ccc; right: 87px;">\
+        var trash = '<span id="recycle_bin" onclick="recycleBin(\'open\')" title="' + trashText + '" style="position: absolute; border-color: #ccc; right: 107px; margin-right: 0;">\
             <span class="glyphicon glyphicon-trash"></span>&nbsp;' + trashText + '</span>';
         $("#comlist").html(LBody+trash);
         isDiskWidth();
+        showSeclect();
     },'json');
 }
 
@@ -1394,16 +1447,16 @@ function reName(type, fileName) {
 }
 //剪切
 function cutFile(fileName) {
-    var path = $("#DirPathPlace input").val();
     setCookie('cutFileName', fileName);
     setCookie('copyFileName', null);
-    layer.msg('已剪切', {
+    setCookie('BatchSelected', null);
+    setCookie('BatchPaste', null);
+    showSeclect();
+    var cutMsg = (window.lan && lan.files && lan.files.cut_3) || t('files.cut_3', '已剪切');
+    layer.msg(cutMsg, {
         icon: 1,
         time: 1000,
     });
-    setTimeout(function(){
-        getFiles(path);
-    },1000);
 }
 //复制路径
 function copyFilenameText(text) {
@@ -1417,42 +1470,97 @@ function copyFilenameText(text) {
 }
 //复制
 function copyFile(fileName) {
-    var path = $("#DirPathPlace input").val();
     setCookie('copyFileName', fileName);
     setCookie('cutFileName', null);
-    layer.msg('已复制', {
+    setCookie('BatchSelected', null);
+    setCookie('BatchPaste', null);
+    showSeclect();
+    var copyMsg = (window.lan && lan.files && lan.files.copy_3) || t('files.copy_3', '已复制');
+    layer.msg(copyMsg, {
         icon: 1,
         time: 1000,
     });
-
-    setTimeout(function(){
-        getFiles(path);
-    },1000);
 }
+// 渲染覆盖确认对比表格
+function renderFileOverwriteHtml(result) {
+    var tipMsg = t('files.overwrite_tip', '目标目录已存在以下同名文件，继续操作将直接覆盖现有文件：');
+    var fileNameLabel = (window.lan && lan.files && lan.files.file_name_2) || t('files.file_name_2', '文件名');
+    var sizeCompareLabel = t('files.size_compare', '大小 (现有 ⇐ 覆盖)');
+    var mtimeLabel = (window.lan && lan.files && lan.files.last_modified_1) || t('files.last_modified_1', '最后修改时间');
+
+    var list = (result && result.data) ? result.data : (Array.isArray(result) ? result : []);
+    var tbody = '';
+    for (var i = 0; i < list.length; i++) {
+        var item = list[i];
+        var oldSizeStr = toSize(item.size);
+        var sizeHtml = '';
+        if (item.new_size !== undefined && item.new_size !== null) {
+            var newSizeStr = toSize(item.new_size);
+            sizeHtml = '<span style="color: #64748b; font-size: 12px;" title="' + t('files.old_file_size', '现有文件大小') + '">' + oldSizeStr + '</span> ' +
+                       '<span style="color: #20a53a; font-weight: bold; margin: 0 4px; font-size: 13px;">&lt;=</span> ' +
+                       '<span style="color: #20a53a; font-weight: 600; font-size: 12px; background: rgba(32, 165, 58, 0.1); padding: 2px 7px; border-radius: 4px; display: inline-block;" title="' + t('files.new_file_size', '来源覆盖文件大小') + '">' + newSizeStr + '</span>';
+        } else {
+            sizeHtml = '<span style="color: #64748b; font-size: 12px;">' + oldSizeStr + '</span>';
+        }
+        var mtimeStr = item.mtime ? ((item.mtime.length > 11) ? item.mtime : getMatchTime(item.mtime)) : '';
+
+        tbody += '<tr style="border-bottom: 1px solid #f1f5f9;">' +
+                 '<td style="padding: 10px 12px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #334155; font-weight: 500;" title="' + item.filename + '">' + item.filename + '</td>' +
+                 '<td style="padding: 10px 8px; text-align: center; white-space: nowrap;">' + sizeHtml + '</td>' +
+                 '<td style="padding: 10px 12px; text-align: right; white-space: nowrap; color: #64748b; font-size: 12px;">' + mtimeStr + '</td>' +
+                 '</tr>';
+    }
+
+    var html = '<div style="padding: 4px 0;">' +
+        '<div style="background: rgba(230, 162, 60, 0.08); border: 1px solid rgba(230, 162, 60, 0.25); border-radius: 6px; padding: 9px 12px; margin-bottom: 12px; color: #b45309; font-size: 12px; display: flex; align-items: center;">' +
+            '<span class="glyphicon glyphicon-exclamation-sign" style="font-size: 15px; margin-right: 8px; color: #d97706; flex-shrink: 0;"></span>' +
+            '<span>' + tipMsg + '</span>' +
+        '</div>' +
+        '<div class="divtable" style="max-height: 220px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; background: #fff;">' +
+            '<table class="table table-hover" style="width: 100%; margin: 0; font-size: 12px;">' +
+                '<thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">' +
+                    '<tr>' +
+                        '<th style="padding: 9px 12px; color: #475569; font-weight: 600; width: 34%;">' + fileNameLabel + '</th>' +
+                        '<th style="padding: 9px 8px; color: #475569; font-weight: 600; text-align: center; width: 38%;">' + sizeCompareLabel + '</th>' +
+                        '<th style="padding: 9px 12px; color: #475569; font-weight: 600; text-align: right; width: 28%;">' + mtimeLabel + '</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>' + tbody + '</tbody>' +
+            '</table>' +
+        '</div>' +
+    '</div>';
+    return html;
+}
+
 //粘贴
 function pasteFile(fileName) {
     var path = $("#DirPathPlace input").val();
     var copyName = getCookie('copyFileName');
     var cutName = getCookie('cutFileName');
-    var filename = copyName;
-    if(cutName != 'null' && cutName != undefined) filename=cutName;
-    filename = filename.split('/').pop();
-    $.post('/files/check_exists_files',{dfile:path,filename:filename},function(result){
-        if(result.length > 0){
-            var tbody = '';
-            for(var i=0;i<result.length;i++){
-                tbody += '<tr><td>'+result[i].filename+'</td><td>'+toSize(result[i].size)+'</td><td>'+getMatchTime(result[i].mtime)+'</td></tr>';
-            }
-            var mbody = '<div class="divtable"><table class="table table-hover" width="100%" border="0" cellpadding="0" cellspacing="0"><thead><th>文件名</th><th>大小</th><th>最后修改时间</th></thead>\
-                        <tbody>'+tbody+'</tbody>\
-                        </table></div>';
-            safeMessage('即将覆盖以下文件',mbody,function(){
-                pasteTo(path,copyName,cutName,fileName);
+    if ((!copyName || copyName === 'null') && (!cutName || cutName === 'null')) return;
+
+    var sfile = (cutName && cutName !== 'null') ? cutName : copyName;
+
+    // 立即消费剪贴板并隐藏粘贴按钮，确保一次复制或剪切仅能粘贴一次
+    setCookie('copyFileName', null);
+    setCookie('cutFileName', null);
+    showSeclect();
+
+    var filename = sfile.split('/').pop();
+    $.post('/files/check_exists_files', {dfile: path, filename: filename, sfile: sfile}, function(result){
+        var list = (result && result.data) ? result.data : (Array.isArray(result) ? result : []);
+        if(list.length > 0){
+            var mbody = renderFileOverwriteHtml(list);
+            safeMessage(t('files.overwrite_title', '即将覆盖以下文件'), mbody, function(){
+                pasteTo(path, copyName, cutName, fileName);
             });
+            var modalWidth = Math.min(540, $(window).width() * 0.95);
+            var modalLeft = ($(window).width() - modalWidth) / 2;
+            $(".layui-layer-page").css({"width": modalWidth + "px", "left": modalLeft + "px"});
         } else {
-            pasteTo(path,copyName,cutName,fileName);
+            pasteTo(path, copyName, cutName, fileName);
         }
-    },'json');
+    }, 'json');
 }
 
 

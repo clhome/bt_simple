@@ -3177,7 +3177,13 @@
         "py_msg_d9523e": "File does not exist",
         "py_msg_34da7e": "Upload successful!",
         "py_msg_b4c393": "has DownloadtaskAddto the queue!",
-        "force_refresh": "Force Refresh"
+        "force_refresh": "Force Refresh",
+        "paste": "Paste",
+        "overwrite_title": "The following files will be overwritten",
+        "overwrite_tip": "The target directory already has files with the same name. Proceeding will overwrite them:",
+        "size_compare": "Size (Existing ⇐ Source)",
+        "old_file_size": "Existing file size",
+        "new_file_size": "Source file size"
     },
     "firewall": {
         "H1": "Home",

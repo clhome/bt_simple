@@ -300,4 +300,61 @@
 - [x] 206. 编写专项自动化回归测试套件（`test/test_home_notice_cache.py`），验证 30 秒性能读缓存、写时主动失效、`set_home_notice` 修改后即时生效与日常访问命中缓存。
 - [x] 207. 运行自动化测试套件进行全面回归验证，确保 100% 通过并清理临时测试文件。
 
+## 文件管理页面刷新按钮现代化样式升级
+
+- [x] 208. 优化 `web/templates/default/files.html`：将路径栏右侧旧版灰色刷新按钮重构为统一现代化绿色刷新组件（`.btn-refresh-icon.refreshBtn`），嵌入矢量 SVG 旋转图标，尺寸适配为 28px 高度，接入 `yfRefreshBtn` 顺滑旋转动效与 6 国语言国际化属性。
+- [x] 209. 优化 `web/static/css/site.css` 与 `web/static/css/ensite.css`：为 `.refreshBtn.btn-refresh-icon` 补全专用规则（高度 28px、`margin-left: 6px` 呼吸留白、垂直居中对齐、Hover 浮起与 Active 按压动效）。
+- [x] 210. 优化 `web/static/app/files.js`：为第二行工具栏刷新按钮绑定 `yfRefreshBtn` 旋转动效，并确保 `calcPathWidth` 动态宽度算法与新刷新按钮完美契合。
+- [x] 211. 编写专项自动化测试套件（`test/test_files_refresh_btn.py`）：验证刷新按钮结构、SVG 矢量图标、多语言属性、CSS 样式规则与宽度自适应算法。
+- [x] 212. 运行自动化测试套件回归验证，确保 100% 通过并清理临时排查文件。
+
+## 文件管理复制/剪切后红框位置粘贴按钮修复与单次粘贴控制
+
+- [x] 213. 补全 6 国语言词典（`template.json`、`lan.js`）：在 6 国语言（zh-CN, zh-TW, en, de, fr, it）的 `files` 命名空间中录入 `paste` 词条，并修正完善 `paste_all`，确保语法正确与多语言无硬编码。
+- [x] 214. 重构 `web/static/app/files.js` 中粘贴按钮渲染与显示逻辑：
+  - 彻底移除左侧 `BarTools` 中错误追加的单文件粘贴按钮；
+  - 重构 `showSeclect()`，统一管理红框位置（`#Batch`）的渲染：当无多选时检测单文件或批量剪贴板，智能展示高亮绿色粘贴按钮（`.btn.btn-success.btn-sm`）；
+  - 动态计算 `#Batch` 偏移，精准自适应贴合在回收站左侧，彻底解决历史遗留的冲刷清空缺陷与多语言重叠隐患。
+- [x] 215. 重构 `copyFile`、`cutFile`、`pasteFile` 与 `batchPaste` 交互状态流转：
+  - 点击“复制”或“剪切”时立即写入状态并即时刷新红框粘贴按钮（0ms 即现），接入多语言提示；
+  - 点击“粘贴”时立即消费并清除剪贴板状态，即刻隐藏红框粘贴按钮，确保一次复制或剪切仅能粘贴一次。
+- [x] 216. 编写专项自动化测试套件（`test/test_files_paste_button.py`）：
+  - 验证 6 国语言词条完整性与 `lan.js` 语法无误；
+  - 验证 `files.js` 中单文件与批量复制/剪切的状态互斥、即时显示、单次点击消费后隐藏逻辑；
+  - 验证 `BarTools` 无多余残留与 `#Batch` 自适应布局。
+- [x] 217. 运行全量自动化测试回归验证，确保 100% 通过并清理临时排查文件。
+
+## 粘贴覆盖新旧文件大小比对与按钮间距美化优化
+
+- [x] 218. 后端扩展 `check_exists_files` 接口（`web/admin/files/files.py`）：
+  - 支持接收单文件来源路径 `sfile` 与读取批量来源路径；
+  - 同时提取并返回目标旧文件大小（`size`）与来源新文件大小（`new_size`），以及对应修改时间。
+- [x] 219. 前端重构覆盖确认弹窗与新旧大小比对（`web/static/app/files.js`）：
+  - 向 `/files/check_exists_files` 传入 `sfile` 来源路径；
+  - 封装现代化覆盖比对表格组件，展示 `旧大小 <= 新大小`（如 `200KB <= 501KB`），加入警示提示横幅与卡片式表格，弹窗适度拓宽至 540px，全面提升视觉美观度；
+  - 适配 6 国语言词条（表头比对提示等）。
+- [x] 220. 增大粘贴按钮与回收站间距（`web/static/app/files.js`）：
+  - 将粘贴按钮与回收站的呼吸间隔从 10px 提升至宽裕的 20px（`rightPos = trashRight + trashWidth + 20`）；
+  - 增强回收站元素宽度获取健壮性，确保视觉上保持明显间距，彻底消除拥挤粘连。
+- [x] 221. 编写专项自动化测试套件（`test/test_paste_overwrite_compare.py`）并全量回归验证，确保 100% 通过。
+
+## 消除底部横向滚动条与粘贴/回收站间距拉开优化
+
+- [x] 222. 消除页面底部横向滚动条缺陷（`web/static/css/site.css`, `web/static/css/ensite.css`, `web/static/app/files.js`）：
+  - 为 `#tipTools` 增加 `box-sizing: border-box !important; width: 100% !important; left: 0; right: 0;`；
+  - 移除 `files.js` 中将 `$("#tipTools").width($(".file-box").width())` 导致 padding 溢出 30px 的旧逻辑，规范为安全自适应；
+  - 在全局 CSS（`html, body`, `.main-content`, `.file-box`）设置 `overflow-x: hidden`，彻底绝除横向滚动条。
+- [x] 223. 拉开粘贴按钮与回收站间距（`web/templates/default/files.html`, `web/static/app/files.js`）：
+  - 计入回收站自带的 `margin-right: 20px` 与实际边框位置，在 `showSeclect()` 中设置真实安全间隔（`rightPos >= 205px`）；
+  - 更新 `files.html` 中 `#Batch` 初始行内定位为 `right: 205px`，确保初次呈现与状态切换时均具备显著可见的呼吸间隙。
+- [x] 224. 编写并运行自动化回归测试套件（`test/test_paste_spacing_and_scrollbar.py`），确保全绿通过并清理临时文件。
+
+## 修复回收站与右侧视图切换按钮间距（三者等宽呼吸间距）
+
+- [x] 225. 修复回收站与右侧视图切换按钮粘连缺陷（`web/static/app/files.js`, `web/templates/default/files.html`）：
+  - 将 `#recycle_bin` 的绝对定位设为 `right: 107px; margin-right: 0;`，与右侧视图切换按钮保持标准 20px 呼吸间距；
+  - 同步调整 `#Batch` 初始定位与 `showSeclect()` 计算基准为 `right: 216px`（`rightPos >= 216px`），保持粘贴按钮与回收站之间对称维持 >=20px 宽裕间距。
+- [x] 226. 完善自动化回归测试（`test/test_paste_spacing_and_scrollbar.py`），验证三者间距均严格保持在 20px 以上，全绿通过并清理临时文件。
+
+
 

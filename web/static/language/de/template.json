@@ -3021,7 +3021,7 @@
         "new": "Neu",
         "create_new_folder": "Neuen Ordner erstellen",
         "create_new_blank_file": "Leere Datei erstellen",
-        "paste_all": "粘贴所有",
+        "paste_all": "Alle einfügen",
         "copy_3": "复制",
         "selected_files": "选中文件:",
         "processing_please_wait_1": "正在处理,请稍候...",
@@ -3177,7 +3177,13 @@
         "py_msg_d9523e": "Dateien不存在",
         "py_msg_34da7e": "Hochladen成功!",
         "py_msg_b4c393": "已将Herunterladen任务Hinzufügen到队列!",
-        "force_refresh": "Aktualisierung erzwingen"
+        "force_refresh": "Aktualisierung erzwingen",
+        "paste": "Einfügen",
+        "overwrite_title": "Die folgenden Dateien werden überschrieben",
+        "overwrite_tip": "Im Zielverzeichnis sind bereits gleichnamige Dateien vorhanden. Das Fortfahren überschreibt diese:",
+        "size_compare": "Größe (Bestehend ⇐ Quelle)",
+        "old_file_size": "Bestehende Dateigröße",
+        "new_file_size": "Quelldateigröße"
     },
     "firewall": {
         "H1": "Startseite",

@@ -281,7 +281,11 @@
                     <div class="clearfix">
                         <div class="pull-left">
                             <button id="backBtn" class="backBtn btn btn-default btn-sm glyphicon glyphicon-arrow-left pull-left" title="" onClick="backDir()"></button>
-                            <button class="backBtn refreshBtn btn btn-default btn-sm glyphicon glyphicon-refresh pull-right" title="" style="margin-left:-1px;"></button>
+                            <button class="btn-refresh-icon refreshBtn pull-right" type="button" onclick="yfRefreshBtn(this, function(){ getFiles(getCookie('open_dir_path')); });" data-i18n-attr="title" data-i18n="public.refresh" title="{{ t('public.refresh', '刷新') }}">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                                </svg>
+                            </button>
                             <span id='DirPathPlace' class="pull-left"><input id="fileInputPath" type="text"></span>
                             <span id='PathPlaceBtn' class="pull-left"></span>
                         </div>
@@ -318,7 +322,7 @@
                     <span id="selectSize" class="pull-left ml15" style="line-height:28px; color: #ff4d4f; font-weight: bold; display: none;"></span>
 
 
-                    <span id='Batch' style="background-color:#fff;position:absolute;right:190px;z-index:10"></span>
+                    <span id='Batch' style="background-color:#fff;position:absolute;right:216px;z-index:10"></span>
 
                     <div class="btn-group btn-group-sm pull-right" style="margin-right: 15px;">
                         <button id="set_icon" type="button" class="btn btn-default">
@@ -402,9 +406,7 @@ $("#set_list").on('click', function() {
     getFiles(getCookie('open_dir_path'));
 })
 
-$(".refreshBtn").on('click', function() {
-    getFiles(getCookie('open_dir_path'));
-})
+// 路径栏刷新按钮交互与平滑旋转动画已由 DOM onclick 接入全局 yfRefreshBtn 统一托管
 
 
 $('.file_search').on('click', function(e){

@@ -41,11 +41,15 @@ def index():
 def check_exists_files():
     dfile = request.form.get('dfile', '')
     filename = request.form.get('filename', '')
+    sfile = request.form.get('sfile', '').strip()
     data = []
     filesx = []
+    src_dir = ''
     if filename == '':
         try:
-            filesx = json.loads(session['selected']['data'])
+            selected_info = session.get('selected', {})
+            filesx = json.loads(selected_info.get('data', '[]'))
+            src_dir = selected_info.get('path', '')
         except Exception:
             pass
     elif filename.startswith('['):
@@ -67,6 +71,23 @@ def check_exists_files():
                 tmp['filename'] = fn
                 tmp['size'] = os.path.getsize(filepath)
                 tmp['mtime'] = str(int(stat.st_mtime))
+
+                # 获取即将覆盖的新文件属性
+                new_size = None
+                new_mtime = ''
+                if sfile and os.path.exists(sfile):
+                    new_size = os.path.getsize(sfile)
+                    new_mtime = str(int(os.stat(sfile).st_mtime))
+                elif src_dir:
+                    src_filepath = os.path.join(src_dir, fn)
+                    if os.path.exists(src_filepath):
+                        new_size = os.path.getsize(src_filepath)
+                        new_mtime = str(int(os.stat(src_filepath).st_mtime))
+
+                if new_size is not None:
+                    tmp['new_size'] = new_size
+                    tmp['new_mtime'] = new_mtime
+
                 data.append(tmp)
             except Exception:
                 pass

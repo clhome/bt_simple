@@ -3176,7 +3176,13 @@
         "py_msg_e4fa1d": "开发机不设置!",
         "py_msg_d9523e": "文件不存在",
         "py_msg_34da7e": "上传成功!",
-        "py_msg_b4c393": "已将下载任务添加到队列!"
+        "py_msg_b4c393": "已将下载任务添加到队列!",
+        "paste": "粘贴",
+        "overwrite_title": "即将覆盖以下文件",
+        "overwrite_tip": "目标目录已存在以下同名文件，继续操作将直接覆盖现有文件：",
+        "size_compare": "大小 (现有 ⇐ 覆盖)",
+        "old_file_size": "现有文件大小",
+        "new_file_size": "来源覆盖文件大小"
     },
     "firewall": {
         "H1": "首页",

@@ -1,3 +1,7 @@
+html, body {
+    overflow-x: hidden;
+}
+
 body {
     line-height: 1.4;
     color: #333;
@@ -501,7 +505,8 @@ html {
 }
 
 .main-content {
-    margin-left: 180px
+    margin-left: 180px;
+    overflow-x: hidden;
 }
 
 .sidebar-scroll {
@@ -3780,7 +3785,11 @@ html .menu .menu_exit:hover {
     border-bottom: #ccc 1px solid;
     position: absolute;
     top: 0;
-    left: 0
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .re-head {
@@ -4241,6 +4250,14 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     height: 26px !important;
     min-width: 26px !important;
     padding: 0 !important;
+}
+
+.refreshBtn.btn-refresh-icon {
+    height: 28px !important;
+    min-width: 28px !important;
+    padding: 0 !important;
+    margin-left: 6px !important;
+    vertical-align: top !important;
 }
 
 /* 带文字的现代化刷新按钮 */

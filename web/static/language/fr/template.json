@@ -3021,7 +3021,7 @@
         "new": "Nouveau",
         "create_new_folder": "Créer un dossier",
         "create_new_blank_file": "Créer un fichier vide",
-        "paste_all": "粘贴所有",
+        "paste_all": "Coller tout",
         "copy_3": "复制",
         "selected_files": "选中文件:",
         "processing_please_wait_1": "正在处理,请稍候...",
@@ -3177,7 +3177,13 @@
         "py_msg_d9523e": "Fichiers不存在",
         "py_msg_34da7e": "Téléverser成功!",
         "py_msg_b4c393": "已将Télécharger任务Ajouter到队列!",
-        "force_refresh": "Actualisation forcée"
+        "force_refresh": "Actualisation forcée",
+        "paste": "Coller",
+        "overwrite_title": "Les fichiers suivants vont être écrasés",
+        "overwrite_tip": "Le répertoire cible contient déjà des fichiers du même nom. Continuer va les écraser :",
+        "size_compare": "Taille (Existant ⇐ Source)",
+        "old_file_size": "Taille du fichier existant",
+        "new_file_size": "Taille du fichier source"
     },
     "firewall": {
         "H1": "Page d'accueil",

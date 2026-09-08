@@ -41,6 +41,10 @@
     transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
+html, body {
+    overflow-x: hidden;
+}
+
 body {
     line-height: 1.5;
     color: var(--text-main);
@@ -223,6 +227,8 @@ html {
 }
 .file-box{
   padding-bottom: 1px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .plr10 {
@@ -623,7 +629,8 @@ html {
 }
 
 .main-content {
-    margin-left: 180px
+    margin-left: 180px;
+    overflow-x: hidden;
 }
 
 .sidebar-scroll {
@@ -4194,6 +4201,10 @@ html .menu .menu_exit:hover {
     position: absolute;
     top: 42px;
     left: 0;
+    right: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
     z-index: 999;
 }
 
@@ -6361,6 +6372,14 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     height: 26px !important;
     min-width: 26px !important;
     padding: 0 !important;
+}
+
+.refreshBtn.btn-refresh-icon {
+    height: 28px !important;
+    min-width: 28px !important;
+    padding: 0 !important;
+    margin-left: 6px !important;
+    vertical-align: top !important;
 }
 
 /* 带文字的现代化刷新按钮 */
