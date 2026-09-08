@@ -396,3 +396,42 @@
 - [x] 241. 增补 6 国语言包（`plugins/openresty/lang/{zh-CN,zh-TW,en,de,fr,it}.json`）中有关守护服务、说明指引、状态提示等词条。
 - [x] 242. 编写专项自动化回归测试套件（`test/test_openresty_service_cron_tab.py`），全量验证菜单结构、前后端逻辑与多语言完整性。
 - [x] 243. 运行自动化测试套件回归验证，确保 100% 通过并清理临时文件。
+
+## 首页 UI 提升方案 B（现代轻拟态 Soft UI+）落地实施
+
+- [x] 244. 重构 `web/static/css/site.css` 与 `web/static/css/ensite.css`：
+  - 废除软件管理区九宫格老旧细线边框，规范容器内边距与外阴影呼吸空间；
+  - 实现现代轻拟态立体按键样式（大圆角 14px、双重微光影、柔白渐变描边、Hover 内凹陷落与 Active 物理按压）；
+  - 实现未安装空槽位（Slot）细腻内凹槽与居中引导符号；
+  - 实现晶莹呼吸微光状态指示灯（运行中翡翠绿微光脉冲、停止珊瑚红微弱暗点）；
+  - 实现概览统计卡片轻拟态浮岛化与悬浮动效。
+- [x] 245. 优化 `web/static/app/soft.js` 中 `indexListHtml` 渲染逻辑：
+  - 适配新拟态按键包装结构与状态指示灯 DOM；
+  - 优化空槽位与拖拽占位模板（`dragsort` 的 `placeHolderTemplate`）；
+  - 保障本地二级缓存（`localStorage`）与多语言动态切换兼容。
+- [x] 246. 编写专项自动化测试套件（`test/test_home_ui_scheme_b.py`）：
+  - 验证 `site.css` 与 `ensite.css` 规则、双重微光影参数与渐变边框；
+  - 验证 `soft.js` 结构完整性、DOM 类名与多语言调用；
+  - 确保 Node.js 与 Python 语法无损。
+- [x] 247. 运行全量自动化测试套件进行全面回归验证，确保 100% 通过并清理临时文件。
+
+## 首页软件空白占位平滑优化（纯净平面无边框无下凹）
+
+- [x] 248. 优化 `web/static/css/site.css` 与 `web/static/css/ensite.css`：
+  - 移除空白占位格子（`.no-bg`）伪元素的 `+` 号、虚线外框与内凹下凹阴影；
+  - 设为空白纯净平面（无边框、无阴影、透明背景、hover 无变化）。
+- [x] 249. 优化 `web/static/app/soft.js`：
+  - 移除空白槽位的点击跳转与鼠标手型，保持纯净占位。
+- [x] 250. 更新自动化测试套件（`test/test_home_ui_scheme_b.py`）并执行验证，确保全绿通过。
+
+## 首页概览按钮样式统一封装与文字垂直居中优化
+
+- [x] 251. 抽象并封装现代轻拟态实体按键模块（`.neu-btn-card`，在 `site.css` 与 `ensite.css`）：
+  - 提取公共按键模块，将软件卡片（`.soft-card-box`）与概览卡片（`.sys-li-box`）统一接入同一套轻拟态光影、圆角、1px 渐变描边、Hover 内凹陷落与 Active 物理按压规范；
+  - 杜绝重复代码，实现组件样式的规范化统一调用。
+- [x] 252. 重构概览卡片（`.system-info .sys-li-box`）排版与尺寸：
+  - 消除旧的 64px 狭窄矮高度限制，高度对齐为舒适的 88px；
+  - 容器采用 Flex 弹性流（`gap: 16px`），消除旧的 float 偏位与断行隐患；
+  - 内部文本与数值使用 Flex 居中（`justify-content: center; align-items: center`），彻底消除数字超出按钮下边缘问题，实现完美垂直居中。
+- [x] 253. 在 `web/templates/default/index.html` 与 `web/static/app/index.js` 概览渲染中挂载统一模块类名 `.neu-btn-card`。
+- [x] 254. 编写与更新自动化测试套件（`test/test_overview_btn_style.py` 与 `test/test_home_ui_scheme_b.py`），验证模块复用、居中对齐与全量回归。

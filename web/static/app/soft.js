@@ -659,9 +659,9 @@ function indexListHtml(callback) {
       if (plugin.display_status === false) {
         state = '';
       } else if (plugin.status == true) {
-        state = '<span style="color:#20a53a" class="glyphicon glyphicon-play"></span>';
+        state = '<span class="glyphicon glyphicon-play"></span>';
       } else {
-        state = '<span style="color:red" class="glyphicon glyphicon-pause"></span>';
+        state = '<span class="glyphicon glyphicon-pause"></span>';
       }
       var raw_title = t('plugins.' + plugin.name + '.title', plugin.title);
       var name = raw_title + ' ' + plugin.setup_version + '  ';
@@ -672,8 +672,8 @@ function indexListHtml(callback) {
       }
       con += '<div class="col-xs-4 col-sm-3 col-md-2 col-lg-2" data-id="' + data_id + '">\
                 <span class="spanmove"></span>\
-                <div onclick="softMain(\'' + plugin.name + '\',\'' + raw_title + '\',\'' + plugin.setup_version + '\')">\
-                <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:48px;"></div>\
+                <div class="soft-card-box neu-btn-card" onclick="softMain(\'' + plugin.name + '\',\'' + raw_title + '\',\'' + plugin.setup_version + '\')">\
+                <div class="image"><img bk-src="/static/img/loading.gif" src="/plugins/file?name=' + plugin.name + '&f=ico.png" style="max-width:36px;"></div>\
                 <div class="sname">' + name + state + '</div>\
                 </div>\
             </div>';
