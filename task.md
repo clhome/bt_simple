@@ -588,3 +588,78 @@
   - 增加 Node.js V8 引擎对 JavaScript 脚本语法的严格编译校验；
   - 验证 UTF-8 (无 BOM) 与 LF 换行格式规范。
 - [x] 300. 运行专项与全量自动化测试验证，确保 100% 通过并清理临时文件。
+
+## 修复 pgadmin 插件登录失败与 Cross-Origin-Opener-Policy 报错
+
+- [x] 301. 完善 Nginx 反向代理配置模板（`plugins/pgadmin/conf/pgadmin.conf`）：注入完整的代理头（`Host $http_host`、`X-Real-IP`、`X-Forwarded-For`、`X-Forwarded-Proto`、`X-Forwarded-Host`、`X-Forwarded-Port`、`Set-Cookie` 及 WebSocket 支持），彻底消除 CSRF 校验失败与 Session 丢失问题。
+- [x] 302. 完善 pgAdmin4 配置模板（`plugins/pgadmin/conf/config_local.py`）：配置 `CROSS_ORIGIN_OPENER_POLICY = 'unsafe-none'` 消除浏览器 untrustworthy origin 报错，配置 `ENHANCED_COOKIE_PROTECTION = False` 杜绝反代 IP 绑定会话失效，配置 `PROXY_X_*_COUNT` 信任代理头及 `SESSION_COOKIE_SECURE = False` 适配 HTTP。
+- [x] 303. 增强 `plugins/pgadmin/index.py` 生命周期与配置自愈：在 `initPgConfFile` 与 `initReplace` 中增加增量检测与智能更新，对已安装旧环境自动升级 Nginx 反代配置与 `config_local.py`，并新增 `set_web_pg_password` 接口。
+- [x] 304. 修复前端安全设置交互与接口解耦（`plugins/pgadmin/js/pgadmin.js`）：独立 PG 登录用户名与密码的 DOM 属性与事件，支持独立修改 PG 密码并调用对应接口。
+- [x] 305. 编写专项自动化测试套件（`test/test_pgadmin_login_fix.py`）：验证反代配置代理头完备性、config_local 参数规范性、配置自愈升级逻辑、JS 语法及 UTF-8 LF 编码规范。
+- [x] 306. 运行专项测试与全量自动化测试验证，确保 100% 通过并清理临时文件。
+
+## 彻底根除 pgadmin 登录循环（Basic Auth 凭据透传冲突与账号锁死）
+
+- [x] 307. 剥离 Nginx Basic Auth 凭据透传（`plugins/pgadmin/conf/pgadmin.conf`）：在反向代理配置中显式注入 `proxy_set_header Authorization ""`，杜绝客户端向 Nginx 发送的 Basic Auth 请求头干扰后端 pgAdmin4 / Flask-Security 的内部认证流程。
+- [x] 308. 禁用 pgAdmin4 登录失败锁死与优化重试配置（`plugins/pgadmin/conf/config_local.py`）：添加 `MAX_LOGIN_ATTEMPTS = 0`，避免连续重试后账户进入隐式锁定（Locked out）。
+- [x] 309. 在 `plugins/pgadmin/index.py` 中增加被锁账户自动解锁与 Session 目录自愈维护：服务启动或重载时自动检测 `pgadmin4.db` 并重置 `locked = 0, login_attempts = 0`，确保 `sessions` 目录存在；并在老环境自愈检测中纳入 `proxy_set_header Authorization ""`。
+- [x] 310. 更新专项自动化测试套件（`test/test_pgadmin_login_fix.py`）：增加 `Authorization ""` 头断言、`MAX_LOGIN_ATTEMPTS = 0` 断言与数据库自动解锁逻辑断言。
+- [x] 311. 运行专项测试并验证。
+
+## 修复 pgadmin 插件修改密码 KeyError: 'role' 报错与密码同步重构
+
+- [x] 312. 彻底移除有缺陷的 `setup.py update-user` 外部命令调用，重构 `plugins/pgadmin/index.py` 的密码同步机制：
+  - 封装统一健壮的 `syncPgAdminPassword(email, password)`：优先通过 pgAdmin 独立虚拟环境 Python 执行内联 SQLite + `werkzeug.security.generate_password_hash` 同步密码，并在本进程环境提供 fallback 兼容；
+  - 同时重置 `locked = 0, login_attempts = 0, active = 1`，保证修改密码即解锁账号；
+  - 重构 `setWebPgPassword()`：安全持久化 `cfg.json` 并调用 `syncPgAdminPassword()`，彻底根除 `KeyError: 'role'` 报错；
+  - 清理 `_syncPasswordViaSetup()`，使 `unlockPgAdminUsers()` 调用统一的密码同步逻辑。
+- [x] 313. 更新专项自动化测试套件（`test/test_pgadmin_login_fix.py`）：
+  - 验证 `setWebPgPassword` 与 `unlockPgAdminUsers` 绝无 `setup.py update-user` 残留；
+  - 验证密码哈希计算与 SQLite 同步逻辑健壮性；
+  - 验证 UTF-8 (无 BOM) 与 LF 换行格式规范。
+- [x] 314. 运行专项测试与全量自动化测试验证，确保 100% 通过并清理临时排查文件。
+
+## 根除 pgadmin 登录跳回登录页：重构为官方原生应用上下文密码加密与用户属性对齐
+
+- [x] 315. 重构 `plugins/pgadmin/index.py` 的密码同步机制 `syncPgAdminPassword`：
+  - 接入 pgAdmin4 官方应用上下文（`create_app(config.APP_NAME + '-cli')`）与 `user_management_update_user` 原生方法，生成合规的 Flask-Security 密码哈希与 `PgAdminDbBinaryString` 格式；
+  - 自动对齐修正用户记录：同时设置 `username = email`、`email = email`、`auth_source = 'internal'`、`active = True`、`locked = False`、`login_attempts = 0`，消除用户名不匹配缺陷；
+  - 备用方案引入带 `--role Administrator` 的官方 CLI 调用，杜绝 `KeyError: 'role'`；
+  - 在 `setWebPgPassword` 中增加不少于 6 位的密码长度前置校验。
+- [x] 316. 更新自动化测试套件（`test/test_pgadmin_login_fix.py`）：
+  - 增加原生应用上下文密码同步逻辑断言；
+  - 增加密码长度与属性对齐校验断言；
+  - 验证 UTF-8 (无 BOM) 与 LF 换行格式规范。
+- [x] 317. 运行全量测试并清理临时文件。
+
+## 站点创建成功默认页面美化与 Favicon 图标集成
+
+- [ ] 318. 重构 `web/utils/site.py` 中 `createRootDir` 方法：
+  - 参考 `参考/建站成功示例.html` 重构默认首页 `index.html` 模板，采用现代简约科技美学与淡入微动画；
+  - 在页面中央与 `<head>` 区域引入 `favicon.ico`，设计圆角投影悬浮卡片展示图标并增加防破图保护；
+  - 完善中英文标题（网站搭建成功 / Website Setup Successful）、翡翠绿装饰线、引导文案与右下角御风科技版权声明；
+  - 当 `autoInit` 为真时，将 `web/static/favicon.ico` 自动拷贝至新站点根目录，并统一设置 755/www 权限。
+- [ ] 319. 编写专项自动化测试套件（`test/test_site_create_default_page.py`）：
+  - 验证 `createRootDir` 目录创建、`index.html` 内容规范、`favicon.ico` 成功拷贝及引用；
+  - 验证页面 HTML5 结构完整性、样式规则完备性；
+  - 验证代码文件与生成模板符合 UTF-8 (无 BOM) 与 LF 换行规范。
+- [ ] 320. 运行专项测试与全量自动化测试验证，确保 100% 通过并清理临时排查文件。
+
+## 修复删除网站根目录无法删除及操作结果弹窗无提示问题
+
+- [x] 321. 修复前端确认弹窗状态捕获与提示交互（`web/static/app/public.js` & `web/static/app/site.js`）：
+  - 调整 `public.js` 中 `safeMessage` 的确认事件执行时序：先调用回调 `g()` 再调用 `layer.close(mess)`，确保弹窗内表单项正常读取；
+  - 重构 `site.js` 中 `webDelete` 与 `allDeleteSite`：增加 `#delpath` 状态防丢失记录，修复根目录勾选状态判断；
+  - 接入标准 `showMsg` 提示组件并增加 `.fail()` 异常捕获，确保删除成功或失败时弹窗清晰展示 2 秒后再刷新列表，消除 `layer.load()` 覆盖遮挡。
+- [x] 322. 强化后端站点物理目录安全清除与权限解锁（`web/utils/site.py` & `web/core/yf.py`）：
+  - 优化 `web/utils/site.py` 的 `delete` 方法：兼容实际存储路径 `info['path']` 与默认路径，加入系统根路径安全校验；
+  - 在删除前调用 `self.delUserInI` 解除 `.user.ini` 上的 `chattr +i` 防跨站锁定；
+  - 强化 `web/core/yf.py` 的 `removeDir`：增加只读文件兼容处理，确保 Windows/Linux 环境下文件及文件夹彻底删除。
+- [x] 323. 编写专项自动化测试套件（`test/test_site_delete_fix.py`）：
+  - 验证前端 `safeMessage` 与 `webDelete` 逻辑规范；
+  - 验证后端 `site.py` 目录删除、安全检查与 `delUserInI` 调用；
+  - 验证 `yf.removeDir` 清理只读文件有效性；
+  - 验证文件编码为 UTF-8 (无 BOM) 与 LF 换行。
+- [x] 324. 运行专项测试回归验证，确保 100% 通过并保持代码整洁。
+
+

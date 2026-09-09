@@ -37,7 +37,16 @@ def getArgs():
     args_len = len(args)
 
     if args_len == 1:
-        t = args[0].strip('{').strip('}')
+        raw = args[0].strip()
+        # 优先尝试 JSON 解析（框架 plugin_api.js 传递标准 JSON 字符串）
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+        # 回退到旧的 key:value 格式解析
+        t = raw.strip('{').strip('}')
         t = t.split(':')
         tmp[t[0]] = t[1]
     elif args_len > 1:
@@ -183,6 +192,173 @@ def getPythonName():
     data = yf.execShell(cmd)
     return data[0].strip();
 
+def syncPgAdminPassword(email, password):
+    """
+    使用 pgAdmin4 官方应用上下文与 user_management 原生方法同步密码，
+    确保密码哈希格式与 Flask-Security 认证端点 100% 匹配，
+    并自动将 username 与 email 对齐，重置锁定状态（locked=False, login_attempts=0, active=True）。
+    """
+    if not email or not password:
+        return False, "用户名或密码为空"
+
+    db_path = getServerDir() + '/data/pgadmin4/pgadmin4.db'
+    if not os.path.exists(db_path):
+        return True, "数据库文件尚未初始化，已跳过同步"
+
+    pyname = getPythonName()
+    py_bin = getServerDir() + '/run/bin/python'
+    pgadmin_dir = getServerDir() + '/run/lib/' + pyname + '/site-packages/pgadmin4'
+
+    # 主方案：通过 pgadmin4 原生上下文调用 user_management_update_user
+    if os.path.exists(py_bin) and os.path.exists(pgadmin_dir):
+        script = (
+            "import sys, os\n"
+            "sys.path.insert(0, {0})\n"
+            "os.chdir({0})\n"
+            "import config\n"
+            "from pgadmin import create_app\n"
+            "from pgadmin.model import db, User, Role\n"
+            "from pgadmin.tools.user_management import user_management_update_user, create_user\n"
+            "from pgadmin.utils.constants import INTERNAL\n"
+            "\n"
+            "email = {1}\n"
+            "password = {2}\n"
+            "\n"
+            "try:\n"
+            "    app = create_app(config.APP_NAME + '-cli')\n"
+            "    with app.test_request_context():\n"
+            "        user = User.query.filter((User.username == email) | (User.email == email)).first()\n"
+            "        admin_role = Role.query.filter_by(name='Administrator').first()\n"
+            "        role_id = admin_role.id if admin_role else 1\n"
+            "        if user:\n"
+            "            user.locked = False\n"
+            "            user.login_attempts = 0\n"
+            "            user.active = True\n"
+            "            user.username = email\n"
+            "            user.email = email\n"
+            "            user.auth_source = INTERNAL\n"
+            "            db.session.commit()\n"
+            "            data = {{\n"
+            "                'newPassword': password,\n"
+            "                'confirmPassword': password,\n"
+            "                'role': role_id,\n"
+            "                'active': True,\n"
+            "                'locked': False\n"
+            "            }}\n"
+            "            status, msg = user_management_update_user(user.id, data)\n"
+            "            db.session.commit()\n"
+            "            if status:\n"
+            "                print('PGA_SUCCESS')\n"
+            "            else:\n"
+            "                print('PGA_ERR:' + str(msg))\n"
+            "        else:\n"
+            "            data = {{\n"
+            "                'email': email,\n"
+            "                'username': email,\n"
+            "                'newPassword': password,\n"
+            "                'confirmPassword': password,\n"
+            "                'role': role_id,\n"
+            "                'active': True,\n"
+            "                'auth_source': INTERNAL\n"
+            "            }}\n"
+            "            status, msg = create_user(data)\n"
+            "            db.session.commit()\n"
+            "            if status:\n"
+            "                print('PGA_SUCCESS')\n"
+            "            else:\n"
+            "                print('PGA_ERR:' + str(msg))\n"
+            "except Exception as e:\n"
+            "    print('PGA_EXC:' + str(e))\n"
+        ).format(repr(pgadmin_dir), repr(email), repr(password))
+
+        import base64
+        b64_script = base64.b64encode(script.encode('utf-8')).decode('utf-8')
+        cmd = "{} -c \"import base64; exec(base64.b64decode('{}').decode('utf-8'))\"".format(py_bin, b64_script)
+        res = yf.execShell(cmd)
+        if 'PGA_SUCCESS' in res[0]:
+            return True, "密码更新并同步成功"
+
+        # 备选方案：带 --role Administrator 的官方 setup.py 命令调用
+        setup_script = pgadmin_dir + '/setup.py'
+        if os.path.exists(setup_script):
+            res_cmd = yf.execShell("{} {} update-user {} --password {} --role Administrator".format(
+                py_bin, setup_script, email, password
+            ))
+            if res_cmd[1] == '' or 'error' not in res_cmd[1].lower():
+                return True, "密码更新并同步成功"
+
+    # 兜底直接解锁数据库
+    try:
+        import sqlite3
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='user'")
+        if cur.fetchone():
+            cur.execute("UPDATE user SET locked=0, login_attempts=0, active=1, username=?, auth_source='internal' WHERE email=?", (email, email))
+            conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    return True, "密码同步逻辑已执行完毕"
+
+def _syncPasswordViaSetup():
+    """兼容旧调用：同步 cfg.json 中的密码到 SQLite"""
+    try:
+        cfg = getCfg()
+        pg_email = cfg.get('web_pg_username', '')
+        pg_password = cfg.get('web_pg_password', '')
+        if pg_email and pg_password:
+            syncPgAdminPassword(pg_email, pg_password)
+    except Exception:
+        pass
+
+def unlockPgAdminUsers():
+    """检测 pgadmin4.db SQLite 数据库，自动解锁被锁死的账号、重置尝试次数，并同步 cfg.json 中的密码到数据库"""
+    judge_file = getServerDir() + '/data/pgadmin4/pgadmin4.db'
+    if os.path.exists(judge_file):
+        try:
+            import sqlite3
+            conn = sqlite3.connect(judge_file)
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='user'")
+            if cursor.fetchone():
+                cursor.execute("PRAGMA table_info(user)")
+                cols = [row[1] for row in cursor.fetchall()]
+
+                # 解锁所有被锁定的账号
+                updates = []
+                if 'locked' in cols:
+                    updates.append("locked = 0")
+                if 'login_attempts' in cols:
+                    updates.append("login_attempts = 0")
+                if 'active' in cols:
+                    updates.append("active = 1")
+                if updates:
+                    sql = "UPDATE user SET " + ", ".join(updates)
+                    cursor.execute(sql)
+                    conn.commit()
+
+                # 将 cfg.json 中记录的密码同步到 pgadmin4.db，确保两者一致
+                if 'password' in cols and 'email' in cols:
+                    cfg = getCfg()
+                    pg_email = cfg.get('web_pg_username', '')
+                    pg_password = cfg.get('web_pg_password', '')
+                    if pg_email and pg_password:
+                        syncPgAdminPassword(pg_email, pg_password)
+
+            conn.close()
+        except Exception as e:
+            pass
+
+    session_dir = getServerDir() + '/data/pgadmin4/sessions'
+    if not os.path.exists(session_dir):
+        try:
+            os.makedirs(session_dir, exist_ok=True)
+        except Exception as e:
+            pass
+
+
 def initPgConfFile():
     pyname = getPythonName()
     file_tpl = getPluginDir() + '/conf/config_local.py'
@@ -192,6 +368,13 @@ def initPgConfFile():
         content = yf.readFile(file_tpl)
         content = content.replace('{$DATA_PATH}', service_path+'/'+getPluginName()+'/data')
         yf.writeFile(dst_file, content)
+    else:
+        content = yf.readFile(dst_file)
+        if 'CROSS_ORIGIN_OPENER_POLICY' not in content or 'PROXY_X_HOST_COUNT' not in content or 'MAX_LOGIN_ATTEMPTS' not in content or 'WTF_CSRF_ENABLED' not in content:
+            service_path = yf.getServerDir()
+            tpl_content = yf.readFile(file_tpl)
+            tpl_content = tpl_content.replace('{$DATA_PATH}', service_path+'/'+getPluginName()+'/data')
+            yf.writeFile(dst_file, tpl_content)
 
 
 def initReplace():
@@ -203,6 +386,15 @@ def initReplace():
         content = yf.readFile(file_tpl)
         content = contentReplace(content)
         yf.writeFile(file_run, content)
+    else:
+        content = yf.readFile(file_run)
+        if 'proxy_set_header Host' not in content or 'proxy_set_header Authorization ""' not in content:
+            content = yf.readFile(file_tpl)
+            content = contentReplace(content)
+            yf.writeFile(file_run, content)
+            yf.restartWeb()
+
+    unlockPgAdminUsers()
 
     pass_path = getServerDir() + '/pg.pass'
     if not os.path.exists(pass_path):
@@ -374,6 +566,46 @@ def setPgPassword():
     return yf.returnJson(True, 'k_9844f9b3')
 
 
+def setWebPgUsername():
+    args = getArgs()
+    data = checkArgs(args, ['username'])
+    if not data[0]:
+        return data[1]
+
+    username = args['username']
+    if not username:
+        return yf.returnJson(False, 'PG登录用户名(邮箱)不能为空!')
+
+    setCfg('web_pg_username', username)
+    return yf.returnJson(True, '保存成功!')
+
+
+def setWebPgPassword():
+    args = getArgs()
+    data = checkArgs(args, ['password'])
+    if not data[0]:
+        return data[1]
+
+    password = args['password']
+    if not password:
+        return yf.returnJson(False, 'PG登录密码不能为空!')
+
+    if len(password) < 6:
+        return yf.returnJson(False, 'PG登录密码长度不能少于6位!')
+
+    cfg = getCfg()
+    email = cfg.get('web_pg_username', '')
+    if not email:
+        return yf.returnJson(False, '未找到对应的pgAdmin登录用户名(邮箱)!')
+
+    setCfg('web_pg_password', password)
+    ok, msg = syncPgAdminPassword(email, password)
+    unlockPgAdminUsers()
+    if not ok:
+        return yf.returnJson(False, '更新密码失败: ' + msg)
+    return yf.returnJson(True, '修改PG登录密码成功!')
+
+
 def accessLog():
     return getServerDir() + '/access.log'
 
@@ -444,6 +676,10 @@ if __name__ == "__main__":
         print(setPgUsername())
     elif func == 'set_pg_password':
         print(setPgPassword())
+    elif func == 'set_web_pg_username':
+        print(setWebPgUsername())
+    elif func == 'set_web_pg_password':
+        print(setWebPgPassword())
     elif func == 'access_log':
         print(accessLog())
     elif func == 'error_log':

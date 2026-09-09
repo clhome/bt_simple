@@ -621,25 +621,35 @@ function webStart(wid, wname) {
  * @param {String} wname 网站名称
  */
 function webDelete(wid, wname) {
+  var isDelPath = false;
   var thtml = '<div class=\'options\'>	    	<label><input type=\'checkbox\' id=\'delpath\' name=\'path\'><span>' + (lan && lan.site && t('site.root_directory') || '根目录') + '</span></label>	    	</div>';
   var info = lan && lan.site && t('site.do_you_want_to') || "";
+  $(document).off('change.delpath').on('change.delpath', '#delpath', function () {
+    isDelPath = $(this).is(':checked');
+  });
   safeMessage((lan && lan.site && t('site.delete_site') || "") + "【" + wname + "】", info, function () {
-    var path = '';
-    if ($("#delpath").is(":checked")) {
-      path = '&path=1';
-    }
+    $(document).off('change.delpath');
+    var path = (isDelPath || $("#delpath").is(":checked")) ? '&path=1' : '';
     var loadT = layer.msg(lan && lan.site && t('site.processing_please_wait_2') || "", {
       icon: 16,
-      time: 10000,
+      time: 0,
       shade: [0.3, '#000']
     });
     $.post("/site/delete", "id=" + wid + "&webname=" + wname + path, function (ret) {
-      layer.closeAll();
-      layer.msg(ret.msg, {
-        icon: ret.status ? 1 : 2
-      });
-      getWeb(1);
-    }, 'json');
+      layer.close(loadT);
+      var isSuccess = ret && ret.status;
+      var msg = ret && ret.msg ? ret.msg : (isSuccess ? (lan && lan.site && t('site.deletion_successful_1') || '删除成功') : (lan && lan.site && t('site.delete_failed') || '删除失败'));
+      showMsg(msg, function () {
+        getWeb(current_site_page || 1);
+      }, {
+        icon: isSuccess ? 1 : 2
+      }, 2000);
+    }, 'json').fail(function () {
+      layer.close(loadT);
+      showMsg(lan && lan.site && t('site.delete_failed') || '删除失败', function () {}, {
+        icon: 2
+      }, 2000);
+    });
   }, thtml);
 }
 
@@ -654,15 +664,17 @@ function allDeleteSite() {
     tmp.id = checkList[i].value;
     dataList.push(tmp);
   }
+  var isDelPath = false;
   var thtml = "<div class='options'>\
 	    	<label style=\"width:100%;\"><input type='checkbox' id='delpath' name='path'><span>" + t('site.all_del_info') + "</span></label>\
 	    	</div>";
+  $(document).off('change.delpath_all').on('change.delpath_all', '#delpath', function () {
+    isDelPath = $(this).is(':checked');
+  });
   safeMessage(t('site.all_del_site'), "<a style='color:red;'>" + t('del_all_site', [dataList.length]) + "</a>", function () {
+    $(document).off('change.delpath_all');
+    var path = (isDelPath || $("#delpath").is(":checked")) ? '&path=1' : '';
     layer.closeAll();
-    var path = '';
-    if ($("#delpath").is(":checked")) {
-      path = '&path=1';
-    }
     syncDeleteSite(dataList, 0, '', path);
   }, thtml);
 }

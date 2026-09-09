@@ -226,26 +226,173 @@ class sites(object):
 
         if autoInit:
             default_html = '''<!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
-    <title>站点创建成功</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站搭建成功 | Setup Successful</title>
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
     <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f5f7fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { text-align: center; background: #fff; padding: 40px 60px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h1 { font-size: 24px; margin-bottom: 10px; color: #2c3e50; font-weight: 500; }
-        p { font-size: 14px; color: #7f8c8d; margin: 0; letter-spacing: 0.5px; }
+        /* 基础样式复位与全局字体设置 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 核心展示区样式 */
+        .main-content {
+            text-align: center;
+            animation: fadeUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* 网站 Logo 图标容器 */
+        .icon-box {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .icon-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-box img {
+            width: 36px;
+            height: 36px;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* 中文主标题 */
+        .main-content h1 {
+            font-size: 3.2rem;
+            font-weight: 300;
+            color: #2c3e50;
+            margin: 0;
+            letter-spacing: 4px;
+        }
+
+        /* 英文副标题 */
+        .en-title {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: #868e96;
+            margin-top: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* 优雅的装饰线 */
+        .divider {
+            width: 50px;
+            height: 3px;
+            background-color: #10b981; /* 成功绿 */
+            margin: 30px auto;
+            border-radius: 3px;
+        }
+
+        /* 中文描述 */
+        .desc-cn {
+            font-size: 1.1rem;
+            color: #495057;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin: 0 0 6px 0;
+        }
+
+        /* 英文描述 */
+        .desc-en {
+            font-size: 0.95rem;
+            color: #adb5bd;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        /* 右下角版权信息 */
+        .footer {
+            position: absolute;
+            right: 40px;
+            bottom: 40px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #adb5bd;
+            line-height: 1.8;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        /* 入场动画 */
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式支持：适配移动端 */
+        @media (max-width: 768px) {
+            .main-content h1 { font-size: 2.2rem; }
+            .en-title { font-size: 0.9rem; letter-spacing: 2px; }
+            .icon-box { width: 52px; height: 52px; margin-bottom: 18px; }
+            .icon-box img { width: 30px; height: 30px; }
+            .footer { right: 20px; bottom: 20px; font-size: 0.75rem; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>衢州御风科技有限公司出品</h1>
-        <p>Produced by Quzhou Yufeng Technology Co., Ltd</p>
+
+    <!-- 屏幕中央的主体信息 -->
+    <div class="main-content">
+
+        <h1>网站搭建成功</h1>
+        <div class="en-title">Website Setup Successful</div>
+        
+        <div class="divider"></div>
+        
+        <p class="desc-cn">您的专属网络空间已准备就绪</p>
+        <p class="desc-en">Your exclusive web space is ready and online</p>
     </div>
+
+    <!-- 右下角的专属版权信息 -->
+    <div class="footer">
+        衢州御风科技有限公司出品<br>
+        Produced by Quzhou Yufeng Technology Co., Ltd
+    </div>
+
 </body>
 </html>'''
             yf.writeFile(path + '/index.html', default_html)
+            favicon_src = os.path.join(yf.getPanelDir(), 'web', 'static', 'favicon.ico')
+            if os.path.exists(favicon_src):
+                try:
+                    shutil.copyfile(favicon_src, os.path.join(path, 'favicon.ico'))
+                except Exception:
+                    pass
             chmodR(path, 755)
+            if not yf.isAppleSystem():
+                chownR(path, 'www', 'www')
+
 
     def add(self, site_info, port, ps, path, version):
         site_root_dir = yf.getWwwDir()
@@ -473,12 +620,34 @@ class sites(object):
 
     def delete(self, site_id, path):
         info = thisdb.getSitesById(site_id)
+        if not info:
+            return yf.returnData(False, 'common.del_failed')
         webname = info['name']
         self.deleteALlLogs(webname)
 
-        if path == '1':
-            web_root_path = yf.getWwwDir() + '/' + webname
-            yf.removeDir(web_root_path)
+        if str(path) in ['1', 'true', 'True']:
+            www_dir = os.path.abspath(yf.getWwwDir()).rstrip('/\\')
+            paths_to_remove = []
+
+            # 1. 优先获取数据库记录的站点实际目录
+            site_path = info.get('path', '')
+            if site_path:
+                abs_site_path = os.path.abspath(site_path)
+                if abs_site_path != www_dir and abs_site_path != os.path.abspath('/') and len(abs_site_path) > 3:
+                    paths_to_remove.append(abs_site_path)
+
+            # 2. 默认同名根目录
+            default_path = os.path.abspath(www_dir + '/' + webname)
+            if default_path not in paths_to_remove and default_path != www_dir and len(default_path) > 3:
+                paths_to_remove.append(default_path)
+
+            for p in paths_to_remove:
+                if os.path.exists(p):
+                    try:
+                        self.delUserInI(p)
+                    except Exception:
+                        pass
+                    yf.removeDir(p)
 
         # ssl
         ssl_dir = self.sslDir + '/' + webname

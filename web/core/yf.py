@@ -184,11 +184,24 @@ def makeDirs(path):
 
 def removeDir(path):
     import shutil
+    import stat
+
+    def _handle_remove_readonly(func, file_path, exc_info):
+        try:
+            os.chmod(file_path, stat.S_IWRITE | stat.S_IREAD)
+            func(file_path)
+        except Exception:
+            pass
+
     try:
         if os.path.exists(path):
             if os.path.isdir(path):
-                shutil.rmtree(path)
+                shutil.rmtree(path, onerror=_handle_remove_readonly)
             else:
+                try:
+                    os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
+                except Exception:
+                    pass
                 os.remove(path)
         return True
     except:

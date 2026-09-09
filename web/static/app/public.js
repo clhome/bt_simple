@@ -1451,8 +1451,10 @@ function safeMessage(j, h, g, f, checkName) {
         return;
       }
     }
+    if (typeof g === 'function') {
+      g();
+    }
     layer.close(mess);
-    g();
   });
 }
 //isAction();

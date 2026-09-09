@@ -15,7 +15,7 @@ function homePage(){
 }
 
 
-//phpmyadmin安全设置
+//pgadmin安全设置
 function safeConf() {
     api.post('get_pg_option', {}, function(rdata){
         var rdata = JSON.parse(rdata.data);
@@ -27,37 +27,37 @@ function safeConf() {
         var cfg = rdata.data;
         var con = '<div class="ver line">\
                     <span class="tname">访问端口</span>\
-                    <input style="width:110px" class="bt-input-text phpmyadmindk mr20" name="Name" id="pmport" value="' + cfg['port'] + '" placeholder="pgadmin访问端口" maxlength="5" type="number">\
+                    <input style="width:180px" class="bt-input-text phpmyadmindk mr20" name="port" id="pmport" value="' + cfg['port'] + '" placeholder="pgadmin访问端口" maxlength="5" type="number">\
                     <button class="btn btn-success btn-sm" onclick="setPgPort()">保存</button>\
                 </div>\
                 <div class="ver line">\
-                    <span class="tname">用户名</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="username" id="pmport" value="' + cfg['username'] + '" placeholder="认证用户名" type="text">\
+                    <span class="tname">基础认证用户名</span>\
+                    <input style="width:180px" class="bt-input-text mr20" name="basic_username" id="pg_basic_user" value="' + cfg['username'] + '" placeholder="基础认证用户名" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPgUsername()">保存</button>\
                 </div>\
                 <div class="ver line">\
-                    <span class="tname">密码</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="password" id="pmport" value="' + cfg['password'] + '" placeholder="密码" type="text">\
+                    <span class="tname">基础认证密码</span>\
+                    <input style="width:180px" class="bt-input-text mr20" name="basic_password" id="pg_basic_pwd" value="' + cfg['password'] + '" placeholder="基础认证密码" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPgPassword()">保存</button>\
                 </div>\
                 <hr/>\
-                <div class="ver line">pgadmin登录信息</div>\
+                <div class="ver line" style="font-weight: bold; margin-bottom: 10px;">pgAdmin系统登录信息</div>\
                 <div class="ver line">\
-                    <span class="tname">PG登录用户名</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="username" id="pmport" value="' + cfg['web_pg_username'] + '" placeholder="PG登录用户名" type="text">\
-                    <button class="btn btn-success btn-sm" onclick="setPgUsername()">保存</button>\
+                    <span class="tname">PG登录邮箱</span>\
+                    <input style="width:180px" class="bt-input-text mr20" name="web_pg_username" id="pg_web_user" value="' + cfg['web_pg_username'] + '" placeholder="PG登录邮箱" type="text">\
+                    <button class="btn btn-success btn-sm" onclick="setWebPgUsername()">保存</button>\
                 </div>\
                 <div class="ver line">\
                     <span class="tname">PG登录密码</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="password" id="pmport" value="' + cfg['web_pg_password'] + '" placeholder="PG登录密码" type="text">\
-                    <button class="btn btn-success btn-sm" onclick="setPgPassword()">保存</button>\
+                    <input style="width:180px" class="bt-input-text mr20" name="web_pg_password" id="pg_web_pwd" value="' + cfg['web_pg_password'] + '" placeholder="PG登录密码" type="text">\
+                    <button class="btn btn-success btn-sm" onclick="setWebPgPassword()">保存</button>\
                 </div>';
         $(".soft-man-con").html(con);
     });
 }
 
 function setPgUsername(){
-    var username = $("input[name=username]").val();
+    var username = $("#pg_basic_user").val();
     api.post('set_pg_username',{'username':username}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -65,8 +65,24 @@ function setPgUsername(){
 }
 
 function setPgPassword(){
-    var password = $("input[name=password]").val();
+    var password = $("#pg_basic_pwd").val();
     api.post('set_pg_password',{'password':password}, function(data){
+        var rdata = JSON.parse(data.data);
+        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+    });
+}
+
+function setWebPgUsername(){
+    var username = $("#pg_web_user").val();
+    api.post('set_web_pg_username',{'username':username}, function(data){
+        var rdata = JSON.parse(data.data);
+        layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+    });
+}
+
+function setWebPgPassword(){
+    var password = $("#pg_web_pwd").val();
+    api.post('set_web_pg_password',{'password':password}, function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
