@@ -4660,3 +4660,63 @@ body.sidebar-mini .panel-lang-switcher select.form-control {
     justify-content: center !important;
     font-family: inherit !important;
 }
+
+/* 软件页面搜索区域现代化排版与对齐 */
+.soft-search-box form {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 50px;
+    gap: 8px;
+}
+.soft-search-box .ser-text {
+    margin-top: 0 !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    border-radius: var(--radius-sm, 4px) !important;
+    border: 1px solid var(--border-color, #e1e6eb);
+    padding: 0 12px !important;
+    width: 240px;
+    transition: all var(--transition-fast, 0.2s ease);
+    box-sizing: border-box;
+    background: #fff;
+}
+.soft-search-box .ser-text:focus {
+    border-color: var(--primary, #20a53a) !important;
+    box-shadow: 0 0 0 2px var(--primary-light, rgba(32, 165, 58, 0.15)) !important;
+    outline: none;
+}
+.soft-search-box button.ser-sub {
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    height: 32px !important;
+    width: 36px !important;
+    border-radius: var(--radius-sm, 4px) !important;
+    background-color: var(--primary, #20a53a);
+    border: none !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast, 0.2s ease);
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+.soft-search-box button.ser-sub:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.1));
+    opacity: 0.95;
+}
+.soft-search-box button.ser-sub:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+.soft-search-box #resetSearchBtn {
+    margin-top: 0 !important;
+    margin-right: 0 !important;
+    height: 32px !important;
+    line-height: 20px !important;
+    padding: 4px 10px !important;
+    border-radius: var(--radius-sm, 4px) !important;
+    box-sizing: border-box;
+}

@@ -535,8 +535,19 @@
 
 ## pg_docker 插件接入首页概览卡片与实例数量统计
 
-- [x] 283. 在 `plugins/pg_docker/index.py` 中实现高效 `getTotalStatistics()` 统计接口，并在分发逻辑中注册 `get_total_statistics` 命令。
-- [x] 284. 在 `web/static/app/index.js` 的 `loadKeyDataCount` 中将 `pg_docker` 加入请求列表，配置卡片显示名称 `PostgreSQL (Docker)` 及 `softMain` 点击事件。
-- [x] 285. 编写专项自动化测试套件（`test/test_pg_docker_overview.py`），验证后端统计数据结构、前端配置逻辑与缓存机制。
-- [x] 286. 运行全量自动化测试套件回归验证，确保 100% 通过并清理临时文件。
+## 软件页面搜索按钮样式错误修复与间距对齐优化
+
+- [x] 287. 排查并解除全局样式污染（`web/static/css/site.css`）：将宽泛的 `.search form button.ser-sub` 精准限定为 `.search-input-box + button.ser-sub`，确保文件管理复合输入框不受影响的同时，彻底消除对软件管理等其他页面搜索按钮的 `margin-top: 0 !important`、`margin-left: -1px` 与切角污染。
+- [x] 288. 重构软件页面搜索区域结构与样式（`web/templates/default/soft.html`、`web/static/css/site.css`、`web/static/css/ensite.css`）：
+  - 表单容器采用 Flex 布局（`display: flex; align-items: center; justify-content: flex-end; height: 50px; gap: 8px;`），消除旧有 float 浮动与内联 margin 错位；
+  - 规范化搜索输入框（`#SearchValue`）：高度 32px，设置完整平滑圆角（`border-radius: var(--radius-sm)`），聚焦高亮微发光；
+  - 规范化搜索按钮（`button.ser-sub`）：高度与输入框完全齐平（32px），宽度 36px，拥有完整独立圆角（`border-radius: var(--radius-sm)`），与输入框保持 8px 舒适间隔并严格水平与垂直居中对齐；增加微阴影与 hover 上浮交互动效；
+  - 规整清除搜索按钮（`#resetSearchBtn`）：垂直居中对齐，与输入框保持间隙。
+- [x] 289. 编写专项自动化测试套件（`test/test_soft_search_style.py`）：
+  - 验证全局污染已精准解除，文件管理与软件页面搜索选择器隔离；
+  - 验证软件页面 input 与 search button 具有间隔、高度齐平、垂直居中对齐及四边圆角规则；
+  - 验证 HTML 结构、Node.js 语法及 UTF-8 (无 BOM) LF 编码规范。
+- [x] 290. 运行专项与全量自动化测试验证，确保 100% 通过并清理临时文件。
+
+
 
