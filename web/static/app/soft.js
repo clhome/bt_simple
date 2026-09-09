@@ -27,10 +27,14 @@ function softMain(name, title, version) {
   });
   $.get('/plugins/setting?name=' + name, function (rdata) {
     layer.close(loadT);
+    var currentLang = (window.YfI18n && window.YfI18n.currentLang) || 'zh-CN';
+    var isZh = currentLang === 'zh-CN' || currentLang === 'zh-TW';
+    var manageText = (window.t && window.t('soft.management_action')) || 'Manage';
+    var winTitle = isZh ? (_title + '【' + version + '】管理') : (_title + ' [' + version + '] ' + manageText);
     layer.open({
       type: 1,
       area: '640px',
-      title: _title + '【' + version + (lan && lan.soft && t('soft.management') || ""),
+      title: winTitle,
       closeBtn: 1,
       shift: 0,
       content: rdata,

@@ -3599,7 +3599,8 @@
         "type_php": "PHP",
         "uninstall_confirm_prefix": "Do you really want to uninstall [",
         "uninstall_confirm_suffix": "]??",
-        "uninstall_backup_tip": "Pack the data before uninstallingPackage backupto  /www/backup (.tar.gz)"
+        "uninstall_backup_tip": "Pack the data before uninstallingPackage backupto  /www/backup (.tar.gz)",
+        "management_action": "Manage"
     },
     "login": {
         "N1": "Please enter your account number",

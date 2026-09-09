@@ -26,9 +26,6 @@
     background-color: #E4EEE0;
 }
 
-.search-bar {
-}
-
 .search-bar .search_input {
     height: 30px;
     line-height: 30px;
@@ -42,10 +39,10 @@
 
 .search-bar .search_input:focus {
     border-color: #20a53a;
+}
 
-    span.glyphicon-search {
-        color: #20a53a;
-    }
+.search-bar .search_input:focus ~ span.glyphicon-search {
+    color: #20a53a;
 }
 
 .search-bar .glyphicon {
@@ -197,25 +194,9 @@
     padding-bottom: 10px;
 }
 
-#TaskManagement .td-pid {
-    /* display: flex; */
-    /* border-top: #ddd 2px solid; */
-    /* height: 38px; */
-    /* height: 100%; */
-    /* margin-top: 1px; */
-}
-
 .td-pid img {
-    /* margin-right: 8px; */
-    /* display: inline-block; */
     float: left;
     cursor: pointer;
-    /* position: relative;
-    left: -80px;
-    filter: drop-shadow(#fff 80px 0); */
-    /* position: relative;
-    left: -80px;
-    filter: drop-shadow(#238B37 0 80px); */
 }
 
 .td-pid svg {
@@ -230,16 +211,14 @@
 }
 
 .td-pid .arrow:hover {
-    filter: drop-shadow(#999999 0 0)
+    filter: drop-shadow(#999999 0 0);
 }
 
 .td-pid .process-child {
     margin-left: 50px;
-    /* display: none; */
 }
 
 .td-pid span {
-    display: inline-block;
     float: right;
 }
 
@@ -248,16 +227,15 @@
     margin-left: 30px;
 }
 
-#TaskManagement th: {
+#TaskManagement th {
     height: 34px;
 }
 
-#TaskManagement tr: {
+#TaskManagement tr {
     height: 38px;
 }
 
 #TaskManagement tr:hover {
-    /* background-color: rgb(245, 247, 250,0.6); */
     background-color: rgb(246, 246, 246, 0.65);
 }
 
@@ -463,20 +441,20 @@
 <div class="t-mana TaskManView">
 	<div class="man-menu-sub mlr15">
 		<div>
-			<span class="p_list on">进程</span>
-			<span class="p_run">启动项</span>
-			<span class="p_service">服务</span>
-			<span class="p_network">网络</span>
-			<span class="p_user">用户</span>
-			<span class="p_cron">计划任务</span>
-			<span class="p_session">会话</span>
+			<span class="p_list on" data-i18n="task_manager.tab_process">进程</span>
+			<span class="p_run" data-i18n="task_manager.tab_run">启动项</span>
+			<span class="p_service" data-i18n="task_manager.tab_service">服务</span>
+			<span class="p_network" data-i18n="task_manager.tab_network">网络</span>
+			<span class="p_user" data-i18n="task_manager.tab_user">用户</span>
+			<span class="p_cron" data-i18n="task_manager.tab_cron">计划任务</span>
+			<span class="p_session" data-i18n="task_manager.tab_session">会话</span>
 		</div>
 		<div style="display: flex;flex-direction: row;align-items: center;justify-content: flex-end;">
-		 	<div class="search-bar ">
-		    	<input type="text" class="search_input " style="" placeholder="支持名称、字段模糊搜索">
+		 	<div class="search-bar">
+		    	<input type="text" class="search_input" placeholder="支持名称、字段模糊搜索" data-i18n="[placeholder]task_manager.search_placeholder">
 		    	<span class="glyphicon glyphicon-search r56" aria-hidden="true"></span>
 		  	</div>
-		  	<div class="table_config set_list_fid_dropdown" title="设置表头">
+		  	<div class="table_config set_list_fid_dropdown" title="设置表头" data-i18n="[title]task_manager.config_table_header">
 		    	<div class="setting_btn"><i class="glyphicon glyphicon-cog icon-setting"></i></div>
 		  	</div>
 		</div>
@@ -491,9 +469,9 @@
 
 	<div class="resource-panel pd15">
 		<div class="resource-tab">
-			<span>CPU</span>
-			<span>内存</span>
-			<span>磁盘</span>
+			<span data-i18n="task_manager.res_cpu">CPU</span>
+			<span data-i18n="task_manager.res_memory">内存</span>
+			<span data-i18n="task_manager.res_disk">磁盘</span>
 		</div>
 
 		<div class="resource-right">
@@ -512,43 +490,43 @@
 	<div class="plug_menu set_list_fid_dropdown">
 		<ul class="setting_ul" style="display: none;">
 			<li class="setting_ul_li ps active disabled" name="ps">
-				<i></i><span class="ml10">应用名称</span>
+				<i></i><span class="ml10" data-i18n="task_manager.col_app_name">应用名称</span>
 			</li>
 			<li class="setting_ul_li pid active disabled" name="pid">
 				<i></i> <span class="ml10">PID</span>
 			</li>
 			<li class="setting_ul_li threads active" name="threads">
-				<i></i> <span class="ml10">线程</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_threads">线程</span>
 			</li>
 			<li class="setting_ul_li user active" name="user">
-				<i></i> <span class="ml10">用户</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_user">用户</span>
 			</li>
 			<li class="setting_ul_li cpu_percent active disabled" name="cpu_percent">
 				<i></i> <span class="ml10">CPU</span>
 			</li>
 			<li class="setting_ul_li memory_used active disabled" name="memory_used">
-				<i></i> <span class="ml10">内存</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_memory">内存</span>
 			</li>
 			<li class="setting_ul_li io_read_bytes active" name="io_read_bytes">
-				<i></i> <span class="ml10">io读</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_io_read">io读</span>
 			</li>
 			<li class="setting_ul_li io_write_bytes active" name="io_write_bytes">
-				<i></i> <span class="ml10">io写</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_io_write">io写</span>
 			</li>
 			<li class="setting_ul_li up active" name="up">
-				<i></i> <span class="ml10">上行</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_up">上行</span>
 			</li>
 			<li class="setting_ul_li down active" name="down">
-				<i></i> <span class="ml10">下行</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_down">下行</span>
 			</li>
 			<li class="setting_ul_li connects active" name="connects">
-				<i></i> <span class="ml10">连接</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_connects">连接</span>
 			</li>
 			<li class="setting_ul_li status active" name="status">
-				<i></i> <span class="ml10">状态</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_status">状态</span>
 			</li>
 			<li class="setting_ul_li  active disabled" name="">
-				<i></i> <span class="ml10">操作</span>
+				<i></i> <span class="ml10" data-i18n="task_manager.col_operate">操作</span>
 			</li>
 		</ul>
 	</div>
@@ -559,8 +537,24 @@ resetPluginWinWidth(850);
 resetPluginWinHeight(580);
 
 $('.layui-layer-page').css({'width': '1000px'});
-$.getScript( "/plugins/file?name=task_manager&f=js/task_manager.js", function(){
-	console.log("load js ok!");
-});
+
+function initTaskManagerPlugin() {
+	if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+		var $box = $('.TaskManView').closest('.layui-layer-content');
+		if ($box.length === 0) $box = $('.TaskManView').parent();
+		window.YfI18n.translatePluginDOM($box, 'task_manager');
+	}
+	$.getScript("/plugins/file?name=task_manager&f=js/task_manager.js", function(){
+		console.log("load task_manager js ok!");
+	});
+}
+
+if (window.YfI18n && typeof window.YfI18n.loadPluginLangAsync === 'function') {
+	window.YfI18n.loadPluginLangAsync('task_manager', function() {
+		initTaskManagerPlugin();
+	});
+} else {
+	initTaskManagerPlugin();
+}
 </script>
 

@@ -3599,7 +3599,8 @@
         "type_php": "PHP",
         "uninstall_confirm_prefix": "您真的要卸載【",
         "uninstall_confirm_suffix": "】吗？",
-        "uninstall_backup_tip": "卸載前將數據打包備份到 /www/backup (.tar.gz)"
+        "uninstall_backup_tip": "卸載前將數據打包備份到 /www/backup (.tar.gz)",
+        "management_action": "管理"
     },
     "login": {
         "N1": "請填寫賬號",

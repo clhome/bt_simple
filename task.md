@@ -549,5 +549,42 @@
   - 验证 HTML 结构、Node.js 语法及 UTF-8 (无 BOM) LF 编码规范。
 - [x] 290. 运行专项与全量自动化测试验证，确保 100% 通过并清理临时文件。
 
+## 修复任务管理器插件 callback 500 报错与反射调用兼容性
 
+- [x] 291. 修复核心反射调用模块缺陷（`web/utils/plugin.py`）：
+  - 导入缺失的标准库 `re`，彻底根除白名单校验阶段引发的致命 `NameError`；
+  - 引入 `inspect.signature` 实现参数自适应反射调用，智能兼容 `args={}` 单字典参数、关键字解包与无参函数，彻底解决对 `task_manager_index.py` 等插件的 `TypeError`。
+- [x] 292. 加固 `/plugins/callback` 路由接口容错（`web/admin/plugins/__init__.py`）：
+  - 增加全局 `try...except` 保护与异常日志记录；
+  - 异常时返回标准 JSON 结构响应，杜绝向上抛出 HTTP 500 内部服务器错误。
+- [x] 293. 编写专项自动化测试套件（`test/test_plugin_callback_fix.py`）：
+  - 验证 `re` 模块正确导入与白名单拦截/放行行为；
+  - 验证单字典参数、关键字参数、无参等各类函数签名的自适应反射分发；
+  - 验证 `/callback` 路由异常兜底与杜绝 500 错误；
+  - 验证 UTF-8 (无 BOM) 与 LF 编码规范。
+- [x] 294. 运行专项与全量自动化测试验证，确保 100% 通过并清理临时排查文件。
 
+## 任务管理器插件网络表头 undefined 修复与全量多国语言翻译
+
+- [x] 295. 修复网络标签页表头未定义错误与流量统计国际化（`plugins/task_manager/js/task_manager.js`）：
+  - 彻底清除废弃的 `lan.index.net_*` 全局变量调用，接入标准 `pt(...)` 翻译函数；
+  - 修复协议、本地地址、外部地址、状态、进程、PID 等表头，杜绝 `UNDEFINED` 报错；
+  - 为网络监控流量卡片（总发送、总接收、上行、下行等指标）接入 `pt(...)`。
+- [x] 296. 重构插件静态模板并扩展全局弹窗国际化拦截器（`plugins/task_manager/index.html`、`web/static/app/i18n.js`、`web/static/app/soft.js`）：
+  - 修复 `index.html` 内嵌 CSS 语法错误（清除 `#TaskManagement th:` 与 `tr:` 误写的非法冒号）、清理空 ruleset 及 `display: inline-block` 与 `float` 属性冲突；
+  - 在 `index.html` 顶部 7 个子菜单（进程、启动项、服务、网络、用户、计划任务、会话）注入 `data-i18n` 属性与动态初始化翻译；
+  - 搜索框占位符、设置表头按钮及表头配置下拉菜单项接入国际化；
+  - 扩展 `i18n.js` 的 `translatePluginDOM` 支持 `.man-menu-sub span` 自动翻译；
+  - 优化 `soft.js` 中 `softMain` 弹窗标题中英文符号规整，消除 `【1.1]manage` 乱码拼接。
+- [x] 297. 全面重构动态渲染 JS 消除硬编码中文（`plugins/task_manager/js/task_manager.js`）：
+  - 对全部 7 个功能模块（进程、网络、启动项、服务、用户、计划任务、会话、资源面板）的表格表头、操作按钮、概览统计及 Layer 弹窗接入 `pt(...)` 动态多语言。
+- [x] 298. 补全与对齐 6 国语言词库（`plugins/task_manager/lang/*.json`）：
+  - 在全量 6 国语言包（zh-CN, zh-TW, en, de, fr, it）补全网络表头、模块字段与操作文案；
+  - 验证 JSON 语法正确、Key 100% 严格对齐、外语包 0 未翻译中文残留。
+- [x] 299. 编写专项自动化测试套件（`test/test_task_manager_i18n.py`）：
+  - 扩充测试套件至 10 项完整测试，覆盖网络表头无 `lan.index`、6 国语言翻译、弹窗标题规整；
+  - 增加静态代码健康度校验：检测 CSS 非法选择器冒号、花括号对称性、空规则集与属性冲突；
+  - 增加 index.html DOM 结构与 data-i18n 属性完整性断言；
+  - 增加 Node.js V8 引擎对 JavaScript 脚本语法的严格编译校验；
+  - 验证 UTF-8 (无 BOM) 与 LF 换行格式规范。
+- [x] 300. 运行专项与全量自动化测试验证，确保 100% 通过并清理临时文件。

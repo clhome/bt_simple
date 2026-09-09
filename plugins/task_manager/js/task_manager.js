@@ -1,5 +1,7 @@
-var api = YfPlugin.createApi('task_manager');
-var pt = YfI18n.createPluginTranslator('task_manager');
+var api = window.YfPlugin ? YfPlugin.createApi('task_manager') : null;
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
+    ? window.YfI18n.createPluginTranslator('task_manager') 
+    : function(key, fallback){ return fallback || key; };
   
 function tmPostCallback(method, args, callback, version='1.0'){
     var req_data = {};
@@ -31,20 +33,20 @@ var TaskProcessLayerIndex = '';  // 进程详情弹窗的index
 var canScroll2TaskMangerPossess = true; // 是否可以定位到选中的进程
 
 $('.t-mana .man-menu-sub span').on('click', function () {
-    $(this).siblings().removeClass("on");
-    tab_name = $(this).attr('class');
-    $(this).addClass("on")
-    // console.log(tab_name);
+    $(this).addClass("on").siblings().removeClass("on");
+    var cls = $(this).attr('class') || '';
+    var match = cls.match(/\b(p_list|p_resource|p_run|p_service|p_network|p_user|p_cron|p_session)\b/);
+    tab_name = match ? match[1] : 'p_list';
     if (tab_name == 'p_resource') {
-      $('.resource-panel').addClass('resource-panel-show')
-      $('.taskdivtable').addClass('divtable-hide')
-      $('.ts-line').addClass('divtable-hide')
-    } else if (tab_name !== 'p_resource on') {
-      $('.resource-panel').removeClass('resource-panel-show')
-      $('.taskdivtable').removeClass('divtable-hide')
-      $('.ts-line').removeClass('divtable-hide')
+      $('.resource-panel').addClass('resource-panel-show');
+      $('.taskdivtable').addClass('divtable-hide');
+      $('.ts-line').addClass('divtable-hide');
+    } else {
+      $('.resource-panel').removeClass('resource-panel-show');
+      $('.taskdivtable').removeClass('divtable-hide');
+      $('.ts-line').removeClass('divtable-hide');
     }
-    search_val = $('.search-bar .search_input').val('')
+    search_val = $('.search-bar .search_input').val('');
     get_list_bytab(false);
 });
 
@@ -133,7 +135,7 @@ $('.setting_ul_li').off('click').on('click', function (e) {
         tmPostCallback('set_meter_head',{meter_head_name: name}, function(data){
             isProcessing = false; // 操作完成，清除标志
             if (!data) {
-                layer.msg('设置失败');
+                layer.msg(pt('设置失败', '设置失败'));
             }
             that.toggleClass('active');
             get_process_list(null, null, false);
@@ -233,7 +235,7 @@ function get_list_bytab(isblur) {
 }
 
 function get_process_list(sortx, reverse, rx) {
-    if ($('.t-mana .man-menu-sub .on').attr('class') != 'p_list on') return;
+    if (!$('.t-mana .man-menu-sub .on').hasClass('p_list')) return;
     var cookie_key = 'task_process_sort';
     var s_tmp = getCookie(cookie_key);
     if (sortx == undefined || sortx == null) {
@@ -249,7 +251,7 @@ function get_process_list(sortx, reverse, rx) {
     res_list = {True: 'False',False: 'True'};
     setCookie(cookie_key, sortx + '|' + reverse);
     if (!rx) {
-      var loadT = layer.msg('正在获取进程列表..', {icon: 16, time: 0, shade: [0.3, '#000']})
+      var loadT = layer.msg(pt('正在获取进程列表..', '正在获取进程列表..'), {icon: 16, time: 0, shade: [0.3, '#000']})
     }
 
     tmPostCallback('get_process_list', {sortx: sortx,reverse: reverse,search:search_val}, function(rdata){
@@ -277,29 +279,29 @@ function get_process_list(sortx, reverse, rx) {
         }
         var selectline = buildRealProcess();
         var tbody_tr = createProcessTable(true, data);
-        var tbody = '<thead title="右键可设置表头" id="change_thead">\
+        var tbody = '<thead title="' + pt('右键可设置表头', '右键可设置表头') + '" id="change_thead">\
 					<tr style="cursor: pointer;">\
-						<th style="width:160px;' + (data.meter_head.ps ? '' : 'display:none;') + '" class="pro_name pro_ps"  onclick="get_process_list(\'ps\',\'' + res_list[reverse] + '\')">应用名称</th>\
-						<th class="pro_pid" style="' + (data.meter_head.pid ? '' : 'display:none;') + '" onclick="get_process_list(\'pid\',\'' + res_list[reverse] + '\')">PID</th>\
-						<th class="pro_threads" style="' + (data.meter_head.threads ? '' : 'display:none;') + '" onclick="get_process_list(\'threads\',\'True\')">线程</th>\
-						<th style="width:80px;' + (data.meter_head.user ? '' : 'display:none;') + '" class="pro_user" onclick="get_process_list(\'user\',\'' + res_list[reverse] + '\')">用户</th>\
-						<th style="' + (data.meter_head.cpu_percent ? '' : 'display:none;') + '" class="pro_cpu_percent" onclick="get_process_list(\'cpu_percent\',\'True\')">CPU</th>\
-						<th class="pro_memory_used" style="' + (data.meter_head.memory_used ? '' : 'display:none;') + '" onclick="get_process_list(\'memory_used\',\'True\')">内存</th>\
-						<th style="width:70px;' + (data.meter_head.io_read_bytes ? '' : 'display:none;') + '" class="pro_io_read_speed" onclick="get_process_list(\'io_read_speed\',\'True\')">io读</th>\
-						<th style="width:70px;' + (data.meter_head.io_write_bytes ? '' : 'display:none;') + '" class="pro_io_write_speed" onclick="get_process_list(\'io_write_speed\',\'True\')">io写</th>\
-						<th style="width:70px;' + (data.meter_head.up ? '' : 'display:none;') + '" class="pro_up" onclick="get_process_list(\'up\',\'True\')">上行</th>\
-						<th style="width:70px;' + (data.meter_head.down ? '' : 'display:none;') + '" class="pro_down" onclick="get_process_list(\'down\',\'True\')">下行</th>\
-						<th class="pro_connects" style="' + (data.meter_head.connects ? '' : 'display:none;') + '" onclick="get_process_list(\'connects\',\'True\')">连接</th>\
-						<th class="pro_status" style="' + (data.meter_head.status ? '' : 'display:none;') + '" onclick="get_process_list(\'status\',\'' + res_list[reverse] + '\')">状态</th>\
-						<th style="cursor:text;">操作</th>\
+						<th style="width:160px;' + (data.meter_head.ps ? '' : 'display:none;') + '" class="pro_name pro_ps"  onclick="get_process_list(\'ps\',\'' + res_list[reverse] + '\')">' + pt('应用名称', '应用名称') + '</th>\
+						<th class="pro_pid" style="' + (data.meter_head.pid ? '' : 'display:none;') + '" onclick="get_process_list(\'pid\',\'' + res_list[reverse] + '\')">' + pt('PID', 'PID') + '</th>\
+						<th class="pro_threads" style="' + (data.meter_head.threads ? '' : 'display:none;') + '" onclick="get_process_list(\'threads\',\'True\')">' + pt('线程', '线程') + '</th>\
+						<th style="width:80px;' + (data.meter_head.user ? '' : 'display:none;') + '" class="pro_user" onclick="get_process_list(\'user\',\'' + res_list[reverse] + '\')">' + pt('用户', '用户') + '</th>\
+						<th style="' + (data.meter_head.cpu_percent ? '' : 'display:none;') + '" class="pro_cpu_percent" onclick="get_process_list(\'cpu_percent\',\'True\')">' + pt('CPU', 'CPU') + '</th>\
+						<th class="pro_memory_used" style="' + (data.meter_head.memory_used ? '' : 'display:none;') + '" onclick="get_process_list(\'memory_used\',\'True\')">' + pt('内存', '内存') + '</th>\
+						<th style="width:70px;' + (data.meter_head.io_read_bytes ? '' : 'display:none;') + '" class="pro_io_read_speed" onclick="get_process_list(\'io_read_speed\',\'True\')">' + pt('io读', 'io读') + '</th>\
+						<th style="width:70px;' + (data.meter_head.io_write_bytes ? '' : 'display:none;') + '" class="pro_io_write_speed" onclick="get_process_list(\'io_write_speed\',\'True\')">' + pt('io写', 'io写') + '</th>\
+						<th style="width:70px;' + (data.meter_head.up ? '' : 'display:none;') + '" class="pro_up" onclick="get_process_list(\'up\',\'True\')">' + pt('上行', '上行') + '</th>\
+						<th style="width:70px;' + (data.meter_head.down ? '' : 'display:none;') + '" class="pro_down" onclick="get_process_list(\'down\',\'True\')">' + pt('下行', '下行') + '</th>\
+						<th class="pro_connects" style="' + (data.meter_head.connects ? '' : 'display:none;') + '" onclick="get_process_list(\'connects\',\'True\')">' + pt('连接', '连接') + '</th>\
+						<th class="pro_status" style="' + (data.meter_head.status ? '' : 'display:none;') + '" onclick="get_process_list(\'status\',\'' + res_list[reverse] + '\')">' + pt('状态', '状态') + '</th>\
+						<th style="cursor:text;">' + pt('操作', '操作') + '</th>\
 					</tr>\
 				</thead>\
 				<tbody>' + tbody_tr + '</tbody>';
         $("#TaskManagement").html(tbody);
         var topMsg = '<div class="mini-info-box">\
-				<div class="mini-info-con"><p><span class="tname">CPU：</span>' + data.info.cpu + '%</p><p><span class="tname">内存：</span>' + toSize(data.info.mem) + '</p></div>\
-				<div class="mini-info-con"><p style="text-align:center">负载(load average)</p><p style="text-align:center">' + data.info.load_average[1] + ', ' + data.info.load_average[5] + ', ' + data.info.load_average[15] + '</p></div>\
-				<div class="mini-info-con"><p><span class="tname">进程数：</span>' + data.process_list.length + '</p><p><span class="tname">磁盘：</span>' + toSize(data.info.disk) + '</p></div>\
+				<div class="mini-info-con"><p><span class="tname">' + pt('CPU：', 'CPU：') + '</span>' + data.info.cpu + '%</p><p><span class="tname">' + pt('内存：', '内存：') + '</span>' + toSize(data.info.mem) + '</p></div>\
+				<div class="mini-info-con"><p style="text-align:center">' + pt('负载(load average)', '负载(load average)') + '</p><p style="text-align:center">' + data.info.load_average[1] + ', ' + data.info.load_average[5] + ', ' + data.info.load_average[15] + '</p></div>\
+				<div class="mini-info-con"><p><span class="tname">' + pt('进程数：', '进程数：') + '</span>' + data.process_list.length + '</p><p><span class="tname">' + pt('磁盘：', '磁盘：') + '</span>' + toSize(data.info.disk) + '</p></div>\
 			</div>';
         $("#load_average").html(topMsg).show();
         $(".pro_" + sortx).append('<span class="glyphicon glyphicon-triangle-' + (reverse == 'True' ? 'bottom' : 'top') + '" style="margin-left:5px;color:#bbb"></span>');
@@ -308,7 +310,7 @@ function get_process_list(sortx, reverse, rx) {
         show_task();
         setTableHead(data);
         if(getCookie('table_config_tip')=='false'||!getCookie('table_config_tip')){
-            layer.tips('点击可设置表头', '.setting_btn', {
+            layer.tips(pt('点击可设置表头', '点击可设置表头'), '.setting_btn', {
                 tips: [1, '#20a53a'],
                 time: 3000
             });
@@ -452,14 +454,14 @@ function createProcessTable(getboday, data) {
             tbody_td += '<td style="' + (data?(data.meter_head.io_read_bytes ? '' : 'display:none;'):'') + '">' + toSize(realProcess[i].io_read_speed).replace(' ', '') + '</td>';
             tbody_td += '<td style="' + (data?(data.meter_head.io_write_bytes ? '' : 'display:none;'):'') + '">' + toSize(realProcess[i].io_write_speed).replace(' ', '') + '</td>';
 
-            tbody_td += '<td style="' + (data?(data.meter_head.up ? '' : 'display:none;'):'') + '" title="上行速度：' + toSize(realProcess[i].up) + '/秒\n发包速度：' + realProcess[i].up_package + '个/秒">' + toSize(realProcess[i].up).replace(' ', '') + '</td>';
-            tbody_td += '<td style="' + (data?(data.meter_head.down ? '' : 'display:none;'):'') + '" title="下行速度：' + toSize(realProcess[i].down) + '/秒\n收包速度：' + realProcess[i].down_package + '个/秒">' + toSize(realProcess[i].down).replace(' ', '') + '</td>';
+            tbody_td += '<td style="' + (data?(data.meter_head.up ? '' : 'display:none;'):'') + '" title="' + pt('上行速度：', '上行速度：') + toSize(realProcess[i].up) + pt('/秒\n发包速度：', '/秒\n发包速度：') + realProcess[i].up_package + pt('个/秒', '个/秒') + '">' + toSize(realProcess[i].up).replace(' ', '') + '</td>';
+            tbody_td += '<td style="' + (data?(data.meter_head.down ? '' : 'display:none;'):'') + '" title="' + pt('下行速度：', '下行速度：') + toSize(realProcess[i].down) + pt('/秒\n收包速度：', '/秒\n收包速度：') + realProcess[i].down_package + pt('个/秒', '个/秒') + '">' + toSize(realProcess[i].down).replace(' ', '') + '</td>';
         }
         
         tbody_tr += '<tr ' + selected + selected_one + ' onclick="click_process_tr(event,' + realProcess[i].pid + ',' + realProcess[i].fpid + ')" >\
 			<td class="td-pid" style="' + (data?(data.meter_head.ps ? '' : 'display:none;'):'') + '">\
 				' + colp + '\
-				<a style="display:block; position:relative; width:120px;' + childStyle + '" title="名称：' + realProcess[i].ps + '\nname: ' + realProcess[i].name + '\nexe: ' + realProcess[i].exe + '"\
+				<a style="display:block; position:relative; width:120px;' + childStyle + '" title="' + pt('名称：', '名称：') + realProcess[i].ps + '\nname: ' + realProcess[i].name + '\nexe: ' + realProcess[i].exe + '"\
 				class="btlink ' + isProcessChild + '" onclick="get_process_info(' + realProcess[i].pid + ')">\
 					' + processName + '\
 					' + childNums + '\
@@ -472,7 +474,7 @@ function createProcessTable(getboday, data) {
             '+tbody_td+'\
 			<td style="' + (data?(data.meter_head.connects ? '' : 'display:none;'):'') + '">' + realProcess[i].connects + '</td>\
 			<td style="' + (data?(data.meter_head.status ? '' : 'display:none;'):'') + '">' + realProcess[i].status + '</td>\
-			<td><a class="btlink" onclick="' + kill_process + '(' + realProcess[i].pid + ',' + realProcess[i].fpid + ')">结束</a></td>\
+			<td><a class="btlink" onclick="' + kill_process + '(' + realProcess[i].pid + ',' + realProcess[i].fpid + ')">' + pt('结束', '结束') + '</a></td>\
 		</tr>';
     }
     if (getboday) return tbody_tr;
@@ -509,19 +511,19 @@ function get_resource_list() {
       var tbody_tr = createProcessTable(true);
       var tbody = '<thead>\
         	<tr style="cursor: pointer;">\
-        		<th style="width:120px;" class="pro_name pro_ps" onclick="get_process_list(\'ps\',\'' + res_list[reverse] + '\')">应用名称</th>\
-        		<th class="pro_pid" onclick="get_process_list(\'pid\',\'' + res_list[reverse] + '\')">PID</th>\
-        		<th style="width:50px;"class="pro_threads" onclick="get_process_list(\'threads\',\'True\')">线程</th>\
-        		<th style="width:60px;" class="pro_user" onclick="get_process_list(\'user\',\'' + res_list[reverse] + '\')">用户</th>\
-        		<th style="width:70px;" class="pro_cpu_percent" onclick="get_process_list(\'cpu_percent\',\'True\')">CPU</th>\
-        		<th style="width:70px;" class="pro_memory_used" onclick="get_process_list(\'memory_used\',\'True\')">内存</th>\
-        		<th style="width:70px;" class="pro_io_read_speed" onclick="get_process_list(\'io_read_speed\',\'True\')">io读</th>\
-        		<th style="width:70px;" class="pro_io_write_speed" onclick="get_process_list(\'io_write_speed\',\'True\')">io写</th>\
-        		<th style="width:70px;" class="pro_up" onclick="get_process_list(\'up\',\'True\')">上行</th>\
-        		<th style="width:70px;" class="pro_down" onclick="get_process_list(\'down\',\'True\')">下行</th>\
-        		<th style="width:50px;" class="pro_connects" onclick="get_process_list(\'connects\',\'True\')">连接</th>\
-        		<th style="width:50px;" class="pro_status" onclick="get_process_list(\'status\',\'' + res_list[reverse] + '\')">状态</th>\
-        		<th style="width:50px;cursor:text">操作</th>\
+        		<th style="width:120px;" class="pro_name pro_ps" onclick="get_process_list(\'ps\',\'' + res_list[reverse] + '\')">' + pt('应用名称', '应用名称') + '</th>\
+        		<th class="pro_pid" onclick="get_process_list(\'pid\',\'' + res_list[reverse] + '\')">' + pt('PID', 'PID') + '</th>\
+        		<th style="width:50px;"class="pro_threads" onclick="get_process_list(\'threads\',\'True\')">' + pt('线程', '线程') + '</th>\
+        		<th style="width:60px;" class="pro_user" onclick="get_process_list(\'user\',\'' + res_list[reverse] + '\')">' + pt('用户', '用户') + '</th>\
+        		<th style="width:70px;" class="pro_cpu_percent" onclick="get_process_list(\'cpu_percent\',\'True\')">' + pt('CPU', 'CPU') + '</th>\
+        		<th style="width:70px;" class="pro_memory_used" onclick="get_process_list(\'memory_used\',\'True\')">' + pt('内存', '内存') + '</th>\
+        		<th style="width:70px;" class="pro_io_read_speed" onclick="get_process_list(\'io_read_speed\',\'True\')">' + pt('io读', 'io读') + '</th>\
+        		<th style="width:70px;" class="pro_io_write_speed" onclick="get_process_list(\'io_write_speed\',\'True\')">' + pt('io写', 'io写') + '</th>\
+        		<th style="width:70px;" class="pro_up" onclick="get_process_list(\'up\',\'True\')">' + pt('上行', '上行') + '</th>\
+        		<th style="width:70px;" class="pro_down" onclick="get_process_list(\'down\',\'True\')">' + pt('下行', '下行') + '</th>\
+        		<th style="width:50px;" class="pro_connects" onclick="get_process_list(\'connects\',\'True\')">' + pt('连接', '连接') + '</th>\
+        		<th style="width:50px;" class="pro_status" onclick="get_process_list(\'status\',\'' + res_list[reverse] + '\')">' + pt('状态', '状态') + '</th>\
+        		<th style="width:50px;cursor:text">' + pt('操作', '操作') + '</th>\
         	</tr>\
         </thead>\
         <tbody>' + tbody_tr + '</tbody>';
@@ -534,7 +536,7 @@ function get_resource_list() {
 
 //查看计划任务列表
 function get_cron_list() {
-    var loadT = layer.msg('获取计划任务列表..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('获取计划任务列表..', '获取计划任务列表..'), {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('get_cron_list', {search:search_val}, function(rdata){
         layer.close(loadT);
 
@@ -545,15 +547,15 @@ function get_cron_list() {
 						<td>' + rdata[i].cycle + '</td>\
 						<td><a class="btlink" onclick="online_edit_file(\'' + rdata[i].exe + '\')">' + rdata[i].exe + '</a></td>\
 						<td style="text-wrap:wrap;">' + rdata[i].ps + '</td>\
-						<td><a class="btlink" onclick="remove_cron(' + i + ')">删除</a></td>\
+						<td><a class="btlink" onclick="remove_cron(' + i + ')">' + pt('删除', '删除') + '</a></td>\
 					</tr>';
         }
         var tbody = '<thead>\
 					<tr>\
-						<th width="150">周期</th>\
-						<th >执行</th>\
-						<th overflow="hidden" width="40%">描述</th>\
-						<th width="50">操作</th>\
+						<th width="150">' + pt('周期', '周期') + '</th>\
+						<th >' + pt('执行', '执行') + '</th>\
+						<th overflow="hidden" width="40%">' + pt('描述', '描述') + '</th>\
+						<th width="50">' + pt('操作', '操作') + '</th>\
 					</tr>\
 				</thead>\
 				<tbody>' + tbody_tr + '</tbody>';
@@ -568,19 +570,19 @@ function get_cron_list() {
 
 //查看网络状态
 function get_network_list(rflush) {
-    var loadT = layer.msg(lan.public.the_get, {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('正在获取网络状态..', '正在获取网络状态..'), {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('get_network_list', {search:search_val}, function(rdata){
         layer.close(loadT);
         if (rdata.data['is_mac']){
-            tbody_tr += "<tr><td colspan='6' style='text-align:center;'>mac无法使用</td></tr>";
+            tbody_tr += "<tr><td colspan='6' style='text-align:center;'>" + pt('mac无法使用', 'mac无法使用') + "</td></tr>";
             tbody = "<thead>\
                 <tr>\
-                    <th>" + lan.index.net_protocol + "</th>\
-                    <th>" + lan.index.net_address_dst + "</th>\
-                    <th>" + lan.index.net_address_src + "</th>\
-                    <th>" + lan.index.net_address_status + "</th>\
-                    <th>" + lan.index.net_process + "</th>\
-                    <th>" + lan.index.net_process_pid + "</th>\
+                    <th>" + pt('协议', '协议') + "</th>\
+                    <th>" + pt('本地地址', '本地地址') + "</th>\
+                    <th>" + pt('外部地址', '外部地址') + "</th>\
+                    <th>" + pt('状态', '状态') + "</th>\
+                    <th>" + pt('进程', '进程') + "</th>\
+                    <th>" + pt('PID', 'PID') + "</th>\
                 </tr>\
             </thead>\
             <tbody>" + tbody_tr + "</tbody>";
@@ -596,7 +598,7 @@ function get_network_list(rflush) {
             tbody_tr += "<tr>"
               + "<td>" + rdata.list[i].type + "</td>"
               + "<td>" + rdata.list[i].laddr[0] + ":" + rdata.list[i].laddr[1] + "</td>"
-              + "<td>" + (rdata.list[i].raddr.length > 1 ? "<a style='color:blue;' title='" + lan.index.net_dorp_ip + "' href=\"javascript:dropAddress('" + rdata.list[i].raddr[0] + "');\">" + rdata.list[i].raddr[0] + "</a>:" + rdata.list[i].raddr[1] : 'NONE') + "</td>"
+              + "<td>" + (rdata.list[i].raddr.length > 1 ? "<a style='color:blue;' title='" + pt('屏蔽此IP', '屏蔽此IP') + "' href=\"javascript:dropAddress('" + rdata.list[i].raddr[0] + "');\">" + rdata.list[i].raddr[0] + "</a>:" + rdata.list[i].raddr[1] : 'NONE') + "</td>"
               + "<td>" + rdata.list[i].status + "</td>"
               + "<td>" + rdata.list[i].process + "</td>"
               + "<td>" + rdata.list[i].pid + "</td>"
@@ -605,12 +607,12 @@ function get_network_list(rflush) {
 
         tbody = "<thead>\
                 <tr>\
-        			<th>" + lan.index.net_protocol + "</th>\
-        			<th>" + lan.index.net_address_dst + "</th>\
-        			<th>" + lan.index.net_address_src + "</th>\
-        			<th>" + lan.index.net_address_status + "</th>\
-        			<th>" + lan.index.net_process + "</th>\
-        			<th>" + lan.index.net_process_pid + "</th>\
+        			<th>" + pt('协议', '协议') + "</th>\
+        			<th>" + pt('本地地址', '本地地址') + "</th>\
+        			<th>" + pt('外部地址', '外部地址') + "</th>\
+        			<th>" + pt('状态', '状态') + "</th>\
+        			<th>" + pt('进程', '进程') + "</th>\
+        			<th>" + pt('PID', 'PID') + "</th>\
                 </tr>\
     		</thead>\
     		<tbody>" + tbody_tr + "</tbody>";
@@ -618,20 +620,20 @@ function get_network_list(rflush) {
         $("#TaskManagement").html(tbody);
         var topMsg = '<div class="mini-info-box" style="width:666px">\
 				<div class="mini-info-con" style="width:25%">\
-					<p><span class="tname">总发送：</span>' + toSize(rdata.state.upTotal) + '</p>\
-					<p><span class="tname">总接收：</span>' + toSize(rdata.state.downTotal) + '</p>\
+					<p><span class="tname">' + pt('总发送：', '总发送：') + '</span>' + toSize(rdata.state.upTotal) + '</p>\
+					<p><span class="tname">' + pt('总接收：', '总接收：') + '</span>' + toSize(rdata.state.downTotal) + '</p>\
 				</div>\
 				<div class="mini-info-con" style="width:25%">\
-					<p><span class="tname">上行：</span>' + toSize(rdata.state.up) + '</p>\
-					<p><span class="tname">下行：</span>' + toSize(rdata.state.down) + '</p>\
+					<p><span class="tname">' + pt('上行：', '上行：') + '</span>' + toSize(rdata.state.up) + '</p>\
+					<p><span class="tname">' + pt('下行：', '下行：') + '</span>' + toSize(rdata.state.down) + '</p>\
 				</div>\
 				<div class="mini-info-con" style="width:25%;border-right:#DBDBEA 1px solid">\
-					<p><span class="tname">总发包：</span>' + to_max(rdata.state.upPackets) + '</p>\
-					<p><span class="tname">总收包：</span>' + to_max(rdata.state.downPackets) + '</p>\
+					<p><span class="tname">' + pt('总发包：', '总发包：') + '</span>' + to_max(rdata.state.upPackets) + '</p>\
+					<p><span class="tname">' + pt('总收包：', '总收包：') + '</span>' + to_max(rdata.state.downPackets) + '</p>\
 				</div>\
 				<div class="mini-info-con" style="width:25%;">\
-					<p><span class="tname">包发送/秒：</span>' + to_max(rdata.state.upPackets_s) + '</p>\
-					<p><span class="tname">包接收/秒：</span>' + to_max(rdata.state.downPackets_s) + '</p>\
+					<p><span class="tname">' + pt('包发送/秒：', '包发送/秒：') + '</span>' + to_max(rdata.state.upPackets_s) + '</p>\
+					<p><span class="tname">' + pt('包接收/秒：', '包接收/秒：') + '</span>' + to_max(rdata.state.downPackets_s) + '</p>\
 				</div>\
 			</div>';
         $("#load_average").html(topMsg).show();
@@ -645,16 +647,16 @@ function to_max(num) {
       num = num / 10000;
       if (num > 10000) {
         num = num / 10000;
-        return num.toFixed(5) + ' 亿';
+        return num.toFixed(5) + ' ' + pt('亿', '亿');
       }
-      return num.toFixed(5) + ' 万';
+      return num.toFixed(5) + ' ' + pt('万', '万');
     }
     return num;
 }
 
 //获取会话列表
 function get_who_list() {
-    var loadT = layer.msg('正在获取用户会话列表..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('正在获取用户会话列表..', '正在获取用户会话列表..'), {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('get_who', {search:search_val}, function(data){
         layer.close(loadT);
         var rdata = data.data;
@@ -665,16 +667,16 @@ function get_who_list() {
 				<td>' + rdata[i].pts + '</td>\
 				<td>' + rdata[i].ip + '</td>\
 				<td>' + rdata[i].date + '</td>\
-				<td><a class="btlink" onclick="pkill_session(\'' + rdata[i].pts + '\')">强制断开</a></td>\
+				<td><a class="btlink" onclick="pkill_session(\'' + rdata[i].pts + '\')">' + pt('强制断开', '强制断开') + '</a></td>\
 			</tr>';
         }
         var tbody = '<thead>\
 					<tr>\
-						<th width="130">用户</th>\
-						<th width="130">PTS</th>\
-						<th>登陆IP</th>\
-						<th>登陆时间</th>\
-						<th width="80">操作</th>\
+						<th width="130">' + pt('用户', '用户') + '</th>\
+						<th width="130">' + pt('PTS', 'PTS') + '</th>\
+						<th>' + pt('登陆IP', '登陆IP') + '</th>\
+						<th>' + pt('登陆时间', '登陆时间') + '</th>\
+						<th width="80">' + pt('操作', '操作') + '</th>\
 					</tr>\
 				</thead>\
 				<tbody>' + tbody_tr + '</tbody>';
@@ -688,19 +690,19 @@ function get_who_list() {
 
 //获取启动列表
 function get_run_list() {
-    var loadT = layer.msg('正在获取启动项列表..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('正在获取启动项列表..', '正在获取启动项列表..'), {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('get_run_list', {search:search_val}, function(rdata){
         layer.close(loadT);
         if (rdata.data['is_mac']){
-            tbody_tr += "<tr><td colspan='6' style='text-align:center;'>mac无法使用</td></tr>";
+            tbody_tr += "<tr><td colspan='6' style='text-align:center;'>" + pt('mac无法使用', 'mac无法使用') + "</td></tr>";
             var tbody = '<thead>\
                     <tr>\
-                        <th width="170">名称</th>\
-                        <th width="200">启动路径</th>\
-                        <th width="100">文件大小</th>\
-                        <th width="100">文件权限</th>\
-                        <th>描述</th>\
-                        <th width="50">操作</th>\
+                        <th width="170">' + pt('名称', '名称') + '</th>\
+                        <th width="200">' + pt('启动路径', '启动路径') + '</th>\
+                        <th width="100">' + pt('文件大小', '文件大小') + '</th>\
+                        <th width="100">' + pt('文件权限', '文件权限') + '</th>\
+                        <th>' + pt('描述', '描述') + '</th>\
+                        <th width="50">' + pt('操作', '操作') + '</th>\
                     </tr>\
                 </thead>\
                 <tbody>' + tbody_tr + '</tbody>';
@@ -717,22 +719,22 @@ function get_run_list() {
 				<td>' + toSize(rdata.run_list[i].size) + '</td>\
 				<td>' + rdata.run_list[i].access + '</td>\
 				<td style="text-wrap:wrap;">' + rdata.run_list[i].ps + '</td>\
-				<td><a class="btlink" onclick="online_edit_file(\'' + rdata.run_list[i].srcfile + '\')">编辑</a></td>\
+				<td><a class="btlink" onclick="online_edit_file(\'' + rdata.run_list[i].srcfile + '\')">' + pt('编辑', '编辑') + '</a></td>\
 			</tr>';
         }
         var tbody = '<thead>\
 					<tr>\
-						<th width="170">名称</th>\
-						<th width="200">启动路径</th>\
-						<th width="100">文件大小</th>\
-						<th width="100">文件权限</th>\
-						<th>描述</th>\
-						<th width="50">操作</th>\
+						<th width="170">' + pt('名称', '名称') + '</th>\
+						<th width="200">' + pt('启动路径', '启动路径') + '</th>\
+						<th width="100">' + pt('文件大小', '文件大小') + '</th>\
+						<th width="100">' + pt('文件权限', '文件权限') + '</th>\
+						<th>' + pt('描述', '描述') + '</th>\
+						<th width="50">' + pt('操作', '操作') + '</th>\
 					</tr>\
 				</thead>\
 				<tbody>' + tbody_tr + '</tbody>';
         $("#TaskManagement").html(tbody);
-        var topMsg = '<div class="mini-level">当前运行级别： level-' + rdata.run_level + '</div>';
+        var topMsg = '<div class="mini-level">' + pt('当前运行级别：', '当前运行级别：') + ' level-' + rdata.run_level + '</div>';
         $("#load_average").html(topMsg).show();
         $(".table-cont").css("height", "500px");
         show_task();
@@ -741,14 +743,14 @@ function get_run_list() {
 
 //获取服务列表
 function get_service_list() {
-    var loadT = layer.msg('正在获取服务列表..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('正在获取服务列表..', '正在获取服务列表..'), {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('get_service_list', {search:search_val}, function(rdata){
         layer.close(loadT);
         if (rdata.data['is_mac']){
-            tbody_tr += "<tr><td colspan='10' style='text-align:center;'>mac无法使用</td></tr>";
+            tbody_tr += "<tr><td colspan='10' style='text-align:center;'>" + pt('mac无法使用', 'mac无法使用') + "</td></tr>";
             var tbody = '<thead>\
                     <tr>\
-                        <th>名称</th>\
+                        <th>' + pt('名称', '名称') + '</th>\
                         <th width="70">Level-0</th>\
                         <th width="70">Level-1</th>\
                         <th width="70">Level-2</th>\
@@ -756,8 +758,8 @@ function get_service_list() {
                         <th width="70">Level-4</th>\
                         <th width="70">Level-5</th>\
                         <th width="70">Level-6</th>\
-                        <th style="overflow:hidden">描述</th>\
-                        <th width="50">操作</th>\
+                        <th style="overflow:hidden">' + pt('描述', '描述') + '</th>\
+                        <th width="50">' + pt('操作', '操作') + '</th>\
                     </tr>\
                 </thead>\
                 <tbody>' + tbody_tr + '</tbody>';
@@ -779,12 +781,12 @@ function get_service_list() {
 				<td><a style="cursor:pointer" onclick="set_runlevel_state(5,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_5 + '</a></td>\
 				<td><a style="cursor:pointer" onclick="set_runlevel_state(6,\'' + rdata.serviceList[i].name + '\')">' + rdata.serviceList[i].runlevel_6 + '</a></td>\
 				<td style="text-wrap:wrap;">' + rdata.serviceList[i].ps + '</td>\
-				<td><a class="btlink" onclick="remove_service(\'' + rdata.serviceList[i].name + '\')">删除</a></td>\
+				<td><a class="btlink" onclick="remove_service(\'' + rdata.serviceList[i].name + '\')">' + pt('删除', '删除') + '</a></td>\
 			</tr>';
         }
         var tbody = '<thead>\
 					<tr>\
-						<th>名称</th>\
+						<th>' + pt('名称', '名称') + '</th>\
 						<th width="70">Level-0</th>\
 						<th width="70">Level-1</th>\
 						<th width="70">Level-2</th>\
@@ -792,13 +794,13 @@ function get_service_list() {
 						<th width="70">Level-4</th>\
 						<th width="70">Level-5</th>\
 						<th width="70">Level-6</th>\
-						<th style="overflow:hidden">描述</th>\
-						<th width="50">操作</th>\
+						<th style="overflow:hidden">' + pt('描述', '描述') + '</th>\
+						<th width="50">' + pt('操作', '操作') + '</th>\
 					</tr>\
 				</thead>\
 				<tbody>' + tbody_tr + '</tbody>';
         $("#TaskManagement").html(tbody);
-        var topMsg = '<div class="mini-level">当前运行级别： level-' + rdata.runlevel + '</div>';
+        var topMsg = '<div class="mini-level">' + pt('当前运行级别：', '当前运行级别：') + ' level-' + rdata.runlevel + '</div>';
         $("#load_average").html(topMsg).show();
         $(".table-cont").css("height", "500px");
         show_task();
@@ -807,7 +809,7 @@ function get_service_list() {
 
 //取用户列表
 function get_user_list() {
-    var loadT = layer.msg('正在获取用户列表..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('正在获取用户列表..', '正在获取用户列表..'), {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('get_user_list', {search:search_val}, function(data){
         layer.close(loadT);
         var rdata = data.data;        
@@ -821,19 +823,19 @@ function get_user_list() {
 					<td>' + rdata[i].gid + '</td>\
 					<td>' + rdata[i].login_shell + '</td>\
 					<td style="text-wrap:wrap;">' + rdata[i].ps + '</td>\
-					<td><a class="btlink" onclick="userdel(\'' + rdata[i].username + '\')">删除</a></td>\
+					<td><a class="btlink" onclick="userdel(\'' + rdata[i].username + '\')">' + pt('删除', '删除') + '</a></td>\
 				</tr>';
         }
         var tbody = '<thead>\
 			<tr>\
-				<th width="140">用户名</th>\
-				<th width="140">home</th>\
-				<th width="140">用户组</th>\
-				<th width="50">uid</th>\
-				<th width="50">gid</th>\
-				<th width="150">登陆脚本</th>\
-				<th style="overflow:hidden">描述</th>\
-				<th width="50">操作</th>\
+				<th width="140">' + pt('用户名', '用户名') + '</th>\
+				<th width="140">' + pt('Home目录', 'Home目录') + '</th>\
+				<th width="140">' + pt('用户组', '用户组') + '</th>\
+				<th width="50">UID</th>\
+				<th width="50">GID</th>\
+				<th width="150">' + pt('登陆Shell', '登陆Shell') + '</th>\
+				<th style="overflow:hidden">' + pt('描述', '描述') + '</th>\
+				<th width="50">' + pt('操作', '操作') + '</th>\
 			</tr>\
 		</thead>\
 		<tbody>' + tbody_tr + '</tbody>';
@@ -847,8 +849,8 @@ function get_user_list() {
 
 //删除用户
 function userdel(user) {
-    safeMessage('删除用户【' + user + '】', '删除后可能导致您的环境无法正常运行,继续吗？', function () {
-        var loadT = layer.msg('正在删除用户[' + user + ']..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    safeMessage(pt('删除用户', '删除用户') + '【' + user + '】', pt('删除后可能导致您的环境无法正常运行,继续吗？', '删除后可能导致您的环境无法正常运行,继续吗？'), function () {
+        var loadT = layer.msg(pt('正在删除用户..', '正在删除用户..') + ' [' + user + ']', {icon: 16, time: 0, shade: [0.3, '#000']});
         tmPostCallback('remove_user', {user:user}, function(rdata){
             layer.close(loadT);
             var rdata = rdata.data;
@@ -866,12 +868,12 @@ function kill_process(pid, fpid) {
     if (fpid) {
         select_pid = fpid;
     }
-    var w = layer.confirm('您是否要结束 (' + pid + ') 进程？', {
-        btn: ['结束', '取消'], //按钮
-        title: '结束' + pid,
+    var w = layer.confirm(pt('您是否要结束进程？', '您是否要结束进程？') + ' (' + pid + ')', {
+        btn: [pt('结束', '结束'), pt('取消', '取消')], //按钮
+        title: pt('结束进程', '结束进程') + ' ' + pid,
         closeBtn: 2
     }, function () {
-        var loadT = layer.msg('正在结束进程[' + pid + ']..', {icon: 16, time: 0, shade: [0.3, '#000']});
+        var loadT = layer.msg(pt('正在结束进程..', '正在结束进程..') + ' [' + pid + ']', {icon: 16, time: 0, shade: [0.3, '#000']});
         tmPostCallback('kill_process', {pid:pid}, function(data){
             layer.close(loadT);
             var rdata = data.data;
@@ -887,12 +889,12 @@ function kill_process(pid, fpid) {
 
 //结束进程树
 function kill_process_all(pid) {
-    var w = layer.confirm('您是否要结束 (' + pid + ') 进程？', {
-        btn: ['结束', '取消'], //按钮
-        title: '结束' + pid,
+    var w = layer.confirm(pt('您是否要结束进程？', '您是否要结束进程？') + ' (' + pid + ')', {
+        btn: [pt('结束', '结束'), pt('取消', '取消')], //按钮
+        title: pt('结束进程', '结束进程') + ' ' + pid,
         closeBtn: 2
     }, function () {
-        var loadT = layer.msg('正在结束父进程[' + pid + ']..', {icon: 16, time: 0, shade: [0.3, '#000']});
+        var loadT = layer.msg(pt('正在结束父进程..', '正在结束父进程..') + ' [' + pid + ']', {icon: 16, time: 0, shade: [0.3, '#000']});
         tmPostCallback('kill_process_all', {pid:pid}, function(data){
             layer.close(loadT);
             var rdata = data.data;
@@ -917,8 +919,8 @@ function open_path(path) {
 
 //删除服务
 function remove_service(serviceName) {
-    safeMessage('删除服务【' + serviceName + '】', '删除后可能导致您的环境无法正常运行,继续吗？', function () {
-        var loadT = layer.msg('正在删除服务[' + serviceName + ']..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    safeMessage(pt('删除服务', '删除服务') + '【' + serviceName + '】', pt('删除后可能导致您的环境无法正常运行,继续吗？', '删除后可能导致您的环境无法正常运行,继续吗？'), function () {
+        var loadT = layer.msg(pt('正在删除服务..', '正在删除服务..') + ' [' + serviceName + ']', {icon: 16, time: 0, shade: [0.3, '#000']});
         tmPostCallback('remove_service', {serviceName:serviceName}, function(data){
             var rdata = data.data;
             layer.close(loadT);
@@ -938,8 +940,8 @@ function online_edit_file(fileName) {
 
 //删除计划任务
 function remove_cron(index) {
-    safeMessage('删除计划任务[' + index + ']', '删除后将无法恢复,继续吗？', function () {
-        var loadT = layer.msg('正在删除计划任务..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    safeMessage(pt('删除计划任务', '删除计划任务') + '[' + index + ']', pt('删除后将无法恢复,继续吗？', '删除后将无法恢复,继续吗？'), function () {
+        var loadT = layer.msg(pt('正在删除计划任务..', '正在删除计划任务..'), {icon: 16, time: 0, shade: [0.3, '#000']});
         tmPostCallback('remove_cron', {index:index}, function(rdata){
             layer.close(loadT);
             var rdata = rdata.data;
@@ -954,8 +956,8 @@ function remove_cron(index) {
 
 //强制断开会话
 function pkill_session(pts) {
-    safeMessage('强制断开会话[' + pts + ']', '强制断开此会话吗？', function () {
-        var loadT = layer.msg('正在断开会话..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    safeMessage(pt('强制断开会话', '强制断开会话') + '[' + pts + ']', pt('强制断开此会话吗？', '强制断开此会话吗？'), function () {
+        var loadT = layer.msg(pt('正在断开会话..', '正在断开会话..'), {icon: 16, time: 0, shade: [0.3, '#000']});
         tmPostCallback('pkill_session', {pts:pts}, function(data){
             layer.close(loadT);
 
@@ -970,7 +972,7 @@ function pkill_session(pts) {
 
 //设置服务启动级别状态
 function set_runlevel_state(runlevel, serviceName) {
-    var loadT = layer.msg('正在设置服务[' + serviceName + ']..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('正在设置服务..', '正在设置服务..') + ' [' + serviceName + ']', {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('set_runlevel_state', {runlevel: runlevel,serviceName: serviceName}, function(data){
         layer.close(loadT);
         var rdata = data.data;
@@ -984,7 +986,7 @@ function set_runlevel_state(runlevel, serviceName) {
 
 //查看进程详情
 function get_process_info(pid) {
-    var loadT = layer.msg('正在获取进程信息[' + pid + ']..', {icon: 16, time: 0, shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('正在获取进程信息..', '正在获取进程信息..') + ' [' + pid + ']', {icon: 16, time: 0, shade: [0.3, '#000']});
     tmPostCallback('get_process_info', {pid:pid}, function(data){
         layer.close(loadT);
         var rdata = data.data;
@@ -1002,31 +1004,31 @@ function get_process_info(pid) {
 				<table class="table">\
 					<tbody>\
 						<tr>\
-							<th width="70">名称</th><td  width="180">' + rdata.name + '</td>\
-							<th width="50">PID</th><td  width="180">' + rdata.pid + '</td>\
-							<th width="50">状态</th><td  width="180">' + rdata.status + '</td>\
+							<th width="70">' + pt('名称', '名称') + '</th><td width="180">' + rdata.name + '</td>\
+							<th width="50">PID</th><td width="180">' + rdata.pid + '</td>\
+							<th width="50">' + pt('状态', '状态') + '</th><td width="180">' + rdata.status + '</td>\
 						</tr>\
 						<tr>\
-							<th>父进程</th><td>' + rdata.pname + '(' + rdata.ppid + ')</td>\
-							<th>用户</th><td>' + rdata.user + '</td>\
-							<th>线程</th><td>' + rdata.threads + '</td>\
+							<th>' + pt('父进程', '父进程') + '</th><td>' + rdata.pname + '(' + rdata.ppid + ')</td>\
+							<th>' + pt('用户', '用户') + '</th><td>' + rdata.user + '</td>\
+							<th>' + pt('线程', '线程') + '</th><td>' + rdata.threads + '</td>\
 						</tr>\
 						<tr>\
 							<th>Socket</th><td>' + rdata.connects + '</td>\
-							<th>io读</th><td>' + toSize(rdata.io_read_bytes) + '</td>\
-							<th>io写</th><td>' + toSize(rdata.io_write_bytes) + '</td>\
+							<th>' + pt('IO读', 'IO读') + '</th><td>' + toSize(rdata.io_read_bytes) + '</td>\
+							<th>' + pt('IO写', 'IO写') + '</th><td>' + toSize(rdata.io_write_bytes) + '</td>\
 						</tr>\
 						<tr>\
-							<th>启动时间</th><td>' + getLocalTime(rdata.create_time) + '</td>\
-							<th>描述</th><td colspan="3">' + rdata.ps + '</td>\
+							<th>' + pt('启动时间', '启动时间') + '</th><td>' + getLocalTime(rdata.create_time) + '</td>\
+							<th>' + pt('描述', '描述') + '</th><td colspan="3">' + rdata.ps + '</td>\
 						</tr>\
 						<tr>\
-							<th>启动命令</th><td colspan="5">' + rdata.comline.join(" ") + '</td>\
+							<th>' + pt('启动命令', '启动命令') + '</th><td colspan="5">' + rdata.comline.join(" ") + '</td>\
 						</tr>\
 					</tbody>\
 				</table>\
 			</div>\
-			<h3 class="tname">内存</h3>\
+			<h3 class="tname">' + pt('内存', '内存') + '</h3>\
 			<div class="divtable">\
 				<table class="table">\
 					<tbody>\
@@ -1048,13 +1050,13 @@ function get_process_info(pid) {
 					</tbody>\
 				</table>\
 			</div>\
-			<h3 class="tname">打开的文件列表</h3>\
+			<h3 class="tname">' + pt('打开的文件列表', '打开的文件列表') + '</h3>\
 			<div class="divtable">\
 				<div id="jc-file-table" class="jc-file-table" style="height:206px;overflow:auto;border:#ddd 1px solid">\
 					<table class="table table-hover" style="border:none">\
 						<thead>\
 							<tr>\
-								<th>文件</th>\
+								<th>' + pt('文件', '文件') + '</th>\
 								<th>mode</th>\
 								<th>position</th>\
 								<th>flags</th>\
@@ -1067,13 +1069,13 @@ function get_process_info(pid) {
 			</div>\
 		</div>\
 		<div class="mini-info">\
-			<button class="btn btn-sm btn-default mr5" onclick="open_path(\'' + rdata.exe + '\')">打开文件位置</button>\
-			<button class="btn btn-sm btn-default" onclick="kill_process_all(' + rdata.pid + ')">结束进程树</button>\
+			<button class="btn btn-sm btn-default mr5" onclick="open_path(\'' + rdata.exe + '\')">' + pt('打开文件位置', '打开文件位置') + '</button>\
+			<button class="btn btn-sm btn-default" onclick="kill_process_all(' + rdata.pid + ')">' + pt('结束进程树', '结束进程树') + '</button>\
 		</div>';
 
         TaskProcessLayerIndex = layer.open({
             type: 1,
-            title: '进程属性[' + rdata.name + '] -- ' + rdata.exe,
+            title: pt('进程属性', '进程属性') + ' [' + rdata.name + '] -- ' + rdata.exe,
             area: '750px',
             closeBtn: 2,
             shadeClose: false,
@@ -1085,9 +1087,9 @@ function get_process_info(pid) {
 
 //屏蔽指定IP
 function dropAddress(address) {
-    layer.confirm(lan.index.net_doup_ip_msg, {icon: 3, closeBtn: 2}, function () {
-        loadT = layer.msg(lan.index.net_doup_ip_to, {icon: 16, time: 0, shade: [0.3, '#000']});
-        $.post('/firewall/add_drop_address', 'type=address&protocol=tcp&port=' + address + '&ps=手动屏蔽', function (rdata) {
+    layer.confirm(pt('您真的要屏蔽此IP吗？', '您真的要屏蔽此IP吗？'), {icon: 3, closeBtn: 2}, function () {
+        var loadT = layer.msg(pt('正在屏蔽指定IP..', '正在屏蔽指定IP..'), {icon: 16, time: 0, shade: [0.3, '#000']});
+        $.post('/firewall/add_drop_address', 'type=address&protocol=tcp&port=' + address + '&ps=' + encodeURIComponent(pt('手动屏蔽', '手动屏蔽')), function (rdata) {
             layer.close(loadT);
             layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
         });

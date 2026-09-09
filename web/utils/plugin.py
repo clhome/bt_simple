@@ -10,8 +10,10 @@
 
 import os
 import sys
+import re
 import json
 import shlex
+import inspect
 import threading
 import multiprocessing
 
@@ -1551,16 +1553,42 @@ class plugin(object):
             if args:
                 try:
                     parsed_args = json.loads(args)
-                    if isinstance(parsed_args, dict):
-                        data = target_func(**parsed_args)
-                    elif isinstance(parsed_args, (list, tuple)):
-                        data = target_func(*parsed_args)
-                    else:
-                        data = target_func(parsed_args)
                 except Exception:
-                    data = target_func(args)
+                    parsed_args = args
+
+                if isinstance(parsed_args, dict):
+                    try:
+                        sig = inspect.signature(target_func)
+                        params = list(sig.parameters.values())
+                        if len(params) == 0:
+                            data = target_func()
+                        elif len(params) == 1 and params[0].kind not in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL) and params[0].name not in parsed_args:
+                            data = target_func(parsed_args)
+                        else:
+                            try:
+                                data = target_func(**parsed_args)
+                            except TypeError:
+                                data = target_func(parsed_args)
+                    except Exception:
+                        try:
+                            data = target_func(parsed_args)
+                        except TypeError:
+                            try:
+                                data = target_func(**parsed_args)
+                            except TypeError:
+                                data = target_func()
+                elif isinstance(parsed_args, (list, tuple)):
+                    try:
+                        data = target_func(*parsed_args)
+                    except TypeError:
+                        data = target_func(parsed_args)
+                else:
+                    data = target_func(parsed_args)
             else:
-                data = target_func()
+                try:
+                    data = target_func()
+                except TypeError:
+                    data = target_func({})
         except Exception as e:
             if yf.isDebugMode():
                 print(yf.getTracebackInfo())

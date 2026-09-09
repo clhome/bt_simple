@@ -445,8 +445,8 @@
 
         var pt = createPluginTranslator(pluginName);
 
-        // 1. 精准定向翻译左侧菜单项 .bt-w-menu p
-        $con.find('.bt-w-menu p').each(function() {
+        // 1. 精准定向翻译菜单项（左侧侧边栏 .bt-w-menu p、顶部Tab .man-menu-sub span、设置表头项 .setting_ul .setting_ul_li span）
+        $con.find('.bt-w-menu p, .man-menu-sub span, .setting_ul .setting_ul_li span').each(function() {
             var $p = window.$(this);
             var orig = $p.attr('data-i18n-orig');
             if (!orig) {
@@ -459,6 +459,35 @@
                 var trans = pt(orig);
                 if (trans && trans !== orig) {
                     $p.text(trans);
+                }
+            }
+        });
+
+        // 1.1 精准定向翻译输入框 placeholder 与容器 title 提示
+        $con.find('input[placeholder], .table_config[title]').each(function() {
+            var $el = window.$(this);
+            var ph = $el.attr('placeholder');
+            if (ph) {
+                var origPh = $el.attr('data-i18n-ph-orig');
+                if (!origPh) {
+                    origPh = ph;
+                    $el.attr('data-i18n-ph-orig', origPh);
+                }
+                var transPh = pt(origPh);
+                if (transPh && transPh !== origPh) {
+                    $el.attr('placeholder', transPh);
+                }
+            }
+            var title = $el.attr('title');
+            if (title) {
+                var origTitle = $el.attr('data-i18n-title-orig');
+                if (!origTitle) {
+                    origTitle = title;
+                    $el.attr('data-i18n-title-orig', origTitle);
+                }
+                var transTitle = pt(origTitle);
+                if (transTitle && transTitle !== origTitle) {
+                    $el.attr('title', transTitle);
                 }
             }
         });

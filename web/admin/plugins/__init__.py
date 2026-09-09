@@ -370,43 +370,49 @@ def run():
 @blueprint.route('/callback', endpoint='callback', methods=['GET','POST'])
 @panel_login_required
 def callback():
-    name = request.form.get('name', '')
-    func = request.form.get('func', '')
-    args = request.form.get('args', '')
-    script = request.form.get('script', 'index')
+    try:
+        name = request.form.get('name', '') or request.args.get('name', '')
+        func = request.form.get('func', '') or request.args.get('func', '')
+        args = request.form.get('args', '') or request.args.get('args', '')
+        script = request.form.get('script', '') or request.args.get('script', '') or 'index'
 
-    is_state_op = (
-        func in ('start', 'stop', 'restart', 'reload')
-        or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_', 'restore_'))
-        or 'restore' in func.lower()
-        or 'reload' in func.lower()
-        or 'restart' in func.lower()
-    )
-    if is_state_op:
-        for k in [k for k in RUN_CACHE.keys()]:
-            if k[0] == name:
-                try:
-                    del RUN_CACHE[k]
-                except KeyError:
-                    pass
-        try:
-            YfPlugin.instance().runByCache(name, func, '')
-        except Exception:
-            pass
+        is_state_op = (
+            func in ('start', 'stop', 'restart', 'reload')
+            or any(func.startswith(p) for p in ('start_', 'stop_', 'restart_', 'reload_', 'restore_'))
+            or 'restore' in func.lower()
+            or 'reload' in func.lower()
+            or 'restart' in func.lower()
+        )
+        if is_state_op:
+            for k in [k for k in RUN_CACHE.keys()]:
+                if k[0] == name:
+                    try:
+                        del RUN_CACHE[k]
+                    except KeyError:
+                        pass
+            try:
+                YfPlugin.instance().runByCache(name, func, '')
+            except Exception:
+                pass
 
-    pg = YfPlugin.instance()
-    data = pg.callback(name, func, args=args, script=script)
+        pg = YfPlugin.instance()
+        data = pg.callback(name, func, args=args, script=script)
 
-    if is_state_op:
-        try:
-            op_ok = bool(data[0])
-            YfPlugin.instance().runByCache(name, func, '', op_result=op_ok)
-        except Exception:
-            pass
+        if is_state_op:
+            try:
+                op_ok = bool(data[0])
+                YfPlugin.instance().runByCache(name, func, '', op_result=op_ok)
+            except Exception:
+                pass
 
-    if data[0]:
-        return yf.returnData(True, "OK", data[1])
-    return yf.returnData(False, data[1])
+        if data[0]:
+            return yf.returnData(True, "OK", data[1])
+        return yf.returnData(False, data[1])
+    except Exception as e:
+        if yf.isDebugMode():
+            print(yf.getTracebackInfo())
+        yf.writeLog('插件管理', f"插件[{request.form.get('name', '') or request.args.get('name', '')}]回调操作[{request.form.get('func', '') or request.args.get('func', '')}]异常: {str(e)}")
+        return {'status': False, 'msg': f"操作执行异常: {str(e)}", 'data': ''}
 
 # 插件统一批量回调入口API (专门用于前端聚合查询等性能优化场景)
 @blueprint.route('/run_batch', endpoint='run_batch', methods=['POST'])
