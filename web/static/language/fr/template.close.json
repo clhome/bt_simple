@@ -1,7 +1,0 @@
-{
-  "TITLE": "Le panneau est fermé",
-  "H1": "Désolé, l'administrateur a désactivé le panneau de contrôle.",
-  "P1": "Commande à exécuter : rm -f /www/server/panel/data/close.pl",
-  "NAME": "Panneau de configuration Baota pour Linux",
-  "HELP": "Demande d'aide"
-}

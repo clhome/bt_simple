@@ -744,6 +744,75 @@
         return div.innerHTML;
     }
 
+    // ================================================================
+    // 主菜单分片懒加载：每个主菜单一个翻译文件（template.<menu>.json），
+    // 按当前页面路由仅加载对应分片，避免首屏拉取 200KB+ 全量词典
+    // ================================================================
+    var _MENU_LOADED = {};       // 已加载分片集合（防重复请求）
+    var _MENU_QUEUE = [];        // 待注入回调
+
+    // URL 路径 -> 主菜单分片名（后端 _SECTION_TO_MENU 的镜像）
+    var PATH_TO_MENU = {
+        '/': 'index', '/index': 'index', '/dashboard': 'index', '/task': 'index',
+        '/site': 'site', '/database': 'site', '/ftp': 'site',
+        '/files': 'files', '/file': 'files', '/upload': 'files',
+        '/firewall': 'security', '/ssh': 'security',
+        '/crontab': 'crontab',
+        '/monitor': 'monitor', '/system': 'monitor', '/control': 'monitor',
+        '/logs': 'logs',
+        '/soft': 'soft', '/plugins': 'soft', '/plugin': 'soft',
+        '/setting': 'setting', '/config': 'setting'
+    };
+
+    function detectCurrentMenu() {
+        var p = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+        if (PATH_TO_MENU[p] !== undefined) return PATH_TO_MENU[p];
+        var first = '/' + (p.split('/')[1] || '');
+        return PATH_TO_MENU[first] !== undefined ? PATH_TO_MENU[first] : 'index';
+    }
+
+    /**
+     * 按当前主菜单异步加载 template.<menu>.json 并合并进 window.lan（幂等）
+     * 成功后回调（供 data-i18n 二次翻译与插件弹窗使用）
+     */
+    function loadMenuLan(callback) {
+        var lang = _currentLang || 'zh-CN';
+        var menu = detectCurrentMenu();
+        if (_MENU_LOADED[menu]) {
+            if (typeof callback === 'function') callback();
+            return;
+        }
+        _MENU_QUEUE.push(callback || function() {});
+        if (_MENU_QUEUE.length > 1) return; // 已有一个在途请求
+
+        window.$.ajax({
+            url: '/static/language/' + lang + '/template.' + menu + '.json',
+            dataType: 'json',
+            async: true,
+            success: function(data) {
+                if (data && typeof data === 'object') {
+                    for (var k in data) {
+                        if (Object.prototype.hasOwnProperty.call(data, k) && !(k in window.lan)) {
+                            window.lan[k] = data[k];
+                        }
+                    }
+                }
+                _MENU_LOADED[menu] = true;
+            },
+            error: function() {
+                _MENU_LOADED[menu] = true; // 404 或网络异常时标记已尝试，避免重复请求
+            },
+            complete: function() {
+                var q = _MENU_QUEUE;
+                _MENU_QUEUE = [];
+                for (var i = 0; i < q.length; i++) {
+                    if (typeof q[i] === 'function') q[i]();
+                }
+                translateDOM();
+            }
+        });
+    }
+
     // 暴露全局 API
     var YfI18n = {
         detect: detectLanguage,
@@ -755,6 +824,8 @@
         translatePluginDOM: translatePluginDOM,
         createPluginTranslator: createPluginTranslator,
         loadPluginLangAsync: loadPluginLangAsync,
+        loadMenuLan: loadMenuLan,
+        detectCurrentMenu: detectCurrentMenu,
         t: t,
         tSafe: tSafe,
         escapeHtml: escapeHtml,
@@ -767,13 +838,21 @@
     window.YfI18n = YfI18n;
     window.t = t;
 
-    // DOM 加载就绪后自动执行一次扫描翻译
+    // DOM 加载就绪后：先尝试按当前主菜单轻量加载 template.<menu>.json，命中后零补包 latency 完成翻译
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
-            translateDOM();
+            if (window.$ && typeof window.$.ajax === 'function') {
+                loadMenuLan();
+            } else {
+                translateDOM();
+            }
         });
     } else {
-        translateDOM();
+        if (window.$ && typeof window.$.ajax === 'function') {
+            loadMenuLan();
+        } else {
+            translateDOM();
+        }
     }
 
 })(window, document);

@@ -57,6 +57,29 @@ LANG_MAP = {
     "traditional_chinese": "zh-TW"
 }
 
+# 兼容垫片与主菜单分片（参考/优化260910.md §4 / P-2：一个主菜单一个翻译文件）
+# 每语言仅 10 个文件：9 主菜单分片 template.<menu>.json + 兼容垫片 template.json
+# 垫片由 scripts/tools/merge_template_by_menu_v2.py 从 9 分片重建，二者必须同步存在
+_MENU_NAMES = ("index", "site", "files", "security", "crontab", "monitor", "logs", "soft", "setting")
+
+# template.json 顶级 section -> 主菜单分片归属（与 merge 脚本 MENU_SECTIONS 保持一致）
+_SECTION_TO_MENU = {
+    "index": "index", "dashboard": "index", "menu": "index", "auth": "index",
+    "login": "index", "close": "index", "admin": "index", "task": "index",
+    "site": "site", "database": "site", "ftp": "site",
+    "files": "files", "file": "files", "upload": "files",
+    "firewall": "security", "ssh": "security",
+    "crontab": "crontab",
+    "control": "monitor", "system": "monitor",
+    "logs": "logs",
+    "soft": "soft", "plugins": "soft", "plugin": "soft", "jdk": "soft", "python_yf": "soft",
+    "config": "setting", "setting": "setting", "common": "setting",
+    "public": "setting", "utils": "setting",
+}
+
+# 无点号 flat 键的确定性查找顺序（分片中 flat 键的唯一归属，首个命中即返回）
+_FLAT_MENU_ORDER = ("index", "files", "crontab", "setting")
+
 _LANG_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../static/language"))
 
 def normalize_lang(lang_code):
@@ -164,21 +187,47 @@ def get_current_lang():
     return _get_file_lang()
 
 @functools.lru_cache(maxsize=_I18N_LRU_SIZE)
-def get_cached_json(name, lang):
-    """读取并缓存指定语言的 JSON 文件；支持 template.<section> 按路由懒加载（low檔首屏-50KB）"""
+def _load_menu_shard(menu, lang):
+    """加载单个主菜单分片 template.<menu>.json（低配每页仅触达 1~2 个分片）"""
     norm_lang = normalize_lang(lang) or DEFAULT_LANG
-    # 点号拆包：template.xxx 优先走 template.xxx.json 子文件，缺失再回退整包
+    filepath = os.path.join(_LANG_DIR, norm_lang, "template.%s.json" % menu)
+    if not os.path.exists(filepath):
+        filepath = os.path.join(_LANG_DIR, DEFAULT_LANG, "template.%s.json" % menu)
+    try:
+        if os.path.exists(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+def _get_template_menu(menu, lang):
+    """按主菜单取翻译词典；分片缺失时回退兼容垫片 template.json 中该菜单 section"""
+    data = _load_menu_shard(menu, lang)
+    if data is None:
+        data = {}
+    if not data:
+        shim = get_cached_json("template", lang)
+        if isinstance(shim, dict) and isinstance(shim.get(menu), dict):
+            return shim[menu]
+    return data
+
+@functools.lru_cache(maxsize=_I18N_LRU_SIZE)
+def get_cached_json(name, lang):
+    """读取并缓存指定语言的 JSON 文件；支持 template.<section> 按路由懒加载（low档首屏-50KB）"""
+    norm_lang = normalize_lang(lang) or DEFAULT_LANG
+    # 点号拆包：template.xxx 优先走主菜单分片（9 分片其一），缺失再回退整包垫片
     if "." in name:
         base, sub = name.split(".", 1)
-        # 子文件路径：static/language/<lang>/template.<sub>.json
-        sub_path = os.path.join(_LANG_DIR, norm_lang, f"{base}.{sub}.json")
-        if os.path.exists(sub_path):
-            try:
-                with open(sub_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        # 回退：加载整包再取子键（兼容旧包未拆分环境）
+        if base == "template" and sub in _SECTION_TO_MENU:
+            menu = _SECTION_TO_MENU[sub]
+            menu_dict = _get_template_menu(menu, lang)
+            if isinstance(menu_dict.get(sub), dict):
+                return menu_dict[sub]
+            if sub in menu_dict:
+                return menu_dict[sub]
+            return {}
+        # 兼容旧路径：template.<section>.json 已随合并删除，尝试垫片取子键
         try:
             fallback = get_cached_json(base, lang) if base != name else {}
             if isinstance(fallback, dict) and sub in fallback:
@@ -213,48 +262,58 @@ def _lookup_message(key, lang):
     pub = get_cached_json("public", lang)
     if key in pub and isinstance(pub[key], str):
         return pub[key]
-        
+
     # 2. 查找 server.json
     srv = get_cached_json("server", lang)
     if key in srv and isinstance(srv[key], str):
         return srv[key]
-        
-    # 非 Web 请求环境（如插件命令行子进程），绝不加载近 400KB 的巨型 template.json 避免磁盘 I/O 放大
-    if not _is_web_request():
-        if "." in key:
-            sec, sub_key = key.split(".", 1)
-            if sec != "template":
-                sec_dict = get_cached_json(sec, lang)
-                if sub_key in sec_dict and isinstance(sec_dict[sub_key], str):
-                    return sec_dict[sub_key]
-        return None
 
-    # 3. Web 请求上下文：多层点号路径在 template.json 中的深度查找
-    tmpl = get_cached_json("template", lang)
-    curr = tmpl
-    parts = key.split(".")
-    found = True
-    for p in parts:
-        if isinstance(curr, dict) and p in curr:
-            curr = curr[p]
-        else:
-            found = False
-            break
-    if found and isinstance(curr, str):
-        return curr
-
-    # 4. 点号分割子模块查找（如 sec.json）
+    # 3. 主菜单分片查找（9 分片之一，每请求仅触达 1~2 个文件）
+    #    点号键：首个段映射主菜单（site.H1 -> template.site.json）
+    #    无点号键：flat 归属确定性顺序 index -> files -> crontab -> setting
     if "." in key:
         sec, sub_key = key.split(".", 1)
-        sec_dict = get_cached_json(sec, lang)
-        if sub_key in sec_dict and isinstance(sec_dict[sub_key], str):
-            return sec_dict[sub_key]
-        if key in tmpl and isinstance(tmpl[key], str):
-            return tmpl[key]
-    else:
-        if key in tmpl and isinstance(tmpl[key], str):
-            return tmpl[key]
-            
+        if sec != "template":
+            menu = _SECTION_TO_MENU.get(sec)
+            if menu:
+                menu_dict = _get_template_menu(menu, lang)
+                curr = menu_dict.get(sec)
+                if isinstance(curr, dict):
+                    if sub_key in curr and isinstance(curr[sub_key], str):
+                        return curr[sub_key]
+                    # 深层点号：sec.sub.sub2
+                    cur = curr
+                    for p in sub_key.split("."):
+                        if isinstance(cur, dict) and p in cur:
+                            cur = cur[p]
+                        else:
+                            cur = None
+                            break
+                    if isinstance(cur, str):
+                        return cur
+                elif isinstance(curr, str) and sub_key == "":
+                    return curr
+        # section 未映射或未命中：回退垫片整包深度查找
+        tmpl = get_cached_json("template", lang)
+        curr = tmpl
+        for p in key.split("."):
+            if isinstance(curr, dict) and p in curr:
+                curr = curr[p]
+            else:
+                curr = None
+                break
+        if isinstance(curr, str):
+            return curr
+        # 点号键在分片 section 内命中（sec.flat 形态）
+        if sec in tmpl and isinstance(tmpl.get(sec), dict) and sub_key in tmpl[sec] and isinstance(tmpl[sec][sub_key], str):
+            return tmpl[sec][sub_key]
+        return None
+
+    # 无点号 flat 键：确定性顺序命中即返回
+    for menu in _FLAT_MENU_ORDER:
+        menu_dict = _get_template_menu(menu, lang)
+        if key in menu_dict and isinstance(menu_dict[key], str):
+            return menu_dict[key]
     return None
 
 _HTML_RE = None

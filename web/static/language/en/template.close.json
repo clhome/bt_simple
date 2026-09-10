@@ -1,7 +1,0 @@
-{
-  "TITLE": "The panel is closed.",
-  "H1": "Sorry, the administrator has closed the panel.",
-  "P1": "Command to run: rm -f /www/server/panel/data/close.pl",
-  "NAME": "Baota Linux Control Panel",
-  "HELP": "Request for Help"
-}
