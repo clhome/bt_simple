@@ -859,7 +859,7 @@ function getDiskList(b) {
   }, 'json');
 }
 function createFolder() {
-  var a = '<tr>		<td colspan=\'2\'><span class=\'glyphicon glyphicon-folder-open\'></span><input id=\'newFolderName\' class=\'newFolderName\' type=\'text\' value=\'\'></td>		<td colspan=\'3\'><button id=\'nameOk\' type=\'button\' class=\'btn btn-success btn-sm nameOk\'>' + ('<tr>		<td colspan=\'2\'><span class=\'glyphicon glyphicon-folder-open\'></span><input id=\'newFolderName\' class=\'newFolderName\' type=\'text\' value=\'\'></td>		<td colspan=\'3\'><button id=\'nameOk\' type=\'button\' class=\'btn btn-success btn-sm nameOk\'>' + (lan && lan.public && t('public.confirm') || '确定') + '</button>			&nbsp;&nbsp;<button id=\'nameNOk\' type=\'button\' class=\'btn btn-default btn-sm nameNOk\'>' + (lan && lan.public && t('public.cancel') || '取消') + '</button></td>		</tr>' || '确定') + '</button>			&nbsp;&nbsp;<button id=\'nameNOk\' type=\'button\' class=\'btn btn-default btn-sm nameNOk\'>' + (lan && lan.public && t('public.cancel') || '取消') + '</button></td>		</tr>';
+  var a = YfI18n.renderTemplateToString(window.YF_TPL && window.YF_TPL.newFolderRow || '<tr><td colspan="2"><span class="glyphicon glyphicon-folder-open"></span><input id="newFolderName" class="newFolderName" type="text" value=""></td><td colspan="3"><button id="nameOk" type="button" class="btn btn-success btn-sm nameOk" data-i18n="public.confirm"></button>&nbsp;&nbsp;<button id="nameNOk" type="button" class="btn btn-default btn-sm nameNOk" data-i18n="public.cancel"></button></td></tr>');
   if ($("#tbody tr").length == 0) {
     $("#tbody").append(a);
   } else {
@@ -1127,14 +1127,9 @@ function onlineEditFile(k, f, callback) {
     btn: ['<span class="glyphicon glyphicon-floppy-disk"></span> ' + (lan && lan.public && t('public.save_1') || '保存'), '<span class="glyphicon glyphicon-refresh"></span> ' + (lan && lan.public && t('public.refresh_1') || '刷新')],
     title: (lan && lan.public && t('public.edit_online') || '在线编辑') + ' [' + f + ']',
     shade: 0.0000001,
-    content: '<form class="bt-form pd20">\
-      <div class="line">\
-        <p style="color:red;margin-bottom:10px">' + (lan && lan.public && t('public.tip_use_ctrl_to') || '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '\
-          <select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select>\
-        </p>\
-        <textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea>\
-      </div>\
-    </form>',
+    content: (window.YfI18n && YfI18n.renderTemplateToString && window.YF_TPL && YF_TPL.onlineEdit
+      ? YfI18n.renderTemplateToString(YF_TPL.onlineEdit)
+      : '<form class="bt-form pd20"><div class="line"><p style="color:red;margin-bottom:10px">' + t('public.editor_tip', '提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+H 查找替换!') + '<select class="bt-input-text" name="encoding" style="width: 74px;position: absolute;top: 31px;right: 19px;height: 22px;z-index: 9999;border-radius: 0;"><option value="utf-8" selected>utf-8</option></select></p><textarea class="mCustomScrollbar bt-input-text" id="textBody" style="width:100%;margin:0 auto;line-height: 1.8;position: relative;top: 10px;"></textarea></div></form>'),
     success: function (layero) {
       $(layero).hide();
       var layer_id = $(layero).attr('id').replace("layui-layer", "");
@@ -1773,10 +1768,10 @@ getPanelList();
 function bindPanel(a, type, ip, btid, url, user, pw) {
   var titleName = lan && lan.public && t('public.related_panels') || "";
   if (type == "b") {
-    btn = '<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'b\')">' + ('<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'b\')">' + (lan && lan.public && t('public.add') || '添加') + '</button>' || '添加') + '</button>';
+    btn = '<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'b\')">' + t('public.add', '添加') + '</button>';
   } else {
-    titleName = (lan && lan.public && t('public.edit_association') || "") + ip;
-    btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('" + btid + (((((lan && lan.public && t('public.delete_1') || '\')">删除') || '\')">删除') + '</button>		<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'c\',\'' || '\')">删除') || '\')">删除') + '</button>		<button type=\'button\' class=\'btn btn-success btn-sm\' onclick="bindPanel(1,\'c\',\'') + ip + "','" + btid + (((((lan && lan.public && t('public.msg_1') || '\')" style=\'margin-left:7px\'>修改') || '\')" style=\'margin-left:7px\'>修改') + '</button>' || '\')" style=\'margin-left:7px\'>修改') || '\')" style=\'margin-left:7px\'>修改') + '</button>');
+    titleName = t('public.edit_association', '编辑关联') + ip;
+    btn = "<button type='button' class='btn btn-default btn-sm' onclick=\"bindPaneldel('" + btid + "')\">" + t('public.delete_1', '删除') + "</button> <button type='button' class='btn btn-success btn-sm' onclick=\"bindPanel(1,'c','" + YfI18n.escapeHtml(ip) + "','" + btid + "')\" style='margin-left:7px'>" + t('public.edit', '修改') + "</button>";
   }
   if (url == undefined) url = "http://";
   if (user == undefined) user = "";
@@ -1786,7 +1781,7 @@ function bindPanel(a, type, ip, btid, url, user, pw) {
     var gurl = "/setting/add_panel_info";
     var btaddress = $("#btaddress").val();
     if (!btaddress.match(/^(http|https)+:\/\/([\w-]+\.)+[\w-]+:\d+/)) {
-      layer.msg(((lan && lan.public && t('public.the_panel_address_format') || '面板地址格式不正确，示例：') + '<p>http://192.168.0.1:8888</p>' || '面板地址格式不正确，示例：') + '<p>http://192.168.0.1:8888</p>', {
+      layer.msg((t('public.panel_address_format_err', '面板地址格式不正确，示例：http://192.168.0.1:8888') || '面板地址格式不正确，示例：http://192.168.0.1:8888'), {
         icon: 5,
         time: 5000
       });
@@ -1828,8 +1823,7 @@ function bindPanel(a, type, ip, btid, url, user, pw) {
     closeBtn: 1,
     shift: 5,
     shadeClose: false,
-    content: ('<div class=\'bt-form pd20 pb70\'>				<div class=\'line\'><span class=\'tname\'>' + ('<div class=\'bt-form pd20 pb70\'>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.panel_address') || '面板地址') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btaddress\' id=\'btaddress\' value=\'' || '面板地址') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btaddress\' id=\'btaddress\' value=\'') + url + (((((lan && lan.public && t('public.msg_2') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.username') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btuser\' id=\'btuser\' value=\'' || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') || '\' placeholder=\'面板地址\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.username') || '用户名') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'btuser\' id=\'btuser\' value=\'') + user + (((((lan && lan.public && t('public.msg_3') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.password') || '密码') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'btpassword\' id=\'btpassword\' value=\'' || '\' placeholder=\'用户名\' style=\'width:100%\'/>') || '\' placeholder=\'用户名\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.password') || '密码') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'password\' name=\'btpassword\' id=\'btpassword\' value=\'') + pw + (((((lan && lan.public && t('public.msg_4') || '\' placeholder=\'密码\' style=\'width:100%\'/>') || '\' placeholder=\'密码\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.notes') || '备注') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'bttitle\' id=\'bttitle\' value=\'' || '\' placeholder=\'密码\' style=\'width:100%\'/>') || '\' placeholder=\'密码\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><span class=\'tname\'>' + (lan && lan.public && t('public.notes') || '备注') + '</span>				<div class=\'info-r\'><input class=\'bt-input-text\' type=\'text\' name=\'bttitle\' id=\'bttitle\' value=\'') + ip + (((((lan && lan.public && t('public.msg_5') || '\' placeholder=\'备注\' style=\'width:100%\'/>') || '\' placeholder=\'备注\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><ul class=\'help-info-text c7\'>					<li>' + (lan && lan.public && t('public.save_information_about_other') || '收藏其它服务器面板资料，实现一键登录面板功能') + '</li><li>' + (lan && lan.public && t('public.panel_notes_must_be') || '面板备注不可重复') + '</li>					<li><font style=\'color:red\'>' + (lan && lan.public && t('public.please_note_that_enabling') || '注意，开启广告拦截会导致无法快捷登录。') + '</font></li></ul>				</div>				<div class=\'bt-form-submit-btn\'><button type=\'button\' class=\'btn btn-danger btn-sm\' onclick="layer.closeAll()">' + (lan && lan.public && t('public.close_4') || '关闭') + '</button> ' || '\' placeholder=\'备注\' style=\'width:100%\'/>') || '\' placeholder=\'备注\' style=\'width:100%\'/>') + '</div>				</div>				<div class=\'line\'><ul class=\'help-info-text c7\'>					<li>' + (lan && lan.public && t('public.save_information_about_other') || '收藏其它服务器面板资料，实现一键登录面板功能') + '</li><li>' + (lan && lan.public && t('public.panel_notes_must_be') || '面板备注不可重复') + '</li>					<li><font style=\'color:red\'>' + (lan && lan.public && t('public.please_note_that_enabling') || '注意，开启广告拦截会导致无法快捷登录。') + '</font></li></ul>				</div>				<div class=\'bt-form-submit-btn\'><button type=\'button\' class=\'btn btn-danger btn-sm\' onclick="layer.closeAll()">' + (lan && lan.public && t('public.close_4') || '关闭') + '</button> ') + btn + "</div>\
-			</div>",
+    content: (window.YfI18n && YfI18n.renderTemplateToString && window.YF_TPL && YF_TPL.panelBind ? YfI18n.renderTemplateToString(YF_TPL.panelBind, {panel_url: YfI18n.escapeHtml(url), panel_user: YfI18n.escapeHtml(user), panel_pwd: YfI18n.escapeHtml(pw), panel_title: YfI18n.escapeHtml(ip), html_btns: btn}) : '<div class="bt-form pd20 pb70"><div class="line"><span class="tname">' + t('public.panel_address','面板地址') + '</span><div class="info-r"><input class="bt-input-text" type="text" name="btaddress" id="btaddress" value="' + YfI18n.escapeHtml(url) + '" style="width:100%"></div></div><div class="line"><span class="tname">' + t('public.username','用户名') + '</span><div class="info-r"><input class="bt-input-text" type="text" name="btuser" id="btuser" value="' + YfI18n.escapeHtml(user) + '" style="width:100%"></div></div><div class="line"><span class="tname">' + t('public.password','密码') + '</span><div class="info-r"><input class="bt-input-text" type="password" name="btpassword" id="btpassword" value="' + YfI18n.escapeHtml(pw) + '" style="width:100%"></div></div><div class="line"><span class="tname">' + t('public.notes','备注') + '</span><div class="info-r"><input class="bt-input-text" type="text" name="bttitle" id="bttitle" value="' + YfI18n.escapeHtml(ip) + '" style="width:100%"></div></div><div class="line"><ul class="help-info-text c7"><li>' + t('public.bind_panel_help_1') + '</li><li>' + t('public.bind_panel_help_2') + '</li><li><font style="color:red">' + t('public.bind_panel_help_3') + '</font></li></ul></div><div class="bt-form-submit-btn"><button type="button" class="btn btn-danger btn-sm" onclick="layer.closeAll()">' + t('public.close','关闭') + '</button> ' + btn + '</div></div>'),
     success: function () {
       $("#btaddress").on("input", function () {
         var str = $(this).val();
@@ -1917,24 +1911,7 @@ function messageBox() {
     area: ["680px", "600px"],
     closeBtn: 1,
     shadeClose: false,
-    content: '<div class="bt-form msg-box-form">\
-      <div class="bt-w-main" id="msg_box">\
-        <div class="bt-w-menu">\
-          <p class="bgw" id="taskList" onclick="tasklist()">' + t('public.task_list', '任务列表') + '(<span class="task_count">0</span>)</p>\
-          <p id="msgListTab" onclick="remind()">' + t('public.message_list', '消息列表') + '(<span class="msg_count">0</span>)</p>\
-          <p id="execLogTab" onclick="execLog()">' + t('public.execution_log', '执行日志') + '</p>\
-        </div>\
-        <div class="bt-w-con pd15">\
-          <div class="taskcon"></div>\
-        </div>\
-      </div>\
-      <div id="msg_box_sys_info">\
-        <span>CPU: <span id="msg_box_cpu" style="color:#20a53a; font-weight: 600;">0%</span></span>\
-        <span>' + t('public.memory_1', '内存:') + ' <span id="msg_box_mem" style="color:#20a53a; font-weight: 600;">0%</span></span>\
-        <span>' + t('public.uplink', '上行:') + ' <span id="msg_box_up" style="color:#f7b851; font-weight: 600;">0 B/s</span></span>\
-        <span>' + t('public.downstream', '下行:') + ' <span id="msg_box_down" style="color:#52a9ff; font-weight: 600;">0 B/s</span></span>\
-      </div>\
-    </div>',
+    content: (window.YfI18n && YfI18n.renderTemplateToString && window.YF_TPL && YF_TPL.msgBox ? YfI18n.renderTemplateToString(YF_TPL.msgBox) : '<div class="bt-form msg-box-form"><div class="bt-w-main" id="msg_box"><div class="bt-w-menu"><p class="bgw" id="taskList" onclick="tasklist()">' + t('public.task_list','任务列表') + '(<span class="task_count">0</span>)</p><p onclick="remind()">' + t('public.message_list','消息列表') + '(<span class="msg_count">0</span>)</p><p onclick="execLog()">' + t('public.execution_log','执行日志') + '</p></div><div class="bt-w-con pd15"><div class="taskcon"></div></div></div></div>'),
     success: function () {
       $(".bt-w-menu p").on('click', function () {
         $(this).addClass("bgw").siblings().removeClass("bgw");
@@ -4021,18 +3998,7 @@ function showAdvancedSearchDialog(cm, isReplaceMode) {
   var dialog = document.createElement('div');
   dialog.className = 'cm-advanced-search-dialog';
   dialog.style.cssText = 'position: absolute; top: 15px; right: 30px; z-index: 999; background: #fff; padding: 12px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px; font-size: 13px; width: 320px; transition: all 0.2s;';
-  var html = '<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'>' +
-    '<input type=\'text\' class=\'cm-search-input bt-input-text\' placeholder=\'' + t('public.search_content', '查找内容...') + '\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>' +
-    '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-prev\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.previous', '上一个') + '\'><i class=\'glyphicon glyphicon-chevron-up\'></i></button>' +
-    '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-next\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.next', '下一个') + '\'><i class=\'glyphicon glyphicon-chevron-down\'></i></button>' +
-    '<button type=\'button\' class=\'btn btn-default btn-sm cm-search-close\' style=\'padding: 4px 8px; margin-left: 5px;\' title=\'' + t('public.close', '关闭') + '\'><i class=\'glyphicon glyphicon-remove\'></i></button>' +
-    '</div>' +
-    '<div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'>' +
-    '<input type=\'text\' class=\'cm-replace-input bt-input-text\' placeholder=\'' + t('public.replace_with', '替换为...') + '\' style=\'height: 28px; line-height: 28px; padding: 0 8px; flex: 1; margin-right: 5px; min-width: 0;\'>' +
-    '<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.replace_current', '替换当前') + '\'>' + t('public.replace', '替换') + '</button>' +
-    '<button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding: 4px 8px; margin-left: 2px;\' title=\'' + t('public.replace_all', '替换全部') + '\'>' + t('public.all_1', '全部') + '</button>' +
-    '</div>' +
-    '<div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>';
+  var html = (window.YfI18n && YfI18n.renderTemplateToString && window.YF_TPL && YF_TPL.cmSearch ? ('<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'>' + YfI18n.renderTemplateToString(YF_TPL.cmSearch.input) + YfI18n.renderTemplateToString(YF_TPL.cmSearch.prev) + YfI18n.renderTemplateToString(YF_TPL.cmSearch.next) + YfI18n.renderTemplateToString(YF_TPL.cmSearch.close) + '</div>' + '<div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'>' + YfI18n.renderTemplateToString(YF_TPL.cmSearch.replaceInput) + YfI18n.renderTemplateToString(YF_TPL.cmSearch.replaceBtn) + YfI18n.renderTemplateToString(YF_TPL.cmSearch.replaceAllBtn) + '</div>' + '<div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>') : '<div style=\'display: flex; align-items: center; margin-bottom: 8px;\'><input type=\'text\' class=\'cm-search-input bt-input-text\' placeholder=\'' + t('public.search_content','查找内容...') + '\' style=\'height:28px;line-height:28px;padding:0 8px;flex:1;margin-right:5px;min-width:0;\'><button type=\'button\' class=\'btn btn-default btn-sm cm-search-prev\' style=\'padding:4px 8px;margin-left:2px;\' title=\'' + t('public.previous','上一个') + '\'><i class=\'glyphicon glyphicon-chevron-up\'></i></button><button type=\'button\' class=\'btn btn-default btn-sm cm-search-next\' style=\'padding:4px 8px;margin-left:2px;\' title=\'' + t('public.next','下一个') + '\'><i class=\'glyphicon glyphicon-chevron-down\'></i></button><button type=\'button\' class=\'btn btn-default btn-sm cm-search-close\' style=\'padding:4px 8px;margin-left:5px;\' title=\'' + t('public.close','关闭') + '\'><i class=\'glyphicon glyphicon-remove\'></i></button></div><div class=\'cm-replace-row\' style=\'display: ' + (isReplaceMode ? 'flex' : 'none') + '; align-items: center;\'><input type=\'text\' class=\'cm-replace-input bt-input-text\' placeholder=\'' + t('public.replace_with','替换为...') + '\' style=\'height:28px;line-height:28px;padding:0 8px;flex:1;margin-right:5px;min-width:0;\'><button type=\'button\' class=\'btn btn-default btn-sm cm-replace-btn\' style=\'padding:4px 8px;margin-left:2px;\' title=\'' + t('public.replace_current','替换当前') + '\'>' + t('public.replace','替换') + '</button><button type=\'button\' class=\'btn btn-default btn-sm cm-replace-all-btn\' style=\'padding:4px 8px;margin-left:2px;\' title=\'' + t('public.replace_all','替换全部') + '\'>' + t('public.all_1','全部') + '</button></div><div class=\'cm-search-info\' style=\'font-size: 12px; color: #999; margin-top: 5px; height: 16px;\'></div>');
   dialog.innerHTML = html;
 
   wrapper.appendChild(dialog);

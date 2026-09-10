@@ -233,10 +233,59 @@ def _lookup_message(key, lang):
             
     return None
 
+_HTML_RE = None
+def _get_html_re():
+    global _HTML_RE
+    if _HTML_RE is None:
+        import re as _re
+        _HTML_RE = _re.compile(r"<[a-zA-Z][^>]*>")
+    return _HTML_RE
+
+def escape_html(text):
+    import html as _html
+    if text is None:
+        return ""
+    return _html.escape(str(text), quote=True)
+
+def strip_html(text):
+    import re as _re
+    if not text or not isinstance(text, str):
+        return ""
+    return _re.sub(r"<[^>]*>", "", text).strip()
+
+def is_html_value(value):
+    if not isinstance(value, str):
+        return False
+    return bool(_get_html_re().search(value))
+
+def assert_no_html_in_translations(raise_on_error=True):
+    errors = []
+    for lang in SUPPORTED_CODES:
+        for sec in ["public", "template", "log", "server"]:
+            try:
+                data = get_cached_json(sec, lang)
+            except Exception:
+                continue
+            stack = [(data, "")]
+            while stack:
+                cur, prefix = stack.pop()
+                if not isinstance(cur, dict):
+                    continue
+                for k, v in cur.items():
+                    key = f"{prefix}{k}"
+                    if isinstance(v, dict):
+                        stack.append((v, key + "."))
+                    elif isinstance(v, str) and is_html_value(v):
+                        errors.append(f"{lang}/{sec}.{key}")
+    if errors and raise_on_error:
+        raise ValueError("[i18n] HTML found in translations (move HTML to template): " + ", ".join(errors[:10]))
+    return errors
+
 def t(key, *args, lang=None):
     """
     后端翻译主函数
     支持点号键查找、多词典回退及参数格式化（%s、{0}、{1}等）
+    默认对插值参数做 HTML 转义，翻译本身若含 HTML 会被剥离并告警
     """
     if not key or not isinstance(key, str):
         return ""
@@ -252,11 +301,19 @@ def t(key, *args, lang=None):
             return args[0]
         msg = key
 
-    # 参数替换: {1}, {2}, ... 及 {0}, {1}, ... 与 %s 支持
+    if isinstance(msg, str) and is_html_value(msg):
+        try:
+            import logging
+            logging.warning("[i18n] translation %s contains HTML, stripped", key)
+        except Exception:
+            pass
+        msg = strip_html(msg)
+
     if args:
+        escaped_args = tuple(escape_html(a) for a in args)
         if '%s' in msg and msg.count('%s') == len(args):
             try:
-                return msg % args
+                return msg % escaped_args
             except TypeError:
                 pass
                 
@@ -265,15 +322,42 @@ def t(key, *args, lang=None):
         def _fmt_sub(m):
             num = int(m.group(1))
             if has_zero:
-                if 0 <= num < len(args):
-                    return str(args[num])
+                if 0 <= num < len(escaped_args):
+                    return str(escaped_args[num])
             else:
-                if 1 <= num <= len(args):
-                    return str(args[num - 1])
-                elif 0 <= num < len(args):
-                    return str(args[num])
+                if 1 <= num <= len(escaped_args):
+                    return str(escaped_args[num - 1])
+                elif 0 <= num < len(escaped_args):
+                    return str(escaped_args[num])
             return m.group(0)
             
         msg = re.sub(r'\{(\d+)\}', _fmt_sub, msg)
             
     return msg
+
+def t_html(key, lang=None, **kwargs):
+    msg = t(key, lang=lang)
+    if not msg:
+        return ""
+    import re as _re
+    def _repl(m):
+        k = m.group(1)
+        v = kwargs.get(k, "")
+        if v is None:
+            return ""
+        if k.startswith("html_"):
+            return str(v)
+        return escape_html(v)
+    return _re.sub(r"\{(\w+)\}", _repl, msg)
+
+def t_named(key, lang=None, **kwargs):
+    msg = t(key, lang=lang)
+    if not msg:
+        return ""
+    import re as _re
+    def _repl(m):
+        k = m.group(1)
+        if k in kwargs:
+            return escape_html(kwargs[k])
+        return m.group(0)
+    return _re.sub(r"\{(\w+)\}", _repl, msg)

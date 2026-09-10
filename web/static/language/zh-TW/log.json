@@ -116,7 +116,7 @@
   "MYSQL_CHECK_ERR": "檢測到MySQL配置檔案異常,可能導致mysqld服務無法正常啟動,已自動修復!",
   "SYS_EXEC_ERR": "執行失敗: {1}",
   "SYS_EXEC_SUCCESS": "{1}執行成功",
-  "LOGIN_ERR_CODE": "<a style='color:red;'>驗證碼錯誤</a>,帳號:{1},驗證碼:{2},登入IP:{3}",
-  "LOGIN_ERR_PASS": "<a style='color:red;'>密碼錯誤</a>,帳號:{1},密碼:{2},登入IP:{3}",
-  "LOGIN_SUCCESS": "<a style='color:green;'>登入成功</a>,帳號:{1},登入IP:{2}"
+  "LOGIN_ERR_CODE": "驗證碼錯誤,帳號:{1},驗證碼:{2},登入IP:{3}",
+  "LOGIN_ERR_PASS": "密碼錯誤,帳號:{1},密碼:{2},登入IP:{3}",
+  "LOGIN_SUCCESS": "登入成功,帳號:{1},登入IP:{2}"
 }

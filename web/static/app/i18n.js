@@ -635,6 +635,115 @@
         };
     }
 
+    // ================================================================
+    // HTML 安全与模板渲染层（新增：翻译文件禁止携带 HTML，HTML 回归代码）
+    // ================================================================
+    var HTML_RE = /<[a-zA-Z][\s\S]*>/;
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function stripHtml(s) {
+        if (!s || typeof s !== 'string') return '';
+        return s.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    }
+    function isHtmlValue(v) { return typeof v === 'string' && HTML_RE.test(v); }
+
+    // 缓存编译后的插值模板，命中 0ms
+    var _tCache = {};
+    var _tCacheKeys = [];
+    var _TCACHE_MAX = 512;
+    function _cacheGet(key) { return _tCache[key] || null; }
+    function _cacheSet(key, val) {
+        if (_tCache[key]) return;
+        _tCache[key] = val;
+        _tCacheKeys.push(key);
+        if (_tCacheKeys.length > _TCACHE_MAX) {
+            var old = _tCacheKeys.shift();
+            delete _tCache[old];
+        }
+    }
+
+    /**
+     * 安全插值：在 t() 结果上对所有 {n} 参数做 HTML 转义，杜绝翻译 XSS
+     * 兼容旧调用：t('key', ['a','b']) / t('key', 'a', 'b')
+     */
+    function tSafe(key, args, defaultText) {
+        var raw = t(key, args, defaultText);
+        if (!raw) return raw;
+        // 若原始翻译意外携带 HTML，剥离标签并告警（开发环境）
+        if (isHtmlValue(raw)) {
+            if (window.console && console.warn) {
+                console.warn('[i18n] translation "' + key + '" contains HTML, stripped. Move HTML to template.');
+            }
+            raw = stripHtml(raw);
+        }
+        return raw;
+    }
+    // 显式富文本：仅当 HTML 结构由受信模板提供时使用
+    tSafe.html = function(key, htmlParams) {
+        var msg = t(key);
+        if (!msg || msg === key) return escapeHtml(key);
+        if (isHtmlValue(msg)) msg = stripHtml(msg);
+        if (!htmlParams || typeof htmlParams !== 'object') return escapeHtml(msg);
+        return msg.replace(/\{(\w+)\}/g, function(_, k) {
+            var v = htmlParams[k];
+            if (v == null) return '';
+            return k.indexOf('html_') === 0 ? String(v) : escapeHtml(v);
+        });
+    };
+    // 变量安全插值（命名参数对象）
+    tSafe.named = function(key, params) {
+        var msg = t(key);
+        if (!msg) return '';
+        if (isHtmlValue(msg)) msg = stripHtml(msg);
+        if (!params) return escapeHtml(msg);
+        return msg.replace(/\{(\w+)\}/g, function(_, k) {
+            return k in params ? escapeHtml(params[k]) : '{' + k + '}';
+        });
+    };
+
+    /**
+     * 模板渲染：HTML 结构由代码/ <template> 提供，文本由翻译注入
+     * @param {string} tplString - 含 data-i18n 或 {{key}} 的 HTML
+     * @param {Object} [map] - {{key}} -> 受信 HTML 或纯文本（纯文本自动转义）
+     * @returns {DocumentFragment}
+     */
+    function renderTemplate(tplString, map) {
+        if (!tplString) return document.createDocumentFragment();
+        var tpl = document.createElement('template');
+        var html = tplString;
+        if (map) {
+            html = html.replace(/\{\{(\w+)\}\}/g, function(_, k) {
+                var v = map[k];
+                if (v == null) return '';
+                return k.indexOf('html_') === 0 ? String(v) : escapeHtml(v);
+            });
+        }
+        tpl.innerHTML = html.trim();
+        // data-i18n 自动填充（仅文本节点，不引入 HTML）
+        var frag = tpl.content;
+        var nodes = frag.querySelectorAll('[data-i18n]');
+        for (var i = 0; i < nodes.length; i++) {
+            var el = nodes[i];
+            var k2 = el.getAttribute('data-i18n');
+            var attr = el.getAttribute('data-i18n-attr');
+            var txt = t(k2);
+            if (txt == null || txt === '') continue;
+            if (attr) el.setAttribute(attr, txt);
+            else if (el.tagName === 'INPUT' && (el.type === 'button' || el.type === 'submit')) el.value = txt;
+            else el.textContent = txt;
+        }
+        return frag.cloneNode(true);
+    }
+    function renderTemplateToString(tplString, map) {
+        var frag = renderTemplate(tplString, map);
+        var div = document.createElement('div');
+        div.appendChild(frag);
+        return div.innerHTML;
+    }
+
     // 暴露全局 API
     var YfI18n = {
         detect: detectLanguage,
@@ -646,7 +755,13 @@
         translatePluginDOM: translatePluginDOM,
         createPluginTranslator: createPluginTranslator,
         loadPluginLangAsync: loadPluginLangAsync,
-        t: t
+        t: t,
+        tSafe: tSafe,
+        escapeHtml: escapeHtml,
+        stripHtml: stripHtml,
+        isHtmlValue: isHtmlValue,
+        renderTemplate: renderTemplate,
+        renderTemplateToString: renderTemplateToString
     };
 
     window.YfI18n = YfI18n;

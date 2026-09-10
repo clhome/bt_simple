@@ -116,7 +116,7 @@
   "MYSQL_CHECK_ERR": "È stata rilevata un'anomalia nel file di configurazione di MySQL che avrebbe potuto impedire il corretto avvio del servizio mysqld; il problema è stato risolto automaticamente!",
   "SYS_EXEC_ERR": "Esecuzione non riuscita: {1}",
   "SYS_EXEC_SUCCESS": "{1}Esecuzione riuscita",
-  "LOGIN_ERR_CODE": "<a style='color:red;'>Codice di verifica errato</a>, account:{1}, codice di verifica:{2}, IP di accesso:{3}",
-  "LOGIN_ERR_PASS": "<a style='color:red;'>Codice di accesso errato</a>, account:{1}, codice di accesso:{2}, IP di accesso:{3}",
-  "LOGIN_SUCCESS": "<a style='color:green;'>Accesso effettuato con successo</a>, account:{1}, IP di accesso:{2}"
+  "LOGIN_ERR_CODE": "Codice di verifica errato, account:{1}, codice di verifica:{2}, IP di accesso:{3}",
+  "LOGIN_ERR_PASS": "Codice di accesso errato, account:{1}, codice di accesso:{2}, IP di accesso:{3}",
+  "LOGIN_SUCCESS": "Accesso effettuato con successo, account:{1}, IP di accesso:{2}"
 }

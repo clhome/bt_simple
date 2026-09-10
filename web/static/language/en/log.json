@@ -116,7 +116,7 @@
   "MYSQL_CHECK_ERR": "An anomaly was detected in the MySQL configuration file, which could have prevented the mysqld service from starting properly. It has been automatically fixed!",
   "SYS_EXEC_ERR": "Execution failed: {1}",
   "SYS_EXEC_SUCCESS": "{1}Execution Successful",
-  "LOGIN_ERR_CODE": "<a style='color:red;'>Invalid verification code </a>, Account: {1}, Verification code: {2}, Login IP: {3}",
-  "LOGIN_ERR_PASS": "<a style='color:red;'>Incorrect password</a>, Account: {1}, Password: {2}, Login IP: {3}",
-  "LOGIN_SUCCESS": "<a style='color:green;'>Login Successful</a>, Account:{1}, Login IP:{2}"
+  "LOGIN_ERR_CODE": "Invalid verification code , Account: {1}, Verification code: {2}, Login IP: {3}",
+  "LOGIN_ERR_PASS": "Incorrect password, Account: {1}, Password: {2}, Login IP: {3}",
+  "LOGIN_SUCCESS": "Login Successful, Account:{1}, Login IP:{2}"
 }

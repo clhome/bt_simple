@@ -116,7 +116,7 @@
   "MYSQL_CHECK_ERR": "Es wurde eine Anomalie in der MySQL-Konfigurationsdatei festgestellt, die möglicherweise dazu führen könnte, dass der mysqld-Dienst nicht ordnungsgemäß gestartet werden kann. Das Problem wurde automatisch behoben!",
   "SYS_EXEC_ERR": "Ausführung fehlgeschlagen: {1}",
   "SYS_EXEC_SUCCESS": "{1}Ausführung erfolgreich",
-  "LOGIN_ERR_CODE": "<a style='color:red;'>Falscher Bestätigungscode</a>, Benutzername:{1}, Bestätigungscode:{2}, IP-Adresse bei der Anmeldung:{3}",
-  "LOGIN_ERR_PASS": "<a style='color:red;'>Falsches Passwort</a>, Benutzername:{1}, Passwort:{2}, IP-Adresse bei der Anmeldung:{3}",
-  "LOGIN_SUCCESS": "<a style='color:green;'>Anmeldung erfolgreich</a>, Benutzername:{1}, IP-Adresse bei der Anmeldung:{2}"
+  "LOGIN_ERR_CODE": "Falscher Bestätigungscode, Benutzername:{1}, Bestätigungscode:{2}, IP-Adresse bei der Anmeldung:{3}",
+  "LOGIN_ERR_PASS": "Falsches Passwort, Benutzername:{1}, Passwort:{2}, IP-Adresse bei der Anmeldung:{3}",
+  "LOGIN_SUCCESS": "Anmeldung erfolgreich, Benutzername:{1}, IP-Adresse bei der Anmeldung:{2}"
 }

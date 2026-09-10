@@ -116,7 +116,7 @@
   "MYSQL_CHECK_ERR": "Une anomalie a été détectée dans le fichier de configuration de MySQL, ce qui aurait pu empêcher le service mysqld de démarrer correctement. Le problème a été corrigé automatiquement !",
   "SYS_EXEC_ERR": "Échec de l'exécution : {1}",
   "SYS_EXEC_SUCCESS": "{1} Exécution réussie",
-  "LOGIN_ERR_CODE": "<a style='color:red;'>Code de vérification incorrect </a>, identifiant : {1}, code de vérification : {2}, adresse IP de connexion : {3}",
-  "LOGIN_ERR_PASS": "<a style='color:red;'>Mot de passe incorrect </a>, identifiant : {1}, mot de passe : {2}, adresse IP de connexion : {3}",
-  "LOGIN_SUCCESS": "<a style='color:green;'>Connexion réussie</a>, identifiant : {1}, adresse IP de connexion : {2}"
+  "LOGIN_ERR_CODE": "Code de vérification incorrect , identifiant : {1}, code de vérification : {2}, adresse IP de connexion : {3}",
+  "LOGIN_ERR_PASS": "Mot de passe incorrect , identifiant : {1}, mot de passe : {2}, adresse IP de connexion : {3}",
+  "LOGIN_SUCCESS": "Connexion réussie, identifiant : {1}, adresse IP de connexion : {2}"
 }
