@@ -1,0 +1,14 @@
+{
+  "saving": "正在儲存..",
+  "upload_progress": "上傳进度:",
+  "upload_successful": "已上傳成功",
+  "upload_complete": "上傳完成",
+  "uploaded": "已上傳",
+  "sorry_ie_is_not": "抱歉,IE 6/7/8 不支持请更換浏覽器再上傳",
+  "upload_auto_str_1": "正在儲存..",
+  "upload_auto_str_2": "上傳进度:",
+  "upload_auto_str_3": "已上傳成功",
+  "upload_auto_str_4": "上傳完成",
+  "upload_auto_str_5": "已上傳",
+  "upload_auto_str_6": "抱歉,IE 6/7/8 不支持请更換浏覽器再上傳"
+}

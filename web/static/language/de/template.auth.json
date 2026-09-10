@@ -1,0 +1,12 @@
+{
+  "path_error_title": "Sicherheits-Eingang fehlgeschlagen - Yufeng Panel",
+  "path_error_header": "Bitte verwenden Sie den korrekten Anmelde-Pfad",
+  "error_reason": "Ursache",
+  "path_error_desc": "Dieses Panel erfordert einen geheimen Sicherheitspfad. Falls vergessen, führen Sie den folgenden SSH-Befehl aus.",
+  "solution": "Lösung",
+  "solution_ssh_desc": "Melden Sie sich per SSH auf dem Server an und führen Sie aus:",
+  "view_default_entry": "Standard-Eingang und Zugangsdaten anzeigen",
+  "company_name": "Entwickelt von: Quzhou Yufeng Technology Co., Ltd.",
+  "panel_closed_title": "Panel wurde durch Administrator deaktiviert",
+  "open_cmd_title": "Aktivierungsbefehl"
+}

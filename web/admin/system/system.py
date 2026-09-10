@@ -229,7 +229,7 @@ def get_panel_resources():
             try:
                 cpu_percent += child.cpu_percent(interval=0)
                 mem_mb += child.memory_info().rss / 1024 / 1024
-            except:
+            except Exception as _e:
                 pass
                 
         data = {
@@ -269,7 +269,7 @@ def speed_test():
                     is_running = True
                 else:
                     _speed_test_process = None
-        except:
+        except Exception as _e:
             _speed_test_process = None
             
     if is_running:
@@ -279,7 +279,7 @@ def speed_test():
     if os.path.exists(log_path):
         try:
             os.remove(log_path)
-        except:
+        except Exception as _e:
             pass
             
     # Windows 环境模拟
@@ -333,7 +333,7 @@ def speed_test():
         log_file = open(log_path, 'w', encoding='utf-8')
         try:
             os.chmod(sh_path, 0o755)
-        except:
+        except Exception as _e:
             pass
             
         sub_env = os.environ.copy()
@@ -342,7 +342,7 @@ def speed_test():
             mem_info = psutil.virtual_memory()
             total_mb = int(mem_info.total / 1024 / 1024)
             sub_env['TOTAL_MEM_MB'] = str(total_mb)
-        except:
+        except Exception as _e:
             pass
             
         _speed_test_process = subprocess.Popen(

@@ -52,7 +52,7 @@ def migrate_encrypted_data():
                     if decrypted and decrypted != rdata:
                         enstr = yf.enDoubleCrypt('yufeng_panel', decrypted)
                         yf.writeFile(info_file, enstr)
-                except:
+                except Exception as _e:
                     pass
                     
     yf.writeFile(flag_file, '1')

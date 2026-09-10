@@ -1,0 +1,17 @@
+{
+  "H1": "Startseite",
+  "H2": "FTP-Verwaltung",
+  "SEARCH": "FTP-Suche",
+  "PS": "Die aktuelle FTP-Adresse lautet:",
+  "BTN1": "FTP hinzufügen",
+  "BTN2": "FTP-Port ändern",
+  "BTN3": "Auswahl löschen",
+  "TH1": "Benutzername",
+  "TH2": "Passwort",
+  "TH3": "Status",
+  "TH4": "Stammverzeichnis",
+  "TH5": "Anmerkung",
+  "TH6": "Bedienung",
+  "JS1": "Bitte installieren Sie zunächst Prue-Ftpd!",
+  "JS2": "Installieren"
+}

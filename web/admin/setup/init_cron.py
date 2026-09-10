@@ -165,7 +165,7 @@ def init_cron():
                         }
                         thisdb.addCrontab(add_dbdata)
                         count += 1
-                except:
+                except Exception as _e:
                     pass
             else:
                 # 其它系统任务

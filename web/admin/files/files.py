@@ -251,11 +251,11 @@ def upload_file():
     f.save(filename)
     try:
         os.chown(filename, p_stat.st_uid, p_stat.st_gid)
-    except:
+    except Exception as _e:
         pass
     try:
         os.chmod(filename, p_stat.st_mode)
-    except:
+    except Exception as _e:
         pass
 
     msg = yf.getInfo('上传文件[{1}] 到 [{2}]成功!', (filename, path))

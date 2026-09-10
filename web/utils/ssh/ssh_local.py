@@ -160,7 +160,7 @@ class ssh_local(object):
                     if ssh:
                         try:
                             ssh.close()
-                        except:
+                        except Exception as _e:
                             pass
                     ssh = None
 
@@ -189,7 +189,7 @@ class ssh_local(object):
         try:
             if self.__ssh:
                 self.__ssh.close()
-        except:
+        except Exception as _e:
             pass
 
     def resize(self, data):
@@ -197,7 +197,7 @@ class ssh_local(object):
             if self.__ssh:
                 self.__ssh.resize_pty(width=int(data['cols']), height=int(data['rows']))
                 return True
-        except:
+        except Exception as _e:
             return False
 
     def wsSend(self, recv):
@@ -258,7 +258,7 @@ class ssh_local(object):
                 try:
                     if self.__ssh.exit_status_ready():
                         is_dead = True
-                except:
+                except Exception as _e:
                     is_dead = True
 
                 if not is_dead:

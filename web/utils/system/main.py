@@ -44,7 +44,7 @@ def getPid(self, pname):
             if psutil.Process(pid).name() == pname:
                 return True
         return False
-    except:
+    except Exception as _e:
         return False
 
 def getEnvInfo():
@@ -67,7 +67,7 @@ def getEnvInfo():
         data['mysql'] = True
     try:
         diskInfo = psutil.disk_usage('/www')
-    except:
+    except Exception as _e:
         diskInfo = psutil.disk_usage('/')
     data['disk'] = diskInfo[2]
     return yf.returnData(True, 'ok', data)
@@ -297,7 +297,7 @@ def getSystemDetails():
                 cpu_info['freq'] = f"{int(val)} MHz"
             else:
                 cpu_info['freq'] = "未知"
-    except:
+    except Exception as _e:
         cpu_info['freq'] = "未知"
         
     cache = "未知"
@@ -333,7 +333,7 @@ def getSystemDetails():
         disk_info['used'] = yf.toSize(usage.used)
         disk_info['free'] = yf.toSize(usage.free)
         disk_info['percent'] = usage.percent
-    except:
+    except Exception as _e:
         disk_info['total'] = "0"
         disk_info['used'] = "0"
         disk_info['free'] = "0"
@@ -371,7 +371,7 @@ def getSystemDetails():
                     ipv4 = snic.address
                 elif snic.family == getattr(socket, 'AF_INET6', -1) and ipv6 == "X":
                     ipv6 = snic.address
-    except:
+    except Exception as _e:
         pass
     net_info['ipv4'] = ipv4
     net_info['ipv6'] = ipv6
@@ -386,7 +386,7 @@ def getSystemDetails():
     if os.path.exists(ip_cache_file) and time.time() - os.path.getmtime(ip_cache_file) < 86400:
         try:
             ip_data = json.loads(yf.readFile(ip_cache_file))
-        except:
+        except Exception as _e:
             pass
             
     if not ip_data:
@@ -395,7 +395,7 @@ def getSystemDetails():
             if ip_res:
                 ip_data = json.loads(ip_res)
                 yf.writeFile(ip_cache_file, json.dumps(ip_data))
-        except:
+        except Exception as _e:
             pass
             
     net_info['isp'] = "未知"
@@ -418,7 +418,7 @@ def getSystemDetails():
         mem_info['swap_total'] = yf.toSize(swap.total)
         mem_info['swap_used'] = yf.toSize(swap.used)
         mem_info['swap_percent'] = swap.percent
-    except:
+    except Exception as _e:
         mem_info['swap_total'] = "0"
         mem_info['swap_used'] = "0"
         mem_info['swap_percent'] = 0

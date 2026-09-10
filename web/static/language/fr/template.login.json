@@ -1,0 +1,17 @@
+{
+  "N1": "Veuillez saisir votre identifiant",
+  "N2": "Le format n'est pas correct",
+  "N3": "Compte",
+  "N4": "Veuillez saisir votre mot de passe",
+  "N5": "Veuillez saisir votre mot de passe",
+  "N6": "Mot de passe",
+  "N7": "Veuillez saisir le code de vérification à 4 chiffres",
+  "N8": "Le code de vérification est incorrect",
+  "N9": "Veuillez saisir le code de vérification",
+  "N10": "Cliquez pour en voir une autre",
+  "N11": "Se connecter",
+  "N12": "Après 3 tentatives de connexion infructueuses, un code de vérification s'affichera",
+  "N13": "Mot de passe oublié >>",
+  "JS1": "Erreur dans le formulaire, veuillez le remplir à nouveau !",
+  "JS2": "Connexion en cours..."
+}

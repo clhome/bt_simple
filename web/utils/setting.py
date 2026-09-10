@@ -191,7 +191,7 @@ class setting(object):
         if not os.path.exists(acme_dir):
             try:
                 yf.execShell("curl -sS curl https://get.acme.sh | sh")
-            except:
+            except Exception as _e:
                 pass
         if not os.path.exists(acme_dir):
             return yf.returnData(False, 'setting.py_msg_448940')

@@ -13,12 +13,12 @@ import core.yf as yf
 
 try:
     yf.M('firewall').execute('ALTER TABLE firewall ADD COLUMN status INTEGER DEFAULT 1', ())
-except:
+except Exception as _e:
     pass
 
 try:
     yf.M('firewall').execute('ALTER TABLE firewall ADD COLUMN type TEXT DEFAULT "port"', ())
-except:
+except Exception as _e:
     pass
 
 __FIELD = 'id,port,protocol,status,type,ps,add_time,update_time'

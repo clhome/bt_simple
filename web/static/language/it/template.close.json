@@ -1,0 +1,7 @@
+{
+  "TITLE": "Il pannello è stato chiuso",
+  "H1": "Mi dispiace, l'amministratore ha disattivato il pannello di controllo",
+  "P1": "Comando di avvio: rm -f /www/server/panel/data/close.pl",
+  "NAME": "Pannello di controllo Baota per Linux",
+  "HELP": "Richiesta di aiuto"
+}

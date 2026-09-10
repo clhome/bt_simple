@@ -370,7 +370,7 @@ def check_migrate_backup():
             for f in os.listdir(old_data_dir):
                 if os.path.isdir(os.path.join(old_data_dir, f)) and f not in ignore_dbs:
                     databases.append(f)
-        except:
+        except Exception as _e:
             pass
             
     return yf.getJson({'mysql': has_mysql, 'databases': databases})
@@ -403,7 +403,7 @@ def migrate_restore():
         q_log = yf.shlexQuote(log_file)
         args_str = (' ' + ' '.join(safe_args)) if safe_args else ''
         cmd = f"cd {q_panel_dir} && echo yes | {q_py} -u {q_tool} migrate_restore{args_str} > {q_log} 2>&1 &"
-        os.system(cmd)
+        yf.execShell(cmd)
         
         yf.writeLog('面板设置', '执行数据库迁移恢复: ' + cmd)
         return yf.returnData(True, 'setting.py_msg_f04eaf')
@@ -456,7 +456,7 @@ def migrate_sites():
         q_db = yf.shlexQuote(db_path)
         q_log = yf.shlexQuote(log_file)
         cmd = f"cd {q_panel_dir} && {q_py} -u {q_tool} import_bt_sites {q_db} > {q_log} 2>&1 &"
-        os.system(cmd)
+        yf.execShell(cmd)
         
         yf.writeLog('面板设置', '执行宝塔站点导入: ' + cmd)
         return yf.returnData(True, 'setting.py_msg_be3f67')
@@ -513,7 +513,7 @@ def get_bt_backups():
         if desc:
             try:
                 size = getDirSize(full_path)
-            except:
+            except Exception as _e:
                 size = 0
             data.append({'name': f, 'path': full_path, 'desc': desc, 'warning': warning, 'type': 'dir', 'size': yf.toSize(size)})
             

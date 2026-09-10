@@ -1,0 +1,17 @@
+{
+  "H1": "Home",
+  "H2": "Gestione FTP",
+  "SEARCH": "Ricerca FTP",
+  "PS": "L'indirizzo FTP attuale è:",
+  "BTN1": "Aggiungi FTP",
+  "BTN2": "Modifica della porta FTP",
+  "BTN3": "Deseleziona",
+  "TH1": "Nome utente",
+  "TH2": "Password",
+  "TH3": "Stato",
+  "TH4": "Directory principale",
+  "TH5": "Note",
+  "TH6": "Operazioni",
+  "JS1": "Si prega di installare prima Prue-Ftpd!",
+  "JS2": "Vai a installarlo"
+}

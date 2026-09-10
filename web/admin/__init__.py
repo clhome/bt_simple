@@ -66,15 +66,22 @@ setup.init()
 app = Flask(__name__, template_folder='templates/default')
 
 
+# 异构资源自适应：压缩等级/算法、缓存后端均按本机规格连续推导
+# 1C512M 仅 gzip l3，16C32G br/zstd l8；详见 参考/优化260910.md §3.5
+import core.resources as resources
+
+_compress_level, _compress_min_size, _compress_algorithms = resources.get_compress_config()
 # curl --compressed -I "http://127.0.0.1:44010/" -H "Accept-Encoding: br" --write-out "%{json}"
-app.config["COMPRESS_ALGORITHM"] = ["br", "zstd", "gzip", "deflate"]
-app.config["COMPRESS_LEVEL"] = 6  # 平衡压缩率与CPU开销（级别9 CPU消耗高3~5倍，压缩率仅提升1~3%）
-app.config["COMPRESS_MIN_SIZE"] = 500  # 最小压缩大小
+app.config["COMPRESS_ALGORITHM"] = _compress_algorithms
+app.config["COMPRESS_LEVEL"] = _compress_level
+app.config["COMPRESS_MIN_SIZE"] = _compress_min_size
 Compress(app)
 
-# 缓存配置
-cache = Cache(config={'CACHE_TYPE': 'simple'})
-cache.init_app(app, config={'CACHE_TYPE': 'simple'})
+# 缓存后端自适应：FileSystemCache 跨 worker 共享（多 worker 下限流失效），
+# high 档且装有 redis 插件时自动复用 redis
+_cache_config = resources.get_cache_backend()
+cache = Cache(config=_cache_config)
+cache.init_app(app, config=_cache_config)
 
 # 静态文件配置
 app.static_folder = "../static"
@@ -92,8 +99,22 @@ else:
     import os as native_os
     key = native_os.urandom(24).hex()
     yf.writeFile(secret_file, key)
-    os.chmod(secret_file, 0o600)  # 仅 root 可读
+    try:
+        os.chmod(secret_file, 0o600)
+        try:
+            os.chown(secret_file, 0, 0)
+        except Exception:
+            pass
+    except Exception:
+        pass
     app.config['SECRET_KEY'] = key
+
+# 显式启用 Jinja2 自动转义（防御模板注入 XSS，仅 html/xml 生效）
+try:
+    from jinja2 import select_autoescape
+    app.jinja_env.autoescape = select_autoescape(['html', 'htm', 'xml'])
+except Exception:
+    app.jinja_env.autoescape = True
 
 # app.config['sessions'] = dict()
 app.config['SESSION_PERMANENT'] = True
@@ -224,7 +245,7 @@ def requestCheck():
                 try:
                     from urllib.parse import urlparse
                     return urlparse(url_str).netloc
-                except:
+                except Exception as _e:
                     return ""
 
             if referer:
@@ -359,4 +380,8 @@ ch.setFormatter(logging.Formatter(config.CONSOLE_LOG_FORMAT))
 app.logger.info('########################################################')
 app.logger.info('Starting %s v%s...', config.APP_NAME, config.APP_VERSION)
 app.logger.info('########################################################')
+try:
+    app.logger.info('Resource profile: %s', resources.describe())
+except Exception:
+    pass
 app.logger.debug("Python syspath: %s", sys.path)

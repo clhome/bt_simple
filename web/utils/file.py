@@ -74,7 +74,7 @@ def uploadSegment(path,name,size,start,dir_mode,file_mode,b64_data,upload_files)
             yf.execShell("chattr -i " + new_name)
         try:
             os.remove(new_name)
-        except:
+        except Exception as _e:
             yf.deleteFile(new_name)
 
     os.renames(save_path, new_name)
@@ -141,7 +141,7 @@ def unzip(sfile, dfile, stype, path):
                 setFileAccept(dfile)
         yf.writeLog("文件管理", '文件[{1}]解压[{2}]成功!', (sfile, dfile))
         return yf.returnData(True, 'file.py_msg_f0f920')
-    except:
+    except Exception as _e:
         return yf.returnData(False, 'file.py_msg_f43013')
 
 def uncompress(sfile, dfile, path):
@@ -234,7 +234,7 @@ def setBatchData(path, stype, access, user, data):
                         shutil.chown(os.path.join(root, f), user, user)
                 os.chmod(filename, mode)
                 shutil.chown(filename, user, user)
-            except:
+            except Exception as _e:
                 continue
         yf.writeLog('文件管理', '批量设置权限成功!')
         return yf.returnData(True, 'file.py_msg_fcc159')
@@ -268,7 +268,11 @@ def setBatchData(path, stype, access, user, data):
                             failed_files.append(filename)
                 else:
                     if key == '.user.ini':
-                        os.system('which chattr && chattr -i ' + filename)
+                        try:
+                            import subprocess
+                            subprocess.run(['chattr', '-i', filename], timeout=3, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        except Exception:
+                            pass
                     if is_recycle:
                         if not mvRecycleBin(topath):
                             failed_files.append(filename)
@@ -276,7 +280,7 @@ def setBatchData(path, stype, access, user, data):
                         os.remove(filename)
                         if os.path.exists(filename):
                             failed_files.append(filename)
-            except:
+            except Exception as _e:
                 failed_files.append(filename)
                 continue
             yf.writeSpeed(None, 0, 0)
@@ -314,7 +318,7 @@ def batchPaste(path, stype):
                     shutil.copyfile(sfile, dfile)
                 stat = os.stat(sfile)
                 os.chown(dfile, stat.st_uid, stat.st_gid)
-            except:
+            except Exception as _e:
                 continue
         msg = yf.getInfo('从[{1}]批量复制到[{2}]成功',(session['selected']['path'], path,))
         yf.writeLog('文件管理', msg)
@@ -329,7 +333,7 @@ def batchPaste(path, stype):
                 dfile = path + '/' + key
 
                 shutil.move(sfile, dfile)
-            except:
+            except Exception as _e:
                 continue
         msg = yf.getInfo('从[{1}]批量移动到[{2}]成功',(session['selected']['path'], path,))
         yf.writeLog('文件管理', msg)
@@ -406,7 +410,7 @@ def getAccess(filename):
         stat = os.stat(filename)
         data['chmod'] = str(oct(stat.st_mode)[-3:])
         data['chown'] = pwd.getpwuid(stat.st_uid).pw_name
-    except:
+    except Exception as _e:
         data['chmod'] = 755
         data['chown'] = 'www'
     return data
@@ -425,7 +429,7 @@ def copyDir(src_file, dst_file):
         msg = yf.getInfo('复制目录[{1}]到[{2}]成功!', (src_file, dst_file))
         yf.writeLog('文件管理', msg)
         return yf.returnData(True, 'file.py_msg_9b0c62')
-    except:
+    except Exception as _e:
         return yf.returnData(False, 'file.py_msg_175fe9')
 
 def copyFile(src_file, dst_file):
@@ -445,16 +449,50 @@ def copyFile(src_file, dst_file):
         stat = os.stat(src_file)
         os.chown(dst_file, stat.st_uid, stat.st_gid)
         return yf.returnData(True, 'file.py_msg_e79b89')
-    except:
+    except Exception as _e:
         return yf.returnData(False, 'file.py_msg_72a3a6')
 
 def setFileAccept(filename):
-    auth = 'www:www'
-    if yf.getOs() == 'darwin':
-        user = yf.execShell("who | sed -n '2, 1p' |awk '{print $1}'")[0].strip()
-        auth = user + ':staff'
-    os.system('chown -R ' + auth + ' ' + filename)
-    os.system('chmod -R 755 ' + filename)
+    import pwd as _pwd
+    try:
+        if not os.path.exists(filename):
+            return
+        if yf.getOs() == 'darwin':
+            user = yf.execShell("who | sed -n '2, 1p' |awk '{print $1}'")[0].strip() or 'www'
+            auth_user = user
+            auth_group = 'staff'
+        else:
+            auth_user = 'www'
+            auth_group = 'www'
+        try:
+            uid = _pwd.getpwnam(auth_user).pw_uid
+            gid = _pwd.getpwnam(auth_group).pw_gid
+        except Exception:
+            try:
+                uid = _pwd.getpwnam('www').pw_uid
+                gid = _pwd.getpwnam('www').pw_gid
+            except Exception:
+                uid = gid = 0
+        for root, dirs, files in os.walk(filename):
+            for d in dirs:
+                try:
+                    os.chown(os.path.join(root, d), uid, gid)
+                    os.chmod(os.path.join(root, d), 0o755)
+                except Exception:
+                    pass
+            for f in files:
+                try:
+                    os.chown(os.path.join(root, f), uid, gid)
+                    os.chmod(os.path.join(root, f), 0o755)
+                except Exception:
+                    pass
+        try:
+            os.chown(filename, uid, gid)
+            os.chmod(filename, 0o755)
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 def createFile(file_path):
     try:
@@ -575,11 +613,11 @@ def sortFileList(path, ftype = 'mtime', sort = 'desc'):
     
     def safe_mtime(f):
         try: return os.lstat(os.path.join(path, f)).st_mtime
-        except: return 0
+        except Exception as _e: return 0
         
     def safe_size(f):
         try: return os.lstat(os.path.join(path, f)).st_size
-        except: return 0
+        except Exception as _e: return 0
 
     if ftype == 'mtime':
         if sort == 'desc':
@@ -600,13 +638,19 @@ def sortFileList(path, ftype = 'mtime', sort = 'desc'):
             flist = sorted(flist, key=lambda f: os.path.join(path,f), reverse=False)
     return flist
 
-def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '',limit = 3000):
+def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '', limit = 3000, max_depth = 3):
     count = 0
     flist = []
-    for d_list in os.walk(path):
+    base_depth = path.rstrip(os.sep).count(os.sep)
+    for d_list in os.walk(path, topdown=True, followlinks=False):
+        cur_depth = d_list[0].rstrip(os.sep).count(os.sep) - base_depth
+        if cur_depth > max_depth:
+            d_list[1][:] = []
+            continue
+        # 防止符号链接目录被误展开
+        d_list[1][:] = [d for d in d_list[1] if not os.path.islink(os.path.join(d_list[0], d))]
         if count >= limit:
             break
-
         for d in d_list[1]:
             if count >= limit:
                 break
@@ -616,13 +660,13 @@ def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '',limit = 30
                     continue
                 count += 1
                 flist.append(filename)
-
         for f in d_list[2]:
             if count >= limit:
                 break
-
             if f.lower().find(search) != -1:
                 filename = d_list[0] + '/' + f
+                if os.path.islink(filename):
+                    continue
                 if not os.path.exists(filename):
                     continue
                 count += 1
@@ -630,11 +674,11 @@ def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '',limit = 30
 
     def safe_mtime(f):
         try: return os.lstat(f).st_mtime
-        except: return 0
+        except Exception as _e: return 0
 
     def safe_size(f):
         try: return os.lstat(f).st_size
-        except: return 0
+        except Exception as _e: return 0
 
     if ftype == 'mtime':
         if sort == 'desc':
@@ -649,6 +693,18 @@ def sortAllFileList(path, ftype = 'mtime', sort = 'desc', search = '',limit = 30
             flist = sorted(flist, key=safe_size, reverse=False)
     return flist
 
+def _adaptive_file_limits(requested_size, requested_limit):
+    """依据本机资源连续推导分页/扫描上限，低配收缩、高配放大"""
+    try:
+        from core.resources import get_dir_list_limits
+        max_page, max_scan = get_dir_list_limits()
+    except Exception:
+        max_page, max_scan = 100, 3000
+    size = min(int(requested_size or 10), max_page)
+    limit = min(int(requested_limit or 3000), max_scan)
+    return size, limit, (requested_size > max_page or requested_limit > max_scan)
+
+
 def getAllDirList(path, page=1, size=10, order = '', search=None):
     if page < 1:
         page = 1
@@ -656,8 +712,15 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
     data = {}
     dirnames = []
     filenames = []
-    
+
     max_limit = 3000
+    # 资源自适应：低配缩限防止 node_modules 类目录阻塞单核
+    try:
+        from core.resources import get_dir_list_limits
+        _, adaptive_scan = get_dir_list_limits()
+        max_limit = min(max_limit, adaptive_scan)
+    except Exception:
+        pass
     order_split = order.split(' ')
     if len(order_split) < 2:
         flist = sortAllFileList(path, order_split[0],'',search, max_limit)
@@ -665,6 +728,14 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
         flist = sortAllFileList(path, order_split[0], order_split[1], search, max_limit)
 
     count = len(flist)
+    # 自适应分页：低配每页更小，减少单次 stat 数量
+    try:
+        from core.resources import get_dir_list_limits
+        max_page, _ = get_dir_list_limits()
+        if size > max_page:
+            size = max_page
+    except Exception:
+        pass
     start = (page - 1) * size
     end = start + size
     if end > count:
@@ -684,9 +755,25 @@ def getAllDirList(path, page=1, size=10, order = '', search=None):
     data['dir'] = dirnames
     data['files'] = filenames
     data['path'] = path.replace('//', '/')
+    # 告知前端是否因资源限制被截断，便于分页提示
+    try:
+        from core.resources import get_dir_list_limits
+        _, a_scan = get_dir_list_limits()
+        if count >= a_scan:
+            data['truncated'] = True
+    except Exception:
+        pass
     return data
 
 def getDirList(path, page=1, size=10, order = '', search=None):
+    # 资源自适应分页上限
+    try:
+        from core.resources import get_dir_list_limits
+        max_page, _ = get_dir_list_limits()
+        if int(size) > max_page:
+            size = max_page
+    except Exception:
+        pass
     if page < 1:
         page = 1
 
@@ -717,14 +804,14 @@ def getDirList(path, page=1, size=10, order = '', search=None):
         def _safe_mtime(e):
             try:
                 return e.stat().st_mtime
-            except:
+            except Exception as _e:
                 return 0
         entries.sort(key=_safe_mtime, reverse=reverse)
     elif ftype == 'size':
         def _safe_size(e):
             try:
                 return e.stat().st_size
-            except:
+            except Exception as _e:
                 return 0
         entries.sort(key=_safe_size, reverse=reverse)
     elif ftype == 'fname':
@@ -744,7 +831,7 @@ def getDirList(path, page=1, size=10, order = '', search=None):
         stats = yf.getFileStatsDesc(abs_file, path)
         try:
             is_dir = entry.is_dir()
-        except:
+        except Exception as _e:
             is_dir = os.path.isdir(abs_file)
 
         if is_dir:
@@ -769,8 +856,8 @@ def checkFileName(filename):
     return True
 
 
-# 获取目录大小
-def getDirSize(filePath, size=0):
+# 获取目录大小（followlinks=False + 超时熔断，1C1G不阻塞）
+def getDirSize(filePath, size=0, _max_walk_files=50000):
     if not os.path.exists(filePath):
         return 0
     if not os.path.isdir(filePath):
@@ -778,13 +865,20 @@ def getDirSize(filePath, size=0):
             return os.path.getsize(filePath)
         except Exception:
             return 0
-    for root, dirs, files in os.walk(filePath):
+    walked = 0
+    for root, dirs, files in os.walk(filePath, topdown=True, followlinks=False):
+        dirs[:] = [d for d in dirs if not os.path.islink(os.path.join(root, d))]
         for f in files:
+            if walked >= _max_walk_files:
+                return size
+            fp = os.path.join(root, f)
+            if os.path.islink(fp):
+                continue
             try:
-                size += os.path.getsize(os.path.join(root, f))
-            except Exception as e:
+                size += os.path.getsize(fp)
+            except Exception as _e:
                 pass
-            # print(f)
+            walked += 1
     return size
 
 # 字节单位格式化(与前端 toSize 保持完全一致)
@@ -799,20 +893,32 @@ def formatFileSize(size):
         size = size / 1024.0
     return f"{size:.2f} PB"
 
-# 获取目录大小(bash/实际字节数)
+# 获取目录大小(bash/实际字节数) — 超大目录 timeout 3s 熔断
 def getDirSizeByBash(path):
     if not os.path.exists(path):
         return '0 B'
     try:
-        tmp = yf.execShell('du -sb ' + path)
-        if tmp and tmp[0] and not tmp[1]:
-            parts = tmp[0].split()
+        out, err = yf.execShell('timeout 3 du -sb ' + yf.shlexQuote(path))
+        if out and not err:
+            parts = out.strip().split()
             if parts and parts[0].isdigit():
                 return formatFileSize(int(parts[0]))
     except Exception:
         pass
-    size = getDirSize(path)
-    return formatFileSize(size)
+    try:
+        import subprocess as _sp
+        r = _sp.run(['du', '-sb', path], capture_output=True, text=True, timeout=3)
+        if r.returncode == 0 and r.stdout:
+            parts = r.stdout.strip().split()
+            if parts and parts[0].isdigit():
+                return formatFileSize(int(parts[0]))
+    except Exception:
+        pass
+    try:
+        size = getDirSize(path)
+        return formatFileSize(size)
+    except Exception:
+        return '0 B'
 
 # 计算文件数量
 def getCount(path, search = None):
@@ -882,37 +988,59 @@ def getSysUserList():
 
 def getOccupyingProcess(path):
     try:
-        # 尝试使用 lsof
-        cmd = "lsof '%s' 2>/dev/null" % (path,)
-        if os.path.isdir(path):
-            cmd = "lsof +D '%s' 2>/dev/null" % (path,)
-            
-        out, err = yf.execShell(cmd)
-        if out:
-            lines = out.strip().split('\n')
-            if len(lines) > 1:
-                parts = lines[1].split()
-                if len(parts) >= 2:
-                    return "被进程 " + parts[0] + " (PID: " + parts[1] + ") 占用"
-                    
-        # 尝试使用 fuser (应对某些未安装 lsof 的 Linux 发行版)
-        cmd_fuser = "fuser -v '%s' 2>&1" % (path,)
-        out2, err2 = yf.execShell(cmd_fuser)
-        if out2:
-            lines = out2.strip().split('\n')
-            for line in lines:
-                parts = line.split()
-                # 典型的 fuser -v 输出中，包含 PID 的行通常第2个元素是纯数字
-                # /path:               root       1234 ..c.. bash
-                if len(parts) >= 4 and parts[1].isdigit():
-                    return "被进程 " + parts[3] + " (PID: " + parts[1] + ") 占用"
-                    
+        # 优先 psutil 轻量探测（零 fork，比 lsof +D 快且不阻塞单核）
+        try:
+            import psutil
+            for proc in psutil.process_iter(['pid', 'name', 'open_files']):
+                try:
+                    flist = proc.info.get('open_files') or []
+                    for f in flist:
+                        fp = f.path if hasattr(f, 'path') else str(f)
+                        if fp == path or fp.startswith(path + os.sep):
+                            return "被进程 %s (PID: %s) 占用" % (proc.info.get('name') or proc.pid, proc.info.get('pid'))
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+        except Exception:
+            pass
+        # 回退 lsof，带 2s 超时防止大目录阻塞（仅对文件用 lsof 单文件，目录不再 +D 遍历）
+        try:
+            import subprocess
+            import shlex
+            if os.path.isdir(path):
+                # 目录场景 lsof +D 极易阻塞，1C1G 上直接返回通用提示而非阻塞 5s
+                try:
+                    from core.resources import is_low as _is_low
+                    if _is_low():
+                        return "(目录被占用，请检查是否有进程正在使用该目录)"
+                except Exception:
+                    pass
+                cmd = ['lsof', path]
+                out = subprocess.run(cmd, capture_output=True, text=True, timeout=2).stdout
+            else:
+                out, _ = yf.execShell("lsof '%s' 2>/dev/null" % path.replace("'", "'\\''"))
+            if out:
+                lines = out.strip().split('\n')
+                if len(lines) > 1:
+                    parts = lines[1].split()
+                    if len(parts) >= 2:
+                        return "被进程 " + parts[0] + " (PID: " + parts[1] + ") 占用"
+        except Exception:
+            pass
+        # 最后回退 fuser
+        try:
+            out2, _ = yf.execShell("fuser -v '%s' 2>&1" % path.replace("'", "'\\''"))
+            if out2:
+                for line in out2.strip().split('\n'):
+                    parts = line.split()
+                    if len(parts) >= 4 and parts[1].isdigit():
+                        return "被进程 " + parts[3] + " (PID: " + parts[1] + ") 占用"
+        except Exception:
+            pass
         import platform
         if platform.system() == 'Windows':
             return "(当前为Windows开发环境，未配置lsof命令，暂无法展示具体锁死进程)"
-            
         return "(未检测到具体占用进程，可能是权限不足或隐藏系统进程占用)"
-    except:
+    except Exception:
         pass
     return "(请检查目录/文件权限或是否被占用)"
 
@@ -920,9 +1048,11 @@ def fileDelete(path):
     if not os.path.exists(path):
         return yf.returnData(False, 'file.py_msg_e0fb06')
 
-    # 解除可能存在的文件防篡改锁定 (chattr +i)
-    cmd = "which chattr && chattr -i '%s' 2>/dev/null" % (path,)
-    yf.execShell(cmd)
+    try:
+        import subprocess as _sp
+        _sp.run(['chattr', '-i', path], timeout=2, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
+    except Exception:
+        pass
 
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
@@ -956,9 +1086,11 @@ def dirDelete(path):
     if not os.path.exists(path):
         return yf.returnData(False, 'file.py_msg_639dba')
 
-    # 解除可能存在的文件防篡改锁定 (例如建站生成的 .user.ini 会带有 chattr +i 属性)
-    cmd = "which chattr && chattr -R -i '%s' 2>/dev/null" % (path,)
-    yf.execShell(cmd)
+    try:
+        import subprocess as _sp
+        _sp.run(['chattr', '-R', '-i', path], timeout=3, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
+    except Exception:
+        pass
 
     try:
         recycle_bin = thisdb.getOption('recycle_bin')
@@ -980,7 +1112,7 @@ def dirDelete(path):
             
         yf.writeLog('文件管理', '删除{1}成功！', (path,))
         return yf.returnData(True, 'file.py_msg_373ef8')
-    except:
+    except Exception as _e:
         occ = getOccupyingProcess(path)
         msg = '删除目录失败!'
         if occ:
@@ -1083,7 +1215,11 @@ def reRecycleBin(path):
 
 def closeRecycleBin():
     rb_dir = yf.getRecycleBinDir()
-    yf.execShell('which chattr && chattr -R -i ' + rb_dir)
+    try:
+        import subprocess as _sp
+        _sp.run(['chattr', '-R', '-i', rb_dir], timeout=3, stdout=_sp.DEVNULL, stderr=_sp.DEVNULL)
+    except Exception:
+        pass
     rlist = os.listdir(rb_dir)
     i = 0
     l = len(rlist)
@@ -1110,9 +1246,18 @@ def setMode(path):
 
 def closeLogs():
     log_file = yf.getLogsDir()
-    os.system('rm -rf ' + log_file + '/*')
+    _base = yf.getFatherDir()
+    if log_file.startswith(_base) and os.path.isdir(log_file):
+        for name in os.listdir(log_file):
+            p = os.path.join(log_file, name)
+            try:
+                if os.path.isdir(p) and not os.path.islink(p):
+                    shutil.rmtree(p)
+                else:
+                    os.remove(p)
+            except Exception:
+                pass
     yf.opWeb('reload')
-    # os.system('kill -USR1 `cat ' + yf.getServerDir() +'/openresty/nginx/logs/nginx.pid`')
     yf.writeLog('文件管理', '网站日志已被清空!')
     tmp = getDirSizeByBash(log_file)
     return yf.returnData(True, tmp)

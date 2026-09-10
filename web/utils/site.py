@@ -32,7 +32,7 @@ def chownR(path, user, group=None):
             user_info = getpwnam(user)
             uid = user_info.pw_uid
             gid = getpwnam(group).pw_gid if group else user_info.pw_gid
-        except:
+        except Exception as _e:
             user_info = getpwnam('www')
             uid = user_info.pw_uid
             gid = user_info.pw_gid
@@ -455,11 +455,11 @@ class sites(object):
                 if os.path.exists(dst_link) or os.path.islink(dst_link):
                     try:
                         os.remove(dst_link)
-                    except:
+                    except Exception as _e:
                         pass
                 try:
                     os.symlink(src_link, dst_link)
-                except:
+                except Exception as _e:
                     pass
 
 
@@ -966,7 +966,7 @@ class sites(object):
                         continue
                     if os.path.isdir(file_path):
                         dirnames.append('/' + filename)
-                except:
+                except Exception as _e:
                     pass
 
         data['dirs'] = dirnames
@@ -1016,7 +1016,7 @@ class sites(object):
                     continue
                 yf.execShell('which chattr && chattr -i ' + user_ini)
                 os.remove(user_ini)
-            except:
+            except Exception as _e:
                 continue
         return True
 
@@ -1079,7 +1079,7 @@ class sites(object):
                     continue
                 if os.path.isdir(filePath):
                     dirnames.append(filename)
-            except:
+            except Exception as _e:
                 pass
 
         data = {}
@@ -1499,7 +1499,7 @@ class sites(object):
             rep = r"\s+limit_rate\s+([0-9]+)\w+;"
             tmp = re.search(rep, conf).groups()
             data['limit_rate'] = int(tmp[0])
-        except:
+        except Exception as _e:
             data['perserver'] = 0
             data['perip'] = 0
             data['limit_rate'] = 0
@@ -1590,12 +1590,12 @@ class sites(object):
         if status == '1':
             try:
                 os.rename(conf_txt, conf_file)
-            except:
+            except Exception as _e:
                 pass
         else:
             try:
                 os.rename(conf_file, conf_txt)
-            except:
+            except Exception as _e:
                 pass
 
         yf.restartWeb()
@@ -1721,7 +1721,7 @@ class sites(object):
             if os.path.exists(target_conf):
                 try:
                     os.remove(target_conf)
-                except:
+                except Exception as _e:
                     pass
         except Exception as e:
             return yf.returnData(False, 'utils.py_msg_90d0f2', None, str(e))
@@ -1786,7 +1786,7 @@ class sites(object):
             if not yf.isAppleSystem() and os.name != 'nt':
                 try:
                     yf.execShell(f"chown -R www:www {cache_dir}")
-                except:
+                except Exception as _e:
                     pass
                     
         # 2. 清理 nginx.conf 中所有旧的或错误的 yf_cache 定义（包括之前错误注入的）
@@ -1949,7 +1949,7 @@ location  {from} {\n\
                     vhost_content = yf.readFile(vhost_file)
                     if vhost_content and "Strict-Transport-Security" in vhost_content:
                         hsts_header = "\n    add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;"
-            except:
+            except Exception as _e:
                 pass
         tpl = tpl.replace("{hsts}", hsts_header, 999)
 
@@ -2050,12 +2050,12 @@ location  {from} {\n\
         if status == '1':
             try:
                 os.rename(conf_txt, conf_file)
-            except:
+            except Exception as _e:
                 pass
         else:
             try:
                 os.rename(conf_file, conf_txt)
-            except:
+            except Exception as _e:
                 pass
 
         rule_test = yf.checkWebConfig()
@@ -2063,10 +2063,10 @@ location  {from} {\n\
             # Revert the rename
             if status == '1':
                 try: os.rename(conf_file, conf_txt)
-                except: pass
+                except Exception as _e: pass
             else:
                 try: os.rename(conf_txt, conf_file)
-                except: pass
+                except Exception as _e: pass
             return yf.returnData(False, 'utils.py_msg_8dc310', None, rule_test)
 
         proxy_site_path = self.getProxyDataPath(site_name)
@@ -2096,7 +2096,7 @@ location  {from} {\n\
                     self.close_proxy.append(proxy['id'])
                     try:
                         os.rename(proxy_conf, proxy_txt)
-                    except:
+                    except Exception as _e:
                         pass
             yf.restartWeb()
         return True
@@ -2109,7 +2109,7 @@ location  {from} {\n\
             if os.path.exists(proxy_txt):
                 try:
                     os.rename(proxy_txt, proxy_conf)
-                except:
+                except Exception as _e:
                     pass
 
         if len(self.close_proxy) > 0:
@@ -2131,7 +2131,7 @@ location  {from} {\n\
                     self.close_redirect.append(redirect_data['id'])
                     try:
                         os.rename(redirect_conf, redirect_txt)
-                    except:
+                    except Exception as _e:
                         pass
             yf.restartWeb()
 
@@ -2143,7 +2143,7 @@ location  {from} {\n\
             if os.path.exists(redirect_txt):
                 try:
                     os.rename(redirect_txt, redirect_conf)
-                except:
+                except Exception as _e:
                     pass
 
         if len(self.close_redirect) > 0:
@@ -2224,7 +2224,7 @@ location  {from} {\n\
             # remove conf file
             cmd = "rm -rf {}/{}.conf*".format(self.getProxyPath(site_name), proxy_id)
             yf.execShell(cmd)
-        except:
+        except Exception as _e:
             return yf.returnData(False, 'site.py_msg_4adab3')
 
         yf.restartWeb()
@@ -2329,7 +2329,7 @@ location  {from} {\n\
                 tmp1 = json.loads(tmp)
                 data.append(tmp1)
             return yf.returnData(True, 'OK', data)
-        except:
+        except Exception as _e:
             return yf.returnData(True, 'OK', [])
 
 
@@ -2974,7 +2974,7 @@ export PATH
         if not os.path.exists(acme_dir):
             try:
                 yf.execShell("curl -sS curl https://get.acme.sh | sh")
-            except:
+            except Exception as _e:
                 pass
         if not os.path.exists(acme_dir):
             return yf.returnData(False, 'site.py_msg_448940')
@@ -3013,7 +3013,7 @@ export PATH
             if data_content != False:
                 try:
                     data = json.loads(data_content)
-                except:
+                except Exception as _e:
                     pass
                 for proxy in data:
                     proxy_dir = "{}/{}".format(self.proxyPath, site_name)

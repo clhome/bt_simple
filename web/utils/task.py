@@ -41,7 +41,7 @@ def removeTaskRecursion(pid):
                 time.sleep(0.1)
                 os.killpg(os.getpgid(pid), signal.SIGKILL)
                 return 'ok'
-            except:
+            except Exception as _e:
                 pass
             cmd = "ps -ef|grep %s | grep -v grep |sed -n '2,1p' | awk '{print $2}'" % pid
             sub_pid = yf.execShell(cmd)[0].strip()
@@ -75,7 +75,7 @@ def removeTask(task_id):
                         is_cur_running = True
                         if p_id.isdigit():
                             p_to_kill = int(p_id)
-            except:
+            except Exception as _e:
                 pass
 
         if is_cur_running:
@@ -86,7 +86,7 @@ def removeTask(task_id):
                 try:
                     if os.path.exists(cur_task_pid_file):
                         os.remove(cur_task_pid_file)
-                except:
+                except Exception as _e:
                     pass
 
             # 2. 保底机制：若未精准获取 PID，仅查找由 panel_task 衍生的工作子进程
@@ -109,7 +109,7 @@ def removeTask(task_id):
     if os.path.exists(specific_log):
         try:
             os.remove(specific_log)
-        except:
+        except Exception as _e:
             pass
             
     return yf.returnData(True, 'task.py_msg_454577')

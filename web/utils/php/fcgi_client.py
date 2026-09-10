@@ -99,7 +99,7 @@ if __debug__:
             f = open(DEBUGLOG, 'a')
             f.write('%sfcgi: %s\n' % (time.ctime()[4:-4], msg))
             f.close()
-        except:
+        except Exception as _e:
             pass
 
 
@@ -197,7 +197,7 @@ class Record(object):
         """Read and decode a Record from a socket."""
         try:
             header, length = self._recvall(sock, FCGI_HEADER_LEN)
-        except:
+        except Exception as _e:
             raise EOFError
 
         if length < FCGI_HEADER_LEN:
@@ -216,7 +216,7 @@ class Record(object):
             try:
                 self.contentData, length = self._recvall(sock,
                                                          self.contentLength)
-            except:
+            except Exception as _e:
                 raise EOFError
 
             if length < self.contentLength:
@@ -225,7 +225,7 @@ class Record(object):
         if self.paddingLength:
             try:
                 self._recvall(sock, self.paddingLength)
-            except:
+            except Exception as _e:
                 raise EOFError
 
     def _sendall(sock, data):

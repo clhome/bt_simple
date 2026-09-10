@@ -1,0 +1,23 @@
+{
+  "authentication_timed_out_please": "authenticationtimeout,Press Enter to retry!{1}",
+  "unknown_error": "Unknownerror: {1}",
+  "failed_to_connect_to": "connecttarget serverfailed, {1}:{2}",
+  "neither_the_password_nor": "password or private key cannot both be empty: {1}:{2}",
+  "incorrect_username_or_password": "Account or passworderror: {1}",
+  "unsupported_authentication_types": "Unsupported identitiescopiesverifytype: {1}",
+  "connecting_please_wait": "connectin progress,Please wait a moment...",
+  "the_target_server_actively": "Target server actively refusedconnect",
+  "the_ssh_protocol_handshake": "SSH protocol handshake timed out. The network quality between you and the target server is too poor",
+  "incorrect_link_address": "errorconnectaddress",
+  "session_lost": "sessionlost,Please log in to the panel again!\r\n",
+  "py_msg_56a52c": "authenticationtimeout,Press Enter to retry!{1}",
+  "py_msg_fd6cab": "Unknownerror: {1}",
+  "py_msg_e4dda7": "Connectionstarget serverfailed, {1}:{2}",
+  "py_msg_cab13e": "Password or private key cannot both be empty: {1}:{2}",
+  "py_msg_7b0ed6": "Account or Passworderror: {1}",
+  "py_msg_ba72de": "Unsupported identitiescopiesverifyType: {1}",
+  "py_msg_5d5712": "Connectionsin progress,Please wait a moment...",
+  "py_msg_26793c": "Target server actively refusedConnections",
+  "py_msg_96a6e8": "SSH protocol handshake timed out. The network quality between you and the target server is too poor",
+  "py_msg_c11397": "errorConnectionsaddress"
+}

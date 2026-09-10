@@ -1,4 +1,5 @@
 #!/bin/bash
+if [ -f $(dirname $0)/../../scripts/lib_make_jobs.sh ]; then source $(dirname $0)/../../scripts/lib_make_jobs.sh; elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then source /www/server/yufeng_panel/scripts/lib_make_jobs.sh; fi
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
 export PATH
 
@@ -65,6 +66,8 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 	if [ -f "$_env_lib" ]; then source "$_env_lib"; fi
 	export cpuCore
 	echo "install PHP${type} extend start (cpuCore=${cpuCore})"
+# --- yf adaptive clamp (1C512M -> -j1) ---
+if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi
 
 	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash iconv.sh install 53
 	# cd /www/server/yufeng_panel/plugins/php/versions/common  && bash intl.sh install 73
@@ -134,5 +137,4 @@ if [ "${action}" == "install" ] && [ -d ${serverPath}/php/${type} ];then
 		fi
 	fi
 fi
-
 

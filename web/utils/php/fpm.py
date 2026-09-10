@@ -16,7 +16,7 @@ FCGI_Header = '!BBHHBx'
 if sys.version_info[0] == 2:
     try:
         from cStringIO import StringIO
-    except:
+    except Exception as _e:
         from StringIO import StringIO
 else:
     from io import BytesIO as StringIO

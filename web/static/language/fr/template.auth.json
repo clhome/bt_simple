@@ -1,0 +1,12 @@
+{
+  "path_error_title": "Échec de l'accès sécurisé - Panneau Yufeng",
+  "path_error_header": "Veuillez utiliser l'URL d'accès sécurisée",
+  "error_reason": "Cause de l'erreur",
+  "path_error_desc": "Ce panneau requiert un chemin d'accès sécurisé. Si vous l'avez oublié, suivez la commande ci-dessous via SSH pour le retrouver.",
+  "solution": "Solution",
+  "solution_ssh_desc": "Connectez-vous à votre serveur via SSH et exécutez :",
+  "view_default_entry": "Afficher l'accès par défaut et les identifiants",
+  "company_name": "Développé par : Quzhou Yufeng Technology Co., Ltd.",
+  "panel_closed_title": "Désolé, l'administrateur a désactivé le panneau",
+  "open_cmd_title": "Commande d'activation"
+}

@@ -322,7 +322,7 @@ class Firewall(object):
                         tmp = re.search(rep, sys_conf, re.M).group(1)
                         if tmp == '1':
                             isPing = False
-        except:
+        except Exception as _e:
             isPing = True
 
         # sshd 检测

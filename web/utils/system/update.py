@@ -34,7 +34,7 @@ def versionDiff(now, new):
         from distutils.version import LooseVersion
         if LooseVersion(new) > LooseVersion(now):
             return 'new'
-    except:
+    except Exception as _e:
         pass
     return 'none'
 
@@ -287,8 +287,13 @@ def updateServer(stype, version='', step='all'):
                         yf.deleteFile(dist_yf)
                         return yf.returnData(False, f"供应链安全拦截：{sha_msg}")
 
-                # 解压
-                os.system('unzip -o ' + dist_yf + ' -d ' + toPath)
+                # 解压（优先 Python zipfile 零 fork，低配防 OOM；回退 unzip）
+                try:
+                    import zipfile
+                    with zipfile.ZipFile(dist_yf, 'r') as zf:
+                        zf.extractall(toPath)
+                except Exception:
+                    yf.safeExecShell(['unzip', '-o', dist_yf, '-d', toPath], timeout=90)
                 if step == 'download':
                     return yf.returnData(True, 'system.py_msg_f00995')
 
@@ -357,7 +362,10 @@ if [ -f {panel_dir}/version/r${{NEW_P_VER}}.txt ];then
     cd {panel_dir} && pip3 install -r version/r${{NEW_P_VER}}.txt -i $PIPSRC
 fi
 '''
-                os.system(update_env)
+                # 环境更新脚本落盘后以 shell 执行（面板路径来自程序内部，无用户输入）
+                env_script = toPath + '/yf_env_update.sh'
+                yf.writeFile(env_script, update_env)
+                yf.safeExecShell(['bash', env_script], timeout=600)
                 yf.restartPanel()
                 return yf.returnData(True, 'system.py_msg_f9fd8e')
 

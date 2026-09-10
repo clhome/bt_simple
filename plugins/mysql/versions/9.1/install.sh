@@ -1,3 +1,4 @@
+if [ -f $(dirname $0)/../../scripts/lib_make_jobs.sh ]; then source $(dirname $0)/../../scripts/lib_make_jobs.sh; elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then source /www/server/yufeng_panel/scripts/lib_make_jobs.sh; fi
 # -*- coding: utf-8 -*-
 #!/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:/opt/homebrew/bin
@@ -87,6 +88,8 @@ Install_mysql()
 		cpuCore="1"
 	fi
 	# ----- cpu end ------
+# --- yf adaptive clamp (1C512M -> -j1) ---
+if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi ------
 
 	cd ${rootPath}/plugins/mysql/lib && /bin/bash rpcgen.sh
 

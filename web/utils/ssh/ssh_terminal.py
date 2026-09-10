@@ -106,7 +106,7 @@ class ssh_terminal(object):
                 self.__rep_ssh_service = True
                 return True
             return False
-        except:
+        except Exception as _e:
             return False
 
     def setSshdConfig(self, rep=False):
@@ -163,7 +163,7 @@ class ssh_terminal(object):
             else:
                 self.__sshd_config_backup = None
             return True
-        except:
+        except Exception as _e:
             return False
 
     def setSid(self, sid):
@@ -294,16 +294,16 @@ class ssh_terminal(object):
                     try:
                         p_file.seek(0)
                         pkey = paramiko.RSAKey.from_private_key(p_file)
-                    except:
+                    except Exception as _e:
                         try:
                             p_file.seek(0)  # 重置游标
                             pkey = paramiko.Ed25519Key.from_private_key(
                                 p_file)
-                        except:
+                        except Exception as _e:
                             try:
                                 p_file.seek(0)
                                 pkey = paramiko.ECDSAKey.from_private_key(p_file)
-                            except:
+                            except Exception as _e:
                                 p_file.seek(0)
                                 pkey = paramiko.DSSKey.from_private_key(p_file)
 
@@ -413,7 +413,7 @@ class ssh_terminal(object):
                 self.__tp.close()
             if self.__ps:
                 self.__ps.close()
-        except:
+        except Exception as _e:
             pass
 
     def resize(self, sid, data):
@@ -421,7 +421,7 @@ class ssh_terminal(object):
             self.__ssh_list[sid].resize_pty(
                 width=data['cols'], height=data['rows'])
             return True
-        except:
+        except Exception as _e:
             return False
 
     def wsSend(self, recv):
@@ -431,7 +431,7 @@ class ssh_terminal(object):
             def decode_bash_escape(m):
                 try:
                     return bytes(int(x, 8) for x in m.group(1).split('\\')[1:]).decode('utf-8', 'ignore')
-                except:
+                except Exception as _e:
                     return m.group(0)
             
             # Decode ls octal escapes like ''$'\344\270\213' to UTF-8 characters

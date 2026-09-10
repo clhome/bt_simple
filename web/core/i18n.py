@@ -8,6 +8,12 @@ import os
 import json
 import functools
 
+try:
+    from core.resources import get_i18n_cache_size as _get_i18n_cache_size
+    _I18N_LRU_SIZE = _get_i18n_cache_size()
+except Exception:
+    _I18N_LRU_SIZE = 128
+
 # 支持语言列表
 SUPPORTED_LANGUAGES = [
     {"code": "zh-CN", "name": "简体中文", "nativeName": "简体中文"},
@@ -157,13 +163,31 @@ def get_current_lang():
     # 5. 非请求上下文，直接返回带缓存的全局配置语言
     return _get_file_lang()
 
-@functools.lru_cache(maxsize=128)
+@functools.lru_cache(maxsize=_I18N_LRU_SIZE)
 def get_cached_json(name, lang):
-    """读取并缓存指定语言的 JSON 文件"""
+    """读取并缓存指定语言的 JSON 文件；支持 template.<section> 按路由懒加载（low檔首屏-50KB）"""
     norm_lang = normalize_lang(lang) or DEFAULT_LANG
+    # 点号拆包：template.xxx 优先走 template.xxx.json 子文件，缺失再回退整包
+    if "." in name:
+        base, sub = name.split(".", 1)
+        # 子文件路径：static/language/<lang>/template.<sub>.json
+        sub_path = os.path.join(_LANG_DIR, norm_lang, f"{base}.{sub}.json")
+        if os.path.exists(sub_path):
+            try:
+                with open(sub_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
+        # 回退：加载整包再取子键（兼容旧包未拆分环境）
+        try:
+            fallback = get_cached_json(base, lang) if base != name else {}
+            if isinstance(fallback, dict) and sub in fallback:
+                return fallback[sub] if not isinstance(fallback[sub], str) else {sub: fallback[sub]}
+        except Exception:
+            pass
+        return {}
     filepath = os.path.join(_LANG_DIR, norm_lang, f"{name}.json")
     if not os.path.exists(filepath):
-        # 尝试默认语言回退
         filepath = os.path.join(_LANG_DIR, DEFAULT_LANG, f"{name}.json")
     try:
         if os.path.exists(filepath):

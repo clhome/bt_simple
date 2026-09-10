@@ -1,0 +1,15 @@
+{
+  "add_success": "Aggiunto con successo!",
+  "add_failed": "Impossibile aggiungere!",
+  "del_success": "Eliminato con successo",
+  "del_failed": "Impossibile eliminare",
+  "set_success": "Impostazioni salvate!",
+  "edit_success": "Modificato con successo!",
+  "edit_failed": "Impossibile modificare!",
+  "log_empty": "Log为空",
+  "action_success": "Operazione riuscita!",
+  "connect_success": "Connessioni成功.",
+  "connected": "已Connessioni",
+  "brand_title": "Pannello YuFeng",
+  "brand_panel": "Pannello Yufeng"
+}

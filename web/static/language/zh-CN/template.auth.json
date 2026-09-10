@@ -1,0 +1,12 @@
+{
+  "path_error_title": "安全入口校验失败 - 御风面板",
+  "path_error_header": "请使用正确的入口登录面板",
+  "error_reason": "错误原因",
+  "path_error_desc": "当前面板已启用安全入口登录。新装机器会自动随机生成一个安全的登录入口地址，亦可在面板设置中自定义修改。如果您忘记或未记录该入口，可使用下方方法获取。",
+  "solution": "解决方法",
+  "solution_ssh_desc": "请通过 SSH 终端登录服务器，并运行以下命令进行查看：",
+  "view_default_entry": "查看面板默认入口及登录地址",
+  "company_name": "出品方：衢州御风科技有限公司",
+  "panel_closed_title": "抱歉,管理员已关闭面板",
+  "open_cmd_title": "开启命令"
+}

@@ -1,0 +1,12 @@
+{
+  "uv_not_found": "uv-Umgebung nicht gefunden, bitte installieren Sie zuerst uv",
+  "specify_install_ver": "Bitte geben Sie die zu installierende Python-Version an",
+  "install_task_added": "Installationsaufgabe übermittelt",
+  "specify_uninstall_ver": "Bitte geben Sie die zu deinstallierende Python-Version an",
+  "uninstall_success": "Erfolgreich deinstalliert",
+  "specify_ver_path": "Bitte Version und Projektpfad angeben",
+  "venv_create_success": "Virtuelle Umgebung erfolgreich erstellt",
+  "param_error": "Parameterfehler: Version oder Pfad darf nicht leer sein",
+  "del_success": "Erfolgreich gelöscht",
+  "venv_not_exists": "Virtuelle Umgebung existiert nicht oder Eintrag wurde entfernt"
+}

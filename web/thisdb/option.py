@@ -50,7 +50,7 @@ def getOptionByJson(name, type='common', default=None) -> object:
         return default
     try:
         val = json.loads(data)
-    except:
+    except Exception as _e:
         val = default
     _option_cache[cache_key] = val
     return val

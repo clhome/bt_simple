@@ -1,0 +1,15 @@
+{
+  "add_success": "Erfolgreich hinzugefügt!",
+  "add_failed": "Hinzufügen fehlgeschlagen!",
+  "del_success": "Erfolgreich gelöscht",
+  "del_failed": "Löschen fehlgeschlagen",
+  "set_success": "Einstellungen gespeichert!",
+  "edit_success": "Erfolgreich geändert!",
+  "edit_failed": "Ändern fehlgeschlagen!",
+  "log_empty": "Protokolle为空",
+  "action_success": "Vorgang erfolgreich!",
+  "connect_success": "Verbindungen成功.",
+  "connected": "已Verbindungen",
+  "brand_title": "YuFeng Panel",
+  "brand_panel": "Yufeng-Panel"
+}

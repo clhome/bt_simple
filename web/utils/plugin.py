@@ -1357,9 +1357,9 @@ class plugin(object):
                 try:
                     old_info = json.loads(yf.readFile(plugin_path))
                     data['old_version'] = old_info['versions']
-                except:
+                except Exception as _e:
                     pass
-        except:
+        except Exception as _e:
             yf.removeDir(tmp_path)
             return yf.returnData(False, 'plugin.py_msg_311637')
         protectPlist = ('openresty', 'mysql', 'php', 'redis', 'memcached'

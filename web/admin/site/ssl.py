@@ -135,7 +135,7 @@ def renew_ssl():
     try:
         YfSites.instance().closeProxyAll(site_name)
         YfSites.instance().closeRedirectAll(site_name)
-    except:
+    except Exception as _e:
         pass
     
     is_success = False
@@ -176,7 +176,7 @@ def renew_ssl():
         try:
             YfSites.instance().openProxyByOpen(site_name)
             YfSites.instance().openRedirectByOpen(site_name)
-        except:
+        except Exception as _e:
             pass
             
     if not is_success:

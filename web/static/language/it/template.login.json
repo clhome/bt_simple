@@ -1,0 +1,17 @@
+{
+  "N1": "Inserisci il nome utente",
+  "N2": "Il formato non è corretto",
+  "N3": "Account",
+  "N4": "Inserisci la password",
+  "N5": "Inserisci la password",
+  "N6": "Password",
+  "N7": "Inserisci il codice di verifica di 4 cifre",
+  "N8": "Il codice di verifica non è corretto",
+  "N9": "Inserisci il codice di verifica",
+  "N10": "Clicca per vedere un'altra foto",
+  "N11": "Accedi",
+  "N12": "Dopo almeno 3 tentativi di accesso non riusciti verrà richiesto un codice di verifica",
+  "N13": "Hai dimenticato la password? >>",
+  "JS1": "Errore nel modulo, reinserisci i dati!",
+  "JS2": "Accesso in corso..."
+}

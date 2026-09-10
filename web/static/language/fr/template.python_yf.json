@@ -1,0 +1,12 @@
+{
+  "uv_not_found": "Environnement uv non détecté, veuillez d'abord installer uv",
+  "specify_install_ver": "Veuillez spécifier la version de Python à installer",
+  "install_task_added": "Tâche d'installation soumise",
+  "specify_uninstall_ver": "Veuillez spécifier la version de Python à désinstaller",
+  "uninstall_success": "Désinstallé avec succès",
+  "specify_ver_path": "Veuillez spécifier la version et le chemin du projet",
+  "venv_create_success": "Environnement virtuel créé avec succès",
+  "param_error": "Erreur de paramètre : la version ou le chemin ne peut pas être vide",
+  "del_success": "Supprimé avec succès",
+  "venv_not_exists": "L'environnement virtuel n'existe pas ou l'enregistrement a été supprimé"
+}

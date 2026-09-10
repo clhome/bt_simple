@@ -1,0 +1,15 @@
+{
+  "add_success": "新增成功!",
+  "add_failed": "新增失敗!",
+  "del_success": "刪除成功",
+  "del_failed": "刪除失敗",
+  "set_success": "設定成功!",
+  "edit_success": "修改成功!",
+  "edit_failed": "修改失敗!",
+  "log_empty": "記錄檔為空",
+  "action_success": "操作成功!",
+  "connect_success": "連接成功.",
+  "connected": "已連接",
+  "brand_title": "御风面板",
+  "brand_panel": "御風面板"
+}

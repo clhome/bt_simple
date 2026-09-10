@@ -91,7 +91,7 @@ def fixCrlf(file_path):
                 return True
             else:
                 _CRLF_CLEAN_CACHE.add(file_path)
-    except:
+    except Exception as _e:
         pass
     return False
 
@@ -128,7 +128,7 @@ def sanitizeCmdScripts(cmdstring, cwd=None):
                     continue
                 if os.path.isfile(file_path):
                     fixCrlf(file_path)
-    except:
+    except Exception as _e:
         pass
     return cmdstring
 
@@ -179,7 +179,7 @@ def makeDirs(path):
     try:
         os.makedirs(path, exist_ok=True)
         return True
-    except:
+    except Exception as _e:
         return False
 
 def removeDir(path):
@@ -204,7 +204,7 @@ def removeDir(path):
                     pass
                 os.remove(path)
         return True
-    except:
+    except Exception as _e:
         return False
 
 def checkBinExist(name):
@@ -433,7 +433,11 @@ def getGithubProxyInfo(wait_if_testing=False):
         best_speed = -1.0
         best_name = "direct"
         best_url = ""
-        speed_limit = 3145728.0 # 3MB/s 阈值
+        try:
+            from core.resources import get_github_speed_limit
+            speed_limit = float(get_github_speed_limit())
+        except Exception:
+            speed_limit = 3145728.0
 
         for name, prefix in test_list.items():
             try:
@@ -785,8 +789,8 @@ def readFileEnd(filename, lines=100):
 
 def writeFile(filename, content, mode='w+'):
     # 写文件内容 (覆写模式支持原子落盘，防止断电/OOM/磁盘满导致文件截断为0字节)
+    # 关键配置落盘后追加 size>0 二次校验，区分 ENOSPC 场景
     try:
-        # 确保父目录存在
         parent_dir = os.path.dirname(filename)
         if parent_dir and not os.path.exists(parent_dir):
             os.makedirs(parent_dir, exist_ok=True)
@@ -799,23 +803,43 @@ def writeFile(filename, content, mode='w+'):
                     fp.flush()
                     try:
                         os.fsync(fp.fileno())
-                    except:
+                    except Exception as _e:
                         pass
                 os.replace(temp_file, filename)
+                # 二次校验：非空内容落盘后文件必须 >0，否则视为 ENOSPC/截断失败
+                if content is not None and content != '':
+                    try:
+                        if os.path.getsize(filename) == 0 and len(str(content)) > 0:
+                            writeFileLog(f"[writeFile] zero-size after replace: {filename} content_len={len(str(content))}\n{getTracebackInfo()}")
+                            return False
+                    except Exception as _e:
+                        pass
                 return True
             except Exception as write_err:
                 if os.path.exists(temp_file):
                     try:
                         os.remove(temp_file)
-                    except:
+                    except Exception as _e:
                         pass
+                # ENOSPC / 配额错误带文件名打日志，便于排障
+                try:
+                    import errno as _errno
+                    err_no = getattr(write_err, 'errno', None)
+                    tag = f" errno={err_no}({os.strerror(err_no) if err_no else ''})" if err_no else ""
+                    writeFileLog(f"[writeFile] {filename}{tag}: {write_err}\n{getTracebackInfo()}")
+                except Exception as _e:
+                    writeFileLog(f"[writeFile] {filename}: {write_err}\n{getTracebackInfo()}")
                 raise write_err
         else:
             with open(filename, mode, encoding='utf-8') as fp:
                 fp.write(content)
             return True
     except Exception as e:
-        writeFileLog(getTracebackInfo())
+        # 顶层兜底已在内层打过日志，此处仅补充一次
+        try:
+            writeFileLog(f"[writeFile] {filename} failed: {e}\n{getTracebackInfo()}")
+        except Exception as _e:
+            writeFileLog(getTracebackInfo())
         return False
 
 
@@ -956,7 +980,7 @@ def checkPwd(password, hashed):
     except ImportError:
         import hashlib
         return hashlib.sha256(password.encode('utf-8')).hexdigest() == hashed
-    except:
+    except Exception as _e:
         return False
 
     
@@ -989,7 +1013,7 @@ def getHost(port=False):
     try:
         if host_tmp.find(':') == -1:
             host_tmp += ':80'
-    except:
+    except Exception as _e:
         host_tmp = "127.0.0.1:8888"
     h = host_tmp.split(':')
     if port:
@@ -1006,7 +1030,7 @@ def getClientIp():
         try:
             ip_obj = ipaddress.ip_address(remote_ip)
             is_proxy_source = ip_obj.is_loopback or ip_obj.is_private
-        except:
+        except Exception as _e:
             if remote_ip in ('127.0.0.1', 'localhost', '::1'):
                 is_proxy_source = True
 
@@ -1017,7 +1041,7 @@ def getClientIp():
                 try:
                     ipaddress.ip_address(candidate)
                     return candidate
-                except:
+                except Exception as _e:
                     pass
 
             real_ip = request.headers.get('X-Real-IP', '').strip().replace('::ffff:', '')
@@ -1025,7 +1049,7 @@ def getClientIp():
                 try:
                     ipaddress.ip_address(real_ip)
                     return real_ip
-                except:
+                except Exception as _e:
                     pass
 
         return remote_ip
@@ -1154,7 +1178,7 @@ def getFileStatsDesc(filename, path=None):
                 user = str(pwd.getpwuid(stat.st_uid).pw_name)
             else:
                 user = 'www'
-        except:
+        except Exception as _e:
             user = str(stat.st_uid)
             
         size = str(stat.st_size)
@@ -1219,13 +1243,13 @@ def setOwn(filename, user, group=None):
         if group:
             user_info = getpwnam(group)
         group = user_info.pw_gid
-    except:
+    except Exception as _e:
         if user == 'www':
             createLinuxUser(user)
         # 如果指定用户或组不存在，则使用www
         try:
             user_info = getpwnam('www')
-        except:
+        except Exception as _e:
             createLinuxUser(user)
             user_info = getpwnam('www')
         user = user_info.pw_uid
@@ -1348,7 +1372,7 @@ def _getCachedStaticJson(name, lang):
         file = 'static/language/zh-CN/' + name + '.json'
     try:
         return json.loads(readFile(file))
-    except:
+    except Exception as _e:
         return {}
 
 def returnMsg(status, msg, args=()):
@@ -1413,7 +1437,7 @@ def getLastLine(path, num, p=1):
                     if line_bytes or lines:
                         try:
                             line_str = line_bytes.decode('utf-8', errors='replace').rstrip('\r')
-                        except:
+                        except Exception as _e:
                             line_str = str(line_bytes)
                         lines.append(html.escape(line_str))
                         if len(lines) >= needed_count:
@@ -1422,7 +1446,7 @@ def getLastLine(path, num, p=1):
             if buf and len(lines) < needed_count:
                 try:
                     line_str = buf.decode('utf-8', errors='replace').rstrip('\r')
-                except:
+                except Exception as _e:
                     line_str = str(buf)
                 lines.append(html.escape(line_str))
 
@@ -1534,7 +1558,7 @@ def isVhostHasReuseport():
                 content = readFile(filepath)
                 if content and 'quic reuseport' in content:
                     return True
-    except:
+    except Exception as _e:
         pass
     
     return False
@@ -1694,7 +1718,7 @@ def enDoubleCrypt(key, strings):
         try:
             from core.crypt_salt import get_salt
             salt = get_salt()
-        except:
+        except Exception as _e:
             salt = None
             
         composite_key = key + salt if salt else key
@@ -1707,7 +1731,7 @@ def enDoubleCrypt(key, strings):
         f = Fernet(_key)
         result = f.encrypt(strings)
         return result.decode('utf-8')
-    except:
+    except Exception as _e:
         writeFileLog(getTracebackInfo())
         return strings
 
@@ -1724,7 +1748,7 @@ def deDoubleCrypt(key, strings):
         try:
             from core.crypt_salt import get_salt
             salt = get_salt()
-        except:
+        except Exception as _e:
             salt = None
 
         if salt:
@@ -1743,7 +1767,7 @@ def deDoubleCrypt(key, strings):
         f = Fernet(_key)
         result = f.decrypt(strings).decode('utf-8')
         return result
-    except:
+    except Exception as _e:
         writeFileLog(getTracebackInfo())
         return strings
 
@@ -1760,7 +1784,7 @@ def getAesKey():
             with open(aes_file, 'r') as f:
                 _aes_key_cache = json.loads(f.read())
                 return _aes_key_cache
-        except:
+        except Exception as _e:
             pass
             
     key = getRandomString(16)
@@ -1769,7 +1793,7 @@ def getAesKey():
     try:
         with open(aes_file, 'w') as f:
             f.write(json.dumps(_aes_key_cache))
-    except:
+    except Exception as _e:
         pass
     return _aes_key_cache
 
@@ -1945,42 +1969,94 @@ def buildSoftLink(src, dst, force=False):
     return False
 # ------------------------------   network start  -----------------------------
 
+def _insecure_ssl_context():
+    try:
+        import ssl
+        return ssl._create_unverified_context()
+    except Exception:
+        return None
+
+_HTTP_POOL = None
+_HTTP_POOL_LOCK = None
+
+def _get_http_pool():
+    global _HTTP_POOL, _HTTP_POOL_LOCK
+    if _HTTP_POOL is not None:
+        return _HTTP_POOL
+    try:
+        import threading as _th
+        if _HTTP_POOL_LOCK is None:
+            _HTTP_POOL_LOCK = _th.Lock()
+        with _HTTP_POOL_LOCK:
+            if _HTTP_POOL is not None:
+                return _HTTP_POOL
+            try:
+                import urllib3 as _u3
+                _u3.disable_warnings()
+                ctx = _insecure_ssl_context()
+                _HTTP_POOL = _u3.PoolManager(cert_reqs='CERT_NONE', retries=False, timeout=urllib3.Timeout(connect=5, read=10), maxsize=10, block=False, ssl_context=ctx)
+                return _HTTP_POOL
+            except Exception:
+                _HTTP_POOL = False
+                return None
+    except Exception:
+        return None
+    return None
+
 def HttpGet(url, timeout=10):
     """
-    发送GET请求
+    发送GET请求（优先 urllib3 PoolManager 复用连接，局部 unverified context，不污染全局）
     @url 被请求的URL地址(必需)
     @timeout 超时时间默认60秒
     return string
     """
+    pool = _get_http_pool()
+    if pool:
+        try:
+            resp = pool.request('GET', url, timeout=timeout, retries=False)
+            data = resp.data
+            if isinstance(data, bytes):
+                data = data[:1048576].decode('utf-8', errors='replace') if len(data) > 1048576 else data.decode('utf-8', errors='replace')
+            return data
+        except Exception:
+            pass
     try:
         import urllib.request
-        import ssl
-        try:
-            ssl._create_default_https_context = ssl._create_unverified_context
-        except:
-            pass
-        response = urllib.request.urlopen(url, timeout=timeout)
+        ctx = _insecure_ssl_context()
+        kwargs = {'timeout': timeout}
+        if ctx is not None:
+            kwargs['context'] = ctx
+        response = urllib.request.urlopen(url, **kwargs)
         result = response.read()
-        if type(result) == bytes:
-            result = result.decode('utf-8')
+        if isinstance(result, bytes):
+            result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
         return result
     except Exception as ex:
         return str(ex)
 
 
 def HttpGet2(url, timeout):
-    import urllib.request
-
-    try:
-        import ssl
+    pool = _get_http_pool()
+    if pool:
         try:
-            ssl._create_default_https_context = ssl._create_unverified_context
-        except:
+            resp = pool.request('GET', url, timeout=timeout, retries=False)
+            data = resp.data
+            if isinstance(data, bytes):
+                data = data[:1048576].decode('utf-8', errors='replace') if len(data) > 1048576 else data.decode('utf-8', errors='replace')
+            return data
+        except Exception:
             pass
-        req = urllib.request.urlopen(url, timeout=timeout)
-        result = req.read().decode('utf-8')
+    import urllib.request
+    try:
+        ctx = _insecure_ssl_context()
+        kwargs = {'timeout': timeout}
+        if ctx is not None:
+            kwargs['context'] = ctx
+        req = urllib.request.urlopen(url, **kwargs)
+        result = req.read()
+        if isinstance(result, bytes):
+            result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
         return result
-
     except Exception as e:
         return str(e)
 
@@ -1991,25 +2067,50 @@ def httpGet(url, timeout=10):
 
 def HttpPost(url, data, timeout=10):
     """
-    发送POST请求
+    发送POST请求（优先 PoolManager 复用，局部 unverified context + 1MB 响应截断）
     @url 被请求的URL地址(必需)
     @data POST参数，可以是字符串或字典(必需)
     @timeout 超时时间默认60秒
     return string
     """
+    pool = _get_http_pool()
+    if pool:
+        try:
+            body = data
+            headers = {'User-Agent': 'bt_simple/1.0', 'Content-Type': 'application/x-www-form-urlencoded'}
+            if isinstance(data, dict):
+                if len(str(data)) > 65536:
+                    return "POST data too large"
+                import urllib.parse as _up
+                body = _up.urlencode(data)
+            elif isinstance(data, str):
+                body = data
+            resp = pool.request('POST', url, body=body, headers=headers, timeout=timeout, retries=False)
+            result = resp.data
+            if isinstance(result, bytes):
+                result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
+            return result
+        except Exception:
+            pass
     try:
         import urllib.request
-        import ssl
-        try:
-            ssl._create_default_https_context = ssl._create_unverified_context
-        except:
-            pass
-        data = urllib.parse.urlencode(data).encode('utf-8')
+        ctx = _insecure_ssl_context()
+        if isinstance(data, dict):
+            if len(str(data)) > 65536:
+                return "POST data too large"
+            data = urllib.parse.urlencode(data).encode('utf-8')
+        elif isinstance(data, str):
+            data = data.encode('utf-8')
         req = urllib.request.Request(url, data)
-        response = urllib.request.urlopen(req, timeout=timeout)
+        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        req.add_header('User-Agent', 'bt_simple/1.0')
+        kwargs = {'timeout': timeout}
+        if ctx is not None:
+            kwargs['context'] = ctx
+        response = urllib.request.urlopen(req, **kwargs)
         result = response.read()
-        if type(result) == bytes:
-            result = result.decode('utf-8')
+        if isinstance(result, bytes):
+            result = result[:1048576].decode('utf-8', errors='replace') if len(result) > 1048576 else result.decode('utf-8', errors='replace')
         return result
     except Exception as ex:
         return str(ex)
@@ -2066,8 +2167,7 @@ def triggerTask():
 def restartTask():
     initd = getPanelDir() + '/scripts/init.d/yf'
     if os.path.exists(initd):
-        cmd = initd + ' ' + 'restart_task'
-        os.system(cmd)
+        safeExecShell([initd, 'restart_task'])
     return True
 
 def restartPanel():
@@ -2076,15 +2176,18 @@ def restartPanel():
     return True
 
 def panelCmd(method):
-    cmd = getPanelDir() + '/scripts/init.d/yf'
-    if os.path.exists(cmd):
-        os.system('nohup ' + cmd + ' ' + method + ' >> /tmp/panelCmd.log 2>&1 &')
-        return
-
-    cmd = '/etc/init.d/yf'
-    if os.path.exists(cmd):
-        os.system('nohup ' + cmd + ' ' + method + ' >> /tmp/panelCmd.log 2>&1 &')
-        return
+    allowed = ('restart_task', 'reload', 'restart', 'stop', 'start')
+    if method not in allowed:
+        method = 'reload'
+    import subprocess as _sp
+    log_fp = open('/tmp/panelCmd.log', 'ab')
+    for _cmd in (getPanelDir() + '/scripts/init.d/yf', '/etc/init.d/yf'):
+        if os.path.exists(_cmd):
+            try:
+                _sp.Popen([_cmd, method], stdout=log_fp, stderr=_sp.STDOUT, start_new_session=True)
+            except Exception:
+                pass
+            return
 
 # ------------------------------    panel end    -----------------------------
 
@@ -2195,7 +2298,7 @@ def _do_reload():
         return True
     sys_initd = '/etc/init.d/openresty'
     if os.path.exists(sys_initd):
-        os.system(sys_initd + ' reload')
+        safeExecShell([sys_initd, 'reload'])
         return True
     initd = getServerDir() + '/openresty/init.d/openresty'
     if os.path.exists(initd):
@@ -2225,7 +2328,10 @@ def opWeb(method):
 
     sys_initd = '/etc/init.d/openresty'
     if os.path.exists(sys_initd):
-        os.system(sys_initd + ' ' + method)
+        allowed_ops = ('reload', 'restart', 'stop', 'start', 'status')
+        if method not in allowed_ops:
+            method = 'reload'
+        safeExecShell([sys_initd, method])
         return True
 
     # initd
@@ -2321,7 +2427,7 @@ def getFpmAddress(version):
         else:
             fpm_address = ('127.0.0.1', int(tmp[0]))
         return fpm_address
-    except:
+    except Exception as _e:
         return fpm_address
 
 def requestFcgiPHP(sock, uri, document_root='/tmp', method='GET', pdata=b''):
@@ -2478,7 +2584,7 @@ def getSSHPort():
         rep = "(#*)?Port\\s+([0-9]+)\\s*\n"
         port = re.search(rep, conf).groups(0)[1]
         return int(port)
-    except:
+    except Exception as _e:
         return 22
 
 
@@ -2508,7 +2614,7 @@ def getGlibcVersion():
         cmd_result = execShell("ldd --version")[0]
         if not cmd_result: return ''
         glibc_version = cmd_result.split("\n")[0].split()[-1]
-    except:
+    except Exception as _e:
         return ''
     return glibc_version
 
@@ -2538,10 +2644,10 @@ def processExists(pname, exe=None, cmdline=None):
                         if cmdline:
                             if cmdline in p.cmdline():
                                 return True
-            except:
+            except Exception as _e:
                 pass
         return False
-    except:
+    except Exception as _e:
         return True
 
 

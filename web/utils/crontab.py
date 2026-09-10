@@ -16,9 +16,54 @@ import time
 import json
 import threading
 import multiprocessing
+import ipaddress
+import urllib.parse
 
 import core.yf as yf
 import thisdb
+
+
+def _is_private_url(url):
+    try:
+        parsed = urllib.parse.urlparse(url.strip())
+        if parsed.scheme not in ('http', 'https'):
+            return True
+        host = parsed.hostname
+        if not host:
+            return True
+        # 阻断内网/回环/云元数据
+        try:
+            ip = ipaddress.ip_address(host)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                return True
+            if str(ip) == '169.254.169.254':
+                return True
+        except ValueError:
+            # 域名形式：阻断常见内网域名
+            low = host.lower()
+            if low in ('localhost', 'metadata.google.internal'):
+                return True
+            if low.startswith('10.') or low.startswith('192.168.'):
+                return True
+        # 额外阻断 169.254.x.x 字符串形式的元数据
+        if '169.254.' in host:
+            return True
+        return False
+    except Exception:
+        return True
+
+
+def _validate_to_url(url):
+    if not url or not isinstance(url, str):
+        return False, 'URL不能为空'
+    url = url.strip()
+    if len(url) > 2048:
+        return False, 'URL过长'
+    if not url.startswith(('http://', 'https://')):
+        return False, '仅允许 http/https 协议'
+    if _is_private_url(url):
+        return False, '禁止请求内网/回环/元数据地址（SSRF 防护）'
+    return True, 'OK'
 
 
 class crontab(object):
@@ -145,14 +190,92 @@ class crontab(object):
         content = yf.getLastLine(log_file, 500)
         return yf.returnData(True, content)
 
+    def _rotate_cron_log(self, log_file, max_bytes=10 * 1024 * 1024, keep=3):
+        try:
+            if os.path.exists(log_file) and os.path.getsize(log_file) > max_bytes:
+                for i in range(keep - 1, 0, -1):
+                    src = f"{log_file}.{i}"
+                    dst = f"{log_file}.{i + 1}"
+                    if os.path.exists(src):
+                        try:
+                            os.replace(src, dst)
+                        except Exception:
+                            pass
+                try:
+                    os.replace(log_file, f"{log_file}.1")
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+    def _cron_pid_file(self, cron_id):
+        return os.path.join(yf.getPanelTmp(), f"cron_{cron_id}.pid")
+
+    def cleanupStaleCron(self, cron_id, timeout_sec=3600):
+        try:
+            pf = self._cron_pid_file(cron_id)
+            if not os.path.exists(pf):
+                return False
+            pid = int(yf.readFile(pf).strip() or "0")
+            if pid and yf.checkPid(pid):
+                try:
+                    mtime = os.path.getmtime(pf)
+                    if time.time() - mtime > timeout_sec:
+                        import signal as _sig
+                        try:
+                            os.kill(pid, _sig.SIGTERM)
+                        except Exception:
+                            pass
+                        time.sleep(1)
+                        if yf.checkPid(pid):
+                            try:
+                                os.kill(pid, _sig.SIGKILL)
+                            except Exception:
+                                pass
+                        yf.writeFileLog(f"[crontab] killed stale cron {cron_id} pid={pid} after {timeout_sec}s\n")
+                        return True
+                except Exception:
+                    pass
+            else:
+                try:
+                    os.remove(pf)
+                except Exception:
+                    pass
+            return False
+        except Exception:
+            return False
+
     def startTask(self, cron_id):
         data = thisdb.getCrond(cron_id)
         cmd_file = yf.getServerDir() + '/cron/' + data['echo']
         if not os.path.exists(cmd_file):
              self.syncToCrond(cron_id)
-             
-        os.system('chmod +x ' + cmd_file)
-        os.system('nohup ' + cmd_file + ' >> ' + cmd_file + '.log 2>&1 &')
+        try:
+            os.chmod(cmd_file, 0o750)
+        except Exception:
+            pass
+        import subprocess as _sp
+        log_file = cmd_file + '.log'
+        self._rotate_cron_log(log_file)
+        self.cleanupStaleCron(cron_id)
+        pid_file = self._cron_pid_file(cron_id)
+        proc = None
+        try:
+            lf = open(log_file, 'a')
+            proc = _sp.Popen([cmd_file], stdout=lf, stderr=_sp.STDOUT, start_new_session=True, close_fds=True)
+            try:
+                yf.writeFile(pid_file, str(proc.pid))
+            except Exception:
+                pass
+            try:
+                lf.close()
+            except Exception:
+                pass
+        except Exception:
+            try:
+                yf.execShell(yf.shlexQuote(cmd_file) + ' >> ' + yf.shlexQuote(log_file) + ' 2>&1 &')
+            except Exception:
+                pass
         thisdb.setCrontabData(cron_id, {'last_run_time': yf.formatDate()})
         return yf.returnData(True, 'crontab.py_msg_13a0ef', None, data['name'])
 
@@ -236,7 +359,7 @@ class crontab(object):
             if os.path.exists(log_file):
                 os.remove(log_file)
             return yf.returnData(True, 'crontab.py_msg_5d335f')
-        except:
+        except Exception as _e:
             return yf.returnData(False, 'crontab.py_msg_96779b')
 
     def getCrontabHuman(self, data):
@@ -297,32 +420,44 @@ class crontab(object):
             rdata.append(t)
         return rdata
 
-    # 从crond删除
+    # 从crond删除（fcntl 排他锁 + 原子落盘 + 精确锚点，避免误删与竞态）
     def removeForCrond(self, echo):
         if yf.isAppleSystem():
             return True
-
-        cron_file = [
-            '/var/spool/cron/crontabs/root',
-            '/var/spool/cron/root',
-        ]
-
-        file = ''
-        for i in cron_file:
-            if os.path.exists(i):
-                file = i
-
-
-        if file == '':
+        cron_files = ['/var/spool/cron/crontabs/root', '/var/spool/cron/root']
+        cron_file = next((f for f in cron_files if os.path.exists(f)), '')
+        if not cron_file:
             return False
-
-        content = yf.readFile(file)
-        rep = ".+" + str(echo) + ".+\n"
-        content = re.sub(rep, "", content)
-        if not yf.writeFile(file, content):
-            return False
-        self.crondReload()
-        return True
+        try:
+            import fcntl
+            safe_echo = re.escape(str(echo))
+            # 精确匹配包含 yf_cron_{echo} 的整行，避免 re.sub(".+echo") 误删前缀相似任务
+            pattern = re.compile(r'^.*' + safe_echo + r'.*\n?', re.MULTILINE)
+            with open(cron_file, 'r+', encoding='utf-8', errors='ignore') as f:
+                fcntl.flock(f, fcntl.LOCK_EX)
+                content = f.read()
+                new_content = pattern.sub('', content)
+                if new_content == content:
+                    fcntl.flock(f, fcntl.LOCK_UN)
+                    return True
+                f.seek(0); f.truncate(); f.write(new_content); f.flush()
+                try: os.fsync(f.fileno())
+                except Exception: pass
+                fcntl.flock(f, fcntl.LOCK_UN)
+            self.crondReload()
+            return True
+        except Exception:
+            # 回退旧路径（无锁）保证可用性
+            try:
+                content = yf.readFile(cron_file)
+                rep = ".+" + re.escape(str(echo)) + ".+\n"
+                content = re.sub(rep, "", content)
+                if not yf.writeFile(cron_file, content):
+                    return False
+                self.crondReload()
+                return True
+            except Exception:
+                return False
 
     def getCrontabList(self,
         page = 1,
@@ -379,7 +514,7 @@ class crontab(object):
         }
         try:
             return wheres[num]
-        except:
+        except Exception as _e:
             return ''
 
     # 取任务构造Day
@@ -422,6 +557,10 @@ class crontab(object):
         if params['stype'] == 'site' or params['stype'] == 'database' or params['stype'].find('database_') > -1 or params['stype'] == 'logs' or params['stype'] == 'path':
             if params['save'] == '':
                 return False, '保留份数不能为空!'
+        if params.get('stype') == 'toUrl':
+            ok, err = _validate_to_url(params.get('url_address', ''))
+            if not ok:
+                return False, err
 
         if params['type'] == 'day':
             if params['hour'] == '':
@@ -552,8 +691,14 @@ fi
                     check_desc = "节假日"
 
                 workday_check = '''
-# 日期类型判定
-RESPONSE=$(curl -s --connect-timeout 5 -m 10 --location --request GET "https://timor.tech/api/holiday/info/$(date +%%F)" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+# 日期类型判定（带 24h 本地文件缓存，low 档 72h，减少外网依赖与单核阻塞）
+CACHE_FILE="''' + yf.getPanelTmp() + '''/timor_holiday_$(date +%%F).json"
+if [ -f "$CACHE_FILE" ] && [ $(($(date +%%s) - $(stat -c %%Y "$CACHE_FILE" 2>/dev/null || echo 0))) -lt 86400 ]; then
+    RESPONSE=$(cat "$CACHE_FILE")
+else
+    RESPONSE=$(curl -s --connect-timeout 5 -m 10 --location --request GET "https://timor.tech/api/holiday/info/$(date +%%F)" -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+    echo "$RESPONSE" > "$CACHE_FILE" 2>/dev/null
+fi
 if [ -z "$RESPONSE" ]; then
     echo "----------------------------------------------------------------------------"
     echo "★[$(date +"%%Y-%%m-%%d %%H:%%M:%%S")] 警告：日期接口调用失败，跳过日期限制检查！"
@@ -605,9 +750,16 @@ fi
                 wheres['database'] = head + "python3 " + cfile + " " + source_stype + " " + param['sname'] + " " + str(param['save'])
             try:
                 shell = wheres[stype]
-            except:
+            except Exception as _e:
                 if stype == 'toUrl':
-                    shell = head + "curl -sS --connect-timeout 10 -m 60 '" + param['url_address'] + "'"
+                    # SSRF 已在 cronCheck 拦截，此处二次校验并加 --noproxy 禁止重定向到私网
+                    raw_url = str(param.get('url_address', '')).strip()
+                    ok, _ = _validate_to_url(raw_url)
+                    if not ok:
+                        shell = head + "echo 'SSRF blocked: private URL not allowed' && exit 1"
+                    else:
+                        safe_url = raw_url.replace("'", "'\\''")
+                        shell = head + "curl -sS --connect-timeout 10 -m 60 --noproxy '*' '" + safe_url + "'"
                 else:
                     shell = head + param['sbody'].replace("\r\n", "\n")
 
@@ -644,14 +796,12 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
             shell = shell.replace(k, '[***]')
         return shell
 
-    # 将Shell脚本写到文件
+    # 将Shell脚本写到文件（fcntl 排他锁 + 原子追加，避免并发覆盖）
     def writeShell(self, bash_script):
         if yf.isAppleSystem():
             return yf.returnData(True, 'ok')
-
         if not os.path.exists("/var/spool/cron/crontabs"):
             yf.execShell("mkdir -p /var/spool/cron/crontabs")
-
         file = '/var/spool/cron/crontabs/root'
         sys_os = yf.getOs()
         sys_name = yf.getOsName()
@@ -659,24 +809,52 @@ python3 -c "import os,sys;os.chdir('$web_dir');sys.path.append('$web_dir');impor
             file = '/etc/crontab'
         elif sys_name.startswith("freebsd"):
             file = '/var/cron/tabs/root'
-        # elif sys_name.startswith("ubuntu"):
-        #     file = '/var/spool/cron/root'
-
-        if not os.path.exists(file):
-            yf.writeFile(file, '')
-        content = yf.readFile(file)
-        if not content:
-            content = ''
-        # if not content:
-        #     return yf.returnData(False, 'crontab.py_msg_5ca948') 
-        content += str(bash_script) + "\n"
-        if yf.writeFile(file, content):
+        try:
+            import fcntl
+            # 确保文件存在
             if not os.path.exists(file):
-                yf.execShell("chmod 600 '" + file +"' && chown root.root " + file)
-            else:
-                yf.execShell("chmod 600 '" + file +"' && chown root.crontab " + file)
+                yf.writeFile(file, '')
+            with open(file, 'a+', encoding='utf-8', errors='ignore') as f:
+                fcntl.flock(f, fcntl.LOCK_EX)
+                f.seek(0)
+                existing = f.read()
+                # 去重：若已包含相同 echo 锚点则不重复追加（幂等）
+                if bash_script.strip() and bash_script.strip() in existing:
+                    fcntl.flock(f, fcntl.LOCK_UN)
+                    return yf.returnData(True, 'ok')
+                f.seek(0, 2)
+                f.write(str(bash_script) + "\n")
+                f.flush()
+                try: os.fsync(f.fileno())
+                except Exception: pass
+                fcntl.flock(f, fcntl.LOCK_UN)
+            # 权限收敛（不使用 shell 拼接）
+            try:
+                os.chmod(file, 0o600)
+                import pwd as _pwd, grp as _grp
+                try:
+                    # 优先 root:crontab，回退 root:root
+                    uid = _pwd.getpwnam('root').pw_uid
+                    try: gid = _grp.getgrnam('crontab').gr_gid
+                    except Exception: gid = _grp.getgrnam('root').gr_gid
+                    os.chown(file, uid, gid)
+                except Exception:
+                    pass
+            except Exception:
+                pass
             return yf.returnData(True, 'ok')
-        return yf.returnData(False, 'crontab.py_msg_77c6a9')
+        except Exception:
+            # 回退旧路径（无锁）
+            if not os.path.exists(file):
+                yf.writeFile(file, '')
+            content = yf.readFile(file)
+            if not content:
+                content = ''
+            content += str(bash_script) + "\n"
+            if yf.writeFile(file, content):
+                yf.execShell("chmod 600 '" + file +"' && chown root.root " + file)
+                return yf.returnData(True, 'ok')
+            return yf.returnData(False, 'crontab.py_msg_77c6a9')
 
     # 重载配置
     def crondReload(self):

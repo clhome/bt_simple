@@ -19,7 +19,7 @@ def _set_permission(filepath):
     try:
         if os.path.exists(filepath):
             os.chmod(filepath, 0o600)
-    except:
+    except Exception as _e:
         pass
 
 def _write_salt(filepath, salt_data):
@@ -31,7 +31,7 @@ def _write_salt(filepath, salt_data):
             f.write(json.dumps(salt_data))
         _set_permission(filepath)
         return True
-    except:
+    except Exception as _e:
         return False
 
 def init_salt():
@@ -57,7 +57,7 @@ def _read_salt(filepath):
             data = json.loads(f.read())
             if 'salt' in data:
                 return data
-    except:
+    except Exception as _e:
         pass
     return None
 

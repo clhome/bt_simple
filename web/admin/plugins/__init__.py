@@ -421,7 +421,7 @@ def run_batch():
     batch_req = request.form.get('list', '[]')
     try:
         req_list = json.loads(batch_req)
-    except:
+    except Exception as _e:
         req_list = []
 
     pg = YfPlugin.instance()

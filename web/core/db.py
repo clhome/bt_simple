@@ -17,11 +17,43 @@ import os
 import sys
 import sqlite3
 import threading
+import time
+import atexit
 
 import core.yf as yf
 
 _local = threading.local()
 _table_fields_cache = {}
+
+def _is_busy_error(ex):
+    msg = str(ex).lower()
+    return 'busy' in msg or 'locked' in msg
+
+def _execute_with_retry(conn, sql, params=(), retries=3, delay=0.2):
+    last_ex = None
+    for attempt in range(retries):
+        try:
+            return conn.execute(sql, params)
+        except sqlite3.OperationalError as oe:
+            last_ex = oe
+            if _is_busy_error(oe) and attempt < retries - 1:
+                time.sleep(delay * (attempt + 1))
+                continue
+            raise
+    raise last_ex  # pragma: no cover
+
+def _close_all_connections():
+    try:
+        conns = getattr(_local, 'connections', {})
+        for c in list(conns.values()):
+            try:
+                c.close()
+            except Exception as _e:
+                pass
+    except Exception as _e:
+        pass
+
+atexit.register(_close_all_connections)
 
 def getPanelDir():
     return yf.getPanelDir()
@@ -49,6 +81,26 @@ class Sql():
     def __init__(self):
         self.__DB_FILE = getPanelDir()+'/data/panel.db'
 
+    def _applyPragmas(self, conn):
+        try:
+            from core.resources import get_sqlite_pragmas
+            pragmas = get_sqlite_pragmas()
+        except Exception:
+            pragmas = [('journal_mode', 'WAL'), ('synchronous', 'NORMAL'),
+                       ('cache_size', -8000), ('busy_timeout', 30000)]
+        for k, v in pragmas:
+            try:
+                conn.execute("PRAGMA %s=%s;" % (k, v))
+            except Exception:
+                pass
+
+    def _getTimeout(self):
+        try:
+            from core.resources import get_sqlite_timeout
+            return get_sqlite_timeout()
+        except Exception:
+            return 30
+
     def __getConn(self):
         # 取数据库对象
         try:
@@ -58,10 +110,9 @@ class Sql():
                 
                 conn = _local.connections.get(self.__DB_FILE)
                 if conn is None:
-                    conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=10)
+                    conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=self._getTimeout())
                     conn.text_factory = lambda x: x.decode('utf-8', 'ignore')
-                    conn.execute("PRAGMA journal_mode=WAL;")
-                    conn.execute("PRAGMA synchronous=NORMAL;")
+                    self._applyPragmas(conn)
                     _local.connections[self.__DB_FILE] = conn
                 else:
                     try:
@@ -69,12 +120,11 @@ class Sql():
                     except (sqlite3.ProgrammingError, sqlite3.OperationalError):
                         try:
                             conn.close()
-                        except:
+                        except Exception as _e:
                             pass
-                        conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=10)
+                        conn = sqlite3.connect(self.__DB_FILE, check_same_thread=False, timeout=self._getTimeout())
                         conn.text_factory = lambda x: x.decode('utf-8', 'ignore')
-                        conn.execute("PRAGMA journal_mode=WAL;")
-                        conn.execute("PRAGMA synchronous=NORMAL;")
+                        self._applyPragmas(conn)
                         _local.connections[self.__DB_FILE] = conn
                 
                 self.__DB_CONN = _local.connections[self.__DB_FILE]
@@ -178,7 +228,7 @@ class Sql():
         
 
     def select(self):
-        # 查询数据集
+        # 查询数据集（带 busy 重试，避免并发备份锁表时直接吞错）
         self.__getConn()
         try:
             sql = "SELECT " + self.__OPT_FIELD + " FROM " + self.__DB_TABLE + \
@@ -187,8 +237,8 @@ class Sql():
             if self.__debug:
                 print(sql)
                 print(self.__OPT_PARAM)
-                
-            result = self.__DB_CONN.execute(sql, self.__OPT_PARAM)
+
+            result = _execute_with_retry(self.__DB_CONN, sql, self.__OPT_PARAM)
             data = result.fetchall()
             if len(data) == 0:
                 return data
@@ -226,20 +276,29 @@ class Sql():
                 # del(tmp)
             self.__close()
             return data
+        except sqlite3.OperationalError as oe:
+            yf.writeFileLog(f"[db.select] {self.__DB_TABLE} busy/locked: {oe}\n{yf.getTracebackInfo()}")
+            try:
+                self.__close()
+            except Exception as _e:
+                pass
+            return []
         except Exception as ex:
-            # return "error: " + str(ex)
+            yf.writeFileLog(f"[db.select] {self.__DB_TABLE} {ex}\n{yf.getTracebackInfo()}")
+            try:
+                self.__close()
+            except Exception as _e:
+                pass
             return []
 
     def inquiry(self, input_field=''):
-        # 查询数据集
+        # 查询数据集（带 busy 重试）
         # 不清空查询参数
         self.__getConn()
         try:
             sql = "SELECT " + self.__OPT_FIELD + " FROM " + self.__DB_TABLE + \
                 self.__OPT_WHERE + self.__OPT_GROUP + self.__OPT_ORDER + self.__OPT_LIMIT
-            # if yf.isDebugMode():
-            #     print(sql, self.__OPT_PARAM)
-            result = self.__DB_CONN.execute(sql, self.__OPT_PARAM)
+            result = _execute_with_retry(self.__DB_CONN, sql, self.__OPT_PARAM)
             data = result.fetchall()
             # 构造字曲系列
             if self.__OPT_FIELD != "*":
@@ -293,7 +352,7 @@ class Sql():
         data = self.field(key).select()
         try:
             return int(data[0][key])
-        except:
+        except Exception as _e:
             return 0
 
     def add(self, keys, param):
@@ -306,7 +365,7 @@ class Sql():
             values = self.checkInput(values[0:len(values) - 1])
             sql = "INSERT INTO " + self.__DB_TABLE + \
                 "(" + keys + ") " + "VALUES(" + values + ")"
-            result = self.__DB_CONN.execute(sql, param)
+            result = _execute_with_retry(self.__DB_CONN, sql, param)
             last_id = result.lastrowid
             self.__close()
             self.__DB_CONN.commit()
@@ -366,7 +425,8 @@ class Sql():
             values = values[0:len(values) - 1]
             sql = "INSERT INTO " + self.__DB_TABLE + \
                 "(" + keys + ") " + "VALUES(" + values + ")"
-            result = self.__DB_CONN.execute(sql, param)
+            result = _execute_with_retry(self.__DB_CONN, sql, param)
+            self.__DB_CONN.commit()
             return True
         except Exception as ex:
             return "error: " + str(ex)
@@ -393,7 +453,7 @@ class Sql():
             for arg in self.__OPT_PARAM:
                 tmp.append(arg)
             self.__OPT_PARAM = tuple(tmp)
-            result = self.__DB_CONN.execute(sql, self.__OPT_PARAM)
+            result = _execute_with_retry(self.__DB_CONN, sql, self.__OPT_PARAM)
             self.__close()
             self.__DB_CONN.commit()
             return result.rowcount
@@ -408,7 +468,7 @@ class Sql():
                 self.__OPT_WHERE = " WHERE id=?"
                 self.__OPT_PARAM = (id,)
             sql = "DELETE FROM " + self.__DB_TABLE + self.__OPT_WHERE
-            result = self.__DB_CONN.execute(sql, self.__OPT_PARAM)
+            result = _execute_with_retry(self.__DB_CONN, sql, self.__OPT_PARAM)
             self.__close()
             self.__DB_CONN.commit()
             return result.rowcount
@@ -418,7 +478,7 @@ class Sql():
     def originExecute(self, sql, param=()):
         self.__getConn()
         try:
-            result = self.__DB_CONN.execute(sql, param)
+            result = _execute_with_retry(self.__DB_CONN, sql, param)
             self.__DB_CONN.commit()
             return result
         except Exception as ex:
@@ -427,9 +487,8 @@ class Sql():
     def execute(self, sql, param=()):
         # 执行SQL语句返回受影响行
         self.__getConn()
-        # print sql, param
         try:
-            result = self.__DB_CONN.execute(sql, param)
+            result = _execute_with_retry(self.__DB_CONN, sql, param)
             self.__DB_CONN.commit()
             return result.rowcount
         except Exception as ex:
@@ -439,7 +498,7 @@ class Sql():
         # 执行SQL语句返回数据集
         self.__getConn()
         try:
-            result = self.__DB_CONN.execute(sql, param)
+            result = _execute_with_retry(self.__DB_CONN, sql, param)
             # 将元组转换成列表
             # data = map(list, result)
             return result
@@ -476,5 +535,5 @@ class Sql():
         # 释放资源（由于使用了线程池，不再物理关闭）
         try:
             self.__DB_CONN = None
-        except:
+        except Exception as _e:
             pass

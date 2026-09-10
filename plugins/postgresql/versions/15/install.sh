@@ -1,4 +1,5 @@
 #!/bin/bash
+if [ -f $(dirname $0)/../../scripts/lib_make_jobs.sh ]; then source $(dirname $0)/../../scripts/lib_make_jobs.sh; elif [ -f /www/server/yufeng_panel/scripts/lib_make_jobs.sh ]; then source /www/server/yufeng_panel/scripts/lib_make_jobs.sh; fi
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
@@ -73,6 +74,8 @@ Install_App()
 		cpuCore=`echo "$cpuCore" | awk '{printf("%.f",($1)*0.8)}'`
 	fi
 	# ----- cpu end ------
+# --- yf adaptive clamp (1C512M -> -j1) ---
+if command -v yf_make_jobs >/dev/null 2>&1; then _yf_jobs=$(yf_make_jobs 2>/dev/null || echo ""); if [ -n "$_yf_jobs" ] && [ "$_yf_jobs" -ge 1 ] 2>/dev/null; then cpuCore="$_yf_jobs"; fi; fi ------
 
 	if [ ! -f ${postgreDir}/postgresql-${VERSION}.tar.bz2 ];then
 		wget -nv --no-check-certificate -O ${postgreDir}/postgresql-${VERSION}.tar.bz2 --tries=3 https://ftp.postgresql.org/pub/source/v${VERSION}/postgresql-${VERSION}.tar.bz2

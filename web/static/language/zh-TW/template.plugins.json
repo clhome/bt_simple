@@ -1,0 +1,230 @@
+{
+  "acme_pandominassl_apply": {
+    "title": "ACME泛網域名稱SSL",
+    "ps": "ACME泛網域名稱SSL申請/管理，提供Let's Encrypt免費泛網域名稱憑證申請與自動續簽"
+  },
+  "apache": {
+    "title": "Apache",
+    "ps": "世界排名領先，快速、可靠並且可透過簡單的API擴充的 Web 伺服器軟體"
+  },
+  "caddy": {
+    "title": "Caddy",
+    "ps": "一款功能強大、企業級、開源 Web 伺服器，具有用 Go 編寫的自動 HTTPS"
+  },
+  "clean": {
+    "title": "記錄檔清理",
+    "ps": "清理系統暫存檔案、面板記錄檔、網站記錄檔等無用檔案，釋放磁碟空間"
+  },
+  "data_query": {
+    "title": "資料管理",
+    "ps": "資料簡單管理 (Memcached, Redis, MongoDB)，快捷檢視與維護鍵值資料庫"
+  },
+  "docker": {
+    "title": "御風Docker管理器",
+    "ps": "採用多個加速點輪詢高速下載映像檔，讓Docker下載和拉取映像檔如飛"
+  },
+  "fail2ban": {
+    "title": "御風F2B防火牆",
+    "ps": "防止惡意IP位址暴力破解服務、網站，禁止導致多個身份驗證錯誤的主機"
+  },
+  "gitea": {
+    "title": "Gitea",
+    "ps": "一個輕量級、無痛自建的 Git 服務"
+  },
+  "jdk": {
+    "title": "御風JDK管理器",
+    "ps": "多版本JDK線上安裝與環境設定管理器"
+  },
+  "linux_sys_opt": {
+    "title": "御風系統優化",
+    "ps": "深入核心與系統層級的高效能參數調優工具"
+  },
+  "mariadb": {
+    "title": "MariaDB",
+    "ps": "最流行的開源關聯式資料庫管理系統之一"
+  },
+  "mongodb": {
+    "title": "MongoDB",
+    "ps": "現代通用、基於文件的分散式 NoSQL 資料庫"
+  },
+  "mysql": {
+    "title": "MySQL",
+    "ps": "全球最受歡迎的開源關聯式資料庫系統"
+  },
+  "ollama": {
+    "title": "Ollama",
+    "ps": "本機大語言模型部署與管理工具"
+  },
+  "op_load_balance": {
+    "title": "負載平衡",
+    "ps": "基於 OpenResty 的高效能負載平衡與反向代理叢集管理"
+  },
+  "op_waf": {
+    "title": "御風網站防火牆",
+    "ps": "基於 OpenResty Lua 的高效能 Web 應用程式防火牆"
+  },
+  "openresty": {
+    "title": "OpenResty",
+    "ps": "基於 Nginx 與 Lua 的高效能 Web 平台"
+  },
+  "pg_docker": {
+    "title": "御風PG Docker",
+    "ps": "基於 Docker 的 PostgreSQL 容器化多實例管理工具"
+  },
+  "pgadmin": {
+    "title": "pgAdmin",
+    "ps": "PostgreSQL 專用的功能強大的 Web 管理工具"
+  },
+  "php": {
+    "title": "PHP",
+    "ps": "廣泛使用的通用開源腳本語言"
+  },
+  "php-apt": {
+    "title": "PHP (APT)",
+    "ps": "透過 APT 快速安裝的官方源預編譯 PHP 環境"
+  },
+  "php-guard": {
+    "title": "PHP守護",
+    "ps": "監控並在 PHP-FPM 異常結束時自動拉起重啟服務"
+  },
+  "php-yum": {
+    "title": "PHP (YUM)",
+    "ps": "透過 YUM 快速安裝的預編譯 PHP 環境"
+  },
+  "phpmyadmin": {
+    "title": "phpMyAdmin",
+    "ps": "基於 Web 的經典 MySQL / MariaDB 圖形化管理工具"
+  },
+  "postgresql": {
+    "title": "PostgreSQL",
+    "ps": "世界上最先進的高可靠性開源關聯式資料庫"
+  },
+  "pureftp": {
+    "title": "Pure-FTPd",
+    "ps": "免費、安全、符合工業級標準的輕量 FTP 伺服器"
+  },
+  "python_yf": {
+    "title": "御風Python多版本",
+    "ps": "基於 uv 極速管理多版本 Python 與專案隔離虛擬環境"
+  },
+  "redis": {
+    "title": "Redis",
+    "ps": "極速記憶體資料結構儲存系統，可用作資料庫、快取和訊息中介軟體"
+  },
+  "rsyncd": {
+    "title": "Rsync守護",
+    "ps": "高效可靠的跨伺服器檔案增量同步與遠端備份工具"
+  },
+  "sphinx": {
+    "title": "Sphinx",
+    "ps": "開源全文搜尋引擎，提供快速高效的文字檢索能力"
+  },
+  "supervisor": {
+    "title": "Supervisor",
+    "ps": "處理程序控制與後台服務處理程序守護管理系統"
+  },
+  "swap": {
+    "title": "御風Swap管理器",
+    "ps": "輕鬆設定和調優虛擬記憶體交換空間，防止記憶體溢出"
+  },
+  "task_manager": {
+    "title": "工作管理員",
+    "ps": "即時處理程序樹、網路連線與系統開機服務深度監控工具"
+  },
+  "valkey": {
+    "title": "Valkey",
+    "ps": "高效能開源鍵值儲存資料庫，完美相容 Redis 生態"
+  },
+  "varnish": {
+    "title": "Varnish",
+    "ps": "高效能開源 HTTP 加速器與反向代理快取伺服器"
+  },
+  "webssh": {
+    "title": "WebSSH",
+    "ps": "基於瀏覽器的網頁終端機，隨時隨地安全管理伺服器"
+  },
+  "webstats": {
+    "title": "網站統計",
+    "ps": "即時統計網站造訪量、IP、PV、訪客畫像及來源分析"
+  },
+  "yufeng_systemd": {
+    "title": "御風服務管理器",
+    "ps": "Systemd 服務單元與開機自啟視覺化管理與監控"
+  },
+  "acme_pandominassl_apply.title": "ACME泛網域名稱SSL",
+  "acme_pandominassl_apply.ps": "ACME泛網域名稱SSL申请/管理，提供Let's Encrypt免费泛網域名稱憑證申请與自動续签",
+  "apache.title": "Apache",
+  "apache.ps": "世界排名领先，快速、可靠並且可通過简單的API扩充的 Web 伺服器軟體",
+  "caddy.title": "Caddy",
+  "caddy.ps": "一款功能强大、企业級、開源 Web 伺服器，具有用 Go 编寫的自動 HTTPS",
+  "clean.title": "記錄檔清理",
+  "clean.ps": "清理系統临時檔案、面板記錄檔、網站記錄檔等無用檔案，釋放磁盘空間",
+  "data_query.title": "數據管理",
+  "data_query.ps": "數據简單管理 (Memcached, Redis, MongoDB)，快捷查看與维護鍵值資料庫",
+  "docker.title": "御风Docker管理器",
+  "docker.ps": "采用多個加速點轮詢高速下載镜像，让Docker下載和拉取镜像如飞",
+  "fail2ban.title": "御风F2B防火牆",
+  "fail2ban.ps": "防止恶意IP地址暴力破解服务、站點，禁止導致多個身份驗證錯誤的主機",
+  "gitea.title": "Gitea",
+  "gitea.ps": "一個轻量級、無痛自建的 Git 服务",
+  "jdk.title": "御风JDK管理器",
+  "jdk.ps": "多版本JDK在線安裝與環境設定管理器",
+  "linux_sys_opt.title": "御风系統優化",
+  "linux_sys_opt.ps": "深入内核與系統层級的高性能参數调優工具",
+  "mariadb.title": "MariaDB",
+  "mariadb.ps": "最流行的開源關系型資料庫管理系統之一",
+  "mongodb.title": "MongoDB",
+  "mongodb.ps": "現代通用、基于文档的分布式 NoSQL 資料庫",
+  "mysql.title": "MySQL",
+  "mysql.ps": "全球最受欢迎的開源關系型資料庫系統",
+  "ollama.title": "Ollama",
+  "ollama.ps": "本地大语言模型部署與管理工具",
+  "op_load_balance.title": "負載均衡",
+  "op_load_balance.ps": "基于 OpenResty 的高性能負載均衡與反向代理集群管理",
+  "op_waf.title": "御风網站防火牆",
+  "op_waf.ps": "基于 OpenResty Lua 的高性能 Web 應用防火牆",
+  "openresty.title": "OpenResty",
+  "openresty.ps": "基于 Nginx 與 Lua 的高性能 Web 平台",
+  "pg_docker.title": "御风PG Docker",
+  "pg_docker.ps": "基于 Docker 的 PostgreSQL 容器化多實例管理工具",
+  "pgadmin.title": "pgAdmin",
+  "pgadmin.ps": "PostgreSQL 专用的功能强大的 Web 管理工具",
+  "php.title": "PHP",
+  "php.ps": "广泛使用的通用開源脚本语言",
+  "php-apt.title": "PHP (APT)",
+  "php-apt.ps": "通過 APT 快速安裝的官方源预编译 PHP 環境",
+  "php-guard.title": "PHP守護",
+  "php-guard.ps": "監控並在 PHP-FPM 异常登出時自動拉起重新啟動服务",
+  "php-yum.title": "PHP (YUM)",
+  "php-yum.ps": "通過 YUM 快速安裝的预编译 PHP 環境",
+  "phpmyadmin.title": "phpMyAdmin",
+  "phpmyadmin.ps": "基于 Web 的經典 MySQL / MariaDB 图形化管理工具",
+  "postgresql.title": "PostgreSQL",
+  "postgresql.ps": "世界上最先进的高可靠性開源關系型資料庫",
+  "pureftp.title": "Pure-FTPd",
+  "pureftp.ps": "免费、安全、符合工业級標準的轻量 FTP 伺服器",
+  "python_yf.title": "御风Python多版本",
+  "python_yf.ps": "基于 uv 極速管理多版本 Python 與項目隔离虚拟環境",
+  "redis.title": "Redis",
+  "redis.ps": "極速記憶體數據結構存储系統，可用作資料庫、缓存和消息中間件",
+  "rsyncd.title": "Rsync守護",
+  "rsyncd.ps": "高效可靠的跨伺服器檔案增量同步與远程備份工具",
+  "sphinx.title": "Sphinx",
+  "sphinx.ps": "開源全文搜索引擎，提供快速高效的文本检索能力",
+  "supervisor.title": "Supervisor",
+  "supervisor.ps": "處理程序控製與後台服务處理程序守護管理系統",
+  "swap.title": "御风Swap管理器",
+  "swap.ps": "轻松設定和调優虚拟記憶體交換空間，防止記憶體溢出",
+  "task_manager.title": "任务管理器",
+  "task_manager.ps": "實時處理程序树、網路連接與系統開機服务深度監控工具",
+  "valkey.title": "Valkey",
+  "valkey.ps": "高性能開源鍵值存储資料庫，完美兼容 Redis 生態",
+  "varnish.title": "Varnish",
+  "varnish.ps": "高性能開源 HTTP 加速器與反向代理缓存伺服器",
+  "webssh.title": "WebSSH",
+  "webssh.ps": "基于浏覽器的網頁終端機，随時随地安全管理伺服器",
+  "webstats.title": "網站統計",
+  "webstats.ps": "實時統計網站访問量、IP、PV、访客画像及來源分析",
+  "yufeng_systemd.title": "御风服务管理器",
+  "yufeng_systemd.ps": "Systemd 服务單元與開機自启可视化管理與監控"
+}

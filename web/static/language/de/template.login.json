@@ -1,0 +1,17 @@
+{
+  "N1": "Bitte geben Sie Ihre Kontonummer ein.",
+  "N2": "Das Format ist falsch.",
+  "N3": "Konto",
+  "N4": "Bitte geben Sie Ihr Passwort ein",
+  "N5": "Bitte geben Sie Ihr Passwort ein",
+  "N6": "Passwort",
+  "N7": "Bitte geben Sie den 4-stelligen Bestätigungscode ein.",
+  "N8": "Der Bestätigungscode ist falsch.",
+  "N9": "Bitte geben Sie den Bestätigungscode ein.",
+  "N10": "Klicken Sie hier, um ein anderes Bild anzuzeigen",
+  "N11": "Anmelden",
+  "N12": "Nach mindestens drei fehlgeschlagenen Anmeldeversuchen wird ein Bestätigungscode angezeigt.",
+  "N13": "Passwort vergessen >>",
+  "JS1": "Fehler im Formular – bitte erneut eingeben!",
+  "JS2": "Anmeldung läuft..."
+}

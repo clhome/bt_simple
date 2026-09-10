@@ -18,20 +18,20 @@ __field = 'id,name,type,where1,where_hour,where_minute,echo,status,save,backup_t
 # 尝试增加 last_run_time 字段 (迁移逻辑)
 try:
     yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN last_run_time TEXT")
-except:
+except Exception as _e:
     pass
 
 # 尝试增加 day_type 字段 (迁移逻辑)
 try:
     yf.M('crontab').execute("ALTER TABLE crontab ADD COLUMN day_type INTEGER DEFAULT 0")
-except:
+except Exception as _e:
     pass
 
 # 尝试增加 min_start/end 相关字段 (迁移逻辑)
 for col, ctype in [("min_start_en", "INTEGER DEFAULT 0"), ("min_start_h", "INTEGER DEFAULT 0"), ("min_start_m", "INTEGER DEFAULT 0"), ("min_end_en", "INTEGER DEFAULT 0"), ("min_end_h", "INTEGER DEFAULT 23"), ("min_end_m", "INTEGER DEFAULT 59")]:
     try:
         yf.M('crontab').execute(f"ALTER TABLE crontab ADD COLUMN {col} {ctype}")
-    except:
+    except Exception as _e:
         pass
 
 def addCrontab(data):

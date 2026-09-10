@@ -1,0 +1,7 @@
+{
+  "TITLE": "面板已關閉",
+  "H1": "抱歉,管理員已關閉面板",
+  "P1": "開啟命令: rm -f /www/server/panel/data/close.pl",
+  "NAME": "寶塔Linux面板",
+  "HELP": "請求幫助"
+}

@@ -21,10 +21,10 @@ class SimpleMySQLPool:
             try:
                 conn.ping(reconnect=True)
                 return conn
-            except:
+            except Exception as _e:
                 try:
                     conn.close()
-                except:
+                except Exception as _e:
                     pass
                 with self.lock:
                     self.created_count -= 1
@@ -43,10 +43,10 @@ class SimpleMySQLPool:
             try:
                 conn.ping(reconnect=True)
                 return conn
-            except:
+            except Exception as _e:
                 try:
                     conn.close()
-                except:
+                except Exception as _e:
                     pass
                 with self.lock:
                     self.created_count -= 1
@@ -63,7 +63,7 @@ class SimpleMySQLPool:
         except queue.Full:
             try:
                 conn.close()
-            except:
+            except Exception as _e:
                 pass
             with self.lock:
                 self.created_count -= 1
@@ -227,7 +227,7 @@ class ORM:
         try:
             if self.__DB_CUR:
                 self.__DB_CUR.close()
-        except:
+        except Exception as _e:
             pass
         
         try:
@@ -235,7 +235,7 @@ class ORM:
                 self.__DB_POOL.release_connection(self.__DB_CONN)
             elif self.__DB_CONN:
                 self.__DB_CONN.close()
-        except:
+        except Exception as _e:
             pass
             
         self.__DB_CUR = None

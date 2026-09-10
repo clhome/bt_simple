@@ -1,0 +1,17 @@
+{
+  "N1": "Please enter your account number",
+  "N2": "Incorrect format",
+  "N3": "Account",
+  "N4": "Please enter your password",
+  "N5": "Please enter your password",
+  "N6": "Password",
+  "N7": "Please enter the 4-digit verification code",
+  "N8": "The verification code is incorrect",
+  "N9": "Please enter the verification code",
+  "N10": "Click to see another one",
+  "N11": "Log In",
+  "N12": "If you enter the wrong login credentials three or more times, a verification code will be displayed.",
+  "N13": "Forgot Password>>",
+  "JS1": "Form error. Please re-enter the information!",
+  "JS2": "Logging in..."
+}

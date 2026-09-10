@@ -1,0 +1,12 @@
+{
+  "the_task_has_been": "Task deleted!",
+  "the_task_cannot_be": "taskIDcannot be empty!",
+  "no_logs_have_been": "No logrecord.",
+  "there_are_currently_no": "currentNo task queue is running-2!",
+  "there_are_currently_no_1": "currentNo task queue is running-3!",
+  "py_msg_454577": "Task deleted!",
+  "py_msg_db6ce6": "taskIDcannot be empty!",
+  "py_msg_ecca58": "No Logsrecord.",
+  "py_msg_3bc537": "currentNo task queue is Execute-2!",
+  "py_msg_320fa8": "currentNo task queue is Execute-3!"
+}

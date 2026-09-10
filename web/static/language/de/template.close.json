@@ -1,0 +1,7 @@
+{
+  "TITLE": "Das Bedienfeld ist geschlossen.",
+  "H1": "Es tut mir leid, der Administrator hat das Panel deaktiviert.",
+  "P1": "Befehl zum Starten: rm -f /www/server/panel/data/close.pl",
+  "NAME": "Baota Linux-Control-Panel",
+  "HELP": "Um Hilfe bitten"
+}

@@ -1,0 +1,12 @@
+{
+  "uv_not_found": "未檢測到 uv 環境，請先安裝 uv",
+  "specify_install_ver": "請指定要安裝的 Python 版本",
+  "install_task_added": "安裝任務已提交",
+  "specify_uninstall_ver": "請指定要解除安裝的 Python 版本",
+  "uninstall_success": "解除安裝成功",
+  "specify_ver_path": "請指定版本和專案路徑",
+  "venv_create_success": "虛擬環境建立成功",
+  "param_error": "參數錯誤，版本或路徑不能為空",
+  "del_success": "刪除成功",
+  "venv_not_exists": "虛擬環境不存在或記錄已被移除"
+}

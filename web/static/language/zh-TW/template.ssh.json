@@ -1,0 +1,23 @@
+{
+  "authentication_timed_out_please": "認證超時,请按回车重试!{1}",
+  "unknown_error": "未知錯誤: {1}",
+  "failed_to_connect_to": "連接目標伺服器失敗, {1}:{2}",
+  "neither_the_password_nor": "密碼或私鑰不能都為空: {1}:{2}",
+  "incorrect_username_or_password": "帐号或密碼錯誤: {1}",
+  "unsupported_authentication_types": "不支持的身份驗證類型: {1}",
+  "connecting_please_wait": "連接正在进行中，请稍後...",
+  "the_target_server_actively": "目標伺服器主動拒絕連接",
+  "the_ssh_protocol_handshake": "SSH協議握手超時，與目標伺服器之間的網路质量太糟糕",
+  "incorrect_link_address": "錯誤的連接地址",
+  "session_lost": "会話丟失，请重新登陆面板!\r\n",
+  "py_msg_56a52c": "認證超時,请按回车重试!{1}",
+  "py_msg_fd6cab": "未知錯誤: {1}",
+  "py_msg_e4dda7": "連接目標伺服器失敗, {1}:{2}",
+  "py_msg_cab13e": "密碼或私鑰不能都為空: {1}:{2}",
+  "py_msg_7b0ed6": "帐号或密碼錯誤: {1}",
+  "py_msg_ba72de": "不支持的身份驗證類型: {1}",
+  "py_msg_5d5712": "連接正在进行中，请稍後...",
+  "py_msg_26793c": "目標伺服器主動拒絕連接",
+  "py_msg_96a6e8": "SSH協議握手超時，與目標伺服器之間的網路质量太糟糕",
+  "py_msg_c11397": "錯誤的連接地址"
+}
