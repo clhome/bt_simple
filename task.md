@@ -662,4 +662,20 @@
   - 验证文件编码为 UTF-8 (无 BOM) 与 LF 换行。
 - [x] 324. 运行专项测试回归验证，确保 100% 通过并保持代码整洁。
 
+## 意大利语翻译文件夹（web/static/language/it）全量中文翻译与国际化
+
+- [x] 325. 编写意大利语全量提取与双通道（DeepL + Google）批量翻译补全脚本（`test/translate_it_complete.py`）：
+  - 扫描 `web/static/language/it` 目录下 13 个语言文件（`lan.js` 与 12 个 `.json` 文件），提取全部 2584 个独特中文词条；
+  - 命中 `test/translation_cache_web.json` 已有 1746 条有效缓存，对剩余 838 个未收录词条调用 DeepL API 批量翻译，失败时自动降级 Google 翻译兜底；
+  - 翻译结果持久化追加写入 `test/translation_cache_web.json`。
+- [x] 326. 执行安全格式回填并生成意大利语文件（`web/static/language/it/`）：
+  - 对 12 个 `.json` 文件：递归替换中文为意大利语，保留全部键名与数据结构，以 UTF-8 无 BOM、LF 换行序列化；
+  - 对 `lan.js`：逐行替换中文值，安全转义双引号，保持全部 JS 顶层语法、函数及结构无损；
+  - 全量更新 `web/static/language/it/` 目录下 13 个文件。
+- [x] 327. 编写专项自动化测试套件（`test/test_it_translation_complete.py`）并执行全面验证：
+  - 验证全部 13 个文件中文字符严格清零（0 残留）；
+  - 验证 Node.js 完整编译并成功解析 `it/lan.js`，无任何语法错误；
+  - 验证 12 个 `.json` 均为合法合规的 JSON；
+  - 清理阶段性排查脚本，保持目录整洁。
+
 
