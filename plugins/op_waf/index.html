@@ -416,6 +416,9 @@ function renderWafAdditionalContent() {
         </div>
     `;
     $('.soft-man-con').append(html);
+    if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+        window.YfI18n.translatePluginDOM($('.soft-man-con'), 'op_waf');
+    }
 
     var wafApi = (typeof api !== 'undefined' && api && api.postSilent) ? api : ((window.YfPlugin && YfPlugin.createApi) ? YfPlugin.createApi('op_waf') : null);
     if (!wafApi) return;
@@ -540,11 +543,14 @@ function wafIntro() {
             </p>
         </div>
         
-        <div class="intro-footer">
+        <div class="intro-footer company-tips">
             衢州御风科技有限公司 出品
         </div>
     </div>
     `;
     $(".soft-man-con").html(introHtml);
+    if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+        window.YfI18n.translatePluginDOM($('.soft-man-con'), 'op_waf');
+    }
 }
 </script>

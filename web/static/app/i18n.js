@@ -445,74 +445,144 @@
 
         var pt = createPluginTranslator(pluginName);
 
-        // 1. 精准定向翻译菜单项（左侧侧边栏 .bt-w-menu p、顶部Tab .man-menu-sub span、设置表头项 .setting_ul .setting_ul_li span）
-        $con.find('.bt-w-menu p, .man-menu-sub span, .setting_ul .setting_ul_li span').each(function() {
-            var $p = window.$(this);
-            var orig = $p.attr('data-i18n-orig');
-            if (!orig) {
-                orig = $p.text().trim();
+        function doTranslateNodes($scope) {
+            // 1. 精准定向翻译菜单项
+            $scope.find('.bt-w-menu p, .man-menu-sub span, .setting_ul .setting_ul_li span').each(function() {
+                var $p = window.$(this);
+                var orig = $p.attr('data-i18n-orig');
+                if (!orig) {
+                    orig = $p.text().trim();
+                    if (orig) $p.attr('data-i18n-orig', orig);
+                }
                 if (orig) {
-                    $p.attr('data-i18n-orig', orig);
+                    var trans = pt(orig);
+                    if (trans && trans !== orig) $p.text(trans);
                 }
-            }
-            if (orig) {
-                var trans = pt(orig);
-                if (trans && trans !== orig) {
-                    $p.text(trans);
-                }
-            }
-        });
+            });
 
-        // 1.1 精准定向翻译输入框 placeholder 与容器 title 提示
-        $con.find('input[placeholder], .table_config[title]').each(function() {
-            var $el = window.$(this);
-            var ph = $el.attr('placeholder');
-            if (ph) {
-                var origPh = $el.attr('data-i18n-ph-orig');
-                if (!origPh) {
-                    origPh = ph;
-                    $el.attr('data-i18n-ph-orig', origPh);
+            // 1.1 精准定向翻译输入框 placeholder 与容器 title 提示
+            $scope.find('input[placeholder], textarea[placeholder], .table_config[title], span[title], a[title], label[title]').each(function() {
+                var $el = window.$(this);
+                var ph = $el.attr('placeholder');
+                if (ph) {
+                    var origPh = $el.attr('data-i18n-ph-orig');
+                    if (!origPh) {
+                        origPh = ph;
+                        $el.attr('data-i18n-ph-orig', origPh);
+                    }
+                    var transPh = pt(origPh);
+                    if (transPh && transPh !== origPh) $el.attr('placeholder', transPh);
                 }
-                var transPh = pt(origPh);
-                if (transPh && transPh !== origPh) {
-                    $el.attr('placeholder', transPh);
+                var title = $el.attr('title');
+                if (title) {
+                    var origTitle = $el.attr('data-i18n-title-orig');
+                    if (!origTitle) {
+                        origTitle = title;
+                        $el.attr('data-i18n-title-orig', origTitle);
+                    }
+                    var transTitle = pt(origTitle);
+                    if (transTitle && transTitle !== origTitle) $el.attr('title', transTitle);
                 }
-            }
-            var title = $el.attr('title');
-            if (title) {
-                var origTitle = $el.attr('data-i18n-title-orig');
-                if (!origTitle) {
-                    origTitle = title;
-                    $el.attr('data-i18n-title-orig', origTitle);
-                }
-                var transTitle = pt(origTitle);
-                if (transTitle && transTitle !== origTitle) {
-                    $el.attr('title', transTitle);
-                }
-            }
-        });
+            });
 
-        // 2. 精确定位底部出品署名与品牌版权（仅在底部固定容器或直接子块中排查，不递归全树）
-        var $footers = $con.find('.plugin-copyright, div[style*="pointer-events"], .bt-form > div:last-child, .bt-w-con > div:last-child');
-        if ($footers.length === 0) {
-            $footers = $con.children('div').add($con.find('.bt-w-con').children('div'));
+            // 1.2 全面翻译表头、表单标签、说明文本、下拉选项、按钮、标题及警示容器
+            $scope.find('th, .tname, .c9, select option, button, .btn, h3, h4, h5, .alert, .alert-title, .alert-heading, .lead, .plugin-con p, td > span, td > a.btlink, td > label, div[style*="color: #cf1322"], div[style*="color:#cf1322"], div[style*="font-weight"], .pma-info-header, .ollama-info-header').each(function() {
+                var $el = window.$(this);
+                // 安全防线：绝不处理包含表单输入组或复杂业务容器的节点
+                if ($el.children('table, input, select, textarea, .line, .bt-w-menu, .soft-man-con').length > 0) return;
+                // 排除含有块级子容器的大模块，仅处理纯文本或带图标的叶子/半叶子节点
+                if ($el.children('div, p, ul, ol').length > 0) return;
+                
+                var orig = $el.attr('data-i18n-orig');
+                if (!orig) {
+                    // 获取纯文本，忽略内部图标标签
+                    var $cloned = $el.clone();
+                    $cloned.children('i, span.glyphicon').remove();
+                    orig = $cloned.text().trim();
+                    if (orig) $el.attr('data-i18n-orig', orig);
+                }
+                if (orig && /[\u4e00-\u9fa5]/.test(orig)) {
+                    var trans = pt(orig);
+                    if (trans && trans !== orig) {
+                        var $icon = $el.children('i.glyphicon, span.glyphicon, i').first();
+                        if ($icon.length > 0) {
+                            $el.empty().append($icon).append(' ' + trans);
+                        } else {
+                            $el.text(trans);
+                        }
+                    }
+                }
+            });
+
+            // 2. 精确定位底部出品署名与品牌版权（严禁误伤顶级布局容器）
+            var $footers = $scope.find('.plugin-copyright, div.company-tips, a[href*="yftec.top"], div[style*="pointer-events"]');
+            $footers.each(function() {
+                var $el = window.$(this);
+                // 结构安全绝对防线：严禁误匹配业务结构大容器
+                if ($el.hasClass('bt-w-main') || $el.hasClass('bt-w-con') || $el.hasClass('bt-form') || $el.hasClass('soft-man-con')) {
+                    return;
+                }
+                if ($el.find('.bt-w-menu, .soft-man-con, table, .table, form').length > 0) {
+                    return;
+                }
+                
+                // 优先精细化处理内置官网超链接
+                var $link = $el.find('a[href*="yftec.top"]');
+                if ($link.length > 0) {
+                    var origL = $link.attr('data-i18n-orig') || '衢州御风科技有限公司出品';
+                    $link.attr('data-i18n-orig', origL);
+                    var transL = pt(origL);
+                    if (transL && transL !== origL) $link.text(transL);
+                    return;
+                }
+                
+                // 处理纯文本版权节点
+                var txt = $el.text().trim();
+                if (txt.indexOf('衢州御风科技') !== -1 || txt.indexOf('衢州御風科技') !== -1) {
+                    if ($el.children().length <= 1) {
+                        var orig = $el.attr('data-i18n-orig') || '衢州御风科技有限公司出品';
+                        $el.attr('data-i18n-orig', orig);
+                        var trans = pt(orig);
+                        if (trans && trans !== orig) {
+                            $el.text(trans);
+                        }
+                    }
+                }
+            });
+
+            // 3. 通用 DOM [data-i18n] 翻译
+            if ($scope[0]) {
+                translateDOM($scope[0]);
+            }
         }
-        $footers.each(function() {
-            var $el = window.$(this);
-            var txt = $el.text().trim();
-            if (txt.indexOf('衢州御风科技有限公司 出品') !== -1 || txt.indexOf('衢州御風科技有限公司 出品') !== -1) {
-                var orig = $el.attr('data-i18n-orig') || '衢州御风科技有限公司 出品';
-                $el.attr('data-i18n-orig', orig);
-                var trans = pt(orig);
-                if (trans && trans !== orig) {
-                    $el.text(trans);
-                }
-            }
-        });
 
-        // 3. 通用 DOM [data-i18n] 翻译
-        if ($con[0]) {
-            translateDOM($con[0]);
+        // 首次即刻执行完整扫描翻译
+        doTranslateNodes($con);
+
+        // 挂载动态内容监听器 (MutationObserver)，自动翻译 Ajax / 动态注入的表格与内容
+        if (window.MutationObserver && !$con.data('yf-i18n-obs-active')) {
+            $con.data('yf-i18n-obs-active', true);
+            var obsDebounce = null;
+            var observer = new MutationObserver(function(mutations) {
+                var hasAdded = false;
+                for (var i = 0; i < mutations.length; i++) {
+                    if (mutations[i].addedNodes && mutations[i].addedNodes.length > 0) {
+                        hasAdded = true;
+                        break;
+                    }
+                }
+                if (hasAdded) {
+                    if (obsDebounce) clearTimeout(obsDebounce);
+                    obsDebounce = setTimeout(function() {
+                        observer.disconnect();
+                        doTranslateNodes($con);
+                        if ($con[0] && document.body.contains($con[0])) {
+                            observer.observe($con[0], { childList: true, subtree: true });
+                        }
+                    }, 50);
+                }
+            });
+            observer.observe($con[0], { childList: true, subtree: true });
         }
     }
 
@@ -523,6 +593,10 @@
      */
     function loadPluginLangAsync(pluginName, callback) {
         var lang = _currentLang || 'zh-CN';
+        // 0. 优先复用服务端直出的 window._pluginDicts
+        if (window._pluginDicts && window._pluginDicts[pluginName]) {
+            _pluginDicts[pluginName] = window._pluginDicts[pluginName];
+        }
         if (_pluginDicts[pluginName]) {
             if (typeof callback === 'function') callback(_pluginDicts[pluginName]);
             return;
@@ -581,6 +655,11 @@
     function createPluginTranslator(pluginName) {
         var lang = _currentLang || 'zh-CN';
 
+        // 0. 优先同步服务端直出的 window._pluginDicts 全局字典（0ms 零网络）
+        if (window._pluginDicts && window._pluginDicts[pluginName]) {
+            _pluginDicts[pluginName] = window._pluginDicts[pluginName];
+        }
+
         if (!_pluginDicts[pluginName]) {
             // 1. 优先尝试从 localStorage 读取（0ms）
             var localCached = getPluginDictFromStorage(pluginName, lang);
@@ -625,6 +704,9 @@
         // 返回高性能翻译闭包
         return function(key) {
             var dict = _pluginDicts[pluginName];
+            if (!dict && window._pluginDicts && window._pluginDicts[pluginName]) {
+                dict = _pluginDicts[pluginName] = window._pluginDicts[pluginName];
+            }
             var msg = (dict && dict[key]) ? dict[key] : key;
             if (arguments.length > 1) {
                 for (var i = 1; i < arguments.length; i++) {
@@ -817,6 +899,8 @@
     var YfI18n = {
         detect: detectLanguage,
         getCurrentLang: function() { return _currentLang; },
+        getLanguage: function() { return _currentLang; },
+        currentLang: _currentLang,
         getSupportedLanguages: function() { return SUPPORTED_LANGUAGES.slice(); },
         getSupportedCodes: function() { return SUPPORTED_CODES.slice(); },
         setLanguage: setLanguage,

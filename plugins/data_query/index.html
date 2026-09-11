@@ -96,6 +96,10 @@
 	</div>
 </div>
 <script type="text/javascript">
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
+    ? window.YfI18n.createPluginTranslator('data_query') 
+    : function(k) { return k; };
+
 resetPluginWinWidth(800);
 resetPluginWinHeight(500);
 
@@ -117,4 +121,8 @@ var tipsHtml = '<div style="color: #555;">' +
                '    </div>' +
                '</div>';
 $(".soft-man-con").html(tipsHtml);
+
+if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+    window.YfI18n.translatePluginDOM($('.bt-form'), 'data_query');
+}
 </script>

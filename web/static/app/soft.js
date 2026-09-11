@@ -27,9 +27,9 @@ function softMain(name, title, version) {
   });
   $.get('/plugins/setting?name=' + name, function (rdata) {
     layer.close(loadT);
-    var currentLang = (window.YfI18n && window.YfI18n.currentLang) || 'zh-CN';
+    var currentLang = (window.YfI18n && typeof window.YfI18n.getLanguage === 'function' ? window.YfI18n.getLanguage() : null) || (window.YfI18n && window.YfI18n.currentLang) || 'zh-CN';
     var isZh = currentLang === 'zh-CN' || currentLang === 'zh-TW';
-    var manageText = (window.t && window.t('soft.management_action')) || 'Manage';
+    var manageText = (window.t && (window.t('soft.management_action') || window.t('management_action') || window.t('public.manage') || window.t('public.management_action'))) || 'Manage';
     var winTitle = isZh ? (_title + '【' + version + '】管理') : (_title + ' [' + version + '] ' + manageText);
     layer.open({
       type: 1,

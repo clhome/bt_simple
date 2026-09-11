@@ -38,23 +38,23 @@ function runInfo(){
 
         var con = '<div class="divtable"><table class="table table-hover table-bordered" style="margin-bottom:10px;background-color:#fafafa">\
                     <tbody>\
-                        <tr><th>启动时间</th><td>' + rdata.uptime + '</td><th>进程数</th><td>' +rdata.progress_num+ '</td></tr>\
-                        <tr><th>总连接次数</th><td>' + rdata.connections + '</td><th>PID</th><td>' +rdata.pid+ '</td></tr>\
-                        <tr><th>占用空间</th><td>' + rdata.pg_size + '</td><th>占用内存</th><td>' +rdata.pg_mem+ '</td></tr>\
+                        <tr><th>' + pt('启动时间') + '</th><td>' + rdata.uptime + '</td><th>' + pt('进程数') + '</th><td>' +rdata.progress_num+ '</td></tr>\
+                        <tr><th>' + pt('总连接次数') + '</th><td>' + rdata.connections + '</td><th>PID</th><td>' +rdata.pid+ '</td></tr>\
+                        <tr><th>' + pt('占用空间') + '</th><td>' + rdata.pg_size + '</td><th>' + pt('占用内存') + '</th><td>' +rdata.pg_mem+ '</td></tr>\
                     </tbody>\
                     </table>\
                     <table class="table table-hover table-bordered">\
                     <thead style="display:none;"><th></th><th></th><th></th><th></th></thead>\
                     <tbody>\
-                        <tr><th>表进程已经锁住的物理内存的大小</th><td>' + rdata.pg_vm_lock + '</td></tr>\
-                        <tr><th>数据库分配到物理内存的峰值</th><td>' + rdata.pg_vm_high + '</td></tr>\
-                        <tr><th>进程数据段的大小</th><td>' + rdata.pg_vm_data_size + '</td></tr>\
-                        <tr><th>进程堆栈段的大小</th><td>' + rdata.pg_vm_sk_size + '</td></tr>\
-                        <tr><th>进程代码的大小</th><td>' + rdata.pg_vm_code_size + '</td></tr>\
-                        <tr><th>进程所使用LIB库的大小</th><td>' + rdata.pg_vm_lib_size + '</td></tr>\
-                        <tr><th>进程占用Swap的大小</th><td>' + rdata.pg_vm_swap_size + '</td></tr>\
-                        <tr><th>占用的页表的大小</th><td>' + rdata.pg_vm_page_size + '</td></tr>\
-                        <tr><th>当前待处理信号的个数</th><td>' + rdata.pg_sigq + '</td></tr>\
+                        <tr><th>' + pt('表进程已经锁住的物理内存的大小') + '</th><td>' + rdata.pg_vm_lock + '</td></tr>\
+                        <tr><th>' + pt('数据库分配到物理内存的峰值') + '</th><td>' + rdata.pg_vm_high + '</td></tr>\
+                        <tr><th>' + pt('进程数据段的大小') + '</th><td>' + rdata.pg_vm_data_size + '</td></tr>\
+                        <tr><th>' + pt('进程堆栈段的大小') + '</th><td>' + rdata.pg_vm_sk_size + '</td></tr>\
+                        <tr><th>' + pt('进程代码的大小') + '</th><td>' + rdata.pg_vm_code_size + '</td></tr>\
+                        <tr><th>' + pt('进程所使用LIB库的大小') + '</th><td>' + rdata.pg_vm_lib_size + '</td></tr>\
+                        <tr><th>' + pt('进程占用Swap的大小') + '</th><td>' + rdata.pg_vm_swap_size + '</td></tr>\
+                        <tr><th>' + pt('占用的页表的大小') + '</th><td>' + rdata.pg_vm_page_size + '</td></tr>\
+                        <tr><th>' + pt('当前待处理信号的个数') + '</th><td>' + rdata.pg_sigq + '</td></tr>\
                     <tbody>\
             </table></div>';
         $(".soft-man-con").html(con);
@@ -67,7 +67,7 @@ function pgPort(){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
             <input name="port" class="bt-input-text mr5 port" type="text" style="width:100px" value="'+data.data+'">\
-            <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">修改</button>\
+            <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">' + pt('修改') + '</button>\
             </div></div>';
         $(".soft-man-con").html(con);
 
@@ -102,8 +102,8 @@ function pgPerfOpt() {
         var memCon = '<form class="bt-form" id="pg_conf"><div class="conf_p" style="margin-bottom:0">'+html_p
             +'<div style="margin-top:10px; padding-right:15px" class="text-right">\
             <div>\
-                <button class="btn btn-success btn-sm mr5" onclick="reBootMySqld()">重启数据库</button>\
-                <button class="btn btn-success btn-sm" onclick="setPgConf()">保存</button></div>\
+                <button class="btn btn-success btn-sm mr5" onclick="reBootMySqld()">' + pt('重启数据库') + '</button>\
+                <button class="btn btn-success btn-sm" onclick="setPgConf()">' + pt('保存') + '</button></div>\
             </div>'
             +'</div></form>'
 
@@ -176,14 +176,14 @@ function setRootPwd(type, pwd){
     var index = layer.open({
         type: 1,
         area: '500px',
-        title: '修改数据库密码',
+        title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["取消","提交"],
+        btn: [pt("取消"), pt("提交")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                    <span class='tname'>postgres密码</span>\
+                    <span class='tname'>' + pt('postgres密码') + '</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                 </form>",
@@ -244,30 +244,30 @@ function setDbAccess(name){
         layer.open({
             type: 1,
             area: ['680px', '450px'],
-            title: '设置数据库权限',
+            title:  pt('设置数据库权限'),
             closeBtn: 1,
             shift: 5,
-            btn:["提交","取消"],
+            btn: [pt("提交"), pt("取消")],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
-                            <span class='tname'>访问权限</span>\
+                            <span class='tname'>' + pt('访问权限') + '</span>\
                             <div class='info-r '>\
                                 <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                                <option value='127.0.0.1/32'>本地服务器</option>\
-                                <option value='0.0.0.0/0'>所有人</option>\
-                                <option value='ip'>指定网段</option>\
+                                <option value='127.0.0.1/32'>' + pt('本地服务器') + '</option>\
+                                <option value='0.0.0.0/0'>' + pt('所有人') + '</option>\
+                                <option value='ip'>' + pt('指定网段') + '</option>\
                                 </select>\
                             </div>\
                         </div>\
                         <div class='line' style='margin-top: 15px;'>\
-                            <span class='tname'>特权明细</span>\
+                            <span class='tname'>' + pt('特权明细') + '</span>\
                             <div class='info-r'>\
                                 <div id='db_privileges_box' style='border: 1px solid #ddd; height: 180px; overflow-y: auto; padding: 10px; background: #fafafa; border-radius: 4px; font-size: 12px;'>\
                                     正在获取权限信息...\
                                 </div>\
                                 <div style='margin-top: 8px;'>\
-                                    <button type='button' id='btn_onekey_grant' class='btn btn-success btn-xs'>一键赋权给创建用户</button>\
+                                    <button type='button' id='btn_onekey_grant' class='btn btn-success btn-xs'>' + pt('一键赋权给创建用户') + '</button>\
                                     <span class='c9' style='margin-left: 10px;' id='priv_owner_desc'></span>\
                                 </div>\
                             </div>\
@@ -295,7 +295,7 @@ function setDbAccess(name){
                 function renderPrivileges(pdata_root) {
                     var pdata = pdata_root.data;
                     if (!pdata || !pdata.privileges) {
-                        $('#db_privileges_box').html('<span style="color: #999;">暂无特权数据</span>');
+                        $('#db_privileges_box').html('<span style="color: #999;">' + pt('暂无特权数据') + '</span>');
                         return;
                     }
                     
@@ -305,17 +305,17 @@ function setDbAccess(name){
                     
                     var privs = pdata.privileges;
                     if (privs.length === 0) {
-                        $('#db_privileges_box').html('<span style="color: #999;">暂无特权数据（未进行默认特权赋权）</span>');
+                        $('#db_privileges_box').html('<span style="color: #999;">' + pt('暂无特权数据（未进行默认特权赋权）') + '</span>');
                         return;
                     }
                     
                     var table = '<table class="table table-hover table-bordered" style="margin-bottom:0; background:#fff; font-size: 11px;">\
                                     <thead>\
                                         <tr>\
-                                            <th>授权者</th>\
+                                            <th>' + pt('授权者') + '</th>\
                                             <th>Schema</th>\
-                                            <th>类型</th>\
-                                            <th>特权内容</th>\
+                                            <th>' + pt('类型') + '</th>\
+                                            <th>' + pt('特权内容') + '</th>\
                                         </tr>\
                                     </thead>\
                                     <tbody>';
@@ -339,7 +339,7 @@ function setDbAccess(name){
                         layer.close(loadT);
                         var grantRdata = JSON.parse(grantData.data);
                         if (grantRdata.status) {
-                            layer.msg('一键赋权成功！', {icon: 1, time: 2000});
+                            layer.msg(pt('一键赋权成功！'), {icon: 1, time: 2000});
                             api.post('get_db_access', 'name='+name, function(refreshData){
                                 var refreshRdata = JSON.parse(refreshData.data);
                                 renderPrivileges(refreshRdata);
@@ -383,18 +383,18 @@ function setDbPass(id, username, password){
     var index = layer.open({
         type: 1,
         area: '500px',
-        title: '修改数据库密码',
+        title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>用户名</span>\
+                        <span class='tname'>' + pt('用户名') + '</span>\
                         <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
                     </div>\
                     <div class='line'>\
-                    <span class='tname'>密码</span>\
+                    <span class='tname'>' + pt('密码') + '</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <input type='hidden' name='id' value='"+id+"'>\
@@ -440,31 +440,31 @@ function addDatabase(type,layer_index){
     layer.open({
         type: 1,
         area: '450px',
-        title: '添加数据库',
+        title:  pt('添加数据库'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","取消"],
+        btn: [pt("提交"), pt("取消")],
         content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
-                        <span class='tname'>数据库名</span>\
+                        <span class='tname'>' + pt('数据库名') + '</span>\
                         <div class='info-r'>\
                             <input name='name' class='bt-input-text mr5' placeholder='新的数据库名称' type='text' style='width:270px' value=''>\
                         </div>\
                     </div>\
-                    <div class='line'><span class='tname'>用户名</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:270px' value=''></div></div>\
+                    <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:270px' value=''></div></div>\
                     <div class='line'>\
-                    <span class='tname'>密码</span>\
+                    <span class='tname'>' + pt('密码') + '</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:270px' value='"+(randomStrPwd(16))+"' />\
                         <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>访问权限</span>\
+                        <span class='tname'>' + pt('访问权限') + '</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                            <option value='127.0.0.1'>本地服务器</option>\
-                            <option value=\"%\">所有人</option>\
-                            <option value='ip'>指定网段</option>\
+                            <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
+                            <option value=\"%\">' + pt('所有人') + '</option>\
+                            <option value='ip'>' + pt('指定网段') + '</option>\
                             </select>\
                             <input class='bt-input-text' style='width: 162px;display:none;' placeholder='如: 192.168.1.0/24' name='ip_segment' value='' />\
                         </div>\
@@ -517,7 +517,7 @@ function delDbBatch(){
         }
     });
 
-    safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
+    safeMessage(pt('批量删除数据库'),'<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
             var data  = await api.postAsync('del_db', arr[idx]);
@@ -589,18 +589,18 @@ function uploadDbFiles(upload_dir, callback){
         content:'<div class="fileUploadDiv">\
                 <input type="hidden" id="input-val" value="'+upload_dir+'" />\
                 <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
-                <button type="button"  id="opt" autocomplete="off">添加文件</button>\
-                <button type="button" id="up" autocomplete="off" >开始上传</button>\
+                <button type="button"  id="opt" autocomplete="off">' + pt('添加文件') + '</button>\
+                <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                 <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                 <span style="float:right;margin-top: 9px;">\
                 <font>文件编码:</font>\
                 <select id="fileCodeing" >\
-                    <option value="byte">二进制</option>\
+                    <option value="byte">' + pt('二进制') + '</option>\
                     <option value="utf-8">UTF-8</option>\
                     <option value="gb18030">GB2312</option>\
                 </select>\
                 </span>\
-                <button type="button" id="filesClose" autocomplete="off">关闭</button>\
+                <button type="button" id="filesClose" autocomplete="off">' + pt('关闭') + '</button>\
                 <ul id="up_box"></ul>\
             </div>',
         success:function(){
@@ -636,9 +636,9 @@ function setBackup(db_name,obj){
                         <td><span> ' + listData[i]['size'] + '</span></td>\
                         <td><span> ' + listData[i]['time'] + '</span></td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" onclick="importBackup(\'' + listData[i]['name'] + '\',\'' +db_name+ '\')">导入</a> | \
-                            <a class="btlink" onclick="downloadBackup(\'' + listData[i]['file'] + '\')">下载</a> | \
-                            <a class="btlink" onclick="delBackup(\'' + listData[i]['name'] + '\',\'' +db_name+ '\')">删除</a>\
+                            <a class="btlink" onclick="importBackup(\'' + listData[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入') + '</a> | \
+                            <a class="btlink" onclick="downloadBackup(\'' + listData[i]['file'] + '\')">' + pt('下载') + '</a> | \
+                            <a class="btlink" onclick="delBackup(\'' + listData[i]['name'] + '\',\'' +db_name+ '\')">' + pt('删除') + '</a>\
                         </td>\
                     </tr> ';
             }
@@ -647,25 +647,25 @@ function setBackup(db_name,obj){
 
         var s = layer.open({
             type: 1,
-            title: "数据库备份详情",
+            title:  pt("数据库备份详情"),
             area: ['650px', '380px'],
             closeBtn: 2,
             shadeClose: false,
             content: '<div class="pd15">\
                         <div class="db_list" style="margin-bottom:10px">\
-                            <button id="btn_backup" class="btn btn-success btn-sm" type="button">备份</button>\
-                            <button id="btn_sync_backup" class="btn btn-default btn-sm" type="button" style="margin-left: 5px;">同步</button>\
-                            <button id="btn_upload_backup" class="btn btn-default btn-sm" type="button" style="margin-left: 5px;">本地上传</button>\
+                            <button id="btn_backup" class="btn btn-success btn-sm" type="button">' + pt('备份') + '</button>\
+                            <button id="btn_sync_backup" class="btn btn-default btn-sm" type="button" style="margin-left: 5px;">' + pt('同步') + '</button>\
+                            <button id="btn_upload_backup" class="btn btn-default btn-sm" type="button" style="margin-left: 5px;">' + pt('本地上传') + '</button>\
                         </div >\
                         <div class="divtable">\
                         <div  id="database_fix"  style="height:220px;overflow:auto;border:#ddd 1px solid">\
                         <table class="table table-hover "style="border:none">\
                             <thead>\
                                 <tr>\
-                                    <th>文件名称</th>\
-                                    <th>文件大小</th>\
-                                    <th>备份时间</th>\
-                                    <th style="text-align: right;">操作</th>\
+                                    <th>' + pt('文件名称') + '</th>\
+                                    <th>' + pt('文件大小') + '</th>\
+                                    <th>' + pt('备份时间') + '</th>\
+                                    <th style="text-align: right;">' + pt('操作') + '</th>\
                                 </tr>\
                             </thead>\
                             <tbody class="gztr">' + getTbodyHtml(list) + '</tbody>\
@@ -758,38 +758,38 @@ function dbList(page, search){
             }
 
 
-            list += '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['name']+'\')" title="设置数据库权限">权限</a> | ' +
+            list += '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['name']+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
                         rw +
-                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">改密</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">删除</a>' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">' + pt('改密') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
 
         //<button onclick="" id="dataRecycle" title="删除选中项" class="btn btn-default btn-sm" style="margin-left: 5px;"><span class="glyphicon glyphicon-trash" style="margin-right: 5px;"></span>回收站</button>
         var con = '<div class="safe bgw">\
-            <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">添加数据库</button>\
-            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">PG密码</button>\
+            <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加数据库') + '</button>\
+            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('PG密码') + '</button>\
             <span style="float:right">              \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">删除选中</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>数据库名</th>\
-                    <th>用户名</th>\
-                    <th>密码</th>\
-                    <th>备注</th>\
-                    <th>创建时间</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('数据库名') + '</th>\
+                    <th>' + pt('用户名') + '</th>\
+                    <th>' + pt('密码') + '</th>\
+                    <th>' + pt('备注') + '</th>\
+                    <th>' + pt('创建时间') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
                     </tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                 <div class="table_toolbar" style="left:0px;">\
-                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="从服务器获取数据库列表">从服务器获取</span>\
+                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="从服务器获取数据库列表">' + pt('从服务器获取') + '</span>\
                 </div>\
             </div>\
         </div>';
@@ -841,22 +841,22 @@ function addMasterRepSlaveUser(){
     layer.open({
         type: 1,
         area: '500px',
-        title: '添加同步账户',
+        title:  pt('添加同步账户'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","取消"],
+        btn: [pt("提交"), pt("取消")],
         content: "<form class='bt-form pd20' id='add_master'>\
-            <div class='line'><span class='tname'>用户名</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
+            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
             <div class='line'>\
-                <span class='tname'>密码</span>\
+                <span class='tname'>' + pt('密码') + '</span>\
                 <div class='info-r'>\
                     <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStr(16))+"' />\
                     <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatMSPwd(16)'></span>\
                 </div>\
             </div>\
             <div class='line'>\
-                <span class='tname'>网段</span>\
+                <span class='tname'>' + pt('网段') + '</span>\
                 <div class='info-r'>\
                     <input class='bt-input-text mr5' type='text' name='address' style='width:330px' value='127.0.0.1/32' />\
                 </div>\
@@ -907,19 +907,19 @@ function updateMasterRepSlaveUser(username){
     var index = layer.open({
         type: 1,
         area: '500px',
-        title: '更新账户',
+        title:  pt('更新账户'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
         content: "<form class='bt-form pd20 pb70' id='update_master'>\
-            <div class='line'><span class='tname'>用户名</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
+            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
             <div class='line'>\
-            <span class='tname'>密码</span>\
+            <span class='tname'>' + pt('密码') + '</span>\
             <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >提交</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >' + pt('提交') + '</button>\
             </div>\
           </form>",
     });
@@ -953,12 +953,12 @@ function getMasterRepSlaveUserCmd(username, db=''){
         
         var loadOpen = layer.open({
             type: 1,
-            title: '同步命令',
+            title:  pt('同步命令'),
             area: '500px',
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>复制</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
             </div>\
           </form>",
         });
@@ -1009,8 +1009,8 @@ function getMasterRepSlaveList(){
             list += '<tr><td>'+name+'</td>\
                 <td>'+user_list[i]['password']+'</td>\
                 <td>\
-                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+name+'\');">删除</a> | \
-                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">从库同步命令</a> \
+                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+name+'\');">' + pt('删除') + '</a> | \
+                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">' + pt('从库同步命令') + '</a> \
                 </td>\
             </tr>';
         }
@@ -1022,16 +1022,16 @@ function getMasterRepSlaveList(){
 
 function getMasterRepSlaveListPage(){
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
-        page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addMasterRepSlaveUser()" title="">添加同步账户</span></div>';
+        page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addMasterRepSlaveUser()" title="">' + pt('添加同步账户') + '</span></div>';
 
     var loadOpen = layer.open({
         type: 1,
-        title: '同步账户列表',
+        title:  pt('同步账户列表'),
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10' id='get_master_rep_slave_list_page'>\
                     <div><table class='table table-hover'>\
-                        <thead><tr><th>用户名</th><th>密码</th><th>操作</th></tr></thead>\
+                        <thead><tr><th>' + pt('用户名') + '</th><th>' + pt('密码') + '</th><th>' + pt('操作') + '</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -1057,7 +1057,7 @@ function deleteSlave(){
 function getFullSyncStatus(db){
     var timeId = null;
 
-    var btn = '<div class="table_toolbar" style="left:0px;"><span data-status="init" class="sync btn btn-default btn-sm" id="begin_full_sync" title="">开始</span></div>';
+    var btn = '<div class="table_toolbar" style="left:0px;"><span data-status="init" class="sync btn btn-default btn-sm" id="begin_full_sync" title="">' + pt('开始') + '</span></div>';
     var loadOpen = layer.open({
         type: 1,
         title: '全量同步['+db+']',
@@ -1127,14 +1127,14 @@ function addSlaveSSH(ip=''){
         layer.open({
             type: 1,
             area: ['500px','450px'],
-            title: '添加SSH',
+            title:  pt('添加SSH'),
             closeBtn: 1,
             shift: 5,
             shadeClose: true,
-            btn:["确认","取消"],
+            btn: [pt("确认"), pt("取消")],
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>端口</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
                 <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
@@ -1207,8 +1207,8 @@ function getSlaveSSHPage(page=1){
                 <td>'+port+'</td>\
                 <td>'+id_rsa+'</td>\
                 <td>\
-                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">修改</a> | \
-                    <a class="btlink" onclick="delSlaveSSH(\''+ip+'\');">删除</a>\
+                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">' + pt('修改') + '</a> | \
+                    <a class="btlink" onclick="delSlaveSSH(\''+ip+'\');">' + pt('删除') + '</a>\
                 </td>\
             </tr>';
         }
@@ -1222,7 +1222,7 @@ function getSlaveSSHPage(page=1){
 function getSlaveSSHList(page=1){
 
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
-    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSSH()" title="">添加SSH</span></div>';
+    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSSH()" title="">' + pt('添加SSH') + '</span></div>';
 
     layerId = layer.open({
         type: 1,
@@ -1231,7 +1231,7 @@ function getSlaveSSHList(page=1){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>SSH</th><th>操作</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>SSH</th><th>' + pt('操作') + '</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -1249,12 +1249,12 @@ function handlerRun(){
         var cmd = rdata['data'];
         var loadOpen = layer.open({
             type: 1,
-            title: '手动执行',
+            title:  pt('手动执行'),
             area: '500px',
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>复制</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
             </div>\
           </form>",
         });
@@ -1278,12 +1278,12 @@ function slaveSyncCmd(){
         
         var loadOpen = layer.open({
             type: 1,
-            title: '同步命令',
+            title:  pt('同步命令'),
             area: '500px',
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>复制</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
             </div>\
           </form>",
         });
@@ -1326,7 +1326,7 @@ function masterOrSlaveConf(version=''){
                 list += '<td>' + rdata.data[i]['Slave_SQL_Running'] +'</td>';
                 list += '<td>' + status +'</td>';
                 list += '<td style="text-align:right">' + 
-                    '<a href="javascript:;" class="btlink" onclick="deleteSlave()" title="删除">删除</a>' +
+                    '<a href="javascript:;" class="btlink" onclick="deleteSlave()" title="删除">' + pt('删除') + '</a>' +
                 '</td>';
                 list += '</tr>';
             }
@@ -1336,13 +1336,13 @@ function masterOrSlaveConf(version=''){
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
                         <th>主[服务]</th>\
-                        <th>端口</th>\
-                        <th>用户</th>\
-                        <th>日志</th>\
+                        <th>' + pt('端口') + '</th>\
+                        <th>' + pt('用户') + '</th>\
+                        <th>' + pt('日志') + '</th>\
                         <th>IO</th>\
                         <th>SQL</th>\
-                        <th>状态</th>\
-                        <th style="text-align:right;">操作</th></tr></thead>\
+                        <th>' + pt('状态') + '</th>\
+                        <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                         <tbody>\
                         '+ list +'\
                         </tbody></table>\
@@ -1364,14 +1364,14 @@ function masterOrSlaveConf(version=''){
             var rdata = rdata.data;
             var limitCon = '\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">主从同步模式</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!(rdata.mode == "classic") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-classic">经典</button>\
+                    <span class="f14 c6 mr20">' + pt('主从同步模式') + '</span><span class="f14 c6 mr20"></span>\
+                    <button class="btn '+(!(rdata.mode == "classic") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-classic">' + pt('经典') + '</button>\
                 </p>\
                 <hr/>\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">Master[主]配置</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? '未开启' : '已开启') +'</button>\
-                    <button class="btn btn-success btn-xs" onclick="getMasterRepSlaveListPage()" >同步账户</button>\
+                    <button class="btn btn-success btn-xs" onclick="getMasterRepSlaveListPage()" >' + pt('同步账户') + '</button>\
                 </p>\
                 <hr/>\
                 <!-- class="conf_p" -->\
@@ -1379,7 +1379,7 @@ function masterOrSlaveConf(version=''){
                     <span class="f14 c6 mr20">Slave[从]配置</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : '已启动') +'</button>\
                     <button class="btn btn-success btn-xs" onclick="getSlaveSSHList()" >[主]SSH配置</button>\
-                    <button class="btn btn-success btn-xs" onclick="slaveSyncCmd()" >同步命令</button>\
+                    <button class="btn btn-success btn-xs" onclick="slaveSyncCmd()" >' + pt('同步命令') + '</button>\
                 </p>\
                 <hr/>\
                 <!-- slave status list -->\

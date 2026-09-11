@@ -38,7 +38,7 @@ var yufeng_systemd = {
             
             var data = res.data;
             if (data.length === 0) {
-                tbody.html('<tr><td colspan="4" style="text-align:center;">暂无专属守护服务</td></tr>');
+                tbody.html('<tr><td colspan="4" style="text-align:center;">' + pt('暂无专属守护服务') + '</td></tr>');
                 return;
             }
             
@@ -47,26 +47,26 @@ var yufeng_systemd = {
                 var item = data[i];
                 var status_html = '';
                 if (item.status === 'active') {
-                    status_html = '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'stop\')" title="点击停止服务" style="width:80px;">运行中 ▶</a>';
+                    status_html = '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'stop\')" title="点击停止服务" style="width:80px;">' + pt('运行中 ▶') + '</a>';
                 } else if (item.status === 'failed') {
-                    status_html = '<a class="btn btn-warning btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击尝试修复并启动" style="width:80px;">崩溃报错 ⚠</a>';
+                    status_html = '<a class="btn btn-warning btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击尝试修复并启动" style="width:80px;">' + pt('崩溃报错 ⚠') + '</a>';
                 } else {
-                    status_html = '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击启动服务" style="width:80px;">已停止 ⏹</a>';
+                    status_html = '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击启动服务" style="width:80px;">' + pt('已停止 ⏹') + '</a>';
                 }
                 
                 var enabled_html = item.enabled ? 
-                    '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'disable\')" title="点击取消开机自启" style="width:80px;">已开启 ▶</a>' : 
-                    '<a class="btn btn-default btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'enable\')" title="点击允许开机自启" style="width:80px;">已关闭 ⏹</a>';
+                    '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'disable\')" title="点击取消开机自启" style="width:80px;">' + pt('已开启 ▶') + '</a>' : 
+                    '<a class="btn btn-default btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'enable\')" title="点击允许开机自启" style="width:80px;">' + pt('已关闭 ⏹') + '</a>';
                     
                 html += '<tr>' +
                         '<td>' + item.name + '</td>' +
                         '<td>' + status_html + '</td>' +
                         '<td>' + enabled_html + '</td>' +
                         '<td style="text-align: right;">' +
-                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.get_logs(\''+item.name+'\')">日志</a> | ' +
-                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.control(\''+item.name+'\', \'restart\')">重启</a> | ' +
-                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.open_edit(\''+item.name+'\')">修改</a> | ' +
-                            '<a class="btlink btn-yufeng" style="color:red;" onclick="yufeng_systemd.delete(\''+item.name+'\')">删除</a>' +
+                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.get_logs(\''+item.name+'\')">' + pt('日志') + '</a> | ' +
+                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.control(\''+item.name+'\', \'restart\')">' + pt('重启') + '</a> | ' +
+                            '<a class="btlink btn-yufeng" onclick="yufeng_systemd.open_edit(\''+item.name+'\')">' + pt('修改') + '</a> | ' +
+                            '<a class="btlink btn-yufeng" style="color:red;" onclick="yufeng_systemd.delete(\''+item.name+'\')">' + pt('删除') + '</a>' +
                         '</td>' +
                     '</tr>';
             }
@@ -82,27 +82,27 @@ var yufeng_systemd = {
         var form_html = '<div id="yufeng_service_form" class="bt-form pd20">' +
             '<div class="form-horizontal">' +
                 '<div class="line">' +
-                    '<span class="tname">服务名称</span>' +
+                    '<span class="tname">' + pt('服务名称') + '</span>' +
                     '<div class="info-r">' +
                         '<input name="service_name" class="bt-input-text mr5" type="text" style="width:150px; ' + (is_edit ? 'background-color: #f5f5f5;' : '') + '" value="' + (service_name||'') + '" ' + (is_edit?'readonly':'') + ' placeholder="如: my_node_app">' +
-                        '<span style="color: #ff4d4f; margin-left: 10px; font-weight: bold;">请勿使用中文名称</span>' +
+                        '<span style="color: #ff4d4f; margin-left: 10px; font-weight: bold;">' + pt('请勿使用中文名称') + '</span>' +
                     '</div>' +
                 '</div>' +
                 '<div class="line">' +
-                    '<span class="tname">配置模式</span>' +
+                    '<span class="tname">' + pt('配置模式') + '</span>' +
                     '<div class="info-r">' +
                         '<select class="bt-input-text mr5" name="mode" onchange="yufeng_systemd.toggle_mode(this.value)">' +
                             '<option value="simple">极简向导模式 (推荐)</option>' +
-                            '<option value="advanced">高级代码模式</option>' +
+                            '<option value="advanced">' + pt('高级代码模式') + '</option>' +
                         '</select>' +
-                        '<span class="c9" style="margin-left: 10px;">无论哪种模式，底层均会强制接管并注入 YuFeng 标签</span>' +
+                        '<span class="c9" style="margin-left: 10px;">' + pt('无论哪种模式，底层均会强制接管并注入 YuFeng 标签') + '</span>' +
                     '</div>' +
                 '</div>' +
                 
                 '<!-- 极简模式区域 -->' +
                 '<div id="yf_simple_area">' +
                     '<div class="line">' +
-                        '<span class="tname">运行用户</span>' +
+                        '<span class="tname">' + pt('运行用户') + '</span>' +
                         '<div class="info-r">' +
                             '<select class="bt-input-text" name="run_user">' +
                                 '<option value="www">www (推荐)</option>' +
@@ -111,14 +111,14 @@ var yufeng_systemd = {
                         '</div>' +
                     '</div>' +
                     '<div class="line">' +
-                        '<span class="tname">项目路径</span>' +
+                        '<span class="tname">' + pt('项目路径') + '</span>' +
                         '<div class="info-r">' +
                             '<input id="work_dir" name="work_dir" class="bt-input-text mr5" type="text" style="width:380px;" value="" placeholder="必须为绝对路径，如 /www/wwwroot/my_site">' +
                             '<span class="glyphicon glyphicon-folder-open cursor" onclick="changePath(\'work_dir\')"></span>' +
                         '</div>' +
                     '</div>' +
                     '<div class="line">' +
-                        '<span class="tname">启动命令</span>' +
+                        '<span class="tname">' + pt('启动命令') + '</span>' +
                         '<div class="info-r">' +
                             '<input name="exec_start" class="bt-input-text" type="text" style="width:410px;" value="" placeholder="如: /usr/bin/node server.js">' +
                         '</div>' +
@@ -127,7 +127,7 @@ var yufeng_systemd = {
                         '<span class="tname"></span>' +
                         '<div class="info-r">' +
                             '<div style="background-color: #fcf8e3; border: 1px solid #faebcc; border-radius: 4px; padding: 10px; width: 410px; font-size: 12px; color: #8a6d3b; line-height: 1.6;">' +
-                                '<strong>Python 虚拟环境启动示例：</strong><br>' +
+                                '<strong>' + pt('Python 虚拟环境启动示例：') + '</strong><br>' +
                                 '<code style="font-family: Consolas, monospace; background: none; border: none; color: #c7254e; padding: 0; font-weight: bold; word-break: break-all;">/www/wwwroot/my_python_project/venv/bin/python main.py</code>' +
                             '</div>' +
                         '</div>' +
@@ -137,7 +137,7 @@ var yufeng_systemd = {
                 '<!-- 高级模式区域 -->' +
                 '<div id="yf_advanced_area" style="display:none;">' +
                     '<div class="line">' +
-                        '<span class="tname">服务配置</span>' +
+                        '<span class="tname">' + pt('服务配置') + '</span>' +
                         '<div class="info-r">' +
                             '<textarea name="service_content" class="bt-input-text" style="width: 440px; height: 290px; background:#222; color:#0f0; padding:10px; font-family: Consolas, monospace; line-height: 1.3;"></textarea>' +
                             '<p class="c9 mt10">请务必保留 [Unit] 和 [Service] 节点。Documentation 标签系统将在后台强制覆盖。</p>' +
@@ -154,7 +154,7 @@ var yufeng_systemd = {
             offset: 'auto',
             closeBtn: 1,
             shadeClose: false,
-            btn: ['提交保存', '取消'],
+            btn: [pt('提交保存'), pt('取消')],
             content: form_html,
             yes: function(index, layero) {
                 yufeng_systemd.save_service();
@@ -211,14 +211,14 @@ var yufeng_systemd = {
         };
         
         if (!data.service_name) {
-            layer.msg('服务名称不能为空', {icon: 2});
+            layer.msg(pt('服务名称不能为空'), {icon: 2});
             return;
         }
         
         // 校验服务名称格式，防止非 ASCII 字符或非法字符导致 Systemd 报错或后端拦截无反应
         var name_pattern = /^[a-zA-Z0-9_-]+$/;
         if (!name_pattern.test(data.service_name)) {
-            layer.msg('服务名只能包含字母、数字、下划线和中划线！', {icon: 2});
+            layer.msg(pt('服务名只能包含字母、数字、下划线和中划线！'), {icon: 2});
             return;
         }
         
@@ -227,7 +227,7 @@ var yufeng_systemd = {
             data.work_dir = $('#yufeng_service_form input[name="work_dir"]').val();
             data.exec_start = $('#yufeng_service_form input[name="exec_start"]').val();
             if (!data.work_dir || !data.exec_start) {
-                layer.msg('项目路径和启动命令不能为空', {icon: 2});
+                layer.msg(pt('项目路径和启动命令不能为空'), {icon: 2});
                 return;
             }
         } else {
@@ -258,7 +258,7 @@ var yufeng_systemd = {
             'disable': '关闭自启'
         }[action];
         
-        layer.confirm('确定要 ' + action_name + ' 服务 [' + service_name + '] 吗？', {icon: 3, title: '提示'}, function(index) {
+        layer.confirm('确定要 ' + action_name + ' 服务 [' + service_name + '] 吗？', {icon: 3, title:  pt('提示')}, function(index) {
             layer.close(index);
             var loadT = layer.msg('正在执行...', {icon: 16, time: 0, shade: 0.3});
             yufeng_systemd.request('control_service', {service_name: service_name, action: action}, function(res) {
@@ -272,7 +272,7 @@ var yufeng_systemd = {
     },
     
     delete: function(service_name) {
-        layer.confirm('确定要彻底删除专属守护服务 [' + service_name + '] 吗？<br><br><span style="color:red">注意：删除前必须先停止该服务。</span>', {icon: 3, title: '危险操作'}, function(index) {
+        layer.confirm('确定要彻底删除专属守护服务 [' + service_name + '] 吗？<br><br><span style="color:red">' + pt('注意：删除前必须先停止该服务。') + '</span>', {icon: 3, title:  pt('危险操作')}, function(index) {
             layer.close(index);
             var loadT = layer.msg('正在删除...', {icon: 16, time: 0, shade: 0.3});
             yufeng_systemd.request('delete_service', {service_name: service_name}, function(res) {
@@ -302,10 +302,10 @@ var yufeng_systemd = {
                     title: '运行日志 (最近100行防OOM) - [' + service_name + ']',
                     area: ['800px', '500px'],
                     shadeClose: true,
-                    btn: ['清空日志', '关闭'],
+                    btn: [pt('清空日志'), pt('关闭')],
                     content: log_html,
                     yes: function(index, layero) {
-                        layer.confirm('确定要清空该服务的运行日志吗？', {icon: 3, title: '提示'}, function(c_index) {
+                        layer.confirm(pt('确定要清空该服务的运行日志吗？'), {icon: 3, title:  pt('提示')}, function(c_index) {
                             layer.close(c_index);
                             var loadC = layer.msg('正在清空...', {icon: 16, time: 0, shade: 0.3});
                             yufeng_systemd.request('clear_service_logs', {service_name: service_name}, function(c_res) {
@@ -358,7 +358,7 @@ var yufeng_systemd = {
                 }
             },
             error: function() {
-                layer.msg('网络请求异常，请检查面板后端日志。', {icon: 2});
+                layer.msg(pt('网络请求异常，请检查面板后端日志。'), {icon: 2});
             }
         });
     },
@@ -370,7 +370,7 @@ var yufeng_systemd = {
         tempInput.select();
         document.execCommand("copy");
         document.body.removeChild(tempInput);
-        layer.msg('已复制示例命令到剪贴板', {icon: 1, time: 1000});
+        layer.msg(pt('已复制示例命令到剪贴板'), {icon: 1, time: 1000});
     }
 };
 

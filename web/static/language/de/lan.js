@@ -3700,6 +3700,8 @@ var lan = {
 		},
 
 	"public": {
+				"management_action": "Verwalten",
+				"manage": "Verwalten",
 			"stop_1": "stoppen",
 			"start_1": "starten",
 			"restart_2": "neu starten",

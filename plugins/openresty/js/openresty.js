@@ -154,16 +154,16 @@ function setOpCfg(){
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 0) ? 'selected' : '';
                     ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;">\
-                        <option value="1" ' + selected_1 + '>开启</option>\
-                        <option value="0" ' + selected_0 + '>关闭</option>\
+                        <option value="1" ' + selected_1 + '>' + pt('开启') + '</option>\
+                        <option value="0" ' + selected_0 + '>' + pt('关闭') + '</option>\
                     </select>';
                     break;
                 case 1:
                     var selected_1 = (rdata[i].value == 'on') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'off') ? 'selected' : '';
                     ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;">\
-                        <option value="on" ' + selected_1 + '>开启</option>\
-                        <option value="off" ' + selected_0 + '>关闭</option>\
+                        <option value="on" ' + selected_1 + '>' + pt('开启') + '</option>\
+                        <option value="off" ' + selected_0 + '>' + pt('关闭') + '</option>\
                     </select>';
                     break;
             }
@@ -172,9 +172,9 @@ function setOpCfg(){
         var con = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
                         ' + mlist + '\
                         <div style="margin-top:10px; padding-right:15px" class="text-right">\
-                            <button class="btn btn-default btn-sm mr5" style="color: #d9534f; border-color: #d9534f;" onclick="restoreDefault()">还原默认</button>\
-                            <button class="btn btn-success btn-sm mr5" onclick="setOpCfg()">刷新</button>\
-                            <button class="btn btn-success btn-sm" onclick="submitConf()">保存</button>\
+                            <button class="btn btn-default btn-sm mr5" style="color: #d9534f; border-color: #d9534f;" onclick="restoreDefault()">' + pt('还原默认') + '</button>\
+                            <button class="btn btn-success btn-sm mr5" onclick="setOpCfg()">' + pt('刷新') + '</button>\
+                            <button class="btn btn-success btn-sm" onclick="submitConf()">' + pt('保存') + '</button>\
                         </div>\
                     </div>'
         $(".soft-man-con").html(con);
@@ -182,7 +182,7 @@ function setOpCfg(){
 }
 
 function restoreDefault() {
-    layer.confirm('您确定要将配置还原为默认调优配置吗？这会覆盖您当前的自定义调整并重载服务。', {icon:3,closeBtn: 2}, function() {
+    layer.confirm(pt('您确定要将配置还原为默认调优配置吗？这会覆盖您当前的自定义调整并重载服务。'), {icon:3,closeBtn: 2}, function() {
         api.post('get_os',{},function(data){
             var rdata = JSON.parse(data.data);
             var c = "name=openresty&func=reload";
@@ -205,13 +205,13 @@ function restoreDefaultOp(c) {
     $.post('/plugins/run', c, function(g) {
         layer.close(e);
         if (g.data == 'ok') {
-            layer.msg('还原默认配置成功！', {icon: 1});
+            layer.msg(pt('还原默认配置成功！'), {icon: 1});
             setOpCfg();
             if (typeof window.refreshExternalPluginStatus === 'function') {
                 window.refreshExternalPluginStatus('openresty');
             }
         } else {
-            layer.msg('还原默认配置失败！', {icon: 2});
+            layer.msg(pt('还原默认配置失败！'), {icon: 2});
             if( g.status && g.data != 'ok' ) {
                 layer.msg(g.data, {icon: 2,time: 10000,shade: 0.3});
             }

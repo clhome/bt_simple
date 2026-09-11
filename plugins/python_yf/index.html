@@ -91,6 +91,10 @@
     </div>
 </div>
 <script type="text/javascript">
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
+    ? window.YfI18n.createPluginTranslator('python_yf') 
+    : function(k) { return k; };
+
 resetPluginWinWidth(850);
 resetPluginWinHeight(620);
 
@@ -108,7 +112,7 @@ var py_yf = {
     },
     
     request: function(func, args, callback) {
-        var loadT = layer.msg('正在处理,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+        var loadT = layer.msg(pt('正在处理,请稍候...'), {icon: 16, time: 0, shade: [0.3, '#000']});
         $.post('/plugins/run', {name: this.plugin_name, func: func, args: JSON.stringify(args)}, function(res){
             layer.close(loadT);
             if(typeof(res) === 'string') {
@@ -233,7 +237,7 @@ var py_yf = {
     
     install: function(version_name) {
         var _this = this;
-        layer.confirm('确定要安装 [' + version_name + '] 吗？安装过程可能需要几十秒时间，请耐心等待。', {title: '安装 Python', icon:3}, function(index){
+        layer.confirm(pt('确定要安装 [') + version_name + '] 吗？安装过程可能需要几十秒时间，请耐心等待。', {title: pt('安装 Python'), icon:3}, function(index){
             layer.close(index);
             _this.request('install_python', {version: version_name}, function(res){
                 layer.msg(res.msg, {icon: res.status ? 1 : 2, time: 3000});
@@ -246,7 +250,7 @@ var py_yf = {
     
     uninstall: function(version_name) {
         var _this = this;
-        layer.confirm('确定要卸载 [' + version_name + '] 吗？', {title: '卸载 Python', icon:3}, function(index){
+        layer.confirm(pt('确定要卸载 [') + version_name + '] 吗？', {title: pt('卸载 Python'), icon:3}, function(index){
             layer.close(index);
             _this.request('uninstall_python', {version: version_name}, function(res){
                 layer.msg(res.msg, {icon: res.status ? 1 : 2, time: 3000});
@@ -259,9 +263,9 @@ var py_yf = {
     
     remove_venv: function(version_name, path) {
         var _this = this;
-        layer.confirm('确定要删除虚拟环境目录 [' + path + '] 吗？此操作将不可恢复！', {title: '删除虚拟环境', icon:3}, function(index){
+        layer.confirm(pt('确定要删除虚拟环境目录 [') + path + '] 吗？此操作将不可恢复！', {title: pt('删除虚拟环境'), icon:3}, function(index){
             layer.close(index);
-            var loadT = layer.msg('正在删除,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+            var loadT = layer.msg(pt('正在删除,请稍候...'), {icon: 16, time: 0, shade: [0.3, '#000']});
             _this.request('remove_venv', {version: version_name, path: path}, function(res){
                 layer.close(loadT);
                 layer.msg(res.msg, {icon: res.status ? 1 : 2, time: 3000});
@@ -285,15 +289,15 @@ var py_yf = {
         
         layer.open({
             type: 1,
-            title: '创建 [' + version_name + '] 的虚拟环境',
+            title: pt('创建 [') + version_name + '] 的虚拟环境',
             area: '500px',
             content: html,
             btn: ['创建', '取消'],
             yes: function(index) {
                 var path = $('#venv_path_input').val();
-                if(!path) { layer.msg('请输入虚拟环境路径', {icon:2}); return; }
+                if(!path) { layer.msg(pt('请输入虚拟环境路径'), {icon:2}); return; }
                 
-                var loadT = layer.msg('正在创建虚拟环境,请稍候...', {icon: 16, time: 0, shade: [0.3, '#000']});
+                var loadT = layer.msg(pt('正在创建虚拟环境,请稍候...'), {icon: 16, time: 0, shade: [0.3, '#000']});
                 _this.request('create_venv', {version: version_name, path: path}, function(res){
                     layer.close(loadT);
                     layer.msg(res.msg, {icon: res.status?1:2});
@@ -308,4 +312,8 @@ var py_yf = {
 };
 
 py_yf.init();
+
+if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+    window.YfI18n.translatePluginDOM($('.bt-form'), 'python_yf');
+}
 </script>

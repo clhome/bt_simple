@@ -53,7 +53,7 @@ function logsCon(id) {
 
 function deleteCon(Hostname) {
     // 删除容器
-    safeMessage('删除容器 ', '删除容器 [' + Hostname + '], 确定?', function() {
+    safeMessage(pt('删除容器 '), '删除容器 [' + Hostname + '], 确定?', function() {
         api.post('docker_remove_con', '', { Hostname: Hostname }, function(rdata) {
             var rdata = JSON.parse(rdata.data);
             showMsg(rdata.msg, function() {
@@ -215,26 +215,26 @@ function createConTemplate() {
 
         var layer_index = layer.open({
             type: 1,
-            title: "创建容器",
+            title:  pt("创建容器"),
             area: '556',
             closeBtn: 1,
             shadeClose: false,
-            btn: ['确定', '取消'],
+            btn: [pt('确定'), pt('取消')],
             content: '<div class="bt-form pd20 pb70 ceart-docker new_tname">\
                         <div class="line">\
-                            <span class="tname">容器名称<font color="red">*</font></span>\
+                            <span class="tname">' + pt('容器名称') + '<font color="red">*</font></span>\
                             <div class="info-r c4"><input class="bt-input-text docker-name" type="text" style="width:330px" placeholder="必填，请输入容器名称 (例如: my_container)"></div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname">镜像</span>\
+                            <span class="tname">' + pt('镜像') + '</span>\
                             <div class="info-r c4"><select class="bt-input-text docker-image" style="width:330px">' + imageOpt + '</select></div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname">绑定IP</span>\
+                            <span class="tname">' + pt('绑定IP') + '</span>\
                             <div class="info-r c4"><select class="bt-input-text docker-address" style="width:330px"><option value="0.0.0.0">0.0.0.0</optin>' + iplistOpt + '</select></div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname">端口映射</span>\
+                            <span class="tname">' + pt('端口映射') + '</span>\
                             <div class="info-r c4">\
                                 <div class="type-port">\
                                     <input class="bt-input-text" name="name1" type="number" placeholder="容器端口" style="width:110px;margin-right:15px">\
@@ -244,13 +244,13 @@ function createConTemplate() {
                                 </div>\
                                 <div class="divtable" style="max-height:100px;overflow:auto; margin-top:15px;width:330px;padding-left: 0px;">\
                                     <table class="table table-hover">\
-                                        <tbody id="portabletr"><tr class="more1"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加端口映射</td></tr></tbody>\
+                                        <tbody id="portabletr"><tr class="more1"><td style="color: #a94442; background-color: #f2dede; text-align: center;">' + pt('当前未添加端口映射') + '</td></tr></tbody>\
                                     </table>\
                                 </div>\
                             </div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname">目录映射</span>\
+                            <span class="tname">' + pt('目录映射') + '</span>\
                             <div class="info-r c4">\
                                 <div class="type-volumes">\
                                     <input class="bt-input-text" name="path1" type="text" placeholder="容器目录" style="width:110px;margin-right:15px">\
@@ -260,13 +260,13 @@ function createConTemplate() {
                                 </div>\
                                 <div class="divtable" style="max-height:100px;overflow:auto; margin-top:15px;width:330px;padding-left: 0px;">\
                                     <table class="table table-hover">\
-                                        <tbody id="portabletr2"><tr class="more2"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加目录映射</td></tr></tbody>\
+                                        <tbody id="portabletr2"><tr class="more2"><td style="color: #a94442; background-color: #f2dede; text-align: center;">' + pt('当前未添加目录映射') + '</td></tr></tbody>\
                                     </table>\
                                 </div>\
                             </div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname" style="height: auto;line-height: 20px;">环境变量<br>(每行一个)</span>\
+                            <span class="tname" style="height: auto;line-height: 20px;">' + pt('环境变量') + '<br>(每行一个)</span>\
                             <div class="info-r c4" style="margin-bottom: 0;">\
                                 <div class="type-volumes">\
                                     <textarea placeholder="Add variables format as following, one per line:\nJAVA_HOME=/usr/local/java8&#10;HOSTNAME=master" name="environments" class="docker-environments"></textarea>\
@@ -274,7 +274,7 @@ function createConTemplate() {
                             </div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname">内存配额</span>\
+                            <span class="tname">' + pt('内存配额') + '</span>\
                             <div class="info-r c4" style="display: flex; align-items: center; height: 30px;">\
                                 <input class="docker-mem-range" type="range" min="0" max="100" value="50" style="width:150px; margin-right: 15px; cursor: pointer;" oninput="$(this).siblings(\'.docker-mem\').val(parseInt(this.value * ' + rdata.memSize + ' / 100)); $(this).siblings(\'.docker-mem-percent\').text(this.value + \'%\');">\
                                 <input class="bt-input-text mr5 docker-mem" type="number" style="width:80px" value="' + parseInt(rdata.memSize / 2) + '" oninput="var p=parseInt(this.value / ' + rdata.memSize + ' * 100); $(this).siblings(\'.docker-mem-range\').val(p); $(this).siblings(\'.docker-mem-percent\').text(p + \'%\');">\
@@ -284,17 +284,17 @@ function createConTemplate() {
                             </div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname">CPU配额</span>\
+                            <span class="tname">' + pt('CPU配额') + '</span>\
                             <div class="info-r c4" style="display: flex; align-items: center; height: 30px;">\
                                 <input class="docker-cpu-range" type="range" min="1" max="100" value="100" style="width:150px; margin-right: 15px; cursor: pointer;" oninput="$(this).siblings(\'.docker-cpu\').val(this.value); $(this).siblings(\'.docker-cpu-percent\').text(this.value + \'%\');">\
                                 <input class="bt-input-text mr5 docker-cpu" type="number" max="100" min="1" style="width:80px" value="100" oninput="var p=this.value; $(this).siblings(\'.docker-cpu-range\').val(p); $(this).siblings(\'.docker-cpu-percent\').text(p + \'%\');">\
                                 <span class="dc-un"></span>\
                                 <span class="docker-cpu-percent" style="margin-left: 15px; width: 40px; color: #666; font-weight: bold;">100%</span>\
-                                <i class="help" style="margin-left: 10px;">docker占用cpu资源上限</i>\
+                                <i class="help" style="margin-left: 10px;">' + pt('docker占用cpu资源上限') + '</i>\
                             </div>\
                         </div>\
                         <div class="line">\
-                            <span class="tname">执行命令</span>\
+                            <span class="tname">' + pt('执行命令') + '</span>\
                             <div class="info-r c4"><input class="bt-input-text docker-command" type="text" style="width:330px" value="" placeholder="/bin/bash"></div>\
                         </div>\
                         <div class="line" style="display:none">\
@@ -340,14 +340,14 @@ function createConTemplate() {
                             <td>' + name1 + '</td>\
                             <td>' + selecttype + '</td>\
                             <td>' + name2 + '</td>\
-                            <td class="text-right" width="60"><a href="javascript:;" class="btlink minus">删除</a></td>\
+                            <td class="text-right" width="60"><a href="javascript:;" class="btlink minus">' + pt('删除') + '</a></td>\
                         </tr>';
                         $("#portabletr").append(portable);
                         $(".more1").remove();
                         $(".minus").on('click', function() {
                             $(this).parents("tr").remove();
                             if ($("#portabletr").children().length == 0) {
-                                $("#portabletr").html('<tr class="more1"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加端口映射</td></tr>');
+                                $("#portabletr").html('<tr class="more1"><td style="color: #a94442; background-color: #f2dede; text-align: center;">' + pt('当前未添加端口映射') + '</td></tr>');
                             }
                         });
                     });
@@ -375,14 +375,14 @@ function createConTemplate() {
                     var portable = '<tr>\
                         <td class="td_width_1" title="' + path1 + '">' + path1 + '</td>\
                         <td>' + selecttype + '</td><td title="' + path2 + '" class="td_width_1" style="max-width: 138px;">' + path2 + '</td>\
-                        <td class="text-right" width="50"><a href="javascript:;" class="btlink minus2">删除</a></td>\
+                        <td class="text-right" width="50"><a href="javascript:;" class="btlink minus2">' + pt('删除') + '</a></td>\
                     </tr>';
                     $("#portabletr2").append(portable);
                     $(".more2").remove();
                     $(".minus2").on('click', function() {
                         $(this).parents("tr").remove();
                         if ($("#portabletr2").children().length == 0) {
-                            $("#portabletr2").html('<tr class="more2"><td style="color: #a94442; background-color: #f2dede; text-align: center;">当前未添加目录映射</td></tr>');
+                            $("#portabletr2").html('<tr class="more2"><td style="color: #a94442; background-color: #f2dede; text-align: center;">' + pt('当前未添加目录映射') + '</td></tr>');
                         }
                     });
                 });
@@ -445,7 +445,7 @@ function createConTemplate() {
                 }
 
                 if (!data.name) {
-                    layer.msg('容器名称不能为空', { icon: 2 });
+                    layer.msg(pt('容器名称不能为空'), { icon: 2 });
                     return;
                 }
 
@@ -499,7 +499,7 @@ function dockerConList() {
 }
 
 function deleteImages(tag, id) {
-    safeMessage('删除镜像', '删除镜像[' + tag + '],确定？', function() {
+    safeMessage(pt('删除镜像'), '删除镜像[' + tag + '],确定？', function() {
         api.post('docker_remove_image', '', { imageId: id, repoTags: tag }, function(rdata) {
             var rdata = JSON.parse(rdata.data);
             showMsg(rdata.msg, function() {
@@ -593,36 +593,36 @@ function dockerPullImagesFileTemplate() {
     // 拉取镜像文件模板
     var layer_index = layer.open({
         type: 1,
-        title: "获取镜像",
+        title:  pt("获取镜像"),
         area: '500px',
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="bt-docker pd20">' +
             '<div class="docker-sub">' +
-            '<span class="on">官方库</span>' +
-            '<span>公共库</span>' +
-            '<span>私有库</span>' +
+            '<span class="on">' + pt('官方库') + '</span>' +
+            '<span>' + pt('公共库') + '</span>' +
+            '<span>' + pt('私有库') + '</span>' +
             '</div>' +
             '<div class="bt-form bt-docker-con">' +
                         '<div class="conter official_pull pd15"><div class="line">' +
             '<span class="tname">镜像名称:</span>\
                             <div class="info-r c4">\
                                 <input class="bt-input-text mr5" type="text" name="official_pull_name" style="width:218px" value="" placeholder="例如: cloudreve:latest">\
-                                <button type="button" class="btn btn-sm btn-success official_pull_btn">获取</button>\
+                                <button type="button" class="btn btn-sm btn-success official_pull_btn">' + pt('获取') + '</button>\
                             </div>' +
             '</div><div id="pull_progress_log" style="margin-top:10px; font-size:12px; color:#666; max-height:150px; overflow-y:auto; line-height: 1.6;"></div></div>' +
             '<div class="conter public_pull pd15" style="display: none;"><div class="line">' +
             '<span class="tname">镜像名:</span>\
                             <div class="info-r c4">\
                                 <input class="bt-input-text mr5" type="text" name="public_pull_path" style="width:218px" value="" placeholder="memcached:latest">\
-                                <button type="button" class="btn btn-sm btn-success public_pull_btn">获取</button>\
+                                <button type="button" class="btn btn-sm btn-success public_pull_btn">' + pt('获取') + '</button>\
                             </div>' +
             '</div></div>' +
             '<div class="conter private_pull pd15" style="display: none;">' +
             '<div class="line"><span class="tname">镜像地址:</span>\
                                 <div class="info-r c4">\
                                     <input class="bt-input-text mr5" type="text" name="private_pull_path" style="width:218px" value="">\
-                                    <button type="button" class="btn btn-sm btn-success private_pull_btn">获取</button>\
+                                    <button type="button" class="btn btn-sm btn-success private_pull_btn">' + pt('获取') + '</button>\
                                 </div>\
                             </div>\
                         </div>\
@@ -653,7 +653,7 @@ function dockerPullImagesFileTemplate() {
                         try { res = JSON.parse(rdata.data); } catch(e) {}
                         if (res.status) {
                             layer.close(layer_index);
-                            layer.msg('已加入后台任务列表！', {icon: 1, time: 2000});
+                            layer.msg(pt('已加入后台任务列表！'), {icon: 1, time: 2000});
                             if(typeof messageBox === 'function') setTimeout(messageBox, 500);
                         } else {
                             layer.msg(res.msg, {icon: 2, time: 3000});
@@ -700,7 +700,7 @@ function dockerPullImagesFileTemplate() {
                         
                         if (pullRes.status) {
                             layer.close(layer_index);
-                            layer.msg('已加入后台任务列表！', {icon: 1, time: 2000});
+                            layer.msg(pt('已加入后台任务列表！'), {icon: 1, time: 2000});
                             if(typeof messageBox === 'function') setTimeout(messageBox, 500);
                         } else {
                             layer.msg(pullRes.msg, {icon: 2, time: 3000});
@@ -712,7 +712,7 @@ function dockerPullImagesFileTemplate() {
             $('.public_pull_btn').on('click', function() {
                 var path = $('[name="public_pull_path"]').val();
                 if (path == '') {
-                    layer.msg('公共网络镜像地址不能为空。');
+                    layer.msg(pt('公共网络镜像地址不能为空。'));
                     return;
                 }
 
@@ -781,7 +781,7 @@ function dockerGetFileBytes(fileName) {
 
 //删除文件
 function dockerDeleteFile(fileName) {
-    layer.confirm(lan.get('recycle_bin_confirm', [fileName]), { title: '删除文件', closeBtn: 2, icon: 3 }, function() {
+    layer.confirm(lan.get('recycle_bin_confirm', [fileName]), { title:  pt('删除文件'), closeBtn: 2, icon: 3 }, function() {
         layer.msg('正在处理,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.post('/files/delete', 'path=' + encodeURIComponent(fileName), function(rdata) {
             showMsg(rdata.msg, function() {
@@ -815,9 +815,9 @@ function dockerImageOutputRender() {
         for (var i = 0; i < rlist.length; i++) {
 
             var op = '';
-            op += '<a href="javascript:;" onclick="dockerGetFileBytes(\'' + rlist[i]['file'] + '\')" class="btlink">下载</a> | ';
-            op += '<a href="javascript:;" onclick="dockerLoadFile(\'' + rlist[i]['file'] + '\')" class="btlink">导入</a> | ';
-            op += '<a href="javascript:;" onclick="dockerDeleteFile(\'' + rlist[i]['file'] + '\')" class="btlink">删除</a>';
+            op += '<a href="javascript:;" onclick="dockerGetFileBytes(\'' + rlist[i]['file'] + '\')" class="btlink">' + pt('下载') + '</a> | ';
+            op += '<a href="javascript:;" onclick="dockerLoadFile(\'' + rlist[i]['file'] + '\')" class="btlink">' + pt('导入') + '</a> | ';
+            op += '<a href="javascript:;" onclick="dockerDeleteFile(\'' + rlist[i]['file'] + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
             list += '<td>' + rlist[i]['name'] + '</td>';
@@ -842,18 +842,18 @@ function uploadImageFiles(upload_dir) {
         content: '<div class="fileUploadDiv">\
                 <input type="hidden" id="input-val" value="' + upload_dir + '" />\
                 <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
-                <button type="button"  id="opt" autocomplete="off">添加文件</button>\
-                <button type="button" id="up" autocomplete="off" >开始上传</button>\
+                <button type="button"  id="opt" autocomplete="off">' + pt('添加文件') + '</button>\
+                <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                 <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                 <span style="float:right;margin-top: 9px;">\
                 <font>文件编码:</font>\
                 <select id="fileCodeing" >\
-                    <option value="byte">二进制</option>\
+                    <option value="byte">' + pt('二进制') + '</option>\
                     <option value="utf-8">UTF-8</option>\
                     <option value="gb18030">GB2312</option>\
                 </select>\
                 </span>\
-                <button type="button" id="filesClose" autocomplete="off">关闭</button>\
+                <button type="button" id="filesClose" autocomplete="off">' + pt('关闭') + '</button>\
                 <ul id="up_box"></ul>\
             </div>',
         success: function() {
@@ -880,7 +880,7 @@ function dockerImagePick() {
         var _tbody = '';
         for (var i = 0; i < imageList.length; i++) {
             if (imageList[i] == null) {
-                _tbody = '<tr><td colspan="5" align="center">当前无镜像</td></tr>';
+                _tbody = '<tr><td colspan="5" align="center">' + pt('当前无镜像') + '</td></tr>';
                 continue;
             }
             var versionData = imageList[i].RepoTags,
@@ -895,18 +895,18 @@ function dockerImagePick() {
 
         var layerS = layer.open({
             type: 1,
-            title: "选择镜像",
+            title:  pt("选择镜像"),
             area: '500px',
             closeBtn: 1,
-            btn: ['打包', '取消'],
+            btn: [pt('打包'), pt('取消')],
             shadeClose: false,
             content: '<div class="divtable images_pull" style="padding:10px;">\
                         <table class="table" id="images_table">\
                         <thead><tr>\
                             <th style="padding:8px 10px;"><input type="checkbox" name="images_all"></th>\
-                            <th>名称</th>\
-                            <th>版本</th>\
-                            <th>大小</th>\
+                            <th>' + pt('名称') + '</th>\
+                            <th>' + pt('版本') + '</th>\
+                            <th>' + pt('大小') + '</th>\
                         </tr></thead>\
                         <tbody>' + _tbody + '</tbody>\
                         </table>\
@@ -942,16 +942,16 @@ function dockerImagePick() {
 
 function dockerImageOutput() {
     var con = '<div class="safe bgw">\
-            <button onclick="dockerImagePick()" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">镜像打包</button>\
-            <button id="btn_image_upload" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">上传镜像</button>\
+            <button onclick="dockerImagePick()" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('镜像打包') + '</button>\
+            <button id="btn_image_upload" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('上传镜像') + '</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr>\
-                    <th>名称</th>\
-                    <th>大小</th>\
-                    <th>时间</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('名称') + '</th>\
+                    <th>' + pt('大小') + '</th>\
+                    <th>' + pt('时间') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody></tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
@@ -977,7 +977,7 @@ function dockerImageOutput() {
 }
 
 function deleteIpList(address) {
-    safeMessage('删除IP', '你将删除从IP地址池[' + address + '],确定？', function() {
+    safeMessage(pt('删除IP'), '你将删除从IP地址池[' + address + '],确定？', function() {
         api.post('docker_del_ip', '', { address: address }, function(rdata) {
             var rdata = JSON.parse(rdata.data);
             showMsg(rdata.msg, function() {
@@ -1005,7 +1005,7 @@ function dockerIpListRender() {
         for (var i = 0; i < rlist.length; i++) {
 
             var op = '';
-            op += '<a href="javascript:;" onclick="deleteIpList(\'' + rlist[i]['address'] + '\')" class="btlink">删除</a>';
+            op += '<a href="javascript:;" onclick="deleteIpList(\'' + rlist[i]['address'] + '\')" class="btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
             list += '<td>' + rlist[i]['address'] + '</td>';
@@ -1037,16 +1037,16 @@ function dockerIpList() {
                 <input class="bt-input-text mr5" type="text" style="width:150px" name="address" placeholder="IP地址">\
                 <input class="bt-input-text mr5" name="netmask" type="text" style="width:150px" placeholder="子网掩码">\
                 <input name="gateway" class="bt-input-text mr5" type="text" style="width:150px" placeholder="网关">\
-                <button class="btn btn-success btn-sm va0" onclick="dockerAddIpPool()">添加</button>\
+                <button class="btn btn-success btn-sm va0" onclick="dockerAddIpPool()">' + pt('添加') + '</button>\
             </div>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="ip_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr>\
-                    <th>IP地址</th>\
-                    <th>子网掩码</th>\
-                    <th>网关</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('IP地址') + '</th>\
+                    <th>' + pt('子网掩码') + '</th>\
+                    <th>' + pt('网关') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody></tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
@@ -1067,7 +1067,7 @@ function repoLogin() {
     }
     var layer_index = layer.open({
         type: 1,
-        title: "登录到存储库",
+        title:  pt("登录到存储库"),
         area: '450px',
         closeBtn: 2,
         shadeClose: false,
@@ -1081,7 +1081,7 @@ function repoLogin() {
             '<div class="line"><span class="tname">Repository Name:</span><div class="info-r"><input class="bt-input-text" type="text" name="hub_name" style="width:250px" value="' + obj.hub_name + '"></div></div>' +
             '<div class="line"><span class="tname">Namespaces:</span><div class="info-r"><input class="bt-input-text" type="text" name="namespace" style="width:250px" value="' + obj.namespace + '"></div></div>' +
             '<div class="line" style="display:none"><span class="tname">Registry:</span><div class="info-r"><input class="bt-input-text" type="text" name="registry" style="width:250px" value="' + obj.registry + '"></div></div>' +
-            '<div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-success login_aliyun">登录</button></div>' +
+            '<div class="bt-form-submit-btn"><button type="button" class="btn btn-sm btn-success login_aliyun">' + pt('登录') + '</button></div>' +
             '</div>' +
             '</div>',
         success: function() {
@@ -1133,7 +1133,7 @@ function repoLogin() {
 
 
 function delRepo(address) {
-    safeMessage('退出', '你将退出 [' + address + '],确定?', function() {
+    safeMessage(pt('退出'), '你将退出 [' + address + '],确定?', function() {
         api.post('docker_logout', '', { registry: address },
             function(rdata) {
                 var rdata = JSON.parse(rdata.data);
@@ -1167,7 +1167,7 @@ function repoListRender() {
             list += '<td>' + rlist[i]['repository_name'] + '</td>';
             list += '<td>' + rlist[i]['namespace'] + '</td>';
             list += '<td>' + rlist[i]['registry'] + '</td>';
-            list += '<td class="text-right"><a href="javascript:;" onclick="delRepo(\'' + rlist[i]['registry'] + '\')" class="btlink">删除</a></td>';
+            list += '<td class="text-right"><a href="javascript:;" onclick="delRepo(\'' + rlist[i]['registry'] + '\')" class="btlink">' + pt('删除') + '</a></td>';
             list += '</tr>';
         }
 
@@ -1178,7 +1178,7 @@ function repoListRender() {
 function repoList() {
 
     var con = '<div class="safe bgw">\
-            <button id="docker_login" title="" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">登录</button>\
+            <button id="docker_login" title="" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('登录') + '</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
@@ -1186,8 +1186,8 @@ function repoList() {
                     <th>Name</th>\
                     <th>Repository Name</th>\
                     <th>NameSpace</th>\
-                    <th>地址</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('地址') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>\
                     ' + '</tbody></table>\
                 </div>\
@@ -1240,12 +1240,12 @@ function dockerAccelerator() {
         var con = '<div style="padding: 10px 15px;">' +
             '<textarea id="accel_urls" class="bt-input-text" style="width: 100%; height: 150px; line-height: 22px; padding: 10px; margin-bottom:5px;" placeholder="每行输入一个加速器 URL，例如：\nhttps://docker.1ms.run">' + mirrors_str + '</textarea>' +
             '<div style="text-align:right; margin-bottom:5px;">' +
-            '<button class="btn btn-default btn-sm" onclick="document.getElementById(\'accel_urls\').value = window.default_docker_mirrors_str;">还原默认</button>' +
+            '<button class="btn btn-default btn-sm" onclick="document.getElementById(\'accel_urls\').value = window.default_docker_mirrors_str;">' + pt('还原默认') + '</button>' +
             '</div>' +
-            '<div class="help-info-text c7" style="margin-bottom:10px;">注：保存后将写入 /etc/docker/daemon.json 并重启 Docker 守护进程。</div>' +
+            '<div class="help-info-text c7" style="margin-bottom:10px;">' + pt('注：保存后将写入 /etc/docker/daemon.json 并重启 Docker 守护进程。') + '</div>' +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:5px;">' +
             '<label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)"> 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)</label>' +
-            '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">保存并重启 Docker</button>' +
+            '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">' + pt('保存并重启 Docker') + '</button>' +
             '</div>' +
             '</div>';
             
@@ -1256,12 +1256,12 @@ function dockerAccelerator() {
 function applyAccelPreset() {
     var val = $('#accel_preset').val();
     if (!val) {
-        layer.msg('请先选择一个预置加速器', {icon: 2});
+        layer.msg(pt('请先选择一个预置加速器'), {icon: 2});
         return;
     }
     var current = $('#accel_urls').val().trim();
     if (current.indexOf(val) !== -1) {
-        layer.msg('该加速器已在列表中', {icon: 0});
+        layer.msg(pt('该加速器已在列表中'), {icon: 0});
         return;
     }
     if (current) {
@@ -1269,7 +1269,7 @@ function applyAccelPreset() {
     } else {
         $('#accel_urls').val(val);
     }
-    layer.msg('已追加，请点击下方保存使之生效', {icon: 1});
+    layer.msg(pt('已追加，请点击下方保存使之生效'), {icon: 1});
 }
 
 function saveDockerAccelerator() {
@@ -1353,7 +1353,7 @@ function conDetails(id) {
     }
     
     if (!con) {
-        layer.msg('无法获取容器详细信息', {icon: 2});
+        layer.msg(pt('无法获取容器详细信息'), {icon: 2});
         return;
     }
 
@@ -1371,7 +1371,7 @@ function conDetails(id) {
             }
         }
     }
-    if (!portsHtml) portsHtml = '<li style="color:#999;">无端口映射</li>';
+    if (!portsHtml) portsHtml = '<li style="color:#999;">' + pt('无端口映射') + '</li>';
 
     // Parse Mounts
     var mountsHtml = '';
@@ -1381,7 +1381,7 @@ function conDetails(id) {
             mountsHtml += '<li><span class="glyphicon glyphicon-folder-open" style="color:#e6a23c; margin-right:5px;"></span>' + m.Source + ' <br><span style="padding-left:19px;color:#999;">➔ ' + m.Destination + '</span></li>';
         }
     }
-    if (!mountsHtml) mountsHtml = '<li style="color:#999;">无目录挂载</li>';
+    if (!mountsHtml) mountsHtml = '<li style="color:#999;">' + pt('无目录挂载') + '</li>';
 
     // Parse Network IP
     var ipStr = '';
@@ -1406,17 +1406,17 @@ function conDetails(id) {
     var html = '<div class="pd20" style="font-size:13px; line-height:24px;">' +
         '<style>.con-detail-table { width: 100%; border-collapse: collapse; margin-bottom: 15px;} .con-detail-table th { width: 90px; text-align: right; padding: 8px 15px 8px 0; color: #666; font-weight: normal; vertical-align: top;} .con-detail-table td { padding: 8px 0; color: #333; word-break: break-all;} .con-ul { list-style: none; padding: 0; margin: 0; } .con-ul li { margin-bottom: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 4px; border: 1px solid #eee;}</style>' +
         '<table class="con-detail-table">' +
-        '<tr><th>容器 ID</th><td>' + con.Id.substring(0, 12) + '<br><span style="color:#999;font-size:12px;">(' + con.Id + ')</span></td></tr>' +
-        '<tr><th>容器名称</th><td>' + con.Name.substring(1) + '</td></tr>' +
-        '<tr><th>所属镜像</th><td>' + con.Config.Image + '</td></tr>' +
-        '<tr><th>IP 地址</th><td>' + ipStr + '</td></tr>' +
-        '<tr><th>入口命令</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + fullCmd + '</div></td></tr>' +
-        '<tr><th>资源限制</th><td>' +
+        '<tr><th>' + pt('容器 ID') + '</th><td>' + con.Id.substring(0, 12) + '<br><span style="color:#999;font-size:12px;">(' + con.Id + ')</span></td></tr>' +
+        '<tr><th>' + pt('容器名称') + '</th><td>' + con.Name.substring(1) + '</td></tr>' +
+        '<tr><th>' + pt('所属镜像') + '</th><td>' + con.Config.Image + '</td></tr>' +
+        '<tr><th>' + pt('IP 地址') + '</th><td>' + ipStr + '</td></tr>' +
+        '<tr><th>' + pt('入口命令') + '</th><td><div style="background:#f2f2f2;padding:4px 8px;border-radius:4px;font-family:monospace;color:#d14;">' + fullCmd + '</div></td></tr>' +
+        '<tr><th>' + pt('资源限制') + '</th><td>' +
             '<span class="label label-success" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px; margin-right:15px;"><i class="glyphicon glyphicon-tasks" style="margin-right:5px;"></i>内存限制: ' + memStr + '</span>' +
             '<span class="label label-info" style="font-size:13px; padding:6px 12px; display:inline-block; border-radius:4px;"><i class="glyphicon glyphicon-dashboard" style="margin-right:5px;"></i>CPU配额: ' + cpuStr + '</span>' +
         '</td></tr>' +
-        '<tr><th>端口映射</th><td><ul class="con-ul">' + portsHtml + '</ul></td></tr>' +
-        '<tr><th>目录挂载</th><td><ul class="con-ul">' + mountsHtml + '</ul><div style="margin-top:8px;font-size:12px;color:#999;line-height:1.5;">* 提示：此处展示了 Docker 底层全部真实挂载。出现的 <code>/var/lib/docker/volumes/...</code> (匿名卷) 或 <code>/sys/...</code> 是由于镜像原生要求或容器特权自动生成的挂载，并非错误。</div></td></tr>' +
+        '<tr><th>' + pt('端口映射') + '</th><td><ul class="con-ul">' + portsHtml + '</ul></td></tr>' +
+        '<tr><th>' + pt('目录挂载') + '</th><td><ul class="con-ul">' + mountsHtml + '</ul><div style="margin-top:8px;font-size:12px;color:#999;line-height:1.5;">' + pt('* 提示：此处展示了 Docker 底层全部真实挂载。出现的') + ' <code>/var/lib/docker/volumes/...</code> (匿名卷) 或 <code>/sys/...</code> ' + pt('是由于镜像原生要求或容器特权自动生成的挂载，并非错误。') + '</div></td></tr>' +
         '</table>' +
     '</div>';
 
@@ -1435,20 +1435,20 @@ function dockerDir() {
     var con = '<div class="safe bgw">\
         <div class="divtable mtb10">\
             <table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">\
-                <thead><tr><th>项目</th><th>当前目录</th><th>大小</th><th>操作</th></tr></thead>\
+                <thead><tr><th>' + pt('项目') + '</th><th>' + pt('当前目录') + '</th><th>' + pt('大小') + '</th><th>' + pt('操作') + '</th></tr></thead>\
                 <tbody id="docker_dir_list"></tbody>\
             </table>\
         </div>\
         <div style="margin: 15px 0;">\
-            <h4 style="margin-bottom: 12px; font-weight: normal; color: #333;">一键迁移 Docker 目录</h4>\
+            <h4 style="margin-bottom: 12px; font-weight: normal; color: #333;">' + pt('一键迁移 Docker 目录') + '</h4>\
             <div class="form-inline">\
                 <input type="text" id="new_docker_dir" class="bt-input-text mr5" placeholder="请输入新的Docker目录路径，如 /www/docker" style="width:300px;">\
-                <button onclick="dockerMigrate()" class="btn btn-success btn-sm" type="button">开始迁移</button>\
+                <button onclick="dockerMigrate()" class="btn btn-success btn-sm" type="button">' + pt('开始迁移') + '</button>\
             </div>\
             <ul class="help-info-text c7 mtb15">\
-                <li>迁移过程需要停止Docker服务，可能会导致容器短暂不可用。</li>\
-                <li>请确保新路径所在的分区有足够的可用空间。</li>\
-                <li style="color: red;"><span class="glyphicon glyphicon-exclamation-sign" style="margin-right: 5px;"></span>迁移成功后，原目录不会被自动删除，请确认服务正常后再手动清理原目录。</li>\
+                <li>' + pt('迁移过程需要停止Docker服务，可能会导致容器短暂不可用。') + '</li>\
+                <li>' + pt('请确保新路径所在的分区有足够的可用空间。') + '</li>\
+                <li style="color: red;"><span class="glyphicon glyphicon-exclamation-sign" style="margin-right: 5px;"></span>' + pt('迁移成功后，原目录不会被自动删除，请确认服务正常后再手动清理原目录。') + '</li>\
             </ul>\
             <div style="margin-top: 10px; font-size: 13px; color: #666;">\
                 <span class="glyphicon glyphicon-info-sign" style="margin-right: 5px;"></span>\
@@ -1468,19 +1468,19 @@ function dockerDirRender() {
         if (rdata.status) {
             var d = rdata.data;
             var tbody = '<tr>\
-                <td>Docker根目录</td>\
+                <td>' + pt('Docker根目录') + '</td>\
                 <td>' + d.docker_root + '</td>\
-                <td>总览</td>\
+                <td>' + pt('总览') + '</td>\
                 <td>-</td>\
             </tr>\
             <tr>\
-                <td>容器存储目录</td>\
+                <td>' + pt('容器存储目录') + '</td>\
                 <td>' + d.docker_root + '/containers</td>\
                 <td>' + d.container_size + '</td>\
                 <td>-</td>\
             </tr>\
             <tr>\
-                <td>镜像存储目录</td>\
+                <td>' + pt('镜像存储目录') + '</td>\
                 <td>' + d.docker_root + '/image</td>\
                 <td>' + d.image_size + '</td>\
                 <td>-</td>\
@@ -1495,7 +1495,7 @@ function dockerDirRender() {
 function dockerMigrate() {
     var new_path = $("#new_docker_dir").val();
     if (!new_path) {
-        layer.msg('请输入新路径', { icon: 2 });
+        layer.msg(pt('请输入新路径'), { icon: 2 });
         return;
     }
     
@@ -1510,9 +1510,9 @@ function dockerMigrate() {
         
         var req = rdata.data.required;
         var avail = rdata.data.available;
-        var msg = '当前Docker占用总空间为 <b>' + req + '</b>，目标目录可用空间为 <b>' + avail + '</b>。<br><br>迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到 ' + new_path + ' 吗？';
+        var msg = '当前Docker占用总空间为 <b>' + req + '</b>' + pt('，目标目录可用空间为') + ' <b>' + avail + '</b>。<br><br>迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到 ' + new_path + ' 吗？';
         
-        safeMessage('确认迁移 Docker 目录', msg, function() {
+        safeMessage(pt('确认迁移 Docker 目录'), msg, function() {
             var loadT = layer.msg('正在迁移数据，这可能需要很长时间，请勿刷新页面...', { icon: 16, time: 0, shade: 0.3 });
             api.post('migrate_docker_dir', '', { new_path: new_path }, function(rdata2) {
                 layer.close(loadT);

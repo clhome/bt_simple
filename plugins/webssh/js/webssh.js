@@ -249,10 +249,10 @@ function webShell_getCmdList(){
                     item.send(finalCmd);
                     item.term.focus();
                 } else {
-                    layer.msg('终端未连接',{icon:2,time:2000});
+                    layer.msg(pt('终端未连接'),{icon:2,time:2000});
                 }
             } else {
-                layer.msg('请先打开一个终端',{icon:2,time:2000});
+                layer.msg(pt('请先打开一个终端'),{icon:2,time:2000});
             }
         });
     });
@@ -393,53 +393,53 @@ function webShell_getHostList(info){
 function webShell_addServer(info=[]){
     layer.open({
         type: 1,
-        title: '添加主机信息',
+        title:  pt('添加主机信息'),
         area: '500px',
-        btn:["确定","取消"],
+        btn: [pt("确定"), pt("取消")],
         content:'<div class="bt-form pd20 c6">\
                     <div class="line input_group">\
-                        <span class="tname">服务器IP</span>\
+                        <span class="tname">' + pt('服务器IP') + '</span>\
                         <div class="info-r">\
                             <input type="text" name="host" class="bt-input-text mr5" style="width:240px" value="127.0.0.1" placeholder="输入服务器IP" val="" autocomplete="off" />\
                             <input type="text" name="port" class="bt-input-text mr5" style="width:60px" placeholder="端口" value="22" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line">\
-                        <span class="tname">SSH账号</span>\
+                        <span class="tname">' + pt('SSH账号') + '</span>\
                         <div class="info-r">\
                             <input type="text" name="username" class="bt-input-text mr5" style="width:305px" placeholder="输入SSH账号" value="root" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line">\
-                        <span class="tname">验证方式</span>\
+                        <span class="tname">' + pt('验证方式') + '</span>\
                         <div class="info-r">\
                             <div class="btn-group">\
-                                <button type="button" tabindex="-1" class="btn btn-sm auth_type_checkbox btn-default btn-success" data-ctype="0">密码验证</button>\
+                                <button type="button" tabindex="-1" class="btn btn-sm auth_type_checkbox btn-default btn-success" data-ctype="0">' + pt('密码验证') + '</button>\
                                 <button type="button" tabindex="-1" class="btn btn-sm auth_type_checkbox btn-default" data-ctype="1">私钥验证\
                                 </button>\
                             </div>\
                         </div>\
                     </div>\
                     <div class="line c_password_view show">\
-                        <span class="tname">密码</span>\
+                        <span class="tname">' + pt('密码') + '</span>\
                         <div class="info-r">\
                             <input type="text" name="password" class="bt-input-text mr5" placeholder="请输入SSH密码" style="width:305px;" value="" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line c_pkey_view hide">\
-                        <span class="tname">私钥</span>\
+                        <span class="tname">' + pt('私钥') + '</span>\
                         <div class="info-r">\
                             <textarea rows="4" name="pkey" class="bt-input-text mr5" placeholder="请输入SSH私钥" style="width:305px;height: 80px;line-height: 18px;padding-top:10px;"></textarea>\
                         </div>\
                     </div>\
                     <div class="line key_pwd_line hide" style="display:none;">\
-                        <span class="tname">私钥密码</span>\
+                        <span class="tname">' + pt('私钥密码') + '</span>\
                         <div class="info-r">\
                             <input type="text" name="pkey_passwd" class="bt-input-text mr5" placeholder="请输入私钥密码" style="width:305px;" value="" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line ssh_ps_tips">\
-                        <span class="tname">备注</span>\
+                        <span class="tname">' + pt('备注') + '</span>\
                         <div class="info-r">\
                             <input type="text" name="ps" class="bt-input-text mr5" placeholder="请输入备注,可为空" style="width:305px;" value="" autocomplete="off"/>\
                         </div>\
@@ -541,18 +541,18 @@ function webShell_cmd(title='', cmd='', old_title=''){
     var displayCmd = cmd ? cmd.replace(/\\n/g, '\n') : '';
     layer.open({
         type: 1,
-        title: '添加常用命令信息',
+        title:  pt('添加常用命令信息'),
         area: '500px',
-        btn:["确定","取消"],
+        btn: [pt("确定"), pt("取消")],
         content:'<div class="bt-form pd20 c6">\
                     <div class="line">\
-                        <span class="tname">命令名称</span>\
+                        <span class="tname">' + pt('命令名称') + '</span>\
                         <div class="info-r">\
                             <input type="text" name="title" class="bt-input-text mr5" style="width:305px" placeholder="请输入常用命令描述，必填项" value="'+title+'" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line">\
-                        <span class="tname">命令内容</span>\
+                        <span class="tname">' + pt('命令内容') + '</span>\
                         <div class="info-r">\
                             <textarea rows="4" name="cmd" class="bt-input-text mr5" placeholder="请输入常用命令信息，必填项" style="width:305px;height: 150px;line-height: 18px;padding-top:10px;">'+displayCmd+'</textarea>\
                         </div>\
@@ -565,11 +565,11 @@ function webShell_cmd(title='', cmd='', old_title=''){
             var new_cmd = $('textarea[name="cmd"]').val();
 
             if (!new_title || new_title.trim() === '') {
-                layer.msg('请输入命令名称！', {icon: 2, time: 2000});
+                layer.msg(pt('请输入命令名称！'), {icon: 2, time: 2000});
                 return false;
             }
             if (!new_cmd || new_cmd.trim() === '') {
-                layer.msg('请输入命令内容！', {icon: 2, time: 2000});
+                layer.msg(pt('请输入命令内容！'), {icon: 2, time: 2000});
                 return false;
             }
 
@@ -588,7 +588,7 @@ function webShell_cmd(title='', cmd='', old_title=''){
                 }
 
                 if(exists && old_title !== clean_title) {
-                    layer.msg('该命令已存在！', {icon: 2, time: 2000});
+                    layer.msg(pt('该命令已存在！'), {icon: 2, time: 2000});
                     return;
                 }
 

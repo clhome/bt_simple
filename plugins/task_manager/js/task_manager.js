@@ -425,7 +425,7 @@ function buildRealProcess() {
 function createProcessTable(getboday, data) {
     var tbody_tr = '';
     for (var i = 0; i < realProcess.length; i++) {
-        if (realProcess[i].status == '活动') realProcess[i].status = '<span style="color:green;">活动</span>';
+        if (realProcess[i].status == '活动') realProcess[i].status = '<span style="color:green;">' + pt('活动') + '</span>';
         var colp = realProcess[i].haschild ? '<svg class="colp arrow" onclick="show_process_child(' + realProcess[i].pid + ')" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18" style="border-color: rgba(0,0,0,0);border-width: bpx;border-style: undefined" filter="none">\
 			<path d="M15.811 23.47c-0.252-0.060-0.47-0.185-0.641-0.356l-10.685-10.685c-0.521-0.521-0.521-1.365 0-1.886s1.365-0.521 1.886 0l9.746 9.746 9.745-9.745c0.521-0.521 1.365-0.521 1.886 0s0.521 1.365 0 1.886l-10.685 10.685c-0.339 0.339-0.816 0.458-1.251 0.355z" fill="#999999"></path>\
         </svg>' : '';

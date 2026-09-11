@@ -1,5 +1,4 @@
 {
-    ")没有!": ")Non!",
     "“数据管理”": "\"Gestion des données\"",
     "中会显示并激活": "sera affiché et activé dans",
     "使用指引": "Mode d'emploi",
@@ -7,12 +6,13 @@
     "左侧导航栏": "Barre de navigation gauche",
     "强制刷新当前浏览器页面。": "Forcer l'actualisation de la page actuelle du navigateur.",
     "打开管理页": "Ouvrez la page d'administration",
-    "数据简单管理(memcached, redis, mongodb)。说明：安装后请按 Ctrl+F5 强制刷新页面，并在左侧菜单栏的“数据管理”中进行操作。": "Gestion simple des données (memcached, redis, mongodb). Remarque : Après l'installation, veuillez appuyer sur Ctrl+F5 pour forcer l'actualisation de la page et opérer dans « Gestion des données » dans la barre de menu de gauche.",
+    "操作说明": "Mode d'emploi",
     "数据管理": "Gestion des données",
     "无需运行后台守护进程": "Pas besoin d'exécuter des démons en arrière-plan",
     "本插件为数据检索管理工具，": "Ce plug-in est un outil de gestion de récupération de données.",
     "点击该菜单，即可开始对 Redis、Memcached、MongoDB 等数据库进行数据检索与管理。": "Cliquez sur ce menu pour démarrer la récupération des données et la gestion de Redis, Memcached, MongoDB et d'autres bases de données.",
     "菜单。": "menu.",
     "衢州御风科技有限公司 出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
+    "衢州御风科技有限公司出品": "Produit par Quzhou Yufeng Technology Co., Ltd.",
     "请按键盘快捷键": "Veuillez appuyer sur le raccourci clavier"
 }

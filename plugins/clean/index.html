@@ -81,13 +81,17 @@
 	</div>
 </div>
 <script type="text/javascript">
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
+    ? window.YfI18n.createPluginTranslator('clean') 
+    : function(k) { return k; };
+
 resetPluginWinWidth(800);
 resetPluginWinHeight(520);
 
 pluginService('clean');
 
 function cleanPost(method, version, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'clean';
@@ -119,7 +123,7 @@ function cleanRun(){
         // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
 	});
 
-	layer.msg("执行成功!", { icon: 1});
+	layer.msg(pt("执行成功!"), { icon: 1});
 }
 
 function commonFunc(){
@@ -140,5 +144,9 @@ function pRead(){
     readme += '</ul>';
 
     $('.soft-man-con').html(readme);   
+}
+
+if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+    window.YfI18n.translatePluginDOM($('.bt-form'), 'clean');
 }
 </script>

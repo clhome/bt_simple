@@ -74,24 +74,6 @@
     #con-deploy > .bt-form-con > .line > .info-r {
         margin-left: 150px;
     }
-    
-    /* 修复左侧菜单随页面滚动的排版 */
-    .bt-form, .bt-w-main {
-        height: 100%;
-    }
-    .bt-w-main {
-        display: flex;
-    }
-    .bt-w-menu {
-        float: none !important;
-        height: 100%;
-    }
-    .bt-w-con {
-        flex: 1;
-        height: 100%;
-        overflow-y: auto;
-        margin-left: 0 !important;
-    }
 </style>
 <div class="bt-form">
 	<div class="bt-w-main">
@@ -230,23 +212,21 @@
                     <h3 style="margin-top: 0; color: #333; font-weight: 600; font-size: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 20px;">PostgreSQL 容器化管理指南</h3>
                     
                     <div style="background: #fff7e6; border-left: 4px solid #ffa39e; padding: 15px 20px; border-radius: 4px; margin-bottom: 25px;">
-                        <div style="color: #cf1322; font-weight: 600; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center;">
+                        <div class="alert-title" style="color: #cf1322; font-weight: 600; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center;">
                             <i class="glyphicon glyphicon-warning-sign" style="margin-right: 8px; font-size: 16px;"></i>架构安全警示：Docker 网络与系统防火墙
                         </div>
-                        <div style="color: #666; font-size: 13px; line-height: 1.6;">
-                            请高度注意：Docker 在暴露映射端口（如 <code>0.0.0.0:5432</code>）时，会直接向系统的 <strong>iptables</strong> 写入底层 `PREROUTING` 转发规则。这意味着 <strong>外部流量将直接绕过 UFW、firewalld 等主机层防火墙</strong> 抵达容器。<br>
-                            <strong>最佳实践建议：</strong> 如果无需外部直连数据库，建议将宿主机端口绑定为 <code>127.0.0.1:端口号</code>，或者在服务器所在的云厂商控制台（安全组配置）中拦截高危端口，切勿仅依赖系统内防火墙。
-                        </div>
+                        <p style="color: #666; font-size: 13px; line-height: 1.6; margin: 0 0 8px 0;">请高度注意：Docker 在暴露映射端口（如 0.0.0.0:5432）时，会直接向系统的 iptables 写入底层 PREROUTING 转发规则。这意味着外部流量将直接绕过 UFW、firewalld 等主机层防火墙抵达容器。</p>
+                        <p style="color: #666; font-size: 13px; line-height: 1.6; margin: 0;">最佳实践建议：如果无需外部直连数据库，建议将宿主机端口绑定为 127.0.0.1:端口号，或者在服务器所在的云厂商控制台（安全组配置）中拦截高危端口，切勿仅依赖系统内防火墙。</p>
                     </div>
 
                     <div style="margin-bottom: 20px;">
                         <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-th-large" style="margin-right: 6px;"></i>物理级实例隔离</h4>
-                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">本插件基于 <code>docker-compose</code> 构建环境。每一个创建的 PostgreSQL 实例都是完全隔离的独立容器系统，相互之间进程分离、环境解耦，彻底避免了多项目共用数据库导致的依赖冲突或全局崩溃风险。</p>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">本插件基于 docker-compose 构建环境。每一个创建的 PostgreSQL 实例都是完全隔离的独立容器系统，相互之间进程分离、环境解耦，彻底避免了多项目共用数据库导致的依赖冲突或全局崩溃风险。</p>
                     </div>
 
                     <div style="margin-bottom: 20px;">
                         <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-time" style="margin-right: 6px;"></i>全自动化灾备体系</h4>
-                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">实例部署后，系统会自动向宿主机的 <code>crontab</code> 注入守护任务，严格执行“每日增量快照”与“长效周备份”策略。您可以随时在“备份管理”中查阅 <code>.dump</code> 格式的历史快照，或者手动触发无锁全量备份，将核心数据资产紧紧握在手中。</p>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">实例部署后，系统会自动向宿主机的 crontab 注入守护任务，严格执行“每日增量快照”与“长效周备份”策略。您可以随时在“备份管理”中查阅 .dump 格式的历史快照，或者手动触发无锁全量备份，将核心数据资产紧紧握在手中。</p>
                     </div>
 
                     <div style="margin-bottom: 20px;">
@@ -256,11 +236,11 @@
 
                     <div style="margin-bottom: 20px;">
                         <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-globe" style="margin-right: 6px;"></i>动态网络边界控制 (外网访问)</h4>
-                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">实例列表中映射端口旁的 <strong style="color:red;">“外”</strong> 字复选框，用于动态管理数据库的网络暴露范围。勾选（红色）代表允许外部网络直连访问（监听 <code>0.0.0.0</code>）；取消勾选（灰色）代表严格限制仅允许服务器本地访问（监听 <code>127.0.0.1</code>）。每次点击切换，面板都会在后台为您自动修改 Docker 配置并瞬间重启容器，保障边界安全的同时免去手敲命令的烦恼。</p>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">实例列表中映射端口旁的“外”字复选框，用于动态管理数据库的网络暴露范围。勾选（红色）代表允许外部网络直连访问（监听 0.0.0.0）；取消勾选（灰色）代表严格限制仅允许服务器本地访问（监听 127.0.0.1）。每次点击切换，面板都会在后台为您自动修改 Docker 配置并瞬间重启容器，保障边界安全的同时免去手敲命令的烦恼。</p>
                     </div>
                     <div style="margin-bottom: 20px;">
                         <h4 style="color: #1890ff; font-weight: 600; font-size: 15px; margin-bottom: 10px;"><i class="glyphicon glyphicon-floppy-save" style="margin-right: 6px;"></i>独立手动备份 (长效保留)</h4>
-                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">除了自动执行的每日与每周备份外，您还可以在“备份管理”面板中随时点击“一键备份当前数据”。手动生成的备份文件将独立存放在 <code>manual</code> 目录中，系统自动清理历史任务时会跳过此目录，确保关键节点的数据快照能够持久、安全地保存，只有您手动删除才会失效。</p>
+                        <p style="color: #555; font-size: 13px; line-height: 1.6; margin: 0;">除了自动执行的每日与每周备份外，您还可以在“备份管理”面板中随时点击“一键备份当前数据”。手动生成的备份文件将独立存放在 manual 目录中，系统自动清理历史任务时会跳过此目录，确保关键节点的数据快照能够持久、安全地保存，只有您手动删除才会失效。</p>
                     </div>
                 </div>
             </div>
@@ -285,6 +265,10 @@
 resetPluginWinWidth(1100);
 resetPluginWinHeight(650);
 
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
+    ? window.YfI18n.createPluginTranslator('pg_docker') 
+    : function(k) { return k; };
+
 function pgPost(method, args, callback) {
     var req_data = {
         name: 'pg_docker',
@@ -298,7 +282,7 @@ function pgPost(method, args, callback) {
             callback(data);
         }
     }, 'json').fail(function() {
-        layer.msg('请求失败', {icon: 2});
+        layer.msg(pt('请求失败'), {icon: 2});
     });
 }
 
@@ -319,10 +303,14 @@ function switchTab(tab) {
     } else if (tab === 'readme') {
         $('#con-readme').show();
     }
+
+    if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+        window.YfI18n.translatePluginDOM($('.bt-form'), 'pg_docker');
+    }
 }
 
 function loadList() {
-    var loadT = layer.msg('正在获取实例列表...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取实例列表...'), { icon: 16, time: 0, shade: 0.3 });
     pgPost('get_list', {}, function(resp) {
         layer.close(loadT);
         if (!resp.status) {
@@ -342,23 +330,24 @@ function loadList() {
 
         var html = '';
         if (data.length === 0) {
-            html = '<tr><td colspan="6" style="text-align:center; padding: 30px 0; color: #999;">暂无任何 PostgreSQL Docker 实例，请前往“部署新实例”创建</td></tr>';
+            html = '<tr><td colspan="6" style="text-align:center; padding: 30px 0; color: #999;">' + pt('暂无任何 PostgreSQL Docker 实例，请前往“部署新实例”创建') + '</td></tr>';
         } else {
             for (var i = 0; i < data.length; i++) {
                 var item = data[i];
                 var statusIcon = item.status 
-                    ? '<span style="color: #20a53a; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'stop\')" title="点击停止实例"><i class="glyphicon glyphicon-play-circle" style="margin-right: 3px;"></i>运行中</span>' 
-                    : '<span style="color: red; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'start\')" title="点击启动实例"><i class="glyphicon glyphicon-ban-circle" style="margin-right: 3px;"></i>已停止</span>';
+                    ? '<span style="color: #20a53a; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'stop\')" title="' + pt('点击停止实例') + '"><i class="glyphicon glyphicon-play-circle" style="margin-right: 3px;"></i>' + pt('运行中') + '</span>' 
+                    : '<span style="color: red; font-weight: bold; cursor: pointer;" onclick="toggleStatus(\''+item.name+'\', \'start\')" title="' + pt('点击启动实例') + '"><i class="glyphicon glyphicon-ban-circle" style="margin-right: 3px;"></i>' + pt('已停止') + '</span>';
                 var extColor = item.is_external ? 'red' : '#999';
                 var extChecked = item.is_external ? 'checked' : '';
-                var extHtml = '<label title="勾选允许外部网络访问(0.0.0.0)&#10;取消仅限本地网络访问(127.0.0.1)" style="margin-left:8px; cursor:pointer; font-weight:normal; color:' + extColor + ';">' +
-                              '<input type="checkbox" ' + extChecked + ' style="vertical-align: middle; margin-top:-2px; margin-right:3px;" onclick="toggleExternal(\''+item.name+'\', this.checked, event)">外</label>';
+                var extTip = pt('勾选允许外部网络访问(0.0.0.0)\n取消仅限本地网络访问(127.0.0.1)');
+                var extHtml = '<label title="' + extTip + '" style="margin-left:8px; cursor:pointer; font-weight:normal; color:' + extColor + ';">' +
+                              '<input type="checkbox" ' + extChecked + ' style="vertical-align: middle; margin-top:-2px; margin-right:3px;" onclick="toggleExternal(\''+item.name+'\', this.checked, event)">' + pt('外') + '</label>';
 
                 var cpuHtml = '';
                 var memHtml = '';
                 if (item.status && item.cpu !== undefined && item.mem !== undefined) {
-                    cpuHtml = '<span style="margin-left: 10px; font-size: 11px; color: #666; font-weight: normal;" title="CPU 使用率"><i class="glyphicon glyphicon-tasks" style="color: #1890ff; margin-right: 3px;"></i>' + item.cpu + '%</span>';
-                    memHtml = '<span style="margin-left: 8px; font-size: 11px; color: #666; font-weight: normal;" title="内存占用 (MB)"><i class="glyphicon glyphicon-hdd" style="color: #52c41a; margin-right: 3px;"></i>' + item.mem + ' MB</span>';
+                    cpuHtml = '<span style="margin-left: 10px; font-size: 11px; color: #666; font-weight: normal;" title="' + pt('CPU 使用率') + '"><i class="glyphicon glyphicon-tasks" style="color: #1890ff; margin-right: 3px;"></i>' + item.cpu + '%</span>';
+                    memHtml = '<span style="margin-left: 8px; font-size: 11px; color: #666; font-weight: normal;" title="' + pt('内存占用 (MB)') + '"><i class="glyphicon glyphicon-hdd" style="color: #52c41a; margin-right: 3px;"></i>' + item.mem + ' MB</span>';
                 }
 
                 html += '<tr>' +
@@ -366,16 +355,16 @@ function loadList() {
                     '<td>' + statusIcon + '</td>' +
                     '<td><code style="background: #f1f1f1; padding: 2px 5px; border-radius: 3px; color: #e6522c;">' + item.port + '</code>' + extHtml + '</td>' +
                     '<td>' +
-                        '<span class="btlink" style="color: #666; font-weight: bold;" title="点击复制数据库名" onclick="copyToClipboard(\''+item.dbname+'\', \'数据库名\')">' + item.dbname + '</span>' +
-                        '<i class="glyphicon glyphicon-user btlink" style="margin-left: 8px; color: #888;" title="点击复制用户名" onclick="copyToClipboard(\''+item.dbuser+'\', \'用户名\')"></i>' +
-                        '<i class="glyphicon glyphicon-lock btlink" style="margin-left: 8px; color: #888;" title="点击复制密码" onclick="copyToClipboard(\''+item.dbpass+'\', \'密码\')"></i>' +
+                        '<span class="btlink" style="color: #666; font-weight: bold;" title="' + pt('点击复制数据库名') + '" onclick="copyToClipboard(\''+item.dbname+'\', \'' + pt('数据库名') + '\')">' + item.dbname + '</span>' +
+                        '<i class="glyphicon glyphicon-user btlink" style="margin-left: 8px; color: #888;" title="' + pt('点击复制用户名') + '" onclick="copyToClipboard(\''+item.dbuser+'\', \'' + pt('数据库用户名') + '\')"></i>' +
+                        '<i class="glyphicon glyphicon-lock btlink" style="margin-left: 8px; color: #888;" title="' + pt('点击复制密码') + '" onclick="copyToClipboard(\''+item.dbpass+'\', \'' + pt('数据库密码') + '\')"></i>' +
                     '</td>' +
                     '<td><span style="color: #999; font-size: 12px;">' + item.path + '</span></td>' +
                     '<td style="text-align: right; white-space: nowrap;">' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>备份</a>' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>明细</a>' +
-                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showModifyConfig(\''+item.name+'\', \''+item.port+'\', \''+item.dbuser+'\')"><i class="glyphicon glyphicon-edit" style="margin-right: 3px;"></i>修改</a>' +
-                        '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">卸载</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showBackups(\''+item.name+'\')"><i class="glyphicon glyphicon-hdd" style="margin-right: 3px; color: ' + (item.auto_backup ? '#20a53a' : 'red') + ';"></i>' + pt('备份') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showConfig(\''+item.name+'\')"><i class="glyphicon glyphicon-list-alt" style="margin-right: 3px;"></i>' + pt('明细') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="margin-right: 10px;" onclick="showModifyConfig(\''+item.name+'\', \''+item.port+'\', \''+item.dbuser+'\')"><i class="glyphicon glyphicon-edit" style="margin-right: 3px;"></i>' + pt('修改') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="color: red;" onclick="uninstallInstance(\''+item.name+'\', \''+item.path+'\')">' + pt('卸载') + '</a>' +
                     '</td>' +
                 '</tr>';
             }
@@ -403,9 +392,9 @@ function loadPluginLogs() {
 }
 
 function clearPluginLogs() {
-    layer.confirm('确定要清除日志吗？', {icon: 3, title: '清除日志'}, function(index) {
+    layer.confirm(pt('确定要清除日志吗？'), {icon: 3, title: pt('清除日志'), btn: [pt('确定'), pt('取消')]}, function(index) {
         pgPost('clear_logs', {}, function(resp) {
-            layer.msg(resp.msg, {icon: resData.status ? 1 : 2});
+            layer.msg(resp.msg, {icon: resp.status ? 1 : 2});
             if (resp.status) loadPluginLogs();
         });
         layer.close(index);
@@ -428,17 +417,17 @@ function deployInstance() {
     };
     
     if (!args.instance_name || !args.db_user || !args.db_pass || !args.db_name) {
-        layer.msg('所有带输入框的字段都必须填写完整', {icon: 2});
+        layer.msg(pt('所有带输入框的字段都必须填写完整'), {icon: 2});
         return;
     }
     
     var reg = /^[a-zA-Z0-9_]+$/;
     if (!reg.test(args.instance_name)) {
-        layer.msg('实例名称只能使用字母、数字、下划线', {icon: 2});
+        layer.msg(pt('实例名称只能使用字母、数字、下划线'), {icon: 2});
         return;
     }
 
-    var loadT = layer.msg('正在渲染模板并拉起容器，这可能需要1-3分钟...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在渲染模板并拉起容器，这可能需要1-3分钟...'), { icon: 16, time: 0, shade: 0.3 });
     pgPost('create_instance', args, function(resp) {
         layer.close(loadT);
         var resData = resp;
@@ -447,7 +436,6 @@ function deployInstance() {
         }
         layer.msg(resData.msg || resp.msg, { icon: resData.status ? 1 : 2, time: 3000 });
         if (resData.status) {
-            // 清空表单
             $('input[name="inst_name"]').val('');
             switchTab('list');
         }
@@ -455,7 +443,7 @@ function deployInstance() {
 }
 
 function showConfig(name) {
-    var loadT = layer.msg('正在获取配置...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取配置...'), { icon: 16, time: 0, shade: 0.3 });
     pgPost('get_config', { instance_name: name }, function(resp) {
         layer.close(loadT);
         var data = resp.data;
@@ -473,7 +461,7 @@ function showConfig(name) {
         
         layer.open({
             type: 1,
-            title: '实例 [' + name + '] 配置详情 (docker-compose.yml)',
+            title: pt('实例') + ' [' + name + '] ' + pt('配置详情 (docker-compose.yml)'),
             area: ['750px', '750px'],
             closeBtn: 1,
             shadeClose: true,
@@ -483,15 +471,16 @@ function showConfig(name) {
 }
 
 function toggleExternal(name, checked, e) {
-    e.preventDefault(); // 阻止默认的选中动画，等待确认后再刷新状态
-    var actionName = checked ? '允许外部直连访问 (监听 0.0.0.0)' : '限制仅本地访问 (监听 127.0.0.1)';
-    layer.confirm('确定要切换为【' + actionName + '】吗？<br><br><span style="color:#e6522c;">此操作将自动重启该容器以应用最新网络配置。</span>', {
-        title: '端口监听范围调整确认',
+    e.preventDefault();
+    var actionName = checked ? pt('允许外部直连访问 (监听 0.0.0.0)') : pt('限制仅本地访问 (监听 127.0.0.1)');
+    var confirmMsg = pt('确定要切换为【{0}】吗？', actionName) + '<br><br><span style="color:#e6522c;">' + pt('此操作将自动重启该容器以应用最新网络配置。') + '</span>';
+    layer.confirm(confirmMsg, {
+        title: pt('端口监听范围调整确认'),
         icon: 3,
-        btn: ['确定重启', '取消']
+        btn: [pt('确定重启'), pt('取消')]
     }, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在重建容器网络配置...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在重建容器网络配置...'), { icon: 16, time: 0, shade: 0.3 });
         pgPost('toggle_external_port', { instance_name: name, is_external: checked }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -509,34 +498,34 @@ function toggleExternal(name, checked, e) {
 function showModifyConfig(name, port, dbuser) {
     layer.open({
         type: 1,
-        title: '修改实例 [' + name + '] 配置',
+        title: pt('修改实例') + ' [' + name + '] ' + pt('配置'),
         area: '450px',
         closeBtn: 1,
         shadeClose: true,
         content: '<div class="bt-form pd20 pb70">' +
             '<div class="line">' +
-                '<span class="tname">当前用户名</span>' +
+                '<span class="tname">' + pt('当前用户名') + '</span>' +
                 '<div class="info-r">' +
                     '<input type="text" class="bt-input-text mr5" value="' + dbuser + '" readonly style="width: 250px; background-color: #f5f5f5; color: #666;">' +
                 '</div>' +
             '</div>' +
             '<div class="line">' +
-                '<span class="tname">新数据库密码</span>' +
+                '<span class="tname">' + pt('新数据库密码') + '</span>' +
                 '<div class="info-r" style="display: flex; align-items: center;">' +
-                    '<input type="text" class="bt-input-text mr5" id="mod_dbpass" placeholder="留空则不修改密码" style="width: 250px;">' +
-                    '<span class="glyphicon glyphicon-random cursor" onclick="generateRandomPassword(\'#mod_dbpass\')" title="随机生成密码" style="color: #20a53a; font-size: 16px; margin-left: 5px;"></span>' +
+                    '<input type="text" class="bt-input-text mr5" id="mod_dbpass" placeholder="' + pt('留空则不修改密码') + '" style="width: 250px;">' +
+                    '<span class="glyphicon glyphicon-random cursor" onclick="generateRandomPassword(\'#mod_dbpass\')" title="' + pt('随机生成密码') + '" style="color: #20a53a; font-size: 16px; margin-left: 5px;"></span>' +
                 '</div>' +
             '</div>' +
             '<div class="line">' +
-                '<span class="tname">宿主机端口</span>' +
+                '<span class="tname">' + pt('宿主机端口') + '</span>' +
                 '<div class="info-r">' +
-                    '<input type="number" class="bt-input-text mr5" id="mod_port" value="' + port + '" placeholder="请输入新的映射端口" style="width: 250px;">' +
-                    '<div class="c9" style="margin-top: 5px; line-height: 20px;">确保不与服务器已用端口冲突</div>' +
+                    '<input type="number" class="bt-input-text mr5" id="mod_port" value="' + port + '" placeholder="' + pt('请输入新的映射端口') + '" style="width: 250px;">' +
+                    '<div class="c9" style="margin-top: 5px; line-height: 20px;">' + pt('确保不与服务器已用端口冲突') + '</div>' +
                 '</div>' +
             '</div>' +
             '<div class="bt-form-submit-btn">' +
-                '<button type="button" class="btn btn-sm btn-danger" onclick="layer.closeAll()">取消</button>' +
-                '<button type="button" class="btn btn-sm btn-success" onclick="doModifyConfig(\'' + name + '\', \'' + dbuser + '\', \'' + port + '\')">提交保存</button>' +
+                '<button type="button" class="btn btn-sm btn-danger" onclick="layer.closeAll()">' + pt('取消') + '</button>' +
+                '<button type="button" class="btn btn-sm btn-success" onclick="doModifyConfig(\'' + name + '\', \'' + dbuser + '\', \'' + port + '\')">' + pt('提交保存') + '</button>' +
             '</div>' +
         '</div>'
     });
@@ -547,20 +536,22 @@ function doModifyConfig(name, dbuser, oldPort) {
     var newPort = $('#mod_port').val();
     
     if (!newPass && newPort == oldPort) {
-        layer.msg('没有任何修改', { icon: 0 });
+        layer.msg(pt('没有任何修改'), { icon: 0 });
         return;
     }
     if (!newPort) {
-        layer.msg('宿主机端口不能为空', { icon: 2 });
+        layer.msg(pt('宿主机端口不能为空'), { icon: 2 });
         return;
     }
 
-    layer.confirm('确定要提交修改吗？<br><br><span style="color:#e6522c;">修改端口会自动重启容器。</span>', {
-        title: '修改配置确认',
-        icon: 3
+    var confirmMsg = pt('确定要提交修改吗？') + '<br><br><span style="color:#e6522c;">' + pt('修改端口会自动重启容器。') + '</span>';
+    layer.confirm(confirmMsg, {
+        title: pt('修改配置确认'),
+        icon: 3,
+        btn: [pt('确定'), pt('取消')]
     }, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在应用新配置，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在应用新配置，请稍候...'), { icon: 16, time: 0, shade: 0.3 });
         pgPost('modify_config', { 
             instance_name: name,
             db_user: dbuser,
@@ -582,12 +573,12 @@ function doModifyConfig(name, dbuser, oldPort) {
 }
 
 function toggleStatus(name, action) {
-    var actionName = action === 'start' ? '启动' : '停止';
-    layer.confirm('确定要'+actionName+'实例 ['+name+'] 吗？', {
-        title: '状态切换确认',
-        btn: ['确定', '取消']
+    var actionName = action === 'start' ? pt('启动') : pt('停止');
+    layer.confirm(pt('确定要{0}实例 [{1}] 吗？', actionName, name), {
+        title: pt('状态切换确认'),
+        btn: [pt('确定'), pt('取消')]
     }, function() {
-        var loadT = layer.msg('正在'+actionName+'...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在{0}...', actionName), { icon: 16, time: 0, shade: 0.3 });
         pgPost('toggle_status', { instance_name: name, action: action }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -606,18 +597,18 @@ function toggleStatus(name, action) {
 function uninstallInstance(name, path) {
     layer.open({
         type: 1,
-        title: '卸载 PostgreSQL 实例',
+        title: pt('卸载 PostgreSQL 实例'),
         area: '400px',
         closeBtn: 1,
         shadeClose: true,
         content: '<div style="padding: 20px;">' +
-            '<p style="color: red; font-weight: bold;">注意：此操作将停止并移除容器 <code>pg-'+name+'</code>，以及清理所有的定时备份任务！</p>' +
+            '<p style="color: red; font-weight: bold;">' + pt('注意：此操作将停止并移除容器') + ' <code>pg-'+name+'</code>' + pt('，以及清理所有的定时备份任务！') + '</p>' +
             '<div style="margin-top: 20px;">' +
-                '<label><input type="checkbox" id="del_data_cb" value="1"> 彻底删除挂载的卷和配置数据 ('+path+')</label>' +
+                '<label><input type="checkbox" id="del_data_cb" value="1"> ' + pt('彻底删除挂载的卷和配置数据') + ' ('+path+')</label>' +
             '</div>' +
-            '<div style="margin-top: 10px; color: #999; font-size: 12px;">强烈建议勾选前先确保所有重要数据已备份。</div>' +
+            '<div style="margin-top: 10px; color: #999; font-size: 12px;">' + pt('强烈建议勾选前先确保所有重要数据已备份。') + '</div>' +
             '<div style="margin-top: 20px; text-align: center;">' +
-                '<button class="btn btn-danger btn-sm" onclick="doUninstall(\''+name+'\', \''+path+'\')">确认卸载</button>' +
+                '<button class="btn btn-danger btn-sm" onclick="doUninstall(\''+name+'\', \''+path+'\')">' + pt('确认卸载') + '</button>' +
             '</div>' +
         '</div>'
     });
@@ -626,9 +617,7 @@ function uninstallInstance(name, path) {
 function doUninstall(name, path) {
     var keep_data = !$('#del_data_cb').is(':checked');
     layer.closeAll();
-    var loadT = layer.msg('正在卸载实例...', { icon: 16, time: 0, shade: 0.3 });
-    
-    // 从 path 推算 base_dir
+    var loadT = layer.msg(pt('正在卸载实例...'), { icon: 16, time: 0, shade: 0.3 });
     var base_dir = path.substring(0, path.lastIndexOf('/'));
     
     pgPost('uninstall_instance', { instance_name: name, keep_data: keep_data, base_dir: base_dir }, function(resp) {
@@ -643,13 +632,14 @@ function doUninstall(name, path) {
         }
     });
 }
+
 function toggleAutoBackup(name, enable) {
-    var actionName = enable ? '开启' : '关闭';
-    layer.confirm('确定要'+actionName+'实例 ['+name+'] 的自动备份计划任务吗？', {
-        title: '确认'+actionName,
-        btn: ['确定', '取消']
+    var actionName = enable ? pt('开启') : pt('关闭');
+    layer.confirm(pt('确定要{0}实例 [{1}] 的自动备份计划任务吗？', actionName, name), {
+        title: pt('确认{0}', actionName),
+        btn: [pt('确定'), pt('取消')]
     }, function() {
-        var loadT = layer.msg('正在'+actionName+'自动备份...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在{0}自动备份...', actionName), { icon: 16, time: 0, shade: 0.3 });
         pgPost('toggle_auto_backup', { instance_name: name, enable: enable }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -668,25 +658,25 @@ function toggleAutoBackup(name, enable) {
 function copyToClipboard(text, itemName) {
     var textarea = document.createElement("textarea");
     textarea.value = text;
-    textarea.style.position = "fixed";  // 防止页面滚动
+    textarea.style.position = "fixed";
     textarea.style.opacity = "0";
     document.body.appendChild(textarea);
     textarea.select();
     try {
         var successful = document.execCommand('copy');
         if (successful) {
-            layer.msg(itemName + ' 已复制到剪贴板', { icon: 1 });
+            layer.msg(pt('{0} 已复制到剪贴板', itemName), { icon: 1 });
         } else {
-            layer.msg('复制失败，请手动复制', { icon: 2 });
+            layer.msg(pt('复制失败，请手动复制'), { icon: 2 });
         }
     } catch (err) {
-        layer.msg('复制失败，您的浏览器不支持', { icon: 2 });
+        layer.msg(pt('复制失败，您的浏览器不支持'), { icon: 2 });
     }
     document.body.removeChild(textarea);
 }
 
 function showBackups(name) {
-    var loadT = layer.msg('正在获取备份列表...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取备份列表...'), { icon: 16, time: 0, shade: 0.3 });
     pgPost('get_backups', { instance_name: name }, function(resp) {
         layer.close(loadT);
         var data = resp.data;
@@ -703,14 +693,14 @@ function showBackups(name) {
         var bk = typeof data === 'object' ? (data.data || data) : data;
         
         var renderTable = function(list, isManual) {
-            if (!list || list.length === 0) return '<tr><td colspan="'+(isManual?5:4)+'" style="text-align:center;color:#999;padding:15px;">暂无备份记录</td></tr>';
+            if (!list || list.length === 0) return '<tr><td colspan="'+(isManual?5:4)+'" style="text-align:center;color:#999;padding:15px;">' + pt('暂无备份记录') + '</td></tr>';
             var h = '';
             for (var i=0; i<list.length; i++) {
                 var it = list[i];
                 var remarkHtml = '';
                 if (isManual) {
                     var safeRemark = (it.remark || '').replace(/"/g, '&quot;');
-                    remarkHtml = '<td><input type="text" class="bt-input-text" style="width: 140px; height: 26px; line-height: 26px;" value="'+safeRemark+'" placeholder="点击输入备注" onblur="saveBackupRemark(\''+name+'\', \''+it.name+'\', this.value)"></td>';
+                    remarkHtml = '<td><input type="text" class="bt-input-text" style="width: 140px; height: 26px; line-height: 26px;" value="'+safeRemark+'" placeholder="' + pt('点击输入备注') + '" onblur="saveBackupRemark(\''+name+'\', \''+it.name+'\', this.value)"></td>';
                 }
                 h += '<tr>' +
                     '<td style="word-break: break-all;">'+it.name+'</td>' +
@@ -718,9 +708,9 @@ function showBackups(name) {
                     '<td style="white-space: nowrap;">'+it.time+'</td>' +
                     remarkHtml +
                     '<td style="text-align:right; white-space: nowrap;">' +
-                        '<a href="/files/download?filename='+encodeURIComponent(it.path)+'" target="_blank" class="btlink" style="color:#1890ff; margin-right: 15px;">下载</a>' +
-                        '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+name+'\', \''+it.path+'\')">删除</a>' +
-                        '<a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="doRestore(\''+name+'\', \''+it.path+'\')">还原</a>' +
+                        '<a href="/files/download?filename='+encodeURIComponent(it.path)+'" target="_blank" class="btlink" style="color:#1890ff; margin-right: 15px;">' + pt('下载') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="color:red; margin-right: 15px;" onclick="doDeleteBackup(\''+name+'\', \''+it.path+'\')">' + pt('删除') + '</a>' +
+                        '<a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="doRestore(\''+name+'\', \''+it.path+'\')">' + pt('还原') + '</a>' +
                     '</td>' +
                 '</tr>';
             }
@@ -731,36 +721,36 @@ function showBackups(name) {
         if (bk.auto_backup_enabled) {
             autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+name+'\', false)">' +
                 '<i class="glyphicon glyphicon-ok-sign" style="color: #20a53a; margin-right: 5px;"></i>' +
-                '<span style="color: #666; font-size: 13px;">自动备份运行中</span></span>';
+                '<span style="color: #666; font-size: 13px;">' + pt('自动备份运行中') + '</span></span>';
         } else {
             autoBackupHtml = '<span style="float: right; margin-top: 5px; cursor: pointer;" onclick="toggleAutoBackup(\''+name+'\', true)">' +
                 '<i class="glyphicon glyphicon-remove-sign" style="color: red; margin-right: 5px;"></i>' +
-                '<span style="color: #666; font-size: 13px;">自动备份未启动</span></span>';
+                '<span style="color: #666; font-size: 13px;">' + pt('自动备份未启动') + '</span></span>';
         }
 
         var html = '<div style="padding: 15px 20px; height: 100%; box-sizing: border-box; overflow-y: auto;">' +
             '<div class="mb15">' +
-                '<h4 style="display:inline-block; margin-right:15px;">日备份 (近7天)</h4>' +
-                '<button class="btn btn-success btn-xs" onclick="doManualBackup(\''+name+'\')"><i class="glyphicon glyphicon-floppy-save"></i> 一键备份当前数据</button>' +
+                '<h4 style="display:inline-block; margin-right:15px;">' + pt('日备份 (近7天)') + '</h4>' +
+                '<button class="btn btn-success btn-xs" onclick="doManualBackup(\''+name+'\')"><i class="glyphicon glyphicon-floppy-save"></i> ' + pt('一键备份当前数据') + '</button>' +
                 autoBackupHtml +
             '</div>' +
             '<div class="divtable">' +
                 '<table class="table table-hover" width="100%">' +
-                    '<thead><tr><th style="width: 38%;">文件名</th><th style="width: 14%;">大小</th><th style="width: 26%;">备份时间</th><th style="text-align:right; width: 22%; white-space: nowrap;">操作</th></tr></thead>' +
+                    '<thead><tr><th style="width: 38%;">' + pt('文件名') + '</th><th style="width: 14%;">' + pt('大小') + '</th><th style="width: 26%;">' + pt('备份时间') + '</th><th style="text-align:right; width: 22%; white-space: nowrap;">' + pt('操作') + '</th></tr></thead>' +
                     '<tbody id="daily-backup-list">' + renderTable(bk.daily) + '</tbody>' +
                 '</table>' +
             '</div>' +
-            '<h4 style="margin-top:20px;">周备份 (长效保留)</h4>' +
+            '<h4 style="margin-top:20px;">' + pt('周备份 (长效保留)') + '</h4>' +
             '<div class="divtable mt10">' +
                 '<table class="table table-hover" width="100%">' +
-                    '<thead><tr><th style="width: 38%;">文件名</th><th style="width: 14%;">大小</th><th style="width: 26%;">备份时间</th><th style="text-align:right; width: 22%; white-space: nowrap;">操作</th></tr></thead>' +
+                    '<thead><tr><th style="width: 38%;">' + pt('文件名') + '</th><th style="width: 14%;">' + pt('大小') + '</th><th style="width: 26%;">' + pt('备份时间') + '</th><th style="text-align:right; width: 22%; white-space: nowrap;">' + pt('操作') + '</th></tr></thead>' +
                     '<tbody>' + renderTable(bk.weekly) + '</tbody>' +
                 '</table>' +
             '</div>' +
-            '<h4 style="margin-top:20px;">手动备份 (长效保留)</h4>' +
+            '<h4 style="margin-top:20px;">' + pt('手动备份 (长效保留)') + '</h4>' +
             '<div class="divtable mt10">' +
                 '<table class="table table-hover" width="100%">' +
-                    '<thead><tr><th style="width: 30%;">文件名</th><th style="width: 12%;">大小</th><th style="width: 22%;">备份时间</th><th style="width: 18%;">备注</th><th style="text-align:right; width: 18%; white-space: nowrap;">操作</th></tr></thead>' +
+                    '<thead><tr><th style="width: 30%;">' + pt('文件名') + '</th><th style="width: 12%;">' + pt('大小') + '</th><th style="width: 22%;">' + pt('备份时间') + '</th><th style="width: 18%;">' + pt('备注') + '</th><th style="text-align:right; width: 18%; white-space: nowrap;">' + pt('操作') + '</th></tr></thead>' +
                     '<tbody>' + renderTable(bk.manual, true) + '</tbody>' +
                 '</table>' +
             '</div>' +
@@ -768,7 +758,7 @@ function showBackups(name) {
 
         layer.open({
             type: 1,
-            title: '实例 [' + name + '] 备份管理',
+            title: pt('实例') + ' [' + name + '] ' + pt('备份管理'),
             area: ['820px', '600px'],
             closeBtn: 1,
             shadeClose: true,
@@ -778,9 +768,9 @@ function showBackups(name) {
 }
 
 function doManualBackup(name) {
-    layer.confirm('确定要立即执行一次全量备份吗？', { title: '手动备份确认', icon: 3 }, function(index) {
+    layer.confirm(pt('确定要立即执行一次全量备份吗？'), { title: pt('手动备份确认'), icon: 3, btn: [pt('确定'), pt('取消')] }, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在执行备份，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在执行备份，请稍候...'), { icon: 16, time: 0, shade: 0.3 });
         pgPost('create_backup', { instance_name: name }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -797,13 +787,14 @@ function doManualBackup(name) {
 }
 
 function doRestore(name, path) {
-    layer.confirm('注意：本次还原操作会清空当前数据库，并用选定的备份文件覆盖当前数据，请谨慎操作！<br><br>确定要还原吗？', {
-        title: '⚠️ 危险操作确认',
+    var confirmMsg = pt('注意：本次还原操作会清空当前数据库，并用选定的备份文件覆盖当前数据，请谨慎操作！') + '<br><br>' + pt('确定要还原吗？');
+    layer.confirm(confirmMsg, {
+        title: '⚠️ ' + pt('危险操作确认'),
         icon: 0,
-        btn: ['确认覆盖还原', '取消']
+        btn: [pt('确认覆盖还原'), pt('取消')]
     }, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在执行数据还原，请耐心等待...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在执行数据还原，请耐心等待...'), { icon: 16, time: 0, shade: 0.3 });
         pgPost('restore_backup', { instance_name: name, file_path: path }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -816,13 +807,14 @@ function doRestore(name, path) {
 }
 
 function doDeleteBackup(name, path) {
-    layer.confirm('⚠️ 警告：确定要永久删除这个备份文件吗？<br><br><span style="color:#999; font-size:12px; word-break:break-all;">' + path + '</span>', {
-        title: '删除备份确认',
+    var confirmMsg = '⚠️ ' + pt('警告：确定要永久删除这个备份文件吗？') + '<br><br><span style="color:#999; font-size:12px; word-break:break-all;">' + path + '</span>';
+    layer.confirm(confirmMsg, {
+        title: pt('删除备份确认'),
         icon: 3,
-        btn: ['确定删除', '取消']
+        btn: [pt('确定删除'), pt('取消')]
     }, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在删除...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在删除...'), { icon: 16, time: 0, shade: 0.3 });
         pgPost('delete_backup', { instance_name: name, file_path: path }, function(resp) {
             layer.close(loadT);
             var resData = resp;
@@ -900,11 +892,11 @@ function checkPgImage() {
                 shade: [0.8, '#000'],
                 area: '400px',
                 content: '<div style="padding: 30px; text-align: center; border-radius: 8px; position: relative;">' +
-                            '<div class="custom-close-btn" style="position: absolute; right: 15px; top: 15px; font-size: 16px; color: #999; cursor: pointer; transition: color 0.3s;" onmouseover="this.style.color=\'#333\'" onmouseout="this.style.color=\'#999\'" title="关闭"><i class="glyphicon glyphicon-remove"></i></div>' +
-                            '<h3 style="margin-top:0; color:#333; font-weight:bold;">环境缺失</h3>' +
-                            '<p style="color:#666; margin: 20px 0; font-size:14px; line-height:1.6;">系统检测到尚未下载核心依赖镜像 <br><b style="color:#20a53a; font-size:16px;">postgres:18.4-bookworm</b><br>请前往 Docker 管理器进行下载。</p>' +
-                            '<button class="btn btn-success" style="width:100%; height:40px; font-size:15px;" onclick="gotoDockerPull(\'' + idx + '\')">前往获取镜像</button>' +
-                            '<div style="margin-top: 15px; font-size: 12px; color: #e6522c; text-align: center;">提示：若已在消息盒子建立拉取任务，请耐心等待下载完成，随后重新打开本插件即可。</div>' +
+                            '<div class="custom-close-btn" style="position: absolute; right: 15px; top: 15px; font-size: 16px; color: #999; cursor: pointer; transition: color 0.3s;" onmouseover="this.style.color=\'#333\'" onmouseout="this.style.color=\'#999\'" title="' + pt('关闭') + '"><i class="glyphicon glyphicon-remove"></i></div>' +
+                            '<h3 style="margin-top:0; color:#333; font-weight:bold;">' + pt('环境缺失') + '</h3>' +
+                            '<p style="color:#666; margin: 20px 0; font-size:14px; line-height:1.6;">' + pt('系统检测到尚未下载核心依赖镜像') + '<br><b style="color:#20a53a; font-size:16px;">postgres:18.4-bookworm</b><br>' + pt('请前往 Docker 管理器进行下载。') + '</p>' +
+                            '<button class="btn btn-success" style="width:100%; height:40px; font-size:15px;" onclick="gotoDockerPull(\'' + idx + '\')">' + pt('前往获取镜像') + '</button>' +
+                            '<div style="margin-top: 15px; font-size: 12px; color: #e6522c; text-align: center;">' + pt('提示：若已在消息盒子建立拉取任务，请耐心等待下载完成，随后重新打开本插件即可。') + '</div>' +
                          '</div>',
                 success: function(layero, index) {
                     layero.find('.custom-close-btn').on('click', function() {
@@ -944,4 +936,7 @@ window.gotoDockerPull = function(idx) {
 // 初始化
 loadList();
 checkPgImage();
+if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+    window.YfI18n.translatePluginDOM($('.bt-form'), 'pg_docker');
+}
 </script>

@@ -20,13 +20,13 @@ function httpPluginService(_name, version){
 }
 
 function orPluginSetService(_name ,status, version){
-    var serviceCon ='<p class="status">当前状态：<span>'+(status ? '开启' : '关闭' )+
+    var serviceCon ='<p class="status">' + pt('当前状态：') + '<span>'+(status ? '开启' : '关闭' )+
         '</span><span style="color: '+
         (status?'#20a53a;':'red;')+
         ' margin-left: 3px;" class="glyphicon ' + (status?'glyphicon glyphicon-play':'glyphicon-pause')+'"></span></p><div class="sfm-opt">\
             <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\''+(status?'stop':'start')+'\',\''+version+'\')">'+(status?'停止':'启动')+'</button>\
-            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'restart\',\''+version+'\',\'yes\')">重启</button>\
-            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'reload\',\''+version+'\')">还原默认配置</button>\
+            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'restart\',\''+version+'\',\'yes\')">' + pt('重启') + '</button>\
+            <button class="btn btn-default btn-sm" onclick="orPluginOpService(\''+_name+'\',\'reload\',\''+version+'\')">' + pt('还原默认配置') + '</button>\
         </div>' + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, version) : ''); 
     $(".soft-man-con").html(serviceCon);
     if (typeof pluginInitDSwitchRender === 'function') {
@@ -195,16 +195,16 @@ function setOpCfg(){
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 0) ? 'selected' : '';
                     ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;">\
-                        <option value="1" ' + selected_1 + '>开启</option>\
-                        <option value="0" ' + selected_0 + '>关闭</option>\
+                        <option value="1" ' + selected_1 + '>' + pt('开启') + '</option>\
+                        <option value="0" ' + selected_0 + '>' + pt('关闭') + '</option>\
                     </select>';
                     break;
                 case 1:
                     var selected_1 = (rdata[i].value == 'on') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'off') ? 'selected' : '';
                     ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;">\
-                        <option value="on" ' + selected_1 + '>开启</option>\
-                        <option value="off" ' + selected_0 + '>关闭</option>\
+                        <option value="on" ' + selected_1 + '>' + pt('开启') + '</option>\
+                        <option value="off" ' + selected_0 + '>' + pt('关闭') + '</option>\
                     </select>';
                     break;
             }
@@ -213,8 +213,8 @@ function setOpCfg(){
         var con = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
                         ' + mlist + '\
                         <div style="margin-top:10px; padding-right:15px" class="text-right">\
-                            <button class="btn btn-success btn-sm mr5" onclick="setOpCfg()">刷新</button>\
-                            <button class="btn btn-success btn-sm" onclick="submitConf()">保存</button>\
+                            <button class="btn btn-success btn-sm mr5" onclick="setOpCfg()">' + pt('刷新') + '</button>\
+                            <button class="btn btn-success btn-sm" onclick="submitConf()">' + pt('保存') + '</button>\
                         </div>\
                     </div>'
         $(".soft-man-con").html(con);
@@ -243,8 +243,8 @@ function submitConf() {
 
 function otherFunc(){
     var con = '<p class="conf_p" style="text-align:center;">\
-            <button class="btn btn-default btn-sm" onclick="cronAddCheck()">添加检查任务</button>  \
-            <button class="btn btn-default btn-sm" onclick="cronDelCheck()">删除检查任务</button>\
+            <button class="btn btn-default btn-sm" onclick="cronAddCheck()">' + pt('添加检查任务') + '</button>  \
+            <button class="btn btn-default btn-sm" onclick="cronDelCheck()">' + pt('删除检查任务') + '</button>\
         </p>';
     $(".soft-man-con").html(con);
 }

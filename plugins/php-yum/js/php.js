@@ -20,19 +20,19 @@ function phpSetConfig(version) {
                 case 0:
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 0) ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>开启</option><option value="0" ' + selected_0 + '>关闭</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>' + pt('开启') + '</option><option value="0" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
                     break;
                 case 1:
                     var selected_1 = (rdata[i].value == 'On') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'Off') ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>开启</option><option value="Off" ' + selected_0 + '>关闭</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>' + pt('开启') + '</option><option value="Off" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
                     break;
             }
             mlist += '<p><span>' + rdata[i].name + '</span>' + ibody + ', <font>' + rdata[i].ps + '</font></p>'
         }
         var phpCon = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">\
                         ' + mlist + '\
-                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="phpSetConfig(' + version + ')">刷新</button><button class="btn btn-success btn-sm" onclick="submitConf(' + version + ')">保存</button></div>\
+                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="phpSetConfig(' + version + ')">' + pt('刷新') + '</button><button class="btn btn-success btn-sm" onclick="submitConf(' + version + ')">' + pt('保存') + '</button></div>\
                     </div>'
         $(".soft-man-con").html(phpCon);
     });
@@ -75,21 +75,21 @@ function phpCommonFunc(version){
     api.post('get_limit_conf', version, '', function(ret_data){
         var rdata = JSON.parse(ret_data.data);
         var con = '<p class="conf_p">\
-            <span>超时限制</span>\
+            <span>' + pt('超时限制') + '</span>\
             <input class="phpTimeLimit bt-input-text mr5" type="number" value="' + rdata['maxTime'] + '">, 秒\
-            <button class="btn btn-success btn-sm" onclick="setPHPMaxTime(\'' + version + '\')" style="margin-left:20px">保存</button>\
+            <button class="btn btn-success btn-sm" onclick="setPHPMaxTime(\'' + version + '\')" style="margin-left:20px">' + pt('保存') + '</button>\
             </p>';
 
         con += '<p class="conf_p">\
-            <span>上传限制</span>\
+            <span>' + pt('上传限制') + '</span>\
             <input class="phpUploadLimit bt-input-text mr5" type="number" value="' + rdata['max']+'" name="max">,MB\
-            <button class="btn btn-success btn-sm" onclick="setPHPMaxSize(\''+ version+'\')" style="margin-left:20px">保存</button>\
+            <button class="btn btn-success btn-sm" onclick="setPHPMaxSize(\''+ version+'\')" style="margin-left:20px">' + pt('保存') + '</button>\
         </p>';
 
         con += '<hr/><p class="conf_p" style="text-align:center;">\
             <button class="btn btn-default btn-sm" onclick="getPHPInfo(\'' + version + '\')">查看phpinfo()</button>\
-            <button class="btn btn-default btn-sm" onclick="phpPreload(\'' + version + '\')">预加载脚本</button>\
-            <button class="btn btn-default btn-sm" onclick="phpOpcacheBlacklist(\'' + version + '\')">OPCACHE黑名单</button>\
+            <button class="btn btn-default btn-sm" onclick="phpPreload(\'' + version + '\')">' + pt('预加载脚本') + '</button>\
+            <button class="btn btn-default btn-sm" onclick="phpOpcacheBlacklist(\'' + version + '\')">' + pt('OPCACHE黑名单') + '</button>\
             <button class="btn btn-default btn-sm" onclick="phpFpmRoot(\'' + version + '\')">PHP-FPM(global)</button>\
         </p>';
 
@@ -113,7 +113,7 @@ function setPHPMaxSize(version) {
     max = $(".phpUploadLimit").val();
     if (max < 2) {
         alert(max);
-        layer.msg('上传大小限制不能小于2M', { icon: 2 });
+        layer.msg(pt('上传大小限制不能小于2M'), { icon: 2 });
         return;
     }
 
@@ -146,17 +146,17 @@ function getFpmConfig(version, pool = 'www'){
         // console.log(data);
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
-        var limitList = "<option value='0'>自定义</option>" +
-            "<option value='0' " + (rdata.max_children == 2 ? 'selected' : '') + ">2并发</option>" +
-            "<option value='1' " + (rdata.max_children == 5 ? 'selected' : '') + ">5并发</option>" +
-            "<option value='2' " + (rdata.max_children == 10 ? 'selected' : '') + ">10并发</option>" +
-            "<option value='3' " + (rdata.max_children == 30 ? 'selected' : '') + ">30并发</option>" +
-            "<option value='4' " + (rdata.max_children == 50 ? 'selected' : '') + ">50并发</option>" +
-            "<option value='5' " + (rdata.max_children == 100 ? 'selected' : '') + ">100并发</option>" +
-            "<option value='6' " + (rdata.max_children == 200 ? 'selected' : '') + ">200并发</option>" +
-            "<option value='7' " + (rdata.max_children == 300 ? 'selected' : '') + ">300并发</option>" +
-            "<option value='8' " + (rdata.max_children == 500 ? 'selected' : '') + ">500并发</option>" +
-            "<option value='9' " + (rdata.max_children == 2000 ? 'selected' : '') + ">2000并发</option>";
+        var limitList = "<option value='0'>' + pt('自定义') + '</option>" +
+            "<option value='0' " + (rdata.max_children == 2 ? 'selected' : '') + ">' + pt('2并发') + '</option>" +
+            "<option value='1' " + (rdata.max_children == 5 ? 'selected' : '') + ">' + pt('5并发') + '</option>" +
+            "<option value='2' " + (rdata.max_children == 10 ? 'selected' : '') + ">' + pt('10并发') + '</option>" +
+            "<option value='3' " + (rdata.max_children == 30 ? 'selected' : '') + ">' + pt('30并发') + '</option>" +
+            "<option value='4' " + (rdata.max_children == 50 ? 'selected' : '') + ">' + pt('50并发') + '</option>" +
+            "<option value='5' " + (rdata.max_children == 100 ? 'selected' : '') + ">' + pt('100并发') + '</option>" +
+            "<option value='6' " + (rdata.max_children == 200 ? 'selected' : '') + ">' + pt('200并发') + '</option>" +
+            "<option value='7' " + (rdata.max_children == 300 ? 'selected' : '') + ">' + pt('300并发') + '</option>" +
+            "<option value='8' " + (rdata.max_children == 500 ? 'selected' : '') + ">' + pt('500并发') + '</option>" +
+            "<option value='9' " + (rdata.max_children == 2000 ? 'selected' : '') + ">' + pt('2000并发') + '</option>";
         var pms = [{ 'name': 'static', 'title': '静态' }, { 'name': 'dynamic', 'title': '动态' },{ 'name': 'ondemand', 'title': '按需' }];
         var pmList = '';
         for (var i = 0; i < pms.length; i++) {
@@ -168,13 +168,13 @@ function getFpmConfig(version, pool = 'www'){
 
         var body = "<div class='bingfa'>" +
             "<p class='line'><span class='span_tit'>应用池[pool]：</span><select class='bt-input-text' name='pool' style='width:100px;'>" + poolHtml + "</select></p>" +
-            "<p class='line'><span class='span_tit'>并发方案：</span><select class='bt-input-text' name='limit' style='width:100px;'>" + limitList + "</select></p>" +
-            "<p class='line'><span class='span_tit'>运行模式：</span><select class='bt-input-text' name='pm' style='width:100px;'>" + pmList + "</select><span class='c9'>*PHP-FPM运行模式</span></p>" +
-            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>*允许创建的最大子进程数</span></p>" +
-            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>*起始进程数（服务启动后初始进程数量）</span></p>" +
-            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>*最小空闲进程数（清理空闲进程后的保留数量）</span></p>" +
-            "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + rdata.max_spare_servers + "' />   <span class='c9'>*最大空闲进程数（当空闲进程达到此值时清理）</span></p>" +
-            "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>保存</button><button class='btn btn-default btn-sm' onclick='tunePhpConfig(\"" + version + "\")' style='margin-left:15px;'>一键调优</button></div>" +
+            "<p class='line'><span class='span_tit'>' + pt('并发方案：') + '</span><select class='bt-input-text' name='limit' style='width:100px;'>" + limitList + "</select></p>" +
+            "<p class='line'><span class='span_tit'>' + pt('运行模式：') + '</span><select class='bt-input-text' name='pm' style='width:100px;'>" + pmList + "</select><span class='c9'>' + pt('*PHP-FPM运行模式') + '</span></p>" +
+            "<p class='line'><span class='span_tit'>max_children：</span><input class='bt-input-text' type='number' name='max_children' value='" + rdata.max_children + "' /><span class='c9'>' + pt('*允许创建的最大子进程数') + '</span></p>" +
+            "<p class='line'><span class='span_tit'>start_servers：</span><input class='bt-input-text' type='number' name='start_servers' value='" + rdata.start_servers + "' />  <span class='c9'>' + pt('*起始进程数（服务启动后初始进程数量）') + '</span></p>" +
+            "<p class='line'><span class='span_tit'>min_spare_servers：</span><input class='bt-input-text' type='number' name='min_spare_servers' value='" + rdata.min_spare_servers + "' />   <span class='c9'>' + pt('*最小空闲进程数（清理空闲进程后的保留数量）') + '</span></p>" +
+            "<p class='line'><span class='span_tit'>max_spare_servers：</span><input class='bt-input-text' type='number' name='max_spare_servers' value='" + rdata.max_spare_servers + "' />   <span class='c9'>' + pt('*最大空闲进程数（当空闲进程达到此值时清理）') + '</span></p>" +
+            "<div class='mtb15'><button class='btn btn-success btn-sm' onclick='setFpmConfig(\"" + version + "\",1)'>' + pt('保存') + '</button><button class='btn btn-default btn-sm' onclick='tunePhpConfig(\"" + version + "\")' style='margin-left:15px;'>' + pt('一键调优') + '</button></div>" +
             "</div>";
 
         $(".soft-man-con").html(body);
@@ -288,7 +288,7 @@ function setFpmConfig(version){
     }
 
     if (max_children < 1 || start_servers < 1 || min_spare_servers < 1 || max_spare_servers < 1) {
-        layer.msg('配置值不能小于1', { icon: 2 });
+        layer.msg(pt('配置值不能小于1'), { icon: 2 });
         return;
     }
 
@@ -362,16 +362,16 @@ function getSessionConfig(version){
 
         var info = rdata.save_path.split(":");
         var con = "<div class='conf_p'>" +
-            "<p class='line'><span class='span_tit'>存储模式：</span><select class='bt-input-text' name='save_handler' style='width:200px;'>" + cacheList + "</select></p>" +
-            "<p class='line'><span class='span_tit'>IP地址：</span><input class='bt-input-text' type='text' name='ip' style='width:200px;' value='"+ info[0] +"' /></p>" +
-            "<p class='line'><span class='span_tit'>端口：</span><input class='bt-input-text' type='text' name='port' style='width:200px;' value='"+rdata.port+"' /></p>" +
-            "<p class='line'><span class='span_tit'>密码：</span><input class='bt-input-text' type='text' name='passwd' style='width:200px;' value='"+rdata.passwd+"' /></p>" +
-            "<p class='line'><div class='mtb15' style='margin-left:100px;'><button class='btn btn-success btn-sm' onclick='setSessionConfig(\"" + version + "\",1)'>保存</button></div></p>" +
+            "<p class='line'><span class='span_tit'>' + pt('存储模式：') + '</span><select class='bt-input-text' name='save_handler' style='width:200px;'>" + cacheList + "</select></p>" +
+            "<p class='line'><span class='span_tit'>' + pt('IP地址：') + '</span><input class='bt-input-text' type='text' name='ip' style='width:200px;' value='"+ info[0] +"' /></p>" +
+            "<p class='line'><span class='span_tit'>' + pt('端口：') + '</span><input class='bt-input-text' type='text' name='port' style='width:200px;' value='"+rdata.port+"' /></p>" +
+            "<p class='line'><span class='span_tit'>' + pt('密码：') + '</span><input class='bt-input-text' type='text' name='passwd' style='width:200px;' value='"+rdata.passwd+"' /></p>" +
+            "<p class='line'><div class='mtb15' style='margin-left:100px;'><button class='btn btn-success btn-sm' onclick='setSessionConfig(\"" + version + "\",1)'>' + pt('保存') + '</button></div></p>" +
             "</div>\
             <ul class='help-info-text c7'>\
-                <li>若你的站点并发比较高，使用Redis，Memcache能有效提升PHP并发能力</li>\
-                <li>若调整Session模式后，网站访问异常，请切换回原来的模式</li>\
-                <li>切换Session模式会使在线的用户会话丢失，请在流量小的时候切换</li>\
+                <li>' + pt('若你的站点并发比较高，使用Redis，Memcache能有效提升PHP并发能力') + '</li>\
+                <li>' + pt('若调整Session模式后，网站访问异常，请切换回原来的模式') + '</li>\
+                <li>' + pt('切换Session模式会使在线的用户会话丢失，请在流量小的时候切换') + '</li>\
             </ul>\
             <div id='session_clear' class='session_clear' style='border-top: #ccc 1px dashed;padding-top: 15px;margin-top: 15px;'>\
             </div>\
@@ -445,13 +445,13 @@ function getSessionConfig(version){
             }
             var rdata = rdata.data;
 
-            var html_var = "<div class='clear_title' style='padding-bottom:15px;'>清理Session文件</div>\
+            var html_var = "<div class='clear_title' style='padding-bottom:15px;'>' + pt('清理Session文件') + '</div>\
                 <div class='clear_conter'>\
                     <div class='session_clear_list'>\
-                        <div class='line'><span>总Session文件数量</span><span>"+rdata.total+"</span></div>\
-                        <div class='line'><span>可清理的Session文件数量</span><span>"+rdata.oldfile+"</span></div>\
+                        <div class='line'><span>' + pt('总Session文件数量') + '</span><span>"+rdata.total+"</span></div>\
+                        <div class='line'><span>' + pt('可清理的Session文件数量') + '</span><span>"+rdata.oldfile+"</span></div>\
                     </div>\
-                <button id='clean_func' class='btn btn-success btn-sm clear_session_file'>清理session文件</button>";
+                <button id='clean_func' class='btn btn-success btn-sm clear_session_file'>' + pt('清理session文件') + '</button>";
 
             $("#session_clear").html(html_var);
 
@@ -494,15 +494,15 @@ function disableFunc(version) {
         var dbody = ''
         for (var i = 0; i < disable_functions.length; i++) {
             if (disable_functions[i] == '') continue;
-            dbody += "<tr><td>" + disable_functions[i] + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">删除</a></td></tr>";
+            dbody += "<tr><td>" + disable_functions[i] + "</td><td><a style='float:right;' href=\"javascript:setDisableFunc('" + version + "','" + disable_functions[i] + "','" + rdata.disable_functions + "');\">' + pt('删除') + '</a></td></tr>";
         }
 
         var con = "<div class='dirBinding'>" +
             "<input class='bt-input-text mr5' type='text' placeholder='添加要被禁止的函数名,如: exec' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
-            "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">添加</button>" +
+            "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">' + pt('添加') + '</button>" +
             "</div>" +
             "<div class='divtable mtb15' style='height:350px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" +
-            "<thead><tr><th>名称</th><th width='100' class='text-right'>操作</th></tr></thead>" +
+            "<thead><tr><th>' + pt('名称') + '</th><th width='100' class='text-right'>' + pt('操作') + '</th></tr></thead>" +
             "<tbody id='blacktable'>" + dbody + "</tbody>" +
             "</table></div>";
 
@@ -612,9 +612,9 @@ function phpLibConfig(version){
             } else if (libs[i]['task'] == '0' && libs[i].phpversions.indexOf(version) != -1) {
                 opt = '<a style="color:#C0C0C0;" href="javascript:messageBox();">等待.</a>'
             } else if (libs[i].status) {
-                opt = '<a style="color:red;" href="javascript:uninstallPHPLib(\'' + version + '\',\'' + libs[i].name + '\',\'' + libs[i].title + '\',' + '' + ');">卸载</a>'
+                opt = '<a style="color:red;" href="javascript:uninstallPHPLib(\'' + version + '\',\'' + libs[i].name + '\',\'' + libs[i].title + '\',' + '' + ');">' + pt('卸载') + '</a>'
             } else {
-                opt = '<a class="btlink" href="javascript:installPHPLib(\'' + version + '\',\'' + libs[i].name + '\',\'' + libs[i].title + '\',' + '' + ');">安装</a>'
+                opt = '<a class="btlink" href="javascript:installPHPLib(\'' + version + '\',\'' + libs[i].name + '\',\'' + libs[i].title + '\',' + '' + ');">' + pt('安装') + '</a>'
             }
 
             body += '<tr>' +
@@ -631,21 +631,21 @@ function phpLibConfig(version){
             '<table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">' +
             '<thead>' +
             '<tr>' +
-            '<th>名称</th>' +
-            '<th width="64">类型</th>' +
-            '<th>说明</th>' +
-            '<th width="40">状态</th>' +
-            '<th style="text-align: right;" width="50">操作</th>' +
+            '<th>' + pt('名称') + '</th>' +
+            '<th width="64">' + pt('类型') + '</th>' +
+            '<th>' + pt('说明') + '</th>' +
+            '<th width="40">' + pt('状态') + '</th>' +
+            '<th style="text-align: right;" width="50">' + pt('操作') + '</th>' +
             '</tr>' +
             '</thead>' +
             '<tbody>'  + body + '</tbody>' +
             '</table>' +
             '</div>' +
             '<ul class="help-info-text c7 pull-left">\
-                <li>请按实际需求安装扩展,不要安装不必要的PHP扩展,这会影响PHP执行效率,甚至出现异常</li>\
+                <li>' + pt('请按实际需求安装扩展,不要安装不必要的PHP扩展,这会影响PHP执行效率,甚至出现异常') + '</li>\
                 <li>Redis扩展只允许在1个PHP版本中使用,安装到其它PHP版本请在[软件管理]重装Redis</li>\
-                <li>opcache/xcache/apc等脚本缓存扩展,请只安装其中1个,否则可能导致您的站点程序异常</li>\
-                <li>ioncube要在ZendGuardLoader/opcache前安装,否则可能导致您的站点程序异常</li>\
+                <li>' + pt('opcache/xcache/apc等脚本缓存扩展,请只安装其中1个,否则可能导致您的站点程序异常') + '</li>\
+                <li>' + pt('ioncube要在ZendGuardLoader/opcache前安装,否则可能导致您的站点程序异常') + '</li>\
             </ul>';
         $('.soft-man-con').html(con);
     });

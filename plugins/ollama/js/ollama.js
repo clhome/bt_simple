@@ -183,7 +183,7 @@ var ollama = {
             }
         }, 'json').fail(function () {
             layer.close(loadT);
-            layer.msg('请求后端接口失败！', { icon: 2, time: 3000 });
+            layer.msg(pt('请求后端接口失败！'), { icon: 2, time: 3000 });
         });
     },
 
@@ -199,24 +199,22 @@ var ollama = {
                         return;
                     }
                     var info = res.data;
-                    var html = `
-                    <div class="ollama-access-info">
-                        <div class="ollama-info-header"><span class="glyphicon glyphicon-link"></span> 远程访问与接口测试指南</div>
-                        <div class="ollama-info-body">
-                            <div class="ollama-info-desc">
-                                如需让局域网内其他主机或公网访问本机的 Ollama API 服务，请进入 <b>“服务配置”</b> 菜单，将绑定 Host 修改为 <code style="color:#d9534f;background:#f9f2f4;padding:2px 4px;border-radius:3px;">0.0.0.0:11434</code>，并勾选允许放行防火墙选项。配置生效后，您可通过以下地址进行 API 连通性测试：
-                            </div>
-                            <div class="ollama-info-item">
-                                <span class="ollama-info-label">内网地址：</span>
-                                <a href="` + info.internal_url + `" target="_blank" class="ollama-info-value ollama-link">` + info.internal_url + `</a>
-                            </div>
-                            <div class="ollama-info-item">
-                                <span class="ollama-info-label">外网地址：</span>
-                                <a href="` + info.external_url + `" target="_blank" class="ollama-info-value ollama-link">` + info.external_url + `</a>
-                            </div>
-                        </div>
-                    </div>
-                    `;
+                    var html = '<div class="ollama-access-info">' +
+                        '<div class="ollama-info-header"><span class="glyphicon glyphicon-link"></span> ' + pt('远程访问与接口测试指南') + '</div>' +
+                        '<div class="ollama-info-body">' +
+                            '<div class="ollama-info-desc">' +
+                                pt('如需让局域网内其他主机或公网访问本机的 Ollama API 服务，请进入') + ' <b>' + pt('“服务配置”') + '</b> ' + pt('菜单，将绑定 Host 修改为') + ' <code style="color:#d9534f;background:#f9f2f4;padding:2px 4px;border-radius:3px;">0.0.0.0:11434</code>' + pt('，并勾选允许放行防火墙选项。配置生效后，您可通过以下地址进行 API 连通性测试：') +
+                            '</div>' +
+                            '<div class="ollama-info-item">' +
+                                '<span class="ollama-info-label">' + pt('内网地址：') + '</span>' +
+                                '<a href="' + info.internal_url + '" target="_blank" class="ollama-info-value ollama-link">' + info.internal_url + '</a>' +
+                            '</div>' +
+                            '<div class="ollama-info-item">' +
+                                '<span class="ollama-info-label">' + pt('外网地址：') + '</span>' +
+                                '<a href="' + info.external_url + '" target="_blank" class="ollama-info-value ollama-link">' + info.external_url + '</a>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
                     var style = `
                     <style>
                     .ollama-access-info {
@@ -306,11 +304,11 @@ var ollama = {
         html += '    <div class="ollama-card">';
         html += '      <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">拉取新模型 (Pull Model)</h4>';
         html += '      <div class="ollama-form-group">';
-        html += '        <label class="ollama-form-label">模型名 / 标签</label>';
+        html += '        <label class="ollama-form-label">' + pt('模型名 / 标签') + '</label>';
         html += '        <input type="text" id="pull_model_input" class="ollama-input" placeholder="输入如: deepseek-r1:7b">';
-        html += '        <p class="ollama-tip">输入想下载的 Ollama 官方模型与版本号，模型名字可在 Ollama 官网库中检索。</p>';
+        html += '        <p class="ollama-tip">' + pt('输入想下载的 Ollama 官方模型与版本号，模型名字可在 Ollama 官网库中检索。') + '</p>';
         html += '      </div>';
-        html += '      <button class="ollama-btn ollama-btn-primary" style="width:100%;" onclick="ollama.pullModel()">立即开始拉取</button>';
+        html += '      <button class="ollama-btn ollama-btn-primary" style="width:100%;" onclick="ollama.pullModel()">' + pt('立即开始拉取') + '</button>';
         html += '    </div>';
         html += '  </div>';
 
@@ -358,12 +356,12 @@ var ollama = {
                 
                 var models = res.data;
                 if (!models || models.length === 0) {
-                    container.html('<p style="color:#64748b;text-align:center;padding:25px 0;">当前本地库无模型，请在左侧拉取下载！</p>');
+                    container.html('<p style="color:#64748b;text-align:center;padding:25px 0;">' + pt('当前本地库无模型，请在左侧拉取下载！') + '</p>');
                     return;
                 }
 
                 var listHtml = '<table class="ollama-table">';
-                listHtml += '<thead><tr><th>模型名称</th><th>ID</th><th>大小</th><th>修改时间</th><th style="text-align:right;">操作</th></tr></thead><tbody>';
+                listHtml += '<thead><tr><th>' + pt('模型名称') + '</th><th>ID</th><th>' + pt('大小') + '</th><th>' + pt('修改时间') + '</th><th style="text-align:right;">' + pt('操作') + '</th></tr></thead><tbody>';
                 for (var i = 0; i < models.length; i++) {
                     var m = models[i];
                     listHtml += '<tr>';
@@ -371,7 +369,7 @@ var ollama = {
                     listHtml += '  <td><code style="font-size:11px;">' + m.id + '</code></td>';
                     listHtml += '  <td>' + m.size + '</td>';
                     listHtml += '  <td>' + m.modified + '</td>';
-                    listHtml += '  <td style="text-align:right;"><button class="ollama-btn ollama-btn-danger" style="padding:3px 10px;font-size:11px;" onclick="ollama.deleteModel(\'' + m.name + '\')">删除</button></td>';
+                    listHtml += '  <td style="text-align:right;"><button class="ollama-btn ollama-btn-danger" style="padding:3px 10px;font-size:11px;" onclick="ollama.deleteModel(\'' + m.name + '\')">' + pt('删除') + '</button></td>';
                     listHtml += '</tr>';
                 }
                 listHtml += '</tbody></table>';
@@ -386,18 +384,18 @@ var ollama = {
             success: function (res) {
                 var container = $('#running_models_list');
                 if (!res.status) {
-                    container.html('<p style="color:#64748b;">无法获取运行中模型，服务未启动或尚未加载模型。</p>');
+                    container.html('<p style="color:#64748b;">' + pt('无法获取运行中模型，服务未启动或尚未加载模型。') + '</p>');
                     return;
                 }
                 
                 var models = res.data;
                 if (!models || models.length === 0) {
-                    container.html('<p style="color:#64748b;text-align:center;padding:15px 0;font-size:12px;background:#f8fafc;border-radius:6px;">当前没有模型在显存/内存中驻留（空闲 5 分钟后会自动卸载释出显存）</p>');
+                    container.html('<p style="color:#64748b;text-align:center;padding:15px 0;font-size:12px;background:#f8fafc;border-radius:6px;">' + pt('当前没有模型在显存/内存中驻留（空闲 5 分钟后会自动卸载释出显存）') + '</p>');
                     return;
                 }
 
                 var listHtml = '<table class="ollama-table">';
-                listHtml += '<thead><tr><th>模型名称</th><th>ID</th><th>大小</th><th>运行计算介质</th><th>活跃释放剩余</th></tr></thead><tbody>';
+                listHtml += '<thead><tr><th>' + pt('模型名称') + '</th><th>ID</th><th>' + pt('大小') + '</th><th>' + pt('运行计算介质') + '</th><th>' + pt('活跃释放剩余') + '</th></tr></thead><tbody>';
                 for (var i = 0; i < models.length; i++) {
                     var m = models[i];
                     listHtml += '<tr>';
@@ -418,7 +416,7 @@ var ollama = {
         var _this = this;
         var model_name = $('#pull_model_input').val().trim();
         if (!model_name) {
-            layer.msg('请输入要拉取的模型名称！', { icon: 2 });
+            layer.msg(pt('请输入要拉取的模型名称！'), { icon: 2 });
             return;
         }
 
@@ -448,7 +446,7 @@ var ollama = {
 
         var index = layer.open({
             type: 1,
-            title: '模型拉取进度',
+            title:  pt('模型拉取进度'),
             area: ['600px', '500px'],
             content: modalHtml,
             cancel: function () {
@@ -490,7 +488,7 @@ var ollama = {
                     } else if (data.status === 'failed') {
                         clearInterval(_this.pull_timer);
                         _this.pull_timer = null;
-                        layer.msg('模型拉取失败，请检查名称或网络！', { icon: 2 });
+                        layer.msg(pt('模型拉取失败，请检查名称或网络！'), { icon: 2 });
                     }
                 }
             });
@@ -501,9 +499,9 @@ var ollama = {
         var _this = this;
         
         layer.confirm('确认要彻底删除大模型 <b style="color:#ef4444;">' + model_name + '</b> 吗？这会立刻释放其占用的磁盘空间！', {
-            title: '删除确认',
+            title:  pt('删除确认'),
             icon: 3,
-            btn: ['确认删除', '取消']
+            btn: [pt('确认删除'), pt('取消')]
         }, function () {
             _this.send({
                 tips: '正在从本地删除模型...',
@@ -537,7 +535,7 @@ var ollama = {
                 var config = res.data;
                 var html = '<div class="ollama-container">';
                 html += '  <div class="ollama-card">';
-                html += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">Ollama 服务环境变量配置</h4>';
+                html += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 服务环境变量配置') + '</h4>';
                 html += '    <div style="font-size:12px;color:#64748b;background:#f8fafc;padding:10px 15px;border-radius:6px;margin-bottom:15px;border:1px dashed #cbd5e1;">';
                 html += '      <span class="glyphicon glyphicon-info-sign"></span> 系统已自动检索到配置文件: <code style="font-size:11px;">' + (config.service_file || '未找到') + '</code><br/>';
                 html += '      配置保存后，插件会自动执行 <code style="font-size:10px;">systemctl daemon-reload</code> 与服务重启，使新配置即时生效。';
@@ -547,14 +545,14 @@ var ollama = {
                 html += '    <div class="ollama-form-group">';
                 html += '      <label class="ollama-form-label">服务绑定 Host & 端口 (OLLAMA_HOST)</label>';
                 html += '      <input type="text" id="cfg_host_input" class="ollama-input" value="' + config.host + '" placeholder="如: 127.0.0.1:11434">';
-                html += '      <p class="ollama-tip">默认绑定 <code style="font-size:11px;">127.0.0.1:11434</code>。如果您想允许局域网或公网通过 Open WebUI 或 API 访问它，请更改为 <code style="font-size:11px;">0.0.0.0:11434</code>。</p>';
+                html += '      <p class="ollama-tip">' + pt('默认绑定') + ' <code style="font-size:11px;">127.0.0.1:11434</code>' + pt('。如果您想允许局域网或公网通过 Open WebUI 或 API 访问它，请更改为') + ' <code style="font-size:11px;">0.0.0.0:11434</code>。</p>';
                 html += '    </div>';
 
                 // Models 路径配置
                 html += '    <div class="ollama-form-group">';
                 html += '      <label class="ollama-form-label">大模型存储物理目录 (OLLAMA_MODELS)</label>';
                 html += '      <input type="text" id="cfg_models_input" class="ollama-input" value="' + config.models_path + '" placeholder="如: /usr/share/ollama/.ollama/models">';
-                html += '      <p class="ollama-tip">大模型文件非常庞大，默认会存放在 root 的 home 盘下。若系统根分区较小，强烈建议修改为挂载了大数据盘的路径（例如 <code style="font-size:11px;">/www/server/ollama/models</code>）。</p>';
+                html += '      <p class="ollama-tip">' + pt('大模型文件非常庞大，默认会存放在 root 的 home 盘下。若系统根分区较小，强烈建议修改为挂载了大数据盘的路径（例如') + ' <code style="font-size:11px;">/www/server/ollama/models</code>）。</p>';
                 html += '    </div>';
 
                 // 防火墙联动
@@ -568,7 +566,7 @@ var ollama = {
                 html += '    </div>';
 
                 // 提交按钮
-                html += '    <button class="ollama-btn ollama-btn-primary" style="margin-top:10px;" onclick="ollama.saveConfig()">保存并应用配置</button>';
+                html += '    <button class="ollama-btn ollama-btn-primary" style="margin-top:10px;" onclick="ollama.saveConfig()">' + pt('保存并应用配置') + '</button>';
                 html += '  </div>';
                 html += '</div>';
 
@@ -594,7 +592,7 @@ var ollama = {
         var port_open = $('#cfg_firewall_input').is(':checked');
 
         if (!host) {
-            layer.msg('绑定 Host 不能为空！', { icon: 2 });
+            layer.msg(pt('绑定 Host 不能为空！'), { icon: 2 });
             return;
         }
 
@@ -625,7 +623,7 @@ var ollama = {
         html += '  <div class="ollama-card">';
         html += '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">';
         html += '      <h4 style="margin:0;color:#1e293b;font-weight:600;font-size:14px;">Ollama 运行系统日志 (最新 100 行)</h4>';
-        html += '      <button class="ollama-btn ollama-btn-default" style="padding:4px 12px;font-size:11px;" onclick="ollama.refreshLogs()"><span class="glyphicon glyphicon-refresh"></span> 刷新日志</button>';
+        html += '      <button class="ollama-btn ollama-btn-default" style="padding:4px 12px;font-size:11px;" onclick="ollama.refreshLogs()"><span class="glyphicon glyphicon-refresh"></span> ' + pt('刷新日志') + '</button>';
         html += '    </div>';
         html += '    <textarea id="ollama_log_textarea" class="ollama-textarea" style="height:390px;" readonly>正在加载系统服务日志...\n</textarea>';
         html += '  </div>';
@@ -658,32 +656,32 @@ var ollama = {
     readme: function () {
         var readme = '<div class="ollama-container">';
         readme += '  <div class="ollama-card">';
-        readme += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">Ollama 快速集成与常用命令指引</h4>';
+        readme += '    <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('Ollama 快速集成与常用命令指引') + '</h4>';
         
         readme += '    <div class="ollama-help-card">';
-        readme += '      <strong>🖥️ 常用 Shell 命令操作：</strong><br/>';
+        readme += '      <strong>' + pt('🖥️ 常用 Shell 命令操作：') + '</strong><br/>';
         readme += '      您可在服务器终端通过以下常用命令对大模型进行管控与调试：';
         readme += '      <table class="table" style="margin-top:8px;font-size:12px;margin-bottom:0;">';
-        readme += '        <tr><td><span class="ollama-help-code">ollama list</span></td><td>列出所有已下载的本地大模型库。</td></tr>';
-        readme += '        <tr><td><span class="ollama-help-code">ollama run deepseek-r1:7b</span></td><td>交互式启动并进入指定大模型的命令行会话终端。</td></tr>';
-        readme += '        <tr><td><span class="ollama-help-code">ollama ps</span></td><td>查看当前处于显存或内存活跃加载状态的模型。</td></tr>';
-        readme += '        <tr><td><span class="ollama-help-code">ollama stop &lt;模型&gt;</span></td><td>从内存/显存中卸载释出特定大模型（不影响本地库）。</td></tr>';
-        readme += '        <tr><td><span class="ollama-help-code">ollama rm &lt;模型&gt;</span></td><td>从本地库中永久物理删除对应模型以释放磁盘存储。</td></tr>';
+        readme += '        <tr><td><span class="ollama-help-code">ollama list</span></td><td>' + pt('列出所有已下载的本地大模型库。') + '</td></tr>';
+        readme += '        <tr><td><span class="ollama-help-code">ollama run deepseek-r1:7b</span></td><td>' + pt('交互式启动并进入指定大模型的命令行会话终端。') + '</td></tr>';
+        readme += '        <tr><td><span class="ollama-help-code">ollama ps</span></td><td>' + pt('查看当前处于显存或内存活跃加载状态的模型。') + '</td></tr>';
+        readme += '        <tr><td><span class="ollama-help-code">ollama stop &lt;模型&gt;</span></td><td>' + pt('从内存/显存中卸载释出特定大模型（不影响本地库）。') + '</td></tr>';
+        readme += '        <tr><td><span class="ollama-help-code">ollama rm &lt;模型&gt;</span></td><td>' + pt('从本地库中永久物理删除对应模型以释放磁盘存储。') + '</td></tr>';
         readme += '      </table>';
         readme += '    </div>';
 
         readme += '    <div class="ollama-help-card" style="border-left-color: #10b981;">';
-        readme += '      <strong>🔌 API 对外集成说明：</strong><br/>';
+        readme += '      <strong>' + pt('🔌 API 对外集成说明：') + '</strong><br/>';
         readme += '      Ollama 完美兼容 OpenAI 的标准的 API 通信协议，可通过配置为其他 Web UI 服务或 Python 脚本提供能力支持：<br/>';
         readme += '      <table class="table" style="margin-top:8px;font-size:12px;margin-bottom:0;">';
         readme += '        <tr><td><strong>API 端点 (Base URL)</strong></td><td><span class="ollama-help-code">http://&lt;服务器IP&gt;:11434/v1</span> (外网集成请在配置中绑定 0.0.0.0)</td></tr>';
-        readme += '        <tr><td><strong>API Key (密钥)</strong></td><td>不需要任何 API Key。如有需要，可在前台客户端输入任意非空字符。</td></tr>';
-        readme += '        <tr><td><strong>测试 API 连接命令</strong></td><td><span class="ollama-help-code">curl http://127.0.0.1:11434/api/tags</span></td></tr>';
+        readme += '        <tr><td><strong>API Key (密钥)</strong></td><td>' + pt('不需要任何 API Key。如有需要，可在前台客户端输入任意非空字符。') + '</td></tr>';
+        readme += '        <tr><td><strong>' + pt('测试 API 连接命令') + '</strong></td><td><span class="ollama-help-code">curl http://127.0.0.1:11434/api/tags</span></td></tr>';
         readme += '      </table>';
         readme += '    </div>';
 
         readme += '    <div class="ollama-help-card" style="border-left-color: #f59e0b;margin-bottom:0;">';
-        readme += '      <strong>💡 极速安装与显卡驱动相关说明：</strong><br/>';
+        readme += '      <strong>' + pt('💡 极速安装与显卡驱动相关说明：') + '</strong><br/>';
         readme += '      Ollama 会在启动模型时自动尝试探测服务器中安装的显卡（Nvidia GPU 等），如果 CUDA 驱动匹配，将会自动利用 GPU 加速大模型的吞吐渲染，使得响应输出快上数十倍！若无显卡，Ollama 将会回退使用 CPU 进行数学推理。';
         readme += '    </div>';
         

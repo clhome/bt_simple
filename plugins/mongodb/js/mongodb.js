@@ -35,7 +35,7 @@ function mongoDocStatus() {
 
 		var con = '<div class="divtable">\
 						<table class="table table-hover table-bordered" style="width: 660px;">\
-						<thead><th>库名</th><th>大小</th><th>存储大小</th><th>数据</th><th>索引</th><th>文档数据</th><th>对象</th></thead>\
+						<thead><th>' + pt('库名') + '</th><th>' + pt('大小') + '</th><th>' + pt('存储大小') + '</th><th>' + pt('数据') + '</th><th>' + pt('索引') + '</th><th>' + pt('文档数据') + '</th><th>' + pt('对象') + '</th></thead>\
 						<tbody>'+t+'<tbody>\
 				</table></div>';
 		// console.log(rdata.dbs);
@@ -58,13 +58,13 @@ function mongoReplStatus() {
 
 		var tbody = '';
 		if (rdata.status == '无'){
-			tbody += '<tr><td colspan="3" style="text-align:center;">无数据</td></tr>';
+			tbody += '<tr><td colspan="3" style="text-align:center;">' + pt('无数据') + '</td></tr>';
 		} else{
-			tbody += '<tr><th>状态</th><td>' + rdata.status + '</td><td>主/从</td></tr>\
-					<tr><th>同步文档</th><td>' + rdata.setName + '</td><td>文档名</td></tr>\
-					<tr><th>hosts</th><td><span class="overflow_hide" style="width:300px;word-wrap: break-word;white-space:pre-wrap;" title="'+rdata.hosts+'">' + rdata.hosts + '</span></td><td>服务器所有节点</td></tr>\
-					<tr><th>primary</th><td>' + rdata.primary + '</td><td>主节点</td></tr>\
-					<tr><th>me</th><td>' + rdata.me + '</td><td>本机</td></tr>';
+			tbody += '<tr><th>' + pt('状态') + '</th><td>' + rdata.status + '</td><td>' + pt('主/从') + '</td></tr>\
+					<tr><th>' + pt('同步文档') + '</th><td>' + rdata.setName + '</td><td>' + pt('文档名') + '</td></tr>\
+					<tr><th>hosts</th><td><span class="overflow_hide" style="width:300px;word-wrap: break-word;white-space:pre-wrap;" title="'+rdata.hosts+'">' + rdata.hosts + '</span></td><td>' + pt('服务器所有节点') + '</td></tr>\
+					<tr><th>primary</th><td>' + rdata.primary + '</td><td>' + pt('主节点') + '</td></tr>\
+					<tr><th>me</th><td>' + rdata.me + '</td><td>' + pt('本机') + '</td></tr>';
 		}
 
 		var tbody_members = '';
@@ -82,21 +82,21 @@ function mongoReplStatus() {
 		}
 
 		var con = "<p class='conf_p'>\
-                    <span class='f14 c6 mr20'>Mongodb副本配置</span><span class='f14 c6 mr20'></span>\
+                    <span class='f14 c6 mr20'>' + pt('Mongodb副本配置') + '</span><span class='f14 c6 mr20'></span>\
                     <button class='btn btn-success btn-xs "+repl_on+"'>"+repl_on_title+"</button>\
-                    <button class='btn btn-success btn-xs' onclick='mongoReplCfg()'>配置</button>\
+                    <button class='btn btn-success btn-xs' onclick='mongoReplCfg()'>' + pt('配置') + '</button>\
                 </p><hr/>";
 
         con += '<div class="divtable">\
 				<table class="table table-hover table-bordered" style="width: 660px;">\
-					<thead><th>字段</th><th>当前值</th><th>说明</th></thead>\
+					<thead><th>' + pt('字段') + '</th><th>' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
 					<tbody>'+tbody+'<tbody>\
 				</table>\
 			</div>';
 
 		con += '<div class="divtable" style="margin-top:5px;">\
 				<table class="table table-hover table-bordered" style="width: 660px;">\
-					<thead><th>IP</th><th>状态</th><th>在线</th></thead>\
+					<thead><th>IP</th><th>' + pt('状态') + '</th><th>' + pt('在线') + '</th></thead>\
 					<tbody>'+tbody_members+'<tbody>\
 				</table>\
 			</div>';
@@ -111,14 +111,14 @@ function mongoReplCfgReplSetName(){
     layer.open({
         type: 1,
         area: '300px',
-        title: '设置副本名称',
+        title:  pt('设置副本名称'),
         closeBtn: 1,
         shift: 5,
         shadeClose: false,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                    <span class='tname'>同步副本名称</span>\
+                    <span class='tname'>' + pt('同步副本名称') + '</span>\
                     <div class='info-r'>\
                         <input class='bt-input-text mr5' name='replSetName' style='width:100px' />\
                     </div>\
@@ -141,7 +141,7 @@ function mongoReplCfgReplSetName(){
     		// }
 
     		// if (dbs.length == 0 ){
-    		// 	selectHtml += "<option value=''>无</option>";
+    		// 	selectHtml += "<option value=''>' + pt('无') + '</option>";
     		// }
 
     		// for (index in dbs) {
@@ -154,7 +154,7 @@ function mongoReplCfgReplSetName(){
         	var data = {};
             data['name'] = $('input[name=replSetName]').val();
             if (data['name'] == ''){
-            	layer.msg("副本名称不能为空");
+            	layer.msg(pt("副本名称不能为空"));
             	return;
             }
             api.post('repl_set_name', '',data, function(data){
@@ -196,11 +196,11 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
 	layer.open({
         type: 1,
         area: '500px',
-        title: '添加节点',
+        title:  pt('添加节点'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20'>\
                     <div class='line'>\
 	                    <span class='tname'>节点服务:</span>\
@@ -212,22 +212,22 @@ function mongoReplCfgNodes(idx,host, priority, votes, arbiterOnly){
 	                    <span class='tname'>priority:</span>\
 	                    <div class='info-r'>\
 	                        <input class='bt-input-text mr5' type='number' name='priority' style='width:220px' value='"+priority+"'/>\
-	                        <span class='c9'>值越大，优先权越高</span>\
+	                        <span class='c9'>' + pt('值越大，优先权越高') + '</span>\
 	                    </div>\
                     </div>\
                     <div class='line'>\
 	                    <span class='tname'>votes:</span>\
 	                    <div class='info-r'>\
 	                        <input class='bt-input-text mr5' type='number' name='votes' style='width:220px' value='"+votes+"'/>\
-	                        <span class='c9'>一般是0或者1</span>\
+	                        <span class='c9'>' + pt('一般是0或者1') + '</span>\
 	                    </div>\
                     </div>\
                     <div class='line'>\
 	                    <span class='tname'>仲裁员:</span>\
 	                    <div class='info-r'>\
 	                        <select class='bt-input-text mr5' name='arbiterOnly'>\
-	                        	<option value='0' "+(arbiterOnly == "0" ? 'checked':'')+">否</option>\
-	                        	<option value='1' "+(arbiterOnly == "1" ? 'checked':'')+">是</option>\
+	                        	<option value='0' "+(arbiterOnly == "0" ? 'checked':'')+">' + pt('否') + '</option>\
+	                        	<option value='1' "+(arbiterOnly == "1" ? 'checked':'')+">' + pt('是') + '</option>\
 	                        </select>\
 	                    </div>\
                     </div>\
@@ -279,8 +279,8 @@ function mongoReplCfgInit(){
 				arbiterOnly = '是';
 			}
 
-			var op = '<a href="javascript:;" class="btlink" onclick="mongoReplCfgDelNode(\''+t['host']+'\');" title="删除">删除</a>';
-			op += ' | <a href="javascript:;" class="btlink" onclick="mongoReplCfgNodes(\''+i+'\',\''+t['host']+'\',\''+t['priority']+'\',\''+t['votes']+'\',\''+t['arbiterOnly']+'\');" title="编辑">编辑</a>';
+			var op = '<a href="javascript:;" class="btlink" onclick="mongoReplCfgDelNode(\''+t['host']+'\');" title="删除">' + pt('删除') + '</a>';
+			op += ' | <a href="javascript:;" class="btlink" onclick="mongoReplCfgNodes(\''+i+'\',\''+t['host']+'\',\''+t['priority']+'\',\''+t['votes']+'\',\''+t['arbiterOnly']+'\');" title="编辑">' + pt('编辑') + '</a>';
 			node += '<tr><td>'+t['host']+'</td><td>'+t['priority']+'</td><td>'+t['votes']+'</td><td>'+arbiterOnly+'</td><td>'+op+'</td></tr>';
 		}
 		$('#repl_node tbody').html(node);
@@ -290,7 +290,7 @@ function mongoReplCfgInit(){
 function mongoReplCfg(){
 	layer.open({
         type: 1,
-        title: "副本设置",
+        title:  pt("副本设置"),
         area: ['580px', '380px'],
         closeBtn: 1,
         shadeClose: false,
@@ -298,7 +298,7 @@ function mongoReplCfg(){
         content: '<div class="pd15">\
                 <div class="db_list">\
                     <span>\
-                    	<a id="repl_name">同步副本：</a>\
+                    	<a id="repl_name">' + pt('同步副本：') + '</a>\
                     </span>\
                 </div>\
                 <div class="divtable" id="repl_node">\
@@ -306,11 +306,11 @@ function mongoReplCfg(){
 	                <table class="table table-hover "style="border:none">\
 	                    <thead>\
 	                        <tr>\
-	                            <th>节点</th>\
-	                            <th>优先级</th>\
-	                            <th>投票</th>\
-	                            <th>仲裁者</th>\
-	                            <th>操作</th>\
+	                            <th>' + pt('节点') + '</th>\
+	                            <th>' + pt('优先级') + '</th>\
+	                            <th>' + pt('投票') + '</th>\
+	                            <th>' + pt('仲裁者') + '</th>\
+	                            <th>' + pt('操作') + '</th>\
 	                        </tr>\
 	                    </thead>\
 	                    <tbody class="gztr"></tbody>\
@@ -368,15 +368,15 @@ function mongoSetConfig() {
         }
 
         var body = "<div class='bingfa'>" +
-            "<p class='line'><span class='span_tit'>IP：</span><input class='bt-input-text' type='text' name='bind_ip' value='" + rdata['net']['bindIp'] + "' />，<font>监听IP请勿随意修改</font></p>" +
-            "<p class='line'><span class='span_tit'>port： </span><input class='bt-input-text' type='number' name='port' value='" + rdata['net']['port'] + "' />，<font>监听端口,一般无需修改</font></p>" +
-            "<p class='line'><span class='span_tit'>dbPath：</span><input class='bt-input-text' type='text' name='data_path' value='" + rdata['storage']['dbPath'] + "' />，<font>数据存储位置</font></p>" +
-            "<p class='line'><span class='span_tit'>path：</span><input class='bt-input-text' type='text' name='log' value='" + rdata['systemLog']['path'] + "' />，<font>日志文件位置</font></p>" +
-            "<p class='line'><span class='span_tit'>pidFilePath：</span><input class='bt-input-text' type='text' name='pid_file_path' value='" + rdata['processManagement']['pidFilePath'] + "' />，<font>PID保存路径</font></p>" +
-            "<p class='line'><span class='span_tit' style='float:left;'>安全认证：</span>"+body_auth+"</p>" +
+            "<p class='line'><span class='span_tit'>IP：</span><input class='bt-input-text' type='text' name='bind_ip' value='" + rdata['net']['bindIp'] + "' />，<font>' + pt('监听IP请勿随意修改') + '</font></p>" +
+            "<p class='line'><span class='span_tit'>port： </span><input class='bt-input-text' type='number' name='port' value='" + rdata['net']['port'] + "' />，<font>' + pt('监听端口,一般无需修改') + '</font></p>" +
+            "<p class='line'><span class='span_tit'>dbPath：</span><input class='bt-input-text' type='text' name='data_path' value='" + rdata['storage']['dbPath'] + "' />，<font>' + pt('数据存储位置') + '</font></p>" +
+            "<p class='line'><span class='span_tit'>path：</span><input class='bt-input-text' type='text' name='log' value='" + rdata['systemLog']['path'] + "' />，<font>' + pt('日志文件位置') + '</font></p>" +
+            "<p class='line'><span class='span_tit'>pidFilePath：</span><input class='bt-input-text' type='text' name='pid_file_path' value='" + rdata['processManagement']['pidFilePath'] + "' />，<font>' + pt('PID保存路径') + '</font></p>" +
+            "<p class='line'><span class='span_tit' style='float:left;'>' + pt('安全认证：') + '</span>"+body_auth+"</p>" +
             "<div class='mtb15' style='padding-top: 10px;text-align: center;'>\
-            	<button class='btn btn-success btn-sm mr5' onclick='mongoSetConfig();'>刷新</button>\
-            	<button class='btn btn-success btn-sm' onclick='mongoConfigSave();'>保存</button>" +
+            	<button class='btn btn-success btn-sm mr5' onclick='mongoSetConfig();'>' + pt('刷新') + '</button>\
+            	<button class='btn btn-success btn-sm' onclick='mongoConfigSave();'>' + pt('保存') + '</button>" +
             "</div></div>";
 
         // console.log(body);
@@ -441,42 +441,42 @@ function dbList(page, search){
 
             list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?'已备份':'未备份') +'</a> | ';
 
-            list += '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MongoDB优化修复工具">工具</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['name']+'\')" title="设置数据库权限">权限</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">改密</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">删除</a>' +
+            list += '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MongoDB优化修复工具">' + pt('工具') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['name']+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">' + pt('改密') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
 
         //<button onclick="" id="dataRecycle" title="删除选中项" class="btn btn-default btn-sm" style="margin-left: 5px;"><span class="glyphicon glyphicon-trash" style="margin-right: 5px;"></span>回收站</button>
-        // <button onclick="setDbAccess(\'root\')" title="ROOT权限" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">ROOT权限</button>\
+        // <button onclick="setDbAccess(\'root\')" title="ROOT权限" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('ROOT权限') + '</button>\
         var con = '<div class="safe bgw">\
-            <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">添加数据库</button>\
-            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="设置Mongodb管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">root密码</button>\
+            <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加数据库') + '</button>\
+            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="设置Mongodb管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('root密码') + '</button>\
             <span style="float:right">              \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">删除选中</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>数据库名</th>\
-                    <th>用户名</th>\
-                    <th>密码</th>\
+                    <th>' + pt('数据库名') + '</th>\
+                    <th>' + pt('用户名') + '</th>\
+                    <th>' + pt('密码') + '</th>\
                     '+
-                    // '<th>备份</th>'+
-                    '<th>备注</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    // '<th>' + pt('备份') + '</th>'+
+                    '<th>' + pt('备注') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
                     </tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                 <div class="table_toolbar" style="left:0px;">\
-                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="将选中数据库信息同步到服务器">同步选中</span>\
-                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(0)" title="将所有数据库信息同步到服务器">同步所有</span>\
-                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="从服务器获取数据库列表">从服务器获取</span>\
+                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="将选中数据库信息同步到服务器">' + pt('同步选中') + '</span>\
+                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(0)" title="将所有数据库信息同步到服务器">' + pt('同步所有') + '</span>\
+                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="从服务器获取数据库列表">' + pt('从服务器获取') + '</span>\
                 </div>\
             </div>\
         </div>';
@@ -492,29 +492,29 @@ function addDatabase(type){
     layer.open({
         type: 1,
         area: '500px',
-        title: '添加数据库',
+        title:  pt('添加数据库'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
-                        <span class='tname'>数据库名</span>\
+                        <span class='tname'>' + pt('数据库名') + '</span>\
                         <div class='info-r'><input name='name' class='bt-input-text mr5' placeholder='新的数据库名称' type='text' style='width:65%' value=''>\
                         </div>\
                     </div>\
-                    <div class='line'><span class='tname'>用户名</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
+                    <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
                     <div class='line'>\
-                    <span class='tname'>密码</span>\
+                    <span class='tname'>' + pt('密码') + '</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>访问权限</span>\
+                        <span class='tname'>' + pt('访问权限') + '</span>\
                         <div class='info-r '>\
                             <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                            <option value='127.0.0.1'>本地服务器</option>\
-                            <option value=\"%\">所有人</option>\
-                            <option value='ip'>指定IP</option>\
+                            <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
+                            <option value=\"%\">' + pt('所有人') + '</option>\
+                            <option value='ip'>' + pt('指定IP') + '</option>\
                             </select>\
                         </div>\
                     </div>\
@@ -571,14 +571,14 @@ function setRootPwd(type, pwd){
     var index = layer.open({
         type: 1,
         area: '500px',
-        title: '修改数据库密码',
+        title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
         btn:["提交", "关闭", "复制ROOT密码", "强制修改"],
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>root密码</span>\
+                        <span class='tname'>' + pt('root密码') + '</span>\
                         <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+pwd+"' />\
                             <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                         </div>\
@@ -601,7 +601,7 @@ function setRootPwd(type, pwd){
         },
         btn4:function(layerIndex){
             layer.confirm('强制修改,是为了在重建时使用,确定强制?', {
-                btn: ['确定', '取消']
+                btn: [pt('确定'), pt('取消')]
             }, function(index, layero){
                 layer.close(index);
                 var password = $("#MyPassword").val();
@@ -697,7 +697,7 @@ function delDbBatch(){
         }
     });
 
-    safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
+    safeMessage(pt('批量删除数据库'),'<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
             var data  = await api.post('del_db', arr[idx]);
@@ -719,18 +719,18 @@ function setDbPass(id, username, password){
     layer.open({
         type: 1,
         area: '500px',
-        title: '修改数据库密码',
+        title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>用户名</span>\
+                        <span class='tname'>' + pt('用户名') + '</span>\
                         <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
                     </div>\
                     <div class='line'>\
-                    <span class='tname'>密码</span>\
+                    <span class='tname'>' + pt('密码') + '</span>\
                     <div class='info-r'>\
                         <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' />\
                         <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
@@ -780,14 +780,14 @@ function repTools(db_name, res){
                             <table class="table table-hover "style="border:none">\
                                 <thead>\
                                     <tr>\
-                                        <th>集合名称</th>\
-                                        <th>文档数量</th>\
-                                        <th>内存中的大小</th>\
-                                        <th>对象平均大小</th>\
-                                        <th>存储大小</th>\
-                                        <th>索引数量</th>\
-                                        <th>索引大小</th>\
-                                        <th>操作</th>\
+                                        <th>' + pt('集合名称') + '</th>\
+                                        <th>' + pt('文档数量') + '</th>\
+                                        <th>' + pt('内存中的大小') + '</th>\
+                                        <th>' + pt('对象平均大小') + '</th>\
+                                        <th>' + pt('存储大小') + '</th>\
+                                        <th>' + pt('索引数量') + '</th>\
+                                        <th>' + pt('索引大小') + '</th>\
+                                        <th>' + pt('操作') + '</th>\
                                     </tr>\
                                 </thead>\
                                 <tbody class="gztr"></tbody>\
@@ -807,7 +807,7 @@ function repTools(db_name, res){
 		                    <td>' + toSize(rdata.collection_list[i].storage_size) + '</td>\
 		                    <td>' + rdata.collection_list[i].nindexes + '</td>\
 		                    <td>' + toSize(rdata.collection_list[i].total_index_size) + '</td>\
-		                    <td>' + '<a href="javascript:;" data-index="'+i+'" class="delete btlink" title="删除">删除</a>'+'</td>\
+		                    <td>' + '<a href="javascript:;" data-index="'+i+'" class="delete btlink" title="删除">' + pt('删除') + '</a>'+'</td>\
 		                </tr>';
 		        }
 
@@ -866,14 +866,14 @@ function setDbAccess(username,name){
         var index = layer.open({
             type: 1,
             area: '500px',
-            title: '设置数据库权限',
+            title:  pt('设置数据库权限'),
             closeBtn: 1,
             shift: 5,
-            btn:["提交","取消"],
+            btn: [pt("提交"), pt("取消")],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
-                            <span class='tname'>访问权限</span>\
+                            <span class='tname'>' + pt('访问权限') + '</span>\
                             <div class='info-r'>\
                                 <div id='role_list'></div>\
                             </div>\
@@ -946,18 +946,18 @@ function setBackup(db_name){
         shadeClose: false,
         content: '<div class="pd15">\
                     <div class="db_list">\
-                        <button id="btn_backup" class="btn btn-success btn-sm" type="button">备份</button>\
-                        <button id="btn_local_import" class="btn btn-success btn-sm" type="button">外部导入</button>\
+                        <button id="btn_backup" class="btn btn-success btn-sm" type="button">' + pt('备份') + '</button>\
+                        <button id="btn_local_import" class="btn btn-success btn-sm" type="button">' + pt('外部导入') + '</button>\
                     </div >\
                     <div class="divtable">\
                     <div  id="database_fix"  style="height:150px;overflow:auto;border:#ddd 1px solid">\
                     <table id="database_table" class="table table-hover "style="border:none">\
                         <thead>\
                             <tr>\
-                                <th>文件名称</th>\
-                                <th>文件大小</th>\
-                                <th>备份时间</th>\
-                                <th style="text-align: right;">操作</th>\
+                                <th>' + pt('文件名称') + '</th>\
+                                <th>' + pt('文件大小') + '</th>\
+                                <th>' + pt('备份时间') + '</th>\
+                                <th style="text-align: right;">' + pt('操作') + '</th>\
                             </tr>\
                         </thead>\
                         <tbody class="list"></tbody>\
@@ -993,9 +993,9 @@ function setBackupReq(db_name, obj){
                     <td><span> ' + rdata.data[i]['size'] + '</span></td>\
                     <td><span> ' + rdata.data[i]['time'] + '</span></td>\
                     <td style="text-align: right;">\
-                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">导入</a> | \
-                        <a class="btlink" onclick="downloadBackup(\'' + rdata.data[i]['file'] + '\')">下载</a> | \
-                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">删除</a>\
+                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入') + '</a> | \
+                        <a class="btlink" onclick="downloadBackup(\'' + rdata.data[i]['file'] + '\')">' + pt('下载') + '</a> | \
+                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">' + pt('删除') + '</a>\
                     </td>\
                 </tr> ';
         }
@@ -1038,18 +1038,18 @@ function setLocalImport(db_name){
             content:'<div class="fileUploadDiv">\
                     <input type="hidden" id="input-val" value="'+upload_dir+'" />\
                     <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
-                    <button type="button"  id="opt" autocomplete="off">添加文件</button>\
-                    <button type="button" id="up" autocomplete="off" >开始上传</button>\
+                    <button type="button"  id="opt" autocomplete="off">' + pt('添加文件') + '</button>\
+                    <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                     <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                     <span style="float:right;margin-top: 9px;">\
                     <font>文件编码:</font>\
                     <select id="fileCodeing" >\
-                        <option value="byte">二进制</option>\
+                        <option value="byte">' + pt('二进制') + '</option>\
                         <option value="utf-8">UTF-8</option>\
                         <option value="gb18030">GB2312</option>\
                     </select>\
                     </span>\
-                    <button type="button" id="filesClose" autocomplete="off">关闭</button>\
+                    <button type="button" id="filesClose" autocomplete="off">' + pt('关闭') + '</button>\
                     <ul id="up_box"></ul>\
                 </div>',
             success:function(){
@@ -1079,8 +1079,8 @@ function setLocalImport(db_name){
                         <td><span> ' + file_list[i]['size'] + '</span></td>\
                         <td><span> ' + file_list[i]['time'] + '</span></td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">导入</a> | \
-                            <a class="btlink del" index="'+i+'">删除</a>\
+                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入') + '</a> | \
+                            <a class="btlink del" index="'+i+'">' + pt('删除') + '</a>\
                         </td>\
                     </tr>';
             }
@@ -1102,13 +1102,13 @@ function setLocalImport(db_name){
 
     var layerIndex = layer.open({
         type: 1,
-        title: "从文件导入数据",
+        title:  pt("从文件导入数据"),
         area: ['600px', '380px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
                     <div class="db_list">\
-                        <button id="btn_file_upload" class="btn btn-success btn-sm" type="button">从本地上传</button>\
+                        <button id="btn_file_upload" class="btn btn-success btn-sm" type="button">' + pt('从本地上传') + '</button>\
                     </div >\
                     <div class="divtable">\
                     <input type="hidden" name="upload_dir" value=""> \
@@ -1116,10 +1116,10 @@ function setLocalImport(db_name){
                     <table class="table table-hover "style="border:none">\
                         <thead>\
                             <tr>\
-                                <th>文件名称</th>\
-                                <th>文件大小</th>\
-                                <th>备份时间</th>\
-                                <th style="text-align: right;">操作</th>\
+                                <th>' + pt('文件名称') + '</th>\
+                                <th>' + pt('文件大小') + '</th>\
+                                <th>' + pt('备份时间') + '</th>\
+                                <th style="text-align: right;">' + pt('操作') + '</th>\
                             </tr>\
                         </thead>\
                         <tbody  id="import_db_file_list" class="gztr"></tbody>\
@@ -1127,8 +1127,8 @@ function setLocalImport(db_name){
                     </div>\
                     <ul class="help-info-text c7">\
                         <li>仅支持sql、zip、sql.gz、(tar.gz|gz|tgz)</li>\
-                        <li>zip、tar.gz压缩包结构：test.zip或test.tar.gz压缩包内，必需包含test.sql</li>\
-                        <li>若文件过大，您还可以使用SFTP工具，将数据库文件上传到/www/backup/import</li>\
+                        <li>' + pt('zip、tar.gz压缩包结构：test.zip或test.tar.gz压缩包内，必需包含test.sql') + '</li>\
+                        <li>' + pt('若文件过大，您还可以使用SFTP工具，将数据库文件上传到/www/backup/import') + '</li>\
                     </ul>\
                 </div>\
         </div>',
@@ -1151,8 +1151,8 @@ function importDbExternal(file,name){
 
 function otherFunc(){
     var con = '<p class="conf_p" style="text-align:center;">\
-            <button class="btn btn-default btn-sm" onclick="cronAddCheck()">添加检查任务</button>  \
-            <button class="btn btn-default btn-sm" onclick="cronDelCheck()">删除检查任务</button>\
+            <button class="btn btn-default btn-sm" onclick="cronAddCheck()">' + pt('添加检查任务') + '</button>  \
+            <button class="btn btn-default btn-sm" onclick="cronDelCheck()">' + pt('删除检查任务') + '</button>\
         </p>';
     $(".soft-man-con").html(con);
 }
@@ -1173,8 +1173,8 @@ function cronDelCheck(){
 
 function mgdbReadme(){
     var readme = '<ul class="help-info-text c7">';
-    readme += '<li>认证同步说明</li>';
-    readme += '<li>root/用户,配置Key完全一致才能同步。</li>';
+    readme += '<li>' + pt('认证同步说明') + '</li>';
+    readme += '<li>' + pt('root/用户,配置Key完全一致才能同步。') + '</li>';
     readme += '</ul>';
 
     $('.soft-man-con').html(readme);   

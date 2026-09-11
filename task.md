@@ -678,4 +678,52 @@
   - 验证 12 个 `.json` 均为合法合规的 JSON；
   - 清理阶段性排查脚本，保持目录整洁。
 
+## 38 个插件中文硬编码治理与一次性批量整包翻译国际化工程
+
+- [x] 328. 构建高精度插件词法提取工具（`test/plugin_i18n_extractor.py`）：智能提取 38 个插件 JS/HTML 中的中文字符串、属性与标签文本，过滤代码语法与注释，汇总唯一词条清单。
+- [x] 329. 构建插件级“一次性整包”批量翻译引擎（`test/plugin_batch_translator.py`）：基于全局持久化缓存 + 本地 OpenCC 极速繁体 + DeepL/Azure 数组整包单次批量请求，单插件单次请求获取全部外语翻译。
+- [x] 330. 构建代码安全注入与 `pt` 自动化替换引擎（`test/plugin_i18n_replacer.py`）：自动在 JS 顶部补充 `pt` 声明，对硬编码中文文本进行高精度安全替换。
+- [x] 331. 试点验证（以 `pgadmin`、`swap`、`caddy` 插件为例）：运行提取、整包批量翻译与代码替换，验证 6 语言包与页面代码。
+- [x] 332. 全量 38 个插件流水线批量处理：生成 38 × 6 = 228 个完全对齐的语言包 JSON，并完成 38 个插件代码硬编码消除。
+- [x] 333. 编写专项测试套件（`test/test_all_plugins_i18n_complete.py`）并执行全量验证：校验 JS 语法正确性、多语言 JSON 对齐率与硬编码消除率，更新 `task.md`。
+
+## 插件翻译细节深度优化与残留中文彻底根除（以 pg_docker 及内联 JS 插件为例）
+
+- [x] 334. 打通核心多语言引擎闭环（`web/static/app/i18n.js` 与 `web/static/app/soft.js`）：
+  - 优化 `createPluginTranslator` 与 `translatePluginDOM`：优先读取后端 `/setting` 直出的 `window._pluginDicts`，实现零延迟多语言生效；
+  - 扩展 `translatePluginDOM` 深度穿透能力：全面覆盖 `th` 表头、`.tname` 表单标签（保留图标）、`.c9` 辅助说明、`select option`、`button`、`h3/h4/p` 与警告卡片，并在 `switchTab` 时自动触发；
+  - 修复弹窗标题多语言判定与 `management_action` 词条，确保非中文环境下显示地道外语标题（如 it 对应 `Gestisci`），杜绝中文“管理”。
+- [x] 335. 全面重构 `plugins/pg_docker/index.html` 静态结构与内联 JS：
+  - 规范化指南与说明段落：消除内嵌标签导致的破碎分词，确保语义完整；
+  - 内联 `<script>` 逻辑全面接入 `pt(...)`：覆盖列表空状态、启停、端口外网切换、备份管理全套弹窗与操作、修改配置弹窗、卸载弹窗、镜像缺失引导弹窗等全部 100% 动态文本。
+- [x] 336. 使用单插件一次性整包翻译引擎重新构建 `pg_docker` 全部 6 国语言包：
+  - 提取全量纯净词条，使用持久化缓存 + 一次性整包批量翻译获取地道外语（zh-TW, en, de, fr, it）；
+  - 确保 6 个语言文件 100% 对齐，零未翻译中文。
+- [x] 337. 全面排查其余 6 个纯内联 JS 插件（`clean`, `data_query`, `jdk`, `linux_sys_opt`, `php-guard`, `python_yf`）并补全多语言细节。
+- [x] 338. 编写专项端到端运行时测试套件（`test/test_pg_docker_i18n_details.py`）并执行全量验证：
+  - 模拟真实 DOM 运行时，断言在意大利语（`it`）下，列表页、部署页、指南页及各弹窗内部的中文字符严格为 0（零残留）；
+  - 运行全量测试回归，确保 100% 通过并清理临时文件。
+
+## 插件共性缺陷深度修复（linux_sys_opt 白屏报错、安全警示漏翻译及反引号拼接乱码）
+
+- [x] 339. 修复核心多语言引擎中的 DOM 误杀漏洞与盲区（`web/static/app/i18n.js`）：
+  - 彻底移除 `.bt-form > div:last-child`、`.bt-w-con > div:last-child` 等会选中主容器的选择器，严禁把主 DOM 替换为版权纯文本；
+  - 严格限制版权修改仅作用于纯叶子节点或 `a[href*="yftec.top"]`，杜绝清空弹窗；
+  - 扩展选择器支持 `div[style*="font-weight"]`、`.alert-title`、带图标的警示容器等，并增加中文字符叶子节点递归扫描。
+- [x] 340. 修复 `plugins/linux_sys_opt/index.html` 评分与异步数据渲染：
+  - 为 `optStatus()` 中的各项内核参数评分理由与提示增加国际化包装；
+  - 在 HTML 内容注入后主动触发 `translatePluginDOM`，彻底解决非中文状态下的报错与未翻译。
+- [x] 341. 修复 `plugins/pg_docker/index.html` 与 `plugins/pgadmin/`：
+  - 规范 `pg_docker` 安全警示标题容器结构，确保 100% 被 `translatePluginDOM` 命中并翻译为 6 国语言；
+  - 修复 `plugins/pgadmin/js/pgadmin.js` 中反引号内部混用 `' + pt(...) + '` 语法错乱，消除硬编码。
+- [x] 342. 全量排查并修复其余插件的同类共性问题（模板字符串反引号语法与硬编码）：
+  - 修复 `phpmyadmin/js/phpmyadmin.js`、`ollama/js/ollama.js`、`pureftp/js/ftp.js`、`op_waf/index.html` 中的反引号拼接；
+  - 消除其中的未翻译标题与状态文本。
+- [x] 343. 编写专项端到端与语法校验自动化测试套件（`test/test_plugin_bugfix_common.py`）：
+  - 模拟在非中文（`it`、`en`）环境下验证 `linux_sys_opt`、`swap`、`pg_docker`、`pgadmin` 弹窗完整性（0 误杀白屏、0 报错）；
+  - 校验安全警示标题等多语言翻译百分百准确生效；
+  - 校验全部插件 JS 脚本 0 处反引号内拼接错误。
+- [x] 344. 全量回归测试、更新 `task.md`、编写 `walkthrough.md` 并清理阶段性排查脚本。
+
+
 

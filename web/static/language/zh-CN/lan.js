@@ -3700,6 +3700,8 @@ var lan = {
 		},
 
 	"public": {
+				"management_action": "管理",
+				"manage": "管理",
 			"stop_1": "停止",
 			"start_1": "启动",
 			"restart_2": "重启",

@@ -369,6 +369,10 @@
 </div>
 
 <script type="text/javascript">
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
+    ? window.YfI18n.createPluginTranslator('php-guard') 
+    : function(k) { return k; };
+
 resetPluginWinWidth(750);
 resetPluginWinHeight(500);
 
@@ -498,4 +502,8 @@ $(function() {
     getStatus();
     loadLogs();
 });
+
+if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+    window.YfI18n.translatePluginDOM($('.bt-form'), 'php-guard');
+}
 </script>

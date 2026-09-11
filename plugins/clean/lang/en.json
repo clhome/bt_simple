@@ -1,14 +1,16 @@
 {
     "【*】代表要删除。": "【*】 means to delete.",
-    "启动后,加入到计划任务每隔7天[0:15]执行。": "After startup, it will be added to the scheduled task and executed every 7 days [0:15].",
     "如果是目录,会寻找【.log】后缀的文件清空。": "If it is a directory, it will look for files with the [.log] suffix to clear.",
-    "常用功能": "Common Features",
-    "手动执行": "Manual Run",
-    "日志清理": "Log Cleanup",
-    "服务": "Service",
+    "常用功能": "Commonly used functions",
+    "手动执行": "Manual execution",
+    "执行成功!": "Execution successful!",
+    "日志清理": "Log cleaning",
+    "服务": "Serve",
+    "正在获取...": "Getting...",
     "添加/删除清除日志，可在`配置修改`中添加/删除。": "Add/delete clear logs, which can be added/delete in `Configuration Modification`.",
     "衢州御风科技有限公司 出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
+    "衢州御风科技有限公司出品": "Produced by Quzhou Yufeng Technology Co., Ltd.",
     "说明": "Description",
-    "运行日志": "Runtime Logs",
-    "配置修改": "Configuration"
+    "运行日志": "Run log",
+    "配置修改": "Configuration modification"
 }

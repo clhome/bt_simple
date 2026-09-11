@@ -3,8 +3,8 @@ var pt = YfI18n.createPluginTranslator('sphinx');
 
 
 function commonFunc(){
-    var con = '<button class="btn btn-default btn-sm" onclick="confirmRebuildIndex();">重建索引</button>';
-    con += '&nbsp;&nbsp; <button class="btn btn-default btn-sm" onclick="autoMakeConf();">自动创建配置</button>';
+    var con = '<button class="btn btn-default btn-sm" onclick="confirmRebuildIndex();">' + pt('重建索引') + '</button>';
+    con += '&nbsp;&nbsp; <button class="btn btn-default btn-sm" onclick="autoMakeConf();">' + pt('自动创建配置') + '</button>';
     $(".soft-man-con").html(con);
 }
 
@@ -13,51 +13,51 @@ function autoMakeConf(){
 
     var con = '<ul class="help-info-text c7">';
     con += '<li style="color:red;">如果数据量比较大,第一次启动会失败!(可通过手动建立索引)</li>';
-    con += '<li style="color:red;">以下内容,需手动加入计划任务。</li>';
+    con += '<li style="color:red;">' + pt('以下内容,需手动加入计划任务。') + '</li>';
     layer.open({
         type: 1,
         area: ['380px','350px'],
-        title: '自动创建配置',
+        title:  pt('自动创建配置'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20'>\
                     <div class='line'>\
-                        <span class='tname'>选择数据库</span>\
+                        <span class='tname'>' + pt('选择数据库') + '</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='dbname' style='width:100%'>\
-                                <option value=''>无</option>\
+                                <option value=''>' + pt('无') + '</option>\
                             </select>\
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>选择表</span>\
+                        <span class='tname'>' + pt('选择表') + '</span>\
                         <div class='info-r'>\
                             <div id='table'></div>\
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>是否增量</span>\
+                        <span class='tname'>' + pt('是否增量') + '</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='is_delta' style='width:100px'>\
-                                <option value='no'>否</option>\
-                                <option value='yes'>是</option>\
+                                <option value='no'>' + pt('否') + '</option>\
+                                <option value='yes'>' + pt('是') + '</option>\
                             </select>\
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>是否覆盖配置</span>\
+                        <span class='tname'>' + pt('是否覆盖配置') + '</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='is_cover' style='width:100px'>\
-                                <option value='yes'>是</option>\
-                                <option value='no'>否</option>\
+                                <option value='yes'>' + pt('是') + '</option>\
+                                <option value='no'>' + pt('否') + '</option>\
                             </select>\
                         </div>\
                     </div>\
                     <ul class='help-info-text c7'>\
                         <li style='color:red;'>具体配置，仍须手动修改!!!</li>\
-                        <li style='color:red;'>增量索引,需要有更新权限,主从分离时,需要主库配置</li>\
+                        <li style='color:red;'>' + pt('增量索引,需要有更新权限,主从分离时,需要主库配置') + '</li>\
                     </ul>\
                 </form>\
             ",
@@ -201,8 +201,8 @@ function runStatus(){
 
         var con = '<div class="divtable"><table class="table table-hover table-bordered" style="margin-bottom:10px;background-color:#fafafa">\
                     <tbody>\
-                        <tr><th>运行时间</th><td>' + secToTime(idata.uptime) + '</td><th>每秒查询</th><td>' + parseInt(parseInt(idata.queries) / parseInt(idata.uptime)) + '</td></tr>\
-                        <tr><th>总连接次数</th><td>' + idata.connections + '</td><th>work_queue_length</th><td>' +idata.work_queue_length + '</td></tr>\
+                        <tr><th>' + pt('运行时间') + '</th><td>' + secToTime(idata.uptime) + '</td><th>' + pt('每秒查询') + '</th><td>' + parseInt(parseInt(idata.queries) / parseInt(idata.uptime)) + '</td></tr>\
+                        <tr><th>' + pt('总连接次数') + '</th><td>' + idata.connections + '</td><th>work_queue_length</th><td>' +idata.work_queue_length + '</td></tr>\
                         <tr><th>agent_connect</th><td>' + idata.agent_connect+ '</td><th>workers_active</th><td>' + idata.workers_active + '</td></tr>\
                         <tr><th>agent_retry</th><td>' + idata.agent_retry + '</td><th>workers_total</th><td>' + idata.workers_total + '</td></tr>\
                     </tbody>\
@@ -232,7 +232,7 @@ function readme(){
         var con = '<ul class="help-info-text c7">';
 
         con += '<li style="color:red;">如果数据量比较大,第一次启动会失败!(可通过手动建立索引)</li>';
-        con += '<li style="color:red;">以下内容,需手动加入计划任务。</li>';
+        con += '<li style="color:red;">' + pt('以下内容,需手动加入计划任务。') + '</li>';
 
         con += '<li>全量:' + rdata['data']['cmd'] + ' --all --rotate</li>';
 

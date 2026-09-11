@@ -34,11 +34,11 @@ function apaPostCallbak(method, version, args,callback){
 
 function apaReadme(){
     var readme = '<ul class="help-info-text c7">';
-    readme += '<li>ACME泛域名SSL申请/管理/HOOK</li>';
+    readme += '<li>' + pt('ACME泛域名SSL申请/管理/HOOK') + '</li>';
     readme += '<li>通过DNS验证获取SSL证书!</li>';
     readme += '<li>HOOK: ssl发生变动时调用!</li>';
     readme += '<li>暂时仅支持1000个域名管理!</li>';
-    readme += '<li>DNSAPI文档: https://github.com/acmesh-official/acme.sh/wiki/dnsapi</li>';
+    readme += '<li>' + pt('DNSAPI文档: https://github.com/acmesh-official/acme.sh/wiki/dnsapi') + '</li>';
     readme += '<li>默认7天强制更新!</li>';
 
     
@@ -63,18 +63,18 @@ function emailAdd(type){
     layer.open({
         type: 1,
         area: '500px',
-        title: '添加邮件地址',
+        title:  pt('添加邮件地址'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='email_add'>\
                     <div class='line'>\
-                        <span class='tname'>邮件地址</span>\
+                        <span class='tname'>' + pt('邮件地址') + '</span>\
                         <div class='info-r'><input name='addr' class='bt-input-text mr5' style='width:100%;' placeholder='邮件地址' type='text'></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>备注</span>\
+                        <span class='tname'>' + pt('备注') + '</span>\
                         <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' placeholder='备注' type='text'></div>\
                     </div>\
                   </form>",
@@ -123,23 +123,23 @@ function emailList(page, search){
             list += '<td>' + rdata.data[i]['addr'] +'</td>';
             list += '<td>' + rdata.data[i]['remark'] +'</td>';
             list += '<td style="text-align:right">';
-            list += '<a href="javascript:;" class="btlink" onclick="emailDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['addr']+'\')" title="删除">删除</a>' +
+            list += '<a href="javascript:;" class="btlink" onclick="emailDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['addr']+'\')" title="删除">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
 
         var con = '<div class="safe bgw">\
-            <button onclick="emailAdd()" title="添加邮件地址" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">添加邮件地址</button>\
+            <button onclick="emailAdd()" title="添加邮件地址" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加邮件地址') + '</button>\
             <span style="float:right"> \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">删除选中</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>邮件地址</th>\
-                    <th>备注</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('邮件地址') + '</th>\
+                    <th>' + pt('备注') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>'+ list +'</tbody>\
                     </table>\
                 </div>\
@@ -274,18 +274,18 @@ function dnsapiAdd(row){
     layer.open({
         type: 1,
         area: '500px',
-        title: '添加DNSAPI',
+        title:  pt('添加DNSAPI'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='dnsapi_add'>\
                     <div class='line'>\
-                        <span class='tname'>名称</span>\
+                        <span class='tname'>' + pt('名称') + '</span>\
                         <div class='info-r'><input name='name' class='bt-input-text mr5' style='width:100%;' placeholder='名称' value='"+option_name+"' type='text'></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>DNSAPI类型</span>\
+                        <span class='tname'>' + pt('DNSAPI类型') + '</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='type'>\
                                 <option name='cf'>cloudflare</option>\
@@ -303,7 +303,7 @@ function dnsapiAdd(row){
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>备注</span>\
+                        <span class='tname'>' + pt('备注') + '</span>\
                         <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' placeholder='备注' value='"+option_remark+"' type='text'></div>\
                     </div>\
                     <input name='id' value='"+option_id+"' type='hidden'>\
@@ -393,25 +393,25 @@ function dnsapiList(page, search){
             list += '<td>' + rdata.data[i]['remark'] +'</td>';
 
             list += '<td style="text-align:right">';
-            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="编辑">编辑</a> | ';
-            list += '<a href="javascript:;" class="btlink" onclick="dnsapiDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除">删除</a>';
+            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="编辑">' + pt('编辑') + '</a> | ';
+            list += '<a href="javascript:;" class="btlink" onclick="dnsapiDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除">' + pt('删除') + '</a>';
             list += '</td></tr>';
         }
 
         var con = '<div class="safe bgw">\
-            <button onclick="dnsapiAdd()" title="DNSAPI" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">添加DNSAPI</button>\
+            <button onclick="dnsapiAdd()" title="DNSAPI" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加DNSAPI') + '</button>\
             <span style="float:right"> \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">删除选中</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>名称</th>\
-                    <th>类型</th>\
-                    <th>值</th>\
-                    <th>备注</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('名称') + '</th>\
+                    <th>' + pt('类型') + '</th>\
+                    <th>' + pt('值') + '</th>\
+                    <th>' + pt('备注') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>'+ list +'</tbody>\
                     </table>\
                 </div>\
@@ -462,12 +462,12 @@ function domainIdCmd(id){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         layer.open({
-            title: "手动同步命令",
+            title:  pt("手动同步命令"),
             area: ['600px', '180px'],
             type:1,
             closeBtn: 1,
             shadeClose: false,
-            btn:["复制","取消"],
+            btn: [pt("复制"), pt("取消")],
             content: '<div class="pd15">\
                         <div class="divtable">\
                             <pre class="layui-code">'+rdata.data+'</pre>\
@@ -487,12 +487,12 @@ function domainHookCmd(){
     api.post('run_hook_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
-            title: "手动同步全部命令",
+            title:  pt("手动同步全部命令"),
             area: ['600px', '180px'],
             type:1,
             closeBtn: 1,
             shadeClose: false,
-            btn:["复制","取消"],
+            btn: [pt("复制"), pt("取消")],
             content: '<div class="pd15">\
                         <div class="divtable">\
                             <pre class="layui-code">'+rdata.data+'</pre>\
@@ -512,12 +512,12 @@ function syncCfCmd(){
     api.post('run_sync_cf_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
-            title: "手动同步CloudFlare全部域名命令",
+            title:  pt("手动同步CloudFlare全部域名命令"),
             area: ['600px', '180px'],
             type:1,
             closeBtn: 1,
             shadeClose: false,
-            btn:["复制","取消"],
+            btn: [pt("复制"), pt("取消")],
             content: '<div class="pd15">\
                         <div class="divtable">\
                             <pre class="layui-code">'+rdata.data+'</pre>\
@@ -537,12 +537,12 @@ function syncDnsPodCmd(){
     api.post('run_sync_dnspod_cmd', {}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
-            title: "手动同步DnsPod全部域名命令",
+            title:  pt("手动同步DnsPod全部域名命令"),
             area: ['600px', '180px'],
             type:1,
             closeBtn: 1,
             shadeClose: false,
-            btn:["复制","取消"],
+            btn: [pt("复制"), pt("取消")],
             content: '<div class="pd15">\
                         <div class="divtable">\
                             <pre class="layui-code">'+rdata.data+'</pre>\
@@ -576,30 +576,30 @@ function domainAdd(row){
     layer.open({
         type: 1,
         area: '500px',
-        title: '添加顶级域名',
+        title:  pt('添加顶级域名'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='domain_add'>\
                     <div class='line'>\
-                        <span class='tname'>域名</span>\
+                        <span class='tname'>' + pt('域名') + '</span>\
                         <div class='info-r'><input name='domain' class='bt-input-text mr5' style='width:100%;' value='"+option_domian+"' placeholder='域名' type='text'></div>\
                     </div>\
                     <div class='line'>\
                         <span class='tname'>DNSAPI</span>\
                         <div class='info-r'>\
                             <select class='bt-input-text mr5' name='dnsapi_id'>\
-                                <option name='0'>无设置</option>\
+                                <option name='0'>' + pt('无设置') + '</option>\
                             </select>\
                         </div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>邮件</span>\
+                        <span class='tname'>' + pt('邮件') + '</span>\
                         <div class='info-r'><input name='email' class='bt-input-text mr5' style='width:100%;' value='"+option_email+"' placeholder='邮件' type='text'></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>备注</span>\
+                        <span class='tname'>' + pt('备注') + '</span>\
                         <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' value='"+option_remark+"' placeholder='备注' type='text'></div>\
                     </div>\
                     <input name='id' value='"+option_id+"' type='hidden'>\
@@ -610,7 +610,7 @@ function domainAdd(row){
             //     $("input[name='remark']").val(v);
             // });
 
-            var dnsapi_id_html = "<option value='0'>无设置</option>";
+            var dnsapi_id_html = "<option value='0'>' + pt('无设置') + '</option>";
             api.postSilent('dnsapi_list_all', {}, function(data){
                 var rdata = JSON.parse(data.data);
                 for (var i = 0; i < rdata.length; i++) {
@@ -679,47 +679,47 @@ function domainList(page, search){
             
 
             if (rdata.data[i]['effective_date'] == ''){
-                list += '<td>空/未申请</td>';
+                list += '<td>' + pt('空/未申请') + '</td>';
             } else {
                 list += '<td>'+getFormatTime(rdata.data[i]['effective_date'],'yyyy/MM/dd')+'</td>';
             }
 
             if (rdata.data[i]['expiration_date'] == ''){
-                list += '<td>空/未申请</td>';
+                list += '<td>' + pt('空/未申请') + '</td>';
             } else {
                 list += '<td>'+getFormatTime(rdata.data[i]['expiration_date'],'yyyy/MM/dd')+'</td>';
             }
 
             if (rdata.data[i]['status'] == '0'){
-                list += '<td><a href="javascript:;" index="'+i+'" class="btlink status">否</a></td>';
+                list += '<td><a href="javascript:;" index="'+i+'" class="btlink status">' + pt('否') + '</a></td>';
             } else {
-                list += '<td><a href="javascript:;" index="'+i+'" class="btlink status">是</a></td>';
+                list += '<td><a href="javascript:;" index="'+i+'" class="btlink status">' + pt('是') + '</a></td>';
             }
 
             list += '<td style="text-align:right">';
-            list += '<a href="javascript:;" index="'+i+'" class="btlink cmd" title="命令">命令</a> | ';
-            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="编辑">编辑</a> | ';
-            list += '<a href="javascript:;" class="btlink" onclick="domainDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['domain']+'\')" title="删除">删除</a>';
+            list += '<a href="javascript:;" index="'+i+'" class="btlink cmd" title="命令">' + pt('命令') + '</a> | ';
+            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="编辑">' + pt('编辑') + '</a> | ';
+            list += '<a href="javascript:;" class="btlink" onclick="domainDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['domain']+'\')" title="删除">' + pt('删除') + '</a>';
             list += '</td></tr>';
         }
 
         var con = '<div class="safe bgw">\
-            <button onclick="domainAdd()" title="添加顶级域名" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">添加域名</button>\
-            <button onclick="domainHookCmd()" title="全部同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">全部同步命令</button>\
-            <button onclick="syncCfCmd()" title="cloudflare同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">cloudflare同步命令</button>\
-            <button onclick="syncDnsPodCmd()" title="DnsPod国际同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">DnsPod国际同步命令</button>\
+            <button onclick="domainAdd()" title="添加顶级域名" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加域名') + '</button>\
+            <button onclick="domainHookCmd()" title="全部同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('全部同步命令') + '</button>\
+            <button onclick="syncCfCmd()" title="cloudflare同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('cloudflare同步命令') + '</button>\
+            <button onclick="syncDnsPodCmd()" title="DnsPod国际同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('DnsPod国际同步命令') + '</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>域名</th>\
+                    <th>' + pt('域名') + '</th>\
                     <th>DNSAPI</th>\
-                    <th>邮件</th>\
-                    <th>备注</th>\
-                    <th>开始</th>\
-                    <th>结束</th>\
-                    <th>同步</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('邮件') + '</th>\
+                    <th>' + pt('备注') + '</th>\
+                    <th>' + pt('开始') + '</th>\
+                    <th>' + pt('结束') + '</th>\
+                    <th>' + pt('同步') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>'+ list +'</tbody>\
                     </table>\
                 </div>\

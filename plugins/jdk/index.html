@@ -89,6 +89,10 @@
     </div>
 </div>
 <script type="text/javascript">
+var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'function') 
+    ? window.YfI18n.createPluginTranslator('jdk') 
+    : function(k) { return k; };
+
 resetPluginWinWidth(800);
 resetPluginWinHeight(520);
 
@@ -96,7 +100,7 @@ resetPluginWinHeight(520);
         plugin_name: 'jdk',
         init: function () {
             var _that = this;
-            $("#jdk_menu_manage").text((window.lan && lan.jdk && lan.jdk.manage) || t('jdk.manage', 'JDK管理'));
+            $("#jdk_menu_manage").textpt('JDK管理');
             $(".bt-w-menu p").on('click', function () {
                 var i = $(this).index();
                 $(this).addClass("bgw").siblings().removeClass("bgw");
@@ -148,57 +152,57 @@ resetPluginWinHeight(520);
 
                     var nameHtml = '<span>' + row.name + '</span><span class="jdk-type"> (' + typeText + ')</span>';
                     if (row.is_default) {
-                        nameHtml += '<span class="jdk-default-badge">' + ((window.lan && lan.jdk && lan.jdk.sys_default) || t('jdk.sys_default', '系统默认')) + '</span>';
+                        nameHtml += '<span class="jdk-default-badge">' + pt('系统默认') + '</span>';
                     }
-                    var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + ((window.lan && lan.jdk && lan.jdk.click_open_dir) || t('jdk.click_open_dir', '点击打开目录')) + '" onclick="openPath(\'' + row.path.substring(0, row.path.lastIndexOf('/')) + '\')">' + row.path + '</a>' : '-';
+                    var pathHtml = row.path ? '<a class="bt_success" style="cursor: pointer;" title="' + pt('点击打开目录') + '" onclick="openPath(\'' + row.path.substring(0, row.path.lastIndexOf('/')) + '\')">' + row.path + '</a>' : '-';
                     
                     var opsHtml = '';
                     // 设为默认
                     if (row.operation == 1 || row.operation == 2 || row.operation == 4) {
                         if (row.is_default) {
-                            opsHtml += '<span style="color:#999; margin-right:10px;">' + ((window.lan && lan.jdk && lan.jdk.is_default) || t('jdk.is_default', '已是默认')) + '</span>';
+                            opsHtml += '<span style="color:#999; margin-right:10px;">' + pt('已是默认') + '</span>';
                         } else {
-                            opsHtml += '<a class="bt_success" style="cursor: pointer; margin-right:10px;" onclick="jdk_manager.set_default(\'' + row.path + '\', \'' + row.name + '\')">' + ((window.lan && lan.jdk && lan.jdk.set_as_default) || t('jdk.set_as_default', '设为默认')) + '</a>';
+                            opsHtml += '<a class="bt_success" style="cursor: pointer; margin-right:10px;" onclick="jdk_manager.set_default(\'' + row.path + '\', \'' + row.name + '\')">' + pt('设为默认') + '</a>';
                         }
                     }
                     
                     // 安装/卸载
                     if (row.operation == 1) {
-                        opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + row.path + '\', \'' + row.type + '\', \'' + row.name + '\')">' + ((window.lan && lan.public && lan.public.uninstall) || t('public.uninstall', '卸载')) + '</a>';
+                        opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + row.path + '\', \'' + row.type + '\', \'' + row.name + '\')">' + pt('卸载') + '</a>';
                     } else if (row.operation == 0) {
-                        opsHtml += '<a class="bt_success" style="cursor: pointer;" onclick="jdk_manager.install(\'' + row.name + '\', \'' + row.download_url + '\')">' + ((window.lan && lan.public && lan.public.install) || t('public.install', '安装')) + '</a>';
+                        opsHtml += '<a class="bt_success" style="cursor: pointer;" onclick="jdk_manager.install(\'' + row.name + '\', \'' + row.download_url + '\')">' + pt('安装') + '</a>';
                     } else if (row.operation == 3) {
-                        opsHtml += '<span style="color:#e6a23c">' + ((window.lan && lan.jdk && lan.jdk.installing) || t('jdk.installing', '正在安装...')) + '</span>';
+                        opsHtml += '<span style="color:#e6a23c">' + pt('正在安装...') + '</span>';
                     } else if (row.operation == 2) {
                         if (row.type === '系统预装') {
-                            opsHtml += '<span style="color:#999">' + ((window.lan && lan.jdk && lan.jdk.sys_built_in) || t('jdk.sys_built_in', '系统自带')) + '</span>';
+                            opsHtml += '<span style="color:#999">' + pt('系统自带') + '</span>';
                         } else {
-                            opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + row.path + '\', \'' + row.type + '\', \'' + row.name + '\')">' + ((window.lan && lan.jdk && lan.jdk.remove_record) || t('jdk.remove_record', '移除记录')) + '</a>';
+                            opsHtml += '<a class="bt_danger" style="cursor: pointer;" onclick="jdk_manager.uninstall(\'' + row.path + '\', \'' + row.type + '\', \'' + row.name + '\')">' + pt('移除记录') + '</a>';
                         }
                     } else if (row.operation == 4) {
-                        opsHtml += '<span style="color:#999">' + ((window.lan && lan.jdk && lan.jdk.sys_built_in) || t('jdk.sys_built_in', '系统自带')) + '</span>';
+                        opsHtml += '<span style="color:#999">' + pt('系统自带') + '</span>';
                     } else {
-                        opsHtml += '<span>' + ((window.lan && lan.jdk && lan.jdk.no_operation) || t('jdk.no_operation', '不可操作')) + '</span>';
+                        opsHtml += '<span>' + pt('不可操作') + '</span>';
                     }
                     
                     tbody += '<tr><td>' + nameHtml + '</td><td>' + pathHtml + '</td><td style="text-align:right;">' + opsHtml + '</td></tr>';
                 }
                 
                 if (list.length === 0) {
-                    tbody = '<tr><td colspan="3" style="text-align:center;">' + ((window.lan && lan.jdk && lan.jdk.no_jdk_available) || t('jdk.no_jdk_available', '暂无可使用的JDK版本')) + '</td></tr>';
+                    tbody = '<tr><td colspan="3" style="text-align:center;">' + pt('暂无可使用的JDK版本') + '</td></tr>';
                 }
                 
                 var html = '<div class="mb15" style="margin-bottom: 15px;">' +
-                                '<button class="btn btn-success btn-sm" onclick="jdk_manager.add_custom()">' + ((window.lan && lan.jdk && lan.jdk.add_custom) || t('jdk.add_custom', '添加自定义JDK')) + '</button>' +
-                                '<button class="btn btn-default btn-sm pull-right" onclick="jdk_manager.render_table()">' + ((window.lan && lan.public && lan.public.refresh_list) || t('public.refresh_list', '刷新列表')) + '</button>' +
+                                '<button class="btn btn-success btn-sm" onclick="jdk_manager.add_custom()">' + pt('添加自定义JDK') + '</button>' +
+                                '<button class="btn btn-default btn-sm pull-right" onclick="jdk_manager.render_table()">' + pt('刷新列表') + '</button>' +
                             '</div>' +
                             '<div class="divtable">' +
                                 '<table class="table table-hover">' +
                                     '<thead>' +
                                         '<tr>' +
-                                            '<th>' + ((window.lan && lan.jdk && lan.jdk.th_version) || t('jdk.th_version', 'JDK版本')) + '</th>' +
-                                            '<th>' + ((window.lan && lan.jdk && lan.jdk.th_path) || t('jdk.th_path', 'JDK路径')) + '</th>' +
-                                            '<th style="text-align:right; width:100px; white-space:nowrap;">' + ((window.lan && lan.public && lan.public.handle) || t('public.handle', '操作')) + '</th>' +
+                                            '<th>' + pt('JDK版本') + '</th>' +
+                                            '<th>' + pt('JDK路径') + '</th>' +
+                                            '<th style="text-align:right; width:100px; white-space:nowrap;">' + pt('操作') + '</th>' +
                                         '</tr>' +
                                     '</thead>' +
                                     '<tbody>' + tbody + '</tbody>' +
@@ -222,8 +226,8 @@ resetPluginWinHeight(520);
         uninstall: function(path, type, name) {
             var _that = this;
             var isUninstall = (type === '面板安装');
-            var msg = isUninstall ? ((window.lan && lan.public && lan.public.uninstall) || t('public.uninstall', '卸载')) : ((window.lan && lan.jdk && lan.jdk.remove_action) || t('jdk.remove_action', '移除'));
-            var warning = isUninstall ? ((window.lan && lan.jdk && lan.jdk.uninstall_warning) || t('jdk.uninstall_warning', '此操作将会删除该 JDK 目录下的所有文件，请确保该 JDK 未被业务占用！')) : ((window.lan && lan.jdk && lan.jdk.remove_warning) || t('jdk.remove_warning', '仅移除面板记录，不删除文件。'));
+            var msg = isUninstall ? pt('卸载') : pt('移除');
+            var warning = isUninstall ? pt('此操作将会删除该 JDK 目录下的所有文件，请确保该 JDK 未被业务占用！') : pt('仅移除面板记录，不删除文件。');
             var confirmTitle = ((window.lan && lan.jdk && lan.jdk.confirm_action) || t('jdk.confirm_action', '是否{1}【{2}】？<br><span style="color: red">{3}</span>')).replace('{1}', msg).replace('{2}', name).replace('{3}', warning);
             layer.confirm(confirmTitle, { icon: 3, title: (window.lan && lan.public && lan.public.warning) || t('public.warning', '警告') }, function (index) {
                 layer.close(index);
@@ -235,7 +239,7 @@ resetPluginWinHeight(520);
         },
         install: function(version, url) {
             var _that = this;
-            var confirmTitle = ((window.lan && lan.jdk && lan.jdk.install_confirm) || t('jdk.install_confirm', '确认安装【{1}】？<br>将从国内镜像源后台下载并解压。')).replace('{1}', version);
+            var confirmTitle = pt('确认安装【{1}】？<br>将从国内镜像源后台下载并解压。').replace('{1}', version);
             layer.confirm(confirmTitle, { icon: 3, title: (window.lan && lan.public && lan.public.tip) || t('public.tip', '提示') }, function (index) {
                 layer.close(index);
                 _that.send('install_jdk', { version: version, download_url: url }, function (res) {
@@ -283,4 +287,8 @@ resetPluginWinHeight(520);
         }
     }
     jdk_manager.init();
+
+if (window.YfI18n && typeof window.YfI18n.translatePluginDOM === 'function') {
+    window.YfI18n.translatePluginDOM($('.bt-form'), 'jdk');
+}
 </script>

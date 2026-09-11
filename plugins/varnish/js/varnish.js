@@ -4,7 +4,7 @@ var pt = YfI18n.createPluginTranslator('varnish');
 
 function pRead(){
 	var readme = '<ul class="help-info-text c7">';
-    readme += '<li>修改后,点击重启按钮</li>';
+    readme += '<li>' + pt('修改后,点击重启按钮') + '</li>';
     readme += '</ul>';
 
     $('.soft-man-con').html(readme);   
@@ -27,14 +27,14 @@ function varnishStatus() {
         try {
             rdata = typeof(data.data) === 'string' ? JSON.parse(data.data) : data.data;
         } catch(e) {
-            layer.msg('解析 Varnish 状态数据失败！', {icon: 0, time: 2000, shade: [0.3, '#000']});
-            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">解析 Varnish 状态数据失败。这通常是因为 Varnish 服务未正常启动或未生成状态 JSON 序列。</div>';
+            layer.msg(pt('解析 Varnish 状态数据失败！'), {icon: 0, time: 2000, shade: [0.3, '#000']});
+            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + pt('解析 Varnish 状态数据失败。这通常是因为 Varnish 服务未正常启动或未生成状态 JSON 序列。') + '</div>';
             $(".soft-man-con").html(errorCon);
             return;
         }
 
         if (!rdata) {
-            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">未获取到有效的 Varnish 运行状态。请确保服务已在“服务”标签页中启动。</div>';
+            var errorCon = '<div class="alert alert-warning" style="margin: 15px 0;">' + pt('未获取到有效的 Varnish 运行状态。请确保服务已在“服务”标签页中启动。') + '</div>';
             $(".soft-man-con").html(errorCon);
             return;
         }
@@ -131,7 +131,7 @@ function varnishStatus() {
 
         var Con = headerHtml + '<div class="divtable" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px;">\
                         <table class="table table-hover table-bordered" style="width: 100%; margin-bottom: 0;">\
-                        <thead><tr style="background-color: #f8f9fa;"><th style="width: 35%;">字段</th><th style="width: 20%;">当前值</th><th style="width: 45%;">说明</th></tr></thead>\
+                        <thead><tr style="background-color: #f8f9fa;"><th style="width: 35%;">' + pt('字段') + '</th><th style="width: 20%;">' + pt('当前值') + '</th><th style="width: 45%;">' + pt('说明') + '</th></tr></thead>\
                         <tbody>'+tmp+'</tbody>\
                 </table></div>';
         $(".soft-man-con").html(Con);
@@ -154,7 +154,7 @@ function varnishPluginConfig(_name, version, func){
 
     var con = '<p style="color: #666; margin-bottom: 7px">提示：Ctrl+F 搜索关键字，Ctrl+G 查找下一个，Ctrl+S 保存，Ctrl+Shift+R 查找替换!</p>\
                 <textarea class="bt-input-text" style="height: 320px; line-height:18px;" id="textBody"></textarea>\
-                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">保存</button>\
+                <button id="onlineEditFileBtn" class="btn btn-success btn-sm" style="margin-top:10px;">' + pt('保存') + '</button>\
                 <ul class="help-info-text c7 ptb15">\
                     <li>此处为'+ _name + version +'主配置文件,若您不了解配置规则,请勿随意修改。</li>\
                 </ul>';

@@ -1,17 +1,23 @@
 {
-    ")没有!": ") Nein!",
     "SSH终端": "SSH-Terminal",
+    "SSH账号": "SSH-Konto",
     "删除常用命令信息": "Informationen zu häufig verwendeten Befehlen löschen",
     "取消": "Abbrechen",
     "命令内容": "Befehlstext",
     "命令内容为空，请检查是否填写了\"命令内容\"！": "Der Befehlsinhalt ist leer. Bitte überprüfen Sie, ob Sie den „Befehlsinhalt“ eingegeben haben!",
+    "命令名称": "Befehlsname",
+    "备注": "Notiz",
     "完整功能的SSH客户端，仅用于连接本服务器": "Ein SSH-Client mit vollem Funktionsumfang, der ausschließlich für die Verbindung zu diesem Server vorgesehen ist",
+    "密码": "Passwort",
+    "密码验证": "Passwortüberprüfung",
     "已经关闭【": "Bereits geschlossen [",
-    "已经打开!": "Es ist bereits geöffnet!",
+    "服务器IP": "Server-IP",
     "本地服务器": "Lokaler Server",
     "添加主机信息": "Host-Informationen hinzufügen",
     "添加常用命令信息": "Informationen zu häufig verwendeten Befehlen hinzufügen",
     "确定": "Bestätigen",
+    "私钥": "Privater Schlüssel",
+    "私钥密码": "Passwort für den privaten Schlüssel",
     "端口": "Port",
     "终端未连接": "Das Endgerät ist nicht verbunden",
     "编辑常用命令信息": "Informationen zu häufig verwendeten Befehlen in der Bearbeitung",
@@ -26,5 +32,6 @@
     "请输入常用命令描述，必填项": "Bitte geben Sie eine Beschreibung der häufig verwendeten Befehle ein. Pflichtfeld",
     "请输入私钥密码": "Bitte geben Sie das Passwort für den privaten Schlüssel ein.",
     "输入SSH账号": "SSH-Zugangsdaten eingeben",
-    "输入服务器IP": "Geben Sie die IP-Adresse des Servers ein"
+    "输入服务器IP": "Geben Sie die IP-Adresse des Servers ein",
+    "验证方式": "Überprüfungsmethode"
 }

@@ -34,26 +34,26 @@ function runInfo(){
         if (cache_size == 'NaN%') cache_size = 'OFF';
         var Con = '<div class="divtable"><table class="table table-hover table-bordered" style="margin-bottom:10px;background-color:#fafafa">\
                     <tbody>\
-                        <tr><th>启动时间</th><td>' + getLocalTime(rdata.Run) + '</td><th>每秒查询</th><td>' + parseInt(rdata.Questions / rdata.Uptime) + '</td></tr>\
-                        <tr><th>总连接次数</th><td>' + rdata.Connections + '</td><th>每秒事务</th><td>' + parseInt((parseInt(rdata.Com_commit) + parseInt(rdata.Com_rollback)) / rdata.Uptime) + '</td></tr>\
-                        <tr><th>发送</th><td>' + toSize(rdata.Bytes_sent) + '</td><th>File</th><td>' + rdata.File + '</td></tr>\
-                        <tr><th>接收</th><td>' + toSize(rdata.Bytes_received) + '</td><th>Position</th><td>' + rdata.Position + '</td></tr>\
+                        <tr><th>' + pt('启动时间') + '</th><td>' + getLocalTime(rdata.Run) + '</td><th>' + pt('每秒查询') + '</th><td>' + parseInt(rdata.Questions / rdata.Uptime) + '</td></tr>\
+                        <tr><th>' + pt('总连接次数') + '</th><td>' + rdata.Connections + '</td><th>' + pt('每秒事务') + '</th><td>' + parseInt((parseInt(rdata.Com_commit) + parseInt(rdata.Com_rollback)) / rdata.Uptime) + '</td></tr>\
+                        <tr><th>' + pt('发送') + '</th><td>' + toSize(rdata.Bytes_sent) + '</td><th>File</th><td>' + rdata.File + '</td></tr>\
+                        <tr><th>' + pt('接收') + '</th><td>' + toSize(rdata.Bytes_received) + '</td><th>Position</th><td>' + rdata.Position + '</td></tr>\
                     </tbody>\
                     </table>\
                     <table class="table table-hover table-bordered">\
                     <thead style="display:none;"><th></th><th></th><th></th><th></th></thead>\
                     <tbody>\
-                        <tr><th>活动/峰值连接数</th><td>' + rdata.Threads_running + '/' + rdata.Max_used_connections + '</td><td colspan="2">若值过大,增加max_connections</td></tr>\
-                        <tr><th>线程缓存命中率</th><td>' + ((1 - rdata.Threads_created / rdata.Connections) * 100).toFixed(2) + '%</td><td colspan="2">若过低,增加thread_cache_size</td></tr>\
-                        <tr><th>索引命中率</th><td>' + ((1 - rdata.Key_reads / rdata.Key_read_requests) * 100).toFixed(2) + '%</td><td colspan="2">若过低,增加key_buffer_size</td></tr>\
-                        <tr><th>Innodb索引命中率</th><td>' + (rdata.Innodb_buffer_pool_read_requests / (rdata.Innodb_buffer_pool_read_requests+rdata.Innodb_buffer_pool_reads)).toFixed(2) + '%</td><td colspan="2">若过低,增加innodb_buffer_pool_size</td></tr>\
-                        <tr><th>查询缓存命中率</th><td>' + cache_size + '</td><td colspan="2">' + lan.soft.mysql_status_ps5 + '</td></tr>\
-                        <tr><th>创建临时表到磁盘</th><td>' + ((rdata.Created_tmp_disk_tables / rdata.Created_tmp_tables) * 100).toFixed(2) + '%</td><td colspan="2">若过大,尝试增加tmp_table_size</td></tr>\
-                        <tr><th>已打开的表</th><td>' + rdata.Open_tables + '</td><td colspan="2">若过大,增加table_cache_size</td></tr>\
-                        <tr><th>没有使用索引的量</th><td>' + rdata.Select_full_join + '</td><td colspan="2">若不为0,请检查数据表的索引是否合理</td></tr>\
-                        <tr><th>没有索引的JOIN量</th><td>' + rdata.Select_range_check + '</td><td colspan="2">若不为0,请检查数据表的索引是否合理</td></tr>\
-                        <tr><th>排序后的合并次数</th><td>' + rdata.Sort_merge_passes + '</td><td colspan="2">若值过大,增加sort_buffer_size</td></tr>\
-                        <tr><th>锁表次数</th><td>' + rdata.Table_locks_waited + '</td><td colspan="2">若值过大,请考虑增加您的数据库性能</td></tr>\
+                        <tr><th>' + pt('活动/峰值连接数') + '</th><td>' + rdata.Threads_running + '/' + rdata.Max_used_connections + '</td><td colspan="2">' + pt('若值过大,增加max_connections') + '</td></tr>\
+                        <tr><th>' + pt('线程缓存命中率') + '</th><td>' + ((1 - rdata.Threads_created / rdata.Connections) * 100).toFixed(2) + '%</td><td colspan="2">' + pt('若过低,增加thread_cache_size') + '</td></tr>\
+                        <tr><th>' + pt('索引命中率') + '</th><td>' + ((1 - rdata.Key_reads / rdata.Key_read_requests) * 100).toFixed(2) + '%</td><td colspan="2">' + pt('若过低,增加key_buffer_size') + '</td></tr>\
+                        <tr><th>' + pt('Innodb索引命中率') + '</th><td>' + (rdata.Innodb_buffer_pool_read_requests / (rdata.Innodb_buffer_pool_read_requests+rdata.Innodb_buffer_pool_reads)).toFixed(2) + '%</td><td colspan="2">' + pt('若过低,增加innodb_buffer_pool_size') + '</td></tr>\
+                        <tr><th>' + pt('查询缓存命中率') + '</th><td>' + cache_size + '</td><td colspan="2">' + lan.soft.mysql_status_ps5 + '</td></tr>\
+                        <tr><th>' + pt('创建临时表到磁盘') + '</th><td>' + ((rdata.Created_tmp_disk_tables / rdata.Created_tmp_tables) * 100).toFixed(2) + '%</td><td colspan="2">' + pt('若过大,尝试增加tmp_table_size') + '</td></tr>\
+                        <tr><th>' + pt('已打开的表') + '</th><td>' + rdata.Open_tables + '</td><td colspan="2">' + pt('若过大,增加table_cache_size') + '</td></tr>\
+                        <tr><th>' + pt('没有使用索引的量') + '</th><td>' + rdata.Select_full_join + '</td><td colspan="2">' + pt('若不为0,请检查数据表的索引是否合理') + '</td></tr>\
+                        <tr><th>' + pt('没有索引的JOIN量') + '</th><td>' + rdata.Select_range_check + '</td><td colspan="2">' + pt('若不为0,请检查数据表的索引是否合理') + '</td></tr>\
+                        <tr><th>' + pt('排序后的合并次数') + '</th><td>' + rdata.Sort_merge_passes + '</td><td colspan="2">' + pt('若值过大,增加sort_buffer_size') + '</td></tr>\
+                        <tr><th>' + pt('锁表次数') + '</th><td>' + rdata.Table_locks_waited + '</td><td colspan="2">' + pt('若值过大,请考虑增加您的数据库性能') + '</td></tr>\
                     <tbody>\
             </table></div>';
         $(".soft-man-con").html(Con);
@@ -67,7 +67,7 @@ function myDbPos(){
             <div class="info-r  ml0">\
             <input id="datadir" name="datadir" class="bt-input-text mr5 port" type="text" style="width:330px" value="'+data.data+'">\
             <span class="glyphicon cursor mr5 glyphicon-folder-open icon_datadir" onclick="changePath(\'datadir\')"></span>\
-            <button id="btn_change_path" name="btn_change_path" class="btn btn-success btn-sm mr5 ml5 btn_change_port">迁移</button>\
+            <button id="btn_change_path" name="btn_change_path" class="btn btn-success btn-sm mr5 ml5 btn_change_port">' + pt('迁移') + '</button>\
             </div></div>';
         $(".soft-man-con").html(con);
 
@@ -86,7 +86,7 @@ function myPort(){
         var con = '<div class="line ">\
             <div class="info-r  ml0">\
             <input name="port" class="bt-input-text mr5 port" type="number" style="width:100px" value="'+data.data+'">\
-            <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">修改</button>\
+            <button id="btn_change_port" name="btn_change_port" class="btn btn-success btn-sm mr5 ml5 btn_change_port">' + pt('修改') + '</button>\
             </div></div>';
         $(".soft-man-con").html(con);
 
@@ -146,7 +146,7 @@ function myPerfOpt() {
         var memCon = '<div class="conf_p" style="margin-bottom:0">\
                         <div style="border-bottom:#ccc 1px solid;padding-bottom:10px;margin-bottom:10px"><span><b>最大使用内存: </b></span>\
                         <select class="bt-input-text" name="mysql_set" style="margin-left:-4px">\
-                            <option value="0">请选择</option>\
+                            <option value="0">' + pt('请选择') + '</option>\
                             <option value="1">1-2GB</option>\
                             <option value="2">2-4GB</option>\
                             <option value="3">4-8GB</option>\
@@ -171,7 +171,7 @@ function myPerfOpt() {
                         <p><span>thread_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="thread_cache_size" value="' + rdata.mem.thread_cache_size + '" type="number" ><font> ' + lan.soft.mysql_set_thread_cache_size + '</font></p>\
                         <p><span>table_open_cache</span><input style="width: 70px;" class="bt-input-text mr5" name="table_open_cache" value="' + rdata.mem.table_open_cache + '" type="number" > <font>' + lan.soft.mysql_set_table_open_cache + '</font></p>\
                         <p><span>max_connections</span><input style="width: 70px;" class="bt-input-text mr5" name="max_connections" value="' + rdata.mem.max_connections + '" type="number" ><font> ' + lan.soft.mysql_set_max_connections + '</font></p>\
-                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="reBootMySqld()">重启数据库</button><button class="btn btn-success btn-sm" onclick="setMySQLConf()">保存</button></div>\
+                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="reBootMySqld()">' + pt('重启数据库') + '</button><button class="btn btn-success btn-sm" onclick="setMySQLConf()">' + pt('保存') + '</button></div>\
                     </div>'
 
         $(".soft-man-con").html(memCon);
@@ -457,14 +457,14 @@ function setRootPwd(type, pwd){
     var index = layer.open({
         type: 1,
         area: '800px',
-        title: '修改数据库密码',
+        title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
         btn:["提交", "关闭", "复制ROOT密码", "修改本地ROOT记录", "强改ROOT密码"],
         shadeClose: true,
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>root密码</span>\
+                        <span class='tname'>' + pt('root密码') + '</span>\
                         <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:630px' value='"+pwd+"' />\
                             <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                         </div>\
@@ -487,7 +487,7 @@ function setRootPwd(type, pwd){
         },
         btn4:function(layerIndex){
             layer.confirm('修改本地ROOT记录,确定修改?', {
-                btn: ['确定', '取消']
+                btn: [pt('确定'), pt('取消')]
             }, function(index, layero){
                 layer.close(index);
                 var password = $("#MyPassword").val();
@@ -503,7 +503,7 @@ function setRootPwd(type, pwd){
         },
         btn5:function(layerIndex){
             layer.confirm('强制修改MySQL密码,确定强制? (比较耗时)', {
-                btn: ['确定', '取消']
+                btn: [pt('确定'), pt('取消')]
             }, function(index, layero){
                 layer.close(index);
                 var password = $("#MyPassword").val();
@@ -573,19 +573,19 @@ function setDbAccess(username){
         var index = layer.open({
             type: 1,
             area: '500px',
-            title: '设置数据库权限',
+            title:  pt('设置数据库权限'),
             closeBtn: 1,
             shift: 5,
-            btn:["提交","取消"],
+            btn: [pt("提交"), pt("取消")],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
-                            <span class='tname'>访问权限</span>\
+                            <span class='tname'>' + pt('访问权限') + '</span>\
                             <div class='info-r '>\
                                 <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                                <option value='127.0.0.1'>本地服务器</option>\
-                                <option value=\"%\">所有人</option>\
-                                <option value='ip'>指定IP</option>\
+                                <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
+                                <option value=\"%\">' + pt('所有人') + '</option>\
+                                <option value='ip'>' + pt('指定IP') + '</option>\
                                 </select>\
                             </div>\
                         </div>\
@@ -653,18 +653,18 @@ function setDbPass(id, username, password){
     layer.open({
         type: 1,
         area: '500px',
-        title: '修改数据库密码',
+        title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='mod_pwd'>\
                     <div class='line'>\
-                        <span class='tname'>用户名</span>\
+                        <span class='tname'>' + pt('用户名') + '</span>\
                         <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
                     </div>\
                     <div class='line'>\
-                    <span class='tname'>密码</span>\
+                    <span class='tname'>' + pt('密码') + '</span>\
                     <div class='info-r'>\
                         <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' />\
                         <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
@@ -692,14 +692,14 @@ function addDatabase(type){
     layer.open({
         type: 1,
         area: '500px',
-        title: '添加数据库',
+        title:  pt('添加数据库'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","关闭"],
+        btn: [pt("提交"), pt("关闭")],
         content: "<form class='bt-form pd20' id='add_db'>\
                     <div class='line'>\
-                        <span class='tname'>数据库名</span>\
+                        <span class='tname'>' + pt('数据库名') + '</span>\
                         <div class='info-r'><input name='name' class='bt-input-text mr5' placeholder='新的数据库名称' type='text' style='width:65%' value=''>\
                         <select class='bt-input-text mr5 codeing_a5nGsm' name='codeing' style='width:27%'>\
                             <option value='utf8mb4'>utf8mb4</option>\
@@ -709,18 +709,18 @@ function addDatabase(type){
                         </select>\
                         </div>\
                     </div>\
-                    <div class='line'><span class='tname'>用户名</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
+                    <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
                     <div class='line'>\
-                    <span class='tname'>密码</span>\
+                    <span class='tname'>' + pt('密码') + '</span>\
                     <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
                     </div>\
                     <div class='line'>\
-                        <span class='tname'>访问权限</span>\
+                        <span class='tname'>' + pt('访问权限') + '</span>\
                         <div class='info-r '>\
                             <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                            <option value='127.0.0.1'>本地服务器</option>\
-                            <option value=\"%\">所有人</option>\
-                            <option value='ip'>指定IP</option>\
+                            <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
+                            <option value=\"%\">' + pt('所有人') + '</option>\
+                            <option value='ip'>' + pt('指定IP') + '</option>\
                             </select>\
                         </div>\
                     </div>\
@@ -784,7 +784,7 @@ function delDbBatch(){
         }
     });
 
-    safeMessage('批量删除数据库','<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
+    safeMessage(pt('批量删除数据库'),'<a style="color:red;">您共选择了[2]个数据库,删除后将无法恢复,真的要删除吗?</a>', async function(){
         var i = 0;
         for (var idx = 0; idx < arr.length; idx++) {
             var data  = await api.postAsync('del_db', arr[idx]);
@@ -846,7 +846,7 @@ function openPhpmyadmin(name,username,password){
         var home_page = rdata.data['home_page'];
         $("#toPHPMyAdmin").attr('action',home_page);
         if($("#toPHPMyAdmin").attr('action').indexOf('phpmyadmin') == -1){
-            layer.msg('请先安装phpMyAdmin',{icon:2,shade: [0.3, '#000']});
+            layer.msg(pt('请先安装phpMyAdmin'),{icon:2,shade: [0.3, '#000']});
             setTimeout(function(){ window.location.href = '/soft'; },3000);
             return;
         }
@@ -865,7 +865,7 @@ function openPhpmyadmin(name,username,password){
             $("#pma_password").val(password);
             $("#db").val(name);
 
-            layer.msg('正在打开phpMyAdmin',{icon:16,shade: [0.3, '#000'],time:2000});
+            layer.msg(pt('正在打开phpMyAdmin'),{icon:16,shade: [0.3, '#000'],time:2000});
 
             setTimeout(function(){
                 $("#toPHPMyAdmin").submit();
@@ -892,7 +892,7 @@ function downloadBackup(file){
 }
 
 function importBackup(file,name){
-    safeMessage('导入数据库','当前操作会覆盖['+name+']数据库，是否继续？',function(){
+    safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
         api.post('import_db_backup',{file:file,name:name}, function(data){
             // console.log(data);
             layer.msg('执行成功!');
@@ -904,12 +904,12 @@ function importBackupProgress(file,name){
     api.post('import_db_backup_progress',{file:file,name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
-            title: "手动导入命令CMD【显示进度】",
+            title:  pt("手动导入命令CMD【显示进度】"),
             area: ['600px', '180px'],
             type:1,
             closeBtn: 1,
             shadeClose: false,
-            btn:["复制","取消"],
+            btn: [pt("复制"), pt("取消")],
             content: '<div class="pd15">\
                         <div class="divtable">\
                             <pre class="layui-code">'+rdata.data+'</pre>\
@@ -927,7 +927,7 @@ function importBackupProgress(file,name){
 
 
 function importDbExternal(file,name){
-    safeMessage('导入数据库','当前操作会覆盖['+name+']数据库，是否继续？',function(){
+    safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
         api.post('import_db_external',{file:file,name:name}, function(data){
             layer.msg('执行成功!');
         });
@@ -938,12 +938,12 @@ function importDbExternalProgress(file,name){
     api.post('import_db_external_progress',{file:file,name:name}, function(data){
         var rdata = JSON.parse(data.data);
         layer.open({
-            title: "手动导入命令CMD【显示进度】",
+            title:  pt("手动导入命令CMD【显示进度】"),
             area: ['600px', '180px'],
             type:1,
             closeBtn: 1,
             shadeClose: false,
-            btn:["复制","取消"],
+            btn: [pt("复制"), pt("取消")],
             content: '<div class="pd15">\
                         <div class="divtable">\
                             <pre class="layui-code">'+rdata.data+'</pre>\
@@ -972,18 +972,18 @@ function setLocalImport(db_name){
             content:'<div class="fileUploadDiv">\
                     <input type="hidden" id="input-val" value="'+upload_dir+'" />\
                     <input type="file" id="file_input"  multiple="true" autocomplete="off" />\
-                    <button type="button"  id="opt" autocomplete="off">添加文件</button>\
-                    <button type="button" id="up" autocomplete="off" >开始上传</button>\
+                    <button type="button"  id="opt" autocomplete="off">' + pt('添加文件') + '</button>\
+                    <button type="button" id="up" autocomplete="off" >' + pt('开始上传') + '</button>\
                     <span id="totalProgress" style="position: absolute;top: 7px;right: 147px;"></span>\
                     <span style="float:right;margin-top: 9px;">\
                     <font>文件编码:</font>\
                     <select id="fileCodeing" >\
-                        <option value="byte">二进制</option>\
+                        <option value="byte">' + pt('二进制') + '</option>\
                         <option value="utf-8">UTF-8</option>\
                         <option value="gb18030">GB2312</option>\
                     </select>\
                     </span>\
-                    <button type="button" id="filesClose" autocomplete="off">关闭</button>\
+                    <button type="button" id="filesClose" autocomplete="off">' + pt('关闭') + '</button>\
                     <ul id="up_box"></ul>\
                 </div>',
             success:function(){
@@ -1016,9 +1016,9 @@ function setLocalImport(db_name){
                         <td><span> ' + file_list[i]['size'] + '</span></td>\
                         <td><span> ' + file_list[i]['time'] + '</span></td>\
                         <td style="text-align: right;">\
-                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">导入</a> | \
-                            <a class="btlink" onclick="importDbExternalProgress(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">导入进度</a> | \
-                            <a class="btlink del" index="'+i+'">删除</a>\
+                            <a class="btlink" onclick="importDbExternal(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入') + '</a> | \
+                            <a class="btlink" onclick="importDbExternalProgress(\'' + file_list[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入进度') + '</a> | \
+                            <a class="btlink del" index="'+i+'">' + pt('删除') + '</a>\
                         </td>\
                     </tr>';
             }
@@ -1040,13 +1040,13 @@ function setLocalImport(db_name){
 
     var layerIndex = layer.open({
         type: 1,
-        title: "从文件导入数据",
+        title:  pt("从文件导入数据"),
         area: ['850px', '580px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
                     <div class="db_list">\
-                        <button id="btn_file_upload" class="btn btn-success btn-sm" type="button">从本地上传</button>\
+                        <button id="btn_file_upload" class="btn btn-success btn-sm" type="button">' + pt('从本地上传') + '</button>\
                     </div >\
                     <div class="divtable">\
                     <input type="hidden" name="upload_dir" value=""> \
@@ -1054,10 +1054,10 @@ function setLocalImport(db_name){
                     <table class="table table-hover "style="border:none">\
                         <thead>\
                             <tr>\
-                                <th>文件名称</th>\
-                                <th>文件大小</th>\
-                                <th>备份时间</th>\
-                                <th style="text-align: right;">操作</th>\
+                                <th>' + pt('文件名称') + '</th>\
+                                <th>' + pt('文件大小') + '</th>\
+                                <th>' + pt('备份时间') + '</th>\
+                                <th style="text-align: right;">' + pt('操作') + '</th>\
                             </tr>\
                         </thead>\
                         <tbody  id="import_db_file_list" class="gztr"></tbody>\
@@ -1065,8 +1065,8 @@ function setLocalImport(db_name){
                     </div>\
                     <ul class="help-info-text c7">\
                         <li>仅支持sql、zip、sql.gz、(tar.gz|gz|tgz)</li>\
-                        <li>zip、tar.gz压缩包结构：test.zip或test.tar.gz压缩包内，必需包含test.sql</li>\
-                        <li>若文件过大，您还可以使用SFTP工具，将数据库文件上传到/www/backup/import</li>\
+                        <li>' + pt('zip、tar.gz压缩包结构：test.zip或test.tar.gz压缩包内，必需包含test.sql') + '</li>\
+                        <li>' + pt('若文件过大，您还可以使用SFTP工具，将数据库文件上传到/www/backup/import') + '</li>\
                     </ul>\
                 </div>\
         </div>',
@@ -1086,15 +1086,15 @@ function setLocalImport(db_name){
 function setBackup(db_name){
     var layerIndex = layer.open({
         type: 1,
-        title: "数据库备份详情",
+        title:  pt("数据库备份详情"),
         area: ['850px', '580px'],
         closeBtn: 1,
         shadeClose: false,
         content: '<div class="pd15">\
                     <div class="db_list" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">\
                         <div>\
-                            <button id="btn_backup" class="btn btn-success btn-sm" type="button">备份</button>\
-                            <button id="btn_local_import" class="btn btn-success btn-sm" type="button">外部导入</button>\
+                            <button id="btn_backup" class="btn btn-success btn-sm" type="button">' + pt('备份') + '</button>\
+                            <button id="btn_local_import" class="btn btn-success btn-sm" type="button">' + pt('外部导入') + '</button>\
                         </div>\
                         <div id="backup_dir_path" style="color: #666; font-size: 13px;"></div>\
                     </div >\
@@ -1103,10 +1103,10 @@ function setBackup(db_name){
                     <table id="database_table" class="table table-hover "style="border:none">\
                         <thead>\
                             <tr>\
-                                <th>文件名称</th>\
-                                <th>文件大小</th>\
-                                <th>备份时间</th>\
-                                <th style="text-align: right;">操作</th>\
+                                <th>' + pt('文件名称') + '</th>\
+                                <th>' + pt('文件大小') + '</th>\
+                                <th>' + pt('备份时间') + '</th>\
+                                <th style="text-align: right;">' + pt('操作') + '</th>\
                             </tr>\
                         </thead>\
                         <tbody class="list"></tbody>\
@@ -1146,10 +1146,10 @@ function setBackupReq(db_name, obj){
                     <td><span> ' + rdata.data[i]['size'] + '</span></td>\
                     <td><span> ' + rdata.data[i]['time'] + '</span></td>\
                     <td style="text-align: right;">\
-                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">导入</a> | \
-                        <a class="btlink" onclick="importBackupProgress(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">导入进度</a> | \
-                        <a class="btlink" onclick="downloadBackup(\'' + rdata.data[i]['file'] + '\')">下载</a> | \
-                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">删除</a>\
+                        <a class="btlink" onclick="importBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入') + '</a> | \
+                        <a class="btlink" onclick="importBackupProgress(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">' + pt('导入进度') + '</a> | \
+                        <a class="btlink" onclick="downloadBackup(\'' + rdata.data[i]['file'] + '\')">' + pt('下载') + '</a> | \
+                        <a class="btlink" onclick="delBackup(\'' + rdata.data[i]['name'] + '\',\'' +db_name+ '\')">' + pt('删除') + '</a>\
                     </td>\
                 </tr> ';
         }
@@ -1158,13 +1158,13 @@ function setBackupReq(db_name, obj){
         var backupDir = rdata.msg;
         if (backupDir) {
             var html = '<div style="display: flex; align-items: center; justify-content: flex-end; direction: ltr !important;">\
-                            <span style="color: #666; margin-right: 5px;">数据库备份目录：</span>\
+                            <span style="color: #666; margin-right: 5px;">' + pt('数据库备份目录：') + '</span>\
                             <span class="backup-path-span" style="color: #20a53a; font-weight: 500; cursor: pointer; border-bottom: 1px dashed #20a53a; padding-bottom: 1px;" title="点击复制">' + backupDir + '</span>\
                         </div>';
             $('#backup_dir_path').html(html);
             $('#backup_dir_path .backup-path-span').off('click').on('click', function(){
                 copyText(backupDir);
-                layer.msg('目录路径已复制', {icon: 1, time: 2000});
+                layer.msg(pt('目录路径已复制'), {icon: 1, time: 2000});
             });
         }
     });
@@ -1220,47 +1220,47 @@ function dbList(page, search){
             }
 
 
-            list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\''+rdata.data[i]['name']+'\',\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['password']+'\')" title="数据库管理">管理</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MySQL优化修复工具">工具</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="设置数据库权限">权限</a> | ' +
+            list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\''+rdata.data[i]['name']+'\',\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['password']+'\')" title="数据库管理">' + pt('管理') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MySQL优化修复工具">' + pt('工具') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
                         rw +
-                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">改密</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">删除</a>' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">' + pt('改密') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
 
         //<button onclick="" id="dataRecycle" title="删除选中项" class="btn btn-default btn-sm" style="margin-left: 5px;"><span class="glyphicon glyphicon-trash" style="margin-right: 5px;"></span>回收站</button>
         var con = '<div class="safe bgw">\
-            <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">添加数据库</button>\
-            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="设置MySQL管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">root密码</button>\
+            <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加数据库') + '</button>\
+            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="设置MySQL管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('root密码') + '</button>\
             <button onclick="openPhpmyadmin(\'\',\'root\',\''+rdata.info['root_pwd']+'\')" title="打开phpMyadmin" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">phpMyAdmin</button>\
-            <button onclick="setDbAccess(\'root\')" title="ROOT权限" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">ROOT权限</button>\
-            <button onclick="fixDbAccess(\'root\')" title="修复" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">修复</button>\
+            <button onclick="setDbAccess(\'root\')" title="ROOT权限" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('ROOT权限') + '</button>\
+            <button onclick="fixDbAccess(\'root\')" title="修复" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('修复') + '</button>\
             <span style="float:right">              \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">删除选中</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr><th width="30"><input class="check" onclick="checkSelect();" type="checkbox"></th>\
-                    <th>数据库名</th>\
-                    <th>用户名</th>\
-                    <th>密码</th>\
-                    <th>创建时间</th>\
+                    <th>' + pt('数据库名') + '</th>\
+                    <th>' + pt('用户名') + '</th>\
+                    <th>' + pt('密码') + '</th>\
+                    <th>' + pt('创建时间') + '</th>\
                     '+
-                    // '<th>备份</th>'+
-                    '<th>备注</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    // '<th>' + pt('备份') + '</th>'+
+                    '<th>' + pt('备注') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
                     </tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                 <div class="table_toolbar" style="left:0px;">\
-                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="将选中数据库信息同步到服务器">同步选中</span>\
-                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(0)" title="将所有数据库信息同步到服务器">同步所有</span>\
-                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="从服务器获取数据库列表">从服务器获取</span>\
+                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="将选中数据库信息同步到服务器">' + pt('同步选中') + '</span>\
+                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(0)" title="将所有数据库信息同步到服务器">' + pt('同步所有') + '</span>\
+                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="从服务器获取数据库列表">' + pt('从服务器获取') + '</span>\
                 </div>\
             </div>\
         </div>';
@@ -1365,13 +1365,13 @@ function myBinLogsRender(page){
             
 
             list += '<td style="text-align:right">';
-            list += '<a href="javascript:;" data-index="'+i+'" class="btlink look" class="btlink">查看</a> | ';
-            list += '<a href="javascript:;" data-index="'+i+'" class="btlink look_decode" class="btlink">解码查看</a>';
+            list += '<a href="javascript:;" data-index="'+i+'" class="btlink look" class="btlink">' + pt('查看') + '</a> | ';
+            list += '<a href="javascript:;" data-index="'+i+'" class="btlink look_decode" class="btlink">' + pt('解码查看') + '</a>';
             list += '</td></tr>';
         }
 
         if (rdata.data.length ==0){
-            list = '<tr><td colspan="4">无数据</td</tr>';
+            list = '<tr><td colspan="4">' + pt('无数据') + '</td</tr>';
         }
 
         $("#binlog_list tbody").html(list);
@@ -1394,16 +1394,16 @@ function myBinLogsRender(page){
 
 function myBinLogs(){
     var con = '<div class="safe bgw">\
-            <button class="btn btn-success btn-sm relay_trace" type="button" style="margin-right: 5px;">中继日志跟踪</button>\
-            <button class="btn btn-default btn-sm binlog_trace" type="button" style="margin-right: 5px;">最新BINLOG日志跟踪</button>\
+            <button class="btn btn-success btn-sm relay_trace" type="button" style="margin-right: 5px;">' + pt('中继日志跟踪') + '</button>\
+            <button class="btn btn-default btn-sm binlog_trace" type="button" style="margin-right: 5px;">' + pt('最新BINLOG日志跟踪') + '</button>\
             <div id="binlog_list" class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr>\
-                    <th>文件名称</th>\
-                    <th>大小</th>\
-                    <th>时间</th>\
-                    <th style="text-align:right;">操作</th>\
+                    <th>' + pt('文件名称') + '</th>\
+                    <th>' + pt('大小') + '</th>\
+                    <th>' + pt('时间') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th>\
                     </tr></thead>\
                     <tbody></tbody></table>\
                 </div>\
@@ -1429,16 +1429,16 @@ function myLogs(){
 
         var line_status = ""
         if (rdata.status){
-            line_status = '<button class="btn btn-success btn-xs btn-bin va0">关闭</button>\
-                        <button class="btn btn-success btn-xs clean-btn-bin va0">清理BINLOG日志</button>';
+            line_status = '<button class="btn btn-success btn-xs btn-bin va0">' + pt('关闭') + '</button>\
+                        <button class="btn btn-success btn-xs clean-btn-bin va0">' + pt('清理BINLOG日志') + '</button>';
         } else {
-            line_status = '<button class="btn btn-success btn-xs btn-bin va0">开启</button>';
+            line_status = '<button class="btn btn-success btn-xs btn-bin va0">' + pt('开启') + '</button>';
         }
 
         var limitCon = '<p class="conf_p">\
-                        <span class="f14 c6 mr20">二进制日志 </span><span class="f14 c6 mr20">' + toSize(rdata.msg) + '</span>\
+                        <span class="f14 c6 mr20">' + pt('二进制日志') + ' </span><span class="f14 c6 mr20">' + toSize(rdata.msg) + '</span>\
                         '+line_status+'\
-                        <p class="f14 c6 mtb10" style="border-top:#ddd 1px solid; padding:10px 0">错误日志<button class="btn btn-default btn-clear btn-xs" style="float:right;" >清理日志</button></p>\
+                        <p class="f14 c6 mtb10" style="border-top:#ddd 1px solid; padding:10px 0">' + pt('错误日志') + '<button class="btn btn-default btn-clear btn-xs" style="float:right;" >' + pt('清理日志') + '</button></p>\
                         <textarea readonly style="margin: 0px;width: 100%;height: 438px;background-color: #333;color:#fff; padding:0 5px" id="error_log"></textarea>\
                     </p>';
         $(".soft-man-con").html(limitCon);
@@ -1545,10 +1545,10 @@ function selectedTools(my_obj, db_name) {
         if (db_tools[i].checked) n++;
     }
     if (n > 0) {
-        var my_btns = '<button class="btn btn-default btn-sm" onclick="repDatabase(\'' + db_name + '\',null)">修复</button>\
-            <button class="btn btn-default btn-sm" onclick="optDatabase(\'' + db_name + '\',null)">优化</button>\
-            <button class="btn btn-default btn-sm" onclick="toDatabaseType(\'' + db_name + '\',null,\'InnoDB\')">转为InnoDB</button></button>\
-            <button class="btn btn-default btn-sm" onclick="toDatabaseType(\'' + db_name + '\',null,\'MyISAM\')">转为MyISAM</button>'
+        var my_btns = '<button class="btn btn-default btn-sm" onclick="repDatabase(\'' + db_name + '\',null)">' + pt('修复') + '</button>\
+            <button class="btn btn-default btn-sm" onclick="optDatabase(\'' + db_name + '\',null)">' + pt('优化') + '</button>\
+            <button class="btn btn-default btn-sm" onclick="toDatabaseType(\'' + db_name + '\',null,\'InnoDB\')">' + pt('转为InnoDB') + '</button></button>\
+            <button class="btn btn-default btn-sm" onclick="toDatabaseType(\'' + db_name + '\',null,\'MyISAM\')">' + pt('转为MyISAM') + '</button>'
         $("#db_tools").html(my_btns);
     } else {
         $("#db_tools").html('');
@@ -1570,8 +1570,8 @@ function repTools(db_name, res){
                     <td>' + rdata.tables[i].rows_count + '</td>\
                     <td>' + rdata.tables[i].data_size + '</td>\
                     <td style="text-align: right;">\
-                        <a class="btlink" onclick="repDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">修复</a> |\
-                        <a class="btlink" onclick="optDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">优化</a> |\
+                        <a class="btlink" onclick="repDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">' + pt('修复') + '</a> |\
+                        <a class="btlink" onclick="optDatabase(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\')">' + pt('优化') + '</a> |\
                         <a class="btlink" onclick="toDatabaseType(\''+ db_name + '\',\'' + rdata.tables[i].table_name + '\',\'' + types[rdata.tables[i].type] + '\')">转为' + types[rdata.tables[i].type] + '</a>\
                     </td>\
                 </tr> '
@@ -1603,12 +1603,12 @@ function repTools(db_name, res){
                                 <thead>\
                                     <tr>\
                                         <th><input class="check" onclick="selectedTools(this,\''+ db_name + '\');" type="checkbox"></th>\
-                                        <th>表名</th>\
-                                        <th>引擎</th>\
-                                        <th>字符集</th>\
-                                        <th>行数</th>\
-                                        <th>大小</th>\
-                                        <th style="text-align: right;">操作</th>\
+                                        <th>' + pt('表名') + '</th>\
+                                        <th>' + pt('引擎') + '</th>\
+                                        <th>' + pt('字符集') + '</th>\
+                                        <th>' + pt('行数') + '</th>\
+                                        <th>' + pt('大小') + '</th>\
+                                        <th style="text-align: right;">' + pt('操作') + '</th>\
                                     </tr>\
                                 </thead>\
                                 <tbody class="gztr">' + tbody + '</tbody>\
@@ -1616,9 +1616,9 @@ function repTools(db_name, res){
                             </div>\
                         </div>\
                         <ul class="help-info-text c7">\
-                            <li>【修复】尝试使用REPAIR命令修复损坏的表，仅能做简单修复，若修复不成功请考虑使用myisamchk工具</li>\
-                            <li>【优化】执行OPTIMIZE命令，可回收未释放的磁盘空间，建议每月执行一次</li>\
-                            <li>【转为InnoDB/MyISAM】转换数据表引擎，建议将所有表转为InnoDB</li>\
+                            <li>' + pt('【修复】尝试使用REPAIR命令修复损坏的表，仅能做简单修复，若修复不成功请考虑使用myisamchk工具') + '</li>\
+                            <li>' + pt('【优化】执行OPTIMIZE命令，可回收未释放的磁盘空间，建议每月执行一次') + '</li>\
+                            <li>' + pt('【转为InnoDB/MyISAM】转换数据表引擎，建议将所有表转为InnoDB') + '</li>\
                         </ul></div>'
         });
         tableFixed('database_fix');
@@ -1652,15 +1652,15 @@ function addMasterRepSlaveUser(){
     layer.open({
         type: 1,
         area: '500px',
-        title: '添加同步账户',
+        title:  pt('添加同步账户'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        btn:["提交","取消"],
+        btn: [pt("提交"), pt("取消")],
         content: "<form class='bt-form pd20' id='add_master'>\
-            <div class='line'><span class='tname'>用户名</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
+            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
             <div class='line'>\
-            <span class='tname'>密码</span>\
+            <span class='tname'>' + pt('密码') + '</span>\
             <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
@@ -1709,19 +1709,19 @@ function updateMasterRepSlaveUser(username, password){
     var index = layer.open({
         type: 1,
         area: '500px',
-        title: '更新账户',
+        title:  pt('更新账户'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
         content: "<form class='bt-form pd20 pb70' id='update_master'>\
-            <div class='line'><span class='tname'>用户名</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
+            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
             <div class='line'>\
-            <span class='tname'>密码</span>\
+            <span class='tname'>' + pt('密码') + '</span>\
             <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
             </div>\
             <input type='hidden' name='ps' value='' />\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >提交</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >' + pt('提交') + '</button>\
             </div>\
           </form>",
     });
@@ -1755,12 +1755,12 @@ function getMasterRepSlaveUserCmd(username, db=''){
         
         var loadOpen = layer.open({
             type: 1,
-            title: '同步命令',
+            title:  pt('同步命令'),
             area: '500px',
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn' style='text-align:center;'>\
-                <button type='button' class='btn btn-success btn-sm btn-title'>选择其中一个复制</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title'>' + pt('选择其中一个复制') + '</button>\
             </div>\
           </form>",
         });
@@ -1788,19 +1788,19 @@ function setDbMasterAccess(username){
         var index = layer.open({
             type: 1,
             area: '500px',
-            title: '设置数据库权限',
+            title:  pt('设置数据库权限'),
             closeBtn: 1,
             shift: 5,
-            btn:["提交","取消"],
+            btn: [pt("提交"), pt("取消")],
             shadeClose: true,
             content: "<form class='bt-form pd20' id='set_db_access'>\
                         <div class='line'>\
-                            <span class='tname'>访问权限</span>\
+                            <span class='tname'>' + pt('访问权限') + '</span>\
                             <div class='info-r '>\
                                 <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                                <option value='127.0.0.1'>本地服务器</option>\
-                                <option value=\"%\">所有人</option>\
-                                <option value='ip'>指定IP</option>\
+                                <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
+                                <option value=\"%\">' + pt('所有人') + '</option>\
+                                <option value='ip'>' + pt('指定IP') + '</option>\
                                 </select>\
                             </div>\
                         </div>\
@@ -1889,10 +1889,10 @@ function getMasterRepSlaveList(){
             list += '<tr><td>'+name+'</td>\
                 <td>'+password+'</td>\
                 <td>\
-                    <a class="btlink" onclick="updateMasterRepSlaveUser(\''+name+'\',\''+password+'\');">修改</a> | \
-                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+name+'\');">删除</a> | \
-                    <a class="btlink" onclick="setDbMasterAccess(\''+name+'\');">权限</a> | \
-                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">从库同步命令</a>\
+                    <a class="btlink" onclick="updateMasterRepSlaveUser(\''+name+'\',\''+password+'\');">' + pt('修改') + '</a> | \
+                    <a class="btlink" onclick="delMasterRepSlaveUser(\''+name+'\');">' + pt('删除') + '</a> | \
+                    <a class="btlink" onclick="setDbMasterAccess(\''+name+'\');">' + pt('权限') + '</a> | \
+                    <a class="btlink" onclick="getMasterRepSlaveUserCmd(\''+name+'\');">' + pt('从库同步命令') + '</a>\
                 </td>\
             </tr>';
         }
@@ -1904,16 +1904,16 @@ function getMasterRepSlaveList(){
 
 function getMasterRepSlaveListPage(){
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
-        page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addMasterRepSlaveUser()" title="">添加同步账户</span></div>';
+        page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addMasterRepSlaveUser()" title="">' + pt('添加同步账户') + '</span></div>';
 
     var loadOpen = layer.open({
         type: 1,
-        title: '同步账户列表',
+        title:  pt('同步账户列表'),
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10' id='get_master_rep_slave_list_page'>\
                     <div><table class='table table-hover'>\
-                        <thead><tr><th>用户名</th><th>密码</th><th>操作</th></tr></thead>\
+                        <thead><tr><th>' + pt('用户名') + '</th><th>' + pt('密码') + '</th><th>' + pt('操作') + '</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -1958,7 +1958,7 @@ function getFullSyncStatus(db){
             }
 
             dataSource = "<p class='line' style='text-align:center;'>\
-                <span>同步数据源：</span>\
+                <span>' + pt('同步数据源：') + '</span>\
                 <select class='bt-input-text' name='data_source' style='width:200px;'>" + sourceList + "</select>\
             </p>";
         }
@@ -1976,8 +1976,8 @@ function getFullSyncStatus(db){
                         </div>\
                     </div>\
                     <div class='table_toolbar' style='left:0px;'>\
-                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>开始</span>\
-                        <span data-status='init' class='btn btn-default btn-sm' id='full_sync_cmd'>手动命令</span>\
+                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>' + pt('开始') + '</span>\
+                        <span data-status='init' class='btn btn-default btn-sm' id='full_sync_cmd'>' + pt('手动命令') + '</span>\
                     </div>\
                 </div>",
             cancel: function(){ 
@@ -2006,12 +2006,12 @@ function getFullSyncStatus(db){
                     api.postSilent('full_sync_cmd', {'db':db,'sign':''}, function(rdata){
                         var rdata = JSON.parse(rdata.data);
                         layer.open({
-                            title: "手动执行命令CMD",
+                            title:  pt("手动执行命令CMD"),
                             area: ['600px', '180px'],
                             type:1,
                             closeBtn: 1,
                             shadeClose: false,
-                            btn:["复制","取消"],
+                            btn: [pt("复制"), pt("取消")],
                             content: '<div class="pd15">\
                                         <div class="divtable">\
                                             <pre class="layui-code">'+rdata.data+'</pre>\
@@ -2088,7 +2088,7 @@ function dataSyncVerify(db){
         },
         yes:function(index,layer_index){
             api.postSilent('sync_database_repair_log', {db:db, sign:'',op:'do'}, function(data){});
-            layer.msg("执行成功");
+            layer.msg(pt("执行成功"));
 
             requestLogs(layer_index);
             reqTimer = setInterval(function(){
@@ -2101,12 +2101,12 @@ function dataSyncVerify(db){
             api.postSilent('sync_database_repair_log', {db:db, sign:'',op:'cmd'}, function(rdata){
                 var rdata = JSON.parse(rdata.data);
                 layer.open({
-                title: "手动执行命令CMD",
+                title:  pt("手动执行命令CMD"),
                     area: ['600px', '180px'],
                     type:1,
                     closeBtn: 1,
                     shadeClose: false,
-                    btn:["复制","取消"],
+                    btn: [pt("复制"), pt("取消")],
                     content: '<div class="pd15">\
                                 <div class="divtable">\
                                     <pre class="layui-code">'+rdata.data+'</pre>\
@@ -2147,14 +2147,14 @@ function addSlaveSSH(ip=''){
         var index = layer.open({
             type: 1,
             area: ['500px','480px'],
-            title: '添加SSH',
+            title:  pt('添加SSH'),
             closeBtn: 1,
             shift: 5,
             shadeClose: true,
-            btn:["确认","取消"],
+            btn: [pt("确认"), pt("取消")],
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>端口</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
                 <div class='line'><span class='tname'>同步账户[DB]</span><div class='info-r'><input name='db_user'  placeholder='为空则取第一个!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
                 <div class='line'>\
                 <span class='tname'>ID_RSA</span>\
@@ -2244,8 +2244,8 @@ function getSlaveSSHPage(page=1){
                 <td>'+db_user+'</td>\
                 <td>'+id_rsa+'</td>\
                 <td>\
-                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">修改</a> | \
-                    <a class="btlink" onclick="delSlaveSSH(\''+ip+'\');">删除</a>\
+                    <a class="btlink" onclick="addSlaveSSH(\''+ip+'\');">' + pt('修改') + '</a> | \
+                    <a class="btlink" onclick="delSlaveSSH(\''+ip+'\');">' + pt('删除') + '</a>\
                 </td>\
             </tr>';
         }
@@ -2282,21 +2282,21 @@ function addSlaveSyncUser(ip=''){
         var index = layer.open({
             type: 1,
             area: ['500px','510px'],
-            title: '同步账户',
+            title:  pt('同步账户'),
             closeBtn: 1,
             shift: 5,
             shadeClose: true,
-            btn:["确认","取消"],
+            btn: [pt("确认"), pt("取消")],
             content: "<form class='bt-form pd20'>\
                 <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>端口</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>同步账户</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+user+"'></div></div>\
-                <div class='line'><span class='tname'>同步密码</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+pass+"'></div></div>\
+                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
+                <div class='line'><span class='tname'>' + pt('同步账户') + '</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+user+"'></div></div>\
+                <div class='line'><span class='tname'>' + pt('同步密码') + '</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+pass+"'></div></div>\
                 <div class='line'>\
-                    <span class='tname'>同步模式</span>\
+                    <span class='tname'>' + pt('同步模式') + '</span>\
                     <div class='info-r'>\
                         <select class='bt-input-text mr5' name='mode'>\
-                            <option value='0' "+( mode == '0' ? 'selected="selected"' : '')+">经典</option>\
+                            <option value='0' "+( mode == '0' ? 'selected="selected"' : '')+">' + pt('经典') + '</option>\
                             <option value='1' "+( mode == '1' ? 'selected="selected"' : '')+">GTID</option>\
                         </select>\
                     </div>\
@@ -2403,8 +2403,8 @@ function getSlaveSyncUserPage(page=1){
                 <td>'+apass+'</td>\
                 <td>'+cmd+'</td>\
                 <td>\
-                    <a class="btlink" onclick="addSlaveSyncUser(\''+ip+'\');">修改</a> | \
-                    <a class="btlink" onclick="delSlaveSyncUser(\''+ip+'\');">删除</a>\
+                    <a class="btlink" onclick="addSlaveSyncUser(\''+ip+'\');">' + pt('修改') + '</a> | \
+                    <a class="btlink" onclick="delSlaveSyncUser(\''+ip+'\');">' + pt('删除') + '</a>\
                 </td>\
             </tr>';
         }
@@ -2434,22 +2434,22 @@ function getSlaveCfg(){
 
         layerId = layer.open({
             type: 1,
-            title: '同步配置',
+            title:  pt('同步配置'),
             area: ['400px','180px'],
             content:"<div class='bt-form pd20 c6'>\
                     <p class='conf_p'>\
-                        <span class='f14 c6 mr20'>当前从库同步模式</span>\
+                        <span class='f14 c6 mr20'>' + pt('当前从库同步模式') + '</span>\
                         <b class='f14 c6 mr20'></b>\
-                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>无</button>\
+                        <button class='btn btn-"+mode_none+" btn-xs slave-db-mode btn-none'>' + pt('无') + '</button>\
                         <button class='btn btn-"+mode_ssh+" btn-xs slave-db-mode btn-ssh'>SSH</button>\
-                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>同步账户</button>\
+                        <button class='btn btn-"+mode_sync_user+" btn-xs slave-db-mode btn-sync-user'>' + pt('同步账户') + '</button>\
                     </p>\
                     <hr />\
                     <p class='conf_p'>\
-                        <span class='f14 c6 mr20'>配置设置</span>\
+                        <span class='f14 c6 mr20'>' + pt('配置设置') + '</span>\
                         <b class='f14 c6 mr20'></b>\
                         <button class='btn btn-success btn-xs btn-slave-ssh'>SSH</button>\
-                        <button class='btn btn-success btn-xs btn-slave-user'>同步账户</button>\
+                        <button class='btn btn-success btn-xs btn-slave-user'>' + pt('同步账户') + '</button>\
                     </p>\
                 </div>",
             success:function(){
@@ -2489,16 +2489,16 @@ function getSlaveCfg(){
 function getSlaveUserList(){
 
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
-    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSyncUser()" title="">添加同步账户</span></div>';
+    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSyncUser()" title="">' + pt('添加同步账户') + '</span></div>';
 
     layerId = layer.open({
         type: 1,
-        title: '同步账户列表',
+        title:  pt('同步账户列表'),
         area: '600px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>同步账户</th><th>同步密码</th><th>CMD</th><th>操作</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>' + pt('同步账户') + '</th><th>' + pt('同步密码') + '</th><th>CMD</th><th>' + pt('操作') + '</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -2513,7 +2513,7 @@ function getSlaveUserList(){
 function getSlaveSSHList(page=1){
 
     var page = '<div class="dataTables_paginate_4 dataTables_paginate paging_bootstrap page" style="margin-top:0px;"></div>';
-    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSSH()" title="">添加SSH</span></div>';
+    page += '<div class="table_toolbar" style="left:0px;"><span class="sync btn btn-default btn-sm" onclick="addSlaveSSH()" title="">' + pt('添加SSH') + '</span></div>';
 
     layerId = layer.open({
         type: 1,
@@ -2522,7 +2522,7 @@ function getSlaveSSHList(page=1){
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
                     <div><table class='table table-hover get-slave-ssh-list'>\
-                        <thead><tr><th>IP</th><th>PORT</th><th>同步账户</th><th>SSH</th><th>操作</th></tr></thead>\
+                        <thead><tr><th>IP</th><th>PORT</th><th>' + pt('同步账户') + '</th><th>SSH</th><th>' + pt('操作') + '</th></tr></thead>\
                         <tbody></tbody>\
                     </table></div>\
                     "+page +"\
@@ -2540,12 +2540,12 @@ function handlerRun(){
         var cmd = rdata['data'];
         var loadOpen = layer.open({
             type: 1,
-            title: '手动执行',
+            title:  pt('手动执行'),
             area: '500px',
             content:"<form class='bt-form pd20 pb70' id='add_master'>\
             <div class='line'>"+cmd+"</div>\
             <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>复制</button>\
+                <button type='button' class='btn btn-success btn-sm btn-title class-copy-cmd'>' + pt('复制') + '</button>\
             </div>\
           </form>",
         });
@@ -2587,7 +2587,7 @@ function masterOrSlaveConf(version=''){
                 list += '<td>' + (rdata.data[i]['master']?'是':'否') +'</td>';
                 list += '<td style="text-align:right">' + 
                     '<a href="javascript:;" class="btlink" onclick="setDbMaster(\''+rdata.data[i]['name']+'\')" title="加入或退出">'+(rdata.data[i]['master']?'退出':'加入')+'</a> | ' +
-                    '<a href="javascript:;" class="btlink" onclick="getMasterRepSlaveUserCmd(\'\',\''+rdata.data[i]['name']+'\')" title="同步命令">同步命令</a>' +
+                    '<a href="javascript:;" class="btlink" onclick="getMasterRepSlaveUserCmd(\'\',\''+rdata.data[i]['name']+'\')" title="同步命令">' + pt('同步命令') + '</a>' +
                 '</td>';
                 list += '</tr>';
             }
@@ -2596,16 +2596,16 @@ function masterOrSlaveConf(version=''){
                     <div class="tablescroll">\
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
-                        <th>数据库名</th>\
-                        <th>同步</th>\
-                        <th style="text-align:right;">操作</th></tr></thead>\
+                        <th>' + pt('数据库名') + '</th>\
+                        <th>' + pt('同步') + '</th>\
+                        <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                         <tbody>\
                         '+ list +'\
                         </tbody></table>\
                     </div>\
                     <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                     <div class="table_toolbar" style="left:0px;">\
-                        <span class="sync btn btn-default btn-sm" onclick="getMasterRepSlaveListPage()" title="">同步账户列表</span>\
+                        <span class="sync btn btn-default btn-sm" onclick="getMasterRepSlaveListPage()" title="">' + pt('同步账户列表') + '</span>\
                     </div>\
                 </div>';
 
@@ -2636,7 +2636,7 @@ function masterOrSlaveConf(version=''){
                     isHasSign = true;
                 }
 
-                var status = "<a data-id="+i+"  class='btlink db_error'>异常</>";
+                var status = "<a data-id="+i+"  class='btlink db_error'>' + pt('异常') + '</>";
                 if (mdb_ver >= 8){
                     if (v['Replica_SQL_Running'] == 'Yes' && v['Replica_IO_Running'] == 'Yes'){
                         status = "正常";
@@ -2670,14 +2670,14 @@ function masterOrSlaveConf(version=''){
 
                 list += '<td>' + status +'</td>';
                 list += '<td style="text-align:right">' + 
-                    '<a data-id="'+i+'" href="javascript:;" class="btlink btn_delete_slave" title="删除">删除</a>' +
+                    '<a data-id="'+i+'" href="javascript:;" class="btlink btn_delete_slave" title="删除">' + pt('删除') + '</a>' +
                 '</td>';
                 list += '</tr>';
             }
 
             var signThead_th = '';
             if (isHasSign){
-                var signThead_th = '<th>标识</th>';
+                var signThead_th = '<th>' + pt('标识') + '</th>';
             }
 
             var con = '<div class="divtable mtb10">\
@@ -2685,14 +2685,14 @@ function masterOrSlaveConf(version=''){
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
                         <th>主[服务]</th>\
-                        <th>端口</th>\
-                        <th>用户</th>\
-                        <th>日志</th>\
+                        <th>' + pt('端口') + '</th>\
+                        <th>' + pt('用户') + '</th>\
+                        <th>' + pt('日志') + '</th>\
                         <th>IO</th>\
                         <th>SQL</th>\
                         '+signThead_th+'\
-                        <th>状态</th>\
-                        <th style="text-align:right;">操作</th></tr></thead>\
+                        <th>' + pt('状态') + '</th>\
+                        <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                         <tbody>\
                         '+ list +'\
                         </tbody></table>\
@@ -2721,16 +2721,16 @@ function masterOrSlaveConf(version=''){
 
                 var err_line = "";
                 err_line +="<tr>\
-                    <td>IO错误</td>\
+                    <td>' + pt('IO错误') + '</td>\
                     <td>"+ (info['Last_IO_Error'] == '' ? '无':info['Last_IO_Error'])+"</td>\
                 </tr>";
                 err_line +="<tr>\
-                    <td>SQL错误</td>\
+                    <td>' + pt('SQL错误') + '</td>\
                     <td>"+(info['Last_SQL_Error'] == '' ? '无':info['Last_SQL_Error'])+"</td>\
                 </tr>";
 
                 err_line +="<tr>\
-                    <td>状态</td>\
+                    <td>' + pt('状态') + '</td>\
                     <td>"+(info['Slave_SQL_Running_State'] == '' ? '无':info['Slave_SQL_Running_State']) +"</td>\
                 </tr>";
 
@@ -2741,7 +2741,7 @@ function masterOrSlaveConf(version=''){
                 }
                 layer.open({
                     type: 1,
-                    title: '同步异常信息',
+                    title:  pt('同步异常信息'),
                     area: ['600px','300px'],
                     btn:btn_list,
                     content:"<form class='bt-form pd15'>\
@@ -2749,8 +2749,8 @@ function masterOrSlaveConf(version=''){
                         <div class='tablescroll'>\
                             <table class='table table-hover' width='100%' cellspacing='0' cellpadding='0' border='0' style='border: 0 none;'>\
                             <thead><tr>\
-                                <th style='width:80px;'>类型</th>\
-                                <th>内容</th>\
+                                <th style='width:80px;'>' + pt('类型') + '</th>\
+                                <th>' + pt('内容') + '</th>\
                             </tr></thead>\
                             <tbody>"+ err_line +"</tbody>\
                             </table>\
@@ -2818,8 +2818,8 @@ function masterOrSlaveConf(version=''){
                 list += '<td>' + rdata.data[i]['name'] +'</td>';
                 list += '<td style="text-align:right">' + 
                     '<a href="javascript:;" class="btlink" onclick="setDbSlave(\''+rdata.data[i]['name']+'\')"  title="加入|退出">'+(rdata.data[i]['slave']?'退出':'加入')+'</a> | ' +
-                    '<a href="javascript:;" class="btlink" onclick="getFullSyncStatus(\''+rdata.data[i]['name']+'\')" title="同步">同步</a> | ' +
-                    '<a href="javascript:;" class="btlink" onclick="dataSyncVerify(\''+rdata.data[i]['name']+'\')" title="数据校验">数据校验</a>' +
+                    '<a href="javascript:;" class="btlink" onclick="getFullSyncStatus(\''+rdata.data[i]['name']+'\')" title="同步">' + pt('同步') + '</a> | ' +
+                    '<a href="javascript:;" class="btlink" onclick="dataSyncVerify(\''+rdata.data[i]['name']+'\')" title="数据校验">' + pt('数据校验') + '</a>' +
                 '</td>';
                 list += '</tr>';
             }
@@ -2828,16 +2828,16 @@ function masterOrSlaveConf(version=''){
                     <div class="tablescroll">\
                         <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                         <thead><tr>\
-                        <th>本地库名</th>\
-                        <th style="text-align:right;">操作</th></tr></thead>\
+                        <th>' + pt('本地库名') + '</th>\
+                        <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                         <tbody>\
                         '+ list +'\
                         </tbody></table>\
                     </div>\
                     <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                     <div class="table_toolbar" style="left:0px;">\
-                        <span class="sync btn btn-default btn-sm" onclick="handlerRun()" title="免登录设置后,需要手动执行一下!">手动命令</span>\
-                        <span class="sync btn btn-default btn-sm" onclick="getFullSyncStatus(\'ALL\')" title="全量同步">全量同步</span>\
+                        <span class="sync btn btn-default btn-sm" onclick="handlerRun()" title="免登录设置后,需要手动执行一下!">' + pt('手动命令') + '</span>\
+                        <span class="sync btn btn-default btn-sm" onclick="getFullSyncStatus(\'ALL\')" title="全量同步">' + pt('全量同步') + '</span>\
                     </div>\
                 </div>';
 
@@ -2859,15 +2859,15 @@ function masterOrSlaveConf(version=''){
             var rdata = rdata.data;
             var limitCon = '\
                 <p class="conf_p">\
-                    <span class="f14 c6 mr20">主从同步模式</span><span class="f14 c6 mr20"></span>\
-                    <button class="btn '+(!(rdata.mode == "classic") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-classic">经典</button>\
+                    <span class="f14 c6 mr20">' + pt('主从同步模式') + '</span><span class="f14 c6 mr20"></span>\
+                    <button class="btn '+(!(rdata.mode == "classic") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-classic">' + pt('经典') + '</button>\
                     <button class="btn '+(!(rdata.mode == "gtid") ? 'btn-danger' : 'btn-success')+' btn-xs db-mode btn-gtid">GTID</button>\
                 </p>\
                 <hr/>\
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">Master[主]配置</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.status ? 'btn-danger' : 'btn-success')+' btn-xs btn-master">'+(!rdata.status ? '未开启' : '已开启') +'</button>\
-                    <button class="btn btn-success btn-xs" onclick="resetMaster()">重置</button>\
+                    <button class="btn btn-success btn-xs" onclick="resetMaster()">' + pt('重置') + '</button>\
                 </p>\
                 <hr/>\
                 <!-- master list -->\
@@ -2877,8 +2877,8 @@ function masterOrSlaveConf(version=''){
                 <p class="conf_p">\
                     <span class="f14 c6 mr20">Slave[从]配置</span><span class="f14 c6 mr20"></span>\
                     <button class="btn '+(!rdata.slave_status ? 'btn-danger' : 'btn-success')+' btn-xs btn-slave">'+(!rdata.slave_status ? '未启动' : '已启动') +'</button>\
-                    <button class="btn btn-success btn-xs" onclick="getSlaveCfg()" >同步配置</button>\
-                    <button class="btn btn-success btn-xs" onclick="initSlaveStatus()" >初始化</button>\
+                    <button class="btn btn-success btn-xs" onclick="getSlaveCfg()" >' + pt('同步配置') + '</button>\
+                    <button class="btn btn-success btn-xs" onclick="initSlaveStatus()" >' + pt('初始化') + '</button>\
                 </p>\
                 <hr/>\
                 <!-- slave status list -->\
@@ -2925,7 +2925,7 @@ function masterOrSlaveConf(version=''){
                     title:"MySQL主从模式切换",
                     shadeClose:false,
                     btnAlign: 'c',
-                    btn: ['切换并重启', '切换不重启'],
+                    btn: [pt('切换并重启'), pt('切换不重启')],
                     yes: function(index, layero){
                         this.change(index,mode,"yes");
 
@@ -2969,11 +2969,11 @@ function mySqlServiceWrapper(version) {
                 if($(".soft-man-con .sfm-opt").length > 0) {
                     clearInterval(checkInterval);
                     var warningHtml = '<div style="margin-top:20px;border:1px solid #f5c6cb;padding:15px;border-radius:4px;background-color:#f8d7da;color:#721c24;">' +
-                        '<h4 style="margin-top:0;">⚠️ 异常备份目录检测</h4>' +
-                        '<p style="margin-bottom:10px;">系统检测到因服务异常而触发安全保护生成的备份数据目录：</p>';
+                        '<h4 style="margin-top:0;">' + pt('⚠️ 异常备份目录检测') + '</h4>' +
+                        '<p style="margin-bottom:10px;">' + pt('系统检测到因服务异常而触发安全保护生成的备份数据目录：') + '</p>';
                     for (var i = 0; i < rdata.data.length; i++) {
                         var bdir = rdata.data[i];
-                        warningHtml += '<p style="margin-bottom:5px; word-break: break-all;"><strong>' + bdir + '</strong> <button class="btn btn-danger btn-xs" style="margin-left:10px;" onclick="openPath(\'' + bdir + '\')">打开目录</button></p>';
+                        warningHtml += '<p style="margin-bottom:5px; word-break: break-all;"><strong>' + bdir + '</strong> <button class="btn btn-danger btn-xs" style="margin-left:10px;" onclick="openPath(\'' + bdir + '\')">' + pt('打开目录') + '</button></p>';
                     }
                     warningHtml += '</div>';
                     $(".soft-man-con").append(warningHtml);

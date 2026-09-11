@@ -385,28 +385,28 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>网站: </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
+                        <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
                     <span style="margin-left:10px">时间: </span>\
                     <div class="input-group" style="margin-left:10px;width:300px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                         <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                     </div>\
                     <span style="margin-left:10px">时段: </span>\
                     <div class="input-group" style="width:100px;margin-left:10px;display: inline-table;vertical-align: top;">\
                         <div id="time_order" class="input-group-btn btn-group-sm">\
-                            <button data-name="hour" type="button" class="btn btn-default">按时</button>\
-                            <button data-name="day" type="button" class="btn btn-default">按天</button>\
+                            <button data-name="hour" type="button" class="btn btn-default">' + pt('按时') + '</button>\
+                            <button data-name="day" type="button" class="btn btn-default">' + pt('按天') + '</button>\
                         </div>\
                     </div>\
                     <div class="input-group" style="width:30px;margin-left:10px;display: inline-table;vertical-align: top;">\
                         <div class="input-group-btn btn-group-sm">\
-                            <button id="ov_refresh" data-name="refresh" type="button" class="btn btn-default">刷新</button>\
+                            <button id="ov_refresh" data-name="refresh" type="button" class="btn btn-default">' + pt('刷新') + '</button>\
                         </div>\
                     </div>\
                 </div>\
@@ -421,23 +421,23 @@ var html = '<div>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">IP数<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的独立访问ip数。">?</i></p>\
+                        <p class="ov_title">' + pt('IP数') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的独立访问ip数。">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">流量<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的总响应流量大小。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title">' + pt('流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的总响应流量大小。包括已排除的请求。">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">请求<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的总请求数量。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title">' + pt('请求') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的总请求数量。包括已排除的请求。">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">实时流量<i class="tips" data-toggle="tooltip" data-placement="top" title="当前X秒内您网站的实时流量大小。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title">' + pt('实时流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前X秒内您网站的实时流量大小。包括已排除的请求。">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title"><span id="ov_title_req_second">每秒请求<span><i class="tips" data-toggle="tooltip" data-placement="top" title="当前1-10秒内您网站的实时请求数量。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title"><span id="ov_title_req_second">' + pt('每秒请求') + '<span><i class="tips" data-toggle="tooltip" data-placement="top" title="当前1-10秒内您网站的实时请求数量。包括已排除的请求。">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                 </div>\
@@ -454,7 +454,7 @@ var html = '<div>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="ip">\
                             <input type="radio" id="check_ip" name="check_ip">\
-                            <span class="check_ip" style="font-weight:normal">IP数</span>\
+                            <span class="check_ip" style="font-weight:normal">' + pt('IP数') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="length">\
                             <input type="radio" id="check_length" name="check_length">\
@@ -462,19 +462,19 @@ var html = '<div>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="req">\
                             <input type="radio" id="check_req" name="check_req">\
-                            <span class="check_req" style="font-weight:normal">请求</span>\
+                            <span class="check_req" style="font-weight:normal">' + pt('请求') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="realtime_traffic">\
                             <input type="radio" id="check_realtime_traffic" name="check_realtime_traffic"> \
-                            <span class="check_realtime_traffic" style="font-weight:normal">实时流量</span>\
+                            <span class="check_realtime_traffic" style="font-weight:normal">' + pt('实时流量') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType" data-name="realtime_request">\
                             <input type="radio" id="check_realtime_request" name="check_realtime_request">\
-                            <span class="check_realtime_request" style="font-weight:normal">每X秒请求</span>\
+                            <span class="check_realtime_request" style="font-weight:normal">' + pt('每X秒请求') + '</span>\
                         </div>\
                         <div class="indicators-label" bt-event-click="indicatorsType">\
                             <input class="bt-input-text mr5" type="number" id="check_realtime_second" name="check_realtime_second" value="1" style="width:40px;outline:none;height:23px;border-radius:3px;">\
-                            <span style="font-weight:normal">秒</span>\
+                            <span style="font-weight:normal">' + pt('秒') + '</span>\
                         </div>\
                     </div>\
                 </div>\
@@ -669,11 +669,11 @@ function wsSitesListRequest(page){
                 list += '<td>' + tmp_ip +'</td>';
                 list += '<td>' + tmp_req +'</td>';
                 list += '<td>' + toSize(tmp_length) +'</td>';
-                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink web_set" title="设置">设置</a></td>';
+                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink web_set" title="设置">' + pt('设置') + '</a></td>';
                 list += '</tr>';
             }
         } else{
-             list += '<tr><td colspan="14" style="text-align:center;">网站列表为空</td></tr>';
+             list += '<tr><td colspan="14" style="text-align:center;">' + pt('网站列表为空') + '</td></tr>';
         }
 
         $('.overview_list .overview_box:eq(0) .ov_num').text(stat_pv);
@@ -685,13 +685,13 @@ function wsSitesListRequest(page){
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>网站</th>\
-                            <th>流览量</th>\
-                            <th>访客数</th>\
-                            <th>IP数</th>\
-                            <th>请求数</th>\
-                            <th>总流量</th>\
-                            <th>操作</th>\</tr></thead>\
+                            <th>' + pt('网站') + '</th>\
+                            <th>' + pt('流览量') + '</th>\
+                            <th>' + pt('访客数') + '</th>\
+                            <th>' + pt('IP数') + '</th>\
+                            <th>' + pt('请求数') + '</th>\
+                            <th>' + pt('总流量') + '</th>\
+                            <th>' + pt('操作') + '</th>\</tr></thead>\
                             <tbody>\
                             '+ list +'\
                             </tbody></table>\
@@ -711,7 +711,7 @@ function wsSitesListRequest(page){
                 layer.open({
                     type: 1,
                     title: "【"+domain + "】监控配置",
-                    btn: ['保存','取消'], 
+                    btn: [pt('保存'), pt('取消')], 
                     area: ['600px',"380px"],
                     closeBtn: 1,
                     shadeClose: false,
@@ -719,20 +719,20 @@ function wsSitesListRequest(page){
                        <div class="ws_content" style="width:570px;">\
                             <div class="tab-nav">\
                                 <span data-type="cdn_headers" class="on">CDN headers</span>\
-                                <span data-type="exclude_extension">排除扩展</span>\
-                                <span data-type="exclude_status">排除响应状态</span>\
-                                <span data-type="exclude_url">排除路径</span>\
-                                <span data-type="exclude_ip">排除IP</span>\
-                                <span data-type="record_post_args">记录请求原文</span>\
+                                <span data-type="exclude_extension">' + pt('排除扩展') + '</span>\
+                                <span data-type="exclude_status">' + pt('排除响应状态') + '</span>\
+                                <span data-type="exclude_url">' + pt('排除路径') + '</span>\
+                                <span data-type="exclude_ip">' + pt('排除IP') + '</span>\
+                                <span data-type="record_post_args">' + pt('记录请求原文') + '</span>\
                             </div>\
                             <div class="tab-con">\
-                                <span class="ws_tips">* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写</span>\
+                                <span class="ws_tips">' + pt('* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写') + '</span>\
                                 <textarea name="setting-cdn" cols="52" rows="8"></textarea>\
                             </div>\
                         </div>\
                     </div>',
                     success:function(){
-                        var common_tpl_tips = '<span class="ws_tips">* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写</span>';
+                        var common_tpl_tips = '<span class="ws_tips">' + pt('* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写') + '</span>';
                         var common_tpl_area = '<textarea name="setting-cdn" cols="52" rows="8"></textarea>';
 
  
@@ -761,15 +761,15 @@ function wsSitesListRequest(page){
                                 content += area;
                                 $('#site_conf .tab-con').html(content);
                             } else if (typename == 'exclude_ip'){
-                                var txt = '<div>* 排除的IP不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写</div>\
-                                           <div style="margin-left: -10px">* 支持 192.168.1.1-192.168.1.10格式排除区间IP</div>'
+                                var txt = '<div>' + pt('* 排除的IP不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写') + '</div>\
+                                           <div style="margin-left: -10px">' + pt('* 支持 192.168.1.1-192.168.1.10格式排除区间IP') + '</div>'
                                 var content = $(common_tpl_tips).html(txt).prop('outerHTML');
                                 var area = $(common_tpl_area).html(rdata['exclude_ip'].join('\n')).prop('outerHTML');
                                 content += area;
                                 $('#site_conf .tab-con').html(content);
                             } else if (typename == 'record_post_args'){
-                                var txt = '<div>记录请求原文说明：HTTP请求原文包括客户端请求详细参数，有助于分析或排查异常请求；</div>\
-                                           <div style="margin-left: -10px">考虑到HTTP请求原文会<span style="color:red;">占用额外存储空间</span>，默认仅记录500错误请求原文。</div>'
+                                var txt = '<div>' + pt('记录请求原文说明：HTTP请求原文包括客户端请求详细参数，有助于分析或排查异常请求；') + '</div>\
+                                           <div style="margin-left: -10px">' + pt('考虑到HTTP请求原文会') + '<span style="color:red;">' + pt('占用额外存储空间') + '</span>' + pt('，默认仅记录500错误请求原文。') + '</div>'
                                 var content = $(common_tpl_tips).html(txt).prop('outerHTML');
 
                                 var record_post_args = '';
@@ -787,7 +787,7 @@ function wsSitesListRequest(page){
                                                 <input type="checkbox" name="record_post_args" style="margin: 1px 10 0;" '+record_post_args+'>记录POST请求原文\
                                             </label>\
                                             <label style="cursor: pointer;">\
-                                                <input type="checkbox" name="record_get_403_args" style="margin: 1px 10 0;" '+record_get_403_args+'><span>记录403错误请求原文</span>\
+                                                <input type="checkbox" name="record_get_403_args" style="margin: 1px 10 0;" '+record_get_403_args+'><span>' + pt('记录403错误请求原文') + '</span>\
                                             </label>\
                                         </div>';
                                 content+=check;
@@ -807,8 +807,8 @@ function wsSitesListRequest(page){
                                     _text += '<tr>\
                                         <td>\
                                             <select name="url_type_'+i+'">\
-                                                <option  value="normal" '+(_tmp[i].mode == 'normal'?'selected':'')+'>完整匹配</option>\
-                                                <option value="regular" '+(_tmp[i].mode == 'regular'?'selected':'')+'>模糊匹配</option>\
+                                                <option  value="normal" '+(_tmp[i].mode == 'normal'?'selected':'')+'>' + pt('完整匹配') + '</option>\
+                                                <option value="regular" '+(_tmp[i].mode == 'regular'?'selected':'')+'>' + pt('模糊匹配') + '</option>\
                                             </select>\
                                         </td>\
                                         <td><input name="url_val_'+i+'" style="width:290px" placeholder="'+(_tmp[i].mode == 'normal'?'例：需排除a.com/test.html请求，请填写 test.html':'包含此内容的URL请求将不会被统计，请谨慎填写')+'" type="text" value="'+_tmp[i].url+'"></td>\
@@ -818,7 +818,7 @@ function wsSitesListRequest(page){
                                 var list = '<div class="divtable mt10 setting-exclude-url" style="margin-left: -10px;height: 100px;width:100%;">\
                                             <table class="table table-hover">\
                                                 <thead>\
-                                                    <tr><th width="96">排除方式</th><th>排除路径</th></tr>\
+                                                    <tr><th width="96">' + pt('排除方式') + '</th><th>' + pt('排除路径') + '</th></tr>\
                                                 </thead>\
                                                 <tbody>'+_text+'</tbody>\
                                             </table>\
@@ -899,10 +899,10 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <div class="input-group" style="width:300px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                         <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                     </div>\
@@ -918,15 +918,15 @@ var html = '<div>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">总IP数</p>\
+                        <p class="ov_title">' + pt('总IP数') + '</p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">总流量</p>\
+                        <p class="ov_title">' + pt('总流量') + '</p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box w_p20">\
-                        <p class="ov_title">总请求</p>\
+                        <p class="ov_title">' + pt('总请求') + '</p>\
                         <p class="ov_num">0</p>\
                     </div>\
                 </div>\
@@ -1036,26 +1036,26 @@ function wsSpiderStatLogRequest(page){
                 list += '</tr>';
             }
         } else{
-             list += '<tr><td colspan="14" style="text-align:center;">蜘蛛列表为空</td></tr>';
+             list += '<tr><td colspan="14" style="text-align:center;">' + pt('蜘蛛列表为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>日期</th>\
-                            <th>百度</th>\
-                            <th>必应</th>\
-                            <th>奇虎360</th>\
+                            <th>' + pt('日期') + '</th>\
+                            <th>' + pt('百度') + '</th>\
+                            <th>' + pt('必应') + '</th>\
+                            <th>' + pt('奇虎360') + '</th>\
                             <th>Google</th>\
-                            <th>头条</th>\
-                            <th>搜狗</th>\
-                            <th>搜搜</th>\
-                            <th>神马</th>\
-                            <th>有道</th>\
+                            <th>' + pt('头条') + '</th>\
+                            <th>' + pt('搜狗') + '</th>\
+                            <th>' + pt('搜搜') + '</th>\
+                            <th>' + pt('神马') + '</th>\
+                            <th>' + pt('有道') + '</th>\
                             <th>DNSPOD</th>\
                             <th>Yandex</th>\
-                            <th>其他 <span class="tips" data-toggle="tooltip" data-placement="bottom" title="包括Yahoo,DuckDuckGo">?</span></th>\
-                            <th>操作</th>\</tr></thead>\
+                            <th>' + pt('其他') + ' <span class="tips" data-toggle="tooltip" data-placement="bottom" title="包括Yahoo,DuckDuckGo">?</span></th>\
+                            <th>' + pt('操作') + '</th>\</tr></thead>\
                             <tbody>\
                             '+ list +'\
                             </tbody></table>\
@@ -1216,23 +1216,23 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>网站: </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
+                        <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
                     <span style="margin-left:10px">时间: </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                         <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
                 </div>\
                 <div class="echart_container">\
                     <div id="spider_left_total" style="height: 280px; width: 100px;display: inline-block;position: relative;">\
-                        <div class="total_num_box"><p class="tn_title">总蜘蛛</p><p class="tn_num request_spider">0</p></div>\
-                        <div class="total_num_box"><p class="tn_title">总请求</p><p class="tn_num request_total">0</p></div>\
+                        <div class="total_num_box"><p class="tn_title">' + pt('总蜘蛛') + '</p><p class="tn_num request_spider">0</p></div>\
+                        <div class="total_num_box"><p class="tn_title">' + pt('总请求') + '</p><p class="tn_num request_total">0</p></div>\
                     </div>\
                     <div id="echart_right_total" style="height: 280px; width: 650px;display: inline-block;position: relative;"></div>\
                 </div>\
@@ -1354,26 +1354,26 @@ function wsClientStatLogRequest(page){
                 list += '</tr>';
             }
         } else{
-             list += '<tr><td colspan="14" style="text-align:center;">客服端列表为空</td></tr>';
+             list += '<tr><td colspan="14" style="text-align:center;">' + pt('客服端列表为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>日期</th>\
-                            <th>安桌</th>\
+                            <th>' + pt('日期') + '</th>\
+                            <th>' + pt('安桌') + '</th>\
                             <th>iOS</th>\
                             <th>Windows</th>\
                             <th>Chrome</th>\
-                            <th>微信</th>\
+                            <th>' + pt('微信') + '</th>\
                             <th>360</th>\
                             <th>Edge</th>\
-                            <th>火狐</th>\
+                            <th>' + pt('火狐') + '</th>\
                             <th>Safari</th>\
                             <th>Mac</th>\
                             <th>IE</th>\
-                            <th>机器 <span class="tips" data-toggle="tooltip" data-placement="bottom" title="机器或者脚本应用程序访问，包括：Curl、HeadlessChrome、Bot、Wget、Spider、Crawler、Scrapy、zgrab、Python、java, ab 此类关键词">?</span></th>\
-                            <th>其他</th>\</tr></thead>\
+                            <th>' + pt('机器') + ' <span class="tips" data-toggle="tooltip" data-placement="bottom" title="机器或者脚本应用程序访问，包括：Curl、HeadlessChrome、Bot、Wget、Spider、Crawler、Scrapy、zgrab、Python、java, ab 此类关键词">?</span></th>\
+                            <th>' + pt('其他') + '</th>\</tr></thead>\
                             <tbody>\
                             '+ list +'\
                             </tbody></table>\
@@ -1612,15 +1612,15 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>网站: </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
+                        <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
                     <span style="margin-left:10px">时间: </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                         <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
@@ -1734,18 +1734,18 @@ function wsIpStatLogRequest(page){
 
 
         } else{
-             list += '<tr><td colspan="6" style="text-align:center;">IP列表为空</td></tr>';
+             list += '<tr><td colspan="6" style="text-align:center;">' + pt('IP列表为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>序号</th>\
+                            <th>' + pt('序号') + '</th>\
                             <th>IP</th>\
                             <th>归属地(仅供参考)</th>\
-                            <th>请求数</th>\
-                            <th>流量</th>\
-                            <th>流量占比图</th>\
+                            <th>' + pt('请求数') + '</th>\
+                            <th>' + pt('流量') + '</th>\
+                            <th>' + pt('流量占比图') + '</th>\
                             </tr></thead>\
                             <tbody>\
                             '+ list +'\
@@ -1765,15 +1765,15 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>网站: </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
+                        <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
                     <span style="margin-left:10px">时间: </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                     </div>\
                 </div>\
@@ -1850,17 +1850,17 @@ function wsUriStatLogRequest(page){
 
 
         } else{
-             list += '<tr><td colspan="6" style="text-align:center;">URI列表为空</td></tr>';
+             list += '<tr><td colspan="6" style="text-align:center;">' + pt('URI列表为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>序号</th>\
+                            <th>' + pt('序号') + '</th>\
                             <th>URI</th>\
-                            <th>请求数</th>\
-                            <th>流量</th>\
-                            <th>流量占比图</th>\
+                            <th>' + pt('请求数') + '</th>\
+                            <th>' + pt('流量') + '</th>\
+                            <th>' + pt('流量占比图') + '</th>\
                             </tr></thead>\
                             <tbody>\
                             '+ list +'\
@@ -1880,15 +1880,15 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>网站: </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
+                        <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
                     <span style="margin-left:10px">时间: </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                     </div>\
                 </div>\
@@ -1973,24 +1973,24 @@ function wsTableErrorLogRequest(page){
                 list += '<td>' + toSecond(data[i]['request_time']) +'</td>';
                 list += '<td><span class="overflow_hide" style="width:130px;">' + data[i]['uri'] +'</span></td>';
                 list += '<td><span class="overflow_hide" style="width:60px;">' + data[i]['status_code']+'/' + data[i]['method'] +'</span></td>';
-                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">详情</a></td>';
+                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
         } else{
-             list += '<tr><td colspan="8" style="text-align:center;">错误日志为空</td></tr>';
+             list += '<tr><td colspan="8" style="text-align:center;">' + pt('错误日志为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>时间</th>\
-                            <th>域名</th>\
+                            <th>' + pt('时间') + '</th>\
+                            <th>' + pt('域名') + '</th>\
                             <th>IP</th>\
-                            <th>响应</th>\
-                            <th>耗时</th>\
+                            <th>' + pt('响应') + '</th>\
+                            <th>' + pt('耗时') + '</th>\
                             <th >URL</th>\
-                            <th>状态/类型</th>\
-                            <th style="text-align:right;">操作</th></tr></thead>\
+                            <th>' + pt('状态/类型') + '</th>\
+                            <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                             <tbody>\
                             '+ list +'\
                             </tbody></table>\
@@ -2012,20 +2012,20 @@ function wsTableErrorLogRequest(page){
                 content: '<div class="pd15 lib-box">\
                     <div style="height:80px;"><table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
                     <tbody class="site_details_tbody">\
-                        <tr><th>时间</th><td>' + getLocalTime(res.time) + '</td><th>真实IP</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + res.ip + '</span></td><th>客户端端口</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
-                        <tr><th>类型</th><td>' + res.method + '</td><th>状态</th><td>' + res.status_code + '</td><th>响应大小</th><td>' + toSize(res.body_length) + '</td>\</tr>\
+                        <tr><th>' + pt('时间') + '</th><td>' + getLocalTime(res.time) + '</td><th>' + pt('真实IP') + '</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + res.ip + '</span></td><th>' + pt('客户端端口') + '</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
+                        <tr><th>' + pt('类型') + '</th><td>' + res.method + '</td><th>' + pt('状态') + '</th><td>' + res.status_code + '</td><th>' + pt('响应大小') + '</th><td>' + toSize(res.body_length) + '</td>\</tr>\
                     </tbody></table></div>\
-                    <div><b style="margin-left:10px">协议</b></div>\
+                    <div><b style="margin-left:10px">' + pt('协议') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + res.protocol + '</div></div>\
                     <div><b style="margin-left:10px">URL</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + $('<div ></div>').text(res.uri).html() + '</div></div>\
-                    <div><b style="margin-left:10px">完整IP列表</b></div>\
+                    <div><b style="margin-left:10px">' + pt('完整IP列表') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre" style="max-height: 66px;">' + $('<div ></div>').text(res.ip_list).html() + '</div></div>\
-                    <div><b style="margin-left:10px">来路</b></div>\
+                    <div><b style="margin-left:10px">' + pt('来路') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + $('<div ></div>').text(res.referer == null ?'None':res.referer).html() + '</div></div>\
                     <div><b style="margin-left:10px">User-Agent</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + $('<div ></div>').text(res.user_agent).html() + '</div></div>\
-                    <div><b style="margin-left:10px">处理耗时</b></div>\
+                    <div><b style="margin-left:10px">' + pt('处理耗时') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' +res.request_time + ' ms</div></div>\
                 </div>',
             });
@@ -2042,11 +2042,11 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>网站: </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
+                        <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
                     <span style="margin-left:10px;">状态码: </span>\
                     <select class="bt-input-text" name="status_code" style="margin-left:4px">\
-                        <option value="all">所有</option>\
+                        <option value="all">' + pt('所有') + '</option>\
                         <option value="50x">50x</option>\
                         <option value="40x">40x</option>\
                         <option value="500">500</option>\
@@ -2060,10 +2060,10 @@ var html = '<div>\
                     <span style="margin-left:10px">时间: </span>\
                     <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                         <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
@@ -2229,24 +2229,24 @@ function wsTableLogRequest(page){
                 if (data[i]['request_headers']!=''){
                     http_data = '<a data-id="'+i+'" href="javascript:;" class="btlink http_data" title="HTTP">HTTP</a>&nbsp;|&nbsp;';
                 }
-                list += '<td><span>'+http_data+'<a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">详情</a></span></td>';
+                list += '<td><span>'+http_data+'<a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">' + pt('详情') + '</a></span></td>';
                 list += '</tr>';
             }
         } else{
-             list += '<tr><td colspan="8" style="text-align:center;">网站日志为空</td></tr>';
+             list += '<tr><td colspan="8" style="text-align:center;">' + pt('网站日志为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>时间</th>\
-                            <th>域名</th>\
+                            <th>' + pt('时间') + '</th>\
+                            <th>' + pt('域名') + '</th>\
                             <th>IP</th>\
-                            <th>响应</th>\
-                            <th>耗时</th>\
+                            <th>' + pt('响应') + '</th>\
+                            <th>' + pt('耗时') + '</th>\
                             <th>URL</th>\
-                            <th>状态/类型</th>\
-                            <th style="text-align:right;">操作</th></tr></thead>\
+                            <th>' + pt('状态/类型') + '</th>\
+                            <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                             <tbody>\
                             '+ list +'\
                             </tbody></table>\
@@ -2267,20 +2267,20 @@ function wsTableLogRequest(page){
                 content: '<div class="pd15 lib-box">\
                     <div style="height:80px;"><table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
                     <tbody class="site_details_tbody">\
-                        <tr><th>时间</th><td>' + getLocalTime(res.time) + '</td><th>真实IP</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + res.ip + '</span></td><th>客户端端口</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
-                        <tr><th>类型</th><td>' + res.method + '</td><th>状态</th><td>' + res.status_code + '</td><th>响应大小</th><td>' + toSize(res.body_length) + '</td>\</tr>\
+                        <tr><th>' + pt('时间') + '</th><td>' + getLocalTime(res.time) + '</td><th>' + pt('真实IP') + '</th><td><span class="overflow_hide detail_ip" style="width:100px;">' + res.ip + '</span></td><th>' + pt('客户端端口') + '</th><td>'+(res.client_port>0 && res.client_port != ''?res.client_port:'')+'</td></tr>\
+                        <tr><th>' + pt('类型') + '</th><td>' + res.method + '</td><th>' + pt('状态') + '</th><td>' + res.status_code + '</td><th>' + pt('响应大小') + '</th><td>' + toSize(res.body_length) + '</td>\</tr>\
                     </tbody></table></div>\
-                    <div><b style="margin-left:10px">协议</b></div>\
+                    <div><b style="margin-left:10px">' + pt('协议') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + res.protocol + '</div></div>\
                     <div><b style="margin-left:10px">URL</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + $('<div></div>').text(res.uri).html() + '</div></div>\
-                    <div><b style="margin-left:10px">完整IP列表</b></div>\
+                    <div><b style="margin-left:10px">' + pt('完整IP列表') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre" style="max-height: 66px;">' + $('<div ></div>').text(res.ip_list).html() + '</div></div>\
-                    <div><b style="margin-left:10px">来路</b></div>\
+                    <div><b style="margin-left:10px">' + pt('来路') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + $('<div></div>').text(res.referer == null ?'None':res.referer).html() + '</div></div>\
                     <div><b style="margin-left:10px">User-Agent</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' + $('<div></div>').text(res.user_agent).html() + '</div></div>\
-                    <div><b style="margin-left:10px">处理耗时</b></div>\
+                    <div><b style="margin-left:10px">' + pt('处理耗时') + '</b></div>\
                     <div class="lib-con mt10"><div class="divpre">' +res.request_time + ' ms</div></div>\
                 </div>',
             });
@@ -2316,7 +2316,7 @@ function wsTableLogRequest(page){
                 content: '<div class="pd15 lib-box">\
                     <div class="lib-con mt10"><div class="divpre" style="max-height:250px;white-space: break-spaces;">' + req_data_html + '</div></div>\
                     <ul class="help-info-text c7 mtb15">\
-                        <li style="list-style: none;">payload: POST请求中客户端提交的参数。</li>\
+                        <li style="list-style: none;">' + pt('payload: POST请求中客户端提交的参数。') + '</li>\
                     </ul>\
                 </div>',
             });
@@ -2334,15 +2334,15 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>网站: </span>\
                     <select class="bt-input-text" name="site" style="margin-left:4px;width:100px;">\
-                        <option value="unset">未设置</option>\
+                        <option value="unset">' + pt('未设置') + '</option>\
                     </select>\
                     <span style="margin-left:10px">时间: </span>\
                     <div class="input-group" style="margin-left:10px;width:550px;display: inline-table;vertical-align: top;">\
                         <div id="search_time" class="input-group-btn btn-group-sm">\
-                            <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                            <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                            <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                            <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                            <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                            <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                            <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                            <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
                         <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 300px;"></span>\
                     </div>\
@@ -2350,7 +2350,7 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>请求类型: </span>\
                     <select class="bt-input-text" name="method" style="margin-left:4px">\
-                        <option value="all">所有</option>\
+                        <option value="all">' + pt('所有') + '</option>\
                         <option value="GET">GET</option>\
                         <option value="POST">POST</option>\
                         <option value="HEAD">HEAD</option>\
@@ -2359,7 +2359,7 @@ var html = '<div>\
                     </select>\
                     <span style="margin-left:10px;">状态码: </span>\
                     <select class="bt-input-text" name="status_code" style="margin-left:4px">\
-                        <option value="all">所有</option>\
+                        <option value="all">' + pt('所有') + '</option>\
                         <option value="500">500</option>\
                         <option value="502">502</option>\
                         <option value="503">503</option>\
@@ -2374,27 +2374,27 @@ var html = '<div>\
                     </select>\
                     <span style="margin-left:10px;">来源: </span>\
                     <select class="bt-input-text" name="referer" style="margin-left:4px">\
-                        <option value="all">所有</option>\
-                        <option value="-1">无</option>\
-                        <option value="1">有</option>\
+                        <option value="all">' + pt('所有') + '</option>\
+                        <option value="-1">' + pt('无') + '</option>\
+                        <option value="1">' + pt('有') + '</option>\
                     </select>\
                     <span style="margin-left:10px;">蜘蛛过滤: </span>\
                     <select class="bt-input-text" name="spider_type" style="margin-left:4px">\
-                        <option value="normal">不过滤</option>\
-                        <option value="only_spider">仅显示蜘蛛</option>\
-                        <option value="no_spider">不显示蜘蛛</option>\
-                        <option value="1">百度</option>\
-                        <option value="2">必应</option>\
-                        <option value="3">奇虎360</option>\
+                        <option value="normal">' + pt('不过滤') + '</option>\
+                        <option value="only_spider">' + pt('仅显示蜘蛛') + '</option>\
+                        <option value="no_spider">' + pt('不显示蜘蛛') + '</option>\
+                        <option value="1">' + pt('百度') + '</option>\
+                        <option value="2">' + pt('必应') + '</option>\
+                        <option value="3">' + pt('奇虎360') + '</option>\
                         <option value="4">Google</option>\
-                        <option value="5">头条</option>\
-                        <option value="6">搜狗</option>\
-                        <option value="7">有道</option>\
-                        <option value="8">搜搜</option>\
+                        <option value="5">' + pt('头条') + '</option>\
+                        <option value="6">' + pt('搜狗') + '</option>\
+                        <option value="7">' + pt('有道') + '</option>\
+                        <option value="8">' + pt('搜搜') + '</option>\
                         <option value="9">Dnspod</option>\
                         <option value="10">Yandex</option>\
-                        <option value="11">一搜</option>\
-                        <option value="12">其他</option>\
+                        <option value="11">' + pt('一搜') + '</option>\
+                        <option value="12">' + pt('其他') + '</option>\
                     </select>\
                     <span>IP: </span>\
                     <div class="input-group" style="width:163px;display:inline-flex;">\
@@ -2404,27 +2404,27 @@ var html = '<div>\
                 <div style="padding-bottom:10px;">\
                     <span>耗时: </span>\
                     <select class="bt-input-text" name="request_time" style="margin-left:5px;">\
-                        <option value="all">所有</option>\
+                        <option value="all">' + pt('所有') + '</option>\
                         <option value="0-50">0-50(ms)</option>\
                         <option value="50-200">50-200(ms)</option>\
                         <option value="200-500">200-500(ms)</option>\
                         <option value="500-1000">500ms-1s</option>\
-                        <option value="1000">大于1s</option>\
+                        <option value="1000">' + pt('大于1s') + '</option>\
                     </select>\
                     <span style="margin-left:10px;">大小: </span>\
                     <select class="bt-input-text" name="request_size" style="margin-left:5px;">\
-                        <option value="all">所有</option>\
+                        <option value="all">' + pt('所有') + '</option>\
                         <option value="0-1">0-1(kb)</option>\
                         <option value="1-20">1-20(kb)</option>\
                         <option value="20-50">20-50(kb)</option>\
                         <option value="50-100">50-100(kb)</option>\
-                        <option value="100">大于100kb</option>\
+                        <option value="100">' + pt('大于100kb') + '</option>\
                     </select>\
                     <span style="margin-left:10px;">URL过滤: </span>\
                     <div class="input-group" style="width:210px;display:inline-flex;">\
                         <input type="text" name="search_uri" class="form-control btn-group-sm" autocomplete="off" placeholder="URI搜索" style="font-size: 12px;padding: 0 10px;height:30px;">\
                         <div class="input-group-btn btn-group-sm">\
-                            <button id="logs_search" type="button" class="btn btn-default">搜索</button>\
+                            <button id="logs_search" type="button" class="btn btn-default">' + pt('搜索') + '</button>\
                         </div>\
                     </div>\
                 </div>\

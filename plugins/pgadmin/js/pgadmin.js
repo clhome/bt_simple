@@ -9,7 +9,7 @@ function homePage(){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
         }
-        var con = '<button class="btn btn-default btn-sm" onclick="window.open(\'' + rdata.data + '\')">主页</button>';
+        var con = '<button class="btn btn-default btn-sm" onclick="window.open(\'' + rdata.data + '\')">' + pt('主页') + '</button>';
         $(".soft-man-con").html(con);
     });
 }
@@ -26,31 +26,31 @@ function safeConf() {
 
         var cfg = rdata.data;
         var con = '<div class="ver line">\
-                    <span class="tname">访问端口</span>\
+                    <span class="tname">' + pt('访问端口') + '</span>\
                     <input style="width:180px" class="bt-input-text phpmyadmindk mr20" name="port" id="pmport" value="' + cfg['port'] + '" placeholder="pgadmin访问端口" maxlength="5" type="number">\
-                    <button class="btn btn-success btn-sm" onclick="setPgPort()">保存</button>\
+                    <button class="btn btn-success btn-sm" onclick="setPgPort()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
-                    <span class="tname">基础认证用户名</span>\
+                    <span class="tname">' + pt('基础认证用户名') + '</span>\
                     <input style="width:180px" class="bt-input-text mr20" name="basic_username" id="pg_basic_user" value="' + cfg['username'] + '" placeholder="基础认证用户名" type="text">\
-                    <button class="btn btn-success btn-sm" onclick="setPgUsername()">保存</button>\
+                    <button class="btn btn-success btn-sm" onclick="setPgUsername()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
-                    <span class="tname">基础认证密码</span>\
+                    <span class="tname">' + pt('基础认证密码') + '</span>\
                     <input style="width:180px" class="bt-input-text mr20" name="basic_password" id="pg_basic_pwd" value="' + cfg['password'] + '" placeholder="基础认证密码" type="text">\
-                    <button class="btn btn-success btn-sm" onclick="setPgPassword()">保存</button>\
+                    <button class="btn btn-success btn-sm" onclick="setPgPassword()">' + pt('保存') + '</button>\
                 </div>\
                 <hr/>\
-                <div class="ver line" style="font-weight: bold; margin-bottom: 10px;">pgAdmin系统登录信息</div>\
+                <div class="ver line" style="font-weight: bold; margin-bottom: 10px;">' + pt('pgAdmin系统登录信息') + '</div>\
                 <div class="ver line">\
-                    <span class="tname">PG登录邮箱</span>\
+                    <span class="tname">' + pt('PG登录邮箱') + '</span>\
                     <input style="width:180px" class="bt-input-text mr20" name="web_pg_username" id="pg_web_user" value="' + cfg['web_pg_username'] + '" placeholder="PG登录邮箱" type="text">\
-                    <button class="btn btn-success btn-sm" onclick="setWebPgUsername()">保存</button>\
+                    <button class="btn btn-success btn-sm" onclick="setWebPgUsername()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
-                    <span class="tname">PG登录密码</span>\
+                    <span class="tname">' + pt('PG登录密码') + '</span>\
                     <input style="width:180px" class="bt-input-text mr20" name="web_pg_password" id="pg_web_pwd" value="' + cfg['web_pg_password'] + '" placeholder="PG登录密码" type="text">\
-                    <button class="btn btn-success btn-sm" onclick="setWebPgPassword()">保存</button>\
+                    <button class="btn btn-success btn-sm" onclick="setWebPgPassword()">' + pt('保存') + '</button>\
                 </div>';
         $(".soft-man-con").html(con);
     });
@@ -112,41 +112,39 @@ function pgService() {
                 return;
             }
             var info = data.data;
-            var html = `
-            <div class="pma-access-info">
-                <div class="pma-info-header">访问与认证信息</div>
-                <div class="pma-info-body">
-                    <div class="pma-info-item">
-                        <span class="pma-info-label">内网地址：</span>
-                        <a href="` + info.internal_url + `" target="_blank" class="pma-info-value pma-link">` + info.internal_url + `</a>
-                    </div>
-                    <div class="pma-info-item">
-                        <span class="pma-info-label">外网地址：</span>
-                        <a href="` + info.external_url + `" target="_blank" class="pma-info-value pma-link">` + info.external_url + `</a>
-                    </div>
-                    <div class="pma-info-item" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">
-                        <span class="pma-info-label">基础认证账号：</span>
-                        <span class="pma-info-value">` + info.username + `</span>
-                    </div>
-                    <div class="pma-info-item">
-                        <span class="pma-info-label">基础认证密码：</span>
-                        <span class="pma-info-value">` + info.password + `</span>
-                    </div>
-                    <div class="pma-info-item" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">
-                        <span class="pma-info-label">登录用户名：</span>
-                        <span class="pma-info-value">` + info.web_pg_username + `</span>
-                    </div>
-                    <div class="pma-info-item">
-                        <span class="pma-info-label">登录密码：</span>
-                        <span class="pma-info-value">` + info.web_pg_password + `</span>
-                    </div>
-                </div>
-                <div class="pma-info-footer">
-                    <span class="glyphicon glyphicon-info-sign"></span> 
-                    注意：访问网页需要先输入基础认证账号密码，然后在系统登录界面输入登录用户名和密码。
-                </div>
-            </div>
-            `;
+            var html = '<div class="pma-access-info">' +
+                '<div class="pma-info-header">' + pt('访问与认证信息') + '</div>' +
+                '<div class="pma-info-body">' +
+                    '<div class="pma-info-item">' +
+                        '<span class="pma-info-label">' + pt('内网地址：') + '</span>' +
+                        '<a href="' + info.internal_url + '" target="_blank" class="pma-info-value pma-link">' + info.internal_url + '</a>' +
+                    '</div>' +
+                    '<div class="pma-info-item">' +
+                        '<span class="pma-info-label">' + pt('外网地址：') + '</span>' +
+                        '<a href="' + info.external_url + '" target="_blank" class="pma-info-value pma-link">' + info.external_url + '</a>' +
+                    '</div>' +
+                    '<div class="pma-info-item" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">' +
+                        '<span class="pma-info-label">' + pt('基础认证账号：') + '</span>' +
+                        '<span class="pma-info-value">' + info.username + '</span>' +
+                    '</div>' +
+                    '<div class="pma-info-item">' +
+                        '<span class="pma-info-label">' + pt('基础认证密码：') + '</span>' +
+                        '<span class="pma-info-value">' + info.password + '</span>' +
+                    '</div>' +
+                    '<div class="pma-info-item" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">' +
+                        '<span class="pma-info-label">' + pt('登录用户名：') + '</span>' +
+                        '<span class="pma-info-value">' + info.web_pg_username + '</span>' +
+                    '</div>' +
+                    '<div class="pma-info-item">' +
+                        '<span class="pma-info-label">' + pt('登录密码：') + '</span>' +
+                        '<span class="pma-info-value">' + info.web_pg_password + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="pma-info-footer">' +
+                    '<span class="glyphicon glyphicon-info-sign"></span> ' +
+                    pt('注意：访问网页需要先输入基础认证账号密码，然后在系统登录界面输入登录用户名和密码。') +
+                '</div>' +
+            '</div>';
             var style = `
             <style>
             .pma-access-info {

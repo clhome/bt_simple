@@ -28,19 +28,19 @@ function ftpList(page, search){
         var rdata = JSON.parse(data.data);
         // console.log(rdata);
         content = '<div class="info-title-tips" style="display: flex; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>当前FTP地址为：ftp://'+rdata['info']['ip']+':'+rdata['info']['port']+'</p>';
-        content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">修改端口</button></div>';
+        content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">' + pt('修改端口') + '</button></div>';
         content += '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="查找用户名" id="ftp_find_user" style="height: 28px; border-radius: 3px;width: 150px;">';
-        content += '<button class="btn btn-success btn-sm" onclick="ftpListFind();">查找</button>';
-        content += '<button class="btn btn-success btn-sm" style="margin-left: 10px;" onclick="addFtp();"><span class="glyphicon glyphicon-plus" style="margin-right: 5px;"></span>新增用户</button></div>';
+        content += '<button class="btn btn-success btn-sm" onclick="ftpListFind();">' + pt('查找') + '</button>';
+        content += '<button class="btn btn-success btn-sm" style="margin-left: 10px;" onclick="addFtp();"><span class="glyphicon glyphicon-plus" style="margin-right: 5px;"></span>' + pt('新增用户') + '</button></div>';
 
         content += '<div class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
         content += '<thead><tr>';
-        content += '<th style="width:10%;overflow:hidden;">用户名</th>';
-        content += '<th style="width:10%;overflow:hidden;">密码</th>';
-        content += '<th style="width:10%;">状态</th>';
-        content += '<th>根目录</th>';
-        content += '<th>备注</th>';
-        content += '<th>操作</th>';
+        content += '<th style="width:10%;overflow:hidden;">' + pt('用户名') + '</th>';
+        content += '<th style="width:10%;overflow:hidden;">' + pt('密码') + '</th>';
+        content += '<th style="width:10%;">' + pt('状态') + '</th>';
+        content += '<th>' + pt('根目录') + '</th>';
+        content += '<th>' + pt('备注') + '</th>';
+        content += '<th>' + pt('操作') + '</th>';
         content += '</tr></thead>';
 
         content += '<tbody>';
@@ -48,17 +48,17 @@ function ftpList(page, search){
         ulist = rdata.data;
         for (i in ulist){
         	// console.log(ulist[i]);
-        	status = '<a href="javascript:;" onclick="ftpStart(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')" <span="" style="color:red">已停用<span style="color:red" class="glyphicon glyphicon-pause"></span></a>';
+        	status = '<a href="javascript:;" onclick="ftpStart(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')" <span="" style="color:red">' + pt('已停用') + '<span style="color:red" class="glyphicon glyphicon-pause"></span></a>';
         	if (ulist[i]['status'] == '1'){
-        		status = '<a href="javascript:;" title="FTP帐户" onclick="ftpStop(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')"><span style="color:#5CB85C">已启用</span><span style="color:#5CB85C" class="glyphicon glyphicon-play"></span></a>';
+        		status = '<a href="javascript:;" title="FTP帐户" onclick="ftpStop(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')"><span style="color:#5CB85C">' + pt('已启用') + '</span><span style="color:#5CB85C" class="glyphicon glyphicon-play"></span></a>';
         	}
             content += '<tr><td>'+ulist[i]['name']+'</td>'+
         		'<td>'+ulist[i]['password']+'</td>'+
         		'<td>'+status+'</td>' +
         		'<td>'+ulist[i]['path']+'</td>' +
         		'<td>'+ulist[i]['ps']+'</td>' +
-            	'<td><a class="btlink" onclick="ftpModPwd(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\',\''+ulist[i]['password']+'\')">改密</a> | ' +
-            	'<a class="btlink" onclick="ftpDelete(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')">删除</a></td></tr>';
+            	'<td><a class="btlink" onclick="ftpModPwd(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\',\''+ulist[i]['password']+'\')">' + pt('改密') + '</a> | ' +
+            	'<a class="btlink" onclick="ftpDelete(\''+ulist[i]['id']+'\',\''+ulist[i]['name']+'\')">' + pt('删除') + '</a></td></tr>';
         }
 
         content += '</tbody>';
@@ -85,26 +85,26 @@ async function addFtp() {
 	var indexFtp = layer.open({
 		type: 1,
 		area: '500px',
-		title: '添加FTP帐户',
+		title:  pt('添加FTP帐户'),
 		closeBtn: 2,
 		shift: 5,
 		shadeClose: false,
-		btn: ['提交','关闭'],
+		btn: [pt('提交'), pt('关闭')],
 		content: "<form class='form pd20' id='ftpAdd'>\
 					<div class='line'>\
-					<span class='tname'>用户名</span>\
+					<span class='tname'>' + pt('用户名') + '</span>\
 					<div class='info-r'><input class='bt-input-text' type='text' id='ftpUser' name='ftp_username' style='width:330px' /></div>\
 					</div>\
 					<div class='line'>\
-					<span class='tname'>密码</span>\
+					<span class='tname'>' + pt('密码') + '</span>\
 					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
 					</div>\
 					<div class='line'>\
-					<span class='tname'>根目录</span>\
+					<span class='tname'>' + pt('根目录') + '</span>\
 					<div class='info-r'><input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+defaultPath+"/' placeholder='"+lan.ftp.add_path_title+"'  style='width:330px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span><p class='c9 mt10'>"+lan.ftp.add_path_ps+"</p></div>\
 					</div>\
                     <div class='line' style='display:none'>\
-					<span class='tname'>备注</span>\
+					<span class='tname'>' + pt('备注') + '</span>\
 					<div class='info-r'>\
 					<input id='ftp_ps' class='bt-input-text' type='text' name='ps' value='' placeholder='备注' />\
 					</div></div>\
@@ -158,15 +158,15 @@ function modFtpPort(type, port){
 		type: 1,
 		skin: 'demo-class',
 		area: '500px',
-		title: '修改FTP帐户端口',
+		title:  pt('修改FTP帐户端口'),
 		content: "<form class='bt-form pd20 pb70'>\
 					<div class='line'>\
-					<span class='tname'>默认端口</span>\
+					<span class='tname'>' + pt('默认端口') + '</span>\
 					<div class='info-r'><input class='bt-input-text mr5' type='text' id='ftpPort' name='ftp_port' style='width:330px' value='"+port+"'/></div>\
 					</div>\
 					<div class='bt-form-submit-btn'>\
-						<button id='ftp_port_close' type='button' class='btn btn-danger btn-sm btn-title'>关闭</button>\
-				        <button id='ftp_port_submit' type='button' class='btn btn-success btn-sm btn-title'>提交</button>\
+						<button id='ftp_port_close' type='button' class='btn btn-danger btn-sm btn-title'>' + pt('关闭') + '</button>\
+				        <button id='ftp_port_submit' type='button' class='btn btn-success btn-sm btn-title'>' + pt('提交') + '</button>\
 			        </div>\
 			      </form>",
 	});
@@ -197,20 +197,20 @@ function ftpModPwd(id,name,password){
 		type: 1,
 		skin: 'demo-class',
 		area: '500px',
-		title: '修改FTP帐户密码',
+		title:  pt('修改FTP帐户密码'),
 		content: "<form class='bt-form pd20 pb70'>\
 					<div class='line'>\
-					<span class='tname'>用户名</span>\
+					<span class='tname'>' + pt('用户名') + '</span>\
 					<div class='info-r'><input disabled class='bt-input-text mr5' type='text' id='ftpUser' name='ftp_username' style='width:330px' value='"+name+"'/></div>\
 					</div>\
 					\
 					<div class='line'>\
-					<span class='tname'>密码</span>\
+					<span class='tname'>' + pt('密码') + '</span>\
 					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
 					</div>\
 					<div class='bt-form-submit-btn'>\
-						<button id='ftp_mod_close' type='button' class='btn btn-danger btn-sm btn-title'>关闭</button>\
-				        <button id='ftp_mod_submit' type='button' class='btn btn-success btn-sm btn-title'>提交</button>\
+						<button id='ftp_mod_close' type='button' class='btn btn-danger btn-sm btn-title'>' + pt('关闭') + '</button>\
+				        <button id='ftp_mod_submit' type='button' class='btn btn-success btn-sm btn-title'>' + pt('提交') + '</button>\
 			        </div>\
 			      </form>",
 	});
@@ -291,13 +291,13 @@ function pureftpService() {
         $.post("/plugins/run", {name: _name, func: "status"}, function(data) {
             layer.close(loadT);
             var _status = data.data;
-            var m_status = "当前状态：<span>开启</span><span style=\"color:#20a53a; margin-left:3px;\" class=\"glyphicon glyphicon glyphicon-play\"></span>";
+            var m_status = "当前状态：<span>' + pt('开启') + '</span><span style=\"color:#20a53a; margin-left:3px;\" class=\"glyphicon glyphicon glyphicon-play\"></span>";
             if (_status != "start"){
-                 m_status = "当前状态：<span>停止</span><span style=\"color:red; margin-left:3px;\" class=\"glyphicon glyphicon-pause\"></span>";
+                 m_status = "当前状态：<span>' + pt('停止') + '</span><span style=\"color:red; margin-left:3px;\" class=\"glyphicon glyphicon-pause\"></span>";
             }
-            var m_btn = "<button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'stop', '')\">停止</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'restart', '')\">重启</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'reload', '')\">重载配置</button>";
+            var m_btn = "<button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'stop', '')\">' + pt('停止') + '</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'restart', '')\">' + pt('重启') + '</button> <button class=\"btn btn-default btn-sm\" onclick=\"pluginOpService('"+_name+"', 'reload', '')\">' + pt('重载配置') + '</button>";
             if (_status != "start"){
-                m_btn = "<button class=\"btn btn-success btn-sm\" onclick=\"pluginOpService('"+_name+"', 'start', '')\">启动</button>";
+                m_btn = "<button class=\"btn btn-success btn-sm\" onclick=\"pluginOpService('"+_name+"', 'start', '')\">' + pt('启动') + '</button>";
             }
             
             var con = "<p class=\"status\">"+m_status+"</p><div class=\"sfm-opt\">"+m_btn+"</div>" + (typeof pluginInitDSwitchHtml === 'function' ? pluginInitDSwitchHtml(_name, '') : '');
@@ -400,19 +400,19 @@ function pureftpService() {
 
             con += style;
             con += '<div class="ftp-access-info">';
-            con += '<div class="ftp-info-header"><span class="glyphicon glyphicon-hdd"></span>FTP 连接与账号管理</div>';
+            con += '<div class="ftp-info-header"><span class="glyphicon glyphicon-hdd"></span>' + pt('FTP 连接与账号管理') + '</div>';
             con += '<div class="ftp-info-body">';
             
-            con += '<div class="ftp-info-item"><span class="ftp-info-label">内网地址</span><span class="ftp-info-value">ftp://' + innerIp + ':' + port + '</span></div>';
+            con += '<div class="ftp-info-item"><span class="ftp-info-label">' + pt('内网地址') + '</span><span class="ftp-info-value">ftp://' + innerIp + ':' + port + '</span></div>';
             if (innerIp !== outerIp) {
-                con += '<div class="ftp-info-item"><span class="ftp-info-label">外网地址</span><span class="ftp-info-value">ftp://' + outerIp + ':' + port + '</span></div>';
+                con += '<div class="ftp-info-item"><span class="ftp-info-label">' + pt('外网地址') + '</span><span class="ftp-info-value">ftp://' + outerIp + ':' + port + '</span></div>';
             } else {
-                con += '<div class="ftp-info-item"><span class="ftp-info-label">外网地址</span><span class="ftp-info-value" style="color:#888;border-color:#eee;background:#fafafa;">ftp://' + outerIp + ':' + port + ' (同内网)</span></div>';
+                con += '<div class="ftp-info-item"><span class="ftp-info-label">' + pt('外网地址') + '</span><span class="ftp-info-value" style="color:#888;border-color:#eee;background:#fafafa;">ftp://' + outerIp + ':' + port + ' (同内网)</span></div>';
             }
             
             if (ftpData.data && ftpData.data.length > 0) {
                 con += '<table class="ftp-user-table">';
-                con += '<thead><tr><th width="30%">FTP 用户名</th><th>绑定根目录</th></tr></thead><tbody>';
+                con += '<thead><tr><th width="30%">' + pt('FTP 用户名') + '</th><th>' + pt('绑定根目录') + '</th></tr></thead><tbody>';
                 for (var i = 0; i < ftpData.data.length; i++) {
                     con += '<tr>';
                     con += '<td><span class="user-badge">' + ftpData.data[i].name + '</span></td>';
@@ -421,23 +421,21 @@ function pureftpService() {
                 }
                 con += '</tbody></table>';
             } else {
-                con += '<div style="margin-top:15px; padding: 15px; background: #fdfdfe; border: 1px dashed #ccc; border-radius: 4px; text-align: center; color: #999;">暂无用户，请在“管理列表”中添加</div>';
+                con += '<div style="margin-top:15px; padding: 15px; background: #fdfdfe; border: 1px dashed #ccc; border-radius: 4px; text-align: center; color: #999;">' + pt('暂无用户，请在“管理列表”中添加') + '</div>';
             }
             
             con += '</div></div>';
 
-            var fwTip = `
-            <div class="ftp-firewall-tips" style="margin-top: 15px; padding: 15px; background-color: #fffaf0; border: 1px solid #ffeeba; border-left: 4px solid #f39c12; border-radius: 6px; font-size: 13px; color: #555;">
-                <div style="font-weight: 600; color: #d35400; margin-bottom: 8px; font-size: 14px;">
-                    <span class="glyphicon glyphicon-warning-sign" style="margin-right: 6px;"></span>云服务器与防火墙端口放行提示
-                </div>
-                <div style="line-height: 1.6;">若您使用的是云服务器（如阿里云、腾讯云等），除了面板自身的防火墙外，请<strong>务必前往云服务商的安全组控制台</strong>放行以下 TCP 端口：</div>
-                <ul style="margin-top: 8px; margin-bottom: 0; padding-left: 20px; line-height: 1.6;">
-                    <li><strong>控制端口：</strong> <span style="color:#c0392b;font-family:Consolas,monospace;background:#fdebd0;padding:2px 6px;border-radius:3px;">21</span> <span style="color:#888;">（用于 FTP 账号登录与主动模式）</span></li>
-                    <li><strong>被动数据端口范围：</strong> <span style="color:#c0392b;font-family:Consolas,monospace;background:#fdebd0;padding:2px 6px;border-radius:3px;">39000-40000</span> <span style="color:#888;">（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）</span></li>
-                </ul>
-            </div>
-            `;
+            var fwTip = '<div class="ftp-firewall-tips" style="margin-top: 15px; padding: 15px; background-color: #fffaf0; border: 1px solid #ffeeba; border-left: 4px solid #f39c12; border-radius: 6px; font-size: 13px; color: #555;">' +
+                '<div style="font-weight: 600; color: #d35400; margin-bottom: 8px; font-size: 14px;">' +
+                    '<span class="glyphicon glyphicon-warning-sign" style="margin-right: 6px;"></span>' + pt('云服务器与防火墙端口放行提示') +
+                '</div>' +
+                '<div style="line-height: 1.6;">' + pt('若您使用的是云服务器（如阿里云、腾讯云等），除了面板自身的防火墙外，请') + '<strong>' + pt('务必前往云服务商的安全组控制台') + '</strong>' + pt('放行以下 TCP 端口：') + '</div>' +
+                '<ul style="margin-top: 8px; margin-bottom: 0; padding-left: 20px; line-height: 1.6;">' +
+                    '<li><strong>' + pt('控制端口：') + '</strong> <span style="color:#c0392b;font-family:Consolas,monospace;background:#fdebd0;padding:2px 6px;border-radius:3px;">21</span> <span style="color:#888;">' + pt('（用于 FTP 账号登录与主动模式）') + '</span></li>' +
+                    '<li><strong>' + pt('被动数据端口范围：') + '</strong> <span style="color:#c0392b;font-family:Consolas,monospace;background:#fdebd0;padding:2px 6px;border-radius:3px;">39000-40000</span> <span style="color:#888;">' + pt('（用于 FTP 被动模式下传输文件与目录列表，不放行会导致连接成功但无法读取目录）') + '</span></li>' +
+                '</ul>' +
+            '</div>';
             con += fwTip;
 
             $(".soft-man-con").html(con);

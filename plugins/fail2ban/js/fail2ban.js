@@ -39,7 +39,7 @@ function f2bHome() {
         }
         
         if (count === 0) {
-            jailHtml = '<div style="width: 100%; text-align: center; color: #999; padding: 40px 0;">暂无拦截数据</div>';
+            jailHtml = '<div style="width: 100%; text-align: center; color: #999; padding: 40px 0;">' + pt('暂无拦截数据') + '</div>';
         }
 
         var html = '<div style="padding: 15px;">\
@@ -64,9 +64,9 @@ function f2bHome() {
             </div>\
             \
             <div style="background: #f0f9f4; border-left: 4px solid #20a53a; padding: 15px 20px; border-radius: 4px; color: #333; line-height: 28px; font-size: 13px;">\
-                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 御风F2B底层防火墙 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</div>\
-                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 系统防护用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。</div>\
-                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> 网站防护自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。</div>\
+                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> ' + pt('御风F2B底层防火墙 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。') + '</div>\
+                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> ' + pt('系统防护用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。') + '</div>\
+                <div style="color: #666;"><span style="color:#20a53a; font-weight:bold; margin-right:5px;">√</span> ' + pt('网站防护自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。') + '</div>\
             </div>\
         </div>';
 
@@ -95,7 +95,7 @@ function f2bService() {
                     var checkboxHtml = '<label style="margin-left: 30px; font-weight: normal; cursor: pointer; display: inline-flex; align-items: center; vertical-align: middle; user-select: none;">\
                         <input type="checkbox" id="f2b_strict_mode" style="margin-right: 5px; width: 15px; height: 15px; cursor: pointer; margin-top: 0;" ' + (strict ? 'checked' : '') + '> 严格模式\
                     </label>\
-                    <span style="color: #666; margin-left: 10px; font-size: 12px; vertical-align: middle; display: inline-block;">（开启后，任意项目触发将封禁该IP访问所有配置的服务）</span>';
+                    <span style="color: #666; margin-left: 10px; font-size: 12px; vertical-align: middle; display: inline-block;">' + pt('（开启后，任意项目触发将封禁该IP访问所有配置的服务）') + '</span>';
                     
                     var sfmOpt = $('.soft-man-con').find('.sfm-opt');
                     if (sfmOpt.find('#f2b_strict_mode').length === 0) {
@@ -113,13 +113,13 @@ function f2bService() {
                 });
 
                 var infoHtml = '<div id="f2b_intro_panel" class="help-info-text c7" style="margin-top: 15px; padding: 15px; border: 1px dashed #ccc; border-radius: 4px; line-height: 24px;">\
-                    <h3 style="margin-top:0; margin-bottom: 10px; font-size: 14px; font-weight: bold; color: #333;">📖 御风F2B底层防火墙  使用指南</h3>\
-                    <p style="margin-bottom: 5px;"><b>御风F2B底层防火墙</b> 是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。</p>\
+                    <h3 style="margin-top:0; margin-bottom: 10px; font-size: 14px; font-weight: bold; color: #333;">' + pt('📖 御风F2B底层防火墙  使用指南') + '</h3>\
+                    <p style="margin-bottom: 5px;"><b>' + pt('御风F2B底层防火墙') + '</b> ' + pt('是一款入侵防御软件，通过监控系统与服务的访问日志，自动将多次尝试失败的恶意源 IP 添加到防火墙的拦截规则中。') + '</p>\
                     <ul style="margin-bottom: 0; padding-left: 20px;">\
-                        <li><b>系统防护</b>：用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。</li>\
-                        <li><b>网站防护</b>：自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。</li>\
-                        <li><b>IP黑名单</b>：您可以在此查看当前被防火墙封禁拦截的攻击源 IP，并支持手动添加或解除封禁。</li>\
-                        <li><b>严格模式</b>：开启后，任意受保护的项目触发拦截，将封禁该 IP 访问所有已配置的防护内容。</li>\
+                        <li><b>' + pt('系统防护') + '</b>' + pt('：用于防范服务器 SSH、FTP、MySQL 等服务的账号密码暴力破解。') + '</li>\
+                        <li><b>' + pt('网站防护') + '</b>' + pt('：自动分析 Web 访问日志，有效防御 CC 攻击与高频自动化漏洞扫描，保障业务可用性。') + '</li>\
+                        <li><b>' + pt('IP黑名单') + '</b>' + pt('：您可以在此查看当前被防火墙封禁拦截的攻击源 IP，并支持手动添加或解除封禁。') + '</li>\
+                        <li><b>' + pt('严格模式') + '</b>' + pt('：开启后，任意受保护的项目触发拦截，将封禁该 IP 访问所有已配置的防护内容。') + '</li>\
                     </ul>\
                 </div>';
                 $('.soft-man-con').append(infoHtml);
@@ -171,8 +171,8 @@ function f2bLogs(){
     var con = '<div class="divtable">' +
                 '<textarea class="bt-input-text" style="height: 440px; width: 100%; line-height:22px; padding: 10px; background-color: #1e1e1e; color: #d4d4d4; font-family: Consolas, monospace; border: none; border-radius: 4px;" id="f2bLogBody" readonly></textarea>' +
                 '<div style="margin-top:10px; display: flex; justify-content: space-between; align-items: center;">' +
-                    '<button id="f2bClearLogBtn" class="btn btn-default btn-sm">清空日志</button>' +
-                    '<button id="f2bRefreshLogBtn" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-refresh"></i> 刷新日志</button>' +
+                    '<button id="f2bClearLogBtn" class="btn btn-default btn-sm">' + pt('清空日志') + '</button>' +
+                    '<button id="f2bRefreshLogBtn" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新日志') + '</button>' +
                 '</div>' +
                '</div>';
     $(".soft-man-con").html(con);
@@ -197,7 +197,7 @@ function f2bLogs(){
     });
 
     $("#f2bClearLogBtn").on('click', function(){
-        layer.confirm('确定要清空 fail2ban 的运行日志吗？', {title: '清空日志'}, function(index) {
+        layer.confirm(pt('确定要清空 fail2ban 的运行日志吗？'), {title:  pt('清空日志')}, function(index) {
             api.post('clear_log', '', {}, function(data){
                 var rdata = JSON.parse(data.data);
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -215,19 +215,19 @@ function f2bBanIp() {
         <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">\
             <div style="display:flex; align-items:center;">\
                 <input class="bt-input-text" type="text" id="f2b_add_ip_input" placeholder="输入IP地址，例如1.1.1.1" style="width: 200px; margin-right: 5px;">\
-                <button class="btn btn-success btn-sm" onclick="f2bAddDropIp();">添加黑名单</button>\
+                <button class="btn btn-success btn-sm" onclick="f2bAddDropIp();">' + pt('添加黑名单') + '</button>\
             </div>\
-            <button class="btn btn-default btn-sm" onclick="f2bBanIp();"><i class="glyphicon glyphicon-refresh"></i> 刷新</button>\
+            <button class="btn btn-default btn-sm" onclick="f2bBanIp();"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新') + '</button>\
         </div>\
         <div class="divtable">\
             <table class="table table-hover">\
                 <thead>\
                     <tr>\
-                        <th width="20%">IP 地址</th>\
-                        <th width="15%">触发规则</th>\
-                        <th width="30%">IP归属</th>\
-                        <th width="20%">剩余封禁时间</th>\
-                        <th width="15%" style="text-align: right;">操作</th>\
+                        <th width="20%">' + pt('IP 地址') + '</th>\
+                        <th width="15%">' + pt('触发规则') + '</th>\
+                        <th width="30%">' + pt('IP归属') + '</th>\
+                        <th width="20%">' + pt('剩余封禁时间') + '</th>\
+                        <th width="15%" style="text-align: right;">' + pt('操作') + '</th>\
                     </tr>\
                 </thead>\
                 <tbody id="f2b_drop_ip_list_body">\
@@ -248,7 +248,7 @@ function f2bBanIp() {
 
         var bans = rdata.data;
         if (!bans || bans.length === 0) {
-            $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center;">暂无封禁 IP。</td></tr>');
+            $('#f2b_drop_ip_list_body').html('<tr><td colspan="5" style="text-align:center;">' + pt('暂无封禁 IP。') + '</td></tr>');
             return;
         }
 
@@ -282,7 +282,7 @@ function f2bBanIp() {
 
             var timeRemaining = '';
             if (bantime < 0) {
-                timeRemaining = '<span style="color:#d9534f; font-weight:bold;">永久封禁</span>';
+                timeRemaining = '<span style="color:#d9534f; font-weight:bold;">' + pt('永久封禁') + '</span>';
             } else {
                 var diff = expire_time - nowTimestamp;
                 if (diff <= 0) {
@@ -304,7 +304,7 @@ function f2bBanIp() {
                 <td id="' + ipId + '">' + locDisplay + '</td>\
                 <td>' + timeRemaining + '</td>\
                 <td style="text-align: right;">\
-                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="f2bRemoveDropIp(\'' + ip + '\', \'' + jail + '\')">解除封禁</a>\
+                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="f2bRemoveDropIp(\'' + ip + '\', \'' + jail + '\')">' + pt('解除封禁') + '</a>\
                 </td>\
             </tr>';
         }
@@ -353,7 +353,7 @@ function f2bBanIp() {
 }
 
 function f2bRemoveDropIp(ip, jail) {
-    layer.confirm('确定要解除对 IP (' + ip + ') 的封禁吗？', {title: '解除封禁', icon: 3}, function(index) {
+    layer.confirm('确定要解除对 IP (' + ip + ') 的封禁吗？', {title:  pt('解除封禁'), icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg('正在解封...', {icon: 16, time: 0, shade: 0.3});
         
@@ -373,7 +373,7 @@ function f2bRemoveDropIp(ip, jail) {
 function f2bAddDropIp() {
     var ip = $('#f2b_add_ip_input').val().trim();
     if (!ip) {
-        layer.msg('请输入IP地址', {icon: 2});
+        layer.msg(pt('请输入IP地址'), {icon: 2});
         return;
     }
     var loadT = layer.msg('正在添加...', {icon: 16, time: 0, shade: 0.3});
@@ -386,7 +386,7 @@ function f2bAddDropIp() {
             ipList.push(ip);
         } else {
             layer.close(loadT);
-            layer.msg('该IP已在黑名单中', {icon: 2});
+            layer.msg(pt('该IP已在黑名单中'), {icon: 2});
             return;
         }
         
@@ -430,17 +430,17 @@ function f2bServerAnti() {
                 if(rule.mode == item.mode) configured = rule;
             });
 
-            var statusStr = '<span style="color:red">未配置</span>';
-            var btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+item.port+'\', \''+item.maxretry+'\', \''+item.findtime+'\', \''+item.bantime+'\')">配置</a>';
+            var statusStr = '<span style="color:red">' + pt('未配置') + '</span>';
+            var btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+item.port+'\', \''+item.maxretry+'\', \''+item.findtime+'\', \''+item.bantime+'\')">' + pt('配置') + '</a>';
             
             if(configured) {
                 if(configured.act == 'true' || configured.act == true) {
-                    statusStr = '<span style="color:green">防御中</span>';
+                    statusStr = '<span style="color:green">' + pt('防御中') + '</span>';
                 } else {
-                    statusStr = '<span style="color:orange">已停用</span>';
+                    statusStr = '<span style="color:orange">' + pt('已停用') + '</span>';
                 }
-                btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+configured.port+'\', \''+configured.maxretry+'\', \''+configured.findtime+'\', \''+configured.bantime+'\')">修改</a> | ' +
-                         '<a href="javascript:;" class="btlink" onclick="f2bDelAnti(\''+item.mode+'\')">删除</a>';
+                btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+configured.port+'\', \''+configured.maxretry+'\', \''+configured.findtime+'\', \''+configured.bantime+'\')">' + pt('修改') + '</a> | ' +
+                         '<a href="javascript:;" class="btlink" onclick="f2bDelAnti(\''+item.mode+'\')">' + pt('删除') + '</a>';
             }
 
             tbody += '<tr>' +
@@ -455,10 +455,10 @@ function f2bServerAnti() {
 
         var con = '<div class="divtable">' +
                   '<table class="table table-hover">' +
-                  '<thead><tr><th>服务名称</th><th>端口</th><th>拦截条件</th><th>封禁时长</th><th>状态</th><th style="text-align: right;">操作</th></tr></thead>' +
+                  '<thead><tr><th>' + pt('服务名称') + '</th><th>' + pt('端口') + '</th><th>' + pt('拦截条件') + '</th><th>' + pt('封禁时长') + '</th><th>' + pt('状态') + '</th><th style="text-align: right;">' + pt('操作') + '</th></tr></thead>' +
                   '<tbody>' + tbody + '</tbody>' +
                   '</table>' +
-                  '<ul class="help-info-text c7 ptb15"><li>系统服务防暴力破解，配置后当多次认证失败时将在底层防火墙直接封禁对应来源IP。</li></ul>' +
+                  '<ul class="help-info-text c7 ptb15"><li>' + pt('系统服务防暴力破解，配置后当多次认证失败时将在底层防火墙直接封禁对应来源IP。') + '</li></ul>' +
                   '</div>';
         $(".soft-man-con").html(con);
     });
@@ -466,12 +466,12 @@ function f2bServerAnti() {
 
 function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
     var content = '<div class="bt-form pd20 pb70">' +
-        '<div class="line"><span class="tname">防爆破服务</span><div class="info-r"><input class="bt-input-text" type="text" disabled value="'+name+'" style="width:250px" /></div></div>' +
-        '<div class="line"><span class="tname">防护端口</span><div class="info-r"><input class="bt-input-text" name="port" type="text" value="'+port+'" style="width:250px" /></div></div>' +
-        '<div class="line"><span class="tname">检测周期</span><div class="info-r"><input class="bt-input-text" name="findtime" type="number" value="'+findtime+'" style="width:250px" />  秒</div></div>' +
-        '<div class="line"><span class="tname">最大失败次数</span><div class="info-r"><input class="bt-input-text" name="maxretry" type="number" value="'+maxretry+'" style="width:250px" />  次</div></div>' +
-        '<div class="line"><span class="tname">封禁时间</span><div class="info-r"><input class="bt-input-text" name="bantime" type="number" value="'+bantime+'" style="width:250px" />  秒</div></div>' +
-        '<div class="line"><span class="tname">状态</span><div class="info-r"><select class="bt-input-text" name="act" style="width:250px"><option value="true">启用</option><option value="false">停用</option></select></div></div>' +
+        '<div class="line"><span class="tname">' + pt('防爆破服务') + '</span><div class="info-r"><input class="bt-input-text" type="text" disabled value="'+name+'" style="width:250px" /></div></div>' +
+        '<div class="line"><span class="tname">' + pt('防护端口') + '</span><div class="info-r"><input class="bt-input-text" name="port" type="text" value="'+port+'" style="width:250px" /></div></div>' +
+        '<div class="line"><span class="tname">' + pt('检测周期') + '</span><div class="info-r"><input class="bt-input-text" name="findtime" type="number" value="'+findtime+'" style="width:250px" />  ' + pt('秒') + '</div></div>' +
+        '<div class="line"><span class="tname">' + pt('最大失败次数') + '</span><div class="info-r"><input class="bt-input-text" name="maxretry" type="number" value="'+maxretry+'" style="width:250px" />  ' + pt('次') + '</div></div>' +
+        '<div class="line"><span class="tname">' + pt('封禁时间') + '</span><div class="info-r"><input class="bt-input-text" name="bantime" type="number" value="'+bantime+'" style="width:250px" />  ' + pt('秒') + '</div></div>' +
+        '<div class="line"><span class="tname">' + pt('状态') + '</span><div class="info-r"><select class="bt-input-text" name="act" style="width:250px"><option value="true">' + pt('启用') + '</option><option value="false">' + pt('停用') + '</option></select></div></div>' +
         '</div>';
 
     layer.open({
@@ -481,7 +481,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
         closeBtn: 1,
         shadeClose: false,
         content: content,
-        btn: ['提交', '取消'],
+        btn: [pt('提交'), pt('取消')],
         yes: function (index, layero) {
             var postData = {
                 type: 'add',
@@ -505,7 +505,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
 }
 
 function f2bDelAnti(mode) {
-    layer.confirm('确定要删除并停用该防护规则吗？', {title: '停用规则'}, function(index) {
+    layer.confirm(pt('确定要删除并停用该防护规则吗？'), {title:  pt('停用规则')}, function(index) {
         api.post('del_anti', '', {mode: mode, type: 'edit'}, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -539,17 +539,17 @@ function f2bSiteAnti() {
                 if(rule.mode == item.mode) configured = rule;
             });
 
-            var statusStr = '<span style="color:red">未配置</span>';
-            var btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+item.port+'\', \''+item.maxretry+'\', \''+item.findtime+'\', \''+item.bantime+'\')">配置</a>';
+            var statusStr = '<span style="color:red">' + pt('未配置') + '</span>';
+            var btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+item.port+'\', \''+item.maxretry+'\', \''+item.findtime+'\', \''+item.bantime+'\')">' + pt('配置') + '</a>';
             
             if(configured) {
                 if(configured.act == 'true' || configured.act == true) {
-                    statusStr = '<span style="color:green">防御中</span>';
+                    statusStr = '<span style="color:green">' + pt('防御中') + '</span>';
                 } else {
-                    statusStr = '<span style="color:orange">已停用</span>';
+                    statusStr = '<span style="color:orange">' + pt('已停用') + '</span>';
                 }
-                btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+configured.port+'\', \''+configured.maxretry+'\', \''+configured.findtime+'\', \''+configured.bantime+'\')">修改</a> | ' +
-                         '<a href="javascript:;" class="btlink" onclick="f2bDelAnti(\''+item.mode+'\')">删除</a>';
+                btnStr = '<a href="javascript:;" class="btlink" onclick="f2bConfigService(\''+item.mode+'\', \''+item.name+'\', \''+configured.port+'\', \''+configured.maxretry+'\', \''+configured.findtime+'\', \''+configured.bantime+'\')">' + pt('修改') + '</a> | ' +
+                         '<a href="javascript:;" class="btlink" onclick="f2bDelAnti(\''+item.mode+'\')">' + pt('删除') + '</a>';
             }
 
             tbody += '<tr>' +
@@ -564,10 +564,10 @@ function f2bSiteAnti() {
 
         var con = '<div class="divtable">' +
                   '<table class="table table-hover">' +
-                  '<thead><tr><th>防护类型</th><th>端口</th><th>拦截条件</th><th>封禁时长</th><th>状态</th><th style="text-align: right;">操作</th></tr></thead>' +
+                  '<thead><tr><th>' + pt('防护类型') + '</th><th>' + pt('端口') + '</th><th>' + pt('拦截条件') + '</th><th>' + pt('封禁时长') + '</th><th>' + pt('状态') + '</th><th style="text-align: right;">' + pt('操作') + '</th></tr></thead>' +
                   '<tbody>' + tbody + '</tbody>' +
                   '</table>' +
-                  '<ul class="help-info-text c7 ptb15" style="margin-bottom:0;"><li>开启全局防护后，将自动应用到所有网站，对访问日志进行聚合分析和攻击拦截。</li></ul>' +
+                  '<ul class="help-info-text c7 ptb15" style="margin-bottom:0;"><li>' + pt('开启全局防护后，将自动应用到所有网站，对访问日志进行聚合分析和攻击拦截。') + '</li></ul>' +
                   '<div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin-top: 5px;">\
                       <h4 style="color: #333; font-size: 14px; font-weight: bold; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eaeaea; padding-bottom: 10px;">\
                           <span class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:8px;"></span>网站防护机制深度解析\
@@ -620,28 +620,28 @@ function f2bLogRequest(page){
                 list += '<td><span class="overflow_hide" title="' + data[i]['ip'] + '" style="width:120px; font-family: Consolas, monospace; font-weight:bold; color:#d9534f;">' + data[i]['ip'] +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + data[i]['rule_name'] + '" style="width:100px;">' + data[i]['rule_name'] +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + data[i]['reason'] + '" style="width:300px;">' + data[i]['reason'] +'</span></td>';
-                list += '<td style="text-align:right;"><a onclick="f2bIpDetails(\''+data[i]['ip']+'\')" href="javascript:;" class="btlink f2b-details" title="详情">详情</a></td>';
+                list += '<td style="text-align:right;"><a onclick="f2bIpDetails(\''+data[i]['ip']+'\')" href="javascript:;" class="btlink f2b-details" title="详情">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
         } else{
-             list += '<tr><td colspan="4" style="text-align:center;">封锁日志为空</td></tr>';
+             list += '<tr><td colspan="4" style="text-align:center;">' + pt('封锁日志为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>时间</th>\
+                            <th>' + pt('时间') + '</th>\
                             <th>IP</th>\
-                            <th>规则名</th>\
-                            <th>原因</th>\
-                            <th style="text-align:right;">操作</th>\
+                            <th>' + pt('规则名') + '</th>\
+                            <th>' + pt('原因') + '</th>\
+                            <th style="text-align:right;">' + pt('操作') + '</th>\
                             </tr></thead>\
                             <tbody>\
                             '+ list +'\
                             </tbody></table>\
                         </div>\
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">\
-                            <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">导出excel</button></div>\
+                            <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">' + pt('导出excel') + '</button></div>\
                             <div id="wsPage" class="dataTables_paginate paging_bootstrap page" style="margin:0;"></div>\
                         </div>';
         $('#ws_table').html(table);
@@ -689,7 +689,7 @@ function f2bIpDetails(ip) {
                     if(actMatch) {
                         actionStr = $('<div>').text(actMatch[1].replace(new RegExp(ip, 'g'), '').trim()).html();
                     } else {
-                        actionStr = '<span style="color:#999;" title="' + $('<div>').text(line).html() + '">未知动作</span>'; // 容错处理
+                        actionStr = '<span style="color:#999;" title="' + $('<div>').text(line).html() + '">' + pt('未知动作') + '</span>'; // 容错处理
                     }
                 }
                 
@@ -700,22 +700,22 @@ function f2bIpDetails(ip) {
                 </tr>';
             }
         } else {
-            tbodyHtml = '<tr><td colspan="3" style="text-align:center;">暂无详细记录</td></tr>';
+            tbodyHtml = '<tr><td colspan="3" style="text-align:center;">' + pt('暂无详细记录') + '</td></tr>';
         }
         
         var content = '<div class="pd15">\
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #f4f6f8; padding: 10px 15px; border-radius: 4px; border: 1px solid #e2e2e2; margin-bottom: 15px;">\
-                            <div style="font-size: 13px;"><b>防护目标IP：</b><span style="font-family: Consolas, monospace; color:#333; margin-left: 5px;">' + $('<div>').text(ip).html() + '</span></div>\
-                            <div style="font-size: 13px;"><b>历史封禁次数：</b><span style="color:#d9534f; font-weight:bold; font-size:15px; margin: 0 5px;">' + ban_count + '</span>次</div>\
+                            <div style="font-size: 13px;"><b>' + pt('防护目标IP：') + '</b><span style="font-family: Consolas, monospace; color:#333; margin-left: 5px;">' + $('<div>').text(ip).html() + '</span></div>\
+                            <div style="font-size: 13px;"><b>' + pt('历史封禁次数：') + '</b><span style="color:#d9534f; font-weight:bold; font-size:15px; margin: 0 5px;">' + ban_count + '</span>' + pt('次') + '</div>\
                         </div>\
                         <div class="divtable">\
                             <div style="max-height: 380px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">\
                                 <table class="table table-hover" style="margin:0; border:none;">\
                                     <thead style="position: sticky; top: 0; background: #f2f2f2; z-index: 1;">\
                                         <tr>\
-                                            <th width="35%" style="border-bottom: 1px solid #ddd;">时间</th>\
-                                            <th width="35%" style="border-bottom: 1px solid #ddd;">触发规则</th>\
-                                            <th width="30%" style="border-bottom: 1px solid #ddd;">执行动作</th>\
+                                            <th width="35%" style="border-bottom: 1px solid #ddd;">' + pt('时间') + '</th>\
+                                            <th width="35%" style="border-bottom: 1px solid #ddd;">' + pt('触发规则') + '</th>\
+                                            <th width="30%" style="border-bottom: 1px solid #ddd;">' + pt('执行动作') + '</th>\
                                         </tr>\
                                     </thead>\
                                     <tbody>\
@@ -745,16 +745,16 @@ function f2bSiteHistory(){
                         <span style="margin-left:10px">时间: </span>\
                         <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                             <div id="search_time" class="input-group-btn btn-group-sm">\
-                                <button data-name="today" type="button" class="btn btn-default cur">今日</button>\
-                                <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                                <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                                <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                                <button data-name="today" type="button" class="btn btn-default cur">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                             </div>\
                             <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                         </div>\
                     </div>\
                     <div>\
-                        <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">刷新</button>\
+                        <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">' + pt('刷新') + '</button>\
                     </div>\
                 </div>\
                 <div class="divtable mtb10" id="ws_table"></div>\
@@ -780,7 +780,7 @@ function f2bSiteHistory(){
             var rdata = JSON.parse(rdata.data);
             var data = rdata.data.data;
             if(!data || data.length == 0) {
-                layer.msg("没有数据可导出", {icon: 2});
+                layer.msg(pt("没有数据可导出"), {icon: 2});
                 return;
             }
             var csv = "\uFEFF时间,IP,规则名,原因\n";

@@ -12,14 +12,14 @@ function getRuleByName(rule_name, callback){
 function setRequestCode(ruleName, statusCode){
     layer.open({
         type: 1,
-        title: "设置响应代码【" + ruleName + "】",
+        title:  pt("设置响应代码【") + ruleName + "】",
         area: '300px',
         shift: 5,
         closeBtn: 1,
         shadeClose: true,
         content: '<div class="bt-form pd20 pb70">\
                     <div class="line">\
-                        <span class="tname">响应代码</span>\
+                        <span class="tname">' + pt('响应代码') + '</span>\
                         <div class="info-r">\
                             <select id="statusCode" class="bt-input-text mr5" style="width:150px;">\
                                 <option value="200" '+ (statusCode == 200 ? 'selected' : '') + '>正常(200)</option>\
@@ -33,7 +33,7 @@ function setRequestCode(ruleName, statusCode){
                         </div>\
                     </div>\
                     <div class="bt-form-submit-btn">\
-                        <button type="button" class="btn btn-success btn-sm btn-title" onclick="setState(\''+ ruleName + '\')">确定</button>\
+                        <button type="button" class="btn btn-success btn-sm btn-title" onclick="setState(\''+ ruleName + '\')">' + pt('确定') + '</button>\
                     </div>\
                 </div>'
     });
@@ -105,16 +105,16 @@ function saveCcRule(siteName,is_open_global, type) {
 
 
 function setCcRule(cycle, limit, endtime, siteName, increase){
-    var incstr = '<li style="color:red;">此处设置仅对当前站点有效。</li>';
+    var incstr = '<li style="color:red;">' + pt('此处设置仅对当前站点有效。') + '</li>';
     if (siteName == 'undefined') {
-        incstr = '<li style="color:red;">此处设置的是初始值，新添加站点时将继承，对现有站点无效。</li>';
+        incstr = '<li style="color:red;">' + pt('此处设置的是初始值，新添加站点时将继承，对现有站点无效。') + '</li>';
     }
     // <div class="line">\
     //     <span class="tname">增强模式</span>\
     //     <div class="info-r">\
     //         <select class="bt-input-text mr5" style="width:80px" name="enhance_mode">\
-    //             <option value="0" '+ (enhance_mode == 0?'selected':'') +'>关闭</option>\
-    //             <option value="1" '+ (enhance_mode == 1?'selected':'') +'>开启</option>\
+    //             <option value="0" '+ (enhance_mode == 0?'selected':'') +'>' + pt('关闭') + '</option>\
+    //             <option value="1" '+ (enhance_mode == 1?'selected':'') +'>' + pt('开启') + '</option>\
     //         </select>\
     //     </div>\
     // </div>\
@@ -122,8 +122,8 @@ function setCcRule(cycle, limit, endtime, siteName, increase){
     //     <span class="tname">四层防御</span>\
     //     <div class="info-r">\
     //         <select class="bt-input-text mr5" style="width:80px" name="cc_four_defense">\
-    //             <option value="0">关闭</option>\
-    //             <option value="1">开启</option>\
+    //             <option value="0">' + pt('关闭') + '</option>\
+    //             <option value="1">' + pt('开启') + '</option>\
     //         </select>\
     //     </div>\
     // </div>\
@@ -131,31 +131,31 @@ function setCcRule(cycle, limit, endtime, siteName, increase){
 
     create_l = layer.open({
         type: 1,
-        title: "设置CC规则",
+        title:  pt("设置CC规则"),
         area: '540px',
         closeBtn: 1,
         shadeClose: false,
         content: '<form class="bt-form pd20 pb70">\
                 <div class="line">\
-                    <span class="tname">周期</span>\
-                    <div class="info-r"><input class="bt-input-text" name="cc_cycle" type="number" value="'+ cycle + '" /> 秒</div>\
+                    <span class="tname">' + pt('周期') + '</span>\
+                    <div class="info-r"><input class="bt-input-text" name="cc_cycle" type="number" value="'+ cycle + '" /> ' + pt('秒') + '</div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">频率</span>\
-                    <div class="info-r"><input class="bt-input-text" name="cc_limit" type="number" value="'+ limit + '" /> 次</div>\
+                    <span class="tname">' + pt('频率') + '</span>\
+                    <div class="info-r"><input class="bt-input-text" name="cc_limit" type="number" value="'+ limit + '" /> ' + pt('次') + '</div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">封锁时间</span>\
-                    <div class="info-r"><input class="bt-input-text" name="cc_endtime" type="number" value="'+ endtime + '" /> 秒</div>\
+                    <span class="tname">' + pt('封锁时间') + '</span>\
+                    <div class="info-r"><input class="bt-input-text" name="cc_endtime" type="number" value="'+ endtime + '" /> ' + pt('秒') + '</div>\
                 </div>\
                 <ul class="help-info-text c7 ptb10">'+ incstr + '\
-                    <li><font style="color:red;">'+ cycle + '</font> 秒内累计请求同一URL超过  <font style="color:red;">' + limit + '</font> 次,触发CC防御,封锁此IP <font style="color:red;">' + endtime + '</font> 秒</li>\
-                    <li>请不要设置过于严格的CC规则,以免影响正常用户体验</li>\
-                    <li><font style="color:red;display:'+ (siteName == 'undefined'?'display: inline-block;':'none') +';">全局应用:全局设置当前CC规则，且覆盖当前全部站点的CC规则</font></li>\
+                    <li><font style="color:red;">'+ cycle + '</font> ' + pt('秒内累计请求同一URL超过') + '  <font style="color:red;">' + limit + '</font> ' + pt('次,触发CC防御,封锁此IP') + ' <font style="color:red;">' + endtime + '</font> ' + pt('秒') + '</li>\
+                    <li>' + pt('请不要设置过于严格的CC规则,以免影响正常用户体验') + '</li>\
+                    <li><font style="color:red;display:'+ (siteName == 'undefined'?'display: inline-block;':'none') +';">' + pt('全局应用:全局设置当前CC规则，且覆盖当前全部站点的CC规则') + '</font></li>\
                 </ul>\
                 <div class="bt-form-submit-btn">\
-                    <button type="button" class="btn btn-danger btn-sm btn_cc_all" style="margin-right:10px;display:'+ (siteName == 'undefined'?'display: inline-block;':'none') +';">全局应用</button>\
-                    <button type="button" class="btn btn-success btn-sm btn_cc_present">应用</button>\
+                    <button type="button" class="btn btn-danger btn-sm btn_cc_all" style="margin-right:10px;display:'+ (siteName == 'undefined'?'display: inline-block;':'none') +';">' + pt('全局应用') + '</button>\
+                    <button type="button" class="btn btn-success btn-sm btn_cc_present">' + pt('应用') + '</button>\
                 </div>\
             </form>',
             success:function(layero,index){
@@ -174,30 +174,30 @@ function setCcRule(cycle, limit, endtime, siteName, increase){
 function setRetry(retry_cycle, retry, retry_time, siteName) {
     create_layer = layer.open({
         type: 1,
-        title: "设置恶意容忍规则",
+        title:  pt("设置恶意容忍规则"),
         area: '500px',
         closeBtn: 1,
         shadeClose: false,
         content: '<form class="bt-form pd20 pb70">\
                 <div class="line">\
-                    <span class="tname">周期</span>\
-                    <div class="info-r"><input class="bt-input-text" name="retry_cycle" type="number" value="'+ retry_cycle + '" /> 秒</div>\
+                    <span class="tname">' + pt('周期') + '</span>\
+                    <div class="info-r"><input class="bt-input-text" name="retry_cycle" type="number" value="'+ retry_cycle + '" /> ' + pt('秒') + '</div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">频率</span>\
-                    <div class="info-r"><input class="bt-input-text" name="retry" type="number" value="'+ retry + '" /> 次</div>\
+                    <span class="tname">' + pt('频率') + '</span>\
+                    <div class="info-r"><input class="bt-input-text" name="retry" type="number" value="'+ retry + '" /> ' + pt('次') + '</div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">封锁时间</span>\
-                    <div class="info-r"><input class="bt-input-text" name="retry_time" type="number" value="'+ retry_time + '" /> 秒</div>\
+                    <span class="tname">' + pt('封锁时间') + '</span>\
+                    <div class="info-r"><input class="bt-input-text" name="retry_time" type="number" value="'+ retry_time + '" /> ' + pt('秒') + '</div>\
                 </div>\
                 <ul class="help-info-text c7 ptb10">\
-                    <li><font style="color:red;">'+ retry_cycle + '</font> 秒内累计恶意请求超过  <font style="color:red;">' + retry + '</font> 次,封锁 <font style="color:red;">' + retry_time + '</font> 秒</li>\
-                    <li><font style="color:red;">全局应用:全局设置当前恶意容忍规则，且覆盖当前全部站点的恶意容忍规则</font></li>\
+                    <li><font style="color:red;">'+ retry_cycle + '</font> ' + pt('秒内累计恶意请求超过') + '  <font style="color:red;">' + retry + '</font> ' + pt('次,封锁') + ' <font style="color:red;">' + retry_time + '</font> ' + pt('秒') + '</li>\
+                    <li><font style="color:red;">' + pt('全局应用:全局设置当前恶意容忍规则，且覆盖当前全部站点的恶意容忍规则') + '</font></li>\
                 </ul>\
                 <div class="bt-form-submit-btn">\
-                    <button type="button" class="btn btn-danger btn-sm btn_retry_all" style="margin-right:10px;display:'+ (siteName == undefined?'inline-block;':'none') +';">全局应用</button>\
-                    <button type="button" class="btn btn-success btn-sm btn_retry_present">应用</button>\
+                    <button type="button" class="btn btn-danger btn-sm btn_retry_all" style="margin-right:10px;display:'+ (siteName == undefined?'inline-block;':'none') +';">' + pt('全局应用') + '</button>\
+                    <button type="button" class="btn btn-success btn-sm btn_retry_present">' + pt('应用') + '</button>\
                 </div>\
             </form>',
         success:function(){
@@ -217,7 +217,7 @@ function setRetry(retry_cycle, retry, retry_time, siteName) {
 function setSafeVerify(auto, cpu, time, mode,siteName) {
     var svlayer = layer.open({
         type: 1,
-        title: "设置强制安全验证",
+        title:  pt("设置强制安全验证"),
         area: '500px',
         closeBtn: 1,
         shadeClose: false,
@@ -227,35 +227,35 @@ function setSafeVerify(auto, cpu, time, mode,siteName) {
                     <div class="info-r"><input class="bt-input-text" name="cpu" type="number" max-number="100" value="'+ cpu + '" /> %</div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">通行时间</span>\
+                    <span class="tname">' + pt('通行时间') + '</span>\
                     <div class="info-r">\
                         <input class="bt-input-text" name="time" type="number" value="'+ time + '" /> 秒\
                     </div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">验证模式</span>\
+                    <span class="tname">' + pt('验证模式') + '</span>\
                     <div class="info-r">\
                         <select class="bt-input-text mr5" style="width:200px" name="mode">\
-                        <option value="url" '+(mode=='url'?"selected=selected":"")+'>URL跳转验证</option>\
-                        <option value="local" '+(mode=='local'?"selected=selected":"")+'>本地验证</option>\
+                        <option value="url" '+(mode=='url'?"selected=selected":"")+'>' + pt('URL跳转验证') + '</option>\
+                        <option value="local" '+(mode=='local'?"selected=selected":"")+'>' + pt('本地验证') + '</option>\
                         </select>\
                     </div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">开启自动</span>\
+                    <span class="tname">' + pt('开启自动') + '</span>\
                     <div class="info-r">\
                         <select class="bt-input-text mr5" style="width:80px" name="auto">\
-                        <option value="0" '+(auto==false?"selected=selected":"")+'>关闭</option>\
-                        <option value="1" '+(auto==true?"selected=selected":"")+'>开启</option>\
+                        <option value="0" '+(auto==false?"selected=selected":"")+'>' + pt('关闭') + '</option>\
+                        <option value="1" '+(auto==true?"selected=selected":"")+'>' + pt('开启') + '</option>\
                         </select>\
                     </div>\
                 </div>\
                 <ul class="help-info-text c7 ptb10">\
-                    <li><font style="color:red;">全局设置强制安全验证</font></li>\
+                    <li><font style="color:red;">' + pt('全局设置强制安全验证') + '</font></li>\
                     <li>开启自动后:cpu超过['+cpu+'%]后，强制验证。</li>\
                 </ul>\
                 <div class="bt-form-submit-btn">\
-                    <button type="button" class="btn btn-success btn-sm btn_sv_present">应用</button>\
+                    <button type="button" class="btn btn-success btn-sm btn_sv_present">' + pt('应用') + '</button>\
                 </div>\
             </form>',
         success:function(index){
@@ -326,11 +326,11 @@ function modifyRule(index, ruleName) {
     $('.rule_body_' + index).html('<textarea class="bt-input-text" name="rule_body_' + index + '" style="margin: 0px; height: 70px; width: 99%;line-height:20px">' + ruleValue + '</textarea>');
     var rulePs = $('.rule_ps_' + index).text();
     $('.rule_ps_' + index).html('<input class="bt-input-text" type="text" name="rule_ps_' + index + '" value="' + rulePs + '" />');
-    $('.rule_modify_' + index).html('<a class="btlink" onclick="modifyRuleSave(' + index + ',\'' + ruleName + '\')">保存</a> | <a class="btlink modr_cancel_' + index + '">取消</a>');
+    $('.rule_modify_' + index).html('<a class="btlink" onclick="modifyRuleSave(' + index + ',\'' + ruleName + '\')">' + pt('保存') + '</a> | <a class="btlink modr_cancel_' + index + '">' + pt('取消') + '</a>');
     $(".modr_cancel_" + index).on('click', function () {
         $('.rule_body_' + index).html(ruleValue);
         $('.rule_ps_' + index).html(rulePs);
-        $('.rule_modify_' + index).html('<a class="btlink" onclick="modifyRule(' + index + ',\'' + ruleName + '\')">编辑</a>');
+        $('.rule_modify_' + index).html('<a class="btlink" onclick="modifyRule(' + index + ',\'' + ruleName + '\')">' + pt('编辑') + '</a>');
     })
 }
 
@@ -359,7 +359,7 @@ function removeRule(ruleName, index) {
         'index': index,
         'ruleName': ruleName
     }
-    safeMessage('删除规则', '您真的要删除这条过滤规则吗？', function () {
+    safeMessage(pt('删除规则'), '您真的要删除这条过滤规则吗？', function () {
         api.post('remove_rule', pdata, function(data){
             var rdata = JSON.parse(data.data);
             layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -394,7 +394,7 @@ function setObjConf(ruleName, type) {
     if (type == undefined) {
         create_l = layer.open({
             type: 1,
-            title: "编辑规则【" + ruleName + "】",
+            title:  pt("编辑规则【") + ruleName + "】",
             area: ['700px', '530px'],
             closeBtn: 1,
             shadeClose: false,
@@ -402,16 +402,16 @@ function setObjConf(ruleName, type) {
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                 <input class="bt-input-text" name="ruleValue" type="text" value="" style="width:470px;margin-right:12px;" placeholder="规则内容,请使用正则表达式">\
                 <input class="bt-input-text mr5" name="rulePs" type="text" style="width:120px;" placeholder="描述">\
-                <button class="btn btn-success btn-sm va0 pull-right" onclick="addRule(\''+ ruleName + '\');">添加</button>\</div>\
+                <button class="btn btn-success btn-sm va0 pull-right" onclick="addRule(\''+ ruleName + '\');">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="jc-file-table" class="table_head_fix" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
                 <table class="table table-hover" style="border:none">\
                     <thead>\
                         <tr>\
-                            <th width="360">规则</th>\
-                            <th>说明</th>\
-                            <th>操作</th>\
-                            <th style="text-align: right;">状态</th>\
+                            <th width="360">' + pt('规则') + '</th>\
+                            <th>' + pt('说明') + '</th>\
+                            <th>' + pt('操作') + '</th>\
+                            <th style="text-align: right;">' + pt('状态') + '</th>\
                         </tr>\
                     </thead>\
                     <tbody id="set_obj_conf_con" class="gztr"></tbody>\
@@ -419,9 +419,9 @@ function setObjConf(ruleName, type) {
                 </div>\
             </div>\
             <ul class="help-info-text c7 ptb10">\
-                <li style="color:red;">注意:如果您不了解正则表达式,请不要随意修改规则内容</li>\
-                <li>您可以添加或修改规则内容,但请使用正则表达式</li>\
-                <li>内置规则允许修改,但不可以直接删除,您可以设置规则状态来定义防火墙是否使用此规则</li>\
+                <li style="color:red;">' + pt('注意:如果您不了解正则表达式,请不要随意修改规则内容') + '</li>\
+                <li>' + pt('您可以添加或修改规则内容,但请使用正则表达式') + '</li>\
+                <li>' + pt('内置规则允许修改,但不可以直接删除,您可以设置规则状态来定义防火墙是否使用此规则') + '</li>\
             </ul></div>'
         });
         tableFixed("jc-file-table");
@@ -433,11 +433,11 @@ function setObjConf(ruleName, type) {
         var tbody = ''
         for (var i = 0; i < rdata.length; i++) {
             var removeRule = ''
-            if (rdata[i][3] != 0) removeRule = ' | <a class="btlink" onclick="removeRule(\'' + ruleName + '\',' + i + ')">删除</a>';
+            if (rdata[i][3] != 0) removeRule = ' | <a class="btlink" onclick="removeRule(\'' + ruleName + '\',' + i + ')">' + pt('删除') + '</a>';
             tbody += '<tr>\
                     <td class="rule_body_'+ i + '">' + rdata[i][1] + '</td>\
                     <td class="rule_ps_'+ i + '">' + rdata[i][2] + '</td>\
-                    <td class="rule_modify_'+ i + '"><a class="btlink" onclick="modifyRule(' + i + ',\'' + ruleName + '\')">编辑</a>' + removeRule + '</td>\
+                    <td class="rule_modify_'+ i + '"><a class="btlink" onclick="modifyRule(' + i + ',\'' + ruleName + '\')">' + pt('编辑') + '</a>' + removeRule + '</td>\
                     <td class="text-right">\
                         <div class="pull-right">\
                         <input class="btswitch btswitch-ios" id="closeua_'+ i + '" type="checkbox" ' + (rdata[i][0] ? 'checked' : '') + '>\
@@ -460,7 +460,7 @@ function cdnEnhancedRule() {
         for (var i = 0; i < trusted_proxies.length; i++) {
             tbody += '<tr>\
                     <td>'+ trusted_proxies[i] + '</td>\
-                    <td class="text-right"><a class="btlink" onclick="removeTrustedProxy('+ i + ')">删除</a></td>\
+                    <td class="text-right"><a class="btlink" onclick="removeTrustedProxy('+ i + ')">' + pt('删除') + '</a></td>\
                 </tr>'
         }
         create_l = layer.open({
@@ -472,14 +472,14 @@ function cdnEnhancedRule() {
             content: '<div class="pd15">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                     <input class="bt-input-text" name="trusted_proxy_ip" type="text" value="" style="width:380px;margin-right:15px;margin-left:5px" placeholder="CDN节点IP或CIDR，如 10.0.0.0/8">\
-                    <button class="btn btn-success btn-sm va0 pull-right" onclick="addTrustedProxy();">添加</button>\</div>\
+                    <button class="btn btn-success btn-sm va0 pull-right" onclick="addTrustedProxy();">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="trustedProxyAdmin" style="max-height:273px;overflow:auto;border:#ddd 1px solid">\
                 <table class="table table-hover" style="border:none">\
                     <thead>\
                         <tr>\
-                            <th>可信IP/CIDR</th>\
-                            <th style="text-align: right;">操作</th>\
+                            <th>' + pt('可信IP/CIDR') + '</th>\
+                            <th style="text-align: right;">' + pt('操作') + '</th>\
                         </tr>\
                     </thead>\
                     <tbody id="trusted_proxy_con" class="gztr">'+tbody+'</tbody>\
@@ -487,8 +487,8 @@ function cdnEnhancedRule() {
                 </div>\
             </div>\
             <ul class="help-info-text c7 ptb10">\
-                <li>请输入CDN服务商提供的节点IP白名单。支持单个IP或CIDR格式。</li>\
-                <li style="color:red">注意: 开启CDN增强检测后，必须在此添加正确的IP段，否则所有经过CDN的访客都将丢失真实IP。</li>\
+                <li>' + pt('请输入CDN服务商提供的节点IP白名单。支持单个IP或CIDR格式。') + '</li>\
+                <li style="color:red">' + pt('注意: 开启CDN增强检测后，必须在此添加正确的IP段，否则所有经过CDN的访客都将丢失真实IP。') + '</li>\
             </ul></div>'
         });
         tableFixed("trustedProxyAdmin");
@@ -523,7 +523,7 @@ function scanRule() {
 
         create_l = layer.open({
             type: 1,
-            title: "常用扫描器过滤规则",
+            title:  pt("常用扫描器过滤规则"),
             area: '650px',
             closeBtn: 1,
             shadeClose: false,
@@ -541,11 +541,11 @@ function scanRule() {
                         <div class="info-r"><textarea style="margin: 0px;width:475px;height: 75px;line-height:20px" class="bt-input-text" name="scan_args" >'+ rdata.args + '</textarea></div>\
                     </div>\
                     <ul class="help-info-text c7 ptb10">\
-                        <li>会同时过滤key和value,请谨慎设置</li>\
-                        <li>请使用正则表达式,提交前应先备份原有表达式</li>\
+                        <li>' + pt('会同时过滤key和value,请谨慎设置') + '</li>\
+                        <li>' + pt('请使用正则表达式,提交前应先备份原有表达式') + '</li>\
                     </ul>\
                     <div class="bt-form-submit-btn">\
-                        <button type="button" class="btn btn-success btn-sm btn-title" onclick="saveScanRule()">确定</button>\
+                        <button type="button" class="btn btn-success btn-sm btn-title" onclick="saveScanRule()">' + pt('确定') + '</button>\
                     </div>\
                 </form>'
         });
@@ -635,7 +635,7 @@ function outputLayer(rdata, name, type) {
             '</div>' +
             '</div>' +
             '<div class="line "><div class="ml0">' +
-            (type ? '<button name="btn_save_to" class="btn btn-success btn-sm mr5 btn_save_to" >导出配置</button>' : '<button name="btn_save" class="btn btn-success btn-sm mr5 btn_save">保存</button>') +
+            (type ? '<button name="btn_save_to" class="btn btn-success btn-sm mr5 btn_save_to" >' + pt('导出配置') + '</button>' : '<button name="btn_save" class="btn btn-success btn-sm mr5 btn_save">' + pt('保存') + '</button>') +
             '</div></div>' +
             '</div>',
     });
@@ -697,7 +697,7 @@ function ipWhiteLoadList(){
             tbody += '<tr>\
                     <td>'+ rdata[i][0].join('.') + '</td>\
                     <td>'+ rdata[i][1].join('.') + '</td>\
-                    <td class="text-right"><a class="btlink" onclick="removeIpWhite('+ i + ')">删除</a></td>\
+                    <td class="text-right"><a class="btlink" onclick="removeIpWhite('+ i + ')">' + pt('删除') + '</a></td>\
                 </tr>'
         }
         $("#ip_white_con").html(tbody);
@@ -708,7 +708,7 @@ function ipWhite(type) {
     if (type == undefined) {
         create_l = layer.open({
             type: 1,
-            title: "管理IP白名单",
+            title:  pt("管理IP白名单"),
             area: ['500px', '500px'],
             closeBtn: 1,
             shadeClose: false,
@@ -716,15 +716,15 @@ function ipWhite(type) {
                         <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                             <input class="bt-input-text" name="start_ip" type="text" value="" style="width:180px;margin-right:15px;margin-left:5px" placeholder="起始IP地址">\
                             <input class="bt-input-text mr5" name="end_ip" type="text" style="width:180px;margin-left:5px;margin-right:20px" placeholder="结束IP地址">\
-                            <button class="btn btn-success btn-sm va0 pull-right" onclick="addIpWhite();">添加</button>\</div>\
+                            <button class="btn btn-success btn-sm va0 pull-right" onclick="addIpWhite();">' + pt('添加') + '</button>\</div>\
                         <div class="divtable">\
                         <div id="ipWhite" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
                             <table class="table table-hover" style="border:none">\
                                 <thead>\
                                     <tr>\
-                                        <th>超始IP</th>\
-                                        <th>结束IP</th>\
-                                        <th style="text-align: right;">操作</th>\
+                                        <th>' + pt('超始IP') + '</th>\
+                                        <th>' + pt('结束IP') + '</th>\
+                                        <th style="text-align: right;">' + pt('操作') + '</th>\
                                     </tr>\
                                 </thead>\
                                 <tbody id="ip_white_con" class="gztr"></tbody>\
@@ -732,11 +732,11 @@ function ipWhite(type) {
                         </div>\
                     </div>\
                     <div style="width:100%" class="mt5">\
-                        <button class="btn btn-success btn-sm va0 mr5 mt10" onclick="fileInput(\'ip_white\')" >导入</button>\
-                        <button class="btn btn-success btn-sm va0 mt10" onclick="outputData(\'ip_white\')">导出</button>\
+                        <button class="btn btn-success btn-sm va0 mr5 mt10" onclick="fileInput(\'ip_white\')" >' + pt('导入') + '</button>\
+                        <button class="btn btn-success btn-sm va0 mt10" onclick="outputData(\'ip_white\')">' + pt('导出') + '</button>\
                     </div>\
                     <ul class="help-info-text c7 ptb10">\
-                        <li>所有规则对白名单中的IP段无效,包括IP黑名单和URL黑名单,IP白名单具备最高优先权</li>\
+                        <li>' + pt('所有规则对白名单中的IP段无效,包括IP黑名单和URL黑名单,IP白名单具备最高优先权') + '</li>\
                     </ul>\
                 </div>\
                 <div class="pd15 ipv6_list">\
@@ -767,7 +767,7 @@ function urlWhite(type) {
     if (type == undefined) {
         create_l = layer.open({
             type: 1,
-            title: "管理URL白名单",
+            title:  pt("管理URL白名单"),
             area: ['700px', '530px'],
             closeBtn: 1,
             shadeClose: false,
@@ -775,16 +775,16 @@ function urlWhite(type) {
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                 <input class="bt-input-text" name="ruleValue" type="text" value="" style="width:470px;margin-right:12px;" placeholder="规则内容,请使用正则表达式">\
                 <input class="bt-input-text mr5" name="rulePs" type="text" style="width:120px;" placeholder="描述">\
-                <button class="btn btn-success btn-sm va0 pull-right" onclick="addRule(\''+ ruleName + '\');">添加</button>\</div>\
+                <button class="btn btn-success btn-sm va0 pull-right" onclick="addRule(\''+ ruleName + '\');">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="jc-file-table" class="table_head_fix" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
                 <table class="table table-hover" style="border:none">\
                     <thead>\
                         <tr>\
-                            <th width="360">规则</th>\
-                            <th>说明</th>\
-                            <th>操作</th>\
-                            <th style="text-align: right;">状态</th>\
+                            <th width="360">' + pt('规则') + '</th>\
+                            <th>' + pt('说明') + '</th>\
+                            <th>' + pt('操作') + '</th>\
+                            <th style="text-align: right;">' + pt('状态') + '</th>\
                         </tr>\
                     </thead>\
                     <tbody id="set_obj_conf_con" class="gztr"></tbody>\
@@ -792,9 +792,9 @@ function urlWhite(type) {
                 </div>\
             </div>\
             <ul class="help-info-text c7 ptb10">\
-                <li style="color:red;">注意:如果您不了解正则表达式,请不要随意修改规则内容</li>\
-                <li>您可以添加或修改规则内容,但请使用正则表达式</li>\
-                <li>内置规则允许修改,但不可以直接删除,您可以设置规则状态来定义防火墙是否使用此规则</li>\
+                <li style="color:red;">' + pt('注意:如果您不了解正则表达式,请不要随意修改规则内容') + '</li>\
+                <li>' + pt('您可以添加或修改规则内容,但请使用正则表达式') + '</li>\
+                <li>' + pt('内置规则允许修改,但不可以直接删除,您可以设置规则状态来定义防火墙是否使用此规则') + '</li>\
             </ul></div>'
         });
         tableFixed("jc-file-table");
@@ -807,11 +807,11 @@ function urlWhite(type) {
         var tbody = ''
         for (var i = 0; i < rdata.length; i++) {
             var removeRule = ''
-            if (rdata[i][3] != 0) removeRule = ' | <a class="btlink" onclick="removeRule(\'' + ruleName + '\',' + i + ')">删除</a>';
+            if (rdata[i][3] != 0) removeRule = ' | <a class="btlink" onclick="removeRule(\'' + ruleName + '\',' + i + ')">' + pt('删除') + '</a>';
             tbody += '<tr>\
                     <td class="rule_body_'+ i + '">' + rdata[i][1] + '</td>\
                     <td class="rule_ps_'+ i + '">' + rdata[i][2] + '</td>\
-                    <td class="rule_modify_'+ i + '"><a class="btlink" onclick="modifyRule(' + i + ',\'' + ruleName + '\')">编辑</a>' + removeRule + '</td>\
+                    <td class="rule_modify_'+ i + '"><a class="btlink" onclick="modifyRule(' + i + ',\'' + ruleName + '\')">' + pt('编辑') + '</a>' + removeRule + '</td>\
                     <td class="text-right">\
                         <div class="pull-right">\
                         <input class="btswitch btswitch-ios" id="closeua_'+ i + '" type="checkbox" ' + (rdata[i][0] ? 'checked' : '') + '>\
@@ -888,13 +888,13 @@ function addIpBlack() {
 
 function confirmAddIpBlackArgs(ip) {
     layer.confirm('<div style="line-height:22px; font-size:13px;">' +
-        '<b>是否确认将该 IP 永久拉黑？</b><br><br>' +
-        '<span style="color:#666;">加入永久黑名单后，该 IP 对本服务器的所有访问将被防火墙直接阻断（拦截响应代码 444），且该操作长期有效。<br><br>' +
-        '后续如需解除封禁，请前往面板的 <b>全局配置 ➔ IP黑名单</b> 进行手动删除解封。</span></div>', 
+        '<b>' + pt('是否确认将该 IP 永久拉黑？') + '</b><br><br>' +
+        '<span style="color:#666;">' + pt('加入永久黑名单后，该 IP 对本服务器的所有访问将被防火墙直接阻断（拦截响应代码 444），且该操作长期有效。') + '<br><br>' +
+        '后续如需解除封禁，请前往面板的 <b>' + pt('全局配置 ➔ IP黑名单') + '</b> ' + pt('进行手动删除解封。') + '</span></div>', 
     {
-        title: '永久拉黑确认',
+        title:  pt('永久拉黑确认'),
         icon: 3,
-        btn: ['确认拉黑', '取消']
+        btn: [pt('确认拉黑'), pt('取消')]
     }, function(index){
         layer.close(index);
         addIpBlackArgs(ip);
@@ -935,53 +935,53 @@ function ipBlack(type) {
     if (type == undefined) {
         create_l = layer.open({
             type: 1,
-            title: "管理IP黑名单",
+            title:  pt("管理IP黑名单"),
             area: ['500px', '500px'],
             closeBtn: 1,
             shadeClose: false,
-            content: '<div class="tab_list"><div class="tab_block active">IPv4黑名单</div><div class="tab_block">IPv6黑名单</div></div>\
+            content: '<div class="tab_list"><div class="tab_block active">' + pt('IPv4黑名单') + '</div><div class="tab_block">' + pt('IPv6黑名单') + '</div></div>\
                 <div class="pd15 ipv4_block">\
                     <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                         <input class="bt-input-text" name="start_ip" type="text" value="" style="width:150px;margin-right:15px;margin-left:5px" placeholder="起始IP地址">\
                         <input class="bt-input-text mr5" name="end_ip" type="text" style="width:150px;margin-left:5px;margin-right:20px" placeholder="结束IP地址">\
-                        <button class="btn btn-success btn-sm va0 pull-right" onclick="addIpBlack();">添加</button>\</div>\
+                        <button class="btn btn-success btn-sm va0 pull-right" onclick="addIpBlack();">' + pt('添加') + '</button>\</div>\
                     <div class="divtable">\
                     <div id="ipBlack" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
                     <table class="table table-hover" style="border:none">\
                         <thead>\
                             <tr>\
-                                <th>超始IP</th>\
-                                <th>结束IP</th>\
-                                <th style="text-align: right;">操作</th>\
+                                <th>' + pt('超始IP') + '</th>\
+                                <th>' + pt('结束IP') + '</th>\
+                                <th style="text-align: right;">' + pt('操作') + '</th>\
                             </tr>\
                         </thead>\
                         <tbody id="ip_black_con" class="gztr"></tbody>\
                     </table>\
                     </div>\
                     <div style="width:100%" class="mt10">\
-                        <button class="btn btn-success btn-sm va0 mr5 mt10" onclick="fileInput(\'ip_black\')" >导入</button>\
-                        <button class="btn btn-success btn-sm va0 mt10" onclick="outputData(\'ip_black\')">导出</button>\
+                        <button class="btn btn-success btn-sm va0 mr5 mt10" onclick="fileInput(\'ip_black\')" >' + pt('导入') + '</button>\
+                        <button class="btn btn-success btn-sm va0 mt10" onclick="outputData(\'ip_black\')">' + pt('导出') + '</button>\
                     </div>\
                 </div>\
                 <ul class="help-info-text c7 ptb10">\
-                    <li>黑名单中的IP段将被禁止访问,IP白名单中已存在的除外</li>\
+                    <li>' + pt('黑名单中的IP段将被禁止访问,IP白名单中已存在的除外') + '</li>\
                 </ul>\
             </div>\
             <div class="pd15 ipv6_block">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                     <input class="bt-input-text" name="ipv6_address" type="text" style="width:380px;margin-right:15px;margin-left:5px" placeholder="ipv6地址">\
-                    <button class="btn btn-success btn-sm va0 btn_add_ipv6" style="margin-left:15px;">添加</button>\
+                    <button class="btn btn-success btn-sm va0 btn_add_ipv6" style="margin-left:15px;">' + pt('添加') + '</button>\
                 </div>\
                 <div class="divtable">\
                     <div id="ipv6_black" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
                         <table class="table table-hover" style="border:none">\
-                            <thead><tr><th>IPv6地址</th><th style="text-align: right;">操作</th></tr></thead>\
+                            <thead><tr><th>' + pt('IPv6地址') + '</th><th style="text-align: right;">' + pt('操作') + '</th></tr></thead>\
                             <tbody id="ipv6_black_con" class="gztr"></tbody>\
                         </table>\
                     </div>\
                 </div>\
                 <ul class="help-info-text c7 ptb10">\
-                    <li>黑名单中的IP段将被禁止访问,IP白名单中已存在的除外</li>\
+                    <li>' + pt('黑名单中的IP段将被禁止访问,IP白名单中已存在的除外') + '</li>\
                 </ul>\
             </div>',
             success:function(index,layero){
@@ -995,7 +995,7 @@ function ipBlack(type) {
                                 tbody += '<tr>\
                                         <td>'+ rdata[i][0].join('.') + '</td>\
                                         <td>'+ rdata[i][1].join('.') + '</td>\
-                                        <td class="text-right"><a class="btlink" onclick="removeIpBlack('+ i + ')">删除</a></td>\
+                                        <td class="text-right"><a class="btlink" onclick="removeIpBlack('+ i + ')">' + pt('删除') + '</a></td>\
                                     </tr>'
                             }
                             $("#ip_black_con").html(tbody);
@@ -1007,7 +1007,7 @@ function ipBlack(type) {
                             for (var i = 0; i < rdata.length; i++) {
                                 tbody += '<tr>\
                                     <td>'+ rdata[i] + '</td>\
-                                    <td class="text-right"><a class="btlink" onclick="removeIpv6Black(\''+ rdata[i] + '\')">删除</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="removeIpv6Black(\''+ rdata[i] + '\')">' + pt('删除') + '</a></td>\
                                 </tr>'
                             }
                             $("#ipv6_black_con").html(tbody);
@@ -1105,24 +1105,24 @@ function wafScreen(){
         </div>';
 
         con += '<div class="waf-grid">\
-            <div class="waf-stat-box"><div class="waf-stat-name">POST渗透</div><div class="waf-stat-val">' + rdata.rules.post + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">GET渗透</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">CC攻击</div><div class="waf-stat-val">' + rdata.rules.cc + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">恶意User-Agent</div><div class="waf-stat-val">' + rdata.rules.user_agent + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">Cookie渗透</div><div class="waf-stat-val">' + rdata.rules.cookie + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">恶意扫描</div><div class="waf-stat-val">' + rdata.rules.scan + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">恶意HEAD请求</div><div class="waf-stat-val">0</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">URI自定义拦截</div><div class="waf-stat-val">' + rdata.rules.url + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">URI保护</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">恶意文件上传</div><div class="waf-stat-val">' + rdata.rules.upload_ext + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">禁止的扩展名</div><div class="waf-stat-val">' + rdata.rules.path + '</div></div>\
-            <div class="waf-stat-box"><div class="waf-stat-name">禁止PHP脚本</div><div class="waf-stat-val">' + rdata.rules.php_path + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('POST渗透') + '</div><div class="waf-stat-val">' + rdata.rules.post + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('GET渗透') + '</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('CC攻击') + '</div><div class="waf-stat-val">' + rdata.rules.cc + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意User-Agent') + '</div><div class="waf-stat-val">' + rdata.rules.user_agent + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('Cookie渗透') + '</div><div class="waf-stat-val">' + rdata.rules.cookie + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意扫描') + '</div><div class="waf-stat-val">' + rdata.rules.scan + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意HEAD请求') + '</div><div class="waf-stat-val">0</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('URI自定义拦截') + '</div><div class="waf-stat-val">' + rdata.rules.url + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('URI保护') + '</div><div class="waf-stat-val">' + rdata.rules.args + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('恶意文件上传') + '</div><div class="waf-stat-val">' + rdata.rules.upload_ext + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('禁止的扩展名') + '</div><div class="waf-stat-val">' + rdata.rules.path + '</div></div>\
+            <div class="waf-stat-box"><div class="waf-stat-name">' + pt('禁止PHP脚本') + '</div><div class="waf-stat-val">' + rdata.rules.php_path + '</div></div>\
         </div>';
 
         con += '<ul class="waf-help-list">\
-            <li>在此处关闭防火墙后，所有站点将失去保护</li>\
+            <li>' + pt('在此处关闭防火墙后，所有站点将失去保护') + '</li>\
             <li>网站防火墙会使nginx有一定的性能损失（&lt;5% 10C静态并发测试结果）</li>\
-            <li>网站防火墙主要针对网站渗透攻击，暂时不具备系统加固功能</li>\
+            <li>' + pt('网站防火墙主要针对网站渗透攻击，暂时不具备系统加固功能') + '</li>\
         </ul></div>';
 
         $(".soft-man-con").html(con);
@@ -1141,110 +1141,110 @@ function wafGloabl(){
 
         var con = '<div class="divtable">\
             <table class="table table-hover waftable">\
-                <thead><tr><th width="18%">名称</th>\
-                <th width="44%">描述</th>\
-                <th width="10%">响应</th>\
-                <th style="text-align: center;" width="10%">状态</th>\
-                <th style="text-align: right;">操作</th></tr>\
+                <thead><tr><th width="18%">' + pt('名称') + '</th>\
+                <th width="44%">' + pt('描述') + '</th>\
+                <th width="10%">' + pt('响应') + '</th>\
+                <th style="text-align: center;" width="10%">' + pt('状态') + '</th>\
+                <th style="text-align: right;">' + pt('操作') + '</th></tr>\
                 </thead>\
                 <tbody>\
-                    <tr><td>CC防御</td>\
-                        <td>防御CC攻击，具体防御参数请到站点配置中调整</td>\
+                    <tr><td>' + pt('CC防御') + '</td>\
+                        <td>' + pt('防御CC攻击，具体防御参数请到站点配置中调整') + '</td>\
                         <td><a class="btlink" onclick="setRequestCode(\'cc\','+rdata.cc.status+')">'+rdata.cc.status+'</a></td>\
                         <td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closecc" type="checkbox" '+(rdata.cc.open ? 'checked' : '')+'>\
                             <label class="btswitch-btn" for="closecc" onclick="setObjOpen(\'cc\')"></label></div>\
                         </td>\
-                        <td class="text-right"><a class="btlink" onclick="setCcRule('+rdata.cc.cycle+','+rdata.cc.limit+','+rdata.cc.endtime+',\'undefined\','+rdata.cc.increase+')">初始规则</a></td>\
+                        <td class="text-right"><a class="btlink" onclick="setCcRule('+rdata.cc.cycle+','+rdata.cc.limit+','+rdata.cc.endtime+',\'undefined\','+rdata.cc.increase+')">' + pt('初始规则') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>恶意容忍度</td>\
-                        <td>封锁连续恶意请求，请到站点配置中调整容忍阈值</td>\
+                        <td>' + pt('恶意容忍度') + '</td>\
+                        <td>' + pt('封锁连续恶意请求，请到站点配置中调整容忍阈值') + '</td>\
                         <td><a class="btlink" onclick="setRequestCode(\'cc\','+ rdata.cc.status + ')">' + rdata.cc.status + '</a></td>\
                         <td style="text-align: center;">--</td>\
-                        <td class="text-right"><a class="btlink" onclick="setRetry('+ rdata.retry.retry_cycle + ',' + rdata.retry.retry + ',' + rdata.retry.retry_time + ')">初始规则</a></td>\
+                        <td class="text-right"><a class="btlink" onclick="setRetry('+ rdata.retry.retry_cycle + ',' + rdata.retry.retry + ',' + rdata.retry.retry_time + ')">' + pt('初始规则') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>强制安全验证</td>\
+                        <td>' + pt('强制安全验证') + '</td>\
                         <td>'+rdata.safe_verify.ps+'</td>\
                         <td>--</td>\
                         <td style="text-align: center;"><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="close_safe_verify" type="checkbox" '+(rdata.safe_verify.open ? 'checked' : '')+'>\
                             <label class="btswitch-btn" for="close_safe_verify" onclick="setObjOpen(\'safe_verify\')"></label></div>\
                         </td>\
-                        <td class="text-right"><a class="btlink" onclick="setSafeVerify('+ rdata.safe_verify.auto + ',' + rdata.safe_verify.cpu + ',' + rdata.safe_verify.time + ',\'' + rdata.safe_verify.mode + '\')">设置</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/safe_js.html\')">响应内容</a></td>\
+                        <td class="text-right"><a class="btlink" onclick="setSafeVerify('+ rdata.safe_verify.auto + ',' + rdata.safe_verify.cpu + ',' + rdata.safe_verify.time + ',\'' + rdata.safe_verify.mode + '\')">' + pt('设置') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/safe_js.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>GET-URI过滤</td>\
+                        <td>' + pt('GET-URI过滤') + '</td>\
                         <td>'+ rdata.get.ps + '</td>\
                         <td><a class="btlink" onclick="setRequestCode(\'get\',' + rdata.get.status + ')">' + rdata.get.status + '</a></td>\
                         <td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closeget" type="checkbox" '+ (rdata.get.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closeget" onclick="setObjOpen(\'get\')"></label>\
                         </div></td>\
-                        <td class="text-right"><a class="btlink" onclick="setObjConf(\'url\')">规则</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/get.html\')">响应内容</a></td>\
+                        <td class="text-right"><a class="btlink" onclick="setObjConf(\'url\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/get.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>GET-参数过滤</td><td>'+ rdata.get.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'get\',' + rdata.get.status + ')">' + rdata.get.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('GET-参数过滤') + '</td><td>'+ rdata.get.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'get\',' + rdata.get.status + ')">' + rdata.get.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closeget" type="checkbox" '+ (rdata.get.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closeget" onclick="setObjOpen(\'get\')"></label>\
-                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'args\')">规则</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/get.html\')">响应内容</a></td>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'args\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/get.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>POST过滤</td><td>'+ rdata.post.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'post\',' + rdata.post.status + ')">' + rdata.post.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('POST过滤') + '</td><td>'+ rdata.post.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'post\',' + rdata.post.status + ')">' + rdata.post.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closepost" type="checkbox" '+ (rdata.post.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closepost" onclick="setObjOpen(\'post\')"></label>\
-                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'post\')">规则</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/post.html\')">响应内容</a></td>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'post\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/post.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>User-Agent过滤</td><td>'+ rdata['user-agent'].ps + '</td><td><a class="btlink" onclick="setRequestCode(\'user-agent\',' + rdata['user-agent'].status + ')">' + rdata['user-agent'].status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('User-Agent过滤') + '</td><td>'+ rdata['user-agent'].ps + '</td><td><a class="btlink" onclick="setRequestCode(\'user-agent\',' + rdata['user-agent'].status + ')">' + rdata['user-agent'].status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closeua" type="checkbox" '+ (rdata['user-agent'].open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closeua" onclick="setObjOpen(\'user-agent\')"></label>\
-                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'user_agent\')">规则</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/user_agent.html\')">响应内容</a></td>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'user_agent\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/user_agent.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>Cookie过滤</td><td>'+ rdata.cookie.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'cookie\',' + rdata.cookie.status + ')">' + rdata.cookie.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('Cookie过滤') + '</td><td>'+ rdata.cookie.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'cookie\',' + rdata.cookie.status + ')">' + rdata.cookie.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closecookie" type="checkbox" '+ (rdata.cookie.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closecookie" onclick="setObjOpen(\'cookie\')"></label>\
-                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'cookie\')">规则</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/cookie.html\')">响应内容</a></td>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="setObjConf(\'cookie\')">' + pt('规则') + '</a> | <a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/cookie.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>常见扫描器</td><td>'+ rdata.scan.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'scan\',' + rdata.scan.status + ')">' + rdata.scan.status + '</a></td><td><div class="ssh-item">\
+                        <td>' + pt('常见扫描器') + '</td><td>'+ rdata.scan.ps + '</td><td><a class="btlink" onclick="setRequestCode(\'scan\',' + rdata.scan.status + ')">' + rdata.scan.status + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closescan" type="checkbox" '+ (rdata.scan.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closescan" onclick="setObjOpen(\'scan\')"></label>\
-                        </div></td><td class="text-right"><a class="btlink" onclick="scanRule()">设置</a></td>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="scanRule()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td><span style="color:#ff5722; font-weight:bold;">蜜罐</span><br><span style="font-size:10px;color:#999;">强检测</span></td><td>'+ (rdata.honeypot ? rdata.honeypot.ps : '自动蜜罐防护，拦截自动扫描器和嗅探脚本') + '</td><td><a class="btlink" onclick="setRequestCode(\'honeypot\',' + (rdata.honeypot ? rdata.honeypot.status : 444) + ')">' + (rdata.honeypot ? rdata.honeypot.status : 444) + '</a></td><td><div class="ssh-item">\
+                        <td><span style="color:#ff5722; font-weight:bold;">' + pt('蜜罐') + '</span><br><span style="font-size:10px;color:#999;">' + pt('强检测') + '</span></td><td>'+ (rdata.honeypot ? rdata.honeypot.ps : '自动蜜罐防护，拦截自动扫描器和嗅探脚本') + '</td><td><a class="btlink" onclick="setRequestCode(\'honeypot\',' + (rdata.honeypot ? rdata.honeypot.status : 444) + ')">' + (rdata.honeypot ? rdata.honeypot.status : 444) + '</a></td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closehoneypot" type="checkbox" '+ ((rdata.honeypot && rdata.honeypot.open) ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closehoneypot" onclick="setObjOpen(\'honeypot\')"></label>\
-                        </div></td><td class="text-right"><a class="btlink" onclick="setHoneypotDialog()">设置</a></td>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="setHoneypotDialog()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td style="color:#fc6d26;font-weight:bold;">CDN增强检测</td><td>未开启时，站点开启CDN将会放行部分包含X-Forwarded-For的IP</td><td style="text-align: center;">--</td><td><div class="ssh-item">\
+                        <td style="color:#fc6d26;font-weight:bold;">' + pt('CDN增强检测') + '</td><td>' + pt('未开启时，站点开启CDN将会放行部分包含X-Forwarded-For的IP') + '</td><td style="text-align: center;">--</td><td><div class="ssh-item">\
                             <input class="btswitch btswitch-ios" id="closecdn_enhanced" type="checkbox" '+ (rdata.cdn_enhanced && rdata.cdn_enhanced.open ? 'checked' : '') + '>\
                             <label class="btswitch-btn" for="closecdn_enhanced" onclick="setObjOpen(\'cdn_enhanced\')"></label>\
-                        </div></td><td class="text-right"><a class="btlink" onclick="cdnEnhancedRule()">设置</a></td>\
+                        </div></td><td class="text-right"><a class="btlink" onclick="cdnEnhancedRule()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>URL白名单</td><td>所有规则对URL白名单无效</td><td style="text-align: center;">--</td>\
+                        <td>' + pt('URL白名单') + '</td><td>' + pt('所有规则对URL白名单无效') + '</td><td style="text-align: center;">--</td>\
                         <td style="text-align: center;">--</td>\
-                        <td class="text-right"><a class="btlink" onclick="urlWhite()">设置</a></td>\
+                        <td class="text-right"><a class="btlink" onclick="urlWhite()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>IP白名单</td><td>所有规则对IP白名单无效</td><td style="text-align: center;">--</td>\
+                        <td>' + pt('IP白名单') + '</td><td>' + pt('所有规则对IP白名单无效') + '</td><td style="text-align: center;">--</td>\
                         <td style="text-align: center;">--</td>\
-                        <td class="text-right"><a class="btlink" onclick="ipWhite()">设置</a></td>\
+                        <td class="text-right"><a class="btlink" onclick="ipWhite()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>IP黑名单</td><td>禁止访问的IP</td><td><a class="btlink" onclick="setRequestCode(\'cc\','+ rdata.cc.status + ')">' + rdata.cc.status + '</a></td>\
+                        <td>' + pt('IP黑名单') + '</td><td>' + pt('禁止访问的IP') + '</td><td><a class="btlink" onclick="setRequestCode(\'cc\','+ rdata.cc.status + ')">' + rdata.cc.status + '</a></td>\
                         <td style="text-align: center;">--</td>\
-                        <td class="text-right"><a class="btlink" onclick="ipBlack()">设置</a></td>\
+                        <td class="text-right"><a class="btlink" onclick="ipBlack()">' + pt('设置') + '</a></td>\
                     </tr>\
                     <tr>\
-                        <td>其它</td><td>'+ rdata.other.ps + '</td><td>--</td>\
+                        <td>' + pt('其它') + '</td><td>'+ rdata.other.ps + '</td><td>--</td>\
                         <td style="text-align: center;">--</td>\
-                        <td class="text-right"><a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/other.html\')">响应内容</a></td>\
+                        <td class="text-right"><a class="btlink" href="javascript:;" onclick="onlineEditFile(0,\''+rdata['reqfile_path']+'/other.html\')">' + pt('响应内容') + '</a></td>\
                     </tr>\
                 </tbody>\
             </table>\
@@ -1252,7 +1252,7 @@ function wafGloabl(){
 
 
         con += '<div style="width:645px;margin-top:10px;"><ul class="help-info-text c7">\
-            <li>继承: 全局设置将在站点配置中自动继承为默认值</li>\
+            <li>' + pt('继承: 全局设置将在站点配置中自动继承为默认值') + '</li>\
             <li>优先级: IP白名单>IP黑名单>URL白名单>URL黑名单>CC防御>User-Agent>URI过滤>URL参数>Cookie>POST</li>\
             </ul></div>';
         $(".soft-man-con").html(con);
@@ -1286,7 +1286,7 @@ function addSiteRule(siteName, ruleName) {
     }
 
     if (pdata['ruleValue'] == '') {
-        layer.msg('过滤规则不能为空');
+        layer.msg(pt('过滤规则不能为空'));
         $("input[name='site_rule_value']").focus();
         return;
     }
@@ -1339,43 +1339,43 @@ function siteRuleAdmin(siteName, ruleName, type) {
     switch (ruleName) {
         case 'disable_php_path':
             placeho = 'URI地址,支持正则表达式';
-            ps = '<li>此处请不要包含URI参数,一般针对目录URL,示例：/admin</li>'
+            ps = '<li>' + pt('此处请不要包含URI参数,一般针对目录URL,示例：/admin') + '</li>'
             title = '禁止运行PHP的URL地址'
             break;
         case 'disable_path':
             placeho = 'URI地址,支持正则表达式';
-            ps = '<li>此处请不要包含URI参数,一般针对目录URL,示例：/admin</li>'
+            ps = '<li>' + pt('此处请不要包含URI参数,一般针对目录URL,示例：/admin') + '</li>'
             title = '禁止访问的URL地址'
             break;
         case 'disable_ext':
             placeho = '扩展名，不包含点(.)，示例：sql';
-            ps = '<li>直接填要被禁止访问的扩展名，如我希望禁止访问*.sql文件：sql</li>'
+            ps = '<li>' + pt('直接填要被禁止访问的扩展名，如我希望禁止访问*.sql文件：sql') + '</li>'
             title = '禁止访问的扩展名'
             break;
         case 'disable_upload_ext':
             placeho = '扩展名，不包含点(.)，示例：sql';
-            ps = '<li>直接填要被禁止访问的扩展名，如我希望禁止上传*.php文件：php</li>'
+            ps = '<li>' + pt('直接填要被禁止访问的扩展名，如我希望禁止上传*.php文件：php') + '</li>'
             title = '禁止上传的文件类型'
             break;
     }
     if (type == undefined) {
         create_l = layer.open({
             type: 1,
-            title: "管理网站过滤规则【" + title + "】",
+            title:  pt("管理网站过滤规则【") + title + "】",
             area: ['500px', '500px'],
             closeBtn: 1,
             shadeClose: false,
             content: '<div class="pd15">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                     <input class="bt-input-text" name="site_rule_value" type="text" value="" style="width:400px;margin-right:15px;margin-left:5px" placeholder="'+ placeho + '">\
-                    <button class="btn btn-success btn-sm va0 pull-right" onclick="addSiteRule(\''+ siteName + '\',\'' + ruleName + '\');">添加</button>\</div>\
+                    <button class="btn btn-success btn-sm va0 pull-right" onclick="addSiteRule(\''+ siteName + '\',\'' + ruleName + '\');">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="siteRuleAdmin" class="siteRuleAdmin" style="max-height:273px;overflow:auto;border:#ddd 1px solid">\
                 <table class="table table-hover" style="border:none">\
                     <thead>\
                         <tr>\
-                            <th>规则</th>\
-                            <th style="text-align: right;">操作</th>\
+                            <th>' + pt('规则') + '</th>\
+                            <th style="text-align: right;">' + pt('操作') + '</th>\
                         </tr>\
                     </thead>\
                     <tbody id="site_rule_admin_con" class="gztr"></tbody>\
@@ -1383,7 +1383,7 @@ function siteRuleAdmin(siteName, ruleName, type) {
                 </div>\
             </div>\
             <ul class="help-info-text c7 ptb10">\
-                <li>除正则表达式语句外规则值对大小写不敏感,建议统一使用小写</li>'+ ps + '\
+                <li>' + pt('除正则表达式语句外规则值对大小写不敏感,建议统一使用小写') + '</li>'+ ps + '\
             </ul></div>'
         });
         tableFixed("siteRuleAdmin");
@@ -1396,7 +1396,7 @@ function siteRuleAdmin(siteName, ruleName, type) {
         for (var i = 0; i < rdata.length; i++) {
             tbody += '<tr>\
                     <td>'+ rdata[i] + '</td>\
-                    <td class="text-right"><a class="btlink" onclick="removeSiteRule(\''+ siteName + '\',\'' + ruleName + '\',' + i + ')">删除</a></td>\
+                    <td class="text-right"><a class="btlink" onclick="removeSiteRule(\''+ siteName + '\',\'' + ruleName + '\',' + i + ')">' + pt('删除') + '</a></td>\
                 </tr>'
         }
         $("#site_rule_admin_con").html(tbody);
@@ -1408,21 +1408,21 @@ function cdnHeader(siteName, type) {
     if (type == undefined) {
         create_l = layer.open({
             type: 1,
-            title: "管理网站【" + siteName + "】CDN-Headers",
+            title:  pt("管理网站【") + siteName + "】CDN-Headers",
             area: ['500px', '500px'],
             closeBtn: 1,
             shadeClose: false,
             content: '<div class="pd15">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
                     <input class="bt-input-text" name="cdn_header_key" type="text" value="" style="width:400px;margin-right:15px;margin-left:5px" placeholder="header名称">\
-                    <button class="btn btn-success btn-sm va0 pull-right" onclick="addCdnHeader(\''+ siteName + '\');">添加</button>\</div>\
+                    <button class="btn btn-success btn-sm va0 pull-right" onclick="addCdnHeader(\''+ siteName + '\');">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="cdnHeader" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
                 <table class="table table-hover" style="border:none">\
                     <thead>\
                         <tr>\
                             <th>header</th>\
-                            <th style="text-align: right;">操作</th>\
+                            <th style="text-align: right;">' + pt('操作') + '</th>\
                         </tr>\
                     </thead>\
                     <tbody id="cdn_header_con" class="gztr"></tbody>\
@@ -1430,7 +1430,7 @@ function cdnHeader(siteName, type) {
             </div>\
             </div>\
             <ul class="help-info-text c7 ptb10">\
-                <li>防火墙将尝试在以上header中获取客户IP</li>\
+                <li>' + pt('防火墙将尝试在以上header中获取客户IP') + '</li>\
             </ul></div>'
         });
         tableFixed("cdnHeader");
@@ -1444,7 +1444,7 @@ function cdnHeader(siteName, type) {
         for (var i = 0; i < rdata.length; i++) {
             tbody += '<tr>\
                     <td>'+ rdata[i] + '</td>\
-                    <td class="text-right"><a class="btlink" onclick="removeCdnHeader(\''+ siteName + '\',\'' + rdata[i] + '\')">删除</a></td>\
+                    <td class="text-right"><a class="btlink" onclick="removeCdnHeader(\''+ siteName + '\',\'' + rdata[i] + '\')">' + pt('删除') + '</a></td>\
                 </tr>'
         }
         $("#cdn_header_con").html(tbody);
@@ -1513,7 +1513,7 @@ function setSiteObjConf(siteName, ruleName, type) {
     if (type == undefined) {
         create_l = layer.open({ 
             type: 1,
-            title: "编辑网站【" + siteName + "】规则【" + ruleName + "】",
+            title:  pt("编辑网站【") + siteName + "】规则【" + ruleName + "】",
             area: ['700px', '530px'],
             closeBtn: 1,
             shadeClose: false,
@@ -1523,9 +1523,9 @@ function setSiteObjConf(siteName, ruleName, type) {
                 <table class="table table-hover" style="border:none">\
                     <thead>\
                         <tr>\
-                            <th width="450">规则</th>\
-                            <th>说明</th>\
-                            <th style="text-align: right;">状态</th>\
+                            <th width="450">' + pt('规则') + '</th>\
+                            <th>' + pt('说明') + '</th>\
+                            <th style="text-align: right;">' + pt('状态') + '</th>\
                         </tr>\
                     </thead>\
                     <tbody id="set_site_obj_conf_con" class="gztr"></tbody>\
@@ -1533,8 +1533,8 @@ function setSiteObjConf(siteName, ruleName, type) {
                 </div>\
             </div>\
             <ul class="help-info-text c7 ptb10">\
-                <li>此处继承全局设置中已启用的规则</li>\
-                <li>此处的设置仅对当前站点有效</li>\
+                <li>' + pt('此处继承全局设置中已启用的规则') + '</li>\
+                <li>' + pt('此处的设置仅对当前站点有效') + '</li>\
             </ul></div>'
         });
         tableFixed("SetSiteObjConf");
@@ -1565,7 +1565,7 @@ function siteWafConfig(siteName, type) {
     if (type == undefined) {
         create_2 = layer.open({
             type: 1,
-            title: "网站配置【" + siteName + "】",
+            title:  pt("网站配置【") + siteName + "】",
             area: ['700px', '500px'],
             closeBtn: 1,
             shadeClose: false,
@@ -1579,12 +1579,12 @@ function siteWafConfig(siteName, type) {
         nginx_config = rdata;
         var con = '<div class="pd15">\
                 <div class="lib-con-title" style="display: flex; align-items: center; height: 32px; border-bottom: #ccc 1px solid; margin-bottom: 10px; padding-bottom: 5px;">\
-                    <span style="font-weight: bold; margin-right: 10px; line-height: 20px; float: none;">网站防火墙开关</span>\
+                    <span style="font-weight: bold; margin-right: 10px; line-height: 20px; float: none;">' + pt('网站防火墙开关') + '</span>\
                     <div class="ssh-item" style="margin-top: 0; padding: 0; margin-right: 30px; display: inline-block; vertical-align: middle;">\
                         <input class="btswitch btswitch-ios" id="closewaf_open" type="checkbox" '+ (rdata.open ? 'checked' : '') + '>\
                         <label class="btswitch-btn" for="closewaf_open" onclick="setSiteObjState(\''+ siteName + '\',\'open\')" style="width:2.4em;height:1.4em;margin-bottom: 0"></label>\
                     </div>\
-                    <span style="font-weight: bold; margin-right: 10px; line-height: 20px; float: none;">Curl保护</span>\
+                    <span style="font-weight: bold; margin-right: 10px; line-height: 20px; float: none;">' + pt('Curl保护') + '</span>\
                     <div class="ssh-item" style="margin-top: 0; padding: 0; display: inline-block; vertical-align: middle;">\
                         <input class="btswitch btswitch-ios" id="close_curl_protection" type="checkbox" '+ (rdata.curl_protection ? 'checked' : '') + '>\
                         <label class="btswitch-btn" for="close_curl_protection" onclick="setSiteObjState(\''+ siteName + '\',\'curl_protection\')" style="width:2.4em;height:1.4em;margin-bottom: 0"></label>\
@@ -1595,32 +1595,32 @@ function siteWafConfig(siteName, type) {
                         <table class="table table-hover waftable">\
                             <thead>\
                                 <tr>\
-                                    <th>名称</th>\
-                                    <th>描述</th>\
-                                    <th width="80">状态</th>\
-                                    <th style="text-align: right;">操作</th>\
+                                    <th>' + pt('名称') + '</th>\
+                                    <th>' + pt('描述') + '</th>\
+                                    <th width="80">' + pt('状态') + '</th>\
+                                    <th style="text-align: right;">' + pt('操作') + '</th>\
                                 </tr>\
                             </thead>\
                             <tbody>\
                                 <tr>\
-                                    <td>CC防御</td>\
-                                    <td><font style="color:red;">'+ rdata.cc.cycle + '</font> 秒内,请求同一URI累计超过 <font style="color:red;">' + rdata.cc.limit + '</font> 次,封锁IP <font style="color:red;">' + rdata.cc.endtime + '</font> 秒</td>\
+                                    <td>' + pt('CC防御') + '</td>\
+                                    <td><font style="color:red;">'+ rdata.cc.cycle + '</font> ' + pt('秒内,请求同一URI累计超过') + ' <font style="color:red;">' + rdata.cc.limit + '</font> ' + pt('次,封锁IP') + ' <font style="color:red;">' + rdata.cc.endtime + '</font> ' + pt('秒') + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
                                             <input class="btswitch btswitch-ios" id="closecc" type="checkbox" '+ (rdata.cc.open ? 'checked' : '') + '>\
                                             <label class="btswitch-btn" for="closecc" onclick="setSiteObjState(\''+ siteName + '\',\'cc\')"></label>\
                                         </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="setCcRule('+ rdata.cc.cycle + ',' + rdata.cc.limit + ',' + rdata.cc.endtime + ',\'' + siteName + '\',' + rdata.cc.increase + ')">设置</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="setCcRule('+ rdata.cc.cycle + ',' + rdata.cc.limit + ',' + rdata.cc.endtime + ',\'' + siteName + '\',' + rdata.cc.increase + ')">' + pt('设置') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>恶意容忍设置</td>\
-                                    <td><font style="color:red;">'+ rdata.retry.retry_cycle + '</font> 秒内,累计超过 <font style="color:red;">' + rdata.retry.retry + '</font> 次恶意请求,封锁IP <font style="color:red;">' + rdata.retry.retry_time + '</font> 秒</td>\
+                                    <td>' + pt('恶意容忍设置') + '</td>\
+                                    <td><font style="color:red;">'+ rdata.retry.retry_cycle + '</font> ' + pt('秒内,累计超过') + ' <font style="color:red;">' + rdata.retry.retry + '</font> ' + pt('次恶意请求,封锁IP') + ' <font style="color:red;">' + rdata.retry.retry_time + '</font> ' + pt('秒') + '</td>\
                                     <td style="text-align: left;">&nbsp;&nbsp;--</td>\
-                                    <td class="text-right"><a class="btlink" onclick="setRetry('+ rdata.retry.retry_cycle + ',' + rdata.retry.retry + ',' + rdata.retry.retry_time + ',\'' + siteName + '\')">设置</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="setRetry('+ rdata.retry.retry_cycle + ',' + rdata.retry.retry + ',' + rdata.retry.retry_time + ',\'' + siteName + '\')">' + pt('设置') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>GET-URI过滤</td>\
+                                    <td>' + pt('GET-URI过滤') + '</td>\
                                     <td>'+ rdata.get.ps + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
@@ -1628,9 +1628,9 @@ function siteWafConfig(siteName, type) {
                                             <label class="btswitch-btn" for="closeget" onclick="setSiteObjState(\''+ siteName + '\',\'get\')"></label>\
                                         </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'url\')">规则</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'url\')">' + pt('规则') + '</a></td>\
                                 </tr>\
-                                <td>GET-参数过滤</td>\
+                                <td>' + pt('GET-参数过滤') + '</td>\
                                     <td>'+ rdata.get.ps + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
@@ -1638,10 +1638,10 @@ function siteWafConfig(siteName, type) {
                                             <label class="btswitch-btn" for="closeargs" onclick="setSiteObjState(\''+ siteName + '\',\'get\')"></label>\
                                         </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'args\')">规则</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'args\')">' + pt('规则') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>POST过滤</td>\
+                                    <td>' + pt('POST过滤') + '</td>\
                                     <td>'+ rdata.post.ps + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
@@ -1649,10 +1649,10 @@ function siteWafConfig(siteName, type) {
                                             <label class="btswitch-btn" for="closepost" onclick="setSiteObjState(\''+ siteName + '\',\'post\')"></label>\
                                         </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'post\')">规则</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'post\')">' + pt('规则') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>User-Agent过滤</td>\
+                                    <td>' + pt('User-Agent过滤') + '</td>\
                                     <td>'+ rdata['user-agent'].ps + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
@@ -1660,10 +1660,10 @@ function siteWafConfig(siteName, type) {
                                             <label class="btswitch-btn" for="closeua" onclick="setSiteObjState(\''+ siteName + '\',\'user-agent\')"></label>\
                                         </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'user_agent\')">规则</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'user_agent\')">' + pt('规则') + '</a></td>\
                                 </tr>\
                                  <tr>\
-                                    <td>Cookie过滤</td>\
+                                    <td>' + pt('Cookie过滤') + '</td>\
                                     <td>'+ rdata.cookie.ps + '</td>\
                                     <td>\
                                     <div class="ssh-item" style="margin-left:0">\
@@ -1671,40 +1671,40 @@ function siteWafConfig(siteName, type) {
                                         <label class="btswitch-btn" for="closecookie" onclick="setSiteObjState(\''+ siteName + '\',\'cookie\')"></label>\
                                     </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'cookie\')">规则</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="setSiteObjConf(\''+ siteName + '\',\'cookie\')">' + pt('规则') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>常见扫描器</td><td>'+ rdata.scan.ps + '</td>\
+                                    <td>' + pt('常见扫描器') + '</td><td>'+ rdata.scan.ps + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
                                             <input class="btswitch btswitch-ios" id="closescan" type="checkbox" '+ ((rdata.scan === true || rdata.scan.open) ? 'checked' : '') + '>\
                                             <label class="btswitch-btn" for="closescan" onclick="setSiteObjState(\''+ siteName + '\',\'scan\')"></label>\
                                         </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="scanRule()">设置</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="scanRule()">' + pt('设置') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>使用CDN</td>\
-                                    <td>该站点使用了CDN,启用后方可正确获取客户IP</td>\
+                                    <td>' + pt('使用CDN') + '</td>\
+                                    <td>' + pt('该站点使用了CDN,启用后方可正确获取客户IP') + '</td>\
                                     <td>\
                                         <div class="ssh-item" style="margin-left:0">\
                                             <input class="btswitch btswitch-ios" id="closecdn" type="checkbox" '+ (rdata.cdn ? 'checked' : '') + '>\
                                             <label class="btswitch-btn" for="closecdn" onclick="setSiteObjState(\''+ siteName + '\',\'cdn\')"></label>\
                                         </div>\
                                     </td>\
-                                    <td class="text-right"><a class="btlink" onclick="cdnHeader(\''+ siteName + '\')">设置</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="cdnHeader(\''+ siteName + '\')">' + pt('设置') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>禁止扩展名</td>\
-                                    <td>禁止访问指定扩展名</td>\
+                                    <td>' + pt('禁止扩展名') + '</td>\
+                                    <td>' + pt('禁止访问指定扩展名') + '</td>\
                                     <td style="text-align: left;">&nbsp;&nbsp;--</td>\
-                                    <td class="text-right"><a class="btlink" onclick="siteRuleAdmin(\''+ siteName + '\',\'disable_ext\')">设置</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="siteRuleAdmin(\''+ siteName + '\',\'disable_ext\')">' + pt('设置') + '</a></td>\
                                 </tr>\
                                 <tr>\
-                                    <td>禁止上传的文件类型</td>\
-                                    <td>禁止上传指定的文件类型</td>\
+                                    <td>' + pt('禁止上传的文件类型') + '</td>\
+                                    <td>' + pt('禁止上传指定的文件类型') + '</td>\
                                     <td style="text-align: left;">&nbsp;&nbsp;--</td>\
-                                    <td class="text-right"><a class="btlink" onclick="siteRuleAdmin(\''+ siteName + '\',\'disable_upload_ext\')">设置</a></td>\
+                                    <td class="text-right"><a class="btlink" onclick="siteRuleAdmin(\''+ siteName + '\',\'disable_upload_ext\')">' + pt('设置') + '</a></td>\
                                 </tr>\
                             </tbody>\
                         </table>\
@@ -1743,9 +1743,9 @@ function wafSite(){
                             <label class="btswitch-btn" for="closeget_'+ i + '" onclick="setSiteObjState(\'' + k + '\',\'open\')"></label>\
                         </div>\
                     </td>\
-                    <td class="text-right"><a onclick="wafLogs(\''+ k + '\')" class="btlink ' + (v.log_size > 0 ? 'dot' : '') + '">日志</a> </td>\
+                    <td class="text-right"><a onclick="wafLogs(\''+ k + '\')" class="btlink ' + (v.log_size > 0 ? 'dot' : '') + '">' + pt('日志') + '</a> </td>\
                 </tr>';
-            //| <a onclick="siteWafConfig(\'' + k + '\')" class="btlink">设置</a>
+            //| <a onclick="siteWafConfig(\'' + k + '\')" class="btlink">' + pt('设置') + '</a>
         });
 
         var con = '<div class="lib-box">\
@@ -1755,16 +1755,16 @@ function wafSite(){
                         <table class="table table-hover waftable" style="border:none">\
                             <thead>\
                                 <tr>\
-                                    <th>站点</th>\
+                                    <th>' + pt('站点') + '</th>\
                                     <th>curl</th>\
                                     <th>GET</th>\
                                     <th>POST</th>\
                                     <th>UA</th>\
                                     <th>Cookie</th>\
                                     <th title="这个网站使用了CDN或其它代理时请勾选">CDN</th>\
-                                    <th>CC防御</th>\
-                                    <th>状态</th>\
-                                    <th style="text-align: right;">操作</th>\
+                                    <th>' + pt('CC防御') + '</th>\
+                                    <th>' + pt('状态') + '</th>\
+                                    <th style="text-align: right;">' + pt('操作') + '</th>\
                                 </tr>\
                             </thead>\
                             <tbody>'+ tbody + '</tbody>\
@@ -1808,7 +1808,7 @@ function wafAreaLimitRender(){
             var region_str = keyVal(rlist[i]['region']);
             var site_str = keyVal(rlist[i]['site']);
 
-            op += '<a  data-id="'+i+'" href="javascript:;" class="area_limit_del btlink">删除</a>';
+            op += '<a  data-id="'+i+'" href="javascript:;" class="area_limit_del btlink">' + pt('删除') + '</a>';
 
             list += '<tr>';
             list += '<td><span class="overflow_hide" style="width: 303px;" title="'+region_str+'"">' + region_str + '</span></td>';
@@ -1876,17 +1876,17 @@ function setWafAreaLimitSwitch(){
 // 地区限制
 function wafAreaLimit(){
     var con = '<div class="safe bgw">\
-            <button id="create_area_limit" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">添加地区限制</button>\
+            <button id="create_area_limit" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加地区限制') + '</button>\
             <input class="btswitch btswitch-ios" id="area_limit_switch" type="checkbox">\
             <label class="btswitch-btn" for="area_limit_switch" onclick="setWafAreaLimitSwitch();" style="display: inline-flex;line-height:38px;margin-left: 4px;float: right;"></label>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="con_list" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                     <thead><tr>\
-                    <th>地区</th>\
-                    <th>站点</th>\
-                    <th>类型</th>\
-                    <th style="text-align:right;">操作</th></tr></thead>\
+                    <th>' + pt('地区') + '</th>\
+                    <th>' + pt('站点') + '</th>\
+                    <th>' + pt('类型') + '</th>\
+                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                     <tbody></tbody></table>\
                 </div>\
             </div>\
@@ -1901,28 +1901,28 @@ function wafAreaLimit(){
         var site_length = 0;
         layer.open({
             type: 1,
-            title: '添加地区限制',
+            title:  pt('添加地区限制'),
             area: ['600px','450px'],
             closeBtn: 1,
-            btn: ['添加', '取消'],
+            btn: [pt('添加'), pt('取消')],
             content: '<div class="waf-form pd20">\
                 <div class="line">\
-                    <span class="tname">类型</span>\
+                    <span class="tname">' + pt('类型') + '</span>\
                     <div class="info-r c4">\
                         <select name="type" class="bt-input-text" style="width:400px">\
-                            <option value="refuse" selected="">拦截</option>\
-                            <option value="accept">只放行</option>\
+                            <option value="refuse" selected="">' + pt('拦截') + '</option>\
+                            <option value="accept">' + pt('只放行') + '</option>\
                         </select>\
                     </div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">站点</span>\
+                    <span class="tname">' + pt('站点') + '</span>\
                     <div class="info-r">\
                         <div id="site_list" style="width:400px"></div>\
                     </div>\
                 </div>\
                 <div class="line">\
-                    <span class="tname">地区</span>\
+                    <span class="tname">' + pt('地区') + '</span>\
                     <div class="info-r" id="area_list" style="width:400px"></div>\
                 </div>\
             </div>',
@@ -2049,29 +2049,29 @@ function wafLogRequest(page){
                 list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['uri'] || '') + '" style="width:90px;">' + entitiesEncode(data[i]['uri'] || '') +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['rule_name'] || '') + '" style="width:60px;">' + entitiesEncode(data[i]['rule_name'] || '') +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['reason'] || '') + '" style="width:220px;">' + entitiesEncode(data[i]['reason'] || '') +'</span></td>';
-                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">详情</a></td>';
+                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
         } else{
-             list += '<tr><td colspan="8" style="text-align:center;">封锁日志为空</td></tr>';
+             list += '<tr><td colspan="8" style="text-align:center;">' + pt('封锁日志为空') + '</td></tr>';
         }
         
         var table = '<div class="tablescroll">\
                             <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
                             <thead><tr>\
-                            <th>时间</th>\
-                            <th>域名</th>\
+                            <th>' + pt('时间') + '</th>\
+                            <th>' + pt('域名') + '</th>\
                             <th>IP</th>\
                             <th>URI</th>\
-                            <th>规则名</th>\
-                            <th>原因</th>\
-                            <th style="text-align:right;">操作</th></tr></thead>\
+                            <th>' + pt('规则名') + '</th>\
+                            <th>' + pt('原因') + '</th>\
+                            <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
                             <tbody>\
                             '+ list +'\
                             </tbody></table>\
                         </div>\
                         <div style="display:flex; justify-content:space-between; align-items:center;">\
-                            <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">导出excel</button></div>\
+                            <div><button id="exportExcel" class="btn btn-default btn-sm" style="margin-left:5px;">' + pt('导出excel') + '</button></div>\
                             <div id="wsPage" class="dataTables_paginate paging_bootstrap page" style="margin:0;"></div>\
                         </div>';
         $('#ws_table').html(table);
@@ -2090,12 +2090,12 @@ function wafLogRequest(page){
                 shadeClose: false,
                 content: '<div class="pd15 lib-box">\
                         <table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
-                        <tbody><tr><th>时间</th><td>'+ time + '</td><th>用户IP</th><td>' + escapeHTML(ip) + ' <a class="btlink" style="color:red; margin-left:10px;" href="javascript:confirmAddIpBlackArgs(\'' + escapeHTML(ip) + '\')" title="永久拉黑此IP">永久拉黑</a></td></tr><tr><th>类型</th><td>' + escapeHTML(res.method) + '</td><th>过滤器</th><td>' + escapeHTML(res.rule_name) + '</td></tr></tbody></table>\
-                        <div><b style="margin-left:10px">URI地址</b></div>\
+                        <tbody><tr><th>' + pt('时间') + '</th><td>'+ time + '</td><th>' + pt('用户IP') + '</th><td>' + escapeHTML(ip) + ' <a class="btlink" style="color:red; margin-left:10px;" href="javascript:confirmAddIpBlackArgs(\'' + escapeHTML(ip) + '\')" title="永久拉黑此IP">' + pt('永久拉黑') + '</a></td></tr><tr><th>' + pt('类型') + '</th><td>' + escapeHTML(res.method) + '</td><th>' + pt('过滤器') + '</th><td>' + escapeHTML(res.rule_name) + '</td></tr></tbody></table>\
+                        <div><b style="margin-left:10px">' + pt('URI地址') + '</b></div>\
                         <div class="lib-con pull-left mt10"><div class="divpre">'+ escapeHTML(res.uri) + '</div></div>\
                         <div><b style="margin-left:10px">User-Agent</b></div>\
                         <div class="lib-con pull-left mt10"><div class="divpre">'+ escapeHTML(res.user_agent) + '</div></div>\
-                        <div><b style="margin-left:10px">过滤规则</b></div>\
+                        <div><b style="margin-left:10px">' + pt('过滤规则') + '</b></div>\
                         <div class="lib-con pull-left mt10"><div class="divpre">'+ escapeHTML(res.rule_name) + '</div></div>\
                          <div><b style="margin-left:10px">Reason</b></div>\
                         <div class="lib-con pull-left mt10"><div class="divpre">'+ escapeHTML(res.reason) + '</div></div>\
@@ -2123,18 +2123,18 @@ function wafLogs(site){
                         <span style="margin-left:10px">时间: </span>\
                         <div class="input-group" style="margin-left:10px;width:350px;display: inline-table;vertical-align: top;">\
                             <div id="search_time" class="input-group-btn btn-group-sm">\
-                                <button data-name="today" type="button" class="btn btn-default">今日</button>\
-                                <button data-name="yesterday" type="button" class="btn btn-default">昨日</button>\
-                                <button data-name="l7" type="button" class="btn btn-default">近7天</button>\
-                                <button data-name="l30" type="button" class="btn btn-default">近30天</button>\
+                                <button data-name="today" type="button" class="btn btn-default">' + pt('今日') + '</button>\
+                                <button data-name="yesterday" type="button" class="btn btn-default">' + pt('昨日') + '</button>\
+                                <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
+                                <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                             </div>\
                             <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                         </div>\
                     </div>\
                     <div>\
-                        <button id="UncoverAll" class="btn btn-success btn-sm" style="padding-left: 5px;padding-right: 5px;">解封所有</button>\
-                        <button id="testRun" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px;">测试</button>\
-                        <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">刷新</button>\
+                        <button id="UncoverAll" class="btn btn-success btn-sm" style="padding-left: 5px;padding-right: 5px;">' + pt('解封所有') + '</button>\
+                        <button id="testRun" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px;">' + pt('测试') + '</button>\
+                        <button id="refreshLogs" class="btn btn-default btn-sm" style="padding-left: 5px;padding-right: 5px; margin-left: 5px;">' + pt('刷新') + '</button>\
                     </div>\
                 </div>\
                 <div class="divtable mtb10" id="ws_table"></div>\
@@ -2162,7 +2162,7 @@ function wafLogs(site){
             var rdata = JSON.parse(rdata.data);
             var data = rdata.data.data;
             if(!data || data.length == 0) {
-                layer.msg("没有数据可导出", {icon: 2});
+                layer.msg(pt("没有数据可导出"), {icon: 2});
                 return;
             }
             var csv = "\uFEFF时间,域名,IP,URI,规则名,原因\n";
@@ -2190,7 +2190,7 @@ function wafLogs(site){
             var rdata = JSON.parse(data.data);
             var ndata = JSON.parse(rdata.data);
             if (ndata.status == 0){
-                layer.msg("解封所有成功",{icon:1,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt("解封所有成功"),{icon:1,time:2000,shade: [0.3, '#000']});
             } else{
                 layer.msg("解封所有异常:"+ndata.msg,{icon:5,time:2000,shade: [0.3, '#000']});
             }
@@ -2283,11 +2283,11 @@ function wafLogs(site){
 function wafOpLogs(){
     var con = '<div class="divtable">\
         <table class="table table-hover waftable" style="color:#fff;">\
-            <thead><tr><th width="18%">名称</th>\
-            <th width="44%">描述</th>\
-            <th width="10%">响应</th>\
-            <th style="text-align: center;" width="10%">状态</th>\
-            <th style="text-align: right;">操作</th></tr>\
+            <thead><tr><th width="18%">' + pt('名称') + '</th>\
+            <th width="44%">' + pt('描述') + '</th>\
+            <th width="10%">' + pt('响应') + '</th>\
+            <th style="text-align: center;" width="10%">' + pt('状态') + '</th>\
+            <th style="text-align: right;">' + pt('操作') + '</th></tr>\
             </thead>\
         </table>\
         </div>';    
@@ -2299,16 +2299,16 @@ function wafOpLogs(){
 function wafDropIpList() {
     var html = '<div class="waf-drop-ip-con">\
         <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">\
-            <h4 style="margin:0; font-weight:bold;">当前封禁 IP 列表</h4>\
-            <button class="btn btn-default btn-sm" onclick="wafDropIpList();"><i class="glyphicon glyphicon-refresh"></i> 刷新</button>\
+            <h4 style="margin:0; font-weight:bold;">' + pt('当前封禁 IP 列表') + '</h4>\
+            <button class="btn btn-default btn-sm" onclick="wafDropIpList();"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新') + '</button>\
         </div>\
         <div class="divtable">\
             <table class="table table-hover">\
                 <thead>\
                     <tr>\
-                        <th width="35%">IP 地址</th>\
-                        <th width="35%">IP归属</th>\
-                        <th width="30%" style="text-align: right;">操作</th>\
+                        <th width="35%">' + pt('IP 地址') + '</th>\
+                        <th width="35%">' + pt('IP归属') + '</th>\
+                        <th width="30%" style="text-align: right;">' + pt('操作') + '</th>\
                     </tr>\
                 </thead>\
                 <tbody id="drop_ip_list_body">\
@@ -2329,7 +2329,7 @@ function wafDropIpList() {
 
         var ipList = res.data;
         if (!ipList || ipList.length === 0) {
-            $('#drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center;">暂无被封禁的 IP。</td></tr>');
+            $('#drop_ip_list_body').html('<tr><td colspan="3" style="text-align:center;">' + pt('暂无被封禁的 IP。') + '</td></tr>');
             return;
         }
 
@@ -2359,8 +2359,8 @@ function wafDropIpList() {
                 <td><span style="color:#d9534f; font-family: Consolas, monospace; font-weight:bold;">' + ip + '</span></td>\
                 <td id="' + ipId + '">' + locDisplay + '</td>\
                 <td style="text-align: right;">\
-                    <a href="javascript:;" class="btlink" onclick="showDropIpLogs(\'' + ip + '\')">详情</a> | \
-                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="releaseDropIp(\'' + ip + '\')">释放并清零</a>\
+                    <a href="javascript:;" class="btlink" onclick="showDropIpLogs(\'' + ip + '\')">' + pt('详情') + '</a> | \
+                    <a href="javascript:;" class="btlink" style="color:#20a53a;" onclick="releaseDropIp(\'' + ip + '\')">' + pt('释放并清零') + '</a>\
                 </td>\
             </tr>';
         }
@@ -2411,7 +2411,7 @@ function wafDropIpList() {
 }
 
 function releaseDropIp(ip) {
-    layer.confirm('确定要释放并清空该 IP (' + ip + ') 的所有惩罚记录吗？', {title: '释放 IP', icon: 3}, function(index) {
+    layer.confirm('确定要释放并清空该 IP (' + ip + ') 的所有惩罚记录吗？', {title:  pt('释放 IP'), icon: 3}, function(index) {
         layer.close(index);
         var loadT = layer.msg('正在释放...', {icon: 16, time: 0, shade: 0.3});
         api.post('removeDropIp', {ip: ip}, function(res_raw) {
@@ -2439,16 +2439,16 @@ function showDropIpLogs(ip) {
         var tableHtml = '<div style="padding: 15px;"><div class="divtable"><table class="table table-hover">\
             <thead>\
                 <tr>\
-                    <th>时间</th>\
-                    <th>域名</th>\
-                    <th>URL / 规则</th>\
-                    <th>拦截原因</th>\
+                    <th>' + pt('时间') + '</th>\
+                    <th>' + pt('域名') + '</th>\
+                    <th>' + pt('URL / 规则') + '</th>\
+                    <th>' + pt('拦截原因') + '</th>\
                 </tr>\
             </thead>\
             <tbody>';
             
         if (logs.length === 0) {
-            tableHtml += '<tr><td colspan="4" style="text-align:center;">本地 SQLite 库中无该 IP 的最近日志（可能完全通过内存封禁）</td></tr>';
+            tableHtml += '<tr><td colspan="4" style="text-align:center;">' + pt('本地 SQLite 库中无该 IP 的最近日志（可能完全通过内存封禁）') + '</td></tr>';
         } else {
             for (var i = 0; i < logs.length; i++) {
                 var log = logs[i];
@@ -2491,14 +2491,14 @@ function setHoneypotDialog() {
             </div>\
             <textarea id="honeypot_paths_input" style="width: 100%; height: 230px; line-height: 22px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; white-space: pre; font-family: Consolas, monospace;">' + paths.join('\n') + '</textarea>\
             <div style="margin-top: 15px; display: flex; justify-content: space-between;">\
-                <button class="btn btn-default btn-sm" style="color: #d9534f; border-color: #d9534f;" onclick="restoreHoneypotDefault()">还原默认配置</button>\
-                <button class="btn btn-success btn-sm" onclick="saveHoneypotPaths()">保存配置</button>\
+                <button class="btn btn-default btn-sm" style="color: #d9534f; border-color: #d9534f;" onclick="restoreHoneypotDefault()">' + pt('还原默认配置') + '</button>\
+                <button class="btn btn-success btn-sm" onclick="saveHoneypotPaths()">' + pt('保存配置') + '</button>\
             </div>\
         </div>';
 
         layer.open({
             type: 1,
-            title: '蜜罐高危路径配置',
+            title:  pt('蜜罐高危路径配置'),
             area: ['500px', '450px'],
             closeBtn: 1,
             shadeClose: false,

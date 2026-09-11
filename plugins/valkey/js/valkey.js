@@ -43,21 +43,21 @@ function redisStatus(version) {
         hit = (parseInt(rdata.keyspace_hits) / (parseInt(rdata.keyspace_hits) + parseInt(rdata.keyspace_misses)) * 100).toFixed(2);
         var con = '<div class="divtable">\
                         <table class="table table-hover table-bordered" style="width: 490px;">\
-                        <thead><th>字段</th><th>当前值</th><th>说明</th></thead>\
+                        <thead><th>' + pt('字段') + '</th><th>' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
                         <tbody>\
-                            <tr><th>uptime_in_days</th><td>' + rdata.uptime_in_days + '</td><td>已运行天数</td></tr>\
-                            <tr><th>tcp_port</th><td>' + rdata.tcp_port + '</td><td>当前监听端口</td></tr>\
-                            <tr><th>connected_clients</th><td>' + rdata.connected_clients + '</td><td>连接的客户端数量</td></tr>\
-                            <tr><th>used_memory_rss</th><td>' + toSize(rdata.used_memory_rss) + '</td><td>Valkey当前占用的系统内存总量</td></tr>\
-                            <tr><th>used_memory</th><td>' + toSize(rdata.used_memory) + '</td><td>Valkey当前已分配的内存总量</td></tr>\
-                            <tr><th>used_memory_peak</th><td>' + toSize(rdata.used_memory_peak) + '</td><td>Valkey历史分配内存的峰值</td></tr>\
-                            <tr><th>mem_fragmentation_ratio</th><td>' + rdata.mem_fragmentation_ratio + '%</td><td>内存碎片比率</td></tr>\
-                            <tr><th>total_connections_received</th><td>' + rdata.total_connections_received + '</td><td>运行以来连接过的客户端的总数量</td></tr>\
-                            <tr><th>total_commands_processed</th><td>' + rdata.total_commands_processed + '</td><td>运行以来执行过的命令的总数量</td></tr>\
-                            <tr><th>instantaneous_ops_per_sec</th><td>' + rdata.instantaneous_ops_per_sec + '</td><td>服务器每秒钟执行的命令数量</td></tr>\
-                            <tr><th>keyspace_hits</th><td>' + rdata.keyspace_hits + '</td><td>查找数据库键成功的次数</td></tr>\
-                            <tr><th>keyspace_misses</th><td>' + rdata.keyspace_misses + '</td><td>查找数据库键失败的次数</td></tr>\
-                            <tr><th>hit</th><td>' + hit + '%</td><td>查找数据库键命中率</td></tr>\
+                            <tr><th>uptime_in_days</th><td>' + rdata.uptime_in_days + '</td><td>' + pt('已运行天数') + '</td></tr>\
+                            <tr><th>tcp_port</th><td>' + rdata.tcp_port + '</td><td>' + pt('当前监听端口') + '</td></tr>\
+                            <tr><th>connected_clients</th><td>' + rdata.connected_clients + '</td><td>' + pt('连接的客户端数量') + '</td></tr>\
+                            <tr><th>used_memory_rss</th><td>' + toSize(rdata.used_memory_rss) + '</td><td>' + pt('Valkey当前占用的系统内存总量') + '</td></tr>\
+                            <tr><th>used_memory</th><td>' + toSize(rdata.used_memory) + '</td><td>' + pt('Valkey当前已分配的内存总量') + '</td></tr>\
+                            <tr><th>used_memory_peak</th><td>' + toSize(rdata.used_memory_peak) + '</td><td>' + pt('Valkey历史分配内存的峰值') + '</td></tr>\
+                            <tr><th>mem_fragmentation_ratio</th><td>' + rdata.mem_fragmentation_ratio + '%</td><td>' + pt('内存碎片比率') + '</td></tr>\
+                            <tr><th>total_connections_received</th><td>' + rdata.total_connections_received + '</td><td>' + pt('运行以来连接过的客户端的总数量') + '</td></tr>\
+                            <tr><th>total_commands_processed</th><td>' + rdata.total_commands_processed + '</td><td>' + pt('运行以来执行过的命令的总数量') + '</td></tr>\
+                            <tr><th>instantaneous_ops_per_sec</th><td>' + rdata.instantaneous_ops_per_sec + '</td><td>' + pt('服务器每秒钟执行的命令数量') + '</td></tr>\
+                            <tr><th>keyspace_hits</th><td>' + rdata.keyspace_hits + '</td><td>' + pt('查找数据库键成功的次数') + '</td></tr>\
+                            <tr><th>keyspace_misses</th><td>' + rdata.keyspace_misses + '</td><td>' + pt('查找数据库键失败的次数') + '</td></tr>\
+                            <tr><th>hit</th><td>' + hit + '%</td><td>' + pt('查找数据库键命中率') + '</td></tr>\
                             <tr><th>latest_fork_usec</th><td>' + rdata.latest_fork_usec + '</td><td>最近一次 fork() 操作耗费的微秒数</td></tr>\
                         <tbody>\
                 </table></div>';
@@ -104,7 +104,7 @@ function replStatus(version){
             } else{
 
                 if (k.substring(0,5) == 'slave' && !isNaN(k.substring(5))){
-                    tbody_text += '<tr><th>'+k+'</th><td class="overflow_hide" style="width:155px;display: inline-block;border: none;" title="'+rdata[k]+'">' + rdata[k] + '</td><td>从库配置信息</td></tr>';
+                    tbody_text += '<tr><th>'+k+'</th><td class="overflow_hide" style="width:155px;display: inline-block;border: none;" title="'+rdata[k]+'">' + rdata[k] + '</td><td>' + pt('从库配置信息') + '</td></tr>';
                 } else{
                     tbody_text += '<tr><th>'+k+'</th><td>' + rdata[k] + '</td><td>'+kv[k]+'</td></tr>';
                 }
@@ -115,7 +115,7 @@ function replStatus(version){
 
         var con = '<div class="divtable">\
                         <table class="table table-hover table-bordered" style="width: 490px;">\
-                        <thead><th style="width:80px;">字段</th><th style="width:90px;">当前值</th><th>说明</th></thead>\
+                        <thead><th style="width:80px;">' + pt('字段') + '</th><th style="width:90px;">' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
                         <tbody>'+tbody_text+'<tbody>\
                 </table></div>';
         $(".soft-man-con").html(con);
@@ -161,12 +161,12 @@ function clusterStatus(version){
         }
 
         if (tbody_text == ''){
-            tbody_text += '<tr><td colspan="3" style="text-align:center;">无数据/未设置集群</td></tr>';
+            tbody_text += '<tr><td colspan="3" style="text-align:center;">' + pt('无数据/未设置集群') + '</td></tr>';
         }
 
         var con = '<div class="divtable">\
                         <table class="table table-hover table-bordered" style="width: 490px;">\
-                        <thead><th style="width:80px;">字段</th><th style="width:90px;">当前值</th><th>说明</th></thead>\
+                        <thead><th style="width:80px;">' + pt('字段') + '</th><th style="width:90px;">' + pt('当前值') + '</th><th>' + pt('说明') + '</th></thead>\
                         <tbody>'+tbody_text+'<tbody>\
                 </table></div>';
         $(".soft-man-con").html(con);
@@ -189,12 +189,12 @@ function clusterNodes(version){
         }
 
         if (tbody_text == ''){
-            tbody_text += '<tr><td style="text-align:center;">无数据/未设置集群</td></tr>';
+            tbody_text += '<tr><td style="text-align:center;">' + pt('无数据/未设置集群') + '</td></tr>';
         }
 
         var con = '<div class="divtable">\
                         <table class="table table-hover table-bordered" style="width: 490px;">\
-                        <thead><th style="width:80px;text-align:center;">节点信息</th></thead>\
+                        <thead><th style="width:80px;text-align:center;">' + pt('节点信息') + '</th></thead>\
                         <tbody>'+tbody_text+'<tbody>\
                 </table></div>';
         $(".soft-man-con").html(con);
@@ -218,19 +218,19 @@ function getRedisConfig(version) {
                 case 0:
                     var selected_1 = (rdata[i].value == 1) ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 0) ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>开启</option><option value="0" ' + selected_0 + '>关闭</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="1" ' + selected_1 + '>' + pt('开启') + '</option><option value="0" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
                     break;
                 case 1:
                     var selected_1 = (rdata[i].value == 'On') ? 'selected' : '';
                     var selected_0 = (rdata[i].value == 'Off') ? 'selected' : '';
-                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>开启</option><option value="Off" ' + selected_0 + '>关闭</option></select>'
+                    ibody = '<select class="bt-input-text mr5" name="' + rdata[i].name + '" style="width: ' + w + 'px;"><option value="On" ' + selected_1 + '>' + pt('开启') + '</option><option value="Off" ' + selected_0 + '>' + pt('关闭') + '</option></select>'
                     break;
             }
             mlist += '<p><span>' + rdata[i].name + '</span>' + ibody + ', <font>' + rdata[i].ps + '</font></p>'
         }
         var con = '<style>.conf_p p{margin-bottom: 2px}</style><div class="conf_p" style="margin-bottom:0">' + mlist + '\
-                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="getRedisConfig(\'' + version + '\')">刷新</button>\
-                        <button class="btn btn-success btn-sm" onclick="submitConf(\'' + version + '\')">保存</button></div>\
+                        <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="getRedisConfig(\'' + version + '\')">' + pt('刷新') + '</button>\
+                        <button class="btn btn-success btn-sm" onclick="submitConf(\'' + version + '\')">' + pt('保存') + '</button></div>\
                     </div>'
         $(".soft-man-con").html(con);
     });
@@ -272,17 +272,17 @@ function valkeyReadme(){
     </style>\
     <div class="pd15">\
         <div class="valkey-readme-card">\
-            <h4 class="valkey-readme-h"><span class="glyphicon glyphicon-th-large"></span> 方案一：创建无副本单机多实例集群 <span class="valkey-badge">3 节点</span></h4>\
-            <p class="valkey-readme-p">此方案适用于本地开发测试环境，在单台物理机上部署 3 个 Valkey 节点（例如 6379, 6380, 6381 端口），直接横向构建无主从副本的切片集群：</p>\
+            <h4 class="valkey-readme-h"><span class="glyphicon glyphicon-th-large"></span> ' + pt('方案一：创建无副本单机多实例集群') + ' <span class="valkey-badge">' + pt('3 节点') + '</span></h4>\
+            <p class="valkey-readme-p">' + pt('此方案适用于本地开发测试环境，在单台物理机上部署 3 个 Valkey 节点（例如 6379, 6380, 6381 端口），直接横向构建无主从副本的切片集群：') + '</p>\
             <div class="valkey-code-box" id="valkey_cmd_1">' + cmd_01 + '\
-                <button class="valkey-copy-btn" onclick="copyValkeyText(\'' + cmd_01.replace(/'/g, "\\'") + '\')"><span class="glyphicon glyphicon-copy"></span> 复制</button>\
+                <button class="valkey-copy-btn" onclick="copyValkeyText(\'' + cmd_01.replace(/'/g, "\\'") + '\')"><span class="glyphicon glyphicon-copy"></span> ' + pt('复制') + '</button>\
             </div>\
         </div>\
         <div class="valkey-readme-card">\
-            <h4 class="valkey-readme-h"><span class="glyphicon glyphicon-transfer"></span> 方案二：创建高可用主从副本集群 <span class="valkey-badge">6 节点 (3主3从)</span></h4>\
+            <h4 class="valkey-readme-h"><span class="glyphicon glyphicon-transfer"></span> ' + pt('方案二：创建高可用主从副本集群') + ' <span class="valkey-badge">6 节点 (3主3从)</span></h4>\
             <p class="valkey-readme-p">生产环境的标准集群架构，使用 6 个实例组建集群，并配置每个主节点携带 1 个从节点副本（`--cluster-replicas 1`），以实现自动故障转移和数据高可用防护：</p>\
             <div class="valkey-code-box" id="valkey_cmd_2">' + cmd_02 + '\
-                <button class="valkey-copy-btn" onclick="copyValkeyText(\'' + cmd_02.replace(/'/g, "\\'") + '\')"><span class="glyphicon glyphicon-copy"></span> 复制</button>\
+                <button class="valkey-copy-btn" onclick="copyValkeyText(\'' + cmd_02.replace(/'/g, "\\'") + '\')"><span class="glyphicon glyphicon-copy"></span> ' + pt('复制') + '</button>\
             </div>\
         </div>\
     </div>';
@@ -297,9 +297,9 @@ window.copyValkeyText = function(text) {
     textarea.select();
     try {
         document.execCommand("copy");
-        layer.msg("复制成功", { icon: 1, time: 1000 });
+        layer.msg(pt("复制成功"), { icon: 1, time: 1000 });
     } catch (err) {
-        layer.msg("复制失败，请手动选定复制", { icon: 2 });
+        layer.msg(pt("复制失败，请手动选定复制"), { icon: 2 });
     }
     document.body.removeChild(textarea);
 };
