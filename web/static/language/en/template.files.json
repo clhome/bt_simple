@@ -321,14 +321,14 @@
     "py_msg_6d3445": "Restore failed!",
     "py_msg_d88584": "Recycle bin cleared!"
   },
-  "sky": "天",
-  "day": "日",
-  "search_content": "查找内容...",
-  "previous": "上一个",
-  "next": "下一个",
-  "replace_with": "替换为...",
-  "replace_current": "替换当前",
-  "replace_all": "替换全部",
-  "replace": "替换",
-  "all_1": "全部"
+  "sky": "Day",
+  "day": "Day",
+  "search_content": "Search content...",
+  "previous": "Previous",
+  "next": "Next",
+  "replace_with": "Replace with...",
+  "replace_current": "Replace current",
+  "replace_all": "Replace all",
+  "replace": "Replace",
+  "all_1": "All"
 }
