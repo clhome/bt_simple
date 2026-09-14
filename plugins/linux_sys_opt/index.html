@@ -213,11 +213,11 @@ function optStatus() {
         var con = `<div class="p-3">
             <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap;">
                 <h3 style="margin: 0; font-size: 17px; font-weight: bold; white-space: nowrap; flex-shrink: 0;">${pt('内核与并发参数状态')}</h3>
-                <span style="font-size: 13px; color: #666; white-space: nowrap;">
+                <span style="font-size: 13px; color: #666; white-space: nowrap; margin-left: 20px; flex-shrink: 0;">
                     ${pt('当前内存为：')}<b style="color:#f39c12; font-size: 14px;">${memGB}GB</b>${pt('，优化脚本会')}<span style="color:#20a53a; font-weight:bold;">${pt('自动匹配')}</span>${pt('不同内存阶梯配置')}
                 </span>
             </div>
-            <div style="height: 400px; overflow-y: auto; border: 1px solid #eee;">
+            <div style="height: 420px; overflow-y: auto; border: 1px solid #eee;">
                 <table class="table table-hover table-bordered" style="font-size: 13px; white-space: nowrap; table-layout: fixed; width: 100%; margin: 0; border: none;">
                     <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 1;">
                         <tr>
@@ -298,7 +298,7 @@ function applyOpt() {
 function readme() {
     $('.bgw').removeClass('bgw');
     $('.bt-w-menu p:eq(1)').addClass('bgw');
-    var con = `<div class="p-3" style="height: 520px; display: flex; flex-direction: column; background: #f8f9fa; border-radius: 6px; box-sizing: border-box; padding: 15px 15px 10px 15px;">
+    var con = `<div class="p-3" style="height: 540px; display: flex; flex-direction: column; background: #f8f9fa; border-radius: 6px; box-sizing: border-box; padding: 15px 15px 10px 15px;">
         <div style="flex: 1; overflow-y: auto; padding-right: 10px;">
             <div style="background: #fff; padding: 25px 25px 20px 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); line-height: 1.8; font-size: 14px;">
                 <h3 style="margin-bottom: 20px; margin-top: 0; color: #333; border-bottom: 2px solid #20a53a; padding-bottom: 10px; display: inline-block;">
