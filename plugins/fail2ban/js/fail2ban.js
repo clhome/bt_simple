@@ -17,13 +17,13 @@ function f2bHome() {
         var jailStats = stats.jail_stats || {};
 
         var jailNames = {
-            'sshd': 'SSH 防爆破',
-            'ftpd': 'FTP 防爆破',
-            'mysql': 'MySQL 防爆破',
-            'dovecot': 'Dovecot 邮局',
-            'postfix': 'Postfix 邮局',
-            'global-cc': '全局防 CC 攻击',
-            'global-scan': '全局防恶意扫描'
+            'sshd': pt('SSH 防爆破'),
+            'ftpd': pt('FTP 防爆破'),
+            'mysql': pt('MySQL 防爆破'),
+            'dovecot': pt('Dovecot 邮局'),
+            'postfix': pt('Postfix 邮局'),
+            'global-cc': pt('全局防 CC 攻击'),
+            'global-scan': pt('全局防恶意扫描')
         };
 
         var jailHtml = '';
@@ -527,8 +527,8 @@ function f2bSiteAnti() {
         
         // 预设服务列表
         var presetServices = [
-            {name: '全局防 CC 攻击', mode: 'global-cc', port: '80,443', maxretry: 60, findtime: 60, bantime: 86400},
-            {name: '全局防恶意扫描', mode: 'global-scan', port: '80,443', maxretry: 30, findtime: 60, bantime: 86400}
+            {name: pt('全局防 CC 攻击'), mode: 'global-cc', port: '80,443', maxretry: 60, findtime: 60, bantime: 86400},
+            {name: pt('全局防恶意扫描'), mode: 'global-scan', port: '80,443', maxretry: 30, findtime: 60, bantime: 86400}
         ];
 
         var tbody = '';
@@ -570,7 +570,7 @@ function f2bSiteAnti() {
                   '<ul class="help-info-text c7 ptb15" style="margin-bottom:0;"><li>' + pt('开启全局防护后，将自动应用到所有网站，对访问日志进行聚合分析和攻击拦截。') + '</li></ul>' +
                   '<div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 20px; margin-top: 5px;">\
                       <h4 style="color: #333; font-size: 14px; font-weight: bold; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eaeaea; padding-bottom: 10px;">\
-                          <span class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:8px;"></span>网站防护机制深度解析\
+                          <span class="glyphicon glyphicon-shield" style="color:#20a53a; margin-right:8px;"></span>' + pt('网站防护机制深度解析') + '\
                       </h4>\
                       <div style="margin-bottom: 15px;">\
                           <div style="color: #333; font-weight: 600; font-size: 13px; margin-bottom: 6px;">\

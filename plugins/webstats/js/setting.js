@@ -30,7 +30,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 			<div class="ws_content">\
 				<div class="item-line">\
 					<div class="choose_title">' + pt('日志保存天数') + '</div>\
-					<input type="number" class="bt-input-text" name="save_day" value="'+rdata['global']['save_day']+'" style="width:55px;">/天 \
+					<input type="number" class="bt-input-text" name="save_day" value="'+rdata['global']['save_day']+'" style="width:55px;">' + pt('/天') + ' \
 					<button type="button" id="save_day" class="btn btn-default btn-sm" style="margin-left: 48px;"><span>' + pt('保存') + '</span></button>\
 					<span class="tips" data-toggle="tooltip" data-placement="top" title="缩短日志保存天数原有记录的日志将被删除，请谨慎操作">?</span>\
 				</div>\
@@ -114,7 +114,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 
 			var check = '<div class="checkbox" style="margin: 20px 0 0 -10px;">\
 						<label style="cursor: pointer;margin-right:15px;">\
-							<input type="checkbox" name="record_post_args" style="margin: 1px 10 0;" '+record_post_args+'>记录POST请求原文\
+							<input type="checkbox" name="record_post_args" style="margin: 1px 10 0;" '+record_post_args+'>' + pt('记录POST请求原文') + '\
 						</label>\
 						<label style="cursor: pointer;">\
 							<input type="checkbox" name="record_get_403_args" style="margin: 1px 10 0;" '+record_get_403_args+'><span>' + pt('记录403错误请求原文') + '</span>\

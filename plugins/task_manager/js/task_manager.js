@@ -300,7 +300,7 @@ function get_process_list(sortx, reverse, rx) {
         $("#TaskManagement").html(tbody);
         var topMsg = '<div class="mini-info-box">\
 				<div class="mini-info-con"><p><span class="tname">' + pt('CPU：', 'CPU：') + '</span>' + data.info.cpu + '%</p><p><span class="tname">' + pt('内存：', '内存：') + '</span>' + toSize(data.info.mem) + '</p></div>\
-				<div class="mini-info-con"><p style="text-align:center">' + pt('负载(load average)', '负载(load average)') + '</p><p style="text-align:center">' + data.info.load_average[1] + ', ' + data.info.load_average[5] + ', ' + data.info.load_average[15] + '</p></div>\
+				<div class="mini-info-con"><p style="text-align:center">' + pt('负载(load average)') + '</p><p style="text-align:center">' + data.info.load_average[1] + ', ' + data.info.load_average[5] + ', ' + data.info.load_average[15] + '</p></div>\
 				<div class="mini-info-con"><p><span class="tname">' + pt('进程数：', '进程数：') + '</span>' + data.process_list.length + '</p><p><span class="tname">' + pt('磁盘：', '磁盘：') + '</span>' + toSize(data.info.disk) + '</p></div>\
 			</div>';
         $("#load_average").html(topMsg).show();

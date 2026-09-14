@@ -184,7 +184,7 @@ function giteaUserList(page, search) {
 function userProjectList(user, search){
     var loadOpen = layer.open({
         type: 1,
-        title: '用户('+user+')项目列表',
+        title: pt('用户({1})项目列表', user),
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                     <div>\
@@ -695,7 +695,7 @@ function createScriptFile(type, user, name, file) {
 function projectScriptSelf(user, name){
     layer.open({
         type: 1,
-        title: '项目('+user+'/'+name+')自定义脚本',
+        title: pt('项目({1}/{2})自定义脚本', user, name),
         area: '500px',
         content:"<div class='bt-form pd15'>\
                 <button id='create_script' class='btn btn-success btn-sm' type='button' style='margin-right: 5px;''>' + pt('添加脚本') + '</button>\

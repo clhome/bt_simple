@@ -29,7 +29,6 @@
  "刷新日志": "Aggiorna registri",
  "前往获取镜像": "Vai a scaricare l'immagine",
  "动态网络边界控制 (外网访问)": "Controllo dinamico dei confini di rete (accesso alla rete esterna)",
- "勾选允许外部网络访问(0.0.0.0)\n取消仅限本地网络访问(127.0.0.1)": "Selezionare “Consenti accesso dalla rete esterna (0.0.0.0)”\nDeselezionare “Consenti solo accesso dalla rete locale (127.0.0.1)”",
  "危险操作确认": "Conferma delle operazioni pericolose",
  "卸载": "Disinstalla",
  "卸载 PostgreSQL 实例": "Disinstallazione di un’istanza di PostgreSQL",

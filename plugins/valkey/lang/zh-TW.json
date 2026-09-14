@@ -1,5 +1,5 @@
 {
- "3 节点": "3 节点",
+ "3 节点": "3 節點",
  "MB,最大使用内存,0表示不限制": "MB,最大使用記憶體,0表示不限制",
  "Valkey历史分配内存的峰值": "Valkey歷史分配記憶體的峰值",
  "Valkey当前占用的系统内存总量": "Valkey目前佔用的系統記憶體總量",
@@ -17,9 +17,9 @@
  "从库读取复制位置": "從庫讀取複製位置",
  "从库配置信息": "從庫配置訊息",
  "保存": "儲存",
- "关闭": "关闭",
+ "关闭": "關閉",
  "内存碎片比率": "記憶體碎片比率",
- "刷新": "刷新",
+ "刷新": "重新整理",
  "发送": "傳送",
  "同步主库地址": "同步主庫地址",
  "同步主库密码": "同步主庫密碼",
@@ -53,7 +53,7 @@
  "查找数据库键失败的次数": "尋找資料庫鍵失敗的次數",
  "查找数据库键成功的次数": "尋找資料庫鍵成功的次數",
  "正在同步中": "正在同步中",
- "此方案适用于本地开发测试环境，在单台物理机上部署 3 个 Valkey 节点（例如 6379, 6380, 6381 端口），直接横向构建无主从副本的切片集群：": "此方案适用于本地开发测试环境，在单台物理机上部署 3 个 Valkey 节点（例如 6379, 6380, 6381 端口），直接横向构建无主从副本的切片集群：",
+ "此方案适用于本地开发测试环境，在单台物理机上部署 3 个 Valkey 节点（例如 6379, 6380, 6381 端口），直接横向构建无主从副本的切片集群：": "此方案適用於本地開發測試環境，在單臺物理機上部署 3 個 Valkey 節點（例如 6379, 6380, 6381 埠），直接橫向構建無主從副本的切片叢集：",
  "相关说明": "相關說明",
  "知道的节点": "知道的節點",
  "空闲链接超时时间,0表示不断开": "空閒連結超時時間,0表示不斷開",
@@ -81,13 +81,5 @@
  "集群状态": "叢集狀態",
  "集群节点": "叢集節點",
  "正在获取...": "正在獲取...",
- ">' + pt('无数据/未设置集群') + '": ">' + pt('无数据/未设置集群') + '",
- "' + pt('方案二：创建高可用主从副本集群') + '": "' + pt('方案二：创建高可用主从副本集群') + '",
- "' + pt('从库配置信息') + '": "' + pt('从库配置信息') + '",
- ").html(con);\n    });\n}\n\nfunction clusterStatus(version){\n    api.post('cluster_info', version, {},function(data){\n        var rdata = JSON.parse(data.data);\n\n        if ('status' in rdata && !rdata.status){\n            layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});\n            return;\n        }\n\n        var kv = {\n            'cluster_state':pt('集群状态'),\n            'cluster_slots_assigned':pt('被分配的槽'),\n            'cluster_slots_ok':pt('被分配的槽状态'),\n            'cluster_known_nodes':pt('知道的节点'),\n            'cluster_size':pt('大小'),\n            'cluster_stats_messages_sent':pt('发送'),\n            'cluster_stats_messages_received':pt('接收'),\n            'cluster_current_epoch':pt('集群当前epoch'),\n            'cluster_my_epoch':pt('当前我的epoch'),\n            'cluster_slots_pfail':pt('处于PFAIL状态的槽数'),\n            'cluster_slots_fail':pt('处于FAIL状态的槽数'),\n            'total_cluster_links_buffer_limit_exceeded':pt('超出缓冲区总数'),\n        }\n\n        var tbody_text = '';\n        for (k in rdata){\n            var desc = k;\n            if (k in kv){\n                desc = kv[k];\n            }\n\n            if (k == 'master_replid'){\n                tbody_text += '": ").html(con);\n    });\n}\n\nfunction clusterStatus(version){\n    api.post('cluster_info', version, {},function(data){\n        var rdata = JSON.parse(data.data);\n\n        if ('status' in rdata && !rdata.status){\n            layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});\n            return;\n        }\n\n        var kv = {\n            'cluster_state':pt('集群状态'),\n            'cluster_slots_assigned':pt('被分配的槽'),\n            'cluster_slots_ok':pt('被分配的槽状态'),\n            'cluster_known_nodes':pt('知道的节点'),\n            'cluster_size':pt('大小'),\n            'cluster_stats_messages_sent':pt('发送'),\n            'cluster_stats_messages_received':pt('接收'),\n            'cluster_current_epoch':pt('集群当前epoch'),\n            'cluster_my_epoch':pt('当前我的epoch'),\n            'cluster_slots_pfail':pt('处于PFAIL状态的槽数'),\n            'cluster_slots_fail':pt('处于FAIL状态的槽数'),\n            'total_cluster_links_buffer_limit_exceeded':pt('超出缓冲区总数'),\n        }\n\n        var tbody_text = '';\n        for (k in rdata){\n            var desc = k;\n            if (k in kv){\n                desc = kv[k];\n            }\n\n            if (k == 'master_replid'){\n                tbody_text += '",
- ").html(con);\n    });\n}\n\nfunction replStatus(version){\n    api.post('info_replication', version, {},function(data){\n        var rdata = JSON.parse(data.data);\n\n        if ('status' in rdata && !rdata.status){\n            layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});\n            return;\n        }\n\n        var kv = {\n            'role':pt('角色'),\n            'master_host':pt('连接主库HOST'),\n            'master_port':pt('连接主库PORT'),\n            'master_link_status':pt('连接主库状态'),\n            'master_last_io_seconds_ago':pt('上次同步时间'),\n            'master_sync_in_progress':pt('正在同步中'),\n            'slave_read_repl_offset':pt('从库读取复制位置'),\n            'slave_repl_offset':pt('从库复制位置'),\n            'slave_read_only':pt('从库是否仅读'),\n            'replica_announced':pt('已复制副本'),\n            'connected_slaves':pt('连接数量'),\n            'master_failover_state':pt('主库故障状态'),\n            'master_replid':pt('主库复制ID'),\n            'master_repl_offset':pt('主库复制位置'),\n            'repl_backlog_size':pt('backlog复制大小'),\n            'second_repl_offset':pt('复制位置时间'),\n            'repl_backlog_first_byte_offset':pt('第一个字节偏移量'),\n            'repl_backlog_histlen':pt('backlog中数据的长度'),\n            'repl_backlog_active':pt('开启复制缓冲区'),\n            'slave_priority':pt('同步优先级'),\n        }\n\n        var tbody_text = '';\n        for (k in rdata){\n            if (k == 'master_replid'){\n                tbody_text += '": ").html(con);\n    });\n}\n\nfunction replStatus(version){\n    api.post('info_replication', version, {},function(data){\n        var rdata = JSON.parse(data.data);\n\n        if ('status' in rdata && !rdata.status){\n            layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});\n            return;\n        }\n\n        var kv = {\n            'role':pt('角色'),\n            'master_host':pt('连接主库HOST'),\n            'master_port':pt('连接主库PORT'),\n            'master_link_status':pt('连接主库状态'),\n            'master_last_io_seconds_ago':pt('上次同步时间'),\n            'master_sync_in_progress':pt('正在同步中'),\n            'slave_read_repl_offset':pt('从库读取复制位置'),\n            'slave_repl_offset':pt('从库复制位置'),\n            'slave_read_only':pt('从库是否仅读'),\n            'replica_announced':pt('已复制副本'),\n            'connected_slaves':pt('连接数量'),\n            'master_failover_state':pt('主库故障状态'),\n            'master_replid':pt('主库复制ID'),\n            'master_repl_offset':pt('主库复制位置'),\n            'repl_backlog_size':pt('backlog复制大小'),\n            'second_repl_offset':pt('复制位置时间'),\n            'repl_backlog_first_byte_offset':pt('第一个字节偏移量'),\n            'repl_backlog_histlen':pt('backlog中数据的长度'),\n            'repl_backlog_active':pt('开启复制缓冲区'),\n            'slave_priority':pt('同步优先级'),\n        }\n\n        var tbody_text = '';\n        for (k in rdata){\n            if (k == 'master_replid'){\n                tbody_text += '",
- "' + pt('方案一：创建无副本单机多实例集群') + '": "' + pt('方案一：创建无副本单机多实例集群') + '",
- ">' + pt('字段') + '": ">' + pt('字段') + '",
- ").html(con);\n    });\n}\n\n//redis状态 end\n\n//配置修改\nfunction getRedisConfig(version) {\n    api.post('get_redis_conf', version,'',function(data){\n        // console.log(data);\n        var rdata = JSON.parse(data.data);\n        // console.log(rdata);\n        var mlist = '';\n        for (var i = 0; i": ").html(con);\n    });\n}\n\n//redis状态 end\n\n//配置修改\nfunction getRedisConfig(version) {\n    api.post('get_redis_conf', version,'',function(data){\n        // console.log(data);\n        var rdata = JSON.parse(data.data);\n        // console.log(rdata);\n        var mlist = '';\n        for (var i = 0; i",
- "最近一次 fork() 操作耗费的微秒数": "最近一次 fork() 操作耗费的微秒数"
+ "最近一次 fork() 操作耗费的微秒数": "最近一次 fork() 操作耗費的微秒數"
 }

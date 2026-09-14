@@ -784,7 +784,7 @@ function wsSitesListRequest(page){
 
                                 var check = '<div class="checkbox" style="margin: 20px 0 0 -10px;">\
                                             <label style="cursor: pointer;margin-right:15px;">\
-                                                <input type="checkbox" name="record_post_args" style="margin: 1px 10 0;" '+record_post_args+'>记录POST请求原文\
+                                                <input type="checkbox" name="record_post_args" style="margin: 1px 10 0;" '+record_post_args+'>' + pt('记录POST请求原文') + '\
                                             </label>\
                                             <label style="cursor: pointer;">\
                                                 <input type="checkbox" name="record_get_403_args" style="margin: 1px 10 0;" '+record_get_403_args+'><span>' + pt('记录403错误请求原文') + '</span>\

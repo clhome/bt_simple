@@ -407,7 +407,7 @@ function pureftpService() {
             if (innerIp !== outerIp) {
                 con += '<div class="ftp-info-item"><span class="ftp-info-label">' + pt('外网地址') + '</span><span class="ftp-info-value">ftp://' + outerIp + ':' + port + '</span></div>';
             } else {
-                con += '<div class="ftp-info-item"><span class="ftp-info-label">' + pt('外网地址') + '</span><span class="ftp-info-value" style="color:#888;border-color:#eee;background:#fafafa;">ftp://' + outerIp + ':' + port + ' (同内网)</span></div>';
+                con += '<div class="ftp-info-item"><span class="ftp-info-label">' + pt('外网地址') + '</span><span class="ftp-info-value" style="color:#888;border-color:#eee;background:#fafafa;">ftp://' + outerIp + ':' + port + ' ' + pt('(同内网)') + '</span></div>';
             }
             
             if (ftpData.data && ftpData.data.length > 0) {

@@ -22,13 +22,13 @@ function setRequestCode(ruleName, statusCode){
                         <span class="tname">' + pt('响应代码') + '</span>\
                         <div class="info-r">\
                             <select id="statusCode" class="bt-input-text mr5" style="width:150px;">\
-                                <option value="200" '+ (statusCode == 200 ? 'selected' : '') + '>正常(200)</option>\
-                                <option value="404" '+ (statusCode == 404 ? 'selected' : '') + '>文件不存在(404)</option>\
-                                <option value="403" '+ (statusCode == 403 ? 'selected' : '') + '>拒绝访问(403)</option>\
-                                <option value="444" '+ (statusCode == 444 ? 'selected' : '') + '>关闭连接(444)</option>\
-                                <option value="500" '+ (statusCode == 500 ? 'selected' : '') + '>应用程序错误(500)</option>\
-                                <option value="502" '+ (statusCode == 502 ? 'selected' : '') + '>连接超时(502)</option>\
-                                <option value="503" '+ (statusCode == 503 ? 'selected' : '') + '>服务器不可用(503)</option>\
+                                <option value="200" '+ (statusCode == 200 ? 'selected' : '') + '>' + pt('正常(200)') + '</option>\
+                                <option value="404" '+ (statusCode == 404 ? 'selected' : '') + '>' + pt('文件不存在(404)') + '</option>\
+                                <option value="403" '+ (statusCode == 403 ? 'selected' : '') + '>' + pt('拒绝访问(403)') + '</option>\
+                                <option value="444" '+ (statusCode == 444 ? 'selected' : '') + '>' + pt('关闭连接(444)') + '</option>\
+                                <option value="500" '+ (statusCode == 500 ? 'selected' : '') + '>' + pt('应用程序错误(500)') + '</option>\
+                                <option value="502" '+ (statusCode == 502 ? 'selected' : '') + '>' + pt('连接超时(502)') + '</option>\
+                                <option value="503" '+ (statusCode == 503 ? 'selected' : '') + '>' + pt('服务器不可用(503)') + '</option>\
                             </select>\
                         </div>\
                     </div>\

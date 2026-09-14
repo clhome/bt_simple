@@ -29,7 +29,6 @@
  "刷新日志": "Refresh Logs",
  "前往获取镜像": "Go to get the image",
  "动态网络边界控制 (外网访问)": "Dynamic network border control (external network access)",
- "勾选允许外部网络访问(0.0.0.0)\n取消仅限本地网络访问(127.0.0.1)": "Check the box to allow access from external networks (0.0.0.0)\nUncheck the box to restrict access to the local network only (127.0.0.1)",
  "危险操作确认": "Hazardous Operation Confirmation",
  "卸载": "Uninstall",
  "卸载 PostgreSQL 实例": "Uninstall a PostgreSQL Instance",

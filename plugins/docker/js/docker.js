@@ -1244,7 +1244,7 @@ function dockerAccelerator() {
             '</div>' +
             '<div class="help-info-text c7" style="margin-bottom:10px;">' + pt('注：保存后将写入 /etc/docker/daemon.json 并重启 Docker 守护进程。') + '</div>' +
             '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:5px;">' +
-            '<label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)"> 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)</label>' +
+            '<label><input type="checkbox" id="auto_fallback_pull" ' + (localStorage.getItem('docker_auto_fallback_pull') !== 'false' ? 'checked' : '') + ' onchange="localStorage.setItem(\'docker_auto_fallback_pull\', this.checked)">' + pt(' 开启拉取镜像自动容灾 (拉取失败时自动尝试以上加速器)') + '</label>' +
             '<button class="btn btn-success btn-sm" onclick="saveDockerAccelerator()">' + pt('保存并重启 Docker') + '</button>' +
             '</div>' +
             '</div>';

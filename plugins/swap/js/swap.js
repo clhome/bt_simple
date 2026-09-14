@@ -103,7 +103,7 @@ function swapStatus() {
             selectHtml += '  <option value="' + presets[i].value + '" ' + is_selected + '>' + presets[i].name + '</option>';
         }
         if (!has_exact_preset && size > 0) {
-            selectHtml += '  <option value="' + size + '" selected>当前大小 (' + size + 'MB)</option>';
+            selectHtml += '  <option value="' + size + '" selected>' + pt('当前大小') + ' (' + size + 'MB)</option>';
         }
         selectHtml += '</select>';
         

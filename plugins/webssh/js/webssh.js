@@ -415,7 +415,7 @@ function webShell_addServer(info=[]){
                         <div class="info-r">\
                             <div class="btn-group">\
                                 <button type="button" tabindex="-1" class="btn btn-sm auth_type_checkbox btn-default btn-success" data-ctype="0">' + pt('密码验证') + '</button>\
-                                <button type="button" tabindex="-1" class="btn btn-sm auth_type_checkbox btn-default" data-ctype="1">私钥验证\
+                                <button type="button" tabindex="-1" class="btn btn-sm auth_type_checkbox btn-default" data-ctype="1">' + pt('私钥验证') + '\
                                 </button>\
                             </div>\
                         </div>\

@@ -29,7 +29,6 @@
  "刷新日志": "Actualiser les journaux",
  "前往获取镜像": "Allez chercher l'image",
  "动态网络边界控制 (外网访问)": "Contrôle dynamique des frontières du réseau (accès au réseau externe)",
- "勾选允许外部网络访问(0.0.0.0)\n取消仅限本地网络访问(127.0.0.1)": "Cochez la case « Autoriser l'accès depuis le réseau externe (0.0.0.0) »\nDécochez la case « Accès réservé au réseau local (127.0.0.1) »",
  "危险操作确认": "Confirmation des opérations dangereuses",
  "卸载": "Désinstaller",
  "卸载 PostgreSQL 实例": "Désinstaller une instance PostgreSQL",

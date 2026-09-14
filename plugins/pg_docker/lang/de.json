@@ -29,7 +29,6 @@
  "刷新日志": "Protokolle aktualisieren",
  "前往获取镜像": "Hier geht es zum Image",
  "动态网络边界控制 (外网访问)": "Dynamische Netzwerkgrenzkontrolle (Zugriff aus dem externen Netzwerk)",
- "勾选允许外部网络访问(0.0.0.0)\n取消仅限本地网络访问(127.0.0.1)": "Aktivieren Sie die Option „Zugriff aus externen Netzwerken zulassen (0.0.0.0)“\nDeaktivieren Sie die Option „Nur Zugriff aus lokalen Netzwerken (127.0.0.1)“",
  "危险操作确认": "Bestätigung gefährlicher Arbeitsvorgänge",
  "卸载": "Deinstallieren",
  "卸载 PostgreSQL 实例": "PostgreSQL-Instanz deinstallieren",
