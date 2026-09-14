@@ -1,5 +1,6 @@
 {
     "&ps=手动屏蔽": "&ps=Blocage manuel",
+    ")没有!": ")Non!",
     "/秒\\n发包速度：": "/seconde\\nVitesse de livraison des paquets :",
     "/秒\\n发包速度：', '/秒\\n发包速度：": "/seconde\\nVitesse d'émission de paquets : ', '/seconde\\nVitesse d'émission de paquets :",
     "/秒\\n收包速度：": "Fin du processus[",
@@ -52,6 +53,7 @@
     "包接收/秒：": "Paquets reçus par seconde :",
     "协议": "Protocole",
     "协议', '协议": "« Accord », « Accord »",
+    "参数:(": "Nom de domaine du serveur",
     "发包速度：": "Vitesse d'attribution des marchés :",
     "发送": "envoyer",
     "取消": "Annuler",

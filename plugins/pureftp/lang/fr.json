@@ -1,5 +1,6 @@
 {
     "(同内网)": "(Identique à l'intranet)",
+    ")没有!": ")Non!",
     "FTP 用户名": "Nom d'utilisateur FTP",
     "FTP 连接与账号管理": "Connexion FTP et gestion de compte",
     "FTP帐户": "Compte FTP",
@@ -15,6 +16,7 @@
     "删除": "Suppr.",
     "删除成功!": "Suppression réussie !",
     "务必前往云服务商的安全组控制台": "Veillez à vous rendre sur la console des groupes de sécurité de votre fournisseur de services cloud",
+    "参数:(": "Nom de domaine du serveur",
     "启动": "Démarrer",
     "启动成功!": "Démarré avec succès !",
     "备注": "Remarque",

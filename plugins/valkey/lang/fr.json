@@ -1,4 +1,5 @@
 {
+    ")没有!": ")Non!",
     "3 节点": "3 nœuds",
     "MB,最大使用内存,0表示不限制": "Mo, utilisation maximale de la mémoire, 0 signifie aucune limite",
     "Valkey历史分配内存的峰值": "Pics historiques d'allocation de mémoire par Valkey",
@@ -20,6 +21,7 @@
     "关闭": "Fermer",
     "内存碎片比率": "Taux de fragmentation de la mémoire",
     "刷新": "Actualiser",
+    "参数:(": "Nom de domaine du serveur",
     "发送": "envoyer",
     "同步主库地址": "Synchroniser l'adresse de la bibliothèque principale",
     "同步主库密码": "Synchroniser le mot de passe de la base de données principale",
@@ -67,6 +69,7 @@
     "被分配的槽": "Gestion des conteneurs PostgreSQL",
     "被分配的槽状态": "statut d'emplacement attribué",
     "角色": "Rôle",
+    "设置成功": "Configuration réussie",
     "说明": "Description",
     "负载状态": "État de la charge",
     "超出缓冲区总数": "Nombre total de tampons dépassé",

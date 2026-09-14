@@ -1,4 +1,5 @@
 {
+    ")没有!": ") No!",
     "MySQL常用功能": "Funzioni più comuni di MySQL",
     "MySQL服务器的QPS/TPS/网络带宽指标": "Indicatori QPS/TPS/larghezza di banda di rete del server MySQL",
     "“数据管理”": "\"Gestione dei dati\"",
@@ -19,6 +20,7 @@
     "删除冗余索引SQL": "SQL per eliminare indici ridondanti",
     "刷新后，在面板": "Dopo l'aggiornamento, nel pannello",
     "刷新后，在面板左侧导航栏中会显示并激活 “数据管理” 菜单。": "Dopo l'aggiornamento, nella barra di navigazione a sinistra del pannello verrà visualizzato e attivato il menu “Gestione dati”.",
+    "参数:(": "Parametri: (",
     "取消": "Annulla",
     "复制值": "Valore copiato",
     "实时监控": "Monitoraggio in tempo reale",

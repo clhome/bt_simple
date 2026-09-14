@@ -1,5 +1,6 @@
 {
     "&ps=手动屏蔽": "&ps=Manuell ausblenden",
+    ")没有!": ") Nein!",
     "/秒\\n发包速度：": "/Sekunde\\nÜbertragungsgeschwindigkeit:",
     "/秒\\n发包速度：', '/秒\\n发包速度：": "/Sekunde\\nPaketübertragungsrate: ', '/Sekunde\\nPaketübertragungsrate:",
     "/秒\\n收包速度：": "/Sekunde\\nPaketempfangsgeschwindigkeit:",
@@ -52,6 +53,7 @@
     "包接收/秒：": "Pakete pro Sekunde:",
     "协议": "Protokoll",
     "协议', '协议": "Vereinbarung', 'Vereinbarung'",
+    "参数:(": "Parameter: (",
     "发包速度：": "Geschwindigkeit der Auftragsvergabe:",
     "发送": "schicken",
     "取消": "Abbrechen",

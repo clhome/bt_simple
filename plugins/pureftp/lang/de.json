@@ -1,5 +1,6 @@
 {
     "(同内网)": "(Wie Intranet)",
+    ")没有!": ") Nein!",
     "FTP 用户名": "FTP-Benutzername",
     "FTP 连接与账号管理": "FTP-Verbindung und Kontoverwaltung",
     "FTP帐户": "FTP-Konto",
@@ -15,6 +16,7 @@
     "删除": "Löschen",
     "删除成功!": "Das Löschen war erfolgreich!",
     "务必前往云服务商的安全组控制台": "Rufen Sie unbedingt die Sicherheitsgruppen-Konsole des Cloud-Anbieters auf",
+    "参数:(": "Parameter: (",
     "启动": "Starten",
     "启动成功!": "Der Start war erfolgreich!",
     "备注": "Notiz",

@@ -1,5 +1,6 @@
 {
     "&ps=手动屏蔽": "&ps=blocco manuale",
+    ")没有!": ") No!",
     "/秒\\n发包速度：": "/sec\\nVelocità di invio dei pacchetti:",
     "/秒\\n发包速度：', '/秒\\n发包速度：": "/sec\\nVelocità di invio dei pacchetti: ', '/sec\\nVelocità di invio dei pacchetti:",
     "/秒\\n收包速度：": "/sec\\nVelocità di ricezione dei pacchetti:",
@@ -52,6 +53,7 @@
     "包接收/秒：": "Pacchetti ricevuti al secondo:",
     "协议": "Protocollo",
     "协议', '协议": "\"Accordo\", \"Accordo\"",
+    "参数:(": "Parametri: (",
     "发包速度：": "Velocità di emissione degli ordini:",
     "发送": "Invia",
     "取消": "Annulla",

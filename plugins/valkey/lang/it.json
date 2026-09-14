@@ -1,4 +1,5 @@
 {
+    ")没有!": ") No!",
     "3 节点": "3 nodi",
     "MB,最大使用内存,0表示不限制": "MB, memoria massima utilizzata; 0 indica che non vi sono limiti",
     "Valkey历史分配内存的峰值": "Picchi storici di memoria allocata da Valkey",
@@ -20,6 +21,7 @@
     "关闭": "Chiudi",
     "内存碎片比率": "Percentuale di frammentazione della memoria",
     "刷新": "Aggiorna",
+    "参数:(": "Parametri: (",
     "发送": "Invia",
     "同步主库地址": "Indirizzo del database principale di sincronizzazione",
     "同步主库密码": "Sincronizzazione della password del database principale",
@@ -67,6 +69,7 @@
     "被分配的槽": "Slot assegnati",
     "被分配的槽状态": "Stato dello slot assegnato",
     "角色": "Personaggi",
+    "设置成功": "Installazione riuscita",
     "说明": "Descrizione",
     "负载状态": "Stato del carico",
     "超出缓冲区总数": "Numero totale di buffer superato",

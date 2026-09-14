@@ -1,9 +1,14 @@
 {
+    ")没有!": ") Nein!",
     "// 将其替换为终端可识别的真实回车符": "// Ersetze dies durch ein echtes Zeilenumbruchzeichen, das vom Terminal erkannt wird",
     "SSH终端": "SSH-Terminal",
     "SSH账号": "SSH-Konto",
     "】": "】",
+    "不存在此配置": "Diese Konfiguration existiert nicht.",
     "删除常用命令信息": "Informationen zu häufig verwendeten Befehlen löschen",
+    "删除成功!": "Das Löschen war erfolgreich!",
+    "删除无效": "Löschen ungültig",
+    "参数:(": "Parameter: (",
     "取消": "Abbrechen",
     "名称不可为空!": "Der Name darf nicht leer sein!",
     "命令不可为空，请检查是否填写“执行命令”！": "Der Befehl darf nicht leer sein. Bitte überprüfen Sie, ob Sie den „Ausführungsbefehl“ eingegeben haben!",
@@ -21,6 +26,7 @@
     "本地服务器": "Lokaler Server",
     "添加主机信息": "Host-Informationen hinzufügen",
     "添加常用命令信息": "Informationen zu häufig verwendeten Befehlen hinzufügen",
+    "添加成功!": "Erfolgreich hinzugefügt!",
     "添加服务器SSH信息": "SSH-Daten des Servers hinzufügen",
     "确定": "Bestätigen",
     "私钥": "Privater Schlüssel",
@@ -42,5 +48,6 @@
     "输入SSH账号": "SSH-Zugangsdaten eingeben",
     "输入服务器IP": "Geben Sie die IP-Adresse des Servers ein",
     "连接已经关闭。": "Die Verbindung wurde getrennt.",
+    "错误:": "Fehler:",
     "验证方式": "Überprüfungsmethode"
 }

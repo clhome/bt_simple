@@ -1,9 +1,14 @@
 {
+    ")没有!": ")No!",
     "// 将其替换为终端可识别的真实回车符": "// Replace it with a true carriage return character that the terminal can recognize",
     "SSH终端": "SSH terminal",
     "SSH账号": "SSH Account",
     "】": "】",
+    "不存在此配置": "This configuration does not exist.",
     "删除常用命令信息": "Delete commonly used command information",
+    "删除成功!": "Deletion successful!",
+    "删除无效": "Delete Invalid",
+    "参数:(": "parameter:(",
     "取消": "Cancel",
     "名称不可为空!": "The name cannot be left blank!",
     "命令不可为空，请检查是否填写“执行命令”！": "The command cannot be empty. Please check that you have entered a \"Command to Execute\"!",
@@ -21,6 +26,7 @@
     "本地服务器": "local server",
     "添加主机信息": "Add host information",
     "添加常用命令信息": "Add commonly used command information",
+    "添加成功!": "Added successfully!",
     "添加服务器SSH信息": "Add Server SSH Information",
     "确定": "Confirm",
     "私钥": "Private Key",
@@ -42,5 +48,6 @@
     "输入SSH账号": "Enter SSH account",
     "输入服务器IP": "Enter server IP",
     "连接已经关闭。": "The connection has been closed.",
+    "错误:": "Error:",
     "验证方式": "Verification method"
 }

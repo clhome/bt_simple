@@ -1,5 +1,6 @@
 {
     "(同内网)": "(Come Intranet)",
+    ")没有!": ") No!",
     "FTP 用户名": "Nome utente FTP",
     "FTP 连接与账号管理": "Connessione FTP e gestione degli account",
     "FTP帐户": "Account FTP",
@@ -15,6 +16,7 @@
     "删除": "Del",
     "删除成功!": "Eliminazione completata con successo!",
     "务必前往云服务商的安全组控制台": "Assicurati di accedere alla console dei gruppi di sicurezza del fornitore di servizi cloud",
+    "参数:(": "Parametri: (",
     "启动": "Avvia",
     "启动成功!": "Avvio riuscito!",
     "备注": "Nota",

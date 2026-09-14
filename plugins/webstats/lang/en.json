@@ -1,4 +1,5 @@
 {
+    ")没有!": ")No!",
     "* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写": "* Accurately identify the CDN network IP address. Please pay attention to capitalization. If you need more than one, please fill in a new line.",
     "* 排除的IP不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写": "* Excluded IP addresses will not be recorded in the website logs and will not be counted toward PV, UV, or IP statistics; only the total number of requests and total traffic will be tallied. If you need to exclude multiple IP addresses, please list them on separate lines.",
     "* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数": "* Excluded requests are not written into website logs, and PV, UV, and IP are not counted. Only total requests and total traffic are accumulated.",
@@ -37,6 +38,7 @@
     "包括Yahoo,DuckDuckGo": "Including Yahoo,DuckDuckGo",
     "协议": "Protocol",
     "占用额外存储空间": "Takes up extra storage space",
+    "参数:(": "parameter:(",
     "取消": "Cancel",
     "同步成功!": "Synchronization successful!",
     "同步所有站点": "Synchronize All Sites",
@@ -155,6 +157,7 @@
     "设置": "Settings",
     "设置IP统计页面的TOP数量": "Set the number of TOPs on the IP statistics page",
     "设置URI统计页面的TOP数量": "Set the TOP number of URI statistics pages",
+    "设置成功": "Setup successful",
     "访客数": "Number of Visitors",
     "访客量(UV)": "Unique Visitors (UV)",
     "访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。": "The number of computers with Internet access that visit your website (based on cookies). This metric measures the number of unique visitors.",

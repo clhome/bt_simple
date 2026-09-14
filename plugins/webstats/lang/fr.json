@@ -1,4 +1,5 @@
 {
+    ")没有!": ")Non!",
     "* 准确识别CDN网络IP地址，请注意大小写，如需多个请换行填写": "* Identifiez avec précision l'adresse IP du réseau CDN. Veuillez faire attention à la majuscule. Si vous en avez besoin de plusieurs, veuillez remplir une nouvelle ligne.",
     "* 排除的IP不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数，如需多个请换行填写": "* Les adresses IP exclues ne sont pas enregistrées dans les journaux du site ; elles ne sont pas prises en compte dans le décompte des pages vues (PV), des visiteurs uniques (UV) ni des adresses IP. Seuls le nombre total de requêtes et le trafic total sont comptabilisés. Si vous souhaitez en exclure plusieurs, veuillez les indiquer sur des lignes distinctes.",
     "* 排除的请求不写入网站日志，不统计PV、UV、IP，只累计总请求、总流量数": "* Les demandes exclues ne sont pas écrites dans les journaux du site Web, et les PV, UV et IP ne sont pas comptés. Seuls le total des demandes et le trafic total sont accumulés.",
@@ -37,6 +38,7 @@
     "包括Yahoo,DuckDuckGo": "Y compris Yahoo, DuckDuckGo",
     "协议": "Protocole",
     "占用额外存储空间": "Occupe de l'espace de stockage supplémentaire",
+    "参数:(": "Nom de domaine du serveur",
     "取消": "Annuler",
     "同步成功!": "Synchronisation réussie !",
     "同步所有站点": "Synchroniser tous les sites",
@@ -155,6 +157,7 @@
     "设置": "Paramètres",
     "设置IP统计页面的TOP数量": "Définir le nombre de TOP sur la page des statistiques IP",
     "设置URI统计页面的TOP数量": "Définir le nombre TOP de pages de statistiques URI",
+    "设置成功": "Configuration réussie",
     "访客数": "Nombre de visiteurs",
     "访客量(UV)": "Nombre de visiteurs uniques (UV)",
     "访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。": "Le nombre d'ordinateurs ayant accès à Internet qui visitent votre site Web (sur la base des cookies). Cette métrique mesure le nombre de visiteurs uniques.",

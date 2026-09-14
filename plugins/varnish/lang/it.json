@@ -1,4 +1,5 @@
 {
+    ")没有!": ") No!",
     "0分钟": "0 minuti",
     "VCL": "VCL",
     "Varnish 状态获取失败：": "Acquisizione dello stato della vernice non riuscita:",
@@ -9,6 +10,7 @@
     "保存": "Salva",
     "修改后,点击重启按钮": "Dopo la modifica, fare clic sul pulsante Riavvia",
     "分钟": "Minuti",
+    "参数:(": "Parametri: (",
     "命中 / 未命中 (Hits/Misses)": "Colpi / Mancati (Hits/Misses)",
     "天": "Cielo",
     "字段": "Campo",
@@ -30,6 +32,7 @@
     "解析 Varnish 状态数据失败。这通常是因为 Varnish 服务未正常启动或未生成状态 JSON 序列。": "Impossibile analizzare i dati sullo stato di Varnish. Ciò è solitamente dovuto al fatto che il servizio Varnish non è stato avviato correttamente o la sequenza JSON di stato non è stata generata.",
     "解析 Varnish 状态数据失败！": "Impossibile analizzare i dati di stato di Varnish!",
     "说明": "Descrizione",
+    "越权访问拦截：仅允许读取模板目录下的VCL配置文件！": "Blocco degli accessi non autorizzati: è consentita solo la lettura dei file di configurazione VCL presenti nella directory dei modelli!",
     "运行时间 (Uptime)": "Tempo di funzionamento (Uptime)",
     "配置文件路径获取中...": "Rilevamento del percorso del file di configurazione in corso...",
     "采样时间 (timestamp)": "Ora di campionamento (timestamp)"

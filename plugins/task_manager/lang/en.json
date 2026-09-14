@@ -1,5 +1,6 @@
 {
     "&ps=手动屏蔽": "&ps=Manual blocking",
+    ")没有!": ")No!",
     "/秒\\n发包速度：": "/second\\nPacket delivery speed:",
     "/秒\\n发包速度：', '/秒\\n发包速度：": "/second\\nPacket transmission rate: ', '/second\\nPacket transmission rate:",
     "/秒\\n收包速度：": "/sec\\nPacket receiving speed:",
@@ -52,6 +53,7 @@
     "包接收/秒：": "Packets received per second:",
     "协议": "Protocol",
     "协议', '协议": "\"Agreement\", \"Agreement\"",
+    "参数:(": "parameter:(",
     "发包速度：": "Speed of contract award:",
     "发送": "send",
     "取消": "Cancel",

@@ -1,5 +1,6 @@
 {
     "(同内网)": "(Same as intranet)",
+    ")没有!": ")No!",
     "FTP 用户名": "FTP username",
     "FTP 连接与账号管理": "FTP connection and account management",
     "FTP帐户": "FTP account",
@@ -15,6 +16,7 @@
     "删除": "Del",
     "删除成功!": "Deletion successful!",
     "务必前往云服务商的安全组控制台": "Be sure to go to your cloud service provider's security group console",
+    "参数:(": "parameter:(",
     "启动": "Start",
     "启动成功!": "Started successfully!",
     "备注": "Note",

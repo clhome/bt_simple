@@ -1,4 +1,5 @@
 {
+    ")没有!": ")No!",
     "0分钟": "0 minutes",
     "VCL": "VCL",
     "Varnish 状态获取失败：": "Varnish status acquisition failed:",
@@ -9,6 +10,7 @@
     "保存": "Save",
     "修改后,点击重启按钮": "After modification, click the Restart button",
     "分钟": "Minutes",
+    "参数:(": "parameter:(",
     "命中 / 未命中 (Hits/Misses)": "Hits/Misses",
     "天": "sky",
     "字段": "Field",
@@ -30,6 +32,7 @@
     "解析 Varnish 状态数据失败。这通常是因为 Varnish 服务未正常启动或未生成状态 JSON 序列。": "Failed to parse Varnish status data. This is usually because the Varnish service did not start properly or the status JSON sequence was not generated.",
     "解析 Varnish 状态数据失败！": "Failed to parse Varnish status data!",
     "说明": "Description",
+    "越权访问拦截：仅允许读取模板目录下的VCL配置文件！": "Interception of Unauthorized Access: Only VCL configuration files in the template directory are permitted to be read!",
     "运行时间 (Uptime)": "Uptime",
     "配置文件路径获取中...": "Obtaining configuration file path...",
     "采样时间 (timestamp)": "Sampling Time (timestamp)"

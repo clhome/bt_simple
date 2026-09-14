@@ -1,4 +1,5 @@
 {
+    ")没有!": ")No!",
     "3 节点": "3 Nodes",
     "MB,最大使用内存,0表示不限制": "MB, maximum memory usage, 0 means no limit",
     "Valkey历史分配内存的峰值": "Valkey's historical peak memory allocation",
@@ -20,6 +21,7 @@
     "关闭": "Close",
     "内存碎片比率": "Memory Fragmentation Ratio",
     "刷新": "Refresh",
+    "参数:(": "parameter:(",
     "发送": "send",
     "同步主库地址": "Synchronize main library address",
     "同步主库密码": "Synchronize main database password",
@@ -67,6 +69,7 @@
     "被分配的槽": "allocated slot",
     "被分配的槽状态": "assigned slot status",
     "角色": "Role",
+    "设置成功": "Setup successful",
     "说明": "Description",
     "负载状态": "Load Status",
     "超出缓冲区总数": "Total number of buffers exceeded",

@@ -84,7 +84,7 @@ var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'func
     : function(k) { return k; };
 
 resetPluginWinWidth(850);
-resetPluginWinHeight(600);
+resetPluginWinHeight(650);
 
 function sysOptPost(method, args, callback) {
     var req_data = {
@@ -111,7 +111,7 @@ function optStatus() {
     sysOptPost('get_status', {}, function (resp) {
         layer.close(loadT);
         if (!resp.status) {
-            layer.msg(resp.msg, { icon: 2 });
+            layer.msg(pt(resp.msg), { icon: 2 });
             return;
         }
         
@@ -274,7 +274,7 @@ function applyOpt() {
         sysOptPost('apply_opt', {}, function (resp) {
             layer.close(loadT);
             if (!resp.status) {
-                layer.msg(resp.msg, { icon: 2 });
+                layer.msg(pt(resp.msg), { icon: 2 });
                 return;
             }
             
@@ -285,7 +285,7 @@ function applyOpt() {
                 } catch(e) {}
             }
             
-            layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+            layer.msg(pt(rdata.msg), { icon: rdata.status ? 1 : 2 });
             if(rdata.status){
                 setTimeout(function(){
                     optStatus();

@@ -1,9 +1,14 @@
 {
+    ")没有!": ") No!",
     "// 将其替换为终端可识别的真实回车符": "// Sostituirlo con un carattere di ritorno a riga valido riconosciuto dal terminale",
     "SSH终端": "Terminale SSH",
     "SSH账号": "Account SSH",
     "】": "】",
+    "不存在此配置": "Questa configurazione non esiste",
     "删除常用命令信息": "Elimina le informazioni sui comandi più utilizzati",
+    "删除成功!": "Eliminazione completata con successo!",
+    "删除无效": "Elimina non valido",
+    "参数:(": "Parametri: (",
     "取消": "Annulla",
     "名称不可为空!": "Il nome non può essere vuoto!",
     "命令不可为空，请检查是否填写“执行命令”！": "Il comando non può essere vuoto; verifica di aver inserito il “comando da eseguire”!",
@@ -21,6 +26,7 @@
     "本地服务器": "Server locale",
     "添加主机信息": "Aggiungi informazioni sull'host",
     "添加常用命令信息": "Aggiungi informazioni sui comandi più comuni",
+    "添加成功!": "Aggiunto con successo!",
     "添加服务器SSH信息": "Aggiungi le informazioni SSH del server",
     "确定": "Conferma",
     "私钥": "Chiave privata",
@@ -42,5 +48,6 @@
     "输入SSH账号": "Inserisci le credenziali SSH",
     "输入服务器IP": "Inserisci l'IP del server",
     "连接已经关闭。": "La connessione è stata interrotta.",
+    "错误:": "Errore:",
     "验证方式": "Metodo di verifica"
 }

@@ -1,4 +1,5 @@
 {
+    ")没有!": ")No!",
     "MySQL常用功能": "Common MySQL Features",
     "MySQL服务器的QPS/TPS/网络带宽指标": "QPS, TPS, and Network Bandwidth Metrics for MySQL Servers",
     "“数据管理”": "\"Data Management\"",
@@ -19,6 +20,7 @@
     "删除冗余索引SQL": "SQL to Delete Redundant Indexes",
     "刷新后，在面板": "After refreshing, in the panel",
     "刷新后，在面板左侧导航栏中会显示并激活 “数据管理” 菜单。": "After refreshing, the \"Data Management\" menu will appear and become active in the navigation bar on the left side of the panel.",
+    "参数:(": "parameter:(",
     "取消": "Cancel",
     "复制值": "Copy value",
     "实时监控": "Real-time Monitoring",

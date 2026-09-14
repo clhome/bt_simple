@@ -19,6 +19,7 @@
     "优先使用物理内存": "Utilizzare in via prioritaria la memoria fisica",
     "优化状态": "Stato ottimizzato",
     "作用描述": "Descrizione della funzione",
+    "全平台内核优化配置已成功生效！": "Le configurazioni di ottimizzazione del kernel per tutte le piattaforme sono state applicate con successo!",
     "全面拉升 TCP 监听队列上限，优化 TIME_WAIT 套接字复用及释放海量本地端口。": "Aumentare in modo generalizzato il limite massimo della coda di ascolto TCP, ottimizzare il riutilizzo dei socket TIME_WAIT e liberare un numero elevato di porte locali.",
     "内核与并发参数状态": "Stato dei parametri del kernel e della concorrenza",
     "内网地址：": "Indirizzo della rete interna:",
