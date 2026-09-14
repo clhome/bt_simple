@@ -73,23 +73,40 @@ def getConfInc():
 
 
 def getPort():
-    file = getConf()
-    content = yf.readFile(file)
-    rep = r'listen\s*(.*);'
-    tmp = re.search(rep, content)
-    return tmp.groups()[0].strip()
+    try:
+        file = getConf()
+        if os.path.exists(file):
+            content = yf.readFile(file)
+            if content:
+                rep = r'listen\s*(.*);'
+                tmp = re.search(rep, content)
+                if tmp:
+                    return tmp.groups()[0].strip()
+    except Exception:
+        pass
+    try:
+        return str(getCfg().get('port', '888'))
+    except Exception:
+        return '888'
 
 
 def getHomePage():
     try:
-        port = getPort()
-        ip = '127.0.0.1'
+        port = str(getPort())
+        ip = None
         if not yf.isAppleSystem():
-            ip = yf.getLocalIp()
+            ip = thisdb.getOption('server_ip')
+        if not ip:
+            try:
+                ip = yf.getHostAddr()
+            except Exception:
+                ip = yf.getLocalIp()
+        if not ip:
+            ip = '127.0.0.1'
 
         cfg = getCfg()
-        auth = cfg.get('username', 'admin') + ':' + cfg.get('password', 'admin')
-        rand_path = cfg['path']
+        auth = str(cfg.get('username', 'admin')) + ':' + str(cfg.get('password', 'admin'))
+        rand_path = str(cfg.get('path', ''))
         url = 'http://' + auth + '@' + ip + ':' + port + '/' + rand_path + '/index.php'
         return yf.returnJson(True, 'OK', url)
     except Exception as e:
@@ -614,19 +631,32 @@ def pluginsDbSupport():
     if (data['status'] == 'stop'):
         return yf.returnJson(True, 'ok', data)
 
-    data['cfg'] = getCfg()
-    port = getPort()
-    ip = '127.0.0.1'
-    if not yf.isAppleSystem():
-        ip = thisdb.getOption('server_ip')
+    try:
+        cfg = getCfg()
+        data['cfg'] = cfg
+        port = str(getPort())
+        ip = None
+        if not yf.isAppleSystem():
+            ip = thisdb.getOption('server_ip')
+        if not ip:
+            try:
+                ip = yf.getHostAddr()
+            except Exception:
+                ip = yf.getLocalIp()
+        if not ip:
+            ip = '127.0.0.1'
 
-    cfg = data['cfg']
-    auth = cfg['username']+':'+cfg['password']
-    rand_path = cfg['path']
-    home_page = 'http://' + auth + '@' + ip + ':' + port + '/' + rand_path + '/index.php'
+        auth = str(cfg.get('username', 'admin')) + ':' + str(cfg.get('password', 'admin'))
+        rand_path = str(cfg.get('path', ''))
+        home_page = 'http://' + auth + '@' + ip + ':' + port + '/' + rand_path + '/index.php'
 
-    data['home_page'] = home_page
-    data['version'] = installVersion().strip()
+        data['home_page'] = home_page
+        ver = installVersion()
+        data['version'] = (ver or '').strip()
+    except Exception as e:
+        data['home_page'] = ''
+        data['version'] = ''
+        data['error'] = str(e)
 
     return yf.returnJson(True, 'ok', data)
 

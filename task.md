@@ -769,4 +769,55 @@
 - [x] 362. 审查与微调 `index.html` 右上角标题与提示布局间距（设置安全留白与防粘连），确保在任意语言下两端对齐且绝不溢出。
 - [x] 363. 更新专项自动化测试套件（`test/test_linux_sys_opt_ui.py`）并执行全量回归验证，确保 100% 通过。
 
+## MySQL插件（mysql）弹窗宽度与多语言排版优化
+
+- [x] 364. 优化 `plugins/mysql/index.html` 尺寸与布局样式：启用 `resetPluginWinWidth(1050)` 与 `resetPluginWinHeight(650)`；移除内联硬编码高度 `style="height:555px..."`；将 `.bt-w-menu` 宽度调整为 `150px`、内边距调整为 `0 10px`；增加菜单悬浮 title 提示；调优 `.conf_p span` 宽度。
+- [x] 365. 规范补齐 `plugins/mysql/info.json` 元数据：添加标准弹窗尺寸 `"size": [1050, 650]`。
+- [x] 366. 优化 `plugins/mysql/js/mysql.js` 列表排版与防折行：重构 `dbList()` 顶部按钮工具栏为弹性排列，操作列增加 `min-width: 270px; white-space: nowrap;` 防止多语言折行。
+- [x] 367. 优化多语言语言包（`plugins/mysql/lang/*.json`）：修正英文用词（如 `"服务": "Service"`，`"慢日志": "Slow Log"` 等）。
+- [x] 368. 编写专项自动化测试套件（`test/test_mysql_ui_i18n.py`）并执行全量回归验证，确保 100% 通过。
+
+## MySQL主从配置报错修复与菜单无截断排版深度优化
+
+- [x] 369. 修复 `plugins/mysql/index.py` 中 `getMasterStatus` 等函数的 NameError（未定义变量 `mode`）及配置读取容错：修复第 2501、2531、2578、2607 处的未定义变量 `mode` 为正确返回值，并增加配置文件读取非空防御。
+- [x] 370. 优化左侧菜单宽度与精炼专业英文词汇：将 `.bt-w-menu` 宽度拓宽至 `168px`，优化英文翻译（`Configuration`, `Storage`, `Status`, `Performance`, `Master-Slave`），彻底消除多语言下省略号截断。
+- [x] 371. 更新专项自动化测试套件（`test/test_mysql_ui_i18n.py`）并执行全量回归验证，确保 100% 通过。
+
+## MySQL添加数据库及弹窗翻译报错修复与多国语言适配
+
+- [x] 372. 修复 `plugins/mysql/js/mysql.js` 中 `addDatabase` 弹窗函数的引号拼接错误与多语言接入：
+  - 将 `content` 字符串由双引号改为正确单双引号闭合拼接，彻底消除 `' + pt('数据库名') + '` 等字面量泄漏；
+  - 接入 `placeholder` 与 `title` 的国际化（`新的数据库名称`、`数据库用户`、`随机密码`、`多个IP使用逗号(,)分隔`）；
+  - 设置标准合理的弹窗尺寸（`area: '540px'`），为表单控件预留呼吸留白，保证西文长词不折行排版美观。
+- [x] 373. 全面治理 `plugins/mysql/js/mysql.js` 中其余 11 个弹窗函数的双引号内单引号字面量泄漏（共 36 处泄漏点）：
+  - 修复 `setRootPwd`（修改root密码、按钮组多语言接入、随机密码title）；
+  - 修复 `setDbAccess`（设置数据库权限、指定IP placeholder）；
+  - 修复 `setDbPass`（修改数据库密码、随机密码title）；
+  - 修复 `addMasterRepSlaveUser` 与 `updateMasterRepSlaveUser`（添加/更新同步账户）；
+  - 修复 `getMasterRepSlaveUserCmd` 与 `setDbMasterAccess`（同步命令复制、主库权限设置）；
+  - 修复 `getMasterRepSlaveListPage` 与 `getFullSyncStatus`（账户列表表头、全量同步数据源与按钮）；
+  - 修复 `addSlaveSSH` 与 `addSlaveSyncUser`（从库SSH端口/账户/密码/模式/CMD等）。
+- [x] 374. 运行词法分析工具与 Node.js 严格语法检测，确保泄漏数严格归零（0 泄漏），且 JS 语法 100% 编译通过。
+- [x] 375. 编写/扩充专项自动化回归测试套件（`test/test_mysql_ui_i18n.py`），验证各弹窗在 6 国语言（zh-CN, zh-TW, en, de, fr, it）下 0 字面量残留、HTML 标签闭合、纯正多语言渲染。
+- [x] 376. 运行全量测试套件回归验证，更新 `task.md` 与 `walkthrough.md`，清理阶段性排查脚本。
+
+## 数据库点击管理报错（Unexpected end of JSON input）根因修复与跨平台加固
+
+- [x] 377. 优化后端 `web/utils/plugin.py` 中的 `run` 方法跨平台执行逻辑：
+  - 动态使用当前运行面板的真实 Python 解释器 `sys.executable` 替代写死的 `python3`；
+  - 移除脆弱的 shell 字符串 `cd ... &&` 拼接，直接使用原生 `cwd=yf.getPanelDir()` 参数，确保在 Windows 与 Linux 环境下均可 100% 成功唤起子脚本。
+- [x] 378. 强化前端 `plugins/mysql/js/mysql.js` 与 `plugins/mariadb/js/mariadb.js` 中 `openPhpmyadmin` 的健壮性与多语言接入：
+  - 增加 `data.status` 校验与 `try...catch` 安全解析 `data.data`，消除空输入或非 JSON 响应导致的致命 JS 崩溃；
+  - 提示语全面接入 `pt(...)` 闭包（`phpMyAdmin未安装!`、`phpMyAdmin未启动`、`phpMyAdmin未安装或未正常响应!` 等）。
+- [x] 379. 补齐并对齐语言包（`plugins/mysql/lang/*.json` 与 `plugins/mariadb/lang/*.json`），确保所有错误提示与引导文案在 6 国语言下均有纯正译文。
+- [x] 380. 编写专项自动化回归测试套件（`test/test_mysql_manage_open_phpmyadmin.py`）并执行全量回归验证，确保 100% 通过。
+- [x] 381. 修复 `plugins/phpmyadmin/index.py` 中 `pluginsDbSupport` 与 `getPort` 的空值与类型错误：
+  - 修复 `server_ip` 为 None 时的 `TypeError: can only concatenate str (not "NoneType") to str`，增加 `yf.getHostAddr()` / `yf.getLocalIp()` / `'127.0.0.1'` 多级安全兜底；
+  - 增强 `getPort`、`getHomePage` 与 `pluginsDbSupport` 的异常容错与全局降级，确保永远返回合法 JSON。
+- [x] 382. 编写专项自动化测试验证 `pluginsDbSupport` 在 `server_ip=None` 场景下的可靠性并回归全量测试。
+
+
+
+
+
 

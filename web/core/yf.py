@@ -57,14 +57,20 @@ def safeExecShell(cmd_list, cwd=None, timeout=30):
         if isinstance(success, bytes):
             try:
                 success = success.decode('utf-8')
-            except Exception as e:
-                success = str(e)
+            except Exception:
+                try:
+                    success = success.decode('gbk')
+                except Exception:
+                    success = success.decode('utf-8', errors='replace')
                 
         if isinstance(error, bytes):
             try:
                 error = error.decode('utf-8')
-            except Exception as e:
-                error = str(e)
+            except Exception:
+                try:
+                    error = error.decode('gbk')
+                except Exception:
+                    error = error.decode('utf-8', errors='replace')
                 
         return success, error
     except Exception as e:
@@ -156,18 +162,22 @@ def execShell(cmdstring, cwd=None, timeout=None, shell=True):
     error = data[1]
     # python3 fix 返回byte数据
     if isinstance(success, bytes):
-        # success = str(success, encoding='utf-8')
         try:
             success = success.decode('utf-8')
-        except Exception as e:
-            success = str(e)
+        except Exception:
+            try:
+                success = success.decode('gbk')
+            except Exception:
+                success = success.decode('utf-8', errors='replace')
 
     if isinstance(error, bytes):
-        # error = str(error, encoding='utf-8')
         try:
             error = error.decode('utf-8')
-        except Exception as e:
-            error = str(e)
+        except Exception:
+            try:
+                error = error.decode('gbk')
+            except Exception:
+                error = error.decode('utf-8', errors='replace')
     return (success, error)
 
 def shlexQuote(s):

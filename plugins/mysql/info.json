@@ -39,5 +39,9 @@
 	"home": "https://dev.mysql.com/downloads/mysql",
 	"date": "2026-05-28",
 	"display": 2,
-	"pid": "2"
+	"pid": "2",
+	"size": [
+		1050,
+		650
+	]
 }

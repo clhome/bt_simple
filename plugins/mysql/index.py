@@ -2498,7 +2498,7 @@ def setDbMaster(version):
 
     restart(version)
     time.sleep(4)
-    return yf.returnJson(True, '设置成功', mode)
+    return yf.returnJson(True, '设置成功')
 
 
 def setDbSlave(version):
@@ -2509,6 +2509,8 @@ def setDbSlave(version):
 
     conf = getConf()
     con = yf.readFile(conf)
+    if not isinstance(con, str):
+        return yf.returnJson(False, '读取MySQL配置失败')
     rep = r"(replicate-do-db\s*?=\s*?(.*))"
     dodb = re.findall(rep, con, re.M)
 
@@ -2528,7 +2530,7 @@ def setDbSlave(version):
 
     restart(version)
     time.sleep(4)
-    return yf.returnJson(True, '设置成功', mode)
+    return yf.returnJson(True, '设置成功')
 
 
 def getMasterStatus(version=''):
@@ -2547,7 +2549,7 @@ def getMasterStatus(version=''):
         conf = getConf()
         content = yf.readFile(conf)
         master_status = False
-        if content.find('#log-bin') == -1 and content.find('log-bin') > 1:
+        if isinstance(content, str) and content.find('#log-bin') == -1 and content.find('log-bin') > 1:
             dodb = findBinlogDoDb()
             if len(dodb) > 0:
                 master_status = True
@@ -2575,7 +2577,7 @@ def getMasterStatus(version=''):
                 if (v["Slave_IO_Running"] == 'Yes' or v["Slave_SQL_Running"] == 'Yes'):
                     data['slave_status'] = True
 
-        return yf.returnJson(True, '设置成功', mode)
+        return yf.returnJson(True, '设置成功', data)
     except Exception as e:
         return yf.returnJson(False, "数据库密码错误,在管理列表-点击【修复】,"+str(yf.getTracebackInfo()), 'pwd')
 
@@ -2584,6 +2586,8 @@ def setMasterStatus(version=''):
 
     conf = getConf()
     con = yf.readFile(conf)
+    if not isinstance(con, str):
+        return yf.returnJson(False, '读取MySQL配置失败')
 
     if con.find('#log-bin') != -1:
         return yf.returnJson(False, '必须开启二进制日志')
@@ -2604,7 +2608,7 @@ def setMasterStatus(version=''):
         yf.writeFile(conf, con)
 
     restart(version)
-    return yf.returnJson(True, '设置成功', mode)
+    return yf.returnJson(True, '设置成功')
 
 
 def getMasterRepSlaveList(version=''):

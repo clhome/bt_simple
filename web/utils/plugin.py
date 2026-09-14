@@ -1488,17 +1488,16 @@ class plugin(object):
             if not os.path.exists(path):
                 return ('', f"插件脚本 {name}/{script}.py 不存在")
 
-            py_cmd = f"python3 {path} {func}"
+            cmd_list = [sys.executable, path, func]
             if version != '':
-                py_cmd += f" {shlex.quote(str(version))}"
+                cmd_list.append(str(version))
             if args != '':
-                py_cmd += f" {shlex.quote(str(args))}"
+                cmd_list.append(str(args))
 
-            py_cmd = 'cd ' + yf.getPanelDir() + " && "+ py_cmd
-            data = yf.execShell(py_cmd)
+            data = yf.safeExecShell(cmd_list, cwd=yf.getPanelDir())
 
             if yf.isDebugMode():
-                print('run:', py_cmd)
+                print('run cmd_list:', cmd_list)
                 print(data)
             out = data[0].strip() if data and len(data) > 0 and data[0] else ''
             err = data[1].strip() if data and len(data) > 1 and data[1] else ''

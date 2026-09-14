@@ -460,16 +460,16 @@ function setRootPwd(type, pwd){
         title:  pt('修改数据库密码'),
         closeBtn: 1,
         shift: 5,
-        btn:["提交", "关闭", "复制ROOT密码", "修改本地ROOT记录", "强改ROOT密码"],
+        btn: [pt("提交"), pt("关闭"), pt("复制ROOT密码"), pt("修改本地ROOT记录"), pt("强改ROOT密码")],
         shadeClose: true,
-        content: "<form class='bt-form pd20' id='mod_pwd'>\
-                    <div class='line'>\
-                        <span class='tname'>' + pt('root密码') + '</span>\
-                        <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:630px' value='"+pwd+"' />\
-                            <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
-                        </div>\
-                    </div>\
-                  </form>",
+        content: '<form class="bt-form pd20" id="mod_pwd">' +
+                    '<div class="line">' +
+                        '<span class="tname">' + pt('root密码') + '</span>' +
+                        '<div class="info-r"><input class="bt-input-text mr5" type="text" name="password" id="MyPassword" style="width:630px" value="' + pwd + '" />' +
+                            '<span title="' + pt('随机密码') + '" class="glyphicon glyphicon-repeat cursor" onclick="repeatPwd(16)"></span>' +
+                        '</div>' +
+                    '</div>' +
+                  '</form>',
         yes:function(layerIndex){
             var password = $("#MyPassword").val();
             api.post('set_root_pwd', {password:password}, function(data){
@@ -578,18 +578,18 @@ function setDbAccess(username){
             shift: 5,
             btn: [pt("提交"), pt("取消")],
             shadeClose: true,
-            content: "<form class='bt-form pd20' id='set_db_access'>\
-                        <div class='line'>\
-                            <span class='tname'>' + pt('访问权限') + '</span>\
-                            <div class='info-r '>\
-                                <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                                <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
-                                <option value=\"%\">' + pt('所有人') + '</option>\
-                                <option value='ip'>' + pt('指定IP') + '</option>\
-                                </select>\
-                            </div>\
-                        </div>\
-                      </form>",
+            content: '<form class="bt-form pd20" id="set_db_access">' +
+                        '<div class="line">' +
+                            '<span class="tname">' + pt('访问权限') + '</span>' +
+                            '<div class="info-r ">' +
+                                '<select class="bt-input-text mr5" name="dataAccess" style="min-width:110px">' +
+                                '<option value="127.0.0.1">' + pt('本地服务器') + '</option>' +
+                                '<option value="%">' + pt('所有人') + '</option>' +
+                                '<option value="ip">' + pt('指定IP') + '</option>' +
+                                '</select>' +
+                            '</div>' +
+                        '</div>' +
+                      '</form>',
             success:function(){
                 if (rdata.msg == '127.0.0.1'){
                     $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected",true);
@@ -597,16 +597,16 @@ function setDbAccess(username){
                     $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
                 } else if ( rdata.msg == 'ip' ){
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                 } else {
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after('<input value="' + rdata.msg + '" id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                 }
 
                  $('select[name="dataAccess"]').on('change', function(){
                     var v = $(this).val();
                     if (v == 'ip'){
-                        $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                        $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                     } else {
                         $('#dataAccess_subid').remove();
                     }
@@ -658,19 +658,19 @@ function setDbPass(id, username, password){
         shift: 5,
         shadeClose: true,
         btn: [pt("提交"), pt("关闭")],
-        content: "<form class='bt-form pd20' id='mod_pwd'>\
-                    <div class='line'>\
-                        <span class='tname'>' + pt('用户名') + '</span>\
-                        <div class='info-r'><input readonly='readonly' name=\"name\" class='bt-input-text mr5' type='text' style='width:330px;outline:none;' value='"+username+"' /></div>\
-                    </div>\
-                    <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
-                    <div class='info-r'>\
-                        <input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' />\
-                        <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
-                    </div>\
-                    <input type='hidden' name='id' value='"+id+"'>\
-                </form>",
+        content: '<form class="bt-form pd20" id="mod_pwd">' +
+                    '<div class="line">' +
+                        '<span class="tname">' + pt('用户名') + '</span>' +
+                        '<div class="info-r"><input readonly="readonly" name="name" class="bt-input-text mr5" type="text" style="width:330px;outline:none;" value="' + username + '" /></div>' +
+                    '</div>' +
+                    '<div class="line">' +
+                    '<span class="tname">' + pt('密码') + '</span>' +
+                    '<div class="info-r">' +
+                        '<input class="bt-input-text mr5" type="text" name="password" id="MyPassword" style="width:330px" value="' + password + '" />' +
+                        '<span title="' + pt('随机密码') + '" class="glyphicon glyphicon-repeat cursor" onclick="repeatPwd(16)"></span></div>' +
+                    '</div>' +
+                    '<input type="hidden" name="id" value="' + id + '">' +
+                '</form>',
         yes:function(index){
             // var data = $("#mod_pwd").serialize();
             var data = {};
@@ -691,41 +691,41 @@ function setDbPass(id, username, password){
 function addDatabase(type){
     layer.open({
         type: 1,
-        area: '500px',
+        area: '540px',
         title:  pt('添加数据库'),
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
         btn: [pt("提交"), pt("关闭")],
-        content: "<form class='bt-form pd20' id='add_db'>\
-                    <div class='line'>\
-                        <span class='tname'>' + pt('数据库名') + '</span>\
-                        <div class='info-r'><input name='name' class='bt-input-text mr5' placeholder='新的数据库名称' type='text' style='width:65%' value=''>\
-                        <select class='bt-input-text mr5 codeing_a5nGsm' name='codeing' style='width:27%'>\
-                            <option value='utf8mb4'>utf8mb4</option>\
-                            <option value='utf8'>utf-8</option>\
-                            <option value='gbk'>gbk</option>\
-                            <option value='big5'>big5</option>\
-                        </select>\
-                        </div>\
-                    </div>\
-                    <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='db_user' class='bt-input-text mr5' placeholder='数据库用户' type='text' style='width:65%' value=''></div></div>\
-                    <div class='line'>\
-                    <span class='tname'>' + pt('密码') + '</span>\
-                    <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
-                    </div>\
-                    <div class='line'>\
-                        <span class='tname'>' + pt('访问权限') + '</span>\
-                        <div class='info-r '>\
-                            <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                            <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
-                            <option value=\"%\">' + pt('所有人') + '</option>\
-                            <option value='ip'>' + pt('指定IP') + '</option>\
-                            </select>\
-                        </div>\
-                    </div>\
-                    <input type='hidden' name='ps' value='' />\
-                  </form>",
+        content: '<form class="bt-form pd20" id="add_db">' +
+                    '<div class="line">' +
+                        '<span class="tname">' + pt('数据库名') + '</span>' +
+                        '<div class="info-r"><input name="name" class="bt-input-text mr5" placeholder="' + pt('新的数据库名称') + '" type="text" style="width:65%" value="">' +
+                        '<select class="bt-input-text mr5 codeing_a5nGsm" name="codeing" style="width:27%">' +
+                            '<option value="utf8mb4">utf8mb4</option>' +
+                            '<option value="utf8">utf-8</option>' +
+                            '<option value="gbk">gbk</option>' +
+                            '<option value="big5">big5</option>' +
+                        '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="line"><span class="tname">' + pt('用户名') + '</span><div class="info-r"><input name="db_user" class="bt-input-text mr5" placeholder="' + pt('数据库用户') + '" type="text" style="width:65%" value=""></div></div>' +
+                    '<div class="line">' +
+                    '<span class="tname">' + pt('密码') + '</span>' +
+                    '<div class="info-r"><input class="bt-input-text mr5" type="text" name="password" id="MyPassword" style="width:330px" value="' + (randomStrPwd(16)) + '" /><span title="' + pt('随机密码') + '" class="glyphicon glyphicon-repeat cursor" onclick="repeatPwd(16)"></span></div>' +
+                    '</div>' +
+                    '<div class="line">' +
+                        '<span class="tname">' + pt('访问权限') + '</span>' +
+                        '<div class="info-r ">' +
+                            '<select class="bt-input-text mr5" name="dataAccess" style="min-width:110px">' +
+                            '<option value="127.0.0.1">' + pt('本地服务器') + '</option>' +
+                            '<option value="%">' + pt('所有人') + '</option>' +
+                            '<option value="ip">' + pt('指定IP') + '</option>' +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<input type="hidden" name="ps" value="" />' +
+                  '</form>',
         success:function(){
             $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
@@ -736,7 +736,7 @@ function addDatabase(type){
             $('select[name="dataAccess"]').on('change', function(){
                 var v = $(this).val();
                 if (v == 'ip'){
-                    $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                    $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                 } else {
                     $('#dataAccess_subid').remove();
                 }
@@ -827,49 +827,59 @@ function setDbPs(id, name, obj) {
 
 function openPhpmyadmin(name,username,password){
     $.post('/plugins/run', {'name':'phpmyadmin','func':'plugins_db_support'}, function(data){
-        var rdata = JSON.parse(data.data);
+        if (!data || !data.status) {
+            var errMsg = (data && data.msg) ? data.msg : pt('获取phpMyAdmin状态失败!');
+            layer.msg(errMsg, {icon: 2, shade: [0.3, '#000']});
+            return;
+        }
 
-        if (rdata.data['installed'] != 'ok'){
-            layer.msg('phpMyAdmin未安装!',{icon:2,shade: [0.3, '#000']});
+        var rdata = null;
+        try {
+            rdata = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+        } catch(e) {
+            layer.msg(pt('phpMyAdmin未安装!'), {icon: 2, shade: [0.3, '#000']});
+            return;
+        }
+
+        if (!rdata || !rdata.data || rdata.data['installed'] != 'ok'){
+            layer.msg(pt('phpMyAdmin未安装!'), {icon: 2, shade: [0.3, '#000']});
             return;
         }
 
         if (rdata.data['status'] != 'start'){
-            layer.msg('phpMyAdmin未启动',{icon:2,shade: [0.3, '#000']});
+            layer.msg(pt('phpMyAdmin未启动'), {icon: 2, shade: [0.3, '#000']});
             return;
         }
 
-        if (rdata.data['cfg']['choose'] != 'mysql'){
-            layer.msg(pt('当前为') + ' [' +rdata.data['cfg']['choose'] + ']模式,若要使用请修改phpMyAdmin访问切换.',{icon:2,shade: [0.3, '#000']});
+        if (rdata.data['cfg'] && rdata.data['cfg']['choose'] != 'mysql'){
+            layer.msg(pt('当前为') + ' [' + rdata.data['cfg']['choose'] + '] ' + pt('模式,若要使用请修改phpMyAdmin访问切换.'), {icon: 2, shade: [0.3, '#000']});
             return;
         }
         var home_page = rdata.data['home_page'];
-        $("#toPHPMyAdmin").attr('action',home_page);
-        if($("#toPHPMyAdmin").attr('action').indexOf('phpmyadmin') == -1){
-            layer.msg(pt('请先安装phpMyAdmin'),{icon:2,shade: [0.3, '#000']});
-            setTimeout(function(){ window.location.href = '/soft'; },3000);
+        $("#toPHPMyAdmin").attr('action', home_page);
+        if(!$("#toPHPMyAdmin").attr('action') || $("#toPHPMyAdmin").attr('action').indexOf('phpmyadmin') == -1){
+            layer.msg(pt('请先安装phpMyAdmin'), {icon: 2, shade: [0.3, '#000']});
+            setTimeout(function(){ window.location.href = '/soft'; }, 3000);
             return;
         }
         //检查版本
-        bigVer = rdata.data['version'];
-        if (bigVer>=4.5){
-
+        var bigVer = rdata.data['version'];
+        if (parseFloat(bigVer) >= 4.5){
             setTimeout(function(){
                 $("#toPHPMyAdmin").submit();
-            },2000);
-            layer.msg('phpMyAdmin['+data.data+']需要手动登录😭',{icon:16,shade: [0.3, '#000'],time:4000});
-            
-        } else{
+            }, 2000);
+            layer.msg(pt('正在打开phpMyAdmin...'), {icon: 16, shade: [0.3, '#000'], time: 4000});
+        } else {
             var murl = $("#toPHPMyAdmin").attr('action');
             $("#pma_username").val(username);
             $("#pma_password").val(password);
             $("#db").val(name);
 
-            layer.msg(pt('正在打开phpMyAdmin'),{icon:16,shade: [0.3, '#000'],time:2000});
+            layer.msg(pt('正在打开phpMyAdmin'), {icon: 16, shade: [0.3, '#000'], time: 2000});
 
             setTimeout(function(){
                 $("#toPHPMyAdmin").submit();
-            },2000);
+            }, 2000);
         }
 
     },'json');
@@ -1198,48 +1208,49 @@ function dbList(page, search){
             list += '<td>' + rdata.data[i]['addtime'] +'</td>';
 
             list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
-            list += '<td style="text-align:right">';
+            list += '<td style="text-align:right; min-width:270px; white-space:nowrap;">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="' + pt('数据库备份') + '">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
 
             var rw = '';
             var rw_change = 'all';
             if (typeof(rdata.data[i]['rw'])!='undefined'){
-                var rw_val = '读写';
+                var rw_val = pt('读写');
                 if (rdata.data[i]['rw'] == 'all'){
-                    rw_val = "所有";
+                    rw_val = pt('所有');
                     rw_change = 'rw';
                 } else if (rdata.data[i]['rw'] == 'rw'){
-                    rw_val = "读写";
+                    rw_val = pt('读写');
                     rw_change = 'r';
                 } else if (rdata.data[i]['rw'] == 'r'){
-                    rw_val = "只读";
+                    rw_val = pt('只读');
                     rw_change = 'all';
                 }
-                rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',\''+rw_change+'\')" title="设置读写">'+rw_val+'</a> | ';
+                rw = '<a href="javascript:;" class="btlink" onclick="setDbRw(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',\''+rw_change+'\')" title="' + pt('设置读写') + '">'+rw_val+'</a> | ';
             }
 
 
-            list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\''+rdata.data[i]['name']+'\',\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['password']+'\')" title="数据库管理">' + pt('管理') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MySQL优化修复工具">' + pt('工具') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
+            list += '<a href="javascript:;" class="btlink" onclick="openPhpmyadmin(\''+rdata.data[i]['name']+'\',\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['password']+'\')" title="' + pt('数据库管理') + '">' + pt('管理') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="' + pt('MySQL优化修复工具') + '">' + pt('工具') + '</a> | ' +
+                        '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\')" title="' + pt('设置数据库权限') + '">' + pt('权限') + '</a> | ' +
                         rw +
                         '<a href="javascript:;" class="btlink" onclick="setDbPass('+rdata.data[i]['id']+',\''+ rdata.data[i]['username'] +'\',\'' + rdata.data[i]['password'] + '\')">' + pt('改密') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除数据库">' + pt('删除') + '</a>' +
+                        '<a href="javascript:;" class="btlink" onclick="delDb(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="' + pt('删除数据库') + '">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
 
-        //<button onclick="" id="dataRecycle" title="删除选中项" class="btn btn-default btn-sm" style="margin-left: 5px;"><span class="glyphicon glyphicon-trash" style="margin-right: 5px;"></span>回收站</button>
         var con = '<div class="safe bgw">\
-            <button onclick="addDatabase()" title="添加数据库" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加数据库') + '</button>\
-            <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="设置MySQL管理员密码" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('root密码') + '</button>\
-            <button onclick="openPhpmyadmin(\'\',\'root\',\''+rdata.info['root_pwd']+'\')" title="打开phpMyadmin" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">phpMyAdmin</button>\
-            <button onclick="setDbAccess(\'root\')" title="ROOT权限" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('ROOT权限') + '</button>\
-            <button onclick="fixDbAccess(\'root\')" title="修复" class="btn btn-default btn-sm" type="button" style="margin-right: 5px;">' + pt('修复') + '</button>\
-            <span style="float:right">              \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
-            </span>\
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px;">\
+                <button onclick="addDatabase()" title="' + pt('添加数据库') + '" class="btn btn-success btn-sm" type="button">' + pt('添加数据库') + '</button>\
+                <button onclick="setRootPwd(0,\''+rdata.info['root_pwd']+'\')" title="' + pt('设置MySQL管理员密码') + '" class="btn btn-default btn-sm" type="button">' + pt('root密码') + '</button>\
+                <button onclick="openPhpmyadmin(\'\',\'root\',\''+rdata.info['root_pwd']+'\')" title="' + pt('打开phpMyadmin') + '" class="btn btn-default btn-sm" type="button">phpMyAdmin</button>\
+                <button onclick="setDbAccess(\'root\')" title="' + pt('ROOT权限') + '" class="btn btn-default btn-sm" type="button">' + pt('ROOT权限') + '</button>\
+                <button onclick="fixDbAccess(\'root\')" title="' + pt('修复') + '" class="btn btn-default btn-sm" type="button">' + pt('修复') + '</button>\
+                <span style="margin-left:auto;">\
+                    <button batch="true" style="display:none;" onclick="delDbBatch();" title="' + pt('删除选中项') + '" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
+                </span>\
+            </div>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
@@ -1248,19 +1259,17 @@ function dbList(page, search){
                     <th>' + pt('用户名') + '</th>\
                     <th>' + pt('密码') + '</th>\
                     <th>' + pt('创建时间') + '</th>\
-                    '+
-                    // '<th>' + pt('备份') + '</th>'+
-                    '<th>' + pt('备注') + '</th>\
-                    <th style="text-align:right;">' + pt('操作') + '</th></tr></thead>\
+                    <th>' + pt('备注') + '</th>\
+                    <th style="text-align:right; min-width:270px; white-space:nowrap;">' + pt('操作') + '</th></tr></thead>\
                     <tbody>\
                     '+ list +'\
                     </tbody></table>\
                 </div>\
                 <div id="databasePage" class="dataTables_paginate paging_bootstrap page"></div>\
                 <div class="table_toolbar" style="left:0px;">\
-                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="将选中数据库信息同步到服务器">' + pt('同步选中') + '</span>\
-                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(0)" title="将所有数据库信息同步到服务器">' + pt('同步所有') + '</span>\
-                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="从服务器获取数据库列表">' + pt('从服务器获取') + '</span>\
+                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(1)" title="' + pt('将选中数据库信息同步到服务器') + '">' + pt('同步选中') + '</span>\
+                    <span class="sync btn btn-default btn-sm" style="margin-right:5px" onclick="syncToDatabase(0)" title="' + pt('将所有数据库信息同步到服务器') + '">' + pt('同步所有') + '</span>\
+                    <span class="sync btn btn-default btn-sm" onclick="syncGetDatabase()" title="' + pt('从服务器获取数据库列表') + '">' + pt('从服务器获取') + '</span>\
                 </div>\
             </div>\
         </div>';
@@ -1657,14 +1666,14 @@ function addMasterRepSlaveUser(){
         shift: 5,
         shadeClose: true,
         btn: [pt("提交"), pt("取消")],
-        content: "<form class='bt-form pd20' id='add_master'>\
-            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+(randomStrPwd(6))+"'></div></div>\
-            <div class='line'>\
-            <span class='tname'>' + pt('密码') + '</span>\
-            <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
-            </div>\
-            <input type='hidden' name='ps' value='' />\
-          </form>",
+        content: '<form class="bt-form pd20" id="add_master">' +
+            '<div class="line"><span class="tname">' + pt('用户名') + '</span><div class="info-r"><input name="username" class="bt-input-text mr5" placeholder="' + pt('用户名') + '" type="text" style="width:330px;" value="' + (randomStrPwd(6)) + '"></div></div>' +
+            '<div class="line">' +
+            '<span class="tname">' + pt('密码') + '</span>' +
+            '<div class="info-r"><input class="bt-input-text mr5" type="text" name="password" id="MyPassword" style="width:330px" value="' + (randomStrPwd(16)) + '" /><span title="' + pt('随机密码') + '" class="glyphicon glyphicon-repeat cursor" onclick="repeatPwd(16)"></span></div>' +
+            '</div>' +
+            '<input type="hidden" name="ps" value="" />' +
+          '</form>',
         success:function(){
             $("input[name='name']").on('keyup', function(){
                 var v = $(this).val();
@@ -1675,7 +1684,7 @@ function addMasterRepSlaveUser(){
             $('select[name="dataAccess"]').on('change', function(){
                 var v = $(this).val();
                 if (v == 'ip'){
-                    $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                    $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                 } else {
                     $('#dataAccess_subid').remove();
                 }
@@ -1713,17 +1722,17 @@ function updateMasterRepSlaveUser(username, password){
         closeBtn: 1,
         shift: 5,
         shadeClose: true,
-        content: "<form class='bt-form pd20 pb70' id='update_master'>\
-            <div class='line'><span class='tname'>' + pt('用户名') + '</span><div class='info-r'><input name='username' readonly='readonly' class='bt-input-text mr5' placeholder='用户名' type='text' style='width:330px;' value='"+username+"'></div></div>\
-            <div class='line'>\
-            <span class='tname'>' + pt('密码') + '</span>\
-            <div class='info-r'><input class='bt-input-text mr5' type='text' name='password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
-            </div>\
-            <input type='hidden' name='ps' value='' />\
-            <div class='bt-form-submit-btn'>\
-                <button type='button' class='btn btn-success btn-sm btn-title' id='submit_update_master' >' + pt('提交') + '</button>\
-            </div>\
-          </form>",
+        content: '<form class="bt-form pd20 pb70" id="update_master">' +
+            '<div class="line"><span class="tname">' + pt('用户名') + '</span><div class="info-r"><input name="username" readonly="readonly" class="bt-input-text mr5" placeholder="' + pt('用户名') + '" type="text" style="width:330px;" value="' + username + '"></div></div>' +
+            '<div class="line">' +
+            '<span class="tname">' + pt('密码') + '</span>' +
+            '<div class="info-r"><input class="bt-input-text mr5" type="text" name="password" id="MyPassword" style="width:330px" value="' + password + '" /><span title="' + pt('随机密码') + '" class="glyphicon glyphicon-repeat cursor" onclick="repeatPwd(16)"></span></div>' +
+            '</div>' +
+            '<input type="hidden" name="ps" value="" />' +
+            '<div class="bt-form-submit-btn">' +
+                '<button type="button" class="btn btn-success btn-sm btn-title" id="submit_update_master">' + pt('提交') + '</button>' +
+            '</div>' +
+          '</form>',
     });
 
     $('#submit_update_master').on('click', function(){
@@ -1757,12 +1766,12 @@ function getMasterRepSlaveUserCmd(username, db=''){
             type: 1,
             title:  pt('同步命令'),
             area: '500px',
-            content:"<form class='bt-form pd20 pb70' id='add_master'>\
-            <div class='line'>"+cmd+"</div>\
-            <div class='bt-form-submit-btn' style='text-align:center;'>\
-                <button type='button' class='btn btn-success btn-sm btn-title'>' + pt('选择其中一个复制') + '</button>\
-            </div>\
-          </form>",
+            content: '<form class="bt-form pd20 pb70" id="add_master">' +
+            '<div class="line">' + cmd + '</div>' +
+            '<div class="bt-form-submit-btn" style="text-align:center;">' +
+                '<button type="button" class="btn btn-success btn-sm btn-title">' + pt('选择其中一个复制') + '</button>' +
+            '</div>' +
+          '</form>',
         });
     });
 }
@@ -1793,18 +1802,18 @@ function setDbMasterAccess(username){
             shift: 5,
             btn: [pt("提交"), pt("取消")],
             shadeClose: true,
-            content: "<form class='bt-form pd20' id='set_db_access'>\
-                        <div class='line'>\
-                            <span class='tname'>' + pt('访问权限') + '</span>\
-                            <div class='info-r '>\
-                                <select class='bt-input-text mr5' name='dataAccess' style='width:100px'>\
-                                <option value='127.0.0.1'>' + pt('本地服务器') + '</option>\
-                                <option value=\"%\">' + pt('所有人') + '</option>\
-                                <option value='ip'>' + pt('指定IP') + '</option>\
-                                </select>\
-                            </div>\
-                        </div>\
-                      </form>",
+            content: '<form class="bt-form pd20" id="set_db_access">' +
+                        '<div class="line">' +
+                            '<span class="tname">' + pt('访问权限') + '</span>' +
+                            '<div class="info-r ">' +
+                                '<select class="bt-input-text mr5" name="dataAccess" style="min-width:110px">' +
+                                '<option value="127.0.0.1">' + pt('本地服务器') + '</option>' +
+                                '<option value="%">' + pt('所有人') + '</option>' +
+                                '<option value="ip">' + pt('指定IP') + '</option>' +
+                                '</select>' +
+                            '</div>' +
+                        '</div>' +
+                      '</form>',
             success:function(){
                 if (rdata.msg == '127.0.0.1'){
                     $('select[name="dataAccess"]').find("option[value='127.0.0.1']").attr("selected",true);
@@ -1812,16 +1821,16 @@ function setDbMasterAccess(username){
                     $('select[name="dataAccess"]').find('option[value="%"]').attr("selected",true);
                 } else if ( rdata.msg == 'ip' ){
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                 } else {
                     $('select[name="dataAccess"]').find('option[value="ip"]').attr("selected",true);
-                    $('select[name="dataAccess"]').after("<input value='"+rdata.msg+"' id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                    $('select[name="dataAccess"]').after('<input value="' + rdata.msg + '" id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                 }
 
                  $('select[name="dataAccess"]').on('change', function(){
                     var v = $(this).val();
                     if (v == 'ip'){
-                        $(this).after("<input id='dataAccess_subid' class='bt-input-text mr5' type='text' name='address' placeholder='多个IP使用逗号(,)分隔' style='width: 230px; display: inline-block;'>");
+                        $(this).after('<input id="dataAccess_subid" class="bt-input-text mr5" type="text" name="address" placeholder="' + pt('多个IP使用逗号(,)分隔') + '" style="width: 230px; display: inline-block;">');
                     } else {
                         $('#dataAccess_subid').remove();
                     }
@@ -1910,15 +1919,15 @@ function getMasterRepSlaveListPage(){
         type: 1,
         title:  pt('同步账户列表'),
         area: '500px',
-        content:"<div class='bt-form pd20 c6'>\
-                 <div class='divtable mtb10' id='get_master_rep_slave_list_page'>\
-                    <div><table class='table table-hover'>\
-                        <thead><tr><th>' + pt('用户名') + '</th><th>' + pt('密码') + '</th><th>' + pt('操作') + '</th></tr></thead>\
-                        <tbody></tbody>\
-                    </table></div>\
-                    "+page +"\
-                </div>\
-            </div>",
+        content: '<div class="bt-form pd20 c6">' +
+                 '<div class="divtable mtb10" id="get_master_rep_slave_list_page">' +
+                    '<div><table class="table table-hover">' +
+                        '<thead><tr><th>' + pt('用户名') + '</th><th>' + pt('密码') + '</th><th>' + pt('操作') + '</th></tr></thead>' +
+                        '<tbody></tbody>' +
+                    '</table></div>' +
+                    page +
+                '</div>' +
+            '</div>',
         success:function(){
             getMasterRepSlaveList();
         }
@@ -1957,29 +1966,29 @@ function getFullSyncStatus(db){
                 }
             }
 
-            dataSource = "<p class='line' style='text-align:center;'>\
-                <span>' + pt('同步数据源：') + '</span>\
-                <select class='bt-input-text' name='data_source' style='width:200px;'>" + sourceList + "</select>\
-            </p>";
+            dataSource = '<p class="line" style="text-align:center;">' +
+                '<span>' + pt('同步数据源：') + '</span>' +
+                '<select class="bt-input-text" name="data_source" style="width:200px;">' + sourceList + '</select>' +
+            '</p>';
         }
 
         layer.open({
             type: 1,
             title: pt('全量同步[')+db+']',
             area: '500px',
-            content:"<div class='bt-form pd15'>\
-                     <div class='divtable mtb10'>\
-                        "+dataSource+"\
-                        <span id='full_msg'></span>\
-                        <div class='progress'>\
-                            <div class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='min-width: 2em;'>0%</div>\
-                        </div>\
-                    </div>\
-                    <div class='table_toolbar' style='left:0px;'>\
-                        <span data-status='init' class='sync btn btn-default btn-sm' id='begin_full_sync'>' + pt('开始') + '</span>\
-                        <span data-status='init' class='btn btn-default btn-sm' id='full_sync_cmd'>' + pt('手动命令') + '</span>\
-                    </div>\
-                </div>",
+            content: '<div class="bt-form pd15">' +
+                     '<div class="divtable mtb10">' +
+                        dataSource +
+                        '<span id="full_msg"></span>' +
+                        '<div class="progress">' +
+                            '<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em;">0%</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="table_toolbar" style="left:0px;">' +
+                        '<span data-status="init" class="sync btn btn-default btn-sm" id="begin_full_sync">' + pt('开始') + '</span>' +
+                        '<span data-status="init" class="btn btn-default btn-sm" id="full_sync_cmd">' + pt('手动命令') + '</span>' +
+                    '</div>' +
+                '</div>',
             cancel: function(){ 
                 clearInterval(timeId);
             },
@@ -2152,16 +2161,16 @@ function addSlaveSSH(ip=''){
             shift: 5,
             shadeClose: true,
             btn: [pt("确认"), pt("取消")],
-            content: "<form class='bt-form pd20'>\
-                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>" + pt('同步账户[DB]') + "</span><div class='info-r'><input name='db_user'  placeholder='为空则取第一个!' class='bt-input-text mr5' type='text' style='width:330px;' value='"+db_user+"'></div></div>\
-                <div class='line'>\
-                <span class='tname'>ID_RSA</span>\
-                <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='50' name='id_rsa' style='width:330px;height:200px;'></textarea></div>\
-                </div>\
-                <input type='hidden' name='ps' value='' />\
-              </form>",
+            content: '<form class="bt-form pd20">' +
+                '<div class="line"><span class="tname">IP</span><div class="info-r"><input name="ip" class="bt-input-text mr5" type="text" style="width:330px;" value="' + ip + '"></div></div>' +
+                '<div class="line"><span class="tname">' + pt('端口') + '</span><div class="info-r"><input name="port" class="bt-input-text mr5" type="number" style="width:330px;" value="' + port + '"></div></div>' +
+                '<div class="line"><span class="tname">' + pt('同步账户[DB]') + '</span><div class="info-r"><input name="db_user" placeholder="' + pt('为空则取第一个!') + '" class="bt-input-text mr5" type="text" style="width:330px;" value="' + db_user + '"></div></div>' +
+                '<div class="line">' +
+                '<span class="tname">ID_RSA</span>' +
+                '<div class="info-r"><textarea class="bt-input-text mr5" row="20" cols="50" name="id_rsa" style="width:330px;height:200px;"></textarea></div>' +
+                '</div>' +
+                '<input type="hidden" name="ps" value="" />' +
+              '</form>',
             success:function(){
                 $('textarea[name="id_rsa"]').html(id_rsa);
             },
@@ -2229,12 +2238,12 @@ function getSlaveSSHPage(page=1){
             var ip = ssh_list[i]['ip'];
             var port = ssh_list[i]['port'];
 
-            var id_rsa = '未设置';
+            var id_rsa = pt('未设置');
             if ( ssh_list[i]['port'] != ''){
-                id_rsa = '已设置';
+                id_rsa = pt('已设置');
             }
 
-            var db_user = '未设置';
+            var db_user = pt('未设置');
             if ( ssh_list[i]['db_user'] != ''){
                 db_user = ssh_list[i]['db_user'];
             }
@@ -2287,26 +2296,26 @@ function addSlaveSyncUser(ip=''){
             shift: 5,
             shadeClose: true,
             btn: [pt("确认"), pt("取消")],
-            content: "<form class='bt-form pd20'>\
-                <div class='line'><span class='tname'>IP</span><div class='info-r'><input name='ip' class='bt-input-text mr5' type='text' style='width:330px;' value='"+ip+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('端口') + '</span><div class='info-r'><input name='port' class='bt-input-text mr5' type='number' style='width:330px;' value='"+port+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('同步账户') + '</span><div class='info-r'><input name='user' class='bt-input-text mr5' type='text' style='width:330px;' value='"+user+"'></div></div>\
-                <div class='line'><span class='tname'>' + pt('同步密码') + '</span><div class='info-r'><input name='pass' class='bt-input-text mr5' type='text' style='width:330px;' value='"+pass+"'></div></div>\
-                <div class='line'>\
-                    <span class='tname'>' + pt('同步模式') + '</span>\
-                    <div class='info-r'>\
-                        <select class='bt-input-text mr5' name='mode'>\
-                            <option value='0' "+( mode == '0' ? 'selected="selected"' : '')+">' + pt('经典') + '</option>\
-                            <option value='1' "+( mode == '1' ? 'selected="selected"' : '')+">GTID</option>\
-                        </select>\
-                    </div>\
-                </div>\
-                <div class='line'>\
-                <span class='tname'>" + pt('CMD[必填]') + "</span>\
-                <div class='info-r'><textarea class='bt-input-text mr5' row='20' cols='30' name='cmd' style='width:330px;height:150px;'></textarea></div>\
-                </div>\
-                <input type='hidden' name='mode' value='"+mode+"' />\
-              </form>",
+            content: '<form class="bt-form pd20">' +
+                '<div class="line"><span class="tname">IP</span><div class="info-r"><input name="ip" class="bt-input-text mr5" type="text" style="width:330px;" value="' + ip + '"></div></div>' +
+                '<div class="line"><span class="tname">' + pt('端口') + '</span><div class="info-r"><input name="port" class="bt-input-text mr5" type="number" style="width:330px;" value="' + port + '"></div></div>' +
+                '<div class="line"><span class="tname">' + pt('同步账户') + '</span><div class="info-r"><input name="user" class="bt-input-text mr5" type="text" style="width:330px;" value="' + user + '"></div></div>' +
+                '<div class="line"><span class="tname">' + pt('同步密码') + '</span><div class="info-r"><input name="pass" class="bt-input-text mr5" type="text" style="width:330px;" value="' + pass + '"></div></div>' +
+                '<div class="line">' +
+                    '<span class="tname">' + pt('同步模式') + '</span>' +
+                    '<div class="info-r">' +
+                        '<select class="bt-input-text mr5" name="mode">' +
+                            '<option value="0" ' + ( mode == '0' ? 'selected="selected"' : '') + '>' + pt('经典') + '</option>' +
+                            '<option value="1" ' + ( mode == '1' ? 'selected="selected"' : '') + '>GTID</option>' +
+                        '</select>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="line">' +
+                '<span class="tname">' + pt('CMD[必填]') + '</span>' +
+                '<div class="info-r"><textarea class="bt-input-text mr5" row="20" cols="30" name="cmd" style="width:330px;height:150px;"></textarea></div>' +
+                '</div>' +
+                '<input type="hidden" name="mode" value="' + mode + '" />' +
+              '</form>',
             success:function(){
                 $('textarea[name="cmd"]').html(cmd);
                 $('textarea[name="cmd"]').on('change', function(){
