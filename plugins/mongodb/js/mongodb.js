@@ -9,7 +9,7 @@ async
 
 
 function mongoDocStatus() {
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
     $.post('/plugins/run', {name:'mongodb', func:'run_doc_info'}, function(data) {
     	layer.close(loadT);
     	if (!data.status){
@@ -45,7 +45,7 @@ function mongoDocStatus() {
 }
 
 function mongoReplStatus() {
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
     $.post('/plugins/run', {name:'mongodb', func:'run_repl_info'}, function(data) {
     	layer.close(loadT);
     	if (!data.status){
@@ -386,7 +386,7 @@ function mongoSetConfig() {
 
 function mongoConfigAuth(){
 	api.post('set_config_auth', '','',function(rdata){
-		var rdata = JSON.parse(rdata.data);
+		var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -401,7 +401,7 @@ function mongoConfigSave(){
 
 	api.post('set_config', '',data,function(rdata){
 		// console.log(rdata);
-		var rdata = JSON.parse(rdata.data);
+		var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 		layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
 }
@@ -439,7 +439,7 @@ function dbList(page, search){
             list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?'已备份':'未备份') +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
 
             list += '<a href="javascript:;" class="btlink" onclick="repTools(\''+rdata.data[i]['name']+'\')" title="MongoDB优化修复工具">' + pt('工具') + '</a> | ' +
                         '<a href="javascript:;" class="btlink" onclick="setDbAccess(\''+rdata.data[i]['username']+'\',\''+rdata.data[i]['name']+'\')" title="设置数据库权限">' + pt('权限') + '</a> | ' +
@@ -600,7 +600,7 @@ function setRootPwd(type, pwd){
             return false;
         },
         btn4:function(layerIndex){
-            layer.confirm('强制修改,是为了在重建时使用,确定强制?', {
+            layer.confirm(pt('强制修改,是为了在重建时使用,确定强制?'), {
                 btn: [pt('确定'), pt('取消')]
             }, function(index, layero){
                 layer.close(index);
@@ -664,7 +664,7 @@ function setDbPs(id, name, obj) {
 }
 
 function delDb(id, name){
-    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         api.post('del_db', '', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -676,7 +676,7 @@ function delDb(id, name){
 }
 
 function delDbTable( name, table_name){
-    safeMessage('删除['+name+']','您真的要删除['+table_name+']吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']','您真的要删除['+table_name+']吗？',function(){
         var data='name='+name+'&table_name='+table_name;
         api.post('del_db_table', '', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -819,7 +819,7 @@ function repTools(db_name, res){
 		        	var name = db_name;
 		        	var table_name = rdata.collection_list[index].collection_name;
 
-		        	safeMessage('删除['+name+']','您真的要删除['+table_name+']吗？',function(){
+		        	safeMessage(pt('删除') + ' ['+name+']','您真的要删除['+table_name+']吗？',function(){
 				        var data='name='+name+'&table_name='+table_name;
 				        api.post('del_db_table', '', data, function(data){
 				            var rdata = JSON.parse(data.data);
@@ -940,7 +940,7 @@ function setDbAccess(username,name){
 function setBackup(db_name){
     var layerIndex = layer.open({
         type: 1,
-        title: "数据库[MongoDB]备份详情",
+        title: pt("数据库[MongoDB]备份详情"),
         area: ['600px', '280px'],
         closeBtn: 1,
         shadeClose: false,
@@ -968,7 +968,7 @@ function setBackup(db_name){
         success:function(index){
             $('#btn_backup').on('click', function(){
                 api.post('set_db_backup', '',{name:db_name}, function(data){
-                    showMsg('执行成功!', function(){
+                    showMsg(pt('执行成功!'), function(){
                         setBackupReq(db_name);
                     }, {icon:1}, 2000);
                 });
@@ -1008,7 +1008,7 @@ function delBackup(filename, name, path){
         path = "";
     }
     api.post('delete_db_backup','',{filename:filename,path:path},function(){
-        layer.msg('执行成功!');
+        layer.msg(pt('执行成功!'));
         setTimeout(function(){
             setBackupReq(name);
         },2000);
@@ -1021,7 +1021,7 @@ function downloadBackup(file){
 
 function importBackup(file,name){
     api.post('import_db_backup','',{file:file,name:name}, function(data){
-        layer.msg('执行成功!');
+        layer.msg(pt('执行成功!'));
     });
 }
 
@@ -1032,7 +1032,7 @@ function setLocalImport(db_name){
         var up_db = layer.open({
             type:1,
             closeBtn: 1,
-            title:"上传导入文件["+upload_dir+']',
+            title:pt("上传导入文件[")+upload_dir+']',
             area: ['500px','300px'],
             shadeClose:false,
             content:'<div class="fileUploadDiv">\
@@ -1092,7 +1092,7 @@ function setLocalImport(db_name){
                 var index = $(this).attr('index');
                 var filename = file_list[index]["name"];
                 api.post('delete_db_backup','',{filename:filename,path:upload_dir},function(){
-                    showMsg('执行成功!', function(){
+                    showMsg(pt('执行成功!'), function(){
                         getList();
                     },{icon:1},2000);
                 });
@@ -1145,7 +1145,7 @@ function setLocalImport(db_name){
 
 function importDbExternal(file,name){
     api.post('import_db_external','',{file:file,name:name}, function(data){
-        layer.msg('执行成功!');
+        layer.msg(pt('执行成功!'));
     });
 }
 

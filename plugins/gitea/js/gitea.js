@@ -138,7 +138,7 @@ function giteaUserList(page, search) {
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             return;
         }
-        content = '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="查找用户名" id="find_user" style="height: 28px; border-radius: 3px;width: 435px;">';
+        content = '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="' + pt('查找用户名') + '" id="find_user" style="height: 28px; border-radius: 3px;width: 435px;">';
         content += '<button class="btn btn-success btn-sm find_user" >' + pt('查找') + '</button></div>';
 
         content += '<div class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
@@ -309,7 +309,7 @@ function projectScriptLoad(user,name,index){
             return;
         }
 
-        showMsg('加载成功!',function(){
+        showMsg(pt('加载成功!'),function(){
             layer.close(index);
             api.post(1);
         },{icon:1,time:2000,shade: [0.3, '#000']},2000);
@@ -323,7 +323,7 @@ function projectScriptUnload(user,name,index){
             return;
         }
 
-        showMsg('卸载成功!',function(){
+        showMsg(pt('卸载成功!'),function(){
             layer.close(index);
             api.post(1);
         },{icon:1,time:2000,shade: [0.3, '#000']},2000);
@@ -409,7 +409,7 @@ function gogsRepoListPage(page, search){
                     layer.msg(data.data,{icon:0,time:2000,shade: [0.3, '#000']});
                     return;
                 }
-                layer.msg('加载成功!',{icon:1,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt('加载成功!'),{icon:1,time:2000,shade: [0.3, '#000']});
                 setTimeout(function(){
                     gogsRepoListPage(page, search);
                 }, 2000);
@@ -427,7 +427,7 @@ function gogsRepoListPage(page, search){
                     return;
                 }
 
-                layer.msg('卸载成功!',{icon:1,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt('卸载成功!'),{icon:1,time:2000,shade: [0.3, '#000']});
                 setTimeout(function(){
                     gogsRepoListPage(page, search);
                 }, 2000);
@@ -472,7 +472,7 @@ function gogsRepoListPage(page, search){
             var name = ulist[i]["repo"];
 
             api.post('project_script_run', {'user':user,'name':name}, function(data){
-                var data = JSON.parse(data.data);
+                var data = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
                 layer.msg(data.msg,{icon:data.status?1:2,time:2000,shade: [0.3, '#000']});
             });
         });
@@ -483,7 +483,7 @@ function gogsRepoListPage(page, search){
 
 
 function giteaRepoList() {
-    content = '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="查找项目" id="find_repo" style="height: 28px; border-radius: 3px;width: 435px;">';
+    content = '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="' + pt('查找项目') + '" id="find_repo" style="height: 28px; border-radius: 3px;width: 435px;">';
     content += '<button class="btn btn-success btn-sm find_repo">' + pt('查找') + '</button></div>';
 
     content += '<div id="repo_list" class="divtable" style="margin-top:5px;"><table class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0">';
@@ -551,7 +551,7 @@ function projectScriptSelfRender(user, name){
                 status = '0';
             }
             api.post('project_script_self_status', {'user':user,'name':name,'file':file, status:status}, function(data){
-                var data = JSON.parse(data.data);
+                var data = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
                 showMsg(data.msg ,function(){
                     projectScriptSelfRender(user, name);
                 },{icon:data.code?2:1,time:2000,shade: [0.3, '#000']},2000);
@@ -562,7 +562,7 @@ function projectScriptSelfRender(user, name){
             var i = $(this).data('index');
             var file = data[i]["name"];
             api.post('project_script_self_del', {'user':user,'name':name,'file':file}, function(data){
-                var data = JSON.parse(data.data);
+                var data = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
                 showMsg(data.msg ,function(){
                     projectScriptSelfRender(user, name);
                 },{icon:data.code?2:1,time:2000,shade: [0.3, '#000']},2000);
@@ -593,7 +593,7 @@ function projectScriptSelfRender(user, name){
             var i = $(this).data('index');
             var file = data[i]["name"];
             if (data[i]["is_hidden"]){
-                layer.msg("已经禁用,不能执行!",{icon:2,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt("已经禁用,不能执行!"),{icon:2,time:2000,shade: [0.3, '#000']});
                 return;
             }
             api.post('project_script_self_run', {'user':user,'name':name,'file':file}, function(data){
@@ -608,7 +608,7 @@ function projectScriptSelfRender(user, name){
             var file = data[i]["name"];
 
             if (data[i]["is_hidden"]){
-                layer.msg("已经禁用,不能执行!",{icon:2,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt("已经禁用,不能执行!"),{icon:2,time:2000,shade: [0.3, '#000']});
                 return;
             }
 
@@ -623,7 +623,7 @@ function projectScriptSelfRender(user, name){
                 btn: [pt('设置'), pt('关闭')],
                 content: '<div class="bt-form pd20">\
                             <div class="line">\
-                                <input type="text" class="bt-input-text" name="Name" id="newFileName" value="'+file+'" placeholder="文件名" style="width:100%" />\
+                                <input type="text" class="bt-input-text" name="Name" id="newFileName" value="'+file+'" placeholder="' + pt('文件名') + '" style="width:100%" />\
                             </div>\
                         </div>',
                 success:function(){
@@ -636,7 +636,7 @@ function projectScriptSelfRender(user, name){
                     var o_file = file;
 
                     api.post('project_script_self_rename', {'user':user,'name':name,'o_file':o_file,'n_file':n_file}, function(data){
-                        var data = JSON.parse(data.data);
+                        var data = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
                         showMsg(data.msg ,function(){
                             $(".layui-layer-btn1").click();
                             projectScriptSelfRender(user, name);
@@ -677,7 +677,7 @@ function createScriptFile(type, user, name, file) {
         btn: [pt('新建'), pt('关闭')],
         content: '<div class="bt-form pd20">\
                     <div class="line">\
-                        <input type="text" class="bt-input-text" name="Name" id="newFileName" value="" placeholder="文件名" style="width:100%" />\
+                        <input type="text" class="bt-input-text" name="Name" id="newFileName" value="" placeholder="' + pt('文件名') + '" style="width:100%" />\
                     </div>\
                 </div>',
         success:function(){
@@ -728,7 +728,7 @@ function projectScriptSelf(user, name){
                     enable_option = '1';
                 }
                 api.post('project_script_self_enable', {'user':user,'name':name,'enable':enable_option}, function(data){
-                    var data = JSON.parse(data.data);
+                    var data = typeof data.data === "string" ? JSON.parse(data.data) : data.data;
                     showMsg(data.msg ,function(){
                         projectScriptSelfRender(user, name);
                     },{icon:data.status?1:2,shade: [0.3, '#000']},2000);

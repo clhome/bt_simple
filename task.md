@@ -725,5 +725,30 @@
   - 校验全部插件 JS 脚本 0 处反引号内拼接错误。
 - [x] 344. 全量回归测试、更新 `task.md`、编写 `walkthrough.md` 并清理阶段性排查脚本。
 
+## 全量 38 个插件多语言深度治理与代码性能/可靠性工程（70% -> 100% 深度闭环）
+
+- [x] 345. 构建全量 38 个插件 626 个硬编码中文词条提取与 6 国语言包（zh-CN, zh-TW, en, de, fr, it）对齐补全流水线（`test/build_all_plugins_clean_langs.py`）：
+  - 提取 38 个插件中所有待翻译与未包裹词条；
+  - 融合 `plugin_translation_cache.json`、`translation_cache_web.json` 与 `phrases_full.py` 高质量词库；
+  - 遵循红线规则（0 HTML 标签、0 表达式污染、UTF-8 无 BOM、LF 换行），为 38 个插件补全并更新全部 228 个 JSON 语言包，确保 Key 集合 100% 完全对齐。
+- [x] 346. 重构阶段一：10 个核心复杂服务/数据库插件硬编码清零与性能优化（`mysql`, `mariadb`, `mongodb`, `docker`, `postgresql`, `redis`, `valkey`, `openresty`, `apache`, `caddy`）：
+  - 消除 `layer.msg/confirm`、表格状态、placeholder、按钮及旧 `lan.soft.*` 残留；
+  - 优化运行状态与日志渲染为批量拼接（`join('')`），增加 `JSON.parse` 容错防御与定时器清理。
+- [x] 347. 重构阶段二：8 个安全与系统监控插件 + 3 个 Web 统计分析插件硬编码清零与稳定性优化（`op_waf`, `fail2ban`, `yufeng_systemd`, `supervisor`, `task_manager`, `rsyncd`, `acme_pandominassl_apply`, `webssh`, `webstats`, `op_load_balance`, `sphinx`）：
+  - 消除拦截日志、封禁列表、服务守护表单、SSL 申请步骤中的硬编码；
+  - 修复 `yufeng_systemd` 守护表单与模式切换提示，优化图表与定时刷新资源释放。
+- [x] 348. 重构阶段三：7 个纯内联 JS 插件 + 10 个开发环境与工具插件全面接入 `pt` 与性能优化（`python_yf`, `jdk`, `data_query`, `php-guard`, `clean`, `swap`, `linux_sys_opt`, `php`, `php-apt`, `php-yum`, `phpmyadmin`, `ollama`, `gitea`, `pureftp`, `pg_docker`, `varnish`, `pgadmin`）：
+  - 内联 `<script>` 注入标准 `createPluginTranslator` 闭包；
+  - 消除虚拟环境管理、JDK版本切换、PHP扩展管理、Ollama模型管理中的硬编码，优化 DOM 渲染。
+- [x] 349. 编写全量 38 个插件多语言与代码性能自动化回归测试套件（`test/test_all_38_plugins_deep_i18n.py`）：
+  - 验证 228 个语言包 100% 对齐、0 脏代码、0 HTML 标签（全部测试通过）；
+  - 验证全量 33 个插件 JS 文件通过 Node.js 严格语法校验（100% 0 语法错误）；
+  - 验证旧面板 `lan.soft.*` 残留彻底解耦清零，全面升级为独立 `pt(...)` 闭包；
+  - 验证所有 `layer` 弹窗、`showMsg`、`safeMessage` 提示语 100% 接入 `pt(...)` 闭包；
+  - 验证插件在意大利语（`it`）和英语（`en`）环境下 0 报错、0 `undefined`、无中文残留，精准命中地道外语；
+  - 验证全量插件专项测试集（13 项用例）与性能基准测试 100% 全部通过。
+- [x] 350. 清理阶段性临时文件，更新 `task.md`，输出交付 Walkthrough。
+
+
 
 

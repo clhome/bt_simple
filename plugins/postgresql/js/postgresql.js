@@ -76,7 +76,7 @@ function pgPort(){
             api.post('set_pg_port','port='+port,function(data){
                 var rdata = JSON.parse(data.data);
                 if (rdata.status){
-                    layer.msg('修改成功!',{icon:1,time:2000,shade: [0.3, '#000']});
+                    layer.msg(pt('修改成功!'),{icon:1,time:2000,shade: [0.3, '#000']});
                 } else {
                     layer.msg(rdata.msg,{icon:1,time:2000,shade: [0.3, '#000']});
                 }
@@ -334,7 +334,7 @@ function setDbAccess(name){
                 renderPrivileges(rdata);
 
                 $('#btn_onekey_grant').on('click', function(){
-                    var loadT = layer.msg('正在一键赋权...', { icon: 16, time: 0, shade: 0.3 });
+                    var loadT = layer.msg(pt('正在一键赋权...'), { icon: 16, time: 0, shade: 0.3 });
                     api.post('set_db_privileges', {name: name}, function(grantData){
                         layer.close(loadT);
                         var grantRdata = JSON.parse(grantData.data);
@@ -495,7 +495,7 @@ function addDatabase(type,layer_index){
 }
 
 function delDb(id, name){
-    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name
         api.post('del_db', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -560,7 +560,7 @@ function setDbPs(id, name, obj) {
 
 function delBackup(filename,name){
     api.post('delete_db_backup',{filename:filename},function(){
-        layer.msg('执行成功!');
+        layer.msg(pt('执行成功!'));
         setTimeout(function(){
             $('.layui-layer-close2').click();
             setBackup(name);
@@ -575,7 +575,7 @@ function downloadBackup(file){
 function importBackup(file,name){
     api.post('import_db_backup',{file:file,name:name}, function(data){
         // console.log(data);
-        layer.msg('执行成功!');
+        layer.msg(pt('执行成功!'));
     });
 }
 
@@ -583,7 +583,7 @@ function uploadDbFiles(upload_dir, callback){
     var up_db = layer.open({
         type:1,
         closeBtn: 1,
-        title:"上传导入文件["+upload_dir+']',
+        title:pt("上传导入文件[")+upload_dir+']',
         area: ['500px','300px'],
         shadeClose:false,
         content:'<div class="fileUploadDiv">\
@@ -677,7 +677,7 @@ function setBackup(db_name,obj){
 
         $('#btn_backup').on('click', function(){
             api.post('pg_back',{name:db_name}, function(data){
-                layer.msg('执行成功!');
+                layer.msg(pt('执行成功!'));
 
                 setTimeout(function(){
                     layer.close(s);
@@ -691,7 +691,7 @@ function setBackup(db_name,obj){
                 var syncRdata = JSON.parse(syncData.data);
                 var syncList = syncRdata.list || [];
                 $('.gztr').html(getTbodyHtml(syncList));
-                layer.msg('同步成功!');
+                layer.msg(pt('同步成功!'));
             });
         });
 
@@ -1060,7 +1060,7 @@ function getFullSyncStatus(db){
     var btn = '<div class="table_toolbar" style="left:0px;"><span data-status="init" class="sync btn btn-default btn-sm" id="begin_full_sync" title="">' + pt('开始') + '</span></div>';
     var loadOpen = layer.open({
         type: 1,
-        title: '全量同步['+db+']',
+        title: pt('全量同步[')+db+']',
         area: '500px',
         content:"<div class='bt-form pd20 c6'>\
                  <div class='divtable mtb10'>\
@@ -1101,7 +1101,7 @@ function getFullSyncStatus(db){
             }, 1000);
             $(this).attr('data-status','starting');
         } else {
-            layer.msg("正在同步中..");
+            layer.msg(pt("正在同步中.."));
         }
     });
 }
@@ -1110,7 +1110,7 @@ function addSlaveSSH(ip=''){
 
     api.post('get_slave_ssh_by_ip', {ip:ip}, function(rdata){
         
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 
         var ip = '127.0.0.1';
         var port = "22";
@@ -1168,7 +1168,7 @@ function addSlaveSSH(ip=''){
 
 function delSlaveSSH(ip){
     api.post('del_slave_ssh', {ip:ip}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
         getSlaveSSHPage();
     });

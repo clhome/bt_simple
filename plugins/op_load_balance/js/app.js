@@ -17,7 +17,7 @@ function addNode(){
             <div class='line'>\
                 <span class='tname'>' + pt('IP地址') + '</span>\
                 <div class='info-r'>\
-                    <input name='ip' class='bt-input-text mr5' placeholder='负载名称,可以是英文字母和下划线,不能使用中文' type='text' style='width:250px' value='127.0.0.1'>\
+                    <input name='ip' class='bt-input-text mr5' placeholder='' + pt('负载名称,可以是英文字母和下划线,不能使用中文') + '' type='text' style='width:250px' value='127.0.0.1'>\
                 </div>\
             </div>\
             <div class='line'>\
@@ -81,7 +81,7 @@ function addNode(){
             var fail_timeout = $('input[name="fail_timeout"]').val();
 
             api.post('check_url', {ip:ip,port:port,path:path},function(rdata){             
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     if (rdata.status){
                         layer.close(index);
@@ -144,7 +144,7 @@ function addBalance(){
             <div class='line'>\
                 <span class='tname'>' + pt('负载名称') + '</span>\
                 <div class='info-r'>\
-                    <input name='upstream_name' class='bt-input-text mr5' placeholder='负载名称,可以是英文字母和下划线,不能使用中文' type='text' style='width:95%' value=''>\
+                    <input name='upstream_name' class='bt-input-text mr5' placeholder='' + pt('负载名称,可以是英文字母和下划线,不能使用中文') + '' type='text' style='width:95%' value=''>\
                 </div>\
             </div>\
             <div class='line'>\
@@ -207,13 +207,13 @@ function addBalance(){
 
             var upstream_name = $('input[name="upstream_name"]').val();
             if (upstream_name == ''){
-                layer.msg('负载名称不能为空!',{icon:0,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt('负载名称不能为空!'),{icon:0,time:2000,shade: [0.3, '#000']});
                 return;
             }
 
             var domain = $('textarea[name="load_domain"]').val().replace('http://','').replace('https://','').split("\n");
             if (domain[0] == ''){
-                layer.msg('域名不能为空!',{icon:0,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt('域名不能为空!'),{icon:0,time:2000,shade: [0.3, '#000']});
                 return;
             }
 
@@ -259,7 +259,7 @@ function addBalance(){
             });
             data['node_list'] = node_list;
             ooPostCallbak('add_load_balance', data, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     layer.close(index);
                     loadBalanceListRender();
@@ -423,7 +423,7 @@ function editBalance(data, row){
             data['node_list'] = node_list;
             data['row'] = row;
             ooPostCallbak('edit_load_balance', data, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     layer.close(index);
                     loadBalanceListRender();
@@ -435,7 +435,7 @@ function editBalance(data, row){
 
 function loadBalanceListRender(){
     api.post('load_balance_list', {}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var alist = rdata.data;
 
         var tbody = '';
@@ -466,7 +466,7 @@ function loadBalanceListRender(){
         $('#nodeTable .health_status').on('click', function(){
             var row = $(this).data('row');
             api.post('get_health_status', {row:row}, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 
                 var tval = '';
                 for (var i = 0; i < rdata.data.length; i++) {
@@ -513,7 +513,7 @@ function loadBalanceListRender(){
         $('#nodeTable .delete').on('click', function(){
             var row = $(this).data('row');
             api.post('load_balance_delete', {row:row}, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     loadBalanceListRender();
                 },{ icon: rdata.status ? 1 : 2 }, 2000);

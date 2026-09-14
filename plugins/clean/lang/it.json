@@ -1,5 +1,6 @@
 {
     "【*】代表要删除。": "【*】Indica che va eliminato.",
+    "启动后,加入到计划任务每隔7天[0:15]执行。": "Una volta avviata, aggiungila alle attività pianificate affinché venga eseguita ogni 7 giorni alle [0:15].",
     "如果是目录,会寻找【.log】后缀的文件清空。": "Se si tratta di una cartella, verranno cercati i file con estensione 【.log】 e cancellati.",
     "常用功能": "Funzioni più utilizzate",
     "手动执行": "Esecuzione manuale",

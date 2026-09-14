@@ -27,7 +27,7 @@ var yufeng_systemd = {
     
     // 获取列表
     get_list: function() {
-        var loadT = layer.msg('正在获取服务列表...', {icon: 16, time: 0, shade: 0.3});
+        var loadT = layer.msg(pt('正在获取服务列表...'), {icon: 16, time: 0, shade: 0.3});
         this.request('get_services', {}, function(res) {
             layer.close(loadT);
             var tbody = $('#yufeng_service_list');
@@ -47,16 +47,16 @@ var yufeng_systemd = {
                 var item = data[i];
                 var status_html = '';
                 if (item.status === 'active') {
-                    status_html = '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'stop\')" title="点击停止服务" style="width:80px;">' + pt('运行中 ▶') + '</a>';
+                    status_html = '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'stop\')" title="' + pt('点击停止服务') + '" style="width:80px;">' + pt('运行中 ▶') + '</a>';
                 } else if (item.status === 'failed') {
-                    status_html = '<a class="btn btn-warning btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击尝试修复并启动" style="width:80px;">' + pt('崩溃报错 ⚠') + '</a>';
+                    status_html = '<a class="btn btn-warning btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="' + pt('点击尝试修复并启动') + '" style="width:80px;">' + pt('崩溃报错 ⚠') + '</a>';
                 } else {
-                    status_html = '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="点击启动服务" style="width:80px;">' + pt('已停止 ⏹') + '</a>';
+                    status_html = '<a class="btn btn-danger btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'start\')" title="' + pt('点击启动服务') + '" style="width:80px;">' + pt('已停止 ⏹') + '</a>';
                 }
                 
                 var enabled_html = item.enabled ? 
-                    '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'disable\')" title="点击取消开机自启" style="width:80px;">' + pt('已开启 ▶') + '</a>' : 
-                    '<a class="btn btn-default btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'enable\')" title="点击允许开机自启" style="width:80px;">' + pt('已关闭 ⏹') + '</a>';
+                    '<a class="btn btn-success btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'disable\')" title="' + pt('点击取消开机自启') + '" style="width:80px;">' + pt('已开启 ▶') + '</a>' : 
+                    '<a class="btn btn-default btn-xs" onclick="yufeng_systemd.control(\''+item.name+'\', \'enable\')" title="' + pt('点击允许开机自启') + '" style="width:80px;">' + pt('已关闭 ⏹') + '</a>';
                     
                 html += '<tr>' +
                         '<td>' + item.name + '</td>' +
@@ -77,14 +77,14 @@ var yufeng_systemd = {
     // 打开编辑/新增弹窗
     open_edit: function(service_name) {
         var is_edit = service_name ? true : false;
-        var title = is_edit ? '修改服务 [' + service_name + ']' : '添加专属守护服务';
+        var title = is_edit ? (window.msgTpl ? msgTpl(pt('修改服务 [{1}]'), [service_name]) : pt('修改服务') + ' [' + service_name + ']') : pt('添加专属守护服务');
         
         var form_html = '<div id="yufeng_service_form" class="bt-form pd20">' +
             '<div class="form-horizontal">' +
                 '<div class="line">' +
                     '<span class="tname">' + pt('服务名称') + '</span>' +
                     '<div class="info-r">' +
-                        '<input name="service_name" class="bt-input-text mr5" type="text" style="width:150px; ' + (is_edit ? 'background-color: #f5f5f5;' : '') + '" value="' + (service_name||'') + '" ' + (is_edit?'readonly':'') + ' placeholder="如: my_node_app">' +
+                        '<input name="service_name" class="bt-input-text mr5" type="text" style="width:150px; ' + (is_edit ? 'background-color: #f5f5f5;' : '') + '" value="' + (service_name||'') + '" ' + (is_edit?'readonly':'') + ' placeholder="' + pt('如: my_node_app') + '">' +
                         '<span style="color: #ff4d4f; margin-left: 10px; font-weight: bold;">' + pt('请勿使用中文名称') + '</span>' +
                     '</div>' +
                 '</div>' +
@@ -113,14 +113,14 @@ var yufeng_systemd = {
                     '<div class="line">' +
                         '<span class="tname">' + pt('项目路径') + '</span>' +
                         '<div class="info-r">' +
-                            '<input id="work_dir" name="work_dir" class="bt-input-text mr5" type="text" style="width:380px;" value="" placeholder="必须为绝对路径，如 /www/wwwroot/my_site">' +
+                            '<input id="work_dir" name="work_dir" class="bt-input-text mr5" type="text" style="width:380px;" value="" placeholder="' + pt('必须为绝对路径，如 /www/wwwroot/my_site') + '">' +
                             '<span class="glyphicon glyphicon-folder-open cursor" onclick="changePath(\'work_dir\')"></span>' +
                         '</div>' +
                     '</div>' +
                     '<div class="line">' +
                         '<span class="tname">' + pt('启动命令') + '</span>' +
                         '<div class="info-r">' +
-                            '<input name="exec_start" class="bt-input-text" type="text" style="width:410px;" value="" placeholder="如: /usr/bin/node server.js">' +
+                            '<input name="exec_start" class="bt-input-text" type="text" style="width:410px;" value="" placeholder="' + pt('如: /usr/bin/node server.js') + '">' +
                         '</div>' +
                     '</div>' +
                     '<div class="line" style="margin-top: 15px;">' +
@@ -162,7 +162,7 @@ var yufeng_systemd = {
             success: function(layero, index) {
                 // 如果是编辑高级模式，需要回显数据
                 if (is_edit) {
-                    var loadT = layer.msg('正在获取配置...', {icon:16, time:0});
+                    var loadT = layer.msg(pt('正在获取配置...'), {icon:16, time:0});
                     yufeng_systemd.request('get_service_detail', {service_name: service_name}, function(res) {
                         layer.close(loadT);
                         if(res.status) {
@@ -233,12 +233,12 @@ var yufeng_systemd = {
         } else {
             data.service_content = $('#yufeng_service_form textarea[name="service_content"]').val();
             if (data.service_content.indexOf('[Unit]') === -1 || data.service_content.indexOf('[Service]') === -1) {
-                layer.msg('高级配置必须包含 [Unit] 和 [Service] 节点', {icon: 2});
+                layer.msg(pt('高级配置必须包含 [Unit] 和 [Service] 节点'), {icon: 2});
                 return;
             }
         }
         
-        var loadT = layer.msg('正在保存并重启服务...', {icon: 16, time: 0, shade: 0.3});
+        var loadT = layer.msg(pt('正在保存并重启服务...'), {icon: 16, time: 0, shade: 0.3});
         this.request('create_or_modify_service', data, function(res) {
             layer.close(loadT);
             layer.msg(res.msg, {icon: res.status ? 1 : 2});
@@ -251,16 +251,16 @@ var yufeng_systemd = {
     
     control: function(service_name, action) {
         var action_name = {
-            'start': '启动',
-            'stop': '停止',
-            'restart': '重启',
-            'enable': '开启自启',
-            'disable': '关闭自启'
+            'start': pt('启动'),
+            'stop': pt('停止'),
+            'restart': pt('重启'),
+            'enable': pt('开启自启'),
+            'disable': pt('关闭自启')
         }[action];
         
-        layer.confirm('确定要 ' + action_name + ' 服务 [' + service_name + '] 吗？', {icon: 3, title:  pt('提示')}, function(index) {
+        layer.confirm(pt('确定要 {1} 服务 [{2}] 吗？').replace('{1}', action_name).replace('{2}', service_name), {icon: 3, title:  pt('提示')}, function(index) {
             layer.close(index);
-            var loadT = layer.msg('正在执行...', {icon: 16, time: 0, shade: 0.3});
+            var loadT = layer.msg(pt('正在执行...'), {icon: 16, time: 0, shade: 0.3});
             yufeng_systemd.request('control_service', {service_name: service_name, action: action}, function(res) {
                 layer.close(loadT);
                 layer.msg(res.msg, {icon: res.status ? 1 : 2});
@@ -272,9 +272,9 @@ var yufeng_systemd = {
     },
     
     delete: function(service_name) {
-        layer.confirm('确定要彻底删除专属守护服务 [' + service_name + '] 吗？<br><br><span style="color:red">' + pt('注意：删除前必须先停止该服务。') + '</span>', {icon: 3, title:  pt('危险操作')}, function(index) {
+        layer.confirm(pt('确定要彻底删除专属守护服务 [{1}] 吗？').replace('{1}', service_name) + '<br><br><span style="color:red">' + pt('注意：删除前必须先停止该服务。') + '</span>', {icon: 3, title:  pt('危险操作')}, function(index) {
             layer.close(index);
-            var loadT = layer.msg('正在删除...', {icon: 16, time: 0, shade: 0.3});
+            var loadT = layer.msg(pt('正在删除...'), {icon: 16, time: 0, shade: 0.3});
             yufeng_systemd.request('delete_service', {service_name: service_name}, function(res) {
                 layer.close(loadT);
                 layer.msg(res.msg, {icon: res.status ? 1 : 2});
@@ -286,7 +286,7 @@ var yufeng_systemd = {
     },
     
     get_logs: function(service_name) {
-        var loadT = layer.msg('正在获取日志...', {icon: 16, time: 0, shade: 0.3});
+        var loadT = layer.msg(pt('正在获取日志...'), {icon: 16, time: 0, shade: 0.3});
         this.request('get_service_logs', {service_name: service_name}, function(res) {
             layer.close(loadT);
             if (res.status) {
@@ -299,7 +299,7 @@ var yufeng_systemd = {
                 var log_html = '<div id="yufeng_log_box" style="padding: 10px; background-color: #333; color: #fff; height: 380px; overflow: auto; font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap;">' + (log_content || '暂无运行日志') + '</div>';
                 layer.open({
                     type: 1,
-                    title: '运行日志 (最近100行防OOM) - [' + service_name + ']',
+                    title: pt('运行日志 (最近100行防OOM) - [') + service_name + ']',
                     area: ['800px', '500px'],
                     shadeClose: true,
                     btn: [pt('清空日志'), pt('关闭')],
@@ -307,7 +307,7 @@ var yufeng_systemd = {
                     yes: function(index, layero) {
                         layer.confirm(pt('确定要清空该服务的运行日志吗？'), {icon: 3, title:  pt('提示')}, function(c_index) {
                             layer.close(c_index);
-                            var loadC = layer.msg('正在清空...', {icon: 16, time: 0, shade: 0.3});
+                            var loadC = layer.msg(pt('正在清空...'), {icon: 16, time: 0, shade: 0.3});
                             yufeng_systemd.request('clear_service_logs', {service_name: service_name}, function(c_res) {
                                 layer.close(loadC);
                                 layer.msg(c_res.msg, {icon: c_res.status ? 1 : 2});

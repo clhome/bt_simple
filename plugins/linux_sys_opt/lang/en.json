@@ -1,6 +1,4 @@
 {
-    " (当前值未达标)": " (Current value does not meet the standard)",
-    " (当前未设置)": " (Not currently set)",
     "(当前值未达标)": "(Current value does not meet the standard)",
     "(当前未设置)": "(Not currently set)",
     "* 本插件执行的优化符合绝大部分高性能 Web 及高并发 DB 场景，安全可靠，可放心一键套用。": "* The optimization performed by this plug-in is in line with most high-performance Web and high-concurrency DB scenarios. It is safe and reliable and can be applied with one click.",

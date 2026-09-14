@@ -498,7 +498,7 @@ function disableFunc(version) {
         }
 
         var con = "<div class='dirBinding'>" +
-            "<input class='bt-input-text mr5' type='text' placeholder='添加要被禁止的函数名,如: exec' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
+            "<input class='bt-input-text mr5' type='text' placeholder='' + pt('添加要被禁止的函数名,如: exec') + '' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
             "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">' + pt('添加') + '</button>" +
             "</div>" +
             "<div class='divtable mtb15' style='height:350px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" +
@@ -654,7 +654,7 @@ function phpLibConfig(version){
 
 //安装扩展
 function installPHPLib(version, name, title, pathinfo) {
-    layer.confirm('您真的要安装{1}吗?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(pt('您真的要安装{1}吗?').replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
         name = name.toLowerCase();
         var data = "name=" + name + "&version=" + version + "&type=1";
 
@@ -672,7 +672,7 @@ function installPHPLib(version, name, title, pathinfo) {
 
 //卸载扩展
 function uninstallPHPLib(version, name, title, pathinfo) {
-    layer.confirm('您真的要卸载{1}吗?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(pt('您真的要卸载{1}吗?').replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
         name = name.toLowerCase();
         var data = 'name=' + name + '&version=' + version;
         api.post('uninstall_lib', version, data, function(data){
@@ -688,7 +688,7 @@ function uninstallPHPLib(version, name, title, pathinfo) {
 }
 
 function tunePhpConfig(version) {
-    layer.confirm('您确定要对 PHP-' + version + ' 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？', { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(pt('您确定要对 PHP-') + version + pt(' 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？'), { icon: 3, closeBtn: 2 }, function() {
         api.post('tune_php_config', version, '', function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){

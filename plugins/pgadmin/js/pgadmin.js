@@ -18,7 +18,7 @@ function homePage(){
 //pgadmin安全设置
 function safeConf() {
     api.post('get_pg_option', {}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
             return;
@@ -32,12 +32,12 @@ function safeConf() {
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('基础认证用户名') + '</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="basic_username" id="pg_basic_user" value="' + cfg['username'] + '" placeholder="基础认证用户名" type="text">\
+                    <input style="width:180px" class="bt-input-text mr20" name="basic_username" id="pg_basic_user" value="' + cfg['username'] + '" placeholder="' + pt('基础认证用户名') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPgUsername()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('基础认证密码') + '</span>\
-                    <input style="width:180px" class="bt-input-text mr20" name="basic_password" id="pg_basic_pwd" value="' + cfg['password'] + '" placeholder="基础认证密码" type="text">\
+                    <input style="width:180px" class="bt-input-text mr20" name="basic_password" id="pg_basic_pwd" value="' + cfg['password'] + '" placeholder="' + pt('基础认证密码') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPgPassword()">' + pt('保存') + '</button>\
                 </div>\
                 <hr/>\
@@ -92,7 +92,7 @@ function setWebPgPassword(){
 function setPgPort() {
     var pmport = $("#pmport").val();
     if (pmport < 80 || pmport > 65535) {
-        layer.msg('端口范围不合法!', { icon: 2 });
+        layer.msg(pt('端口范围不合法!'), { icon: 2 });
         return;
     }
     var data = 'port=' + pmport;

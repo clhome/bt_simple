@@ -8,7 +8,7 @@ function createSendTask(name = ''){
     var args = {};
     args["name"] = name;
     api.post('lsyncd_get', args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var data = rdata.data;
         console.log(data);
 
@@ -82,13 +82,13 @@ function createSendTask(name = ''){
                 <div class='line'>\
                     <span class='tname'>' + pt('服务器IP') + '</span>\
                     <div class='info-r c4'>\
-                        <input class='bt-input-text' type='text' name='ip' placeholder='请输入接收服务器IP' value='"+data["ip"]+"' style='width:310px' />\
+                        <input class='bt-input-text' type='text' name='ip' placeholder='' + pt('请输入接收服务器IP') + '' value='"+data["ip"]+"' style='width:310px' />\
                     </div>\
                 </div>\
                 <div class='line'>\
                     <span class='tname'>' + pt('同步目录') + '</span>\
                     <div class='info-r c4'>\
-                        <input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+data["path"]+"' placeholder='请选择同步目录' style='width:310px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
+                        <input id='inputPath' class='bt-input-text mr5' type='text' name='path' value='"+data["path"]+"' placeholder='' + pt('请选择同步目录') + '' style='width:310px' /><span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
                         <span data-toggle='tooltip' data-placement='top' title='【同步目录】若不以/结尾，则表示将数据同步到二级目录，一般情况下目录路径请以/结尾' class='bt-ico-ask' style='cursor: pointer;'>?</span>\
                     </div>\
                 </div>\
@@ -155,7 +155,7 @@ function createSendTask(name = ''){
                 <div class='line conn-key'>\
                     <span class='tname'>' + pt('接收密钥') + '</span>\
                     <div class='info-r c4'>\
-                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='此密钥为 接收配置[接收账号] 的密钥'>"+data['secret_key']+"</textarea>\
+                        <textarea id='mainDomain' class='bt-input-text' name='secret_key' style='width:310px;height:75px;line-height:22px' placeholder='' + pt('此密钥为 接收配置[接收账号] 的密钥') + ''>"+data['secret_key']+"</textarea>\
                     </div>\
                 </div>\
                 <div class='line conn-user'>\
@@ -310,7 +310,7 @@ function createSendTask(name = ''){
                 args['minute-n'] = $('input[name="minute-n"]').val();
 
                 api.post('lsyncd_add', args, function(rdata){
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
 
                     if (rdata.status){
@@ -328,11 +328,11 @@ function createSendTask(name = ''){
 }
 
 function lsyncdDelete(name){
-    safeMessage('删除['+name+']', '您真的要删除【'+name+'】吗？', function(){
+    safeMessage(pt('删除') + ' ['+name+']', '您真的要删除【'+name+'】吗？', function(){
         var args = {};
         args['name'] = name;
         api.post('lsyncd_delete', args, function(rdata){
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
             setTimeout(function(){lsyncdSend();},2000);
         });
@@ -344,7 +344,7 @@ function lsyncdRun(name){
     var args = {};
     args["name"] = name;
     api.post('lsyncd_run', args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         layer.msg(rdata.msg,{icon:rdata.status?1:2,time:2000,shade: [0.3, '#000']});
     });
 }
@@ -367,7 +367,7 @@ function lsyncdExclude(name){
                 <div style="overflow:hidden;">\
                     <fieldset>\
                         <legend>' + pt('排除的文件和目录') + '</legend>\
-                        <input type="text" class="bt-input-text mr5" data-type="exclude" title="例如：/home/www/" placeholder="例如：*.log" style="width:305px;">\
+                        <input type="text" class="bt-input-text mr5" data-type="exclude" title="' + pt('例如：/home/www/') + '" placeholder="' + pt('例如：*.log') + '" style="width:305px;">\
                         <button data-type="exclude" class=" addList btn btn-default btn-sm">' + pt('添加') + '</button>\
                         <div class="table-overflow">\
                             <table class="table table-hover BlockList"><tbody></tbody></table>\
@@ -388,11 +388,11 @@ function lsyncdExclude(name){
     });
 
     function getIncludeExclude(mName){
-        loadT = layer.msg('正在获取数据...',{icon:16,time:0,shade: [0.3, '#000']});
+        loadT = layer.msg(pt('正在获取数据...'),{icon:16,time:0,shade: [0.3, '#000']});
         api.post('lsyncd_get_exclude',{"name":mName}, function(rdata) {
             layer.close(loadT);
 
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             var res = rdata.data;
 
             var list=''
@@ -406,7 +406,7 @@ function lsyncdExclude(name){
 
 
     function addArgs(name,exclude){
-        loadT = layer.msg('正在添加...',{icon:16,time:0,shade: [0.3, '#000']});
+        loadT = layer.msg(pt('正在添加...'),{icon:16,time:0,shade: [0.3, '#000']});
         api.post('lsyncd_add_exclude', {name:name,exclude:exclude}, function(res){
             layer.close(loadT);
 
@@ -442,13 +442,13 @@ function lsyncdExclude(name){
 
 
     $('.lsyncd_exclude').on('click', '.delList', function(event) {
-        loadT = layer.msg('正在删除...',{icon:16,time:0,shade: [0.3, '#000']});
+        loadT = layer.msg(pt('正在删除...'),{icon:16,time:0,shade: [0.3, '#000']});
         var val = $(this).parent().prev().text();
         api.post('lsyncd_remove_exclude',{"name":name,exclude:val}, function(rdata) {
             layer.close(loadT);
 
             console.log(rdata)
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             var res = rdata.data;
 
             var list=''
@@ -601,7 +601,7 @@ function rsyncdReceive(){
 
 function addReceive(name = ""){
     api.post('get_rec',{"name":name},function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var data = rdata.data;
 
         var readonly = "";
@@ -618,14 +618,14 @@ function addReceive(name = ""){
                 <div class='line'>\
                     <span class='tname'>' + pt('项目名') + '</span>\
                     <div class='info-r c4'>\
-                        <input id='name' value='"+data["name"]+"' class='bt-input-text' type='text' name='name' placeholder='项目名' style='width:200px' "+readonly+"/>\
+                        <input id='name' value='"+data["name"]+"' class='bt-input-text' type='text' name='name' placeholder='' + pt('项目名') + '' style='width:200px' "+readonly+"/>\
                     </div>\
                 </div>\
                 <div class='line'>\
                     <span class='tname'>' + pt('密钥') + '</span>\
                     <div class='info-r c4'>\
-                        <input id='MyPassword' value='"+data["pwd"]+"' class='bt-input-text' type='text' name='pwd' placeholder='密钥' style='width:200px'/>\
-                        <span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
+                        <input id='MyPassword' value='"+data["pwd"]+"' class='bt-input-text' type='text' name='pwd' placeholder='' + pt('密钥') + '' style='width:200px'/>\
+                        <span title='' + pt('随机密码') + '' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span>\
                     </div>\
                 </div>\
                 <div class='line'>\
@@ -638,7 +638,7 @@ function addReceive(name = ""){
                 <div class='line'>\
                     <span class='tname'>' + pt('备注') + '</span>\
                     <div class='info-r c4'>\
-                        <input id='ps' class='bt-input-text' type='text' name='ps' value='"+data["comment"]+"' placeholder='备注' style='width:200px'/>\
+                        <input id='ps' class='bt-input-text' type='text' name='ps' value='"+data["comment"]+"' placeholder='' + pt('备注') + '' style='width:200px'/>\
                     </div>\
                 </div>\
             </div>",
@@ -649,7 +649,7 @@ function addReceive(name = ""){
                 args['pwd'] = $('#MyPassword').val();
                 args['path'] = $('#inputPath').val();
                 args['ps'] = $('#ps').val();
-                var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+                var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
                 api.post('add_rec', args, function(data){
                     var rdata = JSON.parse(data.data);
                     if (rdata['status']){
@@ -667,7 +667,7 @@ function addReceive(name = ""){
 
 
 function delReceive(name){
-	safeMessage('删除['+name+']', '您真的要删除【'+name+'】吗？', function(){
+	safeMessage(pt('删除') + ' ['+name+']', '您真的要删除【'+name+'】吗？', function(){
 		var _data = {};
 		_data['name'] = name;
 		api.post('del_rec', _data, function(data){

@@ -6,7 +6,7 @@ var pt = YfI18n.createPluginTranslator('acme_pandominassl_apply');
 
 
 function apaPostCallbak(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'acme_pandominassl_apply';
@@ -48,7 +48,7 @@ function apaReadme(){
 
 
 function emailDel(id, name){
-    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         api.post('email_del', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -71,11 +71,11 @@ function emailAdd(type){
         content: "<form class='bt-form pd20' id='email_add'>\
                     <div class='line'>\
                         <span class='tname'>' + pt('邮件地址') + '</span>\
-                        <div class='info-r'><input name='addr' class='bt-input-text mr5' style='width:100%;' placeholder='邮件地址' type='text'></div>\
+                        <div class='info-r'><input name='addr' class='bt-input-text mr5' style='width:100%;' placeholder='' + pt('邮件地址') + '' type='text'></div>\
                     </div>\
                     <div class='line'>\
                         <span class='tname'>' + pt('备注') + '</span>\
-                        <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' placeholder='备注' type='text'></div>\
+                        <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' placeholder='' + pt('备注') + '' type='text'></div>\
                     </div>\
                   </form>",
         success:function(){
@@ -123,15 +123,15 @@ function emailList(page, search){
             list += '<td>' + rdata.data[i]['addr'] +'</td>';
             list += '<td>' + rdata.data[i]['remark'] +'</td>';
             list += '<td style="text-align:right">';
-            list += '<a href="javascript:;" class="btlink" onclick="emailDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['addr']+'\')" title="删除">' + pt('删除') + '</a>' +
+            list += '<a href="javascript:;" class="btlink" onclick="emailDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['addr']+'\')" title="' + pt('删除') + '">' + pt('删除') + '</a>' +
                     '</td>';
             list += '</tr>';
         }
 
         var con = '<div class="safe bgw">\
-            <button onclick="emailAdd()" title="添加邮件地址" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加邮件地址') + '</button>\
+            <button onclick="emailAdd()" title="' + pt('添加邮件地址') + '" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加邮件地址') + '</button>\
             <span style="float:right"> \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="' + pt('删除选中项') + '" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
@@ -156,7 +156,7 @@ function emailList(page, search){
 
 
 function dnsapiDel(id, name){
-    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         api.post('dnsapi_del', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -265,7 +265,7 @@ function dnsapiAdd(row){
             }
             option_html += "<span class='tname'>"+klist[i]+"</span>\
                 <div class='info-r'>\
-                    <input name='"+klist[i]+"' class='bt-input-text mr5' style='width:100%;' value='"+klist_val+"' placeholder='请输入对应值' type='text'>\
+                    <input name='"+klist[i]+"' class='bt-input-text mr5' style='width:100%;' value='"+klist_val+"' placeholder='' + pt('请输入对应值') + '' type='text'>\
                 </div>";
         }
         $('#dnsapi_option').html(option_html);
@@ -282,7 +282,7 @@ function dnsapiAdd(row){
         content: "<form class='bt-form pd20' id='dnsapi_add'>\
                     <div class='line'>\
                         <span class='tname'>' + pt('名称') + '</span>\
-                        <div class='info-r'><input name='name' class='bt-input-text mr5' style='width:100%;' placeholder='名称' value='"+option_name+"' type='text'></div>\
+                        <div class='info-r'><input name='name' class='bt-input-text mr5' style='width:100%;' placeholder='' + pt('名称') + '' value='"+option_name+"' type='text'></div>\
                     </div>\
                     <div class='line'>\
                         <span class='tname'>' + pt('DNSAPI类型') + '</span>\
@@ -295,16 +295,16 @@ function dnsapiAdd(row){
                     <div class='line' id='dnsapi_option'>\
                         <span class='tname'>CF_Key</span>\
                         <div class='info-r'>\
-                            <input name='v1' class='bt-input-text mr5' style='width:100%;' placeholder='请输入对应值' type='text'>\
+                            <input name='v1' class='bt-input-text mr5' style='width:100%;' placeholder='' + pt('请输入对应值') + '' type='text'>\
                         </div>\
                         <span class='tname'>CF_Email</span>\
                         <div class='info-r'>\
-                            <input name='v2' class='bt-input-text mr5' style='width:100%;' placeholder='请输入对应值' type='text'>\
+                            <input name='v2' class='bt-input-text mr5' style='width:100%;' placeholder='' + pt('请输入对应值') + '' type='text'>\
                         </div>\
                     </div>\
                     <div class='line'>\
                         <span class='tname'>' + pt('备注') + '</span>\
-                        <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' placeholder='备注' value='"+option_remark+"' type='text'></div>\
+                        <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' placeholder='' + pt('备注') + '' value='"+option_remark+"' type='text'></div>\
                     </div>\
                     <input name='id' value='"+option_id+"' type='hidden'>\
                   </form>",
@@ -393,15 +393,15 @@ function dnsapiList(page, search){
             list += '<td>' + rdata.data[i]['remark'] +'</td>';
 
             list += '<td style="text-align:right">';
-            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="编辑">' + pt('编辑') + '</a> | ';
-            list += '<a href="javascript:;" class="btlink" onclick="dnsapiDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="删除">' + pt('删除') + '</a>';
+            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="' + pt('编辑') + '">' + pt('编辑') + '</a> | ';
+            list += '<a href="javascript:;" class="btlink" onclick="dnsapiDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\')" title="' + pt('删除') + '">' + pt('删除') + '</a>';
             list += '</td></tr>';
         }
 
         var con = '<div class="safe bgw">\
             <button onclick="dnsapiAdd()" title="DNSAPI" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加DNSAPI') + '</button>\
             <span style="float:right"> \
-                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="删除选中项" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
+                <button batch="true" style="float: right;display: none;margin-left:10px;" onclick="delDbBatch();" title="' + pt('删除选中项') + '" class="btn btn-default btn-sm">' + pt('删除选中') + '</button>\
             </span>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
@@ -435,7 +435,7 @@ function dnsapiList(page, search){
 
 
 function domainDel(id, name){
-    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         api.post('domain_del', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -584,7 +584,7 @@ function domainAdd(row){
         content: "<form class='bt-form pd20' id='domain_add'>\
                     <div class='line'>\
                         <span class='tname'>' + pt('域名') + '</span>\
-                        <div class='info-r'><input name='domain' class='bt-input-text mr5' style='width:100%;' value='"+option_domian+"' placeholder='域名' type='text'></div>\
+                        <div class='info-r'><input name='domain' class='bt-input-text mr5' style='width:100%;' value='"+option_domian+"' placeholder='' + pt('域名') + '' type='text'></div>\
                     </div>\
                     <div class='line'>\
                         <span class='tname'>DNSAPI</span>\
@@ -596,11 +596,11 @@ function domainAdd(row){
                     </div>\
                     <div class='line'>\
                         <span class='tname'>' + pt('邮件') + '</span>\
-                        <div class='info-r'><input name='email' class='bt-input-text mr5' style='width:100%;' value='"+option_email+"' placeholder='邮件' type='text'></div>\
+                        <div class='info-r'><input name='email' class='bt-input-text mr5' style='width:100%;' value='"+option_email+"' placeholder='' + pt('邮件') + '' type='text'></div>\
                     </div>\
                     <div class='line'>\
                         <span class='tname'>' + pt('备注') + '</span>\
-                        <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' value='"+option_remark+"' placeholder='备注' type='text'></div>\
+                        <div class='info-r'><input name='remark' class='bt-input-text mr5' style='width:100%;' value='"+option_remark+"' placeholder='' + pt('备注') + '' type='text'></div>\
                     </div>\
                     <input name='id' value='"+option_id+"' type='hidden'>\
                   </form>",
@@ -697,15 +697,15 @@ function domainList(page, search){
             }
 
             list += '<td style="text-align:right">';
-            list += '<a href="javascript:;" index="'+i+'" class="btlink cmd" title="命令">' + pt('命令') + '</a> | ';
-            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="编辑">' + pt('编辑') + '</a> | ';
-            list += '<a href="javascript:;" class="btlink" onclick="domainDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['domain']+'\')" title="删除">' + pt('删除') + '</a>';
+            list += '<a href="javascript:;" index="'+i+'" class="btlink cmd" title="' + pt('命令') + '">' + pt('命令') + '</a> | ';
+            list += '<a href="javascript:;" index="'+i+'" class="btlink edit" title="' + pt('编辑') + '">' + pt('编辑') + '</a> | ';
+            list += '<a href="javascript:;" class="btlink" onclick="domainDel(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['domain']+'\')" title="' + pt('删除') + '">' + pt('删除') + '</a>';
             list += '</td></tr>';
         }
 
         var con = '<div class="safe bgw">\
-            <button onclick="domainAdd()" title="添加顶级域名" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加域名') + '</button>\
-            <button onclick="domainHookCmd()" title="全部同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('全部同步命令') + '</button>\
+            <button onclick="domainAdd()" title="' + pt('添加顶级域名') + '" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加域名') + '</button>\
+            <button onclick="domainHookCmd()" title="' + pt('全部同步命令') + '" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('全部同步命令') + '</button>\
             <button onclick="syncCfCmd()" title="cloudflare同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('cloudflare同步命令') + '</button>\
             <button onclick="syncDnsPodCmd()" title="DnsPod国际同步命令" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('DnsPod国际同步命令') + '</button>\
             <div class="divtable mtb10">\

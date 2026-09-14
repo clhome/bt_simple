@@ -101,7 +101,7 @@ function autoMakeConf(){
             args['tables'] = xm_db_list.getValue('value').join(',');
             // console.log(args);
             api.post('db_to_sphinx', args, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 // console.log(rdata);
                 showMsg(rdata.msg,function(){
                     if (rdata.status){
@@ -119,7 +119,7 @@ function autoMakeConf(){
             return;
         }
         getDbInfo(db, function(rdata){
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             var tables = rdata.tables;
 
             var idx_db = [];
@@ -143,7 +143,7 @@ function autoMakeConf(){
 function rebuildIndex(){
     api.post('rebuild', '', function(data){
         if (data.data == 'ok'){
-            layer.msg('重建成功!',{icon:1,time:2000,shade: [0.3, '#000']});
+            layer.msg(pt('重建成功!'),{icon:1,time:2000,shade: [0.3, '#000']});
         } else {
             layer.msg(data.data,{icon:2,time:10000,shade: [0.3, '#000']});
         }
@@ -151,14 +151,14 @@ function rebuildIndex(){
 }
 
 function confirmRebuildIndex(){
-    layer.confirm("是否重建索引?", {icon:3,closeBtn: 1} , function(){
+    layer.confirm(pt("是否重建索引?"), {icon:3,closeBtn: 1} , function(){
         rebuildIndex();
     });
 }
 
 
 function tryRebuildIndex(){
-    layer.confirm("修改配置后，是否尝试重建索引!", {icon:3,closeBtn: 1} , function(){
+    layer.confirm(pt("修改配置后，是否尝试重建索引!"), {icon:3,closeBtn: 1} , function(){
         rebuildIndex();
     });
 }

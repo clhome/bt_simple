@@ -130,7 +130,7 @@ function wsOverviewRequest(page){
     // console.log(select_option);
 
     api.post('get_overview_list', '' ,args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data.data;
         var statData = rdata.data.stat_list;
@@ -334,7 +334,7 @@ function wsOverviewRequest(page){
 
                 api.post("get_logs_realtime_info",'',{"site":args["site"], "type":select_option,'second':second} , function(rdata){    
                     
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 
                     var realtime_traffic = rdata.data['realtime_traffic'];
                     var realtime_request = rdata.data['realtime_request'];
@@ -395,7 +395,7 @@ var html = '<div>\
                             <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                             <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
+                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                     </div>\
                     <span style="margin-left:10px">' + pt('时段:') + ' </span>\
                     <div class="input-group" style="width:100px;margin-left:10px;display: inline-table;vertical-align: top;">\
@@ -413,31 +413,31 @@ var html = '<div>\
                 <!-- stat --->\
                 <div class="overview_list" style="padding-top:10px;">\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('浏览量(PV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="用户每次打开网站页面被记录1次。用户多次打开同一页面，访问量值累计多次。此指标衡量网站访问量情况。">?</i></p>\
+                        <p class="ov_title">' + pt('浏览量(PV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('用户每次打开网站页面被记录1次。用户多次打开同一页面，访问量值累计多次。此指标衡量网站访问量情况。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('访客量(UV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。">?</i></p>\
+                        <p class="ov_title">' + pt('访客量(UV)') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('访问您网站的上网电脑数量（以cookie为依据），此指标衡量独立访客数量情况。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('IP数') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的独立访问ip数。">?</i></p>\
+                        <p class="ov_title">' + pt('IP数') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的独立访问ip数。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的总响应流量大小。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title">' + pt('流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的总响应流量大小。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('请求') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前时间段内您网站的总请求数量。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title">' + pt('请求') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前时间段内您网站的总请求数量。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title">' + pt('实时流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="当前X秒内您网站的实时流量大小。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title">' + pt('实时流量') + '<i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前X秒内您网站的实时流量大小。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                     <div class="overview_box">\
-                        <p class="ov_title"><span id="ov_title_req_second">' + pt('每秒请求') + '<span><i class="tips" data-toggle="tooltip" data-placement="top" title="当前1-10秒内您网站的实时请求数量。包括已排除的请求。">?</i></p>\
+                        <p class="ov_title"><span id="ov_title_req_second">' + pt('每秒请求') + '<span><i class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('当前1-10秒内您网站的实时请求数量。包括已排除的请求。') + '">?</i></p>\
                         <p class="ov_num">0</p>\
                     </div>\
                 </div>\
@@ -552,9 +552,9 @@ function initRealtimeTraffic(){
         check_realtime_second = 10;
         $('#check_realtime_second').val(check_realtime_second);
     }
-    var title = "每秒请求";
+    var title="' + pt('每秒请求') + '";
     if (check_realtime_second > 1){
-        title = '每'+check_realtime_second+'秒请求'
+        title='' + pt('每') + ''+check_realtime_second+'秒请求'
     }
 
     $('#ov_title_req_second').text(title)
@@ -579,7 +579,7 @@ $('.indicators-container input[type=radio]').on('click', function(){
 api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = JSON.parse(rdata.data);
+    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -616,7 +616,7 @@ function wsSitesListRequest(page){
 
     api.post('get_site_list', '' ,args, function(rdata){
 
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var data = rdata.data;
 
 
@@ -669,7 +669,7 @@ function wsSitesListRequest(page){
                 list += '<td>' + tmp_ip +'</td>';
                 list += '<td>' + tmp_req +'</td>';
                 list += '<td>' + toSize(tmp_length) +'</td>';
-                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink web_set" title="设置">' + pt('设置') + '</a></td>';
+                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink web_set" title="' + pt('设置') + '">' + pt('设置') + '</a></td>';
                 list += '</tr>';
             }
         } else{
@@ -705,7 +705,7 @@ function wsSitesListRequest(page){
 
             var domain = data[index]["site"];
             api.post('get_site_conf', '' ,{"site":domain}, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 var rdata = rdata.data;
                 console.log(rdata);
                 layer.open({
@@ -849,7 +849,7 @@ function wsSitesListRequest(page){
                             }
 
                             api.post('set_site_conf','', args, function(rdata){
-                                var rdata = JSON.parse(rdata.data);
+                                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
                         }
@@ -868,7 +868,7 @@ function wsSitesListRequest(page){
                             }
                             args['exclude_url'] = list;
                             api.post('set_site_conf','', args, function(rdata){
-                                var rdata = JSON.parse(rdata.data);
+                                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
                         }
@@ -879,7 +879,7 @@ function wsSitesListRequest(page){
                             args["record_post_args"] = record_post_args;
                             args['record_get_403_args'] = record_get_403_args;
                             api.post('set_site_conf','', args, function(rdata){
-                                var rdata = JSON.parse(rdata.data);
+                                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                                 layer.msg(rdata.msg,{icon:rdata.status?1:2});
                             });
                         }
@@ -904,7 +904,7 @@ var html = '<div>\
                             <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                             <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
+                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                     </div>\
                 </div>\
                 <!-- stat --->\
@@ -1013,7 +1013,7 @@ function wsSpiderStatLogRequest(page){
 
     args['tojs'] = 'wsSpiderStatLogRequest';
     api.post('get_spider_stat_list', '' ,args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -1054,7 +1054,7 @@ function wsSpiderStatLogRequest(page){
                             <th>' + pt('有道') + '</th>\
                             <th>DNSPOD</th>\
                             <th>Yandex</th>\
-                            <th>' + pt('其他') + ' <span class="tips" data-toggle="tooltip" data-placement="bottom" title="包括Yahoo,DuckDuckGo">?</span></th>\
+                            <th>' + pt('其他') + ' <span class="tips" data-toggle="tooltip" data-placement="bottom" title="' + pt('包括Yahoo,DuckDuckGo') + '">?</span></th>\
                             <th>' + pt('操作') + '</th>\</tr></thead>\
                             <tbody>\
                             '+ list +'\
@@ -1226,7 +1226,7 @@ var html = '<div>\
                             <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                             <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
+                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
                 </div>\
                 <div class="echart_container">\
@@ -1289,7 +1289,7 @@ $('select[name="status_code"]').on('change', function(){
 api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = JSON.parse(rdata.data);
+    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -1331,7 +1331,7 @@ function wsClientStatLogRequest(page){
 
     args['tojs'] = 'wsClientStatLogRequest';
     api.post('get_client_stat_list', '' ,args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -1372,7 +1372,7 @@ function wsClientStatLogRequest(page){
                             <th>Safari</th>\
                             <th>Mac</th>\
                             <th>IE</th>\
-                            <th>' + pt('机器') + ' <span class="tips" data-toggle="tooltip" data-placement="bottom" title="机器或者脚本应用程序访问，包括：Curl、HeadlessChrome、Bot、Wget、Spider、Crawler、Scrapy、zgrab、Python、java, ab 此类关键词">?</span></th>\
+                            <th>' + pt('机器') + ' <span class="tips" data-toggle="tooltip" data-placement="bottom" title="' + pt('机器或者脚本应用程序访问，包括：Curl、HeadlessChrome、Bot、Wget、Spider、Crawler、Scrapy、zgrab、Python、java, ab 此类关键词') + '">?</span></th>\
                             <th>' + pt('其他') + '</th>\</tr></thead>\
                             <tbody>\
                             '+ list +'\
@@ -1622,7 +1622,7 @@ var html = '<div>\
                             <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                             <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
+                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
                 </div>\
                 <div class="echart_container">\
@@ -1682,7 +1682,7 @@ $('select[name="status_code"]').on('change', function(){
 api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = JSON.parse(rdata.data);
+    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -1716,7 +1716,7 @@ function wsIpStatLogRequest(page){
 
     args['tojs'] = 'wsIpStatLogRequest';
     api.post('get_ip_stat_list', '' ,args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data;
         // console.log(rdata,data);
@@ -1800,7 +1800,7 @@ $('#search_time button').on('click', function(){
 api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = JSON.parse(rdata.data);
+    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -1833,7 +1833,7 @@ function wsUriStatLogRequest(page){
 
     args['tojs'] = 'wsUriStatLogRequest';
     api.post('get_uri_stat_list', '' ,args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data;
         // console.log(rdata,data);
@@ -1915,7 +1915,7 @@ $('#search_time button').on('click', function(){
 api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = JSON.parse(rdata.data);
+    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -1960,7 +1960,7 @@ function wsTableErrorLogRequest(page){
 
     args['tojs'] = 'wsTableErrorLogRequest';
     api.post('get_logs_error_list', '' ,args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -1973,7 +1973,7 @@ function wsTableErrorLogRequest(page){
                 list += '<td>' + toSecond(data[i]['request_time']) +'</td>';
                 list += '<td><span class="overflow_hide" style="width:130px;">' + data[i]['uri'] +'</span></td>';
                 list += '<td><span class="overflow_hide" style="width:60px;">' + data[i]['status_code']+'/' + data[i]['method'] +'</span></td>';
-                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">' + pt('详情') + '</a></td>';
+                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="' + pt('详情') + '">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
         } else{
@@ -2065,7 +2065,7 @@ var html = '<div>\
                             <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                             <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
+                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 200px;"></span>\
                     </div>\
                 </div>\
                 <div class="divtable mtb10" id="ws_table"></div>\
@@ -2121,7 +2121,7 @@ $('select[name="status_code"]').on('change', function(){
 api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = JSON.parse(rdata.data);
+    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';
@@ -2193,7 +2193,7 @@ function wsTableLogRequest(page){
     // console.log(req_status);
     if (typeof(req_status) != 'undefined'){
         if (req_status == 'start'){
-            layer.msg("正在请求中,请稍候!");
+            layer.msg(pt("正在请求中,请稍候!"));
             return;
         }
     }
@@ -2202,7 +2202,7 @@ function wsTableLogRequest(page){
     api.post('get_logs_list', '' ,args, function(rdata){
     // wsPostCallbak('get_logs_list', '' ,args, function(rdata){
         $('#logs_search').attr('req','end');
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data.data;
         // console.log(data);
@@ -2229,7 +2229,7 @@ function wsTableLogRequest(page){
                 if (data[i]['request_headers']!=''){
                     http_data = '<a data-id="'+i+'" href="javascript:;" class="btlink http_data" title="HTTP">HTTP</a>&nbsp;|&nbsp;';
                 }
-                list += '<td><span>'+http_data+'<a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">' + pt('详情') + '</a></span></td>';
+                list += '<td><span>'+http_data+'<a data-id="'+i+'" href="javascript:;" class="btlink details" title="' + pt('详情') + '">' + pt('详情') + '</a></span></td>';
                 list += '</tr>';
             }
         } else{
@@ -2344,7 +2344,7 @@ var html = '<div>\
                             <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                             <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                         </div>\
-                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 300px;"></span>\
+                        <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 300px;"></span>\
                     </div>\
                 </div>\
                 <div style="padding-bottom:10px;">\
@@ -2522,7 +2522,7 @@ $('#logs_search').on('click', function(){
 api.post('get_default_site','',{},function(rdata){
     $('select[name="site"]').html('');
 
-    var rdata = JSON.parse(rdata.data);
+    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     var rdata = rdata.data;
     var default_site = rdata["default"];
     var select = '';

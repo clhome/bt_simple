@@ -192,7 +192,7 @@ var ollama = {
         pluginService('ollama', $('.plugin_version').attr('version'));
         setTimeout(function() {
             ollama.send({
-                tips: '正在获取访问信息...',
+                tips: pt('正在获取访问信息...'),
                 method: 'get_ollama_access_info',
                 success: function (res) {
                     if (!res.status) {
@@ -305,7 +305,7 @@ var ollama = {
         html += '      <h4 style="margin-top:0;margin-bottom:15px;color:#1e293b;font-weight:600;font-size:14px;">' + pt('拉取新模型 (Pull Model)') + '</h4>';
         html += '      <div class="ollama-form-group">';
         html += '        <label class="ollama-form-label">' + pt('模型名 / 标签') + '</label>';
-        html += '        <input type="text" id="pull_model_input" class="ollama-input" placeholder="输入如: deepseek-r1:7b">';
+        html += '        <input type="text" id="pull_model_input" class="ollama-input" placeholder="' + pt('输入如: deepseek-r1:7b') + '">';
         html += '        <p class="ollama-tip">' + pt('输入想下载的 Ollama 官方模型与版本号，模型名字可在 Ollama 官网库中检索。') + '</p>';
         html += '      </div>';
         html += '      <button class="ollama-btn ollama-btn-primary" style="width:100%;" onclick="ollama.pullModel()">' + pt('立即开始拉取') + '</button>';
@@ -345,7 +345,7 @@ var ollama = {
         
         // 1. 刷新已下载模型
         _this.send({
-            tips: '正在读取本地大模型库...',
+            tips: pt('正在读取本地大模型库...'),
             method: 'get_models',
             success: function (res) {
                 var container = $('#local_models_list');
@@ -379,7 +379,7 @@ var ollama = {
 
         // 2. 刷新正在运行模型
         _this.send({
-            tips: '正在读取运行中模型...',
+            tips: pt('正在读取运行中模型...'),
             method: 'get_running_models',
             success: function (res) {
                 var container = $('#running_models_list');
@@ -421,7 +421,7 @@ var ollama = {
         }
 
         _this.send({
-            tips: '正在初始化后台拉取任务...',
+            tips: pt('正在初始化后台拉取任务...'),
             method: 'pull_model',
             data: { 'model_name': model_name },
             success: function (res) {
@@ -463,7 +463,7 @@ var ollama = {
         // 启动轮询读取日志
         _this.pull_timer = setInterval(function () {
             _this.send({
-                tips: '正在刷新进度...',
+                tips: pt('正在刷新进度...'),
                 method: 'get_pull_log',
                 success: function (res) {
                     if (!res.status) return;
@@ -480,7 +480,7 @@ var ollama = {
                     if (data.status === 'success') {
                         clearInterval(_this.pull_timer);
                         _this.pull_timer = null;
-                        layer.msg('模型 ' + model_name + ' 下载拉取成功！', { icon: 1 });
+                        layer.msg(pt('模型') + ' ' + model_name + ' 下载拉取成功！', { icon: 1 });
                         setTimeout(function () {
                             layer.close(index);
                             _this.refreshModelsList();
@@ -498,13 +498,13 @@ var ollama = {
     deleteModel: function (model_name) {
         var _this = this;
         
-        layer.confirm('确认要彻底删除大模型 <b style="color:#ef4444;">' + model_name + '</b> ' + pt('吗？这会立刻释放其占用的磁盘空间！'), {
+        layer.confirm(pt('确认要彻底删除大模型') + ' <b style="color:#ef4444;">' + model_name + '</b> ' + pt('吗？这会立刻释放其占用的磁盘空间！'), {
             title:  pt('删除确认'),
             icon: 3,
             btn: [pt('确认删除'), pt('取消')]
         }, function () {
             _this.send({
-                tips: '正在从本地删除模型...',
+                tips: pt('正在从本地删除模型...'),
                 method: 'delete_model',
                 data: { 'model_name': model_name },
                 success: function (res) {
@@ -524,7 +524,7 @@ var ollama = {
         var _this = this;
         
         _this.send({
-            tips: '正在读取服务环境变量配置...',
+            tips: pt('正在读取服务环境变量配置...'),
             method: 'get_config',
             success: function (res) {
                 if (!res.status) {
@@ -544,14 +544,14 @@ var ollama = {
                 // Host 配置
                 html += '    <div class="ollama-form-group">';
                 html += '      <label class="ollama-form-label">' + pt('服务绑定 Host & 端口 (OLLAMA_HOST)') + '</label>';
-                html += '      <input type="text" id="cfg_host_input" class="ollama-input" value="' + config.host + '" placeholder="如: 127.0.0.1:11434">';
+                html += '      <input type="text" id="cfg_host_input" class="ollama-input" value="' + config.host + '" placeholder="' + pt('如: 127.0.0.1:11434') + '">';
                 html += '      <p class="ollama-tip">' + pt('默认绑定') + ' <code style="font-size:11px;">127.0.0.1:11434</code>' + pt('。如果您想允许局域网或公网通过 Open WebUI 或 API 访问它，请更改为') + ' <code style="font-size:11px;">0.0.0.0:11434</code>。</p>';
                 html += '    </div>';
 
                 // Models 路径配置
                 html += '    <div class="ollama-form-group">';
                 html += '      <label class="ollama-form-label">' + pt('大模型存储物理目录 (OLLAMA_MODELS)') + '</label>';
-                html += '      <input type="text" id="cfg_models_input" class="ollama-input" value="' + config.models_path + '" placeholder="如: /usr/share/ollama/.ollama/models">';
+                html += '      <input type="text" id="cfg_models_input" class="ollama-input" value="' + config.models_path + '" placeholder="' + pt('如: /usr/share/ollama/.ollama/models') + '">';
                 html += '      <p class="ollama-tip">' + pt('大模型文件非常庞大，默认会存放在 root 的 home 盘下。若系统根分区较小，强烈建议修改为挂载了大数据盘的路径（例如') + ' <code style="font-size:11px;">/www/server/ollama/models</code>）。</p>';
                 html += '    </div>';
 
@@ -597,7 +597,7 @@ var ollama = {
         }
 
         _this.send({
-            tips: '正在重载 Systemd 并重启 Ollama 服务...',
+            tips: pt('正在重载 Systemd 并重启 Ollama 服务...'),
             method: 'set_config',
             data: {
                 'host': host,
@@ -637,7 +637,7 @@ var ollama = {
     refreshLogs: function () {
         var _this = this;
         _this.send({
-            tips: '正在获取系统运行日志...',
+            tips: pt('正在获取系统运行日志...'),
             method: 'get_service_logs',
             success: function (res) {
                 var logArea = $('#ollama_log_textarea');

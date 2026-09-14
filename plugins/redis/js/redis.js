@@ -3,7 +3,7 @@ var pt = YfI18n.createPluginTranslator('redis');
 
 
 function redisPostCallbak(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'redis';

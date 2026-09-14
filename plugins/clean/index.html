@@ -119,7 +119,7 @@ function cleanPost(method, version, args, callback){
 
 function cleanRun(){
 	cleanPost('clean_run', '', {}, function(rdata){
-		// var rdata = JSON.parse(rdata.data);
+		// var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         // layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
 	});
 

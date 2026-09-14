@@ -5,7 +5,7 @@ var pt = YfI18n.createPluginTranslator('pureftp');
 function ftpListFind(){
     var search = $('#ftp_find_user').val();
     if (search==''){
-        layer.msg('搜索字符不能为空!',{icon:0,time:2000,shade: [0.3, '#000']});
+        layer.msg(pt('搜索字符不能为空!'),{icon:0,time:2000,shade: [0.3, '#000']});
         return;
     }
     ftpList(1, search);
@@ -29,7 +29,7 @@ function ftpList(page, search){
         // console.log(rdata);
         content = '<div class="info-title-tips" style="display: flex; justify-content: space-between; align-items: center;"><p style="margin: 0;"><span class="glyphicon glyphicon-alert" style="color: #f39c12; margin-right: 10px;"></span>' + pt('当前FTP地址为：ftp://')+rdata['info']['ip']+':'+rdata['info']['port']+'</p>';
         content += '<button class="btn btn-default btn-sm" onclick="modFtpPort(0,\''+rdata['info']['port']+'\')">' + pt('修改端口') + '</button></div>';
-        content += '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="查找用户名" id="ftp_find_user" style="height: 28px; border-radius: 3px;width: 150px;">';
+        content += '<div class="finduser"><input class="bt-input-text mr5 outline_no" type="text" placeholder="' + pt('查找用户名') + '" id="ftp_find_user" style="height: 28px; border-radius: 3px;width: 150px;">';
         content += '<button class="btn btn-success btn-sm" onclick="ftpListFind();">' + pt('查找') + '</button>';
         content += '<button class="btn btn-success btn-sm" style="margin-left: 10px;" onclick="addFtp();"><span class="glyphicon glyphicon-plus" style="margin-right: 5px;"></span>' + pt('新增用户') + '</button></div>';
 
@@ -97,7 +97,7 @@ async function addFtp() {
 					</div>\
 					<div class='line'>\
 					<span class='tname'>' + pt('密码') + '</span>\
-					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+(randomStrPwd(16))+"' /><span title='' + pt('随机密码') + '' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
 					</div>\
 					<div class='line'>\
 					<span class='tname'>' + pt('根目录') + '</span>\
@@ -106,7 +106,7 @@ async function addFtp() {
                     <div class='line' style='display:none'>\
 					<span class='tname'>' + pt('备注') + '</span>\
 					<div class='info-r'>\
-					<input id='ftp_ps' class='bt-input-text' type='text' name='ps' value='' placeholder='备注' />\
+					<input id='ftp_ps' class='bt-input-text' type='text' name='ps' value='' placeholder='' + pt('备注') + '' />\
 					</div></div>\
 			      </form>",
 		yes:function(index,layero){
@@ -116,7 +116,7 @@ async function addFtp() {
 				layer.close(loadT);
 				layer.close(indexFtp);
 				if (rdata.data == 'ok'){
-					layer.msg('添加成功!', {icon: 1,time:3000});
+					layer.msg(pt('添加成功!'), {icon: 1,time:3000});
 				} else {
 					layer.msg(rdata.data, {icon: 5,time:3000});
 				}
@@ -147,7 +147,7 @@ function ftpDelete(id,ftp_username){
 		var data='&id='+id+'&username='+ftp_username;
 
 		api.post('del_ftp', data, function(data){
-			layer.msg('删除成功!', {icon: 1});
+			layer.msg(pt('删除成功!'), {icon: 1});
 			ftpList();
 		})
 	});
@@ -181,7 +181,7 @@ function modFtpPort(type, port){
 		api.post('mod_ftp_port', data,function(data){
 			ftpList();
 			if (data.data == 'ok'){
-				layer.msg('修改成功!', {icon: 1});
+				layer.msg(pt('修改成功!'), {icon: 1});
 			} else {
 				layer.msg(data.data, {icon: 2});
 			}
@@ -206,7 +206,7 @@ function ftpModPwd(id,name,password){
 					\
 					<div class='line'>\
 					<span class='tname'>' + pt('密码') + '</span>\
-					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='随机密码' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
+					<div class='info-r'><input class='bt-input-text mr5' type='text' name='ftp_password' id='MyPassword' style='width:330px' value='"+password+"' /><span title='' + pt('随机密码') + '' class='glyphicon glyphicon-repeat cursor' onclick='repeatPwd(16)'></span></div>\
 					</div>\
 					<div class='bt-form-submit-btn'>\
 						<button id='ftp_mod_close' type='button' class='btn btn-danger btn-sm btn-title'>' + pt('关闭') + '</button>\
@@ -226,7 +226,7 @@ function ftpModPwd(id,name,password){
 		api.post('mod_ftp', data,function(data){
 			ftpList();
 			if (data.data == 'ok'){
-				layer.msg('修改成功!', {icon: 1});
+				layer.msg(pt('修改成功!'), {icon: 1});
 			}
 			$('.layui-layer-close1').click();
 		});
@@ -240,8 +240,8 @@ function ftpModPwd(id,name,password){
  * @param {String} username	FTP用户名
  */
 function ftpStop(id, username) {
-	layer.confirm('您真的要停止{1}的FTP吗?'.replace('{1}',username), {
-		title: 'FTP帐户',icon:3,
+	layer.confirm(pt('您真的要停止{1}的FTP吗?').replace('{1}',username), {
+		title: pt('FTP帐户'),icon:3,
 		closeBtn:2
 	}, function(index) {
 		if (index > 0) {
@@ -250,7 +250,7 @@ function ftpStop(id, username) {
 			api.post('stop_ftp', data, function(data){
 				layer.close(loadT);
 				if (data.data == 'ok'){
-					showMsg('启动成功!', function(){
+					showMsg(pt('启动成功!'), function(){
 						ftpList();
 					},{icon: 1});
 				} else {
@@ -273,7 +273,7 @@ function ftpStart(id, username) {
 	api.post('start_ftp', data, function(data){
 		layer.close(loadT);
 		if (data.data == 'ok'){
-			showMsg('启动成功!', function(){
+			showMsg(pt('启动成功!'), function(){
 				ftpList();
 			},{icon: 1});
 		} else {
@@ -286,7 +286,7 @@ function ftpStart(id, username) {
 
 function pureftpService() {
     var _name = "pureftp";
-    var loadT = layer.msg("正在获取...", { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt("正在获取..."), { icon: 16, time: 0, shade: 0.3 });
     $.post("/plugins/run", {name: "pureftp", func: "get_ftp_list", args: JSON.stringify({page:1, page_size:1000})}, function(rdata) {
         $.post("/plugins/run", {name: _name, func: "status"}, function(data) {
             layer.close(loadT);

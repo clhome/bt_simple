@@ -52,9 +52,9 @@ function phpVerChange(type, msg) {
     var phpver = $("#phpver").val();
     api.post('set_php_ver', 'phpver='+phpver, function(data){
         if ( data.data == 'ok' ){
-            layer.msg('设置成功!',{icon:1,time:2000,shade: [0.3, '#000']});
+            layer.msg(pt('设置成功!'),{icon:1,time:2000,shade: [0.3, '#000']});
         } else {
-            layer.msg('设置失败!',{icon:2,time:2000,shade: [0.3, '#000']});
+            layer.msg(pt('设置失败!'),{icon:2,time:2000,shade: [0.3, '#000']});
         }
     });
 }
@@ -63,7 +63,7 @@ function phpVerChange(type, msg) {
 //phpmyadmin安全设置
 function safeConf() {
     api.post('get_pma_option', {}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status){
             layer.msg(rdata.msg,{icon:2,time:2000,shade: [0.3, '#000']});
             return;
@@ -88,12 +88,12 @@ function safeConf() {
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('用户名') + '</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="username" id="pmport" value="' + cfg['username'] + '" placeholder="认证用户名" type="text">\
+                    <input style="width:110px" class="bt-input-text mr20" name="username" id="pmport" value="' + cfg['username'] + '" placeholder="' + pt('认证用户名') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPmaUsername()">' + pt('保存') + '</button>\
                 </div>\
                 <div class="ver line">\
                     <span class="tname">' + pt('密码') + '</span>\
-                    <input style="width:110px" class="bt-input-text mr20" name="password" id="pmport" value="' + cfg['password'] + '" placeholder="密码" type="text">\
+                    <input style="width:110px" class="bt-input-text mr20" name="password" id="pmport" value="' + cfg['password'] + '" placeholder="' + pt('密码') + '" type="text">\
                     <button class="btn btn-success btn-sm" onclick="setPmaPassword()">' + pt('保存') + '</button>\
                 </div>\
                 <hr/>\
@@ -143,7 +143,7 @@ function setPmaPath(){
 function setPamPort() {
     var pmport = $("#pmport").val();
     if (pmport < 80 || pmport > 65535) {
-        layer.msg('端口范围不合法!', { icon: 2 });
+        layer.msg(pt('端口范围不合法!'), { icon: 2 });
         return;
     }
     var data = 'port=' + pmport;

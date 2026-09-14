@@ -3,7 +3,7 @@ var pt = YfI18n.createPluginTranslator('php');
 
 
 function phpPostCallback(method, version, args,callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'php';
@@ -196,7 +196,7 @@ function phpFpmConfigFile(version, func, pool = 'www'){
                 </ul>';
     
 
-    var loadT = layer.msg('配置文件路径获取中...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('配置文件路径获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
 
     var request_data = {name:_name, func:func_name,version:version};
     request_data['args'] = JSON.stringify({'pool':pool});
@@ -214,7 +214,7 @@ function phpFpmConfigFile(version, func, pool = 'www'){
 
         $(".soft-man-con").html(con);
         
-        var loadT2 = layer.msg('文件内容获取中...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg(pt('文件内容获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
         $.post('/files/get_body', 'path=' + fileName, function(rdata) {
             layer.close(loadT2);
@@ -636,7 +636,7 @@ function disableFunc(version) {
         }
 
         var con = "<div class='dirBinding'>" +
-            "<input class='bt-input-text mr5' type='text' placeholder='添加要被禁止的函数名,如: exec' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
+            "<input class='bt-input-text mr5' type='text' placeholder='' + pt('添加要被禁止的函数名,如: exec') + '' id='disable_function_val' style='height: 28px; border-radius: 3px;width: 410px;' />" +
             "<button class='btn btn-success btn-sm' onclick=\"setDisableFunc('" + version + "',1,'" + rdata.disable_functions + "')\">' + pt('添加') + '</button>" +
             "</div>" +
             "<div class='divtable mtb15' style='height:350px;overflow:auto'><table class='table table-hover' width='100%' style='margin-bottom:0'>" +
@@ -733,7 +733,7 @@ function getPHPInfo(version) {
 function phpLibConfig(version){
 
     // api.post('get_lib_conf', version, {}, function(rdata){
-        // var rdata = JSON.parse(rdata.data);
+        // var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
     // });
     
     phpPostCallback('get_lib_conf', version, {}, function(rdata){
@@ -800,7 +800,7 @@ function phpLibConfig(version){
 
 //安装扩展
 function installPHPLib(version, name, title, pathinfo) {
-    layer.confirm('您真的要安装{1}吗?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(pt('您真的要安装{1}吗?').replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
         name = name.toLowerCase();
         var data = "name=" + name + "&version=" + version + "&type=1";
 
@@ -818,7 +818,7 @@ function installPHPLib(version, name, title, pathinfo) {
 
 //卸载扩展
 function uninstallPHPLib(version, name, title, pathinfo) {
-    layer.confirm('您真的要卸载{1}吗?'.replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(pt('您真的要卸载{1}吗?').replace('{1}', name), { icon: 3, closeBtn: 2 }, function() {
         name = name.toLowerCase();
         var data = 'name=' + name + '&version=' + version;
         api.post('uninstall_lib', version, data, function(data){
@@ -834,7 +834,7 @@ function uninstallPHPLib(version, name, title, pathinfo) {
 }
 
 function tunePhpConfig(version) {
-    layer.confirm('您确定要对 PHP-' + version + ' 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？', { icon: 3, closeBtn: 2 }, function() {
+    layer.confirm(pt('您确定要对 PHP-') + version + pt(' 的配置文件执行一键调优并重启该 PHP-FPM 服务吗？'), { icon: 3, closeBtn: 2 }, function() {
         api.post('tune_php_config', version, '', function(data){
             var rdata = JSON.parse(data.data);
             showMsg(rdata.msg, function(){

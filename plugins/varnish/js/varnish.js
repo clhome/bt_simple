@@ -13,7 +13,7 @@ function pRead(){
 
 //varnish负载状态  start
 function varnishStatus() {
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
     $.post('/plugins/run', {name:'varnish', func:'run_info'}, function(data) {
         layer.close(loadT);
         if (!data.status){
@@ -160,11 +160,11 @@ function varnishPluginConfig(_name, version, func){
                 </ul>';
     $(".soft-man-con").html(con);
 
-    var loadT = layer.msg('配置文件路径获取中...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('配置文件路径获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:func_name,version:version},function (data) {
         layer.close(loadT);
 
-        var loadT2 = layer.msg('文件内容获取中...',{icon:16,time:0,shade: [0.3, '#000']});
+        var loadT2 = layer.msg(pt('文件内容获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
         var fileName = data.data;
         $.post('/files/get_body', 'path=' + fileName, function(rdata) {
             layer.close(loadT2);

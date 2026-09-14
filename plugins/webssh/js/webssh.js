@@ -195,7 +195,7 @@ function exitFull() {
 
 function webShell_getCmdList(){
     api.post('get_cmd_list', {}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var alist = rdata.data;
 
         var tli = '';
@@ -204,8 +204,8 @@ function webShell_getCmdList(){
                     <i></i>\
                     <span class="span_title">'+alist[i]['title']+'</span>\
                     <span class="tootls">\
-                        <span class="glyphicon glyphicon-edit" aria-hidden="true" title="编辑常用命令信息"></span>\
-                        <span class="glyphicon glyphicon-trash" aria-hidden="true" title="删除常用命令信息"></span>\
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true" title="' + pt('编辑常用命令信息') + '"></span>\
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true" title="' + pt('删除常用命令信息') + '"></span>\
                     </span>\
                 </li>';
         }
@@ -222,7 +222,7 @@ function webShell_getCmdList(){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
             api.post('del_cmd', {title:t['title']}, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     webShell_getCmdList();
                 },{ icon: rdata.status ? 1 : 2 });
@@ -238,7 +238,7 @@ function webShell_getCmdList(){
                 var item = host_ssh_list[data.id];
                 if (item && item.is_connected) {
                     if (!cmd) {
-                        layer.msg('命令内容为空，请检查是否填写了"命令内容"！',{icon:0,time:2000});
+                        layer.msg(pt('命令内容为空，请检查是否填写了"命令内容"！'),{icon:0,time:2000});
                         return;
                     }
                     // 因为后端保存机制的问题，多行文本中的回车可能变成了字面量 '\n'
@@ -263,7 +263,7 @@ function Terms_WebSocketIO_Create(ip, random){
     n = new Terms_WebSocketIO('#'+random, { ssh_info: { host: ip, ps: "22", id: random } });
     n.registerCloseCallBack(function(){
         webShell_removeTermView(random);
-        layer.msg('已经关闭【'+ip+'】', { icon: 1, time: 3000 });
+        layer.msg(pt('已经关闭【') + ip + pt('】'), { icon: 1, time: 3000 });
     });
 
     n.registerConnectedCallBack(function(){
@@ -340,7 +340,7 @@ function webShell_removeTermView(id){
 
 function webShell_getHostList(info){
     api.post('get_server_list', {}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var alist = rdata.data;
 
         var tli = '';
@@ -349,8 +349,8 @@ function webShell_getHostList(info){
                     <i></i>\
                     <span class="host">'+alist[i]['host']+'</span>\
                     <span class="tootls">\
-                        <span class="glyphicon glyphicon-edit" aria-hidden="true" title="编辑常用命令信息"></span>\
-                        <span class="glyphicon glyphicon-trash" aria-hidden="true" title="删除常用命令信息"></span>\
+                        <span class="glyphicon glyphicon-edit" aria-hidden="true" title="' + pt('编辑常用命令信息') + '"></span>\
+                        <span class="glyphicon glyphicon-trash" aria-hidden="true" title="' + pt('删除常用命令信息') + '"></span>\
                     </span>\
                 </li>';
         }
@@ -367,7 +367,7 @@ function webShell_getHostList(info){
             var index = $(this).parent().parent().attr('data-index');
             var t = alist[index];
             api.post('del_server', {host:t['host']}, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     webShell_getHostList();
                 },{ icon: rdata.status ? 1 : 2 });
@@ -381,7 +381,7 @@ function webShell_getHostList(info){
             var host = $(_this).data('host');
             $(_this).find('i').addClass('active');
             if ($('.item[data-host="' + host + '"]').length > 0) {
-                layer.msg('已经打开!', { icon: 0, time: 3000 });
+                layer.msg(pt('已经打开!'), { icon: 0, time: 3000 });
             } else {
                 webShell_openTermView(alist[index]);
             }
@@ -400,14 +400,14 @@ function webShell_addServer(info=[]){
                     <div class="line input_group">\
                         <span class="tname">' + pt('服务器IP') + '</span>\
                         <div class="info-r">\
-                            <input type="text" name="host" class="bt-input-text mr5" style="width:240px" value="127.0.0.1" placeholder="输入服务器IP" val="" autocomplete="off" />\
-                            <input type="text" name="port" class="bt-input-text mr5" style="width:60px" placeholder="端口" value="22" autocomplete="off"/>\
+                            <input type="text" name="host" class="bt-input-text mr5" style="width:240px" value="127.0.0.1" placeholder="' + pt('输入服务器IP') + '" val="" autocomplete="off" />\
+                            <input type="text" name="port" class="bt-input-text mr5" style="width:60px" placeholder="' + pt('端口') + '" value="22" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line">\
                         <span class="tname">' + pt('SSH账号') + '</span>\
                         <div class="info-r">\
-                            <input type="text" name="username" class="bt-input-text mr5" style="width:305px" placeholder="输入SSH账号" value="root" autocomplete="off"/>\
+                            <input type="text" name="username" class="bt-input-text mr5" style="width:305px" placeholder="' + pt('输入SSH账号') + '" value="root" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line">\
@@ -423,25 +423,25 @@ function webShell_addServer(info=[]){
                     <div class="line c_password_view show">\
                         <span class="tname">' + pt('密码') + '</span>\
                         <div class="info-r">\
-                            <input type="text" name="password" class="bt-input-text mr5" placeholder="请输入SSH密码" style="width:305px;" value="" autocomplete="off"/>\
+                            <input type="text" name="password" class="bt-input-text mr5" placeholder="' + pt('请输入SSH密码') + '" style="width:305px;" value="" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line c_pkey_view hide">\
                         <span class="tname">' + pt('私钥') + '</span>\
                         <div class="info-r">\
-                            <textarea rows="4" name="pkey" class="bt-input-text mr5" placeholder="请输入SSH私钥" style="width:305px;height: 80px;line-height: 18px;padding-top:10px;"></textarea>\
+                            <textarea rows="4" name="pkey" class="bt-input-text mr5" placeholder="' + pt('请输入SSH私钥') + '" style="width:305px;height: 80px;line-height: 18px;padding-top:10px;"></textarea>\
                         </div>\
                     </div>\
                     <div class="line key_pwd_line hide" style="display:none;">\
                         <span class="tname">' + pt('私钥密码') + '</span>\
                         <div class="info-r">\
-                            <input type="text" name="pkey_passwd" class="bt-input-text mr5" placeholder="请输入私钥密码" style="width:305px;" value="" autocomplete="off"/>\
+                            <input type="text" name="pkey_passwd" class="bt-input-text mr5" placeholder="' + pt('请输入私钥密码') + '" style="width:305px;" value="" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line ssh_ps_tips">\
                         <span class="tname">' + pt('备注') + '</span>\
                         <div class="info-r">\
-                            <input type="text" name="ps" class="bt-input-text mr5" placeholder="请输入备注,可为空" style="width:305px;" value="" autocomplete="off"/>\
+                            <input type="text" name="ps" class="bt-input-text mr5" placeholder="' + pt('请输入备注,可为空') + '" style="width:305px;" value="" autocomplete="off"/>\
                         </div>\
                     </div>\
                 </div>',
@@ -449,7 +449,7 @@ function webShell_addServer(info=[]){
             if (typeof(info['host'])!='undefined'){
                 $('input[name="host"]').val(info['host']);
                 api.post('get_server_by_host',{host:info['host']},function(rdata){
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     var jdata = rdata.data;
                     if (jdata['type'] == 0){
                         $('input[name="password"]').val(jdata['password']);
@@ -528,7 +528,7 @@ function webShell_addServer(info=[]){
 
             api.post('add_server',req_data,function(rdata){
                 layer.close(l);
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     webShell_getHostList();
                 },{ icon: rdata.status ? 1 : 2 });
@@ -548,13 +548,13 @@ function webShell_cmd(title='', cmd='', old_title=''){
                     <div class="line">\
                         <span class="tname">' + pt('命令名称') + '</span>\
                         <div class="info-r">\
-                            <input type="text" name="title" class="bt-input-text mr5" style="width:305px" placeholder="请输入常用命令描述，必填项" value="'+title+'" autocomplete="off"/>\
+                            <input type="text" name="title" class="bt-input-text mr5" style="width:305px" placeholder="' + pt('请输入常用命令描述，必填项') + '" value="'+title+'" autocomplete="off"/>\
                         </div>\
                     </div>\
                     <div class="line">\
                         <span class="tname">' + pt('命令内容') + '</span>\
                         <div class="info-r">\
-                            <textarea rows="4" name="cmd" class="bt-input-text mr5" placeholder="请输入常用命令信息，必填项" style="width:305px;height: 150px;line-height: 18px;padding-top:10px;">'+displayCmd+'</textarea>\
+                            <textarea rows="4" name="cmd" class="bt-input-text mr5" placeholder="' + pt('请输入常用命令信息，必填项') + '" style="width:305px;height: 150px;line-height: 18px;padding-top:10px;">'+displayCmd+'</textarea>\
                         </div>\
                     </div>\
                 </div>',

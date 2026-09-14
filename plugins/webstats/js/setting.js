@@ -4,7 +4,7 @@ var pt = YfI18n.createPluginTranslator('webstats');
 function wsGlobalSetting(){
 ////////////////////////////////////////////////
 api.post('get_global_conf', '' ,{}, function(rdata){
-	var rdata = JSON.parse(rdata.data);
+	var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 	var rdata = rdata.data;
 	var html = '<div id="webstats">\
 		<div class="ws_setting">\
@@ -14,13 +14,13 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 					<div class="choose_title">' + pt('IP统计') + '</div>\
 					<input type="number" class="bt-input-text" name="ip_top_num" value="'+rdata['global']['ip_top_num']+'" style="width:55px;">\
 					<button type="button" id="ip_top_num" class="btn btn-default btn-sm" style="margin-left: 62px;"><span>' + pt('保存') + '</span></button>\
-					<span class="tips" data-toggle="tooltip" data-placement="top" title="设置IP统计页面的TOP数量">?</span>\
+					<span class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('设置IP统计页面的TOP数量') + '">?</span>\
 				</div>\
 				<div class="item-line">\
 					<div class="choose_title">' + pt('URI统计') + '</div>\
 					<input type="number" class="bt-input-text" name="uri_top_num" value="'+rdata['global']['uri_top_num']+'" style="width:55px;">\
 					<button type="button" id="uri_top_num" class="btn btn-default btn-sm" style="margin-left: 62px;"><span>' + pt('保存') + '</span></button>\
-					<span class="tips" data-toggle="tooltip" data-placement="top" title="设置URI统计页面的TOP数量">?</span>\
+					<span class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('设置URI统计页面的TOP数量') + '">?</span>\
 				</div>\
 			</div>\
 		</div>\
@@ -32,7 +32,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 					<div class="choose_title">' + pt('日志保存天数') + '</div>\
 					<input type="number" class="bt-input-text" name="save_day" value="'+rdata['global']['save_day']+'" style="width:55px;">' + pt('/天') + ' \
 					<button type="button" id="save_day" class="btn btn-default btn-sm" style="margin-left: 48px;"><span>' + pt('保存') + '</span></button>\
-					<span class="tips" data-toggle="tooltip" data-placement="top" title="缩短日志保存天数原有记录的日志将被删除，请谨慎操作">?</span>\
+					<span class="tips" data-toggle="tooltip" data-placement="top" title="' + pt('缩短日志保存天数原有记录的日志将被删除，请谨慎操作') + '">?</span>\
 				</div>\
 			</div>\
 		</div>\
@@ -164,7 +164,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 		var num = $('input[name="ip_top_num"]').val();
 		if(num == '' || num <= 0 || num > 2000) return layer.msg(pt('请设置1-2000范围的统计数量'),{icon:2});
 		api.post('set_global_conf','',{ip_top_num:num}, function(rdata){
-			var rdata = JSON.parse(rdata.data);
+			var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		});
 	});
@@ -173,7 +173,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 		var num = $('input[name="uri_top_num"]').val();
 		if(num == '' || num <= 0 || num > 2000) return layer.msg(pt('请设置1-2000范围的统计数量'),{icon:2})
 		api.post('set_global_conf','',{uri_top_num:num}, function(rdata){
-			var rdata = JSON.parse(rdata.data);
+			var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		});
 	});
@@ -181,7 +181,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 	$('#save_day').on('click', function(){
 		var num = $('input[name="save_day"]').val();
 		api.post('set_global_conf','',{save_day:num}, function(rdata){
-			var rdata = JSON.parse(rdata.data);
+			var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 			layer.msg(rdata.msg,{icon:rdata.status?1:2});
 		});
 	});
@@ -210,7 +210,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 			}
 
 			api.post('set_global_conf','', args, function(rdata){
-				var rdata = JSON.parse(rdata.data);
+				var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			});
 		}
@@ -228,7 +228,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 				}
 			}
 			api.post('set_global_conf','', {"exclude_url":list}, function(rdata){
-				var rdata = JSON.parse(rdata.data);
+				var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			});
 		}
@@ -238,7 +238,7 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 			var record_post_args = $('input[name="record_post_args"]').prop('checked');
 			var record_get_403_args = $('input[name="record_get_403_args"]').prop('checked');
 			api.post('set_global_conf','', {"record_post_args":record_post_args,'record_get_403_args':record_get_403_args}, function(rdata){
-				var rdata = JSON.parse(rdata.data);
+				var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 				layer.msg(rdata.msg,{icon:rdata.status?1:2});
 			});
 		}
@@ -249,18 +249,18 @@ api.post('get_global_conf', '' ,{}, function(rdata){
 
 	$('#setAll').on('click', function(){
 		var args = "name=webstats&func=reload";
-		layer.confirm('您真的要同步所有站点吗?', {icon:3,closeBtn: 1}, function() {
-	        var e = layer.msg('正在同步,请稍候...', {icon: 16,time: 0});
+		layer.confirm(pt('您真的要同步所有站点吗?'), {icon:3,closeBtn: 1}, function() {
+	        var e = layer.msg(pt('正在同步,请稍候...'), {icon: 16,time: 0});
 	        $.post("/plugins/run", args, function(g) {
 	            layer.close(e);
 	            if( g.status && g.data != 'ok' ) {
 	                layer.msg(g.data, {icon: 2,time: 3000,shade: 0.3,shadeClose: true});
 	            } else {
-	            	layer.msg('同步成功!', {icon: 1,time: 0});
+	            	layer.msg(pt('同步成功!'), {icon: 1,time: 0});
 	            }
 	        },'json').fail(function() {
 	            layer.close(e);
-	            layer.msg('操作异常!', {icon: 1});
+	            layer.msg(pt('操作异常!'), {icon: 1});
 	        });
 	    })
 	});

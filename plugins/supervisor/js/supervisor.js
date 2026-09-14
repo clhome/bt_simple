@@ -45,10 +45,10 @@ function supList(page, search){
 			list += '<td>' + rdata.data[i]['runStatus'] +'</td>';
 
             list += '<td style="text-align:right">\
-            			<a href="javascript:;" class="btlink" onclick="startOrStop(\''+rdata.data[i]['program']+'\',\''+sup_status+'\')" title="启动|停止">'+sup_status_desc+'</a> | ' +
-            			'<a href="javascript:;" class="btlink" onclick="restartJob(\''+rdata.data[i]['program']+'\',\''+sup_status+'\')" title="重启">' + pt('重启') + '</a> | ' +
+            			<a href="javascript:;" class="btlink" onclick="startOrStop(\''+rdata.data[i]['program']+'\',\''+sup_status+'\')" title="' + pt('启动|停止') + '">'+sup_status_desc+'</a> | ' +
+            			'<a href="javascript:;" class="btlink" onclick="restartJob(\''+rdata.data[i]['program']+'\',\''+sup_status+'\')" title="' + pt('重启') + '">' + pt('重启') + '</a> | ' +
                         '<a href="javascript:;" class="btlink" onclick="updateJob(\''+rdata.data[i]['program']+'\')">' + pt('修改') + '</a> | ' +
-                        '<a href="javascript:;" class="btlink" onclick="delJob(\''+rdata.data[i]['program']+'\')" title="删除">' + pt('删除') + '</a>' +
+                        '<a href="javascript:;" class="btlink" onclick="delJob(\''+rdata.data[i]['program']+'\')" title="' + pt('删除') + '">' + pt('删除') + '</a>' +
                     '</td>';
 
             list += '</tr>';
@@ -59,7 +59,7 @@ function supList(page, search){
         }
 
         var con = '<div class="safe bgw">\
-            <button onclick="supAdd()" title="添加守护进程" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加守护进程') + '</button>\
+            <button onclick="supAdd()" title="' + pt('添加守护进程') + '" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('添加守护进程') + '</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\
@@ -141,7 +141,7 @@ function updateJob(name){
 						<div class='line'>\
 		                    <span class='tname'>' + pt('名称') + '</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='name' class='bt-input-text' type='text' name='name' value='"+name+"' placeholder='请输入名称' style='width:270px' readonly/>\
+		                    	<input id='name' class='bt-input-text' type='text' name='name' value='"+name+"' placeholder='' + pt('请输入名称') + '' style='width:270px' readonly/>\
 		                    </div>\
 	                    </div>\
 	                    "+ulist+"\
@@ -203,7 +203,7 @@ function delJob(name) {
     layer.confirm(msgTpl('是否删除守护进程[{1}]?', [name]), { icon: 3, closeBtn: 2 }, function() {
     	///////////////////////////////////////
         var data = {'name':  name};
-        var loadT = layer.msg('正在处理,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        var loadT = layer.msg(pt('正在处理,请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
         api.post('del_job', data, function(rdata){
         	layer.close(loadT)
 
@@ -241,21 +241,21 @@ function supAdd() {
 						<div class='line'>\
 		                    <span class='tname'>' + pt('名称') + '</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='name' class='bt-input-text' type='text' name='name' placeholder='请输入名称' style='width:270px' />\
+		                    	<input id='name' class='bt-input-text' type='text' name='name' placeholder='' + pt('请输入名称') + '' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                    "+ulist+"\
 	                    <div class='line'>\
 		                    <span class='tname'>' + pt('运行目录') + '</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' placeholder='请选择运行目录' value='"+www['dir']+"/' placeholder='"+www['dir']+"' style='width:270px' />\
+		                    	<input id='inputPath' class='bt-input-text mr5' type='text' name='path' placeholder='' + pt('请选择运行目录') + '' value='"+www['dir']+"/' placeholder='"+www['dir']+"' style='width:270px' />\
 		                    	<span class='glyphicon glyphicon-folder-open cursor' onclick='changePath(\"inputPath\")'></span>\
 		                    </div>\
 	                    </div>\
 	                    <div class='line'>\
 		                    <span class='tname'>' + pt('启动命令') + '</span>\
 		                    <div class='info-r c4'>\
-		                    	<input id='command' class='bt-input-text' type='text' name='command' placeholder='请输入启动命令' style='width:270px' />\
+		                    	<input id='command' class='bt-input-text' type='text' name='command' placeholder='' + pt('请输入启动命令') + '' style='width:270px' />\
 		                    </div>\
 	                    </div>\
 	                    <div class='line'>\
@@ -380,7 +380,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
     		var selected = $(this).val();
     		if (selected != '0'){
     			fileName = selected;
-    			var loadT = layer.msg('配置获取中...',{icon:16,time:0,shade: [0.3, '#000']});
+    			var loadT = layer.msg(pt('配置获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
 
     			var _args = JSON.stringify({file:selected});
     			$.post('/plugins/run', {name:_name, func:_read_config_tpl_func,version:version,args:_args}, function(data){
@@ -426,7 +426,7 @@ function supConfigTpl(_name, version, func, config_tpl_func, read_config_tpl_fun
 function supConfigSave(fileName) {
     var data = encodeURIComponent($("#textBody").val());
     var encoding = 'utf-8';
-    var loadT = layer.msg('保存中...', {icon: 16,time: 0});
+    var loadT = layer.msg(pt('保存中...'), {icon: 16,time: 0});
     $.post('/files/save_body', 'data=' + data + '&path=' + fileName + '&encoding=' + encoding, function(rdata) {
         layer.close(loadT);
         layer.msg(rdata.msg, {icon: rdata.status ? 1 : 2});
@@ -491,7 +491,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     	});
     }
 
-    var loadT = layer.msg('日志路径获取中...',{icon:16,time:0,shade: [0.3, '#000']});
+    var loadT = layer.msg(pt('日志路径获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
     $.post('/plugins/run', {name:_name, func:_config_tpl_func},function (data) {
         layer.close(loadT);
 
@@ -508,7 +508,7 @@ function supLogs(_name, config_tpl_func, read_config_tpl_func,line){
     		}
     	
 			fileName = selected;
-			var loadT = layer.msg('日志获取中...',{icon:16,time:0,shade: [0.3, '#000']});
+			var loadT = layer.msg(pt('日志获取中...'),{icon:16,time:0,shade: [0.3, '#000']});
 
 			var _args = JSON.stringify({file:selected,line:file_line});
 			$.post('/plugins/run', {name:_name, func:_read_config_tpl_func,args:_args}, function(data){
@@ -576,7 +576,7 @@ function confdList(page, search){
         }
 
         var con = '<div class="safe bgw">\
-            <button onclick="confdList()" title="刷新" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('刷新') + '</button>\
+            <button onclick="confdList()" title="' + pt('刷新') + '" class="btn btn-success btn-sm" type="button" style="margin-right: 5px;">' + pt('刷新') + '</button>\
             <div class="divtable mtb10">\
                 <div class="tablescroll">\
                     <table id="DataBody" class="table table-hover" width="100%" cellspacing="0" cellpadding="0" border="0" style="border: 0 none;">\

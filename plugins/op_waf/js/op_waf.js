@@ -47,7 +47,7 @@ function setState(ruleName){
             layer.msg(rdata.msg,{icon:0,time:2000,shade: [0.3, '#000']});
             wafGloabl();
         } else {
-            layer.msg('设置失败!',{icon:0,time:2000,shade: [0.3, '#000']});
+            layer.msg(pt('设置失败!'),{icon:0,time:2000,shade: [0.3, '#000']});
         }
     });
 }
@@ -61,7 +61,7 @@ function setObjOpen(ruleName){
                 wafGloabl();
             },{icon:1,time:2000,shade: [0.3, '#000']},2000);
         } else {
-            layer.msg('设置失败!',{icon:0,time:2000,shade: [0.3, '#000']});
+            layer.msg(pt('设置失败!'),{icon:0,time:2000,shade: [0.3, '#000']});
         }
     });
 }
@@ -400,8 +400,8 @@ function setObjConf(ruleName, type) {
             shadeClose: false,
             content: '<div class="pd15">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
-                <input class="bt-input-text" name="ruleValue" type="text" value="" style="width:470px;margin-right:12px;" placeholder="规则内容,请使用正则表达式">\
-                <input class="bt-input-text mr5" name="rulePs" type="text" style="width:120px;" placeholder="描述">\
+                <input class="bt-input-text" name="ruleValue" type="text" value="" style="width:470px;margin-right:12px;" placeholder="' + pt('规则内容,请使用正则表达式') + '">\
+                <input class="bt-input-text mr5" name="rulePs" type="text" style="width:120px;" placeholder="' + pt('描述') + '">\
                 <button class="btn btn-success btn-sm va0 pull-right" onclick="addRule(\''+ ruleName + '\');">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="jc-file-table" class="table_head_fix" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
@@ -575,7 +575,7 @@ function addIpWhite() {
     }
 
     if (pdata['start_ip'].split('.').length < 4 || pdata['end_ip'].split('.').length < 4) {
-        layer.msg('起始IP或结束IP格式不正确!');
+        layer.msg(pt('起始IP或结束IP格式不正确!'));
         return;
     }
 
@@ -664,7 +664,7 @@ function outputLayer(rdata, name, type) {
 
 //导出数据
 function outputData(name, callback) {
-    var loadT = layer.msg('正在导出数据..', { icon: 16, time: 0 });
+    var loadT = layer.msg(pt('正在导出数据..'), { icon: 16, time: 0 });
 
     api.post('output_data', { sname: name } , function(data){
         var tmp = JSON.parse(data.data);
@@ -714,8 +714,8 @@ function ipWhite(type) {
             shadeClose: false,
             content: '<div class="pd15 ipv4_list">\
                         <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
-                            <input class="bt-input-text" name="start_ip" type="text" value="" style="width:180px;margin-right:15px;margin-left:5px" placeholder="起始IP地址">\
-                            <input class="bt-input-text mr5" name="end_ip" type="text" style="width:180px;margin-left:5px;margin-right:20px" placeholder="结束IP地址">\
+                            <input class="bt-input-text" name="start_ip" type="text" value="" style="width:180px;margin-right:15px;margin-left:5px" placeholder="' + pt('起始IP地址') + '">\
+                            <input class="bt-input-text mr5" name="end_ip" type="text" style="width:180px;margin-left:5px;margin-right:20px" placeholder="' + pt('结束IP地址') + '">\
                             <button class="btn btn-success btn-sm va0 pull-right" onclick="addIpWhite();">' + pt('添加') + '</button>\</div>\
                         <div class="divtable">\
                         <div id="ipWhite" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
@@ -773,8 +773,8 @@ function urlWhite(type) {
             shadeClose: false,
             content: '<div class="pd15">\
                 <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
-                <input class="bt-input-text" name="ruleValue" type="text" value="" style="width:470px;margin-right:12px;" placeholder="规则内容,请使用正则表达式">\
-                <input class="bt-input-text mr5" name="rulePs" type="text" style="width:120px;" placeholder="描述">\
+                <input class="bt-input-text" name="ruleValue" type="text" value="" style="width:470px;margin-right:12px;" placeholder="' + pt('规则内容,请使用正则表达式') + '">\
+                <input class="bt-input-text mr5" name="rulePs" type="text" style="width:120px;" placeholder="' + pt('描述') + '">\
                 <button class="btn btn-success btn-sm va0 pull-right" onclick="addRule(\''+ ruleName + '\');">' + pt('添加') + '</button>\</div>\
                 <div class="divtable">\
                 <div id="jc-file-table" class="table_head_fix" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
@@ -873,7 +873,7 @@ function addIpBlack() {
     }
 
     if (pdata['start_ip'].split('.').length < 4 || pdata['end_ip'].split('.').length < 4) {
-        layer.msg('起始IP或结束IP格式不正确!');
+        layer.msg(pt('起始IP或结束IP格式不正确!'));
         return;
     }
 
@@ -908,7 +908,7 @@ function addIpBlackArgs(ip) {
     }
 
     if (pdata['start_ip'].split('.').length < 4 || pdata['end_ip'].split('.').length < 4) {
-        layer.msg('起始IP或结束IP格式不正确!');
+        layer.msg(pt('起始IP或结束IP格式不正确!'));
         return;
     }
 
@@ -942,8 +942,8 @@ function ipBlack(type) {
             content: '<div class="tab_list"><div class="tab_block active">' + pt('IPv4黑名单') + '</div><div class="tab_block">' + pt('IPv6黑名单') + '</div></div>\
                 <div class="pd15 ipv4_block">\
                     <div style="border-bottom:#ccc 1px solid;margin-bottom:10px;padding-bottom:10px">\
-                        <input class="bt-input-text" name="start_ip" type="text" value="" style="width:150px;margin-right:15px;margin-left:5px" placeholder="起始IP地址">\
-                        <input class="bt-input-text mr5" name="end_ip" type="text" style="width:150px;margin-left:5px;margin-right:20px" placeholder="结束IP地址">\
+                        <input class="bt-input-text" name="start_ip" type="text" value="" style="width:150px;margin-right:15px;margin-left:5px" placeholder="' + pt('起始IP地址') + '">\
+                        <input class="bt-input-text mr5" name="end_ip" type="text" style="width:150px;margin-left:5px;margin-right:20px" placeholder="' + pt('结束IP地址') + '">\
                         <button class="btn btn-success btn-sm va0 pull-right" onclick="addIpBlack();">' + pt('添加') + '</button>\</div>\
                     <div class="divtable">\
                     <div id="ipBlack" style="max-height:300px;overflow:auto;border:#ddd 1px solid">\
@@ -1340,22 +1340,22 @@ function siteRuleAdmin(siteName, ruleName, type) {
         case 'disable_php_path':
             placeho = 'URI地址,支持正则表达式';
             ps = '<li>' + pt('此处请不要包含URI参数,一般针对目录URL,示例：/admin') + '</li>'
-            title = '禁止运行PHP的URL地址'
+            title='' + pt('禁止运行PHP的URL地址') + ''
             break;
         case 'disable_path':
             placeho = 'URI地址,支持正则表达式';
             ps = '<li>' + pt('此处请不要包含URI参数,一般针对目录URL,示例：/admin') + '</li>'
-            title = '禁止访问的URL地址'
+            title='' + pt('禁止访问的URL地址') + ''
             break;
         case 'disable_ext':
             placeho = '扩展名，不包含点(.)，示例：sql';
             ps = '<li>' + pt('直接填要被禁止访问的扩展名，如我希望禁止访问*.sql文件：sql') + '</li>'
-            title = '禁止访问的扩展名'
+            title='' + pt('禁止访问的扩展名') + ''
             break;
         case 'disable_upload_ext':
             placeho = '扩展名，不包含点(.)，示例：sql';
             ps = '<li>' + pt('直接填要被禁止访问的扩展名，如我希望禁止上传*.php文件：php') + '</li>'
-            title = '禁止上传的文件类型'
+            title='' + pt('禁止上传的文件类型') + ''
             break;
     }
     if (type == undefined) {
@@ -1490,7 +1490,7 @@ function removeCdnHeader(siteName, cdn_header_key) {
 
 //设置网站防御功能
 function setSiteObjState(siteName, obj) {
-    // var loadT = layer.msg('正在处理，请稍候..', { icon: 16, time: 0 });
+    // var loadT = layer.msg(pt('正在处理，请稍候..'), { icon: 16, time: 0 });
     api.post('set_site_obj_open', { siteName: siteName, obj: obj } , function(data){
         var rdata = JSON.parse(data.data);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
@@ -1761,7 +1761,7 @@ function wafSite(){
                                     <th>POST</th>\
                                     <th>UA</th>\
                                     <th>Cookie</th>\
-                                    <th title="这个网站使用了CDN或其它代理时请勾选">CDN</th>\
+                                    <th title="' + pt('这个网站使用了CDN或其它代理时请勾选') + '">CDN</th>\
                                     <th>' + pt('CC防御') + '</th>\
                                     <th>' + pt('状态') + '</th>\
                                     <th style="text-align: right;">' + pt('操作') + '</th>\
@@ -1793,7 +1793,7 @@ function wafAreaLimitRender(){
         return str.toString();
     }
     api.post('get_area_limit', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
             return;
@@ -1838,7 +1838,7 @@ function wafAreaLimitRender(){
                 region:region.toString(),
                 types:type,
             }, function(rdata) {
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 showMsg(rdata.msg, function(){
                     if (rdata.status){
                         wafAreaLimit();
@@ -1939,7 +1939,7 @@ function wafAreaLimit(){
                 });
 
                 api.postSilent('get_default_site','', function(rdata){
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     var rlist = rdata.data.list;
 
 
@@ -1963,7 +1963,7 @@ function wafAreaLimit(){
                     data: [],
                 });
                 api.postSilent('get_country','', function(rdata){
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     var rlist = rdata.data;
 
                     var pdata = [];
@@ -1984,8 +1984,8 @@ function wafAreaLimit(){
                 var site_val = site_list.getValue('value');
                 var area_val = area_list.getValue('value');
 
-                if (area_val.length <1) return layer.msg('地区最少选一个!', { icon: 2 });
-                if (site_val.length <1) return layer.msg('站点最少选一个!', { icon: 2 });
+                if (area_val.length <1) return layer.msg(pt('地区最少选一个!'), { icon: 2 });
+                if (site_val.length <1) return layer.msg(pt('站点最少选一个!'), { icon: 2 });
 
                 var site = '';
                 if (site_length === site_val.length) {
@@ -2006,7 +2006,7 @@ function wafAreaLimit(){
                     types:reg_type,
                     region:region,
                 }, function(rdata){
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     showMsg(rdata.msg, function(){
                         if (rdata.status){
                             layer.close(indexs);
@@ -2037,7 +2037,7 @@ function wafLogRequest(page){
     args['tojs'] = 'wafLogRequest';
 
     api.post('get_logs_list', args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data.data;
         if (data && Array.isArray(data) && data.length > 0){
@@ -2049,7 +2049,7 @@ function wafLogRequest(page){
                 list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['uri'] || '') + '" style="width:90px;">' + entitiesEncode(data[i]['uri'] || '') +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['rule_name'] || '') + '" style="width:60px;">' + entitiesEncode(data[i]['rule_name'] || '') +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + entitiesEncode(data[i]['reason'] || '') + '" style="width:220px;">' + entitiesEncode(data[i]['reason'] || '') +'</span></td>';
-                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="详情">' + pt('详情') + '</a></td>';
+                list += '<td><a data-id="'+i+'" href="javascript:;" class="btlink details" title="' + pt('详情') + '">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
         } else{
@@ -2090,7 +2090,7 @@ function wafLogRequest(page){
                 shadeClose: false,
                 content: '<div class="pd15 lib-box">\
                         <table class="table" style="border:#ddd 1px solid; margin-bottom:10px">\
-                        <tbody><tr><th>' + pt('时间') + '</th><td>'+ time + '</td><th>' + pt('用户IP') + '</th><td>' + escapeHTML(ip) + ' <a class="btlink" style="color:red; margin-left:10px;" href="javascript:confirmAddIpBlackArgs(\'' + escapeHTML(ip) + '\')" title="永久拉黑此IP">' + pt('永久拉黑') + '</a></td></tr><tr><th>' + pt('类型') + '</th><td>' + escapeHTML(res.method) + '</td><th>' + pt('过滤器') + '</th><td>' + escapeHTML(res.rule_name) + '</td></tr></tbody></table>\
+                        <tbody><tr><th>' + pt('时间') + '</th><td>'+ time + '</td><th>' + pt('用户IP') + '</th><td>' + escapeHTML(ip) + ' <a class="btlink" style="color:red; margin-left:10px;" href="javascript:confirmAddIpBlackArgs(\'' + escapeHTML(ip) + '\')" title="' + pt('永久拉黑此IP') + '">' + pt('永久拉黑') + '</a></td></tr><tr><th>' + pt('类型') + '</th><td>' + escapeHTML(res.method) + '</td><th>' + pt('过滤器') + '</th><td>' + escapeHTML(res.rule_name) + '</td></tr></tbody></table>\
                         <div><b style="margin-left:10px">' + pt('URI地址') + '</b></div>\
                         <div class="lib-con pull-left mt10"><div class="divpre">'+ escapeHTML(res.uri) + '</div></div>\
                         <div><b style="margin-left:10px">User-Agent</b></div>\
@@ -2128,7 +2128,7 @@ function wafLogs(site){
                                 <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                                 <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                             </div>\
-                            <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
+                            <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                         </div>\
                     </div>\
                     <div>\
@@ -2156,10 +2156,10 @@ function wafLogs(site){
         args['query_date'] = query_date;
         args['tojs'] = 'wafLogRequest';
 
-        var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        var loadT = layer.msg(pt('正在导出，请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
         api.post('get_logs_list', args, function(rdata){
             layer.close(loadT);
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             var data = rdata.data.data;
             if(!data || data.length == 0) {
                 layer.msg(pt("没有数据可导出"), {icon: 2});
@@ -2192,7 +2192,7 @@ function wafLogs(site){
             if (ndata.status == 0){
                 layer.msg(pt("解封所有成功"),{icon:1,time:2000,shade: [0.3, '#000']});
             } else{
-                layer.msg("解封所有异常:"+ndata.msg,{icon:5,time:2000,shade: [0.3, '#000']});
+                layer.msg(pt("解封所有异常:")+ndata.msg,{icon:5,time:2000,shade: [0.3, '#000']});
             }
         });
     });
@@ -2251,7 +2251,7 @@ function wafLogs(site){
     api.postSilent('get_default_site',{},function(rdata){
         $('select[name="site"]').html('');
 
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var rdata = rdata.data;
         var default_site = rdata["default"];
         if (default_site) default_site = $.trim(default_site);
@@ -2411,9 +2411,9 @@ function wafDropIpList() {
 }
 
 function releaseDropIp(ip) {
-    layer.confirm('确定要释放并清空该 IP (' + ip + ') 的所有惩罚记录吗？', {title:  pt('释放 IP'), icon: 3}, function(index) {
+    layer.confirm(pt('确定要释放并清空该 IP') + ' (' + ip + ') 的所有惩罚记录吗？', {title:  pt('释放 IP'), icon: 3}, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在释放...', {icon: 16, time: 0, shade: 0.3});
+        var loadT = layer.msg(pt('正在释放...'), {icon: 16, time: 0, shade: 0.3});
         api.post('removeDropIp', {ip: ip}, function(res_raw) {
             layer.close(loadT);
             var res = JSON.parse(res_raw.data);
@@ -2426,12 +2426,12 @@ function releaseDropIp(ip) {
 }
 
 function showDropIpLogs(ip) {
-    var loadT = layer.msg('正在获取日志...', {icon: 16, time: 0, shade: 0.3});
+    var loadT = layer.msg(pt('正在获取日志...'), {icon: 16, time: 0, shade: 0.3});
     api.post('getDropIpLogs', {ip: ip}, function(res_raw) {
         layer.close(loadT);
         var res = JSON.parse(res_raw.data);
         if (!res.status) {
-            layer.msg('获取日志失败: ' + res.msg, {icon: 2});
+            layer.msg(pt('获取日志失败: ') + res.msg, {icon: 2});
             return;
         }
 
@@ -2521,7 +2521,7 @@ function saveHoneypotPaths() {
         }
     }
     
-    var loadT = layer.msg('正在保存配置...', {icon: 16, time: 0, shade: 0.3});
+    var loadT = layer.msg(pt('正在保存配置...'), {icon: 16, time: 0, shade: 0.3});
     api.post('setHoneypotPaths', {paths: JSON.stringify(paths)}, function(res_raw) {
         layer.close(loadT);
         var res = JSON.parse(res_raw.data);

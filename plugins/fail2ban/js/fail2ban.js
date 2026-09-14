@@ -5,7 +5,7 @@ function getVersion(){
 }
 
 function f2bHome() {
-    var loadT = layer.msg('正在获取数据...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取数据...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('get_home_stats', '', {}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
@@ -133,7 +133,7 @@ function f2bService() {
 
 
 function f2bPostCallbak(method, version, args, callback){
-    var loadT = layer.msg('正在获取...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取...'), { icon: 16, time: 0, shade: 0.3 });
 
     var req_data = {};
     req_data['name'] = 'fail2ban';
@@ -178,7 +178,7 @@ function f2bLogs(){
     $(".soft-man-con").html(con);
     
     function refreshLog() {
-        var loadT = layer.msg('正在获取日志...', { icon: 16, time: 0, shade: 0.3 });
+        var loadT = layer.msg(pt('正在获取日志...'), { icon: 16, time: 0, shade: 0.3 });
         api.post('get_last_log', '', {}, function(data){
             layer.close(loadT);
             var rdata = JSON.parse(data.data);
@@ -214,7 +214,7 @@ function f2bBanIp() {
     var html = '<div class="waf-drop-ip-con">\
         <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">\
             <div style="display:flex; align-items:center;">\
-                <input class="bt-input-text" type="text" id="f2b_add_ip_input" placeholder="输入IP地址，例如1.1.1.1" style="width: 200px; margin-right: 5px;">\
+                <input class="bt-input-text" type="text" id="f2b_add_ip_input" placeholder="' + pt('输入IP地址，例如1.1.1.1') + '" style="width: 200px; margin-right: 5px;">\
                 <button class="btn btn-success btn-sm" onclick="f2bAddDropIp();">' + pt('添加黑名单') + '</button>\
             </div>\
             <button class="btn btn-default btn-sm" onclick="f2bBanIp();"><i class="glyphicon glyphicon-refresh"></i> ' + pt('刷新') + '</button>\
@@ -353,9 +353,9 @@ function f2bBanIp() {
 }
 
 function f2bRemoveDropIp(ip, jail) {
-    layer.confirm('确定要解除对 IP (' + ip + ') 的封禁吗？', {title:  pt('解除封禁'), icon: 3}, function(index) {
+    layer.confirm(pt('确定要解除对 IP') + ' (' + ip + ') ' + pt('的封禁吗？'), {title:  pt('解除封禁'), icon: 3}, function(index) {
         layer.close(index);
-        var loadT = layer.msg('正在解封...', {icon: 16, time: 0, shade: 0.3});
+        var loadT = layer.msg(pt('正在解封...'), {icon: 16, time: 0, shade: 0.3});
         
         api.post('unban_active_ip', '', {'ip': ip, 'jail': jail}, function(sdata){
             layer.close(loadT);
@@ -376,7 +376,7 @@ function f2bAddDropIp() {
         layer.msg(pt('请输入IP地址'), {icon: 2});
         return;
     }
-    var loadT = layer.msg('正在添加...', {icon: 16, time: 0, shade: 0.3});
+    var loadT = layer.msg(pt('正在添加...'), {icon: 16, time: 0, shade: 0.3});
     api.post('get_black_list', '', {}, function(data){
         var rdata = JSON.parse(data.data);
         var ipListStr = rdata.data;
@@ -405,7 +405,7 @@ function f2bAddDropIp() {
 
 // 系统防护
 function f2bServerAnti() {
-    var loadT = layer.msg('正在获取配置...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取配置...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('get_anti_info', '', {}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
@@ -476,7 +476,7 @@ function f2bConfigService(mode, name, port, maxretry, findtime, bantime) {
 
     layer.open({
         type: 1,
-        title: '配置防护规则 - ' + name,
+        title: pt('配置防护规则 -') + name,
         area: '450px',
         closeBtn: 1,
         shadeClose: false,
@@ -519,7 +519,7 @@ function f2bDelAnti(mode) {
 
 // 网站防护
 function f2bSiteAnti() {
-    var loadT = layer.msg('正在拉取防护状态...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在拉取防护状态...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('get_anti_info', '', {}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
@@ -610,7 +610,7 @@ function f2bLogRequest(page){
     args['tojs'] = 'f2bLogRequest';
 
     api.post('get_logs_list', '', args, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var list = '';
         var data = rdata.data.data;
         if (data.length > 0){
@@ -620,7 +620,7 @@ function f2bLogRequest(page){
                 list += '<td><span class="overflow_hide" title="' + data[i]['ip'] + '" style="width:120px; font-family: Consolas, monospace; font-weight:bold; color:#d9534f;">' + data[i]['ip'] +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + data[i]['rule_name'] + '" style="width:100px;">' + data[i]['rule_name'] +'</span></td>';
                 list += '<td><span class="overflow_hide" title="' + data[i]['reason'] + '" style="width:300px;">' + data[i]['reason'] +'</span></td>';
-                list += '<td style="text-align:right;"><a onclick="f2bIpDetails(\''+data[i]['ip']+'\')" href="javascript:;" class="btlink f2b-details" title="详情">' + pt('详情') + '</a></td>';
+                list += '<td style="text-align:right;"><a onclick="f2bIpDetails(\''+data[i]['ip']+'\')" href="javascript:;" class="btlink f2b-details" title="' + pt('详情') + '">' + pt('详情') + '</a></td>';
                 list += '</tr>';
             }
         } else{
@@ -650,7 +650,7 @@ function f2bLogRequest(page){
 }
 
 function f2bIpDetails(ip) {
-    var loadT = layer.msg('正在获取详情...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取详情...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('get_ip_logs', '', {ip: ip}, function(data){
         layer.close(loadT);
         var rdata = JSON.parse(data.data);
@@ -750,7 +750,7 @@ function f2bSiteHistory(){
                                 <button data-name="l7" type="button" class="btn btn-default">' + pt('近7天') + '</button>\
                                 <button data-name="l30" type="button" class="btn btn-default">' + pt('近30天') + '</button>\
                             </div>\
-                            <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="自定义时间" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
+                            <span class="last-span"><input data-name="" type="text" id="time_choose" lay-key="1000001_'+randstr+'" class="form-control btn-group-sm" autocomplete="off" placeholder="' + pt('自定义时间') + '" style="display: inline-block;font-size: 12px;padding: 0 10px;height:30px;width: 155px;"></span>\
                         </div>\
                     </div>\
                     <div>\
@@ -774,10 +774,10 @@ function f2bSiteHistory(){
         args['query_date'] = query_date;
         args['tojs'] = 'f2bLogRequest';
 
-        var loadT = layer.msg('正在导出，请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        var loadT = layer.msg(pt('正在导出，请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
         api.post('get_logs_list', '', args, function(rdata){
             layer.close(loadT);
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             var data = rdata.data.data;
             if(!data || data.length == 0) {
                 layer.msg(pt("没有数据可导出"), {icon: 2});

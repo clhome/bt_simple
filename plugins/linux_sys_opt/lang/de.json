@@ -1,6 +1,4 @@
 {
-    " (当前值未达标)": " (Der aktuelle Wert liegt unter dem Sollwert)",
-    " (当前未设置)": " (Derzeit nicht festgelegt)",
     "(当前值未达标)": "(Der aktuelle Wert entspricht nicht den Vorgaben)",
     "(当前未设置)": "(Derzeit nicht festgelegt)",
     "* 本插件执行的优化符合绝大部分高性能 Web 及高并发 DB 场景，安全可靠，可放心一键套用。": "* Die von diesem Plug-in durchgeführte Optimierung entspricht den meisten Hochleistungs-Web- und DB-Szenarien mit hoher Parallelität. Es ist sicher und zuverlässig und kann mit einem Klick angewendet werden.",

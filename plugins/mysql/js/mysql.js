@@ -47,7 +47,7 @@ function runInfo(){
                         <tr><th>' + pt('线程缓存命中率') + '</th><td>' + ((1 - rdata.Threads_created / rdata.Connections) * 100).toFixed(2) + '%</td><td colspan="2">' + pt('若过低,增加thread_cache_size') + '</td></tr>\
                         <tr><th>' + pt('索引命中率') + '</th><td>' + ((1 - rdata.Key_reads / rdata.Key_read_requests) * 100).toFixed(2) + '%</td><td colspan="2">' + pt('若过低,增加key_buffer_size') + '</td></tr>\
                         <tr><th>' + pt('Innodb索引命中率') + '</th><td>' + (rdata.Innodb_buffer_pool_read_requests / (rdata.Innodb_buffer_pool_read_requests+rdata.Innodb_buffer_pool_reads)).toFixed(2) + '%</td><td colspan="2">' + pt('若过低,增加innodb_buffer_pool_size') + '</td></tr>\
-                        <tr><th>' + pt('查询缓存命中率') + '</th><td>' + cache_size + '</td><td colspan="2">' + lan.soft.mysql_status_ps5 + '</td></tr>\
+                        <tr><th>' + pt('查询缓存命中率') + '</th><td>' + cache_size + '</td><td colspan="2">' + pt('若过低,增加query_cache_size') + '</td></tr>\
                         <tr><th>' + pt('创建临时表到磁盘') + '</th><td>' + ((rdata.Created_tmp_disk_tables / rdata.Created_tmp_tables) * 100).toFixed(2) + '%</td><td colspan="2">' + pt('若过大,尝试增加tmp_table_size') + '</td></tr>\
                         <tr><th>' + pt('已打开的表') + '</th><td>' + rdata.Open_tables + '</td><td colspan="2">' + pt('若过大,增加table_cache_size') + '</td></tr>\
                         <tr><th>' + pt('没有使用索引的量') + '</th><td>' + rdata.Select_full_join + '</td><td colspan="2">' + pt('若不为0,请检查数据表的索引是否合理') + '</td></tr>\
@@ -95,7 +95,7 @@ function myPort(){
             api.post('set_my_port','port='+port,function(data){
                 var rdata = JSON.parse(data.data);
                 if (rdata.status){
-                    layer.msg('修改成功!',{icon:1,time:2000,shade: [0.3, '#000']});
+                    layer.msg(pt('修改成功!'),{icon:1,time:2000,shade: [0.3, '#000']});
                 } else {
                     layer.msg(rdata.msg,{icon:1,time:2000,shade: [0.3, '#000']});
                 }
@@ -141,7 +141,7 @@ function myPerfOpt() {
         var memSize = a + rdata.mem.max_connections * b;
 
 
-        var queryCacheHtml = isMdb8 ? '' : '<p><span>query_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="query_cache_size" value="' + query_cache_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_query_cache_size + '</font></p>';
+        var queryCacheHtml = isMdb8 ? '' : '<p><span>query_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="query_cache_size" value="' + query_cache_size + '" type="number" >MB, <font>' + pt('查询缓存大小，不设置请设为0') + '</font></p>';
 
         var memCon = '<div class="conf_p" style="margin-bottom:0">\
                         <div style="border-bottom:#ccc 1px solid;padding-bottom:10px;margin-bottom:10px"><span><b>' + pt('最大使用内存:') + ' </b></span>\
@@ -155,22 +155,22 @@ function myPerfOpt() {
                             <option value="6">32-64GB</option>\
                             <option value="7">64-128GB</option>\
                         </select>\
-                        <span>' + lan.soft.mysql_set_maxmem + ': </span><input style="width:70px;background-color:#eee;" class="bt-input-text mr5" name="memSize" type="text" value="' + memSize.toFixed(2) + '" readonly>MB\
+                        <span>' + pt('最大使用内存') + ': </span><input style="width:70px;background-color:#eee;" class="bt-input-text mr5" name="memSize" type="text" value="' + memSize.toFixed(2) + '" readonly>MB\
                         </div>\
-                        <p><span>key_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="key_buffer_size" value="' + key_buffer_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_key_buffer_size + '</font></p>\
+                        <p><span>key_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="key_buffer_size" value="' + key_buffer_size + '" type="number" >MB, <font>' + pt('用于索引的缓冲区大小') + '</font></p>\
                         ' + queryCacheHtml + '\
-                        <p><span>tmp_table_size</span><input style="width: 70px;" class="bt-input-text mr5" name="tmp_table_size" value="' + tmp_table_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_tmp_table_size + '</font></p>\
-                        <p><span>innodb_buffer_pool_size</span><input style="width: 70px;" class="bt-input-text mr5" name="innodb_buffer_pool_size" value="' + innodb_buffer_pool_size + '" type="number" >MB, <font>' + lan.soft.mysql_set_innodb_buffer_pool_size + '</font></p>\
-                        <p><span>innodb_log_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="innodb_log_buffer_size" value="' + innodb_log_buffer_size + '" type="number">MB, <font>' + lan.soft.mysql_set_innodb_log_buffer_size + '</font></p>\
-                        <p><span>sort_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="sort_buffer_size" value="' + (sort_buffer_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_sort_buffer_size + '</font></p>\
-                        <p><span>read_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="read_buffer_size" value="' + (read_buffer_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_read_buffer_size + ' </font></p>\
-                        <p><span>read_rnd_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="read_rnd_buffer_size" value="' + (read_rnd_buffer_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_read_rnd_buffer_size + ' </font></p>\
-                        <p><span>join_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="join_buffer_size" value="' + (join_buffer_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_join_buffer_size + '</font></p>\
-                        <p><span>thread_stack</span><input style="width: 70px;" class="bt-input-text mr5" name="thread_stack" value="' + (thread_stack * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_thread_stack + '</font></p>\
-                        <p><span>binlog_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="binlog_cache_size" value="' + (binlog_cache_size * 1024) + '" type="number" >KB * ' + lan.soft.mysql_set_conn + ', <font>' + lan.soft.mysql_set_binlog_cache_size + '</font></p>\
-                        <p><span>thread_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="thread_cache_size" value="' + rdata.mem.thread_cache_size + '" type="number" ><font> ' + lan.soft.mysql_set_thread_cache_size + '</font></p>\
-                        <p><span>table_open_cache</span><input style="width: 70px;" class="bt-input-text mr5" name="table_open_cache" value="' + rdata.mem.table_open_cache + '" type="number" > <font>' + lan.soft.mysql_set_table_open_cache + '</font></p>\
-                        <p><span>max_connections</span><input style="width: 70px;" class="bt-input-text mr5" name="max_connections" value="' + rdata.mem.max_connections + '" type="number" ><font> ' + lan.soft.mysql_set_max_connections + '</font></p>\
+                        <p><span>tmp_table_size</span><input style="width: 70px;" class="bt-input-text mr5" name="tmp_table_size" value="' + tmp_table_size + '" type="number" >MB, <font>' + pt('临时表大小') + '</font></p>\
+                        <p><span>innodb_buffer_pool_size</span><input style="width: 70px;" class="bt-input-text mr5" name="innodb_buffer_pool_size" value="' + innodb_buffer_pool_size + '" type="number" >MB, <font>' + pt('InnoDB缓冲池大小') + '</font></p>\
+                        <p><span>innodb_log_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="innodb_log_buffer_size" value="' + innodb_log_buffer_size + '" type="number">MB, <font>' + pt('InnoDB日志缓冲区大小') + '</font></p>\
+                        <p><span>sort_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="sort_buffer_size" value="' + (sort_buffer_size * 1024) + '" type="number" >KB * ' + pt('(连接数)') + ', <font>' + pt('每个线程分配的排序缓冲区大小') + '</font></p>\
+                        <p><span>read_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="read_buffer_size" value="' + (read_buffer_size * 1024) + '" type="number" >KB * ' + pt('(连接数)') + ', <font>' + pt('读入缓冲区大小') + ' </font></p>\
+                        <p><span>read_rnd_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="read_rnd_buffer_size" value="' + (read_rnd_buffer_size * 1024) + '" type="number" >KB * ' + pt('(连接数)') + ', <font>' + pt('随机读缓冲区大小') + ' </font></p>\
+                        <p><span>join_buffer_size</span><input style="width: 70px;" class="bt-input-text mr5" name="join_buffer_size" value="' + (join_buffer_size * 1024) + '" type="number" >KB * ' + pt('(连接数)') + ', <font>' + pt('联合查询缓冲区大小') + '</font></p>\
+                        <p><span>thread_stack</span><input style="width: 70px;" class="bt-input-text mr5" name="thread_stack" value="' + (thread_stack * 1024) + '" type="number" >KB * ' + pt('(连接数)') + ', <font>' + pt('每个线程的堆栈大小') + '</font></p>\
+                        <p><span>binlog_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="binlog_cache_size" value="' + (binlog_cache_size * 1024) + '" type="number" >KB * ' + pt('(连接数)') + ', <font>' + pt('二进制日志缓存大小') + '</font></p>\
+                        <p><span>thread_cache_size</span><input style="width: 70px;" class="bt-input-text mr5" name="thread_cache_size" value="' + rdata.mem.thread_cache_size + '" type="number" ><font> ' + pt('线程池缓存大小') + '</font></p>\
+                        <p><span>table_open_cache</span><input style="width: 70px;" class="bt-input-text mr5" name="table_open_cache" value="' + rdata.mem.table_open_cache + '" type="number" > <font>' + pt('表缓存数量') + '</font></p>\
+                        <p><span>max_connections</span><input style="width: 70px;" class="bt-input-text mr5" name="max_connections" value="' + rdata.mem.max_connections + '" type="number" ><font> ' + pt('最大连接数') + '</font></p>\
                         <div style="margin-top:10px; padding-right:15px" class="text-right"><button class="btn btn-success btn-sm mr5" onclick="reBootMySqld()">' + pt('重启数据库') + '</button><button class="btn btn-success btn-sm" onclick="setMySQLConf()">' + pt('保存') + '</button></div>\
                     </div>'
 
@@ -486,7 +486,7 @@ function setRootPwd(type, pwd){
             return false;
         },
         btn4:function(layerIndex){
-            layer.confirm('修改本地ROOT记录,确定修改?', {
+            layer.confirm(pt('修改本地ROOT记录,确定修改?'), {
                 btn: [pt('确定'), pt('取消')]
             }, function(index, layero){
                 layer.close(index);
@@ -502,7 +502,7 @@ function setRootPwd(type, pwd){
             return false;
         },
         btn5:function(layerIndex){
-            layer.confirm('强制修改MySQL密码,确定强制? (比较耗时)', {
+            layer.confirm(pt('强制修改MySQL密码,确定强制? (比较耗时)'), {
                 btn: [pt('确定'), pt('取消')]
             }, function(index, layero){
                 layer.close(index);
@@ -642,7 +642,7 @@ function setDbAccess(username){
 
 function fixDbAccess(username){
     api.post('fix_db_access', '', function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         showMsg(rdata.msg,function(){
             dbList();
         },{icon: rdata.status ? 1 : 2}); 
@@ -763,7 +763,7 @@ function addDatabase(type){
 }
 
 function delDb(id, name){
-    safeMessage('删除['+name+']','您真的要删除【'+name+'】吗？',function(){
+    safeMessage(pt('删除') + ' ['+name+']','您真的要删除【'+name+'】吗？',function(){
         var data='id='+id+'&name='+name;
         api.post('del_db', data, function(data){
             var rdata = JSON.parse(data.data);
@@ -840,7 +840,7 @@ function openPhpmyadmin(name,username,password){
         }
 
         if (rdata.data['cfg']['choose'] != 'mysql'){
-            layer.msg('当前为['+rdata.data['cfg']['choose'] + ']模式,若要使用请修改phpMyAdmin访问切换.',{icon:2,shade: [0.3, '#000']});
+            layer.msg(pt('当前为') + ' [' +rdata.data['cfg']['choose'] + ']模式,若要使用请修改phpMyAdmin访问切换.',{icon:2,shade: [0.3, '#000']});
             return;
         }
         var home_page = rdata.data['home_page'];
@@ -880,7 +880,7 @@ function delBackup(filename, name, path){
         path = "";
     }
     api.post('delete_db_backup',{filename:filename,path:path},function(){
-        layer.msg('执行成功!');
+        layer.msg(pt('执行成功!'));
         setTimeout(function(){
             setBackupReq(name);
         },2000);
@@ -895,7 +895,7 @@ function importBackup(file,name){
     safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
         api.post('import_db_backup',{file:file,name:name}, function(data){
             // console.log(data);
-            layer.msg('执行成功!');
+            layer.msg(pt('执行成功!'));
         });
     });
 }
@@ -929,7 +929,7 @@ function importBackupProgress(file,name){
 function importDbExternal(file,name){
     safeMessage(pt('导入数据库'),'当前操作会覆盖['+name+']数据库，是否继续？',function(){
         api.post('import_db_external',{file:file,name:name}, function(data){
-            layer.msg('执行成功!');
+            layer.msg(pt('执行成功!'));
         });
     });
 }
@@ -966,7 +966,7 @@ function setLocalImport(db_name){
         var up_db = layer.open({
             type:1,
             closeBtn: 1,
-            title:"上传导入文件["+upload_dir+']',
+            title:pt("上传导入文件[")+upload_dir+']',
             area: ['500px','300px'],
             shadeClose:false,
             content:'<div class="fileUploadDiv">\
@@ -1030,7 +1030,7 @@ function setLocalImport(db_name){
                 var index = $(this).attr('index');
                 var filename = file_list[index]["name"];
                 api.post('delete_db_backup',{filename:filename,path:upload_dir},function(){
-                    showMsg('执行成功!', function(){
+                    showMsg(pt('执行成功!'), function(){
                         getList();
                     },{icon:1},2000);
                 });
@@ -1117,7 +1117,7 @@ function setBackup(db_name){
         success:function(index){
             $('#btn_backup').on('click', function(){
                 api.post('set_db_backup',{name:db_name}, function(data){
-                    showMsg('执行成功!', function(){
+                    showMsg(pt('执行成功!'), function(){
                         setBackupReq(db_name);
                     }, {icon:1}, 2000);
                 });
@@ -1200,7 +1200,7 @@ function dbList(page, search){
             list += '<td><span class="c9 input-edit" onclick="setDbPs(\''+rdata.data[i]['id']+'\',\''+rdata.data[i]['name']+'\',this)" style="display: inline-block;">'+rdata.data[i]['ps']+'</span></td>';
             list += '<td style="text-align:right">';
 
-            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?'已备份':'未备份') +'</a> | ';
+            list += '<a href="javascript:;" class="btlink" class="btlink" onclick="setBackup(\''+rdata.data[i]['name']+'\',this)" title="数据库备份">'+(rdata.data[i]['is_backup']?pt('已备份') : pt('未备份')) +'</a> | ';
 
             var rw = '';
             var rw_change = 'all';
@@ -1497,7 +1497,7 @@ function repCheckeds(tables) {
     }
 
     if (dbs.length < 1) {
-        layer.msg('请至少选择一张表!', { icon: 2 });
+        layer.msg(pt('请至少选择一张表!'), { icon: 2 });
         return false;
     }
     return dbs;
@@ -1944,7 +1944,7 @@ function getFullSyncStatus(db){
         var rsource = rdata.data;
 
         if (db == 'ALL' && rsource.length>1){
-            layer.msg("多主不支持该模式!",{icon:2});
+            layer.msg(pt("多主不支持该模式!"),{icon:2});
             return;
         }
 
@@ -1965,7 +1965,7 @@ function getFullSyncStatus(db){
 
         layer.open({
             type: 1,
-            title: '全量同步['+db+']',
+            title: pt('全量同步[')+db+']',
             area: '500px',
             content:"<div class='bt-form pd15'>\
                      <div class='divtable mtb10'>\
@@ -1998,13 +1998,13 @@ function getFullSyncStatus(db){
                         $(this).data('status','starting');
                         $('#begin_full_sync').text("同步中");
                     } else {
-                        layer.msg("正在同步中..",{icon:0});
+                        layer.msg(pt("正在同步中.."),{icon:0});
                     }
                 });
 
                 $('#full_sync_cmd').on('click', function(){
                     api.postSilent('full_sync_cmd', {'db':db,'sign':''}, function(rdata){
-                        var rdata = JSON.parse(rdata.data);
+                        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                         layer.open({
                             title:  pt("手动执行命令CMD"),
                             area: ['600px', '180px'],
@@ -2053,7 +2053,7 @@ function dataSyncVerify(db){
 
     function requestLogs(layerIndex){
         api.postSilent('sync_database_repair_log', {db:db, sign:'',op:'get'}, function(rdata){
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 
             if(!rdata.status) {
                 layer.close(layerIndex);
@@ -2075,7 +2075,7 @@ function dataSyncVerify(db){
 
     layer.open({
         type: 1,
-        title: '同步数据库['+db+']数据校验',
+        title: pt('同步数据库[')+db+']数据校验',
         area: '500px',
         btn:[ "开始","取消","手动"],
         content:"<div class='bt-form'>\
@@ -2099,7 +2099,7 @@ function dataSyncVerify(db){
         },
         btn3: function(){
             api.postSilent('sync_database_repair_log', {db:db, sign:'',op:'cmd'}, function(rdata){
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 layer.open({
                 title:  pt("手动执行命令CMD"),
                     area: ['600px', '180px'],
@@ -2130,7 +2130,7 @@ function addSlaveSSH(ip=''){
 
     api.post('get_slave_ssh_by_ip', {ip:ip}, function(rdata){
         
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 
         var ip = '127.0.0.1';
         var port = "22";
@@ -2189,7 +2189,7 @@ function addSlaveSSH(ip=''){
 
 function delSlaveSSH(ip){
     api.post('del_slave_ssh', {ip:ip}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         showMsg(rdata.msg,function(){
             if (rdata.status){
                 getSlaveSSHPage();
@@ -2201,7 +2201,7 @@ function delSlaveSSH(ip){
 
 function delSlaveSyncUser(ip){
     api.post('del_slave_sync_user', {ip:ip}, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         showMsg(rdata.msg,function(){
             if (rdata.status){
                 getSlaveSyncUserPage();
@@ -2261,7 +2261,7 @@ function addSlaveSyncUser(ip=''){
 
     api.post('get_slave_sync_user_by_ip', {ip:ip}, function(rdata){
         
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
 
         var ip = '127.0.0.1';
         var port = "22";
@@ -2849,7 +2849,7 @@ function masterOrSlaveConf(version=''){
 
     function getMasterStatus(){
         api.post('get_master_status', '', function(rdata){
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             // console.log('mode:',rdata.data);
             if ( typeof(rdata.status) != 'undefined' && !rdata.status && rdata.data == 'pwd'){
                 layer.msg(rdata.msg, {icon:2});

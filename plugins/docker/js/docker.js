@@ -27,7 +27,7 @@ function dockerTableEmptyHtml(colspan, text) {
 
 function logsCon(id) {
     api.post('docker_con_log', '', { Hostname: id }, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2 });
             return;
@@ -55,7 +55,7 @@ function deleteCon(Hostname) {
     // 删除容器
     safeMessage(pt('删除容器 '), '删除容器 [' + Hostname + '], 确定?', function() {
         api.post('docker_remove_con', '', { Hostname: Hostname }, function(rdata) {
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             showMsg(rdata.msg, function() {
                 if (rdata.status) {
                     dockerConListRender();
@@ -68,7 +68,7 @@ function deleteCon(Hostname) {
 
 function startCon(Hostname) {
     api.post('docker_run_con', '', { Hostname: Hostname }, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         showMsg(rdata.msg, function() {
             if (rdata.status) {
                 dockerConListRender();
@@ -79,7 +79,7 @@ function startCon(Hostname) {
 
 function stopCon(Hostname) {
     api.post('docker_stop_con', '', { Hostname: Hostname }, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         showMsg(rdata.msg, function() {
             if (rdata.status) {
                 dockerConListRender();
@@ -200,7 +200,7 @@ function dockerConListRender(isRefresh) {
 function createConTemplate() {
 
     api.post('get_docker_create_info', '', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         // console.log(rdata);
         var rdata = rdata.data;
         var imageOpt = '';
@@ -308,7 +308,7 @@ function createConTemplate() {
                     var name1 = $(".type-port input[name='name1']").val();
                     var name2 = $(".type-port input[name='name2']").val();
                     if (name1 < 1 || name1 > 65535 || name2 < 1 || name2 > 65535 || isNaN(name1) || isNaN(name2)) {
-                        layer.msg('端口设置值范围无效，范围 [1-65535]', { icon: 2 });
+                        layer.msg(pt('端口设置值范围无效，范围 [1-65535]'), { icon: 2 });
                         return;
                     }
 
@@ -317,7 +317,7 @@ function createConTemplate() {
                         if (portval[i].children[0].innerText == '当前未添加端口映射') continue;
                         var sport = portval[i].children[2].innerText;
                         if (name2 == sport) {
-                            layer.msg('端口 [' + name2 + '] 已在映射列表中!', { icon: 2 });
+                            layer.msg(pt('端口') + ' [' + name2 + '] 已在映射列表中!', { icon: 2 });
                             return;
                         }
                     }
@@ -326,12 +326,12 @@ function createConTemplate() {
                         address = '*';
                     }
                     var port = address + ':' + name2;
-                    var loadT = layer.msg('正在检测中... <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
+                    var loadT = layer.msg(pt('正在检测中...') + ' <img src="/static/img/ing.gif">', { icon: 16, time: 0, shade: [0.3, "#000"] });
                     api.post('docker_port_check', '',{port:port}, function(rdata){
                         layer.close(loadT);
-                        var rdata = JSON.parse(rdata.data);
+                        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                         if (rdata.status){
-                            layer.msg('端口 [' + name2 + ']已在映射列表中！', { icon: 2 });
+                            layer.msg(pt('端口') + ' [' + name2 + '] ' + pt('已在映射列表中！'), { icon: 2 });
                             return;
                         }
                 
@@ -367,7 +367,7 @@ function createConTemplate() {
                         if (portval[i].children[0].innerText == '当前未添加目录映射') continue;
                         var sport = portval[i].children[2].innerText;
                         if (path2 == sport) {
-                            layer.msg('目录 [' + path2 + '] 已在映射列表中!', { icon: 2 });
+                            layer.msg(pt('目录') + ' [' + path2 + '] 已在映射列表中!', { icon: 2 });
                             return;
                         }
                     }
@@ -450,7 +450,7 @@ function createConTemplate() {
                 }
 
                 if (data.mem_limit > rdata.memSize) {
-                    layer.msg('内存配额不能大于物理内存 [' + rdata.memSize + ']!', { icon: 2 });
+                    layer.msg(pt('内存配额不能大于物理内存') + ' [' + rdata.memSize + ']!', { icon: 2 });
                     return;
                 }
 
@@ -461,7 +461,7 @@ function createConTemplate() {
 
                 // console.log(data);
                 api.post('docker_create_con','', data, function(rdata){
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     showMsg(rdata.msg,function(){
                         if(rdata.status) {
                             layer.close(layer_index);
@@ -501,7 +501,7 @@ function dockerConList() {
 function deleteImages(tag, id) {
     safeMessage(pt('删除镜像'), '删除镜像[' + tag + '],确定？', function() {
         api.post('docker_remove_image', '', { imageId: id, repoTags: tag }, function(rdata) {
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             showMsg(rdata.msg, function() {
                 if (rdata.status) {
                     dockerImageListRender();
@@ -513,7 +513,7 @@ function deleteImages(tag, id) {
 
 function pullImages(tag, id) {
     console.log(tag, id);
-    layer.msg('开发中!', { icon: 2 });
+    layer.msg(pt('开发中!'), { icon: 2 });
 }
 
 function dockerImageListRender(isRefresh) {
@@ -639,14 +639,14 @@ function dockerPullImagesFileTemplate() {
                         $('.official_pull_btn').on('click', function() {
                 var name = $('[name="official_pull_name"]').val();
                 if (name == '') {
-                    layer.msg('镜像名不能为空!');
+                    layer.msg(pt('镜像名不能为空!'));
                     return;
                 }
 
                 var use_fallback = localStorage.getItem('docker_auto_fallback_pull') !== 'false';
 
                 if (!use_fallback) {
-                    var loadT = layer.msg('正在将拉取任务加入消息盒子...', { icon: 16, time: 0, shade: 0.3 });
+                    var loadT = layer.msg(pt('正在将拉取任务加入消息盒子...'), { icon: 16, time: 0, shade: 0.3 });
                     api.post('docker_pull_with_mirror', '', { images: name, mirrors: JSON.stringify([""]) }, function(rdata) {
                         layer.close(loadT);
                         var res = {status: false, msg: 'Unknown'};
@@ -662,7 +662,7 @@ function dockerPullImagesFileTemplate() {
                     return;
                 }
 
-                var loadT = layer.msg('正在准备拉取...', { icon: 16, time: 0, shade: 0.3 });
+                var loadT = layer.msg(pt('正在准备拉取...'), { icon: 16, time: 0, shade: 0.3 });
                 api.post('get_accelerator', '', {}, function(rdata) {
                     var res = {data: []};
                     try { res = JSON.parse(rdata.data); } catch(e) {}
@@ -692,7 +692,7 @@ function dockerPullImagesFileTemplate() {
                         allMirrors.push(''); 
                     }
 
-                    layer.msg('正在将拉取任务加入消息盒子...', { icon: 16, time: 0, shade: 0.3 });
+                    layer.msg(pt('正在将拉取任务加入消息盒子...'), { icon: 16, time: 0, shade: 0.3 });
                     api.post('docker_pull_with_mirror', '', { images: name, mirrors: JSON.stringify(allMirrors) }, function(rdata) {
                         layer.closeAll('dialog');
                         var pullRes = {status: false, msg: 'Unknown'};
@@ -717,7 +717,7 @@ function dockerPullImagesFileTemplate() {
                 }
 
                 api.post('docker_pull_reg', '', { path: path }, function(rdata) {
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     showMsg(rdata.msg, function() {
                         if (rdata.status) {
                             layer.close(layer_index);
@@ -729,12 +729,12 @@ function dockerPullImagesFileTemplate() {
             $('.private_pull_btn').on('click', function() {
                 var path = $('[name="private_pull_path"]').val();
                 if (path == '') {
-                    layer.msg('专用镜像地址不能为空!');
+                    layer.msg(pt('专用镜像地址不能为空!'));
                     return
                 }
 
                 api.post('docker_pull_private_new', '', { path: path }, function(rdata) {
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     showMsg(rdata.msg, function() {
                         if (rdata.status) {
                             layer.close(layer_index);
@@ -782,7 +782,7 @@ function dockerGetFileBytes(fileName) {
 //删除文件
 function dockerDeleteFile(fileName) {
     layer.confirm(lan.get('recycle_bin_confirm', [fileName]), { title:  pt('删除文件'), closeBtn: 2, icon: 3 }, function() {
-        layer.msg('正在处理,请稍候...', { icon: 16, time: 0, shade: [0.3, '#000'] });
+        layer.msg(pt('正在处理,请稍候...'), { icon: 16, time: 0, shade: [0.3, '#000'] });
         $.post('/files/delete', 'path=' + encodeURIComponent(fileName), function(rdata) {
             showMsg(rdata.msg, function() {
                 dockerImageOutputRender();
@@ -793,7 +793,7 @@ function dockerDeleteFile(fileName) {
 
 function dockerLoadFile(fileName) {
     api.post('image_pick_load', '', { file: fileName }, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         showMsg(rdata.msg, function() {
             dockerImageOutputRender();
         }, { icon: rdata.status ? 1 : 2 });
@@ -802,7 +802,7 @@ function dockerLoadFile(fileName) {
 
 function dockerImageOutputRender() {
     api.post('image_pick_list', '', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 10000 });
             return;
@@ -836,7 +836,7 @@ function uploadImageFiles(upload_dir) {
     var image_layer = layer.open({
         type: 1,
         closeBtn: 1,
-        title: "上传导入文件[" + upload_dir + ']',
+        title: pt("上传导入文件[") + upload_dir + ']',
         area: ['500px', '300px'],
         shadeClose: false,
         content: '<div class="fileUploadDiv">\
@@ -864,7 +864,7 @@ function uploadImageFiles(upload_dir) {
 
     });
     uploadStart(function() {
-        showMsg('上传成功!', function() {
+        showMsg(pt('上传成功!'), function() {
             dockerImageOutputRender();
             layer.close(image_layer);
         }, { icon: 1, time: 2000 });
@@ -874,7 +874,7 @@ function uploadImageFiles(upload_dir) {
 function dockerImagePick() {
 
     api.post('image_list', '', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         var imageList = rdata.data;
         // console.log(imageList);
         var _tbody = '';
@@ -979,7 +979,7 @@ function dockerImageOutput() {
 function deleteIpList(address) {
     safeMessage(pt('删除IP'), '你将删除从IP地址池[' + address + '],确定？', function() {
         api.post('docker_del_ip', '', { address: address }, function(rdata) {
-            var rdata = JSON.parse(rdata.data);
+            var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
             showMsg(rdata.msg, function() {
                 if (rdata.status) {
                     dockerIpListRender();
@@ -991,7 +991,7 @@ function deleteIpList(address) {
 
 function dockerIpListRender() {
     api.post('docker_get_iplist', '', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         // console.log(rdata);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
@@ -1024,7 +1024,7 @@ function dockerAddIpPool() {
     var netmask = $('input[name="netmask"]').val();
     var gateway = $('input[name="gateway"]').val();
     api.post('docker_add_ip', '', { address: address, netmask: netmask, gateway: gateway }, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         showMsg(rdata.msg, function() {
             dockerIpListRender();
         }, { icon: rdata.status ? 1 : 2 })
@@ -1117,7 +1117,7 @@ function repoLogin() {
 
                 console.log(obj);
                 api.post('docker_login', '', args, function(rdata) {
-                    var rdata = JSON.parse(rdata.data);
+                    var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                     console.log(rdata);
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                     if (res.status) {
@@ -1136,7 +1136,7 @@ function delRepo(address) {
     safeMessage(pt('退出'), '你将退出 [' + address + '],确定?', function() {
         api.post('docker_logout', '', { registry: address },
             function(rdata) {
-                var rdata = JSON.parse(rdata.data);
+                var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
                 layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                 if (rdata.status) {
                     repoListRender();
@@ -1149,7 +1149,7 @@ function delRepo(address) {
 
 function repoListRender() {
     api.post('repo_list', '', {}, function(rdata) {
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         console.log(rdata);
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 2000 });
@@ -1208,7 +1208,7 @@ function repoList() {
 function dockerAccelerator() {
     $('.bt-w-menu p').removeClass('bgw');
     $('.bt-w-menu p:eq(5)').addClass('bgw');
-    var loadT = layer.msg('正在获取加速器配置...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取加速器配置...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('get_accelerator', '', {}, function(rdata) {
         layer.close(loadT);
         var res = {data: []};
@@ -1281,7 +1281,7 @@ function saveDockerAccelerator() {
             var line = lines[i].trim();
             if (line) {
                 if (!line.startsWith('http')) {
-                    layer.msg('无效的 URL: ' + line, {icon: 2});
+                    layer.msg(pt('无效的 URL: ') + ' ' + line, {icon: 2});
                     return;
                 }
                 mirrors.push(line);
@@ -1289,7 +1289,7 @@ function saveDockerAccelerator() {
         }
     }
     
-    var loadT = layer.msg('正在写入配置并重启 Docker 服务，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在写入配置并重启 Docker 服务，请稍候...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('set_accelerator', '', { mirrors: JSON.stringify(mirrors) }, function(rdata) {
         layer.close(loadT);
         var res = {status: false, msg: '配置保存失败'};
@@ -1422,7 +1422,7 @@ function conDetails(id) {
 
     layer.open({
         type: 1,
-        title: '容器详情 [' + con.Name.substring(1) + ']',
+        title: pt('容器详情 [') + con.Name.substring(1) + ']',
         area: ['600px', '850px'],
         closeBtn: 1,
         shadeClose: false,
@@ -1461,10 +1461,10 @@ function dockerDir() {
 }
 
 function dockerDirRender() {
-    var loadT = layer.msg('正在获取数据...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在获取数据...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('get_docker_dir_info', '', {}, function(rdata) {
         layer.close(loadT);
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (rdata.status) {
             var d = rdata.data;
             var tbody = '<tr>\
@@ -1499,10 +1499,10 @@ function dockerMigrate() {
         return;
     }
     
-    var checkT = layer.msg('正在校验目标分区可用空间，请稍候...', { icon: 16, time: 0, shade: 0.3 });
+    var checkT = layer.msg(pt('正在校验目标分区可用空间，请稍候...'), { icon: 16, time: 0, shade: 0.3 });
     api.post('check_docker_migrate_space', '', { new_path: new_path }, function(rdata) {
         layer.close(checkT);
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         if (!rdata.status) {
             layer.msg(rdata.msg, { icon: 2, time: 5000 });
             return;
@@ -1513,7 +1513,7 @@ function dockerMigrate() {
         var msg = '当前Docker占用总空间为 <b>' + req + '</b>' + pt('，目标目录可用空间为') + ' <b>' + avail + '</b>。<br><br>' + pt('迁移过程会停止 Docker 服务，并且可能需要较长时间（取决于数据量大小），确认要开始迁移到') + ' ' + new_path + ' 吗？';
         
         safeMessage(pt('确认迁移 Docker 目录'), msg, function() {
-            var loadT = layer.msg('正在迁移数据，这可能需要很长时间，请勿刷新页面...', { icon: 16, time: 0, shade: 0.3 });
+            var loadT = layer.msg(pt('正在迁移数据，这可能需要很长时间，请勿刷新页面...'), { icon: 16, time: 0, shade: 0.3 });
             api.post('migrate_docker_dir', '', { new_path: new_path }, function(rdata2) {
                 layer.close(loadT);
                 var rdata2 = JSON.parse(rdata2.data);

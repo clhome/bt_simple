@@ -148,7 +148,7 @@ function submitSwap(){
     }
 
     // 启用全屏不可关闭的强阻断 Layer 遮罩，极佳地引导大容量虚拟内存创建过程
-    var loadT = layer.msg('系统正在安全创建并格式化 ' + size + 'MB 虚拟内存文件...<br><span style="font-size:11px; color:#ff8c00;">' + pt('大容量配置（如4G/8G）由于磁盘高负载写入需要 5-30 秒，请勿刷新或关闭页面！') + '</span>', {
+    var loadT = layer.msg(pt('系统正在安全创建并格式化') + ' ' + size + ' ' + pt('MB 虚拟内存文件...') + '<br><span style="font-size:11px; color:#ff8c00;">' + pt('大容量配置（如4G/8G）由于磁盘高负载写入需要 5-30 秒，请勿刷新或关闭页面！') + '</span>', {
         icon: 16,
         time: 0,
         shade: [0.5, '#000']

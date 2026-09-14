@@ -54,7 +54,7 @@ function orPluginOpService(a, b, v,request_callback) {
         api.post('get_os',{},function(data){
             var rdata = JSON.parse(data.data);
             if (!rdata['auth']){
-                layer.prompt({title: '检查到权限不足,需要输入密码!', formType: 1},function(pwd, index){
+                layer.prompt({title: pt('检查到权限不足,需要输入密码!'), formType: 1},function(pwd, index){
                 
                     layer.close(index);
                     var data = {'pwd':pwd};
@@ -103,7 +103,7 @@ function orPluginOpServiceOp(a,b,c,d,_a,v,request_callback){
 
     },'json').fail(function() {
         layer.close(e);
-        layer.msg('操作异常!', {icon: 2});
+        layer.msg(pt('操作异常!'), {icon: 2});
     });
 }
 
@@ -235,7 +235,7 @@ function submitConf() {
 
     // console.log(data);
     api.post('set_cfg', data, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });

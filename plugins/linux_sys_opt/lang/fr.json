@@ -1,6 +1,4 @@
 {
-    " (当前值未达标)": " (La valeur actuelle n'atteint pas le seuil requis)",
-    " (当前未设置)": " (Non défini pour le moment)",
     "(当前值未达标)": "(La valeur actuelle n'atteint pas la norme)",
     "(当前未设置)": "(Non défini pour le moment)",
     "* 本插件执行的优化符合绝大部分高性能 Web 及高并发 DB 场景，安全可靠，可放心一键套用。": "* L'optimisation effectuée par ce plug-in est conforme à la plupart des scénarios de bases de données Web hautes performances et à haute concurrence. Il est sûr et fiable et peut être appliqué en un seul clic.",

@@ -54,7 +54,7 @@ function orPluginOpService(a, b, v,request_callback) {
         api.post('get_os',{},function(data){
             var rdata = JSON.parse(data.data);
             if (!rdata['auth']){
-                layer.prompt({title: '检查到权限不足,需要输入密码!', formType: 1},function(pwd, index){
+                layer.prompt({title: pt('检查到权限不足,需要输入密码!'), formType: 1},function(pwd, index){
                 
                     layer.close(index);
                     var data = {'pwd':pwd};
@@ -103,14 +103,14 @@ function orPluginOpServiceOp(a,b,c,d,_a,v,request_callback){
 
     },'json').fail(function() {
         layer.close(e);
-        layer.msg('操作异常!', {icon: 2});
+        layer.msg(pt('操作异常!'), {icon: 2});
     });
 }
 
 
 //查看Nginx负载状态
 function getOpStatus() {
-    var loadT = layer.msg('正在处理，请稍后...', { icon: 16, time: 0, shade: 0.3 });
+    var loadT = layer.msg(pt('正在处理，请稍后...'), { icon: 16, time: 0, shade: 0.3 });
     $.post('/plugins/run', {name:'openresty', func:'run_info'}, function(data) {
         layer.close(loadT); 
         try {
@@ -195,7 +195,7 @@ function submitConf() {
 
     // console.log(data);
     api.post('set_cfg', data, function(rdata){
-        var rdata = JSON.parse(rdata.data);
+        var rdata = typeof rdata.data === "string" ? JSON.parse(rdata.data) : rdata.data;
         // console.log(rdata);
         layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
     });
