@@ -83,7 +83,7 @@ var pt = (window.YfI18n && typeof window.YfI18n.createPluginTranslator === 'func
     ? window.YfI18n.createPluginTranslator('linux_sys_opt') 
     : function(k) { return k; };
 
-resetPluginWinWidth(850);
+resetPluginWinWidth(1050);
 resetPluginWinHeight(650);
 
 function sysOptPost(method, args, callback) {
@@ -211,9 +211,9 @@ function optStatus() {
         var mem = parseInt(data.mem_mb) || 2048;
         var memGB = (mem / 1024).toFixed(1);
         var con = `<div class="p-3">
-            <div style="margin-bottom: 15px; display: flex; align-items: baseline;">
-                <h3 style="margin: 0; display: inline-block;">${pt('内核与并发参数状态')}</h3>
-                <span style="margin-left: 15px; font-size: 13px; color: #666;">
+            <div style="margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap;">
+                <h3 style="margin: 0; font-size: 17px; font-weight: bold; white-space: nowrap; flex-shrink: 0;">${pt('内核与并发参数状态')}</h3>
+                <span style="font-size: 13px; color: #666; white-space: nowrap;">
                     ${pt('当前内存为：')}<b style="color:#f39c12; font-size: 14px;">${memGB}GB</b>${pt('，优化脚本会')}<span style="color:#20a53a; font-weight:bold;">${pt('自动匹配')}</span>${pt('不同内存阶梯配置')}
                 </span>
             </div>
@@ -221,32 +221,32 @@ function optStatus() {
                 <table class="table table-hover table-bordered" style="font-size: 13px; white-space: nowrap; table-layout: fixed; width: 100%; margin: 0; border: none;">
                     <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 1;">
                         <tr>
-                            <th width="28%" style="border-top: none;">${pt('参数名')}</th>
-                            <th width="35%" style="border-top: none;">${pt('作用描述')}</th>
-                            <th width="25%" style="border-top: none;">${pt('当前值')}</th>
+                            <th width="30%" style="border-top: none;">${pt('参数名')}</th>
+                            <th width="40%" style="border-top: none;">${pt('作用描述')}</th>
+                            <th width="18%" style="border-top: none;">${pt('当前值')}</th>
                             <th width="12%" style="text-align:center; border-top: none;">${pt('评分')}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>vm.swappiness</td><td>${pt('优先使用物理内存')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_swappiness}">${data.vm_swappiness}</td>${getScoreTD('vm_swappiness', data.vm_swappiness)}</tr>
-                        <tr><td>vm.dirty_background_ratio</td><td>${pt('平滑刷盘，防止IO卡顿')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_background_ratio}">${data.vm_dirty_background_ratio}</td>${getScoreTD('vm_dirty_background_ratio', data.vm_dirty_background_ratio)}</tr>
-                        <tr><td>vm.dirty_ratio</td><td>${pt('限制脏页比例上限')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_dirty_ratio}">${data.vm_dirty_ratio}</td>${getScoreTD('vm_dirty_ratio', data.vm_dirty_ratio)}</tr>
-                        <tr><td>net.core.somaxconn</td><td>${pt('TCP监听队列上限')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_core_somaxconn}">${data.net_core_somaxconn}</td>${getScoreTD('net_core_somaxconn', data.net_core_somaxconn)}</tr>
-                        <tr><td>vm.max_map_count</td><td>${pt('最大VMA数量')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.vm_max_map_count}">${data.vm_max_map_count}</td>${getScoreTD('vm_max_map_count', data.vm_max_map_count)}</tr>
-                        <tr><td>fs.file-max</td><td>${pt('系统最大文件描述符')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.fs_file_max}">${formatLargeNumber(data.fs_file_max)}</td>${getScoreTD('fs_file_max', data.fs_file_max)}</tr>
-                        <tr><td>net.ipv4.tcp_tw_reuse</td><td>${pt('TIME-WAIT socket 复用')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_tw_reuse}">${data.net_ipv4_tcp_tw_reuse}</td>${getScoreTD('net_ipv4_tcp_tw_reuse', data.net_ipv4_tcp_tw_reuse)}</tr>
-                        <tr><td>net.ipv4.ip_local_port_range</td><td>${pt('外连端口范围')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_ip_local_port_range}">${data.net_ipv4_ip_local_port_range}</td>${getScoreTD('net_ipv4_ip_local_port_range', data.net_ipv4_ip_local_port_range)}</tr>
-                        <tr><td>net.ipv4.tcp_max_syn_backlog</td><td>${pt('SYN backlog 大小')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_syn_backlog}">${data.net_ipv4_tcp_max_syn_backlog}</td>${getScoreTD('net_ipv4_tcp_max_syn_backlog', data.net_ipv4_tcp_max_syn_backlog)}</tr>
-                        <tr><td>net.ipv4.tcp_max_tw_buckets</td><td>${pt('TIME_WAIT 保持上限')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.net_ipv4_tcp_max_tw_buckets}">${data.net_ipv4_tcp_max_tw_buckets}</td>${getScoreTD('net_ipv4_tcp_max_tw_buckets', data.net_ipv4_tcp_max_tw_buckets)}</tr>
-                        <tr><td>${pt('THP (透明巨页)')}</td><td>${pt('开启可能导致数据库卡顿')}</td><td style="overflow: hidden; text-overflow: ellipsis;" title="${data.thp_enabled}">${data.thp_enabled}</td>${getScoreTD('thp_enabled', data.thp_enabled)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="vm.swappiness">vm.swappiness</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('优先使用物理内存')}">${pt('优先使用物理内存')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.vm_swappiness}">${data.vm_swappiness}</td>${getScoreTD('vm_swappiness', data.vm_swappiness)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="vm.dirty_background_ratio">vm.dirty_background_ratio</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('平滑刷盘，防止IO卡顿')}">${pt('平滑刷盘，防止IO卡顿')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.vm_dirty_background_ratio}">${data.vm_dirty_background_ratio}</td>${getScoreTD('vm_dirty_background_ratio', data.vm_dirty_background_ratio)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="vm.dirty_ratio">vm.dirty_ratio</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('限制脏页比例上限')}">${pt('限制脏页比例上限')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.vm_dirty_ratio}">${data.vm_dirty_ratio}</td>${getScoreTD('vm_dirty_ratio', data.vm_dirty_ratio)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="net.core.somaxconn">net.core.somaxconn</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('TCP监听队列上限')}">${pt('TCP监听队列上限')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.net_core_somaxconn}">${data.net_core_somaxconn}</td>${getScoreTD('net_core_somaxconn', data.net_core_somaxconn)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="vm.max_map_count">vm.max_map_count</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('最大VMA数量')}">${pt('最大VMA数量')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.vm_max_map_count}">${data.vm_max_map_count}</td>${getScoreTD('vm_max_map_count', data.vm_max_map_count)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="fs.file-max">fs.file-max</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('系统最大文件描述符')}">${pt('系统最大文件描述符')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.fs_file_max}">${formatLargeNumber(data.fs_file_max)}</td>${getScoreTD('fs_file_max', data.fs_file_max)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="net.ipv4.tcp_tw_reuse">net.ipv4.tcp_tw_reuse</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('TIME-WAIT socket 复用')}">${pt('TIME-WAIT socket 复用')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.net_ipv4_tcp_tw_reuse}">${data.net_ipv4_tcp_tw_reuse}</td>${getScoreTD('net_ipv4_tcp_tw_reuse', data.net_ipv4_tcp_tw_reuse)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="net.ipv4.ip_local_port_range">net.ipv4.ip_local_port_range</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('外连端口范围')}">${pt('外连端口范围')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.net_ipv4_ip_local_port_range}">${data.net_ipv4_ip_local_port_range}</td>${getScoreTD('net_ipv4_ip_local_port_range', data.net_ipv4_ip_local_port_range)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="net.ipv4.tcp_max_syn_backlog">net.ipv4.tcp_max_syn_backlog</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('SYN backlog 大小')}">${pt('SYN backlog 大小')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.net_ipv4_tcp_max_syn_backlog}">${data.net_ipv4_tcp_max_syn_backlog}</td>${getScoreTD('net_ipv4_tcp_max_syn_backlog', data.net_ipv4_tcp_max_syn_backlog)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="net.ipv4.tcp_max_tw_buckets">net.ipv4.tcp_max_tw_buckets</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('TIME_WAIT 保持上限')}">${pt('TIME_WAIT 保持上限')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.net_ipv4_tcp_max_tw_buckets}">${data.net_ipv4_tcp_max_tw_buckets}</td>${getScoreTD('net_ipv4_tcp_max_tw_buckets', data.net_ipv4_tcp_max_tw_buckets)}</tr>
+                        <tr><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('THP (透明巨页)')}">${pt('THP (透明巨页)')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${pt('开启可能导致数据库卡顿')}">${pt('开启可能导致数据库卡顿')}</td><td style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${data.thp_enabled}">${data.thp_enabled}</td>${getScoreTD('thp_enabled', data.thp_enabled)}</tr>
                     </tbody>
                 </table>
             </div>
-            <div style="margin-top: 15px; text-align: center; position: relative;">
-                <button class="btn btn-success btn-sm" onclick="applyOpt()" style="padding: 5px 25px; font-size: 14px;">${pt('一键全局优化')}</button>
-                <div style="position: absolute; right: 0; bottom: 0; font-size: 12px; color: #bbb; pointer-events: none;">
-                    ${pt('衢州御风科技有限公司出品')}
-                </div>
+            <div style="margin-top: 18px; text-align: center;">
+                <button class="btn btn-success btn-sm" onclick="applyOpt()" style="padding: 6px 32px; font-size: 14px; font-weight: 500; border-radius: 4px; box-shadow: 0 2px 4px rgba(32, 165, 58, 0.15);">${pt('一键全局优化')}</button>
+            </div>
+            <div style="text-align: right; margin-top: 15px; font-size: 12px; color: #bbb; pointer-events: none; padding-right: 5px;">
+                ${pt('衢州御风科技有限公司出品')}
             </div>
         </div>`;
         $('.soft-man-con').html(con);
@@ -254,12 +254,12 @@ function optStatus() {
             window.YfI18n.translatePluginDOM($('.soft-man-con'), 'linux_sys_opt');
         }
 
-        // 尝试自动拉宽所在的 layui-layer 弹窗，提供更好的视觉体验
+        // 尝试自动拉宽所在的 layui-layer 弹窗，提供更宽敞舒适的视觉体验
         var layuiLayer = $('.soft-man-con').closest('.layui-layer');
-        if(layuiLayer.length > 0 && layuiLayer.width() < 850) {
-            layuiLayer.css('width', '850px');
+        if(layuiLayer.length > 0 && layuiLayer.width() < 1050) {
+            layuiLayer.css('width', '1050px');
             // 保持居中
-            var left = ($(window).width() - 850) / 2;
+            var left = Math.max(0, ($(window).width() - 1050) / 2);
             layuiLayer.css('left', left + 'px');
         }
     });
@@ -298,8 +298,8 @@ function applyOpt() {
 function readme() {
     $('.bgw').removeClass('bgw');
     $('.bt-w-menu p:eq(1)').addClass('bgw');
-    var con = `<div class="p-3" style="height: 480px; position: relative; background: #f8f9fa; border-radius: 4px;">
-        <div style="height: 100%; overflow-y: auto; padding-right: 10px;">
+    var con = `<div class="p-3" style="height: 520px; display: flex; flex-direction: column; background: #f8f9fa; border-radius: 6px; box-sizing: border-box; padding: 15px 15px 10px 15px;">
+        <div style="flex: 1; overflow-y: auto; padding-right: 10px;">
             <div style="background: #fff; padding: 25px 25px 20px 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); line-height: 1.8; font-size: 14px;">
                 <h3 style="margin-bottom: 20px; margin-top: 0; color: #333; border-bottom: 2px solid #20a53a; padding-bottom: 10px; display: inline-block;">
                     <span style="font-size: 18px; color: #20a53a; margin-right: 5px;">🚀</span>${pt('御风 Linux 核心引擎优化')}
@@ -324,10 +324,10 @@ function readme() {
                     <i>${pt('* 本插件执行的优化符合绝大部分高性能 Web 及高并发 DB 场景，安全可靠，可放心一键套用。')}</i>
                 </div>
             </div>
-            
-            <div style="text-align: right; margin-top: 15px; padding-right: 10px; font-size: 12px; color: #bbb; pointer-events: none;">
-                ${pt('衢州御风科技有限公司出品')}
-            </div>
+        </div>
+        
+        <div style="text-align: right; padding-top: 10px; padding-bottom: 2px; padding-right: 10px; font-size: 12px; color: #bbb; flex-shrink: 0; pointer-events: none;">
+            ${pt('衢州御风科技有限公司出品')}
         </div>
     </div>`;
     $('.soft-man-con').html(con);

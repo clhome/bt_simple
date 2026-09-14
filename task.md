@@ -755,3 +755,11 @@
 - [x] 354. 补全与对齐各插件 6 国语言包（`lang/*.json`：zh-CN, zh-TW, en, fr, de, it），确保所有还原的提示语句在 6 国语言下均有地道译文。
 - [x] 355. 编写自动化回归测试套件（`test/test_plugin_hash_reversion_and_i18n.py`），验证全库 `k_` 残留严格为 0、Python 静态语法 0 报错、多语言动态翻译 100% 命中。
 - [x] 356. 清理阶段性临时排查工具，输出 Walkthrough。
+
+## Linux系统优化插件（linux_sys_opt）弹窗宽度与底部信息排版优化
+
+- [x] 357. 调整弹窗宽度与表格列宽（`plugins/linux_sys_opt/index.html`）：将窗口宽度拓宽至 1050px（`resetPluginWinWidth(1050)` 与 layuiLayer 居中适配），科学调优四列比例（30%、40%、18%、12%），增加文本溢出省略号与 title 悬浮提示，彻底消除英文长词重叠穿透与标题折行。
+- [x] 358. 重构“优化状态”底部布局（`plugins/linux_sys_opt/index.html`）：解除一键优化按钮与公司信息的同一行定位绑定，按钮独立居中展示，公司信息另起一行放置在界面最底部。
+- [x] 359. 重构“插件说明”底部布局（`plugins/linux_sys_opt/index.html`）：采用 Flex 纵向弹性盒布局，说明卡片支持内部上下平滑滚动，公司信息使用 `flex-shrink: 0` 稳稳固定在界面最底部。
+- [x] 360. 编写专项自动化回归测试套件（`test/test_linux_sys_opt_ui.py`），验证弹窗宽度、列宽比例、换行分层、固定底部与 6 国语言文案完整性，验收通过后清理临时文件并输出 Walkthrough。
+
